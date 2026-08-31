@@ -33,6 +33,7 @@ import {
   type Presence,
   type PresenceInput,
 } from "@/lib/presence/character";
+import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 
 /** Chip-family face per state. Literal strings, one pair each, never mixed. */
 const MARK_FACE: Record<CharacterState, string> = {
@@ -185,6 +186,22 @@ export function CharacterMark({
   /** The teammate's name, for the screen reader, when this is not Supa alone. */
   label?: string | null;
 }) {
+  /*
+   * ── THE ONE ANIMATION THAT NEVER STOPS ON ITS OWN ──────────────────────
+   * Four of these states run `mrd-attention ... infinite`, and they are the four
+   * a person watching a run looks at most. meridian.css:2087 catches it through
+   * `[style*="mrd-attention"]`, but only under
+   * `@media (prefers-reduced-motion: reduce)`: `data-motion` appears NOWHERE in
+   * `src/styles/`, so the product's own motion toggle never reached this and the
+   * mark pulsed forever for somebody who had just switched motion off.
+   *
+   * Dropping the animation lands exactly where the CSS stop lands. `mrd-attention`
+   * is `0%, 100% { opacity: 1 }`, and this mark sets no resting opacity, so both
+   * routes leave it at 1. That is the check meridian.css's own header says was
+   * skipped for the pixel lattice, whose cells carry an inline `opacity: 0.15`
+   * and parked at 1.19:1 contrast; this element carries none, so it is safe.
+   */
+  const reducedMotion = usePrefersReducedMotion();
   return (
     <span
       data-mrd=""
@@ -195,10 +212,12 @@ export function CharacterMark({
       style={{
         width: size,
         height: size,
-        animation: MARK_MOTION[state],
+        animation: reducedMotion ? undefined : MARK_MOTION[state],
         /* Inline beats the face classes, so the tint replaces the shared chip
            colour while the state's own motion is untouched. */
-        ...(hue ? { backgroundColor: `color-mix(in oklch, ${hue} 20%, transparent)`, color: hue } : null),
+        ...(hue
+          ? { backgroundColor: `color-mix(in oklch, ${hue} 20%, transparent)`, color: hue }
+          : null),
       }}
     >
       <svg width="60%" height="60%" viewBox="0 0 24 24" aria-hidden="true">

@@ -1,4 +1,5 @@
 import { holdTone } from "@/lib/spine/driver";
+import { nothingIsComing } from "@/components/track/nothing-is-coming";
 
 /**
  * THE ONE LIVE FACT WORTH PUTTING IN THE BROWSER TAB.
@@ -8,10 +9,24 @@ import { holdTone } from "@/lib/spine/driver";
  * derives the word from rows and this pane's own facts only -- never from a
  * timer -- and it answers at most two things, because a tab title is one glance:
  *
- *   "Working"          a leg is in flight from this tab, or the record itself
- *                      carries running/queued seats (`hasLiveVisit`, the same
- *                      source the transcript polls fast on).
- *   "Waiting on you"   `holdTone` says the next move is the person's.
+ *   "Working"           a leg is in flight from this tab, or the record itself
+ *                       carries running/queued seats (`hasLiveVisit`, the same
+ *                       source the transcript polls fast on).
+ *   "Waiting on you"    a boundary call is open and answering it releases the
+ *                       work. ONE open track carries this today.
+ *   "Needs a restart"   the loop gave up and `track-tick.ts` dropped the track
+ *                       from its selection, so nothing is coming for it.
+ *                       THIRTY SIX open tracks carry this today, and every one
+ *                       of them used to read "Waiting on you" here, in the
+ *                       header chip, and in the footer -- three surfaces, three
+ *                       files, one wrong claim. The word matches `run-status.ts`
+ *                       exactly, because a tab and the chip it summarises
+ *                       disagreeing is worse than either being terse.
+ *
+ * This one earns the tab MORE than the others, not less: it is the only news
+ * that will ever reach a person who stepped away. There is no notification kind
+ * for a piece of work that stopped (S3, 2026-08-31), and the verdict email has
+ * fired zero times in its life.
  *
  * Anything else -- finished, stopped on a condition, never driven -- contributes
  * nothing: a quiet title is the honest default and the page behind it already
@@ -25,11 +40,13 @@ export function runTabState(input: {
   walking: boolean;
   /** The record says a crew is here right now (queue 71's live fact). */
   crewLive: boolean;
-}): "Working" | "Waiting on you" | null {
+}): "Working" | "Waiting on you" | "Needs a restart" | null {
   // A closed track is not news: both endings are said once, on the page.
   if (input.status === "done" || input.status === "abandoned") return null;
   const tone = input.holdReason ? holdTone(input.holdReason) : null;
-  if (tone === "you") return "Waiting on you";
+  if (tone === "you") {
+    return nothingIsComing(input.holdReason) ? "Needs a restart" : "Waiting on you";
+  }
   if (input.walking || input.crewLive) return "Working";
   return null;
 }

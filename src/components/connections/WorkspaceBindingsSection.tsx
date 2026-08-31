@@ -19,6 +19,7 @@ import { BindingPicker } from "@/components/connections/BindingPicker";
 import { ProviderName, UnderMark } from "@/components/meridian/source-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
 import { Region } from "@/components/meridian/surface-parts";
+import { useConfirm } from "@/hooks/use-confirm";
 
 /**
  * WORKSPACE BINDINGS. What each connected source is actually pointed at.
@@ -71,6 +72,36 @@ export function WorkspaceBindingsSection() {
     },
     onError: (e: unknown) => toast.error(humanWriteError(e, "Unbind failed")),
   });
+
+  /*
+   * ── THIS ONE HAS NOTHING TO FALL BACK TO ─────────────────────────────────
+   *
+   * `ProductBindingsSection` runs the same server function and deliberately
+   * does NOT ask, because there the removal is a FALLBACK: its own label says
+   * "Use the workspace one", and the product lands on the workspace binding. A
+   * question there would be friction guarding nothing.
+   *
+   * A workspace binding is the bottom of that chain. The comment on the control
+   * below already says what it is -- "unbinds the resource the crew acts
+   * through, a removal on the credential chain" -- and `removeBinding` is a hard
+   * `DELETE` on `connection_bindings`, so there is no layer underneath and
+   * nothing to inherit. The crew stops being able to reach that resource, and
+   * work already in flight finds it gone.
+   *
+   * `useConfirm` is the established destructive question on 32 surfaces, and
+   * `MembersCard` sets the wording: name the thing, speak in second person, put
+   * what cannot be walked back last.
+   */
+  const confirm = useConfirm();
+  const askThenUnbind = async (id: string, what: string) => {
+    const ok = await confirm({
+      title: `Unbind ${what}?`,
+      body: `The crew reaches this through the binding, so it stops being able to act on it the moment you confirm, including work that is running right now. Nothing is deleted where it lives and the connection itself stays. Pointing at it again means choosing the resource from scratch.`,
+      confirmLabel: "Unbind it",
+      destructive: true,
+    });
+    if (ok) mUnbind.mutate(id);
+  };
 
   // Only providers that HAVE something to point at. A source with no resource
   // types (Stripe, Zendesk) has nothing to bind, so drawing a row for it would
@@ -167,7 +198,9 @@ export function WorkspaceBindingsSection() {
                   <Action
                     variant="destructive"
                     busy={mUnbind.isPending}
-                    onClick={() => mUnbind.mutate(binding.id)}
+                    onClick={() =>
+                      void askThenUnbind(binding.id, `${spec.label} ${rt.label.toLowerCase()}`)
+                    }
                   >
                     Unbind
                   </Action>

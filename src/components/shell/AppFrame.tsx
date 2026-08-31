@@ -1964,6 +1964,26 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             {strip.stages.map((stage, i) => {
               const on = stage.station === strip.active;
               const asTab = (strip.mode ?? "tab") === "tab";
+              /*
+               * A CHIP IS A CONTROL ONLY IF SOMETHING IS LISTENING (F-146).
+               *
+               * `mode: "tab"` supplies `onSelect`, and a chip there switches the
+               * work region without leaving the run - R-01's "step list inside one
+               * run". The workspace strip supplies none, because picking a stage
+               * there used to navigate to a station engine, which is the founder's
+               * own F-146 report: a rail door and a station chip both clickable,
+               * with nothing saying which was a place and which was a step.
+               *
+               * Read off the HANDLER rather than off the mode, so a future mode
+               * inherits the right behaviour without editing this line.
+               */
+              const interactive = typeof strip.onSelect === "function";
+              /* ONE CLASS EXPRESSION FOR BOTH BRANCHES. Writing `sp-stage` twice
+                 would be a second place to edit and the Meridian ratchet counts
+                 it as the file getting worse - correctly. `mrd-focus-inset` is
+                 only meaningful on something focusable, so it rides the
+                 interactive branch. */
+              const chipClass = `sp-stage${interactive ? " mrd-focus-inset" : ""}`;
               // THE ONE BLINK, enforced here rather than trusted to callers.
               // SYSTEM.md: "`gate` blinks and is the only blink in the system,
               // so exactly one mark on a screen may wear it... A list that gave
@@ -2000,8 +2020,94 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                * control it sits on, which is the defect `doorKey` returning ""
                * exists to prevent everywhere else.
                */
-              const stageKey = asTab ? "" : doorKey(STATION_ROUTE[stage.station]);
-              return (
+              /* NO KEYCAP ON A CHIP THAT IS NOT A CONTROL. The keycap is how this
+                 strip advertises a door, so drawing one over a chip that opens
+                 nothing would be exactly the promise `doorKey` returning "" exists
+                 to prevent, made by the other half of the same component. */
+              const stageKey = asTab || !interactive ? "" : doorKey(STATION_ROUTE[stage.station]);
+              const chipBody = (
+                <>
+                  <span className="sp-stage-n">
+                    {String(i + 1).padStart(2, "0")}
+                    {/* Inline with the 01-07 marker, not stacked, so the chip
+                        keeps its three-line rhythm and the strip keeps its
+                        height. The two are never confusable: the marker is a
+                        bare mono number and the key is in a keycap, which is
+                        the same distinction the rail draws on Today. */}
+                    {stageKey ? (
+                      <kbd
+                        className="sp-stage-key"
+                        data-shortcut={`${NAV_CHORD_PREFIX} ${stageKey}`}
+                        aria-hidden="true"
+                        style={KEYCAP}
+                      >
+                        {NAV_CHORD_PREFIX} {stageKey}
+                      </kbd>
+                    ) : null}
+                  </span>
+                  {/* Said in words, because the keycap above is revealed on
+                      hover and on an armed chord and a screen reader has
+                      neither. An `aria-label` would have been wrong here: it
+                      REPLACES the accessible name, and the name is currently
+                      "01 Discover, 9 runs waiting on you" -- the count is the
+                      most valuable thing on the chip and must not be traded for
+                      a shortcut. `aria-keyshortcuts` was the other candidate and
+                      is also wrong: ARIA reads its space-separated values as
+                      ALTERNATIVE shortcuts, so "g d" would announce as "g or d",
+                      and `d` alone does nothing. */}
+                  {stageKey ? (
+                    <span className="sp-sr-only">
+                      Shortcut: {NAV_CHORD_PREFIX} then {stageKey}
+                    </span>
+                  ) : null}
+                  <span className="sp-stage-name">{STAGE_LABEL[stage.station]}</span>
+                  {/* THE "+" IN THE NOTE IS A FLOOR, and the chip has no room
+                      for the sentence. Same convention as the rail's own count a
+                      few hundred lines down; the title carries the words. */}
+                  <span
+                    className="sp-stage-state"
+                    title={stage.bounded ? "More are waiting than this counts" : undefined}
+                  >
+                    {stage.note}
+                  </span>
+                  {/* The dot repeats what the note already says in words, for
+                      the glance that does not read. It is aria-hidden for the
+                      same reason: a screen reader gets "2 waiting on you" and
+                      does not need "dot" after it. */}
+                  {/*
+                      THE STATION'S OWN MARK, in the corner that was empty.
+                      Founder, 2026-08-15: there is dead space at the top right of
+                      every chip and nothing says which station this is except the
+                      word. The mark is the same drawing Meridian's rail uses for
+                      the same station — imported, not redrawn, so the two can
+                      never disagree about what Discover looks like.
+  
+                      IDENTITY BY SHAPE, NOT BY HUE. He also asked whether each
+                      station could take its own colour. It cannot: colour in this
+                      product means STATUS, and seven categorical hues would leave
+                      a reader unable to tell "Plan is amber because it is Plan"
+                      from "Plan is amber because something is stuck there". Seven
+                      silhouettes separate better than seven hues at 13px anyway,
+                      and they survive a colour vision deficiency that the hues
+                      would not.
+                    */}
+                  <span className="sp-stage-mark">
+                    {stage.state === "gate" ||
+                    stage.state === "working" ||
+                    stage.state === "held" ||
+                    stage.state === "failed" ? (
+                      <span
+                        className="sp-stage-dot"
+                        data-kind={stage.state}
+                        data-moving={moving ? "true" : "false"}
+                        aria-hidden="true"
+                      />
+                    ) : null}
+                    <StationGlyph kind={STATION_MARK[stage.station]} size={12} />
+                  </span>
+                </>
+              );
+              return interactive ? (
                 <button
                   key={stage.station}
                   type="button"
@@ -2019,7 +2125,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                      verified in the browser, where the offset came back 1px
                      instead of -2px. The system already solved this; the hook
                      is how it is asked for. */
-                  className="sp-stage mrd-focus-inset"
+                  className={chipClass}
                   data-state={stage.state}
                   data-on={on ? "true" : "false"}
                   /* NO `--sp-hue` HERE ANY MORE, 2026-08-15. This chip used to
@@ -2032,87 +2138,23 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                      contradicted by this line. The bar is neutral now, and the
                      working note and dot take the machine hue, which is what
                      "a machine is working" means in every other surface. */
-                  onClick={() => strip.onSelect(stage.station)}
+                  onClick={() => strip.onSelect?.(stage.station)}
                 >
-                  <span className="sp-stage-n">
-                    {String(i + 1).padStart(2, "0")}
-                    {/* Inline with the 01-07 marker, not stacked, so the chip
-                      keeps its three-line rhythm and the strip keeps its
-                      height. The two are never confusable: the marker is a
-                      bare mono number and the key is in a keycap, which is
-                      the same distinction the rail draws on Today. */}
-                    {stageKey ? (
-                      <kbd
-                        className="sp-stage-key"
-                        data-shortcut={`${NAV_CHORD_PREFIX} ${stageKey}`}
-                        aria-hidden="true"
-                        style={KEYCAP}
-                      >
-                        {NAV_CHORD_PREFIX} {stageKey}
-                      </kbd>
-                    ) : null}
-                  </span>
-                  {/* Said in words, because the keycap above is revealed on
-                    hover and on an armed chord and a screen reader has
-                    neither. An `aria-label` would have been wrong here: it
-                    REPLACES the accessible name, and the name is currently
-                    "01 Discover, 9 runs waiting on you" -- the count is the
-                    most valuable thing on the chip and must not be traded for
-                    a shortcut. `aria-keyshortcuts` was the other candidate and
-                    is also wrong: ARIA reads its space-separated values as
-                    ALTERNATIVE shortcuts, so "g d" would announce as "g or d",
-                    and `d` alone does nothing. */}
-                  {stageKey ? (
-                    <span className="sp-sr-only">
-                      Shortcut: {NAV_CHORD_PREFIX} then {stageKey}
-                    </span>
-                  ) : null}
-                  <span className="sp-stage-name">{STAGE_LABEL[stage.station]}</span>
-                  {/* THE "+" IN THE NOTE IS A FLOOR, and the chip has no room
-                    for the sentence. Same convention as the rail's own count a
-                    few hundred lines down; the title carries the words. */}
-                  <span
-                    className="sp-stage-state"
-                    title={stage.bounded ? "More are waiting than this counts" : undefined}
-                  >
-                    {stage.note}
-                  </span>
-                  {/* The dot repeats what the note already says in words, for
-                    the glance that does not read. It is aria-hidden for the
-                    same reason: a screen reader gets "2 waiting on you" and
-                    does not need "dot" after it. */}
-                  {/*
-                    THE STATION'S OWN MARK, in the corner that was empty.
-                    Founder, 2026-08-15: there is dead space at the top right of
-                    every chip and nothing says which station this is except the
-                    word. The mark is the same drawing Meridian's rail uses for
-                    the same station — imported, not redrawn, so the two can
-                    never disagree about what Discover looks like.
-
-                    IDENTITY BY SHAPE, NOT BY HUE. He also asked whether each
-                    station could take its own colour. It cannot: colour in this
-                    product means STATUS, and seven categorical hues would leave
-                    a reader unable to tell "Plan is amber because it is Plan"
-                    from "Plan is amber because something is stuck there". Seven
-                    silhouettes separate better than seven hues at 13px anyway,
-                    and they survive a colour vision deficiency that the hues
-                    would not.
-                  */}
-                  <span className="sp-stage-mark">
-                    {stage.state === "gate" ||
-                    stage.state === "working" ||
-                    stage.state === "held" ||
-                    stage.state === "failed" ? (
-                      <span
-                        className="sp-stage-dot"
-                        data-kind={stage.state}
-                        data-moving={moving ? "true" : "false"}
-                        aria-hidden="true"
-                      />
-                    ) : null}
-                    <StationGlyph kind={STATION_MARK[stage.station]} size={12} />
-                  </span>
+                  {chipBody}
                 </button>
+              ) : (
+                /* NOT A BUTTON, NOT FOCUSABLE, AND NOT ANNOUNCED AS ONE. The counts,
+                   the states and the station marks are untouched - this strip still
+                   answers "where is the work, and which stage wants me". Only the
+                   door is gone, and with it the keycap that advertised one. */
+                <div
+                  key={stage.station}
+                  className={chipClass}
+                  data-state={stage.state}
+                  data-on={on ? "true" : "false"}
+                >
+                  {chipBody}
+                </div>
               );
             })}
           </div>

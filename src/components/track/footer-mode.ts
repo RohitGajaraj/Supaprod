@@ -28,6 +28,8 @@
  * reliability, not a licence to draw one that cannot act.
  */
 
+import { nothingIsComing } from "@/components/track/nothing-is-coming";
+
 export type FooterMode = {
   /** The mode, in the product's own voice. */
   line: string;
@@ -48,6 +50,13 @@ export function footerMode(input: {
   status: "open" | "done" | "abandoned";
   /** From `holdTone`, which reads the RAW reason. Never the prose. */
   tone: "you" | "hold" | null;
+  /**
+   * The raw `spine_tracks.last_hold`, for the one question `tone` cannot
+   * answer: whether anything will ever pick this up again. Never the prose,
+   * for the same reason `tone` is not: `holdBecause` is a sentence and a
+   * sentence is not a state.
+   */
+  hold: string | null;
   /** A press in this tab is walking legs it bought. */
   walking: boolean;
   /** The record says a seat is running, whoever started it. */
@@ -108,7 +117,83 @@ export function footerMode(input: {
    * that is already stopped would read as reassurance about work that is not
    * happening, which is the failure this whole surface is built against.
    */
-  if (input.tone === "you") return { line: "Waiting on you.", canStop: false, leave: null };
+  if (input.tone === "you") {
+    /*
+     * ── "WAITING ON YOU" WAS ONE SENTENCE FOR TWO OPPOSITE SITUATIONS, AND
+     *    THIS FILE HAS ALREADY PAID FOR THAT SHAPE ONCE ─────────────────────
+     *
+     * The header above records fixing exactly this for "Working on its own",
+     * which read as permission to leave in the one mode where leaving changed
+     * what happened. This is the same defect at the other end of the function.
+     *
+     * `holdTone` returns "you" for `HOLD_NEEDS_PERSON` (`driver.ts:1448`),
+     * which is six reasons -- and **four of them are the whole of
+     * `TERMINAL_HOLDS`.** So the set that reaches here is not one situation:
+     *
+     *   waiting-on-a-person      a boundary call is open. A question is
+     *                            genuinely pending and answering it releases
+     *                            the work. "Waiting on you" is exactly right.
+     *
+     *   station-cannot-finish    TERMINAL. The loop gave up. `track-tick.ts`
+     *   given-up                 removes these from its selection entirely, so
+     *   tools-refused            nothing is pending, nothing is coming, and
+     *   going-in-circles         the work moves only if the person restarts it.
+     *
+     * MEASURED 2026-08-31, open tracks reaching this branch:
+     *
+     *   station-cannot-finish   32   TERMINAL
+     *   going-in-circles         2   TERMINAL
+     *   tools-refused            1   TERMINAL
+     *   given-up                 1   TERMINAL
+     *   waiting-on-a-person      1
+     *
+     * **36 of the 37 runs told "Waiting on you." have nothing waiting for the
+     * person to answer.** The sentence reads as a pending question, a person
+     * looks for the question, and there is none -- the loop quit. That is a
+     * dead end wearing a status line, and `way-out.ts` already says the true
+     * thing in the pane while the footer contradicted it.
+     *
+     * ── HOW I FOUND THIS, BECAUSE THE FIRST VERSION OF THIS UNIT WAS WRONG ──
+     * I first put this split under `tone === "hold"`, reasoning from
+     * `TERMINAL_HOLDS` alone without reading `HOLD_NEEDS_PERSON`. Every
+     * terminal hold is a member of both, so that branch was **unreachable for
+     * every row it was written for** -- shipped work with no way in, which is
+     * the class this repo named this week. It was caught by opening track
+     * `a30238f5` (`given-up`) in a browser and reading "Waiting on you." in
+     * the footer, and by nothing else. **A branch argued from one set and
+     * gated on another is not a typo; it is the same substitution defect this
+     * lane filed twice today.**
+     *
+     * ── WHAT I DELIBERATELY DID NOT BUILD, AND THE ROW COUNT THAT DECIDED IT
+     * S3 raised the `crewLive` branch above -- "You can close this. It carries
+     * on without you." -- as the sentence most likely to be untrue, on the
+     * grounds that 97 of 106 tracks carry a hold. The concern is right in
+     * principle and **zero rows support it today**: no track holding a
+     * terminal reason has a run in flight, so the two states cannot co-occur
+     * and a guard there would be a second branch nothing can reach. Left
+     * alone, on purpose, and recorded so the next reader does not re-derive it.
+     *
+     *   select count(*) from spine_tracks t where t.status='open'
+     *     and t.last_hold in (…TERMINAL_HOLDS…)
+     *     and exists (select 1 from agent_runs r where r.track_id=t.id
+     *                 and r.status in ('running','queued','in_progress'));   -- 0
+     */
+    return {
+      line: nothingIsComing(input.hold)
+        ? "Stopped here. Nothing will pick it up again on its own."
+        : "Waiting on you.",
+      canStop: false,
+      leave: null,
+    };
+  }
+
+  /*
+   * Held for a reason no person is required for: `out-of-time`,
+   * `needs-evidence`, `produced-nothing` and the rest. None of these is in
+   * `TERMINAL_HOLDS`, so the sweep still takes them and the old sentence is
+   * true of every row that reaches here. Nineteen tracks today, and not one
+   * of them terminal.
+   */
   if (input.tone === "hold") {
     return { line: "Stopped, and not on you.", canStop: false, leave: null };
   }

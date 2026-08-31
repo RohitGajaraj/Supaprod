@@ -16,7 +16,10 @@ import { readFileSync } from "node:fs";
  */
 describe("the artifact pane's arrival motion", () => {
   const SRC = readFileSync("src/components/track/ArtifactPane.tsx", "utf-8");
-  const helper = SRC.slice(SRC.indexOf("const arrival = (key: string)"), SRC.indexOf("if (stop.state === \"waived\")"));
+  const helper = SRC.slice(
+    SRC.indexOf("const arrival = (key: string)"),
+    SRC.indexOf('if (stop.state === "waived")'),
+  );
 
   it("refuses to animate anything it has already seen", () => {
     // Without this clause every poll would replay the entrance and the surface
@@ -40,9 +43,27 @@ describe("the artifact pane's arrival motion", () => {
      * meridian.css's reduced-motion block matches on the style attribute.
      * Declared as a utility class this would keep animating for someone who
      * asked it not to, which Receipt.tsx records paying for once already.
+     *
+     * The literal used to sit in this helper and now comes from `enterMotion`,
+     * which returns `{ animation: ENTER_MOTION }` and is asserted to do so in
+     * `spine/the-motion-toggle-reaches-the-run-screen.test.ts`. The claim is
+     * unchanged: a style OBJECT, spread inline, never a class.
      */
-    expect(helper).toContain("animation:");
+    expect(helper).toContain("enterMotion(");
+    expect(helper).toContain("...motion");
     expect(SRC).toContain("style={arrival(");
+  });
+
+  it("and the OS is not the only thing that can stop it", () => {
+    /*
+     * The half that was missing. meridian.css's block is under
+     * `@media (prefers-reduced-motion: reduce)`, so it answers the operating
+     * system; `data-motion` appears nowhere in `src/styles/`, so the product's
+     * OWN motion toggle never reached this animation at all. The helper now
+     * takes the preference and returns undefined rather than a style.
+     */
+    expect(helper).toContain("reducedMotion");
+    expect(helper).toContain("if (!motion) return undefined;");
   });
 
   it("caps the stagger so a burst does not become choreography", () => {

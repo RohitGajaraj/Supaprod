@@ -32,6 +32,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getCreditCaps, setCreditCap, removeCreditCap } from "@/lib/payments.functions";
+import { useConfirm } from "@/hooks/use-confirm";
 import { humanWriteError } from "@/lib/roles.functions";
 
 const WINDOWS = [
@@ -107,6 +108,36 @@ export function CreditCapsCard() {
     onError: (e) => toast.error(humanWriteError(e, "Failed to remove cap")),
   });
 
+  /*
+   * ── REMOVING A CEILING WAS THE CHEAPEST ACT ON THIS CARD ─────────────────
+   *
+   * `removeCreditCap` is a hard `DELETE` on `credit_caps`, and it fired straight
+   * off the button. SETTING a cap takes a form, a number and a window; taking
+   * one away took one click. So the act that WIDENS what may be spent was
+   * cheaper than the act that narrows it, on the surface whose entire job is
+   * saying what the system is allowed to do.
+   *
+   * That inversion is already named twice in this repo. `MembersCard` records
+   * it ("taking away somebody's access was cheaper than promoting them") and
+   * says /boundary found the same on its own mode controls. This is the same
+   * defect in the same direction, on money.
+   *
+   * `useConfirm` rather than a new inline shape: it is the established
+   * destructive question on 32 surfaces, and `MembersCard` sets the wording
+   * rule this follows. The title names WHICH cap, the body speaks in second
+   * person, and what cannot be walked back sits LAST so it is read last.
+   */
+  const confirm = useConfirm();
+  const askThenRemove = async (id: string, who: string, credits: number, window: string) => {
+    const ok = await confirm({
+      title: `Remove the cap on ${who}?`,
+      body: `It is capped at ${credits.toLocaleString()} credits ${window} today. Removing it does not pause anything and does not spend anything, but nothing here will stop this drawing from the shared pool afterwards. Setting it again means entering the number and the window from scratch.`,
+      confirmLabel: "Remove the cap",
+      destructive: true,
+    });
+    if (ok) rmMut.mutate(id);
+  };
+
   // A failed read must not silently vanish the owner's spend-cap surface, and a
   // failure must not wear an empty state's clothes: "no caps" and "we could not
   // find out" are different facts and the owner acts differently on each.
@@ -176,7 +207,13 @@ export function CreditCapsCard() {
               <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
                 <Num>{c.capCredits.toLocaleString()}</Num> credits {winLabel(c.windowKind)}
               </span>
-              <Action variant="quiet" onClick={() => rmMut.mutate(c.id)} busy={rmMut.isPending}>
+              <Action
+                variant="quiet"
+                onClick={() =>
+                  void askThenRemove(c.id, c.targetName, c.capCredits, winLabel(c.windowKind))
+                }
+                busy={rmMut.isPending}
+              >
                 Remove
               </Action>
             </Line>
@@ -272,7 +309,22 @@ export function CreditCapsCard() {
               <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
                 <Num>{c.capCredits.toLocaleString()}</Num> credits {winLabel(c.windowKind)}
               </span>
-              <Action variant="quiet" onClick={() => rmMut.mutate(c.id)} busy={rmMut.isPending}>
+              <Action
+                variant="quiet"
+                onClick={() =>
+                  void askThenRemove(
+                    c.id,
+                    // The same resolution the label above uses, so the question
+                    // names the person the row names, never a raw id.
+                    data.members.find((m) => m.userId === c.targetId)?.label ??
+                      c.targetId?.slice(0, 8) ??
+                      "this member",
+                    c.capCredits,
+                    winLabel(c.windowKind),
+                  )
+                }
+                busy={rmMut.isPending}
+              >
                 Remove
               </Action>
             </Line>

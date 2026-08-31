@@ -1,3 +1,5 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { STAGE_LABEL } from "@/components/shell/run-strip";
 import { describe, it, expect } from "bun:test";
 import {
@@ -465,5 +467,99 @@ describe("the first station is called Discover everywhere", () => {
     for (const station of AGENT_STATION_ORDER) {
       expect(AGENT_STATIONS[station].name).not.toBe(station);
     }
+  });
+});
+
+/**
+ * THE GUARD ABOVE READS TWO MAPS. THE LEAK WAS IN A FILE.
+ *
+ * F-150, measured 2026-08-31. `src/components/track/RunTimeline.tsx` carried its
+ * own `STATION_DISPLAY_NAMES` with `sense: "Sense"` and `define: "Define"` — and
+ * a `discover:` key sitting as a SIBLING of `sense:`, so one object held both
+ * vocabularies at once. Its own test asserted both appeared, so `bun test` was
+ * green while the defect sat there. Nothing but that test imported it; the live
+ * component is `src/components/meridian/RunTimeline.tsx`.
+ *
+ * WHY THE THREE CASES ABOVE COULD NOT SEE IT. They read `AGENT_STATIONS` and
+ * `STAGE_LABEL`. A component that declares its own private map is invisible to
+ * both. And the map was typed `Record<string, string>` rather than
+ * `Record<AgentStation, string>`, so renaming the union — the fix that was
+ * proposed for this — raises ZERO type errors here and would have left the
+ * complaint on disk.
+ *
+ * WHAT IS FORBIDDEN, AND WHY IT IS DERIVED RATHER THAN LISTED. Five of the seven
+ * slugs title-case to their own display name (Decide, Design, Build, Ship,
+ * Learn), so seeing them is harmless. Two do not: `sense` displays as Discover
+ * and `define` displays as Plan. Those two title-cases are words the customer
+ * has never seen. The set is computed from `AGENT_STATIONS` so that if a display
+ * name ever changes, the forbidden set follows it instead of going stale.
+ *
+ * WHAT IT DOES NOT DO. It reads string LITERALS in shipped source only:
+ * comments are stripped (three files discuss this incident in prose, including
+ * the one above), and test files are skipped (`route-intent.test.ts` uses
+ * "Sense" as a deliberate bad input). A guard that fired on either would have
+ * been turned off within a day.
+ */
+describe("no file renders an internal station id as a display name", () => {
+  const SRC = join(import.meta.dir, "..");
+
+  /** Words a slug title-cases to that are NOT what the product calls it. */
+  function forbiddenDisplayWords(): string[] {
+    return AGENT_STATION_ORDER.map((slug) => {
+      const titled = slug.charAt(0).toUpperCase() + slug.slice(1);
+      return titled === AGENT_STATIONS[slug].name ? null : titled;
+    }).filter((w): w is string => w !== null);
+  }
+
+  function sourceFiles(dir: string, out: string[] = []): string[] {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === "node_modules" || entry.name === "__tests__") continue;
+        sourceFiles(full, out);
+      } else if (/\.tsx?$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name)) {
+        out.push(full);
+      }
+    }
+    return out;
+  }
+
+  /** Comments discuss the defect on purpose; only shipped literals count. */
+  function stripComments(src: string): string {
+    return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+  }
+
+  it("computes the forbidden set from the catalog, not a hardcoded list", () => {
+    expect(forbiddenDisplayWords().sort()).toEqual(["Define", "Sense"]);
+  });
+
+  it("no shipped source file contains one as a string literal", () => {
+    const forbidden = forbiddenDisplayWords();
+    const pattern = new RegExp(`["'\`](${forbidden.join("|")})["'\`]`);
+    const offenders: string[] = [];
+
+    for (const file of sourceFiles(SRC)) {
+      const hit = stripComments(readFileSync(file, "utf8")).match(pattern);
+      if (!hit) continue;
+      const rel = file.slice(file.indexOf("/src/") + 1);
+      // KNOWN, FILED, NOT MINE TO FIX. `src/routes/product.tsx` is the public
+      // marketing page and it lists the stations as display names, saying
+      // "Define" where the whole product says Plan. It is outside S1's prefix,
+      // so it is a request rather than an edit:
+      // coordination/requests/S1/product-page-says-define-where-we-say-plan.md
+      // The assertion below FAILS once it is fixed, which is deliberate — the
+      // exception expires instead of quietly becoming permanent.
+      if (rel === "src/routes/product.tsx") continue;
+      offenders.push(`${rel} renders ${hit[1]}`);
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("still has exactly one exception, and fails when it stops being needed", () => {
+    const forbidden = forbiddenDisplayWords();
+    const pattern = new RegExp(`["'\`](${forbidden.join("|")})["'\`]`);
+    const product = join(SRC, "routes", "product.tsx");
+    expect(stripComments(readFileSync(product, "utf8"))).toMatch(pattern);
   });
 });

@@ -32,6 +32,32 @@ describe("runTabState", () => {
     ).toBe("Waiting on you");
   });
 
+  it("tells the tab a stopped run needs restarting, not that it is waiting", () => {
+    /*
+     * The four terminal reasons all live inside `HOLD_NEEDS_PERSON`, so they
+     * reached the "Waiting on you" branch and told 36 people the browser tab
+     * was holding a question for them. Nothing is pending; the loop quit and
+     * `track-tick.ts` dropped the track. The word matches the header chip in
+     * `run-status.ts` exactly.
+     */
+    for (const holdReason of [
+      "given-up",
+      "station-cannot-finish",
+      "tools-refused",
+      "going-in-circles",
+    ]) {
+      expect({ holdReason, word: runTabState({ ...base, holdReason }) }).toEqual({
+        holdReason,
+        word: "Needs a restart",
+      });
+    }
+    // And it still outranks busyness, for the same reason the open call does:
+    // a person who has to act should not read "Working" and walk away.
+    expect(runTabState({ ...base, holdReason: "given-up", walking: true, crewLive: true })).toBe(
+      "Needs a restart",
+    );
+  });
+
   it("finished and abandoned are quiet", () => {
     expect(runTabState({ ...base, status: "done", crewLive: true })).toBeNull();
     expect(runTabState({ ...base, status: "abandoned", holdReason: "given-up" })).toBeNull();

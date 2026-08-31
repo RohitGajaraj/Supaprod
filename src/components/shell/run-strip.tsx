@@ -215,7 +215,25 @@ export type RunStripSpec = {
   stages: RunStage[];
   /** Null is only legal in "filter" mode: nothing is selected yet. */
   active: AgentStation | null;
-  onSelect: (station: AgentStation) => void;
+  /**
+   * OPTIONAL, AND ITS ABSENCE IS THE CONTRACT (F-146, 2026-08-31).
+   *
+   * **A chip is a control if and only if this is supplied.** Omit it and the
+   * strip renders seven readable chips that are not buttons, carry no keycap
+   * and cannot be tabbed to.
+   *
+   * That is R-01 executed rather than restated: *"stations are the step list
+   * INSIDE one run, never doors."* `mode: "tab"` supplies it, because picking a
+   * stage there swaps the work region and you never leave the run. **The
+   * workspace strip does not, because picking a stage there used to navigate to
+   * a station engine** — and the founder reported the result: *"If I click on
+   * seven stations, or individually say Build, Plan, something comes up."*
+   *
+   * Making it optional rather than adding a `readOnly` flag is deliberate: a
+   * flag can be set wrong while a handler still exists, so the two could
+   * disagree. There is nothing to disagree with when the handler is the switch.
+   */
+  onSelect?: (station: AgentStation) => void;
   mode?: RunStripMode;
   /** What the region is a strip OF, for screen readers. */
   label?: string;
@@ -384,7 +402,7 @@ export function usePublishRunStrip(spec: RunStripSpec | null): void {
       active,
       mode,
       label,
-      onSelect: (s) => onSelectRef.current?.(s),
+      onSelect: spec?.onSelect ? (s: AgentStation) => onSelectRef.current?.(s) : undefined,
     });
     return () => publish(null);
   }, [stages, active, mode, label, publish]);
