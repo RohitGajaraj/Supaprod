@@ -1594,7 +1594,9 @@ export const getDeclinedLedger = createServerFn({ method: "GET" })
     const [approvalsRes, hitsRes] = await Promise.all([
       supabase
         .from("agent_approvals")
-        .select("id,agent_slug,tool_name,rationale,status,created_at,decided_at,decision_reason")
+        .select(
+          "id,agent_slug,tool_name,rationale,status,created_at,decided_at,decision_reason,decided_by",
+        )
         .eq("user_id", userId)
         .gte("created_at", since)
         .order("created_at", { ascending: false })

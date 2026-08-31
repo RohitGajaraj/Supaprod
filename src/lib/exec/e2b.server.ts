@@ -49,6 +49,7 @@ import {
   type ExecVerdict,
 } from "./provider";
 import { overallFromChecks, mergeReadinessFromCi } from "@/lib/ai/studio-ci";
+import { CHECK_NAMES } from "@/lib/exec/check-names";
 
 /** Whole-run ceiling. Past this the sandbox is killed and the run reads as failed. */
 export const E2B_DEFAULT_TIMEOUT_MS = 10 * 60_000;
@@ -284,14 +285,23 @@ export function withGitToken(setup: ExecCommandSpec[], token: string): ExecComma
   );
 }
 
-/** The checks worth running before an agent opens a pull request. */
+/**
+ * The checks worth running before an agent opens a pull request.
+ *
+ * THE NAMES COME FROM `@/lib/exec/check-names` AND THE COMMANDS STAY HERE
+ * (gap #18). A surface showing a customer what we run needs the names and must
+ * never be able to import a shell line, so the shared half is the vocabulary
+ * and the server half is the mechanism. Built by mapping `CHECK_NAMES` so the
+ * two lists cannot drift into disagreeing about what "the three checks" are.
+ */
 export function defaultChecks(): ExecCommandSpec[] {
   const cd = 'cd /home/user/repo && export PATH="$HOME/.bun/bin:$PATH" && ';
-  return [
-    { name: "typecheck", run: `${cd}bunx tsc --noEmit` },
-    { name: "test", run: `${cd}bun test` },
-    { name: "lint", run: `${cd}bun run lint` },
-  ];
+  const RUN: Record<string, string> = {
+    typecheck: `${cd}bunx tsc --noEmit`,
+    test: `${cd}bun test`,
+    lint: `${cd}bun run lint`,
+  };
+  return CHECK_NAMES.map((c) => ({ name: c.name, run: RUN[c.name] }));
 }
 
 type SandboxLike = {
