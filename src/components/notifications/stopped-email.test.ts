@@ -91,17 +91,17 @@ describe("the reassurance is not backwards, which is the crueller error", () => 
    * poor outcome, so both directions are pinned.
    */
   it("says nothing will move a terminal hold on its own", () => {
-    const line = whatHappensNext(true);
+    const line = whatHappensNext(true, true);
     expect(line).toContain("Nothing will move this on its own");
     expect(stoppedEmailText({ ...base, nothingWillRetry: true })).toContain(line);
   });
 
   it("does not promise that a terminal hold might still be picked up", () => {
-    expect(whatHappensNext(true)).not.toContain("may still be picked up");
+    expect(whatHappensNext(true, true)).not.toContain("may still be picked up");
   });
 
   it("says the opposite, and only the opposite, when something can still retry", () => {
-    const line = whatHappensNext(false);
+    const line = whatHappensNext(false, true);
     expect(line).toContain("may still be picked up");
     expect(line).not.toContain("Nothing will move this");
   });
@@ -131,5 +131,21 @@ describe("it is not a dead end, which R-20 section 6 forbids", () => {
   /** A missing link drops the button rather than rendering one that goes nowhere. */
   it("omits the link entirely when there is no run to open", () => {
     expect(stoppedEmailText({ ...base, trackHref: null })).not.toContain("Open the work:");
+  });
+
+  /*
+   * FOUND BY RENDERING THE MAIL AND READING IT, WHICH NO TEST HAD DONE.
+   * The retryable branch ended "Opening it shows you where it is", and the
+   * template drops the button when there is no `trackHref`, so the prose sent
+   * somebody to a door the message did not contain. Every unit test passed:
+   * one asserted the link is omitted, and none asserted the SENTENCES stop
+   * referring to it. A dead end in an inbox has nowhere else to go.
+   */
+  it("stops telling you to open it when there is nothing to open", () => {
+    const noLink = stoppedEmailText({ ...base, trackHref: null, nothingWillRetry: false });
+    expect(noLink).toContain("It may still be picked up on its own.");
+    expect(noLink).not.toContain("Opening it");
+    const withLink = stoppedEmailText({ ...base, nothingWillRetry: false });
+    expect(withLink).toContain("Opening it shows you");
   });
 });

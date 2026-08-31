@@ -146,11 +146,24 @@ export function holdSentence(reason: HoldReason): string {
  * somebody their work is waiting when nothing will ever pick it up is how 42
  * pieces of work sat unread, and it is the exact failure this mail exists to
  * end, so it would be a poor thing to reproduce inside the fix.
+ *
+ * ── AND IT MUST NOT POINT AT A DOOR THAT IS NOT THERE ─────────────────────
+ * `hasLink` was added after RENDERING the mail and reading it, which no test
+ * had done. The retryable branch ended "Opening it shows you where it is and
+ * what it is waiting for" and the template drops the button entirely when
+ * `trackHref` is null, so that sentence told a person to open something the
+ * message did not offer. The unit tests passed either way: one asserted the
+ * link is omitted when there is no run, and none asserted that the PROSE stops
+ * referring to it. A dead end in an inbox is worse than one on a page, because
+ * there is nowhere else on the page to go.
  */
-export function whatHappensNext(nothingWillRetry: boolean): string {
-  return nothingWillRetry
-    ? "Nothing will move this on its own. It stays where it is until you pick it up."
-    : "It may still be picked up on its own. Opening it shows you where it is and what it is waiting for.";
+export function whatHappensNext(nothingWillRetry: boolean, hasLink: boolean): string {
+  if (nothingWillRetry) {
+    return "Nothing will move this on its own. It stays where it is until you pick it up.";
+  }
+  return hasLink
+    ? "It may still be picked up on its own. Opening it shows you where it is and what it is waiting for."
+    : "It may still be picked up on its own.";
 }
 
 const p = (t: string) =>
@@ -180,7 +193,7 @@ export function stoppedEmailText(pay: StoppedEmailPayload): string {
   if (typeof pay.attempts === "number" && pay.attempts > 0) {
     lines.push(pay.attempts === 1 ? "It was tried once." : `It was tried ${pay.attempts} times.`);
   }
-  lines.push("", "WHAT HAPPENS NOW", whatHappensNext(pay.nothingWillRetry));
+  lines.push("", "WHAT HAPPENS NOW", whatHappensNext(pay.nothingWillRetry, !!pay.trackHref));
   if (pay.trackHref) {
     lines.push("", `Open the work: ${absoluteUrl(pay.trackHref)}`);
   }
@@ -213,7 +226,9 @@ export function stoppedEmailHtml(pay: StoppedEmailPayload): string {
   const body = [
     emailLead(`${title} stopped at ${esc(stationName(pay.station))}${when ? ` on ${when}` : ""}.`),
     block(label("Why it stopped") + whyBits.join("")),
-    block(label("What happens now") + p(esc(whatHappensNext(pay.nothingWillRetry)))),
+    block(
+      label("What happens now") + p(esc(whatHappensNext(pay.nothingWillRetry, !!pay.trackHref))),
+    ),
     pay.trackHref ? emailButton(absoluteUrl(pay.trackHref), "Open the work") : "",
     `<p style="margin:0;border-top:1px solid ${EMAIL_LINE};padding-top:14px;font-size:12px;line-height:1.5;color:${EMAIL_MUTE};">You are getting this because work you started stopped while you were away. Change it in Settings, under Notifications.</p>`,
   ].join("");
