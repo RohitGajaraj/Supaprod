@@ -203,6 +203,39 @@ for (const o of orphans) console.log(`  ${o.name}  (${o.file})`);
  */
 const componentOrphans = [];
 const componentExcused = [];
+/*
+ * ── EXPORTED FOR A TEST, RENDERED BY ITS OWN FILE ──────────────────────────
+ *
+ * S1 traced two of this half's rows and found both reachable by a person
+ * opening a route: `/ship` imports `WhatShipped`, which renders
+ * `AssembledRelease`, which renders `ReleaseDocument`. The only thing importing
+ * either ACROSS a file boundary is `WhatShipped.test.tsx`. So they are exported
+ * for their test and rendered internally by a reachable parent, and this half
+ * asked "does another FILE import this" -- right for a server function, wrong
+ * for a component.
+ *
+ * MEASURED BEFORE CHANGING ANYTHING: 17 of the 45 rows are in this class. 38%.
+ * S1 verified two and said explicitly they would not guess at the size; the
+ * size is why this is worth a change rather than a note.
+ *
+ * AND THE TOOL ALREADY SAID SO IN PROSE. The printout below has carried "a
+ * helper component that is exported but used only inside its own file counts
+ * here, which is a hygiene question rather than a screen nobody can reach"
+ * since this half was written. It warned, and then counted them anyway. That is
+ * this file's OWN lesson from the React.lazy fix, unlearned one section later:
+ * "a list that has to travel with a verbal caveat is a list nobody can act on."
+ *
+ * So they are separated rather than excused: still printed, because an
+ * unnecessary export IS a smell, and no longer counted, because the number is
+ * supposed to mean "cannot be reached by anything a person opens" and for these
+ * it does not.
+ *
+ * THIS CHANGES THE INSTRUMENT, exactly as the React.lazy fix did. The count
+ * falls because the gate got better, not because anything was deleted, and
+ * `_components_dropped_from_80` in the baseline exists to stop somebody
+ * comparing across such a change. A second such note now sits beside it.
+ */
+const componentSelfUsed = [];
 let componentTotal = 0;
 for (const f of files.filter((f) => /^src\/components\/.*\.tsx$/.test(f))) {
   const src = readFileSync(f, "utf8");
@@ -219,7 +252,25 @@ for (const f of files.filter((f) => /^src\/components\/.*\.tsx$/.test(f))) {
     const name = m[1];
     const users = [...(importedBy.get(name) ?? [])].filter((u) => u !== f);
     if (users.length > 0) continue;
-    (isDynamic ? componentExcused : componentOrphans).push({ name, file: f });
+    if (isDynamic) {
+      componentExcused.push({ name, file: f });
+      continue;
+    }
+    /*
+     * Is it referenced AGAIN in its own file, past the declaration?
+     *
+     * The declaration is removed first, or every component matches itself. What
+     * counts as a reference is a JSX mount `<Name`, a call `Name(`, or a bare
+     * mention in a map/record -- the three ways a parent in the same file
+     * actually reaches it.
+     */
+    const withoutDecl = src
+      .replace(new RegExp(`export\\s+(?:default\\s+)?function\\s+${name}\\b`, "g"), "")
+      .replace(new RegExp(`export\\s*\\{[^}]*\\b${name}\\b[^}]*\\}`, "g"), "");
+    const selfUsed = new RegExp(
+      `<${name}[\\s/>]|\\b${name}\\s*\\(|\\{\\s*${name}\\s*\\}|:\\s*${name}\\b`,
+    ).test(withoutDecl);
+    (selfUsed ? componentSelfUsed : componentOrphans).push({ name, file: f });
   }
 }
 
@@ -234,10 +285,9 @@ console.log(
   `${componentExcused.length} more are mounted through a dynamic import and are NOT counted.`,
 );
 console.log(
-  "  THIS HALF IS NOISIER THAN THE SERVER HALF. A helper component that is exported but used only\n" +
-    "  inside its own file counts here, which is a hygiene question rather than a screen nobody can\n" +
-    "  reach. A file with several orphans is more likely a component library with unused exports\n" +
-    "  than a lost feature. Read the file before believing the row.",
+  `${componentSelfUsed.length} more are exported but rendered INSIDE THEIR OWN FILE, so they are\n` +
+    "  reachable whenever that file is, and are NOT counted. The export is usually there for a test.\n" +
+    "  That is a hygiene question, not a screen nobody can reach, and the two are different debts.",
 );
 console.log("Worst files:");
 for (const [file, n] of [...compByFile].sort((a, b) => b[1] - a[1]).slice(0, 10)) {
@@ -257,6 +307,17 @@ for (const [file, n] of [...compByFile].sort((a, b) => b[1] - a[1]).slice(0, 10)
  */
 console.log("\nEvery component orphan:");
 for (const o of componentOrphans) console.log(`  ${o.name}  (${o.file})`);
+
+/*
+ * PRINTED, NOT COUNTED. Not failing the gate is not the same as being fine:
+ * an export nothing outside the file uses can usually go, and the test can
+ * render through the parent instead. It is simply not the defect this number
+ * is about, and mixing the two dilutes the one that matters.
+ */
+if (componentSelfUsed.length) {
+  console.log("\nExported but only used inside their own file (hygiene, not reach):");
+  for (const o of componentSelfUsed) console.log(`  ${o.name}  (${o.file})`);
+}
 
 /*
  * ── THE RATCHET ────────────────────────────────────────────────────────────
