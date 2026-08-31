@@ -264,7 +264,6 @@ import { PaymentTestModeBanner } from "@/components/billing/PaymentTestModeBanne
 import { PlanTable } from "@/components/billing/PlanPicker";
 import { CreditCapsCard } from "@/components/billing/CreditCapsCard";
 import { WorkspaceClaimCard } from "@/components/billing/WorkspaceClaimCard";
-import { UsageIndicator } from "@/components/billing/UsageIndicator";
 import { IntegrationsTab } from "@/components/settings/IntegrationsTab";
 import { ProductsTab } from "@/components/settings/ProductsTab";
 import { DataSection } from "@/components/settings/DataSection";
@@ -3355,13 +3354,67 @@ function CreditsSection() {
                 <Line label="Bought on top">
                   <Num>{data.topupCredits.toLocaleString()}</Num>
                 </Line>
+                {/*
+                  THE CONSUMPTION BAR IS GONE, AND IT WAS WRONG ON EVERY ACCOUNT
+                  THAT HAD SPENT ANYTHING.
+
+                  It read `used = max(0, monthlyGrantCredits - balanceCredits)`.
+                  That subtraction describes the CURRENT DIP BELOW A NOMINAL
+                  GRANT, not consumption: a grant landing mid-cycle, or a reset,
+                  lifts the balance back up and the subtraction forgets every
+                  credit already spent.
+
+                  Measured live, 2026-08-31, over all 16 accounts. Four have
+                  spent anything, and the bar understated all four:
+
+                    account   bar said   debited since cycle_anchor
+                    5731ab6f         0                      23,218
+                    164e0692     3,508                      16,020
+                    5d5cc377         0                       4,250
+                    1a8da78c         6                       4,247
+
+                  Two of the four read a flat ZERO after thousands of credits of
+                  real work, because their balance had been re-granted to at or
+                  above the nominal figure and `Math.max(0, ...)` absorbed the
+                  negative. The other twelve accounts agreed only because they
+                  have never spent a credit -- F-159's rule exactly: it was
+                  right for environmental reasons, not because it computed
+                  anything.
+
+                  This is the page where a company decides what Supaprod costs,
+                  and the error ran in the direction that flatters us. Craft bar
+                  standard #7 deletes the claim rather than softening it.
+
+                  THE HONEST NUMBER IS NOT REACHABLE FROM HERE. It is
+                  `sum(delta_credits) where delta_credits < 0 and created_at >=
+                  cycle_anchor`, a server-side sum over `credit_ledger`. The
+                  `ledger` on this view CANNOT stand in for it: it is
+                  `.limit(20)` for display, and this account has 6,461 rows, so
+                  summing it would replace one wrong number with a smaller wrong
+                  number. Filed to S0 for a `cycleSpentCredits` field.
+
+                  UsageIndicator WENT WITH THE MOUNT rather than being left
+                  unimported. It was this component's only caller, and the
+                  orphan ratchet exists to stop exactly that -- something
+                  exported that reaches no screen. Its logic was never the
+                  defect and it is intact in git history; restore it if a true
+                  per-cycle spend number ever makes the bar worth drawing. That
+                  is a product call nobody has made: this page already answers
+                  "what has this cost me" correctly one region below, and the
+                  bar was a second, worse answer to the same question.
+
+                  Nothing is hidden in the meantime. The balance above is
+                  authoritative, and real measured spend is one region below,
+                  which is where this now points -- rather than contradicting it,
+                  which is what the bar was doing 400px apart on one screen.
+                */}
                 {data.enabled && data.monthlyGrantCredits > 0 ? (
-                  <div style={{ marginTop: "var(--mrd-s5)", maxWidth: 260 }}>
-                    <UsageIndicator
-                      used={Math.max(0, data.monthlyGrantCredits - data.balanceCredits)}
-                      allowance={data.monthlyGrantCredits}
-                    />
-                  </div>
+                  <Line
+                    label="Used this cycle"
+                    sub="Spend is measured under Spend and runway, below."
+                  >
+                    <span style={{ color: "var(--mrd-mute)" }}>Not shown here</span>
+                  </Line>
                 ) : null}
               </>
             ) : null}

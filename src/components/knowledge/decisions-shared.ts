@@ -67,11 +67,74 @@ export const SOURCE_LABEL: Record<DecisionSource, string> = {
  *  those two; a call nobody has settled yet is not an outcome, so it stays
  *  monochrome rather than wearing ember. Ember marks the human, and deciding
  *  happens on Today, so the ember budget belongs there. */
-export const OUTCOME_WORD: Record<DecisionRow["status"], { word: string; tone: string }> = {
-  approved: { word: "Kept", tone: "sp-pass" },
-  rejected: { word: "Dropped", tone: "sp-fail" },
+/*
+ * PORTED OFF `sp-*` IN THE SAME COMMIT, BECAUSE THE RATCHET CAUGHT ME WIDENING IT.
+ * `sp-pass` and `sp-fail` are the retired family. Adding three statuses meant
+ * adding two more retired tones, and the Meridian ratchet failed with "lets no
+ * known file get worse" -- correctly. **Never widen the baseline to pass**, so
+ * the whole map moved to `text-mrd-pass` / `text-mrd-fail`, which is what
+ * `studio/RunReturn.tsx:160` already uses. The fix reduces the debt instead of
+ * growing it, and the ratchet is the only reason I noticed.
+ */
+export const OUTCOME_WORD: Record<string, { word: string; tone: string }> = {
+  approved: { word: "Kept", tone: "text-mrd-pass" },
+  rejected: { word: "Dropped", tone: "text-mrd-fail" },
   pending: { word: "Not settled", tone: "" },
+  /*
+   * THREE STATUSES THE MAP NEVER HAD, AND THEY ARE 115 OF 385 ROWS (2026-09-01).
+   *
+   * `decisions.status` carries FIVE values; this map had three, and one of the
+   * three -- `rejected` -- has never had a single row. Measured:
+   *
+   *   approved   144   was mapped
+   *   pending    126   was mapped
+   *   standing    80   NOT mapped
+   *   superseded  20   NOT mapped
+   *   declined    15   NOT mapped, and dated TODAY
+   *   rejected     0   mapped, and has never existed
+   *
+   * `DecisionsPanel` read `OUTCOME_WORD[d.status].tone` unguarded, so 29.9% of
+   * rows threw `Cannot read properties of undefined`, and the default filter is
+   * "all". S2 drove it signed in: the /brain page rendered 525 characters and no error
+   * message at all, and the region simply vanished, which is a failed read
+   * wearing an empty state's clothes at full page scale.
+   *
+   * THE TYPE CERTIFIED THE BUG RATHER THAN CATCHING IT. This was
+   * `Record<DecisionRow["status"], ...>`, and that union is declared
+   * `"pending" | "approved" | "rejected"` at `lib/decisions.functions.ts:69` --
+   * narrower than the column it describes. A `Record` over a union that is a
+   * SUBSET of reality type-checks perfectly and is wrong at runtime for every
+   * value the union forgot. Widening the union is S0's file and is filed; this
+   * map is now keyed by `string` so the component cannot inherit that mistake
+   * again, and `outcomeWord` below makes the absence unthrowable.
+   *
+   * THE WORDS. §12 binds these and "Dropped" is already spent on `rejected`.
+   * `declined` is what S0's F-174 decline arm writes, and F-32 ruled that a
+   * "no" is a decision filed exactly as a yes -- so it reads as a decision, not
+   * as a failure. `superseded` is monochrome because being replaced is not an
+   * outcome, it is a later call taking over.
+   */
+  standing: { word: "Still stands", tone: "text-mrd-pass" },
+  declined: { word: "Said no", tone: "text-mrd-fail" },
+  superseded: { word: "Replaced", tone: "" },
 };
+
+/**
+ * The outcome word for any status, including one nobody has written down.
+ *
+ * **A lookup on this map may never throw.** That is the whole lesson of the
+ * /brain crash: an unmapped status took an entire page with it, and the page
+ * showed no error, so the failure was indistinguishable from having no
+ * decisions. An unknown status is a gap in OUR vocabulary, not an error in the
+ * reader's data, and it should read as one.
+ *
+ * It does NOT print the raw status. §12 keeps slugs off surfaces, and a word a
+ * person cannot say out loud is what this map exists to prevent; a status we
+ * have not named yet is better admitted than leaked.
+ */
+export function outcomeWord(status: string | null | undefined): { word: string; tone: string } {
+  return (status && OUTCOME_WORD[status]) || { word: "No word for this yet", tone: "" };
+}
 
 export function ageOf(iso: string): string {
   const then = new Date(iso).getTime();

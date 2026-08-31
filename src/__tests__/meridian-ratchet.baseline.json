@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1610,
-  "fileCount": 135,
+  "totalOccurrences": 1607,
+  "fileCount": 133,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -53,9 +53,6 @@
     "src/components/billing/StripeEmbeddedCheckout.tsx": {
       "import:components/ui": 1,
       "usage:components/ui": 4
-    },
-    "src/components/billing/UsageIndicator.tsx": {
-      "raw-colour": 1
     },
     "src/components/chat/MessageMeta.tsx": {
       "--ds- via alias": 5,
@@ -113,9 +110,6 @@
     },
     "src/components/knowledge/DecisionDetail.tsx": {
       "class:sp-": 3
-    },
-    "src/components/knowledge/decisions-shared.ts": {
-      "class:sp-": 2
     },
     "src/components/knowledge/design-memory-shared.ts": {
       "class:sp-": 2
