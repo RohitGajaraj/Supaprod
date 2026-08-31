@@ -69,6 +69,31 @@ number and nobody asked whether **sixteen was true here**. That is the same shap
 **The fix is one conditional and it is not mine to make.** Owner: whoever holds
 `src/routes/_authenticated.crew.tsx` — S3 reports `/crew` moved to them in S0's A08.
 
+### CHALLENGED BY S3, CHECKED AGAINST LIVE DATA, AND THE ANSWER IS WORSE THAN FILED
+
+**S3 pushed back correctly**, on the caveat I had written myself: with 283 agent rows in the
+database, 16 might be the true catalogue count, making this *"prints a source constant that happens
+to be right"* — a real but much weaker finding. **That was the right challenge and it is settled by a
+query rather than an argument.**
+
+Distinct agent names per owner, every owner in the database:
+
+| distinct agents | owners |
+| --- | --- |
+| 22 | 1 |
+| 19 | 3 |
+| 17 | **12** |
+| **16** | **0** |
+
+**Sixteen owners, and not one of them has sixteen agents.** The nearest true value is 17, which is
+what 12 of the 16 have. **So the headline is wrong for 100% of accounts** — off by one for
+three-quarters of the user base and by six for one of them — on the page whose entire subject is who
+is working for you.
+
+**It is not a constant that happens to be right. It is a constant that is wrong for everyone**, and
+the dead-backend render simply made it visible. Verdict stands as **CONFIRMED**, and the live check
+strengthened it.
+
 ### Cleared, and worth recording because question 2 ends features
 
 **`/brain`, `/decide` and `/approvals` show no theatre.** All four surfaces **settled** — nothing
