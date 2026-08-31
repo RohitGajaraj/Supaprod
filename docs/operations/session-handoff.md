@@ -60,8 +60,14 @@ every folded route redirecting in the same commit.
    and my guard is **coupled to SURFACE-MAP** so the exception dies the day S0 rules.
 5. **`STATION_ROUTE`'s palette loop** — S0 ruled *leave it, ship with S1's station folds*. The rail
    lost its station door; the keyboard still opens one until those folds land.
-6. **`RunsGrid.tsx` is unreachable** in my own prefix — surfaced by S4's improved gate, not yet
-   investigated.
+6. **`RunsGrid.tsx` — investigated and filed, deliberately not deleted tonight.** 451 lines, my
+   prefix, **zero imports anywhere in `src/`** (its five apparent references are all comments). §13's
+   condition is met because its natural surface — the runs board — folded into the home in A07, so it
+   is a delete. **It waits because deleting it moves the unreachable count underneath an unresolved
+   baseline**: that file exists as v1 on `main` (80) and v3 on `lane/proof` (27), and a conflict
+   between them is resolved by git line-by-line rather than by meaning. **One command tomorrow, after
+   `lane/proof` merges**, plus rewording `Search.tsx`'s comment, which cites `RunsGrid` as a precedent
+   and outlives it.
 
 ---
 
@@ -104,8 +110,14 @@ was worth more than any single fix I shipped.
 3. **The inbound column (#13) stays blocked and should not be attempted**: `sync_mappings` is **0
    rows ever** and `spine_tracks.origin` is **prose**, so a column would have to parse prose to find
    the channel — a model call wearing a comparison's clothes. **Do not re-derive this.**
-4. **Sweep the rest of my surfaces for names a stranger cannot read**, per the founder's second
-   instruction — not tooltips, which should be sentences.
+4. **The naming sweep is DONE for my prefix and produced one filed decision.** Rail: five one-word
+   doors. Board: *"Director's read"* → *"Suggested next"*, because *Director* is this product's own
+   layer name on a screen. **And the measured finding: a person sees THREE nouns for one object on
+   one screen** — run/runs, mission, and *piece of work*, counted from rendered text across three
+   signed-in drives. **Not renamed**, because the nouns are split across my prefix and S1's, and
+   renaming half is §12's own stated failure. Proposal filed: **keep "run", retire "mission" from
+   surfaces**. `missions/**`, `observe/**` and `crew/**` hold most of the rest and are all FOLD or
+   DELETE — deliberately out of scope, on the same argument as `/threads`.
 5. **Drive the cursor layer the moment S1 anchors an object**, and the collision mark when two live
    runs touch one thing.
 

@@ -19,6 +19,7 @@ import { AUDIT_KINDS, parseAuditId } from "@/lib/audit-id";
 
 const BOARD = readFileSync("src/components/today/Board.tsx", "utf8");
 const SRC = readFileSync("src/components/today/CameFrom.tsx", "utf8");
+const LINE = readFileSync("src/components/today/lineage-line.ts", "utf8");
 
 /** Source with comments stripped, so prose naming a thing is not read as code. */
 function codeOnly(s: string): string {
@@ -66,10 +67,19 @@ describe("the words, which §12 makes a law rather than a preference", () => {
   });
 
   it("puts a plain sentence on the control, not a noun from the schema", () => {
-    /* "Lineage" and "audit tag" are what the machinery calls itself. A person
-       asks where something came from. */
+    /*
+     * "Lineage" and "audit tag" are what the machinery calls itself. A person
+     * asks where something came from.
+     *
+     * THE WORDS MOVED, AND THE ASSERTION FOLLOWED THEM RATHER THAN BEING
+     * DELETED. The label is now computed by `lineageLine`, because the control
+     * says more once the batch count answers. So this checks the words where
+     * they live and checks that this file DELEGATES rather than re-deriving
+     * them - the same split that stopped the retry rule being a ternary.
+     */
     const code = codeOnly(SRC);
-    expect(code).toContain("Where this came from");
+    expect(code).toContain("lineageLine(counts)");
+    expect(codeOnly(LINE)).toContain("Where this came from");
     expect(code).not.toMatch(/>\s*Lineage\s*</);
     expect(code).not.toMatch(/>\s*Trace\s*</);
   });

@@ -72,6 +72,8 @@ reopened, whatever the buildlog says.
 | [`S4-188-the-component-half-asked-the-server-half-s-question.md`](./verify/S4-188-the-component-half-asked-the-server-half-s-question.md) | The Build seat was handed the wrong repository and refused correctly (F-186) |
 | [`S4-189-the-acceptance-candidate-dies-of-a-null-foreign-key.md`](./verify/S4-189-the-acceptance-candidate-dies-of-a-null-foreign-key.md) | `product_id` NULL, so Build reaches the workspace default repo |
 | [`S4-190-it-corrected-itself-and-corrected-the-wrong-thing.md`](./verify/S4-190-it-corrected-itself-and-corrected-the-wrong-thing.md) | The loop re-planned unattended — and a re-plan cannot reach a binding fault |
+| [`S4-191-eight-reads-one-screen-and-no-notion-of-incomplete.md`](./verify/S4-191-eight-reads-one-screen-and-no-notion-of-incomplete.md) | Eight reads on one screen and no notion of incomplete |
+| [`S4-192-four-numbers-four-populations-and-my-instruction-was-wrong.md`](./verify/S4-192-four-numbers-four-populations-and-my-instruction-was-wrong.md) | Four numbers, four populations, and S4's own instruction was wrong |
 | [`CLOSING-NOTE-S4.md`](./verify/CLOSING-NOTE-S4.md) | S4's closing note: done, pending, observations, next |
 
 ## Superseded

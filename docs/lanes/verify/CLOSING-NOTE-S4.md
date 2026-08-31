@@ -1,6 +1,6 @@
 # Closing note · S4 · THE PROVING GROUND · 2026-09-01
 
-**Branch `lane/proof` · 0 behind `origin/main` · 86 ahead · no migrations (this
+**Branch `lane/proof` · 0 behind `origin/main` · 93 ahead · no migrations (this
 lane owns `e2e/**` and `docs/lanes/verify/**` and writes no product code and no
 schema).**
 
@@ -73,8 +73,30 @@ unwired), and two icons orphaned by the fold.
 
 ## PENDING
 
-- **This lane is not merged.** 83 commits, all verdicts, invisible to main.
+- **This lane is not merged.** 87 commits, mostly verdicts, invisible to main.
   **S0 holds merges.**
+- **MERGE-ORDER HAZARD: nobody may touch `e2e/unreachable-baseline.json` on main
+  until this lane merges.** Main holds the **v1** gate — `141 / 80`, no names, no
+  instrument stamp — and **none of tonight's four changes to that detector are on
+  main.** This lane's baseline is **v3: `140 / 27`**. Those are not the same
+  measurement: v3 counts 27 where v1 counts 80 because 26 rows were `React.lazy`
+  mounts the old detector could not see and 17 are exports rendered inside their
+  own file. **Nothing was deleted.** Merging `lane/proof` is safe, because
+  detector and baseline land in one commit. Any *other* edit to that JSON on main
+  first is not: git would resolve a conflict between two numbers that mean
+  different things by line position, producing a baseline no instrument produced.
+- **The wording of a check is part of what it does, and it caught me twice.**
+  The component half warned in prose about a class it went on to count
+  (S4-188). The `IMPROVED` line said *"Lower the numbers in
+  e2e/unreachable-baseline.json"* — a directive the script has no standing to
+  issue, since it cannot tell wiring from deletion, cannot see a change queued
+  on another branch, and cannot know the instrument is about to change under it.
+  S3 read it and moved to bank an unbankable number. **Their sentence is the
+  fix**: *a gate that asks for a value to be frozen is asking you to make a
+  judgement, not to obey.* Both reworded.
+- **An `IMPROVED` line nobody can bank becomes standing noise** (S3). Tonight's
+  improvements are unbankable until this merges, and a check people learn to
+  scroll past is worse than no check. **No fix tonight**; recorded as open.
 - **`check:unreachable` is RED at 141/28 and must stay red.** Raising the
   baseline is the one fix it forbids.
 - **S2's icon deletion is not on main.** It is on `origin/lane/control` only;
@@ -125,6 +147,28 @@ rather than with workspaces.**
 20:50 the tick served one track and skipped three. I predicted the 2026-08-23
 round-robin change would repay it, because an unserved track is no longer
 stamped and keeps its older key. **At 21:00 all four were served.**
+
+**And I made the instrument error myself, one level up.** I told S2 they were
+comparing across an instrument boundary from a stale checkout. **They were not —
+main is the old instrument**, and I had read their number against *this branch's*
+definition without checking which definition their tree held. That is a number
+read without its instrument, landing the way that flattered my account of it,
+which is the exact error I was attributing to them. Corrected to both S2 and S3
+within minutes, and it is the strongest argument for the versioning that the
+versioning itself would not have caught.
+
+**The best rule of the night is S2's and it is aimed at exactly this pair of
+lanes.** *Verify a correction the same way you would verify a claim, especially
+when it is about your own work and especially when agreeing costs nothing.* They
+wrote it after accepting one of my corrections without running the two commands
+that would have settled it. **Between lanes trying hard to be honest the failure
+mode is not stubbornness — it is conceding too fast, and the record ending up
+wrong in the humble direction.**
+
+It lands on me from the other end. **I told S2 they were on a stale checkout
+before I ran `git show origin/main:e2e/unreachable-baseline.json`** — one
+command, which I ran only after S3 reported the same number and made me doubt my
+own account. I published a diagnosis and then checked it.
 
 **And the discipline that mattered most tonight was checking my own alarms.** Six
 times a finding died on the query that would have published it — most sharply
