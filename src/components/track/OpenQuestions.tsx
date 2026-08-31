@@ -24,11 +24,12 @@
  * seconds** after it was written.
  */
 import * as React from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { failureLine } from "@/lib/error-copy";
 import { steerTrack } from "@/lib/spine/track.functions";
+import { getTrackHandoffs } from "@/lib/handoffs.functions";
 import { Action, RecordSpeaks } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { ReasonField } from "@/components/meridian/forms";
@@ -44,19 +45,40 @@ import {
 export function OpenQuestions({
   trackId,
   stationLabel,
-  questions,
   stationRan,
 }: {
   trackId: string;
   /** Whose questions these are, in the product's own word for that station. */
   stationLabel: string;
-  /** `null` means not read. It is never treated as none. */
-  questions: readonly string[] | null;
   stationRan: boolean;
 }) {
-  const state = openQuestionsState({ questions, stationRan });
   const qc = useQueryClient();
   const fSteer = useServerFn(steerTrack);
+  const fHandoffs = useServerFn(getTrackHandoffs);
+
+  /*
+   * S0'S READER, AND THE ONE THING IT KNOWS THAT A JOIN COULD NOT.
+   * `agent_messages.track_id` was NULL on all 143 handoffs -- the writer never
+   * set it -- so the obvious direct join returns zero rows for every track and
+   * reads as "no station has handed anything on". A false negative with no
+   * symptom. `getTrackHandoffs` takes the direct edge and falls back to the
+   * mission join, which is the only reason the existing rows are legible.
+   */
+  const q = useQuery({
+    queryKey: ["track-handoffs", trackId],
+    queryFn: () => fHandoffs({ data: { trackId } }),
+  });
+
+  /*
+   * WHILE THE READ IS IN FLIGHT WE HAVE NOT READ, so `null` is the honest input
+   * and the section says it cannot tell. It is the same rule `RunPresence`
+   * learned the hard way: a state derived during the first read must be TRUE,
+   * and "the station filed none" during a pending read is not.
+   */
+  const state = openQuestionsState({
+    handoffs: q.data?.handoffs ?? null,
+    stationRan,
+  });
 
   /** Which question has its field open. `"raise"` is the filed-none inversion. */
   const [open, setOpen] = React.useState<string | null>(null);
