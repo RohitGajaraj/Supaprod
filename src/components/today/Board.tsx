@@ -75,6 +75,7 @@ import {
   repeatLine,
   subjectKey,
 } from "@/components/today/duplicate-work";
+import { repeatedOutput, repeatedOutputLine } from "@/components/today/duplicate-output";
 import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 import { SlowRead } from "@/components/shell/SlowRead";
 import { stateSentence } from "@/components/today/state-sentence";
@@ -813,6 +814,34 @@ export function Board() {
   );
 
   const learning = learnings.data?.learnings?.[0] ?? null;
+  /*
+   * TWO TEAMMATES ANSWERED THE SAME THING (SPEC-AGENT-COMMS §3, `claim`).
+   *
+   * `claim` is the type that would PREVENT this and it has zero rows ever, so
+   * this is the half that can be true today: say it happened. And the case is
+   * not hypothetical - the only two real learnings this product has ever
+   * recorded are the same learning, written by two agents 26 seconds apart
+   * (F-158). A row comparison, never a model call.
+   */
+  const repeatedAnswers = React.useMemo(
+    () =>
+      repeatedOutput(
+        (learnings.data?.learnings ?? []).map((l) => ({
+          id: l.id,
+          recordedBy: l.recorded_by_agent_slug,
+          createdAt: l.created_at,
+          /* `decision_id` is not on this payload - `listLearnings` selects the
+             embedded `decision:decisions(forecast_claim)` instead. Asked for as
+             one field; the claim is the subject's own text meanwhile, which is
+             a key borrowed from the decision rather than a similarity judgement
+             about the learnings. */
+          subjectClaim: l.forecast_claim,
+          verdict: l.verdict,
+        })),
+      ),
+    [learnings.data],
+  );
+  const repeatedAnswersLine = repeatedOutputLine(repeatedAnswers);
   /* Resolved once here rather than inline in the block's evidence line, so the
      JSX below reads as what is printed and not as how it was parsed. */
   const learningVerdictClass = learning ? LEARNING_VERDICT_CLASS[learning.verdict] : undefined;
@@ -2703,6 +2732,17 @@ export function Board() {
                   stretched across a region centres its text and underlines it
                   across the full width, which reads as a broken heading. */}
               <div className="flex flex-col items-start gap-mrd-3">
+                {/* THE SAME ANSWER, TWICE. Drawn here because this region is
+                    what the crew produced, and "two of you wrote this" is a
+                    fact about the production rather than about the finding.
+                    Null when there is nothing to say - never an all-clear,
+                    because this reads a capped list and an absence means "not
+                    in what we read", not "it did not happen". */}
+                {repeatedAnswersLine ? (
+                  <p className="m-0 max-w-[68ch] text-mrd-label leading-mrd-prose text-mrd-hold">
+                    {repeatedAnswersLine}
+                  </p>
+                ) : null}
                 {/* What this learning was about, named above the claim rather
                     than folded into the evidence line: evidence is mono and
                     holds counts and dates, never a title. Absent when the
