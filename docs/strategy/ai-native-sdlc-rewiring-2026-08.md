@@ -177,6 +177,117 @@ not scale past one session.
 
 ---
 
+## 3.5 · THE PAIN THE PLAYBOOK NAMES AND DOES NOT SOLVE — and it is our market
+
+**Founder, 2026-08-31:** *"The core problem this playbook is calling out is that many engineering
+teams still have the same approval gates, reviews, handoffs and policies stalling the productivity
+gains made by agentic coding. Agentic coding has taken care of building. How does Supaprod solve this
+for the rest of the lifecycle? That is the real problem we want to be solving."*
+
+**He has found the load-bearing sentence in the post, and it is the best strategic reading available
+of what we are for.** This section is the answer.
+
+### 3.5.1 · What the playbook says, and what its own remedies do not reach
+
+> *"The controls stop matching reality and become intractable. Reviewing each line by hand made sense
+> when a person had written it, but it can't keep up once agents write most of the diff. Governance
+> costs increase because exceptions still route through meetings and committees that meet weekly or
+> monthly."*
+>
+> *"Security teams are sized for human output, so when agents multiply code output, either the review
+> queue builds or code ships under-reviewed."*
+
+**Their remedies are hooks as deterministic gates, AI review of every PR, autonomy tiered by
+environment, and named approvals. Every one of them makes the gate FASTER. None removes the reason
+the gate exists.**
+
+**A gate exists because somebody is accountable for an outcome and cannot tell whether this change is
+safe.** Reading the diff faster does not create that confidence — it shortens a queue that is
+refilling at the rate agents write. **A review queue growing at machine speed, reviewed at machine
+speed, is still a queue whose length is set by how much nobody trusts.**
+
+### 3.5.2 · The reframe: a gate is a question, and only one of the four is about code
+
+Every stall the playbook names is a question somebody is trying to answer:
+
+| The stall | The question underneath it |
+| --- | --- |
+| **Approval gate** | *Will this do what we wanted?* |
+| **Review** | *Is it correct and safe?* |
+| **Handoff** | *Does the next person know what I decided, and what I was unsure about?* |
+| **Policy** | *Are we allowed to do this, and who says so?* |
+
+**Only the second is answerable by reading code — and agentic coding plus AI review already answers
+it.** The other three are answered by **evidence the code does not contain.** That is the whole
+opportunity, stated in one line, and it is why the pain moved without moving to generation.
+
+### 3.5.3 · Our four mechanisms — and every one is already a queued gap
+
+**This is the finding worth the most: we had already queued the answer and did not have the sentence.**
+
+**1 · The approval gate is answered by the forecast, not the diff.** A change arrives carrying what
+was predicted, by when, in what band, and **how often this team's forecasts at this station have
+landed.** The gate becomes a policy check against evidence rather than a person reading a diff.
+*Gaps #15, #19.*
+
+> **And the sharpest single change in this document, which is small and new:** `trust-ramp.ts` should
+> promote on **calibration** — how often forecasts at this station landed in band — **not on a count
+> of successful runs.** A team that has been right eight times in ten earns a wider band before a
+> human is asked; a team that has been confidently wrong narrows, automatically, with the reason
+> visible. **Nothing in the playbook does this, because nothing in the playbook records a forecast.**
+> It is the trust ramp the rest of the industry cannot build.
+
+**2 · The review proves itself before a person sees it.** `REVIEW.md` is the customer declaring what
+counts as done; the station self-check proves it and **shows the proof.** Human review becomes an
+exception with a named reason rather than the default. Anthropic's own posture is *"human review
+reserved for regulated and critical code"* — **and somebody has to define "critical". That is what
+#18 is.** *Gaps #18, #22, #21.*
+
+**3 · The artifact IS the handoff.** One `intent.md` carrying problem, outcome, affected systems,
+constraints, **open questions**, and the forecast. **The stall in a handoff was never the meeting — it
+is the ambiguity nobody resolved**, and *"AI cannot correct ambiguity that was never resolved."*
+**Naming the open questions is what removes the meeting**, which is why an empty `Open questions` is
+a defect here and merely a field there. *Gaps #16, #20, #29.*
+
+**4 · The policy is declared once, binds automatically, and learns from its own answers.**
+`delegate.openhands`: **0 approved, 7 rejected, and the queue kept asking.** A policy that does not
+learn from the answers it already received is a committee with a database. Declared gates above
+inferred policy, answers widening the **class** and never the instance. *Gap #19, and the
+class-widening consent rule.*
+
+### 3.5.4 · The sentence
+
+> **Agentic coding removed the cost of writing the change. We remove the cost of being accountable
+> for it.**
+
+**That is the market the playbook identifies as stalled and does not clear.** It is narrower than
+"we run the lifecycle" — a phrase canon forbids outward anyway — and it is defensible, because three
+of the four answers need a forecast and nobody else records one.
+
+**Not yet approved for outward use.** Nothing outward-facing ships without the founder's approval, and
+this belongs in `positioning-locked-2026-08.md` if it is taken.
+
+### 3.5.5 · Layers 01, 02 and 03 — reconciled rather than reordered
+
+**Founder, same message:** *"Layer 1, telling you what to build, is the USP. Layer 3 — the learning,
+memory and guiding part — is an added bonus."*
+
+**Canon says 03 is the only layer defensible alone.** Both statements are true and they answer
+different questions. **Do not overwrite one with the other; state the split:**
+
+- **01 SELLS.** *Tell me what to build* is what a buyer arrives wanting. It opens the conversation and
+  it is the reason anyone looks.
+- **02 RETAINS.** **This section is 02's case, and it did not have one before today.** The gates,
+  reviews, handoffs and policies stopping being the bottleneck is the value felt every day. **A
+  product is kept for what it does on a Tuesday**, and this is that.
+- **03 DEFENDS.** The forecast and what compounds from it is what a competitor cannot copy, and the
+  vendor's own published pipeline has no field for it.
+
+**A buyer buys 01, stays for 02, and cannot leave because of 03.** Nothing in canon changes; 02 gains
+the argument it was missing, which is exactly what the founder's reading supplies.
+
+---
+
 ## 4 · The tactical rewiring — what actually changes in the repo
 
 Every row is already carried into

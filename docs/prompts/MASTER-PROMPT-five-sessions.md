@@ -82,6 +82,33 @@ it is following it.
 
 ---
 
+**3 · THE FOUR STALLS — the pain the playbook names and does not clear, and it is our market.**
+Founder, 2026-08-31: *"Agentic coding has taken care of building. The same approval gates, reviews,
+handoffs and policies are still stalling the gains. That is the real problem we want to be solving."*
+
+**Their remedies make the gate faster; none removes the reason it exists.** A gate exists because
+somebody is accountable for an outcome and cannot tell whether the change is safe, and **a queue whose
+length is set by how much nobody trusts is not fixed by reading it faster.**
+
+**The reframe: a gate is a question, and only one of the four is about code.** *Is it correct and
+safe?* is answered by a diff, and agentic coding plus AI review already answers it. **The other three
+are answered by evidence the code does not contain.**
+
+| Stall | The question | Cleared by | Lanes |
+| --- | --- | --- | --- |
+| Approval gates | *Will this do what we wanted?* | **The forecast, not the diff** | S0 · S1 |
+| Reviews | *Is it correct and safe?* | **The change proves itself first** — `REVIEW.md` + the self-check showing its proof | S3 · S0 · S1 |
+| Handoffs | *Does the next person know what I decided and what I was unsure about?* | **The artifact IS the handoff.** The stall is the ambiguity nobody resolved | S1 · S0 |
+| Policies | *Are we allowed to, and who says so?* | **Declared once, bound automatically, widened by class** | S3 · S0 |
+
+**The sentence, not yet approved for outward use:** *agentic coding removed the cost of writing the
+change; we remove the cost of being accountable for it.* **And the layer split it settles: 01 SELLS ·
+02 RETAINS · 03 DEFENDS** — a buyer arrives for *tell me what to build*, stays because the four stalls
+cleared, and cannot leave because of what compounds from the forecast. **02 did not have a case before
+this, which is why its queued work read as a list rather than an argument.**
+
+---
+
 ## The fleet
 
 | Session | Runs on | Conductor workspace | Branch | Owns |
@@ -110,7 +137,9 @@ Every session: **`the-first-run/OPERATING-MODEL-5-SESSIONS.md` in full**, then i
 | Spec | Who needs it |
 | --- | --- |
 | `SURFACE-MAP.md` — every route and component directory, owner and disposition, and what is frozen | all |
-| **`SPEC-AI-NATIVE-SDLC.md`** — Anthropic's six stages mapped onto our seven, gaps 15–19, and what we refuse | **all** |
+| **`SPEC-AI-NATIVE-SDLC.md`** — Anthropic's six stages mapped onto our seven, the adoption register, and the three refusals | **all** |
+| **`SPEC-STATION-MODEL-AND-ARTIFACTS.md`** — why the seven stations stay seven, the artifact formats, running on an engine that is not Claude, and **§4 the UX contract** | **all** |
+| **`RANKED-BACKLOG.md`** — all 29 gaps ranked and distributed. **Its order supersedes the order in your queue file** | **all** |
 | `SPEC-BUILD-PATHS.md` — hybrid build, the sandbox across five stations, the four handbacks | S0, S1 |
 | `SPEC-CONNECTORS.md` — the ~20 providers that already exist, the four that carry the loop, external-write governance | S0, S2, S3 |
 | `SPEC-AGENT-COMMS.md` — teammates addressing each other and you, seven message types | S0, S1, S2 |
@@ -133,6 +162,8 @@ Then read, in full and in order:
   the-first-run/SESSION-0-CONDUCTOR.md          <- your job
   the-first-run/SURFACE-MAP.md                  <- who owns what, what folds, and what is FROZEN
   the-first-run/SPEC-AI-NATIVE-SDLC.md          <- NEW. Read this, never the blog post
+  the-first-run/SPEC-STATION-MODEL-AND-ARTIFACTS.md  <- NEW. Stations, artifact formats, any-engine
+  the-first-run/RANKED-BACKLOG.md               <- NEW. The order, and it supersedes the queues
   the-first-run/SPEC-BUILD-PATHS.md · SPEC-CONNECTORS.md · SPEC-AGENT-COMMS.md
   docs/research/agentic-product-patterns-2026-08.md
 Then cat docs/lanes/NOW-*.md and every coordination/requests/*/.
@@ -222,6 +253,8 @@ Then read, in full and in order:
   the-first-run/SESSION-1-THE-RUN.md            <- your job. It now has NINE units, not five
   the-first-run/SURFACE-MAP.md                  <- exactly what you own
   the-first-run/SPEC-AI-NATIVE-SDLC.md          <- NEW. Three of your units come from it
+  the-first-run/SPEC-STATION-MODEL-AND-ARTIFACTS.md  <- NEW. §2.1 the intent shape, §4 the UX contract
+  the-first-run/RANKED-BACKLOG.md               <- NEW. Your Tier 1 is #16 + #29
   the-first-run/THE-ONE-SCREEN.md
   the-first-run/SPEC-AGENT-COMMS.md · SPEC-PRESENCE.md · SPEC-MULTIPLAYER-PRESENCE.md
   the-first-run/SPEC-BUILD-PATHS.md §2          <- what runs in your right pane
@@ -300,6 +333,7 @@ Then read, in full and in order:
   the-first-run/SESSION-2-MISSION-CONTROL.md    <- your job
   the-first-run/SURFACE-MAP.md                  <- exactly what you own, and the seven doors you fold
   the-first-run/SPEC-AI-NATIVE-SDLC.md          <- NEW. §3 D and §3 G touch your surfaces
+  the-first-run/RANKED-BACKLOG.md               <- NEW. YOUR TIER 1 IS F-144/145/146, THE RAIL
   the-first-run/SPEC-MULTIPLAYER-PRESENCE.md    <- a build spec, not a suggestion
   the-first-run/SPEC-AGENT-COMMS.md             <- claim and collision are yours
   docs/research/agentic-product-patterns-2026-08.md
@@ -369,6 +403,7 @@ Then read, in full and in order:
   the-first-run/SESSION-3-THE-PLATFORM.md       <- your job, re-ranked 2026-08-31 into FIVE jobs
   the-first-run/SURFACE-MAP.md                  <- what you own, and what of yours is FROZEN
   the-first-run/SPEC-AI-NATIVE-SDLC.md          <- NEW. §3 E, §3 F and §3 H are yours
+  the-first-run/RANKED-BACKLOG.md               <- NEW. #2 stays first, then #18 and #19
   the-first-run/SPEC-CONNECTORS.md              <- the connect control, and mention consent
   docs/strategy/positioning-locked-2026-08.md   <- the banned words, before you write any copy
 Then docs/lanes/QUEUE-S3.md and coordination/answers/S3/.
@@ -466,6 +501,7 @@ Then read, in full and in order:
   the-first-run/OPERATING-MODEL-5-SESSIONS.md      <- every rule. §0.7 re-ranks your questions
   the-first-run/SESSION-4-THE-PROVING-GROUND.md    <- your job. FOUR standing questions now
   the-first-run/SPEC-AI-NATIVE-SDLC.md             <- NEW. What the fleet adopted and what it refused
+  the-first-run/RANKED-BACKLOG.md                  <- NEW. Verify Tier 0 as it lands, then #24
   the-first-run/FINDINGS-LEDGER.md                 <- read before re-investigating anything
 Then docs/lanes/QUEUE-S4.md and every docs/lanes/log/*.md.
 

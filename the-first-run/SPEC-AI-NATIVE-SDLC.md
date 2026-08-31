@@ -256,14 +256,14 @@ Three, and no more than three. **Each is reopenable; none is a matter of taste.*
    statement of how a team works, and reading them makes our specs better. **We may propose a change
    as a normal change, through their review.** We never write them silently, because a vendor editing
    a team's conventions file is the single fastest way to lose the repository connection.
-3. **We do not renumber our seven stations to their six.** R-14 settles our names, the acceptance
+3. **We do not renumber our seven stations to their six.** R-01 settles our names, the acceptance
    query keys on them, and ours are already plain. **But this refusal costs something and we pay it
    properly: the mapping table in §2 becomes a translation the product speaks**, so a customer who
    says "where is my spec.md" is answered in their words. Refusing a rename is not refusing the
    vocabulary.
 
 **On the Test stage, which deserves a straight answer rather than a refusal.** They have one and we
-do not. **We do not add an eighth station** — the spine, the acceptance query and R-14 all key on
+do not. **We do not add an eighth station** — the spine, the acceptance query and R-01 all key on
 seven, and the cost of an eighth is not worth paying. **We adopt the substance instead: the
 self-check becomes visible and counted.** Their leading indicator is *first-pass CI success rate*;
 ours is *stations passing their own check without a retry*, and it goes on the value-audit surface

@@ -153,6 +153,22 @@ offline states, accessibility, admin, connectors, export, Settings, and the 119 
 `REIMAGINING.md` argues should be nine. **Which of the 119 map onto which nine is an open founder
 question — map it, propose it, and do not let a lane guess it.**
 
+**THE FOUR STALLS, AND YOU TOUCH ALL FOUR BECAUSE YOU OWN THE SPINE.** The playbook's own stated
+problem is that *"approval gates, reviews, handoffs and policies still stall the gains from agentic
+coding"* — **and its remedies make the gate faster without removing the reason it exists.** A gate is
+a question, and only one of the four (*is it correct and safe?*) is answerable by reading code.
+**The other three are answered by evidence the code does not contain**, which is our market.
+Yours: the forecast engine that answers the approval gate, the self-check proof that pre-empts the
+review, the emitters that make the artifact the handoff, and the policy engine underneath S3's
+surface. Full argument in
+[`../docs/strategy/ai-native-sdlc-rewiring-2026-08.md`](../docs/strategy/ai-native-sdlc-rewiring-2026-08.md) §3.5.
+
+**And #30, which is small, new, and the one thing the rest of the industry cannot build:**
+`trust-ramp.ts` should promote on **calibration** — how often this team's forecasts at this station
+landed **in band** — **not on a count of successful runs.** Right eight times in ten earns a wider
+band before a human is asked; confidently wrong narrows automatically, with the reason visible.
+**Blocked behind Tier 0.4 and 0.5, and do not build it against a count and call it calibration.**
+
 **MONTHLY, AND IT IS YOURS ALONE:** re-read Anthropic's SDLC playbook and the Skills/Files API
 changelog and check **one thing** — does anything now record a belief before the outcome is known? If
 `intent.md` gains a horizon and a grade, or `bands.yaml` gains a *predicted* band rather than a

@@ -8,6 +8,28 @@
 > **Ask in `coordination/requests/S1/`. You have no database — every count, row and deploy is a
 > question to S0, answered in `coordination/answers/S1/` within one unit.**
 
+> ## ⚠ RE-RANKED 2026-08-31 BY FOUNDER INSTRUCTION. READ THIS BEFORE THE ITEMS BELOW.
+>
+> The order in [`../../the-first-run/RANKED-BACKLOG.md`](../../the-first-run/RANKED-BACKLOG.md)
+> **supersedes the order in this file.** The items below are still specified correctly; they are no
+> longer necessarily topmost. Two rulings changed the ranking: **§0.7 the freeze** (every lane's
+> weight on platform strength until the acceptance is met) and **§0.8 Anthropic's AI-native SDLC
+> playbook as our framework**, which added gaps 15–29.
+>
+> **Two specs are new and you read them before touching a station boundary, an artifact or a
+> handoff:** [`SPEC-AI-NATIVE-SDLC.md`](../../the-first-run/SPEC-AI-NATIVE-SDLC.md) (the adoption
+> register) and [`SPEC-STATION-MODEL-AND-ARTIFACTS.md`](../../the-first-run/SPEC-STATION-MODEL-AND-ARTIFACTS.md)
+> (why the seven stations stay seven, the artifact formats, running on an engine that is not Claude,
+> and the UX contract in its §4).
+>
+> **THE SEQUENCING GUARD.** Only **Tier 0** moves the acceptance and all of Tier 0 is S0's. Ten new
+> gaps arrived from a playbook this week; **a lane that opens with artifact emitters instead of its
+> Tier 1 item is re-architecting instead of shipping**, which is this repository's signature failure.
+>
+> **THE STALL YOU CLEAR: handoffs** — *does the next person know what I decided, and what I was unsure about?* The stall was never the meeting; **it is the ambiguity nobody resolved**, and naming the open questions is what removes it. You also render the forecast that clears the approval-gate stall. `docs/strategy/ai-native-sdlc-rewiring-2026-08.md` §3.5.
+>
+> **YOUR TIER 1 ITEM:** **#16 · the five-field intent shape** and **#29 · open questions answered in place.** What enters Discover is a slug today and ~46 tracks died there. An empty `Open questions` is a **defect, not a clean bill** — see `SPEC-STATION-MODEL-AND-ARTIFACTS.md` §2.1 and §4.3. **The five fields are a shape you fill and a person reads, NEVER a form a person fills** (§4.3) — a setup wall fails §1's first agentic property.
+
 ## 1 · The ask happens in place, once — brief unit 4
 
 - **Goal:** `TrackConsent` becomes the only place consent is ever asked. A boundary call raised

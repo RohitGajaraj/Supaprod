@@ -333,6 +333,15 @@ suppliers to layer 02 like every builder is, and we consume them. **A lane that 
 surface, a vulnerability-triage screen or a scheduled-scan feature is rebuilding something the vendor
 now gives away. Say so before you start it, not after.**
 
+**Two companion specs, and a lane reads them before touching a station boundary, an artifact or a
+handoff:** [`SPEC-STATION-MODEL-AND-ARTIFACTS.md`](./SPEC-STATION-MODEL-AND-ARTIFACTS.md) — **the seven
+stations stay seven** (Discover and Decide do not merge, because the forecast needs a moment of
+decision distinct from the moment of finding, and they write **one `intent.md`** between them, which
+is what the merge was reaching for; Deploy and Learn do not merge because **Deploy is an event and
+Learn is a two-month wait**), the artifact formats in full, **the engine-portability law**, and **§4,
+the UX contract** — and [`RANKED-BACKLOG.md`](./RANKED-BACKLOG.md), which ranks all 29 gaps and
+distributes them across the five lanes.
+
 ### Gaps 15 – 19, authorised, continuing §0.6's ranking
 
 15. **A forecast is a point and it should be a band.** `bands.yaml` carries a baseline, detection
@@ -373,7 +382,7 @@ now gives away. Say so before you start it, not after.**
     We have shipped tests that asserted nothing and a suite that printed a hardcoded pass. Cheap, and
     the finding is already paid for. — *S0.*
 22. **They count the thing we hide.** They have a Test stage; we fold the check inside Build. **We do
-    not add an eighth station** — the spine, the acceptance query and R-14 all key on seven. **We
+    not add an eighth station** — the spine, the acceptance query and R-01 all key on seven. **We
     adopt the substance: the self-check becomes visible and counted**, as *stations passing their own
     check without a retry*, on the value-audit surface. — *S0 the count, S1 the surface.*
 
