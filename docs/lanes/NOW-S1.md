@@ -1,22 +1,17 @@
 # NOW — S1 · THE RUN
 
-**Unit:** RUN-161 · two loose threads closed by measuring them.
+**Unit:** RUN-162 · the pane said "67 signals" and the loop had written all 67.
+**DEVSERVER 8080, killed and verified clear.**
 
-**State:** no code changed. **Not S0** — that brief was misrouted; I performed no conductor act. The
-`/goal` hook still enforces it and needs clearing by the founder.
+**State:** built and driven. tsc 0 · **13,358 pass / 0 fail** · lint clean.
 
-**1 · RUN-144's fold has NO producer, and I can now bound it.** 3 tracks carry waivers, all predating
-S0's persist fix; **0** have consecutive identical reasons; `6199f3df` has 4 waivers with **4
-distinct** reasons (the negative case, already driven). And **0 tracks sit at `decide` with a
-declined latest decision** — so nothing is queued to produce it. `d2263583` was the only candidate and
-has moved to Learn with its waivers lost to the 17-minute window. **Last update I will post on this**:
-restating an unverified branch every unit is noise. Tested, bounded, and S0 will name the track.
+**S4-183 established this on the evidence door and S0 shipped it there an hour ago. It applies
+unchanged to a pane of mine that is already live and had never said it.**
 
-**2 · F-183 needs nothing from me, and I checked rather than assumed.** *"Waiting on a known date is
-not waiting in a queue"* touches `spine/**` and `track-tick.ts` only — the scheduler. Its case is
-strong: **ten of eighteen drives since 18:00 UTC went to two tracks that could not progress.** My
-Learn pane already speaks it: *"Learn is waiting rather than failing, and starts again on its own when
-what it needs arrives… The forecast comes due Thu, Oct 15."* A dated wait, not a queued one.
+**62.7% of the whole signals table is the loop's own output** (940 of 1,499). But the per-track table
+is what made it a unit: `47dcbf3c` renders **67 signals, all 67 ours**; `3a652670` 78 of 80;
+`1361f487` 61 of 62; `6ff86b03` 138 of 148. *"57 things mention this, and 38 of them we wrote"* is a
+materially different sentence, and only the first lets a person judge the number.
 
 **It has no caller.** Only the module, its `.server.ts` and its own test reference it. Sixth
 producer-without-a-consumer in two days, and this one is inverted: the reader and the words exist,
@@ -92,5 +87,18 @@ is explicit *"nothing here may become a gate"*) · `WhatWereSolving` (reads a tr
 exists; this runs before one does).
 **Blocked and named:** the evidence door needs one `createServerFn` from S0 · S1-Q2 needs the founder's
 F-161 ruling · #22/#27/#17/#14 need S0's half.
+**No S0 dependency, and I checked before asking for one.** `track.functions.ts:1199` already selects
+`source`, so `fields.source` was reaching my component all along and nothing read it. I nearly filed
+the sixth producer-with-no-consumer of the day and the producer was already wired to my door.
 
-**Not DEVSERVER.**
+**Three judgements:** silent when none are ours (the opposite call from `said-once-not-four-times`,
+and right for the opposite reason) · silent when we cannot tell (`null`, not `0` — the day's law a
+fourth time) · the ALL case gets its own sentence.
+
+**Not an accusation, and a test pins it.** The inflow already flipped on 2026-08-25 and nothing
+drained the pool, so this is a backlog not a live failure. The line never says fail/broken/wrong.
+
+**DRIVEN on `bb405f6c` — 14 lines, both branches:** *"We wrote all 4 of these ourselves."* and
+*"2 of these 4 we wrote ourselves."*
+
+**Not S0.** That brief was misrouted; no conductor act performed. The `/goal` hook still enforces it.
