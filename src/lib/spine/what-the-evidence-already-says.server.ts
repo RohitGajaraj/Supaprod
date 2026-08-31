@@ -61,5 +61,10 @@ export async function evidenceForSubject(
     .slice(0, 5)
     .map(([s]) => s);
 
-  return { count: rows.length, sources, byTerm: countByTerm(terms, rows) };
+  return {
+    count: rows.length,
+    sources,
+    byTerm: countByTerm(terms, rows),
+    agentAuthored: rows.filter((r) => (r.source ?? "").trim() === "agent").length,
+  };
 }
