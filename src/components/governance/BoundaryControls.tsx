@@ -950,6 +950,60 @@ export function BoundaryControls({
               It leads here exactly as it led on /boundary. */}
           <TrustGraduationsBlock />
 
+          {/*
+           * HOW THE THREE BUCKETS BELOW WERE DECIDED, IN THE SENTENCE A PERSON
+           * SAYS OUT LOUD. `SPEC-AI-NATIVE-SDLC.md` §3 F, owner S3.
+           *
+           * THE SPEC ASKED FOR SOMETHING WE DO NOT HAVE, AND THIS IS THE HONEST
+           * FOLD RATHER THAN THE LITERAL ONE. It says to explain the ladder "by
+           * environment", after Anthropic's: dev deploys freely, staging is
+           * intermediate, production is gated on a named approval. **Ours has no
+           * environment axis.** Traced 2026-08-31: `axisDefault`
+           * (`src/lib/ai/approval-policy.ts:158`) decides on exactly two things,
+           * `toolConsequence(tool).reversible` and `isExternalTool(tool)`. The
+           * word "production" appears nowhere in it.
+           *
+           * SO WHY THE PRODUCTION SENTENCE BELOW IS STILL TRUE. `opsImpact` is a
+           * real, live axis, it just is not this one: `assessTool`
+           * (`tool-consequences.ts:1537`) scores five axes and takes the MAXIMUM,
+           * and `OPS_SCORE.production` is 2, the top. So a deploy is treated as
+           * the most consequential kind of act. It lands there because it cannot
+           * be undone from inside the product and customers see it -- which is
+           * `ship.deploy`'s own recorded effect -- and not because of the word.
+           * That distinction is the whole point of saying it here: a customer
+           * who believes we gate on the environment NAME will expect a staging
+           * deploy to be waved through, and it is not the name we read.
+           *
+           * ONE EXPLANATION OF THE EXISTING LADDER, NEVER A SECOND LADDER, which
+           * §3 F is explicit about and this repo has already paid for twice. No
+           * new control, no new state, no new bucket: this Region renders two
+           * static sentences describing the rule the three Regions beneath it
+           * already obey. `trust-ramp.ts` stays the only thing that promotes.
+           *
+           * NOT A THIRD VOICE ON THE PER-TOOL REASON. `axisDefault` writes a
+           * sentence per tool and "What your answers changed" renders it
+           * verbatim, deliberately. This says the RULE once, at the top; it does
+           * not restate any tool's own reason, because two wordings for one
+           * decision is the defect that pattern exists to avoid.
+           */}
+          <Region
+            title="How these three were decided"
+            sub="Two questions about the act itself, asked before your crew's level is read at all. Nothing here is about who is asking or how well it has done."
+          >
+            <Line
+              label="Can it be undone from inside the product"
+              sub="If it cannot, a person signs off every time and no track record changes that. If undoing it only half works, it stays gated until you have watched it enough times to let it run."
+            />
+            <Line
+              label="Does it leave your workspace"
+              sub="Anything reaching a system outside it is gated even when it can be undone, because the thing it touched is not ours to put back."
+            />
+            <Line
+              label="A deploy is the strictest case, and not because of the word"
+              sub="Shipping to where customers see it cannot be undone from in here, so it sits at the top of both questions at once. We do not read the environment's name, so a staging deploy is not waved through for being called staging."
+            />
+          </Region>
+
           {block(
             "alone",
             "What they do alone",
