@@ -290,8 +290,36 @@ export function NotificationsSection() {
             "Nothing reaches you. Every alert is currently silent, including the ones waiting on your decision."
           ) : (
             <>
-              <Num>{reachable}</Num> of the four things that can interrupt you currently do. The
-              rest stay silent until you come looking.
+              {/*
+               * SAYS WHAT IS SWITCHED ON, NOT WHAT REACHES YOU (2026-09-01,
+               * found by signing in and reading the page rather than the code).
+               *
+               * It read "{n} of the four things that can interrupt you CURRENTLY
+               * DO", which asserts an outcome — and the Region directly below it
+               * says the opposite in its own words: "Two of these show up in the
+               * app, two do not yet... those two stay held rather than looking
+               * as though they do something." **On a full matrix the heading
+               * claimed four interrupt you while the body said two.** One screen,
+               * two numbers, and the body was the honest one.
+               *
+               * `reachable` counts CATEGORIES WITH A CHANNEL TOGGLED ON. That is
+               * a statement about the switches, which is exactly what this pane
+               * edits, so the heading now describes the switches and leaves the
+               * held note below to say which of them currently arrive.
+               *
+               * AND IT NO LONGER READS "4 of the four". A digit and the same
+               * number spelled out, in one clause, on the all-on case that every
+               * account starts in — because the defaults are all on and only one
+               * of sixteen profiles has ever changed them.
+               */}
+              {reachable === CATEGORIES.length ? (
+                <>All four things that can interrupt you are switched on.</>
+              ) : (
+                <>
+                  <Num>{reachable}</Num> of the four things that can interrupt you are switched on.
+                  The rest stay silent until you come looking.
+                </>
+              )}
               {/*
                * STATES THE SETTING, NOT THE DELIVERY, and the difference is the
                * whole of standard #7 on this line.

@@ -105,3 +105,49 @@ describe("the notifications page does not promise a result that never comes", ()
     expect(region).not.toMatch(/\b(97|106|42|46%|9 (out )?of 10)\b/);
   });
 });
+
+/**
+ * THE HEADING CLAIMED AN OUTCOME ITS OWN BODY REFUTED, ON THE SAME SCREEN.
+ *
+ * Found by signing in as the documented test account and READING the page, not
+ * by reading the code. It said "{n} of the four things that can interrupt you
+ * CURRENTLY DO", while the Region a few lines below says, in its own words:
+ * "Two of these show up in the app, two do not yet... those two stay held
+ * rather than looking as though they do something."
+ *
+ * So on a full matrix the heading claimed four interrupt you and the body said
+ * two. `reachable` counts categories with a channel TOGGLED ON — a fact about
+ * the switches this pane edits, not about what arrives. The heading now says
+ * that, and the held note keeps its job of saying which ones actually land.
+ *
+ * It also read "4 of the four": a digit and the same number spelled out in one
+ * clause, on the all-on case that every account starts in — the defaults are
+ * all on, and one profile of sixteen has ever changed them.
+ */
+describe("the notifications heading describes the switches, not the arrivals", () => {
+  it("never claims a category 'currently does' interrupt you", () => {
+    expect(CODE).not.toContain("interrupt you currently do");
+  });
+
+  it("says switched on, which is what the number counts", () => {
+    expect(CODE).toContain("are switched on");
+  });
+
+  /** "4 of the four" is the all-on case, which is the default for every account. */
+  it("does not print a digit beside the same number in words", () => {
+    expect(CODE).toContain("reachable === CATEGORIES.length");
+    const allOn = CODE.slice(CODE.indexOf("reachable === CATEGORIES.length"));
+    const arm = allOn.slice(0, allOn.indexOf(") : ("));
+    expect(arm).not.toContain("<Num>");
+    expect(arm).toContain("All four");
+  });
+
+  /**
+   * The held note is the half that tells the truth about arrival. If it ever
+   * goes, the heading becomes the only claim on the page and this pairing needs
+   * rethinking rather than silently becoming an overclaim again.
+   */
+  it("keeps the note that says which of them actually show up", () => {
+    expect(CODE).toContain("Two of these show up in the app, two do not yet");
+  });
+});
