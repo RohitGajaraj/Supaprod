@@ -98,9 +98,10 @@ describe("every bound key lands somewhere the rail can light", () => {
     // enough to fix it without opening a browser.
     expect(dark).toEqual([]);
     // A sanity floor, so a nav-model that silently emptied would not pass by
-    // having nothing left to check. Sixteen since 2026-08-25: Work (/start,
-    // `g w`) joined the bound doors.
-    expect(BOUND.length).toBe(16);
+    // having nothing left to check. FIFTEEN since 2026-08-31 (F-144/145/146):
+    // /runs removed from PRIMARY_NAV (folds into /today). Was 16 since 2026-08-25
+    // when Work (/start, `g w`) joined the bound doors.
+    expect(BOUND.length).toBe(15);
   });
 
   it("covers the standing `g` alias too, which no door declares", () => {
@@ -121,13 +122,14 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // NEIGHBOUR is the same bug seen from the other side - that row could
     // never light at all. Both are caught by the same assertion.
     const rows = [...railBlock().matchAll(/to:\s*"([^"]+)"/g)].map((m) => m[1]);
-    // SEVEN since 2026-08-25: Today, Approvals, Work, Runs, Brain, Threads,
-    // Guardrails. Crew left for Settings on 2026-08-15, Approvals and
-    // Threads arrived 2026-08-24, and Work arrived 2026-08-25 owning /start
-    // and the /track/:id run screens; the count is asserted rather than left
-    // open because an empty or halved rail is exactly the failure this file
-    // exists to catch, and a `>= 1` would sail past it.
-    expect(rows.length).toBe(7);
+    // SIX since 2026-08-31 (F-144/145/146 fold): Today, Approvals, Work, Brain,
+    // Threads, Guardrails. Runs/Stations removed; stations now fold into Today
+    // and owned via LOOP_STATIONS. Crew left for Settings on 2026-08-15,
+    // Approvals and Threads arrived 2026-08-24, and Work arrived 2026-08-25
+    // owning /start and /track/:id run screens; the count is asserted rather
+    // than left open because an empty or halved rail is exactly the failure
+    // this file exists to catch, and a `>= 1` would sail past it.
+    expect(rows.length).toBe(6);
     for (const r of rows) expect(railOwnerOf(r)).toBe(r);
   });
 
@@ -148,20 +150,22 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     const block = railBlock();
     expect(block).not.toMatch(/owns:\s*\[/);
     const owns = [...block.matchAll(/owns:\s*([A-Z][A-Z_]*)\b/g)].map((m) => m[1]);
+    // F-144/145/146: Stations row removed 2026-08-31. Now 6 rows (was 7).
     // One per row, so a row cannot drop the field and quietly go dark.
-    expect(owns.length).toBe(7);
+    expect(owns.length).toBe(6);
   });
 
-  it("owns exactly the seven stations the strip navigates to", () => {
+  it("owns exactly the seven stations the strip navigates to (F-144/145/146)", () => {
     // Read from STATION_ROUTE rather than listed, so this test cannot be the
-    // place the drift hides either.
+    // place the drift hides either. After the fold, stations are owned by
+    // the Today row rather than the (now removed) Stations row (2026-08-31).
     const stations = Object.values(STATION_ROUTE);
     expect(stations.length).toBe(7);
-    for (const path of stations) expect(railOwnerOf(path)).toBe("/runs");
+    for (const path of stations) expect(railOwnerOf(path)).toBe("/today");
     // And a station's own sub-surface stays under the same row: /plan/spec/<id>
-    // is where a spec is written and it is still Plan.
-    expect(railOwnerOf("/plan/spec/abc")).toBe("/runs");
-    expect(railOwnerOf("/build/mission-1")).toBe("/runs");
+    // is where a spec is written and it is still owned by Today (through LOOP_STATIONS).
+    expect(railOwnerOf("/plan/spec/abc")).toBe("/today");
+    expect(railOwnerOf("/build/mission-1")).toBe("/today");
   });
 
   it("draws both aria-current tokens, so a section row is lit and not merely claimed", () => {

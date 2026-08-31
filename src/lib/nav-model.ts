@@ -214,17 +214,10 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     group: "workflow",
     tagline: "See results and system insights.",
   },
-  // OPERATIONS. Two doors the shell has always drawn and the keyboard could
-  // never reach. Their labels here are the labels AppFrame's rail draws, on
-  // purpose: the keycap is a letter of the word next to it, so the row teaches
-  // its own shortcut.
-  {
-    to: "/runs",
-    label: "Runs",
-    index: "",
-    zone: "operations",
-    tagline: "Work you handed over, and how far it got.",
-  },
+  // OPERATIONS. One door the shell has always drawn. F-144/145/146: /runs
+  // removed 2026-08-31 (folds into /today per rail consolidation). The label
+  // here is the label AppFrame's rail draws, on purpose: the keycap is a letter
+  // of the word next to it, so the row teaches its own shortcut.
   {
     to: "/crew",
     // AGENTS, NOT CREW, 2026-08-15. The label is what the command palette

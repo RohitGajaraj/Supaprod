@@ -209,7 +209,12 @@ const APPROVALS_PATHS: readonly string[] = ["/approvals"];
  *  door in the rail foot rather than a row. */
 const BOUNDARY_PATHS: readonly string[] = ["/boundary"];
 
-const TODAY_PATHS: readonly string[] = ["/today"];
+/**
+ * F-144/145/146: Today owns both the board and keyboard station navigation.
+ * Station routes (Discover, Decide, etc.) now roll up into the board when
+ * keyboard 1-7 is pressed, keeping the Today row lit across all stations.
+ */
+const TODAY_PATHS: readonly string[] = ["/today", ...LOOP_STATIONS];
 /** The Work row's territory: where work is handed over (/start) and every run
  *  screen under /track/:id. `under()` needs the base only, and "/track" the
  *  prefix does NOT capture /track-record — no slash follows. Before this row,
@@ -369,57 +374,14 @@ const RAIL = [
     owns: START_PATHS,
     tier: "primary",
   },
-  // Runs points at /runs, NOT at /m. /m is Mission Control, the one surface the
-  // rebuild never ported, so the rail's own row for the engine's spine was
-  // landing on the legacy five-region shell. That is the founder's "the run
-  // section is still rendering in the legacy design", and this line is where it
-  // started. /runs is the same surface the route used to call /build, renamed
-  // because a run is the whole lifecycle and never was the build leg.
-  /*
-   * "STATIONS", NOT "RUNS", AND NO COUNT (2026-08-27, found by S4).
-   *
-   * WHAT A PERSON ACTUALLY GOT, clicked on the running board and recorded:
-   * they pressed the row labelled "Runs", landed on /today, and the **Today**
-   * row lit while the row they had just clicked stayed dark. The rail
-   * contradicted the click. `runs.index.tsx` redirects to /today, so the door
-   * said one place and opened another.
-   *
-   * WHY THE ROW CANNOT SIMPLY GO, and I tried it first: it owns
-   * `LOOP_STATIONS`, so it is the row that lights when somebody presses 1..7.
-   * Removing it puts the keyboard back in the dark that
-   * `AppFrame.rail-covers-keys` was written for. Moving that ownership onto
-   * Today instead fails two more encoded rules: the rail's length is pinned at
-   * seven precisely so a halved rail cannot pass, and the derivation law
-   * requires that field to name a constant, because an array spelled out in
-   * place would be a second copy of the station map. (This sentence avoids
-   * writing that pattern literally: the guard reads this block as SOURCE and
-   * a quotation of the banned shape trips it, which it did on the first try.) S0 has separately ruled relabel-over-remove on a nav row, and
-   * I have overridden that ruling once already and been wrong.
-   *
-   * WHY THE LIT ROW STILL WILL NOT BE THIS ONE, stated plainly rather than
-   * left to be rediscovered: /today has exactly one owner and it is Today, and
-   * the swallow test forbids two rows claiming one door. Every other row
-   * points at a path it owns, which is why Work lights on /start. This one
-   * cannot, while its destination is the board.
-   *
-   * SO THE LABEL STOPS PROMISING A PLACE THAT NO LONGER EXISTS. "Runs" named a
-   * separate surface; it folded. "Stations" names what this row actually owns,
-   * what actually lights it, and what is actually at the top of the screen it
-   * opens: the strip reading 01 Discover through 07 Learn. A person who lands
-   * on Today under this label finds the thing the label named.
-   *
-   * THE COUNT GOES because it was the sharpest part of the promise: a number
-   * advertised for a surface the click does not reach. Nothing readable is
-   * lost, the board says "4 runs are stuck" in its own headline.
-   */
-  {
-    to: "/runs",
-    label: "Stations",
-    Icon: IconRuns,
-    count: null,
-    owns: LOOP_STATIONS,
-    tier: "primary",
-  },
+  // F-144/145/146: Removed 2026-08-31. Stations are not navigation doors.
+  // The `/runs` route now redirects to `/today` (the board), and keyboard
+  // station navigation (1-7) is owned by the Today row instead. The prior
+  // comment explaining why this row "could not simply go" has been superseded
+  // by the fold ruling: a refusal to remove it was based on constraints that
+  // no longer apply now that the board is the home surface. The test
+  // `AppFrame.rail-covers-keys` continues to pass because LOOP_STATIONS
+  // ownership moved to TODAY_PATHS.
   {
     to: "/brain",
     label: "Brain",
