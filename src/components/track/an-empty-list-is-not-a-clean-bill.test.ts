@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import {
   answerRecord,
   canRaiseOne,
@@ -283,7 +284,7 @@ describe("the vocabulary law", () => {
      * writer of its own.
      */
     const src = readFileSync(
-      new URL("./an-empty-list-is-not-a-clean-bill.ts", import.meta.url).pathname,
+      fileURLToPath(new URL("./an-empty-list-is-not-a-clean-bill.ts", import.meta.url)),
       "utf8",
     );
     expect(src).not.toMatch(/createServerFn|supabase|\.insert\(|useMutation/);
