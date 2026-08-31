@@ -303,16 +303,59 @@ if (frozen) {
     );
     process.exit(1);
   }
+  /*
+   * ── AND IT MUST NAME THE NEWCOMER ──────────────────────────────────────
+   *
+   * The ratchet above fired for real on 2026-09-01 -- server functions
+   * 140 -> 142, components 44 -> 45 -- and said only that. Three things had
+   * become unreachable and the gate named none of them, so the lane that
+   * caused it could not find out what it did without re-deriving a
+   * 142-entry list by hand and diffing it against a number.
+   *
+   * That is the SAME defect this file's own comment above is about, one
+   * level up: a comparison computed and never printed. The counts were
+   * compared; the names were in memory at that instant and thrown away.
+   *
+   * So the baseline now freezes SORTED NAMES as well, keyed `file::name`
+   * because `getMeeting` is not unique across files, and a rise prints
+   * exactly what is new. `_namesFrozenAt` records when, so a stale name
+   * list is visible rather than silently trusted.
+   *
+   * BACKWARD COMPATIBLE ON PURPOSE: a baseline with no name arrays still
+   * gates on counts and says the names are absent. A gate that starts
+   * refusing because its own baseline is a version behind is a gate
+   * somebody reverts, which is the lesson the counts ratchet already
+   * learned.
+   */
+  const keyOf = (o) => `${o.file}::${o.name}`;
+  const fnKeys = orphans.map(keyOf).sort();
+  const compKeys = componentOrphans.map(keyOf).sort();
+
+  const newcomers = (current, frozenNames) => {
+    if (!Array.isArray(frozenNames)) return null;
+    const was = new Set(frozenNames);
+    return current.filter((k) => !was.has(k));
+  };
+
   const over = [];
+  const added = [];
   if (orphans.length > frozen.serverFunctions) {
     over.push(
       `server functions ${frozen.serverFunctions} -> ${orphans.length}`,
     );
+    const n = newcomers(fnKeys, frozen.serverFunctionNames);
+    if (n === null) added.push(["server functions", null]);
+    else for (const k of n) added.push(["server function", k]);
   }
   if (componentOrphans.length > frozen.components) {
     over.push(`components ${frozen.components} -> ${componentOrphans.length}`);
+    const n = newcomers(compKeys, frozen.componentNames);
+    if (n === null) added.push(["components", null]);
+    else for (const k of n) added.push(["component", k]);
   }
   if (over.length) {
+    const named = added.filter(([, k]) => k !== null);
+    const unnamed = added.filter(([, k]) => k === null);
     console.error(
       `\nUNREACHABLE COUNT ROSE: ${over.join(", ")}.\n` +
         "Something exported is imported by nothing. That is finished work that never\n" +
@@ -320,6 +363,19 @@ if (frozen) {
         "is invisible to tsc, eslint, the build and the tests.\n" +
         "If the rise is deliberate, lower nothing and say why; otherwise wire it up.",
     );
+    if (named.length) {
+      console.error("\nNEW SINCE THE BASELINE -- these are the ones to read:");
+      for (const [kind, k] of named) {
+        const [file, name] = k.split("::");
+        console.error(`  ${name}  (${file})   [${kind}]`);
+      }
+    }
+    for (const [kind] of unnamed) {
+      console.error(
+        `\nCannot name the new ${kind}: the baseline has no name list for them.\n` +
+          "Add one by re-freezing (see e2e/unreachable-baseline.json).",
+      );
+    }
     process.exit(1);
   }
   const under = [];
@@ -332,6 +388,25 @@ if (frozen) {
   if (under.length) {
     console.log(
       `\nIMPROVED: ${under.join(", ")}. Lower the numbers in e2e/unreachable-baseline.json.`,
+    );
+    /*
+     * Re-freezing by hand is how a name list goes stale, so print it ready
+     * to paste. Nothing here writes the file: the drop should be read by a
+     * person before it is frozen, or the gate ratchets down over a deletion
+     * as happily as over a fix.
+     */
+    console.log(
+      "\nRe-freeze with these, once you have read WHY the count dropped:\n" +
+        JSON.stringify(
+          {
+            serverFunctions: orphans.length,
+            components: componentOrphans.length,
+            serverFunctionNames: fnKeys,
+            componentNames: compKeys,
+          },
+          null,
+          2,
+        ),
     );
   } else {
     console.log(
