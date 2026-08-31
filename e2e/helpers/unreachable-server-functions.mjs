@@ -185,8 +185,48 @@ if (claimed.length) {
   for (const c of claimed) console.log(`  ${c.name}  (${c.file})\n      "${c.why}"`);
 }
 
+/*
+ * A NOTE ON A ROW IS NOT AN EXCUSE FOR IT.
+ *
+ * `notes` in the baseline attaches a determined reason to an orphan BY NAME. It
+ * is printed here and changes NOTHING about the count, because the count going
+ * down is the only thing that means the debt went down.
+ *
+ * It exists because S2 asked for `getLineageCounts` to be marked "staged ahead
+ * of a surface", so a later lane scanning this list would not read it as dead
+ * weight and delete it. That risk is real -- this file already warns that an
+ * orphan is not a delete order -- and the answer is to say WHICH of the three
+ * things a row is, for the ones somebody has actually determined, while leaving
+ * it in the number that gets it wired.
+ *
+ * The imports it uses are declared further down beside the ratchet. ES module
+ * imports are hoisted, so that is fine; the path is recomputed rather than
+ * reusing BASE_DIR, which is a `const` declared below this line and therefore
+ * still in its temporal dead zone here.
+ */
+let notes = {};
+try {
+  notes =
+    JSON.parse(
+      readBaseline(
+        joinBaseline(
+          dirnameBaseline(fileURLToPathBaseline(import.meta.url)),
+          "..",
+          "unreachable-baseline.json",
+        ),
+        "utf8",
+      ),
+    ).notes ?? {};
+} catch {
+  notes = {};
+}
+const noteFor = (o) => {
+  const n = notes[`${o.file}::${o.name}`];
+  return n ? `\n      ${n}` : "";
+};
+
 console.log("\nEvery orphan:");
-for (const o of orphans) console.log(`  ${o.name}  (${o.file})`);
+for (const o of orphans) console.log(`  ${o.name}  (${o.file})${noteFor(o)}`);
 
 /*
  * THE SAME QUESTION ON THE CLIENT SIDE.
@@ -306,7 +346,7 @@ for (const [file, n] of [...compByFile].sort((a, b) => b[1] - a[1]).slice(0, 10)
  * that will be trusted and should not be.
  */
 console.log("\nEvery component orphan:");
-for (const o of componentOrphans) console.log(`  ${o.name}  (${o.file})`);
+for (const o of componentOrphans) console.log(`  ${o.name}  (${o.file})${noteFor(o)}`);
 
 /*
  * PRINTED, NOT COUNTED. Not failing the gate is not the same as being fine:
