@@ -764,6 +764,19 @@ export const SURFACE_REGISTRY = {
     opensFrom: "audit-tag",
     status: "planned",
   },
+  /*
+   * WHAT ONE STATION LEFT UNSETTLED FOR THE NEXT (S1's #29). Read by the run's
+   * artifact pane, which draws §2.1's five-field handoff shape; three of the
+   * five shipped in RUN-124 and these are the other two. `planned` until S1
+   * passes the prop at the two `ArtifactPane` call sites — the reader landing
+   * first is the agreed order, because the shape is what they build against.
+   */
+  handoffs: {
+    kind: "canvas-panel",
+    home: "canvas/01-evidence",
+    opensFrom: "spine-stage-01",
+    status: "planned",
+  },
   traces: {
     kind: "drawer",
     home: "receipt-details",

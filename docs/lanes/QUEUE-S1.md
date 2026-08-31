@@ -10,34 +10,38 @@
 
 ---
 
-## S1-Q1 · Open questions, answered in place — gap #29
+## S1-Q1 · The artifact card — gap #28
 
-**Goal.** The Discover artifact draws its `Open questions` section **always**, including when the
-station filed none, and a person answers one **in the transcript** without leaving the run.
+> **S1-Q1 WAS "open questions, answered in place" AND YOU SHIPPED IT** in RUN-153 (`d19fc7987`),
+> including the fifth state your own measurement earned — `said-nothing` (140 of 143) beside
+> `filed-none` (one row in the product's history). Replaced rather than left to rot: a queue that
+> lies to its lane spends units rediscovering finished work, which cost you one on F-150.
 
-**What problem of mine does this kill?** I am handed work that reads confident and is not. The thing
-nobody resolved surfaces three stations later as rework.
-**What do I stop doing?** Reading a spec, sensing something is missing, and having nowhere to say so
-except by rejecting the whole thing.
+**Goal.** What a station produced, as one readable sentence in the run, with the file behind a
+"take this" control. `SPEC-STATION-MODEL-AND-ARTIFACTS.md` §4.1 and §5 gap #28.
 
-**Files.** `src/components/track/**` (yours). The reader is mine and queued — until it lands, build
-against the shape, not against a client-side read of `payload` (you already ruled that out yourself
-and you were right).
+**What problem of mine does this kill?** I open a run and cannot tell what actually came out of a
+station without reading a pane full of structure.
+**What do I stop doing?** Opening the artifact to find out whether it is worth opening.
 
-**The measurement that decides the design, and it is the whole point.** Of **161 `agent_messages`,
-2 carry a non-empty `open_questions`** and 13 carry `constraints`.
-`SPEC-STATION-MODEL-AND-ARTIFACTS.md` §2.1: *"An empty list is a DEFECT, not a clean bill. Discover
-filing zero open questions means it did not look."* **So a section that hides when empty hides the
-finding.** Draw it always; say the station filed none.
+**THE HARD CONSTRAINT, AND IT IS THE WHOLE ITEM (§4.1).** *"A person never sees YAML, a filename,
+or a section heading from §2."* R-01 rules that a raw station slug reaching a screen is a bug; the
+same law extends — **raw frontmatter reaching a screen is a bug.** `intent.md`, `spec.md` and
+`sdlc.stage` are file names and machine fields and **never become UI vocabulary** (§4.5 rule 4).
 
-**Acceptance.** The section renders on a track with zero open questions and says so in plain words ·
-answering one records the answer against the track and the transcript shows who answered · *proceed
-anyway* is recordable **as an answer**, never as a dismissal (§4.3) · nothing on screen says
-`intent.md`, `open_questions` or `payload`.
+**Files.** `src/components/track/**` (yours). **`ArtifactPane` already exists — 2,415 lines,
+mounted, six call sites, ten kind-specific renderers.** RANKED-BACKLOG settled this: *"Add exactly
+one control"* in the `Region` header (`:2352-2355`), `Action` is already imported at `:73-82`, and
+the `download()` shape is proven at `DataSection.tsx:91`. **Not a settings page, not a per-station
+route, not a global list** — that last one was built, orphaned, audited and redirected away on
+2026-07-30.
 
-**Checked first, and say so in your unit file.** `TrackConsent` (shipped, in-place ask) and
-`AskInPlace.tsx` (**zero call sites** — S3 filed that; it may be your mount). **Do not build a
-second ask mechanism.**
+**Acceptance.** One sentence per station a person reads without scrolling · the file reachable and
+never in front of the work · a station that produced nothing says so and cannot fake it (§4.4) ·
+**driven, not unit-tested only** — you caught your own dead end in RUN-153 by opening the pane.
+
+**Checked first, and name it in your unit file.** `ArtifactPane`'s existing `Region` header, and
+why a new component was or was not needed.
 
 ## S1-Q2 · The value-audit surface — gap #17 / #7
 

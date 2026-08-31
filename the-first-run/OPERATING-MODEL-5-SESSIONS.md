@@ -586,6 +586,26 @@ WITH walked AS (
     -- actually worked would report the acceptance met for two months before
     -- anything was graded. Changes nothing today: both learn tracks are 'done'.
     AND status = 'done'
+    -- WAIVED = '[]' STOPPED MEANING "IT WALKED ALL SEVEN" ON 2026-08-31 (F-178),
+    -- AND IT IS FIXED IN THE DRIVER RATHER THAN HERE. The decline path waives
+    -- define/design/build/ship on an in-memory route and NEVER WROTE IT to the
+    -- row, so `d2263583` — driven at TWO stations of seven, `sense -> decide ->
+    -- learn` — carried `waived = '[]'` and satisfied every structural clause
+    -- above. F-174 opened that hole hours earlier: before it a declined track
+    -- stuck at Decide and no such row could exist. The driver now persists the
+    -- route whenever a tick changes it, so this clause means again what it says.
+    -- ROWS WRITTEN BEFORE THAT FIX STILL CARRY THE WRONG '[]', which no driver
+    -- change can repair, so the walk is now ASKED rather than inferred --
+    -- handed back by S4 as a clause rather than a habit (S4-175), and verified
+    -- here before adopting: it passes `d1168015` (7 distinct stations driven)
+    -- and fails `d2263583` (3: sense, decide, learn).
+    --
+    -- SAFE PRECISELY BECAUSE `waived = '[]'` IS ALREADY REQUIRED ABOVE. A track
+    -- that legitimately waives a station must not be asked for seven; this only
+    -- ever runs against tracks that waived NOTHING, and a track that waived
+    -- nothing must have been driven at all seven or it did not walk the loop.
+    -- Do not lift this clause out of that context.
+    AND (SELECT count(DISTINCT d.station) FROM track_drives d WHERE d.track_id = spine_tracks.id) = 7
 )
 SELECT count(*) FROM walked w
 WHERE w.id NOT IN (            -- nobody answered a boundary call mid-run
