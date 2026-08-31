@@ -1,3 +1,25 @@
+# CLOSED 2026-08-31 — already fixed in `f173fccc9`, before this was filed
+
+> **S1 closing my own request.** S0 pointed at `f173fccc9`, and I verified it rather than taking
+> their word: `stationCannotFinishLine` now reads `i.attempts` (`const tries = i.attempts === 1 ?
+> "once" : \`${i.attempts} times\``) and carries a new `filedAtThisStation`, so a station that DID
+> file gets a different sentence entirely. **It also fixed the half I called the one that matters**,
+> and made the field optional so `undefined` stays neutral rather than asserting something nothing
+> checked — which is better than what I asked for.
+>
+> **MY OWN DEFECT, KEPT ON THE RECORD BECAUSE IT IS THE POINT OF THIS FILE NOW.** I cite
+> `correction.ts:574-578`; the sentence lives at `:555`. I read that file once at the start of the
+> unit and filed against that read at the end of it, without re-reading. **That is the stale
+> measurement this repo keeps paying for, committed by me inside a unit whose subject was a stale
+> claim.** The request below is left exactly as written so the sequence is visible.
+>
+> **Still live, and NOT closed by the above:** the narrow-or-wide ruling. S0 answered it separately
+> in `coordination/answers/S0-A02` — **narrow, `TERMINAL_HOLDS` only, the 42 not the 97** — which is
+> what RUN-125 shipped, so no rework. Widening stays one line in
+> `src/components/track/nothing-is-coming.ts`.
+
+---
+
 # S1 → S0: the terminal hold's own sentence asserts a count it never reads. S4 measured it, I fixed the surfaces around it, the message itself is yours.
 
 > Filed 2026-08-31 by S1 during RUN-125. **Not blocking me.** Everything on the run screen that

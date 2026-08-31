@@ -27,6 +27,7 @@ import { groupByThePattern } from "@/components/track/group-by-the-pattern";
 import { enterMotion } from "@/components/spine/enter-motion";
 import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 import { justGrouped } from "@/components/track/just-grouped";
+import { fileNameFor, stationFile, tookItLine } from "@/components/track/station-file";
 import { WhatWereSolving } from "@/components/track/WhatWereSolving";
 import { plainProse } from "@/lib/plain-prose";
 /*
@@ -2363,6 +2364,8 @@ export function ArtifactPane({
 }) {
   const fChain = useServerFn(getTrackChain);
   const fArtifacts = useServerFn(getTrackArtifacts);
+  /** What the last Take this handed over, said once and left standing. */
+  const [took, setTook] = React.useState<string | null>(null);
   const q = useQuery({
     queryKey: ["spine-track-chain", trackId],
     queryFn: () => fChain({ data: { trackId } }),
@@ -2428,10 +2431,54 @@ export function ArtifactPane({
   const now = Date.now();
   const shown = chain.stops.find((s) => s.station === current) ?? chain.stops[0];
 
+  const view = bodies.data?.stops.find((s) => s.station === shown.station);
+
+  /*
+   * TAKE THIS — the one control RANKED-BACKLOG authorises on this Region, and
+   * it is scoped to the tab shown rather than to the whole run. The reasoning,
+   * the format and why it is a file rather than a clipboard copy are all in
+   * `station-file.ts`; this is the press.
+   *
+   * NOT DISABLED ON AN EMPTY STATION, on purpose. A control that vanishes when
+   * a station filed nothing takes the evidence of the gap with it, and 81 of
+   * 106 tracks are sitting at Discover having filed nothing. The file says so
+   * in words instead.
+   */
+  const take = () => {
+    const name = fileNameFor(track.title, shown.label);
+    const items = (view?.items ?? []).map((i) => ({
+      kind: i.kind,
+      word: i.word,
+      title: i.title,
+      missing: i.missing,
+      fields: i.fields as Record<string, unknown>,
+    }));
+    const body = stationFile({
+      trackTitle: track.title,
+      stationLabel: shown.label,
+      expects: view?.expects?.word ?? null,
+      gap: shown.gap,
+      waivedReason: shown.waivedReason,
+      items,
+      url: `${window.location.origin}/track/${trackId}`,
+    });
+    /* The proven shape, `DataSection.tsx:91`. An object URL revoked in the same
+       turn, so nothing is left holding the blob. */
+    const url = URL.createObjectURL(new Blob([body], { type: "text/markdown" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(url);
+    setTook(tookItLine(name, items.filter((i) => !i.missing).length));
+  };
+
   return (
     <Region
       title="What it has made"
       sub="The thing each station filed, rendered as itself. Pick a step to see its output."
+      act="Take this"
+      onAct={take}
     >
       <Tabs<string>
         group={`artifact-pane-${trackId}`}
@@ -2440,6 +2487,14 @@ export function ArtifactPane({
         active={current}
         onSelect={onSelect}
       />
+      {/* WHAT IT TOOK, SAID. Brief unit 9: "the control says what it copied."
+          A download that reports nothing is a control a person cannot tell
+          worked, and this one hands over a file they then have to find. */}
+      {took ? (
+        <p role="status" aria-live="polite" className="mrd-meta">
+          {took}
+        </p>
+      ) : null}
       {/* The pane polls; when the shown station's body changes (a spec saved,
           a decision recorded), the change is said politely rather than
           silently repainting. */}
@@ -2447,7 +2502,7 @@ export function ArtifactPane({
         <TabPanel group={`artifact-pane-${trackId}`} active={current}>
           <StationPanel
             stop={shown}
-            view={bodies.data?.stops.find((s) => s.station === shown.station)}
+            view={view}
             /*
              * EVERY STOP, NOT JUST DECIDE, and this was hiding the one thing
              * the product exists to show.
