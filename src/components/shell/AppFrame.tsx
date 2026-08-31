@@ -1610,6 +1610,27 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       : `${CREW} is working on ${running.length} runs`;
   }, [
     missions.isError,
+    /*
+     * `openTracks.isError` IS READ IN THIS BODY AND WAS NOT IN THESE DEPS.
+     *
+     * Two lines above return on it — `feedDead` and the "Cannot see what is
+     * running" branch — so the headline whose entire job is to admit the feed
+     * died could not recompute when the tracks feed was the thing that died.
+     *
+     * NOTHING ELSE COVERS IT, which is what makes this a defect rather than a
+     * lint nit. `movingRuns` is the only other dep fed by this query and it
+     * memoises on `openTracks.data`, which does NOT change when a read fails:
+     * on a first-load failure `data` is `undefined` and stays `undefined`, and
+     * on a later failure TanStack RETAINS the last successful value. So the
+     * reference holds, no dep changes, and the memo keeps returning the
+     * sentence it computed while the feed was alive.
+     *
+     * That is this lane's recurring defect in its purest form: a failed read
+     * that never reaches the surface. `getWorkspaceAnchors` swallowing an error
+     * and returning empty is the same shape one layer down, and it is why the
+     * rail crew's quiet state had to become a door rather than a sentence.
+     */
+    openTracks.isError,
     missions.isLoading,
     running.length,
     gateCount,
