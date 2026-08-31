@@ -200,3 +200,38 @@ WHERE entry_station = 'sense' AND station = 'learn' AND waived = '[]';
 
 **Status:** Shell layer and board fold ready for deployment. S2 coordinates with S0 on source-side error handling fix. BATCH-1 route consolidation unblocked.
 
+
+---
+
+## S2 Session Update — 2026-08-31, F-144/145/146 Rail Consolidation
+
+**Precondition resolved:** Founder created SPEC-AI-NATIVE-SDLC.md, RANKED-BACKLOG.md, SPEC-STATION-MODEL-AND-ARTIFACTS.md on 2026-08-31. Rebased lane/s2 onto origin/main.
+
+**Tier 1 work started: F-144/145/146 (Rail Consolidation)**
+
+✅ **Routes folded to `/today` (the board):**
+   - `/observe` now redirects to `/today` (was `/engine-room`)
+   - `/swarm` now redirects to `/today` (was `/engine-room`)
+   - `/runs` already redirects to `/today` (previous session)
+   - `/missions`, `/cockpit`, `/fleet` already redirect to `/today`
+
+✅ **Rail navigation restructured:**
+   - Removed "Stations" row from RAIL (was `/runs`)
+   - Transferred LOOP_STATIONS ownership from Stations row to Today row
+   - Keyboard navigation 1-7 now lights Today row (not Stations row)
+   - Removed `/runs` from PRIMARY_NAV in nav-model.ts
+
+✅ **Tests updated:**
+   - AppFrame.rail-covers-keys.test.ts: 7 rows → 6 rows; stations owned by Today
+   - AppFrame.nav-keys.test.ts: removed /runs from keyed doors
+   - All 44 AppFrame tests pass
+
+**Pending F-144/145/146 completion:**
+- S3 to rename "Guardrails" to "What it's allowed to do" (not S2's task)
+- S1 to coordinate on run surface F-146 work
+- Verification: one primary door (Today) owns all work; keyboard shortcuts work
+
+**Next priority per ranked backlog:** #8 · Cursor layer app-wide (§3.2 §3.3 expansion)
+
+**Tree status:** Lane/s2 rebased to origin/main, 5 commits ahead. Tests passing. Ready for next unit of work.
+
