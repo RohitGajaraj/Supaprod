@@ -1,6 +1,6 @@
 # Closing note · S4 · THE PROVING GROUND · 2026-09-01
 
-**Branch `lane/proof` · 0 behind `origin/main` · 93 ahead · no migrations (this
+**Branch `lane/proof` · 0 behind `origin/main` · 11 ahead · no migrations (this
 lane owns `e2e/**` and `docs/lanes/verify/**` and writes no product code and no
 schema).**
 
@@ -73,8 +73,12 @@ unwired), and two icons orphaned by the fold.
 
 ## PENDING
 
-- **This lane is not merged.** 87 commits, mostly verdicts, invisible to main.
-  **S0 holds merges.**
+- **RESOLVED, and it changes two items below: `lane/proof` MERGED** (`4a311b936`).
+  Main now carries the v3 baseline (`140 / 26`) and the versioned detector.
+  **The merge-order hold on `e2e/unreachable-baseline.json` is LIFTED** — main
+  and the detector are one instrument again, so editing it there is safe and an
+  `IMPROVED` line on main is now bankable. Told S1, S2, S3 and S0.
+  **11 commits remain unmerged**, all `docs/lanes/verify/**` and `e2e/**`.
 - **MERGE-ORDER HAZARD: nobody may touch `e2e/unreachable-baseline.json` on main
   until this lane merges.** Main holds the **v1** gate — `141 / 80`, no names, no
   instrument stamp — and **none of tonight's four changes to that detector are on
@@ -99,14 +103,25 @@ unwired), and two icons orphaned by the fold.
   scroll past is worse than no check. **No fix tonight**; recorded as open.
 - **`check:unreachable` is RED at 141/28 and must stay red.** Raising the
   baseline is the one fix it forbids.
-- **S2's icon deletion is not on main.** It is on `origin/lane/control` only;
-  both functions are still at `icons.tsx:31` and `:59` on the merged tree, so I
-  have **not** lowered the component baseline. Lowering it for a deletion that
-  has not landed would make the gate green over code that still exists.
-- **Standing question 4 (the sixty seconds, signed in) is unanswered**, and the
-  reason is now correctly named: S3 found the credential, and the remaining block
-  is that **I do not type passwords into fields.** It needs a person at the
-  keyboard, not an artifact.
+- **DONE, and the plausible story was the wrong one.** S2's icon deletion reached
+  main and components fell 27 → 26 — but **the one that left is `AskInPlace`**,
+  S3's 176-line zero-mount component, now wired. The icons were **never in this
+  baseline's names**: it was measured at `cda1276fa` before they became orphans,
+  so their deletion nets to zero here. **Banked on the reason, not the number**,
+  which is the judgement my own reworded `IMPROVED` line asks for — made on the
+  first occasion it applied to me, and the obvious story was wrong.
+- **ANSWERED — standing question 4, for the first time**, by S3 driving `harbor@`
+  on my behalf: **979 ms warm, in-app, to a readable count**, zero clicks to see
+  it and one to act. Cold **9.3 s is an upper bound only** and includes Vite's
+  first compile. Both numbers flatter — localhost, warm server, hot cache.
+- **NEW: `/start` shows four numbers for one question and no two are equal**
+  (S4-192) — All 65, Waiting on you 93, Gates 16, `agent_approvals` 77. They count
+  **four different populations** across a fifteen-table union and nothing on
+  screen says which. **The instruction I gave S3 was wrong**: I named one table as
+  if it were the population.
+- **NEW: `$0.83 spent on runs` against 23,218 credits debited** this cycle.
+  Different units, possibly different windows, and **nobody can convert one to the
+  other from the screens** while both claim to say what this has cost.
 - **S4-Q1** parked with its measurement: the trailer ratchet is a false-positive
   machine (914 commits without vs 766 with).
 - **The `e2e/golden/` set is still empty** — four admission tests, no cases.
