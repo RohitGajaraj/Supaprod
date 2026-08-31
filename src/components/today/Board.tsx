@@ -55,7 +55,7 @@ import { FocusNext } from "@/components/today/FocusNext";
 import { HandoverNote } from "@/components/today/HandoverNote";
 import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { CameFrom } from "@/components/today/CameFrom";
-import { useSessionEnded } from "@/components/shell/session-ended";
+import { retryUnlessSessionEnded, useSessionEnded } from "@/components/shell/session-ended";
 import { PushedInsights } from "@/components/today/PushedInsights";
 import { runTotals, spendWords } from "@/components/today/run-totals";
 import { lastMovedAt, stillnessLine } from "@/components/today/last-movement";
@@ -1927,7 +1927,9 @@ export function Board() {
                     thing it knows and the shell does not - and drops the offer
                     it cannot honour. When the session is fine the retry is
                     real and stays. */}
-                <ReadFailedLine onRetry={sessionEnded ? undefined : () => refreshWorkspaces()}>
+                <ReadFailedLine
+                  onRetry={retryUnlessSessionEnded(sessionEnded, () => refreshWorkspaces())}
+                >
                   This could not be read, so it cannot tell a quiet morning from a workspace it
                   never saw.
                 </ReadFailedLine>

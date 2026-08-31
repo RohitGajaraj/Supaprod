@@ -67,3 +67,34 @@ export function SessionEndedProvider({
 export function useSessionEnded(): string | null {
   return React.useContext(SessionEndedContext);
 }
+
+/**
+ * The retry a region should offer, or nothing — as a value, so it can be TESTED
+ * rather than read.
+ *
+ * ── WHY THIS IS A FUNCTION AND NOT A TERNARY AT THE CALL SITE ─────────────
+ * It was a ternary. S4 verified the fix (S4-178) and named the one weakness:
+ * every guard on it was a source scan, and **the load-bearing assertion — that
+ * the retry is KEPT when the session is fine — is the one standing between this
+ * fix and a silent deletion of the remedy.** A `toContain` proves the shape of a
+ * line; it does not prove the behaviour, and it breaks on a rename without
+ * breaking anything real.
+ *
+ * So the decision moves here, where a test can call it with both inputs and
+ * assert on what comes back. **The scan that remains only has to prove the
+ * component asks this question** — which is a claim about code shape, and
+ * therefore the one thing a scan is actually good for.
+ *
+ * ── THE DIRECTION IS THE POINT ────────────────────────────────────────────
+ * `null` in means the retry survives. A surface outside the shell, a healthy
+ * session, and a shell that has not answered yet all produce `null` — so
+ * **every uncertain state keeps the remedy**, and only a positively-known ended
+ * session removes it. A helper that defaulted the other way would strip working
+ * controls off surfaces nothing is watching.
+ */
+export function retryUnlessSessionEnded(
+  sessionEnded: string | null,
+  retry: () => void,
+): (() => void) | undefined {
+  return sessionEnded ? undefined : retry;
+}

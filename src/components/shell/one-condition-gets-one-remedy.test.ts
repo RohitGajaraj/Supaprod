@@ -23,6 +23,7 @@
  */
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
+import { retryUnlessSessionEnded } from "./session-ended";
 
 const BOARD = readFileSync("src/components/today/Board.tsx", "utf8");
 const FRAME = readFileSync("src/components/shell/AppFrame.tsx", "utf8");
@@ -56,21 +57,46 @@ describe("the shell hands its answer down instead of the region guessing", () =>
 });
 
 describe("the workspaces region drops the offer it cannot honour", () => {
+  /*
+   * ── THESE TWO ARE BEHAVIOURAL NOW, AND S4 IS WHY ─────────────────────────
+   * They were source scans. S4 verified the fix (S4-178) and named the exact
+   * weakness: **the assertion that the retry is KEPT when the session is fine is
+   * the one standing between this fix and a silent deletion of the remedy**, and
+   * a `toContain` proves the shape of a line rather than what it does — it also
+   * breaks on a rename without breaking anything real. So the decision was
+   * extracted to `retryUnlessSessionEnded` and these call it.
+   */
   it("withholds the retry when the session has ended", () => {
-    const code = codeOnly(BOARD);
-    expect(code).toContain("onRetry={sessionEnded ? undefined : () => refreshWorkspaces()}");
+    const retry = () => {};
+    expect(
+      retryUnlessSessionEnded("Your session ended. Sign in again and this will load.", retry),
+    ).toBeUndefined();
   });
 
   it("KEEPS the retry when the session is fine, so this is not a deletion", () => {
-    /*
-     * The failure mode of the test above is satisfying it by removing the retry
-     * outright. An unreadable workspace list with a live session is a transient
-     * failure and Try again is the right answer there - the ternary is the whole
-     * point, and a bare `onRetry={undefined}` would pass a looser check.
-     */
+    /* An unreadable workspace list with a LIVE session is a transient failure
+       and Try again is the right answer there. This is the assertion that stops
+       the fix from being satisfied by deleting the remedy outright. */
+    const retry = () => {};
+    expect(retryUnlessSessionEnded(null, retry)).toBe(retry);
+  });
+
+  it("keeps it for every UNCERTAIN state, which is the direction that matters", () => {
+    /* Outside the shell, before the shell has answered, and on a healthy
+       session all produce null. Only a positively-known ended session removes
+       the remedy; a helper defaulting the other way would strip working controls
+       off surfaces nothing is watching. */
+    const retry = () => {};
+    expect(retryUnlessSessionEnded(null, retry)).toBe(retry);
+    expect(retryUnlessSessionEnded("", retry)).toBe(retry);
+  });
+
+  it("and the board actually asks that question, which a scan IS good for", () => {
+    /* The one claim genuinely about code shape: that the call site delegates
+       rather than re-deriving the rule inline. */
     const code = codeOnly(BOARD);
+    expect(code).toContain("retryUnlessSessionEnded(sessionEnded");
     expect(code).toContain("refreshWorkspaces()");
-    expect(code).not.toContain("onRetry={undefined}");
   });
 
   it("still NAMES which read failed, because that is what the region knows", () => {
