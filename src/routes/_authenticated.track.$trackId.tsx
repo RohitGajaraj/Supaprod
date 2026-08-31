@@ -13,6 +13,8 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { getTrack, type Track } from "@/lib/spine/track.functions";
 import { nextStation, waiverFor, type SpineRoute } from "@/lib/spine/route";
 import { runStatus } from "@/components/track/run-status";
+import { cameBackOnItsOwn, originRunsFull } from "@/components/track/came-back-on-its-own";
+import { supabase } from "@/integrations/supabase/client";
 import { originLine } from "@/lib/track-origin";
 import { holdTone } from "@/lib/spine/driver";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
@@ -76,7 +78,20 @@ export const Route = createFileRoute("/_authenticated/track/$trackId")({
   },
 });
 
-function RunHeader({ track, liveNow = false }: { track: Track; liveNow?: boolean }) {
+function RunHeader({
+  track,
+  liveNow = false,
+  fromLearningId = null,
+}: {
+  track: Track;
+  liveNow?: boolean;
+  /**
+   * `spine_tracks.from_learning_id`. Read by the route rather than carried on
+   * `Track`, because that type is `src/lib/spine/**` and S0's; the one-field
+   * ask is filed and this read goes when it lands.
+   */
+  fromLearningId?: string | null;
+}) {
   const stationName = AGENT_STATIONS[track.station]?.name ?? track.station;
   const next = nextStation(track.route as SpineRoute, track.station);
   const nextName = next ? (AGENT_STATIONS[next]?.name ?? next) : null;
@@ -101,8 +116,22 @@ function RunHeader({ track, liveNow = false }: { track: Track; liveNow?: boolean
             and keeps every word the title did not already say -- see its header
             for the measurement across all 106 tracks and for why the share
             grows rather than shrinks. */}
+        {/* NOBODY ASKED FOR THIS ONE, which is the only thing the origin below
+            cannot say about itself. See `came-back-on-its-own.ts`: a track the
+            return edge created carries no press, and the acceptance query
+            excludes any track that has one. */}
+        {cameBackOnItsOwn(fromLearningId) ? (
+          <p className="mrd-meta mt-mrd-1">{cameBackOnItsOwn(fromLearningId)}</p>
+        ) : null}
         {originLine(track.title, track.origin) ? (
-          <p className="mrd-meta mt-mrd-1 line-clamp-2 text-mrd-faint">
+          <p
+            className={`mrd-meta mt-mrd-1 text-mrd-faint${
+              /* The clamp stays for the ordinary case it was added for. A
+                 returned origin carries the forecast VERBATIM and truncating
+                 evidence is the one thing this surface may not do to it. */
+              originRunsFull(fromLearningId) ? "" : " line-clamp-2"
+            }`}
+          >
             {originLine(track.title, track.origin)}
           </p>
         ) : null}
@@ -155,6 +184,32 @@ function TrackPage() {
     refetchInterval: 10_000,
   });
   const track = trackQ.data ?? null;
+
+  /*
+   * DID THIS WORK COME BACK ON ITS OWN? `spine_tracks.from_learning_id` is live
+   * (migration `20260831010000`) and `Track` does not carry it, so this reads it
+   * with the caller's own RLS-scoped client -- the pattern `PrototypeCard`
+   * established in `ArtifactPane`. Keyed on the track's own id, so it can only
+   * describe the row already on screen.
+   *
+   * Cached hard: the column is written once by the return edge and never
+   * edited, so re-reading it on the run's ten-second beat would spend a request
+   * on a value that cannot change. The one-field ask to fold it onto `Track` is
+   * with S0; this read goes when it lands.
+   */
+  const cameBack = useQuery({
+    queryKey: ["track-from-learning", trackId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("spine_tracks")
+        .select("from_learning_id")
+        .eq("id", trackId)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return (data as { from_learning_id: string | null } | null)?.from_learning_id ?? null;
+    },
+    staleTime: 5 * 60_000,
+  });
   const decideWaived = track ? waiverFor(track.route, "decide") !== null : false;
 
   /*
@@ -185,7 +240,7 @@ function TrackPage() {
       <header className="mrd-workbench-header">
         {track ? (
           <>
-            <RunHeader track={track} liveNow={crewLive} />
+            <RunHeader track={track} liveNow={crewLive} fromLearningId={cameBack.data ?? null} />
             {/*
              * THE LOCATION LINE IS GONE, AND THAT IS THE FIX RATHER THAN A CUT.
              *
