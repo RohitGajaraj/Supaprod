@@ -50,7 +50,7 @@ station names stay (Discover · Decide · Plan · Design · Build · Ship · Lea
 | Route | Disposition | Plain name on surface |
 | --- | --- | --- |
 | `_authenticated.tsx` | **KEEP** — the shell, the rail, the cursor layer mounts here | — |
-| `_authenticated.today.tsx` | **KEEP** — this becomes the board | Work |
+| `_authenticated.today.tsx` | **FOLD → the home** *(corrected 2026-08-31)*. This row said **KEEP — this becomes the board**, and `RANKED-BACKLOG.md` §T1-S2 overturned it five days later: *"and the board folds into the home"*, with `/today` named among the routes that FOLD. A route cannot be both the thing folded and the thing folded into. Ruled in `coordination/answers/S0-A01-…`; `SIGNED_IN_HOME` stays `/start` | Work |
 | `_authenticated.runs.index.tsx` · `runs.$missionId.tsx` | FOLD → board | Work |
 | `_authenticated.missions.index.tsx` · `missions.$missionId.tsx` | FOLD → board | Work |
 | `_authenticated.m.index.tsx` · `m.$productId.tsx` | FOLD → board. Shorthand routes for the same object | Work |
@@ -62,7 +62,7 @@ station names stay (Discover · Decide · Plan · Design · Build · Ship · Lea
 | `_authenticated.tasks.tsx` | FOLD → board | Work |
 | `_authenticated.roadmap.tsx` | FOLD → board, a filter over work | Work |
 | `_authenticated.calendar.tsx` | FOLD → board. What is due back, and when the window closes | What is coming back |
-| `_authenticated.crew.tsx` | FOLD → the presence layer, not a page | Your team |
+| `_authenticated.crew.tsx` | **FOLD → SETTINGS, and it becomes S3's** *(corrected 2026-08-31, ruled in `coordination/answers/S0-A08-…`)*. This row said *presence layer*, which **`SPEC-MULTIPLAYER-PRESENCE.md` §1 forbids**: *"the roster is never a browsable list… there is no directory of agents, ever."* A persistent per-agent roster and a transient presence layer are different objects, 5 of 8 callers pass `?agent=<slug>` and would land on nothing while that agent is idle, and **`AppFrame.tsx:266` already has `/crew` in `SETTINGS_PATHS`** from the measurement that `agent_autonomy.set_at` covers 14 days in two months — a configuration cadence. **The code ruled this five weeks before the map contradicted it** | Your team |
 | `_authenticated.agents.tsx` | FOLD → the presence layer, not a page | Your team |
 | `_authenticated.delegate.tsx` | FOLD → the assign gesture, on the board and in the run | Assign |
 | `_authenticated.traces.tsx` · `traces.$traceId.tsx` | FOLD → the run's activity, and the board's what-changed | Activity |
