@@ -109,16 +109,67 @@ describe("two teammates on one object are drawn once, together", () => {
 
   it("puts contested objects last so their mark is not painted over", () => {
     const solo = anchor({ runId: "r0", agentSlug: "researcher", targetId: OTHER });
-    const a = anchor({ runId: "r1", agentSlug: "builder" });
+    const a = anchor({ runId: "r1", agentSlug: "builder", toolName: "prd.revise" });
     const b = anchor({ runId: "r2", agentSlug: "designer" });
+    const all = [a, b, solo];
     const out = placeAnchors(
-      [a, b, solo],
+      all,
       new Map([
         [anchorKeyOf(a), boxed(0, 0, 200, 40)],
         [anchorKeyOf(solo), boxed(0, 80, 200, 40)],
       ]),
+      collisionsFrom(all),
     );
-    expect(out.map((p) => p.on.length)).toEqual([1, 2]);
+    // Sorted on CONTESTED, not on how many teammates are present: a crowd
+    // reading one thing is not the loud case, and the loud one must paint last.
+    expect(out.map((p) => p.contested)).toEqual([false, true]);
+  });
+});
+
+describe("the loud mark is spent only where somebody is writing (A-004)", () => {
+  /*
+   * S0 ruled this before the layer was written and the first version of
+   * `placeAnchors` got it wrong: it said `contested = on.length > 1`.
+   *
+   * **"Draw the mark on contested. Show the rest quietly or not at all."** The
+   * reason is measured: the tools that name a target are overwhelmingly READS -
+   * `repo.read` 64 calls, `prd.get` 25 - against a handful that write. Two
+   * teammates reading one PRD is a healthy afternoon. A mark that fires on it
+   * is technically correct and permanently on, and a mark that is always on is
+   * furniture, which teaches a person to stop looking at the one that matters.
+   *
+   * The collisions here come from the REAL `collisionsFrom` rather than from
+   * hand-written objects, so a test cannot agree with a rule the product does
+   * not follow.
+   */
+  const onScreen = (a: Anchor) => new Map([[anchorKeyOf(a), boxed(0, 0, 200, 40)]]);
+
+  it("leaves two teammates READING one object quiet", () => {
+    const a = anchor({ runId: "r1", agentSlug: "builder", toolName: "prd.get" });
+    const b = anchor({ runId: "r2", agentSlug: "designer", toolName: "prd.get" });
+    const out = placeAnchors([a, b], onScreen(a), collisionsFrom([a, b]));
+    expect(out).toHaveLength(1);
+    expect(out[0]!.on).toHaveLength(2); // both are still drawn...
+    expect(out[0]!.contested).toBe(false); // ...and the object is not shouted about
+  });
+
+  it("marks the object when one of them is WRITING", () => {
+    const a = anchor({ runId: "r1", agentSlug: "builder", toolName: "prd.revise" });
+    const b = anchor({ runId: "r2", agentSlug: "designer", toolName: "prd.get" });
+    const out = placeAnchors([a, b], onScreen(a), collisionsFrom([a, b]));
+    expect(out[0]!.contested).toBe(true);
+  });
+
+  it("holds no second opinion about which tools write", () => {
+    /* The flag is READ from the derivation, never recomputed here. Passing no
+       collisions must therefore yield no contested mark even when two writers
+       are plainly present - because this layer is not the thing that decides
+       it, and a fallback that guessed would be the second copy of a rule this
+       module has already had to delete once. */
+    const a = anchor({ runId: "r1", agentSlug: "builder", toolName: "prd.revise" });
+    const b = anchor({ runId: "r2", agentSlug: "designer", toolName: "design.draft" });
+    expect(collisionsFrom([a, b])[0]!.contested).toBe(true);
+    expect(placeAnchors([a, b], onScreen(a))[0]!.contested).toBe(false);
   });
 });
 
