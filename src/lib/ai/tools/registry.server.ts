@@ -128,6 +128,7 @@ import { prepareScaffoldSpeculative, type UnattendedDraw } from "@/lib/design-sc
 import { buildAuditInsert } from "@/lib/roadmap-audit";
 import { validateCommitment } from "@/lib/roadmap-governance";
 import { CONNECTOR_REGISTRY } from "@/lib/connectors/registry";
+import { requiredArgsClause } from "@/lib/ai/tools/required-args";
 
 export type ToolCtx = {
   supabase: SupabaseClient;
@@ -7422,14 +7423,40 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
   ].map((t) => [t.name, t]),
 );
 
-/** Tool descriptors safe for inclusion in a system prompt (no schemas). */
+/**
+ * Tool descriptors for a system prompt: the description, plus the REQUIRED
+ * ARGUMENT NAMES.
+ *
+ * ── THIS SAID "(no schemas)" AND THE MODEL WAS GUESSING (F-185, from S4-181) ──
+ * The line was `- name (category, mode): description` and nothing else, while
+ * the native path that WOULD send parameters (`buildNativeToolDefs`) is gated on
+ * `AGENT_NATIVE_TOOLCALLING === "1"` and ships empty in `.env.example`. So every
+ * run used the legacy text envelope and **the model had to infer argument names
+ * from prose.**
+ *
+ * **Measured on `ce846e9b`'s Discover visit: three seats, 146,239 tokens, and
+ * two died at the step limit reporting the same thing —** *"the signals.log tool
+ * requires a 'content' field"*. That tool's description is three careful
+ * paragraphs about what qualifies as a signal, each argued from a real incident;
+ * it is good writing and it names no argument. The track showed no hold at all.
+ *
+ * Registry-wide (S4): 39 tools have a required field, 6 name them all in prose,
+ * **23 name none** — `repo.read`, `workspace.search`, `studio.commit`,
+ * `studio.pr.open` among them. That is an upper bound on risk rather than 23
+ * defects: `query` and `title` are guessed right almost always, which is why the
+ * loop works. `content` is not.
+ *
+ * **Still no schemas**, which is why the doc line changed rather than being
+ * deleted: types, enums, nesting and defaults stay out. Only the names a caller
+ * must supply go in, which is the part a model cannot invent.
+ */
 export function describeToolsForPrompt(enabled: { tool_name: string; mode: string }[]): string {
   return enabled
     .filter((t) => t.mode !== "off")
     .map((t) => {
       const def = TOOL_REGISTRY[t.tool_name];
       if (!def) return null;
-      return `- ${def.name} (${def.category}, ${t.mode}): ${def.description}`;
+      return `- ${def.name} (${def.category}, ${t.mode}): ${def.description}${requiredArgsClause(def.argsSchema)}`;
     })
     .filter(Boolean)
     .join("\n");
