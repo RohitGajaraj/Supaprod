@@ -42,6 +42,17 @@ whole product lives (§3 below).
   > exactly what made F-79 provable. **A timestamp beside a verdict costs nothing at design time and
   > makes absence permanently visible.** F-76's rule — a failed read and an empty result are
   > different values — is the same law one layer up.
+
+  > **AND A COUNT OF "HOW MUCH IS REAL" MUST CLEAR EVERY `is_sample` ON ITS JOIN PATH, added
+  > 2026-08-31 after getting the same number wrong twice in one hour.** `deployments` carries its own
+  > `is_sample` AND joins to `workspaces.is_sample`. I reached for one and reported **14 real
+  > deployments**; S1 reached for the other and reported **4**; both are the same 42 rows. Clearing
+  > both, the answer is **0** — there is no row where both flags are false. **A count that names one
+  > flag is not a measurement, it is a coin toss between two populations**, and it took two lanes
+  > comparing answers that disagreed by eight days to notice. Say which flags a count cleared, in the
+  > sentence that reports it. Same law as the default-as-data rule above: **a column that silently
+  > decides what counts as real will decide it differently for every author who does not know it is
+  > there.**
 - **Deploy and publish are yours alone, and they are a three-step act: verify, deploy, verify again.**
   No other session can do it and none may claim it happened. Publish status has lied more than once —
   three times in one night — so confirm with an independent read of a changed file, not with the

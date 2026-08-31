@@ -48,25 +48,52 @@ describe("the produced-nothing line names the last thing that failed", () => {
     expect(before).toContain("lastFailingTool(supabase, traceIds)");
   });
 
+  /**
+   * THE WHOLE BRANCH, normalised, rather than a fixed byte window after the
+   * `return`.
+   *
+   * ── WHY THIS WIDENED, 2026-08-31 (F-175) ──────────────────────────────────
+   * The old window was `slice(at, at + 900)` anchored on the return's `hold:`.
+   * F-175 hoisted the sentence into a `because` const ABOVE the write so the
+   * ROW could carry it too — behaviour identical, both assertions red, because
+   * what they were really pinned to was **where the ternary was written**.
+   *
+   * That is the FOURTH source-text assertion to break on a behaviour-preserving
+   * edit in a single day. Each was fixed by asking the question the test meant
+   * to ask instead of the one its anchor happened to catch. Here that question
+   * is *"does this branch name the failing tool, and only when there was one"* —
+   * which is true wherever in the branch the conditional is spelled.
+   */
+  function branch(): string {
+    const from = BODY.indexOf("lastFailingTool(supabase, traceIds)");
+    expect(from).toBeGreaterThan(-1);
+    const to = BODY.indexOf("\n  }", BODY.indexOf('\n      hold: "produced-nothing"'));
+    // Guards the guard. A missed anchor returns -1, and `slice(from, -1)` is
+    // almost the whole file — every assertion below would then pass on text
+    // from some other branch. That is the vacuous-green failure this file has
+    // already been bitten by once, at a different anchor.
+    expect(to).toBeGreaterThan(from);
+    return BODY.slice(from, to).replace(/\s+/g, " ");
+  }
+
   it("puts the tool and its words into the line", () => {
-    // ANCHORED ON THE RETURN'S `hold:`, NOT ON `last_hold:` — the longer key
-    // CONTAINS the shorter one, so a bare indexOf lands on the database write
-    // above and the window ends mid-sentence. That is the same blunt-anchor
-    // mistake that failed the F-76 and F-77 guards; the newline pins it.
-    const at = BODY.indexOf('\n      hold: "produced-nothing"');
-    expect(at).toBeGreaterThan(-1);
-    const block = BODY.slice(at, at + 900);
-    expect(block).toContain("lastFailure");
-    expect(block).toContain("The last thing it tried was");
+    expect(branch()).toContain("The last thing it tried was");
+    expect(branch()).toContain("lastFailure");
   });
 
   it("still says the generic sentence when nothing failed", () => {
     // A station can file nothing without any tool erroring — an empty honest
-    // visit. The suffix is conditional so that case reads exactly as before.
-    const at = BODY.indexOf('\n      hold: "produced-nothing"');
-    const block = BODY.slice(at, at + 900);
-    expect(block).toContain('HOLD_LINE["produced-nothing"]');
-    expect(block).toMatch(/lastFailure\s*\?/);
+    // visit. The specific half is conditional so that case reads as it always
+    // did, and the conditional is on `lastFailure` rather than on anything the
+    // station said, because absence of a failure is the whole trigger.
+    expect(branch()).toContain('HOLD_LINE["produced-nothing"]');
+    expect(branch()).toMatch(/lastFailure ?\?/);
+  });
+
+  it("carries that same sentence onto the row, not only onto the screen", () => {
+    // F-175. The reason the const exists at all: before this, `last_hold_because`
+    // was null on 96 of 97 held tracks and the line died with the tick.
+    expect(branch()).toContain("last_hold_because");
   });
 });
 
