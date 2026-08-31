@@ -44,7 +44,7 @@ entered at `sense`, zero reached `learn`.
 | | Layer | Does |
 | --- | --- | --- |
 | **01** | the director | tells you what to build |
-| **02** | the operating system | **decides what is worth building, hands it to whatever builds for you — yours or ours — and checks what actually happened**. Seven stations. **We do not compete on code generation** — the first-party path is a fallback and a preview surface, never a product line |
+| **02** | the operating system | **decides what is worth building, builds it, ships it, and checks what actually happened**. Seven stations. **We do not compete on code generation** — the first-party path is a fallback and a preview surface, never a product line |
 | **03** | the brain | **learns, then guides.** Never "stores" or "remembers". |
 
 They are one product because each is the precondition for the next: you cannot be the brain without the loop that generates outcomes, and you cannot run the loop without being the OS. **Layer 03 is the only one defensible alone**, because it needs the customer's own outcomes labelled over time, which no model has. Ship any one alone and it is a feature.

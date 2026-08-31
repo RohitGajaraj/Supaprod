@@ -318,7 +318,7 @@ The six-PM thread is one cluster of nine spanning four years: Tolga (four tools 
 
 | Retired, because it invites the comparison we just refused | Canon from 2026-08-26 |
 | --- | --- |
-| "Runs the whole lifecycle. Seven stations…" | **"Decides what is worth building, hands it to whatever builds for you, and checks what actually happened."** |
+| "Runs the whole lifecycle. Seven stations…" | **"Decides what is worth building, builds it, ships it, and checks what actually happened."** ~~Superseded 2026-08-31: "hands it to whatever builds for you, and checks what actually happened."** |
 
 The stations are unchanged and stay as they are — this is how layer 02 is *described*, not how it is built. **Layer 02 is where we meet the buyer; layer 03 is why they stay.** The moat is untouched: the forecast captured at decision time, written at Decide, which is why a route without Decide has no moat (R-25).
 
@@ -330,13 +330,49 @@ The stations are unchanged and stay as they are — this is how layer 02 is *des
 
 **This does not soften §5N, it sharpens it, because of one fact:** **the verdict is measured against the forecast, not against the code.** We never need to know *how* a change was built to say whether it did what we said it would — only that **it shipped** and **what happened**, both obtainable without owning the builder. **Owning build was never what closed the loop.** So the first-party path is a fallback and a preview surface, never a product line, and "build anything here" is never marketed.
 
-**The wording, therefore:** layer 02 **decides what is worth building, hands it to whatever builds for you — yours or ours — and checks what actually happened**. The phrase *yours or ours* is doing real work and should not be dropped — it is what makes us the only surface in this market that does not care which builder you use.
+**The wording, therefore:** ~~layer 02 decides what is worth building, hands it to whatever builds for you — yours or ours — and checks what actually happened. The phrase *yours or ours* is doing real work and should not be dropped.~~ **SUPERSEDED 2026-08-31 by the amendment below**, which reorders the two paths and retires *yours or ours* from copy while keeping bring-your-own ruled in and deferred. **The current wording is: layer 02 decides what is worth building, builds it, ships it, and checks what actually happened.** The retired phrase's argument — that it made us the only surface indifferent to which builder you use — is the cost the amendment names and accepts.
 
 **And the highest-value preview is one station earlier than the obvious one.** Lovable and Replit show a live preview because their product *is* the app. Ours is not. **Our preview belongs at Design — an interactive prototype a person can click before anyone writes code** — because the expensive mistake in an enterprise product is not a bad implementation, it is building the wrong thing correctly. **Their preview saves rework; ours prevents it.**
 
 **And the sandbox is broader than "show the code being built" — five of the seven stations need something to RUN before a person can judge it, and the two that matter most are not about code at all.** ① **Decide** must prove the metric its forecast names can actually be read today, or the verdict can never land — `forecast_resolution` is never written and the grader has processed **zero workspaces in its life**. ② **Ship** must produce a preview deploy, which is precisely the proof R-27 gates the production deploy on, and precisely what `release.publish` requires and the loop cannot produce. Then ③ **Design**'s clickable prototype, ④ **Discover**'s connector dry-run, ⑤ **Learn**'s live verdict query, and only then Build. **One isolated-execution primitive, six callers, never touching production.**
 
 Full spec, including the four handback mechanisms that close the loop when somebody else built it: [`../../the-first-run/SPEC-BUILD-PATHS.md`](../../the-first-run/SPEC-BUILD-PATHS.md).
+
+### AMENDED AGAIN 2026-08-31 — the founder reordered the two paths, and the evidence agrees
+
+*"Our primary intent is that we should be focusing on building it. Everything inside Supaprod should
+be the priority. If they are not happy, we should be letting them take it to the external coding agent
+solutions — but for now, pointing it to the external coding agent solutions can be the second
+priority. Let's not enable that option."*
+
+**What changed: the ORDER and what we enable, not the ruling.** Both paths stay ruled in. **Build it
+here is the default and the only path enabled now.** Bring-your-own is deferred, not deleted.
+
+**Why the wording had to change too, and this is the founder's catch:** the repo contradicted itself.
+The product's own one-liner at the top of `README.md` and `CLAUDE.md` has always read *"tells you what
+to build, **builds it**, ships it, checks what actually happened"* — while the layer-02 row said
+*"hands it to whatever builds for you"*. **Two sentences about the same layer, disagreeing, in the
+same file.** The layer-02 row now matches the one-liner: **decides what is worth building, builds it,
+ships it, and checks what actually happened.**
+
+**The evidence supports the reorder rather than merely permitting it.** §5N's own exception paragraph
+already records that **all five walls that have ever stopped a real run sat at the handoff to somebody
+else's world** — F-49, F-50, F-56, F-63, F-64, *"same cause five times."* Building here removes all
+five. A first-party path was already ruled in for that reason; this makes it the default.
+
+**THE ONE COST, STATED SO IT IS NOT LOST.** The paragraph above argues *"the builder is a supplier, and
+a product that supports exactly one supplier is worse than one that supports any — including
+itself."* **Enabling only ours makes us, for now, a product that supports exactly one supplier.**
+That is the price of the reorder and it is worth paying while nothing has ever completed a run — but
+it is why bring-your-own is **deferred rather than deleted**, and why *yours or ours* is retired from
+copy rather than reversed in doctrine. **The day a customer arrives already in Cursor and wants to
+stay there, the second path is switched on, not rebuilt.**
+
+**What does NOT change, and it is the whole reason this is safe:** the verdict is measured against the
+forecast, not against the code. **We are not entering the $48B code-generation market.** We build so
+the loop closes without the customer assembling a toolchain, and we compete on the grade rather than
+on the diff. **"Build anything here" is still never marketed**, and layer 02 is still never described
+as *running the lifecycle*.
 
 ### The one exception, and it is a build not a market entry
 
