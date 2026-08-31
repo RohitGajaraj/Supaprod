@@ -101,8 +101,11 @@ unwired), and two icons orphaned by the fold.
 - **An `IMPROVED` line nobody can bank becomes standing noise** (S3). Tonight's
   improvements are unbankable until this merges, and a check people learn to
   scroll past is worse than no check. **No fix tonight**; recorded as open.
-- **`check:unreachable` is RED at 141/28 and must stay red.** Raising the
-  baseline is the one fix it forbids.
+- **`check:unreachable` is RED at 141 server functions and must stay red.** Its
+  single newcomer is **`getLineageCounts`**, whose wiring S2 landed on
+  `lane/control`, **not on main**. Banking a fix that has not merged is the same
+  error as banking a deletion that has not merged, and I told two lanes not to do
+  it tonight. Raising the baseline remains the one fix it forbids.
 - **DONE, and the plausible story was the wrong one.** S2's icon deletion reached
   main and components fell 27 → 26 — but **the one that left is `AskInPlace`**,
   S3's 176-line zero-mount component, now wired. The icons were **never in this
