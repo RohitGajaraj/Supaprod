@@ -148,10 +148,18 @@ worst vocabulary drift was in the shop window, not the product.
 
 ## The count, and what it is for
 
+> **Moved 2026-08-31 by S2, authorised in `coordination/answers/S0-A07-…`:
+> KEEP 41 → 40, FOLD 45 → 46.** `_authenticated.today.tsx` left KEEP for FOLD
+> when the board landed on the home — S1 mounted `<Board />` on `/start` and
+> `/today` became a redirect alias in the same merge. **`_authenticated.crew.tsx`
+> moves no count**: it was already FOLD and A08 only changed its destination
+> from the presence layer to Settings.
+
+
 | | Routes |
 | --- | --- |
-| KEEP | 41 |
-| FOLD | 45 |
+| KEEP | 40 |
+| FOLD | 46 |
 | DELETE | 12 |
 | AUDIT — S0 rules first | 6 |
 | S0 internals | 9 |

@@ -11,6 +11,7 @@ import {
   runLearningCompoundPass,
   type LearningCompoundResult,
 } from "@/lib/ai/learning-compound.server";
+import { runReturnEdgePass, type ReturnEdgeResult } from "@/lib/spine/return-edge.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 
 /**
@@ -283,6 +284,39 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
               await note(e, "tool_error");
             }
 
+            /*
+             * FIFTH PASS: THE RETURN EDGE (gap #4). A missed forecast comes back
+             * as ORDINARY WORK at Discover -- not an alert, not a badge, not a
+             * queue item. Anthropic's Stage 6 turns a breach into a normal,
+             * refusable piece of work re-entering at Stage 1, and that shape is
+             * the whole adoption.
+             *
+             * IT BELONGS HERE because this is the tick that already knows a
+             * forecast was missed. `Learn -> Discover` has processed ZERO
+             * workspaces in its life (F-51), and every pass above it settles or
+             * summarises a verdict without anything ever re-entering the loop.
+             *
+             * AND IT IS THE ACCEPTANCE PATH (F-164). 18 of 20 tracks ever driven
+             * were PRESSED as their first drive -- the composer creates and
+             * presses in one act -- and the acceptance query excludes any track
+             * carrying a press. A track from this edge carries none, so this is
+             * the first way work can enter and complete with nobody touching it.
+             *
+             * Best-effort like the passes above it: a return edge that could not
+             * run must not cost the grader its settle.
+             */
+            let returnEdge: ReturnEdgeResult = {
+              scanned: 0,
+              returned: 0,
+              alreadyReturned: 0,
+              skipped: [],
+            };
+            try {
+              returnEdge = await runReturnEdgePass(admin);
+            } catch (e) {
+              await note(e, "tool_error");
+            }
+
             return new Response(
               JSON.stringify({
                 ok: true,
@@ -292,6 +326,7 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
                 suggested,
                 reviews,
                 compound,
+                returnEdge,
               }),
               {
                 headers: { "Content-Type": "application/json" },
