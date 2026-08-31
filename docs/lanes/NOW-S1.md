@@ -1,31 +1,34 @@
 # NOW — S1 · THE RUN
 
-**Unit:** RUN-159 · S1-Q1 (gap #28) verified against its acceptance and **DRIVEN**. Closing it.
-**DEVSERVER 8080, killed and verified clear.**
+**Unit:** RUN-160 · S0's newest reader has **zero callers**, and its door is mine.
 
-**State:** no code changed. S0 made gap #28 the topmost queue item; **I had already built it**, so
-the honest unit was to test it, not rebuild it — the queue's own warning about rediscovering
-finished work.
+**State:** no code changed, one request filed and messaged. **Not S0** — that brief was misrouted to
+me; I performed no conductor act and handed S0 the acceptance funnel, the deploy baseline and a
+triage of four open requests.
 
-**Checked, as required by name:** `ArtifactPane`'s existing `Region` header. **No new component
-needed** — `act="Take this"` at `:2639`, `take()` at `:2608` using the `DataSection.tsx:91` shape
-verbatim. All three of the queue's stated anchors hold in shipped code.
+**Re-tested my blocked list rather than asserting it** (I got "blocked" wrong once today). One thing
+changed and it was not on the list.
 
-**Acceptance, clause by clause:** one sentence per station ✅ *"Learn filed 2 learnings."* · file
-behind one control, never in front of the work ✅ · nothing-produced says so ✅ (RUN-140) ·
-**driven** ✅ **738-byte file captured**.
+**`38ea0444a`** shipped `what-the-evidence-already-says.ts` — *what does this workspace already hold
+about this subject, before the work starts.* Its measured case: **`060bc5ff` spent three completed
+runs and three attempts** for all three Discover seats to independently report the workspace held
+nothing about it. **One query at creation would have said so** — and the workspace held **267 signals
+from 40 sources.**
 
-**The hard constraint tested on the DOM:** `leaksFilename: false` · `leaksYaml: false`.
+**It has no caller.** Only the module, its `.server.ts` and its own test reference it. Sixth
+producer-without-a-consumer in two days, and this one is inverted: the reader and the words exist,
+the door does not.
 
-**The file, intercepted rather than assumed** — prose, no frontmatter, and carrying
-*"On the AI-native SDLC this is the Maintain stage."* That is `sdlc-words.ts` paying refusal 3's
-cost: their stage in their words, with no filename on screen.
+**The door is mine** — `SPEC-BUILD-PATHS §2.3` puts it at track creation, so `spine/TrackStart.tsx`
+and the `start` route. **Blocked on one line of S0's:** `evidenceForSubject(db, workspaceId, subject)`
+is a plain helper a browser cannot reach; it needs a `createServerFn` wrapper.
 
-**Two found while driving, neither mine.** The **Brain door crashes** —
-`DecisionsPanel.tsx:567 · Cannot read properties of undefined (reading 'tone')`, reproduced live with
-a stack; S2 filed it, `knowledge/**` is **S3's**, still unrouted. And a **live failed read**
-(`ERR_CONNECTION_CLOSED`) on `agent_messages` made my `cannot-tell` branch fire in production
-conditions rather than a test.
+**I am NOT building this against the shape**, and the difference from open-questions matters: there,
+`null` rendered one honest line beside a live control. **Here the sentence IS the whole feature**, so
+without the wrapper it renders *"I could not check"* on every keystroke, for ever.
 
-**Not S0.** The conductor brief was misrouted to me; I performed no conductor act and handed S0 the
-acceptance funnel, the deploy baseline and a triage of four open requests.
+**Checked first, none serves:** `AskInPlace` (asks for a connector) · `TrackConsent` (a gate, and S0
+is explicit *"nothing here may become a gate"*) · `WhatWereSolving` (reads a track that already
+exists; this runs before one does).
+
+**Not DEVSERVER.**
