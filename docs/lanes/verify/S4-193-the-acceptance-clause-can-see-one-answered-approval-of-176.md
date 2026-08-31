@@ -75,24 +75,55 @@ is **39**, and `workspace_id` is populated on **all 328** rows, so my first gues
 a microscope**, and the join turned out to matter somewhere else entirely. The
 disagreement was not the finding; **it was the instrument that produced one.**
 
-## Open, and handed on rather than settled
+## CLOSED, not open: 77 was a join fan-out, and it reconciles exactly
 
-The **77 against 9** is still unreconciled and I am not picking a winner. My
-predicate, exactly:
+S3 found it and I verified it rather than took it. **`count(*)` over a
+one-to-many join counts approval-by-run PAIRS, not approvals.**
 
-```sql
-SELECT count(*) FROM agent_approvals a
-WHERE a.workspace_id = '60000000-0000-4000-8000-000000000000'
-  AND a.decided_at IS NULL
-  AND (a.expires_at IS NULL OR a.expires_at > now());   -- 9
+```
+count(*)          over agent_approvals JOIN agent_runs (harbor, undecided, unexpired)  =  77
+count(DISTINCT a.id) over the same query                                               =   7
+my direct-column count                                                                 =   9
+   ... of those, with no agent_runs row at all                                         =   2      9 - 2 = 7
+worst fan-out: runs on a single mission_id                                             =  28
 ```
 
-S3's, as they described it, joined through `agent_runs.workspace_id` — **which
-returns 7 for me, not 77.** So the disagreement is not 9 against 77; it is that
-**two lanes' queries disagree about what they measure and neither of mine yields
-77.** Logged open.
+**Every number is accounted for and nothing is left over.** Seven approvals
+arrived as seventy-seven because one mission carries 28 runs, another 18, another
+17. The two-row residual is mine: approvals whose mission has no run at all,
+which a mission-join cannot reach and a direct column read can.
 
-One number I will flag without claiming: **93 undecided approvals have no
-`agent_runs` row**, and the board's disputed total is **93**. That may be
-coincidence and I have not traced it. It is worth ten minutes from whoever owns
-that surface.
+**So there was never a disagreement between two lanes.** There was one wrong
+number and one small, fully explicable difference of instrument.
+
+**And I should not take credit for the diagnosis.** When I ran "their predicate"
+I wrote `count(DISTINCT a.id)` without thinking about it, so I got 7 and reported
+that their query "returns 7 in my hands" — **I did not catch the fan-out, I
+avoided it by habit.** S3 found the cause. Their rule from it is the one to keep:
+**an aggregate sitting beside a join is unproven until it is `count(distinct)`,
+and 77 looked plausible where 7 would have prompted a check.**
+
+## Independently corroborated
+
+S3 measured the same hole from their side: **in harbor's workspace alone, 14
+undecided approvals carry `mission_id IS NULL`.** No mission-join can ever reach
+them. That is the same shape as the 68-of-176 above, and it means the F-79
+clause is blind to a population that is **large in the live data rather than
+rare.**
+
+## One number flagged without a claim
+
+**93 undecided approvals have no `agent_runs` row**, and the board's disputed
+total is **93**. That may be coincidence and I have not traced it. Worth ten
+minutes from whoever owns that surface.
+
+## The instrument count for one night
+
+Four confident, well-formatted answers from instruments that structurally could
+not see what they claimed: **a regex that could not cross a dot**, **a probe
+reading `innerText` for an `aria-label`**, **a `count(*)` over a one-to-many
+join**, and **my CSP guard whose evidence for an origin was the security log's
+own record of a past finding about it.** Three of the four were S3's, one was
+mine, and **every one returned a clean answer.** That is the argument for
+mutation testing and for looking before measuring, arrived at twice in one night
+from opposite directions.
