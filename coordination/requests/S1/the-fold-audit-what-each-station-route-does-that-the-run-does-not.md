@@ -22,6 +22,7 @@ are the reason the audit is worth more than the intuition.
 | --- | --- | --- | --- |
 | `_authenticated.decide.tsx` | 3,643 | `OpportunityDetailSheet` · `OpportunityRow` · `ranking` · `VerdictBadge` · `CriticBadge` · `LineageDrawer` · `ContextCards` | **Not foldable yet.** The ranked list of bets and the lineage walk are browse surfaces over MANY opportunities; the run is one piece of work |
 | `_authenticated.ship.tsx` | 3,565 | `ship/WhatShipped` | ~~Closest to ready~~ **NOT FOLDABLE — see the correction below.** `WhatShipped` renders a `changelog_entries` row, and **0 of the 8 are reachable from any track** |
+| `_authenticated.ship.tsx` | 3,565 | `ship/WhatShipped` | **Closest to ready.** One component beyond shell parts, and the run already has `ReleaseCard` for `deployments` |
 | `_authenticated.design.tsx` | 2,189 | `design/drawing` · `DrawingsTable` · `design/vocabulary` · `RepoGateDialog` | **Partly.** The run has `PrototypeCard` in a frame; `DrawingsTable` is a list across drawings |
 | `_authenticated.plan.index.tsx` | 1,273 | `CommitCeremony` · `RoadmapColumns` · `spine/TrackStart` | **Not foldable.** `TrackStart` is the door that STARTS work at Plan, and `RoadmapColumns` is a portfolio view |
 | `_authenticated.learn.tsx` | 1,067 | `ForecastDeskPanel` · `LearnedCards` · `SettlePanel` | **Split, and one half is S2's** — see below |
@@ -95,6 +96,11 @@ its output to a track**, whichever of the two links gets built.
 1. ~~**`ship` first**~~ — **withdrawn by the correction above.** It is one component wide and that
    component has nothing to render. Kept rather than deleted so the reasoning that produced a wrong
    recommendation stays visible next to the measurement that killed it.
+## What I recommend, in order, and none of it is urgent
+
+1. **`ship` first**, because it is one component wide and the run already draws releases. Whoever
+   takes it should check `WhatShipped` against `ReleaseCard` rather than assuming, which is the
+   mistake this document exists to prevent.
 2. **`/learn`'s desk to the board**, S2's call and S2's prefix.
 3. **`decide`, `design`, `plan`, `discover` stay for now.** Each is a browse surface over many objects,
    and §0.5's "three surfaces" does not mean the run swallows every list — it means a person does not
