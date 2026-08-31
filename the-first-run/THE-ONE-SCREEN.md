@@ -83,14 +83,23 @@ is fixed-length and mandatory.
 > **THERE ARE TWO `is_sample` FLAGS ON THIS JOIN PATH AND THEY NEVER BOTH CLEAR.** `deployments` has
 > its own, and it joins to `workspaces.is_sample`. Grouped by both — 42 rows, measured 2026-08-31:
 >
-> | `deployments.is_sample` | `workspaces.is_sample` | rows | first | newest | with a changeset |
+> | `deployments.is_sample` | `workspaces.is_sample` | rows | newest `deployed_at` | newest `created_at` | with a changeset |
 > | --- | --- | --- | --- | --- | --- |
-> | false | **true** | 14 | 2026-07-08 | 2026-07-10 | 14 |
-> | **true** | false | 4 | 2026-07-08 | 2026-07-18 | 1 |
-> | **true** | **true** | 24 | 2026-07-08 | 2026-08-07 | 6 |
+> | false | **true** | 14 | 2026-07-10 | 2026-07-10 | 14 |
+> | **true** | false | 4 | 2026-07-18 | 2026-07-18 | 1 |
+> | **true** | **true** | 24 | **2026-07-18** | **2026-08-07** | 6 |
 >
 > **There is no `(false, false)` row.** My 14 are all on demo workspaces — the ones `track-tick.ts:85`
 > deliberately skips — and S1's 4 are all flagged on the row itself.
+>
+> **AND THE TABLE CARRIES TWO DATES BECAUSE WE THEN GOT THE DATE WRONG THE SAME WAY (S1, same hour).**
+> I quoted `created_at` and said 2026-08-07; S1 quoted `deployed_at` and said 2026-07-18. Both are
+> that group's true maximum. **`created_at` is when we wrote a row ABOUT a deploy; `deployed_at` is
+> the deploy** — and only the second answers *"when did we last ship"*. Measured: **20 of those 24
+> rows have `created_at` LATER than `deployed_at`**, so somebody seeded demo data in August and dated
+> it to July. `deployed_at` is null on none of the 42, so this is not a null-handling artifact.
+> **Nothing shipped in August. By `deployed_at` the record stops at 2026-07-18, and at 2026-07-10 for
+> anything not flagged sample on its own row.**
 >
 > **THE DEFENSIBLE LINE, and nothing softer: 42 deployment rows. ZERO are non-sample by both flags.
 > 21 of 42 carry a changeset. 0 are reachable from any track.** Not "14 real and stale", not "4 real".
@@ -104,10 +113,12 @@ is fixed-length and mandatory.
 > and who noted the consequence for their own surface: with no join from a track to a deployment, the
 > pane cannot honestly say more than *"Ship filed no release"*.
 >
-> **THE RULE THIS EARNS, because a wrong number twice in one hour is a process defect, not bad luck:
-> when a table carries more than one `is_sample` on its join path, a count of "how much is real" must
-> clear EVERY flag and say which ones it cleared.** Reaching for whichever flag is nearest is how two
-> careful readers got 14 and 4 for the same question. It is the sibling of the default-as-data rule
+> **THE RULE THIS EARNS, because a wrong number three times in one hour is a process defect, not bad
+> luck: when a table carries more than one `is_sample` on its join path, a count of "how much is real"
+> must clear EVERY flag and SAY WHICH ONES IT CLEARED — and when it carries more than one timestamp,
+> the sentence must SAY WHICH DATE IT QUOTED.** Reaching for whichever flag is nearest is how two
+> careful readers got 14 and 4 for the same question; reaching for the nearest date is how the same
+> two then got 07-18 and 08-07, on the same rows, in the same hour. It is the sibling of the default-as-data rule
 > in `SESSION-0-CONDUCTOR.md`: **a column that silently decides what counts as real will decide it
 > differently for every author who does not know it is there.**
 

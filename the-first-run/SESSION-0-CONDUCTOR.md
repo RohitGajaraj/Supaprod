@@ -53,6 +53,35 @@ whole product lives (§3 below).
   > sentence that reports it. Same law as the default-as-data rule above: **a column that silently
   > decides what counts as real will decide it differently for every author who does not know it is
   > there.**
+  >
+  > **AND SAY WHICH DATE YOU QUOTED, added the same hour after the pair of us got the date wrong the
+  > same way.** `deployments` carries `created_at` AND `deployed_at`. I read one and said the newest
+  > deploy was **2026-08-07**; S1 read the other and said **2026-07-18**; both are that group's true
+  > maximum. **20 of 24 rows have `created_at` later than `deployed_at`** — fixtures seeded in August
+  > and dated to July — so the column choice is the whole answer to *"has anything shipped lately"*.
+  > **`created_at` is when we wrote a row about a thing; the domain timestamp is the thing.** Quote
+  > the domain one, and name it in the sentence.
+
+  > **AND THE COMMIT THAT FIXES A FINDING UPDATES ITS LEDGER ROW IN THE SAME COMMIT. Adopted
+  > 2026-08-31 on S1's proposal, after the second stale row in one day.** F-174's status cell still
+  > read OPEN hours after the fix was deployed — while its own resolution cell already said FIXED, so
+  > one row disagreed with itself. **CLAUDE.md gives the ledger exactly one job, addressed to every
+  > session: *"Read it before re-investigating anything."* A row marked OPEN after the fix ships is
+  > therefore an instruction to redo work**, pointed at whoever reads it next — and F-174 is the
+  > mechanism behind the decline path, so the next lane meeting a stuck declined track would have
+  > read OPEN and started diagnosing a bug that was already live. S1 lost a unit to exactly this on
+  > F-150, which sat at the top of their own queue.
+  >
+  > **The repo already reasons this way one file over:** *"Link a new doc from its folder index in
+  > the same commit, or nobody finds it"*, enforced by `docs-doctor` in the pre-commit hook. Same
+  > logic, and cheap for the same reason — the row is already open in the author's editor while they
+  > are writing the fix. **A hook for it is NOT adopted today**: detecting "this commit fixes F-nnn"
+  > means parsing commit messages, and a wrong rule there fails every lane's commits mid-flight for a
+  > gain the discipline already gets. Revisit if it goes stale twice more.
+  >
+  > **A lane updates its OWN findings only.** S1 marked F-150 and deliberately left F-174 to me: a
+  > shared ledger with two authors and no owner is the tangle S1 and S3 spent a unit undoing on F-85
+  > the same afternoon. **Report someone else's stale row; do not edit it.**
 - **Deploy and publish are yours alone, and they are a three-step act: verify, deploy, verify again.**
   No other session can do it and none may claim it happened. Publish status has lied more than once —
   three times in one night — so confirm with an independent read of a changed file, not with the
@@ -365,9 +394,20 @@ restart by it** — while the founder was asleep. R-21, and it is a gate, not ho
 # ALWAYS free, so the R-21 check passed, a second server started on 8080 and collided.
 # S2 recorded exactly that: their server "silently fell through to 8081, so two servers
 # were up, which R-21 forbids and this machine has crashed over".
-lsof -ti:8080 || true          # BEFORE you start one. If anything is listening, do not start another.
+lsof -ti:8080 -sTCP:LISTEN || true   # BEFORE you start one. -sTCP:LISTEN IS LOAD-BEARING: see below.
+# WITHOUT THAT FLAG THIS CHECK HAS A FALSE POSITIVE AND BLOCKS YOU FOR NO REASON (S2,
+# 2026-08-31, F-176). `lsof -ti:8080` matches every socket with 8080 at EITHER end, so an
+# open BROWSER TAB pointed at a dev server counts as "busy" -- including your own tab, and
+# including a tab left over from a server that is already dead. S2 measured one server and
+# two Chrome helpers. S0 proved the mechanism under controlled conditions: one listener,
+# one client, plain form returns BOTH pids, -sTCP:LISTEN returns only the listener.
+# The comment on this line always said "if anything is LISTENING" -- the flag is what makes
+# the command mean it. This is the THIRD way this one guard has been wrong (F-167 had the
+# port number, then vite's silent fall-through to 8081).
 bun run dev                     # only for a check that genuinely needs a browser
-kill $(lsof -ti:8080)           # THE MOMENT the check is done. Not at unit end. Not at session end.
+kill $(lsof -ti:8080 -sTCP:LISTEN)   # THE MOMENT the check is done. Not at unit end. Not at session end.
+# Same flag, and here it matters MORE than above: the plain form would hand `kill` the pid
+# of a browser, or of another workspace's server you never started.
 ```
 
 - **One dev server on this machine at a time.** If the port is busy, another session holds it — read
