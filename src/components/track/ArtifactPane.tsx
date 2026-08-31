@@ -29,6 +29,7 @@ import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 import { justGrouped } from "@/components/track/just-grouped";
 import { fileNameFor, stationFile, tookItLine } from "@/components/track/station-file";
 import { WhatWereSolving } from "@/components/track/WhatWereSolving";
+import { whatItProduced } from "@/components/track/what-it-produced";
 import { plainProse } from "@/lib/plain-prose";
 /*
  * EVERY plain-text `Prose` on this pane runs agent-written text through
@@ -2217,6 +2218,23 @@ function StationPanel({
   }
 
   /*
+   * WHAT THIS STEP PRODUCED, IN ONE SENTENCE, ABOVE THE THINGS IT PRODUCED
+   * (gap #28). The panel already spoke when a station filed NOTHING -- "Plan
+   * ran and filed no spec" -- and said nothing at all when it filed something,
+   * so the run could report absence and not presence.
+   *
+   * DECLARED ABOVE THE DISCOVER BRANCH, not inside the general one, and that
+   * was found by driving it: `SenseBody` returns early, so the first version
+   * reached every station EXCEPT the one where a count helps most. Discover on
+   * track `425e6887` holds 33 clusters and dozens of findings, and it was the
+   * one tab with no sentence.
+   *
+   * Reads the chain's members rather than the artifacts read, so it is there on
+   * first paint instead of arriving a poll later than the cards it introduces.
+   */
+  const produced = whatItProduced(stop.label, stop.members);
+
+  /*
    * BODIES WHERE THE READ EXISTS. The artifacts read and the chain derive
    * position from the same builder, so they cannot disagree about what exists.
    * While the artifacts read is in flight the member titles render; a kind
@@ -2258,11 +2276,14 @@ function StationPanel({
      */
     if (stop.station === "sense") {
       return (
-        <SenseBody
-          items={items.filter((it) => it.kind === "signal" || it.kind === "theme" || it.missing)}
-          now={now}
-          trackId={trackId}
-        />
+        <div className="flex flex-col gap-mrd-4">
+          {produced ? <span className="mrd-meta">{produced}</span> : null}
+          <SenseBody
+            items={items.filter((it) => it.kind === "signal" || it.kind === "theme" || it.missing)}
+            now={now}
+            trackId={trackId}
+          />
+        </div>
       );
     }
 
@@ -2277,6 +2298,10 @@ function StationPanel({
     const missionItems = items.filter((it) => it.kind === "mission" && !it.missing);
     return (
       <div className="flex flex-col gap-mrd-4">
+        {/* Quiet, and above everything: it introduces the cards rather than
+            competing with them, and a person who reads only this line has
+            still been told what the step did. */}
+        {produced ? <span className="mrd-meta">{produced}</span> : null}
         {primaryItem ? (
           <div style={arrival(`${primaryItem.kind}:${primaryItem.artifactId}`)}>
             {bodyFor(primaryItem)}
