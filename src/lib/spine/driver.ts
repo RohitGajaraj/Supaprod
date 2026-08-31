@@ -1090,8 +1090,43 @@ const FILE_IT: Record<AgentStation, string> = {
    */
   sense:
     "Finish by putting evidence on this track's record. Evidence ALREADY IN THIS WORKSPACE COUNTS: search it first with signals.list, and if what you need is already there, group it with cluster.trigger or research.synthesize and you are done. That is a complete, correct outcome, not a shortcut. Call signals.log only for evidence that is genuinely not on the record yet. What you may never do is file the ABSENCE of evidence, or cite this product's own PRDs, decisions or briefs as a source: a number you read in our own spec is not a finding, it is our own writing coming back. If the workspace truly holds nothing about this, say so in your answer and file nothing. A finding that is only in your answer is not on the record and the next station cannot read it.",
+  /*
+   * ── ATTRIBUTED TO A SEAT, BECAUSE EVERY SEAT WAS READING IT (F-181) ────────
+   *
+   * This sentence began "Finish by calling decision.record" with no subject, and
+   * `stationGoal` composes THIS station job together with the seat's own brief
+   * into one text. So the critic — whose job is to red-team a call that already
+   * exists — was told to finish by recording one, and did.
+   *
+   * **MEASURED ON `d2263583`, THE FIRST CLEAN ACCEPTANCE CANDIDATE: FOURTEEN
+   * DECISIONS FOR ONE QUESTION**, in strategist/critic pairs every ten minutes
+   * from 13:40 to 17:31, carrying FOUR different horizon dates — 2026-09-07,
+   * 2026-09-30 (x5), 2026-10-15 (x7), 2026-11-30 — and not one of them resolved.
+   * **Nothing on the record says which forecast stands.** When Learn grades, it
+   * has no rule for choosing, and whichever it picks the other thirteen remain
+   * unresolved predictions about the same question. Found by S4 (S4-175), who
+   * also corrected my own claim that this track carried one forecast due
+   * 2026-10-15: it carries fourteen, and the nearest is six days out.
+   *
+   * **F-168 FIXED THE SEAT AND LEFT THE STATION, WHICH IS THE WHOLE LESSON.**
+   * That finding corrected the critic's brief to name `decision.revise` and
+   * forbid `critic.evaluate`, deployed by 16:14 — and the 17:31 visit still
+   * called `decision.record`, because this sentence was still telling it to.
+   * `decision.revise` is reachable and works (9 calls, and the 16:51 one
+   * succeeded), so the seat was not falling back for want of a tool.
+   *
+   * **The file's own comment forty lines up already warned about exactly this:**
+   * *"`stationGoal` composes the station's job AND this seat's job into one
+   * brief. Removing the sentence from one of them leaves the agent reading it
+   * from the other, which is how this was found."* That is F-32, and I made the
+   * same mistake in the other direction — fixing one copy and leaving the other.
+   *
+   * The sentence is kept rather than deleted because `stationJob` is ALSO the
+   * fallback when a station has no crew entry, and a crewless Decide still has
+   * to be told how to file. Attributing it costs nothing and scopes it.
+   */
   decide:
-    "Finish by calling decision.record with the alternatives you weighed and your forecast: what you expect to happen, the observable that will settle it, and the date it comes due as an ISO timestamp with an offset. A decision that is only in your answer is not on the record and the next station cannot read it, and one with no forecast is refused.",
+    "The seat that MAKES the call finishes by calling decision.record with the alternatives it weighed and its forecast: what it expects to happen, the observable that will settle it, and the date it comes due as an ISO timestamp with an offset. A decision that is only in an answer is not on the record and the next station cannot read it, and one with no forecast is refused. A seat REVIEWING a call that has already been filed does not record a second one: it calls decision.revise if the call should change, or says plainly that it stands. Two records of one call leave nothing on the record saying which forecast is the one to grade.",
   // Same correction as the `prd-writer` seat above, and it has to be made in
   // both places: this is the fallback used when a station has no crew entry, and
   // a fallback that names an argument the tool does not have is the same defect
