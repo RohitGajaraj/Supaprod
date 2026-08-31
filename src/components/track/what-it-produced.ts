@@ -36,6 +36,8 @@ export type ProducedMember = {
   kind: string;
   /** True only when the lookup RAN and the row was not there. */
   missing: boolean;
+  /** The artifact's own title. Null when its row could not be found. */
+  title?: string | null;
 };
 
 /**
@@ -68,7 +70,45 @@ export function whatItProduced(
   const parts = [...counts].map(([kind, n]) => `${n} ${wordFor(kind, n)}`);
 
   const head = `${stationLabel} filed ${joinPlainly(parts)}.`;
-  if (gone === 0) return head;
+
+  /*
+   * ── A COUNT THAT FLATTERS A STUCK LOOP, CAUGHT ON THE LIVE CANDIDATE ─────
+   * RUN-128 shipped this counting repeats deliberately: *"a station that
+   * drafted its prototype five times filed five, and that is a fact worth
+   * reading."* That holds for a prototype. **It is wrong when the repeats are
+   * the same thing**, and the acceptance candidate proved it.
+   *
+   * `d2263583` reached Decide on 2026-08-31 with **8 decisions: 1 approved and
+   * 7 declined**, four of them sharing one title, written in pairs about a
+   * minute apart at 14:00, 14:01, 15:40 and 15:41. The station is re-deciding
+   * one thing across sweeps, which is why it holds `nothing-to-hand-on`.
+   *
+   * On screen my sentence read **"Decide filed 8 decisions."** while the same
+   * decline title rendered **fifteen times** below it. **The count was true and
+   * the impression was false**: eight distinct calls is what a person infers,
+   * and one call re-made seven times is what happened. A sentence that makes a
+   * jammed station look productive is worse than no sentence.
+   *
+   * So repeats are COUNTED and then NAMED. Not deduped away -- how many times a
+   * station filed the same thing is the fact that reveals the jam, and hiding
+   * it would swap one wrong impression for another. `station-file.ts` reached
+   * the same shape from the other direction and says `(filed n times)`.
+   */
+  const byTitle = new Map<string, number>();
+  for (const m of present) {
+    const t = (m.title ?? "").trim().toLowerCase();
+    if (t) byTitle.set(t, (byTitle.get(t) ?? 0) + 1);
+  }
+  const repeated = [...byTitle.values()].filter((n) => n > 1);
+  const repeats = repeated.reduce((a, b) => a + b, 0);
+  const sameAgain =
+    repeats > 1
+      ? repeated.length === 1
+        ? ` ${repeats} of them say the same thing.`
+        : ` ${repeats} of them repeat ${repeated.length} things already filed.`
+      : "";
+
+  if (gone === 0) return `${head}${sameAgain}`;
 
   /*
    * A MEMBER THE LOOKUP MISSED IS SAID, NOT SUBTRACTED. `missing` means the row
@@ -81,5 +121,5 @@ export function whatItProduced(
     gone === 1
       ? "One more no longer resolves to anything we can show."
       : `${gone} more no longer resolve to anything we can show.`;
-  return `${head} ${tail}`;
+  return `${head}${sameAgain} ${tail}`;
 }

@@ -1,7 +1,11 @@
 import { describe, it, expect } from "bun:test";
 import { whatItProduced, type ProducedMember } from "./what-it-produced";
 
-const m = (kind: string, missing = false): ProducedMember => ({ kind, missing });
+const m = (kind: string, missing = false, title: string | null = null): ProducedMember => ({
+  kind,
+  missing,
+  title,
+});
 
 describe("what a station produced, as one sentence", () => {
   it("says the count and the plain noun, never the table's word", () => {
@@ -34,6 +38,54 @@ describe("what a station produced, as one sentence", () => {
     expect(whatItProduced("Design", [m("prototype"), m("prototype"), m("prototype")])).toBe(
       "Design filed 3 prototypes.",
     );
+  });
+
+  it("NAMES the repeats, because a count alone flatters a stuck station", () => {
+    /*
+     * CAUGHT ON THE LIVE ACCEPTANCE CANDIDATE. `d2263583` reached Decide with 8
+     * decisions -- 1 approved, 7 declined, four sharing one title, written in
+     * pairs a minute apart across two sweeps. My sentence read "Decide filed 8
+     * decisions." while the same decline rendered fifteen times below it. The
+     * count was true and the impression was false: a person infers eight
+     * distinct calls, and one call re-made is what happened.
+     */
+    const out = whatItProduced("Decide", [
+      m("decision", false, "Tablet address layout contributes to abandonment"),
+      m("decision", false, "Do not attribute tablet checkout abandonment to address"),
+      m("decision", false, "Do not attribute tablet checkout abandonment to address"),
+      m("decision", false, "Do not attribute tablet checkout abandonment to address"),
+      m("decision", false, "Do not attribute tablet checkout abandonment to address"),
+    ]);
+    expect(out).toBe("Decide filed 5 decisions. 4 of them say the same thing.");
+  });
+
+  it("counts the repeats rather than hiding them, which is the other error", () => {
+    // Deduping would swap one wrong impression for another: how many times a
+    // station filed the same thing is the fact that reveals the jam.
+    const out = whatItProduced("Decide", [
+      m("decision", false, "A"),
+      m("decision", false, "A"),
+      m("decision", false, "B"),
+      m("decision", false, "B"),
+    ]);
+    expect(out).toBe("Decide filed 4 decisions. 4 of them repeat 2 things already filed.");
+  });
+
+  it("says nothing extra when every filing is distinct", () => {
+    const out = whatItProduced("Design", [
+      m("prototype", false, "First cut"),
+      m("prototype", false, "Second cut"),
+    ]);
+    expect(out).toBe("Design filed 2 prototypes.");
+  });
+
+  it("does not call untitled things repeats of each other", () => {
+    /*
+     * A signal carries no title, so keying on it would report every finding as
+     * a repeat of every other. Untitled members are counted and never compared.
+     */
+    const out = whatItProduced("Discover", [m("signal"), m("signal"), m("signal")]);
+    expect(out).toBe("Discover filed 3 findings.");
   });
 
   it("says a member the lookup missed rather than subtracting it", () => {
