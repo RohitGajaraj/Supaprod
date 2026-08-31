@@ -70,6 +70,14 @@ export type OpenQuestionsInput = {
    * on at all.
    */
   handoffs: readonly { openQuestions: readonly string[] | null }[] | null;
+/** What the surface knows. `null` questions means the read has not answered yet. */
+export type OpenQuestionsInput = {
+  /**
+   * The questions the station filed. **Three distinct values, and collapsing any
+   * two of them is the defect this module exists to avoid**: `null` (we have not
+   * read, or the read failed), `[]` (it filed none), and a non-empty list.
+   */
+  questions: readonly string[] | null;
   /** Whether the station this section belongs to has run at all. */
   stationRan: boolean;
 };
@@ -90,6 +98,7 @@ export type OpenQuestionsState =
    * exactly this, and it is worth its own sentence because it is the only case
    * where a station actually answered.
    */
+  /** It ran and filed none. **This is the finding, not the absence of one.** */
   | { kind: "filed-none" }
   /** It filed some. */
   | { kind: "asked"; questions: readonly string[] };
@@ -128,6 +137,10 @@ export function openQuestionsState(input: OpenQuestionsInput): OpenQuestionsStat
 
   if (questions.length > 0) return { kind: "asked", questions };
   return anyClaimed ? { kind: "filed-none" } : { kind: "said-nothing" };
+  if (input.questions === null) return { kind: "cannot-tell" };
+  if (!input.stationRan) return { kind: "not-yet" };
+  if (input.questions.length === 0) return { kind: "filed-none" };
+  return { kind: "asked", questions: input.questions };
 }
 
 /**
@@ -167,6 +180,7 @@ export function openQuestionsLine(state: OpenQuestionsState, stationLabel: strin
        * nothing RECORDED is not the same as nothing UNSETTLED.
        */
       return `${stationLabel} looked and recorded nothing unsettled. An empty list is not a clean bill, so this is worth a look before it goes further.`;
+      return `${stationLabel} recorded nothing as unsettled. That is not the same as nothing being unsettled, and it is worth a look before this goes further.`;
     case "asked":
       return state.questions.length === 1
         ? `${stationLabel} left one thing unsettled.`

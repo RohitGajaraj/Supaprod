@@ -24,6 +24,10 @@ describe("the three absences are three different answers", () => {
   it("a failed read is never drawn as 'none'", () => {
     // R-16, and the dominant defect class in this repo.
     expect(openQuestionsState({ handoffs: null, stationRan: true })).toEqual({
+describe("the three absences are three different answers", () => {
+  it("a failed read is never drawn as 'none'", () => {
+    // R-16, and the dominant defect class in this repo.
+    expect(openQuestionsState({ questions: null, stationRan: true })).toEqual({
       kind: "cannot-tell",
     });
   });
@@ -76,6 +80,16 @@ describe("the three absences are three different answers", () => {
 
   it("keeps the questions verbatim when there are some", () => {
     expect(openQuestionsState({ handoffs: [h(REAL)], stationRan: true })).toEqual({
+    expect(openQuestionsState({ questions: null, stationRan: false }).kind).toBe("cannot-tell");
+  });
+
+  it("not-yet and filed-none are not the same state", () => {
+    expect(openQuestionsState({ questions: [], stationRan: false }).kind).toBe("not-yet");
+    expect(openQuestionsState({ questions: [], stationRan: true }).kind).toBe("filed-none");
+  });
+
+  it("keeps the questions verbatim when there are some", () => {
+    expect(openQuestionsState({ questions: REAL, stationRan: true })).toEqual({
       kind: "asked",
       questions: REAL,
     });
@@ -90,6 +104,10 @@ describe("the section ALWAYS speaks, and that is the whole of #29", () => {
       openQuestionsState({ handoffs: [SILENT], stationRan: true }),
       openQuestionsState({ handoffs: [h([])], stationRan: true }),
       openQuestionsState({ handoffs: [h(REAL)], stationRan: true }),
+      openQuestionsState({ questions: null, stationRan: true }),
+      openQuestionsState({ questions: [], stationRan: false }),
+      openQuestionsState({ questions: [], stationRan: true }),
+      openQuestionsState({ questions: REAL, stationRan: true }),
     ];
     for (const s of states) {
       const line = openQuestionsLine(s, "Discover");
@@ -103,6 +121,10 @@ describe("the section ALWAYS speaks, and that is the whole of #29", () => {
       "Discover",
     );
     expect(line).toContain("not a clean bill");
+      openQuestionsState({ questions: [], stationRan: true }),
+      "Discover",
+    );
+    expect(line).toContain("not the same as nothing being unsettled");
     /*
      * The spec says "Discover filing zero open questions means it did not look."
      * That is a general claim used to justify making the field load-bearing. On
@@ -121,6 +143,10 @@ describe("the section ALWAYS speaks, and that is the whole of #29", () => {
     ).toBe("Discover left one thing unsettled.");
     expect(
       openQuestionsLine(openQuestionsState({ handoffs: [h(REAL)], stationRan: true }), "Discover"),
+      openQuestionsLine(openQuestionsState({ questions: [REAL[0]], stationRan: true }), "Discover"),
+    ).toBe("Discover left one thing unsettled.");
+    expect(
+      openQuestionsLine(openQuestionsState({ questions: REAL, stationRan: true }), "Discover"),
     ).toBe("Discover left 2 things unsettled.");
   });
 });
@@ -128,6 +154,7 @@ describe("the section ALWAYS speaks, and that is the whole of #29", () => {
 describe("what a person may do, and where the door is shut", () => {
   it("offers the raise control when the station filed none, the inversion 4.3 asks for", () => {
     expect(canRaiseOne(openQuestionsState({ handoffs: [h([])], stationRan: true }))).toBe(true);
+    expect(canRaiseOne(openQuestionsState({ questions: [], stationRan: true }))).toBe(true);
   });
 
   it("STILL offers it when we could not read the list, because no dead end, ever", () => {
@@ -146,6 +173,11 @@ describe("what a person may do, and where the door is shut", () => {
 
   it("does not offer it before the station has run", () => {
     expect(canRaiseOne(openQuestionsState({ handoffs: [SILENT], stationRan: false }))).toBe(false);
+    expect(canRaiseOne(openQuestionsState({ questions: null, stationRan: true }))).toBe(true);
+  });
+
+  it("does not offer it before the station has run", () => {
+    expect(canRaiseOne(openQuestionsState({ questions: [], stationRan: false }))).toBe(false);
   });
 });
 
@@ -198,6 +230,10 @@ describe("the vocabulary law", () => {
       openQuestionsLine(openQuestionsState({ handoffs: [SILENT], stationRan: true }), "Discover"),
       openQuestionsLine(openQuestionsState({ handoffs: [h([])], stationRan: true }), "Discover"),
       openQuestionsLine(openQuestionsState({ handoffs: [h(REAL)], stationRan: true }), "Discover"),
+      openQuestionsLine(openQuestionsState({ questions: null, stationRan: true }), "Discover"),
+      openQuestionsLine(openQuestionsState({ questions: [], stationRan: false }), "Discover"),
+      openQuestionsLine(openQuestionsState({ questions: [], stationRan: true }), "Discover"),
+      openQuestionsLine(openQuestionsState({ questions: REAL, stationRan: true }), "Discover"),
       answerRecord("Q?", "A"),
       proceedRecord("Q?"),
       raisedRecord("Q?"),

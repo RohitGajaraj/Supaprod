@@ -2139,6 +2139,14 @@ export function SenseBody({
        * to do it client-side and asked for the reader instead.
        */}
       <OpenQuestions trackId={trackId} stationLabel="Discover" stationRan />
+       * WHAT IS STILL UNSETTLED, DRAWN ALWAYS (gap #29). `questions={null}` is
+       * not a placeholder: the reader is S0's and queued, and `QUEUE-S1.md`
+       * rules out deriving this from a client-side `payload` read. So the
+       * section says it cannot tell, which is the truth, rather than drawing an
+       * empty list -- and an empty list here is a FINDING, so inventing one
+       * would be the worst available lie. One prop changes when the reader lands.
+       */}
+      <OpenQuestions trackId={trackId} stationLabel="Discover" questions={null} stationRan />
       {groups.map((g) => {
         const t = themeById.get(g.themeId);
         const members = g.signals;
@@ -2348,6 +2356,7 @@ function StationPanel({
             that exact mistake with `NothingToRead` and it is the same shape. */}
         {stop.station === "sense" ? (
           <OpenQuestions trackId={trackId} stationLabel="Discover" stationRan />
+          <OpenQuestions trackId={trackId} stationLabel="Discover" questions={null} stationRan />
         ) : null}
       </div>
     );

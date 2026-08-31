@@ -36,27 +36,34 @@ S1 · 20:0x IST · WORKING · NO DEVSERVER (8080 held for browser checks, killed
 **Unit:** RUN-148 · audited my brief's standing presence rule, then proved the guards bite.
 **Unit:** RUN-149 · same disease one level down — two flags, then two timestamps.
 **Unit:** RUN-151 · a process hook caught three real failures; one changed what I am building.
+**Unit:** RUN-152 · S1-Q1 / gap #29 — open questions, drawn always, answered in place.
+**DEVSERVER 8080, killed and verified clear.**
 
-**State:** no code changed. Corrections applied in place, pushed. **Starting S1-Q1.**
+**State:** built, mounted, driven, pushed. tsc 0 · 13,287 pass / 0 fail · my files lint clean.
 
-**1 · I never opened `docs/lanes/QUEUE-S1.md` — the queue S0 writes FOR ME.** RUN-147 concluded "zero
-unblocked S1 work" and filed it. **Wrong: #29 is S1-Q1, topmost, not blocked** — *"until the reader
-lands, build against the shape."* I audited `RANKED-BACKLOG.md`, which **ranks**, instead of the file
-addressed to me, which **assigns**. I filed a complaint about stale planning docs without reading the
-planning doc written for me.
+**Checked first, as the queue requires.** `TrackConsent` is a **gate** mechanism (tool, reversibility,
+expiry) and an open question has none of those. `AskInPlace` asks for a **connector**. The one to
+reuse was neither: **`steerTrack`**, already proven (one track-scoped steer, consumed in 50s), and
+`TrackActivity.tsx:725` already renders it as "You said" / "not picked up yet". **So "the transcript
+shows who answered" needed nothing built.**
 
-**2 · RUN-144 skipped the mandatory component check.** The rule exists because `TrackActivity` and
-`TrackChain` sat unimported for 24 days. I did the check and never wrote it down. Added in place:
-five components, why each did not serve, and that the fix **wires what exists**.
+**Why draw it always:** 141 of 143 handoffs record nothing unsettled. A hide-when-empty section
+renders on 2 tracks and hides the finding on the rest.
 
-**3 · The git step is a genuine conflict, now raised not dodged.** `rebase origin/main` rewrites 30
-pushed commits across 11 merges → needs `--force`, which this repo **struck as false**. I am
-**0 behind main**, so fetch-and-verify meets the rule's purpose. S0 to rule.
+**The sentence I refused.** §2.1 says *"filing zero open questions means it did not look."* That
+accuses one run on evidence this surface cannot check. It says *"recorded nothing as unsettled. That
+is not the same as nothing being unsettled"* — pinned by a test.
 
-**Every number I published held up. What failed was reading the documents I found instead of the ones
-I was given.**
+**DRIVING CHANGED THE DESIGN.** `canRaiseOne` was false for `cannot-tell`, so the pane rendered *"I
+could not read what was left unsettled"* **with nothing beneath it** — the dead end unit 5 forbids.
+My written reason was wrong: the record is an independent steer, not a list mutation. Re-driven, the
+line is now followed by **"Say what is unsettled"** opening the field.
 
-**Not DEVSERVER.**
+**NOT verified, and I am not implying otherwise:** I did **not submit** — `d2263583` is the acceptance
+candidate and a steer is a person touching it mid-run (R-18). The `asked` and `filed-none` branches
+are unit-tested only; `questions` is `null` until S0's reader lands, so `cannot-tell` is the only
+branch a browser can reach.
 
-**Next:** S1-Q1 / gap #29 — Open questions drawn ALWAYS, answerable in place. Checking `TrackConsent`
-and `AskInPlace` first, as the queue instructs.
+**Broke a gate and fixed it:** an em dash in a placeholder failed four humanization guards.
+
+**Next:** S1-Q2 is BLOCKED pending the founder's ruling on who is S1 (F-161), so back to the ledger.

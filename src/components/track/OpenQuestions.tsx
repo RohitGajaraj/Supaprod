@@ -25,6 +25,7 @@
  */
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { failureLine } from "@/lib/error-copy";
@@ -45,6 +46,7 @@ import {
 export function OpenQuestions({
   trackId,
   stationLabel,
+  questions,
   stationRan,
 }: {
   trackId: string;
@@ -79,6 +81,13 @@ export function OpenQuestions({
     handoffs: q.data?.handoffs ?? null,
     stationRan,
   });
+  /** `null` means not read. It is never treated as none. */
+  questions: readonly string[] | null;
+  stationRan: boolean;
+}) {
+  const state = openQuestionsState({ questions, stationRan });
+  const qc = useQueryClient();
+  const fSteer = useServerFn(steerTrack);
 
   /** Which question has its field open. `"raise"` is the filed-none inversion. */
   const [open, setOpen] = React.useState<string | null>(null);
