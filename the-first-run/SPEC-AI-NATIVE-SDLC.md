@@ -255,7 +255,7 @@ wants a run pasteable into a PR thread).*
 
 ### 4.2 · What is genuinely refused, and the argument for each
 
-Three, and no more than three. **Each is reopenable; none is a matter of taste.**
+**Four**, and no more than four. **Each is reopenable; none is a matter of taste.**
 
 1. **We do not become a builder.** The playbook's Stage 3 is written for a team generating its own
    code, and adopting it as a *product feature* would put us in the $48B market canon §5N rules we
@@ -271,6 +271,44 @@ Three, and no more than three. **Each is reopenable; none is a matter of taste.*
    properly: the mapping table in §2 becomes a translation the product speaks**, so a customer who
    says "where is my spec.md" is answered in their words. Refusing a rename is not refusing the
    vocabulary.
+4. **We review a diff BEFORE it is committed, and that is why we own a reviewer — ADDED
+   2026-08-31, and it is the argument that was missing.** Raised at the framework gate by S4
+   (S4-168) against my own F-147 fix, correctly: F-147 wired `code-review.server.ts` into the
+   Build brief, §4.3 says CONSUME the vendor's review rather than rebuild it, and **the
+   register row asserted our ownership without ever arguing it.** §0.8 puts the burden of
+   proof on the refusal, so an unargued departure is drift **whoever makes it**, including me.
+   Here is the argument, and it is not "ours is better".
+
+   **Every managed review service in this market reviews a pull request.** A PR is a commit
+   that has already been pushed to a branch. **Ours reviews the STAGED diff — the change
+   exists in `studio_changes` and has been committed nowhere** — which is a moment no
+   PR-based service can reach, because at that moment there is nothing for it to attach to.
+
+   **That earlier moment is the whole product, not a convenience.** Canon §5N: review time is
+   up 441.5% and agentic PRs take 5.3x longer to pick up, because output queues at review.
+   A review that runs before the commit is the only one that can stop a bad change from ever
+   entering that queue; a review after it has joined the queue is measuring the problem. It
+   is also what makes the self-check loop (SESSION-0 §1) possible at all — **a station cannot
+   check its own output against what it was asked for if the check only exists after the
+   output has been published.**
+
+   **The refusal stays as narrow as the other three.** We refuse to give up the pre-commit
+   review. We do **not** build a code-review SURFACE, a findings board, a triage screen or a
+   scan-results page — §4.3 is unchanged and still binding. And **once a PR exists, the
+   vendor's review is the one that runs**; ours does not compete with it there, it has already
+   finished.
+
+   **What this refusal costs, paid honestly:** from 2026-08-31 it spends a model call per
+   staged diff for the first time, because F-147 is what made it reachable. **Before that fix
+   it had run ZERO times** — `studio.review` has no row in `tool_calls` at all, and zero of 51
+   changesets carry a `code_review`, while nine PRs were opened and seven merged unreviewed.
+   So this refusal is being argued at the moment it starts costing something, which is the
+   right moment and not a coincidence.
+
+   **The model for how to do this well is already in the repo and it is `studio.deps.audit`**,
+   which reads GitHub's own Dependabot alerts and reports *"not available"* honestly, because
+   not-available "is never the same as clean". That is §4.3 followed exactly. `studio.review`
+   earns its exception by reaching a moment nothing else can; it does not earn a surface.
 
 **On the Test stage, which deserves a straight answer rather than a refusal — CORRECTED 2026-08-31,
 and the earlier answer here overstated our coverage (F-148).** They have one and we do not. **We do not add an eighth station** — the spine, the acceptance query and R-01 all key on
