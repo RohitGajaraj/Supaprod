@@ -620,6 +620,38 @@ export function Board() {
   const sessions = useQuery({
     queryKey: studioSessionsKey(workspaceId),
     queryFn: () => fListSessions({ data: { includeArchived: false, workspaceId } }),
+    /*
+     * ── DO NOT ASK BEFORE WE KNOW WHICH WORKSPACE (2026-08-31) ────────────
+     *
+     * This read was unguarded while both its KEY and its PAYLOAD carry
+     * `workspaceId`, so on first paint it fired once with the workspace still
+     * unresolved and again with the real id — **two requests and two cache
+     * entries for one answer**, the second of which is the only usable one.
+     *
+     * ── AND THE HYPOTHESIS THAT LED HERE WAS MOSTLY WRONG, WHICH IS WHY
+     *    THIS COMMENT IS SMALLER THAN IT WAS ────────────────────────────────
+     * I found this while chasing a ten-second spinner on the home, having
+     * measured `listStudioSessions` as the most-called server function on a
+     * cold load. **It is not this.** The strip polls the SAME key every five
+     * seconds shell-wide (`use-spine-strip.ts`), and a later count of seven
+     * calls over a ~35s window is exactly 35/5. **The repetition is the poll,
+     * and the poll is honest.**
+     *
+     * So the guard removes ONE meaningless request — the unresolved-workspace
+     * call — and no more. **It is not a fix for the spinner and is not claimed
+     * as one.** It stands on its own smaller merit: a read that names a
+     * workspace in its key and its payload cannot answer anything before there
+     * is one, and firing it writes a cache entry under a key nobody will read.
+     *
+     * It matters more than it did last week: `/today` folded into the home, so
+     * this is no longer a page somebody visits. **Every arrival pays it.**
+     *
+     * The other two unguarded reads on this surface are deliberately so and
+     * were left alone: `fetchTracks` rides the SHELL's `["shell","open-tracks"]`
+     * key on the shell's cadence, and `fDueForecasts` shares one fetch with the
+     * station strip. Guarding either would add a request rather than remove one.
+     */
+    enabled: Boolean(workspaceId),
   });
 
   /* Both memoised on the QUERY's data rather than derived inline. A bare
