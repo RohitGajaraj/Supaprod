@@ -123,6 +123,28 @@ guard used `\w*` between two operands, which cannot cross the dot in
 restoring the real defect left the suite green. **Writing the guard is not the work. Trying to
 defeat it is.**
 
+**FOUR INSTRUMENTS IN ONE NIGHT RETURNED CONFIDENT, WELL-FORMATTED ANSWERS ABOUT THINGS THEY
+STRUCTURALLY COULD NOT SEE.** This is the one observation from tonight I would most want a stranger
+to this repository to read, and it was reached from opposite ends by two lanes who were not looking
+for it:
+
+| instrument | what it could not see | what it reported |
+| --- | --- | --- |
+| a guard regex using `\w*` | the dot in `data.monthlyGrantCredits - data.balanceCredits` | the suite passing on the exact line that shipped the bug |
+| a probe reading `innerText` | an `aria-label` | that a labelled region did not exist |
+| `count(*)` beside a one-to-many join | that it was counting approval x run **pairs** | **77** where the answer was **7** |
+| S4's CSP origin guard | that a file *mentioning* an origin is not a page *loading* it | a security log's record of a concern as evidence dismissing it |
+
+Three of the four are mine. **Every one of them was clean, plausible and well-formed** — none
+failed, none warned, none looked wrong. **The plausibility is the mechanism, not the excuse:** 77
+looked like what I expected and so was never audited, where 7 would have prompted a check. A
+fan-out produces exactly that failure — bigger, rounder, more impressive, still wrong.
+
+The two defences that actually worked, both cheap: **make the guard fail on the literal string that
+shipped the defect** before believing it, and **look at the thing with your own eyes before
+measuring it** — every instrument failure above was caught only because a result disagreed with a
+screen or a file already read directly.
+
 **Driving found what reading could not, every single time.** Every finding above came from a
 browser: the tab titles, the crash, the credits bar. tsc, the tests and the build were green
 throughout on all of them.
