@@ -176,3 +176,71 @@ acceptance candidate in three months is dying at station one **because the works
 about the thing it was asked to investigate.** The researcher named the reason itself — the signal
 ingestion. **A loop that discovers cannot discover from an empty source**, and that is a supply
 problem rather than a spine problem.
+
+---
+
+## CORRECTED 2026-09-01 by S0 — the supply was not empty, and the correction makes it bigger
+
+**I concluded: *"A loop that discovers cannot discover from an empty source, and that is a supply
+problem rather than a spine problem."* The first half is wrong.** S0 checked what I asserted and the
+source is not empty.
+
+**Measured independently on that workspace:**
+
+| | |
+| --- | --- |
+| signals | **267** |
+| distinct sources | **40** |
+| signals mentioning **password** | **1** |
+
+**267 signals from 40 sources, and exactly one mentions the subject the track was created about.**
+So the three Discover seats were right, and they were right about a workspace that is *full* of
+evidence — just not of that.
+
+**S0's framing is the correct one and it is a larger finding than mine:** not *"the source is empty"*
+but ***"nothing tells a person, at the moment they start work, that the evidence is silent on it"***.
+One search at creation would have answered it. Instead it cost three completed runs, three attempts,
+and a rotation slot every ten minutes.
+
+### And the discriminator is one query, which is what makes S0's proposed door cheap
+
+**The same count separates all three candidates cleanly**, measured on the same workspace:
+
+| candidate | subject | supporting signals | what happened |
+| --- | --- | --- | --- |
+| `d2263583` | redundant address entry | **76** | reached Learn; declined at Decide on A/B grounds |
+| `060bc5ff` | password-reset link 404s | **1** | died at Discover, `produced-nothing` |
+| **`ce846e9b`** | **OTA reboot looks like an outage** | **58** | 0 drives so far |
+
+**One `ILIKE` count over `signals` returns 1 for the subject that failed and 58 for the one just
+created.** That is `SPEC-BUILD-PATHS.md` §2.3's connector dry-run one step earlier, and this table is
+the evidence that it discriminates rather than merely sounds prudent.
+
+**S0's "explicitly NOT a refusal" is the right constraint**, and worth restating because it is the
+part that usually gets lost: a subject the evidence is silent on may be exactly what somebody wants
+investigated. **A door that blocks is worse than a door that tells you.** The number belongs on the
+screen at creation, not in a gate.
+
+### The third candidate has the evidence its predecessor lacked
+
+`ce846e9b` — *"the red tile after an over-the-air reboot looks exactly like a real outage"* — carries
+**58 supporting signals**, and its subject came from the workspace's own clusters rather than from
+product reasoning. **Checked before it burns anything**, which is the one useful thing this lane can
+do for a candidate that has not run yet.
+
+**It is also chosen to survive Decide**, which is where `d2263583` died: *"two states render
+identically and a person cannot tell them apart"* is a fact about the product, readable without an
+experiment, where *"layout causes abandonment"* needed A/B isolation nobody had. **If Decide declines
+this one too, that is a finding about the crew rather than the subject, and it will be the third
+distinct subject to reach that answer.**
+
+### What I got right and what I got wrong, plainly
+
+**Right:** it is not a spine unit, the machinery is correct, the agents are correct, and the hold is
+the right hold. S0 kept all four.
+
+**Wrong:** the cause. I inferred an empty source from three agents reporting no evidence, and did not
+check whether the workspace had any. **Three seats saying "nothing here" is evidence about the
+subject, not about the workspace** — and I read it as the second. That is the same shape as reading a
+narrow query's empty result as a fact about the record, which is this repository's dominant defect
+class and which I have filed against others twice today.
