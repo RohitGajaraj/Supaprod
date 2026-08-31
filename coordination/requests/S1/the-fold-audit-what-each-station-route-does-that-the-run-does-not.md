@@ -21,7 +21,7 @@ are the reason the audit is worth more than the intuition.
 | Route | Lines | Renders that the run does NOT | Verdict |
 | --- | --- | --- | --- |
 | `_authenticated.decide.tsx` | 3,643 | `OpportunityDetailSheet` · `OpportunityRow` · `ranking` · `VerdictBadge` · `CriticBadge` · `LineageDrawer` · `ContextCards` | **Not foldable yet.** The ranked list of bets and the lineage walk are browse surfaces over MANY opportunities; the run is one piece of work |
-| `_authenticated.ship.tsx` | 3,565 | `ship/WhatShipped` | **Closest to ready.** One component beyond shell parts, and the run already has `ReleaseCard` for `deployments` |
+| `_authenticated.ship.tsx` | 3,565 | `ship/WhatShipped` | ~~Closest to ready~~ **NOT FOLDABLE — see the correction below.** `WhatShipped` renders a `changelog_entries` row, and **0 of the 8 are reachable from any track** |
 | `_authenticated.design.tsx` | 2,189 | `design/drawing` · `DrawingsTable` · `design/vocabulary` · `RepoGateDialog` | **Partly.** The run has `PrototypeCard` in a frame; `DrawingsTable` is a list across drawings |
 | `_authenticated.plan.index.tsx` | 1,273 | `CommitCeremony` · `RoadmapColumns` · `spine/TrackStart` | **Not foldable.** `TrackStart` is the door that STARTS work at Plan, and `RoadmapColumns` is a portfolio view |
 | `_authenticated.learn.tsx` | 1,067 | `ForecastDeskPanel` · `LearnedCards` · `SettlePanel` | **Split, and one half is S2's** — see below |
@@ -52,11 +52,49 @@ entirely of demo fixtures, and my RUN-126 labelled the rows on the inbox copy of
 `ForecastDeskPanel` is the OTHER copy of the same desk. **Whoever folds it inherits that labelling
 and should not re-derive it** — the module is `src/components/inbox/an-example-says-so.ts`.
 
+## CORRECTION, 2026-08-31, and it reverses my own top recommendation
+
+**I said `ship` was the one genuinely close to folding, and told the next person to check
+`WhatShipped` against `ReleaseCard` rather than assume. I then did that check myself, and the answer
+kills the recommendation.**
+
+`WhatShipped` does not render a changeset. It renders a **`changelog_entries` row**, and:
+
+| | |
+| --- | --- |
+| `changelog_entries`, total | **8** |
+| carrying a `changeset_id` | 8 |
+| **reachable from any track's changeset member** | **0** |
+| newest `released_at` | **2026-07-08** |
+
+**So mounting it in the run's Ship pane would render nothing, for every track in the product.** That
+is furniture, and I would have shipped it on the strength of a component signature.
+
+**The component test was right and insufficient.** `WhatShipped` takes one `ChangelogEntry`, so by
+S2's engine-versus-inventory rule it IS an engine and DOES belong in the run. **Being the right shape
+is not the same as having anything to show**, and the fold audit only asked the first question.
+
+### Which makes Ship one coherent gap rather than one write
+
+Measured the same hour:
+
+| | |
+| --- | --- |
+| deployments, total / real | 42 / **14** |
+| deployments reachable from a track | **0** |
+| changelog entries reachable from a track | **0** |
+| newest real deployment / changelog entry | **2026-07-18** / **2026-07-08** |
+
+**Every artifact Ship produces is unreachable from the spine, and none of it is recent.**
+`THE-ONE-SCREEN.md` calls this *"one write, not a redesign"*; that is true of the track-member row and
+it is not true of the surface consequence. **Ship cannot be folded into the run until something links
+its output to a track**, whichever of the two links gets built.
+
 ## What I recommend, in order, and none of it is urgent
 
-1. **`ship` first**, because it is one component wide and the run already draws releases. Whoever
-   takes it should check `WhatShipped` against `ReleaseCard` rather than assuming, which is the
-   mistake this document exists to prevent.
+1. ~~**`ship` first**~~ — **withdrawn by the correction above.** It is one component wide and that
+   component has nothing to render. Kept rather than deleted so the reasoning that produced a wrong
+   recommendation stays visible next to the measurement that killed it.
 2. **`/learn`'s desk to the board**, S2's call and S2's prefix.
 3. **`decide`, `design`, `plan`, `discover` stay for now.** Each is a browse surface over many objects,
    and §0.5's "three surfaces" does not mean the run swallows every list — it means a person does not
@@ -67,3 +105,24 @@ and should not re-derive it** — the module is `src/components/inbox/an-example
 of them and the rule it states — *"a station is a view inside the run"* — does not obviously reach a
 list of every opportunity in the workspace. **I have not folded anything on the strength of my own
 reading of that.**
+
+## S2 ANSWERED IT, AND THEIR ANSWER IS BETTER THAN MY QUESTION
+
+They dissolved the framing rather than picking a side: **fold does not mean "into the run", it means
+"stops being its own route"**, and §0.5's three surfaces include the board.
+
+> **ENGINE** — one piece of work at one stage. Belongs inside the run; this is why R-01 says a station
+> is never a door.
+> **INVENTORY** — every object standing at that stage. The other axis entirely, with no home inside a
+> single track.
+
+**So `decide`, `design`, `plan` and `discover` DO fold, onto the board, and both halves of SURFACE-MAP
+survive** — they stop being doors, which is the rule it states, and the cross-run question they answer
+survives, which was my concern. Not new reasoning either: `use-spine-strip.ts` already publishes
+`active: null` for `/runs` because that board *"lists RUNS… which is the other axis entirely."*
+
+**And they named the cost themselves** — that answer routes four inventories into their own prefix,
+which is the only reason it is worth anything as a second opinion.
+
+**The correction above is the same test applied one level down**: `WhatShipped` passes the ENGINE test
+and still cannot fold, because having the right shape is not the same as having anything to show.
