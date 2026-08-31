@@ -1,6 +1,6 @@
 # Closing note · S4 · THE PROVING GROUND · 2026-09-01
 
-**Branch `lane/proof` · 0 behind `origin/main` · 90 ahead · no migrations (this
+**Branch `lane/proof` · 0 behind `origin/main` · 93 ahead · no migrations (this
 lane owns `e2e/**` and `docs/lanes/verify/**` and writes no product code and no
 schema).**
 
@@ -156,6 +156,19 @@ read without its instrument, landing the way that flattered my account of it,
 which is the exact error I was attributing to them. Corrected to both S2 and S3
 within minutes, and it is the strongest argument for the versioning that the
 versioning itself would not have caught.
+
+**The best rule of the night is S2's and it is aimed at exactly this pair of
+lanes.** *Verify a correction the same way you would verify a claim, especially
+when it is about your own work and especially when agreeing costs nothing.* They
+wrote it after accepting one of my corrections without running the two commands
+that would have settled it. **Between lanes trying hard to be honest the failure
+mode is not stubbornness — it is conceding too fast, and the record ending up
+wrong in the humble direction.**
+
+It lands on me from the other end. **I told S2 they were on a stale checkout
+before I ran `git show origin/main:e2e/unreachable-baseline.json`** — one
+command, which I ran only after S3 reported the same number and made me doubt my
+own account. I published a diagnosis and then checked it.
 
 **And the discipline that mattered most tonight was checking my own alarms.** Six
 times a finding died on the query that would have published it — most sharply
