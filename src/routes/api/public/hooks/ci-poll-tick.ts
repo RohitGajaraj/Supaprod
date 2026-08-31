@@ -15,6 +15,7 @@ import {
   deployChangesetApp,
   isSupaprodManaged,
 } from "@/lib/hosting/changeset-deploy.server";
+import { isTerminalStatus } from "@/lib/reliability/runaway";
 
 /**
  * SEAM-2 (mission 3.6): ci-poll-tick — the CI-completion trigger the build
@@ -1069,10 +1070,34 @@ export async function runCiPollTick() {
             .eq("id", cs.mission_id)
             .maybeSingle();
           const mStatus = (mission as { status?: string } | null)?.status ?? null;
-          if (
-            mStatus &&
-            !["blocked", "halted", "cancelled", "failed", "completed"].includes(mStatus)
-          ) {
+          /*
+           * F-151. THE PARK RAN 4,320 TIMES INSTEAD OF ONCE.
+           *
+           * This list was written inline and omitted `completed_with_failures`,
+           * which is the second most common outcome in the table — 452 of 1,135
+           * runs, 40% of every run ever recorded (census recorded at
+           * `governance.functions.ts:325-336`, which documents the SAME omission
+           * being made and fixed once already, in a different set).
+           *
+           * So the comment above — "Park the mission once, honestly" — was false
+           * for exactly the missions that most needed it. A mission finishing
+           * with failures never read as terminal, got parked to `blocked`, was
+           * resumed, finished with failures again, and was parked again, every
+           * tick. Measured 2026-08-31: three missions on `relay-homeowner-app`
+           * oscillating `running -> completed_with_failures -> blocked` on a
+           * ~40-second cadence since 2026-08-25, writing roughly 12,960 stage
+           * events in 48 hours with no agent work behind any of them.
+           *
+           * Those three are the CI-red saved-address changesets from F-149, so
+           * the two defects were in series: the read path corrupted the source,
+           * the fix budget exhausted against damage upstream of it, and this
+           * guard turned a one-time park into a permanent spin.
+           *
+           * FIXED BY WIRING WHAT EXISTS rather than adding a sixth literal.
+           * `isTerminalStatus` already carries the full vocabulary, including
+           * `completed_with_failures`, `done` and both spellings of cancelled.
+           */
+          if (mStatus && !isTerminalStatus(mStatus)) {
             await supabaseAdmin
               .from("missions")
               .update({ status: "blocked", updated_at: new Date().toISOString() })
