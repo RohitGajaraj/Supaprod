@@ -25,6 +25,7 @@
  */
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { render, screen } from "@testing-library/react";
 
 import { Gate } from "@/components/meridian/Gate";
@@ -78,7 +79,7 @@ describe("the order inside a Gate is the component, not the caller's layout", ()
 
   it("still offers `linesLabel` at all, which the first Meridian draft dropped", () => {
     const src = readFileSync(
-      new URL("../meridian/Gate.tsx", import.meta.url).pathname.replace(/%20/g, " "),
+      fileURLToPath(new URL("../meridian/Gate.tsx", import.meta.url)),
       "utf8",
     );
     expect(src).toMatch(/linesLabel\?:/);
@@ -87,7 +88,7 @@ describe("the order inside a Gate is the component, not the caller's layout", ()
 
 describe("Ship's own gates argue before they ask", () => {
   const src = readFileSync(
-    new URL("../../routes/_authenticated.ship.tsx", import.meta.url).pathname.replace(/%20/g, " "),
+    fileURLToPath(new URL("../../routes/_authenticated.ship.tsx", import.meta.url)),
     "utf8",
   );
 

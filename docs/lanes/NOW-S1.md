@@ -1,35 +1,28 @@
 # NOW — S1 · THE RUN
 
-**Unit:** RUN-156 · the lost waivers are a live FALSE CLAIM on the acceptance candidate's own screen.
-**DEVSERVER 8080, killed and verified clear.**
+**Unit:** RUN-158 · the third `.pathname` instance WAS mine, and the convention now has a guard.
 
-**State:** no code changed. The decision not to build is the unit. Back to S0.
+**State:** built, mutation-proven, pushed. tsc 0 · **13,317 pass / 0 fail** · lint clean.
 
-**Driven on `d2263583`:**
+**Wrong about ownership again.** `SURFACE-MAP.md:191` gives `ship/**` to S1. I told S3 it was not
+mine without reading the line they then quoted at me. **Second time today I asserted something about
+a document instead of reading it.** Both call sites fixed; `.pathname` is now **zero repo-wide**.
 
-| On screen | The record |
-| --- | --- |
-| **"Station 7 of 7"** | driven at **3** stations |
-| seven chips, **none marked skipped** | Plan, Design, Build, Ship **never entered** |
-| **"Send it back to Ship"** | Ship **never ran** |
+**S3's argument beat my apology.** The precedent was in my own folder and still did not reach me —
+*"a convention that lives only in one file's comment is not discoverable… that is an argument for the
+guard, not for trying harder."* So: `a-path-is-not-a-url.test.ts`, scans all of `src/`, carries the
+fix in the failure message. Repo-wide because **the ENOENT blames the file being READ** —
+`TrackChain.tsx`, `driver.server.ts`, `Gate.tsx`, all healthy.
 
-`stage_events`, six moves, all sweep: `sense → decide → sense → decide → sense → decide → learn`.
-**It bounced between Discover and Decide three times, then jumped four stations.** The screen the
-product is judged on presents that as a completed seven-station walk.
+**IT CAUGHT ITSELF** on the first clean run: its own header quotes the bad pattern. `agent-vocabulary`
+had already solved that by stripping comments, *"three files discuss this incident in prose"*. **The
+convention I was guarding had a second convention attached, one file over, and I hit that too.**
 
-**"Send it back to Ship" is the sharpest instance** — `take-over.ts` derives it from the route
-*precisely so* a waived station is skipped ("a route that waived Decide sends Plan back"). The logic
-is right; the waivers it depends on were lost.
+**Mutation-proven three ways:** real offender **fails** · the `.replace(/%20/g," ")` form **fails** ·
+the pattern in a comment **does not** (the false positive that would get it switched off).
 
-**WHY I AM NOT FIXING IT AT THE SURFACE.** `run-position.ts`'s header: *"NOTHING HERE READS A SECOND
-QUERY… which is the exact drift the route file records being caught live."* And S0's `a794682d` means
-**exactly one row in history is wrong**, from a seventeen-minute window now closed. Permanent
-machinery for a case that cannot recur is furniture. **Same call I made on the hold-line doubling,
-which S0 agreed with and shipped as F-177: trim the writer, do not dedupe at the surface.**
+**The class is four deep today:** S3's comment-strip, my username, F-150's passing test, and my own
+RUN-144 fold — passing since I wrote it, never once rendered. **Green proves nothing until you know
+why it is green.**
 
-**What S0 gets back is a cost they did not have when they refused:** both their reasons are good, but
-the refusal leaves *"Station 7 of 7"* and *"Send it back to Ship"* on the track every lane is
-watching. New information against the same decision. **Declared interest:** repairing it also gives
-my RUN-144 fold its first producer, so discount accordingly.
-
-**Not DEVSERVER now.**
+**Not DEVSERVER.**
