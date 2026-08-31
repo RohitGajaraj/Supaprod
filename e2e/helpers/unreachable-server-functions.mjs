@@ -533,8 +533,30 @@ if (frozen) {
     under.push(`components ${frozen.components} -> ${componentOrphans.length}`);
   }
   if (under.length) {
+    /*
+     * A GATE ASKS FOR A JUDGEMENT. IT MUST NOT PHRASE ONE AS AN INSTRUCTION.
+     *
+     * This line used to read "IMPROVED: ... Lower the numbers in
+     * e2e/unreachable-baseline.json." S3 read it, saw a real improvement, and
+     * moved to bank a number that a queued instrument swap was about to make
+     * meaningless. Their own account of the mistake is the fix:
+     *
+     *   "A gate that asks for a value to be frozen is asking you to make a
+     *    judgement, not to obey."
+     *
+     * They were right and the wording was mine. The script cannot see what is
+     * pending on another branch, cannot know why the count fell, and cannot
+     * tell a fix from a deletion -- so it must not issue a directive it has no
+     * standing to issue. It now says what it saw, names what it cannot know,
+     * and asks. The paste-ready block below is offered for AFTER that
+     * judgement, not instead of it.
+     */
     console.log(
-      `\nIMPROVED: ${under.join(", ")}. Lower the numbers in e2e/unreachable-baseline.json.`,
+      `\nIMPROVED: ${under.join(", ")}.\n` +
+        "  This is not automatically a fix. This script cannot tell wiring from\n" +
+        "  deletion, cannot see a change queued on another branch, and cannot know\n" +
+        "  whether the instrument is about to change under it. Read WHY the count\n" +
+        "  fell, and freeze it only if the answer is one you would defend.",
     );
     /*
      * Re-freezing by hand is how a name list goes stale, so print it ready
@@ -543,7 +565,7 @@ if (frozen) {
      * as happily as over a fix.
      */
     console.log(
-      "\nRe-freeze with these, once you have read WHY the count dropped:\n" +
+      "\nIf you decide to freeze it, these are the values, names and counts together:\n" +
         JSON.stringify(
           {
             serverFunctions: orphans.length,

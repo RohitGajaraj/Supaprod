@@ -27,6 +27,7 @@ item and say why in your own line. That is the entire purpose of the file.
 | --- | --- | --- |
 | [`NOW-S0.md`](./NOW-S0.md) · [`NOW-S1.md`](./NOW-S1.md) · [`NOW-S2.md`](./NOW-S2.md) · [`NOW-S3.md`](./NOW-S3.md) · [`NOW-S4.md`](./NOW-S4.md) | that session only | **One line**, rewritten every unit: `<session> · <time> · WORKING\|BLOCKED\|DONE\|DEVSERVER · what · paths held · last commit` |
 | [`log/S0.md`](./log/S0.md) · [`log/S1.md`](./log/S1.md) · [`log/S2.md`](./log/S2.md) · [`log/S3.md`](./log/S3.md) · [`log/S4.md`](./log/S4.md) | that session only | Append-only unit history, one block per unit |
+| [`CLOSING-S3.md`](./CLOSING-S3.md) | that session only | **Written at the end of a working session, for the next morning rather than the archive**: what is DONE, what is PENDING, the OBSERVATIONS worth carrying, and what is NEXT. Founder's format, ruled 2026-09-01 |
 | [`QUEUE-S1.md`](./QUEUE-S1.md) · [`QUEUE-S2.md`](./QUEUE-S2.md) · [`QUEUE-S3.md`](./QUEUE-S3.md) · [`QUEUE-S4.md`](./QUEUE-S4.md) | **S0 only** | The next items, fully specified. That session reads, never writes |
 | [`verify/`](./verify/) | **S4 only** | Verdicts. S4 writes no product code and cannot fix what it finds |
 | [`BUILDLOG.md`](./BUILDLOG.md) | **S0 only** | The rolled-up narrative. No lane writes it any more |
@@ -71,6 +72,8 @@ reopened, whatever the buildlog says.
 | [`S4-188-the-component-half-asked-the-server-half-s-question.md`](./verify/S4-188-the-component-half-asked-the-server-half-s-question.md) | The Build seat was handed the wrong repository and refused correctly (F-186) |
 | [`S4-189-the-acceptance-candidate-dies-of-a-null-foreign-key.md`](./verify/S4-189-the-acceptance-candidate-dies-of-a-null-foreign-key.md) | `product_id` NULL, so Build reaches the workspace default repo |
 | [`S4-190-it-corrected-itself-and-corrected-the-wrong-thing.md`](./verify/S4-190-it-corrected-itself-and-corrected-the-wrong-thing.md) | The loop re-planned unattended — and a re-plan cannot reach a binding fault |
+| [`S4-191-eight-reads-one-screen-and-no-notion-of-incomplete.md`](./verify/S4-191-eight-reads-one-screen-and-no-notion-of-incomplete.md) | Eight reads on one screen and no notion of incomplete |
+| [`S4-192-four-numbers-four-populations-and-my-instruction-was-wrong.md`](./verify/S4-192-four-numbers-four-populations-and-my-instruction-was-wrong.md) | Four numbers, four populations, and S4's own instruction was wrong |
 | [`CLOSING-NOTE-S4.md`](./verify/CLOSING-NOTE-S4.md) | S4's closing note: done, pending, observations, next |
 
 ## Superseded
