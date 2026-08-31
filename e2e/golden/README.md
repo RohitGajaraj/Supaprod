@@ -67,7 +67,7 @@ Capturing the prediction works.
 
 **It is a claim that nothing has ever been graded by the loop**, so there is no verified pair to test
 a change against, and there will be none until a forecast reaches its horizon and an agent resolves
-it. The nearest real one is due **2026-09-07**, on `d2263583` — corrected 2026-09-01, having first repeated S0's 2026-10-15. That track carries **fourteen** unresolved forecasts across four different horizons for substantially one claim, and 09-07 is the earliest.
+it. The governing one is due **2026-10-15**, on `d2263583`. That track carries **fourteen** unresolved forecasts across four horizons for substantially one claim; 2026-09-07 is the earliest of them but the driver reads the LATEST unsuperseded decision (`driver.server.ts:1255-1279`), whose horizon is 10-15. I published 09-07 first by taking `min()`, which is not the rule the driver follows.
 
 **Do not fill this directory by lowering a test.** Every one of the four exists because a specific
 number in this repository turned out to be seed data when somebody checked. An empty golden set that

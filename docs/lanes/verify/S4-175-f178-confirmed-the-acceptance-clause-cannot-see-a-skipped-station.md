@@ -60,25 +60,61 @@ lost.** That is why `waived='[]'` on a track driven at three of seven stations.
 **S1's framing is the one to keep: `waived='[]'` is the clause that exists TO PROVE the track walked
 all seven, and on this track it certifies the opposite of what it asserts.**
 
-### AND THE FUSE IS SHORTER THAN ANY OF US SAID. I was wrong, and so was S0.
+### THE FUSE: 2026-10-15, and I got this wrong twice before landing on it
 
-**S0 said the forecast is due 2026-10-15. I repeated it in this file and in the golden set. It is
-wrong.** `d2263583` does not carry one forecast. It carries **fourteen**, every one unresolved:
+**Corrected 2026-09-01 after S1 caught me. The governing horizon is 2026-10-15, six weeks — not the
+2026-09-07 I published, and not a single date at all in the way S0 first framed it.**
 
-| horizon | decisions carrying it |
+`d2263583` carries **fourteen** unresolved forecasts across four horizons:
+
+| horizon | decisions |
 | --- | --- |
-| **2026-09-07** | **1** ← *the nearest, and it is six days away* |
+| 2026-09-07 | 1 |
 | 2026-09-30 | 5 |
-| 2026-10-15 | 7 |
+| **2026-10-15** | **7** |
 | 2026-11-30 | 1 |
 
-**Substantially one claim** — *"A controlled A/B test isolating only the tablet address summary
-layout…"* — **recorded twelve times with five different horizon dates**, by the strategist/critic pair
-firing every ten minutes from 13:40 to 17:31.
+**My error was the aggregate.** I took `min()` of the fourteen and published six days. **The driver
+does not take the minimum.** `driver.server.ts:1255-1279`, `forecastDueDate`:
 
-**So the time bomb is armed for 2026-09-07, not 2026-10-15**, and the honest query's protection is six
-days of `status='open'` rather than six weeks. **Anyone planning around the later date is planning
-around the wrong one.**
+```ts
+.eq("artifact_kind", "decision")
+.is("superseded_at", null)
+.order("created_at", { ascending: false })
+.limit(1)                              // THE LATEST, not the earliest
+```
+
+Run exactly as the driver runs it — ordering on **`spine_track_members.created_at`**, not
+`decisions.created_at`, and filtering on **`spine_track_members.superseded_at`**, which is the table
+that column lives on — the latest unsuperseded member row is `be4be661` at 17:31:31.602, and its
+horizon is **2026-10-15**.
+
+**Both dates are real and they govern different things**, which is S1's framing and it is the precise
+version:
+
+- **2026-09-07** — the earliest of the fourteen. `forecast.functions.ts` orders horizons **ascending**
+  for the desk, so this is when a due forecast first appears on the settling queue.
+- **2026-10-15** — the **latest decision's** horizon. This is what the driver reads, so it is when
+  this track's Learn hold clears and `status` can become `done`.
+
+**The fuse question runs through the Learn hold, so it is 2026-10-15.**
+
+**Recorded as an error rather than edited quietly**, because I made the same mistake I had just filed
+against: I took S0's date without measuring, then replaced it with my own unmeasured aggregate and
+propagated that into `e2e/golden/README.md`, `e2e/golden/cases.json` and a message to S0. **Two
+lanes had to correct one date on one track.** And it is the third instance today of the class S2
+named: `min()` of fourteen and "the driver's rule" are two different questions, and only naming the
+table and the ordering distinguishes them.
+
+### AND THE TIEBREAK IS AN ACCIDENT OF TIMING, WHICH IS SHARPER THAN THE DATE
+
+**S1's reading, and it is better than my "nothing marks which one stands":** the rule is **latest
+unsuperseded wins**. So the forecast that governs this track is **whichever retry happened to fire
+last** — not chosen, not ranked, not the best-argued. Last.
+
+**That reframes S4-172 from a waste finding into a data-integrity one.** Thirteen of the fourteen rows
+are not merely wasted tokens: the one that counts was **selected by a clock**, and it counts because
+the checking seat could not run and so each retry wrote a fresh decision instead of revising the last.
 
 ### And this is the moat claim failing at scale, not a counting error
 
