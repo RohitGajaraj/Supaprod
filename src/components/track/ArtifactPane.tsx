@@ -29,7 +29,14 @@ import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 import { justGrouped } from "@/components/track/just-grouped";
 import { fileNameFor, stationFile, tookItLine } from "@/components/track/station-file";
 import { WhatWereSolving } from "@/components/track/WhatWereSolving";
+import { OpenQuestions } from "@/components/track/OpenQuestions";
 import { whatItProduced } from "@/components/track/what-it-produced";
+import {
+  offerToConnect,
+  sourceLine,
+  sourceVerdict,
+} from "@/components/track/discover-has-no-sources";
+import { AskInPlace } from "@/components/connections/AskInPlace";
 import { plainProse } from "@/lib/plain-prose";
 /*
  * EVERY plain-text `Prose` on this pane runs agent-written text through
@@ -42,6 +49,7 @@ import { plainProse } from "@/lib/plain-prose";
  * data sitting in the database.
  */
 import { FORECAST_SAYS } from "@/components/learn/forecast-words";
+import { bandReading, bandShape } from "@/components/learn/forecast-band-words";
 import type { ForecastResolution } from "@/lib/brain/forecast-resolution";
 import { NO_NON_GOALS, noContractLine, specContract } from "@/components/track/spec-contract";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -70,7 +78,7 @@ import { STATION_ARTIFACT } from "@/lib/spine/attach";
 import { relativeTime } from "@/lib/memory-view";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { releaseStanding, shortSha } from "@/components/track/release-words";
-import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 import { buildSrcDoc, type PrototypeFileRow } from "@/lib/prototype-srcdoc";
@@ -392,6 +400,29 @@ function DecisionCard({ item }: { item: ArtifactView }) {
   const bySlug = str(f.decided_by_agent_slug);
   const deferred = num(f.forecast_deferred_count);
 
+  /*
+   * THE FORECAST AS A BAND (gap #15, U8). Every judgement here is
+   * `src/lib/spine/forecast-band.ts`'s, which S0 shipped today with its
+   * migration; `forecast-band-words.ts` only chooses the sentences.
+   *
+   * ── WHY THIS IS CORRECT BEFORE THE COLUMNS ARE IN `FIELDS` ──────────────
+   * `FIELDS.decision` (`track.functions.ts`, S0's) does not select the band
+   * columns yet, so these read `undefined` today and `bandFor` answers
+   * `unknown` -- which is **the right answer for all 182 forecasts on record**,
+   * because measured the minute the columns landed, ZERO carry a predicted
+   * value, a threshold, an observation count, a metric or a direction. So this
+   * renders the truth now and the real band the moment S0 widens the map. Ask
+   * filed; no latent wrong render either way.
+   */
+  const band = {
+    direction: (str(f.forecast_direction) as "lower-is-better" | "higher-is-better" | null) ?? null,
+    driftingAt: num(f.forecast_band_drifting_at),
+    missedAt: num(f.forecast_band_missed_at),
+    observations: num(f.forecast_observations),
+  };
+  const reading = bandReading(num(f.forecast_predicted), band);
+  const shape = bandShape(band);
+
   // The horizon as a calendar day; the schema wants an instant, the reader
   // wants a day.
   const horizonDay = horizon ? horizon.slice(0, 10) : null;
@@ -475,6 +506,19 @@ function DecisionCard({ item }: { item: ArtifactView }) {
                 ) : null}
               </span>
             ) : null}
+            {/*
+              HOW FAR OFF, AND WHAT THE SYSTEM DID ABOUT IT (U8). The chip above
+              says hit or miss; this says the distance and the response, which
+              U8 calls "the half nobody has ever seen". On every forecast on
+              record today it says the honest thing instead: recorded as a
+              single number, so it can only be right or wrong.
+            */}
+            <span className="text-mrd-small text-mrd-mute">{reading.says}</span>
+            {shape ? <span className="mrd-meta">{shape}</span> : null}
+            {reading.did ? (
+              <span className="text-mrd-small text-mrd-mute">{reading.did}</span>
+            ) : null}
+            {reading.standing ? <span className="mrd-meta">{reading.standing}</span> : null}
             {deferred !== null && deferred > 0 ? (
               <span className="text-mrd-small text-mrd-mute">
                 Check pushed back {deferred} {deferred === 1 ? "time" : "times"}.
@@ -1915,6 +1959,80 @@ export function MissionCard({ item }: { item: ArtifactView }) {
    the fact that a pattern now exists gets an entrance. prefers-reduced-motion
    removes it through the same inline-animation rule as everywhere else.
  */
+/**
+ * DISCOVER FOUND NOTHING BECAUSE NOTHING IS CONNECTED, SAID WHERE IT LANDS.
+ *
+ * ── IT LIVES IN THE EMPTY BRANCH, AND THE FIRST VERSION DID NOT ───────────
+ * I put this inside `SenseBody` and drove it, and it never appeared.
+ * `StationPanel` returns early when `stop.members.length === 0`, so `SenseBody`
+ * is **unreachable for exactly the tracks this exists for** — the 47 of 82 at
+ * Discover that filed nothing at all. Shipped-with-no-way-in, caught by opening
+ * one of those 47 rather than by reading the file.
+ *
+ * The reasoning, the measurement and the honesty rule are in
+ * `discover-has-no-sources.ts`. This is the render.
+ */
+function NothingToRead({ station }: { station: AgentStation }) {
+  /*
+   * `head: true` with an exact count: this needs the NUMBER and never the rows.
+   * On error the count stays null and the verdict is `cannot-tell` -- a failed
+   * read is not zero sources, and here that matters more than usual, because
+   * the remedy sends a person to connect something they may already have.
+   */
+  const sources = useQuery({
+    queryKey: ["discover-source-count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("scout_targets")
+        .select("id", { count: "exact", head: true });
+      if (error) throw new Error(error.message);
+      return count ?? 0;
+    },
+    staleTime: 5 * 60_000,
+    enabled: station === "sense",
+  });
+
+  /*
+   * The station gate comes FIRST, and the order is the point. Only Discover
+   * reads sources; every other station filing nothing is a different problem
+   * and `StationPanel` already says which. That `null` answers no pending read
+   * -- the query is `enabled` only for Discover -- so it is a component that
+   * does not apply here rather than a blank under a heading.
+   */
+  if (station !== "sense") return null;
+  /*
+   * AND THE PENDING READ SAYS SO, because a guard caught me returning null
+   * here and it was right to. `a-null-under-a-heading-is-a-broken-promise`:
+   * "A render that answers a pending read with null shows a person an empty
+   * region and lets them conclude there is nothing there." Under a line that
+   * has just said Discover filed nothing, a blank would read as confirmation
+   * that nothing can be done about it. I obeyed the rule rather than adding
+   * this file to its tolerated list, which the guard's own header calls a debt.
+   */
+  if (sources.isLoading) return <Reading>Checking what is connected.</Reading>;
+
+  const verdict = sourceVerdict({
+    filedAnything: false,
+    sourceCount: sources.isError ? null : (sources.data ?? null),
+  });
+  const line = sourceLine(verdict);
+  if (!line) return null;
+
+  return (
+    <section aria-label="Nothing to read" className="flex flex-col gap-mrd-2">
+      <RecordSpeaks>{line}</RecordSpeaks>
+      {offerToConnect(verdict) ? (
+        <AskInPlace
+          need="somewhere to read what people are saying"
+          why="Discover reads what customers and teammates have already said. Nothing is pointed at a source yet, so it had nothing to read."
+          suggest={["intercom", "zendesk", "slack"]}
+          needIsMet={false}
+        />
+      ) : null}
+    </section>
+  );
+}
+
 export function SenseBody({
   items,
   now,
@@ -1925,6 +2043,7 @@ export function SenseBody({
   trackId: string;
 }) {
   const reducedMotion = usePrefersReducedMotion();
+
   const primed = React.useRef(false);
   const seenThemes = React.useRef<Set<string>>(new Set());
   /** Which theme each signal was last seen in; "" for none. */
@@ -2013,6 +2132,13 @@ export function SenseBody({
        * and until now the run had the second and not the first.
        */}
       <WhatWereSolving trackId={trackId} hasEvidenceBelow={groups.length > 0 || loose.length > 0} />
+      {/*
+       * WHAT IS STILL UNSETTLED, DRAWN ALWAYS (gap #29). It reads S0's
+       * `getTrackHandoffs` itself rather than taking a prop: the narrowing of
+       * free-form `payload` belongs on the server, once, which is why I refused
+       * to do it client-side and asked for the reader instead.
+       */}
+      <OpenQuestions trackId={trackId} stationLabel="Discover" stationRan />
       {groups.map((g) => {
         const t = themeById.get(g.themeId);
         const members = g.signals;
@@ -2213,6 +2339,16 @@ function StationPanel({
           prose, next to the line it belongs with.
         */}
         {hold ? <RecordSpeaks>{hold}</RecordSpeaks> : null}
+        {/* NO DEAD END, EVER (SESSION-1 unit 5), and this is where the 47
+            tracks that filed nothing actually land. */}
+        <NothingToRead station={stop.station} />
+        {/* AND WHAT IS STILL UNSETTLED (gap #29). Here as well as in `SenseBody`
+            because THIS is the branch a Discover stop with zero members reaches
+            -- 47 tracks -- and `SenseBody` never runs for them. RUN-134 shipped
+            that exact mistake with `NothingToRead` and it is the same shape. */}
+        {stop.station === "sense" ? (
+          <OpenQuestions trackId={trackId} stationLabel="Discover" stationRan />
+        ) : null}
       </div>
     );
   }

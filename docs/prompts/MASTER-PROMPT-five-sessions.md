@@ -342,7 +342,7 @@ answer, a correction to a fresh push. GIT STAYS THE RECORD: a ruling living only
 not happen, so you still rule in coordination/answers/.
 
 Every unit: rewrite docs/lanes/NOW-S0.md (one line), append to docs/lanes/log/S0.md, read every
-other NOW file first. DEV SERVER only if a check needs a browser: `lsof -ti:8080` first, one per
+other NOW file first. DEV SERVER only if a check needs a browser: `lsof -ti:8080 -sTCP:LISTEN` first (the flag is load-bearing, F-176), one per
 machine, say DEVSERVER in your NOW line, kill it after.
 Commit with git commit -F (never -m, never git add -A), push every commit.
 Report: what changed, what is live, what is next, what I must decide.
@@ -412,7 +412,7 @@ interactive only. GIT STAYS THE RECORD: a decision living only in a message did 
 
 Every unit: build it, then DRIVE it in a browser and record what happened. Compiling is not done.
 Rewrite docs/lanes/NOW-S1.md every unit, append to docs/lanes/log/S1.md, never BUILDLOG.md. DEV
-SERVER only if a check needs a browser: `lsof -ti:8080` first, one per machine, say DEVSERVER in
+SERVER only if a check needs a browser: `lsof -ti:8080 -sTCP:LISTEN` first (the flag is load-bearing, F-176), one per machine, say DEVSERVER in
 your NOW line, kill it after. Commit with git commit -F (never -m, never git add -A) and push
 every commit. Playwright is yours,
 never on production.
@@ -478,7 +478,7 @@ GIT STAYS THE RECORD: a decision living only in a message did not happen.
 
 Every unit: build it, then DRIVE it in a browser -- a mount is not a render, open the route and
 look. Rewrite docs/lanes/NOW-S2.md, append to docs/lanes/log/S2.md, never BUILDLOG.md. DEV SERVER
-only if a check needs a browser: `lsof -ti:8080` first, one per machine, DEVSERVER in your NOW
+only if a check needs a browser: `lsof -ti:8080 -sTCP:LISTEN` first (the flag is load-bearing, F-176), one per machine, DEVSERVER in your NOW
 line, kill it after. Commit with git commit -F (never -m, never git add -A), push every one.
 Scan your session reminder every unit and use it all. Playwright is yours, never on production.
 
@@ -539,7 +539,7 @@ Playwright is yours, never production.
 Work autonomously until I say STOP. Every unit: build it, then DRIVE it in a browser. A fix in one
 field is not a fix -- a defect is a shape, so sweep every field after any copy or validation
 change. Rewrite docs/lanes/NOW-S3.md, append to docs/lanes/log/S3.md, never BUILDLOG.md. DEV
-SERVER only if a check needs a browser: `lsof -ti:8080` first, one per machine, say DEVSERVER in
+SERVER only if a check needs a browser: `lsof -ti:8080 -sTCP:LISTEN` first (the flag is load-bearing, F-176), one per machine, say DEVSERVER in
 your NOW line, kill it after. Commit with git commit -F (never -m, never git add -A) and push.
 
 NEVER DONE: your list emptying is not finishing. Never write CLOSED, never report the goal
@@ -605,7 +605,7 @@ LANES TALK: ListAgents shows who is live, SendMessage{to:"S0"} reaches one. Urge
 interactive only. GIT STAYS THE RECORD: a decision living only in a message did not happen.
 
 NEVER POINT A BROWSER AT PRODUCTION -- a spec pressing production creates rows there; six
-duplicates once starved a track. Local dev server only: `lsof -ti:8080` first,
+duplicates once starved a track. Local dev server only: `lsof -ti:8080 -sTCP:LISTEN` first (the flag is load-bearing, F-176),
 one per machine, say DEVSERVER in your NOW line, kill it after.
 
 Rewrite docs/lanes/NOW-S4.md every pass; append to docs/lanes/log/S4.md. Commit with

@@ -229,7 +229,33 @@ function StartLanding() {
           <p aria-live="polite" className="text-mrd-body text-mrd-ink">
             {pickedUp
               ? "Picking that up now. I'll open the run the moment it's filed."
-              : `I'm ${CHARACTER_NAME}. Say what needs doing in one sentence, then you can leave it with me.`}
+              : /*
+                 * "YOU CAN LEAVE IT WITH ME" IS THE ONE CLAIM THIS LANE MAY NOT
+                 * MAKE ALONE, AND THE CONDITION FOR REVISITING IT HAS NOW BEEN MET.
+                 *
+                 * SESSION-1 names it: *"'I'm on it, you can leave this page' is a
+                 * promise the product cannot keep until S3 ships the verdict
+                 * notification, their job #1."* S3 measured the size of the gap
+                 * and it is not marginal: **97 of 106 tracks carry a hold, and
+                 * the verdict email has fired ZERO times in its life.** Their
+                 * send is still blocked on a migration escalated to the founder,
+                 * and there is no notification kind for a piece of work that
+                 * STOPPED at all.
+                 *
+                 * I deliberately held this line in RUN-125 and told S3 why: the
+                 * sentence is about the ASSIGNMENT moment rather than the run,
+                 * and it should change only once the footer's states were proven.
+                 * They agreed. RUN-125 and RUN-129 proved them and S0's A10 ruled
+                 * the wording, so the condition I set has been met and leaving it
+                 * now would be holding a hedge past its own expiry.
+                 *
+                 * WHAT REPLACES IT IS NOT SMALLER, IT IS TRUE. The work does start
+                 * on its own and it does persist, so the invitation survives; what
+                 * goes is the implied "and you will be told", which is the half
+                 * nothing delivers. `footer-mode.ts` already draws this exact
+                 * line: it promises the leg it can prove and never the sweep.
+                 */
+                `I'm ${CHARACTER_NAME}. Say what needs doing in one sentence and I'll start on it. It keeps going without you, and it will be here when you come back.`}
           </p>
         </div>
 

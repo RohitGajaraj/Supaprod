@@ -130,7 +130,7 @@ export const CREW_ROLE: Record<string, { job: string; file: string }> = {
      * arguments sends the agent into a refusal it can only learn about by
      * failing, which costs a turn and files an error step every time.
      */
-    file: "Call decision.record with the alternatives you weighed and your forecast: what you expect to happen, the observable that will settle it, and the date it comes due as an ISO timestamp with an offset. A decision that is only in your answer is not on the record, and one with no forecast is refused.",
+    file: "Call decision.record with the alternatives you weighed and your forecast: what you expect to happen, the observable that will settle it, and the date it comes due as an ISO timestamp with an offset. A decision that is only in your answer is not on the record, and one with no forecast is refused. Where the observable is a NUMBER you can actually read, give the band too: forecast_metric and forecast_direction, the forecast_baseline you are reading today and the forecast_predicted you expect, the forecast_band_drifting_at and forecast_band_missed_at thresholds, and forecast_observations, meaning how many readings the baseline came from. The band is what makes a forecast checkable before its horizon instead of once at the end, and forecast_observations is not a formality: a band from one reading is logged and never opens work, so under-reporting it costs you nothing and inventing it makes a tier fire on noise. If the observable is genuinely not a number, leave all of them out rather than making one up -- prose plus a date is still a real forecast, and a fabricated baseline is worse than none because something acts on it.",
   },
   critic: {
     job: "Red-team the call that was just made. Argue the strongest case against it, and say what would have to be true for it to be wrong.",
@@ -1393,12 +1393,54 @@ export const HOLD_LINE: Record<HoldReason, string> = {
     "This station has been run many times over and the work has not moved on once. That is the loop rather than any single run, so nothing further will be spent on it until you look.",
   "tools-refused":
     "This station could not use a tool it needs, so nothing it filed would have been the work. That is the connection rather than the work, and retrying it would only spend more to be told the same. Reconnect it and start this work again.",
+  /*
+   * ── EFFECT ONLY, BECAUSE THE CAUSE AND THE DOOR ARE BOTH WRITTEN ELSEWHERE ──
+   *
+   * F-177, and the trigger was F-175 populating `last_hold_because` on 96 tracks
+   * that had none. This line used to read *"…Connect a source, or file the
+   * missing input by hand, and this starts again on its own."*
+   *
+   * **THIS HOLD HAS TWO CAUSES AND THAT SENTENCE WAS TRUE OF ONLY ONE.**
+   * `correction.ts:613` writes it when a precondition has no owning station.
+   * `driver.server.ts` also writes it when LEARN IS WAITING ON ITS HORIZON DATE,
+   * whose own reason ends *"nothing here is waiting on a person"*. Composed
+   * together — and the run screen draws the reason and then this line — that
+   * read: nothing is waiting on you, now go and connect a source. **A direct
+   * contradiction, and I introduced it myself in F-175 an hour before finding
+   * it.** The specific sentence is right in both cases; this one could not be.
+   */
   "needs-evidence":
-    "This station has nothing to work from, and no other station can make it. Connect a source, or file the missing input by hand, and this starts again on its own.",
+    "This station is waiting rather than failing, and starts again on its own when what it needs arrives.",
+  /*
+   * F-177. Was: *"This station needs something that a waived station was the one
+   * to file, so nothing is going to file it. Put that station back on the route,
+   * or file it yourself."* — **which is `correction.ts:624` word for word with
+   * pronouns where that line has names.** Reported by S1, who saw both render on
+   * `6199f3df`: the reason named Build and Plan, and this line then said "this
+   * station" and "that station" about the two it had just named.
+   */
   "needs-a-waived-station":
-    "This station needs something that a waived station was the one to file, so nothing is going to file it. Put that station back on the route, or file it yourself.",
+    "This station has stopped here, and nothing left on this route will move it on.",
+  /*
+   * F-177. Was: *"…has everything it needs on the record and still finishes with
+   * nothing, several times over. That is the station rather than the work, so it
+   * needs your eyes."* — which restates `stationCannotFinishLine` and ends on the
+   * same clause. **The specific one is strictly better: it names the station, and
+   * since this morning it reads the REAL `attempts` rather than the constant that
+   * told 19 of 32 tracks a number their own row contradicted (S4-043).** Saying
+   * "several times over" beside "finished empty 3 times" adds a vaguer copy of a
+   * fact already stated precisely.
+   *
+   * ── AND EVERY ONE OF THE THREE STILL OPENS "This station", WHICH IS NOT STYLE ──
+   * All three are in `STATION_SPECIFIC`, so `holdLine` replaces that exact
+   * leading phrase with the station's display name (K-18). My first trim of this
+   * block dropped the phrase and silently disabled the substitution: two tests
+   * caught it — `run-map` asserts the rendered sentence differs from the raw one,
+   * and `a-hold-says-whose-it-is` asserts the same for two of the orchid four.
+   * **Both would have passed if I had only re-run the guard I wrote for F-177.**
+   */
   "station-cannot-finish":
-    "This station has everything it needs on the record and still finishes with nothing, several times over. That is the station rather than the work, so it needs your eyes.",
+    "This station has stopped here, and another run would land in the same place.",
   /*
    * ── EFFECT HERE, CAUSE AND DOOR IN THE WAY OUT (F-137) ───────────────────
    *

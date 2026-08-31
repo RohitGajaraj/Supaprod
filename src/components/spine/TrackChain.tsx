@@ -32,6 +32,11 @@ import { getTrackChain } from "@/lib/spine/track.functions";
 import type { ChainMember, ChainStop, StopState } from "@/lib/spine/chain";
 import { relativeTime } from "@/lib/memory-view";
 import { Reading, ReadFailedLine, RecordSpeaks, Value } from "@/components/meridian/surface-parts";
+import {
+  waiverLine,
+  waiverVoices,
+  type WaiverVoice,
+} from "@/components/track/said-once-not-four-times";
 
 /** Where the stop sits, in the words a person would use for it. */
 const STATE_WORD: Readonly<Record<StopState, string>> = {
@@ -63,17 +68,30 @@ function leadFor(m: ChainMember): string {
 
 function Stop({
   stop,
+  voice,
   now,
   onOpen,
 }: {
   stop: ChainStop;
+  /** Whether THIS stop is the one that gets to give the waiver's reason. */
+  voice: WaiverVoice;
   now: number;
   /** Present when a run surface can reveal this station's output in place. */
   onOpen?: (station: string) => void;
 }) {
-  // The waiver outranks the gap: a reason a person gave in their own words is
-  // worth more than the product explaining where an artifact usually comes from.
-  const sub = stop.waivedReason ?? stop.gap;
+  /*
+   * The waiver outranks the gap: a reason a person gave in their own words is
+   * worth more than the product explaining where an artifact usually comes from.
+   *
+   * AND A REPEATED WAIVER FALLS TO NOTHING, NOT TO THE GAP. A declined route
+   * waives four stations with one identical sentence (F-174), which used to
+   * print four times. The repeats are now silent -- but they must NOT fall
+   * through to `stop.gap`, which every waived station has, because that would
+   * explain where an artifact comes from on a station deliberately taken off the
+   * route. `said-once-not-four-times.ts` returns a distinct `already-said` for
+   * exactly this reason, so the suppression is explicit rather than a null.
+   */
+  const sub = voice.kind === "not-waived" ? (stop.waivedReason ?? stop.gap) : waiverLine(voice);
 
   return (
     <>
@@ -153,14 +171,20 @@ export function TrackChain({
     return <ReadFailedLine>That work could not be found.</ReadFailedLine>;
   }
 
+  const voices = waiverVoices(chain.stops);
+
   return (
     <>
       <RecordSpeaks evidence={chain.total > 0 ? `${chain.total} filed` : undefined}>
         {q.data.summary}
       </RecordSpeaks>
 
-      {chain.stops.map((stop) => (
-        <Stop key={stop.station} stop={stop} now={now} onOpen={onOpenStation} />
+      {/* Voices computed across the WHOLE ordered list, because whether a stop
+        speaks depends on the stop above it -- a per-row decision cannot see
+        that. Stops arrive in spine order from `buildChain`, which is what makes
+        "consecutive" mean anything here. */}
+      {chain.stops.map((stop, i) => (
+        <Stop key={stop.station} stop={stop} voice={voices[i]} now={now} onOpen={onOpenStation} />
       ))}
 
       {/* Almost always empty. It exists so that a member filed against a station

@@ -2453,11 +2453,20 @@ export async function driveTrackOnce(
   if (failed) {
     const outside = isEnvironmentFailure(failedError ?? failed);
     const hold: HoldReason = outside ? "out-of-credit" : "stalled";
+    /*
+     * F-175. THE ONE SENTENCE THAT NAMES THE FAILURE, WRITTEN DOWN.
+     * `failed` is the thrown message and exists nowhere else once this tick
+     * ends. `outside` is null on purpose: that arm's line is `HOLD_LINE[hold]`,
+     * which the reader already derives, and F-127 is right that storing a
+     * generic line in a column meant for specifics is worse than a null.
+     */
+    const because = outside ? null : `${station} did not complete: ${failed}`;
     await supabase
       .from("spine_tracks" as never)
       .update({
         ...(outside ? {} : { attempts: (row.attempts ?? 0) + 1 }),
         last_hold: hold,
+        last_hold_because: because,
         driven_at: new Date().toISOString(),
       } as never)
       .eq("id", row.id);
@@ -2467,11 +2476,9 @@ export async function driveTrackOnce(
       moved: false,
       arrivedAt: null,
       hold,
-      line: flagged(
-        outside
-          ? (holdLine(hold, { station }) ?? HOLD_LINE[hold])
-          : `${station} did not complete: ${failed}`,
-      ),
+      // Built FROM `because` rather than beside it, so the column and the
+      // screen cannot drift into saying two different things.
+      line: flagged(because ?? holdLine(hold, { station }) ?? HOLD_LINE[hold]),
       // A dispatch that threw returned no steps, so there is nothing to file.
       // Kept explicit rather than inlined so the invariant is visible.
       attached,
@@ -2654,6 +2661,9 @@ export async function driveTrackOnce(
           // only thing any stuck-work alarm reads. See the block above.
           attempts: (row.attempts ?? 0) + 1,
           last_hold: "self-check-failed",
+          // F-175: the verifier's own reason. Null when it gave none, rather
+          // than the derivable half of the line.
+          last_hold_because: verification.reason ?? null,
           driven_at: new Date().toISOString(),
         } as never)
         .eq("id", row.id);
@@ -2688,11 +2698,15 @@ export async function driveTrackOnce(
   if (!producedThisVisit && station === "learn") {
     const dueIso = await forecastDueDate(supabase, row.id);
     if (dueIso && Date.parse(dueIso) > Date.now()) {
+      // F-175: hoisted so the row and the screen carry one sentence, not two
+      // copies of it. The DATE is the part no reader can derive from the word.
+      const because = `The forecast this work is graded against comes due on ${dueIso.slice(0, 10)}. Learn returns when it does; nothing here is waiting on a person.`;
       await supabase
         .from("spine_tracks" as never)
         .update({
           // attempts deliberately UNCHANGED: honesty must not cost the station.
           last_hold: "needs-evidence",
+          last_hold_because: because,
           driven_at: new Date().toISOString(),
         } as never)
         .eq("id", row.id);
@@ -2702,9 +2716,7 @@ export async function driveTrackOnce(
         moved: false,
         arrivedAt: null,
         hold: "needs-evidence",
-        line: say(
-          `The forecast this work is graded against comes due on ${dueIso.slice(0, 10)}. Learn returns when it does; nothing here is waiting on a person.`,
-        ),
+        line: say(because),
         attached,
       };
     }
@@ -2714,11 +2726,18 @@ export async function driveTrackOnce(
     // F-87: read before the write, so the line can name what actually stopped it.
     // One query, only on the path where the station already filed nothing.
     const lastFailure = await lastFailingTool(supabase, traceIds);
+    // F-175: the tool and its error, which is the whole of what F-87 went and
+    // fetched. Null when nothing failed, because `HOLD_LINE["produced-nothing"]`
+    // on its own is what the reader already derives from the word.
+    const because = lastFailure
+      ? `The last thing it tried was ${lastFailure.tool}, which said: ${lastFailure.error}`
+      : null;
     await supabase
       .from("spine_tracks" as never)
       .update({
         attempts: (row.attempts ?? 0) + 1,
         last_hold: "produced-nothing",
+        last_hold_because: because,
         driven_at: new Date().toISOString(),
       } as never)
       .eq("id", row.id);
@@ -2735,12 +2754,7 @@ export async function driveTrackOnce(
        * already filed nothing, and it is the difference between a person waiting
        * and a person merging.
        */
-      line: flagged(
-        HOLD_LINE["produced-nothing"] +
-          (lastFailure
-            ? ` The last thing it tried was ${lastFailure.tool}, which said: ${lastFailure.error}`
-            : ""),
-      ),
+      line: flagged(HOLD_LINE["produced-nothing"] + (because ? ` ${because}` : "")),
       attached,
     };
   }
@@ -2779,8 +2793,16 @@ export async function driveTrackOnce(
    */
   if (station === "learn") onwardRoute = await reopenIfOutcomeContested(supabase, row, onwardRoute);
 
+  /**
+   * Did this route's call turn out to be "do not build"? Hoisted out of the
+   * block below because the ADVANCE CHECK needs it too — see F-174 at the
+   * `needIsMet` call further down.
+   */
+  let routeDeclined = false;
+
   if (station === "decide") {
     const declined = await decisionWasRefusal(supabase, row.id);
+    routeDeclined = declined;
     if (declined) {
       for (const skipped of ["define", "design", "build", "ship"] as AgentStation[]) {
         onwardRoute = waive(onwardRoute, skipped, {
@@ -2875,11 +2897,16 @@ export async function driveTrackOnce(
         .limit(1);
       const csStatus = (csRows?.[0] as { status?: string } | undefined)?.status ?? null;
       if (csStatus === "staged") {
+        // F-175: names the two calls that would clear it, which the hold word
+        // cannot. `nothing-to-hand-on` has two causes and this is one of them.
+        const because =
+          "The change is staged but not committed, so there is no branch for Ship to point at. Call studio.commit, then studio.pr.open.";
         await supabase
           .from("spine_tracks" as never)
           .update({
             attempts: (row.attempts ?? 0) + 1,
             last_hold: "nothing-to-hand-on",
+            last_hold_because: because,
             driven_at: new Date().toISOString(),
           } as never)
           .eq("id", row.id);
@@ -2889,20 +2916,79 @@ export async function driveTrackOnce(
           moved: false,
           arrivedAt: null,
           hold: "nothing-to-hand-on",
-          line: flagged(
-            "The change is staged but not committed, so there is no branch for Ship to point at. Call studio.commit, then studio.pr.open.",
-          ),
+          line: flagged(because),
           attached,
         };
       }
     }
 
-    if (!needIsMet(STATION_NEEDS[arrivedAt], filedNow)) {
+    /*
+     * ── A "DO NOT BUILD" MUST BE ABLE TO FINISH ITS ROUTE (F-174) ──────────
+     *
+     * The decline path could not complete, and the mechanism is the block
+     * above meeting this one. When the call is "do not build", the driver
+     * waives `define`, `design`, `build` and `ship` — correctly, because there
+     * is nothing to specify or ship. `nextStation` therefore returns `learn`.
+     * And `STATION_NEEDS.learn` wants `prd`, `changeset` or `deployment` —
+     * **none of which a track that was correctly never built can ever hold,
+     * because not building them IS the decision.** So the advance was refused
+     * `nothing-to-hand-on`, an attempt was counted, and the crew re-decided the
+     * same question every sweep because the route would not let it leave.
+     *
+     * Measured 2026-08-31 on the first track ever to reach this point: ten live
+     * decision members, the FIRST approved and every one after DECLINED, filed
+     * in pairs about a minute apart, twice per sweep. Exactly one track in the
+     * database has a declined newest decision — so this is not a widespread
+     * stall, it is the decline path dead-ending the first time it is walked.
+     *
+     * `decision.record`'s own comment records the previous half of this: a "no"
+     * used to be stored `status: "approved"`, so the spine walked on and built
+     * the thing the decision had just refused — *"the one station whose job is
+     * to stop work could not."* That fix made the refusal EXPRESSIBLE. This one
+     * lets it COMPLETE.
+     *
+     * WHY THE DECISION IS THE RIGHT PRECONDITION, AND WHY NOT JUST WAIVE LEARN.
+     * Waiving Learn as well would close the route silently and lose the record,
+     * which is the one option worth naming in order to refuse: **a forecast
+     * attached to a NO is still a forecast**, and grading it is the whole moat.
+     * A decline that reaches Learn can be graded as "we said no, and here is
+     * what happened instead" — which is a verdict this product should want more
+     * than most.
+     *
+     * Scoped to `routeDeclined` so it cannot loosen the ordinary path: a track
+     * that WAS built still has to arrive at Learn with something built.
+     */
+    const need =
+      routeDeclined && arrivedAt === "learn"
+        ? {
+            kinds: ["decision"],
+            from: "decide" as AgentStation,
+            missing: "the decision whose forecast Learn would grade",
+            fix: "Record the call at Decide. A 'no' is a decision and Learn grades its forecast the same way it grades a yes.",
+          }
+        : STATION_NEEDS[arrivedAt];
+
+    if (!needIsMet(need, filedNow)) {
+      /*
+       * F-175 AND IT IS THE SITE THAT COST ME THE MOST TODAY.
+       *
+       * Track `d2263583` held here four times in a row while `last_hold_because`
+       * stayed NULL, and having no recorded reason I read this template out of
+       * the source and reported it as though the record had said it. That was a
+       * fabrication and I retracted it. **A hold that cannot say why invites the
+       * reader to invent a reason, and the reader did.**
+       *
+       * `need.missing` and `arrivedAt` are computed here and nowhere else, so
+       * this sentence dies with the tick unless it is written down. Measured
+       * before the fix: 97 held tracks, ONE carrying a `last_hold_because`.
+       */
+      const because = `${station} filed something, but ${arrivedAt} still has no ${need.missing}. ${need.fix}`;
       await supabase
         .from("spine_tracks" as never)
         .update({
           attempts: (row.attempts ?? 0) + 1,
           last_hold: "nothing-to-hand-on",
+          last_hold_because: because,
           driven_at: new Date().toISOString(),
         } as never)
         .eq("id", row.id);
@@ -2914,13 +3000,49 @@ export async function driveTrackOnce(
         hold: "nothing-to-hand-on",
         // Says what the NEXT station is short of, because that is the thing a
         // person can act on. The stray artifact is not the problem.
-        line: flagged(
-          `${station} filed something, but ${arrivedAt} still has no ${STATION_NEEDS[arrivedAt].missing}.`,
-        ),
+        line: flagged(because),
         attached,
       };
     }
   }
+
+  /*
+   * ── THE ROUTE CHANGED THIS TICK AND THE ROW HAS NEVER BEEN TOLD (F-178) ────
+   *
+   * `onwardRoute` is built above by `waive()` on a decline and by
+   * `reopenIfOutcomeContested()` at Learn, and **neither result was ever
+   * written.** It was recomputed from scratch every tick, which made the loop
+   * behave correctly and left the RECORD saying nothing happened. Two things
+   * followed, and the second is worse than the first.
+   *
+   * **THE ACCEPTANCE QUERY WENT BLIND.** Measured on `d2263583`, the live
+   * candidate, 2026-08-31 17:31: it walked `sense -> decide -> learn`, was
+   * DRIVEN AT TWO STATIONS ONLY, and its `waived` column read `[]`. That clause
+   * exists in R-18's query for exactly one purpose — to guarantee the work went
+   * through all seven — and it cannot see four stations skipped at runtime. The
+   * track satisfies every structural clause of the acceptance while having
+   * visited two of seven stations.
+   *
+   * **AND I OPENED THAT HOLE MYSELF, HOURS EARLIER.** Before F-174 a declined
+   * track stuck at Decide and never reached Learn, so no such row could exist to
+   * be miscounted. Unblocking the decline path made it reachable. *A fix that
+   * unblocks a path can invalidate a measurement that only held while the path
+   * was blocked* — and the measurement here is the one the whole project is
+   * judged by.
+   *
+   * **THE SECOND CONSEQUENCE: THE DOCUMENTED REOPEN HAS NEVER BEEN ABLE TO
+   * FIRE.** The waiver block above promises that if the verdict later shows the
+   * refusal was wrong, *"the stations come back rather than needing a person to
+   * remember this happened"*. `reopenIfOutcomeContested` opens with
+   * `if (!route.waived.some(w => w.reopensWhen === "outcome-contested")) return`
+   * — and `route.waived` is read from `row.waived`, which was always `[]`. The
+   * trigger could never match, so the promise could never be kept.
+   *
+   * Written only when it CHANGED, so an ordinary tick still writes the same
+   * columns it always did.
+   */
+  const routeChanged = JSON.stringify(onwardRoute.waived) !== JSON.stringify(route.waived);
+  const waivedPatch = routeChanged ? { waived: onwardRoute.waived as never } : {};
 
   // attempts resets on every move, in the same write, so a counter can never
   // leak across stations and strand work that was making progress.
@@ -2935,10 +3057,12 @@ export async function driveTrackOnce(
             station_drives: 0,
             last_hold: null,
             last_hold_because: null,
+            ...waivedPatch,
             driven_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           }
         : {
+            ...waivedPatch,
             status: "done",
             attempts: 0,
             last_hold: null,

@@ -5112,6 +5112,39 @@ const decisionRecord = def({
           message:
             "forecast_horizon_date must be an ISO 8601 timestamp with an offset, for example 2026-09-05T00:00:00Z. A bare date leaves the moment it comes due ambiguous, and this column is what the due index reads.",
         }),
+
+      /*
+       * ── THE BAND, gap #15. OPTIONAL, AND THE JOURNEY IS DELIBERATE ───────
+       *
+       * A forecast today is PROSE plus a deadline: measured 2026-08-31, all
+       * eleven `forecast_*` columns on `decisions` were text or a date and NOT
+       * ONE HELD A NUMBER. So the grader could only ask a model to judge a
+       * sentence, which is why it "has processed zero workspaces in its life"
+       * (F-51). It was never short of a band; it was short of anything to
+       * compute with.
+       *
+       * These ship OPTIONAL for the same reason the three forecast fields above
+       * did before they became required on 2026-08-22, and that precedent is
+       * two screens up: ship it optional, MEASURE whether it gets written, and
+       * make it required once the seat is filling it. Requiring a number on day
+       * one is how an agent learns to fabricate one, and a fabricated baseline
+       * is worse than prose because it invites a tier to fire on it.
+       *
+       * `forecast_direction` is asked for rather than inferred: predicted-versus-
+       * baseline gets it wrong exactly when the two are equal, which is a real
+       * forecast ("hold the line"). And `forecast_observations` is the honesty
+       * guard as a value rather than a convention -- a band that cannot say how
+       * well founded it is will be trusted as though it were.
+       */
+      forecast_metric: z.string().min(1).max(200).optional(),
+      forecast_direction: z.enum(["lower-is-better", "higher-is-better"]).optional(),
+      forecast_baseline: z.number().finite().optional(),
+      forecast_predicted: z.number().finite().optional(),
+      forecast_band_drifting_at: z.number().finite().optional(),
+      forecast_band_missed_at: z.number().finite().optional(),
+      forecast_observations: z.number().int().min(0).optional(),
+      forecast_if_drifting: z.string().min(1).max(500).optional(),
+      forecast_if_missed: z.string().min(1).max(500).optional(),
     })
     /*
      * THE RULES ARE NOT RE-DERIVED HERE. `forecastRefusal` is the human path's
@@ -5197,6 +5230,19 @@ const decisionRecord = def({
         workspace_id: workspaceId ?? null,
         mission_id: missionId ?? null,
         prd_id: a.prd_id ?? null,
+        // The band (gap #15). Null rather than undefined for the same reason the
+        // rest of this insert is explicit: a column left out of an insert and a
+        // column set to null read identically afterwards, and only one of them
+        // was a decision.
+        forecast_metric: a.forecast_metric ?? null,
+        forecast_direction: a.forecast_direction ?? null,
+        forecast_baseline: a.forecast_baseline ?? null,
+        forecast_predicted: a.forecast_predicted ?? null,
+        forecast_band_drifting_at: a.forecast_band_drifting_at ?? null,
+        forecast_band_missed_at: a.forecast_band_missed_at ?? null,
+        forecast_observations: a.forecast_observations ?? null,
+        forecast_if_drifting: a.forecast_if_drifting ?? null,
+        forecast_if_missed: a.forecast_if_missed ?? null,
         /*
          * SANITISED AT THE SINK, because the arg-level pass did not hold.
          *

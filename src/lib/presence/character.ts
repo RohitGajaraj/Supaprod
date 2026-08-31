@@ -225,7 +225,29 @@ export function deriveCharacter(input: PresenceInput): Presence {
     if (input.currentTool) {
       return { state: "working", line: `I'm ${verbForTool(input.currentTool)}.` };
     }
-    return { state: "thinking", line: "I'm on it, you can leave this page and I'll keep going." };
+    /*
+     * ── THE HALF NOTHING KEEPS IS GONE (2026-08-31, S1's find) ──────────────
+     *
+     * This said *"I'm on it, you can leave this page and I'll keep going."*
+     * SESSION-1 names that sentence verbatim as a promise the product cannot
+     * keep until the verdict notification ships.
+     *
+     * **This was the strongest of its three instances**, for two reasons S1
+     * measured. It fires in `thinking`, which is every run before its first tool
+     * call — so it was said at the start of essentially every run. And *"and
+     * I'll keep going"* is a promise about CONTINUATION rather than about the
+     * leg in flight: 97 of 106 tracks carry a hold, the verdict email has fired
+     * ZERO times in its life, and there is no notification kind for work that
+     * STOPPED at all. **Untrue nine times in ten, with nothing delivering its
+     * implied second half.**
+     *
+     * What survives is the true half: the run does continue without a person
+     * watching this tab. What goes is the invitation to LEAVE, because leaving
+     * is only safe once something comes and finds you, and that is gap #2.
+     * Standard #7 is the one item on the frontier list that deletes a claim
+     * rather than sending it back.
+     */
+    return { state: "thinking", line: "I'm on it. This keeps going without you." };
   }
 
   if (input.result?.stopped === "finished" || hold === DONE_HOLD) {
