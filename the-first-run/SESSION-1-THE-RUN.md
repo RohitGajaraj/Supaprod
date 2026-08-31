@@ -1,4 +1,4 @@
-# S1 · THE RUN — OpenCode, worktree `supaprod-run`, branch `lane/run`
+# S1 · THE RUN — Claude Code, worktree `supaprod-run`, branch `lane/run`
 
 **Read [`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md) in full first.** It carries
 the user lens, the definition of "truly agentic", the git-only coordination protocol, work-safety

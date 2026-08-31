@@ -1,4 +1,4 @@
-# S4 · THE PROVING GROUND — OpenCode, worktree `supaprod-proof`, branch `lane/proof`
+# S4 · THE PROVING GROUND — Claude Code, worktree `supaprod-proof`, branch `lane/proof`
 
 **Read [`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md) in full first.** It carries
 the user lens, the definition of "truly agentic", the git-only coordination protocol, work-safety

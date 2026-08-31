@@ -6,7 +6,7 @@
 
 **Every session reads this file first, then its own SESSION-N file. Nothing else, until you need it.**
 
-**Five sessions: one Claude Code (S0), four OpenCode / OX Alpha (S1–S4).**
+**Five sessions, ALL on Claude Code (amended 2026-08-31; S1–S4 used to run OpenCode / OX Alpha).**
 
 ---
 
@@ -330,10 +330,10 @@ even for a one-line fix, not even when you are certain.
 | | Runs on | Worktree / branch | Owns (writes) |
 | --- | --- | --- | --- |
 | **S0 · CONDUCTOR** | Claude Code | `Supaprod` / `main` | `src/lib/**` · `src/routes/api/**` · `src/components/meridian/**` · `src/components/ui/**` · `supabase/**` · `docs/**` · `the-first-run/**` · `coordination/**` |
-| **S1 · THE RUN** | OpenCode | `supaprod-run` / `lane/run` | `src/components/track/**` · `spine/**` · `presence/**` · `decisions/**` · `learn/**` · `ask/**` · `discover/**` · routes `track.$trackId` `start` `decide` `learn` `discover` |
-| **S2 · MISSION CONTROL** | OpenCode | `supaprod-control` / `lane/control` | `src/components/shell/**` · `runs/**` · `today/**` · `observe/**` · `crew/**` · `agents/**` · `traces/**` · `mission/**` `missions/**` · routes `_authenticated.tsx` `today` `runs.*` `missions.*` `cockpit` `fleet` `swarm` `observe` `traces*` `agents` `crew` |
-| **S3 · THE PLATFORM** | OpenCode | `supaprod-platform` / `lane/platform` | `src/components/onboarding/**` · `settings/**` · `billing/**` · `admin/**` · `system/**` · `governance/**` · `engine-room/**` · `connections/**` · `plg/**` · `public/**` · `landing/**` · `src/styles/**` except `meridian.css` · routes `settings` `onboarding` `admin.*` `integrations` `notifications` `boundary` `govern` `guardrails` `engine-room` `budgets` `approvals` `login` `signup` `forgot-password` `checkout*` |
-| **S4 · THE PROVING GROUND** | OpenCode | `supaprod-proof` / `lane/proof` | `e2e/**` · `docs/lanes/verify/**` — **and nothing in `src/` at all** |
+| **S1 · THE RUN** | Claude Code | `supaprod-run` / `lane/run` | `src/components/track/**` · `spine/**` · `presence/**` · `decisions/**` · `learn/**` · `ask/**` · `discover/**` · routes `track.$trackId` `start` `decide` `learn` `discover` |
+| **S2 · MISSION CONTROL** | Claude Code | `supaprod-control` / `lane/control` | `src/components/shell/**` · `runs/**` · `today/**` · `observe/**` · `crew/**` · `agents/**` · `traces/**` · `mission/**` `missions/**` · routes `_authenticated.tsx` `today` `runs.*` `missions.*` `cockpit` `fleet` `swarm` `observe` `traces*` `agents` `crew` |
+| **S3 · THE PLATFORM** | Claude Code | `supaprod-platform` / `lane/platform` | `src/components/onboarding/**` · `settings/**` · `billing/**` · `admin/**` · `system/**` · `governance/**` · `engine-room/**` · `connections/**` · `plg/**` · `public/**` · `landing/**` · `src/styles/**` except `meridian.css` · routes `settings` `onboarding` `admin.*` `integrations` `notifications` `boundary` `govern` `guardrails` `engine-room` `budgets` `approvals` `login` `signup` `forgot-password` `checkout*` |
+| **S4 · THE PROVING GROUND** | Claude Code | `supaprod-proof` / `lane/proof` | `e2e/**` · `docs/lanes/verify/**` — **and nothing in `src/` at all** |
 
 **Everything not listed is read-only to everyone but S0.** Read the whole repo freely; write only your
 prefix.
@@ -361,12 +361,39 @@ does not exist.** The brain earns its first pixel when the first real learning e
 
 ---
 
-## 4 · How five worktrees talk to each other — git, and only git
+## 4 · How five worktrees talk to each other — git is the record, messages are the interrupt
 
 **Founder's ruling, 2026-08-26: "this communication needs to be established only through GIT, because
 that is the only common channel for all of you."** An earlier draft of this section proposed a local
 directory outside the repo as a fast side-channel. **That is retired.** It was invisible to anything
 but this one Mac, it left no record, and a second channel is a second place to forget to look.
+
+### AMENDED 2026-08-31 — all five sessions now run Claude Code
+
+**The ruling's own reason was that git was "the only common channel for all of you."** That was true
+while S1–S4 ran on OpenCode. **It is no longer true.** Every session is now a Claude Code session on
+one machine, and Claude Code sessions are addressable to each other. The founder asked for that
+channel to be used. **The amendment is narrow, and it does not loosen the record:**
+
+| | Git | Direct message |
+| --- | --- | --- |
+| What it is | **The record.** Every request, answer, ruling, verdict, NOW line, unit log | **The interrupt.** A pointer at something already pushed |
+| Durable | Yes — every lane and every future session reads it | **No.** It dies with the session |
+| When | **Always.** Every decision, without exception | Only when waiting for the next `git fetch` costs something real |
+
+- **`ListAgents`** lists the sessions running right now. A lane that is offline simply is not in it;
+  that is not an error, and it is exactly why the git path can never be skipped.
+- **`SendMessage({to: "S0"})`** reaches one by name.
+- **Use it for three things and be strict about it:** a collision about to happen (you are both
+  about to write the same path), a lane blocked on an answer it cannot proceed without, and a
+  **`FALSE` verdict from S4 that must reach a builder before they build on top of it.**
+- **A decision that exists only in a message did not happen.** Push first, then point at it.
+  **Never message instead of pushing.**
+- **A message is not a ruling.** S0 rules in `coordination/answers/`, as before. A lane that acts on
+  a messaged instruction with no committed answer behind it has no record of why, and the next
+  session inherits a change nobody can trace.
+
+**The one-writer-per-path design below is unchanged, and it is what makes any of this work.**
 
 **Everything goes through git. All of it. And the design that makes that work is one writer per
 path** — no two sessions ever write the same file, so there is never a merge, never a lock, and never
@@ -507,12 +534,17 @@ that matter here:
   > `60000000-…` — the same one holding the closest acceptance attempt this product has had — and
   > **8 of the next 10 sweep drives went to them** (F-89). A local dev server talks to the Lovable
   > production database through `.env`, so "Track created" in a spec's output is a production row.
-- **Mobbin MCP** (S0 certainly; try it in OpenCode, and if it is not there say so and file an ask):
+- **Mobbin MCP** (S0 only — the lanes do not hold that credential; file an ask):
   600k screens from teams who ship world-class product. Pull patterns for agent presence, live
   progress, parallel work, onboarding, empty states. **Port mechanics, never screenshots.** S0 commits
   what it pulls into `docs/design/reference-2026-08-26/` so the lanes have it.
-- **Lovable MCP — S0 only.** It is the only path to the database and the only deploy path. Lanes have
-  no database. Anything needing a row, a count, a migration or a deploy is an ask.
+- **Lovable MCP — WRITES are S0 only, READS are everyone's (amended 2026-08-31).** S0 is still the
+  only session that migrates, deploys, publishes or writes a row, and anything needing one of those
+  is still an ask in `coordination/requests/<you>/`. **What changed is the lookup:** now that every
+  lane runs Claude Code, a lane may call `query_database` itself rather than filing a request and
+  waiting on S0 for a count. **A lane that reports a number must say which query produced it** — the
+  dominant defect class in this repo is a narrow read coming back empty and being taken as a fact
+  about the record rather than about the column read.
 - **Model policy, and say which you are using:** framing, audits, architecture and product calls →
   the strongest reasoning model you have. Multi-file implementation, refactors, hard debugging → your
   main coding model. Mechanical edits, docs, config, tests → the cheap fast one.

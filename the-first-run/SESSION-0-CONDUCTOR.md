@@ -19,7 +19,7 @@ whole product lives (§3 below).
   green fixes sat undeployed overnight on 2026-08-25 for exactly this. The founder has granted
   standing authority to re-auth.
 - **Mobbin MCP** — pull reference mechanics and **commit them into
-  `docs/design/reference-2026-08-26/`** so the four OpenCode sessions can see them. `START-HERE.md`
+  `docs/design/reference-2026-08-26/`** so the four lane sessions can see them. `START-HERE.md`
   currently points at `docs/design-reference/mobbin-2026-08/`, **which does not exist**. Fix that
   claim or create the directory; a lane cannot design against a path that is not there.
 - **Migrations — hand-written, applied ONE BY ONE, never handed to Lovable as a batch.** Founder's

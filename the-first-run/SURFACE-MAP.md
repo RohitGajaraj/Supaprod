@@ -78,7 +78,7 @@ every row offers the next action (R-03).
 
 ---
 
-## SETTINGS, ACCOUNT AND PLATFORM — S3.
+## §S3 · SETTINGS, ACCOUNT AND PLATFORM — S3.
 
 | Route | Disposition | Plain name on surface |
 | --- | --- | --- |
@@ -114,16 +114,37 @@ designing any of these; it is the one session with that access.
 **One trap:** an OAuth signup leaves no password, so no agent can ever fill that form again on the
 founder's behalf. **Make email + password work first.**
 
-### Public and marketing — S3
+### §FROZEN · Public and marketing — owned by S3, FROZEN 2026-08-31
 
-`index.tsx` · `product.tsx` · `pricing.tsx` · `faq.tsx` · `demo.tsx` · `film.tsx` · `investors.tsx` ·
-`proof.tsx` · `trust.tsx` · `security.tsx` · `privacy.tsx` · `terms.tsx` · `subprocessors.tsx` ·
-`updates.tsx` · `brief.tsx` · `ard.tsx` · `d.$slug.tsx` · `p.$slug.tsx` · `p.teardown.tsx` ·
-`t.$slug.tsx` — **KEEP.**
+**S3 owns this surface so that nobody else touches it. S3 does not improve it.** Frozen means
+frozen: no redesign, no polish, no copy pass, no component extraction, no accessibility sweep.
+
+**Routes:** `index.tsx` · `product.tsx` · `pricing.tsx` · `faq.tsx` · `demo.tsx` · `film.tsx` ·
+`investors.tsx` · `proof.tsx` · `trust.tsx` · `security.tsx` · `privacy.tsx` · `terms.tsx` ·
+`subprocessors.tsx` · `updates.tsx` · `brief.tsx` · `ard.tsx` · `d.$slug.tsx` · `p.$slug.tsx` ·
+`p.teardown.tsx` · `t.$slug.tsx` · `admin.landing`
+
+**Directories:** `src/components/landing/**` · `public/**` · `plg/**` · `supaprod/**` ·
+`brief/**` · `product/**`
+
+**Four exceptions, and nothing else is one:**
+
+1. A live page states something **FALSE**.
+2. A **legal or security** page is wrong.
+3. The page is **BROKEN**.
+4. The **founder asks by name**.
+
+**A correction is one sentence.** If the fix is longer than the claim it corrects, it is a redesign
+and it waits. **S0 rejects a unit that spends here.**
 
 **Nothing outward-facing ships without the founder's approval.** Copy obeys
 `docs/strategy/positioning-locked-2026-08.md` — and the claims audit found the worst vocabulary drift
 was in the shop window, not the product.
+
+> **Why this is frozen while S3's other surfaces are not.** The sixty seconds is measured **signed
+> in**, not on the landing page: the judged moment is signup → the product already working. A
+> landing page cannot pass or fail it, so effort spent here is effort not spent on the thing being
+> judged. The auth routes above are **not** frozen — they are the door into the platform.
 
 ---
 
@@ -193,7 +214,7 @@ Same law: one writer per path. 50 directories, none unassigned.
 ## Design references — the one thing every lane must route through S0
 
 **Only S0 can reach Mobbin MCP** (600k+ screens from teams who ship world-class product). The four
-OpenCode sessions cannot, and **guessing at a design instead of asking is exactly the "eyeballed, not
+The lane sessions cannot, and **guessing at a design instead of asking is exactly the "eyeballed, not
 ported" failure R-20 §7 calls a fail.**
 
 **So, before designing any surface that does not already have a reference:**
