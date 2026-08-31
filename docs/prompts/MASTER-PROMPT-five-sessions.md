@@ -54,7 +54,17 @@ Three facts every session needs:
   outcome is known.** `intent.md` holds a goal; `bands.yaml` holds history. **The vendor published
   layers 01 and 02 and left 03 empty**, which is exactly where we are.
 
-It yields **eight new authorised gaps, 15–22**, all landing on surfaces that already exist.
+It yields **ten new authorised gaps, 15–24**, all landing on surfaces that already exist. **What the
+adoption costs us — five strategic shifts each priced with the case against, the explicit kill list,
+and the four ways it derails us — is
+[`../strategy/ai-native-sdlc-rewiring-2026-08.md`](../strategy/ai-native-sdlc-rewiring-2026-08.md).**
+
+**THE SEQUENCING GUARD, AND IT IS THE MOST IMPORTANT LINE HERE.** The likeliest failure is not that we
+adopt the wrong thing — it is that a good framework becomes a reason to re-architect instead of ship.
+73 tracks, 71 entered at `sense`, and the acceptance has never once been met. **Only gap #15 (the
+forecast band) and gap #4 (the return edge firing) move the acceptance. Everything else waits behind
+them.** A session opening with artifact emitters rather than the forecast band is that failure
+happening.
 
 **Only three things in the whole playbook are refused, and each is argued in the spec's §4.2:** we do
 not generate the code (narrow — we refuse to build, not to speak the format); we do not own the

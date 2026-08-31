@@ -15,6 +15,10 @@
 > **We DO build, in two scoped places — hybrid, ruled 2026-08-26.** Hand the spec to their builder, or build it here on credits for a customer with no coding agent. **Neither breaks the loop, because the verdict is measured against the forecast rather than against the code** — we need only that it shipped and what happened. **Our preview belongs at Design, not Build:** an interactive prototype clickable before anyone writes code. Never market "build anything here". Spec: [`the-first-run/SPEC-BUILD-PATHS.md`](./the-first-run/SPEC-BUILD-PATHS.md).
 
 
+> **Anthropic's [AI-native SDLC playbook](https://claude.com/blog/the-ai-native-sdlc-playbook) is our framework, ruled 2026-08-31: adopt by default, and the burden of proof is on the refusal.** Their six stages map onto our seven, and the vendor's central claim — *code is not the bottleneck; plan, review and deploy are* — is canon §5N derived independently. **What we hand a builder should BE `intent.md` · `spec.md` · `plan.md`, named their names, so a team on the playbook needs no adapter.** Only three things are refused and each is argued. **The finding that matters: in six stages, ten artifacts and eighteen measures, nothing records a prediction before the outcome is known — they published layers 01 and 02 and left 03 empty, which is where we are.** Register: [`the-first-run/SPEC-AI-NATIVE-SDLC.md`](./the-first-run/SPEC-AI-NATIVE-SDLC.md) · what it costs us: [`docs/strategy/ai-native-sdlc-rewiring-2026-08.md`](./docs/strategy/ai-native-sdlc-rewiring-2026-08.md). **Never re-read the post; it is extracted.**
+>
+> **And every lane's weight is on platform strength until the acceptance is met (§0.7, ruled 2026-08-31).** Twenty public routes and ~380KB of marketing component are **frozen** — opened only for a false claim, a wrong legal page, a broken page, or a founder request by name. **The sixty seconds is measured SIGNED IN, not on the landing page.**
+
 This file is deliberately short. Claude Code loads it into **every** session, so anything written here is paid for on every request. It holds only what is specific to Claude Code and true nowhere else.
 
 ---

@@ -377,6 +377,24 @@ now gives away. Say so before you start it, not after.**
     adopt the substance: the self-check becomes visible and counted**, as *stations passing their own
     check without a retry*, on the value-audit surface. — *S0 the count, S1 the surface.*
 
+23. **Station briefs become versioned skills, and this is the precondition for layer 03.** Warp's
+    pattern is the first implementable shape for *"learns, then guides"* we have seen anywhere: an
+    **inner skill** does the work; an **outer improver skill** reads accumulated feedback on a
+    schedule, compares what the agent suggested against what the human actually did, and **proposes a
+    targeted edit to the inner skill** as a file, merged or rejected through normal review.
+    Anthropic's **Skills API** is the versioning. **Ours would be sharper than theirs for a structural
+    reason: Warp's improver learns from a thumbs-down; ours would learn from a graded forecast** —
+    not *"somebody disliked this"* but *"this station predicted X, the world did Y."* That is
+    calibration rather than preference-fitting. **SEQUENCING IS NOT OPTIONAL: gap #15, then gap #4,
+    THEN this.** An improver with no graded forecast to read is a machine that learns from nothing,
+    which is the failure that produced 133 of 133 seed `learnings` rows. — *S0.*
+24. **A golden set, and S4's verdicts are its cases.** The startup guide's third principle is *trust,
+    but verify*, and its mechanics are a golden set of verified pairs, back-testing before deploy, and
+    *"every change made against a versioned set of instructions and tested against the records that
+    failed."* **We have none.** S4 proves claims one at a time by hand, which is high quality and does
+    not scale past one session. **Build it from real graded runs** — a golden set built from a broken
+    pipeline encodes the breakage. — *S4 proposes, S0 holds.*
+
 **Also adopt, without a gap number because they land inside work already owned:** the return edge's
 published shape (a missed forecast becomes a **normal, refusable** piece of work at Discover, not a
 special object — gap #4, S0), and the inbound gesture's refinement (**the size of the response is
@@ -397,6 +415,23 @@ being taken.** The refusals are three and they are narrow:
 3. **We do not renumber our seven stations to their six** — but we pay for that refusal: **the mapping
    becomes a translation the product speaks**, so a customer asking "where is my `spec.md`" is
    answered in their words. Refusing a rename is not refusing the vocabulary.
+
+### The standing watch, and it is S0's — monthly, and it is cheap
+
+**If Anthropic records a forecast, layer 03 closes.** If `intent.md` gains a horizon and a grade, or
+`bands.yaml` gains a *predicted* band rather than a historical one, we become a workflow product in a
+market with four vendors. **Once a month, S0 re-reads the playbook and the Skills/Files API changelog
+and checks one thing only: does anything now record a belief before the outcome is known?** Write the
+answer with its date into [`SPEC-AI-NATIVE-SDLC.md`](./SPEC-AI-NATIVE-SDLC.md) §5. **A watch nobody
+schedules is not a watch.**
+
+**And the risk that is far more likely than that one:** a good framework becomes a reason to
+re-architect instead of ship. **73 tracks, 71 entered at `sense`, and the acceptance has never once
+been met.** Ten new gaps and a strategy document are exactly what that failure looks like from the
+inside. **Only #15 and #4 move the acceptance. Everything else waits behind them**, and a session that
+opens with artifact emitters rather than the forecast band is this risk happening. The full analysis,
+with what each shift costs us and what we kill, is
+[`../docs/strategy/ai-native-sdlc-rewiring-2026-08.md`](../docs/strategy/ai-native-sdlc-rewiring-2026-08.md).
 
 ---
 

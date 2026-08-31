@@ -153,6 +153,12 @@ offline states, accessibility, admin, connectors, export, Settings, and the 119 
 `REIMAGINING.md` argues should be nine. **Which of the 119 map onto which nine is an open founder
 question — map it, propose it, and do not let a lane guess it.**
 
+**MONTHLY, AND IT IS YOURS ALONE:** re-read Anthropic's SDLC playbook and the Skills/Files API
+changelog and check **one thing** — does anything now record a belief before the outcome is known? If
+`intent.md` gains a horizon and a grade, or `bands.yaml` gains a *predicted* band rather than a
+historical one, **layer 03 closes and the moat is gone.** Write the answer with its date into
+[`SPEC-AI-NATIVE-SDLC.md`](./SPEC-AI-NATIVE-SDLC.md) §5. A watch nobody schedules is not a watch.
+
 **Rank what you find with §0.7's six-step list**, which exists so a lane can settle its own ties: a
 station doing its job without a person, then steering without restarting, then legibility, then the
 result finding somebody who is not looking, then what a company needs to trust it, and pleasantness
