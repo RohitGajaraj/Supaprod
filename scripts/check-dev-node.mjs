@@ -4,6 +4,7 @@
 // with no data in it. Design and product work then gets judged through a broken
 // window. Fail loudly instead.
 
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -22,6 +23,64 @@ if (major < 22) {
       `  Node 20.20.2 is only for \`bun run build\`.\n` +
       `  Fix: open a fresh terminal (default Node) or run: nvm use default`,
   );
+}
+
+// ── 1b. The dev port is not already held ───────────────────────────────────
+// R-21 EXISTED AS PROSE IN FIVE BRIEFS AND NAMED THE WRONG PORT, SO IT NEVER
+// ONCE FIRED. Every block and every session brief told all five lanes to run
+// `lsof -ti:5173` before starting a server. Nothing in this repository listens
+// on 5173: `@lovable.dev/vite-tanstack-config` hardcodes `port: 8080` and
+// overrides any other value with a warning of its own ("...port 8080. Using
+// 8080."). So the check was always clear, the lane started a second server on
+// 8080, and the two collided. That is S2's recorded incident, and this machine
+// has been driven to a restart by it while the founder was asleep.
+//
+// The rule was real, the enforcement was a sentence, and the sentence had a
+// typo in it for as long as it existed. This makes it a refusal at the one
+// entry point every lane actually uses.
+//
+// It also prints WHOSE server it is. S2 lost time killing another session's
+// harness three times before learning to check the process owner rather than
+// the port, and worked out this exact diagnostic by hand.
+const DEV_PORT = 8080;
+
+const sh = (cmd, args) => {
+  try {
+    return execFileSync(cmd, args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    return "";
+  }
+};
+
+// `lsof` absent is not a failure: skip rather than block dev on a missing tool.
+if (sh("which", ["lsof"])) {
+  const holders = sh("lsof", [`-ti:${DEV_PORT}`, "-sTCP:LISTEN"]).split("\n").filter(Boolean);
+  const mine = String(process.pid);
+  const others = holders.filter((pid) => pid !== mine);
+  if (others.length > 0 && !process.env.SUPAPROD_ALLOW_PORT_CONFLICT) {
+    // Which checkout the holder is serving, because "a busy port" and "MY busy
+    // port" need different actions and look identical from here.
+    const where = others
+      .map((pid) => {
+        const cwd = sh("lsof", ["-a", "-p", pid, "-d", "cwd", "-Fn"])
+          .split("\n")
+          .find((l) => l.startsWith("n"));
+        return `    pid ${pid}${cwd ? `  serving ${cwd.slice(1)}` : ""}`;
+      })
+      .join("\n");
+    bail(
+      `  Something is already listening on :${DEV_PORT}, which is the port this dev\n` +
+        `  server binds. Starting a second one is what R-21 forbids, and it has\n` +
+        `  driven this machine to a restart.\n\n` +
+        `  Holding it now:\n${where}\n\n` +
+        `  If it is another session's, read docs/lanes/NOW-*.md and use theirs, or\n` +
+        `  ask them to stop it. If it is a crashed server of your own:\n` +
+        `    kill ${others.join(" ")}\n\n` +
+        `  Note the port. Every brief used to say 5173, which nothing here binds,\n` +
+        `  so that check was always clear and never protected anything.\n\n` +
+        `  Deliberately sharing one server: SUPAPROD_ALLOW_PORT_CONFLICT=1 bun run dev`,
+    );
+  }
 }
 
 // ── 2. The env file ────────────────────────────────────────────────────────
