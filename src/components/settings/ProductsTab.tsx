@@ -36,6 +36,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { toast } from "@/lib/notify";
+import { humanWriteError } from "@/lib/roles.functions";
 import {
   getPortfolio,
   setProjectArchived,
@@ -101,7 +102,7 @@ export function ProductsTab() {
       if (res.project?.id) setActiveProductId(res.project.id);
       toast.success(`Added "${name.trim()}".`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't create the product.");
+      toast.error(humanWriteError(e, "Couldn't create the product."));
     }
   }
 
@@ -111,7 +112,7 @@ export function ProductsTab() {
       downloadJson(`${fileSlug(p.name)}-supaprod-export.json`, data);
       toast.success(`Exported "${p.name}".`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't export.");
+      toast.error(humanWriteError(e, "Couldn't export."));
     }
   }
 
@@ -128,13 +129,13 @@ export function ProductsTab() {
               await fArchive({ data: { id: p.id, archive: false } });
               refresh();
             } catch (e) {
-              toast.error(e instanceof Error ? e.message : "Couldn't undo.");
+              toast.error(humanWriteError(e, "Couldn't undo."));
             }
           },
         },
       });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't archive.");
+      toast.error(humanWriteError(e, "Couldn't archive."));
     }
   }
 
@@ -144,7 +145,7 @@ export function ProductsTab() {
       refresh();
       toast.success(`Restored "${p.name}".`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't restore.");
+      toast.error(humanWriteError(e, "Couldn't restore."));
     }
   }
 
@@ -167,7 +168,7 @@ export function ProductsTab() {
       refresh();
       toast.success(`Deleted "${p.name}". Export downloaded.`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't delete.");
+      toast.error(humanWriteError(e, "Couldn't delete."));
     }
   }
 

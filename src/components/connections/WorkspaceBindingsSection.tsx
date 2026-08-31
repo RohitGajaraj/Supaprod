@@ -14,6 +14,7 @@ import {
   type WorkspaceBindingRow,
 } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
+import { humanWriteError } from "@/lib/roles.functions";
 import { BindingPicker } from "@/components/connections/BindingPicker";
 import { ProviderName, UnderMark } from "@/components/meridian/source-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
@@ -68,7 +69,7 @@ export function WorkspaceBindingsSection() {
       toast.success("Binding removed");
       qc.invalidateQueries({ queryKey: ["workspace-bindings"] });
     },
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Unbind failed"),
+    onError: (e: unknown) => toast.error(humanWriteError(e, "Unbind failed")),
   });
 
   // Only providers that HAVE something to point at. A source with no resource

@@ -52,6 +52,7 @@ import { AiPulse } from "@/components/meridian/AiPulse";
 // /p/teardown page already ships. One formatter, two surfaces, no drift.
 import { asPlainText } from "@/components/public/TeardownReceipt";
 import type { Teardown, TeardownVerdict } from "@/lib/ai/public-teardown.server";
+import { humanWriteError } from "@/lib/roles.functions";
 
 const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
 // SW-7: multi-account suite providers (Calendar + Gmail/Outlook Mail), same
@@ -394,8 +395,7 @@ function ChoiceCard({
           justifyContent: "space-between",
           gap: "var(--geist-space-3x)",
           cursor: interactive ? "pointer" : "default",
-          transition:
-            "background-color 0.2s var(--mrd-ease), border-color 0.2s var(--mrd-ease)",
+          transition: "background-color 0.2s var(--mrd-ease), border-color 0.2s var(--mrd-ease)",
         }}
       >
         {children}
@@ -498,7 +498,7 @@ function ProductStep({
       setSaving(false);
     } catch (err) {
       setSaving(false);
-      toast.error(err instanceof Error ? err.message : "Could not save your details");
+      toast.error(humanWriteError(err, "Could not save your details"));
     }
   }
 
@@ -1336,7 +1336,11 @@ export function ObsidianOnboarding() {
           {pasteNote ? (
             <p
               className="text-label-12"
-              style={{ color: "var(--mrd-mute)", margin: "0 0 10px", lineHeight: "var(--mrd-lh-snug)" }}
+              style={{
+                color: "var(--mrd-mute)",
+                margin: "0 0 10px",
+                lineHeight: "var(--mrd-lh-snug)",
+              }}
             >
               {pasteNote}
             </p>

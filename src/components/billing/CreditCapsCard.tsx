@@ -32,6 +32,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getCreditCaps, setCreditCap, removeCreditCap } from "@/lib/payments.functions";
+import { humanWriteError } from "@/lib/roles.functions";
 
 const WINDOWS = [
   { id: "cycle", label: "per cycle" },
@@ -95,7 +96,7 @@ export function CreditCapsCard() {
       setMemberAmount("");
       qc.invalidateQueries({ queryKey: ["credit-caps"] });
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to save cap"),
+    onError: (e) => toast.error(humanWriteError(e, "Failed to save cap")),
   });
   const rmMut = useMutation({
     mutationFn: (id: string) => fRemove({ data: { id } }),
@@ -103,7 +104,7 @@ export function CreditCapsCard() {
       toast.success("Cap removed");
       qc.invalidateQueries({ queryKey: ["credit-caps"] });
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to remove cap"),
+    onError: (e) => toast.error(humanWriteError(e, "Failed to remove cap")),
   });
 
   // A failed read must not silently vanish the owner's spend-cap surface, and a

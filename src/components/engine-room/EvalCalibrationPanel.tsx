@@ -29,6 +29,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { listEvalSuites, getEvalCoverage } from "@/lib/evals.functions";
 import { EVAL_COVERAGE_TARGETS } from "@/lib/evals/coverage";
+import { humanWriteError } from "@/lib/roles.functions";
 import { ErrorRetry, PanelPending } from "./room-parts";
 import { RecordStatus, type RecordTone } from "@/components/meridian/RecordsTable";
 
@@ -65,7 +66,7 @@ export function EvalCalibrationPanel() {
     const cause = suitesQ.error ?? coverageQ.error;
     return (
       <ErrorRetry
-        message={`Calibration data did not load. ${cause instanceof Error ? cause.message : "The read failed."}`}
+        message={`Calibration data did not load. ${humanWriteError(cause, "The read failed.")}`}
         onRetry={() => {
           suitesQ.refetch();
           coverageQ.refetch();
