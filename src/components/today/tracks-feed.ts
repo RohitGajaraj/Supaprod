@@ -142,13 +142,37 @@ export function trackToBoardRows(
     if (t.status !== "open") continue;
 
     if (t.holdReason === PERSON_HOLD || cannotMove(t.holdReason)) {
-      /* Parked work says STOPPED, not "waiting on your answer": nothing was
-         asked, the loop ran out of road and will not try again on its own.
-         Those are different states and a person acts on them differently. */
+      /*
+       * PARKED WORK SAYS "NEEDS A RESTART". RULED, NOT CHOSEN (A10).
+       *
+       * Both halves of this line matter and they say different things:
+       *   answerable  -> "waiting on your answer"  (a gate; there IS a thing to press)
+       *   parked      -> "needs a restart"         (nothing was asked; the loop
+       *                                             ran out of road and will not
+       *                                             try again on its own)
+       *
+       * THE WORD CHANGED FROM "stopped, needs you" ON 2026-08-31, and the
+       * reason is §12 rather than taste. The rename map already spends
+       * **"Waiting for you"** on Approvals — a queue of ANSWERABLE items — so
+       * any parked row wearing a waiting-on-you phrase sends a person who has
+       * learned this product's vocabulary hunting for something to answer.
+       * There is nothing there: S1 measured **36 of 37** tracks carrying that
+       * chip as terminal holds, exactly one as `waiting-on-a-person`.
+       *
+       * I argued the other side and it lost to a COLLISION rather than to being
+       * wrong — a person genuinely is the only exit on all 36, which is why
+       * parked work stays in the person's lane here. S4 measured eight of nine
+       * real open tracks filed under "waiting on an agent" when no agent was
+       * ever coming, and that is not being undone.
+       *
+       * The exact string matches `run-tab.ts`'s chip, lowercased for this slot,
+       * because a state named two ways on two surfaces is §12's own stated
+       * failure: a word renamed in one place and left stale in another.
+       */
       waiting.push({
         ...base,
         kind: "waiting-on-you",
-        holdLine: cannotMove(t.holdReason) ? "stopped, needs you" : "waiting on your answer",
+        holdLine: cannotMove(t.holdReason) ? "needs a restart" : "waiting on your answer",
         reason: t.hold ?? null,
       });
       continue;
