@@ -117,9 +117,15 @@ describe("trackToBoardRows", () => {
       );
       expect(running, `${held} must not read as running`).toHaveLength(0);
       expect(waiting, `${held} belongs to the person`).toHaveLength(1);
-      // "stopped, needs you", never "waiting on your answer": nothing was
-      // asked. The loop ran out of road and will not try again on its own.
-      expect(waiting[0]?.holdLine).toBe("stopped, needs you");
+      /* "needs a restart", never "waiting on your answer": nothing was asked,
+         the loop ran out of road and will not try again on its own.
+
+         THE STRING IS RULED (A10) rather than chosen, and it must match
+         `run-tab.ts`'s chip lowercased. §12 already spends "Waiting for you"
+         on Approvals, a queue of ANSWERABLE items, so a parked row wearing a
+         waiting-on-you phrase sends a reader hunting for something to press —
+         and 36 of the 37 tracks that wear it have nothing queued at all. */
+      expect(waiting[0]?.holdLine).toBe("needs a restart");
       expect(waiting[0]?.reason).toBe(`Stopped: ${held}.`);
     }
   });
