@@ -107,6 +107,14 @@ type DriveRow = {
   id: string;
   user_id: string;
   workspace_id: string | null;
+  /**
+   * The product this work is bound to, and therefore the repository Build will
+   * see. NULL is legal and common — `requireGithub` falls back to the
+   * workspace's default connection — which is exactly why F-186 needs to read
+   * it: a Build that filed nothing against the wrong repo is not a Build that
+   * failed, and nothing on the record used to say which repo it was.
+   */
+  product_id: string | null;
   title: string;
   origin: string | null;
   entry_station: string;
@@ -2729,9 +2737,44 @@ export async function driveTrackOnce(
     // F-175: the tool and its error, which is the whole of what F-87 went and
     // fetched. Null when nothing failed, because `HOLD_LINE["produced-nothing"]`
     // on its own is what the reader already derives from the word.
+    /*
+     * ── AT BUILD, SAY WHAT IT WAS LOOKING AT (F-186, found by S4 as S4-188) ───
+     *
+     * `produced-nothing` means *the station ran, completed cleanly, and filed
+     * nothing*, and its own comment says that is "nearly always a tool the agent
+     * could not reach or a brief it satisfied in prose". **There is a third
+     * cause and it reads identically: the seat was handed the WRONG REPOSITORY
+     * and said so.**
+     *
+     * Measured on `ce846e9b`, the closest this product has come to the
+     * acceptance — five stations, zero presses, seventy minutes unattended. Its
+     * Build seat reported, twice and then a third time: *"The repository
+     * contains only checkout-related files (src/checkout/) and no notification
+     * system components. The repo.tree shows 16 files total … This work belongs
+     * in the main Relay app repository."* **It read the tree, searched four
+     * relevant terms, found nothing, and named where the work belongs. That is
+     * the seat being right**, and three of those is the give-up ceiling.
+     *
+     * `requireGithub` resolves a product from the CHANGESET and falls back to
+     * the workspace's default connection, so **a track with no product binding
+     * still reaches a repository — just not necessarily the right one**, and
+     * nothing on the record said which. A reader seeing three identical
+     * `produced-nothing` holds had to open `agent_runs.output` to find out the
+     * repo was never the issue the retries were testing.
+     *
+     * This does not reclassify the hold and does not stop the retry: doing
+     * either needs a way to tell a reasoned refusal from an empty visit that is
+     * more than prose-matching, and R-26's *"a refused station is not a failed
+     * station"* deserves a better instrument than a substring. **It makes the
+     * missing fact visible**, which is F-175's law on the station where it cost
+     * the most.
+     */
+    const noBinding = station === "build" && !row.product_id;
     const because = lastFailure
       ? `The last thing it tried was ${lastFailure.tool}, which said: ${lastFailure.error}`
-      : null;
+      : noBinding
+        ? "This track has no product binding, so Build worked against the workspace's default repository. If that is the wrong repo, the station is not stuck: the binding is."
+        : null;
     await supabase
       .from("spine_tracks" as never)
       .update({
@@ -3176,7 +3219,7 @@ export async function driveTrackOnce(
 
 /** The columns driveTrackOnce needs. Exported so the tick and the driver agree. */
 export const DRIVE_SELECT =
-  "id,user_id,workspace_id,title,origin,entry_station,station,path,waived,attempts,last_hold," +
+  "id,user_id,workspace_id,product_id,title,origin,entry_station,station,path,waived,attempts,last_hold," +
   // F-43: the counter that catches a station which never converges.
   "station_drives," +
   "pending_gates," +

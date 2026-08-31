@@ -41,11 +41,21 @@ const BODY = DRIVER.slice(DRIVER.indexOf("export async function driveTrackOnce("
 
 describe("the produced-nothing line names the last thing that failed", () => {
   it("reads the last failing tool before writing the hold", () => {
-    const at = BODY.indexOf('last_hold: "produced-nothing"');
-    expect(at).toBeGreaterThan(-1);
-    // Before the write, not after: the line is built from it.
-    const before = BODY.slice(Math.max(0, at - 600), at);
-    expect(before).toContain("lastFailingTool(supabase, traceIds)");
+    /*
+     * WIDENED 2026-09-01 (F-186), and this is the FIFTH source-text assertion
+     * to break on an edit that changed no behaviour. It sliced 600 bytes back
+     * from the write and required the call inside that window; F-186 added a
+     * comment above the same block and pushed it past 600.
+     *
+     * The question it means to ask is ORDER — the failing tool is read BEFORE
+     * the hold is written, because the line is built from it — and order is
+     * expressible as two indices without pinning a byte distance.
+     */
+    const read = BODY.indexOf("lastFailingTool(supabase, traceIds)");
+    const write = BODY.indexOf('last_hold: "produced-nothing"');
+    expect(read).toBeGreaterThan(-1);
+    expect(write).toBeGreaterThan(-1);
+    expect(read).toBeLessThan(write);
   });
 
   /**
