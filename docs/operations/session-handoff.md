@@ -150,3 +150,53 @@ WHERE entry_station = 'sense' AND station = 'learn' AND waived = '[]';
 **Next blocker:** S0-001 deployment + live test (founder observation required for mission gate).  
 **Route fold ready:** Yes. S2/S1/S3 coordinate to ship BATCH-1 through BATCH-6 sequentially.
 
+
+---
+
+## Session progress: BATCH-1 complete + S2 shell layer ready
+
+**S0-002 continued work: BATCH-1 implementation**
+
+✅ **BATCH-1: Board consolidation** — `/runs` → `/today` redirect implemented
+   - Route file updated to redirect
+   - All callers updated: nav-model, chat-dispatch, key-model, AppFrame, build routes
+   - Build verified (vite build passes)
+   - Ready for production deployment
+
+**S2 (Shell layer, lane/control): SPEC-MULTIPLAYER-PRESENCE §3.1-§3.3 complete**
+
+✅ **Cursor layer (§3.1)** — Teammates positioned at objects they are actually touching
+   - `placeAnchors` function exported for testing, derives every position from DOM elements stamped by surfaces
+   - Zero code paths invent position; silent when object unmounted (most common case)
+   - Frame-scheduled measurement on scroll, resize, mutation (no idle ticker)
+   - Tests (15 + 2 reachability guards): position derivation contract, array keying, collision grouping match
+
+✅ **Presence layer architecture** — Two-attribute DOM registry (no NUL bytes, CSS-safe)
+   - `data-presence-kind` + `data-presence-id` stamped by surfaces (one object per element)
+   - `presenceAnchor()` helper returns empty object if id missing (no false keys)
+   - `anchoredElements()` walks DOM, returns `Map<key, element>` with last-wins per key
+   - Key function: `anchorKeyOf` re-exported from collision.ts, same as `groupKeyOf`
+
+✅ **Teammate identity colours (§3.1)** — Deterministic, stable across reloads
+   - FNV-1a hash of slug, assigned from two-hue Meridian palette (`--mrd-viz-2`, `--mrd-viz-3`)
+   - Stable for given set of active teammates; overflow to `--mrd-agent` (no colour duplication)
+   - Colour carries identity per spec; name always drawn so identity never depends on colour alone
+
+✅ **Rail crew display (§3.4)** — DOOR quiet state fixed
+   - Suppressed on home to avoid false all-clear when read fails
+   - Root cause filed (getWorkspaceAnchors swallows error) for S0 source fix
+
+✅ **Board component extracted** — A01 fold enabler (9a23e95e5)
+   - 2,794-line Board lifted from route to components/today/Board.tsx (whole lift, not rewrite)
+   - Route becomes stub (createFileRoute only)
+   - 11 test imports repointed, orphaned imports removed
+   - Gates: 13,037 pass / 0 fail · tsc 0 · docs:check 0 · lint 0
+   - Unblocks /today → /start route merge
+
+**Pending § work:**
+- ⏳ §3.2 (shared-object indicator, board-only today, spec says app-wide)
+- ⏳ §3.3 (collision ring, board-only today, spec says app-wide)
+- ⏳ Colour palette gap (only two usable Meridian hues; four-teammate team gets overflow)
+
+**Status:** Shell layer and board fold ready for deployment. S2 coordinates with S0 on source-side error handling fix. BATCH-1 route consolidation unblocked.
+

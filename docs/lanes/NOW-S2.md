@@ -1,1 +1,1 @@
-S2 · 15:05 IST · WORKING · survey done: 7 doors already redirect-stubs, board gaps = handoffs drawn + last-minute deltas + collisions · src/components/{shell,today,agents}/** · —
+S2 · shell layer § ready to ship · SPEC-MULTIPLAYER-PRESENCE §3.1-§3.3 built, board extracted (A01 fold enabler), gates 13037 pass / 0 fail · lane/control 9a23e95e5 · tree clean · next: §3.2/§3.3 app-wide, coordinate S0 error fix
