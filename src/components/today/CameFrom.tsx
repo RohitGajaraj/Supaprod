@@ -53,6 +53,8 @@
  */
 import { openLineage } from "@/components/supaprod/AuditLineageSheet";
 import { formatAuditId } from "@/lib/audit-id";
+import { lineageLine } from "@/components/today/lineage-line";
+import type { LineageCounts } from "@/lib/lineage-graph";
 
 /**
  * The trace ref for a mission row.
@@ -76,7 +78,22 @@ export function missionTraceRef(missionId: string): string {
  * hold sentence. R-20 §1: one accent for the one live fact — this is not it, so
  * it is drawn muted and it never competes with the row's own verb.
  */
-export function CameFrom({ missionId, isTrack }: { missionId: string; isTrack?: boolean }) {
+export function CameFrom({
+  missionId,
+  isTrack,
+  counts,
+}: {
+  missionId: string;
+  isTrack?: boolean;
+  /**
+   * This row's entry from the batch read, when it answered.
+   *
+   * **Absent means unknown, never zero.** `getLineageCounts` returns
+   * `counts: null` for a FAILED read rather than a board of zeroes, and the
+   * label falls back to its question rather than claiming "came from 0".
+   */
+  counts?: LineageCounts | null;
+}) {
   // A track has no audit kind, so it has no ref that could resolve. Silence.
   if (isTrack) return null;
 
@@ -92,7 +109,7 @@ export function CameFrom({ missionId, isTrack }: { missionId: string; isTrack?: 
         openLineage(missionTraceRef(missionId));
       }}
     >
-      Where this came from
+      {lineageLine(counts)}
     </button>
   );
 }

@@ -55,6 +55,8 @@ import { FocusNext } from "@/components/today/FocusNext";
 import { HandoverNote } from "@/components/today/HandoverNote";
 import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
 import { CameFrom } from "@/components/today/CameFrom";
+import { lineageIds } from "@/components/today/lineage-line";
+import { getLineageCounts } from "@/lib/lineage-graph.functions";
 import { retryUnlessSessionEnded, useSessionEnded } from "@/components/shell/session-ended";
 import { PushedInsights } from "@/components/today/PushedInsights";
 import { runTotals, spendWords } from "@/components/today/run-totals";
@@ -590,6 +592,7 @@ export function Board() {
   const fetchTracks = useServerFn(listTracks);
   const fListSessions = useServerFn(listStudioSessions);
   const fCancelMission = useServerFn(cancelMission);
+  const fLineageCounts = useServerFn(getLineageCounts);
   const decide = useServerFn(decideApprovalItem);
   const snooze = useServerFn(snoozeApprovalItem);
   const confirm = useConfirm();
@@ -604,6 +607,28 @@ export function Board() {
     queryFn: () => fetchMissions({ data: { workspaceId: workspaceId ?? undefined } }),
     enabled: Boolean(workspaceId),
   });
+
+  /* WHAT PRODUCED EACH ROW AND WHAT IT FED — §0.5's connectedness, the LINE half.
+     ONE call for the whole board, not one per row: `getLineageCounts` takes up
+     to 200 ids and returns a count per id, which is the shape S0 built for
+     exactly this after I refused to ship 34 round trips on the first paint of
+     the only home.
+     Keyed on the ids so it refetches when the board changes rather than on a
+     timer - lineage moves when work moves, and the rows already poll. */
+  const missionIdsForLineage = React.useMemo(
+    () => lineageIds((missions.data?.missions ?? []).map((m) => m.id)),
+    [missions.data],
+  );
+  const lineage = useQuery({
+    queryKey: ["lineage-counts", "mission", missionIdsForLineage],
+    queryFn: () => fLineageCounts({ data: { kind: "mission", ids: missionIdsForLineage } }),
+    enabled: missionIdsForLineage.length > 0,
+    staleTime: 60_000,
+  });
+  /* `counts: null` is a FAILED read and never a board with no lineage (F-76).
+     Undefined here therefore means UNKNOWN, and `lineageLine` falls back to its
+     question rather than claiming "came from 0". */
+  const lineageCounts = lineage.data?.counts ?? null;
   const learnings = useQuery({
     queryKey: ["today", "learnings", workspaceId],
     queryFn: () => fetchLearnings({ data: { workspaceId: workspaceId ?? undefined } }),
@@ -2572,7 +2597,11 @@ export function Board() {
                           band, which truncates. Never on a track: AUDIT_KINDS
                           has no spine-track entry, so the ref would not
                           resolve. */}
-                      <CameFrom missionId={row.id} isTrack={row.isTrack} />
+                      <CameFrom
+                        missionId={row.id}
+                        isTrack={row.isTrack}
+                        counts={lineageCounts?.[row.id]}
+                      />
                       {/* WHAT WAS HANDED TO YOU, BEFORE YOU DECIDE ON IT.
                           The founder asked twice to see the handoff and it was
                           drawn under RUNNING rows only. Measured against the
@@ -2667,7 +2696,11 @@ export function Board() {
                           band, which truncates. Never on a track: AUDIT_KINDS
                           has no spine-track entry, so the ref would not
                           resolve. */}
-                      <CameFrom missionId={row.id} isTrack={row.isTrack} />
+                      <CameFrom
+                        missionId={row.id}
+                        isTrack={row.isTrack}
+                        counts={lineageCounts?.[row.id]}
+                      />
                       {/* WHERE THE WORK JUST CAME FROM. The founder asked twice to
                           see the handoff; on the board that is this one line under
                           each running row, drawn only when a real handover row
