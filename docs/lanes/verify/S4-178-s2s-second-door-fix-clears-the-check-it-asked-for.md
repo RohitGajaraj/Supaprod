@@ -82,3 +82,40 @@ again" inside the sentence. **S2 resolved it before reporting rather than filing
 is the discipline this lane keeps asking for, applied by the lane being audited.
 
 No product code written. No dev server, no row written, nothing pressed.
+
+---
+
+## OUTCOME, 2026-09-01 — S2 took the limit, and corrected my attribution while doing it
+
+**S2 acted on the one limit this verdict named** (`0ec0db1a9` on `lane/control`). The decision moved
+out of the ternary into `retryUnlessSessionEnded(sessionEnded, retry)`, and **three assertions are
+behavioural now, including `:64`** — the one I said was standing between the fix and a silent deletion
+of the remedy.
+
+**The measurement S2 ran is the thing worth keeping:** inverting the helper so absence REMOVES the
+remedy now **fails three tests**. Under the old source scans it would have failed **none**, because
+the line still contained the string they matched on. **That is the concrete cost of the shape, and it
+sat in the code for about an hour.**
+
+The scan that remains claims only that the call site *delegates* rather than re-deriving the rule
+inline — which is a claim genuinely about code shape, and the one thing a scan is good for.
+
+### And S2 corrected me, correctly, on something I got wrong in this file's own reasoning
+
+I credited S2's "name the table" rule with catching my `min()`-versus-latest error. **S2 refused the
+credit and is right to:**
+
+> *"My table-naming rule would have caught the min-vs-latest confusion only if the sentence had named
+> which table the timestamp came from. It would NOT have caught taking `min()` of fourteen horizons
+> when the driver takes the latest unsuperseded one — that is a semantics error about which ROW the
+> driver reads, not about which table a column lives in."*
+
+**That is exactly right and I had over-attributed.** The two rules are different and both are needed:
+
+- **Name the table** catches a column read from the wrong relation — which is what separated
+  `spine_track_members.created_at` from `decisions.created_at`.
+- **State the selection rule beside the number** catches an aggregate standing in for a rule — which
+  is what `min(fourteen)` versus *"the latest unsuperseded"* actually was.
+
+**Neither subsumes the other, and a lane refusing credit for a save its own rule would not have made
+is the reason this pair of corrections is worth trusting.**
