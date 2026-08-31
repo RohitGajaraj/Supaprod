@@ -87,12 +87,34 @@ describe("the keycap is rendered, and only where it tells the truth", () => {
     );
   });
 
-  it("stands down inside a run, where the chip does something else", () => {
-    // On the spine a chip navigates to the station, so the keycap is the
-    // keyboard equivalent of the click. Inside one run the strip is a TABLIST
-    // and the chip switches tab without leaving the run, while `g d` would
-    // abandon the run entirely. Same glyph, different act — so it is not drawn.
-    expect(SRC).toMatch(/const stageKey = asTab \? "" : doorKey\(/);
+  it("stands down wherever the chip is not a door", () => {
+    /*
+     * WIDENED 2026-08-31 (F-146), AND THE OLD PREMISE IS NOW FALSE.
+     *
+     * This asserted `asTab ? "" : doorKey(...)` and explained it as: "on the
+     * spine a chip NAVIGATES to the station, so the keycap is the keyboard
+     * equivalent of the click." **The spine chip no longer navigates.** R-01
+     * has always said stations are the step list inside one run and never
+     * doors, and the founder reported the consequence himself — a rail door
+     * and a station chip both clickable, with nothing saying which was which.
+     *
+     * So the condition grew a second arm and the RULE underneath it is
+     * unchanged and now says more: **a keycap is drawn only where a key would
+     * do something.** Two ways that can be false now — inside a run, where the
+     * chip switches tab and `g d` would abandon the run; and on the workspace
+     * strip, where the chip is no longer a control at all.
+     */
+    expect(SRC).toMatch(/const stageKey = asTab \|\| !interactive \? "" : doorKey\(/);
+  });
+
+  it("makes the handler itself the switch, so a flag cannot disagree with it", () => {
+    /* `interactive` is read off `strip.onSelect` rather than off the mode. A
+       `readOnly` flag could be set wrong while a handler still existed, and the
+       two would disagree about whether the chip is a door; there is nothing to
+       disagree with when the handler IS the switch. */
+    expect(SRC).toMatch(/const interactive = typeof strip\.onSelect === "function";/);
+    // And the non-control branch really is not a button.
+    expect(SRC.replace(/\s+/g, " ")).toMatch(/return interactive \? \( <button/);
   });
 
   it("says it in words for a reader who cannot see a revealed keycap", () => {

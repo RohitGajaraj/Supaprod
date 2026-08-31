@@ -27,7 +27,6 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useNavigate } from "@tanstack/react-router";
 
 import { useWorkspace } from "@/hooks/use-workspace";
 import { studioSessionsKey } from "@/lib/query-keys";
@@ -38,7 +37,7 @@ import { listDueForecastsHere } from "@/lib/forecast.functions";
 import { listPendingOutcomes } from "@/lib/outcome.functions";
 import { runState } from "@/components/runs/run-state";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
-import { usePublishRunStrip, STATION_ROUTE, type RunStage } from "./run-strip";
+import { usePublishRunStrip, type RunStage } from "./run-strip";
 
 /**
  * Publish the workspace's spine, with `active` lit on the station you are
@@ -71,7 +70,6 @@ export function stripPollMs(failures: number): number | false {
 }
 
 export function useSpineStrip(active: AgentStation | null): void {
-  const navigate = useNavigate();
   /* THE WORKSPACE THIS STRIP IS STANDING IN (F-141).
      Both run queries behind `listStudioSessions` read `.eq("user_id", userId)`
      and, until S0 added the optional filter, nothing narrowed them to a
@@ -299,12 +297,31 @@ export function useSpineStrip(active: AgentStation | null): void {
           active,
           mode: "nav",
           label: "The seven stages, and where the work is",
-          // Clicking the station you are already on is not a navigation. Doing
-          // it anyway would remount the surface under the person for no reason.
-          onSelect: (station) => {
-            if (station === active) return;
-            void navigate({ to: STATION_ROUTE[station] });
-          },
+          /*
+           * ── NO `onSelect`, AND THAT IS THE WHOLE CHANGE (F-146) ──────────
+           *
+           * This published a handler that ran `navigate({ to:
+           * STATION_ROUTE[station] })`, so on the board the seven chips were
+           * seven doors. **Verified live before removing it**: clicking `Plan`
+           * on `/today` went to `/plan`.
+           *
+           * R-01 has said since the beginning that stations are never
+           * navigation, and `RANKED-BACKLOG` §T1-S2 names this exact line —
+           * *"delete stations as navigation entirely… that is not new design;
+           * it is four unexecuted rulings."* The founder reported the symptom
+           * himself (F-146): a rail door and a station chip were both
+           * clickable and nothing said which was a place and which was a step.
+           *
+           * **What is NOT lost is the reason this strip exists.** It still
+           * answers *"where is the work, and which stage wants me"* — the
+           * counts, the states and the marks are untouched. Only the door is
+           * gone, and with it the keycap that advertised one.
+           *
+           * The 2026-08-05 argument for the nav strip is on record in
+           * `run-strip.tsx` and it survives this: it argued the strip should be
+           * PRESENT everywhere, not that a chip should navigate. Presence is
+           * unchanged.
+           */
         }
       : null,
   );

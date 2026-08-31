@@ -15,7 +15,7 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1611,
+  "totalOccurrences": 1610,
   "fileCount": 135,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
@@ -264,7 +264,7 @@
       "--sp-": 7
     },
     "src/components/shell/AppFrame.tsx": {
-      "class:sp-": 57
+      "class:sp-": 56
     },
     "src/components/shell/BoardPanel.tsx": {
       "class:sp-": 7
