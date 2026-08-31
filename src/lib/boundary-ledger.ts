@@ -39,6 +39,8 @@ export type LedgerApprovalRow = {
   created_at: string;
   decided_at?: string | null;
   decision_reason?: string | null;
+  /** Optional because it is NULL on 18 of 176 answered rows; see `decidedBy`. */
+  decided_by?: string | null;
 };
 
 /** A row from `guardrail_hits`: a rule matched and stopped content. */
@@ -79,6 +81,22 @@ export type BoundaryEvent = {
   /** The person's note on the decision, when they left one. */
   outcomeReason: string | null;
   outcomeAt: string | null;
+  /*
+   * WHO ANSWERED, OR NULL WHEN THE ROW CANNOT SAY (gap #19, 2026-08-31).
+   *
+   * This surface is an audit trail, and it labels every settled crossing "You
+   * allowed it" / "You said no". `agent_approvals.decided_by` is NULL on 18 of
+   * 176 answered approvals, so on 10% of rows that "You" is an attribution the
+   * data does not support. S3 measured the important half before claiming it:
+   * `decided_by <> user_id` returns 0, so this is NOT a live misattribution of
+   * one person's decision to another -- it is an UNSUPPORTED attribution, which
+   * is a smaller wrong and still the wrong kind for an audit trail.
+   *
+   * Carried here rather than rendered here: null means "this row cannot name
+   * who", and the surface says something honestly weaker for those rows instead
+   * of asserting "you".
+   */
+  decidedBy: string | null;
 };
 
 /**
@@ -133,6 +151,7 @@ export function buildLedger(
       outcome: outcomeOfApproval(r.status),
       outcomeReason: (r.decision_reason ?? "").trim() || null,
       outcomeAt: r.decided_at ?? null,
+      decidedBy: r.decided_by ?? null,
     });
   }
 
@@ -151,6 +170,8 @@ export function buildLedger(
       outcome: "blocked",
       outcomeReason: null,
       outcomeAt: null,
+      // A rule hit was not answered by anybody, so there is nobody to name.
+      decidedBy: null,
     });
   }
 

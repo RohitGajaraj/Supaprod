@@ -98,7 +98,17 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  * `theme_id: "1"` are two different things, and a mark that fires on things
  * that are not the same is the other way this surface dies.
  */
-function groupKeyOf(a: Pick<Anchor, "targetKind" | "targetId">): string {
+/**
+ * THE GROUPING KEY, EXPORTED (S2's ask, 2026-08-31).
+ *
+ * A mark on screen has to answer "is this object the one that anchor points at"
+ * **exactly the way `collisionsFrom` groups**, including A-006's rule that
+ * identity is the id and not the key that named it — `row:prd` and bare `row`
+ * over the same uuid are one thing. Re-deriving that in a component makes a
+ * second copy of a rule that has already produced one wrong all-clear, so the
+ * rule is exported rather than described.
+ */
+export function groupKeyOf(a: Pick<Anchor, "targetKind" | "targetId">): string {
   const kind = a.targetKind.startsWith("row") && UUID.test(a.targetId) ? "row" : a.targetKind;
   return `${kind}\u0000${a.targetId}`;
 }
@@ -149,6 +159,38 @@ export function targetOf(args: unknown): { targetKind: string; targetId: string 
     // but one anchor per run is the contract, and the first is the stable pick.
     if (Array.isArray(v) && typeof v[0] === "string" && v[0].trim()) {
       return { targetKind: "file", targetId: v[0].trim() };
+    }
+  }
+
+  /*
+   * ── `changes: [{ path }]`, AND IT IS THE MOST SIDE-EFFECTING TOOL WE HAVE ──
+   *
+   * Added 2026-08-31. `studio.stage` names its file ONE LEVEL DOWN, and every
+   * key above reads the top level only, so the collision layer could not see a
+   * single staging call. Measured before writing this: of 46 `studio.stage`
+   * calls all time, **46 carry `changes[0].path` and 0 are seen by the keys
+   * above.** Two agents writing the same file is the CANONICAL collision this
+   * module exists to catch, and it was the one shape it was structurally blind
+   * to.
+   *
+   * S2 raised the anchor defect and explicitly said the key list was fine and
+   * not to widen it; they had checked `studio.commit`'s `files` (a count of 3,
+   * correctly dismissed) rather than `studio.stage`'s `changes`. Their finding
+   * stands and is fixed separately in `getWorkspaceAnchors`; this is a second,
+   * bigger one underneath it.
+   *
+   * First entry only, on exactly the reasoning `paths` already uses: a call
+   * touching many files is real, one anchor per run is the contract, and the
+   * first is the stable pick.
+   */
+  const changes = a.changes;
+  if (Array.isArray(changes) && changes.length > 0) {
+    const first = changes[0];
+    if (first && typeof first === "object") {
+      const pathValue = (first as Record<string, unknown>).path;
+      if (typeof pathValue === "string" && pathValue.trim()) {
+        return { targetKind: "file", targetId: pathValue.trim() };
+      }
     }
   }
 
