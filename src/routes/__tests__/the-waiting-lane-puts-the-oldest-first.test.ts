@@ -43,7 +43,9 @@ import { readFileSync } from "node:fs";
  * as a typo and "fixing" it.
  */
 
-const SRC = readFileSync("src/routes/_authenticated.today.tsx", "utf8");
+// Subject moved 2026-08-31: the board was lifted out of the route file into
+// `src/components/today/Board.tsx`. The CLAIM is unchanged.
+const SRC = readFileSync("src/components/today/Board.tsx", "utf8");
 
 /** Text of the memo that builds `name`, up to the end of its sort call. */
 function memoFor(name: string): string {

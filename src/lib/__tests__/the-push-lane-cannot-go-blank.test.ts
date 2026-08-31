@@ -32,7 +32,11 @@ const LANE = readFileSync(
   "utf8",
 );
 const TODAY = readFileSync(
-  join(import.meta.dir, "..", "..", "routes", "_authenticated.today.tsx"),
+  // EDITED BY S2 IN ANOTHER LANE'S PREFIX, authorised by name in
+  // `coordination/answers/S0-A03-land-all-four-in-one-commit-and-the-three-lines-are-authorised.md`.
+  // One line, and only the SUBJECT of the assertion: the board moved out of the
+  // route file into `src/components/today/Board.tsx`. The claim is untouched.
+  join(import.meta.dir, "..", "..", "components", "today", "Board.tsx"),
   "utf8",
 );
 

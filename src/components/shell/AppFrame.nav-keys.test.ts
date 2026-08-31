@@ -87,20 +87,23 @@ describe("which rail doors the keyboard reaches", () => {
   it("keys every rail row, and leaves none unreachable", () => {
     const keyed = RAIL_DOORS.filter((r) => r.key !== "").map((r) => r.to);
     const unkeyed = RAIL_DOORS.filter((r) => r.key === "").map((r) => r.to);
-    // SEVEN since 2026-08-25. Approvals and Threads arrived 2026-08-24 with
-    // doors of their own (Today gave its `t` to Threads and took `o` - g o,
-    // the word the chord acts). Work arrived 2026-08-25: the /start composer
-    // and every /track/:id run screen finally have a named, keyed door - the
-    // founder's "no home or entry door" ruling, `g w`.
-    expect(keyed).toEqual([
-      "/today",
-      "/approvals",
-      "/start",
-      "/runs",
-      "/brain",
-      "/threads",
-      "/engine-room",
-    ]);
+    /*
+     * SIX SINCE 2026-08-31, AND THE ORDER IS THE FINDING.
+     *
+     * /start IS FIRST NOW, and that is F-144: `SIGNED_IN_HOME` was flipped to
+     * /start on 2026-08-25 and the rail was not flipped with it, so the door
+     * at the top was /today while the surface a person landed on was third.
+     * The order is asserted rather than sorted precisely because the position
+     * IS the defect - a set comparison would have passed throughout the six
+     * days the founder was reporting it.
+     *
+     * /approvals IS GONE, folded into the /today row (F-145): U-050 had
+     * already moved its five filters onto the board, so it was a second door
+     * onto a surface the first one holds. It keeps its key and its lit state
+     * through `owns`, which is what `rail-covers-keys` proves next door - a
+     * fold that dropped the key would be a silent regression that typechecks.
+     */
+    expect(keyed).toEqual(["/start", "/today", "/brain", "/threads", "/engine-room"]);
     expect(unkeyed).toEqual([]);
   });
 
@@ -123,7 +126,19 @@ describe("which rail doors the keyboard reaches", () => {
     // /crew joined this list on 2026-08-15 for the same reason Settings is on
     // it: it is a door you open from the foot, not a place you live. Its
     // surface, its route and its key are unchanged.
+    //
+    // /approvals JOINED THIS LIST 2026-08-31, for the same reason the seven
+    // stations are on it: it folded into the board and no longer has a row of
+    // its own. Being here is the record of a decision, not of darkness - the
+    // /today row owns it through BOARD_PATHS and lights for it.
+    //
+    // /runs JOINED IT 2026-08-31 TOO, and it is the sharpest entry on the
+    // list: the row that used to be here was the R-01 violation itself. Its
+    // key still fires, and the Work row owns the destination through
+    // RUN_PATHS, so the keyboard reaches a surface the rail can name -- which
+    // is all this list has ever been about.
     expect(noRow).toEqual([
+      "/approvals",
       "/discover",
       "/decide",
       "/plan",
@@ -131,6 +146,7 @@ describe("which rail doors the keyboard reaches", () => {
       "/build",
       "/ship",
       "/learn",
+      "/runs",
       "/crew",
       "/settings",
     ]);
