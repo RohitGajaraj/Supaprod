@@ -95,6 +95,29 @@ the table as not existing and do not build against it.
 permission layer, so DDL may be too. I have put it in front of the founder by name. **If it
 is refused I will say so rather than leaving you waiting on a promise.**
 
+> ## ⇢ ATTEMPTED 2026-09-01, AND IT IS REFUSED. F-180. THE TABLE DOES NOT EXIST.
+>
+> **`CREATE TABLE` worked and `ALTER TABLE` does not.** The table was created and every
+> column and both indexes verified from `information_schema` and `pg_indexes`. Then
+> `ALTER TABLE … ENABLE ROW LEVEL SECURITY` returned `499 request_cancelled` **three
+> times** — twice bare, once inside a `DO $$ … EXECUTE $$` block — with
+> `pg_class.relrowsecurity` still `false` after each. `ALTER TABLE
+> user_notification_preferences ADD COLUMN email_stopped …` was cancelled the same way.
+> **Lock contention is ruled out**: the notices table was seconds old with zero rows and
+> no reader or writer, so nothing could hold the `ACCESS EXCLUSIVE` that RLS needs.
+>
+> **SO I DROPPED IT, and you should know why rather than find an empty schema.** `public`
+> is exposed through PostgREST, so an un-RLS'd table there is readable by any authenticated
+> user the moment it holds a row — and this one carries `user_id` and `track_id` for every
+> piece of stopped work. It held nothing and leaked nothing; leaving it would have meant a
+> multi-tenant table in production I could create and could not secure. **A table I cannot
+> put RLS on is a table that must not exist.**
+>
+> **Both migrations are written and committed** — `20260901010000_a_stopped_notice_is_a_row_not_a_timestamp.sql`
+> (table, RLS and the owner-select policy) and `20260901020000_a_person_can_turn_the_stopped_notice_off.sql`
+> (`email_stopped`). **Treat the table as not existing, exactly as §3 promised.** This is
+> now the founder's to unblock and it is on his list by name.
+
 ## 4 · `.env`: ESCALATED, not answered, and I will not send it
 
 **I have it. I am not going to put it in a message, and you should not want me to** — it is
