@@ -1990,11 +1990,32 @@ export const getWorkspaceAnchors = createServerFn({ method: "GET" })
 
       if (callsErr || !calls) return { anchors: [], collisions: [], unknowableRuns };
 
-      // Newest call per trace. The list is already newest-first, so the first
-      // hit per trace wins and nothing needs sorting again.
-      const newestByTrace = new Map<
+      /*
+       * ── THE VERB IS THE NEWEST CALL; THE PLACE IS THE NEWEST CALL THAT NAMED
+       *    ONE. Two different rows, on purpose (2026-08-31, S2's finding). ────
+       *
+       * This used to take the newest call per trace and drop the run entirely
+       * when that call named nothing. Measured by S2: **1,983 of 2,271 calls
+       * over 60 days resolve to no target**, and the ordinary agent shape is
+       * `repo.read` (names a file) then `ci.logs` then `studio.stage`, so a run
+       * demonstrably working on a file was anchored for about nine seconds of a
+       * ninety-eight second run and invisible for the rest.
+       *
+       * The 1,983 are not a bug in `targetOf`: they are `signals.list`,
+       * `*.search` and creates whose target does not exist until the call
+       * RETURNS. There is nothing to name, so the fix is not to widen the key
+       * list -- it is to stop forgetting the last place we DID know.
+       *
+       * `createdAt` is the ANCHORING call's timestamp rather than the newest
+       * one, because the position must trace to the specific row that justifies
+       * it. The verb is the newest call, because that is what the teammate is
+       * doing now. A reader seeing "staging" over `AddressStep.tsx` is being
+       * told something true in the past tense, which is what the spec asks for.
+       */
+      const newestByTrace = new Map<string, { tool_name: string; created_at: string }>();
+      const newestNamedByTrace = new Map<
         string,
-        { tool_name: string; args: unknown; created_at: string }
+        { targetKind: string; targetId: string; created_at: string }
       >();
       for (const c of calls as Array<{
         trace_id: string;
@@ -2003,22 +2024,29 @@ export const getWorkspaceAnchors = createServerFn({ method: "GET" })
         created_at: string;
       }>) {
         if (!newestByTrace.has(c.trace_id)) newestByTrace.set(c.trace_id, c);
+        if (!newestNamedByTrace.has(c.trace_id)) {
+          const t = targetOf(c.args);
+          if (t) newestNamedByTrace.set(c.trace_id, { ...t, created_at: c.created_at });
+        }
       }
 
       const anchors: Anchor[] = [];
       for (const run of traceable) {
-        const call = newestByTrace.get(run.trace_id as string);
-        if (!call) continue;
-        const target = targetOf(call.args);
-        if (!target) continue; // Names nothing: no anchor, and not "safe".
+        const verb = newestByTrace.get(run.trace_id as string);
+        const placed = newestNamedByTrace.get(run.trace_id as string);
+        // NOTHING THIS RUN HAS DONE EVER NAMED A TARGET, which is still not the
+        // same as "touching nothing": the run is absent from the view rather
+        // than drawn as safe. F-76's distinction, and the one a collision
+        // surface is most tempted to collapse.
+        if (!verb || !placed) continue;
         anchors.push({
           runId: run.id,
           agentSlug: run.agent_slug,
           missionId: run.mission_id,
-          toolName: call.tool_name,
-          targetKind: target.targetKind,
-          targetId: target.targetId,
-          createdAt: call.created_at,
+          toolName: verb.tool_name,
+          targetKind: placed.targetKind,
+          targetId: placed.targetId,
+          createdAt: placed.created_at,
         });
       }
 
