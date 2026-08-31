@@ -104,3 +104,75 @@ which my own `check:branch-idiom` had to be re-proved after I narrowed its scope
 is the cheaper half and is separable from F-155.
 
 No product code written. No dev server, no row written, nothing pressed.
+
+---
+
+## AMENDED 2026-09-01 — S2 corrected my count, and the candidate has since changed hold
+
+### S2's correction is right, and I am restating it more narrowly than S2 did
+
+**Re-measured since 18:00 UTC — eighteen drives, not fourteen:**
+
+| track | hold | drives | runs | artifacts |
+| --- | --- | --- | --- | --- |
+| `6817e386` | `waiting-on-a-person` | **6** | 1 | **1** |
+| `d2263583` | `needs-evidence` | 5 | 0 | **0** |
+| `6199f3df` | `needs-a-waived-station` | 5 | 0 | **0** |
+| `060bc5ff` | **`produced-nothing`** | 2 | 3 | **0** |
+
+**S2 offered "potentially sixteen of eighteen". I would not claim that number.** `6817e386` filed
+**one artifact** across its six drives, so it is not producing nothing — it is producing very little.
+**The defensible figure is ten of eighteen**: `d2263583` and `6199f3df` between them took ten drives
+and filed zero runs and zero artifacts. **S2's shape is right and larger than I had it; the strict
+count is ten, not sixteen.**
+
+### And S2's own finding is confirmed to the digit
+
+S2 asked what else on their board derives from drives, and found `lastMoved` reading
+`spine_tracks.driven_at`. Measured independently, `status='open'`:
+
+| | S2 | me |
+| --- | --- | --- |
+| open tracks with a `driven_at` | 62 | **62** |
+| `driven_at` later than `updated_at` | 58 | **58** |
+| …by more than five minutes | 57 | **57** |
+| worst gap | 23.5 days | **33,827 min = 23.5 days** |
+
+**Every figure matches.** So a row said *"moved 2m ago"* about work that last actually changed three
+weeks ago.
+
+**And the closed loop S2 found is the part that matters, because it is my own finding's alarm:**
+`last-movement.ts` took the latest of `[updated_at, updatedAt, drivenAt]`; the sweep runs every ten
+minutes and `TRACK_FRESH_MS` is ten minutes. **So `drivenAt` held `lastMoved` permanently fresh and
+"Nothing has moved for …" could almost never fire.**
+
+> **The drives that moved nothing were suppressing the warning that nothing was moving.**
+
+**S4-179 is the finding that alarm would have raised**, and it could not raise it because the thing it
+was watching for was also the thing keeping it quiet.
+
+## The candidate has changed hold, and the agents are behaving perfectly
+
+`060bc5ff` has moved from `out-of-time` to **`produced-nothing`**, with **three completed runs and
+zero artifacts**. Its subject is *"A homeowner who requests a password reset gets an email whose link
+404s."* All three Discover seats ran, completed, and said the same thing:
+
+- **discovery-scout** — *"No evidence found for…"*
+- **researcher** — *"No evidence exists in the workspace about password reset email links returning
+  404 errors."*
+- **customer-insights** — *"No verbatim customer signals about password reset email links 404ing were
+  found in the workspace."*
+
+**Three seats independently found nothing and each said so plainly. That is correct behaviour and it
+is recorded as `produced-nothing`.**
+
+**This is not a defect in the hold.** `produced-nothing` is the per-attempt hold; `needs-evidence` is
+what `decideCorrection` escalates to at the ceiling, and `STATION_NEEDS` treats Discover's
+precondition as coming from outside the loop, which is right. **The machinery is behaving as designed
+and so are the agents.**
+
+**It is the answer to "what stopped it THIS time", and the answer is not a bug:** the second
+acceptance candidate in three months is dying at station one **because the workspace holds no evidence
+about the thing it was asked to investigate.** The researcher named the reason itself — the signal
+ingestion. **A loop that discovers cannot discover from an empty source**, and that is a supply
+problem rather than a spine problem.
