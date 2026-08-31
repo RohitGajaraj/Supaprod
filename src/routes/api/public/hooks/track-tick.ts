@@ -9,6 +9,12 @@ import { notInList, sampleWorkspaceIds } from "@/lib/ticks/real-workspaces.serve
 // The sweep and the driver now stop on the SAME clock. Sharing the predicate
 // rather than re-deriving one is what keeps them from drifting apart.
 import { outOfTime } from "@/lib/spine/track-caps.server";
+import {
+  HOLDS_THAT_WAIT_ON_A_DATE,
+  pickDrivable,
+  scheduledAwayIds,
+} from "@/lib/spine/waiting-on-a-date-is-not-waiting-in-a-queue";
+import { dueDatesFor } from "@/lib/spine/waiting-on-a-date-is-not-waiting-in-a-queue.server";
 
 /**
  * The heartbeat that makes the loop run when nobody is watching.
@@ -119,9 +125,19 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
           const notTerminal = TERMINAL_HOLDS.map((h) => `last_hold.neq.${h}`).join(",");
           trackQuery = trackQuery.or(`last_hold.is.null,and(${notTerminal})`) as never;
 
+          /*
+           * OVER-FETCHED ON PURPOSE (F-183). A track waiting on a forecast
+           * horizon is filtered out below, and the freed slot has to go to the
+           * next track rather than being lost — which it would be if the SQL
+           * limit were still the final count.
+           *
+           * Bounded at 3x rather than unbounded: the filter only ever removes
+           * `needs-evidence` tracks with a future date, and a workspace with ten
+           * of those and nothing live has a different problem than a page size.
+           */
           const { data: tracks, error } = await trackQuery
             .order("driven_at", { ascending: true, nullsFirst: true })
-            .limit(MAX_TRACKS_PER_TICK);
+            .limit(MAX_TRACKS_PER_TICK * 3);
 
           if (error) {
             const code = (error as { code?: string }).code;
@@ -132,7 +148,48 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
             throw new Error(error.message);
           }
 
-          const rows = (tracks ?? []) as unknown as DriveRow[];
+          const fetched = (tracks ?? []) as unknown as DriveRow[];
+
+          /*
+           * ── WAITING ON A DATE IS NOT WAITING IN A QUEUE (F-183, from S4-179) ──
+           *
+           * Measured 2026-08-31, drives since 18:00 UTC across four live tracks:
+           * 6 / 5 / 5 / 2. **Ten of eighteen went to two tracks that could not
+           * progress**, and the live acceptance candidate got two. Drives are
+           * sequential against one shared 45-second deadline, so a slot spent on
+           * a track that will hold is a slot the working one does not get.
+           *
+           * `d2263583` is not stuck and nothing is wrong with it: it is
+           * correctly waiting for a 2026-10-15 forecast horizon. **Work with a
+           * known return date does not need to be called terminal — it needs to
+           * be told "not before then".** Adding it to `TERMINAL_HOLDS` would
+           * delete the only signal the track exists, which S4 refused before
+           * proposing this and which the block above already warns about.
+           *
+           * ONE EXTRA READ PER TICK, and only when a candidate actually holds
+           * `needs-evidence`. A failed read schedules nothing away.
+           */
+          const waiting = fetched.filter((r) =>
+            HOLDS_THAT_WAIT_ON_A_DATE.includes(
+              ((r as { last_hold?: string | null }).last_hold ?? "") as never,
+            ),
+          );
+          const dueByTrack = waiting.length
+            ? await dueDatesFor(
+                supabaseAdmin as unknown as SupabaseClient,
+                waiting.map((r) => r.id),
+              )
+            : new Map<string, string | null>();
+          const scheduledAway = scheduledAwayIds(
+            fetched as unknown as Array<{ id: string; last_hold?: string | null }>,
+            dueByTrack,
+            new Date(),
+          );
+          const rows = pickDrivable(
+            fetched as unknown as Array<{ id: string; last_hold?: string | null }>,
+            scheduledAway,
+            MAX_TRACKS_PER_TICK,
+          ) as unknown as DriveRow[];
           // One clock for the whole sweep. The Worker's request budget is spent
           // by every track together, so the deadline has to be shared rather
           // than restarted per track.
