@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { readOnBranchInstruction } from "@/lib/repo-ref-brief";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -1159,6 +1160,23 @@ export async function runCiPollTick() {
           `<<<CI-OUTPUT-END>>>`,
           ``,
           `Your job: diagnose from the detail above (call ci.logs with pr_number ${cs.pr_number} if you need more), read the failing files with repo.read, stage the minimal fix with studio.stage, then append it with studio.fix.commit. Do NOT open or merge PRs. Do NOT touch files unrelated to this changeset. After the fix commit, finish with a one-line summary of what was wrong and what you changed.`,
+          /*
+           * F-153. WITHOUT THIS THE RUN READS A DIFFERENT PROJECT AND SAYS IT IS FINE.
+           *
+           * F-54 established that a station working on a branch must pass `ref`,
+           * and wrote the instruction into the BUILD station's brief only. This
+           * brief puts an agent in front of the same branch and never heard it.
+           * On 2026-08-31 both dispatches called `repo.read {"paths":[...]}` with
+           * no ref, read the default branch where the code compiles, found
+           * nothing wrong, and staged back what they read -- md5(new_content) ==
+           * md5(base_content) on both paths, which reverted the changeset's own
+           * work while reporting "restoring syntactic validity".
+           *
+           * The sentence is imported rather than repeated, because repeating it
+           * is what produced this defect.
+           */
+          readOnBranchInstruction(cs.branch),
+          `A fix that leaves a file identical to what is already on the branch is not a fix, and studio.fix.commit will refuse it. If your reading of a file shows nothing wrong, do NOT stage it back unchanged: say so plainly in your summary instead, and check that you read the branch named above rather than the default one.`,
         ].join("\n");
 
         /* SAME SHAPE, MORE EXPENSIVE DUPLICATE. The two guards above are a

@@ -5,6 +5,11 @@
  * `confirm` or `review` mode are queued as agent_approvals instead of run.
  */
 import { z } from "zod";
+import {
+  stagedRevertPaths,
+  revertRefusalMessage,
+  type StagedChangeLike,
+} from "@/lib/studio-staged-revert";
 import { humanizeText } from "@/lib/ai/humanize";
 import {
   defaultChecks,
@@ -2941,6 +2946,57 @@ const studioFixCommit = def({
         `CI fix budget exhausted (${attempts}/${CI_FIX_BUDGET} autonomous attempts). Stop and report; a human decides the next move at the merge gate.`,
       );
     }
+    /*
+     * ── A FIX THAT CHANGES NOTHING IS NOT A FIX, IT IS A REVERT (F-154) ────
+     *
+     * 2026-08-31. Two dispatched repair runs each staged a file whose content
+     * was byte-identical to its `base_content` -- md5 equal on
+     * `AddressStep.tsx` (cf0adcc1) and `checkout.test.ts` (4faac4ea) -- and
+     * both reported success with a summary claiming "restoring syntactic
+     * validity". Committing that would have written the pristine file over the
+     * changeset's own work, turned CI green because the CHANGE was undone
+     * rather than the BUG fixed, and burned the fix budget re-creating the
+     * damage it was dispatched to repair.
+     *
+     * The proximate cause was F-153 (no `ref`, so the runs read the default
+     * branch, found it healthy, and wrote back what they read) and that is
+     * fixed at the brief. THIS GUARD IS NOT THAT FIX. It is the check that
+     * catches the CLASS however it is caused, including causes nobody has
+     * found yet, and it is the reason it was safe to stop relying on an
+     * approval gate that only ever blocked this by accident (F-152). SESSION-0
+     * §1: a station checks its own output against what it was asked for before
+     * it may hand on.
+     *
+     * The rule itself, and the paragraph on what `base_content` actually means
+     * (it is the pristine FIRST-stage snapshot, not the branch head, and that is
+     * the stronger comparison rather than a stale one), live in
+     * `@/lib/studio-staged-revert` where they can be tested directly.
+     *
+     * It refuses the whole commit rather than dropping the offending path,
+     * because a commit is one act against a branch: silently committing the
+     * half that is real would leave the agent believing it had shipped a fix it
+     * had only partly staged, which is the same silent-success this is here to
+     * end. Rows with no `base_content` are files this changeset CREATED, where
+     * equality is meaningless, so they are excluded rather than guessed at.
+     */
+    const { data: stagedRows, error: stagedErr } = await supabase
+      .from("studio_changes")
+      .select("path, base_content, new_content")
+      .eq("changeset_id", changeset.id);
+    /*
+     * A FAILED READ IS NOT AN EMPTY STAGE (F-76, and `src/lib/read-failure.ts`
+     * holds the rule). Treating an unreadable staging area as "nothing looks
+     * like a revert" is exactly the permissive answer this guard exists to
+     * refuse, so it raises instead.
+     */
+    if (stagedErr) {
+      throw new Error(
+        `Could not read the staged changes to check them, so this commit is refused rather than guessed at: ${stagedErr.message}`,
+      );
+    }
+    const reverts = stagedRevertPaths(stagedRows as StagedChangeLike[] | null);
+    if (reverts.length > 0) throw new Error(revertRefusalMessage(reverts));
+
     const result = (await studioCommit.run(a, ctx)) as { cached?: boolean };
     // The budget is consumed PER COMMIT by the tool itself (not only by the
     // tick's dispatch), so repeated calls inside one run genuinely trip the
