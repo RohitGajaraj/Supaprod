@@ -1,24 +1,25 @@
 # NOW — S1 · THE RUN
 
-**Unit:** RUN-154 · drove the wired reader. **DEVSERVER 8080, killed and verified clear.**
+**Unit:** RUN-155 · the acceptance query is armed to report a FALSE POSITIVE. Time-sensitive.
 
-**State:** driven, no code changed. RUN-153's one red (S0's `KNOWN_UNREACHED: handoffs`) still stands
-and is still not mine.
+**State:** no code changed, measured and reported to S0 and S4.
 
-**It works on real rows.** `a30238f5`, 4 reachable handoffs, Discover pane: *"Nothing Discover handed
-on says what is still unsettled…"* + **Say what is unsettled**. So `said-nothing` is **driven**, which
-exercises S0's mission fallback, the narrowing, and the absent-vs-empty split on live data.
+**Cause of S4's F-178, and it is a seventeen-minute miss.** `d2263583`'s decline fired at
+**17:31:31.602 UTC**, the track moved to Learn **84ms later**, and S0's waiver-persist fix
+`a794682d` landed at **17:48:17 UTC**. F-174 worked; the column that records it did not exist yet.
+**The four waivers were never written.**
 
-**Two corrections from driving:** the section is one click away on a track parked past Discover (right,
-but worth knowing); and a track in another workspace renders *"That work could not be found"* — the 8
-tracks with handoffs are **not all reachable by one signed-in person**.
+**Consequence nobody had stated.** `waived='[]'` is the clause that proves all seven were walked. On
+this track it is `[]` because the waivers were LOST, so it certifies a track driven at **3 of 7**
+stations (`sense` 16, `decide` 9, `learn` 4 — never define/design/build/ship).
 
-**S4-174 decides what this can ever show.** `enqueueHandoff` has **no caller in `src/lib/spine/**`** —
-confirmed. Handoffs are a **mission-path** feature and the acceptance runs on the **track path**. So
-the producer gap is two deep and S0 fixed only the first:
+**And every other disqualifier is already clear: 0 presses, 0 answered approvals.** The ONLY thing
+holding it out of the honest query is `status='open'` — the `needs-evidence` hold waiting on its
+forecast. **When that settles, the honest query returns 1 and reports the acceptance MET.**
+Right now: short form **2** · with `status='done'` **1** · honest form **0**.
 
-1. ~~writer never set `track_id`~~ — **fixed today**
-2. **nothing on the track path calls the writer at all**
+**S0's fix stops the next one and does not repair this row.** Code fix, data problem — same shape as
+F-85, where the prose was corrected and 12,695 rows stayed as they were.
 
 **Not DEVSERVER** (the `asked` branch still has no live data: 0 tracks carry either field).
 S1 · 20:0x IST · WORKING · NO DEVSERVER (8080 held for browser checks, killed after each; note `kill` reported clear once while the process survived, so I now verify with lsof AFTER the kill, and `bun run dev` binds 8080 not 5173 -- S3's finding, the R-21 guard named a port that is always free) · TEN UNITS SHIPPED AND DRIVEN, RUN-124..133, all pushed to origin/lane/run · RUN-124 the Discover shape (#16) · RUN-125 the terminal-hold split, which I shipped WRONG first under an unreachable branch and only a browser caught · RUN-126 demo-fixture provenance on the forecast desk (S4-166) · RUN-127 the Take this control, whose file driving rewrote twice · RUN-128 what a station produced (#28) · RUN-129 the same claim left stale on SIGNED_IN_HOME and TrackStart, found by writing the guard · RUN-130 a station the loop gave up on was drawn as awaiting an approval, caught by my own census one unit after I wrote it · RUN-131 the SDLC translation (#26) plus A07's board mount, my half · RUN-132 S0's return edge had no surface and its origin was clamped, truncating the forecast it carries verbatim · RUN-133 the leave-promise made honest at the door · WHY NOT U7/U8/U9: U7 is claimed by the other session writing this file; U8's band columns DO NOT EXIST (information_schema returns nothing for %band% on decisions, and S0 confirms gap #15 is the half of Move 4 they have not built), so drawing "how it reads" would stage a state the data cannot prove; U9's emitters are S0's and I refused to invent their frontmatter in RUN-127 · PRESENCE AUDITED AGAINST ITS OWN IRON LAW AND IT HOLDS: zero timers under presence, two guards already in place, nothing staged · THE ONE CLAIM I MAY NOT MAKE ALONE IS STILL LIVE IN ONE PLACE AND IT IS NOT MINE: character.ts:228 says "you can leave this page and I'll keep going" in the thinking state, while 97 of 106 tracks carry a hold and the verdict email has fired zero times. Reported to S0 · OPEN WITH S0, all messaged per F-156: getTrackHandoffs (unblocks #29), DueForecast's dropped workspace_id, and from_learning_id on Track (all three taken, queued as theirs) · S0 answered the return-edge question definitively: the pass has NEVER been dispatched, outcome-tick is hourly and the edge reached production at 14:30:03Z, so its first possible run is 15:00Z, and the real record owes exactly ONE track · NEXT: F-168 is fixed and d2263583 released for retry, so Decide can now walk; I will watch what that run does to my surfaces and take the first thing it breaks · gates: tsc 0, 13,278 tests 0 fail across 919 files, eslint clean, docs:check clean · src/components/{track,spine,presence,decisions,learn,ask,discover}/** and my five routes
@@ -61,8 +62,10 @@ prop."** I passed it. `src/lib/**` is S0's, so **I have not touched their line.*
 **So my section says "nothing handed on" on every acceptance-path track, forever, until (2) closes.**
 Honest, and it means #29's *answer one* half cannot fire where it matters; the raise control is the
 only live half there.
+**Proposed, and it cannot be lost:** add
+`(SELECT count(DISTINCT station) FROM track_drives WHERE track_id = t.id) = 7`.
+`d2263583` returns **3**. Excluded on evidence rather than on a column that happened to be written.
 
-**Refused `constraints`** on the same gate: 13 handoffs carry it, **0 of them reachable from a track.**
-Fifth producer gap today.
+**I do not write the database** — the repair and the query are S0's.
 
-**Next:** taking that two-deep gap to S0 as the thing that decides whether #29 can ever light up.
+**Not DEVSERVER.**
