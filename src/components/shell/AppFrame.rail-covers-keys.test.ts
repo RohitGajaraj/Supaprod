@@ -36,6 +36,7 @@ import { join } from "node:path";
 import { railOwnerOf, settingsOwns } from "./AppFrame";
 import { STATION_ROUTE } from "./run-strip";
 import { ENGINE_ROOM_PATHS, FOOTER_NAV, PRIMARY_NAV, navKeyHint } from "@/lib/nav-model";
+import { SIGNED_IN_HOME } from "./post-auth-home";
 
 const SRC = readFileSync(join(import.meta.dir, "AppFrame.tsx"), "utf8");
 
@@ -121,14 +122,36 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // NEIGHBOUR is the same bug seen from the other side - that row could
     // never light at all. Both are caught by the same assertion.
     const rows = [...railBlock().matchAll(/to:\s*"([^"]+)"/g)].map((m) => m[1]);
-    // SEVEN since 2026-08-25: Today, Approvals, Work, Runs, Brain, Threads,
-    // Guardrails. Crew left for Settings on 2026-08-15, Approvals and
-    // Threads arrived 2026-08-24, and Work arrived 2026-08-25 owning /start
-    // and the /track/:id run screens; the count is asserted rather than left
-    // open because an empty or halved rail is exactly the failure this file
-    // exists to catch, and a `>= 1` would sail past it.
-    expect(rows.length).toBe(7);
+    /*
+     * FIVE SPELLED PATHS AND SIX ROWS, AND THE GAP IS THE POINT (F-144).
+     *
+     * The home row no longer spells its destination. It names
+     * `SIGNED_IN_HOME`, so this scan - which reads the block as source text -
+     * cannot see it, and the count drops by one while the rail does not.
+     *
+     * That is the fix, not a hole in it. The 2026-08-25 flip moved the landing
+     * to /start and left the rail's first door at /today, because the two
+     * facts were two literals in two files with nothing joining them. A person
+     * landed third-in-the-list, read the top door as home, pressed it, and
+     * arrived at the surface the flip existed to escape. Spelling "/start"
+     * back into that row would restore this count and restore the defect with
+     * it, so the count going DOWN is what proves the derivation is in place,
+     * and the assertion below names the identifier so it cannot quietly
+     * become a literal again.
+     *
+     * The count is still asserted rather than left open because an empty or
+     * halved rail is exactly the failure this file exists to catch, and a
+     * `>= 1` would sail past it.
+     */
+    expect(rows.length).toBe(5);
     for (const r of rows) expect(railOwnerOf(r)).toBe(r);
+    // THE HOME DOOR IS DERIVED, NOT SPELLED. Asserted on the source, because
+    // that is the only place the difference is visible: at runtime the row's
+    // `to` is the string either way, so a test that only read the value could
+    // not tell a derived door from a copied one.
+    expect(railBlock()).toContain("to: SIGNED_IN_HOME");
+    // And it really is a door, not just a name: the rail can light for it.
+    expect(railOwnerOf(SIGNED_IN_HOME)).toBe(SIGNED_IN_HOME);
   });
 
   it("keeps the two ownership lists disjoint", () => {
@@ -148,8 +171,12 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     const block = railBlock();
     expect(block).not.toMatch(/owns:\s*\[/);
     const owns = [...block.matchAll(/owns:\s*([A-Z][A-Z_]*)\b/g)].map((m) => m[1]);
-    // One per row, so a row cannot drop the field and quietly go dark.
-    expect(owns.length).toBe(7);
+    // One per row, so a row cannot drop the field and quietly go dark. SIX
+    // since 2026-08-31, and this is the count that still sees every row: the
+    // home row is invisible to the path scan above but not to this one, so
+    // "how many rows are there" and "how many spell their path" are two
+    // different questions and the pair of numbers answers both.
+    expect(owns.length).toBe(6);
   });
 
   it("owns exactly the seven stations the strip navigates to", () => {
@@ -186,7 +213,12 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // Previously, Approvals, Boundary, and Threads were unreachable dead zones.
     // Now each is owned: Today owns Approvals, Brain owns Threads, and the
     // Settings door owns Boundary since Agents moved behind it on 2026-08-15.
-    expect(railOwnerOf("/approvals")).toBe("/approvals");
+    // /approvals HAS NO ROW OF ITS OWN SINCE 2026-08-31 (F-145) and this
+    // assertion is the whole reason the fold is safe: it folded into the
+    // board, and the board's row must answer for it or `g v` lands somewhere
+    // the shell cannot name. A fold that drops a caller is a silent
+    // regression that typechecks, and this is where it would show.
+    expect(railOwnerOf("/approvals")).toBe("/today");
     expect(railOwnerOf("/threads")).toBe("/threads");
 
     // Settings is a special case: it's not a row, it's a foot icon, so
