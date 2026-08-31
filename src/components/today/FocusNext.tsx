@@ -19,9 +19,9 @@ export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
   });
 
   /* A FAILED READ IS NOT SILENCE, and until 2026-08-10 this line made it look
-     like silence: `isError` was folded in with `isLoading` and "no data", so the
-     Director's read vanished from Today with no mark whenever the brain could
-     not be reached.
+     like silence: `isError` was folded in with `isLoading` and "no data", so
+     this region -- then called "Director's read" -- vanished from Today with no
+     mark whenever the brain could not be reached.
      That is the one failure this product cannot afford to render quietly. The
      whole claim is that the brain has something to say about what to build next;
      an empty space where its recommendation should be reads as "it considered
@@ -44,7 +44,7 @@ export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
       <section className="today-director" aria-labelledby="today-director-title">
         <div className="today-section-head">
           <span className="today-kicker" id="today-director-title">
-            Director&rsquo;s read
+            Suggested next
           </span>
         </div>
         {/* THE SERVER KNEW WHY AND THIS THREW IT AWAY.
@@ -80,7 +80,12 @@ export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
   return (
     <section className="today-director" aria-labelledby="today-director-title">
       <div className="today-section-head">
-        <span className="today-kicker">Director's read</span>
+        {/* "Suggested next", not "Director's read". FOUNDER, 2026-09-01: keep
+            surface words relatable and do not make the product feel complex.
+            "Director" is this product's own LAYER name (README's "01 the
+            director") - architecture vocabulary on a screen, which is the exact
+            §12 fault, and a reader has no way to know what a director is here. */}
+        <span className="today-kicker">Suggested next</span>
         <span className="today-director-rank">Ranked from live evidence</span>
       </div>
       <h2 id="today-director-title" className="today-director-title">
