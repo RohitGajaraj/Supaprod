@@ -211,6 +211,49 @@ describe("the file itself", () => {
   });
 });
 
+describe("the playbook's word for this station, in the file and only in the file", () => {
+  it("names their stage and their artifact for a station they have", () => {
+    /*
+     * Gap #26. §STATIONS says our refusal to renumber is PAID FOR by a
+     * translation "so a customer asking 'where is my spec.md' is answered in
+     * their words", and THIS FILE is that reader: it is what gets handed to
+     * somebody else's builder, and that builder speaks the playbook.
+     */
+    const out = stationFile(input({ station: "define", stationLabel: "Plan" }));
+    expect(out).toContain(
+      "On the AI-native SDLC this is the Design stage, and this file is its spec.md.",
+    );
+  });
+
+  it("names the stage alone where their playbook has no file for it", () => {
+    // Their Maintain has no artifact; ours also grades a forecast, which their
+    // pipeline has no equivalent for at all. So the line stops at the stage.
+    const out = stationFile(input({ station: "learn", stationLabel: "Learn" }));
+    expect(out).toContain("On the AI-native SDLC this is the Maintain stage.");
+    expect(out).not.toContain("this file is its");
+  });
+
+  it("says nothing at all for Discover, which their playbook does not have", () => {
+    // §2: their stage 1 starts with a person who already knows the problem.
+    // Borrowing a word that does not fit would be worse than silence.
+    const out = stationFile(input({ station: "sense", stationLabel: "Discover" }));
+    expect(out).not.toContain("AI-native SDLC");
+  });
+
+  it("says nothing when the caller does not name a station", () => {
+    // The field is optional so an older caller cannot start emitting a wrong
+    // translation by accident.
+    expect(stationFile(input())).not.toContain("AI-native SDLC");
+  });
+
+  it("never puts the raw slug in the file, only their word", () => {
+    // R-01 stands: `station` is used to look the translation up and is never
+    // rendered. "define" must not reach a reader on any surface, file included.
+    const out = stationFile(input({ station: "define", stationLabel: "Plan" }));
+    expect(out).not.toContain("define");
+  });
+});
+
 describe("what the control says after it acts", () => {
   it("counts what it carried, because a silent download cannot be told from a broken one", () => {
     expect(tookItLine("plan-x.md", 0)).toBe("Saved plan-x.md. It says this step filed nothing.");

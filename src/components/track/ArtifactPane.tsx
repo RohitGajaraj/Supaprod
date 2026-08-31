@@ -2481,6 +2481,7 @@ export function ArtifactPane({
     const body = stationFile({
       trackTitle: track.title,
       stationLabel: shown.label,
+      station: shown.station,
       expects: view?.expects?.word ?? null,
       gap: shown.gap,
       waivedReason: shown.waivedReason,

@@ -38,6 +38,9 @@
  * product.
  */
 
+import { sdlcWordsFor } from "@/components/track/sdlc-words";
+import type { AgentStation } from "@/lib/agent-vocabulary";
+
 /** The per-kind columns a station's card renders, as the pane already holds them. */
 export type FieldValue = unknown;
 
@@ -56,6 +59,11 @@ export type StationFileInput = {
   trackTitle: string;
   /** The station's display name. Never the slug (R-01). */
   stationLabel: string;
+  /**
+   * The station's id, used ONLY to look up the playbook's word for it. Not
+   * rendered: R-01 stands, a raw slug never reaches a reader.
+   */
+  station?: AgentStation;
   /** What this station is for, when the pane knows it. */
   expects: string | null;
   /** Why nothing can land here, when the chain says so. */
@@ -152,6 +160,38 @@ export function stationFile(input: StationFileInput): string {
   const lines: string[] = [];
   lines.push(`# ${input.stationLabel}: ${input.trackTitle}`);
   lines.push("");
+
+  /*
+   * ── THEIR WORD FOR THIS STATION, AND IT BELONGS HERE AND NOWHERE ELSE ────
+   * Gap #26 is the translation §STATIONS says our refusal to renumber has to
+   * pay for: *"a customer asking 'where is my spec.md' is answered in their
+   * words."* This file is exactly that reader -- it is what gets handed to
+   * somebody else's builder, and that builder is the one who speaks the
+   * playbook.
+   *
+   * AND IT IS NOT A UI VIOLATION, which is the rule I checked before writing
+   * it. §4.5 rule 4 bans `intent.md`, `spec.md` and `sdlc.stage` from becoming
+   * UI vocabulary -- they are "file names and machine fields". A handed-over
+   * FILE is neither a screen nor UI; it is the machine field's own home. The
+   * pane still shows the artifact as a card and this line never appears there.
+   *
+   * ONE VOCABULARY AT A TIME still holds: our heading above is ours, and this
+   * is a single translation line that says which of THEIRS it corresponds to.
+   * The two are not interleaved, and the line is absent where they have no
+   * counterpart -- Discover borrows nothing, because their playbook starts with
+   * a person who already knows the problem.
+   */
+  if (input.station) {
+    const theirs = sdlcWordsFor(input.station);
+    if (theirs) {
+      lines.push(
+        theirs.artifact
+          ? `On the AI-native SDLC this is the ${theirs.stage} stage, and this file is its ${theirs.artifact}.`
+          : `On the AI-native SDLC this is the ${theirs.stage} stage.`,
+      );
+      lines.push("");
+    }
+  }
 
   if (input.waivedReason) {
     lines.push(`This station was taken off the route. Reason given: ${input.waivedReason}`);
