@@ -74,19 +74,42 @@ is fixed-length and mandatory.
 **Known gap, and it is architectural:** `ship` has never written a track-member row, and
 `release.publish` — the one tool correctly gated to `review` — **has never fired.**
 
-> **CORRECTED 2026-08-31, and the old sentence understated it in the direction that made it sound
-> cheap.** This read: *"`deployments` holds 42 successful ones… So shipping happens and the spine
-> does not see it. **The bridge is one write, not a redesign.**"* **Measured today: of those 42, only
-> 14 are real** — the other 28 are `is_sample` fixtures — **all 14 landed between 2026-07-08 and
-> 2026-07-10, and the newest is 51 DAYS OLD.** Zero are reachable from any track, even through
-> `changeset_id`.
+> **CORRECTED TWICE ON 2026-08-31, and the second correction is the one to read.** The original said
+> *"`deployments` holds 42 successful ones… So shipping happens and the spine does not see it. **The
+> bridge is one write, not a redesign.**"* I replaced that with *"only 14 are real, and the newest is
+> 51 days old"*. **That was also wrong, and S1 caught it within the hour by noticing our two numbers
+> disagreed by eight days on the same table.**
+>
+> **THERE ARE TWO `is_sample` FLAGS ON THIS JOIN PATH AND THEY NEVER BOTH CLEAR.** `deployments` has
+> its own, and it joins to `workspaces.is_sample`. Grouped by both — 42 rows, measured 2026-08-31:
+>
+> | `deployments.is_sample` | `workspaces.is_sample` | rows | first | newest | with a changeset |
+> | --- | --- | --- | --- | --- | --- |
+> | false | **true** | 14 | 2026-07-08 | 2026-07-10 | 14 |
+> | **true** | false | 4 | 2026-07-08 | 2026-07-18 | 1 |
+> | **true** | **true** | 24 | 2026-07-08 | 2026-08-07 | 6 |
+>
+> **There is no `(false, false)` row.** My 14 are all on demo workspaces — the ones `track-tick.ts:85`
+> deliberately skips — and S1's 4 are all flagged on the row itself.
+>
+> **THE DEFENSIBLE LINE, and nothing softer: 42 deployment rows. ZERO are non-sample by both flags.
+> 21 of 42 carry a changeset. 0 are reachable from any track.** Not "14 real and stale", not "4 real".
+> **Nothing has shipped for real, ever, on this record** — there is no date to be 51 days past,
+> because there is no qualifying row to carry one.
 >
 > *"Shipping happens and the spine does not see it"* is a plumbing gap a single write closes.
-> ***"Nothing has shipped for real since 10 July"* is a different problem and a bigger one, and the
-> bridge write does not fix it.** A lane reading the old line today would conclude Ship is one row
-> away from working. Found by S1 while building the Ship pane, who reported it rather than building
-> around it — and who noted the consequence for their own surface: with no join from a track to a
-> deployment, the pane cannot honestly say more than *"Ship filed no release"*.
+> ***"Nothing has ever shipped for real"* is a different problem and a much bigger one, and the bridge
+> write does not fix it.** A lane reading either earlier line would conclude Ship is one row away from
+> working. Found by S1 while building the Ship pane, who reported it rather than building around it —
+> and who noted the consequence for their own surface: with no join from a track to a deployment, the
+> pane cannot honestly say more than *"Ship filed no release"*.
+>
+> **THE RULE THIS EARNS, because a wrong number twice in one hour is a process defect, not bad luck:
+> when a table carries more than one `is_sample` on its join path, a count of "how much is real" must
+> clear EVERY flag and say which ones it cleared.** Reaching for whichever flag is nearest is how two
+> careful readers got 14 and 4 for the same question. It is the sibling of the default-as-data rule
+> in `SESSION-0-CONDUCTOR.md`: **a column that silently decides what counts as real will decide it
+> differently for every author who does not know it is there.**
 
 ### 7 · Learn  *(`learn`)* — **the payoff, and the reason to come back**
 **Right pane:** *"You said abandonment would drop below 22%. It is 24.1%. **You were wrong.**"* Beside
