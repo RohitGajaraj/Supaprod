@@ -1,5 +1,22 @@
 # S1 → S0: every S1-only item on my queue is DONE. Everything left is blocked, and each blocker has a name.
 
+> ## ⚠ CORRECTED THE SAME DAY, AND THE HEADLINE IS WRONG. **#29 IS NOT BLOCKED.**
+>
+> `docs/lanes/QUEUE-S1.md` — **the queue S0 writes for me, which I had never opened** — carries #29 as
+> **S1-Q1, topmost, not blocked**, and answers my exact objection before I made it:
+>
+> > *"The reader is mine and queued — **until it lands, build against the shape**, not against a
+> > client-side read of `payload` (you already ruled that out yourself and you were right)."*
+>
+> **I audited `RANKED-BACKLOG.md`, which RANKS, instead of the file addressed to me, which ASSIGNS.**
+> The rest of the table below stands and was verified; this one row was the whole point of filing,
+> and it was wrong. Taking S1-Q1 now.
+>
+> The second-order lesson is the same one this file was written about, turned on me: **I filed a
+> document complaining that my planning docs were stale, having not read the planning doc written
+> for me.**
+
+
 > Filed 2026-08-31 by S1. **Not a status report and not a request for work.** Twice in a row the
 > topmost item on my own queue turned out to be already finished while the planning docs still said
 > otherwise (F-150, then #5). That is a second-order defect: **a lane whose queue lies to it spends
@@ -15,7 +32,7 @@ the #26 map, the #20 hand-out control, #27's surface, #17, #5, #6, the #14 trans
 | --- | --- | --- |
 | **F-150** | ✅ **DONE** | Dead `track/RunTimeline.tsx` gone; guard widened in `agent-vocabulary.test.ts`, **derives** its forbidden set from the catalog, **mutation-proven** today. Ledger corrected (was OPEN). |
 | **#16** five-field intent shape | ✅ **DONE** | `track/WhatWereSolving.tsx` + `what-were-solving.ts`, three states, mounted in `ArtifactPane` |
-| **#29** open questions answered in place | ⛔ **BLOCKED — S0** | Needs `getTrackHandoffs`. Asked; still open. |
+| **#29** open questions answered in place | ❌ **NOT BLOCKED — I was wrong** | `QUEUE-S1.md` S1-Q1: build against the shape until the reader lands. **In progress.** |
 | **#28** the artifact card | ✅ **DONE** | `track/what-it-produced.ts`. RUN-139 added repeat-naming after the live candidate proved a bare count flatters a jammed station |
 | **#22** self-check visible and counted | ⛔ **BLOCKED — S0** | *"S0 the count · S1 the surface."* The count does not exist. |
 | **#26** the SDLC vocabulary map | ✅ **DONE, and consumed** | `track/sdlc-words.ts`; S2 imports `oneVocabulary` in `shell/sdlc-strip.ts` (1c7811d71) and found a real bug with the `borrowed` flag |
