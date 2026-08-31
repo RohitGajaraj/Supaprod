@@ -1,0 +1,9 @@
+{
+  "_what": "The golden set. Verified pairs a change is tested against (gap #24).",
+  "_state": "EMPTY, and deliberately so. See README.md.",
+  "_why_empty": "Of 192 recorded forecasts, 91 are resolved, 12 of those sit on a real workspace, and ZERO of the 12 were graded by an agent. All twelve carry forecast_resolved_at = <date> 00:00:00+00 -- midnight UTC to the microsecond, twelve times out of twelve -- which is a date literal from a backfill rather than a grader's clock.",
+  "_rule": "No case is seeded. A case is admitted only if all four admission tests pass, and lowering a test to fill this file is forbidden: each test exists because a specific number here turned out to be seed data when somebody checked.",
+  "_next_real_candidate": "d2263583's forecast, due 2026-10-15. It is the nearest thing to a first case.",
+  "_measured": "2026-08-31 by S4, against project 371dd588.",
+  "cases": []
+}

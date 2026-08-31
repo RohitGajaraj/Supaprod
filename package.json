@@ -20,6 +20,7 @@
     "check:motion": "bash e2e/check-motion.sh",
     "check:unreachable": "bun run e2e/helpers/unreachable-server-functions.mjs",
     "check:dead-writers": "bun run e2e/helpers/tables-with-a-dead-writer.mjs",
+    "check:golden-set": "bun run e2e/helpers/golden-set.mjs",
     "check:branch-idiom": "bun run e2e/helpers/a-branch-check-must-survive-zsh.mjs",
     "check:retired-aliases": "bun run e2e/helpers/retired-system-through-an-alias.mjs",
     "cost:track": "bash scripts/cost-track.sh",

@@ -57,7 +57,27 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const SEARCH = ["scripts", "e2e", "docs", ".claude", "coordination"];
-const TEXT = /\.(sh|bash|zsh|mjs|js|ts|tsx|md|json)$/;
+
+/*
+ * EXECUTABLE FILES ONLY, AND THIS GUARD LEARNED IT THE WAY EVERY OTHER ONE HERE HAS.
+ *
+ * The first version scanned `.md` and `.json` too, and within a day it fired on
+ * TWO LANES DOCUMENTING THIS VERY DEFECT -- `docs/lanes/log/S2.md:1059` and
+ * `coordination/answers/S0-A10-*.md:48`, both quoting the broken idiom inside
+ * backticks to explain it. Neither is executed by anything.
+ *
+ * The prose-skip below catches a code COMMENT (`*`, `//`, `#`, `>`), and
+ * markdown body text starts with none of those, so it sailed through. A guard
+ * that fires on the write-up of the bug it guards would have cost two lanes a
+ * unit chasing a non-defect, which is the exact harm this lane has filed twice
+ * (the `check:unreachable` caveat, and one request in six answered "already
+ * exists").
+ *
+ * So the scan is executable file types. A shell snippet inside a document is not
+ * run by anything; if somebody copies it into a script, the script is scanned
+ * and caught there, which is the moment it can actually do damage.
+ */
+const TEXT = /\.(sh|bash|zsh|mjs|js|ts|tsx)$/;
 
 const walk = (dir) => {
   let out = [];
