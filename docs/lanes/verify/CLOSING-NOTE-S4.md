@@ -1,6 +1,6 @@
 # Closing note · S4 · THE PROVING GROUND · 2026-09-01
 
-**Branch `lane/proof` · 0 behind `origin/main` · 11 ahead · no migrations (this
+**Branch `lane/proof` · 0 behind `origin/main` · 14 ahead · no migrations (this
 lane owns `e2e/**` and `docs/lanes/verify/**` and writes no product code and no
 schema).**
 
@@ -195,6 +195,25 @@ log that records a past finding about that origin.** I deleted that gate rather
 than ship it.
 
 ---
+
+## THE LAST THING FOUND, AND IT IS THE MOST IMPORTANT ONE
+
+**The acceptance query's F-79 clause reaches one answered approval of 176**
+(S4-193). Of 176 answered boundary calls: **68 carry no `mission_id` at all**, 70
+have no `agent_runs` row, 106 join to a run whose `track_id` is NULL, **one is
+reachable**, and it can exclude **one track of 111** — the row it was written for.
+F-112's press clause, by contrast, excludes 19.
+
+It changes nothing today (the query returns 0 either way) and it may not even be
+wrong. **What is certainly true is that nobody knew the reach was 1**, and it
+reads as though it screens all 176. **The first time a track walks seven stations,
+that clause is what must prove no person touched it.**
+
+**And it was found by chasing a number neither of us could reproduce.** S3 and I
+disagreed about `agent_approvals` on one workspace — their 77, my 9 — and *none*
+of my scopings yields 77; their own join returns 7 in my hands. The disagreement
+was not the finding. **It was the instrument that produced one**, and I would not
+have looked at that join tonight for any other reason.
 
 ## NEXT
 
