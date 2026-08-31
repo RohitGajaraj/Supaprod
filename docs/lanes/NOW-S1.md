@@ -1,25 +1,25 @@
 # NOW — S1 · THE RUN
 
-**Unit:** RUN-158 · the third `.pathname` instance WAS mine, and the convention now has a guard.
+**Unit:** RUN-159 · S1-Q1 (gap #28) verified against its acceptance and **DRIVEN**. Closing it.
+**DEVSERVER 8080, killed and verified clear.**
 
-**State:** built, mutation-proven, pushed. tsc 0 · **13,317 pass / 0 fail** · lint clean.
+**State:** no code changed. S0 made gap #28 the topmost queue item; **I had already built it**, so
+the honest unit was to test it, not rebuild it — the queue's own warning about rediscovering
+finished work.
 
-**Wrong about ownership again.** `SURFACE-MAP.md:191` gives `ship/**` to S1. I told S3 it was not
-mine without reading the line they then quoted at me. **Second time today I asserted something about
-a document instead of reading it.** Both call sites fixed; `.pathname` is now **zero repo-wide**.
+**Checked, as required by name:** `ArtifactPane`'s existing `Region` header. **No new component
+needed** — `act="Take this"` at `:2639`, `take()` at `:2608` using the `DataSection.tsx:91` shape
+verbatim. All three of the queue's stated anchors hold in shipped code.
 
-**S3's argument beat my apology.** The precedent was in my own folder and still did not reach me —
-*"a convention that lives only in one file's comment is not discoverable… that is an argument for the
-guard, not for trying harder."* So: `a-path-is-not-a-url.test.ts`, scans all of `src/`, carries the
-fix in the failure message. Repo-wide because **the ENOENT blames the file being READ** —
-`TrackChain.tsx`, `driver.server.ts`, `Gate.tsx`, all healthy.
+**Acceptance, clause by clause:** one sentence per station ✅ *"Learn filed 2 learnings."* · file
+behind one control, never in front of the work ✅ · nothing-produced says so ✅ (RUN-140) ·
+**driven** ✅ **738-byte file captured**.
 
-**IT CAUGHT ITSELF** on the first clean run: its own header quotes the bad pattern. `agent-vocabulary`
-had already solved that by stripping comments, *"three files discuss this incident in prose"*. **The
-convention I was guarding had a second convention attached, one file over, and I hit that too.**
+**The hard constraint tested on the DOM:** `leaksFilename: false` · `leaksYaml: false`.
 
-**Mutation-proven three ways:** real offender **fails** · the `.replace(/%20/g," ")` form **fails** ·
-the pattern in a comment **does not** (the false positive that would get it switched off).
+**The file, intercepted rather than assumed** — prose, no frontmatter, and carrying
+*"On the AI-native SDLC this is the Maintain stage."* That is `sdlc-words.ts` paying refusal 3's
+cost: their stage in their words, with no filename on screen.
 
 **Not DEVSERVER** (the `asked` branch still has no live data: 0 tracks carry either field).
 S1 · 20:0x IST · WORKING · NO DEVSERVER (8080 held for browser checks, killed after each; note `kill` reported clear once while the process survived, so I now verify with lsof AFTER the kill, and `bun run dev` binds 8080 not 5173 -- S3's finding, the R-21 guard named a port that is always free) · TEN UNITS SHIPPED AND DRIVEN, RUN-124..133, all pushed to origin/lane/run · RUN-124 the Discover shape (#16) · RUN-125 the terminal-hold split, which I shipped WRONG first under an unreachable branch and only a browser caught · RUN-126 demo-fixture provenance on the forecast desk (S4-166) · RUN-127 the Take this control, whose file driving rewrote twice · RUN-128 what a station produced (#28) · RUN-129 the same claim left stale on SIGNED_IN_HOME and TrackStart, found by writing the guard · RUN-130 a station the loop gave up on was drawn as awaiting an approval, caught by my own census one unit after I wrote it · RUN-131 the SDLC translation (#26) plus A07's board mount, my half · RUN-132 S0's return edge had no surface and its origin was clamped, truncating the forecast it carries verbatim · RUN-133 the leave-promise made honest at the door · WHY NOT U7/U8/U9: U7 is claimed by the other session writing this file; U8's band columns DO NOT EXIST (information_schema returns nothing for %band% on decisions, and S0 confirms gap #15 is the half of Move 4 they have not built), so drawing "how it reads" would stage a state the data cannot prove; U9's emitters are S0's and I refused to invent their frontmatter in RUN-127 · PRESENCE AUDITED AGAINST ITS OWN IRON LAW AND IT HOLDS: zero timers under presence, two guards already in place, nothing staged · THE ONE CLAIM I MAY NOT MAKE ALONE IS STILL LIVE IN ONE PLACE AND IT IS NOT MINE: character.ts:228 says "you can leave this page and I'll keep going" in the thinking state, while 97 of 106 tracks carry a hold and the verdict email has fired zero times. Reported to S0 · OPEN WITH S0, all messaged per F-156: getTrackHandoffs (unblocks #29), DueForecast's dropped workspace_id, and from_learning_id on Track (all three taken, queued as theirs) · S0 answered the return-edge question definitively: the pass has NEVER been dispatched, outcome-tick is hourly and the edge reached production at 14:30:03Z, so its first possible run is 15:00Z, and the real record owes exactly ONE track · NEXT: F-168 is fixed and d2263583 released for retry, so Decide can now walk; I will watch what that run does to my surfaces and take the first thing it breaks · gates: tsc 0, 13,278 tests 0 fail across 919 files, eslint clean, docs:check clean · src/components/{track,spine,presence,decisions,learn,ask,discover}/** and my five routes
@@ -73,5 +73,11 @@ which S0 agreed with and shipped as F-177: trim the writer, do not dedupe at the
 **The class is four deep today:** S3's comment-strip, my username, F-150's passing test, and my own
 RUN-144 fold — passing since I wrote it, never once rendered. **Green proves nothing until you know
 why it is green.**
+**Two found while driving, neither mine.** The **Brain door crashes** —
+`DecisionsPanel.tsx:567 · Cannot read properties of undefined (reading 'tone')`, reproduced live with
+a stack; S2 filed it, `knowledge/**` is **S3's**, still unrouted. And a **live failed read**
+(`ERR_CONNECTION_CLOSED`) on `agent_messages` made my `cannot-tell` branch fire in production
+conditions rather than a test.
 
-**Not DEVSERVER.**
+**Not S0.** The conductor brief was misrouted to me; I performed no conductor act and handed S0 the
+acceptance funnel, the deploy baseline and a triage of four open requests.
