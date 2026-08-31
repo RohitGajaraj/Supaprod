@@ -30,6 +30,12 @@ import { justGrouped } from "@/components/track/just-grouped";
 import { fileNameFor, stationFile, tookItLine } from "@/components/track/station-file";
 import { WhatWereSolving } from "@/components/track/WhatWereSolving";
 import { whatItProduced } from "@/components/track/what-it-produced";
+import {
+  offerToConnect,
+  sourceLine,
+  sourceVerdict,
+} from "@/components/track/discover-has-no-sources";
+import { AskInPlace } from "@/components/connections/AskInPlace";
 import { plainProse } from "@/lib/plain-prose";
 /*
  * EVERY plain-text `Prose` on this pane runs agent-written text through
@@ -70,7 +76,7 @@ import { STATION_ARTIFACT } from "@/lib/spine/attach";
 import { relativeTime } from "@/lib/memory-view";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { releaseStanding, shortSha } from "@/components/track/release-words";
-import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 import { buildSrcDoc, type PrototypeFileRow } from "@/lib/prototype-srcdoc";
@@ -1915,6 +1921,80 @@ export function MissionCard({ item }: { item: ArtifactView }) {
    the fact that a pattern now exists gets an entrance. prefers-reduced-motion
    removes it through the same inline-animation rule as everywhere else.
  */
+/**
+ * DISCOVER FOUND NOTHING BECAUSE NOTHING IS CONNECTED, SAID WHERE IT LANDS.
+ *
+ * ── IT LIVES IN THE EMPTY BRANCH, AND THE FIRST VERSION DID NOT ───────────
+ * I put this inside `SenseBody` and drove it, and it never appeared.
+ * `StationPanel` returns early when `stop.members.length === 0`, so `SenseBody`
+ * is **unreachable for exactly the tracks this exists for** — the 47 of 82 at
+ * Discover that filed nothing at all. Shipped-with-no-way-in, caught by opening
+ * one of those 47 rather than by reading the file.
+ *
+ * The reasoning, the measurement and the honesty rule are in
+ * `discover-has-no-sources.ts`. This is the render.
+ */
+function NothingToRead({ station }: { station: AgentStation }) {
+  /*
+   * `head: true` with an exact count: this needs the NUMBER and never the rows.
+   * On error the count stays null and the verdict is `cannot-tell` -- a failed
+   * read is not zero sources, and here that matters more than usual, because
+   * the remedy sends a person to connect something they may already have.
+   */
+  const sources = useQuery({
+    queryKey: ["discover-source-count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("scout_targets")
+        .select("id", { count: "exact", head: true });
+      if (error) throw new Error(error.message);
+      return count ?? 0;
+    },
+    staleTime: 5 * 60_000,
+    enabled: station === "sense",
+  });
+
+  /*
+   * The station gate comes FIRST, and the order is the point. Only Discover
+   * reads sources; every other station filing nothing is a different problem
+   * and `StationPanel` already says which. That `null` answers no pending read
+   * -- the query is `enabled` only for Discover -- so it is a component that
+   * does not apply here rather than a blank under a heading.
+   */
+  if (station !== "sense") return null;
+  /*
+   * AND THE PENDING READ SAYS SO, because a guard caught me returning null
+   * here and it was right to. `a-null-under-a-heading-is-a-broken-promise`:
+   * "A render that answers a pending read with null shows a person an empty
+   * region and lets them conclude there is nothing there." Under a line that
+   * has just said Discover filed nothing, a blank would read as confirmation
+   * that nothing can be done about it. I obeyed the rule rather than adding
+   * this file to its tolerated list, which the guard's own header calls a debt.
+   */
+  if (sources.isLoading) return <Reading>Checking what is connected.</Reading>;
+
+  const verdict = sourceVerdict({
+    filedAnything: false,
+    sourceCount: sources.isError ? null : (sources.data ?? null),
+  });
+  const line = sourceLine(verdict);
+  if (!line) return null;
+
+  return (
+    <section aria-label="Nothing to read" className="flex flex-col gap-mrd-2">
+      <RecordSpeaks>{line}</RecordSpeaks>
+      {offerToConnect(verdict) ? (
+        <AskInPlace
+          need="somewhere to read what people are saying"
+          why="Discover reads what customers and teammates have already said. Nothing is pointed at a source yet, so it had nothing to read."
+          suggest={["intercom", "zendesk", "slack"]}
+          needIsMet={false}
+        />
+      ) : null}
+    </section>
+  );
+}
+
 export function SenseBody({
   items,
   now,
@@ -1925,6 +2005,7 @@ export function SenseBody({
   trackId: string;
 }) {
   const reducedMotion = usePrefersReducedMotion();
+
   const primed = React.useRef(false);
   const seenThemes = React.useRef<Set<string>>(new Set());
   /** Which theme each signal was last seen in; "" for none. */
@@ -2213,6 +2294,9 @@ function StationPanel({
           prose, next to the line it belongs with.
         */}
         {hold ? <RecordSpeaks>{hold}</RecordSpeaks> : null}
+        {/* NO DEAD END, EVER (SESSION-1 unit 5), and this is where the 47
+            tracks that filed nothing actually land. */}
+        <NothingToRead station={stop.station} />
       </div>
     );
   }
