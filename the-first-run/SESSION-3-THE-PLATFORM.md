@@ -1,4 +1,4 @@
-# S3 · THE PLATFORM — OpenCode, worktree `supaprod-platform`, branch `lane/platform`
+# S3 · THE PLATFORM — Claude Code, worktree `supaprod-platform`, branch `lane/platform`
 
 **Read [`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md) in full first.** It carries
 the user lens, the definition of "truly agentic", the git-only coordination protocol, work-safety
@@ -45,7 +45,9 @@ at the gate.
 **The auth routes are NOT frozen** — `login`, `signup`, `forgot-password`, `reset-password`,
 `join.$token`, `checkout*` are the door into the platform and they are job 3 below.
 
-You have **no database**. Every count, row and query is a request file in coordination/requests/<you>/. You have Playwright, every
+**You do not WRITE the database** — but as of 2026-08-31 this lane runs Claude Code and **may READ
+Postgres itself** via the Lovable MCP's `query_database`, so a count no longer costs a request and a
+wait. A write, a migration or a deploy is still an ask. Every count, row and query is a request file in coordination/requests/<you>/. You have Playwright, every
 skill and plugin in your session, and the whole repo to read.
 
 ---
@@ -72,13 +74,32 @@ around that or happens later.
 
 ---
 
-## Your five standing jobs, in this order
+## §J0 · Your reading list, in this order
+
+1. [`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md) — every rule. **§0.7 redefines
+   your job; read it twice.** §4 is the coordination protocol, amended 2026-08-31.
+2. **This file, §J1–§J5.**
+3. [`SURFACE-MAP.md`](./SURFACE-MAP.md) — what you own, and **what of yours is FROZEN**.
+4. [`SPEC-AI-NATIVE-SDLC.md`](./SPEC-AI-NATIVE-SDLC.md) §3 E, §3 F, §3 H — yours.
+5. [`RANKED-BACKLOG.md`](./RANKED-BACKLOG.md) — #2 stays first, then #18 and #19.
+6. [`SPEC-CONNECTORS.md`](./SPEC-CONNECTORS.md) — the connect control, and mention consent.
+7. [`../docs/strategy/positioning-locked-2026-08.md`](../docs/strategy/positioning-locked-2026-08.md)
+   — **the banned words, before you write a single line of copy.**
+8. `docs/lanes/QUEUE-S3.md` and `coordination/answers/S3/`.
+
+> **Why the anchors exist.** `/goal` accepts 4,000 characters and this brief has no limit, so the
+> prompt block names `§J0`–`§J5` and carries only the ranking and the non-negotiables. **The
+> operative text of every job is here, in full.**
+
+---
+
+## §J1-J5 · Your five standing jobs, in this order
 
 **The order is the ranking** (§0.7). Job 1 is a promise another lane is already making on
 screen; job 2 is what a company needs before it puts real work through this. The route fold is last
 because it removes rather than adds, and §0.5 still wants the count going down.
 
-### 1 · The verdict reaches a person who left the page — authorised gap #2, and it is first
+### §J1 · The verdict reaches a person who left the page — authorised gap #2, and it is first
 
 **Nothing today reaches a person who closed the tab.** No notification, no email, no push, no digest
 carries a verdict to somebody who is not looking. The whole frontier is async — submit and leave, the
@@ -102,7 +123,7 @@ connector providers already exist including Gmail and Outlook.**
 **Acceptance:** a real verdict produces a real email to a real address, **verified by receiving one,
 not by a green unit test.**
 
-### 2 · Operate: the boundary, set once, widened by class
+### §J2 · Operate: the boundary, set once, widened by class
 
 This is the third of the six verbs (§11 of the operating model) and it is where the product becomes
 enterprise-credible rather than a toy.
@@ -137,7 +158,7 @@ they change its shape rather than being bolted on afterwards:
   moves freely, staging is intermediate, production is gated. **One explanation of the existing
   ladder, never a second ladder**: `trust-ramp.ts` stays the only thing that promotes.
 
-### 3 · The door: signup → working, with nothing in between
+### §J3 · The door: signup → working, with nothing in between
 
 Account creation, workspace creation, invite and member management. **The workspace is not a thing the
 user creates before they can start** — Antigravity required a project, measured it, and shipped the
@@ -147,7 +168,7 @@ bypass. Create it behind them. Ask for a name later, or never.
 ever fill that form again on the founder's behalf. If you are building a signup flow the founder will
 use, make email+password work first.
 
-### 4 · The rest of a real product
+### §J4 · The rest of a real product
 
 Settings (one page, not eleven). Notifications — including *how the verdict reaches a person who left
 the page*, which is the async property the whole frontier ships and we do not. Billing and the plan
@@ -160,7 +181,7 @@ held, permission-denied, offline. An empty state that does not say what to do ne
 R-20 §5, and four of seven stations commonly produce nothing. Accessibility is not deferred (R-19);
 mobile is.
 
-### 5 · 119 routes, and what they should be
+### §J5 · 119 routes, and what they should be
 
 `REIMAGINING.md` argues nine surfaces. Most of the deletable ones are in your prefix. **Map which of
 your routes fold into which, propose it in coordination/requests/ with the reasoning, and let S0 rule.** Never delete

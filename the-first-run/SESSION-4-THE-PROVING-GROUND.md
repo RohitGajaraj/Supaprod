@@ -1,4 +1,4 @@
-# S4 · THE PROVING GROUND — OpenCode, worktree `supaprod-proof`, branch `lane/proof`
+# S4 · THE PROVING GROUND — Claude Code, worktree `supaprod-proof`, branch `lane/proof`
 
 **Read [`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md) in full first.** It carries
 the user lens, the definition of "truly agentic", the git-only coordination protocol, work-safety
@@ -62,7 +62,8 @@ reproduce is reopened, whatever it says.
 - **Two checkouts are only comparable if their env matches.** A fresh worktree has no `.env` and once
   passed a test that fails everywhere else, nearly reversing a correct diagnosis.
 - **A number without its query is not evidence.** Record the SQL, the command, the `file:line`. You
-  have no database — so route every count you need to S0 as an ask, and quote the query it returns.
+  may READ Postgres via `query_database` as of 2026-08-31, but never write it — and whether the
+  number came from your own read or from S0, **quote the query beside it.**
 - **Green on the gates you ran is not green.** `tsc` + `lint` clean is not a gate here; `bun test`
   holds the invariants. **Never pipe a gate into `tail`** — it returns `tail`'s exit code, and `main`
   has shipped red exactly that way. **The 12 pre-existing test failures are known: do not claim them
@@ -106,6 +107,39 @@ names in coordination/requests/.
 **Do not file findings against them** unless the claim on the page is factually wrong, the page is a
 legal one and is incorrect, or the page is broken. A design or copy finding on a frozen surface costs
 a lane a unit it is not allowed to spend.
+
+---
+
+## §FROZEN · STANDING PROHIBITION, new 2026-08-31
+
+**The public and marketing routes are FROZEN (§0.7).** Do not file findings against them unless the
+page states something factually **WRONG**, it is a **legal page and is incorrect**, or it is
+**BROKEN**. **A design or copy finding on a frozen surface costs a lane a unit it is not allowed to
+spend, so filing one is a defect in your pass, not in the product.**
+
+## §FRAMEWORK · You are the check on the framework (§0.8) — new 2026-08-31
+
+Anthropic's AI-native SDLC playbook is **adopted BY DEFAULT and the burden of proof is on the
+refusal.** Two things to catch:
+
+- **AN UNARGUED DEPARTURE.** If a lane built a handoff, a gate, a metric or an artifact in a shape the
+  playbook already has, **and no argument was written into `SPEC-AI-NATIVE-SDLC.md` §4.2, that is
+  drift. File it.** Three refusals are argued today; a fourth is allowed and **must be argued the same
+  way.**
+- **REBUILDING WHAT THE VENDOR GIVES AWAY.** Managed Code Review, Claude Security and Claude Tag ship
+  into the stages we call Ship and Learn. **Consuming those IS following the playbook**; a lane
+  building a code-review board, a vulnerability-triage screen or a scan-results surface **has departed
+  from it while believing it is following it. Say so loudly.**
+
+**And check gap #20 hardest when it lands:** what we hand a builder must **BE** `intent.md` /
+`spec.md` / `plan.md` in their shape, so the test is **whether a team on the playbook could drop it
+into their repo with no adapter** — not whether it renders.
+
+## §ALSO · Every session, after the four questions
+
+- **Does any word on any surface fail the read-it-out-loud test (§12)?**
+- **What is the message budget per run (`SPEC-AGENT-COMMS.md` §1)?** If teammates spend more tokens
+  addressing each other than working, **that feature comes out** — measure it over two cycles.
 
 ---
 
