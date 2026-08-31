@@ -50,7 +50,7 @@ station names stay (Discover · Decide · Plan · Design · Build · Ship · Lea
 | Route | Disposition | Plain name on surface |
 | --- | --- | --- |
 | `_authenticated.tsx` | **KEEP** — the shell, the rail, the cursor layer mounts here | — |
-| `_authenticated.today.tsx` | **KEEP** — this becomes the board | Work |
+| `_authenticated.today.tsx` | **FOLD → the home** *(corrected 2026-08-31)*. This row said **KEEP — this becomes the board**, and `RANKED-BACKLOG.md` §T1-S2 overturned it five days later: *"and the board folds into the home"*, with `/today` named among the routes that FOLD. A route cannot be both the thing folded and the thing folded into. Ruled in `coordination/answers/S0-A01-…`; `SIGNED_IN_HOME` stays `/start` | Work |
 | `_authenticated.runs.index.tsx` · `runs.$missionId.tsx` | FOLD → board | Work |
 | `_authenticated.missions.index.tsx` · `missions.$missionId.tsx` | FOLD → board | Work |
 | `_authenticated.m.index.tsx` · `m.$productId.tsx` | FOLD → board. Shorthand routes for the same object | Work |
