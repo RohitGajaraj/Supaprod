@@ -122,14 +122,24 @@ describe("two teammates on one object are drawn once, together", () => {
   });
 });
 
-describe("the key agrees with the collision derivation it is a copy of", () => {
+describe("the mark and the collision are keyed by one function, not two", () => {
   /*
-   * `anchorKeyOf` reproduces `groupKeyOf`, which is module-private in
-   * `src/lib/presence/collision.ts`. S0 has been asked to export it. Until
-   * then this is the guard that the copy has not drifted, and it is asserted
-   * against the real `collisionsFrom` rather than against a restatement of the
-   * rule - a second copy of a RULE checked by a second copy of the rule proves
-   * nothing.
+   * ── THIS WAS A DRIFT GUARD AND IS NOW A CONTRACT GUARD ───────────────────
+   * `anchorKeyOf` used to be a marked COPY of `groupKeyOf`, and these cases
+   * existed to catch the copy drifting. S0 exported the real one on
+   * 2026-08-31, so the copy is gone and `anchorKeyOf` IS `groupKeyOf`.
+   *
+   * **The cases are kept, and they are not now trivial**, because what they
+   * assert was never "the two functions agree" - it is that the key the MARK
+   * computes selects the same group a COLLISION was actually built from. Those
+   * are one function and two call paths, and the failure this protects against
+   * is the second one changing: an `anchoredElements` that keyed on the raw
+   * kind, or a `placeAnchors` that grouped before normalising, would pass every
+   * other test in this file and put two teammates on two marks over one object.
+   *
+   * Asserted against the real `collisionsFrom` rather than a restatement of the
+   * rule, for the reason that has not changed: a rule checked by a second copy
+   * of the rule proves nothing.
    */
   it("treats one uuid named two ways as one object, exactly as collisionsFrom does", () => {
     // A-006: PRD e9e5b033 was held by several runs, some naming it `prd_id` and
