@@ -19,7 +19,7 @@ whole product lives (§3 below).
   green fixes sat undeployed overnight on 2026-08-25 for exactly this. The founder has granted
   standing authority to re-auth.
 - **Mobbin MCP** — pull reference mechanics and **commit them into
-  `docs/design/reference-2026-08-26/`** so the four OpenCode sessions can see them. `START-HERE.md`
+  `docs/design/reference-2026-08-26/`** so the four lane sessions can see them. `START-HERE.md`
   currently points at `docs/design-reference/mobbin-2026-08/`, **which does not exist**. Fix that
   claim or create the directory; a lane cannot design against a path that is not there.
 - **Migrations — hand-written, applied ONE BY ONE, never handed to Lovable as a batch.** Founder's
@@ -35,6 +35,71 @@ whole product lives (§3 below).
   check the code.
 - **Merging.** Lanes push their own branches. You integrate into `main`, several times an hour, and
   you are the reason `main` stays deployable.
+
+---
+
+## §M · YOUR FIRST SIX MOVES, IN ORDER — added 2026-08-31, verbatim from the fleet prompt
+
+> **Why this lives here.** `/goal` accepts 4,000 characters and this brief has no limit, so the
+> prompt block names `§M`, `§G` and `§X` and carries the ranking; the operative text is here in full.
+> **THE FIRST TWO ARE THE WHOLE JOB.**
+
+1. **Re-auth Lovable and DEPLOY main.** Three blockers were fixed on 2026-08-31 and every one of them
+   is inert until it reaches production. **Verify by fetching the changed asset and comparing BYTES**,
+   not by trusting a deployment id — publish status has lied three times in one night.
+2. **DRIVE ONE TRACK AND WATCH IT.** Nothing after this is unknown: merge runs inline at a trusted
+   arc, `ci-poll-tick` builds the Deno preview within two minutes because `supaprod.json` is present,
+   and `release.publish` resolves to `auto` with all five preconditions satisfiable. **The loop has
+   simply never been run with a working read path.** Then run the HONEST acceptance query from
+   `OPERATING-MODEL-5-SESSIONS.md` §2 — the one subtracting decided approvals and pressed tracks — and
+   report the number with the SQL beside it.
+3. **Unblock the three parked changesets.** All three spent `fix_attempts` against `CI_FIX_BUDGET=3`
+   against damage they could not reach. Set `fix_attempts=0` on the changesets behind PRs #2 and #3 so
+   one more repair run dispatches, now reading the file correctly. **CLOSE PR #1 instead:** its test
+   imports `@testing-library/react`, which `package.json` does not carry and F-56 forbids adding.
+4. **Gap #15 + gap #4 together.** The return edge has never fired (zero workspaces in its life, F-51)
+   and a forecast is a single point graded once at horizon, which is why. `bands.yaml` is the shape: a
+   baseline, detection rules, three response tiers. **Build the band as the missing half of Decide's
+   metric probe**, and make a missed forecast produce a NORMAL, REFUSABLE piece of work at Discover.
+5. **The Test gate (F-148), which is NOT an eighth station.** `studio.checks.run` briefed as REQUIRED
+   rather than suggested, its verdict recorded, the Build-to-Ship advance refused on red. Plus gap
+   #21's hook the agent cannot edit around.
+6. **Fill `docs/lanes/QUEUE-S1..S4.md` with two fully specified items each and keep them there
+   forever.** A blocked lane is your failure, not theirs. **NOTHING FROZEN ENTERS A QUEUE.**
+
+**STANDING, not a numbered move:** treat `docs/AUDIT.md` and `docs/lanes/STATUS-decide-blocker-fixed.md`
+as **TESTIMONY, never as fact**. Both predate the 2026-08-31 audit that found three unfiled blockers
+and proved F-36 stale, so verify any claim in either against the code and the database before acting
+on it, and correct it in place when it is wrong. **That is how F-36 survived three months.**
+
+## §X · DO NOT REBUILD THESE — added 2026-08-31
+
+**Do not rebuild the sandbox primitive or Ship's preview probe as previously ranked.**
+`captureDeploymentsCore` and `deployChangesetApp` are built and called on a schedule, `E2B_API_KEY` is
+set, and `studio.checks.run` is implemented and **already briefed at `driver.ts:375`**.
+
+**Drop the credential work implied by F-39 / F-101 / F-106 / F-107 from the critical path:** tokens
+were minted against both installations on 2026-08-31.
+
+## §G · FOUR GATES ON EVERY LANE PUSH, NOT TWO — added 2026-08-31
+
+1. **Enterprise.**
+2. **R-20's eight.**
+3. **THE FREEZE** — reject any unit that improves the public and marketing surface (twenty routes plus
+   `landing/**`, `public/**`, `plg/**`, `supaprod/**`, `brief/**`, `product/**`). **Four exceptions
+   only:** a false claim, a wrong legal page, a broken page, the founder by name.
+4. **THE FRAMEWORK GATE** — the SDLC playbook is adopted by default, so **reject a unit that departs
+   from it without an argument written into `SPEC-AI-NATIVE-SDLC.md` §4.2. An unargued departure is
+   drift.** Also reject any unit **rebuilding what the vendor gives away**: a code-review surface, a
+   vulnerability-triage screen, a scheduled-scan feature — **consuming those IS following the
+   playbook.**
+
+## §R · THE RANKING RULE — added 2026-08-31
+
+**EVERY OBJECTIVE IN THIS FLEET IS PLATFORM STRENGTH UNTIL THE ACCEPTANCE IS MET** (founder,
+2026-08-31). Rank anything unqueued with §0.7's six-step list: **a station doing its job without a
+person**, then **steering without restarting**, then **legibility**, then **the result finding
+somebody who is not looking**, then **what a company needs to trust it**, and **pleasantness last**.
 
 ---
 
@@ -125,10 +190,13 @@ minutes ago" once read as "yesterday" and nearly reversed a finding.
   it delivers (§0 questions 1 and 2), files, acceptance criteria, which skills to use, which existing
   component was checked first. Write them to coordination/.md`. **A blocked lane is
   your failure.**
-- **Answer every `ask/*/` in coordination/requests/ within one unit.** Lanes have no database; every count, row and
-  deploy is a question to you.
-- **Run both gates on every lane push** — enterprise and R-20's eight. Fix minor defects yourself in
-  place; never route a typo through a queue. Only structural defects go back.
+- **Answer every `ask/*/` in coordination/requests/ within one unit.** As of 2026-08-31 the lanes run
+  Claude Code and **read Postgres themselves** via `query_database`, so a plain count is no longer a
+  question for you — **every WRITE, migration and deploy still is.** Answer rulings and writes, not
+  lookups a lane can run.
+- **Run FOUR gates on every lane push, not two** — see §G above: enterprise, R-20's eight, **the
+  freeze**, and **the framework gate**. Fix minor defects yourself in place; never route a typo
+  through a queue. Only structural defects go back.
 - **THIRD GATE, added 2026-08-31 — THE FREEZE (§0.7).** Reject any unit that improves the public and
   marketing surface: twenty routes plus `landing/**`, `public/**`, `plg/**`, `supaprod/**`, `brief/**`
   and `product/**`. Four exceptions only — a false claim, a wrong legal page, a broken page, or the

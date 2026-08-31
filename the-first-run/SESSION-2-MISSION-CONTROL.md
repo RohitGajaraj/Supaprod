@@ -1,4 +1,4 @@
-# S2 · MISSION CONTROL — OpenCode, worktree `supaprod-control`, branch `lane/control`
+# S2 · MISSION CONTROL — Claude Code, worktree `supaprod-control`, branch `lane/control`
 
 **Read [`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md) in full first.** It carries
 the user lens, the definition of "truly agentic", the git-only coordination protocol, work-safety
@@ -18,7 +18,11 @@ and one person who has to stay on top of all of it without opening anything.
 Routes: `_authenticated.tsx` (the shell) · `today` · `runs.*` · `missions.*` · `cockpit` · `fleet` ·
 `swarm` · `observe` · `traces*` · `agents` · `crew`
 
-You have **no database**. Every count, row and query is a request file in coordination/requests/<you>/. You have Playwright, every
+**You do not WRITE the database** — but as of 2026-08-31 this lane runs Claude Code and **may READ
+Postgres itself** via the Lovable MCP's `query_database`, so a count no longer costs a request and a
+wait. A write, a migration or a deploy is still a request file in `coordination/requests/<you>/`.
+**A number you report names the query that produced it** — a narrow read coming back empty, taken as
+a fact about the record rather than about the column read, is this repo's dominant defect class. You have Playwright, every
 skill and plugin in your session, and the whole repo to read.
 
 **Note how many routes you own that are four names for one idea.** `cockpit`, `fleet`, `swarm`,
@@ -85,6 +89,31 @@ Ported as mechanics per R-20 §7 — never from a screenshot. Full teardown with
 
 ---
 
+## §INBOUND · One addition from the SDLC playbook — added 2026-08-31
+
+It belongs on the board rather than anywhere else: **the inbound gesture's refinement (§3 G).** An
+issue assigned to us in Linear or Jira, or a message in a channel, becomes work — and **THE SIZE OF
+THE RESPONSE IS DECIDED BY THE WORK, NOT THE CHANNEL.** Small comes back as a change; large enters at
+the front as a new piece of work. **We had one path.** The inbound column is yours; the connector is
+S0's and the consent rule is S3's.
+
+## §PROHIBITION · What you must NOT build (§0.8) — added 2026-08-31
+
+**EVERY OBJECTIVE IS PLATFORM STRENGTH UNTIL THE ACCEPTANCE IS MET** (§0.7, founder 2026-08-31).
+Nothing you own is frozen. **But note the §0.8 prohibition, because your surfaces are where it would
+happen:** Anthropic now ships **Managed Code Review, Claude Security and Claude Tag** into the stages
+we call Ship and Learn. **DO NOT build a code-review board, a vulnerability-triage screen or a
+scan-results surface.** We consume those; **a lane rebuilding them is rebuilding what the vendor
+gives away.**
+
+## §RUN-ROWS · Corrected 2026-08-31 — it has been ADOPTED
+
+`run-rows.tsx` **has now been ADOPTED** — two importers outside its module plus five within. **"Start
+there because nothing imports it" is no longer the argument; the reuse duty is stronger for it.** It
+lives in `src/components/meridian/`, which is **S0's prefix: import it freely, never edit it.**
+
+---
+
 ## The traps in your area, already paid for
 
 - **A mount is not a render.** `<Thing />` in the route tree proves the element is reached, not that
@@ -94,7 +123,7 @@ Ported as mechanics per R-20 §7 — never from a screenshot. Full teardown with
   the work was simply held. Assert on what your fix uniquely controls, over two cycles.
 - **Measure what writes, not what looks right.** Three wrong numbers in one day came from reading a
   column no writer sets, or inferring state from the shape of an id.
-- **A number without its query is not evidence.** You have no database — so every number you display
+- **A number without its query is not evidence.** You may read Postgres, but every number you display
   comes from a payload; name the field and the writer in your unit file.
 
 ## The cursor layer is yours
