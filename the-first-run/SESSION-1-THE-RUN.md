@@ -82,12 +82,12 @@ Numbered so you can take them in order. Each is one unit: build it, drive it, co
    attempt ceiling and nothing anywhere surfaced it. A refused station is not a failed station
    (R-26): say which door is locked, and offer the next action. **No dead end, ever.**
 
-## Three more, added 2026-08-31 — read `SPEC-AI-NATIVE-SDLC.md` first
+## §U6-U9 · Four more, added 2026-08-31 — read `SPEC-AI-NATIVE-SDLC.md` first
 
 The founder pointed the fleet at Anthropic's AI-native SDLC playbook. It is extracted once in
 [`SPEC-AI-NATIVE-SDLC.md`](./SPEC-AI-NATIVE-SDLC.md) — **read the spec, not the post.** Three of its
-adoptions land on your surfaces. Take them after the five above, and **not before you have driven the
-five in a browser**.
+adoptions land on your surfaces, and gap #20 makes a fourth. Take them after the five above, and
+**not before you have driven the five in a browser**.
 
 6. **What enters Discover needs a shape (gap #16).** A track enters at `sense` as a slug and ~46 died
    there. Their `intent.md` carries five fields — **problem statement · proposed outcome · affected
@@ -106,6 +106,27 @@ five in a browser**.
    tick; **you build how it reads.** On-track, drifting, missed — and what the system did at each,
    which is the half nobody has ever seen. **A band computed from too few observations must say so on
    screen**, and a tier that fires on noise is theatre, which ends the feature rather than fixing it.
+9. **THE HANDOFF OUT, in their format (gap #20).** S0 builds the emitters; **you build the control**
+   that hands a run to somebody else's builder as `intent.md` / `spec.md` / `plan.md` — **their names,
+   their shape, our forecast travelling alongside.** Queue item 24 already wants a run pasteable into
+   a PR thread and **this is that, done properly.** A readable brief, never a JSON dump; the control
+   says what it copied; **keyboard reachable and announced (R-19).**
+
+---
+
+## §0.7 · The ranking rule — added 2026-08-31
+
+**EVERY OBJECTIVE IS PLATFORM STRENGTH UNTIL THE ACCEPTANCE IS MET** (founder, 2026-08-31). **Nothing
+you own is frozen, so this costs you nothing** — but it changes what "good" means: rank by whether a
+station does its job **without a person**, then whether a person can **steer without restarting**,
+then **legibility**. **Polish is real and it is last.**
+
+## §STATIONS · We do not renumber, and the refusal is paid for
+
+The stations (Discover, Decide, Plan, Design, Build, Ship, Learn) **stay exactly as they are.** We do
+**not** renumber them to Anthropic's six — **but that refusal is PAID FOR, not free:** the mapping in
+`SPEC-AI-NATIVE-SDLC.md` §2 becomes a translation the product speaks, so a customer asking *"where is
+my spec.md"* is answered in their words. **Refusing a rename is not refusing the vocabulary.**
 
 ---
 

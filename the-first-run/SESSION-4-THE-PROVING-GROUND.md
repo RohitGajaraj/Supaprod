@@ -109,6 +109,39 @@ a lane a unit it is not allowed to spend.
 
 ---
 
+## §FROZEN · STANDING PROHIBITION, new 2026-08-31
+
+**The public and marketing routes are FROZEN (§0.7).** Do not file findings against them unless the
+page states something factually **WRONG**, it is a **legal page and is incorrect**, or it is
+**BROKEN**. **A design or copy finding on a frozen surface costs a lane a unit it is not allowed to
+spend, so filing one is a defect in your pass, not in the product.**
+
+## §FRAMEWORK · You are the check on the framework (§0.8) — new 2026-08-31
+
+Anthropic's AI-native SDLC playbook is **adopted BY DEFAULT and the burden of proof is on the
+refusal.** Two things to catch:
+
+- **AN UNARGUED DEPARTURE.** If a lane built a handoff, a gate, a metric or an artifact in a shape the
+  playbook already has, **and no argument was written into `SPEC-AI-NATIVE-SDLC.md` §4.2, that is
+  drift. File it.** Three refusals are argued today; a fourth is allowed and **must be argued the same
+  way.**
+- **REBUILDING WHAT THE VENDOR GIVES AWAY.** Managed Code Review, Claude Security and Claude Tag ship
+  into the stages we call Ship and Learn. **Consuming those IS following the playbook**; a lane
+  building a code-review board, a vulnerability-triage screen or a scan-results surface **has departed
+  from it while believing it is following it. Say so loudly.**
+
+**And check gap #20 hardest when it lands:** what we hand a builder must **BE** `intent.md` /
+`spec.md` / `plan.md` in their shape, so the test is **whether a team on the playbook could drop it
+into their repo with no adapter** — not whether it renders.
+
+## §ALSO · Every session, after the four questions
+
+- **Does any word on any surface fail the read-it-out-loud test (§12)?**
+- **What is the message budget per run (`SPEC-AGENT-COMMS.md` §1)?** If teammates spend more tokens
+  addressing each other than working, **that feature comes out** — measure it over two cycles.
+
+---
+
 ## Before anything, every session and every unit
 
 ```bash
