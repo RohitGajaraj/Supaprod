@@ -1,5 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
+
 /**
  * `/runs` FOLDS INTO THE BOARD, AND THE BOARD IS `/today` UNTIL THE FOLD LANDS.
  *
@@ -25,12 +27,16 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
  * person land" become one place, and the daylight this comment protected
  * closes.
  *
- * **THIS FILE IS THEREFORE A DOUBLE HOP WAITING TO HAPPEN**, and S0 named it:
- * once `/today` redirects to the home, `/runs` will bounce through it. The
- * target moves to `SIGNED_IN_HOME` **in the same commit that folds `/today`**,
- * not before - pointing it at the home while `/today` is still the board would
- * send a person wanting the list of runs to the composer, which is the exact
- * defect the paragraph above describes, reintroduced by fixing it early.
+ * **THE TARGET MOVED, 2026-08-31, IN THE COMMIT THAT FOLDED `/today`.** S0
+ * named the hazard and it is now closed: `/today` is itself a redirect to the
+ * home, so leaving this pointed at it would bounce a person through two
+ * redirects to reach one surface. It names `SIGNED_IN_HOME` directly.
+ *
+ * **The two questions this comment kept apart have genuinely become one.** They
+ * were different while the board was a separate route; now the board IS drawn
+ * on the home, so *"where did this surface's content go"* and *"where does a
+ * person land"* have the same answer, and the daylight this file protected has
+ * closed rather than been ignored.
  *
  * The URL survives as an alias, so every caller linking `/runs` keeps working
  * with no edit, which is why the fold could be approved without a sweep across
@@ -39,6 +45,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
  */
 export const Route = createFileRoute("/_authenticated/runs/")({
   beforeLoad: () => {
-    throw redirect({ to: "/today" });
+    throw redirect({ to: SIGNED_IN_HOME });
   },
 });
