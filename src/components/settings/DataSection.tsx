@@ -222,17 +222,54 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
       </Region>
 
       <Region title="Take it with you">
+        {/*
+         * "THE WHOLE WORKSPACE" WAS A COMPLETENESS CLAIM THE FILE DOES NOT KEEP.
+         *
+         * `exportWorkspace` (`projects.functions.ts:415`) returns sixteen named
+         * collections. The database has **174 tables in `public`**. Most of the
+         * remainder is machinery nobody would expect in an export, and one part
+         * of it is not: **`agent_approvals` (326 rows) and `guardrail_hits`
+         * (8,535 rows) are absent**, which is every boundary call a person
+         * answered and every rule that stopped an agent. That is the audit
+         * trail, and it is the first thing an enterprise buyer asks to take with
+         * them. Measured 2026-08-31.
+         *
+         * SO THE LABEL CHANGED AND THE LIST DID NOT. The enumeration underneath
+         * was always accurate about what is in the file; the heading above it
+         * promised totality the enumeration never claimed, which is the same
+         * shape as the notifications page in U-S3-021 and the concurrency cap in
+         * U-S3-026: a true detail under a false headline.
+         *
+         * "NO SELECTION, NO LOCK-IN" IS KEPT, because it is true and it is a
+         * different claim. It means we hold nothing back to keep you here, and
+         * the file is open JSON. It was only misread as completeness because it
+         * sat under a heading that promised it.
+         *
+         * NOT WRITTEN AS A PERMANENT LIMIT. The gap is filed as
+         * `coordination/requests/S3/the-export-is-not-the-audit-trail.md`; when
+         * S0 widens the export this sentence comes out in that commit.
+         *
+         * ONE THING DELIBERATELY NOT SAID HERE. Three of the sixteen collections
+         * are read `.eq("user_id", ...)` while the block's own comment says
+         * workspace-scoped, so in a multi-member workspace a member's export
+         * silently omits their colleagues' rows. That is a defect with a fix,
+         * not a property of the product, and putting it on the surface would
+         * enshrine it. It is the FIRST item in the request above, and if S0
+         * rules it stays, this copy has to say so.
+         */}
         <Line
-          label="The whole workspace, as one JSON file"
+          label="Your work and its record, as one JSON file"
           sub={
             closed ? (
               <>
                 Every product, signal, opportunity, decision, spec, task, outcome and lesson,
                 including the <Num>{closed.decisionsClosed}</Num> decisions closed and{" "}
                 <Num>{closed.prsShipped}</Num> pull requests shipped here. No selection, no lock-in.
+                It does not yet carry the approvals people answered or the rules that stopped an
+                agent, so it is not the full audit trail.
               </>
             ) : (
-              "Every product, signal, opportunity, decision, spec, task, outcome and lesson. No selection, no lock-in."
+              "Every product, signal, opportunity, decision, spec, task, outcome and lesson. No selection, no lock-in. It does not yet carry the approvals people answered or the rules that stopped an agent, so it is not the full audit trail."
             )
           }
         >
