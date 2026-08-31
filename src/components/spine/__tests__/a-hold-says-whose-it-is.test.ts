@@ -161,14 +161,40 @@ describe("the station is a fact and the status is a chip", () => {
     // between 5.06 and 6.00 against the ground, so coloured text cannot carry
     // status and a chip has to. Three words now: you, calendar wait (queue 67),
     // and the ordinary stop.
-    expect(SOURCE).toContain("<StatusChip status={tone}");
-    expect(SOURCE).toContain('? "Waiting on you"');
+    /*
+     * MATCHED ACROSS WHITESPACE, not as a contiguous string, and that is a fix
+     * this file needed rather than a loosening. Adding the fourth word pushed
+     * the chip past prettier's line width, so `<StatusChip status={tone}` split
+     * across two lines and this assertion failed on a REFORMAT while the
+     * behaviour was correct. A source-text test that pins a layout fails for
+     * reasons that are not about the product, and then gets relaxed under
+     * pressure, which is how a guard stops guarding.
+     */
+    expect(SOURCE).toMatch(/<StatusChip\s+status=\{tone\}/);
+    expect(SOURCE).toContain('"Waiting on you"');
     expect(SOURCE).toContain('"Waiting on time"');
     expect(SOURCE).toContain('"On hold"');
+    /*
+     * A FOURTH WORD, ADDED 2026-08-31 (RUN-129), and it is a correction rather
+     * than a widening. This list read three words, and the first of them was
+     * being said to 36 of the 37 open tracks that have nothing pending for
+     * anybody: four of the six reasons `holdTone` calls "you" ARE the whole of
+     * `TERMINAL_HOLDS`, and `track-tick.ts` drops those from its selection, so
+     * nothing is coming and only a person restarts it.
+     */
+    expect(SOURCE).toContain('"Needs a restart"');
   });
 
-  it("pulses only where somebody is being waited on", () => {
-    // A condition changing on its own is not asking for attention; a person is.
-    expect(SOURCE).toContain('pulse={tone === "you"}');
+  it("pulses only where somebody is being waited on, AND not on a dead track", () => {
+    /*
+     * A condition changing on its own is not asking for attention; a person is.
+     * The clause after the `&&` is the half this test could not see before: a
+     * pulse is MOTION, and nothing is moving on a track the sweep has dropped,
+     * so drawing one there is the staged state SPEC-PRESENCE forbids outright.
+     *
+     * Asserted on the source because that is what this whole file does, and
+     * `nothing-is-coming.ts` carries the unit tests for the predicate itself.
+     */
+    expect(SOURCE).toMatch(/pulse=\{tone === "you" && !nothingIsComing\(t\.holdReason\)\}/);
   });
 });

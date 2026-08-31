@@ -53,6 +53,7 @@ import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
 import { nextStation, WORK_SHAPE_LABEL, type WorkShape } from "@/lib/spine/route";
 import { holdTone } from "@/lib/spine/driver";
+import { nothingIsComing } from "@/components/track/nothing-is-coming";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { Action, NothingYet, Region, Value } from "@/components/meridian/surface-parts";
@@ -564,9 +565,28 @@ export function TrackStart({
                     which it is.
                     */}
                     {tone ? (
-                      <StatusChip status={tone} pulse={tone === "you"}>
+                      <StatusChip
+                        status={tone}
+                        pulse={tone === "you" && !nothingIsComing(t.holdReason)}
+                      >
                         {tone === "you"
-                          ? "Waiting on you"
+                          ? /*
+                             * THE TERMINAL SPLIT, and this list is where it was
+                             * missed. RUN-125 corrected five surfaces on the run
+                             * screen; this one derives its own chip and kept the
+                             * old sentence, so a person scanning their work still
+                             * read "Waiting on you" beside 36 of the 37 tracks
+                             * that have nothing pending for anybody. §12: a word
+                             * corrected in one place and left stale in another has
+                             * made the problem worse.
+                             *
+                             * The word matches `run-status.ts` exactly, and the
+                             * pulse goes off with it: a pulse is motion and the
+                             * sweep has dropped this track.
+                             */
+                            nothingIsComing(t.holdReason)
+                            ? "Needs a restart"
+                            : "Waiting on you"
                           : // A learn hold whose reason is an undated forecast is a
                             // calendar wait, not a stoppage (queue 67); the pane
                             // renders the date where the record is open.

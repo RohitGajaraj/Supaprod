@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ReadFailedLine, Action, Eyebrow, PageHeading } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
-import { holdTone } from "@/lib/spine/driver";
+import { runStatus } from "@/components/track/run-status";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Composer, PickCard } from "@/components/meridian/onramp-parts";
 import { CharacterMark } from "@/components/presence/Character";
@@ -147,14 +147,32 @@ function OpenWorkSection({
         const timeText = whenMoved ? `moved ${whenMoved}` : "not yet started";
 
         /*
-         * THE TONE COMES FROM THE RAW REASON, never the sentence -- the same
-         * rule the run page paid for once (`TrackStart` painted every hold
-         * amber by testing wording). And an open track with NO hold wears no
-         * chip at all: between sweeps it is not running and not stuck, and a
-         * green "Running" there is exactly the claim this product refuses.
-         * The chip exists only where the record says whose move it is.
+         * THE CHIP IS `runStatus`'S, THE SAME FUNCTION THE RUN HEADER USES, and
+         * that is a correction to work I shipped four units ago.
+         *
+         * This derived its own chip from `holdTone` and printed
+         * `tone === "you" ? "Waiting on you" : "On hold"`. RUN-125 established
+         * that four of the six reasons `holdTone` calls "you" ARE the whole of
+         * `TERMINAL_HOLDS`, so **36 of the 37 open tracks wearing that chip have
+         * nothing pending for anybody** -- the loop gave up and `track-tick.ts`
+         * dropped them. I corrected that in five places on the run screen and
+         * **left it stale here, on the surface a person LANDS on** (`/start` is
+         * `SIGNED_IN_HOME`). Operating model §12 is explicit that a word
+         * corrected in one place and left stale in another has made the problem
+         * worse, and this is that, committed by me.
+         *
+         * So the fix is not a sixth copy of the rule. `runStatus(track)` already
+         * answers exactly this question, already reads `nothingIsComing`, and
+         * already returns **null** where there is nothing to report -- which is
+         * what the paragraph this replaces was describing in prose. One
+         * vocabulary, one place, and this row can no longer drift from the run
+         * header it links to.
+         *
+         * It also fixes two cases the old two-way branch could not express:
+         * a finished route ("Finished") and an abandoned one, both of which
+         * used to fall through to no chip or the wrong one.
          */
-        const tone = t.holdReason ? holdTone(t.holdReason) : null;
+        const chip = runStatus(t);
         return (
           <Row
             key={t.id}
@@ -183,9 +201,9 @@ function OpenWorkSection({
             time={timeText}
             onClick={() => void navigate({ to: "/track/$trackId", params: { trackId: t.id } })}
             action={
-              tone ? (
-                <StatusChip status={tone} pulse={tone === "you"}>
-                  {tone === "you" ? "Waiting on you" : "On hold"}
+              chip ? (
+                <StatusChip status={chip.status} pulse={chip.pulse}>
+                  {chip.word}
                 </StatusChip>
               ) : undefined
             }
