@@ -31,7 +31,11 @@ import { join } from "node:path";
  */
 
 const ROOT = join(import.meta.dir, "..", "..", "..");
-const TODAY = readFileSync(join(ROOT, "routes", "_authenticated.today.tsx"), "utf8");
+// EDITED BY S2 IN ANOTHER LANE'S PREFIX, authorised by name in
+// `coordination/answers/S0-A03-land-all-four-in-one-commit-and-the-three-lines-are-authorised.md`.
+// One line, and only the SUBJECT of the assertion: the board moved out of the
+// route file into `src/components/today/Board.tsx`. The claim is untouched.
+const TODAY = readFileSync(join(ROOT, "components", "today", "Board.tsx"), "utf8");
 const START = readFileSync(join(ROOT, "routes", "_authenticated.start.tsx"), "utf8");
 const SHELL = readFileSync(join(ROOT, "styles", "shell.css"), "utf8");
 const DOCK = readFileSync(join(ROOT, "components", "ask", "AskDock.tsx"), "utf8");

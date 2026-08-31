@@ -29,7 +29,9 @@ import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-
  * worse than a missing one.
  */
 
-const SRC = readFileSync("src/routes/_authenticated.today.tsx", "utf8");
+// Subject moved 2026-08-31: the board was lifted out of the route file into
+// `src/components/today/Board.tsx`. The CLAIM is unchanged.
+const SRC = readFileSync("src/components/today/Board.tsx", "utf8");
 /**
  * The headline builder, extracted from the route on 2026-08-27 so its wording
  * could be RENDERED and asserted rather than grepped. A source assertion cannot
