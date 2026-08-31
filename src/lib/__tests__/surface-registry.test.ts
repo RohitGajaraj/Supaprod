@@ -198,6 +198,12 @@ const KNOWN_UNREACHED: readonly string[] = [
   "funnel",
   "goals",
   "greeting",
+  // Landed 2026-08-31 as the reader half of S1's #29, deliberately BEFORE the
+  // mount: S1 asked for the shape to exist so their two `ArtifactPane` call
+  // sites can pass a real prop instead of `questions={null}`, and reading
+  // free-form `payload` jsonb client-side is the thing they refused to do.
+  // Comes off this list the same hour the prop is passed.
+  "handoffs",
   "loop-health",
   "loops",
   "meetings",
