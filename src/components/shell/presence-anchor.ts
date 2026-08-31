@@ -34,36 +34,30 @@ export const ANCHOR_KIND_ATTR = "data-presence-kind";
 /** ...and the id or path here. Together they are one object. */
 export const ANCHOR_ID_ATTR = "data-presence-id";
 
-/** A Postgres uuid, which is the shape of every row id in this schema. */
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 /**
- * The key an anchor and an on-screen object must share to be the same thing.
+ * THE KEY AN ANCHOR AND AN ON-SCREEN OBJECT MUST SHARE TO BE THE SAME THING.
  *
- * ── THIS IS A COPY, IT IS MARKED AS ONE, AND IT IS ASKED ABOUT ────────────
- * It reproduces `groupKeyOf` in `src/lib/presence/collision.ts`, which is
- * module-private. **A second copy of a grouping rule is exactly what produced
- * the wrong all-clear that rule was written to fix** - PRD `e9e5b033` held by
- * seven traces and reported as unrelated pairs, because one run named it
- * `prd_id` and another named it `id`. So the rule is: identity is the ID, not
- * the key that named it, FOR UUIDS ONLY. A non-uuid keeps its kind, because
- * `signal_id: "1"` and `theme_id: "1"` are two different things.
+ * ── THIS WAS A MARKED COPY UNTIL 2026-08-31, AND NOW IT IS THE IMPORT ─────
+ * It reproduced `groupKeyOf`, which was module-private in
+ * `src/lib/presence/collision.ts`. **A second copy of a grouping rule is
+ * exactly what produced the wrong all-clear that rule was written to fix** -
+ * PRD `e9e5b033` held by seven traces and reported as unrelated pairs, because
+ * one run named it `prd_id` and another named it `id`. S0 exported the real one
+ * at S2's ask, so the copy is deleted rather than left to drift.
  *
- * S0 has been asked to export theirs
- * (`coordination/requests/S2/the-cursor-layer-needs-three-things-from-presence.md`
- * §3). **When it lands this function becomes one import and this comment goes
- * with it.** Until then the duplication is visible rather than quiet, and
- * `presence-anchor.test.ts` asserts the two agree on the cases A-006 names.
+ * **Kept as a named re-export rather than importing `groupKeyOf` at every call
+ * site**, because the two names answer different questions and only one of them
+ * is about collisions: upstream it groups anchors against each other, here it
+ * matches one anchor against the DOM. Same function, and the surface reads what
+ * it is for.
  *
- * The separator is `|` rather than the byte upstream uses. Nothing compares a
- * key from here against a key from there - only keys from this function to
- * keys from this function - so the byte is free, and a searchable file is
- * worth more than a matching one.
+ * The separator is a NUL byte and that is now a fact this module inherits
+ * rather than chooses. It never reaches the DOM: the two plain facts are what
+ * get stamped, and the key is only ever computed in JS, which is the whole
+ * reason those are two attributes and not one composed one.
  */
-export function anchorKeyOf(a: { targetKind: string; targetId: string }): string {
-  const kind = a.targetKind.startsWith("row") && UUID.test(a.targetId) ? "row" : a.targetKind;
-  return `${kind}|${a.targetId}`;
-}
+export { groupKeyOf as anchorKeyOf } from "@/lib/presence/collision";
+import { groupKeyOf } from "@/lib/presence/collision";
 
 /**
  * Props a surface spreads onto the element that draws an object.
@@ -102,7 +96,7 @@ export function anchoredElements(root: ParentNode): Map<string, Element> {
     const targetId = el.getAttribute(ANCHOR_ID_ATTR);
     const targetKind = el.getAttribute(ANCHOR_KIND_ATTR);
     if (!targetId || !targetKind) continue;
-    out.set(anchorKeyOf({ targetKind, targetId }), el);
+    out.set(groupKeyOf({ targetKind, targetId }), el);
   }
   return out;
 }
