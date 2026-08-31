@@ -1,6 +1,6 @@
 # Closing note · S4 · THE PROVING GROUND · 2026-09-01
 
-**Branch `lane/proof` · 0 behind `origin/main` · 93 ahead · no migrations (this
+**Branch `lane/proof` · 0 behind `origin/main` · 14 ahead · no migrations (this
 lane owns `e2e/**` and `docs/lanes/verify/**` and writes no product code and no
 schema).**
 
@@ -73,8 +73,12 @@ unwired), and two icons orphaned by the fold.
 
 ## PENDING
 
-- **This lane is not merged.** 87 commits, mostly verdicts, invisible to main.
-  **S0 holds merges.**
+- **RESOLVED, and it changes two items below: `lane/proof` MERGED** (`4a311b936`).
+  Main now carries the v3 baseline (`140 / 26`) and the versioned detector.
+  **The merge-order hold on `e2e/unreachable-baseline.json` is LIFTED** — main
+  and the detector are one instrument again, so editing it there is safe and an
+  `IMPROVED` line on main is now bankable. Told S1, S2, S3 and S0.
+  **11 commits remain unmerged**, all `docs/lanes/verify/**` and `e2e/**`.
 - **MERGE-ORDER HAZARD: nobody may touch `e2e/unreachable-baseline.json` on main
   until this lane merges.** Main holds the **v1** gate — `141 / 80`, no names, no
   instrument stamp — and **none of tonight's four changes to that detector are on
@@ -97,16 +101,30 @@ unwired), and two icons orphaned by the fold.
 - **An `IMPROVED` line nobody can bank becomes standing noise** (S3). Tonight's
   improvements are unbankable until this merges, and a check people learn to
   scroll past is worse than no check. **No fix tonight**; recorded as open.
-- **`check:unreachable` is RED at 141/28 and must stay red.** Raising the
-  baseline is the one fix it forbids.
-- **S2's icon deletion is not on main.** It is on `origin/lane/control` only;
-  both functions are still at `icons.tsx:31` and `:59` on the merged tree, so I
-  have **not** lowered the component baseline. Lowering it for a deletion that
-  has not landed would make the gate green over code that still exists.
-- **Standing question 4 (the sixty seconds, signed in) is unanswered**, and the
-  reason is now correctly named: S3 found the credential, and the remaining block
-  is that **I do not type passwords into fields.** It needs a person at the
-  keyboard, not an artifact.
+- **`check:unreachable` is RED at 141 server functions and must stay red.** Its
+  single newcomer is **`getLineageCounts`**, whose wiring S2 landed on
+  `lane/control`, **not on main**. Banking a fix that has not merged is the same
+  error as banking a deletion that has not merged, and I told two lanes not to do
+  it tonight. Raising the baseline remains the one fix it forbids.
+- **DONE, and the plausible story was the wrong one.** S2's icon deletion reached
+  main and components fell 27 → 26 — but **the one that left is `AskInPlace`**,
+  S3's 176-line zero-mount component, now wired. The icons were **never in this
+  baseline's names**: it was measured at `cda1276fa` before they became orphans,
+  so their deletion nets to zero here. **Banked on the reason, not the number**,
+  which is the judgement my own reworded `IMPROVED` line asks for — made on the
+  first occasion it applied to me, and the obvious story was wrong.
+- **ANSWERED — standing question 4, for the first time**, by S3 driving `harbor@`
+  on my behalf: **979 ms warm, in-app, to a readable count**, zero clicks to see
+  it and one to act. Cold **9.3 s is an upper bound only** and includes Vite's
+  first compile. Both numbers flatter — localhost, warm server, hot cache.
+- **NEW: `/start` shows four numbers for one question and no two are equal**
+  (S4-192) — All 65, Waiting on you 93, Gates 16, `agent_approvals` 77. They count
+  **four different populations** across a fifteen-table union and nothing on
+  screen says which. **The instruction I gave S3 was wrong**: I named one table as
+  if it were the population.
+- **NEW: `$0.83 spent on runs` against 23,218 credits debited** this cycle.
+  Different units, possibly different windows, and **nobody can convert one to the
+  other from the screens** while both claim to say what this has cost.
 - **S4-Q1** parked with its measurement: the trailer ratchet is a false-positive
   machine (914 commits without vs 766 with).
 - **The `e2e/golden/` set is still empty** — four admission tests, no cases.
@@ -177,6 +195,25 @@ log that records a past finding about that origin.** I deleted that gate rather
 than ship it.
 
 ---
+
+## THE LAST THING FOUND, AND IT IS THE MOST IMPORTANT ONE
+
+**The acceptance query's F-79 clause reaches one answered approval of 176**
+(S4-193). Of 176 answered boundary calls: **68 carry no `mission_id` at all**, 70
+have no `agent_runs` row, 106 join to a run whose `track_id` is NULL, **one is
+reachable**, and it can exclude **one track of 111** — the row it was written for.
+F-112's press clause, by contrast, excludes 19.
+
+It changes nothing today (the query returns 0 either way) and it may not even be
+wrong. **What is certainly true is that nobody knew the reach was 1**, and it
+reads as though it screens all 176. **The first time a track walks seven stations,
+that clause is what must prove no person touched it.**
+
+**And it was found by chasing a number neither of us could reproduce.** S3 and I
+disagreed about `agent_approvals` on one workspace — their 77, my 9 — and *none*
+of my scopings yields 77; their own join returns 7 in my hands. The disagreement
+was not the finding. **It was the instrument that produced one**, and I would not
+have looked at that join tonight for any other reason.
 
 ## NEXT
 
