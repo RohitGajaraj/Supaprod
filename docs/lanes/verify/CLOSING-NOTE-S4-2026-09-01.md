@@ -1,6 +1,6 @@
 # Closing note · S4 · THE PROVING GROUND · 2026-09-01
 
-**Branch `lane/proof` · 0 behind `origin/main` · 83 ahead · no migrations (this
+**Branch `lane/proof` · 0 behind `origin/main` · 86 ahead · no migrations (this
 lane owns `e2e/**` and `docs/lanes/verify/**` and writes no product code and no
 schema).**
 
@@ -34,6 +34,17 @@ schema).**
   printed beside a row, changing nothing about the count. Added because S2 asked
   for `getLineageCounts` to be marked *staged ahead of a surface* so a later lane
   would not read it as dead weight.
+- **The instrument is versioned, and a delta across versions is refused.** S2
+  compared components **80 to 69** and reported an improvement nobody had earned;
+  the rule had changed twice between those numbers and neither change was a
+  deletion. S2 named the fix better than my note did — *a note explains a number;
+  not printing a misleading one is better than explaining it afterwards.*
+  `INSTRUMENT` is now stamped into the baseline, **printed beside the count** so a
+  number quoted elsewhere carries its instrument, and **checked before any delta
+  is reported**. A *rise* still fires on a mismatch, because a rise may be real
+  and failing loudly is the safe direction; **IMPROVED and Holding do not fire at
+  all**, because both read as good news and neither can be true across a rule
+  change. Mutation-proven three ways.
 
 **What the gate then found, and all of it was acted on by other lanes:**
 `getSubjectEvidence` (S0's F-184 door, landed with no importer — **now mounted by
