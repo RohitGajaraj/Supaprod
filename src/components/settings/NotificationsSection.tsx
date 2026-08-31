@@ -81,7 +81,16 @@ type Channel = "app" | "email" | "digest";
  * carries the key, this whole region stays hidden rather than offering a save
  * that cannot persist, so the surface can never ship ahead of its column.
  */
-type PrefsPlusVerdict = UserNotificationPreferences & { email_verdict?: boolean };
+type PrefsPlusVerdict = UserNotificationPreferences & {
+  email_verdict?: boolean;
+  /** Gap #2's other half. Arrives with S0's migration, which is NOT applied:
+   *  their own DDL write was refused by a permission layer and it is escalated
+   *  to the founder by name. Until the fetched row carries this key the region
+   *  below does not render, so the surface can never offer a save the database
+   *  cannot persist. A-005 is the precedent and it cost a control that reported
+   *  a save it never made. */
+  email_stopped?: boolean;
+};
 
 const CATEGORIES: { key: Category; label: string; sub: string }[] = [
   {
@@ -191,6 +200,8 @@ export function NotificationsSection() {
   const [audience, setAudience] = useState<"exec" | "eng" | "board">("exec");
   // null = the preference has not shipped yet; the region stays hidden.
   const [verdictEmail, setVerdictEmail] = useState<boolean | null>(null);
+  // null = the column has not shipped yet; the region stays hidden.
+  const [stoppedEmail, setStoppedEmail] = useState<boolean | null>(null);
   const [dirty, setDirty] = useState(false);
 
   // Device-local, applied instantly, never part of the save.
@@ -214,6 +225,7 @@ export function NotificationsSection() {
     setStakeholder(row.digest_stakeholder_update ?? false);
     setAudience(row.digest_stakeholder_audience ?? "exec");
     setVerdictEmail(typeof row.email_verdict === "boolean" ? row.email_verdict : null);
+    setStoppedEmail(typeof row.email_stopped === "boolean" ? row.email_stopped : null);
     setDirty(false);
   }, [prefs.data]);
 
@@ -242,6 +254,7 @@ export function NotificationsSection() {
       // Omitted entirely until the column exists, so the save can never name a
       // field the database does not know.
       ...(verdictEmail !== null ? { email_verdict: verdictEmail } : {}),
+      ...(stoppedEmail !== null ? { email_stopped: stoppedEmail } : {}),
     });
 
   const reachable = CATEGORIES.filter((c) => CHANNELS.some((ch) => matrix[c.key][ch.key])).length;
@@ -437,14 +450,40 @@ export function NotificationsSection() {
            * lives in `src/lib/**`: see
            * `coordination/requests/S3/the-work-that-stopped-reaches-nobody.md`.
            */}
-          <Line
-            label="Work that stops early does not reach you yet"
-            sub="This sends when work reaches a result. Work that stops before one, waiting on a tool, on evidence, or on your decision, stays where it is and nothing tells you. Today lists those."
-          >
-            <Link to="/today" className={ACTION_LINK_FACE.quiet}>
-              See what is stopped
-            </Link>
-          </Line>
+          {/*
+           * TWO SHAPES FOR ONE FACT, AND WHICH ONE RENDERS DEPENDS ON WHETHER
+           * THE SEND EXISTS YET.
+           *
+           * Until S0's `email_stopped` column lands, this is the honest
+           * statement of a gap plus the way to see the work anyway. Once it
+           * lands, the same place carries the switch instead, and the sentence
+           * stops being about an absence. Neither version ever claims a message
+           * the product cannot send, which is what U-S3-021 was written to fix.
+           */}
+          {stoppedEmail === null ? (
+            <Line
+              label="Work that stops early does not reach you yet"
+              sub="This sends when work reaches a result. Work that stops before one, waiting on a tool, on evidence, or on your decision, stays where it is and nothing tells you. Today lists those."
+            >
+              <Link to="/today" className={ACTION_LINK_FACE.quiet}>
+                See what is stopped
+              </Link>
+            </Line>
+          ) : (
+            <Line
+              label="Email me when work stops and cannot carry on"
+              sub="Where it stopped, why, and what clears it. Only for work nothing will pick up on its own, so a piece that is still moving stays quiet."
+            >
+              <Toggle
+                checked={stoppedEmail}
+                label="Email me when work stops and cannot carry on"
+                onChange={(next) => {
+                  setStoppedEmail(next);
+                  setDirty(true);
+                }}
+              />
+            </Line>
+          )}
         </Region>
       )}
 
