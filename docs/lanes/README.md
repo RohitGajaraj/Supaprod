@@ -27,6 +27,7 @@ item and say why in your own line. That is the entire purpose of the file.
 | --- | --- | --- |
 | [`NOW-S0.md`](./NOW-S0.md) · [`NOW-S1.md`](./NOW-S1.md) · [`NOW-S2.md`](./NOW-S2.md) · [`NOW-S3.md`](./NOW-S3.md) · [`NOW-S4.md`](./NOW-S4.md) | that session only | **One line**, rewritten every unit: `<session> · <time> · WORKING\|BLOCKED\|DONE\|DEVSERVER · what · paths held · last commit` |
 | [`log/S0.md`](./log/S0.md) · [`log/S1.md`](./log/S1.md) · [`log/S2.md`](./log/S2.md) · [`log/S3.md`](./log/S3.md) · [`log/S4.md`](./log/S4.md) | that session only | Append-only unit history, one block per unit |
+| [`CLOSING-S3.md`](./CLOSING-S3.md) | that session only | **Written at the end of a working session, for the next morning rather than the archive**: what is DONE, what is PENDING, the OBSERVATIONS worth carrying, and what is NEXT. Founder's format, ruled 2026-09-01 |
 | [`QUEUE-S1.md`](./QUEUE-S1.md) · [`QUEUE-S2.md`](./QUEUE-S2.md) · [`QUEUE-S3.md`](./QUEUE-S3.md) · [`QUEUE-S4.md`](./QUEUE-S4.md) | **S0 only** | The next items, fully specified. That session reads, never writes |
 | [`verify/`](./verify/) | **S4 only** | Verdicts. S4 writes no product code and cannot fix what it finds |
 | [`BUILDLOG.md`](./BUILDLOG.md) | **S0 only** | The rolled-up narrative. No lane writes it any more |
