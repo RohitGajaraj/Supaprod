@@ -25,17 +25,21 @@ import { footerMode } from "@/components/track/footer-mode";
 export function RunFooter({
   status,
   tone,
+  hold,
   walking,
   crewLive,
   onStop,
 }: {
   status: "open" | "done" | "abandoned";
   tone: "you" | "hold" | null;
+  /** `track.holdReason`, the raw column. `tone` is derived from it and cannot
+   *  answer whether anything will drive this again; see `footer-mode.ts`. */
+  hold: string | null;
   walking: boolean;
   crewLive: boolean;
   onStop: () => void;
 }) {
-  const mode = footerMode({ status, tone, walking, crewLive });
+  const mode = footerMode({ status, tone, hold, walking, crewLive });
 
   return (
     /*

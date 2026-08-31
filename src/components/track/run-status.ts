@@ -12,6 +12,7 @@
  * already on the map's stop and in "Why it stopped".
  */
 import { holdTone } from "@/lib/spine/driver";
+import { nothingIsComing } from "@/components/track/nothing-is-coming";
 import type { Track } from "@/lib/spine/track.functions";
 
 /**
@@ -77,7 +78,36 @@ export function runStatus(
    * header is for.
    */
   if (tone === "you") {
-    return { status: "you", word: "Waiting on you", pulse: true, second: undefined };
+    /*
+     * ── THE CHIP AND THE TAB SAID THE SAME FALSE THING AS THE FOOTER ───────
+     *
+     * `footer-mode.ts` splits this exact set and argues it in full: `holdTone`
+     * returns "you" for `HOLD_NEEDS_PERSON`, and **four of those six reasons
+     * are the whole of `TERMINAL_HOLDS`**. Measured 2026-08-31, of the 37 open
+     * tracks reaching here, **36 have nothing pending for the person** -- the
+     * loop gave up and `track-tick.ts` dropped them from its selection.
+     *
+     * Fixing the footer alone would have been the worse outcome, not a smaller
+     * one. `TrackRun.tsx:763` writes this word into `document.title`, so the
+     * browser tab said "Waiting on you" over a footer saying nothing was
+     * coming. Operating model §12 is explicit that a word corrected in one
+     * place and left stale in another has made the problem worse, and this is
+     * the same claim on three surfaces from two files.
+     *
+     * "Needs a restart" rather than "Stopped": the chip's job is the state at a
+     * glance AND this state is still the person's, so it keeps the `you` tone
+     * and names the act that clears it. It is the act `way-out.ts` already
+     * points at in the pane ("press Let {station} try again"), so the header
+     * and the pane now describe one door.
+     *
+     * PULSE GOES OFF, and that is not styling. A pulse is motion, and it is
+     * true of `Running` and of a live boundary call. Nothing is moving on a
+     * track the sweep has dropped, and drawing motion over a dead feed is the
+     * staged state SPEC-PRESENCE forbids outright.
+     */
+    return nothingIsComing(track.holdReason)
+      ? { status: "you", word: "Needs a restart", pulse: false, second: undefined }
+      : { status: "you", word: "Waiting on you", pulse: true, second: undefined };
   }
   if (tone === "hold") {
     return { status: "hold", word: "On hold", pulse: false, second: undefined };
