@@ -65,6 +65,54 @@ describe("a tool result reaches the model unaltered", () => {
   });
 });
 
+/*
+ * THE ASSERTION THAT WAS MISSING, AND S4-162 FOUND IT BY MUTATION.
+ *
+ * Every fidelity test above asserts on `shortenToolResult` IN ISOLATION. But
+ * the function whose output actually reaches `conv` is `fenceToolResult`
+ * (`loop.server.ts:2171` and `:2661`), and the original defect was never inside
+ * the serialiser -- it was the COMPOSITION, `xmlEscape(JSON.stringify(result))`.
+ *
+ * So the whole file could be green on a tree that HTML-escapes every tool
+ * result on its way to the model. Measured 2026-08-31: re-introducing the
+ * defect one layer out, as `xmlEscape(shortenToolResult(result))` at line 626,
+ * left this file at 8 pass / 0 fail and the FULL SUITE at 12,984 pass / 0 fail.
+ * A guard that passes while the defect exists is worse than no guard, because
+ * it gets quoted as evidence -- and it was, in the commit that shipped the fix.
+ *
+ * This asserts on the composed function, which is the one the model reads.
+ */
+describe("the fence itself does not alter the payload", () => {
+  const unwrap = (fenced: string, id: string): string => {
+    const open = `<untrusted_tool_output tool_name="repo.read" id="${id}">\n`;
+    const close = `\n</untrusted_tool_output id="${id}">`;
+    expect(fenced.startsWith(open)).toBe(true);
+    expect(fenced.endsWith(close)).toBe(true);
+    return fenced.slice(open.length, fenced.length - close.length);
+  };
+
+  it("delivers source byte-identical THROUGH THE FENCE, not just through the serialiser", () => {
+    const id = newFenceId();
+    const body = unwrap(fenceToolResult("repo.read", { content: SOURCE }, id), id);
+    expect(JSON.parse(body).content).toBe(SOURCE);
+  });
+
+  it("leaves the three characters the escape ate, measured on the fenced string", () => {
+    const id = newFenceId();
+    const fenced = fenceToolResult("repo.read", { content: SOURCE }, id);
+    // On the WHOLE fenced string, so an escape applied at any layer fails here.
+    expect(fenced).not.toContain("&gt;");
+    expect(fenced).not.toContain("&lt;");
+    expect(fenced).not.toContain("&amp;");
+  });
+
+  it("hands the model parseable JSON inside the fence", () => {
+    const id = newFenceId();
+    const body = unwrap(fenceToolResult("repo.read", { files: [{ content: SOURCE }] }, id), id);
+    expect(() => JSON.parse(body)).not.toThrow();
+  });
+});
+
 describe("the fence cannot be forged by the content inside it", () => {
   it("closes only with this run's id", () => {
     const id = newFenceId();
