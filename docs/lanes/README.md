@@ -67,6 +67,12 @@ reopened, whatever the buildlog says.
 | [`S4-028-standing-question-3-the-theatre-audit.md`](./verify/S4-028-standing-question-3-the-theatre-audit.md) | S4's verdict, linked on integration so the doc gate can see it |
 | [`S4-039-the-stranger-in-a-real-browser-and-the-timer-caught-on-camera.md`](./verify/S4-039-the-stranger-in-a-real-browser-and-the-timer-caught-on-camera.md) | S4's verdict, linked on integration so the doc gate can see it |
 | [`S4-040-standing-question-1-answered-the-loop-works-and-one-human-touch-fails-it.md`](./verify/S4-040-standing-question-1-answered-the-loop-works-and-one-human-touch-fails-it.md) | S4's verdict, linked on integration so the doc gate can see it |
+| [`S4-186-the-sweep-neglects-nothing-and-the-live-population-is-two.md`](./verify/S4-186-the-sweep-neglects-nothing-and-the-live-population-is-two.md) | The rotation serves every track; the live population is two |
+| [`S4-187-the-csp-grants-two-npm-cdns-nothing-loads-from.md`](./verify/S4-187-the-csp-grants-two-npm-cdns-nothing-loads-from.md) | `script-src` grants two open npm CDNs nothing in the shipped app references |
+| [`S4-188-the-component-half-asked-the-server-half-s-question.md`](./verify/S4-188-the-component-half-asked-the-server-half-s-question.md) | The Build seat was handed the wrong repository and refused correctly (F-186) |
+| [`S4-189-the-acceptance-candidate-dies-of-a-null-foreign-key.md`](./verify/S4-189-the-acceptance-candidate-dies-of-a-null-foreign-key.md) | `product_id` NULL, so Build reaches the workspace default repo |
+| [`S4-190-it-corrected-itself-and-corrected-the-wrong-thing.md`](./verify/S4-190-it-corrected-itself-and-corrected-the-wrong-thing.md) | The loop re-planned unattended — and a re-plan cannot reach a binding fault |
+| [`CLOSING-NOTE-S4.md`](./verify/CLOSING-NOTE-S4.md) | S4's closing note: done, pending, observations, next |
 
 ## Superseded
 

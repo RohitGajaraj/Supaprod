@@ -146,6 +146,7 @@ import { CharacterMark } from "@/components/presence/Character";
 import { deriveRailPresence } from "./rail-presence";
 import { GLYPH_FOR_STATION, StationGlyph } from "@/components/meridian/station-glyphs";
 import { RunStripProvider, STAGE_LABEL, STATION_ROUTE, type RunStripSpec } from "./run-strip";
+import { SessionEndedProvider } from "./session-ended";
 import { agentDisplayName, agentStation, type AgentStation } from "@/lib/agent-vocabulary";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { supabase } from "@/integrations/supabase/client";
@@ -413,7 +414,17 @@ const RAIL = [
    */
   {
     to: SIGNED_IN_HOME,
-    label: "Work",
+    /* ── FOUNDER, 2026-09-01, SECOND PASS ON THIS RAIL ────────────────────
+     * "Work, review, learnings and permissions are still not so aptly
+     * named... keep it more relatable to the user... how other enterprise
+     * products are using it."
+     *
+     * HOME, because that is what every enterprise product calls the surface
+     * you land on - Notion, Jira ("Your work"), Vercel, GitHub. "Work" is
+     * accurate and tells a first-time reader nothing about what happens if
+     * they press it. A door is judged by whether a stranger can predict the
+     * page behind it. */
+    label: "Home",
     Icon: IconWork,
     count: null,
     owns: RUN_PATHS,
@@ -448,7 +459,38 @@ const RAIL = [
    */
   {
     to: "/today",
-    label: "Waiting for you",
+    /* ── ONE WORD. FOUNDER, 2026-09-01, ON THE RAIL SPECIFICALLY ──────────
+     *
+     * "This is not an enterprise-grade naming ceremony. It has to be one
+     * single verb... Don't put the sentence as the name of the shell." He is
+     * right, and §12's map is not what was wrong: the map gives the plain
+     * words a SURFACE uses in a sentence, and a rail door is not a sentence
+     * slot. "Waiting for you" is a caption; a door is a noun or a verb.
+     *
+     * REVIEW, and the canon picks it rather than taste. CLAUDE.md: "Approve
+     * is settled by what the control does - keep it where a click UNBLOCKS
+     * something, use REVIEW where it only SHOWS you something." This door
+     * navigates; it unblocks nothing. The Approve button on the far side
+     * still says Approve, because that one does unblock.
+     *
+     * Not "Inbox" - SURFACE-MAP marks /inbox DELETE and reusing the word
+     * would resurrect a retired door. Not "Queue" - naming the container is
+     * the exact fault §12 charged "Approvals" with. */
+    /* APPROVALS, and this REVERSES my own reasoning from an hour ago.
+     *
+     * I chose "Review" from CLAUDE.md's rule - "use review where it only
+     * SHOWS you something". **The founder ruled that rule out of context
+     * here**: it governs product COPY, where the distinction between showing
+     * and unblocking is the honest one. A NAV LABEL has a different job. It
+     * has to let a stranger predict the page, and this queue is 92 items each
+     * of which a person approves, sends back or declines.
+     *
+     * "Approvals" is what every enterprise reader already calls that -
+     * ServiceNow, SAP, Workday - and §12 retired it for naming a container
+     * rather than who is blocked. That objection is right about a SENTENCE
+     * and wrong about a DOOR: a door names the place, and the place is the
+     * approvals queue. */
+    label: "Approvals",
     Icon: IconToday,
     count: "gates",
     owns: BOARD_PATHS,
@@ -488,7 +530,19 @@ const RAIL = [
    */
   {
     to: "/brain",
-    label: "Brain",
+    /* §12's map, exact string: "Brain · Memory · Knowledge -> **What we've
+       learned**". Applied here because the RAIL LITERAL is in my prefix; the
+       destination stays S3's and I have not touched it. S4 reported three map
+       items outstanding on this rail and this is one of them. */
+    /* One word, per the founder's rail ruling above. §12 retires Brain,
+       Memory and Knowledge; "Learnings" is the plain noun a person says for the
+       same thing and it claims nothing about how many there are, which matters
+       while R-06 keeps this surface honestly empty. */
+    /* INSIGHTS. "Learnings" is a word people write and do not say; "Insights"
+     * is the one this category carries in every product a buyer has used.
+     * It still claims nothing about how many exist, which is what matters
+     * while R-06 keeps this surface honestly empty. */
+    label: "Insights",
     Icon: IconBrain,
     count: null,
     owns: BRAIN_PATHS,
@@ -522,7 +576,24 @@ const RAIL = [
    */
   {
     to: "/engine-room",
-    label: "Guardrails",
+    /* §12's map, exact string: "Engine Room · Guardrails · Govern · Boundary ·
+       Safety -> **What it's allowed to do**" - four routes and a mood for one
+       idea. T1-S2 rules this door S3's and says "coordinate, do not both edit
+       it": the LABEL is in my file, the page behind it is theirs, and S3 has
+       been told rather than surprised. */
+    /* One word, per the founder's rail ruling above. §12 folds Engine Room,
+       Guardrails, Govern, Boundary and Safety into one idea - the spend
+       ceiling, the blast radius, the tool set, the expiry. "Permissions" is
+       what an enterprise reader already calls that, and it carries the
+       "allowed to do" half without becoming a sentence. The page behind it is
+       S3's and unchanged. */
+    /* POLICIES. The founder's steer was that "Permissions" is abstract and
+     * something people correlate with - his example was "approvals" - would
+     * land better. Approvals is the queue above, so this takes the other
+     * standard word for the same idea: the rules about what the agents may
+     * spend, touch and run. AWS, Okta and Vanta all call this Policies, and
+     * §12's four-routes-one-idea fold survives it intact. */
+    label: "Policies",
     Icon: IconEngine,
     count: null,
     owns: ENGINE_ROOM_PATHS,
@@ -1610,6 +1681,27 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       : `${CREW} is working on ${running.length} runs`;
   }, [
     missions.isError,
+    /*
+     * `openTracks.isError` IS READ IN THIS BODY AND WAS NOT IN THESE DEPS.
+     *
+     * Two lines above return on it — `feedDead` and the "Cannot see what is
+     * running" branch — so the headline whose entire job is to admit the feed
+     * died could not recompute when the tracks feed was the thing that died.
+     *
+     * NOTHING ELSE COVERS IT, which is what makes this a defect rather than a
+     * lint nit. `movingRuns` is the only other dep fed by this query and it
+     * memoises on `openTracks.data`, which does NOT change when a read fails:
+     * on a first-load failure `data` is `undefined` and stays `undefined`, and
+     * on a later failure TanStack RETAINS the last successful value. So the
+     * reference holds, no dep changes, and the memo keeps returning the
+     * sentence it computed while the feed was alive.
+     *
+     * That is this lane's recurring defect in its purest form: a failed read
+     * that never reaches the surface. `getWorkspaceAnchors` swallowing an error
+     * and returning empty is the same shape one layer down, and it is why the
+     * rail crew's quiet state had to become a door rather than a sentence.
+     */
+    openTracks.isError,
     missions.isLoading,
     running.length,
     gateCount,
@@ -2450,7 +2542,15 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             </div>
           ) : null}
           <main className="sp-work" key={pathname}>
-            {children}
+            {/* THE SAME FACT, CARRIED DOWN RATHER THAN RECOMPUTED (S4-167).
+              The banner above is the ONE door. A region inside that offers a
+              second remedy - "Try again" against a dead token - offers what the
+              product cannot honour. Regions holding an `error` already resolve
+              this through `wayOut`; the workspaces arm has no error to hold,
+              because every board query is workspace-gated and therefore idle in
+              exactly that state. So the shell hands its own answer down. No new
+              read. */}
+            <SessionEndedProvider value={sessionEnded}>{children}</SessionEndedProvider>
           </main>
         </div>
         <BoardPanel open={boardOpen} onClose={() => setBoardOpen(false)} />

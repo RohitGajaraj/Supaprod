@@ -54,6 +54,8 @@ import { ElapsedRunning, parseableInstant } from "@/components/today/ElapsedRunn
 import { FocusNext } from "@/components/today/FocusNext";
 import { HandoverNote } from "@/components/today/HandoverNote";
 import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
+import { CameFrom } from "@/components/today/CameFrom";
+import { retryUnlessSessionEnded, useSessionEnded } from "@/components/shell/session-ended";
 import { PushedInsights } from "@/components/today/PushedInsights";
 import { runTotals, spendWords } from "@/components/today/run-totals";
 import { lastMovedAt, stillnessLine } from "@/components/today/last-movement";
@@ -578,6 +580,10 @@ export function Board() {
   // Engine-Room: Today names outcomes, decisions and evidence. Agent internals stay recessed.
   useSpineStrip(null);
 
+  /* The shell's own answer to "has this tab's session ended", not a sixth read.
+     Null outside the shell, which keeps every existing remedy where it is. */
+  const sessionEnded = useSessionEnded();
+
   const fetchQueue = useServerFn(getApprovalsQueue);
   const fetchMissions = useServerFn(listMissions);
   const fetchLearnings = useServerFn(listLearnings);
@@ -620,6 +626,38 @@ export function Board() {
   const sessions = useQuery({
     queryKey: studioSessionsKey(workspaceId),
     queryFn: () => fListSessions({ data: { includeArchived: false, workspaceId } }),
+    /*
+     * ── DO NOT ASK BEFORE WE KNOW WHICH WORKSPACE (2026-08-31) ────────────
+     *
+     * This read was unguarded while both its KEY and its PAYLOAD carry
+     * `workspaceId`, so on first paint it fired once with the workspace still
+     * unresolved and again with the real id — **two requests and two cache
+     * entries for one answer**, the second of which is the only usable one.
+     *
+     * ── AND THE HYPOTHESIS THAT LED HERE WAS MOSTLY WRONG, WHICH IS WHY
+     *    THIS COMMENT IS SMALLER THAN IT WAS ────────────────────────────────
+     * I found this while chasing a ten-second spinner on the home, having
+     * measured `listStudioSessions` as the most-called server function on a
+     * cold load. **It is not this.** The strip polls the SAME key every five
+     * seconds shell-wide (`use-spine-strip.ts`), and a later count of seven
+     * calls over a ~35s window is exactly 35/5. **The repetition is the poll,
+     * and the poll is honest.**
+     *
+     * So the guard removes ONE meaningless request — the unresolved-workspace
+     * call — and no more. **It is not a fix for the spinner and is not claimed
+     * as one.** It stands on its own smaller merit: a read that names a
+     * workspace in its key and its payload cannot answer anything before there
+     * is one, and firing it writes a cache entry under a key nobody will read.
+     *
+     * It matters more than it did last week: `/today` folded into the home, so
+     * this is no longer a page somebody visits. **Every arrival pays it.**
+     *
+     * The other two unguarded reads on this surface are deliberately so and
+     * were left alone: `fetchTracks` rides the SHELL's `["shell","open-tracks"]`
+     * key on the shell's cadence, and `fDueForecasts` shares one fetch with the
+     * station strip. Guarding either would add a request rather than remove one.
+     */
+    enabled: Boolean(workspaceId),
   });
 
   /* Both memoised on the QUERY's data rather than derived inline. A bare
@@ -1881,7 +1919,17 @@ export function Board() {
           <div className="today-arrival">
             {workspacesUnreadable ? (
               <Region title="The workspaces you are in">
-                <ReadFailedLine onRetry={() => refreshWorkspaces()}>
+                {/* NO SECOND REMEDY WHEN THE SHELL HAS ALREADY GIVEN THE ONE
+                    THAT WORKS (S4-167). A dead token fails every read in the
+                    tab, the shell says so once above everything with a Sign in
+                    door, and "Try again" here would retry into the same
+                    failure. This region keeps NAMING which read failed - the
+                    thing it knows and the shell does not - and drops the offer
+                    it cannot honour. When the session is fine the retry is
+                    real and stays. */}
+                <ReadFailedLine
+                  onRetry={retryUnlessSessionEnded(sessionEnded, () => refreshWorkspaces())}
+                >
                   This could not be read, so it cannot tell a quiet morning from a workspace it
                   never saw.
                 </ReadFailedLine>
@@ -2517,6 +2565,14 @@ export function Board() {
                           {row.note}
                         </p>
                       ) : null}
+                      {/* WHERE THIS CAME FROM (§0.5's connectedness, board half).
+                          The lineage sheet is already mounted app-wide in
+                          AppFrame; before this, nothing in this prefix offered
+                          the gesture. Under the row rather than in the scan
+                          band, which truncates. Never on a track: AUDIT_KINDS
+                          has no spine-track entry, so the ref would not
+                          resolve. */}
+                      <CameFrom missionId={row.id} isTrack={row.isTrack} />
                       {/* WHAT WAS HANDED TO YOU, BEFORE YOU DECIDE ON IT.
                           The founder asked twice to see the handoff and it was
                           drawn under RUNNING rows only. Measured against the
@@ -2604,6 +2660,14 @@ export function Board() {
                           {row.note}
                         </p>
                       ) : null}
+                      {/* WHERE THIS CAME FROM (§0.5's connectedness, board half).
+                          The lineage sheet is already mounted app-wide in
+                          AppFrame; before this, nothing in this prefix offered
+                          the gesture. Under the row rather than in the scan
+                          band, which truncates. Never on a track: AUDIT_KINDS
+                          has no spine-track entry, so the ref would not
+                          resolve. */}
+                      <CameFrom missionId={row.id} isTrack={row.isTrack} />
                       {/* WHERE THE WORK JUST CAME FROM. The founder asked twice to
                           see the handoff; on the board that is this one line under
                           each running row, drawn only when a real handover row
