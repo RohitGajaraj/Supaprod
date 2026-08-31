@@ -44,10 +44,24 @@ number, and **the fix is labelling, not arithmetic.**
 S4 filed the separation: **S4-191 is uncoordinated LOADING, S4-192 is uncoordinated DEFINITIONS.**
 Both are mine.
 
-**One thing left open rather than settled, and worth knowing before anyone touches that queue:**
-S3 measures `agent_approvals` undecided for workspace `60000000` at **77**; S4 measures the same
-table at **9**. Two lanes, one table, two answers, and neither has pinned where the scopings
-diverge.
+**RETRACTED — there is nothing open here.** I recorded *"S3 measures 77, S4 measures 9, two lanes
+one table two answers"*. **S3 withdrew the 77 and I verified the withdrawal myself rather than
+accepting it**, which is the rule I got wrong once tonight already:
+
+```
+count(*)            joined to agent_runs on mission_id   77   <- approval-by-run PAIRS
+count(distinct a.id) same join                            7
+direct, by mission, no join                               7
+```
+
+**`agent_runs` fans out hard on `mission_id`** — 28 runs on one mission, 18 on another — so **seven
+approvals arrived as seventy-seven.** S4's direct-column 9 minus two rows with no `agent_runs` row
+for the join to reach is the same 7. **It reconciles completely and no lane needs to worry about a
+contested count.**
+
+**And it changes nothing above**, because `agent_approvals` was only ever *one contributing table* to
+the fifteen-table union. Whether it holds 7 or 77 has no bearing on the finding, which is that four
+numbers over four populations are presented as siblings and none names its population.
 
 ### 2 · A date the screen contradicts two inches higher
 *"The oldest has been waiting 44 days, and is not on this page"*, while a card on the **same screen**
