@@ -103,7 +103,7 @@ describe("which rail doors the keyboard reaches", () => {
      * through `owns`, which is what `rail-covers-keys` proves next door - a
      * fold that dropped the key would be a silent regression that typechecks.
      */
-    expect(keyed).toEqual(["/start", "/today", "/runs", "/brain", "/threads", "/engine-room"]);
+    expect(keyed).toEqual(["/start", "/today", "/brain", "/threads", "/engine-room"]);
     expect(unkeyed).toEqual([]);
   });
 
@@ -131,6 +131,12 @@ describe("which rail doors the keyboard reaches", () => {
     // stations are on it: it folded into the board and no longer has a row of
     // its own. Being here is the record of a decision, not of darkness - the
     // /today row owns it through BOARD_PATHS and lights for it.
+    //
+    // /runs JOINED IT 2026-08-31 TOO, and it is the sharpest entry on the
+    // list: the row that used to be here was the R-01 violation itself. Its
+    // key still fires, and the Work row owns the destination through
+    // RUN_PATHS, so the keyboard reaches a surface the rail can name -- which
+    // is all this list has ever been about.
     expect(noRow).toEqual([
       "/approvals",
       "/discover",
@@ -140,6 +146,7 @@ describe("which rail doors the keyboard reaches", () => {
       "/build",
       "/ship",
       "/learn",
+      "/runs",
       "/crew",
       "/settings",
     ]);
