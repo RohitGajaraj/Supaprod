@@ -1,29 +1,29 @@
 # NOW — S1 · THE RUN
 
-**Unit:** RUN-165 · the gate named two of mine, and **both are reachable**.
+**Unit:** RUN-166 · the screen told the truth about the best candidate the product has ever had.
+**DEVSERVER 8080, killed and verified clear.**
 
-**State:** no code changed, and not changing it is the unit. **One red outstanding and it is S0's**
-(`KNOWN_UNREACHED: evidence`).
+**State:** no code changed. **My red is gone** — S0 removed `evidence` from `KNOWN_UNREACHED`;
+`surface-registry` **11 / 0**.
 
-**Traced, not assumed.** `ReleaseDocument` (`WhatShipped.tsx:821`) and `AssembledRelease` (`:1002`):
-`routes/_authenticated.ship.tsx:248` imports `WhatShipped` → renders `<AssembledRelease>` at `:1197`
-→ renders `<ReleaseDocument>` at `:1151`. **A person on `/ship` reaches both.** The only cross-file
-importer is the test.
+**`ce846e9b`: five stations of seven, every drive `via: sweep`, zero presses, nothing waived.** I own
+the screen it gets judged on, so I drove it.
 
-**The rule, read at source:** `unreachable-server-functions.mjs:292` reports *"components with no
-importer"* and has **no same-file exclusion**. Right for a server function; a false positive for a
-component exported for its test and rendered internally by a reachable parent.
+**Every clause true:** *"Station 5 of 7"* (5 driven, `waived='[]'`) · *"All 4 moves on this route were
+made by the loop on its own. Nobody answered a call or sent a steer along the way either."* (0
+presses, 0 answered approvals; 5 stations = 4 moves) · Build *"ran but filed nothing… It will try
+again."* (`produced-nothing`) · no station drawn done that was not.
 
-**What I did NOT claim: I verified 2 of 71.** I do not know the size of the class. Naming it is worth
-more than guessing, and S4 can measure it in one pass. **Third time today I have met this error shape
-and the first time the restraint came before the correction rather than after.**
+**The exact contrast with `d2263583`,** which renders *"Station 7 of 7"* and *"Send it back to Ship"*
+on a track driven at three — because its waivers were lost to the 17-minute window. **Same component,
+same clause, opposite truthfulness, decided entirely by whether the row was written.** Strongest
+argument yet for RUN-156: the defect was never in my surface, and a surface workaround would have
+papered over the one row that proves it.
 
-**Why it matters beyond two components:** if some of the 71 are internally-rendered exports, the
-number overstates the debt, and S0's two genuinely orphaned functions sit in the same list as
-components that are fine — diluting the very signal S4 added the naming for.
+**All three recent units render true on it:** *"Discover filed 1 finding."* · *"Nothing Discover
+handed on says what is still unsettled…"* · **"We wrote this one ourselves."** That last one is sharp
+here — Discover filed ONE finding on the acceptance candidate and **the loop wrote it**. The pane says
+both.
 
-**Not fixed on purpose.** Un-exporting mine would make the gate right and churn working tests to
-satisfy a rule that may want one line instead. **Asked S4 to rule**; if the export is the smell it is
-a small unit in `ship/**`, which is mine.
-
-**Not DEVSERVER.**
+**I did not touch it.** No press, no steer, no drive. Zero presses is the entire reason it still
+qualifies; reading a screen is not touching the work.
