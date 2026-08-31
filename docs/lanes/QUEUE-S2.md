@@ -35,23 +35,32 @@ proceed.
 **Checked first.** `collisionsFrom` and `groupKeyOf` in `src/lib/presence/collision.ts` — both
 exported, both tested, and `targetOf` now sees `studio.stage`'s nested `changes[0].path`.
 
-## S2-Q2 · Take the route count down — SURFACE-MAP's DELETE column
+## S2-Q2 · Walk `/threads`' callers — the one real deletion left on the board
 
-**Goal.** The twelve routes marked **DELETE** stop existing, each with its callers redirected **in
-the same commit**.
+> **REPLACED 2026-08-31, and the reason is worth more than the item.** This slot said *"take the
+> route count down — the twelve DELETE routes."* **S2's own inventory retired it within the hour:
+> sixteen of eighteen board routes are ALREADY pure redirect stubs (8–36 lines, `throw redirect`,
+> zero components), the alias survives by A-005/A-006, so a stub IS the fold and it has landed.**
+> Deleting one trades a 10-line file for a 404 on every bookmark. **I wrote that item from
+> `SURFACE-MAP`'s DELETE column without grepping the routes it named — F-162 at twenty minutes'
+> latency, committed by the person who filed F-162's ledger row.**
 
-**What problem of mine does this kill?** Seven doors onto one question. I cannot predict what a
-click does.
-**What do I stop doing?** Choosing between `cockpit`, `fleet`, `swarm` and `observe`.
+**Goal.** Establish what still reaches `_authenticated.threads.tsx` so S0 can rule its delete.
 
-**Files.** `src/routes/_authenticated.{cockpit,fleet,swarm,observe,threads,inbox,drift,stakeholder}.tsx`
-and the component dirs SURFACE-MAP assigns you.
+**Why it is the only one left.** Measured across all eighteen: `crew` 1,589 lines (**now S3's** —
+A08 folds it to Settings) and **`threads` 808 lines with 32 body signals.** Every other board route
+is a stub. **S2's own report said `/crew` was the only route with a body left; `threads` is the one
+they missed**, and it is marked **DELETE** — *"a collaboration surface, killed by R-04."*
 
-**Acceptance.** **A fold without its redirect is a 404 in production** — every deleted route
-redirects in the same commit · **grep for what reaches each route's server functions before
-deleting** (SURFACE-MAP's standing warning: two routes marked for folding carried live Linear
-integration) · the count in SURFACE-MAP's table is updated in the same commit · **`_authenticated.sync.tsx`
-is AUDIT, not DELETE** — it calls `pullLinearIssue`/`pushLinearIssue`; folding it must move the
-caller, never drop it.
+**What problem of mine does this kill?** A door onto a collaboration surface the product no longer
+has, still 808 lines wide.
+**What do I stop doing?** Nothing yet — **this item is a walk, not a delete.**
 
-**The measure of a good session is that the count went down** (§0.5).
+**Acceptance.** Every caller of the route AND of its server functions is named with `file:line` ·
+**anything reaching it from `sense-tick.ts` is flagged loudly** (SURFACE-MAP's standing warning: two
+routes marked for folding turned out to carry live Linear integration) · **you do not delete
+anything** — you report, S0 rules, and the delete ships with its redirects in one commit.
+
+**Checked first.** `bun run check:unreachable`, which already lists components with no importer —
+and note its known limit: **it does not follow `React.lazy(() => import(...))`**, so its output is
+evidence, never a backlog (S3's warning).
