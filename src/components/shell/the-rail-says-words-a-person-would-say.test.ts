@@ -59,7 +59,19 @@ const RETIRED = [
   "Govern",
   "Boundary",
   "Safety",
-  "Approvals",
+  /*
+   * "Approvals" IS NOT ON THIS LIST ANY MORE, AND THE REASON IS A RULING.
+   *
+   * §12 retires it for naming a CONTAINER rather than who is blocked, and that
+   * is right about a sentence. **The founder ruled it back for this rail on
+   * 2026-09-01** - "keep it more relatable to the user... how other enterprise
+   * products are using it" - and a nav label has a different job from a
+   * sentence: it has to let a stranger predict the page. The page is a queue of
+   * things a person approves.
+   *
+   * Removed deliberately rather than left in and excused, because a banned-list
+   * entry that every reader has to know an exception to is not a guard.
+   */
   "Crew",
   "Agents",
   "Fleet",
@@ -100,7 +112,7 @@ describe("the rail speaks plain words", () => {
   it("finds the rail's labels at all, so a silent parse failure cannot pass", () => {
     const labels = railLabels();
     expect(labels.length).toBeGreaterThan(2);
-    expect(labels).toContain("Work");
+    expect(labels).toContain("Home");
   });
 
   it("carries no word §12's rename map retired, except the one door awaiting a ruling", () => {
@@ -168,9 +180,20 @@ describe("the rail speaks plain words", () => {
        these are S1's and S3's and still reachable. */
     const labels = railLabels();
     expect(labels).toHaveLength(5);
-    expect(labels).toContain("Work");
-    expect(labels).toContain("Review");
-    expect(labels).toContain("Learnings");
-    expect(labels).toContain("Permissions");
+    /*
+     * ── THE FOUNDER RULED TWICE ON THIS RAIL AND BOTH ARE HERE ───────────
+     * First: one word per door, not a sentence. Second, an hour later: the one
+     * words I chose - Work, Review, Learnings, Permissions - "are still not so
+     * aptly named... keep it more relatable to the user."
+     *
+     * So the test pins the CURRENT words as well as the rule, because the rule
+     * alone ("one word") was satisfied by four words a stranger could not
+     * predict a page from. Both constraints are real and only the pair is
+     * enough.
+     */
+    expect(labels).toContain("Home");
+    expect(labels).toContain("Approvals");
+    expect(labels).toContain("Insights");
+    expect(labels).toContain("Policies");
   });
 });

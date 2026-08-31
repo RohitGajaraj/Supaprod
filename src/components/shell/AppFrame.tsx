@@ -414,7 +414,17 @@ const RAIL = [
    */
   {
     to: SIGNED_IN_HOME,
-    label: "Work",
+    /* ── FOUNDER, 2026-09-01, SECOND PASS ON THIS RAIL ────────────────────
+     * "Work, review, learnings and permissions are still not so aptly
+     * named... keep it more relatable to the user... how other enterprise
+     * products are using it."
+     *
+     * HOME, because that is what every enterprise product calls the surface
+     * you land on - Notion, Jira ("Your work"), Vercel, GitHub. "Work" is
+     * accurate and tells a first-time reader nothing about what happens if
+     * they press it. A door is judged by whether a stranger can predict the
+     * page behind it. */
+    label: "Home",
     Icon: IconWork,
     count: null,
     owns: RUN_PATHS,
@@ -466,7 +476,21 @@ const RAIL = [
      * Not "Inbox" - SURFACE-MAP marks /inbox DELETE and reusing the word
      * would resurrect a retired door. Not "Queue" - naming the container is
      * the exact fault §12 charged "Approvals" with. */
-    label: "Review",
+    /* APPROVALS, and this REVERSES my own reasoning from an hour ago.
+     *
+     * I chose "Review" from CLAUDE.md's rule - "use review where it only
+     * SHOWS you something". **The founder ruled that rule out of context
+     * here**: it governs product COPY, where the distinction between showing
+     * and unblocking is the honest one. A NAV LABEL has a different job. It
+     * has to let a stranger predict the page, and this queue is 92 items each
+     * of which a person approves, sends back or declines.
+     *
+     * "Approvals" is what every enterprise reader already calls that -
+     * ServiceNow, SAP, Workday - and §12 retired it for naming a container
+     * rather than who is blocked. That objection is right about a SENTENCE
+     * and wrong about a DOOR: a door names the place, and the place is the
+     * approvals queue. */
+    label: "Approvals",
     Icon: IconToday,
     count: "gates",
     owns: BOARD_PATHS,
@@ -514,7 +538,11 @@ const RAIL = [
        Memory and Knowledge; "Learnings" is the plain noun a person says for the
        same thing and it claims nothing about how many there are, which matters
        while R-06 keeps this surface honestly empty. */
-    label: "Learnings",
+    /* INSIGHTS. "Learnings" is a word people write and do not say; "Insights"
+     * is the one this category carries in every product a buyer has used.
+     * It still claims nothing about how many exist, which is what matters
+     * while R-06 keeps this surface honestly empty. */
+    label: "Insights",
     Icon: IconBrain,
     count: null,
     owns: BRAIN_PATHS,
@@ -559,7 +587,13 @@ const RAIL = [
        what an enterprise reader already calls that, and it carries the
        "allowed to do" half without becoming a sentence. The page behind it is
        S3's and unchanged. */
-    label: "Permissions",
+    /* POLICIES. The founder's steer was that "Permissions" is abstract and
+     * something people correlate with - his example was "approvals" - would
+     * land better. Approvals is the queue above, so this takes the other
+     * standard word for the same idea: the rules about what the agents may
+     * spend, touch and run. AWS, Okta and Vanta all call this Policies, and
+     * §12's four-routes-one-idea fold survives it intact. */
+    label: "Policies",
     Icon: IconEngine,
     count: null,
     owns: ENGINE_ROOM_PATHS,
