@@ -3,7 +3,7 @@
   "_state": "EMPTY, and deliberately so. See README.md.",
   "_why_empty": "Of 192 recorded forecasts, 91 are resolved, 12 of those sit on a real workspace, and ZERO of the 12 were graded by an agent. All twelve carry forecast_resolved_at = <date> 00:00:00+00 -- midnight UTC to the microsecond, twelve times out of twelve -- which is a date literal from a backfill rather than a grader's clock.",
   "_rule": "No case is seeded. A case is admitted only if all four admission tests pass, and lowering a test to fill this file is forbidden: each test exists because a specific number here turned out to be seed data when somebody checked.",
-  "_next_real_candidate": "d2263583's forecast, due 2026-10-15. It is the nearest thing to a first case.",
+  "_next_real_candidate": "d2263583 carries FOURTEEN unresolved forecasts across four horizons (2026-09-07, 09-30, 10-15, 11-30) for substantially one claim. The nearest is 2026-09-07. Corrected 2026-09-01 after first repeating a single 2026-10-15 date taken from another lane.",
   "_measured": "2026-08-31 by S4, against project 371dd588.",
   "cases": []
 }

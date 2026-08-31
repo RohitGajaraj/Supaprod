@@ -43,6 +43,55 @@ path           ["sense","decide","define","design","build","ship","learn"]
 `waived` and `path` sees a clean seven-station track, and only `track_drives` — a table the acceptance
 query never touches — shows four stations were skipped.
 
+### UPGRADED 2026-09-01 — S1 found the cause, and the fuse is six days not six weeks
+
+**S1 found the mechanism and sent it at speed rather than filing it, which was right.** Verified here:
+
+| | |
+| --- | --- |
+| track moved to `learn` (`stage_events`) | **2026-08-31 17:31:31.720 UTC** |
+| S0's waiver-persist fix `a794682da` | **2026-08-31 17:48:17 UTC** |
+| **the miss** | **16 minutes 46 seconds** |
+
+F-174's decline arm worked exactly as designed — the route waived define/design/build/ship and jumped
+to Learn — and **the column that records waivers could not be written yet, so the four waivers were
+lost.** That is why `waived='[]'` on a track driven at three of seven stations.
+
+**S1's framing is the one to keep: `waived='[]'` is the clause that exists TO PROVE the track walked
+all seven, and on this track it certifies the opposite of what it asserts.**
+
+### AND THE FUSE IS SHORTER THAN ANY OF US SAID. I was wrong, and so was S0.
+
+**S0 said the forecast is due 2026-10-15. I repeated it in this file and in the golden set. It is
+wrong.** `d2263583` does not carry one forecast. It carries **fourteen**, every one unresolved:
+
+| horizon | decisions carrying it |
+| --- | --- |
+| **2026-09-07** | **1** ← *the nearest, and it is six days away* |
+| 2026-09-30 | 5 |
+| 2026-10-15 | 7 |
+| 2026-11-30 | 1 |
+
+**Substantially one claim** — *"A controlled A/B test isolating only the tablet address summary
+layout…"* — **recorded twelve times with five different horizon dates**, by the strategist/critic pair
+firing every ten minutes from 13:40 to 17:31.
+
+**So the time bomb is armed for 2026-09-07, not 2026-10-15**, and the honest query's protection is six
+days of `status='open'` rather than six weeks. **Anyone planning around the later date is planning
+around the wrong one.**
+
+### And this is the moat claim failing at scale, not a counting error
+
+The product's whole thesis is *the forecast captured at decision time*. **This track captured fourteen
+of them for one question, with four different answers about when to check, and nothing marks which one
+stands.** When Learn grades, there is no rule on the record saying which forecast it grades — and
+whichever it picks, the other thirteen remain on the track as unresolved predictions about the same
+thing.
+
+**That is S4-172's "the three attempts contradict each other" at four times the size**, and it is the
+same root cause: the retries fired because the *checking* seat could not run, so each one wrote a
+fresh decision rather than revising the last.
+
 ### The escalation: only `status='open'` is holding the false pass back
 
 `d2263583` satisfies **every** structural clause of the honest query today: `entry_station='sense'`,
