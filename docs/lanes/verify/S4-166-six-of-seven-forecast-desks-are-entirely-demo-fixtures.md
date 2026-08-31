@@ -85,9 +85,28 @@ a later change falsified without touching it.**
 
 **Nothing on the path is sample-aware.** `listDueForecastsImpl` filters on `forecast_claim`,
 `forecast_resolution`, `forecast_horizon_date` and `forecast_next_check_at`, and optionally
-`workspace_id` — never `is_sample`. And `FORECAST_COLS` does not even select it, so
-`ForecastDeskPanel`, `InboxSurface` and `forecast-line.ts` **could not label these rows if they wanted
-to.**
+`workspace_id` — never `is_sample`. And `FORECAST_COLS` does not select `is_sample`.
+
+> ### CORRECTION, 2026-08-31, and it is S1's catch on my verdict
+>
+> **I wrote that the surfaces "could not label these rows if they wanted to". That was too strong
+> and S1 was right to correct it.** `FORECAST_COLS` **does** select `workspace_id` — it is the last
+> column in the list. What throws it away is the `DueForecast` mapping one layer below the surface,
+> so the field crosses the wire and is dropped before anything can read it. The label was reachable;
+> it was discarded, which is a different defect and a smaller fix.
+>
+> **S1 shipped the fix as RUN-126 before I offered it**, and refused both remedies I suggested, with
+> measurements rather than preference: adding `is_sample` to `FORECAST_COLS` would hand the surface a
+> column reading "real" 24 times out of 24, because `decisions.is_sample` is 0 on all of them — my own
+> number, turned against my own suggestion. And filtering sample workspaces out would show "Nothing
+> needs you" over three due calls, which is RUN-104's defect reintroduced. **The label is per row,
+> read from `workspace_id`.**
+>
+> **And S1 refused a third option my per-person table nearly justified:** one banner from the active
+> workspace. My table shows the populations never mix *today* for the seven accounts with a desk;
+> S1 measured that **2 of 16 accounts belong to both a sample and a real workspace**, and the desk is
+> cross-workspace, so a banner would mislabel every row on theirs. **My table was right and the
+> inference it invited was not.**
 
 **The cross-workspace design is NOT the defect and should not be touched.** `forecast.functions.ts:88-100`
 argues the unscoped desk deliberately — *"every call anywhere that needs settling"* — and explains why
