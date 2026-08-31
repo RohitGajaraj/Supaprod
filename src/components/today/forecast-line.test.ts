@@ -83,7 +83,9 @@ describe("worthDrawing", () => {
 });
 
 describe("the board is wired to it", () => {
-  const SRC = readFileSync("src/routes/_authenticated.today.tsx", "utf8");
+  // Subject moved 2026-08-31: the board was lifted out of the route file into
+  // `src/components/today/Board.tsx`. The CLAIM is unchanged.
+  const SRC = readFileSync("src/components/today/Board.tsx", "utf8");
 
   it("NO LONGER GATES THE BAND ON A GRADED FORECAST", () => {
     // The old guard was `calibration?.prediction.resolved`, which hid the whole

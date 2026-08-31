@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
 import { AgentMark } from "@/components/meridian/marks";
@@ -8,6 +8,7 @@ import { pollMs } from "@/components/shell/poll";
 import { SlowRead } from "@/components/shell/SlowRead";
 import { crewFromAnchors } from "@/components/shell/rail-crew";
 import { getWorkspaceAnchors } from "@/lib/approvals-queue.functions";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 /**
  * THE CREW, ON EVERY SURFACE.
@@ -51,6 +52,7 @@ import { getWorkspaceAnchors } from "@/lib/approvals-queue.functions";
  */
 export function RailCrew({ workspaceId }: { workspaceId: string | null }) {
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const fAnchors = useServerFn(getWorkspaceAnchors);
 
   /* THE SAME KEY `OverlapNote` READS. The board's collision marks and this
@@ -104,6 +106,31 @@ export function RailCrew({ workspaceId }: { workspaceId: string | null }) {
      Section 2: "It never shows a calm room on a dead feed." So this offers the
      way forward and claims nothing about the room. */
   if (crew.length === 0 && unknowable === 0) {
+    /* ── A DOOR TO THE ROOM YOU ARE STANDING IN IS NOT A DOOR ──────────────
+     *
+     * Found by looking at the rendered shell rather than by reading this file
+     * (2026-08-31, S2). Standing on the home, this offered "Start a piece of
+     * work" - and the home IS the composer, three inches to the right, already
+     * focused. R-20's "no dead end" is about a surface offering the next
+     * action; an action that lands you where you already are is the same defect
+     * wearing the remedy's clothes.
+     *
+     * IT WAS DEFENSIBLE UNTIL THIS MORNING and that is why it is only being
+     * fixed now. While the rail's first door was Today, `/start` was somewhere
+     * a person had to be sent. F-144 made the home the one primary door, so
+     * this became the second door to it in the same rail.
+     *
+     * NOTHING IS RENDERED RATHER THAN A SENTENCE, and the reason is the one
+     * this whole branch is built around: `getWorkspaceAnchors` still swallows a
+     * failed `agent_runs` read and returns an empty result rather than throwing
+     * (approvals-queue.functions.ts, `if (runsErr || !runs) return { anchors:
+     * [] ... }`), so `isError` stays false and this branch is reached by BOTH
+     * "nobody is working" and "we could not find out". **A sentence here would
+     * be a false all-clear on a dead feed**, which §2 forbids by name. Drawing
+     * nothing claims nothing. The fix belongs at the source and it is S0's;
+     * asked again this unit. */
+    if (pathname === SIGNED_IN_HOME) return null;
+
     return (
       <div data-state="quiet" className="mt-mrd-4 border-t border-mrd-line-soft px-mrd-4 pt-mrd-4">
         <button

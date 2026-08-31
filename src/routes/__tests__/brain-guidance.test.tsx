@@ -332,14 +332,7 @@ describe("Brain headline: the forecast rung", () => {
   });
 
   it("still steps aside for the re-scored call, which leads the ladder", () => {
-    const head = recordHeadline(
-      summary({ rescoreCount: 2 }),
-      recall(),
-      49,
-      8,
-      false,
-      forecast(),
-    );
+    const head = recordHeadline(summary({ rescoreCount: 2 }), recall(), 49, 8, false, forecast());
     expect(head).toBe("Real outcomes have re-scored 2 calls.");
   });
 
@@ -390,7 +383,14 @@ describe("Brain headline: the forecast rung", () => {
       forecast({ resolved: 1, hits: 1 }),
     );
     expect(single).toBe("One graded forecast, and it came true.");
-    const perfect = recordHeadline(summary(), recall(), null, null, false, forecast({ resolved: 4, hits: 4 }));
+    const perfect = recordHeadline(
+      summary(),
+      recall(),
+      null,
+      null,
+      false,
+      forecast({ resolved: 4, hits: 4 }),
+    );
     expect(perfect).toBe("4 of 4 graded forecasts came true lately.");
   });
 });

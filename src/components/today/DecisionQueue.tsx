@@ -14,6 +14,7 @@ import { AgentMark } from "@/components/meridian/marks";
 import type { Selection } from "@/components/shell/use-selection";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";
+import { presenceAnchor } from "@/components/shell/presence-anchor";
 import { isModalOpen } from "@/lib/overlay";
 import { ago } from "./when";
 
@@ -140,7 +141,23 @@ function OpenCall({
   const hidden = item.evidence.length - facts.length;
 
   return (
-    <div className="today-open">
+    /* THE FIRST OBJECT ON THE BOARD A TEAMMATE'S CURSOR CAN LAND ON.
+       `presenceAnchor` stamps this element with the row it draws, and
+       `TeammateCursors` matches an `Anchor` against it. Without a stamp the
+       layer is mounted and can never find anything, which is the "wired end to
+       end with no way in" class S3 found seven of in one night.
+
+       `sourceId`, NEVER `item.id`. The type says so in as many words - "the id
+       to send back on decide - never the composite `item.id`" - because
+       `item.id` is a composite key for the QUEUE, and a composite stamped here
+       would key against a row id that does not exist and match nothing, silently
+       and forever.
+
+       The kind is cosmetic for a uuid and it is still written honestly: A-006
+       ruled that identity is the id rather than the key that named it, so
+       `row:decision` and `row:spec` both collapse to the uuid when matching.
+       The kind earns its place by being readable in the DOM. */
+    <div className="today-open" {...presenceAnchor(`row:${item.kindKey}`, item.sourceId)}>
       <div className="today-open-meta">
         {pick}
         {item.agentSlug ? (

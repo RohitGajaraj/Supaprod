@@ -141,7 +141,11 @@ const SURFACES = [
   ["Build", "routes/_authenticated.build.index.tsx"],
   ["Ship", "routes/_authenticated.ship.tsx"],
   ["Learn", "routes/_authenticated.learn.tsx"],
-  ["Today", "routes/_authenticated.today.tsx"],
+  // EDITED BY S2 IN ANOTHER LANE'S PREFIX, authorised by name in
+  // `coordination/answers/S0-A03-land-all-four-in-one-commit-and-the-three-lines-are-authorised.md`.
+  // One line, and only the SUBJECT of the assertion: the board moved out of the
+  // route file into `src/components/today/Board.tsx`. The claim is untouched.
+  ["Today", "components/today/Board.tsx"],
 ] as const;
 
 describe("no station decides it is empty on an answer it never got", () => {

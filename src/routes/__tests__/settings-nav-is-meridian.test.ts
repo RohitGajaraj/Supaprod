@@ -5,7 +5,7 @@
  * ── WHY THIS FILE IS MOSTLY ABOUT WHAT DID NOT GET LOST ─────────────────────
  * The nav this replaced was on retired Cadence/ink tokens, and it had also built,
  * alone and correctly, the three things Meridian's rail was missing: a roving
- * tabindex, arrow keys and typeahead. Its own header recorded the reason -- 
+ * tabindex, arrow keys and typeahead. Its own header recorded the reason --
  * "Diagnostics was a fourteen-press crawl".
  *
  * So the obvious version of this change was a REGRESSION dressed as an adoption:
