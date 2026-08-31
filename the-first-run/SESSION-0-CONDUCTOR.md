@@ -45,8 +45,24 @@ whole product lives (§3 below).
 > **THE FIRST TWO ARE THE WHOLE JOB.**
 
 1. **Re-auth Lovable and DEPLOY main.** Three blockers were fixed on 2026-08-31 and every one of them
-   is inert until it reaches production. **Verify by fetching the changed asset and comparing BYTES**,
-   not by trusting a deployment id — publish status has lied three times in one night.
+   is inert until it reaches production. **Do not trust the deployment id a publish RETURNS to you** —
+   publish status has lied three times in one night.
+
+   > **HOW TO VERIFY, CORRECTED 2026-08-31 (F-165), because "compare BYTES" is right in spirit and
+   > unexecutable as written.** `supaprod.ai` is served by Cloudflare and returns an
+   > **`x-deployment-id`** header. **Record it before firing, compare it after** — measured end to
+   > end that day, it moved 5m39s after the publish while every asset stayed byte-identical.
+   >
+   > **The obvious byte comparisons all failed, four ways in one session:** an md5 of the served HTML
+   > reports CHANGED on every fetch (a per-request render timestamp); content-hashed asset filenames
+   > **cannot move for a server-side change**, which F-152/153/154 all were; a grep of the bundle for
+   > a symbol finds nothing because minification removed it; and **the root HTML names only the 38
+   > shell assets, so every lazily-mounted chunk is invisible to it.**
+   >
+   > **The rule to carry: a byte comparison is a proof only when the bytes you compare are downstream
+   > of what you altered.** Three of those four were not the deploy lying — they were an instrument
+   > that could not see the change. `x-deployment-id` is downstream of everything, including a
+   > server-only change, and it is the id the ORIGIN serves rather than the one a publish claims.
 2. **DRIVE ONE TRACK AND WATCH IT.** Nothing after this is unknown: merge runs inline at a trusted
    arc, `ci-poll-tick` builds the Deno preview within two minutes because `supaprod.json` is present,
    and `release.publish` resolves to `auto` with all five preconditions satisfiable. **The loop has
