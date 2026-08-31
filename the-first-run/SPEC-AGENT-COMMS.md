@@ -66,7 +66,15 @@ spec section, a file), and **payload** (an artifact reference, never a wall of p
 | **Broadcast** | teammate → all | *"The repo is unreachable. Stop."* | **Rare by design, and rate-limited.** If broadcasts are common, something upstream is broken |
 
 **No eighth type without a ruling.** An open message vocabulary becomes chat, chat becomes noise, and
-noise is what `_authenticated.threads.tsx` was deleted for.
+noise is what `_authenticated.threads.tsx` is being folded for.
+
+> **CORRECTED 2026-09-01 (S4). That sentence said "was deleted for", in the past tense, about a file
+> that is 808 lines, mounted at `AppFrame.tsx:498` and linked from `AskSwitcher`.** It was never
+> deleted. **A spec arguing against an eighth message type by citing a deletion that has not happened
+> is arguing from a fact it does not have** — and the argument does not need it: §4's own *"the run
+> IS the thread"* carries it without any appeal to what was removed. Ruled in
+> `coordination/answers/S0-A16-…`: FOLD into the composer, not delete, because **84 real
+> conversations exist across 15 workspaces** and deleting loses them.
 
 ---
 
