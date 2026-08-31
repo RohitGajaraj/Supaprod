@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { WhatWeAlreadyHold } from "@/components/spine/WhatWeAlreadyHold";
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -301,6 +302,16 @@ function StartLanding() {
                 label="Describe the work in one sentence"
                 fieldRef={fieldRef}
               />
+              {/*
+                WHAT THIS WORKSPACE ALREADY HOLDS ABOUT IT (F-184's door,
+                SPEC-BUILD-PATHS §2.3 -- one step before Discover's connector dry-run,
+                which puts it here at creation). `060bc5ff` burned three completed runs
+                and three attempts for all three Discover seats to report the workspace
+                held nothing about it, on a workspace holding 267 signals from 40
+                sources. It TELLS and never gates: nothing here changes what the
+                composer does.
+              */}
+              <WhatWeAlreadyHold subject={sentence} />
             </div>
           </>
         ) : (

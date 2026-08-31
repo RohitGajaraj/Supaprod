@@ -1,17 +1,17 @@
 # NOW — S1 · THE RUN
 
-**Unit:** RUN-162 · the pane said "67 signals" and the loop had written all 67.
-**DEVSERVER 8080, killed and verified clear.**
+**Unit:** RUN-163 · the evidence door is mounted and **driven**, and driving moved it once.
+**DEVSERVER 8080, killed and verified clear. ONE RED and it is S0's line.**
 
-**State:** built and driven. tsc 0 · **13,358 pass / 0 fail** · lint clean.
+**Live, on `/start`, typing *"tablet checkout address abandonment"*:**
+> *"Already here, from session replay archive, analytics dashboard, workspace.brief: address 76 ·
+> abandonment 34 · checkout 20."*
 
-**S4-183 established this on the evidence door and S0 shipped it there an hour ago. It applies
-unchanged to a pane of mine that is already live and had never said it.**
+**And "Start it" stayed enabled** — S0's *"nothing here may become a gate"* tested, not asserted.
 
-**62.7% of the whole signals table is the loop's own output** (940 of 1,499). But the per-track table
-is what made it a unit: `47dcbf3c` renders **67 signals, all 67 ours**; `3a652670` 78 of 80;
-`1361f487` 61 of 62; `6ff86b03` 138 of 148. *"57 things mention this, and 38 of them we wrote"* is a
-materially different sentence, and only the first lets a person judge the number.
+**DRIVING MOVED THE MOUNT.** I put it in `spine/TrackStart.tsx`, the obvious component. On `/start`
+the field never appeared: that page's composer is `_authenticated.start.tsx`'s `<Composer>`. A source
+read would not have told me.
 
 **It has no caller.** Only the module, its `.server.ts` and its own test reference it. Sixth
 producer-without-a-consumer in two days, and this one is inverted: the reader and the words exist,
@@ -90,15 +90,17 @@ F-161 ruling · #22/#27/#17/#14 need S0's half.
 **No S0 dependency, and I checked before asking for one.** `track.functions.ts:1199` already selects
 `source`, so `fields.source` was reaching my component all along and nothing read it. I nearly filed
 the sixth producer-with-no-consumer of the day and the producer was already wired to my door.
+**And I nearly logged a worse error.** My grep said `TrackStart` had **zero importers** and I was
+about to call it dead. **It is not** — `plan.index.tsx:126` imports it, `:902` renders it; comment
+hits crowded out the real import in a 5-line grep. **Third incomplete-sample error today, first one
+caught before publishing.** So: **two doors start work**; I mounted and drove one, and record the
+`/plan` one as **owed, not done**, because I have not seen it render.
 
-**Three judgements:** silent when none are ours (the opposite call from `said-once-not-four-times`,
-and right for the opposite reason) · silent when we cannot tell (`null`, not `0` — the day's law a
-fourth time) · the ALL case gets its own sentence.
+**The guard caught me twice with the same line.** `if (q.isLoading) return null` failed
+`a-null-under-a-heading-is-a-broken-promise` — the guard I obeyed this morning, then re-violated in a
+new file. My reasoning was half the rule: `RunPresence` says a state derived during a first read must
+be TRUE, not that nothing may be drawn. Now: *"Checking what this workspace already holds about
+this."*
 
-**Not an accusation, and a test pins it.** The inflow already flipped on 2026-08-25 and nothing
-drained the pool, so this is a backlog not a live failure. The line never says fail/broken/wrong.
-
-**DRIVEN on `bb405f6c` — 14 lines, both branches:** *"We wrote all 4 of these ourselves."* and
-*"2 of these 4 we wrote ourselves."*
-
-**Not S0.** That brief was misrouted; no conductor act performed. The `/goal` hook still enforces it.
+**The red:** `remove them from KNOWN_UNREACHED: evidence` — S0 predicted it and owns the line.
+**Not reporting the suite green.**
