@@ -73,11 +73,11 @@ export type OpenQuestionsInput = {
 /** What the surface knows. `null` questions means the read has not answered yet. */
 export type OpenQuestionsInput = {
   /**
-   * The questions the station filed. **Three distinct values, and collapsing any
-   * two of them is the defect this module exists to avoid**: `null` (we have not
-   * read, or the read failed), `[]` (it filed none), and a non-empty list.
+   * Every handoff this station filed, narrowed. **`null` means the READ FAILED**
+   * and is never treated as "none" (F-76). `[]` means the station handed nothing
+   * on at all.
    */
-  questions: readonly string[] | null;
+  handoffs: readonly { openQuestions: readonly string[] | null }[] | null;
   /** Whether the station this section belongs to has run at all. */
   stationRan: boolean;
 };
@@ -139,8 +139,32 @@ export function openQuestionsState(input: OpenQuestionsInput): OpenQuestionsStat
   return anyClaimed ? { kind: "filed-none" } : { kind: "said-nothing" };
   if (input.questions === null) return { kind: "cannot-tell" };
   if (!input.stationRan) return { kind: "not-yet" };
-  if (input.questions.length === 0) return { kind: "filed-none" };
-  return { kind: "asked", questions: input.questions };
+
+  /*
+   * EVERY question across every handoff this station filed, in order, deduped.
+   * A station that handed on twice asked its questions once each, and the same
+   * question restated in a second handoff is one unsettled thing, not two --
+   * the same call `station-file.ts` makes and the opposite of
+   * `what-it-produced.ts`'s, which counts repeats because a repeated FILING is
+   * the fact that reveals a jam. A repeated QUESTION reveals nothing.
+   */
+  const seen = new Set<string>();
+  const questions: string[] = [];
+  /** True once any handoff actually filed the field, empty or not. */
+  let anyClaimed = false;
+  for (const h of input.handoffs) {
+    if (h.openQuestions === null) continue;
+    anyClaimed = true;
+    for (const q of h.openQuestions) {
+      const key = q.trim();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      questions.push(q);
+    }
+  }
+
+  if (questions.length > 0) return { kind: "asked", questions };
+  return anyClaimed ? { kind: "filed-none" } : { kind: "said-nothing" };
 }
 
 /**

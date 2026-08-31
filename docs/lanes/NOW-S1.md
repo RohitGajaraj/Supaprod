@@ -39,31 +39,26 @@ S1 · 20:0x IST · WORKING · NO DEVSERVER (8080 held for browser checks, killed
 **Unit:** RUN-152 · S1-Q1 / gap #29 — open questions, drawn always, answered in place.
 **DEVSERVER 8080, killed and verified clear.**
 
-**State:** built, mounted, driven, pushed. tsc 0 · 13,287 pass / 0 fail · my files lint clean.
+**State:** built and pushed. tsc 0 · my module 20 pass / 0 fail · **full suite 1 fail, stated below.**
 
-**Checked first, as the queue requires.** `TrackConsent` is a **gate** mechanism (tool, reversibility,
-expiry) and an open question has none of those. `AskInPlace` asks for a **connector**. The one to
-reuse was neither: **`steerTrack`**, already proven (one track-scoped steer, consumed in 50s), and
-`TrackActivity.tsx:725` already renders it as "You said" / "not picked up yet". **So "the transcript
-shows who answered" needed nothing built.**
+**S0's measurement changed the module before I passed a prop.** `agent_messages.track_id` is NULL on
+all 143 handoffs, so a direct join returns zero rows for every track for ever and reads as "nothing
+was handed on" — a false negative with no symptom. Their commit fixes the writer and falls back to
+the mission join.
 
-**Why draw it always:** 141 of 143 handoffs record nothing unsettled. A hide-when-empty section
-renders on 2 tracks and hides the finding on the rest.
+**Two levels of null, and they differ.** `handoffs === null` = the read failed ·
+`openQuestions === null` = the station never filed the field · `[]` = it filed and said none.
+**3 of 143 carry the field; 140 say nothing.** Collapsing those would make 140 silences into 140 clean
+bills. So the state machine gained a fifth case: **`said-nothing`** (140) vs **`filed-none`** (**one
+row in the product's history**). Third time today for the same law, after F-76 and F-158.
 
-**The sentence I refused.** §2.1 says *"filing zero open questions means it did not look."* That
-accuses one run on evidence this surface cannot check. It says *"recorded nothing as unsettled. That
-is not the same as nothing being unsettled"* — pinned by a test.
+**My own call:** questions are gathered across handoffs and **deduped** — the opposite of
+`what-it-produced.ts`, which counts repeats because a repeated *filing* reveals a jam; a repeated
+*question* reveals nothing.
 
-**DRIVING CHANGED THE DESIGN.** `canRaiseOne` was false for `cannot-tell`, so the pane rendered *"I
-could not read what was left unsettled"* **with nothing beneath it** — the dead end unit 5 forbids.
-My written reason was wrong: the record is an independent steer, not a list mutation. Re-driven, the
-line is now followed by **"Say what is unsettled"** opening the field.
+**THE RED:** `remove them from KNOWN_UNREACHED: handoffs`. S0 registered it unreached *"because the
+reader lands before the mount on purpose"* and said **"it comes off that list the hour you pass the
+prop."** I passed it. `src/lib/**` is S0's, so **I have not touched their line.** Messaged.
+**I am not reporting this suite as green.**
 
-**NOT verified, and I am not implying otherwise:** I did **not submit** — `d2263583` is the acceptance
-candidate and a steer is a person touching it mid-run (R-18). The `asked` and `filed-none` branches
-are unit-tested only; `questions` is `null` until S0's reader lands, so `cannot-tell` is the only
-branch a browser can reach.
-
-**Broke a gate and fixed it:** an em dash in a placeholder failed four humanization guards.
-
-**Next:** S1-Q2 is BLOCKED pending the founder's ruling on who is S1 (F-161), so back to the ledger.
+**Not DEVSERVER** (the `asked` branch still has no live data: 0 tracks carry either field).

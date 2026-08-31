@@ -2146,7 +2146,7 @@ export function SenseBody({
        * empty list -- and an empty list here is a FINDING, so inventing one
        * would be the worst available lie. One prop changes when the reader lands.
        */}
-      <OpenQuestions trackId={trackId} stationLabel="Discover" questions={null} stationRan />
+      <OpenQuestions trackId={trackId} stationLabel="Discover" stationRan />
       {groups.map((g) => {
         const t = themeById.get(g.themeId);
         const members = g.signals;

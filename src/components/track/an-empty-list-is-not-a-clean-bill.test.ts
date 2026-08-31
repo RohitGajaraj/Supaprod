@@ -27,7 +27,7 @@ describe("the three absences are three different answers", () => {
 describe("the three absences are three different answers", () => {
   it("a failed read is never drawn as 'none'", () => {
     // R-16, and the dominant defect class in this repo.
-    expect(openQuestionsState({ questions: null, stationRan: true })).toEqual({
+    expect(openQuestionsState({ handoffs: null, stationRan: true })).toEqual({
       kind: "cannot-tell",
     });
   });
@@ -84,12 +84,45 @@ describe("the three absences are three different answers", () => {
   });
 
   it("not-yet and filed-none are not the same state", () => {
-    expect(openQuestionsState({ questions: [], stationRan: false }).kind).toBe("not-yet");
-    expect(openQuestionsState({ questions: [], stationRan: true }).kind).toBe("filed-none");
+    expect(openQuestionsState({ handoffs: [SILENT], stationRan: false }).kind).toBe("not-yet");
+    expect(openQuestionsState({ handoffs: [h([])], stationRan: true }).kind).toBe("filed-none");
+  });
+
+  it("A SILENCE IS NOT A STATED NONE -- the 140-of-143 case", () => {
+    /*
+     * S0's reader keeps `null` (never filed the field) apart from `[]` (filed it
+     * and said none). 140 of 143 handoffs are the former. Collapsing them would
+     * turn 140 silences into 140 clean bills on the one field 2.1 rules is a
+     * defect rather than a clean bill.
+     */
+    expect(openQuestionsState({ handoffs: [SILENT], stationRan: true }).kind).toBe("said-nothing");
+    expect(openQuestionsState({ handoffs: [h([])], stationRan: true }).kind).toBe("filed-none");
+    expect(openQuestionsState({ handoffs: [], stationRan: true }).kind).toBe("said-nothing");
+  });
+
+  it("one handoff that filed the field outranks the silent ones beside it", () => {
+    // A station that handed on three times and answered once HAS answered.
+    expect(openQuestionsState({ handoffs: [SILENT, h([]), SILENT], stationRan: true }).kind).toBe(
+      "filed-none",
+    );
+  });
+
+  it("gathers questions across handoffs and does not count a repeat twice", () => {
+    /*
+     * A question restated in a second handoff is one unsettled thing, not two.
+     * The opposite call from `what-it-produced.ts`, which counts repeated
+     * FILINGS because that is the fact revealing a jam -- a repeated question
+     * reveals nothing.
+     */
+    const s = openQuestionsState({
+      handoffs: [h([REAL[0]]), h([REAL[0], REAL[1]]), SILENT],
+      stationRan: true,
+    });
+    expect(s).toEqual({ kind: "asked", questions: [REAL[0], REAL[1]] });
   });
 
   it("keeps the questions verbatim when there are some", () => {
-    expect(openQuestionsState({ questions: REAL, stationRan: true })).toEqual({
+    expect(openQuestionsState({ handoffs: [h(REAL)], stationRan: true })).toEqual({
       kind: "asked",
       questions: REAL,
     });
@@ -124,7 +157,7 @@ describe("the section ALWAYS speaks, and that is the whole of #29", () => {
       openQuestionsState({ questions: [], stationRan: true }),
       "Discover",
     );
-    expect(line).toContain("not the same as nothing being unsettled");
+    expect(line).toContain("not a clean bill");
     /*
      * The spec says "Discover filing zero open questions means it did not look."
      * That is a general claim used to justify making the field load-bearing. On
@@ -146,7 +179,7 @@ describe("the section ALWAYS speaks, and that is the whole of #29", () => {
       openQuestionsLine(openQuestionsState({ questions: [REAL[0]], stationRan: true }), "Discover"),
     ).toBe("Discover left one thing unsettled.");
     expect(
-      openQuestionsLine(openQuestionsState({ questions: REAL, stationRan: true }), "Discover"),
+      openQuestionsLine(openQuestionsState({ handoffs: [h(REAL)], stationRan: true }), "Discover"),
     ).toBe("Discover left 2 things unsettled.");
   });
 });
@@ -177,7 +210,7 @@ describe("what a person may do, and where the door is shut", () => {
   });
 
   it("does not offer it before the station has run", () => {
-    expect(canRaiseOne(openQuestionsState({ questions: [], stationRan: false }))).toBe(false);
+    expect(canRaiseOne(openQuestionsState({ handoffs: [SILENT], stationRan: false }))).toBe(false);
   });
 });
 
