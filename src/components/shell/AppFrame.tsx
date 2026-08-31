@@ -129,6 +129,7 @@
  */
 
 import { RailCrew } from "@/components/shell/RailCrew";
+import { TeammateCursors } from "@/components/shell/TeammateCursors";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { countIsAFloor } from "@/components/approvals/not-the-whole-queue";
 import { pollMs } from "@/components/shell/poll";
@@ -2256,6 +2257,16 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                 not a destination - the rows above take you somewhere by name,
                 this one takes you to whatever is moving right now. */}
             <RailCrew workspaceId={workspaceId} />
+            {/* THE CURSOR LAYER (SPEC-MULTIPLAYER-PRESENCE 3.1-3.3), and it is
+                mounted HERE for the reason 4 gives: "Cross-surface, so it
+                lives with the shell. One implementation, never per-route."
+
+                It renders `position: fixed` over the whole viewport, so it does
+                not matter that it sits inside the rail in the tree - it is
+                placed next to RailCrew because the two read the SAME query key
+                and are two renderings of one fact, and keeping them adjacent is
+                how the next person finds that out. */}
+            <TeammateCursors workspaceId={workspaceId} />
             <div className="sp-railfoot">
               {/* THE BOARD, one click from anywhere (founder ruling
                 2026-07-30). It opens the same board /runs draws, over the page
