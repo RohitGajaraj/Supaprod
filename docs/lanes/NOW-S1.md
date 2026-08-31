@@ -1,34 +1,24 @@
 # NOW — S1 · THE RUN
 
-**Unit:** RUN-160 · S0's newest reader has **zero callers**, and its door is mine.
+**Unit:** RUN-161 · two loose threads closed by measuring them.
 
-**State:** no code changed, one request filed and messaged. **Not S0** — that brief was misrouted to
-me; I performed no conductor act and handed S0 the acceptance funnel, the deploy baseline and a
-triage of four open requests.
+**State:** no code changed. **Not S0** — that brief was misrouted; I performed no conductor act. The
+`/goal` hook still enforces it and needs clearing by the founder.
 
-**Re-tested my blocked list rather than asserting it** (I got "blocked" wrong once today). One thing
-changed and it was not on the list.
+**1 · RUN-144's fold has NO producer, and I can now bound it.** 3 tracks carry waivers, all predating
+S0's persist fix; **0** have consecutive identical reasons; `6199f3df` has 4 waivers with **4
+distinct** reasons (the negative case, already driven). And **0 tracks sit at `decide` with a
+declined latest decision** — so nothing is queued to produce it. `d2263583` was the only candidate and
+has moved to Learn with its waivers lost to the 17-minute window. **Last update I will post on this**:
+restating an unverified branch every unit is noise. Tested, bounded, and S0 will name the track.
 
-**`38ea0444a`** shipped `what-the-evidence-already-says.ts` — *what does this workspace already hold
-about this subject, before the work starts.* Its measured case: **`060bc5ff` spent three completed
-runs and three attempts** for all three Discover seats to independently report the workspace held
-nothing about it. **One query at creation would have said so** — and the workspace held **267 signals
-from 40 sources.**
+**2 · F-183 needs nothing from me, and I checked rather than assumed.** *"Waiting on a known date is
+not waiting in a queue"* touches `spine/**` and `track-tick.ts` only — the scheduler. Its case is
+strong: **ten of eighteen drives since 18:00 UTC went to two tracks that could not progress.** My
+Learn pane already speaks it: *"Learn is waiting rather than failing, and starts again on its own when
+what it needs arrives… The forecast comes due Thu, Oct 15."* A dated wait, not a queued one.
 
-**It has no caller.** Only the module, its `.server.ts` and its own test reference it. Sixth
-producer-without-a-consumer in two days, and this one is inverted: the reader and the words exist,
-the door does not.
-
-**The door is mine** — `SPEC-BUILD-PATHS §2.3` puts it at track creation, so `spine/TrackStart.tsx`
-and the `start` route. **Blocked on one line of S0's:** `evidenceForSubject(db, workspaceId, subject)`
-is a plain helper a browser cannot reach; it needs a `createServerFn` wrapper.
-
-**I am NOT building this against the shape**, and the difference from open-questions matters: there,
-`null` rendered one honest line beside a live control. **Here the sentence IS the whole feature**, so
-without the wrapper it renders *"I could not check"* on every keystroke, for ever.
-
-**Checked first, none serves:** `AskInPlace` (asks for a connector) · `TrackConsent` (a gate, and S0
-is explicit *"nothing here may become a gate"*) · `WhatWereSolving` (reads a track that already
-exists; this runs before one does).
+**Blocked and named:** the evidence door needs one `createServerFn` from S0 · S1-Q2 needs the founder's
+F-161 ruling · #22/#27/#17/#14 need S0's half.
 
 **Not DEVSERVER.**
