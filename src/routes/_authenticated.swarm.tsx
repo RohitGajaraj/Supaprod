@@ -1,10 +1,14 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// /swarm absorbed into /missions per F-IA-V4; AGENT-EXP moved the roster to
-// Engine Room > Team. LOOM W2 folded /govern?tab=team into the Safety room
-// (TEAM view), so this lands there in one hop.
+/**
+ * `/swarm` FOLDS INTO THE BOARD, AND THE BOARD IS `/today`.
+ *
+ * F-144/145/146: Rail consolidation folds all list/view routes into one board.
+ * The board is `/today` (the home surface showing work in flight + composer).
+ * The URL survives as an alias, so links to `/swarm` keep working.
+ */
 export const Route = createFileRoute("/_authenticated/swarm")({
   beforeLoad: () => {
-    throw redirect({ to: "/engine-room", search: { room: "safety", view: "team" } });
+    throw redirect({ to: "/today" });
   },
 });
