@@ -2133,14 +2133,12 @@ export function SenseBody({
        */}
       <WhatWereSolving trackId={trackId} hasEvidenceBelow={groups.length > 0 || loose.length > 0} />
       {/*
-       * WHAT IS STILL UNSETTLED, DRAWN ALWAYS (gap #29). `questions={null}` is
-       * not a placeholder: the reader is S0's and queued, and `QUEUE-S1.md`
-       * rules out deriving this from a client-side `payload` read. So the
-       * section says it cannot tell, which is the truth, rather than drawing an
-       * empty list -- and an empty list here is a FINDING, so inventing one
-       * would be the worst available lie. One prop changes when the reader lands.
+       * WHAT IS STILL UNSETTLED, DRAWN ALWAYS (gap #29). It reads S0's
+       * `getTrackHandoffs` itself rather than taking a prop: the narrowing of
+       * free-form `payload` belongs on the server, once, which is why I refused
+       * to do it client-side and asked for the reader instead.
        */}
-      <OpenQuestions trackId={trackId} stationLabel="Discover" questions={null} stationRan />
+      <OpenQuestions trackId={trackId} stationLabel="Discover" stationRan />
       {groups.map((g) => {
         const t = themeById.get(g.themeId);
         const members = g.signals;
@@ -2349,7 +2347,7 @@ function StationPanel({
             -- 47 tracks -- and `SenseBody` never runs for them. RUN-134 shipped
             that exact mistake with `NothingToRead` and it is the same shape. */}
         {stop.station === "sense" ? (
-          <OpenQuestions trackId={trackId} stationLabel="Discover" questions={null} stationRan />
+          <OpenQuestions trackId={trackId} stationLabel="Discover" stationRan />
         ) : null}
       </div>
     );

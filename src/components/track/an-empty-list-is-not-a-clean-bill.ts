@@ -45,14 +45,31 @@
  * on the rest.
  */
 
-/** What the surface knows. `null` questions means the read has not answered yet. */
+/**
+ * What the surface knows.
+ *
+ * ── TWO LEVELS OF `null`, AND THEY MEAN DIFFERENT THINGS ──────────────────
+ * S0's reader (`lib/handoff-fields.ts`) landed with a distinction this module
+ * did not originally have, and it is load-bearing:
+ *
+ *   `handoffs === null`             THE READ FAILED.
+ *   `handoff.openQuestions === null` the station **never filed the field**.
+ *   `handoff.openQuestions === []`   the station **filed it and said none**.
+ *
+ * Measured across all 143 handoffs: **3 carry the field at all (2 filled, 1
+ * empty), so 140 do not claim emptiness — they say nothing.** Collapsing those
+ * 140 silences into "filed none" would turn them into 140 clean bills on the one
+ * field §2.1 rules *"a defect, not a clean bill"*. So silence and a stated none
+ * get different sentences here, and the stated none is the rarer, sharper case:
+ * **one row in the product's history has ever answered the question.**
+ */
 export type OpenQuestionsInput = {
   /**
-   * The questions the station filed. **Three distinct values, and collapsing any
-   * two of them is the defect this module exists to avoid**: `null` (we have not
-   * read, or the read failed), `[]` (it filed none), and a non-empty list.
+   * Every handoff this station filed, narrowed. **`null` means the READ FAILED**
+   * and is never treated as "none" (F-76). `[]` means the station handed nothing
+   * on at all.
    */
-  questions: readonly string[] | null;
+  handoffs: readonly { openQuestions: readonly string[] | null }[] | null;
   /** Whether the station this section belongs to has run at all. */
   stationRan: boolean;
 };
@@ -62,7 +79,17 @@ export type OpenQuestionsState =
   | { kind: "not-yet" }
   /** We could not read them. Said out loud rather than drawn as none (R-16). */
   | { kind: "cannot-tell" }
-  /** It ran and filed none. **This is the finding, not the absence of one.** */
+  /**
+   * It ran, and nothing it handed on addressed what was unsettled. **The
+   * dominant case: 140 of 143 handoffs.** A silence, not a claim.
+   */
+  | { kind: "said-nothing" }
+  /**
+   * It filed the field and stated there are none. **One row in the product's
+   * history.** §2.1's *"an empty list is a DEFECT, not a clean bill"* is about
+   * exactly this, and it is worth its own sentence because it is the only case
+   * where a station actually answered.
+   */
   | { kind: "filed-none" }
   /** It filed some. */
   | { kind: "asked"; questions: readonly string[] };
@@ -73,10 +100,34 @@ export function openQuestionsState(input: OpenQuestionsInput): OpenQuestionsStat
    * read on a station that has not run is still a failed read, and reporting it
    * as "not yet" would quietly convert our ignorance into a fact about the work.
    */
-  if (input.questions === null) return { kind: "cannot-tell" };
+  if (input.handoffs === null) return { kind: "cannot-tell" };
   if (!input.stationRan) return { kind: "not-yet" };
-  if (input.questions.length === 0) return { kind: "filed-none" };
-  return { kind: "asked", questions: input.questions };
+
+  /*
+   * EVERY question across every handoff this station filed, in order, deduped.
+   * A station that handed on twice asked its questions once each, and the same
+   * question restated in a second handoff is one unsettled thing, not two --
+   * the same call `station-file.ts` makes and the opposite of
+   * `what-it-produced.ts`'s, which counts repeats because a repeated FILING is
+   * the fact that reveals a jam. A repeated QUESTION reveals nothing.
+   */
+  const seen = new Set<string>();
+  const questions: string[] = [];
+  /** True once any handoff actually filed the field, empty or not. */
+  let anyClaimed = false;
+  for (const h of input.handoffs) {
+    if (h.openQuestions === null) continue;
+    anyClaimed = true;
+    for (const q of h.openQuestions) {
+      const key = q.trim();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      questions.push(q);
+    }
+  }
+
+  if (questions.length > 0) return { kind: "asked", questions };
+  return anyClaimed ? { kind: "filed-none" } : { kind: "said-nothing" };
 }
 
 /**
@@ -89,6 +140,14 @@ export function openQuestionsLine(state: OpenQuestionsState, stationLabel: strin
       return `${stationLabel} has not got here yet, so nothing is recorded as unsettled.`;
     case "cannot-tell":
       return "I could not read what was left unsettled, so I cannot say whether anything was.";
+    case "said-nothing":
+      /*
+       * THE 140 CASE, AND IT IS A SILENCE RATHER THAN A CLAIM. Nothing the
+       * station handed on addressed what was unsettled -- which is not the same
+       * as it having looked and found none, and the wording keeps them apart
+       * without accusing anyone.
+       */
+      return `Nothing ${stationLabel} handed on says what is still unsettled. That is not the same as nothing being unsettled, and it is worth a look before this goes further.`;
     case "filed-none":
       /*
        * ── THE SENTENCE I REWROTE, AND WHY THE FIRST ONE WAS NOT MINE TO SAY ──
@@ -107,7 +166,7 @@ export function openQuestionsLine(state: OpenQuestionsState, stationLabel: strin
        * So it states the distinction and lets the reader draw the conclusion:
        * nothing RECORDED is not the same as nothing UNSETTLED.
        */
-      return `${stationLabel} recorded nothing as unsettled. That is not the same as nothing being unsettled, and it is worth a look before this goes further.`;
+      return `${stationLabel} looked and recorded nothing unsettled. An empty list is not a clean bill, so this is worth a look before it goes further.`;
     case "asked":
       return state.questions.length === 1
         ? `${stationLabel} left one thing unsettled.`
