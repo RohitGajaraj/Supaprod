@@ -586,6 +586,17 @@ WITH walked AS (
     -- actually worked would report the acceptance met for two months before
     -- anything was graded. Changes nothing today: both learn tracks are 'done'.
     AND status = 'done'
+    -- WAIVED = '[]' STOPPED MEANING "IT WALKED ALL SEVEN" ON 2026-08-31 (F-178),
+    -- AND IT IS FIXED IN THE DRIVER RATHER THAN HERE. The decline path waives
+    -- define/design/build/ship on an in-memory route and NEVER WROTE IT to the
+    -- row, so `d2263583` — driven at TWO stations of seven, `sense -> decide ->
+    -- learn` — carried `waived = '[]'` and satisfied every structural clause
+    -- above. F-174 opened that hole hours earlier: before it a declined track
+    -- stuck at Decide and no such row could exist. The driver now persists the
+    -- route whenever a tick changes it, so this clause means again what it says.
+    -- ROWS WRITTEN BEFORE THAT FIX STILL CARRY THE WRONG '[]', so cross-check a
+    -- non-zero result against `track_drives`: seven stations driven, or it did
+    -- not walk seven.
 )
 SELECT count(*) FROM walked w
 WHERE w.id NOT IN (            -- nobody answered a boundary call mid-run

@@ -3006,6 +3006,44 @@ export async function driveTrackOnce(
     }
   }
 
+  /*
+   * ── THE ROUTE CHANGED THIS TICK AND THE ROW HAS NEVER BEEN TOLD (F-178) ────
+   *
+   * `onwardRoute` is built above by `waive()` on a decline and by
+   * `reopenIfOutcomeContested()` at Learn, and **neither result was ever
+   * written.** It was recomputed from scratch every tick, which made the loop
+   * behave correctly and left the RECORD saying nothing happened. Two things
+   * followed, and the second is worse than the first.
+   *
+   * **THE ACCEPTANCE QUERY WENT BLIND.** Measured on `d2263583`, the live
+   * candidate, 2026-08-31 17:31: it walked `sense -> decide -> learn`, was
+   * DRIVEN AT TWO STATIONS ONLY, and its `waived` column read `[]`. That clause
+   * exists in R-18's query for exactly one purpose — to guarantee the work went
+   * through all seven — and it cannot see four stations skipped at runtime. The
+   * track satisfies every structural clause of the acceptance while having
+   * visited two of seven stations.
+   *
+   * **AND I OPENED THAT HOLE MYSELF, HOURS EARLIER.** Before F-174 a declined
+   * track stuck at Decide and never reached Learn, so no such row could exist to
+   * be miscounted. Unblocking the decline path made it reachable. *A fix that
+   * unblocks a path can invalidate a measurement that only held while the path
+   * was blocked* — and the measurement here is the one the whole project is
+   * judged by.
+   *
+   * **THE SECOND CONSEQUENCE: THE DOCUMENTED REOPEN HAS NEVER BEEN ABLE TO
+   * FIRE.** The waiver block above promises that if the verdict later shows the
+   * refusal was wrong, *"the stations come back rather than needing a person to
+   * remember this happened"*. `reopenIfOutcomeContested` opens with
+   * `if (!route.waived.some(w => w.reopensWhen === "outcome-contested")) return`
+   * — and `route.waived` is read from `row.waived`, which was always `[]`. The
+   * trigger could never match, so the promise could never be kept.
+   *
+   * Written only when it CHANGED, so an ordinary tick still writes the same
+   * columns it always did.
+   */
+  const routeChanged = JSON.stringify(onwardRoute.waived) !== JSON.stringify(route.waived);
+  const waivedPatch = routeChanged ? { waived: onwardRoute.waived as never } : {};
+
   // attempts resets on every move, in the same write, so a counter can never
   // leak across stations and strand work that was making progress.
   const moveResult = await supabase
@@ -3019,10 +3057,12 @@ export async function driveTrackOnce(
             station_drives: 0,
             last_hold: null,
             last_hold_because: null,
+            ...waivedPatch,
             driven_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           }
         : {
+            ...waivedPatch,
             status: "done",
             attempts: 0,
             last_hold: null,

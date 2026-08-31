@@ -17,6 +17,7 @@ import {
   isSupaprodManaged,
 } from "@/lib/hosting/changeset-deploy.server";
 import { isTerminalStatus } from "@/lib/reliability/runaway";
+import { recordErrorEvent } from "@/lib/observability/errors";
 
 /**
  * SEAM-2 (mission 3.6): ci-poll-tick — the CI-completion trigger the build
@@ -1125,13 +1126,77 @@ export async function runCiPollTick() {
           .in("status", NON_TERMINAL_RUN);
         if ((liveRuns ?? 0) > 0) continue;
 
-        // One fix dispatch per failing head sha (the input embeds it).
+        /*
+         * ── ONE DISPATCH PER HEAD SHA WAS A PERMANENT DEADLOCK (F-179) ──────
+         *
+         * This read `> 0`: a head sha that had EVER been dispatched was retired
+         * for good. That is correct only if the dispatched run either commits or
+         * consumes budget, and a run can do neither.
+         *
+         * **MEASURED ON THE TWO CHANGESETS TIER 0.2 UNBLOCKED, 2026-08-31.**
+         * `fix_attempts` was reset to 0 at 09:29 and 09:32; this tick dispatched
+         * a builder run for each within seconds; both runs finished `completed`
+         * having called `studio.fix.commit`, which the PRE-F-152 policy floor
+         * turned into an approval instead of a commit. Both approvals are still
+         * `pending` eight hours later, and nobody was ever going to answer them.
+         *
+         * **TWO COUNTERS DISAGREED AND THE WRONG ONE BLOCKED.** The comment at
+         * the dispatch below states the design: *budget consumption lives in
+         * `studio.fix.commit` itself (per real commit); the dispatch is bounded
+         * by the head-sha dedup above.* So a run that ends without committing
+         * spends NO budget — `fix_attempts` stayed 0, so the exhausted-park above
+         * never fired and nothing reported it — **and retires its head sha
+         * forever, because the sha only moves when a commit lands.** The
+         * changeset is dead and every instrument reads healthy: `pr_open`,
+         * `fix_attempts: 0`, and this tick returning `ok` every two minutes.
+         *
+         * **The bound stays; only its ceiling changes.** A dispatch that produced
+         * nothing is not an attempt spent, so it may be retried — up to the same
+         * budget that bounds real commits, which keeps F-151's spin impossible
+         * (three dispatches per red head, then nothing). The claim key below
+         * carries the ordinal so it bounds one dispatch rather than the sha.
+         */
         const { count: priorForHead } = await supabaseAdmin
           .from("agent_runs")
           .select("id", { count: "exact", head: true })
           .eq("mission_id", cs.mission_id)
           .like("input", `%${headSha}%`);
-        if ((priorForHead ?? 0) > 0) continue;
+        const dispatchesForHead = priorForHead ?? 0;
+        if (dispatchesForHead >= CI_FIX_BUDGET) {
+          /*
+           * TRIED THE FULL BUDGET AND COMMITTED NOTHING. Distinct from the
+           * exhausted branch above, which fires on real commits and parks the
+           * mission. This one cannot use `fix_attempts` — it is still 0, which
+           * is precisely the defect — so it is recorded where a person can read
+           * it. `failures` alone would not do: this tick's result is returned to
+           * the caller and `job_runs` stores no payload, so every counter it
+           * reports reaches nobody (the F-171 shape, one layer over).
+           *
+           * Claimed so it is said once per head sha rather than every two
+           * minutes for the life of the PR.
+           */
+          const stuckClaim = await claimOnce(
+            supabaseAdmin as unknown as SupabaseClient,
+            "ci-poll.fix-stuck",
+            `${cs.id}:${headSha}`,
+            cs.user_id,
+          );
+          if (stuckClaim.claimed) {
+            await recordErrorEvent(
+              new Error(
+                `CI fix dispatched ${dispatchesForHead}x for ${cs.id} at head ${headSha} and committed nothing. fix_attempts is ${attempts}, so no budget was spent and nothing parked it.`,
+              ),
+              {
+                surface: "cron.ci-poll-tick.fix-stuck",
+                failure_kind: "tool_error",
+                request_path: "/api/public/hooks/ci-poll-tick",
+                workspace_id: cs.workspace_id ?? undefined,
+              },
+            );
+          }
+          failures.push(`${cs.id.slice(0, 8)}: ${dispatchesForHead} fix dispatches, no commit`);
+          continue;
+        }
 
         const detail = await fetchFailingCiDetail({
           token: gh.token,
@@ -1185,10 +1250,16 @@ export async function runCiPollTick() {
          * paid agent runs diagnosing one red build and committing to the same
          * branch. Keyed by changeset and head sha, which is exactly what the
          * head-sha count was trying to express. */
+        // KEYED BY THE ORDINAL AS WELL AS THE SHA (F-179). Keyed by sha alone,
+        // the claim was a second permanent retirement of the head: it is taken
+        // once and released only when the insert fails, so even with the ceiling
+        // above raised, every later dispatch for the same sha would find the key
+        // held. The ordinal keeps the race guard (two sweeps arriving together
+        // compute the same count) while letting attempt 2 exist at all.
         const dispatchClaim = await claimOnce(
           supabaseAdmin as unknown as SupabaseClient,
           "ci-poll.fix-dispatch",
-          `${cs.id}:${headSha}`,
+          `${cs.id}:${headSha}:${dispatchesForHead}`,
           cs.user_id,
         );
         if (!dispatchClaim.claimed) continue;
@@ -1215,7 +1286,7 @@ export async function runCiPollTick() {
           await releaseClaim(
             supabaseAdmin as unknown as SupabaseClient,
             "ci-poll.fix-dispatch",
-            `${cs.id}:${headSha}`,
+            `${cs.id}:${headSha}:${dispatchesForHead}`,
           );
           continue;
         }
