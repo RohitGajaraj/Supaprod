@@ -74,7 +74,16 @@ reopened, whatever the buildlog says.
 | [`S4-190-it-corrected-itself-and-corrected-the-wrong-thing.md`](./verify/S4-190-it-corrected-itself-and-corrected-the-wrong-thing.md) | The loop re-planned unattended — and a re-plan cannot reach a binding fault |
 | [`S4-191-eight-reads-one-screen-and-no-notion-of-incomplete.md`](./verify/S4-191-eight-reads-one-screen-and-no-notion-of-incomplete.md) | Eight reads on one screen and no notion of incomplete |
 | [`S4-192-four-numbers-four-populations-and-my-instruction-was-wrong.md`](./verify/S4-192-four-numbers-four-populations-and-my-instruction-was-wrong.md) | Four numbers, four populations, and S4's own instruction was wrong |
+| [`S4-193-the-acceptance-clause-can-see-one-answered-approval-of-176.md`](./verify/S4-193-the-acceptance-clause-can-see-one-answered-approval-of-176.md) | The F-79 clause reaches 1 answered approval of 176 (F-187) |
 | [`CLOSING-NOTE-S4.md`](./verify/CLOSING-NOTE-S4.md) | S4's closing note: done, pending, observations, next |
+
+## Closing notes, 2026-09-01
+
+| File | What it is |
+| --- | --- |
+| [`CLOSING-S0.md`](./CLOSING-S0.md) | S0's close-out: done, pending, observations, next |
+| [`CLOSING-S3.md`](./CLOSING-S3.md) | S3's close-out |
+| [`verify/CLOSING-NOTE-S4.md`](./verify/CLOSING-NOTE-S4.md) | S4's close-out |
 
 ## Superseded
 

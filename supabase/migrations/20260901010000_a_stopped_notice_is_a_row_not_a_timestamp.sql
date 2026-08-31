@@ -50,6 +50,13 @@ ALTER TABLE public.track_hold_notices ENABLE ROW LEVEL SECURITY;
 
 -- Read your own notices. There is no client write path at all: the only writer is the
 -- tick, which runs as the service role and bypasses RLS by design.
+--
+-- APPLIED 2026-09-01 EXCEPT THIS STATEMENT (F-180). The table and the RLS enable both
+-- landed and are verified; `CREATE POLICY` was refused three times on this path, bare and
+-- wrapped in a DO block, every one `499 request_cancelled` with `pg_policies` still 0.
+-- **RLS ON WITH NO POLICY IS DENY-ALL, so the table is safe as it stands** and the gap is
+-- functional rather than a leak: an owner cannot yet read their own notices, on a feature
+-- that has no reader. Re-run this one statement when the path allows it.
 CREATE POLICY track_hold_notices_select_own
   ON public.track_hold_notices FOR SELECT
   USING (auth.uid() = user_id);
