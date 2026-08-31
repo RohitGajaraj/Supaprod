@@ -14,6 +14,35 @@ If you are starting a session: read this, then [`../operations/session-handoff.m
 
 ## Now
 
+**TWO FOUNDER RULINGS, 2026-08-31, AND THEY BIND EVERY LANE.**
+
+**One — the freeze.** Every lane's weight goes to platform strength until the acceptance is met.
+Twenty public routes and ~380KB of marketing component are frozen: S3 still owns them so nobody else
+touches them, and does not improve them. Four exceptions only — a false claim, a wrong legal page, a
+broken page, the founder by name. **And the correction that re-ranks S3's whole brief: the sixty
+seconds is measured SIGNED IN, not on the landing page.** Operating model §0.7.
+
+**Two — Anthropic's [AI-native SDLC playbook](https://claude.com/blog/the-ai-native-sdlc-playbook) is
+our framework, adopted by default.** The burden of proof is on the refusal and an unargued departure
+is drift. Their six stages map onto our seven; their central claim is canon §5N derived independently
+from their own telemetry. **Eight new authorised gaps, 15–22**, the largest being **#20: what we hand
+a builder should BE `intent.md` · `spec.md` · `plan.md`, named their names**, so a team on the playbook
+drops our output into their repo with no adapter. Only three refusals, each argued.
+
+**The finding that matters most:** across the playbook, monday.com's agent-first rebuild, Warp's
+improver loop and Slack's conversational memory, **nothing records a prediction before the outcome is
+known.** `intent.md` holds a goal; `bands.yaml` holds history. **The vendor published layers 01 and 02
+and left 03 empty.** Slack's own post — *reconstruct why it was decided* — is our 2026-08-10
+compounding-record falsification, published by somebody else, which confirms moving the moat to the
+forecast was correct.
+
+**Sequencing, and it is the guard against re-architecting instead of shipping:** only **gap #15**
+(the forecast band) and **gap #4** (the return edge firing) move the acceptance. Everything else waits
+behind them. Register: [`../../the-first-run/SPEC-AI-NATIVE-SDLC.md`](../../the-first-run/SPEC-AI-NATIVE-SDLC.md) ·
+strategic and tactical rewiring, with the case against: [`../strategy/ai-native-sdlc-rewiring-2026-08.md`](../strategy/ai-native-sdlc-rewiring-2026-08.md).
+
+---
+
 **THE LOOP RAN ON REAL EXTERNAL INPUT FOR THE FIRST TIME, 2026-08-22.** The public ingest
 webhook had never been used, so a token was minted and ten measured findings from the day's
 own audit were POSTed to `https://supaprod.ai/api/public/ingest-signals` against workspace

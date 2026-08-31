@@ -358,7 +358,21 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
     // `AUTO_SHIP_ENABLED`), the CALL files the question instead of running.
     // A seat that never calls it never even raises the question, so the gate
     // nobody could answer was a gate nobody was ever shown (R-27's evidence).
-    file: "If it does not meet the spec, call studio.stage with the fix and studio.commit to append it to the same branch. When it does meet the spec, call studio.pr.open so there is a pull request for Ship to point at, then studio.checks.run to learn whether CI is green at that head. When the checks are green, call studio.pr.merge, it re-proves CI fresh and refuses red, and where the workspace's governance wants a person it files that question rather than running, which is the gate working: stop there and say so. Do not pass work you would not sign off.",
+    // F-147. `studio.review` was implemented, `mode: "auto"`, `enabled: true`,
+    // and named in ZERO station briefs, so the one seat whose whole job is
+    // checking a diff had never been told the checker existed. Its own
+    // description says "call it AFTER studio.commit and BEFORE studio.pr.open",
+    // which is exactly the seam this brief already walks. It runs the
+    // deterministic passes (credentials on added lines, forbidden paths,
+    // missing test files) and then a reviewer pass for security, correctness,
+    // swallowed errors, scope creep and convention breaks. This is the third
+    // time a finished tool sat unreachable because no brief named it (F-36,
+    // F-88); the fix is a sentence, and the seat was reading files by hand.
+    //
+    // "unreviewed" is carried into the brief deliberately. The tool returns it
+    // when the reviewer did not run, and a seat that reads that as a pass turns
+    // a missing check into a clean bill, which is worse than no check at all.
+    file: "If it does not meet the spec, call studio.stage with the fix and studio.commit to append it to the same branch. When it does meet the spec, call studio.review over the staged diff before anything else: it is read-only, it names findings per file, and a verdict of block or revise is work to do rather than an opinion to weigh. A verdict of unreviewed means the reviewer did not run and is not a pass, so say so instead of proceeding as though it were one. Then call studio.pr.open so there is a pull request for Ship to point at, then studio.checks.run to learn whether CI is green at that head. When the checks are green, call studio.pr.merge, it re-proves CI fresh and refuses red, and where the workspace's governance wants a person it files that question rather than running, which is the gate working: stop there and say so. Do not pass work you would not sign off.",
   },
   // 06 Ship
   "release-verifier": {

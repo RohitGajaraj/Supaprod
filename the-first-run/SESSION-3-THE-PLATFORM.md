@@ -1,79 +1,65 @@
-# S3 · THE PLATFORM — Claude Code, worktree `supaprod-platform`, branch `lane/platform`
-
-> _Re-ranked 2026-08-31: FOUR standing jobs became FIVE, and the public surface was FROZEN.
-> §J0 is your reading list, §J1–§J5 are the jobs in ranked order. The `/goal` prompt names them
-> by number and carries nothing else, because it has 4,000 characters and this file has no limit._
+# S3 · THE PLATFORM — OpenCode, worktree `supaprod-platform`, branch `lane/platform`
 
 **Read [`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md) in full first.** It carries
-the user lens, the definition of "truly agentic", the coordination protocol, work-safety
-rules and both gates. Then read [`SURFACE-MAP.md`](./SURFACE-MAP.md) — `§FROZEN` for what you may not
-touch and `§S3` for every route you own.
+the user lens, the definition of "truly agentic", the git-only coordination protocol, work-safety
+rules and both gates. Then read [`SURFACE-MAP.md`](./SURFACE-MAP.md) for every route you own and what
+happens to it.
 
----
+**You own everything between "a person signs up" and "they are working" — and everything that makes
+this a product a company can actually buy.** S1 and S2 build the thing. You build the way in and the
+reasons a company can put real work through it.
 
-## §J0 · Your reading list, in this order
-
-1. [`OPERATING-MODEL-5-SESSIONS.md`](./OPERATING-MODEL-5-SESSIONS.md) — every rule. **§0.7 redefines
-   your job; read it twice.** §4 is the coordination protocol, amended 2026-08-31.
-2. **This file, §J1–§J5.**
-3. [`SURFACE-MAP.md`](./SURFACE-MAP.md) — `§FROZEN` and `§S3`.
-4. [`SPEC-AI-NATIVE-SDLC.md`](./SPEC-AI-NATIVE-SDLC.md) §3 E, §3 F, §3 H — yours.
-5. [`RANKED-BACKLOG.md`](./RANKED-BACKLOG.md) — #2 stays first, then #18 and #19.
-6. [`SPEC-CONNECTORS.md`](./SPEC-CONNECTORS.md) — the connect control, and mention consent.
-7. [`../docs/strategy/positioning-locked-2026-08.md`](../docs/strategy/positioning-locked-2026-08.md)
-   — **the banned words, before you write a single line of copy.**
-8. `docs/lanes/QUEUE-S3.md` and `coordination/answers/S3/`.
-
----
-
-## §FROZEN · The public and marketing surface, frozen 2026-08-31
-
-**You still own it, so that nobody else touches it. You do not improve it.** The enumerated list of
-frozen routes and directories is [`SURFACE-MAP.md`](./SURFACE-MAP.md) `§FROZEN`.
-
-**Four exceptions, and nothing else is one:**
-
-1. A live page states something **FALSE**.
-2. A **legal or security** page is wrong.
-3. The page is **BROKEN**.
-4. The **founder asks by name**.
-
-**A correction is one sentence.** If your fix is longer than the claim it corrects, it is a redesign,
-and it waits. **S0 rejects a unit that spends here.**
-
-**You own everything between "a stranger arrives" and "they are working" — and everything that makes
-this a product a company can actually buy.** S1 and S2 build the thing. You build the reason a person
-gets to it at all, and the reason they are still there in a month.
+> ## ⚠ YOUR SCOPE CHANGED ON 2026-08-31. READ THIS BEFORE YOUR FIRST UNIT.
+>
+> **The public and marketing surface is FROZEN** — operating model §0.7, ruled by the founder. It is
+> still in your prefix and you are still its owner; **you do not improve it.** Twenty routes and
+> ~380KB of component, listed in §0.7, are opened only for a false claim, a wrong legal page, a
+> broken page, or a request from the founder by name.
+>
+> **And the sixty seconds is measured SIGNED IN, not on the landing page.** That correction is §0.7
+> and it changes what this brief used to ask you for. The judged moment is signup → the product
+> already working, not a stranger reading a hero.
+>
+> **Your weight goes to the platform:** the verdict reaching a person who left, the boundary binding,
+> what counts as done, gates that can be declared, connectors reached where they are needed, the sad
+> paths, search and export. Those are the items on your queue and they are ranked in §0.7's list.
 
 ---
 
 ## What you own (write nothing else)
 
-`src/components/onboarding/**` · `settings/**` · `billing/**` · `admin/**` · `system/**` ·
-`governance/**` · `engine-room/**` · `connections/**` · `plg/**` · `public/**` · `landing/**` ·
+**BUILD HERE.** `src/components/onboarding/**` · `settings/**` · `billing/**` · `admin/**` ·
+`system/**` · `governance/**` · `engine-room/**` · `connections/**` · `notifications/**` ·
 `src/styles/**` except `meridian.css`
 Routes: `settings` · `onboarding` · `admin.*` · `integrations` · `notifications` · `boundary` ·
 `govern` · `guardrails` · `engine-room` · `budgets` · `approvals` · `login` · `signup` ·
 `forgot-password` · `checkout*`
 
-**You do not WRITE the database.** A write, a migration or a deploy is a request file in
-`coordination/requests/S3/`. **You MAY read Postgres yourself** via the Lovable MCP's
-`query_database` — that changed on 2026-08-31 when this lane moved to Claude Code, and it means you
-no longer wait on S0 for a count. You have Playwright, every skill, plugin and MCP in your session
-reminder, and the whole repo to read.
+**YOURS, BUT FROZEN — §0.7.** `src/components/landing/**` · `public/**` · `plg/**` · `supaprod/**` ·
+`brief/**` · `product/**`, and the routes `index` `product` `pricing` `faq` `demo` `film` `investors`
+`proof` `trust` `security` `privacy` `terms` `subprocessors` `updates` `brief` `ard` `d.$slug`
+`p.$slug` `p.teardown` `t.$slug` `admin.landing`. **You are the owner so that nobody else touches
+them, not so that you improve them.** Four exceptions only, in §0.7. A unit spending here is rejected
+at the gate.
+
+**The auth routes are NOT frozen** — `login`, `signup`, `forgot-password`, `reset-password`,
+`join.$token`, `checkout*` are the door into the platform and they are job 3 below.
+
+You have **no database**. Every count, row and query is a request file in coordination/requests/<you>/. You have Playwright, every
+skill and plugin in your session, and the whole repo to read.
 
 ---
 
-## The sixty seconds, which is the second acceptance criterion
+## The sixty seconds — signed in, and it is the second acceptance criterion
 
-**CORRECTED 2026-08-31: the sixty seconds is measured SIGNED IN, not on the landing page.** The
-judged moment is **signup → the product already working, with nothing to fill in first**. A landing
-page cannot pass or fail it. The earlier wording — "nothing you build matters more than this" —
-is replaced by the ranking in §J1–§J5.
+A person who has never seen this product **signs in** and, **inside sixty seconds, without being told
+anything, knows what it is doing for them and wants to come back.** The founder judges this on the
+running product, **on the signed-in surface** (§0.7). A landing page cannot pass or fail it: the thing
+being judged is whether the product explains itself *by doing something*.
 
-A person who has just signed up and has never seen this product, **inside sixty seconds, without
-being told anything, knows what it is doing for them and wants to come back.** The founder judges
-this on the running product.
+**It is one of your four jobs, not the thing that outranks them.** This brief used to say nothing you
+build matters more; §0.7 replaced that ranking. Job 1 below outranks it, because a promise S1 is
+already making on screen is untrue until you ship it.
 
 What that forbids: a tour, a tooltip, a checklist of setup steps, a "connect your tools first" wall, an
 empty dashboard, a modal explaining the concept. **In a closed loop every action is the only one that
@@ -86,54 +72,72 @@ around that or happens later.
 
 ---
 
-## Your five standing jobs — §J1 to §J5, and the order IS the ranking
+## Your five standing jobs, in this order
 
-> **Re-ranked 2026-08-31.** The door used to be first. It is now third, because a verdict that
-> reaches nobody makes a sentence another lane is shipping into a lie.
+**The order is the ranking** (§0.7). Job 1 is a promise another lane is already making on
+screen; job 2 is what a company needs before it puts real work through this. The route fold is last
+because it removes rather than adds, and §0.5 still wants the count going down.
 
-### §J1 · The verdict reaches a person who left the page — authorised gap #2
+### 1 · The verdict reaches a person who left the page — authorised gap #2, and it is first
 
-**Nothing today reaches somebody who closed the tab** — no notification, no email, no push, no
-digest. S1 is shipping the sentence *"I'm on it, you can leave this page"* on the run surface, and
-**until you ship this, that sentence is a claim the product cannot keep.** Standard #7 deletes
-features that claim what they do not do, so this outranks everything else you own.
+**Nothing today reaches a person who closed the tab.** No notification, no email, no push, no digest
+carries a verdict to somebody who is not looking. The whole frontier is async — submit and leave, the
+result comes to you — and we require attendance and call it visible agency.
 
-**One channel, done properly, end to end. Email is the recommendation.**
+**Why this is job 1 and not job 3.** S1 ships the sentence *"I'm on it — you can leave this page"* on
+the run surface. **Until you ship this, that sentence is a claim the product cannot keep**, and
+standard #7 is the one that deletes a feature rather than sending it back. Two lanes are holding one
+promise between them; yours is the half that makes it true.
 
-- The message **names what was PREDICTED beside what HAPPENED**, because that pairing is the
-  product. A notification that says only "your run finished" is not this job.
-- **Acceptance: a real verdict produces a real email to a real address, and you verify it BY
-  RECEIVING ONE.** A green unit test is not the acceptance and never was.
-- The trigger fires from the spine, and `src/lib/**` is S0's — **file the ask** in
-  `coordination/requests/S3/`.
-- **Grep for an existing mailer before you write one.** Around twenty connector providers already
-  exist, Gmail and Outlook among them. `coordination/answers/S3/A-001`, `A-002`, `A-003` and `A-005`
-  are prior rulings on exactly this: the email palette, the trigger, and how you receive one.
-- The mention-consent rule in `SPEC-AGENT-COMMS.md` §5 **does not bend.**
+**One channel, done properly, end to end. Email is the recommendation** — no device permission, no app
+install, and the founder can receive one today. The message names **what was predicted beside what
+happened**, because that pairing is the product. One place to turn it off.
 
-### §J2 · What the teammates may do, and what counts as DONE — one page, three parts
+**The trigger is not yours.** The send fires from the spine when a verdict lands and `src/lib/**` is
+S0's — file `coordination/requests/S3/verdict-notify-trigger.md` naming the event and the payload
+fields, and build the preference surface, the template and the delivery settings against that
+contract. **Grep for an existing mailer, `resend`, or a notification table first; about twenty
+connector providers already exist including Gmail and Outlook.**
 
-**(a) The fold, already ruled.** `engine-room`, `guardrails`, `govern` and `boundary` are four doors
-onto one idea. They become **one sentence in the footer and one settings page**.
-`resolveApprovalPolicy` **is now wired** at `src/lib/approvals-queue.functions.ts:1904` — the
-"zero callers" line in the older draft of this brief is **stale, and you treat it as done.**
+**Acceptance:** a real verdict produces a real email to a real address, **verified by receiving one,
+not by a green unit test.**
 
-**(b) NEW, gap #18: nothing anywhere says what counts as DONE.** Anthropic's `REVIEW.md` is written
-by *the customer's tech lead* — which review passes, the severity definitions, the exclusions. **Ours
-are hardcoded by us.** That is the question a company actually argues about, and it is **one more
-section on this page, not a destination of its own.**
+### 2 · Operate: the boundary, set once, widened by class
 
-**(c) NEW, gap #19: a gate the customer DECLARES, sitting above the policy we infer.** Allow / ask /
-block, declared by them, above the policy we infer from their answers. **Keep the inference; add the
-declaration.** And **an approval must record WHO answered**: `agent_approvals.decided_by` is NULL on
-**18 of 176** answered calls.
+This is the third of the six verbs (§11 of the operating model) and it is where the product becomes
+enterprise-credible rather than a toy.
 
-**Explain the ladder by ENVIRONMENT**, because that is a sentence a person says out loud — *dev moves
-freely, staging is intermediate, production is gated.* **ONE explanation of the existing ladder,
-never a second ladder**; `trust-ramp.ts` stays the only thing that promotes. **An unset ceiling is
-"unset" or its real number, NEVER "unlimited" (R-22).**
+`THE-ONE-SCREEN.md` already ruled the shape: **four routes for one concept — `engine-room`,
+`guardrails`, `govern`, `boundary` — become one sentence in the footer and one settings page.** The
+footer says what the AI teammates may do right now; the page is where you widen or narrow it.
 
-### §J3 · The door: signup → working, with nothing in between
+The engine exists and has never been plugged in: `resolveApprovalPolicy` (**zero callers**, and its own
+header says *"a long approvals queue is a policy failure to surface, not a workload to render"*),
+`autonomy-policy.ts`, spend and token caps on `agent_runs`, escalation state on `agent_approvals`, a
+four-rung trust arc, and **120 of 323 approvals with real human answers** — so there is something to
+widen on. **Wire it. Do not rebuild it.**
+
+An unset ceiling is the default, **never "unlimited"** (R-22). Say the real number or say it is unset.
+
+**Two sections this page is missing, both new on 2026-08-31 and both yours** — read
+[`SPEC-AI-NATIVE-SDLC.md`](./SPEC-AI-NATIVE-SDLC.md) §3 E and §3 H before you design the page, because
+they change its shape rather than being bolted on afterwards:
+
+- **What counts as DONE (gap #18).** This page answers what the AI teammates may **do**. Nothing
+  anywhere answers what counts as **done**, and that is the question a company actually argues about.
+  Anthropic's playbook has the customer's tech lead write it: the review passes, the severity
+  definitions, the exclusions. **Ours are hardcoded by us.** One more section here, not a destination.
+- **A gate you can declare, and an approver with a name (gap #19).** Their model is a rule the
+  customer writes — allow, ask, or block — sitting **above** the policy we infer from their answers.
+  Keep the inference (`resolveApprovalPolicy`, now wired at
+  `src/lib/approvals-queue.functions.ts:1904`) and put the declared rule on top of it. And a
+  production act should record **who** approved it: `agent_approvals.decided_by` is NULL on **18 of
+  176** answered calls.
+- **Explain the ladder by environment, because that is a sentence a person says out loud** — dev
+  moves freely, staging is intermediate, production is gated. **One explanation of the existing
+  ladder, never a second ladder**: `trust-ramp.ts` stays the only thing that promotes.
+
+### 3 · The door: signup → working, with nothing in between
 
 Account creation, workspace creation, invite and member management. **The workspace is not a thing the
 user creates before they can start** — Antigravity required a project, measured it, and shipped the
@@ -143,28 +147,7 @@ bypass. Create it behind them. Ask for a name later, or never.
 ever fill that form again on the founder's behalf. If you are building a signup flow the founder will
 use, make email+password work first.
 
-### §J2-legacy · Operate: the boundary, set once, widened by class (superseded by §J2 above)
-
-This is the third of the six verbs (§11 of the operating model) and it is where the product becomes
-enterprise-credible rather than a toy.
-
-`THE-ONE-SCREEN.md` already ruled the shape: **four routes for one concept — `engine-room`,
-`guardrails`, `govern`, `boundary` — become one sentence in the footer and one settings page.** The
-footer says what the AI teammates may do right now; the page is where you widen or narrow it.
-
-The engine exists. **`resolveApprovalPolicy` is now WIRED** — corrected 2026-08-31; it has a live
-caller at `src/lib/approvals-queue.functions.ts:1904`, a second at `:1905`, and a guard asserting the
-loop source still contains the call, so the wire cannot be quietly cut. **Anyone reading the old
-"zero callers" wording here should treat that job as done rather than re-wiring it.** Its own
-header says *"a long approvals queue is a policy failure to surface, not a workload to render"*;
-alongside it sit
-`autonomy-policy.ts`, spend and token caps on `agent_runs`, escalation state on `agent_approvals`, a
-four-rung trust arc, and **120 of 323 approvals with real human answers** — so there is something to
-widen on. **What remains is the FOLD and the two new declarations in §J2, not the wiring.**
-
-An unset ceiling is the default, **never "unlimited"** (R-22). Say the real number or say it is unset.
-
-### §J4 · The rest of a real product
+### 4 · The rest of a real product
 
 Settings (one page, not eleven). Notifications — including *how the verdict reaches a person who left
 the page*, which is the async property the whole frontier ships and we do not. Billing and the plan
@@ -177,7 +160,7 @@ held, permission-denied, offline. An empty state that does not say what to do ne
 R-20 §5, and four of seven stations commonly produce nothing. Accessibility is not deferred (R-19);
 mobile is.
 
-### §J5 · The route fold — 119 routes, and what they should be
+### 5 · 119 routes, and what they should be
 
 `REIMAGINING.md` argues nine surfaces. Most of the deletable ones are in your prefix. **Map which of
 your routes fold into which, propose it in coordination/requests/ with the reasoning, and let S0 rule.** Never delete
@@ -222,7 +205,8 @@ session's, and never write `docs/lanes/BUILDLOG.md`, which S0 rolls up.**
 ## The craft bar
 
 **OpenAI, Anthropic, Google, Perplexity, Vercel and Linear.** For your surfaces specifically:
-Vercel for the marketing and empty-state craft, Linear for settings density and speed. **Only S0 reaches Mobbin**, so file `coordination/requests/<you>/design-<surface>.md` and S0
+**Vercel** for empty-state craft, motion and the sandbox shape; **Linear** for settings density,
+speed and delegation-by-assignment. **Not Vercel's marketing site — that surface is frozen (§0.7).** **Only S0 reaches Mobbin**, so file `coordination/requests/<you>/design-<surface>.md` and S0
 commits the reference into `docs/design/reference-2026-08-26/` — see `SURFACE-MAP.md`. **Never
 eyeball a design; port the mechanics from a real source** (R-20 §7).
 
@@ -277,5 +261,10 @@ kill $(lsof -ti:5173)           # THE MOMENT the check is done. Not at unit end.
 
 ## What would prove you wrong
 
-Sit a stranger down with no explanation. If at sixty seconds they ask "so what does this do?" — or if
-they had to fill anything in before something happened — this failed, whatever else shipped.
+**Sign a stranger in** with no explanation. If at sixty seconds they ask "so what does this do?" — or
+if they had to fill anything in before something happened — this failed, whatever else shipped.
+
+And the second test, which is new and is the one your queue is actually ranked on: **a verdict lands
+while nobody is looking at the tab, and it reaches the person anyway.** Until that is true, S1's
+"you can leave this page" is a claim the product cannot keep, and standard #7 deletes features that
+claim what they do not do.

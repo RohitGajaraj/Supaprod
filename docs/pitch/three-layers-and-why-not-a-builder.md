@@ -23,7 +23,7 @@ Three layers, and each is the precondition for the next:
 1. **Tell you what to build.** Evidence in, a decision out, with what we expect written down before
    the outcome is known.
 2. **Run it end to end.** The decision becomes a plan, a design, a change, a deploy — handed to
-   whatever builds for you, **yours or ours**, and checked at every step.
+   Supaprod, and checked at every step.
 3. **Learn from it, then guide the next call.** The verdict lands against the expectation. What was
    believed, beside what happened.
 
@@ -85,7 +85,7 @@ has no moat.
 
 | Say | Do not say |
 | --- | --- |
-| "Decides what is worth building, hands it to whatever builds for you, and checks what actually happened" | "Runs the lifecycle" — it invites the comparison we just refused |
+| "Decides what is worth building, builds it, ships it, and checks what actually happened" | "Runs the lifecycle" — it invites the comparison we just refused |
 | "The forecast is captured at decision time" | Anything implying accumulated learning exists today |
 | "Six of the seven stations have done their jobs in real runs" | "The loop is proven" — the honest query returns 0 of 93 |
 | "The loop is wired and begins accruing on first real use" | Any present-tense claim about what the brain has learned |

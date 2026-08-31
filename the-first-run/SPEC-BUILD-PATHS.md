@@ -14,7 +14,35 @@
 
 ## 1 · The ruling
 
-**Both paths ship. Neither is the default in a way that blocks the other.**
+> ## ⚠ REORDERED 2026-08-31 BY THE FOUNDER. READ THIS BEFORE THE TABLE.
+>
+> *"Our primary intent is that we should be focusing on building it. Everything inside Supaprod should
+> be the priority. If they are not happy, we should be letting them take it to the external coding
+> agent solutions — but for now, that can be the second priority. Let's not enable that option."*
+>
+> **BUILD IT HERE IS THE DEFAULT AND THE ONLY PATH ENABLED.** Bring-your-own-builder stays ruled in,
+> stays specced in this file, and is **DEFERRED — not deleted.** Build nothing that closes the door on
+> it, and build nothing that advertises it either: a path we do not enable must not appear in copy
+> (standard #7).
+>
+> **The evidence supports the reorder.** §4 of the canon records that all five walls which have ever
+> stopped a real run sat at the handoff to somebody else's world — F-49 a repo the product stopped
+> recognising, F-50 a merge gate no station was briefed to approach, F-56 dependencies a customer's
+> repo cannot install, F-63 a CI gate the builder disabled, F-64 billing. **Same cause five times, and
+> building here removes all five.**
+>
+> **The cost, so nobody loses it:** §1's own argument is that *"a product that supports exactly one
+> supplier is worse than one that supports any — including itself"*, and enabling only ours makes us
+> that product for now. **That is why the second path is deferred rather than deleted**, and why the
+> handback mechanisms in §3 stay built: they are what makes switching it back on a decision rather
+> than a project.
+>
+> **What does not change:** the verdict is measured against the forecast, not against the code. **This
+> is not entry into the $48B code-generation market** — we build so the loop closes without the
+> customer assembling a toolchain. *"Build anything here"* is still never marketed.
+
+**Both paths remain ruled in. As of 2026-08-31 the first-party path is the DEFAULT and the only one
+enabled; the table below describes both because the second is deferred rather than removed.**
 
 | | **Bring your own builder** | **Build it here** |
 | --- | --- | --- |

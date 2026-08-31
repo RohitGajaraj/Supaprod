@@ -78,18 +78,34 @@ names in coordination/requests/.
 
 ---
 
-## The three standing questions you answer every session
+## The four standing questions you answer every session
+
+**Ordered. If a pass runs short, the later ones wait** — and question 4 was demoted on 2026-08-31 by
+§0.7, which also corrected where it is measured.
 
 1. **Is the acceptance met?** `entry_station='sense' AND station='learn' AND waived='[]'`. Ask S0 for
-   the count; never accept it via `workspaces.is_sample`, which returns a false 1. If it is still 0,
-   name the specific mechanism that stopped it this time.
-2. **Does the sixty seconds hold?** Take the stranger's path with fresh eyes and no context: land,
-   type one sentence, and record — with screenshots and timestamps — what a person would understand at
-   10s, 30s and 60s. **Report what you actually saw, not what the surface intended.**
-3. **Is anything on screen theatre?** A state not derived from a row that exists. A step label
+   the count; never accept it via `workspaces.is_sample`, which returns a false 1. **And never accept
+   the short form** — the honest query subtracts tracks whose approvals a person decided and tracks
+   somebody pressed, and it is in `OPERATING-MODEL-5-SESSIONS.md` §2. If it is still 0, name the
+   specific mechanism that stopped it **this** time.
+2. **Is anything on screen theatre?** A state not derived from a row that exists. A step label
    advanced by a timer. A count from a column no writer sets. A "learning" that is seed data. A
    progress bar over a route that waives stations. **This is the one finding that ends a feature
    rather than fixing it**, so it is the one you look hardest for.
+3. **Does the loop hold end to end without a person in it?** Drive a real track and watch what
+   actually happens rather than reading the code — three of five defects in one night came from
+   driving one, and code review had missed all three for weeks. Name every point a person was needed
+   and whether the product knew it was asking.
+4. **Does the sixty seconds hold — SIGNED IN?** §0.7: this is measured from signup to the product
+   already working, **not on the landing page**, which is frozen and which cannot pass or fail this
+   test. Land signed-in with no context, type one sentence, and record — with screenshots and
+   timestamps — what a person would understand at 10s, 30s and 60s. **Report what you actually saw,
+   not what the surface intended.**
+
+**And a standing prohibition, new 2026-08-31:** the public and marketing routes are frozen (§0.7).
+**Do not file findings against them** unless the claim on the page is factually wrong, the page is a
+legal one and is incorrect, or the page is broken. A design or copy finding on a frozen surface costs
+a lane a unit it is not allowed to spend.
 
 ---
 

@@ -129,6 +129,16 @@ minutes ago" once read as "yesterday" and nearly reversed a finding.
   deploy is a question to you.
 - **Run both gates on every lane push** — enterprise and R-20's eight. Fix minor defects yourself in
   place; never route a typo through a queue. Only structural defects go back.
+- **THIRD GATE, added 2026-08-31 — THE FREEZE (§0.7).** Reject any unit that improves the public and
+  marketing surface: twenty routes plus `landing/**`, `public/**`, `plg/**`, `supaprod/**`, `brief/**`
+  and `product/**`. Four exceptions only — a false claim, a wrong legal page, a broken page, or the
+  founder by name. **This is a gate, not a preference:** the founder ruled that every lane's weight
+  goes to platform strength until the acceptance is met, and a lane that spends a unit on a hero has
+  spent it against his instruction. Reject it the same way you reject a raw colour.
+- **And reject a unit that rebuilds what the vendor gives away** (§0.8): a code-review surface, a
+  vulnerability-triage screen, a scheduled-scan feature. Anthropic ships Managed Code Review, Claude
+  Security and Claude Tag into the stages we call Ship and Learn. **We consume those; we do not
+  compete with them.**
 - **Promotion into `src/components/meridian/` is the one review you never rush.** A primitive is used
   by every future surface, so a mediocre one is a debt charged forever.
 - **S4's verdict outranks a builder's buildlog.** A unit S4 cannot reproduce is reopened.
@@ -142,6 +152,51 @@ Untouched or under-served right now: onboarding, billing, tenancy, notifications
 offline states, accessibility, admin, connectors, export, Settings, and the 119 routes that
 `REIMAGINING.md` argues should be nine. **Which of the 119 map onto which nine is an open founder
 question — map it, propose it, and do not let a lane guess it.**
+
+**THE FOUR STALLS, AND YOU TOUCH ALL FOUR BECAUSE YOU OWN THE SPINE.** The playbook's own stated
+problem is that *"approval gates, reviews, handoffs and policies still stall the gains from agentic
+coding"* — **and its remedies make the gate faster without removing the reason it exists.** A gate is
+a question, and only one of the four (*is it correct and safe?*) is answerable by reading code.
+**The other three are answered by evidence the code does not contain**, which is our market.
+Yours: the forecast engine that answers the approval gate, the self-check proof that pre-empts the
+review, the emitters that make the artifact the handoff, and the policy engine underneath S3's
+surface. Full argument in
+[`../docs/strategy/ai-native-sdlc-rewiring-2026-08.md`](../docs/strategy/ai-native-sdlc-rewiring-2026-08.md) §3.5.
+
+**And #30, which is small, new, and the one thing the rest of the industry cannot build:**
+`trust-ramp.ts` should promote on **calibration** — how often this team's forecasts at this station
+landed **in band** — **not on a count of successful runs.** Right eight times in ten earns a wider
+band before a human is asked; confidently wrong narrows automatically, with the reason visible.
+**Blocked behind Tier 0.4 and 0.5, and do not build it against a count and call it calibration.**
+
+**MONTHLY, AND IT IS YOURS ALONE:** re-read Anthropic's SDLC playbook and the Skills/Files API
+changelog and check **one thing** — does anything now record a belief before the outcome is known? If
+`intent.md` gains a horizon and a grade, or `bands.yaml` gains a *predicted* band rather than a
+historical one, **layer 03 closes and the moat is gone.** Write the answer with its date into
+[`SPEC-AI-NATIVE-SDLC.md`](./SPEC-AI-NATIVE-SDLC.md) §5. A watch nobody schedules is not a watch.
+
+**Rank what you find with §0.7's six-step list**, which exists so a lane can settle its own ties: a
+station doing its job without a person, then steering without restarting, then legibility, then the
+result finding somebody who is not looking, then what a company needs to trust it, and pleasantness
+last. **Nothing on the frozen surface enters the queue at all.**
+
+**And five gaps are already found and waiting — §0.8, numbers 15 to 19**, from Anthropic's AI-native
+SDLC playbook, extracted once in [`SPEC-AI-NATIVE-SDLC.md`](./SPEC-AI-NATIVE-SDLC.md). **Two are
+yours and they are the two that move the acceptance:**
+
+- **#15, the forecast band and its tiered response.** Their `bands.yaml` carries a baseline, detection
+  rules and three tiers — log, diagnose read-only, open a change. **Ours records one number at Decide
+  and grades it once at horizon, which is why the grader has processed zero workspaces in its life
+  (F-51).** The band is the missing half of Decide's metric probe, which you already rank first of the
+  sandbox uses. Build them together.
+- **The return edge's published shape (gap #4).** Their Stage 6 turns a breach into a **normal,
+  refusable piece of work** re-entering at Stage 1 — not a special object. A missed forecast should
+  produce a track at Discover carrying the forecast it failed and a link to the run that failed it.
+  **That is Learn → Discover, and it closes the loop the acceptance is measuring.**
+
+Also yours: the schema behind #16 (five fields on what enters Discover) and #17 (the stage-timestamp
+measures S1 renders), and the engine behind #19 (a declared gate above the inferred policy, and an
+approval that records **who** answered — `decided_by` is NULL on 18 of 176).
 
 ---
 

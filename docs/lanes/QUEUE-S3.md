@@ -7,6 +7,30 @@
 > **Ask in `coordination/requests/S3/`. Anything needing money, a real customer's data, or a
 > credential the founder holds personally goes to him — S0 escalates within the unit.**
 
+> ## ⚠ RE-RANKED 2026-08-31 BY FOUNDER INSTRUCTION. READ THIS BEFORE THE ITEMS BELOW.
+>
+> The order in [`../../the-first-run/RANKED-BACKLOG.md`](../../the-first-run/RANKED-BACKLOG.md)
+> **supersedes the order in this file.** The items below are still specified correctly; they are no
+> longer necessarily topmost. Two rulings changed the ranking: **§0.7 the freeze** (every lane's
+> weight on platform strength until the acceptance is met) and **§0.8 Anthropic's AI-native SDLC
+> playbook as our framework**, which added gaps 15–29.
+>
+> **Two specs are new and you read them before touching a station boundary, an artifact or a
+> handoff:** [`SPEC-AI-NATIVE-SDLC.md`](../../the-first-run/SPEC-AI-NATIVE-SDLC.md) (the adoption
+> register) and [`SPEC-STATION-MODEL-AND-ARTIFACTS.md`](../../the-first-run/SPEC-STATION-MODEL-AND-ARTIFACTS.md)
+> (why the seven stations stay seven, the artifact formats, running on an engine that is not Claude,
+> and the UX contract in its §4).
+>
+> **THE SEQUENCING GUARD.** Only **Tier 0** moves the acceptance and all of Tier 0 is S0's. Ten new
+> gaps arrived from a playbook this week; **a lane that opens with artifact emitters instead of its
+> Tier 1 item is re-architecting instead of shipping**, which is this repository's signature failure.
+>
+> **THE STALLS YOU CLEAR: reviews and policies** — *what counts as done* (nobody has ever written it down; ours are hardcoded by us), and *are we allowed to do this, and who says so*. `delegate.openhands` was refused **7 of 7 times and the queue kept asking** — a policy that does not learn from its own answers is a committee with a database. `docs/strategy/ai-native-sdlc-rewiring-2026-08.md` §3.5.
+>
+> **YOUR TIER 1 ITEM (re-ranked 2026-08-31 after an 11-agent audit):** **#2 · the verdict reaches a person who left the page** — still first, because S1's on-screen promise is untrue until it lands. **Then the layer-02 vocabulary sweep: 10 NAMED locations, never a find-and-replace** — 34 files carry the phrase family and **8 quote it in order to ban it**; a sweep would delete the rule with the violations, and that has already happened twice. The investor deck is worst: still banned copy AND drifted 77 lines from the file its own README requires it to match. **Then #18 and #19.**
+>
+> **EVERY COUNT IN EVERY DOCUMENT IS STALE.** *"73 tracks, 71 entered at `sense`"* was measured 2026-08-26. **Today: 106 tracks, 103 entered at `sense`, 81 still sitting there.** The honest acceptance query still returns 0. **Re-measure before quoting a number; never copy one forward.**
+
 ## 1 · The verdict reaches a person who left the page — authorised gap #2
 
 - **Goal:** a result finds the person who closed the tab. One channel, done properly, end to end —

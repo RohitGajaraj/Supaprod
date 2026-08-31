@@ -167,7 +167,7 @@ const LAYERS: Layer[] = [
      * Build then Learn is not a shortcut. It is what you do when building the
      * thing is cheaper than arguing about it. */
     context:
-      "It decides what is worth building, hands it to whatever builds for you, yours or ours, and checks what actually happened. Two ways in: Discover when the problem is new, or Build and Learn when trying beats arguing. Either way the loop closes, and what you learn re-ranks what comes next.",
+      "It decides what is worth building, builds it, ships it, and checks what actually happened. Two ways in: Discover when the problem is new, or Build and Learn when trying beats arguing. Either way the loop closes, and what you learn re-ranks what comes next.",
     hue: "#6cb0f5",
   },
   {

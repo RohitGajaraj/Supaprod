@@ -8,7 +8,7 @@
 >
 > **Corrected 2026-08-10: that distinction is not the moat.** A full read of the market falsified the compounding-record claim — causes survive in Slack and call recordings and have been reconstructed twice on the record. **The moat is the forecast captured at decision time**: what a team believed would happen, recorded before the outcome was known. It is not an artifact and leaves no trace unless something captured it at the moment of the call. **Never claim accumulated learning in the present tense.** Canon: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md).
 
-> **Three layers, told door then body then brain:** 01 the director (tells you what to build) · 02 the operating system (runs the lifecycle, seven stations) · 03 the brain (**learns then guides**, never "stores"; the industry name for it is *context graph*, ThoughtWorks Radar Assess, April 2026). Each is the precondition for the next; 03 is the only one defensible alone. Full positioning: [`README.md`](./README.md).
+> **Three layers, told door then body then brain:** 01 the director (tells you what to build) · 02 the loop (**decides what is worth building, builds it, ships it, and checks what actually happened** — seven stations, covering plan through what happened after) · 03 the brain (**learns then guides**, never "stores"; the industry name for it is *context graph*, ThoughtWorks Radar Assess, April 2026). Each is the precondition for the next; 03 is the only one defensible alone. Full positioning: [`README.md`](./README.md).
 
 
 This file is deliberately short. Antigravity and the Gemini CLI load it with the highest precedence, so anything written here is paid for on every request. It holds only what is specific to those tools.

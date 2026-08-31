@@ -78,7 +78,7 @@ every row offers the next action (R-03).
 
 ---
 
-## §S3 · SETTINGS, ACCOUNT AND PLATFORM — S3.
+## SETTINGS, ACCOUNT AND PLATFORM — S3.
 
 | Route | Disposition | Plain name on surface |
 | --- | --- | --- |
@@ -114,37 +114,24 @@ designing any of these; it is the one session with that access.
 **One trap:** an OAuth signup leaves no password, so no agent can ever fill that form again on the
 founder's behalf. **Make email + password work first.**
 
-### §FROZEN · Public and marketing — owned by S3, FROZEN 2026-08-31
+### Public and marketing — S3
 
-**S3 owns this surface so that nobody else touches it. S3 does not improve it.** Frozen means
-frozen: no redesign, no polish, no copy pass, no component extraction, no accessibility sweep.
+`index.tsx` · `product.tsx` · `pricing.tsx` · `faq.tsx` · `demo.tsx` · `film.tsx` · `investors.tsx` ·
+`proof.tsx` · `trust.tsx` · `security.tsx` · `privacy.tsx` · `terms.tsx` · `subprocessors.tsx` ·
+`updates.tsx` · `brief.tsx` · `ard.tsx` · `d.$slug.tsx` · `p.$slug.tsx` · `p.teardown.tsx` ·
+`t.$slug.tsx` — **KEEP, AND FROZEN AS OF 2026-08-31.** So is `_authenticated.admin.landing.tsx`, and
+so are `src/components/landing/**` · `public/**` · `plg/**` · `supaprod/**` · `brief/**` ·
+`product/**`.
 
-**Routes:** `index.tsx` · `product.tsx` · `pricing.tsx` · `faq.tsx` · `demo.tsx` · `film.tsx` ·
-`investors.tsx` · `proof.tsx` · `trust.tsx` · `security.tsx` · `privacy.tsx` · `terms.tsx` ·
-`subprocessors.tsx` · `updates.tsx` · `brief.tsx` · `ard.tsx` · `d.$slug.tsx` · `p.$slug.tsx` ·
-`p.teardown.tsx` · `t.$slug.tsx` · `admin.landing`
+**FROZEN means S3 owns them so that nobody else touches them, not so that S3 improves them.**
+Operating model §0.7, ruled by the founder: every lane's weight goes to platform strength until the
+acceptance is met. **Four exceptions and nothing else is one** — a live page states something false, a
+legal or security page is wrong, the page is broken, or the founder asks by name. A unit spending here
+is rejected at S0's gate.
 
-**Directories:** `src/components/landing/**` · `public/**` · `plg/**` · `supaprod/**` ·
-`brief/**` · `product/**`
-
-**Four exceptions, and nothing else is one:**
-
-1. A live page states something **FALSE**.
-2. A **legal or security** page is wrong.
-3. The page is **BROKEN**.
-4. The **founder asks by name**.
-
-**A correction is one sentence.** If the fix is longer than the claim it corrects, it is a redesign
-and it waits. **S0 rejects a unit that spends here.**
-
-**Nothing outward-facing ships without the founder's approval.** Copy obeys
-`docs/strategy/positioning-locked-2026-08.md` — and the claims audit found the worst vocabulary drift
-was in the shop window, not the product.
-
-> **Why this is frozen while S3's other surfaces are not.** The sixty seconds is measured **signed
-> in**, not on the landing page: the judged moment is signup → the product already working. A
-> landing page cannot pass or fail it, so effort spent here is effort not spent on the thing being
-> judged. The auth routes above are **not** frozen — they are the door into the platform.
+**Nothing outward-facing ships without the founder's approval**, and that still holds for the four
+exceptions. Copy obeys `docs/strategy/positioning-locked-2026-08.md` — and the claims audit found the
+worst vocabulary drift was in the shop window, not the product.
 
 ---
 
@@ -195,11 +182,12 @@ Same law: one writer per path. 50 directories, none unassigned.
 | `src/components/track/**` · `spine/**` · `presence/**` · `decisions/**` · `learn/**` · `ask/**` · `discover/**` | **S1** | The run |
 | `src/components/plan/**` · `prds/**` · `design/**` · `build/**` · `ship/**` · `studio/**` | **S1** | Station views inside the run. Folded, not separate |
 | `src/components/shell/**` · `runs/**` · `today/**` · `observe/**` · `crew/**` · `agents/**` · `traces/**` · `mission/**` · `missions/**` · `cockpit/**` | **S2** | The board, the rail, the cursor layer |
-| `src/components/onboarding/**` · `settings/**` · `billing/**` · `admin/**` · `system/**` · `governance/**` · `engine-room/**` · `connections/**` · `plg/**` · `public/**` · `landing/**` | **S3** | The platform |
+| `src/components/onboarding/**` · `settings/**` · `billing/**` · `admin/**` · `system/**` · `governance/**` · `engine-room/**` · `connections/**` · `notifications/**` | **S3** | The platform |
+| `src/components/landing/**` · `public/**` · `plg/**` | **S3 — FROZEN (§0.7)** | Owned so nobody touches it |
 | `src/components/brain/**` · `memory/**` · `knowledge/**` · `trust/**` | **S3** | *What we've learned* and *Track record*. **Honest emptiness until a real learning exists** (R-06, F-70) |
 | `src/components/approvals/**` · `inbox/**` | **S1** | Folds into asked-in-place; S1 owns the fold because the ask lives in the run |
 | `src/components/chat/**` · `threads` | **S1** | Folds into the composer |
-| `src/components/product/**` · `supaprod/**` · `brief/**` | **S3** | Public and marketing |
+| `src/components/product/**` · `supaprod/**` · `brief/**` | **S3 — FROZEN (§0.7)** | Public and marketing |
 | `src/components/machine/**` · `ink/**` | **S0** | AUDIT — `ink` is a retired design system's name. S0 rules whether either survives |
 | `src/components/shared/**` | **S0** | Cross-cutting. A lane proposes, S0 places it |
 | `src/components/__tests__/**` | shared | Each session owns the tests for its own components |
@@ -214,7 +202,7 @@ Same law: one writer per path. 50 directories, none unassigned.
 ## Design references — the one thing every lane must route through S0
 
 **Only S0 can reach Mobbin MCP** (600k+ screens from teams who ship world-class product). The four
-The lane sessions cannot, and **guessing at a design instead of asking is exactly the "eyeballed, not
+OpenCode sessions cannot, and **guessing at a design instead of asking is exactly the "eyeballed, not
 ported" failure R-20 §7 calls a fail.**
 
 **So, before designing any surface that does not already have a reference:**

@@ -28,6 +28,30 @@
 > `run-strip`. **Brief unit 2 is therefore not "wire them" — it is "check what the wiring already
 > renders, and fix what it gets wrong."** Open the route and look before you write anything.
 
+> ## ⚠ RE-RANKED 2026-08-31 BY FOUNDER INSTRUCTION. READ THIS BEFORE THE ITEMS BELOW.
+>
+> The order in [`../../the-first-run/RANKED-BACKLOG.md`](../../the-first-run/RANKED-BACKLOG.md)
+> **supersedes the order in this file.** The items below are still specified correctly; they are no
+> longer necessarily topmost. Two rulings changed the ranking: **§0.7 the freeze** (every lane's
+> weight on platform strength until the acceptance is met) and **§0.8 Anthropic's AI-native SDLC
+> playbook as our framework**, which added gaps 15–29.
+>
+> **Two specs are new and you read them before touching a station boundary, an artifact or a
+> handoff:** [`SPEC-AI-NATIVE-SDLC.md`](../../the-first-run/SPEC-AI-NATIVE-SDLC.md) (the adoption
+> register) and [`SPEC-STATION-MODEL-AND-ARTIFACTS.md`](../../the-first-run/SPEC-STATION-MODEL-AND-ARTIFACTS.md)
+> (why the seven stations stay seven, the artifact formats, running on an engine that is not Claude,
+> and the UX contract in its §4).
+>
+> **THE SEQUENCING GUARD.** Only **Tier 0** moves the acceptance and all of Tier 0 is S0's. Ten new
+> gaps arrived from a playbook this week; **a lane that opens with artifact emitters instead of its
+> Tier 1 item is re-architecting instead of shipping**, which is this repository's signature failure.
+>
+> **THE STALL YOU CLEAR: the operator's side of approval gates and reviews** — one board sorted by *what needs a person soonest* replaces a queue nobody opens. **A queue whose length is set by how much nobody trusts is not fixed by making it faster to read.** `docs/strategy/ai-native-sdlc-rewiring-2026-08.md` §3.5.
+>
+> **YOUR TIER 1 ITEM (re-ranked 2026-08-31 after an 11-agent audit):** **F-144, F-145 and F-146 — unchanged and still ahead of #8.** The rail sends a landing person away from home. **The ruling is one primary door with the board folded into it, not a rename.** And two judges independently reached the same place from the station question: **delete stations as navigation entirely** — the `Stations` door, the `Guardrails` door, and `STATION_ROUTE` at `run-strip.tsx:204`. **That is not new design; it is four unexecuted rulings** (R-01, R-13, SURFACE-MAP's seven `FOLD → run` rows, F-145/146).
+>
+> **EVERY COUNT IN EVERY DOCUMENT IS STALE.** *"73 tracks, 71 entered at `sense`"* was measured 2026-08-26. **Today: 106 tracks, 103 entered at `sense`, 81 still sitting there.** The honest acceptance query still returns 0. **Re-measure before quoting a number; never copy one forward.**
+
 ## 1 · One board that replaces the seven doors — brief unit 1
 
 - **Goal:** every piece of work in flight on one surface: its live verb line, its owner, its elapsed
