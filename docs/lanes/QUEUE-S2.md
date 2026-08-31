@@ -48,7 +48,9 @@
 >
 > **THE STALL YOU CLEAR: the operator's side of approval gates and reviews** — one board sorted by *what needs a person soonest* replaces a queue nobody opens. **A queue whose length is set by how much nobody trusts is not fixed by making it faster to read.** `docs/strategy/ai-native-sdlc-rewiring-2026-08.md` §3.5.
 >
-> **YOUR TIER 1 ITEM:** **F-144, F-145 and F-146 — the founder's own report, and it outranks #8.** The rail sends a landing person away from home: `SIGNED_IN_HOME` flipped to `/start` on 2026-08-25 and **the rail was never flipped with it**, so `Today` sits first (`AppFrame.tsx:339`) above the home you actually land on (`Work`, `:365`). Four of seven doors contradict an existing ruling. **The ruling is one primary door with the board folded into it — not a rename, which leaves two doors and moves the confusion.** Full ruling and acceptance in the ranked backlog. **Then** #8.
+> **YOUR TIER 1 ITEM (re-ranked 2026-08-31 after an 11-agent audit):** **F-144, F-145 and F-146 — unchanged and still ahead of #8.** The rail sends a landing person away from home. **The ruling is one primary door with the board folded into it, not a rename.** And two judges independently reached the same place from the station question: **delete stations as navigation entirely** — the `Stations` door, the `Guardrails` door, and `STATION_ROUTE` at `run-strip.tsx:204`. **That is not new design; it is four unexecuted rulings** (R-01, R-13, SURFACE-MAP's seven `FOLD → run` rows, F-145/146).
+>
+> **EVERY COUNT IN EVERY DOCUMENT IS STALE.** *"73 tracks, 71 entered at `sense`"* was measured 2026-08-26. **Today: 106 tracks, 103 entered at `sense`, 81 still sitting there.** The honest acceptance query still returns 0. **Re-measure before quoting a number; never copy one forward.**
 
 ## 1 · One board that replaces the seven doors — brief unit 1
 

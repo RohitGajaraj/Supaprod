@@ -31,18 +31,125 @@ shipping**, which is this repository's signature failure.
 
 ---
 
-## TIER 0 · The acceptance. S0 only. Nothing in this tier is optional or reorderable.
+## ⚠ TIER 0 WAS RE-SCOPED 2026-08-31 AFTER AN 11-AGENT AUDIT. THE OLD ONE WAS WRONG.
 
-| Order | Gap | Why it is here |
+**F-36 is stale and was the wrong target.** It said `studio.commit` appears 0 times in `driver.ts` and
+Build is briefed on one step of six. **Measured 2026-08-31: `studio.commit` appears 8 times, all six
+chain steps are briefed across three places, a test guards it, the GitHub App mints installation
+tokens today, `supaprod.json` is present on both target repos, GitHub Actions runs (F-64's billing
+block is over), and `resolveToolMode` releases both merge and publish to `auto` on a trusted arc.**
+
+**Three real blockers were found instead. All three are FIXED and pushed. Do not rebuild them.**
+
+| | What it was | State |
 | --- | --- | --- |
-| **0.1** | **#3 · The three missing steps between Build and Ship** — a commit, a merge, a recorded preview deploy (F-36) | **The loop cannot physically reach Ship.** `studio.commit` appears **0 times in `driver.ts`**; Build is briefed only on `studio.stage`, step one of six. `ship` has never written a track-member row while `deployments` holds 42 successful ones. **Everything else in this document is downstream of this one row of the table.** |
-| **0.2** | **#11a · The sandbox primitive, and Ship's preview deploy probe** | R-27 gates production on **proof, not a click**, and the proof is a preview deploy — which is also step three of 0.1. **Build them together; they are the same work seen twice.** |
-| **0.3** | **#11b · Decide's metric probe** | A forecast whose metric cannot be read today can never be graded. Ranked first of the sandbox uses for exactly this reason, and it is the precondition for 0.4. |
-| **0.4** | **#15 · The forecast band and its tiered response** | We record one number and grade it once at horizon, which is why the grader has processed **zero workspaces in its life**. Bands turn a point into something actionable at 1σ/2σ/3σ. Needs 0.3. |
-| **0.5** | **#4 · The return edge fires** | The due-forecast queue has processed **zero workspaces ever** (F-51). A missed forecast becomes a **normal, refusable** piece of work at Discover carrying the forecast it failed. **This is what closes the loop, and Learn starves until it runs.** |
+| **F-149** | **The loop HTML-escaped every tool result before the model read it.** `loop.server.ts:2043` ran `xmlEscape(JSON.stringify(result))` then `.slice(0, 2000)`, so a builder reading a file back saw `=&gt;` where the file says `=>` — and `studio.stage` requires *"the FULL new file text"*, so it committed the corruption. Two open PRs carried 41 and 22 HTML entities against 0 on main; the loop's own repair commit is titled *"unescape => ... to restore TS parse validity"*. **The self-correct fired and could not win, because the damage was upstream of it.** | **FIXED** `188a1efb5` |
+| **F-151** | **"Park the mission once, honestly" ran 4,320 times per mission.** The park guard's inline literal omitted `completed_with_failures` — 40% of every run ever recorded — so three missions oscillated on a ~40-second cadence since 2026-08-25, writing ~12,960 stage events in 48 hours **while `agent_runs` and `tool_calls` sat empty for 48 hours.** In series with F-149: those are the same three changesets. | **FIXED** `8f7f7dcae` |
+| **F-147** | **Four finished review tools briefed at zero stations**, including `studio.review`, whose own description names the exact seam the Build checking seat already walks. That seat was reading files by hand. | **FIXED** `f9ff9e347` |
 
-**Done when:** the honest acceptance query in §2 returns a number greater than 0 **and** S4 confirms
-no person touched the run.
+**AND THE COUNTS IN EVERY DOCUMENT ARE STALE.** *"73 tracks, 71 entered at `sense`"* was measured
+2026-08-26. **Today it is 106 tracks, 103 entered at `sense`, and 81 still sitting there.** The honest
+acceptance query still returns **0**. **Re-measure before quoting a number; do not copy one forward.**
+
+---
+
+## TIER 0 · The acceptance. S0 only. Re-scoped 2026-08-31.
+
+| Order | Item | Why it is here |
+| --- | --- | --- |
+| **0.1** | **Deploy `main`, then drive ONE track and watch it.** | Everything above is inert until it reaches production, and supaprod.ai is served through Lovable's pipeline. **Verify by fetching the changed asset and comparing bytes, not by trusting a deployment id** — publish status has lied three times in one night. Then drive a track: merge runs inline at a trusted arc, `ci-poll-tick` builds the Deno preview within two minutes because `supaprod.json` is present, and `release.publish` resolves to `auto` with all five preconditions satisfiable. **Nothing after this is unknown; it has simply never been run with a working read path.** |
+| **0.2** | **Unblock the three parked changesets.** | All three have spent `fix_attempts` against `CI_FIX_BUDGET = 3`. After 0.1 deploys, set `fix_attempts = 0` on the changesets behind PRs #2 and #3 so `ci-poll-tick` dispatches one more repair run, which will now read the file correctly. **Close PR #1 rather than retrying it** — its test imports `@testing-library/react`, which `package.json` does not carry and F-56 forbids adding. |
+| **0.3** | **#15 · the forecast band and its tiered response** | We record one number and grade it once at horizon, which is why the grader has processed **zero workspaces in its life**. Needs Decide's metric probe. |
+| **0.4** | **#4 · the return edge fires** | A missed forecast becomes a **normal, refusable** piece of work at Discover. Learn starves until it runs. |
+| **0.5** | **The Test gate (F-148), which is NOT an eighth station** | `verifyStationOutput` compiles nothing and runs nothing; **at Build it requires artifact kind `mission`, which the driver writes itself before any seat runs, so it cannot fail.** The fix is `studio.checks.run` briefed as **required** rather than suggested, its verdict recorded, and the Build→Ship advance refused on red. Plus gap #21's hook the agent cannot edit around. |
+
+**DO NOT REBUILD Tier 0.2 as it was written.** The old text ranked "the sandbox primitive and Ship's
+preview deploy probe" second and called the preview deploy missing. **It is not missing:**
+`captureDeploymentsCore` and `deployChangesetApp` are built and called on a schedule, `E2B_API_KEY` is
+set, and `studio.checks.run` is implemented and already briefed at `driver.ts:375`. **And drop the
+credential work implied by F-39, F-101, F-106 and F-107 from the critical path** — tokens were minted
+against both installations on 2026-08-31.
+
+---
+
+## THE STATION QUESTION IS SETTLED — three judges, zero votes to merge
+
+The founder asked whether Discover and Decide should club into one station, reasoning that adopting
+the SDLC would widen the station count. **An adversarial panel of three independent lenses returned
+KEEP_SEPARATE (0.87), THIRD_OPTION (0.88) and THIRD_OPTION (0.78). None voted to merge.** Each found
+something the others did not:
+
+1. **The premise is false.** Adopting the playbook adds **zero** stations — two of ours collapse into
+   their Plan, two into their Design, and one of ours covers two of theirs. **There is nothing to
+   offset.**
+2. **`decide → sense` is the busiest backward edge in the whole spine — 20 events across 13 distinct
+   tracks, against 14 backward events on every other edge in the loop combined.** Only 28 tracks have
+   ever reached Decide, so **46% of them were sent back to Discover at least once.** That transition
+   is a specific sentence: *the call could not be made on the evidence available.* **Merge the
+   stations and that sentence becomes unsayable, because a station cannot transition to itself.**
+3. **The merge would make the acceptance test start passing falsely, in the week the real one is one
+   track away.** `route.ts:187-215`: the `existing-feature` shape has `entry: "decide"` and waives
+   exactly one station, `sense`. Collapse the two into the `sense` slug — the cheapest correct merge —
+   **and a route shape built to SKIP discovery enters at `sense` with `waived='[]'` and satisfies the
+   query that has measured "zero clean walks in three months."**
+
+**And the count the founder actually wants reduced is the one on screen, not the one in the spine.**
+Two judges converged there independently:
+
+- **Group the display (S1).** Add a `group` field to `AGENT_STATIONS` and an ordered `STATION_GROUPS`
+  — Discover {sense, decide} · Design {define, design} · Build · Ship · Learn. **Visible count 7 → 5,
+  zero rows touched, no spine consumer changed.** Step lists render groups; dispatchers render
+  stations.
+- **Better still, take it to ZERO (S2).** Delete stations as navigation — the `Stations` rail door,
+  the `Guardrails` door, and `STATION_ROUTE` at `run-strip.tsx:204`, the map turning each slug into a
+  browsable door. **This is not new design; it is four unexecuted rulings** (R-01, R-13, SURFACE-MAP's
+  seven `FOLD → run` rows, and F-145/F-146).
+
+**RULING: the spine keeps seven. The screen loses them.** F-144/145/146 is S2's Tier 1, and the
+display grouping is S1's to add if the fold leaves anything visible.
+
+---
+
+## THE `sense` / `discover` QUESTION IS SETTLED — do not rename (F-150)
+
+The founder's complaint is real and it is **one dead file, not a slug problem.**
+`src/components/track/RunTimeline.tsx:17-20` renders the raw slugs `"Sense"` and `"Define"` **and
+carries a `discover:` key as a sibling of `sense:` — both names in one object.** Its own test asserts
+**both** appear, so `bun test` is green while the defect sits there, and the vocabulary guard misses it
+because it only reads `AGENT_STATIONS` and `STAGE_LABEL`. **Nothing imports the component but its own
+test**; the live one is `src/components/meridian/RunTimeline.tsx`.
+
+**Decisively against a rename: that map is typed `Record<string, string>`, not
+`Record<AgentStation, string>`, so renaming the union raises ZERO type errors there and would leave
+the founder's exact complaint on disk. The rename cannot fix the complaint it was proposed to fix.**
+
+Also measured, and each would have been paid for by a sweep: **`sense` is two unrelated vocabularies**
+— `CallSurface` at `runtime.server.ts:372` has its own `sense` member for spend accounting, 13 sites —
+and **63 hardcoded copies of `entry_station = 'sense'` across 39 files**, two of them in `CLAUDE.md`.
+
+**FIX (S1): delete `RunTimeline.tsx` and its test, and in the same commit widen the vocabulary guard to
+fail on any station-slug key rendering as a display name anywhere in `src/`.** Deleting the file
+without widening the guard fixes today's instance and lets the next one land silently, which is
+exactly how this one survived.
+
+---
+
+## THE ARTIFACT QUESTION IS SETTLED — build no management surface
+
+`ArtifactPane` already exists: **2,415 lines, mounted, reached from six call sites**, ten kind-specific
+renderers, four derived states, 500ms polling during a run, and an arrival animation that fires only
+for member keys absent on the previous poll. **The founder's instinct was right and the repo already
+agreed with him.**
+
+- **Add exactly one control:** a **"Take this"** action in `ArtifactPane`'s `Region` header
+  (`:2352-2355`), scoped to the station tab shown, handing over that station's file. The `Action`
+  primitive is already imported at `:73-82` and the `download()` shape is already proven at
+  `DataSection.tsx:91`.
+- **NOT a settings page** — settings answers *where does my data live, how do I take it out, who else
+  touches it*. Four artifacts are not a setting; nothing about them is configurable.
+- **NOT a per-station route** — R-01: stations are a progress display inside one run, never a menu.
+- **NOT a global list** — that surface was built, orphaned, audited and redirected away on 2026-07-30.
+  Rebuilding it is the repo's signature defect.
 
 ---
 
@@ -102,9 +209,9 @@ a person cannot navigate confidently yet.
 
 | Lane | Gap | The one sentence |
 | --- | --- | --- |
-| **S1** | **#16 · The five-field intent shape** + **#29 · open questions answered in place** | What enters Discover is a slug and ~46 died there. Five fields, and **an empty `Open questions` is a defect, not a clean bill.** Answering happens in the transcript and widens the class. `SPEC-STATION-MODEL-AND-ARTIFACTS.md` §2.1 and §4.3 |
+| **S1** | **F-150 first (twenty minutes), then #16 + #29** | **F-150:** delete `src/components/track/RunTimeline.tsx` and its test, and **widen the vocabulary guard in the same commit** so any station slug rendering as a display name fails anywhere in `src/`. Then **#16** the five-field intent shape and **#29** open questions answered in place — an empty `Open questions` is a **defect, not a clean bill**, and the five fields are a shape a person READS, never a form a person fills. `SPEC-STATION-MODEL-AND-ARTIFACTS.md` §2.1 and §4.3 |
 | **S2** | **F-144 · F-145 · F-146 (above), THEN #8** | One primary door, the board folded into the home, no station in the rail. **Then** the cursor layer — and a cursor whose position cannot be traced to a row is theatre, which ends a feature rather than fixing it |
-| **S3** | **#2 · The verdict reaches a person who left the page** | S1 already ships *"you can leave this page"* on screen and **that sentence is untrue until this lands.** One channel, email, verified by receiving one |
+| **S3** | **#2 · The verdict reaches a person who left the page** | S1 already ships *"you can leave this page"* on screen and **that sentence is untrue until this lands.** One channel, email, verified by receiving one. **Then the layer-02 vocabulary sweep below** |
 | **S4** | **Adversarially verify Tier 0**, then **#24 · the golden set** | S0 cannot sign off its own spine work (R-11). Build the golden set **from real graded runs** — one built from a broken pipeline encodes the breakage |
 
 ---
@@ -204,14 +311,44 @@ have one before today** — which is why so much queued work looked like a list 
 
 ---
 
+## THE LAYER-02 VOCABULARY SWEEP — S3, and it is 10 named locations, never a find-and-replace
+
+**Founder ruled 2026-08-31 that layer 02 is described as the loop doing the whole SDLC**, and
+separately that **we build it here** rather than handing out. The live product surfaces and every root
+file were swept in commits `15deb527a` and earlier. **What is still stale is outward-facing:**
+
+| Location | What is wrong |
+| --- | --- |
+| `docs/pitch/investor-deck/supaprod-pre-seed-investor-deck.html:456-457` | Still reads *"02 · The operating system / It runs the whole lifecycle."* **And it has drifted 77 lines from `public/brief.html`, which its own README requires it to stay byte-identical to** (md5 `881cefe…` vs `c54c225…`) |
+| `docs/pitch/shareables/Supaprod-Hub71-Deck.src.html:459-460` | **Generated** from the deck by `scripts/build-hub71-deck.py:37`. One fix and a re-run, not two edits |
+| `docs/growth/press-kit.md:55, :59, :95, :138` | The journalist-facing boilerplate, including the paste-ready paragraph |
+| `docs/pitch/applications/answer-bank.md:291` · `positioning-doctrine.md:107` | **The reusable source every accelerator answer is drafted from** |
+| `docs/pitch/one-pager.md:13, :72` · `founder-story.md:166` · `README.md:303-309` | README's own *"outward-facing work starts here"* section is the stalest of all |
+
+**NEVER run a corpus-wide replace on this string.** 34 files carry the phrase family and **8 of them
+quote it in order to BAN it** — `CLAUDE.md:13`, `AGENTS.md:52`, the canon at
+`positioning-locked-2026-08.md:320`, `three-layers-and-why-not-a-builder.md:88`,
+`ThreeLayers.tsx:100-102`, `brief-parent-is-readable.test.ts:39/49`, and the rewiring doc. **A sweep
+would delete the rule along with the violations, and that has already happened here twice** — the
+guard test's own comment block records three successive corrections and concludes *"a guard written to
+protect indexability spent a day enforcing a phrase a founder ruling had outlawed."*
+
+**And one collision the founder needs to know about:** `OPERATING-MODEL-5-SESSIONS.md:970` bans
+*agentic · autonomous · **AI-native** · orchestration · intelligence* in product copy. **So "AI-native
+SDLC" is the internal framework name and can never be the customer sentence.** The customer sentence
+is the one now in every root file: *decides what is worth building, builds it, ships it, and checks
+what actually happened.*
+
+---
+
 ## Per-lane, so a session reads one column
 
-**S0 · CONDUCTOR.** Tier 0 in order, all five, before anything else. Then #20, #25, #27, #22, #21,
+**S0 · CONDUCTOR.** **Deploy first, then drive one track and watch it** — that is Tier 0.1 and nothing else is knowable until it runs. Then 0.2 to 0.5 in order. Then #20, #25, #27, #22, #21,
 the #19 engine, the #14 model, #13. **#23 is blocked and stays blocked.** Standing: answer every
 `coordination/requests/*/` within one unit, keep four queues at two items or more, run all four gates,
 and the **monthly forecast watch** (§0.8).
 
-**S1 · THE RUN.** #16 + #29 now. Then #28, the #22 surface, the #26 map, the #20 hand-out control,
+**S1 · THE RUN.** **F-150 first** (delete the dead `track/RunTimeline.tsx` and widen the guard in the same commit), then #16 + #29. Then #28, the #22 surface, the #26 map, the #20 hand-out control,
 #27's surface, #17, #5, #6, the #14 transcript. **Everything on this list lands in the run; none of it
 adds a destination.**
 
@@ -220,7 +357,7 @@ column, and the fold that takes the route count down. **Do not build a code-revi
 vulnerability-triage screen or a scan-results surface** — the vendor ships those and consuming them
 *is* following the playbook.
 
-**S3 · THE PLATFORM.** #2 now, and it is job 1 because S1's promise depends on it. Then #18, #19,
+**S3 · THE PLATFORM.** #2 now, and it is job 1 because S1's promise depends on it. **Then the layer-02 vocabulary sweep** — 10 named locations, never a find-and-replace. Then #18, #19,
 #13's connect control, #14's consent rule, the sad paths, then #10. **The public surface is frozen and
 the sixty seconds is measured signed in.**
 

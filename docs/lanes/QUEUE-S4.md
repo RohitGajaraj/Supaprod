@@ -42,7 +42,9 @@
 >
 > **YOU MEASURE WHETHER THE FOUR STALLS ACTUALLY CLEARED.** New standing question: for each of approval gates, reviews, handoffs and policies — **is a person still the bottleneck, and can you name the row that proves it either way?** A stall that moved from a committee to a faster queue has not cleared. `docs/strategy/ai-native-sdlc-rewiring-2026-08.md` §3.5.
 >
-> **YOUR TIER 1 ITEM:** **adversarially verify Tier 0 as it lands** — S0 cannot sign its own spine work (R-11) — then **#24, the golden set, built from real graded runs.** A golden set built from a broken pipeline encodes the breakage. **Two new standing drift checks:** an unargued departure from the playbook (the register's §4.2 is where an argument must be written), and any lane rebuilding what the vendor gives away — a code-review board, a vulnerability-triage screen, a scan-results surface.
+> **YOUR TIER 1 ITEM (re-ranked 2026-08-31 after an 11-agent audit):** **Verify the three 2026-08-31 fixes adversarially — F-149, F-151, F-147 — before anything else.** S0 cannot sign its own spine work (R-11), and all three were found by subagents and fixed the same hour. **F-149 especially: the guard test is new and was written by the same session that wrote the fix.** Then #24, the golden set, built from real graded runs.
+>
+> **EVERY COUNT IN EVERY DOCUMENT IS STALE.** *"73 tracks, 71 entered at `sense`"* was measured 2026-08-26. **Today: 106 tracks, 103 entered at `sense`, 81 still sitting there.** The honest acceptance query still returns 0. **Re-measure before quoting a number; never copy one forward.**
 
 ## 1 · Adversarially verify F-76 — S0's own unit, and S0 cannot sign it off
 

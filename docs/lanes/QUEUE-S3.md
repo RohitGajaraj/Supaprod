@@ -27,7 +27,9 @@
 >
 > **THE STALLS YOU CLEAR: reviews and policies** — *what counts as done* (nobody has ever written it down; ours are hardcoded by us), and *are we allowed to do this, and who says so*. `delegate.openhands` was refused **7 of 7 times and the queue kept asking** — a policy that does not learn from its own answers is a committee with a database. `docs/strategy/ai-native-sdlc-rewiring-2026-08.md` §3.5.
 >
-> **YOUR TIER 1 ITEM:** **#2 · the verdict reaches a person who left the page** — unchanged, and it is still first. S1 already ships *"you can leave this page"* on screen and **that sentence is untrue until this lands.** Then #18 (what counts as DONE, from their `REVIEW.md`) and #19 (a declared gate above the inferred policy, and a named approver). **The public surface is frozen and the sixty seconds is measured signed in.** One door is yours in S2's rail fold: `Guardrails` becomes *What it's allowed to do* — coordinate, do not both edit it.
+> **YOUR TIER 1 ITEM (re-ranked 2026-08-31 after an 11-agent audit):** **#2 · the verdict reaches a person who left the page** — still first, because S1's on-screen promise is untrue until it lands. **Then the layer-02 vocabulary sweep: 10 NAMED locations, never a find-and-replace** — 34 files carry the phrase family and **8 quote it in order to ban it**; a sweep would delete the rule with the violations, and that has already happened twice. The investor deck is worst: still banned copy AND drifted 77 lines from the file its own README requires it to match. **Then #18 and #19.**
+>
+> **EVERY COUNT IN EVERY DOCUMENT IS STALE.** *"73 tracks, 71 entered at `sense`"* was measured 2026-08-26. **Today: 106 tracks, 103 entered at `sense`, 81 still sitting there.** The honest acceptance query still returns 0. **Re-measure before quoting a number; never copy one forward.**
 
 ## 1 · The verdict reaches a person who left the page — authorised gap #2
 

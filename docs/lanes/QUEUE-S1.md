@@ -28,7 +28,9 @@
 >
 > **THE STALL YOU CLEAR: handoffs** — *does the next person know what I decided, and what I was unsure about?* The stall was never the meeting; **it is the ambiguity nobody resolved**, and naming the open questions is what removes it. You also render the forecast that clears the approval-gate stall. `docs/strategy/ai-native-sdlc-rewiring-2026-08.md` §3.5.
 >
-> **YOUR TIER 1 ITEM:** **#16 · the five-field intent shape** and **#29 · open questions answered in place.** What enters Discover is a slug today and ~46 tracks died there. An empty `Open questions` is a **defect, not a clean bill** — see `SPEC-STATION-MODEL-AND-ARTIFACTS.md` §2.1 and §4.3. **The five fields are a shape you fill and a person reads, NEVER a form a person fills** (§4.3) — a setup wall fails §1's first agentic property.
+> **YOUR TIER 1 ITEM (re-ranked 2026-08-31 after an 11-agent audit):** **F-150 FIRST, twenty minutes:** delete `src/components/track/RunTimeline.tsx` and its test, and **widen the vocabulary guard in the same commit** so any station slug rendering as a display name fails anywhere in `src/`. It is dead code, its map is `Record<string, string>` so a rename raises zero type errors there, and its own test asserts BOTH "Sense" and "Discover" appear, which is why the suite is green while the defect sits there. Deleting without widening the guard lets the next one land silently. **Then #16 + #29.**
+>
+> **EVERY COUNT IN EVERY DOCUMENT IS STALE.** *"73 tracks, 71 entered at `sense`"* was measured 2026-08-26. **Today: 106 tracks, 103 entered at `sense`, 81 still sitting there.** The honest acceptance query still returns 0. **Re-measure before quoting a number; never copy one forward.**
 
 ## 1 · The ask happens in place, once — brief unit 4
 

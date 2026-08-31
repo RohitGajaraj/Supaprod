@@ -109,6 +109,41 @@ this, which is why its queued work read as a list rather than an argument.**
 
 ---
 
+**4 · WHAT AN 11-AGENT AUDIT FOUND ON 2026-08-31, AND WHAT IS ALREADY FIXED. READ THIS BEFORE YOU
+SCOPE ANYTHING — three of these were blockers nobody had filed, and two are already shipped.**
+
+| | | State |
+| --- | --- | --- |
+| **F-149** | **The loop HTML-escaped every tool result before the model read it.** `loop.server.ts:2043` ran `xmlEscape(JSON.stringify(result))` then `.slice(0, 2000)`, so a builder reading a file back saw `=&gt;` where the file says `=>` — and `studio.stage` requires *"the FULL new file text"*, so it committed the corruption. Two open PRs carried 41 and 22 HTML entities against 0 on main. **The self-correct fired and could not win, because the damage was upstream of it.** | **FIXED** `188a1efb5` |
+| **F-151** | **The park guard ran 4,320 times per mission.** Its inline literal omitted `completed_with_failures` — 40% of every run ever recorded — so three missions oscillated on a ~40-second cadence since 2026-08-25 writing ~12,960 stage events, **while `agent_runs` and `tool_calls` sat empty for 48 hours.** In series with F-149: the same three changesets. | **FIXED** `8f7f7dcae` |
+| **F-147** | **Four finished review tools briefed at zero stations**, including `studio.review`, whose description names the exact seam the Build checking seat already walks. That seat was reading files by hand. | **FIXED** `f9ff9e347` |
+| **F-148** | **The station self-check is a FILING check, not a verification check.** `verifyStationOutput` compiles nothing and runs nothing, and **at Build it requires an artifact the driver writes itself before any seat runs, so it cannot fail.** Our "we cover Test" claim was false and both specs are corrected. | **OPEN** — the fix is a gate, not a station |
+| **F-150** | **Two station names in one file**, held there by a passing test. `track/RunTimeline.tsx` renders raw slugs AND carries a `discover:` key beside `sense:`. **It is dead code, and its map is `Record<string, string>`, so a rename would raise zero type errors and leave the complaint on disk.** | **OPEN** — S1, twenty minutes |
+
+**F-36 IS STALE AND WAS THE WRONG TARGET.** `studio.commit` appears 8 times in `driver.ts`, not 0; all
+six chain steps are briefed; the GitHub App mints tokens today; `supaprod.json` is on both repos;
+Actions runs; and `resolveToolMode` releases merge and publish to `auto` on a trusted arc.
+
+**AND EVERY COUNT IN EVERY DOCUMENT IS STALE.** *"73 tracks, 71 entered at `sense`"* was 2026-08-26.
+**Today: 106 tracks, 103 entered at `sense`, 81 still sitting there.** The honest acceptance query
+still returns 0. **Re-measure before quoting; never copy a number forward.**
+
+**5 · THREE ARCHITECTURE QUESTIONS ARE SETTLED. Do not reopen them without new evidence.**
+
+- **Discover and Decide do NOT merge.** An adversarial panel of three lenses returned **zero votes to
+  merge**. The premise (that adopting the SDLC widens the stations) is false — it adds zero. And
+  **`decide → sense` is the busiest backward edge in the spine, 20 events across 13 tracks against 14
+  on every other edge combined; 46% of tracks that reached Decide were sent back at least once.**
+  Merging makes that sentence unsayable, because a station cannot transition to itself. **The count
+  the founder wants reduced is the one on SCREEN** — F-144/145/146, and optionally grouping the
+  display 7 → 5. Full reasoning: `RANKED-BACKLOG.md`.
+- **`sense` is NOT renamed to `discover`.** It is one dead file (F-150), and the rename cannot fix the
+  complaint it was proposed to fix.
+- **The artifacts get NO management surface.** `ArtifactPane` already exists at 2,415 lines, mounted,
+  six call sites, ten renderers. **One "Take this" control in its existing header. Nothing else.**
+
+---
+
 ## The fleet
 
 | Session | Runs on | Conductor workspace | Branch | Owns |
@@ -185,32 +220,38 @@ three times in one night.
 
 Work continuously and autonomously until I say STOP. Never idle while a queue item exists.
 
-Your first eight moves, in order:
-1. Re-auth Lovable, deploy what is green on main, run the acceptance query -- the HONEST one in
-   OPERATING-MODEL §2, which subtracts decided approvals and pressed tracks -- and report the number
-   with the SQL beside it. The short form returns a false 1.
-2. Verify every claim in docs/AUDIT.md and docs/lanes/STATUS-decide-blocker-fixed.md against the actual
-   code and DB. Treat both as testimony, not fact. Correct them in place.
-3. Gap #1 -- stations checking their own output and retrying with the failure in context. S0 shipped
-   F-76 for this; S4 was told to attack it. Confirm it holds on the merged tree before building on it.
-4. Gap #4 + gap #15 TOGETHER, and this is now the highest-value pair in the product. The return edge
-   has never fired (zero workspaces in its life, F-51) and a forecast is a single point graded once at
-   horizon, which is why. Anthropic's bands.yaml is the shape: a baseline, detection rules, and three
-   response tiers -- log, diagnose read-only, open a change. Build the band as the missing half of
-   Decide's metric probe, and make a missed forecast produce a NORMAL, REFUSABLE piece of work at
-   Discover carrying the forecast it failed. SPEC-AI-NATIVE-SDLC.md §3 A and §3 B.
-5. Build the sandbox primitive and its two highest-value probes -- Decide's metric probe (now with its
-   band) and Ship's preview deploy. Neither is about code, and both outrank the Design prototype.
-6. Gap #20, the largest of the new ones: WHAT WE HAND A BUILDER SHOULD BE THEIR FILES, NAMED THEIR
-   NAMES. Discover and Decide emit intent.md (plus our forecast block, which theirs has no field for),
-   Plan and Design emit spec.md, Build emits plan.md, and the handback reads their REVIEW.md to know
-   what the outcome had to clear. This is the serialisation of artifacts spine_track_members already
-   holds -- not a new station, not a new surface. A team on the playbook drops our output into their
-   repo and their agent picks it up with no adapter. SPEC-AI-NATIVE-SDLC.md §4.1.
-7. Audit the connector layer before anyone adds to it. About twenty providers already exist plus a
-   generic MCP client, and Supaprod is already an MCP server. Report what is actually wired.
-8. Fill docs/lanes/QUEUE-S1..S4.md with two fully specified items each, then keep them at two or more
-   forever. A blocked lane is your failure, not theirs. NOTHING FROZEN ENTERS A QUEUE.
+Your first six moves, in order. THE FIRST TWO ARE THE WHOLE JOB.
+1. Re-auth Lovable and DEPLOY main. Three blockers were fixed on 2026-08-31 and every one of them is
+   inert until it reaches production. Verify by fetching the changed asset and comparing BYTES, not by
+   trusting a deployment id -- publish status has lied three times in one night.
+2. DRIVE ONE TRACK AND WATCH IT. Nothing after this is unknown: merge runs inline at a trusted arc,
+   ci-poll-tick builds the Deno preview within two minutes because supaprod.json is present, and
+   release.publish resolves to auto with all five preconditions satisfiable. The loop has simply never
+   been run with a working read path. Then run the HONEST acceptance query from OPERATING-MODEL §2 --
+   the one subtracting decided approvals and pressed tracks -- and report the number with the SQL.
+3. Unblock the three parked changesets. All three spent fix_attempts against CI_FIX_BUDGET=3 against
+   damage they could not reach. Set fix_attempts=0 on the changesets behind PRs #2 and #3 so one more
+   repair run dispatches, now reading the file correctly. CLOSE PR #1 instead: its test imports
+   @testing-library/react, which package.json does not carry and F-56 forbids adding.
+4. Gap #15 + gap #4 together. The return edge has never fired (zero workspaces in its life, F-51) and
+   a forecast is a single point graded once at horizon, which is why. bands.yaml is the shape: a
+   baseline, detection rules, three response tiers. Build the band as the missing half of Decide's
+   metric probe, and make a missed forecast produce a NORMAL, REFUSABLE piece of work at Discover.
+5. The Test gate (F-148), which is NOT an eighth station: studio.checks.run briefed as REQUIRED rather
+   than suggested, its verdict recorded, the Build-to-Ship advance refused on red. Plus gap #21's hook
+   the agent cannot edit around.
+6. Fill docs/lanes/QUEUE-S1..S4.md with two fully specified items each and keep them there forever. A
+   blocked lane is your failure, not theirs. NOTHING FROZEN ENTERS A QUEUE.
+
+STANDING, not a numbered move: treat docs/AUDIT.md and docs/lanes/STATUS-decide-blocker-fixed.md as
+TESTIMONY, never as fact. Both predate the 2026-08-31 audit that found three unfiled blockers and
+proved F-36 stale, so verify any claim in either against the code and the database before acting on
+it, and correct it in place when it is wrong. That is how F-36 survived three months.
+
+DO NOT REBUILD the sandbox primitive or Ship's preview probe as previously ranked. captureDeploymentsCore
+and deployChangesetApp are built and called on a schedule, E2B_API_KEY is set, and studio.checks.run is
+implemented and already briefed at driver.ts:375. Drop the credential work implied by F-39/F-101/F-106/
+F-107 from the critical path: tokens were minted against both installations on 2026-08-31.
 
 FOUR GATES on every lane push, not two. Enterprise; R-20's eight; THE FREEZE -- reject any unit that
 improves the public and marketing surface (twenty routes plus landing/**, public/**, plg/**,
@@ -254,7 +295,7 @@ Then read, in full and in order:
   the-first-run/SURFACE-MAP.md                  <- exactly what you own
   the-first-run/SPEC-AI-NATIVE-SDLC.md          <- NEW. Three of your units come from it
   the-first-run/SPEC-STATION-MODEL-AND-ARTIFACTS.md  <- NEW. §2.1 the intent shape, §4 the UX contract
-  the-first-run/RANKED-BACKLOG.md               <- NEW. Your Tier 1 is #16 + #29
+  the-first-run/RANKED-BACKLOG.md               <- YOUR TIER 1 IS F-150 (twenty minutes), THEN #16 + #29
   the-first-run/THE-ONE-SCREEN.md
   the-first-run/SPEC-AGENT-COMMS.md · SPEC-PRESENCE.md · SPEC-MULTIPLAYER-PRESENCE.md
   the-first-run/SPEC-BUILD-PATHS.md §2          <- what runs in your right pane
