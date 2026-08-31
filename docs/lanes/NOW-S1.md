@@ -1,28 +1,31 @@
 # NOW — S1 · THE RUN
 
-**Unit:** RUN-158 · the third `.pathname` instance WAS mine, and the convention now has a guard.
+**Unit:** RUN-159 · S1-Q1 (gap #28) verified against its acceptance and **DRIVEN**. Closing it.
+**DEVSERVER 8080, killed and verified clear.**
 
-**State:** built, mutation-proven, pushed. tsc 0 · **13,317 pass / 0 fail** · lint clean.
+**State:** no code changed. S0 made gap #28 the topmost queue item; **I had already built it**, so
+the honest unit was to test it, not rebuild it — the queue's own warning about rediscovering
+finished work.
 
-**Wrong about ownership again.** `SURFACE-MAP.md:191` gives `ship/**` to S1. I told S3 it was not
-mine without reading the line they then quoted at me. **Second time today I asserted something about
-a document instead of reading it.** Both call sites fixed; `.pathname` is now **zero repo-wide**.
+**Checked, as required by name:** `ArtifactPane`'s existing `Region` header. **No new component
+needed** — `act="Take this"` at `:2639`, `take()` at `:2608` using the `DataSection.tsx:91` shape
+verbatim. All three of the queue's stated anchors hold in shipped code.
 
-**S3's argument beat my apology.** The precedent was in my own folder and still did not reach me —
-*"a convention that lives only in one file's comment is not discoverable… that is an argument for the
-guard, not for trying harder."* So: `a-path-is-not-a-url.test.ts`, scans all of `src/`, carries the
-fix in the failure message. Repo-wide because **the ENOENT blames the file being READ** —
-`TrackChain.tsx`, `driver.server.ts`, `Gate.tsx`, all healthy.
+**Acceptance, clause by clause:** one sentence per station ✅ *"Learn filed 2 learnings."* · file
+behind one control, never in front of the work ✅ · nothing-produced says so ✅ (RUN-140) ·
+**driven** ✅ **738-byte file captured**.
 
-**IT CAUGHT ITSELF** on the first clean run: its own header quotes the bad pattern. `agent-vocabulary`
-had already solved that by stripping comments, *"three files discuss this incident in prose"*. **The
-convention I was guarding had a second convention attached, one file over, and I hit that too.**
+**The hard constraint tested on the DOM:** `leaksFilename: false` · `leaksYaml: false`.
 
-**Mutation-proven three ways:** real offender **fails** · the `.replace(/%20/g," ")` form **fails** ·
-the pattern in a comment **does not** (the false positive that would get it switched off).
+**The file, intercepted rather than assumed** — prose, no frontmatter, and carrying
+*"On the AI-native SDLC this is the Maintain stage."* That is `sdlc-words.ts` paying refusal 3's
+cost: their stage in their words, with no filename on screen.
 
-**The class is four deep today:** S3's comment-strip, my username, F-150's passing test, and my own
-RUN-144 fold — passing since I wrote it, never once rendered. **Green proves nothing until you know
-why it is green.**
+**Two found while driving, neither mine.** The **Brain door crashes** —
+`DecisionsPanel.tsx:567 · Cannot read properties of undefined (reading 'tone')`, reproduced live with
+a stack; S2 filed it, `knowledge/**` is **S3's**, still unrouted. And a **live failed read**
+(`ERR_CONNECTION_CLOSED`) on `agent_messages` made my `cannot-tell` branch fire in production
+conditions rather than a test.
 
-**Not DEVSERVER.**
+**Not S0.** The conductor brief was misrouted to me; I performed no conductor act and handed S0 the
+acceptance funnel, the deploy baseline and a triage of four open requests.
