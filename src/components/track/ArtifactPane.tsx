@@ -48,6 +48,7 @@ import { plainProse } from "@/lib/plain-prose";
  * data sitting in the database.
  */
 import { FORECAST_SAYS } from "@/components/learn/forecast-words";
+import { bandReading, bandShape } from "@/components/learn/forecast-band-words";
 import type { ForecastResolution } from "@/lib/brain/forecast-resolution";
 import { NO_NON_GOALS, noContractLine, specContract } from "@/components/track/spec-contract";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -398,6 +399,29 @@ function DecisionCard({ item }: { item: ArtifactView }) {
   const bySlug = str(f.decided_by_agent_slug);
   const deferred = num(f.forecast_deferred_count);
 
+  /*
+   * THE FORECAST AS A BAND (gap #15, U8). Every judgement here is
+   * `src/lib/spine/forecast-band.ts`'s, which S0 shipped today with its
+   * migration; `forecast-band-words.ts` only chooses the sentences.
+   *
+   * ── WHY THIS IS CORRECT BEFORE THE COLUMNS ARE IN `FIELDS` ──────────────
+   * `FIELDS.decision` (`track.functions.ts`, S0's) does not select the band
+   * columns yet, so these read `undefined` today and `bandFor` answers
+   * `unknown` -- which is **the right answer for all 182 forecasts on record**,
+   * because measured the minute the columns landed, ZERO carry a predicted
+   * value, a threshold, an observation count, a metric or a direction. So this
+   * renders the truth now and the real band the moment S0 widens the map. Ask
+   * filed; no latent wrong render either way.
+   */
+  const band = {
+    direction: (str(f.forecast_direction) as "lower-is-better" | "higher-is-better" | null) ?? null,
+    driftingAt: num(f.forecast_band_drifting_at),
+    missedAt: num(f.forecast_band_missed_at),
+    observations: num(f.forecast_observations),
+  };
+  const reading = bandReading(num(f.forecast_predicted), band);
+  const shape = bandShape(band);
+
   // The horizon as a calendar day; the schema wants an instant, the reader
   // wants a day.
   const horizonDay = horizon ? horizon.slice(0, 10) : null;
@@ -481,6 +505,19 @@ function DecisionCard({ item }: { item: ArtifactView }) {
                 ) : null}
               </span>
             ) : null}
+            {/*
+              HOW FAR OFF, AND WHAT THE SYSTEM DID ABOUT IT (U8). The chip above
+              says hit or miss; this says the distance and the response, which
+              U8 calls "the half nobody has ever seen". On every forecast on
+              record today it says the honest thing instead: recorded as a
+              single number, so it can only be right or wrong.
+            */}
+            <span className="text-mrd-small text-mrd-mute">{reading.says}</span>
+            {shape ? <span className="mrd-meta">{shape}</span> : null}
+            {reading.did ? (
+              <span className="text-mrd-small text-mrd-mute">{reading.did}</span>
+            ) : null}
+            {reading.standing ? <span className="mrd-meta">{reading.standing}</span> : null}
             {deferred !== null && deferred > 0 ? (
               <span className="text-mrd-small text-mrd-mute">
                 Check pushed back {deferred} {deferred === 1 ? "time" : "times"}.
