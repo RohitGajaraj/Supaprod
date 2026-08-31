@@ -741,28 +741,32 @@ function SignupPage() {
           </p>
         )}
       </div>
-      <Action
-        variant="default"
-        className="w-full justify-center"
-        onClick={signupGoogle}
-        disabled={busy}
-        busy={loadingGoogle}
-        title={loading ? "Hold on, creating your account" : undefined}
-      >
-        {loadingGoogle ? (
-          <>
-            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-            Opening Google
-          </>
-        ) : (
-          "Continue with Google"
-        )}
-      </Action>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
-        <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
-        <span className="mrd-eyebrow whitespace-nowrap">or</span>
-        <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
-      </div>
+      {/*
+       * EMAIL AND PASSWORD FIRST, GOOGLE SECOND. Moved 2026-08-31, and it is a
+       * ruled trap rather than a taste call.
+       *
+       * SESSION-3 §J3: "One trap that is specific and expensive: a Google/OAuth
+       * signup leaves no password, so no agent can ever fill that form again on
+       * the founder's behalf. If you are building a signup flow the founder will
+       * use, make email+password work first."
+       *
+       * Both paths worked; the ORDER decided which one a person takes, and
+       * "Continue with Google" sat above the form as the first control after the
+       * invite gate. The founder is the person who will use this, and an account
+       * created through Google has no password, so every later agent-driven
+       * sign-in on his behalf is impossible and undiagnosable: the form is right
+       * there and simply never accepts him.
+       *
+       * Verified in a browser before moving it, on the running dev server rather
+       * than from source: the accessibility tree had "Continue with Google" ahead
+       * of "Work email" on both /signup and /login.
+       *
+       * GOOGLE IS NOT REMOVED and nothing about it changed. It keeps its own
+       * button, its busy state and its wording; it is now the alternative rather
+       * than the default. The invite gate stays above BOTH, for the reason its own
+       * comment gives: it gates both paths and has to be visible before the thing
+       * it gates.
+       */}
       <form onSubmit={signup}>
         <label
           htmlFor="signup-email"
@@ -853,6 +857,28 @@ function SignupPage() {
           )}
         </Action>
       </form>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
+        <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
+        <span className="mrd-eyebrow whitespace-nowrap">or</span>
+        <span style={{ flex: 1, height: 1, background: "var(--mrd-edge)" }}></span>
+      </div>
+      <Action
+        variant="default"
+        className="w-full justify-center"
+        onClick={signupGoogle}
+        disabled={busy}
+        busy={loadingGoogle}
+        title={loading ? "Hold on, creating your account" : undefined}
+      >
+        {loadingGoogle ? (
+          <>
+            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+            Opening Google
+          </>
+        ) : (
+          "Continue with Google"
+        )}
+      </Action>
     </AuthScaffold>
   );
 }

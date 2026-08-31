@@ -292,9 +292,25 @@ export function NotificationsSection() {
             <>
               <Num>{reachable}</Num> of the four things that can interrupt you currently do. The
               rest stay silent until you come looking.
-              {verdictEmail === true
-                ? " Work that reaches a result emails you what came of it."
-                : ""}
+              {/*
+               * STATES THE SETTING, NOT THE DELIVERY, and the difference is the
+               * whole of standard #7 on this line.
+               *
+               * It read "Work that reaches a result EMAILS you what came of it",
+               * a present-tense claim that mail arrives. Nothing here can know
+               * that: `RESEND_API_KEY` lives in the deployed Worker, `sendEmail`
+               * no-ops without it, and **it writes no record either way**, so
+               * neither this surface nor any other can say a message was ever
+               * delivered. The verdict send has fired zero times in its life.
+               *
+               * Admin > Observability is the one surface that can speak to it,
+               * and it is careful in exactly this way: "A key is present and mail
+               * will leave as X. That does not prove". This line now makes the
+               * same distinction at its own scale. Flagged by S1, whose brief
+               * forbids them the matching sentence on the run for the same
+               * reason, so the two surfaces now agree about what is unproven.
+               */}
+              {verdictEmail === true ? " A result is set to email you what came of it." : ""}
             </>
           )
         }
