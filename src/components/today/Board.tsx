@@ -54,6 +54,7 @@ import { ElapsedRunning, parseableInstant } from "@/components/today/ElapsedRunn
 import { FocusNext } from "@/components/today/FocusNext";
 import { HandoverNote } from "@/components/today/HandoverNote";
 import { OverlapCheck, OverlapNote } from "@/components/today/OverlapNote";
+import { CameFrom } from "@/components/today/CameFrom";
 import { PushedInsights } from "@/components/today/PushedInsights";
 import { runTotals, spendWords } from "@/components/today/run-totals";
 import { lastMovedAt, stillnessLine } from "@/components/today/last-movement";
@@ -2549,6 +2550,14 @@ export function Board() {
                           {row.note}
                         </p>
                       ) : null}
+                      {/* WHERE THIS CAME FROM (§0.5's connectedness, board half).
+                          The lineage sheet is already mounted app-wide in
+                          AppFrame; before this, nothing in this prefix offered
+                          the gesture. Under the row rather than in the scan
+                          band, which truncates. Never on a track: AUDIT_KINDS
+                          has no spine-track entry, so the ref would not
+                          resolve. */}
+                      <CameFrom missionId={row.id} isTrack={row.isTrack} />
                       {/* WHAT WAS HANDED TO YOU, BEFORE YOU DECIDE ON IT.
                           The founder asked twice to see the handoff and it was
                           drawn under RUNNING rows only. Measured against the
@@ -2636,6 +2645,14 @@ export function Board() {
                           {row.note}
                         </p>
                       ) : null}
+                      {/* WHERE THIS CAME FROM (§0.5's connectedness, board half).
+                          The lineage sheet is already mounted app-wide in
+                          AppFrame; before this, nothing in this prefix offered
+                          the gesture. Under the row rather than in the scan
+                          band, which truncates. Never on a track: AUDIT_KINDS
+                          has no spine-track entry, so the ref would not
+                          resolve. */}
+                      <CameFrom missionId={row.id} isTrack={row.isTrack} />
                       {/* WHERE THE WORK JUST CAME FROM. The founder asked twice to
                           see the handoff; on the board that is this one line under
                           each running row, drawn only when a real handover row
