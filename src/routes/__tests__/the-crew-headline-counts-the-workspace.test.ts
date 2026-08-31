@@ -39,7 +39,14 @@ import { join } from "node:path";
 const FILE = join(import.meta.dir, "..", "_authenticated.crew.tsx");
 const SRC = readFileSync(FILE, "utf8");
 /** Assertions read code only; the comments above quote the retired expression. */
-const CODE = SRC.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+/* F-159 corollary: a JSX comment comes out WITH its braces. Stripping the
+   block form alone leaves `{` and `}` behind, and a comment above a
+   protected line then puts a brace between a `>` and the word a matcher
+   wants. That silently disabled this lane's rename guard until a mutation
+   test caught it, so every guard here strips the JSX form first. */
+const CODE = SRC.replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, " ")
+  .replace(/\/\*[\s\S]*?\*\//g, "")
+  .replace(/^\s*\/\/.*$/gm, "");
 
 /** The title expression, isolated so a mention elsewhere cannot satisfy us. */
 const TITLE_DECL = (() => {

@@ -38,7 +38,14 @@ import { join } from "node:path";
 
 const SIGNUP = readFileSync(join(import.meta.dir, "..", "signup.tsx"), "utf8");
 /** Assertions read code only; the header above quotes the control's label. */
-const CODE = SIGNUP.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+/* F-159 corollary: a JSX comment comes out WITH its braces. Stripping the
+   block form alone leaves `{` and `}` behind, and a comment above a
+   protected line then puts a brace between a `>` and the word a matcher
+   wants. That silently disabled this lane's rename guard until a mutation
+   test caught it, so every guard here strips the JSX form first. */
+const CODE = SIGNUP.replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, " ")
+  .replace(/\/\*[\s\S]*?\*\//g, "")
+  .replace(/^\s*\/\/.*$/gm, "");
 
 const at = (needle: string): number => {
   const i = CODE.indexOf(needle);

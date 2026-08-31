@@ -79,7 +79,15 @@ const FILES = OWNED.flatMap((d) => tsxUnder(join(ROOT, d)));
  */
 const RAW_ERROR = /(\w+)\s+instanceof\s+Error\s*\?\s*\1\.message/;
 const stripComments = (s: string) =>
-  s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  s
+    // F-159 corollary: a JSX comment comes out WITH its braces. Stripping the
+    // block form alone leaves `{` and `}` behind, and a comment above a
+    // protected line then puts a brace between a `>` and the word a matcher
+    // wants. That silently disabled this lane's rename guard until a mutation
+    // test caught it, so every guard here strips the JSX form first.
+    .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, " ")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
 
 describe("no raw server error reaches a person", () => {
   it("has files to check, so a path typo cannot make this vacuous", () => {
