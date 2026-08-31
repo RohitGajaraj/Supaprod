@@ -13,6 +13,13 @@ import { ago } from "@/components/today/when";
 import { cleanTitle, stripAutoPrefix } from "@/components/plan/format";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  exampleNote,
+  exampleTally,
+  provenanceOf,
+  type Provenance,
+} from "@/components/inbox/an-example-says-so";
 import { openAsk } from "@/lib/ask-open";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { listDueForecasts } from "@/lib/forecast.functions";
@@ -26,10 +33,24 @@ import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-
  * you rather than by who is working: the review gate first, then runs stopped on
  * an answer, then live work, then what is over.
  *
- * EVERY ROW IS A REAL READ. The calls come from `getApprovalsQueue`, the runs
- * from `listMissions`, the same two resolvers Today composes its triage card
- * from, under the same shared cache keys. Nothing here is sample data; where a
- * group has nothing real to show, the component draws nothing for it.
+ * EVERY ROW IS A REAL READ, AND THAT IS NOT THE SAME AS EVERY ROW BEING REAL
+ * WORK. This comment used to end "Nothing here is sample data", it was TRUE
+ * when it was written (`f7af3a00c`, 2026-08-25, when the sources were
+ * `getApprovalsQueue` and `listMissions`), and `listDueForecasts` was added as
+ * a THIRD source two days later in `8f11615b0` -- under a sentence that had
+ * already excluded it.
+ *
+ * S4-166 measured the cost: of the 24 forecasts past their horizon, **20 sit on
+ * an `is_sample` workspace, and six of the seven accounts with a non-empty desk
+ * see one made entirely of fixtures.** The canon says the moat is the forecast
+ * captured at decision time; this is the surface where that claim is cashed.
+ *
+ * So the sentence is not repaired, it is REPLACED BY THE BEHAVIOUR: a row we
+ * can prove came with the workspace says so, per row, and the group says how
+ * many. `an-example-says-so.ts` carries the reasoning and the counts. **A
+ * comment asserting a property is a claim nothing checks, and this file is the
+ * evidence** -- the guarantee outlived the code it described by two days and
+ * nobody noticed for six.
  *
  * SPEND TRANSPARENCY. Each run shows its cost, and the page headline includes
  * the total workspace spend. Cost is "—" when unknown (no checkpointed traces
@@ -157,6 +178,50 @@ export function InboxSurface() {
   });
 
   /*
+   * WHERE EACH DUE CALL CAME FROM (S4-166).
+   *
+   * `listDueForecasts` selects `workspace_id` in `FORECAST_COLS` and **drops it
+   * in the mapping** -- `DueForecast` has no field for it -- so the one fact
+   * that separates a real forecast from a demo fixture is fetched and thrown
+   * away one layer below this. Filed to S0 as a one-field ask; until it lands
+   * this reads it back.
+   *
+   * ── WHY THIS SECOND READ IS SAFE, WHEN THE COMMENT ABOVE FORBIDS ONE ─────
+   * The rule above is against a second read WITH ITS OWN FILTER, which is how
+   * the strip and the desk ended up counting different things. This one is
+   * keyed `.in("id", …)` on the ids the desk already returned, so it cannot
+   * disagree about which rows exist or how many -- it can only attach
+   * provenance to rows already on screen. `listOpportunities` states the same
+   * argument for its own two-hop enrichment: "this can only enrich rows already
+   * visible, never widen what's visible."
+   *
+   * It is deliberately NOT `enabled` on the workspace: the desk is
+   * cross-workspace by design, and gating this on the active one would
+   * reintroduce the scope mismatch it exists to report.
+   */
+  const dueIds = React.useMemo(
+    () => (dueForecasts.data?.due ?? []).map((f) => f.id).sort(),
+    [dueForecasts.data],
+  );
+  const dueOrigins = useQuery({
+    queryKey: ["forecast-due-origin", dueIds],
+    enabled: dueIds.length > 0,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("decisions")
+        .select("id,workspace_id")
+        .in("id", dueIds);
+      if (error) throw new Error(error.message);
+      const by = new Map<string, string | null>();
+      for (const r of (data ?? []) as { id: string; workspace_id: string | null }[]) {
+        by.set(r.id, r.workspace_id);
+      }
+      return by;
+    },
+  });
+
+  /*
    * QUEUED MISSIONS ARE DELIBERATELY ABSENT. A queued run has no worker on it
    * yet, so it is neither needing a person nor working, and every group here is
    * a claim about whose move it is. They stay visible on Open Runs instead.
@@ -176,18 +241,29 @@ export function InboxSurface() {
      * what it was called at the time, and on this surface the judgement is the
      * point.
      */
-    const verdictSessions: AgentSession[] = due.map((f) => ({
-      id: `forecast:${f.id}`,
-      title: cleanTitle(f.claim || f.title),
-      need: "needs-input",
-      activity:
+    /*
+     * AND WHERE IT CAME FROM, WHEN WE CAN PROVE IT (S4-166). `decisions.is_sample`
+     * is 0 on all 24 overdue rows, so the row cannot answer this about itself;
+     * only its workspace can. `provenanceOf` returns `unknown` rather than
+     * guessing, and `exampleNote` says nothing for real and for unknown.
+     */
+    const originOf = dueOrigins.data;
+    const verdictSessions: AgentSession[] = due.map((f) => {
+      const when =
         f.daysLate > 0
           ? `due ${f.daysLate} ${f.daysLate === 1 ? "day" : "days"} ago, no verdict yet`
-          : "due now, no verdict yet",
-      at: instant(f.horizonDate),
-      agentSlug: null,
-      onOpen: () => void navigate({ to: "/learn" }),
-    }));
+          : "due now, no verdict yet";
+      const note = exampleNote(provenanceOf(originOf?.get(f.id), workspaces));
+      return {
+        id: `forecast:${f.id}`,
+        title: cleanTitle(f.claim || f.title),
+        need: "needs-input" as const,
+        activity: note ? `${when} · ${note}` : when,
+        at: instant(f.horizonDate),
+        agentSlug: null,
+        onOpen: () => void navigate({ to: "/learn" }),
+      };
+    });
 
     const callSessions: AgentSession[] = calls.map((c) => ({
       id: c.id,
@@ -283,7 +359,53 @@ export function InboxSurface() {
     });
 
     return [...verdictSessions, ...callSessions, ...runSessions];
-  }, [queue.data, missions.data, dueForecasts.data, navigate]);
+  }, [queue.data, missions.data, dueForecasts.data, dueOrigins.data, workspaces, navigate]);
+
+  /*
+   * THE LINE ABOVE THE GROUP, and it is the half a per-row mark cannot carry.
+   * A desk where EVERY row is a fixture reads as a full desk of real work until
+   * a person checks each row, and S4-166 measured that as the commonest state
+   * in the product: six of the seven accounts with a desk see exactly that.
+   *
+   * Counted off what is ON SCREEN rather than off the population, because the
+   * rows are the only thing the reader can check the sentence against.
+   */
+  const exampleLine = React.useMemo(() => {
+    /*
+     * A FAILED ORIGIN READ IS SAID, BECAUSE OTHERWISE IT IS INVISIBLE (R-16).
+     *
+     * `provenanceOf` returns `unknown` for a row it cannot place, and `unknown`
+     * draws nothing -- which is correct per row and WRONG for the surface,
+     * because "every row is real" and "the read that would have told us failed"
+     * then look identical. That is the read-came-back-empty defect, and I had
+     * built it into the component whose entire subject is that defect.
+     *
+     * It says only what it can: the rows are still real rows and still due; the
+     * thing that did not load is where they came from.
+     */
+    if (dueOrigins.isError && (dueForecasts.data?.due?.length ?? 0) > 0) {
+      return "Where these came from did not load, so any examples among them are not marked.";
+    }
+    const marks: Provenance[] = (dueForecasts.data?.due ?? []).map((f) =>
+      provenanceOf(dueOrigins.data?.get(f.id), workspaces),
+    );
+    return exampleTally(marks).line;
+  }, [dueForecasts.data, dueOrigins.data, dueOrigins.isError, workspaces]);
+
+  const groupNotes = React.useMemo<Record<InboxNeed, React.ReactNode>>(
+    () =>
+      exampleLine
+        ? {
+            ...GROUP_NOTES,
+            "needs-input": (
+              <>
+                {GROUP_NOTES["needs-input"]} {exampleLine}
+              </>
+            ),
+          }
+        : GROUP_NOTES,
+    [exampleLine],
+  );
 
   const missionRows = missions.data?.missions ?? [];
   const workspaceSpend = workspaceSpendTotal(missionRows);
@@ -441,7 +563,7 @@ export function InboxSurface() {
                 : "The run record did not load, so what stopped, what is live and what shipped are missing from this list."}
           </ReadFailedLine>
         ) : (
-          <AgentInbox sessions={sessions} groupNote={GROUP_NOTES} />
+          <AgentInbox sessions={sessions} groupNote={groupNotes} />
         )}
       </div>
     </Surface>

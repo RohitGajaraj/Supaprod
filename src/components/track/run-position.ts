@@ -1,5 +1,6 @@
 import { AGENT_STATIONS, AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 import { holdTone } from "@/lib/spine/driver";
+import { nothingIsComing } from "@/components/track/nothing-is-coming";
 
 import type { RunMapStation } from "@/components/meridian/RunMap";
 import type { StepMeterStep } from "@/components/meridian/progress";
@@ -83,6 +84,43 @@ export function runPosition(
         return;
       }
       if (tone === "you") {
+        /*
+         * ── A STATION THE LOOP GAVE UP ON DOES NOT NEED AN APPROVAL ────────
+         *
+         * `needs-approval` is not a mood, it is a claim with a control behind
+         * it: `PlanCard.tsx:73` defines it as *"a person is required before
+         * this one moves"*, `:187` draws it as a hollow ring with a solid
+         * centre because **something is IN it**, and `:476` gates the Approve
+         * button on exactly this state (`canApprove = !!onApproveStep &&
+         * step.state === "needs-approval"`).
+         *
+         * `holdTone` returns "you" for `HOLD_NEEDS_PERSON`, and **four of
+         * those six reasons are the whole of `TERMINAL_HOLDS`**. So 36 of the
+         * 37 open tracks reaching this branch had their current station drawn
+         * as awaiting an approval that does not exist, with an approval glyph,
+         * in approval colour, and a chip reading "Needs you". Found by driving
+         * `a30238f5` (`given-up` at Ship) and reading **"Ship / Needs you"** in
+         * the step list, directly above a hold line saying nothing more would
+         * be tried on it automatically.
+         *
+         * RunMap draws no Approve control today, so nothing is currently
+         * clickable-and-dead. That is luck rather than design: the state is the
+         * gate, `PlanCard` renders the same `PlanStepState`, and the first
+         * caller to pass `onApproveStep` would offer approval on a station
+         * nobody can approve. **A state is a claim whether or not this
+         * renderer acts on it.**
+         *
+         * So the split is by whether anything is coming, the same predicate the
+         * footer, the header chip, the browser tab, the run heading, the
+         * open-work list and the way out all read. A terminal hold is `held`,
+         * which RunMap already chips as "On hold" -- coarser than the footer's
+         * "Needs a restart" and not in conflict with it, where "Needs you" was.
+         */
+        if (nothingIsComing(track.holdReason)) {
+          stops.push({ station, state: "held", hold: track.holdReason });
+          meter.push({ key: station, label: name, state: "held" });
+          return;
+        }
         stops.push({ station, state: "needs-approval", hold: track.holdReason });
         meter.push({ key: station, label: name, state: "waiting" });
         return;

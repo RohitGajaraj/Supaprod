@@ -122,6 +122,7 @@ import { CONSENT_PHILOSOPHY, groupToolsByConsequenceClass } from "@/lib/consent-
 import { Receipt } from "@/components/meridian/Receipt";
 import { Gate } from "@/components/meridian/Gate";
 import { AgentMark } from "@/components/meridian/marks";
+import { useConfirm } from "@/hooks/use-confirm";
 
 type EventType =
   | "signal.created"
@@ -330,6 +331,34 @@ export function ControlsPanel({
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  /*
+   * ── THE REVERSIBLE CONTROL SITS RIGHT BESIDE THE IRREVERSIBLE ONE ────────
+   *
+   * The Toggle two lines below turns a pipeline OFF and back on. Remove deletes
+   * the row. They sit in the same Line, and only the one you cannot undo fired
+   * on a single click.
+   *
+   * That is the fourth instance of one inversion in this repo. `MembersCard`
+   * records the first and says /boundary found the second on its own mode
+   * controls; RUN-120 found the third on the run screen. 18 pipelines are live
+   * right now, all enabled, and each is a route from an event to an agent -- so
+   * a mis-click stops work routing and the only tell is a toast.
+   *
+   * The success note already says "<name> stops firing. Nothing routes on that
+   * event now." This asks the same thing BEFORE, where a person can still act
+   * on it, and points at the toggle, which is what most people actually want.
+   */
+  const confirm = useConfirm();
+  const askThenDeleteSub = async (id: string, name: string) => {
+    const ok = await confirm({
+      title: `Remove the ${name} pipeline?`,
+      body: `Nothing routes on that event afterwards, so work that would have reached this agent stops arriving. If you only want it to stop for now, the switch beside this row turns it off and back on again. Removing it means building the route from scratch.`,
+      confirmLabel: "Remove the pipeline",
+      destructive: true,
+    });
+    if (ok) deleteSubMut.mutate({ id, name });
+  };
+
   const decideEvtMut = useMutation({
     mutationFn: (v: {
       eventId: string;
@@ -638,7 +667,7 @@ export function ControlsPanel({
                   variant="quiet"
                   title="It stops firing."
                   busy={deleteSubMut.isPending}
-                  onClick={() => deleteSubMut.mutate({ id: s.id, name: pipeName(s) })}
+                  onClick={() => void askThenDeleteSub(s.id, pipeName(s))}
                 >
                   Remove
                 </Action>

@@ -83,6 +83,8 @@ import {
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { useElapsed } from "@/components/meridian/use-elapsed";
 import { Reading, ReadFailedLine, RecordSpeaks } from "@/components/meridian/surface-parts";
+import { enterMotion } from "@/components/spine/enter-motion";
+import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 
 /** One map, so a station's slug and its drawing cannot disagree. */
 function glyphForStation(s: AgentStation | null): StationGlyphKind | undefined {
@@ -306,6 +308,7 @@ export function TrackActivity({
   /** WHICH teammates are in flight, for the multiplayer presence case. */
   onLiveSeats?: (seats: Array<{ slug: string | null; name: string; waiting: boolean }>) => void;
 }) {
+  const reducedMotion = usePrefersReducedMotion();
   const fetchActivity = useServerFn(getTrackActivity);
   const fetchChain = useServerFn(getTrackChain);
   const q = useQuery({
@@ -675,15 +678,7 @@ export function TrackActivity({
               // with no provable driver never reach this list at all.
               const arrived = primed.current && !seen.current.has(row.key);
               return (
-                <li
-                  key={row.key}
-                  className={RUN_ROW}
-                  style={
-                    arrived
-                      ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
-                      : undefined
-                  }
-                >
+                <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
                   <RunClock at={row.at} />
                   <span className="flex flex-col items-center self-stretch">
                     <RunGlyph kind="station" station={glyphForStation(row.to as AgentStation)} />
@@ -718,15 +713,7 @@ export function TrackActivity({
                */
               const arrived = primed.current && !seen.current.has(row.key);
               return (
-                <li
-                  key={row.key}
-                  className={RUN_ROW}
-                  style={
-                    arrived
-                      ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
-                      : undefined
-                  }
-                >
+                <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
                   <RunClock at={row.at} />
                   <span className="flex flex-col items-center self-stretch">
                     <RunGlyph kind="handoff" />
@@ -759,15 +746,7 @@ export function TrackActivity({
                */
               const arrived = primed.current && !seen.current.has(row.key);
               return (
-                <li
-                  key={row.key}
-                  className={RUN_ROW}
-                  style={
-                    arrived
-                      ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
-                      : undefined
-                  }
-                >
+                <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
                   <RunClock at={row.at} />
                   <span className="flex flex-col items-center self-stretch">
                     <RunGlyph kind="handoff" />
@@ -831,15 +810,7 @@ export function TrackActivity({
             const arrived = primed.current && !seen.current.has(row.key);
 
             return (
-              <li
-                key={row.key}
-                className={RUN_ROW}
-                style={
-                  arrived
-                    ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
-                    : undefined
-                }
-              >
+              <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
                 <RunClock at={Date.parse(t.at)} />
 
                 {/* The rail stops on the last row of the STREAM, which in

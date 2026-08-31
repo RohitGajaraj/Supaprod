@@ -101,6 +101,42 @@ describe("it never claims a machine is working when no row says one is", () => {
     expect(p.stops[i].state).toBe("needs-approval");
   });
 
+  test("a station the loop GAVE UP on is not awaiting an approval", () => {
+    /*
+     * `needs-approval` is a claim with a control behind it: PlanCard:73 defines
+     * it as "a person is required before this one moves", :187 draws it as a
+     * ring with something IN it, and :476 gates the Approve button on exactly
+     * this state. `holdTone` calls all four TERMINAL_HOLDS "you", so 36 of the
+     * 37 open tracks reaching that branch had their station drawn as awaiting
+     * an approval that does not exist.
+     *
+     * Found by driving a30238f5 (given-up at Ship) and reading "Ship / Needs
+     * you" in the step list, directly above a hold line saying nothing more
+     * would be tried on it automatically.
+     */
+    for (const holdReason of [
+      "given-up",
+      "station-cannot-finish",
+      "tools-refused",
+      "going-in-circles",
+    ]) {
+      const p = runPosition(track({ holdReason }), false);
+      const i = AGENT_STATION_ORDER.indexOf("build");
+      expect({ holdReason, state: p.stops[i].state }).toEqual({ holdReason, state: "held" });
+      expect(p.meter[i].state).toBe("held");
+      // The reason still travels, so the map can print the driver's sentence.
+      expect(p.stops[i].hold).toBe(holdReason);
+    }
+  });
+
+  test("and a real pending call still is one", () => {
+    // The one open track that genuinely has an answer waiting. Narrowing the
+    // branch must not empty it, or the approval glyph never appears at all.
+    const p = runPosition(track({ holdReason: "waiting-on-a-person" }), false);
+    const i = AGENT_STATION_ORDER.indexOf("build");
+    expect(p.stops[i].state).toBe("needs-approval");
+  });
+
   test("the walk wins over a stale hold, because the hold is the LAST reason", () => {
     // `last_hold` records why the driver declined last time. While a drive is
     // in flight from this tab, that reason is history, and painting amber over

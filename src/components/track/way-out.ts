@@ -1,5 +1,5 @@
 import type { HoldReason } from "@/lib/spine/driver";
-import { TERMINAL_HOLDS } from "@/lib/spine/correction";
+import { nothingIsComing } from "@/components/track/nothing-is-coming";
 
 /**
  * WHEN A RUN STOPS, THE SCREEN SAYS WHAT WILL START IT AGAIN. NO DEAD END, EVER.
@@ -214,10 +214,15 @@ const SENTENCE: Record<Offer, string> = {
  * read `going-in-circles` by the time I looked, and I read the state at read
  * time as the state at the moment the steer landed.
  */
-const TERMINAL: ReadonlySet<string> = new Set<string>(TERMINAL_HOLDS);
+/*
+ * ONE PREDICATE, FIVE SURFACES. This file narrowed `TERMINAL_HOLDS` to a Set of
+ * its own first, and on 2026-08-31 three more surfaces needed the same answer
+ * and each reached for its own copy. `nothing-is-coming.ts` is that Set with the
+ * reasoning attached, and this file reads it rather than keeping a fourth.
+ */
 
 function steerSentence(hold: string, stationName: string | null): string {
-  if (!TERMINAL.has(hold)) return SENTENCE.steer;
+  if (!nothingIsComing(hold)) return SENTENCE.steer;
   const press = stationName ? `press Let ${stationName} try again` : "start it again yourself";
   return `Say what to change in the box below, then ${press}. Nothing will pick this up on its own while it is stopped here.`;
 }

@@ -73,6 +73,47 @@ describe("what the run header claims", () => {
     expect(s?.word).toBe("Waiting on you");
   });
 
+  it("does not tell 36 of 37 people a question is waiting when none is", () => {
+    /*
+     * `holdTone` sends all six of `HOLD_NEEDS_PERSON` here, and four of them
+     * ARE `TERMINAL_HOLDS`. Measured 2026-08-31: 36 of the 37 open tracks
+     * reaching this branch hold a terminal reason, so "Waiting on you" was
+     * pointing 36 people at a pending question that does not exist. The word
+     * this chip carries also becomes the browser tab, via TrackRun:763.
+     */
+    for (const holdReason of [
+      "given-up",
+      "station-cannot-finish",
+      "tools-refused",
+      "going-in-circles",
+    ]) {
+      const s = runStatus(at({ holdReason }));
+      expect({ holdReason, word: s?.word }).toEqual({ holdReason, word: "Needs a restart" });
+      // A pulse is motion, and the sweep has dropped this track entirely.
+      expect(s?.pulse).toBe(false);
+      // Still the person's to act on, so the tone does not soften to "hold".
+      expect(s?.status).toBe("you");
+    }
+
+    // The one row that really is waiting keeps the sentence and the pulse.
+    const open = runStatus(at({ holdReason: "waiting-on-a-person" }));
+    expect(open?.word).toBe("Waiting on you");
+    expect(open?.pulse).toBe(true);
+  });
+
+  it("keeps the header, the footer and the pane on one list of terminal reasons", () => {
+    /*
+     * Three surfaces now answer "is anything coming for this work": this chip,
+     * `footer-mode.ts`, and `way-out.ts`'s steer sentence. They import one
+     * constant rather than restating it, because the first version of this
+     * work argued from `TERMINAL_HOLDS` and gated on `holdTone` and shipped a
+     * branch no row could reach. A second list here would be that defect made
+     * permanent.
+     */
+    const s = runStatus(at({ holdReason: "station-cannot-finish" }));
+    expect(s?.word).not.toBe("Waiting on you");
+  });
+
   it("calls the end of a route Finished rather than Passed", () => {
     // "Passed" would claim a graded outcome. The product has never graded a
     // forecast, so reaching the end is a completion and nothing more.
