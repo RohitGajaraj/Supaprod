@@ -449,7 +449,24 @@ const RAIL = [
    */
   {
     to: "/today",
-    label: "Waiting for you",
+    /* ── ONE WORD. FOUNDER, 2026-09-01, ON THE RAIL SPECIFICALLY ──────────
+     *
+     * "This is not an enterprise-grade naming ceremony. It has to be one
+     * single verb... Don't put the sentence as the name of the shell." He is
+     * right, and §12's map is not what was wrong: the map gives the plain
+     * words a SURFACE uses in a sentence, and a rail door is not a sentence
+     * slot. "Waiting for you" is a caption; a door is a noun or a verb.
+     *
+     * REVIEW, and the canon picks it rather than taste. CLAUDE.md: "Approve
+     * is settled by what the control does - keep it where a click UNBLOCKS
+     * something, use REVIEW where it only SHOWS you something." This door
+     * navigates; it unblocks nothing. The Approve button on the far side
+     * still says Approve, because that one does unblock.
+     *
+     * Not "Inbox" - SURFACE-MAP marks /inbox DELETE and reusing the word
+     * would resurrect a retired door. Not "Queue" - naming the container is
+     * the exact fault §12 charged "Approvals" with. */
+    label: "Review",
     Icon: IconToday,
     count: "gates",
     owns: BOARD_PATHS,
@@ -493,7 +510,11 @@ const RAIL = [
        learned**". Applied here because the RAIL LITERAL is in my prefix; the
        destination stays S3's and I have not touched it. S4 reported three map
        items outstanding on this rail and this is one of them. */
-    label: "What we've learned",
+    /* One word, per the founder's rail ruling above. §12 retires Brain,
+       Memory and Knowledge; "Learnings" is the plain noun a person says for the
+       same thing and it claims nothing about how many there are, which matters
+       while R-06 keeps this surface honestly empty. */
+    label: "Learnings",
     Icon: IconBrain,
     count: null,
     owns: BRAIN_PATHS,
@@ -532,7 +553,13 @@ const RAIL = [
        idea. T1-S2 rules this door S3's and says "coordinate, do not both edit
        it": the LABEL is in my file, the page behind it is theirs, and S3 has
        been told rather than surprised. */
-    label: "What it's allowed to do",
+    /* One word, per the founder's rail ruling above. §12 folds Engine Room,
+       Guardrails, Govern, Boundary and Safety into one idea - the spend
+       ceiling, the blast radius, the tool set, the expiry. "Permissions" is
+       what an enterprise reader already calls that, and it carries the
+       "allowed to do" half without becoming a sentence. The page behind it is
+       S3's and unchanged. */
+    label: "Permissions",
     Icon: IconEngine,
     count: null,
     owns: ENGINE_ROOM_PATHS,

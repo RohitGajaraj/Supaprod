@@ -142,14 +142,35 @@ describe("the rail speaks plain words", () => {
     }
   });
 
-  it("still says the two the map replaced them WITH, so a fix cannot be a deletion", () => {
+  it("gives every door ONE WORD, which is the founder's rail ruling", () => {
     /*
-     * The failure mode of the test above is that somebody satisfies it by
-     * deleting the door. §12 replaces words; it does not remove destinations,
-     * and the pages behind these two are S3's and still reachable.
+     * ── FOUNDER, 2026-09-01, AND IT CORRECTED ME ─────────────────────────
+     * "This is not an enterprise-grade naming ceremony. It has to be one single
+     * verb... Don't put the sentence as the name of the shell."
+     *
+     * I had applied §12's rename map here literally and produced "Waiting for
+     * you", "What we've learned" and "What it's allowed to do" - three captions
+     * where three doors belong. **§12 was not wrong; my reading of it was.** The
+     * map gives the plain words a SURFACE uses in a sentence, and a rail door is
+     * not a sentence slot.
+     *
+     * This is the rule stated so it cannot drift back. A door is a noun or a
+     * verb, and it is one word.
      */
+    for (const label of railLabels()) {
+      expect(label.trim().split(/\s+/)).toHaveLength(1);
+    }
+  });
+
+  it("still has all five doors, so one-word cannot be met by deleting one", () => {
+    /* The failure mode of the rule above is satisfying it with a shorter rail.
+       §12 replaces words; it does not remove destinations, and the pages behind
+       these are S1's and S3's and still reachable. */
     const labels = railLabels();
-    expect(labels).toContain("What we've learned");
-    expect(labels).toContain("What it's allowed to do");
+    expect(labels).toHaveLength(5);
+    expect(labels).toContain("Work");
+    expect(labels).toContain("Review");
+    expect(labels).toContain("Learnings");
+    expect(labels).toContain("Permissions");
   });
 });
