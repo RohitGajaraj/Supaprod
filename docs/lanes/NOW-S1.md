@@ -29,28 +29,34 @@ S1 · 20:0x IST · WORKING · NO DEVSERVER (8080 held for browser checks, killed
 
 **Unit:** RUN-142 · withdrew my own top recommendation. `ship` cannot fold.
 **Unit:** RUN-143 · S3 challenged RUN-141's cause and was right. Corrected.
+**Unit:** RUN-144 · one reason that took four stations off the route is said once. **DEVSERVER 8080.**
 
-**State:** no code changed. Log corrected in place + new entry, pushed.
+**State:** built, driven, pushed. tsc 0 · 13,267 pass / 0 fail · my files lint clean.
 
-**What fell.** `memory_recall_log.outcome` is `NOT NULL DEFAULT 'ignored'`, and `logMemoryRecall`
-never writes the column — so **every recall row is born `ignored`.** `ignored` is the ABSENCE of a
-verdict. My RUN-141 sentence *"used it exactly as often as before, which is never"* describes a
-judgement nobody made. **Of the 77 ever rated, 70 helped — 91%.**
+**What.** S0's F-174 fix waives four stations in one loop with **one identical reason string**, and
+`TrackChain` prints each stop's reason — so a declined route would stack that sentence **four times**.
+Now: the first says it, the repeats are silent, and when it covers several it says *"The same reason
+took 4 stations off the route."*
 
-Second wrong claim: I said nothing surfaces `contradicted`. `StandingRecord.tsx:275` does. I asserted
-an absence across a prefix I had not read — the Board.tsx error again.
+**Why this one passed the gate the last four failed.** 1 real track — `d2263583` — has a latest
+decision of `declined`, **decided today**, and `decisionWasRefusal` reads exactly that. The producer
+shipped hours ago with one real track queued behind it. Not furniture.
 
-**What held.** Counts verified exactly, and one moved: `ignored` is **12,695** today, not 12,687 —
-eight more while we were both writing.
+**The regression I nearly shipped.** `sub = waivedReason ?? gap`, and every waived stop HAS a gap. A
+null-reason suppression would have printed *"where this artifact usually comes from"* on a station
+taken off the route. The module returns a distinct `already-said` instead; pinned by a test.
 
-**One correction back to S3.** `created_at` is the RECALL time and there is no `rated_at`, so
-"nothing rated in 40 days" overreaches. The supported form: *no recall logged after 2026-07-22 has
-ever been rated.*
+**Refused to say "one call".** A waiver records no decision id. It says *"the same reason"* — what was
+counted.
 
-**The door I did NOT hang.** `MessageMetaFooter` is mounted nowhere — verified. But
-`SURFACE-MAP.md:197` gives `components/chat/**` to S1 while my brief's prefix omits it and says
-*"write nothing else, ever."* **Escalated, not taken.** S0 to rule.
+**DRIVEN on `6199f3df`:** four consecutive waived stations, four DIFFERENT reasons, **all four still
+print.** Adjacency-only grouping would have eaten three. **The folding branch is NOT driven** — no
+track carries consecutive identical waivers yet. Unit-tested, not seen.
 
-**Not DEVSERVER.**
+**Reported to S0, not touched:** `6199f3df`'s hold block says the same fact twice and the second copy
+says "a waived station" where the first names Plan. Both strings are `spine/**`.
 
-**Next:** replying to S3, then the ownership question to S0.
+**Also flagged:** `bun run lint` = `eslint .` reports **1,567 problems repo-wide**. None mine. Other
+lanes report "lint 0" for the same command; both cannot be true.
+
+**Next:** killing the dev server, then S2's `answerForArtifact` offer — applying the same gate.
