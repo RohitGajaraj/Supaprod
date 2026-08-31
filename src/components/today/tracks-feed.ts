@@ -148,7 +148,10 @@ export function trackToBoardRows(
     };
 
     if (t.status === "done") {
-      finished.push({ ...base, kind: "finished", lastMoved: formatAgo(t.drivenAt ?? t.updatedAt) });
+      /* Same rule on the finished lane: the moment it finished is a state
+         change, and `updated_at` is when that happened. `drivenAt` remains the
+         fallback only for a row that somehow carries no `updatedAt`. */
+      finished.push({ ...base, kind: "finished", lastMoved: formatAgo(t.updatedAt ?? t.drivenAt) });
       continue;
     }
     if (t.status !== "open") continue;
@@ -190,12 +193,34 @@ export function trackToBoardRows(
       continue;
     }
 
-    const movedAt = t.drivenAt ? Date.parse(t.drivenAt) : NaN;
+    /*
+     * "MOVED" MUST MEAN MOVED, AND THIS READ `drivenAt` UNTIL 2026-09-01.
+     *
+     * The row renders this as **"· moved 2m ago"**. `driven_at` advances every
+     * time the sweep picks the track up **whether or not anything changed**, so
+     * that sentence was a freshness claim the data does not support.
+     *
+     * **Measured, service-role: 58 of 62 open tracks have `driven_at` later
+     * than their own `updated_at` — 57 by more than five minutes, and the worst
+     * gap is 23.5 DAYS.** A row saying "moved 2m ago" about work that last
+     * actually changed three weeks ago is fabricated progress, which §0.6
+     * standard #7 and §1's third property both delete a feature over.
+     *
+     * `updatedAt` is when the state changed. It is NOT bumped by a no-op drive
+     * — those 58 rows are the proof — so it is the only one of the two that can
+     * carry this word.
+     *
+     * **The attempt is still worth knowing and is NOT lost:** a track being
+     * driven and not moving is exactly what `holdLine` and the driver's own
+     * sentence underneath report, and S4-179 measured the same shape from the
+     * sweep's side. This line stops claiming the attempt was a change.
+     */
+    const movedAt = t.updatedAt ? Date.parse(t.updatedAt) : NaN;
     const fresh = Number.isFinite(movedAt) && now - movedAt < TRACK_FRESH_MS;
     running.push({
       ...base,
       kind: "running",
-      lastMoved: fresh ? (formatAgo(t.drivenAt) ?? "now") : formatAgo(t.drivenAt),
+      lastMoved: fresh ? (formatAgo(t.updatedAt) ?? "now") : formatAgo(t.updatedAt),
       /* A hold that is NOT on the person means the work stopped for its own
          reason, and carrying that reason keeps a stopped track from reading as
          a merely slow one, which is the confusion the hold field exists to
