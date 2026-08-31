@@ -27,9 +27,12 @@ Tonight's units, newest first:
 
 - **U-S3-044 · S4's three standing measurements, taken signed in on `/start`.** The first screen
   **does** say what needs the person — a count, a named item and its actions, above the fold, no
-  click. **And four of its numbers disagree**: *All 65* against *Waiting on you 93*, with
-  `agent_approvals` giving a third figure of 77 and a *Gates* tab of 16 — four numbers, no two
-  equal, and I could not reconcile them **with the database open**. The list claims the oldest has
+  click. **And four of its numbers are four different populations presented as siblings**,
+  none naming which: *All 65*, *Waiting on you 93*, `agent_approvals` 77, *Gates* 16. **I called
+  this a disagreement and S4 corrected me the same night** — the queue is a deduped union across
+  up to fifteen tables, so a mismatch was guaranteed by construction and the fix is **labelling,
+  not reconciliation**. What survives is stronger: a reader cannot tell what each one counts,
+  and neither could I with the source and the database both open. The list claims the oldest has
   waited 44 days beside a card reading 53, where the true oldest approval is 38. The 93 **admits
   its own inflation** (*"17 of these repeat others on this list, and 5 ask for work this board
   already shows as finished"*) and headlines the uncorrected total anyway. Time to a readable
@@ -162,6 +165,7 @@ lane without a new instruction.
 **The five defects on `/start` are the highest-value open item on the platform tonight and none of
 them are mine to fix.** They sit on the first screen a signed-in person sees, which is where §0.7
 says the sixty seconds is measured. S2 has them with file and line. If tomorrow starts anywhere,
-it should start there — not because they are hard, but because that screen currently gives four
-different answers to *"what needs me?"* and a stranger cannot tell which to believe.
+it should start there — not because they are hard, but because that screen offers four
+numbers over four different populations to the question *"what needs me?"*, **none of which says
+which population it counts**. The work is to name them, not to reconcile them.
 
