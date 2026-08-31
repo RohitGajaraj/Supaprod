@@ -31,6 +31,7 @@
 // database. The stop conditions are the safety of the whole feature: a driver
 // that runs when it should not is worse than no driver.
 
+import { readOnBranchInstruction } from "@/lib/repo-ref-brief";
 import {
   AGENT_STATIONS,
   AGENT_STATION_ORDER,
@@ -1008,10 +1009,14 @@ export function stationGoal(
   // F-54. Sits with the filing instruction because it is an instruction about
   // HOW to do the work rather than context for it: without the ref, every read
   // this station makes answers a question about the default branch.
-  const onBranch =
-    station === "build" && branch
-      ? `\n\nThe work on this track is on branch \`${branch}\`, not on the default branch. Pass \`ref: "${branch}"\` to repo.tree, repo.read and repo.search, or you will be reading a copy of the project that does not contain it.`
-      : "";
+  //
+  // THE SENTENCE MOVED OUT OF THIS FILE ON 2026-08-31 (F-153) and it is worth
+  // knowing why: it lived here as a literal, and the CI fix brief in
+  // `ci-poll-tick.ts` — a different brief, put in front of the same branch —
+  // never got it. Two repair runs then read the default branch and staged the
+  // pristine file back over the changeset's own work. One import now, so a
+  // third site that forgets is a missing import rather than a missing paragraph.
+  const onBranch = station === "build" ? readOnBranchInstruction(branch) : "";
 
   return `${stationJob(station, subject)}${reScoped}${mine}${prior}${back}\n\n${file}${named}${onBranch}${truthfulness}`;
 }

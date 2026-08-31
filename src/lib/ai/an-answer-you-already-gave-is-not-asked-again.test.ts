@@ -29,6 +29,10 @@ import {
 
 const LOOP = readFileSync(fileURLToPath(new URL("./loop.server.ts", import.meta.url)), "utf8");
 
+/** `LOOP` with runs of whitespace collapsed, so an assertion about the code does
+ *  not fail because the code was re-wrapped. See F-152 below. */
+const SRC = LOOP.replace(/\s+/g, " ");
+
 describe("the gate consults the record", () => {
   it("calls the resolver at the tool gate, which had no caller before", () => {
     expect(LOOP).toContain("resolveApprovalPolicy({");
@@ -53,7 +57,32 @@ describe("the gate consults the record", () => {
   });
 
   it("a record can turn an auto call into one that waits", () => {
-    expect(LOOP).toContain('policy.decision === "always-human" && mode === "auto"');
+    /*
+     * ── MATCHED ON NORMALISED WHITESPACE, AND THAT IS THE POINT (F-152) ──
+     * This assertion used to match the call site's exact formatting, and it
+     * broke the moment the condition wrapped onto three lines — a true claim
+     * failing for a typographic reason. The source-text check is still the
+     * right tool (this branch sits inside a 3,000-line function no unit test
+     * reaches), but it should assert the CODE, not the line breaks.
+     */
+    expect(SRC).toContain('policy.decision === "always-human" && mode === "auto"');
+  });
+
+  it("EXCEPT where the mode was already ruled on for that tool, one screen up (F-152)", () => {
+    /*
+     * The exemption is stated here rather than left implicit, because this file
+     * is where somebody reads what the gate does. `studio.fix.commit` is
+     * exempted at `resolveToolMode` on purpose — the comment there, shipped
+     * 07-07, says the generic floor "would park the autonomous fix loop at a
+     * gate every iteration" — and this tightening was reversing that ruling. It
+     * did exactly what was predicted: two approvals in three minutes on
+     * 2026-08-31, and the only two the tool has ever had.
+     *
+     * The invariant below is unchanged for every tool outside the set, and
+     * `an-exemption-one-screen-up-is-not-reversed-here.test.ts` keeps the set at
+     * one entry.
+     */
+    expect(SRC).toContain("!MODE_RULED_ABOVE_WINS.has(call.name)");
   });
 });
 
