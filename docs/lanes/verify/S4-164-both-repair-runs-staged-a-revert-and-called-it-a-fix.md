@@ -85,6 +85,37 @@ rows: `input_says_ref = false`, `input_warns_default_branch = false`.
 — but that line is on the **Build station brief**. The CI fix run is a different brief and does not
 have it. **The lesson was learned once and written down in one place.**
 
+### THIS IS F-54, RECURRING AT A SECOND SITE, AND THE LEDGER SAYS SO
+
+*Added after reading `FINDINGS-LEDGER.md` in full, which is what it exists for.*
+
+**F-54 is this exact defect, and it is marked FIXED.**
+
+> *"**THE SEAT THAT CHECKS THE WORK COULD NOT SEE THE WORK — on every track, on every repo, since
+> the checking seat existed.** `repo.tree`'s `ref` argument is optional and falls back to
+> `getDefaultBranch(repo, headers)`. That default is right for 'what is in this project' and exactly
+> wrong for 'check what was just built', and **nothing anywhere told the seat that a branch
+> existed**."*
+
+Its evidence in August was a `qa` seat filing *"No notification digest implementation was found in
+the repository"* forty-four seconds after the builder committed 449 lines to the branch — **"every
+word true about the branch it read; every word false about the work."** That is, sentence for
+sentence, what happened to both repair runs today.
+
+**And F-54's own fix note explains why it came back:**
+
+> *"**Build only** — Sense to Design have no repo and Ship works from the changeset, and a branch
+> named where it is not needed is one more sentence competing with the instruction that matters."*
+
+**The scoping was deliberate and defensible when written.** The CI fix run is neither a station brief
+nor Ship; it did not exist in that taxonomy, so "Build only" silently excluded it. `driver.ts:1011`
+implements that scope literally as `station === "build" && branch`.
+
+**This makes S0's F-153 the right remedy rather than a second local patch.** A finding fixed at one
+call site, with a written note explaining which call sites were deliberately excluded, recurred at a
+call site nobody had thought of. Extracting the sentence to one shared place is the only version of
+this fix that cannot recur a third time. **Recorded so F-153 carries F-54's precedent with it.**
+
 ### Three sharpenings, two from S0 on reading this, all three verified here rather than taken
 
 1. **The warning is gated shut for anything that is not a station.** `driver.ts:1011` reads
