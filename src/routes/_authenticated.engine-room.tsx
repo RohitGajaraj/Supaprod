@@ -192,7 +192,30 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
     const open = match.search.room;
     return {
       meta: [
-        { title: open ? `${ROOM_NAMES[open]} · Engine room · Supaprod` : "Engine room · Supaprod" },
+        /*
+         * THE TAB SAYS WHAT THE DOOR SAID (§12, 2026-09-01).
+         *
+         * This read "Engine room", which the rename map retires, and the browser
+         * tab is the one surface that reaches somebody who has stepped away from
+         * the page entirely — S1 made that point about the run and it is truer
+         * here, because a tab is all a backgrounded window shows.
+         *
+         * It matches S2's rail door, which now reads **Permissions**, rather than
+         * §12's full phrase "What it's allowed to do": the founder ruled a door is
+         * one word and not a sentence, and a tab that disagrees with the door the
+         * person just clicked is the same door-and-destination mismatch §12 warns
+         * about, pointing the other way.
+         *
+         * NOT the phrase for all four rooms. "What it's allowed to do" describes
+         * the SAFETY room; spend, quality and record are not about permissions,
+         * so using it as the section name would have been wrong for three of the
+         * four. The door's own word is the honest common name.
+         *
+         * FOUND BY LOOKING AT THE TAB, not by any check. My own §12 guard reads
+         * rendering props and JSX text and never looks at a route's `head()`, so
+         * a retired word lived in the one place no assertion was pointed.
+         */
+        { title: open ? `${ROOM_NAMES[open]} · Permissions · Supaprod` : "Permissions · Supaprod" },
       ],
     };
   },

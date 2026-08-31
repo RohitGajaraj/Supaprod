@@ -140,3 +140,65 @@ describe("§12's rename map holds across this lane's prefix", () => {
     expect(offenders).toEqual([]);
   });
 });
+
+/**
+ * THE BROWSER TAB IS A SURFACE, AND THIS GUARD COULD NOT SEE IT.
+ *
+ * Found by signing in and reading the tab, not by any check: `/engine-room`
+ * rendered **"Safety · Engine room · Supaprod"** and `/brain` rendered **"Brain ·
+ * Supaprod"**, both retired words, while the assertions above reported the whole
+ * prefix clean. They read rendering PROPS and JSX TEXT; a route's `head()`
+ * returns a `meta` array of plain objects and matches neither shape.
+ *
+ * The tab matters more than its size suggests: it is the only thing a
+ * backgrounded window shows, so it is the one surface that reaches somebody who
+ * has stepped away from the page entirely.
+ *
+ * The titles now match S2's rail doors — **Permissions** and **Learnings** —
+ * rather than §12's full phrases, because the founder ruled a door is one word
+ * and a tab that disagrees with the door somebody just clicked is the same
+ * mismatch §12 exists to prevent, pointing the other way.
+ */
+describe("§12 holds in route tab titles, which the checks above cannot see", () => {
+  const ROUTES = join(ROOT, "..", "routes");
+
+  /*
+   * Any tab-title STRING, not "a string immediately after `title:`". The first
+   * version required the latter and missed the engine-room title outright,
+   * because it is a ternary: `title: open ? \`…\` : "…"`. Every tab title in this
+   * app ends "· Supaprod", so that suffix is the reliable marker and it survives
+   * however the expression around it is written.
+   */
+  const titles = (): string[] => {
+    const out: string[] = [];
+    for (const f of tsxUnder(ROUTES)) {
+      const code = stripComments(readFileSync(f, "utf8"));
+      for (const m of code.match(/(?:`[^`]*·\s*Supaprod[^`]*`|"[^"]*·\s*Supaprod[^"]*")/g) ?? []) {
+        out.push(`${f.split("/").pop()} :: ${m}`);
+      }
+    }
+    return out;
+  };
+
+  it("found tab titles to check, so this cannot pass by looking at nothing", () => {
+    expect(titles().length).toBeGreaterThan(5);
+  });
+
+  it("no retired word reaches a browser tab", () => {
+    const offenders = titles().filter((t) =>
+      /Engine room|Engine Room|Guardrails|Trust ledger|Trust Ledger/.test(t),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  /**
+   * Pinned to the doors rather than to §12's phrases: if S2 renames a door, this
+   * fails and whoever renamed it has to bring the tab with them, which is the
+   * whole point of the rule.
+   */
+  it("the two tabs say what their rail doors say", () => {
+    const all = titles().join("\n");
+    expect(all).toContain("Permissions · Supaprod");
+    expect(all).toContain("Learnings · Supaprod");
+  });
+});

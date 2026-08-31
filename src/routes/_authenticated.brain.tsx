@@ -626,7 +626,11 @@ export const Route = createFileRoute("/_authenticated/brain")({
     };
   },
   component: MemoryPage,
-  head: () => ({ meta: [{ title: "Brain · Supaprod" }] }),
+  /* THE TAB SAYS WHAT THE DOOR SAID (§12). "Brain" is retired by the rename map,
+     and S2's rail door now reads "Learnings" — one word, per the founder's ruling
+     that a door is not a sentence. A tab disagreeing with the door somebody just
+     clicked is the mismatch §12 exists to prevent. */
+  head: () => ({ meta: [{ title: "Learnings · Supaprod" }] }),
   errorComponent: ({ error, reset }) => (
     <Surface wide>
       <div className="flex flex-col gap-mrd-6">
