@@ -182,5 +182,7 @@
   "_notes": "A reason attached to an orphan by name, printed beside its row. It does NOT excuse it and does NOT change the count -- that is the one fix this gate forbids. It exists because S2 asked for getLineageCounts to be marked 'staged ahead of a surface' so a later lane scanning the list would not read it as dead weight and delete it. That risk is real and the answer to it is a note on the row, not removal from the number: removing it would also remove the pressure that gets it wired. The gate's own text already says an orphan is one of three things; this says WHICH, for the ones somebody has actually determined.",
   "notes": {
     "src/lib/lineage-graph.functions.ts::getLineageCounts": "STAGED AHEAD OF A SURFACE. S2 refused to build the per-row lineage line on getLineageGraph (one entity per call), S0 built this batch shape for them 2026-08-31 in 7064f10c2, and the surface is not built yet. S4 checked and there is NO live N+1 today -- AuditTag does not fetch at all -- so the open item is a missing count line, not a slow one. S2 confirmed 2026-09-01 that it is the first thing in their next note."
-  }
+  },
+  "_instrument": 3,
+  "_instrumentWhat": "Which version of the detector produced these counts. 1: original. 2: React.lazy imports made visible (components 80 -> 44). 3: internally-rendered exports separated from orphans (44 -> 27, same commit). The gate REFUSES to print IMPROVED or Holding when this does not match its own INSTRUMENT constant, because a delta across a rule change is not a delta. Bump both together and re-freeze in the same commit."
 }

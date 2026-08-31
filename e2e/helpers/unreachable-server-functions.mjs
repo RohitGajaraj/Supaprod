@@ -31,6 +31,31 @@
  *
  * Usage:  bun run e2e/helpers/unreachable-server-functions.mjs
  */
+/*
+ * ── THE INSTRUMENT HAS A VERSION, AND A DELTA ACROSS VERSIONS IS NOT A DELTA ─
+ *
+ * This number changed meaning twice in two days. `React.lazy` visibility took
+ * components 80 -> 44; S1's correction (a component reached through its parent
+ * is not unreachable) took 44 -> 27 AT THE SAME COMMIT. Neither was a deletion.
+ *
+ * The baseline recorded both shifts by name, in prose, and a lane compared 80 to
+ * 69 anyway and reported an improvement it had not earned. S2, who did it, put
+ * the fix better than the note did: **a note explains a number; not printing a
+ * misleading one is better than explaining it afterwards.**
+ *
+ * So the instrument is versioned. The version is stamped into the baseline when
+ * it is frozen, printed beside every count so a number quoted elsewhere carries
+ * its instrument with it, and CHECKED before any delta is printed. If the
+ * baseline was measured by a different version, this refuses to print
+ * IMPROVED/Holding at all and says why, because "components 44 -> 27" across a
+ * rule change is not a fall in debt and must not be readable as one.
+ *
+ * BUMP THIS whenever detection changes what counts, and re-freeze in the same
+ * commit. Do not bump it for output or comment changes: a version that moves
+ * when the meaning did not is a version nobody trusts.
+ */
+const INSTRUMENT = 3; // 1: original · 2: React.lazy visible · 3: internally-rendered exports separated
+
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
@@ -319,7 +344,7 @@ for (const o of componentOrphans) compByFile.set(o.file, (compByFile.get(o.file)
 
 console.log(
   `\n${componentOrphans.length} of ${componentTotal} exported components in src/components ` +
-    `have NO importer.`,
+    `have NO importer.  [instrument v${INSTRUMENT}]`,
 );
 console.log(
   `${componentExcused.length} more are mounted through a dynamic import and are NOT counted.`,
@@ -479,6 +504,27 @@ if (frozen) {
     }
     process.exit(1);
   }
+  /*
+   * A DELTA IS ONLY A DELTA WITHIN ONE INSTRUMENT.
+   *
+   * `over` above still fires on a version mismatch, deliberately: a rise might
+   * be real and failing loudly is the safe direction. `under` and `Holding` do
+   * not, because both READ AS GOOD NEWS and neither can be true across a rule
+   * change. A baseline from another version has to be re-measured, not compared.
+   */
+  const frozenInstrument = typeof frozen._instrument === "number" ? frozen._instrument : null;
+  if (frozenInstrument !== INSTRUMENT) {
+    console.error(
+      `\nREFUSING TO REPORT A CHANGE: the baseline was measured by instrument ` +
+        `v${frozenInstrument ?? "unknown"} and this is v${INSTRUMENT}.\n` +
+        "What counts as unreachable is not the same on both sides, so the difference\n" +
+        "between the two numbers is not a rise or a fall in debt and must not read as\n" +
+        "one. Re-measure: run THIS detector against the tree of the commit the\n" +
+        "baseline names, and freeze counts and names together.",
+    );
+    process.exit(1);
+  }
+
   const under = [];
   if (orphans.length < frozen.serverFunctions) {
     under.push(`server functions ${frozen.serverFunctions} -> ${orphans.length}`);
