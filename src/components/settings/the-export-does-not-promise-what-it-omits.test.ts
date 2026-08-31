@@ -41,7 +41,16 @@ const SECTION = readFileSync(join(ROOT, "components/settings/DataSection.tsx"), 
 const SERVER = readFileSync(join(ROOT, "lib/projects.functions.ts"), "utf8");
 
 /** Comments quote the retired heading; assertions read code only. */
-const code = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+/* F-159 corollary: a JSX comment comes out WITH its braces. Stripping the
+   block form alone leaves `{` and `}` behind, and a comment above a
+   protected line then puts a brace between a `>` and the word a matcher
+   wants. That silently disabled this lane's rename guard until a mutation
+   test caught it, so every guard here strips the JSX form first. */
+const code = (s: string) =>
+  s
+    .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, " ")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
 const UI = code(SECTION);
 const SRV = code(SERVER);
 

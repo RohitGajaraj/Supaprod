@@ -66,6 +66,7 @@ import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 import { toast } from "@/lib/notify";
 import { getStripeEnvironment, paymentsConfigured } from "@/lib/stripe";
 import { priceForCredits, lookupKeyFor } from "@/lib/billing-tier";
+import { humanWriteError } from "@/lib/roles.functions";
 import {
   planPresentation,
   CREDIT_DROPDOWN_TIERS,
@@ -529,7 +530,7 @@ function PaidTierCard({
     try {
       getStripeEnvironment();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Payments not configured yet.");
+      toast.error(humanWriteError(e, "Payments not configured yet."));
       return;
     }
     if (direction === "upgrade" && currentTier !== "free") {

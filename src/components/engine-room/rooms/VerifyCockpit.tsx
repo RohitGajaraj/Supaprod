@@ -9,6 +9,7 @@ import { CodeDiff } from "@/components/studio/CodeDiff";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { listGovernApprovals } from "@/lib/governance.functions";
 import { listChangelog } from "@/lib/changelog.functions";
+import { humanWriteError } from "@/lib/roles.functions";
 import {
   listAppliedChanges,
   getChangesetDiff,
@@ -167,8 +168,7 @@ function PendingApprovals({
       );
       onDecided();
     },
-    onError: (e: unknown) =>
-      toast.error(e instanceof Error ? e.message : "Could not record the decision."),
+    onError: (e: unknown) => toast.error(humanWriteError(e, "Could not record the decision.")),
   });
 
   if (isError) {
@@ -306,7 +306,7 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
       onChanged();
       window.location.href = `/build/${res.revertMissionId}`;
     },
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Rollback failed."),
+    onError: (e: unknown) => toast.error(humanWriteError(e, "Rollback failed.")),
   });
 
   const triggerRollback = async () => {

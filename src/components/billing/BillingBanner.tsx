@@ -38,6 +38,7 @@ import { createPortalSession, getMyCreditsView } from "@/lib/payments.functions"
 import { getCreditRunway } from "@/lib/billing.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { LOW_CREDITS_WARN } from "@/lib/entitlements";
+import { humanWriteError } from "@/lib/roles.functions";
 
 const LOW_DISMISS_KEY = "supaprod.credits.low-dismissed";
 
@@ -150,7 +151,7 @@ export function BillingBanner() {
       if ("error" in r) throw new Error(r.error);
       window.open(r.url, "_blank");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not open billing portal");
+      toast.error(humanWriteError(e, "Could not open billing portal"));
     } finally {
       setOpening(false);
     }

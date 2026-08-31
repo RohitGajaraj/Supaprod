@@ -369,6 +369,25 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
     [all, bySlug],
   );
   const present = all.map((e) => bySlug.get(e.slug)).filter((m): m is CrewRosterMember => !!m);
+
+  /**
+   * What the header may claim, and it is the read that decides.
+   *
+   * Three states, and only one of them names a number the record supports:
+   * a read that has not landed says who the page is about; an account with no
+   * `agents` rows keeps the catalogue count, because the sub beneath it argues
+   * from the same catalogue that nothing has been narrowed yet; and a live
+   * roster counts what is actually present and actually rendered.
+   */
+  const crewTitle: string = !crew.isSuccess
+    ? "Your team"
+    : crew.data?.empty
+      ? all.length === 1
+        ? `${count(1)} agent works here.`
+        : `${count(all.length)} agents work here.`
+      : present.length === 1
+        ? `${count(1)} agent works here.`
+        : `${count(present.length)} agents work here.`;
   /**
    * AN AGENT WITH NO ROW IS NOT ABSENT, IT IS ON THE DEFAULT POLICY.
    *
@@ -502,14 +521,50 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
             they would have to already understand to be here.
             `count` returns a number WORD below ten, so the verb has to agree with
             it: "one agent works here", "sixteen agents work here". */}
-        <PageHeading
-          title={
-            all.length === 1
-              ? `${count(1)} agent works here.`
-              : `${count(all.length)} agents work here.`
-          }
-          sub={sub}
-        />
+        {/*
+         * THE HEADLINE COUNTED THE SOURCE, NOT THE WORKSPACE (S4-173, 2026-08-31).
+         *
+         * It read `count(all.length)`, and `all` is `rosterCatalog()` -- a
+         * catalogue compiled into this file, deduped by name, that makes no query
+         * at all. So "16 agents work here" was a fact about our source code
+         * printed as a fact about YOUR workspace, and it printed the same 16
+         * whether the account held sixteen, one, or none, and whether the backend
+         * answered or died.
+         *
+         * S4 settled it against live data after I asked them to check it against a
+         * live backend rather than a dead one, and the live answer is worse than
+         * the dead-backend one: distinct agent names per owner are 22 / 19 / 17,
+         * and **ZERO of the sixteen owners have sixteen.** Twelve have seventeen.
+         * So the constant was wrong for 100% of accounts, on the page whose whole
+         * subject is who is working for you.
+         *
+         * WHY IT SLIPPED, and it is worth keeping: the headline never READ the
+         * data, so it never looked like a read that could fail. Every guard in
+         * this file protects something that queries -- :423's SlowRead, :438's sub
+         * replacement, :516's ReadFailed card -- and `all.length` queries nothing,
+         * so it was not on the list of things that could be wrong. Its own comment
+         * even reasons carefully about the verb agreement of a number that was
+         * never true.
+         *
+         * ── WHY `present` AND NOT THE RAW LIVE COUNT ──────────────────────────
+         * `present` is the catalogue entries that have a live agent row, which is
+         * exactly the set of rows rendered below. The database holds 17 slugs for
+         * every owner and this catalogue deduplicates to 16 identities on purpose
+         * ("five slugs all mean Watch; the roster should show one Watch, not
+         * five"), so counting raw slugs would put 17 over a list of 16 and
+         * recreate the headline-contradicts-body defect the comment at the empty
+         * branch below was written to fix. The number now names what is on screen
+         * AND is derived from the read.
+         *
+         * ── AND IT SAYS NOTHING UNTIL THE READ LANDS ─────────────────────────
+         * While loading or after a failure there is no honest count, so the title
+         * carries none. The empty branch is the deliberate exception: an account
+         * with no `agents` rows has not lost its crew, it has simply never
+         * narrowed one, and the sub below argues exactly that from the catalogue.
+         * A title of "no agents work here" over "All 16 run without asking you"
+         * would be the same contradiction in the other direction.
+         */}
+        <PageHeading title={crewTitle} sub={sub} />
 
         {crew.isError ? (
           <ReadFailed error={crew.error} onRetry={() => void crew.refetch()}>

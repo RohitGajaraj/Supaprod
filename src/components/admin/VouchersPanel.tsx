@@ -14,6 +14,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/lib/notify";
+import { humanWriteError } from "@/lib/roles.functions";
 import { useConfirm } from "@/hooks/use-confirm";
 import { Action } from "@/components/meridian/surface-parts";
 import { AdminErrorCard, AdminSkeleton, inBandError } from "@/components/admin/admin-ui";
@@ -26,7 +27,7 @@ import {
 } from "@/lib/admin-vouchers.functions";
 
 const mutationFailed = (e: unknown) =>
-  toast.error(e instanceof Error ? e.message : "The action failed. Nothing was changed.");
+  toast.error(humanWriteError(e, "The action failed. Nothing was changed."));
 
 export function VouchersPanel() {
   const qc = useQueryClient();
