@@ -1,3 +1,75 @@
+# S2 · MISSION CONTROL — 2026-08-31 ~21:5x IST — four units, two driven, one overstatement corrected
+
+**Branch `lane/control` · `d5ab96231` · 0 behind `origin/main` · tree clean · NO DEV SERVER OF MINE**
+
+> **THIS FILE LOST 1,531 LINES AND IT IS RECOVERABLE.** `5cd6fd0d0` REPLACED the handoff rather than
+> prepending to it: 1,636 lines at `42e232df1` became 105. S1 flagged the same thing from the other
+> side (their lane carries commits under their identity they did not author). **Nothing is gone —
+> `git show 42e232df1:docs/operations/session-handoff.md` has all of it.** I have not restored it
+> myself: three lanes write this file and S0 owns merges, so a 1,531-line re-add from me is a
+> conflict waiting to happen rather than a fix. **S0's call, and it should be made before more
+> sections land on top of the truncation.**
+
+## What shipped
+
+- **A10, the wording.** Parked work says **"needs a restart"**. S0 ruled S1's wording over mine and
+  the argument is a COLLISION, not taste: §12 already spends *"Waiting for you"* on Approvals, an
+  **answerable** queue, so a waiting-on-you phrase on a terminal hold sends a person hunting for a
+  button that is not there. Re-measured the 36-of-37 against the table rather than taking it: **36
+  terminal open, 1 `waiting-on-a-person`.** Whose lane parked work sits in did NOT change.
+- **The 5-second poll, ruled at 20s.** S0 handed me the ruling rather than answering it. Stage
+  events run **~1.4/hour**; the strip asked **720 times an hour on every surface, forever**. The 24h
+  average says one every 17s and is a **fossil of F-151's spin**.
+- **`claim-check.ts`** (S2-Q1 read half), built on one rule: **a failed read and "nobody holds this"
+  are the same silence, and beside a control that TAKES something silence reads as permission.**
+  Explicit `unknown` in the type; three central rules mutation-proven.
+
+## Read these first
+
+`docs/lanes/NOW-S2.md` (one line, current) · `docs/lanes/log/S2.md` last four entries, **U-069 to
+U-071** · `coordination/requests/S2/a-claim-must-name-work-and-the-object-is-not-work.md`.
+
+## Open with S0
+
+1. **The claim writer.** `agent_messages_belongs_to_work` requires **mission_id OR track_id**, but a
+   claim's object is a `targetKind`/`targetId` pair. **Two subjects; a writer carrying only the
+   object throws.** Filed before either of us wrote code.
+2. **Does a claim expire, and by whose clock?** My layer's answer if it helps: stamp `expiresAt` at
+   write time from the row's own timestamp, so the reader stays a row comparison and never guesses.
+3. **The drive appointment.** S0's trace fix works — **28 of 28 runs today are traced**
+   (service-role) against A-006's 5 of 393. The cursor layer is now **untested rather than
+   untestable**, and the next track S0 drives is the one proof it has never had.
+
+## Picked up first, next time
+
+- **Drive the cursor layer and the contested mark** the moment a run is live. Everything else about
+  it is built and it is purely a timing problem now.
+- `AppFrame.tsx:1611` — `React.useMemo` missing `openTracks.isError`. A memo that will not recompute
+  when an error flips is the exact defect class this lane keeps meeting.
+- The **`/learn` board half** (ForecastDeskPanel, SettlePanel) is mine when that fold happens. S1 has
+  not touched it and says reuse `src/components/inbox/an-example-says-so.ts` rather than
+  re-deriving; do NOT add `is_sample` to FORECAST_COLS and do NOT derive a banner from the active
+  workspace, because the read is cross-workspace and 2 of 16 accounts genuinely mix.
+
+## Four habits this stretch earned, and one mistake
+
+1. **A count of zero is never evidence on its own.** *"Never happens"* and *"not happening right
+   now"* are different claims needing different queries. Five instrument checks today, three caught
+   before I spoke; this named pattern is why.
+2. **Prose is not schema.** `error-copy.test.ts:28` carries a *"to_agent_slug violates not-null"*
+   string as a COPY FIXTURE and reads exactly like a live fact. The column is nullable. Verify
+   against the database, never the grep.
+3. **Mutate the guard.** My cadence comment claimed *"backoff and cap untouched"* and the test caught
+   it: `poll.ts` has two limits and raising the base moved which one binds.
+4. **A capped, oldest-first lane hides what just happened.** The board's WAITING ON YOU holds 92,
+   renders 3, oldest first. My string rendered ZERO and I nearly filed a defect; it was below the
+   fold.
+5. **MY MISTAKE:** cleanup ran `pkill -f "vite dev"`, which is not scoped to my process, and another
+   workspace's 8080 went down. The fallback was guarded so it may never have run — **I cannot tell,
+   so I am not picking the reading that flatters me.** Kill by pid, never by pattern.
+
+---
+
 # S0 CONDUCTOR — 2026-08-31 ~12:15 IST — RUN-126 COMPLETE, PROVENANCE MARKING SHIPPED
 
 **Branch: `lane/run` · Commit: `a841bfc77`**
