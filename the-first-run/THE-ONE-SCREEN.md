@@ -71,10 +71,22 @@ is fixed-length and mandatory.
 ### 6 · Ship  *(`ship`)*
 **Right pane:** the deploy steps with a live clock, then what actually went out and where.
 **Actions:** hold · roll back.
-**Known gap, and it is architectural:** `ship` has never written a track-member row while
-`deployments` holds 42 successful ones. `release.publish` is the one tool correctly gated to `review`
-and it **has never fired**. So shipping happens and the spine does not see it. **The bridge is one
-write, not a redesign** — `FRONTIER-BRIEF.md` finding (c).
+**Known gap, and it is architectural:** `ship` has never written a track-member row, and
+`release.publish` — the one tool correctly gated to `review` — **has never fired.**
+
+> **CORRECTED 2026-08-31, and the old sentence understated it in the direction that made it sound
+> cheap.** This read: *"`deployments` holds 42 successful ones… So shipping happens and the spine
+> does not see it. **The bridge is one write, not a redesign.**"* **Measured today: of those 42, only
+> 14 are real** — the other 28 are `is_sample` fixtures — **all 14 landed between 2026-07-08 and
+> 2026-07-10, and the newest is 51 DAYS OLD.** Zero are reachable from any track, even through
+> `changeset_id`.
+>
+> *"Shipping happens and the spine does not see it"* is a plumbing gap a single write closes.
+> ***"Nothing has shipped for real since 10 July"* is a different problem and a bigger one, and the
+> bridge write does not fix it.** A lane reading the old line today would conclude Ship is one row
+> away from working. Found by S1 while building the Ship pane, who reported it rather than building
+> around it — and who noted the consequence for their own surface: with no join from a track to a
+> deployment, the pane cannot honestly say more than *"Ship filed no release"*.
 
 ### 7 · Learn  *(`learn`)* — **the payoff, and the reason to come back**
 **Right pane:** *"You said abandonment would drop below 22%. It is 24.1%. **You were wrong.**"* Beside
