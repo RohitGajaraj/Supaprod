@@ -98,9 +98,9 @@ its output to a track**, whichever of the two links gets built.
    recommendation stays visible next to the measurement that killed it.
 ## What I recommend, in order, and none of it is urgent
 
-1. **`ship` first**, because it is one component wide and the run already draws releases. Whoever
-   takes it should check `WhatShipped` against `ReleaseCard` rather than assuming, which is the
-   mistake this document exists to prevent.
+1. ~~**`ship` first**~~ — **withdrawn by the correction above.** It is one component wide and that
+   component has nothing to render. Kept rather than deleted so the reasoning that produced a wrong
+   recommendation stays visible next to the measurement that killed it.
 2. **`/learn`'s desk to the board**, S2's call and S2's prefix.
 3. **`decide`, `design`, `plan`, `discover` stay for now.** Each is a browse surface over many objects,
    and §0.5's "three surfaces" does not mean the run swallows every list — it means a person does not
