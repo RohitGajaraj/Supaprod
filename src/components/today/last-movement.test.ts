@@ -19,9 +19,42 @@ describe("lastMovedAt", () => {
     const at = lastMovedAt(
       NOW,
       [{ updated_at: isoAgo(3 * 3_600_000) }],
-      [{ updatedAt: isoAgo(9 * 3_600_000), drivenAt: isoAgo(20 * 60_000) }],
+      [{ updatedAt: isoAgo(9 * 3_600_000) }],
     );
-    expect(at).toBe(NOW - 20 * 60_000);
+    expect(at).toBe(NOW - 3 * 3_600_000);
+  });
+
+  it("does NOT count a drive as a movement, which it did until 2026-09-01", () => {
+    /*
+     * THIS TEST ASSERTED THE OPPOSITE AND WAS RIGHT TO FAIL WHEN I CHANGED IT.
+     * Its old form fed `drivenAt: 20m ago` beside `updatedAt: 9h ago` and
+     * expected 20m - encoding "a drive is a movement" as the contract.
+     *
+     * It is not. `spine_tracks.driven_at` advances every time the sweep picks a
+     * track up whether or not anything changed. Measured service-role
+     * 2026-09-01: **58 of 62 open tracks carry a `driven_at` LATER than their
+     * own `updated_at`**, 57 by more than five minutes, the worst by 23.5 DAYS.
+     *
+     * And the consequence was not a blurred number - it SILENCED this file's
+     * own sentence. The sweep runs every 10 minutes and TRACK_FRESH_MS is 10
+     * minutes, so `drivenAt` held `lastMoved` permanently fresh and "Nothing
+     * has moved for ..." could almost never fire. The drives that moved nothing
+     * were suppressing the warning that nothing was moving.
+     */
+    const at = lastMovedAt(NOW, [{ updatedAt: isoAgo(9 * 3_600_000), drivenAt: isoAgo(60_000) }]);
+    expect(at).toBe(NOW - 9 * 3_600_000);
+  });
+
+  it("so the stillness sentence can fire again while the sweep is running", () => {
+    /* The end-to-end consequence, asserted rather than described: a track
+       driven a minute ago that last CHANGED nine hours ago is still, and the
+       board may now say so. */
+    const line = stillnessLine(
+      lastMovedAt(NOW, [{ updatedAt: isoAgo(9 * 3_600_000), drivenAt: isoAgo(60_000) }]),
+      NOW,
+      ago,
+    );
+    expect(line).toBe("Nothing has moved for 9h.");
   });
 
   it("refuses a future timestamp rather than reporting movement in 0 minutes", () => {

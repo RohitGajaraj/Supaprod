@@ -33,6 +33,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "@/lib/notify";
+import { humanWriteError } from "@/lib/roles.functions";
 import { useConfirm } from "@/hooks/use-confirm";
 import { MonoLabel } from "@/components/supaprod/Primitives";
 import { Action, Approve } from "@/components/meridian/surface-parts";
@@ -53,7 +54,7 @@ import {
 } from "@/lib/admin-invitations.functions";
 
 const mutationFailed = (e: unknown) =>
-  toast.error(e instanceof Error ? e.message : "The action failed. Nothing was changed.");
+  toast.error(humanWriteError(e, "The action failed. Nothing was changed."));
 
 function queryError(q: { isError: boolean; error: unknown; data: unknown }): string | null {
   if (q.isError) return q.error instanceof Error ? q.error.message : "Request failed.";

@@ -829,17 +829,35 @@ export function ControlsPanel({
       {controlsOnly ? (
         /* WHAT IS NOT DRAWN HERE, AND WHERE IT IS. Hiding two regions without
            saying so would leave a reader who has seen the full panel elsewhere
-           wondering which of the two surfaces is broken. */
+           wondering which of the two surfaces is broken.
+
+           "THEY ARE IN THE ENGINE ROOM" WAS THE LAST RETIRED WORD ON THIS PREFIX
+           (§12, 2026-09-01). The map sends *Engine Room · Guardrails · Govern ·
+           Boundary · Safety* to one plain phrase, and §12's own warning is that a
+           word renamed in one place and left stale in another has made the
+           problem worse. S2 has applied the rail labels; this was the matching
+           destination-side sentence, and it was the ONLY user-facing instance
+           left across governance, engine-room, brain, memory, knowledge, trust,
+           settings and billing. Measured before changing it, not assumed.
+
+           It now points by the DOOR rather than by the room, which is also more
+           useful: the control below navigates there, so the sentence names what
+           the reader will find rather than a place they have to hold in mind. */
         <Region
           title="What each run spent, and what is waiting"
-          sub="The run-by-run spend history and the queue of events waiting on a decision are not on this page, because neither answers what the crew may do. They are in the Engine Room."
+          sub="The run-by-run spend history and the queue of events waiting on a decision are not on this page, because neither answers what the crew may do. The control below opens them."
         >
           <Actions>
             <Action
               variant="quiet"
               onClick={() => void navigate({ to: "/engine-room", search: { room: "safety" } })}
             >
-              Open the Engine Room
+              {/* NAMES WHAT IT OPENS, not the room it lives in (§12). This read
+                  "Open the Engine Room", and it is the instance a prop-only
+                  sweep misses: it is JSX TEXT, so grepping title=/label= does
+                  not see it. The guard beside this file found it after I had
+                  already declared the prefix clean. */}
+              Open spending and the queue
             </Action>
           </Actions>
         </Region>

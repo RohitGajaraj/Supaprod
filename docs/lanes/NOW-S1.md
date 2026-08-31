@@ -1,29 +1,26 @@
-# NOW — S1 · THE RUN
+# NOW — S1 · THE RUN · **CLOSED OUT**
 
-**Unit:** RUN-163 · the evidence door is mounted and **driven**, and driving moved it once.
-**DEVSERVER 8080, killed and verified clear. ONE RED and it is S0's line.**
+**State: clean · 0 behind main · 4 ahead · 0 unpushed · NO migrations of mine** (`supabase/**` is
+S0's and I have never written it — step 3 is empty rather than skipped). **The 4 commits need S0 to
+merge; §4 says S0 alone takes anything to main and I have not tried.**
 
-**Live, on `/start`, typing *"tablet checkout address abandonment"*:**
-> *"Already here, from session replay archive, analytics dashboard, workspace.brief: address 76 ·
-> abandonment 34 · checkout 20."*
+**Closing note in full at the end of [`docs/lanes/log/S1.md`](./log/S1.md)** — DONE · PENDING ·
+OBSERVATIONS · NEXT, written for tomorrow morning.
 
-**And "Start it" stayed enabled** — S0's *"nothing here may become a gate"* tested, not asserted.
+**DONE, all driven in a browser:** gap #29 (open questions, 5 states) · gap #28 (verified, not
+rebuilt; constraint tested on the DOM; file captured via `createObjectURL`) · F-184's evidence door on
+**both** doors that start work · RUN-162 (62.7% of signals are the loop's own; one track is **67 of
+67**) · F-150 verified + ledger corrected · `.pathname` fixed repo-wide **and guarded**.
 
-**DRIVING MOVED THE MOUNT.** I put it in `spine/TrackStart.tsx`, the obvious component. On `/start`
-the field never appeared: that page's composer is `_authenticated.start.tsx`'s `<Composer>`. A source
-read would not have told me.
+**PENDING with owners:** S1-Q2 (founder's F-161 ruling + S0's four queries) · #22/#27/#17/#14 (S0) ·
+RUN-144's fold (no producer exists) · `/learn` board half (S2) · `/inbox` (S2+S0, A15).
 
-**And I nearly logged a worse error.** My grep said `TrackStart` had **zero importers** and I was
-about to call it dead. **It is not** — `plan.index.tsx:126` imports it, `:902` renders it; comment
-hits crowded out the real import in a 5-line grep. **Third incomplete-sample error today, first one
-caught before publishing.** So: **two doors start work**; I mounted and drove one, and record the
-`/plan` one as **owed, not done**, because I have not seen it render.
+**NEXT, first item:** **anchor the objects in the run pane (gap #8)** — S0 ruled its home is my run
+pane and `ArtifactPane`, and `presenceAnchor()` has **exactly one caller**, so the layer is honest and
+empty until something of mine anchors. S2 calls it the highest-value thing available for #8.
 
-**The guard caught me twice with the same line.** `if (q.isLoading) return null` failed
-`a-null-under-a-heading-is-a-broken-promise` — the guard I obeyed this morning, then re-violated in a
-new file. My reasoning was half the rule: `RunPresence` says a state derived during a first read must
-be TRUE, not that nothing may be drawn. Now: *"Checking what this workspace already holds about
-this."*
+**THE ACCEPTANCE CANDIDATE:** `ce846e9b` at **Build, five stations of seven, zero presses, nothing
+waived** — first track created entirely after F-178's persist fix. **I read it and did not touch it.**
 
-**The red:** `remove them from KNOWN_UNREACHED: evidence` — S0 predicted it and owns the line.
-**Not reporting the suite green.**
+**Not S0.** The conductor brief was misrouted here; no conductor act performed. **The deploy is S0's
+and if S1 is somehow last, that is an escalation, not a licence.**

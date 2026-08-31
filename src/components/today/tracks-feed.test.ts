@@ -117,9 +117,15 @@ describe("trackToBoardRows", () => {
       );
       expect(running, `${held} must not read as running`).toHaveLength(0);
       expect(waiting, `${held} belongs to the person`).toHaveLength(1);
-      // "stopped, needs you", never "waiting on your answer": nothing was
-      // asked. The loop ran out of road and will not try again on its own.
-      expect(waiting[0]?.holdLine).toBe("stopped, needs you");
+      /* "needs a restart", never "waiting on your answer": nothing was asked,
+         the loop ran out of road and will not try again on its own.
+
+         THE STRING IS RULED (A10) rather than chosen, and it must match
+         `run-tab.ts`'s chip lowercased. §12 already spends "Waiting for you"
+         on Approvals, a queue of ANSWERABLE items, so a parked row wearing a
+         waiting-on-you phrase sends a reader hunting for something to press —
+         and 36 of the 37 tracks that wear it have nothing queued at all. */
+      expect(waiting[0]?.holdLine).toBe("needs a restart");
       expect(waiting[0]?.reason).toBe(`Stopped: ${held}.`);
     }
   });
@@ -158,5 +164,95 @@ describe("trackToBoardRows", () => {
       (iso) => (iso ? "1m" : null),
     );
     expect(running.map((r) => r.id)).toEqual(["new", "old"]);
+  });
+});
+
+describe("a calendar wait is not a stoppage, and not an agent either", () => {
+  /*
+   * `d2263583` reached `learn` at 17:31:31 on 2026-08-31 under sweep - the
+   * FIRST track ever to walk there with zero presses - and its forecast is due
+   * 2026-10-15, forty-five days out. Its hold sentence says in as many words
+   * "nothing here is waiting on a person", while the row above it read "held"
+   * inside a lane headed "Waiting on an agent, not on you."
+   */
+  const learnTrack = {
+    id: "d2263583",
+    title: "Homeowners abandon checkout when the saved address is re-requested",
+    station: "learn" as const,
+    status: "open" as const,
+    holdReason: "needs-evidence",
+    hold: "The forecast this work is graded against comes due on 2026-10-15. Learn returns when it does; nothing here is waiting on a person.",
+    updatedAt: "2026-08-31T17:31:31Z",
+    drivenAt: "2026-08-31T17:51:04Z",
+  };
+
+  it("says it is waiting on time, not that it is held", () => {
+    const { running } = trackToBoardRows([learnTrack as never], new Set<string>(), () => "20m");
+    expect(running).toHaveLength(1);
+    expect(running[0]!.holdLine).toBe("waiting on time");
+    expect(running[0]!.holdLine).not.toBe("held");
+  });
+
+  it("draws the DRIVER'S sentence, not the generic one that contradicts the row", () => {
+    /*
+     * THIS TEST ASSERTED THE RIGHT THING FOR THE WRONG REASON AND PASSED ANYWAY,
+     * WHICH IS THE LESSON. Its first version fed a fixture whose `hold` I had
+     * written myself, containing the date, and concluded the board showed the
+     * date. Driving the real board showed `way-out.ts`'s generic sentence -
+     * "Connect a source, or file the missing input by hand" - under a row that
+     * says nothing is waiting on a person. A fixture I invented cannot falsify
+     * a claim about a payload I did not read.
+     *
+     * So the fixture now carries BOTH fields as the real payload does, and the
+     * assertion is that `holdBecause` wins: `hold` is prose built from the
+     * reason, `holdBecause` is the driver's own sentence and the only one that
+     * names the horizon.
+     */
+    const real = {
+      ...learnTrack,
+      hold: "Learn has nothing to work from, and no other station can make it. Connect a source, or file the missing input by hand, and this starts again on its own.",
+      holdBecause:
+        "The forecast this work is graded against comes due on 2026-10-15. Learn returns when it does; nothing here is waiting on a person.",
+    };
+    const { running } = trackToBoardRows([real as never], new Set<string>(), () => "20m");
+    expect(running[0]!.reason).toContain("2026-10-15");
+    expect(running[0]!.reason).toContain("nothing here is waiting on a person");
+    expect(running[0]!.reason).not.toContain("Connect a source");
+  });
+
+  it("falls back to the generic sentence rather than drawing nothing", () => {
+    /* A track held before `last_hold_because` existed has no driver sentence.
+       Silence there would lose the only explanation the row has. */
+    const older = { ...learnTrack, holdBecause: null, hold: "Learn has nothing to work from." };
+    const { running } = trackToBoardRows([older as never], new Set<string>(), () => "20m");
+    expect(running[0]!.reason).toBe("Learn has nothing to work from.");
+  });
+
+  it("still says HELD for needs-evidence anywhere other than learn", () => {
+    /* Both halves are required. `needs-evidence` elsewhere is a real stop -
+       way-out.ts answers it with "Connect a source, or file the missing input
+       by hand" - and only at learn does it mean the horizon has not arrived. */
+    const atBuild = { ...learnTrack, station: "build" as const };
+    const { running } = trackToBoardRows([atBuild as never], new Set<string>(), () => "20m");
+    expect(running[0]!.holdLine).toBe("held");
+  });
+
+  it("still says HELD for a different hold at learn", () => {
+    const other = { ...learnTrack, holdReason: "out-of-time" };
+    const { running } = trackToBoardRows([other as never], new Set<string>(), () => "20m");
+    expect(running[0]!.holdLine).toBe("held");
+  });
+
+  it("does not steal a terminal hold from the person's lane", () => {
+    /* A10 stands: a terminal hold at learn is still parked work needing a
+       restart, and it must not be recoloured as a calendar wait. */
+    const givenUp = { ...learnTrack, holdReason: "given-up" };
+    const { waiting, running } = trackToBoardRows(
+      [givenUp as never],
+      new Set<string>(),
+      () => "20m",
+    );
+    expect(running).toHaveLength(0);
+    expect(waiting[0]!.holdLine).toBe("needs a restart");
   });
 });

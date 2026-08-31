@@ -9,6 +9,7 @@ import { getGuardrailOverview } from "@/lib/guardrails.functions";
 import { getIncidents } from "@/lib/incidents.functions";
 import { listTraces } from "@/lib/traces.functions";
 import { getLedgerSeal } from "@/lib/trust-ledger.functions";
+import { humanWriteError } from "@/lib/roles.functions";
 import {
   buildSpendGlance,
   buildQualityGlance,
@@ -43,7 +44,7 @@ function roomStatus(
     return {
       key,
       loading: false,
-      error: cause instanceof Error ? cause.message : "The read failed.",
+      error: humanWriteError(cause, "The read failed."),
       glance: null,
       retry,
     };
