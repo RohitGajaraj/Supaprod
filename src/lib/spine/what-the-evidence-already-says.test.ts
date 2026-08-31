@@ -99,7 +99,7 @@ describe("what the evidence already says", () => {
   });
 
   it("makes zero an invitation rather than a rebuke, and never a refusal", () => {
-    const line = evidenceLine({ count: 0, sources: [], byTerm: [] });
+    const line = evidenceLine({ count: 0, sources: [], byTerm: [], agentAuthored: 0 });
     // A subject the evidence is silent on may be exactly what someone wants
     // investigated. The door tells; it must never block.
     expect(line).toContain("start it anyway");
@@ -119,11 +119,40 @@ describe("what the evidence already says", () => {
     expect(line).toContain("NPS survey");
   });
 
+  it("names what the loop wrote itself when that is most of it", () => {
+    // 63% of the whole table is source='agent' (940 of 1,499), because the
+    // 2026-08-25 description rewrite flipped the INFLOW and nothing drained the
+    // POOL. A bare count flatters a subject the product has only talked to
+    // itself about, so the door says so.
+    const line = evidenceLine({
+      count: 57,
+      sources: ["agent"],
+      byTerm: [{ term: "outage", count: 41 }],
+      agentAuthored: 38,
+    });
+    expect(line).toContain("38 of 57 were written by the loop itself");
+  });
+
+  it("stays quiet about authorship when the evidence is mostly external", () => {
+    const line = evidenceLine({
+      count: 57,
+      sources: ["NPS survey"],
+      byTerm: [{ term: "outage", count: 41 }],
+      agentAuthored: 3,
+    });
+    expect(line).not.toContain("written by the loop");
+  });
+
   it("still says something when the terms matched loosely and none by name", () => {
     // The odd case: rows matched the OR but no single term appears in any of
     // them, which a truncated read can produce. Say the weaker thing rather than
     // printing an empty breakdown as though it were a finding.
-    const line = evidenceLine({ count: 3, sources: ["agent"], byTerm: [{ term: "x", count: 0 }] });
+    const line = evidenceLine({
+      count: 3,
+      sources: ["agent"],
+      byTerm: [{ term: "x", count: 0 }],
+      agentAuthored: 0,
+    });
     expect(line).toContain("loosely match");
   });
 });

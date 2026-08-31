@@ -157,6 +157,24 @@ export type SubjectEvidence = {
   /** Distinct sources those signals came from, most first. At most five. */
   sources: string[];
   /**
+   * How many of the matching signals the LOOP ITSELF wrote (`source = 'agent'`).
+   *
+   * ── WHY THE DOOR HAS TO SAY THIS (S4-183) ─────────────────────────────────
+   * Measured across the whole table 2026-09-01: **1,499 signals, 940 of them
+   * `source='agent'` — 63% of the entire evidence base is the loop's own
+   * output.** A description rewrite on 2026-08-25 flipped the inflow (before:
+   * 920 agent against 518 external, 64%; since: 20 against 41, 33%) **and
+   * nothing drained the pool**, so every Discover run still reads a corpus that
+   * is majority self-authored.
+   *
+   * So a crew reporting "systemic signal ingestion failure" is **accurate about
+   * what it sees and wrong about the tense** — ingestion is not failing now, the
+   * backlog is. *"57 things mention this, and 38 of them we wrote"* is a
+   * materially different sentence from *"57 things mention this"*, and only the
+   * first one lets a person judge the number.
+   */
+  agentAuthored: number;
+  /**
    * PER TERM, most first, AND THIS IS THE HALF THAT MAKES THE NUMBER HONEST.
    *
    * Measured against the three live candidates on one workspace, the any-term
@@ -173,7 +191,12 @@ export type SubjectEvidence = {
   byTerm: Array<{ term: string; count: number }>;
 };
 
-export const NO_EVIDENCE_READ: SubjectEvidence = { count: null, sources: [], byTerm: [] };
+export const NO_EVIDENCE_READ: SubjectEvidence = {
+  count: null,
+  sources: [],
+  byTerm: [],
+  agentAuthored: 0,
+};
 
 /** The terms searched, recovered from the breakdown so there is one source. */
 export function termsOf(e: SubjectEvidence): string[] {
@@ -217,7 +240,14 @@ export function evidenceLine(e: SubjectEvidence): string {
     .map((t) => `${t.term} ${t.count}`)
     .join(" · ");
   const where = e.sources.length ? `, from ${e.sources.slice(0, 3).join(", ")}` : "";
+  // NAMES WHAT THE LOOP WROTE ITSELF when that is most of it. 63% of the whole
+  // table is `source='agent'`, so a bare count routinely flatters a subject the
+  // product has only ever talked to itself about.
+  const ours =
+    e.agentAuthored > 0 && e.agentAuthored * 2 >= e.count
+      ? ` ${e.agentAuthored} of ${e.count} were written by the loop itself.`
+      : "";
   return top
-    ? `Already here${where}: ${top}.`
-    : `${e.count === 1 ? "1 thing" : `${e.count} things`} in this workspace loosely match${where}.`;
+    ? `Already here${where}: ${top}.${ours}`
+    : `${e.count === 1 ? "1 thing" : `${e.count} things`} in this workspace loosely match${where}.${ours}`;
 }
