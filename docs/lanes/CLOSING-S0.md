@@ -54,6 +54,20 @@ tree rather than on any one branch.
    other 175 are genuinely track-less, and rewriting the acceptance query at 03:00 with a candidate
    live is the worst moment to touch it.
 
+## THE DEPLOY
+
+**Fired at 22:04 UTC and landed at 22:06:32** — `5dbe51fe`, moving the origin-served
+`x-deployment-id` from `b1a8ccf1…` to `f8ae362b…`. Verified per F-165 by the header the ORIGIN
+serves, not by the id the publish returned, because publish status has lied three times in one night
+and *"compare BYTES"* is retracted: an HTML md5 changes on every fetch, content-hashed asset names
+cannot move for a server-side change, minification removes the symbol a grep looks for, and the root
+HTML names only the 38 shell assets.
+
+**S1, S3 and S4 each declined the deploy independently and in writing**, and between them named the
+failure mode — the fleet ending with every lane assuming another has it — before it could happen.
+S4's reason is the one to keep: *an irreversible outward act whose authorisation reaches you relayed
+through two peers is not the same as being told directly.*
+
 ## OBSERVATIONS
 
 **The dominant defect class all night was a state that looks healthy and is terminal.** F-175's silent
@@ -68,6 +82,21 @@ another time, and a corrupted merge that would have put a broken tree on main.**
 
 **Five source-text assertions broke on edits that changed no behaviour.** Each was fixed by asking
 what the test meant to ask rather than what its anchor happened to catch.
+
+**AND THE NIGHT'S SHARPEST FINDING IS S4'S SYNTHESIS, MADE DURABLE BY S1: FIVE INSTRUMENTS ACROSS
+FOUR LANES, EACH RETURNING A CLEAN CONFIDENT ANSWER ABOUT SOMETHING IT STRUCTURALLY COULD NOT SEE.**
+S3's guard regex that could not cross the dot in `data.monthlyGrantCredits - data.balanceCredits` —
+the exact spelling that shipped the defect. Their `innerText` probe reading against an `aria-label`.
+Their `count(*)` reporting 77 for 7 because it counted approval-by-run pairs. S4's CSP gate whose
+evidence for an origin was **the security log's record of its own past finding about that origin.**
+And S1's relayed `git log` truncation warning, which they had not measured and which does not
+reproduce anywhere — 8,319 commits, three worktrees, no truncation.
+
+**S4's line is the one to carry: a finding that confirms your prior is the one you are least likely
+to check.** S1 spent the night refusing unverified claims from three lanes and then relayed a third
+party's to two of them, because it agreed with what they already believed about instruments. **They
+wrote the retraction into their log rather than deleting the messages**, which is the right shape:
+the mechanism is worth more than the correction.
 
 **The strongest mechanism in this fleet is two lanes measuring the same thing and disagreeing.** It
 caught F-85, the `is_sample` split, the horizon date, and F-187 — and in the last case the
@@ -85,9 +114,28 @@ actually belongs. **Every time a station "failed" tonight it was telling the tru
    This is the top of S4's list and mine.
 2. **`2fdf93b6`, candidate four**, is chosen against all three failure modes at once — evidenced,
    implementable in the connected repo, and not an attribution claim. Watch it.
-3. **S3's `/start` measurements**: four different answers to *"what needs me?"* on the first screen a
-   signed-in person sees, which is where the sixty seconds is measured. S2's.
+3. **S3's `/start` measurements, and this is where tomorrow starts.** The first screen a signed-in
+   person sees gives **several different answers to *"what needs me?"*** — All 65, Waiting on you 93,
+   the Gates tab 16 — drawn from **a fifteen-call deduped union across eleven tables**, and **not one
+   of them names its population.** S3 could not reconcile them with the source and the database open.
+   **Every number is individually true, which is what makes it harder than a wrong number.**
+   `components/today/**`, so S2's, and it is the screen §0.7 measures the sixty seconds on.
+
+   > **A FIGURE I CARRIED HERE WAS ALREADY RETRACTED AND S2 CAUGHT IT BEFORE IT REACHED THE FOUNDER.**
+   > I had listed *"`agent_approvals` 77"* as one of the four. **It is 7.** S3 withdrew it, S2 verified
+   > the withdrawal with their own query rather than accepting it, and the cause is the same fan-out
+   > that produced F-187: `count(*)` joined on `mission_id` counts approval-by-run PAIRS, and one
+   > mission holds 28 runs. **The finding is unharmed** — that table was only ever one contributor to
+   > the union — **but a retracted number inside a correct finding is exactly what gets the finding
+   > dismissed when somebody re-measures it.**
 4. **Gap #8** — anchor the objects in the run pane. S1 and S2 both name it as the highest-value
    remaining item, and `presenceAnchor()` still has one caller.
 5. **The demo approval queues expire 2026-09-25**, inside the SkyDeck window, and they thin before
    they empty.
+6. **S3-Q2, the layer-02 vocabulary sweep, is NOT in S3's closing note** and they flagged the gap
+   themselves rather than pushing a commit mid-deploy to fix it. `QUEUE-S3.md` on main carries it with
+   the fuller reasoning — **not frozen** (§0.7 names twenty routes and six component directories;
+   `docs/pitch/**` is in neither), correctly ranked below their unfinished job 1, and with the
+   measurement that matters: `public/brief.html` is clean while the deck has **drifted 77 lines**
+   against a README requiring them byte-identical. **If tomorrow starts from a closing note rather
+   than from the queue, that item is invisible**, which is why it is here.
