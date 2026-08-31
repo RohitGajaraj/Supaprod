@@ -181,7 +181,32 @@ describe("the driver actually applies the rule", () => {
   const has = (needle: string) => body.includes(needle);
 
   it("asks the next station's need before it moves a track", () => {
-    expect(has("needIsMet(STATION_NEEDS[arrivedAt]"), "the advance predicate is gone").toBe(true);
+    /*
+     * MATCHED ON THE PREDICATE, NOT ON THE ARGUMENT SPELLING (F-174).
+     *
+     * This asserted the literal `needIsMet(STATION_NEEDS[arrivedAt]` and broke
+     * when the argument became a variable — a true claim failing because the
+     * call was refactored, which is the third time a source-text assertion has
+     * cost this repo a false red in one day. The predicate is what the rule is
+     * about; which expression is handed to it is not.
+     */
+    expect(has("needIsMet(need, filedNow)"), "the advance predicate is gone").toBe(true);
+    // And the ordinary path still asks the STATION's own need, so the decline
+    // arm below cannot have quietly become the only branch.
+    expect(has("STATION_NEEDS[arrivedAt]"), "the station's own need is no longer read").toBe(true);
+  });
+
+  it("lets a DECLINED route finish, and only a declined one (F-174)", () => {
+    /*
+     * A "do not build" waives define/design/build/ship, so `nextStation` returns
+     * `learn` — and `STATION_NEEDS.learn` wants a prd, changeset or deployment,
+     * none of which a track that was correctly never built can ever hold. The
+     * decline path therefore could not complete. The arm is scoped to
+     * `routeDeclined` so a track that WAS built still has to arrive at Learn
+     * with something built.
+     */
+    expect(has('routeDeclined && arrivedAt === "learn"'), "the decline arm is gone").toBe(true);
+    expect(has("routeDeclined = declined"), "the decline flag is never set").toBe(true);
   });
 
   it("writes the hold rather than advancing", () => {
@@ -191,7 +216,7 @@ describe("the driver actually applies the rule", () => {
   it("checks BEFORE the write that moves the station", () => {
     // Order is the whole point. Checking after the update would record the move and
     // then object to it, leaving the track at a station it was never handed.
-    const check = body.indexOf("needIsMet(STATION_NEEDS[arrivedAt]");
+    const check = body.indexOf("needIsMet(need, filedNow)");
     const move = body.indexOf("station: arrivedAt");
     expect(check).toBeGreaterThan(-1);
     expect(move).toBeGreaterThan(-1);
