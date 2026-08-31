@@ -28,7 +28,7 @@ Tonight's units, newest first:
 - **U-S3-044 · S4's three standing measurements, taken signed in on `/start`.** The first screen
   **does** say what needs the person — a count, a named item and its actions, above the fold, no
   click. **And four of its numbers are four different populations presented as siblings**,
-  none naming which: *All 65*, *Waiting on you 93*, `agent_approvals` 77, *Gates* 16. **I called
+  none naming which: *All 65*, *Waiting on you 93*, `agent_approvals` 7, *Gates* 16. **I called
   this a disagreement and S4 corrected me the same night** — the queue is a deduped union across
   up to fifteen tables, so a mismatch was guaranteed by construction and the fix is **labelling,
   not reconciliation**. What survives is stronger: a reader cannot tell what each one counts,
@@ -109,6 +109,12 @@ number on top was wrong, which is the hardest version to catch — the page look
 the credits bar is the sharpest instance yet. Twelve of sixteen accounts agreed with the ledger
 **only because they have never spent a credit**. Prevalence was not the test; the four accounts
 that exercised the code were 4-for-4 wrong. Any sampling check would have reported it correct.
+
+**And a number I filed was wrong three ways before it was right.** I reported `agent_approvals` at
+**77**; `count(*)` over a join to `agent_runs` counts approval x run pairs and that table fans out
+28 runs to one mission, so the true 7 arrived as 77. It reached three documents and two lanes
+before S4 failed to reproduce it. **Third time today I made this class of error and the first time
+it escaped the session** — an aggregate beside a `join` is unproven until it is `count(distinct)`.
 
 **My own guards were blind twice today, and only mutation testing found it.** The §12 rename guard
 was switched off by an explanatory comment I had written above the line it protected. The billing
