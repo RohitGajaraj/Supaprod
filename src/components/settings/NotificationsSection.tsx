@@ -32,6 +32,16 @@
  * re-lands once the email palette is promoted
  * (coordination/requests/S3/mrd-email-palette.md).
  *
+ * 2026-08-31, S3: that region was making a claim the product cannot keep, and
+ * the correction is in it now. It said "Work that finishes while you are away
+ * also emails you what came of it" and "The result finds you, even with the tab
+ * closed" to every one of sixteen people, on a default nobody set. Measured on
+ * the live database the same day: 97 of 106 pieces of work carry a hold, only 2
+ * have reached Learn, and the send has fired ZERO times ever, because the newest
+ * `learnings` row predates its own trigger. The mechanism is right and the
+ * sentence was wrong, so the sentence changed and the feature stayed. The long
+ * comment beside the new second Line carries the full measurement.
+ *
  * KEPT: every server function, both preference paths (the server-stored matrix
  * and the device-local interaction feedback), the same query keys, and the
  * single Save. Interaction feedback still applies instantly with no save,
@@ -39,7 +49,9 @@
  */
 import { useEffect, useState } from "react";
 import { Line } from "@/components/meridian/rows";
+import { Link } from "@tanstack/react-router";
 import {
+  ACTION_LINK_FACE,
   Num,
   Actions,
   Action,
@@ -268,7 +280,7 @@ export function NotificationsSection() {
               <Num>{reachable}</Num> of the four things that can interrupt you currently do. The
               rest stay silent until you come looking.
               {verdictEmail === true
-                ? " Work that finishes while you are away also emails you what came of it."
+                ? " Work that reaches a result emails you what came of it."
                 : ""}
             </>
           )
@@ -380,7 +392,7 @@ export function NotificationsSection() {
       {verdictEmail !== null && (
         <Region
           title="When work finishes"
-          sub="The result finds you, even with the tab closed. It goes to the address on your account."
+          sub="A result finds you with the tab closed. It goes to the address on your account."
         >
           <Line
             label="Email me what came of it"
@@ -394,6 +406,44 @@ export function NotificationsSection() {
                 setDirty(true);
               }}
             />
+          </Line>
+          {/*
+           * THE OTHER HALF OF THE SAME PROMISE, AND IT IS THE LIKELIER ONE.
+           *
+           * The send above fires from the AGENT path at Learn, so it needs work
+           * to REACH a result. Measured on the live database 2026-08-31: 97 of
+           * 106 pieces of work carry a hold and 2 have reached Learn, and 42 of
+           * those holds are in `TERMINAL_HOLDS`, which the sweep refuses to act
+           * on by design. Nothing anywhere tells the person. The verdict send
+           * itself has never fired once in production: the newest `learnings`
+           * row is 2026-08-25 19:40 UTC and the trigger shipped on 2026-08-26.
+           *
+           * So the page was promising "the result finds you" to sixteen people
+           * whose work, nine times in ten, produces no result to find them with.
+           * That is standard #7, and the sentence goes rather than the feature:
+           * the toggle above is real and correct about its own mechanism, and
+           * this line states what it does not cover.
+           *
+           * NO NUMBER IN THE COPY, deliberately. A count rendered here would be
+           * measured once and read forever; the measurement belongs in this
+           * comment and in the unit log, where it carries its date.
+           *
+           * THE ROUTE OUT IS REQUIRED, not decorative (R-20 section 6). Today
+           * lists held work, `TERMINAL_HOLDS` included, via
+           * `src/components/today/tracks-feed.ts`. Saying "nothing tells you"
+           * and stopping there would be the dead end the rule forbids.
+           *
+           * The send this line describes is S0's to build, because the trigger
+           * lives in `src/lib/**`: see
+           * `coordination/requests/S3/the-work-that-stopped-reaches-nobody.md`.
+           */}
+          <Line
+            label="Work that stops early does not reach you yet"
+            sub="This sends when work reaches a result. Work that stops before one, waiting on a tool, on evidence, or on your decision, stays where it is and nothing tells you. Today lists those."
+          >
+            <Link to="/today" className={ACTION_LINK_FACE.quiet}>
+              See what is stopped
+            </Link>
           </Line>
         </Region>
       )}
