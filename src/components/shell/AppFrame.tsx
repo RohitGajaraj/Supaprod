@@ -179,7 +179,6 @@ import {
   IconRailCollapse,
   IconRailExpand,
   IconSun,
-  IconRuns,
   IconThreads,
   IconToday,
   IconWork,
@@ -232,6 +231,34 @@ const BOARD_PATHS: readonly string[] = [...TODAY_PATHS, ...APPROVALS_PATHS];
  *  primary surface was un-owned, not merely unlinked. */
 const START_PATHS: readonly string[] = ["/start", "/track"];
 const BRAIN_PATHS: readonly string[] = ["/brain"];
+
+/**
+ * THE WORK'S TERRITORY, AND IT ABSORBED THE STATIONS ROW (F-145, 2026-08-31).
+ *
+ * The `Stations` door is gone. R-01 rules that stations are never navigation,
+ * F-145 deletes the door, and F-146 is the founder's report of what having it
+ * cost: a rail door and a station chip were both clickable and nothing said
+ * which was a place and which was a step.
+ *
+ * BUT DELETING A ROW DELETES WHATEVER IT WAS SPEAKING FOR, and that row was
+ * speaking for the seven bound keys 1..7. Before `owns` existed, pressing 3
+ * took you to /plan and every row in the rail went dark at once - the shell
+ * still knew the route and had simply stopped saying where you were standing.
+ * `AppFrame.rail-covers-keys.test.ts` was written after exactly that, and a
+ * fold that dropped this would have reintroduced it in one line.
+ *
+ * SO IT MOVES HERE RATHER THAN GOING, AND THE PLACE IS NOT ARBITRARY. R-01's
+ * own sentence says where: a station is the step list INSIDE ONE RUN. This row
+ * already owns the run - /start where work is handed over and /track/:id where
+ * it is watched - so a station surface is this row's territory by the same
+ * ruling that removed its door. /runs joins them for the same reason: /runs
+ * bare is a redirect to the board, and /runs/:missionId is a run screen.
+ *
+ * The row lights; nothing in the rail names a station. That is the whole of
+ * F-146's rail half, and `no rail door is a station` is asserted next door so
+ * the door cannot come back without the assertion failing by name.
+ */
+const RUN_PATHS: readonly string[] = [...START_PATHS, "/runs", ...LOOP_STATIONS];
 
 /** Paths that live behind the Settings door but are not under /settings.
  *  Agents is the roster at /crew, which Settings now holds. */
@@ -388,7 +415,7 @@ const RAIL = [
     label: "Work",
     Icon: IconWork,
     count: null,
-    owns: START_PATHS,
+    owns: RUN_PATHS,
     tier: "primary",
   },
   /*
@@ -427,36 +454,27 @@ const RAIL = [
     tier: "secondary",
   },
   /*
-   * ── "STATIONS" IS RULED OUT AND IS STILL HERE. SAY WHY. ────────────────
+   * ── THE "STATIONS" DOOR IS GONE, 2026-08-31 (F-145, F-146) ─────────────
    *
-   * R-01 rules that stations are NEVER navigation - "no station in the rail,
-   * no station as a route a person browses to" - and F-145 deletes this row
-   * with the fold. F-146 is the founder's report of what having it costs: a
-   * rail door and a station chip are both clickable, both open something, and
-   * nothing distinguishes a place you navigate to from a step in the work you
-   * are watching. The door literally named `Stations` makes the two models
-   * look like one.
+   * It pointed at /runs and it contradicted a ruling that predates it. R-01:
+   * stations are NEVER navigation, "no station in the rail, no station as a
+   * route a person browses to". F-146 is the founder reporting what keeping it
+   * cost him: "If I click on seven stations, or individually say Build, Plan,
+   * something comes up. Also at the work thing, individually things come up."
+   * A rail door and a station chip were both clickable, both opened something,
+   * and the door literally named `Stations` made the two models look like one.
    *
-   * IT SURVIVES THIS COMMIT FOR ONE REASON AND IT IS NOT A DESIGN ONE.
-   * `src/lib/nav-model.test.ts:331` reads this block and asserts the rail
-   * carries a /runs row. That file is S0's and I may not write it. Removing
-   * the row here ships red, and shipping red to honour a ruling is not
-   * honouring it. Asked in coordination/requests/S2/rail-one-primary-door.md;
-   * it goes the unit that answer lands.
+   * IT SURVIVED ONE COMMIT LONGER THAN THE RULING, and the reason is worth
+   * keeping because it is a good argument against reflex deletion:
+   * `src/lib/nav-model.test.ts` pinned the rail to carry this row, that file is
+   * S0's, and removing the row here would have shipped red. S0 removed the pin
+   * on the evidence that its own stated reason had expired - it existed so the
+   * list of work items would keep a door, and /runs is now nothing but a
+   * redirect to the board, so the pin was protecting a forwarding address.
+   * Asked at coordination/requests/S2/rail-one-primary-door.md.
    *
-   * DEMOTED IN THE MEANTIME, because that much is mine to do: below the rule,
-   * where the rail says "these are a different kind of thing" without
-   * spending a word on it. It is no longer one of the doors a person reads
-   * first, which is the half of F-146 that does not need S0.
+   * WHAT DID NOT GO WITH IT: the seven bound keys. See RUN_PATHS above.
    */
-  {
-    to: "/runs",
-    label: "Stations",
-    Icon: IconRuns,
-    count: null,
-    owns: LOOP_STATIONS,
-    tier: "secondary",
-  },
   /*
    * BRAIN AND THREADS DROP BELOW THE RULE TOGETHER, and neither is a
    * judgement about the surface behind it. The F-144 ruling's first line is

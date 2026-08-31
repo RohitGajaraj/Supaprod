@@ -143,7 +143,7 @@ describe("the rail's ownership is derived, and unambiguous", () => {
      * halved rail is exactly the failure this file exists to catch, and a
      * `>= 1` would sail past it.
      */
-    expect(rows.length).toBe(5);
+    expect(rows.length).toBe(4);
     for (const r of rows) expect(railOwnerOf(r)).toBe(r);
     // THE HOME DOOR IS DERIVED, NOT SPELLED. Asserted on the source, because
     // that is the only place the difference is visible: at runtime the row's
@@ -155,7 +155,8 @@ describe("the rail's ownership is derived, and unambiguous", () => {
   });
 
   it("keeps the two ownership lists disjoint", () => {
-    // The seven stations hang under Runs, the engine's inner paths under
+    // The seven stations hang under the Work row (they were under Runs until
+    // that door was deleted on 2026-08-31), the engine's inner paths under
     // Engine room. An overlap would make the lit row depend on row ORDER,
     // which is a layout accident and not a decision.
     const stations = new Set<string>(Object.values(STATION_ROUTE));
@@ -176,7 +177,7 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // home row is invisible to the path scan above but not to this one, so
     // "how many rows are there" and "how many spell their path" are two
     // different questions and the pair of numbers answers both.
-    expect(owns.length).toBe(6);
+    expect(owns.length).toBe(5);
   });
 
   it("owns exactly the seven stations the strip navigates to", () => {
@@ -184,11 +185,53 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // place the drift hides either.
     const stations = Object.values(STATION_ROUTE);
     expect(stations.length).toBe(7);
-    for (const path of stations) expect(railOwnerOf(path)).toBe("/runs");
+    /*
+     * THE OWNER MOVED ON 2026-08-31 AND THE RULING NAMED WHERE.
+     *
+     * These seven hung under the `/runs` row until F-145 deleted that door for
+     * contradicting R-01. R-01's own sentence says where they go instead: a
+     * station is the step list INSIDE ONE RUN, and the Work row already owns
+     * the run - /start where work is handed over, /track/:id where it is
+     * watched. So the same ruling that removed the door named the new owner.
+     *
+     * WHAT THIS TEST IS REALLY FOR, unchanged since 2026-08-05: pressing 3
+     * navigates to /plan, and before `owns` existed every row in the rail went
+     * dark when it did. Deleting a row deletes whatever it was speaking for,
+     * so a fold is the single most likely way to reopen that.
+     */
+    for (const path of stations) expect(railOwnerOf(path)).toBe(SIGNED_IN_HOME);
     // And a station's own sub-surface stays under the same row: /plan/spec/<id>
     // is where a spec is written and it is still Plan.
-    expect(railOwnerOf("/plan/spec/abc")).toBe("/runs");
-    expect(railOwnerOf("/build/mission-1")).toBe("/runs");
+    expect(railOwnerOf("/plan/spec/abc")).toBe(SIGNED_IN_HOME);
+    expect(railOwnerOf("/build/mission-1")).toBe(SIGNED_IN_HOME);
+    // /runs came with them: bare it is a redirect to the board, and
+    // /runs/:missionId is a run screen. Neither is a door any more.
+    expect(railOwnerOf("/runs")).toBe(SIGNED_IN_HOME);
+    expect(railOwnerOf("/runs/mission-1")).toBe(SIGNED_IN_HOME);
+  });
+
+  it("puts no station in the rail, which is R-01 and the founder's F-146", () => {
+    /*
+     * THE RULING ENFORCED BY THE SUITE RATHER THAN BY A DOCUMENT.
+     *
+     * R-01: "no station in the rail, no station as a route a person browses
+     * to." It was broken for twenty-six days by a row labelled `Stations`
+     * pointing at /runs, and the founder found it before any test did, because
+     * nothing here was asserting it. A ruling that only lives in a markdown
+     * file is a ruling that gets walked into by the next person fixing a worse
+     * defect - which is exactly how that row was created (S2's U-047 correctly
+     * fixed a door that said "Runs" and opened /today, and landed here).
+     *
+     * Asserted on the row DESTINATIONS rather than the labels: renaming the
+     * door would not make it stop being a station door, and the label is the
+     * part somebody would change while trying to be helpful.
+     */
+    const rows = [...railBlock().matchAll(/to:\s*"([^"]+)"/g)].map((m) => m[1]);
+    const stations = new Set<string>(Object.values(STATION_ROUTE));
+    expect(rows.filter((r) => stations.has(r))).toEqual([]);
+    // /runs is not a station route, but it was the station door's address and
+    // it is the one a well-meaning restoration would reach for first.
+    expect(rows).not.toContain("/runs");
   });
 
   it("draws both aria-current tokens, so a section row is lit and not merely claimed", () => {
