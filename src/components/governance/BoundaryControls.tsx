@@ -45,6 +45,11 @@ import {
   type AutonomyPolicy,
 } from "@/lib/autonomy-policy";
 import type { BoundaryEvent } from "@/lib/boundary-ledger";
+import { CHECK_NAMES } from "@/lib/exec/check-names";
+/* The label logic is pure and lives beside `ceiling-reality` and `who-chose-this`
+   for the same reason: this file's module scope pulls six server functions, so a
+   sentence a person reads should not need the page mocked to be tested. */
+import { crossingLabel, type RecordTone } from "@/components/governance/what-the-record-can-say";
 import { relativeTime } from "@/lib/memory-view";
 import { updateToolMode } from "@/lib/agent_loop.functions";
 /* THE SENTENCE THAT LETS THE POLICY BIND. `resolveApprovalPolicy` can switch a
@@ -103,39 +108,18 @@ function floorLine(floor: BoundaryTool["floor"]): string | null {
 }
 
 /**
- * THE FIVE WORDS A VALUE MAY WEAR, READ OFF THE COMPONENT THAT PAINTS THEM.
+ * THE FIVE WORDS A VALUE MAY WEAR, STILL READ OFF THE COMPONENT THAT PAINTS THEM.
  *
- * Not restated as a literal union here, deliberately. Deriving it from `Value`
- * means the next change to Meridian's five status words fails this file at
- * compile time instead of shipping a tone nothing paints.
+ * The tone now comes from `what-the-record-can-say`, which is pure and therefore
+ * cannot import React to derive this. **So the link is kept as an assertion
+ * rather than dropped:** if Meridian's five status words ever change, this line
+ * fails to compile here instead of the pure module shipping a tone nothing
+ * paints. That was the whole point of not restating the union, and extracting
+ * the logic must not quietly cost it.
  */
 type ValueTone = NonNullable<React.ComponentProps<typeof Value>["tone"]>;
-
-/**
- * How a boundary event ended, said as an outcome rather than as a status.
- *
- * "Allowed" and not "approved", because the reader's question is what happened
- * to the work, not what the person clicked. DECLINED AND EXPIRED CARRY NO
- * COLOUR: both were once `warn`, which Meridian does not have, and `hold`
- * means WAITING ON A CONDITION while neither of these waits on anything.
- */
-function outcomeLabel(e: BoundaryEvent): {
-  text: string;
-  tone: ValueTone;
-} {
-  switch (e.outcome) {
-    case "allowed":
-      return { text: "You allowed it", tone: "pass" };
-    case "declined":
-      return { text: "You said no", tone: "quiet" };
-    case "expired":
-      return { text: "Ran out of time", tone: "quiet" };
-    case "blocked":
-      return { text: "Stopped by a rule", tone: "fail" };
-    default:
-      return { text: "Waiting on you", tone: "quiet" };
-  }
-}
+const _toneStillMatchesMeridian: RecordTone extends ValueTone ? true : never = true;
+void _toneStillMatchesMeridian;
 
 /** The subject of a boundary event in a person's words, not the tool's identifier. */
 function readableSubject(e: BoundaryEvent): string {
@@ -207,7 +191,7 @@ function DeclinedLedger({
         </NothingHere>
       ) : (
         shown.map((e) => {
-          const o = outcomeLabel(e);
+          const o = crossingLabel(e);
           return (
             <Row
               key={e.id}
@@ -217,7 +201,21 @@ function DeclinedLedger({
                   ? `${e.agent ?? "An agent"} wanted to ${readableSubject(e)}`
                   : readableSubject(e)
               }
-              sub={[relativeTime(e.at, now), e.wanted, e.outcomeReason].filter(Boolean).join(" · ")}
+              /*
+               * THE QUALIFIER GOES IN THE SUB, NOT THE STATUS WORD. `Value` is a
+               * short status and "Allowed, and the record does not name who"
+               * would wrap it into a paragraph. The status stays a word and the
+               * sentence that weakens it sits on the same line as the rest of
+               * what is known about the row, which is where a person reading the
+               * trail is already looking.
+               *
+               * `o.caveat` rather than a second test of `decidedBy` here: which
+               * outcomes can lack an answerer is one rule, and it lives in
+               * `what-the-record-can-say` with the label it qualifies.
+               */
+              sub={[relativeTime(e.at, now), e.wanted, e.outcomeReason, o.caveat]
+                .filter(Boolean)
+                .join(" · ")}
               action={<Value tone={o.tone}>{o.text}</Value>}
             />
           );
@@ -950,6 +948,60 @@ export function BoundaryControls({
               It leads here exactly as it led on /boundary. */}
           <TrustGraduationsBlock />
 
+          {/*
+           * HOW THE THREE BUCKETS BELOW WERE DECIDED, IN THE SENTENCE A PERSON
+           * SAYS OUT LOUD. `SPEC-AI-NATIVE-SDLC.md` §3 F, owner S3.
+           *
+           * THE SPEC ASKED FOR SOMETHING WE DO NOT HAVE, AND THIS IS THE HONEST
+           * FOLD RATHER THAN THE LITERAL ONE. It says to explain the ladder "by
+           * environment", after Anthropic's: dev deploys freely, staging is
+           * intermediate, production is gated on a named approval. **Ours has no
+           * environment axis.** Traced 2026-08-31: `axisDefault`
+           * (`src/lib/ai/approval-policy.ts:158`) decides on exactly two things,
+           * `toolConsequence(tool).reversible` and `isExternalTool(tool)`. The
+           * word "production" appears nowhere in it.
+           *
+           * SO WHY THE PRODUCTION SENTENCE BELOW IS STILL TRUE. `opsImpact` is a
+           * real, live axis, it just is not this one: `assessTool`
+           * (`tool-consequences.ts:1537`) scores five axes and takes the MAXIMUM,
+           * and `OPS_SCORE.production` is 2, the top. So a deploy is treated as
+           * the most consequential kind of act. It lands there because it cannot
+           * be undone from inside the product and customers see it -- which is
+           * `ship.deploy`'s own recorded effect -- and not because of the word.
+           * That distinction is the whole point of saying it here: a customer
+           * who believes we gate on the environment NAME will expect a staging
+           * deploy to be waved through, and it is not the name we read.
+           *
+           * ONE EXPLANATION OF THE EXISTING LADDER, NEVER A SECOND LADDER, which
+           * §3 F is explicit about and this repo has already paid for twice. No
+           * new control, no new state, no new bucket: this Region renders two
+           * static sentences describing the rule the three Regions beneath it
+           * already obey. `trust-ramp.ts` stays the only thing that promotes.
+           *
+           * NOT A THIRD VOICE ON THE PER-TOOL REASON. `axisDefault` writes a
+           * sentence per tool and "What your answers changed" renders it
+           * verbatim, deliberately. This says the RULE once, at the top; it does
+           * not restate any tool's own reason, because two wordings for one
+           * decision is the defect that pattern exists to avoid.
+           */}
+          <Region
+            title="How these three were decided"
+            sub="Two questions about the act itself, asked before your crew's level is read at all. Nothing here is about who is asking or how well it has done."
+          >
+            <Line
+              label="Can it be undone from inside the product"
+              sub="If it cannot, a person signs off every time and no track record changes that. If undoing it only half works, it stays gated until you have watched it enough times to let it run."
+            />
+            <Line
+              label="Does it leave your workspace"
+              sub="Anything reaching a system outside it is gated even when it can be undone, because the thing it touched is not ours to put back."
+            />
+            <Line
+              label="A deploy is the strictest case, and not because of the word"
+              sub="Shipping to where customers see it cannot be undone from in here, so it sits at the top of both questions at once. We do not read the environment's name, so a staging deploy is not waved through for being called staging."
+            />
+          </Region>
+
           {block(
             "alone",
             "What they do alone",
@@ -994,6 +1046,53 @@ export function BoundaryControls({
             data.never,
             "Nothing is switched off.",
           )}
+
+          {/*
+           * WHAT COUNTS AS DONE (gap #18, `SPEC-AI-NATIVE-SDLC.md` §3 E).
+           *
+           * THE QUESTION THIS PAGE WAS MISSING. Everything above answers what the
+           * teammates may DO. **Nothing anywhere answered what counts as DONE**,
+           * and that is the question a company actually argues about. Anthropic's
+           * playbook has the customer's tech lead write it: the review passes, the
+           * severity definitions, the exclusions. Ours are chosen by us, and until
+           * this Region existed we had never said so out loud.
+           *
+           * ONE SECTION HERE, NOT A DESTINATION, which §3 E is explicit about. A
+           * page for it would be the eleventh settings page §J4 exists to prevent.
+           *
+           * NAMES IMPORTED, NEVER RETYPED. `CHECK_NAMES` is the same list
+           * `defaultChecks()` builds the runner's spec from, lifted into a pure
+           * module for exactly this by S0 so a component can read it without
+           * dragging server code into the bundle. Typing "typecheck, test, lint"
+           * here instead would be the one-idea-two-vocabularies defect, and the
+           * second copy is always the one that goes stale silently.
+           *
+           * WHAT IT MAY NOT CLAIM, AND THIS IS F-148. It says what gets RUN. It
+           * does NOT say the run is enforced: `studio.checks.run` is implemented
+           * and briefed, and the Build-to-Ship advance is not yet refused on a red
+           * verdict. `check-names.ts` states that limit in its own header and this
+           * copy obeys it. Naming the three honestly is worth shipping now;
+           * claiming they block a release is not, and would be the same class of
+           * overclaim as the notifications page in U-S3-021.
+           *
+           * NO EDITOR YET, AND THE ABSENCE IS STATED RATHER THAN IMPLIED. Letting
+           * the customer WRITE this is gap #18 proper and needs storage. Until
+           * then the fourth floor's rule applies exactly as it does to every
+           * number above: a default the customer never set is our choice, and the
+           * surface says so in our own voice instead of presenting it as theirs.
+           */}
+          <Region
+            title="What counts as done"
+            sub="Before your crew opens a pull request it runs these, in this order. We chose them, not you, and there is nowhere yet to change them."
+          >
+            {CHECK_NAMES.map((c) => (
+              <Line key={c.name} label={c.says} />
+            ))}
+            <Line
+              label="This is what gets run, not a gate that blocks a release"
+              sub="A red result is on the record and reviewable, and nothing today refuses the step to Ship because of one. Treat these as what your crew checks, not as a bar it has to clear."
+            />
+          </Region>
 
           {/* WHY A TOOL WENT QUIET, and it is the half that makes the policy
               safe to bind. Refuse the same request enough times and
