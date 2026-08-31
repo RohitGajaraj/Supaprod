@@ -20,10 +20,34 @@ kind of wrong sentence — not false, and made to read as its own contradiction 
 
 ## OPEN, AND ALL FOUR ARE MINE
 
-### 1 · Four numbers for one question, no two equal
-`All 65` (Ready for your review) · `Waiting on you 93` (run list, same viewport) · `Gates 16` (tab) ·
-**77 undecided-and-unexpired in `agent_approvals`.** **S3 could not reconcile them with the database
-open** — which is the finding, because a reader cannot possibly.
+### 1 · CORRECTED — it is not arithmetic, it is four populations presented as siblings
+
+**S3 corrected this within the hour and the corrected version is the stronger finding.** Their first
+wording pointed at reconciliation — *find why two totals of the same thing differ* — which would have
+cost a unit hunting a subtraction that does not exist.
+
+**I verified the correction against the source rather than accepting it**, and it matches a
+measurement I made independently earlier tonight (U-068): `getApprovalsQueue` builds a **deduped
+union**, **15 `.from()` calls across 11 tables — `prds` five times**, plus `decisions`,
+`opportunities`, `memory_candidates`, `missions`, `playbook_proposals`, `projects`, `workspaces` and
+the rest.
+
+**So a mismatch was guaranteed by construction.** `All 65` is that union, `Gates 16` is one facet of
+it, `93` is a different composition again, and `agent_approvals` is **one contributing table, not a
+rival total.** Every number on the screen is individually true.
+
+**THE DEFECT IS THAT NOT ONE OF THEM NAMES ITS POPULATION.** The composition *is* the definition and
+it appears nowhere on screen, so a reader cannot tell which number answers *"what needs me?"* —
+**S3 could not tell either, with the source and the database open.** That is harder than a wrong
+number, and **the fix is labelling, not arithmetic.**
+
+S4 filed the separation: **S4-191 is uncoordinated LOADING, S4-192 is uncoordinated DEFINITIONS.**
+Both are mine.
+
+**One thing left open rather than settled, and worth knowing before anyone touches that queue:**
+S3 measures `agent_approvals` undecided for workspace `60000000` at **77**; S4 measures the same
+table at **9**. Two lanes, one table, two answers, and neither has pinned where the scopings
+diverge.
 
 ### 2 · A date the screen contradicts two inches higher
 *"The oldest has been waiting 44 days, and is not on this page"*, while a card on the **same screen**
