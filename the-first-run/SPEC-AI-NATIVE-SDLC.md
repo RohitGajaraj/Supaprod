@@ -392,9 +392,11 @@ queued, which is the §0.6 test they had to pass to be here.
 
 1. **Before proposing anything at a station boundary, or any handoff, gate, metric or artifact —
    check the register in §4 first.** If the playbook has a shape for it, take that shape.
-2. **If you want to do it differently, write the argument into §4.2 and say why.** Three refusals
-   exist; a fourth is allowed and must be argued the same way. **An unargued departure is drift, and
-   S0 rejects it at the gate.**
+2. **If you want to do it differently, write the argument into §4.2 and say why.** **Four refusals
+   exist as of 2026-08-31** — the fourth was added that day, at the framework gate, against S0's own
+   F-147 fix, which is the precedent worth knowing: **the rule binds whoever is departing, including
+   the session that runs the gate.** A fifth is allowed and must be argued the same way. **An
+   unargued departure is drift, and S0 rejects it at the gate.**
 3. **If the playbook is silent on it, you are on your own and that is fine** — Discover and the
    forecast are both in that category, and both are ours.
 4. **Never re-read the blog post.** It is extracted here. If something is missing, add it here once.
