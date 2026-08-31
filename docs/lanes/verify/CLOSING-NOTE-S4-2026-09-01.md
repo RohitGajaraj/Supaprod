@@ -1,6 +1,6 @@
 # Closing note · S4 · THE PROVING GROUND · 2026-09-01
 
-**Branch `lane/proof` · 0 behind `origin/main` · 87 ahead · no migrations (this
+**Branch `lane/proof` · 0 behind `origin/main` · 90 ahead · no migrations (this
 lane owns `e2e/**` and `docs/lanes/verify/**` and writes no product code and no
 schema).**
 
@@ -85,6 +85,15 @@ unwired), and two icons orphaned by the fold.
   detector and baseline land in one commit. Any *other* edit to that JSON on main
   first is not: git would resolve a conflict between two numbers that mean
   different things by line position, producing a baseline no instrument produced.
+- **The wording of a check is part of what it does, and it caught me twice.**
+  The component half warned in prose about a class it went on to count
+  (S4-188). The `IMPROVED` line said *"Lower the numbers in
+  e2e/unreachable-baseline.json"* — a directive the script has no standing to
+  issue, since it cannot tell wiring from deletion, cannot see a change queued
+  on another branch, and cannot know the instrument is about to change under it.
+  S3 read it and moved to bank an unbankable number. **Their sentence is the
+  fix**: *a gate that asks for a value to be frozen is asking you to make a
+  judgement, not to obey.* Both reworded.
 - **An `IMPROVED` line nobody can bank becomes standing noise** (S3). Tonight's
   improvements are unbankable until this merges, and a check people learn to
   scroll past is worse than no check. **No fix tonight**; recorded as open.
