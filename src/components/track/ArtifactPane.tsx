@@ -30,6 +30,7 @@ import { justGrouped } from "@/components/track/just-grouped";
 import { fileNameFor, stationFile, tookItLine } from "@/components/track/station-file";
 import { WhatWereSolving } from "@/components/track/WhatWereSolving";
 import { OpenQuestions } from "@/components/track/OpenQuestions";
+import { weWrote, whoWroteLine } from "@/components/track/how-much-of-this-we-wrote";
 import { whatItProduced } from "@/components/track/what-it-produced";
 import {
   offerToConnect,
@@ -2183,6 +2184,26 @@ export function SenseBody({
                 <SignalCard item={s} now={now} trackId={trackId} patternShownAbove />
               </div>
             ))}
+            {/*
+             * HOW MANY OF THESE WE WROTE OURSELVES (S4-183, applied to a pane
+             * that was already live and had never said it). 62.7% of the whole
+             * signals table is `source='agent'`, and four real tracks this pane
+             * renders are at or above 93% -- one at 100%. "67 signals" reads as
+             * sixty-seven things the world said. Silent when none are ours and
+             * silent when the record cannot say; see the module for both.
+             */}
+            {(() => {
+              const line = whoWroteLine(
+                members.length,
+                weWrote(
+                  members.map((m) => ({
+                    source: (m.fields as Record<string, unknown> | undefined)?.source as
+                      string | null | undefined,
+                  })),
+                ),
+              );
+              return line ? <span className="mrd-meta">{line}</span> : null;
+            })()}
           </section>
         );
       })}
