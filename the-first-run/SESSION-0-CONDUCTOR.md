@@ -318,9 +318,14 @@ servers are open the system hangs."*
 restart by it** — while the founder was asleep. R-21, and it is a gate, not housekeeping:
 
 ```bash
-lsof -ti:5173 || true          # BEFORE you start one. If anything is listening, do not start another.
+# NOTE 2026-08-31: the dev server binds 8080, not 5173. `bun run dev` goes through
+# @lovable.dev/vite-tanstack-config, whose port is 8080. Every brief said 5173, which is
+# ALWAYS free, so the R-21 check passed, a second server started on 8080 and collided.
+# S2 recorded exactly that: their server "silently fell through to 8081, so two servers
+# were up, which R-21 forbids and this machine has crashed over".
+lsof -ti:8080 || true          # BEFORE you start one. If anything is listening, do not start another.
 bun run dev                     # only for a check that genuinely needs a browser
-kill $(lsof -ti:5173)           # THE MOMENT the check is done. Not at unit end. Not at session end.
+kill $(lsof -ti:8080)           # THE MOMENT the check is done. Not at unit end. Not at session end.
 ```
 
 - **One dev server on this machine at a time.** If the port is busy, another session holds it — read
