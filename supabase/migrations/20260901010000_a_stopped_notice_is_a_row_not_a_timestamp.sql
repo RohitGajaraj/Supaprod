@@ -51,12 +51,13 @@ ALTER TABLE public.track_hold_notices ENABLE ROW LEVEL SECURITY;
 -- Read your own notices. There is no client write path at all: the only writer is the
 -- tick, which runs as the service role and bypasses RLS by design.
 --
--- APPLIED 2026-09-01 EXCEPT THIS STATEMENT (F-180). The table and the RLS enable both
--- landed and are verified; `CREATE POLICY` was refused three times on this path, bare and
--- wrapped in a DO block, every one `499 request_cancelled` with `pg_policies` still 0.
--- **RLS ON WITH NO POLICY IS DENY-ALL, so the table is safe as it stands** and the gap is
--- functional rather than a leak: an owner cannot yet read their own notices, on a feature
--- that has no reader. Re-run this one statement when the path allows it.
+-- FULLY APPLIED 2026-09-01, AND THE NOTE THAT WAS HERE WAS WRONG (F-180). It said this
+-- statement had been refused three times and should be re-run later. Verified at close-out:
+-- the policy IS present (`pg_policies` shows `track_hold_notices_select_own`, SELECT,
+-- `auth.uid() = user_id`). **A `499 request_cancelled` on this path is a CLIENT-side
+-- timeout, not a server-side refusal, and the statement can land after you have checked and
+-- found it absent.** Verifying after each statement is necessary and not sufficient: it
+-- proves what was true at that instant. Re-read before concluding a migration was refused.
 CREATE POLICY track_hold_notices_select_own
   ON public.track_hold_notices FOR SELECT
   USING (auth.uid() = user_id);

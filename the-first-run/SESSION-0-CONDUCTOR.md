@@ -28,6 +28,19 @@ whole product lives (§3 below).
   next.** Lovable also loses `schema_migrations` rows — seven vanished at once while the schema itself
   stayed correct — so **never diagnose from the ledger; read the schema.**
 
+  > **AND A CANCELLED REQUEST IS NOT A REFUSED STATEMENT. Added 2026-09-01 after getting the same
+  > migration wrong twice (F-180).** A `499 request_cancelled` from this path is a CLIENT-side
+  > timeout. **The statement can still complete, and it can complete after you have checked and found
+  > it absent.** I reported `ALTER TABLE` as refused, then narrowed it to `CREATE POLICY` as refused,
+  > and at close-out every one of those statements had landed. **Every verification I made was honest
+  > — `relrowsecurity` really was `false` and `pg_policies` really was `0` when I read them.**
+  >
+  > So: **verify after each statement, and read again before you conclude anything was refused.**
+  > Verifying immediately proves what was true at that instant, not what the statement will have
+  > done. **The cost of the wrong conclusion is real: I dropped a correctly-created table because its
+  > RLS appeared not to have applied.** It held no rows, so it cost nothing. On a table with rows it
+  > would have cost the rows.
+
   > **A STANDING RULE FOR ANY OUTCOME OR VERDICT COLUMN, added 2026-08-31 on S1's proposal:
   > NULLABLE, plus a `rated_at` / `decided_at` beside it.** Never `NOT NULL DEFAULT '<a verdict>'`.
   >
