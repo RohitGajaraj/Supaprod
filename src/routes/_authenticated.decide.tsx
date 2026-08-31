@@ -229,6 +229,7 @@ import {
   Num,
   PageHeading,
   ReadFailed,
+  ReadFailedLine,
   Reading,
   RecordSpeaks,
   Region,
@@ -2592,6 +2593,29 @@ function DecideSurface() {
                 twice with the weaker half on top. This is the one region in the
                 column whose heading carries a number, and that is the reason it
                 gets to keep its own. */}
+            {/*
+              A FAILED LINEAGE READ IS NOT A BET WITH NO EVIDENCE (R-16).
+              `provenance` had no failure branch at all, so `?? []` turned a
+              failed walk into an empty one and BOTH consumers -- this section
+              and the "N findings behind it" count below -- are gated on a
+              non-empty list. They do not render a wrong number; they VANISH.
+              On this surface that is worse, because what a call rests on is
+              the whole point of the surface, and absence reads as "this bet is
+              backed by nothing" rather than as "we could not look".
+
+              This file already states the rule twice in its own comments -- "a
+              discarded error is never evidence of absence" -- and this was the
+              one read that discarded one. Found by auditing my own prefix for
+              reads whose failure nothing surfaces; it was the only one left.
+            */}
+            {provenance.isError ? (
+              <CtxSection>
+                <ReadFailedLine onRetry={() => void provenance.refetch()} error={provenance.error}>
+                  What this rests on did not load, so the evidence below is missing rather than
+                  absent.
+                </ReadFailedLine>
+              </CtxSection>
+            ) : null}
             {provenance.data?.source_signals?.length ? (
               <CtxSection>
                 <ContextCards
