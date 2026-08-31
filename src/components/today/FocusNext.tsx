@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Action, Num, ReadFailed } from "@/components/meridian/surface-parts";
+import { reasonLine } from "@/lib/error-copy";
 import { openAsk } from "@/lib/ask-open";
 import { getFocusNext, type FocusInsight } from "@/lib/brain/insights.functions";
 
@@ -29,10 +30,15 @@ export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
      primitives.tsx states the doctrine directly -- "A read that FAILED is not an
      empty state, and must never wear one's clothes" -- and TrustDial.tsx already
      honours it. This now does too.
-     Loading still returns null deliberately: this panel sits below the fold on a
-     surface that already has a headline, and a skeleton appearing there would
-     pull the eye away from the decision the page exists to present. Absence
-     during a 200ms fetch is not a claim; absence after a failure is. */
+     Loading still returns null deliberately, and the reason it gives is now
+     HALF STALE: it said "this panel sits below the fold". **Measured on a
+     1512x982 laptop on 2026-09-01, it does not** - after A07 folded the board
+     into the home, this region is the fourth thing above the fold. The
+     CONCLUSION survives and the premise does not: a skeleton here would still
+     pull the eye away from the composer the page opens on, and absence during a
+     200ms fetch is still not a claim while absence after a failure is. Recorded
+     rather than quietly rewritten, because the next person to move this region
+     should know its stated reason expired before its behaviour did. */
   if (focus.isError) {
     return (
       <section className="today-director" aria-labelledby="today-director-title">
@@ -41,9 +47,25 @@ export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
             Director&rsquo;s read
           </span>
         </div>
+        {/* THE SERVER KNEW WHY AND THIS THREW IT AWAY.
+            Measured on the running product 2026-09-01: `getFocusNext` returns
+            HTTP 200 carrying **"AI rate limit reached. Try again in a moment."**
+            and this box rendered "the brain did not answer" - a VAGUER sentence
+            than the one it was handed, and one with no next action in it. R-20
+            §3 asks that a failure name the thing that failed AND the next step;
+            the next step was already in the payload.
+
+            `reasonLine` rather than `failureLine`, which is the doctrine in
+            `error-copy.ts` and not a preference: this renders INSIDE
+            `ReadFailed`, whose `wayOut` already supplies the ended-session
+            sentence, and `failureLine` here would print that sentence twice in
+            one box - the defect that file records at nine sites the day `error`
+            was passed everywhere. */}
         <ReadFailed error={focus.error} onRetry={() => void focus.refetch()}>
-          The brain did not answer, so there is no read on what to build next. This is a failed
-          look-up, not a quiet morning.
+          {reasonLine(
+            "The brain did not answer, so there is no read on what to build next. This is a failed look-up, not a quiet morning.",
+            focus.error,
+          )}
         </ReadFailed>
       </section>
     );
