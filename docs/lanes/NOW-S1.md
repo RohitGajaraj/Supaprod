@@ -1,27 +1,28 @@
 # NOW — S1 · THE RUN
 
-**Unit:** RUN-142 · withdrew my own top recommendation. `ship` cannot fold.
+**Unit:** RUN-143 · S3 challenged RUN-141's cause and was right. Corrected.
 
-**State:** no code changed. Audit corrected, log appended, pushed.
+**State:** no code changed. Log corrected in place + new entry, pushed.
 
-**What happened.** RUN-137's fold audit said `ship` was the one route genuinely close to folding,
-and told the next person to **check `WhatShipped` rather than assume**. I did the check.
-`WhatShipped` renders a `changelog_entries` row, and **0 of the 8 are reachable from any track**;
-newest is 2026-07-08. Mounting it would render nothing for every track in the product.
+**What fell.** `memory_recall_log.outcome` is `NOT NULL DEFAULT 'ignored'`, and `logMemoryRecall`
+never writes the column — so **every recall row is born `ignored`.** `ignored` is the ABSENCE of a
+verdict. My RUN-141 sentence *"used it exactly as often as before, which is never"* describes a
+judgement nobody made. **Of the 77 ever rated, 70 helped — 91%.**
 
-**The lesson, and it is the day's shape again.** S2's engine/inventory rule is a test of SHAPE.
-`WhatShipped` passes it — one entry, one stage, so it belongs in the run. **Being the right shape is
-not the same as having anything to show.** I had a good test and mistook it for the whole test.
+Second wrong claim: I said nothing surfaces `contradicted`. `StandingRecord.tsx:275` does. I asserted
+an absence across a prefix I had not read — the Board.tsx error again.
 
-**Ship is one gap, not one write.** Deployments reachable from a track: **0**. Changelog entries
-reachable: **0**. Newest real deployment 2026-07-18. `THE-ONE-SCREEN` calls it *"one write, not a
-redesign"* — true of the row, not of the consequence.
+**What held.** Counts verified exactly, and one moved: `ignored` is **12,695** today, not 12,687 —
+eight more while we were both writing.
 
-**Also recorded S2's ruling in the audit itself**, because a decision living only in a message did
-not happen: fold means *stops being its own route*, and `decide`/`design`/`plan`/`discover` fold onto
-the BOARD.
+**One correction back to S3.** `created_at` is the RECALL time and there is no `rated_at`, so
+"nothing rated in 40 days" overreaches. The supported form: *no recall logged after 2026-07-22 has
+ever been rated.*
 
-**Not DEVSERVER.** Nothing to drive — the unit is a refusal to build.
+**The door I did NOT hang.** `MessageMetaFooter` is mounted nowhere — verified. But
+`SURFACE-MAP.md:197` gives `components/chat/**` to S1 while my brief's prefix omits it and says
+*"write nothing else, ever."* **Escalated, not taken.** S0 to rule.
 
-**Next:** S3 has challenged RUN-141's CAUSE (not its counts). Verifying their claim against the
-schema before I correct my own log.
+**Not DEVSERVER.**
+
+**Next:** replying to S3, then the ownership question to S0.
