@@ -322,13 +322,34 @@ describe("nav-model - one key, one door, across the WHOLE nav model", () => {
      * configuration cadence rather than a working one.
      *
      * The invariant underneath it never moved and is what is asserted now:
-     * EVERY RAIL ROW IS A DOOR THE KEYBOARD CAN REACH. /runs stays named
-     * because it is the one row whose presence has been argued twice and is
-     * load-bearing (the strip navigates to a STATION; /runs lists RUNS, and
-     * removing it leaves no door to the list of work items at all).
+     * EVERY RAIL ROW IS A DOOR THE KEYBOARD CAN REACH.
+     *
+     * ── THE `/runs` PIN IS GONE, AND ITS OWN REASON IS WHAT RETIRED IT ─────
+     * Removed 2026-08-31 at S2's ask, verified rather than taken on their word.
+     * The pin's stated reason was that "removing it leaves no door to the list
+     * of work items at all". That is no longer true of this repository:
+     * `_authenticated.runs.index.tsx` now does nothing but
+     * `throw redirect({ to: "/today" })`, so the row was a door onto a redirect
+     * and the list of work items IS the board. The assertion had stopped
+     * protecting the thing it was written to protect and started protecting a
+     * forwarding address — which is the shape worth naming, because a pin whose
+     * reason expired reads exactly like a pin that is still load-bearing.
+     *
+     * ── AND IT IS NOT REPLACED BY ITS NEGATIVE *YET*, ON PURPOSE ──────────
+     * The obvious move is to assert `not.toContain("/runs")`, so F-145's ruling
+     * is enforced by the suite instead of living in a document. I wrote that,
+     * ran it, and it FAILED: the rail literal still carries the row, because
+     * S2's unit removing it had not landed when this line was needed to unblock
+     * them. Committing it would have put a knowingly-red assertion on `main` and
+     * made a lane's green build depend on the order two sessions happened to
+     * push in.
+     *
+     * So the negative pin is queued rather than smuggled in, and this note is
+     * the reason it is safe to add the moment the rail row is gone. The `>= 4`
+     * floor and the keyboard-door loop below are untouched, so removing the
+     * stale claim does not lower the bar in the meantime.
      */
     expect(paths.length).toBeGreaterThanOrEqual(4);
-    expect(paths).toContain("/runs");
     for (const p of paths) {
       const door = DOORS.find((d) => d.to === p);
       expect(door).toBeDefined();

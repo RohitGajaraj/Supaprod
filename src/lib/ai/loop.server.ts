@@ -181,6 +181,44 @@ const AUTO_SHIP_ENABLED = process.env.STUDIO_AUTO_SHIP === "1";
  */
 const SHIP_AUTONOMY_TOOLS = new Set(["release.publish", "studio.revert"]);
 
+/*
+ * ── THE MODE RULED ABOVE IS THE RULING, AND THE RECORD MAY NOT REVERSE IT ──
+ *
+ * F-152, 2026-08-31, founder-ruled option (a). Two subsystems disagreed about
+ * `studio.fix.commit` and neither was wrong on its own terms:
+ *
+ *   - `resolveToolMode` has carried a dedicated branch for it since 07-07,
+ *     whose comment says in as many words that the generic high-risk floor
+ *     "would park the autonomous fix loop at a gate every iteration". → auto
+ *   - `axisDefault` classifies it from its axes — external, partially
+ *     reversible — as `always-human`, and the tightening below let that win.
+ *     → review
+ *
+ * So the exemption written specifically to prevent the stall was reversed one
+ * screen later, and the fix loop parked at a gate every iteration exactly as
+ * predicted: two approvals raised in three minutes on 2026-08-31, and
+ * `studio.fix.commit` has only ever had those two in its whole history.
+ *
+ * The sharp part is that nothing was LEARNED to cause it. `resolveApprovalPolicy`
+ * returns its axis base when there is no record, so "nobody has ruled on this"
+ * produced the strictest possible answer — arriving through a line whose comment
+ * reads "the record can tighten an auto call".
+ *
+ * WHAT THIS SET DOES NOT WEAKEN. The safety of the CI-fix appender was never the
+ * approval queue; it is in the tool, which refuses anything but (a) a changeset
+ * whose PR a HUMAN opened at the operator-gated `studio.pr.open` and (b) attempts
+ * inside the changeset's fix budget. And `studio.pr.merge` stays review-pinned
+ * above it, so a person still decides whether ANY of this lands. What the gate
+ * was buying was a second human answer on a commit to an unmerged branch, at the
+ * price of the loop never running unattended.
+ *
+ * KEEP THIS SET AT ONE ENTRY. It is a hole in "the record can only tighten", and
+ * that invariant is worth more than any second tool would be. Anything added here
+ * needs its own founder ruling, and `isNeverLaxerThanDefault` still holds for
+ * every tool that is not in it.
+ */
+export const MODE_RULED_ABOVE_WINS = new Set(["studio.fix.commit"]);
+
 // AGT-01 - structured-output protocol upgrade. Default OFF: the JSON-in-text
 // {thought, action} envelope (safeParseAction) stays the loop's universal
 // protocol until this is explicitly turned on. When on, the model is also
@@ -306,7 +344,7 @@ export function resolveToolMode(
      */
     const released = strictestOf(dialedMode, resolveApprovalMode("confirm", arc));
     mode = mergeReleased || shipReleased ? released : "review";
-  } else if (toolName === "studio.fix.commit") {
+  } else if (MODE_RULED_ABOVE_WINS.has(toolName)) {
     // SEAM-2 (mission 3.6): the bounded CI-fix appender runs at its seeded
     // mode (auto). The generic high-risk floor would park the autonomous
     // fix loop at a gate every iteration; here the safety lives in the tool
@@ -1969,7 +2007,18 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
 
     // The record can tighten an auto call into one that waits. It never does the
     // reverse; see the invariant above.
-    if (policy.decision === "always-human" && mode === "auto") mode = "review";
+    //
+    // EXCEPT where the mode was already ruled on for this exact tool up in
+    // `resolveToolMode` (F-152). Tightening there is not caution, it is one
+    // subsystem silently reversing another's deliberate exemption, and the
+    // comment on `MODE_RULED_ABOVE_WINS` carries the whole argument.
+    if (
+      policy.decision === "always-human" &&
+      mode === "auto" &&
+      !MODE_RULED_ABOVE_WINS.has(call.name)
+    ) {
+      mode = "review";
+    }
 
     if (!isControlFlow && isWrite && (mode === "confirm" || mode === "review")) {
       /* THE GATE DECLARES ITS OWN DEFAULT, and the deadline is part of the
