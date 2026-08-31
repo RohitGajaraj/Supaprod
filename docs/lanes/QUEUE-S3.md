@@ -9,31 +9,53 @@
 
 ---
 
-## S3-Q1 · What counts as DONE — `REVIEW.md`, gap #18
+## S3-Q1 · The connect control, asked in place — gap #13
 
-**Goal.** The customer declares the review passes, the severity definitions and the exclusions.
-Ours are hardcoded by us.
+> **S3-Q1 WAS gap #18, "what counts as DONE", AND YOU SHIPPED IT** — `BoundaryControls.tsx` carries
+> it, and you reported gaps 18 and 19 both done. Replaced. **A stale queue item is an instruction to
+> redo work**, addressed to whoever reads it next.
 
-**What problem of mine does this kill?** I cannot tell the machine what "good enough" means here, so
-every judgement is someone else's default.
-**What do I stop doing?** Re-explaining our standards in every approval.
+**Goal.** A connector permission is requested **at the moment it is needed, inside the run**, with
+the connect control right there. `SPEC-CONNECTORS.md` §5 rule 4.
 
-**Why it is the right half to build now.** *"What it's allowed to do"* answers what agents may
-**DO**. **Nothing anywhere answers what counts as DONE**, and that is the question a company
-actually argues about. It is **one more section on a page you are already building** — not a
-destination (§0.5).
+**What problem of mine does this kill?** The work stops and I have to go and find a settings page to
+restart it.
+**What do I stop doing?** Browsing a shelf of integrations before anything has happened.
 
-**Files.** `src/components/governance/**`, `src/components/settings/**` (yours).
+**Why now.** **90 queued approvals since July, zero ever answered** — because they were detached
+from the work. R-04 and §1's second agentic property both say the ask happens in place and the
+answer **widens the authority for the whole class, never the single instance.**
 
-**Acceptance.** A customer with no repository can write one on the page · a customer WITH a repo has
-theirs **read**, never written (§4.2 refusal 2 — writing a team's conventions file silently is the
-fastest way to lose the repository connection) · the page states plainly which of the two it is
-doing · **no word on it that a person would not say out loud** (§12).
+**Files.** `src/components/connections/**`, `src/components/settings/**` (yours), and the ask lands
+in S1's run surface — **coordinate, do not reach in.**
 
-**Checked first, and name it in your unit file.** The boundary page you have already folded four
-routes into — this is a section of it.
+**GREP BEFORE YOU BUILD, and this one is measured: 17 of 20 providers are already wired** and four
+hold a live connection (github 2, salesforce 1, linear 1, slack 1). `SPEC-CONNECTORS.md` §1. A unit
+that adds a provider must name which of the twenty it checked first.
+
+**Acceptance.** Never a shelf you browse first · the control appears where the work stopped · one
+answer covers the class · a refused connection **names which door is locked and the next action**
+(R-26) · no word on it a person would not say out loud.
+
+**Checked first.** The existing Connections section, and why it did not serve in place.
 
 ## S3-Q2 · The layer-02 vocabulary sweep — 10 named locations, NEVER a find-and-replace
+
+> **RANKING CORRECTED 2026-08-31, AND THE CORRECTION IS MINE.** I told S3 in a message that the
+> freeze puts this out of bounds. **That is wrong and I checked it after saying it: §0.7 freezes
+> TWENTY NAMED ROUTES and SIX COMPONENT DIRECTORIES. `docs/pitch/**` and `docs/growth/**` are in
+> neither**, and `RANKED-BACKLOG.md` ranks this sweep as S3 work in terms.
+>
+> **S3's decision not to do it was still right, for the other reason they gave: it is ranked BELOW
+> #2, and #2 is their job 1 and unfinished.** RANKED-BACKLOG's own per-lane line reads *"#2 now, and
+> it is job 1 because S1's promise depends on it. Then the layer-02 vocabulary sweep."* **Right call,
+> wrong rule** — which is the thing this fleet has corrected in itself five times today, so it is
+> recorded rather than quietly fixed.
+>
+> **And S3's measurement stands and matters:** `public/brief.html`, the live asset, is CLEAN, so no
+> live surface states the false claim. **What is stale is the deck, which its own README requires to
+> stay byte-identical to that asset and which has drifted 77 lines** (md5 `881cefe…` vs `c54c225…`).
+> That drift is worth naming in the unit: the guard was a byte-identity rule and nothing enforced it.
 
 **Goal.** Ten outward-facing files stop saying *"it runs the whole lifecycle."*
 
