@@ -566,35 +566,72 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
     const decisionMissionIds = [
       ...new Set(rawPendingDecisions.map((d) => d.mission_id).filter((x): x is string => !!x)),
     ];
+    /*
+     * ── TWO ROUND TRIPS BECOME ONE, AND THE DEPENDENCY IS REAL BUT WEAK ─────
+     *
+     * These two reads were serial, and the serial part is what turns work into
+     * latency: every await outside a `Promise.all` is a full round trip before
+     * the next one starts. **Since A07 landed, this function gates the FIRST
+     * PAINT of the only surface a signed-in person can land on** (S2 measured it
+     * as the single gate on the home's SlowRead), which is exactly where §0.6
+     * standard #2 is judged — *work starts visibly in under a second*.
+     *
+     * I FIRST READ THESE AS INDEPENDENT AND THEY ARE NOT. `decisionPrdIds` came
+     * from `pendingDecisions`, which is `rawPendingDecisions` FILTERED by the
+     * mission read below it. So prds genuinely depended on missions.
+     *
+     * **But the dependency is only a FILTER, and a filter narrows.** The prd ids
+     * of the surviving decisions are always a SUBSET of the prd ids of the raw
+     * ones, so querying the superset in parallel returns everything the filtered
+     * query would have, plus rows nothing looks up. `projectIdByPrd` is a Map
+     * read by id, so an unused entry is inert — it cannot change an answer, only
+     * occupy a little memory.
+     *
+     * What that buys is one fewer round trip on the path a person waits on, for
+     * a slightly wider `IN` list on a set that is already bounded by the pending
+     * decisions. `projects` below still follows this read and must: it needs
+     * `projectIdByPrd` to know which projects to ask for, and that IS a real
+     * dependency rather than a filter.
+     */
+    const rawDecisionPrdIds = [
+      ...new Set(rawPendingDecisions.map((d) => d.prd_id).filter((x): x is string => !!x)),
+    ];
+    const [proposedResult, prdProjectResult] = await Promise.all([
+      decisionMissionIds.length
+        ? supabase
+            .from("missions")
+            .select("id")
+            .in("id", decisionMissionIds)
+            .eq("status", "proposed")
+        : Promise.resolve({ data: [] as Array<{ id: string }>, error: null }),
+      rawDecisionPrdIds.length
+        ? supabase.from("prds").select("id,project_id").in("id", rawDecisionPrdIds)
+        : Promise.resolve({
+            data: [] as Array<{ id: string; project_id: string | null }>,
+            error: null,
+          }),
+    ]);
+
     const proposedMissionIds = new Set<string>();
-    if (decisionMissionIds.length) {
-      const { data: proposedRows, error: proposedErr } = await supabase
-        .from("missions")
-        .select("id")
-        .in("id", decisionMissionIds)
-        .eq("status", "proposed");
-      // A FAILED READ MUST NOT HIDE A CALL. If we cannot tell which
-      // missions are still proposed, every decision stays in the queue:
-      // showing a duplicate is a nuisance, and dropping a real call
-      // because a lookup failed is a missed decision nobody sees.
-      noteReadError("proposed-mission dedup", proposedErr);
-      for (const r of (proposedRows ?? []) as Array<{ id: string }>) proposedMissionIds.add(r.id);
+    // A FAILED READ MUST NOT HIDE A CALL. If we cannot tell which missions are
+    // still proposed, every decision stays in the queue: showing a duplicate is
+    // a nuisance, and dropping a real call because a lookup failed is a missed
+    // decision nobody sees.
+    noteReadError("proposed-mission dedup", proposedResult.error);
+    for (const r of (proposedResult.data ?? []) as Array<{ id: string }>) {
+      proposedMissionIds.add(r.id);
     }
+
     const pendingDecisions = rawPendingDecisions.filter(
       (d) => !(d.mission_id && proposedMissionIds.has(d.mission_id)),
     );
-    const decisionPrdIds = [
-      ...new Set(pendingDecisions.map((d) => d.prd_id).filter((x): x is string => !!x)),
-    ];
+
     const projectIdByPrd = new Map<string, string>();
-    if (decisionPrdIds.length) {
-      const { data: prds } = await supabase
-        .from("prds")
-        .select("id,project_id")
-        .in("id", decisionPrdIds);
-      for (const p of (prds ?? []) as { id: string; project_id: string | null }[]) {
-        if (p.project_id) projectIdByPrd.set(p.id, p.project_id);
-      }
+    for (const p of (prdProjectResult.data ?? []) as {
+      id: string;
+      project_id: string | null;
+    }[]) {
+      if (p.project_id) projectIdByPrd.set(p.id, p.project_id);
     }
     const specRowsData = (specRows.data ?? []) as {
       id: string;
