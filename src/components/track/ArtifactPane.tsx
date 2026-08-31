@@ -27,6 +27,7 @@ import { groupByThePattern } from "@/components/track/group-by-the-pattern";
 import { enterMotion } from "@/components/spine/enter-motion";
 import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 import { justGrouped } from "@/components/track/just-grouped";
+import { WhatWereSolving } from "@/components/track/WhatWereSolving";
 import { plainProse } from "@/lib/plain-prose";
 /*
  * EVERY plain-text `Prose` on this pane runs agent-written text through
@@ -2002,6 +2003,14 @@ export function SenseBody({
 
   return (
     <div className="flex flex-col gap-mrd-5">
+      {/*
+       * WHAT THE WORK IS FOR COMES BEFORE THE EVIDENCE FOR IT (gap #16).
+       * Discover's shape is the frame the evidence below sits inside: the
+       * problem, what should be true instead, and who it touches. A person
+       * opening a track reads what it is about first and the findings second,
+       * and until now the run had the second and not the first.
+       */}
+      <WhatWereSolving trackId={trackId} hasEvidenceBelow={groups.length > 0 || loose.length > 0} />
       {groups.map((g) => {
         const t = themeById.get(g.themeId);
         const members = g.signals;
