@@ -27,6 +27,21 @@ whole product lives (§3 below).
   middle. **Apply each migration on its own, verify the schema after each one, and only then apply the
   next.** Lovable also loses `schema_migrations` rows — seven vanished at once while the schema itself
   stayed correct — so **never diagnose from the ledger; read the schema.**
+
+  > **A STANDING RULE FOR ANY OUTCOME OR VERDICT COLUMN, added 2026-08-31 on S1's proposal:
+  > NULLABLE, plus a `rated_at` / `decided_at` beside it.** Never `NOT NULL DEFAULT '<a verdict>'`.
+  >
+  > **What that default costs, measured:** `memory_recall_log.outcome` is
+  > `text NOT NULL DEFAULT 'ignored'` and `logMemoryRecall` never writes it — **so "no verdict yet"
+  > and "the crew read this and discarded it" are the same byte.** A `GROUP BY outcome` reports
+  > **12,695 unrated rows as judged-and-rejected** and nothing in the schema can object. It produced
+  > a false claim on a live surface, and then a second one from the next person reading that surface.
+  >
+  > **The precedent is already in this schema and is why the acceptance is measurable at all:**
+  > `agent_approvals.decided_at` separates *was this answered* from *what was the answer*, which is
+  > exactly what made F-79 provable. **A timestamp beside a verdict costs nothing at design time and
+  > makes absence permanently visible.** F-76's rule — a failed read and an empty result are
+  > different values — is the same law one layer up.
 - **Deploy and publish are yours alone, and they are a three-step act: verify, deploy, verify again.**
   No other session can do it and none may claim it happened. Publish status has lied more than once —
   three times in one night — so confirm with an independent read of a changed file, not with the
