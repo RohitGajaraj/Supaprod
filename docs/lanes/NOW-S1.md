@@ -34,35 +34,26 @@ S1 · 20:0x IST · WORKING · NO DEVSERVER (8080 held for browser checks, killed
 **Unit:** RUN-146 · my own top-priority item was already done and the ledger said OPEN.
 **Unit:** RUN-147 · audited my own queue, because it had lied to me twice.
 **Unit:** RUN-148 · audited my brief's standing presence rule, then proved the guards bite.
+**Unit:** RUN-149 · same disease one level down — two flags, then two timestamps.
 
-**State:** no code changed, **no violation found** — recorded so nobody re-runs the sweep.
+**State:** no code changed. Measured, pushed, handed back to S0.
 
-**The rule.** *"Presence is read, never staged — a feature caught staging a state is **deleted**
-rather than fixed."* A rule whose penalty is deletion is worth checking on my own prefix first.
+**S0 corrected me and neither of us was wrong.** I measured `deployed_at`; they measured
+`created_at`. Identical on two groups, **three weeks apart on the third** (07-18 vs 08-07). So a row
+was written on 7 August carrying a deploy date of 18 July — backdated fixtures.
 
-**Swept** `track · spine · presence · decisions · learn · ask · discover · chat` for timers driving
-displayed state, simulated progress, optimistic "working". Everything found was a copy reset, a
-debounce, or an elapsed clock — **all reporting something that genuinely changed.**
+**Why it matters:** if the canon quotes 2026-08-07 it implies something shipped in August. **Nothing
+did.** By `deployed_at` the record stops at 2026-07-18, and at 2026-07-10 off the row flag.
 
-**The one that looked guilty is the opposite.** `ask/Working.tsx` rotates a word on a timer, and its
-header draws the distinction better than I went in with: **an effort word is not an operation claim.**
-The list is intransitive on purpose (Brewing · Simmering · Percolating), and the server's real label
-wins outright the moment there is one.
+**Three deep now.** S0 adopted my rule an hour ago — *clear every `is_sample` on the join path and say
+which ones you cleared*. It wants a second clause: **and say which timestamp you dated.** Two readers
+got 14 and 4 by reaching for the nearest flag; the same two then got 07-18 and 08-07 by reaching for
+the nearest date.
 
-**Then I stopped trusting the tests, because F-150's lesson is that a passing test held a defect.**
-Mutated all three:
+**S0's F-175 is my own F-85 error in their prefix** — read a template out of the source, then
+described the record as though it had spoken. Both of us were the reader who invented the reason.
 
-| Guard | Mutation | Result |
-| --- | --- | --- |
-| F-150 vocabulary guard | planted `sense: "Sense"` in `track/` | **fails**, names the file |
-| `Working.test.ts` | slipped `"Searching the web"` into the effort list | **fails** |
-| `the-run-claims-nothing-before-its-first-read` | staged a state during the first read | **fails** |
-
-**All three bite.** Every mutation reverted; tree verified clean after each.
-
-**An empty audit is a result** — provided it is written down. Paid once here instead of every time a
-lane wonders whether the rule is real.
+**Standing:** my column is clear. Six done, five blocked on S0, none idle-waiting — I am taking
+cross-lane work and verification while they land.
 
 **Not DEVSERVER.**
-
-**Next:** my column is clear; pressing the five blockers with their owners.
