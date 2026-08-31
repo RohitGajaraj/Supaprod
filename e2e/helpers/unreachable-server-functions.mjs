@@ -59,6 +59,39 @@ for (const f of files) {
   }
 }
 
+/*
+ * A DYNAMIC IMPORT THAT NAMES ITS EXPORT IS AN IMPORT, AND THIS GATE COULD NOT SEE ONE.
+ *
+ * Every lazily mounted panel in this product is written the same way:
+ *
+ *   const AgentRosterPanel = React.lazy(() =>
+ *     import("@/components/governance/AgentRosterPanel").then((m) => ({
+ *       default: m.AgentRosterPanel,
+ *     })),
+ *   );
+ *
+ * `importedBy` was built from `import { X } from "..."` alone, so the name was
+ * never registered and the component read as an orphan. Six files mount panels
+ * this way, and the warning has been carried by hand from session to session
+ * ever since -- "ten of the eighty it lists are mounted, do NOT hand that list
+ * to anyone as a backlog." A list that has to travel with a verbal caveat is a
+ * list nobody can act on, which is the whole point of the gate.
+ *
+ * The `.then` form NAMES the export, so this is exact rather than heuristic: it
+ * registers precisely the identifier the mount uses, and a lazy import that
+ * pulls a module without naming an export is still handled by `dynamic` below.
+ */
+for (const f of files) {
+  const src = readFileSync(f, "utf8");
+  for (const m of src.matchAll(
+    /import\(\s*["'][^"']+["']\s*\)\s*\.then\s*\(\s*\(?\s*(\w+)\s*\)?\s*=>[\s\S]{0,80}?\bdefault\s*:\s*\1\.([A-Za-z0-9_]+)/g,
+  )) {
+    const name = m[2];
+    if (!importedBy.has(name)) importedBy.set(name, new Set());
+    importedBy.get(name).add(f);
+  }
+}
+
 /** Modules pulled in wholesale, whose every export is therefore reachable. */
 const dynamic = new Set();
 for (const f of files) {
@@ -169,14 +202,24 @@ for (const o of orphans) console.log(`  ${o.name}  (${o.file})`);
  * router is dead.
  */
 const componentOrphans = [];
+const componentExcused = [];
 let componentTotal = 0;
 for (const f of files.filter((f) => /^src\/components\/.*\.tsx$/.test(f))) {
   const src = readFileSync(f, "utf8");
+  /*
+   * The same exclusion the server half already applies, which this half never
+   * did: a module pulled in wholesale by a dynamic import has every export
+   * reachable, whether or not the mount happens to name it.
+   */
+  const isDynamic = [...dynamic].some(
+    (d) => f === `src/${d}.tsx` || f === `src/${d}` || f.endsWith(`/${d}.tsx`),
+  );
   for (const m of src.matchAll(/export\s+(?:default\s+)?function\s+([A-Z][A-Za-z0-9_]*)/g)) {
     componentTotal += 1;
     const name = m[1];
     const users = [...(importedBy.get(name) ?? [])].filter((u) => u !== f);
-    if (users.length === 0) componentOrphans.push({ name, file: f });
+    if (users.length > 0) continue;
+    (isDynamic ? componentExcused : componentOrphans).push({ name, file: f });
   }
 }
 
@@ -186,6 +229,9 @@ for (const o of componentOrphans) compByFile.set(o.file, (compByFile.get(o.file)
 console.log(
   `\n${componentOrphans.length} of ${componentTotal} exported components in src/components ` +
     `have NO importer.`,
+);
+console.log(
+  `${componentExcused.length} more are mounted through a dynamic import and are NOT counted.`,
 );
 console.log(
   "  THIS HALF IS NOISIER THAN THE SERVER HALF. A helper component that is exported but used only\n" +

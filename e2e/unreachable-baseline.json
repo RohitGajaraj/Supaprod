@@ -1,7 +1,8 @@
 {
   "_what": "Frozen counts for check:unreachable. It may only go DOWN.",
-  "_why": "141 server functions and 80 components with no importer is pre-existing debt nobody in flight wrote. Failing every lane on it is how a check gets reverted rather than fixed, so this freezes the number and fails only on an INCREASE. Lower these when you land a fix; the check tells you the new number.",
-  "_measured": "2026-08-28, deterministic across consecutive runs.",
-  "serverFunctions": 141,
-  "components": 80
+  "_why": "Server functions and components with no importer are pre-existing debt nobody in flight wrote. Failing every lane on it is how a check gets reverted rather than fixed, so this freezes the number and fails only on an INCREASE. Lower these when you land a fix; the check tells you the new number.",
+  "_measured": "2026-08-31, deterministic across consecutive runs.",
+  "_components_dropped_from_80": "The detector could not see React.lazy. Every lazily mounted panel is written as import(\"...\").then((m) => ({ default: m.Name })), which names its export and was still invisible, so 26 mounted components were reported as orphans. The count is 44 because the gate got better, not because 26 things were deleted. Anyone comparing against 80 is comparing across a change in the instrument.",
+  "serverFunctions": 140,
+  "components": 44
 }
