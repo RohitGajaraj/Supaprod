@@ -36,6 +36,8 @@
  * not block; it does not follow that a person may never move their own work.
  */
 import * as React from "react";
+
+import { WhatWeAlreadyHold } from "@/components/spine/WhatWeAlreadyHold";
 import { failureLine } from "@/lib/error-copy";
 import { Row } from "@/components/meridian/rows";
 import { Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
@@ -347,6 +349,14 @@ export function TrackStart({
               placeholder="Add SSO to the admin console"
               onChange={(e) => setTitle(e.currentTarget.value)}
             />
+            {/*
+             * THE SECOND DOOR THAT STARTS WORK (F-184, SPEC-BUILD-PATHS §2.3).
+             * `/start`'s composer got this first and was driven; this one is
+             * live on `/plan` (`plan.index.tsx:902`) and starts work the same
+             * way, so the same sentence belongs here. It TELLS and never gates:
+             * nothing below changes what this form does.
+             */}
+            <WhatWeAlreadyHold subject={title} />
           </Field>
 
           {/* Their language, not the model's. A person picks the sentence that
