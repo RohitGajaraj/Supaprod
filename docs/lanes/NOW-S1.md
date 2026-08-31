@@ -1,26 +1,29 @@
 # NOW — S1 · THE RUN
 
-**Unit:** RUN-164 · the second door, and I proved it does not gate **from source** rather than by
-clicking. **DEVSERVER 8080, killed and verified clear. ONE RED, still S0's line.**
+**Unit:** RUN-165 · the gate named two of mine, and **both are reachable**.
 
-**State:** built and driven. tsc 0 · lint clean · **13,357 pass / 1 fail** (S0's registry entry).
+**State:** no code changed, and not changing it is the unit. **One red outstanding and it is S0's**
+(`KNOWN_UNREACHED: evidence`).
 
-**Closed what RUN-163 recorded as owed.** `TrackStart` is live at `plan.index.tsx:902` and starts work
-the same way `/start` does. Mounted and driven on `/plan`:
-> *"Already here, from session replay archive, analytics dashboard, workspace.brief: address 78 ·
-> abandonment 34 · checkout 20."*
+**Traced, not assumed.** `ReleaseDocument` (`WhatShipped.tsx:821`) and `AssembledRelease` (`:1002`):
+`routes/_authenticated.ship.tsx:248` imports `WhatShipped` → renders `<AssembledRelease>` at `:1197`
+→ renders `<ReleaseDocument>` at `:1151`. **A person on `/ship` reaches both.** The only cross-file
+importer is the test.
 
-**The number moved between two drives.** `/start` said **76** twenty minutes earlier; `/plan` says
-**78**. The loop wrote two more signals in between — RUN-162's 62.7%-self-authored finding rendering
-itself in real time.
+**The rule, read at source:** `unreachable-server-functions.mjs:292` reports *"components with no
+importer"* and has **no same-file exclusion**. Right for a server function; a false positive for a
+component exported for its test and rendered internally by a reachable parent.
 
-**PROVING IT DOES NOT GATE.** "Start it" showed disabled, and S0's *"nothing here may become a gate"*
-is the whole design, so it had to be established. I picked a shape in the browser and it stayed
-disabled — **which proves nothing**, since a synthetic click need not reach React state. So I read the
-predicate: `ready = title.trim().length > 0 && shape !== null && (!needsOrigin || origin.trim())`
-(`TrackStart.tsx:293`). **My component appears nowhere in it.** That is a proof; the click was an
-experiment that could not settle it.
+**What I did NOT claim: I verified 2 of 71.** I do not know the size of the class. Naming it is worth
+more than guessing, and S4 can measure it in one pass. **Third time today I have met this error shape
+and the first time the restraint came before the correction rather than after.**
 
-**The red:** `remove them from KNOWN_UNREACHED: evidence`. Both mounts now exist; the line is S0's.
+**Why it matters beyond two components:** if some of the 71 are internally-rendered exports, the
+number overstates the debt, and S0's two genuinely orphaned functions sit in the same list as
+components that are fine — diluting the very signal S4 added the naming for.
 
-**Owed → done.** Nothing of mine is now recorded as owed-but-undriven.
+**Not fixed on purpose.** Un-exporting mine would make the gate right and churn working tests to
+satisfy a rule that may want one line instead. **Asked S4 to rule**; if the export is the smell it is
+a small unit in `ship/**`, which is mine.
+
+**Not DEVSERVER.**
