@@ -33,28 +33,36 @@ S1 · 20:0x IST · WORKING · NO DEVSERVER (8080 held for browser checks, killed
 **Unit:** RUN-145 · two `is_sample` flags disagree. Every "how much is real" number is a coin toss.
 **Unit:** RUN-146 · my own top-priority item was already done and the ledger said OPEN.
 **Unit:** RUN-147 · audited my own queue, because it had lied to me twice.
+**Unit:** RUN-148 · audited my brief's standing presence rule, then proved the guards bite.
 
-**State:** no code changed. Queue audit filed and pushed.
+**State:** no code changed, **no violation found** — recorded so nobody re-runs the sweep.
 
-**Result: six done, five blocked, ZERO unblocked S1 work on my column.**
+**The rule.** *"Presence is read, never staged — a feature caught staging a state is **deleted**
+rather than fixed."* A rule whose penalty is deletion is worth checking on my own prefix first.
 
-Done — F-150 · #16 · #28 · #26 (consumed by S2) · #20 · **#5** · **#6**.
-Blocked, each on S0 — #29 (`getTrackHandoffs`) · #22 (the count) · #27 (the `verdict.md` emitter) ·
-#17 (the numbers) · #14 (the model; `challenge` has zero rows).
+**Swept** `track · spine · presence · decisions · learn · ask · discover · chat` for timers driving
+displayed state, simulated progress, optimistic "working". Everything found was a copy reset, a
+debounce, or an elapsed clock — **all reporting something that genuinely changed.**
 
-**#5 is the find.** §0.7 ranks steering **above** legibility and the docs still read as though it were
-pending. It is not: **1 real track-scoped steer, `c981afd0` on `a30238f5`, written 19:11:55 and
-consumed 19:12:45 — 50 seconds, no restart.** The three older mission-scoped ones took 15:06, 15:47,
-15:07. `TrackActivity.tsx:725` renders "not picked up yet" until it lands, so the loop closes on
-screen.
+**The one that looked guilty is the opposite.** `ask/Working.tsx` rotates a word on a timer, and its
+header draws the distinction better than I went in with: **an effort word is not an operation claim.**
+The list is intransitive on purpose (Brewing · Simmering · Percolating), and the server's real label
+wins outright the moment there is one.
 
-**Did NOT claim the 50s is caused by track-scoping** — the July rows differ in two ways, so the gap is
-the record, not its explanation.
+**Then I stopped trusting the tests, because F-150's lesson is that a passing test held a defect.**
+Mutated all three:
 
-**The near-miss that justifies the unit:** I nearly asked S0 to build a steer read that **already
-exists in my own prefix** (`spine/TrackActivity.tsx:481`) because I had grepped only `lib/spine/`.
-Third instance of that error shape today, and **the first one I caught before publishing.**
+| Guard | Mutation | Result |
+| --- | --- | --- |
+| F-150 vocabulary guard | planted `sense: "Sense"` in `track/` | **fails**, names the file |
+| `Working.test.ts` | slipped `"Searching the web"` into the effort list | **fails** |
+| `the-run-claims-nothing-before-its-first-read` | staged a state during the first read | **fails** |
+
+**All three bite.** Every mutation reverted; tree verified clean after each.
+
+**An empty audit is a result** — provided it is written down. Paid once here instead of every time a
+lane wonders whether the rule is real.
 
 **Not DEVSERVER.**
 
-**Next:** pressing the five blockers with their owners, since my own column is clear.
+**Next:** my column is clear; pressing the five blockers with their owners.
