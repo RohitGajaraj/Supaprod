@@ -177,6 +177,11 @@ const KNOWN_UNREACHED: readonly string[] = [
   "dashboard",
   "delegate-desk",
   "delegate-poll",
+  // Landed 2026-09-01 as the wrapper half of F-184's door: `evidenceForSubject`
+  // is a plain helper a browser cannot reach, and S1 measured the module had
+  // zero callers outside its own test. The door itself is `/start`, which is
+  // S1's, and they build it the hour this lands. Comes off then.
+  "evidence",
   // Unread from 2026-08-22, when the founder reduced /demo to the film. Its
   // three readers (overview, decision history, mission trace) were the page's
   // live sections and the page no longer has any.
