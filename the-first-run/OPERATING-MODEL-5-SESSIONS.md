@@ -444,6 +444,70 @@ with what each shift costs us and what we kill, is
 
 ---
 
+## 0.9 · NO LANE IS EVER DONE. Ruled by the founder 2026-08-31, and it overrides every "finished" in this repo.
+
+**Founder, 2026-08-31:** *"I was wanting you to work continuously and autonomously without stopping,
+and just make sure that all your work is done and if you don't have any other things to pick up, you
+are supposed to communicate with other lanes, starting from S0 to S4. Pick up the things and make
+sure the objective is met... Pick up on your own, show your proactiveness... It cannot stay idle
+until I say stop."*
+
+And on what the objective actually is: *"you fix the objective, not just restricting to a lane to a
+particular thing. It needs to be an overall platform level or UI change, UX change, feature
+enablement, bringing truly everything working fine, testing it, reviewing it... the end-to-end part
+as part of the plan. It needs to be building the right solution."*
+
+### Why this ruling exists, and it is a measured defect rather than a mood
+
+Four of five lanes stopped. Not from confusion and not from lack of work: **their instructions told
+them they could.** The five prompt blocks end differently and the difference predicts the behaviour
+exactly:
+
+| Lane | How its block ends | What happened |
+| --- | --- | --- |
+| S0 | *"Never idle **while a queue item exists**"* | A conditional. An empty queue reads as permission to stop. |
+| S1 · S2 · S3 | *"Work autonomously until I say STOP."* and nothing more | Each finished its numbered jobs and had **no instruction for what comes next**. S3 wrote `CLOSED` in its own status line. |
+| S4 | *"Work autonomously until I say STOP. **Your loop, forever:** …"* | **Still running**, and it is the lane that went and prodded the others. |
+
+**S4 is the control case.** One lane was given an endless loop and one lane did not stop. The others
+were each handed a finite numbered list, finished it, and correctly concluded there was nothing left
+to do. **That is a specification defect, and this section is the fix.**
+
+Compounding it: `/goal` sets a **condition that gets evaluated**. A block whose body is a finite list
+of jobs gives that evaluator something to mark complete. A block that states a standing obligation
+does not.
+
+### The rule, and it binds all five sessions
+
+1. **YOU ARE NEVER DONE.** Finishing your listed jobs is not finishing. **Never write `CLOSED`, never
+   report the goal achieved, and never stop because nothing is assigned to you.** The only thing that
+   ends a session is the founder saying STOP.
+2. **WHEN YOUR OWN LIST IS EMPTY, GO AND GET WORK.** In this order, and none of it needs permission:
+   read every `docs/lanes/NOW-*.md`; **message the other lanes directly** (`ListAgents`, then
+   `SendMessage`) and ask what they are on and what they want taken; **claim it by name** in your NOW
+   line and in your message so two lanes never build one thing; then build it. `RANKED-BACKLOG.md`
+   and every `OPEN` row in `FINDINGS-LEDGER.md` are fair game.
+3. **RESPECT THE PATH LAW WHILE DOING IT.** One writer per path (`SURFACE-MAP.md`). Taking another
+   lane's item means either it is unowned, or the owner agreed in a message you can point at. **A
+   claim nobody answered is not agreement** — build the half that is yours and file the rest.
+4. **THE OBJECTIVE IS THE PLATFORM, NOT YOUR LANE.** The measure is the whole product working end to
+   end: a person signs up, work starts on its own, they can watch it happen, and they get a result
+   they trust. **UI, UX, feature enablement, testing, review and the sad paths are all in scope**
+   when they serve that journey. A lane that polishes its own corner while the journey is broken has
+   met its brief and missed the point.
+5. **PROACTIVE MEANS YOU FOUND IT.** The best work this fleet has done came from measuring a claim
+   against the database and finding it false. **Nobody has to hand you that.** Audit your own
+   surfaces, read the ledger before re-investigating, and file what you cannot fix yourself.
+
+### What this does NOT loosen
+
+**Nothing.** §0.7's freeze still holds, the gates still hold, path ownership still holds, plain words
+still hold, and the dev-server rule still holds. This section removes an excuse to stop; it grants no
+new licence. **A unit that breaks a standing rule because "no lane may be idle" is a worse failure
+than idling was.**
+
+---
+
 ## 1 · What "truly agentic" means here, stated so it can be failed
 
 Five properties. Each is falsifiable. A surface that has fewer than all five is a dashboard with a

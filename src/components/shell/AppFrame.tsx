@@ -129,6 +129,8 @@
  */
 
 import { RailCrew } from "@/components/shell/RailCrew";
+import { TeammateCursors } from "@/components/shell/TeammateCursors";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { countIsAFloor } from "@/components/approvals/not-the-whole-queue";
 import { pollMs } from "@/components/shell/poll";
 import * as React from "react";
@@ -166,7 +168,6 @@ import { ShortcutSheet, useShortcutSheetKey } from "./ShortcutSheet";
 import { AccountMenu, ScopeMenu } from "./ScopeMenu";
 import { AuditLineageSheet } from "@/components/supaprod/AuditLineageSheet";
 import {
-  IconApprovals,
   IconAsk,
   IconBrain,
   IconEngine,
@@ -179,7 +180,6 @@ import {
   IconRailCollapse,
   IconRailExpand,
   IconSun,
-  IconRuns,
   IconThreads,
   IconToday,
   IconWork,
@@ -210,6 +210,21 @@ const APPROVALS_PATHS: readonly string[] = ["/approvals"];
 const BOUNDARY_PATHS: readonly string[] = ["/boundary"];
 
 const TODAY_PATHS: readonly string[] = ["/today"];
+
+/**
+ * THE BOARD'S TERRITORY, AND IT IS COMPOSED RATHER THAN RE-TYPED.
+ *
+ * Approvals folded into this row on 2026-08-31 (F-145), so the row must now
+ * light for both paths or `g v` lands somewhere the rail is blind to - the
+ * exact defect `AppFrame.rail-covers-keys.test.ts` was written after, and the
+ * one a fold is most likely to cause, because deleting a row silently deletes
+ * whatever it was speaking for.
+ *
+ * Spread from the two constants rather than written as a fresh literal: the
+ * derivation law over `owns` exists so a path is never spelled twice, and two
+ * of these three names already existed.
+ */
+const BOARD_PATHS: readonly string[] = [...TODAY_PATHS, ...APPROVALS_PATHS];
 /** The Work row's territory: where work is handed over (/start) and every run
  *  screen under /track/:id. `under()` needs the base only, and "/track" the
  *  prefix does NOT capture /track-record — no slash follows. Before this row,
@@ -217,6 +232,34 @@ const TODAY_PATHS: readonly string[] = ["/today"];
  *  primary surface was un-owned, not merely unlinked. */
 const START_PATHS: readonly string[] = ["/start", "/track"];
 const BRAIN_PATHS: readonly string[] = ["/brain"];
+
+/**
+ * THE WORK'S TERRITORY, AND IT ABSORBED THE STATIONS ROW (F-145, 2026-08-31).
+ *
+ * The `Stations` door is gone. R-01 rules that stations are never navigation,
+ * F-145 deletes the door, and F-146 is the founder's report of what having it
+ * cost: a rail door and a station chip were both clickable and nothing said
+ * which was a place and which was a step.
+ *
+ * BUT DELETING A ROW DELETES WHATEVER IT WAS SPEAKING FOR, and that row was
+ * speaking for the seven bound keys 1..7. Before `owns` existed, pressing 3
+ * took you to /plan and every row in the rail went dark at once - the shell
+ * still knew the route and had simply stopped saying where you were standing.
+ * `AppFrame.rail-covers-keys.test.ts` was written after exactly that, and a
+ * fold that dropped this would have reintroduced it in one line.
+ *
+ * SO IT MOVES HERE RATHER THAN GOING, AND THE PLACE IS NOT ARBITRARY. R-01's
+ * own sentence says where: a station is the step list INSIDE ONE RUN. This row
+ * already owns the run - /start where work is handed over and /track/:id where
+ * it is watched - so a station surface is this row's territory by the same
+ * ruling that removed its door. /runs joins them for the same reason: /runs
+ * bare is a redirect to the board, and /runs/:missionId is a run screen.
+ *
+ * The row lights; nothing in the rail names a station. That is the whole of
+ * F-146's rail half, and `no rail door is a station` is asserted next door so
+ * the door cannot come back without the assertion failing by name.
+ */
+const RUN_PATHS: readonly string[] = [...START_PATHS, "/runs", ...LOOP_STATIONS];
 
 /** Paths that live behind the Settings door but are not under /settings.
  *  Agents is the roster at /crew, which Settings now holds. */
@@ -335,140 +378,147 @@ const THREADS_PATHS: readonly string[] = ["/threads"];
 const STATION_MARK = GLYPH_FOR_STATION;
 
 const RAIL = [
+  /*
+   * ── ONE PRIMARY DOOR, AND IT IS DERIVED (F-144, 2026-08-31) ────────────
+   *
+   * WHAT A PERSON ACTUALLY GOT, and the founder reported it in these words:
+   * "Today is a mentality and psychological perspective that people would
+   * think that this is where we are supposed to land." He is describing a
+   * mechanism, not a preference, and it was here.
+   *
+   * `SIGNED_IN_HOME` was flipped to /start on 2026-08-25 because an audit of
+   * the real first sixty seconds found /today opens an empty workspace with
+   * five negations in the first viewport and no control that starts a run.
+   * THE RAIL WAS NEVER FLIPPED WITH IT. Today sat at position 1; the surface
+   * you actually land on sat at position 3. So a person lands third-in-the-
+   * list, reads the door at the top as home, presses it, and arrives at the
+   * exact surface the flip existed to get them out of. The home flip was half
+   * a change: it moved the landing and left the signpost.
+   *
+   * THE FIX IS THE DERIVATION, NOT THE ORDER. Putting the /start row first
+   * would close today's instance and let the next flip reopen it, because the
+   * two facts would still be two literals in two files with nothing joining
+   * them - which is exactly how this one survived six days. So the home row
+   * NAMES THE CONSTANT. Flip `SIGNED_IN_HOME` again and the rail follows in
+   * the same edit, which is what that constant was built to promise.
+   *
+   * The colocated guard is `AppFrame.rail-covers-keys.test.ts`, and note what
+   * it can now prove. It extracts rail paths by reading this block as SOURCE
+   * and matching every destination field spelled as a quoted string, so the
+   * home row is DELIBERATELY INVISIBLE to that scan and the test asserts the
+   * identifier is here instead. An edit that spells the path back into this
+   * row fails there by name. (This paragraph describes the pattern rather than
+   * quoting it, because the scanner cannot tell a comment from a row and a
+   * quotation of the shape counted as a sixth door on the first run.)
+   */
   {
-    to: "/today",
-    label: "Today",
-    Icon: IconToday,
-    count: null,
-    owns: TODAY_PATHS,
-    tier: "primary",
-  },
-  // APPROVALS, ITS OWN ROW, 2026-08-24. The gates count rode on Today since
-  // the rail existed; the founder asked for a door of its own and the
-  // reasoning holds - a person-required surface was a chip on somebody
-  // else's row. Today keeps the feed; Approvals carries the count and the
-  // orchid treatment the count earns.
-  {
-    to: "/approvals",
-    label: "Approvals",
-    Icon: IconApprovals,
-    count: "gates",
-    owns: APPROVALS_PATHS,
-    tier: "primary",
-  },
-  // WORK, ITS OWN ROW, 2026-08-25 — the founder's "no home or entry door"
-  // ruling, third instance of the Approvals/Threads shape. /start is where a
-  // sentence becomes a run; /track/:id is where the run is watched; neither
-  // had a named door and the run screen lit no row. Label and key derive from
-  // nav-model.ts like every other row.
-  {
-    to: "/start",
+    to: SIGNED_IN_HOME,
     label: "Work",
     Icon: IconWork,
     count: null,
-    owns: START_PATHS,
+    owns: RUN_PATHS,
     tier: "primary",
   },
-  // Runs points at /runs, NOT at /m. /m is Mission Control, the one surface the
-  // rebuild never ported, so the rail's own row for the engine's spine was
-  // landing on the legacy five-region shell. That is the founder's "the run
-  // section is still rendering in the legacy design", and this line is where it
-  // started. /runs is the same surface the route used to call /build, renamed
-  // because a run is the whole lifecycle and never was the build leg.
   /*
-   * "STATIONS", NOT "RUNS", AND NO COUNT (2026-08-27, found by S4).
+   * ── "WAITING FOR YOU", AND APPROVALS FOLDS INTO IT (F-145, 2026-08-31) ──
    *
-   * WHAT A PERSON ACTUALLY GOT, clicked on the running board and recorded:
-   * they pressed the row labelled "Runs", landed on /today, and the **Today**
-   * row lit while the row they had just clicked stayed dark. The rail
-   * contradicted the click. `runs.index.tsx` redirects to /today, so the door
-   * said one place and opened another.
+   * TWO ROWS BECAME ONE, and the reason is that the surfaces already merged.
+   * U-050 moved /approvals' five filters onto the board - All 52 / Proposals
+   * 37 / Gates 10 / Memory 5, proven on the running product - so the board is
+   * where a waiting call is now answered. Two doors onto one surface is the
+   * defect this whole phase is about, and the second one was advertising a
+   * count for a place the first one already holds.
    *
-   * WHY THE ROW CANNOT SIMPLY GO, and I tried it first: it owns
-   * `LOOP_STATIONS`, so it is the row that lights when somebody presses 1..7.
-   * Removing it puts the keyboard back in the dark that
-   * `AppFrame.rail-covers-keys` was written for. Moving that ownership onto
-   * Today instead fails two more encoded rules: the rail's length is pinned at
-   * seven precisely so a halved rail cannot pass, and the derivation law
-   * requires that field to name a constant, because an array spelled out in
-   * place would be a second copy of the station map. (This sentence avoids
-   * writing that pattern literally: the guard reads this block as SOURCE and
-   * a quotation of the banned shape trips it, which it did on the first try.) S0 has separately ruled relabel-over-remove on a nav row, and
-   * I have overridden that ruling once already and been wrong.
+   * THE COUNT MOVES WITH THE FOLD RATHER THAN DYING WITH IT. `gates` was the
+   * sharpest thing the Approvals row carried and the founder asked for that
+   * row so the number would have a home. It has one: this door, which lands
+   * on the surface the number is about. A count on a door that does not reach
+   * what it counts is the promise F-145 names in the Stations row below.
    *
-   * WHY THE LIT ROW STILL WILL NOT BE THIS ONE, stated plainly rather than
-   * left to be rediscovered: /today has exactly one owner and it is Today, and
-   * the swallow test forbids two rows claiming one door. Every other row
-   * points at a path it owns, which is why Work lights on /start. This one
-   * cannot, while its destination is the board.
+   * THE WORD IS §12's, NOT AN INVENTION. The rename map sends *Approvals* to
+   * "Waiting for you" - "names who is blocked and on what; 'Approvals' names
+   * a queue, which is why 90 of them died in one." It also passes the F-144
+   * ruling's own point 4, which "Today" cannot: every remaining door states
+   * what you DO there, never when. *Today* is a time word.
    *
-   * SO THE LABEL STOPS PROMISING A PLACE THAT NO LONGER EXISTS. "Runs" named a
-   * separate surface; it folded. "Stations" names what this row actually owns,
-   * what actually lights it, and what is actually at the top of the screen it
-   * opens: the strip reading 01 Discover through 07 Learn. A person who lands
-   * on Today under this label finds the thing the label named.
-   *
-   * THE COUNT GOES because it was the sharpest part of the promise: a number
-   * advertised for a surface the click does not reach. Nothing readable is
-   * lost, the board says "4 runs are stuck" in its own headline.
+   * THE WORD IS ALSO NOT FINAL, and that is recorded rather than hidden. Once
+   * the board folds into the home there is one surface here, not two, and
+   * `RANKED-BACKLOG.md` puts its name to the founder. Asked in
+   * coordination/requests/S2/rail-one-primary-door.md. One string moves.
    */
   {
-    to: "/runs",
-    label: "Stations",
-    Icon: IconRuns,
-    count: null,
-    owns: LOOP_STATIONS,
-    tier: "primary",
+    to: "/today",
+    label: "Waiting for you",
+    Icon: IconToday,
+    count: "gates",
+    owns: BOARD_PATHS,
+    tier: "secondary",
   },
+  /*
+   * ── THE "STATIONS" DOOR IS GONE, 2026-08-31 (F-145, F-146) ─────────────
+   *
+   * It pointed at /runs and it contradicted a ruling that predates it. R-01:
+   * stations are NEVER navigation, "no station in the rail, no station as a
+   * route a person browses to". F-146 is the founder reporting what keeping it
+   * cost him: "If I click on seven stations, or individually say Build, Plan,
+   * something comes up. Also at the work thing, individually things come up."
+   * A rail door and a station chip were both clickable, both opened something,
+   * and the door literally named `Stations` made the two models look like one.
+   *
+   * IT SURVIVED ONE COMMIT LONGER THAN THE RULING, and the reason is worth
+   * keeping because it is a good argument against reflex deletion:
+   * `src/lib/nav-model.test.ts` pinned the rail to carry this row, that file is
+   * S0's, and removing the row here would have shipped red. S0 removed the pin
+   * on the evidence that its own stated reason had expired - it existed so the
+   * list of work items would keep a door, and /runs is now nothing but a
+   * redirect to the board, so the pin was protecting a forwarding address.
+   * Asked at coordination/requests/S2/rail-one-primary-door.md.
+   *
+   * WHAT DID NOT GO WITH IT: the seven bound keys. See RUN_PATHS above.
+   */
+  /*
+   * BRAIN AND THREADS DROP BELOW THE RULE TOGETHER, and neither is a
+   * judgement about the surface behind it. The F-144 ruling's first line is
+   * "one primary door... it is first because it is the only one", so primary
+   * is a tier of exactly one and everything else is secondary by arithmetic.
+   * Both are also ruled elsewhere - SURFACE-MAP folds the brain into a line
+   * inside the run (S1) and deletes Threads under R-04 - and those are S0's
+   * deletions to make, not mine. A door I may not delete and may not promote
+   * belongs under the rule, reachable and not advertised.
+   */
   {
     to: "/brain",
     label: "Brain",
     Icon: IconBrain,
     count: null,
     owns: BRAIN_PATHS,
-    tier: "primary",
+    tier: "secondary",
   },
-  // THREADS, ITS OWN ROW, same ruling as Approvals above: the conversations
-  // archive was one cell on Brain's substrate grid, a whole surface with no
-  // front door. No keycap - every letter of its label is taken, and the law
-  // drops a door rather than invents a letter.
   {
     to: "/threads",
     label: "Threads",
     Icon: IconThreads,
     count: null,
     owns: THREADS_PATHS,
-    tier: "primary",
+    tier: "secondary",
   },
   /*
-   * ── "GUARDRAILS", NOT "ENGINE ROOM" ───────────────────────────────────
+   * ── "GUARDRAILS" IS ON §12's RENAME MAP AND IS DELIBERATELY UNTOUCHED ──
    *
-   * FOUNDER, 2026-08-15: "Engine Room is a ratifying word. I don't know what
-   * word we need to use to make it simple, one word which would do the job."
-   * He rejected "Controls" on the way here, and rightly: controls is the
-   * language of a mechanical or physical product, and this is software.
+   * The map sends *Engine Room · Guardrails · Govern · Boundary · Safety* to
+   * "What it's allowed to do", and the F-144 ruling names the owner in the
+   * same breath: "it is S3's door, not S2's - coordinate, do not both edit
+   * it." The label string lives in my file and the surface behind it does
+   * not, and §12's own warning is that a word renamed in one place and left
+   * stale in another has made the problem worse. So this waits for S3 rather
+   * than being half-done from here.
    *
-   * THE EVIDENCE IS IN THE SCHEMA AGAIN. `guardrail_hits` carries 340 rows, so
-   * the data model has been using this word while the UI said something else —
-   * the same shape of defect as Crew above, found the same way. It is also
-   * native to agentic software rather than borrowed from machinery.
-   *
-   * WHAT IS BEHIND THE DOOR agrees: Quality, Safety, Spend, Routines, Verify
-   * and Record. That is not an engine. It is where you set what agents may do
-   * and what they may cost, and check afterwards that they held.
-   *
-   * "ENGINE" WAS ALREADY TAKEN, which is the argument against keeping any part
-   * of it. `use-spine-strip.ts` carries the founder's ruling that clicking a
-   * station "must open that station's engine" — seven stations, seven engines,
-   * and the strip that draws them sits TEN PIXELS above this row. A door called
-   * Engine anything is a second, different meaning of the word inside one
-   * glance.
-   *
-   * THE LABEL ONLY. Route, folder, components and test ids stay
-   * `/engine-room`. `nav-model.ts` has meanwhile been calling this door
-   * "Pulse", so the product was already saying two things; it now says one.
-   * The bound letter survives the rename intact: `u`, for pUlse, is also in
-   * gUardrails.
+   * The label's history is worth keeping because it is the argument against
+   * doing it alone: the founder rejected "Engine Room" as a ratifying word
+   * and rejected "Controls" on the way here, `guardrail_hits` carries 340
+   * rows so the schema was already using this word, and the bound letter `u`
+   * survives in both gUardrails and pUlse. Three of those facts are about a
+   * surface S3 owns.
    */
   {
     to: "/engine-room",
@@ -1763,7 +1813,14 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             for it — chiefly that below 640px the rail is `display: none`, so the
             control that reveals the rail vanished with the rail. */}
           <div className="sp-lede">
-            <Link to="/today" className="sp-brand" aria-label="Supaprod, go to Today">
+            {/* THE OTHER HALF OF F-144, AND IT WAS NOT IN THE FINDING.
+              The wordmark is the most conventional "go home" gesture on the
+              web, and it pointed at /today - so a person who reached for the
+              logo landed on the surface the 2026-08-25 flip existed to escape,
+              exactly as the rail's first row did. Same defect, second control,
+              and the aria-label said "go to Today" out loud to a screen reader.
+              Derived from the constant for the same reason the rail row is. */}
+            <Link to={SIGNED_IN_HOME} className="sp-brand" aria-label="Supaprod, go home">
               {/* mono + no glow: the mark is identity, not an event, and colour
               arrives only when something happens. The glow is also a recorded
               defect on the auth door (session-handoff.md), so it is not
@@ -2200,6 +2257,16 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                 not a destination - the rows above take you somewhere by name,
                 this one takes you to whatever is moving right now. */}
             <RailCrew workspaceId={workspaceId} />
+            {/* THE CURSOR LAYER (SPEC-MULTIPLAYER-PRESENCE 3.1-3.3), and it is
+                mounted HERE for the reason 4 gives: "Cross-surface, so it
+                lives with the shell. One implementation, never per-route."
+
+                It renders `position: fixed` over the whole viewport, so it does
+                not matter that it sits inside the rail in the tree - it is
+                placed next to RailCrew because the two read the SAME query key
+                and are two renderings of one fact, and keeping them adjacent is
+                how the next person finds that out. */}
+            <TeammateCursors workspaceId={workspaceId} />
             <div className="sp-railfoot">
               {/* THE BOARD, one click from anywhere (founder ruling
                 2026-07-30). It opens the same board /runs draws, over the page

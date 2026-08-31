@@ -27,7 +27,13 @@ import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Actions, Action, ReadFailedLine, Reading } from "@/components/meridian/surface-parts";
+import {
+  ACTION_LINK_FACE,
+  Actions,
+  Action,
+  ReadFailedLine,
+  Reading,
+} from "@/components/meridian/surface-parts";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { listConnections } from "@/lib/connections.functions";
 import { ConnectTrustDialog } from "./ConnectTrustDialog";
@@ -39,6 +45,7 @@ export function AskInPlace({
   why,
   suggest,
   satisfiedByEnv = true,
+  needIsMet,
 }: {
   /** What is missing, in the words the surface would say anyway: "an issue
    *  tracker", "somewhere to read the metric". Not a product name. */
@@ -52,6 +59,27 @@ export function AskInPlace({
    *  default: Supaprod is already reading through it, so asking would be a
    *  lie about what the crew can reach. */
   satisfiedByEnv?: boolean;
+  /**
+   * THE CALLER'S OWN TEST OF WHETHER THE NEED IS ACTUALLY SERVED, for the
+   * surfaces where a connected connector is not the same fact.
+   *
+   * ── WHY THIS PROP EXISTS, AND IT IS A REPORTED DEFECT ──────────────────
+   * S1 mounted this component on a held Build station, which is the exact
+   * situation it was written for, and **it rendered nothing.** Their note in
+   * `track/TrackRun.tsx` diagnoses it exactly: this component decided the need
+   * was met by asking whether a CONNECTOR EXISTS, while that station's blocker
+   * was `canDispatchToRepo` failing because no repository RESOLVES, most often
+   * a credential that is present with no repo bound to the workspace. **So the
+   * two disagreed precisely where it mattered: the control concluded the need
+   * was satisfied and hid itself at the moment the station could not proceed.**
+   * They reverted to a hand-rolled row rather than patch somebody else's file,
+   * which was the right call, and it left this component with zero mounts.
+   *
+   * Undefined keeps the original behaviour byte for byte, so nothing that ever
+   * relied on connector-existence changes. Passing `false` says "I have a
+   * sharper test than you do and it says no", and the control stops hiding.
+   */
+  needIsMet?: boolean;
 }) {
   const qc = useQueryClient();
   const actions = useConnectorActions(qc);
@@ -71,7 +99,30 @@ export function AskInPlace({
     };
   }, [list.data, satisfiedByEnv]);
 
-  const satisfied = useMemo(() => suggest.some(connectedOrActive), [suggest, connectedOrActive]);
+  /**
+   * IS A CONNECTOR THERE. This is a fact about the workspace's credentials and
+   * nothing more, which is the distinction the defect above turned on.
+   */
+  const connectorPresent = useMemo(
+    () => suggest.some(connectedOrActive),
+    [suggest, connectedOrActive],
+  );
+
+  /**
+   * IS THE NEED SERVED. The caller's answer wins when it has one, because it
+   * ran the same resolution the work will run and this component did not.
+   */
+  const satisfied = needIsMet ?? connectorPresent;
+
+  /**
+   * THE STATE THAT USED TO BE INVISIBLE: connected, and still not enough.
+   *
+   * Connecting again fixes nothing here, so offering the connect buttons would
+   * be worse than the silence it replaces. The rest of the fix is a binding,
+   * and Settings is where both halves live, which is where S1's hand-rolled row
+   * already points.
+   */
+  const connectedButNotEnough = needIsMet === false && connectorPresent;
 
   /** Only providers whose OAuth app somebody actually registered render as
    *  options - the same fact the catalogue's "not yet available" state reads. */
@@ -105,6 +156,41 @@ export function AskInPlace({
 
   if (list.isLoading) {
     return <Reading>Checking what this workspace can already read.</Reading>;
+  }
+
+  /*
+   * CONNECTED, AND STILL NOT ENOUGH.
+   *
+   * This branch is the whole reason `needIsMet` exists. It renders BEFORE the
+   * connect buttons and instead of them, because every button below would start
+   * an authorisation the person has already completed. A control that offers
+   * the half of the fix that is already done is worse than the silence it
+   * replaces: it reads as "you did it wrong" when they did it right.
+   *
+   * NO SECOND DOOR TO A THIRD PLACE. Settings is where both halves are fixed,
+   * connect the account and bind the thing, which is exactly where S1's
+   * hand-rolled row points. Sending someone somewhere else would put two
+   * answers on one question.
+   */
+  if (connectedButNotEnough) {
+    return (
+      <div>
+        <p className="text-mrd-body">
+          {why ? <>{why} </> : null}
+          This needs {need}, and the connection for it is already here, so connecting again would
+          change nothing. What is missing is which one this work should use.
+        </p>
+        <Actions>
+          <Link
+            to="/settings"
+            search={{ section: "connections" }}
+            className={ACTION_LINK_FACE.default}
+          >
+            Finish it in Settings
+          </Link>
+        </Actions>
+      </div>
+    );
   }
 
   const start = (id: ProviderId) => {
