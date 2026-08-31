@@ -91,4 +91,42 @@ describe("mounted once, for everyone", () => {
   it("backs its poll off like every other live read in this lane", () => {
     expect(code(CREW)).toContain("pollMs(10_000, q.state.fetchFailureCount)");
   });
+
+  it("offers no door to the surface the reader is already standing on", () => {
+    /*
+     * Found on the rendered shell, not in this file: standing on the home, the
+     * quiet crew state offered "Start a piece of work" while the composer sat
+     * three inches to the right, already focused. R-20's "no dead end" asks a
+     * surface to offer the next action, and an action landing you where you
+     * already are is that defect wearing the remedy's clothes.
+     *
+     * Asserted against the CONSTANT rather than the string "/start", for the
+     * same reason F-144 was fixed by derivation: if the home moves and this
+     * comparison does not, the door comes back on the new home and nothing
+     * fails.
+     */
+    expect(code(CREW)).toContain("if (pathname === SIGNED_IN_HOME) return null;");
+    expect(code(CREW)).toContain('from "@/components/shell/post-auth-home"');
+  });
+
+  it("still claims nothing in that branch, because the read swallows its failure", () => {
+    /*
+     * THE REASON IT RENDERS NOTHING RATHER THAN A SENTENCE, pinned so a future
+     * edit that "improves" it has to answer this first.
+     *
+     * `getWorkspaceAnchors` returns an empty result on a failed `agent_runs`
+     * read instead of throwing, so `isError` stays false and this branch is
+     * reached by BOTH "nobody is working" and "we could not find out". A
+     * sentence here is a false all-clear on a dead feed, which SPEC-MULTIPLAYER
+     * -PRESENCE §2 forbids by name. Drawing nothing claims nothing.
+     *
+     * The guard reads the SERVER function, so the day S0 makes that read throw,
+     * this test fails and tells whoever is standing there that the quiet branch
+     * can finally speak.
+     */
+    const fn = readFileSync("src/lib/approvals-queue.functions.ts", "utf8");
+    expect(fn).toContain(
+      "if (runsErr || !runs) return { anchors: [], collisions: [], unknowableRuns: 0 };",
+    );
+  });
 });
