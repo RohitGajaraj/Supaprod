@@ -29,6 +29,21 @@ export const FORECAST_COLS =
 
 export type DueForecast = {
   id: string;
+  /**
+   * THE WORKSPACE THIS BELONGS TO — SELECTED ALL ALONG AND DROPPED IN THE MAP.
+   *
+   * `FORECAST_COLS` has fetched `workspace_id` since it was written and
+   * `listDueForecastsImpl` already filters on it, so the column travelled the
+   * whole way and then fell out of the shape at the last step. **Asked for twice
+   * by S1** (`DueForecast-drops-the-workspace-it-already-selected.md`), who
+   * measured the exact gap rather than the assumed one: no query change, no new
+   * read, one field.
+   *
+   * It matters because the inbox draws forecasts from more than one workspace
+   * for a person who belongs to more than one, and a verdict shown without
+   * saying whose it is asks them to grade something they cannot place.
+   */
+  workspaceId: string | null;
   title: string;
   claim: string;
   howWeWillKnow: string;
@@ -179,6 +194,10 @@ export async function listDueForecastsImpl(
       } | null;
       return {
         id: String(row.id),
+        // Null-preserving: a forecast with no workspace is a real state and
+        // `""` would be a workspace id that matches nothing while looking like
+        // one. F-76's law at field level.
+        workspaceId: (row as { workspace_id?: string | null }).workspace_id ?? null,
         title: String(row.title ?? ""),
         claim: String(row.forecast_claim ?? ""),
         howWeWillKnow: String(row.forecast_how_we_will_know ?? ""),
