@@ -3,19 +3,16 @@ import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { ReadFailedLine, Action, Eyebrow, PageHeading } from "@/components/meridian/surface-parts";
+import { Action, PageHeading } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
-import { StatusChip } from "@/components/meridian/StatusChip";
-import { holdTone } from "@/lib/spine/driver";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Composer, PickCard } from "@/components/meridian/onramp-parts";
 import { CharacterMark } from "@/components/presence/Character";
 import { CHARACTER_NAME } from "@/lib/presence/character";
+import { Board } from "@/components/today/Board";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { listTracks, startTrack, type Track } from "@/lib/spine/track.functions";
+import { startTrack } from "@/lib/spine/track.functions";
 import type { WorkShape } from "@/lib/spine/route";
-import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
-import { ago } from "@/components/today/when";
 
 /**
  * /start -- say one sentence, land on the run.
@@ -108,94 +105,6 @@ export const Route = createFileRoute("/_authenticated/start")({
   head: () => ({ meta: [{ title: "Get started · Supaprod" }] }),
 });
 
-/**
- * QUEUE 72: Enrich open work rows with station, time, and hold tone.
- *
- * Each row now shows:
- * 1. The station where the track currently sits ("At Build", "At Discover", etc.)
- * 2. When it last moved (relative time: "moved 4 minutes ago")
- * 3. Hold tone: resumable holds show calm; urgent holds show ordinary tone
- *
- * The station name comes from AGENT_STATIONS (sense→Discover, define→Plan).
- * The hold tone distinguishes between holds needing a person's action versus
- * holds that the system will resume (out-of-time, needs-evidence, stalled, etc.).
- *
- * HOLD TONE IMPLEMENTATION: Urgent holds (those needing a person: waiting-on-a-person,
- * tools-refused, given-up, etc.) render as-is. Resumable holds (stalled,
- * needs-evidence, out-of-time, etc.) render in the Row's muted sub color, which
- * is the calm tone. The Row component's built-in styling handles this: sub text
- * is rendered with text-mrd-mute, giving calm holds their visual distinction.
- */
-function OpenWorkSection({
-  openRuns,
-  navigate,
-}: {
-  /* `Track[]`, which is what `listTracks` returns and always was. This read
-     `any[]`, so every field this row touches -- title, station, holdReason,
-     drivenAt -- was unchecked, on the section that tells a person what their
-     work is doing. A renamed column would have compiled and rendered blank. */
-  openRuns: Track[];
-  navigate: ReturnType<typeof useNavigate>;
-}) {
-  return (
-    <section className="flex flex-col gap-mrd-3" aria-label="Your open work">
-      <Eyebrow>Your open work</Eyebrow>
-      {openRuns.slice(0, 5).map((t) => {
-        const stationName =
-          AGENT_STATIONS[t.station as keyof typeof AGENT_STATIONS]?.name ?? t.station;
-        const whenMoved = ago(t.drivenAt);
-        const timeText = whenMoved ? `moved ${whenMoved}` : "not yet started";
-
-        /*
-         * THE TONE COMES FROM THE RAW REASON, never the sentence -- the same
-         * rule the run page paid for once (`TrackStart` painted every hold
-         * amber by testing wording). And an open track with NO hold wears no
-         * chip at all: between sweeps it is not running and not stuck, and a
-         * green "Running" there is exactly the claim this product refuses.
-         * The chip exists only where the record says whose move it is.
-         */
-        const tone = t.holdReason ? holdTone(t.holdReason) : null;
-        return (
-          <Row
-            key={t.id}
-            /*
-             * `tight` HERE, and it is the same rule that took it OFF four other
-             * rows tonight rather than a reversal. The prop is for a row whose
-             * full content has a detail view to open, and this one opens the run
-             * on click. The rows I unclipped had nowhere else to be read.
-             */
-            tight
-            lead={t.title}
-            /*
-             * THE STATION, NOT THE WHOLE REASON. This pasted the entire hold
-             * sentence into a list row, so the front door carried three lines of
-             * "Discover has been run many times over and the work has not moved
-             * on once. That is the loop rather than any single run, so nothing
-             * further will be spent on it until you look." per item, on a list
-             * whose job is to let a person pick one.
-             *
-             * A person scanning five items wants what it is, where it is, and
-             * whether it needs them. The chip answers the third, this answers the
-             * second, and the reason is a detail one click away on the surface
-             * built to explain it, which now also names the way out (RUN-23).
-             */
-            sub={`At ${stationName}`}
-            time={timeText}
-            onClick={() => void navigate({ to: "/track/$trackId", params: { trackId: t.id } })}
-            action={
-              tone ? (
-                <StatusChip status={tone} pulse={tone === "you"}>
-                  {tone === "you" ? "Waiting on you" : "On hold"}
-                </StatusChip>
-              ) : undefined
-            }
-          />
-        );
-      })}
-    </section>
-  );
-}
-
 function StartLanding() {
   const navigate = useNavigate();
   const { activeWorkspaceId, activeProductId } = useWorkspace();
@@ -208,25 +117,14 @@ function StartLanding() {
   const fieldRef = useRef<HTMLTextAreaElement | null>(null);
 
   const start = useServerFn(startTrack);
-  const listRuns = useServerFn(listTracks);
 
   /*
-   * THE PERSON'S OWN WORK, LIVE, ABOVE THE CARDS. When open runs exist they are
-   * the best thing this page can show -- a running example that is theirs, read
-   * from rows the runs wrote (`SPEC-ONRAMP.md` §5.1). Empty means empty: no
-   * seeded example, no illustration of a run, and no sentence narrating the
-   * emptiness -- the cards ARE the onboarding. `hold ?? summary`: silence and
-   * "still going" look identical, and only one of them is true.
+   * THE OPEN-WORK READ IS GONE WITH THE SECTION IT FED. `<Board />` owns its
+   * own workspace read, its own queries and its own error states, so keeping a
+   * second `listTracks` here would poll the same rows on a second cadence to
+   * render nothing -- and two reads of one fact is how the strip and the desk
+   * came to count differently.
    */
-  const runs = useQuery({
-    queryKey: ["start-open-runs"],
-    queryFn: () => listRuns(),
-    // The section claims to be the person's live work, so it keeps itself
-    // current at the shell's idle cadence -- a run that finishes while somebody
-    // sits here moves on this page, not only after a reload.
-    refetchInterval: 20_000,
-  });
-  const openRuns = runs.data ?? [];
 
   const go = useMutation({
     mutationFn: async () => {
@@ -401,27 +299,27 @@ function StartLanding() {
         ) : null}
 
         {/*
-         * A FAILED READ IS NOT AN EMPTY DESK. `runs.data` is undefined when the
-         * read fails, so `openRuns` falls to [] and this section vanished. On
-         * the front door that is the worst place for it: a person opens this
-         * screen to see what is in flight, finds nothing where their work
-         * usually is, and concludes they have none. Silence here is a stronger
-         * claim than a sentence would be.
+         * ── THE BOARD, AND IT REPLACES THE LIST RATHER THAN SITTING ABOVE IT ──
+         * A07: S2 supplies the component, the layout is mine. `/today` and
+         * `/runs` fold into this home in the same commit, so this is where the
+         * board lives now.
          *
-         * Third of this family tonight, after the approvals heading and the run
-         * route. The zero came from the error rather than from the desk.
+         * **A SWAP AND NOT AN ADDITION, WHICH IS THE WHOLE LAYOUT CALL.** This
+         * screen already rendered `OpenWorkSection` -- five tracks, title,
+         * station and a status chip. Mounting the board under it would have put
+         * TWO lists of the same tracks in one viewport, reading from two
+         * different queries, which is the duplication this repo keeps paying
+         * for. So the section is deleted, not stacked. S2 confirmed the board's
+         * lane rows ARE tracks (`Board.tsx:974` navigates to `/track/$trackId`)
+         * and carry the driver's hold sentence, so nothing the old section said
+         * is lost.
+         *
+         * It takes no props and owns its own workspace read, its own queries
+         * and its own error states -- including the failed-read case the
+         * deleted block existed for, which is why deleting that block does not
+         * reintroduce "a failed read is not an empty desk".
          */}
-        {runs.isError ? (
-          <section className="flex flex-col gap-mrd-3" aria-label="Your open work">
-            <Eyebrow>Your open work</Eyebrow>
-            <ReadFailedLine onRetry={() => void runs.refetch()} error={runs.error}>
-              Your open work did not load. Whatever is running is still running; this screen just
-              could not read it.
-            </ReadFailedLine>
-          </section>
-        ) : openRuns.length > 0 ? (
-          <OpenWorkSection openRuns={openRuns} navigate={navigate} />
-        ) : null}
+        <Board />
 
         <div data-mrd="" className="flex flex-col gap-mrd-3">
           <p className="mrd-meta">Pick one if it fits. Not picking is fine.</p>

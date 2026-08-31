@@ -2176,6 +2176,63 @@
 }
 
 /*
+ * ── AND THE PRODUCT'S OWN SWITCH HAS TO DO THE SAME THING ──────────────────
+ * Added 2026-08-28, after counting the attribute instead of trusting the claim.
+ *
+ * `use-motion-preference.ts` ships a Settings toggle that writes
+ * `html[data-motion="off"]`, and its own header says the product "already
+ * obeyed" it. MEASURED: `data-motion` appears five times in `src/styles.css`,
+ * gating `.lift:active`, `.sketch-draw`, `.sketch-dot`, `.agent-live` and
+ * `.ai-pulse-text`. It appeared ZERO times in the whole of `src/styles/`, this
+ * file included. So the toggle reached five legacy classes and nothing in the
+ * only design system this product has.
+ *
+ * The block above is keyed on `@media (prefers-reduced-motion: reduce)`, which
+ * is the OPERATING SYSTEM's preference. Every Meridian animation is declared as
+ * an inline style precisely so that block can reach it, and 49 of them across
+ * 20 components outside the run screen were reachable by the OS and by nothing
+ * a person could switch. Four of those never stop on their own: `mrd-spin` on
+ * `PlanCard`, `mrd-shimmer` on `FineTuneCard` and `progress`, `mrd-pixel-on` on
+ * `CrewChrome`. R-19 puts accessibility at full weight, and a switch that
+ * reports success and changes nothing spends a person's trust to no effect.
+ *
+ * ── IT IS THE SAME THREE RULES, AND THAT IS LOAD BEARING ───────────────────
+ * Not just the duration stop. The two that follow it are the ones somebody
+ * would drop by copying only the obvious rule, and the file above records what
+ * that costs: stopping `mrd-pixel-on` parks every lattice cell at its inline
+ * `opacity: 0.15`, the TROUGH of its own envelope, measured at 1.19:1 against
+ * the ground. That is the number DESIGN-SYSTEM.md law 5 records as the
+ * catastrophe this system caught by rendering rather than by reasoning. The
+ * shimmer freeze point is the same kind of choice, one component up.
+ *
+ * The reasoning for all three lives in the block above and is deliberately NOT
+ * repeated here. What IS enforced is that the two lists never drift apart:
+ * `the-motion-toggle-reaches-the-run-screen.test.ts` parses this file and fails
+ * if either block names a keyframe the other does not.
+ */
+html[data-motion="off"] [style*="mrd-pixel-on"],
+html[data-motion="off"] [style*="mrd-attention"],
+html[data-motion="off"] [style*="mrd-shimmer"],
+html[data-motion="off"] [style*="mrd-fade-up"],
+html[data-motion="off"] [style*="mrd-fade-in"],
+html[data-motion="off"] [style*="mrd-pop-in"],
+html[data-motion="off"] [style*="mrd-eq"],
+html[data-motion="off"] [style*="mrd-spin"] {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+}
+
+/* The lattice keeps its visibility, not just its stillness. See above. */
+html[data-motion="off"] [style*="mrd-pixel-on"] {
+  opacity: 1 !important;
+}
+
+/* The word stops at its own midpoint rather than hard against an edge. */
+html[data-motion="off"] [style*="mrd-shimmer"] {
+  background-position: 50% 0 !important;
+}
+
+/*
  * THE POINTER. Every control in this system was missing it.
  *
  * ── WHAT HAPPENED ───────────────────────────────────────────────────────

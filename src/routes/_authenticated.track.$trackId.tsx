@@ -276,6 +276,7 @@ function TrackPage() {
         <RunFooter
           status={track.status}
           tone={holdTone(track.holdReason)}
+          hold={track.holdReason}
           walking={drive.canStop}
           crewLive={crewLive}
           onStop={drive.stop}

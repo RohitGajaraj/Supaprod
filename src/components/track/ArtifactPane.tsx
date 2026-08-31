@@ -24,7 +24,12 @@ import { failureLine } from "@/lib/error-copy";
 import { humanizeText } from "@/lib/ai/humanize";
 import { panelSaysItFiledNothing } from "@/components/track/who-reports-an-empty-station";
 import { groupByThePattern } from "@/components/track/group-by-the-pattern";
+import { enterMotion } from "@/components/spine/enter-motion";
+import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 import { justGrouped } from "@/components/track/just-grouped";
+import { fileNameFor, stationFile, tookItLine } from "@/components/track/station-file";
+import { WhatWereSolving } from "@/components/track/WhatWereSolving";
+import { whatItProduced } from "@/components/track/what-it-produced";
 import { plainProse } from "@/lib/plain-prose";
 /*
  * EVERY plain-text `Prose` on this pane runs agent-written text through
@@ -732,6 +737,10 @@ function SignalCard({
 
   const fDelete = useServerFn(deleteSignal);
   const qc = useQueryClient();
+  /** Whether the person has asked to discard and not yet confirmed. Deliberately
+   *  NOT cleared on failure: a discard that failed leaves both the "for good"
+   *  and the "keep it" doors open, rather than resetting the card under them. */
+  const [confirmingDiscard, setConfirmingDiscard] = React.useState(false);
   const del = useMutation({
     mutationFn: () => fDelete({ data: { id: item.artifactId } }),
     onSuccess: () => {
@@ -784,26 +793,87 @@ function SignalCard({
           .filter(Boolean)
           .join(" · ")}
       </span>
-      <div className="flex items-center gap-mrd-4">
-        {url ? (
-          <a
-            href={url}
-            target="_blank"
-            rel="noreferrer"
-            className="text-mrd-small font-medium text-mrd-you underline underline-offset-2"
-          >
-            Open the source
-          </a>
+      <div className="flex flex-col gap-mrd-2">
+        <div className="flex items-center gap-mrd-4">
+          {url ? (
+            <a
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-mrd-small font-medium text-mrd-you underline underline-offset-2"
+            >
+              Open the source
+            </a>
+          ) : null}
+          {/*
+           * ── DISCARDING EVIDENCE IS PERMANENT, SO IT TAKES TWO ACTS ────────
+           *
+           * `deleteSignal` is a hard `DELETE` on `signals`. There is no status
+           * column, no "Bring it back", and no undo anywhere in the product. It
+           * used to fire on ONE click, on a card a person is reading while an
+           * agent works beside them, and a mis-click destroyed a piece of the
+           * evidence the run is built on with nothing to say afterwards.
+           *
+           * Every other destructive control on this pane is already deliberate:
+           * `ThemeCard`'s "Not a pattern" opens a panel and asks why, and that
+           * one is REVERSIBLE. The irreversible control was the casual one.
+           *
+           * IN PLACE, NOT IN A DIALOG. Meridian's `Dialog` exists for exactly
+           * this question, and its own header says to mount it from a surface's
+           * root rather than deep inside a card, because a `position: fixed`
+           * overlay is trapped by any transformed ancestor. A signal card is as
+           * deep inside as it gets. Inline also matches what this pane already
+           * does and what SESSION-1 asks for: every control that changes a thing
+           * sits ON it.
+           *
+           * NO REASON IS ASKED FOR, deliberately. `deleteSignal` takes an id and
+           * nothing else, so a reason field here would collect words the product
+           * then throws away, which is the defect this pane exists not to commit.
+           * If discarding should carry a reason it needs a column first.
+           */}
+          {confirmingDiscard ? (
+            <>
+              <Action
+                variant="quiet"
+                busy={del.isPending}
+                disabled={del.isPending}
+                onClick={() => del.mutate()}
+              >
+                {del.isPending ? "Removing it" : "Discard it for good"}
+              </Action>
+              <Action
+                variant="quiet"
+                disabled={del.isPending}
+                onClick={() => setConfirmingDiscard(false)}
+              >
+                Keep it
+              </Action>
+            </>
+          ) : (
+            <Action variant="quiet" onClick={() => setConfirmingDiscard(true)}>
+              Discard this finding
+            </Action>
+          )}
+        </div>
+
+        {confirmingDiscard && !del.isError ? (
+          <span className="text-mrd-small text-mrd-body">
+            This deletes it for good. Nothing brings it back.
+          </span>
         ) : null}
+
+        {/*
+         * THE FAILURE LINE NO LONGER TAKES THE CONTROL WITH IT. This used to be
+         * the `else` of the button: a discard that failed replaced the only
+         * control on the card with an explanation, so the person was told it did
+         * not work and left with no way to try again. That is the dead end
+         * R-20 §5 forbids, arrived at through an error path.
+         */}
         {del.isError ? (
           <span role="status" className="text-mrd-small text-mrd-body">
             {failureLine("It is still here, and nothing was removed.", del.error)}
           </span>
-        ) : (
-          <Action variant="quiet" busy={del.isPending} onClick={() => del.mutate()}>
-            {del.isPending ? "Removing it" : "Discard this finding"}
-          </Action>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -1854,6 +1924,7 @@ export function SenseBody({
   now: number;
   trackId: string;
 }) {
+  const reducedMotion = usePrefersReducedMotion();
   const primed = React.useRef(false);
   const seenThemes = React.useRef<Set<string>>(new Set());
   /** Which theme each signal was last seen in; "" for none. */
@@ -1934,6 +2005,14 @@ export function SenseBody({
 
   return (
     <div className="flex flex-col gap-mrd-5">
+      {/*
+       * WHAT THE WORK IS FOR COMES BEFORE THE EVIDENCE FOR IT (gap #16).
+       * Discover's shape is the frame the evidence below sits inside: the
+       * problem, what should be true instead, and who it touches. A person
+       * opening a track reads what it is about first and the findings second,
+       * and until now the run had the second and not the first.
+       */}
+      <WhatWereSolving trackId={trackId} hasEvidenceBelow={groups.length > 0 || loose.length > 0} />
       {groups.map((g) => {
         const t = themeById.get(g.themeId);
         const members = g.signals;
@@ -1943,11 +2022,7 @@ export function SenseBody({
           <section
             key={g.themeId}
             aria-label={heading}
-            style={
-              arrived
-                ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
-                : undefined
-            }
+            style={enterMotion(arrived, reducedMotion)}
             className="flex flex-col gap-mrd-2 border-b border-mrd-line-soft pb-mrd-4 last:border-0"
           >
             {t ? (
@@ -1976,9 +2051,7 @@ export function SenseBody({
                    * above is already animating, and animating both makes one
                    * event look like two.
                    */
-                  freshlyGrouped.has(s.artifactId) && !arrived
-                    ? { animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both" }
-                    : undefined
+                  enterMotion(freshlyGrouped.has(s.artifactId) && !arrived, reducedMotion)
                 }
               >
                 <SignalCard item={s} now={now} trackId={trackId} patternShownAbove />
@@ -2060,9 +2133,17 @@ function StationPanel({
    * cuts the duration, and this is a thing a person watching a run sees often.
    *
    * Inline style rather than a class, deliberately: meridian.css's
-   * reduced-motion block matches on the style attribute, so declared as a
-   * utility it would keep animating for someone who asked it not to.
+   * reduced-motion block matches on the style attribute (`[style*="mrd-fade-up"]`
+   * at meridian.css:2089), so declared as a utility it would keep animating for
+   * someone who asked it not to.
+   *
+   * THAT BLOCK ONLY ANSWERS THE OPERATING SYSTEM. It sits under
+   * `@media (prefers-reduced-motion: reduce)`, and `data-motion` appears NOWHERE
+   * in `src/styles/` at all, meridian.css included. So the in-product toggle
+   * never reached this and the motion is gated here instead, at the source. See
+   * `spine/enter-motion.ts`.
    */
+  const reducedMotion = usePrefersReducedMotion();
   const primed = React.useRef(false);
   const seen = React.useRef<Set<string>>(new Set());
   const landedKeys = (view?.items ?? stop.members).map((m) => `${m.kind}:${m.artifactId}`);
@@ -2085,11 +2166,10 @@ function StationPanel({
   let landedSoFar = 0;
   const arrival = (key: string): React.CSSProperties | undefined => {
     if (!primed.current || seen.current.has(key)) return undefined;
+    const motion = enterMotion(true, reducedMotion);
+    if (!motion) return undefined;
     const step = Math.min(landedSoFar++, 5) * 40;
-    return {
-      animation: "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both",
-      animationDelay: `${step}ms`,
-    };
+    return { ...motion, animationDelay: `${step}ms` };
   };
 
   if (stop.state === "waived") {
@@ -2138,6 +2218,23 @@ function StationPanel({
   }
 
   /*
+   * WHAT THIS STEP PRODUCED, IN ONE SENTENCE, ABOVE THE THINGS IT PRODUCED
+   * (gap #28). The panel already spoke when a station filed NOTHING -- "Plan
+   * ran and filed no spec" -- and said nothing at all when it filed something,
+   * so the run could report absence and not presence.
+   *
+   * DECLARED ABOVE THE DISCOVER BRANCH, not inside the general one, and that
+   * was found by driving it: `SenseBody` returns early, so the first version
+   * reached every station EXCEPT the one where a count helps most. Discover on
+   * track `425e6887` holds 33 clusters and dozens of findings, and it was the
+   * one tab with no sentence.
+   *
+   * Reads the chain's members rather than the artifacts read, so it is there on
+   * first paint instead of arriving a poll later than the cards it introduces.
+   */
+  const produced = whatItProduced(stop.label, stop.members);
+
+  /*
    * BODIES WHERE THE READ EXISTS. The artifacts read and the chain derive
    * position from the same builder, so they cannot disagree about what exists.
    * While the artifacts read is in flight the member titles render; a kind
@@ -2179,11 +2276,14 @@ function StationPanel({
      */
     if (stop.station === "sense") {
       return (
-        <SenseBody
-          items={items.filter((it) => it.kind === "signal" || it.kind === "theme" || it.missing)}
-          now={now}
-          trackId={trackId}
-        />
+        <div className="flex flex-col gap-mrd-4">
+          {produced ? <span className="mrd-meta">{produced}</span> : null}
+          <SenseBody
+            items={items.filter((it) => it.kind === "signal" || it.kind === "theme" || it.missing)}
+            now={now}
+            trackId={trackId}
+          />
+        </div>
       );
     }
 
@@ -2198,6 +2298,10 @@ function StationPanel({
     const missionItems = items.filter((it) => it.kind === "mission" && !it.missing);
     return (
       <div className="flex flex-col gap-mrd-4">
+        {/* Quiet, and above everything: it introduces the cards rather than
+            competing with them, and a person who reads only this line has
+            still been told what the step did. */}
+        {produced ? <span className="mrd-meta">{produced}</span> : null}
         {primaryItem ? (
           <div style={arrival(`${primaryItem.kind}:${primaryItem.artifactId}`)}>
             {bodyFor(primaryItem)}
@@ -2285,6 +2389,8 @@ export function ArtifactPane({
 }) {
   const fChain = useServerFn(getTrackChain);
   const fArtifacts = useServerFn(getTrackArtifacts);
+  /** What the last Take this handed over, said once and left standing. */
+  const [took, setTook] = React.useState<string | null>(null);
   const q = useQuery({
     queryKey: ["spine-track-chain", trackId],
     queryFn: () => fChain({ data: { trackId } }),
@@ -2350,10 +2456,55 @@ export function ArtifactPane({
   const now = Date.now();
   const shown = chain.stops.find((s) => s.station === current) ?? chain.stops[0];
 
+  const view = bodies.data?.stops.find((s) => s.station === shown.station);
+
+  /*
+   * TAKE THIS — the one control RANKED-BACKLOG authorises on this Region, and
+   * it is scoped to the tab shown rather than to the whole run. The reasoning,
+   * the format and why it is a file rather than a clipboard copy are all in
+   * `station-file.ts`; this is the press.
+   *
+   * NOT DISABLED ON AN EMPTY STATION, on purpose. A control that vanishes when
+   * a station filed nothing takes the evidence of the gap with it, and 81 of
+   * 106 tracks are sitting at Discover having filed nothing. The file says so
+   * in words instead.
+   */
+  const take = () => {
+    const name = fileNameFor(track.title, shown.label);
+    const items = (view?.items ?? []).map((i) => ({
+      kind: i.kind,
+      word: i.word,
+      title: i.title,
+      missing: i.missing,
+      fields: i.fields as Record<string, unknown>,
+    }));
+    const body = stationFile({
+      trackTitle: track.title,
+      stationLabel: shown.label,
+      station: shown.station,
+      expects: view?.expects?.word ?? null,
+      gap: shown.gap,
+      waivedReason: shown.waivedReason,
+      items,
+      url: `${window.location.origin}/track/${trackId}`,
+    });
+    /* The proven shape, `DataSection.tsx:91`. An object URL revoked in the same
+       turn, so nothing is left holding the blob. */
+    const url = URL.createObjectURL(new Blob([body], { type: "text/markdown" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(url);
+    setTook(tookItLine(name, items.filter((i) => !i.missing).length));
+  };
+
   return (
     <Region
       title="What it has made"
       sub="The thing each station filed, rendered as itself. Pick a step to see its output."
+      act="Take this"
+      onAct={take}
     >
       <Tabs<string>
         group={`artifact-pane-${trackId}`}
@@ -2362,6 +2513,14 @@ export function ArtifactPane({
         active={current}
         onSelect={onSelect}
       />
+      {/* WHAT IT TOOK, SAID. Brief unit 9: "the control says what it copied."
+          A download that reports nothing is a control a person cannot tell
+          worked, and this one hands over a file they then have to find. */}
+      {took ? (
+        <p role="status" aria-live="polite" className="mrd-meta">
+          {took}
+        </p>
+      ) : null}
       {/* The pane polls; when the shown station's body changes (a spec saved,
           a decision recorded), the change is said politely rather than
           silently repainting. */}
@@ -2369,7 +2528,7 @@ export function ArtifactPane({
         <TabPanel group={`artifact-pane-${trackId}`} active={current}>
           <StationPanel
             stop={shown}
-            view={bodies.data?.stops.find((s) => s.station === shown.station)}
+            view={view}
             /*
              * EVERY STOP, NOT JUST DECIDE, and this was hiding the one thing
              * the product exists to show.

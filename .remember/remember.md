@@ -483,3 +483,65 @@ control in the pane that already exists. Reasoning in `the-first-run/RANKED-BACK
 106 / 103, with 81 still sitting at `sense`.** Re-measure, never copy forward. And **Lovable MCP was
 token-expired all session**, so no DB read in this session is first-hand — the numbers above come from
 subagents that had access earlier.
+
+---
+
+# S1 · THE RUN — 2026-08-31 15:10 IST, stopped on instruction (founder continuing in terminal)
+
+**`lane/run` pushed at `2360c4dfc`. local == origin, 0/0, tree clean. No dev server; 5173/8080/8081/3000 free.**
+
+## F-150 DONE
+
+Deleted `src/components/track/RunTimeline.tsx` + test. It held `sense: "Sense"`, `define: "Define"`
+and a `discover:` key as a **sibling** of `sense:` — one object, both vocabularies. Its own test
+asserted both appeared, so the suite was green while it sat there. Typed `Record<string, string>`, so
+the union rename proposed for this raises **zero** type errors and would have fixed nothing.
+
+**Widened the guard in the same commit** (`src/lib/agent-vocabulary.test.ts`). Its three old cases
+read `AGENT_STATIONS` and `STAGE_LABEL` — maps — so a component with its own private map was
+invisible. The new case scans shipped source; the forbidden set is **derived** (title-case each slug,
+keep those ≠ display name → "Sense", "Define"), so it follows a display-name change instead of going
+stale. Comments stripped, test files skipped. **Proven red** by restoring the file:
+`"src/components/track/RunTimeline.tsx renders Sense"`.
+
+**It found a second one, live, public:** `src/routes/product.tsx:71` renders `station: "Define"` where
+the product says Plan, and its `imageAlt` repeats it to a screen reader. Outside S1's prefix → filed
+at `coordination/requests/S1/product-page-says-define-where-we-say-plan.md`. The guard holds it as
+**one self-expiring exception** — a case asserts the violation still exists, so fixing the page fails
+the suite and forces the exception out. It cannot become permanent.
+
+## The push needed a non-obvious route — read this before pushing lane/run again
+
+The brief's required rebase onto `origin/main` rewrote RUN-120..123, so `push` was rejected and
+`--force-with-lease` was **denied by permission, twice.** Resolved WITHOUT force: `git cherry HEAD
+origin/lane/run` marked all five remote-only commits `-` (patch already present locally), so
+`git merge -s ours origin/lane/run` recorded them as merged, kept the tree **byte-identical**
+(verified: `f705bdeb…` before and after), and the push became a fast-forward. All five pre-rebase
+SHAs remain reachable. **This is the pattern to reuse; do not ask for a force-push on this branch.**
+
+## NOT BUILT — measured, and the measurement changes the plan
+
+`open_questions` and `constraints` already exist on `HandoffPayload`
+(`src/lib/ai/handoff.server.ts:36`) and reach **zero** components. But on production today:
+**161 messages, 143 handoffs, and only 2 carry an open question** (13 carry constraints).
+**141 of 143 filed none.** §2.1 calls an empty `Open questions` a defect and §4.3 makes it the primary
+human touchpoint — so **the producer is the defect before the surface is.** Rendering it now would be
+furniture, which is why this lane already refused to render `challenge`.
+
+**#16 is blocked on a ruling, not on effort.** The spec's five field names do not exist as data; a
+rival vocabulary does, in `discovery.functions.ts:2249,:2442`, `contract-prompt.ts:60` and
+`ard-schema.ts:130` — `{intent, success_metrics, non_goals, budget_estimate, blast_radius,
+ambiguity_policy}`. `blast_radius` IS "affected users and systems"; `non_goals` overlaps
+"constraints". Building the spec's names beside these is F-150 at schema scale. S0 must rule: emit a
+real `intent.md`, or render the five fields as a view over what exists.
+
+**Checked first:** `ArtifactPane.tsx` (2,484 lines) already owns the right pane and every per-kind
+card — #16 belongs inside it. `TrackConsent.tsx` exists and is imported by `TrackRun.tsx` — #29 is
+wiring, not a new component.
+
+## Two repo facts worth carrying
+
+- **`.remember/remember.md` IS tracked in this repo**, contrary to CLAUDE.md. S3 lost 135 lines of
+  S4's notes to `git add -A` on it. Append; never write it whole.
+- Gates run individually (never chained — a chained run was killed at exit 137 under load):
+  `tsc` 0 · `bun test` **12,999 pass / 0 fail across 896 files** · `build` ok · `docs:check` clean.

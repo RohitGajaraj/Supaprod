@@ -54,7 +54,8 @@ const CONTROLS = /<(Action|Approve)\b/g;
  * every one of them was read at migration time to confirm it holds only pending
  * terms.
  */
-const PENDING = /^[\w$]*(isPending|pending|loading|saving|busy|acting|submitting|drafting|deciding|checking|revoking)[\w$]*$/i;
+const PENDING =
+  /^[\w$]*(isPending|pending|loading|saving|busy|acting|submitting|drafting|deciding|checking|revoking)[\w$]*$/i;
 
 /**
  * THE EXEMPTION REGISTER, each entry carrying why `busy` would be the false
@@ -75,6 +76,11 @@ const EXEMPT: ReadonlyArray<{ file: string; expr: string; why: string }> = [
     file: "src/components/brief/BriefFormationFlow.tsx",
     expr: "save.isPending",
     why: "Skip and the three Backs are bystanders blocked during Save-and-continue's versioned upsert; their handlers are synchronous setPhase moves, so busy would announce work they do not perform (answers/UL0-004 C-01 and C-03)",
+  },
+  {
+    file: "src/components/track/ArtifactPane.tsx",
+    expr: "del.isPending",
+    why: "SignalCard's 'Keep it' is a bystander during its sibling 'Discard it for good'; its handler is a synchronous setConfirmingDiscard(false), so busy would announce work it does not do. And it must stay DISABLED rather than simply lose the prop: deleteSignal is already in flight by then and nothing cancels it, so a clickable 'Keep it' would close the question and let the row be deleted anyway, promising the one thing it cannot deliver",
   },
 ];
 
