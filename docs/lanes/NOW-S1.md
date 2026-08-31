@@ -1,5 +1,27 @@
-S1 · TWO SESSIONS ARE WRITING THIS LANE AT ONCE AND THIS LINE IS THE PROOF: the merge conflicted on NOW-S1.md and log/S1.md, and lane/run carries commits under my git identity that I did not author (a rebase onto main, a duplicate RUN-126, a rewrite of docs/operations/session-handoff.md from 1636 lines to 105, and 'S1 UNIT 7 PLANNING' at d9acc36e3). Nothing is lost: the log below is UNIONED, never truncated. FOUNDER DECISION NEEDED on which session is S1. Both lines follow, unedited.
+# NOW — S1 · THE RUN
 
-S1 · 18:1x IST · WORKING · NO DEVSERVER (8080 held for five browser checks today, killed after each; 5173 and 8080 verified clear) · FIVE UNITS SHIPPED, each driven · RUN-124 (#16) the Discover shape · RUN-125 the terminal-hold split across five surfaces from one predicate · RUN-126 (S4-166) per-row demo-fixture provenance on the forecast desk, SHIPPED, so S4 should NOT take it · RUN-127 the Take this control, whose handed-over file driving rewrote twice · RUN-128 (#28) what a station produced, as one sentence: the panel already said "Plan ran and filed no spec" when a station produced NOTHING and said nothing at all when it produced something, so the run could report absence and not presence. Live: "Discover filed 125 findings and 33 clusters" and "Build filed 2 code changes and 1 run" · DRIVING IT CAUGHT that my first version reached every station EXCEPT Discover, because SenseBody returns early and Discover is the tab where a count helps most · MY TEST FAILED FIRST AND WAS RIGHT TO: I asserted "patterns" and "drawings"; KIND_WORD says cluster and prototype. I invented two nouns in the test for a module whose whole purpose is not inventing nouns · NOT TAKING #17, because the other session writing this file names it · gates: tsc 0, 13,080 tests 0 fail across 904 files, eslint clean, docs:check clean, humanization clean · OPEN WITH S0: getTrackHandoffs (unblocks #29, and S0 corrected my reading - draw the section ALWAYS, say the station filed none, never hide it) and the one-field DueForecast fix · src/components/track/** src/components/inbox/**
+**Unit:** RUN-153 · wired S0's `getTrackHandoffs`. **ONE TEST RED, and it is S0's line to remove.**
 
-S1 · 18:4x IST · UNIT 7 PLANNING FILED · NO DEVSERVER · lane/run at d9acc36e3 · PREVIOUS SESSION SHIPPED FOUR UNITS · CURRENT: UNIT 7 ("Was it worth it" value audit, gap #17) — PLANNING PHASE · Filed request to S0 for four metric queries (time-to-first-artifact, share reaching Ship at attempts=1, stations without retry, rework sum) · Waiting on S0 answer + clarification on where this surface lives (per-track vs aggregate vs both) · BLOCKED (unit 6): handoff-payload reader not delivered; NEXT (after S0 answers): design component surface + implementation
+**State:** built and pushed. tsc 0 · my module 20 pass / 0 fail · **full suite 1 fail, stated below.**
+
+**S0's measurement changed the module before I passed a prop.** `agent_messages.track_id` is NULL on
+all 143 handoffs, so a direct join returns zero rows for every track for ever and reads as "nothing
+was handed on" — a false negative with no symptom. Their commit fixes the writer and falls back to
+the mission join.
+
+**Two levels of null, and they differ.** `handoffs === null` = the read failed ·
+`openQuestions === null` = the station never filed the field · `[]` = it filed and said none.
+**3 of 143 carry the field; 140 say nothing.** Collapsing those would make 140 silences into 140 clean
+bills. So the state machine gained a fifth case: **`said-nothing`** (140) vs **`filed-none`** (**one
+row in the product's history**). Third time today for the same law, after F-76 and F-158.
+
+**My own call:** questions are gathered across handoffs and **deduped** — the opposite of
+`what-it-produced.ts`, which counts repeats because a repeated *filing* reveals a jam; a repeated
+*question* reveals nothing.
+
+**THE RED:** `remove them from KNOWN_UNREACHED: handoffs`. S0 registered it unreached *"because the
+reader lands before the mount on purpose"* and said **"it comes off that list the hour you pass the
+prop."** I passed it. `src/lib/**` is S0's, so **I have not touched their line.** Messaged.
+**I am not reporting this suite as green.**
+
+**Not DEVSERVER** (the `asked` branch still has no live data: 0 tracks carry either field).

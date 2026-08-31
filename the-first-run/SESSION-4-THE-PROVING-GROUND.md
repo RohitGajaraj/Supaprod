@@ -198,9 +198,20 @@ restart by it** — while the founder was asleep. R-21, and it is a gate, not ho
 # ALWAYS free, so the R-21 check passed, a second server started on 8080 and collided.
 # S2 recorded exactly that: their server "silently fell through to 8081, so two servers
 # were up, which R-21 forbids and this machine has crashed over".
-lsof -ti:8080 || true          # BEFORE you start one. If anything is listening, do not start another.
+lsof -ti:8080 -sTCP:LISTEN || true   # BEFORE you start one. -sTCP:LISTEN IS LOAD-BEARING: see below.
+# WITHOUT THAT FLAG THIS CHECK HAS A FALSE POSITIVE AND BLOCKS YOU FOR NO REASON (S2,
+# 2026-08-31, F-176). `lsof -ti:8080` matches every socket with 8080 at EITHER end, so an
+# open BROWSER TAB pointed at a dev server counts as "busy" -- including your own tab, and
+# including a tab left over from a server that is already dead. S2 measured one server and
+# two Chrome helpers. S0 proved the mechanism under controlled conditions: one listener,
+# one client, plain form returns BOTH pids, -sTCP:LISTEN returns only the listener.
+# The comment on this line always said "if anything is LISTENING" -- the flag is what makes
+# the command mean it. This is the THIRD way this one guard has been wrong (F-167 had the
+# port number, then vite's silent fall-through to 8081).
 bun run dev                     # only for a check that genuinely needs a browser
-kill $(lsof -ti:8080)           # THE MOMENT the check is done. Not at unit end. Not at session end.
+kill $(lsof -ti:8080 -sTCP:LISTEN)   # THE MOMENT the check is done. Not at unit end. Not at session end.
+# Same flag, and here it matters MORE than above: the plain form would hand `kill` the pid
+# of a browser, or of another workspace's server you never started.
 ```
 
 - **One dev server on this machine at a time.** If the port is busy, another session holds it — read
