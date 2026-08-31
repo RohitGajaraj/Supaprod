@@ -119,11 +119,19 @@ founder's behalf. **Make email + password work first.**
 `index.tsx` · `product.tsx` · `pricing.tsx` · `faq.tsx` · `demo.tsx` · `film.tsx` · `investors.tsx` ·
 `proof.tsx` · `trust.tsx` · `security.tsx` · `privacy.tsx` · `terms.tsx` · `subprocessors.tsx` ·
 `updates.tsx` · `brief.tsx` · `ard.tsx` · `d.$slug.tsx` · `p.$slug.tsx` · `p.teardown.tsx` ·
-`t.$slug.tsx` — **KEEP.**
+`t.$slug.tsx` — **KEEP, AND FROZEN AS OF 2026-08-31.** So is `_authenticated.admin.landing.tsx`, and
+so are `src/components/landing/**` · `public/**` · `plg/**` · `supaprod/**` · `brief/**` ·
+`product/**`.
 
-**Nothing outward-facing ships without the founder's approval.** Copy obeys
-`docs/strategy/positioning-locked-2026-08.md` — and the claims audit found the worst vocabulary drift
-was in the shop window, not the product.
+**FROZEN means S3 owns them so that nobody else touches them, not so that S3 improves them.**
+Operating model §0.7, ruled by the founder: every lane's weight goes to platform strength until the
+acceptance is met. **Four exceptions and nothing else is one** — a live page states something false, a
+legal or security page is wrong, the page is broken, or the founder asks by name. A unit spending here
+is rejected at S0's gate.
+
+**Nothing outward-facing ships without the founder's approval**, and that still holds for the four
+exceptions. Copy obeys `docs/strategy/positioning-locked-2026-08.md` — and the claims audit found the
+worst vocabulary drift was in the shop window, not the product.
 
 ---
 
@@ -174,11 +182,12 @@ Same law: one writer per path. 50 directories, none unassigned.
 | `src/components/track/**` · `spine/**` · `presence/**` · `decisions/**` · `learn/**` · `ask/**` · `discover/**` | **S1** | The run |
 | `src/components/plan/**` · `prds/**` · `design/**` · `build/**` · `ship/**` · `studio/**` | **S1** | Station views inside the run. Folded, not separate |
 | `src/components/shell/**` · `runs/**` · `today/**` · `observe/**` · `crew/**` · `agents/**` · `traces/**` · `mission/**` · `missions/**` · `cockpit/**` | **S2** | The board, the rail, the cursor layer |
-| `src/components/onboarding/**` · `settings/**` · `billing/**` · `admin/**` · `system/**` · `governance/**` · `engine-room/**` · `connections/**` · `plg/**` · `public/**` · `landing/**` | **S3** | The platform |
+| `src/components/onboarding/**` · `settings/**` · `billing/**` · `admin/**` · `system/**` · `governance/**` · `engine-room/**` · `connections/**` · `notifications/**` | **S3** | The platform |
+| `src/components/landing/**` · `public/**` · `plg/**` | **S3 — FROZEN (§0.7)** | Owned so nobody touches it |
 | `src/components/brain/**` · `memory/**` · `knowledge/**` · `trust/**` | **S3** | *What we've learned* and *Track record*. **Honest emptiness until a real learning exists** (R-06, F-70) |
 | `src/components/approvals/**` · `inbox/**` | **S1** | Folds into asked-in-place; S1 owns the fold because the ask lives in the run |
 | `src/components/chat/**` · `threads` | **S1** | Folds into the composer |
-| `src/components/product/**` · `supaprod/**` · `brief/**` | **S3** | Public and marketing |
+| `src/components/product/**` · `supaprod/**` · `brief/**` | **S3 — FROZEN (§0.7)** | Public and marketing |
 | `src/components/machine/**` · `ink/**` | **S0** | AUDIT — `ink` is a retired design system's name. S0 rules whether either survives |
 | `src/components/shared/**` | **S0** | Cross-cutting. A lane proposes, S0 places it |
 | `src/components/__tests__/**` | shared | Each session owns the tests for its own components |

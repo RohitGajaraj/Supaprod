@@ -222,6 +222,184 @@ these eight, and any one of them failing is a fail:
 
 ---
 
+## 0.7 · The freeze — where no lane spends a unit. Ruled by the founder 2026-08-31.
+
+**Founder, 2026-08-31:** *"All objectives of all five lanes should be on making our platform stronger.
+Focus more on platform functionality, making it more agentic. Less on public-facing or low-impact
+items — anything on the public landing page and anything associated with it. We can do it at a later
+point in time. First make the platform stronger and more effective."*
+
+§0.6 says where you MAY add. **This says where you may not spend**, and it is not a lane's judgement
+call in the moment. **A unit that improves the frozen surface is rejected at S0's gate exactly as a
+raw colour is.** The work may be good; it is the wrong work today.
+
+### What is frozen
+
+**Routes** — `index.tsx` · `product.tsx` · `pricing.tsx` · `faq.tsx` · `demo.tsx` · `film.tsx` ·
+`investors.tsx` · `proof.tsx` · `trust.tsx` · `security.tsx` · `privacy.tsx` · `terms.tsx` ·
+`subprocessors.tsx` · `updates.tsx` · `brief.tsx` · `ard.tsx` · `d.$slug.tsx` · `p.$slug.tsx` ·
+`p.teardown.tsx` · `t.$slug.tsx` · `_authenticated.admin.landing.tsx`
+
+**Components** — `src/components/landing/**` · `src/components/public/**` · `src/components/plg/**` ·
+`src/components/supaprod/**` · `src/components/brief/**` · `src/components/product/**`
+
+Measured 2026-08-31: **~3,900 lines of route and ~380KB of component** that no lane opens for
+improvement until the acceptance in §2 is met.
+
+### The four exceptions. Nothing else is one.
+
+1. **A live public page states something false** — a number that no longer holds, a claim the canon
+   retired, a capability we do not have. Fix the sentence, commit it alone, name the wrong claim in
+   the unit file. **A correction, never a redesign: if the fix is longer than the claim, it is a
+   redesign.**
+2. **A legal, security or privacy page is wrong**, or omits something we are obliged to state.
+3. **The page is broken** — a 500, a dead link, a route that no longer resolves, a build failure.
+4. **The founder asks for it by name.** Then it is an instruction, not drift.
+
+Everything else waits: a hero rewrite, a new beat, a motion pass, a pricing table, the waitlist, the
+film, the investor page, an SEO sweep, a marketing empty state.
+
+### The sixty seconds is measured SIGNED IN. This is the correction that matters most.
+
+The second acceptance — *a person understands this inside sixty seconds and wants to come back* — has
+been read as a landing-page test, including by this document. **It is not one.** It is measured from
+**signup → the product already working**: the first paint of the signed-in surface, work visibly
+starting, nothing to fill in first. **A landing page can neither pass nor fail it**, because the thing
+being judged is whether the product explains itself *by doing something*. Anyone measuring it at
+`index.tsx` is measuring the wrong surface.
+
+### What "a stronger platform" means, so a lane can rank its own queue
+
+When two items compete and neither is on a queue, take the one higher on this list:
+
+1. **It makes a station do its job without a person** — self-check, retry, the return edge, the
+   handback, the missing Build→Ship steps. This is the acceptance, and it has never once been met.
+2. **It lets a person direct work without restarting it** — intervene, undo, take one step by hand and
+   give it back, address a teammate mid-flight.
+3. **It makes what the agents are doing legible** — the transcript as a channel, lineage drawn,
+   presence read from rows, one board instead of seven doors.
+4. **It carries the result to a person who is not looking.**
+5. **It lets a company trust it with real work** — the boundary, ceilings, tenancy, audit trail,
+   export, search.
+6. **It makes a surface more pleasant.** Real, and last.
+
+**Anything not on that list is not platform strength, whatever else it is.**
+
+---
+
+## 0.8 · Anthropic's AI-native SDLC playbook is our framework. Adopt by default.
+
+### The ruling, founder 2026-08-31
+
+*"Whatever this AI SDLC playbook Anthropic has published, we need to adopt it wherever possible.
+That's a master thing for us. They are the ones leading the industry, so we go with them and push back
+only where it does not fit. This is framework level."*
+
+**The default is ADOPT and the burden of proof is on the refusal.** A session does not ask *"should we
+take this?"* — it asks *"can I argue why not?"*, writes the argument into
+[`SPEC-AI-NATIVE-SDLC.md`](./SPEC-AI-NATIVE-SDLC.md) §4.2, and adopts if it cannot. **An unargued
+departure is drift, and S0 rejects it at the gate.** Three refusals exist today; a fourth is allowed
+and must be argued the same way.
+
+**The commercial reason, which is sharper than "they lead the industry":** every team that follows
+this playbook will hold `intent.md`, `spec.md`, `plan.md`, `CLAUDE.md` and `REVIEW.md` in their
+repository. **If what Supaprod hands a builder is already those files, we are native to their pipeline
+on day one and there is nothing to integrate.** Compatibility with the leader's format is worth more
+than any format we could design — and it is gap #20 below.
+
+The playbook is read, mapped station by station, and written down once in
+[`SPEC-AI-NATIVE-SDLC.md`](./SPEC-AI-NATIVE-SDLC.md), whose §4 is **the adoption register: every
+artifact and every practice, each marked ADOPTED, ADOPTING, ADAPTED or REFUSED.** **Read that spec
+before proposing anything at a station boundary, handoff, gate, metric or artifact. Never re-read the
+post; it is already extracted.**
+
+**The three facts a session needs from it:**
+
+1. **Its central claim is canon §5N, published by the vendor** — *"code is no longer the bottleneck;
+   the bottleneck moves to plan, review/test and deploy, which still run at human speed."* Ours was
+   measured from the market, theirs argued from their own telemetry, **and neither cites the other.**
+2. **Their six stages map cleanly onto our seven**, with two asymmetries that are both useful: they
+   have no Discover (their pipeline starts with a person who already knows the problem — the harder
+   half is ours), and they have a **Test stage we fold inside Build**, measured by *first-pass CI
+   success rate*. **They count the thing we hide.**
+3. **Nowhere in six stages, ten artifacts and eighteen measures is a prediction recorded before the
+   outcome is known.** `intent.md` holds a *proposed outcome* — a goal, no horizon, no grade.
+   `bands.yaml` holds a *baseline* — history. **The vendor has published the canonical shape of layers
+   01 and 02 and left 03 empty**, which is where we are.
+
+**And the instruction that follows from the risk:** the same post ships **Managed Code Review**,
+**Claude Security** and **Claude Tag** into their Stage 5 and Stage 6 — our Ship and Learn. Those are
+suppliers to layer 02 like every builder is, and we consume them. **A lane that builds a code-review
+surface, a vulnerability-triage screen or a scheduled-scan feature is rebuilding something the vendor
+now gives away. Say so before you start it, not after.**
+
+### Gaps 15 – 19, authorised, continuing §0.6's ranking
+
+15. **A forecast is a point and it should be a band.** `bands.yaml` carries a baseline, detection
+    rules and **three response tiers — 1σ log, 2σ read-only diagnosis, 3σ open a change.** We record
+    one number at Decide and grade it once at horizon, which is why the grader has never usefully
+    fired. The band is the missing half of Decide's metric probe (gap #11), not a new probe. A band
+    from too few observations must say so; **a tier firing on noise is theatre.**
+    — *S0 the columns and the tick, S1 the surface.*
+16. **Nothing entering Discover has a shape.** `intent.md` carries five fields — problem statement,
+    proposed outcome, affected users and systems, constraints, **open questions**. A track enters at
+    `sense` as a slug, and ~46 died there. The last field is the one we would not have thought of: it
+    is what makes a handoff honest rather than confident. — *S1 the surface, S0 the schema.*
+17. **We built the value-audit instrument and never read it.** Every one of their leading indicators
+    is the gap between two committed artifacts' timestamps, and `spine_track_members` already holds
+    ours. Gap #7 calls value audit entirely unbuilt; **the mapping table in `SPEC-AI-NATIVE-SDLC.md`
+    §3 D is that surface's content, and every row is a query against data we already have.**
+    — *S1 the surface, S0 the numbers.*
+18. **Nothing anywhere says what counts as DONE.** Their `REVIEW.md` is written by the customer's tech
+    lead: the review passes, the severity definitions, the exclusions. Ours are hardcoded by us.
+    **"What it's allowed to do" answers what agents may DO; this is the other half**, and it is the
+    question a company actually argues about. One more section on a page already queued. — *S3.*
+19. **A gate should be declarable, and an approval should name its approver.** Their hooks exit
+    0 allow / 1 ask / 2 block, and a production deploy requires **a named approval**. Keep
+    `resolveApprovalPolicy`'s inference — it is good and it is now wired at
+    `src/lib/approvals-queue.functions.ts:1904` — and put a declared rule above it.
+    `agent_approvals.decided_by` is NULL on **18 of 176** answered calls, which is the same hole from
+    the other side. — *S3 the surface, S0 the engine.*
+
+20. **What we hand a builder should BE their files, named their names — and this is the largest of
+    the five.** `SPEC-BUILD-PATHS.md` rules the hybrid handoff and never says what the handoff looks
+    like. The playbook answers it: Discover and Decide emit **`intent.md`** (plus our forecast block,
+    which theirs has no field for), Plan and Design emit **`spec.md`**, Build emits **`plan.md`**, and
+    the handback reads their **`REVIEW.md`** to know what the outcome had to clear. **Not a new
+    station and not a new surface** — the serialisation of artifacts `spine_track_members` already
+    holds. **A team on the playbook drops our output into their repo and their agent picks it up with
+    no adapter.** — *S0 the emitters, S1 the copy-out control (queue item 24 already wants this).*
+21. **A hook the agent cannot edit around.** Theirs prevents an agent editing test files during a fix.
+    We have shipped tests that asserted nothing and a suite that printed a hardcoded pass. Cheap, and
+    the finding is already paid for. — *S0.*
+22. **They count the thing we hide.** They have a Test stage; we fold the check inside Build. **We do
+    not add an eighth station** — the spine, the acceptance query and R-14 all key on seven. **We
+    adopt the substance: the self-check becomes visible and counted**, as *stations passing their own
+    check without a retry*, on the value-audit surface. — *S0 the count, S1 the surface.*
+
+**Also adopt, without a gap number because they land inside work already owned:** the return edge's
+published shape (a missed forecast becomes a **normal, refusable** piece of work at Discover, not a
+special object — gap #4, S0), and the inbound gesture's refinement (**the size of the response is
+decided by the work, not the channel**: small comes back as a change, large enters at the front —
+gap #13, S0 · S2 · S3).
+
+### The three refusals, and each is argued in `SPEC-AI-NATIVE-SDLC.md` §4.2
+
+**Everything else in the playbook is adopted.** Plan mode, parallel worktrees, subagents, scoped CI
+credentials, MCP-exposed tools, hooks as gates and their whole measurement set are **already ours or
+being taken.** The refusals are three and they are narrow:
+
+1. **We do not generate the code** (canon §5N). **Narrow: we refuse to build, not to speak the
+   format** — gap #20 adopts every Stage 3 artifact and still hands the building out.
+2. **We do not own the customer's `CLAUDE.md` or `.claude/skills/`.** We **read** them where a
+   connector reaches the repo, and may **propose** a change through their own review. Writing them
+   silently is the fastest way to lose a repository connection.
+3. **We do not renumber our seven stations to their six** — but we pay for that refusal: **the mapping
+   becomes a translation the product speaks**, so a customer asking "where is my `spec.md`" is
+   answered in their words. Refusing a rename is not refusing the vocabulary.
+
+---
+
 ## 1 · What "truly agentic" means here, stated so it can be failed
 
 Five properties. Each is falsifiable. A surface that has fewer than all five is a dashboard with a

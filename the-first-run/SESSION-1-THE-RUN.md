@@ -82,6 +82,31 @@ Numbered so you can take them in order. Each is one unit: build it, drive it, co
    attempt ceiling and nothing anywhere surfaced it. A refused station is not a failed station
    (R-26): say which door is locked, and offer the next action. **No dead end, ever.**
 
+## Three more, added 2026-08-31 — read `SPEC-AI-NATIVE-SDLC.md` first
+
+The founder pointed the fleet at Anthropic's AI-native SDLC playbook. It is extracted once in
+[`SPEC-AI-NATIVE-SDLC.md`](./SPEC-AI-NATIVE-SDLC.md) — **read the spec, not the post.** Three of its
+adoptions land on your surfaces. Take them after the five above, and **not before you have driven the
+five in a browser**.
+
+6. **What enters Discover needs a shape (gap #16).** A track enters at `sense` as a slug and ~46 died
+   there. Their `intent.md` carries five fields — **problem statement · proposed outcome · affected
+   users and systems · constraints · open questions.** The last is the one we would not have thought
+   of, and it is the one that makes a handoff honest rather than confident. Build the shape into the
+   thing a person or an agent files, and make a Discover artifact that is missing fields *say which*
+   rather than passing quietly. **The schema is S0's — file the ask.**
+7. **"Was it worth it" gets its surface, from data we already have (gap #17).** Every measure in their
+   playbook is the gap between two committed artifacts' timestamps, and `spine_track_members` already
+   holds ours. The mapping is written out in `SPEC-AI-NATIVE-SDLC.md` §3 D: time to first artifact,
+   share of tracks reaching Ship at `attempts = 1`, stations passing their own check without a retry,
+   rework summed across a track. **Value audit is one of the six verbs and it is entirely unbuilt** —
+   this is its content, and no row of it needs a new table. **Ask S0 for each number; never invent one
+   to fill the surface.**
+8. **A forecast is a point and it should read as a band (gap #15).** S0 builds the columns and the
+   tick; **you build how it reads.** On-track, drifting, missed — and what the system did at each,
+   which is the half nobody has ever seen. **A band computed from too few observations must say so on
+   screen**, and a tier that fires on noise is theatre, which ends the feature rather than fixing it.
+
 ---
 
 ## The right pane, and what runs inside it
