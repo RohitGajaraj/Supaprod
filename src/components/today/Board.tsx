@@ -2143,7 +2143,22 @@ export function Board() {
                      * The number is not lost. It is still in the headline and
                      * still on the group, which is the element that owns it.
                      */
-                    <>Nothing has happened yet, so undo is free.</>
+                    /*
+                     * "ON THIS ONE" IS THE WHOLE FIX (S3, 2026-09-01).
+                     *
+                     * S3 drove this screen signed in, read the reasoning above
+                     * BEFORE forming a view, and agreed with it: the judgement
+                     * is right and no count can carry it. **The defect was that
+                     * the SUBJECT was elided.** With the subject missing, the
+                     * nearest referent is the queue -- so a stranger read
+                     * "there is nothing here" sitting directly above a count of
+                     * 65 things that need them.
+                     *
+                     * It is the rarest kind of wrong sentence: not false, and
+                     * made to read as its own contradiction by what it left
+                     * out. Naming the subject costs three words and removes it.
+                     */
+                    <>Nothing has happened on this one yet, so undo is free.</>
                   ) : quietMorning /* SILENT ON A QUIET MORNING, and this is the wall coming
                        down. An audit of the real first sixty seconds found this
                        surface opening with FIVE NEGATIONS in one viewport, and
