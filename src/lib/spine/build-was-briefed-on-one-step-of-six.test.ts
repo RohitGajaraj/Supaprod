@@ -111,7 +111,23 @@ describe("THE RULE: brief only what the station may run or lawfully ask for", ()
    * question in place. Anything else added later still fails here, which is
    * the question whoever adds it should have to answer.
    */
-  const READ_CLASS = new Set(["studio.checks.run"]);
+  /*
+   * F-147 ANSWERS THIS GUARD'S OWN QUESTION rather than widening it to pass.
+   *
+   * `studio.review` joined the checking seat's brief on 2026-08-31. It is the
+   * same class `studio.checks.run` is already admitted under, and the case is
+   * not mine: `trust-ramp.ts:74-96` records the four Build verification checks
+   * as "DELIBERATELY ABSENT FROM BOTH FLOORS ... they read the staged diff and
+   * GitHub, they write nothing, and their whole purpose is to be run before the
+   * tools that DO have consequence." A read with no consequence and no floor is
+   * exactly what READ_CLASS was written to hold.
+   *
+   * The three sibling checks are NOT added here. They are the same class and
+   * would pass, but no brief names them yet, and a set that anticipates callers
+   * stops being evidence of what is actually reachable. Add each one when its
+   * brief line lands, not before.
+   */
+  const READ_CLASS = new Set(["studio.checks.run", "studio.review"]);
   const THE_GATE = new Set(["studio.pr.merge"]);
 
   it("every studio tool named in a Build brief is autonomous, a read, or the gate", () => {

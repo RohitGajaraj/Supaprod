@@ -62,7 +62,7 @@ claim, this is it — and it is the vendor, not an analyst.
 | 2 · Design | `spec.md` | **Plan** | `prds` |
 | 2 · Design | `spec.md` | **Design** | `prototypes` |
 | 3 · Build | `plan.md` · `CLAUDE.md` · `.claude/skills/` · `.claude/agents/` | **Build** | `studio_changesets` |
-| 4 · Test | a named verification target; a hook the agent cannot edit around | **— none —** | the station self-check, inside Build |
+| 4 · Test | a named verification target; a hook the agent cannot edit around | **— none, and we do not really cover it — see the correction below —** | `studio.checks.run` at one Build seat, skippable, ungated |
 | 5 · Deploy | `REVIEW.md` · `.claude/settings.json` · hooks exiting 0/1/2 | **Ship** | `deployments` |
 | 6 · Maintain | `bands.yaml` · detection → a new `intent.md` | **Learn** | `learnings`, `forecast_resolution` |
 
@@ -70,10 +70,20 @@ claim, this is it — and it is the vendor, not an analyst.
 
 1. **Their Stage 1 starts with a person who already knows the problem.** Discover has no counterpart
    in their playbook at all. That is ours, it is the harder half, and it stays.
-2. **They have a Test stage and we do not.** Ours is a check inside each station (authorised gap #1,
-   shipped by S0 as F-76). Theirs is a stage with its own leading indicator — *first-pass CI success
-   rate for agent-written changes*. **The argument that follows is not that we add a station; it is
-   that the self-check must be visible and counted, because they measure the thing we hide.**
+2. **They have a Test stage and we do not — and this file said something false about it until
+   2026-08-31.** It claimed the station self-check is our Test stage. **Measured against the code,
+   that is not true and the correction is F-148.** `verifyStationOutput` (`driver.server.ts:1382`)
+   compiles nothing, executes nothing and runs no test: it checks that a row of the right kind
+   exists and, at four of seven stations, that one string is non-empty. **Build's branch is worse
+   than lenient — it asks for artifact kind `mission`, which the driver itself writes at
+   `driver.server.ts:773` before any seat runs, so Build's self-check cannot fail no matter what the
+   builder did.** Real execution exists — `studio.checks.run` clones the branch into a sandbox and
+   takes real exit codes from `tsc`, `bun test` and `lint` — but it is one instruction at one seat,
+   skippable, with nothing refusing to advance if it never ran or came back red.
+   **The self-check is a FILING check, not a verification check**, and the two must never be
+   conflated again. What follows is not that we add a station: it is that Test needs a real gate
+   (gap #22 rewritten, and gap #21's un-editable hook), and that we do not claim this stage until it
+   has one.
 3. **Every one of their handoffs is a committed file with a git timestamp**, and every leading
    indicator is the gap between two of those timestamps. We already have the shape —
    `spine_track_members` — and F-99 already measured a track filing its first artifact in 34 hours.
@@ -134,7 +144,7 @@ Their leading and lagging indicators are per stage and portable as written. Ours
 | First conversation → committed `intent.md` | track created → first `spine_track_members` row at Decide |
 | `intent.md` → `spec.md` | Decide artifact → Plan artifact |
 | Share of changes merging on the first pass | tracks reaching Ship with `attempts = 1` |
-| First-pass CI success rate | stations passing their own self-check without a retry |
+| First-pass CI success rate | **`studio.checks.run` exit codes** — never the self-check, which cannot fail at Build (F-148) |
 | Time to first review | approval raised → `agent_approvals.decided_at` |
 | Band breach → intent in triage | forecast miss → the new track from **A** above |
 | **Lagging:** rework cycles per change | `attempts` summed across a track's stations |
@@ -262,8 +272,8 @@ Three, and no more than three. **Each is reopenable; none is a matter of taste.*
    says "where is my spec.md" is answered in their words. Refusing a rename is not refusing the
    vocabulary.
 
-**On the Test stage, which deserves a straight answer rather than a refusal.** They have one and we
-do not. **We do not add an eighth station** — the spine, the acceptance query and R-01 all key on
+**On the Test stage, which deserves a straight answer rather than a refusal — CORRECTED 2026-08-31,
+and the earlier answer here overstated our coverage (F-148).** They have one and we do not. **We do not add an eighth station** — the spine, the acceptance query and R-01 all key on
 seven, and the cost of an eighth is not worth paying. **We adopt the substance instead: the
 self-check becomes visible and counted.** Their leading indicator is *first-pass CI success rate*;
 ours is *stations passing their own check without a retry*, and it goes on the value-audit surface

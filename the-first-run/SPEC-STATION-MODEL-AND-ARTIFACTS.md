@@ -56,10 +56,19 @@ spine underneath**, which is the correct place for the two models to differ.
 
 ### 1.3 · Why Test does not become a station, and why Deploy and Maintain do not club
 
-**Test.** Their Stage 4 is *"a named verification target the agent iterates against."* We shipped
-that as F-76 — every station now checks its own output. **The gap is that it is invisible and
-uncounted, not that it is missing**, and gap #22 fixes exactly that. Adding a station would make
-eight to solve a reporting problem.
+**Test. CORRECTED 2026-08-31 — this section originally claimed we already cover it, and we do not
+(F-148).** Their Stage 4 is *"a named verification target the agent iterates against."* What F-76
+shipped is a **filing check**: `verifyStationOutput` confirms a row of the right kind exists and, at
+four of seven stations, that one string is non-empty. **It compiles nothing and runs nothing** — and
+at Build it requires artifact kind `mission`, which the driver writes itself before any seat runs, so
+**it cannot fail.** Real execution exists at `studio.checks.run` (a sandboxed clone taking real exit
+codes) but it is one skippable instruction with no gate behind it.
+
+**The answer is still not an eighth station** — that would solve a coverage problem with a reporting
+change. It is that **Test needs a real gate at the Build→Ship seam**: `studio.checks.run` briefed as
+required rather than suggested, its verdict recorded, and the advance refused on red. Until that
+exists, **we do not claim this stage**, because standard #7 deletes features that claim what they do
+not do.
 
 **Deploy and Maintain, and this is the sharp one: Deploy is an event; Learn is a wait.** Ship
 completes in seconds. Learn waits for the forecast's horizon — F-104's is due **2026-10-15**, two
@@ -84,7 +93,7 @@ acceptance query keeps working on three months of comparable history.**
 | `decide` | **Decide** | 1 · Plan | `intent.md`, commitment + **the forecast block** |
 | `define` | **Plan** | 2 · Design | `spec.md` |
 | `design` | **Design** | 2 · Design | `spec.md` + the prototype |
-| `build` | **Build** | 3 · Build **and** 4 · Test | `plan.md`; the self-check **is** their Test |
+| `build` | **Build** | 3 · Build **and** 4 · Test | `plan.md`. **Test is NOT yet honestly covered** — see §1.3 and F-148 |
 | `ship` | **Ship** | 5 · Deploy | the deploy record; reads their `REVIEW.md` |
 | `learn` | **Learn** | 6 · Maintain | **`verdict.md` — ours, see §2.5** |
 
