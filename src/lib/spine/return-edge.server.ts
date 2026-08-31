@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { recordErrorEvent } from "@/lib/observability/errors";
 import {
   missesStillOwedWork,
   returnedWorkOrigin,
@@ -179,6 +180,34 @@ export async function runReturnEdgePass(db: SupabaseClient): Promise<ReturnEdgeR
         result.alreadyReturned += 1;
         continue;
       }
+      /*
+       * ── RECORDED, NOT RETURNED. This pass shipped with the exact defect it
+       *    was written to help fix, and it cost a silent hour. ──────────────
+       *
+       * `result.skipped` travels back in the tick's HTTP response body, and
+       * NOTHING STORES THAT BODY. `job_runs` keeps status and duration; the
+       * response is discarded. So on 2026-08-31 the first real run of this edge
+       * failed on every insert and reported `ok` in 817ms with no error
+       * anywhere — and the only reason it was caught is that S0 went looking
+       * for a track that should have existed.
+       *
+       * The cause was `PGRST204`: `from_learning_id` was minutes old and
+       * PostgREST had not reloaded its schema cache, so the column existed in
+       * Postgres and not to the client. `read-failure.ts` already names that
+       * code a DEPLOYMENT fact rather than a runtime one — it is exactly the
+       * distinction this codebase wrote down and this pass then failed to use.
+       *
+       * So a skip is now WRITTEN somewhere a person can read. It stays
+       * best-effort — a failed insert must not cost the grader its settle — but
+       * best-effort has never meant unobservable, and the tick's own header says
+       * so: "a console.error in a Worker reaches nobody the founder can read."
+       */
+      await recordErrorEvent(insErr, {
+        surface: "spine.return-edge",
+        failure_kind: "tool_error",
+        request_path: "/api/public/hooks/outcome-tick",
+        workspace_id: m.workspaceId,
+      });
       result.skipped.push(`${m.learningId.slice(0, 8)}: ${insErr.message}`);
       continue;
     }
