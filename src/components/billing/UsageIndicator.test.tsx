@@ -6,43 +6,48 @@
 
 import { describe, it, expect } from "bun:test";
 import { render, screen } from "@testing-library/react";
-import { UsageIndicator, usageRemainingFraction, type UsageIndicatorProps } from "./UsageIndicator";
+import {
+  UsageIndicator,
+  usedFraction,
+  isRunningLow,
+  type UsageIndicatorProps,
+} from "./UsageIndicator";
 import { LOW_CREDITS_WARN } from "@/lib/entitlements";
 
-describe("usageRemainingFraction (pure helper)", () => {
+describe("usedFraction (pure helper)", () => {
   it("should return 1 when allowance is 0", () => {
-    expect(usageRemainingFraction(100, 0)).toBe(1);
+    expect(usedFraction(100, 0)).toBe(1);
   });
 
   it("should return 1 when allowance is negative", () => {
-    expect(usageRemainingFraction(100, -50)).toBe(1);
+    expect(usedFraction(100, -50)).toBe(1);
   });
 
   it("should return 1 when allowance is not finite", () => {
-    expect(usageRemainingFraction(100, Infinity)).toBe(1);
-    expect(usageRemainingFraction(100, -Infinity)).toBe(1);
-    expect(usageRemainingFraction(100, NaN)).toBe(1);
+    expect(usedFraction(100, Infinity)).toBe(1);
+    expect(usedFraction(100, -Infinity)).toBe(1);
+    expect(usedFraction(100, NaN)).toBe(1);
   });
 
   it("should clamp to [0, 1]", () => {
-    expect(usageRemainingFraction(50, 100)).toBe(0.5);
-    expect(usageRemainingFraction(0, 100)).toBe(0);
-    expect(usageRemainingFraction(100, 100)).toBe(1);
-    expect(usageRemainingFraction(150, 100)).toBe(1); // clamped
+    expect(usedFraction(50, 100)).toBe(0.5);
+    expect(usedFraction(0, 100)).toBe(0);
+    expect(usedFraction(100, 100)).toBe(1);
+    expect(usedFraction(150, 100)).toBe(1); // clamped
   });
 
   it("should handle used > allowance", () => {
-    expect(usageRemainingFraction(200, 100)).toBe(1);
+    expect(usedFraction(200, 100)).toBe(1);
   });
 
   it("should handle used < 0", () => {
-    expect(usageRemainingFraction(-50, 100)).toBe(0);
+    expect(usedFraction(-50, 100)).toBe(0);
   });
 
   it("should calculate correct fractions", () => {
-    expect(usageRemainingFraction(25, 100)).toBe(0.25);
-    expect(usageRemainingFraction(33, 100)).toBe(0.33);
-    expect(usageRemainingFraction(99, 100)).toBe(0.99);
+    expect(usedFraction(25, 100)).toBe(0.25);
+    expect(usedFraction(33, 100)).toBe(0.33);
+    expect(usedFraction(99, 100)).toBe(0.99);
   });
 });
 
@@ -168,28 +173,19 @@ describe("UsageIndicator component", () => {
   });
 
   describe("bar width calculation", () => {
-    it("should calculate width as (1 - fraction) * 100%", () => {
+    it("the bar fills with the share consumed", () => {
       const { container } = render(<UsageIndicator used={25} allowance={100} />);
-      // fraction = 25/100 = 0.25, so width = (1 - 0.25) * 100 = 75%
+      // 25 of 100 spent, so the bar is a quarter full and grows from here.
       const bars = container.querySelectorAll("div");
       const filledBar = Array.from(bars).find((el) =>
         el.getAttribute("style")?.includes("height: 100%"),
       );
       const style = filledBar?.getAttribute("style") || "";
-      expect(style).toContain("width: 75%");
+      expect(style).toContain("width: 25%");
     });
 
-    it("should show 0% width when used >= allowance", () => {
+    it("is full when the allowance is spent", () => {
       const { container } = render(<UsageIndicator used={100} allowance={100} />);
-      const bars = container.querySelectorAll("div");
-      const filledBar = Array.from(bars).find((el) =>
-        el.getAttribute("style")?.includes("height: 100%"),
-      );
-      expect(filledBar?.getAttribute("style")).toContain("width: 0%");
-    });
-
-    it("should show 100% width when used = 0", () => {
-      const { container } = render(<UsageIndicator used={0} allowance={100} />);
       const bars = container.querySelectorAll("div");
       const filledBar = Array.from(bars).find((el) =>
         el.getAttribute("style")?.includes("height: 100%"),
@@ -197,16 +193,25 @@ describe("UsageIndicator component", () => {
       expect(filledBar?.getAttribute("style")).toContain("width: 100%");
     });
 
+    it("is empty before anything is spent", () => {
+      const { container } = render(<UsageIndicator used={0} allowance={100} />);
+      const bars = container.querySelectorAll("div");
+      const filledBar = Array.from(bars).find((el) =>
+        el.getAttribute("style")?.includes("height: 100%"),
+      );
+      expect(filledBar?.getAttribute("style")).toContain("width: 0%");
+    });
+
     it("should round width to nearest integer", () => {
       const { container } = render(<UsageIndicator used={33} allowance={100} />);
-      // fraction = 0.33, width = (1 - 0.33) * 100 = 67%, should round to 67
+      // 33 of 100 spent, so the bar is 33% full.
       const bars = container.querySelectorAll("div");
       const filledBar = Array.from(bars).find((el) =>
         el.getAttribute("style")?.includes("height: 100%"),
       );
       const style = filledBar?.getAttribute("style") || "";
       const widthMatch = style.match(/width: (\d+)%/);
-      expect(widthMatch?.[1]).toBe("67");
+      expect(widthMatch?.[1]).toBe("33");
     });
   });
 
@@ -291,7 +296,7 @@ describe("UsageIndicator component", () => {
       const filledBar = Array.from(bars).find((el) =>
         el.getAttribute("style")?.includes("height: 100%"),
       );
-      expect(filledBar?.getAttribute("style")).toContain("width: 100%");
+      expect(filledBar?.getAttribute("style")).toContain("width: 0%");
     });
 
     it("should handle used > allowance by large margin", () => {
@@ -300,7 +305,8 @@ describe("UsageIndicator component", () => {
       const filledBar = Array.from(bars).find((el) =>
         el.getAttribute("style")?.includes("height: 100%"),
       );
-      expect(filledBar?.getAttribute("style")).toContain("width: 0%");
+      // Clamped, never past full.
+      expect(filledBar?.getAttribute("style")).toContain("width: 100%");
     });
   });
 
@@ -311,7 +317,7 @@ describe("UsageIndicator component", () => {
       let filledBar = Array.from(bars).find((el) =>
         el.getAttribute("style")?.includes("height: 100%"),
       );
-      expect(filledBar?.getAttribute("style")).toContain("width: 75%");
+      expect(filledBar?.getAttribute("style")).toContain("width: 25%");
 
       rerender(<UsageIndicator used={50} allowance={100} />);
       bars = container.querySelectorAll("div");
@@ -334,5 +340,64 @@ describe("UsageIndicator component", () => {
       rerender(<UsageIndicator used={50} allowance={200} />);
       expect(screen.getByText("50 of 200 this month")).toBeTruthy();
     });
+  });
+});
+
+/**
+ * THE ALARM WAS FIRING BACKWARDS AND NOTHING TESTED IT.
+ *
+ * `LOW_CREDITS_WARN` is 100 and it is a REMAINING-credits threshold: BillingBanner
+ * applies it as `balance <= threshold` in `shouldWarnLowCredits`. This component
+ * applied the same constant to CONSUMPTION (`used <= LOW_CREDITS_WARN`), and its
+ * one caller passes `monthlyGrantCredits - balanceCredits`, which is spend. **So
+ * the low-credit colour showed while somebody had barely spent anything and
+ * switched OFF as they ran out.**
+ *
+ * Forty-four tests covered this component and not one asserted the warning, so
+ * the inversion was invisible to the suite. Seven of them actively pinned the bar
+ * moving the wrong way: **the tests encoded the defect**, which is why it lasted.
+ *
+ * ASSERTED AS A PREDICATE, NOT A COLOUR, and the first attempt taught me why. I
+ * wrote these against the rendered `background`, and they failed on a case that
+ * is correct in a browser: the old value was `var(--action-blue, var(--mrd-you))`
+ * and the test DOM drops a nested `var()` fallback, so the style came back with
+ * no background at all. A colour is a `var()` chain Meridian owns and may re-map;
+ * the RULE is what this component is responsible for.
+ */
+describe("running low follows what is LEFT, not what is spent", () => {
+  it("is calm when barely anything has been spent", () => {
+    // 10 of 1000 spent, 990 left. This is the case that used to raise the alarm,
+    // because 10 <= 100.
+    expect(isRunningLow(10, 1000)).toBe(false);
+  });
+
+  it("warns once the remainder crosses the threshold", () => {
+    expect(isRunningLow(950, 1000)).toBe(true);
+  });
+
+  it("warns at the boundary and not one credit before it", () => {
+    expect(isRunningLow(900, 1000)).toBe(true); // exactly 100 left
+    expect(isRunningLow(899, 1000)).toBe(false); // 101 left
+  });
+
+  it("still warns when the allowance is spent past zero", () => {
+    expect(isRunningLow(1200, 1000)).toBe(true);
+  });
+
+  /** No allowance is not an emergency; the component renders nothing at all. */
+  it("does not warn when there is no allowance to run out of", () => {
+    for (const bad of [0, -50, Infinity, NaN]) {
+      expect(isRunningLow(10, bad)).toBe(false);
+    }
+  });
+
+  /**
+   * The regression that would undo the fix: applying the threshold to spend
+   * again. Pinned as the pair that must disagree, so a future edit cannot make
+   * both ends true at once.
+   */
+  it("disagrees with the inverted rule at both ends", () => {
+    expect(isRunningLow(10, 1000)).not.toBe(10 <= 100);
+    expect(isRunningLow(950, 1000)).not.toBe(950 <= 100);
   });
 });
