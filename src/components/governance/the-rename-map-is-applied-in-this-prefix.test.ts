@@ -1,0 +1,142 @@
+import { describe, it, expect } from "bun:test";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
+
+/**
+ * §12's RENAME MAP, APPLIED AND HELD ACROSS THIS LANE'S PREFIX.
+ *
+ * The operating model §12 is a law rather than a copy preference: *"if a person
+ * would not say the word out loud to a colleague, it does not go on a surface."*
+ * S0 rules each row and owns the sweep; **a lane applies it inside its own
+ * prefix**, which is what this guards.
+ *
+ * ── WHY A GUARD AND NOT JUST A FIX ────────────────────────────────────────
+ * §12's own warning is the reason: *"A word renamed in one place and left stale
+ * in another has made the problem worse."* That is a live hazard right now —
+ * S2 owns the rail literals in `AppFrame.tsx` and has renamed **Guardrails →
+ * "What it's allowed to do"** and **Brain → "What we've learned"** on their
+ * branch, while the pages those doors land on are mine. A door and its
+ * destination disagreeing is worse than both being wrong together, because the
+ * reader concludes they clicked the wrong thing.
+ *
+ * ── WHAT WAS ACTUALLY LEFT, MEASURED RATHER THAN ASSUMED ──────────────────
+ * Across governance, engine-room, brain, memory, knowledge, trust, settings and
+ * billing, exactly **one** user-facing instance survived: `ControlsPanel`'s
+ * *"They are in the Engine Room."* Everything else had already been applied by
+ * an earlier S3. Hits for `Evals` turned out to be component identifiers, not
+ * rendered text, which is why this test reads props and JSX text rather than
+ * grepping the file wholesale — a rule that fails on an identifier trains people
+ * to weaken it.
+ *
+ * ── SCOPE, DELIBERATELY NARROW ────────────────────────────────────────────
+ * Only the rows whose destination pages are in this prefix. `Crew · Agents ·
+ * Fleet · Swarm`, `Cockpit · Mission Control · Observe · Today` and `Missions ·
+ * Tracks · Runs` land on S1 and S2 surfaces and are theirs to hold. And only
+ * USER-FACING positions: an import, a component name, a query key or a route
+ * path may say anything, because slugs are stable by R-01 and the display name
+ * is what §12 governs.
+ */
+
+const ROOT = join(import.meta.dir, "..");
+const OWNED = [
+  "governance",
+  "engine-room",
+  "brain",
+  "memory",
+  "knowledge",
+  "trust",
+  "settings",
+  "billing",
+];
+
+function tsxUnder(dir: string, out: string[] = []): string[] {
+  let entries: string[];
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return out;
+  }
+  for (const e of entries) {
+    const full = join(dir, e);
+    if (statSync(full).isDirectory()) tsxUnder(full, out);
+    else if (/\.tsx?$/.test(e) && !/\.test\.tsx?$/.test(e)) out.push(full);
+  }
+  return out;
+}
+
+const FILES = tsxUnder(join(ROOT, OWNED[0])).concat(
+  ...OWNED.slice(1).map((d) => tsxUnder(join(ROOT, d))),
+);
+
+/**
+ * JSX COMMENTS COME OUT WITH THEIR BRACES, and the first version of this file did
+ * not do that. It stripped `/* ... *\/` and left the surrounding `{` and `}`
+ * behind, so a `{/* ... *\/}` sitting immediately above a rendered string put a
+ * brace between the `>` and the word and the JSX-text matcher stopped seeing it.
+ *
+ * **Mutation-testing is what caught it**: restoring "Open the Engine Room" left
+ * this suite GREEN, because the explanatory comment I had written directly above
+ * that line was shielding it. A guard that any adjacent comment can switch off is
+ * worse than no guard, because it reports the clean result with authority.
+ */
+const stripComments = (s: string) =>
+  s
+    .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, " ")
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/^\s*\/\/.*$/gm, "");
+
+/**
+ * The rows of §12's map whose destinations are in this prefix. The retired word
+ * is what may not reach a surface; the plain phrase is what replaced it.
+ */
+const RETIRED = ["Engine Room", "Guardrails", "Trust ledger", "Trust Ledger"];
+
+/**
+ * A retired word in a USER-FACING position: a rendering prop, or bare JSX text.
+ * Identifiers, imports, query keys and route paths are all deliberately exempt.
+ */
+function userFacingHits(source: string): string[] {
+  const code = stripComments(source);
+  const hits: string[] = [];
+  for (const word of RETIRED) {
+    const inProp = new RegExp(
+      `(?:title|label|sub|heading|placeholder|alt)="[^"]*${word}[^"]*"`,
+      "g",
+    );
+    const inText = new RegExp(`>\\s*[^<>{}]*${word}[^<>{}]*\\s*<`, "g");
+    for (const m of code.match(inProp) ?? []) hits.push(m.slice(0, 90));
+    for (const m of code.match(inText) ?? []) hits.push(m.slice(0, 90));
+  }
+  return hits;
+}
+
+describe("§12's rename map holds across this lane's prefix", () => {
+  it("walked a real set of files, so a path typo cannot make this vacuous", () => {
+    expect(FILES.length).toBeGreaterThan(60);
+  });
+
+  it("no retired word reaches a surface in this prefix", () => {
+    const offenders = FILES.flatMap((f) =>
+      userFacingHits(readFileSync(f, "utf8")).map((h) => `${f.slice(ROOT.length + 1)} :: ${h}`),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  /**
+   * The canon's own banned list, which §12 says is "not up for renegotiation".
+   * `ledger` is the one that overlaps this prefix, via the Trust ledger row.
+   */
+  it("and none of the canon's banned words either", () => {
+    const banned = ["receipts", "company brain", "decision layer", "unattended", "provenance"];
+    const offenders: string[] = [];
+    for (const f of FILES) {
+      const code = stripComments(readFileSync(f, "utf8"));
+      for (const w of banned) {
+        const re = new RegExp(`(?:title|label|sub|heading|placeholder|alt)="[^"]*${w}[^"]*"`, "gi");
+        for (const m of code.match(re) ?? [])
+          offenders.push(`${f.slice(ROOT.length + 1)} :: ${m.slice(0, 80)}`);
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+});
