@@ -3002,7 +3002,29 @@ function DecideSurface() {
             <Action shortcut="c" busy={busy} onClick={() => challenge.mutate(activeOpp.id)}>
               Challenge it
             </Action>
-            <Action shortcut="d" busy={busy} onClick={() => dropBet(activeOpp)}>
+            {/*
+              ── DROP STOPPED LOOKING LIKE CHALLENGE (2026-09-01) ─────────────
+              These two rendered pixel-identical -- same border, same lift, same
+              ink, same height -- for opposite consequences. "Challenge it"
+              DISPATCHES an agent to argue with the bet, which is constructive
+              and reversible. "Drop it" discards the bet. A reader scanning the
+              row had nothing to tell them apart except reading both labels, on
+              a control they answer dozens of times in a sitting.
+
+              FOUNDER: *"certain areas, buttons are like three things rather
+              than having it as an option."*
+
+              `destructive-quiet` is the face for exactly this: `--mrd-stop` ink
+              on the bare ground, no box. It stays a real focusable button and
+              keeps its `d` shortcut, so nothing is harder to reach -- it simply
+              stops claiming to be the same kind of act as the one beside it.
+            */}
+            <Action
+              variant="destructive-quiet"
+              shortcut="d"
+              busy={busy}
+              onClick={() => dropBet(activeOpp)}
+            >
               Drop it
             </Action>
             <Action variant="quiet" busy={busy} onClick={() => setOpenId(activeOpp.id)}>
@@ -3363,7 +3385,13 @@ function DecideSurface() {
               {/* One verb, and it is the cheap reversible one. See `dropMany`:
                 keeping is three model runs a bet and challenging is one, so
                 neither may ever be spent by a single press on a batch. */}
-              <Action busy={dropMany.isPending} onClick={() => void askDropMany([...picked.ids])}>
+              {/* Same face as the single Drop above, for the same reason: this
+                is the batch form of the one destructive verb on the surface. */}
+              <Action
+                variant="destructive-quiet"
+                busy={dropMany.isPending}
+                onClick={() => void askDropMany([...picked.ids])}
+              >
                 {dropMany.isPending ? "Dropping them" : "Drop them"}
               </Action>
             </QueueSelectionBar>

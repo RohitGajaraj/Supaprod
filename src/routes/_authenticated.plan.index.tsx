@@ -836,7 +836,21 @@ function PlanPage() {
         what was typed, so a refusal costs a press rather than the sentence.
         See `refused`. */}
         {refused ? (
-          <>
+          /*
+           * ── THE ANSWER SITS WITH THE QUESTION NOW (2026-09-01) ────────────
+           * The refusal and the "Try it again" that answers it were siblings in
+           * the page's column, so the stack's own inter-block gap fell between
+           * them -- the same distance that separates this refusal from an
+           * unrelated region. A reader has to cross a group boundary to reach
+           * the control that resolves the message they just read.
+           *
+           * Meridian's ramp GROWS on purpose (meridian.css: "the gap BETWEEN
+           * groups is always visibly larger than the gap WITHIN one"), and this
+           * pair was being spaced as two groups. Wrapping them makes the stack
+           * space the GROUP and `gap-mrd-4` space the pair inside it, which is
+           * the ramp used as designed rather than one step repeated.
+           */
+          <div className="flex flex-col gap-mrd-4">
             <Receipt
               failed
               verb="The promise was not written"
@@ -862,7 +876,7 @@ function PlanPage() {
                 Try it again
               </Action>
             </Actions>
-          </>
+          </div>
         ) : null}
 
         {declaring ? (
