@@ -146,6 +146,7 @@ import {
   Region,
 } from "@/components/meridian/surface-parts";
 import { YouMark } from "@/components/meridian/marks";
+import { Reveal } from "@/components/meridian/Reveal";
 
 /* ------------------------------------------------------------------ *
  * Formatting. Local on purpose, the same reason the run surface keeps
@@ -313,17 +314,30 @@ function Discover({
       ) : (
         <Fact label="What we found" sub={e.theme ? `on ${e.theme.title}` : undefined}>
           <Stat>
-            <Figure>{e.signalCount}</Figure>{" "}
-            {e.signalCount === 1 ? "finding" : "findings"}
+            <Figure>{e.signalCount}</Figure> {e.signalCount === 1 ? "finding" : "findings"}
           </Stat>
         </Fact>
       )}
 
+      {/*
+        THE FINDING'S OWN WORDS, NOT THE FIRST LINE OF THEM.
+
+        This was `tight`, which truncates the lead, and the lead here is
+        `s.excerpt` -- the quoted sentence a Discover crew brought back. A
+        signal IS its excerpt: the title is often a slug and the source is a
+        label, so the one field carrying evidence was the one being cut, with no
+        detail view behind it on this panel.
+
+        `tight` also could not be kept alongside the clamp even if we wanted the
+        density: `truncate` sets `white-space: nowrap`, which descendants
+        inherit, so a line-clamped block inside a tight row never reaches line
+        two. Three lines here rather than two because an excerpt is a quotation
+        and a quotation cut at two lines usually loses its verb.
+      */}
       {e.signals.map((s) => (
         <RunRow
           key={s.id}
-          tight
-          lead={s.excerpt || s.title || "a finding"}
+          lead={<Reveal lines={3}>{s.excerpt || s.title || "a finding"}</Reveal>}
           sub={s.source}
           time={ago(s.at)}
         />
@@ -406,12 +420,27 @@ function Decide({
               {e.alternatives.length === 1 ? "option" : "options"}
             </Stat>
           </Fact>
+          {/*
+            WHY IT WAS NOT CHOSEN, IN FULL.
+
+            `tight` truncated both lines of this row, and the sub is the reason
+            an option was rejected -- the only sentence on this panel that says
+            why the decision went the way it did. Nothing links to it; this row
+            is where a rejected alternative is rendered and it is the only
+            place. The title stays as the lead and is short by nature, so
+            dropping `tight` costs it nothing, while `truncate` on the parent
+            would have blocked the clamp outright by inheriting
+            `white-space: nowrap`.
+
+            The literal fallback keeps its own Reveal for symmetry of layout
+            only -- it never overflows, so `Reveal` measures it and draws no
+            control.
+          */}
           {e.alternatives.map((a, i) => (
             <RunRow
               key={`${a.title}-${i}`}
-              tight
               lead={a.title}
-              sub={a.reason ?? "no reason was recorded"}
+              sub={<Reveal lines={2}>{a.reason ?? "no reason was recorded"}</Reveal>}
             />
           ))}
         </>

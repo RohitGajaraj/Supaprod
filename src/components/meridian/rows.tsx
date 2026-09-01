@@ -107,13 +107,51 @@ export function Row({
 }) {
   const clamp = tight ? "truncate" : "";
 
+  /*
+   * THE CUT TEXT GETS A WAY BACK, AND UNTIL THIS LINE IT HAD NONE.
+   *
+   * `truncate` above ends the line with an ellipsis, which is a promise that
+   * there is more. This file set no `title` anywhere and neither did its
+   * callers, so across the 73 files that import `Row` the promise was empty:
+   * the ellipsis advertised text the reader had no way to reach. Founder's
+   * report, 2026-09-01: *"everywhere, the text is getting truncated ... that's
+   * not the right UI/UX part."*
+   *
+   * `title` IS THE FLOOR, NOT THE ANSWER, and saying so is the honest part of
+   * this fix. It never appears on touch, it never appears for a keyboard user,
+   * and screen readers treat it inconsistently. It is the right fix on THIS
+   * component because a `Row` is a scan line whose full content has a detail
+   * view to open -- that is exactly what a caller asserts by passing `tight`.
+   * Where the cut text has no elsewhere, the fix is `meridian/Reveal`, whose
+   * affordance is a real focusable button; five such surfaces were converted in
+   * the same commit.
+   *
+   * TWO GUARDS, AND BOTH MATTER.
+   *   - Only when `tight`. A tooltip repeating text already fully on screen is
+   *     noise, and noise is how a reader learns to stop believing tooltips on
+   *     the one row where something really is hidden.
+   *   - Only for a plain string. `lead` and `sub` are `ReactNode`, and most of
+   *     the call sites pass a fragment; `title` on one of those is either a
+   *     type error or the literal string "[object Object]".
+   */
+  const hint = (value: ReactNode): string | undefined =>
+    tight && typeof value === "string" ? value : undefined;
+
   const body = (
     <>
       <span className="flex w-[34px] flex-none items-center">{marks}</span>
       <span className="min-w-0 flex-1">
-        <span className={`block text-mrd-prose leading-[1.4] text-mrd-ink ${clamp}`}>{lead}</span>
+        <span
+          title={hint(lead)}
+          className={`block text-mrd-prose leading-[1.4] text-mrd-ink ${clamp}`}
+        >
+          {lead}
+        </span>
         {sub ? (
-          <span className={`mt-0.5 block text-mrd-base leading-[1.4] text-mrd-mute ${clamp}`}>
+          <span
+            title={hint(sub)}
+            className={`mt-0.5 block text-mrd-base leading-[1.4] text-mrd-mute ${clamp}`}
+          >
             {sub}
           </span>
         ) : null}

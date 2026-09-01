@@ -55,6 +55,7 @@
 import { useState } from "react";
 import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
+import { Reveal } from "@/components/meridian/Reveal";
 import {
   Num,
   Actions,
@@ -265,9 +266,26 @@ export function MemoryList() {
       {shown.map((r) => (
         <Row
           key={r.id}
-          tight
+          // NO `tight`, AND THAT IS THE FIX RATHER THAN AN OVERSIGHT.
+          //
+          // `tight` puts `truncate` on the lead, and a caller passes it to
+          // assert that the full content has a detail view to open. This list
+          // has none -- the action comment thirty lines down says so in its own
+          // words: "this list is the only place in the product a memory is ever
+          // rendered". So the ellipsis on every long memory pointed nowhere,
+          // and what it cut was the memory itself, which is the entire row.
+          //
+          // `Reveal` restores the density `tight` was there for without the
+          // dead end: two rendered lines, measured, with a real button when
+          // there is more behind it. Two lines rather than three because this
+          // is a scan list of many rows, not a transcript of one run, and a
+          // memory's first sentence is the one that identifies it.
+          //
+          // `truncate` would also have defeated the clamp outright: it carries
+          // `white-space: nowrap`, which every descendant inherits, so a
+          // line-clamped block inside a tight Row can never reach line two.
           marks={<AgentMark slug={r.agentSlug} name="the loop" state="quiet" />}
-          lead={r.content}
+          lead={<Reveal lines={2}>{r.content}</Reveal>}
           // A different fact from the lead, never more of it: what kind of
           // memory this is, who it came from, and whether the loop has actually
           // reached for it since. A never-recalled row says so plainly rather

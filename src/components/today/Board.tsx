@@ -587,9 +587,19 @@ function CrewLine({
             they are far under it, and degrades the pathological one instead of
             destroying the row around it. The full sentence is on the run, one
             click away, which is the argument the title's own truncation makes. */}
-        <span className="flex min-w-0 max-w-[40ch] shrink-0 items-baseline gap-mrd-2 truncate text-mrd-data text-mrd-mute">
-          {row.who ? `${row.who} · ` : ""}
-          {row.state}
+        {/* THE CLAMP MOVED ONE ELEMENT INWARD, AND IT WAS BROKEN WHERE IT WAS.
+            `truncate` was on this span while the span was `display: flex`, and
+            `text-overflow: ellipsis` acts on a box's own inline content -- a
+            flex container has none, its text is in an anonymous flex item one
+            level down. So `overflow: hidden` clipped the 250-character hold
+            sentence this comment is about MID-GLYPH, with no ellipsis, which
+            reads as a rendering fault rather than as more text. The ceiling
+            above still holds; only the place the cut is drawn has changed. */}
+        <span className="flex min-w-0 max-w-[40ch] shrink-0 items-baseline gap-mrd-2 text-mrd-data text-mrd-mute">
+          <span className="truncate">
+            {row.who ? `${row.who} · ` : ""}
+            {row.state}
+          </span>
         </span>
         {verb}
       </div>

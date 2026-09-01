@@ -12,6 +12,7 @@
 
 import { useEffect, useState } from "react";
 import type { Database } from "@/integrations/supabase/types";
+import { Reveal } from "@/components/meridian/Reveal";
 
 type Decision = Database["public"]["Tables"]["decisions"]["Row"];
 type Learning = Database["public"]["Tables"]["learnings"]["Row"];
@@ -117,12 +118,37 @@ export function AskDecisionCard({
         </div>
       )}
 
-      {/* Prediction vs Actual */}
+      {/*
+        Prediction vs Actual.
+
+        ── BOTH SIDES OPEN, AND ON THIS CARD THAT IS NOT A NICETY ────────────
+        Both halves were `line-clamp-2` with nothing to press. The left one is
+        THE FORECAST -- what a team believed would happen, written before the
+        outcome was known -- and CLAUDE.md names it as the only thing here that
+        is defensible: "the moat is the forecast captured at decision time". A
+        card that shows two lines of it and hides the rest behind nothing is
+        showing two lines of the product's entire argument.
+
+        The right one is what actually happened, which is the half a reader
+        arrives to compare against. Cutting one of a matched pair is worse than
+        cutting either alone: the comparison is the point, and a comparison
+        between two amputated sentences is not one.
+
+        `Reveal` at two lines keeps the side-by-side grid exactly as dense as it
+        was -- these sit in a two-column grid inside an answer column, so the
+        clamp is doing real work -- and measures whether the text overflows
+        before drawing anything, so a one-line forecast gains no control.
+        PENDING keeps its plain paragraph: it holds a placeholder sentence
+        written by this file, not a recorded outcome, so there is nothing behind
+        it to open.
+      */}
       <div className="grid grid-cols-2 gap-3">
         {/* Predicted */}
         <div className="border border-zinc-800 rounded p-2 bg-blue-500/5">
           <p className="text-xs font-medium text-zinc-400 mb-1">PREDICTED</p>
-          <p className="text-xs text-white mb-1 line-clamp-2">{verdict.predicted}</p>
+          <Reveal lines={2} className="text-xs text-white mb-1">
+            {verdict.predicted}
+          </Reveal>
           <p className="text-xs text-zinc-500">By: {verdict.predictedDate}</p>
         </div>
 
@@ -133,13 +159,14 @@ export function AskDecisionCard({
             <p className="text-xs text-zinc-500 italic">{verdict.actual}</p>
           ) : (
             <>
-              <p className="text-xs text-white mb-1 line-clamp-2">{verdict.actual}</p>
+              <Reveal lines={2} className="text-xs text-white mb-1">
+                {verdict.actual}
+              </Reveal>
               <p className="text-xs text-zinc-500">On: {verdict.actualDate}</p>
             </>
           )}
         </div>
       </div>
-
     </div>
   );
 }

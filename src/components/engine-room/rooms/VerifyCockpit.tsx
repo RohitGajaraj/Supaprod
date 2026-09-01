@@ -26,6 +26,7 @@ import {
 } from "../room-parts";
 import { QuietAction } from "../EngineChrome";
 import { Eyebrow } from "@/components/meridian/surface-parts";
+import { Reveal } from "@/components/meridian/Reveal";
 
 /**
  * RPT-31 - The Agent Inbox (verification cockpit).
@@ -197,11 +198,36 @@ function PendingApprovals({
                 </span>{" "}
                 wants <span className="font-mrd-mono">{a.tool_name}</span>
               </div>
+              {/* The two SHORT facts stay on one truncating line: a risk word
+                  and a mission title are labels, and a label that runs long is
+                  still recognisable from its first half. */}
               <div className="mt-0.5 truncate text-mrd-small text-mrd-mute">
                 <span className={RISK_INK[a.risk] ?? "text-mrd-body"}>{a.risk} risk</span>
                 {a.mission_title ? ` · in ${a.mission_title}` : ""}
-                {a.rationale ? ` · ${a.rationale}` : ""}
               </div>
+              {/*
+                THE REASON IS NOT A LABEL, AND IT WAS BEING TREATED AS ONE.
+
+                It used to be appended to the line above -- third in a ` · `
+                chain inside a `truncate` -- so it was the part that got cut,
+                every time, by construction: the two labels ahead of it are
+                spent first. What was cut is the agent's argument for the thing
+                it is asking to do, on the exact row carrying the Reject and
+                Approve buttons. That is the one place in this product where a
+                person is asked to decide with the evidence in front of them,
+                and the evidence was the ellipsis.
+
+                So it gets its own block and its own clamp. Two rendered lines
+                keeps the queue scannable -- this panel is a list and a row that
+                grows to eight lines buries the next call -- and `Reveal`
+                measures the overflow before drawing anything, so a one-line
+                rationale reads exactly as it did.
+              */}
+              {a.rationale ? (
+                <Reveal lines={2} className="mt-0.5 text-mrd-small text-mrd-mute">
+                  {a.rationale}
+                </Reveal>
+              ) : null}
             </div>
             <div className="flex shrink-0 items-center gap-mrd-3">
               <button

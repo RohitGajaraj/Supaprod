@@ -52,6 +52,7 @@ import * as React from "react";
 import { humanizeText } from "@/lib/ai/humanize";
 import { plainProse } from "@/lib/plain-prose";
 import { AgentMark } from "@/components/meridian/marks";
+import { Reveal } from "@/components/meridian/Reveal";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -247,14 +248,31 @@ export function liveSeats(
  *
  * "Trimmed, never rewritten" still holds: punctuation moves, prose does not, and
  * the test beside this file compares the words before and after.
+ *
+ * ── IT NO LONGER CUTS AT 160 CHARACTERS, AND THAT WAS THE WORST CUT WE HAD ──
+ * This function used to end `clean.length > 160 ? clean.slice(0, 160) + "..."`.
+ * The product's whole claim is that a person can watch an agent work, and the
+ * one place the agent speaks in its own words was the one place the words
+ * stopped mid-sentence. Nothing in the app linked to the full text, so the
+ * ellipsis pointed at nothing: there is no run screen showing `agent_runs.output`
+ * whole.
+ *
+ * A character cap was also the wrong instrument twice over. It decides at BUILD
+ * time, so the same sentence is cut identically on a 13in laptop and a 32in
+ * monitor, and 160 characters is a different number of LINES in every column
+ * width this transcript renders at. The render site now clamps by rendered
+ * lines with `meridian/Reveal`, which measures the overflow and draws a real
+ * button only when there is genuinely something behind it.
+ *
+ * SO THIS RETURNS THE CLEANED PROSE WHOLE. It stays a function rather than
+ * collapsing into the JSX because the punctuation rule above is what it is for,
+ * and that rule is what the test beside this file holds.
  */
 export function saidLine(said: string | null | undefined): string | null {
   if (!said) return null;
   /* 92 of 2,805 `agent_runs.output` rows carry `**bold**`, and this is the line
      that renders them. Same tell as the dashes, one layer along. */
-  const clean = plainProse(humanizeText(said)) ?? "";
-  // Truncate AFTER cleaning, so the 160th character is one a person will see.
-  return clean.length > 160 ? `${clean.slice(0, 160)}...` : clean;
+  return plainProse(humanizeText(said)) ?? "";
 }
 
 export function rollupOf(t: Turn, titles: TitleBook): React.ReactNode[] {
@@ -809,6 +827,11 @@ export function TrackActivity({
 
             const arrived = primed.current && !seen.current.has(row.key);
 
+            /* Read once. It was called twice on the row below -- once to test
+               and once to render -- and it now runs `humanizeText` over the
+               WHOLE output rather than over a 160-character slice. */
+            const said = saidLine(t.said);
+
             return (
               <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
                 <RunClock at={Date.parse(t.at)} />
@@ -890,10 +913,26 @@ export function TrackActivity({
                       the transcript said only "Stopped". */}
                   {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
 
-                  {/* The agent's own last line. One line is enough to tell
+                  {/* The agent's own last line, WHOLE, clamped to three
+                      rendered lines with a button that opens the rest.
+
+                      This comment used to read "one line is enough to tell
                       whether it understood the job; the full text lives on the
-                      run. The wording is untouched: `saidLine` moves punctuation
-                      and nothing else.
+                      run", and both halves were wrong. `saidLine` cut at 160
+                      characters, and the full text lives on NO screen in this
+                      product -- no surface renders `agent_runs.output` whole,
+                      so the ellipsis pointed at a page that does not exist.
+                      Founder's report, 2026-09-01: truncation with no way in is
+                      the defect, and this row is the sharpest instance of it,
+                      because watching the agent work is the thing we sell.
+
+                      `Reveal` clamps by LINES rather than characters, measures
+                      whether the text actually overflows, and only then draws
+                      its control -- so a short line is unchanged and gains no
+                      button. Three lines is the transcript's own density: deep
+                      enough to read a thought, shallow enough that the column
+                      of entries beside it still scans. The wording is
+                      untouched: `saidLine` moves punctuation and nothing else.
 
                       ── THIS BRIDGE CAME BACK, AND MY REMOVING IT WAS THE ERROR ─
                       RUN-27 deleted it on the strength of a measurement that
@@ -909,7 +948,11 @@ export function TrackActivity({
                       satisfied by another backfill: delete this when a count of
                       rows created AFTER the write-path fix reads zero, not when
                       the column total does.** */}
-                  {saidLine(t.said) ? <RunNote>{saidLine(t.said)}</RunNote> : null}
+                  {said ? (
+                    <RunNote>
+                      <Reveal lines={3}>{said}</Reveal>
+                    </RunNote>
+                  ) : null}
                 </span>
               </li>
             );

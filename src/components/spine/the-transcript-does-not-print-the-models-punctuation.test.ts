@@ -27,15 +27,38 @@ describe("the agent's own line", () => {
 
   it("changes the punctuation and nothing else", () => {
     // The transcript's honesty rests on this being what the agent said.
-    const words = (s: string) => s.replace(/[^A-Za-z0-9 ]+/g, " ").split(/\s+/).filter(Boolean);
+    const words = (s: string) =>
+      s
+        .replace(/[^A-Za-z0-9 ]+/g, " ")
+        .split(/\s+/)
+        .filter(Boolean);
     expect(words(saidLine(REAL)!)).toEqual(words(REAL));
   });
 
-  it("truncates after cleaning, not before", () => {
+  /**
+   * THIS TEST USED TO ASSERT THE CAP, AND THE CAP WAS THE DEFECT.
+   *
+   * It read `expect(out.length).toBeLessThanOrEqual(163)` -- 160 characters plus
+   * the "..." -- and it held a rule that cut the agent's own words with nowhere
+   * to read the rest: no surface in this product renders `agent_runs.output`
+   * whole, so the ellipsis pointed at a page that does not exist. Founder's
+   * report, 2026-09-01. The clamp moved to the render site, where `Reveal`
+   * measures rendered LINES and draws a real button over what it hides.
+   *
+   * The assertion is INVERTED rather than deleted, because the thing worth
+   * guarding did not go away, it flipped: this function must now hand the
+   * surface every word the agent wrote, and it must still clean a dash that
+   * appears past the old cut point. The tail below sat at character 200 in the
+   * input and would have been thrown away by the old rule, dash and all.
+   */
+  it("hands over the whole line, cleaned end to end", () => {
     const long = `${"word ".repeat(40)}— tail`;
     const out = saidLine(long)!;
     expect(out).not.toMatch(/[—–]/);
-    expect(out.length).toBeLessThanOrEqual(163);
+    // Nothing is dropped: the last word survives, and so does the length.
+    expect(out).toMatch(/tail$/);
+    expect(out.length).toBeGreaterThan(163);
+    expect(out).not.toMatch(/\.\.\.$/);
   });
 
   it("is idempotent, so a row cleaned on write is untouched here", () => {

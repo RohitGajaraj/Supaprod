@@ -83,9 +83,17 @@ export function Reveal({
       setClipped(el.scrollHeight > el.clientHeight + 1);
     };
     measure();
-    const obs = new ResizeObserver(measure);
-    obs.observe(el);
-    return () => obs.disconnect();
+    /* GUARDED, and this is not defensive dressing: happy-dom implements no
+       ResizeObserver, so an unguarded `new ResizeObserver` throws on mount and
+       takes down every test that renders a surface using this. Two of the five
+       converted surfaces have mounting suites (`AskDecisionCard.test.tsx`,
+       `VerifyCockpit.test.tsx`). Same shape as `RunTimeline.tsx` and
+       `SidebarNav.tsx`, which hit this first. The one-shot `measure()` above
+       still runs there, so the component degrades to "measured once". */
+    const Observer = typeof ResizeObserver === "undefined" ? null : ResizeObserver;
+    const obs = Observer ? new Observer(measure) : null;
+    obs?.observe(el);
+    return () => obs?.disconnect();
   }, [open, children]);
 
   return (

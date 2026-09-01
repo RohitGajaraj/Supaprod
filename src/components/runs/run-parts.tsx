@@ -256,15 +256,42 @@ export function RunRow({
   tight?: boolean;
 }) {
   const clamp = tight ? "truncate" : "";
+
+  /*
+   * THE CUT TEXT GETS A WAY BACK. Same defect and same floor as
+   * `meridian/rows.tsx`, which carries the long argument: the ellipsis promises
+   * more text and this row set no `title`, so across every ledger built out of
+   * it the promise was empty.
+   *
+   * `title` is a FLOOR -- absent on touch, absent for a keyboard user,
+   * inconsistent under a screen reader -- and it is the right floor here
+   * because `tight` is a caller's assertion that the full content has a detail
+   * view to open. Only when clamping (a tooltip on untruncated text is noise)
+   * and only for a plain string (`lead`/`sub` are `React.ReactNode`, and
+   * `title` on a fragment renders "[object Object]").
+   *
+   * Where the text has no elsewhere, the row is built without `tight` and the
+   * long value goes in `meridian/Reveal` instead; `stages/StagePanel.tsx` does
+   * exactly that for a Discover excerpt and a rejected alternative's reason.
+   */
+  const hint = (value: React.ReactNode): string | undefined =>
+    tight && typeof value === "string" ? value : undefined;
+
   const body = (
     <>
       <span className="flex w-4 shrink-0 justify-center">{mark}</span>
       <span className="min-w-0 flex-1">
-        <span className={`block text-mrd-label leading-mrd-snug text-mrd-ink ${clamp}`}>
+        <span
+          title={hint(lead)}
+          className={`block text-mrd-label leading-mrd-snug text-mrd-ink ${clamp}`}
+        >
           {lead}
         </span>
         {sub ? (
-          <span className={`mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-mute ${clamp}`}>
+          <span
+            title={hint(sub)}
+            className={`mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-mute ${clamp}`}
+          >
             {sub}
           </span>
         ) : null}

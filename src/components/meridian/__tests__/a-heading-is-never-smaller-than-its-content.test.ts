@@ -50,33 +50,52 @@ function stopToPx(stop: string): number | null {
 }
 
 /**
- * The size on the FIRST line matching `marker`, however it is written.
+ * The size of the ELEMENT that renders `marker`, however it is written and
+ * however prettier has broken it across lines.
  *
- * THE FOURTH TIME THIS FILE HAS READ A SPELLING INSTEAD OF A CLAIM, and the last
- * one: it looked only for `text-[Npx]`, so it threw the moment `rows.tsx` said
- * the same 14px as `text-mrd-prose`. A named stop is not a different size, it is
- * the same size with the guess taken out, which is the direction this whole
- * migration moves in. A guard that fails when the code gets better is measuring
- * the wrong thing.
+ * ── FOUR TIMES A SPELLING, AND THE FIFTH TIME A LINE ─────────────────────
+ * The fourth version looked only for `text-[Npx]`, so it threw the moment
+ * `rows.tsx` said the same 14px as `text-mrd-prose`. The fifth is this one, and
+ * it broke for a reason with nothing to do with sizes at all: it searched for a
+ * single LINE holding both the marker and the size, and on 2026-09-01 `Row`'s
+ * lead span grew a `title` attribute so the truncated text stops being
+ * unreachable. Two attributes past 100 characters is a prettier line break, so
+ * the size class and the child it sizes ended up four lines apart and this
+ * guard threw `no line in rows.tsx carrying {lead}`.
+ *
+ * A LINE IS A FORMATTING ARTIFACT, NOT A CLAIM. The claim is "the element that
+ * renders the lead is set at N px", so the reader takes the marker's line
+ * TOGETHER with the attribute lines of the tag that opens it -- which is the
+ * element, in the only form a source-reading guard can see one. It survives an
+ * attribute being added, the attribute order changing, and prettier deciding
+ * differently about where to wrap.
+ *
+ * A guard that fails when the code gets better is measuring the wrong thing,
+ * and that now includes one that fails when the code is merely REFORMATTED.
  */
+function elementRendering(file: string, marker: string): string {
+  const lines = read(file).split("\n");
+  const at = lines.findIndex((l) => l.includes(marker));
+  if (at === -1) throw new Error(`${file} does not render ${marker} at all`);
+  /* Back to the tag that opens the marker's element. Bounded at eight lines so
+     a marker with no opening tag above it reads as a short element rather than
+     silently swallowing the file and matching some unrelated size. */
+  let start = at;
+  while (start > 0 && at - start < 8 && !/^\s*<[A-Za-z]/.test(lines[start])) start -= 1;
+  return lines.slice(start, at + 1).join(" ");
+}
+
 function sizeOnLineWith(file: string, marker: string): number {
-  const src = read(file);
-  const named = src
-    .split("\n")
-    .find((l) => l.includes(marker) && /text-mrd-[a-z0-9]+/.test(l));
-  if (named) {
-    const stop = named.match(/text-mrd-([a-z0-9]+)/);
-    if (stop) {
-      const px = stopToPx(stop[1]);
-      if (px !== null) return px;
-    }
+  const el = elementRendering(file, marker);
+  // A named stop first: it is the same size with the guess taken out, which is
+  // the direction the whole migration moves in.
+  const stop = el.match(/text-mrd-([a-z0-9]+)/);
+  if (stop) {
+    const px = stopToPx(stop[1]);
+    if (px !== null) return px;
   }
-  const line = src
-    .split("\n")
-    .find((l) => l.includes(marker) && /text-\[\d+(?:\.\d+)?px\]/.test(l));
-  if (!line) throw new Error(`no line in ${file} carrying ${marker} and a size`);
-  const m = line.match(/text-\[(\d+(?:\.\d+)?)px\]/);
-  if (!m) throw new Error(`no text-[Npx] on the matched line in ${file}`);
+  const m = el.match(/text-\[(\d+(?:\.\d+)?)px\]/);
+  if (!m) throw new Error(`no size on the element rendering ${marker} in ${file}`);
   return Number(m[1]);
 }
 
@@ -105,7 +124,8 @@ function regionHeadingStops(): { lead: number; base: number } {
    * with `leading-[1.4]`). The reader was picking the 25px one as `lead`.
    */
   const h2 = src.match(/<h2\b[\s\S]*?<\/h2>/);
-  if (!h2) throw new Error("Region's <h2> is gone; this guard needs rewriting rather than deleting");
+  if (!h2)
+    throw new Error("Region's <h2> is gone; this guard needs rewriting rather than deleting");
   /*
    * THE THIRD BUG THIS FUNCTION HAD, fixed 2026-08-23. It read the heading's
    * size by regex for `text-[Npx]`, so it broke the moment the branches moved
@@ -138,7 +158,8 @@ function regionHeadingStops(): { lead: number; base: number } {
   }
   for (const m of h2[0].matchAll(/"(mrd-[a-z]+)"/g)) {
     const px = roleToPx(m[1]);
-    if (px === null) throw new Error(`Region's <h2> names ${m[1]}, which meridian.css does not size`);
+    if (px === null)
+      throw new Error(`Region's <h2> names ${m[1]}, which meridian.css does not size`);
     // `mrd-title` is the lead branch: it is the only role in the ladder that
     // carries a display stop. Everything else in an <h2> here is the quiet one.
     branches.push({ px, tight: m[1] === "mrd-title" });
