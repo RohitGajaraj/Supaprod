@@ -118,7 +118,22 @@ export function beliefGuidance(source: BeliefSource): string {
     case "pasted":
       return "This is the first line of what you pasted. Edit it, or write your own idea.";
     case "none":
-      return "Write the idea you want analyzed, in your own words. The Critic reads only what is in this box.";
+      /*
+       * "SUPAPROD'S CRITIC" ON FIRST MENTION, NOT A BARE "THE CRITIC".
+       *
+       * This is the first sentence a brand-new account reads, and "the Critic"
+       * is a definite article pointing at something never introduced -- it
+       * assumes a reader who already knows who that is, which on screen one is
+       * nobody. The name itself is right and stays: it is settled, market-tested
+       * vocabulary, and the 2026-08 vocabulary audit passed
+       * `p.teardown.tsx`'s public line untouched on this exact point.
+       *
+       * That line is also where the FORM comes from -- it says "a sharp,
+       * honest, evidence-backed teardown from **Supaprod's Critic**" -- so this
+       * is the product agreeing with copy that has already been through the
+       * audit, rather than a rewrite. One possessive does the introducing.
+       */
+      return "Write the idea you want analyzed, in your own words. Supaprod's Critic reads only what is in this box.";
   }
 }
 
