@@ -241,6 +241,163 @@ export function Chevron({ open = false, className = "" }: { open?: boolean; clas
 const HEADING_CONTROL =
   "shrink-0 rounded-mrd-xs text-[12.5px] text-mrd-mute transition-colors hover:text-mrd-ink";
 
+/**
+ * ── PANEL: A LABELLED INSET INSIDE A CARD ─────────────────────────────────
+ * Added to Meridian 2026-09-01 under the founder's grant to fix gaps in the
+ * system rather than work around them in a surface.
+ *
+ * THE GAP IT CLOSES, named by the founder on the promotion card: *"the text,
+ * what's set, what's approved, and what would change it just feel like a dump
+ * of text, and there is no proper alignment."*
+ *
+ * Meridian had `Region` (a section of a PAGE) and nothing for a labelled block
+ * INSIDE a card, so `PromotionCard` hand-rolled one twice --
+ * `rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4` with an `Eyebrow`, copied.
+ * Two hand-rolled copies of the same thing is how two blocks that mean
+ * completely different things (the evidence UNDER a lesson, and what would
+ * change if you approved it) end up looking identical and reading as one
+ * undifferentiated field of grey.
+ *
+ * THE GLYPH IS THE FIX FOR THAT, and it is not decoration. When two panels sit
+ * together the eye needs something other than the label text to tell them
+ * apart at a glance, because the labels are the one thing a reader has to slow
+ * down to read. `--mrd-mute` keeps it quiet enough that the words still lead.
+ */
+/**
+ * ── STAT: THE NUMBER THAT LEADS, WITH THE LABEL THAT MAKES IT HONEST ──────
+ *
+ * NOT `Figure`, which is already taken and is a different thing: that one is an
+ * inline mono span for a number INSIDE a sentence ("Run 12 times") and
+ * deliberately sets no colour. This is the block treatment -- a figure a reader
+ * takes BEFORE the sentence, with the label that names it.
+ *
+ * Promoted into Meridian 2026-09-01. This treatment already existed and was
+ * PRIVATE to `InsightCards.tsx:795`, which is the one component the founder
+ * has singled out as working: *"I really loved the way our insight cards are
+ * there ... you can see how the messages could be appealing ... This has to be
+ * implemented across the platform, but this is not there anywhere, so that is
+ * also the missing part."* He is right that it is nowhere else, and the reason
+ * is simply that it was never a primitive -- so every other card in the
+ * product had no way to state a figure and set one in body prose instead.
+ *
+ * ── WHY A CARD WITHOUT ONE READS AS A DUMP ───────────────────────────────
+ * FOUNDER, on the promotion card: *"it just feels like a dump of text. There
+ * is no differentiation between the header and the text below ... Insight
+ * needs to be highlighted."*
+ *
+ * Measured on the rendered card: the evidence list and the consequence list
+ * were BOTH 14px, weight 400, `oklch(0.4 0.01 70)` -- byte-identical type for
+ * two blocks that mean opposite things (what is already true, versus what
+ * would become true if you press the button). With nothing set apart, a reader
+ * has to parse every sentence at the same speed to find the one that decides
+ * it. That is the whole mechanism behind "no attention to detail": not ugly
+ * type, but UNIFORM type, which forces reading where it should allow scanning.
+ *
+ * A figure fixes it because a number is the one thing the eye resolves without
+ * reading. `--mrd-t-lead` is the step the system already names *"a figure
+ * worth reading before the words"*.
+ *
+ * ── THE LABEL IS NOT OPTIONAL, AND THAT IS AN HONESTY RULE ───────────────
+ * `InsightCards` states it at its own copy: *"A number on its own here would
+ * be exactly the shape the honesty rule bans, and a label costs one line."* A
+ * bare figure offers volume as evidence of quality. The label names what the
+ * number IS, so it claims only what it measures.
+ */
+export function Stat({
+  value,
+  label,
+  tone = "neutral",
+}: {
+  value: React.ReactNode;
+  /** What the number is. Required: a figure with no label is a claim. */
+  label: string;
+  tone?: "neutral" | "pass" | "fail";
+}) {
+  return (
+    <div data-mrd="">
+      <div
+        className={`font-mrd-mono text-mrd-lead font-semibold tabular-nums ${
+          tone === "pass" ? "text-mrd-pass" : tone === "fail" ? "text-mrd-fail" : "text-mrd-ink"
+        }`}
+      >
+        {value}
+      </div>
+      <div className="mt-mrd-1 text-mrd-tiny text-mrd-mute">{label}</div>
+    </div>
+  );
+}
+
+export function Panel({
+  label,
+  glyph,
+  figure,
+  children,
+  className = "",
+}: {
+  label: string;
+  /** A small mark that distinguishes this panel from the one beside it. */
+  glyph?: React.ReactNode;
+  /**
+   * The one number a reader should get before any sentence. Optional, because
+   * not every panel has a figure -- but a panel whose content is a list almost
+   * always does, and stating it is the difference between a block that can be
+   * scanned and a block that must be read.
+   */
+  figure?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      data-mrd=""
+      className={`flex min-w-0 flex-col rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4 ${className}`}
+    >
+      <span className="flex items-center gap-mrd-3">
+        {glyph ? (
+          <span aria-hidden="true" className="shrink-0 text-mrd-mute">
+            {glyph}
+          </span>
+        ) : null}
+        <Eyebrow>{label}</Eyebrow>
+      </span>
+      {/* THE FIGURE SITS BETWEEN THE LABEL AND THE BODY, which is the only
+          place it can do its job. Above the label it has nothing naming it;
+          below the body it is a footnote to text the reader has already had to
+          read, which is the problem it exists to remove. */}
+      {figure ? <div className="mt-mrd-3">{figure}</div> : null}
+      <div className={figure ? "mt-mrd-4" : "mt-mrd-3"}>{children}</div>
+    </div>
+  );
+}
+
+/**
+ * TWO PANELS THAT BELONG TOGETHER, SIDE BY SIDE WHEN THERE IS ROOM.
+ *
+ * A CONTAINER QUERY AND NOT A BREAKPOINT, which is the whole reason this is a
+ * primitive rather than two utility classes at each call site.
+ * FOUNDER, 2026-09-01: *"it is not just limited to these four sizes. It needs
+ * to dynamically adapt based on the type of monitors or screens I am using."*
+ * A viewport breakpoint answers the WINDOW, so a pair of panels inside a narrow
+ * card on a wide monitor would go two-up and each column would be ~120px. This
+ * measures the space the panels are actually in, so the same card lays itself
+ * out correctly in a full-width surface, in a side column, and in a sheet --
+ * and at every width in between, not at four named ones.
+ *
+ * 560px is measured, not picked: below it the two `--mrd-copy` columns start
+ * breaking evidence lines mid-phrase, which is worse than stacking.
+ */
+export function PanelPair({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      data-mrd=""
+      className="mrd-panel-pair grid gap-mrd-4"
+      style={{ containerType: "inline-size" }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function Region({
   title,
   sub,
@@ -449,7 +606,7 @@ function Keycap({ children }: { children: React.ReactNode }) {
   );
 }
 
-export type ActionVariant = "default" | "primary" | "quiet" | "destructive";
+export type ActionVariant = "default" | "primary" | "quiet" | "destructive" | "destructive-quiet";
 
 const ACTION_FACE: Record<ActionVariant, string> = {
   /*
@@ -526,6 +683,37 @@ const ACTION_FACE: Record<ActionVariant, string> = {
    */
   destructive:
     "border border-mrd-stop/40 bg-mrd-stop/8 text-mrd-stop enabled:hover:border-mrd-stop/75",
+  /*
+   * ── THE SAME ACT, DEMOTED OUT OF THE PEER ROW (added 2026-09-01) ────────
+   *
+   * FOUNDER, reviewing the promotion card: *"certain areas, buttons are like
+   * three things rather than having it as an option."* Three answers were drawn
+   * as three peers -- a filled primary, a bordered secondary and a bordered,
+   * washed destructive, all at the same 32px -- so the row read as three equal
+   * buttons and which one the surface expects was left for the reader to work
+   * out from the labels.
+   *
+   * `destructive` is already the quietest of the four and that is not enough,
+   * because it is still a BOX. A border plus a fill at the primary's own height
+   * is a peer whatever colour it wears. This drops both and keeps the word, so
+   * the ladder inside one `Actions` row becomes filled slab -> quiet text ->
+   * quiet text at the far edge, and the hierarchy is visible before a single
+   * label has been read.
+   *
+   * IT IS STILL A BUTTON AND STILL `--mrd-stop`, which is the constraint the
+   * face above states absolutely: that token may only ever paint something a
+   * person can press, because it collapses against `--mrd-fail` in greyscale
+   * (1.12 on dark, 1.04 on paper) and only the SHAPE tells the two apart.
+   *
+   * DROPPING THE WASH IMPROVES THE LABEL, and that is measured rather than
+   * hoped for. On its own 8% wash the face above records 4.64 at worst;
+   * `--mrd-stop` on a bare `--mrd-sheet` reads 6.26 on dark and 6.63 on paper,
+   * because the wash was tinting the ground toward the label it carried. The
+   * wash moves to hover, where it is the only feedback a control with no border
+   * and no fill has left, and where the face above already proves it clears the
+   * text floor.
+   */
+  "destructive-quiet": "text-mrd-stop enabled:hover:bg-mrd-stop/8",
 };
 
 /**

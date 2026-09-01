@@ -78,6 +78,7 @@ import { composerMaxHeight } from "@/components/meridian/composer-height";
 export function PickCard({
   lead,
   sub,
+  glyph,
   selected,
   onSelect,
   className = "",
@@ -86,6 +87,27 @@ export function PickCard({
   lead: string;
   /** What picking it actually does. One or two lines. */
   sub?: string;
+  /**
+   * A mark for the kind of work this is.
+   *
+   * ── WHY A CARD LIKE THIS NEEDS ONE (2026-09-01) ──────────────────────
+   * FOUNDER: *"those cards can be a little innovatively put around some sort
+   * of icons, messages, or images to make it more relatable, more habitable,
+   * more appealing."*
+   *
+   * Four of these sit in a grid and every one of them is two lines of prose
+   * in the same weight, the same size and the same colour. There is nothing
+   * for the eye to sort them by, so choosing means READING ALL FOUR -- on the
+   * first screen of the product, before anything has been done. A mark gives
+   * each card a silhouette, and a person who has used the surface twice picks
+   * by shape without reading at all.
+   *
+   * IT IS `aria-hidden` AND CARRIES NO MEANING OF ITS OWN. The lead is the
+   * label and the only label; the mark is a recognition aid. A glyph that
+   * carried information a sighted reader gets and a screen reader does not
+   * would be an accessibility defect wearing a design one's clothes.
+   */
+  glyph?: React.ReactNode;
   selected: boolean;
   onSelect: () => void;
   className?: string;
@@ -103,16 +125,51 @@ export function PickCard({
       aria-pressed={selected}
       onClick={onSelect}
       className={
-        "relative flex w-full min-h-11 flex-col items-start rounded-mrd-ctl " +
+        "mrd-pick relative flex w-full min-h-11 items-start gap-mrd-4 rounded-mrd-ctl " +
         "bg-mrd-lift px-mrd-4 py-mrd-3 text-left transition-colors " +
         `enabled:hover:bg-mrd-lift-hover ${ring} ${className}`
       }
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     >
-      <span className="block text-mrd-prose leading-mrd-snug font-medium text-mrd-ink">{lead}</span>
-      {sub ? (
-        <span className="mt-mrd-2 block text-mrd-base leading-mrd-snug text-mrd-mute">{sub}</span>
+      {/*
+        ── THE MARK SITS BESIDE THE TEXT, AND IT IS BIGGER (2026-09-01) ──────
+        FOUNDER: *"can we increase the size of those glyphs a little bit more,
+        and bring the text side to that glyph."*
+
+        It was stacked above the lead at 28px in a tinted tile. Two things were
+        wrong with that and he saw both. Stacked, the drawing is a HAT on the
+        card rather than part of the row, and every card grows by the mark's
+        height plus its gap -- 40px across four cards for no information. And
+        at 15px inside a 28px tile the drawing was too small to read AS a
+        drawing: the loose strokes that make it look hand-made are exactly what
+        disappears first when a line drawing is shrunk.
+
+        Beside the text at 22px in a 36px tile, the mark is legible as a
+        drawing, the card is shorter, and the row reads as a list of choices
+        rather than a grid of tiles. The tile keeps a fixed basis so four
+        different drawings share one optical left edge -- without it each
+        glyph's own bounding box would set its own indent and the column of
+        leads would step in and out by a pixel or two per card, which is
+        precisely the kind of raggedness this pass is fixing elsewhere.
+      */}
+      {glyph ? (
+        <span
+          aria-hidden="true"
+          data-glyph=""
+          className="mt-[1px] flex h-9 w-9 shrink-0 items-center justify-center rounded-mrd-xs bg-mrd-sink text-mrd-mute transition-colors"
+          style={{ transitionDuration: "var(--mrd-d-press)" }}
+        >
+          {glyph}
+        </span>
       ) : null}
+      <span className="flex min-w-0 flex-col">
+        <span className="block text-mrd-prose leading-mrd-snug font-medium text-mrd-ink">
+          {lead}
+        </span>
+        {sub ? (
+          <span className="mt-mrd-2 block text-mrd-base leading-mrd-snug text-mrd-mute">{sub}</span>
+        ) : null}
+      </span>
     </button>
   );
 }
@@ -176,11 +233,28 @@ export function Composer({
   const canSubmit = !busy && !disabled && value.trim().length > 0;
 
   return (
+    /*
+     * THE BLOOM (`mrd-bloom`) IS WHY THIS FIELD READS AS THE PAGE. Founder,
+     * 2026-09-01: *"for the typing bar, you can have a subtle glow, like how
+     * new-age AI platforms have some gradient effect."*
+     *
+     * It is achromatic on purpose and the reason is a colour-law one rather
+     * than a taste one: every reference for this pattern glows violet, this
+     * system's violet is `--mrd-you` and it means A PERSON IS REQUIRED, and
+     * spending that hue on a focused textarea is how it stops meaning anything
+     * on the approval card where it matters. The full argument is at the token
+     * in `meridian.css`.
+     *
+     * `disabled` KILLS IT RATHER THAN DIMMING IT. `opacity-45` on the wrapper
+     * would fade the halo along with the field and leave a grey smudge behind
+     * a control nobody can type in, which reads as a rendering fault. A
+     * disabled composer is simply not lit.
+     */
     <div
       data-mrd=""
       className={
         "rounded-mrd-ctl border border-mrd-field bg-mrd-sink transition-colors " +
-        `focus-within:border-mrd-field-focus ${disabled ? "opacity-45" : ""}`
+        `focus-within:border-mrd-field-focus ${disabled ? "opacity-45" : "mrd-bloom"}`
       }
       style={{ transitionDuration: "var(--mrd-d-press)" }}
     >

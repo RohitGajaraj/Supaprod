@@ -1005,6 +1005,58 @@
   --mrd-read-max: 42rem;
 
   /*
+   * THE WIDEST A PAGE GETS BEFORE IT STOPS GROWING. Beyond this a row of dense
+   * data is wider than a person can track across without losing the line, and
+   * a 65in monitor would otherwise render a 3,000px table row. The page stays
+   * centred in whatever is left, so the extra space becomes margin rather than
+   * measure. Matches `--shell-work-max`, which is the shell's own name for the
+   * same fact; the two are kept equal deliberately so a hand-composed page and
+   * a ported Surface land on the identical margin.
+   */
+  --mrd-page-max: 1400px;
+
+  /*
+   * ── SKETCH INK: THE ONE PLACE BRAND COLOUR TOUCHES THE PRODUCT ─────────
+   * Added 2026-09-01. FOUNDER: *"can we add something like handwritten glyphs
+   * so that it feels like a real human feeling or human attention to detail
+   * ... take reference from Notion or Anthropic also, as they are giving
+   * handwritten sketches, and it would be in brand colors so that it would be
+   * differentiated ... make that unique USP touch point."*
+   *
+   * ── WHY THIS NEEDED A NEW CATEGORY RATHER THAN AN EXISTING TOKEN ───────
+   * Two standing rules meet here and they LOOK like they forbid this.
+   *
+   *   1. The colour law: hue carries STATUS. Orchid means a person is
+   *      required, azure means a machine is working, amber means stopped,
+   *      green and red are outcomes. Nothing decorates.
+   *   2. Ember is the LOGO's and is retired from every interaction state. It
+   *      lives at `--brand-mark-ember` and must not share a token with a focus
+   *      ring, a control or a chip.
+   *
+   * Both rules are about the same failure -- a reader learning that a colour
+   * means something and then meeting it somewhere it means nothing. Neither is
+   * about ILLUSTRATION, which is a third thing: a drawing is not a control, has
+   * no state, and is never the only carrier of a fact (every sketch here is
+   * `aria-hidden` beside a real label).
+   *
+   * So this names the boundary instead of blurring it. `--mrd-sketch` is
+   * ILLUSTRATION INK, and the scope is a hard one:
+   *
+   *   MAY be used on: a hand-drawn glyph, an empty-state drawing, a spot
+   *                   illustration -- always stroke, never fill.
+   *   MAY NOT be used on: a control face, a focus ring, a chip, a status dot,
+   *                   a border, a background, a chart series, or any text.
+   *
+   * ── THE VALUE ──────────────────────────────────────────────────────────
+   * Hue 42 is the mark's own (`#ff6b2c` measures oklch(0.70 0.19 42)), so the
+   * sketches are recognisably ours. Chroma drops to 0.11 -- well under
+   * orchid's 0.16 and amber's 0.125 -- because a drawing must never out-shout
+   * the one hue that asks a person for something. It reads as a warm ink line,
+   * not as an alert.
+   */
+  --mrd-sketch: oklch(0.72 0.11 42);
+
+  /*
    * HOW FAR A PINNED SCROLLING COLUMN DISSOLVES AT ITS EDGE.
    *
    * The reference (beautifului.dev) does not end its rail, it fades it: rows
@@ -2531,44 +2583,191 @@ textarea:not([readonly]):not([disabled]):focus-visible {
 }
 
 /*
- * ── THE READING COLUMN ────────────────────────────────────────────────────
+ * ── THE PAGE BOX AND THE READING COLUMN ──────────────────────────────────
  * Added to Meridian 2026-09-01 under the founder's grant to close gaps in the
  * system rather than reach past it.
  *
- * WHY IT IS MERIDIAN'S AND NOT THE SHELL'S. It was written first as `.sp-read`
- * in `shell.css`, and the ratchet failed the route that used it -- correctly.
- * `sp-` is the retired namespace; a NEW primitive in it is new debt however
- * well it behaves. And this is not shell furniture: it is a measure, the same
- * kind of fact as `--mrd-measure`, and any surface may want one.
+ * ── THE DEFECT, PHOTOGRAPHED ─────────────────────────────────────────────
+ * FOUNDER: *"the main content on the center pane is slightly towards the right
+ * side."*
  *
- * WHAT IT SOLVES. A page holds two kinds of block. Prose, a heading and a
- * composer are read line by line and stop being readable much past 42rem. A
- * board of dense rows is not read that way and wants the region. Before this
- * the home applied ONE measure to BOTH -- a `max-w-2xl` wrapper around the
- * composer AND the whole board -- so the board rendered at 599px inside a work
- * region offering it 1265px, and at 840px on a 2560px monitor.
+ * The first fix for this centred the reading column and the wide surface on
+ * one axis, which is arithmetically correct and VISUALLY WRONG, and the
+ * screenshot settled it. A 672px column centred over a 1,120px board shares
+ * its centre and not its EDGE, and the eye does not read centres -- it reads
+ * the left margin. Measured on the rendered home at 1512px: the composer's
+ * left edge sat at x=563 and the board's at x=271. Two alignments, 292px
+ * apart, on one page. That is the "slightly towards the right" exactly.
  *
- * `margin-inline: auto` PLUS `width: 100%` and both are load-bearing. An auto
- * inline margin on a FLEX item absorbs the free space itself and the item
- * sizes to its own content; filling first and capping second is what makes the
- * cap decide. It also puts this column on the same centre line as `.sp-inner`,
- * so a narrow block above a wide one shares its axis instead of drifting --
- * which is what "the main content is slightly towards the right side" looks
- * like when the two disagree.
+ * ── ONE ALIGNMENT, WHICH IS THE ACTUAL RULE ──────────────────────────────
+ * A dense product has one left margin and everything hangs off it -- Linear,
+ * Vercel, Notion, GitHub all do this. Centring a column is for a page with
+ * nothing else on it. So the PAGE is centred in the work region, and every
+ * block inside it starts at the same gutter however wide that block is.
+ *
+ * `.mrd-page` is the box: the same max-width and the same fluid gutters as a
+ * ported surface's `.sp-inner`, so a hand-composed page and a Surface land on
+ * the identical margin.
+ *
+ * `width: 100%` with `margin-inline: auto` is load-bearing on both, and not
+ * tidiness: an auto inline margin on a FLEX item absorbs the free space
+ * itself, so the item sizes to its own content instead of to the line. Before
+ * this was added the board measured 928px inside a 1400px cap on a 2560px
+ * monitor. Fill first, cap second.
+ */
+.mrd-page {
+  width: 100%;
+  max-width: var(--mrd-page-max);
+  margin-inline: auto;
+  padding: var(--mrd-gutter-y) var(--mrd-gutter-x) 0;
+}
+
+/*
+ * A column that holds prose, a heading and a field together. It caps the
+ * measure and does NOT centre: it hangs off the page's left gutter with
+ * everything else. `--mrd-read-max` is where the reference (beautifului.dev)
+ * sets its own single-column pages.
  */
 .mrd-read {
   width: 100%;
   max-width: var(--mrd-read-max);
-  margin-inline: auto;
   min-width: 0;
 }
 
 /*
- * The same column when it is a DIRECT child of the work region rather than a
- * block inside a surface that already supplies a gutter. It has to bring its
- * own, and it takes Meridian's fluid one: continuous at every width, sized
- * against the container rather than the window.
+ * ── PANEL PAIR ────────────────────────────────────────────────────────────
+ * Two labelled insets that belong together, side by side when the space they
+ * are in can carry two readable columns and stacked when it cannot.
+ *
+ * A CONTAINER QUERY, NOT A BREAKPOINT. The pair answers the width of the card
+ * holding it rather than the width of the window, so the same component is
+ * right in a full-width surface, in a side column and in a sheet. That is also
+ * the founder's standing instruction on layout: adapt continuously to whatever
+ * screen is in front of the person, never to a list of named screen sizes.
+ *
+ * 560px is measured. Below it two `mrd-copy` columns start breaking evidence
+ * lines mid-phrase, and a stacked pair reads better than a broken one.
  */
-.mrd-read-page {
-  padding: var(--mrd-gutter-y) var(--mrd-gutter-x) 0;
+@container (min-width: 560px) {
+  .mrd-panel-pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/*
+ * ── THE COMPOSER BLOOM ────────────────────────────────────────────────────
+ * Added 2026-09-01. FOUNDER: *"for the typing bar, you can have a subtle glow,
+ * like how new-age AI platforms have some gradient effect."*
+ *
+ * ── WHY IT IS NOT ORCHID, WHICH IS THE FIRST THING ANYONE WOULD REACH FOR ─
+ * The reference screens for this pattern (WRITER, Cofounder) all glow violet,
+ * and this system owns a violet: `--mrd-you`, orchid at hue 315, which means
+ * A PERSON IS REQUIRED. Meridian's founding colour law is that hue carries
+ * status and never decorates, and the sharpest way to break it is to spend the
+ * one "this needs you" signal on a field that merely has the caret in it. Do
+ * that and the orchid on an approval card stops meaning anything, because the
+ * reader has been seeing it all day on a textarea.
+ *
+ * So the bloom is ACHROMATIC and reads as LIGHT rather than as a hue. It says
+ * "this control is live", which is a state, not a status about the work.
+ *
+ * ── IT IS A GRADIENT AND NOT A BOX-SHADOW, WHICH IS THE CRAFT PART ────────
+ * A `box-shadow` spread is uniform and reads as a halo stuck to the edge. The
+ * bloom people recognise from these products is directional: brightest where
+ * the field meets the ground behind it and dissolving outward, so the control
+ * looks lit rather than outlined. A radial gradient on a `::after` under the
+ * field does that, costs no layout, and is invisible to hit-testing.
+ *
+ * AT REST IT IS NOT ZERO. A field that only glows once focused gives a person
+ * nothing to aim at, and the whole point of this surface is that the field is
+ * the page. It sits at a third of full and comes up on `focus-within`.
+ */
+:root {
+  --mrd-bloom: oklch(0.98 0.004 70 / 0.16);
+  --mrd-bloom-rest: 0.34;
+  --mrd-bloom-live: 1;
+  --mrd-bloom-size: 128px;
+}
+:root[data-mrd-theme="light"],
+.mrd-light {
+  /* On paper the bloom cannot be lighter than the ground, so it inverts: a
+     soft shadow of the ink, which reads as the same "lit" affordance in the
+     one direction a light ground allows. */
+  --mrd-bloom: oklch(0.32 0.02 70 / 0.13);
+  /* On paper the same ink has to darken to hold its line against a light
+     ground. Same hue, same restraint against the status hues. */
+  --mrd-sketch: oklch(0.55 0.13 42);
+}
+
+.mrd-bloom {
+  position: relative;
+  isolation: isolate;
+}
+.mrd-bloom::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: calc(var(--mrd-bloom-size) * -0.5);
+  border-radius: inherit;
+  background: radial-gradient(60% 60% at 50% 50%, var(--mrd-bloom) 0%, transparent 72%);
+  opacity: var(--mrd-bloom-rest);
+  transition: opacity var(--mrd-d-move) var(--mrd-ease);
+  pointer-events: none;
+}
+.mrd-bloom:focus-within::after {
+  opacity: var(--mrd-bloom-live);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mrd-bloom::after {
+    transition: none;
+  }
+}
+
+/*
+ * A PICKED CARD'S MARK COMES FORWARD. The selected state already draws a ring
+ * (`PickCard`'s `before:` border), and a ring alone is easy to miss on a grid
+ * of four when the eye is on the text. Lifting the mark's ink gives the state
+ * a second, quieter signal in the place the eye already goes first.
+ *
+ * Ink and ground only, no hue: which card you picked is not a status, and
+ * spending a status colour on it is the failure the colour law names.
+ */
+.mrd-pick[data-selected="true"] [data-glyph] {
+  background: var(--mrd-lift);
+  color: var(--mrd-ink);
+}
+
+/*
+ * ── THE RUN LANES ─────────────────────────────────────────────────────────
+ * Waiting on you across the top, Running and Finished paired beneath it.
+ *
+ * WHY NOT THREE EQUAL COLUMNS. The three lanes are not three of a kind. On a
+ * live workspace the waiting lane held 94 rows and a boundary note; Running
+ * held 1 and Finished 4. Three equal columns would give the lane a person
+ * actually works out of one third of the width and leave two thirds of white
+ * beside two short lists. The split follows what the lanes ARE: one you work,
+ * two you glance at.
+ *
+ * A CONTAINER QUERY ON `.sp-work`, which is the nearest ancestor declaring
+ * `container-type: inline-size`. It measures the work region, so collapsing
+ * the rail widens the lanes and a narrow pane stacks them -- continuously, at
+ * whatever width the person's screen happens to be, rather than at a list of
+ * named device sizes.
+ *
+ * 900px is measured: below it the paired lanes' run titles start wrapping to
+ * three lines, and a stacked pair reads better than a wrapped one.
+ */
+.mrd-lane-grid {
+  display: grid;
+  gap: var(--mrd-s7);
+}
+@container (min-width: 900px) {
+  .mrd-lane-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  /* The lane the home exists for keeps the full measure. */
+  .mrd-lane-grid > :first-child {
+    grid-column: 1 / -1;
+  }
 }

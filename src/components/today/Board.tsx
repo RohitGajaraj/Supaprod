@@ -30,6 +30,7 @@ import {
   Door,
   Num,
   PageHeading,
+  Panel,
   ReadFailedLine,
   RecordSpeaks,
   Region,
@@ -496,10 +497,39 @@ function FeedHead({ name, count }: { name: string; count: number }) {
             ? "finished"
             : null;
   return (
-    <div className="flex items-center gap-2">
-      {kind ? <WorkGlyph kind={kind} /> : null}
+    /*
+     * ── THE COUNT WAS BIGGER THAN THE HEADING IT COUNTED (2026-09-01) ──────
+     *
+     * FOUNDER: *"the below messages saying waiting or running or finished -- if
+     * you see those text sizes, not at all perfect, and next to that the
+     * numbers are much bigger than the text, so it's not aligning. There has to
+     * be some attention to detail."*
+     *
+     * Measured on the rendered board: the name is `mrd-eyebrow`, which is
+     * `--mrd-t-nano` at 10px, weight 650, uppercase. The count set NO size at
+     * all, so it inherited the surrounding body step and rendered at ~13.5px --
+     * a third again as tall as the heading beside it, and in the faintest ink
+     * on the ladder. So the loudest element in the row was the number and the
+     * quietest was the word telling you what the number means, which is
+     * backwards, and the two baselines did not sit together either.
+     *
+     * `--mrd-t-tiny` IS THE TOKEN FOR EXACTLY THIS and it was simply never
+     * reached for: meridian.css defines it as *"11px -- mono counts, stage
+     * numerals"*. One step above the label rather than three, so the pair reads
+     * as one heading with a figure in it.
+     *
+     * The ink moves up too, from `faint` to `mute`. `faint` is the stop for
+     * something a reader may ignore, and 94 items waiting is not that; it now
+     * matches the label it belongs to.
+     */
+    <div className="flex items-baseline gap-mrd-3">
+      {kind ? (
+        <span className="self-center">
+          <WorkGlyph kind={kind} />
+        </span>
+      ) : null}
       <h3 className="mrd-eyebrow">{name}</h3>
-      <span className="font-mrd-mono tabular-nums text-mrd-faint">{count}</span>
+      <span className="font-mrd-mono text-mrd-tiny tabular-nums text-mrd-mute">{count}</span>
     </div>
   );
 }
@@ -1718,15 +1748,9 @@ export function Board() {
     }
   }, []);
 
-  /* The greeting is a courtesy, and the clock that decides it belongs to the
-     reader. Resolved after mount rather than during render because the server
-     renders this in its own timezone, and a server that says "Good evening" to
-     someone eating breakfast is worse than a first frame that says morning and
-     corrects itself. Same line, same height, so nothing moves. */
-  const [clock, setClock] = React.useState<Date | null>(null);
-  React.useEffect(() => setClock(new Date()), []);
-  const hour = clock?.getHours() ?? 8;
-  const greeting = hour < 12 ? "Good morning." : hour < 18 ? "Good afternoon." : "Good evening.";
+  /* The greeting moved to `greeting.ts` with its deferral intact -- the page
+     draws it now, above everything, because a greeting is the first thing said
+     or it is not a greeting. */
 
   const loading = stillWaiting(queue, missions);
   /*
@@ -1847,7 +1871,29 @@ export function Board() {
        nothing else; the second counts the run record and is omitted while that
        is outstanding. `quietMorning` below still requires BOTH, through
        `loading`, because "nothing needs you" is a claim over every read. */
-    if (!queueAnswered) return "Today";
+    /*
+     * ── THE LOADING HEADLINE IS NO LONGER "TODAY" (2026-09-01) ────────────
+     *
+     * The note above says the headline "says the surface's name" while it
+     * counts, and that reasoning is still right. What changed is the surface:
+     * `/today` folded into the home, and this board became a SECTION of it. So
+     * the name it was falling back on stopped being its name -- and it is the
+     * word F-144 retired from every door, because it names a time rather than
+     * what you do there.
+     *
+     * The founder met it three separate times after the rename, always here:
+     * the reads on a real workspace take about 4.7s, which is long enough that
+     * "Today" is the headline he actually reads on arrival. A fallback that
+     * only shows while loading is not a rare state; on a cold cache it is the
+     * FIRST state, every time.
+     *
+     * NOT `FEED_TITLE`, which would be the obvious pick: that string is drawn
+     * as the region heading a few hundred pixels below, so using it here puts
+     * "What needs you" on screen twice while the page settles, and the second
+     * one appears to be a duplicate that then changes. This names the section
+     * without colliding with anything, and it is true while counting.
+     */
+    if (!queueAnswered) return "Where things stand";
     if (missions.isError && queue.isError)
       return "Neither your run record nor your review queue loaded.";
     if (missions.isError) return "Your run record did not load.";
@@ -1930,7 +1976,6 @@ export function Board() {
     return (
       <Surface wide>
         <div className="today-page">
-          <p className="today-greeting">{greeting}</p>
           {/* A NOUN RATHER THAN A SENTENCE ABOUT THE STATE, because the state
               is the thing below and saying it twice is the ban this file's own
               lane subtitle records. The subtitle names the boundary instead,
@@ -1993,7 +2038,10 @@ export function Board() {
   return (
     <Surface wide>
       <div className="today-page">
-        <p className="today-greeting">{greeting}</p>
+        {/* THE GREETING IS NOT DRAWN HERE ANY MORE. It is the first thing on
+            the page and the board is no longer the first thing on the page --
+            see `greeting.ts` for the founder's report and why a greeting 700px
+            down is not a greeting. `/start` renders it above everything. */}
         {/* level 2: this board is a section of the home now, not its own page.
             `/start` owns the `h1`. See PageHeading's own header. */}
         <PageHeading
@@ -2075,9 +2123,32 @@ export function Board() {
             And when both facts are true, the record stops hiding its
             denominator: "1 of 2" over fifteen ungraded is a record built from
             two of seventeen, which is a different claim. */}
+        {/*
+          ── THE GLYPH HAD NO NAME, AND THE BOX HAD NO EDGE (2026-09-01) ─────
+          FOUNDER: *"below that, '49 days on the record', there is on the left
+          side one small icon -- I don't know, is it for forecast or something?
+          That is not mentioning what it is, and icon sizes and all, it's not
+          proper, and positioning is not proper."*
+
+          Both halves are right. The glyph was a bare `WorkGlyph kind="forecast"`
+          with nothing naming it, so a reader met a small unlabelled mark and
+          had to infer the subject from the sentence beside it. And it sat in a
+          hand-rolled `style={{display:"flex", gap:14, alignItems:"flex-start"}}`
+          -- a raw 14px off the spacing ramp, top-aligned against a paragraph
+          that wraps to two or three lines, so the mark floated beside the first
+          line rather than belonging to the block.
+
+          It is an insight, so it takes the shape the founder singled out as
+          working. `Panel` gives it a label naming exactly what it is, puts the
+          glyph in the label row where a mark belongs, and draws the edge that
+          makes it a thing on the page rather than loose text under a heading.
+        */}
         {worthDrawing(standing) ? (
-          <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-            <WorkGlyph kind="forecast" />
+          <Panel
+            className="mt-mrd-5"
+            label="Your track record"
+            glyph={<WorkGlyph kind="forecast" />}
+          >
             <RecordSpeaks
               evidence={
                 <Door onClick={() => navigate({ to: "/brain" })}>
@@ -2097,7 +2168,7 @@ export function Board() {
                 ungradedAlone(standing)
               )}
             </RecordSpeaks>
-          </div>
+          </Panel>
         ) : null}
 
         <div className="today-lanes">
@@ -2486,7 +2557,30 @@ export function Board() {
                 <div
                   role="listbox"
                   aria-label="Runs, in the order of what each one needs from you"
-                  className="mt-mrd-6 flex flex-col gap-mrd-7"
+                  /*
+                   * ── THE LANES STOPPED BEING ONE COLUMN, 2026-09-01 ───────
+                   *
+                   * FOUNDER: *"Now it is too much vertical scroll, vertical
+                   * scroll, vertical scroll ... You can put it into the
+                   * sections for running and finished instead of horizontal."*
+                   *
+                   * The three lanes were `flex flex-col`, so Waiting, Running
+                   * and Finished stacked end to end. Measured signed in: the
+                   * board alone ran past 2,600px, and the two lanes a person
+                   * checks at a GLANCE -- is anything moving, what landed --
+                   * were the two furthest down.
+                   *
+                   * They are not equals, so this is not three columns. Waiting
+                   * on you is what the home is FOR and it holds 94 rows plus
+                   * the boundary note; Running and Finished are status, read in
+                   * a second each. So the primary lane keeps the full width and
+                   * the other two pair beneath it. `:first-child` spans, which
+                   * is why this needed no change to the section markup and the
+                   * listbox keeps its groups as direct children -- a wrapper
+                   * div between a listbox and its groups is an accessibility
+                   * regression for the sake of a layout.
+                   */
+                  className="mrd-lane-grid mt-mrd-6"
                   onKeyDown={feedKeys}
                 >
                   {crewSection(

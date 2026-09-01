@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { WhatWeAlreadyHold } from "@/components/spine/WhatWeAlreadyHold";
+import * as React from "react";
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -8,9 +9,16 @@ import { Action, PageHeading } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Composer, PickCard } from "@/components/meridian/onramp-parts";
+import {
+  SketchBroken,
+  SketchProblem,
+  SketchScreen,
+  SketchSpec,
+} from "@/components/meridian/sketch-glyphs";
 import { CharacterMark } from "@/components/presence/Character";
 import { CHARACTER_NAME } from "@/lib/presence/character";
 import { Board } from "@/components/today/Board";
+import { useGreeting } from "@/components/today/greeting";
 import { failureLine } from "@/lib/error-copy";
 import { REVIEW_QUEUE_ANCHOR } from "@/components/shell/post-auth-home";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -55,10 +63,41 @@ import type { WorkShape } from "@/lib/spine/route";
  * row outright).
  */
 
+/**
+ * ── THE FOUR MARKS, DRAWN BY HAND ─────────────────────────────────────────
+ *
+ * One sketch per kind of work, so four cards of similar prose can be told
+ * apart without reading all four. See `PickCard`'s `glyph` prop for why a card
+ * like this needs a mark at all, and `sketch-glyphs.tsx` for what makes a line
+ * read as drawn rather than as a broken icon.
+ *
+ * THEY WERE GEOMETRIC ICONS FOR ABOUT TEN MINUTES and the founder called it
+ * immediately: *"can we add something like handwritten glyphs so that it feels
+ * like a real human feeling or human attention to detail ... make that unique
+ * USP touch point."* He is right, and the reason is specific to THIS screen.
+ * This is the first thing a person sees after signing in, and a row of four
+ * machine-ruled icons is the single most generic thing a product can put
+ * there -- it is what every tool looks like. A drawn line is the one element on
+ * the page that could not have been generated, which is exactly the signal a
+ * product whose whole claim is judgment should be sending on its front door.
+ *
+ * IN THE MARK'S OWN HUE, at a chroma held below every status colour. The
+ * boundary that makes that legal rather than a colour-law breach is written at
+ * `--mrd-sketch` in `meridian.css`: illustration ink, stroke only, never a
+ * control and never a status.
+ */
+const GLYPH = {
+  problem: <SketchProblem size={22} />,
+  spec: <SketchSpec size={22} />,
+  screen: <SketchScreen size={22} />,
+  broken: <SketchBroken size={22} />,
+} as const;
+
 type Job = {
   shape: WorkShape;
   lead: string;
   sub: string;
+  glyph: React.ReactNode;
   /** What the composer asks once this job is picked. */
   placeholder: string;
 };
@@ -68,24 +107,28 @@ const JOBS: Job[] = [
     shape: "new-capability",
     lead: "I have a problem and I do not know what to build",
     sub: "It reads your sources first and comes back with what the pattern actually is.",
+    glyph: GLYPH.problem,
     placeholder: "What is going wrong?",
   },
   {
     shape: "existing-feature",
     lead: "I know what to build. Write it up.",
     sub: "The call is already made, so it starts on the written spec.",
+    glyph: GLYPH.spec,
     placeholder: "What are you building, and what should it do?",
   },
   {
     shape: "interface-change",
     lead: "Change something people see",
     sub: "It starts on the screen itself, not on the problem behind it.",
+    glyph: GLYPH.screen,
     placeholder: "What should change on the screen, and what should it do?",
   },
   {
     shape: "incident-fix",
     lead: "Something is broken right now",
     sub: "It goes straight to the fix. Nothing gets decided first.",
+    glyph: GLYPH.broken,
     placeholder: "What is broken?",
   },
 ];
@@ -124,6 +167,7 @@ function StartLanding() {
   const navigate = useNavigate();
   const { activeWorkspaceId, activeProductId } = useWorkspace();
   const { about, queue } = Route.useSearch();
+  const greeting = useGreeting();
 
   // A seeded sentence is a HEAD START, not a decision: the person reads and
   // edits it like anything else they typed.
@@ -303,7 +347,7 @@ function StartLanding() {
      * of staying at a hardcoded 24px.
      */
     <div className="flex min-h-dvh flex-col">
-      <div className="mrd-read mrd-read-page flex flex-col gap-mrd-7">
+      <div className="mrd-page flex flex-col gap-mrd-7">
         {/*
          * THE COMPARISON ROW IS GONE, AND THE LABEL IS WHY IT HAD TO GO.
          *
@@ -326,50 +370,66 @@ function StartLanding() {
          * front door of the product is the one screen that should carry nothing
          * a customer does not need.
          */}
-        <PageHeading
-          title="What needs doing?"
-          sub="One sentence starts a run. You watch it happen here, and it asks you nothing unless it must."
-        />
+        {/* The heading and the character line are prose and take the reading
+            measure. They hang off the page's left gutter with everything else
+            rather than centring, which is the alignment defect the founder
+            photographed: a narrow centred column over a wide left-aligned
+            board reads as pushed right, because the eye follows the left
+            margin and not the centre. */}
+        <div className="mrd-read flex flex-col gap-mrd-7">
+          {/*
+           * THE FIRST THING THE PAGE SAYS. It used to be the first thing the
+           * BOARD said, which put it roughly 700px down -- after the question,
+           * the field and four cards -- greeting a person who had already been
+           * on the screen a while. `greeting.ts` carries the founder's report
+           * and why the deferral to the reader's own clock is load-bearing.
+           */}
+          <p className="mrd-meta">{greeting}</p>
+          <PageHeading
+            title="What needs doing?"
+            sub="One sentence starts a run. You watch it happen here, and it asks you nothing unless it must."
+          />
 
-        {/* The one worker, present at first paint. aria-live so the handover
+          {/* The one worker, present at first paint. aria-live so the handover
             from introduction to pickup is heard, not only seen (R-19). */}
-        <div
-          data-mrd=""
-          data-presence-state={pickedUp ? "thinking" : "awake"}
-          className="flex items-center gap-3"
-        >
-          <CharacterMark size={28} state={pickedUp ? "thinking" : "awake"} />
-          <p aria-live="polite" className="text-mrd-body text-mrd-ink">
-            {pickedUp
-              ? "Picking that up now. I'll open the run the moment it's filed."
-              : /*
-                 * "YOU CAN LEAVE IT WITH ME" IS THE ONE CLAIM THIS LANE MAY NOT
-                 * MAKE ALONE, AND THE CONDITION FOR REVISITING IT HAS NOW BEEN MET.
-                 *
-                 * SESSION-1 names it: *"'I'm on it, you can leave this page' is a
-                 * promise the product cannot keep until S3 ships the verdict
-                 * notification, their job #1."* S3 measured the size of the gap
-                 * and it is not marginal: **97 of 106 tracks carry a hold, and
-                 * the verdict email has fired ZERO times in its life.** Their
-                 * send is still blocked on a migration escalated to the founder,
-                 * and there is no notification kind for a piece of work that
-                 * STOPPED at all.
-                 *
-                 * I deliberately held this line in RUN-125 and told S3 why: the
-                 * sentence is about the ASSIGNMENT moment rather than the run,
-                 * and it should change only once the footer's states were proven.
-                 * They agreed. RUN-125 and RUN-129 proved them and S0's A10 ruled
-                 * the wording, so the condition I set has been met and leaving it
-                 * now would be holding a hedge past its own expiry.
-                 *
-                 * WHAT REPLACES IT IS NOT SMALLER, IT IS TRUE. The work does start
-                 * on its own and it does persist, so the invitation survives; what
-                 * goes is the implied "and you will be told", which is the half
-                 * nothing delivers. `footer-mode.ts` already draws this exact
-                 * line: it promises the leg it can prove and never the sweep.
-                 */
-                `I'm ${CHARACTER_NAME}. Say what needs doing in one sentence and I'll start on it. It keeps going without you, and it will be here when you come back.`}
-          </p>
+          <div
+            data-mrd=""
+            data-presence-state={pickedUp ? "thinking" : "awake"}
+            className="flex items-center gap-3"
+          >
+            <CharacterMark size={28} state={pickedUp ? "thinking" : "awake"} />
+            <p aria-live="polite" className="text-mrd-body text-mrd-ink">
+              {pickedUp
+                ? "Picking that up now. I'll open the run the moment it's filed."
+                : /*
+                   * "YOU CAN LEAVE IT WITH ME" IS THE ONE CLAIM THIS LANE MAY NOT
+                   * MAKE ALONE, AND THE CONDITION FOR REVISITING IT HAS NOW BEEN MET.
+                   *
+                   * SESSION-1 names it: *"'I'm on it, you can leave this page' is a
+                   * promise the product cannot keep until S3 ships the verdict
+                   * notification, their job #1."* S3 measured the size of the gap
+                   * and it is not marginal: **97 of 106 tracks carry a hold, and
+                   * the verdict email has fired ZERO times in its life.** Their
+                   * send is still blocked on a migration escalated to the founder,
+                   * and there is no notification kind for a piece of work that
+                   * STOPPED at all.
+                   *
+                   * I deliberately held this line in RUN-125 and told S3 why: the
+                   * sentence is about the ASSIGNMENT moment rather than the run,
+                   * and it should change only once the footer's states were proven.
+                   * They agreed. RUN-125 and RUN-129 proved them and S0's A10 ruled
+                   * the wording, so the condition I set has been met and leaving it
+                   * now would be holding a hedge past its own expiry.
+                   *
+                   * WHAT REPLACES IT IS NOT SMALLER, IT IS TRUE. The work does start
+                   * on its own and it does persist, so the invitation survives; what
+                   * goes is the implied "and you will be told", which is the half
+                   * nothing delivers. `footer-mode.ts` already draws this exact
+                   * line: it promises the leg it can prove and never the sweep.
+                   */
+                  `I'm ${CHARACTER_NAME}. Say what needs doing in one sentence and I'll start on it. It keeps going without you, and it will be here when you come back.`}
+            </p>
+          </div>
         </div>
 
         {activeWorkspaceId ? (
@@ -438,12 +498,30 @@ function StartLanding() {
                */}
               <div data-mrd="" className="flex flex-col gap-mrd-3">
                 <p className="mrd-meta">Pick one if it fits. Not picking is fine.</p>
-                <div className="grid grid-cols-1 gap-mrd-3 md:grid-cols-2">
+                {/*
+                 * FOUR ACROSS WHEN THE PAGE CAN CARRY FOUR. `md:grid-cols-2`
+                 * was a viewport breakpoint, so on a 1512px window the four
+                 * cards stacked two-by-two inside a 672px column and left the
+                 * right half of the page empty -- the founder's "too much
+                 * vertical scroll" and the void beside it, in one element.
+                 *
+                 * `auto-fit` with a `minmax` floor is the continuous form of
+                 * the same idea and needs no breakpoint at all: the row fits
+                 * as many 15rem cards as the page can hold and reflows at
+                 * every width in between, which is the standing instruction on
+                 * layout. Four on a wide page, two on a laptop, one on a
+                 * narrow pane, and nothing named a device.
+                 */}
+                <div
+                  className="grid gap-mrd-3"
+                  style={{ gridTemplateColumns: "repeat(auto-fit, minmax(15rem, 1fr))" }}
+                >
                   {JOBS.map((job) => (
                     <PickCard
                       key={job.shape}
                       lead={job.lead}
                       sub={job.sub}
+                      glyph={job.glyph}
                       selected={selected === job.shape}
                       onSelect={() => {
                         const next = selected === job.shape ? null : job.shape;

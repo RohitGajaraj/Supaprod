@@ -341,10 +341,10 @@ describe("Today never prints a claim it has not read yet", () => {
     expect(guardAt).toBeLessThan(titleAt);
   });
 
-  it("the headline shows the date while it counts, rather than a number it lacks", () => {
+  it("the headline shows a fixed name while it counts, rather than a number it lacks", () => {
     // The one region that legitimately says nothing about reading. A headline
-    // reading "Reading..." is the surface talking about itself, and the date is a
-    // true fact the person came in already holding.
+    // reading "Reading..." is the surface talking about itself, and the section's
+    // own name is a true fact the person came in already holding.
     //
     // ASSERTED AS A RULE RATHER THAN AS A CHARACTER SEQUENCE, and this test has
     // now had to learn that lesson TWICE.
@@ -392,7 +392,27 @@ describe("Today never prints a claim it has not read yet", () => {
     // So it matches any condition that speaks about a READ'S STATE rather than
     // any particular spelling of one. Some anchor is needed or the assertion is
     // vacuous; this is the widest anchor that still means something.
-    expect(body).toMatch(/if \(.*?(loading|stillWaiting|Answered).*?\)\s*return "Today";/);
+    // A FIFTH TIME, 2026-09-01, and this one is the cleanest example yet of
+    // the mistake the paragraphs above keep describing. The guard still pinned
+    // the WORD "Today". `/today` folded into the home, so this board became a
+    // section of `/start` and that word stopped being the surface's name -- it
+    // is also the exact word F-144 retired from every door for naming a time
+    // rather than what you do there. The founder read it on arrival three
+    // separate times after the rename, because on a real workspace the queue
+    // takes about 4.7s to answer and the fallback is therefore the FIRST thing
+    // on screen, not a rare state.
+    //
+    // Renaming it to "Where things stand" is the product getting better, and
+    // this guard called it a regression for the fifth time.
+    //
+    // SO IT NO LONGER READS THE STRING AT ALL. The rule was never about that
+    // word. It is: while a read is outstanding, the headline returns a FIXED
+    // NAME -- a bare string literal -- rather than a sentence assembled from
+    // counts it does not have yet. A literal cannot contain a number it never
+    // read, which is the whole property. Any future rename passes; swapping the
+    // literal for `stateSentence(...)` or a template carrying a count fails,
+    // which is the only thing that was ever worth catching.
+    expect(body).toMatch(/if \(.*?(loading|stillWaiting|Answered).*?\)\s*return "[^"${}]+";/);
 
     // AND THE PROPERTY THAT REPLACED THE OLD GATE, asserted rather than
     // assumed. Waiting on both reads was what used to guarantee no count came
