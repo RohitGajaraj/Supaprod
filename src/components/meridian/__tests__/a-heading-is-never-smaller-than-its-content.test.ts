@@ -117,13 +117,32 @@ function sizeOnLineWith(file: string, marker: string): number {
 function regionHeadingStops(): { lead: number; base: number } {
   const src = read("surface-parts.tsx");
   /*
-   * Scoped to the `<h2>` and its ternary, and that scoping is the second bug
-   * this function had. Matching `font-medium text-mrd-ink` across the whole file
-   * returns SIX hits, because other parts in here are also headings on the same
-   * ink at their own stops (25px, two at 13px with `leading-snug`, one at 14px
-   * with `leading-[1.4]`). The reader was picking the 25px one as `lead`.
+   * SCOPED TO `Region`'S OWN BODY, AND THAT IS THE FOURTH BUG IN THIS READER.
+   *
+   * The second bug was matching `font-medium text-mrd-ink` across the whole
+   * file, which returns SIX hits because other parts in here are headings on
+   * the same ink at their own stops; the reader was picking the 25px one as
+   * `lead`. That was narrowed to "the first `<h2>` in the file", which was only
+   * ever true by accident -- it held because `Region` happened to own the
+   * earliest `<h2>` in `surface-parts.tsx`.
+   *
+   * It stopped being true on 2026-09-01, when `SectionHead` was added ABOVE
+   * `Region` with an `<h2 className="mrd-eyebrow">`. The reader then measured
+   * that one, found no sized branches at all, and threw "read 0". Nothing about
+   * the heading ladder had changed; a sibling component had simply been
+   * declared earlier in the file.
+   *
+   * So the slice is taken from `Region`'s declaration to the next top-level
+   * `export function`, and the `<h2>` is looked for inside it. That is the
+   * CLAIM this guard is about -- Region's heading against Row's lead -- and it
+   * no longer depends on declaration order in a file that gains parts weekly.
    */
-  const h2 = src.match(/<h2\b[\s\S]*?<\/h2>/);
+  const body = src.match(/export function Region\(\{[\s\S]*?(?=\nexport function |$)/);
+  if (!body)
+    throw new Error(
+      "Region is gone from surface-parts.tsx; this guard needs rewriting, not deleting",
+    );
+  const h2 = body[0].match(/<h2\b[\s\S]*?<\/h2>/);
   if (!h2)
     throw new Error("Region's <h2> is gone; this guard needs rewriting rather than deleting");
   /*
