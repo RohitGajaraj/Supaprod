@@ -178,7 +178,38 @@ export function runPosition(
     holdReason: string | null;
   },
   walking: boolean,
+  /**
+   * WHAT CAME OF EACH STATION, already reduced to a sentence by the caller.
+   *
+   * ── PASSED IN, NOT FETCHED, AND THAT IS THIS FILE'S OWN RULE ────────────
+   * The comment on the `pending` branch below states the constraint plainly:
+   * this function *"reads ONE row and takes no second query ... the reason the
+   * header, the meter and the route cannot disagree"*. Adding a fetch here to
+   * fill `outcome` would break exactly that. So the caller does the read and
+   * hands over the finished words, and `runPosition` stays pure and stays
+   * testable.
+   *
+   * Optional because most callers do not have it and must not be forced to
+   * invent one: `run-strip-spec.ts` and the four test files call this with two
+   * arguments and get stops with no outcome, which is the state that shipped
+   * for months. An absent map is "nobody looked", not "nothing happened".
+   *
+   * `station-outcome.ts` builds it, and its header explains why the sentence
+   * counts agent runs rather than naming the artifact the docstring on
+   * `RunMapStation.outcome` promised: no artifact table carries a `track_id`,
+   * so the artifact cannot be resolved from a track without guessing.
+   */
+  outcomes?: Partial<Record<AgentStation, string>>,
 ): { stops: RunMapStation[]; meter: StepMeterStep[]; index: number; total: number } {
+  /* A settled stop gets the words; a `skipped` one never does. A waived station
+     did not run, so a count of agents at it would be a claim about work that
+     was deliberately not done -- and it already carries `waivedReason`, which
+     is the one fact about it that matters. `pending` is excluded for the same
+     reason the branch below excludes it from anything but intent. */
+  const said = (station: AgentStation): { outcome?: string } => {
+    const line = outcomes?.[station];
+    return line ? { outcome: line } : {};
+  };
   const waivedBy = new Map(track.route.waived.map((w) => [w.station, w.reason]));
   /*
    * SPINE ORDER, ALWAYS, and the union of the path and the waivers so a station
@@ -230,18 +261,18 @@ export function runPosition(
       return;
     }
     if (here >= 0 && i < here) {
-      stops.push({ station, state: "done" });
+      stops.push({ station, state: "done", ...said(station) });
       meter.push({ key: station, label: name, state: "done" });
       return;
     }
     if (here >= 0 && i === here) {
       if (!open) {
-        stops.push({ station, state: "done" });
+        stops.push({ station, state: "done", ...said(station) });
         meter.push({ key: station, label: name, state: "done" });
         return;
       }
       if (walking) {
-        stops.push({ station, state: "active" });
+        stops.push({ station, state: "active", ...said(station) });
         meter.push({ key: station, label: name, state: "working" });
         return;
       }
@@ -279,23 +310,23 @@ export function runPosition(
          * "Needs a restart" and not in conflict with it, where "Needs you" was.
          */
         if (nothingIsComing(track.holdReason)) {
-          stops.push({ station, state: "held", hold: track.holdReason });
+          stops.push({ station, state: "held", hold: track.holdReason, ...said(station) });
           meter.push({ key: station, label: name, state: "held" });
           return;
         }
-        stops.push({ station, state: "needs-approval", hold: track.holdReason });
+        stops.push({ station, state: "needs-approval", hold: track.holdReason, ...said(station) });
         meter.push({ key: station, label: name, state: "waiting" });
         return;
       }
       if (tone === "hold") {
-        stops.push({ station, state: "held", hold: track.holdReason });
+        stops.push({ station, state: "held", hold: track.holdReason, ...said(station) });
         meter.push({ key: station, label: name, state: "held" });
         return;
       }
       /* Standing here, and nothing is moving it. NOT `active`: there is no
          agent inside this station, and saying there is would be the one claim
          this surface must never make about itself. */
-      stops.push({ station, state: "here" });
+      stops.push({ station, state: "here", ...said(station) });
       meter.push({ key: station, label: name, state: "here" });
       return;
     }

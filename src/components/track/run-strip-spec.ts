@@ -104,9 +104,19 @@ export function runStripSpec(
   walking: boolean,
   active: string | null,
   onSelect: (station: AgentStation) => void,
+  /**
+   * WHAT CAME OF EACH STATION, passed through to `runPosition` untouched.
+   *
+   * Last and optional so the nine existing call sites keep working with four
+   * arguments -- and, more importantly, so a caller that has not read the work
+   * gets stages with no note rather than a fabricated one. `noteFor` below
+   * returns "" for a stop with no outcome, which is what shipped for months and
+   * is still the correct answer when nobody has looked.
+   */
+  outcomes?: Parameters<typeof runPosition>[2],
 ): RunStripSpec | null {
   if (!track) return null;
-  const { stops } = runPosition(track, walking);
+  const { stops } = runPosition(track, walking, outcomes);
   if (stops.length === 0) return null;
 
   const stages: RunStage[] = stops.map((s) => ({

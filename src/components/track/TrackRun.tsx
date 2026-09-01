@@ -63,11 +63,13 @@ import {
   getTrack,
   getTrackChain,
   getTrackArtifacts,
+  getTrackStationWork,
   retryStation,
   type DriveNowResult,
   type Track,
 } from "@/lib/spine/track.functions";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+import { stationOutcomes } from "./station-outcome";
 import { holdTone } from "@/lib/spine/driver";
 import { relativeTime } from "@/lib/memory-view";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
@@ -257,7 +259,29 @@ function RunRouteHeader({
    */
   reasonSaidBelow: boolean;
 }) {
-  const position = runPosition(track, walking);
+  /*
+   * ── WHAT EACH STATION CAME TO, FILLED AT LAST (2026-09-02) ──────────────
+   * `RunMapStation.outcome` has promised "WHAT CAME OF THIS STATION" since it
+   * was written and nothing ever set it, so every stage on the map and on the
+   * strip rendered a blank line. Founder, on keeping the strip only inside a
+   * run: "it should do more and take less." The taking-less shipped first.
+   *
+   * Its own read rather than a field on the tool-call poll: that one runs every
+   * 500ms while a run is moving, and this changes only when a station finishes.
+   * 30s is slower than any station and faster than a person will notice.
+   */
+  const fetchWork = useServerFn(getTrackStationWork);
+  const work = useQuery({
+    queryKey: ["track-station-work", track.id],
+    queryFn: () => fetchWork({ data: { trackId: track.id } }),
+    staleTime: 30_000,
+  });
+  /* Undefined until the read answers, and undefined is the right value: an
+     absent map means nobody has looked yet, and every stop renders exactly as
+     it did before this existed. A failed read is the same -- the map loses a
+     sentence it never had, and says nothing untrue. */
+  const outcomes = work.data ? stationOutcomes(work.data.runs) : undefined;
+  const position = runPosition(track, walking, outcomes);
   const meter = position.meter;
   const stops = reasonSaidBelow
     ? position.stops.map((s) => ({ ...s, hold: null }))
@@ -1347,9 +1371,26 @@ export function TrackPaneRight({
     queryFn: () => fetchStripTrack({ data: { trackId } }),
     refetchInterval: 10_000,
   });
+  /*
+   * THE SAME READ THE MAP USES, AND THE SAME QUERY KEY ON PURPOSE.
+   * `RunRouteHeader` in the left pane asks for this too; react-query serves
+   * both from one request and both surfaces then say the same thing about a
+   * station, which is the failure mode this file has paid for before -- two
+   * displays of one run disagreeing because they were fed by two reads.
+   */
+  const fetchWork = useServerFn(getTrackStationWork);
+  const work = useQuery({
+    queryKey: ["track-station-work", trackId],
+    queryFn: () => fetchWork({ data: { trackId } }),
+    staleTime: 30_000,
+  });
   usePublishRunStrip(
-    runStripSpec(stripTrack.data ?? null, isRunning, paneStation, (station) =>
-      setPaneStation(station),
+    runStripSpec(
+      stripTrack.data ?? null,
+      isRunning,
+      paneStation,
+      (station) => setPaneStation(station),
+      work.data ? stationOutcomes(work.data.runs) : undefined,
     ),
   );
 
