@@ -233,6 +233,7 @@ import {
   Reading,
   RecordSpeaks,
   Region,
+  Stat,
 } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -262,9 +263,12 @@ import { alignmentForOpportunity } from "@/lib/brief-opportunity";
 import { iceNum, rescoreNoteOf, round1 } from "@/lib/moat-vis";
 import { verdictFor, withTimeout, type VerdictWord } from "@/components/discover/format";
 import { outcomeSupportFromCounts, rankOpportunities } from "@/components/discover/ranking";
+/* `BestBetStamp` and `DesignationTag` came off this import when they came off
+   the queue row -- see the trailing instrument band. They are still the right
+   components and still render on the bet's own record; what was wrong was
+   spending a dense scan row's width on a fact it already stated (`isBestBet` is
+   `rank === 1`) and on a word derived from three facts beside it. */
 import {
-  BestBetStamp,
-  DesignationTag,
   STATUS_META,
   StatusPill,
   type OpportunityStatus,
@@ -1553,6 +1557,17 @@ function DecideSurface() {
     [provenance.data],
   );
 
+  /**
+   * HOW MANY FINDINGS SIT BEHIND THIS BET, named once.
+   *
+   * It was `provenance.data?.source_signals?.length ?? 0` written out TWICE in
+   * one JSX expression -- once for the numeral and once for the pluraliser
+   * beside it -- so the two could have disagreed if either copy was edited. It
+   * is a count over the same read `provenanceSources` distincts, which is what
+   * makes the two numbers on that line comparable at all.
+   */
+  const signalsBehind = provenance.data?.source_signals?.length ?? 0;
+
   /** What the last judgment on this surface caused (anti-slop.md 5). */
   const [receipt, setReceipt] = React.useState<{
     verb: string;
@@ -2631,12 +2646,40 @@ function DecideSurface() {
             <CtxSection>
               <CtxHead>What backs it</CtxHead>
               {activeSignals !== null ? (
-                <CtxBody>
-                  {/* One vocabulary. S0 renamed the display word for this kind
-                      to "finding" in KIND_WORD; this line still said the old one
-                      while the same page said the new one two sections above. */}
-                  <Num>{activeSignals}</Num> {wordFor("signal", activeSignals)} in the record
-                </CtxBody>
+                /*
+                 * ── THE SECTION'S WHOLE POINT WAS ITS SMALLEST TEXT ────────────
+                 *
+                 * This section answers one question -- how much evidence sits
+                 * behind the bet -- and it rendered that quantity through
+                 * `CtxBody`, which is `text-mrd-small` at 12px. Nothing else in
+                 * this column is smaller except the 10px uppercase eyebrow naming
+                 * the section, so the figure a reader came here for was the
+                 * quietest content on the rail, set in the same type as five
+                 * neighbouring sections of read-only prose.
+                 *
+                 * `Stat` puts it at `--mrd-t-lead`, 17px, which meridian.css
+                 * defines in exactly these words: "a figure worth reading before
+                 * the words". The label is required and it carries the vocabulary
+                 * the sentence used to carry: S0 renamed the display word for this
+                 * kind to "finding" in KIND_WORD, and this line said the old one
+                 * while the same page said the new one two sections above.
+                 *
+                 * NOT `CtxBody` WITH A SIZE OVERRIDE. `CtxBody` is a `<p>` that
+                 * sets its own `text-mrd-small`, so a second `text-mrd-*` size on
+                 * it is the exact pair `one-element-one-type-size.test.ts` fails,
+                 * and the size would silently lose to whichever rule won the
+                 * cascade. The figure is a different KIND of thing from a
+                 * paragraph, so it gets the component for that kind.
+                 *
+                 * IT IS NOT THE SAME NUMBER AS THE GATE'S. This is the cluster's
+                 * `frequency` -- how often the theme has been seen -- and the
+                 * Gate's figure counts the signals LINKED to this bet. Two
+                 * quantities, two labels, and neither claims to be the other.
+                 */
+                <Stat
+                  value={activeSignals}
+                  label={`${wordFor("signal", activeSignals)} in the record`}
+                />
               ) : activeOpp?.theme_id ? (
                 /* IT HAS A CLUSTER AND WE DID NOT LOOK IT UP, which is not the
                  same as having no evidence and used to render as nothing at
@@ -2690,6 +2733,31 @@ function DecideSurface() {
           is the step Crew, Approvals, Brain, Design and Build all took for
           exactly this, and it is the number the space ramp reserves for the gap
           between GROUPS rather than within one.
+
+          ── AND UNTIL NOW IT WAS THE ONLY STOP ON THE PAGE ──────────────────
+          That last clause was true of the token and false of the page. EIGHT
+          top-level blocks -- the crew strip, the heading, the gate, the record
+          speaking, the lane picker, the receipt, the ranking and the composer --
+          were separated by one uniform 40px, so nothing was grouped and the
+          surface read as eight unrelated panels stacked in a column. Meridian's
+          ramp is explicit that this is the failure it was shaped to prevent:
+          "Uniform padding everywhere is the single most reliable way to make a
+          dense product look machine-generated: everything gets the same breath
+          and nothing is grouped."
+
+          A ramp needs TWO stops used together to say anything. `gap-mrd-6` is
+          24px and it is the WITHIN-a-group step; 40px stays the BETWEEN-groups
+          step. The inner wrapper below holds the four blocks that are all about
+          the ONE bet under the question -- the gate that asks, the record that
+          speaks for it, the lane control, and the receipt for the last press --
+          and a control and the message it answers are one group. The heading,
+          the ranking and the composer are separate subjects and keep the 40px.
+
+          THE INNER WRAPPER IS NEVER EMPTY, which matters because `gap` applies
+          between items whatever their height: an empty flex item here would draw
+          80px of dead space instead of 40. Its first child is a four-way ternary
+          with no null branch -- failed, loading, a gate, or the empty state --
+          so it always renders something.
 
           The two overlays at the foot of it add no flex item: a closed Radix
           dialog root renders no element at all, and every conditional here
@@ -2842,68 +2910,112 @@ function DecideSurface() {
           }
         />
 
-        {/* A failed read is not a decision, so it never wears the Gate. This is
+        {/* ONE BET, ONE GROUP. The four blocks in here are all about the bet
+          under the question -- what is being asked, what the record says about
+          it, where it sits, and what the last press caused -- so they take the
+          24px WITHIN-a-group step and the page's 40px separates them from the
+          ranking and the composer, which are different subjects. See the
+          rhythm note on the wrapper above for why one stop said nothing. */}
+        <div className="flex flex-col gap-mrd-6">
+          {/* A failed read is not a decision, so it never wears the Gate. This is
           the ONLY place this page states the failure: the headline used to say
           it too, which read as a stutter once `failureLine` stopped appending a
           transport string behind it. Verified on screen against a forced 401. */}
-        {opps.error ? (
-          <ReadFailed onRetry={() => void opps.refetch()} error={opps.error}>
-            {/* The comment above is right that this line carries the reason, and
+          {opps.error ? (
+            <ReadFailed onRetry={() => void opps.refetch()} error={opps.error}>
+              {/* The comment above is right that this line carries the reason, and
                 a transport string is not one. It carries the server's sentence
                 where the server wrote one for a person, and the surface's own
                 otherwise, so the line is never empty. */}
-            {reasonLine("The bets on the table did not come back.", opps.error)}
-          </ReadFailed>
-        ) : loading ? (
-          <Reading>Reading the bets on the table.</Reading>
-        ) : activeOpp ? (
-          <Gate
-            /* Keyed on the bet, so picking another row in the ranking REMOUNTS the
+              {reasonLine("The bets on the table did not come back.", opps.error)}
+            </ReadFailed>
+          ) : loading ? (
+            <Reading>Reading the bets on the table.</Reading>
+          ) : activeOpp ? (
+            <Gate
+              /* Keyed on the bet, so picking another row in the ranking REMOUNTS the
              Gate and it plays its entrance. Without a key React updates this in
              place and the question, the evidence and the buttons all change with
              no motion at all. */
-            key={activeOpp.id}
-            question={activeOpp.title}
-            lines={[
-              /**
-               * SAY IT BEFORE ASKING THEM TO JUDGE IT.
-               *
-               * Onboarding writes four invented opportunities into the user's
-               * real workspace so Decide has something to show on day one. Until
-               * 2026-08-05 nothing said so anywhere: `track-seeds.ts` believed
-               * the label lived in the project name and a description column that
-               * does not exist, and no surface joined the project name. So the
-               * first thing a visitor met here was a gate asking them to keep or
-               * drop a bet about a product they do not have, and pressing "Keep
-               * it" spent real model credits writing a spec for fiction.
-               *
-               * It is the FIRST line deliberately. A person reads the question,
-               * then the facts, then presses a key; a disclaimer below the
-               * evidence would arrive after the decision was already forming.
-               */
-              ...(activeOpp.is_sample
-                ? [
-                    <span key="sample">
-                      <b>This is an example.</b> It came with your workspace so this station had
-                      something to show. It is not from your product, and nothing here has been
-                      learned from your record.
-                    </span>,
-                  ]
-                : []),
-              /* Which of the queue this is. The row below says where it sits;
-               this says the Gate is showing that row. Suppressed at one bet,
-               because "1 of 1" is a fact about nothing. */
-              ...(ranked.length > 1
-                ? [
-                    <span key="rank">
-                      <Num>{active?.rank ?? 1}</Num> of <Num>{ranked.length}</Num> in the ranking.
-                    </span>,
-                  ]
-                : []),
-              ...(activeOpp.problem ? [<span key="problem">{activeOpp.problem}</span>] : []),
-              ...(activeOpp.critic_review?.summary
-                ? [
-                    /* INLINE FLOW, NOT A FLEX ROW (2026-08-10, measured in the
+              key={activeOpp.id}
+              question={activeOpp.title}
+              lines={[
+                /**
+                 * SAY IT BEFORE ASKING THEM TO JUDGE IT.
+                 *
+                 * Onboarding writes four invented opportunities into the user's
+                 * real workspace so Decide has something to show on day one. Until
+                 * 2026-08-05 nothing said so anywhere: `track-seeds.ts` believed
+                 * the label lived in the project name and a description column that
+                 * does not exist, and no surface joined the project name. So the
+                 * first thing a visitor met here was a gate asking them to keep or
+                 * drop a bet about a product they do not have, and pressing "Keep
+                 * it" spent real model credits writing a spec for fiction.
+                 *
+                 * It is the FIRST line deliberately. A person reads the question,
+                 * then the facts, then presses a key; a disclaimer below the
+                 * evidence would arrive after the decision was already forming.
+                 */
+                ...(activeOpp.is_sample
+                  ? [
+                      <span key="sample">
+                        <b>This is an example.</b> It came with your workspace so this station had
+                        something to show. It is not from your product, and nothing here has been
+                        learned from your record.
+                      </span>,
+                    ]
+                  : []),
+                /*
+                 * ── A FIGURE IS NOT A SENTENCE, AND THIS LIST SET BOTH THE SAME ──
+                 *
+                 * `Gate` renders every entry of `lines` as `<li className="mrd-copy">`,
+                 * which is 14px / weight 400 / `--mrd-body`. Counted on this Gate:
+                 * SIX entries wore that identical type -- a "this is sample data"
+                 * warning, a position in the queue, a count of evidence behind the
+                 * bet, the reviewer's summary, the problem, and what pressing the
+                 * button costs. Two of those six are FIGURES whose whole content is
+                 * a number and the word naming it; the other four are prose a person
+                 * has to read. Byte-identical type for both forces every entry to be
+                 * read at the same speed to find the one that decides it, which is
+                 * the mechanism `Stat`'s own header records the founder describing as
+                 * "a dump of text ... no differentiation".
+                 *
+                 * `Stat` is Meridian's block treatment for exactly this: the figure
+                 * at `--mrd-t-lead` (17px), the stop meridian.css names "a figure
+                 * worth reading before the words", over the label that makes it
+                 * honest. It is fixable from here because `lines` is
+                 * `React.ReactNode[]` and this caller already passes `<span>`s, so
+                 * nothing in `Gate` moves.
+                 *
+                 * THE WARNING STAYS PROSE, and that is the split rather than an
+                 * omission. "This is an example" is a sentence that has to be read;
+                 * a figure is the one thing the eye resolves without reading. Giving
+                 * the two the same treatment is what made them interchangeable.
+                 *
+                 * Which of the queue this is. The row below says where it sits; this
+                 * says the Gate is showing that row. Suppressed at one bet, because
+                 * "1/1" is a fact about nothing.
+                 *
+                 * `3/12` RATHER THAN "3 of 12", and the reason is the mono rule.
+                 * `Stat` sets its value in the data face, and meridian.css draws the
+                 * line at "a sentence containing a number is not mono" -- so the
+                 * value has to BE a figure. A fraction is one; "3 of 12" is a phrase
+                 * with two numbers in it and would have rendered as typewriter text.
+                 */
+                ...(ranked.length > 1
+                  ? [
+                      <div key="rank">
+                        <Stat
+                          value={`${active?.rank ?? 1}/${ranked.length}`}
+                          label="place in the ranking"
+                        />
+                      </div>,
+                    ]
+                  : []),
+                ...(activeOpp.problem ? [<span key="problem">{activeOpp.problem}</span>] : []),
+                ...(activeOpp.critic_review?.summary
+                  ? [
+                      /* INLINE FLOW, NOT A FLEX ROW (2026-08-10, measured in the
                      browser). This was `flex items-center gap-2`, which made
                      the badge, the challenger's name and the summary three
                      flex items. A summary long enough to wrap became a tall
@@ -2915,8 +3027,8 @@ function DecideSurface() {
                      flows inside a sentence. Dropping the flex wrapper lets the
                      whole bullet wrap as one paragraph on the list's own text
                      column, which is what the other four do. */
-                    <span key="critic">
-                      {/* `reviewed` IS PASSED, and it is `criticGaveTheVerdict`
+                      <span key="critic">
+                        {/* `reviewed` IS PASSED, and it is `criticGaveTheVerdict`
                         rather than `Boolean(critic_review)`. `verdictFor` takes
                         the Critic's word only when it is exactly ship, revise or
                         kill and otherwise falls through to the LANE, so a badge
@@ -2925,69 +3037,89 @@ function DecideSurface() {
                         the same misattribution `verdictSentence` and
                         `redTeamRing` already guard on this file. A lane-derived
                         verdict keeps its word here and loses its hue. */}
-                      <VerdictBadge
-                        verdict={activeVerdict}
-                        confidence={activeOpp.critic_review.confidence}
-                        reviewed={criticGaveTheVerdict(activeOpp.critic_review)}
-                      />{" "}
-                      <b>{challengerName}</b> {activeOpp.critic_review.summary}
-                    </span>,
-                  ]
-                : []),
-              /* What backs THIS bet, counted from the signals actually linked to
+                        <VerdictBadge
+                          verdict={activeVerdict}
+                          confidence={activeOpp.critic_review.confidence}
+                          reviewed={criticGaveTheVerdict(activeOpp.critic_review)}
+                        />{" "}
+                        <b>{challengerName}</b> {activeOpp.critic_review.summary}
+                      </span>,
+                    ]
+                  : []),
+                /* What backs THIS bet, counted from the signals actually linked to
                it. An earlier draft counted the workspace's connected sources
                here and called them "Backed by", which asserts something about
                this one bet that the number does not support: it would have read
                the same on a bet with no evidence at all. */
-              ...(provenanceSources.length > 0
-                ? [
-                    <span key="sources">
-                      {/*
-                       * `wordFor`, NOT the literal word. S0 renamed the display
-                       * word for this kind from "signal" to "finding" in
-                       * KIND_WORD on 2026-08-27, because section 12's map is
-                       * explicit that a practitioner does not say signals. This
-                       * sentence had its own hardcoded copy, so the product was
-                       * saying both words on two surfaces about one thing. One
-                       * vocabulary, read from the place that owns it.
-                       */}
-                      <Num>{provenance.data?.source_signals?.length ?? 0}</Num>{" "}
-                      {wordFor("signal", provenance.data?.source_signals?.length ?? 0)} behind it,
-                      from <Num>{provenanceSources.length}</Num> separate source
-                      {provenanceSources.length === 1 ? "" : "s"}:{" "}
-                      {/*
-                       * `sourceLabel` from the Discover surface, which is the
-                       * one humaniser this product already had: brand names for
-                       * the sources it knows, and a token prettifier for the
-                       * rest, so `competitive_research` reads "Competitive
-                       * research". I first wrote a second helper here and that
-                       * was the same defect I keep filing against other lanes:
-                       * the thing already existed, in my own prefix.
-                       */}
-                      {provenanceSources
-                        .slice(0, 2)
-                        .map((x) => sourceLabel(x))
-                        .join(", ")}
-                      {provenanceSources.length > 2 ? " and more" : ""}.
-                    </span>,
-                  ]
-                : []),
-              /* WHAT IT COSTS, SAID BEFORE THE PRESS RATHER THAN AFTER IT. The
+                ...(provenanceSources.length > 0
+                  ? [
+                      <div key="sources">
+                        {/*
+                         * HOW MUCH EVIDENCE, AS A FIGURE RATHER THAN AS THE FIFTH
+                         * SENTENCE IN A LIST OF SIX. This is the one quantity that
+                         * decides whether the bet is worth keeping, and it used to
+                         * be set in the same 14px body prose as the disclaimer two
+                         * lines above it. See the header on the rank figure.
+                         *
+                         * `wordFor`, NOT the literal word. S0 renamed the display
+                         * word for this kind from "signal" to "finding" in
+                         * KIND_WORD on 2026-08-27, because section 12's map is
+                         * explicit that a practitioner does not say signals. This
+                         * sentence had its own hardcoded copy, so the product was
+                         * saying both words on two surfaces about one thing. One
+                         * vocabulary, read from the place that owns it -- and the
+                         * label carries it, because `Stat` will not take a figure
+                         * without one: "a bare figure offers volume as evidence of
+                         * quality".
+                         */}
+                        <Stat
+                          value={signalsBehind}
+                          label={`${wordFor("signal", signalsBehind)} behind it`}
+                        />
+                        {/* CORROBORATION IS ITS OWN FACT AND STAYS A SENTENCE. How
+                        many findings there are and how many separate places they
+                        came from are different questions -- ten findings from one
+                        source is a weaker bet than four from four -- so the count
+                        leads as a figure and the spread is named in words under
+                        it. `mt-mrd-3` is 6px, the WITHIN-a-block step, because
+                        this line and the figure above it are one block. */}
+                        <div className="mt-mrd-3">
+                          From <Num>{provenanceSources.length}</Num> separate source
+                          {provenanceSources.length === 1 ? "" : "s"}:{" "}
+                          {/*
+                           * `sourceLabel` from the Discover surface, which is the
+                           * one humaniser this product already had: brand names for
+                           * the sources it knows, and a token prettifier for the
+                           * rest, so `competitive_research` reads "Competitive
+                           * research". I first wrote a second helper here and that
+                           * was the same defect I keep filing against other lanes:
+                           * the thing already existed, in my own prefix.
+                           */}
+                          {provenanceSources
+                            .slice(0, 2)
+                            .map((x) => sourceLabel(x))
+                            .join(", ")}
+                          {provenanceSources.length > 2 ? " and more" : ""}.
+                        </div>
+                      </div>,
+                    ]
+                  : []),
+                /* WHAT IT COSTS, SAID BEFORE THE PRESS RATHER THAN AFTER IT. The
                line used to stop at "drafts the spec and moves it into Plan",
                which describes the outcome and not the spend. Three model runs
                is the fact that makes this the expensive answer of the three on
                offer, and it is the reason the button asks again. */
-              /* Parentheses rather than a dash pair. Em dashes are banned in
+                /* Parentheses rather than a dash pair. Em dashes are banned in
                copy, and these two were the last in the app because they were
                written as `&mdash;` entities: every sweep tonight grepped for
                the literal character and walked straight past them. */
-              <span key="consequence">
-                Keeping it writes the spec, its body and its outcome contract (three model runs) and
-                moves it into Plan. It asks once before it spends. Nothing ships from here.
-              </span>,
-            ]}
-          >
-            {/* `Approve`, AND IT IS THE ONLY ONE ON THE SURFACE. Meridian spends
+                <span key="consequence">
+                  Keeping it writes the spec, its body and its outcome contract (three model runs)
+                  and moves it into Plan. It asks once before it spends. Nothing ships from here.
+                </span>,
+              ]}
+            >
+              {/* `Approve`, AND IT IS THE ONLY ONE ON THE SURFACE. Meridian spends
               orchid on one meaning -- a person is required, and this control
               releases the thing -- and a Gate is the definition of it: the bet
               is held at the top of the ranking until this is pressed, and
@@ -2996,13 +3128,13 @@ function DecideSurface() {
               releasing anything downstream, and opening the record only shows
               you something. Two accents on one Gate is how the accent stops
               meaning anything. */}
-            <Approve shortcut="a" busy={busy} onClick={() => void keepBet(activeOpp)}>
-              Keep it
-            </Approve>
-            <Action shortcut="c" busy={busy} onClick={() => challenge.mutate(activeOpp.id)}>
-              Challenge it
-            </Action>
-            {/*
+              <Approve shortcut="a" busy={busy} onClick={() => void keepBet(activeOpp)}>
+                Keep it
+              </Approve>
+              <Action shortcut="c" busy={busy} onClick={() => challenge.mutate(activeOpp.id)}>
+                Challenge it
+              </Action>
+              {/*
               ── DROP STOPPED LOOKING LIKE CHALLENGE (2026-09-01) ─────────────
               These two rendered pixel-identical -- same border, same lift, same
               ink, same height -- for opposite consequences. "Challenge it"
@@ -3019,18 +3151,18 @@ function DecideSurface() {
               keeps its `d` shortcut, so nothing is harder to reach -- it simply
               stops claiming to be the same kind of act as the one beside it.
             */}
-            <Action
-              variant="destructive-quiet"
-              shortcut="d"
-              busy={busy}
-              onClick={() => dropBet(activeOpp)}
-            >
-              Drop it
-            </Action>
-            <Action variant="quiet" busy={busy} onClick={() => setOpenId(activeOpp.id)}>
-              Open the full record
-            </Action>
-            {/* Both of the first two buttons dispatch an agent, and until now the
+              <Action
+                variant="destructive-quiet"
+                shortcut="d"
+                busy={busy}
+                onClick={() => dropBet(activeOpp)}
+              >
+                Drop it
+              </Action>
+              <Action variant="quiet" busy={busy} onClick={() => setOpenId(activeOpp.id)}>
+                Open the full record
+              </Action>
+              {/* Both of the first two buttons dispatch an agent, and until now the
               only sign of it was the buttons greying out. "Keep it" runs
               `generatePrd`, which is THREE chokepoint calls (a title, the body,
               then the outcome contract) and the slowest act on this surface;
@@ -3041,22 +3173,22 @@ function DecideSurface() {
               biggest thing on the surface and a person who just pressed a button
               there is still looking at it. Putting the indicator below the
               recess would ask them to go find it. */}
-            {draftSpec.isPending || challenge.isPending ? (
-              <AgentPulse
-                label={draftSpec.isPending ? "Drafting the spec" : "The Critic is challenging it"}
-                seed={draftSpec.isPending ? "product-manager" : "critic"}
-                detail={
-                  draftSpec.isPending ? (
-                    <>{activeOpp.title} · spec, then the outcome contract</>
-                  ) : (
-                    <>{activeOpp.title} · against what the record already settled</>
-                  )
-                }
-              />
-            ) : null}
-          </Gate>
-        ) : (
-          /* Day one. The headline already says nothing is ranked, so this says
+              {draftSpec.isPending || challenge.isPending ? (
+                <AgentPulse
+                  label={draftSpec.isPending ? "Drafting the spec" : "The Critic is challenging it"}
+                  seed={draftSpec.isPending ? "product-manager" : "critic"}
+                  detail={
+                    draftSpec.isPending ? (
+                      <>{activeOpp.title} · spec, then the outcome contract</>
+                    ) : (
+                      <>{activeOpp.title} · against what the record already settled</>
+                    )
+                  }
+                />
+              ) : null}
+            </Gate>
+          ) : (
+            /* Day one. The headline already says nothing is ranked, so this says
            the next different thing: who acts, and where.
 
            TWO ROUTES IN, NOT ONE. This block used to offer Discover and nothing
@@ -3065,32 +3197,32 @@ function DecideSurface() {
            their head. Discover keeps the ghost button because it is still the
            stronger route when there IS evidence; naming a bet is the primary
            here because on a station with nothing ranked, the reader has none. */
-          <>
-            {/* `NothingHere`, the bordered half of the pair, because there is no
+            <>
+              {/* `NothingHere`, the bordered half of the pair, because there is no
               region around this: the Gate that would have drawn one is exactly
               what is missing. `NothingYet` here would leave a sentence floating
               between the page heading and a form. */}
-            <NothingHere>
-              Promote a signal on Discover and it lands here, scored and ranked against the record.
-              Or name the bet you already have in mind and rule on it now.
-            </NothingHere>
-            <NameABet pending={nameBet.isPending} onName={(idea) => nameBet.mutate(idea)} />
-            {nameBet.isPending ? (
-              <AgentPulse
-                label={`${challengerName} is tearing it down`}
-                seed={CHALLENGER}
-                detail={<>the bet you just named, against what the record already settled</>}
-              />
-            ) : null}
-            <Actions className="mt-mrd-4">
-              <Action variant="quiet" onClick={() => void navigate({ to: "/discover" })}>
-                Go to the signals
-              </Action>
-            </Actions>
-          </>
-        )}
+              <NothingHere>
+                Promote a signal on Discover and it lands here, scored and ranked against the
+                record. Or name the bet you already have in mind and rule on it now.
+              </NothingHere>
+              <NameABet pending={nameBet.isPending} onName={(idea) => nameBet.mutate(idea)} />
+              {nameBet.isPending ? (
+                <AgentPulse
+                  label={`${challengerName} is tearing it down`}
+                  seed={CHALLENGER}
+                  detail={<>the bet you just named, against what the record already settled</>}
+                />
+              ) : null}
+              <Actions className="mt-mrd-4">
+                <Action variant="quiet" onClick={() => void navigate({ to: "/discover" })}>
+                  Go to the signals
+                </Action>
+              </Actions>
+            </>
+          )}
 
-        {/* Unlabelled and directly under the question: the recess announces
+          {/* Unlabelled and directly under the question: the recess announces
           itself, and a heading between the call and its precedent would put a
           third register in the way of the one moment that matters here.
 
@@ -3135,24 +3267,24 @@ function DecideSurface() {
           So the entry condition is EITHER, and the citation is the body when
           there is one. When there is not, the body states the thing the
           evidence line is proof of, in a sentence rather than a delta. */}
-        {activeCitation || activeRescore ? (
-          <div className="flex flex-col gap-mrd-3">
-            <RecordSpeaks evidence={activeRescore ?? undefined}>
-              {/* `||`, matching the guard above, not `??`. An empty citation string
+          {activeCitation || activeRescore ? (
+            <div className="flex flex-col gap-mrd-3">
+              <RecordSpeaks evidence={activeRescore ?? undefined}>
+                {/* `||`, matching the guard above, not `??`. An empty citation string
                 is falsy for the entry condition, so `??` here would let it
                 through as a blank body on a recess that only rendered because
                 the rescore was there. */}
-              {activeCitation || "An outcome recorded on this bet moved its score."}
-              {/* AND WHOSE RECORD IT IS, when that is not the reader's own. Appended
+                {activeCitation || "An outcome recorded on this bet moved its score."}
+                {/* AND WHOSE RECORD IT IS, when that is not the reader's own. Appended
                 rather than substituted: the claim above is true and stays whole,
                 and this says the one thing it left the reader to assume. Null on
                 the only path where the unqualified sentence is complete -- an
                 outcome recorded in this very workspace, known not to be the
                 seeded example. See `rescoreProvenance`. */}
-              {rescoreProvenance ? ` ${rescoreProvenance}` : null}
-            </RecordSpeaks>
+                {rescoreProvenance ? ` ${rescoreProvenance}` : null}
+              </RecordSpeaks>
 
-            {/* THE DOOR CAME OUT OF THE BLOCK AND BECAME A NAMED CONTROL.
+              {/* THE DOOR CAME OUT OF THE BLOCK AND BECAME A NAMED CONTROL.
               The retired `Record` took an `onClick` and a `title` and made the
               WHOLE recess clickable, which is how this surface's one checkable
               claim ended up with an affordance nobody could see: a paragraph
@@ -3172,23 +3304,23 @@ function DecideSurface() {
              surface. What the door actually holds is `activeLearning`, the
              latest outcome recorded ON this bet -- a different record, and the
              one whose ICE delta is printed as this recess's evidence line. */}
-            <Door
-              onClick={() =>
-                void navigate({
-                  to: "/brain",
-                  search: activeLearning
-                    ? { tab: "learnings", learning: activeLearning.id }
-                    : { tab: "learnings" },
-                })
-              }
-            >
-              {activeLearning
-                ? "Open the outcome recorded on this bet"
-                : "Open your recorded outcomes"}
-            </Door>
-          </div>
-        ) : null}
-        {/* WHEN, said on the surface that decides it.
+              <Door
+                onClick={() =>
+                  void navigate({
+                    to: "/brain",
+                    search: activeLearning
+                      ? { tab: "learnings", learning: activeLearning.id }
+                      : { tab: "learnings" },
+                  })
+                }
+              >
+                {activeLearning
+                  ? "Open the outcome recorded on this bet"
+                  : "Open your recorded outcomes"}
+              </Door>
+            </div>
+          ) : null}
+          {/* WHEN, said on the surface that decides it.
           The Gate answers whether; this answers when, and it is the half that
           used to be buried in a "Move to" menu at the foot of the open record.
           It is a Line rather than three more buttons in the Gate because it is a
@@ -3196,18 +3328,18 @@ function DecideSurface() {
           decision, one tab stop, and the arrow keys move inside it. It sits
           after the recess so the record still speaks directly under the
           question, which is the one thing this surface is built around. */}
-        {activeOpp ? (
-          <Line
-            label="Where it sits"
-            sub={
-              activeOpp.status === "dropped"
-                ? "It is dropped right now. Picking a lane brings it back into the ranking."
-                : activeOpp.status === "shipped"
-                  ? "It shipped. Picking a lane puts it back in front of the team."
-                  : "Placing it moves the roadmap. Nothing is drafted and nothing ships from here."
-            }
-          >
-            {/* NOT disabled while a write is in flight, unlike the Gate's verbs.
+          {activeOpp ? (
+            <Line
+              label="Where it sits"
+              sub={
+                activeOpp.status === "dropped"
+                  ? "It is dropped right now. Picking a lane brings it back into the ranking."
+                  : activeOpp.status === "shipped"
+                    ? "It shipped. Picking a lane puts it back in front of the team."
+                    : "Placing it moves the roadmap. Nothing is drafted and nothing ships from here."
+              }
+            >
+              {/* NOT disabled while a write is in flight, unlike the Gate's verbs.
               Those dispatch an agent and a second press costs a real run; a
               radio group that disables itself mid-decision throws focus to the
               body and loses the arrow keys, which is the worse failure.
@@ -3225,21 +3357,26 @@ function DecideSurface() {
               for interleaving pairs and does not close it. Keyed on the bet, so
               the Gate moving on resets the draft rather than carrying one bet's
               half-made choice onto the next. */}
-            <LanePicker
-              key={activeOpp.id}
-              opportunity={activeOpp}
-              pending={busy}
-              onCommit={(status) => setStatus.mutate({ id: activeOpp.id, status })}
-            />
-          </Line>
-        ) : null}
+              <LanePicker
+                key={activeOpp.id}
+                opportunity={activeOpp}
+                pending={busy}
+                onCommit={(status) => setStatus.mutate({ id: activeOpp.id, status })}
+              />
+            </Line>
+          ) : null}
 
-        {/* What your last call caused. It stays on screen instead of sliding
+          {/* What your last call caused. It stays on screen instead of sliding
         away, because a judgment that erases itself teaches you your judgment
         left no trace, and judgment is the product. */}
-        {receipt ? (
-          <Receipt verb={receipt.verb} consequence={receipt.consequence} failed={receipt.failed} />
-        ) : null}
+          {receipt ? (
+            <Receipt
+              verb={receipt.verb}
+              consequence={receipt.consequence}
+              failed={receipt.failed}
+            />
+          ) : null}
+        </div>
 
         {/* Only when there is genuinely a queue behind the gate. With one bet
           ranked, a heading over an empty line is a panel that says nothing the
@@ -3445,91 +3582,61 @@ function DecideSurface() {
                    coloured pill does. */
                   marks={<StatusRing small fill={ring.fill} tone={ring.tone} label={ring.label} />}
                   lead={o.title}
-                  // One line, one different fact: where it sits, what it scored,
-                  // what KIND of bet it is, what the reviewer concluded when that
-                  // is not the ordinary answer, and which lane it is in.
-                  //
-                  // THE SCORE IS BACK ON THE ROW, and the note that took it off is
-                  // wrong rather than merely old. It read "the score that produced
-                  // the rank is the ranking's own input and belongs to the bet in
-                  // focus", which would be right if the rank told you the gap: it
-                  // does not. #3 above #4 is one place either way whether the two
-                  // are 9.1 and 2.0 or 7.3 and 7.2, and those are opposite facts
-                  // about how much the order is worth trusting. A numeral plus a
-                  // 2px bar on one shared scale is what makes that visible, it
-                  // costs no row height, and it is the encoding the queue research
-                  // found across the products that got this right.
-                  //
-                  // AND IT CARRIES WHAT MOVED IT. `moved` is a real previous score
-                  // out of `learnings.prior_ice`, never a diff computed here. See
-                  // `movementByOpp`.
-                  sub={
-                    <>
-                      {/* SAID ON EVERY ROW, not only on the one in focus.
-                        The gate above already tells you when the bet it is
-                        ASKING about is an example. The list did not, and the
-                        list is where a person forms their impression of what
-                        is in their workspace: four invented bets sitting
-                        unmarked among their own, each with a rank and a lane
-                        and a verdict, read as four things their product
-                        actually needs. Measured on the live database while
-                        wiring this: 20 sample opportunities across 5
-                        workspaces, and `select("*")` has been carrying the
-                        flag to the client the whole time.
-
-                        First in the line, for the same reason it is the gate's
-                        first line: a person scanning stops at the rank, and a
-                        caveat after the verdict arrives once the impression is
-                        already formed. */}
-                      {o.is_sample ? (
-                        <>
-                          <b>Example</b>
-                          {" · "}
-                        </>
-                      ) : null}
-                      <Num>#{r.rank}</Num>
-                      {" · "}
-                      <ScoreMeter
-                        value={o.ice_score ?? 0}
-                        ceiling={ICE_CEILING}
-                        decimals={1}
-                        delta={moved?.delta ?? null}
-                        what="ICE"
-                      />
-                      {" · "}
-                      {r.isBestBet ? (
-                        <BestBetStamp />
-                      ) : (
-                        <DesignationTag designation={r.designation} />
-                      )}
-                      {(r.isBestBet || r.designation) && " · "}
-                      {/* EXCEPTION-ONLY, which is Vanta's discipline and the
-                        reason the ring above can be trusted at a glance. Every
-                        row used to print a verdict sentence, so "Critic says
-                        ship" was the commonest string on the page and the two
-                        rows in actual trouble had to compete with it for
-                        attention. A cleared bet now says nothing here: its ring
-                        is full, its title says who cleared it, and silence is
-                        the correct amount of noise for the ordinary case.
-
-                        The sentence stays for exactly the cases where something
-                        is NOT ordinary -- revise, kill, and never-reviewed --
-                        and it keeps its honesty guard. The third argument is
-                        that guard: `verdictFor` falls back to the lane, so the
-                        row must say which of the two it is reading, and it is
-                        `criticGaveTheVerdict` rather than
-                        `Boolean(o.critic_review?.verdict)` because the guard has
-                        to ask the same question `verdictFor` asks -- see that
-                        function's docblock. */}
-                      {!spoke || verdict === "REVISE" || verdict === "KILL" ? (
-                        <>
-                          {verdictSentence(verdict, challengerName, spoke)}
-                          {o.status ? " · " : ""}
-                        </>
-                      ) : null}
-                      {o.status ? <StatusPill status={o.status} /> : null}
-                    </>
-                  }
+                  /*
+                   * ── SIX FACTS IN ONE NOWRAP LINE, AND THE TAIL WAS INVISIBLE ──
+                   *
+                   * This slot used to carry SIX: the example caveat, the rank, the
+                   * score meter, the designation, the verdict sentence and the
+                   * lane. `Row` renders `sub` with `truncate` whenever `tight` is
+                   * passed -- nowrap, overflow hidden, one ellipsis -- inside a
+                   * text column that measures about 420px on this station (74ch of
+                   * 14px is `.sp-main`'s 636px, less the 34px mark slot, the time
+                   * and the two controls). Six facts do not fit in 420px, so
+                   * everything from the designation rightwards was simply gone.
+                   *
+                   * AND THE CUT TEXT HAD NO WAY BACK, which is what made it worse
+                   * than a layout complaint. `Row`'s `hint()` only produces a
+                   * `title` when the value is a plain STRING -- "`lead` and `sub`
+                   * are `ReactNode`, and most of the call sites pass a fragment;
+                   * `title` on one of those is either a type error or the literal
+                   * string [object Object]". This call site passed a fragment, so
+                   * the ellipsis advertised text no pointer, keyboard or screen
+                   * reader could reach.
+                   *
+                   * SO THE LINE HOLDS ONE FACT AND IS A PLAIN STRING. The three
+                   * instruments moved to the trailing slot below, where they are
+                   * `flex-none` and cannot be cut; what is left is the one thing on
+                   * this row that is prose, and `hint()` now fires on it.
+                   */
+                  /*
+                   * ── AND THE CLEARED BET STOPPED SAYING NOTHING (finding 3) ─────
+                   *
+                   * The guard here read `!spoke || verdict === "REVISE" || verdict
+                   * === "KILL"`, so a bet the red team CLEARED -- `spoke &&
+                   * verdict === "SHIP"` -- printed no words at all. The only thing
+                   * left on it was the ring, and `StatusRing` draws a 10px disc
+                   * whose label reaches an `aria-label` and a `title` and nothing
+                   * else: the one outcome that means "go ahead" was the one outcome
+                   * a sighted reader could not read.
+                   *
+                   * THE EXCEPTION-ONLY ARGUMENT WAS RIGHT ABOUT A LINE THAT NO
+                   * LONGER EXISTS. It said "Critic says ship" was the commonest
+                   * string on the page and the two rows in actual trouble had to
+                   * compete with it for attention. They were competing inside a
+                   * line that also carried five other facts. This line carries the
+                   * verdict and nothing else, so there is nothing for it to drown,
+                   * and the scanning affordance the argument was protecting is
+                   * still there and still exception-only: `redTeamRing` gives
+                   * revise and kill a HUE and leaves a cleared bet quiet, so the
+                   * two rows in trouble are still the only coloured marks in the
+                   * column. Words for every row, colour for the exceptions.
+                   *
+                   * The honesty guard is untouched: the third argument is
+                   * `criticGaveTheVerdict`, not `Boolean(critic_review?.verdict)`,
+                   * so a lane-derived verdict still says so rather than being
+                   * attributed to an agent that never opened the bet.
+                   */
+                  sub={verdictSentence(verdict, challengerName, spoke)}
                   time={ago(o.updated_at)}
                   focused={focused}
                   // THE ROW OPENS THE RECORD. It used to re-select the Gate, which
@@ -3543,6 +3650,93 @@ function DecideSurface() {
                   // reads as a rendering bug.
                   action={
                     <>
+                      {/*
+                       * ── THE INSTRUMENTS, WHERE NOTHING CAN CUT THEM ───────────
+                       *
+                       * `Row` gives the trailing slot `flex flex-none`, so what
+                       * sits here is measured before the text column and the text
+                       * column absorbs the squeeze. That is the only slot on this
+                       * component where an instrument is safe: the mark slot is a
+                       * fixed 34px and already carries the red-team ring, `time`
+                       * takes a string, and `sub` truncates.
+                       *
+                       * THREE FACTS, AND THE BUDGET IS WHY IT IS THREE. This
+                       * column is 636px (`--sp-main-max`, 74ch at 14px) and the
+                       * ring, the age and the two controls already spend about
+                       * 190px of it, so a trailing band and a readable title are
+                       * competing for the same pixels. What survives is what
+                       * changes which bet you open next.
+                       *
+                       * TWO CAME OFF THE ROW, and both were subtractions rather
+                       * than losses:
+                       *   - `BestBetStamp` said "Best bet" beside `#1`, and
+                       *     `ranking.ts` sets `isBestBet: rank === 1`. It was the
+                       *     same fact twice, 52px apart.
+                       *   - `DesignationTag` is derived, not observed:
+                       *     `deriveDesignation` reads the rank, the verdict, and
+                       *     impact/ease/corroboration -- the rank is here, the
+                       *     verdict is on the line below, and impact and ease are
+                       *     two thirds of the score in this band. A word
+                       *     summarising three facts already on the row, in
+                       *     `--mrd-mute`, at up to 16 characters ("needs
+                       *     validation"), was the weakest claim on it. It is still
+                       *     on the record, which the region's own subtitle tells
+                       *     you a press opens.
+                       *
+                       * THE SIZE IS SET HERE BECAUSE THE SLOT SETS NONE. `Row`
+                       * puts no type class on the action span, so anything dropped
+                       * in inherits whatever the page is set in. 12.5px is the size
+                       * `StatusPill` and the retired tags already declared inline,
+                       * so the band paints at the size it was measured at.
+                       */}
+                      <span className="flex flex-none items-center gap-mrd-4 text-mrd-label text-mrd-mute">
+                        {/* SAID ON EVERY ROW, not only on the one in focus.
+                          The gate above already tells you when the bet it is
+                          ASKING about is an example. The list did not, and the
+                          list is where a person forms their impression of what is
+                          in their workspace: four invented bets sitting unmarked
+                          among their own, each with a rank and a lane and a
+                          verdict, read as four things their product actually
+                          needs. Measured on the live database while wiring this:
+                          20 sample opportunities across 5 workspaces, and
+                          `select("*")` has been carrying the flag to the client
+                          the whole time.
+
+                          BEFORE THE RANK, which is the order the guard in
+                          `an-example-bet-says-so-everywhere.test.ts` exists to
+                          hold: a person scanning stops at the rank, so a caveat
+                          after it arrives once the impression is already formed.
+                          It moved out of the truncating line WITH the rank rather
+                          than away from it, so the pair still reads in that order
+                          and neither can now be cut. */}
+                        {o.is_sample ? <b>Example</b> : null}
+                        <Num>#{r.rank}</Num>
+                        {/* THE SCORE IS ON THE ROW, and the note that took it off
+                          is wrong rather than merely old. It read "the score that
+                          produced the rank is the ranking's own input and belongs
+                          to the bet in focus", which would be right if the rank
+                          told you the gap: it does not. #3 above #4 is one place
+                          either way whether the two are 9.1 and 2.0 or 7.3 and
+                          7.2, and those are opposite facts about how much the
+                          order is worth trusting. A numeral plus a 2px bar on one
+                          shared scale is what makes that visible, and it costs no
+                          row height.
+
+                          AND IT CARRIES WHAT MOVED IT. `moved` is a real previous
+                          score out of `learnings.prior_ice`, never a diff computed
+                          here. See `movementByOpp`. */}
+                        <ScoreMeter
+                          value={o.ice_score ?? 0}
+                          ceiling={ICE_CEILING}
+                          decimals={1}
+                          delta={moved?.delta ?? null}
+                          what="ICE"
+                        />
+                        {/* The lane, which is state rather than a category and is
+                          the one fact in this band the reader can change from this
+                          station -- "Where it sits", above. */}
+                        {o.status ? <StatusPill status={o.status} /> : null}
+                      </span>
                       <Action
                         variant="quiet"
                         disabled={focused || busyIds.has(o.id)}
