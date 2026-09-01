@@ -1830,14 +1830,29 @@ function SpecEditorPage() {
               scale's heading stop is `--mrd-lh-tight`, and this input now says
               that token instead of the number it was preserving. The 56ch here
               beat `.sp-title`'s own 34ch max and still does. */}
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            aria-label="Spec title"
-            className="w-full max-w-[56ch] rounded-none border-0 border-b border-mrd-line-soft bg-transparent px-0 pt-0 pb-1.5 text-mrd-h2 leading-mrd-tight font-[600] text-mrd-ink outline-none focus:border-mrd-mute"
-            style={{ letterSpacing: "-0.028em" }}
-          />
-          {/* Two facts, never the same one twice: what state it is in, and when
+          {/*
+           * ── THE TITLE AND ITS STATE LINE ARE ONE GROUP (2026-09-01) ────────
+           * These were siblings in a `flex flex-col gap-mrd-7`, and the state
+           * line carried its own `mt-2` on top of that -- so the line that
+           * BELONGS to the title sat 48px below it, further apart than any
+           * unrelated pair of blocks on the page. A margin on a flex item adds
+           * to the container gap rather than replacing it, which is why the
+           * `mt-2` (correct when this stack had no gap) became a bug the day it
+           * gained one.
+           *
+           * Meridian's ramp says the gap BETWEEN groups must be visibly larger
+           * than the gap WITHIN one. Wrapping the pair lets the stack space the
+           * GROUP at 40px and `gap-mrd-3` space the pair at 6px inside it.
+           */}
+          <div className="flex flex-col gap-mrd-3">
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              aria-label="Spec title"
+              className="w-full max-w-[56ch] rounded-none border-0 border-b border-mrd-line-soft bg-transparent px-0 pt-0 pb-1.5 text-mrd-h2 leading-mrd-tight font-[600] text-mrd-ink outline-none focus:border-mrd-mute"
+              style={{ letterSpacing: "-0.028em" }}
+            />
+            {/* Two facts, never the same one twice: what state it is in, and when
             its words last changed. A save stamps the second one rather than
             firing a toast that says a thing this line already says.
 
@@ -1851,7 +1866,7 @@ function SpecEditorPage() {
 
             The helper is `specStateWords` in plan/format.ts now, and both
             surfaces read it, so the word cannot drift again. */}
-          {/* AND THE DATE WAS THE RAW LOCALE DEFAULT, which is the same defect
+            {/* AND THE DATE WAS THE RAW LOCALE DEFAULT, which is the same defect
             one field along. `toLocaleDateString()` with no options renders
             "7/17/2026" here while every other date this station shows a reader
             is "17 Jul" (/ship's `onDate`, the route line 400 lines below, the
@@ -1859,16 +1874,17 @@ function SpecEditorPage() {
             prints, not the one a document is dated in, and it sat in the
             second-highest line on the largest surface in the product. Same
             options as `onDate`, so the two stations date a thing the same way. */}
-          {/* `.sp-subtitle` was 13.5px in the mute ink with 8px above it. */}
-          <div className="mt-2 text-mrd-prose text-mrd-mute">
-            {specStateWords(prd.status)} · saved{" "}
-            <Num>
-              {savedAt ??
-                new Date(prd.updated_at).toLocaleDateString(undefined, {
-                  day: "numeric",
-                  month: "short",
-                })}
-            </Num>
+            {/* `.sp-subtitle` was 13.5px in the mute ink with 8px above it. */}
+            <div className="text-mrd-prose text-mrd-mute">
+              {specStateWords(prd.status)} · saved{" "}
+              <Num>
+                {savedAt ??
+                  new Date(prd.updated_at).toLocaleDateString(undefined, {
+                    day: "numeric",
+                    month: "short",
+                  })}
+              </Num>
+            </div>
           </div>
 
           {/* The record, in one region, and now ABOVE the actions rather than
@@ -2937,7 +2953,23 @@ function SpecEditorPage() {
                 <Row
                   key={s.id}
                   tight
-                  lead={(s.title ?? s.content ?? "signal").slice(0, 120)}
+                  /*
+                   * ── THE QUOTE IS HANDED OVER WHOLE NOW (2026-09-01) ────────
+                   * This read `.slice(0, 120)`, so the customer's own words were
+                   * cut in JAVASCRIPT before `Row` ever saw them -- and `Row`'s
+                   * `hint()` helper builds its `title` from the value it is
+                   * GIVEN. So the tooltip carried the same 120 characters as the
+                   * visible line and the rest of the quote existed nowhere on
+                   * the page. A hard cut with no ellipsis does not even tell the
+                   * reader something was removed.
+                   *
+                   * `Row` is `tight`, so it still truncates -- with CSS, at the
+                   * width the column actually has, which is the right place for
+                   * that decision -- and the full quote now reaches the title.
+                   * The visible result is unchanged or better; what changes is
+                   * that the words are recoverable.
+                   */
+                  lead={s.title ?? s.content ?? "signal"}
                   sub={s.source ?? "signal"}
                   onClick={() =>
                     // Carries the signal id so Discover can focus it (the old
