@@ -284,8 +284,10 @@ function SyncPage() {
               lines={[
                 <>
                   Both sides changed since the last sync. Supaprod is on version{" "}
-                  <Num>{m.version_local}</Num>, {providerLabel(m.provider)} is on version{" "}
-                  <Num>{m.version_remote}</Num>.
+                  {/* `raw`: a version is an identifier, not a quantity. Grouped,
+                      a four-digit version reads as a count of things. */}
+                  <Num raw>{m.version_local}</Num>, {providerLabel(m.provider)} is on version{" "}
+                  <Num raw>{m.version_remote}</Num>.
                 </>,
               ]}
             >

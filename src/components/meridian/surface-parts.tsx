@@ -1677,7 +1677,7 @@ export function RecordSpeaks({
  * a table. Tabular figures exist in the sans face too, so they were never the
  * reason to reach for mono.
  */
-export function Num({ children }: { children: React.ReactNode }) {
+export function Num({ children, raw = false }: { children: React.ReactNode; raw?: boolean }) {
   /* `data-num` is the SEMANTIC hook, and it is not decoration. A guard that
      wants to assert "every number goes in the data face" cannot read a Tailwind
      class without testing the paint, and cannot read `font-family` at all in a
@@ -1685,9 +1685,52 @@ export function Num({ children }: { children: React.ReactNode }) {
      the rule stays checkable after the paint changes again. */
   return (
     <span data-num="" className="font-mrd-mono tabular-nums">
-      {children}
+      {raw ? children : groupThousands(children)}
     </span>
   );
+}
+
+/**
+ * ── A DATA FACE THAT PRINTED 21000 (2026-09-01) ───────────────────────────
+ * Photographed on Settings → Billing: *"Spent 21000 credits in the last 7
+ * days"* and *"9518 credits available now"*. `Num` sets the mono, tabular face
+ * for every figure in the product and formatted none of them, so a five-digit
+ * number arrived as an unreadable run of glyphs on the one surface where a
+ * person is deciding whether to spend money.
+ *
+ * IT WAS ALREADY BEING FIXED BY HAND, which is the tell that the default is
+ * wrong rather than that the callers are careless: some sites already read
+ * `<Num>{r.credits.toLocaleString()}</Num>`. 596 call sites cannot be swept
+ * one at a time and stay swept, so the grouping belongs in the primitive that
+ * claims to be the data face.
+ *
+ * ── THE THREE THINGS IT MUST NOT TOUCH, and each has a live call site ──────
+ *
+ * STRINGS PASS THROUGH UNCHANGED. `<Num>7d</Num>`, `<Num>{fmtMs(ms)}</Num>`,
+ * `<Num>{pct(rate)}</Num>`, `<Num>{id.slice(0, 8)}</Num>` and every
+ * `.toFixed(n)` are already-formatted text; re-formatting them is how a
+ * duration turns into a quantity. Anything that is not a `number` is returned
+ * as it arrived, which also covers the multi-child cases like
+ * `<Num>v{v.version}</Num>`.
+ *
+ * NON-INTEGERS ARE LEFT ALONE, and this one is a trap rather than a taste
+ * call: bare `toLocaleString()` defaults to `maximumFractionDigits: 3`, so a
+ * score of 0.8567 would silently RENDER as 0.857. A formatter that changes the
+ * value is worse than one that never ran. Decimals in this product arrive
+ * pre-rounded through `toFixed` and `pct` anyway, so they are strings by the
+ * time they reach here.
+ *
+ * FOUR-DIGIT NUMBERS GROUP, INCLUDING WHAT LOOKS LIKE A YEAR. `9,518 credits`
+ * is the reason the threshold is 1000 and not 10000 -- it is the exact figure
+ * that was unreadable. That means an integer year would render as `2,026`, so
+ * a numeric IDENTIFIER passes `raw`. There is one in the product
+ * (`version_local` on the sync pane) and it is marked; a UUID is a string and
+ * needs nothing.
+ */
+function groupThousands(children: React.ReactNode): React.ReactNode {
+  if (typeof children !== "number") return children;
+  if (!Number.isInteger(children) || Math.abs(children) < 1000) return children;
+  return children.toLocaleString("en-US");
 }
 
 /**

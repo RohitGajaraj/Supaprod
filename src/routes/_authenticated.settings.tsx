@@ -3353,18 +3353,45 @@ function PlanSection({ checkout }: { checkout?: string }) {
 
   return (
     <>
+      {/*
+        ── ONE SENTENCE, PRINTED THREE TIMES, ON ONE SCREEN (2026-09-01) ──────
+        Photographed on the free tier: *"The full product loop, free. It guides
+        for 30 days. Upgrade when your work outgrows it."* appeared as the page
+        subtitle, again under "What you are on", and a third time inside the
+        Free card in the comparison grid -- all three visible without
+        scrolling. The word "Free" landed four times in the same view.
+
+        Each render came from a different author solving a different problem,
+        which is why nobody caught it: the subtitle wanted to say what you are
+        on, the region wanted to describe the row it owns, and the card has to
+        carry a tagline because it sits next to three other cards being
+        compared. Only the CARD genuinely needs it -- a tagline is a
+        comparison device, and there is nothing to compare against in the other
+        two places.
+
+        THE SUBTITLE NOW HOLDS A FACT OR IT HOLDS THE PAGE'S PURPOSE.
+        On a paid plan it already carried the renewal date, which is the one
+        thing on this page a person cannot work out for themselves. On free
+        there is no such date, so it falls back to the same line the loading
+        and error states already print -- which has the second effect of
+        stopping the subtitle from CHANGING as the query lands. It used to
+        rewrite itself from "What this workspace is entitled to." to the
+        tagline the moment data arrived, moving everything under it.
+      */}
       <PageHeading
         title="Plan"
         sub={
           hasSub && renewsLabel
             ? `${current.name}, ${sub?.cancelAtPeriodEnd ? "open until" : "renewing"} ${renewsLabel}.`
-            : `${current.name}. ${current.tagline}`
+            : "What this workspace is entitled to."
         }
       />
       <PaymentTestModeBanner />
 
       <Region title="What you are on">
-        <Line label={current.name} sub={current.tagline}>
+        {/* No `sub`: the tagline is the comparison card's job, and that card is
+            300px below this row wearing a "Your plan" mark. */}
+        <Line label={current.name}>
           {hasSub ? <Value tone={statusTone}>{statusWord}</Value> : null}
         </Line>
         {hasSub && renewsLabel ? (
@@ -3498,7 +3525,11 @@ function RunwaySection() {
             }
             sub={
               <>
-                {r.runsInWindow} runs · <Num>{r.spendableCredits}</Num> credits available now.
+                {/* In the data face like the other three. It was the one bare
+                    figure in the sentence, so it sat in prose type beside
+                    tabular ones and the row did not line up. */}
+                <Num>{r.runsInWindow}</Num> runs · <Num>{r.spendableCredits}</Num> credits
+                available now.
               </>
             }
           />
