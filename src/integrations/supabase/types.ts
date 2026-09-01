@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -235,6 +235,7 @@ export type Database = {
           expiry_default: string | null
           expiry_notified_at: string | null
           id: string
+          is_sample: boolean
           mission_id: string | null
           rationale: string | null
           result: Json | null
@@ -264,6 +265,7 @@ export type Database = {
           expiry_default?: string | null
           expiry_notified_at?: string | null
           id?: string
+          is_sample?: boolean
           mission_id?: string | null
           rationale?: string | null
           result?: Json | null
@@ -293,6 +295,7 @@ export type Database = {
           expiry_default?: string | null
           expiry_notified_at?: string | null
           id?: string
+          is_sample?: boolean
           mission_id?: string | null
           rationale?: string | null
           result?: Json | null
@@ -598,6 +601,7 @@ export type Database = {
           halted_reason: string | null
           id: string
           input: string
+          is_sample: boolean
           last_checkpoint_at: string | null
           mission_id: string | null
           mission_spend_cap_usd: number | null
@@ -629,6 +633,7 @@ export type Database = {
           halted_reason?: string | null
           id?: string
           input: string
+          is_sample?: boolean
           last_checkpoint_at?: string | null
           mission_id?: string | null
           mission_spend_cap_usd?: number | null
@@ -660,6 +665,7 @@ export type Database = {
           halted_reason?: string | null
           id?: string
           input?: string
+          is_sample?: boolean
           last_checkpoint_at?: string | null
           mission_id?: string | null
           mission_spend_cap_usd?: number | null
@@ -2723,12 +2729,21 @@ export type Database = {
           decided_by_agent_slug: string | null
           embedding: string | null
           embedding_model: string | null
+          forecast_band_drifting_at: number | null
+          forecast_band_missed_at: number | null
+          forecast_baseline: number | null
           forecast_claim: string | null
           forecast_deferred_at: string | null
           forecast_deferred_count: number
+          forecast_direction: string | null
           forecast_horizon_date: string | null
           forecast_how_we_will_know: string | null
+          forecast_if_drifting: string | null
+          forecast_if_missed: string | null
+          forecast_metric: string | null
           forecast_next_check_at: string | null
+          forecast_observations: number | null
+          forecast_predicted: number | null
           forecast_resolution: string | null
           forecast_resolution_rationale: string | null
           forecast_resolution_suggestion: Json | null
@@ -2736,6 +2751,7 @@ export type Database = {
           forecast_resolved_by_agent_slug: string | null
           id: string
           is_public: boolean
+          is_sample: boolean
           meeting_id: string | null
           mission_id: string | null
           prd_id: string | null
@@ -2758,12 +2774,21 @@ export type Database = {
           decided_by_agent_slug?: string | null
           embedding?: string | null
           embedding_model?: string | null
+          forecast_band_drifting_at?: number | null
+          forecast_band_missed_at?: number | null
+          forecast_baseline?: number | null
           forecast_claim?: string | null
           forecast_deferred_at?: string | null
           forecast_deferred_count?: number
+          forecast_direction?: string | null
           forecast_horizon_date?: string | null
           forecast_how_we_will_know?: string | null
+          forecast_if_drifting?: string | null
+          forecast_if_missed?: string | null
+          forecast_metric?: string | null
           forecast_next_check_at?: string | null
+          forecast_observations?: number | null
+          forecast_predicted?: number | null
           forecast_resolution?: string | null
           forecast_resolution_rationale?: string | null
           forecast_resolution_suggestion?: Json | null
@@ -2771,6 +2796,7 @@ export type Database = {
           forecast_resolved_by_agent_slug?: string | null
           id?: string
           is_public?: boolean
+          is_sample?: boolean
           meeting_id?: string | null
           mission_id?: string | null
           prd_id?: string | null
@@ -2793,12 +2819,21 @@ export type Database = {
           decided_by_agent_slug?: string | null
           embedding?: string | null
           embedding_model?: string | null
+          forecast_band_drifting_at?: number | null
+          forecast_band_missed_at?: number | null
+          forecast_baseline?: number | null
           forecast_claim?: string | null
           forecast_deferred_at?: string | null
           forecast_deferred_count?: number
+          forecast_direction?: string | null
           forecast_horizon_date?: string | null
           forecast_how_we_will_know?: string | null
+          forecast_if_drifting?: string | null
+          forecast_if_missed?: string | null
+          forecast_metric?: string | null
           forecast_next_check_at?: string | null
+          forecast_observations?: number | null
+          forecast_predicted?: number | null
           forecast_resolution?: string | null
           forecast_resolution_rationale?: string | null
           forecast_resolution_suggestion?: Json | null
@@ -2806,6 +2841,7 @@ export type Database = {
           forecast_resolved_by_agent_slug?: string | null
           id?: string
           is_public?: boolean
+          is_sample?: boolean
           meeting_id?: string | null
           mission_id?: string | null
           prd_id?: string | null
@@ -2860,6 +2896,7 @@ export type Database = {
           deployed_at: string | null
           environment: string
           id: string
+          is_sample: boolean
           product_id: string | null
           provider: string
           status: string
@@ -2876,6 +2913,7 @@ export type Database = {
           deployed_at?: string | null
           environment?: string
           id?: string
+          is_sample?: boolean
           product_id?: string | null
           provider?: string
           status?: string
@@ -2892,6 +2930,7 @@ export type Database = {
           deployed_at?: string | null
           environment?: string
           id?: string
+          is_sample?: boolean
           product_id?: string | null
           provider?: string
           status?: string
@@ -7428,6 +7467,7 @@ export type Database = {
           artifact_kind: string
           created_at: string
           station: string
+          superseded_at: string | null
           track_id: string
         }
         Insert: {
@@ -7435,6 +7475,7 @@ export type Database = {
           artifact_kind: string
           created_at?: string
           station: string
+          superseded_at?: string | null
           track_id: string
         }
         Update: {
@@ -7442,6 +7483,7 @@ export type Database = {
           artifact_kind?: string
           created_at?: string
           station?: string
+          superseded_at?: string | null
           track_id?: string
         }
         Relationships: [
@@ -7460,9 +7502,12 @@ export type Database = {
           created_at: string
           driven_at: string | null
           entry_station: string
+          from_learning_id: string | null
           id: string
+          is_sample: boolean
           last_driven_via: string | null
           last_hold: string | null
+          last_hold_because: string | null
           origin: string | null
           path: Json
           pending_gates: Json
@@ -7486,9 +7531,12 @@ export type Database = {
           created_at?: string
           driven_at?: string | null
           entry_station?: string
+          from_learning_id?: string | null
           id?: string
+          is_sample?: boolean
           last_driven_via?: string | null
           last_hold?: string | null
+          last_hold_because?: string | null
           origin?: string | null
           path?: Json
           pending_gates?: Json
@@ -7512,9 +7560,12 @@ export type Database = {
           created_at?: string
           driven_at?: string | null
           entry_station?: string
+          from_learning_id?: string | null
           id?: string
+          is_sample?: boolean
           last_driven_via?: string | null
           last_hold?: string | null
+          last_hold_because?: string | null
           origin?: string | null
           path?: Json
           pending_gates?: Json
@@ -7534,6 +7585,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "spine_tracks_from_learning_id_fkey"
+            columns: ["from_learning_id"]
+            isOneToOne: false
+            referencedRelation: "learnings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "spine_tracks_theme_id_fkey"
             columns: ["theme_id"]
@@ -7749,6 +7807,7 @@ export type Database = {
           created_at: string
           fix_attempts: number
           id: string
+          is_sample: boolean
           mission_id: string | null
           pr_number: number | null
           pr_url: string | null
@@ -7772,6 +7831,7 @@ export type Database = {
           created_at?: string
           fix_attempts?: number
           id?: string
+          is_sample?: boolean
           mission_id?: string | null
           pr_number?: number | null
           pr_url?: string | null
@@ -7795,6 +7855,7 @@ export type Database = {
           created_at?: string
           fix_attempts?: number
           id?: string
+          is_sample?: boolean
           mission_id?: string | null
           pr_number?: number | null
           pr_url?: string | null
@@ -8398,6 +8459,41 @@ export type Database = {
           },
         ]
       }
+      track_hold_notices: {
+        Row: {
+          channel: string
+          hold: string
+          id: string
+          sent_at: string
+          track_id: string
+          user_id: string
+        }
+        Insert: {
+          channel?: string
+          hold: string
+          id?: string
+          sent_at?: string
+          track_id: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          hold?: string
+          id?: string
+          sent_at?: string
+          track_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "track_hold_notices_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "spine_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trust_graduation_proposals: {
         Row: {
           agent_slug: string
@@ -8599,6 +8695,8 @@ export type Database = {
           email_budget: boolean
           email_drift: boolean
           email_health: boolean
+          email_stopped: boolean
+          email_verdict: boolean
           in_app_approvals: boolean
           in_app_budget: boolean
           in_app_drift: boolean
@@ -8619,6 +8717,8 @@ export type Database = {
           email_budget?: boolean
           email_drift?: boolean
           email_health?: boolean
+          email_stopped?: boolean
+          email_verdict?: boolean
           in_app_approvals?: boolean
           in_app_budget?: boolean
           in_app_drift?: boolean
@@ -8639,6 +8739,8 @@ export type Database = {
           email_budget?: boolean
           email_drift?: boolean
           email_health?: boolean
+          email_stopped?: boolean
+          email_verdict?: boolean
           in_app_approvals?: boolean
           in_app_budget?: boolean
           in_app_drift?: boolean
@@ -10290,6 +10392,7 @@ export type Database = {
       }
       seed_studio_tools: { Args: { _user_id: string }; Returns: undefined }
       slugify: { Args: { p_text: string }; Returns: string }
+      strip_ai_dashes: { Args: { t: string }; Returns: string }
       tier_connector_limit: { Args: { _tier: string }; Returns: number }
       tier_product_limit: { Args: { _tier: string }; Returns: number }
       tier_seat_limit: { Args: { _tier: string }; Returns: number }
