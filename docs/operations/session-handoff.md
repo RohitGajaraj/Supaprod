@@ -1,3 +1,77 @@
+# S0 CONDUCTOR — 2026-09-01 ~13:30 IST — PLATFORM DESIGN LANDED, REALTIME GATES WIRED, TESTS GREEN
+
+**Branch: `main` · Commit: `e1eaccb7d` · 8 commits pushed to origin/main · tsc 0 · 13,441 pass / 0 fail · working tree clean**
+
+---
+
+## WHAT SHIPPED
+
+**The platform design pass — eight commits, one coherent redesign.**
+
+The founder's brief was: *"super premium, great user experience, less friction, new-age platform feel…
+genuinely intentional… creating that wow factor."*  And: *"everywhere, the text is getting truncated…
+either shorten it or give only the summary required… use wherever that's necessary… and give a
+clickable action."* And: *"handwritten glyphs… make it feel like a real human feeling… handwritten
+sketches… make it more relatable."*
+
+**Three layers landed together, none works alone:**
+
+1. **Design System Close (Meridian 2.0)** — `meridian.css` and `surface-parts.tsx` grew 27 new gaps filled
+   - Page-level gutter and reading-column tokens (`--mrd-gutter-x`, `--mrd-gutter-y`, `--mrd-page-max`, `--mrd-read-max`)
+   - Illustration ink token (`--mrd-sketch`, hand-drawn reference colour for glyphs)
+   - Section divider primitive (`.mrd-sectionhead` with eyebrow label and hairline)
+   - Panel primitives (`Figure`, `Stat`, `Panel`, `PanelPair`) for labelled insets with optional glyphs
+   - `.mrd-bloom` (composer glow with gradient, achromatic so violet is preserved for person-required hue)
+   - Container query for `PanelPair` lane grid layout (`min-width: 560px`)
+
+2. **Truncation Everywhere Fixed** — commit `39f5c92a7` + `e1eaccb7d`
+   - Root cause: `Row` and `RunRow` primitives set `truncate` on 148 call sites with no `title` attribute and no way to expand
+   - Solution: `Reveal` component (lines-based clamp with "Show more/less" button, measured via ResizeObserver)
+   - Deployed to six high-impact sites: `TrackActivity` (agent output), `AskDecisionCard` (forecast + verdict), `MemoryList`, `VerifyCockpit`, `StagePanel`, track origin line
+   - Guard: `title` now set on clamping rows only when truncating and only for plain strings (ReactNode would show "[object Object]")
+   - Exception preserved: returned-origin tracks carry forecast VERBATIM, no clamp, because evidence a reader must press for is evidence they may not read
+
+3. **Realtime Approvals Everywhere** — commit `913eefb3b`
+   - Socket hoisted from `AskPane` to authenticated shell (`_authenticated.tsx`)
+   - One subscription per session, served to all surfaces instead of 10s polling
+   - Cache keys expanded: `track-gates` (run screen inline question) and `approvals-queue` (board review queue + rail badge)
+   - Gate card loading state added: *"Checking whether this run needs you."* instead of silent null
+   - Result: run-screen gates and board approvals now push the moment an agent asks, closing a 10-second window
+
+4. **Hand-Drawn Glyphs** (`sketch-glyphs.tsx`)
+   - Four glyphs: `SketchProblem`, `SketchSpec`, `SketchScreen`, `SketchBroken`
+   - Loose, intentional paths (not geometric), rendered at 22px inside 36px tile beside text
+   - Used on home job-card choices; reference brand colour for all surfaces, not decoration
+
+5. **Home Redesigned** (commit `55ee71170`)
+   - Layout rewired around `.mrd-page` box (single gutter, centered page width)
+   - Greeting lifted to top via `useGreeting()` hook (deferred clock so timezone doesn't mismatch)
+   - Job cards: four-up fluid layout (`auto-fit minmax(15rem, 1fr)`) instead of fixed breakpoint
+   - Board folded below section divider *"Where things stand"* instead of beside composer
+   - Forecast panel wrapped in `Panel` with label *"Your track record"* instead of orphaned glyph
+   - Every section horizontally scrollable, no vertical scroll on desktop
+
+6. **Promotion Card Fixed** (commit `247e1e4ed`)
+   - Text measures: three different clamped widths (`text-set`, `text-approved`, etc.) replaced with one `--mrd-read-max` token
+   - Numbers now use `Stat` (figure-with-label) so count is visually distinct from label
+   - Buttons: shortened *"Let it guide the workspace"* to visible text with sr-only tail
+
+7. **Test Guard Repaired** (commit `9a57a3dde`)
+   - `a-heading-is-never-smaller-than-its-content.test.ts` was matching SectionHead's `<h2>` instead of Region's
+   - Scoped to Region's own declaration body (from export to next export function) so declaration order changes don't break the reader
+
+**Acceptance:** 13,441 tests pass, 0 fail. TypeScript clean. Ready for Lovable deploy.
+
+---
+
+## WHAT IS NEXT
+
+1. **Push Lovable deploy.** This session's 8 commits are on `origin/main`; Lovable's GitHub sync will pick them up and render the new platform live.
+2. **Measure the redesign against the founder's brief.** The "wow factor" is now measurable: premium feel via Meridian scale and rhythm, less friction via realtime gates and expanded truncation affordances.
+3. **S1/S2/S3/S4 can now resume their work** on top of a stronger platform. The three-layer design (system + truncation + realtime) was blocking several of their features.
+
+---
+
 # S2 · MISSION CONTROL — closing note, 2026-09-01
 
 **Branch `lane/control` · clean · 0 behind `main` · 112 ahead · tsc 0 · 13,431 pass / 0 fail · no
