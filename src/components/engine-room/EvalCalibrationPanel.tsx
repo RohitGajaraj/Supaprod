@@ -23,6 +23,11 @@
  */
 
 import * as React from "react";
+import {
+  scoreSurface,
+  allSuitesClear,
+  type SuiteResult,
+} from "@/components/engine-room/surface-calibration";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -43,15 +48,39 @@ function surfaceLabel(surface: string): string {
 }
 
 /**
- * Per-surface calibration row: coverage state + pass rate + drillable link.
- * The pass rate is the average of all the surface's latest suite runs.
+ * Per-surface calibration row: coverage state + judge score + drillable link.
+ *
+ * ── IT WAS NEVER A PASS RATE, AND IT RENDERED AS 8463% (2026-09-01) ────────
+ * The field was called `passRate`, and the row printed
+ * `Math.round(passRate * 100)` with a per-cent sign after it. What it actually
+ * holds is the mean of `eval_runs.avg_score`, which is a JUDGE SCORE OUT OF
+ * 100. Measured against production the day this was found: 19 scored runs,
+ * min 68, max 91, mean 84.63. So every guarded surface on Quality > By surface
+ * was printing a figure two orders of magnitude wrong.
+ *
+ * THE COLOUR WAS WORSE THAN THE NUMBER. The threshold read `passRatePct >= 90`
+ * with a comment defending it as "green only where it is an OUTCOME worth
+ * reporting: a surface passing at or above ninety". Multiplied by a hundred,
+ * any score of 0.9 or better clears it -- so every surface in the product was
+ * green, permanently, whatever it scored. A verdict that cannot come out the
+ * other way is not a verdict.
+ *
+ * WHAT REPLACES IT IS NOT A RESCALED VERSION OF THE SAME CLAIM. There is no
+ * single threshold to compare a surface against, because a surface aggregates
+ * several suites and `eval_suites.pass_threshold` is set PER SUITE (70 to 80
+ * in production). So the score is reported as a score, with its scale named,
+ * and the pass/fail judgement is made where the thresholds actually live: a
+ * surface is green when every suite behind it cleared its OWN bar.
  */
 interface SurfaceCalibration {
   surface: string;
   label: string;
   coverageState: "covered" | "stale" | "uncovered";
   suiteIds: string[];
-  passRate: number | null;
+  /** Mean of the latest `avg_score` across this surface's suites. Out of 100. */
+  avgScore: number | null;
+  /** How many of those suites met their own `pass_threshold`. */
+  clearing: number;
   runCount: number;
 }
 
@@ -80,13 +109,16 @@ export function EvalCalibrationPanel() {
   const targets = coverageQ.data?.targets ?? [];
 
   // Group suites by surface
-  const byTarget = new Map<string, { suite: (typeof suites)[0]; pass: number | null }[]>();
+  const byTarget = new Map<string, { suite: (typeof suites)[0]; score: number | null }[]>();
   for (const suite of suites) {
     const key = `${suite.surface}/${suite.prompt_key}`;
     if (!byTarget.has(key)) byTarget.set(key, []);
     byTarget.get(key)!.push({
       suite,
-      pass: suite.last_run?.avg_score != null ? Number(suite.last_run.avg_score) : null,
+      /* Named `score`, not `pass`. It was called `pass` and it is a number out
+         of 100, which is how it ended up multiplied by a hundred and printed
+         with a per-cent sign three screens away. */
+      score: suite.last_run?.avg_score != null ? Number(suite.last_run.avg_score) : null,
     });
   }
 
@@ -102,7 +134,8 @@ export function EvalCalibrationPanel() {
         label: surfaceLabel(surface),
         coverageState: target.state,
         suiteIds: [],
-        passRate: null,
+        avgScore: null,
+        clearing: 0,
         runCount: 0,
       });
     }
@@ -110,21 +143,20 @@ export function EvalCalibrationPanel() {
     cal.coverageState = target.state;
   }
 
-  // Accumulate suite pass rates by surface
+  // Accumulate suite scores by surface, and count how many cleared their own bar.
   for (const [surface, cals] of bySurface) {
-    const passes: number[] = [];
+    const results: SuiteResult[] = [];
     for (const target of targets.filter((t) => t.surface === surface)) {
       const key = `${target.surface}/${target.key}`;
-      const targetSuites = byTarget.get(key) ?? [];
-      for (const ts of targetSuites) {
+      for (const ts of byTarget.get(key) ?? []) {
         cals.suiteIds.push(ts.suite.id);
-        if (ts.pass != null) passes.push(ts.pass);
+        results.push({ score: ts.score, passThreshold: ts.suite.pass_threshold });
       }
     }
-    if (passes.length > 0) {
-      cals.passRate = passes.reduce((a, b) => a + b) / passes.length;
-      cals.runCount = passes.length;
-    }
+    const scored = scoreSurface(results);
+    cals.avgScore = scored.avgScore;
+    cals.clearing = scored.clearing;
+    cals.runCount = scored.runCount;
   }
 
   calibrations.push(
@@ -155,7 +187,8 @@ export function EvalCalibrationPanel() {
                 ? { tone: "quiet", label: "Unproven" }
                 : { tone: "hold", label: "Unguarded" };
 
-          const passRatePct = cal.passRate != null ? Math.round(cal.passRate * 100) : null;
+          const score = cal.avgScore != null ? Math.round(cal.avgScore) : null;
+          const allClear = allSuitesClear(cal);
 
           return (
             <button
@@ -176,18 +209,22 @@ export function EvalCalibrationPanel() {
 
               <span className="flex flex-none items-center gap-mrd-4">
                 <span className="min-w-[60px] text-right">
-                  {passRatePct != null ? (
+                  {score != null ? (
                     <span
                       className={`font-mrd-mono block text-mrd-base font-medium tabular-nums ${
-                        /* Green only where it is an OUTCOME worth reporting: a
-                           surface passing at or above ninety. Below that the
-                           figure is a measurement and stays neutral, because a
-                           second threshold nobody set would be a verdict
-                           invented by the palette. */
-                        passRatePct >= 90 ? "text-mrd-pass" : "text-mrd-ink"
+                        allClear ? "text-mrd-pass" : "text-mrd-ink"
                       }`}
+                      /* The scale is named where the figure is, because "84"
+                         alone is the same defect as the per-cent sign was: a
+                         number that does not say what it measures. */
+                      title={
+                        cal.clearing === cal.runCount
+                          ? `Mean judge score out of 100. All ${cal.runCount} suites met their own pass threshold.`
+                          : `Mean judge score out of 100. ${cal.clearing} of ${cal.runCount} suites met their own pass threshold.`
+                      }
                     >
-                      {passRatePct}%
+                      {score}
+                      <span className="text-mrd-mute">/100</span>
                     </span>
                   ) : (
                     <span className="block text-mrd-small text-mrd-faint">no runs</span>
