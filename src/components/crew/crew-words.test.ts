@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import { needsALookLine } from "./crew-words";
+import { needsALookLine, workingNowLine } from "./crew-words";
 
 /**
  * THE EXCEPTION SIGNAL THE ROSTER HELD AND NEVER DREW.
@@ -33,5 +33,33 @@ describe("needsALookLine", () => {
     expect(needsALookLine(undefined)).toBeNull();
     expect(needsALookLine(Number.NaN)).toBeNull();
     expect(needsALookLine(-2)).toBeNull();
+  });
+});
+
+describe("workingNowLine", () => {
+  it("says nothing when nothing is running, so the quiet card is unchanged", () => {
+    // The sibling branch (`lastWorkedLine`) owns that state. If this spoke at
+    // zero, every idle card would gain a second line saying nothing.
+    expect(workingNowLine(0, 0)).toBeNull();
+    expect(workingNowLine(0, 4)).toBeNull();
+    expect(workingNowLine(null, 2)).toBeNull();
+    expect(workingNowLine(undefined, undefined)).toBeNull();
+  });
+
+  it("counts what is in flight, singular and plural", () => {
+    expect(workingNowLine(1, 0)).toBe("Working on 1 run now.");
+    expect(workingNowLine(3, 0)).toBe("Working on 3 runs now.");
+  });
+
+  it("adds what is queued behind, and omits it at zero", () => {
+    // "0 waiting behind it" on almost every card is the shape that teaches a
+    // reader to stop reading the line -- the rule `needsALookLine` follows.
+    expect(workingNowLine(1, 2)).toBe("Working on 1 run now, 2 waiting behind it.");
+    expect(workingNowLine(2, 0)).toBe("Working on 2 runs now.");
+  });
+
+  it("survives a non-finite count rather than printing NaN", () => {
+    expect(workingNowLine(Number.NaN, 1)).toBeNull();
+    expect(workingNowLine(2, Number.NaN)).toBe("Working on 2 runs now.");
   });
 });

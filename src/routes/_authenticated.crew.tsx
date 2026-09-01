@@ -132,7 +132,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { messageForPerson } from "@/lib/error-copy";
 import { SlowRead } from "@/components/shell/SlowRead";
-import { needsALookLine } from "@/components/crew/crew-words";
+import { needsALookLine, workingNowLine } from "@/components/crew/crew-words";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
@@ -743,6 +743,33 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
                         {m && m.enabled && m.runs.running === 0 ? (
                           <span className="mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-mute">
                             {lastWorkedLine(m.runs.lastAt)}
+                          </span>
+                        ) : null}
+                        {/*
+                          ── THE WORKING CARD SAYS SOMETHING NOW (2026-09-01) ──
+                          The branch above draws only when NOTHING is running, so
+                          on a roster of seventeen the card that is actually
+                          working was the only one with no words at all -- its
+                          entire state was a hue on a 24px mark. That is the one
+                          card a person is looking for.
+
+                          The comment above it argued "a card should carry one
+                          live signal, not two", which is right about
+                          duplication and produced the wrong outcome. This is not
+                          the second copy it was guarding: the mark says THAT it
+                          is running, this says how much is in flight and how
+                          much is queued behind. Both already on the roster row
+                          and drawn nowhere in the product. See
+                          `workingNowLine`.
+
+                          `--mrd-agent` is the azure that means a machine is
+                          working, which is the colour law used as intended
+                          rather than a decoration -- this line only exists while
+                          one is.
+                        */}
+                        {m && m.enabled && m.runs.running > 0 ? (
+                          <span className="mt-0.5 block text-mrd-small leading-mrd-snug text-mrd-agent">
+                            {workingNowLine(m.runs.running, m.runs.queued)}
                           </span>
                         ) : null}
                         {/*

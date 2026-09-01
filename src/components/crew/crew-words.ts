@@ -140,3 +140,49 @@ export function needsALookLine(failed: number | null | undefined): string | null
   if (typeof failed !== "number" || !Number.isFinite(failed) || failed <= 0) return null;
   return failed === 1 ? "1 run did not finish." : `${failed} runs did not finish.`;
 }
+
+/**
+ * WHAT A TEAMMATE IS DOING RIGHT NOW, AND WHAT IS QUEUED BEHIND IT.
+ *
+ * ── THE CARD WENT SILENT AT EXACTLY THE WRONG MOMENT ──────────────────────
+ * `lastWorkedLine` is drawn only when `runs.running === 0`, and the comment at
+ * that call site states the reason: *"Silent while it is RUNNING, because the
+ * mark beside the name already says so and a card should carry one live signal,
+ * not two."*
+ *
+ * That reasoning is sound about DUPLICATION and it produced the wrong outcome.
+ * On a roster of seventeen cards, the one that is actually working is the one a
+ * person is looking for -- and it was the only one with no words at all. Its
+ * whole state was a hue on a 24px mark.
+ *
+ * THE GOAL THIS ANSWERS IS THE NON-NEGOTIABLE ONE: *"the agent's activity must
+ * be visible in real time: what it is doing right now, what it just finished,
+ * what it is about to do."* A colour says "something", not "what".
+ *
+ * ── AND IT IS NOT THE SECOND COPY THE COMMENT WAS GUARDING AGAINST ────────
+ * That is the whole justification for overruling it here. The mark says THAT it
+ * is running. This says HOW MUCH is in flight and how much is waiting behind --
+ * `running` and `queued`, both already on every roster row (`CrewRunTally`) and
+ * neither drawn anywhere in the product. New information, not a restatement, so
+ * the card still carries one live signal per fact.
+ *
+ * SILENT WHEN NOTHING IS RUNNING, so `lastWorkedLine` keeps its slot unchanged
+ * and no card gains a line it did not have. The two are mutually exclusive by
+ * the same condition, which is why this is a sibling rather than a widening.
+ *
+ * QUEUED IS OMITTED AT ZERO rather than printed as "0 waiting", which is the
+ * same rule `needsALookLine` follows above: a line that says nothing on almost
+ * every card teaches a reader to stop reading the line.
+ */
+export function workingNowLine(
+  running: number | null | undefined,
+  queued: number | null | undefined,
+): string | null {
+  if (typeof running !== "number" || !Number.isFinite(running) || running <= 0) return null;
+  const now = running === 1 ? "Working on 1 run now" : `Working on ${running} runs now`;
+  const waiting =
+    typeof queued === "number" && Number.isFinite(queued) && queued > 0
+      ? `, ${queued} waiting behind it`
+      : "";
+  return `${now}${waiting}.`;
+}
