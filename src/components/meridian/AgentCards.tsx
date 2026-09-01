@@ -74,7 +74,7 @@ export type AgentCard = {
  * that is stopped-on-a-condition rather than a person. Otherwise nothing: an agent
  * quietly running correctly is the normal case and does not need a colour.
  */
-function StateLine({ card }: { card: AgentCard }) {
+function StateLine({ card, sayTheSteadyState }: { card: AgentCard; sayTheSteadyState: boolean }) {
   const waiting = card.waiting ?? 0;
 
   if (waiting > 0) {
@@ -107,11 +107,47 @@ function StateLine({ card }: { card: AgentCard }) {
       </span>
     );
   }
+  /*
+   * ── SIXTEEN CARDS, SIXTEEN COPIES OF ONE SENTENCE (2026-09-01) ───────────
+   * Photographed on Settings -> Who works here: every card in the roster ended
+   * with the words "Runs on its own", in the same grey, in the same position.
+   * A value that is identical on every row distinguishes nothing -- it is
+   * sixteen repetitions of a fact the page heading had already stated once
+   * ("16 run without asking you, 0 ask first"), and it is the last line the
+   * eye lands on before moving to the next card.
+   *
+   * THE COMPONENT ABOVE THIS BRANCH WAS ALREADY RIGHT and that is what makes
+   * the branch wrong. Hue is spent only on the exceptions -- orchid when a
+   * person is required, amber when an agent is switched off -- so the design
+   * already holds the rule that the abnormal gets the ink. Then the steady
+   * state printed anyway, on every card, in every group, forever.
+   *
+   * So it prints when it DISCRIMINATES and is silent when it does not.
+   * `sayTheSteadyState` is false exactly when every steady card in the roster
+   * agrees; the moment one agent asks first, all of them say which they are
+   * and the difference is readable at a glance. This is the same rule
+   * `crew.tsx` already applies to its own summary line, which collapses to
+   * "All 16 run without asking you" rather than naming a zero.
+   *
+   * The two branches above are never suppressed. An agent waiting on a person
+   * and an agent switched off are the facts a reader came for.
+   */
+  if (!sayTheSteadyState) return null;
   return (
     <span className="text-mrd-data text-mrd-mute">
       {card.runsAlone ? "Runs on its own" : "Asks before it acts"}
     </span>
   );
+}
+
+/**
+ * Is this card in the ordinary state -- nobody waiting on it, not switched off?
+ * Only these are compared: a roster of fifteen that run alone plus one that is
+ * asking you is still UNIFORM in its steady state, and the one asking keeps its
+ * orchid line regardless.
+ */
+function isSteady(card: AgentCard): boolean {
+  return (card.waiting ?? 0) === 0 && card.enabled !== false;
 }
 
 export function AgentCards({
@@ -159,6 +195,12 @@ export function AgentCards({
      component never re-sorts the loop into alphabetical order. */
   const groups: (string | undefined)[] = [];
   for (const card of cards) if (!groups.includes(card.group)) groups.push(card.group);
+
+  /* Measured across the WHOLE roster rather than per group, because that is the
+     set the reader is scanning. Per group, a run of five identical lines would
+     still be five identical lines. */
+  const steady = cards.filter(isSteady);
+  const sayTheSteadyState = steady.some((c) => c.runsAlone !== steady[0]?.runsAlone);
 
   return (
     <div data-mrd="" className="flex flex-col" style={{ gap: "var(--mrd-s5)" }}>
@@ -271,7 +313,10 @@ export function AgentCards({
                             {card.role}
                           </span>
                         ) : (
-                          <StateLine card={card} />
+                          /* No description, so this slot is all the card has to say.
+                             It is never suppressed: silence here would leave a bare
+                             name and nothing else. */
+                          <StateLine card={card} sayTheSteadyState />
                         )}
                       </span>
                     </span>
@@ -280,9 +325,9 @@ export function AgentCards({
                 scanning for "which of these needs me" finds it without it competing
                 with the name. Drawn only when the description already took the slot
                 above, so the fact is never stated twice. */}
-                    {card.role && (
+                    {card.role && (sayTheSteadyState || !isSteady(card)) && (
                       <span className="mt-auto flex w-full items-center pt-0.5">
-                        <StateLine card={card} />
+                        <StateLine card={card} sayTheSteadyState={sayTheSteadyState} />
                       </span>
                     )}
                   </button>
