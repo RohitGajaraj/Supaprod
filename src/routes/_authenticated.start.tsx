@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Action, PageHeading } from "@/components/meridian/surface-parts";
+import { Action, PageHeading, SectionHead } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Composer, PickCard } from "@/components/meridian/onramp-parts";
@@ -607,6 +607,38 @@ function StartLanding() {
          * region up to `--shell-work-max`; the composer above keeps the prose
          * measure. See the wrapper comment at the top of this return.
          */}
+      </div>
+
+      {/*
+       * ── THE SEAM BETWEEN THE PAGE'S TWO JOBS (2026-09-01) ────────────────
+       *
+       * FOUNDER, twice: *"this 'what needs doing' needs a separate section,
+       * rather than just clubbing it with home"* and *"how can you
+       * differentiate or do the justification for each section."*
+       *
+       * The home does two different jobs and ran them together as one column.
+       * Above this line a person SAYS what they want done; below it they read
+       * where their existing work stands. Those are opposite postures -- one is
+       * writing, one is reading -- and nothing on the page said the subject had
+       * changed, so the board arrived as more of the same scroll.
+       *
+       * A SEAM AND NOT A SECOND TITLE. `SectionHead` is a hairline plus an
+       * eyebrow, deliberately: a heading at title size here would compete with
+       * the page's own `h1` and make the surface look like it has two titles,
+       * which is the exact defect repaired on this page an hour ago (two `h1`
+       * elements). It is an `h2` underneath so the outline is real for a
+       * keyboard reader.
+       *
+       * TWO WORDS, AND THE FIRST DRAFT OF THIS LINE PROVED WHY. It read
+       * "Where your work stands", which is a better sentence and was wrong
+       * here: the board's own loading headline is "Where things stand", so the
+       * page rendered those two one above the other and the seam read as a
+       * heading that stutters. A section label is not the place for the good
+       * sentence -- it is a tab on a divider, and the block under it is
+       * already saying the sentence.
+       */}
+      <div className="mrd-page">
+        <SectionHead>Your work</SectionHead>
       </div>
       <Board />
     </div>
