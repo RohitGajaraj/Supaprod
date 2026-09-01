@@ -85,6 +85,8 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { takeOver } from "@/components/track/take-over";
 import type { SpineRoute } from "@/lib/spine/route";
 import { runPosition } from "@/components/track/run-position";
+import { runStripSpec } from "@/components/track/run-strip-spec";
+import { usePublishRunStrip } from "@/components/shell/run-strip";
 
 /**
  * What the walk did, said plainly.
@@ -1272,6 +1274,40 @@ export function TrackPaneRight({
   promised?: string | null;
 }) {
   const [paneStation, setPaneStation] = React.useState<string | null>(null);
+  const fetchStripTrack = useServerFn(getTrack);
+
+  /*
+   * ── THE TOP STRIP NOW DESCRIBES THIS RUN (2026-09-01) ────────────────────
+   *
+   * Photographed before: the run header said "Now: Build" while the 97px band
+   * above it reported WORKSPACE counts ("89+ runs waiting on you") with all
+   * seven chips at `data-on="false"` -- including Build. A person watching one
+   * run got a permanent readout about a different subject, and the chip naming
+   * the station they were looking at was unlit.
+   *
+   * `usePublishRunStrip` exists for this and no run had ever called it, so the
+   * region fell through to `WorkspaceSpine`. See `run-strip-spec.ts` for the
+   * measurement and for why publishing `onSelect` here is the one station
+   * interaction R-01 permits.
+   *
+   * PUBLISHED FROM THIS COMPONENT because this is where `paneStation` lives.
+   * The strip drives the same state `ArtifactPane`'s own station tabs drive, so
+   * the three station displays on this screen converge on one control rather
+   * than competing -- a duplicate removed, not a control added.
+   */
+  const stripTrack = useQuery({
+    // The same cache entry the header and the left pane already poll: one fact
+    // about one run must not have two freshnesses.
+    queryKey: ["spine-track", trackId],
+    queryFn: () => fetchStripTrack({ data: { trackId } }),
+    refetchInterval: 10_000,
+  });
+  usePublishRunStrip(
+    runStripSpec(stripTrack.data ?? null, isRunning, paneStation, (station) =>
+      setPaneStation(station),
+    ),
+  );
+
   return (
     <div className="flex flex-col gap-mrd-6">
       <ArtifactPane

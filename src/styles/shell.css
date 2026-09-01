@@ -753,11 +753,42 @@
   border: 0;
   border-radius: var(--mrd-r-xs);
   font: inherit;
-  cursor: pointer;
   display: block;
   transition: background var(--mrd-d-press) var(--mrd-ease);
 }
-.sp-stage:hover {
+
+/*
+ * ── THE READOUT STOPPED WEARING A CONTROL'S CLOTHES (2026-09-01) ──────────
+ *
+ * `cursor: pointer` and the hover ground were on `.sp-stage` unconditionally,
+ * and the strip renders in TWO forms:
+ *
+ *   inside a run       a real `<button role="tab">` that swaps the work region
+ *   everywhere else    a plain `<div>`, because `WorkspaceSpine` publishes no
+ *                      `onSelect` (use-spine-strip.ts) -- so no role, no
+ *                      handler, and `tabIndex: -1`
+ *
+ * The second form is what a person sees on nearly every screen they visit, and
+ * it advertises live counts: "89+ runs waiting on you", "6 outcomes to record".
+ * The cursor turned into a hand over those words and the hover ground lit up,
+ * and then nothing happened. Measured on `/start`: seven chips, `cursor:
+ * pointer` on all seven, clickable on none, reachable by keyboard on none.
+ *
+ * THE FIX IS NOT TO MAKE THEM CLICKABLE. R-01: *"Stations are NEVER
+ * navigation. No station in the rail, no station as a route a person browses
+ * to"*, and R-13 re-affirms that half explicitly. F-146 is the founder
+ * reporting what it cost when they DID open things. A menu of seven internal
+ * stages is our org chart shown to a customer.
+ *
+ * So the promise comes off rather than the ban. The counts stay -- they are
+ * information and the strip's job is to carry them -- and the affordance is
+ * scoped to the form that actually answers a press. Progress display looks
+ * like a progress display; the tab in a run still looks like a tab.
+ */
+button.sp-stage {
+  cursor: pointer;
+}
+button.sp-stage:hover {
   background: var(--mrd-hover);
 }
 /*
