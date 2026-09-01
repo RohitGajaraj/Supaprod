@@ -8,7 +8,11 @@
 // they are unit-tested and DRY across the six handlers (they can't drift). The tier
 // rules live in the sibling `billing-tier.ts`; the DB writes stay in the route.
 //
-// Server-free + totally defined: malformed Stripe payloads never throw here.
+// Server-free. Every extractor here is total -- a malformed Stripe payload gets
+// undefined/null/false back, never an exception. The ONE exception is
+// `buildSubscriptionUpsert`, which refuses (throws) rather than emit a row missing
+// a NOT NULL identity column; see the comment on `requireStripeField` for why
+// silence was the worse option there.
 import { creditsFromLookupKey } from "./billing-tier";
 
 /** Per-bundle top-up credit fallback for legacy lookup keys (catalog keys resolve via creditsFromLookupKey). */
@@ -140,11 +144,53 @@ export type SubscriptionUpdateRow = {
 };
 
 /**
- * PURE. Assemble the `subscriptions` upsert row from a Stripe subscription event.
+ * The five `subscriptions` columns that are `NOT NULL` in the schema and have no
+ * DEFAULT -- read from the table's own DDL, migration
+ * `20260620194844_b7be3886`: `user_id uuid ... NOT NULL`, `stripe_subscription_id
+ * text NOT NULL UNIQUE`, `stripe_customer_id text NOT NULL`, `product_id text NOT
+ * NULL`, `price_id text NOT NULL`. (`status` and `environment` are NOT NULL but
+ * DEFAULTed, which is why they take a `?? ""` / caller value instead.)
+ *
+ * These used to be written as `sub?.metadata?.userId!` and friends: an optional
+ * chain saying "this may be absent", cancelled by a `!` telling the compiler to
+ * stop worrying about exactly that. The failure that hides behind it is NOT a
+ * crash -- it is silence. supabase-js serialises the row with JSON.stringify,
+ * which DROPS `undefined` keys, so a payload missing any of these produces an
+ * upsert with the column omitted; PostgREST answers 23502 (not-null violation);
+ * and `stripe-provider.server.ts` does not read `error` off that upsert, so the
+ * handler carries on to `applyTierForUser` + `grantForSubscription` and the route
+ * still answers `{ received: true }`. Net effect of a malformed event today: the
+ * customer is GRANTED THE TIER while the subscriptions row that records what they
+ * bought never lands, and neither Stripe (200, so no retry) nor we (no log) hear
+ * about it. Refusing to build the row is what should happen instead -- it is loud,
+ * it reaches the route's `catch` as a 400 so Stripe retries and eventually flags
+ * the endpoint, and it stops the tier grant that has no subscription behind it.
+ */
+function requireStripeField(
+  value: string | null | undefined,
+  field: string,
+  subId: string | null | undefined,
+): string {
+  if (typeof value === "string" && value.length > 0) return value;
+  throw new Error(
+    `billing-webhook: refusing to build a subscriptions row -- ${field} is missing on Stripe ` +
+      `subscription ${subId || "<no id>"}. That column is NOT NULL, so the write would be ` +
+      `rejected and silently swallowed while the tier grant went ahead.`,
+  );
+}
+
+/**
+ * Assemble the `subscriptions` upsert row from a Stripe subscription event.
  * Maps every field the same way the inline handler did (now testable, drift-proof).
- * `nowIso` is injected so the row is deterministic. A valid subscription event always
- * carries a price, asserted for the strict row type (behavior-identical to the inline
- * `priceId!`); the builder is only ever called after the handler's `userId` guard.
+ * `nowIso` is injected so the row is deterministic.
+ *
+ * Total for every field the schema lets be absent; THROWS, by way of
+ * `requireStripeField` above, for the five it does not. Every one of those five is
+ * present on a real `customer.subscription.created` (`metadata.userId` because we
+ * set it ourselves in `subscription_data.metadata` when the checkout session is
+ * created, and `stripe-provider.server.ts` guards on it again before calling here),
+ * so the throw is unreachable on a well-formed event and is a named, logged failure
+ * on anything else.
  */
 export function buildSubscriptionUpsert(
   sub: SubscriptionLike,
@@ -153,15 +199,15 @@ export function buildSubscriptionUpsert(
 ): SubscriptionUpsertRow {
   const item = sub?.items?.data?.[0];
   const period = resolvePeriod(item, sub);
-  // The `!` assertions mirror the inline handler (which relied on `sub: any`): a real
-  // customer.subscription.created event always carries userId/id/customer/product/price,
-  // and the handler's userId guard runs before this. They keep the strict Insert row type.
+  const subId = sub?.id;
   return {
-    user_id: sub?.metadata?.userId!,
-    stripe_subscription_id: sub?.id!,
-    stripe_customer_id: sub?.customer!,
-    product_id: item?.price?.product!,
-    price_id: resolvePriceLookup(item)!,
+    user_id: requireStripeField(sub?.metadata?.userId, "metadata.userId", subId),
+    stripe_subscription_id: requireStripeField(subId, "id", subId),
+    stripe_customer_id: requireStripeField(sub?.customer, "customer", subId),
+    product_id: requireStripeField(item?.price?.product, "items.data[0].price.product", subId),
+    // `resolvePriceLookup` already falls back lookup_key -> external id -> price id,
+    // so an undefined here means the line item carried no price identity at all.
+    price_id: requireStripeField(resolvePriceLookup(item), "items.data[0].price", subId),
     status: sub?.status ?? "",
     current_period_start: period.start,
     current_period_end: period.end,

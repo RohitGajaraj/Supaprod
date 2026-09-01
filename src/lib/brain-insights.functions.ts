@@ -385,7 +385,15 @@ export const getBrainInsights = createServerFn({ method: "GET" })
 
     let standing = 0,
       supersededCount = 0;
-    for (const d of decisions) isDecisionSuperseded(d, superseded) ? supersededCount++ : standing++;
+    // Written as an if/else rather than the `cond ? a++ : b++` expression-statement it
+    // was. Both spellings count identically -- checked, this is NOT a dropped await or
+    // an unassigned result, the `++`s are the whole point -- but a ternary in statement
+    // position is the shape that hides a discarded call, so the counting reads as
+    // counting and `no-unused-expressions` keeps its edge for the cases that are bugs.
+    for (const d of decisions) {
+      if (isDecisionSuperseded(d, superseded)) supersededCount++;
+      else standing++;
+    }
     const beliefs: BrainBeliefs = { standing, superseded: supersededCount };
     const learned = summarizeLearnings(learnings);
 

@@ -10,6 +10,13 @@ import {
   FREE_MEMORY_RETENTION_DAYS,
   FREE_MONTHLY_CREDITS,
   PLAN_TIERS,
+  // Three tests below pulled this in a second time with `require("./entitlements")`,
+  // inside the `it` body, while this static import of the very same module sat at the
+  // top of the file. `require` returns `any`, so those three tests asserted against an
+  // untyped value: `expect(PUBLIC_PLAN_TIERS).not.toContain("max")` would have gone on
+  // passing if the export were renamed or deleted, because `undefined` destructured off
+  // `any` is not a type error. Imported once, statically, so a rename breaks the build.
+  PUBLIC_PLAN_TIERS,
   assertConnectorCapability,
   assertConnectorSlotAvailable,
 } from "./entitlements";
@@ -308,7 +315,6 @@ describe("connectors: Free reads, capped at 3 (founder ruling 2026-08-04)", () =
 
 describe("G1.3: Billing tier reconciliation (4 public vs 5 internal tiers)", () => {
   it("PUBLIC_PLAN_TIERS has exactly 4 tiers (Free/Pro/Business/Enterprise)", () => {
-    const { PUBLIC_PLAN_TIERS } = require("./entitlements");
     expect(PUBLIC_PLAN_TIERS).toHaveLength(4);
     expect([...PUBLIC_PLAN_TIERS]).toEqual(["free", "pro", "team", "enterprise"]);
   });
@@ -320,7 +326,6 @@ describe("G1.3: Billing tier reconciliation (4 public vs 5 internal tiers)", () 
   });
 
   it("max tier is internal-only (backward compat, not public)", () => {
-    const { PUBLIC_PLAN_TIERS } = require("./entitlements");
     expect(PUBLIC_PLAN_TIERS).not.toContain("max");
     expect(PLAN_TIERS).toContain("max");
   });
@@ -367,7 +372,6 @@ describe("G1.3: Billing tier reconciliation (4 public vs 5 internal tiers)", () 
   });
 
   it("presentation exists for all 4 public tiers only", () => {
-    const { PUBLIC_PLAN_TIERS } = require("./entitlements");
     for (const tier of PUBLIC_PLAN_TIERS) {
       const p = planPresentation(tier as any);
       expect(p).toBeDefined();

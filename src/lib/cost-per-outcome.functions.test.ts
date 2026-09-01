@@ -47,8 +47,14 @@ function createMockSupabase(fixture: {
         if (table === "ai_budgets") return { error: null, data: fixture.budget };
         return { error: null, data: null };
       },
-      // These are awaited in Promise.all(), so return them as thenable
-      then: (onFulfilled: Function) => {
+      // These are awaited in Promise.all(), so return them as thenable.
+      // `onFulfilled` was typed `Function`, which accepts ANY function-like value --
+      // including a zero-arg one, or a constructor -- and types its own call as
+      // returning `any`, so a mis-shaped continuation here would type-check and then
+      // blow up at await time. The one thing a thenable actually promises about
+      // `onFulfilled` is that it takes the resolved value and returns something, and
+      // `unknown` in argument position is the widest honest form of "takes the value".
+      then: (onFulfilled: (value: unknown) => unknown) => {
         let result;
         if (table === "prds") result = { error: null, data: null, count: fixture.specsCount };
         else if (table === "decisions")

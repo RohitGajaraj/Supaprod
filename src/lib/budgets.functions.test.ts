@@ -506,8 +506,23 @@ describe("budgets.functions", () => {
         },
       });
       const result = await getBudgetSummaryImpl(supabase, "u1");
-      expect(result?.daily_usd_used).toBeGreaterThan(result?.daily_usd_cap!);
-      expect(result?.monthly_usd_used).toBeGreaterThan(result?.monthly_usd_cap!);
+      // This used to read `expect(result?.daily_usd_used).toBeGreaterThan(result?.daily_usd_cap!)`.
+      // Both halves of that were talking the compiler out of a real absence:
+      // `getBudgetSummaryImpl` returns `data ?? null`, and `ai_budgets.daily_usd_cap` /
+      // `monthly_usd_cap` are `number | null` in the schema (types.ts:913/920 -- an
+      // uncapped budget is a NULL cap, not a zero). So a regression returning no row,
+      // or a row with no cap, arrived at the matcher as
+      // `expect(undefined).toBeGreaterThan(undefined)` / `toBeGreaterThan(null)` --
+      // which names neither the function nor the missing value. Narrow both explicitly
+      // instead, so the failure says what went missing, and keep the comparison
+      // relational (used > cap) rather than re-stating the fixture's literals.
+      if (!result) throw new Error("getBudgetSummaryImpl returned no budget summary for u1");
+      const { daily_usd_cap: dayCap, monthly_usd_cap: monthCap } = result;
+      if (dayCap === null || monthCap === null) {
+        throw new Error(`caps came back uncapped (null): daily=${dayCap} monthly=${monthCap}`);
+      }
+      expect(result.daily_usd_used).toBeGreaterThan(dayCap);
+      expect(result.monthly_usd_used).toBeGreaterThan(monthCap);
     });
 
     it("should handle very large cap values (e.g., $1M+ monthly)", async () => {

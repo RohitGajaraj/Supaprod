@@ -22,7 +22,16 @@ import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { MCP_WRITE_TOOLS, MCP_WRITE_TOOL_NAMES, WRITE_SCOPE_BY_TOOL } from "./mcp-protocol";
+// `MCP_TOOLS` is pulled in here rather than through the `require("./mcp-protocol") as
+// typeof import("./mcp-protocol")` that used to sit inside the read-tools test. That
+// cast made the require LOOK typed while the runtime value was still an untyped
+// CommonJS interop object, and it duplicated a module this line already loads.
+import {
+  MCP_TOOLS,
+  MCP_WRITE_TOOLS,
+  MCP_WRITE_TOOL_NAMES,
+  WRITE_SCOPE_BY_TOOL,
+} from "./mcp-protocol";
 
 const ROUTE = readFileSync(join(import.meta.dir, "..", "routes", "api", "mcp.ts"), "utf8");
 
@@ -63,7 +72,6 @@ describe("every governed write can be made safe to retry", () => {
   it("leaves the read tools alone", () => {
     // A read is already repeatable. Adding the parameter there would be noise in
     // a catalogue an agent has to read on every session.
-    const { MCP_TOOLS } = require("./mcp-protocol") as typeof import("./mcp-protocol");
     for (const tool of MCP_TOOLS) {
       const props = (tool.inputSchema.properties ?? {}) as Record<string, unknown>;
       expect(props.idempotency_key).toBeUndefined();
