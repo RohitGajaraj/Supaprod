@@ -142,7 +142,40 @@ reviewing the measurements above.
 | --- | --- |
 | `a0b6124f5` | Removed station navigation. Verified before: seven `<button class="sp-stage">` with chords `g d`/`g e`/`g p`..., and clicking Plan went `/today` to `/plan`. Removed under R-01 and F-146. |
 | `bd678bc61` | Removed the leftover affordance. After the doors went, `cursor: pointer` and a hover ground were still on all seven chips with `tabIndex: -1` -- pointer on seven, clickable on none. Also gave the run screen its own published strip, so the band on `/track/:id` finally described that run instead of the workspace. |
-| this fold | Removed from workspace screens entirely; kept and strengthened inside a run. |
+| `commit below` | The fold. Removed from workspace screens entirely by gating the render on `strip.mode === "tab"`; kept inside a run and shrunk from 91px to 74px by collapsing four stacked lines to two. |
+
+## What the fold actually changed, measured
+
+| | Before | After |
+| --- | --- | --- |
+| Workspace screens | 94.5px band on every one | **nothing**; the work area starts at y=56 instead of y=151 |
+| Inside a run | 91px, four stacked lines per chip | **74px**, number and state mark on the name's line |
+| `.sp-stage` floor | 108px, measured for a stacked chip | 124px, measured for the one-line chip |
+
+**The four publishers were left alone.** `WorkspaceSpine` plus `DiscoverSurface`,
+`InboxSurface` and `Board` all still publish a `nav` strip, because a surface saying what it is
+doing is not the defect -- rendering a permanent band from it was. The whole fold rests on one
+condition in `AppFrame.tsx`, which is why `the-strip-is-a-runs-step-list.test.ts` exists: gating on
+`strip` alone would put the band back on every screen with nothing to notice.
+
+## What is still not done, and it is the half the founder asked for
+
+**"It should do more."** The strip inside a run still says the station name and a state mark, and
+nothing about what each stage produced. That is not an oversight in the layout -- it is a field
+that was designed and never filled. `RunMapStation.outcome` is documented as _"WHAT CAME OF THIS
+STATION, in outcome words a reader would use ... 'Read Intercom and PostHog for verify-step
+drop-off'"_, and `run-position.ts` never sets it. `noteFor` in `run-strip-spec.ts` therefore
+returns the waived reason or an empty string, which is why zero of seven chips carry a fact.
+
+Filling it is a data question, not a layout one: per-station artifacts exist in `agent_runs` and
+`tool_calls` and would need a server function to summarise them. Until then the note line stays
+reserved and empty, which is deliberate -- a founder ruling from 2026-07-30 keeps that height so
+the band does not nudge the page as stages change.
+
+**And the run screen still shows the seven stations three times.** Photographed after the fold: the
+strip at the top, the "At Build" step list in the left pane, and the "What it has made" tab row on
+the right -- three displays of one route in one viewport. Consolidating them is a design decision
+that has not been taken.
 
 ## If it is ever wanted back
 

@@ -745,7 +745,13 @@
    * longest name ("Discover") plus its two-digit marker and the glyph, at the
    * strip's own type size, with nothing truncated.
    */
-  min-width: 108px;
+  /*
+   * 124px, RAISED FROM 108px ON 2026-09-02 BECAUSE THE ROW CHANGED SHAPE.
+   * The old figure was measured for the stacked layout -- the longest name on
+   * its own line. The number and the state mark now sit BESIDE the name (see
+   * the grid below), so the floor has to hold all three on one line.
+   */
+  min-width: 124px;
   scroll-snap-align: start;
   padding: 4px 14px 4px 0;
   text-align: left;
@@ -753,8 +759,41 @@
   border: 0;
   border-radius: var(--mrd-r-xs);
   font: inherit;
-  display: block;
+  /*
+   * ── FOUR STACKED LINES BECAME TWO (2026-09-02) ─────────────────────────
+   * Measured on a run before the change: `01` on its own line at 17px, the
+   * name at 20px, the note line at 15px, and the state mark alone on a fourth
+   * line at 12px. 64px of content to say "Discover, done", in a band that cost
+   * 91px of every run screen.
+   *
+   * Founder, on keeping the strip only inside a run: "it should do more and
+   * take less." The number and the mark are both small and both modify the
+   * name rather than standing on their own, so they belong on its line. The
+   * note keeps a line of its own because it is a sentence, not a modifier.
+   *
+   * A grid rather than a flex row, so the note spans the full chip width and
+   * wraps under all three instead of being squeezed into a third column.
+   */
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    "n name mark"
+    "state state state";
+  align-items: center;
+  column-gap: 6px;
   transition: background var(--mrd-d-press) var(--mrd-ease);
+}
+.sp-stage-n {
+  grid-area: n;
+}
+.sp-stage-name {
+  grid-area: name;
+}
+.sp-stage-mark {
+  grid-area: mark;
+}
+.sp-stage-state {
+  grid-area: state;
 }
 
 /*

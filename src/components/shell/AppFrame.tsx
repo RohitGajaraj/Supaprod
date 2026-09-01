@@ -2060,12 +2060,48 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Permanent whenever a run surface published one. No collapse, by
-          ruling. Two modes, and the ARIA is not cosmetic: a tablist promises
-          exactly one selection at all times, which is a lie on the board,
-          where opening unfiltered is the normal state. So the board is a group
-          of toggles and says so. See run-strip.tsx. */}
-        {strip ? (
+        {/*
+          ── THE STRIP IS A RUN'S OWN STEP LIST, AND NOTHING ELSE (2026-09-02) ──
+          Founder decision, taken on measurements rather than taste. It used to
+          draw on EVERY signed-in surface, and on those surfaces it was a 94.5px
+          band -- 10.6% of a 900px viewport, more like 13% on a 13in laptop --
+          in which FOUR OF SEVEN chips carried nothing but a two-digit number
+          and a word.
+
+          The three that did carry a fact were the worse half. The header read
+          "68 decisions are ready for you" and the Discover chip, 150px below
+          it, read "89+ runs waiting on you": two different counts of
+          things-waiting-on-you in one glance, with nothing saying why they
+          differ. One is gates, the other is runs held at a gate per station.
+          Both true, and together they read as the screen disagreeing with
+          itself.
+
+          It also contradicted the positioning it was meant to serve. README:
+          "never lead with the seven stations ... a workflow tool is compared on
+          features; three layers is a position." A permanent seven-station band
+          on every screen leads with stations on every screen.
+
+          And F-146 -- founder-reported, 2026-08-31 -- had already written the
+          remedy down: "the fold: when the rail carries one primary door and
+          stations appear only as the step list inside a run, the ambiguity has
+          nowhere left to live." This is that fold, finished.
+
+          THE TEST IS `mode`, NOT PRESENCE. Four publishers still push a `nav`
+          strip (`WorkspaceSpine` plus three surfaces calling `useSpineStrip`),
+          and gating on `strip` alone would leave the band on every one of them.
+          Gating on the mode means the band draws only where a run published its
+          own seven stages, whoever else is publishing.
+
+          WHAT IS LOST, said plainly rather than buried: the per-station split of
+          runs held at a gate. The AGGREGATE is not lost -- it is on the rail's
+          Approvals row and in the header's live line, both of which reach the
+          queue that works them. The SPLIT has no home now, and the record of
+          that is `docs/design/station-strip-before-the-fold.md`.
+
+          No collapse, by ruling. The ARIA is not cosmetic: a tablist promises
+          exactly one selection at all times, which a run's strip does honour.
+          See run-strip.tsx. */}
+        {strip && strip.mode === "tab" ? (
           <div
             className="sp-strip"
             role={(strip.mode ?? "tab") === "tab" ? "tablist" : "group"}
