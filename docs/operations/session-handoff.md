@@ -1,3 +1,80 @@
+# JOURNEY SWEEP — 2026-09-01 ~15:20 IST — DESIGN FINDINGS APPLIED SERIALLY AFTER A SUBAGENT LIMIT KILL
+
+**Branch `main` · HEAD `c244a4af7` · 15 commits unpushed · tsc 0 · 13,446 pass / 0 fail · build passes · all 8 station surfaces 200**
+
+## THE THING TO KNOW BEFORE YOU TOUCH THIS
+
+**A design-sweep workflow ran 78 agents and 7 of 8 FIX agents were killed mid-edit by a weekly
+model limit.** They left the tree broken: `DiscoverSurface.tsx` had an unclosed `<div>` and the
+dev server was serving 500s. I reverted the 7 half-applied surfaces and kept the one that had
+finished and self-verified (engine-room / Policies).
+
+**The analysis was NOT lost and does not need re-running.** 62 findings and 62 adversarial
+verdicts (21 confirmed, 41 refuted) are in the workflow journal:
+
+```
+.claude/projects/-Users-rohitgajaraj-.../subagents/workflows/wf_114d3c56-204/journal.jsonl
+```
+
+Read it with a filter on `{"type":"result"}`; audit results carry `findings`, verify results
+carry `refuted`/`why`. **The two cannot be paired** -- no labels are journaled -- so treat the
+verdicts as a prior and re-check each finding against the code yourself. **41 of 62 were refuted,
+so roughly one in three is real.** I verified every one I applied and skipped three on the record.
+
+**Do not re-run that workflow.** The founder's standing instruction as of 2026-09-01 14:16 is
+serial work on main, no subagents and no dynamic workflows.
+
+## THE CORRECTION THAT MATTERS MOST
+
+Seven elements carried `text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body` -- two
+type sizes at once. **The obvious fix is wrong.** Dropping `text-mrd-prose` looks right (it is
+the class that reads like a colour, and `--mrd-t-body` was renamed to `--mrd-t-prose` on
+2026-08-21 precisely because `text-mrd-body` used to compile to a size AND a colour).
+
+Measured in the browser: **`text-mrd-prose` wins in every class order**, all seven rendered at
+14px, and commit `8669c4829` had VERIFIED that paint with a screenshot. Dropping it would have
+silently moved seven surfaces to 13px. **The losing class was deleted instead** -- zero pixels
+moved. Now guarded by `src/__tests__/one-element-one-type-size.test.ts`.
+
+**That guard cannot see parent/child overrides** (an element larger than the text it is nested
+in), because both declarations are legal alone. Two of those existed and are fixed
+(`RetentionLine` anchor, `OutcomeHistory` memo). **Detect that class in the BROWSER**, not by
+grep: a static sweep finds 75 sites pairing prose with a colour and most are correct.
+
+## WHAT WENT INTO MERIDIAN THIS SESSION
+
+`Panel` · `PanelPair` · `Stat` · `Reveal` · `SectionHead` · `Surface({rhythm})` ·
+`.mrd-page` / `.mrd-read` · `--mrd-gutter-*` · `--mrd-page-max` · `--mrd-read-max` ·
+`--mrd-sketch` · `.mrd-bloom` · `.mrd-lane-grid` · `sketch-glyphs.tsx` ·
+`ActionVariant "destructive-quiet"`.
+
+**`Surface` had NO vertical rhythm** and `.sp-main`/`.sp-wide` set only `min-width` -- so
+Discover's eight sections measured gaps of **10, 0, 0, 0, 0, 0, 0**. Seven of eight boundaries
+were zero pixels. `rhythm` is OPT-IN because most surfaces already space their own children and
+a default would silently double spacing across ~100 routes.
+
+## STILL OPEN, and why I stopped rather than pushed on
+
+~30 findings remain, and they are mostly **"convert a well-reasoned sentence into a `Stat`"**.
+I skipped three of that shape deliberately and recorded each in its commit: the crew census line,
+the Learn ICE projection, and `brain.tsx:1705`. All three use `Num`/`Figure` correctly --
+that primitive's contract IS numbers inside a sentence -- and all three carry logic a conversion
+would destroy (the census omits zeros with a written reason; the projection is a TRANSITION, not
+one value). **These are taste calls that need a rendered check, and agent suggestions of this
+shape were twice reported by the founder as missing the mark.**
+
+`/threads` findings (7) are deliberately untouched: `SURFACE-MAP.md:69` rules it **FOLD into
+the composer in the run**, so polishing it spends on a surface marked for folding.
+
+## LOCAL-ONLY GATE FAILURE, not yours to fix
+
+`bun run docs:check` fails on four orphan `.md` files in `docs/screenshots/` -- untracked,
+gitignored, left by another session. Nothing from `docs/` is pushable. **Note the trap:
+`docs:check | tail` reports tail's exit code, so it reads green while the gate is red.**
+
+
+---
+
 # S0 CONDUCTOR — 2026-09-01 ~13:30 IST — PLATFORM DESIGN LANDED, REALTIME GATES WIRED, TESTS GREEN
 
 **Branch: `main` · Commit: `e1eaccb7d` · 8 commits pushed to origin/main · tsc 0 · 13,441 pass / 0 fail · working tree clean**
