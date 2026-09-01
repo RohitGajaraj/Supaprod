@@ -2760,10 +2760,25 @@ function ModelsSection() {
     <>
       <PageHeading
         title="Models and keys"
+        /*
+          ── ONE NAME, FOUR TIMES (2026-09-01) ──────────────────────────────
+          The default on both settings is Auto, so this printed "Everything you
+          start runs on Auto. Everything the loop starts by itself runs on
+          Auto." -- two clauses of near-identical shape saying one thing -- and
+          the two rows immediately beneath then showed Auto again, each with its
+          own Change button. Four renders of one word before the reader reaches
+          a control.
+
+          It collapses when the two agree and names both when they differ,
+          which is the only case where naming them separately tells anybody
+          anything. Same rule the roster and `crew.tsx` already follow.
+        */
         sub={
           profile.isLoading
             ? "Reading your model settings."
-            : `Everything you start runs on ${defaultName}. Everything the loop starts by itself runs on ${agenticName}.`
+            : defaultName === agenticName
+              ? `Everything runs on ${defaultName}, whether you start it or the loop does.`
+              : `Work you start runs on ${defaultName}. Work the loop starts runs on ${agenticName}.`
         }
       />
 
