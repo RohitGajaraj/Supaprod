@@ -7,6 +7,7 @@ import { ContextCards, type ContextChunk } from "@/components/meridian/ContextCa
 import { FilterTable, type Facet } from "@/components/meridian/FilterTable";
 import { FineTuneCard, type FineTuneField } from "@/components/meridian/FineTuneCard";
 import { Delta, Entity, InsightCards, type Insight } from "@/components/meridian/InsightCards";
+import { Reveal } from "@/components/meridian/Reveal";
 import { LoadingState } from "@/components/meridian/LoadingState";
 import { AgentPulse } from "@/components/meridian/AgentPulse";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
@@ -214,14 +215,48 @@ function Ground({
   );
 }
 
+/**
+ * ── THE ESSAY STOPPED BEING THE FIRST THING (2026-09-01) ──────────────────
+ *
+ * FOUNDER: *"One major pain point with the entire design system across the
+ * platform is that it's a random dump of text. There is no attention to
+ * detail. No one has taken a look at it."*
+ *
+ * THIS PAGE IS WHERE HE WAS LOOKING, AND THAT MATTERS. The promotion card he
+ * described in detail has exactly one live mount in the product -- this
+ * gallery -- so the design system was being judged here, and here every
+ * component entry opened with its `note` set as one unbroken paragraph at body
+ * size. Measured on the rendered page: the promotion card's note is **25 lines
+ * and roughly 1,900 characters** before a single component appears. Sixty-odd
+ * entries do the same thing.
+ *
+ * THE NOTES ARE GOOD AND THEY ARE IN THE WRONG PLACE. They carry the
+ * measurement behind each decision -- "twelve were pending, the oldest since
+ * 18:31 on 10 August, and nothing anywhere told anyone" -- which is exactly
+ * what a design system should record. But a gallery exists to SHOW COMPONENTS.
+ * The specimen is the subject and the rationale is the footnote, and this had
+ * them the other way round, so the page read as an essay collection that
+ * occasionally contains a button.
+ *
+ * Three lines, then a control. Short notes are untouched -- `Reveal` measures
+ * real overflow and draws nothing when the text already fits, so the one-line
+ * entries ("Nothing stopped is the state everyone wants, so it gets one
+ * sentence and silence") gain no furniture.
+ *
+ * ONE EDIT COVERS EVERY ENTRY because every entry comes through here. That is
+ * the whole reason this is fixed at the component rather than in sixty prop
+ * strings.
+ */
 function Panel({ title, note, children }: { title: string; note: string; children: ReactNode }) {
   return (
     <section className="border-t border-mrd-line py-10">
       <header className="mb-6">
         <h2 className="text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">{title}</h2>
-        <p className="mt-1 max-w-[68ch] text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">
-          {note}
-        </p>
+        <div className="mt-1 max-w-[68ch] text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">
+          <Reveal lines={3} more="Read the reasoning" less="Hide the reasoning">
+            {note}
+          </Reveal>
+        </div>
       </header>
       {children}
     </section>
