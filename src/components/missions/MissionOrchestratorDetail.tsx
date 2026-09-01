@@ -248,11 +248,7 @@ function CaptureMissionDecision({
        quiet because capture-as-decision is this surface's one persistent
        ask of the reader, and a ghost pill was exactly the undifferentiated
        control the founder flagged. */
-    <Action
-      variant="default"
-      onClick={() => cap.mutate()}
-      busy={cap.isPending}
-    >
+    <Action variant="default" onClick={() => cap.mutate()} busy={cap.isPending}>
       <Gavel size={14} strokeWidth={1.5} />
       {cap.isPending ? "Capturing…" : "Capture · files this as a decision"}
     </Action>
@@ -374,7 +370,10 @@ function GatePanel({
                 `Actions` lays the pair out because it is the container that
                 exists for a row of controls; no bespoke gap value. */}
             <Actions>
-              <Approve busy={decide.isPending} onClick={() => decide.mutate({ id: appr.id, decision: "approve" })}>
+              <Approve
+                busy={decide.isPending}
+                onClick={() => decide.mutate({ id: appr.id, decision: "approve" })}
+              >
                 <Check size={14} />
                 Approve · runs the tool
               </Approve>
@@ -615,7 +614,12 @@ function TraceHop({
           ) : null}
           {h.steps.length === 0 ? (
             <div
-              style={{ ...rail, lineHeight: "var(--mrd-lh-mono)", color: "var(--mrd-mute)", fontStyle: "italic" }}
+              style={{
+                ...rail,
+                lineHeight: "var(--mrd-lh-mono)",
+                color: "var(--mrd-mute)",
+                fontStyle: "italic",
+              }}
             >
               {live ? "waiting for the first checkpoint" : "no recorded steps"}
             </div>
@@ -771,7 +775,14 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
         </p>
       ) : (
         <>
-          <div style={{ display: "flex", alignItems: "baseline", gap: "var(--mrd-s4)", marginBottom: "var(--mrd-s4)" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: "var(--mrd-s4)",
+              marginBottom: "var(--mrd-s4)",
+            }}
+          >
             {/* THIS WAS `font-pixel`, AND PIXEL IS RETIRED FROM THE APP.
                 Founder ruling 2026-08-05, recorded in
                 docs/design/DESIGN-SYSTEM.md under "The founder's live rulings":
@@ -817,7 +828,9 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
                   borderTop: i === 0 ? "none" : "1px solid var(--mrd-edge)",
                 }}
               >
-                <span style={{ color: "var(--mrd-ink)", flex: 1, lineHeight: "var(--mrd-lh-snug)" }}>
+                <span
+                  style={{ color: "var(--mrd-ink)", flex: 1, lineHeight: "var(--mrd-lh-snug)" }}
+                >
                   {mem.summary}
                 </span>
                 {mem.agents.size > 0 && (
@@ -831,7 +844,10 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
               </div>
             ))}
             {moreCount > 0 && (
-              <span className="mono-label" style={{ color: "var(--mrd-mute)", marginTop: "var(--mrd-s2)" }}>
+              <span
+                className="mono-label"
+                style={{ color: "var(--mrd-mute)", marginTop: "var(--mrd-s2)" }}
+              >
                 +{moreCount} more in the snapshot
               </span>
             )}
@@ -1000,7 +1016,20 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
     : "unknown";
   const captainTitle = captain
     ? captain.auto_dispatched
-      ? "A reactor tick auto-dispatched this mission; the owner below is still accountable for the outcome"
+      ? /*
+         * ── "A REACTOR TICK" MEANT NOTHING TO A CUSTOMER (2026-09-01) ────────
+         * This is the tooltip explaining why a piece of work started without
+         * anyone pressing anything -- one of the more unsettling things a
+         * product can do silently -- and it answered with the name of a cron
+         * mechanism. "Reactor" and "tick" are both internal: nothing else on
+         * any customer surface uses either word, and a reader cannot tell from
+         * it whether a person, a schedule or a fault started their work.
+         *
+         * The fact is worth keeping and is what the sentence now says: nobody
+         * pressed it, the platform picked it up on its own, and the named owner
+         * is still answerable. Same claim, no vocabulary to learn.
+         */
+        "Nobody pressed this. The platform picked it up on its own, and the owner below is still answerable for how it turns out."
       : `Dispatched and owned by ${captainOwnerName}`
     : "Ownership could not be resolved";
 
@@ -1158,7 +1187,12 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 */}
             <h1
               className="text-mrd-h2 font-semibold text-mrd-ink"
-              style={{ margin: "var(--mrd-s3) 0 var(--mrd-s3)", letterSpacing: "-0.028em", lineHeight: "var(--mrd-lh-tight)", maxWidth: "34ch" }}
+              style={{
+                margin: "var(--mrd-s3) 0 var(--mrd-s3)",
+                letterSpacing: "-0.028em",
+                lineHeight: "var(--mrd-lh-tight)",
+                maxWidth: "34ch",
+              }}
             >
               {stripAutoPrefix(data.mission.title)}
             </h1>
@@ -1220,11 +1254,15 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                  the orchid that means a person is required instead of an
                  ember-tinted outline. It is also the ONE accent in the header,
                  and only in the states where attention is genuinely owed. */
-              <Approve busy={promote.isPending} title={
-                missionQueued
-                  ? "This mission was enqueued but never started · launch it now"
-                  : "A trigger proposed this goal · nothing runs until you launch it"
-              } onClick={() => promote.mutate()}>
+              <Approve
+                busy={promote.isPending}
+                title={
+                  missionQueued
+                    ? "This mission was enqueued but never started · launch it now"
+                    : "A trigger proposed this goal · nothing runs until you launch it"
+                }
+                onClick={() => promote.mutate()}
+              >
                 <Check size={14} />
                 {promote.isPending
                   ? "Launching…"
@@ -1464,11 +1502,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               /* TIER: `Action`, default face. Advancing dispatches ready steps
                  -- it does something to the work and unblocks nothing that a
                  person is holding (the gate for that lives in GatePanel). */
-              <Action
-                variant="default"
-                busy={advance.isPending}
-                onClick={() => advance.mutate()}
-              >
+              <Action variant="default" busy={advance.isPending} onClick={() => advance.mutate()}>
                 {advance.isPending ? "Advancing…" : "Advance · dispatches ready steps"}
               </Action>
             ) : null}
@@ -1641,7 +1675,9 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           no gate because the agent's trust arc had earned auto. The counterpart to
           the gate above: that's what needs you; this is what already ran. */}
       {unattended.length > 0 ? (
-        <section style={{ ...LOOM_CARD, padding: "var(--card-pad)", marginBottom: "var(--mrd-s5)" }}>
+        <section
+          style={{ ...LOOM_CARD, padding: "var(--card-pad)", marginBottom: "var(--mrd-s5)" }}
+        >
           <div
             style={{
               display: "flex",
@@ -1716,7 +1752,13 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
 
       {/* Hops trace — per-hop expand/collapse, tinted tool calls, timing bars */}
       <section style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--mrd-s4)" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "var(--mrd-s4)",
+          }}
+        >
           <MonoLabel icon={Activity}>Execution trace</MonoLabel>
           <span className="mono-label">
             {hops.length} hops
@@ -1812,11 +1854,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 fill. Replay does work (it starts a new mission); it unblocks
                 nothing held, which is why it is an Action and not an Approve
                 even in a failure state. */}
-            <Action
-              variant="primary"
-              busy={replay.isPending}
-              onClick={() => replay.mutate()}
-            >
+            <Action variant="primary" busy={replay.isPending} onClick={() => replay.mutate()}>
               <RotateCcw size={14} />
               {replay.isPending ? "Replaying…" : "Replay · same goal, new mission"}
             </Action>
