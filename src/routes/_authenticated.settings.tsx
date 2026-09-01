@@ -169,6 +169,25 @@
 
 import { redirect, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { readFailureMessage, sessionEndedMessage } from "@/lib/roles.functions";
+/*
+ * THE WRITE PATHS ON THIS SURFACE NEVER GOT THE TREATMENT THE READ PATHS DID.
+ *
+ * Every read here already routes its failure through `readFailureMessage`, which
+ * keeps a sentence the server wrote for a person and drops anything else. The
+ * fourteen WRITES did not: they were `toast.error(e.message)`, so whatever came
+ * back went on screen verbatim. Measured worst case on this pane -- renaming a
+ * workspace to an empty name -- was the toast
+ * *"null value in column "name" violates not-null constraint"*, which is a
+ * sentence addressed to whoever wrote the migration.
+ *
+ * `failureLine(ownSentence, err)` states what is STILL TRUE and appends the
+ * server's own sentence only when the server wrote one for a person. The own
+ * sentence must never offer an action, because the appended half may be "Your
+ * session ended. Sign in again and this will load." and would contradict it;
+ * `lib/__tests__/a-failure-line-never-argues-with-itself.test.ts` enforces that
+ * on every literal below.
+ */
+import { failureLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
@@ -895,7 +914,10 @@ function ProfileSection() {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Profile saved");
     },
-    onError: (e: Error) => toast.error(e.message),
+    // The form keeps every character the person typed, so the honest fact is
+    // that the stored profile is the one they arrived with -- not that they
+    // should press again, which an ended session would refuse.
+    onError: (e: Error) => toast.error(failureLine("Your profile is unchanged.", e)),
   });
 
   const name = displayName || fullName;
@@ -1212,7 +1234,20 @@ function PasswordRegion() {
       setError(null);
       toast.success("Password changed");
     },
-    onError: (e: Error) => setError(e.message),
+    /*
+     * THIS ONE IS READ ALOUD, which is why it is not just a toast's problem.
+     * `#pw-error` below carries `role="alert"`, so whatever lands in this state
+     * is announced by a screen reader the moment it is set. Both throw sites in
+     * the mutation above already go through `authErrorMessage`, so the mapped
+     * cases were fine; the gap is an UNMAPPED rejection -- `signInWithPassword`
+     * failing on the network rather than returning an error -- which arrives as
+     * "Failed to fetch" or a TypeError and was being read out as-is.
+     *
+     * `failureLine` keeps every `authErrorMessage` sentence (each is four-plus
+     * words ending in a stop, which is what `messageForPerson` looks for) and
+     * drops the transport strings, leaving the state on its own.
+     */
+    onError: (e: Error) => setError(failureLine("Your password is unchanged.", e)),
   });
 
   return (
@@ -1379,6 +1414,7 @@ const EMPTY_BRIEF: Record<BriefFieldKey, string> = {
 function ThisWorkspaceRegion() {
   const navigate = useNavigate({ from: "/settings" });
   const confirm = useConfirm();
+  const qc = useQueryClient();
   const { activeWorkspaceId, activeWorkspace, setActiveWorkspaceId, refreshWorkspaces } =
     useWorkspace();
 
@@ -1398,6 +1434,21 @@ function ThisWorkspaceRegion() {
   });
   const selfRole = membersQ.data?.selfRole ?? null;
   const canLeave = !!activeWorkspaceId && selfRole !== null && selfRole !== "owner";
+  /*
+   * A REFUSED MEMBERSHIP READ IS NOT "YOU ARE THE OWNER", and `canLeave` cannot
+   * tell the two apart because it only ever sees `selfRole === null`. Three
+   * different states collapse into the same drawn result -- no Leave row:
+   *
+   *   still reading      -> correct, and the row appears a moment later
+   *   you ARE the owner  -> correct, an owner genuinely cannot leave
+   *   the read refused   -> WRONG, and it is the state with a member in it who
+   *                         came here to get out
+   *
+   * So the one person who most needs the door and the one person who must not
+   * have it are rendered identically, with nothing on the surface separating
+   * them. Reading stays silent on purpose; only the refusal is now spoken.
+   */
+  const membershipRefused = membersQ.isError;
 
   // Rename is seeded from the live name; empty or unchanged stays disabled,
   // so a stray click cannot write the name it already has.
@@ -1417,7 +1468,15 @@ function ThisWorkspaceRegion() {
       void refreshWorkspaces();
       toast.success("Renamed.");
     },
-    onError: (e: Error) => toast.error(e.message),
+    /*
+     * THE MEASURED WORST CASE ON THIS SURFACE went out of here. A rename the
+     * server refuses answers with the Postgres sentence
+     * *"null value in column "name" violates not-null constraint"*, and
+     * `toast.error(e.message)` printed it. `messageForPerson` drops that on
+     * three separate tests -- "violates", "constraint", and the lowercase
+     * snake_case identifier -- so what remains is the state on its own.
+     */
+    onError: (e: Error) => toast.error(failureLine("The workspace still has the name it had.", e)),
   });
 
   const mLeave = useMutation({
@@ -1428,7 +1487,10 @@ function ThisWorkspaceRegion() {
       navigate({ to: SIGNED_IN_HOME });
       toast.success(`You left ${activeWorkspace?.name ?? "the workspace"}.`);
     },
-    onError: (e: Error) => toast.error(e.message),
+    // The confirmation already said access ends immediately, so the one fact
+    // worth stating on a failure is that it did not: they are still in, and
+    // still see everything they saw before pressing.
+    onError: (e: Error) => toast.error(failureLine("You are still in this workspace.", e)),
   });
 
   const askLeave = async () => {
@@ -1465,7 +1527,17 @@ function ThisWorkspaceRegion() {
         window.location.href = "/login";
       }
     },
-    onError: (e: Error) => toast.error(e.message),
+    /*
+     * THE ONE FAILURE WHERE THE READER'S FEAR IS THE OPPOSITE OF EVERY OTHER.
+     * Elsewhere on this pane a failure means the thing they wanted did not
+     * happen; here it means the thing they wanted did not happen and that is a
+     * relief, provided they are told. A bare Postgres string after typing a
+     * workspace name to confirm a permanent delete leaves it genuinely unclear
+     * whether the cascade ran halfway. It did not: the delete is one server
+     * call, so a rejection is a rejection.
+     */
+    onError: (e: Error) =>
+      toast.error(failureLine("The workspace and everything in it are still here.", e)),
   });
 
   const askDelete = async () => {
@@ -1527,12 +1599,56 @@ function ThisWorkspaceRegion() {
       if (e.reason === "plan-limit") {
         setPlanBlocked(true);
       } else {
-        toast.error(e.message);
+        // THE STRUCTURED REFUSAL IS HANDLED ABOVE AND EVERYTHING ELSE FALLS HERE,
+        // which is exactly the branch nobody wrote copy for. `createWorkspace`
+        // builds this Error from `result.message` when the chokepoint said no for a
+        // reason that is not the plan cap, and the insert underneath it can also
+        // fail on RLS -- so this arm carried both a sentence written for a person
+        // and a Postgres refusal, with only the raw message to tell them apart.
+        // `failureLine` keeps the first and drops the second.
+        //
+        // LINE COMMENTS, NOT A BLOCK, AND THAT IS LOAD-BEARING. Several guards on
+        // this route strip comments with `/\{\s*\/\*[\s\S]*?\*\/\s*\}/` first, to
+        // remove JSX comments WITH their braces. A block comment written as the
+        // first token after ANY `{` -- an else arm, a catch, a function body --
+        // matches that as an opening brace and the strip then runs to the next
+        // `*/ }` anywhere below, deleting every line between. Written as a block
+        // here it swallowed 13,110 characters and
+        // `the-usage-bar-cannot-be-rebuilt-on-a-subtraction.test.ts` failed on a
+        // `title="Balance"` this file still contains.
+        toast.error(failureLine("No new workspace was created.", e));
       }
     },
   });
 
-  if (!activeWorkspace || !activeWorkspaceId) return null;
+  /*
+   * A MISSING WORKSPACE AND AN UNREADABLE ONE ARE NOT THE SAME FACT, and a bare
+   * `return null` gave both the same answer: rename, leave and delete were
+   * simply not on the page, with no word about why. `useWorkspace` reports the
+   * list and whether it is still reading and nothing else, so a refused
+   * ["workspaces"] read leaves behind precisely what belonging to no workspace
+   * leaves behind -- an empty list and `activeWorkspace === null`. Three
+   * controls, including the destructive one, vanish into a state the reader
+   * cannot name.
+   *
+   * `today/Board.tsx` already solved this and this is its pattern, unchanged:
+   * read the refusal off the cache the hook itself fills, which costs no extra
+   * fetch and no new wiring. STILL READING KEEPS RETURNING NULL, because a
+   * region that appears a moment later is not a wrong answer and a flash of a
+   * failure line during a normal load would be one.
+   */
+  const workspacesState = qc.getQueryState(["workspaces"]);
+  if (!activeWorkspace || !activeWorkspaceId) {
+    if (workspacesState?.status !== "error") return null;
+    return (
+      <Region title="This workspace">
+        <ReadFailedLine onRetry={() => refreshWorkspaces()}>
+          Which workspace you are in did not load, so renaming, leaving and deleting it are not
+          offered here. Nothing about it has changed. {readFailureMessage(workspacesState.error)}
+        </ReadFailedLine>
+      </Region>
+    );
+  }
 
   return (
     <Region title="This workspace">
@@ -1559,7 +1675,16 @@ function ThisWorkspaceRegion() {
           </Action>
         </Actions>
 
-        {canLeave && (
+        {membershipRefused ? (
+          /* NAMES THE ONE READ THAT FAILED rather than the whole region, because
+             everything else here -- rename, delete, starting another -- is still
+             live and still correct. See `membershipRefused` above for the three
+             states this row was collapsing into one. */
+          <ReadFailedLine onRetry={() => void membersQ.refetch()}>
+            Your role in this workspace did not load, so whether you are able to leave it is not
+            settled here. Your membership is unchanged. {readFailureMessage(membersQ.error)}
+          </ReadFailedLine>
+        ) : canLeave ? (
           <Line
             label="Leave this workspace"
             sub="You keep no access here until someone invites you back."
@@ -1573,7 +1698,7 @@ function ThisWorkspaceRegion() {
               {mLeave.isPending ? "Leaving" : "Leave"}
             </Action>
           </Line>
-        )}
+        ) : null}
 
         <div className="flex flex-col gap-2 rounded-mrd-xs border border-mrd-line bg-mrd-sink p-3.5">
           <p style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-ink)" }}>
@@ -1712,7 +1837,16 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
       setVoiceDirty(false);
       toast.success("Saved. The next mission reads it.");
     },
-    onError: (e: Error) => toast.error(e.message),
+    /*
+     * THE SUCCESS SENTENCE IS "The next mission reads it", SO THE FAILURE HAS TO
+     * ANSWER THAT SAME QUESTION. This is the most load-bearing write on the
+     * surface -- the brief is injected into every agent's prompt -- and a bare
+     * error string left it ambiguous whether the crew is now running on the new
+     * text or the old. `briefDirty`/`voiceDirty` stay set on this path, so the
+     * draft is still in the fields and the stored copy is untouched.
+     */
+    onError: (e: Error) =>
+      toast.error(failureLine("The crew still reads the brief it read before.", e)),
   });
 
   const dirty = briefDirty || voiceDirty;
@@ -2332,9 +2466,7 @@ function AgentDetail({
       <div className="text-mrd-micro font-medium tracking-[0.08em] text-mrd-mute uppercase">
         {label}
       </div>
-      <div className="leading-mrd-prose text-mrd-prose text-mrd-body">
-        {children}
-      </div>
+      <div className="leading-mrd-prose text-mrd-prose text-mrd-body">{children}</div>
     </div>
   );
 
@@ -2519,7 +2651,14 @@ function ModelsSection() {
       setEditing(false);
       toast.success("Default model saved");
     },
-    onError: (e: Error) => toast.error(e.message),
+    /*
+     * `setEditing(false)` RUNS ONLY ON SUCCESS, so on a failure the picker is
+     * still open showing the model the person chose while the stored default is
+     * the old one. That gap is the whole reason this sentence has to name what
+     * RUNS rather than what was saved: the screen already looks like the choice
+     * took.
+     */
+    onError: (e: Error) => toast.error(failureLine("Your work still runs on the old model.", e)),
   });
 
   const saveAgenticModel = useMutation({
@@ -2529,7 +2668,9 @@ function ModelsSection() {
       setEditingAgentic(false);
       toast.success("Agentic model saved");
     },
-    onError: (e: Error) => toast.error(e.message),
+    // Same open-picker gap as the default above, on the dial that decides which
+    // model does the agentic work.
+    onError: (e: Error) => toast.error(failureLine("Agentic work still runs on the old model.", e)),
   });
 
   const current = MODELS.find((m) => m.id === defaultModel);
@@ -2701,7 +2842,27 @@ function ByoKeysBlock() {
   // Plan section, so this dedupes with it rather than firing a second fetch.
   const fGetBilling = useServerFn(getBillingState);
   const billing = useQuery({ queryKey: ["billing"], queryFn: () => fGetBilling({ data: {} }) });
-  const isEnterprise = (billing.data?.planTier ?? "free") === "enterprise";
+  /*
+   * A FAILED BILLING READ IS NOT "FREE", and `?? "free"` was answering it as if
+   * it were. Three states arrive on this line -- reading, read, and could not be
+   * read -- and the default folded the third into the cheapest of the second,
+   * which is the one with a paying customer standing behind it.
+   *
+   * TWO CONFIDENT WRONG ANSWERS CAME OUT OF THAT ONE MISSING CHECK, because both
+   * of the branches below key on this flag alone. An Enterprise customer whose
+   * ["billing"] read refuses was told *"An Enterprise boundary. Every other plan
+   * runs on Supaprod credits"* -- a sentence about a plan they are not on -- and
+   * the key form they came here to use vanished, with the disappearance itself
+   * standing as the evidence for the claim.
+   *
+   * `PlanSection` on this same surface has always read `billing.isError` and
+   * returned a ReadFailedLine rather than rendering a silent "Free". This is the
+   * same server function under the same query key, so it now gives the same
+   * answer. Note the ORDER: refused has to be checked before the tier, or the
+   * default reasserts itself.
+   */
+  const billingRefused = billing.isError;
+  const isEnterprise = !billingRefused && (billing.data?.planTier ?? "free") === "enterprise";
 
   const [keyProv, setKeyProv] = useState<string>(BYO_PROVIDERS[0].id);
   const [keyLabel, setKeyLabel] = useState<string>("");
@@ -2725,14 +2886,28 @@ function ByoKeysBlock() {
           model: keyModelId || undefined,
         },
       }),
+    /*
+     * ONE ANSWER, IN THE PLACE THE PERSON PRESSED. Both arms below used to write
+     * the same raw provider string to TWO places at once -- `testResult.error`,
+     * which renders beside the buttons, and a toast -- so a failed test put the
+     * identical machine sentence on screen twice. The toast is the copy that
+     * goes: the inline one sits next to the control that caused it and stays
+     * there while the key is edited, which a toast cannot do.
+     *
+     * BOTH ARMS CARRY THE SAME KIND OF STRING, which is why neither is trusted.
+     * `testApiKey` catches its own provider exception and RETURNS
+     * `e.message` as `error`, so `ok: false` is a thrown provider error that
+     * merely travelled home as data -- the same class as the rejection below,
+     * not a sentence written for anyone. Its one genuinely human answer, the
+     * Enterprise entitlement refusal, survives `messageForPerson`; the transport
+     * failures do not. Composing happens once, at the render site.
+     */
     onSuccess: (r) => {
       setTestResult(r);
       if (r.ok) toast.success(`Key works (${r.latency_ms}ms)`);
-      else toast.error(r.error ?? "Test failed");
     },
     onError: (e: Error) => {
       setTestResult({ ok: false, latency_ms: 0, error: e.message });
-      toast.error(e.message);
     },
   });
   const mSaveKey = useMutation({
@@ -2755,7 +2930,11 @@ function ByoKeysBlock() {
       setTestResult(null);
       toast.success("Key saved");
     },
-    onError: (e: Error) => toast.error(e.message),
+    // The four `setKey*("")` calls are in `onSuccess` only, so on a failure the
+    // pasted secret is still in the field and nothing was written. Saying "not
+    // stored" is the fact that matters: this is a credential, and a person who
+    // thinks it saved will not paste it again.
+    onError: (e: Error) => toast.error(failureLine("The key was not stored.", e)),
   });
   const mDelKey = useMutation({
     mutationFn: (id: string) => fDelKey({ data: { id } }),
@@ -2763,6 +2942,16 @@ function ByoKeysBlock() {
       qc.invalidateQueries({ queryKey: ["api-keys"] });
       toast.success("Removed");
     },
+    /*
+     * A DELETE WITH NO `onError` AT ALL, which is the only write on this surface
+     * that said nothing whatsoever. react-query holds the rejection, `onSuccess`
+     * never runs, so nothing invalidates and nothing is drawn: the Remove button
+     * un-busies itself and the row stays exactly where it was. The only evidence
+     * a reader has is a row that did not disappear, which is indistinguishable
+     * from a list that has not refreshed yet -- and the thing they believe they
+     * revoked is a live provider credential that still bills them.
+     */
+    onError: (e: Error) => toast.error(failureLine("The key is still stored and still in use.", e)),
   });
 
   const keyList = keys.data?.keys ?? [];
@@ -2772,11 +2961,26 @@ function ByoKeysBlock() {
       <Region
         title="Your own provider keys"
         sub={
-          isEnterprise
-            ? "Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot, OpenRouter and anything with a compatible endpoint. Stored encrypted, per user. A base URL is only needed for providers that host their own."
-            : "An Enterprise boundary. Every other plan runs on Supaprod credits, with the same model-agnostic routing. It just uses our keys."
+          billingRefused
+            ? "Which plan this workspace is on could not be read, so this cannot say whether your own keys are available on it."
+            : isEnterprise
+              ? "Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot, OpenRouter and anything with a compatible endpoint. Stored encrypted, per user. A base URL is only needed for providers that host their own."
+              : "An Enterprise boundary. Every other plan runs on Supaprod credits, with the same model-agnostic routing. It just uses our keys."
         }
       >
+        {billingRefused ? (
+          /* THE SUBTITLE STATES THE GAP AND THIS STATES THE WAY BACK, which is the
+             split `ReadFailedLine` exists for: it is the half that carries the
+             retry, and `wayOut` turns that into a sign-in door when the refusal
+             was an ended session. Any key already saved is listed below and stays
+             removable, because `["api-keys"]` is a separate read that did not
+             fail. */
+          <ReadFailedLine onRetry={() => void billing.refetch()}>
+            Your plan did not load, so this cannot tell whether your own provider keys are
+            available. Nothing about your keys has changed. {readFailureMessage(billing.error)}
+          </ReadFailedLine>
+        ) : null}
+
         {isEnterprise ? (
           <form
             onSubmit={(e) => {
@@ -2846,18 +3050,40 @@ function ByoKeysBlock() {
                 /* An OUTCOME that has already happened -- the key answered, or it
                    did not -- which is the one thing Meridian's pass and fail are
                    allowed to mean. `Value` rather than a hand-rolled span so the
-                   tone is declared in `data-tone` and not only painted. */
+                   tone is declared in `data-tone` and not only painted.
+
+                   THE VERDICT ONLY. The reason moved out below, because
+                   `.slice(0, 90)` was cutting a provider message mid-word inside
+                   a wrapping flex row, and it will now cut a composed sentence
+                   the same way. A verdict fits a pill; a reason does not. */
                 <Value tone={testResult.ok ? "pass" : "fail"}>
                   {testResult.ok ? (
                     <>
                       Answered in <Num>{testResult.latency_ms}ms</Num>
                     </>
                   ) : (
-                    (testResult.error ?? "Test failed").slice(0, 90)
+                    "Did not answer"
                   )}
                 </Value>
               ) : null}
             </Actions>
+            {testResult && !testResult.ok ? (
+              /* WHERE THE ONE SURVIVING COPY OF THE REASON IS DRAWN. `role="alert"`
+                 because it replaces a toast, and losing the toast without it
+                 would leave a screen-reader user pressing Test and hearing
+                 nothing at all. Same shape as the password errors above, which
+                 is the file's existing form for a failure paragraph. */
+              <p
+                role="alert"
+                style={{
+                  marginTop: "var(--mrd-s4)",
+                  fontSize: "var(--mrd-t-small)",
+                  color: "var(--mrd-fail)",
+                }}
+              >
+                {failureLine("The key was not confirmed, and nothing was saved.", testResult.error)}
+              </p>
+            ) : null}
           </form>
         ) : null}
 
@@ -2952,46 +3178,76 @@ function PlanSection({ checkout }: { checkout?: string }) {
     }
   }, [checkout, qc]);
 
+  /*
+   * BOTH EXITS OF ALL THREE BILLING MUTATIONS, not just the `onError` ones.
+   *
+   * The `e instanceof Error ? e.message : "..."` idiom is the exact shape
+   * `components/settings/no-raw-server-error-reaches-a-person.test.ts` bans
+   * across this lane's component prefix -- that guard walks `src/components`
+   * only, so these three sat outside it in `src/routes` and kept the idiom the
+   * rest of the lane removed. Its own header names the trap: the decent fallback
+   * sentence is reachable ONLY when the error carried no message at all.
+   *
+   * AND THE `res.error` ARM IS THE SAME LEAK WEARING A RETURN TYPE. `payments.functions`
+   * answers with `getStripeErrorMessage(error)`, which appends Stripe's `type`,
+   * `code`, `decline_code`, `param` and `requestId` in parentheses -- so the
+   * string a person read was *"No such subscription: sub_1A... (invalid_request_error,
+   * resource_missing, subscription, req_xyz)"*. Fixing the throw and leaving the
+   * return would be a fix in one field, which is the trap this lane has already
+   * paid for twice. `messageForPerson` drops those on the snake_case test and
+   * keeps the hand-written ones ("No active subscription found.").
+   */
   const cancelSub = useMutation({
     mutationFn: () => fCancelSub({ data: { environment: subEnv } }),
     onSuccess: (res) => {
       if ("error" in res) {
-        toast.error(res.error);
+        toast.error(failureLine("Your subscription is unchanged.", res.error));
         return;
       }
       toast.success("Subscription set to cancel at the end of the current period.");
       qc.invalidateQueries({ queryKey: ["my-subscription"] });
       qc.invalidateQueries({ queryKey: ["billing"] });
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not cancel."),
+    // The confirmation said access continues to the period end and then drops to
+    // Free. On a failure none of that was scheduled: the plan renews as it did.
+    onError: (e) => toast.error(failureLine("Your subscription is unchanged.", e)),
   });
 
   const resumeSub = useMutation({
     mutationFn: () => fResumeSub({ data: { environment: subEnv } }),
     onSuccess: (res) => {
       if ("error" in res) {
-        toast.error(res.error);
+        toast.error(failureLine("Your subscription is still set to end.", res.error));
         return;
       }
       toast.success("Subscription resumed. Renews on the next billing date.");
       qc.invalidateQueries({ queryKey: ["my-subscription"] });
       qc.invalidateQueries({ queryKey: ["billing"] });
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not resume."),
+    // Resume is drawn only while `cancelAtPeriodEnd` is set, so the standing
+    // state on a failure is the cancellation still being in place -- which is
+    // the fact a person pressing Resume is trying to get rid of.
+    onError: (e) => toast.error(failureLine("Your subscription is still set to end.", e)),
   });
 
   const openPortal = useMutation({
     mutationFn: () => fPortal({ data: { environment: subEnv, returnUrl: window.location.href } }),
     onSuccess: (res) => {
       if ("error" in res) {
-        toast.error(res.error);
+        toast.error(
+          failureLine("The billing portal did not open, and nothing changed.", res.error),
+        );
         return;
       }
       if ("url" in res && res.url) {
         window.location.href = res.url;
       }
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not open billing portal."),
+    // A portal session is a redirect, so a failure leaves the person exactly
+    // here with the plan they had. Worth saying, because the button goes quiet
+    // and there is no page change to read as an outcome either way.
+    onError: (e) =>
+      toast.error(failureLine("The billing portal did not open, and nothing changed.", e)),
   });
 
   // The one irreversible confirmation this surface is allowed.
@@ -3261,7 +3517,19 @@ function CreditsSection() {
     try {
       getStripeEnvironment();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Payments are not configured.");
+      // THE ONE FAILURE ON THIS PANE THAT NAMES OUR OWN SECRETS.
+      // `getStripeEnvironment` throws a CONFIGURATION error, and `error-copy.ts`
+      // has a whole clause about this exact shape: a config error is written as a
+      // sentence -- for an operator -- and defeats every other test in
+      // `messageForPerson`, so it reached a customer as *"Missing Supabase
+      // environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in
+      // Lovable Cloud."* on the public /proof page. The SCREAMING_SNAKE rule added
+      // for that catches it here too, and what a person is left with is the state,
+      // which is all they can act on anyway.
+      //
+      // Line comments for the same reason as the `else` arm in `mCreate`: a block
+      // comment opening a `{` body defeats this route's guards' comment stripper.
+      toast.error(failureLine("No purchase was started, and you were not charged.", e));
       return;
     }
     setCheckoutKey(key);
