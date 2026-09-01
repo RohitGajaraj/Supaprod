@@ -306,7 +306,21 @@ function StartLanding() {
       if (bring()) obs.disconnect();
     });
     obs.observe(document.body, { childList: true, subtree: true });
-    const ceiling = window.setTimeout(() => obs.disconnect(), 6000);
+    /*
+     * 20s, RAISED FROM 6s ON A MEASUREMENT (2026-09-01). The gate above waits
+     * for the queue to have a body before scrolling, and on a COLD cache that
+     * read takes about 5.4s on a real workspace -- measured on the running
+     * board. A 6s ceiling was therefore racing it: warm, the scroll landed;
+     * cold, the observer was disconnected a few hundred milliseconds before
+     * the rows arrived and the door silently did nothing, which is the exact
+     * failure it was built to fix.
+     *
+     * The ceiling exists so an observer does not sit on the document for the
+     * life of the tab when the anchor never appears at all -- a workspace with
+     * nothing waiting. That purpose is served just as well by a number with
+     * headroom over the slowest real read.
+     */
+    const ceiling = window.setTimeout(() => obs.disconnect(), 20_000);
     return () => {
       obs.disconnect();
       window.clearTimeout(ceiling);
