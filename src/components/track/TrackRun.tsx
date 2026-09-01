@@ -213,6 +213,7 @@ function RunRouteHeader({
   continuing,
   legsLeft,
   nowMs,
+  reasonSaidBelow,
 }: {
   track: Track;
   /**
@@ -231,8 +232,36 @@ function RunRouteHeader({
   continuing: boolean;
   legsLeft: number;
   nowMs: number;
+  /**
+   * "Why it stopped" is on screen under this header, so the map must not draw
+   * the reason as well.
+   *
+   * THE TWO WERE THE SAME STRING, CHARACTER FOR CHARACTER. `track.hold` is
+   * `holdLine(last_hold, { station })` composed in `getTrack`, and `RunMap`
+   * draws `holdLine(stop.hold, { station: stop.station })` on the held stop
+   * whenever `mode === "live"` -- same function, same reason, same station. So
+   * a held run printed one sentence in the map and then printed it again, four
+   * lines down the page, as the lead of "Why it stopped".
+   *
+   * THE MAP KEEPS THE STATE AND LOSES THE PROSE, not the other way round. The
+   * stop still wears its `held` chip and its amber, which is what a map is for:
+   * where the work is and what shape it is in at a glance. "Why it stopped"
+   * keeps the sentence because it is the only one of the two that carries the
+   * control clearing it, which is `run-status.ts`'s own argument for dropping
+   * the header's copy and is the same argument here.
+   *
+   * FALSE MEANS THE MAP IS THE ONLY COPY AND MUST KEEP IT. That region is gated
+   * three ways (`held && !walkingMidRoute && !isCalmHold`), so on a calm hold
+   * and mid-walk the map is where the reason lives, and stripping it
+   * unconditionally would delete it from the screen entirely.
+   */
+  reasonSaidBelow: boolean;
 }) {
-  const { stops, meter } = runPosition(track, walking);
+  const position = runPosition(track, walking);
+  const meter = position.meter;
+  const stops = reasonSaidBelow
+    ? position.stops.map((s) => ({ ...s, hold: null }))
+    : position.stops;
   /* `active` follows the walk, so a parked run pays for no interval at all --
      `useElapsed`'s own contract, and the reason it takes the flag. */
   const walked = useElapsed(walkStartedAt ?? undefined, walkStartedAt !== null);
@@ -261,13 +290,25 @@ function RunRouteHeader({
    * reason to the two places that can act on it. It is never a re-wording:
    * these are `StatusChip`'s own words for the two tones, which is the one
    * vocabulary the driver, the map and the banner all share.
+   *
+   * THE FINISHED BRANCH IS SILENT FOR THE SAME REASON, and it is the same
+   * sentence twice rather than a paraphrase. `run-status.ts` returns
+   * "It reached the end of its route." as the line beside the header chip, and
+   * the route draws that chip and that line at the top of this very page; this
+   * sub sat a few hundred pixels below it saying the identical fifteen
+   * characters under a heading already reading "Route complete". The header is
+   * the one that keeps it: it is beside the chip, which is where a person looks
+   * first, and it is the copy the run tab and the browser title already agree
+   * with. Here the region title carries the state and the collapsed line
+   * carries the counts, so a third statement of "this is finished" earns
+   * nothing.
    */
   const doing = continuing
     ? `An agent is walking the route. ${legsLeft} more automatic ${legsLeft === 1 ? "leg" : "legs"} on this press.`
     : walking
       ? "An agent is working here now."
       : track.status === "done"
-        ? "It reached the end of its route."
+        ? undefined
         : track.status === "abandoned"
           ? "This work was abandoned here."
           : tone === "you"
@@ -907,6 +948,10 @@ export function TrackRunLeft({
           continuing={continuing}
           legsLeft={legsLeft}
           nowMs={nowMs}
+          /* The same flag the region below is gated on, so the map drops the
+             hold sentence exactly when the region is about to print it and
+             keeps it in every case where the region is absent. */
+          reasonSaidBelow={showHold}
         />
       ) : null}
 

@@ -113,15 +113,36 @@ export function TakeOver({ trackId, track }: { trackId: string; track: Track }) 
 
   const sending = url.trim().length === 0 || hand.isPending;
 
+  /*
+   * THE SENTENCE DESCRIBES WHAT IS DRAWN, WHICH IS NOT ALWAYS TWO THINGS.
+   *
+   * It said "Send a step back to be done again, or do it yourself and hand the
+   * result in. Both count as you stepping in" on every open track. `takeOver`
+   * draws handback at Build and Ship only -- five of the seven stations -- so
+   * at Plan, Design, Decide and Learn a person read an offer of two moves above
+   * a single button, and "Both" named one control that was not on the screen.
+   *
+   * Derived rather than written, the way `takeOver` already derives `nothing`
+   * for the case where neither control can act. Same source, same moment, so
+   * the copy cannot drift from the buttons under it the next time a station is
+   * added to `BY_HAND`.
+   *
+   * THE SECOND CLAUSE IS NOT OPTIONAL IN ANY BRANCH. Both writes record a
+   * `press` before any other write (R-18), so a person is owed the fact that
+   * this marks the work wherever they click, and that stays true when only one
+   * of the two is reachable.
+   */
+  const sub =
+    can.undoTo && can.handback
+      ? "Send a step back to be done again, or do it yourself and hand the result in. Both count as you stepping in, and this piece of work will say so from here on."
+      : can.undoTo
+        ? "Send a step back to be done again. That counts as you stepping in, and this piece of work will say so from here on."
+        : can.handback
+          ? "Do this step yourself and hand the result in. That counts as you stepping in, and this piece of work will say so from here on."
+          : undefined;
+
   return (
-    <Region
-      title="Take it over"
-      sub={
-        can.nothing
-          ? undefined
-          : "Send a step back to be done again, or do it yourself and hand the result in. Both count as you stepping in, and this piece of work will say so from here on."
-      }
-    >
+    <Region title="Take it over" sub={sub}>
       {can.nothing ? <Row lead={can.nothing} /> : null}
 
       {can.undoTo ? (

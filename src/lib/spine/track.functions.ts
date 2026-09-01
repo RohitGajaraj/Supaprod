@@ -3081,9 +3081,25 @@ export const getParkedWork = createServerFn({ method: "GET" })
  *
  * So this read is complete for every run from 2026-08-31 onward and empty for
  * everything older. That is not a bug and the surface must not present it as
- * one: `traced` reports whether the runs on this track can be joined at all,
- * so the UI can say "this run predates the record" rather than "it called
- * nothing", which are opposite claims about the same empty list.
+ * one: this returns the COVERAGE -- how many of the track's runs carry a trace
+ * id at all -- so the UI can say "this run predates the record" rather than
+ * "it called nothing", which are opposite claims about the same empty list.
+ *
+ * ── COVERAGE IS A FRACTION, AND IT USED TO BE A BOOLEAN ───────────────────
+ * `traced: boolean` was true the moment ONE run on the track carried a trace
+ * id. A track that started before 2026-08-31 and has been driven since is the
+ * common shape of that: 25 runs the record cannot see and one it can, reported
+ * as a fully traced run, so five tool calls were presented as the whole record
+ * of a 26-turn walk. `tracedRuns` against `runs` is the honest pair, and the
+ * surface says which fraction of the walk it is actually showing.
+ *
+ * ── A FAILED READ IS NOT AN EMPTY ONE, AND IT USED TO BE ──────────────────
+ * Both errors and the outer catch returned `{ calls: [], traced: false, runs:
+ * 0 }`, which `LiveWork` renders as "No agent has taken a turn on this work
+ * yet." So a dropped connection made the product assert the agents had done
+ * nothing, on the one surface whose whole claim is that you can watch them.
+ * These throw now: react-query sets `isError` and the pane says the read
+ * failed and that the run itself is untouched.
  *
  * ── WHY THE TRACK'S OWN RUNS RATHER THAN THE WORKSPACE'S ──────────────────
  * A workspace filter was used twice as a stand-in for this join while it did
@@ -3107,69 +3123,68 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
     async ({
       context,
       data,
-    }): Promise<{ calls: TrackToolCall[]; traced: boolean; runs: number }> => {
+    }): Promise<{ calls: TrackToolCall[]; runs: number; tracedRuns: number }> => {
       const { supabase } = context;
-      try {
-        /*
-         * RLS DOES THE TENANCY, which is why this reads through the caller's
-         * own client and never the admin one. A tool call is the most
-         * revealing row this product holds -- it names what another company's
-         * agents looked at -- so the one place it must not be reachable from
-         * is a query that forgot a workspace filter.
-         */
-        const { data: runRows, error: runErr } = await supabase
-          .from("agent_runs")
-          .select("trace_id")
-          .eq("track_id", data.trackId);
-        if (runErr) return { calls: [], traced: false, runs: 0 };
+      /*
+       * RLS DOES THE TENANCY, which is why this reads through the caller's
+       * own client and never the admin one. A tool call is the most
+       * revealing row this product holds -- it names what another company's
+       * agents looked at -- so the one place it must not be reachable from
+       * is a query that forgot a workspace filter.
+       */
+      const { data: runRows, error: runErr } = await supabase
+        .from("agent_runs")
+        .select("trace_id")
+        .eq("track_id", data.trackId);
+      // Thrown, not swallowed: an empty list means the agents called nothing,
+      // and this is the case where nobody could look.
+      if (runErr) throw new Error(`The turns on this run could not be read: ${runErr.message}`);
 
-        const rows = (runRows ?? []) as Array<{ trace_id: string | null }>;
-        const traceIds = [...new Set(rows.map((r) => r.trace_id).filter((t): t is string => !!t))];
+      const rows = (runRows ?? []) as Array<{ trace_id: string | null }>;
+      const tracedRuns = rows.filter((r) => !!r.trace_id).length;
+      const traceIds = [...new Set(rows.map((r) => r.trace_id).filter((t): t is string => !!t))];
 
-        /*
-         * NO TRACE IDS IS NOT NO CALLS. A track whose runs all predate the
-         * column joins to nothing, and reporting that as an empty tool list
-         * would tell a person their agents did nothing when the truth is that
-         * nobody wrote down what they did. `traced: false` is the honest
-         * answer and the surface renders a different sentence for it.
-         */
-        if (traceIds.length === 0) return { calls: [], traced: false, runs: rows.length };
+      /*
+       * NO TRACE IDS IS NOT NO CALLS. A track whose runs all predate the
+       * column joins to nothing, and reporting that as an empty tool list
+       * would tell a person their agents did nothing when the truth is that
+       * nobody wrote down what they did. `tracedRuns: 0` is the honest answer
+       * and the surface renders a different sentence for it.
+       */
+      if (traceIds.length === 0) return { calls: [], runs: rows.length, tracedRuns };
 
-        const { data: callRows, error: callErr } = await supabase
-          .from("tool_calls")
-          .select("id, tool_name, ok, latency_ms, created_at, error")
-          .in("trace_id", traceIds)
-          /* Newest first for the cap, reversed below: ToolStream takes arrival
-             order, oldest first, and follows the tail. Ordering ascending here
-             and capping would return the FIRST 200 calls of a long run, which
-             is the opposite of what someone watching wants. */
-          .order("created_at", { ascending: false })
-          .limit(200);
-        if (callErr) return { calls: [], traced: true, runs: rows.length };
+      const { data: callRows, error: callErr } = await supabase
+        .from("tool_calls")
+        .select("id, tool_name, ok, latency_ms, created_at, error")
+        .in("trace_id", traceIds)
+        /* Newest first for the cap, reversed below: ToolStream takes arrival
+           order, oldest first, and follows the tail. Ordering ascending here
+           and capping would return the FIRST 200 calls of a long run, which
+           is the opposite of what someone watching wants. */
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (callErr) throw new Error(`What the agents called could not be read: ${callErr.message}`);
 
-        const calls = (
-          (callRows ?? []) as Array<{
-            id: string;
-            tool_name: string;
-            ok: boolean;
-            latency_ms: number;
-            created_at: string;
-            error: string | null;
-          }>
-        )
-          .map((c) => ({
-            id: c.id,
-            tool: c.tool_name,
-            ok: c.ok,
-            latencyMs: c.latency_ms,
-            at: c.created_at,
-            error: c.error,
-          }))
-          .reverse();
+      const calls = (
+        (callRows ?? []) as Array<{
+          id: string;
+          tool_name: string;
+          ok: boolean;
+          latency_ms: number;
+          created_at: string;
+          error: string | null;
+        }>
+      )
+        .map((c) => ({
+          id: c.id,
+          tool: c.tool_name,
+          ok: c.ok,
+          latencyMs: c.latency_ms,
+          at: c.created_at,
+          error: c.error,
+        }))
+        .reverse();
 
-        return { calls, traced: true, runs: rows.length };
-      } catch {
-        return { calls: [], traced: false, runs: 0 };
-      }
+      return { calls, runs: rows.length, tracedRuns };
     },
   );

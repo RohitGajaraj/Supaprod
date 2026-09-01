@@ -44,20 +44,32 @@ import { getTrackToolCalls } from "@/lib/spine/track.functions";
  *
  * So this composes and does not build. The only new thing is the read.
  *
- * ── AN EMPTY LIST IS THREE DIFFERENT FACTS ────────────────────────────────
+ * ── AN EMPTY LIST IS FOUR DIFFERENT FACTS ─────────────────────────────────
  * This is the part that decides whether the surface is honest.
  *
  *   traced && calls && running   it is working and here is what it is doing
  *   traced && no calls && running  it has started and called nothing YET
  *   traced && no calls && settled  it genuinely called nothing
- *   NOT traced                   its runs predate the record, so nobody
+ *   NO traced runs               its runs predate the record, so nobody
  *                                wrote down what it did
+ *   THE READ FAILED             nobody could look, which is not a fact about
+ *                                the agents at all
  *
- * The last one is the trap. Those runs DID call tools; the column that would
- * let us name them did not exist yet. Rendering that as "called nothing" tells
- * a person their agents sat idle, which is the opposite of true, and it is
- * exactly the substitution that twice produced a wrong finding internally
+ * The third-from-last is the trap. Those runs DID call tools; the column that
+ * would let us name them did not exist yet. Rendering that as "called nothing"
+ * tells a person their agents sat idle, which is the opposite of true, and it
+ * is exactly the substitution that twice produced a wrong finding internally
  * before the join existed. It gets its own sentence.
+ *
+ * ── AND COVERAGE IS PARTIAL FAR MORE OFTEN THAN IT IS ABSENT ──────────────
+ * The read used to answer `traced: boolean`, true the moment ONE run on the
+ * track carried a trace id. A track opened before 2026-08-31 and driven since
+ * is exactly that: one turn the record can see and twenty-five it cannot, and
+ * this pane drew the handful of calls from that one turn under a heading
+ * claiming to be what the agents are calling. So the fraction is now stated
+ * whenever it is short of the whole, and stays silent when the record covers
+ * every turn -- a line saying "26 of 26" on every complete run distinguishes
+ * nothing.
  */
 export function LiveWork({ trackId, running }: { trackId: string; running: boolean }) {
   const fetchCalls = useServerFn(getTrackToolCalls);
@@ -102,11 +114,12 @@ export function LiveWork({ trackId, running }: { trackId: string; running: boole
   }
 
   /*
-   * NOT TRACED IS NOT EMPTY, and this is the sentence that keeps the surface
-   * honest about its own history. Drawn only once the read has answered, so a
-   * page that is still loading never claims a run predates anything.
+   * NO TRACED RUN IS NOT AN EMPTY ONE, and this is the sentence that keeps the
+   * surface honest about its own history. Drawn only once the read has
+   * answered, so a page that is still loading never claims a run predates
+   * anything.
    */
-  if (q.data && !q.data.traced) {
+  if (q.data && q.data.tracedRuns === 0) {
     return (
       <NothingYet>
         {q.data.runs > 0
@@ -116,7 +129,28 @@ export function LiveWork({ trackId, running }: { trackId: string; running: boole
     );
   }
 
-  return <ToolStream rows={rows} working={running} label="What the agents are calling" />;
+  /*
+   * HOW MUCH OF THE WALK THIS IS, and only when that is less than all of it.
+   * Computed over the run's own turns rather than per row: the stream below is
+   * the calls from `tracedRuns` of `runs` turns, and on a run where those are
+   * the same number saying so would be a line printed identically on every
+   * complete run.
+   */
+  const unseen = q.data ? q.data.runs - q.data.tracedRuns : 0;
+
+  return (
+    <>
+      {q.data && unseen > 0 ? (
+        <p className="mrd-meta">
+          {`${q.data.tracedRuns} of ${q.data.runs} turns on this run wrote down what they called. ` +
+            (unseen === 1
+              ? "The other one is older than that record, so what it did is not here."
+              : `The other ${unseen} are older than that record, so what they did is not here.`)}
+        </p>
+      ) : null}
+      <ToolStream rows={rows} working={running} label="What the agents are calling" />
+    </>
+  );
 }
 
 /**

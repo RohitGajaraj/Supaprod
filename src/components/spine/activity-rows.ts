@@ -109,7 +109,15 @@ export type ActivityRow =
       key: string;
       to: string;
       toName: string;
-      line: string;
+      /**
+       * Who caused this leg, or null when saying so would distinguish nothing.
+       *
+       * See `mergeActivityRows` for the rule. Null is not "we do not know" --
+       * a leg with no provable driver never becomes a row at all -- it is
+       * "the summary above this transcript has already said it about every
+       * leg below it".
+       */
+      line: string | null;
       from: string | null;
     };
 
@@ -129,9 +137,39 @@ export function mergeActivityRows(
   for (const t of turns) {
     rows.push({ kind: "turn", at: Date.parse(t.at), turn: t, key: `turn:${t.runId}` });
   }
-  for (const tr of transitions) {
-    const line = transitionLine(tr.drivenVia);
-    if (!line) continue;
+  const legs = transitions
+    .map((tr) => ({ tr, line: transitionLine(tr.drivenVia) }))
+    // A leg with no provable driver is dropped entirely rather than drawn
+    // vague: an unknown driver rendered as a known one is the invention this
+    // product refuses.
+    .filter((l): l is { tr: TrackTransition; line: string } => l.line !== null);
+
+  /*
+   * "THE RUN MOVED ON ITS OWN" IS DROPPED WHEN EVERY LEG SAYS IT.
+   *
+   * `howThisRan` draws a standing summary directly above this transcript, and
+   * on a route the loop moved end to end that summary reads "All 9 moves on
+   * this route were made by the loop on its own." Every move row underneath it
+   * then repeated "the run moved on its own", nine times, under a sentence
+   * that had just counted them. A caption identical on every row separates no
+   * row from any other; it is only a fact about the run, and the summary is
+   * where a fact about the run belongs.
+   *
+   * COMPUTED OVER THE RENDERED SET, not per row. The moment one leg is a press
+   * or a continuation, "on its own" is telling the reader which legs were not
+   * the person -- that is the whole job of the caption -- so it comes straight
+   * back for all of them.
+   *
+   * ONLY THE SWEEP LINE, AND THAT ASYMMETRY IS DELIBERATE. "you pressed run
+   * here" is a person reaching into the work, which R-18 makes the one fact
+   * this transcript may never quietly drop, and "it carried on by itself" marks
+   * a leg the client took past a closed window. Both are exceptions worth
+   * naming even when they are the only thing on the route. The loop moving the
+   * work is the ordinary case here and the one that goes quiet.
+   */
+  const everyLegWasTheLoop = legs.length > 0 && legs.every((l) => l.tr.drivenVia === "sweep");
+
+  for (const { tr, line } of legs) {
     // Display names come from the ONE map, never the raw slug -- same rule as
     // every station word on this surface.
     rows.push({
@@ -141,7 +179,7 @@ export function mergeActivityRows(
       to: tr.to,
       toName: AGENT_STATIONS[tr.to as keyof typeof AGENT_STATIONS]?.name ?? tr.to,
       from: tr.from,
-      line,
+      line: everyLegWasTheLoop ? null : line,
     });
   }
   for (const h of handoffs) {
