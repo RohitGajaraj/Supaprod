@@ -1247,10 +1247,39 @@ export function OpportunityDetailSheet({
           here unless the attribute is set on this element. `font-mrd` for the
           same reason: the face is inherited, and this subtree has no Meridian
           ancestor to inherit it from. */}
+      {/*
+       * ── THE SHEET SIZES TO THE SCREEN NOW (2026-09-01) ────────────────────
+       *
+       * FOUNDER: *"it needs to dynamically adapt based on the type of monitors
+       * or screens I am using ... not just limited to these four sizes."*
+       *
+       * This carried `sm:max-w-md` -- ONE breakpoint at 640px and a hard 448px
+       * ceiling above it. So the full detail of a ranked bet was 448px wide on
+       * a 13in laptop and 448px wide on a 32in monitor, with the rest of the
+       * screen dimmed behind it. This is also the surface every truncated row
+       * on Discover sends a person to, which makes it the worst place in the
+       * flow to be narrow: the reader arrives specifically because something
+       * did not fit.
+       *
+       * `min(94vw, clamp(420px, 38vw, 760px))` is continuous. 420px is the
+       * floor at which the two-column stats inside stop wrapping; 760px is the
+       * ceiling past which the prose in here exceeds a readable measure and a
+       * wider sheet would be worse rather than better; 38vw is the proportion
+       * between them, so every width in between gets a value and no screen size
+       * is named. `min(94vw, ...)` keeps the 6% gutter on a phone, which is what
+       * the `w-3/4` default was protecting and is the one thing not to lose.
+       *
+       * An inline `width` rather than a utility because the value is an
+       * expression: it also has to BEAT the component's own
+       * `w-3/4 sm:max-w-sm` default, and a same-specificity utility would be
+       * decided by stylesheet order -- the exact ambiguity the type-size guard
+       * was just added for.
+       */}
       <SheetContent
         side="right"
         data-mrd=""
-        className="sm:max-w-md overflow-y-auto bg-mrd-sheet font-mrd text-mrd-prose text-mrd-body"
+        style={{ width: "min(94vw, clamp(420px, 38vw, 760px))", maxWidth: "none" }}
+        className="overflow-y-auto bg-mrd-sheet font-mrd text-mrd-prose text-mrd-body"
       >
         {/* Accessible name and description for the dialog. The visible head
             below carries the same title, so this stays screen-reader only. */}

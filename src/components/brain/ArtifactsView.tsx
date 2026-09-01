@@ -623,6 +623,22 @@ export function ArtifactsView() {
               setDraft(null);
               setFocusedKey(keyOf(a));
             }}
+            /*
+             * `title` BECAUSE THE CUT IS UNRECOVERABLE WITHOUT IT (2026-09-01).
+             * A hand-rolled `truncate` outside the row primitives, so it did
+             * not get the `hint()` helper those gained: the name was cut with
+             * no tooltip, no expand and no way back. Two specs whose names
+             * differ past the cut are then indistinguishable, and this cell is
+             * the control you press to choose between them -- so the reader has
+             * to click one to find out whether it was the one they wanted.
+             *
+             * A `title` is the right instrument HERE and not everywhere: this
+             * is a scan cell in a table whose full content opens on click, so
+             * hover recovers the name and the click recovers the artifact. It
+             * is not enough where the cut text has no elsewhere -- that is what
+             * `Reveal` is for.
+             */
+            title={a.name}
             className="mrd-focus-inset block w-full truncate rounded-mrd-xs text-left transition-colors hover:text-mrd-ink"
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >

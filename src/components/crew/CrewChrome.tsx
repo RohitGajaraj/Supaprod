@@ -305,7 +305,27 @@ export function StationHeading({ station, count }: { station: AgentStation; coun
     <div className="flex items-center gap-mrd-3">
       <StationGlyph kind={GLYPH_FOR_STATION[station]} className="shrink-0 text-mrd-mute" />
       <h2 className="text-mrd-base font-medium text-mrd-ink">{AGENT_STATIONS[station].name}</h2>
-      <span className="font-mrd-mono text-mrd-tiny text-mrd-faint tabular-nums">{count}</span>
+      {/*
+        ── THE NUMBER NOW SAYS WHAT IT COUNTS (2026-09-01) ──────────────────
+        This was a bare numeral: `Discover  4`, in the faintest ink on the
+        ladder, with no word beside it and no accessible name. A sighted reader
+        infers "4 agents" from context; a screen reader announces "Discover 4"
+        and there is nothing in the document saying what 4 is.
+
+        FOUNDER, on the same defect elsewhere: *"that is not mentioning what it
+        is"* and *"next to that the numbers are much bigger than the text, so
+        it's not aligning. There has to be some attention to detail."*
+
+        The figure keeps the mono face, because it is a count and that is what
+        `--mrd-t-tiny` is reserved for ("mono counts, stage numerals"). The word
+        takes `mrd-eyebrow`, so it reads as the label of the number rather than
+        as more heading -- and the pair now sits on one baseline instead of a
+        digit floating beside a name.
+      */}
+      <span className="flex items-baseline gap-mrd-2">
+        <span className="font-mrd-mono text-mrd-tiny text-mrd-faint tabular-nums">{count}</span>
+        <span className="mrd-eyebrow">{count === 1 ? "agent" : "agents"}</span>
+      </span>
       <span aria-hidden className="h-px min-w-6 flex-1 bg-mrd-line-soft" />
     </div>
   );
