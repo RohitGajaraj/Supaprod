@@ -2356,7 +2356,27 @@ export function DiscoverSurface({
                        mark rather than as more words. The founder's case: "this
                        is coming from Intercom, this is coming from Slack". */
                     source={s.source}
-                    name={signalPreview(s.content, 96)}
+                    /*
+                     * ── THE QUOTE IS NO LONGER CUT BEFORE CSS SEES IT ────────
+                     * (2026-09-01, found by opening a cluster rather than by
+                     * reading this file.)
+                     *
+                     * This read `signalPreview(s.content, 96)`. Measured on the
+                     * expanded cluster: the rendered evidence ended *"...not on
+                     * a phone. The address…"* -- a customer's verbatim sentence,
+                     * hard-cut in JavaScript, with no `title`, no expand and
+                     * nowhere else on the page carrying the rest.
+                     *
+                     * TWO CUTS WERE STACKED AND THE FIRST ONE WAS THE HARMFUL
+                     * ONE. `CtxRow` already truncates `name` with CSS, at the
+                     * width the rail actually has. A JS cut in front of that
+                     * throws characters away BEFORE the browser gets to decide,
+                     * so on a wide rail the row had room it was not allowed to
+                     * use, and the discarded text was unrecoverable either way.
+                     * Handing over the whole string lets the visible cut happen
+                     * at the real width and keeps the words in the DOM.
+                     */
+                    name={s.content}
                     /* THE QUOTE OPENS THE THING IT CAME FROM. `signals.url` has
                      held the ticket, the thread or the review this sentence was
                      lifted out of since the table was created, and no surface
@@ -2369,7 +2389,29 @@ export function DiscoverSurface({
                      captured ones: there is nowhere to send you, and a row that
                      lights up and does nothing is the defect this whole pass is
                      about. */
-                    title={s.url ? `Open the source: ${s.url}` : undefined}
+                    /*
+                     * ── ONE `title` SLOT, TWO JOBS, AND THE QUOTE COMES FIRST ─
+                     * This carried only the URL, so the single recovery path
+                     * for a cut quote was spent naming a destination -- on the
+                     * one section whose entire job is to show the evidence
+                     * verbatim. This file's own header already calls that "the
+                     * worst" case and fixed half of it (the NAME had been the
+                     * URL); the quote was still cut and the title still gone.
+                     *
+                     * Both now, quote first, because the sentence is the thing
+                     * a person is being asked to trust and the address is
+                     * secondary. The row's door is unchanged -- an `onClick`
+                     * that opens the source in a new tab -- so nothing was
+                     * traded away to make room.
+                     *
+                     * A `title` is a floor and not the answer: absent on touch,
+                     * absent for a keyboard reader. It is the right instrument
+                     * HERE because this is a dense rail row whose full content
+                     * opens on click, and the alternative -- a `Reveal` in every
+                     * quote of an evidence list -- would put a control on every
+                     * row of a scan column.
+                     */
+                    title={s.url ? `${s.content}\n\nOpens the source: ${s.url}` : s.content}
                     onClick={
                       s.url
                         ? () => {
