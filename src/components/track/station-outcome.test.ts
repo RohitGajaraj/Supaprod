@@ -1,102 +1,73 @@
 /**
- * THE FIELD THAT WAS DESIGNED AND NEVER FILLED (2026-09-02).
+ * WHAT CAME OF EACH STATION, AND THE VERSION OF THIS THAT SHIPPED FIRST.
  *
- * `RunMapStation.outcome` promised "WHAT CAME OF THIS STATION, in outcome words
- * a reader would use" and nothing ever set it, so every stage on the run map
- * and the run strip rendered a blank line. This is what fills it.
+ * `RunMapStation.outcome` promised "WHAT CAME OF THIS STATION" and nothing ever
+ * set it, so every stage on the run map and the run strip drew a blank line.
  *
- * The tests that matter here are the REFUSALS. A line on an audit surface that
- * overstates what happened is worse than no line, because the reader has no way
- * to tell an invented sentence from a measured one.
+ * My first fill counted rows in `agent_runs` and said "3 turns, 2 with
+ * failures". True, and the wrong answer: it described the WORK where the field
+ * asks for the PRODUCT. `whatItProduced` had been in the tree the whole time,
+ * doing exactly this from `spine_track_members`, through a query the run screen
+ * already polls. This module is now the hand-off and nothing else, so what is
+ * worth testing is the hand-off's edges rather than the sentence -- that has
+ * its own tests next to the function that builds it.
  */
 import { describe, expect, it } from "bun:test";
 
-import { runsByStation, stationOutcome, stationOutcomes } from "./station-outcome";
+import { stationOutcomes, type OutcomeStop } from "./station-outcome";
 
-const run = (agent_slug: string, status: string) => ({ agent_slug, status });
+const stop = (
+  station: string,
+  label: string,
+  members: { kind: string; missing: boolean; title?: string | null }[],
+) => ({ station, label, members }) as OutcomeStop;
 
-describe("what a station says about itself", () => {
-  it("counts the turns taken there and says they finished", () => {
-    expect(
-      stationOutcome([run("discovery-scout", "completed"), run("researcher", "completed")]),
-    ).toBe("2 turns finished");
+describe("the hand-off from the chain to the map", () => {
+  it("says what a station filed, in the chain's own words", () => {
+    const out = stationOutcomes([
+      stop("sense", "Discover", [{ kind: "signal", missing: false, title: "A finding" }]),
+    ]);
+    expect(out?.sense).toBe("Discover filed 1 finding.");
   });
 
-  it("names how many came out with failures, which is the fact worth seeing", () => {
-    // The real shape of run ce846e9b at Discover on production: three agents,
-    // two of which reached their step limit.
-    expect(
-      stationOutcome([
-        run("discovery-scout", "completed"),
-        run("researcher", "completed_with_failures"),
-        run("customer-insights", "completed_with_failures"),
+  it("carries a station that filed several things", () => {
+    const out = stationOutcomes([
+      stop("design", "Design", [
+        { kind: "prototype", missing: false, title: "A" },
+        { kind: "prototype", missing: false, title: "B" },
       ]),
-    ).toBe("3 turns, 2 with failures");
-  });
-
-  it("says none finished clean when every attempt went wrong", () => {
-    // Different from "some did" and a person should not have to count to see it.
-    expect(stationOutcome([run("builder", "failed"), run("qa", "failed")])).toBe(
-      "2 turns, none finished clean",
-    );
-  });
-
-  it("reads naturally for a single agent", () => {
-    expect(stationOutcome([run("critic", "completed")])).toBe("1 turn finished");
-    expect(stationOutcome([run("critic", "failed")])).toBe("1 turn, with failures");
+    ]);
+    expect(out?.design).toContain("2 prototypes");
   });
 });
 
-describe("and what it refuses to say", () => {
-  it("says nothing at all for a station that has not run", () => {
-    // "0 agents" is a number standing in for an absence. The stage renders no
-    // note, which is what an unreached station looks like.
-    expect(stationOutcome([])).toBe("");
-    expect(stationOutcome(undefined)).toBe("");
+describe("and the absences, which are most of a run", () => {
+  it("omits a station that filed nothing rather than mapping it to a blank", () => {
+    // An absent key means the stop renders no note. "" would be a note that is
+    // empty, which reserves meaning for something that has nothing to say.
+    const out = stationOutcomes([stop("ship", "Ship", [])]);
+    expect(out).toEqual({});
+    expect("ship" in (out ?? {})).toBe(false);
+  });
+
+  it("omits a station whose every artifact has gone missing", () => {
+    // `whatItProduced` returns null when nothing present resolves, and a
+    // sentence about artifacts that are not there would be worse than silence
+    // on the surface a person opens to audit the run.
+    const out = stationOutcomes([
+      stop("build", "Build", [{ kind: "changeset", missing: true, title: null }]),
+    ]);
+    expect(out).toEqual({});
   });
 
   /*
-   * A run waiting on a person has NOT gone wrong. It is the one state this
-   * product exists to surface, the stage's own state already carries it in
-   * `--mrd-you`, and counting it as a failure would paint an ordinary gate as
-   * a fault on the audit trail.
+   * UNDEFINED IS NOT AN EMPTY MAP, and the difference is what the run screen
+   * shows on arrival. Undefined means the chain has not answered: every stop
+   * renders exactly as it did before this feature existed. An empty map means
+   * the chain answered and nothing was filed anywhere.
    */
-  it("does not count a run waiting on a person as a failure", () => {
-    expect(
-      stationOutcome([run("strategist", "completed"), run("critic", "waiting_approval")]),
-    ).toBe("2 turns finished");
-  });
-
-  it("drops an agent whose slug maps to no station rather than guessing one", () => {
-    // `agentStation` returns null for a delegate or a renamed slug. Filing it
-    // under a station it does not serve would put a number on a stage that
-    // never ran it.
-    const grouped = runsByStation([
-      run("discovery-scout", "completed"),
-      run("not-a-real-agent-slug", "completed"),
-    ]);
-    expect(grouped.sense).toHaveLength(1);
-    expect(Object.values(grouped).flat()).toHaveLength(1);
-  });
-
-  it("omits a station from the map entirely rather than mapping it to an empty string", () => {
-    const out = stationOutcomes([run("discovery-scout", "completed")]);
-    expect(out.sense).toBe("1 turn finished");
-    expect("build" in out).toBe(false);
-  });
-});
-
-describe("the grouping follows the roster, not the run order", () => {
-  it("buckets each agent under the station it serves", () => {
-    const out = stationOutcomes([
-      run("discovery-scout", "completed"),
-      run("researcher", "completed"),
-      run("strategist", "completed"),
-      run("builder", "failed"),
-      run("qa", "completed"),
-    ]);
-    expect(out.sense).toBe("2 turns finished");
-    expect(out.decide).toBe("1 turn finished");
-    expect(out.build).toBe("2 turns, 1 with failures");
+  it("returns undefined while the read has not answered", () => {
+    expect(stationOutcomes(undefined)).toBeUndefined();
+    expect(stationOutcomes([])).toEqual({});
   });
 });

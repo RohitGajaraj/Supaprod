@@ -3116,45 +3116,6 @@ export type TrackToolCall = {
   error: string | null;
 };
 
-/**
- * WHICH AGENTS WORKED THIS RUN, AND HOW EACH CAME OUT.
- *
- * Two columns, one indexed filter, and the words are built on the client by
- * `station-outcome.ts` -- deliberately, because the words are the part worth
- * testing and a server function is the one place a test in this repo cannot
- * reach. The handler stays a read.
- *
- * ── WHY THIS IS ITS OWN READ AND NOT A FIELD ON THE OTHERS ────────────────
- * `getTrackToolCalls` already selects from `agent_runs` on the same filter, so
- * folding this into it would cost no extra round trip. It is separate anyway,
- * because that one polls every 500ms while a run is moving and this changes
- * only when a station finishes. Attaching a slow-moving fact to a fast poll is
- * how a surface comes to re-render eight times a second to redraw a sentence
- * that did not change.
- *
- * RLS does the tenancy, through the caller's own client, for the reason the
- * neighbour above states at length.
- */
-export const getTrackStationWork = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
-  .handler(
-    async ({ context, data }): Promise<{ runs: { agent_slug: string | null; status: string | null }[] }> => {
-      const { supabase } = context;
-      const { data: rows, error } = await supabase
-        .from("agent_runs")
-        .select("agent_slug, status")
-        .eq("track_id", data.trackId);
-      /* Thrown rather than swallowed, the same correction the neighbouring
-         read took tonight: an empty list means no agent has worked this run
-         yet, and that is a different fact from nobody having been able to
-         look. A caller that cannot tell them apart will say the first while
-         the second is true. */
-      if (error) throw new Error(`What each station did could not be read: ${error.message}`);
-      return { runs: (rows ?? []) as { agent_slug: string | null; status: string | null }[] };
-    },
-  );
-
 export const getTrackToolCalls = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))

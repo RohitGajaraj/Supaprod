@@ -1125,6 +1125,14 @@ button.sp-stage:hover {
 .sp-stage-state {
   font-size: var(--mrd-t-label);
   color: var(--mrd-mute);
+  /* ONE LINE. The note became a produced-sentence on 2026-09-02 and two
+     stations wrapped to three lines each, taking the band to 115px -- taller
+     than the 91px it had just been cut from. The full sentence is in the
+     chip's `title` and, more importantly, in the pane below from the same
+     read, so the clamp hides nothing that is not also on the screen. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   /* The line keeps its height when it has no words. A quiet stage says nothing
    * (founder ruling 2026-07-30, "cant it be empty?") and the strip must not
    * change height as stages go quiet and busy, or the whole page nudges under

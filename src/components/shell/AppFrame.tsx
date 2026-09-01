@@ -2212,7 +2212,26 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                       few hundred lines down; the title carries the words. */}
                   <span
                     className="sp-stage-state"
-                    title={stage.bounded ? "More are waiting than this counts" : undefined}
+                    /*
+                      ONE LINE, AND THE WHOLE SENTENCE IN THE TITLE (2026-09-02).
+                      The note used to be a count and now it is what the station
+                      produced -- "Plan filed 16 tasks and 5 specs. 12 of them
+                      repeat 5 things already filed." Measured when that landed:
+                      the band went from 74px to 115px, taller than the 91px it
+                      had just been cut down from, because two stations wrapped
+                      to three lines each.
+
+                      The strip is the glance. The full sentence is not lost and
+                      is not only in a tooltip: `ArtifactPane` prints it in the
+                      pane below, from the same chain read, which is why a clamp
+                      is honest here and would not be on a row that is the only
+                      copy.
+                    */
+                    title={
+                      stage.bounded
+                        ? `${stage.note} -- more are waiting than this counts`
+                        : stage.note || undefined
+                    }
                   >
                     {stage.note}
                   </span>

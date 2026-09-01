@@ -63,7 +63,6 @@ import {
   getTrack,
   getTrackChain,
   getTrackArtifacts,
-  getTrackStationWork,
   retryStation,
   type DriveNowResult,
   type Track,
@@ -270,18 +269,22 @@ function RunRouteHeader({
    * 500ms while a run is moving, and this changes only when a station finishes.
    * 30s is slower than any station and faster than a person will notice.
    */
-  const fetchWork = useServerFn(getTrackStationWork);
-  const work = useQuery({
-    queryKey: ["track-station-work", track.id],
-    queryFn: () => fetchWork({ data: { trackId: track.id } }),
-    staleTime: 30_000,
+  /* THE CHAIN, WHICH THIS SCREEN ALREADY POLLS. Same query key the artifact
+     pane uses, so this costs no request and the two cannot disagree about what
+     a station filed. Undefined until it answers, and undefined is the right
+     value: an absent map means nobody has looked, and every stop renders as it
+     did before this existed rather than claiming an empty station. */
+  const fChainOutcomes = useServerFn(getTrackChain);
+  const chainForOutcomes = useQuery({
+    queryKey: ["spine-track-chain", track.id],
+    queryFn: () => fChainOutcomes({ data: { trackId: track.id } }),
+    staleTime: 10_000,
   });
-  /* Undefined until the read answers, and undefined is the right value: an
-     absent map means nobody has looked yet, and every stop renders exactly as
-     it did before this existed. A failed read is the same -- the map loses a
-     sentence it never had, and says nothing untrue. */
-  const outcomes = work.data ? stationOutcomes(work.data.runs) : undefined;
-  const position = runPosition(track, walking, outcomes);
+  const position = runPosition(
+    track,
+    walking,
+    stationOutcomes(chainForOutcomes.data?.chain.stops),
+  );
   const meter = position.meter;
   const stops = reasonSaidBelow
     ? position.stops.map((s) => ({ ...s, hold: null }))
@@ -1378,11 +1381,11 @@ export function TrackPaneRight({
    * station, which is the failure mode this file has paid for before -- two
    * displays of one run disagreeing because they were fed by two reads.
    */
-  const fetchWork = useServerFn(getTrackStationWork);
-  const work = useQuery({
-    queryKey: ["track-station-work", trackId],
-    queryFn: () => fetchWork({ data: { trackId } }),
-    staleTime: 30_000,
+  const fChainForStrip = useServerFn(getTrackChain);
+  const stripChain = useQuery({
+    queryKey: ["spine-track-chain", trackId],
+    queryFn: () => fChainForStrip({ data: { trackId } }),
+    staleTime: 10_000,
   });
   usePublishRunStrip(
     runStripSpec(
@@ -1390,7 +1393,7 @@ export function TrackPaneRight({
       isRunning,
       paneStation,
       (station) => setPaneStation(station),
-      work.data ? stationOutcomes(work.data.runs) : undefined,
+      stationOutcomes(stripChain.data?.chain.stops),
     ),
   );
 
