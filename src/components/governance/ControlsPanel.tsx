@@ -787,7 +787,11 @@ export function ControlsPanel({
           cached `getBoundary` read under the same key /boundary uses, so the two
           cannot disagree about a count. `boundaryElsewhere` is how the Safety
           room says it has already put this on the tab whose name promises it. */}
-      {boundaryElsewhere ? null : <BoundaryStatement />}
+      {/* `controlsOnly` is set by the Settings pane and by nothing else, and that
+          pane renders BoundaryControls above this, whose posture line already
+          states the "set once, moving one never interrupts" rule. The Engine
+          Room passes nothing, so the statement keeps its rule there. */}
+      {boundaryElsewhere ? null : <BoundaryStatement ruleShownElsewhere={controlsOnly} />}
 
       {/* The SAME tools the boundary counts are drawn from, grouped by blast
           radius with the trust-ladder default posture per class. Consent is a

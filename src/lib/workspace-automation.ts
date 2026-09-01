@@ -48,6 +48,28 @@ export type AutomationFlag = {
   /** What stops happening while it is off. Written for the person deciding. */
   darkWhenOff: string;
   /**
+   * What it is doing while it is on, in one line.
+   *
+   * ── WHY THIS FIELD EXISTS (2026-09-01) ──────────────────────────────────
+   * Photographed on Settings -> What they may do without asking: every armed
+   * row read "Running on its own." -- the same three words, on every one, in
+   * the sub-line under the label. Two things were wrong with it.
+   *
+   * It DUPLICATED THE SWITCH. The control at the right-hand end of the row is
+   * already showing on or off; a sentence restating the position of the
+   * control beside it is the same fact twice, in the slot that could have
+   * carried a new one.
+   *
+   * And it was ASYMMETRIC in the wrong direction. The off state said something
+   * specific and genuinely useful -- "Signals accumulate and nothing is ever
+   * proposed from them" -- so a switch you had turned off explained itself and
+   * a switch you had left on did not. That is backwards: the running ones are
+   * the ones spending your money.
+   *
+   * Each line says what happens on the sweep, not that a sweep happens.
+   */
+  doesWhenOn: string;
+  /**
    * A PLATFORM capability this flag needs, beyond the workspace's own switch.
    *
    * WHY THIS EXISTS, and it is the same defect one level up. `auto_derive_enabled`
@@ -109,32 +131,60 @@ export const AUTOMATION_FLAGS: readonly AutomationFlag[] = [
     column: "auto_sense_enabled",
     label: "Read connected sources on a schedule",
     costsModelCalls: false,
+    doesWhenOn: "Polls every connected source and files what changed as new signals.",
     darkWhenOff: "Connected sources are never polled, so no new signals arrive on their own.",
   },
   {
     column: "auto_trigger_enabled",
     label: "Propose work from what it reads",
     costsModelCalls: false,
+    doesWhenOn: "Turns signals that agree with each other into opportunities you can rank.",
     darkWhenOff: "Signals accumulate and nothing is ever proposed from them.",
   },
   {
     column: "auto_derive_enabled",
     label: "Grade its own calls and settle due forecasts",
     costsModelCalls: true,
+    doesWhenOn: "Scores insights as they resolve, and brings a due forecast to the desk with a verdict already drafted.",
     darkWhenOff:
       "Insights are never resolved or scored, and a due forecast reaches the desk with no drafted verdict. The desk itself still works: settling by hand is not gated on this.",
   },
+  /*
+   * ── SEVENTY-FIVE WORDS IN A SETTINGS ROW (2026-09-01) ────────────────────
+   * `darkWhenOff` here was four sentences and read as an essay wedged between
+   * two one-line rows. Founder, on this class of thing: *"either shorten it or
+   * give only the summary that it has required."*
+   *
+   * Everything cut is preserved here, because it is the ARGUMENT for the
+   * default rather than something the person flipping the switch needs at the
+   * moment they flip it:
+   *
+   *   Work starts on its own only once EIGHT signals say the same thing, and a
+   *   workspace holding fewer than eight signals in total can never reach that
+   *   bar -- so a new workspace is not slow to start, it is unable to. Measured
+   *   2026-08-22: no real workspace had ever started work this way.
+   *
+   *   With this on, the frequency bar scales with how much the workspace has
+   *   actually said and never falls below three. Severity and confidence are
+   *   untouched, so this lowers the bar for HOW OFTEN a thing must be said,
+   *   never for how bad or how certain it is.
+   *
+   * The row keeps the consequence, which is the part that decides the switch.
+   */
   {
     column: "cold_start_promotion_enabled",
     label: "Start work before the evidence piles up",
     costsModelCalls: true,
+    doesWhenOn:
+      "Scales the bar to what this workspace has actually said, so a young one can still propose work.",
     darkWhenOff:
-      "A new workspace waits, and it waits forever. Work starts on its own only once eight signals say the same thing, and a workspace holding fewer than eight signals in total can never reach that bar, so nothing is ever proposed from what it already knows. Measured 2026-08-22: no real workspace has ever started work this way. With this on, the frequency bar scales with how much this workspace has actually said, never below three, and severity and confidence are untouched.",
+      "A new workspace waits, and it waits forever: nothing is proposed until eight signals say the same thing.",
   },
   {
     column: "auto_scout_enabled",
     label: "Watch competitors and the wider market",
     costsModelCalls: true,
+    doesWhenOn: "Sweeps the open web for competitor and market movement, and files what it finds as signals.",
     darkWhenOff:
       "Scout and competitor sweeps select this workspace never, so market movement is only ever noticed by a person going to look for it.",
     // The one flag whose switch is not the only condition. Both sweeps behind it

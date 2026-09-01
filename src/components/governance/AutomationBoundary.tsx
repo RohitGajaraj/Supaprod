@@ -65,7 +65,12 @@ export function AutomationBoundary({
   workspaceId,
   only,
   title = "What runs on its own",
-  sub = "Set once, in advance. Each one is off until you say otherwise, and the ones that spend money say so.",
+  /* The leading clause about setting boundaries once, in advance, was cut on
+     2026-09-01: the pane states that rule on its posture line above, and it
+     was being restated here and again on the region below -- three copies of
+     one sentence on one screen. What is left is the half that is true of THESE
+     switches and of nothing else. */
+  sub = "Each one is off until you say otherwise, and the ones that spend money say so.",
 }: {
   workspaceId: string | null;
   /**
@@ -166,7 +171,11 @@ export function AutomationBoundary({
                   state === "grounded" && flag.requiresPlatform
                     ? flag.requiresPlatform.missing
                     : state === "on"
-                      ? "Running on its own."
+                      ? /* What it is doing, not that it is doing something. The
+                           Toggle at the end of this row already shows the state,
+                           and this line used to repeat it in the same three words
+                           on every armed row. */
+                        flag.doesWhenOn
                       : flag.darkWhenOff
                 }
                 action={

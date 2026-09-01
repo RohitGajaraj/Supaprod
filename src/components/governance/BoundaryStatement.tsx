@@ -72,7 +72,8 @@ export function BoundaryStatement({
    * other's internals.
    */
   failureShownElsewhere = false,
-}: { failureShownElsewhere?: boolean } = {}) {
+  ruleShownElsewhere = false,
+}: { failureShownElsewhere?: boolean; ruleShownElsewhere?: boolean } = {}) {
   const { activeWorkspaceId } = useWorkspace();
   const boundaryFn = useServerFn(getBoundary);
 
@@ -97,7 +98,16 @@ export function BoundaryStatement({
   return (
     <Region
       title="What your crew may do alone"
-      sub="Set once, in advance. Moving one never interrupts work that is already running."
+      /* The governing rule is stated by whoever owns the page. On Settings that
+         is BoundaryControls' posture line 200px above, so repeating it here
+         made three copies on one screen. On the Safety room this component is
+         the only thing that says it, which is why this is a prop and not a
+         deletion. */
+      sub={
+        ruleShownElsewhere
+          ? undefined
+          : "Set once, in advance. Moving one never interrupts work that is already running."
+      }
     >
       {boundaryQ.isLoading ? (
         <Reading>Reading what your crew is allowed to do.</Reading>
