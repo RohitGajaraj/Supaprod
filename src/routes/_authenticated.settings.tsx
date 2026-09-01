@@ -678,7 +678,20 @@ function SettingsPage() {
         )}
         {active === "notifications" && <NotificationsSection />}
 
-        {active === "workspace" && <WorkspaceSection scrollToBrief={rawSection === "brief"} />}
+        {active === "workspace" && (
+          <>
+            {/* THE PANE SAYS WHAT IT IS. It landed on "This workspace", a
+                region heading about the workspace record, with the brief, the
+                people and the admin door under it and nothing naming the pane.
+                Title is the rail's own label, per the-door-and-the-page-share-
+                a-name, which only sees a heading written in the branch. */}
+            <PageHeading
+              title="About your company"
+              sub="The workspace itself, the standing instruction every mission reads before it acts, and who else is in it."
+            />
+            <WorkspaceSection scrollToBrief={rawSection === "brief"} />
+          </>
+        )}
         {active === "brand" && (
           <>
             <PageHeading
@@ -1381,6 +1394,13 @@ function PasswordRegion() {
 
 type BriefFieldKey = "mission" | "target_user" | "current_focus" | "anti_goals" | "notes";
 
+/**
+ * Prose spells its counts, and the data face uses `Num`. Indexed by
+ * `BRIEF_FIELDS.length` on purpose: a sixth field changes the word rather than
+ * leaving "five" standing over six answers.
+ */
+const COUNT_IN_WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven"] as const;
+
 const BRIEF_FIELDS: {
   key: BriefFieldKey;
   label: string;
@@ -1895,14 +1915,40 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
       <div ref={briefRef} className="flex flex-col gap-mrd-7">
         <PageHeading
           title="Brief and voice"
+          /* The route above draws this pane's h1 ("About your company"), so this
+             heading is the section it names and not a second page title. Two h1
+             elements on one screen name two documents to a screen reader, which
+             is the whole reason `level` exists on this primitive. */
+          level={2}
           sub={
+            /*
+             * ONE VOICE PER WAIT. This branch used to say "Reading the brief."
+             * and the Region below it says "Reading the brief." through
+             * `Reading`, so every cold load of this pane printed the same
+             * sentence twice, one directly above the other. The Region's copy is
+             * the one attached to the thing being waited on, so it keeps the
+             * line and the heading says nothing until it has something to say.
+             * Falling through to the branches below during the load would be
+             * worse than either: `filled` is 0 until the read lands, so the
+             * heading would assert "Nothing set" about a brief it has not read.
+             *
+             * AND THE RATIO ONLY PRINTS WHEN IT IS SHORT. "these 5 of 5 answers"
+             * was a ratio that can never be anything but N-of-N on a filled
+             * brief, sat on the same pane as MembersCard's "N of the 8 things
+             * that govern the crew". Two ratios, one screen, and the one that
+             * could only ever say one thing was this one. Filled says so in
+             * words; short still counts, because then the numbers differ and the
+             * gap is the point.
+             */
             brief.isLoading
-              ? "Reading the brief."
+              ? undefined
               : brief.isError
                 ? "The brief did not load, so nothing here is safe to save yet."
                 : filled === 0
                   ? "Nothing set. Every mission currently starts with no standing instruction."
-                  : `Every mission starts by reading these ${filled} of ${BRIEF_FIELDS.length} answers${activeWorkspace?.name ? `, for ${activeWorkspace.name}` : ""}.`
+                  : filled === BRIEF_FIELDS.length
+                    ? `Every mission starts by reading all ${COUNT_IN_WORDS[BRIEF_FIELDS.length] ?? BRIEF_FIELDS.length} answers${activeWorkspace?.name ? `, for ${activeWorkspace.name}` : ""}.`
+                    : `Every mission starts by reading these ${filled} of ${BRIEF_FIELDS.length} answers${activeWorkspace?.name ? `, for ${activeWorkspace.name}` : ""}.`
           }
         />
 

@@ -73,6 +73,23 @@ const STATUS_LABEL: Record<string, string> = {
   pending: "Waiting on you",
 };
 
+/**
+ * WHAT THE READER NARROWED TO, in the words the tabs themselves use, or null
+ * when nothing is narrowed.
+ *
+ * Both tabs feed the server read (`listInput`), so an empty result under a
+ * filter is the filter saying it matched nothing. That is a different fact from
+ * an empty workspace and it needs a different sentence and a different way out:
+ * one wants the entry composer, the other wants the filter cleared.
+ */
+function emptyUnderFilter(category: CategoryFilter, status: StatusFilter): string | null {
+  if (category !== "all" && status !== "all")
+    return `Nothing under ${CATEGORY_LABEL[category]} is ${STATUS_LABEL[status].toLowerCase()}.`;
+  if (status !== "all") return `Nothing here is ${STATUS_LABEL[status].toLowerCase()}.`;
+  if (category !== "all") return `Nothing here is filed under ${CATEGORY_LABEL[category]}.`;
+  return null;
+}
+
 /** The system's filter tabs. Quiet furniture: it stays out of the way until
  *  someone needs to narrow the list. */
 function FilterGroup<T extends string>({
@@ -170,6 +187,27 @@ export function DesignMemoryPanel() {
 
   const rows = items.data?.items ?? [];
   const shown = showAll ? rows : rows.slice(0, VISIBLE_DESIGN_MEMORY);
+  const emptyFilterLine = emptyUnderFilter(category, status);
+
+  /*
+   * THE SOURCE IS PRINTED WHEN IT TELLS THE ROWS APART, and stays silent when
+   * every row would end in the same word. On the Brand pane as it stands, all
+   * sixteen entries are `learned`, so the third fact in every second line read
+   * "Learned" -- a word spent on every row that narrowed nothing on any of
+   * them. The status and the category still carry their own facts either way.
+   *
+   * COMPUTED OVER THE RENDERED SET, not per row, because "does this
+   * distinguish anything" is a question about the list rather than about the
+   * entry. `shown` and not `rows`: what the fold hides is not on screen, and
+   * Show more recomputes this against what is visible after it.
+   *
+   * ONE UNIFORM VALUE STILL PRINTS: `default`. A list made entirely of defaults
+   * is a list nobody chose, and that is the exception a reader came for rather
+   * than noise -- the same rule the notifications pane had to learn about its
+   * own untouched switches.
+   */
+  const sourceKinds = new Set(shown.map((d) => d.source_kind));
+  const sourceDiscriminates = sourceKinds.size > 1 || sourceKinds.has("default");
 
   return (
     <>
@@ -231,6 +269,27 @@ export function DesignMemoryPanel() {
         <ReadFailed error={items.error} onRetry={() => void items.refetch()}>
           The design memory did not load. {humanWriteError(items.error, "The read failed.")}
         </ReadFailed>
+      ) : rows.length === 0 && emptyFilterLine ? (
+        /* A FILTER THAT MATCHED NOTHING IS NOT A COLD START. This branch used to
+           be the cold-start copy for both, so narrowing sixteen settled entries
+           to a status none of them hold answered "Nothing is settled yet" -- a
+           false statement about the workspace -- and offered the composer, which
+           is the way out of the other state entirely. It names the filter and
+           clears it instead. */
+        <NothingYet
+          action={
+            <Action
+              onClick={() => {
+                setCategory("all");
+                setStatus("all");
+              }}
+            >
+              Show everything
+            </Action>
+          }
+        >
+          {emptyFilterLine} The rest of what is settled here is still behind the filter.
+        </NothingYet>
       ) : rows.length === 0 ? (
         <NothingYet action={<Action onClick={() => setAddOpen(true)}>Add design language</Action>}>
           Nothing is settled yet. Import a URL, paste a constitution, or start from defaults, and it
@@ -242,6 +301,7 @@ export function DesignMemoryPanel() {
             <DesignMemoryRowView
               key={d.id}
               row={d}
+              showSource={sourceDiscriminates}
               expanded={expanded === d.id}
               onToggle={() => setExpanded(expanded === d.id ? null : d.id)}
               onDecide={(decision) => decide.mutate({ id: d.id, decision, title: d.title })}
@@ -269,12 +329,16 @@ export function DesignMemoryPanel() {
 
 function DesignMemoryRowView({
   row,
+  showSource,
   expanded,
   onToggle,
   onDecide,
   deciding,
 }: {
   row: DesignMemoryRow;
+  /** True only when the rendered list holds more than one source, or holds
+   *  defaults. Decided by the list, because one row cannot see the others. */
+  showSource: boolean;
   expanded: boolean;
   onToggle: () => void;
   onDecide: (decision: "approve" | "reject") => void;
@@ -287,10 +351,17 @@ function DesignMemoryRowView({
         focused={expanded}
         onClick={onToggle}
         lead={row.title}
-        // The second line is three different facts, never a restatement of the
-        // title: where it stands, what kind of rule it is, and where it came
-        // from.
-        sub={`${STATUS_LABEL[row.status] ?? row.status} · ${CATEGORY_LABEL[row.category]} · ${SOURCE_LABEL[row.source_kind]}`}
+        // The second line is different facts, never a restatement of the title:
+        // where it stands, what kind of rule it is, and -- when it tells this
+        // row apart from the others on screen -- where it came from. See
+        // `sourceDiscriminates` for when the third one is worth the words.
+        sub={[
+          STATUS_LABEL[row.status] ?? row.status,
+          CATEGORY_LABEL[row.category],
+          showSource ? SOURCE_LABEL[row.source_kind] : null,
+        ]
+          .filter(Boolean)
+          .join(" · ")}
         time={ageOf(row.created_at)}
       />
       {expanded ? (
