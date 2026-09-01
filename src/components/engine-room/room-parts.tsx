@@ -35,6 +35,32 @@ import { ReadFailed } from "@/components/meridian/surface-parts";
 export interface RowProps {
   subject: string;
   value: string;
+  /**
+   * THE SECOND LINE UNDER THE SUBJECT: what this row is ABOUT that is not its
+   * name. A surface, a suite, an owner -- a category word, never a number.
+   *
+   * Added 2026-09-01 because Record > Every run had no slot for one and was
+   * joining it into `value` with " · ", which put a variable-length WORD in
+   * front of the figures inside a cell that is mono, right-aligned and
+   * `tabular-nums`. See the `stamp` note below for what that cost.
+   */
+  detail?: string;
+  /**
+   * THE TIME STAMP, in its own fixed slot at the right.
+   *
+   * The shape is `ReceiptsPanel`'s, which had already solved this on the
+   * neighbouring tab: `font-mrd-mono text-mrd-data text-mrd-faint tabular-nums`
+   * in a `shrink-0` cell of its own. A relative time is metadata about the row,
+   * not one of its measurements, so it sits a full colour stop quieter than the
+   * value and does not compete with it.
+   *
+   * IT CARRIES A FLOOR WIDTH, and that floor is what makes the column a column.
+   * The `value` cell is `text-right`, but in a flex row a right-aligned cell
+   * only lines up with the one above it if everything to its RIGHT is the same
+   * width on both rows. `min-w` rather than a fixed `w` so a stamp longer than
+   * the floor pushes the cell instead of spilling out of it.
+   */
+  stamp?: string;
   statusWord: string;
   /**
    * WHAT THE STATUS WORD MEANS, not what colour it should be.
@@ -54,9 +80,27 @@ export interface RowProps {
 }
 
 /**
- * Shared row anatomy: subject, then a right-aligned mono value, then the status
- * word. The subject truncates and the two right-hand facts never do, because
- * the numbers are what a scan is for.
+ * Shared row anatomy: subject, then a right-aligned mono value, then the
+ * optional stamp, then the status word. The subject truncates and the
+ * right-hand facts never do, because the numbers are what a scan is for.
+ *
+ * 2026-09-01: THE VALUE CELL HOLDS ONE KIND OF FACT NOW, and it took two new
+ * optional slots to get there. Record > Every run was passing
+ * `[surface, cost, time].join(" · ")` into `value` -- three unlike facts set at
+ * one size, one weight, one colour and one FACE, down 40 rows. Two things were
+ * wrong with it and both are structural rather than cosmetic:
+ *
+ *   1. A category word was set in the figure face. `font-mrd-mono` is reserved
+ *      by meridian.css for "every number, duration, count, id and timestamp,
+ *      and NOTHING else", and a surface name is none of those.
+ *   2. The costs never lined up, in the one cell whose `text-right` and
+ *      `tabular-nums` exist to line them up. A variable-length name LED the
+ *      string, so the digits started at a different offset on every row.
+ *
+ * `detail` takes the category word down to a second line under the subject at
+ * the `mrd-meta` role, and `stamp` takes the time into its own floored cell.
+ * Both are optional, so `SpendRoom`, `QualityRoom` and `VerifyCockpit` render
+ * byte-identically to before.
  *
  * IT IS A REAL `<button>` ONLY WHEN IT OPENS SOMETHING. It used to render as a
  * disabled button either way, which is wrong twice over: a disabled control
@@ -68,15 +112,30 @@ export interface RowProps {
  * tone's token plus the word — so the state survives greyscale and a caller
  * never picks a colour.
  */
-export function Row({ subject, value, statusWord, tone, onOpen }: RowProps) {
+export function Row({ subject, value, detail, stamp, statusWord, tone, onOpen }: RowProps) {
   const body = (
     <>
-      <span className="min-w-0 flex-1 truncate text-mrd-label font-medium text-mrd-ink">
-        {subject}
+      {/* A column, not a line, so `detail` lands UNDER the name it qualifies
+          rather than beside the figures. Every element stays a `<span>`: the
+          clickable branch below is a real `<button>`, which may only contain
+          phrasing content, and a `<div>` in here makes the markup invalid and
+          React refuses to hydrate it. `block`/`flex` change the box, not the
+          content model. */}
+      <span className="flex min-w-0 flex-1 flex-col gap-mrd-1">
+        <span className="truncate text-mrd-label font-medium text-mrd-ink">{subject}</span>
+        {detail ? <span className="mrd-meta truncate">{detail}</span> : null}
       </span>
       <span className="font-mrd-mono shrink-0 text-right text-mrd-small text-mrd-mute tabular-nums">
         {value}
       </span>
+      {/* 56px is the measured floor: the longest stamp a caller produces is
+          "30d ago" (Record reads a 30-day window), 7 mono characters at
+          `--mrd-t-data` 11.5px, which sits just inside it. */}
+      {stamp ? (
+        <span className="font-mrd-mono min-w-[56px] shrink-0 text-right text-mrd-data text-mrd-faint tabular-nums">
+          {stamp}
+        </span>
+      ) : null}
       <span className="shrink-0 text-right text-mrd-small">
         {tone ? (
           <RecordStatus tone={tone} label={statusWord} />

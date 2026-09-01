@@ -172,7 +172,28 @@ export function AgentScorecardPanel() {
       className="rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-5 shadow-mrd-card"
     >
       <Eyebrow>Track record, by agent and task type</Eyebrow>
-      <p className="mt-mrd-3 max-w-[62ch] text-mrd-label leading-mrd-prose text-mrd-mute">
+      {/*
+       * THE THREE PARAGRAPHS IN THIS CARD SHARE ONE RIGHT EDGE, and until
+       * 2026-09-01 they had three, because each capped itself in `ch` and `ch`
+       * is FONT-RELATIVE -- it is the width of the "0" glyph at the element's
+       * own size. Measured on this card: 62ch at `text-mrd-label` (12.5px) is
+       * ~427px, 62ch at `text-mrd-prose` (14px) is ~477px, and the footnote's
+       * 68ch at `text-mrd-small` (12px) is ~449px. So the block with the
+       * BIGGEST ch number wrapped narrower than the one above it, and on
+       * Safety > Who can act the card read as three mis-indented columns
+       * inside one border.
+       *
+       * `.mrd-read` (meridian.css:2631) is the fix the system already carries,
+       * and its own comment names this exact case: "a column that holds prose,
+       * a heading and a field together" -- those have different natural
+       * measures and something has to pick ONE. It caps at `--mrd-read-max`,
+       * 42rem, which is a ROOT-relative measure and therefore identical at
+       * every type size in the card. It is applied per paragraph rather than
+       * as one wrapper on purpose: a wrapper would also clamp the scorecard
+       * rows between them, and their rate stats are laid out against the full
+       * card width.
+       */}
+      <p className="mrd-read mt-mrd-3 text-mrd-label leading-mrd-prose text-mrd-mute">
         The tier list, kept for you: how often each agent&rsquo;s work is approved and how often it
         turns out right, per task type. Only decided history counts, so a fresh agent shows nothing
         rather than a hollow score.
@@ -191,7 +212,7 @@ export function AgentScorecardPanel() {
           <Action onClick={() => void query.refetch()}>Try again</Action>
         </div>
       ) : cards.length === 0 ? (
-        <p className="mt-mrd-5 max-w-[62ch] leading-mrd-prose text-mrd-prose text-mrd-body">
+        <p className="mrd-read mt-mrd-5 leading-mrd-prose text-mrd-prose text-mrd-body">
           No decided history yet. Track records appear here as you approve, reject, or rewind what
           the agents do.
         </p>
@@ -203,7 +224,7 @@ export function AgentScorecardPanel() {
         </div>
       )}
 
-      <p className="mt-mrd-5 max-w-[68ch] border-t border-mrd-line-soft pt-mrd-4 text-mrd-small leading-mrd-prose text-mrd-mute">
+      <p className="mrd-read mt-mrd-5 border-t border-mrd-line-soft pt-mrd-4 text-mrd-small leading-mrd-prose text-mrd-mute">
         Grades reuse the same decided-judgment record shown in the trust dial above, so the numbers
         agree. Per-vendor grading (native vs a BYO model) is not shown yet: the call-level vendor
         signal is not joined to an agent in the data today, so claiming it would be a guess.

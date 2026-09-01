@@ -78,9 +78,23 @@ function TracesView() {
           // snippet); the surface is metadata, not the name. Thirteen rows all
           // reading "agent" was the audit defect this fixes.
           subject={t.title ?? t.root_surface}
-          value={[t.title ? t.root_surface : null, fmtUsd(t.cost), relTime(t.last_at)]
-            .filter(Boolean)
-            .join(" · ")}
+          // THE THREE FACTS ARE THREE CELLS NOW, not one joined string, and the
+          // same three facts are still on the row. Until 2026-09-01 this read
+          // `[surface, cost, time].filter(Boolean).join(" · ")` into `value`,
+          // which is a mono, right-aligned, `tabular-nums` cell -- so a
+          // variable-length surface name was set in the figure face AND pushed
+          // every cost to a different offset, down 40 rows, in the column whose
+          // whole purpose is aligning them.
+          //
+          // The surface stays conditional on `t.title` for the reason the note
+          // above gives: when there is no title the surface IS the subject, and
+          // repeating it on the second line says nothing twice.
+          detail={t.title ? t.root_surface : undefined}
+          value={fmtUsd(t.cost)}
+          // `relTime` returns "" for a missing or unparseable time; the empty
+          // string is falsy, so `Row` renders no stamp cell at all rather than
+          // an empty slot pretending to hold a date.
+          stamp={relTime(t.last_at) || undefined}
           statusWord={t.errors > 0 ? "error" : "ok"}
           /* An OUTCOME, which is the one thing red and green are allowed to
              mean in this system. The tone names it; the token is Meridian's. */

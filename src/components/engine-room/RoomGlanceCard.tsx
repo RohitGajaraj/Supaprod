@@ -87,16 +87,41 @@ function ago(iso: string | null | undefined): string | null {
  * One figure: the number first at reading size, its plain label under it, and
  * the clause that bounds it under that. Three lines, because a number whose
  * window is not stated is a number you cannot act on.
+ *
+ * 2026-09-01: THE LADDER WAS UPSIDE DOWN, and it was upside down on the four
+ * cards that are this surface's front door, up to 24 figures at once.
+ *
+ * Measured, before: the value was `text-mrd-base` (`--mrd-t-base`, 13px,
+ * meridian.css:877), the label under it `text-mrd-prose` (`--mrd-t-prose`,
+ * 14px, meridian.css:901), and the note `text-mrd-data` (11.5px). `Figure`
+ * contributes the mono face and `tabular-nums` and no size at all
+ * (surface-parts.tsx), and `text-mrd-body` is a COLOUR and nothing else since
+ * the 2026-08-21 rename (meridian.css:1821-1828) -- so it added no size back.
+ * The ladder inside one figure therefore ran 13 / 14 / 11.5: every number on
+ * this card was set SMALLER than its own caption, and the eye landed on the
+ * words "of the cap" rather than on "62%".
+ *
+ * After, 17 / 12 / 11.5, using the stop Meridian already reserves for this:
+ * `--mrd-t-lead` is commented at meridian.css:902 as "a figure worth reading
+ * before the words", which is the whole job of this component. The label drops
+ * to the `mrd-meta` role (12px/mute, meridian.css:1994) and the note to
+ * `text-mrd-faint`, so the three lines also separate by COLOUR and not by size
+ * alone -- ink, then mute, then faint.
+ *
+ * `Figure` still wraps the number rather than the classes being inlined here,
+ * because that is exactly the contract its own doc comment states: it sets no
+ * colour and no size, and "a caller that genuinely wants a headline figure
+ * says so where the headline is". This is that caller, saying so.
  */
 function GlanceFigure({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <span className="block min-w-0">
-      <span className="block truncate text-mrd-base leading-mrd-snug text-mrd-ink" title={value}>
+      <span className="block truncate text-mrd-lead leading-mrd-tight text-mrd-ink" title={value}>
         <Figure>{value}</Figure>
       </span>
-      <span className="block leading-mrd-snug text-mrd-prose text-mrd-body">{label}</span>
+      <span className="mrd-meta block">{label}</span>
       {note ? (
-        <span className="block text-mrd-data leading-mrd-snug text-mrd-mute">{note}</span>
+        <span className="block text-mrd-data leading-mrd-snug text-mrd-faint">{note}</span>
       ) : null}
     </span>
   );
