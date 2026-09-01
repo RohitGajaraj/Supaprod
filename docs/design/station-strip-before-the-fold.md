@@ -172,10 +172,16 @@ Filling it is a data question, not a layout one: per-station artifacts exist in 
 reserved and empty, which is deliberate -- a founder ruling from 2026-07-30 keeps that height so
 the band does not nudge the page as stages change.
 
-**And the run screen still shows the seven stations three times.** Photographed after the fold: the
-strip at the top, the "At Build" step list in the left pane, and the "What it has made" tab row on
-the right -- three displays of one route in one viewport. Consolidating them is a design decision
-that has not been taken.
+**And the run screen showed the seven stations FOUR times, not three.** Corrected 2026-09-02 by a
+read-only audit: the shell strip, the route in the left pane, the "What it has made" tab row, and
+`TrackChain`'s own station rows -- which is the biggest of the four at 2,706px -- plus a fifth
+statement in prose, "Now: Build. Next: Ship." Two of them were `role=tablist` over the SAME
+`paneStation` pointer.
+
+The tab row was removed in `34b3f06d9`, leaving one tablist and one control. What remains, and is
+NOT resolved: the strip and the left pane's route now print the identical produced-sentence
+("Discover filed 1 finding.") 400px apart, because both read it from the same chain. Which of the
+two keeps it is a design call that has not been taken.
 
 ## If it is ever wanted back
 
