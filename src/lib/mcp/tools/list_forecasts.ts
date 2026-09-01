@@ -91,8 +91,9 @@ import { supabaseForUser, notAuthed } from "../supabase-for-user";
  */
 
 /**
- * The ten forecast columns plus the four that let a caller place the decision
- * they hang off.
+ * The forecast columns plus the four that let a caller place the decision they
+ * hang off. The prose half (claim, how we will know, horizon) AND the band --
+ * see the note directly above the literal.
  *
  * ONE STRING LITERAL, NOT A CONCATENATION, and that is the difference between a
  * checked select and an unchecked one. I wrote this across five `+`-joined lines
@@ -105,8 +106,39 @@ import { supabaseForUser, notAuthed } from "../supabase-for-user";
  * which checks nothing either way. Wrapping this for readability would buy a
  * tidier line and lose the guard that caught `hold_because` on list_runs.
  */
+/*
+ * ── THE BAND WAS MISSING, AND IT IS THE HALF A MACHINE CAN CHECK ──────────
+ * (2026-09-01, found by an adversarial verifier re-measuring against the
+ * database rather than against this repo.)
+ *
+ * The first version of this select carried the PROSE forecast -- the claim, how
+ * we will know, the horizon -- and none of the numbers. So a connecting agent
+ * asking "what did we predict" got a sentence and a date and never a figure,
+ * and asking "is this drifting" got nothing at all. The tool built to expose
+ * the moat to a machine omitted the only machine-readable part of it.
+ *
+ * WHY IT WAS MISSED, WHICH IS THE MORE USEFUL FINDING. The column list was
+ * checked against `src/integrations/supabase/types.ts` -- a GENERATED file --
+ * and reported as "the schema". It was stale. Measured against production the
+ * same day: `public.decisions` carries TWENTY `forecast_*` columns and the
+ * generated types knew about ELEVEN. The nine missing ones were exactly the
+ * band: metric, baseline, predicted, direction, the two thresholds,
+ * observations, and the two if-missed / if-drifting actions.
+ *
+ * SO `tsc` WAS GIVING FALSE CONFIDENCE IN BOTH DIRECTIONS. It correctly
+ * refused `hold_because` on `spine_tracks`, a column that does not exist -- and
+ * it would equally have refused `forecast_predicted`, a column that DOES exist
+ * and is live, because the generated file had not caught up. A type check
+ * against a generated artifact is only as true as the last generation. The
+ * types were regenerated upstream and now carry all twenty.
+ *
+ * THE BAND IS NOT DECORATION. `driver.ts` briefs every Decide crew to record it
+ * and says why: it "is what makes a forecast checkable before its horizon
+ * instead of once at the end". That is precisely the question an agent polling
+ * this tool is asking, and it is the one it could not ask.
+ */
 const FORECAST_SELECT =
-  "id, title, status, created_at, forecast_claim, forecast_how_we_will_know, forecast_horizon_date, forecast_next_check_at, forecast_deferred_at, forecast_deferred_count, forecast_resolution, forecast_resolution_rationale, forecast_resolved_at, forecast_resolved_by_agent_slug";
+  "id, title, status, created_at, forecast_claim, forecast_how_we_will_know, forecast_horizon_date, forecast_next_check_at, forecast_deferred_at, forecast_deferred_count, forecast_resolution, forecast_resolution_rationale, forecast_resolved_at, forecast_resolved_by_agent_slug, forecast_metric, forecast_baseline, forecast_predicted, forecast_direction, forecast_band_drifting_at, forecast_band_missed_at, forecast_observations, forecast_if_missed, forecast_if_drifting";
 
 export default defineTool({
   name: "list_forecasts",
