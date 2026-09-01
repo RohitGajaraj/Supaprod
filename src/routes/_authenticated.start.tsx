@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { WhatWeAlreadyHold } from "@/components/spine/WhatWeAlreadyHold";
+import { searchFlag } from "@/lib/search-flag";
 import * as React from "react";
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -136,25 +137,6 @@ const JOBS: Job[] = [
 /** Placeholder for the un-picked state, ruled at SPEC-ONRAMP §2.1. */
 const OPEN_PLACEHOLDER = "What are you changing, and what should it do?";
 
-/**
- * Did this url ask for the queue?
- *
- * Pulled out of `validateSearch` so the claim is checkable without mounting a
- * router. It was inline, it was wrong for the exact form every comment in this
- * file documents, and nothing could see that -- a search parser is pure and
- * there is no reason for it to be untestable.
- */
-export function asksForTheQueue(raw: unknown): boolean {
-  /*
-   * FOUR FORMS, AND THE NUMBER IS THE ONE THAT WAS MISSING. The router parses
-   * an unquoted `1` in `?queue=1` as the NUMBER 1, so a list comparing only
-   * against the STRING "1" fell through, and the router then dropped the key
-   * and rewrote the address to the bare page. `?queue=true` was the only form
-   * that worked, and it is the only form anybody had walked.
-   */
-  return raw === true || raw === 1 || raw === "true" || raw === "1";
-}
-
 export const Route = createFileRoute("/_authenticated/start")({
   validateSearch: (search: Record<string, unknown>): { about?: string; queue?: boolean } => ({
     /*
@@ -170,20 +152,21 @@ export const Route = createFileRoute("/_authenticated/start")({
      * ── `?queue=1` DID NOT WORK, AND IT IS THE FORM WE DOCUMENT (2026-09-01)
      * Walked in the browser: `/start?queue=1` came back as `/start`, param
      * stripped, composer at the top, no scroll. Every comment in this file and
-     * the commit that built the door all call the address `?queue=1`.
+     * the commit that built the door call the address `?queue=1`.
      *
-     * The router parses an unquoted `1` as the NUMBER 1, and the list below
-     * compared against the STRING "1". `1 !== "1"`, so the whole expression
-     * fell through to `undefined`, the router dropped the key it had just been
-     * told was absent, and the address rewrote itself to the bare page. There
-     * is no error and no empty state: a person following a link that names the
-     * queue gets the page that starts new work instead, which is the same
-     * silent no-op this parameter was built to remove.
+     * This is the FOURTH time this repo has shipped that defect, and the third
+     * was already fixed by writing `searchFlag` -- whose own header says why
+     * the obvious parser is wrong and that no unit test can reach an inline
+     * one. The helper existed, in `src/lib/search-flag.ts`, tested, for eleven
+     * days. This line hand-rolled the comparison anyway and got it wrong in
+     * exactly the documented way, which is the argument for the helper rather
+     * than against it: a rule nobody reaches for is a rule that has to be
+     * rediscovered in a browser every time.
      *
      * Only `?queue=true` survived, which is what the rail happens to send --
-     * so the one path anybody tested was the one path that worked.
+     * so the one path anybody had walked was the one path that worked.
      */
-    queue: asksForTheQueue(search.queue) ? true : undefined,
+    queue: searchFlag(search.queue),
     // RUN-15: the turn-around from Learn lands here with the expectation as
     // the opening sentence, so "take another run at this" starts from what
     // the last attempt learned. A plain string, capped -- the composer is

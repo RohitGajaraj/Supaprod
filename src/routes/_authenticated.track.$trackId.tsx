@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { searchFlag } from "@/lib/search-flag";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
@@ -60,7 +61,12 @@ export const Route = createFileRoute("/_authenticated/track/$trackId")({
     // plain landing; a track that has already been driven never re-drives on
     // this flag no matter what it carries, because TrackRun's own drivenAt
     // guard owns that.
-    start: search.start === "true" || search.start === true ? true : undefined,
+    /* `searchFlag`, not a hand-rolled comparison. This accepted `true` and
+       `"true"` and would have dropped `?start=1` -- the same defect that has
+       now shipped four times in this repo, three of them found only by walking
+       the page in a browser. Every caller happens to send the boolean, so it
+       was latent rather than live; the helper removes the trap either way. */
+    start: searchFlag(search.start),
   }),
   component: TrackPage,
   head: () => ({ meta: [{ title: "Run · Supaprod" }] }),
