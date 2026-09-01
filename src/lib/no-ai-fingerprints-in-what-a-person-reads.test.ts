@@ -50,8 +50,7 @@ import { join } from "node:path";
 const ROOT = process.cwd();
 
 /** Em dash, en dash, and the invisible / lookalike set the convention bans. */
-const BANNED =
-  /[—–​‌‍⁠﻿­‎‏�]/;
+const BANNED = /[—–​‌‍⁠﻿­‎‏�]/;
 
 /** Where a person reads the string directly. Nothing here, ever. */
 const RENDERED = ["src/components/", "src/routes/", "src/lib/presence/"];

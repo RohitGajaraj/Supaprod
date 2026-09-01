@@ -99,7 +99,17 @@ test("the stranger's sixty seconds on the public landing", async ({ page }) => {
      * grows while nothing is running, the progression is a clock.
      */
     const strip = await page.evaluate(() => {
-      const names = ["Sense", "Discover", "Decide", "Define", "Plan", "Design", "Build", "Ship", "Learn"];
+      const names = [
+        "Sense",
+        "Discover",
+        "Decide",
+        "Define",
+        "Plan",
+        "Design",
+        "Build",
+        "Ship",
+        "Learn",
+      ];
       return names.filter((n) =>
         Array.from(document.querySelectorAll("span,div,p")).some(
           (el) => (el.textContent ?? "").trim() === n,

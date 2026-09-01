@@ -70,16 +70,24 @@ describe("the baseline comparison", () => {
  */
 describe("a check added after the baseline was written", () => {
   it("reports a surface whose stored entry predates the new field", () => {
-    const line = compareToBaseline("/x", { ...clean, contrastBelow: 7 }, {
-      "/x": { failureSentences: 2, retries: 0, unnamed: 0, wideProse: 0 },
-    });
+    const line = compareToBaseline(
+      "/x",
+      { ...clean, contrastBelow: 7 },
+      {
+        "/x": { failureSentences: 2, retries: 0, unnamed: 0, wideProse: 0 },
+      },
+    );
     expect(line).toContain("contrastBelow 0 -> 7 REGRESSED");
   });
 
   it("stays quiet when the stored entry carries the new field and matches", () => {
-    const line = compareToBaseline("/x", { ...clean, contrastBelow: 7 }, {
-      "/x": { failureSentences: 2, retries: 0, unnamed: 0, wideProse: 0, contrastBelow: 7 },
-    });
+    const line = compareToBaseline(
+      "/x",
+      { ...clean, contrastBelow: 7 },
+      {
+        "/x": { failureSentences: 2, retries: 0, unnamed: 0, wideProse: 0, contrastBelow: 7 },
+      },
+    );
     expect(line).toBeNull();
   });
 });
@@ -103,7 +111,16 @@ describe("a baseline taken in a different run mode", () => {
     const line = compareToBaseline(
       "/learn",
       { ...clean, contrastBelow: 5 },
-      { "/learn": { failureSentences: 2, retries: 0, unnamed: 0, wideProse: 0, contrastBelow: 2, mode: "signed-in" } },
+      {
+        "/learn": {
+          failureSentences: 2,
+          retries: 0,
+          unnamed: 0,
+          wideProse: 0,
+          contrastBelow: 2,
+          mode: "signed-in",
+        },
+      },
       "signed-in",
     );
     expect(line).toContain("contrastBelow 2 -> 5 REGRESSED");
@@ -157,7 +174,16 @@ describe("a baseline taken at a different width", () => {
     const line = compareToBaseline(
       "/",
       { ...clean, contrastBelow: 90 },
-      { "/": { failureSentences: 2, retries: 0, unnamed: 0, wideProse: 0, contrastBelow: 83, viewport: "390x844" } },
+      {
+        "/": {
+          failureSentences: 2,
+          retries: 0,
+          unnamed: 0,
+          wideProse: 0,
+          contrastBelow: 83,
+          viewport: "390x844",
+        },
+      },
       "public",
       "390x844",
     );

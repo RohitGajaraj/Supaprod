@@ -93,10 +93,9 @@ describe("focus goes in, cannot leave, and comes back", () => {
 
     fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
 
-    expect(
-      document.activeElement,
-      "the reader was stranded at the top of the document",
-    ).toBe(trigger);
+    expect(document.activeElement, "the reader was stranded at the top of the document").toBe(
+      trigger,
+    );
   });
 
   it("wraps forward off the last stop", () => {
@@ -329,9 +328,10 @@ describe("a panel taller than the screen is recoverable", () => {
      * on its own does nothing and the panel grows anyway. Both siblings that can
      * grow carry the same pair.
      */
-    expect(body.className, "overflow-y-auto without min-h-0 does nothing in a flex column").toContain(
-      "min-h-0",
-    );
+    expect(
+      body.className,
+      "overflow-y-auto without min-h-0 does nothing in a flex column",
+    ).toContain("min-h-0");
 
     /* The question and the controls stay put while the middle moves. */
     const title = document.getElementById(panel.getAttribute("aria-labelledby")!)!;

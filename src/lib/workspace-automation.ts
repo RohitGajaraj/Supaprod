@@ -104,7 +104,6 @@ export function automationRunState(input: {
   return input.platformReady === false ? "grounded" : "on";
 }
 
-
 export const AUTOMATION_FLAGS: readonly AutomationFlag[] = [
   {
     column: "auto_sense_enabled",
@@ -142,7 +141,8 @@ export const AUTOMATION_FLAGS: readonly AutomationFlag[] = [
     // stop before they start when the crawler is unconfigured.
     requiresPlatform: {
       key: "FIRECRAWL_API_KEY",
-      missing: "Reading the open web is not switched on for this platform yet, so market watching stays armed and idle until an admin sets it up.",
+      missing:
+        "Reading the open web is not switched on for this platform yet, so market watching stays armed and idle until an admin sets it up.",
     },
   },
 ];

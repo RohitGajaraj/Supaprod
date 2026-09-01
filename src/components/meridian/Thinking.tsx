@@ -354,9 +354,7 @@ export function Thinking({
                 <div
                   className="flex h-6 items-center gap-2 px-1.5"
                   style={{
-                    animation: expanded
-                      ? "mrd-fade-up 300ms var(--mrd-ease) both"
-                      : undefined,
+                    animation: expanded ? "mrd-fade-up 300ms var(--mrd-ease) both" : undefined,
                   }}
                 >
                   <svg
@@ -409,14 +407,14 @@ export function Thinking({
                      */}
                     <span
                       className={`min-w-0 truncate text-mrd-label ${
- variant === "Reasoning"
- ? "leading-mrd-prose whitespace-normal text-mrd-body"
- : "font-medium text-mrd-ink"
- } ${
- variant === "Search"
- ? "underline decoration-transparent underline-offset-[3px] transition-colors duration-200 group-hover:decoration-current"
- : ""
- }`}
+                        variant === "Reasoning"
+                          ? "leading-mrd-prose whitespace-normal text-mrd-body"
+                          : "font-medium text-mrd-ink"
+                      } ${
+                        variant === "Search"
+                          ? "underline decoration-transparent underline-offset-[3px] transition-colors duration-200 group-hover:decoration-current"
+                          : ""
+                      }`}
                     >
                       {row.primary}
                     </span>

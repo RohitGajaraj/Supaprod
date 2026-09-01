@@ -29,7 +29,12 @@ const row = (over: Partial<StoredResultRow> = {}): StoredResultRow => ({
   window_days: 7,
   verdict: "healthy",
   reason: "Ran 4 times in the window.",
-  detail: { countInWindow: 4, lastAt: "2026-08-20T04:00:00.000Z", neverExecuted: false, ageMs: 999 },
+  detail: {
+    countInWindow: 4,
+    lastAt: "2026-08-20T04:00:00.000Z",
+    neverExecuted: false,
+    ageMs: 999,
+  },
   checked_at: "2026-08-20T04:05:00.000Z",
   ...over,
 });

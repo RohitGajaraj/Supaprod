@@ -114,7 +114,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const stored = localStorage.getItem(WORKSPACE_STORAGE_KEY);
     if (stored) setActiveWorkspaceState((cur) => cur ?? stored);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Validate against real membership once workspaces load: keep the current id if

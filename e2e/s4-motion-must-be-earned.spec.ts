@@ -655,9 +655,7 @@ async function unnamedControls(page: import("@playwright/test").Page): Promise<s
  * fades text without changing either computed colour, so a faded block reads as
  * its unfaded ratio here. This under-reports; it never invents a failure.
  */
-async function textBelowContrast(
-  page: import("@playwright/test").Page,
-): Promise<{
+async function textBelowContrast(page: import("@playwright/test").Page): Promise<{
   failures: string[];
   below: number;
   shapes: number;
@@ -769,7 +767,11 @@ async function textBelowContrast(
             uncomputable = true;
             break;
           }
-          const stops = (bi.match(/(?:rgba?|oklch|oklab|lab|lch|hsla?|color|color-mix)\([^()]*(?:\([^()]*\)[^()]*)*\)/g) ?? [])
+          const stops = (
+            bi.match(
+              /(?:rgba?|oklch|oklab|lab|lch|hsla?|color|color-mix)\([^()]*(?:\([^()]*\)[^()]*)*\)/g,
+            ) ?? []
+          )
             .map(parse)
             .filter((c): c is [number, number, number, number] => c !== null);
           if (!stops.length) {
@@ -905,9 +907,7 @@ async function textBelowContrast(
  * marketing page's primary button are not held to one number -- and a check
  * that fails builds on a judgement is a check people learn to route around.
  */
-async function targetsTooSmallToHit(
-  page: import("@playwright/test").Page,
-): Promise<{
+async function targetsTooSmallToHit(page: import("@playwright/test").Page): Promise<{
   under44: string[];
   belowElements: number;
   shapes: number;
@@ -1576,17 +1576,31 @@ test("report which surfaces still move once nothing can be read", async ({ page 
      */
     const samePage =
       typeof wasJudged !== "number" || populationComparable(contrast.sampled, wasJudged);
-    if (typeof wasBelow === "number" && modeMatches && viewportMatches && !samePage && contrast.below > wasBelow) {
+    if (
+      typeof wasBelow === "number" &&
+      modeMatches &&
+      viewportMatches &&
+      !samePage &&
+      contrast.below > wasBelow
+    ) {
       notes.push(
         `\n--- ${path}: contrast rose ${wasBelow} -> ${contrast.below}, but the page rendered ` +
           `${contrast.sampled} elements against a baseline of ${wasJudged}. NOT COMPARED: that is ` +
           `a different render, not a regression. ---`,
       );
     }
-    if (typeof wasBelow === "number" && modeMatches && viewportMatches && samePage && contrast.below > wasBelow) {
+    if (
+      typeof wasBelow === "number" &&
+      modeMatches &&
+      viewportMatches &&
+      samePage &&
+      contrast.below > wasBelow
+    ) {
       contrastWorse.push(
         `${path}: ${wasBelow} -> ${contrast.below} below AA` +
-          (contrast.failures.length ? `, worst shapes: ${contrast.failures.slice(0, 3).join("; ")}` : ""),
+          (contrast.failures.length
+            ? `, worst shapes: ${contrast.failures.slice(0, 3).join("; ")}`
+            : ""),
       );
     }
 

@@ -74,7 +74,13 @@ function Gate({
   busy?: boolean;
 }) {
   return (
-    <PlanGate steps={steps} stops={stops} spend={SPEND} busy={busy} onDecide={onDecide ?? (() => {})} />
+    <PlanGate
+      steps={steps}
+      stops={stops}
+      spend={SPEND}
+      busy={busy}
+      onDecide={onDecide ?? (() => {})}
+    />
   );
 }
 
@@ -281,7 +287,9 @@ describe("the plan is editable before the choice, and the edit is what leaves", 
     render(<Gate busy />);
     expect(screen.queryAllByRole("button", { name: "Skip it" }).length).toBe(0);
     expect(screen.queryAllByRole("button", { name: "Take it off" }).length).toBe(0);
-    for (const b of screen.getByRole("group", { name: /run without you/ }).querySelectorAll("button")) {
+    for (const b of screen
+      .getByRole("group", { name: /run without you/ })
+      .querySelectorAll("button")) {
       expect((b as HTMLButtonElement).disabled).toBe(true);
     }
   });
@@ -338,7 +346,9 @@ describe("no accent, and no second gate", () => {
 
   it("carries no status hue on any answer", () => {
     render(<Gate />);
-    for (const b of screen.getByRole("group", { name: /run without you/ }).querySelectorAll("button")) {
+    for (const b of screen
+      .getByRole("group", { name: /run without you/ })
+      .querySelectorAll("button")) {
       const cls = (b as HTMLElement).className;
       for (const hue of ["mrd-you", "mrd-agent", "mrd-pass", "mrd-fail", "mrd-hold"]) {
         expect(cls, `an answer was painted ${hue}`).not.toContain(hue);

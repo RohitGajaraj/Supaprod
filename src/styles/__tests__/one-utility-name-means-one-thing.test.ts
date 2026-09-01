@@ -41,16 +41,12 @@ const MERIDIAN = readFileSync(join(ROOT, "src", "styles", "meridian.css"), "utf8
 
 /** Names Tailwind will turn into a `text-mrd-*` COLOUR utility. */
 function colourNames(css: string): Set<string> {
-  return new Set(
-    [...css.matchAll(/--color-mrd-([a-z0-9-]+)\s*:/g)].map((m) => m[1]),
-  );
+  return new Set([...css.matchAll(/--color-mrd-([a-z0-9-]+)\s*:/g)].map((m) => m[1]));
 }
 
 /** Names declared as an explicit `@utility text-mrd-*` FONT SIZE. */
 function sizeNames(css: string): Set<string> {
-  return new Set(
-    [...css.matchAll(/@utility\s+text-mrd-([a-z0-9-]+)\s*\{/g)].map((m) => m[1]),
-  );
+  return new Set([...css.matchAll(/@utility\s+text-mrd-([a-z0-9-]+)\s*\{/g)].map((m) => m[1]));
 }
 
 /**

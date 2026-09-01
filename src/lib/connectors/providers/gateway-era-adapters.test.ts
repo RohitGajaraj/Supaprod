@@ -19,11 +19,7 @@ import { afterEach, describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import {
-  linearAdapter,
-  notionAdapter,
-  googleDocsAdapter,
-} from "./gateway-era-adapters.server";
+import { linearAdapter, notionAdapter, googleDocsAdapter } from "./gateway-era-adapters.server";
 import { CONNECTOR_ADAPTERS } from "./index.server";
 import { figmaAdapter, figmaAuthHeader } from "./figma.server";
 import { jiraAdapter } from "./jira.server";
@@ -81,8 +77,14 @@ describe("the stubs are gone where a transport exists", () => {
 
   it("the six that remain still answer honestly rather than throwing", async () => {
     // What a stub must not do is throw: the control has to render an answer.
-    for (const p of ["gmail", "google_calendar", "google_tasks", "microsoft_mail",
-      "microsoft_outlook", "firecrawl"] as const) {
+    for (const p of [
+      "gmail",
+      "google_calendar",
+      "google_tasks",
+      "microsoft_mail",
+      "microsoft_outlook",
+      "firecrawl",
+    ] as const) {
       const r = await CONNECTOR_ADAPTERS[p].validate({ kind: "env", token: "x" });
       expect(r.ok).toBe(false);
       expect(typeof r.detail).toBe("string");
@@ -108,7 +110,15 @@ describe("the stubs are gone where a transport exists", () => {
      * points at the five adapters that then become worth writing.
      */
     const panel = readFileSync(
-      join(import.meta.dir, "..", "..", "..", "components", "connections", "AccountConnectionsSection.tsx"),
+      join(
+        import.meta.dir,
+        "..",
+        "..",
+        "..",
+        "components",
+        "connections",
+        "AccountConnectionsSection.tsx",
+      ),
       "utf8",
     );
     // The per-connection Verify exists exactly once, and it takes a `connections`
@@ -141,7 +151,9 @@ describe("Linear", () => {
 
   it("reads the account back so the connection can be labelled", async () => {
     stubFetch({
-      body: { data: { viewer: { name: "Ada", email: "ada@x.dev" }, organization: { name: "Acme" } } },
+      body: {
+        data: { viewer: { name: "Ada", email: "ada@x.dev" }, organization: { name: "Acme" } },
+      },
     });
     const r = await linearAdapter.validate(userToken("t"));
     expect(r.ok).toBe(true);
@@ -204,7 +216,9 @@ describe("Google Docs", () => {
     });
     const r = await googleDocsAdapter.validate(userToken("ya29.tok"));
     expect(calls[0].url).toContain("drive/v3/about");
-    expect((calls[0].init?.headers as Record<string, string>).Authorization).toBe("Bearer ya29.tok");
+    expect((calls[0].init?.headers as Record<string, string>).Authorization).toBe(
+      "Bearer ya29.tok",
+    );
     expect(r.accountLabel).toBe("Ada Lovelace");
     expect(r.accountEmail).toBe("ada@x.dev");
   });

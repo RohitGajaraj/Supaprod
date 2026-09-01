@@ -67,7 +67,12 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { runState } from "@/components/runs/run-state";
-import { TASK_LABEL, TASK_TONE, TERMINAL_TASK_STATUS, taskStatus } from "@/components/meridian/TaskRows";
+import {
+  TASK_LABEL,
+  TASK_TONE,
+  TERMINAL_TASK_STATUS,
+  taskStatus,
+} from "@/components/meridian/TaskRows";
 import { runBucket } from "@/lib/agent-fleet";
 import { classifyRunOutcome } from "@/lib/run-analytics";
 import { isTerminal, isWaitingOnAPerson, normalizeRunStatus } from "@/lib/run-status";
@@ -641,7 +646,9 @@ describe("spellings a normaliser knows and no writer writes", () => {
         .filter((s) => s.v.terminal && !s.v.cleanSuccess && !s.v.needsPerson)
         .map((s) => s.n);
       if (success.length > 0 && failure.length > 0) {
-        contradictions.push(`${raw}: a success to ${success.join(", ")}, an ending to ${failure.join(", ")}`);
+        contradictions.push(
+          `${raw}: a success to ${success.join(", ")}, an ending to ${failure.join(", ")}`,
+        );
       }
     }
     expect(contradictions).toEqual([]);

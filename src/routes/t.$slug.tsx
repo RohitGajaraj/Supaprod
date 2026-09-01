@@ -115,9 +115,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           }}
         >
           <SupaprodMark />
-          <span className="font-display text-mrd-prose">
-            Supaprod
-          </span>
+          <span className="font-display text-mrd-prose">Supaprod</span>
         </Link>
         <span className="mrd-eyebrow whitespace-nowrap" style={{ color: "var(--mrd-faint)" }}>
           shared teardown
@@ -163,7 +161,9 @@ function Section({ title, items, empty }: { title: string; items: string[]; empt
         {title}
       </div>
       {items.length === 0 ? (
-        <p className="text-mrd-label" style={{ color: "var(--mrd-mute)", margin: 0 }}>{empty}</p>
+        <p className="text-mrd-label" style={{ color: "var(--mrd-mute)", margin: 0 }}>
+          {empty}
+        </p>
       ) : (
         <ul
           style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: 16, margin: 0 }}

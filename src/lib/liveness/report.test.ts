@@ -383,7 +383,6 @@ describe("the registry itself", () => {
     expect(orphans).toEqual([]);
   });
 
-
   it("gives every entry a stable unique id", () => {
     const ids = [
       ...TRACKED_CAPABILITIES.map((c) => c.id),

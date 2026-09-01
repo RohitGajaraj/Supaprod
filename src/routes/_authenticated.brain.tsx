@@ -589,9 +589,7 @@ function RecordHead({ title, sub }: { title: ReactNode; sub?: ReactNode }) {
     <header data-mrd="">
       <h1 className="text-mrd-h2 leading-mrd-tight font-medium text-mrd-ink">{title}</h1>
       {sub ? (
-        <p className="mt-mrd-3 leading-mrd-prose text-mrd-prose text-mrd-body">
-          {sub}
-        </p>
+        <p className="mt-mrd-3 leading-mrd-prose text-mrd-prose text-mrd-body">{sub}</p>
       ) : null}
     </header>
   );

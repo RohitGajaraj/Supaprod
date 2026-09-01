@@ -31,7 +31,8 @@ describe("the right pane", () => {
     for (const station of AGENT_STATION_ORDER) {
       const expects = STATION_ARTIFACT[station];
       if (!expects?.kind) continue;
-      if (!SRC.includes(`case "${expects.kind}":`)) missing.push(`${station} files ${expects.kind}`);
+      if (!SRC.includes(`case "${expects.kind}":`))
+        missing.push(`${station} files ${expects.kind}`);
     }
     expect(missing).toEqual([]);
   });

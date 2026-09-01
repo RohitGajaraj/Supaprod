@@ -133,7 +133,7 @@ describe("it is bounded, and the bound is stated once", () => {
   it("shares the gate-kind vocabulary with the single door", () => {
     // Derived by omitting `verdict` from the single-item schema, so a new gate
     // family is accepted by both doors on the day it is added or by neither.
-    expect(SRC).toContain('DecideSchema.omit({ verdict: true })');
+    expect(SRC).toContain("DecideSchema.omit({ verdict: true })");
   });
 });
 

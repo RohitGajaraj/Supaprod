@@ -82,7 +82,10 @@ describe("the reader accounts for every outcome the writer can produce", () => {
    * they have to decide what the surface says about it.
    */
   const UNION =
-    `outcome: "first-seen" | "unchanged" | "changed" | "error" | "skipped-cap";`.replace(/\s+/g, " ");
+    `outcome: "first-seen" | "unchanged" | "changed" | "error" | "skipped-cap";`.replace(
+      /\s+/g,
+      " ",
+    );
 
   it("pins the writer's outcome domain to the five values", () => {
     expect(WRITER.replace(/\s+/g, " ").includes(UNION)).toBe(true);

@@ -57,7 +57,9 @@ export function costLines(s: CostSummary): string[] {
   const lines: string[] = [];
   if (s.turns === 0) return lines;
   if (s.timedTurns > 0) {
-    lines.push(`Worked for ${formatElapsed(s.msTotal / 1000)} across ${s.timedTurns} ${s.timedTurns === 1 ? "turn" : "turns"}`);
+    lines.push(
+      `Worked for ${formatElapsed(s.msTotal / 1000)} across ${s.timedTurns} ${s.timedTurns === 1 ? "turn" : "turns"}`,
+    );
   } else {
     // Turns exist but no finalizer wrote a duration: saying "0 minutes" would
     // be the exact lie `measured()` exists to stop.
@@ -66,8 +68,6 @@ export function costLines(s: CostSummary): string[] {
   if (s.tokenTotal > 0) {
     lines.push(`${s.tokenTotal.toLocaleString()} tokens`);
   }
-  lines.push(
-    s.usdTotal > 0 ? `$${s.usdTotal.toFixed(2)} spent` : "Nothing was charged.",
-  );
+  lines.push(s.usdTotal > 0 ? `$${s.usdTotal.toFixed(2)} spent` : "Nothing was charged.");
   return lines;
 }

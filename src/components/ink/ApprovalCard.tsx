@@ -140,10 +140,7 @@ export function ApprovalCard({
       ) : null}
 
       {item.forecast ? (
-        <div
-          data-mrd=""
-          className="mt-2.5 border-l-2 border-[var(--mrd-edge)] pl-3"
-        >
+        <div data-mrd="" className="mt-2.5 border-l-2 border-[var(--mrd-edge)] pl-3">
           <p className="ink-mono text-mrd-tiny uppercase tracking-wide text-[var(--mrd-mute)]">
             What it believed
             {item.forecast.resolution
@@ -156,9 +153,7 @@ export function ApprovalCard({
           {item.forecast.howWeWillKnow ? (
             <p className="mt-1 text-mrd-small leading-5 text-[var(--mrd-mute)]">
               How we will know: {item.forecast.howWeWillKnow}
-              {item.forecast.horizonDate
-                ? ` · by ${item.forecast.horizonDate.slice(0, 10)}`
-                : ""}
+              {item.forecast.horizonDate ? ` · by ${item.forecast.horizonDate.slice(0, 10)}` : ""}
             </p>
           ) : null}
         </div>

@@ -292,8 +292,7 @@ function createMockSupabase(config: {
           }
           if (table === "accounts" && col === "id") {
             return terminal({
-              data:
-                config.accountId === val ? { plan_tier: config.accountTier } : null,
+              data: config.accountId === val ? { plan_tier: config.accountTier } : null,
               error: err,
             });
           }
@@ -333,10 +332,7 @@ function createMockSupabase(config: {
       }),
       order: (_col: string, _opts?: any) => ({
         then: (resolve: any, reject?: any) =>
-          Promise.resolve({ data: config.apiKeys ?? [], error: err }).then(
-            resolve,
-            reject,
-          ),
+          Promise.resolve({ data: config.apiKeys ?? [], error: err }).then(resolve, reject),
       }),
     }),
   } as any as SupabaseClient;

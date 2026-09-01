@@ -57,9 +57,7 @@ describe("spec dispatch writes the prd -> mission lineage edge", () => {
     it(`${file} (${fn}) records a prd -> mission edge`, () => {
       // The call is multi-line; collapse whitespace so one regex can see it.
       const flat = src.replace(/\s+/g, " ");
-      expect(flat).toMatch(
-        /recordLineage\([^)]*?parent_kind: "prd",[^)]*?child_kind: "mission",/,
-      );
+      expect(flat).toMatch(/recordLineage\([^)]*?parent_kind: "prd",[^)]*?child_kind: "mission",/);
     });
 
     it(`${file} (${fn}) marks that edge as a dispatch`, () => {

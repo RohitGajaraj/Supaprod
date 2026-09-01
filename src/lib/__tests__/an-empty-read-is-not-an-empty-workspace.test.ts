@@ -401,7 +401,12 @@ describe("a query that will never run is not a query you are waiting on", () => 
    * zero workspaces. needsOnboarding keys on profiles.onboarded rather than on
    * membership and returns false on a read error, so that user reaches Today.
    */
-  const disabled = { isPending: true, isError: false, data: undefined, fetchStatus: "idle" } as const;
+  const disabled = {
+    isPending: true,
+    isError: false,
+    data: undefined,
+    fetchStatus: "idle",
+  } as const;
 
   test("a disabled query does not hold the surface in a wait", () => {
     expect(stillWaiting(disabled)).toBe(false);
@@ -450,7 +455,9 @@ describe("a query that will never run is not a query you are waiting on", () => 
   });
 
   test("an error still wins, because a failure is not a missing precondition", () => {
-    expect(stillWaiting({ isPending: true, data: undefined, isError: true, fetchStatus: "idle" })).toBe(false);
+    expect(
+      stillWaiting({ isPending: true, data: undefined, isError: true, fetchStatus: "idle" }),
+    ).toBe(false);
   });
 
   test("waitingOnNothing is false when asked about nothing", () => {

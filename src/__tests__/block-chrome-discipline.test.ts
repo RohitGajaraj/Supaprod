@@ -112,7 +112,10 @@ describe("Block chrome never promises an action it cannot perform", () => {
         }
       }
     }
-    expect(offenders, `a \`more\` label with no handler is an inert button:\n${offenders.join("\n")}`).toEqual([]);
+    expect(
+      offenders,
+      `a \`more\` label with no handler is an inert button:\n${offenders.join("\n")}`,
+    ).toEqual([]);
   });
 
   it("no Block is drawn inside another Block, including from another file", () => {
@@ -172,7 +175,7 @@ describe("Block chrome never promises an action it cannot perform", () => {
            depth its own `</Region>` never decrements, and the extent would run
            to the end of the file. */
         let depth = 1;
-        let cursor = index + tag.length;
+        const cursor = index + tag.length;
         let end = source.length;
         const scan = new RegExp(`<${name}\\b|</${name}>`, "g");
         scan.lastIndex = cursor;
@@ -191,8 +194,13 @@ describe("Block chrome never promises an action it cannot perform", () => {
         }
         for (const [inner_name] of drawsOwnBlock) {
           // Only when this file actually imports it, so a same-named local is not blamed.
-          if (new RegExp(`<${inner_name}[\\s/>]`).test(inner) && new RegExp(`\\b${inner_name}\\b`).test(source.slice(0, index))) {
-            offenders.push(`${file.replace(SRC, "src/")}:${line} holds <${inner_name} />, which draws its own section`);
+          if (
+            new RegExp(`<${inner_name}[\\s/>]`).test(inner) &&
+            new RegExp(`\\b${inner_name}\\b`).test(source.slice(0, index))
+          ) {
+            offenders.push(
+              `${file.replace(SRC, "src/")}:${line} holds <${inner_name} />, which draws its own section`,
+            );
           }
         }
       }

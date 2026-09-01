@@ -75,7 +75,10 @@ test("the sixty seconds — what a stranger can read at 10s, 30s, 60s", async ({
    * own words — the surface's argument, not its DOM dump. */
   async function observe(label: string): Promise<void> {
     const stamp = `${label}@${at()}s`;
-    await page.screenshot({ path: join(SHOT_DIR, `${stamp.replace(/@/, "-at-")}.png`), fullPage: true });
+    await page.screenshot({
+      path: join(SHOT_DIR, `${stamp.replace(/@/, "-at-")}.png`),
+      fullPage: true,
+    });
 
     const copy = await page.evaluate(() => {
       const pick = (sel: string) =>

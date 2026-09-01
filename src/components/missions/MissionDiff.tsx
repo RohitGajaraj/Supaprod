@@ -137,11 +137,7 @@ export function MissionDiff({
           {(q.error as Error)?.message?.slice(0, 160) ??
             "The original mission could not be fetched."}
         </p>
-        <Action
-          variant="default"
-          onClick={() => q.refetch()}
-          className="mt-mrd-4"
-        >
+        <Action variant="default" onClick={() => q.refetch()} className="mt-mrd-4">
           Retry · reloads the original
         </Action>
       </div>

@@ -25,7 +25,7 @@ const getMissionApprovalsServerFn = createServerFn({ method: "POST" })
     const db = supabase as unknown as SupabaseClient;
 
     // Pre-migration tolerant: try with mission_id column first.
-    let { data: rows, error } = await db
+    const { data: rows, error } = await db
       .from("agent_approvals")
       .select("id,agent_slug,tool_name,rationale,status,expires_at")
       .eq("mission_id", data.missionId)

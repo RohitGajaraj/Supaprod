@@ -14,10 +14,7 @@ import { resolveProviderCall, type ProviderCall } from "@/lib/connectors/gateway
  * direct path also has to send `Notion-Version` itself, which the gateway used
  * to inject. Full reasoning is on `resolveProviderCall`.
  */
-async function notionCall(
-  supabase: SupabaseClient,
-  userId: string,
-): Promise<ProviderCall | null> {
+async function notionCall(supabase: SupabaseClient, userId: string): Promise<ProviderCall | null> {
   return resolveProviderCall({ provider: "notion", userClient: supabase, userId });
 }
 

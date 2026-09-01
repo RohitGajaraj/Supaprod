@@ -389,7 +389,6 @@ describe("ApprovalCard Component", () => {
 
     test("displays fallback message when non-Error object is thrown", async () => {
       const onApprove = mock(async () => {
-        // eslint-disable-next-line no-throw-literal
         throw "Unknown error";
       });
       render(<ApprovalCard item={mockItem} onApprove={onApprove} onReject={async () => {}} />);

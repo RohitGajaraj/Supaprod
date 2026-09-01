@@ -14,8 +14,7 @@ import { fileURLToPath } from "node:url";
 
 import { STEER_MAX } from "./SteerComposer";
 
-const read = (path: string) =>
-  readFileSync(fileURLToPath(new URL(path, import.meta.url)), "utf8");
+const read = (path: string) => readFileSync(fileURLToPath(new URL(path, import.meta.url)), "utf8");
 
 describe("STEER_MAX agrees with every reader of the field", () => {
   it("matches the server validator that would refuse longer text", () => {

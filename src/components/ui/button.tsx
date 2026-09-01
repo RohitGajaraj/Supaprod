@@ -7,8 +7,7 @@ import { cn } from "@/lib/utils";
 
 // Neutral/tertiary interaction ramp: transparent at rest, tinted on hover/active
 // (contract §2 role model: 100-300 = component background default/hover/active).
-const neutralInteractive =
-  "bg-transparent text-mrd-ink hover:bg-mrd-hover active:bg-mrd-lift";
+const neutralInteractive = "bg-transparent text-mrd-ink hover:bg-mrd-hover active:bg-mrd-lift";
 
 // UNIFIED TEMPO GRAMMAR (DESIGN-TEMPO.md §2 + obsidian compat layer)
 // Maps legacy obsidian variants to Tempo semantics with deprecation warnings.
@@ -72,8 +71,7 @@ const buttonVariants = cva(
         // accent = the one ember primary CTA per view. Prefer this over ad-hoc
         // inline ember styles so the brand action is consistent everywhere.
         accent: "bg-[var(--mrd-you)] text-white hover:brightness-110 active:brightness-95",
-        secondary:
-          "bg-mrd-lift text-mrd-ink hover:bg-mrd-hover active:bg-mrd-lift-hover",
+        secondary: "bg-mrd-lift text-mrd-ink hover:bg-mrd-hover active:bg-mrd-lift-hover",
         // tertiary is the spec name (button.md); ghost is the existing API name for the
         // same treatment — kept as an alias so call sites using either keep working.
         tertiary: neutralInteractive,
@@ -83,8 +81,7 @@ const buttonVariants = cva(
         // error, per spec naming, exposed under the existing `destructive` key
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80",
-        warning:
-          "bg-mrd-hold text-mrd-bg hover:bg-mrd-hold active:bg-(--mrd-hold-dim)",
+        warning: "bg-mrd-hold text-mrd-bg hover:bg-mrd-hold active:bg-(--mrd-hold-dim)",
         link: "bg-transparent text-mrd-body underline-offset-4 hover:underline hover:text-mrd-ink",
       },
       size: {

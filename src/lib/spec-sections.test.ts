@@ -1,9 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { SPEC_SECTION_ORDER } from "./spec-sections";
-import {
-  buildPrdSystemPrompt,
-  CONTRACT_FROM_INTENT_SYSTEM,
-} from "./discovery.functions";
+import { buildPrdSystemPrompt, CONTRACT_FROM_INTENT_SYSTEM } from "./discovery.functions";
 
 describe("SPEC_SECTION_ORDER", () => {
   it("is the one canonical section sequence", () => {
@@ -46,13 +43,11 @@ describe("spec-writing prompts derive their sections from SPEC_SECTION_ORDER", (
     for (const heading of headings) {
       expect(CONTRACT_FROM_INTENT_SYSTEM).toContain(heading);
     }
-    const listed = CONTRACT_FROM_INTENT_SYSTEM.match(
-      /\((## .+?)\), under 400 words/,
-    );
+    const listed = CONTRACT_FROM_INTENT_SYSTEM.match(/\((## .+?)\), under 400 words/);
     expect(listed).toBeTruthy();
-    expect(
-      listed![1].split(", ").map((s) => s.replace(/^## /, "")),
-    ).toEqual([...SPEC_SECTION_ORDER]);
+    expect(listed![1].split(", ").map((s) => s.replace(/^## /, ""))).toEqual([
+      ...SPEC_SECTION_ORDER,
+    ]);
     expect(CONTRACT_FROM_INTENT_SYSTEM).toContain('"narrative"');
   });
 });

@@ -25,7 +25,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const HOOK = readFileSync(join(import.meta.dir, "loop-tick.ts"), "utf8");
-const SHARED = readFileSync(join(import.meta.dir, "..", "..", "..", "..", "lib", "loops.shared.ts"), "utf8");
+const SHARED = readFileSync(
+  join(import.meta.dir, "..", "..", "..", "..", "lib", "loops.shared.ts"),
+  "utf8",
+);
 
 /** The fields `LoopRow` declares, read from the type rather than restated. */
 function loopRowFields(): string[] {
@@ -36,10 +39,14 @@ function loopRowFields(): string[] {
 
 /** The columns the hook's `loops` select actually asks PostgREST for. */
 function selectedColumns(): string[] {
-  const m = HOOK.match(/\.from\("loops"[^)]*\)\s*\.select\(\s*"([^"]+)"/s)
-    ?? HOOK.match(/\.select\(\s*\n?\s*"([^"]+)"/s);
+  const m =
+    HOOK.match(/\.from\("loops"[^)]*\)\s*\.select\(\s*"([^"]+)"/s) ??
+    HOOK.match(/\.select\(\s*\n?\s*"([^"]+)"/s);
   if (!m) return [];
-  return m[1].split(",").map((c) => c.trim()).filter(Boolean);
+  return m[1]
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
 }
 
 describe("loop-tick selects columns that exist", () => {

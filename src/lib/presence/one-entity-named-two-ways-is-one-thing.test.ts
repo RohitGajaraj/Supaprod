@@ -46,7 +46,12 @@ const anchor = (over: Partial<Anchor> & Pick<Anchor, "runId" | "toolName">): Anc
 describe("the live case: four runs on one spec", () => {
   const anchors = [
     anchor({ runId: "r1", agentSlug: "designer", toolName: "design.draft", targetKind: "row:prd" }),
-    anchor({ runId: "r2", agentSlug: "learner", toolName: "learning.record", targetKind: "row:prd" }),
+    anchor({
+      runId: "r2",
+      agentSlug: "learner",
+      toolName: "learning.record",
+      targetKind: "row:prd",
+    }),
     anchor({ runId: "r3", agentSlug: "planner", toolName: "prd.get", targetKind: "row" }),
     anchor({ runId: "r4", agentSlug: "builder", toolName: "prd.get", targetKind: "row" }),
   ];
@@ -56,12 +61,11 @@ describe("the live case: four runs on one spec", () => {
   });
 
   it("counts all four teammates, so the mark cannot name one of three", () => {
-    expect(collisionsFrom(anchors)[0]!.runs.map((r) => r.runId).sort()).toEqual([
-      "r1",
-      "r2",
-      "r3",
-      "r4",
-    ]);
+    expect(
+      collisionsFrom(anchors)[0]!
+        .runs.map((r) => r.runId)
+        .sort(),
+    ).toEqual(["r1", "r2", "r3", "r4"]);
   });
 
   it("is contested, because design.draft writes", () => {

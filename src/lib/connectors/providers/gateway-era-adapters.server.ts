@@ -104,7 +104,10 @@ export const notionAdapter: ConnectorAdapter = {
       if (!res.ok) return failed("Notion", res.status);
       const body = (await res.json()) as {
         name?: string | null;
-        bot?: { workspace_name?: string | null; owner?: { user?: { person?: { email?: string } } } };
+        bot?: {
+          workspace_name?: string | null;
+          owner?: { user?: { person?: { email?: string } } };
+        };
         person?: { email?: string | null };
       };
       // A Notion integration authenticates as a BOT, so the useful label is the

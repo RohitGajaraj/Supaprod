@@ -274,10 +274,7 @@ export function Dialog({
           {title}
         </h2>
 
-        <div
-          id={bodyId}
-          className="mt-mrd-3 max-w-[62ch] min-h-0 overflow-y-auto mrd-copy"
-        >
+        <div id={bodyId} className="mt-mrd-3 max-w-[62ch] min-h-0 overflow-y-auto mrd-copy">
           {children}
         </div>
 

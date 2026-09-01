@@ -144,7 +144,11 @@ function stripComments(src: string): string {
       i += 2;
       continue;
     }
-    if ((state === "sq" && c === "'") || (state === "dq" && c === '"') || (state === "tpl" && c === "`")) {
+    if (
+      (state === "sq" && c === "'") ||
+      (state === "dq" && c === '"') ||
+      (state === "tpl" && c === "`")
+    ) {
       state = "code";
     }
     out += c;

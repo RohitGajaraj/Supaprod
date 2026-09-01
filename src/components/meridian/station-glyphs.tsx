@@ -88,21 +88,22 @@ export const STATION_GLYPHS: Record<StationGlyphKind, ReactNode> = {
       <path d="M5.5 5.5a9 9 0 0 0 0 13M18.5 18.5a9 9 0 0 0 0-13" />
     </g>
   ),
-  decide: (
-    /*
-     * A FLOWCHART DECISION DIAMOND with the chosen branch leaving it.
-     *
-     * This was two lines converging into one stem, and at 13px that is a
-     * capital Y — founder, 2026-08-15: people read it as a keyboard shortcut
-     * sitting where a shortcut would sit. The diamond is the one shape that
-     * means "a decision" to essentially everyone who has read a flowchart, and
-     * it cannot be mistaken for a letter.
-     */
-    <g>
-      <path d="M12 3l7 7-7 7-7-7z" />
-      <path d="M19 10h2M12 17v4" />
-    </g>
-  ),
+  decide:
+    (
+      /*
+       * A FLOWCHART DECISION DIAMOND with the chosen branch leaving it.
+       *
+       * This was two lines converging into one stem, and at 13px that is a
+       * capital Y — founder, 2026-08-15: people read it as a keyboard shortcut
+       * sitting where a shortcut would sit. The diamond is the one shape that
+       * means "a decision" to essentially everyone who has read a flowchart, and
+       * it cannot be mistaken for a letter.
+       */
+      <g>
+        <path d="M12 3l7 7-7 7-7-7z" />
+        <path d="M19 10h2M12 17v4" />
+      </g>
+    ),
   plan: <path d="M4 6h16M4 12h10M4 18h13" />,
   design: (
     <g>
@@ -111,37 +112,39 @@ export const STATION_GLYPHS: Record<StationGlyphKind, ReactNode> = {
     </g>
   ),
   build: <path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 4l-4 16" />,
-  ship: (
-    /*
-     * A SEALED PARCEL, not an upward arrow out of a tray.
-     *
-     * The old drawing was, character for character, the platform share icon —
-     * a box with an arrow rising out of it. Founder caught it: on a station
-     * chip, next to real controls, that reads as "share this" rather than "this
-     * shipped". A parcel with its seam and band is the release ARTEFACT, which
-     * is the thing this station actually produces, and it collides with nothing
-     * else in the product.
-     */
-    <g>
-      <path d="M3.5 7.5l8.5-4.5 8.5 4.5v9L12 21l-8.5-4.5z" />
-      <path d="M3.5 7.5L12 12l8.5-4.5M12 12v9" />
-    </g>
-  ),
-  learn: (
-    /*
-     * AN OPEN BOOK, not a circular arrow.
-     *
-     * The loop-back arrow was semantically right — Learn closes the loop — and
-     * visually wrong: a circular arrow with a head on it is the universal
-     * REFRESH/RETRY glyph, and this station sits in a strip beside states that
-     * genuinely offer a retry. Founder asked whether something better existed.
-     * A book is what the station leaves behind: the thing you consult next time.
-     */
-    <g>
-      <path d="M12 6.5C10.5 5 8.4 4.3 4 4.3v13c4.4 0 6.5.7 8 2.2 1.5-1.5 3.6-2.2 8-2.2v-13c-4.4 0-6.5.7-8 2.2z" />
-      <path d="M12 6.5v13" />
-    </g>
-  ),
+  ship:
+    (
+      /*
+       * A SEALED PARCEL, not an upward arrow out of a tray.
+       *
+       * The old drawing was, character for character, the platform share icon —
+       * a box with an arrow rising out of it. Founder caught it: on a station
+       * chip, next to real controls, that reads as "share this" rather than "this
+       * shipped". A parcel with its seam and band is the release ARTEFACT, which
+       * is the thing this station actually produces, and it collides with nothing
+       * else in the product.
+       */
+      <g>
+        <path d="M3.5 7.5l8.5-4.5 8.5 4.5v9L12 21l-8.5-4.5z" />
+        <path d="M3.5 7.5L12 12l8.5-4.5M12 12v9" />
+      </g>
+    ),
+  learn:
+    (
+      /*
+       * AN OPEN BOOK, not a circular arrow.
+       *
+       * The loop-back arrow was semantically right — Learn closes the loop — and
+       * visually wrong: a circular arrow with a head on it is the universal
+       * REFRESH/RETRY glyph, and this station sits in a strip beside states that
+       * genuinely offer a retry. Founder asked whether something better existed.
+       * A book is what the station leaves behind: the thing you consult next time.
+       */
+      <g>
+        <path d="M12 6.5C10.5 5 8.4 4.3 4 4.3v13c4.4 0 6.5.7 8 2.2 1.5-1.5 3.6-2.2 8-2.2v-13c-4.4 0-6.5.7-8 2.2z" />
+        <path d="M12 6.5v13" />
+      </g>
+    ),
 };
 
 /**

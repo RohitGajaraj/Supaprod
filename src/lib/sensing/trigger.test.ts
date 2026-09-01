@@ -256,10 +256,22 @@ describe("evaluateTriggers — re-discovery gate", () => {
   it("suppresses every live re-discovery, and keeps the one genuinely new cluster", () => {
     const out = evaluateTriggers({
       themes: [
-        theme({ id: "a", title: "Alert Fatigue Leading to Feature Disengagement", novelty: 0.399948 }),
+        theme({
+          id: "a",
+          title: "Alert Fatigue Leading to Feature Disengagement",
+          novelty: 0.399948,
+        }),
         theme({ id: "b", title: "Redundant Checkout Workflow Friction", novelty: 0.422833 }),
-        theme({ id: "c", title: "Notification Overload and User Disengagement", novelty: 0.494124 }),
-        theme({ id: "d", title: "Alert Fatigue Leading to Systemic Disengagement", novelty: 0.532158 }),
+        theme({
+          id: "c",
+          title: "Notification Overload and User Disengagement",
+          novelty: 0.494124,
+        }),
+        theme({
+          id: "d",
+          title: "Alert Fatigue Leading to Systemic Disengagement",
+          novelty: 0.532158,
+        }),
         // novelty 0.820917 (only 0.383 similar to anything known) — a real discovery.
         theme({ id: "e", title: "Redundant Address Entry During Checkout", novelty: 0.820917 }),
       ],
@@ -285,7 +297,11 @@ describe("evaluateTriggers — re-discovery gate", () => {
     // mid-sweep rather than new, and judging it blind is what created duplicates.
     const out = evaluateTriggers({
       themes: [
-        theme({ id: "scored", title: "Roof glare makes the wiring diagram unreadable", novelty: 0.9 }),
+        theme({
+          id: "scored",
+          title: "Roof glare makes the wiring diagram unreadable",
+          novelty: 0.9,
+        }),
         theme({ id: "unscored", title: "Meter firmware drift shows yesterday production" }),
       ],
     });
@@ -335,10 +351,16 @@ describe("titleOverlap", () => {
 
   it("separates the live collisions from genuinely different clusters", () => {
     expect(
-      titleOverlap("Redundant Address Entry Causes Abandonment", "Redundant Address Entry During Checkout"),
+      titleOverlap(
+        "Redundant Address Entry Causes Abandonment",
+        "Redundant Address Entry During Checkout",
+      ),
     ).toBeGreaterThanOrEqual(TITLE_OVERLAP_FLOOR);
     expect(
-      titleOverlap("Alert Overload Leads to Muting", "Roof glare makes the wiring diagram unreadable"),
+      titleOverlap(
+        "Alert Overload Leads to Muting",
+        "Roof glare makes the wiring diagram unreadable",
+      ),
     ).toBe(0);
   });
 

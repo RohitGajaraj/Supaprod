@@ -3147,14 +3147,16 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
           .limit(200);
         if (callErr) return { calls: [], traced: true, runs: rows.length };
 
-        const calls = ((callRows ?? []) as Array<{
-          id: string;
-          tool_name: string;
-          ok: boolean;
-          latency_ms: number;
-          created_at: string;
-          error: string | null;
-        }>)
+        const calls = (
+          (callRows ?? []) as Array<{
+            id: string;
+            tool_name: string;
+            ok: boolean;
+            latency_ms: number;
+            created_at: string;
+            error: string | null;
+          }>
+        )
           .map((c) => ({
             id: c.id,
             tool: c.tool_name,

@@ -394,10 +394,7 @@ describe("credits.functions – pure math", () => {
  * Mock builder for credits.functions async test suite.
  * Implements chainable Supabase query API matching the test pattern from drift.functions.test.ts.
  */
-function createMockSupabase(config: {
-  ledgerRows?: any[];
-  error?: any;
-}): SupabaseClient {
+function createMockSupabase(config: { ledgerRows?: any[]; error?: any }): SupabaseClient {
   const err = config.error ?? null;
 
   function terminal(result: { data: any; error: any }): any {
@@ -426,8 +423,7 @@ function createMockSupabase(config: {
               };
             }
             return {
-              gte: () =>
-                terminal({ data: config.ledgerRows ?? [], error: err }),
+              gte: () => terminal({ data: config.ledgerRows ?? [], error: err }),
               then: (resolve: any, reject?: any) =>
                 Promise.resolve({ data: config.ledgerRows ?? [], error: err }).then(
                   resolve,

@@ -143,7 +143,8 @@ const EXEMPT: Record<string, string> = {
   // (`judge`, `embed`). A `not in` exclusion drops NULLs, so filtering here
   // would silently remove every unattributed event from the drift input -- a
   // behaviour change nobody has measured. Unattributed AI spend is its own gap.
-  "drift-tick.ts": "ai_events.workspace_id is nullable; a not-in filter would drop unattributed events",
+  "drift-tick.ts":
+    "ai_events.workspace_id is nullable; a not-in filter would drop unattributed events",
   // Selects `prds`, which IS workspace-scoped, so this one is a real instance of
   // the shape and simply has not been filtered yet. It is low volume (7 `prd`
   // calls in the measured day) and it is the moat path, so it is being changed
@@ -160,7 +161,8 @@ const EXEMPT: Record<string, string> = {
   // against **$1.11** for the leak that was fixed. It also hits the nullable
   // `workspace_id` problem drift-tick has. Worth a decision, not worth bundling
   // into a fix for something fifty times larger.
-  "eval-tick.ts": "judges ai_events including sample ones; measured at $0.02/day, filed not bundled",
+  "eval-tick.ts":
+    "judges ai_events including sample ones; measured at $0.02/day, filed not bundled",
 };
 
 describe("no tick that can reach a model runs on a sample workspace", () => {

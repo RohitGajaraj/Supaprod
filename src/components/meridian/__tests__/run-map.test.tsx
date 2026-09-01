@@ -25,8 +25,7 @@ const CODE = SOURCE.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 const SEVEN: RunMapStation[] = AGENT_STATION_ORDER.map((station, i) => ({
   station,
   state: i === 0 ? "done" : i === 1 ? "active" : "pending",
-  outcome:
-    i === 0 ? "Read Intercom and PostHog for verify-step drop-off" : undefined,
+  outcome: i === 0 ? "Read Intercom and PostHog for verify-step drop-off" : undefined,
 }));
 
 /** A route that skips four, which is the common shape for existing-feature work. */
@@ -139,7 +138,9 @@ describe("a station comes off the route only with a reason", () => {
     ).toBe(null);
 
     const again = screen.getByText(AGENT_STATIONS.ship.name).closest("li") as HTMLElement;
-    fireEvent.click([...again.querySelectorAll("button")].find((b) => b.textContent === "Take it off")!);
+    fireEvent.click(
+      [...again.querySelectorAll("button")].find((b) => b.textContent === "Take it off")!,
+    );
     const second = (
       screen.getByText(AGENT_STATIONS.ship.name).closest("li") as HTMLElement
     ).querySelector("input") as HTMLInputElement;
@@ -174,7 +175,11 @@ describe("a station comes off the route only with a reason", () => {
     render(
       <RunMap
         stops={[
-          { station: "design", state: "skipped", waivedReason: "The notice reuses a shipped component" },
+          {
+            station: "design",
+            state: "skipped",
+            waivedReason: "The notice reuses a shipped component",
+          },
           { station: "build", state: "skipped" },
         ]}
       />,
@@ -243,10 +248,7 @@ describe("live mode reports what is happening and claims nothing more", () => {
     // A hold on a finished route is history, and repeating it in a replay would
     // report stopped work that has since moved.
     render(
-      <RunMap
-        stops={[{ station: "build", state: "done", hold: "out-of-credit" }]}
-        mode="replay"
-      />,
+      <RunMap stops={[{ station: "build", state: "done", hold: "out-of-credit" }]} mode="replay" />,
     );
     expect(screen.queryByText(HOLD_LINE["out-of-credit"])).toBe(null);
   });

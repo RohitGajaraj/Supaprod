@@ -133,7 +133,6 @@ describe("selectDueEntries", () => {
   });
 });
 
-
 /**
  * Filling in what the rotation has not reached yet.
  *

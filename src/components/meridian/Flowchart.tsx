@@ -568,7 +568,13 @@ export default Flowchart;
  * what centred means.
  */
 export function flowFromSteps(
-  steps: { id: string; title: string; caption?: string; station?: StationGlyphKind; kind?: string }[],
+  steps: {
+    id: string;
+    title: string;
+    caption?: string;
+    station?: StationGlyphKind;
+    kind?: string;
+  }[],
 ): { nodes: FlowNode[]; edges: FlowEdge[] } {
   return {
     nodes: steps.map((s, i) => ({ ...s, row: i, x: 0.5 })),

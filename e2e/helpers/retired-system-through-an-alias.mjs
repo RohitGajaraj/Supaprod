@@ -113,9 +113,7 @@ if (hits.size > FROZEN_ALIAS_FILES) {
   process.exit(1);
 }
 if (hits.size < FROZEN_ALIAS_FILES) {
-  console.log(
-    `\nIMPROVED: ${FROZEN_ALIAS_FILES} -> ${hits.size} files. Lower FROZEN_ALIAS_FILES.`,
-  );
+  console.log(`\nIMPROVED: ${FROZEN_ALIAS_FILES} -> ${hits.size} files. Lower FROZEN_ALIAS_FILES.`);
 } else {
   console.log(`\nHolding at ${hits.size} files reaching the retired system through an alias.`);
 }

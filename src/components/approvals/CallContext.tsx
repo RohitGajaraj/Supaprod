@@ -26,11 +26,7 @@ function Head({ children }: { children: ReactNode }) {
 }
 
 function Section({ children }: { children: ReactNode }) {
-  return (
-    <section className="pt-mrd-5 first:pt-0">
-      {children}
-    </section>
-  );
+  return <section className="pt-mrd-5 first:pt-0">{children}</section>;
 }
 
 export function CallContext({

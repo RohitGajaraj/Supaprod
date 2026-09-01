@@ -57,9 +57,7 @@ describe("AskDecisionCard", () => {
   });
 
   it("displays verdict when learning is resolved", () => {
-    render(
-      <AskDecisionCard decision={mockDecision} learning={mockLearning} />
-    );
+    render(<AskDecisionCard decision={mockDecision} learning={mockLearning} />);
 
     expect(screen.getByText(/RIGHT/)).toBeTruthy();
     expect(screen.getByText(/consistently under 100ms/)).toBeTruthy();
@@ -71,9 +69,7 @@ describe("AskDecisionCard", () => {
       verdict: "wrong - API averaged 250ms response time",
     };
 
-    render(
-      <AskDecisionCard decision={mockDecision} learning={wrongLearning} />
-    );
+    render(<AskDecisionCard decision={mockDecision} learning={wrongLearning} />);
 
     expect(screen.getByText(/WRONG/)).toBeTruthy();
   });
@@ -84,40 +80,27 @@ describe("AskDecisionCard", () => {
       verdict: "inconclusive - network issues masked API performance",
     };
 
-    render(
-      <AskDecisionCard
-        decision={mockDecision}
-        learning={inconclusiveLearning}
-      />
-    );
+    render(<AskDecisionCard decision={mockDecision} learning={inconclusiveLearning} />);
 
     expect(screen.getByText(/INCONCLUSIVE/)).toBeTruthy();
   });
 
   it("shows agent-resolved indicator when recorded_by_agent_slug is set", () => {
-    render(
-      <AskDecisionCard decision={mockDecision} learning={mockLearning} />
-    );
+    render(<AskDecisionCard decision={mockDecision} learning={mockLearning} />);
 
     expect(screen.getByText(/auto-graded/i)).toBeTruthy();
   });
 
   it("hides verdict when showResolution is false", () => {
     render(
-      <AskDecisionCard
-        decision={mockDecision}
-        learning={mockLearning}
-        showResolution={false}
-      />
+      <AskDecisionCard decision={mockDecision} learning={mockLearning} showResolution={false} />,
     );
 
     expect(screen.queryByText(/RIGHT/)).toBeFalsy();
   });
 
   it("displays PREDICTED and ACTUAL labels", () => {
-    render(
-      <AskDecisionCard decision={mockDecision} learning={mockLearning} />
-    );
+    render(<AskDecisionCard decision={mockDecision} learning={mockLearning} />);
 
     expect(screen.getByText(/PREDICTED/)).toBeTruthy();
     expect(screen.getByText(/ACTUAL/)).toBeTruthy();
@@ -135,9 +118,7 @@ describe("AskDecisionCard", () => {
       forecast_claim: null,
     };
 
-    render(
-      <AskDecisionCard decision={noClaimDecision} learning={mockLearning} />
-    );
+    render(<AskDecisionCard decision={noClaimDecision} learning={mockLearning} />);
 
     expect(screen.getByText(/No forecast recorded/)).toBeTruthy();
   });

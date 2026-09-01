@@ -53,7 +53,9 @@ describe("the meters accumulate in SQL rather than in JavaScript", () => {
     expect(s).toContain("case when b.day_window = _today");
     expect(s).toContain("case when b.month_window = _month");
     // And the caller must no longer be computing windows for the write path.
-    expect(runtime()).not.toContain('thisMonth = today.slice(0, 7) + "-01";\n  // The spend ledger');
+    expect(runtime()).not.toContain(
+      'thisMonth = today.slice(0, 7) + "-01";\n  // The spend ledger',
+    );
   });
 
   it("creates the first row without letting two first calls create two", () => {
@@ -83,7 +85,9 @@ describe("the meters accumulate in SQL rather than in JavaScript", () => {
       expect(s).toContain(`grant execute on function public.${fn}`);
       expect(s).toMatch(new RegExp(`revoke all on function public\\.${fn}[^;]*from public`));
     }
-    expect(s).not.toMatch(/grant execute on function public\.record_ai_[a-z_]+\([^)]*\) to authenticated/);
+    expect(s).not.toMatch(
+      /grant execute on function public\.record_ai_[a-z_]+\([^)]*\) to authenticated/,
+    );
   });
 });
 
@@ -149,7 +153,10 @@ describe("the RPCs the runtime calls exist in the live schema, with these argume
 
   const declared = (fn: string): string => {
     const i = TYPES.indexOf(`      ${fn}: {`);
-    expect(i, `${fn} is absent from the generated types, so it is not in the database`).toBeGreaterThan(-1);
+    expect(
+      i,
+      `${fn} is absent from the generated types, so it is not in the database`,
+    ).toBeGreaterThan(-1);
     return TYPES.slice(i, i + 500);
   };
 
@@ -165,7 +172,8 @@ describe("the RPCs the runtime calls exist in the live schema, with these argume
     const d = declared("record_ai_surface_usage");
     for (const arg of ["_user_id", "_surface", "_usd"]) expect(d).toContain(arg);
     const call = runtime().slice(runtime().indexOf('rpc("record_ai_surface_usage"'));
-    for (const arg of ["_user_id:", "_surface:", "_usd:"]) expect(call.slice(0, 300)).toContain(arg);
+    for (const arg of ["_user_id:", "_surface:", "_usd:"])
+      expect(call.slice(0, 300)).toContain(arg);
   });
 
   it("both return a SET, which is why the runtime unwraps the first row", () => {
@@ -196,7 +204,11 @@ describe("the RPCs the runtime calls exist in the live schema, with these argume
     // what makes the trigger a no-op, and flipping it is a pricing decision, so
     // its presence here is worth confirming and its VALUE is not this test's to
     // assert (the migration holds that).
-    for (const fn of ["connector_limit_enabled", "tier_connector_limit", "connected_source_count"]) {
+    for (const fn of [
+      "connector_limit_enabled",
+      "tier_connector_limit",
+      "connected_source_count",
+    ]) {
       expect(TYPES).toContain(fn);
     }
   });

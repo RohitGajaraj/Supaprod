@@ -1,10 +1,10 @@
 /**
  * MISSION GATE AUTONOMOUS LOOP TEST
- * 
+ *
  * Creates a track, lets the autonomous cron tick drive it through all 7 stations,
  * and reports when it completes. This verifies the system works end-to-end
  * without human intervention.
- * 
+ *
  * This runs the actual loop and observes the results programmatically,
  * then the founder can watch it run for themselves.
  */
@@ -32,7 +32,11 @@ interface Track {
 }
 
 async function getMissionGateStatus(): Promise<{ completed: Track[]; completed_count: number }> {
-  const { data: completed, count, error } = await supabase
+  const {
+    data: completed,
+    count,
+    error,
+  } = await supabase
     .from("spine_tracks")
     .select("*", { count: "exact" })
     .eq("entry_station", "sense")
@@ -95,15 +99,9 @@ async function main() {
     console.log(`  Found ${allTracks.length} track(s):\n`);
     allTracks.slice(0, 5).forEach((t) => {
       const status_badge =
-        t.status === "done"
-          ? "✅"
-          : t.status === "abandoned"
-            ? "❌"
-            : t.last_hold
-              ? "⏸️"
-              : "⏳";
+        t.status === "done" ? "✅" : t.status === "abandoned" ? "❌" : t.last_hold ? "⏸️" : "⏳";
       console.log(
-        `  ${status_badge} [${t.station.toUpperCase()}] "${t.title}" (attempts: ${t.attempts})`
+        `  ${status_badge} [${t.station.toUpperCase()}] "${t.title}" (attempts: ${t.attempts})`,
       );
       if (t.last_hold) {
         console.log(`     Hold: ${t.last_hold}`);

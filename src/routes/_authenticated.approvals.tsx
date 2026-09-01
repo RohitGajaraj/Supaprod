@@ -729,9 +729,7 @@ function ApprovalsSurface() {
             over a broken read is the worst sentence this surface can say.
           */}
           {shortLine ? (
-            <p className="mt-mrd-3 leading-mrd-prose text-mrd-prose text-mrd-hold">
-              {shortLine}
-            </p>
+            <p className="mt-mrd-3 leading-mrd-prose text-mrd-prose text-mrd-hold">{shortLine}</p>
           ) : null}
         </header>
 

@@ -88,7 +88,7 @@ function admin(): SupabaseClient {
 // resolveProviderAuth call with requiredCapability set. Cache it in-process
 // so the hot path costs at most one RPC per workspace per TTL, not a round-trip
 // per connector call. Same pattern as creditsEnabled in runtime.server.ts.
-let _workspaceTierCache: Map<string, { value: string; at: number }> = new Map();
+const _workspaceTierCache: Map<string, { value: string; at: number }> = new Map();
 const WORKSPACE_TIER_TTL_MS = 5 * 60 * 1000;
 
 async function getCachedWorkspaceTier(workspaceId: string): Promise<string | undefined> {

@@ -12,10 +12,7 @@ export interface CtxHeadProps {
 
 export function CtxHead({ children }: CtxHeadProps) {
   return (
-    <h3
-      className="mrd-eyebrow"
-      data-mrd=""
-    >
+    <h3 className="mrd-eyebrow" data-mrd="">
       {children}
     </h3>
   );
@@ -105,7 +102,11 @@ export function CtxRow({ mark, name, title, sub, source, lead, onClick, href }: 
           the RELATIONSHIP between the two lines, not to one of them, so it
           cannot go missing when a caller renders the name without a subtitle. */}
       <div className="flex min-w-0 flex-1 flex-col gap-mrd-pair">
-        <div className={lead ? "mrd-subtitle truncate" : "text-mrd-base font-medium text-mrd-ink truncate"}>
+        <div
+          className={
+            lead ? "mrd-subtitle truncate" : "text-mrd-base font-medium text-mrd-ink truncate"
+          }
+        >
           {name}
         </div>
         {sub && <div className="text-mrd-tiny text-mrd-mute truncate">{sub}</div>}

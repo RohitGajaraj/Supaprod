@@ -337,5 +337,4 @@ describe("resumeAgentLoop: a live run carries a lease", () => {
     });
     expect((await claimRunningRunLease(db as unknown as SupabaseClient, RUN)).claimed).toBe(false);
   });
-
 });

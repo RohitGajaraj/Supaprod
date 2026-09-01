@@ -366,10 +366,8 @@ export function Choices<T extends string>({
               onClick={() => onChange(o.id)}
               onKeyDown={(e) => onKeyDown(e, i)}
               className={`rounded-[6px] px-2.5 py-1 text-mrd-label font-medium whitespace-nowrap transition-colors disabled:cursor-default disabled:opacity-45 ${RING} ${
- on
- ? "bg-mrd-lift text-mrd-ink"
- : "text-mrd-mute enabled:hover:text-mrd-body"
- }`}
+                on ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute enabled:hover:text-mrd-body"
+              }`}
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               {o.label}
@@ -393,10 +391,10 @@ export function Choices<T extends string>({
             disabled={o.disabled}
             onClick={() => onChange(o.id)}
             className={`rounded-mrd-ctl border px-2.5 py-1 text-mrd-label font-medium whitespace-nowrap transition-colors disabled:cursor-default disabled:opacity-45 ${RING} ${
- on
- ? "border-mrd-field-focus bg-mrd-lift text-mrd-ink"
- : "border-mrd-field text-mrd-mute enabled:hover:text-mrd-body"
- }`}
+              on
+                ? "border-mrd-field-focus bg-mrd-lift text-mrd-ink"
+                : "border-mrd-field text-mrd-mute enabled:hover:text-mrd-body"
+            }`}
             style={{ transitionDuration: "var(--mrd-d-press)" }}
           >
             {o.label}

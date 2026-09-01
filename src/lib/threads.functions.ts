@@ -125,35 +125,33 @@ export const listThreads = createServerFn({ method: "GET" })
 export const getThread = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
-  .handler(
-    async ({ context, data }): Promise<{ title: string; messages: ThreadMessage[] }> => {
-      const db = context.supabase as unknown as SupabaseClient;
+  .handler(async ({ context, data }): Promise<{ title: string; messages: ThreadMessage[] }> => {
+    const db = context.supabase as unknown as SupabaseClient;
 
-      const { data: conv } = await db
-        .from("conversations")
-        .select("id,title")
-        .eq("id", data.id)
-        .maybeSingle();
+    const { data: conv } = await db
+      .from("conversations")
+      .select("id,title")
+      .eq("id", data.id)
+      .maybeSingle();
 
-      const { data: msgRows, error } = await db
-        .from("messages")
-        .select("id,role,content,created_at")
-        .eq("conversation_id", data.id)
-        .order("created_at", { ascending: true })
-        .limit(200);
-      if (error) throw new Error(error.message);
+    const { data: msgRows, error } = await db
+      .from("messages")
+      .select("id,role,content,created_at")
+      .eq("conversation_id", data.id)
+      .order("created_at", { ascending: true })
+      .limit(200);
+    if (error) throw new Error(error.message);
 
-      const messages: ThreadMessage[] = ((msgRows ?? []) as Row[]).map((m) => ({
-        id: String(m.id),
-        role: str(m.role) ?? "assistant",
-        content: str(m.content) ?? "",
-        createdAt: str(m.created_at),
-      }));
+    const messages: ThreadMessage[] = ((msgRows ?? []) as Row[]).map((m) => ({
+      id: String(m.id),
+      role: str(m.role) ?? "assistant",
+      content: str(m.content) ?? "",
+      createdAt: str(m.created_at),
+    }));
 
-      const title = ((conv ?? {}) as Row).title;
-      return { title: str(title) ?? "Thread", messages };
-    },
-  );
+    const title = ((conv ?? {}) as Row).title;
+    return { title: str(title) ?? "Thread", messages };
+  });
 
 // Server-side search across conversation titles AND message content (K3). The
 // client filter only sees the loaded page; this finds a thread by something
@@ -275,9 +273,7 @@ export const moveThreadToFolder = createServerFn({ method: "POST" })
         eq: (c: string, v: string) => Promise<{ error: { message: string } | null }>;
       };
     };
-    const { error } = await builder
-      .update({ folder_id: data.folderId })
-      .eq("id", data.threadId);
+    const { error } = await builder.update({ folder_id: data.folderId }).eq("id", data.threadId);
     if (error) throw new Error(error.message); // pre-migration (no folder_id) -> honest failure
     return { ok: true };
   });

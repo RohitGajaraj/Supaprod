@@ -2,13 +2,13 @@
  * Phase 6: Icon Audit
  * Sizing consistency, stroke weight, color role compliance
  */
-import { test, expect, Page } from '@playwright/test';
-import { login, takeScreenshot, waitForShell } from './helpers/auth';
+import { test, expect, Page } from "@playwright/test";
+import { login, takeScreenshot, waitForShell } from "./helpers/auth";
 
 async function auditIcons(page: Page) {
   return await page.evaluate(() => {
     // Find all SVG icons
-    const svgs = document.querySelectorAll('svg');
+    const svgs = document.querySelectorAll("svg");
     const iconData: {
       size: string;
       strokeWidth: string | null;
@@ -25,8 +25,8 @@ async function auditIcons(page: Page) {
       const h = Math.round(rect.height);
 
       if (w > 0 && h > 0) {
-        const strokeWidth = svg.getAttribute('stroke-width') || svg.style.strokeWidth || null;
-        const parent = svg.parentElement?.tagName || 'unknown';
+        const strokeWidth = svg.getAttribute("stroke-width") || svg.style.strokeWidth || null;
+        const parent = svg.parentElement?.tagName || "unknown";
 
         iconData.push({
           size: `${w}x${h}`,
@@ -77,7 +77,7 @@ async function auditIcons(page: Page) {
  * turned 3 failures into 15 passes and a run of timeouts into 38 seconds.
  */
 
-test.describe('Icon Audit', () => {
+test.describe("Icon Audit", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
   let authCookies: any;
@@ -90,29 +90,29 @@ test.describe('Icon Audit', () => {
   });
 
   const surfaces = [
-    { path: '/today', name: 'today' },
-    { path: '/engine-room', name: 'engine-room' },
-    { path: '/agents', name: 'agents' },
-    { path: '/settings', name: 'settings' },
-    { path: '/guardrails', name: 'guardrails' },
+    { path: "/today", name: "today" },
+    { path: "/engine-room", name: "engine-room" },
+    { path: "/agents", name: "agents" },
+    { path: "/settings", name: "settings" },
+    { path: "/guardrails", name: "guardrails" },
   ];
 
   for (const surface of surfaces) {
     test(`icon audit on ${surface.path}`, async ({ page }) => {
       await page.context().addCookies(authCookies);
-      await page.goto(surface.path, { waitUntil: 'domcontentloaded' });
+      await page.goto(surface.path, { waitUntil: "domcontentloaded" });
       await waitForShell(page);
 
-      if (page.url().includes('/login')) {
+      if (page.url().includes("/login")) {
         await login(page);
-        await page.goto(surface.path, { waitUntil: 'domcontentloaded' });
+        await page.goto(surface.path, { waitUntil: "domcontentloaded" });
         await waitForShell(page);
       }
 
       const audit = await auditIcons(page);
       console.log(`Icon audit (${surface.path}):`, JSON.stringify(audit, null, 2));
 
-      await takeScreenshot(page, `icons-${surface.name}`, 'icons');
+      await takeScreenshot(page, `icons-${surface.name}`, "icons");
 
       // Report size violations (warn, not fail - some custom sizing OK)
       if (audit.sizeViolations.length > 0) {
@@ -124,47 +124,52 @@ test.describe('Icon Audit', () => {
     });
   }
 
-  test('icon color compliance - check for ember vs neutral usage', async ({ page }) => {
+  test("icon color compliance - check for ember vs neutral usage", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'domcontentloaded' });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'domcontentloaded' });
+      await page.goto("/today", { waitUntil: "domcontentloaded" });
       await waitForShell(page);
     }
 
     const colorAudit = await page.evaluate(() => {
-      const svgs = document.querySelectorAll('svg');
+      const svgs = document.querySelectorAll("svg");
       const coloredIcons: { color: string; class: string }[] = [];
 
       svgs.forEach((svg) => {
         const style = getComputedStyle(svg);
         const color = style.color;
         // Flag explicitly colored icons (not inheriting gray)
-        if (color && !color.includes('128, 128') && !color.includes('0, 0, 0') && !color.includes('255, 255, 255')) {
+        if (
+          color &&
+          !color.includes("128, 128") &&
+          !color.includes("0, 0, 0") &&
+          !color.includes("255, 255, 255")
+        ) {
           coloredIcons.push({
             color,
-            class: (svg.className?.toString() || '').substring(0, 50),
+            class: (svg.className?.toString() || "").substring(0, 50),
           });
         }
       });
       return coloredIcons.slice(0, 15);
     });
 
-    console.log('Colored icons:', colorAudit);
-    await takeScreenshot(page, 'icons-color-audit', 'icons');
+    console.log("Colored icons:", colorAudit);
+    await takeScreenshot(page, "icons-color-audit", "icons");
   });
 
-  test('icon alignment in buttons', async ({ page }) => {
+  test("icon alignment in buttons", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'domcontentloaded' });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'domcontentloaded' });
+      await page.goto("/today", { waitUntil: "domcontentloaded" });
       await waitForShell(page);
     }
 
@@ -186,7 +191,7 @@ test.describe('Icon Audit', () => {
           const aligned = verticalDiff < 3; // Within 3px
 
           results.push({
-            buttonClass: (button.className || '').toString().split(' ')[0],
+            buttonClass: (button.className || "").toString().split(" ")[0],
             iconSize: `${Math.round(svgRect.width)}x${Math.round(svgRect.height)}`,
             aligned,
           });
@@ -195,11 +200,11 @@ test.describe('Icon Audit', () => {
       return results.slice(0, 15);
     });
 
-    console.log('Button icon alignment:', buttonIconAlignment);
+    console.log("Button icon alignment:", buttonIconAlignment);
 
     const misalignedIcons = buttonIconAlignment.filter((b) => !b.aligned);
     if (misalignedIcons.length > 0) {
-      console.warn('Misaligned icons in buttons:', misalignedIcons);
+      console.warn("Misaligned icons in buttons:", misalignedIcons);
     }
   });
 });

@@ -68,7 +68,7 @@ test("PHASE 3: Visible agency - real-time station updates", async ({ page }) => 
   console.log("📍 Step 5: Monitor real-time updates (up to 180 seconds)");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-  let stationsObserved: string[] = [];
+  const stationsObserved: string[] = [];
   let transcriptEntriesMax = 0;
   // `= null` alone infers the TYPE null, so every later assignment is an
   // error. It ran correctly for months because e2e/ was never typechecked.

@@ -30,10 +30,7 @@ describe("which turns filed what the next station picked up", () => {
      * turn before that produced the thing. Reading only the last one reports an
      * empty handoff over a station that did its job.
      */
-    const earlier = [
-      turn({ runId: "a", made: made("brief") }),
-      turn({ runId: "b", made: [] }),
-    ];
+    const earlier = [turn({ runId: "a", made: made("brief") }), turn({ runId: "b", made: [] })];
     const stretch = turnsAtStation(earlier, "Discover");
     expect(stretch.map((t) => t.runId)).toEqual(["a", "b"]);
     expect(whatCameWith(stretch)).toEqual(["brief"]);

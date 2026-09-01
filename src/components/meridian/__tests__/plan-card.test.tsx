@@ -48,7 +48,13 @@ const FIVE: PlanStep[] = [
     station: "design",
     why: "The notice reuses a shipped component, so there is nothing new to draw.",
   },
-  { id: "s5", label: "Open the pull request", state: "pending", agentSlug: "builder", station: "build" },
+  {
+    id: "s5",
+    label: "Open the pull request",
+    state: "pending",
+    agentSlug: "builder",
+    station: "build",
+  },
 ];
 
 describe("the two states no other step display has", () => {
@@ -65,11 +71,7 @@ describe("the two states no other step display has", () => {
   });
 
   it("says nothing at all on a pending step, because most of a fresh plan is pending", () => {
-    render(
-      <PlanCard
-        steps={[{ id: "a", label: "Draft the spec", state: "pending" }]}
-      />,
-    );
+    render(<PlanCard steps={[{ id: "a", label: "Draft the spec", state: "pending" }]} />);
     const item = screen.getByRole("listitem");
     expect(item.textContent).toBe("Draft the spec");
   });
@@ -88,14 +90,18 @@ describe("the two states no other step display has", () => {
      * reason. Rendering nothing would let an incomplete record look complete,
      * which is the failure mode the ruling exists to stop.
      */
-    render(<PlanCard steps={[{ id: "a", label: "Put a surface in front of it", state: "skipped" }]} />);
+    render(
+      <PlanCard steps={[{ id: "a", label: "Put a surface in front of it", state: "skipped" }]} />,
+    );
     expect(screen.getByText("Nobody said why this was skipped.")).toBeTruthy();
   });
 
   it("strikes a skipped label through AND dims it, because either alone is ambiguous", () => {
     // A strike at full ink reads as an edit; a dim label with no strike reads as
     // pending, which is the state it must not be confused with.
-    render(<PlanCard steps={[{ id: "a", label: "Put a surface in front of it", state: "skipped" }]} />);
+    render(
+      <PlanCard steps={[{ id: "a", label: "Put a surface in front of it", state: "skipped" }]} />,
+    );
     const label = screen.getByText("Put a surface in front of it");
     expect(label.className).toContain("line-through");
     expect(label.className).toContain("text-mrd-mute");
@@ -170,17 +176,18 @@ describe("orchid and azure mean one thing each, and are spent nowhere else", () 
   it("uses --mrd-you only on the step that needs a person", () => {
     const { container } = render(<PlanCard steps={FIVE} />);
     // FIVE[2] is the `needs-approval` step and it is the only one.
-    expect(stepsCarrying(container, "mrd-you"), "orchid reached a step that is not asking").toEqual([
-      2,
-    ]);
+    expect(stepsCarrying(container, "mrd-you"), "orchid reached a step that is not asking").toEqual(
+      [2],
+    );
   });
 
   it("uses --mrd-agent only on the step a machine is working on", () => {
     const { container } = render(<PlanCard steps={FIVE} />);
     // FIVE[1] is the `active` step.
-    expect(stepsCarrying(container, "mrd-agent"), "azure reached a step nothing is running").toEqual(
-      [1],
-    );
+    expect(
+      stepsCarrying(container, "mrd-agent"),
+      "azure reached a step nothing is running",
+    ).toEqual([1]);
   });
 
   it("keeps both out of every other step, including the settled ones", () => {
@@ -369,12 +376,7 @@ describe("the controls appear where a decision is actually being asked for", () 
      * orchid `Needs you` chip, so the accent is said once instead of twice.
      */
     const { container } = render(
-      <PlanCard
-        steps={ACTIONABLE}
-        onApprove={noop}
-        onApproveStep={noop}
-        onSkipStep={noop}
-      />,
+      <PlanCard steps={ACTIONABLE} onApprove={noop} onApproveStep={noop} onSkipStep={noop} />,
     );
     const orchidControls = [...container.querySelectorAll("button")].filter((b) =>
       b.className.includes("bg-mrd-you"),

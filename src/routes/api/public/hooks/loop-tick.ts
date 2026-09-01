@@ -72,11 +72,10 @@ export const Route = createFileRoute("/api/public/hooks/loop-tick")({
               return json({ ok: true, processed: 0, note: "loops table not migrated yet" });
             }
             if (code === "42703" || code === "PGRST204") {
-              console.error(`loop-tick: schema disagreement, loops is missing a column: ${error.message}`);
-              return json(
-                { ok: false, error: `loops schema disagreement: ${error.message}` },
-                500,
+              console.error(
+                `loop-tick: schema disagreement, loops is missing a column: ${error.message}`,
               );
+              return json({ ok: false, error: `loops schema disagreement: ${error.message}` }, 500);
             }
             return json({ ok: false, error: error.message }, 500);
           }

@@ -187,7 +187,7 @@ describe("getAskMissionCanvas — agent_runs query handling", () => {
   });
 
   it("should query agent_runs with correct filters (mission_id, agent_slug, order by created_at DESC)", async () => {
-    let queryCalled = false;
+    const queryCalled = false;
     const mockDb = createMockSupabaseClient({
       agentRunsData: null,
     });

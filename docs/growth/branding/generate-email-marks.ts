@@ -80,14 +80,14 @@ console.log("Then after deploy: curl -I https://supaprod.ai/mark-white.png");
 const TILE = 160;
 const cells: string[] = [];
 let seed = 20260807;
-const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
 for (let y = 0; y < TILE; y += 8) {
   for (let x = 0; x < TILE; x += 8) {
     const r = rnd();
     // Denser toward the top-right, so the band has a direction rather than
     // reading as uniform noise. Same instinct as the reference image.
     const bias = (x / TILE) * 0.5 + (1 - y / TILE) * 0.5;
-    if (r < 0.10 + bias * 0.22) {
+    if (r < 0.1 + bias * 0.22) {
       const o = (0.05 + rnd() * 0.04).toFixed(3);
       cells.push(`<rect x="${x}" y="${y}" width="4" height="4" fill="#fff" opacity="${o}"/>`);
     }

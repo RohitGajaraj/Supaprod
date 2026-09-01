@@ -227,7 +227,9 @@ describe("the invariant: an origin may only ever narrow a kind that already deci
       for (const origin of ORIGINS) {
         const input: MemoryScopeInput = { kind, origin };
         if (!originOnlyNarrows(input)) {
-          offences.push(`${kind} + ${JSON.stringify(origin)} -> ${JSON.stringify(resolveMemoryScope(input))}`);
+          offences.push(
+            `${kind} + ${JSON.stringify(origin)} -> ${JSON.stringify(resolveMemoryScope(input))}`,
+          );
         }
       }
     }

@@ -55,8 +55,7 @@ function oklchToLinear(l: number, c: number, hDeg: number): [number, number, num
   ];
 }
 
-const GAMMA = (u: number) =>
-  u <= 0.0031308 ? 12.92 * u : 1.055 * Math.pow(u, 1 / 2.4) - 0.055;
+const GAMMA = (u: number) => (u <= 0.0031308 ? 12.92 * u : 1.055 * Math.pow(u, 1 / 2.4) - 0.055);
 
 function linearToHex(rgb: [number, number, number]): string {
   const byte = (u: number) =>
@@ -93,9 +92,7 @@ export const EMAIL_BODY = hexOf(BODY);
 export const EMAIL_MUTE = hexOf(MUTE);
 /** --mrd-line composited over the email ground, which is always white (#fff
  *  by client default; the shell's body copy sits directly on it). */
-export const EMAIL_LINE = linearToHex(
-  overWhite(oklchToLinear(LINE.l, LINE.c, LINE.h), LINE_ALPHA),
-);
+export const EMAIL_LINE = linearToHex(overWhite(oklchToLinear(LINE.l, LINE.c, LINE.h), LINE_ALPHA));
 
 /** For tests and review: the token each exported value claims to come from. */
 export const EMAIL_PALETTE_PROVENANCE = {

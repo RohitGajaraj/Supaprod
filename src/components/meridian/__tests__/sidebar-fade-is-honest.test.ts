@@ -113,8 +113,10 @@ describe("the scrolled box is not the measured box", () => {
     const measured = source.indexOf("ref={navRef}");
     expect(scroller).toBeGreaterThan(-1);
     expect(measured).toBeGreaterThan(-1);
-    expect(scroller, "navRef is now the scrolling box, which puts every block one scrollTop out")
-      .toBeLessThan(measured);
+    expect(
+      scroller,
+      "navRef is now the scrolling box, which puts every block one scrollTop out",
+    ).toBeLessThan(measured);
   });
 
   it("lets the flex child actually shrink, which is the part always left out", () => {
@@ -154,7 +156,10 @@ describe("hiding the scrollbar is paid for", () => {
   it("names the founder ruling it is standing against", () => {
     // shell.css refuses `scrollbar-width: none` on purpose. A later reader must be
     // able to find out why this one is allowed without re-deriving the argument.
-    const block = css.slice(css.indexOf("A COLUMN THAT DISSOLVES"), css.indexOf(".mrd-fade-scroll"));
+    const block = css.slice(
+      css.indexOf("A COLUMN THAT DISSOLVES"),
+      css.indexOf(".mrd-fade-scroll"),
+    );
     expect(block).toContain("shell.css");
     expect(block.toLowerCase()).toContain("founder ruling");
   });

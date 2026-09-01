@@ -635,16 +635,12 @@ export function ContextCards({
                 <span className="ml-auto flex shrink-0 items-center gap-2.5">
                   {/* "241 characters", "lines 12 to 18" — a phrase, not a
                       figure, so the sans face with tabular figures kept. */}
-                  {chunk.extent && (
-                    <span className="mrd-meta tabular-nums">{chunk.extent}</span>
-                  )}
+                  {chunk.extent && <span className="mrd-meta tabular-nums">{chunk.extent}</span>}
                   {chunk.relevance !== undefined && <Relevance value={chunk.relevance} />}
                 </span>
               </div>
 
-              <p className="px-3 pt-2 pb-1 mrd-copy">
-                {chunk.body}
-              </p>
+              <p className="px-3 pt-2 pb-1 mrd-copy">{chunk.body}</p>
 
               {chunk.source && (
                 <div

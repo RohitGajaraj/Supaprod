@@ -25,10 +25,7 @@ export function shouldIgnoreKey(e: {
   altKey?: boolean;
 }): boolean {
   if (e.metaKey || e.ctrlKey || e.altKey) return true;
-  const el = e.target as
-    | { tagName?: string; isContentEditable?: boolean }
-    | null
-    | undefined;
+  const el = e.target as { tagName?: string; isContentEditable?: boolean } | null | undefined;
   if (!el || typeof el.tagName !== "string") return false;
   const tag = el.tagName.toUpperCase();
   if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;

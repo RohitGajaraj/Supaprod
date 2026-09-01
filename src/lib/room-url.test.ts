@@ -2,7 +2,11 @@
 // when BOTH slugs exist. Anything less falls back to the legacy /m/<uuid>
 // shape, which is why no row can end up with no URL at all.
 import { describe, test, expect } from "bun:test";
-import { isUuid, roomLinkFor, ROOM_PRODUCT_ROUTE_IDS, ROOM_ROUTE_IDS,
+import {
+  isUuid,
+  roomLinkFor,
+  ROOM_PRODUCT_ROUTE_IDS,
+  ROOM_ROUTE_IDS,
   matchesRoom,
 } from "./room-url";
 
@@ -77,8 +81,7 @@ describe("room route ids", () => {
     // The helper still compiles and still runs against an empty list; callers
     // simply always take the non-room branch.
     expect(
-      matchesRoom(ROOM_ROUTE_IDS,
-  matchesRoom, ["/_authenticated/$workspaceSlug/$productSlug"]),
+      matchesRoom(ROOM_ROUTE_IDS, matchesRoom, ["/_authenticated/$workspaceSlug/$productSlug"]),
     ).toBe(false);
     expect(matchesRoom(ROOM_ROUTE_IDS, ["/_authenticated/m/$productId"])).toBe(false);
   });

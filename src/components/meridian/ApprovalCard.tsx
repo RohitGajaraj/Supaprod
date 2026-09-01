@@ -245,9 +245,7 @@ export function ApprovalCard({
             >
               Approved
             </span>
-            <span className="text-center mrd-meta">
-              The run picks up from here.
-            </span>
+            <span className="text-center mrd-meta">The run picks up from here.</span>
           </div>
         ) : (
           <div

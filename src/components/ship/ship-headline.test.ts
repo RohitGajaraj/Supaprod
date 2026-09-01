@@ -16,12 +16,8 @@ describe("what the ship station says at the top", () => {
   it("keeps the two waits apart, because only one of them is yours", () => {
     // "Waiting on an approver" and "waiting on you" are different jobs, and
     // merging them into one count would hide the one a reader can act on.
-    expect(shipHeadline({ pending: 1, drafts: 0 })).toBe(
-      "One announcement is waiting to go out.",
-    );
-    expect(shipHeadline({ pending: 2, drafts: 5 })).toBe(
-      "2 announcements are waiting to go out.",
-    );
+    expect(shipHeadline({ pending: 1, drafts: 0 })).toBe("One announcement is waiting to go out.");
+    expect(shipHeadline({ pending: 2, drafts: 5 })).toBe("2 announcements are waiting to go out.");
   });
 
   it("still says nothing is waiting when nothing is", () => {

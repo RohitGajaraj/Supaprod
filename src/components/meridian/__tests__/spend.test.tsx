@@ -237,9 +237,10 @@ describe("the inputs nobody drew, which is where all three defects were", () => 
     expect(container.innerHTML).toContain("mrd-fail");
 
     const fill = container.querySelector("[aria-hidden] > div");
-    expect(fill?.getAttribute("style"), "a zero cap divided into Infinity or drew nothing").toContain(
-      "width: 100%",
-    );
+    expect(
+      fill?.getAttribute("style"),
+      "a zero cap divided into Infinity or drew nothing",
+    ).toContain("width: 100%");
   });
 
   it("says the ceiling is reached when a zero cap has had nothing spent against it either", () => {
@@ -339,7 +340,9 @@ describe("one resolver, so two surfaces cannot disagree about one workspace", ()
     );
     const code = panel.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 
-    expect(code, "BudgetsPanel grew a second threshold back").not.toContain("alertPct / 100) * cap");
+    expect(code, "BudgetsPanel grew a second threshold back").not.toContain(
+      "alertPct / 100) * cap",
+    );
     expect(code, "BudgetsPanel stopped reading the shared resolver").toContain("spendState(");
     expect(code).toContain("SPEND_TONE");
   });

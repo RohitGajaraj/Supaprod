@@ -157,22 +157,43 @@ export const getLivenessReport = createServerFn({ method: "GET" })
       const now = new Date().toISOString();
       live = [
         ...fresh.capabilities.map((c) => ({
-          capability_id: c.id, kind: "capability", window_days: windowDays,
-          verdict: c.verdict, reason: c.reason, checked_at: now,
-          detail: { countInWindow: c.countInWindow, lastAt: c.lastAt,
-                    neverExecuted: c.neverExecuted },
+          capability_id: c.id,
+          kind: "capability",
+          window_days: windowDays,
+          verdict: c.verdict,
+          reason: c.reason,
+          checked_at: now,
+          detail: {
+            countInWindow: c.countInWindow,
+            lastAt: c.lastAt,
+            neverExecuted: c.neverExecuted,
+          },
         })),
         ...fresh.integrity.map((c) => ({
-          capability_id: c.id, kind: "integrity", window_days: windowDays,
-          verdict: c.verdict, reason: c.reason, checked_at: now,
-          detail: { totalRows: c.totalRows, offendingRows: c.offendingRows,
-                    deadSegments: c.deadSegments },
+          capability_id: c.id,
+          kind: "integrity",
+          window_days: windowDays,
+          verdict: c.verdict,
+          reason: c.reason,
+          checked_at: now,
+          detail: {
+            totalRows: c.totalRows,
+            offendingRows: c.offendingRows,
+            deadSegments: c.deadSegments,
+          },
         })),
         ...fresh.vocabulary.map((c) => ({
-          capability_id: c.id, kind: "vocabulary", window_days: windowDays,
-          verdict: c.verdict, reason: c.reason, checked_at: now,
-          detail: { totalRows: c.totalRows, undeclaredRows: c.undeclaredRows,
-                    unusedValues: c.unusedValues },
+          capability_id: c.id,
+          kind: "vocabulary",
+          window_days: windowDays,
+          verdict: c.verdict,
+          reason: c.reason,
+          checked_at: now,
+          detail: {
+            totalRows: c.totalRows,
+            undeclaredRows: c.undeclaredRows,
+            unusedValues: c.unusedValues,
+          },
         })),
       ];
     }

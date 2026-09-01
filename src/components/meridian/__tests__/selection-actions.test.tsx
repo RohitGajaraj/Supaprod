@@ -225,20 +225,32 @@ describe("placeSelectionBar decides geometry once, where tests can hold it", () 
     const barBottom = placed.top + BAR.h;
     for (const b of bands) {
       const overlaps = barTop < b.y + b.height && b.y < barBottom;
-      expect(
-        overlaps,
-        `bar [${barTop}, ${barBottom}] overlaps band at y=${b.y}`,
-      ).toBe(false);
+      expect(overlaps, `bar [${barTop}, ${barBottom}] overlaps band at y=${b.y}`).toBe(false);
     }
     // And when there IS room above, the bar sits clear of every band too.
-    const roomy = placeSelectionBar([band(400), band(418)], { ...CONTAINER, top: 0, bottom: 900 }, BAR.w, BAR.h);
+    const roomy = placeSelectionBar(
+      [band(400), band(418)],
+      { ...CONTAINER, top: 0, bottom: 900 },
+      BAR.w,
+      BAR.h,
+    );
     expect(roomy.top + BAR.h <= 400 - 6).toBe(true);
   });
 
   it("clamps horizontally inside the container with an eight pixel margin", () => {
-    const farRight = placeSelectionBar([{ x: 5500, y: 400, width: 40, height: 18 }], CONTAINER, BAR.w, BAR.h);
+    const farRight = placeSelectionBar(
+      [{ x: 5500, y: 400, width: 40, height: 18 }],
+      CONTAINER,
+      BAR.w,
+      BAR.h,
+    );
     expect(farRight.left).toBe(CONTAINER.right - 8 - BAR.w);
-    const offLeft = placeSelectionBar([{ x: -500, y: 400, width: 40, height: 18 }], CONTAINER, BAR.w, BAR.h);
+    const offLeft = placeSelectionBar(
+      [{ x: -500, y: 400, width: 40, height: 18 }],
+      CONTAINER,
+      BAR.w,
+      BAR.h,
+    );
     expect(offLeft.left).toBe(CONTAINER.left + 8);
   });
 });
@@ -266,18 +278,14 @@ describe("what came back is held as keep or discard", () => {
 
   it("keeps on Keep", () => {
     let kept = 0;
-    render(
-      <Bar phase="ready" proposal={proposal} onKeep={() => kept++} onDiscard={() => {}} />,
-    );
+    render(<Bar phase="ready" proposal={proposal} onKeep={() => kept++} onDiscard={() => {}} />);
     fireEvent.click(screen.getByRole("button", { name: "Keep" }));
     expect(kept).toBe(1);
   });
 
   it("discards on Discard", () => {
     let tossed = 0;
-    render(
-      <Bar phase="ready" proposal={proposal} onKeep={() => {}} onDiscard={() => tossed++} />,
-    );
+    render(<Bar phase="ready" proposal={proposal} onKeep={() => {}} onDiscard={() => tossed++} />);
     fireEvent.click(screen.getByRole("button", { name: "Discard" }));
     expect(tossed).toBe(1);
   });

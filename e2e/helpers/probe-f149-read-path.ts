@@ -38,16 +38,32 @@ for (const n of [50, 100, 110, 115, 120, 200, 400]) {
 }
 
 console.log("\n== repo.read: source characters the model receives ==");
-const SRC = (n: number) => "const a = () => <div>{x && y}</div>;\n".repeat(Math.ceil(n / 37)).slice(0, n);
+const SRC = (n: number) =>
+  "const a = () => <div>{x && y}</div>;\n".repeat(Math.ceil(n / 37)).slice(0, n);
 for (const size of [2000, 4000, 7000, 8000, 12000, 30000, 60000, 120000]) {
-  const p = { repo: "x/y", ref: "main", files: [{ path: "src/checkout/AddressStep.tsx", sha: "abc", size, content: SRC(size) }] };
+  const p = {
+    repo: "x/y",
+    ref: "main",
+    files: [{ path: "src/checkout/AddressStep.tsx", sha: "abc", size, content: SRC(size) }],
+  };
   const o = oldPath(p);
   const w = shortenToolResult(p);
   let newContent = "";
-  try { newContent = (JSON.parse(w).files?.[0]?.content ?? "").replace(/\n\n\[SHORTENED[\s\S]*$/, ""); } catch { newContent = "<unparseable>"; }
-  const oldParses = (() => { try { JSON.parse(o); return "yes"; } catch { return "NO"; } })();
+  try {
+    newContent = (JSON.parse(w).files?.[0]?.content ?? "").replace(/\n\n\[SHORTENED[\s\S]*$/, "");
+  } catch {
+    newContent = "<unparseable>";
+  }
+  const oldParses = (() => {
+    try {
+      JSON.parse(o);
+      return "yes";
+    } catch {
+      return "NO";
+    }
+  })();
   console.log(
     `size=${String(size).padEnd(7)} OLD: ${String(o.length).padEnd(5)} chars, parses=${oldParses}, entities=${(o.match(/&(amp|lt|gt);/g) ?? []).length}` +
-    `  |  NEW: ${String(w.length).padEnd(5)} chars, content=${String(newContent.length).padEnd(6)}, byteIdentical=${newContent === SRC(size)}`,
+      `  |  NEW: ${String(w.length).padEnd(5)} chars, content=${String(newContent.length).padEnd(6)}, byteIdentical=${newContent === SRC(size)}`,
   );
 }

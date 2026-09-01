@@ -42,7 +42,12 @@ describe("what a person may take over", () => {
       entry: "sense",
       path: ["sense", "define", "design", "build", "ship", "learn"],
       waived: [
-        { station: "decide", reason: "The call was already made.", by: "person", reopensWhen: "never" },
+        {
+          station: "decide",
+          reason: "The call was already made.",
+          by: "person",
+          reopensWhen: "never",
+        },
       ],
       origin: null,
     };

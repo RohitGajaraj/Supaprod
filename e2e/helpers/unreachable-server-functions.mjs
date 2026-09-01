@@ -466,9 +466,7 @@ if (frozen) {
   const over = [];
   const added = [];
   if (orphans.length > frozen.serverFunctions) {
-    over.push(
-      `server functions ${frozen.serverFunctions} -> ${orphans.length}`,
-    );
+    over.push(`server functions ${frozen.serverFunctions} -> ${orphans.length}`);
     const n = newcomers(fnKeys, frozen.serverFunctionNames);
     if (n === null) added.push(["server functions", null]);
     else for (const k of n) added.push(["server function", k]);

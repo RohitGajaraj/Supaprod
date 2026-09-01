@@ -80,10 +80,7 @@ export function maxAttemptsFor(
  * absent or unparseable. Never returns negative: a date already in the past means
  * wait zero, not travel backwards.
  */
-export function parseRetryAfterMs(
-  header: string | null | undefined,
-  nowMs: number,
-): number | null {
+export function parseRetryAfterMs(header: string | null | undefined, nowMs: number): number | null {
   if (header === null || header === undefined) return null;
   const raw = header.trim();
   if (raw === "") return null;

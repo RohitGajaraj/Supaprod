@@ -184,9 +184,7 @@ describe("trust-ledger.functions – pure helpers", () => {
           relation: "informs",
         },
       ];
-      const learnings: LearningLite[] = [
-        { id: "learning1", verdict: "confirmed" },
-      ];
+      const learnings: LearningLite[] = [{ id: "learning1", verdict: "confirmed" }];
       const result = provenDecisionIds(edges, learnings);
       expect(result.get("dec1")).toBe("learning1");
     });
@@ -202,9 +200,7 @@ describe("trust-ledger.functions – pure helpers", () => {
           valid_to: "2026-07-15T00:00:00Z",
         },
       ];
-      const learnings: LearningLite[] = [
-        { id: "learning1", verdict: "validated" },
-      ];
+      const learnings: LearningLite[] = [{ id: "learning1", verdict: "validated" }];
       const result = provenDecisionIds(edges, learnings);
       expect(result.has("dec1")).toBe(false);
     });
@@ -236,9 +232,7 @@ describe("trust-ledger.functions – pure helpers", () => {
           relation: "supersedes",
         },
       ];
-      const learnings: LearningLite[] = [
-        { id: "learning1", verdict: "validated" },
-      ];
+      const learnings: LearningLite[] = [{ id: "learning1", verdict: "validated" }];
       const result = provenDecisionIds(edges, learnings);
       expect(result.has("dec1")).toBe(false);
     });

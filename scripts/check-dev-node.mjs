@@ -46,7 +46,10 @@ const DEV_PORT = 8080;
 
 const sh = (cmd, args) => {
   try {
-    return execFileSync(cmd, args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    return execFileSync(cmd, args, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
   } catch {
     return "";
   }
@@ -54,7 +57,9 @@ const sh = (cmd, args) => {
 
 // `lsof` absent is not a failure: skip rather than block dev on a missing tool.
 if (sh("which", ["lsof"])) {
-  const holders = sh("lsof", [`-ti:${DEV_PORT}`, "-sTCP:LISTEN"]).split("\n").filter(Boolean);
+  const holders = sh("lsof", [`-ti:${DEV_PORT}`, "-sTCP:LISTEN"])
+    .split("\n")
+    .filter(Boolean);
   const mine = String(process.pid);
   const others = holders.filter((pid) => pid !== mine);
   if (others.length > 0 && !process.env.SUPAPROD_ALLOW_PORT_CONFLICT) {

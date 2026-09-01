@@ -135,9 +135,7 @@ describe("agent-fleet — every status this product writes is accounted for", ()
     // is the difference between a precondition and a blind spot: this cannot
     // pass by simply not mentioning them.
     const bucketed = STATUSES_PRODUCTION_WRITES.filter((s) => !AWAITING_A_RULING.has(s));
-    const fleet = computeAgentFleet(
-      bucketed.map((status) => r({ agent_slug: "scout", status })),
-    );
+    const fleet = computeAgentFleet(bucketed.map((status) => r({ agent_slug: "scout", status })));
     const scout = fleet.agents.find((a) => a.slug === "scout")!;
     expect(scout.total).toBe(bucketed.length);
     expect(scout.running + scout.queued + scout.done + scout.failed).toBe(scout.total);

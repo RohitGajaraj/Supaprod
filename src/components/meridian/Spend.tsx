@@ -244,8 +244,7 @@ export function Spend({
    * the ceiling is therefore already at the reader's back. Dividing by it would
    * produce Infinity, so it is answered before the division rather than after.
    */
-  const pct =
-    cap === null ? 0 : cap > 0 ? Math.max(0, Math.min(100, (spent / cap) * 100)) : 100;
+  const pct = cap === null ? 0 : cap > 0 ? Math.max(0, Math.min(100, (spent / cap) * 100)) : 100;
 
   /*
    * THE SMALLEST MARK IS A DOT, AND A DOT IS THE TRACK'S OWN HEIGHT.
@@ -287,9 +286,7 @@ export function Spend({
         <span className="min-w-0 truncate text-mrd-label text-mrd-body">{label}</span>
         <span className="shrink-0 font-mrd-mono text-mrd-data tabular-nums">
           <span className="text-mrd-ink">{money(spent, currency)}</span>
-          {cap === null ? null : (
-            <span className="text-mrd-mute"> of {money(cap, currency)}</span>
-          )}
+          {cap === null ? null : <span className="text-mrd-mute"> of {money(cap, currency)}</span>}
         </span>
       </div>
 
@@ -302,10 +299,7 @@ export function Spend({
        * both already text, so nothing is lost by leaving the drawing out of the
        * accessible tree, and a mis-announced meter is worse than no meter.
        */}
-      <div
-        aria-hidden
-        className="mt-mrd-3 h-1 w-full overflow-hidden rounded-mrd-xs bg-mrd-sink"
-      >
+      <div aria-hidden className="mt-mrd-3 h-1 w-full overflow-hidden rounded-mrd-xs bg-mrd-sink">
         {cap === null ? null : (
           <div
             className={`h-full rounded-mrd-xs ${FILL[state]}${floor}`}
@@ -333,9 +327,7 @@ export function Spend({
           ) : (
             <>
               {chip ? (
-                <StatusChip status={chip}>
-                  {state === "spent" ? "Cap reached" : word}
-                </StatusChip>
+                <StatusChip status={chip}>{state === "spent" ? "Cap reached" : word}</StatusChip>
               ) : null}
               {note ? <span>{note}</span> : null}
             </>

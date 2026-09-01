@@ -228,9 +228,7 @@ export function Search<Item>({
       <span className="text-mrd-base font-medium" style={{ color: "var(--mrd-fail)" }}>
         {failure.message}
       </span>
-      <span className="mrd-meta">
-        Nothing was searched. This is a read that did not come back.
-      </span>
+      <span className="mrd-meta">Nothing was searched. This is a read that did not come back.</span>
       {failure.onRetry && (
         <button
           type="button"

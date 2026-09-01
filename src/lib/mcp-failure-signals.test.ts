@@ -34,21 +34,28 @@ const has = (hay: string, needle: string, what: string) =>
 const lacks = (hay: string, needle: string, what: string) =>
   expect(hay.includes(needle), `expected NOT to find ${what}`).toBe(false);
 
-
 describe("the wait is measured, not guessed", () => {
   it("derives the hint from the oldest call in the sliding window", () => {
     // A flat "wait 60 seconds" would be wrong almost always and wrong in the
     // expensive direction: an agent told to wait a minute when a slot frees in
     // three seconds sits idle for fifty-seven.
     has(AUTH, "secondsUntilCapacity", "secondsUntilCapacity");
-    has(AUTH, '.order("created_at", { ascending: true })', '.order("created_at", { ascending: true })');
+    has(
+      AUTH,
+      '.order("created_at", { ascending: true })',
+      '.order("created_at", { ascending: true })',
+    );
     has(AUTH, "RATE_WINDOW_MS - agedMs", "RATE_WINDOW_MS - agedMs");
   });
 
   it("never says zero, and never says longer than the window", () => {
     // Retry-After 0 is an invitation to retry inside the same window and be
     // refused again. Nothing in a sliding window takes longer than the window.
-    has(AUTH, "Math.min(fullWindow, Math.max(1, remaining))", "Math.min(fullWindow, Math.max(1, remaining))");
+    has(
+      AUTH,
+      "Math.min(fullWindow, Math.max(1, remaining))",
+      "Math.min(fullWindow, Math.max(1, remaining))",
+    );
   });
 
   it("keeps the full window when the check itself failed", () => {
@@ -103,7 +110,11 @@ describe("one rate limiter, and only one", () => {
   });
 
   it("the route imports the shared one", () => {
-    has(ROUTE, 'import { checkRateLimit } from "@/lib/mcp-auth.server"', 'import { checkRateLimit } from "@/lib/mcp-auth.server"');
+    has(
+      ROUTE,
+      'import { checkRateLimit } from "@/lib/mcp-auth.server"',
+      'import { checkRateLimit } from "@/lib/mcp-auth.server"',
+    );
   });
 
   it("the shared one is the only definition anywhere", () => {

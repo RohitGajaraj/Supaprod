@@ -35,7 +35,11 @@ const FAR_FUTURE = 4102444800; // 2100-01-01, so nothing tries to refresh it.
 const USER_ID = "00000000-0000-4000-8000-00000000dead";
 
 const b64url = (o) =>
-  Buffer.from(JSON.stringify(o)).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  Buffer.from(JSON.stringify(o))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 
 /** Shaped like a JWT so anything that decodes it finds what it expects. Signed by nothing. */
 const jwt = [

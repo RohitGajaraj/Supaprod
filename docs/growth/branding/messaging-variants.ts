@@ -105,7 +105,6 @@ const VARIANTS: Variant[] = [
   },
 ];
 
-
 /**
  * Hook size, derived from the longest line rather than hand-set.
  *
@@ -118,7 +117,10 @@ const VARIANTS: Variant[] = [
  */
 function hookSize(hook: string, boxPx: number, max: number) {
   const longest = Math.max(
-    ...hook.replace(/<[^>]+>/g, "").split("<br>").map((l) => l.trim().length),
+    ...hook
+      .replace(/<[^>]+>/g, "")
+      .split("<br>")
+      .map((l) => l.trim().length),
   );
   return Math.min(max, Math.floor(boxPx / (0.47 * longest)));
 }
@@ -204,7 +206,7 @@ function card(v: Variant, w: number, h: number, id: string) {
     ${GRAIN(P.grain)}
     <div style="position:absolute;left:${44 * s}px;top:${40 * s}px">${lockup(28 * s, 21 * s, id + "lk")}</div>
     <div style="position:absolute;left:0;right:0;bottom:${56 * s}px;text-align:center;padding:0 ${56 * s}px">
-      <div style="font-size:${hookSize(flat, (w - 130 * s), 50 * s)}px;line-height:1.1;font-weight:400;letter-spacing:-.042em;color:${P.bone}">${flat}</div>
+      <div style="font-size:${hookSize(flat, w - 130 * s, 50 * s)}px;line-height:1.1;font-weight:400;letter-spacing:-.042em;color:${P.bone}">${flat}</div>
       ${v.sub ? `<div style="margin-top:${16 * s}px;font-size:${18.5 * s}px;color:${P.slate}">${v.sub}</div>` : ""}
       <div style="margin-top:${18 * s}px;display:flex;align-items:center;justify-content:center;gap:${13 * s}px">
         <span style="width:${22 * s}px;height:1px;background:${P.ember};opacity:.85"></span>

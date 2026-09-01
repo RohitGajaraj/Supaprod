@@ -64,8 +64,22 @@ describe("a silence becomes a row, and a stretch of work does not", () => {
       const { container, unmount } = render(
         <RunTimeline
           events={[
-            { id: "a", at: at(0), kind: "station", station: "decide", label: "Something happened", state },
-            { id: "b", at: at(30), kind: "station", station: "build", label: "Something else did", state: "done" },
+            {
+              id: "a",
+              at: at(0),
+              kind: "station",
+              station: "decide",
+              label: "Something happened",
+              state,
+            },
+            {
+              id: "b",
+              at: at(30),
+              kind: "station",
+              station: "build",
+              label: "Something else did",
+              state: "done",
+            },
           ]}
         />,
       );
@@ -109,7 +123,14 @@ describe("the state is a word, not only a hue", () => {
       <RunTimeline
         events={[
           { id: "a", at: at(0), kind: "gate", label: "Needs a call", state: "gate" },
-          { id: "b", at: at(1), kind: "station", station: "ship", label: "Out of credit", state: "held" },
+          {
+            id: "b",
+            at: at(1),
+            kind: "station",
+            station: "ship",
+            label: "Out of credit",
+            state: "held",
+          },
           { id: "c", at: at(2), kind: "check", label: "Ran the checks", state: "failed" },
           { id: "d", at: at(3), kind: "repo", label: "Opened the pull request", state: "passed" },
         ]}
@@ -166,7 +187,14 @@ describe("live mode ticks and never implies a proportion", () => {
     render(
       <RunTimeline
         events={[
-          { id: "a", at: at(0), kind: "station", station: "discover", label: "No source is connected", state: "held" },
+          {
+            id: "a",
+            at: at(0),
+            kind: "station",
+            station: "discover",
+            label: "No source is connected",
+            state: "held",
+          },
         ]}
         now={at(4)}
       />,
@@ -183,7 +211,7 @@ describe("live mode ticks and never implies a proportion", () => {
     const { container } = render(<RunTimeline events={CONTIGUOUS} now={at(3)} />);
     expect(container.querySelector('[role="progressbar"]')).toBeNull();
     expect(container.querySelector("progress")).toBeNull();
-    expect(container.querySelector('[aria-valuenow]')).toBeNull();
+    expect(container.querySelector("[aria-valuenow]")).toBeNull();
     expect(container.textContent).not.toContain("%");
   });
 

@@ -537,7 +537,11 @@ export function ProviderMark({
             focusable="false"
           >
             {glyph.parts.map((part, i) => (
-              <path key={i} d={part.d} fill={flat ? "currentColor" : (part.fill ?? "currentColor")} />
+              <path
+                key={i}
+                d={part.d}
+                fill={flat ? "currentColor" : (part.fill ?? "currentColor")}
+              />
             ))}
           </svg>
         ) : Mark ? (

@@ -121,7 +121,8 @@ for (const dir of SEARCH) {
     const src = readFileSync(f, "utf8");
     src.split("\n").forEach((line, i) => {
       if (isProse(line)) return;
-      if (UNSAFE.test(line)) offenders.push({ file: f, line: i + 1, text: line.trim().slice(0, 140) });
+      if (UNSAFE.test(line))
+        offenders.push({ file: f, line: i + 1, text: line.trim().slice(0, 140) });
     });
   }
 }
@@ -151,6 +152,6 @@ console.error(
   "\nzsh parses `:` after an unbraced parameter as a modifier and eats the path, so this\n" +
     "stops testing the file and starts testing the ref. It is wrong in BOTH directions:\n" +
     "it reported an absent file present, and a present file absent, on this repository.\n" +
-    "Use `git ls-tree -r --name-only <ref> | grep -qx <path>`, or quote it: \"$ref:$path\".",
+    'Use `git ls-tree -r --name-only <ref> | grep -qx <path>`, or quote it: "$ref:$path".',
 );
 process.exit(1);

@@ -289,7 +289,6 @@ const HERO = "Supaprod";
 // where it is the native word; it never appears in a hero, kicker or eyebrow.
 // The ruled line is: "For product managers who ship with agents".
 
-
 // The subhead follows the live hero's shape, with one deliberate difference.
 // The site currently reads "agents that know what to build, ship it, and
 // remember" and "remember" is the exact word the 2026-08-02 ruling bans. The
@@ -460,12 +459,10 @@ function build(s: Spec): string {
     // sits on the same colour and the corners fill. Same builder, same stroke
     // ladder, no second source of truth for the mark.
     case "logosquare": {
-      const icon = appIcon(
-        bg(g),
-        g === "dark" ? SILVER : GRAPHITE,
-        null,
-        strokeFor(s.w),
-      ).replace('width="512" height="512"', `width="${s.w}" height="${s.h}"`);
+      const icon = appIcon(bg(g), g === "dark" ? SILVER : GRAPHITE, null, strokeFor(s.w)).replace(
+        'width="512" height="512"',
+        `width="${s.w}" height="${s.h}"`,
+      );
       return page(
         `display:flex;align-items:center;justify-content:center`,
         icon,

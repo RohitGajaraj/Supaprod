@@ -120,7 +120,10 @@ describe("linkedOutcomeIsSettled (FC-01 gate, first half)", () => {
     }) as never;
 
   test("a human-settled outcome opens the gate", async () => {
-    const r = await linkedOutcomeIsSettled(prdDb({ verdict: "validated", settled_by: "human" }), "p1");
+    const r = await linkedOutcomeIsSettled(
+      prdDb({ verdict: "validated", settled_by: "human" }),
+      "p1",
+    );
     expect(r.settled).toBe(true);
   });
 

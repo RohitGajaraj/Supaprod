@@ -45,9 +45,7 @@ export function Teammates({ seats }: { seats: LiveSeat[] }) {
 
   return (
     <div data-mrd="" className="flex flex-col gap-mrd-2">
-      <p className="mrd-meta">
-        {seats.length} teammates are working on this right now.
-      </p>
+      <p className="mrd-meta">{seats.length} teammates are working on this right now.</p>
       <ul className="flex flex-wrap items-center gap-mrd-4">
         {seats.map((s) => (
           <li key={`${s.slug ?? "unknown"}:${s.name}`} className="flex items-center gap-mrd-2">

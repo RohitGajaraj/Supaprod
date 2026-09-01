@@ -78,7 +78,10 @@ describe("the boundary controls never print a raw database error to a person", (
   // this file): the governed writes left `_authenticated.boundary.tsx` for
   // `governance/BoundaryControls.tsx`, which the Safety room renders. The
   // property is unchanged: no raw Postgres text reaches a receipt.
-  const boundary = readFileSync(join(SRC, "components", "governance", "BoundaryControls.tsx"), "utf8")
+  const boundary = readFileSync(
+    join(SRC, "components", "governance", "BoundaryControls.tsx"),
+    "utf8",
+  )
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^\s*\/\/.*$/gm, "");
 
@@ -93,7 +96,7 @@ describe("the boundary controls never print a raw database error to a person", (
   it("gives every governed mutation an onError, so no write fails in silence", () => {
     // setTrackCap shipped with no onError at all: a refused spend-ceiling write
     // produced no receipt and no change, leaving the previous success on screen.
-    const mutations = boundary.match(/useMutation\(\{[\s\S]*?\n  \}\);/g) ?? [];
+    const mutations = boundary.match(/useMutation\(\{[\s\S]*?\n {2}\}\);/g) ?? [];
     expect(mutations.length).toBeGreaterThan(3);
     const silent = mutations.filter((m) => /mutationFn:/.test(m) && !/onError:/.test(m));
     expect(silent).toEqual([]);

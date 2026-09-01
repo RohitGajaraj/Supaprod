@@ -346,7 +346,11 @@ export function PlanGate({
          * Space activate the focused one, and the number keys above take any of
          * them from anywhere in the gate.
          */
-        <div role="group" aria-label="How much of this can run without you" className="flex flex-col gap-mrd-3">
+        <div
+          role="group"
+          aria-label="How much of this can run without you"
+          className="flex flex-col gap-mrd-3"
+        >
           {ANSWERS.map((answer, i) => (
             <button
               key={answer.id}

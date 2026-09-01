@@ -194,7 +194,6 @@ type Orr = {
   id: string;
 };
 
-
 // THE LOOP IS A SPIRAL, NOT A CIRCLE.
 //
 // Founder note 2026-08-05: "why don't we segregate across multiple spirals, so
@@ -316,7 +315,6 @@ function returnPath(o: Orr) {
     ${bead(0.72, o.nodeR * 0.26, 0.72)}${bead(0.88, o.nodeR * 0.32, 0.95)}`;
 }
 
-
 /**
  * THE FORWARD PATH — 01 through 07, in sequence, along the spiral.
  *
@@ -340,8 +338,10 @@ function returnPath(o: Orr) {
 function forwardPath(o: Orr) {
   const seg: string[] = [];
   for (let i = 0; i < 6; i++) {
-    const t0 = ang(i), t1 = ang(i + 1);
-    const r0 = stationRadius(o, i), r1 = stationRadius(o, i + 1);
+    const t0 = ang(i),
+      t1 = ang(i + 1);
+    const r0 = stationRadius(o, i),
+      r1 = stationRadius(o, i + 1);
     // Interpolate radius along the arc so the segment rides the spiral rather
     // than cutting a straight chord across it.
     let d = "";

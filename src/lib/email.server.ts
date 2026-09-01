@@ -314,9 +314,7 @@ export async function sendInviteEmail(args: InviteEmail): Promise<EmailResult> {
   const html = emailShell(
     [
       p(`Someone on <strong>${where}</strong> added you to it on Supaprod.`),
-      p(
-        `Supaprod is invite only right now. This link is your way in, so you do not need a code.`,
-      ),
+      p(`Supaprod is invite only right now. This link is your way in, so you do not need a code.`),
       emailButton(args.inviteLink, "Accept the invitation"),
       `<p style="margin:0;font-size:12px;line-height:1.5;color:#6b6457;">The link expires in seven days. If it has gone stale, ask whoever invited you to send another.</p>`,
     ].join(""),

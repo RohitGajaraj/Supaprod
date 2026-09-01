@@ -158,12 +158,16 @@ describe("every transition, all thirty-six of them", () => {
         if (got !== MEANS[type]) wrong.push(`${from} + ${type} -> ${got}, wanted ${MEANS[type]}`);
       }
     }
-    expect(wrong, "the machine is not memoryless: a transition depended on where it came from")
-      .toEqual([]);
+    expect(
+      wrong,
+      "the machine is not memoryless: a transition depended on where it came from",
+    ).toEqual([]);
   });
 
   it("started from all six states, so the sweep above was not vacuous", () => {
-    const reached = new Set(SESSION_STATES.map((s) => stateOf(PREFIX[s].activities, PREFIX[s].now)));
+    const reached = new Set(
+      SESSION_STATES.map((s) => stateOf(PREFIX[s].activities, PREFIX[s].now)),
+    );
     expect([...reached].sort()).toEqual([...SESSION_STATES].sort());
   });
 
@@ -488,11 +492,7 @@ describe("ephemeral rows disappear without leaving litter", () => {
       activity("thought", T0 + 1, true),
       activity("prompt", T0 + 2),
     ];
-    expect(timelineActivities(session).map((a) => a.type)).toEqual([
-      "prompt",
-      "thought",
-      "prompt",
-    ]);
+    expect(timelineActivities(session).map((a) => a.type)).toEqual(["prompt", "thought", "prompt"]);
   });
 
   it("keeps every row that was never marked ephemeral", () => {

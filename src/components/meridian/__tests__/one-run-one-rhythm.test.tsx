@@ -38,17 +38,44 @@ import { RUN_ROW, RUN_STACK, formatElapsed, runGlyphForTool } from "../run-rows"
 const T = Date.UTC(2026, 7, 19, 3, 0);
 
 const STEPS: PlanStep[] = [
-  { id: "a", label: "Read the outage thread", state: "done", agentSlug: "researcher", station: "discover" },
+  {
+    id: "a",
+    label: "Read the outage thread",
+    state: "done",
+    agentSlug: "researcher",
+    station: "discover",
+  },
   { id: "b", label: "Write the notice", state: "active", agentSlug: "builder", station: "build" },
 ];
 
 const EVENTS: TimelineEvent[] = [
-  { id: "a", at: T, kind: "station", station: "discover", label: "Read the outage thread", state: "done" },
-  { id: "b", at: T + 60_000, kind: "repo", label: "Write the notice", agentSlug: "builder", state: "working" },
+  {
+    id: "a",
+    at: T,
+    kind: "station",
+    station: "discover",
+    label: "Read the outage thread",
+    state: "done",
+  },
+  {
+    id: "b",
+    at: T + 60_000,
+    kind: "repo",
+    label: "Write the notice",
+    agentSlug: "builder",
+    state: "working",
+  },
 ];
 
 const CALLS: ToolStreamRow[] = [
-  { id: "a", tool: "web.search", at: T, argument: "firmware reboot", durationMs: 2_400, state: "done" },
+  {
+    id: "a",
+    tool: "web.search",
+    at: T,
+    argument: "firmware reboot",
+    durationMs: 2_400,
+    state: "done",
+  },
   { id: "b", tool: "studio.checks.run", at: T + 60_000, argument: "bun test", state: "running" },
 ];
 
@@ -57,7 +84,9 @@ function rowsOf(container: HTMLElement): HTMLElement[] {
   return [...container.querySelectorAll("li")].map((li) => {
     /* A selectable row wraps its grid in a button, so the grid is the child. */
     const inner = li.firstElementChild;
-    return (inner instanceof HTMLElement && inner.className.includes("grid") ? inner : li) as HTMLElement;
+    return (
+      inner instanceof HTMLElement && inner.className.includes("grid") ? inner : li
+    ) as HTMLElement;
   });
 }
 
@@ -416,13 +445,14 @@ describe("a chip appears only where something is running, waiting or broken", ()
     const plan = render(
       <PlanCard steps={[{ id: "a", label: "Read it", state: "done", agentSlug: "researcher" }]} />,
     );
-    expect(plan.container.querySelector("[data-status]"), "PlanCard chipped a done step").toBeNull();
+    expect(
+      plan.container.querySelector("[data-status]"),
+      "PlanCard chipped a done step",
+    ).toBeNull();
     plan.unmount();
 
     const timeline = render(
-      <RunTimeline
-        events={[{ id: "a", at: T, kind: "fetch", label: "Read it", state: "done" }]}
-      />,
+      <RunTimeline events={[{ id: "a", at: T, kind: "fetch", label: "Read it", state: "done" }]} />,
     );
     expect(
       timeline.container.querySelector("[data-status]"),

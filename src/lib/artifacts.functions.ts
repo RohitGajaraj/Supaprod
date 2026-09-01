@@ -40,92 +40,100 @@ const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
 
 export const listArtifacts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ artifacts: ArtifactSummary[]; products: ArtifactProduct[] }> => {
-    const db = context.supabase as unknown as SupabaseClient;
-    const userId = context.userId;
-    const out: ArtifactSummary[] = [];
+  .handler(
+    async ({ context }): Promise<{ artifacts: ArtifactSummary[]; products: ArtifactProduct[] }> => {
+      const db = context.supabase as unknown as SupabaseClient;
+      const userId = context.userId;
+      const out: ArtifactSummary[] = [];
 
-    // Prototypes (the /p/$slug viewer opens them). RLS-scoped.
-    {
-      const { data } = await db
-        .from("prototypes")
-        .select("id,name,share_slug,updated_at,project_id")
-        .order("updated_at", { ascending: false })
-        .limit(100);
-      for (const r of (data ?? []) as Row[]) {
-        const slug = str(r.share_slug);
-        out.push({
-          id: String(r.id),
-          kind: "prototype",
-          name: str(r.name) ?? "Prototype",
-          updatedAt: str(r.updated_at),
-          href: slug ? `/p/${slug}` : "/design",
-          productId: str(r.project_id),
-        });
+      // Prototypes (the /p/$slug viewer opens them). RLS-scoped.
+      {
+        const { data } = await db
+          .from("prototypes")
+          .select("id,name,share_slug,updated_at,project_id")
+          .order("updated_at", { ascending: false })
+          .limit(100);
+        for (const r of (data ?? []) as Row[]) {
+          const slug = str(r.share_slug);
+          out.push({
+            id: String(r.id),
+            kind: "prototype",
+            name: str(r.name) ?? "Prototype",
+            updatedAt: str(r.updated_at),
+            href: slug ? `/p/${slug}` : "/design",
+            productId: str(r.project_id),
+          });
+        }
       }
-    }
 
-    // Specs (they live on the Plan surface). RLS-scoped.
-    {
-      const { data } = await db
-        .from("prds")
-        .select("id,title,updated_at,project_id")
-        .order("updated_at", { ascending: false })
-        .limit(100);
-      for (const r of (data ?? []) as Row[]) {
-        out.push({
-          id: String(r.id),
-          kind: "spec",
-          name: str(r.title) ?? "Spec",
-          updatedAt: str(r.updated_at),
-          href: "/plan",
-          productId: str(r.project_id),
-        });
+      // Specs (they live on the Plan surface). RLS-scoped.
+      {
+        const { data } = await db
+          .from("prds")
+          .select("id,title,updated_at,project_id")
+          .order("updated_at", { ascending: false })
+          .limit(100);
+        for (const r of (data ?? []) as Row[]) {
+          out.push({
+            id: String(r.id),
+            kind: "spec",
+            name: str(r.title) ?? "Spec",
+            updatedAt: str(r.updated_at),
+            href: "/plan",
+            productId: str(r.project_id),
+          });
+        }
       }
-    }
 
-    // Docs (the /docs workspace). Scoped to the user, non-archived, like listDocs.
-    {
-      const { data } = await db
-        .from("docs")
-        .select("id,title,updated_at,archived,user_id,project_id")
-        .eq("user_id", userId)
-        .eq("archived", false)
-        .order("updated_at", { ascending: false })
-        .limit(100);
-      for (const r of (data ?? []) as Row[]) {
-        out.push({
-          id: String(r.id),
-          kind: "doc",
-          name: str(r.title) ?? "Untitled",
-          updatedAt: str(r.updated_at),
-          href: "/docs",
-          productId: str(r.project_id),
-        });
+      // Docs (the /docs workspace). Scoped to the user, non-archived, like listDocs.
+      {
+        const { data } = await db
+          .from("docs")
+          .select("id,title,updated_at,archived,user_id,project_id")
+          .eq("user_id", userId)
+          .eq("archived", false)
+          .order("updated_at", { ascending: false })
+          .limit(100);
+        for (const r of (data ?? []) as Row[]) {
+          out.push({
+            id: String(r.id),
+            kind: "doc",
+            name: str(r.title) ?? "Untitled",
+            updatedAt: str(r.updated_at),
+            href: "/docs",
+            productId: str(r.project_id),
+          });
+        }
       }
-    }
 
-    out.sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""));
+      out.sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""));
 
-    // Per-product grouping (no migration: every family carries project_id, and
-    // the projects table IS the product). Resolve names for the products that
-    // actually own artifacts, with a count, for the filter tabs.
-    const productIds = Array.from(
-      new Set(out.map((a) => a.productId).filter((id): id is string => !!id)),
-    );
-    const names = new Map<string, string>();
-    if (productIds.length > 0) {
-      const { data: rows } = await db.from("projects").select("id,name").in("id", productIds);
-      for (const r of (rows ?? []) as Row[]) names.set(String(r.id), str(r.name) ?? "Untitled product");
-    }
-    const counts = new Map<string, number>();
-    for (const a of out) if (a.productId) counts.set(a.productId, (counts.get(a.productId) ?? 0) + 1);
-    const products: ArtifactProduct[] = productIds
-      .map((id) => ({ id, name: names.get(id) ?? "Untitled product", count: counts.get(id) ?? 0 }))
-      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+      // Per-product grouping (no migration: every family carries project_id, and
+      // the projects table IS the product). Resolve names for the products that
+      // actually own artifacts, with a count, for the filter tabs.
+      const productIds = Array.from(
+        new Set(out.map((a) => a.productId).filter((id): id is string => !!id)),
+      );
+      const names = new Map<string, string>();
+      if (productIds.length > 0) {
+        const { data: rows } = await db.from("projects").select("id,name").in("id", productIds);
+        for (const r of (rows ?? []) as Row[])
+          names.set(String(r.id), str(r.name) ?? "Untitled product");
+      }
+      const counts = new Map<string, number>();
+      for (const a of out)
+        if (a.productId) counts.set(a.productId, (counts.get(a.productId) ?? 0) + 1);
+      const products: ArtifactProduct[] = productIds
+        .map((id) => ({
+          id,
+          name: names.get(id) ?? "Untitled product",
+          count: counts.get(id) ?? 0,
+        }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
-    return { artifacts: out, products };
-  });
+      return { artifacts: out, products };
+    },
+  );
 
 // --- Artifact VERSIONS (K7). Generic snapshot history + restore, per-kind
 //     dispatch. All tolerant: the artifact_versions table lands at the Gate-2
@@ -208,7 +216,9 @@ export const restoreArtifactVersion = createServerFn({ method: "POST" })
     if (!v) throw new Error("Version not found.");
     const ver = v as Row;
     const kind = String(ver.artifact_kind);
-    const map = (KIND_TABLE as Record<string, { table: string; titleCol: string; bodyCol: string }>)[kind];
+    const map = (
+      KIND_TABLE as Record<string, { table: string; titleCol: string; bodyCol: string }>
+    )[kind];
     if (!map) throw new Error("Unknown artifact kind.");
     const patch: Record<string, unknown> = { [map.bodyCol]: str(ver.body) ?? "" };
     if (str(ver.title) !== null) patch[map.titleCol] = str(ver.title);

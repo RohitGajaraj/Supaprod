@@ -92,7 +92,9 @@ describe("the two transports are addressed the way each provider requires", () =
   });
 
   it("sends Google Docs a bearer token", () => {
-    expect(__testing.directHeaders("google_docs", "ya29.tok").Authorization).toBe("Bearer ya29.tok");
+    expect(__testing.directHeaders("google_docs", "ya29.tok").Authorization).toBe(
+      "Bearer ya29.tok",
+    );
   });
 
   it("points every direct transport at the provider and never at the gateway", () => {

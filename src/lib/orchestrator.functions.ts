@@ -45,9 +45,7 @@ const StartSchema = z.object({
   replayedFrom: z.string().uuid().optional(),
   // Where this mission was spawned from. The Decide sheet's hand-off passes its
   // bet here, so Brain's graph and Build can walk provenance backward to it.
-  origin: z
-    .object({ kind: z.literal("opportunity"), id: z.string().uuid() })
-    .optional(),
+  origin: z.object({ kind: z.literal("opportunity"), id: z.string().uuid() }).optional(),
 });
 
 export const startOrchestratedMission = createServerFn({ method: "POST" })

@@ -48,7 +48,10 @@ describe("costLines", () => {
 
   it("a fully measured run reads like a receipt", () => {
     const lines = costLines(
-      costSummary([t({ tookMs: 61_000, tokens: 1200, usd: 0.8 }), t({ tookMs: 30_000, tokens: 300, usd: 0.2 })]),
+      costSummary([
+        t({ tookMs: 61_000, tokens: 1200, usd: 0.8 }),
+        t({ tookMs: 30_000, tokens: 300, usd: 0.2 }),
+      ]),
     );
     expect(lines[0]).toContain("Worked for 1m 31s across 2 turns");
     expect(lines).toContain("1,500 tokens");

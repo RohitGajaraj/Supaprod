@@ -2,24 +2,24 @@
  * Phase 2 & 4: Responsive surface audit (tablet 768px, mobile 320px)
  * Verifies layout at breakpoints, checks bottom nav, rail visibility
  */
-import { test, expect, Page } from '@playwright/test';
-import { login, takeScreenshot, waitForShell } from './helpers/auth';
+import { test, expect, Page } from "@playwright/test";
+import { login, takeScreenshot, waitForShell } from "./helpers/auth";
 
 const KEY_SURFACES = [
-  { path: '/today', name: 'today', label: 'Today' },
-  { path: '/discover', name: 'discover', label: 'Discovery' },
-  { path: '/build', name: 'build', label: 'Build' },
-  { path: '/brain', name: 'brain', label: 'Brain' },
-  { path: '/engine-room', name: 'engine-room', label: 'Engine Room' },
-  { path: '/settings', name: 'settings', label: 'Settings' },
-  { path: '/guardrails', name: 'guardrails', label: 'Guardrails' },
-  { path: '/agents', name: 'agents', label: 'Agents' },
-  { path: '/evals', name: 'evals', label: 'Evals' },
-  { path: '/traces', name: 'traces', label: 'Traces' },
-  { path: '/drift', name: 'drift', label: 'Drift' },
-  { path: '/plan', name: 'plan', label: 'Plan' },
-  { path: '/decide', name: 'decide', label: 'Decide' },
-  { path: '/ship', name: 'ship', label: 'Ship' },
+  { path: "/today", name: "today", label: "Today" },
+  { path: "/discover", name: "discover", label: "Discovery" },
+  { path: "/build", name: "build", label: "Build" },
+  { path: "/brain", name: "brain", label: "Brain" },
+  { path: "/engine-room", name: "engine-room", label: "Engine Room" },
+  { path: "/settings", name: "settings", label: "Settings" },
+  { path: "/guardrails", name: "guardrails", label: "Guardrails" },
+  { path: "/agents", name: "agents", label: "Agents" },
+  { path: "/evals", name: "evals", label: "Evals" },
+  { path: "/traces", name: "traces", label: "Traces" },
+  { path: "/drift", name: "drift", label: "Drift" },
+  { path: "/plan", name: "plan", label: "Plan" },
+  { path: "/decide", name: "decide", label: "Decide" },
+  { path: "/ship", name: "ship", label: "Ship" },
 ];
 
 async function checkHorizontalScroll(page: Page): Promise<boolean> {
@@ -30,7 +30,9 @@ async function checkHorizontalScroll(page: Page): Promise<boolean> {
 
 async function checkTouchTargets(page: Page): Promise<{ element: string; size: string }[]> {
   return await page.evaluate(() => {
-    const interactiveElements = document.querySelectorAll('button, a, [role="button"], input, select');
+    const interactiveElements = document.querySelectorAll(
+      'button, a, [role="button"], input, select',
+    );
     const violations: { element: string; size: string }[] = [];
 
     interactiveElements.forEach((el) => {
@@ -38,7 +40,7 @@ async function checkTouchTargets(page: Page): Promise<{ element: string; size: s
       if (rect.width > 0 && rect.height > 0) {
         if (rect.width < 44 || rect.height < 44) {
           violations.push({
-            element: el.tagName + (el.className ? '.' + el.className.toString().split(' ')[0] : ''),
+            element: el.tagName + (el.className ? "." + el.className.toString().split(" ")[0] : ""),
             size: `${Math.round(rect.width)}x${Math.round(rect.height)}`,
           });
         }
@@ -67,7 +69,7 @@ async function checkTouchTargets(page: Page): Promise<{ element: string; size: s
  * turned 3 failures into 15 passes and a run of timeouts into 38 seconds.
  */
 
-test.describe('Responsive Audit - Tablet 768px', () => {
+test.describe("Responsive Audit - Tablet 768px", () => {
   test.use({ viewport: { width: 768, height: 1024 } });
 
   let authCookies: any;
@@ -82,16 +84,16 @@ test.describe('Responsive Audit - Tablet 768px', () => {
   for (const surface of KEY_SURFACES) {
     test(`${surface.label} - tablet 768px`, async ({ page }) => {
       await page.context().addCookies(authCookies);
-      await page.goto(surface.path, { waitUntil: 'domcontentloaded' });
+      await page.goto(surface.path, { waitUntil: "domcontentloaded" });
       await waitForShell(page);
 
-      if (page.url().includes('/login')) {
+      if (page.url().includes("/login")) {
         await login(page);
-        await page.goto(surface.path, { waitUntil: 'domcontentloaded' });
+        await page.goto(surface.path, { waitUntil: "domcontentloaded" });
         await waitForShell(page);
       }
 
-      await takeScreenshot(page, `tablet-${surface.name}`, 'surfaces/tablet');
+      await takeScreenshot(page, `tablet-${surface.name}`, "surfaces/tablet");
 
       const hasHorizontalScroll = await checkHorizontalScroll(page);
       if (hasHorizontalScroll) {
@@ -102,7 +104,7 @@ test.describe('Responsive Audit - Tablet 768px', () => {
   }
 });
 
-test.describe('Responsive Audit - Mobile 320px', () => {
+test.describe("Responsive Audit - Mobile 320px", () => {
   test.use({ viewport: { width: 320, height: 667 } });
 
   let authCookies: any;
@@ -117,16 +119,16 @@ test.describe('Responsive Audit - Mobile 320px', () => {
   for (const surface of KEY_SURFACES) {
     test(`${surface.label} - mobile 320px`, async ({ page }) => {
       await page.context().addCookies(authCookies);
-      await page.goto(surface.path, { waitUntil: 'domcontentloaded' });
+      await page.goto(surface.path, { waitUntil: "domcontentloaded" });
       await waitForShell(page);
 
-      if (page.url().includes('/login')) {
+      if (page.url().includes("/login")) {
         await login(page);
-        await page.goto(surface.path, { waitUntil: 'domcontentloaded' });
+        await page.goto(surface.path, { waitUntil: "domcontentloaded" });
         await waitForShell(page);
       }
 
-      await takeScreenshot(page, `mobile-${surface.name}`, 'surfaces/mobile');
+      await takeScreenshot(page, `mobile-${surface.name}`, "surfaces/mobile");
 
       // Critical: no horizontal scroll at 320px
       const hasHorizontalScroll = await checkHorizontalScroll(page);
@@ -143,21 +145,25 @@ test.describe('Responsive Audit - Mobile 320px', () => {
     });
   }
 
-  test('bottom nav visibility at 320px', async ({ page }) => {
+  test("bottom nav visibility at 320px", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'domcontentloaded' });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'domcontentloaded' });
+      await page.goto("/today", { waitUntil: "domcontentloaded" });
       await waitForShell(page);
     }
 
     // Check for bottom nav (mobile nav)
-    const bottomNav = page.locator('[data-testid="bottom-nav"], nav[class*="bottom"], nav[class*="mobile"], [class*="bottom-nav"]').first();
+    const bottomNav = page
+      .locator(
+        '[data-testid="bottom-nav"], nav[class*="bottom"], nav[class*="mobile"], [class*="bottom-nav"]',
+      )
+      .first();
     // Note: bottom nav may or may not be present depending on implementation
-    await takeScreenshot(page, 'mobile-bottom-nav', 'surfaces/mobile');
+    await takeScreenshot(page, "mobile-bottom-nav", "surfaces/mobile");
 
     // Check the page body doesn't overflow
     const bodyOverflow = await page.evaluate(() => {
@@ -169,12 +175,12 @@ test.describe('Responsive Audit - Mobile 320px', () => {
         clientWidth: html.clientWidth,
       };
     });
-    console.log('Mobile overflow check:', bodyOverflow);
+    console.log("Mobile overflow check:", bodyOverflow);
     expect(bodyOverflow.htmlScrollWidth).toBeLessThanOrEqual(bodyOverflow.clientWidth + 5); // 5px tolerance
   });
 });
 
-test.describe('Responsive Breakpoint - 640px', () => {
+test.describe("Responsive Breakpoint - 640px", () => {
   test.use({ viewport: { width: 640, height: 896 } });
 
   let authCookies: any;
@@ -186,18 +192,18 @@ test.describe('Responsive Breakpoint - 640px', () => {
     await page.close();
   });
 
-  test('today - no horizontal scroll at 640px', async ({ page }) => {
+  test("today - no horizontal scroll at 640px", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'domcontentloaded' });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'domcontentloaded' });
+      await page.goto("/today", { waitUntil: "domcontentloaded" });
       await waitForShell(page);
     }
 
-    await takeScreenshot(page, 'breakpoint-640-today', 'surfaces/breakpoints');
+    await takeScreenshot(page, "breakpoint-640-today", "surfaces/breakpoints");
     const hasHorizontalScroll = await checkHorizontalScroll(page);
     expect(hasHorizontalScroll).toBe(false);
   });

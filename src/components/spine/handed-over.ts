@@ -27,10 +27,7 @@
 import type { Turn } from "@/lib/spine/activity";
 
 /** Turns are oldest first. Everything the station ran, before the handoff. */
-export function turnsAtStation(
-  earlierOldestFirst: readonly Turn[],
-  stationName: string,
-): Turn[] {
+export function turnsAtStation(earlierOldestFirst: readonly Turn[], stationName: string): Turn[] {
   const out: Turn[] = [];
   for (let i = earlierOldestFirst.length - 1; i >= 0; i--) {
     const t = earlierOldestFirst[i]!;

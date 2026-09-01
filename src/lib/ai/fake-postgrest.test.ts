@@ -410,7 +410,11 @@ describe("fake-postgrest applies filters to writes, not only to reads", () => {
 describe("fake-postgrest not(col, 'in', ...)", () => {
   test("excludes the listed values and keeps the rest", () => {
     const db = makeFakeDb({
-      t: [{ id: "a", status: "queued" }, { id: "b", status: "completed" }, { id: "c", status: "running" }],
+      t: [
+        { id: "a", status: "queued" },
+        { id: "b", status: "completed" },
+        { id: "c", status: "running" },
+      ],
     });
     return db
       .from("t")

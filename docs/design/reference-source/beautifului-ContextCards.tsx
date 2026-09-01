@@ -56,14 +56,24 @@ export default function ContextCards() {
         >
           <div className="primitive-card-bar flex items-center gap-2.5 border-b border-line">
             <span className="flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-ink">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h10" /></svg>
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
+                <path d="M4 6h16M4 12h16M4 18h10" />
+              </svg>
               <span className="truncate">{chunk.title}</span>
             </span>
-            <span className="ml-auto shrink-0 text-[12px] text-ink-3 tabular-nums">{chunk.chars}</span>
+            <span className="ml-auto shrink-0 text-[12px] text-ink-3 tabular-nums">
+              {chunk.chars}
+            </span>
           </div>
-          <p className="px-3 pt-2 pb-1 text-[12.5px] leading-relaxed text-ink-2">
-            {chunk.body}
-          </p>
+          <p className="px-3 pt-2 pb-1 text-[12.5px] leading-relaxed text-ink-2">{chunk.body}</p>
           <div className="px-3 pb-3">
             <span
               className="inline-flex h-6 items-center gap-1.5 rounded-full bg-inset px-2
@@ -76,11 +86,24 @@ export default function ContextCards() {
                 transitionDelay: `${i * 80}ms`,
               }}
             >
-              <span className={`flex size-3.5 items-center justify-center rounded-[4px] ${chunk.tone} text-[7px] font-bold text-white`}>
+              <span
+                className={`flex size-3.5 items-center justify-center rounded-[4px] ${chunk.tone} text-[7px] font-bold text-white`}
+              >
                 {chunk.badge}
               </span>
               {chunk.source}
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7M7 7h10v10" /></svg>
+              <svg
+                width="9"
+                height="9"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M7 17L17 7M7 7h10v10" />
+              </svg>
             </span>
           </div>
         </div>

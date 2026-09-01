@@ -79,16 +79,30 @@ function StateLine({ card }: { card: AgentCard }) {
 
   if (waiting > 0) {
     return (
-      <span className="flex items-center gap-1.5 text-mrd-data font-medium" style={{ color: "var(--mrd-you)" }}>
-        <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--mrd-you)" }} />
+      <span
+        className="flex items-center gap-1.5 text-mrd-data font-medium"
+        style={{ color: "var(--mrd-you)" }}
+      >
+        <span
+          aria-hidden
+          className="size-1.5 rounded-full"
+          style={{ background: "var(--mrd-you)" }}
+        />
         {waiting === 1 ? "Asking you" : `${waiting} asking you`}
       </span>
     );
   }
   if (card.enabled === false) {
     return (
-      <span className="flex items-center gap-1.5 text-mrd-data" style={{ color: "var(--mrd-hold)" }}>
-        <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--mrd-hold)" }} />
+      <span
+        className="flex items-center gap-1.5 text-mrd-data"
+        style={{ color: "var(--mrd-hold)" }}
+      >
+        <span
+          aria-hidden
+          className="size-1.5 rounded-full"
+          style={{ background: "var(--mrd-hold)" }}
+        />
         Switched off
       </span>
     );
@@ -164,119 +178,121 @@ export function AgentCards({
             {cards
               .filter((c) => c.group === group)
               .map((card, index) => {
-        const Glyph = glyphForSlug(card.slug);
-        const isActive = card.slug === activeSlug;
-        const off = card.enabled === false;
+                const Glyph = glyphForSlug(card.slug);
+                const isActive = card.slug === activeSlug;
+                const off = card.enabled === false;
 
-        return (
-          <button
-            key={card.slug}
-            type="button"
-            onClick={() => onOpen(card.slug)}
-            aria-current={isActive ? "true" : undefined}
-            className={`group flex flex-col items-start gap-2.5 rounded-mrd-card border p-3 text-left transition-[background-color,border-color,transform] active:scale-[0.985] ${
-              isActive
-                ? "border-mrd-edge bg-mrd-select"
-                : "border-mrd-line bg-mrd-sheet hover:border-mrd-edge hover:bg-mrd-lift"
-            }`}
-            style={{
-              boxShadow: "var(--mrd-shadow-card)",
-              transitionDuration: "var(--mrd-d-press)",
-              /* Staggered arrival, capped, so a roster of twenty does not still be
+                return (
+                  <button
+                    key={card.slug}
+                    type="button"
+                    onClick={() => onOpen(card.slug)}
+                    aria-current={isActive ? "true" : undefined}
+                    className={`group flex flex-col items-start gap-2.5 rounded-mrd-card border p-3 text-left transition-[background-color,border-color,transform] active:scale-[0.985] ${
+                      isActive
+                        ? "border-mrd-edge bg-mrd-select"
+                        : "border-mrd-line bg-mrd-sheet hover:border-mrd-edge hover:bg-mrd-lift"
+                    }`}
+                    style={{
+                      boxShadow: "var(--mrd-shadow-card)",
+                      transitionDuration: "var(--mrd-d-press)",
+                      /* Staggered arrival, capped, so a roster of twenty does not still be
                  landing a second and a half after the reader started looking. */
-              animation: `mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) ${Math.min(index * 45, 400)}ms both`,
-            }}
-          >
-            <span className="flex w-full items-start gap-2.5">
-              {/*
-               * The identity, and the only thing carrying it. A tinted WELL rather
-               * than a filled disc: a solid fill at this size reads as a status dot,
-               * which is the one meaning it must not take.
-               *
-               * Dimmed when switched off, so the card is legible as inactive without
-               * spending a status hue on it.
-               */}
-              <span
-                aria-hidden
-                /*
-                 * ILLUMINATES ON HOVER, and the mark is SIZED rather than left to fill
-                 * the well.
-                 *
-                 * Founder, on the first version: the glyphs "look too big" and read
-                 * thicker than they should. Both were one cause -- the drawings carry a
-                 * 16px viewBox and no width, so they stretched to the full 36px well,
-                 * which scales the stroke with them. Constraining the mark to 18px
-                 * restores the weight it was drawn at and leaves the well as breathing
-                 * room instead of a frame around a swollen icon.
-                 *
-                 * The hover lift is his "illuminated with some brand color very subtly".
-                 * It is done on the NEUTRAL ladder rather than with an accent: the well
-                 * steps sink -> lift and the mark steps body -> ink. meridian.css records
-                 * that a saturated accent on chrome was tried twice and rejected twice,
-                 * because spending it here leaves nothing louder for "your call". This
-                 * reads as the mark catching the light, survives greyscale, and keeps
-                 * every status hue free.
-                 */
-                className="flex size-9 shrink-0 items-center justify-center rounded-[10px] border border-mrd-line bg-mrd-sink transition-[background-color,color] group-hover:bg-mrd-lift group-hover:text-mrd-ink"
-                style={{
-                  color: off ? "var(--mrd-faint)" : "var(--mrd-body)",
-                  transitionDuration: "var(--mrd-d-press)",
-                }}
-              >
-                <span className="flex size-[18px] items-center justify-center [&>svg]:size-full">
-                  <Glyph />
-                </span>
-              </span>
-              {/*
-               * THE JOB LEADS, THE POLICY FOLLOWS, and the first version had it the
-               * other way round.
-               *
-               * Founder: every card said "Critic runs on its own / Verify runs on its
-               * own / Guide runs on its own" under the name, and "that should be
-               * somewhere down" -- the description of what it actually does belongs
-               * there instead.
-               *
-               * He is right on the merits. Three cards repeating one identical phrase
-               * is a column of noise that distinguishes nothing, and it was occupying
-               * the line the eye reads immediately after a name -- the line that should
-               * answer "what is this one for". The policy is worth knowing and worth
-               * knowing second.
-               *
-               * `you` is the exception and stays high: an agent WAITING on a person is
-               * not a policy, it is a call, and it must not be demoted below a blurb.
-               */}
-              <span className="flex min-w-0 flex-col gap-0.5">
-                <span
-                  className="truncate text-mrd-prose text-mrd-body font-medium"
-                  style={{ color: off ? "var(--mrd-mute)" : "var(--mrd-ink)" }}
-                >
-                  {card.name}
-                </span>
-                {card.role ? (
-                  <span className="line-clamp-2 text-mrd-small leading-mrd-snug text-mrd-mute">
-                    {card.role}
-                  </span>
-                ) : (
-                  <StateLine card={card} />
-                )}
-              </span>
-            </span>
+                      animation: `mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) ${Math.min(index * 45, 400)}ms both`,
+                    }}
+                  >
+                    <span className="flex w-full items-start gap-2.5">
+                      {/*
+                       * The identity, and the only thing carrying it. A tinted WELL rather
+                       * than a filled disc: a solid fill at this size reads as a status dot,
+                       * which is the one meaning it must not take.
+                       *
+                       * Dimmed when switched off, so the card is legible as inactive without
+                       * spending a status hue on it.
+                       */}
+                      <span
+                        aria-hidden
+                        /*
+                         * ILLUMINATES ON HOVER, and the mark is SIZED rather than left to fill
+                         * the well.
+                         *
+                         * Founder, on the first version: the glyphs "look too big" and read
+                         * thicker than they should. Both were one cause -- the drawings carry a
+                         * 16px viewBox and no width, so they stretched to the full 36px well,
+                         * which scales the stroke with them. Constraining the mark to 18px
+                         * restores the weight it was drawn at and leaves the well as breathing
+                         * room instead of a frame around a swollen icon.
+                         *
+                         * The hover lift is his "illuminated with some brand color very subtly".
+                         * It is done on the NEUTRAL ladder rather than with an accent: the well
+                         * steps sink -> lift and the mark steps body -> ink. meridian.css records
+                         * that a saturated accent on chrome was tried twice and rejected twice,
+                         * because spending it here leaves nothing louder for "your call". This
+                         * reads as the mark catching the light, survives greyscale, and keeps
+                         * every status hue free.
+                         */
+                        className="flex size-9 shrink-0 items-center justify-center rounded-[10px] border border-mrd-line bg-mrd-sink transition-[background-color,color] group-hover:bg-mrd-lift group-hover:text-mrd-ink"
+                        style={{
+                          color: off ? "var(--mrd-faint)" : "var(--mrd-body)",
+                          transitionDuration: "var(--mrd-d-press)",
+                        }}
+                      >
+                        <span className="flex size-[18px] items-center justify-center [&>svg]:size-full">
+                          <Glyph />
+                        </span>
+                      </span>
+                      {/*
+                       * THE JOB LEADS, THE POLICY FOLLOWS, and the first version had it the
+                       * other way round.
+                       *
+                       * Founder: every card said "Critic runs on its own / Verify runs on its
+                       * own / Guide runs on its own" under the name, and "that should be
+                       * somewhere down" -- the description of what it actually does belongs
+                       * there instead.
+                       *
+                       * He is right on the merits. Three cards repeating one identical phrase
+                       * is a column of noise that distinguishes nothing, and it was occupying
+                       * the line the eye reads immediately after a name -- the line that should
+                       * answer "what is this one for". The policy is worth knowing and worth
+                       * knowing second.
+                       *
+                       * `you` is the exception and stays high: an agent WAITING on a person is
+                       * not a policy, it is a call, and it must not be demoted below a blurb.
+                       */}
+                      <span className="flex min-w-0 flex-col gap-0.5">
+                        <span
+                          className="truncate text-mrd-prose text-mrd-body font-medium"
+                          style={{ color: off ? "var(--mrd-mute)" : "var(--mrd-ink)" }}
+                        >
+                          {card.name}
+                        </span>
+                        {card.role ? (
+                          <span className="line-clamp-2 text-mrd-small leading-mrd-snug text-mrd-mute">
+                            {card.role}
+                          </span>
+                        ) : (
+                          <StateLine card={card} />
+                        )}
+                      </span>
+                    </span>
 
-            {/* The policy, on its own line at the foot of the card, where a reader
+                    {/* The policy, on its own line at the foot of the card, where a reader
                 scanning for "which of these needs me" finds it without it competing
                 with the name. Drawn only when the description already took the slot
                 above, so the fact is never stated twice. */}
-            {card.role && (
-              <span className="mt-auto flex w-full items-center pt-0.5">
-                <StateLine card={card} />
-              </span>
-            )}
-          </button>
+                    {card.role && (
+                      <span className="mt-auto flex w-full items-center pt-0.5">
+                        <StateLine card={card} />
+                      </span>
+                    )}
+                  </button>
                 );
               })}
           </div>
           {/* The open agent, inline, under the group it belongs to. */}
-          {renderDetail && activeSlug && cards.some((c) => c.group === group && c.slug === activeSlug)
+          {renderDetail &&
+          activeSlug &&
+          cards.some((c) => c.group === group && c.slug === activeSlug)
             ? renderDetail(activeSlug)
             : null}
         </div>

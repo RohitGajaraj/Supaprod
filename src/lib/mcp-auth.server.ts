@@ -129,7 +129,8 @@ export async function checkRateLimit(
       return { allowed: false, current_count: 0, retryAfterSeconds: fullWindow };
     }
     const current = count || 0;
-    if (current < rate_limit) return { allowed: true, current_count: current, retryAfterSeconds: 0 };
+    if (current < rate_limit)
+      return { allowed: true, current_count: current, retryAfterSeconds: 0 };
     return {
       allowed: false,
       current_count: current,

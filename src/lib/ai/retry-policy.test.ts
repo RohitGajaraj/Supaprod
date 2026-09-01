@@ -40,7 +40,12 @@ describe("parseRetryAfterMs", () => {
 });
 
 describe("nextRetryDelayMs", () => {
-  const base = { spentMs: 0, budgetMs: INTERACTIVE_RATE_LIMIT_BUDGET_MS, maxAttempts: 3, random: half };
+  const base = {
+    spentMs: 0,
+    budgetMs: INTERACTIVE_RATE_LIMIT_BUDGET_MS,
+    maxAttempts: 3,
+    random: half,
+  };
 
   it("does not retry a code that is not a rate limit or a 5xx", () => {
     expect(nextRetryDelayMs({ ...base, attempt: 0, code: "BAD_REQUEST" })).toBeNull();
@@ -57,7 +62,10 @@ describe("nextRetryDelayMs", () => {
 
   it("believes Retry-After when the gateway sends one", () => {
     const d = nextRetryDelayMs({
-      ...base, attempt: 0, code: "RATE_LIMIT", retryAfterMs: 3_000,
+      ...base,
+      attempt: 0,
+      code: "RATE_LIMIT",
+      retryAfterMs: 3_000,
       budgetMs: BACKGROUND_RATE_LIMIT_BUDGET_MS,
     });
     expect(d).toBe(3_000);
@@ -65,7 +73,10 @@ describe("nextRetryDelayMs", () => {
 
   it("clamps a very long Retry-After to one capped wait rather than blocking", () => {
     const d = nextRetryDelayMs({
-      ...base, attempt: 0, code: "RATE_LIMIT", retryAfterMs: 600_000,
+      ...base,
+      attempt: 0,
+      code: "RATE_LIMIT",
+      retryAfterMs: 600_000,
       budgetMs: BACKGROUND_RATE_LIMIT_BUDGET_MS,
     });
     expect(d).toBe(MAX_SINGLE_WAIT_MS);
@@ -75,7 +86,9 @@ describe("nextRetryDelayMs", () => {
     // equal jitter at random()=0.5 is exactly 3/4 of the ceiling
     expect(nextRetryDelayMs({ ...base, attempt: 0, code: "RATE_LIMIT" })).toBe(750);
     expect(nextRetryDelayMs({ ...base, attempt: 1, code: "RATE_LIMIT" })).toBe(1_500);
-    expect(nextRetryDelayMs({ ...base, attempt: 2, code: "RATE_LIMIT", maxAttempts: 6 })).toBe(3_000);
+    expect(nextRetryDelayMs({ ...base, attempt: 2, code: "RATE_LIMIT", maxAttempts: 6 })).toBe(
+      3_000,
+    );
   });
 
   it("keeps jitter inside half the ceiling and never near zero", () => {
@@ -89,15 +102,24 @@ describe("nextRetryDelayMs", () => {
 
   it("stops rather than half-waiting when the budget cannot cover the delay", () => {
     const d = nextRetryDelayMs({
-      ...base, attempt: 0, code: "RATE_LIMIT", retryAfterMs: 10_000, budgetMs: 5_000, spentMs: 0,
+      ...base,
+      attempt: 0,
+      code: "RATE_LIMIT",
+      retryAfterMs: 10_000,
+      budgetMs: 5_000,
+      spentMs: 0,
     });
     expect(d).toBeNull();
   });
 
   it("counts what has already been spent", () => {
     const d = nextRetryDelayMs({
-      ...base, attempt: 0, code: "RATE_LIMIT", retryAfterMs: 3_000,
-      budgetMs: BACKGROUND_RATE_LIMIT_BUDGET_MS, spentMs: BACKGROUND_RATE_LIMIT_BUDGET_MS - 100,
+      ...base,
+      attempt: 0,
+      code: "RATE_LIMIT",
+      retryAfterMs: 3_000,
+      budgetMs: BACKGROUND_RATE_LIMIT_BUDGET_MS,
+      spentMs: BACKGROUND_RATE_LIMIT_BUDGET_MS - 100,
     });
     expect(d).toBeNull();
   });
@@ -133,8 +155,12 @@ describe("THE REGRESSION THIS REPLACES", () => {
     const maxAttempts = maxAttemptsFor("RATE_LIMIT", "sense");
     for (;;) {
       const d = nextRetryDelayMs({
-        attempt, code: "RATE_LIMIT", spentMs: spent,
-        budgetMs: rateLimitBudgetMs("sense"), maxAttempts, random: () => 0,
+        attempt,
+        code: "RATE_LIMIT",
+        spentMs: spent,
+        budgetMs: rateLimitBudgetMs("sense"),
+        maxAttempts,
+        random: () => 0,
       });
       if (d === null) break;
       spent += d;

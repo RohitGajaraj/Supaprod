@@ -94,7 +94,6 @@ export function selectDueEntries(
     .slice(0, limit);
 }
 
-
 /**
  * What one registry entry costs to probe, in outbound subrequests.
  *
@@ -106,10 +105,7 @@ export function selectDueEntries(
  * before the page risks a Worker's subrequest cap. It is deliberately the WORST
  * case for each shape: under-counting here is the failure that renders nothing.
  */
-export function probeCost(entry: {
-  kind: RotationEntry["kind"];
-  segments?: number;
-}): number {
+export function probeCost(entry: { kind: RotationEntry["kind"]; segments?: number }): number {
   if (entry.kind === "integrity") return 2 + 2 * (entry.segments ?? 0);
   return 2;
 }

@@ -149,4 +149,6 @@ ${EMAILS.map(card).join("")}
 
 writeFileSync(join(OUT, "_preview.html"), page);
 console.log(`wrote ${join(OUT, "_preview.html")}`);
-console.log(`${EMAILS.filter((e) => e.live).length} branded, ${EMAILS.filter((e) => !e.live).length} plain text`);
+console.log(
+  `${EMAILS.filter((e) => e.live).length} branded, ${EMAILS.filter((e) => !e.live).length} plain text`,
+);

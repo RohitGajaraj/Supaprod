@@ -193,7 +193,10 @@ export function measureSelectionRects(ta: HTMLTextAreaElement): Array<SelectionR
     const a = { top: startMark.offsetTop, left: startMark.offsetLeft };
     const b = { top: endMark.offsetTop, left: endMark.offsetLeft };
     const measuredPitch = pitchMark.offsetTop - b.top;
-    const rowH = Math.max(Number.isFinite(measuredPitch) && measuredPitch > 0 ? measuredPitch : 0, fallbackPitch);
+    const rowH = Math.max(
+      Number.isFinite(measuredPitch) && measuredPitch > 0 ? measuredPitch : 0,
+      fallbackPitch,
+    );
 
     // Marker offsets are read from the mirror's border edge and already carry
     // its padding, so the client origin is the FIELD's border edge shifted by
@@ -475,7 +478,10 @@ export function SelectionActions({
 
         {phase === "error" && error ? (
           <>
-            <p role="alert" className="max-w-[36ch] px-[9px] py-[7px] text-mrd-base leading-mrd-prose text-mrd-body">
+            <p
+              role="alert"
+              className="max-w-[36ch] px-[9px] py-[7px] text-mrd-base leading-mrd-prose text-mrd-body"
+            >
               {error}
             </p>
             <MenuDivider />

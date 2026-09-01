@@ -550,9 +550,7 @@ export function RecordsTable<Row>({
       )}
 
       {footer && (
-        <div className="border-t border-mrd-line bg-mrd-sink px-3 py-2 mrd-meta">
-          {footer}
-        </div>
+        <div className="border-t border-mrd-line bg-mrd-sink px-3 py-2 mrd-meta">{footer}</div>
       )}
     </div>
   );

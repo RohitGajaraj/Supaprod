@@ -40,17 +40,13 @@ describe("AskDecisionsSection", () => {
   };
 
   it("returns null when decisions array is empty", () => {
-    const { container } = render(
-      <AskDecisionsSection decisions={[]} />
-    );
+    const { container } = render(<AskDecisionsSection decisions={[]} />);
 
     expect(container.innerHTML).toBe("");
   });
 
   it("renders decisions section title", () => {
-    const decisions: DecisionWithLearning[] = [
-      { decision: mockDecision, learning: mockLearning },
-    ];
+    const decisions: DecisionWithLearning[] = [{ decision: mockDecision, learning: mockLearning }];
 
     render(<AskDecisionsSection decisions={decisions} />);
 
@@ -58,13 +54,9 @@ describe("AskDecisionsSection", () => {
   });
 
   it("displays custom title when provided", () => {
-    const decisions: DecisionWithLearning[] = [
-      { decision: mockDecision, learning: mockLearning },
-    ];
+    const decisions: DecisionWithLearning[] = [{ decision: mockDecision, learning: mockLearning }];
 
-    render(
-      <AskDecisionsSection decisions={decisions} title="Forecast Review" />
-    );
+    render(<AskDecisionsSection decisions={decisions} title="Forecast Review" />);
 
     expect(screen.getByText(/Forecast Review/i)).toBeTruthy();
   });
@@ -119,16 +111,9 @@ describe("AskDecisionsSection", () => {
   });
 
   it("hides resolution badge when showResolution is false", () => {
-    const decisions: DecisionWithLearning[] = [
-      { decision: mockDecision, learning: mockLearning },
-    ];
+    const decisions: DecisionWithLearning[] = [{ decision: mockDecision, learning: mockLearning }];
 
-    render(
-      <AskDecisionsSection
-        decisions={decisions}
-        showResolution={false}
-      />
-    );
+    render(<AskDecisionsSection decisions={decisions} showResolution={false} />);
 
     expect(screen.queryByText(/RIGHT/)).toBeFalsy();
   });

@@ -88,6 +88,8 @@ describe("no tick decides a mission is over from its own list of words", () => {
   it("carries no inline terminal-status list of its own", () => {
     // The shape, not the spelling: any array literal holding the finished
     // vocabulary and fed to .includes is a fifth list waiting to forget a word.
-    expect(codeOf(TICK)).not.toMatch(/\[[^\]]*"(blocked|halted|cancelled|failed|completed)"[^\]]*\]\s*\.includes/);
+    expect(codeOf(TICK)).not.toMatch(
+      /\[[^\]]*"(blocked|halted|cancelled|failed|completed)"[^\]]*\]\s*\.includes/,
+    );
   });
 });

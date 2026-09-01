@@ -61,8 +61,7 @@ rows.sort((a, b) => a.name.localeCompare(b.name));
 
 /* Components first: a lane hunting "does Meridian have X" wants the renderable
    thing, not a prop type that happens to sort next to it. */
-const isComponent = (r: (typeof rows)[number]) =>
-  r.kind === "function" && /^[A-Z]/.test(r.name);
+const isComponent = (r: (typeof rows)[number]) => r.kind === "function" && /^[A-Z]/.test(r.name);
 const comps = rows.filter(isComponent);
 const rest = rows.filter((r) => !isComponent(r));
 
@@ -133,11 +132,19 @@ const REPLACEMENTS: Record<string, Move[]> = {
     },
   ],
   Button: [
-    { to: "Action", from: "meridian/surface-parts", note: "Tiered variants. `busy` is TRUE ONLY WHILE THIS CONTROL'S OWN WORK RUNS -- a synchronous handler takes `disabled`, never `busy`." },
+    {
+      to: "Action",
+      from: "meridian/surface-parts",
+      note: "Tiered variants. `busy` is TRUE ONLY WHILE THIS CONTROL'S OWN WORK RUNS -- a synchronous handler takes `disabled`, never `busy`.",
+    },
     { to: "Approve", from: "meridian/surface-parts", note: "Where a click UNBLOCKS something." },
   ],
   Failed: [
-    { to: "ReadFailed", from: "meridian/surface-parts", note: "Superset: same `{children, onRetry?, retryLabel?}` plus `detail?`." },
+    {
+      to: "ReadFailed",
+      from: "meridian/surface-parts",
+      note: "Superset: same `{children, onRetry?, retryLabel?}` plus `detail?`.",
+    },
   ],
   Loading: [
     {
@@ -146,12 +153,30 @@ const REPLACEMENTS: Record<string, Move[]> = {
       note: "NOT A SUPERSET, and the one entry here that is not a straight swap. Retired `Loading` took `{children?, working?, agent?, detail?}` and `Reading` takes `{children?}`. ALL FIVE remaining call sites pass children only, so it is a drop-in for every one of them. A site that wants the AGENT-IS-WORKING fact takes `LoadingState` from `meridian/LoadingState` (`{label, variant, startedAt}`), which is where the rest of the product already went -- conflating the two was the thing the retired component's own header refused to do.",
     },
   ],
-  Empty: [{ to: "NothingHere", from: "meridian/surface-parts", note: "Identical `{children, action?}`." }],
-  Cell: [
-    { to: "Cell", from: "meridian/surface-parts", note: "Identical, `tone` union included (`raised | recessed`)." },
+  Empty: [
+    { to: "NothingHere", from: "meridian/surface-parts", note: "Identical `{children, action?}`." },
   ],
-  Grid: [{ to: "Grid", from: "meridian/surface-parts", note: "Superset: adds `cellMin?` and `columns?`." }],
-  Input: [{ to: "Input", from: "meridian/forms", note: "Attribute passthrough on both sides; Meridian's also merges `className`." }],
+  Cell: [
+    {
+      to: "Cell",
+      from: "meridian/surface-parts",
+      note: "Identical, `tone` union included (`raised | recessed`).",
+    },
+  ],
+  Grid: [
+    {
+      to: "Grid",
+      from: "meridian/surface-parts",
+      note: "Superset: adds `cellMin?` and `columns?`.",
+    },
+  ],
+  Input: [
+    {
+      to: "Input",
+      from: "meridian/forms",
+      note: "Attribute passthrough on both sides; Meridian's also merges `className`.",
+    },
+  ],
   Field: [
     {
       to: "Field",
@@ -161,7 +186,11 @@ const REPLACEMENTS: Record<string, Move[]> = {
   ],
   CtxHead: [{ to: "CtxHead", from: "meridian/ContextColumn", note: "Identical `{children}`." }],
   CtxRow: [
-    { to: "CtxRow", from: "meridian/ContextColumn", note: "Superset of `{mark?, name, sub?}`: adds `title`, `source`, `lead`, `onClick`, `href`." },
+    {
+      to: "CtxRow",
+      from: "meridian/ContextColumn",
+      note: "Superset of `{mark?, name, sub?}`: adds `title`, `source`, `lead`, `onClick`, `href`.",
+    },
   ],
   CtxBody: [{ to: "CtxBody", from: "meridian/ContextColumn", note: "Identical `{children}`." }],
 };
@@ -212,7 +241,10 @@ for (const file of walk(SRC)) {
   )) {
     const clean = m[1].replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
     for (const raw of clean.split(",")) {
-      const sym = raw.trim().split(/\s+as\s+/)[0].trim();
+      const sym = raw
+        .trim()
+        .split(/\s+as\s+/)[0]
+        .trim();
       if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(sym)) continue;
       if (!consumers.has(sym)) consumers.set(sym, new Set());
       consumers.get(sym)!.add(file.slice(SRC.length + 1));
@@ -228,7 +260,11 @@ const unmapped = retiredRows.filter((r) => r.left > 0 && !r.moves);
 const retiredTable = retiredRows
   .filter((r) => r.left > 0)
   .flatMap((r) =>
-    (r.moves ?? [{ to: "**no map entry**", from: "--", note: "Add one to scripts/meridian-exports.ts." }]).map(
+    (
+      r.moves ?? [
+        { to: "**no map entry**", from: "--", note: "Add one to scripts/meridian-exports.ts." },
+      ]
+    ).map(
       (mv, i) =>
         `| ${i === 0 ? `\`${r.sym}\`` : ""} | ${i === 0 ? r.left : ""} | \`${mv.to}\` | \`@/components/${mv.from}\` | ${mv.note ?? "Contract not yet compared -- do that before swapping."} |`,
     ),

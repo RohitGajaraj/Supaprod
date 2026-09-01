@@ -626,7 +626,8 @@ export function shortenToolResult(result: unknown, cap: number = TOOL_RESULT_CHA
     }
   };
   walk(clone);
-  if (leaves.length === 0) return shortenLongestList(clone, lists, cap) ?? overflowNote(full.length, cap);
+  if (leaves.length === 0)
+    return shortenLongestList(clone, lists, cap) ?? overflowNote(full.length, cap);
 
   const originals = leaves.map((l) => l.get());
 

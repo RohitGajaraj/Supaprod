@@ -207,4 +207,11 @@ export async function providerIsReachable(args: {
 }
 
 /** Exported for tests, so the header contract is pinned rather than described. */
-export const __testing = { linearAuthHeader, directHeaders, NOTION_VERSION, DIRECT, GATEWAY, ENV_KEY };
+export const __testing = {
+  linearAuthHeader,
+  directHeaders,
+  NOTION_VERSION,
+  DIRECT,
+  GATEWAY,
+  ENV_KEY,
+};

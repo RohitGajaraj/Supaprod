@@ -24,7 +24,9 @@ const src = readFileSync(TICK, "utf8");
 
 describe("the cold start bar reaches the promotion sweep", () => {
   it("the tick imports the scaler", () => {
-    expect(src).toMatch(/import\s*\{[^}]*coldStartBarFor[^}]*\}\s*from\s*["']@\/lib\/autonomy-policy["']/);
+    expect(src).toMatch(
+      /import\s*\{[^}]*coldStartBarFor[^}]*\}\s*from\s*["']@\/lib\/autonomy-policy["']/,
+    );
   });
 
   it("the bar handed to the sweep is the variable the scaler can rewrite, not a fresh call", () => {

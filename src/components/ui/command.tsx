@@ -63,10 +63,7 @@ const CommandList = React.forwardRef<
   <CommandPrimitive.List
     ref={ref}
     // 6px container padding: the shared popover anatomy (6px pad, 36px rows).
-    className={cn(
-      "max-h-[300px] overflow-y-auto overflow-x-hidden p-mrd-3",
-      className,
-    )}
+    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden p-mrd-3", className)}
     {...props}
   />
 ));

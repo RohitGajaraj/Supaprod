@@ -170,8 +170,11 @@ describe("prdAssist input — instruct mode bounds", () => {
 
   test("exactly 2000 trimmed characters passes; 2001 does not", () => {
     expect(
-      prdAssistInput.safeParse({ mode: "instruct", instruction: "a".repeat(2000), selection: "x y" })
-        .success,
+      prdAssistInput.safeParse({
+        mode: "instruct",
+        instruction: "a".repeat(2000),
+        selection: "x y",
+      }).success,
     ).toBe(true);
     expect(
       prdAssistInput.safeParse({
@@ -180,7 +183,11 @@ describe("prdAssist input — instruct mode bounds", () => {
         selection: "x y",
       }).success,
     ).toBe(true);
-    const r = prdAssistInput.safeParse({ mode: "instruct", instruction: "a".repeat(2001), selection: "x y" });
+    const r = prdAssistInput.safeParse({
+      mode: "instruct",
+      instruction: "a".repeat(2001),
+      selection: "x y",
+    });
     expect(r.success).toBe(false);
     if (!r.success) expect(r.error.issues.some((i) => i.path.includes("instruction"))).toBe(true);
   });
@@ -225,7 +232,9 @@ describe("prdAssist instruct system prompt — senior-PM editor rules", () => {
   });
 
   test("falls back to the smallest reasonable improvement when the selection cannot satisfy the ask", () => {
-    expect(prdAssistInstructPrompt).toMatch(/smallest reasonable improvement and note nothing extra/);
+    expect(prdAssistInstructPrompt).toMatch(
+      /smallest reasonable improvement and note nothing extra/,
+    );
   });
 });
 
@@ -235,7 +244,9 @@ describe("prdAssist wiring — instruct branch lands, existing verbs untouched",
     const branch = src.indexOf('if (data.mode === "instruct")');
     expect(branch).toBeGreaterThan(-1);
     // The branch selects the instruct prompt BEFORE any callModel runs below it.
-    expect(src.indexOf("{ role: \"system\", content: prdAssistInstructPrompt }", branch)).toBeGreaterThan(branch);
+    expect(
+      src.indexOf('{ role: "system", content: prdAssistInstructPrompt }', branch),
+    ).toBeGreaterThan(branch);
     expect(src).toContain('surface_ref: "assist:instruct"');
     // The instruction reaches the model as part of the user turn, trimmed.
     expect(src).toContain("data.instruction!.trim()");
@@ -250,17 +261,22 @@ describe("prdAssist wiring — instruct branch lands, existing verbs untouched",
     expect(src).toContain(
       '"Rewrite the selection to be sharper, more concrete, and easier to scan. Keep meaning."',
     );
-    expect(src).toContain('"Expand the selection with helpful detail, examples, and edge cases. Stay terse."');
-    expect(src).toContain('"Critique the selection: assumptions, missing risks, weak metrics. Return as bullets."');
+    expect(src).toContain(
+      '"Expand the selection with helpful detail, examples, and edge cases. Stay terse."',
+    );
+    expect(src).toContain(
+      '"Critique the selection: assumptions, missing risks, weak metrics. Return as bullets."',
+    );
     expect(src).toContain('"Shorten the selection by ~50% without losing meaning."');
-    expect(src).toContain('{ role: "system", content: "You are a senior PM editor. Return Markdown only." }');
+    expect(src).toContain(
+      '{ role: "system", content: "You are a senior PM editor. Return Markdown only." }',
+    );
   });
 
   test("selection and context constraints are declared once, shared by both modes", () => {
     // Declared once means instruct can never drift from rewrite on what a
     // selection is -- the copies-disagree defect this repo has paid for twice.
-    const occurrences = (needle: string) =>
-      prdAssistSource().split(needle).length - 1;
+    const occurrences = (needle: string) => prdAssistSource().split(needle).length - 1;
     expect(occurrences("selection: z.string().min(2).max(8000)")).toBe(1);
     expect(occurrences("context: z.string().max(8000).optional()")).toBe(1);
   });

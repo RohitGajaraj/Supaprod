@@ -105,7 +105,11 @@ function card(over: Partial<React.ComponentProps<typeof PromotionCard>> = {}) {
 
 /** The card a measurement produces, which is the commonest row in production. */
 function measurement(over: Partial<React.ComponentProps<typeof PromotionCard>> = {}) {
-  return card({ kind: "outcome", lesson: "Checkout retry lifted completion from 6.3 to 7.0", ...over });
+  return card({
+    kind: "outcome",
+    lesson: "Checkout retry lifted completion from 6.3 to 7.0",
+    ...over,
+  });
 }
 
 describe("PromotionCard is inside the system", () => {
@@ -175,10 +179,9 @@ describe("all three answers are real, and all three are reachable", () => {
       const control = screen.getByRole("button", { name });
       expect(control.tagName, `${name} is not a button`).toBe("BUTTON");
       expect(control.getAttribute("type"), `${name} would submit a form`).toBe("button");
-      expect(
-        control.getAttribute("tabindex"),
-        `${name} was taken out of the tab order`,
-      ).not.toBe("-1");
+      expect(control.getAttribute("tabindex"), `${name} was taken out of the tab order`).not.toBe(
+        "-1",
+      );
     }
   });
 
@@ -219,10 +222,9 @@ describe("all three answers are real, and all three are reachable", () => {
     // greyscale, so it may only ever paint something a person can press.
     const never = screen.getByRole("button", { name: "Never" });
     expect(never.className, "Never lost the stop face").toContain("text-mrd-stop");
-    expect(
-      never.className,
-      "Never was painted as an outcome that had happened",
-    ).not.toContain("text-mrd-fail");
+    expect(never.className, "Never was painted as an outcome that had happened").not.toContain(
+      "text-mrd-fail",
+    );
     // Separated by DISTANCE rather than by volume: `Actions` pushes its trailing
     // slot to the far edge, which is what protects a destructive act here.
     expect(
@@ -270,9 +272,10 @@ describe("a measurement is never offered for promotion", () => {
      * be read twice. The origin line said "put forward for the whole workspace"
      * on every card in the first draft, including the ones where nothing is.
      */
-    expect(textOf(measurement()), "a row that may not travel said it had been put forward").not.toContain(
-      "put forward",
-    );
+    expect(
+      textOf(measurement()),
+      "a row that may not travel said it had been put forward",
+    ).not.toContain("put forward");
     expect(textOf(measurement())).toContain("Learned in Fieldwork.");
   });
 
@@ -327,10 +330,9 @@ describe("the status word, before and after", () => {
   it("wears amber and not orchid where nothing this reader presses would move it", () => {
     const markup = paintOf(measurement());
     expect(markup).toContain("bg-mrd-hold-chip");
-    expect(
-      markup,
-      "a row nobody can release promised a control that releases it",
-    ).not.toContain("bg-mrd-you-chip");
+    expect(markup, "a row nobody can release promised a control that releases it").not.toContain(
+      "bg-mrd-you-chip",
+    );
   });
 
   it("survives a greyscale test, because every mood puts its word in the chip", () => {
@@ -396,7 +398,9 @@ describe("the three things a read of the evidence can be, kept apart", () => {
   it("tells an empty list from a failed read", () => {
     const empty = textOf(card({ evidence: [] }));
     expect(empty).toContain("Nothing is attached to this one");
-    expect(empty, "an empty list claimed the read had fallen over").not.toContain("could not be read");
+    expect(empty, "an empty list claimed the read had fallen over").not.toContain(
+      "could not be read",
+    );
 
     const failed = textOf(card({ evidence: [], evidenceFailed: true }));
     expect(failed).toContain("could not be read");
@@ -534,9 +538,10 @@ describe("the vocabulary a person reads", () => {
 
   it("never uses the word context on a surface a person reads", () => {
     for (const text of EVERY_STATE()) {
-      expect(text.toLowerCase(), "a string says context, which means the model window here").not.toContain(
-        "context",
-      );
+      expect(
+        text.toLowerCase(),
+        "a string says context, which means the model window here",
+      ).not.toContain("context");
     }
   });
 

@@ -81,13 +81,7 @@ const FOCUS_INSET =
   "mrd-focus-inset focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]";
 
 export type TaskStatus =
-  | "running"
-  | "queued"
-  | "blocked"
-  | "stopped"
-  | "partial"
-  | "done"
-  | "failed";
+  "running" | "queued" | "blocked" | "stopped" | "partial" | "done" | "failed";
 
 /**
  * Terminal, as this vocabulary spells it. Exported because it is the thing every

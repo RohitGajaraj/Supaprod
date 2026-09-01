@@ -185,8 +185,7 @@ export function retrievalScope(args: {
   return {
     productId: null,
     chip: "Answering from every product",
-    detail:
-      "No product is selected, so Ask reads the record of every product in this workspace.",
+    detail: "No product is selected, so Ask reads the record of every product in this workspace.",
   };
 }
 

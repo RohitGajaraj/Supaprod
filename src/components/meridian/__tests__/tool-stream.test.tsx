@@ -148,7 +148,9 @@ describe("the label names the outcome, never the mechanism", () => {
 
   it("lets a caller override, for the case the vocabulary cannot know", () => {
     render(
-      <ToolStream rows={[{ id: "a", tool: "repo.read", at: T0, label: "reading the spec", state: "done" }]} />,
+      <ToolStream
+        rows={[{ id: "a", tool: "repo.read", at: T0, label: "reading the spec", state: "done" }]}
+      />,
     );
     expect(screen.getByText("reading the spec")).toBeTruthy();
   });
@@ -159,9 +161,10 @@ describe("only a running call moves", () => {
     const { container, rerender } = render(<ToolStream rows={[call(1), call(2), call(3)]} />);
 
     const before = [...container.querySelectorAll("li")].map((n) => n.getAttribute("style"));
-    expect(before.every((s) => !s?.includes("mrd-fade-up")), "rows present at mount animated").toBe(
-      true,
-    );
+    expect(
+      before.every((s) => !s?.includes("mrd-fade-up")),
+      "rows present at mount animated",
+    ).toBe(true);
 
     rerender(<ToolStream rows={[call(1), call(2), call(3), call(4, "running")]} />);
 
@@ -214,9 +217,7 @@ describe("a failed call says what broke", () => {
       />,
     );
     expect(screen.getByText("Failed")).toBeTruthy();
-    expect(
-      screen.getByText("The path is outside the touch list this run declared."),
-    ).toBeTruthy();
+    expect(screen.getByText("The path is outside the touch list this run declared.")).toBeTruthy();
   });
 
   it("says nothing on a settled call, because most rows of a healthy run are one", () => {

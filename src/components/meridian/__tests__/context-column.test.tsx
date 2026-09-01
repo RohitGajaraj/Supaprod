@@ -161,7 +161,9 @@ describe("the hover hint is a hint, and it never replaces the name", () => {
   });
 
   it("keeps the name on one line, so the hint is the only way to read a long one", () => {
-    const { container } = render(<CtxRow name="A name long enough to clip" title="the full name" />);
+    const { container } = render(
+      <CtxRow name="A name long enough to clip" title="the full name" />,
+    );
     const nameEl = container.querySelector(".truncate") as HTMLElement;
 
     expect(nameEl).not.toBe(null);

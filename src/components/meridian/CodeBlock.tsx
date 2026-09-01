@@ -54,16 +54,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
  * the colour stops giving the eye any structure. `dim` is kept as an alias for
  * `punc` so every existing caller keeps working unchanged.
  */
-export type CodeTone =
-  | "kw"
-  | "fn"
-  | "str"
-  | "num"
-  | "type"
-  | "var"
-  | "punc"
-  | "comment"
-  | "dim";
+export type CodeTone = "kw" | "fn" | "str" | "num" | "type" | "var" | "punc" | "comment" | "dim";
 
 /** One run of characters, and how much of it the agent chose. */
 export type CodeToken = { t: string; c?: CodeTone };

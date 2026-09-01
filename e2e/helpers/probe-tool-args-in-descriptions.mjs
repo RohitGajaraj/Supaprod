@@ -2,7 +2,10 @@ import { readFileSync } from "node:fs";
 const src = readFileSync("src/lib/ai/tools/registry.server.ts", "utf8");
 // Split on tool definitions: name: "x", ... description: "..." ... argsSchema: z.object({...})
 const blocks = src.split(/\n\s*(?=name:\s*")/);
-let total = 0, withRequired = 0, namesAll = 0, namesNone = 0;
+let total = 0,
+  withRequired = 0,
+  namesAll = 0,
+  namesNone = 0;
 const offenders = [];
 for (const b of blocks) {
   const nm = b.match(/^name:\s*"([^"]+)"/);
@@ -25,7 +28,10 @@ for (const b of blocks) {
   const desc = dIdx >= 0 && dIdx < aIdx ? b.slice(dIdx, aIdx) : "";
   const named = req.filter((r) => new RegExp(`\\b${r}\\b`).test(desc));
   if (named.length === req.length) namesAll++;
-  else if (named.length === 0) { namesNone++; offenders.push({ t: nm[1], req }); }
+  else if (named.length === 0) {
+    namesNone++;
+    offenders.push({ t: nm[1], req });
+  }
 }
 console.log(`tools with an argsSchema and at least one REQUIRED field: ${withRequired}`);
 console.log(`  description names EVERY required field:  ${namesAll}`);

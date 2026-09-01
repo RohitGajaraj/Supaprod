@@ -23,17 +23,8 @@
  * capability nobody has looked at.
  */
 import type { Cadence } from "./evaluate";
-import type {
-  CapabilityReport,
-  IntegrityReport,
-  LivenessReport,
-  VocabularyReport,
-} from "./report";
-import type {
-  TrackedCapability,
-  TrackedIntegrityCheck,
-  TrackedVocabularyCheck,
-} from "./registry";
+import type { CapabilityReport, IntegrityReport, LivenessReport, VocabularyReport } from "./report";
+import type { TrackedCapability, TrackedIntegrityCheck, TrackedVocabularyCheck } from "./registry";
 
 /** One row of `liveness_results`, as the surface reads it. */
 export type StoredResultRow = {

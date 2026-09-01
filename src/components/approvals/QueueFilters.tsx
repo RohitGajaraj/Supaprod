@@ -89,7 +89,9 @@ export function FilterExcludedEverything({
 }) {
   return (
     <section className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-6">
-      <h2 className="text-[16px] leading-mrd-snug font-medium text-mrd-ink">Nothing under {label}.</h2>
+      <h2 className="text-[16px] leading-mrd-snug font-medium text-mrd-ink">
+        Nothing under {label}.
+      </h2>
       <p className="mt-mrd-3 max-w-[62ch] leading-mrd-prose text-mrd-prose text-mrd-body">
         {total === 1
           ? "One call is still waiting, under another heading."

@@ -175,10 +175,7 @@ function findNativeOAuthMethod(spec: ProviderSpec): NativeOAuthMethod {
  * commercial boundary and not a safety control, so a lookup failure must not
  * stop a legitimate person connecting their own data.
  */
-async function assertRoomForAnotherSource(
-  db: SupabaseClient,
-  userId: string,
-): Promise<void> {
+async function assertRoomForAnotherSource(db: SupabaseClient, userId: string): Promise<void> {
   let tier: PlanTier;
   try {
     const { data, error } = await db

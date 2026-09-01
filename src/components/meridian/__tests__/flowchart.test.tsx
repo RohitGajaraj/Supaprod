@@ -39,7 +39,14 @@ const BRANCH: { nodes: FlowNode[]; edges: FlowEdge[] } = {
       title: "A firmware complaint arrives",
       caption: "Any signal on the firmware theme starts this",
     },
-    { id: "rank", row: 1, x: 0.5, station: "decide", kind: "If / Else", title: "Is it worth a bet?" },
+    {
+      id: "rank",
+      row: 1,
+      x: 0.5,
+      station: "decide",
+      kind: "If / Else",
+      title: "Is it worth a bet?",
+    },
     { id: "spec", row: 2, x: 0.26, station: "plan", title: "Draft the spec" },
     { id: "park", row: 2, x: 0.74, station: "learn", title: "File it against the theme" },
     { id: "build", row: 3, x: 0.26, station: "build", title: "Write the notice" },
@@ -289,7 +296,8 @@ describe("it degrades at the sizes nobody draws", () => {
   });
 
   it("truncates a 90 character title instead of widening the node", () => {
-    const long = "Rewrote the firmware reboot notice so a homeowner can tell a restart from an outage";
+    const long =
+      "Rewrote the firmware reboot notice so a homeowner can tell a restart from an outage";
     render(<Flowchart nodes={[{ id: "a", row: 0, x: 0.5, title: long }]} edges={[]} />);
     expect(screen.getByText(long).className).toContain("truncate");
   });
@@ -319,9 +327,7 @@ describe("a node is a control only when a caller can act on it", () => {
   });
 
   it("lights only the edges touching the selected node", () => {
-    const { container } = render(
-      <Flowchart {...BRANCH} selectedId="rank" onSelect={() => {}} />,
-    );
+    const { container } = render(<Flowchart {...BRANCH} selectedId="rank" onSelect={() => {}} />);
     const strokes = [...container.querySelector("svg")!.querySelectorAll("path")].map((p) =>
       p.getAttribute("stroke"),
     );
@@ -486,9 +492,9 @@ describe("a reader can untangle the graph, and the connectors keep up", () => {
     expect(at(up).top).toBe("8px");
 
     render(<Flowchart {...BRANCH} />);
-    const down = screen.getAllByText("A firmware complaint arrives")[1].closest(
-      '[class*="cursor-grab"]',
-    ) as HTMLElement;
+    const down = screen
+      .getAllByText("A firmware complaint arrives")[1]
+      .closest('[class*="cursor-grab"]') as HTMLElement;
     dragBy(down, 1000, 1000);
     expect(at(down).left).toBe("322px");
     expect(at(down).top).toBe(`${CANVAS_H - EST_H - 8}px`);
@@ -578,9 +584,11 @@ describe("the drag says what it is doing, and stops when it is told to", () => {
 describe("the canvas ground carries a colour, and it is not a status", () => {
   const CSS = readFileSync("src/styles/meridian.css", "utf8");
   const oklch = (token: string) =>
-    [...CSS.matchAll(new RegExp(`--mrd-${token}:\\s*oklch\\(([\\d.]+) ([\\d.]+) ([\\d.]+)\\)`, "g"))].map(
-      (m) => ({ L: Number(m[1]), C: Number(m[2]), H: Number(m[3]) }),
-    );
+    [
+      ...CSS.matchAll(
+        new RegExp(`--mrd-${token}:\\s*oklch\\(([\\d.]+) ([\\d.]+) ([\\d.]+)\\)`, "g"),
+      ),
+    ].map((m) => ({ L: Number(m[1]), C: Number(m[2]), H: Number(m[3]) }));
 
   it("paints the canvas with the map token rather than the neutral recess", () => {
     const { container } = render(<Flowchart {...BRANCH} />);

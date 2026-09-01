@@ -30,9 +30,7 @@ const input = (over: Partial<PresenceInput> = {}): PresenceInput => ({
 
 describe("RunPresence", () => {
   it("while the first read is in flight it says reading -- derived, not staged", () => {
-    const { container } = render(
-      <RunPresence loading input={input({ track: null })} />,
-    );
+    const { container } = render(<RunPresence loading input={input({ track: null })} />);
     expect(container.textContent).toContain(READING_LINE);
     // Awake is the honest state for "present, nothing proven yet": no working,
     // no thinking, and never a smile on a feed that has not spoken.
@@ -51,9 +49,7 @@ describe("RunPresence", () => {
   });
 
   it("a settled-but-missing row is still out of touch -- that claim is true", () => {
-    const { container } = render(
-      <RunPresence loading={false} input={input({ track: null })} />,
-    );
+    const { container } = render(<RunPresence loading={false} input={input({ track: null })} />);
     expect(container.textContent).toContain("can't find");
   });
 });

@@ -186,7 +186,9 @@ describe("what it says out loud", () => {
   });
 
   it("shows a noun when it is given one and nothing when it is not", () => {
-    const { container: withNoun } = render(<AgentPulse label="Scout is reading" detail="14 signals" />);
+    const { container: withNoun } = render(
+      <AgentPulse label="Scout is reading" detail="14 signals" />,
+    );
     expect(screen.getByText("14 signals")).toBeTruthy();
     // The empty slot is the correct output when the specific fact is out of
     // scope. An invented one would be the same defect as a made-up progress bar.

@@ -98,11 +98,7 @@ export const Route = createFileRoute("/api/public/hooks/liveness-tick")({
             ...TRACKED_INTEGRITY_CHECKS.map((c) => ({ id: c.id, kind: "integrity" as const })),
             ...TRACKED_VOCABULARY_CHECKS.map((c) => ({ id: c.id, kind: "vocabulary" as const })),
           ];
-          const due = selectDueEntries(
-            registry,
-            storedRows ?? [],
-            ROTATION_BATCH,
-          );
+          const due = selectDueEntries(registry, storedRows ?? [], ROTATION_BATCH);
           const dueIds = new Set(due.map((d) => d.id));
 
           const report = await buildLivenessReport(client, {
@@ -123,24 +119,40 @@ export const Route = createFileRoute("/api/public/hooks/liveness-tick")({
               kind: "capability",
               verdict: c.verdict,
               reason: c.reason,
-              detail: { title: c.title, proof: c.proof, cadence: c.cadence, lastAt: c.lastAt,
-                        countInWindow: c.countInWindow, neverExecuted: c.neverExecuted },
+              detail: {
+                title: c.title,
+                proof: c.proof,
+                cadence: c.cadence,
+                lastAt: c.lastAt,
+                countInWindow: c.countInWindow,
+                neverExecuted: c.neverExecuted,
+              },
             })),
             ...report.integrity.map((c) => ({
               capability_id: c.id,
               kind: "integrity",
               verdict: c.verdict,
               reason: c.reason,
-              detail: { title: c.title, readBy: c.readBy, totalRows: c.totalRows,
-                        offendingRows: c.offendingRows, deadSegments: c.deadSegments },
+              detail: {
+                title: c.title,
+                readBy: c.readBy,
+                totalRows: c.totalRows,
+                offendingRows: c.offendingRows,
+                deadSegments: c.deadSegments,
+              },
             })),
             ...report.vocabulary.map((c) => ({
               capability_id: c.id,
               kind: "vocabulary",
               verdict: c.verdict,
               reason: c.reason,
-              detail: { title: c.title, declaredBy: c.declaredBy, totalRows: c.totalRows,
-                        undeclaredRows: c.undeclaredRows, unusedValues: c.unusedValues },
+              detail: {
+                title: c.title,
+                declaredBy: c.declaredBy,
+                totalRows: c.totalRows,
+                undeclaredRows: c.undeclaredRows,
+                unusedValues: c.unusedValues,
+              },
             })),
           ].map((r) => ({ ...r, window_days: report.windowDays, checked_at: checkedAt }));
 

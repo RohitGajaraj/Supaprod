@@ -126,7 +126,9 @@ describe("a brand mark is the real logo", () => {
       const [, , w, h] = g.viewBox.split(/\s+/).map(Number);
       const ratio = w / h;
       if (!Number.isFinite(ratio) || ratio > 2 || ratio < 0.5) {
-        offenders.push(`${id} is ${w}x${h} (ratio ${ratio.toFixed(2)}); that is a lockup, use the mark`);
+        offenders.push(
+          `${id} is ${w}x${h} (ratio ${ratio.toFixed(2)}); that is a lockup, use the mark`,
+        );
       }
     }
     expect(offenders).toEqual([]);

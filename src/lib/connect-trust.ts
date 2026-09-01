@@ -37,7 +37,8 @@ const TRUST_COPY: Record<ProviderId, TrustCopy> = {
     weNeverRead: "We never send email as you, and never touch Drive or Calendar.",
   },
   google_tasks: {
-    weRead: "Nothing yet. Connecting authorizes the account, and syncing action items with Google Tasks is not built.",
+    weRead:
+      "Nothing yet. Connecting authorizes the account, and syncing action items with Google Tasks is not built.",
     weNeverRead: "Your task lists, Gmail, Calendar, or Drive.",
   },
   microsoft_outlook: {
@@ -56,11 +57,13 @@ const TRUST_COPY: Record<ProviderId, TrustCopy> = {
   // weNeverRead moved too: "files you have not referenced" implied the referenced
   // ones were read, which restated the same false claim in the reassuring field.
   figma: {
-    weRead: "Your Figma account identity, to confirm the connection. Referencing design files from specs and briefs is not built yet.",
+    weRead:
+      "Your Figma account identity, to confirm the connection. Referencing design files from specs and briefs is not built yet.",
     weNeverRead: "Your design files, or anything inside them.",
   },
   jira: {
-    weRead: "Your Atlassian identity and which sites the grant covers, to confirm the connection. Reading work items is not built yet.",
+    weRead:
+      "Your Atlassian identity and which sites the grant covers, to confirm the connection. Reading work items is not built yet.",
     weNeverRead: "Your work items, billing, or admin settings.",
   },
   firecrawl: {
