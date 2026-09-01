@@ -1,12 +1,50 @@
 # Convention: working-tree hygiene (no clutter at the root)
 
-> _Created: 2026-06-16 · Last updated: 2026-06-16_
+> _Created: 2026-06-16 · Last updated: 2026-09-02_
 
-> Standing rule. The repo working tree stays clean: no images at the root or `docs/` top level, and no macOS FS-duplication artifacts anywhere. Every captured image has one logical home by scenario with a retention window, and stray images + `" 2"`-style duplicates are swept by one janitor. This is enforced, not advisory.
+> Standing rule. The repo working tree stays clean: no images at the root or `docs/` top level, no agent probe or snapshot artifacts anywhere, and no macOS FS-duplication artifacts. Every captured image has one logical home by scenario with a retention window, and stray images + `" 2"`-style duplicates are swept by one janitor. This is enforced, not advisory.
 
 ## Why this exists
 
 Tools (Playwright, the verify and run skills, the browser MCP) capture screenshots constantly, and a case-insensitive macOS filesystem plus cloud sync quietly create `<name> 2.<ext>` duplicates. Left alone they pile up in the working tree the founder sees (one sweep found nine loose PNGs at the root, 444 scratch files in `.playwright-mcp/`, and `agentdb 2.rvf` / `agentdb.rvf 2.lock` dups). Git already ignores most of it, so version control stays clean, but the local tree clutters. This convention fixes the local hygiene: where each image goes, how long it stays, and how the tree self-cleans, both for images and for FS-dup artifacts.
+
+## Agent probe and snapshot artifacts (added 2026-09-02)
+
+**A session driving the browser leaves two kinds of litter, and one of them can touch production
+data.** Both were found in the tree on 2026-09-02, written by read-only audit agents an hour earlier.
+
+**1. Accessibility-tree dumps at the repo root.** `er-overview.yml`, 6.9KB of Playwright snapshot
+YAML, sitting at the root and failing `bun run docs:check` as a stray. Harmless in itself.
+
+**2. Throwaway probe specs in `e2e/`, and this one is not tidy-up.** `playwright.config.ts` sets
+`testDir: "./e2e"` and, until 2026-09-02, carried **no ignore rule**. Any spec file left in that
+directory joined **every** `playwright test` run. **This repo has already paid for exactly that:** a
+probe pressing real surfaces created six duplicate tracks, which then starved the one track a
+session was watching, and the ids it produced were abandoned at `sense`. A probe spec sitting where
+`testMatch` can reach it is a hazard to production data, not to the gate.
+
+**The rules:**
+
+- **Throwaway probe specs are named `zz-*.spec.ts`.** Nothing else may use that prefix. If you need
+  a scratch spec, name it that way so both defences below catch it.
+- **Root-level `*.yml` / `*.yaml` is not a repo convention.** Nothing tracked lives there, so
+  anything that appears is scratch.
+- **Never commit either.** `.gitignore` covers `/*.yml` (root only, so `.github/workflows/*.yml`,
+  `.serena/project.yml` and `docs/pitch/applications/baseline.yml` are untouched) and
+  `e2e/zz-*.spec.ts`.
+
+**Three defences, deliberately independent**, because a probe spec reaching a real run is the kind
+of failure that should need more than one thing to go wrong:
+
+1. **`playwright.config.ts` sets `testIgnore: /zz-.*\.spec\.ts$/`**, so a probe can never join a
+   run even if it is sitting there right now.
+2. **`.gitignore`** stops either artifact being committed.
+3. **`bun run clean:workspace`** relocates root snapshots into `.playwright-mcp/` (never deletes
+   them; that bucket already purges at 7 days) and removes `e2e/zz-*.spec.ts` outright.
+
+**This recurs while you watch.** The janitor's first run removed a second probe spec that had
+appeared during the ten minutes it took to write these rules. Do not treat a one-off sweep as the
+fix; the config guard is what actually holds.
 
 ## The hard rules
 

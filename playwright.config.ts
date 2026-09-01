@@ -39,6 +39,12 @@ loadEnvFile();
 
 export default defineConfig({
   testDir: "./e2e",
+  // Throwaway agent probe specs are named zz-*.spec.ts and never join a run.
+  // Added 2026-09-02: testDir had no ignore rule, so an untracked e2e/zz-probe.spec.ts
+  // left behind by a session was collected by every `playwright test` invocation.
+  // That one only read the DOM, but a probe that presses a real surface creates real
+  // rows, which this repo has already paid for once.
+  testIgnore: /zz-.*\.spec\.ts$/,
   outputDir: "./test-results",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,

@@ -51,6 +51,15 @@ nango/
 # Playwright MCP artifacts
 .playwright-mcp/
 
+# Agent probe + snapshot artifacts (2026-09-02).
+# A session driving the browser drops accessibility-tree dumps and throwaway probe
+# specs into the tree. They are scratch, they are never reviewed, and one of them sat
+# at the repo root failing docs:check. `bun run clean:workspace` relocates them into
+# .playwright-mcp/, which has a 7-day retention.
+/*.yml
+!/.github/**/*.yml
+e2e/zz-*.spec.ts
+
 # Local tool artifacts — knowledge-graph / agent DB state, churns every session
 ruvector.db
 # graphify: the graph itself stays out (graph.json is 16MB and is rewritten in full on every
