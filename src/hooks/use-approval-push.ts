@@ -41,10 +41,32 @@ export function useApprovalPush(enabled: boolean) {
      * one subscription per user still serves every surface, and any future
      * reader of a gate gets the push by adding its key here.
      */
+    /*
+     * ── THE RUN SCREEN AND THE BOARD JOINED THE PUSH (2026-09-01) ──────────
+     *
+     * The note above ends "any future reader of a gate gets the push by adding
+     * its key here", and there were two readers doing without it.
+     *
+     * `track-gates` is the RUN SCREEN's inline question -- the card that asks
+     * a person to approve or decline mid-run. It polls every 10s
+     * (`TrackConsent.tsx:92`), so a gate the socket already knew about took up
+     * to ten seconds to appear on the one surface a person is watching while it
+     * happens. That is the worst place in the product to be late.
+     *
+     * `approvals-queue` is what the BOARD's review queue and the rail's count
+     * read, so the number on the door and the cards behind it now move together
+     * with the run rather than on their own timers.
+     *
+     * The cost is nothing: the socket, the RLS filter and the reconnect sweep
+     * were already paid for. These are three more cache keys on an event that
+     * was already firing.
+     */
     const invalidate = () => {
       queryClient.invalidateQueries({ queryKey: ["ask-pending-approvals"] });
       queryClient.invalidateQueries({ queryKey: ["ask-mission-canvas"] });
       queryClient.invalidateQueries({ queryKey: ["ask-canvas"] });
+      queryClient.invalidateQueries({ queryKey: ["track-gates"] });
+      queryClient.invalidateQueries({ queryKey: ["approvals-queue"] });
     };
 
     void supabase.auth.getUser().then(({ data }) => {

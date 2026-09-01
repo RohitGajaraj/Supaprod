@@ -253,7 +253,15 @@ function AskPaneOpen() {
    * network blip, and a card that stops updating is worse than one that updates
    * slowly.
    */
-  useApprovalPush(true);
+  /*
+   * FALSE SINCE 2026-09-01, AND THE CAPABILITY DID NOT SHRINK -- IT GREW.
+   * This subscription is now mounted once in the authenticated shell
+   * (`_authenticated.tsx`), so it is live on every surface rather than only
+   * while this panel is open, and the run screen's inline gate and the board's
+   * review queue are pushed to as well. Two mounts would open two Supabase
+   * channels under the same name, so this one stands down.
+   */
+  useApprovalPush(false);
 
   // THE QUEUE IS READ, AND IT IS NOT DRAWN ON ARRIVAL. Founder ruling
   // 2026-07-30: *"approval should not go under Ask... If I click Ask, it should

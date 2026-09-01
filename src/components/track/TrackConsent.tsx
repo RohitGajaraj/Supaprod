@@ -192,7 +192,27 @@ export function TrackConsent({
     onError: () => setAnsweringId(null),
   });
 
-  if (q.isLoading || (!q.data && !q.isError)) return null;
+  /*
+   * ── THE ONE REGION THAT ANSWERS "DOES THIS NEED ME" WAS SILENT (2026-09-01)
+   *
+   * This returned `null` for the whole first read. On a surface whose entire
+   * job is watching a run happen, the card that says "your agent has stopped
+   * to ask you something" rendered NOTHING for between about 200ms and the
+   * full 10s poll -- and rendered exactly the same nothing when there was
+   * genuinely no question. Two opposite facts, one blank space.
+   *
+   * Every sibling in this pane already knew better: `TrackActivity` says
+   * "Reading what happened.", `TrackChain` and `ArtifactPane` both word their
+   * wait. This one did not, and it is the highest-stakes of the four, because
+   * a person who sees nothing here concludes the run does not need them and
+   * leaves.
+   *
+   * `RecordSpeaks` rather than a bare line, so the wait sits in the same frame
+   * the answer will arrive in and the region does not jump when it lands.
+   */
+  if (q.isLoading || (!q.data && !q.isError)) {
+    return <RecordSpeaks>Checking whether this run needs you.</RecordSpeaks>;
+  }
   if (q.isError) {
     // FAIL LOUD, NEVER FAIL EMPTY: silence here would tell a person their run
     // needs nothing when nobody could read the table at all (RL0-020).

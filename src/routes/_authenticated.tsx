@@ -7,6 +7,7 @@ import { AppFrame } from "@/components/shell/AppFrame";
 import { WorkspaceProvider } from "@/hooks/use-workspace";
 import { FlowModeProvider } from "@/hooks/use-flow-mode";
 import { needsOnboarding } from "@/lib/onboarding-gate";
+import { useApprovalPush } from "@/hooks/use-approval-push";
 import { BackendHealthBanner } from "@/components/system/BackendHealthBanner";
 import { EverythingIsPausedBanner } from "@/components/system/EverythingIsPausedBanner";
 import { BillingBanner } from "@/components/billing/BillingBanner";
@@ -111,6 +112,29 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthedLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  /*
+   * ── THE GATE SOCKET IS ALWAYS ON NOW (2026-09-01) ────────────────────────
+   *
+   * `useApprovalPush` is a complete Supabase realtime subscription on
+   * `agent_approvals` -- RLS-filtered to this user, INSERT and UPDATE, with a
+   * refetch on every reconnect to close the window a dropped socket opens. It
+   * was mounted in ONE place: `AskPane`, which only exists while the Ask panel
+   * is open.
+   *
+   * So the surfaces that most need a question to arrive the moment it is asked
+   * had no push at all. The run screen's inline gate polls every 10s
+   * (`TrackConsent.tsx:92`), the board's review queue and the rail's count run
+   * on their own timers, and a person watching their own run could sit for ten
+   * seconds after the agent had already stopped to ask them something.
+   *
+   * Hoisting it here gives one subscription per signed-in session that serves
+   * every surface, which is the shape the hook's own header argues for: *"one
+   * subscription per user still serves every surface, and any future reader of
+   * a gate gets the push by adding its key here."* `AskPane` now passes
+   * `false`, because two mounts would open two channels under the same name.
+   */
+  useApprovalPush(true);
 
   // The portal theme fix: Radix/shadcn floating layers (dropdowns, dialogs,
   // popovers, tooltips, sonner, cmdk) portal onto document.body — OUTSIDE the
