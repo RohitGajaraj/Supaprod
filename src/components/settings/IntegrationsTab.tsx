@@ -160,11 +160,30 @@ export function IntegrationsTab() {
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const endpoint = `${origin}/api/mcp`;
+  /*
+    ── THE SAMPLE CONTRADICTED THE SENTENCE ABOVE IT (2026-09-01) ────────────
+    The paragraph over this block says the endpoint *"speaks the native MCP
+    handshake (initialize, tools/list, tools/call) ... so a standards client
+    connects with a pasted bearer header"*, and the curl under it then sent
+    `"method":"search_opportunities"` -- which is NOT any of those three.
+
+    THE COMMAND WORKED, and that is what made it worth fixing rather than
+    harmless. `api/mcp.ts:194` dispatches bare tool names as methods alongside
+    the standard shape, so a developer who pastes this gets a 200 and learns a
+    protocol no other MCP server accepts. They then write their client against
+    it. A wrong example that FAILS is a five-minute detour; a wrong example
+    that succeeds is a client that has to be rewritten later.
+
+    `tools/list` is the right first call for a different reason too: it is the
+    one request that needs no arguments, so it proves the token, the header and
+    the handshake in a single line without the reader inventing a query. What
+    it returns is the menu for every call after it.
+  */
   const curl = [
     `curl -X POST ${endpoint || "https://YOUR-SUPAPROD-HOST/api/mcp"} \\`,
     `  -H "Authorization: Bearer YOUR_TOKEN" \\`,
     `  -H "Content-Type: application/json" \\`,
-    `  -d '{"jsonrpc":"2.0","id":1,"method":"search_opportunities","params":{"query":"","limit":5}}'`,
+    `  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'`,
   ].join("\n");
 
   const tokens = (tokensQ.data ?? []) as MCPTokenInfo[];
