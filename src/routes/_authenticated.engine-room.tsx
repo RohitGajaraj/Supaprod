@@ -357,9 +357,7 @@ function EngineRoomPage() {
             <h2 className="text-mrd-tiny font-medium tracking-wide text-mrd-mute uppercase">
               The engine calls this
             </h2>
-            <p className="leading-mrd-prose text-mrd-prose text-mrd-body">
-              {meta.technical}
-            </p>
+            <p className="leading-mrd-prose text-mrd-prose text-mrd-body">{meta.technical}</p>
           </div>
         }
       >
@@ -551,7 +549,27 @@ function EngineRoomOverview({
             a room with six figures is as tall as it needs to be and a room with
             three is not padded out to match it. */}
         <div className="flex flex-col gap-mrd-4">
-          <div className="grid gap-mrd-2">{rooms.map((r) => roomCard(r, openRoom))}</div>
+          {/*
+            ── THE RHYTHM WAS INVERTED, MEASURED (2026-09-01) ────────────────
+            This was `gap-mrd-2`. The ramp:
+
+              between two separate room cards   --mrd-s2   4px
+              between lines INSIDE one card     --mrd-s3   6px
+                                                (RoomGlanceCard:145, :211)
+
+            So two DIFFERENT rooms sat closer together than two lines belonging
+            to the same room, which is the exact inverse of the rule Meridian
+            states at its own tokens: "These grow, so the gap BETWEEN groups is
+            always visibly larger than the gap WITHIN one." A reader's eye
+            groups by proximity before it reads anything, so this actively
+            argued that the cards were one list of lines rather than several
+            distinct rooms.
+
+            `--mrd-s4` (10px) puts the boundary one clear step above the
+            interior. Not larger: these cards are peers in a column and the
+            40px stack above already separates the column from the page.
+          */}
+          <div className="grid gap-mrd-4">{rooms.map((r) => roomCard(r, openRoom))}</div>
           {failed.length > 0 ? (
             <Actions>
               <Action

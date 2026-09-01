@@ -160,7 +160,28 @@ export function OutcomeHistory() {
                       {l.metric_label} {l.metric_value}
                     </>
                   ) : null}
-                  <span className="mt-0.5 block text-mrd-body text-mrd-prose">
+                  {/*
+                    ── THE MEMO OUTRANKED THE ROW IT SITS IN (2026-09-01) ──────
+                    `RecordLine` paints its `sub` wrapper at `text-mrd-label`
+                    (12.5px, record-parts.tsx:166) and this span carried
+                    `text-mrd-prose` (14px), so the memo -- the LAST and least
+                    load-bearing part of the sub -- rendered larger than the
+                    verdict and the metric beside it, and larger than the sub it
+                    is nested inside. Hierarchy upside down on every row of the
+                    Outcomes tab.
+
+                    SAME MISUNDERSTANDING AS THE `RetentionLine` ANCHOR: the pair
+                    reads `text-mrd-body text-mrd-prose` as though `prose` were
+                    part of the colour, because until the 2026-08-21 rename
+                    `text-mrd-body` really did compile to a size AND a colour.
+                    Dropping the size lets it inherit 12.5px from the sub and
+                    keeps `text-mrd-body` doing the one job it still has.
+
+                    `one-element-one-type-size.test.ts` cannot see this: both
+                    declarations are legal on their own and the conflict is
+                    between a parent and its child.
+                  */}
+                  <span className="mt-0.5 block text-mrd-body">
                     {l.summary || "No memo was written down."}
                   </span>
                 </>
