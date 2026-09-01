@@ -610,13 +610,36 @@ function BuildEngine() {
         <Region
           title="Every change"
           sub={
-            // Never a silent cap. If the window dropped rows, the surface says so
-            // rather than presenting a subset as the whole record.
+            /*
+             * ── IT SAYS IT REPEATS THE LANES NOW (2026-09-01) ────────────────
+             *
+             * Found by walking this station rather than reading it. Measured on
+             * the rendered page at 1512px: six rows appear TWICE, once under
+             * "Waiting on you" at y=746 and again here at y=1284, all twelve
+             * visible at once. Not a responsive pair -- both are on screen.
+             *
+             * The list is CORRECT and is not the defect: it holds 9 rows against
+             * the lanes' 8, and the 3 it adds are real (two with a pull request
+             * open whose run stopped, one merged). It is the complete record and
+             * deleting it would remove the only place those three appear.
+             *
+             * The defect was that the heading said none of that, so a reader
+             * meeting "Add SSO login" for the second time 500px lower has no way
+             * to tell it is the same piece of work rather than a duplicate row.
+             * Unexplained repetition reads as a data fault, which is the
+             * founder's "things are duplicated" complaint arriving from a list
+             * that is behaving correctly.
+             *
+             * One sentence converts it from apparent duplication into stated
+             * completeness. The cap clause keeps its place after it, because a
+             * dropped row and a repeated row are two different facts and the
+             * surface owes both.
+             */
             work.data && work.data.more > 0
-              ? `The ${items.length} most recently touched. ${work.data.more} older ${
+              ? `Everything the crew has written, including the rows above. The ${items.length} most recently touched; ${work.data.more} older ${
                   work.data.more === 1 ? "change is" : "changes are"
                 } not shown.`
-              : undefined
+              : "Everything the crew has written, including the rows above."
           }
         >
           {loading ? (
