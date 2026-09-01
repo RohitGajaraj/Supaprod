@@ -1108,31 +1108,64 @@ function ProfileSection() {
       </Region>
 
       <div id={HOURS_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+        {/*
+          ── A NUMBER IN A BOX THAT NEVER SAID WHAT IT WAS (2026-09-01) ───────
+          Photographed on the rendered page: two bare fields containing `9` and
+          `18`, `type="number"`, no placeholder, no suffix, no unit anywhere
+          beside them. A person had to infer that these are hours, on a
+          24-hour clock, in the timezone set by a different field further up.
+
+          The page subtitle does say "9:00 to 18:00 in UTC" -- 420px above,
+          under a different heading, which is not where someone typing in a box
+          is looking. And the second field carried no `sub` at all while the
+          first did, so the pair did not even explain itself symmetrically.
+
+          `:00` AS A SUFFIX RATHER THAN A HINT LINE. The value IS an hour, so
+          showing the minutes it implies turns the box into a clock reading
+          rather than a quantity -- it answers the question in the place the
+          question is asked, and costs no vertical space on a settings page that
+          already scrolls. `aria-hidden` because the accessible name on each
+          input already says what it is; a screen reader hearing ":00" after
+          "Reachable from" would be reading punctuation.
+
+          The 24-hour convention is stated once on the `from` row, where a
+          reader meets it first, rather than twice.
+        */}
         <Region title="Working hours">
           <Line
             label="Reachable from"
-            sub="Outside it, a scheduled digest waits rather than pinging you."
+            sub="On a 24-hour clock, in the timezone above. Outside this window a scheduled digest waits rather than pinging you."
           >
-            <Input
-              aria-label="Reachable from"
-              type="number"
-              min={0}
-              max={23}
-              style={{ width: 88 }}
-              value={whStart}
-              onChange={(e) => setWhStart(Number(e.target.value))}
-            />
+            <span className="flex items-center gap-mrd-2">
+              <Input
+                aria-label="Reachable from"
+                type="number"
+                min={0}
+                max={23}
+                style={{ width: 88 }}
+                value={whStart}
+                onChange={(e) => setWhStart(Number(e.target.value))}
+              />
+              <span aria-hidden="true" className="mrd-meta">
+                :00
+              </span>
+            </span>
           </Line>
           <Line label="Until">
-            <Input
-              aria-label="Reachable until"
-              type="number"
-              min={1}
-              max={24}
-              style={{ width: 88 }}
-              value={whEnd}
-              onChange={(e) => setWhEnd(Number(e.target.value))}
-            />
+            <span className="flex items-center gap-mrd-2">
+              <Input
+                aria-label="Reachable until"
+                type="number"
+                min={1}
+                max={24}
+                style={{ width: 88 }}
+                value={whEnd}
+                onChange={(e) => setWhEnd(Number(e.target.value))}
+              />
+              <span aria-hidden="true" className="mrd-meta">
+                :00
+              </span>
+            </span>
           </Line>
           <Actions>
             <Action variant="primary" type="submit" busy={save.isPending}>
