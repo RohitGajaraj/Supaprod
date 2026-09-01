@@ -2,6 +2,12 @@
 
 > _Last updated: 2026-08-26_
 
+> **Moved out of the repo root on 2026-09-01. This is an experiment, not a ruling.**
+> This file was `CLAUDE.md` at the root, auto-loaded into every agent session. It was moved here to
+> test whether a smaller instruction surface produces better work. Nothing in it was judged wrong,
+> and no claim in it was withdrawn. The live short brief is [`../../CLAUDE.md`](../../CLAUDE.md).
+> To restore: `git mv docs/archive/claude-code-brief.md CLAUDE.md`.
+
 **Read [`AGENTS.md`](./AGENTS.md). It is the build manual and it is canonical.** [`README.md`](./README.md) says what the product is and where every other document lives.
 
 > Supaprod tells you what to build, builds it, ships it, checks what actually happened, and **learns from it, so next time it guides the call**. Storage is not the moat, because any vendor can store your decisions — **and as of 2026-08-10, neither is the compounding record.** A full read of the market falsified that: causes survive in Slack and call recordings and have been reconstructed twice on the record. **The moat is the forecast captured at decision time** — what a team believed would happen, recorded before the outcome was known, which is not an artifact and leaves no trace unless something captured it at the moment of the call.

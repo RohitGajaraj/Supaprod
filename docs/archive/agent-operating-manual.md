@@ -2,6 +2,12 @@
 
 > _Last updated: 2026-08-03_
 
+> **Moved out of the repo root on 2026-09-01. This is an experiment, not a ruling.**
+> This file was `AGENTS.md` at the root, auto-loaded into every agent session. It was moved here to
+> test whether a smaller instruction surface produces better work. Nothing in it was judged wrong,
+> and no claim in it was withdrawn. The live short brief is [`../../CLAUDE.md`](../../CLAUDE.md).
+> To restore: `git mv docs/archive/agent-operating-manual.md AGENTS.md`.
+
 **This file holds the rules for building Supaprod.** It is tool-agnostic and canonical: Claude Code, Antigravity, Gemini CLI, Codex, Cursor and Lovable all work from it. Per-tool notes live in [`CLAUDE.md`](./CLAUDE.md) and [`GEMINI.md`](./GEMINI.md), and those files only *point* here.
 
 For what the product is and where every other document lives, read [`README.md`](./README.md).

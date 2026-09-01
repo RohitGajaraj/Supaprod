@@ -1,5 +1,14 @@
 #!/bin/bash
-# Session context boot hook, fires on SessionStart.
+# Session context boot hook.
+#
+# UNREGISTERED ON 2026-09-01. This script is intact but no longer wired to SessionStart in
+# .claude/settings.json. It injected ~45KB into every session -- larger than the CLAUDE.md it
+# told you to go read -- and that volume is the thing being tested. Nothing here was judged
+# wrong. To restore, add back to .claude/settings.json:
+#
+#   "SessionStart": [ { "hooks": [ { "type": "command",
+#     "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/load-project-memory.sh\"" } ] } ]
+#
 # Gives every session immediate orientation: rules, strategy, active work, and recent history.
 
 echo "================================================================================"

@@ -2,6 +2,12 @@
 
 > _Last updated: 2026-08-03_
 
+> **Moved out of the repo root on 2026-09-01. This is an experiment, not a ruling.**
+> This file was `GEMINI.md` at the root, auto-loaded into every agent session. It was moved here to
+> test whether a smaller instruction surface produces better work. Nothing in it was judged wrong,
+> and no claim in it was withdrawn. The live short brief is [`../../CLAUDE.md`](../../CLAUDE.md).
+> To restore: `git mv docs/archive/gemini-brief.md GEMINI.md`.
+
 **Read [`AGENTS.md`](./AGENTS.md). It is the build manual and it is canonical.** [`README.md`](./README.md) says what the product is and where every other document lives.
 
 > Supaprod tells you what to build, builds it, ships it, checks what actually happened, and **learns from it, so next time it guides the call**. It learns and guides; it never "remembers", "stores", or "logs" — those verbs stay banned everywhere, because they claim less than the product delivers.

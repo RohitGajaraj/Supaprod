@@ -53,7 +53,7 @@ Evidence: [`docs/research/lennys-corpus-sweep-2026-08.md`](./docs/research/lenny
 >
 > Beat 2 is verbatim from an operator, and those three jobs are exactly stations **02 Decide, 03 Plan and 07 Learn**. The felt promise in one line, also his: **"Less operator, more director."** Category line under test: *"There is no GitHub for product decisions."*
 
-This file is the front door: what the product is, why it holds, and where every other document lives. It is the only navigation map in the repo. If you are here to **build**, read [`AGENTS.md`](./AGENTS.md) instead.
+This file is the front door: what the product is, why it holds, and where every other document lives. It is the only navigation map in the repo. If you are here to **build**, read [`CLAUDE.md`](./CLAUDE.md) for the short operating brief, and [`docs/archive/agent-operating-manual.md`](./docs/archive/agent-operating-manual.md) for the full build manual it was cut from.
 
 ---
 
@@ -445,9 +445,16 @@ Database changes are timestamped, RLS-aware SQL in `supabase/migrations/`. Apply
 | File | Answers | Read it when |
 | --- | --- | --- |
 | **`README.md`** (here) | What is Supaprod, and where is everything? | Evaluating it, or looking for another doc. |
-| [**`AGENTS.md`**](./AGENTS.md) | How do I build it? | Writing any code, human or agent. The rules, gates and invariants. |
-| [**`CLAUDE.md`**](./CLAUDE.md) | Claude Code specifics | Auto-loaded by Claude Code. Thin by design. |
-| [**`GEMINI.md`**](./GEMINI.md) | Gemini / Antigravity specifics | Auto-loaded by those tools. Thin by design. |
+| [**`CLAUDE.md`**](./CLAUDE.md) | How do I build it? | Writing any code, human or agent. Commands, and the invariants that bite. Auto-loaded by Claude Code. |
+| [`docs/archive/agent-operating-manual.md`](./docs/archive/agent-operating-manual.md) | The long form of the above | You need a rule the short brief does not carry. Was `AGENTS.md` until 2026-09-01. |
+| [`docs/archive/claude-code-brief.md`](./docs/archive/claude-code-brief.md) | The prior Claude Code brief | Same: still true, no longer auto-loaded. |
+| [`docs/archive/gemini-brief.md`](./docs/archive/gemini-brief.md) | The prior Gemini / Antigravity brief | Same: still true, no longer auto-loaded. |
+
+> **Root held four files until 2026-09-01; it now holds two.** `AGENTS.md`, `CLAUDE.md` and
+> `GEMINI.md` totalled 72KB and were auto-loaded into every session on top of a 45KB SessionStart
+> injection. They were archived, and a short `CLAUDE.md` written, to test whether a smaller
+> instruction surface produces better work. **Nothing was withdrawn and no ruling was reversed.**
+> Restoring is three `git mv`s and one edit to `.claude/settings.json`.
 
 ### By what you are doing
 

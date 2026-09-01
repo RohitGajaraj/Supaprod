@@ -1,5 +1,5 @@
 #!/bin/bash
-# Hook to verify the closed documentation loop (AGENTS.md §5).
+# Hook to verify the closed documentation loop (docs/archive/agent-operating-manual.md §5).
 # Triggered on Claude Code Stop / SubagentStop events.
 
 # Get list of modified files in the working tree
@@ -39,7 +39,7 @@ You modified code (in src/ or supabase/migrations/) but did NOT update:
 - docs/planning/feature-backlog.md (the Live status board) OR
 - plan.md (the active build log)
 
-Remember the rule from AGENTS.md §5:
+Remember the rule from docs/archive/agent-operating-manual.md §5:
 "A change is not 'done' until its documentation is true. An agent that ships
 code without updating docs has left the loop open."
 

@@ -4,7 +4,7 @@
 
 **Thirteen folders, each answering one question.** Every one has an index. The test is that clicking one folder tells you everything about that topic. This file says which folder answers which, and it is the placement policy: before creating any file, find its bucket here and link it from that bucket's index in the same commit.
 
-Start at [`../README.md`](../README.md) if you want to know what the product is. Start at [`../AGENTS.md`](../AGENTS.md) if you are about to write code.
+Start at [`../README.md`](../README.md) if you want to know what the product is. Start at [`../CLAUDE.md`](../CLAUDE.md) if you are about to write code, and [`archive/agent-operating-manual.md`](./archive/agent-operating-manual.md) when you need the full build manual behind it.
 
 ---
 
@@ -113,7 +113,7 @@ is absent, verified live) and [`PRODUCT-TRUTH.md`](./PRODUCT-TRUTH.md) (who it i
 
 1. **Extend before you create.** If a doc already serves the purpose, add to it. A new file is for a genuinely new purpose.
 2. **Link it from its bucket's index in the same commit.** A file nothing links to is a file nobody finds. Nine orphans were found on 2026-08-03, all in the three folders that had no index.
-3. **Never at repo root, never at `docs/` top level.** Root holds exactly four files: `README.md`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`. This index is the only loose file in `docs/`.
+3. **Never at repo root, never at `docs/` top level.** Root holds exactly two files: `README.md` and `CLAUDE.md`. (It held four until 2026-09-01; `AGENTS.md` and `GEMINI.md` are archived at [`archive/agent-operating-manual.md`](./archive/agent-operating-manual.md) and [`archive/gemini-brief.md`](./archive/gemini-brief.md).) This index is the only loose file in `docs/`.
 4. **One board.** Status lives only in [`planning/SOURCE-OF-TRUTH.md`](./planning/SOURCE-OF-TRUTH.md). Never copy a status table or a canon paragraph into a second file; link instead. Two files answering "where are we" is what produced a 260 KB board whose own section 3 restated the other one.
 5. **Archive, do not orphan.** A superseded doc moves to the nearest `archive/` **with a line saying why it went**, and its inbound links are retargeted in the same commit. A plan whose work is done is not a plan.
 6. **A date header on every doc**, directly under the H1: `> _Created: YYYY-MM-DD · Last updated: YYYY-MM-DD_`. **No dates in filenames**, except a genuine dated record under `archive/` or `applied/`.

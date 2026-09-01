@@ -142,7 +142,7 @@ READ these and extract the binding rules:
   ${REPO}/docs/pitch/applications/answer-bank.md        (live numbers card, the five laws, the customer-evidence rule)
   ${REPO}/docs/pitch/verified-numbers.md                (every number with its query, and the retired list)
   ${REPO}/docs/planning/SOURCE-OF-TRUTH.md              (section 0 only: what shipped, what is gated)
-  ${REPO}/CLAUDE.md                                     (vocabulary canon)
+  ${REPO}/docs/strategy/positioning-locked-2026-08.md   (vocabulary canon)
 
 THE DISTINCTION THAT DOES THE MOST WORK, and you must apply it to every mechanism:
 a writer that exists and has not run is a product waiting for a user; a hop with no
