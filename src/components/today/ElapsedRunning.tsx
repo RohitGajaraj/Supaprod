@@ -1,3 +1,4 @@
+import { Num } from "@/components/meridian/surface-parts";
 import { useElapsed } from "@/components/meridian/use-elapsed";
 
 /**
@@ -35,7 +36,7 @@ export function ElapsedRunning({ startedAt }: { startedAt: number }) {
   const elapsed = useElapsed(startedAt);
   return (
     <>
-      <span className="font-mrd-mono tabular-nums">{elapsed}</span> running
+      <Num>{elapsed}</Num> running
     </>
   );
 }

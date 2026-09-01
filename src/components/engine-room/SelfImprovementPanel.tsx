@@ -52,7 +52,7 @@ import {
 import type { ProposalSeverity } from "@/lib/self-improve";
 import { SELF_IMPROVE_MODES, type SelfImproveMode } from "@/lib/self-improve-governance";
 import { PanelPending, ErrorRetry } from "./room-parts";
-import { Eyebrow } from "@/components/meridian/surface-parts";
+import { Eyebrow, Num } from "@/components/meridian/surface-parts";
 
 /**
  * Severity, and the one hue here is an OUTCOME rather than an alarm.
@@ -162,7 +162,7 @@ function ProposalEnricher({
         AI-composed ·{" "}
         {data.grounded_on > 0 ? (
           <>
-            grounded in <span className="font-mrd-mono tabular-nums">{data.grounded_on}</span>{" "}
+            grounded in <Num>{data.grounded_on}</Num>{" "}
             records
           </>
         ) : (

@@ -29,7 +29,7 @@ import {
 import { formatOutcomeRecord, formatTrackRecord } from "@/lib/agent-track-record";
 import { glyphForSlug } from "@/components/shell/agent-glyphs";
 import { AGENT_STATIONS, agentDisplayName, agentStation } from "@/lib/agent-vocabulary";
-import { Action, Eyebrow, Reading } from "@/components/meridian/surface-parts";
+import { Action, Eyebrow, Reading, Num } from "@/components/meridian/surface-parts";
 
 const MAX_TOOLS_SHOWN = 4;
 
@@ -97,8 +97,8 @@ function ToolApprovalChips({ tools }: { tools: ToolRecord[] }) {
           className="inline-flex items-center gap-mrd-3 rounded-mrd-chip border border-mrd-line bg-mrd-sink px-2 py-0.5 text-mrd-prose text-mrd-body"
         >
           <span className="text-mrd-mute">{t.tool_name}</span>
-          <span className="font-mrd-mono tabular-nums">
-            {Math.round((t.approved / t.total) * 100)}%
+          <span>
+            <Num>{Math.round((t.approved / t.total) * 100)}</Num>%
           </span>
         </span>
       ))}
@@ -133,7 +133,7 @@ function ScorecardRow({ card }: { card: AgentScorecard }) {
             title="Times a human rewound this agent's shipped work"
             className="ml-auto shrink-0 rounded-mrd-chip border border-mrd-line px-2 py-0.5 text-mrd-small text-mrd-mute"
           >
-            <span className="font-mrd-mono tabular-nums">{card.reverts}</span>{" "}
+            <Num>{card.reverts}</Num>{" "}
             {card.reverts === 1 ? "rewind" : "rewinds"}
           </span>
         ) : null}

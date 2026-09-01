@@ -25,7 +25,7 @@ import {
   type RoomBodyProps,
 } from "../room-parts";
 import { QuietAction } from "../EngineChrome";
-import { Eyebrow } from "@/components/meridian/surface-parts";
+import { Eyebrow, Num } from "@/components/meridian/surface-parts";
 import { Reveal } from "@/components/meridian/Reveal";
 
 /*
@@ -371,13 +371,11 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
               so only the parts that are numbers wear mono. */}
           <div className="mt-0.5 truncate text-mrd-small text-mrd-mute">
             {change.mission_title ? `in ${change.mission_title} · ` : ""}
-            <span className="font-mrd-mono tabular-nums">
-              {change.file_count} file{change.file_count === 1 ? "" : "s"}
-            </span>
+            <Num>{change.file_count}</Num> file{change.file_count === 1 ? "" : "s"}
             {relTime(change.merged_at) ? (
               <>
                 {" · "}
-                <span className="font-mrd-mono tabular-nums">{relTime(change.merged_at)}</span>
+                <Num>{relTime(change.merged_at)}</Num>
               </>
             ) : null}
           </div>
