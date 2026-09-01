@@ -1,9 +1,148 @@
 import { AGENT_STATIONS, AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
-import { holdTone } from "@/lib/spine/driver";
+import { VERB_BY_TOOL } from "@/lib/presence/character";
+import { holdTone, stationCrew } from "@/lib/spine/driver";
 import { nothingIsComing } from "@/components/track/nothing-is-coming";
 
+import type { PlanStep } from "@/components/meridian/PlanCard";
 import type { RunMapStation } from "@/components/meridian/RunMap";
 import type { StepMeterStep } from "@/components/meridian/progress";
+
+/**
+ * The first mention of `tool` in a brief that is not part of a longer id.
+ *
+ * A bare `indexOf` is correct against today's catalogue -- no key in
+ * `VERB_BY_TOOL` is a prefix of another, checked -- and would silently stop
+ * being correct the day somebody adds `signals.logs` beside `signals.log`. The
+ * boundary test is two character comparisons and removes the trap rather than
+ * leaving a comment warning about it.
+ */
+function mentionedAt(brief: string, tool: string): number {
+  for (let at = brief.indexOf(tool); at >= 0; at = brief.indexOf(tool, at + 1)) {
+    const before = at === 0 ? " " : brief[at - 1];
+    const after = brief[at + tool.length] ?? " ";
+    if (!/[\w.]/.test(before) && !/[\w.]/.test(after)) return at;
+  }
+  return -1;
+}
+
+/**
+ * WHAT A STATION IS ABOUT TO DO, READ OFF THE BRIEF ITS CREW WILL BE HANDED.
+ *
+ * ── THE BRANCH THIS FEEDS SHIPPED DEAD ────────────────────────────────────
+ * `RunMap` has always drawn a step graph for an opened station and headed it
+ * *"What ${name} intends to do"* when that station is `pending`. Nothing ever
+ * populated `RunMapStation.steps`: this function pushed six shapes and set the
+ * field on none of them, and the only other producer of stops,
+ * `AskPlanGate.stopsForRoute`, does not set it either. So the map could say
+ * what a station INTENDS and was never handed anything to say it with, and the
+ * goal's *"what it is about to do"* was answered at STATION level alone -- the
+ * strip marks the next stop (`run-strip-spec.ts`) and nothing anywhere said
+ * what that stop would actually go and do.
+ *
+ * ── WHERE THE STEPS COME FROM, WHICH MATTERS MORE THAN THAT THEY EXIST ────
+ * `CREW_ROLE[slug].file` is the seat's own brief, and `CrewRole` documents that
+ * field as *"What it must FILE, named as the tool that files it"*. `stationCrew`
+ * returns the seats in crew order, which `driver.ts` records as *"the station's
+ * actual sequence of work"* and enforces by ordering (*"Verify runs BEFORE
+ * Announce"*). So the station's plan is already written down, in the very text
+ * the driver will hand its crew minutes from now. This reads that text, in that
+ * order, and reads nothing else.
+ *
+ * `job` IS DELIBERATELY NOT READ, and that is the whole difference between a
+ * derivation and a plausible-looking script. `CrewRole.job` is prose *"in its
+ * own terms"*, where a tool id can appear as a WARNING rather than an
+ * instruction: `builder.job` names `repo.search` three separate times, every one
+ * of them to say it does not reliably reach a private repository and that an
+ * empty result is not evidence the code is absent. Scanning it put "Searching
+ * the repository" into Build's plan on the strength of a sentence telling the
+ * seat not to trust the tool -- measured while building this, and the reason the
+ * scan is `file` only. `builder.file`'s conditional recovery call
+ * (`studio.unstage`, for a path the commit refused) is dropped by the same cut,
+ * correctly: a step taken only when something goes wrong is not a plan.
+ *
+ * ── A CURATED VERB OR NO STEP AT ALL ──────────────────────────────────────
+ * The label is `VERB_BY_TOOL[tool]` verbatim, sentence-cased for a node title
+ * and otherwise untouched. Two standing rules meet here and both point the same
+ * way. `verbForTool`'s fallback is `running ${tool}`, which IS a tool name, and
+ * `RunMap`'s header bans one from its rendered output structurally -- *"there is
+ * no field on `RunMapStation` that carries a tool name"* -- with
+ * `run-map.test.tsx` pinning it. And `VERB_BY_TOOL` is the walk's own
+ * vocabulary, so a step here and the character narrating that same call cannot
+ * describe one action two ways, which is the rule `holdLine` is kept in one file
+ * for.
+ *
+ * The cost is real and is the point. A tool with no curated verb yields NO step.
+ * Measured against the catalogue on 2026-09-01, that silences two of the fifteen
+ * active cast seats: `sprint-planner` files `tasks.create` and `insight-keeper`
+ * files `memory.remember` then `memory.promote`, and `VERB_BY_TOOL` (which this
+ * lane does not own) has an entry for none of the three. Plan and Learn
+ * therefore show one step each rather than both their seats' work. A partial
+ * true plan beats a complete invented one.
+ *
+ * `why` and `touches` are left unset on every step, which is also a refusal.
+ * `PlanStep.why` is documented as *"Why this step was skipped, or why it
+ * failed"*, so filling it on work that has not started would misuse the field;
+ * `touches` is *"what this step will act on"*, and its own docblock rules that
+ * *"a step whose object the planner does not know yet must not have one invented
+ * for it"*. A brief names the call, never the branch or the artifact it will
+ * land on.
+ */
+const INTENT_BY_STATION = new Map<AgentStation, PlanStep[]>();
+
+export function stationIntent(station: AgentStation): PlanStep[] {
+  const already = INTENT_BY_STATION.get(station);
+  if (already) return already;
+
+  const steps: PlanStep[] = [];
+  /* Verbs, not tool ids: see the dedupe note below. */
+  const said = new Set<string>();
+
+  for (const seat of stationCrew(station)) {
+    const filed = Object.keys(VERB_BY_TOOL)
+      .map((tool) => ({ tool, at: mentionedAt(seat.file, tool) }))
+      .filter((m) => m.at >= 0)
+      /* The order the brief names them IS the order the seat is told to work
+         in, so the sequence is read off the text rather than assigned here.
+         `qa.file` is the proof it matters: stage, commit, review, open the pull
+         request, run the checks, merge -- and a list in any other order would
+         show a review happening after the merge it was meant to gate. */
+      .sort((a, b) => a.at - b.at);
+
+    for (const { tool } of filed) {
+      const verb = VERB_BY_TOOL[tool];
+      /*
+       * ONE VERB, ONCE PER STATION, and deduped on the VERB rather than on the
+       * tool because the map is deliberately many-to-one: `repo.read` and
+       * `repo.tree` both read "reading the repository". Keying on the tool would
+       * draw that node twice at Build and read as two passes over the repo.
+       * Across seats too -- `signals.log` is filed by all three Discover seats,
+       * and one station's plan should say "filing the evidence I found" once.
+       */
+      if (said.has(verb)) continue;
+      said.add(verb);
+      steps.push({
+        id: `${seat.slug}:${tool}`,
+        label: verb.charAt(0).toUpperCase() + verb.slice(1),
+        /* Nothing here has run. `RunMap` heads the graph off the STATION's
+           state, but `PlanCard` renders the same `PlanStep[]` and paints per
+           step, so a step claiming `done` would report a finished call. */
+        state: "pending",
+        /* Who is briefed to do it -- a catalogue fact, not an inference.
+           `PlanStep.agentSlug` resolves through `agentDisplayName`, so no slug
+           reaches a surface. */
+        agentSlug: seat.slug,
+      });
+    }
+  }
+
+  /* Memoised on the station because every input is a module constant:
+     `SPECIALIST_CATALOG`, `CREW_ROLE` and `VERB_BY_TOOL` are all frozen at
+     import. `runPosition` runs on a ten-second poll and on every render of the
+     pane, and re-deriving seven stations' plans from string scans on each of
+     those is work whose answer cannot have changed. */
+  INTENT_BY_STATION.set(station, steps);
+  return steps;
+}
 
 /**
  * WHERE THE WORK STANDS ON ITS OWN ROUTE, DERIVED FROM ONE ROW.
@@ -54,6 +193,29 @@ export function runPosition(
   /* `buildChain`'s own rule, matched deliberately: a closed track has PASSED
      the station it stopped on, an open one is still standing there. */
   const open = track.status === "open";
+  /*
+   * ── A PLAN IS ONLY DRAWN WHILE SOMETHING IS STILL COMING ─────────────────
+   * Both gates are borrowed rather than invented, because two neighbours of
+   * this file already answered the same question and disagreeing with them is
+   * how one run comes to be described four ways.
+   *
+   * A CLOSED RUN. `run-strip-spec.ts` marks its `next` station only under
+   * `track.status === "open"`, and its reason applies here word for word: *"On
+   * a settled run there is no next, and marking one would promise work that
+   * will not happen."* This matters concretely rather than in theory -- an
+   * abandoned track parked at Build still carries Ship and Learn as `pending`
+   * stops on its map (`run-position.test.ts` fixes exactly that case), and
+   * telling a reader what Ship intends to do on work nobody will resume is a
+   * fabricated future.
+   *
+   * A TERMINAL HOLD. `nothingIsComing` is already imported here for the
+   * approval split, and it means *"the loop has stopped for good and only a
+   * person restarts it"*: `track-tick.ts` drops those tracks from its selection
+   * entirely, so nothing will drive them again. Not a corner case either --
+   * 36 of the 56 open held tracks were measured in that state on 2026-08-31.
+   * A route that will not move must not narrate what it is about to do.
+   */
+  const stillComing = open && !nothingIsComing(track.holdReason);
 
   const stops: RunMapStation[] = [];
   const meter: StepMeterStep[] = [];
@@ -137,7 +299,31 @@ export function runPosition(
       meter.push({ key: station, label: name, state: "here" });
       return;
     }
-    stops.push({ station, state: "pending" });
+    /*
+     * ── ONLY A STATION THAT HAS NOT RUN MAY BE DESCRIBED AS INTENDING ──────
+     * `pending` is the one state that gets a plan, and `RunMap` is the reason:
+     * it heads the graph *"intends to do"* on `pending` and *"did"* on every
+     * other state. These steps are the BRIEF -- a document written before the
+     * work -- so hanging them on a `done`, `here`, `active` or `held` stop
+     * would print what a station DID from the list of what it was ASKED to do.
+     * That is the difference between a record and a script, and it is the one
+     * this repo rejected a branch over.
+     *
+     * There is no honest alternative to reach for. This function reads ONE row
+     * and takes no second query (the header's rule, and the reason the header,
+     * the meter and the route cannot disagree), so it cannot know which tools a
+     * settled station actually called. That fact belongs to `RunTimeline` and
+     * `ToolStream`, *"behind their own door"* in `RunMap`'s own words. A waived
+     * stop stays silent for a simpler reason: it never runs at all.
+     */
+    const stop: RunMapStation = { station, state: "pending" };
+    const intent = stillComing ? stationIntent(station) : [];
+    /* Absent rather than empty. `RunMap` reads `steps?.length` to decide
+       whether the whole stop is a button, so the two are equivalent to it
+       today -- but an empty array stored on the record claims "this station
+       plans nothing", and no station does. */
+    if (intent.length > 0) stop.steps = intent;
+    stops.push(stop);
     meter.push({ key: station, label: name, state: "ahead" });
   });
 
