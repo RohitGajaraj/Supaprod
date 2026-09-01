@@ -318,8 +318,34 @@ function BetCardComponent({
           {outcomeText}
         </span>
       ) : (
+        /*
+         * THE STATE IS THE CARD'S. THE CONSEQUENCE IS THE SECTION'S, AND IT IS
+         * SAID ONCE.
+         *
+         * This read "No outcome declared, so nothing can grade it later." on
+         * every undeclared card, which is byte-identical wherever it appears --
+         * so a board carrying three of them printed one sentence three times,
+         * and the half that repeated was the half that is true of the whole set
+         * rather than of this bet. A clause printed on every row of a set
+         * distinguishes nothing on any of them.
+         *
+         * WHERE THE CONSEQUENCE LIVES NOW, and it was already there. The Gate at
+         * the top of /plan carries it: "Committed, with no outcome and no
+         * measure. Nothing can tell you later whether it worked." That Gate is
+         * on screen exactly when this sentence is -- both are derived from the
+         * same ["roadmap"] cache entry through the same predicate
+         * (`isCommitmentGoverned`), so a card can only reach this branch with a
+         * blank outcome, and a committed bet with a blank outcome is in the
+         * Gate's `undeclared` set by construction. The stake is stated once,
+         * above, and the card states its own state.
+         *
+         * THE CARD DOES NOT GO QUIET. What is left is the fact only this card
+         * can report, and it keeps the orchid rule down its left edge saying a
+         * person is required. An exception is never suppressed; what was
+         * suppressed is a restatement of it.
+         */
         <span style={{ fontSize: "var(--mrd-t-base)", color: "var(--mrd-mute)" }}>
-          No outcome declared, so nothing can grade it later.
+          No outcome declared.
         </span>
       )}
 
@@ -430,7 +456,38 @@ function BetCardComponent({
             ICE <Num>{iceScore.toFixed(1)}</Num>
           </span>
         ) : null}
-        {updatedAt ? <Num>{relDays(updatedAt)}</Num> : null}
+        {/*
+         * A NUMBER THAT NEVER SAID WHAT IT MEASURED.
+         *
+         * This printed a bare `27d` in the quiet tail, between "ICE 6.2" and a
+         * trace tag, and nothing on the card said what the duration was of. Its
+         * two neighbours both name themselves -- the score carries the word ICE,
+         * the tag carries its stage prefix -- so the one value in the row with
+         * no label was the one whose meaning cannot be guessed from its shape:
+         * `27d` could as easily be a deadline, an age, or a budget.
+         *
+         * It is the last time the bet MOVED, which is `opportunities.updated_at`
+         * and what `relDays` is reading. So the row says that, and the title
+         * carries the exact moment for anyone who needs to compare two cards --
+         * sliced off the ISO string rather than localised, because a
+         * `toLocaleString` renders differently on the server and in the browser
+         * and hydration reports it as a mismatch.
+         *
+         * "Moved now ago" IS THE CASE THAT MADE THIS A BRANCH. `relDays` returns
+         * the bare word "now" under a minute, and the words either side of a
+         * duration cannot be wrapped round a word that is not one.
+         */}
+        {updatedAt ? (
+          <span title={`Last moved ${exactWhen(updatedAt)}`}>
+            {relDays(updatedAt) === "now" ? (
+              "Moved just now"
+            ) : (
+              <>
+                Moved <Num>{relDays(updatedAt)}</Num> ago
+              </>
+            )}
+          </span>
+        ) : null}
         <AuditTag kind="opportunity" id={id} />
       </span>
     </div>
@@ -440,6 +497,19 @@ function BetCardComponent({
 /** Plain-words relative time. The board's own copy of the shell's `ago`, in the
  *  same words, rather than the retired `relTimeCaps` which returned "3D AGO" in
  *  letter-spaced uppercase. */
+/**
+ * The exact moment, to the minute, for the tooltip on the relative time above.
+ *
+ * Sliced off the ISO string rather than parsed, deterministic and locale-free,
+ * which is the same choice `RoadmapHistory` makes one control away on this card
+ * and for the same reason: a formatted date that differs between the server
+ * render and the browser render is a hydration mismatch, and this value exists
+ * to be compared between two cards.
+ */
+function exactWhen(iso: string): string {
+  return iso.length >= 16 ? `${iso.slice(0, 10)} ${iso.slice(11, 16)}` : iso;
+}
+
 function relDays(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime();
   if (!Number.isFinite(ms) || ms < 0) return "now";

@@ -122,6 +122,9 @@ import { generatePrd, listSpecs } from "@/lib/discovery.functions";
 import { listDesignWork, type DesignWorkRow } from "@/lib/design-scaffold.functions";
 import { DESIGN_SKIPPED_ON_PURPOSE } from "@/lib/trust-chain.functions";
 import { specStateWords, stripAutoPrefix } from "@/components/plan/format";
+// The product's one way of naming a single record apart from its neighbours.
+// Used below only where nothing a person recognises can do the job.
+import { formatAuditId } from "@/lib/audit-id";
 import { RoadmapColumns } from "@/components/plan/RoadmapColumns";
 import { TrackStart } from "@/components/spine/TrackStart";
 import { CommitCeremony, type CommitCeremonyBet } from "@/components/plan/CommitCeremony";
@@ -211,6 +214,23 @@ function ago(iso: string | null | undefined): string | null {
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h`;
   return `${Math.floor(hours / 24)}d`;
+}
+
+/**
+ * The exact moment, to the minute, sliced off the ISO string rather than parsed.
+ *
+ * Deterministic and locale-free on purpose, which is the same reason
+ * `RoadmapHistory` formats its timestamps this way: a `toLocaleString` renders
+ * one string on the server and another in the browser and hydration reports it
+ * as a mismatch, and the value here exists to be COMPARED between two rows, so a
+ * format that can drift between renders would be the wrong tool twice.
+ *
+ * Returns "" for a row with no timestamp, and the caller treats an empty string
+ * as "this cannot separate anything" rather than printing it.
+ */
+function exactWhen(iso: string | null | undefined): string {
+  if (!iso || iso.length < 16) return "";
+  return `${iso.slice(0, 10)} ${iso.slice(11, 16)}`;
 }
 
 /* `specState` used to live here, private to this file, turning prds.status into
@@ -682,6 +702,76 @@ function PlanPage() {
 
   const shownSpecs = showAllSpecs ? specList : specList.slice(0, VISIBLE_SPECS);
 
+  /**
+   * WHAT TELLS TWO ROWS WITH THE SAME TITLE APART, WHEN NOTHING ELSE DOES.
+   *
+   * ── WHAT WAS ON SCREEN ────────────────────────────────────────────────────
+   * Two spec rows rendered byte-identical: the same lead, the same state words,
+   * the same relative time, and -- because `generatePrd` titles a spec after the
+   * bet it serves -- the same suppressed `serves` clause, since the row already
+   * drops that suffix when it would only restate the title. Hovering either one
+   * showed the same tooltip, because the tooltip is the lead. Two rows that a
+   * reader cannot tell apart are one row printed twice as far as the decision
+   * they came to make goes, and opening one to find out which is which is the
+   * work this list exists to save.
+   *
+   * ── THE RULE IS THIS FILE'S OWN ───────────────────────────────────────────
+   * Point 4 of the docblock at the top: "a spec row is its title plus one
+   * DIFFERENT fact". The row already applies it in one direction -- it stays
+   * silent when `serves` would repeat the title -- and had no answer for the
+   * other, where the title is not unique and the sub therefore has to carry
+   * something that is.
+   *
+   * ── COMPUTED OVER THE RENDERED SET, NOT PER ROW ───────────────────────────
+   * A row cannot know it has a twin; only the list can. So the collision is
+   * decided over `shownSpecs`, which is what is actually on screen -- and it is
+   * recomputed when the cap is lifted, because two specs sharing a title may be
+   * a collision only once both are visible. Every unique lead gets nothing at
+   * all, which is the point: a suffix printed on every row would discriminate
+   * nothing and would be the defect this fix is answering.
+   *
+   * ── THE CANDIDATES, IN THE ORDER A PERSON CAN USE THEM ────────────────────
+   * The exact update time first, because it separates the rows AND answers the
+   * question a reader has next, which is which of the two is the live one. The
+   * trace tag second, and it is deliberately last: `PRD·1A2B3C` names nothing a
+   * person recognises, and it is here because it is the only fact guaranteed to
+   * differ. A row that cannot be told from its neighbour is worse than a row
+   * carrying an id.
+   *
+   * A candidate is used only if it gives EVERY member of the group its own
+   * value -- a suffix that separates two of three rows and leaves two identical
+   * has not fixed anything -- and only if it is non-empty for all of them, which
+   * is how a group of rows with no timestamp falls through to the tag instead of
+   * printing a bare separator.
+   */
+  const specDiscriminator = React.useMemo(() => {
+    const out = new Map<string, string>();
+    const byLead = new Map<string, typeof shownSpecs>();
+    for (const s of shownSpecs) {
+      const key = stripAutoPrefix(s.title).trim().toLowerCase();
+      const group = byLead.get(key);
+      if (group) group.push(s);
+      else byLead.set(key, [s]);
+    }
+    const candidates: Array<(s: (typeof shownSpecs)[number]) => string> = [
+      (s) => {
+        const when = exactWhen(s.updated_at);
+        return when ? `updated ${when}` : "";
+      },
+      (s) => formatAuditId("spec", s.id),
+    ];
+    for (const group of byLead.values()) {
+      if (group.length < 2) continue;
+      const separates = (f: (s: (typeof shownSpecs)[number]) => string) =>
+        group.every((s) => f(s).length > 0) && new Set(group.map(f)).size === group.length;
+      // The tag is the guaranteed one, so it is the fallback rather than a
+      // fourth branch that could leave a group unanswered.
+      const chosen = candidates.find(separates) ?? candidates[candidates.length - 1];
+      for (const s of group) out.set(s.id, chosen(s));
+    }
+    return out;
+  }, [shownSpecs]);
+
   return (
     <Surface
       wide
@@ -1007,6 +1097,39 @@ function PlanPage() {
                     <Num>{nowWithSpec}</Num> of the <Num>{nowCount}</Num> bets in Now have a spec
                     written.
                   </>
+                ) : !roadmapUnknown && nowCount === 0 ? (
+                  /*
+                   * THE HEAD WENT SILENT ON THE ONE STATION WHOSE PRODUCT IS A
+                   * SPEC, at the moment it had the most to explain.
+                   *
+                   * `nowCount > 0` was the only way to a sentence here, so an
+                   * empty Now dropped the region's sub to `undefined` and the
+                   * specs list arrived under a bare heading. That is the
+                   * coverage fact's ZERO CASE, not the absence of one: no bet is
+                   * in Now, therefore no bet in Now is short a spec, and saying
+                   * so is what tells a reader the list below is complete rather
+                   * than filtered.
+                   *
+                   * `!roadmapUnknown` because the claim is made out of the
+                   * ROADMAP read, not the specs read. While that one is in
+                   * flight or failed, `nowCount` is 0 for want of an answer, and
+                   * an empty read is not an empty board -- the head above
+                   * already refuses to name a number in that state and returns
+                   * the bare word "Plan".
+                   *
+                   * IT IS NOT THE HEADLINE'S SENTENCE. The headline reports
+                   * where the bets sit ("Nothing is in Now. 3 are lined up
+                   * behind."); this reports what the spec list owes, which is
+                   * the only claim this region is qualified to make and the one
+                   * a planner opened it for.
+                   *
+                   * THE FAILED-SPECS CASE STAYS SILENT ON PURPOSE and still
+                   * falls to `undefined`. `ReadFailedLine` inside the region
+                   * says the specs did not load and carries the retry; a second
+                   * sentence in the heading would be the same claim twice, one
+                   * gap apart.
+                   */
+                  "No bet is in Now, so nothing here is short a spec."
                 ) : undefined
               }
               /* THE CAP'S WAY PAST IT IS NOT IN THIS HEAD ANY MORE, AND THAT IS
@@ -1054,6 +1177,32 @@ function PlanPage() {
                   >
                     {draftSpec.isPending ? "Drafting" : "Draft the spec"}
                   </Action>
+                </Line>
+              ) : !specs.isError && !roadmapUnknown && nowCount === 0 && specList.length > 0 ? (
+                /*
+                 * AND THE DOOR WENT WITH IT. The draft door acts on the first
+                 * bet in Now that no spec serves, so an empty Now removed the
+                 * only way to start a spec from this station -- on the station
+                 * whose stated product is a spec, with a list of specs on screen
+                 * saying they exist and nothing saying how another one is made.
+                 *
+                 * `generatePrd` needs a bet to read, so offering to draft here
+                 * would be offering a write that cannot happen. What is true is
+                 * that the writer is one station back, which is the same answer
+                 * the empty-list branch below already gives and the same door it
+                 * opens.
+                 *
+                 * `specList.length > 0` KEEPS THEM FROM BOTH SPEAKING. With no
+                 * specs at all the `NothingYet` below states this and carries
+                 * "Open Decide" itself, and two doors to one place in one region
+                 * is the defect this file spent a pass removing from its own
+                 * head.
+                 */
+                <Line
+                  label="No bet is in Now to draft against"
+                  sub="Draft writes a spec from a bet, so it needs one to read. Keeping a bet on Decide writes the spec and lands you on it, and placing a bet in Now brings the draft door back here."
+                >
+                  <Door onClick={() => void navigate({ to: "/decide" })}>Open Decide</Door>
                 </Line>
               ) : null}
 
@@ -1230,6 +1379,11 @@ function PlanPage() {
                         : designOwed
                           ? " · design pending"
                           : "";
+                  /* Present only where the lead is not unique on screen. See
+                     `specDiscriminator`: silence is the normal case and the
+                     suffix is the exception, never the other way round. */
+                  const alsoNamed = specDiscriminator.get(spec.id);
+                  const toldApart = alsoNamed ? ` · ${alsoNamed}` : "";
                   return (
                     <Row
                       key={spec.id}
@@ -1243,8 +1397,8 @@ function PlanPage() {
                       // happened at the design gate.
                       sub={
                         bet
-                          ? `${specStateWords(spec.status)} · serves ${bet}${withDesignStatus}`
-                          : `${specStateWords(spec.status)}${withDesignStatus}`
+                          ? `${specStateWords(spec.status)} · serves ${bet}${withDesignStatus}${toldApart}`
+                          : `${specStateWords(spec.status)}${withDesignStatus}${toldApart}`
                       }
                       time={ago(spec.updated_at)}
                       onClick={() =>

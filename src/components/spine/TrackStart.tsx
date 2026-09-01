@@ -43,6 +43,8 @@ import { Row } from "@/components/meridian/rows";
 import { Actions, ReadFailedLine } from "@/components/meridian/surface-parts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
+import { stillWaiting } from "@/lib/query-state";
 
 import {
   advanceTrack,
@@ -58,7 +60,14 @@ import { holdTone } from "@/lib/spine/driver";
 import { nothingIsComing } from "@/components/track/nothing-is-coming";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
-import { Action, NothingYet, Region, Value } from "@/components/meridian/surface-parts";
+import {
+  ACTION_LINK_FACE,
+  Action,
+  NothingYet,
+  Reading,
+  Region,
+  Value,
+} from "@/components/meridian/surface-parts";
 import { Choices, Field, Input, Textarea } from "@/components/meridian/forms";
 import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
 import { Receipt } from "@/components/meridian/Receipt";
@@ -454,6 +463,27 @@ export function TrackStart({
         <ReadFailedLine onRetry={() => void tracks.refetch()} error={tracks.error}>
           Your work in flight did not load, so this cannot say what is running.
         </ReadFailedLine>
+      ) : stillWaiting(tracks) ? (
+        /*
+         * AND AN ANSWER THAT HAS NOT ARRIVED IS NOT THE ANSWER "NONE".
+         *
+         * The branch above closed the FAILED read and left the SLOW one open,
+         * which is the same defect in its other clothes: `list` is
+         * `tracks.data ?? []` while the read is still in flight, so the empty
+         * branch below states "Nothing is in flight." as a fact and is then
+         * replaced by however many tracks are running. On a cold cache that is
+         * the first frame a person sees on /plan, and it tells them their work
+         * is not moving.
+         *
+         * `stillWaiting` rather than `isLoading`, for the reason its own file
+         * gives: v5's `isLoading` is `isPending && isFetching`, so a query that
+         * is pending and NOT in flight reports false and the wait stands down
+         * with `data` still undefined. It also stands down on a failed read and
+         * on a query that is switched off, so this branch cannot become the
+         * permanent spinner it replaces -- and the failure is caught above it
+         * either way.
+         */
+        <Reading>Reading your work in flight.</Reading>
       ) : list.length === 0 && !open ? (
         // The BARE half of the empty pair. This sits under a region heading
         // that already frames it, and the standard caps a region at one
@@ -615,7 +645,47 @@ export function TrackStart({
                     boundary.tsx also settles the refused case: where a move is
                     forbidden the row shows the fact and no control, because a
                     dead button that never says why is worse than no button. */}
-                    {waitingOnAPerson ? null : (
+                    {waitingOnAPerson ? (
+                      /*
+                       * THE ONE ROW THAT SAYS A PERSON IS REQUIRED WAS THE ONE
+                       * ROW WITH NOTHING TO PRESS.
+                       *
+                       * Hiding the menu here is right and the argument above
+                       * still stands: handing this track past the gate reports
+                       * progress it did not buy, so neither move belongs on it.
+                       * What did not follow is that the row should therefore be
+                       * inert. It wears orchid and a pulse -- the product's one
+                       * statement that somebody is being waited on -- next to a
+                       * chip, a station name and no way to act, while every row
+                       * that is NOT waiting on anybody carries a menu.
+                       *
+                       * The way out is the call itself, and the call renders on
+                       * the run screen: `way-out.ts` classifies
+                       * `waiting-on-a-person` as "the call itself is the way
+                       * out, and it renders above", which is that screen. So the
+                       * control names that destination and does nothing else. It
+                       * is not an `Approve`: pressing it answers nothing, it
+                       * opens the place where the answer is given, and orchid on
+                       * a button that only navigates would promise a decision
+                       * this row cannot take.
+                       *
+                       * A `Link` and not a button, per `ACTION_LINK_FACE`'s own
+                       * ruling: this is a navigation, so middle-click and
+                       * modifier-click have to keep working. The row still has
+                       * exactly one thing that can be pressed beside its
+                       * readable half, which is the shape every other row here
+                       * keeps.
+                       */
+                      <Link
+                        data-mrd=""
+                        to="/track/$trackId"
+                        params={{ trackId: t.id }}
+                        aria-label={`Open the run for ${t.title}`}
+                        className={ACTION_LINK_FACE.quiet}
+                      >
+                        Open the run
+                      </Link>
+                    ) : (
                       <MoreMenu label={`Where ${t.title} goes next`}>
                         {/* The words name the destination, never the machinery.
                         "Advance" is what the function is called; "Hand it to
