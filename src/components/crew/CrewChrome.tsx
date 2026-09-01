@@ -75,8 +75,24 @@ export function Setting({
   const body = (
     <>
       <span className="block text-mrd-base text-mrd-ink">{label}</span>
+      {/* MEASURE: 62ch on `text-mrd-small` 12px rendered 62 x 12 x 0.6309 =
+          469px, using Inter's measured zero advance of 1292/2048 em. That is a
+          FOURTH width for one job in a product that had already settled on 450,
+          536 and 601 elsewhere for the same "explain this in a sentence" block
+          -- `ch` resolves against the stop the block is set in, so a number
+          copied between two components stops meaning what it meant in the one it
+          came from. `--mrd-measure-prose` is 32rem = 512px and font-independent,
+          so this sub lands where every other explanatory sentence lands:
+          469 -> 512px, +43px.
+
+          THE CAP IS ON THE SUB AND NOT ON THE ROW. `Setting` is a row -- label
+          and sub on the left, the control pinned right by `justify-between` --
+          and a measure across the row would haul the control in off the edge it
+          is there to hold. The left cell keeps `min-w-0` and the control keeps
+          `shrink-0`, so 512px is a ceiling and never a floor: in a narrow pane
+          the sub still wraps against whatever the control leaves it. */}
       {sub ? (
-        <span className="mt-0.5 block max-w-[62ch] text-mrd-small leading-mrd-snug text-mrd-mute">
+        <span className="mt-0.5 block max-w-[var(--mrd-measure-prose)] text-mrd-small leading-mrd-snug text-mrd-mute">
           {sub}
         </span>
       ) : null}

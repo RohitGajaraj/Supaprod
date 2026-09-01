@@ -595,6 +595,25 @@ function CrewLine({
             sentence this comment is about MID-GLYPH, with no ellipsis, which
             reads as a rendering fault rather than as more text. The ceiling
             above still holds; only the place the cut is drawn has changed. */}
+        {/* THE 40ch STAYS, AND IT IS NOT A READING MEASURE (2026-09-01).
+            Every other `ch` cap in this file moved onto the font-independent
+            rem ladder in meridian.css that day. This one did not, and the
+            reason is what the ceiling is FOR rather than what unit it is in.
+
+            Nothing here is read line by line: the child is `truncate`, so
+            exactly one line is ever drawn and this number only decides where
+            the ellipsis falls. Nothing aligns to its right edge either -- the
+            span is `shrink-0` in a three-item flex row, so that edge lands
+            wherever the title's `flex-1` leaves it and never on a fixed pixel.
+            The measure is the wrong constraint for a row, which is the same
+            reason the panel pair on Meridian's promotion card sits outside its
+            prose cap.
+
+            And the rung would be a regression, not a fix. Inter's "0" advances
+            1292/2048 em = 0.6309em, so this renders 40 x 11.5px x 0.6309 =
+            290px, against 512px for `--mrd-measure-prose`. That is a 77% wider
+            state line, which puts straight back the title squeeze the ceiling
+            above exists to prevent. */}
         <span className="flex min-w-0 max-w-[40ch] shrink-0 items-baseline gap-mrd-2 text-mrd-data text-mrd-mute">
           <span className="truncate">
             {row.who ? `${row.who} · ` : ""}
@@ -1372,7 +1391,37 @@ export function Board() {
     return (
       <section role="group" aria-label={name} className="flex flex-col">
         <FeedHead name={name} count={headCount} />
-        <p className="mb-mrd-2 max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
+        {/* ── THE MEASURE IS A REM NOW, NOT A `ch` (2026-09-01) ──────────────
+            `ch` is the advance of the font's ZERO GLYPH, so one `max-w-[Nch]`
+            written twice against two type stops is two different pixel widths.
+            Measured off the shipped face rather than guessed: Inter's "0"
+            advances 1292/2048 em = 0.6309em in `Inter-Variable.woff2`, and
+            `--font-sans` resolves to Inter for every block on this board.
+
+            What that made of one column on this board:
+
+              this lane note   62ch on `text-mrd-data` 11.5px   ->  450px
+              queue caveats    68ch on `text-mrd-label` 12.5px  ->  536px
+              the claim in `RecordSpeaks`, capped by meridian   ->  512px
+
+            Three sentences, one left gutter, three right edges, and no edit to
+            62 or 68 can join them: a number only moves the block it is on, and
+            here the SMALLER number is on the SMALLER stop, so raising it walks
+            toward 536 while dragging the two lane notes beside it along.
+
+            `--mrd-measure-prose` is 32rem = 512px and never reads the font, so
+            every read-this-sentence block stops on the same pixel whatever
+            stop it is set in. Rung 3 is the only rung a file like this one gets
+            to pick: `PageHeading` already draws a page subtitle at
+            `--mrd-measure-page` and `Region` draws its own `sub` at
+            `--mrd-measure-region`, so a paragraph hand-written inside a region
+            BODY is the third rung by construction and not by taste.
+
+            THIS SITE MOVES, 450 -> 512px (+62px), and the movement IS the fix.
+            The 62 was carried over from the 14px prose blocks this shape was
+            copied from, where it means 548px; set at 11.5px it was naming a
+            measure it then fell 62px short of. */}
+        <p className="mb-mrd-2 max-w-[var(--mrd-measure-prose)] text-mrd-data leading-mrd-prose text-mrd-mute">
           {note}
         </p>
         <div className="flex flex-col">
@@ -2489,16 +2538,35 @@ export function Board() {
                           log and, in front of a person, invites them to work out
                           which of their calls is missing. That is a puzzle, not
                           an answer. */}
+                        {/* MEASURE: `--mrd-measure` IS `68ch`, which is the
+                          same hazard one indirection deeper. meridian.css
+                          defines it literally as `68ch` and its own note beside
+                          it reads "prose only, never a table or a row", so the
+                          token constrains WHAT it may cap and not what it
+                          resolves to. On `text-mrd-label` 12.5px it resolved to
+                          68 x 12.5 x 0.6309 = 536px, while the lane notes and
+                          the stillness line in this same Region stopped at
+                          450px and the claim in the learning card below at
+                          512px.
+
+                          Both caveats take the rem rung instead. 536 -> 512px
+                          is a 24px tighten, inside a rounding of where they
+                          shipped, and it is the smallest move of the seven on
+                          this board -- these two were already close to right,
+                          they were just measured against a ruler that changes
+                          length depending on what you point it at. The pair
+                          stacks vertically, so their two right edges are the
+                          most visible in the file. */}
                         {notTheWholeQueue(incomplete) ? (
                           <p
                             role="status"
-                            className="mt-mrd-3 max-w-[var(--mrd-measure)] text-mrd-label leading-mrd-prose text-mrd-mute"
+                            className="mt-mrd-3 max-w-[var(--mrd-measure-prose)] text-mrd-label leading-mrd-prose text-mrd-mute"
                           >
                             {notTheWholeQueue(incomplete)}
                           </p>
                         ) : null}
                         {undatedLine ? (
-                          <p className="mt-mrd-3 max-w-[var(--mrd-measure)] text-mrd-label leading-mrd-prose text-mrd-faint">
+                          <p className="mt-mrd-3 max-w-[var(--mrd-measure-prose)] text-mrd-label leading-mrd-prose text-mrd-faint">
                             {undatedLine}
                           </p>
                         ) : null}
@@ -2544,8 +2612,15 @@ export function Board() {
                 on purpose, because the state it speaks for is the one where
                 every lane below it is empty. It says nothing while work is
                 fresh, since the rows carry their own clocks. */}
+              {/* MEASURE: 62ch on `text-mrd-data` 11.5px rendered 450px, the
+                narrowest sentence on the board, sitting 86px inside the queue
+                caveats above it and 62px inside the claim below it. Same rem
+                rung as every other sentence here: 450 -> 512px (+62px). This
+                line and the lane notes under it are the same kind of writing --
+                one sentence saying what a group costs -- and there was never a
+                reason for them to stop short of the rest. */}
               {stillness ? (
-                <p className="mb-mrd-4 max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
+                <p className="mb-mrd-4 max-w-[var(--mrd-measure-prose)] text-mrd-data leading-mrd-prose text-mrd-mute">
                   {stillness}
                 </p>
               ) : null}
@@ -2911,8 +2986,12 @@ export function Board() {
                 quiet line, no accent, and drawn ONLY when a figure exists:
                 "no cost reported" and "$0.00" are different claims and this
                 surface may not swap one for the other. */}
+              {/* MEASURE: 62ch on `text-mrd-data` 11.5px = 450px -> 512px
+                (+62px) on the rem rung. This one runs to three clauses when a
+                floor caveat is appended, so it was also the sentence most often
+                wrapping early against the widest column on the board. */}
               {totals.sessionSpendUsd !== null || totals.trackSpendUsd !== null ? (
-                <p className="max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
+                <p className="max-w-[var(--mrd-measure-prose)] text-mrd-data leading-mrd-prose text-mrd-mute">
                   {[
                     spendWords(totals.sessionSpendUsd)
                       ? `${spendWords(totals.sessionSpendUsd)} spent on runs`
@@ -3008,8 +3087,21 @@ export function Board() {
                     Null when there is nothing to say - never an all-clear,
                     because this reads a capped list and an absence means "not
                     in what we read", not "it did not happen". */}
+                {/* MEASURE: THIS COLUMN HAD THREE RIGHT EDGES AND ONE LEFT ONE.
+                    These two qualifiers and the `RecordSpeaks` claim below them
+                    are one stack in one `flex-col`, and a reader takes the two
+                    lines as the run-up to the claim. meridian caps that claim at
+                    `--mrd-measure-prose` = 512px; at 68ch on `text-mrd-label`
+                    12.5px these rendered 68 x 12.5 x 0.6309 = 536px, so the
+                    run-up OVERHUNG the thing it introduces by 24px. The bigger
+                    written number, 68 against the claim's old 62, is exactly
+                    what made the smaller rendered gap invisible to anyone
+                    reading the source.
+
+                    Both take the same rem rung as the claim, so the stack has
+                    one right edge: 536 -> 512px, a 4.5% tighten. */}
                 {repeatedAnswersLine ? (
-                  <p className="m-0 max-w-[68ch] text-mrd-label leading-mrd-prose text-mrd-hold">
+                  <p className="m-0 max-w-[var(--mrd-measure-prose)] text-mrd-label leading-mrd-prose text-mrd-hold">
                     {repeatedAnswersLine}
                   </p>
                 ) : null}
@@ -3017,8 +3109,11 @@ export function Board() {
                     than folded into the evidence line: evidence is mono and
                     holds counts and dates, never a title. Absent when the
                     learning carries no opportunity, and then nothing prints. */}
+                {/* MEASURE: the second of the pair described above. Same stop,
+                    same 536 -> 512px, so the two qualifiers and the claim share
+                    one edge rather than three. */}
                 {learning.opportunity_title ? (
-                  <p className="m-0 max-w-[68ch] text-mrd-label leading-mrd-prose text-mrd-mute">
+                  <p className="m-0 max-w-[var(--mrd-measure-prose)] text-mrd-label leading-mrd-prose text-mrd-mute">
                     About {learning.opportunity_title}
                   </p>
                 ) : null}

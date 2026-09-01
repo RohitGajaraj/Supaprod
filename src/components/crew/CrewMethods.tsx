@@ -350,7 +350,32 @@ function MethodCard({ ranking }: { ranking: PlaybookRanking }) {
         </span>
       </div>
 
-      <p className="mt-mrd-2 max-w-[68ch] text-mrd-label leading-mrd-prose text-mrd-mute">
+      {/* ── ONE `ch` NUMBER, TWO WIDTHS, ON ONE PAGE (2026-09-01) ────────────
+          This cap and the one on "How one of these earns its place" at the foot
+          of this file were BOTH written `max-w-[68ch]`, and they did not line
+          up. `ch` is the advance of the font's ZERO GLYPH, so the number is
+          resolved against whatever type stop the block carries. Measured off
+          the shipped face rather than assumed: Inter's "0" advances 1292/2048
+          em = 0.6309em in `Inter-Variable.woff2`, and `--font-sans` is Inter.
+
+            this summary   68ch on `text-mrd-label` 12.5px  ->  536px
+            the forward    68ch on `text-mrd-prose` 14px    ->  601px
+
+          One source number, one left gutter, one scroll apart, 65px of daylight
+          between the two right edges. Editing either 68 cannot close that,
+          because a number only moves the block it is written on.
+
+          `--mrd-measure-prose` is 32rem = 512px and never reads the font, so
+          both stop on the same pixel. Rung 3 is the right rung for both and it
+          is not a judgement call: `PageHeading` already draws this page's
+          subtitle at `--mrd-measure-page`, each `Region` draws its own `sub` at
+          `--mrd-measure-region`, so a paragraph written inside a card or a
+          region body is the third rung by construction.
+
+          THIS SITE: 536 -> 512px, a 24px tighten and inside a rounding of where
+          it shipped -- the summary was already about right, it was simply
+          measured with a ruler whose length depends on what it is measuring. */}
+      <p className="mt-mrd-2 max-w-[var(--mrd-measure-prose)] text-mrd-label leading-mrd-prose text-mrd-mute">
         {p.summary}
       </p>
 
@@ -460,7 +485,21 @@ export function CrewMethods({ onBack }: { onBack: () => void }) {
             stamping, because a surface may not promise a mechanism the wiring
             does not yet have. */}
         <Region title="How one of these earns its place">
-          <div className="flex max-w-[68ch] flex-col gap-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body">
+          {/* MEASURE: the other half of the pair written up on `MethodCard`'s
+              summary above. 68ch on `text-mrd-prose` 14px rendered 601px -- the
+              widest read block on this page after the subtitle, and 65px past
+              the method summaries it exists to explain. 601 -> 512px (-89px,
+              -15%) is the one site here that MOVES, and the movement is the fix:
+              this was never a wider rung chosen on purpose, it is the identical
+              68 rendering bigger because the type under it is bigger.
+
+              THE CAP STAYS ON THIS COLUMN AND NOT ON THE `Region`. The Region
+              holds nothing but these two paragraphs today, so hoisting it would
+              look equivalent -- but a measure on a region clamps whatever is put
+              beside them next, and a table or a row list is not read line by
+              line. That is the mistake already caught once on the Policies
+              scorecard, and it is cheaper to not make it than to find it. */}
+          <div className="flex max-w-[var(--mrd-measure-prose)] flex-col gap-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body">
             <p>
               The moment a method has a result on the record, it moves ahead of every method that
               has none, and the crew reaches for it first at that step. That is the whole ranking,
