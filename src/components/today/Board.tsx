@@ -2088,12 +2088,24 @@ export function Board() {
                       than no label, because a reader who has learned where one
                       goes now believes the wrong thing about the other. Each one
                       names where it lands. */}
-                  <Door
-                    title="Open the shared brain"
-                    onClick={() => navigate({ to: "/brain", search: {} })}
-                  >
-                    <Num>{onRecord}</Num> {onRecord === 1 ? "day" : "days"} on the record
-                  </Door>
+                  {/* ── THE LABEL NAMES WHERE IT LANDS NOW (2026-09-01) ─────
+                      The paragraph above sets the rule -- *"Each one names
+                      where it lands"* -- and this control did not follow it.
+                      It read "49 days on the record", which is a FACT and not
+                      a destination, and the only statement of where it went
+                      was a `title` tooltip: absent on touch, absent for a
+                      keyboard user, inconsistent under a screen reader.
+
+                      Photographed on the home, it rendered as a lone
+                      underlined phrase directly under the headline, so it read
+                      as a stray link rather than as a door onto anything.
+
+                      The fact is now plain text where a fact belongs, and the
+                      door carries the word the rail uses for that surface --
+                      "Insights" -- so a stranger can predict the page before
+                      pressing it, which is the whole test for a door. */}
+                  <Num>{onRecord}</Num> {onRecord === 1 ? "day" : "days"} on the record.{" "}
+                  <Door onClick={() => navigate({ to: "/brain", search: {} })}>Open Insights</Door>
                 </>
               ) : null}
             </>
