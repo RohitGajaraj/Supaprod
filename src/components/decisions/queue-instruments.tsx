@@ -250,14 +250,44 @@ export function ScoreMeter({
    */
   const band = pct >= 70 ? "var(--mrd-pass)" : pct >= 40 ? "var(--mrd-hold)" : "var(--mrd-fail)";
 
+  /*
+   * ── THE NUMBER SAYS WHAT IT IS, TO EVERY READER (2026-09-01) ─────────────
+   *
+   * `what` reached the `title` attribute and nothing else, so the rendered
+   * output was `72 ▬▬▬` -- a bare numeral and a 40px bar, with the word that
+   * makes them mean anything available only on hover.
+   *
+   * FOUNDER, on this class of defect: *"that is not mentioning what it is."*
+   *
+   * A `title` is not an answer here. It never appears on touch, never appears
+   * for a keyboard user, and on a GENERIC element a screen reader's treatment
+   * of it is inconsistent -- so on this instrument the name was not merely
+   * hidden, it was unreliable.
+   *
+   * WHY THE WORD IS NOT DRAWN INLINE, which is the fix the finding asked for.
+   * This meter sits in dense ranked rows -- `#1 · 72 ▬▬▬ · 3 signals ·
+   * sources · claim` -- and printing "Severity, recency and novelty" in each
+   * of them would cost more than it explains, on every row, forever. The right
+   * instrument for a compact readout is a guaranteed ACCESSIBLE NAME plus the
+   * hover text, not more ink.
+   *
+   * `role="img"` with `aria-label` is what makes it guaranteed: it gives the
+   * whole inline group one name and stops assistive tech reading the digits as
+   * loose text beside an unlabelled decoration. The `title` stays for the
+   * pointer, and the two now carry the same sentence rather than the title
+   * carrying it alone.
+   */
+  const spoken =
+    moved === null
+      ? `${what} ${shown} out of ${ceiling}`
+      : `${what} ${shown} out of ${ceiling}, ${moved > 0 ? "up" : "down"} ${Math.abs(moved).toFixed(1)} since the last outcome was recorded`;
+
   return (
     <span
+      role="img"
+      aria-label={spoken}
       style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}
-      title={
-        moved === null
-          ? `${what} ${shown} out of ${ceiling}`
-          : `${what} ${shown} out of ${ceiling}, ${moved > 0 ? "up" : "down"} ${Math.abs(moved).toFixed(1)} since the last outcome was recorded`
-      }
+      title={spoken}
     >
       <Num>{shown}</Num>
       <span

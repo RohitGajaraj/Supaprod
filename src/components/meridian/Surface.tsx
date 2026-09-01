@@ -44,6 +44,7 @@ export function Surface({
   children,
   context,
   wide = false,
+  rhythm = false,
 }: {
   children: ReactNode;
   /**
@@ -60,10 +61,40 @@ export function Surface({
    * out in columns of its own passes `wide`.
    */
   wide?: boolean;
+  /**
+   * ── VERTICAL RHYTHM, WHICH THIS PRIMITIVE HAD NO ANSWER FOR ─────────────
+   * Added 2026-09-01.
+   *
+   * THE MEASUREMENT THAT FOUND IT. `.sp-main` and `.sp-wide` set `min-width`
+   * and a measure and nothing else -- no display, no gap -- so a page that does
+   * not space its own blocks gets NO separation at all. Measured on the
+   * rendered `/discover` at 1512px: eight top-level sections, and the gaps
+   * between them were **10, 0, 0, 0, 0, 0, 0**. Seven of eight boundaries were
+   * zero pixels. The heading, the sources, the review queue, the ranking,
+   * Settled, Capture and the boundary were physically touching.
+   *
+   * That is not the "uniform rhythm" the founder's flat-rhythm complaint
+   * describes. It is the absence of rhythm, and it is invisible in review
+   * because each region looks correct in isolation.
+   *
+   * OPT-IN, AND THAT IS DELIBERATE RATHER THAN TIMID. Most ported surfaces
+   * already space their own children -- with their own wrapper, or with
+   * per-block margins -- so a default gap here would DOUBLE their spacing
+   * silently across a hundred routes, which trades one invisible defect for
+   * another. A surface that needs it says so.
+   *
+   * `--mrd-s7` (40px) between PEER sections, which is the ramp used correctly:
+   * uniform spacing between siblings of equal rank is right, and it is only
+   * uniform spacing between a group and its own members that flattens a page.
+   * Each region still owns its internal rhythm.
+   */
+  rhythm?: boolean;
 }) {
   return (
     <div className="sp-inner">
-      <div className={wide ? "sp-wide" : "sp-main"}>{children}</div>
+      <div className={`${wide ? "sp-wide" : "sp-main"}${rhythm ? " flex flex-col gap-mrd-7" : ""}`}>
+        {children}
+      </div>
       {context ? <aside className="sp-ctx">{context}</aside> : null}
     </div>
   );

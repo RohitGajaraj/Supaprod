@@ -2030,7 +2030,16 @@ export function DiscoverSurface({
   }
 
   return (
+    /*
+     * `rhythm` BECAUSE THIS PAGE'S SECTIONS WERE TOUCHING (2026-09-01).
+     * Measured on the rendered surface at 1512px: eight top-level sections with
+     * gaps of 10, 0, 0, 0, 0, 0, 0 between them. `Surface` supplied none (see
+     * its `rhythm` prop for why it cannot default it on) and this page supplied
+     * none either, so the heading, the sources, the review queue, the ranking,
+     * Settled, Capture and the boundary were rendered flush against one another.
+     */
     <Surface
+      rhythm
       context={
         hasContext ? (
           <>
