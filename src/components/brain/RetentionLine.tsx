@@ -49,7 +49,30 @@ export function RetentionLine() {
           to itself. The two look identical on purpose. */}
       <a
         href="/pricing"
-        className="rounded-mrd-xs text-mrd-prose text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+        /*
+         * ── A LINK THAT WAS BIGGER THAN ITS OWN SENTENCE (2026-09-01) ──────
+         *
+         * The paragraph is `text-mrd-label` (12.5px) and this anchor carried
+         * `text-mrd-prose` (14px), so the two words in the middle of the
+         * sentence rendered 1.5px taller than the words either side of them.
+         * Inline type that changes size mid-sentence reads as a rendering fault,
+         * and it shifts the baseline of the line it sits in.
+         *
+         * SAME ROOT CAUSE AS THE SEVEN SAME-ELEMENT COLLISIONS, and the
+         * OPPOSITE remedy, which is the point worth recording.
+         * `--mrd-t-body` was renamed to `--mrd-t-prose` on 2026-08-21 because
+         * `text-mrd-body` used to compile to a size AND a colour; authors kept
+         * writing the pair as though `prose` were part of the colour. There,
+         * the 14px was the verified intended paint and the LOSING size class
+         * was deleted. Here the intended size is the PARAGRAPH's -- an inline
+         * link has no size of its own, it belongs to the sentence -- so the
+         * size class goes and `text-mrd-body` stays for colour.
+         *
+         * `one-element-one-type-size.test.ts` cannot catch this one: both
+         * declarations are correct in isolation and the conflict only exists
+         * between a parent and its child, which a class-string scan cannot see.
+         */
+        className="rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
         style={{ transitionDuration: "var(--mrd-d-press)" }}
       >
         Keep it

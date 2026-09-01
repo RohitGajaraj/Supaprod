@@ -409,13 +409,34 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
                 key={p.id}
                 className="rounded-mrd-card border border-mrd-line bg-mrd-sheet px-mrd-5 py-mrd-4"
               >
+                {/*
+                  ── THE MARK AND ITS WORD ARE ONE OBJECT NOW (2026-09-01) ────
+                  The severity glyph sat in the left gutter and the word naming
+                  that severity sat at the FAR RIGHT of the title row, pushed
+                  there by `justify-between`. Both carried `meta.ink`, so they
+                  were two halves of one fact in one colour, separated by the
+                  entire width of the title -- and on a wide card that is several
+                  hundred pixels. A reader meets an unlabelled coloured glyph,
+                  reads a title, and only then finds the word that explains the
+                  glyph they have already passed.
+
+                  FOUNDER, on this class: *"that is not mentioning what it is"*
+                  and *"the placement is right, you need to see."*
+
+                  Together they read as one severity marker, the title gets the
+                  full column instead of sharing it with a right-aligned chip,
+                  and the `justify-between` row that existed only to push the
+                  word away is gone.
+                */}
                 <div className="flex items-start gap-mrd-4">
-                  <Icon size={15} aria-hidden="true" className={`mt-0.5 shrink-0 ${meta.ink}`} />
+                  <span
+                    className={`mt-0.5 inline-flex shrink-0 items-center gap-mrd-2 ${meta.ink}`}
+                  >
+                    <Icon size={15} aria-hidden="true" />
+                    <span className="text-mrd-data">{meta.word}</span>
+                  </span>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline justify-between gap-mrd-4">
-                      <h3 className="text-mrd-base font-medium text-mrd-ink">{p.title}</h3>
-                      <span className={`shrink-0 text-mrd-data ${meta.ink}`}>{meta.word}</span>
-                    </div>
+                    <h3 className="text-mrd-base font-medium text-mrd-ink">{p.title}</h3>
                     <p className="mt-mrd-3 text-mrd-label leading-mrd-prose text-mrd-mute">
                       {p.detail}
                     </p>
