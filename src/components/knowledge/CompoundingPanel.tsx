@@ -170,6 +170,61 @@ function recordedBy(slug: string | null): string {
   return slug ? `${agentDisplayName(slug)} recorded it` : "unattributed";
 }
 
+/**
+ * WHAT THIS ROW IS, in the best name the record actually holds for it.
+ *
+ * ── TWENTY-FOUR ROWS SAID "An outcome memo" (2026-09-02) ────────────────────
+ * The lead was `l.opportunity_title ?? "An outcome memo"`, and the lead is the
+ * only line on the row at ink weight -- the one a reader scans down. Measured
+ * on the live record: of the twelve outcomes on the workspace this was read on,
+ * ZERO carry an `opportunity_id`, so the join returns no title and every single
+ * row led with the identical four words. A value printed identically on every
+ * row distinguishes nothing; twelve rows of it is a list with no index.
+ *
+ * `opportunity_title` being null is not an accident to be papered over either.
+ * An outcome can be recorded against a spec, or by an agent with nothing linked
+ * at all, and those are ordinary rows rather than broken ones. So the fallback
+ * is a LADDER through what such a row does hold, ordered by how much of an
+ * identity each thing is:
+ *
+ *   1. The bet's title. The row's real name when it has one.
+ *   2. `metric_label`. What the outcome was measured on ("checkout
+ *      completion", "lost checklist rate"). A name, and it is already on the
+ *      row and rendered nowhere.
+ *   3. The memo. Not a name, and the last resort for exactly that reason -- but
+ *      it is the ONLY thing left that tells one of these rows from another, and
+ *      a row that cannot be told from its neighbour is worse than a row led by
+ *      a sentence. `Row`'s `tight` clips it to one line and hands the whole
+ *      string to the tooltip, and the row's own click opens `LearningDetail`,
+ *      which prints the memo in full. That is the case `rows.tsx` names as the
+ *      one where the clip is right: "a scan line whose full content has a
+ *      detail view to open".
+ *
+ * THIS IS NOT THE CLAMPED SUMMARY COMING BACK. The header above records that
+ * being killed, and the reasoning holds: a two-line ellipsised rationale under
+ * every row is the shape of a rationale rather than one. This is a different
+ * thing -- a one-line lead, on the rows that have no other name, where the
+ * alternative is four words that are the same on all of them.
+ *
+ * On the workspace measured, this takes the screen from twelve identical leads
+ * to twelve distinct ones: seven named by their metric, five by their memo.
+ */
+function leadOf(l: {
+  opportunity_title?: string | null;
+  metric_label?: string | null;
+  summary?: string | null;
+}): string {
+  const title = l.opportunity_title?.trim();
+  if (title) return title;
+  const metric = l.metric_label?.trim();
+  if (metric) return metric;
+  /* Collapsed, because a memo typed into a textarea carries newlines and a
+     lead is one line by construction. */
+  const memo = l.summary?.replace(/\s+/g, " ").trim();
+  if (memo) return memo;
+  return "An outcome memo";
+}
+
 export function CompoundingPanel() {
   const navigate = useNavigate();
   const fetchCompounding = useServerFn(getCompounding);
@@ -333,7 +388,7 @@ export function CompoundingPanel() {
               key={l.id}
               tight
               marks={<AgentMark slug={l.recorded_by_agent_slug} state="quiet" />}
-              lead={l.opportunity_title ?? "An outcome memo"}
+              lead={leadOf(l)}
               // A different fact from the lead, never more of it: how it landed,
               // who wrote it down, and whether it moved a ranking. The memo
               // itself is one click away.

@@ -1,83 +1,66 @@
 /**
- * THE LEARN FACE'S DEPTH HALF. Brain > Outcomes, mounted beside
- * CompoundingPanel.
+ * HOW THE OUTCOMES SPLIT. Brain > Outcomes, mounted under CompoundingPanel.
  *
- * WHY THIS FILE EXISTS. The founder named Learn among the stations needing
- * depth: show what was learned, from what evidence, with what score movement,
- * connected back to the bet it graded. Judged against the Decide sheet's
- * OutcomeHistoryBlock (src/components/discover/OpportunityDetailSheet.tsx),
- * the Outcomes tab had three gaps, and this closes them without touching the
- * files other lanes own:
+ * ── THIS FILE USED TO DRAW A SECOND COPY OF THE FEED ABOVE IT (2026-09-02) ──
  *
- *   1. WHY WAS MISSING PER ROW. The feed (knowledge/CompoundingPanel.tsx)
- *      deliberately killed the clamped summary -- right for an index row --
- *      so the recorded memo existed only behind the ?learning= drill. Every
- *      row here carries the memo in full.
- *   2. THE BET WAS TWO CLICKS AWAY. Feed row -> drill -> "Trace it in the
- *      graph". Here the row's own click opens the bet, reusing the exact
- *      door LearningDetail.tsx:220 already wired (/brain?tab=graph with
- *      focusKind/focusId). /decide exposes no search param for opening a
- *      specific bet, so the graph focus is the one honest destination.
- *   3. NO VERDICT SPLIT. The feed counts total outcomes and how many
- *      re-ranked; nothing said how many paid off against missed. This draws
- *      the split and the net ICE movement, computed by moat-vis's
- *      rescoresOf/round1 -- the same arithmetic describeCompounding prints.
+ * It was written to close three gaps the founder named against the Decide
+ * sheet's OutcomeHistoryBlock, and it closed them by listing every outcome a
+ * second time, in its own vocabulary, directly beneath the list
+ * `CompoundingPanel` had just drawn. On a real workspace that was twelve rows
+ * printed twice on one screen, the same twelve, where the panel said "It
+ * worked" and this said "paid off".
  *
- * REUSED, NOT INVENTED: the sheet block's anatomy (RecordSpeaks rows,
- * evidence = verdict in OUTCOME_TONE colour + rescoreNoteOf delta note, body
- * = recorded summary), its cache discipline (this read is CHARACTER-IDENTICAL
- * to CompoundingPanel's ["learnings", workspace] key, so mounting this costs
- * zero extra requests on the tab), and its silence contract: while pending,
- * on error and when there are no rows this renders null, because the host
- * surface above already owns the loading, failed and empty states for these
- * exact reads -- the same reasoning that block records for staying quiet on
- * a refused read.
+ * The three gaps, checked one at a time against the record rather than against
+ * the header that claimed them:
  *
- * NOT SAID TWICE: when no outcome has moved a ranking this region draws no
- * "not yet" line, because the guidance region above the tabs already admits
- * exactly that on every tab.
+ *   1. THE MEMO PER ROW. Real, and it reversed a ruling the panel above states
+ *      in its own header: the clamped summary was killed there deliberately,
+ *      because "a rationale ellipsised at two lines is not a rationale, it is
+ *      the shape of one", and the whole memo is one click away at
+ *      LearningDetail. Reversing that in the region underneath does not close a
+ *      gap, it holds both positions at once. The memo is back to being one
+ *      click away, and the panel's row lead now falls through to it when the
+ *      record holds no other name for the row, which is the case that made the
+ *      memo worth surfacing in the first place.
+ *   2. THE BET, ONE CLICK AWAY. Not closed. Every row here carried
+ *      "Click a row to open the bet it graded" in the region sub and opened the
+ *      graph only when `opportunity_id` was set. Measured on the live record,
+ *      2026-09-02: of the twelve outcomes on the workspace this was read on,
+ *      ZERO carry an opportunity_id, so no row was clickable and the sentence
+ *      promising it was false on all twelve. The panel's own row click
+ *      (?tab=learnings&learning=) has no such condition and works on every row.
+ *   3. NO VERDICT SPLIT. Real, and still unclosed anywhere else. Nothing on the
+ *      tab says how many of the outcomes paid off against how many did not. The
+ *      panel's headline counts re-scores, its evidence line counts the total,
+ *      and its month strip splits by month rather than over the record.
+ *
+ * So the list is gone and the split is what is left. That is the whole of this
+ * file now.
+ *
+ * WHAT IS DELIBERATELY NOT SAID HERE. The total ("12 outcomes recorded") and
+ * the net ICE movement, both of which this region used to print. The panel
+ * above states each of them already -- the total in `RecordSpeaks`'s evidence,
+ * the net ICE inside `describeCompounding`'s headline -- and two computations
+ * of one number on one screen is how the two come to disagree.
+ *
+ * THE READ IS STILL FREE. The query key stays CHARACTER-IDENTICAL to
+ * CompoundingPanel's ["learnings", workspace], so this is a second consumer of
+ * one request rather than a second request, and
+ * `finished-work-that-never-reached-a-screen.test.ts` asserts exactly that.
+ * The silence contract is unchanged too: pending, failed and empty all render
+ * null, because the panel above owns those three states for this same read.
  */
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
 import { listLearnings } from "@/lib/outcome.functions";
-import { rescoreNoteOf, rescoresOf, round1 } from "@/lib/moat-vis";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { Figure, Region } from "@/components/meridian/surface-parts";
-import { RecordLine } from "@/components/brain/record-parts";
-import { whenOf } from "@/components/knowledge/CompoundingPanel";
-
-/** Same map, same values, as the sheet block's OUTCOME_TONE: the three hues
- *  that carry an outcome, mixed reading as hold because a mixed result waits
- *  on a condition to be read either way. */
-const OUTCOME_TONE: Record<"validated" | "missed" | "mixed", string> = {
-  validated: "var(--mrd-pass)",
-  missed: "var(--mrd-fail)",
-  mixed: "var(--mrd-hold)",
-};
-
-/** What came back, in the route's own words (recordHeadline's verdictLine). */
-function verdictWord(verdict: "validated" | "missed" | "mixed"): string {
-  if (verdict === "validated") return "paid off";
-  if (verdict === "missed") return "did not pay off";
-  return "came back mixed";
-}
 
 type Row = {
-  id: string;
-  opportunity_id: string | null;
   verdict: "validated" | "missed" | "mixed";
-  summary: string;
-  metric_label: string | null;
-  metric_value: string | null;
-  prior_ice: number | string | null;
-  new_ice: number | string | null;
-  created_at: string;
-  opportunity_title: string | null;
 };
 
 export function OutcomeHistory() {
-  const navigate = useNavigate();
   const { activeWorkspaceId } = useWorkspace();
   const fLearnings = useServerFn(listLearnings);
   // Character-identical to CompoundingPanel's key on this same tab: a cache
@@ -92,118 +75,32 @@ export function OutcomeHistory() {
   const rows = q.data ?? [];
   if (q.isPending || q.isError || rows.length === 0) return null;
 
-  const paidOff = rows.filter((l) => l.verdict === "validated").length;
-  const missed = rows.filter((l) => l.verdict === "missed").length;
-  const mixed = rows.filter((l) => l.verdict === "mixed").length;
-  const moved = rescoresOf(rows);
-  const netIce = round1(moved.reduce((sum, r) => sum + r.delta, 0));
+  /* Drawn only in facts we hold: a verdict class with none of its kind draws
+     nothing at all, rather than a zero standing in for a finding. */
+  const split: { key: string; count: number; word: string; tone: string }[] = [
+    { key: "validated", count: 0, word: "paid off", tone: "text-mrd-pass" },
+    { key: "mixed", count: 0, word: "came back mixed", tone: "" },
+    { key: "missed", count: 0, word: "did not pay off", tone: "text-mrd-fail" },
+  ];
+  for (const l of rows) {
+    const bucket = split.find((s) => s.key === l.verdict);
+    if (bucket) bucket.count++;
+  }
+  const shown = split.filter((s) => s.count > 0);
 
   return (
-    <Region
-      title="What the outcomes taught"
-      sub="Every memo on the record, newest first. Click a row to open the bet it graded."
-    >
-      {/* The score so far, drawn only in facts we hold: a verdict class with
-          none of its kind draws nothing, and the net movement appears only
-          when something actually moved. */}
-      <p className="mb-mrd-4 text-mrd-label leading-mrd-snug text-mrd-mute">
-        <Figure>{rows.length}</Figure> outcomes recorded
-        {paidOff > 0 ? (
-          <>
-            {" · "}
-            <span className="text-mrd-pass">
-              <Figure>{paidOff}</Figure> paid off
+    <Region title="How the outcomes landed">
+      <p className="text-mrd-label leading-mrd-snug text-mrd-mute">
+        {shown.map((s, i) => (
+          <span key={s.key}>
+            {i > 0 ? " · " : null}
+            <span className={s.tone || undefined}>
+              <Figure>{s.count}</Figure> {s.word}
             </span>
-          </>
-        ) : null}
-        {mixed > 0 ? (
-          <>
-            {" · "}
-            <Figure>{mixed}</Figure> mixed
-          </>
-        ) : null}
-        {missed > 0 ? (
-          <>
-            {" · "}
-            <span className="text-mrd-fail">
-              <Figure>{missed}</Figure> did not pay off
-            </span>
-          </>
-        ) : null}
-        {moved.length > 0 && netIce !== 0 ? (
-          <>
-            {" · priorities moved a net "}
-            <Figure>
-              {netIce > 0 ? "+" : ""}
-              {netIce.toFixed(1)}
-            </Figure>{" "}
-            ICE
-          </>
-        ) : null}
+          </span>
+        ))}
         .
       </p>
-
-      <div className="flex flex-col">
-        {rows.map((l) => {
-          const note = rescoreNoteOf(l);
-          return (
-            <RecordLine
-              key={l.id}
-              lead={l.opportunity_title ?? "An outcome memo"}
-              sub={
-                <>
-                  <span style={{ color: OUTCOME_TONE[l.verdict] }}>{verdictWord(l.verdict)}</span>
-                  {note ? <> · {note}</> : null}
-                  {l.metric_label && l.metric_value ? (
-                    <>
-                      {" · "}
-                      {l.metric_label} {l.metric_value}
-                    </>
-                  ) : null}
-                  {/*
-                    ── THE MEMO OUTRANKED THE ROW IT SITS IN (2026-09-01) ──────
-                    `RecordLine` paints its `sub` wrapper at `text-mrd-label`
-                    (12.5px, record-parts.tsx:166) and this span carried
-                    `text-mrd-prose` (14px), so the memo -- the LAST and least
-                    load-bearing part of the sub -- rendered larger than the
-                    verdict and the metric beside it, and larger than the sub it
-                    is nested inside. Hierarchy upside down on every row of the
-                    Outcomes tab.
-
-                    SAME MISUNDERSTANDING AS THE `RetentionLine` ANCHOR: the pair
-                    reads `text-mrd-body text-mrd-prose` as though `prose` were
-                    part of the colour, because until the 2026-08-21 rename
-                    `text-mrd-body` really did compile to a size AND a colour.
-                    Dropping the size lets it inherit 12.5px from the sub and
-                    keeps `text-mrd-body` doing the one job it still has.
-
-                    `one-element-one-type-size.test.ts` cannot see this: both
-                    declarations are legal on their own and the conflict is
-                    between a parent and its child.
-                  */}
-                  <span className="mt-0.5 block text-mrd-body">
-                    {l.summary || "No memo was written down."}
-                  </span>
-                </>
-              }
-              time={whenOf(l.created_at)}
-              onClick={
-                l.opportunity_id
-                  ? () =>
-                      navigate({
-                        to: "/brain",
-                        search: {
-                          tab: "graph",
-                          focusKind: "opportunity",
-                          focusId: l.opportunity_id!,
-                        },
-                      })
-                  : undefined
-              }
-            />
-          );
-        })}
-      </div>
     </Region>
   );
 }

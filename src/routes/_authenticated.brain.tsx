@@ -1871,11 +1871,14 @@ function MemoryPage() {
               ) : (
                 <div className="flex flex-col gap-mrd-7">
                   <CompoundingPanel />
-                  {/* The feed says what each outcome taught. This says how they
-                      add up -- paid off against missed, the net ICE movement,
-                      and the memo in full on every row rather than behind a
-                      drill. It draws nothing when there are no outcomes, so an
-                      empty record is unchanged. */}
+                  {/* The feed above lists the outcomes. This says how they
+                      SPLIT -- paid off against mixed against missed -- which is
+                      the one thing about them the feed never states. It used to
+                      relist all of them underneath in its own vocabulary, so
+                      the tab printed the same twelve outcomes twice; that list
+                      is gone and the sentence is what is left. It draws nothing
+                      when there are no outcomes, so an empty record is
+                      unchanged. */}
                   <OutcomeHistory />
                   {/* The region says what was USED; the list inside says what is
                   STORED. Two different facts, and the used one leads. */}
