@@ -407,6 +407,27 @@ export function SelectionActions({
    * container's real box, then place. The arithmetic lives in
    * `placeSelectionBar` so tests can hold it without a browser.
    */
+  /*
+   * ── NO DEPENDENCY LIST, AND THE LOOP IT WARNS ABOUT IS ALREADY CLOSED ────
+   * (2026-09-01, checked before it was silenced.)
+   *
+   * `react-hooks/exhaustive-deps` flags this as "contains a call to `setPos`.
+   * Without a list of dependencies, this can lead to an infinite chain of
+   * updates." The diagnosis of the RISK is right and the risk is already
+   * handled twenty lines down: `setPos` takes a functional updater that returns
+   * the PREVIOUS object when `left` and `top` are unchanged, so React bails out
+   * of the re-render and the chain terminates on the second pass.
+   *
+   * The missing dep list is deliberate and load-bearing rather than an
+   * oversight. This is two-pass positioning: it must re-measure after EVERY
+   * render, because the bar's own width changes with what it carries, and a
+   * dependency array would pin it to the inputs it can name while the thing it
+   * actually measures is the rendered box.
+   *
+   * So the rule cannot be satisfied without breaking the feature: adding deps
+   * stops it measuring, and the loop it fears is already prevented by identity.
+   */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useLayoutEffect(() => {
     const c = containerRef.current;
     const bar = barRef.current;

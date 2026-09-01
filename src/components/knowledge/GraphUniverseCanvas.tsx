@@ -847,9 +847,37 @@ export function GraphUniverseCanvas({
       canvas.removeEventListener("wheel", onWheel);
 
       simRef.current?.stop();
-      // Dispose every node object's material.
+      /*
+       * ── THE LINT RULE IS WRONG HERE, AND OBEYING IT WOULD CAUSE THE LEAK ──
+       * (2026-09-01, checked before it was silenced.)
+       *
+       * `react-hooks/exhaustive-deps` warns three times below that "the ref
+       * value will likely have changed by the time this effect cleanup runs",
+       * and its remedy is to copy `ref.current` into a local at effect SETUP and
+       * dispose that. That advice is right for the usual case and backwards for
+       * this one.
+       *
+       * MEASURED IN THIS FILE: the mount effect this cleanup belongs to closes
+       * at line 873 with `[]` deps, so it runs ONCE at mount. The three maps are
+       * populated at lines 939, 954 and 969 -- inside a LATER effect that
+       * rebuilds the constellation whenever the graph changes. So at setup time
+       * all three maps are EMPTY.
+       *
+       * Copying them at setup would therefore dispose nothing at all and leak
+       * every mesh, halo and ring the graph ever built -- GPU memory, held until
+       * the tab closes, on a canvas whose whole job is to rebuild on every graph
+       * change. Reading `.current` AT CLEANUP is what disposes the objects that
+       * actually exist.
+       *
+       * Silenced with the reason rather than worked around, because the
+       * alternative is a real leak and the rule cannot see which effect fills
+       * the map.
+       */
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       for (const mesh of meshMapRef.current.values()) (mesh.material as THREE.Material).dispose();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       for (const halo of haloMapRef.current.values()) (halo.material as THREE.Material).dispose();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       for (const ring of ringMapRef.current.values()) (ring.material as THREE.Material).dispose();
       meshMapRef.current.clear();
       haloMapRef.current.clear();

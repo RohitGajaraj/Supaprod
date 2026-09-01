@@ -63,6 +63,18 @@ import { TrustDial } from "@/components/cockpit/TrustDial";
 import { AgentInspector } from "@/components/cockpit/AgentInspector";
 import { AgentScorecardPanel } from "@/components/engine-room/AgentScorecardPanel";
 
+/*
+ * ONE IDENTITY FOR THE EMPTY CASE. An inline `?? []` is a fresh object on every
+ * render, so while a read is loading or has failed, every memo depending on it
+ * recomputes every render -- the memos do the work of not being memos. A
+ * module-scope constant has one identity for the life of the module.
+ *
+ * `never[]` because it is assignable to every array type and this file needs it
+ * for more than one. NOTHING MAY WRITE THROUGH IT: it is shared by every reader
+ * in this module, so a single push would reach all of them.
+ */
+const NONE: never[] = [];
+
 /** Plain-words relative time. Mono is applied by the row, not here. */
 export function ago(iso: string | null | undefined): string | null {
   if (!iso) return null;
@@ -106,8 +118,8 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
   const fTrust = useServerFn(getAllAgentTrust);
   const trustQ = useQuery({ queryKey: ["agent-trust"], queryFn: () => fTrust() });
 
-  const agents = hud.data?.agents ?? [];
-  const trust = (trustQ.data?.trust ?? []) as AgentTrust[];
+  const agents = hud.data?.agents ?? NONE;
+  const trust = (trustQ.data?.trust ?? NONE) as AgentTrust[];
 
   const trustById = React.useMemo(() => {
     const m = new Map<string, AgentTrust>();

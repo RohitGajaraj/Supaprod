@@ -137,6 +137,18 @@ import { StageTimeline } from "@/components/shared/StageTimeline";
 import { useConfirm } from "@/hooks/use-confirm";
 import { supabase } from "@/integrations/supabase/client";
 
+/*
+ * ONE IDENTITY FOR THE EMPTY CASE. An inline `?? []` is a fresh object on every
+ * render, so while a read is loading or has failed, every memo depending on it
+ * recomputes every render -- the memos do the work of not being memos. A
+ * module-scope constant has one identity for the life of the module.
+ *
+ * `never[]` because it is assignable to every array type and this file needs it
+ * for more than one. NOTHING MAY WRITE THROUGH IT: it is shared by every reader
+ * in this module, so a single push would reach all of them.
+ */
+const NONE: never[] = [];
+
 type Hop = MissionDetail["hops"][number];
 type Handoff = MissionDetail["messages"][number];
 
@@ -965,8 +977,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
   const [view, setView] = useState<"plan" | "when" | "graph">("plan");
 
   const data = m.data;
-  const stepRows = steps.data?.steps ?? [];
-  const hops = data?.hops ?? [];
+  const stepRows = steps.data?.steps ?? NONE;
+  const hops = data?.hops ?? NONE;
   const hasPending = stepRows.some(
     (r) => r.status === "planned" || r.status === "dispatched" || r.status === "running",
   );

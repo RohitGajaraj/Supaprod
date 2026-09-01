@@ -141,6 +141,10 @@ import { stripAutoMarkers } from "@/components/plan/format";
 import { waitingSince } from "@/components/meridian/stopped-for";
 import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 
+/** One identity for the empty case, so a loading or failed read does not
+ *  invalidate every memo that depends on the queue. See its use below. */
+const NO_ITEMS: readonly ApprovalQueueItem[] = [];
+
 export const Route = createFileRoute("/_authenticated/approvals")({
   component: ApprovalsSurface,
   head: () => ({ meta: [{ title: "Approvals · Supaprod" }] }),
@@ -300,7 +304,26 @@ function ApprovalsSurface() {
     enabled: (queue.data?.items.length ?? 0) === 0 && !queue.isLoading,
   });
 
-  const allItems = queue.data?.items ?? [];
+  /*
+   * ── `?? []` MINTED A NEW ARRAY ON EVERY RENDER (2026-09-01) ──────────────
+   *
+   * `react-hooks/exhaustive-deps` warns twice here that "the 'allItems' logical
+   * expression could make the dependencies of useMemo change on every render",
+   * and it is right in a way that costs real work rather than a lint point.
+   *
+   * An inline `[]` is a FRESH OBJECT each time the component renders. While the
+   * queue is loading, and after a failed read, `queue.data` is undefined and
+   * this expression therefore produced a different identity every render. Both
+   * memos below depend on it, so `counts` recounted and `visibleItems`
+   * re-filtered and re-SORTED on every render -- and `visibleItems` feeds a
+   * `useEffect`, so that fired again too. The memos were doing the work of not
+   * being memos.
+   *
+   * A module-scope constant has one identity for the life of the module, so the
+   * empty case is stable and the memos hold. `readonly` because a shared empty
+   * array must never be written through: one mutation would reach every reader.
+   */
+  const allItems = queue.data?.items ?? NO_ITEMS;
   const counts = useMemo(() => {
     const c: Record<ApprovalFilter, number> = {
       all: allItems.length,

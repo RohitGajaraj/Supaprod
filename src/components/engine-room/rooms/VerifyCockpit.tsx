@@ -28,6 +28,18 @@ import { QuietAction } from "../EngineChrome";
 import { Eyebrow } from "@/components/meridian/surface-parts";
 import { Reveal } from "@/components/meridian/Reveal";
 
+/*
+ * ONE IDENTITY FOR THE EMPTY CASE. An inline `?? []` is a fresh object on every
+ * render, so while a read is loading or has failed, every memo depending on it
+ * recomputes every render -- the memos do the work of not being memos. A
+ * module-scope constant has one identity for the life of the module.
+ *
+ * `never[]` because it is assignable to every array type and this file needs it
+ * for more than one. NOTHING MAY WRITE THROUGH IT: it is shared by every reader
+ * in this module, so a single push would reach all of them.
+ */
+const NONE: never[] = [];
+
 /**
  * RPT-31 - The Agent Inbox (verification cockpit).
  *
@@ -313,7 +325,7 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
     enabled: open,
     staleTime: 10_000,
   });
-  const files = (diff.data?.changes ?? []) as DiffRow[];
+  const files = (diff.data?.changes ?? NONE) as DiffRow[];
 
   React.useEffect(() => {
     if (open && !selectedPath && files.length) setSelectedPath(files[0]!.path);
