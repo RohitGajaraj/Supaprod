@@ -185,3 +185,126 @@ describe("buildSubscriptionUpdate", () => {
     expect("environment" in row).toBe(false);
   });
 });
+
+/**
+ * ── THE REFUSAL IS THE BEHAVIOUR THAT CHANGED, AND NOTHING ASSERTED IT ─────
+ *
+ * `buildSubscriptionUpsert` was made to THROW rather than emit a row missing a
+ * NOT NULL identity column. That is a live behaviour change on the money path,
+ * and the commit that made it added no test: the three existing cases above
+ * cover the happy path, `cancel_at_period_end` and the period fallback only.
+ * Caught by an adversarial verifier reading the diff rather than the summary,
+ * which is the only reason it is covered now.
+ *
+ * ── WHY EACH FIELD GETS ITS OWN CASE RATHER THAN ONE LOOP ─────────────────
+ * The five are NOT interchangeable. Each maps to a different NOT NULL column in
+ * `20260620194844_*.sql`, each is read off a different part of the Stripe
+ * payload, and `price_id` in particular arrives through `resolvePriceLookup`'s
+ * three-step fallback -- so it is absent only when the line item carried no
+ * price identity AT ALL. A single parameterised loop would pass just as well
+ * with four of the five wired to the same accessor, which is exactly the drift
+ * these guard against.
+ *
+ * ── WHAT THE FAILURE LOOKED LIKE BEFORE, because it is why "throws" is right ─
+ * Not a crash. Silence. supabase-js serialises with `JSON.stringify`, which
+ * DROPS `undefined` keys, so a payload missing one of these produced an upsert
+ * with the column omitted; PostgREST answered 23502; `stripe-provider.server.ts`
+ * never destructured `error` off that call; and the handler carried on to
+ * `applyTierForUser` + `grantForSubscription` while the route answered
+ * `{ received: true }`. The customer was granted the tier and the row recording
+ * what they bought never landed -- and Stripe, seeing a 200, never retried.
+ *
+ * So these cases are not testing an exception. They are testing that an
+ * UNBACKED TIER GRANT can no longer happen quietly.
+ */
+describe("buildSubscriptionUpsert refuses a row that would be silently rejected", () => {
+  const MISSING: ReadonlyArray<{
+    field: string;
+    named: string;
+    break: (s: ReturnType<typeof subEvent>) => void;
+  }> = [
+    {
+      field: "metadata.userId",
+      named: "metadata.userId",
+      break: (s) => {
+        s.metadata = {} as { userId: string };
+      },
+    },
+    {
+      field: "id",
+      named: "id",
+      break: (s) => {
+        s.id = "";
+      },
+    },
+    {
+      field: "customer",
+      named: "customer",
+      break: (s) => {
+        s.customer = "";
+      },
+    },
+    {
+      field: "items.data[0].price.product",
+      named: "price.product",
+      break: (s) => {
+        s.items.data[0]!.price.product = "";
+      },
+    },
+    {
+      field: "items.data[0].price",
+      named: "price",
+      // Every one of the three fallbacks must be gone: lookup_key, the Lovable
+      // external id, and the raw price id. Clearing only one would still
+      // resolve, which is the point of `resolvePriceLookup`.
+      break: (s) => {
+        s.items.data[0]!.price = { lookup_key: "", product: "prod_7", id: "" } as never;
+      },
+    },
+  ];
+
+  for (const c of MISSING) {
+    it(`throws, naming ${c.named}, when it is absent`, () => {
+      const s = subEvent();
+      c.break(s);
+      expect(() => buildSubscriptionUpsert(s, "sandbox", NOW_ISO)).toThrow(/refusing to build/);
+      // The message must NAME the field, because the whole reason this throws is
+      // so a person reading a 400 in the Stripe dashboard can tell which payload
+      // was malformed without opening the database.
+      expect(() => buildSubscriptionUpsert(s, "sandbox", NOW_ISO)).toThrow(
+        new RegExp(c.field.replace(/[.[\]]/g, "\\$&")),
+      );
+    });
+  }
+
+  it("names the subscription so a 400 can be traced back to one event", () => {
+    const s = subEvent();
+    s.customer = "";
+    expect(() => buildSubscriptionUpsert(s, "sandbox", NOW_ISO)).toThrow(/sub_123/);
+  });
+
+  it("says <no id> rather than 'undefined' when the id is the missing field", () => {
+    // The id is both a required field and the thing that identifies the event,
+    // so its absence is the one case where the message cannot cite itself.
+    // Printing the string "undefined" there would read as a value we received.
+    const s = subEvent();
+    s.id = "";
+    expect(() => buildSubscriptionUpsert(s, "sandbox", NOW_ISO)).toThrow(/<no id>/);
+  });
+
+  it("still builds a complete row, so the refusal cannot be over-eager", () => {
+    // The guard against a fix that throws on everything: a well-formed event
+    // must be unaffected. `status` and `environment` are NOT NULL but DEFAULTed,
+    // so they are deliberately NOT part of the refusal set.
+    const row = buildSubscriptionUpsert(subEvent(), "sandbox", NOW_ISO);
+    expect(row.user_id).toBe("user_1");
+    expect(row.stripe_customer_id).toBe("cus_9");
+    expect(row.price_id).toBe("pro_monthly");
+  });
+
+  it("does not refuse an empty status, which the column defaults", () => {
+    const s = subEvent();
+    s.status = "";
+    expect(() => buildSubscriptionUpsert(s, "sandbox", NOW_ISO)).not.toThrow();
+  });
+});
