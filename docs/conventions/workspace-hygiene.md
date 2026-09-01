@@ -23,28 +23,46 @@ probe pressing real surfaces created six duplicate tracks, which then starved th
 session was watching, and the ids it produced were abandoned at `sense`. A probe spec sitting where
 `testMatch` can reach it is a hazard to production data, not to the gate.
 
+**A NAME-BASED RULE DOES NOT WORK HERE, and this was learned the same night.** The first version of
+this convention said "throwaway probes are named `zz-*.spec.ts`" and keyed everything on that
+prefix. Within minutes a second probe appeared as `qq-probe.spec.ts`, written by another agent that
+had never read the rule and could not be reached mid-flight to learn it. **Agents that leave scratch
+behind are, by definition, the ones not following your naming convention.**
+
+**So the gate keys on the property that actually separates the two: a real spec is tracked in git,
+and a scratch spec never is.** All 15 reviewed specs are tracked. A new one joins the run the moment
+it is `git add`ed. An agent's ad-hoc probe is excluded whatever it is called.
+
+**Why an unreviewed spec is not merely noise.** `round-8.spec.ts` and
+`phase-3-visible-agency.spec.ts` both sign into a real environment and create real rows, and both
+carry an explicit opt-in guard (`ROUND8_PRESS_PRODUCTION=yes`, `PHASE3_PRESS=yes`) for exactly that
+reason. **A probe written ad hoc carries no such guard**, because nobody reviewed it.
+
 **The rules:**
 
-- **Throwaway probe specs are named `zz-*.spec.ts`.** Nothing else may use that prefix. If you need
-  a scratch spec, name it that way so both defences below catch it.
+- **A spec that is not tracked does not run.** If it is real, `git add` it.
+- **Name a deliberate throwaway `zz-*` or `qq-*`** so the second gate catches it even if committed.
 - **Root-level `*.yml` / `*.yaml` is not a repo convention.** Nothing tracked lives there, so
-  anything that appears is scratch.
-- **Never commit either.** `.gitignore` covers `/*.yml` (root only, so `.github/workflows/*.yml`,
-  `.serena/project.yml` and `docs/pitch/applications/baseline.yml` are untouched) and
-  `e2e/zz-*.spec.ts`.
+  anything appearing is scratch.
+- **Never commit either artifact.** `.gitignore` covers `/*.yml` (root only, so
+  `.github/workflows/*.yml`, `.serena/project.yml` and `docs/pitch/applications/baseline.yml` are
+  untouched) and `e2e/zz-*.spec.ts`.
 
-**Three defences, deliberately independent**, because a probe spec reaching a real run is the kind
-of failure that should need more than one thing to go wrong:
+**Three defences, deliberately independent**, because a probe reaching a real run should need more
+than one thing to go wrong:
 
-1. **`playwright.config.ts` sets `testIgnore: /zz-.*\.spec\.ts$/`**, so a probe can never join a
-   run even if it is sitting there right now.
+1. **`playwright.config.ts` excludes every untracked spec** and **names them on stderr** rather than
+   skipping silently, so a real spec you forgot to add announces itself instead of quietly not
+   running. If git is unavailable the list is empty and everything runs, because a config that
+   silently skips the whole suite is worse than the problem it solves.
 2. **`.gitignore`** stops either artifact being committed.
 3. **`bun run clean:workspace`** relocates root snapshots into `.playwright-mcp/` (never deletes
-   them; that bucket already purges at 7 days) and removes `e2e/zz-*.spec.ts` outright.
+   them; that bucket purges at 7 days) and removes `e2e/zz-*.spec.ts`.
 
-**This recurs while you watch.** The janitor's first run removed a second probe spec that had
-appeared during the ten minutes it took to write these rules. Do not treat a one-off sweep as the
-fix; the config guard is what actually holds.
+**Sweeping is not fixing.** The janitor's first run removed a second probe that appeared during the
+ten minutes it took to write these rules, because the agents generating them were still running. A
+cleanup pass over a directory a live process writes into is a snapshot, not a guard. **Ask what
+collects the file, and disarm that.**
 
 ## The hard rules
 

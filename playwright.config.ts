@@ -1,3 +1,4 @@
+import { execFileSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -37,14 +38,66 @@ function loadEnvFile(): void {
 
 loadEnvFile();
 
+
+/**
+ * A SPEC THAT NOBODY REVIEWED MUST NOT RUN.
+ *
+ * `testDir: "./e2e"` collects every `*.spec.ts` in that directory, tracked or not.
+ * Sessions driving a browser drop throwaway probe specs there and leave them behind:
+ * `zz-probe.spec.ts` and `qq-probe.spec.ts` were both found on 2026-09-02, written by
+ * audit agents that had already exited. A blocklist of name prefixes cannot work,
+ * because the names are arbitrary and the second one appeared minutes after the rule
+ * for the first was written.
+ *
+ * So key on the property that actually distinguishes them: **a real spec is tracked in
+ * git, and a scratch spec never is.** Every one of the 16 reviewed specs is tracked; a
+ * new one joins the run the moment it is `git add`ed.
+ *
+ * This matters because an unreviewed spec is not merely noise. `round-8.spec.ts` and
+ * `phase-3-visible-agency.spec.ts` both sign into a real environment and create real
+ * rows, and both carry an explicit opt-in guard for exactly that reason. A probe written
+ * ad hoc by an agent carries no such guard, and on 2026-08-25 that shape created six
+ * duplicate tracks which starved the one track a session was watching.
+ *
+ * Loud, never silent: skipped files are named on stderr. If git is unavailable the list
+ * is empty and everything runs, because a config that silently skips the whole suite is
+ * worse than the problem it solves.
+ */
+function unreviewedSpecs(): string[] {
+  try {
+    const tracked = new Set(
+      execFileSync("git", ["ls-files", "e2e"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })
+        .split("\n")
+        .filter(Boolean),
+    );
+    const found = fs
+      .readdirSync("e2e")
+      .filter((f) => f.endsWith(".spec.ts"))
+      .map((f) => `e2e/${f}`)
+      .filter((f) => !tracked.has(f));
+    if (found.length > 0) {
+      console.warn(
+        `[playwright] Skipping ${found.length} untracked spec(s), which nobody reviewed: ${found.join(", ")}\n` +
+          `[playwright] If one of these is real, \`git add\` it and it joins the run. See docs/conventions/workspace-hygiene.md.`,
+      );
+    }
+    return found;
+  } catch {
+    return [];
+  }
+}
+
+const UNREVIEWED_SPECS = unreviewedSpecs();
+
 export default defineConfig({
   testDir: "./e2e",
-  // Throwaway agent probe specs are named zz-*.spec.ts and never join a run.
-  // Added 2026-09-02: testDir had no ignore rule, so an untracked e2e/zz-probe.spec.ts
-  // left behind by a session was collected by every `playwright test` invocation.
-  // That one only read the DOM, but a probe that presses a real surface creates real
-  // rows, which this repo has already paid for once.
-  testIgnore: /zz-.*\.spec\.ts$/,
+  // Two gates, and the first is the one that holds. See unreviewedSpecs() above.
+  testIgnore: [
+    ...UNREVIEWED_SPECS,
+    // Belt and braces for the case the first gate cannot catch: a scratch spec that
+    // somebody actually committed. `zz-` is the documented prefix for a throwaway.
+    /(^|\/)(zz|qq)-.*\.spec\.ts$/,
+  ],
   outputDir: "./test-results",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
