@@ -88,6 +88,8 @@ export function Row({
   tight = false,
   focused = false,
   action,
+  leadTitle,
+  subTitle,
 }: {
   /** The mark slot is a fixed width, so text starts on the same line whether
    *  the row carries one mark or two. */
@@ -104,6 +106,32 @@ export function Row({
   /** A control belonging to THIS row (revert, copy, open elsewhere). It sits
    *  outside the clickable region so it is never a button inside a button. */
   action?: ReactNode;
+  /**
+   * The plain-text form of `lead` / `sub`, for a caller whose value is a
+   * fragment rather than a string.
+   *
+   * ── WHY THESE EXIST, AND WHO WAS LEFT OUT WITHOUT THEM (2026-09-01) ─────
+   * The tooltip below is guarded on `typeof value === "string"`, and that
+   * guard is right: `title` on a fragment is either a type error or the
+   * literal text "[object Object]". But it means the rows with the MOST to
+   * hide are the ones that get no tooltip, because a row is a fragment
+   * exactly when it is composing several facts onto one line.
+   *
+   * Measured on Discover: every ranking row carries its rank, score, volume,
+   * which sources it came from and its novelty on a single line, built as a
+   * fragment, cut by `truncate` with an ellipsis leading nowhere. The
+   * founder's report is about that class of row specifically -- *"everywhere,
+   * the text is getting truncated ... either shorten it or give only the
+   * summary that it has required. Use wherever that's necessary to get to the
+   * inside and give a clickable action."*
+   *
+   * So the caller that knows the plain text can hand it over. Optional, and
+   * still governed by `tight`: a row whose content is fully on screen gets no
+   * tooltip whatever it passes, because a tooltip repeating visible text is
+   * how a reader learns to stop believing tooltips.
+   */
+  leadTitle?: string;
+  subTitle?: string;
 }) {
   const clamp = tight ? "truncate" : "";
 
@@ -134,22 +162,28 @@ export function Row({
    *     the call sites pass a fragment; `title` on one of those is either a
    *     type error or the literal string "[object Object]".
    */
-  const hint = (value: ReactNode): string | undefined =>
-    tight && typeof value === "string" ? value : undefined;
+  const hint = (value: ReactNode, explicit?: string): string | undefined => {
+    if (!tight) return undefined;
+    /* The explicit form wins: a caller that passes both has composed a
+       fragment for the eye and a sentence for the tooltip, and the sentence is
+       the one that survives being read out of context. */
+    if (explicit) return explicit;
+    return typeof value === "string" ? value : undefined;
+  };
 
   const body = (
     <>
       <span className="flex w-[34px] flex-none items-center">{marks}</span>
       <span className="min-w-0 flex-1">
         <span
-          title={hint(lead)}
+          title={hint(lead, leadTitle)}
           className={`block text-mrd-prose leading-[1.4] text-mrd-ink ${clamp}`}
         >
           {lead}
         </span>
         {sub ? (
           <span
-            title={hint(sub)}
+            title={hint(sub, subTitle)}
             className={`mt-0.5 block text-mrd-base leading-[1.4] text-mrd-mute ${clamp}`}
           >
             {sub}
