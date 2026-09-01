@@ -2701,7 +2701,21 @@ textarea:not([readonly]):not([disabled]):focus-visible {
 
 .mrd-bloom {
   position: relative;
-  isolation: isolate;
+  /*
+   * NO `isolation: isolate` HERE, AND IT WAS THERE FOR ONE RENDER (2026-09-01).
+   *
+   * It looked like the careful thing to write and it broke the effect. Painting
+   * order INSIDE a stacking context is: the context root's own background and
+   * borders FIRST, then its negative-z-index descendants. So `isolate` made
+   * this element a context, and the `z-index: -1` halo below was then painted
+   * ON TOP of the composer's own opaque `--mrd-sink` fill rather than behind
+   * it -- a faint wash over the field instead of a glow around it.
+   *
+   * A negative-z pseudo only lands behind its own parent's background when the
+   * parent does NOT form a stacking context, because it then joins the nearest
+   * ancestor's. Confirmed in the browser: with `isolate` the composer read
+   * flat, which is what sent me looking.
+   */
 }
 .mrd-bloom::after {
   content: "";
