@@ -57,6 +57,27 @@ function relTime(iso: string | null): string {
  */
 const ROW_CAP = 40;
 
+/**
+ * The moment, to the minute, in the reader's own clock.
+ *
+ * Deliberately NOT the id. A trace id separates two rows perfectly and tells a
+ * person nothing they can act on -- they cannot recognise it, compare it, or
+ * remember which one they already opened. A time can be matched against the
+ * incident they are actually investigating, which is why they are on this
+ * surface at all.
+ */
+function exactWhen(iso: string | null | undefined): string | undefined {
+  if (!iso) return undefined;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function TracesView() {
   const navigate = useNavigate();
   const fTraces = useServerFn(listTraces);
@@ -91,6 +112,31 @@ function TracesView() {
      needs. Computed over the rows actually drawn, not per row: the question is
      whether the reader can see a difference, and the reader only sees these. */
   const surfaceDiscriminates = new Set(rows.map((t) => t.root_surface)).size > 1;
+  /*
+   * ── AND THE SUBJECT DOES NOT DISCRIMINATE EITHER (2026-09-02) ────────────
+   * Measured on the running page after the surface fix above landed: 42 rows
+   * carrying 18 distinct titles. Six rows read
+   * `Build "Differentiate the red status tile shown after an over-the-air
+   * firmware..."`, three separate groups of six, and the FULL strings are
+   * identical too -- so the `title` tooltip added in the same pass hands back
+   * the same sentence six times. It was the right fix for a cut string and it
+   * is no fix at all for a repeated one.
+   *
+   * These are genuinely six different runs of the same piece of work, which is
+   * normal on an audit trail and is exactly what somebody comes here to tell
+   * apart: "which run did the thing I am investigating". Cost and relative age
+   * do not separate them either -- all six show `19h ago`.
+   *
+   * So a row whose subject is not unique in the drawn set carries the one fact
+   * that always is: when it actually ran. Only those rows, because printing an
+   * exact timestamp on every row would push the same wallpaper back into the
+   * slot this pass just cleared.
+   */
+  const subjectCount = new Map<string, number>();
+  for (const t of rows) {
+    const key = t.title ?? t.root_surface;
+    subjectCount.set(key, (subjectCount.get(key) ?? 0) + 1);
+  }
   return (
     <div>
       <VerdictSentence>
@@ -119,7 +165,13 @@ function TracesView() {
           // repeating it on the second line says nothing twice. It is now also
           // conditional on the surface differing somewhere in the drawn set --
           // see `surfaceDiscriminates` above.
-          detail={t.title && surfaceDiscriminates ? t.root_surface : undefined}
+          detail={
+            t.title && surfaceDiscriminates
+              ? t.root_surface
+              : (subjectCount.get(t.title ?? t.root_surface) ?? 0) > 1
+                ? exactWhen(t.last_at)
+                : undefined
+          }
           value={fmtUsd(t.cost)}
           // `relTime` returns "" for a missing or unparseable time; the empty
           // string is falsy, so `Row` renders no stamp cell at all rather than
