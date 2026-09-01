@@ -717,7 +717,7 @@ function ApprovalsSurface() {
               the split is what makes those two numbers one fact instead of a
               contradiction. Do not shorten this back to one sentence. */}
           {n > 0 ? (
-            <p className="mt-mrd-3 text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">
+            <p className="mt-mrd-3 leading-mrd-prose text-mrd-prose text-mrd-body">
               Settled in order, oldest first. The one in front of you is the one that moves, and the
               rest are listed under it.
             </p>
@@ -729,7 +729,7 @@ function ApprovalsSurface() {
             over a broken read is the worst sentence this surface can say.
           */}
           {shortLine ? (
-            <p className="mt-mrd-3 text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-hold">
+            <p className="mt-mrd-3 leading-mrd-prose text-mrd-prose text-mrd-hold">
               {shortLine}
             </p>
           ) : null}

@@ -252,7 +252,7 @@ function Panel({ title, note, children }: { title: string; note: string; childre
     <section className="border-t border-mrd-line py-10">
       <header className="mb-6">
         <h2 className="text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">{title}</h2>
-        <div className="mt-1 max-w-[68ch] text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">
+        <div className="mt-1 max-w-[68ch] leading-mrd-prose text-mrd-prose text-mrd-body">
           <Reveal lines={3} more="Read the reasoning" less="Hide the reasoning">
             {note}
           </Reveal>
@@ -1043,7 +1043,7 @@ function MeridianGallery() {
       <div className="mx-auto max-w-[1180px] px-8 py-12">
         <header>
           <h1 className="text-mrd-h1 leading-mrd-tight font-semibold text-mrd-ink">Meridian</h1>
-          <p className="mt-2 max-w-[68ch] text-mrd-base leading-mrd-prose text-mrd-prose text-mrd-body">
+          <p className="mt-2 max-w-[68ch] leading-mrd-prose text-mrd-prose text-mrd-body">
             Every component, in both grounds, before it is wired to anything. One accent, and it
             says exactly one thing: a person is required. Green and red are outcome, never need.
           </p>
