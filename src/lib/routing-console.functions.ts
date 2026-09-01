@@ -21,6 +21,8 @@
  * of this lane.
  */
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -114,8 +116,17 @@ function median(nums: number[]): number | null {
   return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
 }
 
+// The parameter was a hand-written structural stub -- `{ from: (t: string) =>
+// any }` -- which accepted any object with a `from` method and typed its result
+// as `any`. On the ADMIN GATE, that meant neither the table name nor the
+// selected column was checked: `.from("user_roles").select("role")` would have
+// compiled just as happily against a table that does not exist, and a query
+// that errors returns `data: null`, which this function reads as "not an admin"
+// and refuses. So the failure mode was a permanently closed admin console with
+// no error anywhere -- exactly the shape that is hardest to diagnose. Naming
+// the real client type checks both.
 async function assertAdmin(context: {
-  supabase: { from: (t: string) => any };
+  supabase: SupabaseClient<Database>;
 }): Promise<string | null> {
   const { data: adminRole } = await context.supabase
     .from("user_roles")

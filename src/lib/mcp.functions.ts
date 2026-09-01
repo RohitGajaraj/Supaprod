@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database, Json } from "@/integrations/supabase/types";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildSkillpack, clampSkillpackLimit, type SkillpackLessonInput } from "./skillpack";
@@ -180,7 +182,7 @@ export interface LogAPICallInput {
  * Server-side only: log an MCP tool call to the audit trail.
  * Used by the /api/mcp route handler (service-role context).
  */
-export async function logMCPCall(input: LogAPICallInput, supabaseClient: any) {
+export async function logMCPCall(input: LogAPICallInput, supabaseClient: SupabaseClient<Database>) {
   const { error } = await supabaseClient.rpc("log_api_call", {
     _token_id: input.token_id,
     _workspace_id: input.workspace_id,
@@ -189,8 +191,20 @@ export async function logMCPCall(input: LogAPICallInput, supabaseClient: any) {
     _output_tokens: input.output_tokens || 0,
     _cost_usd: input.cost_usd || 0,
     _result: input.result,
-    _error_message: input.error_message || null,
-    _metadata: input.metadata || {},
+    // `|| null` here, not `|| undefined`, was a type error the moment the
+    // client stopped being `any`: log_api_call declares `_error_message text
+    // DEFAULT NULL` (asked the database directly, 2026-09-01), so the generated
+    // Args type is `_error_message?: string` and an omitted key takes the same
+    // NULL the explicit null was trying to send. Identical at runtime, checked
+    // at compile time.
+    _error_message: input.error_message || undefined,
+    // `metadata` is Record<string, unknown> because callers put arbitrary tool
+    // context in it; the column is jsonb. `unknown` is not assignable to `Json`,
+    // and this is the one place the open blob meets the typed argument, so the
+    // assertion belongs here rather than being pushed onto every caller. The
+    // value is JSON.stringify'd on the way to PostgREST, which drops anything
+    // not serialisable rather than corrupting the row.
+    _metadata: (input.metadata || {}) as Json,
   });
 
   if (error) {
@@ -354,7 +368,7 @@ export function sanitizeIlikeQuery(query: string | null | undefined): string {
  * Called by the MCP server route handler.
  */
 export async function searchSignals(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient<Database>,
   workspace_id: string,
   query: string,
   limit: number = 20,
@@ -386,7 +400,7 @@ export async function searchSignals(
  * Called by the MCP server route handler.
  */
 export async function searchOpportunities(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient<Database>,
   workspace_id: string,
   query: string,
   min_ice: number = 0,
@@ -443,7 +457,7 @@ export function applyDecisionOutcomes<T extends { id: string }>(
  * other MCP read tools. Called by the MCP server route handler.
  */
 export async function searchDecisions(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient<Database>,
   workspace_id: string,
   query: string,
   limit: number = 20,
@@ -491,7 +505,11 @@ export async function searchDecisions(
  * `body_md` (the columns `definition`/`acceptance_criteria`/`success_metrics`
  * never existed in production). Safe projection — no owner/workspace ids.
  */
-export async function getPRD(supabaseClient: any, workspace_id: string, prd_id: string) {
+export async function getPRD(
+  supabaseClient: SupabaseClient<Database>,
+  workspace_id: string,
+  prd_id: string,
+) {
   const { data: prd, error: prdError } = await supabaseClient
     .from("prds")
     .select("id, title, opportunity_id, status, body_md, created_at, shipped_at")
@@ -551,7 +569,7 @@ function designSectionForRead(ctx: DesignReadContext | null): ArdDesignSection |
  * asserted the promise and the tool agreed.
  */
 export async function getArdDocument(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient<Database>,
   workspace_id: string,
   prd_id: string,
   origin: string,
@@ -598,7 +616,7 @@ export async function getArdDocument(
  * like the other MCP read tools. Called by the MCP server route handler.
  */
 export async function searchPRDs(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient<Database>,
   workspace_id: string,
   query: string,
   status: string = "",
@@ -674,7 +692,7 @@ export function groupByRoadmapBucket(rows: RoadmapItemLite[] | null | undefined)
  * first. Workspace-scoped + audited. Called by the MCP server route handler.
  */
 export async function getRoadmap(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient<Database>,
   workspace_id: string,
   limit: number = 200,
 ): Promise<RoadmapView> {
@@ -700,7 +718,11 @@ export async function getRoadmap(
  * `.eq("workspace_id", ...)` filter is the tenant boundary, not RLS), mirroring
  * the other read tools. Read-only: no writes, no AI, no spend.
  */
-export async function exportSkillpack(supabaseClient: any, workspace_id: string, limit?: number) {
+export async function exportSkillpack(
+  supabaseClient: SupabaseClient<Database>,
+  workspace_id: string,
+  limit?: number,
+) {
   const cap = clampSkillpackLimit(limit);
   // The `id` secondary sort is LOAD-BEARING for the content_hash promise, not
   // cosmetic: `ORDER BY created_at DESC LIMIT cap` alone returns an arbitrary
@@ -773,7 +795,7 @@ export async function exportSkillpack(supabaseClient: any, workspace_id: string,
  * consistent across tools.
  */
 export async function outcomeHistory(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient<Database>,
   workspace_id: string,
   initiative: string,
   limit: number = 20,
@@ -917,7 +939,7 @@ const ingestSignalSchema = z.object({
  * variables. The parameter stays because all three of them pass it positionally.
  */
 export async function ingestSignal(
-  _supabaseClient: any,
+  _supabaseClient: SupabaseClient<Database>,
   workspace_id: string,
   user_id: string,
   args: IngestSignalArgs,
@@ -1090,7 +1112,7 @@ export type RecordDecisionResult = {
 };
 
 export async function recordDecision(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient<Database>,
   workspace_id: string,
   user_id: string,
   args: unknown,
@@ -1189,7 +1211,7 @@ export type DraftSpecResult = {
 };
 
 export async function draftSpec(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient<Database>,
   workspace_id: string,
   user_id: string,
   args: unknown,
@@ -1209,7 +1231,18 @@ export async function draftSpec(
       user_id,
       workspace_id,
       title,
-      body_md: body_md?.trim() || null,
+      // A LIVE BUG, not a typing nicety. This wrote `null` whenever the caller
+      // omitted body_md or sent whitespace -- and `prds.body_md` is
+      // `text NOT NULL DEFAULT ''::text` (asked the database directly on
+      // 2026-09-01, information_schema.columns.is_nullable = 'NO'). PostgREST
+      // rejects that insert with a not-null violation, which the `throw` five
+      // lines down turns into a failed MCP `spec.draft` for every caller who
+      // did not supply a body. Nothing caught it because `supabaseClient` was
+      // `any`: the generated Insert type has always said `body_md?: string`,
+      // and tsc flagged this on the first build after the parameter was typed.
+      // Empty string is the column's own default, so this is what the schema
+      // intended all along.
+      body_md: body_md?.trim() || "",
       // Draft, always. 'approved' and 'shipped' are human states, and
       // `assertSpecStatusWrite` exists precisely to stop a status write
       // contradicting a record already on the books.
@@ -1238,7 +1271,7 @@ export type SettleOutcomeResult = {
 };
 
 export async function settleOutcome(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient<Database>,
   _workspace_id: string,
   user_id: string,
   args: unknown,
@@ -1336,7 +1369,7 @@ const recordForecastSchema = z.object({
 });
 
 export async function recordForecast(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient<Database>,
   _workspace_id: string,
   user_id: string,
   args: unknown,
@@ -1382,7 +1415,7 @@ const settleForecastMcpSchema = z.object({
 });
 
 export async function settleForecastViaMcp(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient<Database>,
   _workspace_id: string,
   _user_id: string,
   args: unknown,
@@ -1457,7 +1490,7 @@ export async function settleForecastViaMcp(
 }
 
 export async function listDueForecastsForAgent(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient<Database>,
   workspace_id: string,
   args: unknown,
 ): Promise<
@@ -1481,9 +1514,17 @@ export async function listDueForecastsForAgent(
   const { dueCheckFilter, isForecastDue } = await import("@/lib/brain/forecast-resolution");
   const { data, error } = await supabaseClient
     .from("decisions")
+    // ONE STRING LITERAL, NOT A `+`-JOINED PAIR, AND THAT IS THE WHOLE POINT.
+    // supabase-js checks a select list at the TYPE level by parsing the literal
+    // you hand it; a concatenation is just `string` to the compiler, so it
+    // gives up and returns GenericStringError[]. That is the same construction
+    // as FORECAST_COLS in forecast.functions.ts, where a wrong column name
+    // shipped as an empty field on every row rather than as an error. Joined
+    // into one literal (2026-09-01), all eight names are now checked against
+    // `decisions`, and all eight were verified against the live database, not
+    // just the generated file.
     .select(
-      "id,title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date," +
-        "forecast_resolution,forecast_next_check_at,forecast_resolution_suggestion",
+      "id,title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution,forecast_next_check_at,forecast_resolution_suggestion",
     )
     /*
      * THE TENANT FILTER THE PARAMETER ALWAYS IMPLIED. The argument used to be

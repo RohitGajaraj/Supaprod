@@ -263,14 +263,27 @@ export async function getUserWorkspaceRole(
   workspaceId: string,
   userId: string,
 ): Promise<Role | null> {
-  const { data, error } = await (supabase.from("workspace_members") as any)
+  // The `as any` that used to wrap this .from() call is gone: workspace_members
+  // is in the generated types (checked 2026-09-01) and `supabase` here is
+  // already SupabaseClient<Database>, so the cast only switched off the column
+  // check on the single most consequential read in the file -- the one every
+  // permission gate is built on.
+  const { data, error } = await supabase
+    .from("workspace_members")
     .select("role")
     .eq("workspace_id", workspaceId)
     .eq("user_id", userId)
     .single();
 
   if (error || !data) return null;
-  return data.role as Role;
+  // workspace_members.role is `text` with no check constraint, so the old
+  // `data.role as Role` was an assertion, not a check: an unrecognised string
+  // came back typed as one of the four roles. Narrow with the asRole helper
+  // this file already exports -- which is what governance.functions.ts was
+  // separately doing at all four of its call sites, while house-rules and
+  // guardrails were not. Unknown now reads as null, which every caller already
+  // treats as "no membership" and therefore fails closed.
+  return asRole(data.role);
 }
 
 /**
@@ -282,11 +295,13 @@ export async function getUserAccountRole(
   accountId: string,
   userId: string,
 ): Promise<Role | null> {
-  // WM-M2's account_members table is not in the generated Supabase types yet (it
-  // ships on the founder's next publish), so cast the client before .from() to keep
-  // tsc green until the post-publish types regen. (The prior `.from(...) as any` cast
-  // the result, not the client, so tsc still rejected the table-name argument.)
-  const { data, error } = await (supabase as any)
+  // The comment that stood here said account_members "is not in the generated
+  // Supabase types yet (it ships on the founder's next publish)". That publish
+  // has happened: measured 2026-09-01, account_members is in
+  // src/integrations/supabase/types.ts (account_id, created_at, id, role,
+  // user_id), so the `supabase as any` is dropped and both the table name and
+  // the selected column are checked again.
+  const { data, error } = await supabase
     .from("account_members")
     .select("role")
     .eq("account_id", accountId)
@@ -294,7 +309,9 @@ export async function getUserAccountRole(
     .single();
 
   if (error || !data) return null;
-  return data.role as Role;
+  // Same narrowing as getUserWorkspaceRole: account_members.role is plain
+  // `text`, so assert nothing and fail closed on anything unrecognised.
+  return asRole(data.role);
 }
 
 /**

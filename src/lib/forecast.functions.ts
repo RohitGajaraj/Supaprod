@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { isPreMigration } from "@/lib/read-failure";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   isForecastDue,
@@ -22,10 +23,29 @@ import {
 //
 // Plan: docs/planning/initiatives/forecast-resolution-plan.md
 
+/**
+ * ONE `as const` STRING LITERAL, AND IT MUST STAY THAT WAY.
+ *
+ * This was three lines joined with `+`, and that is the whole defect. supabase-js
+ * checks a select list at the TYPE level by parsing the literal you hand it; a
+ * concatenation is plain `string` to the compiler, so it gives up, hands back
+ * an unparsed row, and NOTHING compares these ten names to the `decisions`
+ * table. A column renamed in a migration -- or simply misspelled here -- then
+ * ships as an empty field on every row of the Learn desk rather than as a build
+ * failure, because PostgREST is asked for a column that does not exist and the
+ * mapper below reads `undefined`.
+ *
+ * The existing test only asserts `FORECAST_COLS` CONTAINS certain substrings,
+ * which pins the spelling and proves nothing about whether the column exists.
+ * As one literal with `as const`, tsc does the real check: every name below is
+ * resolved against Database["public"]["Tables"]["decisions"], and all ten were
+ * additionally verified against the live database on 2026-09-01 rather than
+ * against the generated file.
+ *
+ * If you add a column, add it INSIDE this literal. Do not concatenate.
+ */
 export const FORECAST_COLS =
-  "id,title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date," +
-  "forecast_resolution,forecast_next_check_at,forecast_deferred_count," +
-  "forecast_resolution_suggestion,workspace_id";
+  "id,title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution,forecast_next_check_at,forecast_deferred_count,forecast_resolution_suggestion,workspace_id" as const;
 
 export type DueForecast = {
   id: string;
@@ -97,7 +117,7 @@ export const DUE_FORECAST_PAGE = 12;
  */
 
 export async function listDueForecastsImpl(
-  db: SupabaseClient,
+  db: SupabaseClient<Database>,
   nowIso: string,
   /**
    * Optional, and the DEFAULT IS STILL EVERY WORKSPACE.
@@ -180,12 +200,29 @@ export async function listDueForecastsImpl(
   }
 
   const nowMs = Date.parse(nowIso);
+  /*
+   * `const row = r as unknown as Record<string, unknown>` USED TO STAND HERE,
+   * AND IT WAS THE SECOND HALF OF THE FORECAST_COLS HOLE.
+   *
+   * Collapsing FORECAST_COLS into one literal (see its note above) is only half
+   * the repair: a double assertion through `unknown` to an index signature
+   * discards whatever the query returned, so every field below was read off a
+   * bag of `unknown` and no name in it was compared to anything. Measured
+   * 2026-09-01: with the literal fixed but this cast still in place, misspelling
+   * a column inside FORECAST_COLS produced ZERO tsc errors. With the cast gone
+   * it produces a build failure, which is the entire point of the exercise.
+   *
+   * `r` is now the row PostgREST inferred from the select list, so
+   * `r.forecast_deferred_count` and its nine siblings are checked names. The
+   * String()/Number() coercions stay: they normalise nullable columns into the
+   * non-null DueForecast shape the desk renders, which is a different job from
+   * knowing the column exists.
+   */
   const due = (data ?? [])
     // The SQL and the predicate agree by construction, but the predicate is the
     // authority: one rule, one place.
-    .filter((r) => isForecastDue(r as never, nowIso))
-    .map((r) => {
-      const row = r as unknown as Record<string, unknown>;
+    .filter((row) => isForecastDue(row, nowIso))
+    .map((row) => {
       const horizon = String(row.forecast_horizon_date);
       const s = row.forecast_resolution_suggestion as {
         verdict?: string;
@@ -197,7 +234,7 @@ export async function listDueForecastsImpl(
         // Null-preserving: a forecast with no workspace is a real state and
         // `""` would be a workspace id that matches nothing while looking like
         // one. F-76's law at field level.
-        workspaceId: (row as { workspace_id?: string | null }).workspace_id ?? null,
+        workspaceId: row.workspace_id ?? null,
         title: String(row.title ?? ""),
         claim: String(row.forecast_claim ?? ""),
         howWeWillKnow: String(row.forecast_how_we_will_know ?? ""),
@@ -222,7 +259,7 @@ export async function listDueForecastsImpl(
 }
 
 export async function settleForecastImpl(
-  db: SupabaseClient,
+  db: SupabaseClient<Database>,
   input: { decisionId: string; resolution: ForecastResolution; rationale: string },
   nowIso: string,
 ): Promise<{ ok: true }> {
@@ -250,7 +287,7 @@ export async function settleForecastImpl(
 }
 
 export async function deferForecastCheckImpl(
-  db: SupabaseClient,
+  db: SupabaseClient<Database>,
   input: { decisionId: string; days: number },
   nowMs: number,
 ): Promise<{ checkBy: string; deferredCount: number }> {
@@ -306,16 +343,16 @@ export async function deferForecastCheckImpl(
  * migration exempts the resolution fields on purpose.
  */
 export async function reopenForecastImpl(
-  db: SupabaseClient,
+  db: SupabaseClient<Database>,
   input: { decisionId: string; reason: string },
   actorId: string | null,
   nowIso: string,
 ): Promise<{ ok: true; priorResolution: ForecastResolution }> {
   const { data: row, error: readErr } = await db
     .from("decisions")
+    // One literal, not a `+`-joined pair; see the note on FORECAST_COLS.
     .select(
-      "id,workspace_id,forecast_resolution,forecast_resolution_rationale," +
-        "forecast_resolved_at,forecast_resolved_by_agent_slug",
+      "id,workspace_id,forecast_resolution,forecast_resolution_rationale,forecast_resolved_at,forecast_resolved_by_agent_slug",
     )
     .eq("id", input.decisionId)
     .maybeSingle();
@@ -395,7 +432,7 @@ export type ForecastHistoryEntry = {
 
 /** Every verdict this forecast has carried and had taken off it, newest first. */
 export async function getForecastHistoryImpl(
-  db: SupabaseClient,
+  db: SupabaseClient<Database>,
   decisionId: string,
 ): Promise<{ history: ForecastHistoryEntry[] }> {
   const { data, error } = await db
@@ -444,13 +481,13 @@ export type AgentSettledForecast = {
 };
 
 export async function listAgentSettledForecastsImpl(
-  db: SupabaseClient,
+  db: SupabaseClient<Database>,
 ): Promise<{ settled: AgentSettledForecast[] }> {
   const { data, error } = await db
     .from("decisions")
+    // One literal, not a `+`-joined pair; see the note on FORECAST_COLS.
     .select(
-      "id,title,forecast_claim,forecast_resolution,forecast_resolution_rationale," +
-        "forecast_resolved_at,forecast_resolved_by_agent_slug",
+      "id,title,forecast_claim,forecast_resolution,forecast_resolution_rationale,forecast_resolved_at,forecast_resolved_by_agent_slug",
     )
     .not("forecast_resolved_by_agent_slug", "is", null)
     .order("forecast_resolved_at", { ascending: false })
@@ -464,7 +501,9 @@ export async function listAgentSettledForecastsImpl(
   return { settled: (data ?? []) as unknown as AgentSettledForecast[] };
 }
 
-export async function getForecastCallRateImpl(db: SupabaseClient): Promise<ForecastCallSummary> {
+export async function getForecastCallRateImpl(
+  db: SupabaseClient<Database>,
+): Promise<ForecastCallSummary> {
   const { data, error } = await db
     .from("decisions")
     .select("forecast_resolution")

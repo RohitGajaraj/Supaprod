@@ -134,6 +134,31 @@ export async function stripeCreateCheckout(input: CheckoutInput): Promise<Checko
 }
 
 // --- Event handlers (moved verbatim from the webhook route) -----------------
+//
+// THE `any` ON EVERY PAYLOAD BELOW IS DELIBERATE AND WAS RE-EXAMINED ON
+// 2026-09-01, DURING THE SWEEP THAT TYPED THE REST OF src/lib. It stays for two
+// measured reasons.
+//
+// 1. It is not a database boundary, and the database boundary here is already
+//    checked. `getServiceClient()` is `createClient<Database>`, so the tables
+//    and payloads these handlers write ARE type-checked today: renaming
+//    `.from("subscriptions")` to a table that does not exist produces 16 tsc
+//    errors in this file (measured, not assumed). Typing `sub` would not add a
+//    single check on anything that reaches Postgres.
+//
+// 2. The shape genuinely is open at this point. `verifyWebhook` in
+//    stripe.server.ts does its own HMAC over the raw body and then returns a
+//    bare `JSON.parse(body)`; it never runs the Stripe SDK's `constructEvent`.
+//    The HMAC proves the payload came from Stripe, not that it has any
+//    particular shape, and Stripe versions its event schemas independently of
+//    this deployment. Annotating `sub` as `Stripe.Subscription` would assert a
+//    structure nothing verified, and would make the `sub.metadata?.userId` /
+//    `sub.items?.data?.[0]` guards below -- which are the checks actually doing
+//    the work -- look redundant to the next reader who might then delete them.
+//
+// If this is ever revisited, the correct order is: validate the parsed body
+// against a schema first, then type the handlers from that schema. Typing them
+// without the validation would move the lie, not remove it.
 
 async function handleSubscriptionCreated(sub: any, env: StripeEnv) {
   const userId = sub.metadata?.userId;

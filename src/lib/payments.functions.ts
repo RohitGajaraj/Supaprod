@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
 import { computeCreditAttribution } from "@/lib/credits.functions";
@@ -527,7 +529,17 @@ async function resolveAccount(
 export const getCreditCaps = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<CreditCapsView> => {
-    const { supabase, userId } = context;
+    // requireSupabaseAuth's context is inferred `any` by TanStack (measured
+    // 2026-09-01: a `.from("table_that_does_not_exist")` inside such a handler
+    // compiles), so nothing in this handler was checked against the schema --
+    // which is how `.from("account_members" as any)` below survived: the cast
+    // was redundant on an already-untyped client and read as if the table were
+    // missing from the generated types. It is not. Re-attaching Database here
+    // makes the three selects in the Promise.all check their column lists.
+    const { supabase, userId } = context as {
+      supabase: SupabaseClient<Database>;
+      userId: string;
+    };
     const empty: CreditCapsView = { isOwner: false, caps: [], products: [], members: [] };
     const accountId = await resolveAccount(supabase, userId);
     if (!accountId) return empty;
@@ -551,10 +563,7 @@ export const getCreditCaps = createServerFn({ method: "GET" })
         .eq("account_id", accountId),
       supabase.from("projects").select("id, name"),
       // Fetch account members so the UI can show a dropdown for member-scope caps (WM-M19).
-      supabase
-        .from("account_members" as any)
-        .select("user_id, role")
-        .eq("account_id", accountId),
+      supabase.from("account_members").select("user_id, role").eq("account_id", accountId),
     ]);
 
     const products = ((prodRes.data ?? []) as Array<{ id: string; name: string }>).map((p) => ({

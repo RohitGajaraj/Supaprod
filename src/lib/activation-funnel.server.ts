@@ -4,6 +4,7 @@
  */
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { Json } from "@/integrations/supabase/types";
 import type {
   FunnelStage,
   FunnelMilestone,
@@ -21,7 +22,14 @@ export async function trackFunnelMilestone(
   stage: FunnelStage,
   metadata?: Record<string, unknown>,
 ): Promise<boolean> {
-  const db = supabaseAdmin as any; // Table not in generated types yet (post-migration)
+  // The `supabaseAdmin as any` that used to stand here carried the comment
+  // "Table not in generated types yet (post-migration)". Measured 2026-09-01
+  // that is no longer true: funnel_milestones is in the regenerated
+  // src/integrations/supabase/types.ts, so the cast bought nothing and cost the
+  // column check on both the select and the insert below -- a mistyped column
+  // in the insert would have been accepted here and rejected only by PostgREST
+  // at runtime, inside a try/catch that returns false without saying why.
+  const db = supabaseAdmin;
 
   try {
     // Check if this milestone already exists.
@@ -43,7 +51,17 @@ export async function trackFunnelMilestone(
       user_id: userId,
       stage,
       completed_at: new Date().toISOString(),
-      metadata: metadata || {},
+      // funnel_milestones.metadata is jsonb, typed `Json` by the generator.
+      // The parameter is `Record<string, unknown>` because the only remote
+      // caller (funnel.functions.ts) validates it with
+      // `z.record(z.string(), z.unknown())` -- a genuinely open blob from the
+      // client, so `unknown` is the honest input type and this is the one
+      // place it meets the typed column. `unknown` is not assignable to `Json`
+      // (tsc caught it the moment the `as any` on the client came off), and
+      // asserting here is correct rather than a dodge: the value is
+      // JSON.stringify'd on its way to PostgREST, so a non-serialisable member
+      // is dropped by the serialiser, it cannot corrupt the row.
+      metadata: (metadata ?? {}) as Json,
     });
 
     return !error;
@@ -62,7 +80,9 @@ export async function getFunnelSnapshot(
   asOfDate: string, // YYYY-MM-DD
   daysBack = 30,
 ): Promise<FunnelSnapshot | null> {
-  const db = supabaseAdmin as any; // Table not in generated types yet (post-migration)
+  // Same stale cast as trackFunnelMilestone above: funnel_milestones is in the
+  // generated types as of 2026-09-01, so the select's column list is checked.
+  const db = supabaseAdmin;
 
   try {
     // Query funnel milestones for this workspace over the last N days.

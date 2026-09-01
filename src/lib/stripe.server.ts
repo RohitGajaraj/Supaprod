@@ -72,6 +72,19 @@ export function getStripeErrorMessage(error: unknown): string {
   return "Stripe request failed";
 }
 
+/**
+ * `data.object` IS `any` ON PURPOSE, RE-EXAMINED 2026-09-01.
+ *
+ * This function verifies the HMAC itself and then returns `JSON.parse(body)`
+ * (see the last line). It does not call the Stripe SDK's `constructEvent`, so
+ * what comes back is proven to have come from Stripe and proven nothing about
+ * its shape. Declaring a Stripe SDK type here would be an assertion over
+ * unvalidated JSON -- the return type would say "verified" about the one thing
+ * that was not verified. The consumers in stripe-provider.server.ts narrow each
+ * field with optional chaining and explicit guards, which is the honest place
+ * for it. `type` is `string` for the same reason; only `id` is `unknown`,
+ * because its absence was a real defect and it is narrowed where it is read.
+ */
 export async function verifyWebhook(
   req: Request,
   env: StripeEnv,

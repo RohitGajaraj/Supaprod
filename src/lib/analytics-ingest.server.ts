@@ -91,8 +91,15 @@ export async function ingestPostHogAnalytics(
   if (!data.results?.length) return { ok: true, rowsUpserted: 0, signalsInserted: 0 };
 
   // Upsert product_analytics rows.
-  // product_analytics is not in generated types yet; cast to any (standard pattern).
-  const anyDb = supabaseAdmin as any;
+  // This used to read "product_analytics is not in generated types yet; cast to
+  // any (standard pattern)" and hold `supabaseAdmin as any`. Measured
+  // 2026-09-01 the claim is stale: product_analytics is in the regenerated
+  // src/integrations/supabase/types.ts (workspace_id, feature_event,
+  // cohort_date, distinct_users, event_count, source, updated_at), and every
+  // key the row literal below sets is one of them. Dropping the cast makes the
+  // upsert's column names checked -- which matters more here than most places,
+  // because the rows are built from a positional HogQL tuple destructure, so a
+  // key typo would have written a column that silently does not exist.
 
   const rows = data.results.map(([event, day, distinctUsers, eventCount]) => ({
     workspace_id: workspaceId,
@@ -104,10 +111,10 @@ export async function ingestPostHogAnalytics(
     updated_at: new Date().toISOString(),
   }));
 
-  const { error: upsertErr } = await anyDb
+  const { error: upsertErr } = await supabaseAdmin
     .from("product_analytics")
     .upsert(rows, { onConflict: "workspace_id,feature_event,cohort_date" });
-  if (upsertErr) return { ok: false, reason: (upsertErr as { message: string }).message };
+  if (upsertErr) return { ok: false, reason: upsertErr.message };
 
   // Detect spikes: events that grew >100% vs the prior 7-day window.
   const signalsInserted = await insertSpikeSignals(workspaceId, ownerId, data.results);

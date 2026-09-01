@@ -13,25 +13,36 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { ingestPostHogAnalytics } from "@/lib/analytics-ingest.server";
 import { autoAdjustIce } from "@/lib/ice-adjust.server";
+import type { Database } from "@/integrations/supabase/types";
 
 // ── getProductAnalytics ──────────────────────────────────────────────────────
 
-type CohortRow = {
-  cohort_date: string;
-  distinct_users: number;
-  event_count: number;
-};
+// Both row shapes are now PICKED OUT OF THE GENERATED SCHEMA rather than typed
+// by hand. They used to be free-standing object types asserted onto the result
+// of a query made through `supabaseAdmin as any`, which is the same shape of
+// hole FORECAST_COLS fell through in forecast.functions.ts: the select list is
+// a string, nothing compared it to the declared type, so a wrong column name
+// would have produced `undefined` in that field on every row -- an empty
+// sparkline or a blank ICE reason -- rather than an error anywhere. Deriving
+// from Database means the field list below and the select strings in the
+// handler are checked against the same source, and a column that is renamed or
+// dropped in a migration breaks the build instead of the chart.
+type ProductAnalyticsRow = Database["public"]["Tables"]["product_analytics"]["Row"];
+type IceAdjustmentRow = Database["public"]["Tables"]["ice_adjustments"]["Row"];
 
-type IceAdjRow = {
-  adjusted_at: string;
-  feature_event: string;
-  old_impact: number;
-  new_impact: number;
-  old_confidence: number;
-  new_confidence: number;
-  reason: string;
-  sample_users: number;
-};
+type CohortRow = Pick<ProductAnalyticsRow, "cohort_date" | "distinct_users" | "event_count">;
+
+type IceAdjRow = Pick<
+  IceAdjustmentRow,
+  | "adjusted_at"
+  | "feature_event"
+  | "old_impact"
+  | "new_impact"
+  | "old_confidence"
+  | "new_confidence"
+  | "reason"
+  | "sample_users"
+>;
 
 export type ProductAnalyticsData = {
   opportunityId: string;
@@ -66,29 +77,29 @@ export const getProductAnalytics = createServerFn({ method: "POST" })
       };
     }
 
-    // product_analytics + ice_adjustments are not in generated types (new migration).
-    const anyDb = supabaseAdmin as any;
+    // Reads go through supabaseAdmin because both tables grant SELECT to
+    // service_role only (20260626230000_product_analytics.sql). The cast that
+    // used to sit here -- "not in generated types (new migration)" -- is stale
+    // as of 2026-09-01; with it gone, PostgREST infers each row from the
+    // select string and tsc checks it against CohortRow / IceAdjRow above.
     const since = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
 
     const [cohortRes, adjRes] = await Promise.all([
-      anyDb
+      supabaseAdmin
         .from("product_analytics")
         .select("cohort_date, distinct_users, event_count")
         .eq("workspace_id", workspaceId)
         .eq("feature_event", featureEvent)
         .gte("cohort_date", since)
-        .order("cohort_date", { ascending: true }) as Promise<{
-        data: CohortRow[] | null;
-        error: unknown;
-      }>,
-      anyDb
+        .order("cohort_date", { ascending: true }),
+      supabaseAdmin
         .from("ice_adjustments")
         .select(
           "adjusted_at, feature_event, old_impact, new_impact, old_confidence, new_confidence, reason, sample_users",
         )
         .eq("opportunity_id", data.opportunityId)
         .order("adjusted_at", { ascending: false })
-        .limit(10) as Promise<{ data: IceAdjRow[] | null; error: unknown }>,
+        .limit(10),
     ]);
 
     const ingestGated = !process.env.POSTHOG_PERSONAL_API_KEY || !process.env.POSTHOG_PROJECT_ID;

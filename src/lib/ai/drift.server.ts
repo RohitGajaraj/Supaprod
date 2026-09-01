@@ -12,18 +12,30 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { dispatchInstantEmail } from "@/lib/notifications.functions";
+import type { Database } from "@/integrations/supabase/types";
 
-type EventRow = {
-  surface: string;
-  model: string;
-  latency_ms: number;
-  total_tokens: number;
-  est_cost_usd: number | string;
-  status: string;
-  created_at: string;
-};
-type PromptRun = { event_id: string | null; version_id: string | null };
-type EvalResult = { ai_event_id: string | null; score: number | string | null };
+/** The rolled-up row this module writes and then reads back to compare windows. */
+type SnapshotRow = Database["public"]["Tables"]["drift_snapshots"]["Row"];
+
+/** The five numeric snapshot columns `weighted()` is allowed to average.
+ *  Named as a union rather than `string` on purpose: every call site passes the
+ *  metric name TWICE -- once as `metric:` and once as the field to read -- and
+ *  when `rows` was `any[]` and `field` was `string`, a typo in the second copy
+ *  read `undefined`, became `Number(undefined) || 0`, and produced a
+ *  weighted average of 0. That is a drift check that can only ever say
+ *  "no change", with nothing anywhere reporting a problem. Same shape as the
+ *  FORECAST_COLS defect: a column named in a string, checked by nothing. */
+type WeightedField =
+  "avg_latency_ms" | "p95_latency_ms" | "avg_total_tokens" | "avg_cost_usd" | "avg_eval_score";
+
+// EventRow, PromptRun and EvalResult used to be declared here: three
+// hand-written copies of database row shapes, sitting next to queries that were
+// made through an untyped client and so could not disagree with them. EventRow
+// was already dead (nothing referenced it -- it had been orphaned when the loop
+// below switched to `events as any[]`), and the other two were only used to
+// annotate map callbacks whose rows the client now types from the schema. All
+// three are gone: the select strings below are the single declaration of what
+// each query returns, and tsc checks them.
 
 type Bucket = {
   user_id: string;
@@ -70,7 +82,7 @@ function pctDelta(current: number, baseline: number): number {
  * (one row per user/day/surface/model/version), upserting.
  */
 export async function rollupSnapshots(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   lookbackDays = 21,
 ): Promise<number> {
@@ -86,14 +98,14 @@ export async function rollupSnapshots(
   if (error) throw new Error(error.message);
   if (!events?.length) return 0;
 
-  const eventIds = events.map((e: any) => e.id);
+  const eventIds = events.map((e) => e.id);
   const { data: runs } = await supabase
     .from("prompt_runs")
     .select("event_id,version_id")
     .eq("user_id", userId)
     .in("event_id", eventIds);
   const versionByEvent = new Map<string, string | null>();
-  (runs ?? []).forEach((r: PromptRun) => {
+  (runs ?? []).forEach((r) => {
     if (r.event_id) versionByEvent.set(r.event_id, r.version_id);
   });
 
@@ -103,12 +115,12 @@ export async function rollupSnapshots(
     .eq("user_id", userId)
     .in("ai_event_id", eventIds);
   const scoreByEvent = new Map<string, number>();
-  (evals ?? []).forEach((r: EvalResult) => {
+  (evals ?? []).forEach((r) => {
     if (r.ai_event_id && r.score != null) scoreByEvent.set(r.ai_event_id, Number(r.score));
   });
 
   const buckets = new Map<string, Bucket>();
-  for (const e of events as any[]) {
+  for (const e of events) {
     const day = dayKey(e.created_at);
     const version = versionByEvent.get(e.id) ?? null;
     const key = `${day}|${e.surface}|${e.model}|${version ?? ""}`;
@@ -167,7 +179,7 @@ export async function rollupSnapshots(
  * incidents that have recovered.
  */
 export async function detectIncidents(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
 ): Promise<{ opened: number; resolved: number }> {
   const { data: baseline } = await supabase
@@ -189,8 +201,8 @@ export async function detectIncidents(
   if (!snaps?.length) return { opened: 0, resolved: 0 };
 
   const cutoff = new Date(Date.now() - cfg.window_days * 86400000).toISOString().slice(0, 10);
-  const groups = new Map<string, any[]>();
-  for (const s of snaps as any[]) {
+  const groups = new Map<string, SnapshotRow[]>();
+  for (const s of snaps) {
     const k = `${s.surface}|${s.model}|${s.prompt_version_id ?? ""}`;
     if (!groups.has(k)) groups.set(k, []);
     groups.get(k)!.push(s);
@@ -208,7 +220,7 @@ export async function detectIncidents(
     severity: string;
   }> = [];
 
-  const weighted = (rows: any[], field: string) => {
+  const weighted = (rows: SnapshotRow[], field: WeightedField) => {
     let num = 0,
       den = 0;
     for (const r of rows) {
@@ -219,7 +231,7 @@ export async function detectIncidents(
     }
     return den ? num / den : 0;
   };
-  const errorRate = (rows: any[]) => {
+  const errorRate = (rows: SnapshotRow[]) => {
     const errs = rows.reduce((a, r) => a + (Number(r.error_count) || 0), 0);
     const total = rows.reduce((a, r) => a + (Number(r.request_count) || 0), 0);
     return total ? (errs / total) * 100 : 0;
@@ -309,9 +321,7 @@ export async function detectIncidents(
     .eq("user_id", userId)
     .eq("status", "open");
   const existingKeys = new Set(
-    (existing ?? []).map(
-      (e: any) => `${e.surface}|${e.model}|${e.prompt_version_id ?? ""}|${e.metric}`,
-    ),
+    (existing ?? []).map((e) => `${e.surface}|${e.model}|${e.prompt_version_id ?? ""}|${e.metric}`),
   );
 
   let opened = 0;
@@ -346,13 +356,13 @@ export async function detectIncidents(
   const breachKeys = new Set(
     breaches.map((b) => `${b.surface}|${b.model}|${b.prompt_version_id ?? ""}|${b.metric}`),
   );
-  const toResolve = (existing ?? []).filter((e: any) => {
+  const toResolve = (existing ?? []).filter((e) => {
     const k = `${e.surface}|${e.model}|${e.prompt_version_id ?? ""}|${e.metric}`;
     return !breachKeys.has(k);
   });
   let resolved = 0;
   if (toResolve.length) {
-    const ids = toResolve.map((e: any) => e.id);
+    const ids = toResolve.map((e) => e.id);
     const { error: upErr } = await supabase
       .from("drift_incidents")
       .update({ status: "resolved", resolved_at: new Date().toISOString() })
@@ -363,7 +373,7 @@ export async function detectIncidents(
   return { opened, resolved };
 }
 
-export async function runDriftForUser(supabase: SupabaseClient, userId: string) {
+export async function runDriftForUser(supabase: SupabaseClient<Database>, userId: string) {
   const snapshots = await rollupSnapshots(supabase, userId);
   const { opened, resolved } = await detectIncidents(supabase, userId);
   return { snapshots, opened, resolved };

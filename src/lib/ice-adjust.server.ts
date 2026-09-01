@@ -14,6 +14,7 @@
  */
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 type AdjustResult =
   | { ok: false; reason: string }
@@ -39,9 +40,9 @@ type AdjustResult =
  * production behavior is unchanged; tests inject a mock here.
  */
 export async function autoAdjustIce(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   opportunityId: string,
-  admin: SupabaseClient = supabaseAdmin,
+  admin: SupabaseClient<Database> = supabaseAdmin,
 ): Promise<AdjustResult> {
   // 1. Load the opportunity (needs posthog_event + current ICE).
   const { data: opp, error: oppErr } = await supabase
@@ -51,26 +52,27 @@ export async function autoAdjustIce(
     .single();
   if (oppErr || !opp) return { ok: false, reason: oppErr?.message ?? "opportunity not found" };
 
-  const featureEvent = (opp as { posthog_event?: string | null }).posthog_event;
+  const featureEvent = opp.posthog_event;
   if (!featureEvent) return { ok: true, skipped: true, reason: "no posthog_event linked" };
 
-  const workspaceId: string = (opp as { workspace_id: string }).workspace_id;
+  const workspaceId: string = opp.workspace_id;
 
   // 2. Aggregate product_analytics for this event (last 30 days).
-  // product_analytics + ice_adjustments are not in generated types yet (new migration).
+  // The `admin as any` that stood here was justified by "product_analytics +
+  // ice_adjustments are not in generated types yet (new migration)". Measured
+  // 2026-09-01 both tables ARE in the regenerated
+  // src/integrations/supabase/types.ts, so the cast -- and the hand-written
+  // AnalyticsRow shape that had to be asserted back on afterwards -- were
+  // buying nothing except an unchecked column list. The select's three columns
+  // and the ice_adjustments insert below are now checked against the schema.
   const since = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
-  const anyDb = admin as any;
-  type AnalyticsRow = { cohort_date: string; distinct_users: number; event_count: number };
-  const { data: rows, error: rowsErr } = (await anyDb
+  const { data: rows, error: rowsErr } = await admin
     .from("product_analytics")
     .select("cohort_date, distinct_users, event_count")
     .eq("workspace_id", workspaceId)
     .eq("feature_event", featureEvent)
     .gte("cohort_date", since)
-    .order("cohort_date", { ascending: false })) as {
-    data: AnalyticsRow[] | null;
-    error: { message: string } | null;
-  };
+    .order("cohort_date", { ascending: false });
 
   if (rowsErr) return { ok: false, reason: rowsErr.message };
   if (!rows?.length) return { ok: true, skipped: true, reason: "no analytics data yet" };
@@ -83,8 +85,8 @@ export async function autoAdjustIce(
   const newImpact = Math.min(10, Math.max(1, Math.floor(Math.log10(totalUsers + 1) * 3.5)));
   const newConfidence = Math.min(10, Math.max(1, Math.round(Math.min(dataDays / 14, 1) * 10)));
 
-  const oldImpact: number = (opp as { impact: number }).impact;
-  const oldConfidence: number = (opp as { confidence: number }).confidence;
+  const oldImpact: number = opp.impact;
+  const oldConfidence: number = opp.confidence;
 
   const deltaI = Math.abs(newImpact - oldImpact);
   const deltaC = Math.abs(newConfidence - oldConfidence);
@@ -109,7 +111,7 @@ export async function autoAdjustIce(
   if (updateErr) return { ok: false, reason: updateErr.message };
 
   // 5. Record provenance.
-  await anyDb.from("ice_adjustments").insert({
+  await admin.from("ice_adjustments").insert({
     opportunity_id: opportunityId,
     workspace_id: workspaceId,
     feature_event: featureEvent,

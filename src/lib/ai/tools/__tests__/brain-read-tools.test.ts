@@ -188,7 +188,18 @@ describe("the shared helpers are reused, not re-derived", () => {
     expect(fn).toContain('.eq("workspace_id", workspace_id)');
     // The signature takes the tenant plainly; the underscore-prefixed
     // "unused on purpose" spelling is what let the filter go missing.
-    expect(fn.slice(0, 200)).toMatch(/supabaseClient: any,\s*\n\s*workspace_id: string/);
+    //
+    // PINNED ON THE CLAIM, NOT THE SPELLING. This used to read
+    // `/supabaseClient: any,\s*\n\s*workspace_id: string/` -- which made the
+    // client's TYPE part of the assertion even though the client has nothing to
+    // do with whether the tenant argument is used. It duly failed on 2026-09-01
+    // when `supabaseClient` was typed `SupabaseClient<Database>` (the `any` was
+    // the reason the tenant filter could go missing unnoticed in the first
+    // place, so the test was pinning the defect in place). The claim is that
+    // the second parameter is `workspace_id`, not `_workspace_id`; that is what
+    // is asserted now, and it is checked against the same 200-char window.
+    expect(fn.slice(0, 200)).toMatch(/supabaseClient:[^\n]*,\s*\n\s*workspace_id: string/);
+    expect(fn.slice(0, 200)).not.toContain("_workspace_id: string");
   });
 
   it("contradictions reuses the Brain panel's pure lens rules", () => {

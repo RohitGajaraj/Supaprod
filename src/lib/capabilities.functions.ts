@@ -13,6 +13,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import pLimit from "p-limit";
 import { SPECIALIST_CATALOG, type AgentStation, type CatalogEntry } from "@/lib/agent-vocabulary";
 import {
@@ -102,10 +103,33 @@ export interface AutonomyInfo {
 
 export interface CapabilityChange {
   id: string;
-  type: "instructions" | "skill_enabled" | "skill_disabled" | "self_tuned";
+  type: CapabilityChangeType;
   description: string;
   changedAt: string;
   changedBy: string | null;
+}
+
+/** The four kinds recordCapabilityChange is allowed to write. */
+export type CapabilityChangeType =
+  "instructions" | "skill_enabled" | "skill_disabled" | "self_tuned";
+
+const CAPABILITY_CHANGE_TYPES: readonly string[] = [
+  "instructions",
+  "skill_enabled",
+  "skill_disabled",
+  "self_tuned",
+];
+
+/** capability_changes.change_type is a plain `text` column in the database --
+ *  there is no check constraint, so nothing stops a writer putting an unknown
+ *  string in it, and the read path used to launder that straight into the
+ *  four-value union through an `any`. Narrow at the boundary instead: an
+ *  unrecognised value becomes "instructions" (the neutral "someone edited this
+ *  agent" reading) rather than a lie that type-checks. Found 2026-09-01 while
+ *  removing the `(row as any)` casts -- with the row typed, tsc rejected the
+ *  widening on the spot, which is exactly the check the cast was suppressing. */
+function toCapabilityChangeType(raw: string): CapabilityChangeType {
+  return CAPABILITY_CHANGE_TYPES.includes(raw) ? (raw as CapabilityChangeType) : "instructions";
 }
 
 /** Get capabilities for all active cast members in a workspace. */
@@ -116,7 +140,19 @@ export const getCapabilities = createServerFn({ method: "GET" })
       input ?? {},
   )
   .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
+    // requireSupabaseAuth hands the handler a context TanStack infers as `any`
+    // (measured 2026-09-01: a `.from("table_that_does_not_exist")` inside a
+    // handler using this middleware compiles clean). That means every query in
+    // every server function here is unchecked -- a mistyped column returns
+    // undefined on every row instead of failing the build, which is the same
+    // hole FORECAST_COLS fell through in forecast.functions.ts. The middleware
+    // is a generated file we do not edit, so re-attach the schema here: from
+    // this line down, table and column names in this handler are checked
+    // against `Database` again.
+    const { supabase, userId } = context as {
+      supabase: SupabaseClient<Database>;
+      userId: string;
+    };
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
@@ -156,7 +192,7 @@ export const getCapabilities = createServerFn({ method: "GET" })
           .select("id,workspace_id,mission,target_user,current_focus,anti_goals,notes,updated_at")
           .eq("workspace_id", workspaceId)
           .maybeSingle();
-        briefBlock = renderBriefBlock(brief as any);
+        briefBlock = renderBriefBlock(brief);
 
         const { data: briefItems } = await supabase
           .from("brief_items")
@@ -193,11 +229,11 @@ export const getCapabilities = createServerFn({ method: "GET" })
           .eq("workspace_id", workspaceId)
           .in("agent_slug", agentSlugs);
         for (const row of disabledRows ?? []) {
-          const key = (row as any).agent_slug;
+          const key = row.agent_slug;
           if (!disabledSkillsByAgent.has(key)) {
             disabledSkillsByAgent.set(key, new Set());
           }
-          disabledSkillsByAgent.get(key)!.add((row as any).playbook_id);
+          disabledSkillsByAgent.get(key)!.add(row.playbook_id);
         }
       } catch (e) {
         console.warn("capabilities: batch load disabled skills failed:", e);
@@ -213,14 +249,14 @@ export const getCapabilities = createServerFn({ method: "GET" })
         .eq("user_id", userId)
         .in("agent_slug", agentSlugs);
       for (const row of toolRows ?? []) {
-        const key = (row as any).agent_slug;
+        const key = row.agent_slug;
         if (!toolModesByAgent.has(key)) {
           toolModesByAgent.set(key, []);
         }
         toolModesByAgent.get(key)!.push({
-          toolName: (row as any).tool_name,
-          mode: (row as any).mode,
-          source: (row as any).source,
+          toolName: row.tool_name,
+          mode: row.mode,
+          source: row.source,
         });
       }
     } catch (e) {
@@ -239,18 +275,18 @@ export const getCapabilities = createServerFn({ method: "GET" })
         .order("decided_at", { ascending: false })
         .limit(10);
       for (const row of gradRows ?? []) {
-        const key = (row as any).agent_slug;
+        const key = row.agent_slug;
         if (!graduationHistoryByAgent.has(key)) {
           graduationHistoryByAgent.set(key, []);
         }
         graduationHistoryByAgent.get(key)!.push({
-          id: (row as any).id,
-          toolName: (row as any).tool_name,
-          fromMode: (row as any).from_mode,
-          toMode: (row as any).to_mode,
-          status: (row as any).status,
-          decidedAt: (row as any).decided_at,
-          rationale: (row as any).rationale,
+          id: row.id,
+          toolName: row.tool_name,
+          fromMode: row.from_mode,
+          toMode: row.to_mode,
+          status: row.status,
+          decidedAt: row.decided_at,
+          rationale: row.rationale,
         });
       }
     } catch (e) {
@@ -269,16 +305,16 @@ export const getCapabilities = createServerFn({ method: "GET" })
           .order("created_at", { ascending: false })
           .limit(20);
         for (const row of capRows ?? []) {
-          const key = (row as any).agent_slug;
+          const key = row.agent_slug;
           if (!capabilityHistoryByAgent.has(key)) {
             capabilityHistoryByAgent.set(key, []);
           }
           capabilityHistoryByAgent.get(key)!.push({
-            id: (row as any).id,
-            type: (row as any).change_type,
-            description: (row as any).description,
-            changedAt: (row as any).created_at,
-            changedBy: (row as any).user_id,
+            id: row.id,
+            type: toCapabilityChangeType(row.change_type),
+            description: row.description,
+            changedAt: row.created_at,
+            changedBy: row.user_id,
           });
         }
       } catch (e) {
@@ -316,7 +352,7 @@ export const getCapabilities = createServerFn({ method: "GET" })
   });
 
 async function buildCapabilityForAgent(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   agent: CatalogEntry,
   workspaceId: string | null,
@@ -455,7 +491,7 @@ export function buildSkillInfos(
  * the toggle.
  */
 export async function getStationSkills(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   workspaceId: string | null,
   agentSlug: string,
   station: AgentStation,
@@ -491,7 +527,7 @@ export async function getStationSkills(
  * Avoids an extra query when disabled skills have already been batch-loaded for all agents.
  */
 async function getStationSkillsWithDisabled(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   workspaceId: string | null,
   agentSlug: string,
   station: AgentStation,
@@ -526,19 +562,17 @@ async function getStationSkillsWithDisabled(
  *  failing open here keeps every playbook available rather than silently
  *  disabling everything on a transient read failure. */
 async function getDisabledSkillIds(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   workspaceId: string,
   agentSlug: string,
 ): Promise<Set<string>> {
   try {
     const { data: rows } = await supabase
-      .from("agent_disabled_skills" as never)
+      .from("agent_disabled_skills")
       .select("playbook_id")
       .eq("workspace_id", workspaceId)
       .eq("agent_slug", agentSlug);
-    return new Set(
-      ((rows ?? []) as unknown as { playbook_id: string }[]).map((r) => r.playbook_id),
-    );
+    return new Set((rows ?? []).map((r) => r.playbook_id));
   } catch (e) {
     console.warn(`Failed to load disabled skills for ${agentSlug}:`, e);
     return new Set();
@@ -549,19 +583,17 @@ async function getDisabledSkillIds(
  *  this agent -- the overlay agent_tool_modes carries, same shape reflection.server.ts's
  *  maybeProposeTrustGraduations reads to compute clean streaks. */
 async function getGraduatedToolModes(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   agentSlug: string,
 ): Promise<ToolModeInfo[]> {
   const { data: rows } = await supabase
-    .from("agent_tool_modes" as never)
+    .from("agent_tool_modes")
     .select("tool_name,mode,source")
     .eq("user_id", userId)
     .eq("agent_slug", agentSlug);
 
-  return ((rows ?? []) as unknown as { tool_name: string; mode: string; source: string }[]).map(
-    (r) => ({ toolName: r.tool_name, mode: r.mode, source: r.source }),
-  );
+  return (rows ?? []).map((r) => ({ toolName: r.tool_name, mode: r.mode, source: r.source }));
 }
 
 /** Decided (approved/rejected) trust-graduation proposals for this agent,
@@ -570,12 +602,12 @@ async function getGraduatedToolModes(
  *  agent's older history can't be pushed out by another agent's proposals
  *  sharing the same global 50-row cap. */
 async function getGraduationHistory(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   agentSlug: string,
 ): Promise<GraduationHistoryEntry[]> {
   const { data: rows } = await supabase
-    .from("trust_graduation_proposals" as never)
+    .from("trust_graduation_proposals")
     .select("id,tool_name,from_mode,to_mode,status,decided_at,rationale")
     .eq("user_id", userId)
     .eq("agent_slug", agentSlug)
@@ -583,17 +615,7 @@ async function getGraduationHistory(
     .order("decided_at", { ascending: false })
     .limit(10);
 
-  return (
-    (rows ?? []) as unknown as {
-      id: string;
-      tool_name: string;
-      from_mode: string;
-      to_mode: string;
-      status: string;
-      decided_at: string | null;
-      rationale: string | null;
-    }[]
-  ).map((r) => ({
+  return (rows ?? []).map((r) => ({
     id: r.id,
     toolName: r.tool_name,
     fromMode: r.from_mode,
@@ -606,7 +628,7 @@ async function getGraduationHistory(
 
 /** Get recent capability changes for an agent in a workspace. */
 async function getCapabilityHistory(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   workspaceId: string | null,
   agentSlug: string,
 ): Promise<CapabilityChange[]> {
@@ -623,9 +645,9 @@ async function getCapabilityHistory(
   if (!changes) return [];
 
   // Map to CapabilityChange, resolve user display name (for now use null)
-  const history: CapabilityChange[] = changes.map((c: any) => ({
+  const history: CapabilityChange[] = changes.map((c) => ({
     id: c.id,
-    type: c.change_type,
+    type: toCapabilityChangeType(c.change_type),
     description: c.description,
     changedAt: c.created_at,
     changedBy: c.user_id ? c.user_id.substring(0, 8) : null, // Placeholder: use userId prefix
@@ -636,7 +658,7 @@ async function getCapabilityHistory(
 
 /** Record a capability change (human edit, or an RPT-50 self-tuned fix). */
 export async function recordCapabilityChange(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   workspaceId: string,
   agentSlug: string,
@@ -688,7 +710,13 @@ export const updateAgentInstructions = createServerFn({ method: "POST" })
     UpdateInstructionsSchema.parse(d ?? {}),
   )
   .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
+    // Same re-attachment as getCapabilities above, and needed for the same
+    // reason: requireSupabaseAuth's context is inferred `any`, so without this
+    // the writes below are unchecked. See the note on getCapabilities.
+    const { supabase, userId } = context as {
+      supabase: SupabaseClient<Database>;
+      userId: string;
+    };
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
@@ -748,7 +776,13 @@ export const toggleAgentSkill = createServerFn({ method: "POST" })
     ToggleSkillSchema.parse(d ?? {}),
   )
   .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
+    // Same re-attachment as getCapabilities above, and needed for the same
+    // reason: requireSupabaseAuth's context is inferred `any`, so without this
+    // the writes below are unchecked. See the note on getCapabilities.
+    const { supabase, userId } = context as {
+      supabase: SupabaseClient<Database>;
+      userId: string;
+    };
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
@@ -761,20 +795,20 @@ export const toggleAgentSkill = createServerFn({ method: "POST" })
 
     if (data.enabled) {
       const { error } = await supabase
-        .from("agent_disabled_skills" as never)
+        .from("agent_disabled_skills")
         .delete()
         .eq("workspace_id", workspaceId)
         .eq("agent_slug", data.agentSlug)
         .eq("playbook_id", data.playbookId);
       if (error) throw new Error(`toggleAgentSkill: ${error.message}`);
     } else {
-      const { error } = await supabase.from("agent_disabled_skills" as never).upsert(
+      const { error } = await supabase.from("agent_disabled_skills").upsert(
         {
           workspace_id: workspaceId,
           user_id: userId,
           agent_slug: data.agentSlug,
           playbook_id: data.playbookId,
-        } as never,
+        },
         { onConflict: "workspace_id,agent_slug,playbook_id" },
       );
       if (error) throw new Error(`toggleAgentSkill: ${error.message}`);

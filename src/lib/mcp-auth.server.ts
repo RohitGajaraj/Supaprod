@@ -1,7 +1,19 @@
 // Shared bearer-token validation + rate-limiting for MCP and A2A routes.
 // Extracted so both transports use identical auth without code duplication.
 import crypto from "crypto";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
+/** The mcp_tokens columns this module needs.
+ *
+ *  KEPT HAND-WRITTEN ON PURPOSE, unlike every other row shape touched in this
+ *  pass. validateToken selects a COLUMN LIST THAT VARIES AT RUNTIME: it asks for
+ *  `scopes` first and, on a PostgREST 42703 undefined_column, re-asks without
+ *  it, which is the split-deploy path documented on validateToken. A shape
+ *  derived from Database would assert `scopes` is present on a row the second
+ *  query deliberately does not select, so the type would be wrong in exactly
+ *  the case the fallback exists to survive. `scopes` is therefore optional-by-
+ *  null here and read through Array.isArray below. */
 interface TokenRow {
   id: string;
   workspace_id: string;
@@ -45,8 +57,15 @@ export function parseBearerToken(
  * if PostgREST returns a 42703 undefined_column error, re-selects without
  * `scopes` and defaults to read-only (scopes = []).
  */
+// All four exported entry points below took `supabase: any`, which is what let
+// `.from("mcp_tokens")`, `.from("api_calls")` and `.rpc("interop_write_enabled")`
+// go unchecked on the path that decides whether an outside caller may write at
+// all. All three exist in the generated types (checked 2026-09-01;
+// interop_write_enabled is at types.ts:10003 with Returns: boolean), so naming
+// the schema costs nothing and turns the table, column and RPC-name checks back
+// on for the auth path.
 export async function validateToken(
-  supabase: any,
+  supabase: SupabaseClient<Database>,
   slug: string,
   secretHash: string,
 ): Promise<TokenValidationResult> {
@@ -111,7 +130,7 @@ const RATE_WINDOW_MS = 60_000;
  * measured something.
  */
 export async function checkRateLimit(
-  supabase: any,
+  supabase: SupabaseClient<Database>,
   token_id: string,
   rate_limit: number,
 ): Promise<{ allowed: boolean; current_count: number; retryAfterSeconds: number }> {
@@ -152,7 +171,7 @@ export async function checkRateLimit(
  * Falls back to the whole window on any failure, which is the cautious direction.
  */
 async function secondsUntilCapacity(
-  supabase: any,
+  supabase: SupabaseClient<Database>,
   token_id: string,
   windowStart: string,
   fullWindow: number,
@@ -179,7 +198,7 @@ async function secondsUntilCapacity(
  * Resolve the global outward-write gate. Fails CLOSED so a DB error never
  * accidentally enables writes.
  */
-export async function resolveWriteEnabled(supabase: any): Promise<boolean> {
+export async function resolveWriteEnabled(supabase: SupabaseClient<Database>): Promise<boolean> {
   try {
     const { data, error } = await supabase.rpc("interop_write_enabled");
     if (error) return false;

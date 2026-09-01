@@ -51,21 +51,21 @@ export async function applyTierForUser(
   // The rule is the tested `effectiveTierForStatus` so the subscription handlers can't drift.
   const effectiveTier = effectiveTierForStatus(tier, status);
   const sb = getServiceClient();
-  const { data: accounts } = await sb
-    .from("accounts" as any)
-    .select("id")
-    .eq("owner_id", userId);
-  const accountIds = (accounts as Array<{ id: string }> | null)?.map((a) => a.id) ?? [];
+  // The three `as any` casts that used to sit on these table names turned off
+  // the ONLY check on a money path: getServiceClient() is already
+  // createClient<Database>, and `.from("x" as any)` discards that, which takes
+  // the update payload down with it -- `{ plan_tier: effectiveTier }` was
+  // accepted here whatever the column was called. Both accounts.plan_tier and
+  // workspaces.plan_tier exist in the schema as `text` (checked 2026-09-01),
+  // so the casts were buying nothing. With them gone, a rename of plan_tier in
+  // a migration fails the build rather than quietly leaving paying customers
+  // on the tier they had before the webhook fired.
+  const { data: accounts } = await sb.from("accounts").select("id").eq("owner_id", userId);
+  const accountIds = accounts?.map((a) => a.id) ?? [];
   if (accountIds.length) {
-    await sb
-      .from("accounts" as any)
-      .update({ plan_tier: effectiveTier })
-      .in("id", accountIds);
+    await sb.from("accounts").update({ plan_tier: effectiveTier }).in("id", accountIds);
   }
-  await sb
-    .from("workspaces" as any)
-    .update({ plan_tier: effectiveTier })
-    .eq("owner_id", userId);
+  await sb.from("workspaces").update({ plan_tier: effectiveTier }).eq("owner_id", userId);
 }
 
 /**
