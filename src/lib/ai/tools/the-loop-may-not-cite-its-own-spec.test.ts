@@ -120,3 +120,75 @@ describe("the write path actually calls it", () => {
     expect(description).toContain("NEVER cite this product's own work as a source");
   });
 });
+
+/**
+ * THE ROW THAT CAME THROUGH THE LIST AFTER THIS GUARD SHIPPED (2026-09-02).
+ *
+ * Measured in production: `sources.status` was filed on 2026-08-31, six days
+ * after the guard landed, and passed -- `sources` was not in
+ * INTERNAL_NAMESPACES. Its content read "sources.status shows 0 active scout
+ * targets and near-zero automated signals ... indicating signal ingestion
+ * infrastructure failure rather than absence of user behavior": the loop
+ * reading its own telemetry and filing it as evidence about customers. It went
+ * on to produce the third-ranked cluster on Discover, "Signal Ingestion
+ * Infrastructure Failure", so the product was about to rank and spec its own
+ * plumbing as a customer problem.
+ *
+ * The second half of this file is the part that keeps the guard honest. A
+ * namespace list only stays useful if it refuses the product's own exhaust
+ * WITHOUT refusing a real source, and the cheapest way to break it is to widen
+ * it until "design.review" stops being a document somebody can name.
+ */
+describe("the namespaces the loop uses for its own state", () => {
+  it("refuses the telemetry namespace that a real row came through", () => {
+    // The exact source string from production.
+    expect(namesOwnArtifact("sources.status")).toBe("sources.status");
+  });
+
+  it("refuses the rest of the product's own record", () => {
+    for (const s of [
+      "signals.log",
+      "themes.list",
+      "brain.query",
+      "memory.read",
+      "learning.get",
+      "roadmap.place",
+      "backlog.pull",
+      "approvals.open",
+      "agent.run",
+    ]) {
+      expect(namesOwnArtifact(s)).toBe(s);
+    }
+  });
+
+  /*
+   * THE HALF THAT MATTERS MORE. These are real tool namespaces in this product
+   * and they are deliberately absent from the list, because each either reads
+   * the world or is a word a customer source could plausibly use. If a later
+   * change adds them "for consistency", a genuine interview named
+   * `design.review` starts being refused at the door and the evidence simply
+   * never arrives -- with no error, because refusing is the designed outcome.
+   */
+  it("leaves alone the namespaces a real source could plausibly use", () => {
+    for (const s of [
+      "web.search",
+      "repo.read",
+      "github.issue",
+      "research.note",
+      "notes.weekly",
+      "design.review",
+      "tasks.export",
+      "build.log",
+      "ship.notes",
+      "studio.session",
+    ]) {
+      expect(namesOwnArtifact(s)).toBeNull();
+    }
+  });
+
+  it("still leaves a real source that merely contains one of the words", () => {
+    // The rule at the top of the file: containing a word is not naming one.
+    expect(namesOwnArtifact("post-decision interview")).toBeNull();
+    expect(namesOwnArtifact("customer signals workshop")).toBeNull();
+  });
+});

@@ -58,8 +58,58 @@ const OWN_ARTIFACT_KINDS = [
 /** Its own row id trailing the kind: a uuid, or the short hex prefix the crews write. */
 const LOOKS_LIKE_AN_ID = /^[0-9a-f]{6,}(-[0-9a-f]{4,})*$/i;
 
-/** The namespaces the product uses for its own surfaces and tools. */
-const INTERNAL_NAMESPACES = ["workspace", "product", "track", "mission", "prd", "spec", "decision"];
+/**
+ * The namespaces the product uses for its own surfaces and tools.
+ *
+ * ── ONE ROW CAME THROUGH THIS LIST AFTER THE GUARD SHIPPED (2026-09-02) ────
+ * Measured in production: three dotted sources exist. `workspace.brief` (14
+ * rows, last 2026-08-18 to 08-25) and `workspace.search` (2 rows, to 08-17)
+ * both predate this guard and are caught by it. `sources.status` was filed on
+ * 2026-08-31 -- SIX DAYS AFTER the guard shipped -- and passed, because
+ * `sources` was not on this list.
+ *
+ * Its content was "sources.status shows 0 active scout targets and near-zero
+ * automated signals (only 1 pull_connector signal in 7 days), indicating signal
+ * ingestion infrastructure failure rather than absence of user behavior." That
+ * is the loop reading its OWN telemetry and filing it as evidence about
+ * customers, which is exactly what this file exists to refuse, and it went on
+ * to produce the third-ranked cluster on Discover: "Signal Ingestion
+ * Infrastructure Failure". A product that mistakes its own plumbing for a
+ * customer problem will rank that problem, spec it and build it.
+ *
+ * ── WHAT WAS ADDED, AND WHAT WAS DELIBERATELY NOT ─────────────────────────
+ * Added: the namespaces that can only ever name the product's own record or
+ * its own telemetry -- there is no reading of `signals.*` or `brain.*` on
+ * which a customer is the origin.
+ *
+ * NOT added, though they are real tool namespaces: `web`, `repo`, `github`,
+ * `research`, `notes`, `design`, `tasks`, `build`, `ship`, `studio`. Those
+ * either read the real world (a crawl, a repository, an interview) or are
+ * words a customer source could plausibly use -- "design.review" is a document
+ * somebody might genuinely name. The rule at the top of this file holds: each
+ * pattern must match something NO customer source looks like, and widening it
+ * past that point costs more than the exhaust it prevents.
+ */
+const INTERNAL_NAMESPACES = [
+  "workspace",
+  "product",
+  "track",
+  "mission",
+  "prd",
+  "spec",
+  "decision",
+  // Added 2026-09-02, after `sources.status` was filed through the gap.
+  "sources",
+  "signals",
+  "themes",
+  "brain",
+  "memory",
+  "learning",
+  "roadmap",
+  "backlog",
+  "approvals",
+  "agent",
+];
 
 const singular = (word: string) => (word.endsWith("s") ? word.slice(0, -1) : word);
 
