@@ -82,7 +82,29 @@
  * file needs one, hoist the block rather than typing the number twice.
  */
 :root {
-  --shell-rail-w: 236px;
+  /*
+   * ── THE RAIL SIZES TO THE SCREEN, 2026-09-01 ──────────────────────────
+   *
+   * FOUNDER: *"how can I make it dynamically adapt to the size of the screen?
+   * If I'm viewing it on a 13-inch screen, 14-inch screen, 32-inch monitor, or
+   * 65-inch monitor, how should this adapt?"*
+   *
+   * 236px was one number for every screen. Measured: on a 1024px-wide window
+   * that is **23% of the viewport spent on five links**, and the work region
+   * left with 777px; on a 2560px monitor the same 236px is 9% and the rail
+   * reads as a thin strip against a very wide field.
+   *
+   * `clamp` gives the rail a floor that keeps the longest label ("Approvals"
+   * plus its count plus the chord hint) on one line, a ceiling that stops it
+   * turning into a panel on a 65in display, and a middle that tracks the
+   * viewport. The floor is the number that matters and it is measured, not
+   * chosen: below ~212px the label row wraps.
+   *
+   * NOT a media query, deliberately: a query changes at a threshold and the
+   * jump is visible when a window is dragged. This is continuous, so a person
+   * resizing sees the rail breathe rather than snap.
+   */
+  --shell-rail-w: clamp(212px, 15.5vw, 268px);
   --shell-rail-narrow: 64px;
   --shell-row-h: 38px;
   --shell-ctl-xs: 30px; /* the rail collapse */
@@ -647,7 +669,31 @@
   border-bottom: 1px solid var(--mrd-line);
   padding: 12px 18px;
   flex: none;
-  overflow-x: clip;
+  /*
+   * ── IT USED TO CLIP THE SEVENTH STAGE AND SAY NOTHING, 2026-09-01 ──────
+   *
+   * FOUNDER: *"The seventh strip is not visible ... probably that is because of
+   * the scaled version."* It is not the scale. `overflow-x: clip` with
+   * `.sp-stage { min-width: 0 }` means the seven stages divide whatever space
+   * exists, however little: at 1512px each gets 211px and all seven fit; below
+   * roughly 950px they are squeezed past legibility and the tail of the row is
+   * cut off the right edge **with no scrollbar, no fade and no way to reach
+   * it**. Learn -- the station that carries the verdict, the one thing this
+   * product is for -- is the one that disappears, because it is last.
+   *
+   * `auto` restores the ability to reach it. The `min-width` on `.sp-stage`
+   * below is what makes that necessary rather than cosmetic: with a floor, the
+   * row genuinely overflows on a narrow window instead of silently compressing
+   * to nothing, so there is something to scroll to.
+   *
+   * `overscroll-behavior-x: contain` keeps a trackpad swipe on the strip from
+   * turning into a browser back-gesture, which is the standard failure of every
+   * horizontally scrollable bar under a header.
+   */
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
   /* A CONTAINER query, not a viewport one -- and NOT for the reason this
    * comment gave for months. It said "the strip's width is the work area minus
    * the rail, and the rail collapses independently". The DOM says otherwise:
@@ -681,11 +727,26 @@
  * the note all mean "go here" rather than the name alone being live. */
 .sp-stage {
   flex: 1;
-  /* Was 128px, which is what forced the scrollbar: seven of them plus padding
-   * could not fit under ~930px. 0 lets the track shrink; the floor that
-   * actually matters is the name staying readable, which the note-dropping
-   * rule below protects. */
-  min-width: 0;
+  /*
+   * A FLOOR, RESTORED ON PURPOSE, 2026-09-01 -- and this reverses the note
+   * that used to sit here.
+   *
+   * It read: *"Was 128px, which is what forced the scrollbar ... 0 lets the
+   * track shrink; the floor that actually matters is the name staying
+   * readable, which the note-dropping rule below protects."* The second half
+   * is wrong, and the founder found it: dropping the note frees vertical
+   * space, not horizontal. With `min-width: 0` the seven names keep dividing
+   * whatever is left, so under ~950px they compress past reading and the last
+   * stage is clipped off the edge by the `overflow-x` above.
+   *
+   * Treating the scrollbar as the defect was the error. The scrollbar was the
+   * SYMPTOM of seven fixed things in a space too small for them, and removing
+   * it did not create room -- it hid the shortfall. 108px is measured: the
+   * longest name ("Discover") plus its two-digit marker and the glyph, at the
+   * strip's own type size, with nothing truncated.
+   */
+  min-width: 108px;
+  scroll-snap-align: start;
   padding: 4px 14px 4px 0;
   text-align: left;
   background: none;
@@ -2033,12 +2094,37 @@ body:has([data-page-composer]) .sp-work {
 /* Ported surfaces opt in. See the TRANSITION RULE at the top. */
 .sp-inner {
   max-width: var(--shell-work-max);
+  /*
+   * ── IT IS CENTRED NOW, AND IT WAS NOT, 2026-09-01 ──────────────────────
+   *
+   * `max-width` with no `margin-inline` pins the content to the LEFT edge of
+   * the work region. On a 1512px window that leaves the page hard against the
+   * rail with ~100px of dead field on the right; on a 32in monitor the work
+   * sits in the left two-thirds and the right third is empty. Every surface in
+   * the product inherited that except `/start`, which happened to centre
+   * itself with its own `items-center` -- so half the platform was centred and
+   * half was left-aligned, and neither was a decision.
+   *
+   * One rule fixes every ported surface at once, which is the whole reason the
+   * measure lives here rather than on each page.
+   *
+   * `width: 100%` IS LOAD-BEARING AND NOT TIDINESS. An auto inline margin on a
+   * FLEX item absorbs the free space itself, which makes the item size to its
+   * own content instead of to the line -- so on a 2560px monitor this measured
+   * **928px** with a 1400px cap and 671px of margin on each side, sizing to
+   * whatever the widest row happened to be. Filling first and capping second is
+   * what makes the cap the thing that decides. In block context it is a no-op,
+   * which is why one declaration is safe for every surface that opts in.
+   */
+  width: 100%;
+  margin-inline: auto;
   padding: var(--sp-work-pad-y) var(--sp-work-pad-x) var(--sp-work-pad-bottom);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0 var(--sp-ctx-gap);
   align-items: start;
 }
+
 .sp-main {
   min-width: 0;
   max-width: var(--sp-main-max);

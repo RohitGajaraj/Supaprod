@@ -102,10 +102,36 @@ export function Eyebrow({ children }: { children: React.ReactNode }) {
  *  ported surface puts a page title on, and 74ch is the prose measure: a page
  *  subtitle is prose, and it is the widest thing here on purpose, because a
  *  region's own sub sits one rung in at 68ch. */
-export function PageHeading({ title, sub }: { title: React.ReactNode; sub?: React.ReactNode }) {
+/**
+ * `level` EXISTS BECAUSE ONE PAGE CAN HOLD TWO OF THESE, 2026-09-01.
+ *
+ * A surface that was its own route becomes a section the day it folds into
+ * another one, and this heading travels with it. Measured on `/start` after
+ * the board folded in: the document carried TWO `<h1>` elements -- "What needs
+ * doing?" from the page and "70 decisions are ready for your review. 5 runs
+ * are stuck." from the board underneath it. Two page titles is not a lint; a
+ * screen reader's heading list is how a keyboard user navigates, and it named
+ * two documents on one screen.
+ *
+ * IT CHANGES THE TAG AND NOT THE SIZE, deliberately. The board's headline is
+ * still the loudest sentence on the home screen and demoting how it LOOKS
+ * would be answering a semantics problem with a design change. `text-mrd-h2`
+ * stays on both; only the outline moves.
+ */
+export function PageHeading({
+  title,
+  sub,
+  level = 1,
+}: {
+  title: React.ReactNode;
+  sub?: React.ReactNode;
+  /** 1 when this names the page, 2 when the surface has folded inside another. */
+  level?: 1 | 2;
+}) {
+  const H = level === 2 ? "h2" : "h1";
   return (
     <header data-mrd="">
-      <h1 className="text-mrd-h2 leading-mrd-tight font-medium text-mrd-ink">{title}</h1>
+      <H className="text-mrd-h2 leading-mrd-tight font-medium text-mrd-ink">{title}</H>
       {sub ? <p className="mt-mrd-3 max-w-[74ch] mrd-copy">{sub}</p> : null}
     </header>
   );

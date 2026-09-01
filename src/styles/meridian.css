@@ -608,22 +608,30 @@
    * implementation mixed 24% of our ink into every brand colour, which is why
    * the founder could see that "linear's color is changed".
    */
-  --mrd-brand-github: var(--mrd-ink); /* 181717 unreadable on the dark canvas; GitHub's own dark mark is white */
+  --mrd-brand-github: var(
+    --mrd-ink
+  ); /* 181717 unreadable on the dark canvas; GitHub's own dark mark is white */
   --mrd-brand-notion: var(--mrd-ink); /* 000000, same, and Notion publishes a white mark */
   --mrd-brand-zendesk: var(--mrd-ink); /* 03363D, lightness 0.31 */
   --mrd-brand-slack: var(--mrd-ink); /* 4A154B aubergine, lightness 0.31 */
   --mrd-brand-intercom: oklch(0.911 0.127 186.6); /* 6AFDEF */
   --mrd-brand-stripe: oklch(0.578 0.235 278.3); /* 635BFF, Stripe Indigo */
-  --mrd-brand-linear: var(--mrd-ink); /* the MARK is 222326, near black, and Linear publishes a light mark for dark grounds. 5E6AD2 is Linear's accent, not its logo. */
-  --mrd-brand-google-docs: oklch(0.630 0.180 260.0); /* 4285F4, reads on both grounds so it does not switch */
-  --mrd-brand-google-tasks: oklch(0.630 0.180 260.0); /* 4285F4 */
-  --mrd-brand-jira: oklch(0.480 0.201 260.5); /* 0052CC */
+  --mrd-brand-linear: var(
+    --mrd-ink
+  ); /* the MARK is 222326, near black, and Linear publishes a light mark for dark grounds. 5E6AD2 is Linear's accent, not its logo. */
+  --mrd-brand-google-docs: oklch(
+    0.63 0.18 260
+  ); /* 4285F4, reads on both grounds so it does not switch */
+  --mrd-brand-google-tasks: oklch(0.63 0.18 260); /* 4285F4 */
+  --mrd-brand-jira: oklch(0.48 0.201 260.5); /* 0052CC */
   --mrd-brand-figma: oklch(0.648 0.208 35.7); /* F24E1E */
   --mrd-brand-gmail: oklch(0.626 0.206 29.1); /* EA4335 */
-  --mrd-brand-google: oklch(0.630 0.180 260.0); /* 4285F4 */
-  --mrd-brand-hubspot: oklch(0.729 0.170 35.1); /* FF7A59 */
-  --mrd-brand-salesforce: oklch(0.670 0.143 235.4); /* 00A1E0 */
-  --mrd-brand-microsoft: oklch(0.568 0.167 251.3); /* 0078D4 read from simple-icons; 0F6CBD had been an assumption */
+  --mrd-brand-google: oklch(0.63 0.18 260); /* 4285F4 */
+  --mrd-brand-hubspot: oklch(0.729 0.17 35.1); /* FF7A59 */
+  --mrd-brand-salesforce: oklch(0.67 0.143 235.4); /* 00A1E0 */
+  --mrd-brand-microsoft: oklch(
+    0.568 0.167 251.3
+  ); /* 0078D4 read from simple-icons; 0F6CBD had been an assumption */
 
   /*
    * ── DATA VISUALISATION, WHICH IS NOT THE STATUS PALETTE ───────────────
@@ -952,6 +960,49 @@
   --mrd-s6: 24px;
   --mrd-s7: 40px;
   --mrd-s8: 64px;
+
+  /*
+   * ── THE PAGE GUTTER. A GAP IN MERIDIAN, FILLED 2026-09-01. ────────────
+   *
+   * The ramp above is the space BETWEEN things. This is the space between the
+   * work and the edge of the region holding it, and Meridian had no token for
+   * it -- so every surface that needed one reached past Meridian into the
+   * retired `--sp-work-pad-*` pair in `ink.css`. The ratchet is right to fail
+   * that, and the standing ruling is to build the token here rather than widen
+   * the guard.
+   *
+   * FLUID, AND THAT IS THE WHOLE POINT OF IT.
+   * FOUNDER, 2026-09-01: *"it is not just limited to these four sizes. It needs
+   * to dynamically adapt based on the type of monitors or screens I am using."*
+   * So these are not breakpoints and there is no ladder of screen classes:
+   * `clamp` is continuous, and the gutter grows smoothly with the region at
+   * every width there is. A 13in laptop gets the 20px floor so the work is not
+   * squeezed; a 32in monitor gets the ceiling so the page does not float in
+   * field; every width in between gets a proportional value, including the ones
+   * nobody thought to name.
+   *
+   * `cqi` AND NOT `vw`, WHICH IS THE PART THAT IS EASY TO GET WRONG. These are
+   * consumed inside `.sp-work`, which declares `container-type: inline-size`.
+   * A `vw` unit measures the WINDOW, so collapsing the rail -- 268px of it --
+   * would not change the gutter, and a surface in a narrow pane beside another
+   * would take a gutter sized for the whole screen. `cqi` measures the region
+   * the content is actually in, so the padding answers the space it is padding.
+   *
+   * The values match `--sp-work-pad-*` exactly. That is deliberate: this is a
+   * rehousing, not a redesign, and nothing on screen moves the day it lands.
+   */
+  --mrd-gutter-y: clamp(20px, 2.5cqi, 36px);
+  --mrd-gutter-x: clamp(20px, 2.9cqi, 44px);
+
+  /*
+   * THE READING MEASURE AS A WIDTH. `--mrd-measure` is 68ch and belongs to
+   * type; this is the same idea expressed as a box, for a COLUMN that holds a
+   * heading, a paragraph and a field together -- those have different natural
+   * measures and a shared container has to pick one. 42rem is that pick, and
+   * it is where the reference (beautifului.dev) sets its own single-column
+   * pages. See `.mrd-read` at the foot of this file.
+   */
+  --mrd-read-max: 42rem;
 
   /*
    * HOW FAR A PINNED SCROLLING COLUMN DISSOLVES AT ITS EDGE.
@@ -1495,9 +1546,11 @@
   --mrd-brand-zendesk: oklch(0.306 0.051 209.3); /* 03363D */
   --mrd-brand-slack: oklch(0.306 0.108 327.1); /* 4A154B */
   --mrd-brand-intercom: oklch(0.62 0.115 186.6); /* 6AFDEF, darkened to hold on paper */
-  --mrd-brand-linear: oklch(0.256 0.006 271.2); /* 222326, the published mark, which reads on paper as itself */
-  --mrd-brand-google-docs: oklch(0.630 0.180 260.0); /* 4285F4 */
-  --mrd-brand-google-tasks: oklch(0.630 0.180 260.0); /* 4285F4 */
+  --mrd-brand-linear: oklch(
+    0.256 0.006 271.2
+  ); /* 222326, the published mark, which reads on paper as itself */
+  --mrd-brand-google-docs: oklch(0.63 0.18 260); /* 4285F4 */
+  --mrd-brand-google-tasks: oklch(0.63 0.18 260); /* 4285F4 */
 
   /* The reference's own light-theme data palette. Each is darker and more
      saturated than its dark-theme twin, which is what keeps a 2px series
@@ -2475,4 +2528,47 @@ textarea:not([readonly]):not([disabled]):focus-visible {
   .mrd-fade-scroll {
     transition: none !important;
   }
+}
+
+/*
+ * ── THE READING COLUMN ────────────────────────────────────────────────────
+ * Added to Meridian 2026-09-01 under the founder's grant to close gaps in the
+ * system rather than reach past it.
+ *
+ * WHY IT IS MERIDIAN'S AND NOT THE SHELL'S. It was written first as `.sp-read`
+ * in `shell.css`, and the ratchet failed the route that used it -- correctly.
+ * `sp-` is the retired namespace; a NEW primitive in it is new debt however
+ * well it behaves. And this is not shell furniture: it is a measure, the same
+ * kind of fact as `--mrd-measure`, and any surface may want one.
+ *
+ * WHAT IT SOLVES. A page holds two kinds of block. Prose, a heading and a
+ * composer are read line by line and stop being readable much past 42rem. A
+ * board of dense rows is not read that way and wants the region. Before this
+ * the home applied ONE measure to BOTH -- a `max-w-2xl` wrapper around the
+ * composer AND the whole board -- so the board rendered at 599px inside a work
+ * region offering it 1265px, and at 840px on a 2560px monitor.
+ *
+ * `margin-inline: auto` PLUS `width: 100%` and both are load-bearing. An auto
+ * inline margin on a FLEX item absorbs the free space itself and the item
+ * sizes to its own content; filling first and capping second is what makes the
+ * cap decide. It also puts this column on the same centre line as `.sp-inner`,
+ * so a narrow block above a wide one shares its axis instead of drifting --
+ * which is what "the main content is slightly towards the right side" looks
+ * like when the two disagree.
+ */
+.mrd-read {
+  width: 100%;
+  max-width: var(--mrd-read-max);
+  margin-inline: auto;
+  min-width: 0;
+}
+
+/*
+ * The same column when it is a DIRECT child of the work region rather than a
+ * block inside a surface that already supplies a gutter. It has to bring its
+ * own, and it takes Meridian's fluid one: continuous at every width, sized
+ * against the container rather than the window.
+ */
+.mrd-read-page {
+  padding: var(--mrd-gutter-y) var(--mrd-gutter-x) 0;
 }

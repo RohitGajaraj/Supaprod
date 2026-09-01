@@ -61,10 +61,23 @@ describe("the sentence", () => {
 describe("the section that holds the way out", () => {
   it("IS DRAWN FROM THE UNFILTERED QUEUE, not from the focused item", () => {
     // `{focused ? (<section` is the exact regression, and it reads as harmless.
-    expect(SRC).toContain(
-      "{items.length > 0 ? (\n                  <section aria-label={FEED_CALLS}",
-    );
-    expect(SRC).not.toContain("{focused ? (\n                  <section aria-label={FEED_CALLS}");
+    //
+    // ── PINS THE CLAIM, NOT THE INDENTATION (2026-09-01) ──────────────────
+    // This read the guard as one literal string carrying sixteen spaces of
+    // leading whitespace between the condition and the `<section`. That made
+    // it fail the moment the section was wrapped in an anchor div and Prettier
+    // re-indented the block by two columns -- a change that could not touch
+    // what the test is actually about, while a real regression (swapping
+    // `items` for `focused`) would have kept the whitespace and passed.
+    //
+    // A guard on a spelling fails when the code improves and passes when the
+    // meaning breaks. `\s*` restores the intent: whatever the indentation, the
+    // condition standing in front of this section must be the unfiltered
+    // queue's length and must not be `focused`.
+    const opensFrom = (cond: string) =>
+      new RegExp(`\\{${cond}\\s*\\?\\s*\\(\\s*<section aria-label=\\{FEED_CALLS\\}`);
+    expect(SRC).toMatch(opensFrom("items\\.length > 0"));
+    expect(SRC).not.toMatch(opensFrom("focused"));
   });
 
   it("offers the way back in the state that needs it", () => {

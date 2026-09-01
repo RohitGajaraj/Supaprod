@@ -46,8 +46,8 @@ import { SendBackSheet } from "@/components/approvals/SendBack";
 import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
 import { ReasonField } from "@/components/meridian/forms";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
+import { REVIEW_QUEUE_ANCHOR } from "@/components/shell/post-auth-home";
 import { taskStatus } from "@/components/meridian/TaskRows";
-import { AskComposer } from "@/components/today/AskComposer";
 import { callsWaitingByMission } from "@/components/today/calls-waiting";
 import { DecisionQueue } from "@/components/today/DecisionQueue";
 import { ElapsedRunning, parseableInstant } from "@/components/today/ElapsedRunning";
@@ -1931,11 +1931,25 @@ export function Board() {
       <Surface wide>
         <div className="today-page">
           <p className="today-greeting">{greeting}</p>
-          {/* "Today" rather than a sentence about the state, because the state
+          {/* A NOUN RATHER THAN A SENTENCE ABOUT THE STATE, because the state
               is the thing below and saying it twice is the ban this file's own
               lane subtitle records. The subtitle names the boundary instead,
-              which is the one fact neither of the two bodies below states. */}
-          <PageHeading title="Today" sub="Everything on this surface belongs to a workspace." />
+              which is the one fact neither of the two bodies below states.
+
+              THE NOUN IS NO LONGER "TODAY", 2026-09-01. That word was retired
+              from every door by F-144: `/today` folded into the home, the rail
+              row was renamed, and the founder's report was that "Today" reads
+              as the place you are supposed to land and is not. It survived
+              here, on the ONE arm a brand-new account actually hits -- no
+              workspace yet -- so the first heading a first-time customer ever
+              read was the retired name. It also names a time, which the same
+              ruling bans on every remaining door. The subtitle already says
+              this is about a workspace; the heading now agrees with it. */}
+          <PageHeading
+            level={2}
+            title="Your workspace"
+            sub="Everything on this surface belongs to a workspace."
+          />
           {/* `.today-arrival` states the gap under the heading for BOTH arms.
               The refused arm used to get it from `Block`, and `NeedsSetup` never
               had it at all: it is a bare Meridian section with no outer margin,
@@ -1980,7 +1994,10 @@ export function Board() {
     <Surface wide>
       <div className="today-page">
         <p className="today-greeting">{greeting}</p>
+        {/* level 2: this board is a section of the home now, not its own page.
+            `/start` owns the `h1`. See PageHeading's own header. */}
         <PageHeading
+          level={2}
           title={headline}
           sub={
             <>
@@ -2111,55 +2128,66 @@ export function Board() {
               morning, so it costs the fold nothing on an ordinary one. */}
           <SystemAlerts />
 
-          <Region
-            title={FEED_TITLE}
-            sub={
-              stillWaiting(queue) || stillWaiting(missions) ? null : queue.isError ||
-                missions.isError ? (
-                "This could not be read."
-              ) : (
-                <>
-                  {items.length > 0 ? (
-                    /*
-                     * THE COUNT IS GONE FROM HERE, AND ONLY THE COUNT.
-                     *
-                     * Screenshotted on the running board 2026-08-27, signed in,
-                     * against real data: the number 52 appeared THREE TIMES
-                     * inside about a hundred pixels. The headline said "52
-                     * decisions are ready for your review", this line said "52
-                     * waiting on you", and the group heading immediately below
-                     * drew "READY FOR YOUR REVIEW 52". A person does not read
-                     * that as emphasis, they read it as a screen that cannot
-                     * tell them one thing once.
-                     *
-                     * `AgentInbox`'s own contract for this slot already says
-                     * which of the three should go: "the heading says what a
-                     * group needs and the count says how many. Neither can say
-                     * the thing a reader actually weighs... that nothing has
-                     * happened yet on a pending call so undo is free." The
-                     * count was mine to stop repeating, and the judgement is
-                     * the half no other element on the screen can carry.
-                     *
-                     * The number is not lost. It is still in the headline and
-                     * still on the group, which is the element that owns it.
-                     */
-                    /*
-                     * "ON THIS ONE" IS THE WHOLE FIX (S3, 2026-09-01).
-                     *
-                     * S3 drove this screen signed in, read the reasoning above
-                     * BEFORE forming a view, and agreed with it: the judgement
-                     * is right and no count can carry it. **The defect was that
-                     * the SUBJECT was elided.** With the subject missing, the
-                     * nearest referent is the queue -- so a stranger read
-                     * "there is nothing here" sitting directly above a count of
-                     * 65 things that need them.
-                     *
-                     * It is the rarest kind of wrong sentence: not false, and
-                     * made to read as its own contradiction by what it left
-                     * out. Naming the subject costs three words and removes it.
-                     */
-                    <>Nothing has happened on this one yet, so undo is free.</>
-                  ) : quietMorning /* SILENT ON A QUIET MORNING, and this is the wall coming
+          {/* THE ANCHOR THE RAIL'S ONLY COUNTED DOOR LANDS ON, 2026-09-01.
+              `id` and `scroll-mt` are all this needs: see
+              `_authenticated.today.tsx` for why the Approvals row was a no-op
+              and how the redirect now carries a person here. `scroll-mt`
+              clears the sticky header and the station strip above it, so the
+              queue arrives under the chrome rather than behind it. */}
+          <div id={REVIEW_QUEUE_ANCHOR} className="scroll-mt-[9rem]">
+            <Region
+              title={FEED_TITLE}
+              sub={
+                stillWaiting(queue) || stillWaiting(missions) ? null : queue.isError ||
+                  missions.isError ? (
+                  /* NAMES THE READ THAT DIED. Every sibling failure sentence on
+                     this board says which one ("Your runs could not be read.");
+                     this was the one that said only "This could not be read.",
+                     which tells a person nothing about what is still true. */
+                  "Your review queue could not be read. Nothing in it has changed."
+                ) : (
+                  <>
+                    {items.length > 0 ? (
+                      /*
+                       * THE COUNT IS GONE FROM HERE, AND ONLY THE COUNT.
+                       *
+                       * Screenshotted on the running board 2026-08-27, signed in,
+                       * against real data: the number 52 appeared THREE TIMES
+                       * inside about a hundred pixels. The headline said "52
+                       * decisions are ready for your review", this line said "52
+                       * waiting on you", and the group heading immediately below
+                       * drew "READY FOR YOUR REVIEW 52". A person does not read
+                       * that as emphasis, they read it as a screen that cannot
+                       * tell them one thing once.
+                       *
+                       * `AgentInbox`'s own contract for this slot already says
+                       * which of the three should go: "the heading says what a
+                       * group needs and the count says how many. Neither can say
+                       * the thing a reader actually weighs... that nothing has
+                       * happened yet on a pending call so undo is free." The
+                       * count was mine to stop repeating, and the judgement is
+                       * the half no other element on the screen can carry.
+                       *
+                       * The number is not lost. It is still in the headline and
+                       * still on the group, which is the element that owns it.
+                       */
+                      /*
+                       * "ON THIS ONE" IS THE WHOLE FIX (S3, 2026-09-01).
+                       *
+                       * S3 drove this screen signed in, read the reasoning above
+                       * BEFORE forming a view, and agreed with it: the judgement
+                       * is right and no count can carry it. **The defect was that
+                       * the SUBJECT was elided.** With the subject missing, the
+                       * nearest referent is the queue -- so a stranger read
+                       * "there is nothing here" sitting directly above a count of
+                       * 65 things that need them.
+                       *
+                       * It is the rarest kind of wrong sentence: not false, and
+                       * made to read as its own contradiction by what it left
+                       * out. Naming the subject costs three words and removes it.
+                       */
+                      <>Nothing has happened on this one yet, so undo is free.</>
+                    ) : quietMorning /* SILENT ON A QUIET MORNING, and this is the wall coming
                        down. An audit of the real first sixty seconds found this
                        surface opening with FIVE NEGATIONS in one viewport, and
                        that finding is why `/start` took the home slot from it
@@ -2178,47 +2206,47 @@ export function Board() {
                        The negations STAY when the board is not quiet, because
                        then they are news: an empty review queue beside three
                        running rows is a fact worth printing. */ ? null : (
-                    <>
-                      Nothing is waiting on you.
-                      {crewQuietLine
-                        ? ` ${crewQuietLine.charAt(0).toUpperCase()}${crewQuietLine.slice(1)}.`
-                        : null}
-                    </>
-                  )}
-                </>
-              )
-            }
-          >
-            {/* THE CALLS. The queue keeps its whole self: walk mode, bulk verbs,
+                      <>
+                        Nothing is waiting on you.
+                        {crewQuietLine
+                          ? ` ${crewQuietLine.charAt(0).toUpperCase()}${crewQuietLine.slice(1)}.`
+                          : null}
+                      </>
+                    )}
+                  </>
+                )
+              }
+            >
+              {/* THE CALLS. The queue keeps its whole self: walk mode, bulk verbs,
                 send-back and the a/d/z keys live in DecisionQueue and were not
                 moved. Its own controls spell out the review act, so this section
                 carries no second Review label; the heading names the group. */}
-            {/* THE SAME `refetch` THE FAILURE BRANCH BELOW ALREADY USES. `SlowRead`
+              {/* THE SAME `refetch` THE FAILURE BRANCH BELOW ALREADY USES. `SlowRead`
                 offers it only past 15 seconds and never says the read failed,
                 because it has not - the sentence and the ticking figure stay,
                 and all that appears is something to press. Measured on this
                 board 2026-08-27: "Reading the run record. 22.4s" with no
                 control anywhere near it, so a reader who could see exactly how
                 long they had waited had no move except reloading the page. */}
-            {stillWaiting(queue) ? (
-              <SlowRead onRetry={() => void queue.refetch()}>Reading what needs you.</SlowRead>
-            ) : queue.isError ? (
-              <ReadFailedLine error={queue.error} onRetry={() => void queue.refetch()}>
-                Your decisions are unchanged and this could not read them. Retry before you treat
-                the morning as clear.
-              </ReadFailedLine>
-            ) : (
-              <>
-                {/* DRAWN BY THE UNFILTERED QUEUE, NOT BY THE FOCUSED ITEM, and the
+              {stillWaiting(queue) ? (
+                <SlowRead onRetry={() => void queue.refetch()}>Reading what needs you.</SlowRead>
+              ) : queue.isError ? (
+                <ReadFailedLine error={queue.error} onRetry={() => void queue.refetch()}>
+                  Your decisions are unchanged and this could not read them. Retry before you treat
+                  the morning as clear.
+                </ReadFailedLine>
+              ) : (
+                <>
+                  {/* DRAWN BY THE UNFILTERED QUEUE, NOT BY THE FOCUSED ITEM, and the
                     difference is a dead end. This guard used to read `focused`,
                     which is the first VISIBLE item, so a filter that excluded
                     everything deleted the whole section - the queue, its heading
                     and the tab row itself, which lived inside the branch its own
                     state could delete. A control must never be reachable only
                     from the state it is the exit for. */}
-                {items.length > 0 ? (
-                  <section aria-label={FEED_CALLS} className="flex flex-col">
-                    {/* NO HEAD ON THIS GROUP, AND IT TOOK ME THREE GOES TO GET
+                  {items.length > 0 ? (
+                    <section aria-label={FEED_CALLS} className="flex flex-col">
+                      {/* NO HEAD ON THIS GROUP, AND IT TOOK ME THREE GOES TO GET
                         HERE, so the reasoning is worth more than the diff.
 
                         The head read "READY FOR YOUR REVIEW  52". Screenshotted
@@ -2258,8 +2286,8 @@ export function Board() {
                         a reader who cannot see the region title above it.
                         Dropping a visible duplicate must never cost the one
                         person who was relying on it. */}
-                    <div className="mt-mrd-3">
-                      {/* TEXT TABS, NOT A FACET EXPLOSION, which is the taste law
+                      <div className="mt-mrd-3">
+                        {/* TEXT TABS, NOT A FACET EXPLOSION, which is the taste law
                           `approvals-queue.functions.ts` states over this very vocabulary. The
                           labels and the order are /approvals' own, not reworded, so the two
                           surfaces cannot come to disagree about what a bucket is.
@@ -2269,9 +2297,9 @@ export function Board() {
                           does not appear here: its own comment says "nothing routes into it
                           yet because no spend-gate READ exists in the codebase today", and
                           /approvals draws it anyway as a permanently empty tab. */}
-                      {worthFiltering(bucketList) ? (
-                        <div className="mb-mrd-4 flex flex-wrap items-center gap-mrd-3">
-                          {/* "EVERY" AND AN EXACT COUNT, ON A BOUNDED READ.
+                        {worthFiltering(bucketList) ? (
+                          <div className="mb-mrd-4 flex flex-wrap items-center gap-mrd-3">
+                            {/* "EVERY" AND AN EXACT COUNT, ON A BOUNDED READ.
                               `getApprovalsQueue` caps each of ten families, so
                               when `incomplete` is non-empty this control was
                               promising totality twice over - the word in its
@@ -2283,50 +2311,50 @@ export function Board() {
                               two of them hedged and one not, reads as the three
                               disagreeing. Same "+" convention as the rail and
                               the station strip. */}
-                          <Action
-                            variant="quiet"
-                            aria-pressed={activeBucket === null}
-                            onClick={() => setBucket(null)}
-                            title={
-                              queueIsPartial
-                                ? "Every call this could read. More are waiting."
-                                : "Every call waiting on you"
-                            }
-                          >
-                            All{" "}
-                            <Num>
-                              {items.length}
-                              {queueIsPartial ? "+" : ""}
-                            </Num>
-                          </Action>
-                          {bucketList.map((t) => (
                             <Action
-                              key={t.id}
                               variant="quiet"
-                              aria-pressed={activeBucket === t.id}
-                              onClick={() => setBucket(t.id)}
-                              title={`Only the ${t.label.toLowerCase()}`}
+                              aria-pressed={activeBucket === null}
+                              onClick={() => setBucket(null)}
+                              title={
+                                queueIsPartial
+                                  ? "Every call this could read. More are waiting."
+                                  : "Every call waiting on you"
+                              }
                             >
-                              {t.label} <Num>{t.count}</Num>
+                              All{" "}
+                              <Num>
+                                {items.length}
+                                {queueIsPartial ? "+" : ""}
+                              </Num>
                             </Action>
-                          ))}
-                        </div>
-                      ) : null}
-                      {focused ? (
-                        <DecisionQueue
-                          items={visibleItems}
-                          focused={focused}
-                          onFocus={setFocusedId}
-                          walking={walking}
-                          onWalk={enterQueue}
-                          onLeave={leaveQueue}
-                          selection={selection}
-                          verbs={verbs}
-                          bulk={bulkVerbs}
-                          onOpenAgent={(agent) => navigate({ to: "/crew", search: { agent } })}
-                        />
-                      ) : activeBucket ? (
-                        /* THE FILTER EXCLUDED EVERYTHING, which is not the same fact as
+                            {bucketList.map((t) => (
+                              <Action
+                                key={t.id}
+                                variant="quiet"
+                                aria-pressed={activeBucket === t.id}
+                                onClick={() => setBucket(t.id)}
+                                title={`Only the ${t.label.toLowerCase()}`}
+                              >
+                                {t.label} <Num>{t.count}</Num>
+                              </Action>
+                            ))}
+                          </div>
+                        ) : null}
+                        {focused ? (
+                          <DecisionQueue
+                            items={visibleItems}
+                            focused={focused}
+                            onFocus={setFocusedId}
+                            walking={walking}
+                            onWalk={enterQueue}
+                            onLeave={leaveQueue}
+                            selection={selection}
+                            verbs={verbs}
+                            bulk={bulkVerbs}
+                            onOpenAgent={(agent) => navigate({ to: "/crew", search: { agent } })}
+                          />
+                        ) : activeBucket ? (
+                          /* THE FILTER EXCLUDED EVERYTHING, which is not the same fact as
                            an empty queue and must not wear its words. `bucketEmptyLine`
                            carries the reasoning and the sentence.
 
@@ -2334,27 +2362,27 @@ export function Board() {
                            answer settles, so a screen reader is told the list it was
                            working is now empty and why. R-19 defers small screens; it
                            does not defer this. */
-                        <p
-                          role="status"
-                          className="flex flex-wrap items-center gap-mrd-3 text-mrd-mute"
-                        >
-                          {bucketEmptyLine(activeBucket, items.length)}
-                          <Action
-                            variant="quiet"
-                            onClick={() => setBucket(null)}
-                            title="Every call waiting on you"
+                          <p
+                            role="status"
+                            className="flex flex-wrap items-center gap-mrd-3 text-mrd-mute"
                           >
-                            Show all <Num>{items.length}</Num>
-                          </Action>
-                        </p>
-                      ) : null}
-                      {/* WHERE THE ORDER STOPS MEANING SOMETHING. The queue is
+                            {bucketEmptyLine(activeBucket, items.length)}
+                            <Action
+                              variant="quiet"
+                              onClick={() => setBucket(null)}
+                              title="Every call waiting on you"
+                            >
+                              Show all <Num>{items.length}</Num>
+                            </Action>
+                          </p>
+                        ) : null}
+                        {/* WHERE THE ORDER STOPS MEANING SOMETHING. The queue is
                           sorted oldest first, so a row's position IS a claim
                           about its age. A call with no timestamp has none, sits
                           last, and reads as the newest thing here. It draws
                           nothing today - every family carries a timestamp - and
                           a sort is exactly where that stops being true. */}
-                      {/* WHY THIS LIST IS NOT EVERYTHING, when it is not. Drawn
+                        {/* WHY THIS LIST IS NOT EVERYTHING, when it is not. Drawn
                           ABOVE the undated note on purpose: "part of your queue
                           did not load" changes whether you trust the screen at
                           all, and "some of these carry no start time" only
@@ -2368,103 +2396,103 @@ export function Board() {
                           log and, in front of a person, invites them to work out
                           which of their calls is missing. That is a puzzle, not
                           an answer. */}
-                      {notTheWholeQueue(incomplete) ? (
-                        <p
-                          role="status"
-                          className="mt-mrd-3 max-w-[var(--mrd-measure)] text-mrd-label leading-mrd-prose text-mrd-mute"
-                        >
-                          {notTheWholeQueue(incomplete)}
-                        </p>
-                      ) : null}
-                      {undatedLine ? (
-                        <p className="mt-mrd-3 max-w-[var(--mrd-measure)] text-mrd-label leading-mrd-prose text-mrd-faint">
-                          {undatedLine}
-                        </p>
-                      ) : null}
-                    </div>
-                  </section>
-                ) : null}
-                {settled.length > 0 ? (
-                  <div className="today-settled">
-                    {settled.map((entry, index) => (
-                      <Receipt
-                        key={`${entry.at}-${index}`}
-                        verb={entry.verb}
-                        consequence={entry.consequence}
-                        time={entry.at}
-                        failed={entry.failed}
-                      />
-                    ))}
-                    {/* The second of the pair. See the note on the door in the page
+                        {notTheWholeQueue(incomplete) ? (
+                          <p
+                            role="status"
+                            className="mt-mrd-3 max-w-[var(--mrd-measure)] text-mrd-label leading-mrd-prose text-mrd-mute"
+                          >
+                            {notTheWholeQueue(incomplete)}
+                          </p>
+                        ) : null}
+                        {undatedLine ? (
+                          <p className="mt-mrd-3 max-w-[var(--mrd-measure)] text-mrd-label leading-mrd-prose text-mrd-faint">
+                            {undatedLine}
+                          </p>
+                        ) : null}
+                      </div>
+                    </section>
+                  ) : null}
+                  {settled.length > 0 ? (
+                    <div className="today-settled">
+                      {settled.map((entry, index) => (
+                        <Receipt
+                          key={`${entry.at}-${index}`}
+                          verb={entry.verb}
+                          consequence={entry.consequence}
+                          time={entry.at}
+                          failed={entry.failed}
+                        />
+                      ))}
+                      {/* The second of the pair. See the note on the door in the page
                         subtitle: that one opens the shared brain, this one opens the
                         room that holds every settled call with what each one caused,
                         and until now both said "Open the record". */}
-                    <Door
-                      title="Every call you have settled, with what each one caused"
-                      onClick={() => navigate({ to: "/engine-room", search: { room: "record" } })}
-                    >
-                      Open everything you have settled
-                    </Door>
-                  </div>
-                ) : null}
-              </>
-            )}
+                      <Door
+                        title="Every call you have settled, with what each one caused"
+                        onClick={() => navigate({ to: "/engine-room", search: { room: "record" } })}
+                      >
+                        Open everything you have settled
+                      </Door>
+                    </div>
+                  ) : null}
+                </>
+              )}
 
-            {/* THE RUNS. ONE WAIT AND ONE REFUSAL FOR ONE READ, named here by
+              {/* THE RUNS. ONE WAIT AND ONE REFUSAL FOR ONE READ, named here by
                 the query's own name rather than through a derived word:
                 today-states-its-wait.test.ts asserts that every read Today makes
                 admits its own wait AND its own refusal in the JSX. At zero no
                 section draws at all, so the assurances live once on the card's
                 own sub-line above, where all three fit as one sentence. */}
-            {/* THE SILENCE, NAMED. A truthfully quiet board and a broken one
+              {/* THE SILENCE, NAMED. A truthfully quiet board and a broken one
                 look identical, and that is the expensive confusion: a person
                 cannot tell from a calm screen whether the crew finished or the
                 sweep died three days ago. This draws ABOVE the read-state chain
                 on purpose, because the state it speaks for is the one where
                 every lane below it is empty. It says nothing while work is
                 fresh, since the rows carry their own clocks. */}
-            {stillness ? (
-              <p className="mb-mrd-4 max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
-                {stillness}
-              </p>
-            ) : null}
+              {stillness ? (
+                <p className="mb-mrd-4 max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
+                  {stillness}
+                </p>
+              ) : null}
 
-            {stillWaiting(missions) ? (
-              <SlowRead onRetry={() => void missions.refetch()}>Reading the run record.</SlowRead>
-            ) : missions.isError ? (
-              <ReadFailedLine error={missions.error} onRetry={() => void missions.refetch()}>
-                The run record did not load, so this cannot say what went live, what stopped or what
-                is still going.
-              </ReadFailedLine>
-            ) : stillWaiting(tracks) ? (
-              <SlowRead onRetry={() => void tracks.refetch()}>
-                Reading the work the loop is driving.
-              </SlowRead>
-            ) : tracks.isError ? (
-              <ReadFailedLine error={tracks.error} onRetry={() => void tracks.refetch()}>
-                The loop's work could not be read, so something started from a sentence may be
-                missing here. Retry before you treat the morning as clear.
-              </ReadFailedLine>
-            ) : stillWaiting(sessions) ? (
-              <SlowRead onRetry={() => void sessions.refetch()}>
-                Reading which runs need your answer.
-              </SlowRead>
-            ) : sessions.isError ? (
-              <ReadFailedLine error={sessions.error} onRetry={() => void sessions.refetch()}>
-                The gate check did not load, so a run waiting on you may be sitting in Running.
-                Retry before you treat the morning as clear.
-              </ReadFailedLine>
-            ) : crewTotal > 0 ? (
-              <div
-                role="listbox"
-                aria-label="Runs, in the order of what each one needs from you"
-                className="mt-mrd-6 flex flex-col gap-mrd-7"
-                onKeyDown={feedKeys}
-              >
-                {crewSection(
-                  FEED_REPLY,
-                  allReplyRows,
-                  /* ZERO FROM A FAILED COUNT MUST NOT RENDER AS ZERO. S0's
+              {stillWaiting(missions) ? (
+                <SlowRead onRetry={() => void missions.refetch()}>Reading the run record.</SlowRead>
+              ) : missions.isError ? (
+                <ReadFailedLine error={missions.error} onRetry={() => void missions.refetch()}>
+                  The run record did not load, so this cannot say what went live, what stopped or
+                  what is still going.
+                </ReadFailedLine>
+              ) : stillWaiting(tracks) ? (
+                <SlowRead onRetry={() => void tracks.refetch()}>
+                  Reading the work the loop is driving.
+                </SlowRead>
+              ) : tracks.isError ? (
+                <ReadFailedLine error={tracks.error} onRetry={() => void tracks.refetch()}>
+                  The loop's work could not be read, so something started from a sentence may be
+                  missing here. Retry before you treat the morning as clear.
+                </ReadFailedLine>
+              ) : stillWaiting(sessions) ? (
+                <SlowRead onRetry={() => void sessions.refetch()}>
+                  Reading which runs need your answer.
+                </SlowRead>
+              ) : sessions.isError ? (
+                <ReadFailedLine error={sessions.error} onRetry={() => void sessions.refetch()}>
+                  The gate check did not load, so a run waiting on you may be sitting in Running.
+                  Retry before you treat the morning as clear.
+                </ReadFailedLine>
+              ) : crewTotal > 0 ? (
+                <div
+                  role="listbox"
+                  aria-label="Runs, in the order of what each one needs from you"
+                  className="mt-mrd-6 flex flex-col gap-mrd-7"
+                  onKeyDown={feedKeys}
+                >
+                  {crewSection(
+                    FEED_REPLY,
+                    allReplyRows,
+                    /* ZERO FROM A FAILED COUNT MUST NOT RENDER AS ZERO. S0's
                      count degrades to 0 rather than throwing, so a broken read
                      would put "Waiting on you 0" at the head of the lane whose
                      whole job is saying what needs a person: a false all-clear
@@ -2475,8 +2503,8 @@ export function Board() {
                      genuine zero has no rows either, so it still reads 0 and
                      nothing is lost. Asked S0 for `number | null`; until then
                      this is the safe read of the value as shipped. */
-                  missions.data?.totalBlocked || undefined,
-                  /* THE BOUNDARY, SAID OUT LOUD, because the omission it covers
+                    missions.data?.totalBlocked || undefined,
+                    /* THE BOUNDARY, SAID OUT LOUD, because the omission it covers
                      is large and silent. This lane is filtered by
                      `withinLastDay` (:670), so work whose last movement was over
                      24 hours ago is not here AND IS NOT COUNTED. Measured
@@ -2497,45 +2525,45 @@ export function Board() {
                      number from a capped read is a wrong number wearing a
                      fact's clothes. The real count needs a server-side read and
                      is filed with S0. */
-                  /* HOW LONG THE OLDEST HAS SAT. I built this earlier tonight
+                    /* HOW LONG THE OLDEST HAS SAT. I built this earlier tonight
                      and reverted it, because the only population I could reach
                      was the windowed one and every row in it was under a day
                      old, so the clause could not fire. `oldestBlockedAt` counts
                      over every row rather than the first 50, so the sentence
                      now has a source. Under a day it says nothing: "waiting 0
                      days" reads as a bug even when it is arithmetic. */
-                  (() => {
-                    /* WHAT THE COUNT ABOVE IS INFLATED BY (2026-08-27).
-                     *
-                     * Measured against the live database: this workspace holds
-                     * 89 proposed missions under 48 distinct subjects, so 41
-                     * are the same request raised again, and 5 ask for work
-                     * whose subject is already completed — one of them
-                     * completed three times over. The lane says how many are
-                     * waiting and has never said how many are the same thing.
-                     * That is the brief's fourth glance-fact, "two teammates
-                     * about to redo each other's output", and it is the one
-                     * this surface has never drawn.
-                     *
-                     * THE SENTENCE IS SCOPED TO THIS PAGE, and it has to be.
-                     * The boundary note directly above records that
-                     * `listMissions` is `.limit(50)` of 111 and that "a number
-                     * from a capped read is a wrong number wearing a fact's
-                     * clothes". So this counts the rows actually rendered and
-                     * says "on this list", which a reader can check by
-                     * scrolling. Where the real repetition is worse, it
-                     * under-reports, which is the only direction that cannot
-                     * talk somebody into dismissing work that was never
-                     * duplicated. */
-                    const repeats = repeatLine(
-                      duplicateWork(allReplyRows),
-                      redoingSettledWork(allReplyRows, rows),
-                    );
-                    const withRepeats = (text: string) => (repeats ? `${text} ${repeats}` : text);
-                    const base = "Nothing moves on these until you answer.";
-                    const d = daysSince(missions.data?.oldestBlockedAt);
-                    if (d === null || d < 1) return withRepeats(base);
-                    /* SAY WHEN THE OLDEST IS NOT ON THE PAGE, because otherwise
+                    (() => {
+                      /* WHAT THE COUNT ABOVE IS INFLATED BY (2026-08-27).
+                       *
+                       * Measured against the live database: this workspace holds
+                       * 89 proposed missions under 48 distinct subjects, so 41
+                       * are the same request raised again, and 5 ask for work
+                       * whose subject is already completed — one of them
+                       * completed three times over. The lane says how many are
+                       * waiting and has never said how many are the same thing.
+                       * That is the brief's fourth glance-fact, "two teammates
+                       * about to redo each other's output", and it is the one
+                       * this surface has never drawn.
+                       *
+                       * THE SENTENCE IS SCOPED TO THIS PAGE, and it has to be.
+                       * The boundary note directly above records that
+                       * `listMissions` is `.limit(50)` of 111 and that "a number
+                       * from a capped read is a wrong number wearing a fact's
+                       * clothes". So this counts the rows actually rendered and
+                       * says "on this list", which a reader can check by
+                       * scrolling. Where the real repetition is worse, it
+                       * under-reports, which is the only direction that cannot
+                       * talk somebody into dismissing work that was never
+                       * duplicated. */
+                      const repeats = repeatLine(
+                        duplicateWork(allReplyRows),
+                        redoingSettledWork(allReplyRows, rows),
+                      );
+                      const withRepeats = (text: string) => (repeats ? `${text} ${repeats}` : text);
+                      const base = "Nothing moves on these until you answer.";
+                      const d = daysSince(missions.data?.oldestBlockedAt);
+                      if (d === null || d < 1) return withRepeats(base);
+                      /* SAY WHEN THE OLDEST IS NOT ON THE PAGE, because otherwise
                        this line and the row under it look like they disagree.
                        Seen live: the note said 39 days while the top row said
                        21d, both true. `oldestBlockedAt` counts every blocked
@@ -2545,22 +2573,22 @@ export function Board() {
                        sentence. Naming it turns an apparent contradiction into
                        the useful fact, which is that older work exists than
                        this page can reach. */
-                    const shownOldest = allReplyRows.length
-                      ? Math.min(...allReplyRows.map((r) => r.at).filter((n) => n > 0))
-                      : 0;
-                    const shownDays = shownOldest
-                      ? Math.floor((Date.now() - shownOldest) / 86_400_000)
-                      : null;
-                    const offPage = shownDays !== null && d - shownDays >= 1;
-                    const word = d === 1 ? "day" : "days";
-                    return withRepeats(
-                      offPage
-                        ? `${base} The oldest has been waiting ${d} ${word}, and is not on this page.`
-                        : `${base} The oldest has been waiting ${d} ${word}.`,
-                    );
-                  })(),
-                  (row) =>
-                    /* A TRACK IS NOT ANSWERING A QUESTION HERE, so it is not
+                      const shownOldest = allReplyRows.length
+                        ? Math.min(...allReplyRows.map((r) => r.at).filter((n) => n > 0))
+                        : 0;
+                      const shownDays = shownOldest
+                        ? Math.floor((Date.now() - shownOldest) / 86_400_000)
+                        : null;
+                      const offPage = shownDays !== null && d - shownDays >= 1;
+                      const word = d === 1 ? "day" : "days";
+                      return withRepeats(
+                        offPage
+                          ? `${base} The oldest has been waiting ${d} ${word}, and is not on this page.`
+                          : `${base} The oldest has been waiting ${d} ${word}.`,
+                      );
+                    })(),
+                    (row) =>
+                      /* A TRACK IS NOT ANSWERING A QUESTION HERE, so it is not
                        offered a Reply. Seen live 2026-08-27: a track parked on
                        going-in-circles sat in this lane wearing a Reply button,
                        and nothing had asked anything — the loop ran out of road.
@@ -2570,54 +2598,54 @@ export function Board() {
                        already opens that run, so the honest verb is none: the
                        same call C2-006 made when Stop was removed from track
                        rows for naming a mutation that could not run on them. */
-                    row.isTrack ? null : row.proposed ? (
-                      /* A PROPOSED MISSION IS NOT ASKING A QUESTION — it is
+                      row.isTrack ? null : row.proposed ? (
+                        /* A PROPOSED MISSION IS NOT ASKING A QUESTION — it is
                          waiting for a person to review and launch it, and the
                          launch control lives on the run. Naming the act beats
                          a composer that would send words nobody asked for
                          into a run that has not started. */
-                      <Door title="Open the run to review and launch it" onClick={row.onOpen}>
-                        Review &amp; launch
-                      </Door>
-                    ) : (
-                      <Action
-                        variant="quiet"
-                        onClick={(event) => {
-                          /* The row itself opens the run; picking up the compose
+                        <Door title="Open the run to review and launch it" onClick={row.onOpen}>
+                          Review &amp; launch
+                        </Door>
+                      ) : (
+                        <Action
+                          variant="quiet"
+                          onClick={(event) => {
+                            /* The row itself opens the run; picking up the compose
                              field must not navigate away from it. */
-                          event.stopPropagation();
-                          setReplyTo(replyTo === row.id ? null : row.id);
-                        }}
-                      >
-                        Reply
-                      </Action>
-                    ),
-                  (row) => (
-                    <>
-                      {/* WHY IT STOPPED, on the line under the row. Parked work
+                            event.stopPropagation();
+                            setReplyTo(replyTo === row.id ? null : row.id);
+                          }}
+                        >
+                          Reply
+                        </Action>
+                      ),
+                    (row) => (
+                      <>
+                        {/* WHY IT STOPPED, on the line under the row. Parked work
                           carries the driver's own sentence and it is 250
                           characters of real prose; the row's state slot is a
                           few words wide and does not wrap. Drawn verbatim: this
                           surface is not entitled to reword the product's voice,
                           only to put it where it fits. */}
-                      {row.note ? (
-                        <p className="px-mrd-2 pb-mrd-2 text-mrd-data leading-mrd-prose text-mrd-mute">
-                          {row.note}
-                        </p>
-                      ) : null}
-                      {/* WHERE THIS CAME FROM (§0.5's connectedness, board half).
+                        {row.note ? (
+                          <p className="px-mrd-2 pb-mrd-2 text-mrd-data leading-mrd-prose text-mrd-mute">
+                            {row.note}
+                          </p>
+                        ) : null}
+                        {/* WHERE THIS CAME FROM (§0.5's connectedness, board half).
                           The lineage sheet is already mounted app-wide in
                           AppFrame; before this, nothing in this prefix offered
                           the gesture. Under the row rather than in the scan
                           band, which truncates. Never on a track: AUDIT_KINDS
                           has no spine-track entry, so the ref would not
                           resolve. */}
-                      <CameFrom
-                        missionId={row.id}
-                        isTrack={row.isTrack}
-                        counts={lineageCounts?.[row.id]}
-                      />
-                      {/* WHAT WAS HANDED TO YOU, BEFORE YOU DECIDE ON IT.
+                        <CameFrom
+                          missionId={row.id}
+                          isTrack={row.isTrack}
+                          counts={lineageCounts?.[row.id]}
+                        />
+                        {/* WHAT WAS HANDED TO YOU, BEFORE YOU DECIDE ON IT.
                           The founder asked twice to see the handoff and it was
                           drawn under RUNNING rows only. Measured against the
                           live database 2026-08-27: 26 handoffs exist, across 10
@@ -2633,30 +2661,30 @@ export function Board() {
                           arrived, not a status change. It owns its own read and
                           its own silence, and a track row simply finds no
                           mission handoff and draws nothing. */}
-                      <HandoverNote missionId={row.id} workspaceId={workspaceId} />
-                      {replyTo === row.id ? (
-                        <ReasonField
-                          id={`feed-reply-${row.id}`}
-                          label={`Answer ${row.who ?? "this run"}`}
-                          hint="It goes back to the run as your answer, and the work carries on from there."
-                          placeholder="Use the shorter verify step, and leave the migration for later"
-                          commitLabel="Send it"
-                          cancelLabel="Not now"
-                          onCommit={(text) => {
-                            openAsk(`About the run "${row.title}": ${text}`);
-                            setReplyTo(null);
-                          }}
-                          onCancel={() => setReplyTo(null)}
-                        />
-                      ) : null}
-                    </>
-                  ),
-                )}
-                {crewSection(
-                  FEED_LIVE,
-                  allLiveRows,
-                  undefined,
-                  /* THE NOTE HAS TO SURVIVE ITS OWN LANE BEING EMPTY.
+                        <HandoverNote missionId={row.id} workspaceId={workspaceId} />
+                        {replyTo === row.id ? (
+                          <ReasonField
+                            id={`feed-reply-${row.id}`}
+                            label={`Answer ${row.who ?? "this run"}`}
+                            hint="It goes back to the run as your answer, and the work carries on from there."
+                            placeholder="Use the shorter verify step, and leave the migration for later"
+                            commitLabel="Send it"
+                            cancelLabel="Not now"
+                            onCommit={(text) => {
+                              openAsk(`About the run "${row.title}": ${text}`);
+                              setReplyTo(null);
+                            }}
+                            onCancel={() => setReplyTo(null)}
+                          />
+                        ) : null}
+                      </>
+                    ),
+                  )}
+                  {crewSection(
+                    FEED_LIVE,
+                    allLiveRows,
+                    undefined,
+                    /* THE NOTE HAS TO SURVIVE ITS OWN LANE BEING EMPTY.
                      "Waiting on an agent, not on you" is true of rows in this
                      lane and FALSE of a lane with none, and it rendered anyway:
                      a section draws its head and its note whatever the count.
@@ -2668,79 +2696,79 @@ export function Board() {
                      at 50 of 89, so any count printed here would be a floor
                      wearing a total's clothes. The count that IS honest is
                      already on the lane above, on its own head. */
-                  allLiveRows.length > 0 ? (
-                    <>
-                      Waiting on an agent, not on you.
-                      <OverlapCheck workspaceId={workspaceId} />
-                    </>
-                  ) : allReplyRows.length > 0 ? (
-                    <>Nothing is running. The work above is waiting on you, not on an agent.</>
-                  ) : (
-                    <>Nothing is running.</>
-                  ),
-                  (row) =>
-                    row.isTrack ? null : (
-                      <Action
-                        variant="quiet"
-                        busy={cancelRun.isPending}
-                        onClick={(event) => {
-                          /* The row itself opens the run; stopping it must not. */
-                          event.stopPropagation();
-                          void cancelRunAt(row.id);
-                        }}
-                      >
-                        Stop
-                      </Action>
+                    allLiveRows.length > 0 ? (
+                      <>
+                        Waiting on an agent, not on you.
+                        <OverlapCheck workspaceId={workspaceId} />
+                      </>
+                    ) : allReplyRows.length > 0 ? (
+                      <>Nothing is running. The work above is waiting on you, not on an agent.</>
+                    ) : (
+                      <>Nothing is running.</>
                     ),
-                  (row) => (
-                    <>
-                      {/* WHY IT IS HELD, in full, on the line under the row. The
+                    (row) =>
+                      row.isTrack ? null : (
+                        <Action
+                          variant="quiet"
+                          busy={cancelRun.isPending}
+                          onClick={(event) => {
+                            /* The row itself opens the run; stopping it must not. */
+                            event.stopPropagation();
+                            void cancelRunAt(row.id);
+                          }}
+                        >
+                          Stop
+                        </Action>
+                      ),
+                    (row) => (
+                      <>
+                        {/* WHY IT IS HELD, in full, on the line under the row. The
                           driver writes real sentences past 200 characters and
                           the state slot is a few words wide, so the row says
                           "held" and the reason reads properly here. Same split
                           the waiting lane uses. */}
-                      {row.note ? (
-                        <p className="px-mrd-2 pb-mrd-2 text-mrd-data leading-mrd-prose text-mrd-mute">
-                          {row.note}
-                        </p>
-                      ) : null}
-                      {/* WHERE THIS CAME FROM (§0.5's connectedness, board half).
+                        {row.note ? (
+                          <p className="px-mrd-2 pb-mrd-2 text-mrd-data leading-mrd-prose text-mrd-mute">
+                            {row.note}
+                          </p>
+                        ) : null}
+                        {/* WHERE THIS CAME FROM (§0.5's connectedness, board half).
                           The lineage sheet is already mounted app-wide in
                           AppFrame; before this, nothing in this prefix offered
                           the gesture. Under the row rather than in the scan
                           band, which truncates. Never on a track: AUDIT_KINDS
                           has no spine-track entry, so the ref would not
                           resolve. */}
-                      <CameFrom
-                        missionId={row.id}
-                        isTrack={row.isTrack}
-                        counts={lineageCounts?.[row.id]}
-                      />
-                      {/* WHERE THE WORK JUST CAME FROM. The founder asked twice to
+                        <CameFrom
+                          missionId={row.id}
+                          isTrack={row.isTrack}
+                          counts={lineageCounts?.[row.id]}
+                        />
+                        {/* WHERE THE WORK JUST CAME FROM. The founder asked twice to
                           see the handoff; on the board that is this one line under
                           each running row, drawn only when a real handover row
                           exists. It owns its own read and its own silence, so the
                           route-level wait contract above is untouched. */}
-                      <HandoverNote missionId={row.id} workspaceId={workspaceId} />
-                      {/* WHO ELSE IS ON THE SAME THING. Only where one of them is
+                        <HandoverNote missionId={row.id} workspaceId={workspaceId} />
+                        {/* WHO ELSE IS ON THE SAME THING. Only where one of them is
                           WRITING, because a shared read is a healthy afternoon and a
                           mark that is always on is furniture. A track row carries a
                           track id, not a mission id, so it is not asked. */}
-                      {row.isTrack ? null : (
-                        <OverlapNote missionId={row.id} workspaceId={workspaceId} />
-                      )}
-                    </>
-                  ),
-                )}
-                {crewSection(
-                  FEED_OPEN,
-                  allOpenRows,
-                  undefined,
-                  "Finished. Open one to see how it ended, and what it left behind.",
-                  (row) => (
-                    <Door onClick={row.onOpen}>Open</Door>
-                  ),
-                  /* HOW IT GOT DONE, on the row that says it is done. SEVEN of
+                        {row.isTrack ? null : (
+                          <OverlapNote missionId={row.id} workspaceId={workspaceId} />
+                        )}
+                      </>
+                    ),
+                  )}
+                  {crewSection(
+                    FEED_OPEN,
+                    allOpenRows,
+                    undefined,
+                    "Finished. Open one to see how it ended, and what it left behind.",
+                    (row) => (
+                      <Door onClick={row.onOpen}>Open</Door>
+                    ),
+                    /* HOW IT GOT DONE, on the row that says it is done. SEVEN of
                      the ten missions carrying a handoff are finished, so
                      without this the event the brief calls "worth drawing"
                      stays invisible for the majority of the work that actually
@@ -2749,52 +2777,53 @@ export function Board() {
                      than implied, which is the whole difference between a
                      status and a record. Silent when no handover exists, so a
                      settled lane gains no furniture. */
-                  (row) => (
-                    <HandoverNote missionId={row.id} workspaceId={workspaceId} />
-                  ),
-                )}
-              </div>
-            ) : null}
+                    (row) => (
+                      <HandoverNote missionId={row.id} workspaceId={workspaceId} />
+                    ),
+                  )}
+                </div>
+              ) : null}
 
-            {/* THE INBOX DOOR. This card shows three rows per section and opens
+              {/* THE INBOX DOOR. This card shows three rows per section and opens
                 the rest in place; the inbox is the same triage with no cap and
                 nothing but the triage on it. Until 2026-08-25 the route answered
                 and nothing pointed at it - a surface with no door, this repo's
                 most common defect. The door rides under the feed it extends,
                 where the reader who needs it already is. */}
-            {/* WHAT IT COST. `/runs` carried this and redirects now, so without
+              {/* WHAT IT COST. `/runs` carried this and redirects now, so without
                 it the fold would remove a capability rather than a door. One
                 quiet line, no accent, and drawn ONLY when a figure exists:
                 "no cost reported" and "$0.00" are different claims and this
                 surface may not swap one for the other. */}
-            {totals.sessionSpendUsd !== null || totals.trackSpendUsd !== null ? (
-              <p className="max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
-                {[
-                  spendWords(totals.sessionSpendUsd)
-                    ? `${spendWords(totals.sessionSpendUsd)} spent on runs`
-                    : null,
-                  spendWords(totals.trackSpendUsd)
-                    ? `${spendWords(totals.trackSpendUsd)} on work the loop drove`
-                    : null,
-                ]
-                  .filter(Boolean)
-                  .join(", ")}
-                .
-                {totals.sessionsWithoutCost > 0
-                  ? ` ${totals.sessionsWithoutCost} ${
-                      totals.sessionsWithoutCost === 1 ? "run" : "runs"
-                    } reported no cost, so this is a floor.`
-                  : ""}
-              </p>
-            ) : null}
+              {totals.sessionSpendUsd !== null || totals.trackSpendUsd !== null ? (
+                <p className="max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
+                  {[
+                    spendWords(totals.sessionSpendUsd)
+                      ? `${spendWords(totals.sessionSpendUsd)} spent on runs`
+                      : null,
+                    spendWords(totals.trackSpendUsd)
+                      ? `${spendWords(totals.trackSpendUsd)} on work the loop drove`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
+                  .
+                  {totals.sessionsWithoutCost > 0
+                    ? ` ${totals.sessionsWithoutCost} ${
+                        totals.sessionsWithoutCost === 1 ? "run" : "runs"
+                      } reported no cost, so this is a floor.`
+                    : ""}
+                </p>
+              ) : null}
 
-            <Door
-              title="The full list of what needs you, uncapped"
-              onClick={() => navigate({ to: "/inbox" })}
-            >
-              Open the inbox
-            </Door>
-          </Region>
+              <Door
+                title="The full list of what needs you, uncapped"
+                onClick={() => navigate({ to: "/inbox" })}
+              >
+                Open the inbox
+              </Door>
+            </Region>
+          </div>
         </div>
 
         {/* WHETHER THE QUIET IS THIS PRODUCT WORKING OR THIS PRODUCT STOPPED.
@@ -2911,37 +2940,32 @@ export function Board() {
         ) : null}
 
         {/*
-         * THE DOOR THAT SAID IT STARTED WORK AND DID NOT. This block read
-         * "Start something new" over a composer whose submit is `openAsk()`,
-         * which opens the Ask pane. Asking is a real act and a good one, but a
-         * person reading "give the crew its next outcome" expects work to
-         * exist afterwards, and none did. The most-visited surface in the
-         * product was promising the one act it does not perform.
+         * ── THE BOARD'S OWN COMPOSER IS GONE, 2026-09-01 ───────────────────
          *
-         * So the composer is named for what it does, and the act it was
-         * standing in for gets its own door beside it. `/start` is the door
-         * that creates a track, and 41 of the last 43 tracks entered at
-         * `sense` through it, so it is the live way work begins.
+         * IT WAS THE SECOND ONE ON THE PAGE, and the page it is on is the
+         * front door. Measured signed in at 1512px: `/start` renders its own
+         * `Composer` ("Describe the work in one sentence") at y≈560, and this
+         * block rendered a second field ("Tell Supaprod what to build") at
+         * y≈3205 -- both marked `data-page-composer`, on one screen, asking a
+         * person for the same sentence twice.
          *
-         * DELIBERATELY A LINK AND NOT A SECOND COMPOSER. Which engine the
-         * board's own composer should drive is a real question with three
-         * candidates and it is not mine to settle; it is filed as
-         * D2-the-consolidated-start-door.md for S0 and S1. A link removes the
-         * false promise today without pre-empting that ruling, and it cannot
-         * become a fourth way to start work.
+         * `/start`'s own header already claims this defect was fixed: *"the
+         * first screen a person meets asked for a sentence twice ... once in
+         * this field, and again 500px below in a bar"*. It was fixed, for the
+         * dock. Then the board was lifted onto `/start` on 2026-08-31 carrying
+         * a composer of its own, and the same defect came back through a door
+         * nobody was watching -- 2,600px lower and reading worse, because now
+         * the two fields do DIFFERENT things: the one at the top starts a run,
+         * this one opened the Ask pane.
+         *
+         * THE FILED QUESTION IS ANSWERED BY THE FOLD, NOT BY ME OVERRULING IT.
+         * `D2-the-consolidated-start-door.md` asks which engine the board's
+         * composer should drive. Once `/today` folded into `/start` the board
+         * has no surface of its own, so it has no composer to route: the page
+         * it lives on owns that field and drives it into `startTrack`. There
+         * is one way to begin work, and Ask keeps ⌘K and its button in the top
+         * bar, which is where a global action belongs.
          */}
-        <div data-page-composer className="today-composer">
-          <div>
-            <div className="today-kicker">Ask the crew</div>
-            <div className="today-composer-copy">
-              Ask a question about this workspace, or talk through what to do next.{" "}
-              <Door title="Start a new piece of work" onClick={() => navigate({ to: "/start" })}>
-                Start a piece of work
-              </Door>
-            </div>
-          </div>
-          <AskComposer />
-        </div>
       </div>
 
       {/* THE DOOR THAT WAS A WALL. Today has drawn a "Send back" button for

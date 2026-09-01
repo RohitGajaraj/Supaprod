@@ -11,6 +11,8 @@ import { Composer, PickCard } from "@/components/meridian/onramp-parts";
 import { CharacterMark } from "@/components/presence/Character";
 import { CHARACTER_NAME } from "@/lib/presence/character";
 import { Board } from "@/components/today/Board";
+import { failureLine } from "@/lib/error-copy";
+import { REVIEW_QUEUE_ANCHOR } from "@/components/shell/post-auth-home";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { startTrack } from "@/lib/spine/track.functions";
 import type { WorkShape } from "@/lib/spine/route";
@@ -92,7 +94,19 @@ const JOBS: Job[] = [
 const OPEN_PLACEHOLDER = "What are you changing, and what should it do?";
 
 export const Route = createFileRoute("/_authenticated/start")({
-  validateSearch: (search: Record<string, unknown>): { about?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { about?: string; queue?: boolean } => ({
+    /*
+     * `?queue=1` MEANS "SHOW ME THE THINGS WAITING ON ME". The rail's
+     * Approvals row lands here through `/today`'s redirect; without this the
+     * door was a no-op, because the queue it counts is already on this page,
+     * about 1,400px down. See `post-auth-home.ts` for the measurement.
+     *
+     * Accepts the string form as well as the boolean, because a person can
+     * paste or bookmark the url and a bookmark that quietly stops working is
+     * worse than one that never worked.
+     */
+    queue:
+      search.queue === true || search.queue === "true" || search.queue === "1" ? true : undefined,
     // RUN-15: the turn-around from Learn lands here with the expectation as
     // the opening sentence, so "take another run at this" starts from what
     // the last attempt learned. A plain string, capped -- the composer is
@@ -109,7 +123,7 @@ export const Route = createFileRoute("/_authenticated/start")({
 function StartLanding() {
   const navigate = useNavigate();
   const { activeWorkspaceId, activeProductId } = useWorkspace();
-  const { about } = Route.useSearch();
+  const { about, queue } = Route.useSearch();
 
   // A seeded sentence is a HEAD START, not a decision: the person reads and
   // edits it like anything else they typed.
@@ -164,6 +178,22 @@ function StartLanding() {
     },
   });
 
+  /*
+   * ── A THROWN START RENDERED NOTHING AT ALL, 2026-09-01 ──────────────────
+   *
+   * `problems` reads `go.data`, which exists only when the call RESOLVED and
+   * the validator refused. When `startTrack` THROWS -- a dropped network, an
+   * expired session, a 500 -- `go.data` stays undefined, `problems` is `[]`,
+   * the button un-busies, and the screen says nothing. The person is left
+   * looking at their own sentence with no idea whether it was filed.
+   *
+   * This is the product's highest-traffic action on its front door, and it is
+   * the one path with no error arm: `go.isError` was never read anywhere in
+   * this file. The two failures are genuinely different and get different
+   * sentences -- a refusal names what to change, a throw says the sentence is
+   * safe and to press again -- so this is a second arm rather than a widening
+   * of the first.
+   */
   const problems = go.data?.problems ?? [];
   const placeholder = selected
     ? (JOBS.find((j) => j.shape === selected)?.placeholder ?? OPEN_PLACEHOLDER)
@@ -189,9 +219,91 @@ function StartLanding() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /*
+   * ── ARRIVING AT THE QUEUE RATHER THAN ABOVE IT ──────────────────────────
+   *
+   * `?queue=1` is how the rail's Approvals row reaches the thing it counts.
+   * The board mounts under this page and fetches its own rows, so the anchor
+   * does not exist on the first paint -- it appears when the queue read
+   * answers. A single `scrollIntoView` on mount would therefore scroll to
+   * nothing and look like the same no-op it replaces.
+   *
+   * So this WATCHES for the element instead of assuming it: a MutationObserver
+   * with a 6s ceiling, disconnected the moment it lands or the page unmounts.
+   * The ceiling matters -- on a workspace with nothing waiting, the anchor
+   * never appears at all, and an observer with no stop condition would sit on
+   * the document for the life of the tab.
+   *
+   * `smooth` unless the person asked for less motion (R-19). A jump on a
+   * 3,000px page is disorienting in a way that reads as a page load, which is
+   * precisely what this door is fixing.
+   */
+  useEffect(() => {
+    if (!queue) return;
+    let done = false;
+    const bring = () => {
+      const el = document.getElementById(REVIEW_QUEUE_ANCHOR);
+      if (!el || done) return false;
+      /*
+       * WAIT FOR THE QUEUE TO HAVE A BODY, not just a wrapper. The anchor div
+       * mounts with the board and is briefly ~0px tall while its own read is in
+       * flight; scrolling to it then lands on a box that is about to grow, and
+       * the thing the person pressed for ends up below the fold again. 200px is
+       * "at least one card has rendered".
+       */
+      if (el.getBoundingClientRect().height < 200) return false;
+      done = true;
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      el.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+      return true;
+    };
+    if (bring()) return;
+    const obs = new MutationObserver(() => {
+      if (bring()) obs.disconnect();
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+    const ceiling = window.setTimeout(() => obs.disconnect(), 6000);
+    return () => {
+      obs.disconnect();
+      window.clearTimeout(ceiling);
+    };
+  }, [queue]);
+
   return (
-    <div className="flex min-h-dvh flex-col items-center px-6 py-16">
-      <div className="flex w-full max-w-2xl flex-col gap-mrd-7">
+    /*
+     * ── TWO MEASURES, ONE CENTRE LINE (2026-09-01) ────────────────────────
+     *
+     * FOUNDER: *"the main content on the center pane is slightly towards the
+     * right side ... how can I make it dynamically adapt to the size of the
+     * screen?"*
+     *
+     * THIS WRAPPER WAS ONE MEASURE FOR TWO DIFFERENT KINDS OF THING. It read
+     * `items-center px-6 py-16` around a `max-w-2xl` column, and that column
+     * held BOTH the composer and `<Board />`. A composer is prose -- it stops
+     * being readable much past 42rem, so the cap was right for it. A board of
+     * dense lanes is not read line by line and wants every pixel there is.
+     *
+     * MEASURED SIGNED IN, BEFORE THE CHANGE: at a 1512px window the work
+     * region is 1265px wide and the board rendered at **599px**. At 1024px the
+     * work region is 777px and the board rendered at **627px**. The board
+     * declares `Surface wide`, `.sp-inner` offers it up to 1400px, and a
+     * Tailwind class three levels up quietly overruled all of it. That is the
+     * "not optimised to the screen" the founder is looking at, and it gets
+     * worse as the monitor gets bigger -- on a 32in display the board was
+     * using under a quarter of the width available to it.
+     *
+     * So the page stops setting a width at all. The composer block opts into
+     * `.sp-read`; `<Board />` keeps its own `.sp-inner`. Both are centred by
+     * `margin-inline: auto` on the SAME axis, so the narrow block sits on the
+     * wide one's centre line instead of drifting against it -- which is the
+     * other half of what "slightly towards the right" describes.
+     *
+     * Padding comes from `--sp-work-pad-*`, which are already `clamp()`ed
+     * against the container, so the gutters breathe from 13in to 65in instead
+     * of staying at a hardcoded 24px.
+     */
+    <div className="flex min-h-dvh flex-col">
+      <div className="mrd-read mrd-read-page flex flex-col gap-mrd-7">
         {/*
          * THE COMPARISON ROW IS GONE, AND THE LABEL IS WHY IT HAD TO GO.
          *
@@ -303,6 +415,46 @@ function StartLanding() {
                 fieldRef={fieldRef}
               />
               {/*
+               * ── THE PICKER SITS WITH THE FIELD IT CHANGES, 2026-09-01 ────
+               *
+               * IT USED TO BE THE LAST THING ON THE PAGE. Measured signed in
+               * at 1512px with a real workspace: this block rendered BELOW
+               * `<Board />` at y≈3,400 -- under the review queue, the run
+               * lanes, the evidence region and the last-learned block. The
+               * composer it drives is at y≈560.
+               *
+               * So the one control that changes what the field asks you sat
+               * three screens beneath the field, and picking a card scrolls
+               * the person back up to a placeholder they cannot see change.
+               * Nobody reaches it: on a returning workspace the board alone is
+               * ~2,600px, and this is the only thing under it.
+               *
+               * It is not a footer, it is part of the composer: `onSelect`
+               * focuses `fieldRef` and the placeholder is derived from
+               * `selected`. Sitting it directly under the field is what the
+               * behaviour already assumed -- the suggestion-chip shape every
+               * frontier composer uses, where the chips are within a glance of
+               * the caret they steer.
+               */}
+              <div data-mrd="" className="flex flex-col gap-mrd-3">
+                <p className="mrd-meta">Pick one if it fits. Not picking is fine.</p>
+                <div className="grid grid-cols-1 gap-mrd-3 md:grid-cols-2">
+                  {JOBS.map((job) => (
+                    <PickCard
+                      key={job.shape}
+                      lead={job.lead}
+                      sub={job.sub}
+                      selected={selected === job.shape}
+                      onSelect={() => {
+                        const next = selected === job.shape ? null : job.shape;
+                        setSelected(next);
+                        if (next) fieldRef.current?.focus();
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+              {/*
                 WHAT THIS WORKSPACE ALREADY HOLDS ABOUT IT (F-184's door,
                 SPEC-BUILD-PATHS §2.3 -- one step before Discover's connector dry-run,
                 which puts it here at creation). `060bc5ff` burned three completed runs
@@ -333,6 +485,21 @@ function StartLanding() {
 
         {problems.length > 0 ? (
           <Receipt verb="It did not start" consequence={problems.join(" ")} failed />
+        ) : go.isError ? (
+          <Receipt
+            verb="It did not start"
+            /* STATES WHAT IS TRUE, NEVER WHAT TO PRESS. `failureLine` appends
+               the server's own sentence, which may be "Your session ended.
+               Sign in again and this will load." -- an instruction to press
+               Start would be refuted by it one clause later. See
+               `a-failure-line-never-argues-with-itself.test.ts`, which caught
+               this line's first draft. */
+            consequence={failureLine(
+              "Nothing was filed and your sentence is still here.",
+              go.error,
+            )}
+            failed
+          />
         ) : null}
 
         {/*
@@ -355,28 +522,15 @@ function StartLanding() {
          * and its own error states -- including the failed-read case the
          * deleted block existed for, which is why deleting that block does not
          * reintroduce "a failed read is not an empty desk".
+         *
+         * IT SITS OUTSIDE THE READING COLUMN, 2026-09-01. It used to be the
+         * last child of a `max-w-2xl` wrapper, which capped it at 599px on a
+         * 1512px screen. It brings its own `.sp-inner` and takes the work
+         * region up to `--shell-work-max`; the composer above keeps the prose
+         * measure. See the wrapper comment at the top of this return.
          */}
-        <Board />
-
-        <div data-mrd="" className="flex flex-col gap-mrd-3">
-          <p className="mrd-meta">Pick one if it fits. Not picking is fine.</p>
-          <div className="grid grid-cols-1 gap-mrd-3 md:grid-cols-2">
-            {JOBS.map((job) => (
-              <PickCard
-                key={job.shape}
-                lead={job.lead}
-                sub={job.sub}
-                selected={selected === job.shape}
-                onSelect={() => {
-                  const next = selected === job.shape ? null : job.shape;
-                  setSelected(next);
-                  if (next) fieldRef.current?.focus();
-                }}
-              />
-            ))}
-          </div>
-        </div>
       </div>
+      <Board />
     </div>
   );
 }

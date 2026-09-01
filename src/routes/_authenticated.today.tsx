@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
+import { REVIEW_QUEUE_SEARCH, SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 /**
  * `/today` HAS FOLDED INTO THE HOME. THE URL SURVIVES AS AN ALIAS.
@@ -40,8 +40,29 @@ import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
  * two commits on two branches taken to `main` in one merge, so `main` never
  * holds a half-state.
  */
+/*
+ * ── THE REDIRECT NOW CARRIES THE PERSON TO THE QUEUE, NOT TO THE TOP ──────
+ *
+ * WHAT THIS ROUTE ACTUALLY DID FOR A WEEK. The rail's **Approvals** row -- the
+ * only row in the rail carrying a count -- points here, and this threw the
+ * person at `/start`. The board is mounted on `/start`, so the surface was
+ * right and the position was not: measured signed in with 70 waiting calls,
+ * the queue sits ~1,400px below the fold. A person pressed a badge reading
+ * **70** and arrived at a page they were already on, with nothing moved and no
+ * indication anything had happened.
+ *
+ * `_authenticated.tsx`'s own comment names this exact failure mode about the
+ * previous flip: *"The home flip was half a change: it moved the landing and
+ * left the signpost."* This is the same half-change one level down. A fold is
+ * finished when the doors point at the SECTION, not at the page that now
+ * contains it.
+ *
+ * The flag is carried here rather than on the rail row deliberately: the row
+ * keeps `to: "/today"`, so its `owns` highlighting and its `g o` chord are
+ * untouched and no second literal has to agree with this one.
+ */
 export const Route = createFileRoute("/_authenticated/today")({
   beforeLoad: () => {
-    throw redirect({ to: SIGNED_IN_HOME });
+    throw redirect({ to: SIGNED_IN_HOME, search: { [REVIEW_QUEUE_SEARCH]: true } });
   },
 });
