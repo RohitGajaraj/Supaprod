@@ -134,11 +134,28 @@ re-derives it.
 4. **The return edge does not fire.** The due-forecast queue exists and has processed **zero
    workspaces in its life** (F-51). Notion's shape is the model: give it a job, set a schedule, it
    comes back. Until this runs, `learn` starves and the brain starves with it. — *S0.*
-5. **You cannot steer without restarting, and you cannot undo a step.** Devin lets you intervene at any
-   point. We offer Start and Stop, which makes this a batch job. — *S1.*
-6. **You cannot take a step over by hand and hand it back.** The 40-point gap between the ~60% of work
-   people use AI for and the 0–20% they can fully delegate is exactly this, and it is what we sell
-   into. — *S1.*
+5. ~~**You cannot steer without restarting, and you cannot undo a step.**~~ **BUILT. Verified on the
+   running product 2026-09-01** by loading a real run signed in, not by reading the code. The run
+   screen carries a steer field placeholder `Say what to change`, alongside `Run it now`. The
+   original text stands as the reason it was authorised and is struck rather than deleted so the
+   argument survives: *Devin lets you intervene at any point. We offer Start and Stop, which makes
+   this a batch job.* — *S1.*
+6. ~~**You cannot take a step over by hand and hand it back.**~~ **BUILT. Verified on the running
+   product 2026-09-01.** The run screen carries a `Take it over` region reading *"Send a step back to
+   be done again, or do it yourself and hand the result in. Both count as you stepping in, and this
+   piece of work will say so from here on"*, with `Send it back to <station>`, a field for the pull
+   request link, and `Hand it back`. Note the copy names the consequence, which is what R-18 needs it
+   to do: taking a step by hand disqualifies the run from the acceptance, and the control says so
+   before you press it. Original reason kept: *The 40-point gap between the ~60% of work people use
+   AI for and the 0–20% they can fully delegate is exactly this, and it is what we sell into.* — *S1.*
+
+   > **WHY THESE TWO ARE STRUCK RATHER THAN REMOVED, and why it was worth a commit.** A gap list that
+   > names a built thing as missing is not a stale document, it is a work order. Both were still
+   > listed as authorised-and-unbuilt while both were live on the surface a person actually uses, so
+   > the next lane to read §0.6 would have built them a second time. Checked by pressing the product;
+   > **gap #7 was checked the same way and is NOT struck** -- `RunCost` is mounted on the run's right
+   > pane and passed the person's opening sentence, but it rendered nothing on the run I loaded, so
+   > "built" is not a claim this note can make about it.
 7. **"Was it worth it" has no surface.** Spend and token caps live on `agent_runs`; nothing shows cost
    and elapsed time against what was promised at the outset. **Value audit is one of the six verbs and
    it is entirely unbuilt.** — *S1 for the surface, S0 for the numbers.*
