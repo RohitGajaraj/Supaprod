@@ -148,6 +148,34 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
           </TestItemGroup>
         ) : null}
 
+        {/*
+         * ── THE CI ROWS ARE WEARING THE PLAN'S VERDICT, NOT THEIR OWN ────────
+         *
+         * This maps `plan.verdict` -- the station's overall call -- onto every
+         * CI row, and `plan.verdict` is computed from the eval results and the
+         * UAT checklist as well as the CI gate. So one failed eval case stamps
+         * FAILED across every CI expectation while the run itself succeeded,
+         * and a single unticked UAT box stamps PENDING across CI expectations
+         * the run already satisfied. Two of the three branches below print a
+         * verdict about something other than CI.
+         *
+         * IT IS NOT FIXABLE FROM THIS FILE. The true value is `ciStatus`
+         * (`ciGateStatus(missionStatus)`, in `src/lib/test-station.functions.ts`
+         * inside `loadMissionTestPlan`), and it is computed, handed to
+         * `computeVerdict`, and then dropped on the floor:
+         * `MissionTestPlan` carries `verdict`, `eval`, `ci`, `uat` and
+         * `alreadyRecorded`, and `CiPlanItem` is `{ clauseId, text }`. Nothing
+         * the panel receives distinguishes a CI-blocked run from an
+         * eval-blocked one. The fix is one field on the server type -- either
+         * `ciStatus` on `MissionTestPlan` or a `status` on `CiPlanItem` -- and
+         * that file also feeds `verify-green.server.ts` and has its own test
+         * file, so it belongs to whoever owns it rather than here.
+         *
+         * Left as it stands deliberately: guessing a per-row status from
+         * `plan.verdict` alone is only exact when the verdict is `passing`, and
+         * printing nothing would take the genuinely blocked case off the
+         * surface, which is the one a reader came for.
+         */}
         {plan.ci.length > 0 ? (
           <TestItemGroup label="CI expectations">
             {plan.ci.map((item: CiPlanItem) => (

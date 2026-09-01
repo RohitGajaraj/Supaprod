@@ -121,9 +121,26 @@ export function Row({ subject, value, detail, stamp, statusWord, tone, onOpen }:
           phrasing content, and a `<div>` in here makes the markup invalid and
           React refuses to hydrate it. `block`/`flex` change the box, not the
           content model. */}
+      {/* BOTH LINES TRUNCATE, SO BOTH CARRY THE FULL STRING IN `title`.
+          Without it a row cut at the ellipsis has nowhere left to say what it
+          was: on Record > Every run the subject is a mission title or the first
+          message of the run, and those share long prefixes, so six adjacent
+          rows cut at the same width are the same six characters followed by
+          "...". `RoomGlanceCard` already does exactly this on its own truncated
+          value and latest-event lines; this is that treatment, on the surface
+          where the strings are longest and the rows are densest. A native
+          tooltip is not a substitute for a reveal, but it is what the platform
+          gives for free and it is strictly better than a row that cannot be
+          told from its neighbour. */}
       <span className="flex min-w-0 flex-1 flex-col gap-mrd-1">
-        <span className="truncate text-mrd-label font-medium text-mrd-ink">{subject}</span>
-        {detail ? <span className="mrd-meta truncate">{detail}</span> : null}
+        <span className="truncate text-mrd-label font-medium text-mrd-ink" title={subject}>
+          {subject}
+        </span>
+        {detail ? (
+          <span className="mrd-meta truncate" title={detail}>
+            {detail}
+          </span>
+        ) : null}
       </span>
       <span className="font-mrd-mono shrink-0 text-right text-mrd-small text-mrd-mute tabular-nums">
         {value}
@@ -198,6 +215,19 @@ export function ErrorRetry({ message, onRetry }: { message: string; onRetry: () 
  * both: a decorative pulse tells a sighted reader something is coming and never
  * what, and tells a screen reader nothing at all. `PanelReading` says the word
  * in a live region. The name is kept so every room panel keeps compiling.
+ *
+ * PASS A SENTENCE. It is optional to the type checker and required in practice.
+ * There are twenty-five of these across the engine room and every one of them
+ * fell back to the bare "Reading.", so a live region announced the identical
+ * word whether the panel was fetching 30 days of runs, a cost rollup or a
+ * safety incident list -- and on the several surfaces that mount two of these
+ * at once it said it twice. The reader already knows something is loading; the
+ * only thing this element can add is WHAT, and the fallback is the one form
+ * that adds nothing.
+ *
+ * It stays optional because making it required would fail the typecheck at
+ * twenty call sites across seven panels, which is a change for the lanes that
+ * own those files rather than a change to make from here.
  */
 export function PanelPending({ children }: { children?: React.ReactNode }) {
   return <PanelReading>{children ?? "Reading."}</PanelReading>;

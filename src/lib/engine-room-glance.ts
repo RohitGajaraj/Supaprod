@@ -632,7 +632,15 @@ export function buildSpendGlance(input: SpendGlanceInput): RoomGlance {
     });
   }
   if (input.tokensThisWeek !== undefined) {
-    figures.push({ label: "tokens", value: fmtCompact(input.tokensThisWeek) });
+    // The same window as "calls" and "failed calls" directly above and below
+    // it, and it was the one figure in the group that did not say so. "22M
+    // tokens" with no window is not a measurement a person can act on -- it
+    // reads as a lifetime total sitting between two seven-day ones.
+    figures.push({
+      label: "tokens",
+      value: fmtCompact(input.tokensThisWeek),
+      note: "in the last 7 days",
+    });
   }
   if (input.daily) {
     const trend = dayOverDay(input.daily, input.asOfMs ?? Date.now(), input.windowIsWhole === true);
@@ -854,7 +862,12 @@ export interface SafetyGlanceInput {
    * but personal data, credentials and injection are still being screened.
    */
   floorCount?: number;
-  /** `getGuardrailOverview().hits`: the recent-activity list, capped by the read. */
+  /**
+   * `getGuardrailOverview().hits`: what that function calls its recent-activity
+   * list, and the name is the query's rather than a window. The select carries
+   * NO date filter -- `order("created_at", desc).limit(100)` -- so these are the
+   * newest 100 rows of all time, and the figure built from them says so.
+   */
   hits?: readonly {
     rule_name?: string | null;
     action?: string | null;
@@ -947,10 +960,19 @@ export function buildSafetyGlance(input: SafetyGlanceInput): RoomGlance {
     // two orders of magnitude, which is the exact shape of a number with no row
     // behind it: the rows exist, the count does not describe them.
     const capped = input.hitLimit !== undefined && input.hits.length >= input.hitLimit;
+    /* THE WINDOW, NAMED, because "recent" is not one. `getGuardrailOverview`
+       reads `guardrail_hits` with no date filter at all -- newest first, 100
+       rows -- so this figure has always covered the whole history of the
+       workspace and called it recent. Every other figure on these cards states
+       its window ("in the last 7 days", "screen every call whatever you set"),
+       and a reader who has been taught that they all do reads an unqualified
+       "recent" as a short window, which turns an all-time total into a
+       this-week alarm. When the read is capped the value is already a floor
+       ("100+"), and a floor over all time is still an all-time figure. */
     figures.push({
       label: "calls a rule caught",
       value: capped ? `${fmtCount(input.hitLimit!)}+` : fmtCount(input.hits.length),
-      note: "recent",
+      note: "all time",
     });
   }
 
