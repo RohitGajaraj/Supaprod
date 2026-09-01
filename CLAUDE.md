@@ -21,6 +21,28 @@ them. **They are still true. They are not withdrawn.**
   [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md).
   Nothing outward ships without the founder's approval.
 
+## The bar
+
+**Read [`docs/conventions/the-bar.md`](./docs/conventions/the-bar.md) before any surface work.** It
+is short and it is the standard. Compressed, because these four decide most calls:
+
+- **Build it as if Anthropic, OpenAI, Google, Vercel, Figma, Perplexity or Microsoft were shipping
+  it.** If one of them put their name on this screen tomorrow, would it go out or get sent back?
+- **This is not a B2B SaaS app with AI features. It is an agentic platform.** So **the agent's work
+  is shown, not hidden**: what it is doing, what it decided, what it needs from you, visible as it
+  happens. **A spinner is not agent visibility.** And the person keeps talking to it while the
+  backend runs. The *machinery* stays behind the engine-room door; the *work* does not.
+- **Wear the user's hat at every step, not at the review.** Walk the arrival, the wait, the first
+  failure, the second visit. Empty, slow and wrong are the states that decide whether it is trusted,
+  and they are the ones that get designed last.
+- **Design for where this lands, not where it starts.** A surface that only makes sense while a
+  human does most of the work is one we will pay to replace.
+
+**You have full liberty on the design system, the features and the gaps** (founder, 2026-09-01 and
+2026-09-02). Raise Meridian, build the missing component, redesign the surface. What that never
+licenses: compressing instead of designing, widening a test baseline to pass, or shipping a claim
+the repo cannot show.
+
 ## Commands
 
 Bun is the package manager and runner. `package-lock.json` is not canonical.

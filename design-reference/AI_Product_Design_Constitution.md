@@ -1,5 +1,31 @@
 # AI Product Design Constitution
 
+> [!CAUTION]
+>
+> ## SUPERSEDED IN TWO PLACES. Read it for method, never for authority.
+>
+> **This file calls itself the permanent design constitution and tells every AI agent to treat it
+> as the source of truth. Both claims are retired**, corrected 2026-09-02. Two specific things in
+> it are now wrong, and the rest is still worth reading.
+>
+> **1. It does not own the visual contract.** Meridian does:
+> [`../docs/design/DESIGN-SYSTEM.md`](../docs/design/DESIGN-SYSTEM.md), system
+> `src/styles/meridian.css`, components `src/components/meridian/`. `bun test` fails on a new file
+> carrying a retired token. Its repo link also points at `project_cadence_v5`, retired at the
+> 2026-07-17 rename.
+>
+> **2. Its AI doctrine is REVERSED, and this is the important one.** It says "AI should not feel
+> like another feature. It should quietly improve every workflow." **We now require the opposite:
+> the agent's work is shown, not hidden** (founder ruling 2026-09-02). Quiet assistance is the
+> pattern for a tool with a feature bolted on; we are building an agentic platform where the work
+> being done on your behalf is the thing you came to watch. Following this section would build the
+> wrong product.
+>
+> **What survives is its method**, and it is genuinely good: the multi-hat role, the per-screen
+> interrogation, the product philosophy. That has been carried forward and made binding in
+> [`../docs/conventions/the-bar.md`](../docs/conventions/the-bar.md). Read this file for the
+> reasoning; take instructions from that one.
+
 ## Purpose
 
 This document serves as the permanent design constitution for the platform. Every AI agent and designer should treat it as the source of truth.

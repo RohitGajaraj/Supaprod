@@ -50,6 +50,26 @@ motion:
 ---
 
 > [!CAUTION]
+>
+> ## RETIRED. Meridian is the design system, and this file is not it.
+>
+> **This file declares itself the source of truth for all Supaprod design work in any tool. That
+> has been false since 2026-08-14** and is corrected here on 2026-09-02. It describes **v1 Ember**
+> (warm parchment, ember copper, Newsreader serif), retired along with v3 Obsidian, v4 Loom, v5
+> Tempo and Cadence/ink.
+>
+> **The live contract is [`../docs/design/DESIGN-SYSTEM.md`](../docs/design/DESIGN-SYSTEM.md)**,
+> the system itself is `src/styles/meridian.css`, and the components are `src/components/meridian/`.
+> `bun test` fails on a new file carrying a retired token, so building from this file does not
+> merely produce the wrong look, it produces a build that does not pass.
+>
+> **Why this banner exists and the folder README was not enough.** The README one level up already
+> says everything here is retired. A tool that opens THIS file directly never sees it, and this
+> file's own front matter invites exactly that ("in any tool: Claude Code, Lovable, Cursor, design
+> agents"). Kept as history, because the reasoning is still worth reading. It is not authority.
+
+
+> [!CAUTION]
 > # RETIRED. THIS IS NOT THE DESIGN SYSTEM. DO NOT BUILD FROM IT.
 >
 > **This file describes v1 Ember, retired on 2026-08-14 along with v3 Obsidian, v4 Loom, v5 Tempo and Cadence/ink.** Its own header calls itself *"THE SOURCE OF TRUTH for all Supaprod design work, in any tool"*. **That sentence is false and has been since 2026-08-14.** It is preserved as history, and history is not authority.
