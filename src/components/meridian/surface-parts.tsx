@@ -176,7 +176,7 @@ export function PageHeading({
   return (
     <header data-mrd="">
       <H className="text-mrd-h2 leading-mrd-tight font-medium text-mrd-ink">{title}</H>
-      {sub ? <p className="mt-mrd-3 max-w-[74ch] mrd-copy">{sub}</p> : null}
+      {sub ? <p className="mt-mrd-3 max-w-[var(--mrd-measure-page)] mrd-copy">{sub}</p> : null}
     </header>
   );
 }
@@ -581,7 +581,7 @@ export function Region({
 
       {sub ? (
         <div
-          className={`${head ? "mt-mrd-3" : ""} max-w-[68ch] text-mrd-label leading-mrd-prose text-mrd-mute`}
+          className={`${head ? "mt-mrd-3" : ""} max-w-[var(--mrd-measure-region)] text-mrd-label leading-mrd-prose text-mrd-mute`}
         >
           {sub}
         </div>
@@ -1222,7 +1222,7 @@ export function NothingHere({
       data-mrd=""
       className="rounded-mrd-card border border-mrd-line bg-mrd-sink px-mrd-6 py-mrd-5"
     >
-      <div className="max-w-[62ch] mrd-copy">{children}</div>
+      <div className="max-w-[var(--mrd-measure-prose)] mrd-copy">{children}</div>
       {action ? <div className="mt-mrd-5 flex flex-wrap gap-mrd-3">{action}</div> : null}
     </div>
   );
@@ -1244,7 +1244,7 @@ export function NothingYet({
   action?: React.ReactNode;
 }) {
   return (
-    <div data-mrd="" className="max-w-[62ch] mrd-copy">
+    <div data-mrd="" className="max-w-[var(--mrd-measure-prose)] mrd-copy">
       {/* A div rather than a p, and that is a bug fix rather than a preference:
           a `<p>` may only contain phrasing content, so the moment a caller
           passes two paragraphs the markup is invalid and React refuses to
@@ -1361,7 +1361,7 @@ export function ReadFailed({
         <FailMark />
         <span>{children}</span>
       </h2>
-      <p className="mt-mrd-3 max-w-[62ch] mrd-copy">{out.detail}</p>
+      <p className="mt-mrd-3 max-w-[var(--mrd-measure-prose)] mrd-copy">{out.detail}</p>
       {out.act ? (
         <div className="mt-mrd-5">
           <Action onClick={out.act}>{out.label}</Action>
@@ -1397,7 +1397,7 @@ export function ReadFailedLine({
       data-mrd=""
       role="status"
       aria-live="polite"
-      className="max-w-[68ch] text-mrd-base leading-mrd-prose"
+      className="max-w-[var(--mrd-measure-region)] text-mrd-base leading-mrd-prose"
     >
       {/*
        * APPENDED, NOT SUBSTITUTED, and `??` was a regression I shipped an hour
@@ -1540,7 +1540,7 @@ export function Refused({
         <RefusedMark />
         <span>{children}</span>
       </h2>
-      <p className="mt-mrd-3 max-w-[62ch] mrd-copy">{detail}</p>
+      <p className="mt-mrd-3 max-w-[var(--mrd-measure-prose)] mrd-copy">{detail}</p>
       {action ? <div className="mt-mrd-5 flex flex-wrap gap-mrd-3">{action}</div> : null}
     </section>
   );
@@ -1639,7 +1639,7 @@ export function RecordSpeaks({
 }) {
   return (
     <div data-mrd="" className="border-l-2 border-mrd-edge pl-mrd-5">
-      <p className="max-w-[62ch] mrd-copy">{children}</p>
+      <p className="max-w-[var(--mrd-measure-prose)] mrd-copy">{children}</p>
       {evidence ? <p className="mt-mrd-2 text-mrd-small text-mrd-faint">{evidence}</p> : null}
     </div>
   );

@@ -1005,6 +1005,40 @@
   --mrd-read-max: 42rem;
 
   /*
+   * ── THE PROSE LADDER, IN UNITS THAT MEAN WHAT THEY SAY ──────────────────
+   * Added 2026-09-01, and it is the THIRD time `ch` has produced an inverted
+   * measure in this codebase.
+   *
+   * `surface-parts.tsx` expressed a deliberate three-rung ladder -- its own
+   * comment says *"a page subtitle is prose, and it is the widest thing here on
+   * purpose, because a region's own sub sits one rung in at 68ch"* -- as
+   * 74ch / 68ch / 62ch. `ch` is the width of the font's ZERO GLYPH, so it
+   * scales with the type the block is set in, and those three rungs are set at
+   * three different sizes. Measured in the browser against the built
+   * stylesheet:
+   *
+   *   page subtitle   74ch on 14px prose   ->  654px   (rung 1, widest)
+   *   region sub      68ch on 12.5px       ->  536px   (rung 2)
+   *   prose block     62ch on 14px prose   ->  548px   (rung 3, tightest)
+   *
+   * Rung 3 renders WIDER than rung 2. The ladder inverts at the bottom, and no
+   * amount of tuning the three numbers can fix it while they are `ch`: raising
+   * a number can narrow a block, which is not a thing a reader of the source
+   * can be expected to hold in their head.
+   *
+   * `rem` is font-independent, so the ladder is now true by construction: 41 >
+   * 34 > 32, and the rendered order cannot disagree with the written order.
+   *
+   * THE VALUES KEEP TODAY'S RENDERING WHERE IT WAS ALREADY CORRECT. Page
+   * subtitle 654 -> 656px and region sub 536 -> 544px are both inside a rounding
+   * of what shipped. Only the prose block moves meaningfully, 548 -> 512px, and
+   * that movement IS the fix -- it is the rung that was in the wrong place.
+   */
+  --mrd-measure-page: 41rem;
+  --mrd-measure-region: 34rem;
+  --mrd-measure-prose: 32rem;
+
+  /*
    * THE WIDEST A PAGE GETS BEFORE IT STOPS GROWING. Beyond this a row of dense
    * data is wider than a person can track across without losing the line, and
    * a 65in monitor would otherwise render a 3,000px table row. The page stays
