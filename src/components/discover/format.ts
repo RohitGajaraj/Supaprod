@@ -1,5 +1,6 @@
 import { plainProse } from "@/lib/plain-prose";
 import type { CriticReview } from "@/lib/discovery.functions";
+import { namesOwnArtifact } from "@/lib/ai/tools/own-artifact-source";
 
 export type VerdictWord = "SHIP" | "REVISE" | "KILL" | "WATCH" | "PENDING";
 
@@ -70,20 +71,37 @@ const SOURCE_WORDS: Record<string, string> = {
   mcp: "A connected agent",
 };
 
-/** Products whose own capitalisation we should not mangle. */
+/** Products and acronyms whose own capitalisation we should not mangle. `nps`
+ *  is here rather than left to `prettyToken` because "Nps" is not a word in any
+ *  language and a survey channel is one of the commonest things to connect. */
 const BRAND_WORDS: Record<string, string> = {
   github: "GitHub",
   gitlab: "GitLab",
   posthog: "PostHog",
   hubspot: "HubSpot",
   g2: "G2",
+  nps: "NPS",
 };
 
 /** `scout_competitor` -> `Scout competitor`. The honest last resort: a channel we
  *  have no word for is still readable, and it never pretends to be something it
- *  is not. */
+ *  is not.
+ *
+ *  THE COLON IS SPLIT AND THE DOT IS DELIBERATELY NOT. `mcp/ingest.server.ts`
+ *  stamps `source` as `mcp:<serverId>`, which went out as "Mcp:linear" and is
+ *  simply an unformatted token, so splitting the colon is the same repair this
+ *  function already made for the underscore.
+ *
+ *  THE DOT IS A DIFFERENT CHARACTER AND SPLITTING IT WOULD HIDE A DEFECT.
+ *  A dotted lowercase pair is how `src/lib/ai/tools/own-artifact-source.ts`
+ *  (F-73) RECOGNISES the loop citing its own output as customer evidence --
+ *  its pattern 3 is literally "an internal dotted namespace: workspace.brief,
+ *  track.spec". Rendering that as "Workspace brief" would make an F-73
+ *  violation visually identical to a source a person captured by hand, and the
+ *  shape on screen is the only tell a reader has. So the dot survives here and
+ *  `sourceLabel` names the thing instead. */
 function prettyToken(token: string): string {
-  const words = token.replace(/[_-]+/g, " ").trim();
+  const words = token.replace(/[_:-]+/g, " ").trim();
   if (!words) return "";
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
@@ -100,6 +118,16 @@ export function sourceLabel(source: string | null | undefined, sourceKind?: stri
   if (s && SOURCE_WORDS[s]) return SOURCE_WORDS[s];
   if (s && KIND_WORDS[s]) return KIND_WORDS[s];
   if (s && BRAND_WORDS[s]) return BRAND_WORDS[s];
+  /*
+   * THE LOOP'S OWN OUTPUT IS NAMED, NOT PRETTIFIED (2026-09-02).
+   * `namesOwnArtifact` is F-73's recogniser: a source like `workspace.brief` is
+   * the crew citing something it wrote itself as though a customer had said it.
+   * Those rows exist -- 14 of them predate the write-time guard -- and the only
+   * thing marking them on screen was the raw dotted shape. Saying what they are
+   * is honest where tidying them up would launder them, and it is the one
+   * answer that stays right if the formatter changes again.
+   */
+  if (s && namesOwnArtifact(s)) return "This product's own output";
   if (s) return prettyToken(s);
   if (k && KIND_WORDS[k]) return KIND_WORDS[k];
   return "An unnamed source";

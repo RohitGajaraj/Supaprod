@@ -575,8 +575,12 @@ const NOVELTY_BASIS =
  * which reads correctly on the top bucket and produces "and it is partly
  * resembles the record" on the other two, i.e. on the common case.
  *
- * Anything added here has to fit "…and it ___." and "· ___" both, because the
- * Gate and the row render the same string in two different frames.
+ * Anything added here has to fit "…and it ___." and "___. <basis>" both,
+ * because those are the two frames the string is rendered in: the Gate joins it
+ * as a clause, and the ranking row's status ring uses it as that ring's
+ * accessible name with the basis after it. The row does NOT also print it as
+ * "· ___" any more -- it did, beside a ring already saying the same sentence,
+ * which was one row stating one fact twice.
  */
 function noveltyRead(novelty: number | null | undefined): NoveltyRead | null {
   if (typeof novelty !== "number") return null;
@@ -1901,20 +1905,27 @@ export function DiscoverSurface({
    * otherwise be told it had never built one. What to do next is the Gate
    * directly below, which offers the reading; the headline states the fact.
    *
-   * THE ONE NUMBER HERE THAT CAN SATURATE, said out loud because naming a noun
-   * makes the count checkable in a way "opportunities" never was. `listSignals`
-   * ends its read `.limit(200)` (cited by symbol, not line: discovery.functions
-   * .ts is under active edit), so `rows.length` cannot exceed 200 and this
-   * branch would print "200 signals in" on a workspace holding more. It is not
-   * live today -- measured 2026-08-06, the largest workspace in production
-   * holds 98 signals, and every workspace with signals also has rankable
-   * clusters, so this branch does not render on any of them -- and the string
-   * it replaced ("<n> opportunities imported") carried the identical cap, as
-   * does the Gate's "<n> signals captured" below. It is not fixed here on
-   * purpose: a second copy of `200` in this file is a number that goes stale
-   * the day the server's changes, which is the rot this repo keeps paying for.
-   * The durable fix is in the read -- return a total beside the page, or raise
-   * the cap for the count.
+   * THE ONE NUMBER HERE THAT CAN SATURATE, and the copy now says which number
+   * it is. `listSignals` ends its read with a page limit (cited by symbol, not
+   * line: discovery.functions.ts is under active edit), so `rows.length` is the
+   * size of a PAGE and this branch used to present it as the intake total: "200
+   * signals in" on a workspace holding two thousand, and 200 forever after,
+   * because the page size does not grow with the record. Measured 2026-08-06
+   * the largest production workspace held 98 signals, so it was not live -- but
+   * a sentence that becomes a lie at a threshold is a lie waiting on traffic,
+   * and this station's whole argument is that the record is not edited.
+   *
+   * "The newest N" is what is true at every N. It names the slice without
+   * naming the cap, which is the constraint that kept this unfixed before: a
+   * second copy of the limit as a literal in this file is a number that goes
+   * stale the day the server's changes, and that is the rot this repo keeps
+   * paying for. Nothing here restates it. The same sentence shape appears twice
+   * more -- the comprehension strip and the Gate's "signals captured" -- and
+   * both are fixed the same way, because a defect is a shape rather than a
+   * location.
+   *
+   * The durable fix is still in the read: return a total beside the page, the
+   * way `listThemes` already does, and this can state the shortfall outright.
    */
   const headline: React.ReactNode = loading ? (
     "Discover"
@@ -1924,7 +1935,7 @@ export function DiscoverSurface({
     "Your sources have sent nothing yet."
   ) : ranked.length === 0 ? (
     <>
-      <Num>{rows.length}</Num> signal{plural(rows.length)} in, none in the ranking.
+      The newest <Num>{rows.length}</Num> signal{plural(rows.length)}, none in the ranking.
     </>
   ) : ranked.length === 1 ? (
     "One cluster needs your decision."
@@ -1936,6 +1947,20 @@ export function DiscoverSurface({
 
   const cov = coverage.data;
   const claim = noveltyRead(focused?.theme.novelty);
+  /* TWO CLAUSES ONLY WHEN THERE ARE TWO FACTS. The Gate said "First heard 1d
+     ago, most recently 1d ago" -- a span is IDENTICAL BY CONSTRUCTION on any
+     cluster built from one signal, because the theme is created at the moment
+     the signal it holds arrives, and it is identical again on any cluster whose
+     signals all landed inside one `since` bucket, which for a cluster older
+     than a day means all of them on the same day. So the commonest cluster on
+     the desk spent a whole line of the Gate saying one thing twice and dressing
+     it as a range. Compared on the RENDERED string rather than on the
+     timestamps, because the rendered string is what a reader can tell apart:
+     two moments nine hours apart both read "1d ago", and printing them as a
+     span would be the surface claiming a spread it is not showing. */
+  const firstHeard = since(focused?.theme.created_at);
+  const lastHeard = since(focused?.lastAt);
+  const heardInOneBreath = firstHeard === lastHeard;
   const seenBefore = precedent.data?.precedent ?? [];
   const priorTheme = precedent.data?.priorTheme ?? null;
   /** Whether the precedent read has actually NAMED something. The Gate's
@@ -1969,6 +1994,20 @@ export function DiscoverSurface({
      is invisible unless something says so. */
   const coverageFailed = coverage.isError;
   const hasCoverage = !!cov && cov.sources.length > 0;
+  /** The sources the rail actually draws a row for. */
+  const shownSources = cov ? cov.sources.slice(0, SOURCES_IN_CONTEXT) : [];
+  /* THE QUIET SOURCES A READER CANNOT ALREADY SEE, which is the only set the
+     summary line below the list can tell anyone anything about.
+     `getSenseCoverage` sorts by `recent` descending and a quiet source is one
+     with `recent === 0`, so the quiet ones sit at the BOTTOM of the list and
+     are the first to fall past `SOURCES_IN_CONTEXT`. That makes the summary
+     valuable exactly when something is hidden and pure restatement when
+     nothing is: every drawn quiet source already says "quiet for 7d, sent N
+     before that" on its own row, so a summary counting those same rows put a
+     fourth source-shaped row in a rail whose own header had just said three.
+     Nothing is suppressed by this -- a quiet source is an exception and every
+     one of them is still named, either on its row or in this line. */
+  const hiddenQuiet = cov ? cov.sources.slice(SOURCES_IN_CONTEXT).filter((s) => s.quiet) : [];
   /* WHETHER THE WATCHING HAS ANYTHING TO SAY, computed separately from whether
      any signal ever arrived, because the case that matters most is exactly the
      one where those two disagree.
@@ -1990,10 +2029,13 @@ export function DiscoverSurface({
   const rankingShown = !picking && ranked.length > 1;
   const stripSources = !coverageFailed && hasCoverage;
   const showStrip = !loading && !loadError && !signalsEmpty && (stripSources || ranked.length > 0);
+  /* "The newest N", not "N signals in", for the reason set out in full above
+     `headline`: `rows.length` is the size of one page of `listSignals` and this
+     said it was the intake total. Same fix, no copy of the cap. */
   const clustersFacts = (
     <>
-      <Num>{rows.length}</Num> signal{plural(rows.length)} in, <Num>{ranked.length}</Num> cluster
-      {plural(ranked.length)} open
+      The newest <Num>{rows.length}</Num> signal{plural(rows.length)}, <Num>{ranked.length}</Num>{" "}
+      cluster{plural(ranked.length)} open
       {unclustered > 0 ? (
         <>
           , <Num>{unclustered}</Num> loose
@@ -2111,7 +2153,7 @@ export function DiscoverSurface({
             ) : (hasCoverage || hasWatching) && cov ? (
               <>
                 <CtxHead>What is feeding this</CtxHead>
-                {(hasCoverage ? cov.sources : []).slice(0, SOURCES_IN_CONTEXT).map((s) => (
+                {(hasCoverage ? shownSources : []).map((s) => (
                   <CtxRow
                     key={s.source}
                     /* The mark, so a reader recognises the source before reading
@@ -2184,19 +2226,31 @@ export function DiscoverSurface({
                 anything. It names which sources went quiet on its second line,
                 because "3 sources" and "GitHub, Intercom, Zendesk" are
                 different facts and only the second one tells you whether to
-                care. */}
-                {cov.quietCount > 0 ? (
+                care.
+
+                IT COUNTS THE ONES YOU CANNOT SEE NOW, not all of them. Gated on
+                `cov.quietCount` it drew whenever anything anywhere was quiet,
+                including when every quiet source was already drawn as its own
+                row saying "quiet for 7d, sent N before that" a few pixels above
+                -- and because it is a CtxRow it wears the same shape as a
+                source, so a rail whose header had just listed three sources
+                showed four source-shaped rows and the fourth was a restatement
+                of the third. It is drawn only when it holds a name the list
+                does not, and it says "of them" because the "N more sources"
+                line directly above is the set it counts inside; that line is
+                present whenever this one is, by construction -- there can only
+                be a hidden source when the list overflowed. Nothing is
+                suppressed: a quiet source is an exception, and every one of
+                them is still named, either on its own row or here. */}
+                {hiddenQuiet.length > 0 ? (
                   <CtxRow
                     name={
                       <>
-                        <Num>{cov.quietCount}</Num> source{plural(cov.quietCount)} used to deliver
-                        and {cov.quietCount === 1 ? "has" : "have"} not this week
+                        <Num>{hiddenQuiet.length}</Num> of them used to deliver and{" "}
+                        {hiddenQuiet.length === 1 ? "has" : "have"} not this week
                       </>
                     }
-                    sub={cov.sources
-                      .filter((s) => s.quiet)
-                      .map((s) => sourceLabel(s.source))
-                      .join(", ")}
+                    sub={hiddenQuiet.map((s) => sourceLabel(s.source)).join(", ")}
                     title="Open Connections in Settings"
                     onClick={() =>
                       navigate({ to: "/settings", search: { section: "connections" } })
@@ -2784,8 +2838,15 @@ export function DiscoverSurface({
                 .
               </span>,
               <span key="when">
-                First heard <Num>{since(focused.theme.created_at)}</Num>, most recently{" "}
-                <Num>{since(focused.lastAt)}</Num>
+                {heardInOneBreath ? (
+                  <>
+                    Heard <Num>{firstHeard}</Num>
+                  </>
+                ) : (
+                  <>
+                    First heard <Num>{firstHeard}</Num>, most recently <Num>{lastHeard}</Num>
+                  </>
+                )}
                 {/* THE CLAIM STOPS WHERE THE EVIDENCE STOPS. `noveltyRead` is a
                     similarity number turned into the weakest sentence it
                     supports, so on its own it says how much this RESEMBLES the
@@ -2943,8 +3004,13 @@ export function DiscoverSurface({
         <Gate
           question="Nothing is waiting on a call."
           lines={[
+            /* "The newest N" for the third and last time in this file: see the
+               note above `headline`. `rows.length` is a page of `listSignals`,
+               and on the desk that has not clustered anything yet this is the
+               only count a person is given, so it is the worst place of the
+               three to state a total we did not read. */
             <span key="have">
-              <Num>{rows.length}</Num> signal{plural(rows.length)} captured
+              The newest <Num>{rows.length}</Num> signal{plural(rows.length)} captured
               {unclustered > 0 ? (
                 <>
                   , <Num>{unclustered}</Num> of them not yet read together
@@ -3234,13 +3300,36 @@ export function DiscoverSurface({
               drawn, because a count of nothing changes nothing a person does. */}
             <BatchHeader
               facts={[
-                {
-                  n: rankedVisible.length,
-                  label: rankedVisible.length === 1 ? "cluster open" : "clusters open",
-                  always: true,
-                  title:
-                    "Still waiting on a judgment. Declined, merged and promoted ones are under Settled.",
-                },
+                /* THE TOTAL, ONLY WHEN THE FIND FIELD HAS CHANGED IT. This was
+                 unconditional and it printed the phrase "125 clusters open"
+                 verbatim on a screen where the comprehension strip, a few
+                 hundred pixels up, had already printed "125 clusters open" --
+                 the identical words and the identical numeral, twice, with the
+                 headline above that stating the same count a third time in
+                 different words. Unfiltered, `rankedVisible.length` IS
+                 `ranked.length`, so the entry could not tell a reader anything
+                 the page had not; filtered, it is a number nothing else on the
+                 surface holds, so that is when it is drawn.
+
+                 A ZERO IS NEVER DRAWN HERE, which is why this drops out of the
+                 array rather than setting `always: false` -- `BatchHeader`
+                 keeps any fact with `n > 0` regardless. When the find matches
+                 nothing, "Nothing named that" is already on screen six pixels
+                 above and "0 clusters open" underneath it was the same defect
+                 in miniature. The four novelty buckets each carry their own
+                 subject (see below), so the header still reads as sentences
+                 with this gone. */
+                ...(rankedVisible.length > 0 && rankedVisible.length !== ranked.length
+                  ? [
+                      {
+                        n: rankedVisible.length,
+                        label: rankedVisible.length === 1 ? "cluster found" : "clusters found",
+                        always: true,
+                        title:
+                          "Matching your find, and still waiting on a judgment. Declined, merged and promoted ones are under Settled.",
+                      },
+                    ]
+                  : []),
                 /* EVERY LABEL CARRIES ITS OWN SUBJECT, because the entry above it
                  may not be drawn. These three used to read "unlike anything on
                  the record" / "partly resemble it" / "closely resemble it", and
@@ -3472,7 +3561,15 @@ export function DiscoverSurface({
                         {" · "}
                         {entry.theme.frequency} signal{plural(entry.theme.frequency)}
                         {sourceList ? ` · ${sourceList}` : ""}
-                        {rowClaim ? ` · ${rowClaim.claim}` : ""}
+                        {/* THE NOVELTY CLAIM IS NOT REPEATED HERE. It used to
+                       close this line as `· <claim>` while the status ring at
+                       the head of the same row carried the identical sentence
+                       as its accessible name and its hover title -- one row,
+                       one fact, said twice. The ring is the version that
+                       survives greyscale AND is announced to a screen reader
+                       (`role="img"`, `aria-label`), and it says more than the
+                       tail did: the basis rides along with it. The tail was
+                       the copy that could go, so it went. */}
                         {/* THE CLUSTER CAME BACK ON ITS OWN. escalated_at is written
                        by the clusterer's reopen path and was read by nothing -
                        a re-opened declined cluster silently rejoined the
