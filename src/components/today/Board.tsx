@@ -2932,12 +2932,25 @@ export function Board() {
                 </p>
               ) : null}
 
-              <Door
-                title="The full list of what needs you, uncapped"
-                onClick={() => navigate({ to: "/inbox" })}
-              >
-                Open the inbox
-              </Door>
+              {/*
+                ── THE INBOX DOOR IS GONE, AND SO IS THE SECOND ADDRESS ──────
+                `SURFACE-MAP.md:70` has marked `/inbox` **DELETE -- fold
+                anything real into *Waiting for you*** for some time; the fold
+                had not happened, so this door kept a duplicate alive.
+
+                MEASURED RATHER THAN ASSUMED: `InboxSurface` reads
+                `getApprovalsQueue`, `listMissions` and `listDueForecasts`, and
+                this board reads all three. Same rows, same workspace, two
+                components on two cadences -- which is precisely how the strip
+                and the desk once came to count differently.
+
+                THE ONE HONEST DIFFERENCE WAS THE CAP, and this door's own
+                title claimed it: "the full list of what needs you, uncapped".
+                But every lane above already carries its own "53 more"
+                expander, so the uncapped view is one press away on the surface
+                the reader is already standing on. The route is an alias to the
+                queue now, so any bookmark still lands somewhere true.
+              */}
             </Region>
           </div>
         </div>
