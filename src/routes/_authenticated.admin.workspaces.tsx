@@ -544,7 +544,7 @@ function WorkspaceInFocus({
             sub="What the crew has left to spend inside this workspace. At zero, its runs stop."
           >
             <Value tone={summary.balance_credits <= 0 ? "fail" : "quiet"}>
-              <Num>{summary.balance_credits.toLocaleString()}</Num>
+              <Num>{summary.balance_credits}</Num>
             </Value>
           </Line>
         ) : null}

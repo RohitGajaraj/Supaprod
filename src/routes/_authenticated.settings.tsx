@@ -3696,10 +3696,10 @@ function CreditsSection() {
                   label="Granted this cycle"
                   sub={cycleLabel ? `Since ${cycleLabel}` : undefined}
                 >
-                  <Num>{data.monthlyGrantCredits.toLocaleString()}</Num>
+                  <Num>{data.monthlyGrantCredits}</Num>
                 </Line>
                 <Line label="Bought on top">
-                  <Num>{data.topupCredits.toLocaleString()}</Num>
+                  <Num>{data.topupCredits}</Num>
                 </Line>
                 {/*
                   THE CONSUMPTION BAR IS GONE, AND IT WAS WRONG ON EVERY ACCOUNT
@@ -3813,7 +3813,7 @@ function CreditsSection() {
                       key={b.key}
                       lead={
                         <>
-                          <Num>{b.credits.toLocaleString()}</Num> credits
+                          <Num>{b.credits}</Num> credits
                         </>
                       }
                       sub={`${fmtPrice(b.priceCents)} · ${(perCredit / 100).toFixed(3)} each${
@@ -3859,8 +3859,8 @@ function CreditsSection() {
 
           {data ? (
             <NothingYet>
-              <Num>{data.cycleTopupCredits.toLocaleString()}</Num> of{" "}
-              <Num>{data.cycleTopupCapCredits.toLocaleString()}</Num> top-up credits used this
+              <Num>{data.cycleTopupCredits}</Num> of{" "}
+              <Num>{data.cycleTopupCapCredits}</Num> top-up credits used this
               cycle.{" "}
               <a
                 href="mailto:sales@supaprod.ai?subject=Enterprise%20credits"

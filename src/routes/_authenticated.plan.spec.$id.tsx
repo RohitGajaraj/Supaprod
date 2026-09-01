@@ -2102,7 +2102,7 @@ function SpecEditorPage() {
               <Line
                 label={
                   <>
-                    <Num>{readLoad.words.toLocaleString()}</Num> words, about{" "}
+                    <Num>{readLoad.words}</Num> words, about{" "}
                     <Num>{readLoad.minutes}</Num> {readLoad.minutes === 1 ? "minute" : "minutes"} to
                     read.
                   </>
@@ -2110,7 +2110,7 @@ function SpecEditorPage() {
                 sub={
                   readLoad.over ? (
                     <>
-                      That is <Num>{readLoad.overBy.toLocaleString()}</Num> past what fits in the
+                      That is <Num>{readLoad.overBy}</Num> past what fits in the
                       ten minutes a reader gets for a silent read, so this one gets skimmed or
                       deferred rather than read. Cutting is the fix; navigation is not.
                     </>

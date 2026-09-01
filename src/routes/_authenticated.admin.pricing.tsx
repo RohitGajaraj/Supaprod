@@ -398,7 +398,7 @@ function TopupSection({
               focused={open}
               lead={
                 <>
-                  <Num>{r.credits.toLocaleString()}</Num> credits
+                  <Num>{r.credits}</Num> credits
                 </>
               }
               sub={
@@ -671,7 +671,7 @@ function TierSection({
               focused={open}
               lead={
                 <>
-                  <Num>{r.credits.toLocaleString()}</Num> credits
+                  <Num>{r.credits}</Num> credits
                 </>
               }
               sub={

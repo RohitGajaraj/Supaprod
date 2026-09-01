@@ -275,7 +275,7 @@ function PeoplePanel() {
                 <>
                   {r.suspended ? <Value tone="fail">sign-in blocked</Value> : r.plan_tier}
                   {" · "}
-                  <Num>{r.balance_credits.toLocaleString()}</Num> credits
+                  <Num>{r.balance_credits}</Num> credits
                 </>
               }
               time={new Date(r.created_at).toLocaleDateString("en-US", {
@@ -689,7 +689,7 @@ function PersonInFocus({ userId }: { userId: string }) {
           }
         >
           <Value>
-            <Num>{(account?.balance_credits ?? 0).toLocaleString()}</Num>
+            <Num>{(account?.balance_credits ?? 0)}</Num>
           </Value>
           <Action
             variant="quiet"

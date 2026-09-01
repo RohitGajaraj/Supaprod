@@ -337,8 +337,8 @@ function SpanDetail({
           <Num>{fmtMs(span.latency_ms)}</Num>
         </Fact>
         <Fact label="Tokens">
-          <Num>{span.prompt_tokens.toLocaleString()}</Num> in,{" "}
-          <Num>{span.completion_tokens.toLocaleString()}</Num> out
+          <Num>{span.prompt_tokens}</Num> in,{" "}
+          <Num>{span.completion_tokens}</Num> out
         </Fact>
         <Fact label="Cost">
           <Num>{fmtUsd(Number(span.est_cost_usd))}</Num>
@@ -693,7 +693,7 @@ export function TraceDetail({ id }: { id: string }) {
 
           <CtxHead>What it cost</CtxHead>
           <CtxBody>
-            <Num>{totals.tokens.toLocaleString()}</Num> tokens · <Num>{fmtUsd(totals.cost)}</Num>
+            <Num>{totals.tokens}</Num> tokens · <Num>{fmtUsd(totals.cost)}</Num>
           </CtxBody>
 
           <CtxHead>Trace id</CtxHead>
@@ -834,7 +834,7 @@ export function TraceDetail({ id }: { id: string }) {
                   sub={
                     showCost ? (
                       <>
-                        <Num>{(s.total_tokens || 0).toLocaleString()}</Num> tokens ·{" "}
+                        <Num>{(s.total_tokens || 0)}</Num> tokens ·{" "}
                         <Num>{fmtUsd(Number(s.est_cost_usd))}</Num> · started +
                         <Num>{fmtMs(offset)}</Num>
                         {s.status !== "ok" ? <> · {outcome}</> : null}

@@ -202,7 +202,7 @@ export function GraphCompoundingStrip({
               <Value tone="fail">Not read</Value>
             ) : mem && mem.stored > 0 ? (
               <Value>
-                <Num>{mem.stored.toLocaleString()}</Num> entries
+                <Num>{mem.stored}</Num> entries
               </Value>
             ) : (
               <Value>Not yet</Value>

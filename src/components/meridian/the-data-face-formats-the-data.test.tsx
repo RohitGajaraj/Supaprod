@@ -20,6 +20,9 @@
  * than a visible bug -- the number would still look like a number.
  */
 import { describe, expect, it } from "bun:test";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { render, screen } from "@testing-library/react";
 
 import { Num } from "./surface-parts";
@@ -93,5 +96,60 @@ describe("and refuses to touch what is not one", () => {
     const version = 12;
     render(<Num>v{version}</Num>);
     expect(screen.getByText("v12")).toBeDefined();
+  });
+});
+
+/**
+ * ── AND THE HAND-ROLLED COPIES ARE GONE (2026-09-01) ──────────────────────
+ * Nineteen call sites read `<Num>{n.toLocaleString()}</Num>`. They were the
+ * evidence that the primitive's default was wrong, and once it grouped they
+ * became a second formatter running in front of the first.
+ *
+ * Harmless for an integer, which is what all nineteen held. NOT harmless in
+ * general, and the difference is silent: bare `toLocaleString()` rounds to
+ * three fraction digits, so the day one of those values becomes a rate or an
+ * average it renders a DIFFERENT NUMBER, plausibly, with nothing to notice.
+ * `Num` refuses to touch a non-integer for exactly that reason, and a manual
+ * call in front of it takes the refusal away.
+ *
+ * A figure outside the data face -- in a toast, a `title`, a sentence built by
+ * template -- still formats itself, because there is no primitive there to do
+ * it. This guard is about `Num` and only `Num`.
+ */
+const SRC_DIR = join(fileURLToPath(new URL(".", import.meta.url)), "..", "..");
+
+function tsxFiles(dir: string, out: string[] = []): string[] {
+  for (const entry of readdirSync(dir)) {
+    if (entry === "node_modules" || entry.startsWith(".")) continue;
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) tsxFiles(full, out);
+    else if (entry.endsWith(".tsx") && !entry.includes(".test.")) out.push(full);
+  }
+  return out;
+}
+
+describe("nothing formats a number before handing it to Num", () => {
+  it("has no <Num> wrapping a toLocaleString call", () => {
+    const offenders: string[] = [];
+    for (const file of tsxFiles(SRC_DIR)) {
+      const body = readFileSync(file, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+      for (const [hit] of body.matchAll(/<Num(?:\s+raw)?>\{[^}]*toLocaleString\([^}]*\}<\/Num>/g)) {
+        offenders.push(`${file.replace(SRC_DIR, "src")}: ${hit.slice(0, 90)}`);
+      }
+    }
+    expect(
+      offenders.join("\n"),
+      [
+        "A number is formatted by hand before Num sees it.",
+        "",
+        "Num already groups integers of 1000 and up. Formatting first turns the",
+        "value into a STRING, which Num passes through untouched -- so the",
+        "primitive's deliberate refusal to round decimals is bypassed, and bare",
+        "toLocaleString() rounds to 3 fraction digits. 0.8567 renders as 0.857,",
+        "which looks exactly like a real value.",
+        "",
+        "Pass the number: <Num>{n}</Num>.",
+      ].join("\n"),
+    ).toBe("");
   });
 });

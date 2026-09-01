@@ -205,7 +205,7 @@ export function CreditCapsCard() {
           productCaps.map((c) => (
             <Line key={c.id} label={c.targetName} sub={c.enabled ? undefined : "Off"}>
               <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
-                <Num>{c.capCredits.toLocaleString()}</Num> credits {winLabel(c.windowKind)}
+                <Num>{c.capCredits}</Num> credits {winLabel(c.windowKind)}
               </span>
               <Action
                 variant="quiet"
@@ -307,7 +307,7 @@ export function CreditCapsCard() {
               sub={c.enabled ? undefined : "Off"}
             >
               <span style={{ color: "var(--mrd-mute)", fontSize: "var(--mrd-t-base)" }}>
-                <Num>{c.capCredits.toLocaleString()}</Num> credits {winLabel(c.windowKind)}
+                <Num>{c.capCredits}</Num> credits {winLabel(c.windowKind)}
               </span>
               <Action
                 variant="quiet"
