@@ -199,18 +199,40 @@ export function TabPanel({
   active,
   style,
   children,
+  label,
 }: {
   group: string;
   active: string;
   style?: React.CSSProperties;
   children: React.ReactNode;
+  /**
+   * The panel's own name, for a panel whose TABS ARE NOT IN THIS COMPONENT.
+   *
+   * ── WHY THIS EXISTS (2026-09-02) ──────────────────────────────────────
+   * A panel normally borrows its name from the tab that selected it, through
+   * `aria-labelledby={tabId(group, active)}`. The run screen now drives this
+   * panel from the shell's station strip, which is a different component with
+   * a different group, so that id resolves to nothing -- and a dangling
+   * `aria-labelledby` is worse than none: a screen reader announces an
+   * unnamed region and there is no error to see.
+   *
+   * Passing the name directly is the honest fix. Reaching across components to
+   * borrow the strip chip's id would work until either side is moved, and this
+   * panel would then be silently unnamed again.
+   */
+  label?: string;
 }) {
   return (
     <div
       data-mrd=""
       id={tabPanelId(group)}
       role="tabpanel"
-      aria-labelledby={tabId(group, active)}
+      /* A panel with no tabs of its own is a focus target: the caller moves
+         focus here when the selection changes from elsewhere, so a keyboard
+         reader is taken to the content that changed rather than left on a
+         control in another region. -1 keeps it out of the tab order. */
+      tabIndex={label ? -1 : undefined}
+      {...(label ? { "aria-label": label } : { "aria-labelledby": tabId(group, active) })}
       // The gap the row used to get from `.sp-tabs`'s own bottom margin. Only
       // the gap: what a panel does INSIDE itself is the caller's composition,
       // and a primitive that also sets the rhythm between its children forces

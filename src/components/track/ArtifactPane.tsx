@@ -97,7 +97,7 @@ import { Prose } from "@/components/meridian/Prose";
 import { RunNote } from "@/components/meridian/run-rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { Field, Input, ReasonField, Textarea } from "@/components/meridian/forms";
-import { TabPanel, Tabs } from "@/components/meridian/Tabs";
+import { TabPanel } from "@/components/meridian/Tabs";
 
 /** What each station exists to do, for the not-run sentence. Display labels only. */
 const PURPOSE: Record<string, string> = {
@@ -2583,7 +2583,12 @@ export function ArtifactPane({
       lastInternal.current = null;
       return;
     }
-    document.getElementById(`artifact-pane-${trackId}-tab-${activeProp}`)?.focus();
+    /* The panel, not the tab. The tabs that used to live in this pane are gone
+       and the strip drives it now, so the person's focus is already on the
+       control they pressed -- what they have not been given is the content that
+       changed. `TabPanel` takes `tabIndex={-1}` when it names itself, which is
+       what makes it a landing place. */
+    document.getElementById(`artifact-pane-${trackId}-panel`)?.focus();
   }, [activeProp, trackId]);
 
   if (q.isLoading) return <Reading>Reading what this work has made.</Reading>;
@@ -2657,19 +2662,40 @@ export function ArtifactPane({
   };
 
   return (
+    /*
+      ── THE FOURTH STATION LIST GOES (2026-09-02) ─────────────────────────
+      The run screen drew the seven stations FOUR times: the shell's strip, the
+      route in the left pane, this tab row, and TrackChain's own station rows
+      further down -- plus a fifth statement in prose, "Now: Build. Next: Ship."
+      Measured on the running page: 2 tablists, and the seven station names
+      appearing between 4 and 23 times each in the rendered text.
+
+      THIS ROW IS THE ONE THAT GOES, and it is not the biggest of the four --
+      it is the one whose job the strip already does. Both were tablists over
+      the same `paneStation` state, verified by clicking a strip chip and
+      watching this row move with it. Two controls over one pointer is not
+      redundancy in the harmless sense; it is two places a person can look for
+      the same switch and two places it has to be kept working.
+
+      THE STRIP IS THE BETTER OF THE TWO, and reachability decides it rather
+      than taste. The strip sits outside both scrollers and never scrolls away.
+      This row lives inside the right pane's own scroller -- at scrollTop 1200
+      its top is at y=-795, which is to say a person deep in a station's output
+      has no station control on screen at all.
+
+      WHAT IS LOST IS PROXIMITY, and it is a real cost rather than a rounding
+      error: the control is now ~360px up and across a pane boundary from the
+      region it swaps. The `sub` below is rewritten because of it -- "Pick a
+      step to see its output" pointed at a control that is no longer in this
+      pane, and a sentence naming a control that is not there is worse than the
+      duplication it replaced.
+    */
     <Region
       title="What it has made"
-      sub="The thing each station filed, rendered as itself. Pick a step to see its output."
+      sub={`The thing each station filed, rendered as itself. Showing ${shown.label}; pick a stage on the strip above to change it.`}
       act="Take this"
       onAct={take}
     >
-      <Tabs<string>
-        group={`artifact-pane-${trackId}`}
-        label="Stations on this route"
-        tabs={chain.stops.map((s) => ({ id: s.station, label: s.label }))}
-        active={current}
-        onSelect={onSelect}
-      />
       {/* WHAT IT TOOK, SAID. Brief unit 9: "the control says what it copied."
           A download that reports nothing is a control a person cannot tell
           worked, and this one hands over a file they then have to find. */}
@@ -2682,7 +2708,7 @@ export function ArtifactPane({
           a decision recorded), the change is said politely rather than
           silently repainting. */}
       <div aria-live="polite">
-        <TabPanel group={`artifact-pane-${trackId}`} active={current}>
+        <TabPanel group={`artifact-pane-${trackId}`} active={current} label={`${shown.label} output`}>
           <StationPanel
             stop={shown}
             view={view}
