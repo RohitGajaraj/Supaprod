@@ -47,6 +47,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
 import { RunPresence } from "@/components/presence/RunPresence";
+import { LiveWork, useCurrentTool } from "@/components/track/LiveWork";
 import { Teammates, type LiveSeat } from "@/components/presence/Teammates";
 import { ArtifactPane } from "@/components/track/ArtifactPane";
 import { TrackConsent } from "@/components/track/TrackConsent";
@@ -766,6 +767,11 @@ export function TrackRunLeft({
    * Stands down entirely during a focus block, which owns the title
    * (`use-flow-mode`), and restores the page's own title on every change.
    */
+  /* The tool the newest call on this track named, while it is still walking.
+     Shares `ToolStream`'s cache entry, so the character and the stream read one
+     fact on one beat. See `LiveWork.tsx`. */
+  const currentTool = useCurrentTool(trackId, run.isPending || crewLive);
+
   const tabWord = runTabState({
     status: track?.status ?? null,
     holdReason: track?.holdReason ?? null,
@@ -848,6 +854,27 @@ export function TrackRunLeft({
           walking: run.isPending || crewLive,
           continuing,
           feedDead: trackQ.isError,
+          /*
+           * ── THE CHARACTER NAMES THE TOOL NOW (2026-09-01) ──────────────
+           *
+           * `PresenceInput.currentTool` has existed since the character was
+           * built, `VERB_BY_TOOL` holds 27 curated first-person verbs for it,
+           * and `character.ts:225` turns one into "I'm writing the spec." --
+           * and NOTHING ON THIS SURFACE EVER PASSED IT. The branch was dead
+           * code, so a run that was reading the repository, drafting a design
+           * and checking its own work against the evidence said the same four
+           * words the whole way through: "I'm on it."
+           *
+           * The reason it was never wired is that the join did not exist:
+           * `tool_calls` could not be tied to a run until `agent_runs.trace_id`
+           * landed on 2026-08-26 (F-93). It can now, at 100% coverage for runs
+           * from 2026-08-31 on, so the verb the character was built to say is
+           * finally derivable from a row.
+           *
+           * Null while settled, on purpose -- `verbForTool` is present tense
+           * and a finished run's last call is a fact about the past.
+           */
+          currentTool,
         }}
       />
 
@@ -1254,6 +1281,30 @@ export function TrackPaneRight({
         isRunning={isRunning}
       />
       <TrackChain trackId={trackId} onOpenStation={setPaneStation} />
+      {/*
+       * ── WHAT IT IS DOING RIGHT NOW, CALL BY CALL (2026-09-01) ────────────
+       *
+       * The goal names this the most essential requirement: *"the agent's
+       * activity must be visible in real time ... never a blank screen with a
+       * spinner while something runs behind it."* This surface met the letter
+       * of that -- there is no spinner anywhere on it -- and missed the point.
+       * The transcript's finest grain is one row per SEAT'S TURN, so while a
+       * station ran it said "Draft is working" and a ticking clock, unchanged,
+       * for however long the model took.
+       *
+       * IT SITS UNDER THE ROUTE AND ABOVE THE COST, which is the order a
+       * person asks in: where is this, what is it doing, what has it cost.
+       * `TrackChain` above it is the plan; this is the execution; `RunCost`
+       * below is the bill.
+       *
+       * IN THE ARTIFACT PANE RATHER THAN THE TRANSCRIPT, and that is a real
+       * choice. The left pane is the NARRATIVE -- who acted, what they handed
+       * on, where it needs you -- and a hundred `repo.read` lines would bury
+       * the handoff that is the product's whole claim. The right pane is what
+       * the run PRODUCED, and the call log is exactly that: the evidence under
+       * the artifacts sitting above it.
+       */}
+      <LiveWork trackId={trackId} running={isRunning} />
       <RunCost trackId={trackId} promised={promised} />
     </div>
   );

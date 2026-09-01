@@ -3053,3 +3053,121 @@ export const getParkedWork = createServerFn({ method: "GET" })
       return { ok: true, parked, openTotal: open.length };
     },
   );
+
+/**
+ * ── WHAT THE AGENTS ON THIS TRACK ACTUALLY DID, CALL BY CALL ──────────────
+ *
+ * THE REQUIREMENT THIS ANSWERS, in the founder's words: *"Being truly agentic
+ * is not only about the agent doing the work. It is about the user seeing it
+ * happen ... what it is doing right now, what it just finished, what it is
+ * about to do."*
+ *
+ * ── THE JOIN, AND WHY IT COULD NOT BE MADE UNTIL A WEEK AGO ───────────────
+ * `tool_calls` is the record of every tool an agent invoked -- name, whether it
+ * worked, how long it took. `agent_runs` is the record of a seat's turn at a
+ * station. The only key they share is `trace_id`, and `agent_runs` HAD NO SUCH
+ * COLUMN: `driver.server.ts` still carries the comment saying the ids "are
+ * carried down from each `runAgentLoop` result rather than looked up", because
+ * looking them up was impossible. The link between a run and what it did
+ * existed only in memory, for the life of that run (F-93).
+ *
+ * The column landed 2026-08-26. Measured against production 2026-09-01:
+ *
+ *   tool_calls              2,714 rows, 2,713 carrying a trace_id
+ *   agent_runs since 08-31  108 of 108 carrying one -- 100%
+ *   agent_runs before that  0% (the column did not exist; old rows stay NULL
+ *                           on purpose, because a backfilled default would
+ *                           fabricate a correlation nobody can check)
+ *
+ * So this read is complete for every run from 2026-08-31 onward and empty for
+ * everything older. That is not a bug and the surface must not present it as
+ * one: `traced` reports whether the runs on this track can be joined at all,
+ * so the UI can say "this run predates the record" rather than "it called
+ * nothing", which are opposite claims about the same empty list.
+ *
+ * ── WHY THE TRACK'S OWN RUNS RATHER THAN THE WORKSPACE'S ──────────────────
+ * A workspace filter was used twice as a stand-in for this join while it did
+ * not exist, and both times returned a DIFFERENT track's crew -- once almost
+ * publishing the finding "the release agent makes zero tool calls", when it
+ * makes seven. The trace ids come from THIS track's runs and nothing else.
+ */
+export type TrackToolCall = {
+  id: string;
+  tool: string;
+  ok: boolean;
+  latencyMs: number;
+  at: string;
+  error: string | null;
+};
+
+export const getTrackToolCalls = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{ calls: TrackToolCall[]; traced: boolean; runs: number }> => {
+      const { supabase } = context;
+      try {
+        /*
+         * RLS DOES THE TENANCY, which is why this reads through the caller's
+         * own client and never the admin one. A tool call is the most
+         * revealing row this product holds -- it names what another company's
+         * agents looked at -- so the one place it must not be reachable from
+         * is a query that forgot a workspace filter.
+         */
+        const { data: runRows, error: runErr } = await supabase
+          .from("agent_runs")
+          .select("trace_id")
+          .eq("track_id", data.trackId);
+        if (runErr) return { calls: [], traced: false, runs: 0 };
+
+        const rows = (runRows ?? []) as Array<{ trace_id: string | null }>;
+        const traceIds = [...new Set(rows.map((r) => r.trace_id).filter((t): t is string => !!t))];
+
+        /*
+         * NO TRACE IDS IS NOT NO CALLS. A track whose runs all predate the
+         * column joins to nothing, and reporting that as an empty tool list
+         * would tell a person their agents did nothing when the truth is that
+         * nobody wrote down what they did. `traced: false` is the honest
+         * answer and the surface renders a different sentence for it.
+         */
+        if (traceIds.length === 0) return { calls: [], traced: false, runs: rows.length };
+
+        const { data: callRows, error: callErr } = await supabase
+          .from("tool_calls")
+          .select("id, tool_name, ok, latency_ms, created_at, error")
+          .in("trace_id", traceIds)
+          /* Newest first for the cap, reversed below: ToolStream takes arrival
+             order, oldest first, and follows the tail. Ordering ascending here
+             and capping would return the FIRST 200 calls of a long run, which
+             is the opposite of what someone watching wants. */
+          .order("created_at", { ascending: false })
+          .limit(200);
+        if (callErr) return { calls: [], traced: true, runs: rows.length };
+
+        const calls = ((callRows ?? []) as Array<{
+          id: string;
+          tool_name: string;
+          ok: boolean;
+          latency_ms: number;
+          created_at: string;
+          error: string | null;
+        }>)
+          .map((c) => ({
+            id: c.id,
+            tool: c.tool_name,
+            ok: c.ok,
+            latencyMs: c.latency_ms,
+            at: c.created_at,
+            error: c.error,
+          }))
+          .reverse();
+
+        return { calls, traced: true, runs: rows.length };
+      } catch {
+        return { calls: [], traced: false, runs: 0 };
+      }
+    },
+  );
