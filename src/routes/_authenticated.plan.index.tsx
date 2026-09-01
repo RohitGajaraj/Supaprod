@@ -876,7 +876,12 @@ function PlanPage() {
              clause in other words, so cutting it loses no fact and takes the
              caption to one line. Both halves of the point survive: the state,
              and what the state costs. */
-            linesLabel="Committed, with no outcome and no measure. Nothing can tell you later whether it worked."
+            /* The caption NAMES the set, which is the slot's stated job, and the
+               consequence moved to `sub` where prose belongs. It used to carry
+               both, set at 10px in capitals, wrapping to two full-width lines
+               over the bet names it was captioning. */
+            sub="Nothing can tell you later whether it worked."
+            linesLabel="Committed, with no outcome and no measure"
             lines={undeclared.slice(0, 3).map((b) => (
               <span key={b.id}>{stripAutoPrefix(b.title)}</span>
             ))}

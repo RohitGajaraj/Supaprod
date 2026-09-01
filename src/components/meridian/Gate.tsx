@@ -52,6 +52,7 @@ import * as React from "react";
  */
 export function Gate({
   question,
+  sub,
   since,
   now,
   lines,
@@ -60,6 +61,27 @@ export function Gate({
 }: {
   /** A question, in plain words. Never a mechanism word. */
   question: React.ReactNode;
+  /**
+   * What answering it changes, or what not answering it costs. Prose, under the
+   * question.
+   *
+   * ── WHY THIS EXISTS: A SENTENCE WAS BEING SET IN A CAPTION (2026-09-02) ──
+   * `linesLabel` below says what it is for in its own docstring -- "naming
+   * where they came from" -- and it paints at 10px, weight 650, letter-spaced,
+   * UPPERCASE. Plan was passing it two sentences and 96 characters:
+   * "COMMITTED, WITH NO OUTCOME AND NO MEASURE. NOTHING CAN TELL YOU LATER
+   * WHETHER IT WORKED." Capitals have no ascenders or descenders to give a word
+   * its shape, so a sentence set in them is read letter by letter; at 10px,
+   * wrapping to two full-width lines, it outweighed the bet names it was a
+   * caption for.
+   *
+   * That call site had ALREADY been cut once, from 132 characters, by an author
+   * whose comment says "the fix is the sentence, not the slot". Half right: the
+   * sentence was too long AND the slot was wrong, and shortening alone just
+   * makes a smaller paragraph in a label. A Gate that states a consequence
+   * needs somewhere prose can live, so it has one.
+   */
+  sub?: React.ReactNode;
   /**
    * WHEN THIS CALL STARTED WAITING, in epoch ms. THREE STATES, NOT TWO.
    *
@@ -134,6 +156,7 @@ export function Gate({
       </div>
 
       <h2 className="mt-mrd-4 mrd-title">{question}</h2>
+      {sub ? <p className="mt-mrd-2 mrd-copy text-mrd-mute">{sub}</p> : null}
 
       {lines?.length ? (
         <div className="mt-mrd-5 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
