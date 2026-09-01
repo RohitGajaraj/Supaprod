@@ -31,11 +31,42 @@ describe("the live line on the board", () => {
     expect(SRC).toContain("if (gateCount > 0 && !onTheBoard) {");
   });
 
+  /*
+   * ── THIS ASSERTION IS WHY THE DEFECT CAME BACK (2026-09-01) ─────────────
+   * It used to read `expect(SRC).toContain('const onTheBoard = pathname ===
+   * "/today";')`. That pins a SPELLING, and the spelling was not what went
+   * wrong: the guard's logic was untouched and correct, and the ADDRESS it
+   * names went stale underneath it when `/today` became a redirect and
+   * `<Board />` moved to `/start`.
+   *
+   * So the suppression stopped firing anywhere a reader can stand, the top bar
+   * and the headline said the same sentence again -- photographed on the front
+   * door, "70 decisions are ready for you" over "70 decisions are ready for
+   * your review" -- and this test went on passing, because the string it was
+   * watching had not changed. A guard on a literal fails when the code
+   * improves and passes when the meaning breaks.
+   *
+   * It now asserts the CLAIM: the suppression is keyed to wherever the board
+   * actually renders, named by the constant that decides it, so moving home
+   * again moves this with it.
+   */
+  it("is keyed to where the board actually renders, not to a literal address", () => {
+    // `SIGNED_IN_HOME` is the constant `/today` redirects to and the one
+    // `/start` is; naming it is what stops this drifting a second time.
+    expect(SRC).toContain("const onTheBoard = pathname === SIGNED_IN_HOME");
+    expect(SRC).toContain('import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home"');
+    // The route that renders <Board /> is the route the constant points at.
+    const home = readFileSync("src/components/shell/post-auth-home.ts", "utf8");
+    const route = home.match(/SIGNED_IN_HOME = "([^"]+)"/)?.[1];
+    expect(route).toBeTruthy();
+    const board = readFileSync(`src/routes/_authenticated${route!.replace("/", ".")}.tsx`, "utf8");
+    expect(board).toContain("<Board />");
+  });
+
   it("matches the route EXACTLY, so a child route is not silenced by inheritance", () => {
-    // A child of /today is a different surface making its own claims; inheriting
+    // A child route is a different surface making its own claims; inheriting
     // the suppression would silence a fact nothing else on screen is saying.
-    expect(SRC).toContain('const onTheBoard = pathname === "/today";');
-    expect(SRC).not.toContain('pathname.startsWith("/today")');
+    expect(SRC).not.toContain("pathname.startsWith(");
   });
 
   it("KEEPS THE FAILURE SENTENCE EVERYWHERE, board included", () => {

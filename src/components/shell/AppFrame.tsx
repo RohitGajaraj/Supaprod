@@ -1174,7 +1174,25 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
      Exact match, not `startsWith`: a child route of /today would be a different
      surface with its own claims, and inheriting this suppression would silence
      a fact nothing else is saying. */
-  const onTheBoard = pathname === "/today";
+  /*
+   * ── THE GUARD WAS RIGHT AND ITS ADDRESS WENT STALE (2026-09-01) ─────────
+   * Photographed on the front door, signed in: the top bar read "70 decisions
+   * are ready for you" and the page headline 570px below read "70 decisions
+   * are ready for your review." That is the exact duplication the comment at
+   * the guard below describes, screenshotted on 2026-08-27 and fixed then --
+   * and it is back, without anybody touching the guard.
+   *
+   * The board moved. `/today` now throws a redirect to `SIGNED_IN_HOME` and
+   * `<Board />` renders on `/start`, so `pathname === "/today"` stopped being
+   * true anywhere a reader can stand and the suppression stopped firing. The
+   * logic never broke; the ADDRESS it names did.
+   *
+   * It names the constant now, so the next time home moves this follows it in
+   * the same edit -- which is the rule the rail's own home link two hundred
+   * lines up already states about `SIGNED_IN_HOME`. `/today` is kept for the
+   * instant before its redirect resolves.
+   */
+  const onTheBoard = pathname === SIGNED_IN_HOME || pathname === "/today";
   const navigate = useNavigate();
   // Only the id. The NAME and the product moved to ScopeMenu, which owns the
   // scope control now; keeping a second copy here is how two headers drift.
