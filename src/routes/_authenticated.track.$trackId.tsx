@@ -16,6 +16,7 @@ import { runStatus } from "@/components/track/run-status";
 import { cameBackOnItsOwn, originRunsFull } from "@/components/track/came-back-on-its-own";
 import { supabase } from "@/integrations/supabase/client";
 import { originLine } from "@/lib/track-origin";
+import { Reveal } from "@/components/meridian/Reveal";
 import { holdTone } from "@/lib/spine/driver";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 
@@ -124,16 +125,40 @@ function RunHeader({
           <p className="mrd-meta mt-mrd-1">{cameBackOnItsOwn(fromLearningId)}</p>
         ) : null}
         {originLine(track.title, track.origin) ? (
-          <p
-            className={`mrd-meta mt-mrd-1 text-mrd-faint${
-              /* The clamp stays for the ordinary case it was added for. A
-                 returned origin carries the forecast VERBATIM and truncating
-                 evidence is the one thing this surface may not do to it. */
-              originRunsFull(fromLearningId) ? "" : " line-clamp-2"
-            }`}
-          >
-            {originLine(track.title, track.origin)}
-          </p>
+          /*
+           * ── THE CLAMP KEPT ITS JOB AND GAINED A WAY IN (2026-09-01) ──────
+           *
+           * This was a bare `line-clamp-2`. Photographed on `ce846e9b`, the
+           * top of the run screen ended: *"...THE SUBJECT WAS CHOSEN FROM THE
+           * EVIDENCE THIS TIME, AND TH..."* -- cut mid-word, with nothing to
+           * press. It is the first paragraph a person reads about why their
+           * work exists.
+           *
+           * FOUNDER: *"either shorten it or give only the summary that it has
+           * required. Use wherever that's necessary to get to the inside and
+           * give a clickable action."*
+           *
+           * The clamp itself was RIGHT and is kept: some origins are whole
+           * paragraphs (a clustered brief with counts), and an unbounded block
+           * under the title competes with the status for first read. What was
+           * missing was the second half. `Reveal` clamps by rendered LINES and
+           * draws its control only when the text actually overflows, so a short
+           * origin gains nothing and a long one is reachable.
+           *
+           * THE RETURNED-ORIGIN EXEMPTION SURVIVES UNCHANGED. A track the
+           * return edge created carries the forecast VERBATIM, and truncating
+           * evidence is the one thing this surface may not do to it -- so that
+           * case still renders whole, with no control, rather than being
+           * clamped and then expandable. Evidence a reader has to press for is
+           * evidence they may not read.
+           */
+          <div className="mrd-meta mt-mrd-1 text-mrd-faint">
+            {originRunsFull(fromLearningId) ? (
+              <p>{originLine(track.title, track.origin)}</p>
+            ) : (
+              <Reveal lines={2}>{originLine(track.title, track.origin)}</Reveal>
+            )}
+          </div>
         ) : null}
       </div>
       <div className="flex flex-col items-end gap-mrd-1">
