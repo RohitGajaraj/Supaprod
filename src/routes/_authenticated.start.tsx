@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Action, PageHeading, SectionHead } from "@/components/meridian/surface-parts";
+import { Action, PageHeading, Reading, SectionHead } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Composer, PickCard } from "@/components/meridian/onramp-parts";
@@ -136,6 +136,25 @@ const JOBS: Job[] = [
 /** Placeholder for the un-picked state, ruled at SPEC-ONRAMP §2.1. */
 const OPEN_PLACEHOLDER = "What are you changing, and what should it do?";
 
+/**
+ * Did this url ask for the queue?
+ *
+ * Pulled out of `validateSearch` so the claim is checkable without mounting a
+ * router. It was inline, it was wrong for the exact form every comment in this
+ * file documents, and nothing could see that -- a search parser is pure and
+ * there is no reason for it to be untestable.
+ */
+export function asksForTheQueue(raw: unknown): boolean {
+  /*
+   * FOUR FORMS, AND THE NUMBER IS THE ONE THAT WAS MISSING. The router parses
+   * an unquoted `1` in `?queue=1` as the NUMBER 1, so a list comparing only
+   * against the STRING "1" fell through, and the router then dropped the key
+   * and rewrote the address to the bare page. `?queue=true` was the only form
+   * that worked, and it is the only form anybody had walked.
+   */
+  return raw === true || raw === 1 || raw === "true" || raw === "1";
+}
+
 export const Route = createFileRoute("/_authenticated/start")({
   validateSearch: (search: Record<string, unknown>): { about?: string; queue?: boolean } => ({
     /*
@@ -147,9 +166,24 @@ export const Route = createFileRoute("/_authenticated/start")({
      * Accepts the string form as well as the boolean, because a person can
      * paste or bookmark the url and a bookmark that quietly stops working is
      * worse than one that never worked.
+     *
+     * ── `?queue=1` DID NOT WORK, AND IT IS THE FORM WE DOCUMENT (2026-09-01)
+     * Walked in the browser: `/start?queue=1` came back as `/start`, param
+     * stripped, composer at the top, no scroll. Every comment in this file and
+     * the commit that built the door all call the address `?queue=1`.
+     *
+     * The router parses an unquoted `1` as the NUMBER 1, and the list below
+     * compared against the STRING "1". `1 !== "1"`, so the whole expression
+     * fell through to `undefined`, the router dropped the key it had just been
+     * told was absent, and the address rewrote itself to the bare page. There
+     * is no error and no empty state: a person following a link that names the
+     * queue gets the page that starts new work instead, which is the same
+     * silent no-op this parameter was built to remove.
+     *
+     * Only `?queue=true` survived, which is what the rail happens to send --
+     * so the one path anybody tested was the one path that worked.
      */
-    queue:
-      search.queue === true || search.queue === "true" || search.queue === "1" ? true : undefined,
+    queue: asksForTheQueue(search.queue) ? true : undefined,
     // RUN-15: the turn-around from Learn lands here with the expectation as
     // the opening sentence, so "take another run at this" starts from what
     // the last attempt learned. A plain string, capped -- the composer is
@@ -282,6 +316,32 @@ function StartLanding() {
    * 3,000px page is disorienting in a way that reads as a page load, which is
    * precisely what this door is fixing.
    */
+  /*
+   * ── THE THREE AND A HALF SECONDS NOBODY WAS TOLD ABOUT (2026-09-01) ──────
+   *
+   * Walked as a signed-in user: press the rail door reading "Approvals 70",
+   * land here, and read **"Good evening. What needs doing?"** with a composer
+   * under it. The scroll below is correct and it does arrive -- measured 670px
+   * down with the queue at the top of the viewport -- but on a cold read that
+   * takes about three and a half seconds, and for all of it the person who
+   * asked to see seventy things waiting on them is looking at a page inviting
+   * them to start a seventy-first.
+   *
+   * The goal's one non-negotiable is that the product says what it is doing
+   * rather than showing a spinner, and it applies to its own navigation as
+   * much as to a run: a door that lands somewhere else and silently corrects
+   * itself later is the product not saying what it is doing.
+   *
+   * So the page states the errand while it is running it, and the line is
+   * REPLACED rather than removed when the errand ends -- including the case
+   * where the anchor never appears at all, which is a real workspace with an
+   * empty queue and which would otherwise leave the reader on the composer
+   * with no explanation of why they were sent there.
+   */
+  const [arriving, setArriving] = useState<"going" | "landed" | "nothing" | null>(
+    queue ? "going" : null,
+  );
+
   useEffect(() => {
     if (!queue) return;
     let done = false;
@@ -299,6 +359,7 @@ function StartLanding() {
       done = true;
       const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       el.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+      setArriving("landed");
       return true;
     };
     if (bring()) return;
@@ -320,7 +381,13 @@ function StartLanding() {
      * nothing waiting. That purpose is served just as well by a number with
      * headroom over the slowest real read.
      */
-    const ceiling = window.setTimeout(() => obs.disconnect(), 20_000);
+    const ceiling = window.setTimeout(() => {
+      obs.disconnect();
+      /* The anchor never appeared. On a workspace with an empty queue that is
+         the correct outcome, not a failure -- but the reader pressed a door and
+         has to be told why they are where they are. */
+      setArriving((was) => (was === "going" ? "nothing" : was));
+    }, 20_000);
     return () => {
       obs.disconnect();
       window.clearTimeout(ceiling);
@@ -362,6 +429,23 @@ function StartLanding() {
      */
     <div className="flex min-h-dvh flex-col">
       <div className="mrd-page flex flex-col gap-mrd-7">
+        {/*
+          THE ERRAND, STATED WHILE IT RUNS. `Reading` is already this repo's
+          way of saying a read is in flight AND naming which one, and it
+          carries `role="status" aria-live="polite"` so the sentence is
+          announced rather than only drawn -- which matters most here, because
+          the reader who cannot see the page scroll is the one with no other
+          way to know the door worked.
+
+          It sits above the reading measure rather than inside it: this is not
+          part of the page's prose, it is the page reporting on itself, and it
+          disappears the moment the report is finished.
+        */}
+        {arriving === "going" ? (
+          <Reading>Taking you to what is waiting on you.</Reading>
+        ) : arriving === "nothing" ? (
+          <Reading>Nothing is waiting on you here. This is where work starts instead.</Reading>
+        ) : null}
         {/*
          * THE COMPARISON ROW IS GONE, AND THE LABEL IS WHY IT HAD TO GO.
          *
