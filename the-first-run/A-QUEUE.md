@@ -131,7 +131,7 @@ verdict DONE.
 
 ---
 
-### P-10 · Delete the 49 redirect-only routes · Lane: **A3** · Status: READY · Moves: 2, 4
+### P-10 · Delete the 49 redirect-only routes · Lane: **A3** · Status: CLAIMED (A3, 18:37 IST) · Moves: 2, 4
 
 **Scope.** Delete every file under `src/routes/` matching `_authenticated.*.tsx` whose component
 does nothing but `throw redirect(...)`. The census (A1, 2026-09-02) lists 49: `$workspaceSlug.$productSlug`,
