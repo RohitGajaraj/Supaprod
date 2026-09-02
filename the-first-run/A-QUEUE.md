@@ -2500,7 +2500,7 @@ from P-25 unchanged. Also add `aria-activedescendant` on the input (P-25 follow-
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 2026-09-03) · Moves: 3
+### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: REJECTED (A1, 03:00 IST, live walk) · one fix, then DONE · Moves: 3
 
 **Scope.** `tracks-feed.ts` becomes the one read model for a track's one-line state, used by
 `YourRuns` (P-05), the shell top bar ("3 runs are moving"), and the strip's produced-sentence
@@ -2577,6 +2577,25 @@ reviewed) · new `src/components/shell/the-top-bar-counts-a-real-running-seat.te
 `src/components/today/no-two-rows-say-the-same-thing.test.ts` (one expectation corrected to the
 fixed sentence) · `src/components/shell/an-all-clear-needs-an-answered-read.test.ts` (comment and
 one assertion updated to the new query name). Nothing under `src/components/meridian/**`.
+
+
+**A1 verdict: REJECTED on the live walk, one fix.** _03:00 IST, supaprod.ai, Helio Labs, after the
+publish carrying `c55f90d35`._ The count is right when there is one: at 21:04:54 UTC the database had
+one track with a running run and the bar said *across 2 runs* (a tick had just started a second; fair).
+At 21:06:27 UTC the database had **zero** tracks with a run in `running`, `queued` or `in_progress`
+(the statuses `listMovingTracks` reads), and after a reload the bar said:
+
+> Engineer is working · Checkout asks for already-saved delivery address · started 1d ago
+
+That track's only builder run (`0f4de13b`) is `waiting_approval`, parked on a gate since 19:50 UTC. So
+when the count is zero the bar falls back to a sentence from another reader (the mission's own
+`status = running`, set on 08-31) and claims present-tense work on a run nobody is working. This is
+the exact "a value that looks right" defect P-18 exists to end. Fix: when `listMovingTracks` is empty
+the bar says what is true (nothing moving; the Needs-you count if any; or *Last moved: <track> · 1d
+ago* in the past tense), and the seat sentence is only ever read from a run that is in one of the
+three moving statuses. Pin it with a test that renders the bar with zero moving tracks and a
+`running` mission. Same suite gates. Then DONE without a second walk; I will spot-check on the next
+publish.
 
 **Blockers (A3 writes):**
 1. **Not blocked, flagging for the record.** No live browser this session (same credential gap as
