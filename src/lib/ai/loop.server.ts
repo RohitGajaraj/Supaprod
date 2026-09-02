@@ -212,12 +212,58 @@ const SHIP_AUTONOMY_TOOLS = new Set(["release.publish", "studio.revert"]);
  * was buying was a second human answer on a commit to an unmerged branch, at the
  * price of the loop never running unattended.
  *
- * KEEP THIS SET AT ONE ENTRY. It is a hole in "the record can only tighten", and
- * that invariant is worth more than any second tool would be. Anything added here
- * needs its own founder ruling, and `isNeverLaxerThanDefault` still holds for
- * every tool that is not in it.
+ * ENTRIES NEED THEIR OWN FOUNDER RULING, AND BOTH HAVE ONE. This set is a hole
+ * in "the record can only tighten", so nothing joins it because it seems
+ * sensible. `isNeverLaxerThanDefault` still holds for every tool that is not in
+ * it, which is every tool but these two.
+ *
+ * KEEP THIS SET AT ONE ENTRY. Anything added here needs its own founder ruling,
+ * and `isNeverLaxerThanDefault` still holds for every tool that is not in it.
+ * `RULED_AUTO_STAYS_AUTO` below is a DIFFERENT question and is where a second
+ * tool most likely belongs; the two were briefly one set and the difference
+ * between them is written out there.
  */
 export const MODE_RULED_ABOVE_WINS = new Set(["studio.fix.commit"]);
+
+/**
+ * TOOLS THE LOOP'S always-human TIGHTENING DOES NOT APPLY TO.
+ *
+ * ── WHY THIS IS NOT `MODE_RULED_ABOVE_WINS` ───────────────────────────────
+ * They read as the same idea and they are two questions, one screen apart:
+ *
+ *   MODE_RULED_ABOVE_WINS   inside `resolveToolMode`: run at the SEEDED mode
+ *                           and skip the risk floors entirely.
+ *   RULED_AUTO_STAYS_AUTO   at the call site: an `auto` that `resolveToolMode`
+ *                           already returned is not tightened back to `review`
+ *                           by the approval record.
+ *
+ * `studio.commit` was added to the first set on 2026-09-03 and that was wrong,
+ * caught by `resolve-tool-mode.test.ts`. Joining the first set puts a tool in an
+ * earlier `else if`, which SHORT-CIRCUITS the one-motion-consent branch below
+ * that lifts a confirm-seeded `studio.commit` to auto once a contract is
+ * approved -- so a fix for one stall silently removed a different exemption. The
+ * seed was never the problem, so the fix does not belong where seeds are read.
+ *
+ * ── `studio.commit`, ADDED 2026-09-03 UNDER R-30 ──────────────────────────
+ * R-30 seeded `studio.commit` to `auto` in `tools/defaults.ts`, and the seed did
+ * not survive the call site. `tool-consequences.ts:53` classes the tool external
+ * and partially reversible, `axisDefault` reads those two axes as
+ * `always-human`, and the tightening turned the ruled `auto` straight back into
+ * `review` -- the identical path already found and fixed for
+ * `studio.fix.commit` under F-152, reappearing on its sibling.
+ *
+ * It was not caught because it cannot be seen from where it was tested.
+ * `defaults.test.ts` proves the SEED, and the seed was right; the reversal
+ * happens two subsystems away at call time. The live run on 2026-09-03 at 19:50
+ * UTC is what found it: the sweep drove `2fdf93b6` to Build and stopped at a
+ * `studio.commit` gate that R-30 had removed a day earlier.
+ *
+ * The safety argument is R-30's and is unchanged: a commit writes to an unmerged
+ * branch, `studio.pr.merge` stays review-pinned above it so a person still
+ * decides whether any of it lands, and the four gates the old behaviour raised
+ * on the bound repo were answered 0% of the time.
+ */
+export const RULED_AUTO_STAYS_AUTO = new Set([...MODE_RULED_ABOVE_WINS, "studio.commit"]);
 
 // AGT-01 - structured-output protocol upgrade. Default OFF: the JSON-in-text
 // {thought, action} envelope (safeParseAction) stays the loop's universal
@@ -2124,11 +2170,11 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
     // EXCEPT where the mode was already ruled on for this exact tool up in
     // `resolveToolMode` (F-152). Tightening there is not caution, it is one
     // subsystem silently reversing another's deliberate exemption, and the
-    // comment on `MODE_RULED_ABOVE_WINS` carries the whole argument.
+    // comment on `RULED_AUTO_STAYS_AUTO` carries the whole argument.
     if (
       policy.decision === "always-human" &&
       mode === "auto" &&
-      !MODE_RULED_ABOVE_WINS.has(call.name)
+      !RULED_AUTO_STAYS_AUTO.has(call.name)
     ) {
       mode = "review";
     }

@@ -317,9 +317,9 @@ async function writeMembers(
 async function harvestAnsweredGates(
   supabase: SupabaseClient,
   row: DriveRow,
-): Promise<{ filed: Attachment[]; stillOpen: number }> {
+): Promise<{ filed: Attachment[]; stillOpen: number; keep: PendingGate[] }> {
   const pending = (Array.isArray(row.pending_gates) ? row.pending_gates : []) as PendingGate[];
-  if (pending.length === 0) return { filed: [], stillOpen: 0 };
+  if (pending.length === 0) return { filed: [], stillOpen: 0, keep: [] };
 
   try {
     const { data, error } = await supabase
@@ -331,7 +331,7 @@ async function harvestAnsweredGates(
       );
     // Fails closed on both branches below: a count we could not read must not
     // report the person as free, the same direction the kill switch takes.
-    if (error) return { filed: [], stillOpen: pending.length };
+    if (error) return { filed: [], stillOpen: pending.length, keep: pending };
 
     const { attachments, stillPending } = harvestGates(pending, data as ApprovalRowLike[]);
     const filed = await writeMembers(supabase, row.id, attachments);
@@ -346,23 +346,45 @@ async function harvestAnsweredGates(
         .update({ pending_gates: keep } as never)
         .eq("id", row.id);
     }
-    return { filed, stillOpen: keep.length };
+    return { filed, stillOpen: keep.length, keep };
   } catch (e) {
     console.error(
       `spine gate harvest threw for track ${row.id}: ${e instanceof Error ? e.message : String(e)}`,
     );
-    return { filed: [], stillOpen: pending.length };
+    return { filed: [], stillOpen: pending.length, keep: pending };
   }
 }
 
-/** Remember the gates this run just opened, so their output is not lost. */
+/**
+ * Remember the gates this run just opened, so their output is not lost.
+ *
+ * -- A CANCELLED GATE CAME BACK, AND THIS LINE IS WHY ----------------------
+ *
+ * Walked on `2fdf93b6`, 2026-09-03: `pending_gates` went from one entry to TWO
+ * across a single drive. `a220388d` had been cancelled at 19:35 and harvested
+ * out correctly at the top of the run -- and then reappeared, sitting beside the
+ * new gate the same drive had just opened.
+ *
+ * The harvest was never the bug. This merge read `row.pending_gates`, and `row`
+ * is the snapshot taken at drive START, before the harvest shrank the list. So
+ * the write here was `[everything that was pending an hour ago, ...opened]`,
+ * which restored every gate the harvest had just removed and appended the new
+ * one on top. The list could only ever grow.
+ *
+ * It takes the SURVIVING list as an argument now. Not re-read from the database
+ * -- a second read would be a second race, and the harvest already knows the
+ * answer it just wrote. Passing it makes the ordering a fact of the signature
+ * rather than something a future reader has to notice.
+ */
 async function rememberGates(
   supabase: SupabaseClient,
   row: DriveRow,
   opened: PendingGate[],
+  /** What survived the harvest this drive. NOT `row.pending_gates`, which is
+   *  the pre-harvest snapshot and is what resurrected a cancelled gate. */
+  existing: PendingGate[],
 ): Promise<void> {
   if (opened.length === 0) return;
-  const existing = (Array.isArray(row.pending_gates) ? row.pending_gates : []) as PendingGate[];
   const seen = new Set(existing.map((g) => g.id));
   const merged = [...existing, ...opened.filter((g) => !seen.has(g.id))];
   if (merged.length === existing.length) return;
@@ -2410,7 +2432,7 @@ export async function driveTrackOnce(
   // which is exactly backwards for a product whose claim is that the crossings
   // are on the record.
   const opened = gatesOpenedBy(steps, station);
-  await rememberGates(supabase, row, opened);
+  await rememberGates(supabase, row, opened, gates.keep);
 
   // THE METER IS PERSISTED ON EVERY PATH OUT, before any branch below returns.
   // A tick that spent money and then held at a gate, stalled, or ran out of

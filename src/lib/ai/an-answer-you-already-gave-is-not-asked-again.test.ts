@@ -68,7 +68,7 @@ describe("the gate consults the record", () => {
     expect(SRC).toContain('policy.decision === "always-human" && mode === "auto"');
   });
 
-  it("EXCEPT where the mode was already ruled on for that tool, one screen up (F-152)", () => {
+  it("EXCEPT where the mode was already ruled on for that tool, one screen up (F-152, R-30)", () => {
     /*
      * The exemption is stated here rather than left implicit, because this file
      * is where somebody reads what the gate does. `studio.fix.commit` is
@@ -78,11 +78,22 @@ describe("the gate consults the record", () => {
      * did exactly what was predicted: two approvals in three minutes on
      * 2026-08-31, and the only two the tool has ever had.
      *
+     * ── THE SET THIS NAMES CHANGED ON 2026-09-03, AND SO DID THE REASON ────
+     * It read `MODE_RULED_ABOVE_WINS`. That set is also consulted INSIDE
+     * `resolveToolMode`, where membership means "run at the seeded mode", and
+     * the two meanings are not the same question. `studio.commit` needed only
+     * the second one — R-30 ruled its seed to auto and this tightening put the
+     * gate straight back, stalling a live sweep at 19:50 UTC — but putting it in
+     * the shared set also short-circuited the one-motion consent branch.
+     *
+     * So the call site reads `RULED_AUTO_STAYS_AUTO` now, which is the same set
+     * plus `studio.commit`, and `MODE_RULED_ABOVE_WINS` keeps its one entry.
+     *
      * The invariant below is unchanged for every tool outside the set, and
-     * `an-exemption-one-screen-up-is-not-reversed-here.test.ts` keeps the set at
-     * one entry.
+     * `an-exemption-one-screen-up-is-not-reversed-here.test.ts` holds both sets
+     * to their rulings.
      */
-    expect(SRC).toContain("!MODE_RULED_ABOVE_WINS.has(call.name)");
+    expect(SRC).toContain("!RULED_AUTO_STAYS_AUTO.has(call.name)");
   });
 });
 
