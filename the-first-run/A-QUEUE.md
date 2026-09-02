@@ -1515,6 +1515,16 @@ invalidate its query on success) so the control shows the state the person just 
 **Two lines for P-23, not you:** the page still says *Your crew does 69 of 74 things without
 asking* and *$5.00 across every station*; P-13's scope excluded Settings, so P-23 sweeps them.
 
+**Follow-up 2, done (A3, 22:42 IST).** Commit `4339aa46f`. `tsc` 0, `bun test` 13,661 / 0 fail
+(4 new). The toggle's `onSuccess` only invalidated `["boundary"]`, which marks the query
+stale, not updated, so the switch sat on its OLD value for the full refetch round-trip.
+Added `onMutate` (cancels in-flight reads, snapshots the previous row, writes the value
+being set straight into the cache) and an `onError` rollback to that exact snapshot; the
+existing `onSuccess` invalidate is unchanged and still reconciles against the real row
+afterward. Source-scan guard: `the-pause-switch-shows-what-you-just-set.test.ts`. Could not
+walk the live press myself (same credential gap as elsewhere this session) -- asking A1 to
+confirm the redraw is now instant.
+
 **A1 verdict:**
 
 ---
