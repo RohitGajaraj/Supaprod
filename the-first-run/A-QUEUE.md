@@ -221,7 +221,7 @@ _18:48 IST_ — all three readings accepted. (1) The footer carries one control:
 
 ---
 
-### P-10 · Delete the 49 redirect-only routes · Lane: **A3** · Status: CLAIMED (A3, 18:37 IST) · Moves: 2, 4
+### P-10 · Delete the 49 redirect-only routes · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 19:32 IST) · Moves: 2, 4
 
 **Scope.** Delete every file under `src/routes/` matching `_authenticated.*.tsx` whose component
 does nothing but `throw redirect(...)`. The census (A1, 2026-09-02) lists 49: `$workspaceSlug.$productSlug`,
@@ -256,19 +256,112 @@ route under `src/routes/api/`. `trust.tsx` and `p.teardown.tsx` are public and s
 
 **Report (A3 writes):**
 
+Commits `3c6f32565` (the 49 deletions + meridian gate + every tsc-caught link) ·
+`976035554` (five more links tsc cannot see — loose `{to: string}`/`href: string` fields, not
+router-typed) · `d67250504` (the two test files whose entire subject was a deleted route).
+
+- `ls src/routes/_authenticated.*.tsx | wc -l` → **36** (was 85).
+- `bunx tsc --noEmit` → **0**.
+- `bun test` → **13,526 pass, 3 fail, 0 errors** (was 0 fail before this packet). The 3 are one
+  root cause — see Blockers, not a regression I can fix inside this packet's file list.
+- `grep -rln "throw redirect" src/routes/_authenticated.*.tsx` → `discover.tsx`, `traces.tsx`,
+  `meridian.tsx`, `settings.tsx`. `_authenticated.tsx` itself doesn't match that glob (no dot
+  between `_authenticated` and `.tsx`, a shell quirk, not a finding) but has it twice, both auth
+  gates (`:66` → `/login`, `:78` → `/onboarding`). `discover.tsx:96` and `settings.tsx:379` are
+  pre-existing internal `?tab=` redirects on live station pages, untouched, out of P-10's scope.
+  `traces.tsx:13` keeps its bare-path redirect, untouched. `meridian.tsx` is new — the DEV gate.
+  `today` is gone.
+- **404 boundary:** `/today`, `/missions`, `/runs`, `/cockpit` all land on `_authenticated.tsx`'s
+  `notFoundComponent: () => <ShellRouteMissing />` (`:110`), which renders `ShellRouteMissing` from
+  `src/components/meridian/boundary-states.tsx:161-177` — "There is no screen at this address...
+  Nothing you were working on is affected, so Today will pick you up where you left off," with a
+  "Back to Today" button. The boundary itself is correct. **Its own default button is not** — see
+  Blockers, first item.
+
+**Links re-pointed** (`file:line → target`, all preserving the deleted stub's exact behaviour —
+same params, same search, including the `queue: true` review-anchor flag `/today`'s stub always
+attached regardless of caller intent):
+
+- `src/components/governance/ApprovalsPanel.tsx:320` · `IncidentsPanel.tsx:83` ·
+  `src/components/knowledge/DecisionsPanel.tsx:126` · `src/components/missions/MissionOrchestratorDetail.tsx:972,1235` ·
+  `src/components/trust/ReceiptDetailSheet.tsx:179,190` · `src/routes/_authenticated.design.tsx:845` ·
+  `plan.spec.$id.tsx:771` · `traces.$traceId.tsx:716` — `/build/$missionId` → `/runs/$missionId`
+  (same `missionId` param; this is exactly what the deleted stub itself did, so the net history
+  behaviour is identical, one hop shorter).
+- `src/components/knowledge/DecisionsPanel.tsx:589` · `ObsidianOnboarding.tsx:1054,1196` ·
+  `NotificationsSection.tsx:534` · `src/components/shell/RailCrew.tsx:173` — `/today` →
+  `SIGNED_IN_HOME` (`/start`) **with `search: { [REVIEW_QUEUE_SEARCH]: true } }` added**, because
+  that is what `/today`'s deleted `beforeLoad` always attached, unconditionally, to every caller.
+  Dropping it silently would have been a real regression (the review-queue anchor-scroll on
+  `/start` stops firing from these five doors); caught by re-testing, not by tsc.
+- `src/routes/_authenticated.build.index.tsx:552,663` — `/runs` → `/start` (the deleted stub's
+  exact target, no search — it never carried one).
+- `src/hooks/use-open-room.ts:33,36` — both branches (`/$workspaceSlug/$productSlug` and
+  `/m/$productId`) collapsed to one `navigate({ to: "/start" })`; both deleted stubs already threw
+  to `SIGNED_IN_HOME` unconditionally, so this removes a hop and changes nothing observable. Deleted
+  the now-dead `useWorkspace`/`roomLinkFor` plumbing that only existed to pick between them.
+- `src/lib/chat-dispatch.ts:118,120` (`dispatchBlockRoute`) — `/agents` → `/crew` (the deleted
+  stub's target; label "Open Agents" stays — `/crew`'s own rail label is "Agents", same split
+  nav-model.ts already has), `/runs` → `SIGNED_IN_HOME`. **Not tsc-caught**: the function returns
+  `{ to: string; label: string }`, a loose type, not the router's `LinkOptions`. Found only by
+  grepping the 49 deleted paths as literal `to:`/`href:` targets across all of `src/`, because a
+  raw string a typed router can't check is exactly the shape of bug tsc is structurally blind to.
+- Five more from that same sweep, none tsc-caught, all in commit `976035554`:
+  `src/lib/ai/research.server.ts:327` (`href: "/missions"` → `/build`) ·
+  `src/components/knowledge/graph-doors.ts:96` (`to: "/tasks"` → `/start`) ·
+  `src/components/supaprod/LineageDrawer.tsx:238,239` (`/meetings/$id` → `/brain?tab=calendar&meeting=`,
+  `/roadmap` → `/plan?view=roadmap`) · `src/lib/artifacts.functions.ts:103` (`href: "/docs"` →
+  `/brain?tab=docs`) · `src/lib/notifications.functions.ts:190` (`href: "/drift"` →
+  `/engine-room?room=quality&view=drift`).
+- Checked and left alone, on purpose: `src/lib/palette-sections.ts` and `palette-catalog.ts` both
+  still hold `/today`. The ⌘K command palette that would render them was retired by ruling in
+  2026-08 and stays unmounted (`GlobalComposer.tsx`'s own header, Addendum 1.1 rule 8) — nobody can
+  reach these strings. `src/lib/key-model.ts:83` (`path: "/today"`, feeding the "?" shortcut sheet's
+  `surfaceKeysFor` lookup) is a pre-existing latent bug, not one P-10 caused: `DecisionQueue`'s
+  shortcuts moved onto `/start` weeks before this packet and this entry was never updated, but the
+  URL bar could never actually read `/today` even before today's deletion (the old stub redirected
+  instantly), so the lookup has been dead since the fold, unrelated to what I deleted.
+- Data cleanup, not a link: `nav-model.ts`'s `ENGINE_ROOM_PATHS` dropped `/govern` and
+  `/trust-ledger` (dead active-state entries, not rail structure — this is not `AppFrame.tsx`'s
+  `RAIL` or `PRIMARY_NAV`, P-11's files). Updated the two `nav-model.test.ts` assertions that
+  pinned its old 4-entry contents.
+
 **Blockers (A3 writes):**
 
-**A1 verdict:** _19:22 IST, on commit `3c6f32565`_ — **not yet.** Route count 36 ✓, tsc 0 ✓,
-`/meridian` gated ✓. `bun test`: 13,524 pass, **5 fail, 2 unhandled errors** against a 0-fail
-baseline. Three files: `src/lib/nav-model.test.ts` (the resolver's control asserts `/today` is a
-plain route file at `:447`; `PRIMARY_NAV` still carries four `to` values with no route file at
-`:457`; the exempt-doors check at `:170`), `src/routes/__tests__/a-301-that-lands-one-tab-away.test.ts`
-(asserts the deleted `trust-ledger → track-record → engine-room` chain), and
-`src/routes/__tests__/the-fold-opens-the-board.test.ts` (asserts `/today?queue`). Fix per the packet:
-re-point the four `PRIMARY_NAV` doors to their surviving targets (the Approvals door pointed at
-`/today`; point it at `/start`, P-11 removes it anyway), change the resolver control to `/start`,
-and delete only the assertions that name deleted routes. Then fill the Report with the re-pointed
-links and the not-found behaviour and set DONE-PENDING-VERIFY.
+1. **BLOCKED: needs `src/components/meridian/boundary-states.tsx`** (rule 10 — A3 may not edit
+   Meridian). `ShellRouteMissing`'s default `onGoToToday` (`:162`) is
+   `window.location.assign("/today")` — a raw string the typed router never checks, so tsc passed
+   it clean. `/today` is gone, so the 404 boundary's own recovery button now 404s again if a caller
+   doesn't pass its own `onGoToToday`. `_authenticated.tsx:110` mounts it with no override
+   (`notFoundComponent: () => <ShellRouteMissing />`), so this is live on every not-found page.
+   One-line fix, `SIGNED_IN_HOME` already exists for it: `window.location.assign(SIGNED_IN_HOME)`.
+
+2. **BLOCKED: needs a ruling, not a link repoint** (`src/lib/nav-model.ts`, `PRIMARY_NAV` — the
+   file P-11 also owns). Measured directly, not assumed: exactly **two** `PRIMARY_NAV` entries are
+   dead — `to: "/today"` ("Today") and `to: "/runs"` ("Runs"). (Your 19:22 verdict said four and
+   named an "Approvals door pointed at `/today`" — I can't reproduce that: `PRIMARY_NAV`'s Approvals
+   entry is `to: "/approvals"`, which still resolves; `bun test src/lib/nav-model.test.ts`'s actual
+   failure prints `dead = ["Today (/today)", "Runs (/runs)"]`, nothing else. Flagging the
+   discrepancy rather than silently going with either number.) I tried your literal instruction —
+   repoint both to `SIGNED_IN_HOME` — and it does **not** cleanly resolve: `PRIMARY_NAV` already
+   has a third entry, "Work", also `to: "/start"` (added 2026-08-25 for exactly this surface). Three
+   rows sharing one target breaks two *different*, currently-passing ratchets, not just the two
+   route-resolves ones: `nav-model.test.ts`'s uniqueness check (`"all rail paths... are unique"`)
+   and its keybinding check (`"binds no key twice, anywhere in the model"` — `navKeyHint` switches
+   on `item.to`, so Today, Work and Runs would all draw the same `w` keycap on three different rail
+   rows). Both "Today" and "Runs" were already 100% redirect-to-`/start` stubs before P-10 (their
+   own file headers say so — Today folded into Start on 2026-08-25, Runs' board the same day), so
+   the honest fix removes the redundant rows rather than aliasing three doors to one target. That's
+   rail structure — P-11's charter names it directly ("Rail entries become Start · Run ·
+   Settings... Remove Approvals, Insights, Threads and Policies from `PRIMARY_NAV`"). Two paths, your
+   call: **(a)** I delete the "Today" and "Runs" `PRIMARY_NAV`/keybinding entries now, in this
+   packet, with the four dependent test pins updated to match (clears all 3 failures, `bun test` 0
+   fail, but it's rail-shape work in a packet scoped "not in scope: the rail (P-11)"); or **(b)**
+   P-11 does it as part of its own restructure and these 3 stay red until then. I did the ruling-free
+   half already (`ENGINE_ROOM_PATHS` losing `/govern`/`/trust-ledger` — that's active-state data, not
+   a rail door, so I fixed it and its 2 tests without asking).
+
+**A1 verdict:**
 
 ---
 
