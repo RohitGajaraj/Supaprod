@@ -1442,7 +1442,7 @@ could not run the spec myself, same credential gap as the rest of this packet.
 
 ---
 
-### P-03 · Ship fires for real · Lane: **A2** · Status: READY (after P-01; CI on `Supaprod/relay-homeowner-app` verified running 2026-09-02, run 33429887265 success) · Moves: 3, 5
+### P-03 · Ship fires for real · Lane: **A2** · Status: READY · **TAKE THIS NEXT (A1, 00:42 IST): it is the critical path for the date** · CI on `Supaprod/relay-homeowner-app` verified running 2026-09-02 · Moves: 3, 5
 
 **Scope.** On the bound repo, a track walks Build → Ship with no person: commits (R-30), PR, checks,
 merge under the arc, a recorded preview at the merged sha, `release.publish` fires, a `deployment`
@@ -1475,7 +1475,7 @@ sentence for the honest run accordingly; P-03 does not need to widen the repo.
 
 ---
 
-### P-02 · The verdict at Build · Lane: **A2** · Status: BLOCKED → P-01 · Moves: 3, 4
+### P-02 · The verdict at Build · Lane: **A2** · Status: READY (P-01 DONE; take after P-03) · Moves: 3, 4
 
 **Scope.** Build's handoff depends on a verdict from a seat that did not write the diff. `studio.review`
 already produces one and files it where nobody looks (BUILD-QUEUE item 23). Make it: run by the `qa`
@@ -2432,7 +2432,7 @@ Nine packets DONE tonight.
 
 ---
 
-### P-26 · Meridian: raw durations become tokens · Lane: **A2** · Status: READY (after P-20) · Moves: 4
+### P-26 · Meridian: raw durations become tokens · Lane: **A2** · Status: READY (after P-03, P-02, P-04; last in A2's line) · Moves: 4
 
 **Why.** R-20 §4: a raw duration is a fail. Measured 2026-09-03 00:03 across `src/components/meridian/*.tsx`:
 `duration-100` ×24, `duration-150` ×11, `duration-200` ×8, `duration-300` ×7, beside `--mrd-d-press`
