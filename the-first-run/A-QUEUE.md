@@ -952,7 +952,7 @@ Next: P-13.
 
 ---
 
-### P-13 · Register sweep on signed-in surfaces · Lane: **A3** · Status: CLAIMED (A3, 21:07 IST) · Moves: 1, 3
+### P-13 · Register sweep on signed-in surfaces · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 21:26 IST) · Moves: 1, 3
 
 **Scope.** Remove from every string a signed-in person can read: `crew`, `bet`, `the call`, `the
 record` (as a noun for the product), `station` (as a word shown to a user), `seven stations`,
@@ -976,8 +976,81 @@ or add `src/lib/__tests__/a-user-never-reads-the-org-chart.test.ts`.
 **Definition of done.** tsc 0 · `bun test` 0 fail · pushed · A1 DONE.
 
 **Report (A3 writes):**
+Commit `2262b0f09`. `tsc` 0. `bun test`: 13,647 pass, 0 fail. New
+`src/lib/__tests__/a-user-never-reads-the-org-chart.test.ts`, 110 tests: scans every
+non-test file under the four directories plus the two named routes, comments stripped,
+each register word scoped to the props a person actually reads from (title/aria-label/
+label/placeholder/alt/hint/sub/thenWhat) so a code identifier like `Bet` or `AgentStation`
+can't fail it -- plus a dedicated check on `driver.ts`'s `HOLD_LINE` against the same rule.
+
+**Acceptance line 1.** `grep -rniE "\b(crew|bet|agentic|autonomous)\b" ... --include=*.tsx
+| grep -v test` -> **47** lines, all comments or code identifiers (`Bet` the type, `crew` the
+variable, `to: "/crew"` the route target) -- audited one by one, not sampled. Started at 49;
+fixed 2 genuine renders (below), and the count moves by 2, not to 0, because the words stay
+completely legitimate as identifiers and the grep is not scoped to strings.
+
+**Before -> after, every string changed:**
+
+| File | Before | After |
+| --- | --- | --- |
+| `DecisionQueue.tsx` | `title="Open this agent in the crew"` | `title="See this agent's settings"` |
+| `Board.tsx` | `thenWhat="this opens on what the crew finished overnight, ..."` | `thenWhat="this opens on what your agents finished overnight, ..."` |
+| `AppFrame.tsx` | `const CREW = "The crew"` | `const CREW = "Your agents"` (+ `is` to `are` at both call sites, subject went plural) |
+| `AppFrame.tsx` | `title="The crew raised this on its own"` | `title="Your agents raised this on their own"` |
+| `AppFrame.tsx` | `` `The crew is moving . ${label}` : "The crew is moving" `` | `` `Your agents are moving . ${label}` : "Your agents are moving" `` |
+| `AppFrame.tsx` | `aria-label="Find a run or a station"` | `aria-label="Find a run or a step"` |
+| `TrackRun.tsx` | `"The station runs again on its next turn. ..."` | `"It runs again on its next turn. ..."` |
+| `WhatWereSolving.tsx` | `hint="... every station after this one reads it."` | `hint="... every step after this one reads it."` |
+| `OpenQuestions.tsx` | `hint="... so the next station reads your answer ..."` | `hint="... so the next step reads your answer ..."` |
+| `TrackChain.tsx` | `sub="... not to a station this version knows about."` | `sub="... not to a step this version knows about."` |
+| `TrackStart.tsx` | `"That is the last station on its route."` | `"That is the last step on its route."` |
+| `TrackStart.tsx` | `sub="... through the seven stations, ..."` | `sub="... through the seven steps, ..."` |
+| `_authenticated.track.$trackId.tsx` | `sub="... every station writes its own row ..."` | `sub="... every step writes its own row ..."` |
+| `driver.ts` `HOLD_LINE.produced-nothing` | `"This station ran but filed nothing, ..."` | `"This step ran but filed nothing, ..."` |
+| `driver.ts` `HOLD_LINE.self-check-failed` | `"... examined again the next time this station runs."` | `"... examined again the next time it runs."` (leading `This station` left, see below) |
+| `driver.ts` `HOLD_LINE["nothing-to-hand-on"]` | `"This station filed something, but not what the next station needs, ..."` | `"This step filed something, but not what the next one needs, ..."` |
+| `driver.ts` `HOLD_LINE.stalled` | `"This station ran and produced nothing several times, ..."` | `"This step ran and produced nothing several times, ..."` |
+| `driver.ts` `HOLD_LINE["out-of-credit"]` | `"... before this station could run, ..."` | `"... before this step could run, ..."` |
+| `handing-on.test.ts` | asserted the old `nothing-to-hand-on` substring | updated to match, plus a new assertion the whole line never contains "station" |
+
+**`driver.ts` needed the closest reading of the packet.** Seven `HOLD_LINE` reasons are in
+`STATION_SPECIFIC`, and `holdLine()` substitutes their *leading* `"This station"`/`"This work"`
+with the real station's display name (K-18 ruling) -- I left those seven as-is; the literal
+word never reaches a render there **when `ctx.station` is passed**, which every call site I
+checked does. Two reasons (`produced-nothing`, `nothing-to-hand-on`) are **not** in that set,
+so their leading phrase renders verbatim -- fixed by direct word swap rather than adding them
+to `STATION_SPECIFIC`, since that's an architecture call about which holds are "about one
+station" and not mine to make in a copy sweep. One reason (`self-check-failed`) has *two*
+occurrences -- the leading one is substituted, a second mid-sentence one is not (the regex only
+touches the start of the string) -- fixed the second, left the first.
+
 
 **Blockers (A3 writes):**
+1. **BLOCKED: two files deferred, not forgotten -- `_authenticated.start.tsx` and
+   `today/tracks-feed.ts`.** Both are in P-13's file list and both are also inside A2's
+   actively-CLAIMED P-05 (21:22 IST, still open as of this report). Sweeping them now risks
+   either a merge collision or my edit getting silently overwritten by P-05's larger
+   rewrite. Deferring the sweep on these two specifically until P-05 lands; the acceptance
+   grep's directory list still includes `_authenticated.start.tsx`, so the 47-count above is
+   for everything else in scope and this file needs one more pass once it settles.
+2. **Flagging, not blocking: "the record" (as a noun for the product) is in the packet's
+   ban list, and I found real, extensive, deliberately-chosen use of exactly that
+   phrase -- "on the record", "stays in the record", "the record did not come back" -- across
+   `ArtifactPane.tsx`, `TrackChain.tsx`, `TrackConsent.tsx`, `TrackStart.tsx`, `Board.tsx`,
+   `PushedInsights.tsx`, `FocusNext.tsx`, `TrackActivity.tsx`. Checked
+   `docs/growth/vocabulary-change-list-2026-08.md` (founder-approved 2026-08 sweep) before
+   touching any of it: that document chose **"the record"/"on the record" as the sanctioned
+   replacement for "ledger"**, in well over a dozen entries, specifically because it reads
+   naturally where "audit trail" would repeat awkwardly. Every instance I found in P-13's
+   scope uses "the record" in that same settled, descriptive sense -- none of them use it as
+   a proper-noun stand-in for Supaprod itself, which is the narrower reading the packet's own
+   parenthetical `(as a noun for the product)` seems to intend. Left every one of them
+   untouched rather than mass-reverting dozens of correctly-chosen words on a scope line that,
+   read broadly, contradicts a founder-approved canon. If the narrower reading is what was
+   meant, none of what I found matches it and there is nothing to fix; if the ban is meant
+   literally, that is a new ruling this packet doesn't have the authority to make in passing
+   and belongs in `RULINGS.md` first.
+
 
 **A1 verdict:**
 
