@@ -654,6 +654,33 @@ export function BoundaryControls({
       fSetPause({
         data: { workspaceId: activeWorkspaceId!, paused: next, reason: pauseReason || null },
       }),
+    /*
+     * OPTIMISTIC, BECAUSE INVALIDATING ALONE LEFT A GAP A PERSON COULD SEE
+     * (P-17 follow-up 2, A1 live 2026-09-02 22:03).
+     *
+     * `onSuccess` already invalidated `["boundary"]`, which is correct and
+     * necessary -- but invalidate only marks the query stale; the toggle stays
+     * on its OLD `data.paused` until the refetch that follows actually lands.
+     * A1 pressed it and watched the knob sit left, unmoved, for three seconds
+     * while `ControlsPanel`'s own readout (a separate render off the same
+     * key, but only re-rendering once ITS refetch resolves too) had already
+     * flipped. The switch was never wrong -- the write landed immediately --
+     * it was SLOW TO SAY SO, on the one control this page states nobody may
+     * be wrong about.
+     *
+     * `onMutate` sets the cache to the value being written the instant the
+     * press happens, `onError` rolls it back to the exact snapshot if the
+     * write fails, and `onSuccess`'s invalidate still runs after -- so the
+     * toggle shows the truth optimistically now and the real server row
+     * once the refetch confirms it, never a value nobody asked for.
+     */
+    onMutate: async (next: boolean) => {
+      const key = ["boundary", activeWorkspaceId] as const;
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueryData(key);
+      qc.setQueryData(key, (old: typeof b.data) => (old ? { ...old, paused: next } : old));
+      return { previous };
+    },
     onSuccess: (_r, next) => {
       setReceipt({
         verb: next ? "You stopped the crew" : "You let the crew run",
@@ -667,12 +694,14 @@ export function BoundaryControls({
       void qc.invalidateQueries({ queryKey: ["boundary"] });
       void qc.invalidateQueries({ queryKey: ["governance"] });
     },
-    onError: (e: Error) =>
+    onError: (e: Error, _next, context) => {
+      if (context) qc.setQueryData(["boundary", activeWorkspaceId], context.previous);
       setReceipt({
         verb: "That switch did not save",
         consequence: humanWriteError(e, "The crew is as it was."),
         failed: true,
-      }),
+      });
+    },
   });
 
   /** One block of the boundary. The menu offers only the moves a floor allows,
