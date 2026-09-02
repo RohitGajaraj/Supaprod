@@ -1459,6 +1459,52 @@ function unionFiled(attached: Attachment[], onRecord: Attachment[]): Attachment[
  */
 export type SelfCheck = { what: string; held: boolean; why?: string };
 
+/**
+ * THE ACCEPTANCE LINES THE REVIEWER SAID DID NOT HOLD.
+ *
+ * `code_review` is a `Json` column and arrives as an object through PostgREST
+ * and as a STRING through at least one path that stringifies before writing.
+ * Both are read, anything else is no lines -- which passes the gate, because
+ * "the column is unreadable" is not evidence that the change is wrong.
+ *
+ * The same reading `verdict-reading.ts` does for the screen, deliberately kept
+ * to the same rules: a line with no text is dropped rather than counted, and a
+ * missing `held` is not a pass. It is not IMPORTED from there because that file
+ * is a client module and this is the driver; the shared thing is the shape of
+ * the column, and both files state the same three rules about it.
+ */
+function missedAcceptanceLines(raw: unknown): string[] {
+  let review: unknown = raw;
+  if (typeof review === "string") {
+    try {
+      review = JSON.parse(review);
+    } catch {
+      return [];
+    }
+  }
+  if (!review || typeof review !== "object" || Array.isArray(review)) return [];
+  const compared = (review as { compared?: unknown }).compared;
+  if (!Array.isArray(compared)) return [];
+  return compared
+    .filter((c): c is { line: string; held?: unknown } => {
+      if (!c || typeof c !== "object") return false;
+      const line = (c as { line?: unknown }).line;
+      return typeof line === "string" && line.trim().length > 0;
+    })
+    .filter((c) => c.held !== true)
+    .map((c) => c.line.trim());
+}
+
+/**
+ * How many of them to NAME in a hold reason a person reads.
+ *
+ * The list is bounded and the COUNT is not, and keeping those separate is the
+ * whole point: the first draft sliced before counting, so nine failing lines
+ * reported as five. A truncated list is a readable sentence; a truncated count
+ * is a wrong number, and this file exists to stop those.
+ */
+const NAME_AT_MOST = 5;
+
 export async function verifyStationOutput(
   supabase: SupabaseClient,
   station: AgentStation,
@@ -1749,6 +1795,59 @@ export async function verifyStationOutput(
     }
     ok("A change was staged");
     ok("The checks ran and cleared this change");
+
+    /*
+     * -- AND DOES IT DO WHAT WAS ASKED FOR ------------------------------------
+     *
+     * The last of the three, and the only one about the WORK rather than about
+     * the machinery around it. The other two ask whether something was staged
+     * and whether CI went green; a change can pass both and build the wrong
+     * thing, which is the failure Build has no other way to catch.
+     *
+     * The reviewer already judged this. `studio.review` is given the spec's
+     * acceptance lines and returns a verdict per line, so this reads a
+     * conclusion somebody else reached rather than forming one -- the same
+     * relationship the test gate above has with `studio.checks.run`, and for the
+     * same reason: a gate that recomputes its own evidence can disagree with the
+     * tool that produced it, and then neither can be trusted.
+     *
+     * WHAT IT REFUSES, AND WHAT IT DELIBERATELY DOES NOT. Only a line the
+     * reviewer explicitly judged as not met. No review, no lines on the review,
+     * or a spec that stated no acceptance criteria all pass here -- 117 of 119
+     * specs carry no contract, so a gate that demanded lines would park almost
+     * every track in the product on its first Build.
+     *
+     * THIS IS THE SEND-BACK. A refusal here sets `self-check-failed`, which
+     * counts an attempt and re-runs Build with `selfCheckNote` telling it what
+     * its own check refused. So a missed acceptance line returns the work to the
+     * builder once, bounded by `attempts` like every other self-check, rather
+     * than being a sentence on a screen nobody acts on.
+     */
+    const { data: csRows, error: csErr } = await supabase
+      .from("studio_changesets")
+      .select("code_review")
+      .eq("track_id", trackId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (csErr) {
+      // Fails open, on the same reasoning as the two reads above: losing one
+      // gate on one drive is recoverable, parking the track is not.
+      console.error(`[driver] build acceptance gate could not read the review: ${csErr.message}`);
+      return { passed: true, checks };
+    }
+    const missedLines = missedAcceptanceLines(
+      (csRows?.[0] as { code_review?: unknown } | undefined)?.code_review,
+    );
+    if (missedLines.length > 0) {
+      const named = missedLines.slice(0, NAME_AT_MOST);
+      const rest = missedLines.length - named.length;
+      return no(
+        "The change meets what the spec asked for",
+        `${missedLines.length} ${missedLines.length === 1 ? "line" : "lines"} of what was asked for did not hold: ${named.join("; ")}${
+          rest > 0 ? `, and ${rest} more` : ""
+        }`,
+      );
+    }
     return done();
   }
 

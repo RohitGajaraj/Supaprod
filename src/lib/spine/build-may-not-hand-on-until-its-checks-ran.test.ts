@@ -28,12 +28,39 @@ import { verifyStationOutput } from "./driver.server";
 const mission = [{ artifactKind: "mission", artifactId: "m1" }] as never;
 
 /**
- * A client that answers the two reads the gate makes: the track's runs, then the
- * newest `studio.checks.run` on those traces.
+ * A client that answers the three reads the gate makes: the track's runs, the
+ * newest `studio.checks.run` on those traces, and the newest changeset's review.
+ *
+ * The third arrived with the acceptance gate. It defaults to a changeset with no
+ * review, which is what every track in the product looked like before
+ * `studio.review` was given the spec -- so every assertion below still measures
+ * the CI gate alone, and none of them silently started measuring two things.
  */
-const client = (opts: { traces?: string[]; result?: unknown; runErr?: string; callErr?: string }) =>
+const client = (opts: {
+  traces?: string[];
+  result?: unknown;
+  runErr?: string;
+  callErr?: string;
+  /** `code_review` on the newest changeset, when a test wants the third read. */
+  review?: unknown;
+  reviewErr?: string;
+}) =>
   ({
     from: (table: string) => {
+      if (table === "studio_changesets") {
+        return {
+          select: () => ({
+            eq: () => ({
+              order: () => ({
+                limit: async () =>
+                  opts.reviewErr
+                    ? { data: null, error: { message: opts.reviewErr } }
+                    : { data: [{ code_review: opts.review ?? null }], error: null },
+              }),
+            }),
+          }),
+        };
+      }
       if (table === "agent_runs") {
         const rows = (opts.traces ?? []).map((t) => ({ trace_id: t }));
         return {
@@ -184,5 +211,121 @@ describe("F-148 · and the ways it deliberately does NOT refuse", () => {
         )
       ).passed,
     ).toBe(true);
+  });
+});
+
+/**
+ * ── AND DOES IT DO WHAT WAS ASKED FOR — P-02, 2026-09-03 ──────────────────
+ *
+ * The gate above asks whether CI went green. A change can pass it and build the
+ * wrong thing, and Build had no other way to catch that: the qa seat's brief
+ * says "Check the change against the spec", and until P-02 `studio.review` had
+ * never been shown a spec.
+ *
+ * It has now, and it returns a verdict per acceptance line. This third check
+ * reads that conclusion rather than forming its own -- the same relationship the
+ * CI gate has with `studio.checks.run`, and for the same reason: a gate that
+ * recomputes its own evidence can disagree with the tool that produced it.
+ *
+ * A refusal here is the SEND-BACK. It sets `self-check-failed`, which counts an
+ * attempt and re-runs Build with `selfCheckNote` naming what its own check
+ * refused, so a missed acceptance line returns the work to the builder once
+ * rather than being a sentence on a screen nobody acts on.
+ */
+describe("P-02 · the change has to do what the spec asked for", () => {
+  const green = { may_proceed: true };
+  const build = (review: unknown) =>
+    verifyStationOutput(
+      client({ traces: ["t1"], result: green, review }),
+      "build",
+      mission,
+      "track-1",
+    );
+
+  it("REFUSES a change the reviewer said missed an acceptance line", async () => {
+    const v = await build({
+      compared: [
+        { line: "The card form accepts an Amex number", held: true },
+        { line: "The error names the failing field", held: false, why: "no field is named" },
+      ],
+    });
+    expect(v.passed).toBe(false);
+    // Names the line, because "it does not meet the spec" is not something a
+    // builder can act on and the line is.
+    expect(v.reason).toContain("The error names the failing field");
+    expect(v.reason).toContain("1 line");
+  });
+
+  it("names several, but not twenty, because the reason is a sentence a person reads", async () => {
+    const many = Array.from({ length: 9 }, (_, i) => ({ line: `line ${i}`, held: false }));
+    const v = await build({ compared: many });
+    expect(v.passed).toBe(false);
+    /*
+     * THE COUNT IS NOT BOUNDED AND THE LIST IS, and this assertion is why the
+     * distinction is written down. The first version of the gate sliced before
+     * counting, so nine failing lines reported as five -- a wrong number in
+     * front of a person, which is the class of defect this whole packet is
+     * about, reproduced inside the fix for it.
+     */
+    expect(v.reason).toContain("9 lines");
+    expect(v.reason).toContain("line 4");
+    expect(v.reason).not.toContain("line 5");
+    // And it says what it left out rather than trailing off.
+    expect(v.reason).toContain("and 4 more");
+  });
+
+  it("PASSES when every line held", async () => {
+    const v = await build({ compared: [{ line: "The card form accepts Amex", held: true }] });
+    expect(v.passed).toBe(true);
+  });
+
+  it("PASSES when the spec stated no acceptance lines, which is 117 of 119 specs", async () => {
+    /*
+     * THE ONE THAT KEEPS THIS GATE FROM PARKING THE PRODUCT. A gate that
+     * demanded lines would refuse almost every track in the database on its
+     * first Build. No lines is not evidence the change is wrong.
+     */
+    for (const review of [null, {}, { compared: [] }, { compared: "nope" }, "not json"]) {
+      expect((await build(review)).passed).toBe(true);
+    }
+  });
+
+  it("reads the column whether it arrives as an object or a string", async () => {
+    // `code_review` is Json and arrives stringified through at least one path.
+    const v = await build(JSON.stringify({ compared: [{ line: "a line", held: false }] }));
+    expect(v.passed).toBe(false);
+    expect(v.reason).toContain("a line");
+  });
+
+  it("does not treat a missing held as a pass", async () => {
+    // The safe direction: an unreadable judgment must not read as approval.
+    const v = await build({ compared: [{ line: "a line" }] });
+    expect(v.passed).toBe(false);
+  });
+
+  it("drops a line with no text rather than refusing over a blank", async () => {
+    const v = await build({ compared: [{ line: "   ", held: false }] });
+    expect(v.passed).toBe(true);
+  });
+
+  it("A FAILED READ PASSES here too, on the same reasoning as the two above", async () => {
+    const v = await verifyStationOutput(
+      client({ traces: ["t1"], result: green, reviewErr: "boom" }),
+      "build",
+      mission,
+      "track-1",
+    );
+    expect(v.passed).toBe(true);
+  });
+
+  it("records the acceptance comparison, so a person can see it was made", async () => {
+    // The self-check list is what `track_drives.self_check` stores and what the
+    // strip counts. A gate that refuses without recording what it compared is
+    // the invisibility this packet is closing, one layer down.
+    const v = await build({ compared: [{ line: "a line", held: false }] });
+    expect(v.checks.map((c) => c.what)).toContain("The change meets what the spec asked for");
+    expect(v.checks.find((c) => c.what === "The change meets what the spec asked for")?.held).toBe(
+      false,
+    );
   });
 });
