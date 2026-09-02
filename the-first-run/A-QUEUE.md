@@ -714,3 +714,43 @@ parked).
 - [ ] `intent.md` carries the five fields and the forecast (claim, observable, horizon) verbatim.
 
 **Report / Blockers / A1 verdict:**
+
+---
+
+### P-22 · The thing being built runs in the right pane · Lane: **A2** · Status: BLOCKED → P-03 · Moves: 3, 4, 5
+
+**Why (founder, 2026-09-02 19:29, from Lovable's Live preview setting: *"Run your app on a live dev
+server in the editor preview. When off, the preview shows the latest built version."*).** Watching
+the diff is watching the work; watching the app run is watching the result. This is gap #11 in
+`OPERATING-MODEL-5-SESSIONS.md` (*"Nothing RUNS in front of the person"*), specced in
+`SPEC-BUILD-PATHS.md`. Priority after the current set; first close before launch, second close after.
+
+**First close (this packet).** At Build and Ship, when a `deployments` row exists for the changeset
+with `environment='preview'` and `status='success'` at the changeset's head sha (any provider, per
+the P-03 ruling), the Build row's artifact renders the preview URL in a frame with the diff behind a
+toggle (*App · Diff*), the checks beneath. While the preview is building, the same slot shows the
+deploy steps with a clock (Vercel's streaming build log), never a spinner. When no preview exists,
+the slot says why in one line (*"No preview: the repo has no preview deploys connected"*) with the
+door to Settings › Connections. Ship's row shows the production URL the same way once
+`release.publish` fires.
+
+**Second close (post-launch, not this packet).** A sandbox per run that boots the repo at the
+changeset and hot-reloads as the builder edits, so the app changes in front of the person while the
+transcript scrolls. `SPEC-BUILD-PATHS.md` ranks the candidates; Vercel Sandbox SDK is the reference.
+
+**Files.** `src/components/track/ArtifactPane.tsx` (Build and Ship bodies only) · new
+`src/components/track/AppFrame.tsx` (the frame, with its sad states; name in the Report the Meridian
+primitive checked first) · `src/lib/deployments.functions.ts` (a read for the preview at a sha, no
+write) · tests.
+
+**Acceptance.**
+- [ ] On a track whose changeset has a successful preview at head, the Build row shows the running
+      app in the frame; toggling shows the diff; the checks render beneath with state and clock.
+- [ ] While the preview is building, the slot shows the deploy steps and a clock; a test asserts no
+      spinner and no empty region.
+- [ ] With no preview, the one-line reason and the Connections door render (A1 checks on a track with
+      no deploy).
+- [ ] The frame is sandboxed (`sandbox` attribute set; no top-navigation) and the URL is shown beside
+      it with an open-in-new-tab control.
+
+**Report / Blockers / A1 verdict:**
