@@ -10,6 +10,7 @@ import { Action } from "@/components/meridian/surface-parts";
 import { Composer } from "@/components/meridian/onramp-parts";
 import { ExampleJobs, type ExampleJob } from "@/components/start/ExampleJobs";
 import { YourRuns } from "@/components/start/YourRuns";
+import { Arriving } from "@/components/start/Arriving";
 import { failureLine } from "@/lib/error-copy";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listRunsForStart, startTrack } from "@/lib/spine/track.functions";
@@ -258,6 +259,17 @@ function StartLanding() {
       <ExampleJobs onStart={(job) => go.mutate(job)} busy={go.isPending} />
 
       <YourRuns />
+
+      {/*
+       * ── WHAT IS ARRIVING, UNDER THE RUNS (founder, 2026-09-02 19:12) ─────
+       *
+       * Below the runs on purpose: a person's own work outranks the evidence
+       * that has not become work yet. But it is on this page at all because the
+       * product's central claim -- evidence becomes work on its own -- was
+       * provable only on a station page most people never open, while the page
+       * they actually land on said nothing about it.
+       */}
+      <Arriving />
     </div>
   );
 }
