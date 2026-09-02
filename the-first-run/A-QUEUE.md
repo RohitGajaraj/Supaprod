@@ -72,6 +72,10 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     live product. The `DEV SERVER` rule (7) still applies to local checks.
 11. **No new documents.** A packet's output is code, tests and its Report block. If a decision needs
     recording it goes in the Report and A1 promotes it to `RULINGS.md`.
+13. **Two reporters, both read.** `bun test --reporter=junit` does not record a file that throws at
+    module load, so its count climbs while main is red. Green means the junit report shows 0
+    failures AND the console summary shows `0 fail` and `0 error`. A guard that reads a deleted
+    route's source is such a file; delete the guard with the route.
 
 ### The bar a packet is verified against, in this order
 
@@ -1979,7 +1983,7 @@ five. The count is unbounded and the list is bounded now, and the sentence says 
 
 ---
 
-### P-04 · The horizon verdict arrives · Lane: **A2** · Status: BLOCKED → P-02 · Moves: 3, 4, 5
+### P-04 · The horizon verdict arrives · Lane: **A2** · Status: CLAIMED (A2, 05:20 IST) · Moves: 3, 4, 5
 
 **Scope.** R-31 in Decide's brief (forecast about the user's product; observable never a Supaprod
 table; default horizon 14 days). The band surface on the Decide tab (`forecast-band.ts` exists;
@@ -2018,6 +2022,16 @@ re-run the predicate before you start, the list may have grown):
 `08cc534e-88f0-4f96-85e8-190b5c67df66` (horizon 2030-01-01; strategist, `workspace.search` /
 `sources.status`). The 12 seed "resolved" rows were quarantined by A1 the same day
 (`decisions.is_sample=true`; SQL in `A1-REPORT.md` §5), so they no longer count anywhere.
+
+
+**A1 rulings on A2's two findings (03:45 IST).** (1) The column is `forecast_how_we_will_know`;
+correct this packet's names and line numbers in the Report. (2) The grader at Learn writes
+`decisions.forecast_resolution` itself; `learning.record` reads three forecast columns and writes
+none, which is the unwired grader, and why the horizon verdict has never arrived. (3)
+`forecast_resolution_log` receives a row for every resolution, grader included, not only reopens;
+the acceptance line means the grader's first real row. (4) `workspaces.auto_derive_enabled` is a
+switch nothing can set, so it is not a switch: the horizon tick grades every workspace, and the flag
+is removed or defaulted true in the same change. R-31 stands over all of it.
 
 **Report / A1 verdict:**
 
