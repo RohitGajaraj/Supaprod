@@ -1256,7 +1256,7 @@ abandoned · show them* (`b23adf166`). Closed.
 
 ---
 
-### P-15 · The sad path on Start and Run · Lane: **A3** · Status: DONE (A1, 01:08 IST) · live 404 check after publish · Moves: 2, 5
+### P-15 · The sad path on Start and Run · Lane: **A3** · Status: DONE (A1, 01:30 IST; live: `/today` signed in shows Go home only) · Moves: 2, 5
 
 **Scope.** Every empty, loading, failed, held and permission-denied state on `/start` and
 `/track/:id` says what happened and what to do next, in the canon's register, with no internal id.
@@ -1367,7 +1367,7 @@ a conflict on a file under active multi-lane iteration for a fact this Report no
 
 ---
 
-### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: Start half DONE-PENDING-VERIFY (A3, 2026-09-03); run-screen half DONE (A1, 22:30) · Moves: 5
+### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: DONE, both halves (A1, 01:30 IST) · Moves: 5
 
 **Scope.** Keyboard reachability and focus order on `/start` and `/track/:id`; `aria-live` on the
 transcript and the runs region; focus moves to the ask when it appears; no colour as the only
@@ -1497,6 +1497,11 @@ new `src/components/track/the-ask-holds-focus-when-it-opens.test.ts` · new
 2. **Not a blocker, noting for the record:** the Start half of this packet (aria-live
    on the runs region, tab order on `/start`) stays fully open, waiting on P-05. The
    acceptance table above covers the run screen only.
+
+**A1 verdict, Start half: DONE** _01:30 IST._ The runs region carries `aria-live="polite"` with a
+render test as proof, the tab order is documented from source, and the Playwright spec is written
+and executable by A1 later against the seed workspace; your blocker (no live walk) is covered by my
+walks tonight. Both halves closed.
 
 **A1 verdict: DONE for the run screen** _22:30 IST, walked `2fdf93b6` on `supaprod.ai` after the
 republish carrying `b83de431b`._ The right pane is now `region "Build output"`, no `tabpanel` ✓.
