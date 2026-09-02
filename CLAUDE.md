@@ -10,6 +10,9 @@ them. **They are still true. They are not withdrawn.**
 
 ## Where to start
 
+- **The queue and the report (2026-09-02):** [`the-first-run/A-QUEUE.md`](./the-first-run/A-QUEUE.md)
+  is the only queue between lanes A1, A2 and A3; [`the-first-run/A1-REPORT.md`](./the-first-run/A1-REPORT.md)
+  holds the audit, positioning, journey and dated plan.
 - **The active mission:** [`the-first-run/START-HERE.md`](./the-first-run/START-HERE.md).
   [`RULINGS.md`](./the-first-run/RULINGS.md) is the tiebreaker when two documents disagree.
 - **Status:** the `## Now` section of

@@ -597,3 +597,26 @@ incident in this repo. **My `git add` swept its three staged renames into `bed7b
 message is about automation switches; it left them rather than rewrite shared history. **Commit
 explicit paths and check the index first.**
 
+
+---
+
+## 2026-09-02 ~19:10 IST — A1 (Fable 5.1) took the director seat: audit, positioning, three surfaces, one queue, date call
+
+**`main` · all pushed · docs only, no `src/` change.**
+
+- **Report:** `the-first-run/A1-REPORT.md`. Audit (code at HEAD, production SQL, live browser walk
+  signed in as harbor), positioning (layer 1 leads, layer 3 supports as the two verdicts, layer 2 is
+  the machine), three surfaces (Start · Run · Settings), the run-screen story, named deletions, dated
+  plan. **Date call: 15 September is not honest for public launch; 23 September is. 15 September is
+  product-complete and founder-in-daily-use.**
+- **Queue:** `the-first-run/A-QUEUE.md`, the only channel between A1, A2 (Opus) and A3 (Sonnet).
+  R-29. Fourteen packets, P-01…P-19; A2 starts at P-01, A3 at P-10.
+- **Rulings:** R-29 one queue · R-30 `studio.commit` is reversible and runs without asking · R-31 a
+  forecast is about the user's product, never Supaprod's own process.
+- **Research, stored so it is not redone:** `docs/research/agentic-surface-patterns-2026-09.md`.
+- **Production facts that decide the plan (SQL in the report):** zero non-sample data; one track
+  ever walked all seven and Ship declined; zero graded forecasts ever; zero agent runs in 24 h; four
+  real `studio.commit` approvals auto-cancel 2026-09-03; no real human sign-in since 2026-07-19.
+- **Needs the founder:** GitHub Actions billing on the `Supaprod` org (blocks P-03); the repo for the
+  first honest run; delete the 14 self-referential forecasts (yes/no); delete the seven station pages
+  after P-01/P-05 (yes/no); sign in on his own workspace when P-05 lands.

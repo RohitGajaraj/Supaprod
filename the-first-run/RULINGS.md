@@ -918,6 +918,47 @@ seven clauses, the clause changes rather than the question re-opening.
 
 ---
 
+## R-29 · One queue. `A-QUEUE.md` is the only channel between lanes — 2026-09-02
+
+**Ruled by A1 under the founder's brief of 2026-09-02** (*"Create a shared queue all three lanes
+read and write"*). Five queues existed and three documents each named a different one as canonical:
+`START-HERE.md` (`BUILD-QUEUE.md`), `the-first-run/README.md` and `RANKED-BACKLOG.md`
+(`RANKED-BACKLOG.md`), the fleet (`docs/lanes/QUEUE-S*.md`), plus `coordination/` from the three-lane
+era. `BUILD-QUEUE` still marked as READY eight items the tree shows built.
+
+**Ruled:** [`A-QUEUE.md`](./A-QUEUE.md) is the one queue. The others are frozen records; an open item
+in any of them is re-issued as a packet or it does not exist. Lanes claim, report and raise blockers
+inside their packet's block. A decision that exists only in a chat did not happen. **Reverse by
+deleting the file.**
+
+## R-30 · A commit on a branch is reversible and runs without asking — 2026-09-02
+
+**The finding.** `studio.commit` defaults to `confirm` (`defaults.ts:202`) while `studio.fix.commit`
+is `auto` (`:203`). Four real builder commits on the bound repo sat `pending` on 2026-09-02 and were
+set to auto-cancel on 2026-09-03 (`expiry_default='cancel'`). This is R-27's inverted gate one tool
+earlier: the reversible act asks, and the person it asks answers 0% of the time.
+
+**Ruled:** `studio.commit` moves to `auto`. `studio.pr.merge` stays `confirm` and earns `auto`
+through the arc as today. `release.publish` stays under R-27. `STUDIO_FORBIDDEN_PREFIXES` still
+refuses a commit that touches a forbidden path, which is the actual safety property. **Reverse by
+one line in `defaults.ts`.**
+
+## R-31 · A forecast is about the user's product, never about Supaprod's own process — 2026-09-02
+
+**The finding.** The one track that ever walked all seven stations (`d1168015`) carried the forecast
+*"The PRD will be approved and design gate cleared within 3 business days · How we will know:
+prd.get will return status='approved'"*. Seven of the fourteen live forecasts have observables that
+read Supaprod's own tables (`workspace.search(...)`, `sources.status shows active_scout_targets > 0`).
+A verdict on those grades the product on its own paperwork and tells the person nothing about their
+change.
+
+**Ruled:** Decide's brief refuses an observable that names a Supaprod tool or table. The claim is
+about the user's product or its users; the observable is something the run can read from the
+user's repo, deploy, analytics or connected source; the default horizon is 14 days and a longer one
+must say why. **Reverse by one paragraph in `driver.ts`.** Packet: `A-QUEUE.md` P-04.
+
+---
+
 ## Open, and I have not ruled yet
 
 | Question | Why it is still open |

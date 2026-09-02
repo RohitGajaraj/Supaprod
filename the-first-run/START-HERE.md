@@ -62,7 +62,9 @@ say so where a person is looking.**
 | File | What it settles |
 | --- | --- |
 | **[`RULINGS.md`](./RULINGS.md)** | **THE TIEBREAKER.** R-01…R-12. If two documents disagree, this wins. It also lists what is still OPEN — an open question is a request you file, never a call you make |
-| [`BUILD-QUEUE.md`](./BUILD-QUEUE.md) | The single ordered backlog. Take the topmost item **you own by path** that is not blocked |
+| **[`A-QUEUE.md`](./A-QUEUE.md)** | **THE ONE QUEUE (R-29, 2026-09-02).** A1 writes packets; A2 and A3 claim, report and raise blockers inside them. `BUILD-QUEUE.md`, `RANKED-BACKLOG.md`, `docs/lanes/QUEUE-S*.md` and `coordination/` are frozen records |
+| **[`A1-REPORT.md`](./A1-REPORT.md)** | The audit, the positioning call, the three surfaces, the run-screen story, the deletions, the dated plan and the date call (23 September public; 15 September complete). Read it once before claiming a packet |
+| [`BUILD-QUEUE.md`](./BUILD-QUEUE.md) | FROZEN 2026-09-02. A record of the 2026-08-25 backlog; eight of its READY rows were already built |
 | [`DESIGN-DIRECTION.md`](./DESIGN-DIRECTION.md) | The workbench ruling, and what to take from each reference |
 | [`../docs/design/reference-2026-08-26/`](../docs/design/reference-2026-08-26/) | **Reference MECHANICS, in words** — lanes have no Mobbin access, so S0 pulls and commits. *Corrected 2026-08-31: this row named `../design-reference/mobbin-2026-08/` and promised "nine reference images, committed". **That path does not exist and never did, and there were zero images anywhere** — the real directory held only a `.gitkeep`. A lane cannot design against a path that is not there, and this is the first document a lane reads.* **R-20 §7 wants mechanics rather than screenshots**, so what is committed is the mechanics in words with each source linked. **Ask S0 for a surface and it gets pulled** |
 | [`SPEC-ARTIFACTS.md`](./SPEC-ARTIFACTS.md) · [`SPEC-LAYOUT.md`](./SPEC-LAYOUT.md) · [`SPEC-CONSENT.md`](./SPEC-CONSENT.md) · [`SPEC-ONRAMP.md`](./SPEC-ONRAMP.md) | Build specs with `file:line` on every claim. **Read the one for your item before starting it** |

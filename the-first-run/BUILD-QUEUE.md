@@ -1,5 +1,8 @@
 # BUILD QUEUE — the director's instruction set
 
+> **FROZEN 2026-09-02 (R-29).** This file is a record of the 2026-08-25 backlog. The only live queue
+> is [`A-QUEUE.md`](./A-QUEUE.md). Eight rows marked READY here were already built when it was frozen.
+
 > **MAIN LANE writes this file and nothing else in `src/`.** MAIN decides what gets built, models it,
 > rules on requests, verifies against the database, and audits. **Execution is LANE 0 and LANE 1.**
 > A lane reports completion by writing its own file into `coordination/units/`; MAIN moves the rows.

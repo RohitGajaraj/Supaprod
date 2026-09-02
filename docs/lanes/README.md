@@ -1,5 +1,9 @@
 # docs/lanes/ — git-only coordination for five parallel sessions
 
+> **FROZEN 2026-09-02 (R-29).** The five-session fleet closed on 2026-09-01. The live channel for the
+> A1 / A2 / A3 lanes is [`the-first-run/A-QUEUE.md`](../../the-first-run/A-QUEUE.md). Nothing below
+> is written to any more; it is kept as the record of what S0–S4 did.
+
 > _Last updated: 2026-08-26_
 
 > **Git is the only channel** (founder's ruling, 2026-08-26): *"this communication needs to be

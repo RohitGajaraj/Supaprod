@@ -14,6 +14,14 @@ If you are starting a session: read this, then [`../operations/session-handoff.m
 
 ## Now
 
+**2026-09-02 — A1 took the director seat.** The audit, positioning call, three-surface ruling, run-screen
+story, deletions, dated plan and date call (**23 September public launch; 15 September product complete
+and in daily founder use**) are in [`../../the-first-run/A1-REPORT.md`](../../the-first-run/A1-REPORT.md).
+The one queue is [`../../the-first-run/A-QUEUE.md`](../../the-first-run/A-QUEUE.md) (R-29). Everything below this line
+in `## Now` predates it.
+
+---
+
 **TWO FOUNDER RULINGS, 2026-08-31, AND THEY BIND EVERY LANE.**
 
 **One — the freeze.** Every lane's weight goes to platform strength until the acceptance is met.
