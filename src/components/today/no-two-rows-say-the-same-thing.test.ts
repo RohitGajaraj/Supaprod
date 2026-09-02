@@ -21,6 +21,7 @@
  */
 import { describe, expect, it } from "bun:test";
 import { holdLine } from "@/lib/spine/driver";
+import { FORECAST_SAYS } from "@/components/learn/forecast-words";
 
 import {
   abandonedLine,
@@ -353,5 +354,79 @@ describe("ten identical rows are one fact", () => {
   it("says what is behind the closed line, and counts one correctly", () => {
     expect(abandonedLine(14)).toBe("14 abandoned · show them");
     expect(abandonedLine(1)).toBe("1 abandoned · show it");
+  });
+});
+
+/**
+ * ── A FINISHED RUN LEADS WITH WHETHER THE BET HELD (P-04) ─────────────────
+ *
+ * It said "Produced 2 specs and 1 decision", which is inventory: true,
+ * countable, and not what anybody came to this list to learn. It was the best
+ * sentence available only because there was never a verdict to say --
+ * `learning.record` read three forecast columns and wrote none back, so no run
+ * in this product's history had a graded bet.
+ */
+describe("the verdict outranks the inventory", () => {
+  const graded = (resolution: string) =>
+    startRowMiddle(
+      run({
+        status: "done",
+        produced: [{ kind: "prd", count: 2 }],
+        forecast: { resolution, rationale: null },
+      }),
+      NOW,
+      WORDS,
+      phrase,
+    );
+
+  it("says whether the forecast held rather than what was filed", () => {
+    expect(graded("hit")).toBe("The forecast was graded: you called it.");
+    expect(graded("miss")).toBe("The forecast was graded: it went the other way.");
+    expect(graded("inconclusive")).toBe("The forecast was graded: the evidence did not settle it.");
+  });
+
+  it("uses the product's existing words rather than a third set for the same three states", () => {
+    /*
+     * The packet asked for "held / missed / cannot tell". `forecast-words.ts`
+     * already carries these three and an explicit rule that two surfaces must
+     * never call one thing two things, so a third vocabulary is the drift that
+     * file exists to prevent.
+     */
+    for (const key of Object.keys(FORECAST_SAYS)) {
+      expect(graded(key)).toContain(FORECAST_SAYS[key as keyof typeof FORECAST_SAYS]);
+    }
+  });
+
+  it("falls back to what it produced when nothing has graded it", () => {
+    // Almost every run, and it must read exactly as it did before.
+    expect(
+      startRowMiddle(
+        run({ status: "done", produced: [{ kind: "prd", count: 2 }], forecast: null }),
+        NOW,
+        WORDS,
+        phrase,
+      ),
+    ).toBe("Produced 2 specs");
+  });
+
+  it("degrades to the produced sentence on a value this build has never heard of", () => {
+    // `forecast_resolution` is a text column. A value written by a newer deploy
+    // must not reach a person as a raw slug.
+    expect(graded("something-new")).toBe("Produced 2 specs");
+  });
+
+  it("says nothing about a verdict while the run is still going", () => {
+    /*
+     * A bet graded before its run finished would be the horizon guard failing
+     * upstream, and this row is not the place to surface that: an open run's
+     * sentence is what it is DOING.
+     */
+    const m = startRowMiddle(
+      run({ status: "open", forecast: { resolution: "hit", rationale: null } }),
+      NOW,
+      WORDS,
+      phrase,
+    );
+    expect(m).not.toContain("you called it");
   });
 });

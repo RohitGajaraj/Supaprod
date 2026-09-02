@@ -2,6 +2,7 @@ import type { Track } from "@/lib/spine/track.functions";
 import { TERMINAL_HOLDS } from "@/lib/spine/correction";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { holdLine } from "@/lib/spine/driver";
+import { FORECAST_SAYS } from "@/components/learn/forecast-words";
 import { joinPlainly } from "@/lib/spine/attach";
 
 /**
@@ -330,6 +331,8 @@ export type StartRowInput = {
   status: "open" | "done" | "abandoned";
   /** The raw station, for `holdLine`'s station substitution. */
   station?: AgentStation | null;
+  /** The verdict on this run's bet, once anything has graded it. */
+  forecast?: { resolution: string; rationale: string | null } | null;
   stationName: string;
   updatedAt: string;
   drivenAt: string | null;
@@ -422,6 +425,40 @@ export function startRowMiddle(
        words. "is working" claims exactly what the row supports. */
     const doing = verb ? `${r.working.seat} is ${verb}` : `${r.working.seat} is working`;
     return clock ? `${doing} · ${clock}` : doing;
+  }
+
+  /*
+   * -- WHETHER THE BET HELD OUTRANKS WHAT THE RUN PRODUCED (P-04) ----------
+   *
+   * A finished row said "Produced 2 specs and 1 decision". That is inventory:
+   * true, countable, and not the thing anybody came to this list to learn. What
+   * this product exists to tell somebody is whether what the work PREDICTED
+   * turned out to be true.
+   *
+   * It was the best sentence available until now only because there was never a
+   * verdict to say: `learning.record` read three forecast columns and wrote none
+   * of them back, so no run in this product's history had a graded bet. The
+   * grader is wired (P-04), so this row can finally lead with the answer.
+   *
+   * `FORECAST_SAYS` and not a fourth vocabulary. The packet asked for "held /
+   * missed / cannot tell"; the product already says "you called it", "it went
+   * the other way", "the evidence did not settle it", and `forecast-words.ts`
+   * carries an explicit rule that two surfaces must never call one thing two
+   * things. A third set of words for the same three states is the drift that
+   * file exists to prevent, so the packet's wording is deliberately not used and
+   * the reason is written here rather than left to be rediscovered.
+   *
+   * NOT mapped onto the spec-outcome verdicts either, for the reason
+   * `forecast-words.ts` states at length: a forecast can be a hit while the spec
+   * outcome is a miss, both correct at once, and a mapping would silently pick a
+   * winner.
+   */
+  if (r.forecast && (r.status === "done" || r.status === "abandoned")) {
+    const said = FORECAST_SAYS[r.forecast.resolution as keyof typeof FORECAST_SAYS];
+    /* An unknown value degrades to the produced sentence below rather than
+       printing a raw slug: `forecast_resolution` is a text column, and a value
+       written by a newer deploy must not reach a person as `hit`. */
+    if (said) return `The forecast was graded: ${said}.`;
   }
 
   if (r.produced.length > 0 && (r.status === "done" || r.status === "abandoned")) {

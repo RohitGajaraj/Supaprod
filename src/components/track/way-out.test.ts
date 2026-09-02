@@ -21,7 +21,17 @@ describe("no dead end, ever", () => {
     for (const reason of Object.keys(HOLD_LINE)) {
       expect(() => wayOut(reason, BOTH_OPEN)).not.toThrow();
     }
-    expect(Object.keys(HOLD_LINE).length).toBe(18);
+    /*
+     * Nineteen since P-04 added `waiting-on-another-run`. It is deliberately NOT
+     * given an entry in this file: its own `HOLD_LINE` sentence already names
+     * what happens next ("it continues on its own when that run's pull request
+     * merges or closes"), and the driver writes the specific run, file and pull
+     * request into `last_hold_because` above it. This file's rule, stated in its
+     * own header, is that it speaks only where the record goes quiet -- and the
+     * record is not quiet here. Adding a door this screen cannot open would be
+     * the false-door failure the header warns about.
+     */
+    expect(Object.keys(HOLD_LINE).length).toBe(19);
   });
 
   it("speaks for the eight reasons whose own sentence names no way out", () => {

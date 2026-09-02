@@ -26,7 +26,6 @@ import { HOLD_LINE, holdLine, holdTone, type HoldReason } from "@/lib/spine/driv
  * run screen's chip is `TrackRun.tsx`, guarded where it lives.
  */
 
-
 const EVERY_REASON = Object.keys(HOLD_LINE) as HoldReason[];
 
 /**
@@ -66,15 +65,23 @@ const AMBER: HoldReason[] = [
   // fix is better work from the same seat -- it retries with the failure as
   // context and never reaches a person -- so amber is the honest tone.
   "self-check-failed",
+  /*
+   * P-04, 2026-09-03. A file this change needs is claimed by another run that is
+   * about to write it. Amber and not orchid, and the distinction is the whole
+   * point of these two lists: nobody is being ASKED for anything. The other
+   * run's pull request merges or closes and this continues on its own, so an
+   * orchid chip would put a job on a person who has none.
+   */
+  "waiting-on-another-run",
 ];
 
 describe("every hold reason is classified, and the set is closed", () => {
-  it("covers all eighteen with no reason in two lists and none in neither", () => {
+  it("covers all nineteen with no reason in two lists and none in neither", () => {
     // THE GUARD ON THE GUARD. Both lists above are hand-written, so a reason
     // added to `HoldReason` could land in neither and silently take a default
     // colour. `HOLD_LINE` has to name every hold a person can hit, which is what
     // makes it the register to check against.
-    expect(EVERY_REASON.length).toBe(18);
+    expect(EVERY_REASON.length).toBe(19);
     const listed = [...ORCHID, ...AMBER, "done" as HoldReason];
     expect(new Set(listed).size).toBe(listed.length);
     expect([...listed].sort()).toEqual([...EVERY_REASON].sort());

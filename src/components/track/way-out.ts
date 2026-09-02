@@ -19,6 +19,9 @@ import { nothingIsComing } from "@/components/track/nothing-is-coming";
  *   over-budget            "Raise the ceiling to let it carry on."
  *   out-of-credit          "Top the account up and it carries on from here."
  *   needs-evidence         "Connect a source, or file the missing input by hand."
+ *   waiting-on-another-run "...continues when that run's pull request merges or
+ *                          closes", and the driver names the run, the file and
+ *                          the pull request in `last_hold_because` above it.
  *   needs-a-waived-station "Put that station back on the route, or file it yourself."
  *   produced-nothing       "It will try again."
  *   nothing-to-hand-on     "It will try again."

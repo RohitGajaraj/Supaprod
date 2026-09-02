@@ -582,6 +582,11 @@ export type StartRun = {
   needsYou: { tool: string } | null;
   /** What it has filed, counted by kind. Empty is a real and common answer. */
   produced: Array<{ kind: string; count: number }>;
+  /**
+   * The verdict on this run's forecast, once somebody or something has graded
+   * it. Null until then, which is the state almost every run is in.
+   */
+  forecast: { resolution: string; rationale: string | null } | null;
 };
 
 export const listRunsForStart = createServerFn({ method: "GET" })
@@ -724,15 +729,67 @@ export const listRunsForStart = createServerFn({ method: "GET" })
       const producedByTrack = new Map<string, Map<string, number>>();
       const { data: memberRows } = await supabase
         .from("spine_track_members" as never)
-        .select("track_id, artifact_kind")
+        .select("track_id, artifact_kind, artifact_id")
         .in("track_id", ids);
+      /** The bet each track made, so its verdict can be read below. */
+      const decisionByTrack = new Map<string, string>();
       for (const m of (memberRows ?? []) as unknown as Array<{
         track_id: string;
         artifact_kind: string;
+        artifact_id?: string | null;
       }>) {
         const book = producedByTrack.get(m.track_id) ?? new Map<string, number>();
         book.set(m.artifact_kind, (book.get(m.artifact_kind) ?? 0) + 1);
         producedByTrack.set(m.track_id, book);
+        if (m.artifact_kind === "decision" && m.artifact_id && !decisionByTrack.has(m.track_id)) {
+          decisionByTrack.set(m.track_id, m.artifact_id);
+        }
+      }
+
+      /*
+       * -- WHETHER THE BET HELD, WHICH IS THE FACT A FINISHED RUN IS FOR ------
+       *
+       * A finished row said "Produced 2 specs and 1 decision". That is
+       * inventory. The thing this product exists to tell somebody is whether
+       * what the work PREDICTED turned out to be true, and until the grader was
+       * wired (P-04) there was never a verdict to say -- so the count was the
+       * best sentence available and is no longer.
+       *
+       * Read in its own query, and failing soft. A track with no decision, a
+       * bet nobody has graded, or a read that did not answer all mean "no
+       * verdict to report", and the row falls back to what it said before.
+       * Nothing here may turn a missing verdict into a claimed one.
+       */
+      const forecastByTrack = new Map<string, { resolution: string; rationale: string | null }>();
+      const decisionIds = [...new Set(decisionByTrack.values())];
+      if (decisionIds.length > 0) {
+        const { data: betRows, error: betErr } = await supabase
+          .from("decisions")
+          .select("id, forecast_resolution, forecast_resolution_rationale")
+          .in("id", decisionIds)
+          .not("forecast_resolution", "is", null);
+        if (betErr) {
+          console.error(`[listRunsForStart] could not read verdicts: ${betErr.message}`);
+        } else {
+          const byDecision = new Map(
+            (
+              (betRows ?? []) as unknown as Array<{
+                id: string;
+                forecast_resolution: string | null;
+                forecast_resolution_rationale: string | null;
+              }>
+            ).map((d) => [d.id, d]),
+          );
+          for (const [trackId, decisionId] of decisionByTrack) {
+            const bet = byDecision.get(decisionId);
+            if (bet?.forecast_resolution) {
+              forecastByTrack.set(trackId, {
+                resolution: bet.forecast_resolution,
+                rationale: bet.forecast_resolution_rationale,
+              });
+            }
+          }
+        }
       }
 
       return tracks.map((t) => {
@@ -762,6 +819,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             }),
           ),
           pinnedAt: pinnedByTrack.get(t.id) ?? null,
+          forecast: forecastByTrack.get(t.id) ?? null,
         };
       });
     } catch (e) {
