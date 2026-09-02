@@ -41,7 +41,7 @@ import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { KIND_WORD, joinPlainly } from "@/lib/spine/attach";
+import { KIND_WORD } from "@/lib/spine/attach";
 import { formatElapsed } from "@/components/meridian/run-rows";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { costSummary } from "@/components/track/cost-summary";
@@ -56,9 +56,35 @@ import type { Turn } from "@/lib/spine/activity";
 /** The pull request this run opened, when it opened one. */
 export type PullRequest = { number: number; url: string | null };
 
+/**
+ * One thing the run made, in the person's own word for it, and the station whose
+ * row made it.
+ *
+ * ── CHIPS RATHER THAN A SENTENCE (founder, 2026-09-02) ────────────────────
+ * This was a joined sentence: *"Produced 1 decision, 1 spec and 2 code
+ * changes."* True, readable, and inert. The founder's ruling on the strip took
+ * the seven-tab station display off this screen entirely, which left the right
+ * pane needing a second way in beside the transcript, and a list of the things
+ * the run made is exactly that list: each chip names something that EXISTS and
+ * opens it.
+ *
+ * IT NEVER NAMES A STATION THAT MADE NOTHING, which is the difference between
+ * this and the strip it replaces. A seven-slot display has to say something
+ * about all seven, so it says "Discover" over a station that filed nothing on 81
+ * of 106 tracks. A list of what was made is empty exactly when nothing was made.
+ */
+export type Made = {
+  kind: string;
+  /** `KIND_WORD`, so a `signal` is a finding here as it is in the transcript. */
+  label: string;
+  /** The station whose transcript row filed it, which the chip selects. */
+  station: string;
+  count: number;
+};
+
 export type Tally = {
-  /** "1 decision, a spec and 1 prototype", or null when nothing landed. */
-  produced: string | null;
+  /** One chip per kind of thing the run made, newest station first seen wins. */
+  made: Made[];
   pr: PullRequest | null;
   /** From `Verdict`, so the strip and the Build tab cannot say different things. */
   verdict: string | null;
@@ -70,7 +96,7 @@ export type Tally = {
 
 /** True when the strip has anything to say. Nothing produced means no strip. */
 export function hasAnything(t: Tally): boolean {
-  return Boolean(t.produced || t.pr || t.verdict || t.horizon || t.elapsed || t.cost);
+  return Boolean(t.made.length || t.pr || t.verdict || t.horizon || t.elapsed || t.cost);
 }
 
 function fieldOf(items: StationArtifactView["items"], kind: string, field: string): unknown {
@@ -100,19 +126,41 @@ export function runTally(input: {
    * is the same display map the driver's own sentence uses, so the strip and the
    * transcript call a `signal` a finding in the same breath.
    */
-  const counts = new Map<string, number>();
+  const byKind = new Map<string, { station: string; at: number; count: number }>();
   for (const stop of stops) {
     for (const item of stop.items) {
       if (item.missing) continue;
-      counts.set(item.kind, (counts.get(item.kind) ?? 0) + 1);
+      const at = Date.parse(item.createdAt);
+      const held = byKind.get(item.kind);
+      if (!held) {
+        byKind.set(item.kind, {
+          station: stop.station,
+          at: Number.isFinite(at) ? at : 0,
+          count: 1,
+        });
+        continue;
+      }
+      held.count += 1;
+      /* THE NEWEST ONE OWNS THE CHIP. A kind can be filed at two stations -- a
+         mission is opened at Build and a changeset can arrive at Build and Ship
+         -- and a chip has one destination. The newest is the one a person means
+         when they press the word: it is the version of that thing that stands. */
+      if (Number.isFinite(at) && at > held.at) {
+        held.at = at;
+        held.station = stop.station;
+      }
     }
   }
-  const parts: string[] = [];
-  for (const [kind, n] of counts) {
+  const made: Made[] = [];
+  for (const [kind, held] of byKind) {
     const word = KIND_WORD[kind] ?? { one: kind, many: `${kind}s` };
-    parts.push(`${n} ${n === 1 ? word.one : word.many}`);
+    made.push({
+      kind,
+      label: held.count === 1 ? word.one : `${held.count} ${word.many}`,
+      station: held.station,
+      count: held.count,
+    });
   }
-  const produced = parts.length > 0 ? joinPlainly(parts) : null;
 
   /*
    * THE PULL REQUEST, FIRST-CLASS. Devin puts it above everything else because
@@ -152,7 +200,7 @@ export function runTally(input: {
   const elapsed = s.timedTurns > 0 ? formatElapsed(s.msTotal / 1000) : null;
   const cost = s.usdTotal > 0 ? `$${s.usdTotal.toFixed(2)}` : null;
 
-  return { produced, pr, verdict, horizon, elapsed, cost };
+  return { made, pr, verdict, horizon, elapsed, cost };
 }
 
 /**
@@ -196,6 +244,31 @@ export function useRunTally(trackId: string): { tally: Tally; ready: boolean } {
   return { tally, ready: Boolean(artifacts.data) && Boolean(activity.data) };
 }
 
+/**
+ * The kind's own mark, so a chip is scannable before it is read.
+ *
+ * `GLYPH_FOR_STATION` draws stations and this list is of THINGS, so the marks
+ * come from the artifact vocabulary instead. Anything unmapped gets no mark
+ * rather than a wrong one: a chip with the wrong glyph is worse than a chip with
+ * none, because the glyph is what a person reads first.
+ */
+const MARK: Record<string, string> = {
+  signal: "\u25CB",
+  theme: "\u25CE",
+  prd: "\u25A4",
+  task: "\u25AB",
+  decision: "\u25C7",
+  prototype: "\u25A7",
+  changeset: "\u25A9",
+  mission: "\u25B7",
+  deployment: "\u25B2",
+  learning: "\u25C9",
+};
+
+function markFor(kind: string): string {
+  return MARK[kind] ?? "";
+}
+
 /** One clause. Separated by a middot only when something precedes it. */
 function Clause({ children, first }: { children: React.ReactNode; first: boolean }) {
   return (
@@ -210,7 +283,17 @@ function Clause({ children, first }: { children: React.ReactNode; first: boolean
   );
 }
 
-export function GotYou({ trackId }: { trackId: string }) {
+export function GotYou({
+  trackId,
+  onSelect,
+  active = null,
+}: {
+  trackId: string;
+  /** Press a chip and the pane below shows what that chip names. */
+  onSelect?: (station: string) => void;
+  /** What the pane is showing, so the chip that chose it says so. */
+  active?: string | null;
+}) {
   const { tally, ready } = useRunTally(trackId);
 
   /*
@@ -222,44 +305,10 @@ export function GotYou({ trackId }: { trackId: string }) {
    */
   if (!ready || !hasAnything(tally)) return null;
 
-  const clauses: React.ReactNode[] = [];
-  if (tally.produced) {
-    clauses.push(
-      <span key="produced" className="text-mrd-base text-mrd-ink">
-        Produced {tally.produced}
-      </span>,
-    );
-  }
-  if (tally.pr) {
-    clauses.push(
-      tally.pr.url ? (
-        <a
-          key="pr"
-          href={tally.pr.url}
-          target="_blank"
-          rel="noreferrer"
-          className="text-mrd-base font-medium text-mrd-you underline underline-offset-2"
-        >
-          {`PR #${tally.pr.number}`}
-        </a>
-      ) : (
-        <span key="pr" className="text-mrd-base text-mrd-mute">{`PR #${tally.pr.number}`}</span>
-      ),
-    );
-  }
-  for (const [key, text] of [
-    ["verdict", tally.verdict],
-    ["horizon", tally.horizon],
-    ["elapsed", tally.elapsed],
-    ["cost", tally.cost],
-  ] as const) {
-    if (!text) continue;
-    clauses.push(
-      <span key={key} className="text-mrd-base text-mrd-mute">
-        {text}
-      </span>,
-    );
-  }
+  /* The quiet clauses, which state facts rather than open anything. */
+  const clauses = [tally.verdict, tally.horizon, tally.elapsed, tally.cost].filter(
+    (c): c is string => Boolean(c),
+  );
 
   return (
     /*
@@ -272,13 +321,83 @@ export function GotYou({ trackId }: { trackId: string }) {
     <section
       data-mrd=""
       aria-label="What this run got you"
-      className="flex flex-wrap items-baseline gap-x-mrd-3 gap-y-mrd-1 border-b border-mrd-line pb-mrd-4 font-mrd"
+      className="flex flex-col gap-mrd-2 border-b border-mrd-line pb-mrd-4 font-mrd"
     >
-      {clauses.map((c, i) => (
-        <Clause key={i} first={i === 0}>
-          {c}
-        </Clause>
-      ))}
+      <div className="flex flex-wrap items-center gap-mrd-2">
+        {tally.made.map((m) => {
+          const on = active === m.station;
+          const chip = (
+            <>
+              <span className="text-mrd-data text-mrd-faint">{markFor(m.kind)}</span>
+              <span>{m.label}</span>
+            </>
+          );
+          /*
+           * A CHIP IS A CONTROL ONLY IF SOMETHING IS LISTENING. With no
+           * `onSelect` these are facts, with no pointer and no tab stop, which
+           * is the rule the shell's own chips follow: drawing a control that
+           * opens nothing is the promise this repo removes wherever it finds it.
+           */
+          if (!onSelect) {
+            return (
+              <span
+                key={m.kind}
+                className="inline-flex items-center gap-1.5 rounded-mrd-chip bg-mrd-sink px-2 py-1 text-mrd-small text-mrd-body"
+              >
+                {chip}
+              </span>
+            );
+          }
+          return (
+            <button
+              key={m.kind}
+              type="button"
+              aria-pressed={on}
+              onClick={() => onSelect(m.station)}
+              className={`mrd-focus-inset inline-flex items-center gap-1.5 rounded-mrd-chip px-2 py-1 text-mrd-small transition-colors duration-100 ${
+                on ? "bg-mrd-lift text-mrd-ink" : "bg-mrd-sink text-mrd-body hover:bg-mrd-hover"
+              }`}
+            >
+              {chip}
+            </button>
+          );
+        })}
+
+        {/* THE PULL REQUEST IS A LINK, NOT A CHIP, because it leaves. Devin puts
+            it first on a finished run; here it sits with the things it belongs
+            beside and keeps the one behaviour that separates it from them. */}
+        {tally.pr ? (
+          tally.pr.url ? (
+            <a
+              href={tally.pr.url}
+              target="_blank"
+              rel="noreferrer"
+              className="mrd-focus-inset inline-flex items-center rounded-mrd-chip px-2 py-1 text-mrd-small font-medium text-mrd-you underline underline-offset-2"
+            >
+              {`PR #${tally.pr.number}`}
+            </a>
+          ) : (
+            <span className="inline-flex items-center rounded-mrd-chip bg-mrd-sink px-2 py-1 text-mrd-small text-mrd-body">
+              {`PR #${tally.pr.number}`}
+            </span>
+          )
+        ) : null}
+      </div>
+
+      {/*
+       * THE FACTS ABOUT ALL OF IT, under the things themselves. Verdict, when
+       * the forecast lands, how long, what it cost: none of them opens anything,
+       * so none of them is drawn as though it might.
+       */}
+      {clauses.length > 0 ? (
+        <p className="flex flex-wrap items-baseline gap-x-mrd-2 gap-y-mrd-1 text-mrd-base text-mrd-mute">
+          {clauses.map((c, i) => (
+            <Clause key={c} first={i === 0}>
+              <span>{c}</span>
+            </Clause>
+          ))}
+        </p>
+      ) : null}
     </section>
   );
 }

@@ -189,6 +189,19 @@ function TrackPage() {
    */
   const [crewLive, setCrewLive] = React.useState(false);
   /*
+   * ── THE TRANSCRIPT ROW THE PERSON PICKED (founder, 2026-09-02 19:25) ─────
+   *
+   * The run screen has no station display any more. The right pane shows what
+   * the SELECTED transcript row filed, and the selection has to live here
+   * because the control is a row in the left pane and the thing it changes is in
+   * the right one. Null means nobody has picked, and the pane opens on the
+   * newest thing the run made.
+   *
+   * `GotYou`'s chips set the same state, so the two ways in are one pointer
+   * rather than two that can disagree.
+   */
+  const [selected, setSelected] = React.useState<string | null>(null);
+  /*
    * The footer's one control, reported up by the pane that owns the walk state.
    * Both halves travel, not just Stop: the `Run it` region came out of the left
    * pane in the same change, so starting and stopping are one control in one
@@ -333,10 +346,17 @@ function TrackPage() {
             onCrewLive={setCrewLive}
             crewLive={crewLive}
             onDriveState={setDrive}
+            selectedStation={selected}
+            onSelectStation={setSelected}
           />
         </div>
         <div className="mrd-workbench-pane mrd-workbench-pane--artifact">
-          <TrackPaneRight trackId={trackId} isRunning={crewLive} />
+          <TrackPaneRight
+            trackId={trackId}
+            isRunning={crewLive}
+            active={selected}
+            onActiveChange={setSelected}
+          />
         </div>
       </div>
 

@@ -64,7 +64,6 @@ import {
   type Track,
 } from "@/lib/spine/track.functions";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
-import { stationOutcomes } from "./station-outcome";
 import { holdTone } from "@/lib/spine/driver";
 import { relativeTime } from "@/lib/memory-view";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
@@ -80,8 +79,6 @@ import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { takeOver } from "@/components/track/take-over";
 import type { SpineRoute } from "@/lib/spine/route";
-import { runStripSpec } from "@/components/track/run-strip-spec";
-import { usePublishRunStrip } from "@/components/shell/run-strip";
 import { GotYou } from "@/components/track/GotYou";
 import { stoppedByYou } from "@/components/track/footer-mode";
 
@@ -208,6 +205,8 @@ export function TrackRunLeft({
   onCrewLive,
   onDriveState,
   crewLive = false,
+  selectedStation = null,
+  onSelectStation,
 }: {
   trackId: string;
   /**
@@ -245,6 +244,10 @@ export function TrackRunLeft({
    * the lie.
    */
   crewLive?: boolean;
+  /** The station the right pane is showing, so the row that chose it says so. */
+  selectedStation?: string | null;
+  /** A transcript row that filed something was pressed. */
+  onSelectStation?: (station: string) => void;
 }) {
   const drive = useServerFn(driveTrackNow);
   const fetchTrack = useServerFn(getTrack);
@@ -1133,7 +1136,12 @@ export function TrackRunLeft({
        * follow. When no row says running or queued, nothing speeds up and
        * nothing pulses -- an idle track reads idle.
        */}
-      <TrackActivity trackId={trackId} onLiveChange={onCrewLive} />
+      <TrackActivity
+        trackId={trackId}
+        onLiveChange={onCrewLive}
+        onSelect={onSelectStation}
+        selected={selectedStation}
+      />
 
       {/*
        * THE STEER BOX (RUN-03), AT THE PANE'S FOOT -- below the transcript,
@@ -1157,62 +1165,21 @@ export function TrackRunLeft({
 export function TrackPaneRight({
   trackId,
   isRunning = false,
+  active = null,
+  onActiveChange,
 }: {
   trackId: string;
   isRunning?: boolean;
+  /**
+   * The station whose artifact is shown, chosen in the TRANSCRIPT.
+   *
+   * Owned by the route rather than by this pane, because the control that sets
+   * it is a row in the other one. Null means nobody has picked yet and the pane
+   * falls back to the newest thing the run made.
+   */
+  active?: string | null;
+  onActiveChange?: (station: string) => void;
 }) {
-  const [paneStation, setPaneStation] = React.useState<string | null>(null);
-  const fetchStripTrack = useServerFn(getTrack);
-
-  /*
-   * ── THE TOP STRIP NOW DESCRIBES THIS RUN (2026-09-01) ────────────────────
-   *
-   * Photographed before: the run header said "Now: Build" while the 97px band
-   * above it reported WORKSPACE counts ("89+ runs waiting on you") with all
-   * seven chips at `data-on="false"` -- including Build. A person watching one
-   * run got a permanent readout about a different subject, and the chip naming
-   * the station they were looking at was unlit.
-   *
-   * `usePublishRunStrip` exists for this and no run had ever called it, so the
-   * region fell through to `WorkspaceSpine`. See `run-strip-spec.ts` for the
-   * measurement and for why publishing `onSelect` here is the one station
-   * interaction R-01 permits.
-   *
-   * PUBLISHED FROM THIS COMPONENT because this is where `paneStation` lives.
-   * The strip drives the same state `ArtifactPane`'s own station tabs drive, so
-   * the three station displays on this screen converge on one control rather
-   * than competing -- a duplicate removed, not a control added.
-   */
-  const stripTrack = useQuery({
-    // The same cache entry the header and the left pane already poll: one fact
-    // about one run must not have two freshnesses.
-    queryKey: ["spine-track", trackId],
-    queryFn: () => fetchStripTrack({ data: { trackId } }),
-    refetchInterval: 10_000,
-  });
-  /*
-   * THE SAME READ THE MAP USES, AND THE SAME QUERY KEY ON PURPOSE.
-   * `RunRouteHeader` in the left pane asks for this too; react-query serves
-   * both from one request and both surfaces then say the same thing about a
-   * station, which is the failure mode this file has paid for before -- two
-   * displays of one run disagreeing because they were fed by two reads.
-   */
-  const fChainForStrip = useServerFn(getTrackChain);
-  const stripChain = useQuery({
-    queryKey: ["spine-track-chain", trackId],
-    queryFn: () => fChainForStrip({ data: { trackId } }),
-    staleTime: 10_000,
-  });
-  usePublishRunStrip(
-    runStripSpec(
-      stripTrack.data ?? null,
-      isRunning,
-      paneStation,
-      (station) => setPaneStation(station),
-      stationOutcomes(stripChain.data?.chain.stops),
-    ),
-  );
-
   return (
     <div className="flex flex-col gap-mrd-6">
       {/*
@@ -1225,28 +1192,42 @@ export function TrackPaneRight({
        * forecast lands, what it cost -- are readable in one movement of the eye.
        * Before it, the last of those was a bordered region at the BOTTOM of this
        * pane and the first was nowhere at all.
+       *
+       * Its chips are the second way into this pane: each names a thing the run
+       * made, in the person's own word for it, and selects the row that made it.
+       * It never names a station that made nothing, which is the difference
+       * between a summary and a seven-slot template.
        */}
-      <GotYou trackId={trackId} />
+      <GotYou trackId={trackId} onSelect={onActiveChange} active={active} />
       <ArtifactPane
         trackId={trackId}
-        active={paneStation}
-        onActiveChange={setPaneStation}
+        active={active}
+        onActiveChange={onActiveChange}
         isRunning={isRunning}
       />
       {/*
-       * ── THREE BLOCKS CAME OFF THIS PANE, AND EACH FOR ITS OWN REASON ────
+       * ── FOUR THINGS CAME OFF THIS SCREEN, AND EACH FOR ITS OWN REASON ───
        *
-       * `TrackChain` was 2,706px of the same facts the strip above the header
-       * already carries, and it was the fourth station display on one screen.
-       * The strip drives this pane's tabs, so picking a stage there does what
-       * clicking a chain row did, in a band that is always on screen.
+       * THE SEVEN-STAGE STRIP (founder, 2026-09-02). The run screen drew the
+       * stations four times and this was the last of the four. It is gone with
+       * them, and nothing replaces it: stations appear only as marker rows in
+       * the transcript, where they are facts about what happened rather than a
+       * menu. `usePublishRunStrip` is not called from here, so the shell's band
+       * draws nothing on this route, and `run-strip-spec.ts` is deleted with its
+       * last importer. The right pane now follows the SELECTED TRANSCRIPT ROW,
+       * which is the same gesture with one fewer control: you point at the thing
+       * that happened, not at the stage it happened in.
+       *
+       * `TrackChain` was 2,706px of the same route in list form, with rows that
+       * opened a station. The transcript is that list, in time order, with what
+       * each turn actually filed.
        *
        * `LiveWork` listed every tool call on the whole track in one flat stream
        * headed "What the agents are calling". It answered what the RUN called
        * and could not answer what THIS SEAT called, which is the only version of
-       * the question a person watching a handoff has. Those calls are now inside
+       * the question somebody watching a handoff has. Those calls are now inside
        * the transcript entry of the seat that made them, collapsed, one press
-       * from open -- see `SeatCalls` in `TrackActivity.tsx`.
+       * from open.
        *
        * `RunCost` was a bordered region below the artifacts holding the two
        * figures people check most often, on the side of the screen they were not
@@ -1269,6 +1250,8 @@ export function TrackRun({ trackId, autoStart = false }: { trackId: string; auto
    * work behind a ten-second silence.
    */
   const [crewLive, setCrewLive] = React.useState(false);
+  /* The transcript row a person picked, which is what the right pane shows. */
+  const [selected, setSelected] = React.useState<string | null>(null);
   return (
     <div className="flex flex-col gap-mrd-6">
       <TrackRunLeft
@@ -1276,8 +1259,15 @@ export function TrackRun({ trackId, autoStart = false }: { trackId: string; auto
         autoStart={autoStart}
         onCrewLive={setCrewLive}
         crewLive={crewLive}
+        selectedStation={selected}
+        onSelectStation={setSelected}
       />
-      <TrackPaneRight trackId={trackId} isRunning={crewLive} />
+      <TrackPaneRight
+        trackId={trackId}
+        isRunning={crewLive}
+        active={selected}
+        onActiveChange={setSelected}
+      />
     </div>
   );
 }

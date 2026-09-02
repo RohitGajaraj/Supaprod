@@ -34,7 +34,7 @@
  * asserts positively -- the shell strip -- is checked in the file that owns it.
  */
 import { describe, expect, it } from "bun:test";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8");
@@ -57,19 +57,59 @@ const SURFACE: Record<string, string> = {
 
 const APPFRAME = strip(read("../shell/AppFrame.tsx"));
 
-describe("the strip is the only tab list on the run screen", () => {
-  it("is declared by the shell, once, and only for a run's own stages", () => {
-    // `mode === "tab"` is a run publishing its seven stages; the workspace spine
-    // publishes `nav` and must not become a tablist, because picking a chip
-    // there navigates and a tablist promises you never leave.
-    expect(APPFRAME).toContain('{strip && strip.mode === "tab" ? (');
-    expect(APPFRAME).toContain('role={(strip.mode ?? "tab") === "tab" ? "tablist" : "group"}');
+describe("there is no station display on the run screen at all", () => {
+  /*
+   * ── THE STRIP WENT TOO (founder, 2026-09-02 19:25) ──────────────────────
+   * The four displays above were three too many; the founder's question about
+   * the fourth removed the category. Stations appear only as marker rows in the
+   * transcript, where they are facts about what happened rather than a menu.
+   *
+   * The band in the shell is unchanged and still correct: it draws only when a
+   * surface publishes `mode: "tab"`, and the run screen now publishes nothing,
+   * so it draws nothing here. Deleting the branch is `AppFrame`'s owner's call
+   * and not this packet's.
+   */
+  it("publishes no strip, so the shell's band has nothing to draw", () => {
+    expect(strip(SURFACE["TrackRun"]).includes("usePublishRunStrip")).toBe(false);
+    expect(strip(SURFACE["the route"]).includes("usePublishRunStrip")).toBe(false);
   });
 
-  it("is not competed with by anything the run screen draws itself", () => {
+  it("deleted the spec that built one, so nothing can quietly publish again", () => {
+    expect(existsSync(fileURLToPath(new URL("./run-strip-spec.ts", import.meta.url)))).toBe(false);
+  });
+
+  it("leaves the shell's band gated on a mode nothing on this route supplies", () => {
+    // Kept as evidence the band is gated at all: `{strip ? (` is the exact shape
+    // that once put a seven-station band on every screen in the product.
+    expect(APPFRAME).toContain('{strip && strip.mode === "tab" ? (');
+  });
+
+  it("declares no tablist anywhere the run screen draws", () => {
     for (const [name, src] of Object.entries(SURFACE)) {
       expect(`${name}: ${strip(src).includes('role="tablist"')}`).toBe(`${name}: false`);
     }
+  });
+});
+
+describe("the transcript is the control the strip used to be", () => {
+  it("makes a turn that filed something pressable, and one that filed nothing not", () => {
+    const code = strip(SURFACE["TrackActivity"]);
+    expect(code).toContain("export function canOpen(");
+    expect(code).toContain("t.made.length > 0");
+    expect(code).toContain("canOpen(t) ? (");
+  });
+
+  it("says which row chose what the pane is showing, and not with colour alone", () => {
+    const code = SURFACE["TrackActivity"];
+    expect(code).toContain("aria-pressed={selected === t.station}");
+    expect(code).toContain("data-selected=");
+  });
+
+  it("gives the chips above the pane the same pointer, not a second one", () => {
+    // One selection for both ways in. Two would be two things to keep in step.
+    expect(SURFACE["the route"]).toContain("const [selected, setSelected]");
+    expect(SURFACE["the route"]).toContain("onSelectStation={setSelected}");
+    expect(SURFACE["the route"]).toContain("onActiveChange={setSelected}");
   });
 });
 
@@ -82,7 +122,7 @@ describe("no station meter, and no second route drawing", () => {
     }
   });
 
-  it("mounts no TrackChain, which was the fourth drawing of one route", () => {
+  it("mounts no TrackChain, which was one more drawing of one route", () => {
     for (const [name, src] of Object.entries(SURFACE)) {
       expect(`${name}: ${strip(src).includes("<TrackChain")}`).toBe(`${name}: false`);
     }

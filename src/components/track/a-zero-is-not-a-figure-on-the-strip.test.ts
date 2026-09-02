@@ -52,8 +52,8 @@ const item = (
 
 const NOW = Date.parse("2026-09-02T12:00:00Z");
 
-describe("what it produced", () => {
-  it("counts by kind, in the words the driver already uses", () => {
+describe("what it made, as chips that open it", () => {
+  it("names each kind in the person's own word for it", () => {
     const t = runTally({
       stops: [
         stop("decide", [item("decision")]),
@@ -65,26 +65,64 @@ describe("what it produced", () => {
     });
     // `KIND_WORD`, so a `signal` is a finding and a `changeset` is a code change
     // here exactly as it is in the transcript.
-    expect(t.produced).toBe("1 decision, 1 spec and 2 code changes");
+    /* No "1" on a single one: the founder's own example reads "decision · spec ·
+       prototype · PR #14", and a count of one is the count a reader assumes. */
+    expect(t.made.map((m) => m.label)).toEqual(["decision", "spec", "2 code changes"]);
+  });
+
+  it("points each chip at the station whose row filed it", () => {
+    const t = runTally({
+      stops: [stop("decide", [item("decision")]), stop("build", [item("changeset")])],
+      turns: null,
+      now: NOW,
+    });
+    expect(t.made.map((m) => [m.kind, m.station])).toEqual([
+      ["decision", "decide"],
+      ["changeset", "build"],
+    ]);
+  });
+
+  it("sends a kind filed twice to the newest of the two", () => {
+    /*
+     * A changeset can arrive at Build and again at Ship. One chip, one
+     * destination, and the newest is the version that stands.
+     */
+    const older = item("changeset");
+    older.createdAt = "2026-09-01T09:00:00Z";
+    const newer = item("changeset");
+    newer.createdAt = "2026-09-02T09:00:00Z";
+    const t = runTally({
+      stops: [stop("build", [older]), stop("ship", [newer])],
+      turns: null,
+      now: NOW,
+    });
+    expect(t.made).toHaveLength(1);
+    expect(t.made[0].station).toBe("ship");
+    expect(t.made[0].count).toBe(2);
   });
 
   it("does not count an artifact whose row is no longer there", () => {
     /*
      * `missing` means the lookup RAN and the row was not there, which is a
-     * different fact from "not produced". Counting it would promise a person
-     * something they cannot open.
+     * different fact from "not produced". A chip for it would open a pane with
+     * nothing in it.
      */
     const t = runTally({
       stops: [stop("decide", [item("decision"), item("decision", {}, true)])],
       turns: null,
       now: NOW,
     });
-    expect(t.produced).toBe("1 decision");
+    expect(t.made.map((m) => m.label)).toEqual(["decision"]);
   });
 
-  it("says nothing at all on a run that has produced nothing", () => {
+  it("never names a station that made nothing, which is what the strip did", () => {
+    /*
+     * The seven-tab strip had to say something about all seven, so it named
+     * Discover over a station that has filed nothing on 81 of 106 tracks. A list
+     * of what was made is empty exactly when nothing was made.
+     */
     const t = runTally({ stops: [stop("sense", [])], turns: [], now: NOW });
-    expect(t.produced).toBeNull();
+    expect(t.made).toEqual([]);
     expect(hasAnything(t)).toBe(false);
   });
 });
@@ -226,7 +264,7 @@ describe("a read that has not answered claims nothing", () => {
   it("is empty on null inputs rather than printing a template", () => {
     const t = runTally({ stops: null, turns: null, now: NOW });
     expect(t).toEqual({
-      produced: null,
+      made: [],
       pr: null,
       verdict: null,
       horizon: null,

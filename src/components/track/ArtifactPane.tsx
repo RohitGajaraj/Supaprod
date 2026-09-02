@@ -98,6 +98,12 @@ import { RunNote } from "@/components/meridian/run-rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { Field, Input, ReasonField, Textarea } from "@/components/meridian/forms";
 import { TabPanel } from "@/components/meridian/Tabs";
+import {
+  promotionBarFor,
+  resolveAutonomyPolicy,
+  type AutonomyPolicyRow,
+} from "@/lib/autonomy-policy";
+import { becameWorkOnItsOwn } from "@/lib/spine/promote";
 import { Verdict } from "@/components/track/Verdict";
 
 /** What each station exists to do, for the not-run sentence. Display labels only. */
@@ -1938,14 +1944,161 @@ function NothingToRead({ station }: { station: AgentStation }) {
   );
 }
 
+/**
+ * ── WHERE THIS RUN CAME FROM (founder, 2026-09-02 19:12) ──────────────────
+ *
+ * THE HOLE THIS CLOSES. The product's claim is that evidence becomes work on
+ * its own. The machinery for it is real and shipped -- `promote.server.ts` runs
+ * every theme past a bar and starts a track when one clears it, `qualifies()`
+ * composes the sentence saying why, and `originFor()` writes that sentence onto
+ * `spine_tracks.origin` at the moment of the decision. **And no screen in this
+ * product read it.** Grepped 2026-09-02: `qualifies` and `originFor` appear only
+ * in `src/lib/spine/` and their tests, zero times under `src/components` or
+ * `src/routes`. The most convincing thing the loop does happened, was written
+ * down, and was shown to nobody.
+ *
+ * ── THE BAR IS READ, NOT ASSUMED ──────────────────────────────────────────
+ * `DEFAULT_PROMOTION_BAR` is 8 signals, severity 4, confidence 0.75 -- and a
+ * workspace can override all three (`workspaces.promotion_min_*`, resolved by
+ * `resolveAutonomyPolicy`). Printing the shipped default beside a workspace that
+ * set its own would be a number that looks measured and is not, which is the
+ * exact defect this pane's neighbours have been repaired for. So the row is read
+ * with the caller's own RLS-scoped client -- the pattern `PrototypeCard`
+ * established in this file -- and until it answers, no bar is drawn.
+ *
+ * ── AND IT DOES NOT CLAIM THE THEME IS WHY THE RUN EXISTS ─────────────────
+ * A theme filed at Discover can arrive two ways: `attachOriginTheme` writes the
+ * one that STARTED the track, and a Discover seat that clustered evidence writes
+ * the ones it made. Nothing on the member row separates them. `origin` does:
+ * only a promoted track carries the sentence `originFor` composed. So the
+ * promotion is claimed from `origin` and the numbers are shown from the theme,
+ * and neither is asked to stand in for the other.
+ */
+function Lineage({
+  themes,
+  origin,
+  hasSignals,
+  workspaceId = null,
+}: {
+  themes: ArtifactView[];
+  /** `spine_tracks.origin`. Carries the promotion sentence, or a typed one. */
+  origin: string | null;
+  hasSignals: boolean;
+  /**
+   * Whose bar to read, HANDED IN rather than taken from the workspace context.
+   *
+   * `useWorkspace` throws outside its provider, and `SenseBody` is rendered
+   * directly by forty guards that stand up no shell at all. A hook that decides
+   * whether a component can be tested in isolation is a coupling this file
+   * should not add for one number, so the id travels as a prop and a null one
+   * simply draws no bar -- which is also the right answer when nobody knows
+   * whose workspace this is.
+   */
+  workspaceId?: string | null;
+}) {
+  /*
+   * Cached hard: a workspace's bar is a setting, not a fact about this run, so
+   * re-reading it on the pane's ten-second beat would spend a request on a value
+   * that cannot change while somebody watches one track.
+   */
+  const bar = useQuery({
+    queryKey: ["promotion-bar", workspaceId],
+    enabled: Boolean(workspaceId),
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workspaces")
+        .select("promotion_min_frequency,promotion_min_severity,promotion_min_confidence")
+        .eq("id", workspaceId!)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return promotionBarFor(resolveAutonomyPolicy(data as AutonomyPolicyRow | null));
+    },
+  });
+
+  const promoted = becameWorkOnItsOwn(origin);
+  const theme = themes[0] ?? null;
+
+  /*
+   * NOTHING WAS CLUSTERED, so this run came from a person. Said plainly, and
+   * only when the station really is empty of both kinds: a run whose Discover
+   * seat has not filed yet is a different fact and the panel around this one
+   * already says it.
+   */
+  if (!theme && !hasSignals) {
+    return (
+      <p className="text-mrd-small text-mrd-mute">
+        {promoted
+          ? "This run started itself from a cluster, and the cluster it came from is no longer on the record."
+          : "Nobody clustered anything into this run. It started from a sentence somebody typed, so there is no trail of evidence behind it."}
+      </p>
+    );
+  }
+
+  if (!theme) return null;
+
+  const f = theme.fields;
+  const frequency = num(f.frequency);
+  const severity = num(f.severity);
+  const confidence = num(f.confidence);
+  const b = bar.data ?? null;
+
+  /*
+   * THE COMPARISON, AND IT PRINTS ONLY WHAT IT HAS. A missing figure on the
+   * theme drops its own clause; a bar that has not been read drops the whole
+   * "over a bar of" half rather than falling back to the shipped default, which
+   * would be a claim about this workspace that nobody made.
+   */
+  const measured = [
+    frequency !== null ? `seen ${frequency} ${frequency === 1 ? "time" : "times"}` : "",
+    severity !== null ? `severity ${severity}` : "",
+    confidence !== null ? `confidence ${confidence}` : "",
+  ].filter(Boolean);
+  const against =
+    b && measured.length > 0
+      ? `, over a bar of ${b.minFrequency} \u00B7 ${b.minSeverity} \u00B7 ${b.minConfidence}`
+      : "";
+
+  return (
+    <div className="flex flex-col gap-mrd-2 rounded-mrd-chip bg-mrd-sink p-mrd-4">
+      <span className="mrd-eyebrow">Where this run came from</span>
+      <span className="text-mrd-label font-medium text-mrd-ink">{theme.title ?? theme.word}</span>
+      {measured.length > 0 ? (
+        <span className="mrd-meta">{`${measured.join(" \u00B7 ")}${against}`}</span>
+      ) : null}
+      {/*
+       * THE SENTENCE THE LOOP WROTE AT THE MOMENT IT DECIDED, verbatim.
+       *
+       * This is the product's own claim on one line: what it believed, recorded
+       * before anyone knew the outcome. Rewriting it here would make it a
+       * summary of a decision rather than the decision, so it is printed as
+       * stored. It only exists on a track the sweep started; a person's own
+       * sentence is not this, and saying it were would be the substitution.
+       */}
+      {promoted && origin ? <Prose markdown={false}>{origin}</Prose> : null}
+      <span className="mrd-meta">
+        {hasSignals
+          ? "Everything it clustered is below, each with where it came from and when."
+          : "The findings it clustered are no longer on this run's record."}
+      </span>
+    </div>
+  );
+}
+
 export function SenseBody({
   items,
   now,
   trackId,
+  origin = null,
+  workspaceId = null,
 }: {
   items: ArtifactView[];
   now: number;
   trackId: string;
+  /** `spine_tracks.origin`, for the lineage line at the top. */
+  origin?: string | null;
+  /** Whose promotion bar the lineage compares against. See `Lineage`. */
+  workspaceId?: string | null;
 }) {
   const reducedMotion = usePrefersReducedMotion();
 
@@ -2029,6 +2182,18 @@ export function SenseBody({
 
   return (
     <div className="flex flex-col gap-mrd-5">
+      {/*
+       * WHERE THE RUN CAME FROM, ABOVE WHAT IT IS FOR. The two are a chain and
+       * this is its first link: the cluster that crossed the bar, then the
+       * problem that cluster describes, then the evidence itself. A person
+       * reading top to bottom is reading the causation in order.
+       */}
+      <Lineage
+        themes={themes}
+        origin={origin}
+        hasSignals={signals.length > 0}
+        workspaceId={workspaceId}
+      />
       {/*
        * WHAT THE WORK IS FOR COMES BEFORE THE EVIDENCE FOR IT (gap #16).
        * Discover's shape is the frame the evidence below sits inside: the
@@ -2141,6 +2306,8 @@ function StationPanel({
   everDriven,
   hold,
   holdReason,
+  origin = null,
+  workspaceId = null,
   now,
   trackId,
 }: {
@@ -2156,6 +2323,10 @@ function StationPanel({
    * the hold line rendered directly beneath it.
    */
   holdReason: string | null;
+  /** `spine_tracks.origin`, read by Discover's lineage line and nothing else. */
+  origin?: string | null;
+  /** Whose promotion bar the lineage compares against. See `Lineage`. */
+  workspaceId?: string | null;
   now: number;
   /** Routes the Discover cards' writes back to this pane's cache entries. */
   trackId: string;
@@ -2343,6 +2514,8 @@ function StationPanel({
             items={items.filter((it) => it.kind === "signal" || it.kind === "theme" || it.missing)}
             now={now}
             trackId={trackId}
+            origin={origin}
+            workspaceId={workspaceId}
           />
         </div>
       );
@@ -2450,6 +2623,9 @@ export function ArtifactPane({
 }) {
   const fChain = useServerFn(getTrackChain);
   const fArtifacts = useServerFn(getTrackArtifacts);
+  /* Whose promotion bar Discover's lineage compares a cluster against. Read
+     here and handed down, so `SenseBody` stays renderable without a shell. */
+  const { activeWorkspaceId } = useWorkspace();
   /** What the last Take this handed over, said once and left standing. */
   const [took, setTook] = React.useState<string | null>(null);
   const q = useQuery({
@@ -2510,15 +2686,39 @@ export function ArtifactPane({
     return <ReadFailedLine>That work could not be found.</ReadFailedLine>;
   }
 
-  // Where the work stands wins the first paint; a finished or untouched route
-  // falls back to the last stop worth showing. The person's own click always
-  // outranks both.
+  /*
+   * ── THE NEWEST THING THE RUN MADE WINS THE FIRST PAINT (founder, 2026-09-02)
+   *
+   * This used to open on where the work STANDS. That was right while a strip of
+   * seven stations sat above the pane saying where that was; with the strip gone
+   * it is the wrong default, because the station a run is standing at is very
+   * often the one that has filed nothing -- 81 of 106 tracks are parked at
+   * Discover with an empty record -- so the pane opened on a blank.
+   *
+   * The newest artifact is what a person arriving actually wants: the last thing
+   * that happened. Where the work stands remains the fallback for a run that has
+   * made nothing at all, because then there is no newer fact and the standing
+   * station is the only honest answer.
+   *
+   * The person's own click outranks both, and always did.
+   */
+  const newest = (bodies.data?.stops ?? [])
+    .flatMap((st) =>
+      st.items
+        .filter((i) => !i.missing)
+        .map((i) => ({ station: st.station, at: Date.parse(i.createdAt) })),
+    )
+    .filter((x) => Number.isFinite(x.at))
+    .sort((a, b) => b.at - a.at)[0];
   const standing =
     chain.stops.find((s) => s.state === "here") ??
     [...chain.stops].reverse().find((s) => s.state === "passed") ??
     chain.stops[0];
-  const current =
-    active && chain.stops.some((s) => s.station === active) ? active : standing.station;
+  const fallback =
+    newest && chain.stops.some((s) => s.station === newest.station)
+      ? newest.station
+      : standing.station;
+  const current = active && chain.stops.some((s) => s.station === active) ? active : fallback;
   const now = Date.now();
   const shown = chain.stops.find((s) => s.station === current) ?? chain.stops[0];
 
@@ -2587,16 +2787,25 @@ export function ArtifactPane({
       its top is at y=-795, which is to say a person deep in a station's output
       has no station control on screen at all.
 
-      WHAT IS LOST IS PROXIMITY, and it is a real cost rather than a rounding
-      error: the control is now ~360px up and across a pane boundary from the
-      region it swaps. The `sub` below is rewritten because of it -- "Pick a
-      step to see its output" pointed at a control that is no longer in this
-      pane, and a sentence naming a control that is not there is worse than the
-      duplication it replaced.
+      ── AND THEN THE STRIP WENT TOO (founder, 2026-09-02 19:25) ───────────
+      The paragraph above chose between two station displays; the founder's
+      question about the strip removed the category. There is no station display
+      on this screen now. The pane follows the SELECTED TRANSCRIPT ROW, which is
+      the same gesture with one fewer control and a truer subject: you point at
+      the thing that happened rather than at the stage it happened in, and a
+      station that filed nothing has no row to press, so it cannot open a blank.
     */
     <Region
       title="What it has made"
-      sub={`The thing each station filed, rendered as itself. Showing ${shown.label}; pick a stage on the strip above to change it.`}
+      /*
+       * ── THE SENTENCE FOLLOWED THE CONTROL, TWICE ──────────────────────────
+       * It read "pick a step to see its output" while the tabs were in this
+       * pane, then "pick a stage on the strip above" when they moved there. The
+       * strip is now gone too, and the control is a row in the transcript, so
+       * the sentence says where the control actually is. A `sub` naming a
+       * control that is not on the screen is worse than no `sub` at all.
+       */
+      sub={`Showing ${shown.label}. Press a row in the record beside this to see what that step made.`}
       act="Take this"
       onAct={take}
     >
@@ -2620,6 +2829,11 @@ export function ArtifactPane({
           <StationPanel
             stop={shown}
             view={view}
+            /* Discover's lineage reads it; no other station does. See `Lineage`
+               for why the promotion is claimed from this sentence and not from
+               `theme_id`. */
+            origin={track.origin}
+            workspaceId={activeWorkspaceId ?? null}
             /*
              * EVERY STOP, NOT JUST DECIDE, and this was hiding the one thing
              * the product exists to show.

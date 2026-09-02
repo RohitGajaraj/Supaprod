@@ -182,6 +182,18 @@ export function chipOf(t: Turn) {
 }
 
 /** The live turn's age, ticking. Reports the WORK, not the component. */
+/**
+ * Can this turn's output be opened in the pane beside it?
+ *
+ * Only when the turn FILED something that still resolves, and the station is
+ * known. `made` is a join against `spine_track_members`, so it is the record's
+ * own answer rather than the agent's account of itself, which is the same rule
+ * `headline` follows for "filed nothing".
+ */
+export function canOpen(t: Pick<Turn, "made" | "station">): boolean {
+  return Boolean(t.station) && t.made.length > 0;
+}
+
 function LiveTook({ startedAt }: { startedAt: number }) {
   const elapsed = useElapsed(startedAt);
   return <RunTook>{`Working for ${elapsed}`}</RunTook>;
@@ -389,6 +401,8 @@ export function TrackActivity({
   isRunning = false,
   onLiveChange,
   onLiveSeats,
+  onSelect,
+  selected = null,
 }: {
   trackId: string;
   isRunning?: boolean;
@@ -403,6 +417,27 @@ export function TrackActivity({
   onLiveChange?: (live: boolean) => void;
   /** WHICH teammates are in flight, for the multiplayer presence case. */
   onLiveSeats?: (seats: Array<{ slug: string | null; name: string; waiting: boolean }>) => void;
+  /**
+   * ── THE TRANSCRIPT IS THE RIGHT PANE'S CONTROL NOW (founder, 2026-09-02) ──
+   *
+   * The run screen used to carry a seven-tab strip over the artifact pane, and
+   * the founder's question about it settled the whole shape: there is no station
+   * display on this screen at all. Stations are facts about what happened, not a
+   * menu, so they appear only as marker rows in this stream.
+   *
+   * What replaces the tabs is this: a turn that FILED something is pressable,
+   * and pressing it puts what it filed in the pane beside it. That is one fewer
+   * control for the same gesture, and it is the truer one, because you point at
+   * the thing that happened rather than at the stage it happened in.
+   *
+   * A turn that filed nothing is NOT pressable, and that is the design rather
+   * than an omission: 81 of 106 tracks are sitting at a station having filed
+   * nothing, and a control that opens an empty pane is a control that teaches a
+   * person not to press things.
+   */
+  onSelect?: (station: string) => void;
+  /** The station currently shown in the pane, so the row that chose it says so. */
+  selected?: string | null;
 }) {
   const reducedMotion = usePrefersReducedMotion();
   const fetchActivity = useServerFn(getTrackActivity);
@@ -990,7 +1025,16 @@ export function TrackActivity({
             const said = saidLine(t.said);
 
             return (
-              <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
+              <li
+                key={row.key}
+                /* Marked rather than coloured: R-19 forbids colour as the only
+                   signal, and the row that chose what the pane is showing has to
+                   be findable in a long stream. The button above carries
+                   `aria-pressed`, which is the same fact for a screen reader. */
+                data-selected={canOpen(t) && selected === t.station ? "true" : undefined}
+                className={`${RUN_ROW} rounded-mrd-chip data-[selected=true]:bg-mrd-lift`}
+                style={enterMotion(arrived, reducedMotion)}
+              >
                 <RunClock at={Date.parse(t.at)} />
 
                 {/* The rail stops on the last row of the STREAM, which in
@@ -1005,10 +1049,33 @@ export function TrackActivity({
                 </span>
 
                 <span className="min-w-0 pb-1">
-                  <span className={RUN_LINE}>
-                    <RunSubject>{headline(t)}</RunSubject>
-                    {chipOf(t)}
-                  </span>
+                  {/*
+                   * THE HEADLINE IS THE CONTROL, AND ONLY WHERE THERE IS
+                   * SOMETHING TO OPEN.
+                   *
+                   * The whole row cannot be the button: the calls below it are
+                   * their own disclosure, and a button inside a button is
+                   * invalid and unreachable by keyboard in the inner half. So
+                   * the sentence that names what the turn did is the press,
+                   * which is also the part a person is already reading when they
+                   * decide they want to see it.
+                   */}
+                  {canOpen(t) ? (
+                    <button
+                      type="button"
+                      aria-pressed={selected === t.station}
+                      onClick={() => onSelect?.(t.station as string)}
+                      className={`${RUN_LINE} mrd-focus-inset w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
+                    >
+                      <RunSubject>{headline(t)}</RunSubject>
+                      {chipOf(t)}
+                    </button>
+                  ) : (
+                    <span className={RUN_LINE}>
+                      <RunSubject>{headline(t)}</RunSubject>
+                      {chipOf(t)}
+                    </span>
+                  )}
 
                   {/*
                    * THE TWO TEAMMATES, ON THE ROW WHERE THE WORK CHANGED HANDS.

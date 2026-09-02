@@ -198,10 +198,34 @@ export function qualifies(
  * work was for. A promotion with no origin would produce a track that cannot be
  * routed and cannot be graded, so the sentence is load-bearing twice over.
  */
+/**
+ * The clause that marks an origin as the SWEEP's rather than a person's.
+ *
+ * One writer, one line below, and no model anywhere near it: `originFor` is the
+ * only thing in the product that composes this sentence, so an exact match on it
+ * is a sentinel rather than the prose-parsing the surfaces are forbidden. The
+ * alternative would be a boolean column duplicating a fact the sentence already
+ * carries, and the sentence is the thing worth keeping, because it records what
+ * the loop believed at the moment it decided.
+ */
+export const PROMOTED_BECAUSE = "This became work on its own because";
+
 export function originFor(theme: ThemeLike, bar: PromotionBar = DEFAULT_PROMOTION_BAR): string {
   const verdict = qualifies(theme, bar);
   const body = theme.summary?.trim() || theme.title?.trim() || "A cluster of evidence";
-  return `${body} This became work on its own because ${verdict.why}.`;
+  return `${body} ${PROMOTED_BECAUSE} ${verdict.why}.`;
+}
+
+/**
+ * Did the loop start this track on its own, or did a person type it?
+ *
+ * READ FROM `spine_tracks.origin`, which is the only column that separates them.
+ * `theme_id` cannot: a Discover seat that clusters evidence files themes on a
+ * track a person typed, so a theme on the record proves clustering happened and
+ * not that clustering STARTED anything.
+ */
+export function becameWorkOnItsOwn(origin: string | null | undefined): boolean {
+  return typeof origin === "string" && origin.includes(PROMOTED_BECAUSE);
 }
 
 /**
