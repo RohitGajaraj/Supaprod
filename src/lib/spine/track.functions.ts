@@ -632,6 +632,29 @@ export const listRunsForStart = createServerFn({ method: "GET" })
         }
       }
 
+      /*
+       * THE PINS, IN THEIR OWN TOLERANT READ. Not in `SELECT`, because naming a
+       * column there fails the whole query on a database that has not taken the
+       * migration, and this read is the front door's only content. A read that
+       * cannot answer leaves every row unpinned, which is the state the product
+       * had yesterday: a degraded ordering, never a blank page.
+       */
+      const pinnedByTrack = new Map<string, string>();
+      try {
+        const { data: pins } = await supabase
+          .from("spine_tracks" as never)
+          .select("id, pinned_at")
+          .in("id", ids);
+        for (const p of (pins ?? []) as unknown as Array<{
+          id: string;
+          pinned_at: string | null;
+        }>) {
+          if (p.pinned_at) pinnedByTrack.set(p.id, p.pinned_at);
+        }
+      } catch {
+        /* Unpinned everywhere. See above. */
+      }
+
       /* WHAT IT FILED. Counted by kind, the same unit `GotYou` counts, so the
          row and the run screen cannot disagree about what a run produced. */
       const producedByTrack = new Map<string, Map<string, number>>();
@@ -674,6 +697,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
               count,
             }),
           ),
+          pinnedAt: pinnedByTrack.get(t.id) ?? null,
         };
       });
     } catch (e) {
@@ -2576,6 +2600,60 @@ const FOREGROUND_WINDOW_MS = 50_000;
  * already returns the same set today, and naming the owner costs nothing and
  * cannot be removed by an unrelated refactor without a failing test.
  */
+/**
+ * ── "THIS ONE FIRST" (P-20) ───────────────────────────────────────────────
+ *
+ * Founder, 2026-09-02: *"when various signals are queued, bucketed and themed,
+ * how do I decide which one to hack on? Is there any prominence for that?"*
+ * Between the promotion bar, which decides what BECOMES a run, and the sweep's
+ * round robin, which decides which run moves next, there was no place for a
+ * person to say "this one".
+ *
+ * ONE PIN, NOT A PRIORITY NUMBER. A number needs a scale, a scale needs a
+ * meaning, and a meaning nobody agreed becomes five runs all set to 1. An
+ * instant answers the only question being asked, and orders several pins by when
+ * they were made, which is the order a person meant.
+ *
+ * IT DOES NOT DRIVE ANYTHING. Pinning changes what the sweep takes NEXT; it
+ * spends nothing and moves nothing on its own. "Run it now" is still the control
+ * that makes work happen immediately, and keeping those apart is what stops a
+ * pin becoming a second, quieter way to spend money.
+ *
+ * REFUSES HONESTLY, including the deploy-order case in its own words: the column
+ * arrives in its own migration, and "this database has not taken it yet" is a
+ * fact about the deploy rather than about the person's press.
+ */
+export const pinTrack = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { trackId: string; pinned: boolean }) =>
+    z.object({ trackId: z.string().uuid(), pinned: z.boolean() }).parse(d),
+  )
+  .handler(async ({ context, data }): Promise<{ ok: boolean; refused: string | null }> => {
+    const { supabase, userId } = context;
+    try {
+      const { error } = await supabase
+        .from("spine_tracks" as never)
+        .update({ pinned_at: data.pinned ? new Date().toISOString() : null } as never)
+        .eq("id", data.trackId)
+        .eq("user_id", userId);
+      if (error) {
+        const missingColumn = error.code === "42703" || /pinned_at/.test(error.message ?? "");
+        return {
+          ok: false,
+          refused: missingColumn
+            ? "This database has not taken the pin column yet, so the order is unchanged."
+            : `Nothing was pinned: ${error.message}`,
+        };
+      }
+      return { ok: true, refused: null };
+    } catch (e) {
+      return {
+        ok: false,
+        refused: e instanceof Error ? `Nothing was pinned: ${e.message}` : "Nothing was pinned.",
+      };
+    }
+  });
+
 export const stopTrack = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))

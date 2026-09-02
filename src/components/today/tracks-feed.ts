@@ -334,6 +334,8 @@ export type StartRowInput = {
   working: { seat: string; since: string; tool: string | null } | null;
   needsYou: { tool: string } | null;
   produced: Array<{ kind: string; count: number }>;
+  /** When a person said this one goes first, or null. */
+  pinnedAt?: string | null;
 };
 
 export type StartRowKind = "needs-you" | "running" | "finished" | "abandoned" | "waiting";
@@ -346,6 +348,8 @@ export type StartRow = {
   middle: string;
   /** When, for the right-hand column. */
   at: number;
+  /** A person put this one first. Ordered by when they said it. */
+  pinnedAt: number | null;
 };
 
 /**
@@ -441,15 +445,38 @@ export function startRows(
   words: Readonly<Record<string, { one: string; many: string }>>,
   phraseFor: (tool: string) => string | null,
 ): StartRow[] {
-  return runs
-    .map((r) => ({
-      id: r.id,
-      title: r.title,
-      kind: kindOf(r),
-      middle: startRowMiddle(r, now, words, phraseFor),
-      at: Date.parse(r.updatedAt) || 0,
-    }))
-    .sort((a, b) => RANK[a.kind] - RANK[b.kind] || b.at - a.at);
+  return (
+    runs
+      .map((r) => ({
+        id: r.id,
+        title: r.title,
+        kind: kindOf(r),
+        middle: startRowMiddle(r, now, words, phraseFor),
+        at: Date.parse(r.updatedAt) || 0,
+        pinnedAt: r.pinnedAt ? Date.parse(r.pinnedAt) || null : null,
+      }))
+      /*
+       * ── A PIN OUTRANKS THE KIND, AND ONLY WITHIN WHAT IS STILL LIVE ────────
+       *
+       * The person said "this one first", so it goes first. But a pin on work
+       * that is OVER cannot mean that: the sweep will never serve it, and putting
+       * a finished run above a run waiting on an answer would make the list argue
+       * with itself. So a pin sorts inside the live half of the list and the kinds
+       * keep their order around it, which is the same reading the sweep has --
+       * `pinned_at asc nulls last` applies to the tracks it can actually drive.
+       *
+       * Between two pins, the order they were made in, because that is the order
+       * the person meant.
+       */
+      .sort((a, b) => {
+        const live = (r: StartRow) => r.kind !== "finished" && r.kind !== "abandoned";
+        if (live(a) && live(b) && (a.pinnedAt || b.pinnedAt)) {
+          if (a.pinnedAt && b.pinnedAt) return a.pinnedAt - b.pinnedAt;
+          return a.pinnedAt ? -1 : 1;
+        }
+        return RANK[a.kind] - RANK[b.kind] || b.at - a.at;
+      })
+  );
 }
 
 /**

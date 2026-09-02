@@ -24,12 +24,18 @@
  * raises rather than swallows, so the middle state is reachable and is said.
  */
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 
 import { Row } from "@/components/meridian/rows";
-import { Chevron, Reading, ReadFailedLine, SectionHead } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Chevron,
+  Reading,
+  ReadFailedLine,
+  SectionHead,
+} from "@/components/meridian/surface-parts";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { KIND_WORD } from "@/lib/spine/attach";
 import { toolActionLabel } from "@/lib/agent-vocabulary";
@@ -41,7 +47,7 @@ import {
   type StartRow,
   type StartRowKind,
 } from "@/components/today/tracks-feed";
-import { listRunsForStart } from "@/lib/spine/track.functions";
+import { listRunsForStart, pinTrack } from "@/lib/spine/track.functions";
 
 /**
  * The word on the chip, and only where a chip earns its place.
@@ -59,8 +65,29 @@ const CHIP: Partial<Record<StartRowKind, { status: "you" | "pass" | "fail"; word
 };
 
 /** One run. Lifted so the open list and the abandoned one cannot diverge. */
-function RunRow({ r, now, onOpen }: { r: StartRow; now: number; onOpen: (id: string) => void }) {
+function RunRow({
+  r,
+  now,
+  onOpen,
+  onPin,
+  pinning,
+}: {
+  r: StartRow;
+  now: number;
+  onOpen: (id: string) => void;
+  onPin: (id: string, pinned: boolean) => void;
+  pinning: boolean;
+}) {
   const chip = CHIP[r.kind];
+  /*
+   * ── THE PIN IS OFFERED ONLY WHERE IT WOULD DO SOMETHING ─────────────────
+   *
+   * It changes what the SWEEP takes next, and the sweep never takes a finished
+   * or abandoned run. A control on one of those would move a row up a list and
+   * change nothing about the work, which is the affordance failure this surface
+   * has already paid for twice.
+   */
+  const canPin = r.kind !== "finished" && r.kind !== "abandoned";
   return (
     <Row
       lead={r.title}
@@ -74,11 +101,28 @@ function RunRow({ r, now, onOpen }: { r: StartRow; now: number; onOpen: (id: str
       time={r.at ? relativeTime(new Date(r.at).toISOString(), now) : null}
       onClick={() => onOpen(r.id)}
       action={
-        chip ? (
-          <StatusChip status={chip.status} pulse={false}>
-            {chip.word}
-          </StatusChip>
-        ) : undefined
+        /*
+         * `Row`'s `action` sits OUTSIDE the clickable region by its own
+         * contract, so a control here is never a button inside a button. The
+         * state word comes first because it is a fact; the control is quiet
+         * because pinning is a preference, not the run's own verdict.
+         */
+        <span className="flex items-center gap-mrd-2">
+          {r.pinnedAt ? (
+            <StatusChip status="you" pulse={false}>
+              First
+            </StatusChip>
+          ) : chip ? (
+            <StatusChip status={chip.status} pulse={false}>
+              {chip.word}
+            </StatusChip>
+          ) : null}
+          {canPin ? (
+            <Action variant="quiet" busy={pinning} onClick={() => onPin(r.id, !r.pinnedAt)}>
+              {r.pinnedAt ? "Unpin" : "Put first"}
+            </Action>
+          ) : null}
+        </span>
       }
     />
   );
@@ -108,6 +152,19 @@ export function YourRuns() {
     [q.data],
   );
   const groups = React.useMemo(() => groupStartRows(rows), [rows]);
+  /*
+   * PINNING RE-READS THE LIST RATHER THAN GUESSING AT IT. The order is decided
+   * by `startRows`, which reads the pin off the row, so the honest way to show a
+   * new pin is to ask again. An optimistic reorder would show an order the sweep
+   * may not agree with, and the sweep is the thing the pin is FOR.
+   */
+  const qc = useQueryClient();
+  const fPin = useServerFn(pinTrack);
+  const pin = useMutation({
+    mutationFn: (v: { trackId: string; pinned: boolean }) => fPin({ data: v }),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ["start-runs"] }),
+  });
+
   const open = React.useCallback(
     (id: string) => void navigate({ to: "/track/$trackId", params: { trackId: id }, search: {} }),
     [navigate],
@@ -141,7 +198,14 @@ export function YourRuns() {
         ) : null}
 
         {groups.shown.map((r) => (
-          <RunRow key={r.id} r={r} now={now} onOpen={open} />
+          <RunRow
+            key={r.id}
+            r={r}
+            now={now}
+            onOpen={open}
+            onPin={(trackId, pinned) => pin.mutate({ trackId, pinned })}
+            pinning={pin.isPending}
+          />
         ))}
 
         {/*
@@ -166,7 +230,16 @@ export function YourRuns() {
               <span>{abandonedLine(groups.abandonedCount)}</span>
             </button>
             {showAbandoned
-              ? groups.abandoned.map((r) => <RunRow key={r.id} r={r} now={now} onOpen={open} />)
+              ? groups.abandoned.map((r) => (
+                  <RunRow
+                    key={r.id}
+                    r={r}
+                    now={now}
+                    onOpen={open}
+                    onPin={(trackId, pinned) => pin.mutate({ trackId, pinned })}
+                    pinning={pin.isPending}
+                  />
+                ))
               : null}
           </div>
         ) : null}

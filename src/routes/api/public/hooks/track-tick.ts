@@ -135,9 +135,43 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
            * `needs-evidence` tracks with a future date, and a workspace with ten
            * of those and nothing live has a different problem than a page size.
            */
-          const { data: tracks, error } = await trackQuery
-            .order("driven_at", { ascending: true, nullsFirst: true })
-            .limit(MAX_TRACKS_PER_TICK * 3);
+          /*
+           * ── A PERSON CAN SAY WHICH ONE FIRST, AND NOTHING ELSE CHANGES ────
+           *
+           * Founder, 2026-09-02: *"when various signals are queued, bucketed and
+           * themed, how do I decide which one to hack on?"* Round robin by
+           * `driven_at` is deliberately fair and deliberately opinionless -- the
+           * run that moved longest ago goes next -- and between the promotion
+           * bar and this ordering there was no way for the person who owns the
+           * work to say "this one".
+           *
+           * `pinned_at` FIRST, `nulls last`, so the pins are served in the order
+           * they were made and every unpinned run keeps exactly the round robin
+           * it had. Nothing is starved: a pin is a position in the queue, not a
+           * lock, and each tick still takes the next few and moves on.
+           *
+           * The pin column arrives in its own migration, and a database that has
+           * not taken it yet would fail this whole select on an unknown column.
+           * `orderSafely` runs the ordered query and falls back to the
+           * unordered-by-pin one on 42703, which is the same deployment-order
+           * refusal `stopRequestedAt` makes in the driver: a missing column
+           * degrades one behaviour, never the sweep.
+           */
+          const byPinThenAge = async () =>
+            await trackQuery
+              .order("pinned_at", { ascending: true, nullsFirst: false })
+              .order("driven_at", { ascending: true, nullsFirst: true })
+              .limit(MAX_TRACKS_PER_TICK * 3);
+
+          let { data: tracks, error } = await byPinThenAge();
+          if (
+            error &&
+            ((error as { code?: string }).code === "42703" || /pinned_at/.test(error.message ?? ""))
+          ) {
+            ({ data: tracks, error } = await trackQuery
+              .order("driven_at", { ascending: true, nullsFirst: true })
+              .limit(MAX_TRACKS_PER_TICK * 3));
+          }
 
           if (error) {
             const code = (error as { code?: string }).code;

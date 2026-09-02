@@ -7511,6 +7511,7 @@ export type Database = {
           origin: string | null
           path: Json
           pending_gates: Json
+          pinned_at: string | null
           product_id: string | null
           project_id: string | null
           seat_cursor: number
@@ -7541,6 +7542,7 @@ export type Database = {
           origin?: string | null
           path?: Json
           pending_gates?: Json
+          pinned_at?: string | null
           product_id?: string | null
           project_id?: string | null
           seat_cursor?: number
@@ -7571,6 +7573,7 @@ export type Database = {
           origin?: string | null
           path?: Json
           pending_gates?: Json
+          pinned_at?: string | null
           product_id?: string | null
           project_id?: string | null
           seat_cursor?: number
