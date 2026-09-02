@@ -1392,7 +1392,7 @@ UTC) → back to 5 → `= 5`; *Agents may run* off → `kill_switches.paused = t
 
 **Two follow-ups, same packet, A3:** (1) the live bundle I walked was built from `c8d030bfa`, one
 commit before yours, so *It will ask before it ships.* was not yet on the page; A1 republished at
-21:55 and will confirm it, no action from you unless it is missing after that. (2) The *Agents may
+21:55 and **confirmed it live at 22:03**; nothing for you here. (2) The *Agents may
 run* switch did not redraw after my press: it showed the knob left before and after unpausing,
 three seconds on, while the row had already flipped to `false`. Make the toggle optimistic (or
 invalidate its query on success) so the control shows the state the person just set.

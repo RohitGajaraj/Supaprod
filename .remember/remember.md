@@ -133,3 +133,5 @@ screen.** "18 agents finished" was 2 agents × 9 runs each. `passRate * 100` was
 
 ## 2026-09-02 20:20 IST — A1 lane (Fable). P-01 and P-10 DONE on the live site; suite green.
 Queue `the-first-run/A-QUEUE.md`; report `A1-REPORT.md`. Live at `d43fc2829`. In flight: P-11 (A3), P-24 (A2). Date: 15 Sep complete, 23 Sep public.
+
+## 2026-09-02 22:05 IST — A1. Seven packets DONE and live (P-01, P-10, P-11, P-12, P-13, P-17, P-24). In flight P-05 (A2), P-16 (A3). Suite 13,653 / 0. Lovable publish builds the commit it holds at that moment; check latest_commit_sha before walking.

@@ -649,3 +649,28 @@ at `d43fc2829` (Lovable publish `7626c911`).**
   `docs/design/reference-2026-08-26/lovable-settings-2026-09.md`.
 - **Open on the founder:** sign in on his own workspace when P-05 lands. Everything else answered.
 - **Date call unchanged:** 15 Sep product-complete and in daily use · 23 Sep public.
+
+---
+
+## 2026-09-02 ~22:05 IST — A1: seven packets DONE and live; the queue is the record
+
+**`main` · tsc 0 · `bun test` 13,653 pass / 0 fail · live on `supaprod.ai` through publish
+`84c627b7` (Lovable at `1a775a979`).**
+
+- **DONE and walked live:** P-01 run screen · P-10 route cull (85 → 36) · P-11 rail (Start · Run ·
+  Settings) · P-24 every artifact opens on the right by id, URL deep link · P-12 dead files (13 of
+  14; `contrast.ts` is a guard's tooling and stays) · P-13 register sweep (guard test, 110 cases) ·
+  P-17 Settings › Autonomy (ceiling and kill switch round-trip proven in SQL both ways).
+- **A1 fixed in place:** the not-found boundary's button (Meridian), two top-bar doors that still
+  navigated to the deleted `/today` (`AppFrame.tsx`, `e363f00db`).
+- **In flight:** A2 P-05 (Start), A3 P-16 run-screen half. **READY:** A3 P-23 (Settings as one
+  searchable page, six groups; sweep *crew* and *station* out of Settings copy there), A2 P-19
+  (promote `Verdict`/`GotYou` into Meridian; A3 correctly refused it under rule 10).
+- **Rulings today:** R-29 · R-30 · R-31 · R-32. "on the record" stays as plain English; the surviving
+  `/brain` view is named **Outcomes**, not "the Record".
+- **Findings for the honest run:** the bound repo `relay-homeowner-app` holds only the checkout
+  module, so the Sep 8 run must be a checkout change (P-03 Blockers).
+- **Publish mechanics learned:** Lovable's publish builds the commit it holds at that moment; a
+  push that lands seconds later is not in it. Check `get_project.latest_commit_sha` and the bundle
+  id in `latest_screenshot_url` before walking; propagation to `supaprod.ai` takes 4 to 8 minutes
+  and the site is briefly "temporarily unavailable" during the swap.
