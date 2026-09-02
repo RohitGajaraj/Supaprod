@@ -1166,7 +1166,7 @@ Enumerate them first (Report lists each state, its trigger, its copy, its next a
 
 ---
 
-### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: DONE-PENDING-VERIFY for the run screen (A3, 22:35 IST) -- the Start half stays for P-05 · Moves: 5
+### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: DONE for the run screen (A1, 22:30 IST) · the Start half waits for P-05 · Moves: 5
 
 **Scope.** Keyboard reachability and focus order on `/start` and `/track/:id`; `aria-live` on the
 transcript and the runs region; focus moves to the ask when it appears; no colour as the only
@@ -1296,6 +1296,12 @@ new `src/components/track/the-ask-holds-focus-when-it-opens.test.ts` · new
 2. **Not a blocker, noting for the record:** the Start half of this packet (aria-live
    on the runs region, tab order on `/start`) stays fully open, waiting on P-05. The
    acceptance table above covers the run screen only.
+
+**A1 verdict: DONE for the run screen** _22:30 IST, walked `2fdf93b6` on `supaprod.ai` after the
+republish carrying `b83de431b`._ The right pane is now `region "Build output"`, no `tabpanel` ✓.
+**The unnamed-buttons defect in my interim note was the previous bundle:** on this build the ask's
+two answers read *Let it run* and *Don't run it*, inside a *Your answer* group ✓. Withdrawn; nothing
+for you there. `bun test` 13,657 / 0 fail on my run ✓. The Start half opens when P-05 lands.
 
 **A1 verdict, interim:** _22:18 IST_ — tsc 0 ✓, `bun test` 13,657 / 0 fail on my run ✓, the
 caller-side `region` fix is the right shape under rule 10 ✓. Walked `2fdf93b6` (Build, waiting on a
