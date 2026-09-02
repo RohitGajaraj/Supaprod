@@ -131,6 +131,7 @@
 import { RailCrew } from "@/components/shell/RailCrew";
 import { TeammateCursors } from "@/components/shell/TeammateCursors";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
+import { REVIEW_QUEUE_SEARCH } from "@/components/shell/post-auth-home";
 import { countIsAFloor } from "@/components/approvals/not-the-whole-queue";
 import { pollMs } from "@/components/shell/poll";
 import * as React from "react";
@@ -1532,12 +1533,19 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    * only thing the sentence names.
    */
   const liveTarget = React.useMemo(() => {
-    const go = (to: string, params?: Record<string, string>) => () =>
-      void navigate({ to, params } as never);
+    const go = (
+      to: string,
+      params?: Record<string, string>,
+      search?: Record<string, unknown>,
+    ) => () => void navigate({ to, params, search } as never);
     if (gateCount > 0) {
-      // Today is where a call is settled, and the header already names the
-      // item Today opens on, so the sentence and the landing agree.
-      return { go: go("/today"), title: "Go to the calls waiting on you" };
+      // Calls are settled on Start's review queue. `/today` was the door to it
+      // until P-10 deleted the redirect stub (2026-09-02); this raw string is
+      // exactly the shape tsc cannot check, which is how it outlived the route.
+      return {
+        go: go(SIGNED_IN_HOME, undefined, { [REVIEW_QUEUE_SEARCH]: true }),
+        title: "Go to the calls waiting on you",
+      };
     }
     if (running.length === 1) {
       const only = running[0];
@@ -1560,7 +1568,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
        fold turned into a redirect to `/today`, so the most-used control in the
        shell took a person through a bounce to reach a page it could have named.
        It always MEANT the board and now it says so. */
-    if (running.length > 1) return { go: go("/today"), title: "See every run" };
+    // Every run is listed on Start; `/today` was its redirect stub until P-10.
+    if (running.length > 1) return { go: go(SIGNED_IN_HOME), title: "See every run" };
     /* Nothing in the mission world is working, but a spine run moved moments
      * ago -- so the door opens THE address of that run, not a list. The track
      * is named by its own row; this mapping is read, not guessed (the
