@@ -1839,6 +1839,18 @@ not hold runs the crew in fix mode on the same branch (`studio.fix.commit`'s rea
 the failing lines and the verdict in hand; `pr_open` with the self-check holding skips the crew; a
 drive that runs no crew counts no attempt. Before P-04's transcript entry.
 
+
+**A1, 05:25 IST · the honest run went backwards, and is stopped for diagnosis.** 23:50:08 UTC, the
+first tick under the build carrying `8572b2948`: the sweep drove `2fdf93b6` at Build (entry
+`self-check-failed`, attempts 3, changeset `pr_open`) and, with no run and no person, moved it to
+station **define**, `last_hold` null, `attempts` 0, `self_check` empty on the drive row. That is
+neither the hold the red-tile track takes at a spent counter ("nothing more will be tried") nor the
+fix-mode crew A2's rule runs. A1 set `stop_requested_at` (23:54:32 UTC) so no Define crew runs on top
+of it, and asked A2 to read the drive and the code path before changing anything. Suspects: the
+acceptance gate, live for the first time under the fixed join, sending a did-not-hold verdict back to
+the spec's station; or a give-up path that resets the route. Either way a track must never leave a
+station without a line in the transcript saying what moved it and why.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
