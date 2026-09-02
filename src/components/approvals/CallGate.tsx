@@ -63,6 +63,7 @@ export function CallGate({
   consequence,
   consequenceTitle,
   children,
+  anchor,
 }: {
   /** What is being asked, in plain words. Never a mechanism word. */
   question: string;
@@ -86,12 +87,20 @@ export function CallGate({
   consequenceTitle?: string;
   /** The controls. One primary, and only one. */
   children?: ReactNode;
+  /**
+   * `presenceAnchor(...)`'s own return, spread onto the root. Stamps this
+   * gate as the object a teammate's cursor can land on -- without it the
+   * multiplayer presence layer, mounted once in the shell, finds nothing on
+   * this surface and draws no cursor here.
+   */
+  anchor?: Record<string, string>;
 }) {
   const overdue = since !== null && isOverdue(since, now);
 
   return (
     <section
       data-mrd=""
+      {...anchor}
       className="rounded-mrd-pane border border-mrd-line bg-mrd-sheet px-mrd-6 py-mrd-6 shadow-mrd-card"
     >
       <div className="flex flex-wrap items-center justify-between gap-mrd-4">

@@ -141,11 +141,9 @@ const SURFACES = [
   // now redirect stubs with no loading state of their own to derive.
   ["Ship", "routes/_authenticated.ship.tsx"],
   ["Learn", "routes/_authenticated.learn.tsx"],
-  // EDITED BY S2 IN ANOTHER LANE'S PREFIX, authorised by name in
-  // `coordination/answers/S0-A03-land-all-four-in-one-commit-and-the-three-lines-are-authorised.md`.
-  // One line, and only the SUBJECT of the assertion: the board moved out of the
-  // route file into `src/components/today/Board.tsx`. The claim is untouched.
-  ["Today", "components/today/Board.tsx"],
+  // "Today" left this list (P-14, A-QUEUE.md): `components/today/Board.tsx`
+  // was unmounted (zero importers) and deleted with the rest of the cluster
+  // it alone owned.
 ] as const;
 
 describe("no station decides it is empty on an answer it never got", () => {

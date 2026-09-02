@@ -19,31 +19,14 @@ import { readFileSync } from "node:fs";
  * unbuildable: it is a column to add, not a claim to keep making loosely.
  */
 
-const SRC = readFileSync("src/components/today/PushedInsights.tsx", "utf8");
-/* Comments are stripped because this file's own header QUOTES the heading it
-   replaced, to keep the record. A bare scan would find the past. */
-const code = SRC.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 const READ = readFileSync("src/lib/brain-insights.functions.ts", "utf8");
 
-describe("the heading", () => {
-  it("NO LONGER CLAIMS A WINDOW", () => {
-    expect(code).not.toContain("while you were away");
-  });
-
-  it("says what the read actually returns", () => {
-    // `status = 'open'` is exactly "nobody has answered it".
-    expect(code).toContain("Evidence you have not answered");
-  });
-
-  it("agrees with the count beside it", () => {
-    expect(code).toContain("open");
-  });
-
-  it("uses the SAME heading on the failure branch", () => {
-    // A panel that renames itself when its read fails is two panels.
-    expect(code.split("Evidence you have not answered").length - 1).toBe(2);
-  });
-});
+// "the heading" and "the subtitle" left this file (P-14, A-QUEUE.md):
+// both checked `components/today/PushedInsights.tsx`'s own copy, and that
+// component was unmounted (zero importers, its only caller
+// `components/today/Board.tsx` deleted with it) and deleted. The read it
+// described stays live below -- `getPushedInsights` is newly uncalled by any
+// UI but left in `brain-insights.functions.ts` per this batch's standing rule.
 
 describe("the read it describes", () => {
   it("HAS NO TIME FILTER, which is why the window was unbackable", () => {
@@ -54,14 +37,5 @@ describe("the read it describes", () => {
     const q = READ.slice(at, at + 400);
     expect(q).toContain('.eq("status", "open")');
     expect(q).not.toContain(".gte(");
-  });
-});
-
-describe("the subtitle", () => {
-  it("DOES NOT OPEN WITH THE KICKER'S OWN WORDS", () => {
-    // "New evidence" sat in the eyebrow and again as the first two words of the
-    // sentence under it - the restatement this board spent the week removing.
-    expect(code).toContain('className="today-kicker">New evidence<');
-    expect(code).not.toContain("New evidence changed a standing call");
   });
 });

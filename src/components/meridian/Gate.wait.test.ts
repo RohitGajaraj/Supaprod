@@ -25,7 +25,6 @@ import { isOverdue, stoppedFor } from "./stopped-for";
  */
 
 const GATE = readFileSync("src/components/meridian/Gate.tsx", "utf8");
-const QUEUE = readFileSync("src/components/today/DecisionQueue.tsx", "utf8");
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -68,14 +67,8 @@ describe("the gate", () => {
   });
 });
 
-describe("the board's queue", () => {
-  it("passes the call's own wait to the gate", () => {
-    expect(QUEUE).toContain("since={waitingSince(item.timestamp)}");
-  });
-
-  it("reads it from the SAME module the sort orders by", () => {
-    // Two sources for one age is how a surface comes to disagree with itself
-    // about which call is oldest.
-    expect(QUEUE).toContain('from "@/components/meridian/stopped-for"');
-  });
-});
+// "the board's queue" left this file (P-14, A-QUEUE.md): it checked
+// `components/today/DecisionQueue.tsx`, unmounted (zero importers) and
+// deleted with the cluster it alone belonged to. `Gate.tsx` above is the
+// shared primitive every live gate (including /approvals's CallGate) draws
+// its age from, which is what this file exists to protect.

@@ -65,10 +65,10 @@ describe("every live read the shell owns is wired to it", () => {
     "src/components/shell/AppFrame.tsx",
     "src/components/shell/BoardPanel.tsx",
     "src/components/shell/use-spine-strip.ts",
-    "src/components/today/SystemAlerts.tsx",
-    "src/components/today/CrewPulseNote.tsx",
-    "src/components/today/OverlapNote.tsx",
-    "src/components/today/HandoverNote.tsx",
+    // SystemAlerts.tsx, CrewPulseNote.tsx, OverlapNote.tsx and HandoverNote.tsx
+    // left this list (P-14, A-QUEUE.md): all four were exclusively owned by
+    // `components/today/Board.tsx`, unmounted (zero importers) and deleted
+    // with the cluster it alone owned.
   ];
 
   /**

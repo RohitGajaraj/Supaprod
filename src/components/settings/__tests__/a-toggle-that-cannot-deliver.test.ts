@@ -21,6 +21,15 @@
  * getNotifications, the first assertion fails and tells whoever wired it to
  * re-enable the column. It is written to go off when the gap CLOSES, which is
  * the opposite of most guards here.
+ *
+ * ── IT DID LIFT ONCE, AND THIS IS BACK TO THE ORIGINAL SHAPE (P-14) ────────
+ * `SystemAlerts` on the old `/today` briefly called `getNotifications` for
+ * Budget and Drift. That component was mounted by
+ * `components/today/Board.tsx`, which had zero importers anywhere in the
+ * codebase for the whole time it existed -- never actually reachable from a
+ * live route after the fold to `/start` -- so nothing was really delivering
+ * before it was deleted with the rest of that dead cluster. The blanket hold
+ * this file was first written to assert is what is honestly true again.
  */
 import { describe, it, expect } from "bun:test";
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -46,30 +55,22 @@ const surfaces = [...walk(join(SRC, "components")), ...walk(join(SRC, "routes"))
 
 describe("a toggle that cannot deliver does not pretend to", () => {
   /*
-   * ── THE TRIPWIRE FIRED, AND THIS IS WHAT REPLACED IT ─────────────────────
-   *
-   * This test used to assert that NOTHING renders the in-app feed, and to fail
-   * the moment something did, carrying instructions for whoever hit it. It fired
-   * at the first integration that put S2's lane and this one in one tree:
-   * `SystemAlerts` on /today (eb161ca85) calls `getNotifications`.
-   *
-   * A tripwire that has been tripped and acted on must not stay armed, or the
-   * suite stays red forever over a condition somebody already handled. So it is
-   * replaced by the invariant that matters AFTER the lift, which is strictly
-   * more useful than the one before it: **the categories the toggle claims to
-   * control must be the categories something actually draws.**
-   *
-   * Before, the risk was a control promising delivery nobody performed. Now the
-   * risk is the two sets drifting apart in either direction — a toggle enabled
-   * for a kind nothing renders, or a kind rendered that a person cannot switch
-   * off. Both are the same defect and this catches both.
+   * THE ORIGINAL TRIPWIRE, RESTORED (P-14, A-QUEUE.md). It briefly needed to
+   * assert the opposite -- "something does render the feed now" -- while
+   * SystemAlerts on the old /today genuinely called getNotifications. That
+   * component was mounted by components/today/Board.tsx, which had zero
+   * importers anywhere in the codebase for the whole time it existed, so
+   * nothing was really delivering before it was deleted with the rest of
+   * that dead cluster. This goes off again if a real surface ever renders
+   * the feed, which is the honest fix (driving Start's own "What needs you"
+   * feed from these preferences) whenever that gets built.
    */
-  it("something does render the in-app feed now, so the blanket hold is over", () => {
+  it("nothing renders the in-app feed, so the blanket hold is correct", () => {
     const consumers = surfaces.filter((f) => {
       /*
        * COMMENTS STRIPPED FIRST. The pane's own note explains this hold and
-       * names both symbols, so the first version of this test reported the file
-       * it is guarding as a consumer of the thing it is holding.
+       * names both symbols, so a naive scan reports the file guarding the
+       * hold as a consumer of the thing it is holding.
        */
       const s = readFileSync(f, "utf8")
         .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -78,37 +79,22 @@ describe("a toggle that cannot deliver does not pretend to", () => {
     });
     expect(
       consumers.map((f) => f.split("/src/")[1]),
-      "Nothing renders the feed any more, so the App column should go back to being held entirely.",
-    ).not.toEqual([]);
+      "Something renders the feed now, so the App column should lift for exactly the categories it draws.",
+    ).toEqual([]);
   });
 
-  it("App is held for exactly the two categories nothing delivers", () => {
-    /*
-     * THE HOLD LIFTED AT INTEGRATION, which is the event this file was written
-     * to catch. `SystemAlerts` on /today (eb161ca85) draws budget and drift, so
-     * those two toggles now have real power and the blanket
-     * `disabled={ch.key === "app"}` this used to assert would be a control
-     * refusing to work for a channel that works.
-     *
-     * Approvals and Health stay held for the reasons above, so the rule is a
-     * property of the CATEGORY rather than of the column.
-     */
+  it("App is held for all four categories, because nothing delivers", () => {
     const pane = readFileSync(join(import.meta.dir, "..", "NotificationsSection.tsx"), "utf8");
-    expect(pane).toContain(
-      'const APP_DELIVERS: ReadonlySet<Category> = new Set<Category>(["Budget", "Drift"])',
-    );
+    expect(pane).toContain("const APP_DELIVERS: ReadonlySet<Category> = new Set<Category>();");
     expect(pane).toContain('disabled={ch.key === "app" && !APP_DELIVERS.has(c.key)}');
-    expect(pane, "the blanket hold must be gone, not merely joined").not.toContain(
-      'disabled={ch.key === "app"}',
-    );
   });
 
-  it("and the page no longer says in-app alerts are switched off", () => {
-    // A held control explaining itself is honest. The same explanation left
-    // standing after the hold lifts is a page arguing with its own switches.
+  it("and the page says in-app alerts are not switched on yet", () => {
+    // A held control explaining itself is honest. Claiming delivery a dead
+    // component used to provide is not.
     const pane = readFileSync(join(import.meta.dir, "..", "NotificationsSection.tsx"), "utf8");
-    expect(pane).not.toContain("In-app alerts are not switched on yet");
-    expect(pane).toContain("Two of these show up in the app, two do not yet");
+    expect(pane).toContain("In-app alerts are not switched on yet");
+    expect(pane).not.toContain("Two of these show up in the app, two do not yet");
   });
 
   it("Email and Digest are NOT disabled, because they do deliver", () => {

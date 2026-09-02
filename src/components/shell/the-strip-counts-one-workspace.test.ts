@@ -46,9 +46,8 @@ describe("the key", () => {
     for (const f of [
       "src/components/shell/use-spine-strip.ts",
       "src/components/shell/BoardPanel.tsx",
-      // Subject moved 2026-08-31: the board was lifted out of the route file into
-      // `src/components/today/Board.tsx`. The CLAIM is unchanged.
-      "src/components/today/Board.tsx",
+      // "src/components/today/Board.tsx" left this list (P-14, A-QUEUE.md):
+      // unmounted (zero importers), deleted with the cluster it alone owned.
     ]) {
       const src = readFileSync(f, "utf8");
       expect(src, f).toContain("studioSessionsKey(workspaceId)");

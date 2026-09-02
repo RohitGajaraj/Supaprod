@@ -75,12 +75,12 @@ describe("mounted once, for everyone", () => {
     expect(code(FRAME)).toContain("<RailCrew workspaceId={workspaceId} />");
   });
 
-  it("shares the board's own anchors fetch", () => {
-    // `OverlapNote` draws collisions from the same read. Two renderings of one
-    // fact, one fetch, and they cannot disagree about who is working.
+  it("reads from the shared presence key", () => {
+    // "OverlapNote drew collisions from the same read" left this case (P-14,
+    // A-QUEUE.md): `components/today/OverlapNote.tsx` was exclusively owned by
+    // `components/today/Board.tsx`, unmounted (zero importers) and deleted
+    // with the cluster it alone belonged to. RailCrew's own key stands alone.
     expect(code(CREW)).toContain('queryKey: ["presence", "anchors", workspaceId]');
-    const note = readFileSync("src/components/today/OverlapNote.tsx", "utf8");
-    expect(code(note)).toContain('queryKey: ["presence", "anchors", workspaceId]');
   });
 
   it("carries the verb in the accessible name, not only beside the mark", () => {

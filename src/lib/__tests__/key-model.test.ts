@@ -149,7 +149,10 @@ describe("the surface lookup answers with the right one", () => {
   // keybindings are deleted, not converted.
   // "/design" left this list too (P-14, A-QUEUE.md, R-34): the surface and
   // its keybindings are deleted, not converted.
-  const CONVERTED = ["/start", "/crew", "/arriving", "/approvals"];
+  // "/start" left this list too (P-14, A-QUEUE.md): its entry pointed at
+  // Board.tsx's dead DecisionQueue.tsx, never actually mounted on the page;
+  // the real, live approve/decline pair lives at "/approvals" below.
+  const CONVERTED = ["/crew", "/arriving", "/approvals"];
   for (const path of CONVERTED) {
     it(`${path} accepts with a and declines with d`, () => {
       const keys = surfaceKeysFor(path)?.keys.map((k) => k.key) ?? [];
@@ -235,8 +238,10 @@ describe("the sheet does not claim more than the product does", () => {
 
   it("marks the keys that bite", () => {
     const destructive = SURFACE_KEYS.flatMap((s) => s.keys).filter((k) => k.destructive);
-    // Approve, decline, promote, merge, drop, keep, challenge, start a run.
-    expect(destructive.length).toBeGreaterThanOrEqual(8);
+    // Approve/decline (Approvals), accept/merge/decline (Arriving),
+    // approve/decline (Crew). "/start" left this count (P-14, A-QUEUE.md):
+    // its two destructive keys pointed at Board.tsx's dead DecisionQueue.tsx.
+    expect(destructive.length).toBeGreaterThanOrEqual(7);
     for (const k of destructive) expect(k.does.endsWith(".")).toBe(true);
   });
 

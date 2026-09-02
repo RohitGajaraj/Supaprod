@@ -79,29 +79,13 @@ export type SurfaceKeys = {
  * product's own order rather than alphabetically.
  */
 export const SURFACE_KEYS: readonly SurfaceKeys[] = [
-  {
-    // "/start", NOT "/today" (P-11, A-QUEUE.md, 2026-09-02). DecisionQueue
-    // moved onto the home page months before this rail rewrite; this entry
-    // never followed, so the sheet has been unable to show these keys on the
-    // page that actually renders them for as long as the fold has stood —
-    // the exact defect this whole file's header exists to end.
-    path: "/start",
-    label: "Start",
-    /* THE COMPONENT, NOT THE ROUTE, and for the reason this whole file exists.
-       These decisions are drawn by `DecisionQueue`, which is also where the
-       listener lives, so the keycap and the binding it promises sit in one
-       file where a reviewer sees both at once. Splitting them was how the
-       product shipped a keycap for a key that fired nothing. /discover is
-       already declared against its component for the same reason. */
-    source: "src/components/today/DecisionQueue.tsx",
-    keys: [
-      { key: "j", does: "Moves to the next decision in the queue." },
-      { key: "k", does: "Moves back to the previous one." },
-      { key: "a", does: "Approves the call in front of you.", destructive: true },
-      { key: "d", does: "Declines it.", destructive: true },
-      { key: "z", does: "Snoozes it until later." },
-    ],
-  },
+  // "/start" left this list (P-14, A-QUEUE.md): its entry pointed at
+  // `components/today/DecisionQueue.tsx`, Board.tsx's own copy of the same
+  // approval queue `/approvals` already declares below. That component was
+  // unmounted (zero importers) the whole time this entry existed -- the
+  // keys it claimed were never actually bound on the page a person visits,
+  // and deleting it with the rest of its dead cluster corrects rather than
+  // creates the gap. Start itself binds no keyboard of its own today.
   {
     path: "/approvals",
     label: "Approvals",

@@ -25,7 +25,6 @@ import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { retryUnlessSessionEnded } from "./session-ended";
 
-const BOARD = readFileSync("src/components/today/Board.tsx", "utf8");
 const FRAME = readFileSync("src/components/shell/AppFrame.tsx", "utf8");
 const CTX = readFileSync("src/components/shell/session-ended.tsx", "utf8");
 
@@ -91,18 +90,8 @@ describe("the workspaces region drops the offer it cannot honour", () => {
     expect(retryUnlessSessionEnded("", retry)).toBe(retry);
   });
 
-  it("and the board actually asks that question, which a scan IS good for", () => {
-    /* The one claim genuinely about code shape: that the call site delegates
-       rather than re-deriving the rule inline. */
-    const code = codeOnly(BOARD);
-    expect(code).toContain("retryUnlessSessionEnded(sessionEnded");
-    expect(code).toContain("refreshWorkspaces()");
-  });
-
-  it("still NAMES which read failed, because that is what the region knows", () => {
-    /* AppFrame's rule: the shell owns the door, the region owns the naming.
-       Dropping the sentence too would leave a person with a door and no idea
-       what was behind it. */
-    expect(BOARD).toContain("This could not be read");
-  });
+  // "and the board actually asks that question" and "still NAMES which read
+  // failed" left this describe block (P-14, A-QUEUE.md): both checked
+  // `components/today/Board.tsx`, unmounted (zero importers) and deleted with
+  // the cluster it alone owned.
 });

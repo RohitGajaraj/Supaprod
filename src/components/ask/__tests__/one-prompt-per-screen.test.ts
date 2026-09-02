@@ -31,19 +31,13 @@ import { join } from "node:path";
  */
 
 const ROOT = join(import.meta.dir, "..", "..", "..");
-// EDITED BY S2 IN ANOTHER LANE'S PREFIX, authorised by name in
-// `coordination/answers/S0-A03-land-all-four-in-one-commit-and-the-three-lines-are-authorised.md`.
-// One line, and only the SUBJECT of the assertion: the board moved out of the
-// route file into `src/components/today/Board.tsx`. The claim is untouched.
-const TODAY = readFileSync(join(ROOT, "components", "today", "Board.tsx"), "utf8");
 const START = readFileSync(join(ROOT, "routes", "_authenticated.start.tsx"), "utf8");
 const SHELL = readFileSync(join(ROOT, "styles", "shell.css"), "utf8");
 const DOCK = readFileSync(join(ROOT, "components", "ask", "AskDock.tsx"), "utf8");
 
 describe("a surface that owns the prompt gets the dock out of its way", () => {
-  it("Today marks its composer", () => {
-    expect(TODAY).toMatch(/data-page-composer/);
-  });
+  // "Today marks its composer" left this describe block (P-14, A-QUEUE.md):
+  // `components/today/Board.tsx` was unmounted (zero importers) and deleted.
 
   it("and so does Start, which is the surface that needed it most", () => {
     /* THE RULE WAS WRITTEN AND APPLIED TO ONE SURFACE. /start went unmarked

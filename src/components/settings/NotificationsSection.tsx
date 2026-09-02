@@ -117,33 +117,24 @@ const CATEGORIES: { key: Category; label: string; sub: string }[] = [
 ];
 
 /**
- * The App column now delivers for TWO of the four, and not for the other two.
+ * The App column delivers for NONE of the four, again (P-14, A-QUEUE.md).
  *
- * ── THE HOLD LIFTED AT INTEGRATION, WHICH IS WHERE IT COULD ONLY LIFT ──────
- * `a-toggle-that-cannot-deliver.test.ts` was written to fail the moment any
- * surface began rendering the feed, and to say what to do when it did. It fired
- * the first time S2's lane and this one were in the same tree: `SystemAlerts` on
- * /today (eb161ca85) calls `getNotifications` for **budget and drift**, and its
- * own header confirms the toggle has real power there — *"switching App off for
- * budget removes it here with no code on this side."*
+ * ── THE HOLD LIFTED ONCE, AND THIS UNDOES IT HONESTLY RATHER THAN SILENTLY ──
+ * It briefly delivered for Budget and Drift: `SystemAlerts` on the old
+ * `/today` (mounted by `components/today/Board.tsx`, eb161ca85) called
+ * `getNotifications` for those two categories. Board.tsx turned out to have
+ * zero importers anywhere in the codebase the whole time -- it was never
+ * actually reachable from a live route after the fold to `/start` -- so
+ * `SystemAlerts` was never really delivering to anyone before it was deleted
+ * with the rest of that dead cluster. The set below is emptied to match what
+ * is actually true today rather than leave a claim the repo cannot show.
  *
- * Neither lane could have seen this alone. The guard was on one branch and the
- * capability on another, which is exactly what an integration pass is for.
- *
- * ── THE OTHER TWO STAY OFF, AND THEY ARE NOT OVERSIGHTS ────────────────────
- * **Approvals** — Today's "What needs you" lane reads `agent_approvals`
- * DIRECTLY and never consults this feed, so switching that toggle off would not
- * stop Today showing approvals. The control would promise power it does not
- * have, which is this same defect pointing the other way.
- *
- * **Health** — the running lane already prints each run's own clock, so a stall
- * alert would be a second voice on rows that already speak.
- *
- * So the rule is a property of the CATEGORY, not of the column, and it is named
- * here rather than inlined so the next surface to start drawing a kind has one
- * place to change.
+ * HELD, NOT DELETED, same as before: `a-toggle-that-cannot-deliver.test.ts`
+ * still fails the moment a real surface starts rendering the feed, which is
+ * the honest fix (driving Start's own "What needs you" feed from these
+ * preferences) whenever that gets built.
  */
-const APP_DELIVERS: ReadonlySet<Category> = new Set<Category>(["Budget", "Drift"]);
+const APP_DELIVERS: ReadonlySet<Category> = new Set<Category>();
 
 const CHANNELS: { key: Channel; label: string; title: string }[] = [
   { key: "app", label: "App", title: "In the app" },
@@ -429,15 +420,18 @@ export function NotificationsSection() {
                    *
                    * Email and Digest are untouched and do deliver.
                    *
-                   * WHEN THIS LIFTS, IT LIFTS FOR TWO OF THE FOUR. S2 has
-                   * SystemAlerts on /today calling getNotifications for BUDGET
-                   * and DRIFT (eb161ca85, not yet merged here). Approvals and
-                   * Health stay disabled after that, for reasons that are not
-                   * oversights: Today's What-needs-you lane reads agent_approvals
-                   * DIRECTLY and never consults this feed, so an approvals toggle
-                   * would promise control it does not have -- the same defect
-                   * pointing the other way -- and a stall alert would be a second
-                   * voice on a lane that already prints each run's clock.
+                   * ALL FOUR ARE HELD AGAIN (P-14, A-QUEUE.md). This briefly
+                   * lifted for Budget and Drift when SystemAlerts on /today
+                   * called getNotifications, but that component was mounted
+                   * by components/today/Board.tsx, which had zero importers
+                   * anywhere in the codebase the whole time -- never actually
+                   * reachable from a live route -- and was deleted with the
+                   * rest of that dead cluster. Approvals and Health were never
+                   * going to lift: Today's What-needs-you lane reads
+                   * agent_approvals DIRECTLY and never consults this feed, so
+                   * an approvals toggle would promise control it does not
+                   * have, and a stall alert would be a second voice on a lane
+                   * that already prints each run's clock.
                    *
                    * AND THE FEED WAS NEVER DARK BECAUSE OF THESE TOGGLES. The
                    * gate defaults to ON (`prefs?.in_app_budget ?? true`) and
@@ -456,16 +450,17 @@ export function NotificationsSection() {
           </Line>
         ))}
         {/*
-         * The sentence had to change with the toggles. It read "In-app alerts
-         * are not switched on yet ... nothing in the product shows these as
-         * notifications yet", which became FALSE for budget and drift the
-         * moment SystemAlerts landed on /today. A held control explaining
-         * itself is honest; the same explanation left standing after the hold
-         * lifts is a page arguing with its own switches.
+         * BACK TO THE BLANKET SENTENCE (P-14, A-QUEUE.md). It briefly named
+         * the two categories that show up in the app, while SystemAlerts on
+         * the old /today genuinely delivered Budget and Drift -- that surface
+         * is gone (deleted with components/today/Board.tsx, which had zero
+         * importers the whole time it existed), so the honest sentence is the
+         * one from before that integration: a held control explaining itself
+         * is honest, and a claim the repo cannot show is not.
          */}
         <Line
-          label="Two of these show up in the app, two do not yet"
-          sub="Spend and drift appear on Today. Approvals already have their own lane there and do not need a second voice, and a stalled run prints its own clock, so those two stay held rather than looking as though they do something."
+          label="In-app alerts are not switched on yet"
+          sub="Nothing in the product shows these as notifications yet. Email and Digest deliver; App is saved for the day something reads it."
         />
       </Region>
 

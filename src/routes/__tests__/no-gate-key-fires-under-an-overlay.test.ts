@@ -39,9 +39,11 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
  *  surface's keyboard moves, this path moves with it, or the guard quietly
  *  starts checking a file that binds nothing and passes on an unguarded one. */
 // "Decide" and "Design" left this list (P-14, A-QUEUE.md, R-34): each gate
-// and every key it bound are deleted, not rehomed.
+// and every key it bound are deleted, not rehomed. "Today" left it too
+// (P-14, A-QUEUE.md): `components/today/DecisionQueue.tsx` was Board.tsx's
+// own copy of the same approval queue `/approvals` already gates below --
+// unmounted (zero importers), deleted with the cluster it alone belonged to.
 const GATES = [
-  ["Today", "components/today/DecisionQueue.tsx"],
   ["Approvals", "routes/_authenticated.approvals.tsx"],
   ["Crew", "routes/_authenticated.crew.tsx"],
   ["Discover", "components/discover/DiscoverSurface.tsx"],

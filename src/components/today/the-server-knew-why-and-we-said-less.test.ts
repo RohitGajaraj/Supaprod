@@ -24,28 +24,16 @@
  * nine sites** the day `error` was passed everywhere.
  */
 import { describe, expect, it } from "bun:test";
-import { readFileSync } from "node:fs";
 import { messageForPerson, reasonLine } from "@/lib/error-copy";
 
-const SRC = readFileSync("src/components/today/FocusNext.tsx", "utf8");
-const code = SRC.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ");
-
+// "composes with reasonLine rather than a fixed sentence", "uses reasonLine,
+// NOT failureLine" and "still keeps its own sentence" left this describe
+// block (P-14, A-QUEUE.md): all three checked `components/today/FocusNext.tsx`'s
+// own source, and that component was unmounted (zero importers, its only
+// caller `components/today/Board.tsx` deleted with it) and deleted. What
+// remains is genuinely about `error-copy.ts` itself, which stays live
+// (36 other importers).
 describe("the failed Director's read carries the server's own reason", () => {
-  it("composes with reasonLine rather than a fixed sentence", () => {
-    expect(code).toContain("reasonLine(");
-  });
-
-  it("uses reasonLine, NOT failureLine, because a wrapper already speaks", () => {
-    /* Inside ReadFailed, failureLine would print the ended-session sentence
-       twice in one box. That is not a style call - it is the defect error-copy
-       records at nine sites. */
-    expect(code).not.toContain("failureLine(");
-  });
-
-  it("still keeps its own sentence, so the fix is not a deletion", () => {
-    expect(code).toContain("The brain did not answer");
-  });
-
   it("and the real message survives the humanizer, which is the whole point", () => {
     /*
      * The exact string the live server returned. `messageForPerson` refuses

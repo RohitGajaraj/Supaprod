@@ -151,8 +151,13 @@ describe("the notifications heading describes the switches, not the arrivals", (
    * The held note is the half that tells the truth about arrival. If it ever
    * goes, the heading becomes the only claim on the page and this pairing needs
    * rethinking rather than silently becoming an overclaim again.
+   *
+   * Read "Two of these show up in the app, two do not yet" while SystemAlerts
+   * on the old /today genuinely delivered Budget and Drift (P-14, A-QUEUE.md:
+   * that component was mounted by the zero-importer components/today/Board.tsx
+   * and deleted with it), and is back to naming that none currently show up.
    */
   it("keeps the note that says which of them actually show up", () => {
-    expect(CODE).toContain("Two of these show up in the app, two do not yet");
+    expect(CODE).toContain("In-app alerts are not switched on yet");
   });
 });

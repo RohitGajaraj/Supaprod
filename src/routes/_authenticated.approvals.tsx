@@ -110,6 +110,7 @@ import { failureLine } from "@/lib/error-copy";
 import { stillHoldsWork } from "@/components/approvals/still-holds-work";
 import { approvalsQueueKey, APPROVALS_QUEUE_PREFIX, invalidateShellReads } from "@/lib/query-keys";
 import { isModalOpen } from "@/lib/overlay";
+import { presenceAnchor } from "@/components/shell/presence-anchor";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -801,6 +802,11 @@ function ApprovalsSurface() {
             now={now}
             lines={focusedLines}
             hiddenLineCount={focusedHidden}
+            /* The first object on this page a teammate's cursor can land on.
+               `DecisionQueue.tsx` (P-14, deleted with the rest of its dead
+               cluster) was the only surface stamping this; this is its live
+               replacement, same shape, same kind/id source. */
+            anchor={presenceAnchor(`row:${focused.kindKey}`, focused.sourceId)}
             /*
              * THE CONSEQUENCE IS REPLACED, NOT ARGUED WITH, when the work this
              * call held has already finished.

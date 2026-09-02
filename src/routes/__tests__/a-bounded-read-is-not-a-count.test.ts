@@ -1,5 +1,4 @@
 import { describe, expect, it } from "bun:test";
-import { readFileSync } from "node:fs";
 
 import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 
@@ -29,21 +28,6 @@ import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-
  * worse than a missing one.
  */
 
-// Subject moved 2026-08-31: the board was lifted out of the route file into
-// `src/components/today/Board.tsx`. The CLAIM is unchanged.
-const SRC = readFileSync("src/components/today/Board.tsx", "utf8");
-/**
- * The headline builder, extracted from the route on 2026-08-27 so its wording
- * could be RENDERED and asserted rather than grepped. A source assertion cannot
- * tell "At least 52" from "At least52", and that wording had no other way to be
- * checked: this workspace's largest family holds 10 calls against a limit of
- * 100, so the capped path never fires here, and patching the gap into the
- * response failed because the server function's body is TSS-framed.
- * `state-sentence.test.tsx` asserts the rendered text; these two are the cheap
- * structural half.
- */
-const SENTENCE = readFileSync("src/components/today/state-sentence.tsx", "utf8");
-
 describe("the signal", () => {
   it("is a floor exactly when the queue reported a gap", () => {
     expect(countIsAFloor([])).toBe(false);
@@ -57,52 +41,7 @@ describe("the signal", () => {
   });
 });
 
-describe("the board", () => {
-  it("A PARTIAL READ IS NOT A QUIET MORNING", () => {
-    // The whole point: `isError` is false in this case, so the existing guards
-    // are blind to it.
-    const at = SRC.indexOf("const quietMorning =");
-    expect(at).toBeGreaterThan(-1);
-    expect(SRC.slice(at, at + 1400)).toContain("!queueIsPartial &&");
-  });
-
-  it("calls the count a floor rather than hiding it", () => {
-    // Weaker than hiding on purpose: the number is still the most useful thing
-    // on screen, and only its exactness was never earned.
-    expect(SENTENCE).toContain('{n.partial ? "At least " : null}');
-  });
-
-  it("REFUSES 'Nothing is ready' ON A ZERO IT CANNOT TRUST", () => {
-    expect(SENTENCE).toContain(
-      '"Some of your queue did not load, so this cannot say what is waiting."',
-    );
-  });
-
-  it("draws the reason with the shared sentence, not a second wording", () => {
-    // Three surfaces show this queue. Two spellings of one caveat is how a
-    // person gets two answers about one queue.
-    expect(SRC).toContain("notTheWholeQueue(incomplete)");
-    expect(SRC).toContain('from "@/components/approvals/not-the-whole-queue"');
-  });
-
-  it('DOES NOT PROMISE "Every" ON A BOUNDED READ', () => {
-    /*
-     * The `All` tab promised totality twice over on a capped queue: the word
-     * in its title and an exact figure on its face, while the rail chip a few
-     * inches left already read "52+" and the headline read "At least 52".
-     * Three statements of one count inside a viewport, two hedged and one not,
-     * reads as the three disagreeing.
-     */
-    expect(SRC).toContain('? "Every call this could read. More are waiting."');
-    expect(SRC).toContain('{queueIsPartial ? "+" : ""}');
-  });
-
-  it("keeps the plain promise when the queue reported itself in full", () => {
-    expect(SRC).toContain('"Every call waiting on you"');
-  });
-
-  it("announces it, because the list empties under the reader", () => {
-    const at = SRC.indexOf("{notTheWholeQueue(incomplete)}");
-    expect(SRC.slice(Math.max(0, at - 400), at)).toContain('role="status"');
-  });
-});
+// "the board" left this file (P-14, A-QUEUE.md): every case checked
+// `components/today/Board.tsx` and `components/today/state-sentence.tsx`,
+// both unmounted (zero importers) and deleted with the cluster they alone
+// belonged to.
