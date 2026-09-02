@@ -108,15 +108,31 @@ describe("Ask's visible fork travels to the server", () => {
     expect(flat).toContain("classifiedShape = asWorkShape(parsed.shape);");
   });
 
-  it("the pane passes what the person pressed, mapped to the API's words", () => {
+  /**
+   * ── THE MAPPING IS GONE BECAUSE ONE HALF OF IT LEFT THE SERVER (P-05) ────
+   *
+   * This asserted `intent === "question" ? "ask" : "do"`, which pinned that the
+   * person's press travelled to the classifier rather than being guessed at.
+   * That rule is not weakened by what follows; it is held harder.
+   *
+   * R-24 makes a track the unit of work, and "Hand it over" now starts one
+   * through `startTrack` and navigates to it -- the same server fn `/start`'s
+   * composer has used for weeks -- instead of posting `"do"` to `/api/chat` and
+   * rendering a link to `/build` that the person had to press. So an instruction
+   * does not reach the classifier at all any more, which is a stronger form of
+   * "the classifier is not left to guess" than passing it a flag was.
+   *
+   * A question is unchanged and still streams, so the only literal left is
+   * `"ask"` and it is unconditional. Asserting the old ternary would now be
+   * asserting a branch that must not exist.
+   */
+  it("sends a question to the classifier, and an instruction nowhere near it", () => {
     const flat = pane.replace(/\s+/g, " ");
-    // The pane thinks in question/instruction (what the control says); the API
-    // speaks ask/do. The mapping must be present, not just the call.
-    // `[^)]*` will not do here: the first argument is itself a call, so the
-    // pattern has to be allowed to cross its closing paren.
-    expect(flat).toMatch(
-      /stream\.sendIntent\(\s*contentForIntent\(text, intent\),\s*intent === "question" \? "ask" : "do"/,
-    );
+    expect(flat).toMatch(/stream\.sendIntent\(\s*contentForIntent\(text, intent\),\s*"ask"/);
+    // The fork happens in the pane, before the wire, and returns.
+    expect(flat).toContain('if (intent === "instruction") { void handOver(text);');
+    // And no `"do"` is emitted from this pane by any path.
+    expect(flat).not.toContain('sendIntent(contentForIntent(text, intent), "do")');
   });
 });
 

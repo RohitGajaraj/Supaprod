@@ -119,6 +119,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useNavigate } from "@tanstack/react-router";
+import { startTrack } from "@/lib/spine/track.functions";
+import { failureLine } from "@/lib/error-copy";
 import { useAskStream } from "@/hooks/use-ask-stream";
 import { useApprovalPush } from "@/hooks/use-approval-push";
 import { useAsk, chipLabel, retrievalScope } from "@/lib/ask-context";
@@ -179,6 +182,16 @@ function AskPaneOpen() {
   });
   const [initials, setInitials] = React.useState("?");
   const [draft, setDraft] = React.useState("");
+  /*
+   * ── HANDING IT OVER, AND THE ONE FAILURE THAT MUST NOT BE SILENT ────────
+   *
+   * The palette is a modal over whatever a person was doing, so a start that
+   * fails here has nowhere obvious to say so: the pane closes on navigate, and a
+   * refused start would close it too and leave them where they began with no
+   * sentence and no run. So the sentence goes BACK IN THE BOX on any failure and
+   * the pane says what happened, which is the same contract `/start` holds.
+   */
+  const [handoverProblem, setHandoverProblem] = React.useState<string | null>(null);
   const [intentOverride, setIntentOverride] = React.useState<AskIntent | null>(null);
   const [shown, setShown] = React.useState(false);
   // The switcher takes the BODY, not a layer over it. A pane 392px wide has
@@ -207,6 +220,42 @@ function AskPaneOpen() {
   const leftByPointer = React.useRef(false);
 
   const resume = ask.resume;
+  const startRun = useServerFn(startTrack);
+  const askNavigate = useNavigate();
+  const handOver = React.useCallback(
+    async (text: string) => {
+      setHandoverProblem(null);
+      try {
+        const res = await startRun({
+          data: {
+            /* Capped at 200 by the validator, which throws rather than
+               truncating; the whole sentence is not lost, it is the title. */
+            title: text.slice(0, 200),
+            shape: "new-capability",
+            productId: activeProductId ?? undefined,
+            workspaceId: activeWorkspace?.id ?? undefined,
+          },
+        });
+        if (!res.track) {
+          setHandoverProblem(res.problems.join(" ") || "Nothing was started.");
+          setDraft(text);
+          return;
+        }
+        await askNavigate({
+          to: "/track/$trackId",
+          params: { trackId: res.track.id },
+          search: { start: true },
+        });
+      } catch (e) {
+        setHandoverProblem(
+          failureLine("Nothing was started and your sentence is back in the box.", e as Error),
+        );
+        setDraft(text);
+      }
+    },
+    [startRun, askNavigate, activeProductId, activeWorkspace?.id],
+  );
+
   const stream = useAskStream({
     enabled: true,
     scope: ask.scope,
@@ -522,7 +571,41 @@ function AskPaneOpen() {
      * pane thinks in "question / instruction", which is what the control says,
      * and the API speaks "ask / do".
      */
-    stream.sendIntent(contentForIntent(text, intent), intent === "question" ? "ask" : "do");
+    /*
+     * ── "HAND IT OVER" STARTS A RUN AND TAKES YOU TO IT (R-24, P-05) ────────
+     *
+     * WHAT IT DID BEFORE. The "do" intent posted to `/api/chat`, which called
+     * `createMission` and streamed back a LANDING FRAME -- a link to `/build`
+     * that the person then had to press. So the product's most direct
+     * instruction, typed into the palette from anywhere, neither started the
+     * unit of work the rest of the product is built on nor took anybody
+     * anywhere. Two objects, two front doors, and the one a person met was the
+     * one being retired.
+     *
+     * IT CALLS THE SAME SERVER FN THE COMPOSER DOES. `/start`'s composer has
+     * landed a typed sentence on `/track/:id?start=true` correctly for weeks;
+     * this is that path, reached from the palette. One path is better than a
+     * second one that has to be kept in step with it, and it is why this does
+     * not go through `/api/plan-gate` either: a gate in front of a start the
+     * composer does not have would make the same sentence behave differently
+     * depending on which box it was typed into.
+     *
+     * THE MISSION BRANCH IN `api/chat.ts` IS NOT DELETED, and that is
+     * deliberate: it is a server route no packet holds, it still serves the
+     * classifier's own path, and the acceptance is that no path FROM THE UI
+     * reaches it. Unreachable is the claim; removed is a different packet.
+     *
+     * ASKING IS UNCHANGED. A question is a question and still streams.
+     */
+    if (intent === "instruction") {
+      void handOver(text);
+      setDraft("");
+      setIntentOverride(null);
+      setBrowsing(false);
+      return;
+    }
+
+    stream.sendIntent(contentForIntent(text, intent), "ask");
     setDraft("");
     setIntentOverride(null);
     // The answer is the thing to look at now, not the list you came from.
@@ -829,6 +912,19 @@ function AskPaneOpen() {
                 setIntentOverride(null);
               }}
             />
+          </div>
+        ) : null}
+
+        {/*
+         * A HAND-OVER THAT DID NOT START MUST NOT CLOSE QUIETLY. This pane is a
+         * modal over whatever the person was doing: on success it navigates and
+         * is gone, so a failure that also closed it would leave them where they
+         * began with no sentence and no run, and nothing said. The sentence goes
+         * back in the box above and this says why.
+         */}
+        {handoverProblem ? (
+          <div role="status" style={{ marginBottom: "var(--mrd-s3)" }}>
+            <Row lead={handoverProblem} />
           </div>
         ) : null}
 
