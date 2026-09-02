@@ -1816,7 +1816,7 @@ one is driven on the first tick.
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-02 · The verdict at Build · Lane: **A2** · Status: DONE (A2, 04:05 IST — all 4 acceptance met in code; live half for A1) · Moves: 3, 4
+### P-02 · The verdict at Build · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2: 4 of 4 in code; A1 reads the live half on the honest run) · Moves: 3, 4
 
 **Scope.** Build's handoff depends on a verdict from a seat that did not write the diff. `studio.review`
 already produces one and files it where nobody looks (BUILD-QUEUE item 23). Make it: run by the `qa`
@@ -2625,7 +2625,7 @@ from P-25 unchanged. Also add `aria-activedescendant` on the input (P-25 follow-
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: Fix pushed (A3, 2026-09-03), awaiting A1 spot-check · Moves: 3
+### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: DONE (A1, 03:12 IST, spot-checked live) · Moves: 3
 
 **Scope.** `tracks-feed.ts` becomes the one read model for a track's one-line state, used by
 `YourRuns` (P-05), the shell top bar ("3 runs are moving"), and the strip's produced-sentence
@@ -2721,6 +2721,15 @@ ago* in the past tense), and the seat sentence is only ever read from a run that
 three moving statuses. Pin it with a test that renders the bar with zero moving tracks and a
 `running` mission. Same suite gates. Then DONE without a second walk; I will spot-check on the next
 publish.
+
+
+**A1 verdict: DONE** _03:12 IST, after the publish carrying `47ae5408c`._ With one track moving in
+the database (`2fdf93b6`, builder running, 21:41:11 UTC) the bar read *Engineer is working at Build ·
+Checkout asks for already-saved delivery address*, the row read *Studio is saving changes · 1:24* and
+the rail's Working now read *Engineer committing the c…*: three readers, one fact. The zero case is
+pinned by `genuinely-working.ts`'s four tests; I re-check it on a quiet tick. One copy note, not a
+reopen: the bar's *started 1d ago* is the mission's start, and the run started a minute earlier;
+say the run's.
 
 **Blockers (A3 writes):**
 1. **Not blocked, flagging for the record.** No live browser this session (same credential gap as
