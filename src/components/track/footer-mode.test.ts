@@ -28,7 +28,15 @@ describe("the coupling this footer's terminal branch is gated on", () => {
 });
 
 const at = (o: Partial<Parameters<typeof footerMode>[0]>) =>
-  footerMode({ status: "open", tone: null, hold: null, walking: false, crewLive: false, ...o });
+  footerMode({
+    status: "open",
+    tone: null,
+    hold: null,
+    because: null,
+    walking: false,
+    crewLive: false,
+    ...o,
+  });
 
 describe("the footer", () => {
   it("never says a position", () => {
@@ -53,16 +61,67 @@ describe("the footer", () => {
     }
   });
 
-  it("offers a Stop only where a press here can actually stop something", () => {
-    // This tab's own press bought the legs, so cancelling them is real.
+  it("offers a Stop wherever something is actually running", () => {
+    // This tab's own press bought the steps, so cancelling them is real.
     expect(at({ walking: true }).canStop).toBe(true);
-    // The sweep's run is not stoppable from this surface. Drawing a Stop for it
-    // would be a control that cannot act, which is the failure RunMap's own Stop
-    // was removed for.
-    expect(at({ crewLive: true }).canStop).toBe(false);
+    /*
+     * ── THIS ASSERTION FLIPPED, AND THE FACT UNDER IT CHANGED ──────────────
+     * It read `false`, and the reason it gave was right at the time: Stop was
+     * `setLegsLeft(0)` in one browser tab, so it genuinely could not reach a run
+     * the sweep was driving, and drawing a control that cannot act is the
+     * failure RunMap's own Stop was removed for.
+     *
+     * `spine_tracks.stop_requested_at` changed what Stop IS. It is a row now,
+     * and `driveTrackOnce` reads it before dispatching any seat, so one press
+     * binds the sweep and this tab alike. The control can act, so it is drawn.
+     * The old expectation was pinning a limitation rather than a rule.
+     */
+    expect(at({ crewLive: true }).canStop).toBe(true);
+    // Nothing is running in any of these, so there is nothing to stop.
     for (const m of [at({ tone: "you" }), at({ tone: "hold" }), at({ status: "done" })]) {
       expect(m.canStop).toBe(false);
     }
+  });
+
+  it("never offers Stop and Run at once, and offers neither on a settled run", () => {
+    /*
+     * A run is either moving or it is not, so the two are mutually exclusive;
+     * a settled run is neither, which is why they are two booleans and not one
+     * flag. A footer drawing both would be the two-controls-in-two-places shape
+     * the `Run it` region was removed for.
+     */
+    const every = [
+      at({ walking: true }),
+      at({ crewLive: true }),
+      at({ tone: "you" }),
+      at({ tone: "hold" }),
+      at({}),
+      at({ status: "done" }),
+      at({ status: "abandoned" }),
+    ];
+    for (const m of every) expect(m.canStop && m.canRun).toBe(false);
+    for (const m of [at({ status: "done" }), at({ status: "abandoned" })]) {
+      expect(m.canStop).toBe(false);
+      expect(m.canRun).toBe(false);
+    }
+  });
+
+  it("says you stopped it, rather than that the workspace is paused", () => {
+    /*
+     * A person's Stop and the workspace kill switch both hold as `paused`,
+     * because the hold vocabulary is closed. Without the sentinel this branch
+     * fell through to `tone: "hold"` and said "Stopped, and not on you." about a
+     * stop that was entirely on you, while the pane above printed "Stopped by
+     * you." One screen, two incompatible claims about one row.
+     */
+    const mine = at({ tone: "hold", hold: "paused", because: "Stopped by you." });
+    expect(mine.line).toContain("You stopped this");
+    expect(mine.canStop).toBe(false);
+    expect(mine.canRun).toBe(true);
+
+    // The kill switch is a different fact and keeps its own sentence.
+    const killed = at({ tone: "hold", hold: "paused", because: null });
+    expect(killed.line).toBe("Stopped, and not on you.");
   });
 
   it("tells the truth about work it cannot stop, rather than going quiet", () => {
@@ -171,6 +230,7 @@ describe("whether this page is required", () => {
     status: "open" as const,
     tone: null,
     hold: null,
+    because: null,
     walking: false,
     crewLive: false,
   };
@@ -178,7 +238,10 @@ describe("whether this page is required", () => {
   it("says you can leave when the loop is driving it", () => {
     const m = footerMode({ ...base, crewLive: true });
     expect(m.leave).toBe("You can close this. It carries on without you.");
-    expect(m.canStop).toBe(false);
+    /* And a Stop is offered anyway, which is not a contradiction: leaving is
+       optional and stopping is possible. Both became true when the stop became
+       a row the driver reads rather than a number in this tab. */
+    expect(m.canStop).toBe(true);
   });
 
   it("does not say you can leave when this tab is buying the legs", () => {

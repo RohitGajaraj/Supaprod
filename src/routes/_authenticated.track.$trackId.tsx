@@ -7,19 +7,16 @@ import * as React from "react";
 import "../styles/workbench.css";
 import { PageHeading } from "@/components/meridian/surface-parts";
 import { StatusChip } from "@/components/meridian/StatusChip";
-import { Row } from "@/components/meridian/rows";
 import { TrackRunLeft, TrackPaneRight } from "@/components/track/TrackRun";
 import { RunFooter } from "@/components/track/RunFooter";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getTrack, type Track } from "@/lib/spine/track.functions";
-import { nextStation, waiverFor, type SpineRoute } from "@/lib/spine/route";
+import { waiverFor } from "@/lib/spine/route";
 import { runStatus } from "@/components/track/run-status";
-import { cameBackOnItsOwn, originRunsFull } from "@/components/track/came-back-on-its-own";
+import { cameBackOnItsOwn } from "@/components/track/came-back-on-its-own";
 import { supabase } from "@/integrations/supabase/client";
-import { originLine } from "@/lib/track-origin";
-import { Reveal } from "@/components/meridian/Reveal";
 import { holdTone } from "@/lib/spine/driver";
-import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+import { useRunTally } from "@/components/track/GotYou";
 
 /**
  * /track/$trackId -- the one address a piece of work has.
@@ -85,10 +82,48 @@ export const Route = createFileRoute("/_authenticated/track/$trackId")({
   },
 });
 
+/**
+ * ── THE HEADER IS THE PERSON'S SENTENCE AND ONE STATUS CHIP ───────────────
+ *
+ * WHAT IT USED TO BE, and every line of it was defensible on its own:
+ *
+ *   the title                       kept, and it is the whole point
+ *   "Now: Build. Next: Ship."       a POSITION, and R-13 refused positions on a
+ *                                   route that waives and reopens stations. It
+ *                                   also said what the strip 40px above it was
+ *                                   already saying with seven lit chips, and
+ *                                   what the footer under both panes says as a
+ *                                   MODE, which is the honest form.
+ *   `track.origin`, clamped         the opening brief, up to a paragraph of it,
+ *                                   under the title. Photographed on `ce846e9b`
+ *                                   it ended mid-word; `Reveal` fixed the cut
+ *                                   and could not fix the placement. It is the
+ *                                   run's first fact, and the transcript's first
+ *                                   entry is where a first fact belongs.
+ *   the status chip                 kept. One per screen, and this is the one.
+ *
+ * So three things said where the work is and one said what a person asked for.
+ * A1-REPORT §4: "The person's sentence. A status chip. Nothing else."
+ *
+ * ── THE TWO ONE-LINE FACTS THAT SURVIVE, AND WHY THEY ARE NOT "ELSE" ──────
+ * Neither is the origin and neither is a position. Each is a fact about this run
+ * that is true nowhere else on the screen, each is one line, and each is absent
+ * on almost every run:
+ *
+ *   came back on its own   `from_learning_id`. A track the return edge created
+ *                          is the product's own loop closing, and nothing else
+ *                          on this surface can say it.
+ *   the decision is waived nothing is being forecast on this run, which changes
+ *                          what the Decide tab and the horizon clause mean.
+ *
+ * They are flagged here rather than removed quietly, because "nothing else" is
+ * a real instruction and this is a reading of it rather than the letter of it.
+ */
 function RunHeader({
   track,
   liveNow = false,
   fromLearningId = null,
+  decideWaived = false,
 }: {
   track: Track;
   liveNow?: boolean;
@@ -98,73 +133,20 @@ function RunHeader({
    * ask is filed and this read goes when it lands.
    */
   fromLearningId?: string | null;
+  decideWaived?: boolean;
 }) {
-  const stationName = AGENT_STATIONS[track.station]?.name ?? track.station;
-  const next = nextStation(track.route as SpineRoute, track.station);
-  const nextName = next ? (AGENT_STATIONS[next]?.name ?? next) : null;
   const s = runStatus(track, liveNow);
+  const cameBack = cameBackOnItsOwn(fromLearningId);
 
   return (
     <header className="flex flex-wrap items-start justify-between gap-mrd-4">
       <div className="min-w-0 flex-1">
         <h1 className="mrd-title">{track.title}</h1>
-        <p className="mrd-meta mt-mrd-1">
-          Now: {stationName}.{" "}
-          {nextName ? <>Next: {nextName}.</> : <>Nothing further on this route.</>}
-        </p>
-        {/* Clamped to two lines: some origins are whole paragraphs (a
-            clustered brief with counts), and an unbounded mono block under the
-            title competed with the status for first read. The full text lives
-            on the row; the header only says where this came from.
-
-            AND IT NO LONGER REPEATS THE TITLE. This rendered `track.origin`
-            raw, so on `6199f3df` the screen opened by saying the same sentence
-            twice, one line apart. `originLine` removes only a repeated opening
-            and keeps every word the title did not already say -- see its header
-            for the measurement across all 106 tracks and for why the share
-            grows rather than shrinks. */}
-        {/* NOBODY ASKED FOR THIS ONE, which is the only thing the origin below
-            cannot say about itself. See `came-back-on-its-own.ts`: a track the
-            return edge created carries no press, and the acceptance query
-            excludes any track that has one. */}
-        {cameBackOnItsOwn(fromLearningId) ? (
-          <p className="mrd-meta mt-mrd-1">{cameBackOnItsOwn(fromLearningId)}</p>
-        ) : null}
-        {originLine(track.title, track.origin) ? (
-          /*
-           * ── THE CLAMP KEPT ITS JOB AND GAINED A WAY IN (2026-09-01) ──────
-           *
-           * This was a bare `line-clamp-2`. Photographed on `ce846e9b`, the
-           * top of the run screen ended: *"...THE SUBJECT WAS CHOSEN FROM THE
-           * EVIDENCE THIS TIME, AND TH..."* -- cut mid-word, with nothing to
-           * press. It is the first paragraph a person reads about why their
-           * work exists.
-           *
-           * FOUNDER: *"either shorten it or give only the summary that it has
-           * required. Use wherever that's necessary to get to the inside and
-           * give a clickable action."*
-           *
-           * The clamp itself was RIGHT and is kept: some origins are whole
-           * paragraphs (a clustered brief with counts), and an unbounded block
-           * under the title competes with the status for first read. What was
-           * missing was the second half. `Reveal` clamps by rendered LINES and
-           * draws its control only when the text actually overflows, so a short
-           * origin gains nothing and a long one is reachable.
-           *
-           * THE RETURNED-ORIGIN EXEMPTION SURVIVES UNCHANGED. A track the
-           * return edge created carries the forecast VERBATIM, and truncating
-           * evidence is the one thing this surface may not do to it -- so that
-           * case still renders whole, with no control, rather than being
-           * clamped and then expandable. Evidence a reader has to press for is
-           * evidence they may not read.
-           */
-          <div className="mrd-meta mt-mrd-1 text-mrd-faint">
-            {originRunsFull(fromLearningId) ? (
-              <p>{originLine(track.title, track.origin)}</p>
-            ) : (
-              <Reveal lines={2}>{originLine(track.title, track.origin)}</Reveal>
-            )}
-          </div>
+        {cameBack ? <p className="mrd-meta mt-mrd-1">{cameBack}</p> : null}
+        {decideWaived ? (
+          <p className="mrd-meta mt-mrd-1">
+            This one skips the decision, so nothing is being forecast on it.
+          </p>
         ) : null}
       </div>
       <div className="flex flex-col items-end gap-mrd-1">
@@ -198,10 +180,24 @@ function TrackPage() {
    * from one source: the transcript's own running rows.
    */
   const [crewLive, setCrewLive] = React.useState(false);
-  /* The footer's Stop, reported up by the pane that owns the press. */
-  const [drive, setDrive] = React.useState<{ canStop: boolean; stop: () => void }>({
-    canStop: false,
+  /*
+   * The footer's one control, reported up by the pane that owns the walk state.
+   * Both halves travel, not just Stop: the `Run it` region came out of the left
+   * pane in the same change, so starting and stopping are one control in one
+   * place instead of two controls at opposite ends of a scroll.
+   */
+  const [drive, setDrive] = React.useState<{
+    walking: boolean;
+    starting: boolean;
+    stopping: boolean;
+    stop: () => void;
+    run: () => void;
+  }>({
+    walking: false,
+    starting: false,
+    stopping: false,
     stop: () => undefined,
+    run: () => undefined,
   });
 
   const get = useServerFn(getTrack);
@@ -244,6 +240,14 @@ function TrackPage() {
   const decideWaived = track ? waiverFor(track.route, "decide") !== null : false;
 
   /*
+   * THE CLOCK AND THE BILL FOR THE FOOTER, off the same hook the strip in the
+   * right pane uses and therefore the same two cache entries the panes already
+   * poll. One fact about one run must not have two freshnesses, which is the
+   * drift this file has been repaired for twice.
+   */
+  const { tally } = useRunTally(trackId);
+
+  /*
    * ABANDONED IS SETTLED TOO, and leaving it out was a gap rather than a
    * decision. The inversion narrows the walking rail and gives the page to what
    * the run produced, and its reason is that nothing is walking any more, so
@@ -271,32 +275,12 @@ function TrackPage() {
       <header className="mrd-workbench-header">
         {track ? (
           <>
-            <RunHeader track={track} liveNow={crewLive} fromLearningId={cameBack.data ?? null} />
-            {/*
-             * THE LOCATION LINE IS GONE, AND THAT IS THE FIX RATHER THAN A CUT.
-             *
-             * It read `Running in {workspace} · on {product}` on EVERY track,
-             * including this one, which is abandoned, and including every held
-             * and finished run. The status chip sits directly above it saying
-             * the opposite, so the header asserted two different things about
-             * one run, which is the drift this screen has already been repaired
-             * for twice.
-             *
-             * And the fact itself was already on screen: the shell's own header
-             * carries `Helio Labs / Prism` as the workspace switcher, a few
-             * pixels above. So the honest repair is not a truer sentence, it is
-             * one fewer. It also recovered the dead band under the title, which
-             * was the largest empty area on the page.
-             *
-             * It rendered as a `Row`, which reserves a leading column for a
-             * glyph or a clock, so it also sat indented from the heading it
-             * belonged to. A list primitive was doing a caption's job.
-             */}
-            {decideWaived ? (
-              <p className="mrd-meta">
-                This one skips the decision, so nothing is being forecast on it.
-              </p>
-            ) : null}
+            <RunHeader
+              track={track}
+              liveNow={crewLive}
+              fromLearningId={cameBack.data ?? null}
+              decideWaived={decideWaived}
+            />
           </>
         ) : (
           <PageHeading
@@ -344,7 +328,7 @@ function TrackPage() {
           />
         </div>
         <div className="mrd-workbench-pane mrd-workbench-pane--artifact">
-          <TrackPaneRight trackId={trackId} isRunning={crewLive} promised={track?.origin ?? null} />
+          <TrackPaneRight trackId={trackId} isRunning={crewLive} />
         </div>
       </div>
 
@@ -363,9 +347,18 @@ function TrackPage() {
           status={track.status}
           tone={holdTone(track.holdReason)}
           hold={track.holdReason}
-          walking={drive.canStop}
+          because={track.holdBecause}
+          walking={drive.walking}
           crewLive={crewLive}
           onStop={drive.stop}
+          onRun={drive.run}
+          stopping={drive.stopping}
+          starting={drive.starting}
+          /* The same two figures the strip at the top of the right pane prints,
+             off the same `runTally` on the same cache entries, so the bar and
+             the strip cannot report different numbers for one run. */
+          elapsed={tally.elapsed}
+          cost={tally.cost}
         />
       ) : null}
     </div>

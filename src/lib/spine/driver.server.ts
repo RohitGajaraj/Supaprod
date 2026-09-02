@@ -46,6 +46,7 @@ import {
   newestSpecId,
   stationCrew,
   stationGoal,
+  STOPPED_BY_YOU,
   type HoldReason,
   type UpstreamArtifact,
   type DrivenVia,
@@ -184,6 +185,46 @@ async function isPaused(supabase: SupabaseClient, workspaceId: string | null): P
     // A kill switch that cannot be read is treated as ON. Failing closed on the
     // one control that means "stop everything" is the only safe direction.
     return true;
+  }
+}
+
+/**
+ * Has a person asked this run to stop?
+ *
+ * ── WHY A COLUMN AND NOT THE CONTROL THAT ALREADY EXISTED ─────────────────
+ * `TrackRun`'s Stop set a React state to zero. That cancels the automatic legs
+ * one browser tab would have bought next, and nothing else: the sweep picks the
+ * same track up ten minutes later and drives it, because nothing on the record
+ * ever said a person asked it to stop. Closing the tab did exactly as much.
+ * `driveTrackOnce` is the single door both the press and the sweep go through,
+ * so a column read here is the only stop that binds both.
+ *
+ * ── IT FAILS OPEN, WHICH IS THE OPPOSITE OF `isPaused` ABOVE, ON PURPOSE ──
+ * The kill switch fails CLOSED because an unreadable "stop everything" must
+ * stop everything. This one must not, and the reason is deployment order: the
+ * column arrives in its own migration, and a build carrying this code against a
+ * database that has not taken it yet would read an error on every track and
+ * freeze the entire product. So a read that cannot answer is treated as "nobody
+ * asked", and the cost of that is bounded and small: the sweep asks again on its
+ * next tick, so a transient failure delays a stop by one tick rather than
+ * dropping it, and the person's own tab has already cancelled its legs.
+ *
+ * Exported for its test, which drives it with a client that can be told to fail.
+ */
+export async function stopRequestedAt(
+  supabase: SupabaseClient,
+  trackId: string,
+): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from("spine_tracks" as never)
+      .select("stop_requested_at")
+      .eq("id", trackId)
+      .maybeSingle();
+    if (error) return null;
+    return (data as { stop_requested_at?: string | null } | null)?.stop_requested_at ?? null;
+  } catch {
+    return null;
   }
 }
 
@@ -1748,6 +1789,56 @@ export async function driveTrackOnce(
   // track whether or not this tick is allowed to run anything.
   const gates = await harvestAnsweredGates(supabase, row);
   const harvested = gates.filed;
+
+  /*
+   * ── A PERSON ASKED THIS TO STOP, SO NOTHING NEW IS DISPATCHED ────────────
+   *
+   * AFTER THE HARVEST AND BEFORE EVERY DECISION, and both halves of that
+   * placement are the design. The harvest above is bookkeeping about work that
+   * has already happened -- an artifact produced through a gate belongs to this
+   * track whether or not this tick is allowed to run anything, which is the rule
+   * the block above it states -- so a stop must not swallow it. Everything below
+   * this point either reads a brief for a seat or dispatches one, and a stop
+   * means exactly "start no more seats".
+   *
+   * IT HOLDS `paused` RATHER THAN INVENTING A REASON. The hold vocabulary is
+   * closed and every reader in the product branches on it; a new member would
+   * mean editing `holdTone`, `nothingIsComing`, `wayOut`, `footerMode` and the
+   * sweep's own selection before this could be shown honestly anywhere. `paused`
+   * already means "a person switched this off", and the sentence that separates
+   * a kill switch from a person pressing Stop rides in `last_hold_because`,
+   * which is the column built for exactly that distinction and which every
+   * surface already prints ABOVE the coarse reason.
+   *
+   * THE WAY OUT IS THE CONTROL THAT MADE IT. `driveTrackNow` clears the column
+   * on a `press`, so "Run it now" is the undo and there is no second control to
+   * find. The sweep never clears it, because a loop that un-stopped work a
+   * person stopped is the failure this whole column exists to prevent.
+   */
+  const stoppedAt = await stopRequestedAt(supabase, row.id);
+  if (stoppedAt) {
+    await supabase
+      .from("spine_tracks" as never)
+      .update({
+        last_hold: "paused",
+        last_hold_because: STOPPED_BY_YOU,
+        driven_at: new Date().toISOString(),
+      } as never)
+      .eq("id", row.id);
+    return {
+      trackId: row.id,
+      station,
+      moved: false,
+      arrivedAt: null,
+      hold: "paused",
+      // What the gates harvested above still produced is reported, because it is
+      // work that happened and a stop is not a reason to hide it.
+      line: harvested.length
+        ? `${describeAttachments(harvested)} ${STOPPED_BY_YOU}`
+        : STOPPED_BY_YOU,
+      attached: harvested,
+    };
+  }
 
   // Read AFTER the harvest, so a spec approved through a gate since the last
   // tick is in the brief of the station that runs now rather than one tick late.

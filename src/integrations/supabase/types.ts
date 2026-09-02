@@ -7519,6 +7519,7 @@ export type Database = {
           station: string
           station_drives: number
           status: string
+          stop_requested_at: string | null
           theme_id: string | null
           title: string
           updated_at: string
@@ -7548,6 +7549,7 @@ export type Database = {
           station?: string
           station_drives?: number
           status?: string
+          stop_requested_at?: string | null
           theme_id?: string | null
           title: string
           updated_at?: string
@@ -7577,6 +7579,7 @@ export type Database = {
           station?: string
           station_drives?: number
           status?: string
+          stop_requested_at?: string | null
           theme_id?: string | null
           title?: string
           updated_at?: string

@@ -1585,6 +1585,40 @@ const HOLD_NEEDS_PERSON: ReadonlySet<HoldReason> = new Set<HoldReason>([
  * text column, so a value written by a newer deploy must come out as nothing
  * rather than as a wrong colour.
  */
+/**
+ * ── THE SENTENCE A RUN A PERSON STOPPED CARRIES, AND WHY IT IS A CONSTANT ──
+ *
+ * `driveTrackOnce` holds a stopped run as `paused`, because the hold vocabulary
+ * is closed and every reader in the product branches on it: a new member would
+ * mean editing `holdTone`, `nothingIsComing`, `wayOut`, `footerMode` and the
+ * sweep's own selection before the stop could be shown honestly anywhere.
+ *
+ * But `paused` already means one specific thing -- `HOLD_LINE.paused` says
+ * *"Everything is paused for this workspace, so nothing ran"* -- and that is
+ * FALSE about a person pressing Stop on one run. Two situations, one reason, and
+ * a surface printing the coarse line over the specific one is the exact
+ * contradiction this file's neighbours have been repaired for twice.
+ *
+ * `last_hold_because` is the column built for that distinction, and it is
+ * already read by every surface that draws a hold. So the driver writes THIS
+ * EXACT STRING and the surfaces compare against THIS EXACT CONSTANT.
+ *
+ * ── THIS IS A SENTINEL, NOT PROSE-PARSING, AND THE DIFFERENCE IS THE WRITER ─
+ * The standing rule ("never branch on the wording, always on the raw reason")
+ * exists because `holdBecause` usually carries a sentence an AGENT wrote, and
+ * agent prose is not a state. This string has exactly one writer, one line of
+ * driver code, and no model is anywhere near it. A shared constant with one
+ * writer is an enum that happens to be spelled in English.
+ *
+ * ── WHY NOT READ `spine_tracks.stop_requested_at` DIRECTLY ────────────────
+ * Because naming a column in a `select` fails the WHOLE PostgREST query when the
+ * database has not taken its migration yet, and `getTrack`'s select feeds the
+ * entire run screen. A missing field degrades one figure; a missing column
+ * degrades the screen. The column is deliberately absent from `SELECT` until its
+ * migration is applied, and this constant is what carries the fact meanwhile.
+ */
+export const STOPPED_BY_YOU = "Stopped by you.";
+
 export function holdTone(hold: string | null | undefined): "you" | "hold" | null {
   if (!hold || hold === "done") return null;
   if (!(hold in HOLD_LINE)) return null;

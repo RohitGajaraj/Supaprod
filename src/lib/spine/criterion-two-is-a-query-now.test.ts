@@ -100,8 +100,23 @@ describe("both callers have to say which they are", () => {
      * The four, reviewed 2026-08-26: composer landing (:487) · the `r` shortcut
      * (:671) · a gate being answered (:717) · the Run control (:851).
      * **If this number moves again, review the new site before changing it.**
+     *
+     * ── THREE SINCE 2026-09-02, AND NOTHING WAS REMOVED ────────────────────
+     * Reviewed, as this comment demands. P-01 moved the Run control out of the
+     * left pane and into the footer under both panes, and the `r` shortcut
+     * stopped duplicating its body: both now go through one `runRef`, which
+     * holds the only `run.mutate("press")` between them. So two of the four
+     * sites became one CALLER of one site, and no human act lost its `press`.
+     *
+     * The three, reviewed 2026-09-02: composer landing · a gate being answered ·
+     * the shared run handler behind the footer control and the `r` key.
+     *
+     * THE CANARY IS STRONGER FOR IT, not weaker: a control and its keyboard
+     * equivalent that shared only a comment could drift, and one of them writing
+     * `continuation` for a human act is the exact direction F-55 exists to fail
+     * away from. They cannot drift now, because there is one call.
      */
-    expect([...TRACKRUN.matchAll(/run\.mutate\("press"\)/g)].length).toBe(4);
+    expect([...TRACKRUN.matchAll(/run\.mutate\("press"\)/g)].length).toBe(3);
     // No call site left that never considered the question.
     expect(TRACKRUN).not.toContain("run.mutate()");
   });

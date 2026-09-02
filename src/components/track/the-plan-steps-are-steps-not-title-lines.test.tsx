@@ -126,7 +126,21 @@ describe("the mission card", () => {
     expect(text).toContain("Prefill the checkout address");
     expect(text).toContain("2 hops");
     expect(text).toContain("checked its own work 1 time");
-    expect(text).toContain("Completed");
+    /*
+     * ── THE CHIP BECAME A CLAUSE, AND THE FACT IS STILL ASSERTED ───────────
+     * This read `toContain("Completed")` against a `StatusChip status="pass"`.
+     * P-01's rule is one status per screen: the run header carries exactly one
+     * chip for the whole piece of work, and a second chip a few hundred pixels
+     * below it, about a mission nested inside Build, is two verdicts with
+     * nothing saying which subject each belongs to. On `d1168015` the header
+     * read Finished over this one reading Completed.
+     *
+     * So the chip went and the fact moved into the meta line, where it also
+     * gained the thing the chip could not carry: WHEN. The assertion follows
+     * the fact rather than the widget.
+     */
+    expect(text).toContain("completed");
+    expect(container.querySelectorAll("[data-status]").length).toBe(0);
   });
 
   it("an unfinished mission is not dressed as a completed one", () => {

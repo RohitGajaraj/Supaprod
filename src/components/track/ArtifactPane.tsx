@@ -98,6 +98,7 @@ import { RunNote } from "@/components/meridian/run-rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { Field, Input, ReasonField, Textarea } from "@/components/meridian/forms";
 import { TabPanel } from "@/components/meridian/Tabs";
+import { Verdict } from "@/components/track/Verdict";
 
 /** What each station exists to do, for the not-run sentence. Display labels only. */
 const PURPOSE: Record<string, string> = {
@@ -1408,51 +1409,16 @@ function ReopenControl({ decisionId }: { decisionId: string }) {
 }
 
 /*
- * ── THE BUILD CARD, WITH ITS REVIEW ────────────────────────────────────────
- * The change the run wrote, and the verdict `studio.review` filed against it
- * (queue item 23: the review used to live in a column nothing selected).
- *
- * THE HONEST EMPTY IS THE COMMON CASE AND IT SAYS SOMETHING TRUE:
- * studio.review has never once run successfully (0 of 45 changesets carry a
- * review), so "its reviewer has not reported yet" is the sentence a person
- * will see first — not an apology, and never a fabricated verdict.
- *
- * Findings render facts before opinions (`deterministic` marks which), capped
- * at 25 with a printed remainder, because the deterministic loops are unbounded
- * by the writer and a list without a cap is a wall.
+ * ── THE BUILD CARD, AND THE VERDICT MOVED OUT OF IT ───────────────────────
+ * The change the run wrote, and the verdict a seat that did not write it filed
+ * against it. The verdict used to be drawn inline here, which made it a property
+ * of this card. It is not: it is the one place on this surface where something
+ * other than the agent that did the work reports on the work, and the strip
+ * above the pane has to say the same sentence. Two renderings of one verdict is
+ * how a screen ends up disagreeing with itself, so it is one component now and
+ * this card mounts it. See `Verdict.tsx` for the empty case, which is the common
+ * one, and for why the two absences are two sentences.
  */
-type ReviewFindingView = {
-  severity?: string;
-  category?: string;
-  path?: string | null;
-  line?: number | null;
-  issue?: string;
-  fix?: string | null;
-  deterministic?: boolean;
-};
-
-type ChangesetReviewView = {
-  verdict?: string;
-  summary?: string;
-  findings?: ReviewFindingView[];
-  files_reviewed?: number;
-  reviewer_model?: string | null;
-  reviewed_at?: string;
-};
-
-function parseReview(raw: unknown): ChangesetReviewView | null {
-  if (raw == null) return null;
-  if (typeof raw === "string") {
-    try {
-      return JSON.parse(raw) as ChangesetReviewView;
-    } catch {
-      return null;
-    }
-  }
-  if (typeof raw === "object") return raw as ChangesetReviewView;
-  return null;
-}
-
 /*
  * THE DRAWING, SHOWN AS A DRAWING (founder, 2026-08-25: "what is happening
  * under each station... needs to be seen").
@@ -1716,7 +1682,6 @@ function ChangesetCard({ item }: { item: ArtifactView }) {
   const repo = str(f.repo);
   const branch = str(f.branch);
   const prUrl = str(f.pr_url);
-  const review = parseReview(f.code_review);
 
   return (
     <div className="flex flex-col gap-mrd-4">
@@ -1743,83 +1708,8 @@ function ChangesetCard({ item }: { item: ArtifactView }) {
 
       <ChangesetDiffView changesetId={item.artifactId} />
 
-      {/* THE REVIEW, OR THE TRUTH ABOUT ITS ABSENCE. */}
-      <div className="flex flex-col gap-mrd-2 rounded-mrd-chip bg-mrd-sink p-mrd-4">
-        <span className="mrd-eyebrow">What the reviewer found</span>
-        {!review || !review.verdict || review.verdict === "unreviewed" ? (
-          <RecordSpeaks>
-            The reviewer has not reported on this change yet. It runs as part of Build, before
-            anything is proposed to merge.
-          </RecordSpeaks>
-        ) : (
-          <>
-            <span className="flex items-center gap-mrd-3">
-              <StatusChip
-                status={
-                  review.verdict === "approve"
-                    ? "pass"
-                    : review.verdict === "block"
-                      ? "fail"
-                      : "hold"
-                }
-              >
-                {review.verdict === "approve"
-                  ? "Nothing blocking"
-                  : review.verdict === "block"
-                    ? "Blocked"
-                    : "Revise"}
-              </StatusChip>
-              {review.summary ? (
-                <span className="min-w-0 text-mrd-small text-mrd-mute">{review.summary}</span>
-              ) : null}
-            </span>
-
-            {(review.findings ?? []).length > 0 ? (
-              <div className="flex flex-col gap-mrd-2">
-                {(review.findings ?? []).slice(0, 25).map((fd, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col gap-0.5 border-b border-mrd-line-soft pb-mrd-2 last:border-0"
-                  >
-                    <span className="text-mrd-small font-medium text-mrd-body">
-                      {[fd.severity, fd.category, fd.deterministic ? "checked" : "judged"]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </span>
-                    {fd.issue ? <RunNote>{fd.issue}</RunNote> : null}
-                    {fd.fix ? (
-                      <span className="text-mrd-small text-mrd-mute">Fix: {fd.fix}</span>
-                    ) : null}
-                    {fd.path ? (
-                      <span className="font-mrd-mono text-mrd-data text-mrd-faint">
-                        {fd.path}
-                        {fd.line ? `:${fd.line}` : ""}
-                      </span>
-                    ) : null}
-                  </div>
-                ))}
-                {(review.findings ?? []).length > 25 ? (
-                  <p className="font-mrd-mono text-mrd-small tabular-nums text-mrd-faint">
-                    {(review.findings ?? []).length - 25} further findings not shown here.
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-
-            <span className="mrd-meta">
-              {[
-                review.files_reviewed != null
-                  ? `${review.files_reviewed} ${review.files_reviewed === 1 ? "file" : "files"} reviewed`
-                  : "",
-                review.reviewer_model ? `reviewer ${review.reviewer_model}` : "",
-                review.reviewed_at ? relativeTime(review.reviewed_at, Date.now()) : "",
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </span>
-          </>
-        )}
-      </div>
+      {/* THE VERDICT, OR THE TRUTH ABOUT ITS ABSENCE. */}
+      <Verdict review={f.code_review} />
     </div>
   );
 }
@@ -1917,7 +1807,18 @@ export function MissionCard({ item }: { item: ArtifactView }) {
         <span className="text-mrd-label font-medium leading-mrd-snug text-mrd-ink">
           {item.title ?? item.word}
         </span>
-        {completedAt ? <StatusChip status="pass">Completed</StatusChip> : null}
+        {/*
+         * ── ONE STATUS PER SCREEN, AND THIS WAS THE SECOND ONE ─────────────
+         * A `Completed` chip here reported the state of a run that is drawn
+         * inside the artifact pane of a run screen whose header already carries
+         * exactly one status chip for the whole piece of work. Two chips within
+         * a few hundred pixels, about two different subjects, with nothing
+         * saying which was which: on `d1168015` the header read Finished while
+         * this one read Completed about a mission nested under Build, and a
+         * reader has no way to tell those are different objects. The FACT is
+         * kept and moves into the meta line below, where it reads as a
+         * property of the mission rather than as the screen's verdict.
+         */}
         {!completedAt && status ? <span className="mrd-meta">{status}</span> : null}
       </span>
       {/* Shown once even where the record holds it twice. The write path that
@@ -1931,6 +1832,9 @@ export function MissionCard({ item }: { item: ArtifactView }) {
       ) : null}
       <span className="mrd-meta">
         {[
+          /* The chip's fact, kept, in the register of a property rather than of
+             a verdict. It carries WHEN, which the chip could not. */
+          completedAt ? `completed ${relativeTime(completedAt, Date.now())}` : "",
           hops !== null ? `${hops} ${hops === 1 ? "hop" : "hops"}` : "",
           verifyCycles !== null && verifyCycles > 0
             ? `checked its own work ${verifyCycles} ${verifyCycles === 1 ? "time" : "times"}`
@@ -2708,7 +2612,11 @@ export function ArtifactPane({
           a decision recorded), the change is said politely rather than
           silently repainting. */}
       <div aria-live="polite">
-        <TabPanel group={`artifact-pane-${trackId}`} active={current} label={`${shown.label} output`}>
+        <TabPanel
+          group={`artifact-pane-${trackId}`}
+          active={current}
+          label={`${shown.label} output`}
+        >
           <StationPanel
             stop={shown}
             view={view}

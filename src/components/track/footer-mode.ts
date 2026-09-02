@@ -29,12 +29,43 @@
  */
 
 import { nothingIsComing } from "@/components/track/nothing-is-coming";
+import { STOPPED_BY_YOU } from "@/lib/spine/driver";
+
+/**
+ * Did a PERSON stop this run, as opposed to the workspace kill switch?
+ *
+ * Both hold as `paused`, because the hold vocabulary is closed and a new member
+ * would have to be taught to six readers before it could be shown honestly
+ * anywhere. `last_hold_because` is the column that separates them and
+ * `STOPPED_BY_YOU` is the sentinel the driver writes there, with one writer and
+ * no model near it. See its own header in `driver.ts` for why an exact-equality
+ * check against a shared constant is not the prose-parsing this file bans.
+ */
+export function stoppedByYou(hold: string | null, because: string | null): boolean {
+  return hold === "paused" && because === STOPPED_BY_YOU;
+}
 
 export type FooterMode = {
   /** The mode, in the product's own voice. */
   line: string;
   /** Whether a Stop pressed right now would genuinely change anything. */
   canStop: boolean;
+  /**
+   * Whether there is anything to start.
+   *
+   * ── WHY THE RUN CONTROL IS DOWN HERE NOW ────────────────────────────────
+   * It lived in a boxed `Run it` region halfway up the left pane, which meant
+   * stopping a run and starting one were in two different places, and the one
+   * you needed was whichever was off screen. THE-ONE-SCREEN:21 puts the control
+   * in the footer; this is the other half of that ruling, and the two are one
+   * control in one place rather than two controls in two.
+   *
+   * `canRun` and `canStop` are never both true: a run is either moving or it is
+   * not. They are two fields rather than one enum because a settled run is
+   * neither, and a tri-state spelled as a boolean is how the third case gets
+   * forgotten.
+   */
+  canRun: boolean;
   /**
    * What closing this page would do, or null when nothing is running.
    *
@@ -57,16 +88,46 @@ export function footerMode(input: {
    * sentence is not a state.
    */
   hold: string | null;
+  /**
+   * `spine_tracks.last_hold_because`, for the ONE question the raw reason cannot
+   * answer: whether `paused` means the workspace kill switch or a person
+   * pressing Stop on this run. Compared against a shared constant with a single
+   * writer, never read as prose; see `stoppedByYou` above.
+   */
+  because: string | null;
   /** A press in this tab is walking legs it bought. */
   walking: boolean;
   /** The record says a seat is running, whoever started it. */
   crewLive: boolean;
 }): FooterMode {
   if (input.status === "done") {
-    return { line: "This run is finished.", canStop: false, leave: null };
+    return { line: "This run is finished.", canStop: false, canRun: false, leave: null };
   }
   if (input.status === "abandoned") {
-    return { line: "This run was abandoned.", canStop: false, leave: null };
+    return { line: "This run was abandoned.", canStop: false, canRun: false, leave: null };
+  }
+
+  /*
+   * ── A PERSON STOPPED IT, WHICH IS NOT THE WORKSPACE BEING PAUSED ────────
+   *
+   * Checked FIRST among the open cases, and before `walking`, because the two
+   * co-occur for exactly as long as the leg already dispatched takes to finish:
+   * the stop is on the record, the seat in flight is still running, and the
+   * honest headline in that window is that it is stopping rather than that it is
+   * working on its own.
+   *
+   * Without this branch the footer would fall through to `tone === "hold"` and
+   * say "Stopped, and not on you." about a stop that was entirely on you, while
+   * the pane above it printed "Stopped by you." Two sentences about one moment,
+   * disagreeing, which is the defect this file was written to end.
+   */
+  if (stoppedByYou(input.hold, input.because)) {
+    return {
+      line: "You stopped this. It will not start another step until you run it.",
+      canStop: false,
+      canRun: true,
+      leave: null,
+    };
   }
 
   /*
@@ -92,22 +153,36 @@ export function footerMode(input: {
     return {
       line: "Working on its own. It will ask before it ships.",
       canStop: true,
+      canRun: false,
       leave: "This page is buying its next steps. Close it and it finishes the step it is on.",
     };
   }
 
   /*
-   * Someone else's press, or the sweep. Same truthful mode line, and no Stop:
-   * nothing this tab can do would halt it, and a control that cannot act is the
-   * affordance failure this surface has already paid for once.
+   * Someone else's press, or the sweep.
+   *
+   * ── THE STOP WORKS HERE NOW, AND THAT IS A CHANGE OF FACT ───────────────
+   * This branch used to return `canStop: false`, and the reason it gave was
+   * correct at the time: "nothing this tab can do would halt it, and a control
+   * that cannot act is the affordance failure this surface has already paid for
+   * once." Stop was a number in this browser tab -- `setLegsLeft(0)` -- so it
+   * genuinely could not reach a run the sweep was driving.
+   *
+   * `spine_tracks.stop_requested_at` changed what Stop IS. It is a row now, and
+   * `driveTrackOnce` reads it before dispatching any seat, so it binds the sweep
+   * and this tab alike. The control can act, so it is drawn.
+   *
+   * The `leave` sentence is unchanged and still true: the loop drives this, not
+   * the page.
    */
   if (input.crewLive) {
     return {
       line: "Working on its own. It will ask before it ships.",
-      canStop: false,
+      canStop: true,
       // The loop is driving this, not the page. Nothing here is required, and
       // saying so is the whole of SESSION-1's second unit.
       leave: "You can close this. It carries on without you.",
+      canRun: false,
     };
   }
 
@@ -183,6 +258,10 @@ export function footerMode(input: {
         ? "Stopped here. Nothing will pick it up again on its own."
         : "Waiting on you.",
       canStop: false,
+      // The way out of every reason in this set runs through a person, and on a
+      // terminal hold the run control IS the way out: `track-tick` has dropped
+      // the track from its selection, so nothing else will ever press it.
+      canRun: true,
       leave: null,
     };
   }
@@ -195,8 +274,8 @@ export function footerMode(input: {
    * of them terminal.
    */
   if (input.tone === "hold") {
-    return { line: "Stopped, and not on you.", canStop: false, leave: null };
+    return { line: "Stopped, and not on you.", canStop: false, canRun: true, leave: null };
   }
 
-  return { line: "Nothing is driving it right now.", canStop: false, leave: null };
+  return { line: "Nothing is driving it right now.", canStop: false, canRun: true, leave: null };
 }

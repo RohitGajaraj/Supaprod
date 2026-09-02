@@ -2341,6 +2341,82 @@ const FOREGROUND_MAX_SEATS = 24;
  */
 const FOREGROUND_WINDOW_MS = 50_000;
 
+/**
+ * ── STOP THIS RUN, ON THE RECORD (P-01) ───────────────────────────────────
+ *
+ * WHAT STOP USED TO DO. `TrackRun` held a count of automatic legs and Stop set
+ * it to zero. That is a real thing and it is not a stop: it cancels what THIS
+ * TAB would have bought next, the leg already dispatched finishes, and the sweep
+ * drives the same track again on its next tick because nothing on the record
+ * ever said a person asked it to stop. Closing the tab had identical effect,
+ * which means the control and doing nothing were indistinguishable ten minutes
+ * later.
+ *
+ * SO IT WRITES A COLUMN THE DRIVER READS. `driveTrackOnce` is the one door both
+ * the press and the sweep go through; `stopRequestedAt` is read there before any
+ * seat is dispatched, and the track holds `paused` with "Stopped by you." until
+ * the next press clears it.
+ *
+ * IT REFUSES HONESTLY RATHER THAN REPORTING SUCCESS IT CANNOT SEE. A settled run
+ * has nothing to stop and says so; a write that does not land says so; the
+ * column not yet existing in this database says so in its own words rather than
+ * as a generic failure, because that one is a deploy-order fact and not the
+ * person's problem.
+ *
+ * OWNERSHIP IS FILTERED HERE for the same reason `driveTrackNow` filters it: RLS
+ * already returns the same set today, and naming the owner costs nothing and
+ * cannot be removed by an unrelated refactor without a failing test.
+ */
+export const stopTrack = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<{ ok: boolean; refused: string | null }> => {
+    const { supabase, userId } = context;
+    try {
+      const { data: row } = await supabase
+        .from("spine_tracks" as never)
+        .select("id,status")
+        .eq("id", data.trackId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      const track = row as { id: string; status: string } | null;
+      if (!track) {
+        return { ok: false, refused: "This run could not be read, so nothing was stopped." };
+      }
+      if (track.status !== "open") {
+        return {
+          ok: false,
+          refused:
+            track.status === "done"
+              ? "This run is already finished, so there is nothing to stop."
+              : "This run was already abandoned, so there is nothing to stop.",
+        };
+      }
+
+      const { error } = await supabase
+        .from("spine_tracks" as never)
+        .update({ stop_requested_at: new Date().toISOString() } as never)
+        .eq("id", data.trackId)
+        .eq("user_id", userId);
+      if (error) {
+        const missingColumn =
+          error.code === "42703" || /stop_requested_at/.test(error.message ?? "");
+        return {
+          ok: false,
+          refused: missingColumn
+            ? "This database has not taken the stop column yet, so the loop cannot be told. The legs this page had bought are cancelled."
+            : `Nothing was stopped: ${error.message}`,
+        };
+      }
+      return { ok: true, refused: null };
+    } catch (e) {
+      return {
+        ok: false,
+        refused: e instanceof Error ? `Nothing was stopped: ${e.message}` : "Nothing was stopped.",
+      };
+    }
+  });
+
 export const driveTrackNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -2391,6 +2467,38 @@ export const driveTrackNow = createServerFn({ method: "POST" })
 
     const opening = await readTrack();
     if (!opening) return { track: null, steps, stopped: "not-found", more: false };
+
+    /*
+     * ── "RUN IT NOW" IS THE UNDO FOR STOP, AND THERE IS NO SECOND CONTROL ───
+     *
+     * `stop_requested_at` is what makes a Stop bind the sweep as well as this
+     * tab (see `stopRequestedAt` in driver.server.ts). Something has to clear
+     * it, and the honest candidate is the press itself: the person who stopped
+     * the work is the person starting it, and asking them to find a separate
+     * "resume" would be a second control for one decision.
+     *
+     * `press` ONLY. A `continuation` is this client walking on from a leg whose
+     * window closed -- nobody pressed anything -- so a continuation that cleared
+     * the column would let a run the person stopped restart itself on the very
+     * next tick, which is the whole failure the column exists to prevent. The
+     * sweep never clears it either, for the same reason and in the driver.
+     *
+     * Unchecked, and tolerant of the column not being there yet: a failure here
+     * leaves the stop standing, and a stop that outlives one press is a
+     * conservative wrong answer the person fixes by pressing again. The
+     * expensive direction is work restarting itself.
+     */
+    if (data.origin === "press") {
+      try {
+        await supabase
+          .from("spine_tracks" as never)
+          .update({ stop_requested_at: null } as never)
+          .eq("id", data.trackId)
+          .eq("user_id", userId);
+      } catch {
+        /* Left standing on purpose; see above. */
+      }
+    }
 
     let stopped: DriveNowResult["stopped"] = "stalled";
 
@@ -3114,6 +3222,19 @@ export type TrackToolCall = {
   latencyMs: number;
   at: string;
   error: string | null;
+  /**
+   * The `agent_runs` row whose trace this call carried, or null.
+   *
+   * WHAT IT IS FOR. The transcript draws one entry per seat's turn and now hangs
+   * that turn's own calls under it, collapsed. Without this the pane can only
+   * say what the WHOLE TRACK called, which is the flat list this read used to
+   * return and which cannot be attributed to anyone.
+   *
+   * NULL IS A REAL ANSWER AND NOT A HOLE: a call whose trace matches no run on
+   * this track belongs to no seat the transcript is drawing. It still appears in
+   * the run's total, and it hangs under nobody, which is exactly true.
+   */
+  runId: string | null;
 };
 
 export const getTrackToolCalls = createServerFn({ method: "GET" })
@@ -3134,15 +3255,34 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
        */
       const { data: runRows, error: runErr } = await supabase
         .from("agent_runs")
-        .select("trace_id")
+        /*
+         * ── THE RUN ID RIDES ALONG NOW, AND THE TRANSCRIPT IS WHY ──────────
+         *
+         * This selected `trace_id` alone, which answers "what did the agents on
+         * this track call" and cannot answer "what did THIS SEAT call". The run
+         * screen now renders each turn's calls inside that turn's own entry --
+         * Devin's collapsed "Worked for 11s" that opens into the work log -- and
+         * that grouping is not derivable from a flat list. The join already
+         * existed on both sides; only the id was being dropped on the floor.
+         */
+        .select("id, trace_id")
         .eq("track_id", data.trackId);
       // Thrown, not swallowed: an empty list means the agents called nothing,
       // and this is the case where nobody could look.
       if (runErr) throw new Error(`The turns on this run could not be read: ${runErr.message}`);
 
-      const rows = (runRows ?? []) as Array<{ trace_id: string | null }>;
+      const rows = (runRows ?? []) as Array<{ id: string; trace_id: string | null }>;
       const tracedRuns = rows.filter((r) => !!r.trace_id).length;
       const traceIds = [...new Set(rows.map((r) => r.trace_id).filter((t): t is string => !!t))];
+      /*
+       * TRACE TO RUN, and the LAST writer wins on purpose. A trace id is a run's
+       * own identifier in the loop, so the map is one to one in every row the
+       * record has; if two runs ever shared one, attributing the calls to the
+       * newer seat is the reading that keeps a live turn's calls under the live
+       * turn, which is the case a person is watching.
+       */
+      const runByTrace = new Map<string, string>();
+      for (const r of rows) if (r.trace_id) runByTrace.set(r.trace_id, r.id);
 
       /*
        * NO TRACE IDS IS NOT NO CALLS. A track whose runs all predate the
@@ -3155,7 +3295,7 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
 
       const { data: callRows, error: callErr } = await supabase
         .from("tool_calls")
-        .select("id, tool_name, ok, latency_ms, created_at, error")
+        .select("id, tool_name, ok, latency_ms, created_at, error, trace_id")
         .in("trace_id", traceIds)
         /* Newest first for the cap, reversed below: ToolStream takes arrival
            order, oldest first, and follows the tail. Ordering ascending here
@@ -3173,6 +3313,7 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
           latency_ms: number;
           created_at: string;
           error: string | null;
+          trace_id: string | null;
         }>
       )
         .map((c) => ({
@@ -3182,6 +3323,10 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
           latencyMs: c.latency_ms,
           at: c.created_at,
           error: c.error,
+          /* Null is a real answer: a call whose trace matches no run on this
+             track belongs to no seat the transcript is drawing, and guessing a
+             seat for it would put another turn's work under this one. */
+          runId: (c.trace_id ? (runByTrace.get(c.trace_id) ?? null) : null) as string | null,
         }))
         .reverse();
 

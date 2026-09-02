@@ -44,26 +44,22 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 
-import { TrackChain } from "@/components/spine/TrackChain";
 import { TrackActivity } from "@/components/spine/TrackActivity";
 import { RunPresence } from "@/components/presence/RunPresence";
-import { LiveWork, useCurrentTool } from "@/components/track/LiveWork";
-import { Teammates, type LiveSeat } from "@/components/presence/Teammates";
+import { useCurrentTool } from "@/components/track/LiveWork";
 import { ArtifactPane } from "@/components/track/ArtifactPane";
 import { TrackConsent } from "@/components/track/TrackConsent";
 import { Action, Door, Region } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { Receipt } from "@/components/meridian/Receipt";
-import { RunMap } from "@/components/meridian/RunMap";
-import { StepMeter } from "@/components/meridian/progress";
-import { useElapsed } from "@/components/meridian/use-elapsed";
 import {
   driveTrackNow,
   getTrack,
   getTrackChain,
   getTrackArtifacts,
   retryStation,
+  stopTrack,
   type DriveNowResult,
   type Track,
 } from "@/lib/spine/track.functions";
@@ -77,7 +73,6 @@ import { runTabState } from "@/components/track/run-tab";
 import { keyAction, shouldIgnoreKey } from "@/components/track/run-keys";
 import { SteerComposer } from "@/components/track/SteerComposer";
 import { TakeOver } from "@/components/track/TakeOver";
-import { RunCost } from "@/components/track/RunCost";
 import { triesLine } from "@/components/track/hold-tries";
 import { wayOut } from "@/components/track/way-out";
 import { buildBlocked } from "@/components/track/build-precondition";
@@ -85,9 +80,10 @@ import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { takeOver } from "@/components/track/take-over";
 import type { SpineRoute } from "@/lib/spine/route";
-import { runPosition } from "@/components/track/run-position";
 import { runStripSpec } from "@/components/track/run-strip-spec";
 import { usePublishRunStrip } from "@/components/shell/run-strip";
+import { GotYou } from "@/components/track/GotYou";
+import { stoppedByYou } from "@/components/track/footer-mode";
 
 /**
  * What the walk did, said plainly.
@@ -167,259 +163,28 @@ function CopyRunSummary({ trackId }: { trackId: string }) {
   );
 }
 
-/**
- * THE LIVE ROUTE HEADER: where it is, what it is doing, how far through, how long.
+/*
+ * ── THE ROUTE HEADER IS GONE, AND THAT IS THE RULING RATHER THAN A CUT ───
  *
- * ── WHAT THIS REPLACES ──────────────────────────────────────────────────
- * One row, rendered only while a walk was in flight, reading `At Build / Watch
- * as it moves through the route.` with `Elapsed: just started` under it. It
- * answered none of the four questions on arrival, because on arrival there is
- * no walk in flight and the whole block was unmounted -- which is the state a
- * person actually lands in, 58 tracks out of 59.
+ * `RunRouteHeader` drew a `StepMeter` reading "Station 5 of 7", a `RunMap` of
+ * the route, and a clock, at the top of the left pane. Three things were wrong
+ * with it and only the third is about this pane.
  *
- * ── THE ROUTE IS `RunMap`, MOUNTED RATHER THAN REBUILT ──────────────────
- * `RunMap` was built on 2026-08-20, is good, and had exactly one caller: the
- * component gallery. It could not be mounted here because it drew its seven
- * stations horizontally at 168px each, about 1176px, inside a rail of
- * `clamp(300px, 38%, 440px)` -- recorded as SPEC-LAYOUT gap G3. It now takes an
- * `orientation`, so this is the same component in the same vocabulary rather
- * than a second route renderer that would drift from it.
+ * IT WAS THE THIRD STATION DISPLAY ON ONE SCREEN. The shell strip above the
+ * header is a run's own seven stages and drives the artifact pane's tabs; the
+ * `TrackChain` list in the right pane said the same thing a third time. A1's
+ * audit counted four, including the pane's own tab row, which had already been
+ * removed for this reason on 2026-09-02. One display now, and it is the strip.
  *
- * It is deliberately passed NO `outcome` text. What each station FILED is the
- * question `TrackChain` answers in the pane beside this one, and answering it
- * twice in two rhythms is how one run comes to have four views. This one
- * answers position and what is holding it, and stops there.
+ * "STATION 5 OF 7" IS A POSITION, AND R-13 REFUSED POSITIONS. A route that
+ * waives and reopens stations cannot honestly be drawn as a fraction, and
+ * `footer-mode.ts` states the same rule for the bar under both panes: mode,
+ * never position. The meter contradicted the footer on every run that had one.
  *
- * ── THE CLOCK IS HONEST ABOUT WHICH INTERVAL IT MEASURES ────────────────
- * `spine_tracks.driven_at` is written by eleven exit paths in `driver.server.ts`
- * as `new Date().toISOString()` at the moment the row is written, AFTER a seat
- * resolves. It is therefore a stamp of when the work last MOVED, not when the
- * current station started, and a clock counting up from it would report an
- * interval nobody asked about. That is SPEC-LAYOUT gap G10 and it is still
- * open, so this draws the two clocks that ARE defensible:
- *
- *   while a walk is in flight   the age of THIS WALK, from the moment the
- *     mutation went pending in this tab. Ticks in tenths through `useElapsed`,
- *     which is the system's one timer, and it is labelled "Walking for" rather
- *     than "at this station" because that is what it measures.
- *   otherwise                   how long ago it last moved, from `driven_at`,
- *     which is exactly what that column knows.
- *   never driven                said in those words. A zero on a clock and a
- *     run that has never started are opposite facts.
+ * THE CLOCK SURVIVES, in the footer, where the bill is. It measured this tab's
+ * own press, which is a real interval and is now one of the two figures on the
+ * bar under both panes rather than a fourth thing at the top of one of them.
  */
-function RunRouteHeader({
-  track,
-  walking,
-  walkStartedAt,
-  continuing,
-  legsLeft,
-  nowMs,
-  reasonSaidBelow,
-}: {
-  track: Track;
-  /**
-   * A drive is in flight from this tab. The one input that is not a row.
-   *
-   * THE WHOLE PRESS, NOT ONE LEG. `run.isPending` drops to false for the 500ms
-   * between automatic legs, so wiring that in alone would flip the live station
-   * from `working` back to `here` and forward again on every leg -- a rail that
-   * flickers eight times during one uninterrupted walk. `walkingMidRoute` is
-   * the flag that spans the press, and it is the one the hold banner already
-   * yields to for the same reason (F-46/R027).
-   */
-  walking: boolean;
-  /** When this press began, or null when nothing is walking. */
-  walkStartedAt: number | null;
-  continuing: boolean;
-  legsLeft: number;
-  nowMs: number;
-  /**
-   * "Why it stopped" is on screen under this header, so the map must not draw
-   * the reason as well.
-   *
-   * THE TWO WERE THE SAME STRING, CHARACTER FOR CHARACTER. `track.hold` is
-   * `holdLine(last_hold, { station })` composed in `getTrack`, and `RunMap`
-   * draws `holdLine(stop.hold, { station: stop.station })` on the held stop
-   * whenever `mode === "live"` -- same function, same reason, same station. So
-   * a held run printed one sentence in the map and then printed it again, four
-   * lines down the page, as the lead of "Why it stopped".
-   *
-   * THE MAP KEEPS THE STATE AND LOSES THE PROSE, not the other way round. The
-   * stop still wears its `held` chip and its amber, which is what a map is for:
-   * where the work is and what shape it is in at a glance. "Why it stopped"
-   * keeps the sentence because it is the only one of the two that carries the
-   * control clearing it, which is `run-status.ts`'s own argument for dropping
-   * the header's copy and is the same argument here.
-   *
-   * FALSE MEANS THE MAP IS THE ONLY COPY AND MUST KEEP IT. That region is gated
-   * three ways (`held && !walkingMidRoute && !isCalmHold`), so on a calm hold
-   * and mid-walk the map is where the reason lives, and stripping it
-   * unconditionally would delete it from the screen entirely.
-   */
-  reasonSaidBelow: boolean;
-}) {
-  /*
-   * ── WHAT EACH STATION CAME TO, FILLED AT LAST (2026-09-02) ──────────────
-   * `RunMapStation.outcome` has promised "WHAT CAME OF THIS STATION" since it
-   * was written and nothing ever set it, so every stage on the map and on the
-   * strip rendered a blank line. Founder, on keeping the strip only inside a
-   * run: "it should do more and take less." The taking-less shipped first.
-   *
-   * Its own read rather than a field on the tool-call poll: that one runs every
-   * 500ms while a run is moving, and this changes only when a station finishes.
-   * 30s is slower than any station and faster than a person will notice.
-   */
-  /* THE CHAIN, WHICH THIS SCREEN ALREADY POLLS. Same query key the artifact
-     pane uses, so this costs no request and the two cannot disagree about what
-     a station filed. Undefined until it answers, and undefined is the right
-     value: an absent map means nobody has looked, and every stop renders as it
-     did before this existed rather than claiming an empty station. */
-  const fChainOutcomes = useServerFn(getTrackChain);
-  const chainForOutcomes = useQuery({
-    queryKey: ["spine-track-chain", track.id],
-    queryFn: () => fChainOutcomes({ data: { trackId: track.id } }),
-    staleTime: 10_000,
-  });
-  const position = runPosition(
-    track,
-    walking,
-    stationOutcomes(chainForOutcomes.data?.chain.stops),
-  );
-  const meter = position.meter;
-  const stops = reasonSaidBelow
-    ? position.stops.map((s) => ({ ...s, hold: null }))
-    : position.stops;
-  /* `active` follows the walk, so a parked run pays for no interval at all --
-     `useElapsed`'s own contract, and the reason it takes the flag. */
-  const walked = useElapsed(walkStartedAt ?? undefined, walkStartedAt !== null);
-
-  const stationName = AGENT_STATIONS[track.station]?.name ?? track.station;
-  const tone = holdTone(track.holdReason);
-  const terminallyStopped = nothingIsComing(track.holdReason);
-
-  /** How long, in the words of whichever interval is actually known. */
-  const clock =
-    walkStartedAt !== null
-      ? `Walking for ${walked}`
-      : track.drivenAt
-        ? `Last moved ${relativeTime(track.drivenAt, nowMs)}`
-        : "Never driven";
-
-  /**
-   * WHAT IT IS DOING, in one sentence, and every branch is a row or the walk.
-   *
-   * THE HOLD BRANCH IS DELIBERATELY THE SHORT FORM. `holdLine`'s full sentence
-   * is already rendered twice further down this pane -- on the map's own stop,
-   * where it is attached to the station it is about, and in "Why it stopped",
-   * which carries the control that clears it. Printing it a third time in the
-   * heading would spend the first line a person reads on a sentence they are
-   * about to read again, so this says WHICH KIND of stop it is and leaves the
-   * reason to the two places that can act on it. It is never a re-wording:
-   * these are `StatusChip`'s own words for the two tones, which is the one
-   * vocabulary the driver, the map and the banner all share.
-   *
-   * THE FINISHED BRANCH IS SILENT FOR THE SAME REASON, and it is the same
-   * sentence twice rather than a paraphrase. `run-status.ts` returns
-   * "It reached the end of its route." as the line beside the header chip, and
-   * the route draws that chip and that line at the top of this very page; this
-   * sub sat a few hundred pixels below it saying the identical fifteen
-   * characters under a heading already reading "Route complete". The header is
-   * the one that keeps it: it is beside the chip, which is where a person looks
-   * first, and it is the copy the run tab and the browser title already agree
-   * with. Here the region title carries the state and the collapsed line
-   * carries the counts, so a third statement of "this is finished" earns
-   * nothing.
-   */
-  const doing = continuing
-    ? `An agent is walking the route. ${legsLeft} more automatic ${legsLeft === 1 ? "leg" : "legs"} on this press.`
-    : walking
-      ? "An agent is working here now."
-      : track.status === "done"
-        ? undefined
-        : track.status === "abandoned"
-          ? "This work was abandoned here."
-          : tone === "you"
-            ? /*
-               * The fourth surface on one screen carrying this claim, and the
-               * argument is `run-status.ts`'s in full: four of the six reasons
-               * `holdTone` calls "you" are the whole of `TERMINAL_HOLDS`, and
-               * 36 of the 37 open tracks reaching here have nothing pending
-               * for anybody. This line sits directly above "Why it stopped",
-               * which is where `way-out.ts` names the restart, so saying
-               * "waiting" here contradicted the paragraph under it.
-               */
-              terminallyStopped
-              ? "It stopped here, and nothing will pick it up again on its own."
-              : "It is waiting on you."
-            : tone === "hold"
-              ? "It is on hold."
-              : track.drivenAt
-                ? "Nothing is driving it right now."
-                : "It has not been driven yet.";
-
-  /*
-   * THE FINISHED-RUN COLLAPSE (SPEC-LAYOUT §5.2). A finished route's step list
-   * collapses to one settled line -- the walk is over, and seven rows of
-   * history push everything a person came back to read below the fold. The
-   * line counts what actually happened off the same derived stops the map
-   * draws, so the two can never disagree; clicking it re-expands, and replay
-   * mode strips the map of every live control.
-   */
-  const settled = track.status === "done";
-  const [expanded, setExpanded] = React.useState(false);
-  const ranCount = stops.filter((s) => s.state === "done").length;
-  const waivedCount = stops.filter((s) => s.state === "skipped").length;
-  const collapsedLine = [
-    `${stops.length} stations`,
-    `${ranCount} ran`,
-    ...(waivedCount > 0 ? [`${waivedCount} taken off the route`] : []),
-    clock,
-  ].join(" · ");
-
-  if (settled && !expanded) {
-    return (
-      <Region title="Route complete" sub={doing}>
-        <button
-          type="button"
-          data-mrd=""
-          onClick={() => setExpanded(true)}
-          aria-expanded={false}
-          className="flex w-full items-center justify-between gap-mrd-3 rounded-mrd-chip px-mrd-3 py-mrd-2 text-left transition-colors enabled:hover:bg-mrd-hover"
-          style={{ transitionDuration: "var(--mrd-d-press)" }}
-        >
-          <span className="mrd-meta">{collapsedLine}</span>
-          <span className="text-mrd-small font-medium text-mrd-body">Show them</span>
-        </button>
-      </Region>
-    );
-  }
-
-  return (
-    <Region title={settled ? "Route complete" : `At ${stationName}`} sub={doing}>
-      <div className="flex flex-col gap-mrd-4">
-        <StepMeter noun="Station" steps={meter} note={clock} />
-        {settled ? (
-          <div className="flex flex-col gap-mrd-2">
-            <RunMap
-              stops={stops}
-              mode="replay"
-              orientation="stack"
-              label="The route this work took"
-            />
-            <div>
-              <Action variant="quiet" onClick={() => setExpanded(false)}>
-                Collapse the route again
-              </Action>
-            </div>
-          </div>
-        ) : (
-          <RunMap stops={stops} mode="live" orientation="stack" label="The route this work takes" />
-        )}
-      </div>
-    </Region>
-  );
-}
-
 /*
  * THE SPLIT (request 024 / SPEC-LAYOUT §0, executed by LANE 1 under the
  * founder's parallel order). One column cannot be two panes, so the body is
@@ -462,7 +227,16 @@ export function TrackRunLeft({
    * them. Lifted because the Stop belongs in the footer under both panes
    * (THE-ONE-SCREEN:21) and this pane cannot reach it.
    */
-  onDriveState?: (s: { canStop: boolean; stop: () => void }) => void;
+  onDriveState?: (s: {
+    /** A press in THIS tab is walking steps it bought. */
+    walking: boolean;
+    /** A press this tab made and has not had answered. */
+    starting: boolean;
+    /** A stop this tab asked for and has not had answered. */
+    stopping: boolean;
+    stop: () => void;
+    run: () => void;
+  }) => void;
   /**
    * RUN-02: the same live fact, handed BACK by the composition, so this pane's
    * own presence reads it. A run driven by the sweep while this tab was closed
@@ -741,35 +515,92 @@ export function TrackRunLeft({
    * re-render for nothing.
    */
   /*
-   * WHO is working, not just whether anyone is. One teammate stays one
-   * character (SPEC-PRESENCE); two or more are drawn each with its own colour
-   * and name (SPEC-MULTIPLAYER-PRESENCE §1), and both read the same run rows.
+   * ── STOP IS A ROW NOW, NOT A NUMBER IN THIS TAB ──────────────────────────
+   *
+   * It used to be `setLegsLeft(0)` and nothing else, which cancels the automatic
+   * steps THIS TAB would have bought next. That is real and it is not a stop:
+   * the step already dispatched finishes, and the sweep drives the same track
+   * again on its next tick, because nothing on the record ever said a person
+   * asked it to stop. Closing the page did exactly as much.
+   *
+   * `stopTrack` stamps `spine_tracks.stop_requested_at`, which `driveTrackOnce`
+   * reads before dispatching any seat, so one press binds this tab AND the loop.
+   * That is what lets the footer offer Stop on a run the sweep is driving, which
+   * it correctly refused to do while the control could not reach one.
+   *
+   * THE LEGS ARE CANCELLED FIRST, BEFORE THE CALL AND WHATEVER IT ANSWERS. The
+   * two halves protect different things and only one of them is on the network:
+   * a person who pressed Stop must stop buying steps in this tab immediately,
+   * whether or not the write lands, and whether or not the write is even
+   * possible against a database that has not taken the column yet.
    */
-  const [seats, setSeats] = React.useState<LiveSeat[]>([]);
+  const fStop = useServerFn(stopTrack);
+  const stopWalk = useMutation({
+    mutationFn: () => fStop({ data: { trackId } }),
+    onSuccess: (res) => {
+      void qc.invalidateQueries({ queryKey: ["spine-track", trackId] });
+      void qc.invalidateQueries({ queryKey: ["track-activity", trackId] });
+      /* A refusal is reported in the same receipt a refused release uses, so
+         the two answers a person can get from this pane read the same way. */
+      if (res.refused) {
+        setReleaseNote({ verb: "The loop was not told", consequence: res.refused, failed: true });
+      }
+    },
+    onError: (e: Error) =>
+      setReleaseNote({
+        verb: "The loop was not told",
+        consequence: failureLine(
+          "This page stopped buying steps, but the loop was not told, so it may drive this again.",
+          e,
+        ),
+        failed: true,
+      }),
+  });
 
   const stopRef = React.useRef<() => void>(() => undefined);
-  stopRef.current = () => setLegsLeft(0);
-  /*
-   * `continuing` ALONE WAS NOT ENOUGH, and driving it is what showed that.
-   * It is true only BETWEEN legs -- `legsLeft > 0` AND a returned result that
-   * stopped out-of-window with more to do. While a leg is actually in flight it
-   * is false, so a Stop gated on it existed for the gaps and not for the walk.
-   * Watched live at 36 seconds into a press: the footer correctly said work was
-   * happening and offered nothing to stop it. THE-ONE-SCREEN asks for a Stop
-   * that always works, and a control that is absent for most of the thing it
-   * governs does not.
-   *
-   * `run.isPending` is this tab's press being in flight, which is exactly the
-   * other half. Pressing Stop sets the legs to zero, so nothing further is
-   * bought; the leg already running cannot be un-walked, which is why the
-   * control has always said "Stop after this leg" rather than "Stop".
-   */
-  const canStop = continuing || run.isPending;
-  React.useEffect(() => {
-    onDriveState?.({ canStop, stop: () => stopRef.current() });
-  }, [canStop, onDriveState]);
+  stopRef.current = () => {
+    setLegsLeft(0);
+    stopWalk.mutate();
+  };
 
-  const showHold = held && !walkingMidRoute && !isCalmHold;
+  const runRef = React.useRef<() => void>(() => undefined);
+  runRef.current = () => {
+    setLegsLeft(AUTO_MAX);
+    run.mutate("press");
+  };
+
+  /*
+   * ── WHAT THE FOOTER NEEDS, LIFTED OUT OF THIS PANE ───────────────────────
+   *
+   * The one control lives under both panes and this pane owns every piece of
+   * walk state, so the handlers and the two in-flight flags travel out. Same
+   * shape as the `crewLive` lift above rather than a second mechanism.
+   *
+   * `walking` is this tab's own press, which is the fact `footerMode` branches
+   * on: `continuing` alone is true only BETWEEN steps, so a footer gated on it
+   * would have offered nothing to stop for most of the thing it governs, which
+   * is what watching a live press at 36 seconds showed.
+   *
+   * The handlers are read through refs so this effect depends only on the
+   * booleans, not on function identities that change every render. Reporting on
+   * identity would fire on every paint and the footer would re-render for
+   * nothing.
+   */
+  const walkingHere = continuing || run.isPending;
+  React.useEffect(() => {
+    onDriveState?.({
+      walking: walkingHere,
+      starting: run.isPending,
+      stopping: stopWalk.isPending,
+      stop: () => stopRef.current(),
+      run: () => runRef.current(),
+    });
+  }, [walkingHere, run.isPending, stopWalk.isPending, onDriveState]);
+
+  /* A run a person stopped is drawn by its own line above, not as a hold: see
+     the block there for why `paused` needs the sentinel to be read honestly. */
+  const personStopped = track ? stoppedByYou(track.holdReason, track.holdBecause) : false;
+  const showHold = held && !walkingMidRoute && !isCalmHold && !personStopped;
   /*
    * The way out is computed FROM WHAT THE SCREEN IS SHOWING, not from the hold
    * alone. Caught on the first drive: a track going in circles at the first
@@ -877,12 +708,12 @@ export function TrackRunLeft({
         steerFieldRef.current?.focus();
         return;
       }
-      // `r` mirrors the Run-it control exactly, including every state where
-      // the control refuses to exist.
+      // `r` mirrors the footer's Run-it control exactly, including every state
+      // where the control refuses to exist, and it goes through the same handler
+      // so the two cannot diverge.
       if (finished || walkingMidRoute || run.isPending) return;
       e.preventDefault();
-      setLegsLeft(AUTO_MAX);
-      run.mutate("press");
+      runRef.current();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -905,48 +736,70 @@ export function TrackRunLeft({
        * instead of the false alarm "I can't find this piece of work".
        */}
       {/*
-       * The many-teammate case sits ABOVE the character rather than replacing
-       * it: the character is still this run's voice and still says what is
-       * happening, and the row of teammates says who is doing it. Below two, it
-       * renders nothing at all and the surface is exactly as it was.
+       * ── THE TEAMMATES BLOCK IS GONE, AND THE FACT IT CARRIED IS NOT ────
+       *
+       * `Teammates` drew a row of marks above the character whenever two or
+       * more seats were in flight. It was a HEADER of who is here, and the
+       * transcript directly below it already draws every seat the moment its
+       * run row lands, with the artifact it filed and what it cost. So the two
+       * answered one question and only one of them could say what the seat
+       * actually did. §4 removes the header for that reason and keeps the
+       * answer where the evidence is.
        */}
-      <Teammates seats={seats} />
-
-      <RunPresence
-        loading={trackQ.isLoading}
-        input={{
-          track: track
-            ? { status: track.status, holdReason: track.holdReason, drivenAt: track.drivenAt }
-            : null,
-          result: result ? { stopped: result.stopped, more: result.more } : null,
-          // A crew the sweep is driving is working, exactly as a leg this tab
-          // pressed is: presence reads the record, not this tab's own press.
-          walking: run.isPending || crewLive,
-          continuing,
-          feedDead: trackQ.isError,
-          /*
-           * ── THE CHARACTER NAMES THE TOOL NOW (2026-09-01) ──────────────
-           *
-           * `PresenceInput.currentTool` has existed since the character was
-           * built, `VERB_BY_TOOL` holds 27 curated first-person verbs for it,
-           * and `character.ts:225` turns one into "I'm writing the spec." --
-           * and NOTHING ON THIS SURFACE EVER PASSED IT. The branch was dead
-           * code, so a run that was reading the repository, drafting a design
-           * and checking its own work against the evidence said the same four
-           * words the whole way through: "I'm on it."
-           *
-           * The reason it was never wired is that the join did not exist:
-           * `tool_calls` could not be tied to a run until `agent_runs.trace_id`
-           * landed on 2026-08-26 (F-93). It can now, at 100% coverage for runs
-           * from 2026-08-31 on, so the verb the character was built to say is
-           * finally derivable from a row.
-           *
-           * Null while settled, on purpose -- `verbForTool` is present tense
-           * and a finished run's last call is a fact about the past.
-           */
-          currentTool,
-        }}
-      />
+      {/*
+       * PRESENCE ONLY WHEN IT DISCRIMINATES (§4: "one sentence, only when it
+       * discriminates -- stopped, waiting, finished. Silent while working").
+       *
+       * While work is moving, three things on this screen already say so: the
+       * live entry ticking in the transcript, the footer's mode line, and the
+       * strip's working chip. A fourth sentence saying "I'm on it" above them
+       * is the repetition this surface keeps being repaired for, and it is the
+       * one that reads as filler because it is the only one with no figure
+       * attached.
+       *
+       * THE LOADING CASE STILL DRAWS, and that is not an exception to the rule.
+       * "Reading this piece of work" is the distinction the derivation cannot
+       * otherwise make: without it a person arriving from /start meets the
+       * false alarm "I can't find this piece of work" while the first read is
+       * still in flight.
+       */}
+      {trackQ.isLoading || !workingNow ? (
+        <RunPresence
+          loading={trackQ.isLoading}
+          input={{
+            track: track
+              ? { status: track.status, holdReason: track.holdReason, drivenAt: track.drivenAt }
+              : null,
+            result: result ? { stopped: result.stopped, more: result.more } : null,
+            // A crew the sweep is driving is working, exactly as a leg this tab
+            // pressed is: presence reads the record, not this tab's own press.
+            walking: run.isPending || crewLive,
+            continuing,
+            feedDead: trackQ.isError,
+            /*
+             * ── THE CHARACTER NAMES THE TOOL NOW (2026-09-01) ──────────────
+             *
+             * `PresenceInput.currentTool` has existed since the character was
+             * built, `VERB_BY_TOOL` holds 27 curated first-person verbs for it,
+             * and `character.ts:225` turns one into "I'm writing the spec." --
+             * and NOTHING ON THIS SURFACE EVER PASSED IT. The branch was dead
+             * code, so a run that was reading the repository, drafting a design
+             * and checking its own work against the evidence said the same four
+             * words the whole way through: "I'm on it."
+             *
+             * The reason it was never wired is that the join did not exist:
+             * `tool_calls` could not be tied to a run until `agent_runs.trace_id`
+             * landed on 2026-08-26 (F-93). It can now, at 100% coverage for runs
+             * from 2026-08-31 on, so the verb the character was built to say is
+             * finally derivable from a row.
+             *
+             * Null while settled, on purpose -- `verbForTool` is present tense
+             * and a finished run's last call is a fact about the past.
+             */
+            currentTool,
+          }}
+        />
+      ) : null}
 
       {/*
        * THE QUESTION, ABOVE EVERYTHING ELSE. When the run needs a person it
@@ -960,25 +813,73 @@ export function TrackRunLeft({
       <TrackConsent trackId={trackId} onAnswered={() => run.mutate("press")} />
 
       {/*
-       * THE LIVE ROUTE HEADER (mission: agentic work must be SEEN, not
-       * inferred). It renders whenever there is a track, not only mid-walk:
-       * the block it replaces was mounted behind `walkingMidRoute`, so the
-       * state a person actually lands in -- parked at a station with nobody
-       * driving it, which is 58 of this product's 59 tracks -- showed no
-       * position, no route and no clock at all.
+       * ── WHAT THE PRESS ITSELF ANSWERED, AND NOTHING ELSE ────────────────
+       *
+       * These rows exist only after a mutation that can run for fifty seconds
+       * returns, which is the exact case a polite status region is for: the
+       * person pressed a control, and what came back -- including "it stopped
+       * and is waiting on something" -- is said, not merely shown.
+       *
+       * NOT IN A REGION ANY MORE. It used to live inside the boxed `Run it`
+       * block, which is gone: the control moved to the footer under both panes
+       * (THE-ONE-SCREEN:21) and a box whose only remaining content was the
+       * answer to a control somewhere else is a container earning nothing. The
+       * facts are unchanged, and the cap message in particular stays, because
+       * "nothing was stopped silently" is the sentence that keeps automatic
+       * legs honest.
        */}
-      {track ? (
-        <RunRouteHeader
-          track={track}
-          walking={workingNow}
-          walkStartedAt={walkStartedAt}
-          continuing={continuing}
-          legsLeft={legsLeft}
-          nowMs={nowMs}
-          /* The same flag the region below is gated on, so the map drops the
-             hold sentence exactly when the region is about to print it and
-             keeps it in every case where the region is absent. */
-          reasonSaidBelow={showHold}
+      {result || run.isError ? (
+        <div role="status" aria-live="polite" className="flex flex-col">
+          {result ? (
+            <Row
+              lead={
+                continuing
+                  ? `It is still walking. ${legsLeft} automatic ${legsLeft === 1 ? "step" : "steps"} left on this press.`
+                  : STOPPED_LINE[result.stopped]
+              }
+              sub={
+                continuing
+                  ? "Stop, in the bar below, takes it back at the end of this step."
+                  : result.more && !capReached
+                    ? "Run it again to continue."
+                    : undefined
+              }
+            />
+          ) : null}
+          {capReached ? (
+            <Row
+              lead={`It walked every automatic step (${AUTO_MAX}) and still has route ahead.`}
+              sub="Nothing was stopped silently: press Run it now, in the bar below, to buy another set."
+            />
+          ) : null}
+          {run.isError ? <Row lead="The walk could not start. Nothing was moved." /> : null}
+        </div>
+      ) : null}
+
+      {/*
+       * ── YOU STOPPED IT, WHICH IS NOT THE WORKSPACE BEING PAUSED ─────────
+       *
+       * A person's stop is written as `last_hold = 'paused'`, because the hold
+       * vocabulary is closed (see `STOPPED_BY_YOU` in driver.ts). Left to the
+       * region below, this would print `HOLD_LINE.paused` -- "Everything is
+       * paused for this workspace, so nothing ran" -- directly under the
+       * driver's own "Stopped by you.", which is one screen making two
+       * incompatible claims about one row.
+       *
+       * It is also not a hold in the sense that region is written for. There is
+       * nothing to diagnose, no way out to name and nothing to release: the
+       * control that made it is the control that undoes it, and it is in the
+       * footer. So it gets one line and no box.
+       */}
+      {track && stoppedByYou(track.holdReason, track.holdBecause) && !walkingMidRoute ? (
+        <Row
+          lead="You stopped this run."
+          sub="Nothing further will be dispatched, by this page or by the loop, until you press Run it now."
+          action={
+            <StatusChip status="hold" pulse={false}>
+              Stopped
+            </StatusChip>
+          }
         />
       ) : null}
 
@@ -1189,112 +1090,30 @@ export function TrackRunLeft({
        */}
 
       {/*
-       * THE RUN CONTROL, AND ITS TWO HONEST ABSENCES. A finished route has
-       * nothing to drive, so the control is REMOVED and one line takes its
-       * place (SPEC-LAYOUT §5.4) -- a greyed primary that looks pressable and
-       * does nothing is the affordance failure this surface already paid for
-       * once on RunMap's own Stop. Abandoned work says the same in its own
-       * words; the steer box below carries the way back either way.
+       * ── THE `RUN IT` REGION IS GONE, AND THE CONTROL IS NOT ─────────────
+       *
+       * A boxed region titled "Run it", with a paragraph of its own and a
+       * primary button, sat here in the middle of the transcript column. Stop
+       * had already moved to the footer under both panes (THE-ONE-SCREEN:21),
+       * which left the two halves of one decision in two places: you started a
+       * run in the middle of the left column and stopped it at the bottom of
+       * the screen, and on a long transcript whichever one you wanted was off
+       * screen. Both are in the footer now, as ONE control that reads Stop or
+       * Run it now and never both.
+       *
+       * WHAT WAS IN THE BOX BESIDES THE BUTTON is kept and moved rather than
+       * deleted: the press's own answer is the live region above, and the copy
+       * control is directly below. The three sentences the box carried about a
+       * finished or abandoned run are the footer's job now, and it says each
+       * of them once.
        */}
-      <Region
-        /*
-         * ONE SENTENCE WHEN THERE IS NOTHING TO DRIVE, NOT THREE.
-         *
-         * A finished run used to say it three times in one column: the heading
-         * carried "(done)", the sub said "This walk is finished", and a row
-         * under them said "It reached the end of its route" -- with the status
-         * chip at the top of the page already saying Finished. An abandoned one
-         * was worse than repetitive: the sub described the control's normal job,
-         * "walks this work through its route now", on a run that cannot be
-         * walked, and then repeated the header's own sentence back.
-         *
-         * So the closed case gets one line that says what happened AND what it
-         * means for this control, which is the only part the header did not
-         * already cover. The heading stays plain: the chip and this sentence
-         * both carry the state, and a third copy in the heading is the one that
-         * was earning nothing.
-         */
-        title="Run it"
-        sub={
-          track?.status === "done"
-            ? "This walk is finished, so there is nothing left to drive."
-            : track?.status === "abandoned"
-              ? "This work was abandoned, so there is nothing left to drive."
-              : "Walks this work through its route now, station by station, and stops the moment something needs you."
-        }
-      >
-        {track?.status === "done" || track?.status === "abandoned" ? null : continuing ? (
-          /*
-           * THE STOP IS NOT HERE ANY MORE, and that is the ruling rather than a
-           * tidy-up. THE-ONE-SCREEN:21 puts it in the footer under both panes,
-           * and the reason is legibility: it used to sit inside the same box as
-           * Run it, so stopping a run meant scrolling back to the control you
-           * started it from. There is exactly ONE Stop on this surface and it
-           * is the footer's; a second copy here would be the duplication this
-           * screen keeps being repaired for.
-           */
-          <Action variant="primary" busy onClick={() => undefined}>
-            Walking the route
-          </Action>
-        ) : (
-          <Action
-            variant="primary"
-            busy={run.isPending}
-            onClick={() => {
-              setLegsLeft(AUTO_MAX);
-              run.mutate("press");
-            }}
-          >
-            {run.isPending ? "Walking the route" : "Run it now"}
-          </Action>
-        )}
 
-        {run.isError ? <Row lead="The walk could not start. Nothing was moved." /> : null}
-
-        <CopyRunSummary trackId={trackId} />
-
-        {/*
-         * THE WALK RESULT IS A LIVE REGION. These rows do not exist until a
-         * mutation that can run for fifty seconds returns, which is the exact
-         * case a polite status region exists for: the person pressed a button,
-         * and what came back -- including "it stopped and is waiting on
-         * something" -- is said, not shown only.
-         */}
-        {result ? (
-          <div role="status" aria-live="polite">
-            <Row
-              lead={
-                continuing
-                  ? `It is still walking. ${legsLeft} automatic ${legsLeft === 1 ? "leg" : "legs"} left on this press.`
-                  : STOPPED_LINE[result.stopped]
-              }
-              sub={
-                continuing
-                  ? "Press Stop after this leg to take over."
-                  : result.more && !capReached
-                    ? "Run it again to continue."
-                    : undefined
-              }
-            />
-            {capReached ? (
-              <Row
-                lead={`It walked every automatic leg (${AUTO_MAX}) and still has route ahead.`}
-                sub="Nothing was stopped silently: press Run it now to buy another set of legs."
-              />
-            ) : null}
-            {/*
-             * THE PER-SEAT LIST IS DELIBERATELY ABSENT (SPEC-LAYOUT §0 ruled
-             * this deletion; it never landed). The transcript below already
-             * renders every seat the moment its run row lands -- who acted,
-             * what they filed, what it cost. Printing the same walk a second
-             * time from the mutation's return value meant one fact about one
-             * run with two freshesses, which is how a header once said Running
-             * over a hold. The mutation's own outcome above is the only thing
-             * here that the queries cannot say.
-             */}
-          </div>
-        ) : null}
-      </Region>
+      {/*
+       * THE RUN, IN A FORM SOMEBODY CAN PASTE SOMEWHERE. It is the one export
+       * on this pane and it belongs to the transcript above it rather than to a
+       * control that no longer lives here.
+       */}
+      <CopyRunSummary trackId={trackId} />
 
       {/*
        * RUN-20: THE CONTROLS THAT ARE NOT START AND STOP. Sending a step back
@@ -1314,7 +1133,7 @@ export function TrackRunLeft({
        * follow. When no row says running or queued, nothing speeds up and
        * nothing pulses -- an idle track reads idle.
        */}
-      <TrackActivity trackId={trackId} onLiveChange={onCrewLive} onLiveSeats={setSeats} />
+      <TrackActivity trackId={trackId} onLiveChange={onCrewLive} />
 
       {/*
        * THE STEER BOX (RUN-03), AT THE PANE'S FOOT -- below the transcript,
@@ -1338,12 +1157,9 @@ export function TrackRunLeft({
 export function TrackPaneRight({
   trackId,
   isRunning = false,
-  promised = null,
 }: {
   trackId: string;
   isRunning?: boolean;
-  /** RUN-08: the person's opening sentence, for the value audit beside the record. */
-  promised?: string | null;
 }) {
   const [paneStation, setPaneStation] = React.useState<string | null>(null);
   const fetchStripTrack = useServerFn(getTrack);
@@ -1399,38 +1215,46 @@ export function TrackPaneRight({
 
   return (
     <div className="flex flex-col gap-mrd-6">
+      {/*
+       * ── WHAT THIS RUN GOT YOU, ABOVE THE THING IT MADE ──────────────────
+       *
+       * A1-REPORT §4 puts one strip here "once the run has produced anything",
+       * and calls it "the sentence the person repeats to a colleague". It is
+       * also the only place on this screen where the four facts a person
+       * actually reports -- what you now have, whether it is any good, when the
+       * forecast lands, what it cost -- are readable in one movement of the eye.
+       * Before it, the last of those was a bordered region at the BOTTOM of this
+       * pane and the first was nowhere at all.
+       */}
+      <GotYou trackId={trackId} />
       <ArtifactPane
         trackId={trackId}
         active={paneStation}
         onActiveChange={setPaneStation}
         isRunning={isRunning}
       />
-      <TrackChain trackId={trackId} onOpenStation={setPaneStation} />
       {/*
-       * ── WHAT IT IS DOING RIGHT NOW, CALL BY CALL (2026-09-01) ────────────
+       * ── THREE BLOCKS CAME OFF THIS PANE, AND EACH FOR ITS OWN REASON ────
        *
-       * The goal names this the most essential requirement: *"the agent's
-       * activity must be visible in real time ... never a blank screen with a
-       * spinner while something runs behind it."* This surface met the letter
-       * of that -- there is no spinner anywhere on it -- and missed the point.
-       * The transcript's finest grain is one row per SEAT'S TURN, so while a
-       * station ran it said "Draft is working" and a ticking clock, unchanged,
-       * for however long the model took.
+       * `TrackChain` was 2,706px of the same facts the strip above the header
+       * already carries, and it was the fourth station display on one screen.
+       * The strip drives this pane's tabs, so picking a stage there does what
+       * clicking a chain row did, in a band that is always on screen.
        *
-       * IT SITS UNDER THE ROUTE AND ABOVE THE COST, which is the order a
-       * person asks in: where is this, what is it doing, what has it cost.
-       * `TrackChain` above it is the plan; this is the execution; `RunCost`
-       * below is the bill.
+       * `LiveWork` listed every tool call on the whole track in one flat stream
+       * headed "What the agents are calling". It answered what the RUN called
+       * and could not answer what THIS SEAT called, which is the only version of
+       * the question a person watching a handoff has. Those calls are now inside
+       * the transcript entry of the seat that made them, collapsed, one press
+       * from open -- see `SeatCalls` in `TrackActivity.tsx`.
        *
-       * IN THE ARTIFACT PANE RATHER THAN THE TRANSCRIPT, and that is a real
-       * choice. The left pane is the NARRATIVE -- who acted, what they handed
-       * on, where it needs you -- and a hundred `repo.read` lines would bury
-       * the handoff that is the product's whole claim. The right pane is what
-       * the run PRODUCED, and the call log is exactly that: the evidence under
-       * the artifacts sitting above it.
+       * `RunCost` was a bordered region below the artifacts holding the two
+       * figures people check most often, on the side of the screen they were not
+       * reading. They are facts about the run rather than about anything it
+       * made, so they are on the bar under both panes, computed by the same
+       * `runTally` the strip above uses so the two cannot print different
+       * numbers.
        */}
-      <LiveWork trackId={trackId} running={isRunning} />
-      <RunCost trackId={trackId} promised={promised} />
     </div>
   );
 }

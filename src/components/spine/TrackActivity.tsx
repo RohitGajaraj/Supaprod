@@ -57,7 +57,7 @@ import { useQueries, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 
-import { getTrackActivity, getTrackChain } from "@/lib/spine/track.functions";
+import { getTrackActivity, getTrackChain, getTrackToolCalls } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
 import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/handed-over";
 import { carriedByMission, oncePerId } from "@/components/spine/what-a-mission-carries";
@@ -83,7 +83,13 @@ import {
 } from "@/components/meridian/run-rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { useElapsed } from "@/components/meridian/use-elapsed";
-import { Reading, ReadFailedLine, RecordSpeaks } from "@/components/meridian/surface-parts";
+import {
+  Chevron,
+  Reading,
+  ReadFailedLine,
+  RecordSpeaks,
+} from "@/components/meridian/surface-parts";
+import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream";
 import { enterMotion } from "@/components/spine/enter-motion";
 import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 
@@ -306,6 +312,78 @@ export function rollupOf(t: Turn, titles: TitleBook): React.ReactNode[] {
   return [took, tokens, ...made];
 }
 
+/**
+ * ── WHAT THIS SEAT ACTUALLY CALLED, UNDER THE SEAT THAT CALLED IT ─────────
+ *
+ * THE DEFECT THIS CLOSES. `tool_calls` reached the run screen in its own boxed
+ * region in the OTHER pane (`LiveWork`), headed "What the agents are calling",
+ * listing every call on the whole track in one flat stream. So the surface could
+ * say what the run called and could not say what THIS TURN called, which is the
+ * only version of the question a person watching a handoff is asking: the
+ * transcript said "Draft is working" for two minutes and the evidence of what
+ * Draft was doing sat in a different column with somebody else's calls mixed
+ * into it.
+ *
+ * ── THE REFERENCE, NAMED BEFORE BUILDING ──────────────────────────────────
+ * Devin (Mobbin, pulled 2026-09-02) closes a turn with *"Worked for 11s"* and
+ * opens it into the thought, test and stop rows underneath. Claude Code's
+ * Ctrl+O is the same gesture. What is borrowed is the DISCLOSURE, and it is
+ * deliberately the one thing `RunRollup`'s own header refuses -- correctly, for
+ * the figures, which are the fact the surface exists to show. Calls are the
+ * opposite kind of thing: a Build turn makes tens of them, and printed open they
+ * would bury the handoff that is the product's whole claim. So the count is
+ * always visible and the list is a press away.
+ *
+ * ── COLLAPSED IS NOT HIDDEN ───────────────────────────────────────────────
+ * The line states the count and, when any call failed, states that too, because
+ * a failure a person has to open a disclosure to discover is a failure the
+ * surface did not report. The chevron only ever hides rows that agree with the
+ * summary above them.
+ */
+function SeatCalls({
+  calls,
+  working,
+  seat,
+}: {
+  calls: ToolStreamRow[];
+  working: boolean;
+  /** The seat's own name, so the expanded log says whose calls these are. */
+  seat: string;
+}) {
+  const [open, setOpen] = React.useState(false);
+  if (calls.length === 0) return null;
+  const failed = calls.filter((c) => c.state === "failed").length;
+
+  return (
+    <span className="mt-1 block">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="mrd-focus-inset flex items-center gap-1.5 rounded-mrd-chip text-mrd-data text-mrd-mute transition-colors duration-100 hover:text-mrd-ink"
+      >
+        <Chevron open={open} />
+        <span className="tabular-nums">
+          {`${calls.length} ${calls.length === 1 ? "tool call" : "tool calls"}`}
+        </span>
+        {/* SAID ON THE CLOSED LINE. A failure behind a disclosure is a failure
+            the surface did not report. */}
+        {failed > 0 ? <span className="text-mrd-fail">{`${failed} failed`}</span> : null}
+      </button>
+      {open ? (
+        <span className="mt-mrd-2 block">
+          <ToolStream
+            rows={calls}
+            working={working}
+            label={`What ${seat} called`}
+            maxHeight={220}
+          />
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 export function TrackActivity({
   trackId,
   isRunning = false,
@@ -351,6 +429,81 @@ export function TrackActivity({
   React.useEffect(() => {
     onLiveChange?.(live);
   }, [live, onLiveChange]);
+
+  /*
+   * ── THE CALLS, ON THE SAME CACHE ENTRY AND THE SAME BEAT ─────────────────
+   *
+   * `["track-tool-calls", trackId]` is the key `useCurrentTool` already holds
+   * for the character at the top of this pane, so react-query serves both from
+   * one request. Two keys would be two freshnesses of one fact, which is the
+   * drift this file's neighbours have been repaired for twice: the character
+   * announcing a tool the transcript below it has not shown yet.
+   *
+   * 500ms while a seat is running and ten seconds otherwise, which is this
+   * component's own cadence above, for the same reason: a third speed on one
+   * screen makes two panes disagree about whether something just happened.
+   */
+  const fetchCalls = useServerFn(getTrackToolCalls);
+  const callsQ = useQuery({
+    queryKey: ["track-tool-calls", trackId],
+    queryFn: () => fetchCalls({ data: { trackId } }),
+    refetchInterval: live ? 500 : 10_000,
+  });
+
+  /*
+   * CALLS BY THE TURN THAT MADE THEM. A call whose `runId` is null belongs to no
+   * turn this transcript is drawing -- its trace matches no run on this track --
+   * so it hangs under nobody rather than being attributed to the nearest seat.
+   * It still counts in the coverage line below, because it happened.
+   */
+  const callsBySeat = React.useMemo(() => {
+    const byRun = new Map<string, ToolStreamRow[]>();
+    for (const c of callsQ.data?.calls ?? []) {
+      if (!c.runId) continue;
+      const row: ToolStreamRow = {
+        id: c.id,
+        tool: c.tool,
+        at: Date.parse(c.at),
+        state: c.ok ? "done" : "failed",
+        /* `> 0` rather than `>= 0`: the loop measures with `Date.now() - t0`, so
+           a zero is "inside the clock's resolution" and not a call that took no
+           time. `ToolStream` makes the same refusal on the same column. */
+        durationMs: c.latencyMs > 0 ? c.latencyMs : undefined,
+        error: c.error ?? undefined,
+      };
+      const list = byRun.get(c.runId);
+      if (list) list.push(row);
+      else byRun.set(c.runId, [row]);
+    }
+    return byRun;
+  }, [callsQ.data]);
+
+  /*
+   * HOW MUCH OF THE WALK THE RECORD CAN SEE, and only when that is short of all
+   * of it. `LiveWork` carried this sentence and is no longer mounted; the fact
+   * it protects is the one that keeps this pane honest about its own history.
+   * A track opened before `agent_runs.trace_id` landed (2026-08-26, F-93) and
+   * driven since is one turn the record can see and twenty-five it cannot, and
+   * a transcript drawing "0 tool calls" under those turns would tell a person
+   * their agents sat idle, which is the opposite of true. Silent when the record
+   * covers every turn: "26 of 26" on every complete run distinguishes nothing.
+   */
+  const coverageLine = React.useMemo(() => {
+    const d = callsQ.data;
+    if (!d) return null;
+    if (d.runs === 0) return null;
+    if (d.tracedRuns === 0) {
+      return "This run is older than the record of what agents call, so what its turns did was not written down. Newer turns show every call under the seat that made it.";
+    }
+    const unseen = d.runs - d.tracedRuns;
+    if (unseen <= 0) return null;
+    return (
+      `${d.tracedRuns} of ${d.runs} turns on this run wrote down what they called. ` +
+      (unseen === 1
+        ? "The other one is older than that record, so what it did is not here."
+        : `The other ${unseen} are older than that record, so what they did is not here.`)
+    );
+  }, [callsQ.data]);
 
   /*
    * WHO is in flight, for the presence slot. Same source and same rule as
@@ -674,6 +827,10 @@ export function TrackActivity({
   return (
     <>
       {ranLine ? <p className="mrd-meta">{ranLine}</p> : null}
+      {/* OUTSIDE the log, for the same reason `ranLine` is: it is a standing
+          summary of the whole column rather than an entry, and inside it a
+          screen reader would hear it re-announced on every poll. */}
+      {coverageLine ? <p className="mrd-meta">{coverageLine}</p> : null}
       {/*
        * THE TRANSCRIPT IS A LOG, and that is a role rather than a decoration.
        * This file polls every ten seconds, so without it every arrival was silent
@@ -953,6 +1110,21 @@ export function TrackActivity({
                       <Reveal lines={3}>{said}</Reveal>
                     </RunNote>
                   ) : null}
+
+                  {/*
+                   * THE EVIDENCE, LAST AND COLLAPSED. The entry above it is the
+                   * narrative -- who acted, what they handed on, what it cost,
+                   * why it stopped, what they said -- and the calls are what
+                   * that account is checkable against, which is the order
+                   * Cursor's completion screen uses and the order a reader asks
+                   * in. It is the last thing in the entry so a turn with forty
+                   * calls does not push the next seat off the screen.
+                   */}
+                  <SeatCalls
+                    calls={callsBySeat.get(t.runId) ?? []}
+                    working={t.outcome === "working"}
+                    seat={t.agentName}
+                  />
                 </span>
               </li>
             );
