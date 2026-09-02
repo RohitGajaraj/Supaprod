@@ -1253,7 +1253,7 @@ The founder's first sight of his own workspace must not be a wall of a robot's t
 
 ---
 
-### P-15 · The sad path on Start and Run · Lane: **A3** · Status: READY (P-01, P-05 DONE) · Moves: 2, 5
+### P-15 · The sad path on Start and Run · Lane: **A3** · Status: CLAIMED (A3, 00:58 IST) · Moves: 2, 5
 
 **Scope.** Every empty, loading, failed, held and permission-denied state on `/start` and
 `/track/:id` says what happened and what to do next, in the canon's register, with no internal id.
