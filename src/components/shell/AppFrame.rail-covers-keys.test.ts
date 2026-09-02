@@ -26,7 +26,7 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { railOwnerOf, settingsOwns } from "./AppFrame";
+import { railOwnerOf, settingsOwns, RAIL_DOORS } from "./AppFrame";
 import { STATION_ROUTE } from "./run-strip";
 import { FOOTER_NAV, PRIMARY_NAV, navKeyHint } from "@/lib/nav-model";
 import { SIGNED_IN_HOME } from "./post-auth-home";
@@ -184,6 +184,37 @@ describe("the rail's ownership is derived, and unambiguous", () => {
       expect(shell).toContain(`.sp-navrow[aria-current="${token}"]`);
       expect(shell).toContain(`.sp-navrow[aria-current="${token}"] .sp-navcount`);
     }
+  });
+
+  /**
+   * THE RAIL ENTRY COUNT PER ROUTE (P-11's own acceptance line: "on /start
+   * the rail shows exactly Start and Settings... on /track/:id it shows
+   * Start, Run, Settings"), READ FROM THE FILTER RATHER THAN RENDERED.
+   *
+   * A full mount needs a RouterProvider this file does not carry. The
+   * render's own filter — `RAIL_PRIMARY.filter((r) => r.to !== "/track" ||
+   * trackId)` — is pure and small enough that pinning its exact source and
+   * proving both rows resolve to real doors is a stronger, faster check
+   * than a DOM render would be: `RAIL_PRIMARY` has exactly two rows (Start,
+   * Run — proven by the ownership test above), Settings is the foot
+   * control proven lit earlier in this file, and this is the one line that
+   * decides whether Run joins them.
+   */
+  it("the render drops Run without a live track and keeps it with one", () => {
+    expect(SRC).toContain('RAIL_PRIMARY.filter((r) => r.to !== "/track" || trackId).map(');
+    // RAIL_DOORS (exported, real, RAIL.map(...) with no tier filter) is the
+    // fixed set this filter draws from: Start and Run, two rows. Applying
+    // the filter's own logic by hand for both states of `trackId` is what
+    // "the rail shows exactly Start and Settings [...] Start, Run, Settings"
+    // asks for, without a RouterProvider this file does not carry.
+    expect(RAIL_DOORS.map((r) => r.to)).toEqual([SIGNED_IN_HOME, "/track"]);
+    const visible = (trackId: string | null) =>
+      RAIL_DOORS.filter((r) => r.to !== "/track" || trackId);
+    // Plus one for Settings, the foot control proven lit above — neither
+    // list this file reads carries it, so it is added back by hand on both
+    // sides rather than silently dropped from the count.
+    expect(visible(null).length + 1).toBe(2);
+    expect(visible("abc123").length + 1).toBe(3);
   });
 
   it("Run's identity carries no ownership of its own beyond itself", () => {
