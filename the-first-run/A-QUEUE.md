@@ -2531,7 +2531,7 @@ from P-25 unchanged. Also add `aria-activedescendant` on the input (P-25 follow-
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: REJECTED (A1, 03:00 IST, live walk) · one fix, then DONE · Moves: 3
+### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: Fix pushed (A3, 2026-09-03), awaiting A1 spot-check · Moves: 3
 
 **Scope.** `tracks-feed.ts` becomes the one read model for a track's one-line state, used by
 `YourRuns` (P-05), the shell top bar ("3 runs are moving"), and the strip's produced-sentence
@@ -2639,6 +2639,46 @@ publish.
    what-it-produced.ts` -> `src/components/track/what-it-produced.ts`. Not fixed in this Report's
    own packet text since the queue's own convention has A1 review before a packet's scope text
    changes; flagging rather than silently editing the record of what was asked.
+
+**Fix (A3, 2026-09-03).** Commit `47ae5408c`, pushed. The mission-status branch (`running`, which
+`liveLead` reads BEFORE the `movingRuns` fallback P-18 already fixed) trusted `missions.status`
+alone, and that column can go stale independently of the work it names -- exactly A1's reproduction:
+`08-31`'s `status='running'` survived while the track's only builder run moved to `waiting_approval`
+on its own gate.
+
+New `src/components/shell/genuinely-working.ts`, pure: `genuinelyWorkingMissions(candidates,
+movingTrackIds)` keeps a `WORKING.has(status)` candidate only when its own `trackId` also appears in
+`moving` (the real `agent_runs.status IN ('running','queued','in_progress')` read `listMovingTracks`
+already provides) -- never the stored status alone. A mission with no track at all is excluded too,
+per R-35: every new mission is created by a run, so a trackless "running" claim is exactly the stale
+kind this refuses. `AppFrame.tsx`'s `running` now calls it instead of filtering on status alone.
+
+**Not a render test, and here is why.** This file's own precedent (`rail-presence.ts`'s
+`deriveRailPresence`) already pulls a precedence rule like this one into its own pure module and
+tests it directly rather than rendering `AppFrame.tsx`, which needs a router, a query client and a
+workspace provider to mount at all -- no test anywhere in this codebase renders it, confirmed by
+grep. `genuinely-working.test.ts` (4 tests) pins the exact reproduction directly: a `running`-status
+mission whose track is NOT in an empty moving set counts as none; one whose track IS in the moving
+set still counts; a trackless mission never counts; and a mixed list keeps only the genuinely-moving
+one. `tsc` 0. `bun test`: junit 0 failures / 0 errors across 13,879 tests. With `listMovingTracks`
+empty, the header now falls through to the same `movingRuns`-based branch P-18 already built (Needs-
+you count if any, else "Nothing running") -- the fallthrough this fix restores rather than a new
+branch, since that sentence was already correct once `running` stopped lying.
+
+**The read-only find, before touching `/runs` (P-14).** "Investigate the stale decision..." is the
+literal string, and R-35 already named the mechanism (self-answered from the ruling before I finished
+tracing it, confirmed rather than re-derived): `trigger-tick` (`supabase/migrations/
+20260625000000_ambient_cron_schedules.sql`, `*/15 * * * *`, hits `/api/public/hooks/trigger-tick.ts`)
+calls `evaluateTriggers` (`src/lib/sensing/trigger.ts:356`), whose cluster branch builds
+`autoTitle('Investigate the "${name}" cluster')` from a theme's own title. Queried the live database
+directly (workspace `0b792d52-82e2-43e2-adc5-8a26e5c800b4`): the theme's name has read "Stale Decision
+Re-evaluations and Feedback Loops" / "Stale Strategic Decisions & Outcome Tracking Gaps" / "Stale
+Strategic Decisions & Feedback Loops" across renamings since at least 2026-08-26, and one mission
+fires every 15 minutes on the dot (`created_at` 14:15:03, 14:30:06, 14:45:01, 15:00:04 on 2026-09-02).
+The cluster keeps re-triggering because nothing that runs on it resolves the underlying signals, so
+its novelty gate never closes it out -- a mission is proposed, sits or completes, and the same theme
+clears the threshold again next tick. This is the generator R-35 already ruled to stop; naming it
+precisely is this Report's job, stopping it is A1's per that ruling.
 
 **A1 verdict:**
 
