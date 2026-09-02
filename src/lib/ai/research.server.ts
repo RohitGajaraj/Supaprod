@@ -324,7 +324,7 @@ async function gatherInternal(
     snapshots.push({
       kind: "mission",
       title: "Active missions",
-      href: "/missions",
+      href: "/build",
       lines: missions.map((m) => `- ${m.title} (${m.status})`),
     });
   }

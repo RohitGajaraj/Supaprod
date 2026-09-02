@@ -235,8 +235,8 @@ const ROUTES: Partial<
   // /brain?tab=calendar&meeting=, `calendar` resolves to the decisions tab, and
   // nothing there reads `?meeting=`. Zero live rows of this kind, so it has
   // never rendered. See the sweep note above.
-  meeting: (id) => ({ to: "/meetings/$id", params: { id } }),
-  roadmap_item: () => ({ to: "/roadmap" }),
+  meeting: (id) => ({ to: "/brain", search: { tab: "calendar", meeting: id } }),
+  roadmap_item: () => ({ to: "/plan", search: { view: "roadmap" } }),
   // Lands on the record itself, and it is the only kind here that gets there
   // through a SEARCH param instead of a route param: /brain's validateSearch
   // keeps `decision`, and its decisions tab renders DecisionDetail for that id.

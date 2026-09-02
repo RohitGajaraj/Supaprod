@@ -187,7 +187,7 @@ export const getNotifications = createServerFn({ method: "GET" })
           severity: d.severity === "critical" ? "warning" : "info",
           title: `Drift detected: ${metric}`,
           detail: `${sign}${delta.toFixed(0)}% vs baseline on ${surface} · ${model}.`,
-          href: "/drift",
+          href: "/engine-room?room=quality&view=drift",
           created_at: (d.detected_at as string | null) ?? null,
         });
       }

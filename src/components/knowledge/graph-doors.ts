@@ -93,7 +93,7 @@ const DOORS: Record<string, (id: string) => NodeDoor> = {
     to: "/discover",
     search: { tab: "queue" },
   }),
-  task: () => ({ label: "Open the tasks", tier: "list", to: "/tasks" }),
+  task: () => ({ label: "Open the tasks", tier: "list", to: "/start" }),
   deployment: () => ({ label: "Open what shipped", tier: "list", to: "/ship" }),
   prototype: () => ({ label: "Open Design", tier: "list", to: "/design" }),
   /** Design memory is settled brand direction, and it lives in Settings. */
