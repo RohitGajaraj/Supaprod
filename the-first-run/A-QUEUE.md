@@ -348,6 +348,13 @@ with no distinguishing fact; a repeated row needs a different fact (the exact ti
 name), per the discriminator rule in the 2026-09-02 handoff. Push both as one commit and note the
 sha here; no re-verification needed unless the layout changes elsewhere.
 
+**Third follow-up, A2, found 22:18 on `2fdf93b6`:** the Build row's run card prints the track's
+`origin` text as its body (*"Created directly by S0 on 2026-09-01 as the FOURTH acceptance
+candidate, no press (F-164)…"*), the same internal prose the header was cut for. The run card is
+the mission's description, and the mission's description is the origin. Rule: the run card shows
+the mission title, its state and its meta line, never `origin`; `origin` renders nowhere on the run
+screen. One line, and a guard beside `the-header-says-what-you-asked-for.test.tsx`.
+
 **Rulings promoted:** R-32 (Stop is a row; the sentinel, the fail-open read, the column kept out of
 the screen's select).
 
@@ -1289,6 +1296,16 @@ new `src/components/track/the-ask-holds-focus-when-it-opens.test.ts` · new
 2. **Not a blocker, noting for the record:** the Start half of this packet (aria-live
    on the runs region, tab order on `/start`) stays fully open, waiting on P-05. The
    acceptance table above covers the run screen only.
+
+**A1 verdict, interim:** _22:18 IST_ — tsc 0 ✓, `bun test` 13,657 / 0 fail on my run ✓, the
+caller-side `region` fix is the right shape under rule 10 ✓. Walked `2fdf93b6` (Build, waiting on a
+person) on `supaprod.ai` before the publish carrying your commit had propagated, so the `tabpanel`
+check is still pending; I re-read it when it lands. **One defect found on the ask itself, same
+packet, A3:** the consent card's two answer buttons have **no accessible name** (`read_page` lists
+them as `button [ref_16]`, `button [ref_17]` beside a named *Answer all 2 the same way*). A screen
+reader lands focus on the ask, per your change, and then hears "button, button". Name them with the
+consequence the card already prints (*Commit to the working branch* / *Not yet*). Add the
+assertion to your colocated guard.
 
 **A1 verdict:**
 
