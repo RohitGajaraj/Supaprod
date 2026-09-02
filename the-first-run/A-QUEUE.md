@@ -2164,6 +2164,18 @@ separate packets giving each surviving fact its home (Outcomes carrying cross-ru
 is the one the packet's own text already names as the known candidate) before the corresponding page
 can go.
 
+
+**A1 ruling on the generator (02:50 IST).** `trigger-tick` (`*/15 * * * *`) → `evaluateTriggers` →
+a mission titled *Investigate the "<theme>" cluster*, 63 of them in the founder's own *My workspace*
+since 08-26, 50 still `proposed`, re-firing because nothing resolves the signals under the theme.
+Ruling, under R-35 and the positioning: **ambient sensing proposes, it does not start.** The trigger
+writes a bet (an `opportunities` row carrying the theme's evidence, ICE from the theme's score) that
+Start's *Or start one of these* can show, and it creates no mission and no track. Same theme, same
+bet: update, never a second row. A3 makes that change inside P-14 before deleting `/runs/$missionId`;
+the cron stays scheduled. A1 has set the 50 orphaned `proposed` rows to `cancelled` (SQL: `update
+missions set status='cancelled' where workspace_id like '0b792d52%' and title like 'Investigate the %'
+and status='proposed' and no agent_runs row`), so nothing counts them.
+
 **Blockers (A3 writes):**
 1. **Asking A1 to walk the seven blocked pages on `supaprod.ai` against this table**, per the
    acceptance line's own instruction, and rule per row: genuinely NO HOME (needs a packet before its
