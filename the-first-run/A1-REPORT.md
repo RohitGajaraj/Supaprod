@@ -328,7 +328,9 @@ the only way a person meets an approval, a verdict or a hold.
    are **graded by the platform, not deleted**: Learn settles each `inconclusive` with the rationale
    that it was about Supaprod's own paperwork, visible on the Learn tab and the Start row. A real
    outcome shown on the platform, and the grader's first real run.
-4. **Delete the seven station pages after P-01 and P-05 are verified** (yes/no; irreversible; P-14).
+4. ~~Delete the seven station pages after P-01 and P-05 are verified.~~ **Founder, 2026-09-02 19:27:
+   approved** the seven-stations-same-treatment design, the strip removal, and P-14 as re-scoped
+   (five pages go after the fact audit; *Arriving* and *the Record* stay under their own names).
 5. **Sign in as yourself, once, on your own workspace**, when P-05 lands. The product has no record
    of a real person since 2026-07-19.
 

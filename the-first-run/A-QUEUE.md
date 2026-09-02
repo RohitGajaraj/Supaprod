@@ -585,7 +585,7 @@ Engine Room's other 22 tabs are not moved; they stay at `/engine-room` until P-1
 
 ---
 
-### P-14 · Delete five station pages and the mission run screen; keep Arriving and the Record · Lane: **A3** · Status: BLOCKED → P-01, P-05 verified, founder item 4 · Moves: 4
+### P-14 · Delete five station pages and the mission run screen; keep Arriving and the Record · Lane: **A3** · Status: BLOCKED → P-01, P-05 verified (founder approved 2026-09-02 19:27) · Moves: 4
 
 **Ruled by A1 after the founder's question of 2026-09-02 19:12.** Two workspace-wide views are
 needed and are not stations: **Arriving** (what came in, from where, what is forming, what has not
