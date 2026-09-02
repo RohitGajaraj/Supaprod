@@ -45,24 +45,22 @@ describe("palette-catalog", () => {
 describe("palette-sections", () => {
   it("JUMP_DESTINATIONS has one entry per primary destination (derived from PRIMARY_NAV)", () => {
     expect(JUMP_DESTINATIONS.length).toBe(PRIMARY_NAV.length);
-    // Ten lifecycle destinations plus the two operations doors, Runs and Crew,
-    // which joined PRIMARY_NAV on 2026-08-05 so the keyboard could reach the
-    // rail rows the shell was already drawing.
-    // 15 since 2026-08-25: Work (/start) joined PRIMARY_NAV.
-    expect(JUMP_DESTINATIONS.length).toBe(15);
+    // Three since P-11 (A-QUEUE.md, 2026-09-02): Start, Run, Settings.
+    expect(JUMP_DESTINATIONS.length).toBe(3);
   });
 
   it("every JUMP destination's run.to is a canonical path or a keyed rail door", () => {
-    // CANONICAL_PATHS is the legacy-redirect canon (the ten paths a dead URL
-    // may land on), pinned at ten by legacy-redirects.test.ts. /runs and /crew
-    // are rail doors, never redirect targets, so they are named here rather
-    // than smuggled into that list.
-    // /start joined 2026-08-25: the Work rail door, same standing as the two.
-    const OPERATIONS_DOORS = ["/runs", "/crew", "/start"];
+    // CANONICAL_PATHS is the legacy-redirect canon (paths a dead URL may land
+    // on) and DOOR_INTERNAL_PATHS is reached-from-a-door-but-not-itself-one
+    // (legacy-redirects.ts's own two lists). Neither was ever meant to cover
+    // a rail door's own identity, so Start and Run are named here instead —
+    // Settings is already a DOOR_INTERNAL_PATH.
+    const RAIL_DOORS = ["/start", "/track"];
     for (const dest of JUMP_DESTINATIONS) {
       const known =
         (CANONICAL_PATHS as readonly string[]).includes(dest.run.to) ||
-        OPERATIONS_DOORS.includes(dest.run.to);
+        (DOOR_INTERNAL_PATHS as readonly string[]).includes(dest.run.to) ||
+        RAIL_DOORS.includes(dest.run.to);
       expect(known).toBe(true);
     }
   });

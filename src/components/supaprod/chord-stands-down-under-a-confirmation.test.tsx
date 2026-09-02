@@ -33,6 +33,12 @@ const routerActual = await import("@tanstack/react-router");
 mock.module("@tanstack/react-router", () => ({
   ...routerActual,
   useNavigate: () => navigateSpy,
+  // GotoShortcuts reads the live pathname to resolve Run's identity to a real
+  // track id (see the component's own comment); the real hook needs a
+  // RouterProvider this bare render never mounts, so it is stubbed like
+  // useNavigate above. No test here presses Run's key, so the value is never
+  // read for more than its presence.
+  useRouterState: () => "/start",
 }));
 
 const { GotoShortcuts } = await import("./GotoShortcuts");
@@ -82,12 +88,12 @@ describe("a chord under an open overlay never moves the router", () => {
    * passes if the chord is broken outright, so without this one a typo that
    * disabled navigation entirely would read as four green refusals.
    */
-  test("with nothing open, `g` then `d` goes to Discover", () => {
+  test("with nothing open, `g` then `t` goes to Start", () => {
     render(<GotoShortcuts />);
     press("g");
     expect(chordAttr()).toBe("armed");
-    press("d");
-    expect(navigatedTo()).toBe("/discover");
+    press("t");
+    expect(navigatedTo()).toBe("/start");
     expect(chordAttr()).toBe(null);
   });
 
@@ -96,7 +102,7 @@ describe("a chord under an open overlay never moves the router", () => {
     // Exactly what ConfirmProvider's AlertDialogContent renders while open.
     openOverlay({ role: "alertdialog", "data-state": "open", "aria-modal": "true" });
     press("g");
-    press("d");
+    press("t");
     expect(navigatedTo()).toBe("");
     // And the keycaps never lit, so nothing under the scrim invited the press.
     expect(chordAttr()).toBe(null);
@@ -110,7 +116,7 @@ describe("a chord under an open overlay never moves the router", () => {
     // landing in that window looks to a person exactly like the bug above.
     openOverlay({ role: "alertdialog", "data-state": "closed", "aria-modal": "true" });
     press("g");
-    press("d");
+    press("t");
     expect(navigatedTo()).toBe("");
   });
 
@@ -118,7 +124,7 @@ describe("a chord under an open overlay never moves the router", () => {
     render(<GotoShortcuts />);
     openOverlay({ role: "alertdialog", "data-state": "open" });
     press("g");
-    press("d");
+    press("t");
     expect(navigatedTo()).toBe("");
   });
 
@@ -126,7 +132,7 @@ describe("a chord under an open overlay never moves the router", () => {
     render(<GotoShortcuts />);
     openOverlay({ role: "dialog", "data-state": "open", "aria-modal": "true" });
     press("g");
-    press("d");
+    press("t");
     expect(navigatedTo()).toBe("");
   });
 
@@ -145,7 +151,7 @@ describe("a chord under an open overlay never moves the router", () => {
     expect(chordAttr()).toBe("armed");
 
     openOverlay({ role: "alertdialog", "data-state": "open", "aria-modal": "true" });
-    press("d");
+    press("t");
 
     expect(navigatedTo()).toBe("");
     expect(chordAttr()).toBe(null);
@@ -174,8 +180,8 @@ describe("a pane you consult beside the work keeps the keyboard alive", () => {
     render(<GotoShortcuts />);
     openOverlay({ role: "complementary", "aria-label": "Lineage" });
     press("g");
-    press("d");
-    expect(navigatedTo()).toBe("/discover");
+    press("t");
+    expect(navigatedTo()).toBe("/start");
   });
 });
 

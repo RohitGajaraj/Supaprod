@@ -111,11 +111,18 @@ const BANNED = [
 describe("the rail speaks plain words", () => {
   it("finds the rail's labels at all, so a silent parse failure cannot pass", () => {
     const labels = railLabels();
-    expect(labels.length).toBeGreaterThan(2);
-    expect(labels).toContain("Home");
+    expect(labels.length).toBeGreaterThan(0);
+    expect(labels).toContain("Start");
   });
 
-  it("carries no word §12's rename map retired, except the one door awaiting a ruling", () => {
+  it("carries no word §12's rename map retired — P-11 cut the exception along with its door", () => {
+    /*
+     * THREADS LEFT THE RAIL ENTIRELY IN P-11 (A-QUEUE.md, 2026-09-02), not
+     * merely awaiting the SURFACE-MAP deletion this test used to wait on. The
+     * allowlist below existed so a legitimate exception could not rot past
+     * its ruling; the honest update, now that the door itself is gone, is an
+     * empty allowlist rather than one that still names a label nothing draws.
+     */
     const offenders: string[] = [];
     for (const label of railLabels()) {
       for (const word of RETIRED) {
@@ -124,28 +131,7 @@ describe("the rail speaks plain words", () => {
         if (new RegExp(`\\b${word}\\b`, "i").test(label)) offenders.push(`${label} (${word})`);
       }
     }
-    /*
-     * THREADS IS THE ONE EXCEPTION AND IT IS NOT MINE TO CLEAR. `SURFACE-MAP`
-     * marks the route **DELETE** — *"a collaboration surface, killed by
-     * R-04"* — so renaming it would put a plain word on a door that is going
-     * away, and S0 rules deletions. My caller walk is filed and awaiting that
-     * ruling. Renaming it would also cost the deletion its own evidence.
-     */
-    expect(offenders).toEqual(["Threads (Threads)"]);
-  });
-
-  it("COUPLES that exception to the map, so it cannot outlive the ruling", () => {
-    /*
-     * An allowlist that only lists is an allowlist that rots. This asserts the
-     * exception is legitimate **if and only if** `SURFACE-MAP` still marks the
-     * route DELETE. The day S0 rules and the row changes, this test fails and
-     * whoever lands the change has to come back and remove the exception — the
-     * same shape S3 used to couple a caveat to the handler that made it true.
-     */
-    const map = readFileSync("the-first-run/SURFACE-MAP.md", "utf8");
-    const row = map.split("\n").find((l) => l.includes("_authenticated.threads.tsx"));
-    expect(row).toBeDefined();
-    expect(row).toContain("DELETE");
+    expect(offenders).toEqual([]);
   });
 
   it("carries no word the positioning canon bans outright", () => {
@@ -160,12 +146,6 @@ describe("the rail speaks plain words", () => {
      * "This is not an enterprise-grade naming ceremony. It has to be one single
      * verb... Don't put the sentence as the name of the shell."
      *
-     * I had applied §12's rename map here literally and produced "Waiting for
-     * you", "What we've learned" and "What it's allowed to do" - three captions
-     * where three doors belong. **§12 was not wrong; my reading of it was.** The
-     * map gives the plain words a SURFACE uses in a sentence, and a rail door is
-     * not a sentence slot.
-     *
      * This is the rule stated so it cannot drift back. A door is a noun or a
      * verb, and it is one word.
      */
@@ -174,26 +154,18 @@ describe("the rail speaks plain words", () => {
     }
   });
 
-  it("still has all five doors, so one-word cannot be met by deleting one", () => {
-    /* The failure mode of the rule above is satisfying it with a shorter rail.
-       §12 replaces words; it does not remove destinations, and the pages behind
-       these are S1's and S3's and still reachable. */
-    const labels = railLabels();
-    expect(labels).toHaveLength(5);
+  it("still has both doors, so one-word cannot be met by deleting one", () => {
     /*
-     * ── THE FOUNDER RULED TWICE ON THIS RAIL AND BOTH ARE HERE ───────────
-     * First: one word per door, not a sentence. Second, an hour later: the one
-     * words I chose - Work, Review, Learnings, Permissions - "are still not so
-     * aptly named... keep it more relatable to the user."
-     *
-     * So the test pins the CURRENT words as well as the rule, because the rule
-     * alone ("one word") was satisfied by four words a stranger could not
-     * predict a page from. Both constraints are real and only the pair is
-     * enough.
+     * P-11 (A-QUEUE.md, 2026-09-02) DID legitimately cut the rail — five doors
+     * down to two, Start and the conditional Run — by explicit founder brief,
+     * which is a different thing from satisfying the one-word rule by
+     * quietly shrinking the rail on the side. This pins the two words the
+     * ruling actually chose, so a future edit cannot make either vanish and
+     * call it compliance.
      */
-    expect(labels).toContain("Home");
-    expect(labels).toContain("Approvals");
-    expect(labels).toContain("Insights");
-    expect(labels).toContain("Policies");
+    const labels = railLabels();
+    expect(labels).toHaveLength(2);
+    expect(labels).toContain("Start");
+    expect(labels).toContain("Run");
   });
 });

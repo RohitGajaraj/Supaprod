@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { STATION_DOORS, RAIL_DOORS } from "./AppFrame";
-import { NAV_CHORD_PREFIX, PRIMARY_NAV, navKeyHint } from "@/lib/nav-model";
+import { NAV_CHORD_PREFIX, PRIMARY_NAV } from "@/lib/nav-model";
 import { AGENT_STATION_ORDER } from "@/lib/agent-vocabulary";
 
 /**
@@ -40,20 +40,35 @@ const CSS = readFileSync(join(import.meta.dir, "..", "..", "styles", "shell.css"
 const PALETTE = readFileSync(join(import.meta.dir, "..", "supaprod", "GotoShortcuts.tsx"), "utf8");
 
 describe("every station draws the key that opens it", () => {
-  it("resolves a key for all seven, not six", () => {
+  /*
+   * P-11 (A-QUEUE.md, 2026-09-02) CUT THE SEVEN LOOP STATIONS FROM
+   * PRIMARY_NAV, AND THAT IS NOT A REGRESSION OF THIS FILE'S OWN INVARIANT.
+   *
+   * R-01 and F-146 already retired stations as navigation before P-11 ever
+   * touched this file: `use-spine-strip.ts`'s "nav" publisher deliberately
+   * stopped supplying `onSelect` ("NO onSelect, AND THAT IS THE WHOLE
+   * CHANGE"), and the render's own `asTab || !interactive` gate (AppFrame.tsx,
+   * a few hundred lines below the rail this test does not touch) was ALREADY
+   * forcing every live station chip's keycap to "" before this packet — a
+   * live station chip has drawn no key since F-146, on either strip mode.
+   * `doorKey` now agreeing with what every render call site already showed
+   * is the derivation catching up to the doctrine, not a capability lost.
+   */
+  it("resolves no key for any of the seven, matching what the strip already drew", () => {
     expect(STATION_DOORS.length).toBe(AGENT_STATION_ORDER.length);
-    const keyless = STATION_DOORS.filter((d) => d.key === "");
-    expect(keyless).toEqual([]);
+    const keyed = STATION_DOORS.filter((d) => d.key !== "");
+    expect(keyed).toEqual([]);
   });
 
-  it("draws the SAME key GotoShortcuts binds, never a hand-copied one", () => {
-    // The DERIVATION LAW (nav-model.ts). Station -> route -> PRIMARY_NAV row ->
-    // navKeyHint, which is the identical path the chord handler walks in
-    // reverse. If these two ever disagree the keycap is a lie.
+  it("finds no PRIMARY_NAV row for a station, because a station is not a door", () => {
+    // The DERIVATION LAW (nav-model.ts) still holds: station -> route ->
+    // PRIMARY_NAV row -> navKeyHint is the same path GotoShortcuts walks in
+    // reverse, and it correctly finds nothing for a route the rail does not
+    // own — a keycap can only be honest about a control that exists.
     for (const door of STATION_DOORS) {
       const row = PRIMARY_NAV.find((n) => n.to === door.to);
-      expect({ to: door.to, found: Boolean(row) }).toEqual({ to: door.to, found: true });
-      expect(door.key).toBe(navKeyHint(row!));
+      expect({ to: door.to, found: Boolean(row) }).toEqual({ to: door.to, found: false });
+      expect(door.key).toBe("");
     }
   });
 

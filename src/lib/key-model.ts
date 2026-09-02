@@ -80,10 +80,15 @@ export type SurfaceKeys = {
  */
 export const SURFACE_KEYS: readonly SurfaceKeys[] = [
   {
-    path: "/today",
-    label: "Today",
+    // "/start", NOT "/today" (P-11, A-QUEUE.md, 2026-09-02). DecisionQueue
+    // moved onto the home page months before this rail rewrite; this entry
+    // never followed, so the sheet has been unable to show these keys on the
+    // page that actually renders them for as long as the fold has stood —
+    // the exact defect this whole file's header exists to end.
+    path: "/start",
+    label: "Start",
     /* THE COMPONENT, NOT THE ROUTE, and for the reason this whole file exists.
-       Today's decisions are drawn by `DecisionQueue`, which is also where the
+       These decisions are drawn by `DecisionQueue`, which is also where the
        listener lives, so the keycap and the binding it promises sit in one
        file where a reviewer sees both at once. Splitting them was how the
        product shipped a keycap for a key that fired nothing. /discover is

@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { OPEN_MODAL_SELECTOR } from "@/lib/overlay";
 import { PRIMARY_NAV, FOOTER_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
 
@@ -144,6 +144,13 @@ export { OPEN_MODAL_SELECTOR } from "@/lib/overlay";
 
 export function GotoShortcuts() {
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  /* A ref rather than a `[navigate, pathname]` dependency: the listener below
+   * is meant to mount once (see the header comment), and rebinding a window
+   * capture listener on every navigation is exactly the churn that comment
+   * argues against. The ref stays current without touching the effect. */
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
   useEffect(() => {
     let armedAt = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -250,7 +257,17 @@ export function GotoShortcuts() {
         const hint = navKeyHint(item);
         return hint !== "" && hint === key;
       });
-      if (target) navigate({ to: target.to, search: target.search as never });
+      if (!target) return;
+      /* Run's `to` is "/track", an identity (see nav-model.ts and the Run row
+       * in AppFrame.tsx's RAIL), never a route: the same rule that drops the
+       * rail row when nothing is live means the chord does nothing too,
+       * rather than sending a person to a page that cannot exist. */
+      if (target.to === "/track") {
+        const trackId = /^\/track\/([^/]+)/.exec(pathnameRef.current)?.[1];
+        if (trackId) navigate({ to: "/track/$trackId", params: { trackId } });
+        return;
+      }
+      navigate({ to: target.to, search: target.search as never });
     };
 
     window.addEventListener("keydown", onKey, true);

@@ -100,8 +100,8 @@ describe("the sheet cannot invent a door", () => {
     // /admin is keyless on purpose: the shell renders no admin control, so a
     // key there would go somewhere the rail cannot follow.
     expect(navChords().map((c) => c.to)).not.toContain("/admin");
-    // 16 since 2026-08-25: Work (/start, g w) joined the chords.
-    expect(navChords().length).toBe(16);
+    // 3 since P-11 (A-QUEUE.md, 2026-09-02): Start, Run, Settings.
+    expect(navChords().length).toBe(3);
   });
 });
 
@@ -151,7 +151,7 @@ describe("the surface lookup answers with the right one", () => {
    * converted so far to that pair, and it is the list that grows as the rest
    * are converted rather than a rule asserted over surfaces that have not been.
    */
-  const CONVERTED = ["/today", "/design", "/crew", "/discover", "/decide", "/approvals"];
+  const CONVERTED = ["/start", "/design", "/crew", "/discover", "/decide", "/approvals"];
   for (const path of CONVERTED) {
     it(`${path} accepts with a and declines with d`, () => {
       const keys = surfaceKeysFor(path)?.keys.map((k) => k.key) ?? [];

@@ -36,6 +36,16 @@ export function IconWork({ className }: IconProps) {
   );
 }
 
+/** Run: the one you are standing in. A ring around a live point. */
+export function IconRun({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <circle cx="12" cy="12" r="7" />
+      <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 /** Threads: two voices. A bubble and the reply beside it. */
 export function IconThreads({ className }: IconProps) {
   return (

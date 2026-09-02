@@ -28,19 +28,16 @@ describe("derivation law - palette JUMP mirrors PRIMARY_NAV exactly", () => {
 });
 
 describe("derivation law - the shortcut range", () => {
-  it("has fifteen destinations, each on one letter, and not a digit among them", () => {
+  it("has three destinations, each on one letter, and not a digit among them", () => {
     /**
-     * THE LAW INVERTED, founder ruling 2026-08-05.
-     *
-     * This test used to assert the opposite: that all ten digits were spent
-     * (Today 0, the loop 1-7, Brain 8, Engine 9) before letters took over. That
-     * scheme mixed the two alphabets, and a number beside a rail row could be
-     * the station's 01-07 identity, its shortcut, or a count. Now every door is
-     * `g` then a letter, so a digit on a row can only ever mean identity.
+     * THE LAW INVERTED, founder ruling 2026-08-05, STILL TRUE AT THREE DOORS
+     * (P-11, A-QUEUE.md, 2026-09-02): `g` then a letter, never a digit, so a
+     * number on a row can only ever mean identity.
      */
     const n = PRIMARY_NAV.length;
-    // Fifteen since 2026-08-25: Work (/start, g w) joined the home zone.
-    expect(n).toBe(15);
+    // Three since P-11: Start, Run, Settings. Everything else the rail once
+    // carried is reachable by URL only and correctly carries no chord.
+    expect(n).toBe(3);
     expect(PRIMARY_NAV[n]).toBeUndefined();
 
     const hints = PRIMARY_NAV.map((d) => navKeyHint(d));
@@ -52,13 +49,10 @@ describe("derivation law - the shortcut range", () => {
     expect(new Set(hints).size).toBe(n);
   });
 
-  it("the last destination is Pulse (the /engine-room route), keyed g then u", () => {
-    const last = PRIMARY_NAV[PRIMARY_NAV.length - 1];
-    expect(last.to).toBe("/engine-room");
-    // `p` belongs to Plan, so Pulse takes the `u` its own label carries. The
-    // old standing bare-`g` alias for this route is gone: `g` now arms every
-    // chord, so a door that answered to it would shadow the arming press.
-    expect(navKeyHint(last)).toBe("u");
+  it("the three doors are Start, Run and Settings, in that order", () => {
+    expect(PRIMARY_NAV.map((d) => d.to)).toEqual(["/start", "/track", "/settings"]);
+    expect(PRIMARY_NAV.map((d) => d.label)).toEqual(["Start", "Run", "Settings"]);
+    expect(PRIMARY_NAV.map((d) => navKeyHint(d))).toEqual(["t", "r", "s"]);
     expect(NAV_CHORD_PREFIX).toBe("g");
   });
 });

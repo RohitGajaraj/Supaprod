@@ -157,21 +157,13 @@ import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { listTracks } from "@/lib/spine/track.functions";
 import { initialsFrom } from "@/lib/initials";
 import { useTheme } from "@/hooks/use-theme";
-import {
-  ENGINE_ROOM_PATHS,
-  FOOTER_NAV,
-  PRIMARY_NAV,
-  navKeyHint,
-  NAV_CHORD_PREFIX,
-} from "@/lib/nav-model";
+import { FOOTER_NAV, PRIMARY_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
 import { BoardPanel } from "./BoardPanel";
 import { ShortcutSheet, useShortcutSheetKey } from "./ShortcutSheet";
 import { AccountMenu, ScopeMenu } from "./ScopeMenu";
 import { AuditLineageSheet } from "@/components/supaprod/AuditLineageSheet";
 import {
   IconAsk,
-  IconBrain,
-  IconEngine,
   IconBoard,
   IconFind,
   IconGear,
@@ -180,9 +172,8 @@ import {
   IconPlus,
   IconRailCollapse,
   IconRailExpand,
+  IconRun,
   IconSun,
-  IconThreads,
-  IconToday,
   IconWork,
 } from "./icons";
 
@@ -200,163 +191,56 @@ const LOOP_STATIONS: readonly string[] = Object.values(STATION_ROUTE);
  *  empty `owns` reads as a decision instead of an oversight. */
 const OWNS_NOTHING: readonly string[] = [];
 
-/** Paths owned by the Today row. Approvals is a high-urgency surface that was
- *  previously unreachable from the rail; making Today own it ensures the row
- *  stays lit when users navigate there. */
-const APPROVALS_PATHS: readonly string[] = ["/approvals"];
-
 /** Boundary (autonomy management) is reached from Agents, so it belongs to
  *  whichever control Agents belongs to. Since 2026-08-15 that is the Settings
  *  door in the rail foot rather than a row. */
 const BOUNDARY_PATHS: readonly string[] = ["/boundary"];
 
-const TODAY_PATHS: readonly string[] = ["/today"];
-
 /**
- * THE BOARD'S TERRITORY, AND IT IS COMPOSED RATHER THAN RE-TYPED.
+ * THE START ROW'S TERRITORY (P-11, A-QUEUE.md, 2026-09-02 — the rail's third
+ * rewrite; see `RAIL` below for the ruling that cut it to two rows).
  *
- * Approvals folded into this row on 2026-08-31 (F-145), so the row must now
- * light for both paths or `g v` lands somewhere the rail is blind to - the
- * exact defect `AppFrame.rail-covers-keys.test.ts` was written after, and the
- * one a fold is most likely to cause, because deleting a row silently deletes
- * whatever it was speaking for.
- *
- * Spread from the two constants rather than written as a fresh literal: the
- * derivation law over `owns` exists so a path is never spelled twice, and two
- * of these three names already existed.
+ * "/start" is redundant with the row's own `to` and named anyway, matching
+ * the convention every earlier version of this list used. "/runs" is
+ * `/runs/$missionId`, a run screen; the bare `/runs` index P-10 deleted no
+ * longer exists to own. The loop stations join for the same reason they
+ * always have — R-01: a station is the step list INSIDE one run, and this row
+ * owns the run, so a station surface is its territory. "/track" is
+ * deliberately NOT here: that identity now belongs to the Run row below, and
+ * `railOwnerOf`'s own-`to` pass resolves it before ever consulting this list.
  */
-const BOARD_PATHS: readonly string[] = [...TODAY_PATHS, ...APPROVALS_PATHS];
-/** The Work row's territory: where work is handed over (/start) and every run
- *  screen under /track/:id. `under()` needs the base only, and "/track" the
- *  prefix does NOT capture /track-record — no slash follows. Before this row,
- *  a person standing on a run screen lit NO rail row at all: the product's
- *  primary surface was un-owned, not merely unlinked. */
-const START_PATHS: readonly string[] = ["/start", "/track"];
-const BRAIN_PATHS: readonly string[] = ["/brain"];
-
-/**
- * THE WORK'S TERRITORY, AND IT ABSORBED THE STATIONS ROW (F-145, 2026-08-31).
- *
- * The `Stations` door is gone. R-01 rules that stations are never navigation,
- * F-145 deletes the door, and F-146 is the founder's report of what having it
- * cost: a rail door and a station chip were both clickable and nothing said
- * which was a place and which was a step.
- *
- * BUT DELETING A ROW DELETES WHATEVER IT WAS SPEAKING FOR, and that row was
- * speaking for the seven bound keys 1..7. Before `owns` existed, pressing 3
- * took you to /plan and every row in the rail went dark at once - the shell
- * still knew the route and had simply stopped saying where you were standing.
- * `AppFrame.rail-covers-keys.test.ts` was written after exactly that, and a
- * fold that dropped this would have reintroduced it in one line.
- *
- * SO IT MOVES HERE RATHER THAN GOING, AND THE PLACE IS NOT ARBITRARY. R-01's
- * own sentence says where: a station is the step list INSIDE ONE RUN. This row
- * already owns the run - /start where work is handed over and /track/:id where
- * it is watched - so a station surface is this row's territory by the same
- * ruling that removed its door. /runs joins them for the same reason: /runs
- * bare is a redirect to the board, and /runs/:missionId is a run screen.
- *
- * The row lights; nothing in the rail names a station. That is the whole of
- * F-146's rail half, and `no rail door is a station` is asserted next door so
- * the door cannot come back without the assertion failing by name.
- */
-const RUN_PATHS: readonly string[] = [...START_PATHS, "/runs", ...LOOP_STATIONS];
+const START_PATHS: readonly string[] = ["/start", "/runs", ...LOOP_STATIONS];
 
 /** Paths that live behind the Settings door but are not under /settings.
  *  Agents is the roster at /crew, which Settings now holds. */
 const SETTINGS_PATHS: readonly string[] = ["/crew"];
 
-/** Paths owned by the Brain row. Threads (conversation history) is reached from
- *  Brain and should keep the Brain row lit. */
-const THREADS_PATHS: readonly string[] = ["/threads"];
-
-/** The five rail rows. Decided, and not to be relitigated. Settings is not
- *  one of them: it is an icon at the foot, a door you open rather than a
- *  place you live.
- *
- *  `owns` IS THE PLACE-KEEPING FIX (2026-08-05). A row lights for its own path
- *  and for the paths it owns. It exists because seven bound keys - 1..7, the
- *  loop stations - navigate to surfaces that are NOT rail rows and never will
- *  be, so the rail went blank the moment you used the keyboard: press 3, land
- *  on Plan, and the shell stopped saying where you were standing.
- *
- *  The fix is NOT a row per station. That was decided twice and against, most
- *  recently in run-strip.tsx on this same day, which chose the 01-07 strip as
- *  the place the seven stations live and paid 97px of viewport on 13 surfaces
- *  to keep the rail at five. Two controls, two altitudes: the RAIL says which
- *  SECTION you are in, the STRIP says which STATION. The founder's own ruling
- *  is that the strip belongs to "the run section" (run-strip.tsx, 2026-07-29),
- *  and use-spine-strip.ts calls /runs "the section entry rather than one of the
- *  seven" - so /runs is the row the seven stations hang under, and lighting it
- *  on /plan is a restatement of the model rather than a claim invented here.
- *
- *  The engine room's list was already declared in nav-model.ts and consumed by
- *  nothing: /govern, /trust-ledger and /sync land inside the engine room and
- *  the row went dark on all three. Same defect, and it is fixed by the same
- *  field rather than by a second mechanism.
- */
 /*
- * ── TWO TIERS, DECIDED 2026-08-15 ───────────────────────────────────────
+ * ── TWO ROWS, RULED 2026-09-02 (P-11, A-QUEUE.md) ───────────────────────
  *
- * This was five equal rows. The founder's objection was that it read as a
- * menu rather than as a place to work, and he is right: Crew and Engine room
- * are not daily destinations, they are places you VISIT to configure
- * something. Sitting them at the same altitude as Today told the reader all
- * five mattered equally, every day, which is false.
+ * The rail was five rows (Today, Brain, Threads, Engine Room, the derived
+ * Work row), then four (2026-08-15), then one primary plus four secondary
+ * (2026-08-31, F-144/145/146). The founder's brief on 2026-09-02 finishes
+ * that arc: **Start · Run · Settings**. Settings was already an icon at the
+ * foot rather than a row (see `settingsOwns` below) and stays there — the
+ * count that changes here is the ROW count, five down to two.
  *
- * PRIMARY is where the work happens. SECONDARY is everything else that still
- * deserves a named row rather than an unlabelled glyph in the foot — which is
- * the other half of the complaint, and the reason these did not simply move
- * down there.
+ * WHAT LEFT, AND WHY EACH IS SAFE TO LEAVE REACHABLE-BY-URL-ONLY: Approvals
+ * (`/today`) folded into Start's own board months ago — its row was a second
+ * door onto a surface Start already owns, exactly the "two doors, one
+ * question" defect this whole mission has been closing. Insights (`/brain`),
+ * Threads (`/threads`) and Policies (`/engine-room`) are all named in P-11's
+ * own "not in scope" line: real surfaces, kept, just no longer advertised in
+ * the eight most expensive pixels in the product. None of the four are
+ * deleted; deleting them is P-14's and P-17's call, not this packet's.
  *
- * RUNS STAYS PRIMARY, against the founder's instinct, and this is the one
- * place I am pushing back. His reasoning was that the strip already covers the
- * stations so the row is redundant. The strip navigates to a STATION; `/runs`
- * lists RUNS — one piece of work walking all seven. Those are perpendicular
- * axes. Remove the row and there is no door left to the list of work items,
- * only doors to stages. That confusion has a history here: it is what put
- * Build's engine at /runs and left the real one unbuilt.
- *
- * ── FOUR DOORS, 2026-08-15, AND CREW IS THE ONE THAT LEFT ───────────────
- *
- * Today · Runs · Brain · Guardrails. Crew, renamed Agents, moved into Settings.
- * "Engine room" became "Guardrails" on the same pass; its reasoning is on the
- * row itself.
- *
- * THE RAIL IS THE MOST EXPENSIVE REAL ESTATE IN THE PRODUCT and it should go to
- * surfaces touched DURING work. Three measurements decided this rather than
- * taste:
- *
- *   1. AUTONOMY IS CONFIGURATION, NOT WORK. Across all 77 agents,
- *      `agent_autonomy.set_at` covers 14 distinct days between 2026-06-04 and
- *      2026-08-06, and nothing in the nine days since. That is a set-and-revisit
- *      cadence. A door you open twice a month does not earn a permanent row
- *      above the door to everything the product knows.
- *
- *   2. ITS ONE DECISION-SHAPED SECTION IS NOT A QUEUE. "Asking for more room"
- *      reads urgent and is not: `asking` is derived client-side in
- *      `_authenticated.crew.tsx` from each agent's own track record — it has
- *      done the same thing cleanly enough times to propose it stops asking.
- *      Nothing is blocked while it sits, there is no counterparty and no clock.
- *      It is the product proposing an optimisation, not an agent at a gate.
- *
- *   3. WHAT GENUINELY BLOCKS IS ALREADY VISIBLE. `agent_approvals` has pending
- *      rows, they live at /approvals, and they already light the seven-station
- *      strip as "waiting on you". Crew was never carrying that load, so moving
- *      it costs no urgency.
- *
- * WHAT THE MOVE MUST NOT LOSE, and this is the half a demotion usually drops:
- * the suggestion is genuinely valuable, so the rail foot's Settings control
- * carries a QUIET COUNT of agents asking. Not the gate treatment: orchid means
- * a person is REQUIRED, and by (2) this is available rather than owed. Zero
- * draws nothing at all, per the standing ruling that an empty chip stays blank
- * rather than saying "none".
- *
- * AND `railOwnerOf` NO LONGER ANSWERS FOR /crew. The keyboard still binds `g c`
- * to it, so the foot's Settings control takes ownership of /crew and /boundary
- * instead — see `settingsOwns` below. Without that the chord would land
- * somewhere the shell cannot name, which is the exact defect
- * `AppFrame.rail-covers-keys.test.ts` exists to catch.
+ * RUN IS NEW, AND IT IS THE ONE ROW THAT DOES NOT DRAW UNCONDITIONALLY. It
+ * answers "where am I", not "where can I go" — so it only exists while there
+ * is a where. Its destination field below is an IDENTITY, the same convention
+ * the old `START_PATHS` used for this exact prefix: it is what `railOwnerOf`
+ * and `doorKey` key on, never a literal navigation target. The render below
+ * resolves the real destination, `/track/$trackId` for whichever track is
+ * live, and drops the row from the list entirely when none is.
  */
 /*
  * ── STATION ID -> ITS MARK ──────────────────────────────────────────────
@@ -380,242 +264,67 @@ const STATION_MARK = GLYPH_FOR_STATION;
 
 const RAIL = [
   /*
-   * ── ONE PRIMARY DOOR, AND IT IS DERIVED (F-144, 2026-08-31) ────────────
-   *
-   * WHAT A PERSON ACTUALLY GOT, and the founder reported it in these words:
-   * "Today is a mentality and psychological perspective that people would
-   * think that this is where we are supposed to land." He is describing a
-   * mechanism, not a preference, and it was here.
+   * ── THE FIRST ROW, AND IT IS DERIVED (F-144, 2026-08-31; unchanged by
+   * P-11) ──────────────────────────────────────────────────────────────
    *
    * `SIGNED_IN_HOME` was flipped to /start on 2026-08-25 because an audit of
    * the real first sixty seconds found /today opens an empty workspace with
    * five negations in the first viewport and no control that starts a run.
-   * THE RAIL WAS NEVER FLIPPED WITH IT. Today sat at position 1; the surface
-   * you actually land on sat at position 3. So a person lands third-in-the-
-   * list, reads the door at the top as home, presses it, and arrives at the
-   * exact surface the flip existed to get them out of. The home flip was half
-   * a change: it moved the landing and left the signpost.
+   * THE ROW NAMES THE CONSTANT rather than the literal, so a future flip of
+   * `SIGNED_IN_HOME` moves this row in the same edit instead of surviving as
+   * a second, stale answer to "where does a signed-in person land" — which is
+   * exactly how the rail and the home constant disagreed for six days once.
    *
-   * THE FIX IS THE DERIVATION, NOT THE ORDER. Putting the /start row first
-   * would close today's instance and let the next flip reopen it, because the
-   * two facts would still be two literals in two files with nothing joining
-   * them - which is exactly how this one survived six days. So the home row
-   * NAMES THE CONSTANT. Flip `SIGNED_IN_HOME` again and the rail follows in
-   * the same edit, which is what that constant was built to promise.
-   *
-   * The colocated guard is `AppFrame.rail-covers-keys.test.ts`, and note what
-   * it can now prove. It extracts rail paths by reading this block as SOURCE
-   * and matching every destination field spelled as a quoted string, so the
-   * home row is DELIBERATELY INVISIBLE to that scan and the test asserts the
-   * identifier is here instead. An edit that spells the path back into this
-   * row fails there by name. (This paragraph describes the pattern rather than
-   * quoting it, because the scanner cannot tell a comment from a row and a
-   * quotation of the shape counted as a sixth door on the first run.)
+   * The colocated guard is `AppFrame.rail-covers-keys.test.ts`. It extracts
+   * rail paths by reading this block as SOURCE and matching every destination
+   * field spelled as a quoted string, so this row is DELIBERATELY INVISIBLE
+   * to that scan and the test asserts the identifier is here instead.
    */
   {
     to: SIGNED_IN_HOME,
-    /* ── FOUNDER, 2026-09-01, SECOND PASS ON THIS RAIL ────────────────────
-     * "Work, review, learnings and permissions are still not so aptly
-     * named... keep it more relatable to the user... how other enterprise
-     * products are using it."
-     *
-     * HOME, because that is what every enterprise product calls the surface
-     * you land on - Notion, Jira ("Your work"), Vercel, GitHub. "Work" is
-     * accurate and tells a first-time reader nothing about what happens if
-     * they press it. A door is judged by whether a stranger can predict the
-     * page behind it. */
-    label: "Home",
+    label: "Start",
     Icon: IconWork,
     count: null,
-    owns: RUN_PATHS,
+    owns: START_PATHS,
     tier: "primary",
   },
   /*
-   * ── "WAITING FOR YOU", AND APPROVALS FOLDS INTO IT (F-145, 2026-08-31) ──
+   * ── RUN: THE ROW THAT ANSWERS "WHERE AM I", NOT "WHERE CAN I GO" ───────
    *
-   * TWO ROWS BECAME ONE, and the reason is that the surfaces already merged.
-   * U-050 moved /approvals' five filters onto the board - All 52 / Proposals
-   * 37 / Gates 10 / Memory 5, proven on the running product - so the board is
-   * where a waiting call is now answered. Two doors onto one surface is the
-   * defect this whole phase is about, and the second one was advertising a
-   * count for a place the first one already holds.
+   * P-11 (A-QUEUE.md, 2026-09-02): "Run appears only while the person is on
+   * `/track/$trackId` and points at it." Every other row in this file draws
+   * unconditionally; this one exists only while there is a track to point
+   * at, which the render below enforces by dropping it from the rendered
+   * list when `trackId` is null.
    *
-   * THE COUNT MOVES WITH THE FOLD RATHER THAN DYING WITH IT. `gates` was the
-   * sharpest thing the Approvals row carried and the founder asked for that
-   * row so the number would have a home. It has one: this door, which lands
-   * on the surface the number is about. A count on a door that does not reach
-   * what it counts is the promise F-145 names in the Stations row below.
-   *
-   * THE WORD IS §12's, NOT AN INVENTION. The rename map sends *Approvals* to
-   * "Waiting for you" - "names who is blocked and on what; 'Approvals' names
-   * a queue, which is why 90 of them died in one." It also passes the F-144
-   * ruling's own point 4, which "Today" cannot: every remaining door states
-   * what you DO there, never when. *Today* is a time word.
-   *
-   * THE WORD IS ALSO NOT FINAL, and that is recorded rather than hidden. Once
-   * the board folds into the home there is one surface here, not two, and
-   * `RANKED-BACKLOG.md` puts its name to the founder. Asked in
-   * coordination/requests/S2/rail-one-primary-door.md. One string moves.
+   * THE ROW'S DESTINATION IS AN IDENTITY, NOT A ROUTE — the same convention
+   * the old `START_PATHS` used for this exact prefix before Run had its own
+   * row. `railOwnerOf`, `doorKey` and the keyboard binding all key on it;
+   * only the render's own `<Link>` ever resolves the real destination,
+   * `/track/$trackId` for whichever track is live. Nothing here can navigate
+   * a person to the bare identity, because the row is never drawn without a
+   * live id to complete it.
    */
   {
-    to: "/today",
-    /* ── ONE WORD. FOUNDER, 2026-09-01, ON THE RAIL SPECIFICALLY ──────────
-     *
-     * "This is not an enterprise-grade naming ceremony. It has to be one
-     * single verb... Don't put the sentence as the name of the shell." He is
-     * right, and §12's map is not what was wrong: the map gives the plain
-     * words a SURFACE uses in a sentence, and a rail door is not a sentence
-     * slot. "Waiting for you" is a caption; a door is a noun or a verb.
-     *
-     * REVIEW, and the canon picks it rather than taste. CLAUDE.md: "Approve
-     * is settled by what the control does - keep it where a click UNBLOCKS
-     * something, use REVIEW where it only SHOWS you something." This door
-     * navigates; it unblocks nothing. The Approve button on the far side
-     * still says Approve, because that one does unblock.
-     *
-     * Not "Inbox" - SURFACE-MAP marks /inbox DELETE and reusing the word
-     * would resurrect a retired door. Not "Queue" - naming the container is
-     * the exact fault §12 charged "Approvals" with. */
-    /* APPROVALS, and this REVERSES my own reasoning from an hour ago.
-     *
-     * I chose "Review" from CLAUDE.md's rule - "use review where it only
-     * SHOWS you something". **The founder ruled that rule out of context
-     * here**: it governs product COPY, where the distinction between showing
-     * and unblocking is the honest one. A NAV LABEL has a different job. It
-     * has to let a stranger predict the page, and this queue is 92 items each
-     * of which a person approves, sends back or declines.
-     *
-     * "Approvals" is what every enterprise reader already calls that -
-     * ServiceNow, SAP, Workday - and §12 retired it for naming a container
-     * rather than who is blocked. That objection is right about a SENTENCE
-     * and wrong about a DOOR: a door names the place, and the place is the
-     * approvals queue. */
-    label: "Approvals",
-    Icon: IconToday,
-    count: "gates",
-    owns: BOARD_PATHS,
-    tier: "secondary",
-  },
-  /*
-   * ── THE "STATIONS" DOOR IS GONE, 2026-08-31 (F-145, F-146) ─────────────
-   *
-   * It pointed at /runs and it contradicted a ruling that predates it. R-01:
-   * stations are NEVER navigation, "no station in the rail, no station as a
-   * route a person browses to". F-146 is the founder reporting what keeping it
-   * cost him: "If I click on seven stations, or individually say Build, Plan,
-   * something comes up. Also at the work thing, individually things come up."
-   * A rail door and a station chip were both clickable, both opened something,
-   * and the door literally named `Stations` made the two models look like one.
-   *
-   * IT SURVIVED ONE COMMIT LONGER THAN THE RULING, and the reason is worth
-   * keeping because it is a good argument against reflex deletion:
-   * `src/lib/nav-model.test.ts` pinned the rail to carry this row, that file is
-   * S0's, and removing the row here would have shipped red. S0 removed the pin
-   * on the evidence that its own stated reason had expired - it existed so the
-   * list of work items would keep a door, and /runs is now nothing but a
-   * redirect to the board, so the pin was protecting a forwarding address.
-   * Asked at coordination/requests/S2/rail-one-primary-door.md.
-   *
-   * WHAT DID NOT GO WITH IT: the seven bound keys. See RUN_PATHS above.
-   */
-  /*
-   * BRAIN AND THREADS DROP BELOW THE RULE TOGETHER, and neither is a
-   * judgement about the surface behind it. The F-144 ruling's first line is
-   * "one primary door... it is first because it is the only one", so primary
-   * is a tier of exactly one and everything else is secondary by arithmetic.
-   * Both are also ruled elsewhere - SURFACE-MAP folds the brain into a line
-   * inside the run (S1) and deletes Threads under R-04 - and those are S0's
-   * deletions to make, not mine. A door I may not delete and may not promote
-   * belongs under the rule, reachable and not advertised.
-   */
-  {
-    to: "/brain",
-    /* §12's map, exact string: "Brain · Memory · Knowledge -> **What we've
-       learned**". Applied here because the RAIL LITERAL is in my prefix; the
-       destination stays S3's and I have not touched it. S4 reported three map
-       items outstanding on this rail and this is one of them. */
-    /* One word, per the founder's rail ruling above. §12 retires Brain,
-       Memory and Knowledge; "Learnings" is the plain noun a person says for the
-       same thing and it claims nothing about how many there are, which matters
-       while R-06 keeps this surface honestly empty. */
-    /* INSIGHTS. "Learnings" is a word people write and do not say; "Insights"
-     * is the one this category carries in every product a buyer has used.
-     * It still claims nothing about how many exist, which is what matters
-     * while R-06 keeps this surface honestly empty. */
-    label: "Insights",
-    Icon: IconBrain,
+    to: "/track",
+    label: "Run",
+    Icon: IconRun,
     count: null,
-    owns: BRAIN_PATHS,
-    tier: "secondary",
-  },
-  {
-    to: "/threads",
-    label: "Threads",
-    Icon: IconThreads,
-    count: null,
-    owns: THREADS_PATHS,
-    tier: "secondary",
-  },
-  /*
-   * ── "GUARDRAILS" IS ON §12's RENAME MAP AND IS DELIBERATELY UNTOUCHED ──
-   *
-   * The map sends *Engine Room · Guardrails · Govern · Boundary · Safety* to
-   * "What it's allowed to do", and the F-144 ruling names the owner in the
-   * same breath: "it is S3's door, not S2's - coordinate, do not both edit
-   * it." The label string lives in my file and the surface behind it does
-   * not, and §12's own warning is that a word renamed in one place and left
-   * stale in another has made the problem worse. So this waits for S3 rather
-   * than being half-done from here.
-   *
-   * The label's history is worth keeping because it is the argument against
-   * doing it alone: the founder rejected "Engine Room" as a ratifying word
-   * and rejected "Controls" on the way here, `guardrail_hits` carries 340
-   * rows so the schema was already using this word, and the bound letter `u`
-   * survives in both gUardrails and pUlse. Three of those facts are about a
-   * surface S3 owns.
-   */
-  {
-    to: "/engine-room",
-    /* §12's map, exact string: "Engine Room · Guardrails · Govern · Boundary ·
-       Safety -> **What it's allowed to do**" - four routes and a mood for one
-       idea. T1-S2 rules this door S3's and says "coordinate, do not both edit
-       it": the LABEL is in my file, the page behind it is theirs, and S3 has
-       been told rather than surprised. */
-    /* One word, per the founder's rail ruling above. §12 folds Engine Room,
-       Guardrails, Govern, Boundary and Safety into one idea - the spend
-       ceiling, the blast radius, the tool set, the expiry. "Permissions" is
-       what an enterprise reader already calls that, and it carries the
-       "allowed to do" half without becoming a sentence. The page behind it is
-       S3's and unchanged. */
-    /* POLICIES. The founder's steer was that "Permissions" is abstract and
-     * something people correlate with - his example was "approvals" - would
-     * land better. Approvals is the queue above, so this takes the other
-     * standard word for the same idea: the rules about what the agents may
-     * spend, touch and run. AWS, Okta and Vanta all call this Policies, and
-     * §12's four-routes-one-idea fold survives it intact. */
-    label: "Policies",
-    Icon: IconEngine,
-    count: null,
-    owns: ENGINE_ROOM_PATHS,
-    tier: "secondary",
+    owns: OWNS_NOTHING,
+    tier: "primary",
   },
 ] as const;
 
 /*
- * ONE LITERAL, A `tier` FIELD, NOT TWO ARRAYS — and the colocated guards are
- * the reason. `AppFrame.rail-covers-keys.test.ts` and the nav-model suite read
- * this block out of the SOURCE TEXT, by finding `const RAIL = [` and slicing to
- * `] as const;`. Splitting the rail into `RAIL_PRIMARY` and `RAIL_SECONDARY`
- * with `const RAIL = [...a, ...b]` left that marker matching a block containing
- * no rows at all, so three guards that enforce "every rail row has a key" and
- * "no row's ownership swallows another's door" quietly passed over an empty
- * list. They failed loudly instead, which is exactly what they are for.
- *
- * Keeping one literal keeps those guards reading the real rows, and the tier is
- * just a field the render groups on.
+ * ONE LITERAL — and the colocated guards are the reason.
+ * `AppFrame.rail-covers-keys.test.ts` and the nav-model suite read this block
+ * out of the SOURCE TEXT, by finding `const RAIL = [` and slicing to `] as
+ * const;`. `tier` is kept as a field on each row rather than deleted with the
+ * old secondary tier, so a future row can rejoin the secondary group without
+ * reshaping every row that came before it; both rows are "primary" today
+ * because there is no secondary group left to put anything in.
  */
 const RAIL_PRIMARY = RAIL.filter((r) => r.tier === "primary");
-const RAIL_SECONDARY = RAIL.filter((r) => r.tier === "secondary");
 
 /** True when `path` is `base` or lives underneath it, so /runs/<id> and
  *  /plan/spec/<id> keep the row that owns them lit. The same shape as
@@ -649,13 +358,12 @@ export function settingsOwns(path: string): "page" | "true" | undefined {
 }
 
 /**
- * PURE - which rail row must be lit for this path. Approvals is owned by Today,
- * Threads by Brain. Previously these were unreachable dead zones; now each is
- * owned by a rail row so the row stays lit when navigating there.
+ * PURE - which rail row must be lit for this path.
  *
  * A row's OWN path wins over any other row's ownership claim, which is why
- * this is two passes and not one: /runs owns /build, and if /build ever became
- * a row it must light itself rather than its former owner.
+ * this is two passes and not one: Run's `to` is `/track`, an identity Start's
+ * `owns` list does not repeat, so a `/track/:id` page resolves to Run in the
+ * first pass rather than falling through to Start in the second.
  *
  * Exported for the colocated guard test, which is what stops a future binding
  * from landing somewhere the rail cannot follow.
@@ -1170,6 +878,9 @@ function RailFind({
 
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  /** The live track id, or null. The Run rail row (P-11, A-QUEUE.md,
+   *  2026-09-02) exists only while this is not null. */
+  const trackId = /^\/track\/([^/]+)/.exec(pathname)?.[1] ?? null;
   /* Whether the surface below is the board, which states the gate count itself.
      Exact match, not `startsWith`: a child route of /today would be a different
      surface with its own claims, and inheriting this suppression would silence
@@ -2341,50 +2052,47 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               <RailFind narrow={narrow} runs={rows} onExpand={expandRail} />
             </div>
             <nav className="sp-nav" aria-label="Main">
-              {[
-                { rows: RAIL_PRIMARY, divider: false },
+              {
                 /*
-                 * The divider is the whole point of the second tier: it says
-                 * "these are a different kind of thing" without spending a
-                 * word, a colour or an indent on saying it. Hidden when the
-                 * rail is narrow, where there are no labels to separate and a
-                 * rule between two icons reads as damage.
+                 * RUN ONLY DRAWS WITH A LIVE ID (P-11, A-QUEUE.md, 2026-09-02).
+                 * Run's own destination field in `RAIL` is an identity, never a
+                 * navigable path (see the row's own comment above `RAIL`), so
+                 * a row with no id to complete it is dropped here rather than
+                 * ever reaching a `<Link>`. Every other row draws unconditionally.
                  */
-                { rows: RAIL_SECONDARY, divider: true },
-              ].flatMap(({ rows, divider }) => [
-                divider && !narrow ? (
-                  /* The key is "tier-rule" rather than "sp-tier-rule": the class
-                     name stays, but a React key is not a class and the scanner
-                     cannot tell them apart. The rows keep their own keys off
-                     `to`, so nothing else in this list is reconciled by it. */
-                  <span key="tier-rule" aria-hidden className="sp-navrule" />
-                ) : null,
-                ...rows.map(({ to, label, Icon, count }) => {
-                  const n = count ? counts[count] : 0;
-                  // The key this row is actually bound to, read off the binding
-                  // itself. "" for a row the keyboard does not reach.
-                  const shortcut = doorKey(to);
-                  // THE ROW THAT STAYS LIT. `activeProps` only knows this row's
-                  // own route, so pressing 3 for Plan - or opening /govern - used
-                  // to leave the whole rail dark. `railOwnerOf` answers the wider
-                  // question the rail is actually asking, "which section am I
-                  // in", and it is written on the same attribute the CSS already
-                  // draws so nothing about the look is invented here.
-                  // "page" is a promise that THIS row is the page you are on, so a
-                  // row that is merely the section containing it says "true"
-                  // instead. Both are drawn identically (shell.css matches the two
-                  // tokens), so the rail looks the same and stops telling a screen
-                  // reader you are on Runs when you are standing on Plan.
-                  const owner = railOwnerOf(pathname) === to;
-                  const current = owner ? (under(pathname, to) ? "page" : "true") : undefined;
-                  return (
-                    <Link
-                      key={to}
-                      to={to}
-                      className="sp-navrow"
-                      activeProps={{ "aria-current": "page" }}
-                      aria-current={current}
-                      /* The name carries the key, and that is not decoration. In
+                RAIL_PRIMARY.filter((r) => r.to !== "/track" || trackId).map(
+                  ({ to, label, Icon, count }) => {
+                    const n = count ? counts[count] : 0;
+                    // The key this row is actually bound to, read off the binding
+                    // itself. "" for a row the keyboard does not reach.
+                    const shortcut = doorKey(to);
+                    // THE ROW THAT STAYS LIT. `activeProps` only knows this row's
+                    // own route, so pressing 3 for Plan - or opening /govern - used
+                    // to leave the whole rail dark. `railOwnerOf` answers the wider
+                    // question the rail is actually asking, "which section am I
+                    // in", and it is written on the same attribute the CSS already
+                    // draws so nothing about the look is invented here.
+                    // "page" is a promise that THIS row is the page you are on, so a
+                    // row that is merely the section containing it says "true"
+                    // instead. Both are drawn identically (shell.css matches the two
+                    // tokens), so the rail looks the same and stops telling a screen
+                    // reader you are on Runs when you are standing on Plan.
+                    //
+                    // BOTH READ THE IDENTITY `to`, NEVER THE RESOLVED HREF: Run's
+                    // `to` is always "/track", so `owner`/`current` answer "am I on
+                    // some track" the same way regardless of which one, and the
+                    // `<Link>` below is the only place the live id enters.
+                    const owner = railOwnerOf(pathname) === to;
+                    const current = owner ? (under(pathname, to) ? "page" : "true") : undefined;
+                    const href = to === "/track" && trackId ? `/track/${trackId}` : to;
+                    return (
+                      <Link
+                        key={to}
+                        to={href}
+                        className="sp-navrow"
+                        activeProps={{ "aria-current": "page" }}
+                        aria-current={current}
+                        /* The name carries the key, and that is not decoration. In
                        the narrow rail this string IS the tooltip (shell.css
                        draws it from attr(aria-label)), so collapsing the rail
                        stops costing you the hint instead of hiding it, and a
@@ -2401,34 +2109,36 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                        scheme the chord replaced. "g then t" rather than "g t":
                        spoken, the space is inaudible and the two would run
                        together into one word. */
-                      aria-label={
-                        shortcut ? `${label}, shortcut ${NAV_CHORD_PREFIX} then ${shortcut}` : label
-                      }
-                    >
-                      <Icon />
-                      <span className="sp-navlabel">{label}</span>
-                      {count && n > 0 ? (
-                        /* THE PLUS IS A FLOOR, and this chip has no room for
+                        aria-label={
+                          shortcut
+                            ? `${label}, shortcut ${NAV_CHORD_PREFIX} then ${shortcut}`
+                            : label
+                        }
+                      >
+                        <Icon />
+                        <span className="sp-navlabel">{label}</span>
+                        {count && n > 0 ? (
+                          /* THE PLUS IS A FLOOR, and this chip has no room for
                            the word. `getApprovalsQueue` bounds every family, so
                            a capped or partly-failed read makes this number what
                            SURVIVED rather than what is waiting - and this is the
                            number a person navigates by. "52+" is the compact
                            form of the board headline's "At least 52"; the title
                            carries the sentence for anyone who stops on it. */
-                        <span
-                          className="sp-navcount"
-                          data-hot={count === "gates" ? "true" : "false"}
-                          title={
-                            count === "gates" && gatesArePartial
-                              ? "More are waiting than this counts"
-                              : undefined
-                          }
-                        >
-                          {n}
-                          {count === "gates" && gatesArePartial ? "+" : ""}
-                        </span>
-                      ) : null}
-                      {/* THE HINT, on the door it opens.
+                          <span
+                            className="sp-navcount"
+                            data-hot={count === "gates" ? "true" : "false"}
+                            title={
+                              count === "gates" && gatesArePartial
+                                ? "More are waiting than this counts"
+                                : undefined
+                            }
+                          >
+                            {n}
+                            {count === "gates" && gatesArePartial ? "+" : ""}
+                          </span>
+                        ) : null}
+                        {/* THE HINT, on the door it opens.
                         `sp-navcount` is worn for ONE property and it is not
                         colour: it is the only selector in shell.css that drops
                         a rail row's trailing text at 64px and under 900px, and
@@ -2437,25 +2147,26 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                         keycap's own look is the inline style; the class is the
                         responsive rule. aria-hidden because the accessible
                         name above already says it, in better words. */}
-                      {shortcut ? (
-                        /* THE PREFIX IS DRAWN, not assumed. A keycap reading a
-                         * bare "d" would be a promise the keyboard does not
-                         * keep: `d` alone does nothing, `g` then `d` opens
-                         * Discover. Showing both is also what teaches the chord
-                         * without a tour, the way Gmail's "g i" does. */
-                        <kbd
-                          className="sp-navcount sp-navkey"
-                          data-shortcut={`${NAV_CHORD_PREFIX} ${shortcut}`}
-                          aria-hidden="true"
-                          style={KEYCAP}
-                        >
-                          {NAV_CHORD_PREFIX} {shortcut}
-                        </kbd>
-                      ) : null}
-                    </Link>
-                  );
-                }),
-              ])}
+                        {shortcut ? (
+                          /* THE PREFIX IS DRAWN, not assumed. A keycap reading a
+                           * bare "d" would be a promise the keyboard does not
+                           * keep: `d` alone does nothing, `g` then `d` opens
+                           * Discover. Showing both is also what teaches the chord
+                           * without a tour, the way Gmail's "g i" does. */
+                          <kbd
+                            className="sp-navcount sp-navkey"
+                            data-shortcut={`${NAV_CHORD_PREFIX} ${shortcut}`}
+                            aria-hidden="true"
+                            style={KEYCAP}
+                          >
+                            {NAV_CHORD_PREFIX} {shortcut}
+                          </kbd>
+                        ) : null}
+                      </Link>
+                    );
+                  },
+                )
+              }
             </nav>
             {/* THE CREW, ON EVERY SURFACE (SPEC-MULTIPLAYER-PRESENCE 3.4).
                 Mounted here, once, rather than per route: the whole point is

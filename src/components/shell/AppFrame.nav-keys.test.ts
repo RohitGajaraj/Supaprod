@@ -54,8 +54,12 @@ describe("the rail hint is derived from the binding", () => {
     }
   });
 
-  it("carries the footer door's key too", () => {
-    expect(SETTINGS_KEY).toBe(navKeyHint(FOOTER_NAV.find((d) => d.to === "/settings")!));
+  it("carries Settings' key too", () => {
+    // Settings moved from FOOTER_NAV into PRIMARY_NAV in P-11 (A-QUEUE.md,
+    // 2026-09-02), so "three doors" is true of the whole model and not just
+    // the rendered rail; `DOORS` (PRIMARY_NAV + FOOTER_NAV) still finds it
+    // either way.
+    expect(SETTINGS_KEY).toBe(navKeyHint(DOORS.find((d) => d.to === "/settings")!));
   });
 });
 
@@ -88,67 +92,27 @@ describe("which rail doors the keyboard reaches", () => {
     const keyed = RAIL_DOORS.filter((r) => r.key !== "").map((r) => r.to);
     const unkeyed = RAIL_DOORS.filter((r) => r.key === "").map((r) => r.to);
     /*
-     * SIX SINCE 2026-08-31, AND THE ORDER IS THE FINDING.
-     *
-     * /start IS FIRST NOW, and that is F-144: `SIGNED_IN_HOME` was flipped to
-     * /start on 2026-08-25 and the rail was not flipped with it, so the door
-     * at the top was /today while the surface a person landed on was third.
-     * The order is asserted rather than sorted precisely because the position
-     * IS the defect - a set comparison would have passed throughout the six
-     * days the founder was reporting it.
-     *
-     * /approvals IS GONE, folded into the /today row (F-145): U-050 had
-     * already moved its five filters onto the board, so it was a second door
-     * onto a surface the first one holds. It keeps its key and its lit state
-     * through `owns`, which is what `rail-covers-keys` proves next door - a
-     * fold that dropped the key would be a silent regression that typechecks.
+     * TWO SINCE P-11 (A-QUEUE.md, 2026-09-02): Start and Run. Start still
+     * names `SIGNED_IN_HOME` rather than the literal (F-144's fix, unchanged
+     * by this packet); Run is the new conditional row, keyed on its identity
+     * even though the rendered rail only draws it while a track is live.
      */
-    expect(keyed).toEqual(["/start", "/today", "/brain", "/threads", "/engine-room"]);
+    expect(keyed).toEqual(["/start", "/track"]);
     expect(unkeyed).toEqual([]);
   });
 
-  it("still draws no ROW for the seven stations or for Settings", () => {
+  it("still draws no ROW for Settings, which lights the foot instead", () => {
     const railPaths = new Set(RAIL_DOORS.map((r) => r.to));
     const noRow = DOORS.filter((d) => navKeyHint(d) !== "" && !railPaths.has(d.to)).map(
       (d) => d.to,
     );
-    // The seven loop stations plus Settings. This list is a RECORD OF THE
-    // DECIDED SHAPE, not of a defect: the seven stations live on the 01-07
-    // strip (run-strip.tsx chose that on 2026-08-05 and paid 97px for it) and
-    // Settings is a door in the rail foot rather than a place you live.
-    //
-    // What used to be wrong is that none of these eight lit ANYTHING in the
-    // rail, so the keyboard took you somewhere the shell could not name. That
-    // is now impossible and the impossibility is enforced next door, in
-    // AppFrame.rail-covers-keys.test.ts: the seven hang under the /runs row
-    // via `owns`, Settings lights its own control in the foot. A row for any
-    // of them would be a nav change; a lit row is a fact about where you are.
-    // /crew joined this list on 2026-08-15 for the same reason Settings is on
-    // it: it is a door you open from the foot, not a place you live. Its
-    // surface, its route and its key are unchanged.
-    //
-    // /approvals JOINED THIS LIST 2026-08-31, for the same reason the seven
-    // stations are on it: it folded into the board and no longer has a row of
-    // its own. Being here is the record of a decision, not of darkness - the
-    // /today row owns it through BOARD_PATHS and lights for it.
-    //
-    // /runs JOINED IT 2026-08-31 TOO, and it is the sharpest entry on the
-    // list: the row that used to be here was the R-01 violation itself. Its
-    // key still fires, and the Work row owns the destination through
-    // RUN_PATHS, so the keyboard reaches a surface the rail can name -- which
-    // is all this list has ever been about.
-    expect(noRow).toEqual([
-      "/approvals",
-      "/discover",
-      "/decide",
-      "/plan",
-      "/design",
-      "/build",
-      "/ship",
-      "/learn",
-      "/runs",
-      "/crew",
-      "/settings",
-    ]);
+    // Settings is the one keyed door with no rail row: it is a control in the
+    // rail foot rather than a place you live, lit and proven reachable next
+    // door in AppFrame.rail-covers-keys.test.ts (`litFootDoors`). Everything
+    // that used to share this list with it — the seven loop stations,
+    // Approvals, Runs, Crew, Brain, Threads, Engine Room — left PRIMARY_NAV
+    // itself in P-11, so none of them can appear here any more: a door with
+    // no chord cannot be "keyed but unrailed", it is simply not keyed.
+    expect(noRow).toEqual(["/settings"]);
   });
 });
