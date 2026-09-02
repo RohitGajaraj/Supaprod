@@ -2027,7 +2027,7 @@ spec is clear but its lane assignment collides with a binding protocol rule.
 
 ---
 
-### P-20 · Which one first: a pin, and the promotion bar made visible · Lane: **A2** · Status: CLAIMED (A2, 23:28 IST) · Moves: 1, 3
+### P-20 · Which one first: a pin, and the promotion bar made visible · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 00:05 IST) · Moves: 1, 3
 
 **Why (founder, 2026-09-02 18:54):** *"when various signals are queued, bucketed and themed, how do
 I decide which one to hack on? Is there any prominence for that?"* Today a theme becomes a run when
@@ -2054,7 +2054,51 @@ more"*) and a control to change the frequency floor.
 - [ ] The row shows *First* and the control flips; a test asserts the order clause.
 - [ ] The Autonomy tab sentence quotes the workspace's actual bar; changing the floor round-trips.
 
-**Report / Blockers / A1 verdict:**
+**Report (A2 writes):** DONE-PENDING-VERIFY. `56e723c46` the pin, `5f697f914` the bar sentence.
+tsc **0** . `bun test` **13,735 pass / 0 fail** . lint clean.
+
+**Migration applied and verified, rule 12.** `20260903010000_a_person_can_say_which_one_first.sql`,
+one file, through the Lovable MCP. `information_schema`: `pinned_at | timestamp with time zone |
+nullable | no default`, plus a partial index on the non-null rows. **That index is earned, unlike
+`stop_requested_at`'s**: the sweep orders by this column on every tick over every open track, which
+is exactly the read a partial index serves, and it stays small however many tracks exist.
+
+**One pin, not a priority number.** A number needs a scale, a scale needs an agreed meaning, and a
+meaning nobody agreed becomes five runs all set to 1. A nullable instant answers the only question
+being asked and orders several pins by when they were made, which is the order the person meant.
+
+**A pin is a position, not a lock.** `pinned_at asc nulls last, driven_at asc`, so every unpinned run
+keeps exactly the round robin it had and nothing is starved; a tick still takes the next few and
+moves on. `driveTrackNow` is untouched, and pinning drives nothing: it changes what the sweep takes
+NEXT, spends nothing, and moves nothing on its own. Keeping that apart from "Run it now" is what
+stops a pin becoming a second, quieter way to spend money.
+
+**One limit, and it keeps the list honest.** A pin sorts only inside the LIVE half of the row list.
+A pin on finished work cannot mean "first" -- the sweep will never serve it -- and floating it above
+a run waiting on an answer would make the list argue with the thing it describes. The control is
+offered only where it would do something, for the same reason.
+
+**The tick falls back on 42703.** The column arrives in its own migration and naming it fails the
+whole select on a database that has not taken it; the sweep is the one thing here that runs with
+nobody watching, so it degrades to yesterday's ordering rather than stopping.
+
+**The bar sentence.** P-17 had already made all three floors editable, each with its own number and
+its own argument, which is right for changing one and the wrong shape for reading the line. The
+sentence is composed from the RESOLVED policy the sweep runs on, never `SHIPPED_AUTONOMY_POLICY`, so
+a workspace that moved a floor reads its own number: *"Runs open on their own when a cluster is seen
+4 times, at severity 5 or worse, with the grouping 75% sure. Nothing below that line starts itself."*
+
+**Files beyond the packet's list, named.** `src/components/governance/BoundaryControls.tsx` instead
+of `src/components/settings/AutonomyTab.tsx`, which does not exist: P-17 landed as `BoundaryPane` in
+the settings route, mounting `BoundaryControls`. Same mislocation as `driveTrackOnce` in P-01 -- the
+acceptance names the behaviour and the behaviour lives there. Also
+`src/components/today/tracks-feed.ts` (the row order) and `src/integrations/supabase/types.ts` (+3
+lines, required by the types guard).
+
+**Blockers (A2 writes):** none. Your check on `track_drives` order needs two runnable tracks with one
+pinned; the pin control is on every live row on `/start`.
+
+**A1 verdict:**
 
 ---
 
