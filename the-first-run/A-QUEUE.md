@@ -2030,15 +2030,17 @@ second home for anywhere in the current product; A1's own walk on `supaprod.ai` 
 | `/build` (index) | A workspace-wide "live block" (what crew is writing right now, across every run), a workspace-wide change list, where builds land | The page's own header states both are **new at workspace scope and exist nowhere else** -- not a stale claim, an explicit one | **NO HOME**, by the page's own admission |
 | `/ship` | The gate, the composer, an announcements list, release notes | The page's own header states three moves already made: reached-production -> Runs, cost/duration -> Engine Room, the six-week heartbeat -> Learn/Analytics (all pre-date this session, not independently re-walked this pass). The gate and the announcements list themselves have no stated second home | **Partial NO HOME**: the three stated moves are plausible and old; the gate/announcements object is not covered by any of them |
 | `/learn` | A settle gate with a verdict form and waiting queue, a projection, the agent's own auto-settle sweep with an exception desk for what it cannot settle, an impact ledger the page's own header calls "its only home" | The page's own words rule this one: "its only home" is a direct admission there is no second one | **NO HOME**, by the page's own admission, for the exception-desk workflow and the impact ledger |
-| `/runs/$missionId` | The gate, "what came back", "how it checked itself", "what it produced" (diff, preview, provenance, steps) | Functionally superseded by `/track/:id` -- `TrackConsent`, `TrackActivity`, `ArtifactPane` and `chain.ts` already build the same shape for a spine track. **Conditional**: only for a mission with no `spine_tracks` row (pre-dates the spine, or never driven by it) is there nowhere else to look -- `AppFrame.tsx`'s own comment already names this exact unresolved gap ("the proven mission-to-track version waits on request 021") | **Conditionally NO HOME** -- clear for any mission with a track id, blocked for any that has none, and nothing today can tell the two apart in bulk |
+| `/runs/$missionId` | The gate, "what came back", "how it checked itself", "what it produced" (diff, preview, provenance, steps) | Functionally superseded by `/track/:id` -- `TrackConsent`, `TrackActivity`, `ArtifactPane` and `chain.ts` already build the same shape for a spine track. **Conditional**: only for a mission with no `spine_tracks` row (pre-dates the spine, or never driven by it) is there nowhere else to look -- `AppFrame.tsx`'s own comment already names this exact unresolved gap ("the proven mission-to-track version waits on request 021"). **Counted, not guessed**: SQL against the live database (`missions` LEFT JOIN `agent_runs` on `mission_id`, no row with a non-null `track_id`) says **395 of 407 missions total** have no track-reachable address, and among the 11 missions created in the last 7 days, **7 still have none** -- this is not a closed historical tail, it is still happening for new work today | **NO HOME for nearly all of them** -- 97% of all missions and 64% of the last week's, with nothing today linking the rest |
 
 **What this means for deletion, read against the packet's own gate.** "Any NO HOME row blocks the
 deletion of that page until a packet gives the fact a home" is not a soft guideline in this packet's
-own text -- it is the acceptance line. By that rule: **`/decide`, `/plan`, `/design`, `/build`,
-`/learn`, `/plan/spec/$id` are all blocked today**; `/ship` is blocked on its gate/announcements
-object even though its three other moves look sound; `/runs/$missionId` is blocked for missions with
-no track id and clear for the rest, with no bulk way today to tell which is which. **`today.tsx`'s
-Board mount is the one clean item on this packet's own list** -- it is already gone.
+own text -- it is the acceptance line. By that rule: **every one of the eight pages this packet
+names is blocked today except one.** `/decide`, `/plan`, `/design`, `/build`, `/learn`,
+`/plan/spec/$id` all have a genuine NO HOME row; `/ship` is blocked on its gate/announcements object
+even though its three other moves look sound; `/runs/$missionId` is blocked for 395 of 407 missions,
+counted, not estimated -- deleting it today would strand the majority of the mission archive with no
+address at all. **`today.tsx`'s Board mount is the one clean item on this packet's own list** -- it
+is already gone, which is also the only deletion this packet can honestly claim today.
 
 **So nothing has been deleted.** Deleting any of the six blocked pages today would ship the exact
 defect this packet's own acceptance gate exists to prevent: a fact that was on the record and is now
@@ -2050,14 +2052,13 @@ is the one the packet's own text already names as the known candidate) before th
 can go.
 
 **Blockers (A3 writes):**
-1. **Asking A1 to walk the six blocked pages on `supaprod.ai` against this table**, per the
+1. **Asking A1 to walk the seven blocked pages on `supaprod.ai` against this table**, per the
    acceptance line's own instruction, and rule per row: genuinely NO HOME (needs a packet before its
-   page can go), or a fact this audit missed a home for. Six pages, roughly twelve rows total to
-   confirm or correct.
-2. **`/runs/$missionId`'s conditional block has no query behind it yet**: nothing counts how many
-   missions have no `spine_tracks` row today, so "conditionally blocked" is a shape, not a number. A
-   quick count would tell whether this is one row A1 can rule on directly or a real backfill packet
-   (the "request 021" `AppFrame.tsx` already names).
+   page can go), or a fact this audit missed a home for.
+2. **The mission-to-track backfill this needs is a real packet, not a one-row ruling**: 395 of 407
+   missions and 7 of the last 11 have no `agent_runs` row carrying a `track_id`, so `/runs/$missionId`
+   stays necessary for nearly the entire mission archive until that backfill exists (the "request 021"
+   `AppFrame.tsx`'s own comment already names). Not something this packet can close by itself.
 
 **A1 verdict:**
 
