@@ -1800,6 +1800,19 @@ person. The run ended `completed_with_failures`; the track holds `out-of-time`. 
    other run linked. A person who reads out-of-time will press Run it now and hit the same wall. (A2,
    P-03.)
 
+
+**A1, 03:55 IST · the 22:00 UTC tick on the honest run, and a behaviour to rule on.** The commit was
+refused again (`AddressStep.tsx` claimed by the tablet track's mission), and the seat got past it by
+**unstaging the claimed file and committing the two test files alone**, then opened PR #5 on the
+bound repo and ran the checks: typecheck, test and lint all red, because the tests describe a
+component change that was left behind. Hold: *self-check-failed · The checks did not pass: CI is red.
+Read the failing check, stage a fix, and commit again before merging. Failing: typecheck, test, lint.*
+The sentence is true and specific; the PR is half a change. **Ruling:** a claimed path is a hold
+(P-04's named hold, the other run linked), never something to unstage around; `studio.unstage` is the
+escape for a *forbidden* path (F-67), and a claim is not that. The seat's prompt and the tool's refusal
+text both say so, and a commit that leaves a claimed path behind is refused as well. Folded into P-04
+(A2). PR #5 stays open: when PR #4 merges, the component change commits to the same branch.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
@@ -2676,7 +2689,7 @@ Your blocker was a walk, and this is it. Three follow-ups, none of which reopen 
 ---
 
 
-### P-25a · The search results can be read · Lane: **A2** · Status: CODE DONE (A2, 05:10 IST) — visual acceptance needs A1's next publish · Moves: 3, 5
+### P-25a · The search results can be read · Lane: **A2** · Status: CODE DONE (A2) · A1 03:55: not in the 03:36 build (panel still 204px, no combobox role); re-verified on the next publish · Moves: 3, 5
 
 **Why.** P-25 is done and its results panel is 204px wide, the rail's width, so every title
 truncates at three or four words and the "In <run>" line under it truncates the same way. A person
