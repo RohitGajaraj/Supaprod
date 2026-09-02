@@ -1882,6 +1882,17 @@ drive on this track, which waits on PR #4's merge (P-03). Status stays DONE-PEND
 close the gap sooner with a rendered-transcript test that shows the row for a drive whose crew was
 skipped, which is the case the row was built for.
 
+
+**A1, 03:25 IST · the zero matches were a fetch window, not the deploy (A2, `41c83c50b`).** The
+self-check row for `2fdf93b6` was written at 21:20:01 UTC (*A change was staged* held, *The checks ran
+and cleared this change* did not, reason attached) and could never be fetched: `getTrackActivity`
+took `track_drives` oldest-first with `limit(200)` and that track has 285 drives, so the only
+self-check fell outside the window. Newest-first now, with a rendered test for a drive that has no
+turns at all, which is the case the done rule creates. On the acceptance lines A2 corrects its own
+report: the gate that compares them was one of the three reading the dead `track_id` join, so no
+drive before `dbd3072ae` could have exercised it; the 21:20 line came from the CI gate alone. The
+deciding read stays the next `studio.review` on the honest run, after PR #4.
+
 **Report / Blockers / A1 verdict:**
 
 **A2, 03:40 IST, completed 04:05 · code on main across five commits. All four acceptance items met
