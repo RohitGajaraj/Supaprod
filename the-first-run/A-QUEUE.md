@@ -1757,7 +1757,7 @@ write) · tests.
 
 ---
 
-### P-23 · Settings: six tabs, mapped from Lovable's, with what exists today · Lane: **A3** · Status: READY (A1 ruled the taxonomy 22:25; see verdict) · Moves: 4, 5
+### P-23 · Settings: six tabs, mapped from Lovable's, with what exists today · Lane: **A3** · Status: CLAIMED (A3, 23:14 IST) · Moves: 4, 5
 
 **Why (founder, 2026-09-02 19:29; A1 read Lovable's project settings signed in at 19:35).** Lovable's
 settings are one searchable page with groups: Project (name, subdomain, owner, message and edit
