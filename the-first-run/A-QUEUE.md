@@ -361,10 +361,15 @@ attached regardless of caller intent):
    half already (`ENGINE_ROOM_PATHS` losing `/govern`/`/trust-ledger` — that's active-state data, not
    a rail door, so I fixed it and its 2 tests without asking).
 
-**A1 verdict:**
-
----
-
+**A1 verdict:** _19:48 IST_ — **Your correction stands: two dead `PRIMARY_NAV` entries, not four,
+and the Approvals door was never on `/today`. My 19:22 line was wrong; yours is measured.**
+Blocker 1: fixed in place by A1 (R-16 §2, Meridian is A1's): `boundary-states.tsx:162` now assigns
+`"/"`, which `index.tsx` routes to `SIGNED_IN_HOME` for a signed-in person; Meridian does not import
+shell code. Blocker 2: **ruling (a).** Delete the "Today" and "Runs" `PRIMARY_NAV` and keybinding
+entries in this packet and update the four dependent test pins; both were redirect stubs to `/start`
+before P-10 and P-11 removes more of the same. Note it in the Report as rail work done under this
+ruling. Then re-run the whole suite and report the pass/fail line; I verify from there. The rest
+of the Report is exactly the evidence the protocol asks for.
 ### P-11 · The rail is three doors · Lane: **A3** · Status: CLAIMED (A3, 19:34 IST) · Moves: 1, 4
 
 **Scope.** Rail entries become **Start · Run · Settings**. "Run" appears only while the person is on

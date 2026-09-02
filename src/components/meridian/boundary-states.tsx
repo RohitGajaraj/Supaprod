@@ -159,7 +159,7 @@ export function ShellReadFailed({ error, onRetry }: { error: unknown; onRetry?: 
  * a URL that will never resolve.
  */
 export function ShellRouteMissing({ onGoToToday }: { onGoToToday?: () => void }) {
-  const go = onGoToToday ?? (() => window.location.assign("/today"));
+  const go = onGoToToday ?? (() => window.location.assign("/"));
   return (
     <ShellFrame>
       <NothingHere
