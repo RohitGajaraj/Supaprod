@@ -102,7 +102,7 @@ lane's server if the line says one is up.
 _Ordered. Take the topmost `READY` packet tagged with your lane. Packet ids are stable; never
 renumber._
 
-### P-01 · The run tells one story · Lane: **A2** · Status: CLAIMED (A2, 18:37 IST) · Moves: 3, 4, 5
+### P-01 · The run tells one story · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 21:10 IST) · Moves: 3, 4, 5
 
 **Scope.** Make `/track/$trackId` one transcript on the left, one artifact pane on the right, one
 station display (the strip, as the right pane's tabs), one status per screen, and a "what this run
