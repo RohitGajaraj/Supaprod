@@ -118,8 +118,16 @@ export const Route = createFileRoute("/_authenticated/track/$trackId")({
  *
  * They are flagged here rather than removed quietly, because "nothing else" is
  * a real instruction and this is a reading of it rather than the letter of it.
+ *
+ * ── EXPORTED FOR ITS GUARD, AND ONLY FOR IT ──────────────────────────────
+ * The rule it holds is a NEGATIVE one -- the origin never renders here -- and a
+ * guard for a negative has to render the thing and look. Reaching it through the
+ * route would mean standing up a router, a workspace provider and three mocked
+ * server functions to read one heading, which is how a guard ends up testing its
+ * own scaffolding. `ArtifactPane` exports `MissionCard` and `TrackActivity`
+ * exports `headline` for the same reason and set the precedent.
  */
-function RunHeader({
+export function RunHeader({
   track,
   liveNow = false,
   fromLearningId = null,
