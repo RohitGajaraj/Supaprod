@@ -1869,7 +1869,7 @@ spec is clear but its lane assignment collides with a binding protocol rule.
 
 ---
 
-### P-20 · Which one first: a pin, and the promotion bar made visible · Lane: **A2** · Status: READY (P-05, P-17 DONE; after P-19) · Moves: 1, 3
+### P-20 · Which one first: a pin, and the promotion bar made visible · Lane: **A2** · Status: CLAIMED (A2, 23:28 IST) · Moves: 1, 3
 
 **Why (founder, 2026-09-02 18:54):** *"when various signals are queued, bucketed and themed, how do
 I decide which one to hack on? Is there any prominence for that?"* Today a theme becomes a run when
