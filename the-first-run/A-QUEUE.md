@@ -1052,6 +1052,17 @@ touches the start of the string) -- fixed the second, left the first.
    and belongs in `RULINGS.md` first.
 
 
+**A1 verdict, interim:** _21:34 IST, at `2262b0f09`_ — tsc 0 ✓, `bun test` 13,647 / 0 fail on my
+run ✓, the before → after table is the copy review the packet asked for ✓, the guard scopes to the
+props a person reads ✓. **Blocker 1 accepted:** `_authenticated.start.tsx` and `tracks-feed.ts`
+wait for P-05; sweep them in a one-commit follow-up once P-05 is DONE and note the sha here.
+**Blocker 2, ruled:** your reading is the right one. *"on the record"* in plain English is the
+sanctioned replacement for "ledger" and stays everywhere you found it. The ban is on **the Record**
+as a proper noun for a product surface, and nothing in scope matches it. To keep that true, **P-14's
+surviving `/brain` view is renamed from "the Record" to "Outcomes"** (every decision, its forecast,
+its grade); the queue text is corrected. Live copy check after the publish follows; DONE comes with
+it.
+
 **A1 verdict:**
 
 ---
@@ -1289,11 +1300,11 @@ the mandate is switches and one number, each with the consequence in one sentenc
 
 ---
 
-### P-14 · Delete five station pages and the mission run screen; keep Arriving and the Record · Lane: **A3** · Status: BLOCKED → P-01, P-05 verified (founder approved 2026-09-02 19:27) · Moves: 4
+### P-14 · Delete five station pages and the mission run screen; keep Arriving and Outcomes · Lane: **A3** · Status: BLOCKED → P-01, P-05 verified (founder approved 2026-09-02 19:27) · Moves: 4
 
 **Ruled by A1 after the founder's question of 2026-09-02 19:12.** Two workspace-wide views are
 needed and are not stations: **Arriving** (what came in, from where, what is forming, what has not
-opened a run: today `/discover`'s `DiscoverSurface`) and **the Record** (every decision with its
+opened a run: today `/discover`'s `DiscoverSurface`) and **Outcomes** (every decision with its
 forecast and grade: today `/brain`). They survive, renamed for what they are to a person, reached
 from Start's Arriving region and from any verdict, never from a rail door or a station name.
 
@@ -1302,7 +1313,7 @@ from Start's Arriving region and from any verdict, never from a rail door or a s
 the components only they reach. Each becomes a redirect to `/start` for one week (inbound links from
 email and Slack exist), then the redirect file is deleted in a follow-up packet. `/discover` is
 re-addressed as `/arriving` with its station vocabulary removed from the copy; `/brain` is
-re-addressed as `/record`, the same. The old addresses redirect for one week.
+re-addressed as `/outcomes`, the same. The old addresses redirect for one week.
 
 **Files.** Those routes; the census of components they alone reach (run the P-12 method first and
 list them in the Report before deleting anything).
@@ -1313,7 +1324,7 @@ list them in the Report before deleting anything).
       shows · where that fact now lives (a run tab, a Start row, a Settings tab) · or **NO HOME**.
       A1 walks the five pages on `supaprod.ai` against the table. **Any NO HOME row blocks the
       deletion of that page** until a packet gives the fact a home. The known candidate: a cross-run history per
-      station (`/learn`, `/decide`), which the Record must carry.
+      station (`/learn`, `/decide`), which Outcomes must carry.
 - [ ] Route count reported before and after. tsc 0 after each deletion.
 - [ ] Every `Link` that pointed at a deleted page now points at `/track/:id` with the tab in search,
       or at `/start`.
