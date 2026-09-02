@@ -1049,7 +1049,11 @@ export async function promoteChangesetToProductionCore(
     const warnings: string[] = [];
     const { data: cs, error } = await db
       .from("studio_changesets")
-      .select("id,mission_id,workspace_id,product_id,prd_id,repo,status,title,release_notes")
+      // `pr_number` joined the select for the sha check below: promote could not
+      // read the merged commit without it, which is why it never checked one.
+      .select(
+        "id,mission_id,workspace_id,product_id,prd_id,repo,pr_number,status,title,release_notes",
+      )
       .eq("id", changesetId)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -1090,13 +1094,56 @@ export async function promoteChangesetToProductionCore(
     // downstream would then tell someone their release is unpromotable, or that
     // their own pipeline built the preview, on the strength of a query that
     // never ran. Surfacing the read failure keeps the refusals about the data.
-    const { data: denoRows, error: denoErr } = await db
+    /*
+     * ── THE COMMIT IS CHECKED NOW, AND IT NEVER WAS (P-03) ──────────────────
+     *
+     * This function took the NEWEST successful preview row for the changeset and
+     * used its `commit_sha` verbatim as the production ref -- `ref:
+     * preview.commit_sha`, a few lines below. There was no comparison against
+     * what actually merged anywhere in it. `landedShaForChangeset` has read the
+     * PR's own `merge_commit_sha` since it was written and was called only from
+     * the capture path, never from here.
+     *
+     * So a changeset whose preview was built at an earlier commit -- a fix
+     * pushed after the preview, a branch synced, a second CI run that did not
+     * finish -- promoted THAT commit to production, and the deploy row recorded
+     * it as the released sha. Nothing anywhere would have said otherwise. On the
+     * one path in this product that is irreversible and that customers see.
+     *
+     * ── AND CHECKING IT IS WHAT LETS ANY PROVIDER THROUGH ──────────────────
+     * `provider = "deno"` was a proxy for "we built this, so we know what is in
+     * it". Knowing the preview is AT THE MERGED COMMIT is the thing that proxy
+     * was standing in for, and it is strictly stronger: it is true of a preview
+     * whoever built it. So the check is now the sha, and the provider stops
+     * mattering -- which is also what the packet asks for, and what unblocks a
+     * repo whose previews come from its own pipeline.
+     *
+     * ── WHEN THE COMMIT CANNOT BE READ, THE OLD RULE STANDS ────────────────
+     * `landedShaForChangeset` returns null when the PR is unreadable, when the
+     * changeset carries no repo or PR number, or when GitHub refuses. In every
+     * one of those we cannot prove what merged, so we must NOT relax the
+     * provider gate on faith: an unproven commit falls back to exactly the
+     * behaviour this function had yesterday. Loosening on a failed read is how a
+     * safety check becomes a formality.
+     */
+    const landedSha = await landedShaForChangeset(db, userId, {
+      workspace_id: (cs.workspace_id as string | null) ?? null,
+      product_id: (cs.product_id as string | null) ?? null,
+      repo: (cs.repo as string | null) ?? null,
+      pr_number: (cs.pr_number as number | null) ?? null,
+    });
+
+    let previewQuery = db
       .from("deployments")
       .select("id,commit_sha,deploy_url,status,provider")
       .eq("changeset_id", cs.id as string)
       .eq("environment", "preview")
-      .eq("status", "success")
-      .eq("provider", "deno")
+      .eq("status", "success");
+    previewQuery = landedSha
+      ? previewQuery.eq("commit_sha", landedSha)
+      : previewQuery.eq("provider", "deno");
+
+    const { data: denoRows, error: denoErr } = await previewQuery
       .order("created_at", { ascending: false })
       .limit(1);
     if (denoErr) throw new Error(denoErr.message);
@@ -1130,6 +1177,37 @@ export async function promoteChangesetToProductionCore(
       // their own), so interpolating it told a Vercel customer their preview
       // came "from github". The deploy URL is the one thing on the row that
       // does point at whoever built it, so that is what is shown.
+      /*
+       * ── A PREVIEW AT THE WRONG COMMIT IS ITS OWN REFUSAL ─────────────────
+       *
+       * Checked FIRST, because with the sha filter above the "your own pipeline
+       * built it" sentence is now reachable for a completely different reason:
+       * there may be a perfectly good Supaprod preview sitting one commit
+       * behind. Telling that person their pipeline built it would be false, and
+       * it would send them to promote it somewhere that has nothing to promote.
+       *
+       * The two shas are both named. "It is at a different commit" without
+       * saying which is a sentence a person cannot act on, and the usual next
+       * move -- wait for the poller, or push again -- depends on which way round
+       * they are.
+       */
+      if (landedSha) {
+        const { data: staleRows } = await db
+          .from("deployments")
+          .select("id,commit_sha,deploy_url,status,provider")
+          .eq("changeset_id", cs.id as string)
+          .eq("environment", "preview")
+          .eq("status", "success")
+          .order("created_at", { ascending: false })
+          .limit(1);
+        const stale = ((staleRows ?? []) as PreviewRow[])[0] ?? null;
+        if (stale) {
+          throw new Error(
+            `The preview on file was built at ${String(stale.commit_sha).slice(0, 7)} and this changeset merged as ${landedSha.slice(0, 7)}, so promoting it would ship a different commit from the one that landed. The preview for the merged commit usually appears within about two minutes; nothing was published.`,
+          );
+        }
+      }
+
       if (observed) {
         const builtAt = observed.deploy_url ? ` It is serving at ${observed.deploy_url}.` : "";
         throw new Error(

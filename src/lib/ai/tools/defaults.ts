@@ -199,7 +199,28 @@ export const TOOL_DEFAULTS: Readonly<
   "build.list_sessions": { mode: "auto", enabled: true, label: "List recent build runs" },
   "build.get_run": { mode: "auto", enabled: true, label: "Read a build run" },
   "build.changeset_history": { mode: "auto", enabled: true, label: "List merged changesets" },
-  "studio.commit": { mode: "confirm", enabled: true, label: "Commit a change" },
+  /*
+   * ── R-30: A COMMIT ON A BRANCH IS REVERSIBLE, SO IT RUNS (2026-09-02) ────
+   *
+   * This read `confirm` while `studio.fix.commit` one line below read `auto`,
+   * which is the same act on the same branch gated two different ways. It is
+   * R-27's inverted gate one tool earlier: the REVERSIBLE act asked, and the
+   * person it asked answered it 0% of the time. Four real builder commits sat
+   * `pending` on the bound repo on 2026-09-02, every one of them set to
+   * auto-cancel the next day by `expiry_default='cancel'` -- so the gate's only
+   * effect was to throw the work away quietly a day later.
+   *
+   * WHAT ACTUALLY MAKES A COMMIT SAFE IS NOT THIS FLAG. It is
+   * `STUDIO_FORBIDDEN_PREFIXES`, which refuses a commit that touches a forbidden
+   * path whatever the mode says, and it is the branch: nothing here reaches
+   * `main`. `studio.pr.merge` still asks and earns `auto` through the arc as it
+   * always has; `release.publish` is still pinned under R-27 and can never
+   * graduate. The irreversible acts kept their gates; the reversible one stopped
+   * pretending to have one.
+   *
+   * Reverse by one word.
+   */
+  "studio.commit": { mode: "auto", enabled: true, label: "Commit a change" },
   "studio.fix.commit": { mode: "auto", enabled: true, label: "Commit a fix" },
   "studio.sync_branch": { mode: "auto", enabled: true, label: "Sync a branch" },
   "studio.pr.open": { mode: "confirm", enabled: true, label: "Open a PR" },

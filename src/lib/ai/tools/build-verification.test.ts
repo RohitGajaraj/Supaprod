@@ -179,7 +179,26 @@ describe("Build verification tools: nothing they added lowered an existing floor
 
   it("leaves the commit and merge mechanics at the modes they already had", () => {
     expect(TOOL_DEFAULTS["studio.stage"].mode).toBe("auto");
-    expect(TOOL_DEFAULTS["studio.commit"].mode).toBe("confirm");
+    /*
+     * ── `studio.commit` MOVED TO `auto` ON 2026-09-02, UNDER R-30 ─────────
+     *
+     * This assertion belongs to the build-verification packet, which added
+     * reading tools and correctly promised to change no existing mode. R-30 is a
+     * different change with its own argument, so this line is updated rather
+     * than the promise broken: the modes are still pinned here, and one of them
+     * moved for a reason recorded in `RULINGS.md`.
+     *
+     * The short form: `studio.commit` writes to a BRANCH and `studio.fix.commit`
+     * -- the same act, same branch, same seat -- was `auto` one line below it in
+     * the table. One act, two gates. Four real commits sat pending on the bound
+     * repo with `expiry_default='cancel'`, answered 0% of the time, so the gate's
+     * only effect was to discard the work a day later.
+     *
+     * `studio.pr.open` is UNCHANGED and still asks, which is the line worth
+     * noticing here: a commit is reversible and a pull request is visible to
+     * other people, so the ruling moved exactly one of them.
+     */
+    expect(TOOL_DEFAULTS["studio.commit"].mode).toBe("auto");
     expect(TOOL_DEFAULTS["studio.pr.open"].mode).toBe("confirm");
     expect(TOOL_DEFAULTS["studio.fix.commit"].mode).toBe("auto");
   });

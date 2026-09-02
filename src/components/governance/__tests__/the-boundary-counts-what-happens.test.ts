@@ -84,7 +84,22 @@ describe("the boundary counts what happens", () => {
     const seeded = new Map(
       resolveToolAccess(Object.keys(TOOL_REGISTRY), []).map((t) => [t.tool_name, t.mode]),
     );
-    for (const tool of ["studio.commit", "studio.revert", "release.publish", "github.pr.open"]) {
+    /*
+     * ── `studio.commit` LEFT THIS LIST ON 2026-09-02, UNDER R-30 ──────────
+     *
+     * The list is examples of tools the ARC moves: seeded `confirm`, resolved
+     * `auto` once a workspace has earned it. `studio.commit` now seeds `auto`
+     * outright, so it can no longer be an example of the arc doing anything --
+     * not because the arc got weaker, but because that tool stopped needing it.
+     * A commit writes to a branch, `studio.fix.commit` has been `auto` all along,
+     * and the four pending commits the gate produced on the bound repo were
+     * answered 0% of the time and set to auto-cancel.
+     *
+     * The three that remain still make the point, and make it better: a revert,
+     * a release and a pull request are all things the arc moves and none of them
+     * is a harmless read.
+     */
+    for (const tool of ["studio.revert", "release.publish", "github.pr.open"]) {
       const seed = seeded.get(tool);
       expect(seed, `${tool} is not registered`).toBeDefined();
       expect(seed, `${tool} no longer seeds to confirm`).toBe("confirm");

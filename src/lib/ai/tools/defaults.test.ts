@@ -171,10 +171,58 @@ describe("risk floors stay above any earned record (governance canon)", () => {
   // autonomy for reversible, internal work, and never for work that leaves the product
   // or cannot be undone. If a future change flips one of these to "auto", it should have
   // to delete this test and say why in the message.
-  it("never lets a repo-touching or irreversible tool default to auto", () => {
-    for (const tool of ["studio.commit", "github.issue.create", "studio.pr.merge"]) {
+  /*
+   * ── `studio.commit` LEFT THIS LIST ON 2026-09-02, UNDER R-30 ────────────
+   *
+   * The comment above asks a change that flips one of these to `auto` to delete
+   * this test and say why in the message. This is that change, so here is the
+   * why, in the place it asked for it.
+   *
+   * The list conflated two different properties under one word. "Repo-touching"
+   * and "irreversible" are not the same thing, and `studio.commit` was only ever
+   * the first: it writes to a BRANCH, nothing it does reaches `main`, and
+   * `studio.fix.commit` -- the same act, on the same branch, from the same
+   * seat -- has been `auto` all along, one line below it in the table. One act,
+   * two gates, and the difference was an accident rather than an argument.
+   *
+   * Measured, the gate did not protect anything either. Four real builder
+   * commits on the bound repo sat `pending` on 2026-09-02, every one set to
+   * auto-cancel the next day by `expiry_default='cancel'`, and the person it
+   * asked answered 0% of them. Its only effect was to throw the work away
+   * quietly a day later, which is R-27's inverted gate one tool earlier.
+   *
+   * WHAT ACTUALLY MAKES A COMMIT SAFE IS STILL ASSERTED, one test below:
+   * `STUDIO_FORBIDDEN_PREFIXES` refuses a commit that touches a forbidden path
+   * whatever the mode says. That is the safety property; the mode was a proxy
+   * for it, and F-75 already records what happens when a proxy is asserted
+   * instead of the property.
+   *
+   * The two that stay are irreversible in the sense the canon means. A GitHub
+   * issue leaves the product and is seen by someone outside it; a merge reaches
+   * `main`. Both keep their gates, and `release.publish` is pinned under R-27
+   * where it can never graduate at all.
+   */
+  it("never lets an irreversible tool default to auto", () => {
+    for (const tool of ["github.issue.create", "studio.pr.merge"]) {
       expect(TOOL_DEFAULTS[tool]?.mode).not.toBe("auto");
     }
+  });
+
+  it("gates the two commits the same way, because they are the same act", () => {
+    /*
+     * R-30 in one line. The pair is asserted together on purpose: they were
+     * `confirm` and `auto` for a year with no argument for the difference, and
+     * a future change that moves one has to face the other.
+     *
+     * The safety property is NOT here and must not be inferred from here: a
+     * commit that runs without asking is safe because
+     * `STUDIO_FORBIDDEN_PREFIXES` (`registry.server.ts`, applied at
+     * `deployments.functions.ts:941`) refuses one that touches a forbidden path,
+     * and that check never reads the mode. Asserting the mode as a proxy for the
+     * property is exactly what F-75 records going wrong two tests below.
+     */
+    expect(TOOL_DEFAULTS["studio.commit"]?.mode).toBe("auto");
+    expect(TOOL_DEFAULTS["studio.fix.commit"]?.mode).toBe("auto");
   });
 
   /**
