@@ -15,10 +15,12 @@ import {
   selfCheckSentence,
   type SelfCheckEntry,
   type TrackTransition,
+  type TrackVerdict,
 } from "@/lib/spine/track.functions";
 import { taskAsked } from "@/components/spine/handoff-said";
 import type { Turn } from "@/lib/spine/activity";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+import { FORECAST_SAYS } from "@/components/learn/forecast-words";
 
 /** The quiet line a leg carries, or nothing when the record cannot say. */
 export function transitionLine(via: TrackTransition["drivenVia"]): string | null {
@@ -121,6 +123,34 @@ export type ActivityRow =
    * whichever one happened to run last -- and on a drive whose crew was skipped
    * there would be no turn to hang it on at all.
    */
+  /**
+   * THE BET BEING SETTLED, WHICH IS THE LOOP CLOSING.
+   *
+   * The Learn tab shows the verdict as a PROPERTY of the bet, and is right to.
+   * The transcript answers the other question -- what happened to this work, in
+   * order -- and a bet being settled is the most consequential thing that ever
+   * happens to a track. Without a row here a person could scroll a run's whole
+   * record and never meet the answer it exists to produce.
+   *
+   * Carries the claim, because a verdict without the thing it judged is not
+   * readable: "you called it", alone in a stream of events, says nothing about
+   * what was called.
+   */
+  | {
+      kind: "verdict";
+      at: number;
+      key: string;
+      /** The product's own word for this resolution, never the raw column. */
+      says: string;
+      /** What was predicted. */
+      claim: string | null;
+      /** Why it went that way, when whoever graded it said. */
+      rationale: string | null;
+      /** How the chip is toned: a hit passes, a miss fails, neither holds. */
+      tone: "pass" | "fail" | "hold";
+      /** The agent that graded it, or null when a person did. */
+      by: string | null;
+    }
   | {
       kind: "check";
       at: number;
@@ -166,6 +196,8 @@ export function mergeActivityRows(
   handoffs: readonly HandoffRow[] = [],
   /** One per drive whose check compared something. See the `check` row above. */
   checks: readonly SelfCheckEntry[] = [],
+  /** The moment this track's bet was settled, when anything has settled it. */
+  verdict: TrackVerdict | null = null,
 ): ActivityRow[] {
   const rows: ActivityRow[] = [];
   for (const t of turns) {
@@ -246,6 +278,30 @@ export function mergeActivityRows(
       waiting: h.consumed_by_run_id === null,
     });
   }
+  if (verdict) {
+    const at = Date.parse(verdict.at);
+    const says = FORECAST_SAYS[verdict.resolution as keyof typeof FORECAST_SAYS];
+    /*
+     * Both are required and neither is defensive padding. A verdict with no
+     * readable time cannot be placed in a chronological stream, and one whose
+     * resolution this build does not recognise would print a raw column value at
+     * a person -- `forecast_resolution` is text, not an enum.
+     */
+    if (!Number.isNaN(at) && says) {
+      rows.push({
+        kind: "verdict",
+        at,
+        key: `verdict:${verdict.at}`,
+        says,
+        claim: verdict.claim,
+        rationale: verdict.rationale,
+        tone:
+          verdict.resolution === "hit" ? "pass" : verdict.resolution === "miss" ? "fail" : "hold",
+        by: verdict.by,
+      });
+    }
+  }
+
   for (const c of checks) {
     const at = Date.parse(c.at);
     // A check with no time cannot be placed in a chronological stream, and a row

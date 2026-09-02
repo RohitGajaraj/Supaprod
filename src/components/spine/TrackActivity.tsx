@@ -59,6 +59,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { getTrackActivity, getTrackChain, getTrackToolCalls } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/handed-over";
 import { carriedByMission, oncePerId } from "@/components/spine/what-a-mission-carries";
 import { howThisRan } from "@/components/track/how-this-ran";
@@ -786,6 +787,7 @@ export function TrackActivity({
         q.data?.transitions ?? [],
         oncePerId([...fromMissions, ...(saidQ.data ?? [])]),
         q.data?.selfChecks?.entries ?? [],
+        q.data?.verdict ?? null,
       ),
     [q.data, fromMissions, saidQ.data],
   );
@@ -930,6 +932,46 @@ export function TrackActivity({
                       <RunSubject>{`Moved to ${row.toName}`}</RunSubject>
                     </span>
                     <RunMeta>{row.line}</RunMeta>
+                  </span>
+                </li>
+              );
+            }
+
+            if (row.kind === "verdict") {
+              /*
+               * ── THE LOOP CLOSING, DRAWN AS THE EVENT IT IS ────────────────
+               *
+               * The Learn tab shows this verdict as a property of the bet. This
+               * is the other question -- what happened to this work, in order --
+               * and a bet being settled is the most consequential thing that
+               * ever happens to a track. Without this row a person could scroll
+               * a run's whole record and never meet the answer it exists to
+               * produce.
+               *
+               * The claim is drawn UNDER the verdict rather than beside it: a
+               * reader scanning the stream wants the answer first, and the thing
+               * it answers second. Only the rationale is quieter still, because
+               * it is the one part that is somebody's reasoning rather than a
+               * fact about the run.
+               */
+              const arrived = primed.current && !seen.current.has(row.key);
+              return (
+                <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
+                  <RunClock at={row.at} />
+                  <span className="flex flex-col items-center self-stretch">
+                    <RunGlyph kind="station" station={glyphForStation("learn")} />
+                    {i === ordered.length - 1 ? null : <RunRail />}
+                  </span>
+                  <span className="min-w-0 pb-1">
+                    <span className={RUN_LINE}>
+                      <StatusChip status={row.tone}>{row.says}</StatusChip>
+                      <RunSubject>The forecast was graded</RunSubject>
+                    </span>
+                    {row.claim ? <RunNote>{row.claim}</RunNote> : null}
+                    {row.rationale ? <RunMeta>{row.rationale}</RunMeta> : null}
+                    <RunMeta>
+                      {row.by ? `Graded by the ${agentDisplayName(row.by)} agent` : "Graded by you"}
+                    </RunMeta>
                   </span>
                 </li>
               );

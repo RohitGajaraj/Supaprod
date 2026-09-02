@@ -2465,6 +2465,8 @@ export async function driveTrackOnce(
    * read again where the station's output is judged.
    */
   let buildAlreadyHandedOn = false;
+  /** What Build's own check refused, when the crew is being re-run to fix it. */
+  let fixNote: string | null = null;
   try {
     // Build is the one station whose tool refuses without a mission, so the
     // driver opens one for it. Every other station is dispatched exactly as
@@ -2531,7 +2533,50 @@ export async function driveTrackOnce(
          skipping a station on it would strand work that genuinely needs it. */
       const done = await newestChangesetForTrack(supabase, row.id, "status");
       const st = typeof done?.status === "string" ? done.status : null;
-      if (st === "pr_open" || st === "merged") buildAlreadyHandedOn = true;
+      if (st === "pr_open" || st === "merged") {
+        /*
+         * -- AND IT IS ONLY FINISHED IF ITS OWN CHECK SAYS SO ----------------
+         *
+         * MEASURED ON THE LIVE RUN, 23:20 and 23:30 UTC 2026-09-02, and this is
+         * a defect in the rule immediately above rather than a new case.
+         * `2fdf93b6` went from 0 attempts to 2 with NO agent_runs row and no
+         * tool call: its changeset was `pr_open` with red CI, so the rule
+         * skipped the crew, the self-check afterwards re-read the same red CI,
+         * counted an attempt, and parked. At 3 it would have given up.
+         *
+         * The send-back had nobody to send to. The crew that would stage the fix
+         * is exactly the crew the rule was skipping, so the loop was refusing to
+         * run the only thing that could clear the refusal -- forever, and with
+         * an attempt burned each time.
+         *
+         * So the changeset's status is half the question and the station's own
+         * check is the other half:
+         *
+         *   pr_open, check holds       finished. Skip the crew, as before.
+         *   pr_open, check did not     NOT finished. Run the crew, which is what
+         *                              `studio.fix.commit` exists for: append the
+         *                              fix to the same branch and the same PR.
+         *
+         * Asked BEFORE the crew rather than after, which is the whole shape of
+         * the fix. The enforcing check further down runs after seats have
+         * spent money; this one is a read, and its only job is deciding whether
+         * there is anything for them to do.
+         */
+        const alreadyRight = await verifyStationOutput(
+          supabase,
+          station,
+          unionFiled([], await filedAtStation(supabase, row.id, station)),
+          row.id,
+        );
+        buildAlreadyHandedOn = alreadyRight.passed;
+        if (!alreadyRight.passed) {
+          /* The crew runs, and it runs KNOWING what its own check refused --
+             the failing acceptance lines or the red checks, in the words the
+             check used. Without this it would re-stage blind against a branch
+             that is already wrong, which is the loop the seat cannot see. */
+          fixNote = selfCheckNote(station, alreadyRight.reason ?? null);
+        }
+      }
     }
 
     /*
@@ -2615,7 +2660,11 @@ export async function driveTrackOnce(
           { title: row.title, origin: row.origin },
           brief,
           seat,
-          backNote,
+          /* The fix note wins where there is one. It is the more specific of the
+             two and it is about THIS branch: `backNote` says a station could not
+             finish, while this says the pull request that already exists does
+             not hold and names what refused it. */
+          fixNote ?? backNote,
           specId,
           workBranch,
         ),
@@ -3202,9 +3251,24 @@ export async function driveTrackOnce(
       await supabase
         .from("spine_tracks" as never)
         .update({
-          // Counted: `attempts` is the only thing that bounds a station, and the
-          // only thing any stuck-work alarm reads. See the block above.
-          attempts: (row.attempts ?? 0) + 1,
+          /*
+           * Counted: `attempts` is the only thing that bounds a station, and the
+           * only thing any stuck-work alarm reads. See the block above.
+           *
+           * -- UNLESS NO CREW RAN, 2026-09-02 -------------------------------
+           * `2fdf93b6` went from 0 attempts to 2 across two ticks with NO
+           * `agent_runs` row and no tool call. Its changeset was `pr_open` with
+           * red CI, so the done rule skipped the crew and this line counted an
+           * attempt anyway -- three of those and the work is given up, having
+           * never dispatched a seat.
+           *
+           * An attempt is a try. A drive that ran nobody did not try, so it does
+           * not spend one. The gate above now runs the crew in fix mode when the
+           * check does not hold, so a genuine repeated failure still counts and
+           * still reaches a person; what is removed is the count on a drive that
+           * did no work.
+           */
+          attempts: buildAlreadyHandedOn ? (row.attempts ?? 0) : (row.attempts ?? 0) + 1,
           last_hold: "self-check-failed",
           // F-175: the verifier's own reason. Null when it gave none, rather
           // than the derivable half of the line.

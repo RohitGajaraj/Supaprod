@@ -2632,6 +2632,21 @@ export type TrackTransition = {
   drivenVia: "sweep" | "press" | "continuation" | "foreground" | null;
 };
 
+/**
+ * The moment this track's bet was settled.
+ *
+ * `claim` travels with it because a verdict without the thing it judged is not
+ * readable: "you called it" in a stream of events has to say what was called.
+ */
+export type TrackVerdict = {
+  at: string;
+  resolution: string;
+  claim: string | null;
+  rationale: string | null;
+  /** The agent that graded it, or null when a person did. */
+  by: string | null;
+};
+
 /** One `track_drives` row, as far as the self-check tally is concerned. */
 type SelfCheckRow = {
   station?: string | null;
@@ -2896,10 +2911,11 @@ export const getTrackActivity = createServerFn({ method: "GET" })
       turns: Turn[];
       transitions: TrackTransition[];
       selfChecks: SelfCheckTally;
+      verdict: TrackVerdict | null;
     }> => {
       const { supabase } = context;
       try {
-        const [runsRes, membersRes, eventsRes, drivesRes] = await Promise.all([
+        const [runsRes, membersRes, eventsRes, betRes, drivesRes] = await Promise.all([
           supabase
             .from("agent_runs")
             /*
@@ -2930,6 +2946,19 @@ export const getTrackActivity = createServerFn({ method: "GET" })
             .eq("entity_id", data.trackId)
             .order("at", { ascending: true })
             .limit(200),
+          /*
+           * THE BET THIS TRACK MADE, so its verdict can be a row in the stream.
+           *
+           * Its own query for the same reason the drives are: it is a different
+           * table with a different failure, and a track with no decision is the
+           * ordinary case rather than an error.
+           */
+          supabase
+            .from("spine_track_members" as never)
+            .select("artifact_id")
+            .eq("track_id", data.trackId)
+            .eq("artifact_kind", "decision")
+            .limit(4),
           /*
            * WHAT EACH DRIVE'S OWN CHECK COMPARED.
            *
@@ -2965,7 +2994,64 @@ export const getTrackActivity = createServerFn({ method: "GET" })
             .limit(200),
         ]);
 
+        /*
+         * -- THE VERDICT AS A MOMENT, NOT AS A FIELD --------------------------
+         *
+         * The Learn tab shows the verdict as a PROPERTY of the bet, which is
+         * right there. The transcript is the other question -- what happened to
+         * this work, in order -- and a bet being settled is the single most
+         * consequential thing that ever happens to a track: it is the loop
+         * closing. Leaving it out meant a person could scroll the whole record
+         * of a run and never meet the answer.
+         *
+         * Read only when the track has a decision, and only when that decision
+         * has been graded. A bet nobody has settled is not a moment, and an
+         * ungraded row rendered as one would be the transcript claiming an event
+         * that has not happened.
+         */
+        const betIds = ((betRes.data ?? []) as unknown as Array<{ artifact_id?: string | null }>)
+          .map((m) => m.artifact_id)
+          .filter((id): id is string => typeof id === "string" && id.length > 0);
+        let verdict: TrackVerdict | null = null;
+        if (betIds.length > 0) {
+          const { data: bets, error: betErr } = await supabase
+            .from("decisions")
+            .select(
+              "forecast_claim, forecast_resolution, forecast_resolution_rationale, forecast_resolved_at, forecast_resolved_by_agent_slug",
+            )
+            .in("id", betIds)
+            .not("forecast_resolution", "is", null)
+            .order("forecast_resolved_at", { ascending: false })
+            .limit(1);
+          if (betErr) {
+            console.error(`[getTrackActivity] could not read the verdict: ${betErr.message}`);
+          } else {
+            const b = (bets ?? [])[0] as
+              | {
+                  forecast_claim?: string | null;
+                  forecast_resolution?: string | null;
+                  forecast_resolution_rationale?: string | null;
+                  forecast_resolved_at?: string | null;
+                  forecast_resolved_by_agent_slug?: string | null;
+                }
+              | undefined;
+            /* A verdict with no time cannot be placed in a stream, and a row in
+               the wrong place would claim the bet was settled at a moment it was
+               not. The same refusal the self-check rows make. */
+            if (b?.forecast_resolution && b.forecast_resolved_at) {
+              verdict = {
+                at: b.forecast_resolved_at,
+                resolution: b.forecast_resolution,
+                claim: b.forecast_claim ?? null,
+                rationale: b.forecast_resolution_rationale ?? null,
+                by: b.forecast_resolved_by_agent_slug ?? null,
+              };
+            }
+          }
+        }
+
         return {
+          verdict,
           selfChecks: summariseSelfChecks(
             (drivesRes.data ?? []) as unknown as SelfCheckRow[],
             drivesRes.error ? drivesRes.error.message : null,
@@ -2989,7 +3075,7 @@ export const getTrackActivity = createServerFn({ method: "GET" })
           })),
         };
       } catch {
-        return { turns: [], transitions: [], selfChecks: EMPTY_SELF_CHECKS };
+        return { turns: [], transitions: [], selfChecks: EMPTY_SELF_CHECKS, verdict: null };
       }
     },
   );

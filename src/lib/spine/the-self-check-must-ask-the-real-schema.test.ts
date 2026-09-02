@@ -177,15 +177,31 @@ describe("a check that could not run must not fail the station", () => {
 });
 
 describe("the self-check hold is bounded", () => {
-  it("the self-check write counts an attempt, because attempts is the only bound", () => {
-    // Left at 0, MAX_STATION_ATTEMPTS never trips, `given-up` never fires,
-    // decideCorrection is never reached, and every stuck-work alarm keyed on the
-    // counter stays silent while each tick re-runs the crew at real cost.
+  it("the self-check write counts an attempt WHEN A CREW RAN, because attempts is the only bound", () => {
+    /*
+     * Left at 0 for a real failure, MAX_STATION_ATTEMPTS never trips, `given-up`
+     * never fires, decideCorrection is never reached, and every stuck-work alarm
+     * keyed on the counter stays silent while each tick re-runs the crew at real
+     * cost. That is why it counts.
+     *
+     * ── AND WHY IT NOW ASKS WHETHER ANYONE RAN, 2026-09-02 ─────────────────
+     * `2fdf93b6` went from 0 attempts to 2 across two ticks with NO `agent_runs`
+     * row and no tool call. Its changeset was `pr_open` with red CI, so P-03's
+     * done rule skipped Build's crew and this line counted an attempt anyway.
+     * Three of those and the work is given up having never dispatched a seat.
+     *
+     * An attempt is a TRY. A drive that ran nobody did not try. The bound is
+     * unchanged for every drive that did: the done rule now runs the crew in fix
+     * mode when the check does not hold, so a genuine repeated failure still
+     * counts and still reaches a person.
+     */
     const body = DRIVER.slice(DRIVER.indexOf("export async function driveTrackOnce("));
     const at = body.indexOf('last_hold: "self-check-failed"');
     expect(at).toBeGreaterThan(-1);
-    const write = body.slice(at - 500, at + 100);
-    expect(write).toContain("attempts: (row.attempts ?? 0) + 1");
+    const write = body.slice(at - 1400, at + 100);
+    expect(write).toContain(
+      "attempts: buildAlreadyHandedOn ? (row.attempts ?? 0) : (row.attempts ?? 0) + 1",
+    );
   });
 
   it("the clock-based wait is still exempt, because waiting on a date costs nothing", () => {

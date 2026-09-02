@@ -84,7 +84,53 @@ describe("the done rule", () => {
      * status working by default -- the same shape F-72's gate uses below, for
      * the same reason.
      */
-    expect(flat).toContain('if (st === "pr_open" || st === "merged") buildAlreadyHandedOn = true;');
+    expect(flat).toContain('if (st === "pr_open" || st === "merged") {');
+  });
+
+  /**
+   * ── AND THE STATUS IS ONLY HALF THE QUESTION, 2026-09-02 ────────────────
+   *
+   * The first version of this rule asked the changeset and nothing else, and it
+   * parked the honest run. `2fdf93b6` went from 0 attempts to 2 across two ticks
+   * with NO `agent_runs` row and no tool call: its changeset was `pr_open` with
+   * red CI, so the rule skipped the crew, the self-check afterwards re-read the
+   * same red CI, counted an attempt, and parked. At 3 it gives up.
+   *
+   * The send-back had nobody to send to. The crew that would stage the fix is
+   * exactly the crew the rule was skipping, so the loop refused to run the only
+   * thing that could clear the refusal -- forever, and burning an attempt each
+   * time.
+   */
+  it("only skips the crew when the station's own check also holds", () => {
+    expect(flat).toContain("const alreadyRight = await verifyStationOutput(");
+    expect(flat).toContain("buildAlreadyHandedOn = alreadyRight.passed;");
+  });
+
+  it("runs the crew in fix mode when it does not, and tells it what refused", () => {
+    /*
+     * `studio.fix.commit` is what this case was written for: append the fix to
+     * the same branch and the same pull request. Without the note the seat
+     * re-stages blind against a branch that is already wrong, which is the loop
+     * it cannot see from inside.
+     */
+    expect(flat).toContain("fixNote = selfCheckNote(station, alreadyRight.reason ?? null);");
+    expect(flat).toContain("fixNote ?? backNote,");
+  });
+
+  it("asks before the crew, not after, which is the whole shape of it", () => {
+    // The enforcing check runs after seats have spent money. This one is a read,
+    // and its only job is deciding whether there is anything for them to do.
+    expect(code.indexOf("const alreadyRight = await verifyStationOutput(")).toBeLessThan(
+      code.indexOf("const result = await runAgentLoop("),
+    );
+  });
+
+  it("a drive that ran no crew counts no attempt", () => {
+    // An attempt is a try. Three drives that dispatched nobody must not add up
+    // to a piece of work given up.
+    expect(flat).toContain(
+      "attempts: buildAlreadyHandedOn ? (row.attempts ?? 0) : (row.attempts ?? 0) + 1",
+    );
   });
 
   it("skips the whole crew rather than seat by seat", () => {
