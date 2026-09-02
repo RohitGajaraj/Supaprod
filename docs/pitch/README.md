@@ -68,8 +68,15 @@ Most work here is an accelerator, incubator, residency or grant application. The
 
 ### YC specifically
 
+> **❌ REJECTED 2026-08-29 — not selected for an interview, no reason given.** Filed 2026-07-23 under
+> the old name Cadence; 37 days to decision. The full record, the three facts that are ours, and the
+> one thing that did NOT go wrong: [**`yc/OUTCOME.md`**](./yc/OUTCOME.md). **Reapplication is open
+> and YC quantifies it — over 50% of accepted startups are repeat applicants.** Everything below
+> still stands as the source for that next filing.
+
 | File | Open it when |
 | --- | --- |
+| [**`yc/OUTCOME.md`**](./yc/OUTCOME.md) | **The Fall 2026 application was rejected. Read this before touching anything else in this folder.** The verbatim email, why no reason may be recorded, and the two locked fields a reapplication must not inherit. |
 | [**`yc/APPLICATION-FINAL.md`**](./yc/APPLICATION-FINAL.md) | **PASTE FROM HERE. The finished Fall 2026 application, every field, nothing but final text.** Rebuilt 2026-08-11 after three claims on the form were found to be false: three product metrics that were seed data, a thirteen-month timeline against ten weeks of commits, and the falsified moat claim still sitting in the submit sheet. Every number in it reproduces from a command. Two fields marked `[YOU]` need something only the founder has. |
 | [`yc/fall-2026-application.md`](./yc/fall-2026-application.md) | The reasoning, the audit history and every superseded draft behind the file above. **Not the paste source any more.** |
 | [`yc/research-findings.md`](./yc/research-findings.md) | You need the evidence behind a choice. YC's own rules, the seven deadly sins, language forensics, every claim sourced. |

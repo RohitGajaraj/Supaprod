@@ -1,6 +1,48 @@
 # Accelerator, incubator, residency and grant applications — the master tracker
 
-> ### ❌ Four outcomes, all noes — and the fourth is the first with a cause we wrote down BEFORE filing
+> ### ❌ Five outcomes, all noes — and the biggest one arrived four days before anybody wrote it down
+>
+> **Y Combinator Fall 2026: REJECTED 2026-08-29, not selected for an interview.** Filed 2026-07-23
+> under the old name Cadence, so the turnaround was **37 days** — the longest of the five. Full
+> record: [`../yc/OUTCOME.md`](../yc/OUTCOME.md). Notion card updated.
+>
+> **No reason, by stated policy.** *"We carefully reviewed thousands of applications, and with so
+> many strong submissions, we had to make difficult decisions"*, then *"we can't give you individual
+> feedback about your application"* with a link to YC's published explanation of why. That is a
+> volume statement, the same shape as EF and South Park Commons. **No reason may be recorded**, and
+> the rule below binds here exactly as it did there.
+>
+> **This one letter is the first to QUANTIFY reapplication.** Not just *"apply again"* — *"applying
+> multiple times does not count against you"* and ***"over 50% of the startups we accept are repeat
+> applicants."*** A published fact about YC's funnel, not an assessment of this filing. It makes a
+> second application an ordinary move, and the next one would be the first that describes the company
+> under its current name.
+>
+> **Two facts are OURS and were on the form, locked, before the decision** — both confirmed live on
+> 2026-08-19, ten days out. The 50-character field reads **"Cursor for PMs, the whole product org."**,
+> which is retired doctrine and already on the never list. And field 7d still carried an **11:46 demo
+> video** the file itself calls *"far too long"*, with the 2:22 product film shipped 08-12 and no
+> record of it being swapped. **Neither is a cause. Both are things we knew and could not or did not
+> change.**
+>
+> **One thing did NOT go wrong and should not be re-litigated:** the private-beta gate that closed
+> mid-review was covered — the filed product-link field carries the permanent invite code, so a
+> partner had a working path in the whole time.
+>
+> ### 🕒 NEW RULE — a decision reaches this file the day it arrives
+>
+> **YC said no on 08-29 and this file said "four outcomes" until 09-02.** This is the second time:
+> the commit *"The board said South Park Commons was still pending five days after they said no"*
+> fixed the same thing on 08-16. **A tracker that lags is worse than no tracker**, because the next
+> session plans against a pipeline that has already shrunk. The rejection email is the trigger, not
+> the next sweep.
+>
+> **The two `TRACKER*.csv` exports in this folder are frozen at 2026-08-16 and are now wrong about
+> four programmes, not one** — they still read Campus Founders and Betaworks as `Submitted` and
+> Hub71 as `Not started`. **Notion is the live board; treat those CSVs as dated snapshots** and
+> regenerate rather than hand-patch.
+>
+> ### ❌ Fourth outcome: Campus Founders — the first with a cause we wrote down BEFORE filing
 >
 > **Campus Founders CF Accelerator Batch #9: REJECTED 2026-08-24.** Filed 2026-08-16. Full record: [`campus-founders/OUTCOME.md`](./campus-founders/OUTCOME.md). Notion card updated.
 >
