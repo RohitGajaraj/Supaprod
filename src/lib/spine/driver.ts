@@ -31,6 +31,7 @@
 // database. The stop conditions are the safety of the whole feature: a driver
 // that runs when it should not is worse than no driver.
 
+import { A_CLAIM_IS_NOT_A_FORBIDDEN_PATH } from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
 import { readOnBranchInstruction } from "@/lib/repo-ref-brief";
 import {
   AGENT_STATIONS,
@@ -1164,7 +1165,14 @@ const FILE_IT: Record<AgentStation, string> = {
   // entry, and a fallback that stops one step short is the same defect wearing
   // a different key. (Exactly how F-32 was found to be half-fixed.)
   build:
-    "Finish by calling studio.stage with the change you made, then studio.commit to put it on its own branch, then studio.pr.open so there is a pull request Ship can point at, then studio.checks.run for the CI verdict, and when it is green call studio.pr.merge. If studio.commit refuses a path it may not write, call studio.unstage on that path and commit the rest rather than stopping: a staged path you cannot commit and do not unstage traps the whole changeset. The merge re-proves CI fresh and refuses red, and where governance wants a person it files that question instead of running, that is the gate working, so stop there and say so. Work that is only in your answer is not on the record, and a pull request nobody moves toward the merge gate sits open forever.",
+    "Finish by calling studio.stage with the change you made, then studio.commit to put it on its own branch, then studio.pr.open so there is a pull request Ship can point at, then studio.checks.run for the CI verdict, and when it is green call studio.pr.merge. If studio.commit refuses a path it may not write, call studio.unstage on that path and commit the rest rather than stopping: a staged path you cannot commit and do not unstage traps the whole changeset. " +
+    /* The claim case, stated IMMEDIATELY after the unstage case rather than
+       further down. A seat met the permissive sentence alone on 2026-09-02,
+       generalised it to a claimed path, and shipped a red pull request; a
+       correction three sentences away would have read the same way. Imported
+       rather than restated, so the tool's refusal and this brief cannot drift. */
+    A_CLAIM_IS_NOT_A_FORBIDDEN_PATH +
+    " The merge re-proves CI fresh and refuses red, and where governance wants a person it files that question instead of running, that is the gate working, so stop there and say so. Work that is only in your answer is not on the record, and a pull request nobody moves toward the merge gate sits open forever.",
   /*
    * ── A FORECAST IS THE REASON TO SHIP, NOT A CONDITION FOR SHIPPING ───────
    * (F-115, measured on live runs 2026-08-27)

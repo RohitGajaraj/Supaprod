@@ -115,6 +115,7 @@ import {
   CANNOT_BE_GRADED,
 } from "@/lib/spine/a-forecast-about-our-own-paperwork";
 import { buildSettlePatch } from "@/lib/brain/forecast-resolution";
+import { claimedPathRefusal } from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import type { ProviderAuthCache } from "@/lib/connectors/resolve.server";
 import { runRollbackRelease } from "@/lib/studio-rollbacks";
@@ -1161,8 +1162,8 @@ const githubPrOpen = def({
           holderTitle = (m as { title?: string } | null)?.title ?? null;
         }
         throw new Error(
-          `BuilderFileConflict: path "${a.path}" is already claimed by another Builder mission${holderTitle ? ` ("${holderTitle}")` : ""}. ` +
-            `Wait for it to finish or have the operator release the claim from /build.`,
+          `BuilderFileConflict: ${claimedPathRefusal({ path: a.path, missionTitle: holderTitle })} ` +
+            `An operator can also release the claim from /build.`,
         );
       } else if (!existing) {
         // Try to take the claim. If a parallel call beats us, fall back to
@@ -1189,8 +1190,8 @@ const githubPrOpen = def({
         if (insErr) {
           if (/unique|duplicate/i.test(insErr.message)) {
             throw new Error(
-              `BuilderFileConflict: path "${a.path}" was just claimed by another Builder mission. ` +
-                `Wait for it to finish or have the operator release the claim from /build.`,
+              `BuilderFileConflict: ${claimedPathRefusal({ path: a.path, missionTitle: null })} ` +
+                `It was claimed while this call was in flight. An operator can also release it from /build.`,
             );
           }
           // Non-conflict insert failure is non-fatal — log and proceed; the
@@ -2730,8 +2731,22 @@ const studioCommit = def({
       (h: { mission_id: string | null }) => h.mission_id && h.mission_id !== missionId,
     );
     if (foreign) {
+      /*
+       * "Wait or release the claim" is what this said, and a seat routed around
+       * it on 2026-09-02: it unstaged the claimed component, committed the two
+       * test files that described it, opened a pull request and ran the checks,
+       * which came back red on the customer's repository. The refusal worked and
+       * the advice next to it did not. See `a-claimed-path-is-a-wait-not-an-
+       * unstage.ts` -- the sentence forbids the escape by name now, because a
+       * refusal that only says "wait" is one that gets routed around.
+       *
+       * The `BuilderFileConflict:` prefix stays: `refusal-kind.ts` classifies on
+       * it, and changing the shape of the string would silently reclassify every
+       * claim conflict this product has recorded.
+       */
+      const f = foreign as { path: string; mission_title?: string | null };
       throw new Error(
-        `BuilderFileConflict: path "${(foreign as { path: string }).path}" is claimed by another Studio mission${(foreign as { mission_title?: string }).mission_title ? ` ("${(foreign as { mission_title: string }).mission_title}")` : ""}. Wait or release the claim.`,
+        `BuilderFileConflict: ${claimedPathRefusal({ path: f.path, missionTitle: f.mission_title })}`,
       );
     }
     const ours = new Set(
