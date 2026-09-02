@@ -996,7 +996,15 @@ founder names.
 - [ ] No human action between the person's sentence and the deployment row, proven by
       `track_drives.driven_via` and `agent_approvals` for that track.
 
-**Report / Blockers / A1 verdict:**
+**Blockers (A1, 2026-09-02 20:58 IST, from the live transcript of `ce846e9b`):** the bound repo
+`Supaprod/relay-homeowner-app` **holds only Relay's checkout module** (its README says so; `src/`
+is `AddressStep.tsx`, `checkout.test.ts`, `funnel.ts`, `types.ts`, `main.ts`). Every Build seat on
+`ce846e9b` said the status-tile work "belongs in the main Relay app repository" and filed nothing,
+three corrections in a row. So the Sep 8 honest run must be **a checkout change** on that repo (the
+address step, the funnel), or the workspace must be bound to a fuller repo first. A1 will name the
+sentence for the honest run accordingly; P-03 does not need to widen the repo.
+
+**Report / A1 verdict:**
 
 ---
 
