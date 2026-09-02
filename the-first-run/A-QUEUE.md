@@ -875,7 +875,7 @@ or add `src/lib/__tests__/a-user-never-reads-the-org-chart.test.ts`.
 
 ---
 
-### P-05 · Start tells the story before the run · Lane: **A2** · Status: READY (after P-24) · Moves: 1, 2, 3
+### P-05 · Start tells the story before the run · Lane: **A2** · Status: CLAIMED (A2, 21:22 IST) · Moves: 1, 2, 3
 
 **Scope.** `/start` becomes: one orientation line (only while the workspace has no track) · the
 composer · three example jobs, each a full sentence with a Start button that fills the composer and
