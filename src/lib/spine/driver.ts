@@ -1399,25 +1399,25 @@ export const HOLD_LINE: Record<HoldReason, string> = {
   "no-agent": "No agent is picking this step up, so it needs you.",
   done: "The route is finished. This work has been graded.",
   "produced-nothing":
-    "This station ran but filed nothing, so there is nothing to hand to the next one. It will try again.",
+    "This step ran but filed nothing, so there is nothing to hand to the next one. It will try again.",
   // S0-001: the output exists but did not pass the station's own verification
   "self-check-failed":
-    "This station filed something, but it did not meet the quality it checks for before handing it on. The output exists and will be examined again the next time this station runs.",
+    "This station filed something, but it did not meet the quality it checks for before handing it on. The output exists and will be examined again the next time it runs.",
   // Names what is MISSING rather than what arrived, because the next station is
   // what a person has to unblock and the stray artifact is not the problem.
   "nothing-to-hand-on":
-    "This station filed something, but not what the next station needs, so the work cannot move on yet. It will try again.",
+    "This step filed something, but not what the next one needs, so the work cannot move on yet. It will try again.",
   // NO LONGER TERMINAL, and the wording had to change with it. This used to read
   // "so it stopped trying", which was true and was the defect: nothing anywhere
   // handled the state and the work froze for good. A track that reaches the
   // ceiling now goes to `decideCorrection`, which sends it back to the station
   // that can fix the precondition or puts one specific ask in front of a person.
-  stalled: "This station ran and produced nothing several times, so it is being sent for a fix.",
+  stalled: "This step ran and produced nothing several times, so it is being sent for a fix.",
   "over-budget":
     "This work has spent its budget, so it stopped. Raise the ceiling to let it carry on.",
   "out-of-time": "This run of the loop ran long, so the rest of the work carries on next time.",
   "out-of-credit":
-    "The account ran out of credit before this station could run, so nothing was tried and nothing was charged against this work. Top the account up and it carries on from here.",
+    "The account ran out of credit before this step could run, so nothing was tried and nothing was charged against this work. Top the account up and it carries on from here.",
   // Names the tool and the refusal, because "something went wrong" is what this
   // hold exists to stop being the answer. The line is deliberately NOT "it will
   // try again": retrying a refused credential spends money to be told no.

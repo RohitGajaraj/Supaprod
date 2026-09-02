@@ -143,8 +143,13 @@ describe("the hold says what is missing, and is correctable", () => {
 
   it("names what is missing rather than what arrived", () => {
     // The stray artifact is not the problem; the next station being short is.
+    // Worded without the word "station" itself (P-13, A-QUEUE.md,
+    // 2026-09-02): this reason is not in STATION_SPECIFIC, so holdLine never
+    // substitutes a display name into it, and the raw text would otherwise
+    // reach a signed-in person verbatim.
     const line = HOLD_LINE["nothing-to-hand-on"];
-    expect(line).toContain("not what the next station needs");
+    expect(line).toContain("not what the next one needs");
+    expect(line.toLowerCase()).not.toContain("station");
     expect(line).not.toMatch(/[\u2013\u2014]/);
   });
 

@@ -194,7 +194,7 @@ export function TrackChain({
         <>
           <Line
             label="Filed somewhere we cannot place"
-            sub="These belong to this work, but not to a station this version knows about."
+            sub="These belong to this work, but not to a step this version knows about."
           >
             {/* `hold`, and it is the one place amber is right on this panel.
                 These members exist and are filed; they are parked outside the

@@ -226,7 +226,7 @@ export function WhatWereSolving({
                     <ReasonField
                       id={`solving-${field.column}-${state.bet.id}`}
                       label={field.answerLabel}
-                      hint="It goes on this piece of work, and every station after this one reads it."
+                      hint="It goes on this piece of work, and every step after this one reads it."
                       commitLabel="Add it"
                       cancelLabel="Leave it open"
                       busy={answer.isPending}

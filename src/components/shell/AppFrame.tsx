@@ -525,7 +525,7 @@ type Worker = { slug: string | null; name?: string | null };
 
 /** The name for work whose worker we cannot resolve. Matches the Build
  *  surface (runs/run-state.ts), so the product says one thing everywhere. */
-const CREW = "The crew";
+const CREW = "Your agents";
 
 /** What "working" means for a mission, and it is not one string.
  *
@@ -559,7 +559,7 @@ function TitleFact({ title }: { title: string }) {
   return (
     <>
       {isAutoTitle(title) ? (
-        <span className="sp-auto" title="The crew raised this on its own">
+        <span className="sp-auto" title="Your agents raised this on their own">
           auto
         </span>
       ) : null}
@@ -808,7 +808,7 @@ function RailFind({
         type="text"
         value={q}
         placeholder="Find a run"
-        aria-label="Find a run or a station"
+        aria-label="Find a run or a step"
         onChange={(e) => {
           setQ(e.target.value);
           setCursor(0);
@@ -1372,7 +1372,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
        * the work, never a menu. */
       if (movingRuns.length === 1) {
         const label = STAGE_LABEL[movingRuns[0].station];
-        return label ? `The crew is moving · ${label}` : "The crew is moving";
+        return label ? `Your agents are moving · ${label}` : "Your agents are moving";
       }
       if (movingRuns.length > 1) return `${movingRuns.length} runs are moving`;
       return "Nothing running";
@@ -1406,8 +1406,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
      * and the drawing finally agree. "Run" survives only as the object of the
      * sentence, where it is a true noun for a true number. */
     return running.length === 1
-      ? `${CREW} is working`
-      : `${CREW} is working on ${running.length} runs`;
+      ? `${CREW} are working`
+      : `${CREW} are working on ${running.length} runs`;
   }, [
     missions.isError,
     /*

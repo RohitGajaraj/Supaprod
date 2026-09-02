@@ -126,7 +126,7 @@ export function OpenQuestions({
                   <ReasonField
                     id={`answer-${hash(q)}`}
                     label={q}
-                    hint="It goes to the work as an instruction and stays in the record, so the next station reads your answer rather than guessing."
+                    hint="It goes to the work as an instruction and stays in the record, so the next step reads your answer rather than guessing."
                     placeholder="Follow the v2 convention. It is the one the fraud team already uses."
                     commitLabel="Send this answer"
                     cancelLabel="Not now"

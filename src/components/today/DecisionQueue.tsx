@@ -162,7 +162,7 @@ function OpenCall({
         {pick}
         {item.agentSlug ? (
           <Door
-            title="Open this agent in the crew"
+            title="See this agent's settings"
             onClick={() => onOpenAgent(item.agentSlug as string)}
           >
             <span className="today-open-who">

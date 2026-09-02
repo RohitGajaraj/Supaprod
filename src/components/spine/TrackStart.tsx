@@ -248,7 +248,7 @@ export function TrackStart({
         consequence: `${t.title} is at ${AGENT_STATIONS[res.track.station].name}. ${
           after
             ? `Its route goes to ${AGENT_STATIONS[after].name} after that.`
-            : "That is the last station on its route."
+            : "That is the last step on its route."
         }${emptyNote}`,
       });
     },
@@ -304,7 +304,7 @@ export function TrackStart({
   return (
     <Region
       title="Work in flight"
-      sub="Each one carries its own route through the seven stations, including the ones it waives and why."
+      sub="Each one carries its own route through the seven steps, including the ones it waives and why."
       /* `toggle`, NOT `goTo` AND NOT `act`. This control opens and closes a
          form that lives INSIDE this region: it navigates nowhere and it starts
          no work, it discloses. `toggled` is the half the retired `more`/`onMore`

@@ -2080,7 +2080,7 @@ export function Board() {
             ) : (
               <NeedsSetup
                 kind="no-workspace"
-                thenWhat="this opens on what the crew finished overnight, what is waiting on your call, and what stopped."
+                thenWhat="this opens on what your agents finished overnight, what is waiting on your call, and what stopped."
                 action={
                   <Action variant="primary" onClick={() => navigate({ to: "/onboarding" })}>
                     Set up your workspace

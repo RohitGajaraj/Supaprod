@@ -338,8 +338,7 @@ export function TrackRunLeft({
       }
       setReleaseNote({
         verb: "You released it",
-        consequence:
-          "The station runs again on its next turn. Press Run it now to walk it immediately.",
+        consequence: "It runs again on its next turn. Press Run it now to walk it immediately.",
       });
     },
     onError: (e: Error) =>

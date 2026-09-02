@@ -100,7 +100,7 @@ export const Route = createFileRoute("/_authenticated/track/$trackId")({
         <header className="mrd-workbench-header">
           <PageHeading
             title="This run did not load."
-            sub="Reload the page. Nothing about the run itself is lost -- every station writes its own row as it goes."
+            sub="Reload the page. Nothing about the run itself is lost -- every step writes its own row as it goes."
           />
         </header>
       </div>
