@@ -33,12 +33,33 @@
  * parameter rather than a constant because the ruling can widen, and because a
  * template that hardcodes the reassuring half is the one that lies first.
  *
- * **THE SEND DOES NOT EXIST YET AND THIS FILE DOES NOT PRETEND IT DOES.** S0
- * ruled a sent-table keyed `UNIQUE(track_id, hold)` rather than a `notified_at`
- * column, because dedupe must be the database's job: at 144 sweep passes a day a
- * check-then-write races with itself, and a unique index cannot. **The migration
- * is not applied** — S0's own write was refused by their permission layer and it
- * is escalated to the founder by name. Treat the table as not existing.
+ * **THE SEND DOES NOT EXIST YET, AND EVERYTHING IT NEEDS NOW DOES.** S0 ruled a
+ * sent-table keyed `UNIQUE(track_id, hold)` rather than a `notified_at` column,
+ * because dedupe must be the database's job: at 144 sweep passes a day a
+ * check-then-write races with itself, and a unique index cannot.
+ *
+ * -- THIS PARAGRAPH SAID "THE MIGRATION IS NOT APPLIED". IT IS. --------------
+ * That sentence was true when written and became false on 2026-09-01, and it
+ * cost something: on 2026-09-03 it was read at face value and filed as a
+ * one-line blocker on the FOUNDER, for a table that already existed. Checked
+ * against `information_schema` rather than against this file:
+ *
+ *   `public.track_hold_notices`            migration 20260901010000, RLS on
+ *   `track_hold_notices_track_id_hold_key` UNIQUE (track_id, hold), S0's exact key
+ *   `sendEmail` / `dispatchInstantEmail`   `notifications.functions.ts`, a real
+ *                                          provider with preference checks
+ *   `user_notification_preferences.email_stopped`   the preference column
+ *
+ * So the composer below, the table, the send path and the preference all exist
+ * and nothing is wired between them. That is ordinary work for whoever picks it
+ * up, not an escalation.
+ *
+ * THE LESSON IS THE STALE COMMENT ITSELF, and it is the third found in two days:
+ * `forecast-audit.server.ts:97` still says nothing can set `auto_derive_enabled`
+ * (Settings has written it since 2026-08-14), and three gates in
+ * `driver.server.ts` read a `studio_changesets.track_id` that has never existed.
+ * A file's own header is the least reliable thing in a repository, because it is
+ * the one part nothing executes. **Ask the database.**
  *
  * Their stated limitation, recorded here rather than rediscovered: `spine_tracks`
  * has `last_hold` and `last_hold_because` and **no acquisition timestamp**, so

@@ -2172,27 +2172,41 @@ Learn's is `CREW_ROLE["data-analyst"]` at **`:428`** and `FILE_IT.learn` at **`:
       Start row. A1 lists the ids in the Blockers block before you start. This is the grader's first
       real run on anything.
 
-**BLOCKED ON THE FOUNDER — one line, one decision (A2, 2026-09-03; A1 ruled it not P-04's job):**
-**the stop email cannot be built by any lane, because it has no table.**
-`src/components/notifications/stopped-email.ts` composes the subject, the text and the HTML and has
-**never been called in product code** — `grep -rn "stopped-email"` across `src/`, `e2e/`, `test/` and
-`scripts/` returns its own test and nothing else. Its header says why, and it is not a gap anyone
-forgot: *"THE SEND DOES NOT EXIST YET AND THIS FILE DOES NOT PRETEND IT DOES."*
+**~~BLOCKED ON THE FOUNDER~~ — WITHDRAWN BY A2, 2026-09-03, AND THE WITHDRAWAL IS THE FINDING.**
+**The stop email is not blocked on anything. Everything it needs already exists, and I filed a
+one-line escalation on the founder for a table that has been on the database since 2026-09-01.**
 
-**What it needs, and it is one object:** a sent-table keyed `UNIQUE(track_id, hold)`. S0 ruled that
-shape rather than a `notified_at` column for a reason worth keeping: at 144 sweep passes a day a
-check-then-write races with itself and a unique index cannot. **S0's own migration was refused by
-their permission layer and escalated to the founder by name.** So the file was written correctly
-against a table that was never created, and every lane since has met the same wall.
+I filed it by reading `stopped-email.ts`'s own header, which says in bold: *"THE SEND DOES NOT EXIST
+YET AND THIS FILE DOES NOT PRETEND IT DOES… **The migration is not applied** — S0's own write was
+refused by their permission layer and it is escalated to the founder by name. Treat the table as not
+existing."* That was true when it was written. It is not true now, and I passed it on as fact instead
+of checking. Checked since, against `information_schema`:
 
-**Why it is not the horizon verdict's job.** A stop email is a notification CHANNEL — no provider
-wired, no table, no send path — and P-04 would have to build all three before it could carry a
-verdict in a subject line. That is a different packet with a different risk, and folding it in here
-would have made the horizon verdict wait on an escalation that has been open since before this run.
+| What it needs | State |
+| --- | --- |
+| The sent-table | `public.track_hold_notices`, migration `20260901010000`, RLS on |
+| S0's exact dedupe key | `track_hold_notices_track_id_hold_key` — `UNIQUE (track_id, hold)` |
+| A send path | `sendEmail` / `dispatchInstantEmail` in `notifications.functions.ts`, with preference checks and recipient resolution — and `dispatchVerdictEmail` is already called from `learning.record` |
+| The preference | `user_notification_preferences.email_stopped` |
 
-**The founder's decision is one line:** create the sent-table (or authorise a lane to), and the send
-becomes ordinary work. Until then the composer stays correct and uncalled, which is the honest state
-and is what its own header already says.
+The composer, the table, the send path and the preference all exist. **Nothing is wired between
+them.** That is ordinary work for whoever picks it up, not a decision for the founder, and his list
+should not carry it.
+
+**THE CLASS OF DEFECT, WHICH IS THE PART WORTH KEEPING.** This is the third stale comment found in
+two days, and all three said "this does not exist" about something that does:
+
+- `stopped-email.ts` — "the migration is not applied". It landed 2026-09-01.
+- `forecast-audit.server.ts:97` — "gated on `auto_derive_enabled`, which no code in this repo can
+  set". Settings has written it since 2026-08-14. That one shaped a ruling before it was caught.
+- `driver.server.ts` × 3 — gates reading `studio_changesets.track_id`, a column that has never
+  existed, which meant F-72's gate never fired once since it was written.
+
+**A file's own header is the least reliable thing in a repository, because it is the one part nothing
+executes.** The rule that comes out of it: a claim about what the database has is checked against
+`information_schema`, never against a comment — including a comment written carefully, in bold, by
+somebody who was right at the time. The header itself is corrected in the same commit, because
+leaving it would recreate this exact blocker for the next reader.
 
 **Blockers (A1, 2026-09-02 18:58 IST):** the self-referential forecasts to grade `inconclusive`
 through the platform's own path (non-sample, ungraded, observable names a Supaprod tool or table;
@@ -2271,7 +2285,7 @@ smaller than the scope line suggests.
 | --- | --- |
 | Graded verdict on the Learn tab and the Start row within one sweep, evidence quoted | **Code done, live half A1's.** The Start row leads with the verdict for a finished run; the Learn tab's *Actually* block now carries the number the grader read, beside the verdict rather than two blocks below it under a chip answering a different question. |
 | `forecast_resolution_log` gains its first non-seed row | **Code done.** Every resolution files a row now, grader included — it had exactly one writer, the reopen path, so it held a history of corrections with no history of the things corrected. |
-| One email sent with the verdict in the subject | **BLOCKED ON THE FOUNDER, not built** (A1 ruled it not this packet's job). See the Blockers block above: one object, one line. |
+| One email sent with the verdict in the subject | **Not built, and NOT blocked** — I filed it as blocked on the founder and withdrew that the same day; see above. The table, the send path and the preference all exist. Ready for whoever takes it. |
 | A test refuses a forecast whose observable names `prd.get`, `sources.status` or `workspace.search` | **Done.** All eight on the record are in the test verbatim, and half the file is forecasts that must NOT be refused — a predicate that refused everything would pass the first half and destroy the feature. |
 | The eight self-referential forecasts graded `inconclusive` through the platform's own path | **Code done.** They settle with the founder's sentence through `learning.record` itself, and the overlap guard is skipped for them: it would refuse the tool outright ("your verdict does not mention `prd.get`") and no verdict could mention it usefully. |
 
