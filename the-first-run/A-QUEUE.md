@@ -92,6 +92,7 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 
 **DEV SERVER: off** · any lane may start it when a packet needs a rendered check; the lane that starts it stops it and writes `off` here before reporting the packet.
 **LIVE WALKS (A1): paused 04:12 IST, the Chrome extension disconnected; publishes continue, walks resume when it reconnects. Pending walks: P-25a search panel, `/plan` and `/design` redirects, P-14 batch, P-18a.**
+**FOUNDER, ONE LINE (P-04):** the stop email needs a sent-table keyed `UNIQUE(track_id, hold)`; create it or authorise a lane to, then A2 builds the send.
 
 ---
 
@@ -3543,3 +3544,29 @@ class in that directory fails. Product surfaces outside Meridian are not in scop
 - [ ] tsc 0 · `bun test` 0 fail · pushed · Report.
 
 **Report / Blockers / A1 verdict:**
+
+
+### P-27 · The push guard tells "not fetched" from "no ancestor" · Lane: **A3** · Status: READY (after P-14) · Moves: 5
+
+**Why.** The pre-push orphan guard refused A2's clean fast-forward at 04:50 IST with "NO common
+ancestor with origin/main", because A1 had pushed between A2's fetch and push: the hook ran
+`git merge-base <local> <remote-sha>` on a sha not yet in A2's object store, merge-base errored, and
+the hook read any non-zero exit as an orphan history. On a main this busy that race is routine, and a
+guard that cries orphan on an ordinary concurrent push is one people learn to reach past with
+`ALLOW_ORPHAN_MAIN`, which is how the 2026-07-27 wipe happens again.
+
+**Scope.** In the hook: fetch the remote ref first (or `git cat-file -e <remote-sha>`), and only when
+the sha is present run merge-base; a missing object says "fetch and rebase, then push", an empty
+merge-base says "orphan". Keep the block for the real case. A test that drives the hook against a
+temp repo with (a) a concurrent push and (b) a true orphan.
+
+**Files.** the pre-push hook under `.githooks/` (or wherever `git config core.hooksPath` points) and
+its test.
+
+**Acceptance.**
+- [ ] Case (a) prints the fetch-and-rebase sentence and exits non-zero without the word orphan;
+      case (b) still blocks with the orphan sentence.
+- [ ] `bun test` 0 fail / 0 error (console) · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
