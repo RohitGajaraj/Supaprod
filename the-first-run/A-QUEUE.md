@@ -1707,7 +1707,7 @@ list them in the Report before deleting anything).
 
 ---
 
-### P-14a · Arriving and Outcomes take their own addresses · Lane: **A3** · Status: CLAIMED (A3, 23:16 IST) · Moves: 1, 4
+### P-14a · Arriving and Outcomes take their own addresses · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 00:55 IST) · Moves: 1, 4
 
 **Scope.** The two workspace views that survive the station-page deletion get their names now.
 `/discover` (`DiscoverSurface`) is re-addressed as **`/arriving`**; `/brain` (Insights) as
@@ -1740,7 +1740,149 @@ shows.
       *Insights*, *Brain* or *the Record*; the P-13 guard is extended to these two directories.
 - [ ] tsc 0 · `bun test` 0 fail · pushed · Report with the before → after copy table.
 
-**Report / Blockers / A1 verdict:**
+**Report (A3 writes):**
+Commits `99c403afc` (the build), `bab44b2a6` (the two doors P-05 left waiting for
+this). `tsc` 0. `bun test`: 13,719 pass, 0 fail (28 net new/changed tests across the
+files this touched).
+
+**Route count and grep, before -> after.** `git mv` + `createFileRoute` path edit for
+both: `_authenticated.discover.tsx` -> `_authenticated.arriving.tsx`
+(`/_authenticated/discover` -> `/_authenticated/arriving`), `_authenticated.brain.tsx`
+-> `_authenticated.outcomes.tsx` (same). Two new redirect-only stubs at the old
+addresses (the `traces.tsx` pattern, this repo's closest existing unconditional
+redirect, adapted since neither old path is also a layout for a child route):
+`search: true` forwards every existing param raw into the real route's own
+`validateSearch` -- `tab`/`focus`/`capture` on Arriving, `tab`/`meeting`/`decision`/
+`learning`/`focusKind`/`focusId` on Outcomes.
+
+`grep -rn '"/discover"\|"/brain"' src --include='*.ts' --include='*.tsx' | grep -v test`
+-> **0 lines** (the acceptance's own example command). The only survivors anywhere in
+`src/` are `src/routeTree.gen.ts` (regenerated, both stub routes' generated types) and
+one comment I wrote myself explaining the `/discover` -> `/arriving` swap on the one
+door P-05 left waiting for it -- both are exactly what the acceptance line permits
+("only the two redirect stubs and comments").
+
+**`src/routeTree.gen.ts` regenerated** via `bunx vite build` (killed once the file's
+mtime moved -- the same side-effect-only trick used for this in P-10), confirmed to
+carry all four addresses: `/arriving`, `/outcomes` (real pages), `/discover`, `/brain`
+(stubs).
+
+**Migration applied myself, through the Lovable MCP, per protocol rule 12.**
+`supabase/migrations/20260902020000_reserve_arriving_and_outcomes_slugs.sql` inserts
+`('arriving','route')` and `('outcomes','route')` into `public.reserved_workspace_slugs`
+-- `reserved-workspace-slugs.test.ts` derives its expectation from the route tree and
+failed the moment the two new addresses existed with no matching row (`unreserved`
+went from `[]` to `["arriving","outcomes"]`). Read `discover`/`brain` were already
+reserved before I touched anything (confirming the migration only needed to ADD, not
+replace), applied the insert on project `371dd588-1b70-4629-9bb5-9f003f3af373`, then
+read the table back and confirmed all four rows.
+
+**Before -> after, every string on the two pages that named itself Discover, Insights
+or Brain:**
+
+| File | Before | After |
+| --- | --- | --- |
+| `_authenticated.arriving.tsx` (route) | `head: () => ({ meta: [{ title: "Discover · Supaprod" }] })` | `"Arriving · Supaprod"` |
+| `_authenticated.arriving.tsx` | `<PageHeading title="Discover did not load." ...>` | `title="Arriving did not load."` |
+| `_authenticated.outcomes.tsx` (route) | `head: () => ({ meta: [{ title: "Insights · Supaprod" }] })` | `"Outcomes · Supaprod"` |
+| `_authenticated.outcomes.tsx`, `recordHeadline()` (x2) | `loading ? "Brain" : "The record did not load."` | `loading ? "Reading the record." : ...` |
+| `DiscoverSurface.tsx`, `headline` | `loading ? "Discover" : ...` | `loading ? "Reading what has come in." : ...` |
+| `OpportunityDetailSheet.tsx` | `"Promoted from a Discover theme, with its findings attached."` | `"...an Arriving theme..."` |
+| `nav-model.ts` (comment) | `` `/brain`, `/threads`, ... `` | `` `/outcomes`, `/threads`, ... `` |
+| `key-model.ts`, `SURFACE_KEYS` | `path: "/discover", label: "Discover"` | `path: "/arriving", label: "Arriving"` |
+| `loop-surfaces.ts` | `{ id: "product", label: "Discover", to: "/discover", ... }` | `label: "Arriving", to: "/arriving"` |
+| `ask-context.tsx` (x4) | `label: "Discover"` / `label: "Brain"` / `return "Discover"` / `return "Brain"` | `"Arriving"` / `"Outcomes"` (x2 each) |
+
+**The page headings, added rather than substituted (design call, flagged below).**
+Both pages' ONLY existing title was the dynamic `headline`/`RecordHead` variable --
+"Real outcomes have re-scored 3 calls.", "Your sources have sent nothing yet.", the
+now-fixed loading placeholder -- computed, never a fixed word, so neither page had a
+STATIC name outside the browser tab. Deleting that variable's role entirely to hard-
+code "Arriving"/"Outcomes" in its place would have thrown away real, load-bearing
+status information ("Not in scope: changing what either page shows"). Built instead:
+a new `level={1}` `PageHeading`/`RecordHead` reading exactly the packet's two lines
+("What came in, and what it is becoming." / "Every decision, what it expected, and
+what happened."), with the existing dynamic line kept immediately below at
+`level={2}` -- Meridian's own documented convention for "the surface has folded
+inside another." Nothing computed changed; `headline`/`sub` still carry every fact
+they did. `RecordHead` (a local component inside the outcomes route, not Meridian)
+gained the same `level` prop `PageHeading` already has, for the identical reason.
+
+**`components/discover/**` and `components/brain/** copy strings only`: held, with one
+necessary exception.** Every fix inside those two directories is a string literal
+edit. The one structural change -- the new static `PageHeading` added to
+`DiscoverSurface.tsx` -- could not be placed in the route file instead (unlike
+Outcomes, where the equivalent page logic lives IN the route file): `DiscoverSurface`
+owns its own `<Surface>` layout wrapper, so a heading placed in the thin route
+wrapper around it would render outside that container with the wrong padding.
+Flagged, not hidden -- see Blockers.
+
+**41 `crew`/`bet` hits found by testing what "the P-13 guard is extended to these two
+directories" would actually demand -- 9 fixed, 32 deliberately left, both counts
+named.** Ran the full existing `REGISTER_WORDS` check (`crew|bet|agentic|autonomous`)
+against `components/discover/**` and `components/brain/**` before deciding how to
+extend the guard. It found 41 genuine hits, not identifier collisions -- a register
+sweep the size and shape of P-13 itself, and outside what THIS packet's acceptance
+line actually asks for (station/Discover/Insights/Brain/"the Record" as the page's
+name, never the wider crew/bet/agentic/autonomous ban). Fixed the nine the guard
+happened to catch while I was extending it and looking at the result (all "bet" ->
+"opportunity", matching the surface's own file names `OpportunityDetailSheet.tsx`/
+`OpportunityRow.tsx`; two "crew" -> "your agents" in `StandingRecord.tsx` and
+`_authenticated.outcomes.tsx`, matching P-13's own established replacement), then
+reverted the `SCAN_DIRS`/`SCAN_FILES` extension rather than pull the other 32 into
+this packet un-asked. Left a comment on the reverted extension naming the count and
+pointing at the follow-up. **Recommendation, not built:** a dedicated register-sweep
+packet on `components/discover/**` + `components/brain/**`, P-13-shaped, is real,
+separable work -- the remaining hits are concentrated in `OpportunityDetailSheet.tsx`,
+`ranking.ts`, `DiscoverSurface.tsx` (several more), `ArtifactsView.tsx`, and
+`_authenticated.outcomes.tsx` (several more).
+
+**The check the acceptance actually asked for, built instead:** a new describe block
+in `a-user-never-reads-the-org-chart.test.ts`, `"Arriving and Outcomes do not render
+their retired names"`, scanning both route files and both directories for
+Discover/Insights/Brain/"The Record" as quoted strings (comment-stripped) -- broader
+than the existing `USER_FACING_PROP`-scoped checks, because the two real violations
+this packet fixed were bare loading-placeholder string literals, never inside a
+`title=`/`sub=`-style prop, so prop-scoping would have missed them. No allowlist:
+measured the unscoped regex against every file in scope before deciding one was
+needed and it was not -- an allowlist that excludes nothing is worse than none.
+
+**Files touched.** 66 across two commits: both route files (renamed + edited), two
+new redirect stubs, `routeTree.gen.ts` (regenerated), the migration, `nav-model.ts`,
+`key-model.ts`, `loop-surfaces.ts`, `ask-context.tsx`, `legacy-redirects.ts`,
+`palette-catalog.ts`, `palette-sections.ts`, every `Link`/raw-string `to:`/`href:`
+across `components/knowledge/**`, `components/product/**`, `components/today/**`,
+`components/trust/**`, `components/runs/**`, `components/ask/**`,
+`components/supaprod/LineageDrawer.tsx`, `components/chat/MessageMeta.tsx`,
+`lib/ai/research.server.ts`, `lib/run-stages.functions.ts`, the register-guard
+extension, and every test file any of the above broke (all updated per the packet's
+own rule, none deleted). Nothing under `src/components/meridian/**`.
+
+**Blockers (A3 writes):**
+1. **BLOCKED: cannot walk this live in a browser, same credential gap as every other
+   packet this session.** Asking A1's usual signed-in check: `/discover` and `/brain`
+   redirect to `/arriving`/`/outcomes` and land on the SAME content those addresses
+   always showed (try `/discover?tab=signals`, `/brain?tab=learnings`, confirming the
+   param survives the redirect); both pages now show a static "Arriving"/"Outcomes"
+   title above their existing dynamic status line; Start's two Arriving/Outcomes
+   doors (P-05) go straight there with no extra hop.
+2. **Design call, not hidden: I added a static page heading neither surface had
+   before**, rather than reading "the page headings become Arriving/Outcomes" as
+   "delete the computed status line and replace it." The computed line carries real,
+   load-bearing information (loading/error/empty/count states) that "not in scope:
+   changing what either page shows" forbids removing -- so I kept it, one level down.
+   If the intent was the narrower substitution, that is a different, smaller change
+   at the same two call sites this Report already names exactly.
+3. **`components/discover/DiscoverSurface.tsx` got one structural line, not only
+   string edits**, because its own `<Surface>` wrapper meant the new heading could
+   not live in the (thin) route file the way Outcomes' equivalent could. Named
+   precisely in the Report body above.
+4. **Not a blocker, a name for the next packet:** 32 `crew`/`bet` register-word hits
+   remain in `components/discover/**` and `components/brain/**`, found and left on
+   purpose -- see the Report body for the file list and the reasoning for not pulling
+   them into this one.
+
+**A1 verdict:**
 
 ---
 
