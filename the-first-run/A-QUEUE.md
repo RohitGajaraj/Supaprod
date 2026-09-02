@@ -1598,7 +1598,7 @@ changed for this half -- P-05 had already built the one thing this half required
 
 ---
 
-### P-03 · Ship fires for real · Lane: **A2** · Status: CLAIMED (A2, 00:20 IST) · CI on `Supaprod/relay-homeowner-app` verified running 2026-09-02 · Moves: 3, 5
+### P-03 · Ship fires for real · Lane: **A2** · Status: CODE DONE, TWO DECISIONS OPEN (A2, 01:10 IST) · CI on `Supaprod/relay-homeowner-app` verified running 2026-09-02 · Moves: 3, 5
 
 **Scope.** On the bound repo, a track walks Build → Ship with no person: commits (R-30), PR, checks,
 merge under the arc, a recorded preview at the merged sha, `release.publish` fires, a `deployment`
@@ -1627,7 +1627,102 @@ three corrections in a row. So the Sep 8 honest run must be **a checkout change*
 address step, the funnel), or the workspace must be bound to a fuller repo first. A1 will name the
 sentence for the honest run accordingly; P-03 does not need to widen the repo.
 
-**Report / A1 verdict:**
+**Report (A2 writes):** the code is in: `5925236af` (R-30 and the sha check), `dea28e877` (the Ship
+tab). tsc **0** . `bun test` **13,747 pass / 0 fail**. **Two things need your word before the honest
+run, both below.**
+
+**R-30 is applied.** `studio.commit` moves to `auto`. It read `confirm` while `studio.fix.commit`
+read `auto` one line below it in the same table: the same act, same branch, same seat, gated two
+different ways, and the difference was an accident rather than an argument. Three guards pinned the
+old mode and all three are updated in place with the reason. One of them asked for exactly this:
+*"if a future change flips one of these to auto, it should have to delete this test and say why in
+the message."* `studio.pr.open` is unchanged and still asks, which is the line worth noticing: a
+commit is reversible, a pull request is visible to other people.
+
+**THE DEFECT I FOUND, AND IT IS BIGGER THAN THE PACKET'S WORDING.** The packet asks for "the sha
+equality made explicit". There was no sha comparison to make explicit:
+`promoteChangesetToProductionCore` took the NEWEST successful preview row for the changeset and used
+its `commit_sha` verbatim as the production ref. `landedShaForChangeset` has read the PR's own
+`merge_commit_sha` since it was written and was called only from the capture path, never from
+promote. So a changeset whose preview was built at an earlier commit -- a fix pushed after the
+preview, a branch synced, a second CI run that did not finish -- **promoted that commit to production
+and recorded it as the released sha**, on the one path in this product that is irreversible and that
+customers see. It now reads the merged commit and filters the preview to it.
+
+**Checking the commit is also what lets any provider through.** `provider = "deno"` was a proxy for
+"we built it, so we know what is in it"; being at the merged commit is what that proxy stood in for
+and is strictly stronger, because it is true of a preview whoever built it. When the commit cannot be
+read -- unreadable PR, no repo, no PR number, GitHub refusing -- the provider gate stays exactly as it
+was: loosening on a failed read is how a safety check becomes a formality. A preview one commit
+behind gets its own refusal naming both shas, checked before the "your own pipeline built it"
+sentence, which the filter makes reachable for a different reason.
+
+**The Ship tab now says what the release is on the hook for**: the claim, how we will know, and the
+date it is graded, read from the same `decisions` list `LearningCard` grades against. It said where
+the release went and what commit it was, which is what any deploy record knows. A release with a
+forecast attached is a bet on the record; without one it is a deploy, and every vendor has those.
+
+---
+
+### Two things needing your word
+
+**1. The pending commits: my word is CANCEL BOTH, and it is not a close call.**
+
+There are **two**, not four (`a220388d`, `d42b0163`), both `studio.commit`, both non-sample, both
+`Studio`, both expiring **today** with `expiry_default='cancel'`:
+
+| id | message | track | changeset |
+| --- | --- | --- | --- |
+| `a220388d` | Remove redundant address re-confirmation in Relay checkout | `2fdf93b6` | `ae547426`, staged, 3 files |
+| `d42b0163` | Fix tablet address layout for 7-inch wall tablets | `6817e386` | `e7565181`, staged, 3 files |
+
+Both changesets are `status='staged'`, `base_sha` NULL, no branch, no PR, on
+`Supaprod/relay-homeowner-app`.
+
+**Approving them would contaminate the acceptance the run exists to prove.** R-18 is "no human
+touching it mid-run", and answering a three-day-old gate is a person touching a run mid-flight --
+the exact thing F-79 already failed on, and the reason `d1168015` does not count. A run that ships
+because somebody clicked a gate from August is not the honest run; it is the old failure with a
+better commit in it.
+
+The second reason is smaller and still real: `base_sha` is NULL, so nothing on the record says what
+those diffs were written against. They were staged on 2026-08-31 against a three-day-old view of the
+repo and there is no way to prove they still apply cleanly. With R-30 in, a fresh Build seat commits
+without asking, so re-running costs one Build station and produces a commit at the current head with
+a recorded base.
+
+**2. Two workspaces are both named "Helio Labs", bound to different repos.** This is the F-101/F-106
+check and it comes back mostly clean, with one hazard worth a ruling:
+
+| workspace id | bound repo | bound |
+| --- | --- | --- |
+| `60000000-…` **Helio Labs** | `Supaprod/relay-homeowner-app` | 2026-08-25 |
+| `10000000-…` **Helio Labs** | `RohitGajaraj/Test-Project-Cadence` | 2026-07-20 |
+
+All four live tracks (`ce846e9b`, `d1168015`, `2fdf93b6`, `6817e386`) are in `60000000-…`, so the
+binding is **correct for the honest run**. But the two are indistinguishable in the workspace
+switcher, and picking the wrong one silently binds Build to a different repository. That is the
+shape of F-101 exactly. Renaming one is a founder call, not mine.
+
+---
+
+**And one thing you may already have the sentence for.** Your Blockers note says the proving run must
+be a checkout change. Track **`2fdf93b6` already is one**: *"Checkout asks a homeowner to re-enter
+the delivery address it already has on file"*, on the bound repo, with a staged three-file diff
+against the address step. If you cancel its gate per (1), that track is the honest run's sentence,
+already promoted and already the right shape -- it just needs to be re-driven under R-30.
+
+**Also noticed, not mine to fix:** seven pending `studio.pr.merge` approvals, none marked sample, all
+on ONE changeset (`10000000-0006-…`) from 2026-07-25. Seven gates on one merge is queue noise that
+will read as real work waiting on somebody.
+
+**Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
+`loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
+*"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
+already refuses to treat a forecast as a condition for shipping, which is the composition the
+acceptance depends on.
+
+**A1 verdict:**
 
 ---
 
