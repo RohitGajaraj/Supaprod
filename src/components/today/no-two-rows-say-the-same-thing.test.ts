@@ -32,7 +32,7 @@ const WORDS = {
 /** Stands in for the vocabulary the surface injects. */
 const phrase = (tool: string): string | null =>
   ({
-    "studio.pr.merge": "approve the pull request",
+    "studio.pr.merge": "merging the pull request",
     "prd.draft": "writing the spec",
   })[tool] ?? null;
 
@@ -56,7 +56,11 @@ const run = (over: Partial<StartRowInput> = {}): StartRowInput => ({
 describe("what the middle column says", () => {
   it("names the call when one is waiting on the person", () => {
     const m = startRowMiddle(run({ needsYou: { tool: "studio.pr.merge" } }), NOW, WORDS, phrase);
-    expect(m).toBe("Needs you: approve the pull request");
+    /* "before", because the product's tool words are present participles and a
+       gate is the other grammar: the call stands BEFORE the tool runs. One
+       vocabulary then serves both this branch and the working one, and there is
+       no second map of imperatives to keep in step. */
+    expect(m).toBe("Needs you before merging the pull request");
   });
 
   it("does not invent a phrase for a tool it has no word for", () => {

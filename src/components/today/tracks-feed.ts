@@ -391,8 +391,20 @@ export function startRowMiddle(
   phraseFor: (tool: string) => string | null,
 ): string {
   if (r.needsYou) {
+    /*
+     * "BEFORE", AND IT IS WHAT LETS ONE VOCABULARY SERVE BOTH BRANCHES.
+     *
+     * The product's tool words are present participles -- "merging the pull
+     * request", "writing the spec" -- because they were written for a character
+     * saying what it is doing. A gate is the other grammar: the call stands
+     * BEFORE the tool runs. Rather than a second map of imperatives to keep in
+     * step with the first, the sentence says what is actually true: you are
+     * needed before this happens. It also states the gate more precisely than
+     * "approve the pull request" would, because approving is one of the two
+     * answers and refusing is the other.
+     */
     const what = phraseFor(r.needsYou.tool);
-    return what ? `Needs you: ${what}` : "Needs you: a call is waiting";
+    return what ? `Needs you before ${what}` : "Needs you: a call is waiting";
   }
 
   if (r.working) {

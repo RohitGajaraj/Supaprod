@@ -38,12 +38,22 @@ describe("the signed-in home is one value in one place", () => {
   });
 
   /**
-   * The compare link must survive the flip in BOTH directions. R-15 put it on
-   * `/start` so the two landings can be seen side by side; now that `/start` is
-   * the home, that link is how anyone reaches the old one to compare.
+   * ── THE COMPARE LINK IS GONE BECAUSE THE THING IT COMPARED TO IS ─────────
+   *
+   * R-15 put a link to `/today` on `/start` so the two landings could be seen
+   * side by side while the flip was being decided. The flip is decided, and
+   * P-10 deleted `_authenticated.today.tsx` on 2026-09-02: there is no other
+   * landing left to compare against, so a link to it would be a dead route
+   * pointed at from the front door.
+   *
+   * The assertion is REPLACED rather than deleted, because the rule it was
+   * protecting is still worth holding: `/start` must not point at a route that
+   * does not exist. That is the same guard read forwards.
    */
-  it("keeps the deliberate compare link to the other landing", () => {
-    expect(read("routes/_authenticated.start.tsx")).toContain("/today");
+  it("does not point the front door at a landing that no longer exists", () => {
+    const start = read("routes/_authenticated.start.tsx");
+    expect(start).not.toContain('"/today"');
+    expect(start).not.toContain('to: "/today"');
   });
 
   it("login and signup import it instead of defining their own", () => {

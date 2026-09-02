@@ -1,211 +1,142 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { WhatWeAlreadyHold } from "@/components/spine/WhatWeAlreadyHold";
 import { searchFlag } from "@/lib/search-flag";
-import * as React from "react";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Action, PageHeading, Reading, SectionHead } from "@/components/meridian/surface-parts";
-import { Row } from "@/components/meridian/rows";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Composer, PickCard } from "@/components/meridian/onramp-parts";
-import {
-  SketchBroken,
-  SketchProblem,
-  SketchScreen,
-  SketchSpec,
-} from "@/components/meridian/sketch-glyphs";
-import { CharacterMark } from "@/components/presence/Character";
-import { CHARACTER_NAME } from "@/lib/presence/character";
-import { Board } from "@/components/today/Board";
-import { useGreeting } from "@/components/today/greeting";
+import { Row } from "@/components/meridian/rows";
+import { Action } from "@/components/meridian/surface-parts";
+import { Composer } from "@/components/meridian/onramp-parts";
+import { ExampleJobs, type ExampleJob } from "@/components/start/ExampleJobs";
+import { YourRuns } from "@/components/start/YourRuns";
 import { failureLine } from "@/lib/error-copy";
-import { REVIEW_QUEUE_ANCHOR } from "@/components/shell/post-auth-home";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { startTrack } from "@/lib/spine/track.functions";
+import { listRunsForStart, startTrack } from "@/lib/spine/track.functions";
 import type { WorkShape } from "@/lib/spine/route";
 
 /**
- * /start -- say one sentence, land on the run.
+ * ── THE FRONT DOOR, AND WHAT IT USED TO ASK BEFORE IT ASKED ANYTHING ──────
  *
- * THE GATE THIS FILE LOST. This route sat behind a redirect to /onboarding
- * marked "GATED FOR LAUNCH: experimental and incomplete". Backlog item 2
- * removes the gate instead of creating a route, because R-15 rules that a
- * REPLACEMENT ships at its own url beside the thing it replaces: `/today` --
- * the briefing dashboard DESIGN-DIRECTION rejected -- stays reachable and
- * untouched so the founder can compare them side by side, and promotion is one
- * redirect in `_authenticated.tsx`'s beforeLoad. Nothing existing was modified
- * to make this page exist.
+ * A1's audit named the first of five symptoms as "landing says nothing", and
+ * this page was where it started. Signed in, a person met, in order: an errand
+ * line, **"Good evening."**, a heading, a character introducing itself, a
+ * composer, a four-card picker of work SHAPES, a "what we already hold" panel,
+ * and then the whole board -- days on the record, a forecast tally, lanes.
+ * Eight regions before the one thing a person came to do.
  *
- * WHAT A RUN NEEDS FROM A PERSON, AND NO MORE. One sentence; optionally which
- * of four jobs describes it. The sentence doubles as the origin, because three
- * of four shapes enter below Discover and `validateRoute` refuses those with an
- * empty origin (`route.ts:469`) -- and the person's own words are exactly what
- * Learn later grades the outcome against (`SPEC-ONRAMP.md` §2.3). No workspace
- * picker, no product picker, no shape picker, no advanced disclosure: those are
- * configuration, and configuration is what this surface exists to end.
+ * The shape picker is the sharpest of them. It asked a person to classify their
+ * work -- "New capability", "Under the hood" -- before describing it, and all it
+ * changed was the composer's placeholder and a column on the row. That is the
+ * taxonomy question a product asks when it has not decided what it does, and
+ * nobody arrives wanting to answer it.
  *
- * THE CARDS AND THE FIELD ARE MERIDIAN'S NOW. `PickCard` and `Composer` were
- * promoted from this surface's local builds (R-17; see
- * `coordination/answers/Rmrd-jobcard-composer-both-promoted-with-one-real-correction.md`
- * -- which also caught this file's first draft carrying a superseded 1.4 leading,
- * the value Meridian raised to 1.5 on purpose). The job data stays here because
- * it is this page's copy, ruled verbatim by SPEC-ONRAMP §1.3: each sub
- * paraphrases its WorkShape's own waiver reason, and no station name appears on
- * any face (R-01).
+ * ── WHAT IT IS NOW, AND THE ORDER IS THE ARGUMENT ─────────────────────────
  *
- * THE WORKSPACE TRAVELS WITH THE RUN. `startTrack` accepts `workspaceId`
- * gated through the caller's own membership (`resolveStartWorkspace`), and the
- * column is NOT NULL with a default — so passing it when known scopes the run,
- * omitting it is the zero-configuration path, and there was never a
- * silent-null state to guard against (R017 corrected this file's first draft,
- * which claimed a degraded run where Postgres would actually have refused the
- * row outright).
+ *   one line, first run only   what this product does, said once and then never
+ *                              again, because a person who has runs has learnt it
+ *   the composer               the one thing they came to do
+ *   three example jobs         whole sentences that can be pressed, because the
+ *                              fastest way to learn what a product does is to
+ *                              watch it do one thing
+ *   your runs                  the ONLY way a person meets an approval, a
+ *                              verdict or a hold (A1-REPORT §4)
+ *
+ * ── THE REFERENCE, NAMED BEFORE BUILDING ──────────────────────────────────
+ * Codex (Mobbin, pulled 2026-09-02): one question, one box, then three startable
+ * cards. Claude Code web: one box whose placeholder is a real greyed example.
+ * Cursor: task rows carrying the one fact that tells them apart. Devin: a
+ * session list with the exception state said in words under the title.
+ *
+ * ── WHAT LEFT WITH THE BOARD, SAID PLAINLY RATHER THAN QUIETLY ────────────
+ * `<Board />` carried "days on the record", the forecast tally, the review queue
+ * and the mission lanes. Every one of them is a workspace-wide readout on a page
+ * about starting one piece of work, and the queue in particular is now a ROW
+ * STATE on a run rather than a second address.
+ *
+ * ── AND `?queue=1` SURVIVES, WHICH MY FIRST DRAFT GOT WRONG ───────────────
+ * I removed it, on the grounds that P-11 took out the rail's Approvals door and
+ * nothing set it any more. `tsc` said otherwise: FIVE call sites still navigate
+ * here with it -- the notifications section, two onboarding steps, the decisions
+ * panel and the crew rail -- and every one of them writes the key as the
+ * computed `[REVIEW_QUEUE_SEARCH]`, which is why a grep for `queue: true` found
+ * nothing. A whitelist that drops a param five live doors send is five doors
+ * that quietly land on the wrong thing.
+ *
+ * So the errand stays and it LANDS SOMEWHERE TRUE instead of scrolling to an
+ * anchor that no longer mounts: the person asked to see what is waiting on
+ * them, and what is waiting on them is the runs marked "Needs you", which this
+ * page sorts to the top. It says so rather than scrolling silently, because a
+ * door that lands somewhere else and corrects itself later is the product not
+ * saying what it is doing.
  */
+const PLACEHOLDER = "Make the checkout accept an American Express card";
 
 /**
- * ── THE FOUR MARKS, DRAWN BY HAND ─────────────────────────────────────────
+ * The one line, and it is on the screen exactly once in a person's life here.
  *
- * One sketch per kind of work, so four cards of similar prose can be told
- * apart without reading all four. See `PickCard`'s `glyph` prop for why a card
- * like this needs a mark at all, and `sketch-glyphs.tsx` for what makes a line
- * read as drawn rather than as a broken icon.
- *
- * THEY WERE GEOMETRIC ICONS FOR ABOUT TEN MINUTES and the founder called it
- * immediately: *"can we add something like handwritten glyphs so that it feels
- * like a real human feeling or human attention to detail ... make that unique
- * USP touch point."* He is right, and the reason is specific to THIS screen.
- * This is the first thing a person sees after signing in, and a row of four
- * machine-ruled icons is the single most generic thing a product can put
- * there -- it is what every tool looks like. A drawn line is the one element on
- * the page that could not have been generated, which is exactly the signal a
- * product whose whole claim is judgment should be sending on its front door.
- *
- * IN THE MARK'S OWN HUE, at a chroma held below every status colour. The
- * boundary that makes that legal rather than a colour-law breach is written at
- * `--mrd-sketch` in `meridian.css`: illustration ink, stroke only, never a
- * control and never a status.
+ * A1-REPORT §4 gives the words and the condition: first run only. An
+ * orientation line that stays is a product explaining itself to somebody who has
+ * already understood it, which is the same failure as a tooltip that never
+ * learns.
  */
-const GLYPH = {
-  problem: <SketchProblem size={22} />,
-  spec: <SketchSpec size={22} />,
-  screen: <SketchScreen size={22} />,
-  broken: <SketchBroken size={22} />,
-} as const;
-
-type Job = {
-  shape: WorkShape;
-  lead: string;
-  sub: string;
-  glyph: React.ReactNode;
-  /** What the composer asks once this job is picked. */
-  placeholder: string;
-};
-
-const JOBS: Job[] = [
-  {
-    shape: "new-capability",
-    lead: "I have a problem and I do not know what to build",
-    sub: "It reads your sources first and comes back with what the pattern actually is.",
-    glyph: GLYPH.problem,
-    placeholder: "What is going wrong?",
-  },
-  {
-    shape: "existing-feature",
-    lead: "I know what to build. Write it up.",
-    sub: "The call is already made, so it starts on the written spec.",
-    glyph: GLYPH.spec,
-    placeholder: "What are you building, and what should it do?",
-  },
-  {
-    shape: "interface-change",
-    lead: "Change something people see",
-    sub: "It starts on the screen itself, not on the problem behind it.",
-    glyph: GLYPH.screen,
-    placeholder: "What should change on the screen, and what should it do?",
-  },
-  {
-    shape: "incident-fix",
-    lead: "Something is broken right now",
-    sub: "It goes straight to the fix. Nothing gets decided first.",
-    glyph: GLYPH.broken,
-    placeholder: "What is broken?",
-  },
-];
-
-/** Placeholder for the un-picked state, ruled at SPEC-ONRAMP §2.1. */
-const OPEN_PLACEHOLDER = "What are you changing, and what should it do?";
+const ORIENTATION =
+  "Say what you want changed and what it should do. It does the work here, where you can watch, and tells you whether it worked.";
 
 export const Route = createFileRoute("/_authenticated/start")({
-  validateSearch: (search: Record<string, unknown>): { about?: string; queue?: boolean } => ({
+  validateSearch: (search: Record<string, unknown>): { about?: string; queue?: true } => ({
     /*
-     * `?queue=1` MEANS "SHOW ME THE THINGS WAITING ON ME". The rail's
-     * Approvals row lands here through `/today`'s redirect; without this the
-     * door was a no-op, because the queue it counts is already on this page,
-     * about 1,400px down. See `post-auth-home.ts` for the measurement.
-     *
-     * Accepts the string form as well as the boolean, because a person can
-     * paste or bookmark the url and a bookmark that quietly stops working is
-     * worse than one that never worked.
-     *
-     * ── `?queue=1` DID NOT WORK, AND IT IS THE FORM WE DOCUMENT (2026-09-01)
-     * Walked in the browser: `/start?queue=1` came back as `/start`, param
-     * stripped, composer at the top, no scroll. Every comment in this file and
-     * the commit that built the door call the address `?queue=1`.
-     *
-     * This is the FOURTH time this repo has shipped that defect, and the third
-     * was already fixed by writing `searchFlag` -- whose own header says why
-     * the obvious parser is wrong and that no unit test can reach an inline
-     * one. The helper existed, in `src/lib/search-flag.ts`, tested, for eleven
-     * days. This line hand-rolled the comparison anyway and got it wrong in
-     * exactly the documented way, which is the argument for the helper rather
-     * than against it: a rule nobody reaches for is a rule that has to be
-     * rediscovered in a browser every time.
-     *
-     * Only `?queue=true` survived, which is what the rail happens to send --
-     * so the one path anybody had walked was the one path that worked.
+     * "SHOW ME WHAT IS WAITING ON ME." Five live doors set this. `searchFlag`
+     * rather than a hand-rolled comparison: TanStack runs every value through
+     * `JSON.parse` before a validator sees it, so `?queue=1` arrives as the
+     * NUMBER 1 and a string comparison misses it -- the defect this repo has
+     * shipped four times, three of them found only by walking the page.
      */
     queue: searchFlag(search.queue),
-    // RUN-15: the turn-around from Learn lands here with the expectation as
-    // the opening sentence, so "take another run at this" starts from what
-    // the last attempt learned. A plain string, capped -- the composer is
-    // editable and nothing here is a contract, just a head start.
+    /*
+     * A sentence carried in from somewhere else -- the ask pane, a link -- as a
+     * HEAD START rather than a decision: it lands in the composer and the person
+     * reads and edits it like anything else they typed.
+     */
     about:
       typeof search.about === "string" && search.about.trim()
         ? search.about.trim().slice(0, 300)
         : undefined,
   }),
   component: StartLanding,
-  head: () => ({ meta: [{ title: "Get started · Supaprod" }] }),
+  head: () => ({ meta: [{ title: "Start · Supaprod" }] }),
 });
 
 function StartLanding() {
   const navigate = useNavigate();
   const { activeWorkspaceId, activeProductId } = useWorkspace();
   const { about, queue } = Route.useSearch();
-  const greeting = useGreeting();
 
-  // A seeded sentence is a HEAD START, not a decision: the person reads and
-  // edits it like anything else they typed.
   const [sentence, setSentence] = useState(about ?? "");
-  const [selected, setSelected] = useState<WorkShape | null>(null);
   const fieldRef = useRef<HTMLTextAreaElement | null>(null);
-
   const start = useServerFn(startTrack);
 
   /*
-   * THE OPEN-WORK READ IS GONE WITH THE SECTION IT FED. `<Board />` owns its
-   * own workspace read, its own queries and its own error states, so keeping a
-   * second `listTracks` here would poll the same rows on a second cadence to
-   * render nothing -- and two reads of one fact is how the strip and the desk
-   * came to count differently.
+   * THE SAME CACHE ENTRY `YourRuns` POLLS, on purpose. The orientation line
+   * hangs on whether this workspace has ever had a run, and that is the same
+   * question the list below answers. A private read here would ask the server
+   * twice for one fact and let the two answers drift, which is the drift the run
+   * screen has been repaired for twice.
    */
+  const fRuns = useServerFn(listRunsForStart);
+  const runs = useQuery({
+    queryKey: ["start-runs"],
+    queryFn: () => fRuns(),
+    refetchInterval: 10_000,
+  });
+  /* Only once the read has ANSWERED. Showing the first-run line while the read
+     is in flight would flash it at every returning person on every visit. */
+  const firstRun = runs.data !== undefined && runs.data.length === 0;
 
   const go = useMutation({
-    mutationFn: async () => {
-      const s = sentence.trim();
-      const shape = selected ?? "new-capability";
+    mutationFn: async (job?: ExampleJob) => {
+      const s = (job?.sentence ?? sentence).trim();
+      const shape: WorkShape = job?.shape ?? "new-capability";
       return start({
         data: {
           // The validator caps title at 200 and throws rather than truncating,
@@ -217,9 +148,7 @@ function StartLanding() {
           productId: activeProductId ?? undefined,
           // Passed only when known; omitted is the zero-configuration path --
           // the column default resolves the caller's own default workspace
-          // server-side (`resolveStartWorkspace`, R017). The column is NOT
-          // NULL, so there was never a silent-null failure mode to guard: an
-          // unscoped insert would have been refused outright.
+          // server-side (`resolveStartWorkspace`, R017).
           workspaceId: activeWorkspaceId ?? undefined,
         },
       });
@@ -240,37 +169,15 @@ function StartLanding() {
   });
 
   /*
-   * ── A THROWN START RENDERED NOTHING AT ALL, 2026-09-01 ──────────────────
-   *
-   * `problems` reads `go.data`, which exists only when the call RESOLVED and
-   * the validator refused. When `startTrack` THROWS -- a dropped network, an
-   * expired session, a 500 -- `go.data` stays undefined, `problems` is `[]`,
-   * the button un-busies, and the screen says nothing. The person is left
-   * looking at their own sentence with no idea whether it was filed.
-   *
-   * This is the product's highest-traffic action on its front door, and it is
-   * the one path with no error arm: `go.isError` was never read anywhere in
-   * this file. The two failures are genuinely different and get different
-   * sentences -- a refusal names what to change, a throw says the sentence is
-   * safe and to press again -- so this is a second arm rather than a widening
-   * of the first.
+   * ── A THROWN START RENDERED NOTHING AT ALL, AND STILL MUST NOT ──────────
+   * `problems` reads `go.data`, which exists only when the call RESOLVED and the
+   * validator refused. When `startTrack` THROWS -- a dropped network, an expired
+   * session, a 500 -- `go.data` stays undefined, the button un-busies, and the
+   * screen says nothing while the person looks at their own sentence with no
+   * idea whether it was filed. Two different failures, two different sentences:
+   * a refusal names what to change, a throw says the sentence is safe.
    */
   const problems = go.data?.problems ?? [];
-  const placeholder = selected
-    ? (JOBS.find((j) => j.shape === selected)?.placeholder ?? OPEN_PLACEHOLDER)
-    : OPEN_PLACEHOLDER;
-
-  /*
-   * THE INTRODUCTION MOMENT (SPEC-PRESENCE.md §Anatomy #3). The character is
-   * on the first screen by name and is already picking the sentence up while
-   * the run is being filed — Ferndesk names its agent on the first screen;
-   * Gemini starts before the modal closes. Both states here are facts this
-   * page holds: idle is simply true, and the pickup state IS `go.isPending`,
-   * the create call in flight. Nothing is staged, so the iron law holds; when
-   * the track exists this page hands the person to /track/:id?start=true,
-   * where the same character is already mounted at the top of the transcript.
-   */
-  const pickedUp = go.isPending;
 
   // A seeded sentence gets the field's focus, because the person arrived to
   // read and press, not to click into a box first.
@@ -280,448 +187,77 @@ function StartLanding() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /*
-   * ── ARRIVING AT THE QUEUE RATHER THAN ABOVE IT ──────────────────────────
-   *
-   * `?queue=1` is how the rail's Approvals row reaches the thing it counts.
-   * The board mounts under this page and fetches its own rows, so the anchor
-   * does not exist on the first paint -- it appears when the queue read
-   * answers. A single `scrollIntoView` on mount would therefore scroll to
-   * nothing and look like the same no-op it replaces.
-   *
-   * So this WATCHES for the element instead of assuming it: a MutationObserver
-   * with a 6s ceiling, disconnected the moment it lands or the page unmounts.
-   * The ceiling matters -- on a workspace with nothing waiting, the anchor
-   * never appears at all, and an observer with no stop condition would sit on
-   * the document for the life of the tab.
-   *
-   * `smooth` unless the person asked for less motion (R-19). A jump on a
-   * 3,000px page is disorienting in a way that reads as a page load, which is
-   * precisely what this door is fixing.
-   */
-  /*
-   * ── THE THREE AND A HALF SECONDS NOBODY WAS TOLD ABOUT (2026-09-01) ──────
-   *
-   * Walked as a signed-in user: press the rail door reading "Approvals 70",
-   * land here, and read **"Good evening. What needs doing?"** with a composer
-   * under it. The scroll below is correct and it does arrive -- measured 670px
-   * down with the queue at the top of the viewport -- but on a cold read that
-   * takes about three and a half seconds, and for all of it the person who
-   * asked to see seventy things waiting on them is looking at a page inviting
-   * them to start a seventy-first.
-   *
-   * The goal's one non-negotiable is that the product says what it is doing
-   * rather than showing a spinner, and it applies to its own navigation as
-   * much as to a run: a door that lands somewhere else and silently corrects
-   * itself later is the product not saying what it is doing.
-   *
-   * So the page states the errand while it is running it, and the line is
-   * REPLACED rather than removed when the errand ends -- including the case
-   * where the anchor never appears at all, which is a real workspace with an
-   * empty queue and which would otherwise leave the reader on the composer
-   * with no explanation of why they were sent there.
-   */
-  const [arriving, setArriving] = useState<"going" | "landed" | "nothing" | null>(
-    queue ? "going" : null,
-  );
-
-  useEffect(() => {
-    if (!queue) return;
-    let done = false;
-    const bring = () => {
-      const el = document.getElementById(REVIEW_QUEUE_ANCHOR);
-      if (!el || done) return false;
-      /*
-       * WAIT FOR THE QUEUE TO HAVE A BODY, not just a wrapper. The anchor div
-       * mounts with the board and is briefly ~0px tall while its own read is in
-       * flight; scrolling to it then lands on a box that is about to grow, and
-       * the thing the person pressed for ends up below the fold again. 200px is
-       * "at least one card has rendered".
-       */
-      if (el.getBoundingClientRect().height < 200) return false;
-      done = true;
-      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      el.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
-      setArriving("landed");
-      return true;
-    };
-    if (bring()) return;
-    const obs = new MutationObserver(() => {
-      if (bring()) obs.disconnect();
-    });
-    obs.observe(document.body, { childList: true, subtree: true });
-    /*
-     * 20s, RAISED FROM 6s ON A MEASUREMENT (2026-09-01). The gate above waits
-     * for the queue to have a body before scrolling, and on a COLD cache that
-     * read takes about 5.4s on a real workspace -- measured on the running
-     * board. A 6s ceiling was therefore racing it: warm, the scroll landed;
-     * cold, the observer was disconnected a few hundred milliseconds before
-     * the rows arrived and the door silently did nothing, which is the exact
-     * failure it was built to fix.
-     *
-     * The ceiling exists so an observer does not sit on the document for the
-     * life of the tab when the anchor never appears at all -- a workspace with
-     * nothing waiting. That purpose is served just as well by a number with
-     * headroom over the slowest real read.
-     */
-    const ceiling = window.setTimeout(() => {
-      obs.disconnect();
-      /* The anchor never appeared. On a workspace with an empty queue that is
-         the correct outcome, not a failure -- but the reader pressed a door and
-         has to be told why they are where they are. */
-      setArriving((was) => (was === "going" ? "nothing" : was));
-    }, 20_000);
-    return () => {
-      obs.disconnect();
-      window.clearTimeout(ceiling);
-    };
-  }, [queue]);
-
   return (
-    /*
-     * ── TWO MEASURES, ONE CENTRE LINE (2026-09-01) ────────────────────────
-     *
-     * FOUNDER: *"the main content on the center pane is slightly towards the
-     * right side ... how can I make it dynamically adapt to the size of the
-     * screen?"*
-     *
-     * THIS WRAPPER WAS ONE MEASURE FOR TWO DIFFERENT KINDS OF THING. It read
-     * `items-center px-6 py-16` around a `max-w-2xl` column, and that column
-     * held BOTH the composer and `<Board />`. A composer is prose -- it stops
-     * being readable much past 42rem, so the cap was right for it. A board of
-     * dense lanes is not read line by line and wants every pixel there is.
-     *
-     * MEASURED SIGNED IN, BEFORE THE CHANGE: at a 1512px window the work
-     * region is 1265px wide and the board rendered at **599px**. At 1024px the
-     * work region is 777px and the board rendered at **627px**. The board
-     * declares `Surface wide`, `.sp-inner` offers it up to 1400px, and a
-     * Tailwind class three levels up quietly overruled all of it. That is the
-     * "not optimised to the screen" the founder is looking at, and it gets
-     * worse as the monitor gets bigger -- on a 32in display the board was
-     * using under a quarter of the width available to it.
-     *
-     * So the page stops setting a width at all. The composer block opts into
-     * `.sp-read`; `<Board />` keeps its own `.sp-inner`. Both are centred by
-     * `margin-inline: auto` on the SAME axis, so the narrow block sits on the
-     * wide one's centre line instead of drifting against it -- which is the
-     * other half of what "slightly towards the right" describes.
-     *
-     * Padding comes from `--sp-work-pad-*`, which are already `clamp()`ed
-     * against the container, so the gutters breathe from 13in to 65in instead
-     * of staying at a hardcoded 24px.
-     */
-    <div className="flex min-h-dvh flex-col">
-      <div className="mrd-page flex flex-col gap-mrd-7">
-        {/*
-          THE ERRAND, STATED WHILE IT RUNS. `Reading` is already this repo's
-          way of saying a read is in flight AND naming which one, and it
-          carries `role="status" aria-live="polite"` so the sentence is
-          announced rather than only drawn -- which matters most here, because
-          the reader who cannot see the page scroll is the one with no other
-          way to know the door worked.
+    <div className="mx-auto flex w-full max-w-[62rem] flex-col gap-mrd-6 px-mrd-5 py-mrd-6">
+      {firstRun ? <p className="text-mrd-base text-mrd-mute">{ORIENTATION}</p> : null}
 
-          It sits above the reading measure rather than inside it: this is not
-          part of the page's prose, it is the page reporting on itself, and it
-          disappears the moment the report is finished.
-        */}
-        {arriving === "going" ? (
-          <Reading>Taking you to what is waiting on you.</Reading>
-        ) : arriving === "nothing" ? (
-          <Reading>Nothing is waiting on you here. This is where work starts instead.</Reading>
-        ) : null}
-        {/*
-         * THE COMPARISON ROW IS GONE, AND THE LABEL IS WHY IT HAD TO GO.
-         *
-         * It read: an eyebrow saying "Supaprod" beside a link saying "Open
-         * Supaprod", on the first screen of Supaprod, pointing at /today. Three
-         * problems in two elements. The eyebrow repeated the wordmark already
-         * sitting in the shell's top left. The link offered to open the product
-         * a person is already inside, which is the kind of sentence that makes
-         * someone doubt they are where they think they are. And the destination
-         * is in the left rail as "Today", one click away, on every screen.
-         *
-         * It was scaffolding: the founder wanted to compare this against the old
-         * board side by side while it was being built. R-15 is cited in the code
-         * it came from, but R-15 rules on WHERE to build (final url, not a /v2
-         * tree) and asks for nothing on this page. The comparison survives
-         * intact through the nav.
-         *
-         * Removed rather than relabelled because a correct label would leave a
-         * lone link floating above a heading, which is worse than no row: the
-         * front door of the product is the one screen that should carry nothing
-         * a customer does not need.
-         */}
-        {/* The heading and the character line are prose and take the reading
-            measure. They hang off the page's left gutter with everything else
-            rather than centring, which is the alignment defect the founder
-            photographed: a narrow centred column over a wide left-aligned
-            board reads as pushed right, because the eye follows the left
-            margin and not the centre. */}
-        <div className="mrd-read flex flex-col gap-mrd-7">
-          {/*
-           * THE FIRST THING THE PAGE SAYS. It used to be the first thing the
-           * BOARD said, which put it roughly 700px down -- after the question,
-           * the field and four cards -- greeting a person who had already been
-           * on the screen a while. `greeting.ts` carries the founder's report
-           * and why the deferral to the reader's own clock is load-bearing.
-           */}
-          <p className="mrd-meta">{greeting}</p>
-          <PageHeading
-            title="What needs doing?"
-            sub="One sentence starts a run. You watch it happen here, and it asks you nothing unless it must."
-          />
+      {/*
+       * THE ERRAND, ANSWERED IN WORDS RATHER THAN BY A SCROLL. A person pressed
+       * a door reading "things waiting on you"; the honest landing is a sentence
+       * saying where they are, not a page that looks like an invitation to start
+       * something new and silently corrects itself three seconds later.
+       */}
+      {queue ? (
+        <p role="status" className="text-mrd-base text-mrd-mute">
+          The things waiting on you are the runs marked <strong>Needs you</strong> below. They sort
+          to the top.
+        </p>
+      ) : null}
 
-          {/* The one worker, present at first paint. aria-live so the handover
-            from introduction to pickup is heard, not only seen (R-19). */}
-          <div
-            data-mrd=""
-            data-presence-state={pickedUp ? "thinking" : "awake"}
-            className="flex items-center gap-3"
-          >
-            <CharacterMark size={28} state={pickedUp ? "thinking" : "awake"} />
-            <p aria-live="polite" className="text-mrd-body text-mrd-ink">
-              {pickedUp
-                ? "Picking that up now. I'll open the run the moment it's filed."
-                : /*
-                   * "YOU CAN LEAVE IT WITH ME" IS THE ONE CLAIM THIS LANE MAY NOT
-                   * MAKE ALONE, AND THE CONDITION FOR REVISITING IT HAS NOW BEEN MET.
-                   *
-                   * SESSION-1 names it: *"'I'm on it, you can leave this page' is a
-                   * promise the product cannot keep until S3 ships the verdict
-                   * notification, their job #1."* S3 measured the size of the gap
-                   * and it is not marginal: **97 of 106 tracks carry a hold, and
-                   * the verdict email has fired ZERO times in its life.** Their
-                   * send is still blocked on a migration escalated to the founder,
-                   * and there is no notification kind for a piece of work that
-                   * STOPPED at all.
-                   *
-                   * I deliberately held this line in RUN-125 and told S3 why: the
-                   * sentence is about the ASSIGNMENT moment rather than the run,
-                   * and it should change only once the footer's states were proven.
-                   * They agreed. RUN-125 and RUN-129 proved them and S0's A10 ruled
-                   * the wording, so the condition I set has been met and leaving it
-                   * now would be holding a hedge past its own expiry.
-                   *
-                   * WHAT REPLACES IT IS NOT SMALLER, IT IS TRUE. The work does start
-                   * on its own and it does persist, so the invitation survives; what
-                   * goes is the implied "and you will be told", which is the half
-                   * nothing delivers. `footer-mode.ts` already draws this exact
-                   * line: it promises the leg it can prove and never the sweep.
-                   */
-                  `I'm ${CHARACTER_NAME}. Say what needs doing in one sentence and I'll start on it. It keeps going without you, and it will be here when you come back.`}
-            </p>
-          </div>
-        </div>
-
-        {activeWorkspaceId ? (
-          <>
-            {about ? (
-              /*
-               * A SEEDED COMPOSER EXPLAINS ITSELF (RUN-19). A sentence already
-               * sitting in the field with no provenance reads as either a bug
-               * or a memory of something the person never typed. One line says
-               * where it came from and that it is theirs to change.
-               */
-              <p className="mrd-meta">
-                Carried over from the run you just looked at. Edit it freely. It starts however you
-                leave it.
-              </p>
-            ) : null}
-            {/*
-             * THE DOCK STANDS DOWN HERE, and the mechanism already existed.
-             * `one-prompt-per-screen.test.ts` records the rule and Today has
-             * carried the mark since it was written: a surface that owns a
-             * composer marks it, and `shell.css` hides the collapsed dock row
-             * via `:has()`. It was never extended to /start, so the first
-             * screen a person meets asked for a sentence twice -- once in this
-             * field under "I'm Supa. Say what needs doing in one sentence", and
-             * again 500px below in a bar reading "What should we build?".
-             *
-             * Photographed at 1440. On the one surface whose entire job is that
-             * single sentence, and the two do not even do the same thing: F-04
-             * measures that the dock files a mission the run workbench cannot
-             * see, which is why only 59 tracks have ever existed.
-             *
-             * `display: contents` so the flex column is unchanged: this adds a
-             * fact for CSS to read, not a box.
-             */}
-            <div data-page-composer className="contents">
-              <Composer
-                value={sentence}
-                onChange={setSentence}
-                onSubmit={() => go.mutate()}
-                busy={go.isPending}
-                placeholder={placeholder}
-                label="Describe the work in one sentence"
-                fieldRef={fieldRef}
-              />
-              {/*
-               * ── THE PICKER SITS WITH THE FIELD IT CHANGES, 2026-09-01 ────
-               *
-               * IT USED TO BE THE LAST THING ON THE PAGE. Measured signed in
-               * at 1512px with a real workspace: this block rendered BELOW
-               * `<Board />` at y≈3,400 -- under the review queue, the run
-               * lanes, the evidence region and the last-learned block. The
-               * composer it drives is at y≈560.
-               *
-               * So the one control that changes what the field asks you sat
-               * three screens beneath the field, and picking a card scrolls
-               * the person back up to a placeholder they cannot see change.
-               * Nobody reaches it: on a returning workspace the board alone is
-               * ~2,600px, and this is the only thing under it.
-               *
-               * It is not a footer, it is part of the composer: `onSelect`
-               * focuses `fieldRef` and the placeholder is derived from
-               * `selected`. Sitting it directly under the field is what the
-               * behaviour already assumed -- the suggestion-chip shape every
-               * frontier composer uses, where the chips are within a glance of
-               * the caret they steer.
-               */}
-              <div data-mrd="" className="flex flex-col gap-mrd-3">
-                <p className="mrd-meta">Pick one if it fits. Not picking is fine.</p>
-                {/*
-                 * FOUR ACROSS WHEN THE PAGE CAN CARRY FOUR. `md:grid-cols-2`
-                 * was a viewport breakpoint, so on a 1512px window the four
-                 * cards stacked two-by-two inside a 672px column and left the
-                 * right half of the page empty -- the founder's "too much
-                 * vertical scroll" and the void beside it, in one element.
-                 *
-                 * `auto-fit` with a `minmax` floor is the continuous form of
-                 * the same idea and needs no breakpoint at all: the row fits
-                 * as many 15rem cards as the page can hold and reflows at
-                 * every width in between, which is the standing instruction on
-                 * layout. Four on a wide page, two on a laptop, one on a
-                 * narrow pane, and nothing named a device.
-                 */}
-                <div
-                  className="grid gap-mrd-3"
-                  style={{ gridTemplateColumns: "repeat(auto-fit, minmax(15rem, 1fr))" }}
-                >
-                  {JOBS.map((job) => (
-                    <PickCard
-                      key={job.shape}
-                      lead={job.lead}
-                      sub={job.sub}
-                      glyph={job.glyph}
-                      selected={selected === job.shape}
-                      onSelect={() => {
-                        const next = selected === job.shape ? null : job.shape;
-                        setSelected(next);
-                        if (next) fieldRef.current?.focus();
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-              {/*
-                WHAT THIS WORKSPACE ALREADY HOLDS ABOUT IT (F-184's door,
-                SPEC-BUILD-PATHS §2.3 -- one step before Discover's connector dry-run,
-                which puts it here at creation). `060bc5ff` burned three completed runs
-                and three attempts for all three Discover seats to report the workspace
-                held nothing about it, on a workspace holding 267 signals from 40
-                sources. It TELLS and never gates: nothing here changes what the
-                composer does.
-              */}
-              <WhatWeAlreadyHold subject={sentence} />
-            </div>
-          </>
-        ) : (
-          /*
-           * The one gate that is genuinely required: a run belongs to a
-           * workspace, and inventing one on the person's behalf is the kind of
-           * default this product does not make silently.
-           */
-          <div className="flex flex-col items-start gap-mrd-3">
-            <Row
-              lead="Pick your workspace first."
-              sub="A run writes into one workspace, so it needs to know which."
-            />
-            <Action variant="quiet" onClick={() => void navigate({ to: "/onboarding" })}>
-              Choose your workspace
-            </Action>
-          </div>
-        )}
-
-        {problems.length > 0 ? (
-          <Receipt verb="It did not start" consequence={problems.join(" ")} failed />
-        ) : go.isError ? (
-          <Receipt
-            verb="It did not start"
-            /* STATES WHAT IS TRUE, NEVER WHAT TO PRESS. `failureLine` appends
-               the server's own sentence, which may be "Your session ended.
-               Sign in again and this will load." -- an instruction to press
-               Start would be refuted by it one clause later. See
-               `a-failure-line-never-argues-with-itself.test.ts`, which caught
-               this line's first draft. */
-            consequence={failureLine(
-              "Nothing was filed and your sentence is still here.",
-              go.error,
-            )}
-            failed
-          />
-        ) : null}
-
-        {/*
-         * ── THE BOARD, AND IT REPLACES THE LIST RATHER THAN SITTING ABOVE IT ──
-         * A07: S2 supplies the component, the layout is mine. `/today` and
-         * `/runs` fold into this home in the same commit, so this is where the
-         * board lives now.
-         *
-         * **A SWAP AND NOT AN ADDITION, WHICH IS THE WHOLE LAYOUT CALL.** This
-         * screen already rendered `OpenWorkSection` -- five tracks, title,
-         * station and a status chip. Mounting the board under it would have put
-         * TWO lists of the same tracks in one viewport, reading from two
-         * different queries, which is the duplication this repo keeps paying
-         * for. So the section is deleted, not stacked. S2 confirmed the board's
-         * lane rows ARE tracks (`Board.tsx:974` navigates to `/track/$trackId`)
-         * and carry the driver's hold sentence, so nothing the old section said
-         * is lost.
-         *
-         * It takes no props and owns its own workspace read, its own queries
-         * and its own error states -- including the failed-read case the
-         * deleted block existed for, which is why deleting that block does not
-         * reintroduce "a failed read is not an empty desk".
-         *
-         * IT SITS OUTSIDE THE READING COLUMN, 2026-09-01. It used to be the
-         * last child of a `max-w-2xl` wrapper, which capped it at 599px on a
-         * 1512px screen. It brings its own `.sp-inner` and takes the work
-         * region up to `--shell-work-max`; the composer above keeps the prose
-         * measure. See the wrapper comment at the top of this return.
-         */}
+      {/* `data-page-composer` stands the ask dock down: one prompt per screen,
+          and this is the one. See `one-prompt-per-screen`. */}
+      <div data-page-composer>
+        <Composer
+          value={sentence}
+          onChange={setSentence}
+          onSubmit={() => go.mutate(undefined)}
+          busy={go.isPending}
+          placeholder={PLACEHOLDER}
+          label="Describe the work in one sentence"
+          fieldRef={fieldRef}
+        />
       </div>
 
       {/*
-       * ── THE SEAM BETWEEN THE PAGE'S TWO JOBS (2026-09-01) ────────────────
-       *
-       * FOUNDER, twice: *"this 'what needs doing' needs a separate section,
-       * rather than just clubbing it with home"* and *"how can you
-       * differentiate or do the justification for each section."*
-       *
-       * The home does two different jobs and ran them together as one column.
-       * Above this line a person SAYS what they want done; below it they read
-       * where their existing work stands. Those are opposite postures -- one is
-       * writing, one is reading -- and nothing on the page said the subject had
-       * changed, so the board arrived as more of the same scroll.
-       *
-       * A SEAM AND NOT A SECOND TITLE. `SectionHead` is a hairline plus an
-       * eyebrow, deliberately: a heading at title size here would compete with
-       * the page's own `h1` and make the surface look like it has two titles,
-       * which is the exact defect repaired on this page an hour ago (two `h1`
-       * elements). It is an `h2` underneath so the outline is real for a
-       * keyboard reader.
-       *
-       * TWO WORDS, AND THE FIRST DRAFT OF THIS LINE PROVED WHY. It read
-       * "Where your work stands", which is a better sentence and was wrong
-       * here: the board's own loading headline is "Where things stand", so the
-       * page rendered those two one above the other and the seam read as a
-       * heading that stutters. A section label is not the place for the good
-       * sentence -- it is a tab on a divider, and the block under it is
-       * already saying the sentence.
+       * A REFUSAL AND A THROW ARE DIFFERENT, AND BOTH ARE SAID.
+       * Directly under the composer, because that is where the person is
+       * looking and because the thing they need is still in the field.
        */}
-      <div className="mrd-page">
-        <SectionHead>Your work</SectionHead>
-      </div>
-      <Board />
+      {problems.length > 0 ? (
+        <Receipt verb="Nothing was started" consequence={problems.join(" ")} failed />
+      ) : null}
+      {go.isError ? (
+        <Receipt
+          verb="Nothing was started"
+          /* A STATEMENT OF STATE, NOT AN OFFER. `failureLine` appends a second
+             sentence this call site cannot see -- the server's own copy, or
+             "Your session ended. Sign in again and this will load." -- and an
+             offer can be refuted by that where a statement cannot. "Press it
+             again" is exactly the shape the guard forbids, and it would read as
+             an instruction beside a sentence saying the session is over. */
+          consequence={failureLine(
+            "Your sentence is still in the box and nothing was filed.",
+            go.error as Error,
+          )}
+          failed
+        />
+      ) : null}
+
+      {!activeWorkspaceId ? (
+        <Row
+          lead="This account has no workspace yet."
+          sub="A run belongs to one, so there is nowhere to file this until there is one."
+          action={
+            <Action onClick={() => void navigate({ to: "/settings", search: {} })}>
+              Open Settings
+            </Action>
+          }
+        />
+      ) : null}
+
+      <ExampleJobs onStart={(job) => go.mutate(job)} busy={go.isPending} />
+
+      <YourRuns />
     </div>
   );
 }
