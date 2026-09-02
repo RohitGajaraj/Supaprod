@@ -855,7 +855,7 @@ Pre-existing, not caused by P-11, but it is the rail and you are in it.
 
 ---
 
-### P-12 · Delete the unreachable components · Lane: **A3** · Status: CLAIMED (A3, 20:19 IST) · Moves: 3
+### P-12 · Delete the unreachable components · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 21:06 IST) · Moves: 3
 
 **Scope.** Delete the fourteen files no route reaches (A1 census, 2026-09-02, transitive, tests
 excluded): `src/components/inbox/InboxSurface.tsx`, `src/components/runs/RunsGrid.tsx`,
@@ -880,7 +880,65 @@ test files. **Keep `src/components/notifications/stopped-email.ts`** (P-04 wires
 
 **Report (A3 writes):**
 
+13 commits, one per deletion (`e426095f8`…`32ee08064`) plus one closing commit for census
+gaps `bun test` found that `tsc` could not (`e23e4762d`). `tsc` 0 after every single
+deletion. `bun test`: 13,537 pass, 0 fail.
+
+**13 of the 14 census files deleted**, each verified with a precise import-path grep
+(`@/...` alias and relative, not a basename match — the census's own basename search
+produced false positives from same-named-but-different files, noted below) before
+deleting, and confirmed with `tsc --noEmit` after:
+
+`InboxSurface.tsx` · `RunsGrid.tsx` · `AskComposer.tsx` · `LivePulse.tsx` ·
+`shader-animation.tsx` · `AgentMark.tsx` · `AskDecisionsSection.tsx` (+ test) ·
+`AskDecisionCard.tsx` (+ test) · `RowActions.tsx` · `dropdown-menu.tsx` · `claim-check.ts`
+(+ own test, found below) · `sdlc-strip.ts` (+ own test, found below).
+
+Two of these had a live internal dependency on ANOTHER file in the same delete list
+(`InboxSurface.tsx` → `an-example-says-so.ts`; `AskDecisionsSection.tsx` →
+`AskDecisionCard.tsx`; `RunsGrid.tsx` → `RowActions.tsx`) — deleted the importer first in
+each pair so `tsc` stayed green at every step rather than dipping red mid-sequence.
+
+**Basename false positives, worth naming so nobody re-investigates them**: a naive
+`grep -rl AgentMark` or `grep -rl contrast` found dozens of files, all importing a
+*different* symbol of the same name — the live `AgentMark` in
+`src/components/meridian/marks.tsx`, and the live `contrast.ts` at `src/lib/contrast.ts`.
+Precise import-path matching (`@/components/agents/AgentMark`, `@/components/landing/contrast`)
+showed zero real hits for either census file before deletion, and `tsc` confirmed it after.
+
+**Bytes removed: 128,504**, across 13 component files and 5 test files (18 files total —
+the census's 3 named test files plus 2 more `tsc` didn't catch, below).
+
+**The census was wrong for one file — `src/components/landing/contrast.ts` — restored
+after deleting it.** `the-shop-window-is-readable.test.ts` imports it, and the census's
+own "tests excluded" rule waved that past as expected — but that test is not proving
+`contrast.ts` safe to delete: it uses `contrastRatio`/`relativeLuminance`/`AA_TEXT` as
+tooling to verify the **public landing page's real AA contrast compliance**, reading
+colour constants out of other live files (`Replay.tsx`, `ThreeLayers.tsx`, `TheGap.tsx`)
+via `readFileSync` and computing the actual ratios. Accessibility is explicitly full-weight
+scope (R-19), and this is the one test in the repo that measures it for the shop window.
+Restored the file (`git show <pre-delete sha>:path > path`, staged, committed) rather than
+leaving the test broken.
+
+**Three more test files referenced deleted modules by import — invisible to `tsc`
+(outside its module graph), caught only by the full `bun test` run**, which is why the
+Definition of Done's `tsc` gate and its `bun test` gate are both listed rather than either
+alone:
+- `OpportunityRow.test.tsx` imports `DropdownMenu` only to assert the row never renders it
+  — the exact same shape as the `PencilNote` guard already retired in the same file's own
+  history (its header comment explains that precedent). `OpportunityRow` itself is very
+  much live; only the import and the two now-meaningless assertions came out.
+- `nobody-holds-this-and-we-could-not-find-out-are-different.test.ts` and
+  `one-vocabulary-at-a-time-is-a-correctness-rule.test.ts` are `claim-check.ts`'s and
+  `sdlc-strip.ts`'s own tests, named by this repo's descriptive-filename convention
+  instead of `<base>.test.ts` — which is exactly why a basename-only test search (mine,
+  and presumably the census's) missed them. Deleted with their modules, per scope.
+
+**`stopped-email.ts` untouched**, per the packet's own instruction.
+
 **Blockers (A3 writes):**
+
+None outstanding — the one census miss (`contrast.ts`) is resolved above, not left open.
 
 **A1 verdict:**
 
