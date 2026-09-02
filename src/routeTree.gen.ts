@@ -41,69 +41,27 @@ import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ApiPlanGateRouteImport } from './routes/api/plan-gate'
 import { Route as ApiMcpRouteImport } from './routes/api/mcp'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as AuthenticatedTrustLedgerRouteImport } from './routes/_authenticated.trust-ledger'
-import { Route as AuthenticatedTrackRecordRouteImport } from './routes/_authenticated.track-record'
 import { Route as AuthenticatedTracesRouteImport } from './routes/_authenticated.traces'
-import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated.today'
 import { Route as AuthenticatedThreadsRouteImport } from './routes/_authenticated.threads'
-import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated.tasks'
 import { Route as AuthenticatedSyncRouteImport } from './routes/_authenticated.sync'
-import { Route as AuthenticatedSwarmRouteImport } from './routes/_authenticated.swarm'
 import { Route as AuthenticatedStartRouteImport } from './routes/_authenticated.start'
-import { Route as AuthenticatedStakeholderRouteImport } from './routes/_authenticated.stakeholder'
 import { Route as AuthenticatedShipRouteImport } from './routes/_authenticated.ship'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
-import { Route as AuthenticatedRoadmapRouteImport } from './routes/_authenticated.roadmap'
-import { Route as AuthenticatedPromptsRouteImport } from './routes/_authenticated.prompts'
 import { Route as AuthenticatedPrdsRouteImport } from './routes/_authenticated.prds'
-import { Route as AuthenticatedOutcomeRouteImport } from './routes/_authenticated.outcome'
-import { Route as AuthenticatedOpportunitiesRouteImport } from './routes/_authenticated.opportunities'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated.onboarding'
-import { Route as AuthenticatedObserveRouteImport } from './routes/_authenticated.observe'
-import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
 import { Route as AuthenticatedMeridianRouteImport } from './routes/_authenticated.meridian'
-import { Route as AuthenticatedMemoryRouteImport } from './routes/_authenticated.memory'
-import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated.meetings'
 import { Route as AuthenticatedLearnRouteImport } from './routes/_authenticated.learn'
-import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated.knowledge'
-import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated.integrations'
-import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated.inbox'
-import { Route as AuthenticatedImpactRouteImport } from './routes/_authenticated.impact'
-import { Route as AuthenticatedGuardrailsRouteImport } from './routes/_authenticated.guardrails'
-import { Route as AuthenticatedGovernRouteImport } from './routes/_authenticated.govern'
-import { Route as AuthenticatedFleetRouteImport } from './routes/_authenticated.fleet'
-import { Route as AuthenticatedEvalsRouteImport } from './routes/_authenticated.evals'
-import { Route as AuthenticatedEvalHealthRouteImport } from './routes/_authenticated.eval-health'
 import { Route as AuthenticatedEngineRoomRouteImport } from './routes/_authenticated.engine-room'
-import { Route as AuthenticatedDriftRouteImport } from './routes/_authenticated.drift'
-import { Route as AuthenticatedDocsRouteImport } from './routes/_authenticated.docs'
-import { Route as AuthenticatedDiscoveryRouteImport } from './routes/_authenticated.discovery'
 import { Route as AuthenticatedDiscoverRouteImport } from './routes/_authenticated.discover'
 import { Route as AuthenticatedDesignRouteImport } from './routes/_authenticated.design'
-import { Route as AuthenticatedDelegateRouteImport } from './routes/_authenticated.delegate'
 import { Route as AuthenticatedDecideRouteImport } from './routes/_authenticated.decide'
 import { Route as AuthenticatedCrewRouteImport } from './routes/_authenticated.crew'
-import { Route as AuthenticatedCockpitRouteImport } from './routes/_authenticated.cockpit'
-import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated.chat'
-import { Route as AuthenticatedChangelogRouteImport } from './routes/_authenticated.changelog'
-import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated.calendar'
-import { Route as AuthenticatedBudgetsRouteImport } from './routes/_authenticated.budgets'
-import { Route as AuthenticatedBriefingRouteImport } from './routes/_authenticated.briefing'
 import { Route as AuthenticatedBrainRouteImport } from './routes/_authenticated.brain'
-import { Route as AuthenticatedBoundaryRouteImport } from './routes/_authenticated.boundary'
-import { Route as AuthenticatedArtifactsRouteImport } from './routes/_authenticated.artifacts'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated.approvals'
-import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated.analytics'
-import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated.agents'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
-import { Route as AuthenticatedStudioIndexRouteImport } from './routes/_authenticated.studio.index'
-import { Route as AuthenticatedRunsIndexRouteImport } from './routes/_authenticated.runs.index'
-import { Route as AuthenticatedPrdsIndexRouteImport } from './routes/_authenticated.prds.index'
 import { Route as AuthenticatedPlanIndexRouteImport } from './routes/_authenticated.plan.index'
-import { Route as AuthenticatedMissionsIndexRouteImport } from './routes/_authenticated.missions.index'
-import { Route as AuthenticatedMIndexRouteImport } from './routes/_authenticated.m.index'
 import { Route as AuthenticatedBuildIndexRouteImport } from './routes/_authenticated.build.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
@@ -111,13 +69,7 @@ import { Route as ApiPublicIngestSignalsRouteImport } from './routes/api/public/
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedTrackTrackIdRouteImport } from './routes/_authenticated.track.$trackId'
 import { Route as AuthenticatedTracesTraceIdRouteImport } from './routes/_authenticated.traces.$traceId'
-import { Route as AuthenticatedStudioMissionIdRouteImport } from './routes/_authenticated.studio.$missionId'
 import { Route as AuthenticatedRunsMissionIdRouteImport } from './routes/_authenticated.runs.$missionId'
-import { Route as AuthenticatedPrdsIdRouteImport } from './routes/_authenticated.prds.$id'
-import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated.missions.$missionId'
-import { Route as AuthenticatedMeetingsIdRouteImport } from './routes/_authenticated.meetings.$id'
-import { Route as AuthenticatedMProductIdRouteImport } from './routes/_authenticated.m.$productId'
-import { Route as AuthenticatedBuildMissionIdRouteImport } from './routes/_authenticated.build.$missionId'
 import { Route as AuthenticatedAdminWorkspacesRouteImport } from './routes/_authenticated.admin.workspaces'
 import { Route as AuthenticatedAdminRoutingRouteImport } from './routes/_authenticated.admin.routing'
 import { Route as AuthenticatedAdminQualityRouteImport } from './routes/_authenticated.admin.quality'
@@ -129,7 +81,6 @@ import { Route as AuthenticatedAdminObservabilityRouteImport } from './routes/_a
 import { Route as AuthenticatedAdminLandingRouteImport } from './routes/_authenticated.admin.landing'
 import { Route as AuthenticatedAdminInvitesRouteImport } from './routes/_authenticated.admin.invites'
 import { Route as AuthenticatedAdminAiCostsRouteImport } from './routes/_authenticated.admin.ai-costs'
-import { Route as AuthenticatedWorkspaceSlugProductSlugRouteImport } from './routes/_authenticated.$workspaceSlug.$productSlug'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -355,26 +306,9 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedTrustLedgerRoute =
-  AuthenticatedTrustLedgerRouteImport.update({
-    id: '/trust-ledger',
-    path: '/trust-ledger',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedTrackRecordRoute =
-  AuthenticatedTrackRecordRouteImport.update({
-    id: '/track-record',
-    path: '/track-record',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedTracesRoute = AuthenticatedTracesRouteImport.update({
   id: '/traces',
   path: '/traces',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
-  id: '/today',
-  path: '/today',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedThreadsRoute = AuthenticatedThreadsRouteImport.update({
@@ -382,19 +316,9 @@ const AuthenticatedThreadsRoute = AuthenticatedThreadsRouteImport.update({
   path: '/threads',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedSyncRoute = AuthenticatedSyncRouteImport.update({
   id: '/sync',
   path: '/sync',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedSwarmRoute = AuthenticatedSwarmRouteImport.update({
-  id: '/swarm',
-  path: '/swarm',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedStartRoute = AuthenticatedStartRouteImport.update({
@@ -402,12 +326,6 @@ const AuthenticatedStartRoute = AuthenticatedStartRouteImport.update({
   path: '/start',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedStakeholderRoute =
-  AuthenticatedStakeholderRouteImport.update({
-    id: '/stakeholder',
-    path: '/stakeholder',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedShipRoute = AuthenticatedShipRouteImport.update({
   id: '/ship',
   path: '/ship',
@@ -418,61 +336,19 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedRoadmapRoute = AuthenticatedRoadmapRouteImport.update({
-  id: '/roadmap',
-  path: '/roadmap',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedPromptsRoute = AuthenticatedPromptsRouteImport.update({
-  id: '/prompts',
-  path: '/prompts',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedPrdsRoute = AuthenticatedPrdsRouteImport.update({
   id: '/prds',
   path: '/prds',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedOutcomeRoute = AuthenticatedOutcomeRouteImport.update({
-  id: '/outcome',
-  path: '/outcome',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedOpportunitiesRoute =
-  AuthenticatedOpportunitiesRouteImport.update({
-    id: '/opportunities',
-    path: '/opportunities',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedObserveRoute = AuthenticatedObserveRouteImport.update({
-  id: '/observe',
-  path: '/observe',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedNotificationsRoute =
-  AuthenticatedNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedMeridianRoute = AuthenticatedMeridianRouteImport.update({
   id: '/meridian',
   path: '/meridian',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedMemoryRoute = AuthenticatedMemoryRouteImport.update({
-  id: '/memory',
-  path: '/memory',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
-  id: '/meetings',
-  path: '/meetings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedLearnRoute = AuthenticatedLearnRouteImport.update({
@@ -480,70 +356,9 @@ const AuthenticatedLearnRoute = AuthenticatedLearnRouteImport.update({
   path: '/learn',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedKnowledgeRoute = AuthenticatedKnowledgeRouteImport.update({
-  id: '/knowledge',
-  path: '/knowledge',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedIntegrationsRoute =
-  AuthenticatedIntegrationsRouteImport.update({
-    id: '/integrations',
-    path: '/integrations',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedInboxRoute = AuthenticatedInboxRouteImport.update({
-  id: '/inbox',
-  path: '/inbox',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedImpactRoute = AuthenticatedImpactRouteImport.update({
-  id: '/impact',
-  path: '/impact',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedGuardrailsRoute = AuthenticatedGuardrailsRouteImport.update({
-  id: '/guardrails',
-  path: '/guardrails',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedGovernRoute = AuthenticatedGovernRouteImport.update({
-  id: '/govern',
-  path: '/govern',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedFleetRoute = AuthenticatedFleetRouteImport.update({
-  id: '/fleet',
-  path: '/fleet',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedEvalsRoute = AuthenticatedEvalsRouteImport.update({
-  id: '/evals',
-  path: '/evals',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedEvalHealthRoute = AuthenticatedEvalHealthRouteImport.update({
-  id: '/eval-health',
-  path: '/eval-health',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedEngineRoomRoute = AuthenticatedEngineRoomRouteImport.update({
   id: '/engine-room',
   path: '/engine-room',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedDriftRoute = AuthenticatedDriftRouteImport.update({
-  id: '/drift',
-  path: '/drift',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedDocsRoute = AuthenticatedDocsRouteImport.update({
-  id: '/docs',
-  path: '/docs',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedDiscoveryRoute = AuthenticatedDiscoveryRouteImport.update({
-  id: '/discovery',
-  path: '/discovery',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDiscoverRoute = AuthenticatedDiscoverRouteImport.update({
@@ -556,11 +371,6 @@ const AuthenticatedDesignRoute = AuthenticatedDesignRouteImport.update({
   path: '/design',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedDelegateRoute = AuthenticatedDelegateRouteImport.update({
-  id: '/delegate',
-  path: '/delegate',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedDecideRoute = AuthenticatedDecideRouteImport.update({
   id: '/decide',
   path: '/decide',
@@ -571,64 +381,14 @@ const AuthenticatedCrewRoute = AuthenticatedCrewRouteImport.update({
   path: '/crew',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedCockpitRoute = AuthenticatedCockpitRouteImport.update({
-  id: '/cockpit',
-  path: '/cockpit',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
-  id: '/chat',
-  path: '/chat',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedChangelogRoute = AuthenticatedChangelogRouteImport.update({
-  id: '/changelog',
-  path: '/changelog',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedBudgetsRoute = AuthenticatedBudgetsRouteImport.update({
-  id: '/budgets',
-  path: '/budgets',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedBriefingRoute = AuthenticatedBriefingRouteImport.update({
-  id: '/briefing',
-  path: '/briefing',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedBrainRoute = AuthenticatedBrainRouteImport.update({
   id: '/brain',
   path: '/brain',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedBoundaryRoute = AuthenticatedBoundaryRouteImport.update({
-  id: '/boundary',
-  path: '/boundary',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedArtifactsRoute = AuthenticatedArtifactsRouteImport.update({
-  id: '/artifacts',
-  path: '/artifacts',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
   id: '/approvals',
   path: '/approvals',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedAgentsRoute = AuthenticatedAgentsRouteImport.update({
-  id: '/agents',
-  path: '/agents',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -648,36 +408,9 @@ const Char91DotmcpChar93ListToolsRoute =
     path: '/.mcp/list-tools',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AuthenticatedStudioIndexRoute =
-  AuthenticatedStudioIndexRouteImport.update({
-    id: '/studio/',
-    path: '/studio/',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedRunsIndexRoute = AuthenticatedRunsIndexRouteImport.update({
-  id: '/runs/',
-  path: '/runs/',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedPrdsIndexRoute = AuthenticatedPrdsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedPrdsRoute,
-} as any)
 const AuthenticatedPlanIndexRoute = AuthenticatedPlanIndexRouteImport.update({
   id: '/plan/',
   path: '/plan/',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedMissionsIndexRoute =
-  AuthenticatedMissionsIndexRouteImport.update({
-    id: '/missions/',
-    path: '/missions/',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedMIndexRoute = AuthenticatedMIndexRouteImport.update({
-  id: '/m/',
-  path: '/m/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedBuildIndexRoute = AuthenticatedBuildIndexRouteImport.update({
@@ -717,43 +450,10 @@ const AuthenticatedTracesTraceIdRoute =
     path: '/$traceId',
     getParentRoute: () => AuthenticatedTracesRoute,
   } as any)
-const AuthenticatedStudioMissionIdRoute =
-  AuthenticatedStudioMissionIdRouteImport.update({
-    id: '/studio/$missionId',
-    path: '/studio/$missionId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedRunsMissionIdRoute =
   AuthenticatedRunsMissionIdRouteImport.update({
     id: '/runs/$missionId',
     path: '/runs/$missionId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedPrdsIdRoute = AuthenticatedPrdsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AuthenticatedPrdsRoute,
-} as any)
-const AuthenticatedMissionsMissionIdRoute =
-  AuthenticatedMissionsMissionIdRouteImport.update({
-    id: '/missions/$missionId',
-    path: '/missions/$missionId',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedMeetingsIdRoute = AuthenticatedMeetingsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AuthenticatedMeetingsRoute,
-} as any)
-const AuthenticatedMProductIdRoute = AuthenticatedMProductIdRouteImport.update({
-  id: '/m/$productId',
-  path: '/m/$productId',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedBuildMissionIdRoute =
-  AuthenticatedBuildMissionIdRouteImport.update({
-    id: '/build/$missionId',
-    path: '/build/$missionId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAdminWorkspacesRoute =
@@ -820,12 +520,6 @@ const AuthenticatedAdminAiCostsRoute =
     id: '/ai-costs',
     path: '/ai-costs',
     getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedWorkspaceSlugProductSlugRoute =
-  AuthenticatedWorkspaceSlugProductSlugRouteImport.update({
-    id: '/$workspaceSlug/$productSlug',
-    path: '/$workspaceSlug/$productSlug',
-    getParentRoute: () => AuthenticatedRoute,
   } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
@@ -1230,60 +924,23 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/agents': typeof AuthenticatedAgentsRoute
-  '/analytics': typeof AuthenticatedAnalyticsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
-  '/artifacts': typeof AuthenticatedArtifactsRoute
-  '/boundary': typeof AuthenticatedBoundaryRoute
   '/brain': typeof AuthenticatedBrainRoute
-  '/briefing': typeof AuthenticatedBriefingRoute
-  '/budgets': typeof AuthenticatedBudgetsRoute
-  '/calendar': typeof AuthenticatedCalendarRoute
-  '/changelog': typeof AuthenticatedChangelogRoute
-  '/chat': typeof AuthenticatedChatRoute
-  '/cockpit': typeof AuthenticatedCockpitRoute
   '/crew': typeof AuthenticatedCrewRoute
   '/decide': typeof AuthenticatedDecideRoute
-  '/delegate': typeof AuthenticatedDelegateRoute
   '/design': typeof AuthenticatedDesignRoute
   '/discover': typeof AuthenticatedDiscoverRoute
-  '/discovery': typeof AuthenticatedDiscoveryRoute
-  '/docs': typeof AuthenticatedDocsRoute
-  '/drift': typeof AuthenticatedDriftRoute
   '/engine-room': typeof AuthenticatedEngineRoomRoute
-  '/eval-health': typeof AuthenticatedEvalHealthRoute
-  '/evals': typeof AuthenticatedEvalsRoute
-  '/fleet': typeof AuthenticatedFleetRoute
-  '/govern': typeof AuthenticatedGovernRoute
-  '/guardrails': typeof AuthenticatedGuardrailsRoute
-  '/impact': typeof AuthenticatedImpactRoute
-  '/inbox': typeof AuthenticatedInboxRoute
-  '/integrations': typeof AuthenticatedIntegrationsRoute
-  '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/learn': typeof AuthenticatedLearnRoute
-  '/meetings': typeof AuthenticatedMeetingsRouteWithChildren
-  '/memory': typeof AuthenticatedMemoryRoute
   '/meridian': typeof AuthenticatedMeridianRoute
-  '/notifications': typeof AuthenticatedNotificationsRoute
-  '/observe': typeof AuthenticatedObserveRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/opportunities': typeof AuthenticatedOpportunitiesRoute
-  '/outcome': typeof AuthenticatedOutcomeRoute
-  '/prds': typeof AuthenticatedPrdsRouteWithChildren
-  '/prompts': typeof AuthenticatedPromptsRoute
-  '/roadmap': typeof AuthenticatedRoadmapRoute
+  '/prds': typeof AuthenticatedPrdsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/ship': typeof AuthenticatedShipRoute
-  '/stakeholder': typeof AuthenticatedStakeholderRoute
   '/start': typeof AuthenticatedStartRoute
-  '/swarm': typeof AuthenticatedSwarmRoute
   '/sync': typeof AuthenticatedSyncRoute
-  '/tasks': typeof AuthenticatedTasksRoute
   '/threads': typeof AuthenticatedThreadsRoute
-  '/today': typeof AuthenticatedTodayRoute
   '/traces': typeof AuthenticatedTracesRouteWithChildren
-  '/track-record': typeof AuthenticatedTrackRecordRoute
-  '/trust-ledger': typeof AuthenticatedTrustLedgerRoute
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/plan-gate': typeof ApiPlanGateRoute
@@ -1295,7 +952,6 @@ export interface FileRoutesByFullPath {
   '/t/$slug': typeof TSlugRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
-  '/$workspaceSlug/$productSlug': typeof AuthenticatedWorkspaceSlugProductSlugRoute
   '/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
   '/admin/invites': typeof AuthenticatedAdminInvitesRoute
   '/admin/landing': typeof AuthenticatedAdminLandingRoute
@@ -1307,13 +963,7 @@ export interface FileRoutesByFullPath {
   '/admin/quality': typeof AuthenticatedAdminQualityRoute
   '/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
-  '/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
-  '/m/$productId': typeof AuthenticatedMProductIdRoute
-  '/meetings/$id': typeof AuthenticatedMeetingsIdRoute
-  '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
-  '/prds/$id': typeof AuthenticatedPrdsIdRoute
   '/runs/$missionId': typeof AuthenticatedRunsMissionIdRoute
-  '/studio/$missionId': typeof AuthenticatedStudioMissionIdRoute
   '/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/track/$trackId': typeof AuthenticatedTrackTrackIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -1321,12 +971,7 @@ export interface FileRoutesByFullPath {
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/build/': typeof AuthenticatedBuildIndexRoute
-  '/m/': typeof AuthenticatedMIndexRoute
-  '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/plan/': typeof AuthenticatedPlanIndexRoute
-  '/prds/': typeof AuthenticatedPrdsIndexRoute
-  '/runs/': typeof AuthenticatedRunsIndexRoute
-  '/studio/': typeof AuthenticatedStudioIndexRoute
   '/plan/spec/$id': typeof AuthenticatedPlanSpecIdRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
   '/api/public/ard/schema': typeof ApiPublicArdSchemaRoute
@@ -1416,59 +1061,23 @@ export interface FileRoutesByTo {
   '/updates': typeof UpdatesRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  '/agents': typeof AuthenticatedAgentsRoute
-  '/analytics': typeof AuthenticatedAnalyticsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
-  '/artifacts': typeof AuthenticatedArtifactsRoute
-  '/boundary': typeof AuthenticatedBoundaryRoute
   '/brain': typeof AuthenticatedBrainRoute
-  '/briefing': typeof AuthenticatedBriefingRoute
-  '/budgets': typeof AuthenticatedBudgetsRoute
-  '/calendar': typeof AuthenticatedCalendarRoute
-  '/changelog': typeof AuthenticatedChangelogRoute
-  '/chat': typeof AuthenticatedChatRoute
-  '/cockpit': typeof AuthenticatedCockpitRoute
   '/crew': typeof AuthenticatedCrewRoute
   '/decide': typeof AuthenticatedDecideRoute
-  '/delegate': typeof AuthenticatedDelegateRoute
   '/design': typeof AuthenticatedDesignRoute
   '/discover': typeof AuthenticatedDiscoverRoute
-  '/discovery': typeof AuthenticatedDiscoveryRoute
-  '/docs': typeof AuthenticatedDocsRoute
-  '/drift': typeof AuthenticatedDriftRoute
   '/engine-room': typeof AuthenticatedEngineRoomRoute
-  '/eval-health': typeof AuthenticatedEvalHealthRoute
-  '/evals': typeof AuthenticatedEvalsRoute
-  '/fleet': typeof AuthenticatedFleetRoute
-  '/govern': typeof AuthenticatedGovernRoute
-  '/guardrails': typeof AuthenticatedGuardrailsRoute
-  '/impact': typeof AuthenticatedImpactRoute
-  '/inbox': typeof AuthenticatedInboxRoute
-  '/integrations': typeof AuthenticatedIntegrationsRoute
-  '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/learn': typeof AuthenticatedLearnRoute
-  '/meetings': typeof AuthenticatedMeetingsRouteWithChildren
-  '/memory': typeof AuthenticatedMemoryRoute
   '/meridian': typeof AuthenticatedMeridianRoute
-  '/notifications': typeof AuthenticatedNotificationsRoute
-  '/observe': typeof AuthenticatedObserveRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/opportunities': typeof AuthenticatedOpportunitiesRoute
-  '/outcome': typeof AuthenticatedOutcomeRoute
-  '/prompts': typeof AuthenticatedPromptsRoute
-  '/roadmap': typeof AuthenticatedRoadmapRoute
+  '/prds': typeof AuthenticatedPrdsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/ship': typeof AuthenticatedShipRoute
-  '/stakeholder': typeof AuthenticatedStakeholderRoute
   '/start': typeof AuthenticatedStartRoute
-  '/swarm': typeof AuthenticatedSwarmRoute
   '/sync': typeof AuthenticatedSyncRoute
-  '/tasks': typeof AuthenticatedTasksRoute
   '/threads': typeof AuthenticatedThreadsRoute
-  '/today': typeof AuthenticatedTodayRoute
   '/traces': typeof AuthenticatedTracesRouteWithChildren
-  '/track-record': typeof AuthenticatedTrackRecordRoute
-  '/trust-ledger': typeof AuthenticatedTrustLedgerRoute
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/plan-gate': typeof ApiPlanGateRoute
@@ -1480,7 +1089,6 @@ export interface FileRoutesByTo {
   '/t/$slug': typeof TSlugRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
-  '/$workspaceSlug/$productSlug': typeof AuthenticatedWorkspaceSlugProductSlugRoute
   '/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
   '/admin/invites': typeof AuthenticatedAdminInvitesRoute
   '/admin/landing': typeof AuthenticatedAdminLandingRoute
@@ -1492,13 +1100,7 @@ export interface FileRoutesByTo {
   '/admin/quality': typeof AuthenticatedAdminQualityRoute
   '/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
-  '/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
-  '/m/$productId': typeof AuthenticatedMProductIdRoute
-  '/meetings/$id': typeof AuthenticatedMeetingsIdRoute
-  '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
-  '/prds/$id': typeof AuthenticatedPrdsIdRoute
   '/runs/$missionId': typeof AuthenticatedRunsMissionIdRoute
-  '/studio/$missionId': typeof AuthenticatedStudioMissionIdRoute
   '/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/track/$trackId': typeof AuthenticatedTrackTrackIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -1506,12 +1108,7 @@ export interface FileRoutesByTo {
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/build': typeof AuthenticatedBuildIndexRoute
-  '/m': typeof AuthenticatedMIndexRoute
-  '/missions': typeof AuthenticatedMissionsIndexRoute
   '/plan': typeof AuthenticatedPlanIndexRoute
-  '/prds': typeof AuthenticatedPrdsIndexRoute
-  '/runs': typeof AuthenticatedRunsIndexRoute
-  '/studio': typeof AuthenticatedStudioIndexRoute
   '/plan/spec/$id': typeof AuthenticatedPlanSpecIdRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
   '/api/public/ard/schema': typeof ApiPublicArdSchemaRoute
@@ -1604,60 +1201,23 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/_authenticated/agents': typeof AuthenticatedAgentsRoute
-  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
-  '/_authenticated/artifacts': typeof AuthenticatedArtifactsRoute
-  '/_authenticated/boundary': typeof AuthenticatedBoundaryRoute
   '/_authenticated/brain': typeof AuthenticatedBrainRoute
-  '/_authenticated/briefing': typeof AuthenticatedBriefingRoute
-  '/_authenticated/budgets': typeof AuthenticatedBudgetsRoute
-  '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
-  '/_authenticated/changelog': typeof AuthenticatedChangelogRoute
-  '/_authenticated/chat': typeof AuthenticatedChatRoute
-  '/_authenticated/cockpit': typeof AuthenticatedCockpitRoute
   '/_authenticated/crew': typeof AuthenticatedCrewRoute
   '/_authenticated/decide': typeof AuthenticatedDecideRoute
-  '/_authenticated/delegate': typeof AuthenticatedDelegateRoute
   '/_authenticated/design': typeof AuthenticatedDesignRoute
   '/_authenticated/discover': typeof AuthenticatedDiscoverRoute
-  '/_authenticated/discovery': typeof AuthenticatedDiscoveryRoute
-  '/_authenticated/docs': typeof AuthenticatedDocsRoute
-  '/_authenticated/drift': typeof AuthenticatedDriftRoute
   '/_authenticated/engine-room': typeof AuthenticatedEngineRoomRoute
-  '/_authenticated/eval-health': typeof AuthenticatedEvalHealthRoute
-  '/_authenticated/evals': typeof AuthenticatedEvalsRoute
-  '/_authenticated/fleet': typeof AuthenticatedFleetRoute
-  '/_authenticated/govern': typeof AuthenticatedGovernRoute
-  '/_authenticated/guardrails': typeof AuthenticatedGuardrailsRoute
-  '/_authenticated/impact': typeof AuthenticatedImpactRoute
-  '/_authenticated/inbox': typeof AuthenticatedInboxRoute
-  '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
-  '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
   '/_authenticated/learn': typeof AuthenticatedLearnRoute
-  '/_authenticated/meetings': typeof AuthenticatedMeetingsRouteWithChildren
-  '/_authenticated/memory': typeof AuthenticatedMemoryRoute
   '/_authenticated/meridian': typeof AuthenticatedMeridianRoute
-  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
-  '/_authenticated/observe': typeof AuthenticatedObserveRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
-  '/_authenticated/opportunities': typeof AuthenticatedOpportunitiesRoute
-  '/_authenticated/outcome': typeof AuthenticatedOutcomeRoute
-  '/_authenticated/prds': typeof AuthenticatedPrdsRouteWithChildren
-  '/_authenticated/prompts': typeof AuthenticatedPromptsRoute
-  '/_authenticated/roadmap': typeof AuthenticatedRoadmapRoute
+  '/_authenticated/prds': typeof AuthenticatedPrdsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/ship': typeof AuthenticatedShipRoute
-  '/_authenticated/stakeholder': typeof AuthenticatedStakeholderRoute
   '/_authenticated/start': typeof AuthenticatedStartRoute
-  '/_authenticated/swarm': typeof AuthenticatedSwarmRoute
   '/_authenticated/sync': typeof AuthenticatedSyncRoute
-  '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/threads': typeof AuthenticatedThreadsRoute
-  '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/traces': typeof AuthenticatedTracesRouteWithChildren
-  '/_authenticated/track-record': typeof AuthenticatedTrackRecordRoute
-  '/_authenticated/trust-ledger': typeof AuthenticatedTrustLedgerRoute
   '/api/chat': typeof ApiChatRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/plan-gate': typeof ApiPlanGateRoute
@@ -1669,7 +1229,6 @@ export interface FileRoutesById {
   '/t/$slug': typeof TSlugRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
-  '/_authenticated/$workspaceSlug/$productSlug': typeof AuthenticatedWorkspaceSlugProductSlugRoute
   '/_authenticated/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
   '/_authenticated/admin/invites': typeof AuthenticatedAdminInvitesRoute
   '/_authenticated/admin/landing': typeof AuthenticatedAdminLandingRoute
@@ -1681,13 +1240,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/quality': typeof AuthenticatedAdminQualityRoute
   '/_authenticated/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/_authenticated/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
-  '/_authenticated/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
-  '/_authenticated/m/$productId': typeof AuthenticatedMProductIdRoute
-  '/_authenticated/meetings/$id': typeof AuthenticatedMeetingsIdRoute
-  '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
-  '/_authenticated/prds/$id': typeof AuthenticatedPrdsIdRoute
   '/_authenticated/runs/$missionId': typeof AuthenticatedRunsMissionIdRoute
-  '/_authenticated/studio/$missionId': typeof AuthenticatedStudioMissionIdRoute
   '/_authenticated/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/_authenticated/track/$trackId': typeof AuthenticatedTrackTrackIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -1695,12 +1248,7 @@ export interface FileRoutesById {
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/build/': typeof AuthenticatedBuildIndexRoute
-  '/_authenticated/m/': typeof AuthenticatedMIndexRoute
-  '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/plan/': typeof AuthenticatedPlanIndexRoute
-  '/_authenticated/prds/': typeof AuthenticatedPrdsIndexRoute
-  '/_authenticated/runs/': typeof AuthenticatedRunsIndexRoute
-  '/_authenticated/studio/': typeof AuthenticatedStudioIndexRoute
   '/_authenticated/plan/spec/$id': typeof AuthenticatedPlanSpecIdRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
   '/api/public/ard/schema': typeof ApiPublicArdSchemaRoute
@@ -1793,60 +1341,23 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/admin'
-    | '/agents'
-    | '/analytics'
     | '/approvals'
-    | '/artifacts'
-    | '/boundary'
     | '/brain'
-    | '/briefing'
-    | '/budgets'
-    | '/calendar'
-    | '/changelog'
-    | '/chat'
-    | '/cockpit'
     | '/crew'
     | '/decide'
-    | '/delegate'
     | '/design'
     | '/discover'
-    | '/discovery'
-    | '/docs'
-    | '/drift'
     | '/engine-room'
-    | '/eval-health'
-    | '/evals'
-    | '/fleet'
-    | '/govern'
-    | '/guardrails'
-    | '/impact'
-    | '/inbox'
-    | '/integrations'
-    | '/knowledge'
     | '/learn'
-    | '/meetings'
-    | '/memory'
     | '/meridian'
-    | '/notifications'
-    | '/observe'
     | '/onboarding'
-    | '/opportunities'
-    | '/outcome'
     | '/prds'
-    | '/prompts'
-    | '/roadmap'
     | '/settings'
     | '/ship'
-    | '/stakeholder'
     | '/start'
-    | '/swarm'
     | '/sync'
-    | '/tasks'
     | '/threads'
-    | '/today'
     | '/traces'
-    | '/track-record'
-    | '/trust-ledger'
     | '/api/chat'
     | '/api/mcp'
     | '/api/plan-gate'
@@ -1858,7 +1369,6 @@ export interface FileRouteTypes {
     | '/t/$slug'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
-    | '/$workspaceSlug/$productSlug'
     | '/admin/ai-costs'
     | '/admin/invites'
     | '/admin/landing'
@@ -1870,13 +1380,7 @@ export interface FileRouteTypes {
     | '/admin/quality'
     | '/admin/routing'
     | '/admin/workspaces'
-    | '/build/$missionId'
-    | '/m/$productId'
-    | '/meetings/$id'
-    | '/missions/$missionId'
-    | '/prds/$id'
     | '/runs/$missionId'
-    | '/studio/$missionId'
     | '/traces/$traceId'
     | '/track/$trackId'
     | '/api/public/health'
@@ -1884,12 +1388,7 @@ export interface FileRouteTypes {
     | '/api/stripe/webhook'
     | '/admin/'
     | '/build/'
-    | '/m/'
-    | '/missions/'
     | '/plan/'
-    | '/prds/'
-    | '/runs/'
-    | '/studio/'
     | '/plan/spec/$id'
     | '/api/public/a2a/tasks'
     | '/api/public/ard/schema'
@@ -1979,59 +1478,23 @@ export interface FileRouteTypes {
     | '/updates'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
-    | '/agents'
-    | '/analytics'
     | '/approvals'
-    | '/artifacts'
-    | '/boundary'
     | '/brain'
-    | '/briefing'
-    | '/budgets'
-    | '/calendar'
-    | '/changelog'
-    | '/chat'
-    | '/cockpit'
     | '/crew'
     | '/decide'
-    | '/delegate'
     | '/design'
     | '/discover'
-    | '/discovery'
-    | '/docs'
-    | '/drift'
     | '/engine-room'
-    | '/eval-health'
-    | '/evals'
-    | '/fleet'
-    | '/govern'
-    | '/guardrails'
-    | '/impact'
-    | '/inbox'
-    | '/integrations'
-    | '/knowledge'
     | '/learn'
-    | '/meetings'
-    | '/memory'
     | '/meridian'
-    | '/notifications'
-    | '/observe'
     | '/onboarding'
-    | '/opportunities'
-    | '/outcome'
-    | '/prompts'
-    | '/roadmap'
+    | '/prds'
     | '/settings'
     | '/ship'
-    | '/stakeholder'
     | '/start'
-    | '/swarm'
     | '/sync'
-    | '/tasks'
     | '/threads'
-    | '/today'
     | '/traces'
-    | '/track-record'
-    | '/trust-ledger'
     | '/api/chat'
     | '/api/mcp'
     | '/api/plan-gate'
@@ -2043,7 +1506,6 @@ export interface FileRouteTypes {
     | '/t/$slug'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
-    | '/$workspaceSlug/$productSlug'
     | '/admin/ai-costs'
     | '/admin/invites'
     | '/admin/landing'
@@ -2055,13 +1517,7 @@ export interface FileRouteTypes {
     | '/admin/quality'
     | '/admin/routing'
     | '/admin/workspaces'
-    | '/build/$missionId'
-    | '/m/$productId'
-    | '/meetings/$id'
-    | '/missions/$missionId'
-    | '/prds/$id'
     | '/runs/$missionId'
-    | '/studio/$missionId'
     | '/traces/$traceId'
     | '/track/$trackId'
     | '/api/public/health'
@@ -2069,12 +1525,7 @@ export interface FileRouteTypes {
     | '/api/stripe/webhook'
     | '/admin'
     | '/build'
-    | '/m'
-    | '/missions'
     | '/plan'
-    | '/prds'
-    | '/runs'
-    | '/studio'
     | '/plan/spec/$id'
     | '/api/public/a2a/tasks'
     | '/api/public/ard/schema'
@@ -2166,60 +1617,23 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
-    | '/_authenticated/agents'
-    | '/_authenticated/analytics'
     | '/_authenticated/approvals'
-    | '/_authenticated/artifacts'
-    | '/_authenticated/boundary'
     | '/_authenticated/brain'
-    | '/_authenticated/briefing'
-    | '/_authenticated/budgets'
-    | '/_authenticated/calendar'
-    | '/_authenticated/changelog'
-    | '/_authenticated/chat'
-    | '/_authenticated/cockpit'
     | '/_authenticated/crew'
     | '/_authenticated/decide'
-    | '/_authenticated/delegate'
     | '/_authenticated/design'
     | '/_authenticated/discover'
-    | '/_authenticated/discovery'
-    | '/_authenticated/docs'
-    | '/_authenticated/drift'
     | '/_authenticated/engine-room'
-    | '/_authenticated/eval-health'
-    | '/_authenticated/evals'
-    | '/_authenticated/fleet'
-    | '/_authenticated/govern'
-    | '/_authenticated/guardrails'
-    | '/_authenticated/impact'
-    | '/_authenticated/inbox'
-    | '/_authenticated/integrations'
-    | '/_authenticated/knowledge'
     | '/_authenticated/learn'
-    | '/_authenticated/meetings'
-    | '/_authenticated/memory'
     | '/_authenticated/meridian'
-    | '/_authenticated/notifications'
-    | '/_authenticated/observe'
     | '/_authenticated/onboarding'
-    | '/_authenticated/opportunities'
-    | '/_authenticated/outcome'
     | '/_authenticated/prds'
-    | '/_authenticated/prompts'
-    | '/_authenticated/roadmap'
     | '/_authenticated/settings'
     | '/_authenticated/ship'
-    | '/_authenticated/stakeholder'
     | '/_authenticated/start'
-    | '/_authenticated/swarm'
     | '/_authenticated/sync'
-    | '/_authenticated/tasks'
     | '/_authenticated/threads'
-    | '/_authenticated/today'
     | '/_authenticated/traces'
-    | '/_authenticated/track-record'
-    | '/_authenticated/trust-ledger'
     | '/api/chat'
     | '/api/mcp'
     | '/api/plan-gate'
@@ -2231,7 +1645,6 @@ export interface FileRouteTypes {
     | '/t/$slug'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
-    | '/_authenticated/$workspaceSlug/$productSlug'
     | '/_authenticated/admin/ai-costs'
     | '/_authenticated/admin/invites'
     | '/_authenticated/admin/landing'
@@ -2243,13 +1656,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/quality'
     | '/_authenticated/admin/routing'
     | '/_authenticated/admin/workspaces'
-    | '/_authenticated/build/$missionId'
-    | '/_authenticated/m/$productId'
-    | '/_authenticated/meetings/$id'
-    | '/_authenticated/missions/$missionId'
-    | '/_authenticated/prds/$id'
     | '/_authenticated/runs/$missionId'
-    | '/_authenticated/studio/$missionId'
     | '/_authenticated/traces/$traceId'
     | '/_authenticated/track/$trackId'
     | '/api/public/health'
@@ -2257,12 +1664,7 @@ export interface FileRouteTypes {
     | '/api/stripe/webhook'
     | '/_authenticated/admin/'
     | '/_authenticated/build/'
-    | '/_authenticated/m/'
-    | '/_authenticated/missions/'
     | '/_authenticated/plan/'
-    | '/_authenticated/prds/'
-    | '/_authenticated/runs/'
-    | '/_authenticated/studio/'
     | '/_authenticated/plan/spec/$id'
     | '/api/public/a2a/tasks'
     | '/api/public/ard/schema'
@@ -2657,32 +2059,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/trust-ledger': {
-      id: '/_authenticated/trust-ledger'
-      path: '/trust-ledger'
-      fullPath: '/trust-ledger'
-      preLoaderRoute: typeof AuthenticatedTrustLedgerRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/track-record': {
-      id: '/_authenticated/track-record'
-      path: '/track-record'
-      fullPath: '/track-record'
-      preLoaderRoute: typeof AuthenticatedTrackRecordRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/traces': {
       id: '/_authenticated/traces'
       path: '/traces'
       fullPath: '/traces'
       preLoaderRoute: typeof AuthenticatedTracesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/today': {
-      id: '/_authenticated/today'
-      path: '/today'
-      fullPath: '/today'
-      preLoaderRoute: typeof AuthenticatedTodayRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/threads': {
@@ -2692,13 +2073,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedThreadsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/tasks': {
-      id: '/_authenticated/tasks'
-      path: '/tasks'
-      fullPath: '/tasks'
-      preLoaderRoute: typeof AuthenticatedTasksRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/sync': {
       id: '/_authenticated/sync'
       path: '/sync'
@@ -2706,25 +2080,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSyncRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/swarm': {
-      id: '/_authenticated/swarm'
-      path: '/swarm'
-      fullPath: '/swarm'
-      preLoaderRoute: typeof AuthenticatedSwarmRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/start': {
       id: '/_authenticated/start'
       path: '/start'
       fullPath: '/start'
       preLoaderRoute: typeof AuthenticatedStartRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/stakeholder': {
-      id: '/_authenticated/stakeholder'
-      path: '/stakeholder'
-      fullPath: '/stakeholder'
-      preLoaderRoute: typeof AuthenticatedStakeholderRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/ship': {
@@ -2741,39 +2101,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/roadmap': {
-      id: '/_authenticated/roadmap'
-      path: '/roadmap'
-      fullPath: '/roadmap'
-      preLoaderRoute: typeof AuthenticatedRoadmapRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/prompts': {
-      id: '/_authenticated/prompts'
-      path: '/prompts'
-      fullPath: '/prompts'
-      preLoaderRoute: typeof AuthenticatedPromptsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/prds': {
       id: '/_authenticated/prds'
       path: '/prds'
       fullPath: '/prds'
       preLoaderRoute: typeof AuthenticatedPrdsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/outcome': {
-      id: '/_authenticated/outcome'
-      path: '/outcome'
-      fullPath: '/outcome'
-      preLoaderRoute: typeof AuthenticatedOutcomeRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/opportunities': {
-      id: '/_authenticated/opportunities'
-      path: '/opportunities'
-      fullPath: '/opportunities'
-      preLoaderRoute: typeof AuthenticatedOpportunitiesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/onboarding': {
@@ -2783,39 +2115,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/observe': {
-      id: '/_authenticated/observe'
-      path: '/observe'
-      fullPath: '/observe'
-      preLoaderRoute: typeof AuthenticatedObserveRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/notifications': {
-      id: '/_authenticated/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/meridian': {
       id: '/_authenticated/meridian'
       path: '/meridian'
       fullPath: '/meridian'
       preLoaderRoute: typeof AuthenticatedMeridianRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/memory': {
-      id: '/_authenticated/memory'
-      path: '/memory'
-      fullPath: '/memory'
-      preLoaderRoute: typeof AuthenticatedMemoryRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/meetings': {
-      id: '/_authenticated/meetings'
-      path: '/meetings'
-      fullPath: '/meetings'
-      preLoaderRoute: typeof AuthenticatedMeetingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/learn': {
@@ -2825,95 +2129,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLearnRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/knowledge': {
-      id: '/_authenticated/knowledge'
-      path: '/knowledge'
-      fullPath: '/knowledge'
-      preLoaderRoute: typeof AuthenticatedKnowledgeRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/integrations': {
-      id: '/_authenticated/integrations'
-      path: '/integrations'
-      fullPath: '/integrations'
-      preLoaderRoute: typeof AuthenticatedIntegrationsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/inbox': {
-      id: '/_authenticated/inbox'
-      path: '/inbox'
-      fullPath: '/inbox'
-      preLoaderRoute: typeof AuthenticatedInboxRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/impact': {
-      id: '/_authenticated/impact'
-      path: '/impact'
-      fullPath: '/impact'
-      preLoaderRoute: typeof AuthenticatedImpactRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/guardrails': {
-      id: '/_authenticated/guardrails'
-      path: '/guardrails'
-      fullPath: '/guardrails'
-      preLoaderRoute: typeof AuthenticatedGuardrailsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/govern': {
-      id: '/_authenticated/govern'
-      path: '/govern'
-      fullPath: '/govern'
-      preLoaderRoute: typeof AuthenticatedGovernRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/fleet': {
-      id: '/_authenticated/fleet'
-      path: '/fleet'
-      fullPath: '/fleet'
-      preLoaderRoute: typeof AuthenticatedFleetRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/evals': {
-      id: '/_authenticated/evals'
-      path: '/evals'
-      fullPath: '/evals'
-      preLoaderRoute: typeof AuthenticatedEvalsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/eval-health': {
-      id: '/_authenticated/eval-health'
-      path: '/eval-health'
-      fullPath: '/eval-health'
-      preLoaderRoute: typeof AuthenticatedEvalHealthRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/engine-room': {
       id: '/_authenticated/engine-room'
       path: '/engine-room'
       fullPath: '/engine-room'
       preLoaderRoute: typeof AuthenticatedEngineRoomRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/drift': {
-      id: '/_authenticated/drift'
-      path: '/drift'
-      fullPath: '/drift'
-      preLoaderRoute: typeof AuthenticatedDriftRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/docs': {
-      id: '/_authenticated/docs'
-      path: '/docs'
-      fullPath: '/docs'
-      preLoaderRoute: typeof AuthenticatedDocsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/discovery': {
-      id: '/_authenticated/discovery'
-      path: '/discovery'
-      fullPath: '/discovery'
-      preLoaderRoute: typeof AuthenticatedDiscoveryRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/discover': {
@@ -2930,13 +2150,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDesignRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/delegate': {
-      id: '/_authenticated/delegate'
-      path: '/delegate'
-      fullPath: '/delegate'
-      preLoaderRoute: typeof AuthenticatedDelegateRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/decide': {
       id: '/_authenticated/decide'
       path: '/decide'
@@ -2951,48 +2164,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCrewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/cockpit': {
-      id: '/_authenticated/cockpit'
-      path: '/cockpit'
-      fullPath: '/cockpit'
-      preLoaderRoute: typeof AuthenticatedCockpitRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/chat': {
-      id: '/_authenticated/chat'
-      path: '/chat'
-      fullPath: '/chat'
-      preLoaderRoute: typeof AuthenticatedChatRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/changelog': {
-      id: '/_authenticated/changelog'
-      path: '/changelog'
-      fullPath: '/changelog'
-      preLoaderRoute: typeof AuthenticatedChangelogRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/calendar': {
-      id: '/_authenticated/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/budgets': {
-      id: '/_authenticated/budgets'
-      path: '/budgets'
-      fullPath: '/budgets'
-      preLoaderRoute: typeof AuthenticatedBudgetsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/briefing': {
-      id: '/_authenticated/briefing'
-      path: '/briefing'
-      fullPath: '/briefing'
-      preLoaderRoute: typeof AuthenticatedBriefingRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/brain': {
       id: '/_authenticated/brain'
       path: '/brain'
@@ -3000,39 +2171,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBrainRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/boundary': {
-      id: '/_authenticated/boundary'
-      path: '/boundary'
-      fullPath: '/boundary'
-      preLoaderRoute: typeof AuthenticatedBoundaryRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/artifacts': {
-      id: '/_authenticated/artifacts'
-      path: '/artifacts'
-      fullPath: '/artifacts'
-      preLoaderRoute: typeof AuthenticatedArtifactsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/approvals': {
       id: '/_authenticated/approvals'
       path: '/approvals'
       fullPath: '/approvals'
       preLoaderRoute: typeof AuthenticatedApprovalsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/analytics': {
-      id: '/_authenticated/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/agents': {
-      id: '/_authenticated/agents'
-      path: '/agents'
-      fullPath: '/agents'
-      preLoaderRoute: typeof AuthenticatedAgentsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin': {
@@ -3056,46 +2199,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/studio/': {
-      id: '/_authenticated/studio/'
-      path: '/studio'
-      fullPath: '/studio/'
-      preLoaderRoute: typeof AuthenticatedStudioIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/runs/': {
-      id: '/_authenticated/runs/'
-      path: '/runs'
-      fullPath: '/runs/'
-      preLoaderRoute: typeof AuthenticatedRunsIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/prds/': {
-      id: '/_authenticated/prds/'
-      path: '/'
-      fullPath: '/prds/'
-      preLoaderRoute: typeof AuthenticatedPrdsIndexRouteImport
-      parentRoute: typeof AuthenticatedPrdsRoute
-    }
     '/_authenticated/plan/': {
       id: '/_authenticated/plan/'
       path: '/plan'
       fullPath: '/plan/'
       preLoaderRoute: typeof AuthenticatedPlanIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/missions/': {
-      id: '/_authenticated/missions/'
-      path: '/missions'
-      fullPath: '/missions/'
-      preLoaderRoute: typeof AuthenticatedMissionsIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/m/': {
-      id: '/_authenticated/m/'
-      path: '/m'
-      fullPath: '/m/'
-      preLoaderRoute: typeof AuthenticatedMIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/build/': {
@@ -3147,53 +2255,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTracesTraceIdRouteImport
       parentRoute: typeof AuthenticatedTracesRoute
     }
-    '/_authenticated/studio/$missionId': {
-      id: '/_authenticated/studio/$missionId'
-      path: '/studio/$missionId'
-      fullPath: '/studio/$missionId'
-      preLoaderRoute: typeof AuthenticatedStudioMissionIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/runs/$missionId': {
       id: '/_authenticated/runs/$missionId'
       path: '/runs/$missionId'
       fullPath: '/runs/$missionId'
       preLoaderRoute: typeof AuthenticatedRunsMissionIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/prds/$id': {
-      id: '/_authenticated/prds/$id'
-      path: '/$id'
-      fullPath: '/prds/$id'
-      preLoaderRoute: typeof AuthenticatedPrdsIdRouteImport
-      parentRoute: typeof AuthenticatedPrdsRoute
-    }
-    '/_authenticated/missions/$missionId': {
-      id: '/_authenticated/missions/$missionId'
-      path: '/missions/$missionId'
-      fullPath: '/missions/$missionId'
-      preLoaderRoute: typeof AuthenticatedMissionsMissionIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/meetings/$id': {
-      id: '/_authenticated/meetings/$id'
-      path: '/$id'
-      fullPath: '/meetings/$id'
-      preLoaderRoute: typeof AuthenticatedMeetingsIdRouteImport
-      parentRoute: typeof AuthenticatedMeetingsRoute
-    }
-    '/_authenticated/m/$productId': {
-      id: '/_authenticated/m/$productId'
-      path: '/m/$productId'
-      fullPath: '/m/$productId'
-      preLoaderRoute: typeof AuthenticatedMProductIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/build/$missionId': {
-      id: '/_authenticated/build/$missionId'
-      path: '/build/$missionId'
-      fullPath: '/build/$missionId'
-      preLoaderRoute: typeof AuthenticatedBuildMissionIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/workspaces': {
@@ -3272,13 +2338,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/ai-costs'
       preLoaderRoute: typeof AuthenticatedAdminAiCostsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/$workspaceSlug/$productSlug': {
-      id: '/_authenticated/$workspaceSlug/$productSlug'
-      path: '/$workspaceSlug/$productSlug'
-      fullPath: '/$workspaceSlug/$productSlug'
-      preLoaderRoute: typeof AuthenticatedWorkspaceSlugProductSlugRouteImport
-      parentRoute: typeof AuthenticatedRoute
     }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
@@ -3771,32 +2830,6 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
-interface AuthenticatedMeetingsRouteChildren {
-  AuthenticatedMeetingsIdRoute: typeof AuthenticatedMeetingsIdRoute
-}
-
-const AuthenticatedMeetingsRouteChildren: AuthenticatedMeetingsRouteChildren = {
-  AuthenticatedMeetingsIdRoute: AuthenticatedMeetingsIdRoute,
-}
-
-const AuthenticatedMeetingsRouteWithChildren =
-  AuthenticatedMeetingsRoute._addFileChildren(
-    AuthenticatedMeetingsRouteChildren,
-  )
-
-interface AuthenticatedPrdsRouteChildren {
-  AuthenticatedPrdsIdRoute: typeof AuthenticatedPrdsIdRoute
-  AuthenticatedPrdsIndexRoute: typeof AuthenticatedPrdsIndexRoute
-}
-
-const AuthenticatedPrdsRouteChildren: AuthenticatedPrdsRouteChildren = {
-  AuthenticatedPrdsIdRoute: AuthenticatedPrdsIdRoute,
-  AuthenticatedPrdsIndexRoute: AuthenticatedPrdsIndexRoute,
-}
-
-const AuthenticatedPrdsRouteWithChildren =
-  AuthenticatedPrdsRoute._addFileChildren(AuthenticatedPrdsRouteChildren)
-
 interface AuthenticatedTracesRouteChildren {
   AuthenticatedTracesTraceIdRoute: typeof AuthenticatedTracesTraceIdRoute
 }
@@ -3810,146 +2843,53 @@ const AuthenticatedTracesRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
-  AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRoute
-  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
-  AuthenticatedArtifactsRoute: typeof AuthenticatedArtifactsRoute
-  AuthenticatedBoundaryRoute: typeof AuthenticatedBoundaryRoute
   AuthenticatedBrainRoute: typeof AuthenticatedBrainRoute
-  AuthenticatedBriefingRoute: typeof AuthenticatedBriefingRoute
-  AuthenticatedBudgetsRoute: typeof AuthenticatedBudgetsRoute
-  AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
-  AuthenticatedChangelogRoute: typeof AuthenticatedChangelogRoute
-  AuthenticatedChatRoute: typeof AuthenticatedChatRoute
-  AuthenticatedCockpitRoute: typeof AuthenticatedCockpitRoute
   AuthenticatedCrewRoute: typeof AuthenticatedCrewRoute
   AuthenticatedDecideRoute: typeof AuthenticatedDecideRoute
-  AuthenticatedDelegateRoute: typeof AuthenticatedDelegateRoute
   AuthenticatedDesignRoute: typeof AuthenticatedDesignRoute
   AuthenticatedDiscoverRoute: typeof AuthenticatedDiscoverRoute
-  AuthenticatedDiscoveryRoute: typeof AuthenticatedDiscoveryRoute
-  AuthenticatedDocsRoute: typeof AuthenticatedDocsRoute
-  AuthenticatedDriftRoute: typeof AuthenticatedDriftRoute
   AuthenticatedEngineRoomRoute: typeof AuthenticatedEngineRoomRoute
-  AuthenticatedEvalHealthRoute: typeof AuthenticatedEvalHealthRoute
-  AuthenticatedEvalsRoute: typeof AuthenticatedEvalsRoute
-  AuthenticatedFleetRoute: typeof AuthenticatedFleetRoute
-  AuthenticatedGovernRoute: typeof AuthenticatedGovernRoute
-  AuthenticatedGuardrailsRoute: typeof AuthenticatedGuardrailsRoute
-  AuthenticatedImpactRoute: typeof AuthenticatedImpactRoute
-  AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
-  AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
-  AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
   AuthenticatedLearnRoute: typeof AuthenticatedLearnRoute
-  AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRouteWithChildren
-  AuthenticatedMemoryRoute: typeof AuthenticatedMemoryRoute
   AuthenticatedMeridianRoute: typeof AuthenticatedMeridianRoute
-  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
-  AuthenticatedObserveRoute: typeof AuthenticatedObserveRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
-  AuthenticatedOpportunitiesRoute: typeof AuthenticatedOpportunitiesRoute
-  AuthenticatedOutcomeRoute: typeof AuthenticatedOutcomeRoute
-  AuthenticatedPrdsRoute: typeof AuthenticatedPrdsRouteWithChildren
-  AuthenticatedPromptsRoute: typeof AuthenticatedPromptsRoute
-  AuthenticatedRoadmapRoute: typeof AuthenticatedRoadmapRoute
+  AuthenticatedPrdsRoute: typeof AuthenticatedPrdsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShipRoute: typeof AuthenticatedShipRoute
-  AuthenticatedStakeholderRoute: typeof AuthenticatedStakeholderRoute
   AuthenticatedStartRoute: typeof AuthenticatedStartRoute
-  AuthenticatedSwarmRoute: typeof AuthenticatedSwarmRoute
   AuthenticatedSyncRoute: typeof AuthenticatedSyncRoute
-  AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedThreadsRoute: typeof AuthenticatedThreadsRoute
-  AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedTracesRoute: typeof AuthenticatedTracesRouteWithChildren
-  AuthenticatedTrackRecordRoute: typeof AuthenticatedTrackRecordRoute
-  AuthenticatedTrustLedgerRoute: typeof AuthenticatedTrustLedgerRoute
-  AuthenticatedWorkspaceSlugProductSlugRoute: typeof AuthenticatedWorkspaceSlugProductSlugRoute
-  AuthenticatedBuildMissionIdRoute: typeof AuthenticatedBuildMissionIdRoute
-  AuthenticatedMProductIdRoute: typeof AuthenticatedMProductIdRoute
-  AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRoute
   AuthenticatedRunsMissionIdRoute: typeof AuthenticatedRunsMissionIdRoute
-  AuthenticatedStudioMissionIdRoute: typeof AuthenticatedStudioMissionIdRoute
   AuthenticatedTrackTrackIdRoute: typeof AuthenticatedTrackTrackIdRoute
   AuthenticatedBuildIndexRoute: typeof AuthenticatedBuildIndexRoute
-  AuthenticatedMIndexRoute: typeof AuthenticatedMIndexRoute
-  AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
   AuthenticatedPlanIndexRoute: typeof AuthenticatedPlanIndexRoute
-  AuthenticatedRunsIndexRoute: typeof AuthenticatedRunsIndexRoute
-  AuthenticatedStudioIndexRoute: typeof AuthenticatedStudioIndexRoute
   AuthenticatedPlanSpecIdRoute: typeof AuthenticatedPlanSpecIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
-  AuthenticatedAgentsRoute: AuthenticatedAgentsRoute,
-  AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
-  AuthenticatedArtifactsRoute: AuthenticatedArtifactsRoute,
-  AuthenticatedBoundaryRoute: AuthenticatedBoundaryRoute,
   AuthenticatedBrainRoute: AuthenticatedBrainRoute,
-  AuthenticatedBriefingRoute: AuthenticatedBriefingRoute,
-  AuthenticatedBudgetsRoute: AuthenticatedBudgetsRoute,
-  AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
-  AuthenticatedChangelogRoute: AuthenticatedChangelogRoute,
-  AuthenticatedChatRoute: AuthenticatedChatRoute,
-  AuthenticatedCockpitRoute: AuthenticatedCockpitRoute,
   AuthenticatedCrewRoute: AuthenticatedCrewRoute,
   AuthenticatedDecideRoute: AuthenticatedDecideRoute,
-  AuthenticatedDelegateRoute: AuthenticatedDelegateRoute,
   AuthenticatedDesignRoute: AuthenticatedDesignRoute,
   AuthenticatedDiscoverRoute: AuthenticatedDiscoverRoute,
-  AuthenticatedDiscoveryRoute: AuthenticatedDiscoveryRoute,
-  AuthenticatedDocsRoute: AuthenticatedDocsRoute,
-  AuthenticatedDriftRoute: AuthenticatedDriftRoute,
   AuthenticatedEngineRoomRoute: AuthenticatedEngineRoomRoute,
-  AuthenticatedEvalHealthRoute: AuthenticatedEvalHealthRoute,
-  AuthenticatedEvalsRoute: AuthenticatedEvalsRoute,
-  AuthenticatedFleetRoute: AuthenticatedFleetRoute,
-  AuthenticatedGovernRoute: AuthenticatedGovernRoute,
-  AuthenticatedGuardrailsRoute: AuthenticatedGuardrailsRoute,
-  AuthenticatedImpactRoute: AuthenticatedImpactRoute,
-  AuthenticatedInboxRoute: AuthenticatedInboxRoute,
-  AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
-  AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
   AuthenticatedLearnRoute: AuthenticatedLearnRoute,
-  AuthenticatedMeetingsRoute: AuthenticatedMeetingsRouteWithChildren,
-  AuthenticatedMemoryRoute: AuthenticatedMemoryRoute,
   AuthenticatedMeridianRoute: AuthenticatedMeridianRoute,
-  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
-  AuthenticatedObserveRoute: AuthenticatedObserveRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
-  AuthenticatedOpportunitiesRoute: AuthenticatedOpportunitiesRoute,
-  AuthenticatedOutcomeRoute: AuthenticatedOutcomeRoute,
-  AuthenticatedPrdsRoute: AuthenticatedPrdsRouteWithChildren,
-  AuthenticatedPromptsRoute: AuthenticatedPromptsRoute,
-  AuthenticatedRoadmapRoute: AuthenticatedRoadmapRoute,
+  AuthenticatedPrdsRoute: AuthenticatedPrdsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShipRoute: AuthenticatedShipRoute,
-  AuthenticatedStakeholderRoute: AuthenticatedStakeholderRoute,
   AuthenticatedStartRoute: AuthenticatedStartRoute,
-  AuthenticatedSwarmRoute: AuthenticatedSwarmRoute,
   AuthenticatedSyncRoute: AuthenticatedSyncRoute,
-  AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedThreadsRoute: AuthenticatedThreadsRoute,
-  AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedTracesRoute: AuthenticatedTracesRouteWithChildren,
-  AuthenticatedTrackRecordRoute: AuthenticatedTrackRecordRoute,
-  AuthenticatedTrustLedgerRoute: AuthenticatedTrustLedgerRoute,
-  AuthenticatedWorkspaceSlugProductSlugRoute:
-    AuthenticatedWorkspaceSlugProductSlugRoute,
-  AuthenticatedBuildMissionIdRoute: AuthenticatedBuildMissionIdRoute,
-  AuthenticatedMProductIdRoute: AuthenticatedMProductIdRoute,
-  AuthenticatedMissionsMissionIdRoute: AuthenticatedMissionsMissionIdRoute,
   AuthenticatedRunsMissionIdRoute: AuthenticatedRunsMissionIdRoute,
-  AuthenticatedStudioMissionIdRoute: AuthenticatedStudioMissionIdRoute,
   AuthenticatedTrackTrackIdRoute: AuthenticatedTrackTrackIdRoute,
   AuthenticatedBuildIndexRoute: AuthenticatedBuildIndexRoute,
-  AuthenticatedMIndexRoute: AuthenticatedMIndexRoute,
-  AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
   AuthenticatedPlanIndexRoute: AuthenticatedPlanIndexRoute,
-  AuthenticatedRunsIndexRoute: AuthenticatedRunsIndexRoute,
-  AuthenticatedStudioIndexRoute: AuthenticatedStudioIndexRoute,
   AuthenticatedPlanSpecIdRoute: AuthenticatedPlanSpecIdRoute,
 }
 

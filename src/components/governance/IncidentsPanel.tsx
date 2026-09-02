@@ -80,7 +80,7 @@ function IncidentRow({ n, traceRef }: { n: Incident; traceRef: string }) {
   const hasMission = !hasTrace && Boolean(n.missionId);
   const open = () => {
     if (n.traceId) navigate({ to: "/traces/$traceId", params: { traceId: n.traceId } });
-    else if (n.missionId) navigate({ to: "/build/$missionId", params: { missionId: n.missionId } });
+    else if (n.missionId) navigate({ to: "/runs/$missionId", params: { missionId: n.missionId } });
   };
 
   return (

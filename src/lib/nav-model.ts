@@ -467,15 +467,14 @@ export const FOOTER_NAV: readonly NavItemDef[] = [
 
 /**
  * Paths that live inside the engine room (drive the Engine Room row's active
- * state). /govern and /trust-ledger are redirect stubs that land here; /sync
- * is the bindings drill layer reached from Settings.
+ * state). /sync is the bindings drill layer reached from Settings.
+ *
+ * /govern and /trust-ledger left this list in P-10 (A-QUEUE.md, 2026-09-02):
+ * both were pure redirect stubs into the engine room, deleted along with the
+ * other 47 the packet's census found. Neither URL resolves any more, so
+ * nobody can stand on it for the active-state question this list answers.
  */
-export const ENGINE_ROOM_PATHS: readonly string[] = [
-  "/engine-room",
-  "/govern",
-  "/trust-ledger",
-  "/sync",
-];
+export const ENGINE_ROOM_PATHS: readonly string[] = ["/engine-room", "/sync"];
 
 /**
  * PURE active-state for a destination. A bare item is active on an exact

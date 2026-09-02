@@ -1,17 +1,15 @@
 // One door into the room, for every surface that opens it.
 //
-// The readable /$workspaceSlug/$productSlug is the shape we navigate to; the
-// legacy /m/$productId is the floor when either slug is still missing, so a row
-// that predates the slug backfill opens the room instead of a dead URL. Call
-// sites say WHICH product, never which shape.
+// P-10 (A-QUEUE.md, 2026-09-02): both /$workspaceSlug/$productSlug and
+// /m/$productId were deleted as pure redirect stubs that always threw to
+// SIGNED_IN_HOME (the room itself was never ported off its retired shell).
+// Every call already landed on /start one hop later; this removes the hop
+// rather than changing where a caller ends up.
 import { useCallback } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useWorkspace } from "@/hooks/use-workspace";
-import { roomLinkFor } from "@/lib/room-url";
 
 /** Room search state, kept loose here so this hook stays free of the room's
- * component graph (MissionShell reaches back into this hook). The two route
- * files own the strict schema and validate it on arrival. */
+ * component graph (MissionShell reaches back into this hook). */
 type RoomSearch = Record<string, unknown>;
 
 export type OpenRoomOptions = {
@@ -22,19 +20,13 @@ export type OpenRoomOptions = {
 
 export function useOpenRoom() {
   const navigate = useNavigate();
-  const { workspaces, products } = useWorkspace();
 
   return useCallback(
-    (productId: string, opts?: OpenRoomOptions) => {
+    (_productId: string, opts?: OpenRoomOptions) => {
       const search = opts?.search === undefined ? {} : { search: opts.search as never };
       const replace = opts?.replace === undefined ? {} : { replace: opts.replace };
-      const link = roomLinkFor(workspaces, products, productId);
-      if (link) {
-        void navigate({ to: "/$workspaceSlug/$productSlug", params: link, ...search, ...replace });
-        return;
-      }
-      void navigate({ to: "/m/$productId", params: { productId }, ...search, ...replace });
+      void navigate({ to: "/start", ...search, ...replace });
     },
-    [navigate, workspaces, products],
+    [navigate],
   );
 }

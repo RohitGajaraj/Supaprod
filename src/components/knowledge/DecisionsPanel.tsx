@@ -79,6 +79,7 @@ import { Field, Input, Textarea } from "@/components/meridian/forms";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { REVIEW_QUEUE_SEARCH, SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebouncedValue } from "@/components/admin/admin-ui";
 import {
@@ -123,7 +124,7 @@ export function SourceLink({
   if (d.mission_id) {
     return (
       <Link
-        to="/build/$missionId"
+        to="/runs/$missionId"
         params={{ missionId: d.mission_id }}
         className={className}
         style={style}
@@ -586,7 +587,12 @@ export function DecisionsPanel() {
           {/* One-home law: a call is settled on Today, never twice. The list
               stays the record and sends you to the one place that decides. */}
           {waiting > 0 ? (
-            <Action variant="quiet" onClick={() => navigate({ to: "/today" })}>
+            <Action
+              variant="quiet"
+              onClick={() =>
+                navigate({ to: SIGNED_IN_HOME, search: { [REVIEW_QUEUE_SEARCH]: true } })
+              }
+            >
               Settle <Num>{waiting}</Num> on Today
             </Action>
           ) : null}

@@ -189,17 +189,26 @@ describe("the words and the button cannot name two different places", () => {
   it("a destination is only offered where the sentence already names it", () => {
     /*
      * The check that keeps a button honest. `no-specialists` says "under
-     * Agents" and points at /agents; `dispatch-failed` says "under Runs" and
-     * points at /runs. The other three say no destination and offer no button,
-     * because a wrong one costs a navigation, a search, and the reader's belief
-     * in every button like it.
+     * Agents" and its button offers to open it; `dispatch-failed` says "under
+     * Runs" and its button offers to open it. The other three say no
+     * destination and offer no button, because a wrong one costs a
+     * navigation, a search, and the reader's belief in every button like it.
+     *
+     * THE NOUN COMES FROM THE LABEL, NOT THE URL SEGMENT (P-10, A-QUEUE.md,
+     * 2026-09-02). `/agents` and `/runs` were themselves redirect stubs --
+     * `/agents` forwarded to `/crew`, `/runs` to SIGNED_IN_HOME -- deleted
+     * along with the other 47 the packet's census found, so `dispatchBlockRoute`
+     * now points straight at the live destination. The route slug and the
+     * user-facing word are already allowed to differ elsewhere in this repo
+     * (nav-model.ts's Agents/`/crew` split, ruled 2026-08-15): what this test
+     * actually protects is that the button's OWN label is the word the
+     * message already used, not that a URL segment spells it.
      */
     for (const reason of DISPATCH_BLOCKS) {
       const route = dispatchBlockRoute(reason);
       if (!route) continue;
-      const noun = route.to.replace("/", "");
+      const noun = route.label.replace(/^Open /, "").toLowerCase();
       expect(dispatchBlockedMessage(reason).toLowerCase(), reason).toContain(noun);
-      expect(route.label.toLowerCase()).toContain(noun);
     }
   });
 

@@ -768,7 +768,7 @@ function SpecEditorPage() {
     // Success writes no receipt because it navigates: the run itself is what
     // the click caused, rendered in full, and a line saying so would be gone
     // before it could be read.
-    onSuccess: (r) => navigate({ to: "/build/$missionId", params: { missionId: r.missionId } }),
+    onSuccess: (r) => navigate({ to: "/runs/$missionId", params: { missionId: r.missionId } }),
     onError: (e: Error) => {
       // The raw not-connected refusal becomes the gate with the real paths.
       if (isRepoNotConnectedError(e.message)) setRepoGate({ reason: e.message, retry: "dispatch" });

@@ -7,6 +7,7 @@
 // docs/features/obsidian-port.md's OBS-14 section.
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { REVIEW_QUEUE_SEARCH, SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -1051,7 +1052,7 @@ export function ObsidianOnboarding() {
       window.sessionStorage.removeItem("supaprod.onboarding.startTime");
       window.sessionStorage.setItem("supaprod.onboarding.justLanded", "1");
     }
-    navigate({ to: "/today" });
+    navigate({ to: SIGNED_IN_HOME, search: { [REVIEW_QUEUE_SEARCH]: true } });
   }
 
   /**
@@ -1193,7 +1194,7 @@ export function ObsidianOnboarding() {
       toast.error("Could not complete onboarding. Redirecting...");
       console.error("onboarding error:", e);
       window.sessionStorage.removeItem("supaprod.onboarding.phase");
-      navigate({ to: "/today" });
+      navigate({ to: SIGNED_IN_HOME, search: { [REVIEW_QUEUE_SEARCH]: true } });
     },
   });
 

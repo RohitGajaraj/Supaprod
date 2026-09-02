@@ -57,18 +57,14 @@ describe("the signed-in home is one value in one place", () => {
   it("no route file hardcodes the old home as a redirect target any more", () => {
     // The deliberate exceptions live OUTSIDE routes/: start.tsx's compare link
     // names /today on purpose so the founder can see both landings (R-15).
+    //
+    // P-10 (A-QUEUE.md, 2026-09-02) deleted every pure-redirect stub this test
+    // used to check, chat/govern/inbox/tasks/m.index/m.$productId and
+    // $workspaceSlug.$productSlug among them: their redirect logic is gone
+    // along with the file, so the question "does this file hardcode /today"
+    // no longer has anything to ask it of.
     const offenders: string[] = [];
-    for (const f of [
-      "routes/index.tsx",
-      "routes/_authenticated.settings.tsx",
-      "routes/_authenticated.chat.tsx",
-      "routes/_authenticated.govern.tsx",
-      "routes/_authenticated.inbox.tsx",
-      "routes/_authenticated.tasks.tsx",
-      "routes/_authenticated.m.index.tsx",
-      "routes/_authenticated.m.$productId.tsx",
-      "routes/_authenticated.$workspaceSlug.$productSlug.tsx",
-    ]) {
+    for (const f of ["routes/index.tsx", "routes/_authenticated.settings.tsx"]) {
       if (read(f).includes('"/today"')) offenders.push(f);
     }
     expect(offenders).toEqual([]);

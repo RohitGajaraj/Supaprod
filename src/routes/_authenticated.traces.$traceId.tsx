@@ -713,7 +713,7 @@ export function TraceDetail({ id }: { id: string }) {
             {mission ? (
               <Action
                 onClick={() =>
-                  void navigate({ to: "/build/$missionId", params: { missionId: mission.id } })
+                  void navigate({ to: "/runs/$missionId", params: { missionId: mission.id } })
                 }
               >
                 Open the run

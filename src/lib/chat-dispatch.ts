@@ -1,4 +1,5 @@
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 /**
  * WHETHER A CHAT MESSAGE OPENS A RUN, AND WHAT TO SAY WHEN IT CANNOT.
@@ -114,10 +115,13 @@ export function asDispatchBlock(value: unknown): DispatchBlock | null {
  */
 export function dispatchBlockRoute(block: DispatchBlock): { to: string; label: string } | null {
   switch (block) {
+    // P-10 (A-QUEUE.md, 2026-09-02) deleted `/agents` and `/runs`: both were
+    // pure redirect stubs, to `/crew` and SIGNED_IN_HOME respectively. These
+    // point at the surviving targets directly now.
     case "no-specialists":
-      return { to: "/agents", label: "Open Agents" };
+      return { to: "/crew", label: "Open Agents" };
     case "dispatch-failed":
-      return { to: "/runs", label: "Open Runs" };
+      return { to: SIGNED_IN_HOME, label: "Open Runs" };
     case "no-workspace":
     case "conductor-unavailable":
     case "preflight-failed":

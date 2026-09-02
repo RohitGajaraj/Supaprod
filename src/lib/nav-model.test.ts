@@ -383,23 +383,22 @@ describe("nav-model - active-state math", () => {
   });
 
   it("engineRoomActive is true anywhere inside the engine room, false outside", () => {
+    // /govern and /trust-ledger left ENGINE_ROOM_PATHS in P-10 (A-QUEUE.md,
+    // 2026-09-02): both were pure redirect stubs into the engine room,
+    // deleted along with the other 47 the packet's census found, so neither
+    // URL resolves any more.
     expect(engineRoomActive("/engine-room")).toBe(true);
     expect(engineRoomActive("/engine-room/anything")).toBe(true);
-    expect(engineRoomActive("/govern")).toBe(true);
-    expect(engineRoomActive("/trust-ledger")).toBe(true);
     expect(engineRoomActive("/sync")).toBe(true);
     expect(engineRoomActive("/")).toBe(false);
     expect(engineRoomActive("/discover")).toBe(false);
     expect(engineRoomActive("/governance-board")).toBe(false);
+    expect(engineRoomActive("/govern")).toBe(false);
+    expect(engineRoomActive("/trust-ledger")).toBe(false);
   });
 
-  it("ENGINE_ROOM_PATHS covers the engine surfaces incl. the redirect stubs that land there", () => {
-    expect([...ENGINE_ROOM_PATHS].sort()).toEqual([
-      "/engine-room",
-      "/govern",
-      "/sync",
-      "/trust-ledger",
-    ]);
+  it("ENGINE_ROOM_PATHS covers the engine surfaces that still resolve", () => {
+    expect([...ENGINE_ROOM_PATHS].sort()).toEqual(["/engine-room", "/sync"]);
   });
 });
 /**

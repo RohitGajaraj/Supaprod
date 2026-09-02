@@ -64,7 +64,7 @@ describe("SourceLink", () => {
     });
 
     // Verify Link component is rendered to the mission route
-    expect((el?.props as { to?: string })?.to).toBe("/build/$missionId");
+    expect((el?.props as { to?: string })?.to).toBe("/runs/$missionId");
     expect((el?.props as { params?: { missionId: string } })?.params?.missionId).toBe(
       "mission-abc",
     );
@@ -107,7 +107,7 @@ describe("SourceLink", () => {
     });
 
     // Mission takes precedence
-    expect((el?.props as { to?: string })?.to).toBe("/build/$missionId");
+    expect((el?.props as { to?: string })?.to).toBe("/runs/$missionId");
   });
 
   test("renders null when neither mission_id nor prd_id is present (meeting-sourced)", () => {

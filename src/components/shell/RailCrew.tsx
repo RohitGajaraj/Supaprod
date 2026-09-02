@@ -8,7 +8,7 @@ import { pollMs } from "@/components/shell/poll";
 import { SlowRead } from "@/components/shell/SlowRead";
 import { crewFromAnchors } from "@/components/shell/rail-crew";
 import { getWorkspaceAnchors } from "@/lib/approvals-queue.functions";
-import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
+import { REVIEW_QUEUE_SEARCH, SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 /**
  * THE CREW, ON EVERY SURFACE.
@@ -170,7 +170,7 @@ export function RailCrew({ workspaceId }: { workspaceId: string | null }) {
                 onClick={() =>
                   m.missionId
                     ? navigate({ to: "/runs/$missionId", params: { missionId: m.missionId } })
-                    : navigate({ to: "/today" })
+                    : navigate({ to: SIGNED_IN_HOME, search: { [REVIEW_QUEUE_SEARCH]: true } })
                 }
               >
                 <AgentMark slug={m.slug} size="sm" state="running" />

@@ -200,7 +200,10 @@ describe("route inventory - every authenticated surface has a LIVE door", () => 
   test("the inventory itself is non-trivial", () => {
     const paths = files.map(authRoutePath);
     expect(files.length).toBeGreaterThan(20);
-    for (const p of ["/today", "/runs", "/brain", "/crew", "/settings"]) {
+    // /today and /runs left this canary list in P-10 (A-QUEUE.md, 2026-09-02):
+    // both were pure redirect stubs to SIGNED_IN_HOME, deleted along with the
+    // other 47 the packet's census found.
+    for (const p of ["/brain", "/crew", "/settings"]) {
       expect(paths).toContain(p);
     }
   });

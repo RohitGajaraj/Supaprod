@@ -176,7 +176,7 @@ export function ReceiptDetail({
   const sourceGo = (s: { kind: string; id: string }): (() => void) | null => {
     if (s.kind === "prd") return () => navigate({ to: "/plan/spec/$id", params: { id: s.id } });
     if (s.kind === "mission")
-      return () => navigate({ to: "/build/$missionId", params: { missionId: s.id } });
+      return () => navigate({ to: "/runs/$missionId", params: { missionId: s.id } });
     return null;
   };
 
@@ -187,7 +187,7 @@ export function ReceiptDetail({
     if (e.kind === "decision" && onOpenReceipt) return () => onOpenReceipt(e.id);
     if (e.kind === "prd") return () => navigate({ to: "/plan/spec/$id", params: { id: e.id } });
     if (e.kind === "mission")
-      return () => navigate({ to: "/build/$missionId", params: { missionId: e.id } });
+      return () => navigate({ to: "/runs/$missionId", params: { missionId: e.id } });
     if (e.kind === "opportunity")
       return () => navigate({ to: "/discover", search: { tab: "queue" } as never });
     return null;

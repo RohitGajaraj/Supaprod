@@ -50,6 +50,7 @@
 import { useEffect, useState } from "react";
 import { Line } from "@/components/meridian/rows";
 import { Link } from "@tanstack/react-router";
+import { REVIEW_QUEUE_SEARCH, SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import {
   ACTION_LINK_FACE,
   Num,
@@ -531,7 +532,11 @@ export function NotificationsSection() {
               label="Work that stops early does not reach you yet"
               sub="This sends when work reaches a result. Work that stops before one, waiting on a tool, on evidence, or on your decision, stays where it is and nothing tells you. Today lists those."
             >
-              <Link to="/today" className={ACTION_LINK_FACE.quiet}>
+              <Link
+                to={SIGNED_IN_HOME}
+                search={{ [REVIEW_QUEUE_SEARCH]: true }}
+                className={ACTION_LINK_FACE.quiet}
+              >
                 See what is stopped
               </Link>
             </Line>

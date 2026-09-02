@@ -549,7 +549,7 @@ function BuildEngine() {
           <CtxHead>Where work comes from</CtxHead>
           <CtxBody>
             An approved spec can be started here. Anything else is handed over on{" "}
-            <Link to="/runs" className={LINK}>
+            <Link to="/start" className={LINK}>
               Runs
             </Link>
             , and arrives here as the crew writes it.
@@ -660,7 +660,7 @@ function BuildEngine() {
               destination without a way to reach it is the same defect as a
               button that does nothing, in a quieter costume. */}
               The crew has not written anything yet. Hand work over on{" "}
-              <Link to="/runs" className={LINK}>
+              <Link to="/start" className={LINK}>
                 Runs
               </Link>{" "}
               and the change appears here as it is written, with its files and its pull request.

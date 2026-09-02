@@ -969,7 +969,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
     },
     onSuccess: (r) => {
       toast.success("Replay started · a new mission carries the same goal.");
-      navigate({ to: "/build/$missionId", params: { missionId: r.mission_id } });
+      navigate({ to: "/runs/$missionId", params: { missionId: r.mission_id } });
     },
     onError: (e: Error) => toast.error(failureLine("No replay was started.", e)),
   });
@@ -1232,7 +1232,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             </p>
             {data.mission.replayed_from_mission_id ? (
               <Link
-                to="/build/$missionId"
+                to="/runs/$missionId"
                 params={{ missionId: data.mission.replayed_from_mission_id }}
                 className="mono-label"
                 style={{

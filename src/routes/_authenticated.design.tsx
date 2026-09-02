@@ -842,7 +842,7 @@ function Design() {
     },
     onMutate: actedOn,
     onSuccess: (r) => {
-      void navigate({ to: "/build/$missionId", params: { missionId: r.missionId } });
+      void navigate({ to: "/runs/$missionId", params: { missionId: r.missionId } });
     },
     onError: (e: Error, _v, ctx) => {
       if (isRepoNotConnectedError(e.message)) setRepoGate({ reason: e.message });

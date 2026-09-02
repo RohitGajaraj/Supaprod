@@ -161,7 +161,9 @@ describe("the indicator is bound to the run, not to the reader's click", () => {
     for (const caller of [
       "components/shell/AppFrame.tsx",
       "components/ask/AskPane.tsx",
-      "routes/_authenticated.today.tsx",
+      // _authenticated.today.tsx left this list in P-10 (A-QUEUE.md,
+      // 2026-09-02): it was a pure redirect stub with no missionsKey call,
+      // deleted along with the other 48 the packet's census found.
     ]) {
       const source = strip(read(caller));
       if (!/missionsKey\(/.test(source)) continue;

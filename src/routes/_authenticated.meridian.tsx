@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { ApprovalCard, type ApprovalQuestion } from "@/components/meridian/ApprovalCard";
 import { CodeBlock, type CodeToken } from "@/components/meridian/CodeBlock";
 import { ContextCards, type ContextChunk } from "@/components/meridian/ContextCards";
@@ -138,6 +139,16 @@ import { Field, Input, Textarea, Checkbox, Choices } from "@/components/meridian
  */
 
 export const Route = createFileRoute("/_authenticated/meridian")({
+  /*
+   * P-10 (A-QUEUE.md, 2026-09-02): this gallery renders fabricated data to a
+   * signed-in user in production. It exists for the design record (see the
+   * essay above), not for a customer, so it now only mounts in dev.
+   */
+  beforeLoad: () => {
+    if (!import.meta.env.DEV) {
+      throw redirect({ to: SIGNED_IN_HOME });
+    }
+  },
   component: MeridianGallery,
 });
 

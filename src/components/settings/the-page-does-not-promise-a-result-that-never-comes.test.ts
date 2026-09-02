@@ -86,8 +86,13 @@ describe("the notifications page does not promise a result that never comes", ()
   });
 
   it("gives that case somewhere to go, which R-20 section 6 requires", () => {
+    // P-10 (A-QUEUE.md, 2026-09-02) deleted `/today`'s route file (a pure
+    // redirect to SIGNED_IN_HOME); the door now points straight at the
+    // surviving target it already forwarded to, via the shared constant
+    // rather than a re-typed literal (post-auth-home.ts's own anti-drift
+    // rule).
     const line = CODE.slice(CODE.indexOf("Work that stops early does not reach you yet"));
-    expect(line).toContain('to="/today"');
+    expect(line).toContain("to={SIGNED_IN_HOME}");
   });
 
   /**

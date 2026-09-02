@@ -317,7 +317,7 @@ export function ApprovalsPanel() {
             focused.mission_id
               ? () =>
                   void navigate({
-                    to: "/build/$missionId",
+                    to: "/runs/$missionId",
                     params: { missionId: focused.mission_id as string },
                   })
               : undefined
