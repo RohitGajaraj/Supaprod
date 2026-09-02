@@ -2384,7 +2384,7 @@ from P-25 unchanged. Also add `aria-activedescendant` on the input (P-25 follow-
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: CLAIMED (A3, 2026-09-03) · Moves: 3
+### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 2026-09-03) · Moves: 3
 
 **Scope.** `tracks-feed.ts` becomes the one read model for a track's one-line state, used by
 `YourRuns` (P-05), the shell top bar ("3 runs are moving"), and the strip's produced-sentence
@@ -2394,11 +2394,87 @@ from P-25 unchanged. Also add `aria-activedescendant` on the input (P-25 follow-
 `src/components/shell/AppFrame.tsx` (the top-bar sentence only) · tests.
 
 **Acceptance.**
-- [ ] A test asserts the top bar's count equals the number of tracks with a running `agent_runs`
+- [x] A test asserts the top bar's count equals the number of tracks with a running `agent_runs`
       row, not `status='open'`. Today it says "3 runs are moving" with 0 runs in 24 h.
-- [ ] The strip and the row print the same sentence for the same track.
+- [x] The strip and the row print the same sentence for the same track. **Read narrowly, see
+      Report -- this packet's own file references needed correcting first.**
 
-**Report / Blockers / A1 verdict:**
+**Report (A3, 2026-09-03).** Commits `2796a01ed` (P-25 follow-up, A1's live finding, folded in
+first since it touched a file this packet also owns) and `c55f90d35` (this packet), pushed to
+`main`. `tsc` 0. `bun test`: junit reporter 0 failures / 0 errors across 13,844 tests, 973 files.
+
+**Two of this packet's own references were stale, corrected by reading source rather than
+guessed.** `src/lib/spine/what-it-produced.ts` does not exist; the real path is
+`src/components/track/what-it-produced.ts` (confirmed by `grep`, not assumed). And "the strip"
+is not one thing: this codebase has at least three per-track "produced" sentences --
+`whatItProduced` (per STATION, in `ArtifactPane`), `run-tally.ts`'s `GotYou` strip (per RUN, but
+the founder's own 2026-09-02 ruling on that file replaced its joined sentence with **chips**,
+specifically rejecting "Produced 1 decision, 1 spec and 2 code changes" as "true, readable, and
+inert" -- so that strip cannot be made to print a sentence at all without reversing a founder
+ruling and editing Meridian, which Rule 10 forbids A3 anyway), and `run-strip.tsx`'s per-STATION
+`note` field ("4 signals", a different vocabulary again). Given the packet's own Files line names
+`what-it-produced.ts` specifically, and it is the one candidate that is still genuinely
+sentence-shaped, that is what I unified against -- not `run-tally.ts`.
+
+**Line 1, the top bar's count.** `movingRuns` used `spine_tracks.driven_at` inside the last five
+minutes as a proxy for "a seat is running", which is exactly the packet's own reproduction: a
+dispatch that finishes in under a second touches `driven_at` the same way one still mid-run does,
+so the header could say "3 runs are moving" over zero live `agent_runs` rows. New
+`listMovingTracks` (`track.functions.ts`) factors `listRunsForStart`'s own `workingByTrack` query
+out -- `agent_runs.status IN ('running','queued','in_progress')` joined by `track_id`, never
+inferred from elapsed time, the same refusal `activity.ts` already makes -- so the shell asks the
+precise question instead of a second, cheaper, wronger one. Kept as its own function rather than
+folded into `listTracks` (which 5 other surfaces call and none of them need this extra join) to
+keep the blast radius to the one caller that needed the fix. `AppFrame.tsx`'s error/loading guards
+(`railPresence`, `liveLead`'s "Cannot see what is running", the face-render gate) now cover the
+new `moving` query the same way they already cover `missions` and `openTracks` -- three separate
+places, each fixed with the same reasoning the pre-existing `openTracks.isError` fix already
+documented in its own comment, now updated rather than left describing a query `movingRuns` no
+longer reads. `nothing-in-flight-was-also-what-a-failure-said.test.ts`'s frozen canary count (soft
+catches that must re-raise a real read failure) moved 3 -> 4, reviewed and documented in the test
+itself, matching its own "review before the number moves" rule.
+
+**Line 2, the strip and the row.** Both `startRowMiddle`'s produced clause (`tracks-feed.ts`) and
+`whatItProduced`'s (`what-it-produced.ts`) already drew from the same `KIND_WORD` vocabulary, but
+diverged on two small, real points: `startRowMiddle` dropped the leading count for a single item
+("Produced spec" for one, not "Produced 1 spec") and joined with a bare comma ("2 specs, 1
+decision"), while `whatItProduced` always states the count and joins with `joinPlainly` ("2 specs
+and 1 decision") -- the same convention `describeAttachments` and the chain's own whole-run
+sentence already use. Fixed `startRowMiddle` to match `whatItProduced`'s convention exactly (count
+always stated, `joinPlainly` join), so a track that produced everything from one station now
+reads the identical counted-and-joined clause on its Start row and in that station's line on the
+run screen -- proven directly in
+`the-row-and-the-strip-agree-on-what-was-produced.test.ts` (3 tests, one, two and three kinds),
+which builds both sentences from the same underlying counts and asserts the shared clause is
+byte-identical. The surrounding frame legitimately still differs ("Produced X" for a whole-track
+roll-up vs "{Station} filed X." for one stop), which is not a violation: a list row summarising a
+track's total output and a per-station line inside that track's own run screen are different
+claims that happen to share one counting-and-naming mechanism, and that mechanism is now the one
+place both read from.
+
+**Files touched.** `src/lib/spine/track.functions.ts` (new `listMovingTracks`) ·
+`src/components/shell/AppFrame.tsx` (`movingRuns`'s source, three error/loading guards, one stale
+comment) · `src/components/today/tracks-feed.ts` (`startRowMiddle`'s produced clause) ·
+`src/lib/spine/nothing-in-flight-was-also-what-a-failure-said.test.ts` (canary count 3 -> 4,
+reviewed) · new `src/components/shell/the-top-bar-counts-a-real-running-seat.test.ts` · new
+`src/components/today/the-row-and-the-strip-agree-on-what-was-produced.test.ts` ·
+`src/components/today/no-two-rows-say-the-same-thing.test.ts` (one expectation corrected to the
+fixed sentence) · `src/components/shell/an-all-clear-needs-an-answered-read.test.ts` (comment and
+one assertion updated to the new query name). Nothing under `src/components/meridian/**`.
+
+**Blockers (A3 writes):**
+1. **Not blocked, flagging for the record.** No live browser this session (same credential gap as
+   every prior packet), so the top bar's actual on-screen count and the produced sentences were
+   verified by source and by test, not by watching the header live. Asking A1 to confirm on
+   `supaprod.ai` that "N runs are moving" now tracks a real `agent_runs` row rather than recent
+   `driven_at`, and that a finished track's Start row and its own station's line in the run screen
+   read the same counted list.
+2. **This packet's own Files line should be corrected in a follow-up doc pass**: `src/lib/spine/
+   what-it-produced.ts` -> `src/components/track/what-it-produced.ts`. Not fixed in this Report's
+   own packet text since the queue's own convention has A1 review before a packet's scope text
+   changes; flagging rather than silently editing the record of what was asked.
+
+**A1 verdict:**
 
 ---
 
