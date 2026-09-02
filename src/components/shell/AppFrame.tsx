@@ -164,6 +164,7 @@ import { ShortcutSheet, useShortcutSheetKey } from "./ShortcutSheet";
 import { AccountMenu, ScopeMenu } from "./ScopeMenu";
 import { AuditLineageSheet } from "@/components/supaprod/AuditLineageSheet";
 import { FindAnything } from "./FindAnything";
+import { genuinelyWorkingMissions } from "./genuinely-working";
 import {
   IconAsk,
   IconBoard,
@@ -913,7 +914,17 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const movingRuns = React.useMemo(() => moving.data ?? [], [moving.data]);
 
   const rows = React.useMemo(() => missions.data?.missions ?? [], [missions.data]);
-  const running = React.useMemo(() => rows.filter((m) => WORKING.has(m.status)), [rows]);
+  const movingTrackIds = React.useMemo(() => new Set(movingRuns.map((t) => t.id)), [movingRuns]);
+  // See genuinely-working.ts's own header for the defect this refuses: a
+  // mission's stored status can go stale independently of the work it names.
+  const running = React.useMemo(
+    () =>
+      genuinelyWorkingMissions(
+        rows.filter((m) => WORKING.has(m.status)),
+        movingTrackIds,
+      ),
+    [rows, movingTrackIds],
+  );
   const gateCount = queue.data?.items.length ?? 0;
   /* WHETHER THAT NUMBER IS A COUNT OR A FLOOR.
      `getApprovalsQueue` bounds every one of ten families and degrades a family
