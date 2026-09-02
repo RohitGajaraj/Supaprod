@@ -151,6 +151,31 @@ describe("a run somebody typed", () => {
     expect(text).not.toContain(PROMOTED_BECAUSE);
   });
 
+  it("says so even when the Discover seat has since gathered evidence", () => {
+    /*
+     * ── THE HOLE THIS CLOSES, FOUND BY WALKING IT ──────────────────────────
+     * The first version required the station to be empty of BOTH themes and
+     * signals. Walked on `ce846e9b`, which has one finding and no theme member:
+     * the block rendered NOTHING, and the run's origin went unsaid on the one
+     * tab that exists to say it.
+     *
+     * Findings are evidence a Discover seat gathered AFTER the run started. They
+     * are not what started it. The question is where the run came from, and a
+     * run with no cluster came from a person however much evidence it has since
+     * collected.
+     */
+    const { container } = ui(
+      <SenseBody
+        items={[signal()]}
+        now={0}
+        trackId="trk"
+        origin="Make checkout accept an Amex card"
+        workspaceId={null}
+      />,
+    );
+    expect(container.textContent).toContain("started from a sentence somebody typed");
+  });
+
   it("does not claim a cluster started it just because a cluster is on the record", () => {
     /*
      * A Discover seat that runs on a typed track files themes at `sense`. The

@@ -2020,12 +2020,17 @@ function Lineage({
   const theme = themes[0] ?? null;
 
   /*
-   * NOTHING WAS CLUSTERED, so this run came from a person. Said plainly, and
-   * only when the station really is empty of both kinds: a run whose Discover
-   * seat has not filed yet is a different fact and the panel around this one
-   * already says it.
+   * ── NO CLUSTER MEANS A PERSON STARTED IT, WHATEVER ELSE IS ON THE RECORD ─
+   *
+   * This used to require the station to be empty of BOTH kinds, and driving it
+   * on `ce846e9b` showed the hole: that track has one finding and no theme
+   * member, so the block rendered NOTHING and the run's origin went unsaid on
+   * the one tab that exists to say it. Findings are evidence a Discover seat
+   * gathered AFTER the run started; they are not what started it. The question
+   * this answers is where the run came from, and a run with no cluster came
+   * from a person however much evidence it has since collected.
    */
-  if (!theme && !hasSignals) {
+  if (!theme) {
     return (
       <p className="text-mrd-small text-mrd-mute">
         {promoted
@@ -2034,8 +2039,6 @@ function Lineage({
       </p>
     );
   }
-
-  if (!theme) return null;
 
   const f = theme.fields;
   const frequency = num(f.frequency);
@@ -2668,7 +2671,16 @@ export function ArtifactPane({
        control they pressed -- what they have not been given is the content that
        changed. `TabPanel` takes `tabIndex={-1}` when it names itself, which is
        what makes it a landing place. */
-    document.getElementById(`artifact-pane-${trackId}-panel`)?.focus();
+    /*
+     * `preventScroll`, and driving it is what showed why. The chips that name
+     * what the run made sit at the TOP of this pane's own scroller, and a plain
+     * `focus()` scrolls the panel into view, which took them off screen the
+     * instant one of them was pressed: the control vanished as a result of being
+     * used. The focus move itself is right and stays -- a tab change is a
+     * context change (D-7.2, R-19's keyboard clause) -- so only the scrolling
+     * goes.
+     */
+    document.getElementById(`artifact-pane-${trackId}-panel`)?.focus({ preventScroll: true });
   }, [activeProp, trackId]);
 
   if (q.isLoading) return <Reading>Reading what this work has made.</Reading>;

@@ -924,29 +924,24 @@ export function TrackRunLeft({
               ]
                 .filter(Boolean)
                 .join(" ")}
-              action={
-                /*
-                 * THE FIFTH AND LAST COPY OF THIS CLAIM ON ONE SCREEN, and the
-                 * one that read worst, because it sat beside the prose that
-                 * already contradicted it: "Nothing more will be tried on it
-                 * automatically", with a chip next to it saying a person was
-                 * being waited on. The words are `run-status.ts`'s, which is
-                 * the rule this chip's own sibling comment states -- one
-                 * vocabulary shared by the driver, the map and the banner --
-                 * so the header chip and this one cannot drift apart.
-                 *
-                 * Pulse follows the same rule it does there: motion is a claim,
-                 * and nothing is moving on a track the sweep has dropped.
-                 */
-                <StatusChip status={tone} pulse={tone === "you" && !terminallyStopped}>
-                  {tone === "you"
-                    ? terminallyStopped
-                      ? "Needs a restart"
-                      : "Waiting on you"
-                    : "On hold"}
-                </StatusChip>
-              }
             />
+            {/*
+             * ── AND THE CHIP IS THE SIXTH COPY, SO IT GOES (2026-09-02) ────
+             *
+             * The comment this replaces called itself "the fifth and last copy
+             * of this claim on one screen" and then added a sixth. Photographed
+             * on `ce846e9b` after the header was cut back to one chip: the
+             * header said **Needs a restart** at the top right, and this row
+             * said **Needs a restart** 380px below it, same word, same colour,
+             * about the same run. One status per screen is the rule, and when
+             * two chips carry the SAME word the second one cannot even be
+             * defended as a different subject.
+             *
+             * Nothing is lost. `run-status.ts` still owns the vocabulary and
+             * the header still wears it; this region's own heading, its lead
+             * and `wayOut`'s sentence below already say what stopped it and
+             * what clears it, in words rather than in a colour.
+             */}
             {/*
              * WHAT WILL ACTUALLY CLEAR IT (RUN-23). Eight of the eighteen hold
              * reasons name no way out at all, and the only control here says
