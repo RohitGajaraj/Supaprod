@@ -97,6 +97,22 @@ under `src/components/track/__tests__/` and the existing
 **Not in scope.** `/start`, the rail, `Board`, any station page, Meridian primitives (file an
 `mrd-` note in your Report instead).
 
+**References (A1 pulled from Mobbin 2026-09-02; mechanics, not looks).** Devin's completion
+([screen](https://mobbin.com/screens/8a2e6a33-0453-4091-8c92-3bf960adec85)): PR link first, a
+screenshot of the tested app with "8 passed · All passed", the report as an attachment, then the
+whole work log collapsed to one line *"Worked for 11s"* that expands to thought/test/stop rows, then
+*"Devin went to sleep"*. Cofounder's completion
+([screen](https://mobbin.com/screens/d7d5d911-1ce1-4d24-ba23-e9e8cbfbe659)): *"Ran 35 actions"*
+collapsed, then **What shipped** (files, one line each) and **Verified** (typecheck clean, lint 0,
+click confirmed in sandbox). Cursor's completion
+([screen](https://mobbin.com/screens/c4e5b1fe-4379-4a73-8b16-1f1358731793)): the answer, then
+**Runtime evidence I checked** with each check citing its terminal line, then *"Worked for 27s"*.
+Emergent's run ([screen](https://mobbin.com/screens/4a3b2d78-ee1c-406f-824e-6a5d5f4fa8a8)): left
+column is verb-object cards (*Viewing 7 paths · Thought process · Edited /app/backend/.env · Created
+1 file*), each a disclosure, with *"Agent is running…"* pinned above the input; right is the app.
+Take: `GotYou` is Cofounder's *What shipped + Verified* in one strip; the transcript's collapsed seat
+row is Devin's *Worked for Ns*; the verdict cites what it checked the way Cursor cites terminal lines.
+
 **Acceptance.**
 - [ ] The header renders the person's sentence and one status chip. `origin` text never renders in
       the header; "Now: X. Next: Y." is gone.
@@ -289,6 +305,20 @@ model for the rows; extend, do not fork) · `src/components/ask/AskPane.tsx` and
 
 **Not in scope.** `Board.tsx` (left mounted at `/today`'s old anchor only until P-14 removes it),
 the rail (P-11), the run screen (P-01).
+
+**References (A1 pulled from Mobbin 2026-09-02).** Codex
+([screen](https://mobbin.com/screens/0ef48bf9-722a-48f6-b1b9-fe3f3d23eadf)): *"What should we code
+next?"*, one box, then **Start your first task** as three cards, each a full sentence with its own
+Start button; tabs Tasks / Code reviews / Archive under the box. Claude Code web
+([screen](https://mobbin.com/screens/4ba51de5-d1f7-4102-af6a-2da18e34cc0d)): *"Let Claude handle
+it"*, one box with a greyed example sentence as the placeholder, four job cards below with the
+connector each needs drawn as icons. Cursor
+([screen](https://mobbin.com/screens/59358834-5391-4d2d-8a18-e80750431b58)): task rows with a
+diff-stat chip (`7 files +17 −0`), a status chip (Draft · Branch · Merged), title, model, repo, age.
+Devin ([screen](https://mobbin.com/screens/8549e975-4dce-41d8-b7c8-de1bf4edfb0a)): recent sessions
+list with *"PR is ready"* under the title as the one exception state. Take: the example jobs are
+Codex's three cards; the placeholder is a real example sentence, greyed; a run row is Cursor's row
+with our middle column instead of the diff stat.
 
 **Acceptance.**
 - [ ] A new workspace's `/start` shows the orientation line, the composer, three example jobs and an
