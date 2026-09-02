@@ -1359,7 +1359,7 @@ a conflict on a file under active multi-lane iteration for a fact this Report no
 
 ---
 
-### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: READY for the Start half (P-05 DONE 23:58); run-screen half DONE (A1, 22:30) · Moves: 5
+### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: Start half CLAIMED (A3, 2026-09-03); run-screen half DONE (A1, 22:30) · Moves: 5
 
 **Scope.** Keyboard reachability and focus order on `/start` and `/track/:id`; `aria-live` on the
 transcript and the runs region; focus moves to the ask when it appears; no colour as the only
