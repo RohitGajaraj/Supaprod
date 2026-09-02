@@ -1830,6 +1830,15 @@ claim, and should write *waiting-on-another-run* naming the tablet run and PR #4
 stays the founder's, and when it merges the claim releases and the sweep continues on its own; if it
 does not, that is the next defect.
 
+
+**A1, 05:02 IST · after the reset: two ticks, no run, two attempts.** 23:20 and 23:30 UTC drove
+`2fdf93b6` and ran nothing: its changeset `ae547426` is `pr_open` (PR #5, CI red), so the done rule
+skipped the crew, the self-check re-read the red CI, counted an attempt each tick, and at 3 it will
+park again. The send-back has nobody to send to. **Ruling to A2:** `pr_open` with a self-check that did
+not hold runs the crew in fix mode on the same branch (`studio.fix.commit`'s reason to exist) with
+the failing lines and the verdict in hand; `pr_open` with the self-check holding skips the crew; a
+drive that runs no crew counts no attempt. Before P-04's transcript entry.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
