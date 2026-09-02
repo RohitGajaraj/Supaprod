@@ -1083,7 +1083,7 @@ it.
 
 ---
 
-### P-05 · Start tells the story before the run · Lane: **A2** · Status: CLAIMED (A2, 21:22 IST) · Moves: 1, 2, 3
+### P-05 · Start tells the story before the run · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 22:40 IST) · Moves: 1, 2, 3
 
 **Scope.** `/start` becomes: one orientation line (only while the workspace has no track) · the
 composer · three example jobs, each a full sentence with a Start button that fills the composer and
@@ -1143,9 +1143,91 @@ with our middle column instead of the diff stat.
 
 **Definition of done.** tsc 0 · `bun test` 0 fail · pushed · Report · A1 DONE.
 
-**Report (A2 writes):**
+**Report (A2 writes):** DONE-PENDING-VERIFY. Shipped in five slices so the queue showed progress:
+`632d553d6` the read and the row sentence, `66231a6b6` the soft-catch canary, `89e850277` the two
+components and the page, `b52d39d6a` the ask fork, `14eaf1f62` Arriving, `a4e7cb07e` the two doors.
+tsc **0** . `bun test` **13,704 pass / 0 fail** . lint clean on every file touched.
 
-**Blockers (A2 writes):**
+**What the page asked before it asked anything.** Eight regions before the one thing a person came
+to do: an errand line, "Good evening.", a heading, a character introducing itself, the composer, a
+four-card picker of work SHAPES, "what we already hold", and the whole board. The shape picker is the
+sharpest of them: it asked a person to classify their work before describing it, and all it changed
+was the composer's placeholder. Nobody arrives wanting to answer that.
+
+**Meridian, per region.** Composer → `Composer` (`onramp-parts`). Example jobs → `PickCard` +
+`Action`, with `SketchScreen`/`SketchProblem`/`SketchBroken`. Your runs → `Row` + `StatusChip`,
+with `Reading` and `ReadFailedLine` for the two states that are not "empty". Arriving → `Door` and
+plain type; no primitive was added.
+
+**The middle column, which is the row.** Cursor carries a diff stat there because that is what tells
+its rows apart; ours carries what the run is doing. `listRunsForStart` is a second read rather than a
+widening of `listTracks`: that one answers "what is open" and feeds the board, and Start has to show
+finished and abandoned work too, because a person's most recent run is very often the one that just
+finished and a list that hides it reads as work disappearing. The sentence costs four joins and
+refuses all four rather than guessing. A seat that has called nothing yet says "is working", never a
+verb nobody wrote; a tool the vocabulary has never met says "a call is waiting", never its own id.
+
+**The discriminator rule is pinned as a test**, not asserted: five runs standing at Build with five
+different facts produce five different sentences, and two runs that genuinely never started are
+allowed to agree, because printing two sentences for one fact is the opposite defect.
+
+**"Needs you before merging the pull request", and why "before".** The product's tool words are
+present participles, written for a character saying what it is doing. A gate is the other grammar:
+the call stands BEFORE the tool runs. Saying it that way lets ONE vocabulary serve both this branch
+and the working one, with no second map of imperatives to keep in step, and it states the gate more
+precisely than "approve the pull request" would, since approving is one of the two answers.
+
+**The ⌘K fork (decision 1, accepted).** `handOver` calls `startTrack` and navigates to
+`/track/:id?start=true`, the same server fn the composer uses. The mission branch in `api/chat.ts` is
+**not deleted**: it is a route no packet holds, it still serves the classifier's own path, and the
+acceptance is that no path FROM THE UI reaches it. Pinned in
+`one-way-in-and-it-starts-a-run.test.ts`, which asserts on the import and the call rather than on the
+word, because both files name `createMission` in a comment explaining what they stopped doing and a
+guard forbidding the word would push the next author to delete the explanation. A hand-over that
+fails puts the sentence back in the box and says why: the pane is a modal, so on success it navigates
+and is gone, and a failure that also closed it would leave a person where they began with nothing
+said.
+
+**Arriving (decision 2, accepted).** `qualifies()` on the client over `listThemes`, against the
+workspace's own bar. **O(themes) on the client, capped at 300 rows by `listThemes`** and fine at
+today's shape (181 themes across the database); P-18 is where it moves server-side. Each of the
+three reads fails independently and each clause is separately refusable: no bar read, no "crossed the
+bar" clause, because a threshold nobody looked up is not one. A real zero still speaks, because zero
+is only silent when it is UNKNOWN and a quiet week is a fact.
+
+**`?queue=1` survives, and my first draft got it wrong.** I removed it, reasoning that P-11 took out
+the rail's Approvals door. `tsc` said otherwise: **five call sites still navigate here with it** and
+every one writes the key as the computed `[REVIEW_QUEUE_SEARCH]`, which is why a grep for
+`queue: true` found nothing. It now lands somewhere true rather than scrolling to an anchor that no
+longer mounts: what is waiting on you is the runs marked Needs you, and the page says so.
+
+**Your two doors are in** (`a4e7cb07e`), named for what is behind them rather than for our noun:
+*"Outcomes: every decision, what it expected, what happened"* → `/brain`, and Arriving's own
+*"See what came in"* → `/discover`. Both are a one-string swap when `/outcomes` and `/arriving`
+exist, which is why the words a person reads are written at the call site rather than derived from
+the route.
+
+**Your question: yes, ⌘K lists past threads, so `/threads` is not doorless.** `AskSwitcher`
+(`AskPane.tsx:781`) reads `listThreads` on **the same query key `/threads` uses**, marks the
+conversation the pane is holding, offers `onPick` to resume one and `onLeave` to open the full
+archive. It is behind the pane's browse toggle rather than on first paint, which is the only thing I
+would change, and it is a real door today.
+
+**Two guards caught my copy and both were right.** `failureLine` appends a sentence the call site
+cannot see, so "Press it again" could be refuted by "Your session ended"; it states what is true
+instead. And `post-auth-home` asserted a compare link to `/today`, which P-10 deleted this afternoon,
+so the assertion is replaced by the same rule read forwards: the front door must not point at a route
+that does not exist.
+
+**Files beyond the packet's list, each named.** `src/lib/spine/track.functions.ts` (`listRunsForStart`
+and its `StartRun` type) · new `src/components/start/Arriving.tsx` (the 19:12 amendment added the
+region; the packet named two components) · `src/lib/__tests__/ask-intent-reaches-the-server.test.ts`
+and `src/components/shell/__tests__/post-auth-home.test.ts` (two guards updated with the reason the
+fact changed) · `src/lib/spine/nothing-in-flight-was-also-what-a-failure-said.test.ts` (its
+soft-catch canary counted two; the third was reviewed, not waved through).
+
+**Blockers (A2 writes):** none. UI walk on `supaprod.ai` pending Lovable ingesting `a4e7cb07e`; will
+append what I saw here.
 
 **A1 verdict:**
 
