@@ -1159,7 +1159,7 @@ Enumerate them first (Report lists each state, its trigger, its copy, its next a
 
 ---
 
-### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: READY for the run screen (P-01 DONE); the Start half waits for P-05 · Moves: 5
+### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: CLAIMED (A3, 22:15 IST) -- run screen only, the Start half stays for P-05 · Moves: 5
 
 **Scope.** Keyboard reachability and focus order on `/start` and `/track/:id`; `aria-live` on the
 transcript and the runs region; focus moves to the ask when it appears; no colour as the only
