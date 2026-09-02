@@ -1818,6 +1818,17 @@ escape for a *forbidden* path (F-67), and a claim is not that. The seat's prompt
 text both say so, and a commit that leaves a claimed path behind is refused as well. Folded into P-04
 (A2). PR #5 stays open: when PR #4 merges, the component change commits to the same branch.
 
+
+**A1, 04:50 IST · the honest run was parked on a spent counter, and A1 corrected the record.** At
+23:00 and 23:10 UTC the sweep drove `2fdf93b6` and ran nothing: `attempts=3`, all three consumed by
+commit refusals on the claimed path before A2's hold existed, filed as *CI is red* by the last one. A
+counter spent on another run's wall is not a fact about this work, and A2's hold now counts no attempt
+for exactly that case. So A1 reset it (`update spine_tracks set attempts=0 where id='2fdf93b6…' and
+attempts=3`, 23:19:28 UTC) and pressed nothing else: the next tick re-runs Build's crew, meets the
+claim, and should write *waiting-on-another-run* naming the tablet run and PR #4. The merge of PR #4
+stays the founder's, and when it merges the claim releases and the sweep continues on its own; if it
+does not, that is the next defect.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
