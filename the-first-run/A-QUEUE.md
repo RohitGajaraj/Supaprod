@@ -1760,11 +1760,21 @@ the sweep drove `6817e386`: stage → commit → `studio.pr.open` → checks, un
 repo at 20:51:06. R-30 works. Then: (3) **a Build in `pr_open` is re-driven every tick**: the 21:00
 sweep ran Build on `6817e386` again and committed to the same branch (six stage/commit/checks cycles at
 20:50, more at 21:00); `stop_requested_at` set on it at 21:02:43 (R-32) until the done rule knows an
-open PR means the verdict, not Build. (4) **a cancelled gate parks the run for good**: `2fdf93b6`'s
-builder run `0f4de13b` (19:50) is still `waiting_approval` after its gate was cancelled at 20:41, an
-older one `5198e875` (08-31) likewise, and the track was skipped at 20:50 and 21:00. Runs must wake on
-cancelled the way they wake on rejected. Also seen and good: `studio.stage` refused a change importing
+open PR means the verdict, not Build. (4) ~~a cancelled gate parks the run for good~~ **withdrawn 02:43 IST, A2 read both paths:**
+the resume sweeper blocks only on `pending`/`approved`, so a cancelled gate blocks nothing; the run
+row stays `waiting_approval` as a record. `2fdf93b6` was starved by (3): the sweep drives
+sequentially against one 45-second deadline and `6817e386`, sorting ahead, spent both ticks
+re-running Build. Fixing (3) frees it. Also seen and good: `studio.stage` refused a change importing
 `@testing-library/react` because the repo does not list it.
+
+
+**A1, 02:45 IST · (3) fixed by A2 (`bbeafd1d8`): a track whose newest changeset is `pr_open` or
+`merged` skips Build's crew, not the station; the self-check and the verdict still run and a change
+that does not meet the spec is still sent back. A1 verifies on the merged tree and publishes. Latent,
+found by A2 and deliberately not touched under a live attempt: a horizon-waiting track removed by
+`scheduledAwayIds` never gets its `driven_at` stamped, so it holds the front of `ORDER BY driven_at`
+forever and eats a slot of the 15-row fetch every tick; two such tracks sort ahead of the honest run
+today. Filed as P-03a below.**
 
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
@@ -1784,6 +1794,27 @@ nobody presses it. A1 watches `track_drives` and `agent_approvals` for it from h
 **A1 verdict:**
 
 ---
+
+
+### P-03a · A track waiting on the horizon does not hold the front of the sweep · Lane: **A2** · Status: READY (after P-02 report) · Moves: 3
+
+**Why.** `scheduledAwayIds` removes a horizon-waiting track from the driven set without stamping
+`driven_at`, so it sorts first by `driven_at ASC` every tick and consumes one of the fifteen fetched
+rows for nothing. Two such tracks sit ahead of the honest run today (A2, 2026-09-03). Same shape as
+the starvation that hid R-30's failure for an evening.
+
+**Scope.** Stamp `driven_at` (or a `deferred_until`) when a track is scheduled away, and fetch
+past it. A test: fifteen horizon-waiting tracks and one runnable track behind them; the runnable
+one is driven on the first tick.
+
+**Files.** `src/lib/spine/driver.server.ts` (sweep selection), its tests.
+
+**Acceptance.**
+- [ ] The test above passes; no other ordering changes.
+- [ ] tsc 0 · `bun test` 0 fail · pushed · Report with the two track ids that were holding the front.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
 
 ### P-02 · The verdict at Build · Lane: **A2** · Status: CLAIMED (A2, 01:25 IST) · Moves: 3, 4
 
