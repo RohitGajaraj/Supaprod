@@ -158,3 +158,163 @@ describe("what the person sees while it waits", () => {
     expect(line).not.toContain("undefined");
   });
 });
+
+/**
+ * ── AND THE TRACK HAS TO DO SOMETHING SENSIBLE TOO ────────────────────────
+ *
+ * Fixing the prompt and the refusal stops the seat routing around the wall. It
+ * does not help the seat that correctly STOPS: before this, the track then took
+ * `tools-refused`, which is TERMINAL, so a path another run happened to hold
+ * ENDED a piece of work for good -- over a condition that clears by itself when
+ * that run's pull request merges or closes.
+ *
+ * The other existing answer was no better. `refusalIsAboutTheWork` sends a
+ * refusal back to be rebuilt, and `refusal-kind.ts` has always excluded the
+ * claim case from it for the right reason: rebuilding does not help, because the
+ * other mission still holds the path.
+ *
+ * So a claim is a third kind, and it needed its own hold.
+ */
+import {
+  claimedPathFrom,
+  refusalIsAboutTheWork,
+  refusalIsAClaimedPath,
+} from "@/lib/spine/refusal-kind";
+import { CLAIMED_PATH_HOLD } from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
+import { RESUMABLE_HOLDS, TERMINAL_HOLDS, CORRECTABLE_HOLDS } from "@/lib/spine/correction";
+import { HOLDS_THAT_WAIT_ON_A_DATE } from "@/lib/spine/waiting-on-a-date-is-not-waiting-in-a-queue";
+
+const REFUSAL = `BuilderFileConflict: ${claimedPathRefusal(HELD)}`;
+
+describe("the three kinds of refusal stay apart", () => {
+  it("a claim is recognised as a claim", () => {
+    expect(refusalIsAClaimedPath("studio.commit", REFUSAL)).toBe(true);
+  });
+
+  it("and is NOT read as a branch that has moved on", () => {
+    /*
+     * THE ONE THAT WOULD BITE SILENTLY. The refusal sentence contains the word
+     * "conflict" through its own `BuilderFileConflict` prefix, and
+     * `refusalIsAboutTheWork` matches on the bare word "conflict". If its tool
+     * gate ever grew to include studio.commit, a correct change would be sent
+     * back to be rewritten against a wall that is about to come down.
+     */
+    expect(refusalIsAboutTheWork("studio.commit", REFUSAL)).toBe(false);
+  });
+
+  it("a real merge conflict is still read as one", () => {
+    // The claim rule must not have eaten the case that was already working.
+    expect(
+      refusalIsAboutTheWork(
+        "studio.pr.merge",
+        "GitHub merge 405: Pull Request has merge conflicts",
+      ),
+    ).toBe(true);
+    expect(
+      refusalIsAClaimedPath(
+        "studio.pr.merge",
+        "GitHub merge 405: Pull Request has merge conflicts",
+      ),
+    ).toBe(false);
+  });
+
+  it("a locked door is neither", () => {
+    for (const err of ["GitHub 401: Bad credentials", "Repository is not bound"]) {
+      expect(refusalIsAClaimedPath("studio.commit", err)).toBe(false);
+      expect(refusalIsAboutTheWork("studio.commit", err)).toBe(false);
+    }
+  });
+
+  it("needs the tool gate as well as the phrase", () => {
+    // Our own prefix appearing in an unrelated tool's error is not a claim.
+    expect(refusalIsAClaimedPath("calendar.create", REFUSAL)).toBe(false);
+    expect(refusalIsAClaimedPath(null, REFUSAL)).toBe(false);
+  });
+});
+
+describe("what the driver reads back out of the refusal", () => {
+  it("recovers the path and the holder from the sentence", () => {
+    // The refusal reaches the driver as a plain string through `tool_calls.error`,
+    // with no structure left on it.
+    expect(claimedPathFrom(REFUSAL)).toEqual({
+      path: "src/checkout/AddressStep.tsx",
+      missionTitle: "The tablet layout",
+    });
+  });
+
+  it("returns nulls rather than throwing on a shape it cannot read", () => {
+    // The hold is still right without them; a sentence saying "another run" is
+    // worse than one naming the file and far better than no hold at all.
+    expect(claimedPathFrom("something else entirely")).toEqual({
+      path: null,
+      missionTitle: null,
+    });
+    expect(claimedPathFrom(null).path).toBeNull();
+  });
+});
+
+describe("the hold it takes, and the one it must not", () => {
+  it("is not terminal, because the wall comes down on its own", () => {
+    /*
+     * `tools-refused` is what this took before, and it is terminal: a claim
+     * lasting twenty minutes ended a piece of work for good.
+     */
+    expect(TERMINAL_HOLDS).not.toContain(CLAIMED_PATH_HOLD);
+    expect(RESUMABLE_HOLDS.has(CLAIMED_PATH_HOLD)).toBe(true);
+  });
+
+  it("is not correctable, because there is nothing to redo", () => {
+    // Correcting sends the work upstream to be rewritten. The change is right;
+    // the only thing missing is somebody else's merge.
+    expect(CORRECTABLE_HOLDS.has(CLAIMED_PATH_HOLD)).toBe(false);
+  });
+
+  it("is NOT needs-evidence, and that is a defect this nearly shipped with", () => {
+    /*
+     * THE ONE WORTH READING. The first draft reused `needs-evidence` to avoid
+     * adding a word to the vocabulary. `HOLDS_THAT_WAIT_ON_A_DATE` contains
+     * `needs-evidence`, and the sweep reads a track holding it as "waiting until
+     * its FORECAST HORIZON". A Build-station track has almost always passed
+     * Decide and carries a forecast, so a twenty-minute claim would have
+     * deferred the work until October -- and since P-03a, written that date into
+     * `deferred_until` so the sweep stopped fetching the row at all.
+     *
+     * Waiting on a date nobody can bring forward and waiting on a run that is
+     * minutes away are the same shape and opposite urgency. Only a separate word
+     * keeps the sweep from confusing them.
+     */
+    expect(CLAIMED_PATH_HOLD).toBe("waiting-on-another-run");
+    expect(HOLDS_THAT_WAIT_ON_A_DATE).not.toContain(CLAIMED_PATH_HOLD);
+  });
+});
+
+describe("the driver takes it", () => {
+  const DRIVER_SERVER = readFileSync("src/lib/spine/driver.server.ts", "utf8");
+  const driverCode = DRIVER_SERVER.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
+
+  it("checks for a claim BEFORE it asks whether the branch moved on", () => {
+    // Order is the correctness: both would match on the word "conflict" if the
+    // other rule's tool gate ever widened.
+    expect(driverCode.indexOf("refusalIsAClaimedPath(")).toBeLessThan(
+      driverCode.indexOf("refusalIsAboutTheWork("),
+    );
+  });
+
+  it("counts no attempt, so waiting cannot walk the work to given-up", () => {
+    const branch = driverCode.slice(
+      driverCode.indexOf("if (claimed) {"),
+      driverCode.indexOf("const refusal ="),
+    );
+    expect(branch).toContain("last_hold: CLAIMED_PATH_HOLD");
+    expect(branch).not.toContain("attempts:");
+  });
+
+  it("writes the sentence that names the other run", () => {
+    const branch = driverCode.slice(
+      driverCode.indexOf("if (claimed) {"),
+      driverCode.indexOf("const refusal ="),
+    );
+    expect(branch).toContain("waitingOnAnotherRun({");
+    expect(branch).toContain("last_hold_because: because");
+  });
+});

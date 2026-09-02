@@ -28,7 +28,15 @@
  * go, never that policy stopped applying.
  */
 import { trackGoalSentence } from "@/lib/track-origin";
-import { refusalIsAboutTheWork } from "@/lib/spine/refusal-kind";
+import {
+  claimedPathFrom,
+  refusalIsAboutTheWork,
+  refusalIsAClaimedPath,
+} from "@/lib/spine/refusal-kind";
+import {
+  CLAIMED_PATH_HOLD,
+  waitingOnAnotherRun,
+} from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
@@ -3032,6 +3040,60 @@ export async function driveTrackOnce(
    * Everything else still takes F-41's path, because for everything else its
    * premise holds.
    */
+  /*
+   * -- A CLAIMED PATH IS WORK WAITING ON WORK, WHICH IS NEITHER OF THE ABOVE --
+   *
+   * Checked FIRST, and the order is the correctness: a claim refusal contains
+   * the word "conflict", so `refusalIsAboutTheWork` must never get the chance to
+   * read it as a stale branch and send a correct change back to be rewritten.
+   * `refusal-kind.ts` has always excluded it by tool gate; this makes the
+   * ordering explicit rather than relying on the two lists staying disjoint.
+   *
+   * And `tools-refused` is the wrong answer too, worse than the first: that hold
+   * is TERMINAL, so a path another run happens to be holding ENDED a piece of
+   * work for good -- over a condition that clears by itself when the other run's
+   * pull request merges or closes, usually within the hour.
+   *
+   * So it takes neither. No attempt is counted, because there is nothing this
+   * station did wrong and nothing for it to do differently; the hold is
+   * resumable, so the sweep comes back; and the sentence NAMES the other run and
+   * its pull request, because A1 watched a person read `out-of-time` on this
+   * exact track, press Run it now, and hit the same wall.
+   */
+  const claimed =
+    refusalFound && refusalIsAClaimedPath(refusalFound.tool, refusalFound.error)
+      ? refusalFound
+      : null;
+
+  if (claimed) {
+    const held = claimedPathFrom(claimed.error);
+    const because = waitingOnAnotherRun({
+      path: held.path ?? "a file",
+      missionTitle: held.missionTitle,
+      prNumber: null,
+    });
+    await supabase
+      .from("spine_tracks" as never)
+      .update({
+        // attempts UNCHANGED, deliberately. This station did nothing wrong and
+        // has nothing to do differently; counting it would walk a correct piece
+        // of work toward `given-up` while it waits for somebody else's merge.
+        last_hold: CLAIMED_PATH_HOLD,
+        last_hold_because: because,
+        driven_at: new Date().toISOString(),
+      } as never)
+      .eq("id", row.id);
+    return {
+      trackId: row.id,
+      station,
+      moved: false,
+      arrivedAt: null,
+      hold: CLAIMED_PATH_HOLD,
+      line: flagged(because),
+      attached,
+    };
+  }
+
   const refusal =
     refusalFound && refusalIsAboutTheWork(refusalFound.tool, refusalFound.error)
       ? null

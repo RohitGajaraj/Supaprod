@@ -617,6 +617,24 @@ export type HoldReason =
    * ---------------------------------------------------------------------- */
   /** Nothing to work from, and no station in the loop can produce it. */
   | "needs-evidence"
+  /**
+   * A file this change needs is claimed by another run that is about to write it.
+   *
+   * ── WHY THIS IS ITS OWN REASON AND NOT `needs-evidence` ──────────────────
+   * It was `needs-evidence` for one draft, and that draft had a live defect.
+   * `HOLDS_THAT_WAIT_ON_A_DATE` contains `needs-evidence`, and the sweep reads
+   * a track holding it as "waiting until its FORECAST HORIZON". A Build-station
+   * track has almost always passed Decide and carries a forecast, so a claim
+   * lasting twenty minutes would have deferred the work until October -- and
+   * since P-03a, written that date into `deferred_until` so the sweep stopped
+   * fetching it at all.
+   *
+   * The two really are different waits. One is waiting on a DATE nobody can
+   * bring forward; this is waiting on another piece of work that is minutes
+   * away. Same shape, opposite urgency, and only a separate word keeps the
+   * sweep from confusing them.
+   */
+  | "waiting-on-another-run"
   /** The station that files the missing thing is waived off this route. */
   | "needs-a-waived-station"
   /** Everything the station needs is on the record and it still finishes empty. */
@@ -1454,6 +1472,11 @@ export const HOLD_LINE: Record<HoldReason, string> = {
    */
   "needs-evidence":
     "This station is waiting rather than failing, and starts again on its own when what it needs arrives.",
+  /* The specific sentence -- which run, which file, which pull request -- is
+     written to `last_hold_because` by the driver, because only it knows them.
+     This is the half that is true of every claim. */
+  "waiting-on-another-run":
+    "This work needs a file that another run is about to write, so it is waiting for that run rather than failing. It continues on its own when that run's pull request merges or closes.",
   /*
    * F-177. Was: *"This station needs something that a waived station was the one
    * to file, so nothing is going to file it. Put that station back on the route,
@@ -1636,6 +1659,7 @@ export function holdTone(hold: string | null | undefined): "you" | "hold" | null
 /** The reasons that are about one station rather than the whole track. */
 const STATION_SPECIFIC: ReadonlySet<HoldReason> = new Set<HoldReason>([
   "needs-evidence",
+  "waiting-on-another-run",
   "needs-a-waived-station",
   "station-cannot-finish",
   "given-up",

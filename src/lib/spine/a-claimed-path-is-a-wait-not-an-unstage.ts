@@ -77,10 +77,18 @@ export const A_CLAIM_IS_NOT_A_FORBIDDEN_PATH =
   "the other run is about to write that file, and a commit without it ships tests and specs describing a change that is not there. " +
   "Stop, say which run holds it, and say that this continues when that run's pull request merges or closes.";
 
-/** The hold a track takes when a path it needs is spoken for. Reuses the
- *  existing vocabulary rather than adding a word: the work is waiting on
- *  something outside itself that will arrive, which is what this hold means. */
-export const CLAIMED_PATH_HOLD = "needs-evidence" as const;
+/**
+ * The hold a track takes when a path it needs is spoken for.
+ *
+ * Its OWN reason, and the first draft's reuse of `needs-evidence` was a live
+ * defect rather than a style choice: `HOLDS_THAT_WAIT_ON_A_DATE` contains that
+ * one, so the sweep would have read a twenty-minute claim as "waiting until this
+ * track's forecast horizon" and -- since P-03a -- written that date into
+ * `deferred_until` and stopped fetching the row. Waiting on a date nobody can
+ * bring forward and waiting on a run that is minutes away are the same shape and
+ * opposite urgency.
+ */
+export const CLAIMED_PATH_HOLD = "waiting-on-another-run" as const;
 
 /**
  * What the Start row and the track say while it waits.

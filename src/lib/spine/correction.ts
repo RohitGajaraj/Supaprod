@@ -208,6 +208,9 @@ export const CORRECTABLE_HOLDS: ReadonlySet<HoldReason> = new Set<HoldReason>([
  */
 export const RESUMABLE_HOLDS: ReadonlySet<HoldReason> = new Set<HoldReason>([
   "needs-evidence",
+  /* The other run merges or closes and this continues. Nothing here asked a
+     person for anything, and nothing about the change needs redoing. */
+  "waiting-on-another-run",
   "needs-a-waived-station",
   "corrections-spent",
 ]);

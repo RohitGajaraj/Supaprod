@@ -128,6 +128,91 @@ export function refusalIsAboutTheWork(
 }
 
 /**
+ * A THIRD KIND, AND IT IS THE ONE THIS FILE ALREADY DESCRIBED WITHOUT NAMING.
+ *
+ * The header above uses the claim conflict as its worked example of something
+ * that must NOT match `refusalIsAboutTheWork`, and the reason it gives is right:
+ * *"a path held by another mission is not fixed by rebuilding, because the other
+ * mission still holds it."* Rebuilding is the wrong remedy.
+ *
+ * But falling through to `tools-refused` is the wrong answer too, and worse.
+ * That hold is TERMINAL, so a claimed path PERMANENTLY ENDS a piece of work --
+ * over a condition that clears by itself, usually within the hour, when the
+ * other run's pull request merges or closes.
+ *
+ * So the two existing kinds are:
+ *
+ *   about the work        rebuild it        (conflict, stale branch)
+ *   a locked door         stop for good     (401, policy, permission)
+ *
+ * and a claim is neither. It is WORK WAITING ON WORK: nothing to redo, nothing
+ * to escalate, and a known event that releases it. Both existing answers are
+ * damaging -- one burns three attempts rewriting a change that was correct, the
+ * other throws the change away.
+ *
+ * ── WHAT IT COST BEFORE THIS EXISTED, 2026-09-02 22:00 UTC ────────────────
+ * The seat was refused, and rather than stop it unstaged the claimed component,
+ * committed the tests that described it, opened a pull request and ran the
+ * checks -- red, on a customer's repository. That is fixed at the prompt and in
+ * the refusal text, but a seat that correctly stops still needs the TRACK to do
+ * something sensible, and what the track did was take a terminal hold.
+ *
+ * ── THE GATE IS THE SAME SHAPE AS THE ONE ABOVE, FOR THE SAME REASON ──────
+ * A tool gate and a phrase, both required. `BuilderFileConflict` is our own
+ * prefix, written by our own tools in exactly three places, so it is a far
+ * stronger signal than the borrowed English `refusalIsAboutTheWork` has to match
+ * -- and it is checked as a whole rather than by the word "conflict", which the
+ * header above already warns is the trap.
+ */
+const CLAIM_TOOLS: ReadonlySet<string> = new Set([
+  "studio.commit",
+  "studio.stage",
+  "studio.pr.open",
+  "github.pr.open",
+]);
+
+/** Our own prefix, written by our own tools. Not a borrowed phrase. */
+const CLAIM_MARK = "builderfileconflict";
+
+/**
+ * Is this refusal a path another run is holding?
+ *
+ * Checked BEFORE `refusalIsAboutTheWork` by every caller, because a claim
+ * refusal contains the word "conflict" and the two must not both fire. The tool
+ * gates make them disjoint today; the ordering is what keeps that true if either
+ * list grows.
+ */
+export function refusalIsAClaimedPath(
+  toolName: string | null | undefined,
+  error: string | null | undefined,
+): boolean {
+  if (!toolName || !CLAIM_TOOLS.has(toolName)) return false;
+  return (error ?? "").toLowerCase().includes(CLAIM_MARK);
+}
+
+/**
+ * The path another run is holding, read back out of the refusal.
+ *
+ * The refusal sentence is composed by `claimedPathRefusal`, which puts the path
+ * after "This change touches " and the holder in quotes. Parsed rather than
+ * passed because the refusal reaches the driver as a plain error STRING through
+ * `tool_calls.error`, with no structure left on it.
+ *
+ * Returns nulls rather than throwing on a shape it cannot read: the hold is
+ * still right, and a sentence that says "another run" is worse than one naming
+ * the file but far better than no hold at all.
+ */
+export function claimedPathFrom(error: string | null | undefined): {
+  path: string | null;
+  missionTitle: string | null;
+} {
+  const text = error ?? "";
+  const path = /This change touches ([^\s,]+)/.exec(text)?.[1] ?? null;
+  const title = /claimed by "([^"]+)"/.exec(text)?.[1] ?? null;
+  return { path, missionTitle: title };
+}
+
+/**
  * The sentence a person reads, and the one the record keeps.
  *
  * Says what happened, why it is not a dead end, and what will happen next, in

@@ -66,6 +66,22 @@ const RETRIED_UNTOUCHED: HoldReason[] = [
   "out-of-credit",
   "needs-evidence",
   /*
+   * `waiting-on-another-run`, 2026-09-03. A file this change needs is claimed by
+   * another run that is about to write it.
+   *
+   * HERE and not in CORRECTABLE_HOLDS, and the reason is the same shape as
+   * `self-check-failed`'s below: correcting means sending the work upstream to
+   * be redone, and there is nothing wrong with it. The change is correct, the
+   * station did its job, and the only thing missing is somebody else's merge.
+   * Rerouting it would rewrite a good change against a wall that is about to
+   * come down.
+   *
+   * It is retried untouched and it does not count an attempt, which is the pair
+   * that matters: `tools-refused` would have ended it for good, and counting
+   * attempts would walk it to `given-up` while it waited.
+   */
+  "waiting-on-another-run",
+  /*
    * S0-002, 2026-08-26. `self-check-failed` means the station ran, filed
    * something, and its own quality check refused it. That is close in shape to
    * `nothing-to-hand-on`, which sits in CORRECTABLE_HOLDS — but it stays HERE,
