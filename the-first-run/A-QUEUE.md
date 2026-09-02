@@ -1721,6 +1721,26 @@ already promoted and already the right shape -- it just needs to be re-driven un
 on ONE changeset (`10000000-0006-…`) from 2026-07-25. Seven gates on one merge is queue noise that
 will read as real work waiting on somebody.
 
+
+**A1, 01:30 IST · THE HONEST RUN RAN AND STOPPED AT THE GATE R-30 REMOVED. Two defects, both A2, both P-03.**
+The sweep drove `2fdf93b6` at 19:50:02 UTC. The builder read the repo, wrote the AddressStep change
+and a test, staged, and called `studio.commit`; approval `24ab7521` was raised at 19:51:29, run
+`waiting_approval`. Same at 19:40 on `6817e386` (`e53763c7`). Every mode layer says auto: `TOOL_DEFAULTS`
+auto (R-30 confirmed in Lovable's copy), `agent_tools` no row, `agent_tool_modes` no row, builder and qa
+arcs `trusted`, tool in `BUILD_LANE_AUTONOMOUS`, not in either floor.
+1. **`approval-policy.ts` overrides all of it.** `tool-consequences.ts:53` classes `studio.commit` as
+   external + partial; the matrix makes that `always-human`; `loop.server.ts:2129` then forces
+   `mode = "review"` for anything not in `MODE_RULED_ABOVE_WINS`. F-152 (08-31) put `studio.fix.commit`
+   on that list for this exact stall. R-30 changed the default and left `studio.commit` off the list,
+   so the ruling is inert in production. Fix: add it to `MODE_RULED_ABOVE_WINS` with the R-30 reason,
+   and a test at the loop level that an always-human policy does not re-gate it (the defaults test
+   cannot see this; it passed).
+2. **A cancelled gate is not dropped.** `pending_gates` on `2fdf93b6` went 1 → 2: `a220388d`
+   (cancelled 19:35) is still listed beside the new one. `driver.server.ts:321-348` harvests it out,
+   but the post-run merge at `:365-372` rebuilds from the `row.pending_gates` read at drive start, so
+   the stale list comes back with the new gate appended. Merge from the harvested list, not the row.
+Do not answer `24ab7521` or `e53763c7`; A1 cancels both once the fix is live so the sweep re-drives.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
