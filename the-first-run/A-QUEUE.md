@@ -2076,6 +2076,20 @@ inconclusive, first verdict only, log row written after the settle matched), and
 self-referential forecasts settle inconclusive with the founder's sentence. The claimed-path rule is in
 code (`15d882e08`); the hold `waitingOnAnotherRun` is wired next, before the verdict's surfaces.
 
+
+**A1, 04:25 IST · the named hold is wired (`44113a6c6`), and a near-miss for the record, in A2's words.**
+A claimed path was landing as `tools-refused`, which is terminal: a condition that clears by itself in an
+hour was ending a piece of work for good. Now the driver takes `waiting-on-another-run`: no attempt
+counted, resumable, the sentence names the run, the file and the PR, and Start's row already prefers
+that sentence. The near-miss: the first draft reused `needs-evidence` instead of adding a word, and
+`HOLDS_THAT_WAIT_ON_A_DATE` contains `needs-evidence`, so the sweep would have read a twenty-minute claim
+as "waiting until its forecast horizon" and, since P-03a, written that date into `deferred_until` and
+stopped fetching the row at all. Two correct packets combining to bury a track for six weeks with every
+test green; caught by reading the sweep's filter, not by a failure. **A wait on a date nobody can bring
+forward and a wait on a run minutes away are one shape and opposite urgency; only a separate word keeps
+the sweep from confusing them.** The exhaustiveness guard in `correction.test.ts` then caught the new
+reason in neither list, which is what it is for.
+
 **Report / A1 verdict:**
 
 ---
