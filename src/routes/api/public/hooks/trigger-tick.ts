@@ -13,6 +13,8 @@ import {
 import { withJobRunHttp } from "@/lib/observability";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { runAgentLoop } from "@/lib/ai/loop.server";
+import { callModel } from "@/lib/ai/runtime.server";
+import { looksLikeASentence } from "@/lib/bet-title";
 import { decideDecisionReview, DECISION_RECORD_EFFECT } from "@/lib/decision-gate";
 import { recordAutoApproval } from "@/lib/decision-gate.server";
 import { recordDecisionOrigins } from "@/lib/lineage.functions";
@@ -303,14 +305,68 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
       const opp = p.opportunity;
       const { data: existing } = await supabaseAdmin
         .from("opportunities")
-        .select("id")
+        .select("id, title")
         .eq("theme_id", opp.themeId)
         .maybeSingle();
+
+      /*
+       * A1, live on `supaprod.ai`, 2026-09-03: two of three top-ICE cards on
+       * Start read "Redundant Data Entry" and "Competitors Advancing
+       * Software & Ecosystems" -- the theme's own Title-Case cluster name,
+       * written straight into `opportunities.title`. A bet's title has to be
+       * a sentence a person would type to start work, and the theme's own
+       * evidence (its name plus its summary) is enough for a seat to write
+       * one -- the same `callModel` pattern `generatePrd`'s own title
+       * derivation already uses (`discovery.functions.ts`).
+       *
+       * ONLY ONCE PER BET, NOT EVERY TICK. This branch fires every 15
+       * minutes for a hot theme; regenerating an already-good title on every
+       * refresh would spend a call for nothing and make a bet's name drift
+       * under a person who has already read it. A title is (re)written only
+       * when there is none yet, or when what is on the record fails the
+       * same sentence check Start's own read applies (`looksLikeASentence`,
+       * `bet-title.ts`) -- a stale row from before this fix, or a retry that
+       * still came back wrong.
+       */
+      const existingTitle = (existing as { title?: string } | null)?.title ?? null;
+      const title =
+        existingTitle && looksLikeASentence(existingTitle)
+          ? existingTitle
+          : await (async () => {
+              try {
+                const titled = await callModel(supabaseAdmin, ownerId, {
+                  surface: "sense",
+                  surface_ref: "bet-title",
+                  model: "google/gemini-2.5-flash",
+                  workspaceId,
+                  messages: [
+                    {
+                      role: "system",
+                      content:
+                        "Write one short sentence a person would type to describe a piece of work they want done, in the imperative or plain declarative -- not a title, not Title Case, not a cluster or category name. Under 80 characters. Only the sentence, nothing else, no quotes.",
+                    },
+                    { role: "user", content: `${opp.name}\n\n${opp.problem}`.slice(0, 1000) },
+                  ],
+                });
+                const sentence = (titled.output || "")
+                  .trim()
+                  .replace(/^["'`]+|["'`]+$/g, "")
+                  .split("\n")[0]!
+                  .slice(0, 120);
+                // A model that still hands back a cluster name is not worth
+                // preferring over the honest original; the read-side check
+                // will keep either off a card until a later tick repairs it.
+                return sentence && looksLikeASentence(sentence) ? sentence : opp.name;
+              } catch {
+                return opp.name;
+              }
+            })();
+
       const row = {
         user_id: ownerId,
         workspace_id: workspaceId,
         theme_id: opp.themeId,
-        title: opp.name,
+        title,
         problem: opp.problem,
         hypothesis: `If we address "${opp.name}", we expect to reduce reported pain and improve activation.`,
         impact: opp.impact,
@@ -516,7 +572,7 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
     //    Both in-tick counters move the moment the flip lands, so the cap and the
     //    ambient arc are enforced within this tick and not just across ticks.
     //    `launchesNow` was decided above, before the receipt, because the
-    //    receipt's status depends on it — same call, same four inputs.
+    //    receipt's status depends on it -- same call, same four inputs.
     if (launchesNow) {
       const capNote = `[auto-launched: ambient + reversible + cap ${autoTodayCount + 1}/${AUTO_TRIGGER_DAILY_CAP}]`;
       // NOTE(MEDIUM-1): ambient + cap counts are read once per tick with no DB-level lock.

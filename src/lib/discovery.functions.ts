@@ -30,6 +30,7 @@ import { forecastRefusal } from "@/lib/decisions.functions";
 /* The SAME section sequence every spec-writing prompt enumerates, so the three
    prompts cannot drift into three different shapes for one artifact. */
 import { SPEC_SECTION_ORDER } from "@/lib/spec-sections";
+import { looksLikeASentence } from "@/lib/bet-title";
 
 export { SPEC_SECTION_ORDER };
 
@@ -1444,11 +1445,20 @@ export type TopOpportunity = {
 export const listTopOpportunities = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<TopOpportunity[]> => {
+    /*
+     * P-14 (A-QUEUE.md ruling), A1 live on `supaprod.ai`, 2026-09-03: "a bet
+     * whose title is not a sentence does not qualify for a card." The write
+     * side (`trigger-tick.ts`) now asks a seat to phrase a new bet's title
+     * as a sentence, but this is the safety net for whatever it does not
+     * catch -- a row written before that fix, or a retry the seat still got
+     * wrong. Reads past the top three so the filter cannot starve the card
+     * display when the top-ranked-by-ICE rows happen to be the bad titles.
+     */
     const { data, error } = await context.supabase
       .from("opportunities")
       .select("id, title, problem, ice_score")
       .order("ice_score", { ascending: false })
-      .limit(3);
+      .limit(20);
     if (error) return [];
     return (
       (data ?? []) as Array<{
@@ -1457,7 +1467,10 @@ export const listTopOpportunities = createServerFn({ method: "GET" })
         problem: string;
         ice_score: number | null;
       }>
-    ).map((o) => ({ id: o.id, title: o.title, problem: o.problem, iceScore: o.ice_score }));
+    )
+      .filter((o) => looksLikeASentence(o.title))
+      .slice(0, 3)
+      .map((o) => ({ id: o.id, title: o.title, problem: o.problem, iceScore: o.ice_score }));
   });
 
 export const promoteThemeToOpportunity = createServerFn({ method: "POST" })
