@@ -365,7 +365,7 @@ attached regardless of caller intent):
 
 ---
 
-### P-11 · The rail is three doors · Lane: **A3** · Status: READY · Moves: 1, 4
+### P-11 · The rail is three doors · Lane: **A3** · Status: CLAIMED (A3, 19:34 IST) · Moves: 1, 4
 
 **Scope.** Rail entries become **Start · Run · Settings**. "Run" appears only while the person is on
 `/track/$trackId` and points at it. Remove Approvals, Insights, Threads and Policies from `RAIL` and
