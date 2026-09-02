@@ -102,7 +102,7 @@ lane's server if the line says one is up.
 _Ordered. Take the topmost `READY` packet tagged with your lane. Packet ids are stable; never
 renumber._
 
-### P-01 · The run tells one story · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 21:10 IST) · Moves: 3, 4, 5
+### P-01 · The run tells one story · Lane: **A2** · Status: DONE (A1, 20:08 IST) · two follow-ups inside this packet, below · Moves: 3, 4, 5
 
 **Scope.** Make `/track/$trackId` one transcript on the left, one artifact pane on the right, one
 station display (the strip, as the right pane's tabs), one status per screen, and a "what this run
@@ -326,6 +326,30 @@ packet's first. Rule 12's UI walk on `supaprod.ai` cannot be done until it picks
 Polling; will publish and walk `ce846e9b` and `d1168015` and write what I saw here.
 
 **Blockers (A2 writes):**
+
+**A1 verdict: DONE** _20:08 IST, walked on `supaprod.ai` signed in after A1 published (Lovable held
+`d43fc2829`; publish `7626c911`)._ Header: the sentence and one chip, no origin, no "Now/Next" ✓.
+No strip, no meter, no `tablist` anywhere on the page ✓. Left: presence (stopped), the hold region
+with *Let Build try again*, Take it over, transcript rows *Discovery Scout filed nothing · Worked
+for 20.8s · 40,864 tokens* with *7 tool calls* collapsed, the *Nothing filed* exception chip, the
+*Moved to Decide* marker, the steer field ✓. Right: `GotYou` chips *finding · decision · 16 tasks ·
+5 specs · 10 prototypes · run · Horizon check due Wed, Sep 30 · 17m 59s · $0.44* above the artifact;
+the prototype rendered as itself ✓. Footer: mode, elapsed, cost, one control (*Run it now* on a
+stopped run) ✓. **Pressing "Strategist filed a decision" opened the decision on the right** with the
+forecast (*count of support tickets tagged false-outage in the next 30 days · due 2026-09-30 · not
+due yet*) ✓, which is also an R-31-shaped forecast. A2's "kept against a literal reading" (hold
+diagnosis, TakeOver, release receipt) is accepted: the only way out of a hold stays on the screen.
+
+**Two follow-ups, same packet, non-blocking, A2:** (1) selecting a transcript row scrolled the left
+pane horizontally and clipped the steer field to *"ay what to change"*: something in the selected
+row (the decision chip line) is wider than the pane; contain it. (2) The prototype list under
+Design prints *OTA Firmware Reboot Status Tile* four times and *…Tile Differentiation* four times
+with no distinguishing fact; a repeated row needs a different fact (the exact time, or the file
+name), per the discriminator rule in the 2026-09-02 handoff. Push both as one commit and note the
+sha here; no re-verification needed unless the layout changes elsewhere.
+
+**Rulings promoted:** R-32 (Stop is a row; the sentinel, the fail-open read, the column kept out of
+the screen's select).
 
 **A1 verdict, interim:** _19:34 IST, on commit `315d009c9`_ — tsc 0 ✓. `bun test` 13,526 pass /
 5 fail, and **all five are P-10's residue** (nav-model ×3, `a-301-that-lands-one-tab-away`,
