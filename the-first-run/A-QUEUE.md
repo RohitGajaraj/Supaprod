@@ -1299,9 +1299,9 @@ new `src/components/track/the-ask-holds-focus-when-it-opens.test.ts` · new
 
 **A1 verdict: DONE for the run screen** _22:30 IST, walked `2fdf93b6` on `supaprod.ai` after the
 republish carrying `b83de431b`._ The right pane is now `region "Build output"`, no `tabpanel` ✓.
-**The unnamed-buttons defect in my interim note was the previous bundle:** on this build the ask's
-two answers read *Let it run* and *Don't run it*, inside a *Your answer* group ✓. Withdrawn; nothing
-for you there. `bun test` 13,657 / 0 fail on my run ✓. The Start half opens when P-05 lands.
+**Correction 22:32:** the unnamed buttons were real, and what I walked was **your fix** (`865a460ef`),
+which the 22:19 republish carried; the ask's two answers now read *Let it run* and *Don't run it*
+inside a *Your answer* group ✓. My "withdrawn" line was wrong and is struck; the credit is yours. `bun test` 13,657 / 0 fail on my run ✓. The Start half opens when P-05 lands.
 
 **A1 verdict, interim:** _22:18 IST_ — tsc 0 ✓, `bun test` 13,657 / 0 fail on my run ✓, the
 caller-side `region` fix is the right shape under rule 10 ✓. Walked `2fdf93b6` (Build, waiting on a
