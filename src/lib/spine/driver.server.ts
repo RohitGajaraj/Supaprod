@@ -33,7 +33,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
-import { recordTrackDrive } from "@/lib/spine/track-drives.server";
+import { recordSelfCheck, recordTrackDrive } from "@/lib/spine/track-drives.server";
 import { recordLineage } from "@/lib/lineage.functions";
 import { applyTrigger, nextStation, waive, waiverFor, type SpineRoute } from "@/lib/spine/route";
 import {
@@ -1450,6 +1450,15 @@ function unionFiled(attached: Attachment[], onRecord: Attachment[]): Attachment[
   return [...attached, ...onRecord.filter((a) => !seen.has(a.artifactId))];
 }
 
+/**
+ * ONE THING A STATION'S OWN CHECK COMPARED, AND WHETHER IT HELD.
+ *
+ * `what` is written for the person reading the run, not for the developer: it
+ * says what was looked for, so a reader can tell whether the check was worth
+ * anything. `why` is only meaningful when it did not hold.
+ */
+export type SelfCheck = { what: string; held: boolean; why?: string };
+
 export async function verifyStationOutput(
   supabase: SupabaseClient,
   station: AgentStation,
@@ -1463,7 +1472,36 @@ export async function verifyStationOutput(
    * than discovered: a caller that wants the gate must pass this.
    */
   trackId?: string,
-): Promise<{ passed: boolean; reason?: string }> {
+): Promise<{ passed: boolean; reason?: string; checks: SelfCheck[] }> {
+  /*
+   * -- WHAT THIS STATION COMPARED, AND HOW IT WENT -------------------------
+   *
+   * The self-check used to return a bare boolean, and when it PASSED it wrote
+   * nothing at all: `last_hold_because` is only set on a failure. So the check
+   * that runs on every drive of every station was invisible for the case that
+   * happens almost every time, and the product could not say a station had
+   * checked its own work because nothing on the record said so.
+   *
+   * Each comparison is now named as it is made. `no` ends the check, `ok`
+   * records one that held and carries on, and the control flow below is
+   * otherwise unchanged -- deliberately, because rewriting the branches and
+   * making them legible in one pass is how a behaviour change hides inside a
+   * visibility change.
+   *
+   * A branch that returns early because it could not READ something records
+   * nothing for that comparison. It did not make it, so counting it either way
+   * would be a number nobody looked up.
+   */
+  const checks: SelfCheck[] = [];
+  const ok = (what: string) => {
+    checks.push({ what, held: true });
+  };
+  const no = (what: string, why: string) => {
+    checks.push({ what, held: false, why });
+    return { passed: false, reason: why, checks };
+  };
+  /** Every comparison this station makes has been made, and all of them held. */
+  const done = () => ({ passed: true, checks });
   // Group attached artifacts by kind
   const byKind = new Map<string, string[]>();
   for (const att of attached) {
@@ -1488,7 +1526,7 @@ export async function verifyStationOutput(
    * no artifacts grouped there is simply no verdict to compute, and an
    * uncomputable check passes rather than stranding the work.
    */
-  if (byKind.size === 0) return { passed: true };
+  if (byKind.size === 0) return { passed: true, checks };
 
   // Station-specific quality checks. Each check verifies that:
   // 1. The right KIND of artifact was produced
@@ -1502,7 +1540,7 @@ export async function verifyStationOutput(
     // Sense must file signals
     const signalIds = byKind.get("signal") ?? [];
     if (signalIds.length === 0) {
-      return { passed: false, reason: "No signals were filed" };
+      return no("Something was filed to look into", "No signals were filed");
     }
     // Check that signals have content (not empty strings)
     const { data: signals, error: signalsError } = await supabase
@@ -1511,22 +1549,25 @@ export async function verifyStationOutput(
       .in("id", signalIds);
     if (signalsError) {
       console.error(`[driver] sense self-check could not read signals: ${signalsError.message}`);
-      return { passed: true };
+      ok("Something was filed to look into");
+      return { passed: true, checks };
     }
     const hasContent = (signals ?? []).some(
       (s: { title?: string | null }) => s.title && s.title.trim().length > 0,
     );
     if (!hasContent) {
-      return { passed: false, reason: "Signals were filed but have no content" };
+      return no("Each signal says what it is", "Signals were filed but have no content");
     }
-    return { passed: true };
+    ok("Something was filed to look into");
+    ok("Each signal says what it is");
+    return done();
   }
 
   if (station === "decide") {
     // Decide must file decisions
     const decisionIds = byKind.get("decision") ?? [];
     if (decisionIds.length === 0) {
-      return { passed: false, reason: "No decision was recorded" };
+      return no("A call was recorded", "No decision was recorded");
     }
     // Check that decisions have a forecast (the key output of Decide, and the
     // one thing the product claims). The column is `forecast_claim` — 82 call
@@ -1539,7 +1580,10 @@ export async function verifyStationOutput(
       console.error(
         `[driver] decide self-check could not read forecasts: ${decisionsError.message}`,
       );
-      return { passed: true };
+      // The kind check above was made and held. The forecast check was not made
+      // at all, so it is not recorded either way.
+      ok("A call was recorded");
+      return { passed: true, checks };
     }
     const hasForecast = (decisions ?? []).some(
       (d: { forecast_claim?: string | null; forecast_horizon_date?: string | null }) =>
@@ -1547,16 +1591,21 @@ export async function verifyStationOutput(
         Boolean(d.forecast_horizon_date),
     );
     if (!hasForecast) {
-      return { passed: false, reason: "Decision was recorded but has no forecast" };
+      return no(
+        "The call carries a forecast, which is the thing Learn grades",
+        "Decision was recorded but has no forecast",
+      );
     }
-    return { passed: true };
+    ok("A call was recorded");
+    ok("The call carries a forecast, which is the thing Learn grades");
+    return done();
   }
 
   if (station === "define") {
     // Define must file specs (prds)
     const specIds = byKind.get("prd") ?? [];
     if (specIds.length === 0) {
-      return { passed: false, reason: "No spec was drafted" };
+      return no("A spec was written", "No spec was drafted");
     }
     // Check that specs have content. The body column is `body_md`; `brief` has
     // never existed on `prds`.
@@ -1566,16 +1615,19 @@ export async function verifyStationOutput(
       .in("id", specIds);
     if (specsError) {
       console.error(`[driver] define self-check could not read specs: ${specsError.message}`);
-      return { passed: true };
+      ok("A spec was written");
+      return { passed: true, checks };
     }
     const hasContent = (specs ?? []).some(
       (p: { title?: string | null; body_md?: string | null }) =>
         (p.title && p.title.trim().length > 0) || (p.body_md && p.body_md.trim().length > 0),
     );
     if (!hasContent) {
-      return { passed: false, reason: "Spec was drafted but has no content" };
+      return no("The spec says something", "Spec was drafted but has no content");
     }
-    return { passed: true };
+    ok("A spec was written");
+    ok("The spec says something");
+    return done();
   }
 
   if (station === "design") {
@@ -1584,16 +1636,17 @@ export async function verifyStationOutput(
     // every design that ever ran.
     const designIds = byKind.get("prototype") ?? [];
     if (designIds.length === 0) {
-      return { passed: false, reason: "No design was drafted" };
+      return no("A design was filed", "No design was drafted");
     }
-    return { passed: true };
+    ok("A design was filed");
+    return done();
   }
 
   if (station === "build") {
     // Build must file missions or stages (changes made to code)
     const hasMission = (byKind.get("mission") ?? []).length > 0;
     if (!hasMission) {
-      return { passed: false, reason: "No changes were staged for commit" };
+      return no("A change was staged", "No changes were staged for commit");
     }
 
     /*
@@ -1625,7 +1678,12 @@ export async function verifyStationOutput(
      * seven. This is their Test stage adopted as substance, at the Build->Ship
      * seam where it belongs.
      */
-    if (!trackId) return { passed: true };
+    if (!trackId) {
+      // The caller only wanted the reason string for a note. The filing check
+      // above is all that was made, so it is all that is reported.
+      ok("A change was staged");
+      return { passed: true, checks };
+    }
 
     const { data: runRows, error: runErr } = await supabase
       .from("agent_runs" as never)
@@ -1645,14 +1703,18 @@ export async function verifyStationOutput(
      */
     if (runErr) {
       console.error(`[driver] build test-gate could not read runs: ${runErr.message}`);
-      return { passed: true };
+      ok("A change was staged");
+      return { passed: true, checks };
     }
     const traceIds = ((runRows ?? []) as Array<{ trace_id?: string | null }>)
       .map((r) => r.trace_id)
       .filter((t): t is string => typeof t === "string" && t.length > 0);
     // No trace is not a red verdict. An untraced run is unknowable rather than
     // failing, and F-76's rule is that those are different things.
-    if (traceIds.length === 0) return { passed: true };
+    if (traceIds.length === 0) {
+      ok("A change was staged");
+      return { passed: true, checks };
+    }
 
     const { data: checkCalls, error: checkErr } = await supabase
       .from("tool_calls" as never)
@@ -1663,28 +1725,31 @@ export async function verifyStationOutput(
       .limit(1);
     if (checkErr) {
       console.error(`[driver] build test-gate could not read checks: ${checkErr.message}`);
-      return { passed: true };
+      ok("A change was staged");
+      return { passed: true, checks };
     }
 
     const newest = (checkCalls ?? [])[0] as { result?: unknown } | undefined;
     if (!newest) {
-      return {
-        passed: false,
-        reason:
-          "The checks were never run on this change. Call studio.checks.run and read its verdict before handing this on.",
-      };
+      ok("A change was staged");
+      return no(
+        "The checks ran and cleared this change",
+        "The checks were never run on this change. Call studio.checks.run and read its verdict before handing this on.",
+      );
     }
     const result = (newest.result ?? {}) as { may_proceed?: boolean; reason?: string };
     if (result.may_proceed !== true) {
-      return {
-        passed: false,
-        reason:
-          result.reason && result.reason.trim().length > 0
-            ? `The checks did not pass: ${result.reason}`
-            : "The checks ran and did not clear this change to proceed.",
-      };
+      ok("A change was staged");
+      return no(
+        "The checks ran and cleared this change",
+        result.reason && result.reason.trim().length > 0
+          ? `The checks did not pass: ${result.reason}`
+          : "The checks ran and did not clear this change to proceed.",
+      );
     }
-    return { passed: true };
+    ok("A change was staged");
+    ok("The checks ran and cleared this change");
+    return done();
   }
 
   if (station === "ship") {
@@ -1702,7 +1767,16 @@ export async function verifyStationOutput(
      * self-check must not quietly become a second production gate that the loop
      * cannot satisfy.
      */
-    return { passed: true };
+    /*
+     * AND SO IT RECORDS NOTHING, WHICH IS THE HONEST NUMBER.
+     *
+     * An `ok("Something was released")` here would read well and be a lie: this
+     * branch compares nothing, so a check it claims to have made is the constant
+     * the count exists to avoid. Ship's run says "checked nothing of its own",
+     * and that is a true sentence a reader can act on -- it points them at
+     * `release.publish`, which is where Ship's real proof lives.
+     */
+    return done();
   }
 
   if (station === "learn") {
@@ -1711,13 +1785,15 @@ export async function verifyStationOutput(
     // the loop, on the one track that has ever reached it.
     const learningIds = byKind.get("learning") ?? [];
     if (learningIds.length === 0) {
-      return { passed: false, reason: "No verdict was recorded" };
+      return no("The forecast was graded", "No verdict was recorded");
     }
-    return { passed: true };
+    ok("The forecast was graded");
+    return done();
   }
 
-  // Unknown station, default to pass (no verification rule)
-  return { passed: true };
+  // Unknown station, default to pass (no verification rule). Nothing was
+  // compared, and the empty list says exactly that rather than claiming a pass.
+  return { passed: true, checks };
 }
 
 export async function driveTrackOnce(
@@ -1791,7 +1867,7 @@ export async function driveTrackOnce(
    * the second witness: disagree with the newest `track_drives` row and the log
    * lost something, and the run is not provable.
    */
-  await recordTrackDrive(supabase, {
+  const driveId = await recordTrackDrive(supabase, {
     trackId: row.id,
     station,
     via,
@@ -2774,6 +2850,20 @@ export async function driveTrackOnce(
       // this call site enforces; the note-building one above wants a reason.
       row.id,
     );
+    /*
+     * -- WRITTEN WHETHER IT PASSED OR NOT, WHICH IS THE POINT ----------------
+     *
+     * Before this, the check's result reached the database only through
+     * `last_hold_because` -- written ONLY on a failure, and overwritten by the
+     * next drive. So the check that runs on almost every drive was invisible for
+     * the case that happens almost every time, and there was no number anywhere
+     * that could answer "how many times did this run check itself".
+     *
+     * Placed BEFORE the failure branch below, because that branch returns. A
+     * write after it would record only the passes, which is the same blindness
+     * pointing the other way.
+     */
+    await recordSelfCheck(supabase, driveId, verification.checks);
     if (!verification.passed) {
       await supabase
         .from("spine_tracks" as never)

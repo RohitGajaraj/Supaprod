@@ -63,26 +63,90 @@ export interface TrackDriveInput {
 // `stage-events.server.ts`'s precedent, for the same reason.
 interface TrackDrivesClient {
   from(table: string): {
-    insert(values: Record<string, unknown>): PromiseLike<{ error: { message: string } | null }>;
+    insert(values: Record<string, unknown>): {
+      select(cols: string): {
+        maybeSingle(): PromiseLike<{
+          data: { id?: string } | null;
+          error: { message: string } | null;
+        }>;
+      };
+    } & PromiseLike<{ error: { message: string } | null }>;
+    update(values: Record<string, unknown>): {
+      eq(col: string, val: string): PromiseLike<{ error: { message: string } | null }>;
+    };
   };
 }
 
-export async function recordTrackDrive(client: unknown, drive: TrackDriveInput): Promise<void> {
+/**
+ * Returns the row's id, or null when the write did not land.
+ *
+ * The id exists so the drive can be COMPLETED later -- `recordSelfCheck` below
+ * writes what the station's own check compared, which is not known until the
+ * drive is over. Returning null rather than throwing keeps the fail-safe
+ * contract in the header: a caller that cannot log the second half must still
+ * not break the drive.
+ */
+export async function recordTrackDrive(
+  client: unknown,
+  drive: TrackDriveInput,
+): Promise<string | null> {
   try {
-    const { error } = await (client as TrackDrivesClient).from("track_drives").insert({
-      track_id: drive.trackId,
-      station: drive.station,
-      driven_via: drive.via,
-      entry_hold: drive.entryHold ?? null,
-    });
+    const { data, error } = await (client as TrackDrivesClient)
+      .from("track_drives")
+      .insert({
+        track_id: drive.trackId,
+        station: drive.station,
+        driven_via: drive.via,
+        entry_hold: drive.entryHold ?? null,
+      })
+      .select("id")
+      .maybeSingle();
     if (error) {
       // Loud on purpose. A silent logging fault would leave the drive log
       // quietly short, and a short log reads as an unattended run.
       console.error(`track_drives write failed (track ${drive.trackId}): ${error.message}`);
+      return null;
     }
+    return data?.id ?? null;
   } catch (e) {
     console.error(
       `track_drives write threw (track ${drive.trackId}): ${e instanceof Error ? e.message : String(e)}`,
+    );
+    return null;
+  }
+}
+
+/**
+ * WHAT THIS STATION'S OWN CHECK COMPARED, WRITTEN ONTO THE DRIVE IT BELONGS TO.
+ *
+ * Separate from `recordTrackDrive` because of WHEN each is known. The drive row
+ * is written at the START, before anything can fail, which is what makes it
+ * evidence that a drive was attempted at all. The self-check runs at the END. A
+ * single write would have to wait for the second, and then a crash mid-drive
+ * would leave no row and the run would read as never having happened -- which is
+ * the exact failure the header calls the unsafe direction.
+ *
+ * So: two writes, and the second is allowed to be missing. A drive row with a
+ * NULL `self_check` means the check's result did not reach the record, and that
+ * is a weaker claim than "it compared nothing" (`[]`) on purpose.
+ */
+export async function recordSelfCheck(
+  client: unknown,
+  driveId: string | null,
+  checks: ReadonlyArray<{ what: string; held: boolean; why?: string }>,
+): Promise<void> {
+  if (!driveId) return;
+  try {
+    const { error } = await (client as TrackDrivesClient)
+      .from("track_drives")
+      .update({ self_check: checks })
+      .eq("id", driveId);
+    if (error) {
+      console.error(`track_drives self_check write failed (drive ${driveId}): ${error.message}`);
+    }
+  } catch (e) {
+    console.error(
+      `track_drives self_check write threw (drive ${driveId}): ${e instanceof Error ? e.message : String(e)}`,
     );
   }
 }

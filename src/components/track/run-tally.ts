@@ -53,6 +53,7 @@ import { formatElapsed } from "@/components/meridian/run-rows";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { costSummary } from "@/components/track/cost-summary";
 import { parseReview, verdictLine } from "@/components/track/verdict-reading";
+import { selfCheckLine, type SelfCheckTally } from "@/lib/spine/track.functions";
 import {
   getTrackActivity,
   getTrackArtifacts,
@@ -105,13 +106,21 @@ export type Tally = {
   verdict: string | null;
   /** "Horizon check due Fri, 12 Sep", from the decision's own forecast. */
   horizon: string | null;
+  /**
+   * "3 self-checks · 5 things compared · 1 did not hold · 1 retry", counted from
+   * what the checks actually compared. Null when no drive on this run made a
+   * comparison, which is true of every run whose drives predate the column.
+   */
+  selfCheck: string | null;
   elapsed: string | null;
   cost: string | null;
 };
 
 /** True when the strip has anything to say. Nothing produced means no strip. */
 export function hasAnything(t: Tally): boolean {
-  return Boolean(t.made.length || t.pr || t.verdict || t.horizon || t.elapsed || t.cost);
+  return Boolean(
+    t.made.length || t.pr || t.verdict || t.horizon || t.selfCheck || t.elapsed || t.cost,
+  );
 }
 
 function fieldOf(items: StationArtifactView["items"], kind: string, field: string): unknown {
@@ -130,6 +139,8 @@ function fieldOf(items: StationArtifactView["items"], kind: string, field: strin
 export function runTally(input: {
   stops: readonly StationArtifactView[] | null;
   turns: ReadonlyArray<Pick<Turn, "tookMs" | "tokens" | "usd">> | null;
+  /** What each drive's own check compared. Absent on a caller that cannot read it. */
+  selfChecks?: SelfCheckTally | null;
   now: number;
 }): Tally {
   const stops = input.stops ?? [];
@@ -221,7 +232,7 @@ export function runTally(input: {
   const elapsed = s.timedTurns > 0 ? formatElapsed(s.msTotal / 1000) : null;
   const cost = s.usdTotal > 0 ? `$${s.usdTotal.toFixed(2)}` : null;
 
-  return { made, pr, verdict, horizon, elapsed, cost };
+  return { made, pr, verdict, horizon, selfCheck: selfCheckLine(input.selfChecks), elapsed, cost };
 }
 
 /**
@@ -252,6 +263,7 @@ export function useRunTally(trackId: string): { tally: Tally; ready: boolean } {
       runTally({
         stops: artifacts.data?.stops ?? null,
         turns: activity.data?.turns ?? null,
+        selfChecks: activity.data?.selfChecks ?? null,
         now: Date.now(),
       }),
     [artifacts.data, activity.data],
@@ -303,7 +315,19 @@ export function gotYouChips(t: Tally): GotYouChip[] {
 }
 
 export function gotYouClauses(t: Tally): string[] {
-  return [t.verdict, t.horizon, t.elapsed, t.cost].filter((c): c is string => Boolean(c));
+  /*
+   * THE SELF-CHECK SITS AFTER THE VERDICT AND BEFORE THE HORIZON.
+   *
+   * After the verdict because the verdict is somebody else's judgment of the
+   * work and this is the work checking itself, and the outside opinion is the
+   * one a person acts on first. Before time and money because it is a fact
+   * about whether the run can be believed, and those two are facts about what
+   * it cost -- a reader who stops after three clauses should have the three
+   * that bear on trust.
+   */
+  return [t.verdict, t.selfCheck, t.horizon, t.elapsed, t.cost].filter((c): c is string =>
+    Boolean(c),
+  );
 }
 
 export function gotYouLink(t: Tally): { label: string; href: string } | null {

@@ -268,6 +268,10 @@ describe("a read that has not answered claims nothing", () => {
       pr: null,
       verdict: null,
       horizon: null,
+      // The whole-object comparison is the point of this test: a field added to
+      // `Tally` that does not default to null shows up HERE rather than as a
+      // template on somebody's screen. `selfCheck` is one such field.
+      selfCheck: null,
       elapsed: null,
       cost: null,
     });

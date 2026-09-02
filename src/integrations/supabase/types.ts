@@ -8436,6 +8436,7 @@ export type Database = {
           driven_via: string
           entry_hold: string | null
           id: string
+          self_check: Json | null
           station: string
           track_id: string
         }
@@ -8444,6 +8445,7 @@ export type Database = {
           driven_via: string
           entry_hold?: string | null
           id?: string
+          self_check?: Json | null
           station: string
           track_id: string
         }
@@ -8452,6 +8454,7 @@ export type Database = {
           driven_via?: string
           entry_hold?: string | null
           id?: string
+          self_check?: Json | null
           station?: string
           track_id?: string
         }

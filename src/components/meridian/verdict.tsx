@@ -46,12 +46,31 @@ export type VerdictFinding = {
   checked?: boolean;
 };
 
+/**
+ * ONE THING THAT WAS ASKED FOR, AND WHETHER IT HOLDS.
+ *
+ * Deliberately not a finding. A finding is something the reviewer NOTICED; a
+ * check is something it was TOLD to look for and had to answer. Drawing them in
+ * one list would lose that difference, and the difference is the reason this
+ * block can be believed: a reviewer cannot quietly pass a requirement by not
+ * mentioning it, because every line it was given is printed whether it judged it
+ * or not.
+ */
+export type VerdictCheck = {
+  /** What was asked for, in the words of whoever asked. Never paraphrased. */
+  line: string;
+  held: boolean;
+  /** Why it does not hold. Drawn only when it does not. */
+  why?: string | null;
+};
+
 export function Verdict({
   label,
   tone,
   word,
   compared,
   summary,
+  checks = [],
   findings = [],
   clean,
   meta,
@@ -67,6 +86,8 @@ export function Verdict({
   /** What was compared, said BEFORE what was concluded. Absent when unknown. */
   compared?: string | null;
   summary?: string | null;
+  /** What was asked for, line by line. Drawn above the findings; see the type. */
+  checks?: readonly VerdictCheck[];
   findings?: readonly VerdictFinding[];
   /** What a clean pass reads as. Without it, silence, which looks undrawn. */
   clean?: string;
@@ -96,6 +117,35 @@ export function Verdict({
           </span>
 
           {summary ? <span className="min-w-0 text-mrd-small text-mrd-mute">{summary}</span> : null}
+
+          {/* WHAT WAS ASKED FOR, BEFORE WHAT WAS NOTICED. The order is the
+              argument: the findings are this reader's opinion of the change, and
+              the checks are the change measured against somebody else's stated
+              requirement. The second outranks the first, so it is read first. */}
+          {checks.length > 0 ? (
+            <ul className="flex flex-col gap-mrd-2">
+              {checks.map((c, i) => (
+                <li
+                  key={`${c.line}:${i}`}
+                  className="flex min-w-0 items-start gap-mrd-2 border-b border-mrd-line-soft pb-mrd-2 last:border-0"
+                >
+                  <span className="shrink-0 pt-0.5">
+                    <StatusChip status={c.held ? "pass" : "hold"}>
+                      {c.held ? "holds" : "did not"}
+                    </StatusChip>
+                  </span>
+                  <span className="flex min-w-0 flex-col gap-0.5">
+                    <span className="min-w-0 text-mrd-small text-mrd-body">{c.line}</span>
+                    {/* Only when it did not hold. A reason beside a pass reads as
+                        a caveat on it, and there is no caveat to make. */}
+                    {!c.held && c.why ? (
+                      <span className="min-w-0 text-mrd-small text-mrd-mute">{c.why}</span>
+                    ) : null}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
           {findings.length === 0 ? (
             /* A CLEAN PASS SAID OUT LOUD. An empty space where findings would be

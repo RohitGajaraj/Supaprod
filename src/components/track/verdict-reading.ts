@@ -49,7 +49,7 @@
  * denominator; until it lands this says what it can source.
  */
 import { relativeTime } from "@/lib/memory-view";
-import type { VerdictFinding, VerdictTone } from "@/components/meridian/verdict";
+import type { VerdictCheck, VerdictFinding, VerdictTone } from "@/components/meridian/verdict";
 
 /** One thing the reviewer found, as `studio.review` writes it. */
 export type ReviewFindingView = {
@@ -63,15 +63,77 @@ export type ReviewFindingView = {
   deterministic?: boolean;
 };
 
+/** One acceptance line and the reviewer's verdict on it, as it persists them. */
+export type ReviewedLineView = {
+  line?: string;
+  held?: boolean;
+  why?: string | null;
+};
+
 /** `studio_changesets.code_review`, as `runChangesetReview` persists it. */
 export type ReviewView = {
   verdict?: string;
   summary?: string;
   findings?: ReviewFindingView[];
   files_reviewed?: number;
+  /** The acceptance lines compared. Absent on every review written before
+   *  2026-09-03, which is why nothing here may assume it is an array. */
+  compared?: ReviewedLineView[];
+  criteria_source?: string;
   reviewer_model?: string | null;
   reviewed_at?: string;
 };
+
+/**
+ * THE ACCEPTANCE LINES, IN A SHAPE NOTHING DOWNSTREAM HAS TO RE-CHECK.
+ *
+ * Every consumer below asked the same three questions of this field -- is it an
+ * array, does the entry have a line, how many did not hold -- and three copies
+ * of that is how the strip and the pane come to report different counts of one
+ * review. Asked once, here.
+ *
+ * A line with no text is dropped rather than drawn empty: it cannot be read and
+ * cannot be acted on, and counting it would inflate the denominator with
+ * something nobody can see.
+ */
+export function comparedLines(review: ReviewView | null): VerdictCheck[] {
+  if (!review || !Array.isArray(review.compared)) return [];
+  return review.compared
+    .filter(
+      (c): c is ReviewedLineView => Boolean(c) && typeof c.line === "string" && !!c.line.trim(),
+    )
+    .map((c) => ({
+      line: (c.line as string).trim(),
+      held: c.held === true,
+      why: typeof c.why === "string" && c.why.trim() ? c.why.trim() : null,
+    }));
+}
+
+/**
+ * WHAT THE REVIEWER MEASURED AGAINST, said before what it concluded.
+ *
+ * ── WHY THE FILE COUNT IS THE FALLBACK AND NOT THE ANSWER ─────────────────
+ * This used to say "Compared N files against the change" always, and the header
+ * of this file called that out as the weaker sentence it could source: a file
+ * count is the size of what was READ, not the size of what was CHECKED. With
+ * acceptance lines on the row the sharper denominator is real, so it is used.
+ *
+ * The file count stays for every review written before those lines existed, and
+ * for a spec that carries none. Those are different facts and neither is
+ * "nothing was compared".
+ */
+export function comparedLine(review: ReviewView | null): string | null {
+  const checks = comparedLines(review);
+  if (checks.length > 0) {
+    const held = checks.filter((c) => c.held).length;
+    const missed = checks.length - held;
+    const head = `Compared ${checks.length} ${checks.length === 1 ? "line" : "lines"} of what was asked for`;
+    return missed === 0 ? `${head} · all held` : `${head} · ${held} held · ${missed} did not`;
+  }
+  const files = review?.files_reviewed;
+  if (files == null) return null;
+  return `Compared ${files} ${files === 1 ? "file" : "files"} against the change`;
+}
 
 /**
  * The column, whatever shape it came back in.
@@ -116,10 +178,28 @@ const TONE: Record<string, { status: "pass" | "fail" | "hold"; word: string }> =
 export function verdictLine(review: ReviewView | null): string | null {
   if (!review || !hasVerdict(review)) return null;
   const tone = TONE[review.verdict as string];
-  const held = (review.findings ?? []).length;
   const word = tone ? tone.word.toLowerCase() : (review.verdict as string);
-  if (held === 0) return `Verdict at Build: ${word}`;
-  return `Verdict at Build: ${word}, ${held} ${held === 1 ? "finding" : "findings"}`;
+  /*
+   * -- THE LINES OUTRANK THE FINDINGS IN ONE SENTENCE OF ROOM ---------------
+   *
+   * The strip gets one clause and has to spend it on the fact that changes what
+   * a person does next. "2 lines did not hold" sends them to the spec; "3
+   * findings" sends them to the diff, and a person who reads the second and acts
+   * on it has fixed the wrong thing. So a miss is what the clause says, and the
+   * findings are named only when nothing was asked for or everything held.
+   */
+  const checks = comparedLines(review);
+  const missed = checks.filter((c) => !c.held).length;
+  if (missed > 0) {
+    return `Verdict at Build: ${word}, ${missed} ${missed === 1 ? "line" : "lines"} did not hold`;
+  }
+  const found = (review.findings ?? []).length;
+  if (found === 0) {
+    return checks.length > 0
+      ? `Verdict at Build: ${word}, all ${checks.length} ${checks.length === 1 ? "line" : "lines"} held`
+      : `Verdict at Build: ${word}`;
+  }
+  return `Verdict at Build: ${word}, ${found} ${found === 1 ? "finding" : "findings"}`;
 }
 
 /**
@@ -150,6 +230,7 @@ export function verdictProps(raw: unknown): {
   word?: string;
   compared?: string | null;
   summary?: string | null;
+  checks?: VerdictCheck[];
   findings: VerdictFinding[];
   clean?: string;
   meta?: string | null;
@@ -161,17 +242,16 @@ export function verdictProps(raw: unknown): {
   }
   const r = review as ReviewView;
   const tone = TONE[r.verdict as string] ?? { status: "hold" as const, word: r.verdict! };
+  const checks = comparedLines(r);
   const findings = [...(r.findings ?? [])].sort(
     (a, b) => (SEVERITY_ORDER[a.severity ?? ""] ?? 3) - (SEVERITY_ORDER[b.severity ?? ""] ?? 3),
   );
   return {
     tone: tone.status,
     word: tone.word,
-    compared:
-      r.files_reviewed != null
-        ? `Compared ${r.files_reviewed} ${r.files_reviewed === 1 ? "file" : "files"} against the change`
-        : null,
+    compared: comparedLine(r),
     summary: r.summary ?? null,
+    checks,
     findings: findings.map((f) => ({
       severity: f.severity,
       category: f.category,
@@ -182,9 +262,20 @@ export function verdictProps(raw: unknown): {
       fix: f.fix ?? null,
       checked: f.deterministic,
     })),
-    clean: r.files_reviewed
-      ? "Every line it checked held. It raised nothing."
-      : "It raised nothing.",
+    /*
+     * `clean` draws only when there are NO findings, and it used to say "Every
+     * line it checked held" off the file count alone -- which is now a claim the
+     * row can contradict. A change can raise no findings and still miss two
+     * acceptance lines, and printing "every line held" underneath those two is
+     * the block arguing with itself.
+     */
+    clean: checks.some((c) => !c.held)
+      ? "It raised nothing else against the code itself."
+      : checks.length > 0
+        ? "Every line it was asked to check held, and it raised nothing."
+        : r.files_reviewed
+          ? "Every line it checked held. It raised nothing."
+          : "It raised nothing.",
     meta:
       [
         r.reviewer_model ? `reviewer ${r.reviewer_model}` : "",

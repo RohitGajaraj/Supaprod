@@ -45,17 +45,42 @@ const MIGRATION = read(
   "../../../supabase/migrations/20260825130000_an_intervention_stored_in_a_slot_is_erased_by_the_next_sweep.sql",
 );
 
-/** A Supabase stand-in that remembers every insert and can be told to fail. */
+/**
+ * A Supabase stand-in that remembers every insert and can be told to fail.
+ *
+ * The insert is thenable AND carries `.select().maybeSingle()`, because the real
+ * call chains the second to read the new row's id back -- `recordSelfCheck`
+ * completes the drive row after the drive, and needs the id to find it. Kept
+ * awaitable as well so nothing here depends on which form the caller uses.
+ */
 function fakeClient(fail?: { message: string } | "throw") {
   const inserted: Array<{ table: string; values: Record<string, unknown> }> = [];
+  const updated: Array<{ table: string; values: Record<string, unknown>; id: string }> = [];
   return {
     inserted,
+    updated,
     from(table: string) {
       return {
         insert(values: Record<string, unknown>) {
           if (fail === "throw") throw new Error("connection reset");
           inserted.push({ table, values });
-          return Promise.resolve({ error: fail ?? null });
+          const answer = { data: fail ? null : { id: "drive-1" }, error: fail ?? null };
+          return {
+            select: () => ({ maybeSingle: () => Promise.resolve(answer) }),
+            then: (
+              res: (v: { error: { message: string } | null }) => unknown,
+              rej?: (e: unknown) => unknown,
+            ) => Promise.resolve({ error: fail ?? null }).then(res, rej),
+          };
+        },
+        update(values: Record<string, unknown>) {
+          if (fail === "throw") throw new Error("connection reset");
+          return {
+            eq: (_col: string, id: string) => {
+              updated.push({ table, values, id });
+              return Promise.resolve({ error: fail ?? null });
+            },
+          };
         },
       };
     },
@@ -123,18 +148,26 @@ describe("recording a drive can never break the drive", () => {
    * return an error OR throw, and a helper that only handles one of those is a
    * helper that takes the loop down on the other.
    */
-  it("swallows a write error", async () => {
+  /*
+   * `recordTrackDrive` returns the new row's id now, so a failure returns NULL
+   * rather than nothing. That is a stronger contract than the old one, not a
+   * weaker one: the caller can tell a landed write from a lost one, and
+   * `recordSelfCheck` uses exactly that to skip its own write instead of
+   * updating a row that is not there. What must not change, and is what these
+   * two tests are for, is that neither path THROWS.
+   */
+  it("swallows a write error and says the row did not land", async () => {
     const client = fakeClient({ message: "permission denied for table track_drives" });
     await expect(
       recordTrackDrive(client, { trackId: "t1", station: "ship", via: "sweep" }),
-    ).resolves.toBeUndefined();
+    ).resolves.toBeNull();
   });
 
-  it("swallows a client that throws", async () => {
+  it("swallows a client that throws, and says the row did not land", async () => {
     const client = fakeClient("throw");
     await expect(
       recordTrackDrive(client, { trackId: "t1", station: "ship", via: "press" }),
-    ).resolves.toBeUndefined();
+    ).resolves.toBeNull();
   });
 
   /**

@@ -2570,14 +2570,115 @@ export type TrackTransition = {
   drivenVia: "sweep" | "press" | "continuation" | "foreground" | null;
 };
 
+/** One `track_drives` row, as far as the self-check tally is concerned. */
+type SelfCheckRow = {
+  station?: string | null;
+  entry_hold?: string | null;
+  self_check?: unknown;
+};
+
+/**
+ * HOW OFTEN THIS RUN CHECKED ITS OWN WORK, AND WHAT CAME OF IT.
+ *
+ * ── COUNTED FROM WHAT WAS COMPARED, NEVER FROM A CONSTANT ─────────────────
+ * Every figure here is derived from the `self_check` arrays themselves. There is
+ * no "one check per station" assumption anywhere: Ship compares nothing by
+ * design and Build compares two things, so a per-station constant would be
+ * wrong in both directions on the same run. If the column is empty the tally
+ * says zero, which is the honest answer for a run whose drives all predate it.
+ *
+ * ── A DRIVE THAT MADE NO COMPARISON IS NOT A CHECK ────────────────────────
+ * `drives` counts only drives that compared at least one thing. Counting a
+ * drive that compared nothing would inflate "checked its own work" with drives
+ * where nothing was checked, which is the number this exists to stop being.
+ *
+ * ── RETRIES ARE READ FROM `entry_hold`, NOT INFERRED ──────────────────────
+ * A drive that ARRIVED on `self-check-failed` is a station running again because
+ * its own check refused what it filed. That is a fact the log already records at
+ * the moment it is true, and it is the only way to count a retry without
+ * guessing at the shape of a sequence.
+ */
+export type SelfCheckTally = {
+  /** Drives whose check compared at least one thing. */
+  drives: number;
+  /** Individual comparisons made across those drives. */
+  compared: number;
+  held: number;
+  missed: number;
+  /** Drives that ran again because this station's own check had refused. */
+  retries: number;
+  /** Set when the drives could not be read, so a zero is not read as a fact. */
+  unreadable: string | null;
+};
+
+export const EMPTY_SELF_CHECKS: SelfCheckTally = {
+  drives: 0,
+  compared: 0,
+  held: 0,
+  missed: 0,
+  retries: 0,
+  unreadable: null,
+};
+
+export function summariseSelfChecks(
+  rows: readonly SelfCheckRow[],
+  unreadable: string | null,
+): SelfCheckTally {
+  const t: SelfCheckTally = { ...EMPTY_SELF_CHECKS, unreadable };
+  for (const r of rows) {
+    if (r.entry_hold === "self-check-failed") t.retries += 1;
+    const list = Array.isArray(r.self_check) ? r.self_check : null;
+    if (!list || list.length === 0) continue;
+    let counted = 0;
+    for (const c of list) {
+      if (!c || typeof c !== "object") continue;
+      const check = c as { what?: unknown; held?: unknown };
+      // A comparison with nothing to show for it cannot be read by a person and
+      // is not counted, for the same reason an empty acceptance line is dropped.
+      if (typeof check.what !== "string" || !check.what.trim()) continue;
+      counted += 1;
+      if (check.held === true) t.held += 1;
+      else t.missed += 1;
+    }
+    if (counted > 0) {
+      t.drives += 1;
+      t.compared += counted;
+    }
+  }
+  return t;
+}
+
+/**
+ * The strip's clause, or null when there is nothing true to say.
+ *
+ * Null rather than "0 self-checks", because `GotYou` is a list of what the run
+ * GOT you and a zero is not one of those -- the same refusal the rest of that
+ * strip already makes about time and money.
+ */
+export function selfCheckLine(t: SelfCheckTally | null | undefined): string | null {
+  if (!t || t.drives === 0) return null;
+  const checks = `${t.drives} self-${t.drives === 1 ? "check" : "checks"}`;
+  const lines = `${t.compared} ${t.compared === 1 ? "thing" : "things"} compared`;
+  const missed = t.missed > 0 ? `${t.missed} did not hold` : null;
+  const retried = t.retries > 0 ? `${t.retries} ${t.retries === 1 ? "retry" : "retries"}` : null;
+  return [checks, lines, missed, retried].filter(Boolean).join(" · ");
+}
+
 export const getTrackActivity = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
   .handler(
-    async ({ context, data }): Promise<{ turns: Turn[]; transitions: TrackTransition[] }> => {
+    async ({
+      context,
+      data,
+    }): Promise<{
+      turns: Turn[];
+      transitions: TrackTransition[];
+      selfChecks: SelfCheckTally;
+    }> => {
       const { supabase } = context;
       try {
-        const [runsRes, membersRes, eventsRes] = await Promise.all([
+        const [runsRes, membersRes, eventsRes, drivesRes] = await Promise.all([
           supabase
             .from("agent_runs")
             /*
@@ -2608,9 +2709,30 @@ export const getTrackActivity = createServerFn({ method: "GET" })
             .eq("entity_id", data.trackId)
             .order("at", { ascending: true })
             .limit(200),
+          /*
+           * WHAT EACH DRIVE'S OWN CHECK COMPARED.
+           *
+           * Its own query rather than a column on one of the three above,
+           * because `self_check` is new: naming a column the database has not
+           * taken yet fails the WHOLE PostgREST query, and a deploy that lands
+           * before the migration would have taken the transcript down with it.
+           * Alone, the worst case is this array is empty and the run says it
+           * cannot see the checks -- which is true, and recoverable on the next
+           * poll.
+           */
+          supabase
+            .from("track_drives" as never)
+            .select("station,at,entry_hold,self_check")
+            .eq("track_id", data.trackId)
+            .order("at", { ascending: true })
+            .limit(200),
         ]);
 
         return {
+          selfChecks: summariseSelfChecks(
+            (drivesRes.data ?? []) as unknown as SelfCheckRow[],
+            drivesRes.error ? drivesRes.error.message : null,
+          ),
           turns: buildActivity({
             runs: (runsRes.data ?? []) as unknown as RunRow[],
             members: (membersRes.data ?? []) as unknown as ActivityMemberRow[],
@@ -2630,7 +2752,7 @@ export const getTrackActivity = createServerFn({ method: "GET" })
           })),
         };
       } catch {
-        return { turns: [], transitions: [] };
+        return { turns: [], transitions: [], selfChecks: EMPTY_SELF_CHECKS };
       }
     },
   );
