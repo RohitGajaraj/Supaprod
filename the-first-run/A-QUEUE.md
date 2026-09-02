@@ -2565,7 +2565,7 @@ not whether the page stays. A control that is not in the model any more is retir
 | `/learn` | "12 outcomes came back. 5 of 10 paid off"; forecasts due; the verdict form; the exception desk; the impact ledger | **Delete after P-04 and P-14b.** Forecasts due and their verdicts are P-04's on the run (R-31), and P-04 gains one line: **a person can overrule the verdict on the run.** The exception desk is *Needs you* on Start. The ledger ("Priority moved +1", "3 calls later replaced") → Outcomes › outcomes tab, per station, cross-run, which is the survivor's whole job. |
 | `/plan/spec/$id` | Assist verbs; Edit / Preview / Flow / Contract views; Send to Build; Create GitHub issue; Capture as decision | **Keep, demoted.** It is a document editor, not a station page. It is reached only from a run's artifact pane (*Open the full editor*), never from the rail; Send to Build and Create issue go, because the run does both. Rename under `/track/:id/spec/:specId` in P-24b, later. |
 | `/runs/$missionId` | 395 of 407 missions have no track; 7 of the last 11 | **Delete, and close the source (R-35).** The seven recent ones are one workspace's scheduled "Investigate the stale decision…" proposer firing every 15 minutes, not a person's work: **find and stop that generator in P-14 (A3, read-only find, A1 rules on the kill).** The 388 older rows are pre-spine history of one founder's testing: they stay in the database and in `build.list_sessions`; they get no page. A mission without a track is not a run. |
-| `today.tsx` Board mount | already gone | Delete `Board.tsx` itself in P-14: zero importers, 2,656 lines. |
+| `today.tsx` Board mount | already gone | Delete `Board.tsx` itself in P-14: zero importers, 2,656 lines. **Correction (A1, 2026-09-03): this line's "zero importers" is right and its implied "no cascading tests" is wrong** -- 13 tests `readFileSync` the file's source at module scope to pin real internal logic (the 2026-08-31 quiet-morning fix chief among them). Delete under the same dual-reporter standard as every other page in this batch; the one fact worth keeping (a zero case must not hide pending gates) moves to P-18a, not to a board. |
 
 **Order of deletion, now:** `/decide`, `/plan` index, `/design`, `/build` index, `/runs/$missionId`,
 `Board.tsx`, with a redirect for each to Start (the P-15 boundary says a dead address once). `/ship`
@@ -3214,6 +3214,14 @@ does not render. Every rotating sentence in the bar names its source in a test: 
 **Acceptance.**
 - [ ] With the current data the bar says *2 decisions are ready for you* or omits the phrase, and a
       test pins the count to the approvals-on-tracks reader.
+- [ ] **The zero case must never say nothing is waiting while gates are pending** (A1 ruling,
+      2026-09-03, on P-14's Board.tsx deletion). The count reads the *unwindowed* set of pending
+      gates on open tracks, not a time-boxed slice of it -- the same lesson the 2026-08-31
+      quiet-morning fix already paid for once (`Board.tsx`'s `quietMorning`/`anythingBlocked`,
+      deleted in P-14: 89 missions were waiting on a person and a 24-hour window on the check made
+      the bar call it quiet). A test pins this with the 89-missions incident quoted in its own
+      header, so the reason survives the file the way `a-quiet-morning-is-a-claim-about-the-workspace.test.ts`
+      did for the surface this one replaces.
 - [ ] tsc 0 · `bun test` 0 fail · pushed · Report with the reader's old name and what it counted.
 
 **Report (A3 writes):** —
