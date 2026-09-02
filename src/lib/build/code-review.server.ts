@@ -24,7 +24,11 @@ import {
   parseReviewFindings,
   renderChangesetDiff,
   reviewGate,
+  parseComparedLines,
+  MAX_ACCEPTANCE_LINES,
   type ChangesetReview,
+  type CriteriaSource,
+  type ReviewedLine,
   type ReviewFinding,
   type ReviewGate,
 } from "./code-review";
@@ -48,8 +52,14 @@ RULES YOU MUST FOLLOW:
 - An empty findings list is a valid and useful answer. Do not manufacture findings to look thorough. Do not restate what the code does.
 - Do NOT raise missing tests, missing types, or a leaked credential: those are checked deterministically before you and adding them again is noise.
 
+THE ACCEPTANCE LINES, WHEN YOU ARE GIVEN THEM:
+- You will sometimes be given ACCEPTANCE LINES: what the person who asked for this work said would make it done. When you are, you MUST return one entry in "acceptance" for EVERY line, and each entry must repeat the line verbatim so it can be matched back.
+- Judge each line ONLY against the diff you were shown. If the diff does not contain enough to tell, the line has not been shown to hold: return held false and say exactly that in "why". Do not assume unshown code satisfies it.
+- "why" is REQUIRED whenever held is false, and it must name what is missing or wrong, not restate the line.
+- Judging the lines is not the same as the findings above. A change can be clean code and still not do what was asked; say so on the line rather than inventing a finding for it.
+
 Return STRICT JSON only:
-{"verdict":"approve|revise|block","summary":"max 240 chars, what this changeset does and the single most important thing about it","findings":[{"severity":"blocker|major|minor","category":"correctness|security|error-handling|scope|convention","path":"the file","line":123,"issue":"what is wrong and why it matters","fix":"the concrete change"}]}`;
+{"verdict":"approve|revise|block","summary":"max 240 chars, what this changeset does and the single most important thing about it","findings":[{"severity":"blocker|major|minor","category":"correctness|security|error-handling|scope|convention","path":"the file","line":123,"issue":"what is wrong and why it matters","fix":"the concrete change"}],"acceptance":[{"line":"the acceptance line, verbatim","held":true,"why":"required when held is false: what is missing"}]}`;
 
 const REVIEW_MODEL = "google/gemini-2.5-pro";
 const REVIEW_FALLBACK_MODEL = "google/gemini-2.5-flash";
@@ -102,6 +112,15 @@ export async function runChangesetReview(
     runId?: string | null;
     /** The work order this changeset was meant to satisfy, for the scope lens. */
     intent?: string | null;
+    /**
+     * What the spec said would make this done, one line each. These are the
+     * SAME lines `ardDispatchBlock` hands the builder as its work order, which
+     * is the point: the seat that writes the change and the seat that checks it
+     * are held to one contract rather than two readings of one.
+     */
+    acceptance?: readonly string[];
+    /** Where those lines came from, so "none" and "none held" stay distinct. */
+    criteriaSource?: CriteriaSource;
     /** Test files already on the branch, so an existing test is not a gap. */
     repoTestPaths?: readonly string[];
     /** The dependency-audit note, when one applies to this changeset. */
@@ -135,12 +154,39 @@ export async function runChangesetReview(
   const intentBlock = opts.intent?.trim()
     ? `STATED INTENT (what this changeset was asked to do):\n${opts.intent.trim().slice(0, 4000)}`
     : "STATED INTENT: not supplied. Judge scope only against what the diff itself implies.";
+  /*
+   * -- THE LINES GO IN FRONT OF THE DIFF, NOT AFTER IT ----------------------
+   *
+   * A reviewer reads a long prompt the way anyone does. The diff is the bulk of
+   * it, and a requirement placed underneath forty thousand characters of code is
+   * a requirement read last and weighed least. The lines are what the diff is
+   * being judged AGAINST, so they are stated before it.
+   *
+   * Capped, and the cap is disclosed in the prompt rather than silently applied:
+   * a reviewer told it is seeing 20 of 34 lines can say its verdict is partial,
+   * and one that was never told cannot.
+   */
+  const criteria = (opts.acceptance ?? [])
+    .map((c) => c.trim())
+    .filter(Boolean)
+    .slice(0, MAX_ACCEPTANCE_LINES);
+  const dropped = (opts.acceptance?.length ?? 0) - criteria.length;
+  const acceptanceBlock = criteria.length
+    ? `ACCEPTANCE LINES (what the person who asked for this said would make it done). Return a verdict for EVERY one:\n${criteria
+        .map((c, i) => `${i + 1}. ${c}`)
+        .join("\n")}${
+        dropped > 0
+          ? `\n\nNOTE: this spec has ${dropped} further acceptance line(s) not shown here. Say in your summary that you judged ${criteria.length} of ${criteria.length + dropped}.`
+          : ""
+      }\n\n`
+    : "";
   const truncationBlock = diff.truncated
     ? "\n\nNOTE: the diff above was truncated. Say so in your summary and do not draw conclusions about files you were not shown."
     : "";
-  const userContent = `${intentBlock}\n\nSTAGED DIFF (${diff.files_rendered} file(s)):\n${diff.text}${truncationBlock}`;
+  const userContent = `${intentBlock}\n\n${acceptanceBlock}STAGED DIFF (${diff.files_rendered} file(s)):\n${diff.text}${truncationBlock}`;
 
   let judgments: ReviewFinding[] = [];
+  let compared: ReviewedLine[] = [];
   let modelVerdict: string | null = null;
   let summary = "";
   let reviewerModel: string | null = null;
@@ -167,6 +213,7 @@ export async function runChangesetReview(
       modelError = "the reviewer returned a shape this could not read";
     } else {
       judgments = parseReviewFindings(parsed);
+      compared = parseComparedLines(parsed, criteria);
       modelVerdict = typeof parsed.verdict === "string" ? parsed.verdict : null;
       summary = typeof parsed.summary === "string" ? parsed.summary.slice(0, 280) : "";
       reviewerModel = REVIEW_MODEL;
@@ -180,6 +227,7 @@ export async function runChangesetReview(
     findings,
     modelRan: reviewerModel !== null,
     modelVerdict,
+    compared,
   });
 
   const review: ChangesetReview = {
@@ -187,6 +235,15 @@ export async function runChangesetReview(
     summary: summary || fallbackSummary(verdict, findings.length, modelError),
     findings,
     files_reviewed: countReviewableFiles(changes),
+    compared,
+    /*
+     * The source is the CALLER's fact about what it found on the record, not a
+     * reading of what came back. If the model failed and `compared` is empty,
+     * "the spec had 5 lines in its body and the reviewer did not run" is still
+     * the true and useful thing to say, and deriving the source from the empty
+     * result would have thrown it away.
+     */
+    criteria_source: opts.criteriaSource ?? (criteria.length > 0 ? "body" : "none"),
     reviewer_model: reviewerModel,
     reviewed_at: new Date().toISOString(),
   };

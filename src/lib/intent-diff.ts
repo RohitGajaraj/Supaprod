@@ -235,6 +235,33 @@ function extractAcceptanceCriteria(bodyMd: string): string[] {
  * falls back to the acceptance-criteria lines of the body markdown.
  */
 export function extractIntentPoints(contract: ContractLike, bodyMd: string): string[] {
+  return intentPointsWithSource(contract, bodyMd).points;
+}
+
+/**
+ * THE SAME LINES, AND WHERE THEY CAME FROM.
+ *
+ * `extractIntentPoints` answers "what do we grade against". Build's verdict
+ * needs one more fact from the same walk: WHICH of the two sources answered,
+ * because the three outcomes are three different things to say to a person.
+ *
+ *   contract   the author wrote success metrics and we are using their words
+ *   body       no metrics on the row, so these are the acceptance-criteria
+ *              lines read out of the document, which is a weaker claim
+ *   none       the spec says nothing about what done means
+ *
+ * Measured on this database: contract 2 of 119, body 94 of the remaining 117.
+ * So `body` is the ordinary case and a surface that reported it as "no contract"
+ * would be calling the normal state a failure.
+ *
+ * Split out rather than duplicated: two functions deriving these lines
+ * separately is how Build and Learn would come to grade against different
+ * readings of one spec, and the point of reusing this is that they cannot.
+ */
+export function intentPointsWithSource(
+  contract: ContractLike,
+  bodyMd: string,
+): { points: string[]; source: "contract" | "body" | "none" } {
   const metrics = contract?.success_metrics ?? [];
   const standing = (metrics ?? [])
     .filter((m): m is { text?: string | null; status?: string | null } => !!m)
@@ -242,6 +269,7 @@ export function extractIntentPoints(contract: ContractLike, bodyMd: string): str
     .map((m) => (typeof m.text === "string" ? m.text.trim() : ""))
     .filter((t) => t.length > 0);
   const deduped = dedupe(standing);
-  if (deduped.length > 0) return deduped.slice(0, 20);
-  return extractAcceptanceCriteria(bodyMd ?? "");
+  if (deduped.length > 0) return { points: deduped.slice(0, 20), source: "contract" };
+  const fromBody = extractAcceptanceCriteria(bodyMd ?? "");
+  return { points: fromBody, source: fromBody.length > 0 ? "body" : "none" };
 }

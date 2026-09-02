@@ -107,6 +107,8 @@ import {
   type DepAlert,
 } from "@/lib/build/deps-audit";
 import { runChangesetReview, loadStagedContent } from "@/lib/build/code-review.server";
+import { linesThatDidNotHold } from "@/lib/build/code-review";
+import { intentPointsWithSource } from "@/lib/intent-diff";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import type { ProviderAuthCache } from "@/lib/connectors/resolve.server";
 import { runRollbackRelease } from "@/lib/studio-rollbacks";
@@ -3362,6 +3364,64 @@ const studioReview = def({
         .join("\n");
     }
 
+    /*
+     * -- WHAT THE SPEC SAID WOULD MAKE THIS DONE -------------------------------
+     *
+     * The reviewer has never seen this. It judged security, correctness, scope
+     * and convention -- every one a property of the DIFF -- and never the one
+     * question Build exists to answer, which is whether the change does what was
+     * asked. So a changeset could be clean code that builds the wrong thing and
+     * come back "approve", and that is not a hypothetical: it is the shape of
+     * the failure the qa seat's own brief ("Check the change against the spec")
+     * has been describing since it was written, with nothing behind it.
+     *
+     * The lines come from `intentPointsWithSource`, which is the SAME function
+     * Learn grades the shipped work with. That is deliberate. Two separate
+     * readings of one spec is how Build passes a change that Learn then marks
+     * unmet, and neither surface can be believed once they disagree.
+     *
+     * Read in a side query rather than added to `getActiveChangeset`'s select,
+     * per the deployment-order rule: naming a column in a shared PostgREST
+     * select fails the WHOLE query where the database has not taken the
+     * migration, and this one has a dozen other callers that must not break for
+     * a fact only the reviewer wants.
+     *
+     * Fails SOFT and says so. A spec that cannot be read is "the reviewer was
+     * not given the lines", which `criteria_source: "none"` reports honestly.
+     * Refusing to review at all would be worse: the diff-level findings are
+     * still worth having, and a review that throws is a review nobody sees.
+     */
+    let acceptance: string[] = [];
+    let criteriaSource: "contract" | "body" | "none" = "none";
+    try {
+      const { data: csRow } = await supabase
+        .from("studio_changesets")
+        .select("prd_id")
+        .eq("id", changeset.id)
+        .maybeSingle();
+      const prdId =
+        ((csRow as { prd_id?: string | null } | null)?.prd_id ?? null) ||
+        (await resolvePrdForMission(supabase, missionId));
+      if (prdId) {
+        const { data: prdRow } = await supabase
+          .from("prds")
+          .select("contract,body_md")
+          .eq("id", prdId)
+          .maybeSingle();
+        const prd = prdRow as { contract?: unknown; body_md?: string | null } | null;
+        if (prd) {
+          const found = intentPointsWithSource(
+            (prd.contract ?? null) as Parameters<typeof intentPointsWithSource>[0],
+            prd.body_md ?? "",
+          );
+          acceptance = found.points;
+          criteriaSource = found.source;
+        }
+      }
+    } catch (e) {
+      console.error("[studio.review] could not read the spec's acceptance lines:", e);
+    }
+
     // The repo-side facts the deterministic pass needs. Both fail soft: a
     // GitHub outage degrades the review to the diff-only checks rather than
     // throwing away the whole review.
@@ -3388,6 +3448,8 @@ const studioReview = def({
       workspaceId,
       runId,
       intent: intent || null,
+      acceptance,
+      criteriaSource,
       repoTestPaths,
       dependencyNote,
     });
@@ -3397,11 +3459,26 @@ const studioReview = def({
       summary: result.review.summary,
       findings: result.review.findings,
       files_reviewed: result.review.files_reviewed,
+      /*
+       * The seat is told what was compared and what did not hold, per line,
+       * because "revise" alone is not something it can act on. `qa`'s brief
+       * sends it back to `studio.stage` with a fix, and the fix is only
+       * addressable if the line it missed is named.
+       */
+      acceptance: result.review.compared ?? [],
+      acceptance_source: result.review.criteria_source ?? "none",
+      did_not_hold: linesThatDidNotHold(result.review).map((c) => c.line),
       reviewer_model: result.review.reviewer_model,
       may_open_pr: result.gate.mayOpenPr,
       reason: result.gate.reason,
-      // Stated rather than implied: without the changeset column this verdict
-      // exists only in this run's tool trail. See BUILD-NEEDS-MIGRATION.md.
+      /*
+       * `studio_changesets.code_review` has existed since migration
+       * 20260802180000 and `types.ts` carries it; the note that used to sit here
+       * pointed at BUILD-NEEDS-MIGRATION.md, a file that is not in this repo and
+       * describes a state that ended a month ago. Kept as a reported field
+       * because a write can still fail, and a verdict that reached nobody's
+       * record is worth knowing about.
+       */
       persisted: result.persisted,
       model_error: result.model_error,
     };

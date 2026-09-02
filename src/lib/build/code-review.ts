@@ -66,11 +66,58 @@ export interface ReviewFinding {
   deterministic: boolean;
 }
 
+/**
+ * ── ONE ACCEPTANCE LINE, AND WHETHER THE CHANGE MEETS IT ──────────────────
+ *
+ * The reviewer's verdict used to be about the diff and nothing else: security,
+ * correctness, scope, convention. All real, and none of them the question Build
+ * exists to answer, which is whether the change does WHAT WAS ASKED FOR. That
+ * question has an answer on the record -- the acceptance lines the builder was
+ * handed as its work order -- and the reviewer was never shown them.
+ *
+ * So the reviewer now states, per line, whether it holds. Not a score and not a
+ * summary: the line itself, back in the author's words, with a verdict beside
+ * it. That is what makes a wrong reading VISIBLE -- if the reviewer misread a
+ * line, the line is right there to be read against its judgment.
+ */
+export interface ReviewedLine {
+  /** The acceptance line, verbatim as it reached the reviewer. */
+  line: string;
+  /** Whether the staged change satisfies it. */
+  held: boolean;
+  /**
+   * Why it does not hold, in one sentence. Null is only honest for a line that
+   * held; `parseComparedLines` drops a `did not` that cannot say why, because a
+   * refusal with no reason is not something a builder can act on.
+   */
+  why: string | null;
+}
+
+/**
+ * WHERE THE LINES CAME FROM, WHICH IS NOT THE SAME QUESTION AS HOW MANY HELD.
+ *
+ * "0 of 0 held" and "no lines to check" are different facts and a reader has to
+ * be able to tell them apart. Measured on this database: `prds.contract` carries
+ * success metrics on 2 of 119 specs, and 94 of the other 117 carry acceptance
+ * criteria in the body under a heading. So `body` is the common case, `none` is
+ * real, and a surface that collapsed them would report the common case as a
+ * failure to check.
+ */
+export type CriteriaSource = "contract" | "body" | "none";
+
 export interface ChangesetReview {
   verdict: ReviewVerdict;
   summary: string;
   findings: ReviewFinding[];
   files_reviewed: number;
+  /**
+   * The acceptance lines the reviewer compared the diff against, in the order
+   * they were given. Empty means none reached it, which `criteria_source` then
+   * explains. Absent on every review written before 2026-09-03.
+   */
+  compared?: ReviewedLine[];
+  /** Where `compared`'s lines came from. Absent on reviews written before it. */
+  criteria_source?: CriteriaSource;
   /** The model that produced the judgment findings, or null when none ran. */
   reviewer_model: string | null;
   reviewed_at: string;
@@ -319,6 +366,82 @@ export function parseReviewFindings(raw: unknown, maxFindings = 25): ReviewFindi
 }
 
 /**
+ * READ THE PER-LINE VERDICTS BACK, AGAINST THE LINES WE SENT.
+ *
+ * ── WHY THIS MATCHES ON THE LINE AND NOT ON AN INDEX ──────────────────────
+ * The obvious parse is to zip the model's array against the criteria by
+ * position. That fails the way it always fails: a generation that returns four
+ * verdicts for five lines silently shifts every judgment onto the wrong line,
+ * and the result LOOKS complete. So each returned verdict has to name its line,
+ * and a name that is not one of the lines we sent is discarded rather than
+ * appended -- otherwise the reviewer could invent an acceptance line, mark it
+ * held, and raise the count of what was checked.
+ *
+ * Matching is on the trimmed text. Models reliably echo a line back with
+ * different surrounding whitespace or a stripped list marker, and refusing
+ * those would throw away correct judgments over punctuation.
+ *
+ * ── A LINE NOBODY JUDGED IS NOT A LINE THAT HELD ──────────────────────────
+ * Any criterion with no verdict comes back `held: false` with an explicit why.
+ * The alternative -- dropping it -- would mean a reviewer could raise its own
+ * pass rate by saying less, which is exactly backwards.
+ */
+export function parseComparedLines(raw: unknown, criteria: readonly string[]): ReviewedLine[] {
+  if (criteria.length === 0) return [];
+  const said = new Map<string, { held: boolean; why: string | null }>();
+
+  const list =
+    raw !== null && typeof raw === "object" && !Array.isArray(raw)
+      ? (raw as Record<string, unknown>).acceptance
+      : null;
+  if (Array.isArray(list)) {
+    const byKey = new Map(criteria.map((c) => [compareKey(c), c]));
+    for (const item of list.slice(0, MAX_ACCEPTANCE_LINES * 2)) {
+      if (item === null || typeof item !== "object" || Array.isArray(item)) continue;
+      const row = item as Record<string, unknown>;
+      const named = typeof row.line === "string" ? byKey.get(compareKey(row.line)) : undefined;
+      if (named === undefined) continue;
+      const held = row.held === true;
+      const why =
+        typeof row.why === "string" && row.why.trim() ? row.why.trim().slice(0, 400) : null;
+      /* A `did not` that cannot say why is not actionable, and shipping it would
+         put an unexplained refusal in front of a person. Treated as no verdict,
+         which the sweep below then reports honestly as unjudged. */
+      if (!held && !why) continue;
+      // First verdict wins, so a model that lists a line twice cannot overwrite
+      // its own refusal with a pass further down the array.
+      if (!said.has(named)) said.set(named, { held, why });
+    }
+  }
+
+  return criteria.map((line) => {
+    const v = said.get(line);
+    if (!v) return { line, held: false, why: "The reviewer did not say whether this holds." };
+    return { line, held: v.held, why: v.held ? v.why : (v.why ?? null) };
+  });
+}
+
+/** Whitespace, case and list markers are not part of what a line SAYS. */
+function compareKey(line: string): string {
+  return line
+    .replace(/^\s*[-*\u2022]?\s*(?:\d+[.)]\s*)?/, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+/** How many acceptance lines are worth putting in front of a reviewer. Beyond
+ *  this the per-line judgment degrades into skimming, and the prompt crowds out
+ *  the diff it is supposed to be reading. `extractIntentPoints` caps at 20 for
+ *  the same reason and this is deliberately the same number. */
+export const MAX_ACCEPTANCE_LINES = 20;
+
+/** The lines that did not hold. The one list Build has to act on. */
+export function linesThatDidNotHold(review: ChangesetReview | null | undefined): ReviewedLine[] {
+  return (review?.compared ?? []).filter((c) => !c.held);
+}
+
+/**
  * The final verdict.
  *
  * Severity decides it, not the model's own self-reported verdict, so a
@@ -330,6 +453,8 @@ export function decideReviewVerdict(input: {
   findings: readonly ReviewFinding[];
   modelRan: boolean;
   modelVerdict?: string | null;
+  /** The per-line acceptance judgments, when any lines were compared. */
+  compared?: readonly ReviewedLine[];
 }): ReviewVerdict {
   if (input.findings.some((f) => f.severity === "blocker")) return "block";
   const claimed = input.modelVerdict;
@@ -340,6 +465,23 @@ export function decideReviewVerdict(input: {
     return input.findings.length > 0 ? "revise" : "unreviewed";
   }
   if (input.findings.some((f) => f.severity === "major")) return "revise";
+  /*
+   * -- AN ACCEPTANCE LINE THAT DID NOT HOLD IS WORK TO DO --------------------
+   *
+   * Placed after `block` and before `approve`, and both positions are the
+   * argument.
+   *
+   * NOT a block: the change compiles, it is not a security hole, and it does not
+   * lose data. It does less than was asked for. Blocking it would put a missed
+   * requirement in the same bucket as a leaked credential, and a gate that
+   * cannot tell those apart gets ignored on both.
+   *
+   * But it CANNOT be approve, whatever else is clean, and this is the whole
+   * point of the packet. A reviewer that read the spec, found the change does
+   * not meet it, and returned "approve" because no single line of code was
+   * wrong would be the exact failure this comparison was added to catch.
+   */
+  if (input.compared?.some((c) => !c.held)) return "revise";
   if (claimed === "revise") return "revise";
   return "approve";
 }
