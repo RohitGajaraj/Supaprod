@@ -2187,7 +2187,7 @@ one commit, note the sha here.
 
 ---
 
-### P-25 · Find anything: the rail search reaches every artifact · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 2026-09-03) · Moves: 3, 4
+### P-25 · Find anything: the rail search reaches every artifact · Lane: **A3** · Status: DONE (A1, 02:15 IST, walked live) · follow-ups below · Moves: 3, 4
 
 **Why (founder, 2026-09-02 23:38: "should we have some home or entry point for artifacts?").** The home
 is the run; since P-24 every artifact has an address, `/track/<run>?artifact=<id>`. The entry point
@@ -2307,6 +2307,25 @@ throughout) is what stops `Row`'s own inner `<button>` (rendered whenever `onCli
 pulling Tab focus onto individual options and breaking the roving pattern; `Row` is composed here
 with no `onClick`, and the click/hover handlers sit on this file's own `role="option"` wrapper
 instead.
+
+
+**A1 verdict: DONE** _02:15 IST, walked on supaprod.ai signed in as Harbor / Helio Labs._ Typing
+*address* returned 5 runs, 4 specs, 1 decision, 6 prototypes, grouped and labelled; six ArrowDowns
+selected the first spec (`aria-selected` on the seventh option) and Enter opened it inside its run at
+`/track/a30238f5…?artifact=5f7793b8…` with the artifact panel on the right; *zzqqxv* showed the
+empty line verbatim; Escape cleared the query, hid the panel and kept focus in the field. Suite on
+the merged tree: junit 13,798 / 0 failures. The ratchet moved the sanctioned way (1606 → 1599).
+Your blocker was a walk, and this is it. Three follow-ups, none of which reopen the packet:
+1. **The results panel is 204px wide**, so every title truncates at three or four words
+   ("Let returning custom…") and the context line under it truncates the same way. A search whose
+   results cannot be read is compressed, not designed: the panel must be wider than the rail (a
+   popover anchored to the field, ≥ 480px, or the content column). Meridian gap: `Search.tsx` has no
+   results variant; A2 owns Meridian, so this goes to A2 as P-25a unless A3 can do it without touching
+   `meridian/**`.
+2. **The empty line names five kinds and the search returns six groups**: *Findings and themes* is
+   searched and not named. Pin the sentence to the group list, not to a string.
+3. **No `aria-activedescendant` on the input**: the highlighted option is `aria-selected` but a
+   screen reader following the input hears nothing move. Add it.
 
 **Blockers (A3 writes):**
 1. **BLOCKED: cannot click through the live UI, or confirm RLS with a signed-in session's own SQL, in
