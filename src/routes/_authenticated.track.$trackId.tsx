@@ -7,6 +7,7 @@ import * as React from "react";
 
 import "../styles/workbench.css";
 import { PageHeading } from "@/components/meridian/surface-parts";
+import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { TrackRunLeft, TrackPaneRight } from "@/components/track/TrackRun";
 import { RunFooter } from "@/components/track/RunFooter";
@@ -331,6 +332,24 @@ function TrackPage() {
    * rule.
    */
   const settled = track?.status === "done" || track?.status === "abandoned";
+
+  /*
+   * ONE DEAD SESSION, SAID ONCE, ON A WHOLE PAGE (P-15, adopting the
+   * component S3 and S1 already built for Brain, the settings boundary pane
+   * and /learn, rather than a fourth copy). `trackQ` is the page's own read;
+   * a dead session fails it and every panel `TrackRunLeft`/`TrackPaneRight`
+   * mount beneath it identically, so this is a page-level fact and checking
+   * the one read this route already makes is enough -- see the component's
+   * own header for why per-panel honesty is the wrong call here.
+   */
+  const sessionEnded = endedSessionFor(trackQ.error);
+  if (sessionEnded) {
+    return (
+      <SessionEnded title="This piece of work" error={trackQ.error}>
+        Nothing about this run has changed while you were away.
+      </SessionEnded>
+    );
+  }
 
   return (
     /*

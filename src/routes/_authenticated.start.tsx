@@ -12,6 +12,7 @@ import { ExampleJobs, type ExampleJob } from "@/components/start/ExampleJobs";
 import { YourRuns } from "@/components/start/YourRuns";
 import { Arriving } from "@/components/start/Arriving";
 import { failureLine } from "@/lib/error-copy";
+import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listRunsForStart, startTrack } from "@/lib/spine/track.functions";
 import type { WorkShape } from "@/lib/spine/route";
@@ -187,6 +188,24 @@ function StartLanding() {
     // Fires once on mount; `about` cannot change without a remount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /*
+   * ONE DEAD SESSION, SAID ONCE, ON A WHOLE PAGE (P-15, adopting the
+   * component S3 and S1 already built for Brain, the settings boundary pane
+   * and /learn, rather than a fourth copy). `runs` is the same cache entry
+   * `YourRuns` polls, which is the page's own read; a dead session fails it
+   * page-wide, so checking it here is enough. This page carries no heading
+   * of its own (P-05's own scope: "nothing else on the page"), so `title`
+   * names the surface for the one screen that needs to, here.
+   */
+  const sessionEnded = endedSessionFor(runs.error);
+  if (sessionEnded) {
+    return (
+      <SessionEnded title="Start" error={runs.error}>
+        Nothing you were about to do is lost.
+      </SessionEnded>
+    );
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-[62rem] flex-col gap-mrd-6 px-mrd-5 py-mrd-6">

@@ -7,13 +7,14 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { ConfirmProvider } from "@/hooks/use-confirm";
 import { MachineViewProvider } from "@/hooks/use-machine-view";
 import { PageReadFailed, PageRouteMissing } from "@/components/meridian/boundary-states";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 import appCss from "../styles.css?url";
 
@@ -32,8 +33,59 @@ import appCss from "../styles.css?url";
  * with no scope attribute mounted, which is what let the old `data-obsidian`
  * wrapper go.
  */
-function NotFoundComponent() {
-  return <PageRouteMissing />;
+/**
+ * "Go home" lands on `/start` for a signed-in reader, never the public
+ * landing page they are not trying to reach (P-15, A1 live 2026-09-02
+ * 20:05). Read from `localStorage` via `getSession()` -- the same call
+ * `_authenticated.tsx`'s own `beforeLoad` uses and for the same reason: no
+ * network round trip, so this settles before anyone would notice the
+ * default flash by.
+ *
+ * `Sign in` still shows regardless of session state -- see this packet's
+ * Report/Blockers. `PageRouteMissing` (Meridian) always renders it; hiding
+ * it for a signed-in reader needs a prop this component does not have, and
+ * this lane may not add one (protocol rule 10). Flagged rather than
+ * hand-rolling a second "no page at this address" screen that would drift
+ * from Meridian's own.
+ */
+/**
+ * Exported for `not-found-lands-you-signed-in.test.tsx`: a plain function
+ * component with no router-context dependency, so it renders in isolation
+ * rather than needing the whole route tree mocked to reach it.
+ *
+ * `getSession` IS INJECTABLE, AND THAT IS NOT INCIDENTAL. `mock.module` on
+ * `@/integrations/supabase/client` is process-wide in Bun and already shared
+ * by `AskPane.test.tsx` (`a-module-mock-is-process-wide.test.ts` freezes the
+ * set of modules allowed to collide like that, and this one is not on it). A
+ * second file mocking the same module would join a hazard that list exists
+ * to stop growing, not shrink it. Injecting the one call this component
+ * needs avoids the module system entirely, which is the guard's own stated
+ * alternative to adding a second mock.
+ */
+export function NotFoundComponent({
+  getSession = () => supabase.auth.getSession(),
+}: {
+  getSession?: () => Promise<{ data: { session: unknown } }>;
+} = {}) {
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    void getSession().then(({ data }) => {
+      if (!cancelled) setSignedIn(!!data.session);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Runs once on mount; `getSession` is a prop with a stable default and
+    // re-running this on every render identity change would poll on typing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <PageRouteMissing
+      onGoHome={signedIn ? () => window.location.assign(SIGNED_IN_HOME) : undefined}
+    />
+  );
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
@@ -231,7 +283,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   }),
   shellComponent: RootShell,
   component: RootComponent,
-  notFoundComponent: NotFoundComponent,
+  // `NotFoundComponent`'s `getSession` prop is for the test only (see its own
+  // header); TanStack's `notFoundComponent` type carries its own props this
+  // route never uses, so the wrapper takes none rather than the two shapes
+  // fighting each other.
+  notFoundComponent: () => <NotFoundComponent />,
   errorComponent: ErrorComponent,
 });
 
