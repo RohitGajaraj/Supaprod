@@ -2019,7 +2019,15 @@ with the evidence it read, the verdict appears as a transcript entry and on the 
 first time that file ever fires). Fix the coverage mismatch: the sweep excludes sample workspaces,
 `calibrate-tick` requires `auto_derive_enabled`; make one rule.
 
-**Files.** `src/lib/spine/driver.ts` (Decide brief `:229`, `:1130`; Learn brief `:437-444`, `:1206`) ·
+**Files.** `src/lib/spine/driver.ts` — **the packet's line numbers are stale and its column name does
+not exist; corrected here by A2, 2026-09-03, rather than worked around.** `:229` is a comment closer
+inside the `design-critic` seat and has been for at least six commits. The real ones: Decide's brief
+is `CREW_ROLE.strategist.file` at **`:119`** (where the band arguments already live, and the likely
+intent of the stale `:229`), `FILE_IT.decide` at **`:1147`**, and a third copy in `stationJob`'s
+`decide` arm — the file warns at `:1118` that fixing one and leaving another is how F-181 happened.
+Learn's is `CREW_ROLE["data-analyst"]` at **`:428`** and `FILE_IT.learn` at **`:1249`**.
+**`decisions.forecast_observable` does not exist.** The observable is
+**`forecast_how_we_will_know`**; `forecast_metric` is the numeric one beside it. ·
 `src/lib/spine/forecast-band.ts` · `src/components/track/ArtifactPane.tsx` (Decide and Learn bodies)
 · `src/components/notifications/stopped-email.ts` · `src/routes/api/public/hooks/calibrate-tick.ts` ·
 `src/routes/api/public/hooks/track-tick.ts` (the scope rule only) · tests.
