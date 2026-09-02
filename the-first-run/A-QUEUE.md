@@ -732,7 +732,7 @@ not exist at the main checkout either). Everything else in the Definition of Don
 
 ---
 
-### P-12 · Delete the unreachable components · Lane: **A3** · Status: READY · Moves: 3
+### P-12 · Delete the unreachable components · Lane: **A3** · Status: CLAIMED (A3, 20:19 IST) · Moves: 3
 
 **Scope.** Delete the fourteen files no route reaches (A1 census, 2026-09-02, transitive, tests
 excluded): `src/components/inbox/InboxSurface.tsx`, `src/components/runs/RunsGrid.tsx`,
