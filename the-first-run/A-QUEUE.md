@@ -2358,6 +2358,23 @@ and `/learn` go when P-14b (Outcomes › What shipped + the ledger, A3) and P-04
 deletion: route count before/after, tsc 0, `bun test` 0 fail, ratchet not widened, pushed, Report.
 A1 publishes and walks Start, a run, Outcomes and Settings after the first batch.
 
+**Deletion log (A3, running).** Four of six done, each its own commit, redirect stub to `/start`,
+tsc 0, `bun test` 0 fail / 0 unhandled after each (dual-reporter checked, per Rule 14):
+- `/decide` -- `5874e3200`. Guard test `decide-holds-its-guard-across-the-confirm.test.ts` broke
+  main on `readFileSync` of the deleted route (invisible to junit); fixed same-day, `b25094c33`.
+- `/plan` index -- `2d765bbb9`.
+- `/design` -- `2fb721f05`, plus `ee1a753dd` (A1's live find: a bet's title was the theme's own
+  Title-Case name, not a sentence -- fixed on both the write side, `trigger-tick.ts`'s cluster
+  branch, and the read side, `listTopOpportunities`'s filter; `src/lib/bet-title.ts` new, tested).
+- `/build` index -- `d2fff6135`. Verified independently (census, tsc, full `bun test`, `eslint` on
+  the diff) before push, same standard as the other three.
+Live references deferred to the one sweep at the end, per standing guidance: `run-strip.tsx`,
+`ask-context.tsx`, `AskLanding.tsx`, `PushedInsights.tsx`, `loop-surfaces.ts`, `RunBoard.tsx`,
+`LineageDrawer.tsx`, `artifacts.functions.ts`, `research.server.ts`,
+`_authenticated.ship.tsx` (two `navigate({to:"/build"})` calls). Route count before/after: held for
+the whole batch, not per page, per standing guidance -- reported once `/runs/$missionId` and
+`Board.tsx` are both done. Next: `/runs/$missionId`.
+
 
 ---
 
