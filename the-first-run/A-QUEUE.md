@@ -82,7 +82,7 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 
 ---
 
-**DEV SERVER: up · A3 · 20:09 IST** · any lane may start it when a packet needs a rendered check; the lane that starts it stops it and writes `off` here before reporting the packet.
+**DEV SERVER: off** · any lane may start it when a packet needs a rendered check; the lane that starts it stops it and writes `off` here before reporting the packet.
 
 ---
 
@@ -608,7 +608,7 @@ entries in this packet and update the four dependent test pins; both were redire
 before P-10 and P-11 removes more of the same. Note it in the Report as rail work done under this
 ruling. Then re-run the whole suite and report the pass/fail line; I verify from there. The rest
 of the Report is exactly the evidence the protocol asks for.
-### P-11 · The rail is three doors · Lane: **A3** · Status: CLAIMED (A3, 19:34 IST) · Moves: 1, 4
+### P-11 · The rail is three doors · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 20:18 IST) · Moves: 1, 4
 
 **Scope.** Rail entries become **Start · Run · Settings**. "Run" appears only while the person is on
 `/track/$trackId` and points at it. Remove Approvals, Insights, Threads and Policies from `RAIL` and
@@ -637,7 +637,96 @@ route · A1 DONE.
 
 **Report (A3 writes):**
 
+Commits `a543342ec`…`053f1785a` (rebased across the coordination window; the two that
+carry the work are the "the rail is three doors" commit and the follow-up "pin the rail
+entry count per route" commit). `tsc` 0. `bun test`: 13,582 pass, 0 fail (unchanged from
+before this packet).
+
+- **`RAIL`** (AppFrame.tsx): 4 rows removed — Approvals (`/today`), Insights (`/brain`),
+  Threads (`/threads`), Policies (`/engine-room`). 1 row renamed (Home → **Start**, same
+  `SIGNED_IN_HOME` derivation, unchanged). 1 row added — **Run**, `to: "/track"` as an
+  *identity* (never a navigation target — see the row's own comment), rendered only when
+  `/^\/track\/([^/]+)/.exec(pathname)` finds a live id, at which point the `<Link>`
+  resolves the real `/track/$trackId`. Verified with a source-and-logic pin
+  (`AppFrame.rail-covers-keys.test.ts`, "the render drops Run without a live track and
+  keeps it with one"), not a DOM render — see Blockers for why.
+- **`PRIMARY_NAV`** (nav-model.ts): 15 entries → 3 — Start, Run, Settings. This is more
+  than the scope line's literal "remove Approvals, Insights, Threads and Policies" (which
+  reads as ~11 remaining); I went with the acceptance line's explicit "three entries"
+  instead, because leaving the seven loop stations + Runs + Crew bound to live chords
+  with no rail door anywhere would reopen the exact defect this file's own header was
+  rewritten in 2026-08-06 to close ("twelve keys that fired and were drawn nowhere"), just
+  aimed the other direction. Flagging the discrepancy rather than silently picking a
+  reading. **Settings moved in from `FOOTER_NAV`**, which now holds only Admin — needed
+  so "three entries" could be literally true rather than true of the rail alone.
+  `WORKFLOW_NAV`/`LOOP_NAV`/`HOME_NAV`/`OPERATIONS_NAV`/`INTELLIGENCE_NAV` (zone filters
+  with nothing left to filter, consumed only by their own tests) removed with it.
+- **Chord table**: `navKeyHint` now has cases for `/start` (t), `/track` (r), `/settings`
+  (s), `/admin` (none) and nothing else — every case for a removed door is gone, not left
+  dead.
+- **No `Link` in `AppFrame.tsx` points at a removed door** — checked directly:
+  `grep -n 'to="/today"\|to="/brain"\|to="/threads"\|to="/engine-room"\|to="/approvals"'
+  src/components/shell/AppFrame.tsx` returns nothing.
+- **`post-auth-home.ts`**: untouched — nothing in it named a route this packet removed.
+
+**Two bugs found and fixed, neither caught by `tsc`** (both route through fields typed as
+plain `string`, not the router's `LinkOptions`):
+- `GotoShortcuts.tsx` navigated on `target.to` directly. Pressing `g` then `r` would have
+  sent a person to the literal string `/track` — not a route. It now resolves the live
+  track id the same way `AppFrame`'s render does (a `pathnameRef` fed by `useRouterState`,
+  read inside the existing `keydown` handler rather than added to its dependency array, so
+  the "mount once" listener the file's own header documents stays true), or no-ops if
+  there is not one.
+- `key-model.ts`'s `SURFACE_KEYS` still declared `DecisionQueue`'s j/k/a/d shortcuts
+  against `path: "/today"`, months after the page they render on moved to `/start`. This
+  is exactly what P-11's own acceptance line asks for ("the shortcut sheet lists only live
+  chords") — found while touching the same subsystem, not go-looking; fixed rather than
+  left for a fourth packet to rediscover.
+
+**The collateral effect I traced before changing anything**: the seven loop stations'
+`PRIMARY_NAV` entries also fed the station-strip chips' keycaps (`STATION_DOORS` in
+AppFrame.tsx, a completely different UI element, ~1,600 lines from the rail). Checked both
+live callers of that strip rather than assuming: `use-spine-strip.ts`'s `"nav"` publisher
+stopped supplying `onSelect` in F-146 specifically so stations stop being doors (R-01), and
+`_authenticated.runs.$missionId.tsx`'s `"tab"` publisher hits the render's own
+`asTab || !interactive` gate. Both already force the keycap to `""` on every render call
+site that exists today, before this packet touched anything — so removing the stations
+from `PRIMARY_NAV` changes nothing a person can see; the derivation just stopped promising
+a key that was already being hidden everywhere it could fire. Updated
+`AppFrame.station-keys.test.ts` to assert that (was asserting the opposite).
+
+**Meridian ratchet**: `AppFrame.tsx`'s `sp-` class count dropped 56 → 55 (net effect of
+deleting four rows' worth of markup). Re-froze the baseline (`bun run design:ratchet`) so
+the gain is held rather than reported stale.
+
+**Visual verification — BLOCKED, see Blockers.** No screenshot path: local dev needs a
+real Supabase connection to render `/start` at all (SSR `beforeLoad` hangs indefinitely
+rather than failing fast — `curl` timed out after 8s), and this worktree has no `.env`,
+same as every other worktree checked (`ln -s "../Supaprod/.env" .env` fails: the file does
+not exist at the main checkout either). Everything else in the Definition of Done is met.
+
 **Blockers (A3 writes):**
+
+1. **BLOCKED: no path to a screenshot without either credentials or a production
+   deploy.** `bunx vite dev` (bypassing the `predev` check, which only warns about
+   Supabase-dependent data — irrelevant to verifying static rail structure) starts
+   cleanly; the public root (`/`) returns 200; `/start` (`_authenticated`, so its
+   `beforeLoad` calls Supabase to check the session) hangs forever with no `.env`
+   anywhere in this environment to supply real credentials. I checked
+   `get_project` on the Lovable project (`371dd588-1b70-4629-9bb5-9f003f3af373`,
+   read-only): its `latest_commit_sha` is behind everything in this packet, so a live
+   check needs `deploy_project` to push to `supaprod.lovable.app` first — a publish to
+   a real public site. My own standing rules put "publishing... modifying public
+   content" in the category that needs the user's explicit go-ahead in chat, not
+   something I should infer from the queue's standing "rebuild and publish" notices
+   (which are scoped to *migration-writing* packets — protocol rule 12's own words —
+   and P-11 writes no migration). Two ways to close this, your call: **(a)** you (or the
+   founder, since it goes to a public URL) confirm a deploy for this specific packet, and
+   I run it and screenshot both routes; or **(b)** since A1 already "walks the product in
+   a browser" with deploy access as part of its own role, this is the one line item A1's
+   verification pass covers instead of mine. Everything else in the packet — tsc, tests,
+   the source-level proof of the conditional render, no dangling links — is done and
+   verified without needing a render.
 
 **A1 verdict:**
 
