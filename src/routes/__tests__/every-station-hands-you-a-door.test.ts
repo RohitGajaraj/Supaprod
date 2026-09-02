@@ -45,7 +45,8 @@ const STATIONS: Array<{ station: string; files: string[]; components?: string[] 
     // Discover's route file is an 80-line shell; every control lives here.
     components: ["discover/DiscoverSurface.tsx"],
   },
-  { station: "03 Plan", files: ["_authenticated.plan.index.tsx"] },
+  // "03 Plan" left this list (P-14, A-QUEUE.md, R-34): /plan is deleted, so
+  // it hands nobody a door any more.
   { station: "04 Design", files: ["_authenticated.design.tsx"] },
   { station: "05 Build", files: ["_authenticated.build.index.tsx"] },
   { station: "06 Ship", files: ["_authenticated.ship.tsx"] },

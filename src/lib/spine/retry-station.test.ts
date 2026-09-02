@@ -121,37 +121,13 @@ describe("the trail says a person did it, and does not claim a transition", () =
   });
 });
 
-describe("the control is reachable, and only where it applies", () => {
-  const panel = () =>
-    readFileSync(join(SPINE, "..", "..", "components", "spine", "TrackStart.tsx"), "utf8");
-
-  it("is called from the one surface that lists work in flight", () => {
-    // The reachability half. A server function with no caller is the defect this
-    // audit found four times; this one is new, so it gets the guard on day one.
-    const code = panel();
-    expect(code).toContain("retryStation");
-    expect(code).toContain("release.mutate(t)");
-  });
-
-  it("is offered only on a held track", () => {
-    // On anything else there is nothing to release, and a control that appears
-    // and then refuses is worse than one that is absent.
-    expect(panel()).toContain("{t.hold ? (");
-  });
-
-  it("names the station rather than the mechanism", () => {
-    // "Retry" is what the function does. "Let Discover try again" is what
-    // happens, and it says who is being asked.
-    expect(panel()).toContain("try again`");
-    expect(panel()).not.toContain(">Retry<");
-  });
-
-  it("says the station runs again, never that the work moved", () => {
-    const code = panel();
-    expect(code).toContain("runs again on");
-    expect(code).toContain("Nothing has been charged for it yet");
-  });
-});
+// The describe block that used to open here, "the control is reachable, and
+// only where it applies", proved retryStation was actually wired into
+// TrackStart.tsx -- the surface that listed work in flight before P-14
+// (A-QUEUE.md, R-34) deleted /plan and, with it, TrackStart.tsx (zero real
+// importers once /plan's own route file stopped being one). The server
+// function this whole file otherwise tests is unaffected; only its one
+// caller's own surface-reachability proof went with the surface.
 
 describe("advanceTrack stops reporting a lap that did not happen", () => {
   /**
@@ -217,16 +193,9 @@ describe("advanceTrack stops reporting a lap that did not happen", () => {
     expect(returns).toBeGreaterThanOrEqual(6);
   });
 
-  it("is said out loud on the surface, not just returned", () => {
-    // A fact captured and never read is the shape this whole audit keeps closing.
-    const panel = readFileSync(
-      join(SPINE, "..", "..", "components", "spine", "TrackStart.tsx"),
-      "utf8",
-    );
-    expect(panel).toContain("res.emptyStation");
-    expect(panel).toContain("filed nothing, so the next station has nothing from it to work from");
-    // And when the track is CLOSED OUT, which is the moment the false claim of a
-    // completed lap would actually be made.
-    expect(panel).toContain("the record of this work has a gap at that station");
-  });
+  // "is said out loud on the surface, not just returned" read TrackStart.tsx
+  // for the same reason the block above named -- deleted alongside it
+  // (P-14, A-QUEUE.md, R-34). `emptyStation` is still returned on every path
+  // (proven above); which surface says it out loud is now Start's own rows,
+  // not this file's concern.
 });

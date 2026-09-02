@@ -22,10 +22,16 @@ export const CATALOG: CatalogEntry[] = [
     kind: "BELIEF",
     run: { to: "/arriving", search: { tab: "opportunities" } },
   },
+  /*
+   * P-14 (A-QUEUE.md ruling, R-34): /plan's Now/Next/Later board is deleted,
+   * not rehomed -- "there are no lanes." The ranking itself survives on
+   * Start's "Or start one of these" (top three by ICE) and Find anything ›
+   * Findings, so the pitch still holds; only the destination changed.
+   */
   {
     id: "rank-next",
     pitch: "Rank what to build next",
-    run: { to: "/plan", search: { view: "roadmap" } },
+    run: { to: "/start", search: {} },
   },
   {
     id: "tickets-to-signals",
@@ -38,11 +44,20 @@ export const CATALOG: CatalogEntry[] = [
     pitch: "Export my decision record",
     run: { to: "/outcomes", search: { tab: "decisions" } },
   },
+  /*
+   * P-14 (A-QUEUE.md ruling): /plan is deleted, and this entry's own
+   * capability -- pointing the Critic at a claim manually -- has no direct
+   * destination the way the ranking above does; the ruling's own words are
+   * "the Critic already runs at the Decide station of a run", which is
+   * automatic, not a page a person visits to trigger it by hand. Repointed
+   * to /start so the entry does not dead-end; the capability gap itself is
+   * flagged in P-14's own Report, same as "Name a bet" was for /decide.
+   */
   {
     id: "point-critic",
     pitch: "Point the Critic at a claim",
     kind: "SPEC",
-    run: { to: "/plan" },
+    run: { to: "/start", search: {} },
   },
   {
     id: "answer-call",

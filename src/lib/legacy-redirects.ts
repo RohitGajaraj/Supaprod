@@ -25,19 +25,18 @@ export type RedirectTarget = { to: string; search?: Record<string, string> };
  * below. */
 /**
  * P-14 (A-QUEUE.md ruling, R-34: "there are no lanes, priority is Put
- * first"). `/decide` is deleted (a redirect stub to `/start` now, per its own
- * `beforeLoad`, not a mapping this documentation-only file expresses -- its
- * destination is outside the Option-B canonical model this list still
- * describes, not a fold within it). Deliberately NOT added to
- * `LEGACY_REDIRECTS` below for the same reason: every entry there targets a
- * CANONICAL_PATH, and `/start` is a rail door in the newer Start · Run ·
- * Settings model, not one. `/plan`, `/design` and `/build` follow the same
- * treatment as P-14's own remaining batches land.
+ * first"). `/decide` and `/plan` are deleted (each a redirect stub to
+ * `/start` now, per its own `beforeLoad`, not a mapping this documentation-
+ * only file expresses -- their destination is outside the Option-B canonical
+ * model this list still describes, not a fold within it). Deliberately NOT
+ * added to `LEGACY_REDIRECTS` below for the same reason: every entry there
+ * targets a CANONICAL_PATH, and `/start` is a rail door in the newer
+ * Start · Run · Settings model, not one. `/design` and `/build` follow the
+ * same treatment as P-14's own remaining batches land.
  */
 export const CANONICAL_PATHS = [
   "/today",
   "/arriving",
-  "/plan",
   "/design",
   "/build",
   "/ship",
@@ -148,13 +147,15 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   "/product": { to: "/arriving" },
 
   // -- Plan --
-  // LOOM W2 (2026-07-04): /plan honors ?view= (roadmap · specs ·
-  // stakeholders) via validateSearch + section scroll, so the params these
-  // redirects carry are no longer dead. /prds/$id -> /plan/spec/$id lives in
-  // its own param-forwarding stub (see the module doc above).
-  "/prds": { to: "/plan", search: { view: "specs" } },
-  "/roadmap": { to: "/plan", search: { view: "roadmap" } },
-  "/stakeholder": { to: "/plan", search: { view: "stakeholders" } },
+  // LOOM W2 (2026-07-04) mapped these onto /plan's own ?view= (roadmap ·
+  // specs · stakeholders). P-14 (A-QUEUE.md ruling, R-34) deleted /plan
+  // itself, so these three no longer have a canonical target this map's own
+  // invariant allows (`ALLOWED_TARGETS` -- CANONICAL_PATHS or DOOR_INTERNAL_
+  // PATHS -- and `/start` is neither). Removed rather than pointed at a
+  // non-canonical rail door; each address still 404s no worse than it would
+  // have landing on /plan's own now-deleted view= tabs. /prds/$id ->
+  // /plan/spec/$id is unaffected (that page survives) and lives in its own
+  // param-forwarding stub (see the module doc above).
 
   // -- Brain (canonical /brain since LOOM W1; /knowledge is legacy) --
   "/knowledge": { to: "/outcomes" },

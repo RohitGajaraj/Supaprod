@@ -135,6 +135,10 @@ describe("a held track's chip", () => {
      * violations-only scan cannot see. Five surfaces made the split in RUN-125
      * and two more were found stale by this file; if that number falls, someone
      * removed a person's only signal that their work needs them.
+     *
+     * "src/components/spine/TrackStart.tsx" left this list (P-14, A-QUEUE.md,
+     * R-34): the surface it carried the chip on is deleted along with /plan,
+     * not a removal this test's own warning is about.
      */
     const carriers = sourceFiles(SRC)
       .filter((f) => {
@@ -145,7 +149,6 @@ describe("a held track's chip", () => {
       .sort();
 
     expect(carriers).toEqual([
-      "src/components/spine/TrackStart.tsx",
       "src/components/track/TrackRun.tsx",
       "src/components/track/footer-mode.ts",
       "src/components/track/nothing-is-coming.ts",
