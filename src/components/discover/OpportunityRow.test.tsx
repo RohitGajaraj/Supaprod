@@ -17,7 +17,6 @@
 import { describe, expect, test } from "bun:test";
 import type { ReactElement } from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import {
   BestBetStamp,
   DesignationTag,
@@ -120,25 +119,13 @@ describe("DesignationTag", () => {
 // delete, ask) into OpportunityDetailSheet, which the row opens: a list row is
 // one line plus a second line, and six controls per row over twenty rows is
 // twenty subjects with nothing to look at first. So the menu is not "missing",
-// it deliberately does not belong here, and this is the guard against it
-// creeping back.
-describe("OpportunityRow carries no write menu: writes live in the detail sheet", () => {
-  test("no action menu, even with every write handler passed", () => {
-    const el = OpportunityRow({
-      ...BASE_PROPS,
-      onDelete: () => {},
-      onLineage: () => {},
-      onSetStatus: () => {},
-      onDraftSpec: () => {},
-    });
-    expect(containsType(el, DropdownMenu)).toBe(false);
-  });
-
-  test("and none when the handlers are omitted, so a read-only embed is identical", () => {
-    const el = OpportunityRow({ ...BASE_PROPS });
-    expect(containsType(el, DropdownMenu)).toBe(false);
-  });
-});
+// it deliberately does not belong here.
+//
+// `DropdownMenu` ASSERTIONS REMOVED (P-12, A-QUEUE.md, 2026-09-02), THE SAME
+// SHAPE AS `PencilNote` ABOVE: `@/components/ui/dropdown-menu` had zero live
+// importers and was deleted in the same packet, so checking this row does not
+// render it is a guarantee no test needs to make — nothing can render an
+// import that no longer exists.
 
 describe("OPPORTUNITY_STATUSES", () => {
   test("is the six lanes the server fn's status enum accepts, in board order", () => {
