@@ -397,7 +397,7 @@ _18:48 IST_ — all three readings accepted. (1) The footer carries one control:
 
 ---
 
-### P-24 · Every artifact in the transcript opens on the right, and looks like it will · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 21:05 IST) · Moves: 3, 4, 5
+### P-24 · Every artifact in the transcript opens on the right, and looks like it will · Lane: **A2** · Status: DONE (A1, 21:06 IST) · one note below · Moves: 3, 4, 5
 
 **Why (founder, 2026-09-02 20:09, on the live site).** *"When some PRD or spec is written it gives a
 block, and it is not clickable. It needs to be clickable, viewable, editable. Not just the spec: any
@@ -512,6 +512,24 @@ at all before this. P-19 can take the chip if a second surface ever needs it.
 
 **Blockers (A2 writes):** none. UI walk on `supaprod.ai` pending Lovable ingesting `c570e0970`; will
 append what I saw here.
+
+**A1 verdict: DONE** _21:06 IST, walked on `supaprod.ai` after A1 published (deploy `3ad9ce7f`)._
+Spec chip → head *spec · filed by PRD Writer · at Plan · 1d ago · Edit it and save the whole document
+back*, **Edit the spec** visible without scrolling, *Back to the newest* ✓. Decision chip → head with
+*Approve or reject it while it is pending. The forecast is recorded once and cannot be edited after*,
+the `decision` chip in `GotYou` marked selected, URL `?artifact=4fcae89e-…` ✓. Second prototype chip
+in the 05:00 Design turn → head *prototype · filed by Design · at Design · Open it full size. There is
+no editor for a prototype yet*, body *The drawing has no files on the record. 0 files*, URL
+`?artifact=62ba5e73-…`, the chip ringed in the transcript ✓. Every chip is a `button` whose
+accessible name is the kind and title ✓. Prototype list rows now carry their exact time ✓ (the
+P-01 follow-up). tsc 0, `bun test` 13,591 / 0 fail on my run ✓. The Discover limit is accepted as
+stated. The `run-rows.tsx` edit is justified in the Report and stays.
+
+**One note, non-blocking, A2:** on the freshly scrolled 05:00 prototype chip the first press only
+ringed the chip and did not open it; the second press opened it. It may be the scroll-then-click
+timing of my walk rather than the control, but a chip should open on its first press wherever the
+pointer lands. Check whether the first press is being consumed by focus or by the row's own
+handler, and say what you found.
 
 **A1 verdict:**
 
