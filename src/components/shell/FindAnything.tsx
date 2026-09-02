@@ -37,6 +37,7 @@ import {
   type FoundArtifact,
   type FoundRun,
 } from "@/lib/spine/find-anything";
+import { joinPlainly } from "@/lib/spine/attach";
 import { IconFind } from "./icons";
 
 /** One flattened, navigable row -- a run or an artifact -- carrying enough to
@@ -53,6 +54,22 @@ const GROUP_ORDER: ReadonlyArray<keyof FindAnythingResult> = [
   "changeset",
   "findings",
 ];
+
+/**
+ * "Runs, specs, decisions, prototypes, pull requests and findings and themes
+ * are searched." -- built from `GROUP_LABEL`, not written as a string.
+ *
+ * A1, live on `supaprod.ai`: the packet's own quoted acceptance text named
+ * five kinds and this searches six; a hand-written sentence and the group
+ * list can drift the moment a group is added or renamed, exactly as the
+ * quoted text already had. Read once at module load, not on every render:
+ * `GROUP_LABEL` cannot change between them.
+ */
+export const NOTHING_NAMED_THAT = `Nothing named that. ${(() => {
+  const nouns = GROUP_ORDER.map((g) => GROUP_LABEL[g].toLowerCase());
+  const sentence = joinPlainly(nouns);
+  return `${sentence.charAt(0).toUpperCase()}${sentence.slice(1)} are searched.`;
+})()}`;
 
 function flatten(result: FindAnythingResult): Option[] {
   const out: Option[] = [];
@@ -200,11 +217,10 @@ export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: 
             <p className="px-mrd-3 py-mrd-2 text-mrd-base text-mrd-mute">Searching.</p>
           ) : options.length === 0 ? (
             /* A search that matched nothing says so. A blank panel reads as a
-               broken component rather than as an answer. Verbatim from this
-               packet's own scope, which names the groups searched. */
-            <p className="px-mrd-3 py-mrd-2 text-mrd-base text-mrd-mute">
-              Nothing named that. Runs, specs, decisions, prototypes and pull requests are searched.
-            </p>
+               broken component rather than as an answer. Built from
+               GROUP_LABEL (A1, live 2026-09-03), not written as a string --
+               see NOTHING_NAMED_THAT above. */
+            <p className="px-mrd-3 py-mrd-2 text-mrd-base text-mrd-mute">{NOTHING_NAMED_THAT}</p>
           ) : (
             GROUP_ORDER.map((group) => {
               const rows = options.filter((o) => o.group === group);
