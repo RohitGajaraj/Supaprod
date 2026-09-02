@@ -453,7 +453,12 @@ export function RunRollup({ items }: { items: ReactNode[] }) {
   const shown = items.filter(Boolean);
   if (shown.length === 0) return null;
   return (
-    <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-mrd-data text-mrd-mute">
+    /* `min-w-0` for the reason `RunArtifact`'s own SHAPE carries it: this is a
+       flex container, so without it it refuses to shrink below its widest item,
+       and its widest item is a chip carrying an artifact title. The row above it
+       has `min-w-0` on the grid item; the chain has to be unbroken or the pane
+       scrolls sideways. */
+    <span className="mt-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-mrd-data text-mrd-mute">
       {shown.map((item, i) => (
         <Fragment key={i}>
           {/* Hidden from assistive tech: it is punctuation between facts that
@@ -564,8 +569,19 @@ export function RunArtifact({
     </>
   );
 
+  /*
+   * `min-w-0` AS WELL AS `max-w-full`, and the difference between them is the
+   * whole defect. `max-w-full` caps the chip at its container's width; it does
+   * not let the chip SHRINK, because a flex container defaults to
+   * `min-width: auto` and refuses to go below its own content. A prototype
+   * title is 54 characters, so the chip took its intrinsic width, the rollup
+   * took the chip's, the grid column took the rollup's, and the whole left pane
+   * scrolled sideways -- clipping the steer field under it to "ay what to
+   * change". Photographed twice: once on the row headline (fixed there) and
+   * again here the moment the chip became a control.
+   */
   const SHAPE =
-    "inline-flex min-h-5 max-w-full items-center gap-1 rounded-mrd-xs border px-1.5 py-0.5 text-mrd-data text-mrd-body";
+    "inline-flex min-h-5 min-w-0 max-w-full items-center gap-1 rounded-mrd-xs border px-1.5 py-0.5 text-mrd-data text-mrd-body";
 
   /*
    * A MISSING ARTIFACT IS NEVER A CONTROL. The row says "no longer on file",

@@ -28,6 +28,8 @@
  *    shortcut the chips make precise.
  */
 import { describe, expect, it } from "bun:test";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { fireEvent, render } from "@testing-library/react";
 
 import { RunRollup } from "@/components/meridian/run-rows";
@@ -105,6 +107,34 @@ describe("a chip that can open something", () => {
     });
     const chips = getAllByRole("button");
     expect(chips.map((c) => c.getAttribute("aria-pressed"))).toEqual(["false", "true", "false"]);
+  });
+});
+
+describe("a long title must not widen the pane", () => {
+  /*
+   * ── THE SAME DEFECT, TWICE, AND `max-w-full` DID NOT PREVENT EITHER ──────
+   *
+   * A flex container defaults to `min-width: auto` and refuses to shrink below
+   * its own content. `max-w-full` caps a chip at its container's width and does
+   * nothing about that. A prototype title is 54 characters, so the chip took its
+   * intrinsic width, the rollup took the chip's, the grid column took the
+   * rollup's, and the left pane scrolled sideways -- clipping the steer field
+   * under it to "ay what to change".
+   *
+   * Photographed twice on `ce846e9b`: once when the row headline became a
+   * control, and again the moment the chip did. The chain from the grid item
+   * down to the chip has to be unbroken, which is why this asserts every link
+   * rather than the one that happened to be reported.
+   */
+  it("keeps min-w-0 on every link in the chain, not only where it was reported", () => {
+    const src = readFileSync(
+      fileURLToPath(new URL("../meridian/run-rows.tsx", import.meta.url)),
+      "utf8",
+    );
+    // The chip itself.
+    expect(src).toContain("inline-flex min-h-5 min-w-0 max-w-full items-center");
+    // The rollup that holds the chips.
+    expect(src).toContain("mt-1 flex min-w-0 flex-wrap items-center");
   });
 });
 
