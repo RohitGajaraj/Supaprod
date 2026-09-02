@@ -1,7 +1,13 @@
 /**
- * ── THE VERDICT AT BUILD: WHAT A SEAT THAT DID NOT WRITE THE DIFF FOUND ────
+ * ── READING `studio.review`, WHICH IS THE HALF MERIDIAN MUST NOT KNOW ─────
  *
- * WHY THIS IS ITS OWN COMPONENT rather than the block it was lifted out of.
+ * P-19 promoted the DRAWING into `meridian/verdict.tsx`, and this is what could
+ * not go with it: the column a verdict arrives in, the two ways it can be
+ * absent, and the words for each. A Meridian primitive that knew about
+ * `studio_changesets.code_review` would be a primitive with exactly one possible
+ * caller, and the second caller is a design review or an eval suite.
+ *
+ * WHY THE VERDICT IS ITS OWN THING rather than part of the block it was lifted from.
  * `ChangesetCard` drew the review inline, which made it a property of the Build
  * card. It is not: it is the one place on this surface where something OTHER
  * than the agent that did the work reports on the work, and that is the whole
@@ -42,9 +48,8 @@
  * thing the product is selling. P-02 makes the spec's acceptance lines the
  * denominator; until it lands this says what it can source.
  */
-import { StatusChip } from "@/components/meridian/StatusChip";
-import { RunNote } from "@/components/meridian/run-rows";
 import { relativeTime } from "@/lib/memory-view";
+import type { VerdictFinding, VerdictTone } from "@/components/meridian/verdict";
 
 /** One thing the reviewer found, as `studio.review` writes it. */
 export type ReviewFindingView = {
@@ -133,107 +138,60 @@ export function whyNoVerdict(review: ReviewView | null): string {
 /** Findings first by severity, so the thing that blocks is the thing on top. */
 const SEVERITY_ORDER: Record<string, number> = { blocker: 0, major: 1, minor: 2 };
 
-export function Verdict({ review: raw }: { review: unknown }) {
+/**
+ * The parsed review, in the shape `meridian/verdict.tsx` draws.
+ *
+ * The mapping lives HERE rather than at the call site, so the Build tab and the
+ * strip above the pane cannot describe one review two ways -- which is the
+ * whole reason `Verdict` was pulled out of `ChangesetCard` in the first place.
+ */
+export function verdictProps(raw: unknown): {
+  tone: VerdictTone | null;
+  word?: string;
+  compared?: string | null;
+  summary?: string | null;
+  findings: VerdictFinding[];
+  clean?: string;
+  meta?: string | null;
+  absence: string;
+} {
   const review = parseReview(raw);
-
-  return (
-    <div className="flex flex-col gap-mrd-2 rounded-mrd-chip bg-mrd-sink p-mrd-4">
-      <span className="mrd-eyebrow">The verdict on this change</span>
-
-      {!hasVerdict(review) ? (
-        /* ONE LINE, AND IT NAMES THE REASON. Not `RecordSpeaks`, which draws its
-           own bordered box: this block is already a container and the standard
-           caps a region at one. */
-        <p className="text-mrd-small text-mrd-mute">{whyNoVerdict(review)}</p>
-      ) : (
-        <VerdictBody review={review as ReviewView} />
-      )}
-    </div>
-  );
-}
-
-function VerdictBody({ review }: { review: ReviewView }) {
-  const tone = TONE[review.verdict as string] ?? { status: "hold" as const, word: review.verdict! };
-  const findings = [...(review.findings ?? [])].sort(
+  if (!hasVerdict(review)) {
+    return { tone: null, findings: [], absence: whyNoVerdict(review) };
+  }
+  const r = review as ReviewView;
+  const tone = TONE[r.verdict as string] ?? { status: "hold" as const, word: r.verdict! };
+  const findings = [...(r.findings ?? [])].sort(
     (a, b) => (SEVERITY_ORDER[a.severity ?? ""] ?? 3) - (SEVERITY_ORDER[b.severity ?? ""] ?? 3),
   );
-  const shown = findings.slice(0, 25);
-
-  return (
-    <>
-      {/*
-       * WHAT IT COMPARED, ON THE SAME LINE AS WHAT IT CONCLUDED. A verdict with
-       * no denominator is an opinion, and `files_reviewed` is the denominator
-       * the review itself recorded. Absent, the clause is absent: a reviewer
-       * that did not say how much it read is not made to say a number.
-       */}
-      <span className="flex flex-wrap items-center gap-mrd-3">
-        <StatusChip status={tone.status}>{tone.word}</StatusChip>
-        {review.files_reviewed != null ? (
-          <span className="mrd-meta">
-            {`Compared ${review.files_reviewed} ${review.files_reviewed === 1 ? "file" : "files"} against the change`}
-          </span>
-        ) : null}
-      </span>
-
-      {review.summary ? (
-        <span className="min-w-0 text-mrd-small text-mrd-mute">{review.summary}</span>
-      ) : null}
-
-      {/*
-       * WHAT HELD, SAID OUT LOUD, because a clean pass that renders as an empty
-       * space is indistinguishable from a pass nobody drew. Only when the
-       * reviewer read something: "nothing did not hold" over a denominator of
-       * zero is a sentence about nothing.
-       */}
-      {findings.length === 0 ? (
-        <p className="text-mrd-small text-mrd-body">
-          {review.files_reviewed
-            ? "Every line it checked held. It raised nothing."
-            : "It raised nothing."}
-        </p>
-      ) : (
-        <div className="flex flex-col gap-mrd-2">
-          {shown.map((f, i) => (
-            <div
-              key={`${f.path ?? "no-path"}:${f.line ?? i}:${i}`}
-              className="flex flex-col gap-0.5 border-b border-mrd-line-soft pb-mrd-2 last:border-0"
-            >
-              <span className="text-mrd-small font-medium text-mrd-body">
-                {[f.severity, f.category, f.deterministic ? "checked" : "judged"]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </span>
-              {f.issue ? <RunNote>{f.issue}</RunNote> : null}
-              {f.fix ? <span className="text-mrd-small text-mrd-mute">Fix: {f.fix}</span> : null}
-              {/* THE LINE IT READ, CITED. Cursor's rule: a check that cannot be
-                  followed back to what it looked at is not evidence. */}
-              {f.path ? (
-                <span className="font-mrd-mono text-mrd-data text-mrd-faint">
-                  {f.path}
-                  {f.line ? `:${f.line}` : ""}
-                </span>
-              ) : null}
-            </div>
-          ))}
-          {findings.length > 25 ? (
-            <p className="font-mrd-mono text-mrd-small tabular-nums text-mrd-faint">
-              {findings.length - 25} further findings not shown here.
-            </p>
-          ) : null}
-        </div>
-      )}
-
-      <span className="mrd-meta">
-        {[
-          review.reviewer_model ? `reviewer ${review.reviewer_model}` : "",
-          review.reviewed_at ? relativeTime(review.reviewed_at, Date.now()) : "",
-        ]
-          .filter(Boolean)
-          .join(" · ")}
-      </span>
-    </>
-  );
+  return {
+    tone: tone.status,
+    word: tone.word,
+    compared:
+      r.files_reviewed != null
+        ? `Compared ${r.files_reviewed} ${r.files_reviewed === 1 ? "file" : "files"} against the change`
+        : null,
+    summary: r.summary ?? null,
+    findings: findings.map((f) => ({
+      severity: f.severity,
+      category: f.category,
+      /* The citation, composed here because "path:line" is this record's own
+         way of naming a place and another caller's may not be. */
+      where: f.path ? `${f.path}${f.line ? `:${f.line}` : ""}` : null,
+      issue: f.issue,
+      fix: f.fix ?? null,
+      checked: f.deterministic,
+    })),
+    clean: r.files_reviewed
+      ? "Every line it checked held. It raised nothing."
+      : "It raised nothing.",
+    meta:
+      [
+        r.reviewer_model ? `reviewer ${r.reviewer_model}` : "",
+        r.reviewed_at ? relativeTime(r.reviewed_at, Date.now()) : "",
+      ]
+        .filter(Boolean)
+        .join(" · ") || null,
+    absence: whyNoVerdict(review),
+  };
 }
-
-export default Verdict;

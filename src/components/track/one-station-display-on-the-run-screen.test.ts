@@ -50,8 +50,12 @@ const SURFACE: Record<string, string> = {
   TrackRun: read("./TrackRun.tsx"),
   ArtifactPane: read("./ArtifactPane.tsx"),
   TrackActivity: read("../spine/TrackActivity.tsx"),
-  GotYou: read("./GotYou.tsx"),
-  Verdict: read("./Verdict.tsx"),
+  /* P-19 promoted the drawing into Meridian and left the reading here, so the
+     two names now point at a primitive and a pure module rather than at one
+     component each. The rule this list holds is unchanged: nothing the run
+     screen draws may declare a tablist or mount a station display. */
+  GotYou: read("../meridian/got-you.tsx"),
+  Verdict: read("../meridian/verdict.tsx"),
   RunFooter: read("./RunFooter.tsx"),
 };
 

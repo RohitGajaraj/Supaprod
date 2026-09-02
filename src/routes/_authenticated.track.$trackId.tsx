@@ -17,7 +17,7 @@ import { runStatus } from "@/components/track/run-status";
 import { cameBackOnItsOwn } from "@/components/track/came-back-on-its-own";
 import { supabase } from "@/integrations/supabase/client";
 import { holdTone } from "@/lib/spine/driver";
-import { useRunTally } from "@/components/track/GotYou";
+import { useRunTally } from "@/components/track/run-tally";
 
 /**
  * /track/$trackId -- the one address a piece of work has.

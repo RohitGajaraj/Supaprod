@@ -20,7 +20,26 @@
 import { describe, expect, it } from "bun:test";
 import { render } from "@testing-library/react";
 
-import { Verdict, hasVerdict, parseReview, verdictLine, whyNoVerdict } from "./Verdict";
+import { Verdict } from "@/components/meridian/verdict";
+import {
+  hasVerdict,
+  parseReview,
+  verdictLine,
+  verdictProps,
+  whyNoVerdict,
+} from "./verdict-reading";
+
+/*
+ * ── THE BLOCK IS MERIDIAN'S NOW, THE READING IS NOT (P-19) ────────────────
+ * These render the primitive through the reading, which is exactly the seam the
+ * promotion created: `verdictProps` turns a `code_review` column into facts, and
+ * `meridian/verdict.tsx` draws facts and has never heard of the column. Testing
+ * them together is the right grain, because the thing worth protecting is that a
+ * person sees the same sentence either way.
+ */
+const render_ = (raw: unknown) => (
+  <Verdict label="The verdict on this change" {...verdictProps(raw)} />
+);
 
 describe("reading the column", () => {
   it("takes the object PostgREST returns and the string some writers store", () => {
@@ -53,7 +72,7 @@ describe("the two absences say different things", () => {
   });
 
   it("renders one line and names the reason, never a chip", () => {
-    const { container } = render(<Verdict review={null} />);
+    const { container } = render(render_(null));
     const text = container.textContent ?? "";
     expect(text).toContain("has not run on this change yet");
     // No chip: there is no verdict to wear one, and a chip over an absence is a
@@ -90,39 +109,37 @@ describe("a verdict states what it compared before what it concluded", () => {
   };
 
   it("prints the denominator, because a verdict without one is an opinion", () => {
-    const { container } = render(<Verdict review={review} />);
+    const { container } = render(render_(review));
     expect(container.textContent).toContain("Compared 6 files against the change");
   });
 
   it("puts the blocker above the minor finding", () => {
-    const { container } = render(<Verdict review={review} />);
+    const { container } = render(render_(review));
     const text = container.textContent ?? "";
     expect(text.indexOf("credential")).toBeLessThan(text.indexOf("Names the tool id"));
   });
 
   it("cites the line each finding read, so the claim can be followed back", () => {
-    const { container } = render(<Verdict review={review} />);
+    const { container } = render(render_(review));
     const text = container.textContent ?? "";
     expect(text).toContain("src/a.ts:40");
     expect(text).toContain("src/b.ts:12");
   });
 
   it("says whether a finding was checked or judged", () => {
-    const { container } = render(<Verdict review={review} />);
+    const { container } = render(render_(review));
     const text = container.textContent ?? "";
     expect(text).toContain("checked");
     expect(text).toContain("judged");
   });
 
   it("says a clean pass out loud rather than leaving an empty space", () => {
-    const { container } = render(
-      <Verdict review={{ verdict: "approve", findings: [], files_reviewed: 4 }} />,
-    );
+    const { container } = render(render_({ verdict: "approve", findings: [], files_reviewed: 4 }));
     expect(container.textContent).toContain("Every line it checked held");
   });
 
   it("wears exactly one chip, which is the verdict's own", () => {
-    const { container } = render(<Verdict review={review} />);
+    const { container } = render(render_(review));
     expect(container.querySelectorAll("[data-status]").length).toBe(1);
   });
 });

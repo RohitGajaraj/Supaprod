@@ -17,7 +17,7 @@
  */
 import { describe, expect, it } from "bun:test";
 
-import { hasAnything, runTally } from "./GotYou";
+import { hasAnything, runTally } from "./run-tally";
 import type { StationArtifactView } from "@/lib/spine/track.functions";
 
 const stop = (

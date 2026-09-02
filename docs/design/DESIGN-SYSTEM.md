@@ -85,7 +85,23 @@ Adding to Meridian is deliberately not free:
 | **Space / shape / depth** | `--mrd-s1..s8` `--mrd-r-xs/chip/ctl/card/pane` `--mrd-shadow-card/float/pane` `--mrd-scrim` |
 | **Motion** | `--mrd-d-press/move/enter` `--mrd-ease` `--mrd-ease-soft` |
 
-Components: [`src/components/meridian/`](../../src/components/meridian/) — 23 of them, plus `surface-parts.tsx` for the chrome every surface shares. **Compose from these.** A surface reaching for a raw `<div>` with a hand-written colour is doing it wrong.
+Components: [`src/components/meridian/`](../../src/components/meridian/) — 25 of them, plus `surface-parts.tsx` for the chrome every surface shares. **Compose from these.** A surface reaching for a raw `<div>` with a hand-written colour is doing it wrong.
+
+### Two promoted from the run screen, 2026-09-02 (P-19)
+
+`verdict.tsx` and `got-you.tsx` were built on `/track/:id` and promoted once a second reader existed. Both promotions **split** rather than moved, and the split is the reusable part:
+
+| Primitive | It draws | It deliberately does not know |
+| --- | --- | --- |
+| **`Verdict`** | what was compared, what was concluded, and each finding citing the line it read | that a verdict arrives in `studio_changesets.code_review`, or which of its two absences applies |
+| **`GotYou`** | chips naming things that exist and open, then quiet clauses that state facts and open nothing | `spine_track_members`, artifact kinds, or how to count a cost |
+
+**A primitive that knew the column would have exactly one possible caller.** The second reader of a verdict is a design review or an eval suite, and neither has a `code_review` column, so the reading stays with the surface (`track/verdict-reading.ts`, `track/run-tally.ts`) and the drawing came here. That is the test to apply to the next promotion: **what would the second caller have to pretend to be?** If the answer is "a track", the component is not general yet.
+
+Two rules they carry that are worth copying:
+
+- **`Verdict.absence` is a required prop.** The absence is the common case — 0 of 45 changesets carried a review — so a caller cannot forget to say why there is none.
+- **`GotYou` chips are controls only when `onOpen` is passed**, the contract `ToolStream` already holds. A chip that opens nothing must not look like it does.
 
 ---
 

@@ -1,5 +1,14 @@
 # Meridian adoption, measured — 2026-08-25
 
+> **Update 2026-09-02 (P-19).** Two components promoted out of `src/components/track/`:
+> `verdict.tsx` and `got-you.tsx`. **Meridian .tsx files (excluding tests): 47 → 49.** Both were
+> adopted on the day they landed — the run screen imports each — so the adopted count moves with
+> them and the unadopted 26 is unchanged. Both promotions SPLIT rather than moved: the drawing came
+> here and the reading stayed with the surface (`track/verdict-reading.ts`, `track/run-tally.ts`),
+> because a primitive that knew `studio_changesets.code_review` would have exactly one possible
+> caller. The rule and the table are in
+> [`docs/design/DESIGN-SYSTEM.md`](../docs/design/DESIGN-SYSTEM.md).
+
 > _MAIN LANE owns `src/components/meridian/**`. This is the census, the correction to the founder's
 > figure, and the ruling on what each lane must compose rather than invent._
 

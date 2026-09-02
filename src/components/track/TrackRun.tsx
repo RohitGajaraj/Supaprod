@@ -79,7 +79,14 @@ import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { takeOver } from "@/components/track/take-over";
 import type { SpineRoute } from "@/lib/spine/route";
-import { GotYou } from "@/components/track/GotYou";
+import { GotYou } from "@/components/meridian/got-you";
+import {
+  gotYouChips,
+  gotYouClauses,
+  gotYouLink,
+  hasAnything,
+  useRunTally,
+} from "@/components/track/run-tally";
 import { stoppedByYou } from "@/components/track/footer-mode";
 
 /**
@@ -1151,6 +1158,44 @@ export function TrackRunLeft({
  * pane-station pointer lives entirely in here -- it is the private wiring of
  * item 7 (a record row reveals the artifact), and no other pane reads it.
  */
+/**
+ * The strip, filled from this run's own rows.
+ *
+ * A thin composition rather than a component: `meridian/got-you.tsx` draws chips
+ * and clauses and knows nothing about tracks, `run-tally.ts` counts a track and
+ * knows nothing about drawing, and this is the two-line seam between them. It
+ * lives here rather than in either, because "which run" is the pane's question.
+ */
+function RunGotYou({
+  trackId,
+  onOpen,
+  active,
+}: {
+  trackId: string;
+  onOpen?: (artifactId: string | null) => void;
+  active: string | null;
+}) {
+  const { tally, ready } = useRunTally(trackId);
+  /*
+   * NOTHING YET IS NOT AN EMPTY STRIP. A run that has produced nothing has a
+   * transcript saying so two inches to the left, and a box reading "nothing yet"
+   * over a pane that already says it is the duplication this screen keeps being
+   * repaired for. `ready` is both reads having answered, so the strip arrives
+   * whole rather than reflowing as its second half lands.
+   */
+  if (!ready || !hasAnything(tally)) return null;
+  return (
+    <GotYou
+      label="What this run got you"
+      chips={gotYouChips(tally)}
+      clauses={gotYouClauses(tally)}
+      link={gotYouLink(tally)}
+      active={active}
+      onOpen={onOpen ? (id) => onOpen(id) : undefined}
+    />
+  );
+}
+
 export function TrackPaneRight({
   trackId,
   isRunning = false,
@@ -1193,7 +1238,7 @@ export function TrackPaneRight({
        * It never names a station that made nothing, which is the difference
        * between a summary and a seven-slot template.
        */}
-      <GotYou trackId={trackId} onOpen={onOpenArtifact} active={activeArtifactId} />
+      <RunGotYou trackId={trackId} onOpen={onOpenArtifact} active={activeArtifactId} />
       <ArtifactPane
         trackId={trackId}
         activeArtifactId={activeArtifactId}

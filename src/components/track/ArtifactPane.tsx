@@ -107,7 +107,8 @@ import {
   type AutonomyPolicyRow,
 } from "@/lib/autonomy-policy";
 import { becameWorkOnItsOwn } from "@/lib/spine/promote";
-import { Verdict } from "@/components/track/Verdict";
+import { Verdict } from "@/components/meridian/verdict";
+import { verdictProps } from "@/components/track/verdict-reading";
 
 /** What each station exists to do, for the not-run sentence. Display labels only. */
 const PURPOSE: Record<string, string> = {
@@ -1735,8 +1736,11 @@ function ChangesetCard({ item }: { item: ArtifactView }) {
 
       <ChangesetDiffView changesetId={item.artifactId} />
 
-      {/* THE VERDICT, OR THE TRUTH ABOUT ITS ABSENCE. */}
-      <Verdict review={f.code_review} />
+      {/* THE VERDICT, OR THE TRUTH ABOUT ITS ABSENCE. The block is Meridian's;
+          the reading of `code_review` and the words for each of its two
+          absences are this layer's, because a primitive that knew the column
+          would have exactly one possible caller. */}
+      <Verdict label="The verdict on this change" {...verdictProps(f.code_review)} />
     </div>
   );
 }

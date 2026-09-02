@@ -1,7 +1,13 @@
 /**
- * ── WHAT THIS RUN GOT YOU ─────────────────────────────────────────────────
+ * ── COUNTING WHAT A RUN GOT YOU, WHICH IS THE HALF MERIDIAN MUST NOT KNOW ─
  *
- * One strip above the artifact pane: what the run produced, the verdict on it,
+ * P-19 promoted the DRAWING into `meridian/got-you.tsx`, and this is what could
+ * not go with it: `spine_track_members` counted by artifact kind, the pull
+ * request on the changeset row, the forecast horizon on the decision, the two
+ * refusals about a zero, and the display word for each kind. A strip that knew
+ * those would be a primitive that can only ever describe a track.
+ *
+ * What it produces is the strip above the artifact pane: what the run produced, the verdict on it,
  * when the forecast comes due, how long it took and what it cost. A1-REPORT §4
  * calls it "the 'impact, evidenced' line and it is the sentence the person
  * repeats to a colleague", and that is the test this file is built against: if
@@ -40,12 +46,13 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import type { GotYouChip } from "@/components/meridian/got-you";
 
 import { KIND_WORD } from "@/lib/spine/attach";
 import { formatElapsed } from "@/components/meridian/run-rows";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { costSummary } from "@/components/track/cost-summary";
-import { parseReview, verdictLine } from "@/components/track/Verdict";
+import { parseReview, verdictLine } from "@/components/track/verdict-reading";
 import {
   getTrackActivity,
   getTrackArtifacts,
@@ -283,137 +290,24 @@ function markFor(kind: string): string {
   return MARK[kind] ?? "";
 }
 
-/** One clause. Separated by a middot only when something precedes it. */
-function Clause({ children, first }: { children: React.ReactNode; first: boolean }) {
-  return (
-    <>
-      {first ? null : (
-        <span aria-hidden className="text-mrd-faint">
-          ·
-        </span>
-      )}
-      {children}
-    </>
-  );
+/**
+ * The tally as `meridian/got-you.tsx` draws it: chips that open something, and
+ * clauses that state facts and open nothing.
+ *
+ * The division is the design, so it is decided HERE, where the facts are, rather
+ * than at the call site: a person can tell at a glance which half they can press
+ * because the pressable half is exactly the half that names a thing that exists.
+ */
+export function gotYouChips(t: Tally): GotYouChip[] {
+  return t.made.map((m) => ({ id: m.artifactId, label: m.label, mark: markFor(m.kind) }));
 }
 
-export function GotYou({
-  trackId,
-  onOpen,
-  active = null,
-}: {
-  trackId: string;
-  /** Press a chip and the pane below opens the artifact that chip names. */
-  onOpen?: (artifactId: string) => void;
-  /** The artifact id the pane is showing, so the chip that chose it says so. */
-  active?: string | null;
-}) {
-  const { tally, ready } = useRunTally(trackId);
-
-  /*
-   * NOTHING YET IS NOT AN EMPTY STRIP. §4 puts this block on the screen "once
-   * the run has produced anything", and a run that has produced nothing has a
-   * transcript saying so two inches to the left. A bordered box reading "nothing
-   * yet" over a pane that already says it is the duplication this screen keeps
-   * being repaired for.
-   */
-  if (!ready || !hasAnything(tally)) return null;
-
-  /* The quiet clauses, which state facts rather than open anything. */
-  const clauses = [tally.verdict, tally.horizon, tally.elapsed, tally.cost].filter(
-    (c): c is string => Boolean(c),
-  );
-
-  return (
-    /*
-     * A STRIP, NOT A FOURTH BOX. The pane below draws its own bordered region
-     * and the workbench already stacks a bordered header over two bordered
-     * panes; a card here would make the right column read as a dashboard of
-     * containers. One hairline under it, and the type carries the hierarchy:
-     * what you have in ink, everything about it quiet.
-     */
-    <section
-      data-mrd=""
-      aria-label="What this run got you"
-      className="flex flex-col gap-mrd-2 border-b border-mrd-line pb-mrd-4 font-mrd"
-    >
-      <div className="flex flex-wrap items-center gap-mrd-2">
-        {tally.made.map((m) => {
-          const on = active === m.artifactId;
-          const chip = (
-            <>
-              <span className="text-mrd-data text-mrd-faint">{markFor(m.kind)}</span>
-              <span>{m.label}</span>
-            </>
-          );
-          /*
-           * A CHIP IS A CONTROL ONLY IF SOMETHING IS LISTENING. With no
-           * `onOpen` these are facts, with no pointer and no tab stop, which
-           * is the rule the shell's own chips follow: drawing a control that
-           * opens nothing is the promise this repo removes wherever it finds it.
-           */
-          if (!onOpen) {
-            return (
-              <span
-                key={m.kind}
-                className="inline-flex items-center gap-1.5 rounded-mrd-chip bg-mrd-sink px-2 py-1 text-mrd-small text-mrd-body"
-              >
-                {chip}
-              </span>
-            );
-          }
-          return (
-            <button
-              key={m.kind}
-              type="button"
-              aria-pressed={on}
-              onClick={() => onOpen(m.artifactId)}
-              className={`mrd-focus-inset inline-flex items-center gap-1.5 rounded-mrd-chip px-2 py-1 text-mrd-small transition-colors duration-100 ${
-                on ? "bg-mrd-lift text-mrd-ink" : "bg-mrd-sink text-mrd-body hover:bg-mrd-hover"
-              }`}
-            >
-              {chip}
-            </button>
-          );
-        })}
-
-        {/* THE PULL REQUEST IS A LINK, NOT A CHIP, because it leaves. Devin puts
-            it first on a finished run; here it sits with the things it belongs
-            beside and keeps the one behaviour that separates it from them. */}
-        {tally.pr ? (
-          tally.pr.url ? (
-            <a
-              href={tally.pr.url}
-              target="_blank"
-              rel="noreferrer"
-              className="mrd-focus-inset inline-flex items-center rounded-mrd-chip px-2 py-1 text-mrd-small font-medium text-mrd-you underline underline-offset-2"
-            >
-              {`PR #${tally.pr.number}`}
-            </a>
-          ) : (
-            <span className="inline-flex items-center rounded-mrd-chip bg-mrd-sink px-2 py-1 text-mrd-small text-mrd-body">
-              {`PR #${tally.pr.number}`}
-            </span>
-          )
-        ) : null}
-      </div>
-
-      {/*
-       * THE FACTS ABOUT ALL OF IT, under the things themselves. Verdict, when
-       * the forecast lands, how long, what it cost: none of them opens anything,
-       * so none of them is drawn as though it might.
-       */}
-      {clauses.length > 0 ? (
-        <p className="flex flex-wrap items-baseline gap-x-mrd-2 gap-y-mrd-1 text-mrd-base text-mrd-mute">
-          {clauses.map((c, i) => (
-            <Clause key={c} first={i === 0}>
-              <span>{c}</span>
-            </Clause>
-          ))}
-        </p>
-      ) : null}
-    </section>
-  );
+export function gotYouClauses(t: Tally): string[] {
+  return [t.verdict, t.horizon, t.elapsed, t.cost].filter((c): c is string => Boolean(c));
 }
 
-export default GotYou;
+export function gotYouLink(t: Tally): { label: string; href: string } | null {
+  /* Only when it can actually be opened. A number with no url is still worth
+     saying, and it is said as a chip rather than as a link that goes nowhere. */
+  return t.pr?.url ? { label: `PR #${t.pr.number}`, href: t.pr.url } : null;
+}
