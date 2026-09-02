@@ -452,6 +452,10 @@ tests.
 - [ ] A track whose review says `did not` re-runs the builder once with the lines; the transcript
       shows it as *Sent back once: 2 lines did not hold*.
 - [ ] `GotYou` (P-01) reads the verdict line from the same source.
+- [ ] **The self-check is visible and counted (playbook gap 22, founder 2026-09-02).** Every
+      station's own check writes one transcript row in the form *"Checked its own work: N lines held,
+      M did not"* and, on a retry, *"retried once"*; `GotYou` shows the total (*self-checks 3 · 1
+      retry*). Counted from what the check actually compared, never a constant.
 
 **Report / Blockers / A1 verdict:**
 
@@ -602,5 +606,38 @@ more"*) and a control to change the frequency floor.
       `track_drives` order).
 - [ ] The row shows *First* and the control flips; a test asserts the order clause.
 - [ ] The Autonomy tab sentence quotes the workspace's actual bar; changing the floor round-trips.
+
+**Report / Blockers / A1 verdict:**
+
+---
+
+### P-21 · Plan emits `intent.md` · `spec.md` · `plan.md` in the playbook's shape · Lane: **A2** · Status: BLOCKED → P-02 · Moves: 3, 4
+
+**Why.** Anthropic's AI-native SDLC playbook (adopted 2026-08-31, `SPEC-AI-NATIVE-SDLC.md` §4.1,
+gap 20) names three files a team keeps in its repo. A team on that playbook should be able to drop
+our output into their repo with no adapter. Today Plan files a `prd` row and tasks; nothing a person
+can hold. Founder asked 2026-09-02 that what can be taken from the playbook be implemented.
+
+**Scope.** At Decide the strategist derives the five intent fields (problem · who it is for ·
+constraints · what success looks like · non-goals; gap 16) and they are stored on the decision. At
+Plan, `prd.draft` and `tasks.create` produce three rendered files, `intent.md`, `spec.md`, `plan.md`,
+in the playbook's headings, stored as artifacts on the run. The Plan tab shows them as themselves
+with copy and download. Build's changeset includes them under `.supaprod/` in the PR so the repo
+carries the record the verdict was graded against. `GotYou` counts them.
+
+**Files.** `src/lib/spine/driver.ts` (Decide and Plan briefs only) · `src/lib/spine/attach.ts` ·
+new `src/lib/spine/playbook-files.ts` (pure renderers, tested) · `src/components/track/ArtifactPane.tsx`
+(Plan body only) · `src/lib/ai/tools/registry.server.ts` (`studio.stage` gains the three files when
+present; no other tool) · tests.
+
+**Not in scope.** `bands.yaml` (P-04 owns the band), `REVIEW.md` (P-02 owns done), hooks (gap 21,
+parked).
+
+**Acceptance.**
+- [ ] A driven track's Plan tab shows the three files with the playbook's headings; a test renders
+      them from a fixture decision and spec and checks every heading.
+- [ ] The PR opened at Build contains `.supaprod/intent.md`, `spec.md`, `plan.md` at the run's
+      content (A1 checks the PR on `relay-homeowner-app`).
+- [ ] `intent.md` carries the five fields and the forecast (claim, observable, horizon) verbatim.
 
 **Report / Blockers / A1 verdict:**
