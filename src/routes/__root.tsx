@@ -84,6 +84,7 @@ export function NotFoundComponent({
   return (
     <PageRouteMissing
       onGoHome={signedIn ? () => window.location.assign(SIGNED_IN_HOME) : undefined}
+      hideSignIn={signedIn}
     />
   );
 }

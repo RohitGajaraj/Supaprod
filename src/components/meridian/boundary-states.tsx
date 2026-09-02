@@ -231,9 +231,14 @@ export function PageReadFailed({
 export function PageRouteMissing({
   onGoHome,
   onSignIn,
+  hideSignIn = false,
 }: {
   onGoHome?: () => void;
   onSignIn?: () => void;
+  /** A person who already holds a session must not be offered "Sign in" on a
+   *  dead address: the root not-found reads the session and passes true
+   *  (P-15, 2026-09-03). Default false keeps every public caller unchanged. */
+  hideSignIn?: boolean;
 }) {
   const home = onGoHome ?? (() => window.location.assign("/"));
   const signIn = onSignIn ?? (() => window.location.assign("/login"));
@@ -251,7 +256,7 @@ export function PageRouteMissing({
             <Action variant="primary" onClick={home}>
               Go home
             </Action>
-            <Action onClick={signIn}>Sign in</Action>
+            {hideSignIn ? null : <Action onClick={signIn}>Sign in</Action>}
           </>
         }
       >
