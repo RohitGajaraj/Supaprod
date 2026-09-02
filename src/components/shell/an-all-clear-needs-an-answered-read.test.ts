@@ -12,7 +12,8 @@ import { join } from "node:path";
  *
  *   1. The shell's live line guarded `missions.isError` while the sentence it
  *      protects counts TWO reads — `running` from missions and `movingRuns`
- *      from `openTracks`. A refused tracks read fell through to the literal
+ *      from the tracks feed (`openTracks` until P-18, `moving` since — both
+ *      are still guarded). A refused tracks read fell through to the literal
  *      "Nothing running". The guard was checking the wrong query.
  *   2. `AgentRelay` drew "All quiet. Nothing needs you right now." whenever
  *      `q.data` was undefined, which is true of an idle workspace, a read
@@ -70,12 +71,14 @@ describe("the shell's live line", () => {
       body.indexOf('"Nothing running"'),
     );
 
-    // BOTH names, because the sentence counts both populations. `running` comes
-    // from missions and `movingRuns` from openTracks; guarding one leaves the
-    // other free to fail silently, which is exactly what shipped.
+    // BOTH names, because the sentence counts both populations. `running`
+    // comes from missions and `movingRuns` from `moving` (P-18); guarding one
+    // leaves the other free to fail silently, which is exactly what shipped.
     const guard = body.slice(guardAt, body.indexOf("return", guardAt));
     expect(guard, "the live line no longer consults missions").toContain("missions.isError");
-    expect(guard, "the live line no longer consults openTracks").toContain("openTracks.isError");
+    expect(guard, "the live line no longer consults the moving-tracks read").toContain(
+      "moving.isError",
+    );
   });
 });
 

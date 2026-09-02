@@ -111,7 +111,7 @@ describe("the bare catches cannot swallow the distinction", () => {
     expect(CODE).not.toContain("} catch {\n      return [];");
     expect(CODE).not.toContain("} catch {\n      return null;");
     /*
-     * ── THREE SINCE 2026-09-02, AND THE THIRD IS THE RULE SPREADING ─────────
+     * ── FOUR SINCE 2026-09-03, AND EACH ONE IS THE RULE SPREADING ────────────
      * This counted two, and it is a canary rather than a cap: a new soft-catch
      * in this file has to be REVIEWED before the number moves, because the
      * whole point is that a read failure must not leave through one.
@@ -122,8 +122,16 @@ describe("the bare catches cannot swallow the distinction", () => {
      * read your runs" are the two sentences a person must never see confused.
      * Reviewed 2026-09-02: it re-raises the read failure and degrades only on
      * something genuinely unexpected.
+     *
+     * The fourth is `listMovingTracks` (P-18, A-QUEUE.md), which feeds the
+     * shell top bar's "N runs are moving". Same shape, same reason: "nothing is
+     * moving" and "we could not tell what is moving" are different facts, and
+     * the header is the highest-traffic surface in the product for a false
+     * calm to hide in. Reviewed 2026-09-03: it re-raises on a genuine read
+     * failure and degrades to an empty list only on something unexpected, the
+     * same split every catch above already keeps.
      */
-    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(3);
+    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(4);
   });
 
   it("but anything genuinely unexpected still degrades rather than breaking every surface", () => {

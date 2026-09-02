@@ -121,7 +121,14 @@ describe("what the middle column says", () => {
       WORDS,
       phrase,
     );
-    expect(m).toBe("Produced spec, 2 prototypes");
+    /*
+     * P-18 (A-QUEUE.md): "1 spec", not a bare "spec" -- the count of one is
+     * stated, matching `whatItProduced`'s own convention -- and joined with
+     * "and" (`joinPlainly`), matching every other counted-and-joined sentence
+     * this vocabulary produces (`describeAttachments`, the chain's own
+     * whole-run sentence).
+     */
+    expect(m).toBe("Produced 1 spec and 2 prototypes");
   });
 
   it("says a finished run filed nothing rather than printing an empty clause", () => {

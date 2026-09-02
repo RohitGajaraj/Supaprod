@@ -2,6 +2,7 @@ import type { Track } from "@/lib/spine/track.functions";
 import { TERMINAL_HOLDS } from "@/lib/spine/correction";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { holdLine } from "@/lib/spine/driver";
+import { joinPlainly } from "@/lib/spine/attach";
 
 /**
  * SPINE WORK AS BOARD ROWS, so the board shows every piece of work in flight.
@@ -424,11 +425,23 @@ export function startRowMiddle(
   }
 
   if (r.produced.length > 0 && (r.status === "done" || r.status === "abandoned")) {
+    /*
+     * P-18 (A-QUEUE.md): THE SAME COUNT, THE SAME WORD, THE SAME JOIN AS THE
+     * RUN SCREEN'S OWN STRIP. This used to drop the leading number for a count
+     * of one ("Produced spec" rather than "Produced 1 spec") and join with a
+     * bare comma ("2 specs, 1 decision"), while `whatItProduced`
+     * (`components/track/what-it-produced.ts`, the run screen's own per-station
+     * produced sentence) always states the count and joins with `joinPlainly`
+     * ("2 specs and 1 decision") -- the same convention `describeAttachments`
+     * (`spine/attach.ts`) and the chain's own whole-run sentence use. Two
+     * surfaces counting the same `spine_track_members` rows must not disagree
+     * on how many of a kind of thing "1 spec" is worth mentioning by number.
+     */
     const parts = r.produced.map(({ kind, count }) => {
       const w = words[kind] ?? { one: kind, many: `${kind}s` };
-      return count === 1 ? w.one : `${count} ${w.many}`;
+      return `${count} ${count === 1 ? w.one : w.many}`;
     });
-    return `Produced ${parts.join(", ")}`;
+    return `Produced ${joinPlainly(parts)}`;
   }
 
   if (r.status === "done") return "Finished, and filed nothing";

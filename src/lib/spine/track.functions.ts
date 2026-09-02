@@ -481,6 +481,62 @@ export const listTracks = createServerFn({ method: "GET" })
     }
   });
 
+export type MovingTrack = { id: string; station: AgentStation };
+
+/**
+ * P-18 (A-QUEUE.md). Which open tracks have a SEAT LITERALLY IN FLIGHT right
+ * now, for the shell top bar's "N runs are moving".
+ *
+ * THE DEFECT THIS REPLACES. The shell used to call this "moving" when
+ * `spine_tracks.driven_at` fell inside the last five minutes -- a proxy for
+ * recent activity, not a claim that anything is running THIS INSTANT. A track
+ * the driver touched and then handed back (a dispatch that finished in under a
+ * second, a tick that held it) reads exactly like one an agent is mid-way
+ * through, so the header could say "3 runs are moving" over zero live seats --
+ * this packet's own reproduction. `listRunsForStart` already answers the
+ * precise question correctly (`workingByTrack`, `agent_runs.status IN
+ * ('running','queued','in_progress')` joined by `track_id`, never inferred
+ * from elapsed time -- its own header states the same refusal `activity.ts`
+ * makes). This is that same query, factored out rather than duplicated a
+ * second time with its own chance to drift, and kept separate from
+ * `listRunsForStart` itself so the shell's poll does not also pay for gates,
+ * pins and produced-counts it never reads.
+ */
+export const listMovingTracks = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<MovingTrack[]> => {
+    const { supabase } = context;
+    try {
+      const { data: openRows, error } = await supabase
+        .from("spine_tracks" as never)
+        .select("id, station")
+        .eq("status", "open")
+        .order("updated_at", { ascending: false })
+        .limit(50);
+      if (error) failSoftOrThrow(error, "The work in flight");
+      const open = (openRows ?? []) as unknown as MovingTrack[];
+      if (open.length === 0) return [];
+
+      const { data: runRows } = await supabase
+        .from("agent_runs")
+        .select("track_id")
+        .in(
+          "track_id",
+          open.map((t) => t.id),
+        )
+        .in("status", ["running", "queued", "in_progress"]);
+      const moving = new Set(
+        ((runRows ?? []) as Array<{ track_id: string | null }>)
+          .map((r) => r.track_id)
+          .filter((id): id is string => Boolean(id)),
+      );
+      return open.filter((t) => moving.has(t.id));
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("could not be read")) throw e;
+      return [];
+    }
+  });
+
 /**
  * ── WHAT EVERY RUN IS ACTUALLY DOING, FOR THE ROWS ON `/start` (P-05) ─────
  *

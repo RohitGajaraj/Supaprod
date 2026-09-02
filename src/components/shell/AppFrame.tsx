@@ -155,7 +155,7 @@ import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
 import { listCrew } from "@/lib/crew.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
-import { listTracks } from "@/lib/spine/track.functions";
+import { listMovingTracks, listTracks } from "@/lib/spine/track.functions";
 import { initialsFrom } from "@/lib/initials";
 import { useTheme } from "@/hooks/use-theme";
 import { FOOTER_NAV, PRIMARY_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
@@ -878,12 +878,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    * Decide or Plan wrote `spine_tracks.driven_at` and station activity while
    * this header went on saying "Nothing running" -- the exact invisibility the
    * mission exists to end (EVIDENCE.md §2: nine tracks sat waiting on a person
-   * with nothing anywhere saying so). This read is the header's second ear: an
-   * open track driven within the last five minutes IS a run that moved, said by
-   * its own row and never inferred from anything else. Five minutes, because
-   * the foreground walk updates per seat and the cron's round-robin can leave
-   * gaps shorter than that; a track idle longer than it is a stopped one and
-   * stays silent here rather than wearing a live dot it did not earn.
+   * with nothing anywhere saying so). This read is the header's second ear.
    */
   const fetchOpenTracks = useServerFn(listTracks);
   const openTracks = useQuery({
@@ -893,12 +888,29 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     refetchInterval: (query) => livePoll(false, query.state.fetchFailureCount),
     placeholderData: keepPreviousData,
   });
-  const movingRuns = React.useMemo(() => {
-    const cutoff = Date.now() - 5 * 60_000;
-    return (openTracks.data ?? [])
-      .filter((t) => t.drivenAt !== null && new Date(t.drivenAt).getTime() >= cutoff)
-      .sort((a, b) => (b.drivenAt ?? "").localeCompare(a.drivenAt ?? ""));
-  }, [openTracks.data]);
+  /*
+   * P-18 (A-QUEUE.md). MOVING MEANS A SEAT IS LITERALLY IN FLIGHT, not "driven
+   * recently". This used to read `spine_tracks.driven_at` within the last five
+   * minutes -- a proxy for recent activity, not a claim that anything is
+   * running THIS INSTANT, and it produced exactly the packet's own
+   * reproduction: "3 runs are moving" over zero live `agent_runs` rows, because
+   * a dispatch that finished in under a second touches `driven_at` the same way
+   * one still mid-run does. `listMovingTracks` (`track.functions.ts`) is
+   * `listRunsForStart`'s own `workingByTrack` query -- `agent_runs.status IN
+   * ('running','queued','in_progress')`, never inferred from elapsed time --
+   * factored out so the shell asks the precise question rather than
+   * approximating it a second way.
+   */
+  const fetchMovingTracks = useServerFn(listMovingTracks);
+  const moving = useQuery({
+    queryKey: ["shell", "moving-tracks"],
+    queryFn: () => fetchMovingTracks(),
+    staleTime: 10_000,
+    refetchInterval: (query) =>
+      livePoll((query.state.data ?? []).length > 0, query.state.fetchFailureCount),
+    placeholderData: keepPreviousData,
+  });
+  const movingRuns = React.useMemo(() => moving.data ?? [], [moving.data]);
 
   const rows = React.useMemo(() => missions.data?.missions ?? [], [missions.data]);
   const running = React.useMemo(() => rows.filter((m) => WORKING.has(m.status)), [rows]);
@@ -1075,8 +1087,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    * before its facts would be smiling on a dead feed (F-38/F-39).
    */
   const railPresence = deriveRailPresence({
-    loading: missions.isLoading || openTracks.isLoading,
-    feedDead: missions.isError || openTracks.isError,
+    loading: missions.isLoading || openTracks.isLoading || moving.isLoading,
+    feedDead: missions.isError || openTracks.isError || moving.isError,
     waitingOnYou: gateCount,
     missionsWorking: running.length,
     tracksMoving: movingRuns.length,
@@ -1128,22 +1140,25 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
      *
      * This guarded `missions` alone, and the line it protects makes a claim
      * over TWO reads: `running` comes from missions, and `movingRuns` comes
-     * from `openTracks`. So a workspace where missions answered "nothing
-     * running" while the tracks read REFUSED fell straight through to the
-     * literal "Nothing running" at the bottom of this chain. The guard was
-     * checking the wrong query.
+     * from `moving` (`listMovingTracks`, P-18 -- `openTracks` until then). So a
+     * workspace where missions answered "nothing running" while the tracks
+     * read REFUSED fell straight through to the literal "Nothing running" at
+     * the bottom of this chain. The guard was checking the wrong query.
      *
      * That is the highest-traffic place in the product where "nothing is in
      * flight" can be a lie, and until 042a47952 it could not even be detected
      * here: `listTracks` swallowed its own errors and returned `[]`, so a
      * refusal and an empty workspace were one answer. S0 made a real failure
-     * raise, which is what makes `openTracks.isError` worth reading at all.
+     * raise, which is what makes `openTracks.isError` worth reading at all --
+     * `moving.isError` carries the exact same claim now that `movingRuns`
+     * reads that query instead.
      *
      * The sentence is unchanged. Whichever of the two died, what the reader
      * needs to know is the same: this line cannot see, so do not read its
      * silence as calm.
      */
-    if (missions.isError || openTracks.isError) return "Cannot see what is running";
+    if (missions.isError || openTracks.isError || moving.isError)
+      return "Cannot see what is running";
     if (missions.isLoading) return null;
     if (running.length === 0) {
       /* NOT ON THE BOARD, WHICH IS SAYING IT LOUDER TWO INCHES BELOW.
@@ -1238,12 +1253,14 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
      * died could not recompute when the tracks feed was the thing that died.
      *
      * NOTHING ELSE COVERS IT, which is what makes this a defect rather than a
-     * lint nit. `movingRuns` is the only other dep fed by this query and it
-     * memoises on `openTracks.data`, which does NOT change when a read fails:
-     * on a first-load failure `data` is `undefined` and stays `undefined`, and
-     * on a later failure TanStack RETAINS the last successful value. So the
-     * reference holds, no dep changes, and the memo keeps returning the
-     * sentence it computed while the feed was alive.
+     * lint nit. `movingRuns` memoises on `moving.data` (P-18; `openTracks.data`
+     * until then), which does NOT change when a read fails: on a first-load
+     * failure `data` is `undefined` and stays `undefined`, and on a later
+     * failure TanStack RETAINS the last successful value. So the reference
+     * holds, no dep changes, and the memo keeps returning the sentence it
+     * computed while the feed was alive. `moving.isError` carries the same
+     * fix `openTracks.isError` was added for, now that `movingRuns` is fed by
+     * a second, separate query.
      *
      * That is this lane's recurring defect in its purest form: a failed read
      * that never reaches the surface. `getWorkspaceAnchors` swallowing an error
@@ -1251,6 +1268,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
      * rail crew's quiet state had to become a door rather than a sentence.
      */
     openTracks.isError,
+    moving.isError,
     missions.isLoading,
     running.length,
     gateCount,
@@ -1552,7 +1570,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                   name, so a screen reader hears "Supa: working" where it used
                   to hear nothing from an unnamed glyph stack. */}
               <span className="sp-live-who">
-                {missions.isLoading || openTracks.isLoading ? (
+                {missions.isLoading || openTracks.isLoading || moving.isLoading ? (
                   <span className="sp-live-dot" data-state="idle" />
                 ) : (
                   <CharacterMark state={railPresence} size={24} />
