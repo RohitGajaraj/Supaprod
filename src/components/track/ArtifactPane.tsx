@@ -1242,8 +1242,32 @@ function LearningCard({
               >
                 {forecastSays(resolution)}
               </StatusChip>
-              <span className="min-w-0 text-mrd-small text-mrd-mute">{rationale}</span>
+              {/*
+               * THE NUMBER THE GRADER READ, BESIDE THE VERDICT IT DECIDES.
+               *
+               * It was rendered only under the spec-outcome chip further down.
+               * That is a DIFFERENT question -- `forecast-words.ts` is emphatic
+               * that "did shipping this pay off" and "was the belief correct"
+               * are orthogonal -- and it left the forecast verdict as an
+               * assertion with its evidence two blocks away.
+               *
+               * The block above states the observable the forecast named ("How
+               * we will know"). This is the reading against it. A verdict on a
+               * measured claim, printed without the measurement, is the thing
+               * this product exists not to do.
+               *
+               * Only here, not in both places: one number twice on one screen
+               * reads as a bug, and the outcome chip below has its own words.
+               */}
+              {metricLabel && metricValue ? (
+                <span className="font-mrd-mono text-mrd-data tabular-nums text-mrd-mute">
+                  {metricLabel}: {metricValue}
+                </span>
+              ) : null}
             </span>
+            {rationale ? (
+              <span className="min-w-0 text-mrd-small text-mrd-mute">{rationale}</span>
+            ) : null}
             <span className="mrd-meta">
               {resolvedBy ? `Graded by the ${agentDisplayName(resolvedBy)} agent` : "Graded by you"}
             </span>
@@ -1276,7 +1300,12 @@ function LearningCard({
             ) : verdict === "mixed" ? (
               <StatusChip status="hold">Mixed</StatusChip>
             ) : null}
-            {metricLabel && metricValue ? (
+            {/* The reading moved up beside the forecast verdict, which is the
+                question it actually answers. Printing it twice on one screen
+                reads as a bug, and this chip already says its own answer in
+                words. Still shown here when there is no forecast verdict for it
+                to sit beside, because then this IS its only home. */}
+            {!resolution && metricLabel && metricValue ? (
               <span className="font-mrd-mono text-mrd-data tabular-nums text-mrd-mute">
                 {metricLabel}: {metricValue}
               </span>
