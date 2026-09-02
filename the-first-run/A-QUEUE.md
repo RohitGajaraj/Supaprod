@@ -2025,7 +2025,7 @@ second home for anywhere in the current product; A1's own walk on `supaprod.ai` 
 | --- | --- | --- | --- |
 | `/decide` | The gate (settle a ranked bet), the ranked queue itself, Now/Next/Later lane control | Nothing else in the product carries a **portfolio-wide ranked triage board** -- `grep`'d for the Now/Next/Later pattern across `src/routes` and `src/components/{start,track}`; it exists only in `/decide` and `/plan*` | **NO HOME** |
 | `/plan` (index) | Same Now/Next/Later board, an undeclared-outcome gate, spec rows, who is working the plan | Same triage-board gap as `/decide` -- one fact, two pages both claiming it | **NO HOME** |
-| `/plan/spec/$id` | Not read to the same depth this pass (3,016 lines, time-boxed out of this round) | Unaudited | **Flagged for a follow-up pass, not cleared either way** |
+| `/plan/spec/$id` | The editable title and body, AI assist verbs on the selection bar, six tab views (Edit/Preview/Flow/Contract and two more), Send to Build with its repo gate and design-gate check, Create GitHub issue, Capture as decision, Tasks and "why this spec exists" | **Split.** Raw title/body editing now HAS a home: `ArtifactPane.tsx` (the run screen) already carries "Edit the spec" / "Save the spec" against `prd.title`/`prd.body_md` -- this page's own header claim ("nowhere else can you write this document's own words") is now stale, confirmed by reading `ArtifactPane.tsx` directly. Everything else named in the page's own KEEP list -- assist verbs, the six-view tab system, Send to Build's dispatch+repo-gate, Create GitHub issue, Capture as decision -- was grepped for in `ArtifactPane.tsx` and found nowhere | **Partial NO HOME**: the words themselves can now be edited elsewhere; the authoring/dispatch workflow around them (assist, views, Send to Build, GitHub issue, decision capture) cannot |
 | `/design` | A brand-rule gate, the drawings grid, fidelity/consequence/Critic review, the route decision | The page's own header says the prototype list moves to `/artifacts` -- **that route does not exist** in the current tree (`find src/routes -iname "*artifact*"` returns only a test file naming the concept). Prototypes ARE reachable via P-25's search (`findAnything`, prototype group) but browsing a list and searching for a known name are different capabilities | **NO HOME** (the page's own stated destination is stale) |
 | `/build` (index) | A workspace-wide "live block" (what crew is writing right now, across every run), a workspace-wide change list, where builds land | The page's own header states both are **new at workspace scope and exist nowhere else** -- not a stale claim, an explicit one | **NO HOME**, by the page's own admission |
 | `/ship` | The gate, the composer, an announcements list, release notes | The page's own header states three moves already made: reached-production -> Runs, cost/duration -> Engine Room, the six-week heartbeat -> Learn/Analytics (all pre-date this session, not independently re-walked this pass). The gate and the announcements list themselves have no stated second home | **Partial NO HOME**: the three stated moves are plausible and old; the gate/announcements object is not covered by any of them |
@@ -2035,11 +2035,10 @@ second home for anywhere in the current product; A1's own walk on `supaprod.ai` 
 **What this means for deletion, read against the packet's own gate.** "Any NO HOME row blocks the
 deletion of that page until a packet gives the fact a home" is not a soft guideline in this packet's
 own text -- it is the acceptance line. By that rule: **`/decide`, `/plan`, `/design`, `/build`,
-`/learn` are blocked today**; `/ship` is blocked on its gate/announcements object even though its
-three other moves look sound; `/runs/$missionId` is blocked for missions with no track id and clear
-for the rest, with no bulk way today to tell which is which; `/plan/spec/$id` was not audited deep
-enough this pass to rule either way. **`today.tsx`'s Board mount is the one clean item on this
-packet's own list** -- it is already gone.
+`/learn`, `/plan/spec/$id` are all blocked today**; `/ship` is blocked on its gate/announcements
+object even though its three other moves look sound; `/runs/$missionId` is blocked for missions with
+no track id and clear for the rest, with no bulk way today to tell which is which. **`today.tsx`'s
+Board mount is the one clean item on this packet's own list** -- it is already gone.
 
 **So nothing has been deleted.** Deleting any of the six blocked pages today would ship the exact
 defect this packet's own acceptance gate exists to prevent: a fact that was on the record and is now
@@ -2055,10 +2054,7 @@ can go.
    acceptance line's own instruction, and rule per row: genuinely NO HOME (needs a packet before its
    page can go), or a fact this audit missed a home for. Six pages, roughly twelve rows total to
    confirm or correct.
-2. **`/plan/spec/$id` needs its own audit pass** -- not done to the same depth this round (3,016
-   lines). Will do this myself as the next step on this packet rather than waiting on A1, since it is
-   pure investigation the way the rest of this audit was.
-3. **`/runs/$missionId`'s conditional block has no query behind it yet**: nothing counts how many
+2. **`/runs/$missionId`'s conditional block has no query behind it yet**: nothing counts how many
    missions have no `spine_tracks` row today, so "conditionally blocked" is a shape, not a number. A
    quick count would tell whether this is one row A1 can rule on directly or a real backfill packet
    (the "request 021" `AppFrame.tsx` already names).
