@@ -309,9 +309,9 @@ the only way a person meets an approval, a verdict or a hold.
 
 **Needs the founder, and nothing below blocks on it except where marked:**
 
-1. **GitHub Actions billing on the `Supaprod` org** (F-64). If CI cannot run, nothing can merge, and
-   Ship cannot fire. **Blocks P-03.** One check: open any PR on `Supaprod/relay-homeowner-app` and
-   see whether checks start.
+1. ~~GitHub Actions billing on the `Supaprod` org (F-64).~~ **Checked 2026-09-02 19:20 IST: CI runs
+   on `Supaprod/relay-homeowner-app`** (`gh run list`: run 33429887265 completed success on
+   2026-08-31 19:19 UTC after two failures). F-64 is stale. P-03 is not blocked on you.
 2. **Which repo is the first honest run on.** `relay-homeowner-app` is bound to harbor and is a
    throwaway. The launch demo should be on a repo you would show a customer. Name it and I bind it.
 3. **Delete the 14 self-referential forecasts and the 12 seed "resolved" rows on harbor** (yes/no).

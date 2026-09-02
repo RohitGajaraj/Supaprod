@@ -349,7 +349,7 @@ signal on a status chip (R-19). Meridian tokens only.
 
 ---
 
-### P-03 · Ship fires for real · Lane: **A2** · Status: BLOCKED → founder item 1 (CI billing) · Moves: 3, 5
+### P-03 · Ship fires for real · Lane: **A2** · Status: READY (after P-01; CI on `Supaprod/relay-homeowner-app` verified running 2026-09-02, run 33429887265 success) · Moves: 3, 5
 
 **Scope.** On the bound repo, a track walks Build → Ship with no person: commits (R-30), PR, checks,
 merge under the arc, a recorded preview at the merged sha, `release.publish` fires, a `deployment`
