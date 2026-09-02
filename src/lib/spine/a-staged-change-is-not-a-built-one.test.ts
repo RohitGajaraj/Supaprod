@@ -51,9 +51,36 @@ describe("the two gates that let it through are still exactly as they were", () 
 describe("Build will not hand on a change that never left the platform", () => {
   const gate = DRIVER.slice(DRIVER.indexOf("F-72."), DRIVER.indexOf("if (!needIsMet("));
 
+  /*
+   * ── AND FOR ITS WHOLE LIFE THIS GATE NEVER FIRED (found 2026-09-03) ──────
+   *
+   * These assertions passed from the day they were written and the gate did
+   * nothing, because they checked that the query was WRITTEN, never that it
+   * could return a row. It read `studio_changesets` with `.eq("track_id",
+   * row.id)`, and that table has twenty-two columns of which `track_id` is not
+   * one -- the link to a track is `mission_id`. PostgREST answers an unknown
+   * column with 42703 and no rows, the error was not read, and `csStatus` was
+   * null on every track ever driven.
+   *
+   * Found only when the same wrong join was copied into two NEW gates and one of
+   * them was watched on a live run. The lesson this file should carry: a source
+   * guard proves the shape of a decision, and it cannot prove the query behind it
+   * reaches anything. That half needs the database.
+   */
   it("refuses when the newest changeset is still staged", () => {
     expect(gate).toContain('csStatus === "staged"');
-    expect(gate).toContain('.from("studio_changesets")');
+  });
+
+  it("reads the changeset through the mission, which is the only link that exists", () => {
+    expect(gate).toContain("await newestChangesetForTrack(supabase, row.id,");
+    const reader = DRIVER.slice(
+      DRIVER.indexOf("async function newestChangesetForTrack("),
+      DRIVER.indexOf("async function openBranchForTrack("),
+    );
+    expect(reader).toContain('.eq("artifact_kind", "mission")');
+    expect(reader).toContain('.in("mission_id", missionIds)');
+    // The column that never existed, gone from the whole driver.
+    expect(DRIVER).not.toMatch(/from\("studio_changesets"\)[\s\S]{0,200}?track_id/);
   });
 
   /**
@@ -74,8 +101,14 @@ describe("Build will not hand on a change that never left the platform", () => {
    * genuinely finished — which would be a worse bug than the one being fixed.
    */
   it("reads the changeset's current status rather than the visit's own rows", () => {
-    expect(gate).toMatch(/order\("created_at", \{ ascending: false \}\)/);
-    expect(gate).toContain(".limit(1)");
+    // Now a property of the shared reader rather than of this call site, which
+    // is what stops the next gate re-deriving it and getting it wrong again.
+    const reader = DRIVER.slice(
+      DRIVER.indexOf("async function newestChangesetForTrack("),
+      DRIVER.indexOf("async function openBranchForTrack("),
+    );
+    expect(reader).toMatch(/order\("created_at", \{ ascending: false \}\)/);
+    expect(reader).toContain(".limit(1)");
   });
 
   /**

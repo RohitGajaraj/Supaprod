@@ -126,6 +126,31 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
           trackQuery = trackQuery.or(`last_hold.is.null,and(${notTerminal})`) as never;
 
           /*
+           * -- P-03a. WAITING ON A DATE DOES NOT MEAN HOLDING THE FRONT ------
+           *
+           * F-183 stopped the sweep SPENDING a drive on a track whose forecast
+           * horizon has not arrived. It did not make the track give up its
+           * PLACE: nothing stamped it, so it sorted first by `driven_at ASC`
+           * every tick, was fetched, and was filtered out again -- consuming one
+           * of the fifteen rows to prove the same thing forever.
+           *
+           * That is the failure the comment on the ordering below already warns
+           * about, arriving through the fix for a different one. Two such tracks
+           * sat ahead of the live acceptance candidate on 2026-09-03, and the
+           * evening this was found the sweep had 5 slots and 5 tracks ahead.
+           *
+           * `deferred_until` is written when the filter below schedules a track
+           * away and cleared on every drive, so the skip happens in SQL and the
+           * row is never fetched at all. `driven_at` was the cheaper place to
+           * put this and is the wrong one: the Start list reads it to say when a
+           * run last moved, and stamping it every ten minutes would make a track
+           * deliberately asleep until October look busy on the one screen a
+           * person actually reads.
+           */
+          const deferrable = `deferred_until.is.null,deferred_until.lte.${new Date().toISOString()}`;
+          const withoutDeferred = trackQuery.or(deferrable) as never;
+
+          /*
            * OVER-FETCHED ON PURPOSE (F-183). A track waiting on a forecast
            * horizon is filtered out below, and the freed slot has to go to the
            * next track rather than being lost — which it would be if the SQL
@@ -157,17 +182,32 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
            * refusal `stopRequestedAt` makes in the driver: a missing column
            * degrades one behaviour, never the sweep.
            */
-          const byPinThenAge = async () =>
-            await trackQuery
+          const ordered = (q: typeof trackQuery) =>
+            q
               .order("pinned_at", { ascending: true, nullsFirst: false })
               .order("driven_at", { ascending: true, nullsFirst: true })
               .limit(MAX_TRACKS_PER_TICK * 3);
 
-          let { data: tracks, error } = await byPinThenAge();
-          if (
-            error &&
-            ((error as { code?: string }).code === "42703" || /pinned_at/.test(error.message ?? ""))
-          ) {
+          let { data: tracks, error } = await ordered(withoutDeferred);
+          /*
+           * BOTH NEW COLUMNS DEGRADE THE SAME WAY, AND SEPARATELY.
+           *
+           * A database that has not taken `pinned_at` or `deferred_until` fails
+           * the whole select on an unknown column, so each falls back to the
+           * query that does not name it. `deferred_until` missing means the
+           * sweep behaves exactly as it did before P-03a -- fetching the
+           * scheduled-away tracks and filtering them below -- which is the
+           * correct degradation: one behaviour lost, never the sweep.
+           */
+          const missingColumn = (e: typeof error, name: string) =>
+            Boolean(
+              e &&
+              ((e as { code?: string }).code === "42703" || new RegExp(name).test(e.message ?? "")),
+            );
+          if (missingColumn(error, "deferred_until")) {
+            ({ data: tracks, error } = await ordered(trackQuery));
+          }
+          if (missingColumn(error, "pinned_at")) {
             ({ data: tracks, error } = await trackQuery
               .order("driven_at", { ascending: true, nullsFirst: true })
               .limit(MAX_TRACKS_PER_TICK * 3));
@@ -219,6 +259,37 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
             dueByTrack,
             new Date(),
           );
+          /*
+           * WRITE THE DATE DOWN SO THE NEXT TICK DOES NOT HAVE TO WORK IT OUT.
+           *
+           * One write per newly-deferred track, and only for tracks this tick
+           * actually scheduled away, so a steady state costs nothing: once the
+           * column is set the SQL above stops fetching the row and this loop
+           * never sees it again until the date passes.
+           *
+           * Fail-safe by the same contract the drive log keeps: a failed write
+           * means the track is fetched and filtered again next tick, which is
+           * exactly today's behaviour. Losing this write costs a slot; letting
+           * it throw would cost the whole sweep.
+           */
+          if (scheduledAway.size > 0) {
+            const until = [...scheduledAway]
+              .map((id) => ({ id, due: dueByTrack.get(id) ?? null }))
+              .filter((x): x is { id: string; due: string } => Boolean(x.due));
+            for (const { id, due } of until) {
+              const { error: deferErr } = await supabaseAdmin
+                .from("spine_tracks" as never)
+                .update({ deferred_until: due } as never)
+                .eq("id", id);
+              if (deferErr) {
+                console.error(`[track-tick] could not defer ${id}: ${deferErr.message}`);
+                // One report is enough. The rest of this tick's work matters
+                // more than a second identical line per track.
+                break;
+              }
+            }
+          }
+
           const rows = pickDrivable(
             fetched as unknown as Array<{ id: string; last_hold?: string | null }>,
             scheduledAway,

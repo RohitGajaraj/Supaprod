@@ -7500,6 +7500,7 @@ export type Database = {
         Row: {
           attempts: number
           created_at: string
+          deferred_until: string | null
           driven_at: string | null
           entry_station: string
           from_learning_id: string | null
@@ -7531,6 +7532,7 @@ export type Database = {
         Insert: {
           attempts?: number
           created_at?: string
+          deferred_until?: string | null
           driven_at?: string | null
           entry_station?: string
           from_learning_id?: string | null
@@ -7562,6 +7564,7 @@ export type Database = {
         Update: {
           attempts?: number
           created_at?: string
+          deferred_until?: string | null
           driven_at?: string | null
           entry_station?: string
           from_learning_id?: string | null

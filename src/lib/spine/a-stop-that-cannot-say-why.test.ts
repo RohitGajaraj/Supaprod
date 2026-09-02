@@ -110,10 +110,23 @@ describe("the sentence is stored where a surface can read it", () => {
     expect(update).not.toContain("holdLine");
   });
 
-  it("and the generic branch deliberately writes nothing", () => {
-    // See the header: HOLD_LINE[hold] is what holdLine() already derives on read.
+  it("and the generic branch writes null, which is not the same as writing nothing", () => {
+    /*
+     * THIS ASSERTED "writes nothing" UNTIL 2026-09-03, and the distinction it
+     * missed is the one this whole file is about. `HOLD_LINE[hold]` is derived on
+     * read, so a generic sentence in this column is worse than a null -- that
+     * part was always right. But writing NOTHING does not leave a null: it
+     * leaves whatever the previous hold put there.
+     *
+     * A1 watched both halves in one night. `6817e386` held on a merge gate
+     * reading "Stopped by you." from a stop cleared eight minutes earlier;
+     * `2fdf93b6` held `out-of-time` reading "The checks were never run on this
+     * change" from the self-check before it. The describe below is titled "a
+     * released track never keeps a stale reason", and the branch two lines up
+     * was keeping one.
+     */
     const seatStop = DRIVER.slice(DRIVER.indexOf("last_hold: decision.hold"));
-    expect(seatStop.slice(0, 200)).not.toContain("last_hold_because");
+    expect(seatStop.slice(0, 400)).toContain("last_hold_because: null");
   });
 });
 
@@ -186,15 +199,23 @@ describe("F-134: a halt names what stopped it, and the hold line stopped lying",
     expect(DRIVER_SERVER).toContain("last_hold_because: haltedBecause");
   });
 
-  it("F-127 is not contradicted, because that branch was generic and this is not", () => {
+  it("F-127 is not contradicted, because that branch is generic and this is not", () => {
     /*
-     * F-127 argued the seat-decision branch should write nothing, and it is
-     * right about what it was looking at: `HOLD_LINE[kind]` is a static map the
-     * reader already derives. A generic line in a column meant for specifics is
-     * worse than a null; a specific one is the point of the column.
+     * F-127 argued the seat-decision branch should not write a SENTENCE, and it
+     * is right about what it was looking at: `HOLD_LINE[kind]` is a static map
+     * the reader already derives. A generic line in a column meant for specifics
+     * is worse than a null; a specific one is the point of the column.
+     *
+     * It writes `null` there now, which is the removal of a sentence rather than
+     * one. The two findings agree once that is said out loud: F-127 forbids a
+     * generic line, this file forbids a stale one, and null is the only value
+     * that satisfies both.
      */
     const seatStop = DRIVER_SERVER.slice(DRIVER_SERVER.indexOf("last_hold: decision.hold"));
-    expect(seatStop.slice(0, 200)).not.toContain("last_hold_because");
+    const head = seatStop.slice(0, 400);
+    expect(head).toContain("last_hold_because: null");
+    // And still no sentence: nothing between quotes on that key.
+    expect(head).not.toMatch(/last_hold_because:\s*[`"']/);
   });
 
   it("the no-agent line is true whether nobody covers it or the agent is off", () => {

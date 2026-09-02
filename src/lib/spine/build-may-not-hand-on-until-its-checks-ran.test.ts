@@ -47,10 +47,27 @@ const client = (opts: {
 }) =>
   ({
     from: (table: string) => {
-      if (table === "studio_changesets") {
+      /*
+       * THE JOIN IS TWO STEPS, because `studio_changesets` has no `track_id`.
+       * The gate reads the track's `mission` members and then the newest
+       * changeset on those missions -- see `newestChangesetForTrack`. Both hops
+       * are faked here rather than one, because a fake that answered the old
+       * one-hop query would have kept passing while the real query returned
+       * nothing, which is precisely how this defect survived.
+       */
+      if (table === "spine_track_members") {
         return {
           select: () => ({
             eq: () => ({
+              eq: async () => ({ data: [{ artifact_id: "mission-1" }], error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === "studio_changesets") {
+        return {
+          select: () => ({
+            in: () => ({
               order: () => ({
                 limit: async () =>
                   opts.reviewErr

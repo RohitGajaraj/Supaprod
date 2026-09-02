@@ -737,6 +737,71 @@ async function linkSpecToMissionOrThrow(
  * been staged yet, so there is no branch to name and the brief simply does not
  * mention one. Only when a branch exists does the instruction appear.
  */
+/**
+ * THE NEWEST CHANGESET ON A TRACK -- AND `studio_changesets.track_id` DOES NOT EXIST.
+ *
+ * ── THE DEFECT, FOUND 2026-09-03 BY ASKING THE DATABASE ───────────────────
+ * Three gates in this file read `studio_changesets` with `.eq("track_id", ...)`:
+ * F-72's "staged is not built" gate, P-02's acceptance gate, and P-03's Build
+ * done rule. The column has never existed. `information_schema` lists twenty-two
+ * columns on that table and the link to a track is `mission_id`.
+ *
+ * PostgREST answers an unknown column with 42703 and no rows, and two of the
+ * three did not read `error` at all -- so the gates did not fail loudly, they
+ * evaluated to "no changeset" and quietly did nothing. **F-72's gate has never
+ * fired since it was written.** A1 caught it on the live run: track `6817e386`
+ * sat at `pr_open` and the builder crew ran again anyway, which was read at
+ * first as a deploy that had not carried the fix.
+ *
+ * ── THE REAL JOIN, AND WHY IT IS THIS ONE ─────────────────────────────────
+ * A track's missions are its `spine_track_members` rows of kind `mission`, and a
+ * changeset carries `mission_id`. `openBranchForTrack` above has always used
+ * `mission_id` and has always worked, which is the shape that should have been
+ * copied.
+ *
+ * ONE READER, because three copies of a join is how one gets fixed and the
+ * others do not -- which is exactly what happened here, three times over, to a
+ * query that was wrong from the first copy.
+ *
+ * Returns null when the track has no mission, no changeset, or the read failed,
+ * and the CALLER decides what that means. It is not the same answer in all three
+ * places: F-72 and the done rule treat "unknown" as "carry on", the acceptance
+ * gate treats it as "nothing to check".
+ */
+async function newestChangesetForTrack(
+  supabase: SupabaseClient,
+  trackId: string,
+  columns: string,
+): Promise<Record<string, unknown> | null> {
+  const { data: missionRows, error: mErr } = await supabase
+    .from("spine_track_members")
+    .select("artifact_id")
+    .eq("track_id", trackId)
+    .eq("artifact_kind", "mission");
+  if (mErr) {
+    console.error(`[driver] could not read missions for track ${trackId}: ${mErr.message}`);
+    return null;
+  }
+  const missionIds = ((missionRows ?? []) as Array<{ artifact_id?: string | null }>)
+    .map((r) => r.artifact_id)
+    .filter((id): id is string => typeof id === "string" && id.length > 0);
+  if (missionIds.length === 0) return null;
+
+  const { data, error } = await supabase
+    .from("studio_changesets")
+    .select(columns)
+    .in("mission_id", missionIds)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  if (error) {
+    console.error(`[driver] could not read the changeset for track ${trackId}: ${error.message}`);
+    return null;
+  }
+  /* `as unknown` first: with a runtime-built column list the generated types
+     cannot narrow the row, and PostgREST's error shape is in the union. */
+  return (((data ?? []) as unknown[])[0] as Record<string, unknown> | undefined) ?? null;
+}
+
 async function openBranchForTrack(
   supabase: SupabaseClient,
   missionId: string | null,
@@ -1823,21 +1888,12 @@ export async function verifyStationOutput(
      * builder once, bounded by `attempts` like every other self-check, rather
      * than being a sentence on a screen nobody acts on.
      */
-    const { data: csRows, error: csErr } = await supabase
-      .from("studio_changesets")
-      .select("code_review")
-      .eq("track_id", trackId)
-      .order("created_at", { ascending: false })
-      .limit(1);
-    if (csErr) {
-      // Fails open, on the same reasoning as the two reads above: losing one
-      // gate on one drive is recoverable, parking the track is not.
-      console.error(`[driver] build acceptance gate could not read the review: ${csErr.message}`);
-      return { passed: true, checks };
-    }
-    const missedLines = missedAcceptanceLines(
-      (csRows?.[0] as { code_review?: unknown } | undefined)?.code_review,
-    );
+    /* Through the mission, because `studio_changesets.track_id` does not exist.
+       See `newestChangesetForTrack`: this gate was one of three reading a column
+       that has never been on the table. A null answer means we could not read a
+       review, which is not evidence that the change is wrong, so it passes. */
+    const cs = await newestChangesetForTrack(supabase, trackId, "code_review");
+    const missedLines = missedAcceptanceLines(cs?.code_review);
     if (missedLines.length > 0) {
       const named = missedLines.slice(0, NAME_AT_MOST);
       const rest = missedLines.length - named.length;
@@ -1975,9 +2031,25 @@ export async function driveTrackOnce(
     entryHold: (row.last_hold ?? null) as HoldReason | null,
   });
 
+  /*
+   * -- AND THE DEFERRAL IS CLEARED HERE, ONCE, RATHER THAN AT EVERY EXIT ----
+   *
+   * `deferred_until` (P-03a) is the sweep's note that this track is asleep until
+   * a date. If we are driving it, that note is spent -- whoever drove it, and
+   * whatever the drive goes on to decide.
+   *
+   * Cleared in this write rather than beside each of the fourteen places that
+   * stamp `driven_at` on the way out. One of those would eventually be added
+   * without it and the track would stay invisible to the sweep with nothing
+   * saying why, which is the worst shape this column could fail in. Here it
+   * cannot be missed: every path through this function passes this line.
+   *
+   * Set again by the sweep, on the next tick, if the horizon still has not
+   * arrived. A stale value can never outlive the reason for it.
+   */
   await supabase
     .from("spine_tracks" as never)
-    .update({ last_driven_via: via } as never)
+    .update({ last_driven_via: via, deferred_until: null } as never)
     .eq("id", row.id);
 
   // Catch the record up on gates answered since the last tick BEFORE deciding
@@ -2139,7 +2211,22 @@ export async function driveTrackOnce(
        * because null is readable as "no more was said" and a generic line is
        * not. Only the correction path above has words of its own.
        */
-      .update({ last_hold: decision.hold, driven_at: new Date().toISOString() } as never)
+      .update({
+        last_hold: decision.hold,
+        /*
+         * CLEARED, NOT LEFT. A hold with no sentence of its own must not inherit
+         * the last one's -- A1 watched `6817e386` hold on a merge gate while
+         * `last_hold_because` still read "Stopped by you." from a stop that had
+         * been cleared eight minutes earlier.
+         *
+         * The block above is right that a GENERIC sentence here would be worse
+         * than null. It does not follow that a sentence about a different hold
+         * should survive: null reads as "no more was said", and a stale line
+         * reads as an explanation of a hold it has nothing to do with.
+         */
+        last_hold_because: null,
+        driven_at: new Date().toISOString(),
+      } as never)
       .eq("id", row.id);
     return {
       trackId: row.id,
@@ -2426,21 +2513,17 @@ export async function driveTrackOnce(
      * re-dispatch of seats whose work is already on the record.
      */
     if (station === "build") {
-      const { data: doneRows, error: doneErr } = await supabase
-        .from("studio_changesets")
-        .select("status")
-        .eq("track_id", row.id)
-        .order("created_at", { ascending: false })
-        .limit(1);
-      if (doneErr) {
-        // Fails towards RUNNING the crew, which is today's behaviour. A read we
-        // could not make is not evidence that Build is finished, and skipping a
-        // station on a failed read would strand work that genuinely needs it.
-        console.error(`[driver] build done-check could not read the changeset: ${doneErr.message}`);
-      } else {
-        const st = (doneRows?.[0] as { status?: string } | undefined)?.status ?? null;
-        if (st === "pr_open" || st === "merged") buildAlreadyHandedOn = true;
-      }
+      /* Through the mission. This read said `.eq("track_id", row.id)` when it
+         first shipped and that column does not exist, so the rule evaluated to
+         "no changeset" and never fired -- which A1 caught on the live run when
+         `6817e386` rebuilt at `pr_open` anyway. See `newestChangesetForTrack`.
+
+         A null answer still means RUN the crew, which is the pre-P-03 behaviour:
+         a read we could not make is not evidence that Build is finished, and
+         skipping a station on it would strand work that genuinely needs it. */
+      const done = await newestChangesetForTrack(supabase, row.id, "status");
+      const st = typeof done?.status === "string" ? done.status : null;
+      if (st === "pr_open" || st === "merged") buildAlreadyHandedOn = true;
     }
 
     /*
@@ -2695,7 +2778,13 @@ export async function driveTrackOnce(
   if (ranLong) {
     await supabase
       .from("spine_tracks" as never)
-      .update({ last_hold: "out-of-time", driven_at: new Date().toISOString() } as never)
+      .update({
+        last_hold: "out-of-time",
+        // Cleared for the reason at the `decision.hold` write above: this hold
+        // has no sentence of its own and must not wear the last one's.
+        last_hold_because: null,
+        driven_at: new Date().toISOString(),
+      } as never)
       .eq("id", row.id);
     return {
       trackId: row.id,
@@ -2747,7 +2836,11 @@ export async function driveTrackOnce(
   if (overBudget) {
     await supabase
       .from("spine_tracks" as never)
-      .update({ last_hold: "over-budget", driven_at: new Date().toISOString() } as never)
+      .update({
+        last_hold: "over-budget",
+        last_hold_because: null,
+        driven_at: new Date().toISOString(),
+      } as never)
       .eq("id", row.id);
     return {
       trackId: row.id,
@@ -2784,6 +2877,9 @@ export async function driveTrackOnce(
       .from("spine_tracks" as never)
       .update({
         last_hold: "waiting-on-a-person",
+        // The gate is the reason, and the gate is on the record. A sentence from
+        // a previous hold left beside it would name the wrong cause entirely.
+        last_hold_because: null,
         ...(untracked ? { attempts: (row.attempts ?? 0) + 1 } : {}),
         driven_at: new Date().toISOString(),
       } as never)
@@ -3311,13 +3407,15 @@ export async function driveTrackOnce(
      * first would hold work that is genuinely finished.
      */
     if (station === "build") {
-      const { data: csRows } = await supabase
-        .from("studio_changesets")
-        .select("id,status")
-        .eq("track_id", row.id)
-        .order("created_at", { ascending: false })
-        .limit(1);
-      const csStatus = (csRows?.[0] as { status?: string } | undefined)?.status ?? null;
+      /* -- F-72 HAS NEVER FIRED, AND THIS IS WHY (found 2026-09-03) ---------
+         This read said `.eq("track_id", row.id)`. `studio_changesets` has no
+         such column and never has: PostgREST answers 42703 with no rows, the
+         error was not read, and `csStatus` was null on every track ever driven.
+         So the gate written to stop a staged changeset reaching Ship evaluated
+         to "no changeset" and did nothing, for as long as it has existed.
+         See `newestChangesetForTrack` for the join that works. */
+      const cs = await newestChangesetForTrack(supabase, row.id, "id,status");
+      const csStatus = typeof cs?.status === "string" ? cs.status : null;
       if (csStatus === "staged") {
         // F-175: names the two calls that would clear it, which the hold word
         // cannot. `nothing-to-hand-on` has two causes and this is one of them.

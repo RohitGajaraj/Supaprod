@@ -38,13 +38,32 @@ describe("the order the sweep takes work in", () => {
     expect(flat).not.toContain('.order("pinned_at", { ascending: true, nullsFirst: true })');
   });
 
-  it("falls back to the old ordering when the column is not there yet", () => {
-    expect(flat).toContain('(error as { code?: string }).code === "42703"');
-    expect(flat).toContain('/pinned_at/.test(error.message ?? "")');
+  /*
+   * P-03a ADDED A SECOND NEW COLUMN AND THE TWO FALL BACK SEPARATELY.
+   *
+   * This used to assert the literal `42703` comparison and a `/pinned_at/`
+   * regex, both written inline. `deferred_until` needed the same refusal, and
+   * two inline copies of it is how one gets fixed and the other does not, so
+   * the test now asserts the shared predicate and each call of it.
+   *
+   * The order matters and is asserted: `deferred_until` falls back FIRST, to a
+   * query that still orders by `pinned_at`. Falling back to the fully-unordered
+   * query on a missing `deferred_until` would silently drop the pin feature on
+   * a database that has one column and not the other.
+   */
+  it("falls back separately for each column that may not be there yet", () => {
+    expect(flat).toContain('(e as { code?: string }).code === "42703"');
+    expect(flat).toContain('new RegExp(name).test(e.message ?? "")');
+    expect(flat).toContain('if (missingColumn(error, "deferred_until"))');
+    expect(flat).toContain('if (missingColumn(error, "pinned_at"))');
+    expect(flat.indexOf('missingColumn(error, "deferred_until")')).toBeLessThan(
+      flat.indexOf('missingColumn(error, "pinned_at")'),
+    );
   });
 
   it("still bounds the page it takes, so a pin cannot widen a tick", () => {
     // A pin changes WHICH tracks a tick takes, never HOW MANY.
+    // Two: the shared `ordered` helper, and the pin-less fallback.
     expect([...TICK.matchAll(/limit\(MAX_TRACKS_PER_TICK \* 3\)/g)].length).toBe(2);
   });
 });

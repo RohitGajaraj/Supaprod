@@ -35,9 +35,46 @@ const code = SRC.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ")
 const flat = code.replace(/\s+/g, " ");
 
 describe("the done rule", () => {
+  /*
+   * ── THE FIRST VERSION ASKED A COLUMN THAT DOES NOT EXIST ─────────────────
+   *
+   * It read `studio_changesets` with `.eq("track_id", row.id)`. That table has
+   * twenty-two columns and this is not one of them; the link to a track is
+   * `mission_id`. PostgREST answers 42703 with no rows, so the rule evaluated to
+   * "no changeset" and never fired -- which A1 caught on the live run when
+   * `6817e386` rebuilt at `pr_open` anyway, and read at first as a deploy that
+   * had not carried the fix.
+   *
+   * It was the THIRD gate in the driver to make that exact mistake. F-72's
+   * staged gate and P-02's acceptance gate had it too, so F-72's has never fired
+   * since it was written. All three go through one reader now, because three
+   * copies of a join is how one gets fixed and the others do not.
+   */
   it("asks the changeset whether Build's work has left the station", () => {
-    expect(flat).toContain('if (station === "build") { const { data: doneRows, error: doneErr }');
-    expect(flat).toContain('.from("studio_changesets") .select("status") .eq("track_id", row.id)');
+    expect(flat).toContain(
+      'if (station === "build") { const done = await newestChangesetForTrack(',
+    );
+  });
+
+  it("goes through the track's missions, because there is no track_id to join on", () => {
+    const reader = code.slice(
+      code.indexOf("async function newestChangesetForTrack("),
+      code.indexOf("async function openBranchForTrack("),
+    );
+    expect(reader).toContain('.from("spine_track_members")');
+    expect(reader).toContain('.eq("artifact_kind", "mission")');
+    expect(reader).toContain('.in("mission_id", missionIds)');
+  });
+
+  it("no gate in the driver reads a track_id off studio_changesets any more", () => {
+    /*
+     * THE ASSERTION THAT KEEPS THIS FIXED. The defect was not one wrong query,
+     * it was the same wrong query copied three times, and the third copy was
+     * written a month after the first without anyone noticing the first had
+     * never worked.
+     */
+    const reads = [...code.matchAll(/from\("studio_changesets"\)[\s\S]{0,200}?track_id/g)];
+    expect(reads).toHaveLength(0);
   });
 
   it("counts pr_open and merged, and refuses on those rather than allow-listing the rest", () => {
@@ -71,15 +108,11 @@ describe("the done rule", () => {
      * it. The opposite direction from the self-check gates, and deliberately so:
      * there, failing open loses one gate; here, it would lose the work.
      */
-    expect(flat).toContain("[driver] build done-check could not read the changeset:");
-    const guard = code.slice(
-      code.indexOf("const { data: doneRows, error: doneErr }"),
-      code.indexOf("startSeat = resumeSeatFrom"),
-    );
-    // The flag is only ever set inside the `else`, so no error path can set it.
-    expect(guard.indexOf("if (doneErr)")).toBeLessThan(
-      guard.indexOf("buildAlreadyHandedOn = true"),
-    );
+    /* `newestChangesetForTrack` returns null on every failure -- a missing
+       mission, a failed read, no changeset -- and the flag is only ever set from
+       a status it actually read, so no error path can reach it. */
+    expect(flat).toContain("[driver] could not read the changeset for track");
+    expect(flat).toContain('const st = typeof done?.status === "string" ? done.status : null;');
   });
 });
 

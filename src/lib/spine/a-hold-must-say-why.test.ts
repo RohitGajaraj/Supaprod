@@ -79,14 +79,51 @@ describe("a hold must say why", () => {
     expect(silent).toEqual([]);
   });
 
-  it("leaves the column alone where the word already carries the meaning", () => {
-    // The other half of F-127. A generic line stored here would read as a
-    // specific reason to every surface that shows it, which is the failure this
-    // whole finding is about — one direction of it rather than the other.
+  /**
+   * ── "LEAVES THE COLUMN ALONE" WAS THE WRONG HALF OF F-127 (2026-09-03) ────
+   *
+   * This test used to assert that a generic hold writes NOTHING to
+   * `last_hold_because`, and it was right about the sentence and wrong about the
+   * write. Leaving the column alone does not leave it empty: it leaves whatever
+   * the LAST hold put there, attached to a hold it has nothing to do with.
+   *
+   * Both halves were seen on one night, 2026-09-02, by A1 watching the live run:
+   *
+   *   `6817e386`  hold `waiting-on-a-person` on a merge gate, because-sentence
+   *               "Stopped by you." -- from a stop cleared eight minutes earlier.
+   *   `2fdf93b6`  hold `out-of-time`, because-sentence "The checks were never
+   *               run on this change" -- from the self-check before it.
+   *
+   * Both sentences were true when written and both were lies where they were
+   * read. F-127's argument survives intact and points the other way once the
+   * distinction is made: a GENERIC sentence is worse than null, and null is
+   * readable as "no more was said". A STALE sentence is worse than either,
+   * because it reads as a specific reason for the wrong hold.
+   *
+   * So a generic hold now writes `null` explicitly. That is not a sentence; it
+   * is the removal of one.
+   */
+  it("clears the column where the word already carries the meaning", () => {
     for (const expression of SAYS_ONLY_WHAT_THE_WORD_SAYS) {
       const sites = updateObjects().filter((o) => o.includes(expression));
       expect(sites.length).toBeGreaterThan(0);
-      for (const site of sites) expect(site).not.toContain("last_hold_because");
+      for (const site of sites) {
+        // Written, and written as null. Both halves matter: omitting the key
+        // leaves the stale line, and any string here is the generic sentence
+        // F-127 refused.
+        expect(site, `${expression} must clear the sentence`).toContain("last_hold_because: null");
+      }
     }
+  });
+
+  it("no hold anywhere writes a word without settling its sentence", () => {
+    /*
+     * THE CANARY A1 ASKED FOR. Every object that sets `last_hold` must also say
+     * what happens to `last_hold_because` -- a real sentence, or null. Silence
+     * is the bug, and it is invisible at the call site because the column simply
+     * keeps its old value.
+     */
+    const silent = updateObjects().filter((o) => !o.includes("last_hold_because"));
+    expect(silent).toEqual([]);
   });
 });
