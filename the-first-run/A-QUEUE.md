@@ -1885,6 +1885,15 @@ inherited the dead join. That, not a lagging publish, is why `6817e386` re-ran B
 `20260905010000` (`spine_tracks.deferred_until`) applied by A2 and verified present; the ledger row was
 missing again and A1 inserted it. Published 03:25 IST.
 
+
+**Follow-up (A1, 05:20 IST, A2 after P-04's live half): a hold only a person can clear is not
+swept.** `6199f3df` holds `needs-a-waived-station` (Plan is waived on its route, so no spec will ever
+be filed until a person puts Plan back or files one) and was driven six times in an hour, 22:50 to
+23:40 UTC, with zero runs, taking a slot each tick; its counter reached 3 on drives that ran nobody.
+Its counter is not reset: the condition is real and a person's. Rule: holds in the person-clears set
+are not fetched until the track changes (an edit, a route change, a gate answered), the way
+`deferred_until` keeps the date-holds out. The test names the set.
+
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
