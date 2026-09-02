@@ -1256,7 +1256,7 @@ abandoned · show them* (`b23adf166`). Closed.
 
 ---
 
-### P-15 · The sad path on Start and Run · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 2026-09-03) · Moves: 2, 5
+### P-15 · The sad path on Start and Run · Lane: **A3** · Status: DONE (A1, 01:08 IST) · live 404 check after publish · Moves: 2, 5
 
 **Scope.** Every empty, loading, failed, held and permission-denied state on `/start` and
 `/track/:id` says what happened and what to do next, in the canon's register, with no internal id.
@@ -1272,6 +1272,14 @@ Enumerate them first (Report lists each state, its trigger, its copy, its next a
 - [x] The root not-found page (`/today`, any dead address) hides *Sign in* when a session exists and
       its *Go home* lands on `/start` (found by A1 on the live site, 2026-09-02 20:05). **Go-home
       half built; hides-Sign-in half is a Meridian gap, see Blockers.**
+
+**A1 verdict: DONE** _01:08 IST._ The eighteen-row state table with trigger, verbatim copy and
+action is the deliverable and it is complete ✓; the id audit and the 300 ms argument from source are
+accepted ✓; the root not-found lands a signed-in person on `/start` ✓. **Your blocker is closed by
+A1:** `PageRouteMissing` gained `hideSignIn` (Meridian, `f13772f9b`) and the root passes it once the
+session read resolves. tsc 0; the Meridian and route suites show the same single "unhandled error
+between tests" before and after the change (control run), the documented Bun reporter flake, not a
+regression. Live check of `/today` signed in follows the publish.
 
 **Report / Blockers / A1 verdict:**
 
@@ -2175,7 +2183,7 @@ spec is clear but its lane assignment collides with a binding protocol rule.
 
 ---
 
-### P-20 · Which one first: a pin, and the promotion bar made visible · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 00:05 IST) · Moves: 1, 3
+### P-20 · Which one first: a pin, and the promotion bar made visible · Lane: **A2** · Status: DONE (A1, 01:08 IST) · one note below · Moves: 1, 3
 
 **Why (founder, 2026-09-02 18:54):** *"when various signals are queued, bucketed and themed, how do
 I decide which one to hack on? Is there any prominence for that?"* Today a theme becomes a run when
@@ -2575,6 +2583,17 @@ voice) with the workspace's real brief in it ✓; *Models* sits under Connection
 without asking* ✓; the nav landmark is named *Settings* ✓. tsc 0, `bun test` 13,672 / 0 fail on my
 run, `settings.tsx` 4,096 → 3,824 ✓. The no-writer rows are listed for P-20, P-22 and P-03 ✓.
 Nine packets DONE tonight.
+
+**A1 verdict: DONE** _01:08 IST, proven against the sweep._ Pinned `6817e386` from Start's *Put
+first* (row then read *First · Unpin*; `pinned_at` = 19:21:02 UTC). At the 19:20 tick, before the pin,
+`2fdf93b6` was served first (19:10:02.558) and `6817e386` second (.787). **At the 19:30 tick the
+pinned track was served first** (19:30:02.467), then `2fdf93b6` (.615), then `6199f3df` (.743) ✓.
+Unpinned afterwards by A1 so production is as found. `pinned_at` and its partial index are in place,
+ledger recorded ✓. The bar sentence composes from the resolved policy ✓. Your added limit (pins sort
+only inside the live half) is accepted. **One note, A2:** *Put first* took three presses. The first
+two, each made right after a page load, did not fire a request at all (network tracking showed no
+server call); the third did. Same shape as the chip first-press you could not reproduce. Something
+on a freshly loaded Start eats the first pointer press; find it, because a person will press once.
 
 **A1 verdict:**
 
