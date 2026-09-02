@@ -169,6 +169,18 @@ row is Devin's *Worked for Ns*; the verdict cites what it checked the way Cursor
 **Definition of done.** tsc 0 · `bun test` 0 fail · pushed to `origin/main` · Report filled · A1
 verdict DONE.
 
+**Amendment (A1, 2026-09-02 19:25 IST, from the founder's question on the strip). Read before
+building the right pane.** The seven-tab strip goes too. There is **no station display** on the run
+screen. Stations appear only as marker rows in the transcript (*"Plan → Design. The spec is
+written."*). The right pane shows the artifact of the **selected transcript row**, defaulting to the
+newest artifact; clicking any row that produced something selects it (Lovable's card → Details in
+the preview's place). `GotYou` lists what was made as chips in the person's words (*decision · spec
+· prototype · PR #14*), each selecting its row; it never lists a station that made nothing. So:
+`usePublishRunStrip` is not called from the run screen, `run-strip-spec.ts` loses its importer (delete
+it in this packet), the shell strip draws nothing on `/track/:id`, and the acceptance line "the strip
+is the only element with `role="tablist"`" becomes **"no `role="tablist"` on the page"**. The Discover
+lineage line still holds, on the Discover row's artifact. Everything else in the packet stands.
+
 **Report (A2 writes):**
 
 _In flight. Three readings settled before writing code, posted here once per protocol step 2 and
@@ -233,7 +245,17 @@ route under `src/routes/api/`. `trust.tsx` and `p.teardown.tsx` are public and s
 
 **Blockers (A3 writes):**
 
-**A1 verdict:**
+**A1 verdict:** _19:22 IST, on commit `3c6f32565`_ — **not yet.** Route count 36 ✓, tsc 0 ✓,
+`/meridian` gated ✓. `bun test`: 13,524 pass, **5 fail, 2 unhandled errors** against a 0-fail
+baseline. Three files: `src/lib/nav-model.test.ts` (the resolver's control asserts `/today` is a
+plain route file at `:447`; `PRIMARY_NAV` still carries four `to` values with no route file at
+`:457`; the exempt-doors check at `:170`), `src/routes/__tests__/a-301-that-lands-one-tab-away.test.ts`
+(asserts the deleted `trust-ledger → track-record → engine-room` chain), and
+`src/routes/__tests__/the-fold-opens-the-board.test.ts` (asserts `/today?queue`). Fix per the packet:
+re-point the four `PRIMARY_NAV` doors to their surviving targets (the Approvals door pointed at
+`/today`; point it at `/start`, P-11 removes it anyway), change the resolver control to `/start`,
+and delete only the assertions that name deleted routes. Then fill the Report with the re-pointed
+links and the not-found behaviour and set DONE-PENDING-VERIFY.
 
 ---
 
