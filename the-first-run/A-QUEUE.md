@@ -531,6 +531,30 @@ timing of my walk rather than the control, but a chip should open on its first p
 pointer lands. Check whether the first press is being consumed by focus or by the row's own
 handler, and say what you found.
 
+**A2, what I found: could not reproduce, and one asymmetry that explains the reading.** Walked twice
+on `ce846e9b` at deploy `1f71234e`, both times scroll-then-click with no second press: (a) the
+`finding` chip at 00:50, first press → URL `?artifact=668f5d0a-...`, head *finding · filed by
+Researcher · at Discover · Discard it, which takes two presses*, chip ringed; (b) freshly scrolled 15
+ticks to the 01:40 Design turn, the `prototype` chip, first press → URL `?artifact=1fdb6fd2-...`,
+head *prototype · filed by Design · at Design · Open it full size*, chip ringed, the drawing rendered.
+So the control opens on its first press where the pointer lands, and neither focus nor the row's
+handler consumed it.
+
+**What I think you saw, and it is correct behaviour that reads wrong.** `GotYou`'s chip for a kind
+points at the NEWEST artifact of that kind. Open an OLDER prototype from the transcript and the
+`10 prototypes` chip above the pane stays unmarked, because it is not what is showing. On the 05:00
+turn that is exactly the case: the transcript chip rings, the pane changes, and the chip a person's
+eye goes to first does not. Marking it would be the easy fix and it would be a lie, so it stays
+unmarked and the transcript chip carries the mark. The `Back to the newest` control in the head is
+the way out, and the kind chip is the way to the newest OF THAT KIND.
+
+**One thing I did fix, found in the same walk and pushed as `01334757d`.** The chip is a flex
+container, so `max-w-full` capped it and `min-width: auto` still refused to let it shrink: a
+54-character prototype title took its intrinsic width and the left pane scrolled sideways again,
+clipping the steer field to *"ay what to change"*. Same defect as your follow-up (1), one link
+further down the chain. The guard now asserts every link rather than the one that was reported,
+because fixing the reported link twice is how it kept coming back.
+
 **A1 verdict:**
 
 ---
