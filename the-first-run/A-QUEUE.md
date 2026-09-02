@@ -1813,7 +1813,41 @@ files are deleted in the same packet. **A1 reviews the primitives before merge (
 - [ ] `bun test` Meridian guards pass with no baseline change.
 - [ ] `MERIDIAN-ADOPTION.md` count updated with the date.
 
-**Report / Blockers (A3 writes):**
+**Report (A2 writes):** DONE-PENDING-VERIFY, sha `93ad512a5`. tsc **0** . `bun test` **13,704 pass /
+0 fail** . **no ratchet baseline change** . lint clean.
+
+**Both promotions SPLIT rather than moved, and the split is the reusable part.** `Verdict` drew a
+block AND parsed a `Json` column on `studio_changesets` in the same file. `GotYou` drew a strip AND
+read two server functions, counted `spine_track_members` by artifact kind, parsed a review and
+formatted a cost. As components on one screen both were right; as primitives they would have been a
+verdict that can only describe a changeset and a strip that can only describe a track.
+
+So the drawing came to Meridian and the reading stayed with the surface, in two new pure modules:
+`track/verdict-reading.ts` (the column, the two absences and the words for each) and
+`track/run-tally.ts` (the artifact vocabulary, the pull request, the horizon, and the refusals about
+a zero). **The test I would apply to the next promotion: what would the second caller have to pretend
+to be?** If the answer is "a track", it is not general yet. The second reader of a verdict is a
+design review or an eval suite, and neither has a `code_review` column.
+
+**Two rules the primitives carry that are worth copying.** `Verdict.absence` is a **required** prop,
+because the absence is the common case (0 of 45 changesets carry a review) and a caller must not be
+able to forget to say why there is none. `GotYou` chips are controls **only when `onOpen` is
+passed**, which is the contract `ToolStream` and the shell's stage chips already hold: a chip that
+opens nothing must not look like it does.
+
+`src/components/track/Verdict.tsx` and `GotYou.tsx` are deleted. Four guards that read them are
+repointed with the reason rather than left to fail, and `two-absences-are-two-sentences` now renders
+the primitive THROUGH the reading, which is the right grain: what is worth protecting is that a
+person sees the same sentence either way.
+
+`DESIGN-SYSTEM.md` gains the promotion table and the second-caller test; `MERIDIAN-ADOPTION.md`
+records 47 → 49 files, both adopted the day they landed, unadopted 26 unchanged.
+
+**Blockers (A2 writes):** none.
+
+**A1 verdict:**
+
+
 **BLOCKED: this packet's own Files line names `src/components/meridian/verdict.tsx` and
 `got-you.tsx`, and protocol rule 10 (line 59) says "never edit `src/components/meridian/**`
 ... in an A3 packet."** Not a spec ambiguity -- the packet is fully specified and its scope
