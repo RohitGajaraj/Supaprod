@@ -89,6 +89,25 @@ describe("there is no station display on the run screen at all", () => {
       expect(`${name}: ${strip(src).includes('role="tablist"')}`).toBe(`${name}: false`);
     }
   });
+
+  /*
+   * ── THE PAIRED HALF OF THE CHECK ABOVE (P-16) ─────────────────────────────
+   * A `role="tabpanel"` with no `role="tablist"` on the page is an orphaned
+   * ARIA role: a screen reader announces a tab panel with nothing to relate it
+   * to. `ArtifactPane` carried exactly that after the check above went green --
+   * `role="tabpanel"` came from Meridian's `TabPanel`, whose own driving tab
+   * row this page had already removed, so this file's own guard proved the
+   * tablist was gone and said nothing about the panel role left pointing at it.
+   * Found live by A1, 2026-09-02 21:40; fixed by swapping the call site to a
+   * plain, locally-owned `role="region"` with a direct `aria-label` (Rule 10:
+   * `TabPanel` itself is a Meridian file this lane may not edit, so the fix is
+   * at the caller, not the primitive).
+   */
+  it("declares no tabpanel anywhere the run screen draws either", () => {
+    for (const [name, src] of Object.entries(SURFACE)) {
+      expect(`${name}: ${strip(src).includes('role="tabpanel"')}`).toBe(`${name}: false`);
+    }
+  });
 });
 
 describe("the transcript is the control the strip used to be", () => {

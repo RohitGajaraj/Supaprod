@@ -192,6 +192,33 @@ export function TrackConsent({
     onError: () => setAnsweringId(null),
   });
 
+  /**
+   * FOCUS MOVES HERE THE MOMENT A GATE OPENS (P-16, R-19's keyboard clause).
+   *
+   * The card above already fixed the SIGHTED version of "rendered nothing when
+   * a question arrived" -- `RecordSpeaks` during the read, `aria-live="polite"`
+   * on the settled list once it renders. Neither moves a keyboard reader's
+   * focus, so a person tabbed away from this pane while a run was walking on
+   * its own had no way to discover a question landed short of tabbing back
+   * past everything else on the page. `ArtifactPane` already does exactly this
+   * for a context change inside its own pane (see its header, D-7.2); this is
+   * the same rule for the region whose whole job is "does this run need me".
+   *
+   * Keyed on a 0-to-something TRANSITION, never on "open.length > 0" directly:
+   * this component re-renders every 10s poll while a gate is pending, and
+   * yanking focus back here on every poll would fight a person already reading
+   * the card or typing a decline reason.
+   */
+  const consentRef = React.useRef<HTMLDivElement>(null);
+  const hadOpenGateRef = React.useRef(false);
+  const openCount = q.data && !q.data.unreadable ? q.data.open.length : 0;
+  React.useEffect(() => {
+    if (openCount > 0 && !hadOpenGateRef.current) {
+      consentRef.current?.focus({ preventScroll: true });
+    }
+    hadOpenGateRef.current = openCount > 0;
+  }, [openCount]);
+
   /*
    * ── THE ONE REGION THAT ANSWERS "DOES THIS NEED ME" WAS SILENT (2026-09-01)
    *
@@ -241,7 +268,16 @@ export function TrackConsent({
      * person watches. A polite region means the arrival is SAID rather than
      * silently appearing; additions only, so settled churn does not chatter.
      */
-    <div className="flex flex-col gap-mrd-5" aria-live="polite">
+    <div
+      ref={consentRef}
+      className="flex flex-col gap-mrd-5"
+      aria-live="polite"
+      /* -1: a focus TARGET, not a tab stop. The card's own controls are the
+         tab stops; this only receives focus programmatically, the instant a
+         gate opens, the same contract ArtifactPane's panel uses. */
+      tabIndex={-1}
+      aria-label={open.length > 0 ? "Your agent has stopped to ask you something" : undefined}
+    >
       {open.length === 0 && settled.length > 0 ? (
         <p className="text-mrd-small font-medium text-mrd-body">
           Answered. Picking the work back up.

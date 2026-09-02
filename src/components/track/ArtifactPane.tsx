@@ -14,10 +14,13 @@
  * nothing" is the measured common case on production, so it renders as a plain
  * sentence, never as a skeleton or an apology.
  *
- * ONE STATION AT A TIME, ON TABS. Meridian's `Tabs`/`TabPanel` exist and are
- * the named answer for exactly this pane (SPEC-ARTIFACTS §10); Lindy's
- * `Browser | Terminal` is the reference. Default tab is where the work stands,
- * so arriving here answers "what has it made so far" without a click.
+ * ONE STATION AT A TIME, NO LONGER ON TABS. SPEC-ARTIFACTS §10 named Meridian's
+ * `Tabs`/`TabPanel` for this pane, and that held until the founder removed the
+ * pane's own tab row and then the strip that replaced it (2026-09-02, see the
+ * render function's own header below) -- this pane now follows the selected
+ * transcript row, with no tablist anywhere on the page. The focus target below
+ * is `role="region"`, not `TabPanel`'s `role="tabpanel"`, for exactly that
+ * reason (P-16): a tabpanel with no tablist is an orphaned ARIA role.
  */
 import * as React from "react";
 import { failureLine } from "@/lib/error-copy";
@@ -98,7 +101,6 @@ import { Prose } from "@/components/meridian/Prose";
 import { RunNote } from "@/components/meridian/run-rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { Field, Input, ReasonField, Textarea } from "@/components/meridian/forms";
-import { TabPanel } from "@/components/meridian/Tabs";
 import {
   promotionBarFor,
   resolveAutonomyPolicy,
@@ -3118,10 +3120,26 @@ export function ArtifactPane({
           a decision recorded), the change is said politely rather than
           silently repainting. */}
       <div aria-live="polite">
-        <TabPanel
-          group={`artifact-pane-${trackId}`}
-          active={current}
-          label={`${shown.label} output`}
+        {/*
+         * A LABELLED `region`, NOT MERIDIAN'S `TabPanel` (P-16, found live by
+         * A1 2026-09-02 21:40). `TabPanel` renders `role="tabpanel"`, which
+         * ARIA reserves for a panel a `tablist`/`tab` pair actually controls --
+         * true here once, when the pane's own tab row (then its replacement
+         * strip) drove this via `active`/`group`. Both are gone (see this
+         * file's header), so `role="tabpanel"` is now an orphaned role: a
+         * screen reader announces a tab panel with no tablist to relate it to.
+         * `id`, `tabIndex={-1}` and the focus-on-selection-change effect above
+         * are unchanged from what `TabPanel` gave this element -- only the
+         * role and the name-source (a direct label, not a borrowed tab id)
+         * move to match what actually drives the pane now.
+         */}
+        <div
+          data-mrd=""
+          id={`artifact-pane-${trackId}-panel`}
+          role="region"
+          aria-label={`${shown.label} output`}
+          tabIndex={-1}
+          className="mt-mrd-5"
         >
           {/*
            * WHAT IS OPEN, SAID ABOVE IT. With no station strip on the screen, a
@@ -3196,7 +3214,7 @@ export function ArtifactPane({
             now={now}
             trackId={trackId}
           />
-        </TabPanel>
+        </div>
       </div>
     </Region>
   );
