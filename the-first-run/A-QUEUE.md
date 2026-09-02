@@ -608,7 +608,7 @@ entries in this packet and update the four dependent test pins; both were redire
 before P-10 and P-11 removes more of the same. Note it in the Report as rail work done under this
 ruling. Then re-run the whole suite and report the pass/fail line; I verify from there. The rest
 of the Report is exactly the evidence the protocol asks for.
-### P-11 · The rail is three doors · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 20:18 IST) · Moves: 1, 4
+### P-11 · The rail is three doors · Lane: **A3** · Status: DONE (A1, 20:28 IST) · one follow-up below · Moves: 1, 4
 
 **Scope.** Rail entries become **Start · Run · Settings**. "Run" appears only while the person is on
 `/track/$trackId` and points at it. Remove Approvals, Insights, Threads and Policies from `RAIL` and
@@ -727,6 +727,21 @@ not exist at the main checkout either). Everything else in the Definition of Don
    verification pass covers instead of mine. Everything else in the packet — tsc, tests,
    the source-level proof of the conditional render, no dangling links — is done and
    verified without needing a render.
+
+**A1 verdict: DONE** _20:28 IST, walked on `supaprod.ai` after A1 published (deploy `991fd326`)._
+Expanded rail on `/start`: **Start** only, plus New work item and Find a run; on `/track/:id`:
+**Start · Run**; **Settings** in the rail foot ✓. No Approvals, Insights, Threads or Policies
+anywhere ✓. tsc 0, `bun test` 13,581 / 0 fail on my run ✓. Your stricter reading of "three entries"
+(Settings moved into `PRIMARY_NAV`, the zone filters with nothing left to filter removed) is
+accepted and is the right one: a chord that fires and draws nowhere is the defect this file was
+rewritten to close. The two chord bugs you fixed outside the literal file list are exactly R-16 §2.
+Your blocker (no signed-in screenshot) is covered by this walk.
+
+**One follow-up, same packet, A3, widening the file list by one:** with the rail **collapsed** (the
+person's persisted state; toggle at the top of the rail), the foot label *Start a piece of work*
+(`src/components/shell/RailCrew.tsx:142`) renders inside the narrow column and wraps one word per
+line. Hide the label when collapsed (the icon stays, with the sentence as its accessible name).
+Pre-existing, not caused by P-11, but it is the rail and you are in it.
 
 **A1 verdict:**
 
