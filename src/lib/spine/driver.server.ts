@@ -2364,6 +2364,12 @@ export async function driveTrackOnce(
   let overclaim: Overclaim | null = null;
   /** What the crew filed, accumulated seat by seat as each one runs. */
   const made: Attachment[] = [];
+  /**
+   * True when Build's changeset has already reached a pull request, so its crew
+   * is skipped. Declared out here because the skip is decided beside the crew and
+   * read again where the station's output is judged.
+   */
+  let buildAlreadyHandedOn = false;
   try {
     // Build is the one station whose tool refuses without a mission, so the
     // driver opens one for it. Every other station is dispatched exactly as
@@ -2388,6 +2394,56 @@ export async function driveTrackOnce(
       station === "build" ? await missionForTrack(supabase, row, decision.agentSlug) : null;
 
     /*
+     * -- BUILD HAD ALREADY FINISHED, AND THE SWEEP RAN IT AGAIN EVERY TICK ----
+     *
+     * MEASURED ON THE LIVE RUN, 2026-09-02. Track `6817e386` reached Build at
+     * 20:50 UTC, staged, committed and opened pull request #4 on the bound
+     * customer repository. The sweep came round at 21:00 and ran Build AGAIN:
+     * six stage-commit-checks cycles in the first visit and another set in the
+     * second, all onto the same branch. `studio.pr.open` correctly returned the
+     * existing PR rather than opening a second, so the damage is not a duplicate
+     * PR -- it is that THE BRANCH GROWS A COMMIT EVERY TEN MINUTES and the diff
+     * the reviewer judged is not the diff that is there a tick later.
+     *
+     * WHY NOTHING STOPPED IT. Every gate in this function that could have asks a
+     * question about the ARTIFACT: `producedThisVisit` asks whether anything was
+     * filed, `STATION_NEEDS.ship` asks whether a changeset exists, and the F-72
+     * gate below asks whether it is still merely `staged`. Not one of them asks
+     * whether Build's work is OVER, and a changeset sitting at `pr_open` answers
+     * yes to every question they do ask -- so the station looked incomplete
+     * forever and was re-dispatched forever.
+     *
+     * `pr_open` and `merged` both mean the change has LEFT this station: there
+     * is a branch and a pull request, which is precisely what Ship needs to point
+     * at. Refusing on those two rather than allow-listing the rest keeps a future
+     * status working by default, the same shape the F-72 gate below uses for the
+     * same reason.
+     *
+     * IT SKIPS THE CREW, IT DOES NOT SKIP THE STATION. The self-check still runs,
+     * the acceptance gate still reads the reviewer's verdict, and the advance
+     * still goes through the ordinary path -- so a change that opened a PR and
+     * does not meet the spec is still sent back. What is removed is only the
+     * re-dispatch of seats whose work is already on the record.
+     */
+    if (station === "build") {
+      const { data: doneRows, error: doneErr } = await supabase
+        .from("studio_changesets")
+        .select("status")
+        .eq("track_id", row.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (doneErr) {
+        // Fails towards RUNNING the crew, which is today's behaviour. A read we
+        // could not make is not evidence that Build is finished, and skipping a
+        // station on a failed read would strand work that genuinely needs it.
+        console.error(`[driver] build done-check could not read the changeset: ${doneErr.message}`);
+      } else {
+        const st = (doneRows?.[0] as { status?: string } | undefined)?.status ?? null;
+        if (st === "pr_open" || st === "merged") buildAlreadyHandedOn = true;
+      }
+    }
+
+    /*
      * WHERE THIS CREW STARTS, which until 2026-08-22 was always the first seat.
      *
      * The deadline this loop checks belongs to the TICK, shared by every track
@@ -2404,7 +2460,15 @@ export async function driveTrackOnce(
      * out-of-range cursor restarts the crew.
      */
     startSeat = resumeSeatFrom(row.seat_cursor, crew.length);
-    for (let seatIndex = startSeat; seatIndex < crew.length; seatIndex++) {
+    for (
+      let seatIndex = startSeat;
+      // The crew is skipped whole rather than seat by seat: a changeset at
+      // `pr_open` is finished for the builder AND for the reviewer, and running
+      // half a crew over work that is already on a pull request is the same
+      // defect at half the cost.
+      !buildAlreadyHandedOn && seatIndex < crew.length;
+      seatIndex++
+    ) {
       const seat = crew[seatIndex];
       // THE CEILING WHERE THE AUTONOMY IS. Checked before each seat rather than
       // once per tick, because a crew is two or three dispatches and a budget
@@ -2808,14 +2872,27 @@ export async function driveTrackOnce(
   // the rest of its crew". See `stationFiledSinceArrival` for the six live ticks
   // that made this necessary. Asked only when resumed, so the ordinary path
   // costs nothing and behaves exactly as it did.
-  const producedThisVisit = didStationProduce({
-    attachedCount: attached.length,
-    startSeat,
-    filedAtStationSinceArrival:
-      attached.length === 0 && startSeat > 0
-        ? await stationFiledSinceArrival(supabase, row.id, station, row.created_at ?? null)
-        : null,
-  });
+  const producedThisVisit =
+    /*
+     * A BUILD THAT ALREADY OPENED A PULL REQUEST HAS PRODUCED, whatever this
+     * visit harvested.
+     *
+     * Stated here rather than by faking an attachment, because the two facts are
+     * different and only one of them is true: nothing was filed on THIS visit,
+     * and the station's work is nonetheless done. Without this the skip above
+     * would fall into `produced-nothing`, count an attempt, and hand a finished
+     * Build to the correction loop -- which is a worse failure than the
+     * re-dispatch it replaces.
+     */
+    buildAlreadyHandedOn ||
+    didStationProduce({
+      attachedCount: attached.length,
+      startSeat,
+      filedAtStationSinceArrival:
+        attached.length === 0 && startSeat > 0
+          ? await stationFiledSinceArrival(supabase, row.id, station, row.created_at ?? null)
+          : null,
+    });
 
   /*
    * F-41 — A STATION THAT WAS REFUSED IS NOT A STATION THAT FAILED.
