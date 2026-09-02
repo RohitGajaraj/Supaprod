@@ -1159,7 +1159,7 @@ Enumerate them first (Report lists each state, its trigger, its copy, its next a
 
 ---
 
-### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: CLAIMED (A3, 22:15 IST) -- run screen only, the Start half stays for P-05 · Moves: 5
+### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: DONE-PENDING-VERIFY for the run screen (A3, 22:35 IST) -- the Start half stays for P-05 · Moves: 5
 
 **Scope.** Keyboard reachability and focus order on `/start` and `/track/:id`; `aria-live` on the
 transcript and the runs region; focus moves to the ask when it appears; no colour as the only
@@ -1175,7 +1175,122 @@ signal on a status chip (R-19). Meridian tokens only.
       Meridian `TabPanel`) is an orphan role; it becomes a labelled `region` (found by A1 on the
       live site, 2026-09-02 21:40).
 
-**Report / Blockers / A1 verdict:**
+**Report (A3 writes):**
+Commit `b83de431b`. `tsc` 0. `bun test`: 13,657 pass, 0 fail (4 new tests).
+**Scoped to `/track/:id` only** per this packet's own split status line -- the Start
+half of every acceptance line below stays open, waiting on P-05.
+
+**Acceptance line by line, run screen only:**
+
+| # | Acceptance | Status | Evidence |
+| --- | --- | --- | --- |
+| 1 | Tab order documented | **Done, source-derived** | see below -- I could not drive a live Tab key, see Blockers |
+| 2 | `aria-live` on the transcript | **Already built** | `TrackActivity.tsx:908-913`, `role="log" aria-live="polite"`, with its own header explaining the `role="log"` choice. No change needed. |
+| 2b | `aria-live` on the runs region | **N/A to this half** | that region is Start's "Your runs" list (P-05), not built yet |
+| 3 | Focus moves to the ask when it appears | **Built this packet** | `TrackConsent.tsx`, see below |
+| 4 | No colour as the only signal on a status chip (R-19) | **Audited, no violation found** | see below |
+| 5 | Playwright spec, seed workspace only | **Written, could not execute** | `e2e/p16-run-screen-focus-and-live-regions.spec.ts`; see Blockers |
+| 6 | Right pane's orphaned `role="tabpanel"` becomes a labelled `region` | **Built this packet** | `ArtifactPane.tsx`, see below |
+
+**Line 6, the one A1 found live.** `ArtifactPane.tsx` called Meridian's `TabPanel`
+(`role="tabpanel"`), whose own header names the contract: a panel a `tablist`/`tab`
+pair actually drives. That was true when the pane had its own tab row, and stayed
+(barely) true when a shell strip replaced it -- `TabPanel`'s `label` prop exists
+specifically for "a different component drives this now". Then the founder removed
+the strip too (2026-09-02 19:25, recorded in this file's own header), and nothing
+anywhere on the page carries `role="tablist"` any more -- confirmed, not assumed:
+`one-station-display-on-the-run-screen.test.ts` already asserted exactly that. So the
+tabpanel became a role with no tablist to belong to: a screen reader announces "tab
+panel" and has nothing to relate it to.
+
+**Rule 10 means the fix is at the caller, not the primitive.** I cannot edit
+`Tabs.tsx`, so `ArtifactPane.tsx` no longer imports `TabPanel` at all -- the call site
+is now a plain, locally-owned `<div role="region" aria-label={...} tabIndex={-1}
+id="artifact-pane-${trackId}-panel" className="mt-mrd-5">`, byte-identical in every
+behavioural respect except the role and the name source (a direct label instead of a
+borrowed tab id, which is what `TabPanel`'s own `label` prop already did here). The
+existing focus-on-artifact-selection effect (D-7.2, `React.useEffect` reading
+`activeArtifactId`) still targets the same `id` and is untouched. Updated this file's
+top-of-file header too, which still said "ONE STATION AT A TIME, ON TABS" -- true when
+written, false since the strip went, and left uncorrected it would have sent the next
+reader hunting for a tab row that is not there.
+
+**Line 3, what I built.** `TrackConsent.tsx` ("THE QUESTION, ASKED WHERE THE WORK IS")
+had `aria-live="polite"` on its list already (SPEC-CONSENT, so a new gate is announced)
+but never moved keyboard focus, so a person tabbed away from the pane while a run
+walked on its own had no way to discover a question landed short of tabbing back past
+everything else. Added a ref on the card's outer wrapper (`tabIndex={-1}`, a focus
+target the same way `ArtifactPane`'s panel already is -- D-7.2's rule extended to the
+region whose whole job is "does this need me"), and a `useEffect` that focuses it
+**only on a 0-to-something transition**, tracked with a `hadOpenGateRef` boolean --
+not on `open.length > 0` directly, because this component polls every 10s while a gate
+is open and refocusing on every poll would fight a person already reading the card or
+mid-decline-reason. `aria-label="Your agent has stopped to ask you something"` names
+what a screen reader hears, reusing language from this file's own pre-existing header
+comment rather than inventing new copy.
+
+**Line 4, R-19 audit.** Searched `/track/:id`'s own components (`TrackRun.tsx`,
+`ArtifactPane.tsx`, `TrackConsent.tsx`, `TrackChain.tsx` (unused now, confirmed by
+line 3's own guard), `TrackActivity.tsx`) for a bare colour-only indicator -- a
+standalone dot, or a status hue applied with no adjacent word. Found none: every
+status render on this surface goes through Meridian's `StatusChip`, whose own header
+already states and enforces R-19 ("the chip is not a coloured dot with the meaning in
+the hue. It contains the word... structure carries the meaning, hue confirms it") --
+this is a Meridian primitive I could not have changed anyway, but it does not need
+changing. No code change made for this line; nothing to fix.
+
+**Line 1, tab order (source-derived, not observed).** `TrackRun.tsx` composes two
+functions with no CSS `order-*` overrides anywhere in the file (checked), so DOM order
+is tab order. Left pane, top to bottom: run header/presence -> **the ask**
+(`TrackConsent`, "THE QUESTION, ABOVE EVERYTHING ELSE" per its own mount comment) ->
+hold-state region (when the run is stopped) -> run receipt/cost summary -> **the
+transcript** (`TrackActivity`, the `role="log"`) -> the steer composer. Right pane:
+the verdict chip (`GotYou`) -> **the output region** (`ArtifactPane`, this packet's
+fix). This is read from source, not walked with a keyboard against a running page --
+flagged as a Blocker below for A1 to confirm live, the same limit as every visual
+claim I make in this environment.
+
+**Line 5, the spec.** `e2e/p16-run-screen-focus-and-live-regions.spec.ts`, 3 tests,
+following `round-8.spec.ts`'s own rule verbatim: **never creates a track.** It opens
+whatever track already exists in the seed (`harbor@supaprod.ai`) workspace via
+`/start`'s own list and reads it; every test `test.skip`s rather than fails when the
+workspace has nothing to read right now (no open track, no pending gate) -- a skip
+here is a true "nothing to check", not a hidden failure. Asserts: (a) zero
+`role="tabpanel"` anywhere on the page and the labelled `role="region"` is visible,
+(b) the transcript log carries `aria-live="polite"`, (c) a visible "ask" already has
+focus.
+
+**Two colocated `bun test` guards added**, since I could not run the Playwright spec
+myself (see Blockers) and wanted the fix provable in this sandbox: extended
+`one-station-display-on-the-run-screen.test.ts` with a `role="tabpanel"` sibling to
+its existing `role="tablist"` check (same SURFACE map, same shape), and added
+`the-ask-holds-focus-when-it-opens.test.ts`, a source-scan pinning the ref, the
+transition guard and the aria-label, following this directory's own stated reason for
+not standing up a full render test (`useServerFn` four times over, per that file's own
+header).
+
+**Files touched.** `src/components/track/ArtifactPane.tsx` · `src/components/track/TrackConsent.tsx`
+· `src/components/track/one-station-display-on-the-run-screen.test.ts` (extended) ·
+new `src/components/track/the-ask-holds-focus-when-it-opens.test.ts` · new
+`e2e/p16-run-screen-focus-and-live-regions.spec.ts`. Nothing under
+`src/components/meridian/**`.
+
+**Blockers (A3 writes):**
+1. **BLOCKED: cannot execute the Playwright spec, or walk the tab order live, in this
+   environment.** Same credential gap this lane has hit before (P-11's blocker,
+   P-17's acceptance line 2): no `.env`, no `E2E_DEMO_PASSWORD`, `bun run dev`'s
+   `predev` fails without Supabase credentials and a bare `vite dev` hangs on any
+   signed-in route. `e2e/helpers/auth.ts`'s `demoPassword()` throws by name rather
+   than silently, which is correct behaviour, not a bug I can work around. A1's own
+   row in the protocol table says "walks the product in a browser" -- asking for
+   that here: run `bunx playwright test e2e/p16-run-screen-focus-and-live-regions.spec.ts`
+   against the harbor workspace, and separately Tab through `/track/:id` by hand
+   to confirm or correct the source-derived order in line 1 above.
+2. **Not a blocker, noting for the record:** the Start half of this packet (aria-live
+   on the runs region, tab order on `/start`) stays fully open, waiting on P-05. The
+   acceptance table above covers the run screen only.
+
+**A1 verdict:**
 
 ---
 
