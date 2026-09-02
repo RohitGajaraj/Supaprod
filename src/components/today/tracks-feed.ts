@@ -295,3 +295,147 @@ export function trackToBoardRows(
     finished: finished.sort(newest),
   };
 }
+
+/**
+ * ── THE ROWS ON `/start`, AND THE ONE COLUMN THAT DECIDES WHETHER THEY WORK ─
+ *
+ * A1-REPORT §4: *"your runs as rows: title · Strategist is writing the decision ·
+ * 0:34, or Produced spec, prototype, PR #14 · verdict: did what it said, or
+ * Needs you: approve the PR."* The middle column is the row. Cursor's task list,
+ * which this borrows its shape from, carries a diff stat there because that is
+ * the fact that distinguishes one of its rows from another; ours is what the run
+ * is doing, because that is what distinguishes ours.
+ *
+ * ── THE DISCRIMINATOR RULE IS THE ACCEPTANCE, NOT A NICETY ────────────────
+ * *"no two rows print an identical middle column unless the fact is identical."*
+ * A list of eight rows all reading "At Build" tells a person nothing and reads as
+ * a bug in the record, which is the defect the prototype list on the run screen
+ * was repaired for two hours ago. So every branch below reaches for the SHARPEST
+ * fact it can source, and only falls back when the sharper one has no row:
+ *
+ *   a gate open        the tool it is waiting on, named
+ *   a seat in flight   the seat, its verb, and its own clock
+ *   settled            what it filed, counted by kind
+ *   held               the driver's own sentence at the stop
+ *   none of those      where it stands and when it last moved
+ *
+ * Nothing here invents. A seat with no tool call yet says "is working" rather
+ * than a verb nobody wrote down, and a run that filed nothing says so.
+ */
+export type StartRowInput = {
+  id: string;
+  title: string;
+  status: "open" | "done" | "abandoned";
+  stationName: string;
+  updatedAt: string;
+  drivenAt: string | null;
+  holdReason: string | null;
+  holdBecause: string | null;
+  working: { seat: string; since: string; tool: string | null } | null;
+  needsYou: { tool: string } | null;
+  produced: Array<{ kind: string; count: number }>;
+};
+
+export type StartRowKind = "needs-you" | "running" | "finished" | "abandoned" | "waiting";
+
+export type StartRow = {
+  id: string;
+  title: string;
+  kind: StartRowKind;
+  /** The one sentence that says what this run is doing or what it got you. */
+  middle: string;
+  /** When, for the right-hand column. */
+  at: number;
+};
+
+/**
+ * The order a person needs, which is not the order the database has.
+ *
+ * Needs-you first because it is the only kind that is blocked ON THEM; running
+ * next because it is the only kind that is changing; then finished, which is
+ * what they came to read; then abandoned, which is the only kind that is over
+ * and did not arrive anywhere. Within a kind, newest first.
+ */
+const RANK: Record<StartRowKind, number> = {
+  "needs-you": 0,
+  running: 1,
+  waiting: 2,
+  finished: 3,
+  abandoned: 4,
+};
+
+function kindOf(r: StartRowInput): StartRowKind {
+  if (r.needsYou) return "needs-you";
+  if (r.working) return "running";
+  if (r.status === "done") return "finished";
+  if (r.status === "abandoned") return "abandoned";
+  return "waiting";
+}
+
+/** `mm:ss` for a clock under ten minutes, `Nm` above it. A run's own age. */
+export function runClock(sinceIso: string, now: number): string | null {
+  const started = Date.parse(sinceIso);
+  if (!Number.isFinite(started) || started > now) return null;
+  const secs = Math.floor((now - started) / 1000);
+  if (secs < 600) return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`;
+  const mins = Math.floor(secs / 60);
+  return mins < 120 ? `${mins}m` : `${Math.floor(mins / 60)}h ${mins % 60}m`;
+}
+
+export function startRowMiddle(
+  r: StartRowInput,
+  now: number,
+  /** `KIND_WORD`-style display words, injected so this module stays pure. */
+  words: Readonly<Record<string, { one: string; many: string }>>,
+  /** A tool name to a plain phrase, injected for the same reason. */
+  phraseFor: (tool: string) => string | null,
+): string {
+  if (r.needsYou) {
+    const what = phraseFor(r.needsYou.tool);
+    return what ? `Needs you: ${what}` : "Needs you: a call is waiting";
+  }
+
+  if (r.working) {
+    const clock = runClock(r.working.since, now);
+    const verb = r.working.tool ? phraseFor(r.working.tool) : null;
+    /* A seat that has called nothing YET is a real state and gets its own
+       words. "is working" claims exactly what the row supports. */
+    const doing = verb ? `${r.working.seat} is ${verb}` : `${r.working.seat} is working`;
+    return clock ? `${doing} · ${clock}` : doing;
+  }
+
+  if (r.produced.length > 0 && (r.status === "done" || r.status === "abandoned")) {
+    const parts = r.produced.map(({ kind, count }) => {
+      const w = words[kind] ?? { one: kind, many: `${kind}s` };
+      return count === 1 ? w.one : `${count} ${w.many}`;
+    });
+    return `Produced ${parts.join(", ")}`;
+  }
+
+  if (r.status === "done") return "Finished, and filed nothing";
+  if (r.status === "abandoned") return "Abandoned";
+
+  /* HELD. The driver's own sentence when it wrote one, because it names the
+     thing that has to change; the coarse reason cannot. */
+  if (r.holdBecause) return r.holdBecause;
+  if (r.holdReason) return `Stopped at ${r.stationName}`;
+
+  return r.drivenAt ? `Waiting at ${r.stationName}` : "Not started yet";
+}
+
+export function startRows(
+  runs: readonly StartRowInput[],
+  now: number,
+  words: Readonly<Record<string, { one: string; many: string }>>,
+  phraseFor: (tool: string) => string | null,
+): StartRow[] {
+  return runs
+    .map((r) => ({
+      id: r.id,
+      title: r.title,
+      kind: kindOf(r),
+      middle: startRowMiddle(r, now, words, phraseFor),
+      at: Date.parse(r.updatedAt) || 0,
+    }))
+    .sort((a, b) => RANK[a.kind] - RANK[b.kind] || b.at - a.at);
+}
