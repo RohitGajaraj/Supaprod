@@ -1642,6 +1642,44 @@ shows.
 
 ---
 
+### P-25 · Find anything: the rail search reaches every artifact · Lane: **A3** · Status: READY (take after P-14a) · Moves: 3, 4
+
+**Why (founder, 2026-09-02 23:38: "should we have some home or entry point for artifacts?").** The home
+is the run; since P-24 every artifact has an address, `/track/<run>?artifact=<id>`. The entry point
+for a person who does not remember the run is search, not a page: none of the ten products in
+`docs/research/agentic-surface-patterns-2026-09.md` has an "all specs" view; all of them have a search
+whose results open the thing in its context.
+
+**Scope.** The rail's *Find a run* (`AppFrame.tsx`, `RailFind`) becomes *Find anything*. Results
+are grouped: **Runs** (title, state) · **Specs** · **Decisions** · **Prototypes** · **Pull requests**
+(changesets) · **Findings and themes**. Each artifact result names its run and opens
+`/track/<run>?artifact=<id>`; a run result opens the run. One new server function,
+`findAnything(query)`, reading `spine_tracks` (title) and `spine_track_members` joined to the
+artifact tables by kind for their titles, workspace-scoped through RLS, limited to 8 per group,
+matched case-insensitively on title with the query's words in any order (`ilike` per word, no
+embeddings). Keyboard: results are a listbox, arrow keys move, Enter opens, Esc clears. Empty
+result says *Nothing named that. Runs, specs, decisions, prototypes and pull requests are searched.*
+
+**Files.** `src/components/shell/AppFrame.tsx` (`RailFind` only) · new
+`src/components/shell/FindAnything.tsx` (compose Meridian `Row` and the listbox pattern used by
+`settings-search`; name what you checked first) · new `findAnything` in
+`src/lib/spine/track.functions.ts` · tests beside the code.
+
+**Not in scope.** Full-text or semantic search, a search page, indexing anything outside the six
+groups.
+
+**Acceptance.**
+- [ ] On Helio Labs, "address" returns at least one run, one spec, one decision and one prototype,
+      grouped; pressing the spec result lands on its run with that spec open (A1 walks it).
+- [ ] A query with no match shows the empty line; a query on another workspace's artifact returns
+      nothing (RLS; A1 checks with SQL that the row exists and the search does not return it).
+- [ ] Keyboard reachable end to end; the input's accessible name is *Find anything*.
+- [ ] tsc 0 · `bun test` 0 fail · pushed · Report.
+
+**Report / Blockers / A1 verdict:**
+
+---
+
 ### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: BLOCKED → P-05 · Moves: 3
 
 **Scope.** `tracks-feed.ts` becomes the one read model for a track's one-line state, used by
