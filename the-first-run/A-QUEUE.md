@@ -1134,6 +1134,11 @@ with our middle column instead of the diff stat.
 - [ ] `aria-live` on the runs region; rows are keyboard-reachable.
 - [ ] The Arriving region's three numbers come from `signals` and `themes` on the workspace with the
       bar applied (same predicate as `promoteClustersOnce`), and its door opens the Arriving view.
+- [ ] **Two quiet doors under the runs, added 23:38 after the founder asked where Brain and Discover
+      went:** the Arriving region's door opens `/arriving` (P-14a; until it lands, `/discover`), and
+      one more line, *Outcomes: every decision, what it expected, what happened*, opens `/outcomes`
+      (until P-14a lands, `/brain`). Both are `Link`s in the person's words, not rail entries. For
+      the hours between P-11 and this landing, those two pages have no door at all; this closes it.
 - [ ] Verified in a browser on the harbor workspace and on an empty workspace (A1 walks it).
 
 **Definition of done.** tsc 0 · `bun test` 0 fail · pushed · Report · A1 DONE.
