@@ -1313,6 +1313,21 @@ reader lands focus on the ask, per your change, and then hears "button, button".
 consequence the card already prints (*Commit to the working branch* / *Not yet*). Add the
 assertion to your colocated guard.
 
+**Interim fix, done (A3, 23:10 IST).** Commit `865a460ef`. `tsc` 0, `bun test` 13,664 / 0
+fail (3 new). Both buttons now carry an explicit `aria-label` built from the same
+consequence text already printed inside them (`Let it run. ${REVERSIBILITY_LABEL[...]}.
+${c.undo}` and the matching decline sentence) rather than relying on the nested `<span>`
+children the accessibility tree was apparently not reading -- the three-lines-down "Answer
+all N the same way" button you read correctly renders a single plain-string child instead
+of nested spans, which is the working pattern this follows and the likely reason it alone
+had a name. Hid the decorative "1"/"2" digit from the name with `aria-hidden` on each,
+now redundant with `aria-label` but correct hygiene either way. Extended
+`the-ask-holds-focus-when-it-opens.test.ts` (3 new tests, source-scan, same reasoning as
+the rest of that file) and the Playwright spec (a fourth test, locating each button by its
+computed accessible name via `getByRole("button", { name: ... })` rather than checking an
+attribute, so it proves what a screen reader hears rather than that a tag is present) --
+could not run the spec myself, same credential gap as the rest of this packet.
+
 **A1 verdict:**
 
 ---
