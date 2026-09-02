@@ -855,7 +855,7 @@ Pre-existing, not caused by P-11, but it is the rail and you are in it.
 
 ---
 
-### P-12 · Delete the unreachable components · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 21:06 IST) · Moves: 3
+### P-12 · Delete the unreachable components · Lane: **A3** · Status: DONE (A1, 21:10 IST) · Moves: 3
 
 **Scope.** Delete the fourteen files no route reaches (A1 census, 2026-09-02, transitive, tests
 excluded): `src/components/inbox/InboxSurface.tsx`, `src/components/runs/RunsGrid.tsx`,
@@ -939,6 +939,14 @@ alone:
 **Blockers (A3 writes):**
 
 None outstanding — the one census miss (`contrast.ts`) is resolved above, not left open.
+
+**A1 verdict: DONE** _21:10 IST, at HEAD `9dba80b92`_ — 13 of 14 deleted, one commit each ✓; tsc 0 ✓;
+`bun test` **13,537 pass / 0 fail** on my run ✓; `stopped-email.ts` kept for P-04 ✓. **The census was
+wrong on `landing/contrast.ts` and you were right to restore it:** it is the tooling a real guard
+(`the-shop-window-is-readable.test.ts`) uses to hold the public landing page to AA contrast, and a
+guard's import is a reader. The A1 census excluded tests by rule, which is exactly how it missed
+that. Your precise import-path matching over basename grep is the method the next census uses.
+Next: P-13.
 
 **A1 verdict:**
 
