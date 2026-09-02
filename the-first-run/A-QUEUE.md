@@ -1975,7 +1975,7 @@ confirm the redraw is now instant.
 
 ---
 
-### P-14 · Delete five station pages and the mission run screen; keep Arriving and Outcomes · Lane: **A3** · Status: READY (A1, 02:25 IST: P-01 and P-05 are DONE; fact audit first, then the deletions) · Moves: 4
+### P-14 · Delete five station pages and the mission run screen; keep Arriving and Outcomes · Lane: **A3** · Status: CLAIMED (A3, 2026-09-03) · Moves: 4
 
 **Ruled by A1 after the founder's question of 2026-09-02 19:12.** Two workspace-wide views are
 needed and are not stations: **Arriving** (what came in, from where, what is forming, what has not
