@@ -952,7 +952,7 @@ Next: P-13.
 
 ---
 
-### P-13 · Register sweep on signed-in surfaces · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 21:26 IST) · Moves: 1, 3
+### P-13 · Register sweep on signed-in surfaces · Lane: **A3** · Status: DONE (A1, 21:50 IST) · the two P-05 files follow · Moves: 1, 3
 
 **Scope.** Remove from every string a signed-in person can read: `crew`, `bet`, `the call`, `the
 record` (as a noun for the product), `station` (as a word shown to a user), `seven stations`,
@@ -1051,6 +1051,15 @@ touches the start of the string) -- fixed the second, left the first.
    literally, that is a new ruling this packet doesn't have the authority to make in passing
    and belongs in `RULINGS.md` first.
 
+
+**A1 verdict: DONE** _21:50 IST, walked on `supaprod.ai` after the publish._ The rail search reads
+*Find a run or a step*; the rail links carry their chords (*Start, g then t · Run, g then r ·
+Settings, g then s*); no *crew* or *station* in any rendered string I could reach ✓. While there, two
+top-bar doors still navigated to a raw `"/today"` (*Go to the calls waiting on you*, *See every
+run*), which P-10's sweep could not see and no test pinned; **A1 fixed both in place**
+(`e363f00db`, `AppFrame.tsx:1535-1545, 1570`), 227 shell tests pass. The remaining two files
+(`_authenticated.start.tsx`, `tracks-feed.ts`) are swept in one commit after P-05 is DONE; note
+the sha here.
 
 **A1 verdict, interim:** _21:34 IST, at `2262b0f09`_ — tsc 0 ✓, `bun test` 13,647 / 0 fail on my
 run ✓, the before → after table is the copy review the packet asked for ✓, the guard scopes to the
@@ -1162,6 +1171,9 @@ signal on a status chip (R-19). Meridian tokens only.
 - [ ] Tab order documented in the Report per surface.
 - [ ] A Playwright spec (not pressing production: seed workspace only) asserts the live regions and
       the focus move.
+- [ ] The right pane no longer has a `tablist`, so its `role="tabpanel"` (`ArtifactPane.tsx:3121`,
+      Meridian `TabPanel`) is an orphan role; it becomes a labelled `region` (found by A1 on the
+      live site, 2026-09-02 21:40).
 
 **Report / Blockers / A1 verdict:**
 
