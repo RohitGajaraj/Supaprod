@@ -1979,7 +1979,7 @@ five. The count is unbounded and the list is bounded now, and the sentence says 
 
 ---
 
-### P-04 · The horizon verdict arrives · Lane: **A2** · Status: BLOCKED → P-02 · Moves: 3, 4, 5
+### P-04 · The horizon verdict arrives · Lane: **A2** · Status: CLAIMED (A2, 05:20 IST) · Moves: 3, 4, 5
 
 **Scope.** R-31 in Decide's brief (forecast about the user's product; observable never a Supaprod
 table; default horizon 14 days). The band surface on the Decide tab (`forecast-band.ts` exists;
