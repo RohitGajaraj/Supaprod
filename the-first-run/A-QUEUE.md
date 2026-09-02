@@ -479,8 +479,25 @@ first time that file ever fires). Fix the coverage mismatch: the sweep excludes 
 - [ ] One email sent, recorded, with the verdict in the subject.
 - [ ] A test refuses a forecast whose observable names `prd.get`, `sources.status` or
       `workspace.search`.
+- [ ] **The existing self-referential forecasts get graded, not deleted (founder, 2026-09-02).** Every
+      non-sample forecast whose observable names a Supaprod tool or table is settled by the platform's
+      own path as `inconclusive` with the rationale *"This forecast was about Supaprod's own
+      paperwork, not your product, so it cannot be graded"*, visible on that run's Learn tab and its
+      Start row. A1 lists the ids in the Blockers block before you start. This is the grader's first
+      real run on anything.
 
-**Report / Blockers / A1 verdict:**
+**Blockers (A1, 2026-09-02 18:58 IST):** the self-referential forecasts to grade `inconclusive`
+through the platform's own path (non-sample, ungraded, observable names a Supaprod tool or table;
+re-run the predicate before you start, the list may have grown):
+`663c7376-f79f-4691-8be1-ec54f497dc99` (release-verifier, "prd.get will return status='approved'"),
+`420732eb-0f34-4294-a850-897f94473ba8`, `e67ae002-57be-4b37-8940-5074117462da`,
+`7b43fd8e-5078-47fc-936c-1b98cc4f2ff2`, `f649905d-9904-4ef1-9dff-c6d4feaa58f2`,
+`eec7780d-3f8f-4afc-9714-335844bd11ef`, `666f860f-170b-4a38-a5e9-3ff59a1963aa`,
+`08cc534e-88f0-4f96-85e8-190b5c67df66` (horizon 2030-01-01; strategist, `workspace.search` /
+`sources.status`). The 12 seed "resolved" rows were quarantined by A1 the same day
+(`decisions.is_sample=true`; SQL in `A1-REPORT.md` §5), so they no longer count anywhere.
+
+**Report / A1 verdict:**
 
 ---
 
