@@ -2573,8 +2573,29 @@ export type TrackTransition = {
 /** One `track_drives` row, as far as the self-check tally is concerned. */
 type SelfCheckRow = {
   station?: string | null;
+  at?: string | null;
   entry_hold?: string | null;
   self_check?: unknown;
+};
+
+/**
+ * ONE DRIVE'S SELF-CHECK, AS THE TRANSCRIPT DRAWS IT.
+ *
+ * The tally answers "how often"; this answers "when, and what did it look at".
+ * Both come off the same rows in one pass, so the strip's count and the rows a
+ * person can scroll through cannot disagree about the same run.
+ */
+export type SelfCheckEntry = {
+  at: string;
+  station: string;
+  held: number;
+  missed: number;
+  /** True when this drive ran BECAUSE the station's own check had refused. */
+  retried: boolean;
+  /** What it compared, in the words the check itself used. */
+  what: string[];
+  /** Why the ones that did not hold did not. Empty when they all held. */
+  why: string[];
 };
 
 /**
@@ -2609,6 +2630,8 @@ export type SelfCheckTally = {
   retries: number;
   /** Set when the drives could not be read, so a zero is not read as a fact. */
   unreadable: string | null;
+  /** One per drive that compared something, oldest first, for the transcript. */
+  entries: SelfCheckEntry[];
 };
 
 export const EMPTY_SELF_CHECKS: SelfCheckTally = {
@@ -2618,34 +2641,68 @@ export const EMPTY_SELF_CHECKS: SelfCheckTally = {
   missed: 0,
   retries: 0,
   unreadable: null,
+  entries: [],
 };
 
 export function summariseSelfChecks(
   rows: readonly SelfCheckRow[],
   unreadable: string | null,
 ): SelfCheckTally {
-  const t: SelfCheckTally = { ...EMPTY_SELF_CHECKS, unreadable };
+  const t: SelfCheckTally = { ...EMPTY_SELF_CHECKS, unreadable, entries: [] };
   for (const r of rows) {
-    if (r.entry_hold === "self-check-failed") t.retries += 1;
+    const retried = r.entry_hold === "self-check-failed";
+    if (retried) t.retries += 1;
     const list = Array.isArray(r.self_check) ? r.self_check : null;
     if (!list || list.length === 0) continue;
-    let counted = 0;
+    let held = 0;
+    let missed = 0;
+    const what: string[] = [];
+    const why: string[] = [];
     for (const c of list) {
       if (!c || typeof c !== "object") continue;
-      const check = c as { what?: unknown; held?: unknown };
+      const check = c as { what?: unknown; held?: unknown; why?: unknown };
       // A comparison with nothing to show for it cannot be read by a person and
       // is not counted, for the same reason an empty acceptance line is dropped.
       if (typeof check.what !== "string" || !check.what.trim()) continue;
-      counted += 1;
-      if (check.held === true) t.held += 1;
-      else t.missed += 1;
+      what.push(check.what.trim());
+      if (check.held === true) held += 1;
+      else {
+        missed += 1;
+        if (typeof check.why === "string" && check.why.trim()) why.push(check.why.trim());
+      }
     }
+    const counted = held + missed;
     if (counted > 0) {
       t.drives += 1;
       t.compared += counted;
+      t.held += held;
+      t.missed += missed;
+      t.entries.push({
+        at: r.at ?? "",
+        station: r.station ?? "",
+        held,
+        missed,
+        retried,
+        what,
+        why,
+      });
     }
   }
   return t;
+}
+
+/**
+ * The transcript's sentence for one drive's check.
+ *
+ * "Checked its own work: 2 held, 1 did not". Written here rather than in the
+ * component so the row and any other reader say it identically, and so the
+ * counts in it come from the same object the strip's total is summed from.
+ */
+export function selfCheckSentence(e: SelfCheckEntry): string {
+  const held = `${e.held} held`;
+  const missed = e.missed > 0 ? `, ${e.missed} did not` : "";
+  const retried = e.retried ? " · retried once" : "";
+  return `Checked its own work: ${held}${missed}${retried}`;
 }
 
 /**

@@ -1816,7 +1816,7 @@ one is driven on the first tick.
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-02 · The verdict at Build · Lane: **A2** · Status: IN PROGRESS (A2 — 3 of 4 acceptance met; transcript row outstanding) · Moves: 3, 4
+### P-02 · The verdict at Build · Lane: **A2** · Status: DONE (A2, 04:05 IST — all 4 acceptance met in code; live half for A1) · Moves: 3, 4
 
 **Scope.** Build's handoff depends on a verdict from a seat that did not write the diff. `studio.review`
 already produces one and files it where nobody looks (BUILD-QUEUE item 23). Make it: run by the `qa`
@@ -1842,9 +1842,9 @@ tests.
 
 **Report / Blockers / A1 verdict:**
 
-**A2, 03:40 IST · code on main at `bbeafd1d8` across four commits. Three of four acceptance items
-met and provable; the fourth is met in substance and NOT in the form the item names.** Written as
-A1 asked: what a test proves, and what only a live run can.
+**A2, 03:40 IST, completed 04:05 · code on main across five commits. All four acceptance items met
+in code; the live half is A1's to verify on the honest run's Build tab.** Written as A1 asked: what a
+test proves, and what only a live run can.
 
 **The gap this closed, measured before touching anything.** `grep -n "acceptance\|spec\|prd"
 src/lib/build/code-review.server.ts` returned NOTHING. The qa seat's brief has opened with *"Check
@@ -1868,7 +1868,7 @@ visible rather than hidden.
 | Build tab shows the verdict with the compared lines | **Code complete, needs the live run** | `the-verdict-names-the-lines-it-compared.test.tsx` renders `Verdict` from a real `code_review` shape and asserts each line, its chip and the reason on the one that missed. What a test cannot prove is the *within one poll* half: no row in the database carries `compared` yet, because no `studio.review` has run since this landed. |
 | A `did not` re-runs the builder once with the lines | **Met, needs the live run to be seen** | Build's self-check has a third comparison, *"The change meets what the spec asked for"*, reading the reviewer's per-line verdict. A miss sets `self-check-failed`, which counts an attempt and re-runs Build with `selfCheckNote` naming the failing lines. `build-may-not-hand-on-until-its-checks-ran.test.ts` proves the refusal, the line naming, the bound on how many are named, and that no-lines/no-review/unreadable all PASS. |
 | `GotYou` reads the verdict line from the same source | **Met and provable** | `verdictLine` and `verdictProps` both go through `comparedLines`; the test asserts the two are equal rather than asserting each separately, so they cannot drift. |
-| The self-check is visible and counted | **Counted, and NOT in the form the item names** | See below. |
+| The self-check is visible and counted | **Met** | `a-station-checking-its-own-work-says-so.test.ts` (21 assertions): the sentence, the retry clause, the no-zero rule, the comparisons carried on the row, the strip/transcript identity, and that a drive with no time never becomes a row. |
 
 **The fourth item, honestly.** The count is real and is derived from what the checks actually
 compared: `verifyStationOutput` names each comparison as it makes it, every drive writes them to
@@ -1879,11 +1879,25 @@ the moment it is true, rather than inferred from a sequence. There is no per-sta
 anywhere, which would be wrong in both directions on one run: Ship compares nothing by design and
 Build compares three things, and Ship therefore records `[]` rather than a check it did not make.
 
-**What is missing is the TRANSCRIPT ROW.** The item asks for *"Checked its own work: N lines held, M
-did not"* as a row in the transcript. `activity.ts` builds `Turn` from `agent_runs` alone and has no
-field that could carry it. The data is on the client already (`getTrackActivity` returns the tally),
-so this is a rendering step, not a plumbing one. **A2 is doing it next; the packet is not closed
-until it is there.**
+**The TRANSCRIPT ROW, added 04:05 IST — the item is now met in the form it names.** *"Checked its own
+work: 2 held, 1 did not"*, and *"· retried once"* on a drive that arrived on a refused check. It is
+its own `check` row in `mergeActivityRows`, not a caption on a turn, for the reason the handoff row
+states about itself: it belongs to the DRIVE, not to a seat. A drive is often several seats and
+sometimes none, so hanging it off a turn would attach it to whichever ran last — and on a drive whose
+crew was skipped, which is now a real state after P-03's done rule, there would be no turn to hang it
+on at all.
+
+**The row draws WHAT was compared, not only how many.** A count with no list behind it is a number
+nobody can check, which is the same failure the count was added to end one layer down. The lines are
+the check's own words, so a reader decides whether the check was worth anything rather than being
+asked to trust a total. The reasons draw only beside a miss: a reason next to a pass reads as a
+caveat on it, and there is no caveat to make.
+
+**The strip's total and the rows are summed in one pass** and a test asserts the identity rather than
+asserting each separately. The failure that matters is not either surface being wrong alone — it is
+the strip saying five while the transcript shows four, because then neither can be believed. A drive
+with no timestamp counts in the total and never becomes a row: a row in the wrong place in a
+chronological stream would claim the station checked itself at a moment it did not.
 
 **Why this was invisible before.** The self-check ran at the end of every drive of every station and
 reached the database through one path: `spine_tracks.last_hold_because`, written ONLY on a failure

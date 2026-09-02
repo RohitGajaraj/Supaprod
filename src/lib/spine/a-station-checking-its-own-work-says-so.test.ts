@@ -20,7 +20,13 @@
  */
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
-import { EMPTY_SELF_CHECKS, selfCheckLine, summariseSelfChecks } from "@/lib/spine/track.functions";
+import {
+  EMPTY_SELF_CHECKS,
+  selfCheckLine,
+  selfCheckSentence,
+  summariseSelfChecks,
+} from "@/lib/spine/track.functions";
+import { mergeActivityRows } from "@/components/spine/activity-rows";
 
 const held = (what: string) => ({ what, held: true });
 const missed = (what: string, why: string) => ({ what, held: false, why });
@@ -215,5 +221,116 @@ describe("what the driver records", () => {
     expect(fn).not.toContain("return { passed: false, reason:");
     // Every early return either carries the list or goes through a helper.
     expect(fn).toContain("return { passed: true, checks };");
+  });
+});
+
+/**
+ * ── AND IT IS A ROW IN THE TRANSCRIPT, NOT ONLY A NUMBER ON THE STRIP ──────
+ *
+ * P-02's fourth acceptance names the FORM: every station's own check writes one
+ * transcript row reading *"Checked its own work: N lines held, M did not"*, and
+ * on a retry *"retried once"*.
+ *
+ * A count on the strip was not that. A count with no list behind it is a number
+ * nobody can check, which is the same failure the count was added to end one
+ * layer down -- so the row carries what the check COMPARED, in the check's own
+ * words, and a reader can decide whether the check was worth anything instead of
+ * being asked to trust the total.
+ */
+describe("the row a person reads", () => {
+  it("says what held and what did not", () => {
+    const t = summariseSelfChecks(
+      [
+        {
+          station: "build",
+          at: "2026-09-02T20:50:00Z",
+          self_check: [held("A change was staged"), missed("The checks ran", "never run")],
+        },
+      ],
+      null,
+    );
+    expect(selfCheckSentence(t.entries[0])).toBe("Checked its own work: 1 held, 1 did not");
+  });
+
+  it("does not print a zero for the half that did not happen", () => {
+    // "2 held, 0 did not" makes a reader look for the thing that failed, and
+    // there isn't one. The same refusal the rest of this surface makes.
+    const t = summariseSelfChecks(
+      [{ station: "learn", at: "2026-09-02T20:50:00Z", self_check: [held("a"), held("b")] }],
+      null,
+    );
+    expect(selfCheckSentence(t.entries[0])).toBe("Checked its own work: 2 held");
+  });
+
+  it("says retried once when the drive arrived on a refused check", () => {
+    const t = summariseSelfChecks(
+      [
+        {
+          station: "build",
+          at: "2026-09-02T21:00:00Z",
+          entry_hold: "self-check-failed",
+          self_check: [held("a")],
+        },
+      ],
+      null,
+    );
+    expect(selfCheckSentence(t.entries[0])).toContain("retried once");
+  });
+
+  it("carries the comparisons themselves, and the reasons only for the misses", () => {
+    const t = summariseSelfChecks(
+      [
+        {
+          station: "build",
+          at: "2026-09-02T20:50:00Z",
+          self_check: [held("A change was staged"), missed("The checks ran", "never run")],
+        },
+      ],
+      null,
+    );
+    expect(t.entries[0].what).toEqual(["A change was staged", "The checks ran"]);
+    expect(t.entries[0].why).toEqual(["never run"]);
+  });
+
+  it("the rows and the total are summed from one pass, so they cannot disagree", () => {
+    /*
+     * The failure that matters is not either surface being wrong alone -- it is
+     * the strip saying five and the transcript showing four, because then
+     * neither can be believed and a person has to go and count.
+     */
+    const t = summariseSelfChecks(
+      [
+        { station: "build", at: "2026-09-02T20:50:00Z", self_check: [held("a"), missed("b", "w")] },
+        { station: "learn", at: "2026-09-02T21:00:00Z", self_check: [held("c")] },
+      ],
+      null,
+    );
+    expect(t.entries.reduce((n, e) => n + e.held + e.missed, 0)).toBe(t.compared);
+    expect(t.entries.reduce((n, e) => n + e.held, 0)).toBe(t.held);
+    expect(t.entries.reduce((n, e) => n + e.missed, 0)).toBe(t.missed);
+    expect(t.entries.length).toBe(t.drives);
+  });
+
+  it("a drive with no time never becomes a row", () => {
+    /*
+     * A row in the wrong place in a chronological stream is worse than one
+     * absent: it would claim the station checked itself at a moment it did not.
+     * Dropped in `mergeActivityRows`, and the entry still counts in the tally,
+     * because it DID happen -- we just cannot say when.
+     */
+    const t = summariseSelfChecks([{ station: "build", self_check: [held("a")] }], null);
+    expect(t.compared).toBe(1);
+    expect(mergeActivityRows([], [], [], t.entries)).toEqual([]);
+  });
+
+  it("places the row in the stream by its own time", () => {
+    const t = summariseSelfChecks(
+      [{ station: "build", at: "2026-09-02T20:50:00Z", self_check: [held("a")] }],
+      null,
+    );
+    const rows = mergeActivityRows([], [], [], t.entries);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].kind).toBe("check");
+    expect(rows[0].at).toBe(Date.parse("2026-09-02T20:50:00Z"));
   });
 });

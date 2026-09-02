@@ -785,6 +785,7 @@ export function TrackActivity({
         q.data?.turns ?? [],
         q.data?.transitions ?? [],
         oncePerId([...fromMissions, ...(saidQ.data ?? [])]),
+        q.data?.selfChecks?.entries ?? [],
       ),
     [q.data, fromMissions, saidQ.data],
   );
@@ -929,6 +930,55 @@ export function TrackActivity({
                       <RunSubject>{`Moved to ${row.toName}`}</RunSubject>
                     </span>
                     <RunMeta>{row.line}</RunMeta>
+                  </span>
+                </li>
+              );
+            }
+
+            if (row.kind === "check") {
+              /*
+               * ── THE STATION CHECKING ITS OWN WORK ─────────────────────────
+               *
+               * Same row shape as everything else -- clock, glyph, rail -- for
+               * the reason the steer row states: this IS part of what happened
+               * to the work, and a separate treatment would make it commentary
+               * alongside the record rather than part of it.
+               *
+               * WHAT IT COMPARED IS DRAWN, not just how many. A count with no
+               * list behind it is a number nobody can check, which is the exact
+               * failure this row was added to end -- the check ran on every
+               * drive and left nothing a person could read. The lines are the
+               * check's own words, so a reader can decide whether the check was
+               * worth anything rather than being asked to trust the total.
+               */
+              const arrived = primed.current && !seen.current.has(row.key);
+              return (
+                <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
+                  <RunClock at={row.at} />
+                  <span className="flex flex-col items-center self-stretch">
+                    <RunGlyph kind="tool" />
+                    {i === ordered.length - 1 ? null : <RunRail />}
+                  </span>
+                  <span className="min-w-0 pb-1">
+                    <span className={RUN_LINE}>
+                      <RunSubject>{row.line}</RunSubject>
+                    </span>
+                    <RunMeta>{row.stationName}</RunMeta>
+                    {row.what.length > 0 ? (
+                      <ul className="mt-0.5 flex min-w-0 flex-col">
+                        {row.what.map((w, k) => (
+                          <li key={`${row.key}:what:${k}`} className="min-w-0">
+                            <RunNote>{w}</RunNote>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    {/* The reason, only where something did not hold. A reason
+                        beside a pass reads as a caveat on it, and there is no
+                        caveat to make. */}
+                    {row.why.map((w, k) => (
+                      <RunMeta key={`${row.key}:why:${k}`}>{w}</RunMeta>
+                    ))}
                   </span>
                 </li>
               );

@@ -11,7 +11,11 @@
  * the split or before the column existed. They render no marker at all: an
  * unknown driver drawn as a known one is the invention this product refuses.
  */
-import type { TrackTransition } from "@/lib/spine/track.functions";
+import {
+  selfCheckSentence,
+  type SelfCheckEntry,
+  type TrackTransition,
+} from "@/lib/spine/track.functions";
 import { taskAsked } from "@/components/spine/handoff-said";
 import type { Turn } from "@/lib/spine/activity";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
@@ -103,6 +107,34 @@ export type ActivityRow =
       /** True when no run has picked it up, which the row says out loud. */
       waiting: boolean;
     }
+  /**
+   * A STATION CHECKING ITS OWN WORK, WHICH RAN EVERY DRIVE AND SAID NOTHING.
+   *
+   * `verifyStationOutput` runs at the end of every drive of every station, and
+   * its result reached the record through one path: `spine_tracks.last_hold_because`,
+   * written ONLY on a failure and overwritten by the next drive. So the check
+   * that happens almost every time was invisible almost every time.
+   *
+   * Its own row rather than a caption on a turn, for the same reason the handoff
+   * above is: it belongs to the DRIVE, not to a seat. A drive is often several
+   * seats and sometimes none, so hanging it off a turn would attach it to
+   * whichever one happened to run last -- and on a drive whose crew was skipped
+   * there would be no turn to hang it on at all.
+   */
+  | {
+      kind: "check";
+      at: number;
+      key: string;
+      stationName: string;
+      /** "Checked its own work: 2 held, 1 did not", composed by the server. */
+      line: string;
+      /** What it compared, in the check's own words. */
+      what: string[];
+      /** Why the ones that did not hold did not. Empty when they all held. */
+      why: string[];
+      /** True when this drive ran because the check had refused last time. */
+      retried: boolean;
+    }
   | {
       kind: "move";
       at: number;
@@ -132,6 +164,8 @@ export function mergeActivityRows(
   turns: Turn[],
   transitions: TrackTransition[],
   handoffs: readonly HandoffRow[] = [],
+  /** One per drive whose check compared something. See the `check` row above. */
+  checks: readonly SelfCheckEntry[] = [],
 ): ActivityRow[] {
   const rows: ActivityRow[] = [];
   for (const t of turns) {
@@ -210,6 +244,23 @@ export function mergeActivityRows(
       to: h.to_agent_slug,
       task,
       waiting: h.consumed_by_run_id === null,
+    });
+  }
+  for (const c of checks) {
+    const at = Date.parse(c.at);
+    // A check with no time cannot be placed in a chronological stream, and a row
+    // in the wrong place is worse than one absent: it would claim the station
+    // checked itself at a moment it did not.
+    if (Number.isNaN(at)) continue;
+    rows.push({
+      kind: "check",
+      at,
+      key: `check:${c.at}:${c.station}`,
+      stationName: AGENT_STATIONS[c.station as keyof typeof AGENT_STATIONS]?.name ?? c.station,
+      line: selfCheckSentence(c),
+      what: c.what,
+      why: c.why,
+      retried: c.retried,
     });
   }
   return rows.sort((a, b) => b.at - a.at);
