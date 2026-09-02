@@ -110,7 +110,20 @@ describe("the bare catches cannot swallow the distinction", () => {
      */
     expect(CODE).not.toContain("} catch {\n      return [];");
     expect(CODE).not.toContain("} catch {\n      return null;");
-    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(2);
+    /*
+     * ── THREE SINCE 2026-09-02, AND THE THIRD IS THE RULE SPREADING ─────────
+     * This counted two, and it is a canary rather than a cap: a new soft-catch
+     * in this file has to be REVIEWED before the number moves, because the
+     * whole point is that a read failure must not leave through one.
+     *
+     * The third is `listRunsForStart`, which feeds `/start`'s run rows. It is
+     * the same shape as the two above and for the sharper reason: those rows are
+     * the front door's whole content, so "you have no runs" and "we could not
+     * read your runs" are the two sentences a person must never see confused.
+     * Reviewed 2026-09-02: it re-raises the read failure and degrades only on
+     * something genuinely unexpected.
+     */
+    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(3);
   });
 
   it("but anything genuinely unexpected still degrades rather than breaking every surface", () => {
