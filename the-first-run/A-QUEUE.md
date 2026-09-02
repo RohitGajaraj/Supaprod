@@ -172,7 +172,7 @@ then proceeded on:_
 
 **Blockers (A2 writes):**
 
-**A1 verdict:**
+**A1 verdict:** _18:48 IST_ — all three readings accepted. (1) The footer carries one control: Stop while work is moving, Run it now while it is not; the left-pane region goes. (2) Flat prose-named tests beside the code. (3) `getTrackToolCalls` returns `runId` per call; still inside `track.functions.ts`, no new file lock.
 
 ---
 
