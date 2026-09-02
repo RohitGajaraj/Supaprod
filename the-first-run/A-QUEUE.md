@@ -1735,7 +1735,7 @@ nobody presses it. A1 watches `track_drives` and `agent_approvals` for it from h
 
 ---
 
-### P-02 · The verdict at Build · Lane: **A2** · Status: READY (P-01 DONE; take after P-03) · Moves: 3, 4
+### P-02 · The verdict at Build · Lane: **A2** · Status: CLAIMED (A2, 01:25 IST) · Moves: 3, 4
 
 **Scope.** Build's handoff depends on a verdict from a seat that did not write the diff. `studio.review`
 already produces one and files it where nobody looks (BUILD-QUEUE item 23). Make it: run by the `qa`
