@@ -1754,6 +1754,18 @@ non-empty `contract` (1,940 and 3,297 chars), so P-02's verdict will read its li
 not fall back to the body. Next sweep 20:50 UTC; A1 reads `track_drives`, `tool_calls` and
 `agent_approvals` after it.
 
+
+**A1, 02:50 IST · under the fix, and two more defects (sent to A2 02:35 and 02:41).** At 20:50 UTC
+the sweep drove `6817e386`: stage → commit → `studio.pr.open` → checks, unattended, PR #4 on the bound
+repo at 20:51:06. R-30 works. Then: (3) **a Build in `pr_open` is re-driven every tick**: the 21:00
+sweep ran Build on `6817e386` again and committed to the same branch (six stage/commit/checks cycles at
+20:50, more at 21:00); `stop_requested_at` set on it at 21:02:43 (R-32) until the done rule knows an
+open PR means the verdict, not Build. (4) **a cancelled gate parks the run for good**: `2fdf93b6`'s
+builder run `0f4de13b` (19:50) is still `waiting_approval` after its gate was cancelled at 20:41, an
+older one `5198e875` (08-31) likewise, and the track was skipped at 20:50 and 21:00. Runs must wake on
+cancelled the way they wake on rejected. Also seen and good: `studio.stage` refused a change importing
+`@testing-library/react` because the repo does not list it.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
