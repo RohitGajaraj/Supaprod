@@ -38,6 +38,7 @@ import {
   type FoundRun,
 } from "@/lib/spine/find-anything";
 import { joinPlainly } from "@/lib/spine/attach";
+import { ResultsPopover } from "@/components/meridian/results-popover";
 import { IconFind } from "./icons";
 
 /** One flattened, navigable row -- a run or an artifact -- carrying enough to
@@ -89,6 +90,12 @@ function flatten(result: FindAnythingResult): Option[] {
  *  goes through the same cadence); this one hits the server instead of a rail
  *  already in memory, so it earns the wait rather than borrowing it blind. */
 const DEBOUNCE_MS = 300;
+
+/** Stable ids, so `aria-activedescendant` has something to point at. One field
+ *  on the page, so a constant prefix is enough and a generated one would only
+ *  make the markup harder to assert on. */
+const LIST_ID = "find-anything-results";
+const optionId = (i: number) => `find-anything-option-${i}`;
 
 export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: () => void }) {
   const navigate = useNavigate();
@@ -185,6 +192,20 @@ export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: 
         value={q}
         placeholder="Find anything"
         aria-label="Find anything"
+        /*
+         * P-25 follow-up 3. This listbox uses VIRTUAL focus -- the input keeps
+         * real DOM focus and `cursor` marks the current option -- which is the
+         * right model here and is invisible to a screen reader without these
+         * three attributes. `aria-selected` alone says which option is chosen;
+         * `aria-activedescendant` is what makes the reader ANNOUNCE it as the
+         * arrow keys move, which is the whole point of the keyboard model.
+         */
+        role="combobox"
+        aria-expanded={open}
+        aria-controls={LIST_ID}
+        aria-activedescendant={
+          open && options.length > 0 ? optionId(Math.min(cursor, options.length - 1)) : undefined
+        }
         className="min-w-0 flex-1 bg-transparent text-mrd-label text-mrd-ink outline-none placeholder:text-mrd-mute"
         onChange={(e) => setQ(e.target.value)}
         onKeyDown={(e) => {
@@ -208,11 +229,7 @@ export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: 
         }}
       />
       {open ? (
-        <div
-          role="listbox"
-          aria-label="Results"
-          className="absolute left-0 right-0 top-[calc(100%+6px)] z-[var(--shell-z-menu)] flex max-h-[280px] flex-col gap-mrd-1 overflow-y-auto rounded-mrd-card border border-mrd-line bg-mrd-float p-mrd-2 shadow-mrd-float"
-        >
+        <ResultsPopover id={LIST_ID} label="Results">
           {loading ? (
             <p className="px-mrd-3 py-mrd-2 text-mrd-base text-mrd-mute">Searching.</p>
           ) : options.length === 0 ? (
@@ -234,6 +251,7 @@ export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: 
                     return (
                       <div
                         key={opt.key}
+                        id={optionId(i)}
                         role="option"
                         aria-selected={i === cursor}
                         tabIndex={-1}
@@ -241,11 +259,36 @@ export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: 
                         onMouseEnter={() => setCursor(i)}
                         onClick={() => go(opt)}
                       >
+                        {/*
+                         * NOT `tight`, WHICH IS THE HALF THE WIDTH ALONE DOES NOT FIX.
+                         *
+                         * `Row`'s `tight` applies `truncate`, so a wider panel
+                         * would still have cut every title at one line -- just
+                         * further along. `tight` is a caller's assertion that a
+                         * row is a scan line whose full content has a detail
+                         * view to open, and that is exactly wrong here: this IS
+                         * the surface where a person decides which of five
+                         * similar titles is theirs, so the title has to be
+                         * readable HERE, not after a navigation.
+                         *
+                         * Two lines is the cap, set on the text rather than by
+                         * truncating it: a long spec title wraps and is read, a
+                         * pathological one is clamped and still shows enough to
+                         * tell it from its neighbour. Without a cap one result
+                         * could fill the panel.
+                         */}
                         <Row
                           focused={i === cursor}
-                          tight
-                          lead={isRun ? opt.run.title : opt.artifact.title}
-                          sub={isRun ? opt.run.state : `In ${opt.artifact.trackTitle}`}
+                          lead={
+                            <span className="line-clamp-2">
+                              {isRun ? opt.run.title : opt.artifact.title}
+                            </span>
+                          }
+                          sub={
+                            <span className="line-clamp-1">
+                              {isRun ? opt.run.state : `In ${opt.artifact.trackTitle}`}
+                            </span>
+                          }
                         />
                       </div>
                     );
@@ -254,7 +297,7 @@ export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: 
               );
             })
           )}
-        </div>
+        </ResultsPopover>
       ) : null}
     </div>
   );
