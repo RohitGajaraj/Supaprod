@@ -1442,7 +1442,7 @@ could not run the spec myself, same credential gap as the rest of this packet.
 
 ---
 
-### P-03 · Ship fires for real · Lane: **A2** · Status: READY · **TAKE THIS NEXT (A1, 00:42 IST): it is the critical path for the date** · CI on `Supaprod/relay-homeowner-app` verified running 2026-09-02 · Moves: 3, 5
+### P-03 · Ship fires for real · Lane: **A2** · Status: CLAIMED (A2, 00:20 IST) · CI on `Supaprod/relay-homeowner-app` verified running 2026-09-02 · Moves: 3, 5
 
 **Scope.** On the bound repo, a track walks Build → Ship with no person: commits (R-30), PR, checks,
 merge under the arc, a recorded preview at the merged sha, `release.publish` fires, a `deployment`
