@@ -1381,6 +1381,31 @@ export function BoundaryControls({
             title="What starts without you"
             sub="A cluster of evidence becomes a piece of work on its own when it clears all three. Nobody clicks, and the work begins spending against the ceiling above. Clear a field to hand it back to us."
           >
+            {/*
+             * ── THE BAR IN ONE SENTENCE, WITH THIS WORKSPACE'S OWN NUMBERS ──
+             *
+             * The three fields below each carry their own number and their own
+             * argument, which is right for changing one. It is the wrong shape
+             * for the question a person actually arrives with: *"when various
+             * signals are queued, bucketed and themed, how do I decide which one
+             * to hack on?"* (founder, 2026-09-02). Half of that answer is the
+             * pin on the run list; the other half is knowing where the line IS,
+             * and the line was only readable by adding three fields together.
+             *
+             * Composed from `autonomy`, which is the resolved policy the sweep
+             * itself runs on -- not `SHIPPED_AUTONOMY_POLICY` -- so a workspace
+             * that moved a floor reads its own number here. A sentence quoting
+             * the default at a workspace that changed it would be the kind of
+             * number that looks measured and is not.
+             */}
+            <p className="mrd-meta">
+              {`Runs open on their own when a cluster is seen ${autonomy.minFrequency} ${
+                autonomy.minFrequency === 1 ? "time" : "times"
+              }, at severity ${autonomy.minSeverity} or worse, with the grouping ${pct(
+                autonomy.minConfidence,
+              )}% sure. Nothing below that line starts itself.`}
+            </p>
+
             <Line
               label="Signals that must say it"
               htmlFor="bar-frequency"
