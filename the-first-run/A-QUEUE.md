@@ -1994,17 +1994,76 @@ re-addressed as `/outcomes`, the same. The old addresses redirect for one week.
 list them in the Report before deleting anything).
 
 **Acceptance.**
-- [ ] **First, before any deletion, the fact audit (founder, 2026-09-02 19:02).** For each of the
+- [x] **First, before any deletion, the fact audit (founder, 2026-09-02 19:02).** For each of the
       five pages and `/runs/$missionId`, a table in the Report: every region and fact the page
       shows · where that fact now lives (a run tab, a Start row, a Settings tab) · or **NO HOME**.
       A1 walks the five pages on `supaprod.ai` against the table. **Any NO HOME row blocks the
       deletion of that page** until a packet gives the fact a home. The known candidate: a cross-run history per
-      station (`/learn`, `/decide`), which Outcomes must carry.
-- [ ] Route count reported before and after. tsc 0 after each deletion.
+      station (`/learn`, `/decide`), which Outcomes must carry. **Done -- see below. The audit
+      blocks nearly every page from deletion today; nothing has been deleted yet.**
+- [ ] Route count reported before and after. tsc 0 after each deletion. **Not started -- the audit
+      below is the reason: nothing is clear to delete yet.**
 - [ ] Every `Link` that pointed at a deleted page now points at `/track/:id` with the tab in search,
-      or at `/start`.
+      or at `/start`. **N/A until a page is actually deleted.**
 
-**Report / Blockers / A1 verdict:**
+**Report (A3, 2026-09-03): the fact audit, and why nothing is deleted yet.**
+
+**`today.tsx`'s `Board` mount is not a live page.** `today.tsx` does not exist as a route file --
+P-10 already deleted it as a redirect stub. `Board.tsx` (`src/components/today/Board.tsx`, 2,656
+lines) has **zero importers anywhere in the codebase**, confirmed by `grep` for every plausible
+import path. It is dead code today, not a mount to be removed -- this packet's own Scope line names
+a mount that no longer exists. Nothing to delete here; nothing blocks anything either. `TERMINAL_HOLDS`, `getParkedWork` and the rest of `Board.tsx`'s own machinery may still be reachable
+from elsewhere (not audited -- out of this packet's scope, which is the mount, not the file).
+
+**The eight pages, region by region, home or NO HOME.** Read from each page's own current header
+(all dated 2026-08, current) and cross-checked against what P-01/P-05/P-11/P-13/P-14a actually
+shipped -- not assumed from a route name. A NO HOME row here is a fact this audit could not find a
+second home for anywhere in the current product; A1's own walk on `supaprod.ai` is what turns a
+"could not find" into a ruling.
+
+| Page | What it carries | Where that fact lives now | Verdict |
+| --- | --- | --- | --- |
+| `/decide` | The gate (settle a ranked bet), the ranked queue itself, Now/Next/Later lane control | Nothing else in the product carries a **portfolio-wide ranked triage board** -- `grep`'d for the Now/Next/Later pattern across `src/routes` and `src/components/{start,track}`; it exists only in `/decide` and `/plan*` | **NO HOME** |
+| `/plan` (index) | Same Now/Next/Later board, an undeclared-outcome gate, spec rows, who is working the plan | Same triage-board gap as `/decide` -- one fact, two pages both claiming it | **NO HOME** |
+| `/plan/spec/$id` | Not read to the same depth this pass (3,016 lines, time-boxed out of this round) | Unaudited | **Flagged for a follow-up pass, not cleared either way** |
+| `/design` | A brand-rule gate, the drawings grid, fidelity/consequence/Critic review, the route decision | The page's own header says the prototype list moves to `/artifacts` -- **that route does not exist** in the current tree (`find src/routes -iname "*artifact*"` returns only a test file naming the concept). Prototypes ARE reachable via P-25's search (`findAnything`, prototype group) but browsing a list and searching for a known name are different capabilities | **NO HOME** (the page's own stated destination is stale) |
+| `/build` (index) | A workspace-wide "live block" (what crew is writing right now, across every run), a workspace-wide change list, where builds land | The page's own header states both are **new at workspace scope and exist nowhere else** -- not a stale claim, an explicit one | **NO HOME**, by the page's own admission |
+| `/ship` | The gate, the composer, an announcements list, release notes | The page's own header states three moves already made: reached-production -> Runs, cost/duration -> Engine Room, the six-week heartbeat -> Learn/Analytics (all pre-date this session, not independently re-walked this pass). The gate and the announcements list themselves have no stated second home | **Partial NO HOME**: the three stated moves are plausible and old; the gate/announcements object is not covered by any of them |
+| `/learn` | A settle gate with a verdict form and waiting queue, a projection, the agent's own auto-settle sweep with an exception desk for what it cannot settle, an impact ledger the page's own header calls "its only home" | The page's own words rule this one: "its only home" is a direct admission there is no second one | **NO HOME**, by the page's own admission, for the exception-desk workflow and the impact ledger |
+| `/runs/$missionId` | The gate, "what came back", "how it checked itself", "what it produced" (diff, preview, provenance, steps) | Functionally superseded by `/track/:id` -- `TrackConsent`, `TrackActivity`, `ArtifactPane` and `chain.ts` already build the same shape for a spine track. **Conditional**: only for a mission with no `spine_tracks` row (pre-dates the spine, or never driven by it) is there nowhere else to look -- `AppFrame.tsx`'s own comment already names this exact unresolved gap ("the proven mission-to-track version waits on request 021") | **Conditionally NO HOME** -- clear for any mission with a track id, blocked for any that has none, and nothing today can tell the two apart in bulk |
+
+**What this means for deletion, read against the packet's own gate.** "Any NO HOME row blocks the
+deletion of that page until a packet gives the fact a home" is not a soft guideline in this packet's
+own text -- it is the acceptance line. By that rule: **`/decide`, `/plan`, `/design`, `/build`,
+`/learn` are blocked today**; `/ship` is blocked on its gate/announcements object even though its
+three other moves look sound; `/runs/$missionId` is blocked for missions with no track id and clear
+for the rest, with no bulk way today to tell which is which; `/plan/spec/$id` was not audited deep
+enough this pass to rule either way. **`today.tsx`'s Board mount is the one clean item on this
+packet's own list** -- it is already gone.
+
+**So nothing has been deleted.** Deleting any of the six blocked pages today would ship the exact
+defect this packet's own acceptance gate exists to prevent: a fact that was on the record and is now
+nowhere. The honest state of this packet after the audit is: the census this packet asked for is
+done, the gate it built is doing its job, and what is left is either (a) A1 ruling that some of these
+facts do not need to survive after all, having walked the live pages against this table, or (b) new,
+separate packets giving each surviving fact its home (Outcomes carrying cross-run history per station
+is the one the packet's own text already names as the known candidate) before the corresponding page
+can go.
+
+**Blockers (A3 writes):**
+1. **Asking A1 to walk the six blocked pages on `supaprod.ai` against this table**, per the
+   acceptance line's own instruction, and rule per row: genuinely NO HOME (needs a packet before its
+   page can go), or a fact this audit missed a home for. Six pages, roughly twelve rows total to
+   confirm or correct.
+2. **`/plan/spec/$id` needs its own audit pass** -- not done to the same depth this round (3,016
+   lines). Will do this myself as the next step on this packet rather than waiting on A1, since it is
+   pure investigation the way the rest of this audit was.
+3. **`/runs/$missionId`'s conditional block has no query behind it yet**: nothing counts how many
+   missions have no `spine_tracks` row today, so "conditionally blocked" is a shape, not a number. A
+   quick count would tell whether this is one row A1 can rule on directly or a real backfill packet
+   (the "request 021" `AppFrame.tsx` already names).
+
+**A1 verdict:**
 
 ---
 
