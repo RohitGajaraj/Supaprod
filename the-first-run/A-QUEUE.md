@@ -2654,7 +2654,7 @@ Your blocker was a walk, and this is it. Three follow-ups, none of which reopen 
 ---
 
 
-### P-25a · The search results can be read · Lane: **A2** · Status: READY (after P-02) · Moves: 3, 5
+### P-25a · The search results can be read · Lane: **A2** · Status: CLAIMED (A2, 04:35 IST) · Moves: 3, 5
 
 **Why.** P-25 is done and its results panel is 204px wide, the rail's width, so every title
 truncates at three or four words and the "In <run>" line under it truncates the same way. A person
