@@ -1860,6 +1860,19 @@ tests.
       M did not"* and, on a retry, *"retried once"*; `GotYou` shows the total (*self-checks 3 · 1
       retry*). Counted from what the check actually compared, never a constant.
 
+
+**A1 live read, 03:25 IST, on `2fdf93b6`'s Build tab after the publish carrying `4c152cd03`.** The
+verdict is there and it is real: *Revise · Compared 1 file against the change*, four findings with
+file and line and a fix each (`vi.fn()` from Vitest in a Bun test; a component called as a function;
+`saved.country` not on the type; `AddressStep.tsx` changes logic with no test), the change file by
+file with +194 −30. That is the first time the product has judged a change it made. Not on this
+drive: the comparison against the spec's acceptance lines (the panel compares files, and neither
+*criteria_source* nor a held / did-not list is shown) and the *Checked its own work* row (0 matches
+in the transcript). The 21:40 UTC drive may predate the build, so the deciding read is the next Build
+drive on this track, which waits on PR #4's merge (P-03). Status stays DONE-PENDING-VERIFY; A2 can
+close the gap sooner with a rendered-transcript test that shows the row for a drive whose crew was
+skipped, which is the case the row was built for.
+
 **Report / Blockers / A1 verdict:**
 
 **A2, 03:40 IST, completed 04:05 · code on main across five commits. All four acceptance items met
@@ -2806,6 +2819,30 @@ precisely is this Report's job, stopping it is A1's per that ruling.
 **A1 verdict:**
 
 ---
+
+
+### P-18a · The top bar counts only what a person can act on · Lane: **A3** · Status: READY · Moves: 3
+
+**Why.** At 03:20 IST the bar on Helio Labs read *65 decisions are ready for you · Merges the pull
+request into the branch · 10m ago*. No count in the workspace is 65: 5 approvals are pending (2 on a
+track), 8 decisions are `pending`, 59 decisions exist, 71 bets sit in backlog. A number a person
+cannot find is a number they stop believing, and this one sits next to the one line the bar exists
+for. Same defect class as P-18, one reader over.
+
+**Scope.** Find the reader behind *N decisions are ready for you* and replace its count with the
+pending gates on open tracks (the same rows Start marks *Needs you*); when that is zero the phrase
+does not render. Every rotating sentence in the bar names its source in a test: moving runs from
+`listMovingTracks`, gates from the approvals-on-tracks reader, nothing else. Copy stays plain.
+
+**Files.** `src/components/shell/AppFrame.tsx` and the reader it calls; tests beside them.
+
+**Acceptance.**
+- [ ] With the current data the bar says *2 decisions are ready for you* or omits the phrase, and a
+      test pins the count to the approvals-on-tracks reader.
+- [ ] tsc 0 · `bun test` 0 fail · pushed · Report with the reader's old name and what it counted.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
 
 ### P-19 · Promote `Verdict` and `GotYou` into Meridian · Lane: **A2** · Status: DONE (A1, 00:05 IST, reviewed as a Meridian promotion under R-17 and R-20) · Moves: 4
 
