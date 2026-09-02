@@ -573,3 +573,34 @@ files are deleted in the same packet. **A1 reviews the primitives before merge (
 - [ ] `MERIDIAN-ADOPTION.md` count updated with the date.
 
 **Report / Blockers / A1 verdict:**
+
+---
+
+### P-20 · Which one first: a pin, and the promotion bar made visible · Lane: **A2** · Status: BLOCKED → P-05, P-17 · Moves: 1, 3
+
+**Why (founder, 2026-09-02 18:54):** *"when various signals are queued, bucketed and themed, how do
+I decide which one to hack on? Is there any prominence for that?"* Today a theme becomes a run when
+it crosses the workspace bar (`promote.server.ts:274-290`, ranked severity → frequency →
+confidence) and the sweep then serves runs in strict round robin by `driven_at` (`track-tick.ts:139`).
+No person can say "this first". That is the gap.
+
+**Scope.** One pin per run: `spine_tracks.pinned_at` (nullable timestamptz; migration written by
+A2, applied by A1). The sweep orders `pinned_at asc nulls last, driven_at asc`. The Start row gets one
+control, *Put first* / *Unpin*, and shows *First* when pinned. `driveTrackNow` is unchanged. The
+Settings › Autonomy tab (P-17) shows the promotion bar in one sentence with the numbers it reads
+from the workspace row (*"Runs open on their own when a theme is seen 4 times at severity 5 or
+more"*) and a control to change the frequency floor.
+
+**Files.** `src/routes/api/public/hooks/track-tick.ts` (order clause only) · `src/lib/spine/track.functions.ts`
+(`pinTrack` server fn) · `src/components/start/YourRuns.tsx` (P-05's row; one control) ·
+`src/components/settings/AutonomyTab.tsx` (P-17's tab; one region) · one migration · tests.
+
+**Not in scope.** Any ranking model, scoring, or a second list. One pin, one bar.
+
+**Acceptance.**
+- [ ] With two runnable tracks and one pinned, the next sweep serves the pinned one first (A1 checks
+      `track_drives` order).
+- [ ] The row shows *First* and the control flips; a test asserts the order clause.
+- [ ] The Autonomy tab sentence quotes the workspace's actual bar; changing the floor round-trips.
+
+**Report / Blockers / A1 verdict:**
