@@ -1816,7 +1816,7 @@ one is driven on the first tick.
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-02 · The verdict at Build · Lane: **A2** · Status: CLAIMED (A2, 01:25 IST) · Moves: 3, 4
+### P-02 · The verdict at Build · Lane: **A2** · Status: IN PROGRESS (A2 — 3 of 4 acceptance met; transcript row outstanding) · Moves: 3, 4
 
 **Scope.** Build's handoff depends on a verdict from a seat that did not write the diff. `studio.review`
 already produces one and files it where nobody looks (BUILD-QUEUE item 23). Make it: run by the `qa`
@@ -1841,6 +1841,74 @@ tests.
       retry*). Counted from what the check actually compared, never a constant.
 
 **Report / Blockers / A1 verdict:**
+
+**A2, 03:40 IST · code on main at `bbeafd1d8` across four commits. Three of four acceptance items
+met and provable; the fourth is met in substance and NOT in the form the item names.** Written as
+A1 asked: what a test proves, and what only a live run can.
+
+**The gap this closed, measured before touching anything.** `grep -n "acceptance\|spec\|prd"
+src/lib/build/code-review.server.ts` returned NOTHING. The qa seat's brief has opened with *"Check
+the change against the spec"* since it was written, and `studio.review` had never been shown a spec:
+it built its `intent` from the changeset title and the mission's title and goal. It judged security,
+correctness, error handling, scope and convention, every one a property of the DIFF. So a changeset
+could be clean code that builds the wrong thing and come back `approve`, with nothing disagreeing
+until Learn graded it against lines the reviewer never saw.
+
+**Where the lines come from, and why it is not the thing `spec-contract.ts` refuses to do.**
+`intentPointsWithSource`, which is the same function Learn grades shipped work with. Two functions
+deriving acceptance lines separately is how Build passes what Learn then marks unmet, and once those
+disagree neither can be believed. `spec-contract.ts` detects rather than extracts for a PRESENTATION
+reason stated in its own header: it will not put body text on screen under a heading the author never
+agreed to. Nothing here presents extracted text as the author's contract; these are the lines the
+REVIEWER says it compared, printed beside its judgment of each, which is what makes a wrong reading
+visible rather than hidden.
+
+| Acceptance | Status | What proves it |
+| --- | --- | --- |
+| Build tab shows the verdict with the compared lines | **Code complete, needs the live run** | `the-verdict-names-the-lines-it-compared.test.tsx` renders `Verdict` from a real `code_review` shape and asserts each line, its chip and the reason on the one that missed. What a test cannot prove is the *within one poll* half: no row in the database carries `compared` yet, because no `studio.review` has run since this landed. |
+| A `did not` re-runs the builder once with the lines | **Met, needs the live run to be seen** | Build's self-check has a third comparison, *"The change meets what the spec asked for"*, reading the reviewer's per-line verdict. A miss sets `self-check-failed`, which counts an attempt and re-runs Build with `selfCheckNote` naming the failing lines. `build-may-not-hand-on-until-its-checks-ran.test.ts` proves the refusal, the line naming, the bound on how many are named, and that no-lines/no-review/unreadable all PASS. |
+| `GotYou` reads the verdict line from the same source | **Met and provable** | `verdictLine` and `verdictProps` both go through `comparedLines`; the test asserts the two are equal rather than asserting each separately, so they cannot drift. |
+| The self-check is visible and counted | **Counted, and NOT in the form the item names** | See below. |
+
+**The fourth item, honestly.** The count is real and is derived from what the checks actually
+compared: `verifyStationOutput` names each comparison as it makes it, every drive writes them to
+`track_drives.self_check` (migration `20260904010000`, applied and verified against
+`information_schema`), and `GotYou` shows *"3 self-checks · 5 things compared · 1 did not hold · 1
+retry"*. Retries are read from `entry_hold = 'self-check-failed'`, which the log already records at
+the moment it is true, rather than inferred from a sequence. There is no per-station constant
+anywhere, which would be wrong in both directions on one run: Ship compares nothing by design and
+Build compares three things, and Ship therefore records `[]` rather than a check it did not make.
+
+**What is missing is the TRANSCRIPT ROW.** The item asks for *"Checked its own work: N lines held, M
+did not"* as a row in the transcript. `activity.ts` builds `Turn` from `agent_runs` alone and has no
+field that could carry it. The data is on the client already (`getTrackActivity` returns the tally),
+so this is a rendering step, not a plumbing one. **A2 is doing it next; the packet is not closed
+until it is there.**
+
+**Why this was invisible before.** The self-check ran at the end of every drive of every station and
+reached the database through one path: `spine_tracks.last_hold_because`, written ONLY on a failure
+and overwritten by the next drive. So the check that happens almost every time was invisible almost
+every time, and no number anywhere could answer *"how many times did this run check its own work"*.
+
+**Two things a live run will decide, and A1 should watch for both.**
+1. `2fdf93b6`'s two specs carry a non-empty `contract` (A1, 02:20), so `criteria_source` should read
+   `contract` and the lines are the author's own success metrics. If it reads `body` or `none`, the
+   contract's `success_metrics` are superseded or empty and the lines came from the document instead
+   — still correct, but a weaker claim, and worth knowing which.
+2. **This is a new way Build can refuse.** If the reviewer judges a stated acceptance line as not
+   met, the track holds at `self-check-failed` with the failing lines in `last_hold_because` rather
+   than moving to Ship. That is the intended behaviour and the first time this product can catch a
+   change that builds the wrong thing — but it is also the first time a model's reading of a spec can
+   hold a track, so the first one deserves reading by hand.
+
+**Not in scope and deliberately not done:** the gate fires only where a reviewer explicitly judged a
+stated line as not met. No lines, no review, an unreadable column, or a spec with no acceptance
+criteria all pass. 117 of 119 specs carry no contract, and a gate that demanded lines would park
+almost every track in the product on its first Build.
+
+**One defect the guard caught inside the fix for defects of that kind:** the first version of the
+send-back sliced the failing lines to five before counting them, so nine missed lines reported as
+five. The count is unbounded and the list is bounded now, and the sentence says how many it left out.
 
 ---
 
