@@ -205,8 +205,8 @@ export function TrackRunLeft({
   onCrewLive,
   onDriveState,
   crewLive = false,
-  selectedStation = null,
-  onSelectStation,
+  selectedArtifactId = null,
+  onSelectArtifact,
 }: {
   trackId: string;
   /**
@@ -244,10 +244,10 @@ export function TrackRunLeft({
    * the lie.
    */
   crewLive?: boolean;
-  /** The station the right pane is showing, so the row that chose it says so. */
-  selectedStation?: string | null;
-  /** A transcript row that filed something was pressed. */
-  onSelectStation?: (station: string) => void;
+  /** The artifact the right pane is showing, so the row and chip say so. */
+  selectedArtifactId?: string | null;
+  /** A transcript row or one of its artifact chips was pressed. */
+  onSelectArtifact?: (artifactId: string) => void;
 }) {
   const drive = useServerFn(driveTrackNow);
   const fetchTrack = useServerFn(getTrack);
@@ -1129,8 +1129,8 @@ export function TrackRunLeft({
       <TrackActivity
         trackId={trackId}
         onLiveChange={onCrewLive}
-        onSelect={onSelectStation}
-        selected={selectedStation}
+        onSelect={onSelectArtifact}
+        selected={selectedArtifactId}
       />
 
       {/*
@@ -1155,20 +1155,26 @@ export function TrackRunLeft({
 export function TrackPaneRight({
   trackId,
   isRunning = false,
-  active = null,
-  onActiveChange,
+  activeArtifactId = null,
+  onOpenArtifact,
 }: {
   trackId: string;
   isRunning?: boolean;
   /**
-   * The station whose artifact is shown, chosen in the TRANSCRIPT.
+   * The ARTIFACT shown, chosen in the transcript or on a chip above this pane.
    *
-   * Owned by the route rather than by this pane, because the control that sets
-   * it is a row in the other one. Null means nobody has picked yet and the pane
-   * falls back to the newest thing the run made.
+   * An artifact id rather than a station, which is P-24's whole correction: a
+   * station reaches one thing per station, so the third prototype of ten could
+   * be seen and not opened. Owned by the URL, through the route, because the
+   * control that sets it is a row in the other pane and because a person wants
+   * to send a colleague the spec rather than the run.
+   *
+   * Null means nobody has picked, and the pane falls back to the newest thing
+   * the run made.
    */
-  active?: string | null;
-  onActiveChange?: (station: string) => void;
+  activeArtifactId?: string | null;
+  /** Null clears the selection and returns the pane to the newest artifact. */
+  onOpenArtifact?: (artifactId: string | null) => void;
 }) {
   return (
     <div className="flex flex-col gap-mrd-6">
@@ -1188,11 +1194,11 @@ export function TrackPaneRight({
        * It never names a station that made nothing, which is the difference
        * between a summary and a seven-slot template.
        */}
-      <GotYou trackId={trackId} onSelect={onActiveChange} active={active} />
+      <GotYou trackId={trackId} onOpen={onOpenArtifact} active={activeArtifactId} />
       <ArtifactPane
         trackId={trackId}
-        active={active}
-        onActiveChange={onActiveChange}
+        activeArtifactId={activeArtifactId}
+        onOpenArtifact={onOpenArtifact}
         isRunning={isRunning}
       />
       {/*
@@ -1249,14 +1255,14 @@ export function TrackRun({ trackId, autoStart = false }: { trackId: string; auto
         autoStart={autoStart}
         onCrewLive={setCrewLive}
         crewLive={crewLive}
-        selectedStation={selected}
-        onSelectStation={setSelected}
+        selectedArtifactId={selected}
+        onSelectArtifact={setSelected}
       />
       <TrackPaneRight
         trackId={trackId}
         isRunning={crewLive}
-        active={selected}
-        onActiveChange={setSelected}
+        activeArtifactId={selected}
+        onOpenArtifact={setSelected}
       />
     </div>
   );

@@ -99,17 +99,50 @@ describe("the transcript is the control the strip used to be", () => {
     expect(code).toContain("canOpen(t) ? (");
   });
 
+  /*
+   * ── THIS BLOCK MOVED FROM STATIONS TO ARTIFACTS (P-24) ──────────────────
+   * It asserted `aria-pressed={selected === t.station}` and the route's
+   * `onSelectStation={setSelected}` verbatim, which pinned the mechanism P-01
+   * shipped and the founder then reported on: a station points at one thing per
+   * station, so the third prototype of ten could be seen and not opened. The
+   * selection is an ARTIFACT ID now. The rule these tests hold is unchanged --
+   * one pointer, marked without relying on colour -- so they are rewritten
+   * rather than deleted.
+   */
   it("says which row chose what the pane is showing, and not with colour alone", () => {
     const code = SURFACE["TrackActivity"];
-    expect(code).toContain("aria-pressed={selected === t.station}");
+    expect(code).toContain("aria-pressed={t.made.some((m) => m.id === selected)}");
     expect(code).toContain("data-selected=");
   });
 
   it("gives the chips above the pane the same pointer, not a second one", () => {
-    // One selection for both ways in. Two would be two things to keep in step.
-    expect(SURFACE["the route"]).toContain("const [selected, setSelected]");
-    expect(SURFACE["the route"]).toContain("onSelectStation={setSelected}");
-    expect(SURFACE["the route"]).toContain("onActiveChange={setSelected}");
+    // One selection for both ways in. Two would be two things to keep in step,
+    // and it now lives in the URL so it can be sent to somebody.
+    expect(SURFACE["the route"]).toContain("const selected = artifact ?? null;");
+    expect(SURFACE["the route"]).toContain("onSelectArtifact={openArtifact}");
+    expect(SURFACE["the route"]).toContain("onOpenArtifact={openArtifact}");
+  });
+
+  it("puts what is open in the URL, so one artifact can be sent to somebody", () => {
+    /*
+     * The surface was built on the rule that "a finished run can be sent to
+     * somebody, and a tab inside another page cannot be sent to anybody". The
+     * artifact is one level down from that and had the same problem.
+     */
+    const route = SURFACE["the route"];
+    expect(route).toContain("artifact?: string");
+    expect(route).toContain("replace: true");
+    // Shape-checked, because `validateSearch` is a whitelist and any string at
+    // all would let `?artifact=<anything>` sit in a shared link looking real.
+    expect(route).toMatch(/\[0-9a-f\]\{8\}-/);
+  });
+
+  it("makes the artifact chip itself the control, not only the row", () => {
+    const chip = read("../meridian/run-rows.tsx");
+    expect(chip).toContain("onOpen?: () => void;");
+    // A missing artifact is never a control: pressing it could only open an
+    // empty pane, which is the promise this repo removes wherever it finds it.
+    expect(strip(chip)).toContain("if (!onOpen || missing) {");
   });
 });
 

@@ -519,6 +519,8 @@ export function RunArtifact({
   word,
   title,
   missing = false,
+  onOpen,
+  selected = false,
 }: {
   /** The raw `spine_track_members.artifact_kind`, for the mark. */
   kind: string;
@@ -526,10 +528,32 @@ export function RunArtifact({
   word: string;
   title: string | null;
   missing?: boolean;
+  /**
+   * ── THE CHIP IS THE THING, SO THE CHIP IS THE CONTROL (founder, 2026-09-02) ─
+   *
+   * Watching the live site: *"When some PRD or spec is written it gives a block,
+   * and it is not clickable. It needs to be clickable, viewable, editable...
+   * When I click on the PRD the right side should open up."*
+   *
+   * This chip already NAMES the artifact. It is the only place on the run screen
+   * where one specific filed thing is drawn by name, so it is the only place
+   * from which one specific filed thing can be opened. The turn's headline
+   * beside it opens the turn's NEWEST artifact, which cannot reach the third
+   * prototype of ten; this can.
+   *
+   * OPTIONAL, AND THAT IS THE CONTRACT THIS FILE ALREADY HOLDS ELSEWHERE.
+   * `ToolStream` draws its rows as plain facts with no pointer and no tab stop
+   * unless `onSelectRow` is supplied, and the shell's stage chips do the same:
+   * a chip is a control only if something is listening. Without `onOpen` this
+   * renders exactly the span it always did.
+   */
+  onOpen?: () => void;
+  /** True when this is the artifact the pane is currently showing. */
+  selected?: boolean;
 }) {
   const glyph = glyphForArtifactKind(kind);
-  return (
-    <span className="inline-flex min-h-5 max-w-full items-center gap-1 rounded-mrd-xs border border-mrd-line bg-mrd-sink px-1.5 py-0.5 text-mrd-data text-mrd-body">
+  const body = (
+    <>
       {glyph ? <WorkGlyph kind={glyph} className="shrink-0 text-mrd-mute" /> : null}
       <span className="shrink-0 text-mrd-mute">{word}</span>
       {missing ? (
@@ -537,7 +561,42 @@ export function RunArtifact({
       ) : title ? (
         <span className="min-w-0">{title}</span>
       ) : null}
-    </span>
+    </>
+  );
+
+  const SHAPE =
+    "inline-flex min-h-5 max-w-full items-center gap-1 rounded-mrd-xs border px-1.5 py-0.5 text-mrd-data text-mrd-body";
+
+  /*
+   * A MISSING ARTIFACT IS NEVER A CONTROL. The row says "no longer on file",
+   * which means the lookup ran and the row was not there, so pressing it could
+   * only open an empty pane. A control that opens nothing is the promise this
+   * repo removes wherever it finds it.
+   */
+  if (!onOpen || missing) {
+    return <span className={`${SHAPE} border-mrd-line bg-mrd-sink`}>{body}</span>;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-pressed={selected}
+      /*
+       * THE NAME IS THE ARTIFACT, NOT "OPEN". A screen reader announces the
+       * accessible name, and "Open" repeated eleven times down a transcript
+       * names nothing. The word and the title are already the name; the ROLE
+       * says it is pressable, which is what `aria-label="Open the spec"` would
+       * have been trying to say and would have destroyed the name to say it.
+       */
+      className={`${SHAPE} mrd-focus-inset cursor-pointer text-left transition-colors duration-100 ${
+        selected
+          ? "border-mrd-you bg-mrd-lift text-mrd-ink"
+          : "border-mrd-line bg-mrd-sink hover:bg-mrd-hover"
+      }`}
+    >
+      {body}
+    </button>
   );
 }
 

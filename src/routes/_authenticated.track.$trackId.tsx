@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { searchFlag } from "@/lib/search-flag";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 
 import "../styles/workbench.css";
@@ -52,7 +53,7 @@ import { useRunTally } from "@/components/track/GotYou";
  * whether anything is being skipped, read entirely from rows.
  */
 export const Route = createFileRoute("/_authenticated/track/$trackId")({
-  validateSearch: (search: Record<string, unknown>): { start?: boolean } => ({
+  validateSearch: (search: Record<string, unknown>): { start?: boolean; artifact?: string } => ({
     // The composer lands here with ?start=true so the run begins itself
     // (SPEC-ONRAMP §2.7). Anything else -- absent, false, garbage -- means
     // plain landing; a track that has already been driven never re-drives on
@@ -64,6 +65,31 @@ export const Route = createFileRoute("/_authenticated/track/$trackId")({
        the page in a browser. Every caller happens to send the boolean, so it
        was latent rather than live; the helper removes the trap either way. */
     start: searchFlag(search.start),
+    /*
+     * ── WHICH ARTIFACT IS OPEN, IN THE URL (P-24) ─────────────────────────
+     *
+     * A person watching a run wants to send a colleague the SPEC, not the run
+     * and a sentence saying which tab to press. This surface was built on the
+     * rule that "a finished run can be sent to somebody, and a tab inside
+     * another page cannot be sent to anybody" -- the artifact is one level down
+     * from that and had the same problem.
+     *
+     * SHAPE-CHECKED, NOT MERELY TYPE-CHECKED. `validateSearch` is a whitelist,
+     * so whatever is not returned is dropped from the URL, and returning any
+     * string at all would let `?artifact=<anything>` sit in a shared link
+     * looking meaningful. Every artifact this can name is a `uuid` primary key,
+     * so anything that is not one is not an artifact and is dropped.
+     *
+     * NOT `searchFlag`'s problem, but its lesson applies: TanStack runs each
+     * value through `JSON.parse` before a validator sees it, so a numeric id
+     * would arrive as a number. A uuid always survives as a string, which is
+     * the second reason the shape is checked rather than assumed.
+     */
+    artifact:
+      typeof search.artifact === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(search.artifact)
+        ? search.artifact
+        : undefined,
   }),
   component: TrackPage,
   head: () => ({ meta: [{ title: "Run · Supaprod" }] }),
@@ -176,7 +202,8 @@ export function RunHeader({
 
 function TrackPage() {
   const { trackId } = Route.useParams();
-  const { start } = Route.useSearch();
+  const { start, artifact } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const { activeWorkspace, activeProduct, productsVisible } = useWorkspace();
 
   /*
@@ -189,6 +216,27 @@ function TrackPage() {
    */
   const [crewLive, setCrewLive] = React.useState(false);
   /*
+   * ── WHAT IS OPEN LIVES IN THE URL, NOT IN A `useState` (P-24) ───────────
+   *
+   * It was component state, which made the pane's contents unshareable and
+   * unreloadable: a person who found the thing worth showing somebody could
+   * send them the run and a sentence about which row to press.
+   *
+   * `replace: true` because picking an artifact is not a place you go, it is
+   * what you are looking at. Pushing would make Back walk one entry per chip
+   * pressed, so leaving the run would take eleven presses.
+   */
+  const openArtifact = React.useCallback(
+    (artifactId: string | null) => {
+      void navigate({
+        search: (prev) => ({ ...prev, artifact: artifactId ?? undefined }),
+        replace: true,
+      });
+    },
+    [navigate],
+  );
+
+  /*
    * ── THE TRANSCRIPT ROW THE PERSON PICKED (founder, 2026-09-02 19:25) ─────
    *
    * The run screen has no station display any more. The right pane shows what
@@ -200,7 +248,7 @@ function TrackPage() {
    * `GotYou`'s chips set the same state, so the two ways in are one pointer
    * rather than two that can disagree.
    */
-  const [selected, setSelected] = React.useState<string | null>(null);
+  const selected = artifact ?? null;
   /*
    * The footer's one control, reported up by the pane that owns the walk state.
    * Both halves travel, not just Stop: the `Run it` region came out of the left
@@ -346,16 +394,16 @@ function TrackPage() {
             onCrewLive={setCrewLive}
             crewLive={crewLive}
             onDriveState={setDrive}
-            selectedStation={selected}
-            onSelectStation={setSelected}
+            selectedArtifactId={selected}
+            onSelectArtifact={openArtifact}
           />
         </div>
         <div className="mrd-workbench-pane mrd-workbench-pane--artifact">
           <TrackPaneRight
             trackId={trackId}
             isRunning={crewLive}
-            active={selected}
-            onActiveChange={setSelected}
+            activeArtifactId={selected}
+            onOpenArtifact={openArtifact}
           />
         </div>
       </div>

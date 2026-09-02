@@ -194,6 +194,18 @@ export function canOpen(t: Pick<Turn, "made" | "station">): boolean {
   return Boolean(t.station) && t.made.length > 0;
 }
 
+/**
+ * WHICH ARTIFACT A PRESS ON THE ROW ITSELF OPENS.
+ *
+ * The NEWEST thing the turn filed, which is last in `made` because the driver
+ * appends as it harvests. The chips beside it reach every one individually; the
+ * headline is the shortcut for "show me what this turn did", and the newest is
+ * what that means when a turn filed several.
+ */
+export function newestMade(t: Pick<Turn, "made">): string | null {
+  return t.made.length > 0 ? (t.made[t.made.length - 1]?.id ?? null) : null;
+}
+
 function LiveTook({ startedAt }: { startedAt: number }) {
   const elapsed = useElapsed(startedAt);
   return <RunTook>{`Working for ${elapsed}`}</RunTook>;
@@ -293,7 +305,23 @@ export function saidLine(said: string | null | undefined): string | null {
   return plainProse(humanizeText(said)) ?? "";
 }
 
-export function rollupOf(t: Turn, titles: TitleBook): React.ReactNode[] {
+export function rollupOf(
+  t: Turn,
+  titles: TitleBook,
+  /**
+   * ── THE CHIP IS THE CONTROL (P-24, founder 2026-09-02 20:09) ────────────
+   *
+   * *"When I click on the PRD the right side should open up."* This is the only
+   * place on the run screen where one specific filed thing is drawn by name, so
+   * it is the only place one specific filed thing can be opened from. The turn's
+   * headline beside it opens the turn's NEWEST artifact and therefore cannot
+   * reach the third prototype of ten; these can.
+   *
+   * Optional, so `rollupOf`'s other reader -- its own guard -- keeps calling it
+   * with two arguments and gets plain facts with no pointer and no tab stop.
+   */
+  open?: { onOpen: (artifactId: string) => void; selectedId: string | null },
+): React.ReactNode[] {
   const took =
     t.outcome === "working" ? (
       <LiveTook key="took" startedAt={Date.parse(t.at)} />
@@ -317,6 +345,8 @@ export function rollupOf(t: Turn, titles: TitleBook): React.ReactNode[] {
         word={m.word}
         title={known?.title ?? null}
         missing={known?.missing ?? false}
+        onOpen={open ? () => open.onOpen(m.id) : undefined}
+        selected={open ? open.selectedId === m.id : false}
       />
     );
   });
@@ -435,8 +465,8 @@ export function TrackActivity({
    * nothing, and a control that opens an empty pane is a control that teaches a
    * person not to press things.
    */
-  onSelect?: (station: string) => void;
-  /** The station currently shown in the pane, so the row that chose it says so. */
+  onSelect?: (artifactId: string) => void;
+  /** The artifact the pane is showing, so the row and chip that chose it say so. */
   selected?: string | null;
 }) {
   const reducedMotion = usePrefersReducedMotion();
@@ -1031,7 +1061,9 @@ export function TrackActivity({
                    signal, and the row that chose what the pane is showing has to
                    be findable in a long stream. The button above carries
                    `aria-pressed`, which is the same fact for a screen reader. */
-                data-selected={canOpen(t) && selected === t.station ? "true" : undefined}
+                data-selected={
+                  canOpen(t) && t.made.some((m) => m.id === selected) ? "true" : undefined
+                }
                 className={`${RUN_ROW} rounded-mrd-chip data-[selected=true]:bg-mrd-lift`}
                 style={enterMotion(arrived, reducedMotion)}
               >
@@ -1063,8 +1095,11 @@ export function TrackActivity({
                   {canOpen(t) ? (
                     <button
                       type="button"
-                      aria-pressed={selected === t.station}
-                      onClick={() => onSelect?.(t.station as string)}
+                      aria-pressed={t.made.some((m) => m.id === selected)}
+                      onClick={() => {
+                        const id = newestMade(t);
+                        if (id) onSelect?.(id);
+                      }}
                       /*
                        * `min-w-0` IS THE WHOLE FIX, AND IT IS NOT DEFENSIVE
                        * NOISE. A1 walked this and the left pane scrolled
@@ -1145,7 +1180,13 @@ export function TrackActivity({
                    * not shout louder than a failure.
                    */}
 
-                  <RunRollup items={rollupOf(t, titles)} />
+                  <RunRollup
+                    items={rollupOf(
+                      t,
+                      titles,
+                      onSelect ? { onOpen: onSelect, selectedId: selected } : undefined,
+                    )}
+                  />
 
                   {/* THE PLATFORM'S REASON, ABOVE THE AGENT'S. `halted_reason` and
                       `failure_kind` are written by the runtime rather than by the

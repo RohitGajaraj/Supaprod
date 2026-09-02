@@ -77,8 +77,16 @@ export type Made = {
   kind: string;
   /** `KIND_WORD`, so a `signal` is a finding here as it is in the transcript. */
   label: string;
-  /** The station whose transcript row filed it, which the chip selects. */
+  /** The station whose transcript row filed it. Kept for the Report and tests. */
   station: string;
+  /**
+   * The newest artifact of this kind, which is what the chip opens.
+   *
+   * An id rather than the station, for P-24's reason: a station reaches one
+   * thing per station, and this chip may stand for ten prototypes. It names the
+   * one a person means when they press the word, which is the one that stands.
+   */
+  artifactId: string;
   count: number;
 };
 
@@ -126,7 +134,10 @@ export function runTally(input: {
    * is the same display map the driver's own sentence uses, so the strip and the
    * transcript call a `signal` a finding in the same breath.
    */
-  const byKind = new Map<string, { station: string; at: number; count: number }>();
+  const byKind = new Map<
+    string,
+    { station: string; artifactId: string; at: number; count: number }
+  >();
   for (const stop of stops) {
     for (const item of stop.items) {
       if (item.missing) continue;
@@ -135,6 +146,7 @@ export function runTally(input: {
       if (!held) {
         byKind.set(item.kind, {
           station: stop.station,
+          artifactId: item.artifactId,
           at: Number.isFinite(at) ? at : 0,
           count: 1,
         });
@@ -148,6 +160,7 @@ export function runTally(input: {
       if (Number.isFinite(at) && at > held.at) {
         held.at = at;
         held.station = stop.station;
+        held.artifactId = item.artifactId;
       }
     }
   }
@@ -158,6 +171,7 @@ export function runTally(input: {
       kind,
       label: held.count === 1 ? word.one : `${held.count} ${word.many}`,
       station: held.station,
+      artifactId: held.artifactId,
       count: held.count,
     });
   }
@@ -285,13 +299,13 @@ function Clause({ children, first }: { children: React.ReactNode; first: boolean
 
 export function GotYou({
   trackId,
-  onSelect,
+  onOpen,
   active = null,
 }: {
   trackId: string;
-  /** Press a chip and the pane below shows what that chip names. */
-  onSelect?: (station: string) => void;
-  /** What the pane is showing, so the chip that chose it says so. */
+  /** Press a chip and the pane below opens the artifact that chip names. */
+  onOpen?: (artifactId: string) => void;
+  /** The artifact id the pane is showing, so the chip that chose it says so. */
   active?: string | null;
 }) {
   const { tally, ready } = useRunTally(trackId);
@@ -325,7 +339,7 @@ export function GotYou({
     >
       <div className="flex flex-wrap items-center gap-mrd-2">
         {tally.made.map((m) => {
-          const on = active === m.station;
+          const on = active === m.artifactId;
           const chip = (
             <>
               <span className="text-mrd-data text-mrd-faint">{markFor(m.kind)}</span>
@@ -334,11 +348,11 @@ export function GotYou({
           );
           /*
            * A CHIP IS A CONTROL ONLY IF SOMETHING IS LISTENING. With no
-           * `onSelect` these are facts, with no pointer and no tab stop, which
+           * `onOpen` these are facts, with no pointer and no tab stop, which
            * is the rule the shell's own chips follow: drawing a control that
            * opens nothing is the promise this repo removes wherever it finds it.
            */
-          if (!onSelect) {
+          if (!onOpen) {
             return (
               <span
                 key={m.kind}
@@ -353,7 +367,7 @@ export function GotYou({
               key={m.kind}
               type="button"
               aria-pressed={on}
-              onClick={() => onSelect(m.station)}
+              onClick={() => onOpen(m.artifactId)}
               className={`mrd-focus-inset inline-flex items-center gap-1.5 rounded-mrd-chip px-2 py-1 text-mrd-small transition-colors duration-100 ${
                 on ? "bg-mrd-lift text-mrd-ink" : "bg-mrd-sink text-mrd-body hover:bg-mrd-hover"
               }`}

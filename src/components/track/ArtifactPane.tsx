@@ -58,6 +58,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import {
   checkForecastObservable,
+  getTrackActivity,
   getTrackArtifacts,
   getTrackChain,
   type ArtifactView,
@@ -251,11 +252,34 @@ function PlanSpec({ prdId }: { prdId: string }) {
   if (!editing) {
     return (
       <div className="flex flex-col gap-mrd-4">
-        <div className="flex flex-wrap items-center gap-mrd-3">
-          {prdTone(prd.status) ? (
-            <StatusChip status={prdTone(prd.status)!}>{prd.status}</StatusChip>
-          ) : null}
-          <span className="mrd-meta">saved {relativeTime(prd.updated_at, Date.now())}</span>
+        {/*
+         * ── THE EDIT CONTROL CAME UP HERE (P-24) ──────────────────────────
+         *
+         * It sat under the whole markdown body, which on a real spec is several
+         * screens down: the founder's report was *"it needs to be clickable,
+         * viewable, editable"*, and an editor a person has to scroll a document
+         * to find is one they will not find. The status and the save time were
+         * already on this line and it had room.
+         */}
+        <div className="flex flex-wrap items-center justify-between gap-mrd-3">
+          <span className="flex flex-wrap items-center gap-mrd-3">
+            {prdTone(prd.status) ? (
+              <StatusChip status={prdTone(prd.status)!}>{prd.status}</StatusChip>
+            ) : null}
+            <span className="mrd-meta">saved {relativeTime(prd.updated_at, Date.now())}</span>
+          </span>
+          {/* R-03: the person can act here, and the act is the write the row
+              supports -- the whole document back, nothing more specific. */}
+          <Action
+            onClick={() => {
+              setTitle(prd.title);
+              setBody(prd.body_md);
+              setProblem(null);
+              setEditing(true);
+            }}
+          >
+            Edit the spec
+          </Action>
         </div>
         {/*
           WHAT IT PROMISES, ABOVE WHAT IT SAYS. The contract is the part Build
@@ -273,42 +297,22 @@ function PlanSpec({ prdId }: { prdId: string }) {
         */}
         <SpecPromise contract={prd.contract} body={prd.body_md} />
         <Prose markdown>{prd.body_md}</Prose>
-        {/* R-03: the person can act here, and the act is the write the row
-            supports -- the whole document back, nothing more specific claimed. */}
-        <div>
-          <Action
-            onClick={() => {
-              setTitle(prd.title);
-              setBody(prd.body_md);
-              setProblem(null);
-              setEditing(true);
-            }}
-          >
-            Edit the spec
-          </Action>
-        </div>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-mrd-4">
-      <Field label="Title" htmlFor={`prd-title-${prdId}`}>
-        <Input
-          id={`prd-title-${prdId}`}
-          value={title ?? ""}
-          onChange={(e) => setTitle(e.currentTarget.value)}
-        />
-      </Field>
-      <Field label="The spec, as markdown" htmlFor={`prd-body-${prdId}`}>
-        <Textarea
-          id={`prd-body-${prdId}`}
-          rows={16}
-          value={body ?? ""}
-          onChange={(e) => setBody(e.currentTarget.value)}
-        />
-      </Field>
-      <div className="flex items-center gap-mrd-3">
+      {/*
+       * SAVE ABOVE THE FIELDS, for the reason the Edit control moved up: the
+       * body is a 16-row textarea, so a commit control under it is ~600px below
+       * the fold on the pane this opens in. A person who cannot see Save does
+       * not know the edit is committable.
+       *
+       * Discard sits beside it rather than under, because the two are one
+       * decision and separating them makes the destructive one look incidental.
+       */}
+      <div className="flex flex-wrap items-center gap-mrd-3">
         <Action variant="primary" busy={save.isPending} onClick={() => save.mutate()}>
           {save.isPending ? "Saving" : "Save the spec"}
         </Action>
@@ -324,6 +328,21 @@ function PlanSpec({ prdId }: { prdId: string }) {
           Discard edits
         </Action>
       </div>
+      <Field label="Title" htmlFor={`prd-title-${prdId}`}>
+        <Input
+          id={`prd-title-${prdId}`}
+          value={title ?? ""}
+          onChange={(e) => setTitle(e.currentTarget.value)}
+        />
+      </Field>
+      <Field label="The spec, as markdown" htmlFor={`prd-body-${prdId}`}>
+        <Textarea
+          id={`prd-body-${prdId}`}
+          rows={16}
+          value={body ?? ""}
+          onChange={(e) => setBody(e.currentTarget.value)}
+        />
+      </Field>
       {problem ? <RecordSpeaks>{problem}</RecordSpeaks> : null}
     </div>
   );
@@ -2311,6 +2330,7 @@ function StationPanel({
   holdReason,
   origin = null,
   workspaceId = null,
+  openArtifactId = null,
   now,
   trackId,
 }: {
@@ -2330,6 +2350,15 @@ function StationPanel({
   origin?: string | null;
   /** Whose promotion bar the lineage compares against. See `Lineage`. */
   workspaceId?: string | null;
+  /**
+   * The artifact the person opened, which leads this panel.
+   *
+   * Without it the panel led with whatever the station EXPECTS -- the spec at
+   * Plan, the changeset at Build -- which is right when nobody has chosen and
+   * wrong the moment somebody has: pressing the third prototype and being shown
+   * the first is the defect P-24 exists to close, moved one component along.
+   */
+  openArtifactId?: string | null;
   now: number;
   /** Routes the Discover cards' writes back to this pane's cache entries. */
   trackId: string;
@@ -2477,6 +2506,10 @@ function StationPanel({
    */
   const items = view?.items;
   const primaryItem =
+    /* THE PERSON'S CHOICE OUTRANKS THE STATION'S EXPECTATION. */
+    (openArtifactId
+      ? items?.find((it) => it.artifactId === openArtifactId && !it.missing)
+      : undefined) ??
     items?.find((it) => it.kind === view?.expects.kind && !it.missing) ??
     items?.find((it) => !it.missing);
 
@@ -2658,6 +2691,11 @@ function exactTime(iso: string): string {
   }).format(new Date(ms));
 }
 
+/** First letter up, for a kind word standing in for a title it never had. */
+function cap(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 function MemberLine({
   m,
   now,
@@ -2668,7 +2706,6 @@ function MemberLine({
   /** This row's title is printed by at least one sibling. See above. */
   repeated?: boolean;
 }) {
-  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
   return (
     <Row
       tight
@@ -2684,16 +2721,139 @@ function MemberLine({
   );
 }
 
+/**
+ * ── WHAT YOU CAN ACTUALLY DO TO THE THING THAT IS OPEN ────────────────────
+ *
+ * P-24 asks the head to state the actions that exist and *"never an edit
+ * control that does nothing"*. That is a rule about honesty rather than about
+ * layout: a person who opens a prototype and reads nothing about editing has
+ * learnt something true, and a person who meets a disabled Edit button has
+ * learnt something false about the product.
+ *
+ * So this is derived from what the body BELOW it actually mounts, and every
+ * line was checked against that body rather than assumed:
+ *
+ *   prd         `PlanSpec` saves the whole document back (`savePrd`).
+ *   decision    `DecisionVerdict` approves or rejects while pending, and
+ *               `ForecastForm` records the forecast ONCE. Write-once is stated,
+ *               because "editable" would be wrong on the second visit.
+ *   learning    `SettleControls` grades or defers; `ReopenControl` disagrees.
+ *   signal      the card can be discarded, in two acts.
+ *   theme       the card renames and dismisses.
+ *   prototype   `PrototypeCard` reads two tables and renders an iframe. No
+ *   deployment  `ReleaseCard` renders a chip, a sha and a link. No write.
+ *   changeset   `ChangesetCard` renders the diff, the PR link and the verdict.
+ *   task        drawn inside `TaskSteps`, which writes nothing.
+ *   mission     `MissionCard` renders and writes nothing.
+ *
+ * An unknown kind returns null and the head says nothing, which is the honest
+ * answer for a kind this build has never drawn.
+ */
+export function whatYouCanDo(kind: string): string | null {
+  switch (kind) {
+    case "prd":
+      return "Edit it and save the whole document back.";
+    case "decision":
+      return "Approve or reject it while it is pending. The forecast is recorded once and cannot be edited after.";
+    case "learning":
+      return "Grade it, defer the check, or disagree with the verdict.";
+    case "signal":
+      return "Discard it, which takes two presses.";
+    case "theme":
+      return "Rename it, or say it is not a pattern.";
+    case "prototype":
+      return "Open it full size. There is no editor for a prototype yet.";
+    case "changeset":
+      return "Open the pull request. The diff and the verdict are read-only here.";
+    case "deployment":
+      return "Open what went out. A release is a record and is not edited.";
+    case "task":
+    case "mission":
+      return "Read-only. Nothing here writes.";
+    default:
+      return null;
+  }
+}
+
+/**
+ * The head above whatever is open: what it is, who filed it, where, and when.
+ *
+ * ── WHY A HEAD AT ALL ────────────────────────────────────────────────────
+ * With the station strip gone, a person arriving at this pane from a chip has
+ * no other way to know WHICH of ten prototypes they are looking at, or that
+ * they are looking at a pinned selection rather than at the newest thing. The
+ * head answers both, and carries the way back.
+ *
+ * Every clause is dropped where its fact is missing. A seat the record cannot
+ * name, a title that was never written: absent rather than "unknown", which is
+ * the rule the rest of this file follows.
+ */
+function OpenHead({
+  item,
+  stationLabel,
+  seat,
+  now,
+  onBack,
+}: {
+  item: ArtifactView;
+  stationLabel: string;
+  seat: string | null;
+  now: number;
+  onBack: () => void;
+}) {
+  const can = whatYouCanDo(item.kind);
+  return (
+    <div className="flex flex-col gap-mrd-1 border-b border-mrd-line-soft pb-mrd-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-mrd-3">
+        <span className="min-w-0 text-mrd-label font-medium text-mrd-ink">
+          {item.title ?? cap(item.word)}
+        </span>
+        {/*
+         * THE WAY BACK, named for where it goes rather than for what it undoes.
+         * "Clear" would describe the mechanism; a person wants the newest thing
+         * the run made, which is where this pane opens on its own.
+         */}
+        <Action variant="quiet" onClick={onBack}>
+          Back to the newest
+        </Action>
+      </div>
+      <span className="mrd-meta">
+        {[
+          item.word,
+          seat ? `filed by ${seat}` : "",
+          `at ${stationLabel}`,
+          relativeTime(item.createdAt, now),
+        ]
+          .filter(Boolean)
+          .join(" \u00B7 ")}
+      </span>
+      {can ? <span className="mrd-meta text-mrd-faint">{can}</span> : null}
+    </div>
+  );
+}
+
 export function ArtifactPane({
   trackId,
-  active: activeProp,
-  onActiveChange,
+  activeArtifactId = null,
+  onOpenArtifact,
   isRunning = false,
 }: {
   trackId: string;
-  /** Controlled tab, so another surface (the chain record) can reveal one. */
-  active?: string | null;
-  onActiveChange?: (station: string) => void;
+  /**
+   * ── AN ARTIFACT ID, NOT A STATION (P-24) ────────────────────────────────
+   *
+   * This was a station, and that is exactly the defect the founder reported:
+   * *"When I click on the PRD the right side should open up."* A station points
+   * at one thing per station, so on a Design step that filed ten prototypes the
+   * third one could be seen in the transcript and not opened. An id points at
+   * the thing itself, and the station is derived from it.
+   *
+   * Null means nobody has picked, and the pane opens on the newest thing the
+   * run made.
+   */
+  activeArtifactId?: string | null;
+  /** Null clears the selection and returns the pane to the newest artifact. */
+  onOpenArtifact?: (artifactId: string | null) => void;
   /** PHASE 3: Poll faster during active run to show live updates. */
   isRunning?: boolean;
 }) {
@@ -2717,44 +2877,57 @@ export function ArtifactPane({
     refetchInterval: isRunning ? 500 : 10_000,
   });
 
-  const [activeState, setActiveState] = React.useState<string | null>(null);
-  const active = activeProp ?? activeState;
-  /** Marks selections that ORIGINATED inside the pane, so an external one
-   *  (a chain-row click) can be told apart and given the focus move. */
-  const lastInternal = React.useRef<string | null>(null);
-  const onSelect = (id: string) => {
-    lastInternal.current = id;
-    setActiveState(id);
-    onActiveChange?.(id);
-  };
+  /*
+   * ── WHO FILED THE THING THAT IS OPEN ─────────────────────────────────────
+   *
+   * `spine_track_members` records WHAT was filed and WHERE, and carries no
+   * author: the seat that did it is on `agent_runs`, which the transcript
+   * already reads. So the head line's "filed by" clause comes off the SAME
+   * cache entry the transcript polls -- one request on one beat, which is the
+   * rule this surface is built on -- rather than a second read of a third
+   * table.
+   *
+   * A seat this map cannot name drops the clause rather than guessing. An
+   * artifact filed before `agent_runs.track_id` existed has no turn to join to,
+   * and "filed by somebody" is not a fact.
+   */
+  const fActivity = useServerFn(getTrackActivity);
+  const activity = useQuery({
+    queryKey: ["track-activity", trackId],
+    queryFn: () => fActivity({ data: { trackId } }),
+    staleTime: 5_000,
+  });
+  const seatByArtifact = React.useMemo(() => {
+    const book = new Map<string, string>();
+    for (const t of activity.data?.turns ?? []) {
+      for (const m of t.made) if (t.agentName) book.set(m.id, t.agentName);
+    }
+    return book;
+  }, [activity.data]);
 
   /*
-   * A TAB CHANGE FROM ELSEWHERE IS A CONTEXT CHANGE (D-7.2), so focus moves
-   * with it -- R-19's keyboard clause. A selection made by clicking a tab
-   * already holds focus where the person put it and is skipped.
+   * ── THE SELECTION IS NOT THIS COMPONENT'S ANY MORE (P-24) ────────────────
+   *
+   * It used to keep its own `activeState` and fall back to it when no prop
+   * arrived. That made two sources of truth for one pointer, and the URL is now
+   * the one that matters, because a person wants to send a colleague the spec
+   * rather than the run. An uncontrolled fallback here would be a second answer
+   * that only this pane can see and nobody can share.
+   *
+   * A CONTEXT CHANGE STILL MOVES FOCUS (D-7.2, R-19's keyboard clause). The
+   * control that changed it is a chip in the other pane or above this one, so
+   * the person's focus is where they put it and what they have not been given is
+   * the content that changed.
+   *
+   * `preventScroll`, and driving it is what showed why: the chips naming what
+   * the run made sit at the TOP of this pane's own scroller, and a plain
+   * `focus()` scrolled the panel into view, taking them off screen the instant
+   * one was pressed. The control vanished as a result of being used.
    */
   React.useEffect(() => {
-    if (activeProp == null) return;
-    if (activeProp === lastInternal.current) {
-      lastInternal.current = null;
-      return;
-    }
-    /* The panel, not the tab. The tabs that used to live in this pane are gone
-       and the strip drives it now, so the person's focus is already on the
-       control they pressed -- what they have not been given is the content that
-       changed. `TabPanel` takes `tabIndex={-1}` when it names itself, which is
-       what makes it a landing place. */
-    /*
-     * `preventScroll`, and driving it is what showed why. The chips that name
-     * what the run made sit at the TOP of this pane's own scroller, and a plain
-     * `focus()` scrolls the panel into view, which took them off screen the
-     * instant one of them was pressed: the control vanished as a result of being
-     * used. The focus move itself is right and stays -- a tab change is a
-     * context change (D-7.2, R-19's keyboard clause) -- so only the scrolling
-     * goes.
-     */
+    if (!activeArtifactId) return;
     document.getElementById(`artifact-pane-${trackId}-panel`)?.focus({ preventScroll: true });
-  }, [activeProp, trackId]);
+  }, [activeArtifactId, trackId]);
 
   if (q.isLoading) return <Reading>Reading what this work has made.</Reading>;
   if (q.isError) {
@@ -2803,7 +2976,25 @@ export function ArtifactPane({
     newest && chain.stops.some((s) => s.station === newest.station)
       ? newest.station
       : standing.station;
-  const current = active && chain.stops.some((s) => s.station === active) ? active : fallback;
+  /*
+   * THE OPEN ARTIFACT DECIDES THE STATION, not the other way round. An id is
+   * unique across the whole chain -- one `spine_track_members` row is one filing
+   * event at one station -- so finding it also answers where it was filed, and
+   * the pane can never show a station that does not contain the thing it claims
+   * to be showing.
+   *
+   * A `missing` artifact is not openable: the lookup ran and the row was not
+   * there, so the selection falls through to the newest rather than opening a
+   * panel that has to explain itself.
+   */
+  const opened = activeArtifactId
+    ? (bodies.data?.stops ?? [])
+        .flatMap((st) => st.items.map((i) => ({ station: st.station, item: i })))
+        .find((x) => x.item.artifactId === activeArtifactId && !x.item.missing)
+    : undefined;
+
+  const current =
+    opened && chain.stops.some((s) => s.station === opened.station) ? opened.station : fallback;
   const now = Date.now();
   const shown = chain.stops.find((s) => s.station === current) ?? chain.stops[0];
 
@@ -2890,7 +3081,11 @@ export function ArtifactPane({
        * the sentence says where the control actually is. A `sub` naming a
        * control that is not on the screen is worse than no `sub` at all.
        */
-      sub={`Showing ${shown.label}. Press a row in the record beside this to see what that step made.`}
+      sub={
+        opened
+          ? `Showing one thing this run made. Press any artifact in the record beside this to open it.`
+          : `Showing ${shown.label}. Press an artifact in the record beside this to open it.`
+      }
       act="Take this"
       onAct={take}
     >
@@ -2911,9 +3106,27 @@ export function ArtifactPane({
           active={current}
           label={`${shown.label} output`}
         >
+          {/*
+           * WHAT IS OPEN, SAID ABOVE IT. With no station strip on the screen, a
+           * person arriving here from a chip has no other way to know which of
+           * ten prototypes they are looking at, or that they are looking at a
+           * pinned selection rather than at the newest thing the run made.
+           */}
+          {opened ? (
+            <OpenHead
+              item={opened.item}
+              stationLabel={shown.label}
+              seat={seatByArtifact.get(opened.item.artifactId) ?? null}
+              now={now}
+              onBack={() => onOpenArtifact?.(null)}
+            />
+          ) : null}
           <StationPanel
             stop={shown}
             view={view}
+            /* The thing the person actually pressed leads the panel, rather
+               than whatever the station happens to expect. See `primaryItem`. */
+            openArtifactId={opened?.item.artifactId ?? null}
             /* Discover's lineage reads it; no other station does. See `Lineage`
                for why the promotion is claimed from this sentence and not from
                `theme_id`. */
