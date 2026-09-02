@@ -33,6 +33,10 @@ import { failSoftOrThrow } from "@/lib/read-failure";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { AGENT_STATION_ORDER, AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import {
+  CLAIMED_PATH_HOLD,
+  pathFromWaitingSentence,
+} from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
+import {
   describeRoute,
   nextStation,
   reopen,
@@ -2782,6 +2786,104 @@ export function selfCheckLine(t: SelfCheckTally | null | undefined): string | nu
   const retried = t.retries > 0 ? `${t.retries} ${t.retries === 1 ? "retry" : "retries"}` : null;
   return [checks, lines, missed, retried].filter(Boolean).join(" · ");
 }
+
+/**
+ * WHO IS HOLDING THE FILE THIS RUN IS WAITING FOR.
+ *
+ * ── WHY THIS IS A LIVE LOOKUP AND NOT A COLUMN ────────────────────────────
+ * The hold sentence names the other run and its file, which is enough to READ.
+ * A door has to be pressable, and that needs the other run's track id.
+ *
+ * Storing it on `spine_tracks` at hold time would be a column that goes stale
+ * in the one direction that matters: the claim releases the moment the other
+ * run's pull request merges, and a stored id would keep offering a door to a
+ * run that is no longer holding anything. Read live, the door disappears
+ * exactly when it stops being true, which is also the moment this track starts
+ * moving again.
+ *
+ * ── THE JOIN, AND WHY IT GOES THROUGH THE MISSION ─────────────────────────
+ * `builder_file_claims` records the holder as a MISSION, and a track's missions
+ * are its `spine_track_members` rows of kind `mission`. Same join
+ * `newestChangesetForTrack` uses in the driver, and for the same reason:
+ * `studio_changesets` and `builder_file_claims` both key on the mission, never
+ * on the track.
+ *
+ * Returns null for everything that is not a live claim on this exact path --
+ * no path on the hold, the claim released, the holder is this very track, or a
+ * read that did not answer. A door offered on any of those would be worse than
+ * no door.
+ */
+export const whoHoldsThePath = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(
+    async ({ context, data }): Promise<{ trackId: string; title: string; path: string } | null> => {
+      const { supabase } = context;
+      try {
+        const { data: me } = await supabase
+          .from("spine_tracks" as never)
+          .select("last_hold,last_hold_because")
+          .eq("id", data.trackId)
+          .maybeSingle();
+        const row = me as { last_hold?: string | null; last_hold_because?: string | null } | null;
+        if (row?.last_hold !== CLAIMED_PATH_HOLD) return null;
+        /* The path is read back out of the sentence the driver wrote. It is the
+           one fact the hold carries that this lookup cannot re-derive. */
+        const path = pathFromWaitingSentence(row.last_hold_because);
+        if (!path) return null;
+
+        const { data: claims } = await supabase
+          .from("builder_file_claims")
+          .select("mission_id, mission_title")
+          .eq("path", path)
+          .eq("status", "held")
+          .limit(4);
+        const holders = (
+          (claims ?? []) as Array<{
+            mission_id: string | null;
+            mission_title: string | null;
+          }>
+        ).filter((c) => c.mission_id);
+        if (holders.length === 0) return null;
+
+        const { data: members } = await supabase
+          .from("spine_track_members" as never)
+          .select("track_id, artifact_id")
+          .eq("artifact_kind", "mission")
+          .in(
+            "artifact_id",
+            holders.map((h) => h.mission_id as string),
+          );
+        const byMission = new Map(
+          ((members ?? []) as unknown as Array<{ track_id: string; artifact_id: string }>).map(
+            (m) => [m.artifact_id, m.track_id],
+          ),
+        );
+        for (const h of holders) {
+          const otherTrack = byMission.get(h.mission_id as string);
+          // Not this track. A run cannot be waiting on itself, and offering a
+          // door back to the page you are on is the false door in its purest form.
+          if (!otherTrack || otherTrack === data.trackId) continue;
+          const { data: t } = await supabase
+            .from("spine_tracks" as never)
+            .select("title")
+            .eq("id", otherTrack)
+            .maybeSingle();
+          return {
+            trackId: otherTrack,
+            title: (t as { title?: string } | null)?.title ?? h.mission_title ?? "the other run",
+            path,
+          };
+        }
+        return null;
+      } catch (e) {
+        console.error(
+          `[whoHoldsThePath] ${data.trackId}: ${e instanceof Error ? e.message : String(e)}`,
+        );
+        return null;
+      }
+    },
+  );
 
 export const getTrackActivity = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

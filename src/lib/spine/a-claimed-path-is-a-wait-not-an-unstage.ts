@@ -98,6 +98,19 @@ export const CLAIMED_PATH_HOLD = "waiting-on-another-run" as const;
  * is the failure this sentence exists to prevent, and it is the same reason the
  * refusal above names the holder.
  */
+/**
+ * The path back out of the sentence above.
+ *
+ * The hold carries the path and nothing else that a lookup cannot re-derive, so
+ * this is the one thing the door has to parse rather than query. Written beside
+ * the composer on purpose: a reader changing the sentence meets the parser that
+ * depends on it, which is the only way two halves of a round trip stay in step.
+ */
+export function pathFromWaitingSentence(sentence: string | null | undefined): string | null {
+  const m = /also changes ([^\s]+?)\.(?:\s|$)/.exec(sentence ?? "");
+  return m?.[1] ?? null;
+}
+
 export function waitingOnAnotherRun(held: ClaimHolder & { prNumber?: number | null }): string {
   const who = held.missionTitle ? `the ${held.missionTitle} run` : "another run";
   const pr = held.prNumber ? ` (pull request #${held.prNumber})` : "";

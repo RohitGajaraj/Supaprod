@@ -42,7 +42,8 @@ import { nothingIsComing } from "@/components/track/nothing-is-coming";
 import { failureLine } from "@/lib/error-copy";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { CLAIMED_PATH_HOLD } from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
 
 import { TrackActivity } from "@/components/spine/TrackActivity";
 import { RunPresence } from "@/components/presence/RunPresence";
@@ -60,6 +61,7 @@ import {
   getTrackArtifacts,
   retryStation,
   stopTrack,
+  whoHoldsThePath,
   type DriveNowResult,
   type Track,
 } from "@/lib/spine/track.functions";
@@ -539,6 +541,8 @@ export function TrackRunLeft({
    * possible against a database that has not taken the column yet.
    */
   const fStop = useServerFn(stopTrack);
+  /* Only called while the hold says so; see the query below. */
+  const fWhoHolds = useServerFn(whoHoldsThePath);
   const stopWalk = useMutation({
     mutationFn: () => fStop({ data: { trackId } }),
     onSuccess: (res) => {
@@ -650,10 +654,25 @@ export function TrackRunLeft({
     resolution: repoCheck.data?.resolution ?? null,
   });
 
+  /*
+   * WHO HOLDS THE FILE THIS RUN IS WAITING FOR, asked only while it is waiting.
+   *
+   * `enabled` on the hold, so the ordinary run costs no query at all. Read live
+   * rather than stored, so the door disappears the moment the claim releases --
+   * which is the same moment this track starts moving again.
+   */
+  const holder = useQuery({
+    queryKey: ["who-holds-the-path", trackId],
+    queryFn: () => fWhoHolds({ data: { trackId } }),
+    enabled: track?.holdReason === CLAIMED_PATH_HOLD,
+    staleTime: 30_000,
+  });
+
   const holdWayOut = wayOut(
     track?.holdReason,
     { undo: Boolean(holdTakeOver?.undoTo), handback: Boolean(holdTakeOver?.handback) },
     track ? (AGENT_STATIONS[track.station]?.name ?? null) : null,
+    holder.data ?? null,
   );
   const showCalmHold = isCalmHold && !walkingMidRoute;
 
@@ -972,6 +991,31 @@ export function TrackRunLeft({
                     : undefined
                 }
               />
+            ) : null}
+
+            {/*
+             * THE WAY OUT THAT IS SOMEWHERE ELSE.
+             *
+             * A run waiting on a claimed path has nothing to press here -- the
+             * file frees when the other run's pull request merges or closes --
+             * and the hold's own sentence already says that. What it has is
+             * somewhere to GO, and a person who has just read "waiting on the
+             * tablet run" wants that run.
+             *
+             * A real link, never a label. `wayOut` returns this only with an id
+             * it was handed, and the id is resolved live, so a claim that has
+             * released renders nothing rather than a door onto a run that is no
+             * longer holding anything.
+             */}
+            {holdWayOut.door ? (
+              <Link
+                to="/track/$trackId"
+                params={{ trackId: holdWayOut.door.trackId }}
+                search={{}}
+                className="mrd-focus rounded-mrd-ctl text-mrd-small text-mrd-ink underline decoration-mrd-line underline-offset-4 transition-colors hover:decoration-mrd-edge"
+              >
+                {holdWayOut.door.label}
+              </Link>
             ) : null}
 
             {/*

@@ -49,6 +49,19 @@ export type WayOut = {
   next: string | null;
   /** Whether the way out is a control on this very screen, under Take it over. */
   onThisScreen: boolean;
+  /**
+   * A door that is somewhere ELSE, when the thing that clears this hold is
+   * another piece of work rather than a control here.
+   *
+   * A fourth kind, and it had to be: every `Offer` above is something this
+   * screen can do to this run. "Open the other run" is a navigation, and
+   * modelling it as an offer would have put it in a list whose sentences all
+   * begin with an instruction to act on the run you are looking at.
+   *
+   * Only ever present when the caller HAS the id. A label with nowhere to go is
+   * the false door this file's header is about.
+   */
+  door?: { label: string; trackId: string };
 };
 
 /**
@@ -246,8 +259,38 @@ export function wayOut(
   available: Available = { undo: false, handback: false },
   /** Named so a terminal hold can point at the exact control that restarts it. */
   stationName: string | null = null,
+  /**
+   * The run holding the file this one is waiting for, when there is one and the
+   * caller could resolve it. Resolved LIVE by `whoHoldsThePath`, so it is absent
+   * the moment the claim releases -- which is the same moment this track starts
+   * moving and the door stops being true.
+   */
+  waitingOn: { trackId: string; title: string } | null = null,
 ): WayOut {
   if (!hold) return NOTHING;
+
+  /*
+   * -- THE ONE HOLD WHOSE WAY OUT IS ANOTHER PIECE OF WORK ----------------
+   *
+   * `waiting-on-another-run` has no entry in DIAGNOSIS or OFFERS, and that is
+   * right: its own `HOLD_LINE` already says what happens next, so by this file's
+   * rule there is nothing to add. What it DOES have is somewhere to go, and a
+   * person told "waiting on the tablet run's pull request #4" wants exactly that
+   * door.
+   *
+   * Returned only with an id. Without one this falls through to NOTHING rather
+   * than rendering a label that goes nowhere, which is the same refusal the rest
+   * of this file makes about controls that are not on screen.
+   */
+  if (hold === "waiting-on-another-run") {
+    return waitingOn
+      ? {
+          next: null,
+          onThisScreen: false,
+          door: { label: `Open ${waitingOn.title}`, trackId: waitingOn.trackId },
+        }
+      : NOTHING;
+  }
 
   /*
    * A MISSING DIAGNOSIS IS NOT A MISSING WAY OUT, AND IT USED TO BE.

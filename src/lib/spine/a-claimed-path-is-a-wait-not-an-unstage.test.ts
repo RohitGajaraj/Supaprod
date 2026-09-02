@@ -180,7 +180,12 @@ import {
   refusalIsAboutTheWork,
   refusalIsAClaimedPath,
 } from "@/lib/spine/refusal-kind";
-import { CLAIMED_PATH_HOLD } from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
+import {
+  CLAIMED_PATH_HOLD,
+  pathFromWaitingSentence,
+} from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
+import { wayOut } from "@/components/track/way-out";
+import { HOLD_LINE } from "@/lib/spine/driver";
 import { RESUMABLE_HOLDS, TERMINAL_HOLDS, CORRECTABLE_HOLDS } from "@/lib/spine/correction";
 import { HOLDS_THAT_WAIT_ON_A_DATE } from "@/lib/spine/waiting-on-a-date-is-not-waiting-in-a-queue";
 
@@ -316,5 +321,88 @@ describe("the driver takes it", () => {
     );
     expect(branch).toContain("waitingOnAnotherRun({");
     expect(branch).toContain("last_hold_because: because");
+  });
+});
+
+/**
+ * ── THE DOOR, WHICH HAS TO BE REAL OR ABSENT AND NEVER DECORATIVE ─────────
+ *
+ * A1's ruling, 2026-09-03: a person told "waiting on the tablet run's PR #4"
+ * wants exactly that door, so it is threaded rather than described.
+ *
+ * `way-out.ts` has one rule and it governs this: never point at a door that is
+ * not there. So the door is returned ONLY with an id the caller actually
+ * resolved, and the id is resolved LIVE -- the claim releases the moment the
+ * other run's pull request merges, and a stored id would keep offering a door
+ * onto a run that is no longer holding anything, at exactly the moment this
+ * track starts moving again.
+ */
+describe("the way out that is somewhere else", () => {
+  it("offers the other run when the caller resolved it", () => {
+    const w = wayOut(CLAIMED_PATH_HOLD, { undo: true, handback: true }, "Build", {
+      trackId: "6817e386-28e9-4a57-9ed1-0c24328af93a",
+      title: "The tablet layout",
+    });
+    expect(w.door).toEqual({
+      label: "Open The tablet layout",
+      trackId: "6817e386-28e9-4a57-9ed1-0c24328af93a",
+    });
+  });
+
+  it("offers NOTHING when it could not, rather than a label that goes nowhere", () => {
+    /*
+     * The whole rule of the file it lives in. A claim that has just released
+     * resolves to null, and this must render nothing rather than a door onto a
+     * run that is no longer holding the file.
+     */
+    const w = wayOut(CLAIMED_PATH_HOLD, { undo: true, handback: true }, "Build", null);
+    expect(w.door).toBeUndefined();
+    expect(w.next).toBeNull();
+    expect(w.onThisScreen).toBe(false);
+  });
+
+  it("does not offer this screen's controls, because neither of them clears it", () => {
+    /*
+     * `undo` and `handback` are both on screen here and both would be false
+     * doors: sending the work back a step does not release another run's claim,
+     * and doing the step yourself runs into the same wall.
+     */
+    const w = wayOut(CLAIMED_PATH_HOLD, { undo: true, handback: true }, "Build", {
+      trackId: "t",
+      title: "x",
+    });
+    expect(w.onThisScreen).toBe(false);
+    expect(w.next).toBeNull();
+  });
+
+  it("adds no sentence, because the hold's own line already says what happens", () => {
+    // This file speaks only where the record goes quiet, and it is not quiet:
+    // HOLD_LINE says the work continues when the other run's PR merges.
+    expect(HOLD_LINE[CLAIMED_PATH_HOLD]).toContain("merges or closes");
+  });
+});
+
+describe("the sentence and the parser are one round trip", () => {
+  it("reads back the path the driver wrote", () => {
+    /*
+     * The hold carries the path and nothing else a lookup cannot re-derive, so
+     * this is the one fact the door parses rather than queries. Composer and
+     * parser live in the same file for exactly this reason: a reader changing
+     * the sentence meets the thing that depends on it.
+     */
+    const sentence = waitingOnAnotherRun({ ...HELD, prNumber: 4 });
+    expect(pathFromWaitingSentence(sentence)).toBe("src/checkout/AddressStep.tsx");
+  });
+
+  it("round-trips without a pull request number too", () => {
+    expect(pathFromWaitingSentence(waitingOnAnotherRun({ ...HELD, prNumber: null }))).toBe(
+      "src/checkout/AddressStep.tsx",
+    );
+  });
+
+  it("returns null rather than a guess on anything else", () => {
+    for (const s of [null, undefined, "", "Stopped at Build", "also changes"]) {
+      expect(pathFromWaitingSentence(s)).toBeNull();
+    }
   });
 });

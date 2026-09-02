@@ -2046,6 +2046,28 @@ Learn's is `CREW_ROLE["data-analyst"]` at **`:428`** and `FILE_IT.learn` at **`:
       Start row. A1 lists the ids in the Blockers block before you start. This is the grader's first
       real run on anything.
 
+**BLOCKED ON THE FOUNDER — one line, one decision (A2, 2026-09-03; A1 ruled it not P-04's job):**
+**the stop email cannot be built by any lane, because it has no table.**
+`src/components/notifications/stopped-email.ts` composes the subject, the text and the HTML and has
+**never been called in product code** — `grep -rn "stopped-email"` across `src/`, `e2e/`, `test/` and
+`scripts/` returns its own test and nothing else. Its header says why, and it is not a gap anyone
+forgot: *"THE SEND DOES NOT EXIST YET AND THIS FILE DOES NOT PRETEND IT DOES."*
+
+**What it needs, and it is one object:** a sent-table keyed `UNIQUE(track_id, hold)`. S0 ruled that
+shape rather than a `notified_at` column for a reason worth keeping: at 144 sweep passes a day a
+check-then-write races with itself and a unique index cannot. **S0's own migration was refused by
+their permission layer and escalated to the founder by name.** So the file was written correctly
+against a table that was never created, and every lane since has met the same wall.
+
+**Why it is not the horizon verdict's job.** A stop email is a notification CHANNEL — no provider
+wired, no table, no send path — and P-04 would have to build all three before it could carry a
+verdict in a subject line. That is a different packet with a different risk, and folding it in here
+would have made the horizon verdict wait on an escalation that has been open since before this run.
+
+**The founder's decision is one line:** create the sent-table (or authorise a lane to), and the send
+becomes ordinary work. Until then the composer stays correct and uncalled, which is the honest state
+and is what its own header already says.
+
 **Blockers (A1, 2026-09-02 18:58 IST):** the self-referential forecasts to grade `inconclusive`
 through the platform's own path (non-sample, ungraded, observable names a Supaprod tool or table;
 re-run the predicate before you start, the list may have grown):
