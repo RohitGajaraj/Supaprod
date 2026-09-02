@@ -228,14 +228,12 @@ function code(src: string): string {
  *  question `stillWaiting` asks, and the wait is carried by that clause. */
 const ISLOADING_IS_THE_BRANCH = /\.isLoading\s*\?/;
 
-/** The two files this pass locked. Both mount the release acts, and both had
- *  the defect. BOTH are checked whole-file by the loop below -- a second call
- *  site cannot hide behind a first in either. ChangesPanel additionally has its
- *  one guard pinned by name further down (see the diff note in that describe). */
-const LOCKED = [
-  ["Ship", "routes/_authenticated.ship.tsx"],
-  ["Studio changes", "components/studio/ChangesPanel.tsx"],
-] as const;
+/** The file this pass locked, checked whole-file by the loop below -- a
+ *  second call site cannot hide behind a first. "Studio changes" left this
+ *  list (P-14, A-QUEUE.md, R-35): `components/studio/ChangesPanel.tsx` was
+ *  deleted with the run page it alone belonged to; its own guard, pinned by
+ *  name further down, went with it. */
+const LOCKED = [["Ship", "routes/_authenticated.ship.tsx"]] as const;
 
 /**
  * ZERO SURFACES NOW GUARD A WAIT ON `.isLoading` ALONE. This started at 2 when
@@ -363,18 +361,6 @@ describe("the guard is a property of the file, not of one line in it", () => {
     expect(blocks.length).toBe(2); // the release list, and the release document
     for (const b of blocks) expect(b.slice(0, 240)).toContain(") : changelog.isError ? (");
     expect(src).toContain("stillWaiting(changelog) && !changelog.isError");
-  });
-
-  it("the Studio deploy block asks the same question the same way", () => {
-    // ChangesPanel is not a station, but it renders the same release acts on
-    // the run and its deploy block owns an empty answer. Its one remaining
-    // `.isLoading` is the diff branch, `diff.isLoading || !selected`, and that
-    // is NOT this defect: `diffByPath` is built from `diff.data`, so an
-    // unanswered read always leaves `selected` null and the data clause carries
-    // the wait on its own. Widening it would change no reachable state.
-    expect(code(read("components/studio/ChangesPanel.tsx"))).toMatch(
-      /const deploymentsReading = stillWaiting\(deploymentsQ\)/,
-    );
   });
 
   it("no NEW surface starts guarding an empty state on isLoading", () => {

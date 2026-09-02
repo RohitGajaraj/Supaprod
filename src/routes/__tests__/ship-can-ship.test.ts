@@ -40,15 +40,13 @@ import {
  *   only the page is trusted, the surface offers a promote over something that
  *   has been live for a month.
  *
- * The last rule is the rollback's: this station is the SECOND door onto an act
- * that already had one, and a second door confirmed more lightly than the first
- * means the safer path is the one nobody takes. So the prompt copy is asserted
- * identical to ChangesPanel's, character for character, rather than trusted to
- * whoever edits either file next.
+ * The rollback's second door used to be checked against ChangesPanel's own
+ * prompt, character for character (P-14, A-QUEUE.md, R-35): that file was
+ * deleted with the run page it alone belonged to, and its prompt went with
+ * it, so the door this station opens no longer has a first door to match.
  */
 
 const SHIP = join(import.meta.dir, "..", "_authenticated.ship.tsx");
-const PANEL = join(import.meta.dir, "..", "..", "components", "studio", "ChangesPanel.tsx");
 
 /** Source with comments removed, so a rule can never be satisfied by prose
  *  ABOUT the rule. Same treatment ship-has-an-agent.test.ts uses. */
@@ -59,16 +57,6 @@ function code(path: string): string {
 }
 
 const shipSrc = code(SHIP);
-const panelSrc = code(PANEL);
-
-/** The string fields of the one `promptDialog({...})` call in a file. */
-function promptFields(src: string): Record<string, string> {
-  const call = /promptDialog\(\{([\s\S]*?)\n\s*\}\)/.exec(src);
-  if (!call) return {};
-  const out: Record<string, string> = {};
-  for (const m of call[1].matchAll(/(\w+):\s*"((?:[^"\\]|\\.)*)"/g)) out[m[1]] = m[2];
-  return out;
-}
 
 /** A changelog entry is only ever materialized from a MERGED changeset
  *  (changelog.ts, shouldPublishChangelog), which is why the release list is
@@ -558,15 +546,6 @@ describe("the station reaches the shipping acts it is named for", () => {
 });
 
 describe("the rollback's second door is no easier to walk through than its first", () => {
-  it("asks the identical question ChangesPanel asks", () => {
-    const ship = promptFields(shipSrc);
-    const panel = promptFields(panelSrc);
-    expect(Object.keys(panel).length).toBeGreaterThan(0);
-    for (const field of ["title", "body", "label", "placeholder", "confirmLabel"]) {
-      expect(ship[field]).toBe(panel[field]);
-    }
-  });
-
   it("keeps the confirmation in front of the mutation, never beside it", () => {
     const flat = shipSrc.replace(/\s+/g, " ");
     const fn = flat.slice(flat.indexOf("async function askRollback("));

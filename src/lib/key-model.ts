@@ -149,12 +149,9 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
     source: "src/routes/_authenticated.plan.spec.$id.tsx",
     keys: [{ key: "⌘S", does: "Saves your edits." }],
   },
-  {
-    path: "/runs/$missionId",
-    label: "One run",
-    source: "src/routes/_authenticated.runs.$missionId.tsx",
-    keys: [{ key: "⌘↵", does: "Sends your note to the agent that is working." }],
-  },
+  // "/runs/$missionId" left this list too (P-14, A-QUEUE.md, R-35): a
+  // mission without a track is not a run, and the page and its one chord
+  // (⌘↵, sending a note to the working agent) are deleted, not rehomed.
 ];
 
 /**

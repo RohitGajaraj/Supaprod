@@ -108,19 +108,13 @@ describe("the sheet cannot invent a door", () => {
 describe("the surface lookup answers with the right one", () => {
   it("does not let a bare prefix inherit a longer path's keys", () => {
     /*
-     * THIS USED TO ASSERT THE PAIR and now asserts the absence, because the
-     * fold took the shorter half away: `/runs` declared a ⌘↵ that submitted the
-     * composer inside `_authenticated.runs.index.tsx`, and that file is a
-     * redirect now, so the entry went with it.
-     *
-     * The property being guarded is unchanged and this is the sharper way to
-     * state it. `/runs/$missionId` is still declared, so a bare prefix match in
-     * declaration order would hand `/runs` the single-run keys, which is the
-     * mistake `surfaceKeysFor`'s own comment describes `railOwnerOf` fixing.
-     * Null is the honest answer: `/runs` is a redirect and has no keyboard.
+     * THIS USED TO ASSERT THE PAIR, then the absence of the shorter half when
+     * `/runs` itself folded to a redirect, and now asserts the absence of
+     * both: `/runs/$missionId` left the array too (P-14, A-QUEUE.md, R-35),
+     * the same fold. Both paths are redirects now and neither has a keyboard.
      */
     expect(surfaceKeysFor("/runs")).toBeNull();
-    expect(surfaceKeysFor("/runs/abc123")?.path).toBe("/runs/$missionId");
+    expect(surfaceKeysFor("/runs/abc123")).toBeNull();
   });
 
   it("reads a $param as any one segment", () => {

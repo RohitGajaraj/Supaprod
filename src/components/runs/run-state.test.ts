@@ -1,6 +1,4 @@
 import { describe, it, expect } from "bun:test";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 
 import { actorName, actorSlug, actorVerb } from "./run-state";
 
@@ -24,24 +22,13 @@ import { actorName, actorSlug, actorVerb } from "./run-state";
  * destroys trust in both at once. It is also easy to reintroduce, because a
  * concrete name reads better on a page than "The crew" does.
  *
- * TWO HALVES, because the values alone would not have caught it: the mapping
- * must be right, AND the detail page must actually go through the mapping rather
- * than around it with a literal of its own.
+ * TWO HALVES ORIGINALLY, because the values alone would not have caught it:
+ * the mapping had to be right, AND the run detail page had to actually go
+ * through it rather than around it with a literal of its own. The second
+ * half's guard, a source-text read of `_authenticated.runs.$missionId.tsx`,
+ * went with that page (P-14, A-QUEUE.md, R-35): a mission without a track is
+ * not a run, and the page holds no literal of its own to guard any more.
  */
-
-const RUN_DETAIL_ROUTE = join(
-  import.meta.dir,
-  "..",
-  "..",
-  "routes",
-  "_authenticated.runs.$missionId.tsx",
-);
-
-/** Strip comments, so prose that NAMES the banned literal does not trip it.
- *  The route's own header describes the defect it fixed, in these words. */
-function stripComments(source: string): string {
-  return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-}
 
 describe("who a run may be attributed to", () => {
   it("names Engineer only where a builder run is what was selected", () => {
@@ -69,25 +56,5 @@ describe("who a run may be attributed to", () => {
     expect(actorVerb("build").length).toBeGreaterThan(0);
     expect(actorVerb("mission")).toBe("working");
     expect(actorVerb(undefined)).toBe("working");
-  });
-});
-
-describe("the run detail page reads the mapping rather than its own literal", () => {
-  const source = stripComments(readFileSync(RUN_DETAIL_ROUTE, "utf8"));
-
-  // A broken path would make the ban below pass vacuously.
-  it("actually read the route", () => {
-    expect(source).toContain("function BuildRun()");
-  });
-
-  it("holds no builder slug of its own", () => {
-    expect(source).not.toContain('"builder"');
-    expect(source).not.toContain("'builder'");
-  });
-
-  it("resolves the holder through run-state, once", () => {
-    expect(source).toContain('from "@/components/runs/run-state"');
-    expect(source).toContain("actorName(data?.kind)");
-    expect(source).toContain("actorSlug(data?.kind)");
   });
 });

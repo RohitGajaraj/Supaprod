@@ -909,10 +909,9 @@ export const SURFACE_REGISTRY = {
   // which routes to /crew.
   crew: { kind: "route", home: "crew", opensFrom: "nav-rail-crew", status: "live" },
 
-  // ---- Runs (the whole lifecycle of one run, not just Build) ----
-  // The seven-stage strip on /runs/$missionId, reached from the Runs item in
-  // the nav rail (AppFrame.tsx).
-  "run-stages": { kind: "route", home: "runs", opensFrom: "nav-rail-runs", status: "live" },
+  // "run-stages" left this registry (P-14, A-QUEUE.md, R-35): /runs/$missionId
+  // itself is deleted, its module (run-stages.functions.ts) with it, so the
+  // domain this entry named no longer exists on disk.
 
   // "build-engine" left this registry (P-14, A-QUEUE.md, R-34): /build itself
   // is deleted, its module (build-engine.functions.ts) with it, so the domain

@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1598,
-  "fileCount": 132,
+  "totalOccurrences": 1596,
+  "fileCount": 130,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -210,9 +210,6 @@
     "src/components/meridian/Surface.tsx": {
       "class:sp-": 4
     },
-    "src/components/missions/MissionOrchestratorDetail.tsx": {
-      "--ds- via alias": 1
-    },
     "src/components/observe/AgentSpendDetail.tsx": {
       "class:sp-": 3
     },
@@ -271,9 +268,6 @@
     },
     "src/components/shell/ShortcutSheet.tsx": {
       "class:sp-": 15
-    },
-    "src/components/studio/PreviewPanel.tsx": {
-      "raw-colour": 1
     },
     "src/components/studio/RepoGateDialog.tsx": {
       "import:components/ui": 2,
