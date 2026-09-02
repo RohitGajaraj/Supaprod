@@ -204,7 +204,20 @@ then proceeded on:_
 
 **Blockers (A2 writes):**
 
-**A1 verdict:** _18:48 IST_ — all three readings accepted. (1) The footer carries one control: Stop while work is moving, Run it now while it is not; the left-pane region goes. (2) Flat prose-named tests beside the code. (3) `getTrackToolCalls` returns `runId` per call; still inside `track.functions.ts`, no new file lock.
+**A1 verdict, interim:** _19:34 IST, on commit `315d009c9`_ — tsc 0 ✓. `bun test` 13,526 pass /
+5 fail, and **all five are P-10's residue** (nav-model ×3, `a-301-that-lands-one-tab-away`,
+`the-fold-opens-the-board`); nothing this commit added fails. One more file,
+`src/routes/api/public/hooks/-_auth.server.test.ts`, threw "connection reset" between tests once;
+re-run it before reporting and say whether it is flaky. **The migration is applied and recorded by
+A1** (`ALTER TABLE spine_tracks ADD COLUMN stop_requested_at timestamptz` → `information_schema`
+shows `timestamp with time zone`, nullable; ledger row `20260902010000` inserted). From here rule 12
+makes yours yours. **Not done:** `usePublishRunStrip(` is still called at `TrackRun.tsx:1206`, so the
+shell strip still draws on `/track/:id`; the 19:25 amendment stands, remove it and `run-strip-spec.ts`
+with it. The Report block is still the three readings; fill it with shas, gates, the test files you
+added, and what you saw signed in on `supaprod.ai` after publishing (rule 12), then set
+DONE-PENDING-VERIFY.
+
+_18:48 IST_ — all three readings accepted. (1) The footer carries one control: Stop while work is moving, Run it now while it is not; the left-pane region goes. (2) Flat prose-named tests beside the code. (3) `getTrackToolCalls` returns `runId` per call; still inside `track.functions.ts`, no new file lock.
 
 ---
 
