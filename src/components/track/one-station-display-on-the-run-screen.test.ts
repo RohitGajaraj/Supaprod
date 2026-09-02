@@ -137,6 +137,22 @@ describe("the transcript is the control the strip used to be", () => {
     expect(route).toMatch(/\[0-9a-f\]\{8\}-/);
   });
 
+  it("says so when a shared link names something this run does not hold", () => {
+    /*
+     * `?artifact=<id>` is shareable, which means it will be shared, reloaded a
+     * week later, and pasted with a typo. Three things make it resolve to
+     * nothing -- another run's artifact, a deleted row, a wrong id -- and in
+     * every one the pane would otherwise show the newest thing while the person
+     * following the link believed they were looking at what it named.
+     *
+     * Claimed only once the read has ANSWERED: while it is in flight nothing is
+     * missing, it is merely unknown, and those are different facts.
+     */
+    const code = strip(SURFACE["ArtifactPane"]);
+    expect(code).toContain("Boolean(activeArtifactId) && Boolean(bodies.data) && !opened");
+    expect(SURFACE["ArtifactPane"]).toContain("That link names something this run does not hold");
+  });
+
   it("makes the artifact chip itself the control, not only the row", () => {
     const chip = read("../meridian/run-rows.tsx");
     expect(chip).toContain("onOpen?: () => void;");

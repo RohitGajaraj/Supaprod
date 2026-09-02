@@ -2993,6 +2993,23 @@ export function ArtifactPane({
         .find((x) => x.item.artifactId === activeArtifactId && !x.item.missing)
     : undefined;
 
+  /*
+   * ── A LINK TO SOMETHING THAT IS NOT HERE MUST SAY SO ────────────────────
+   *
+   * `?artifact=<id>` is shareable, which means it will be shared, reloaded a
+   * week later, and pasted with a typo. Three things can make it resolve to
+   * nothing: the artifact belongs to a different run, its row was deleted, or
+   * the id is simply wrong. In every one of those the pane would silently show
+   * the newest thing instead, and the person following the link would believe
+   * they were looking at what it named. That is the substitution this repo has
+   * paid for repeatedly, arriving through the front door of a feature built for
+   * sharing.
+   *
+   * Only claimed once the READ HAS ANSWERED. While `bodies` is in flight,
+   * nothing is missing yet; it is merely unknown, and those are different facts.
+   */
+  const unresolved = Boolean(activeArtifactId) && Boolean(bodies.data) && !opened;
+
   const current =
     opened && chain.stops.some((s) => s.station === opened.station) ? opened.station : fallback;
   const now = Date.now();
@@ -3112,6 +3129,17 @@ export function ArtifactPane({
            * ten prototypes they are looking at, or that they are looking at a
            * pinned selection rather than at the newest thing the run made.
            */}
+          {unresolved ? (
+            <div className="flex flex-wrap items-baseline justify-between gap-mrd-3 border-b border-mrd-line-soft pb-mrd-3">
+              <span className="min-w-0 text-mrd-small text-mrd-mute">
+                That link names something this run does not hold. It may belong to another run, or
+                its record may be gone. Showing the newest thing this run made instead.
+              </span>
+              <Action variant="quiet" onClick={() => onOpenArtifact?.(null)}>
+                Back to the newest
+              </Action>
+            </div>
+          ) : null}
           {opened ? (
             <OpenHead
               item={opened.item}
