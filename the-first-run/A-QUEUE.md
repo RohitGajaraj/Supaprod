@@ -1757,7 +1757,7 @@ write) · tests.
 
 ---
 
-### P-23 · Settings: six tabs, mapped from Lovable's, with what exists today · Lane: **A3** · Status: CLAIMED (A3, 23:14 IST) · Moves: 4, 5
+### P-23 · Settings: six tabs, mapped from Lovable's, with what exists today · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 23:55 IST) · Moves: 4, 5
 
 **Why (founder, 2026-09-02 19:29; A1 read Lovable's project settings signed in at 19:35).** Lovable's
 settings are one searchable page with groups: Project (name, subdomain, owner, message and edit
@@ -1875,5 +1875,119 @@ Report as "no writer" so P-20, P-22 and P-03 know what to add. The promotion-bar
 P-20. Your finding that `searchSections` and `SETTINGS_GROUPS` already exist stands: this packet is
 a re-grouping and a fold, not a rebuild. Acceptance line 3 (`settings.tsx` line count goes down)
 still applies. Take it.
+
+**Report (A3 writes):**
+Commit `ee534c8cc`. `tsc` 0. `bun test`: 13,672 pass, 0 fail (8 new tests: 3 in
+`settings-sections.test.ts` net-changed for the new taxonomy plus new
+assertions, 1 new file `settings-brief-is-its-own-pane.test.ts` with 4 tests).
+`settings.tsx`: **4,096 -> 3,824 lines (down 272)**, satisfies acceptance line 3.
+
+**Seven groups, per A1's ruling (22:25 IST): You -> Autonomy -> Brief -> Connections
+-> Workspace -> Usage -> Security.** `settings-sections.ts`'s own header (§1) carries
+the full reasoning; the short form is in the table below. The search box and the
+keyboard ring (`searchSections`, `stepDoor`, `doorByTypeahead`) needed **zero** code
+changes -- they already read `SETTINGS_GROUPS` generically, so P-23's own "one search
+box" half of its why was already built before this packet touched anything.
+
+**Every row, its group, and its existing writer (acceptance line 2):**
+
+| Group | Row | Existing writer |
+| --- | --- | --- |
+| You | Profile | unchanged, `ProfileSection` |
+| You | Notifications | unchanged, `NotificationsSection` |
+| Autonomy | Who works here | unchanged, `RosterSection` (`listCrew`) |
+| Autonomy | Mandate sentence, ceiling, kill switch, tool modes | unchanged, `BoundaryPane` (P-17) |
+| Brief | Brief and voice | `upsertBrief`/`getActiveBrief`, **moved** from inline in the route into `src/components/settings/BriefSection.tsx` |
+| Connections | Connected tools | unchanged, `AccountConnectionsSection` |
+| Connections | Models | **moved group only** (Agents -> Connections), same `ModelsSection`, same `getByoKeys` |
+| Connections | Outside access | **moved group only**, same interop token UI |
+| Workspace | About your company (name, slug, people, invites) | unchanged, `ThisWorkspaceRegion` + `MembersCard`/`TeamCard`, now standalone in a trimmed `WorkspaceSection` |
+| Workspace | Brand | unchanged, `DesignMemoryPanel` |
+| Workspace | Products | unchanged, `ProductsTab` |
+| Usage | Billing | **moved group only** (You -> Usage), same `PlanPicker`/billing functions |
+| Usage | Diagnostics | **moved group only**, still doorless, still Engine Room's door |
+| Security | Your data (export) | unchanged, `DataSection` |
+| Security | Audit trail door | **already existed** -- `DataSection.tsx`'s "Integrity seal" row already links `<Link to="/engine-room" search={{room:"record"}}>Open the record</Link>` when a seal is present. Nothing to build. |
+
+**Excluded, no writer found (confirmed in the BLOCKED report, unchanged by A1's
+ruling):** the promotion bar (P-20, not built), repo binding, MCP connections with
+`last_error`, preview deploys (P-22, not built), a domains pane. `settings-sections.ts`'s
+header names all five so the next packet that builds one of them knows the row is
+waiting rather than forgotten.
+
+**Brief split into its own file, not left inline (why this line count went down).**
+The fused `WorkspaceSection` rendered `ThisWorkspaceRegion` then a `briefRef`-scrolled
+brief block then People/TeamCard/AdminDoor, with `?section=brief` normalizing to
+`workspace` and a `scrollToBrief` prop catching the raw value to scroll to itself.
+None of that survives: `brief` is a real, doored `SectionId` now (`isSectionId`
+resolves it directly, no `LEGACY_SECTION_MAP` entry needed), so landing there already
+IS the pane. Pulled the whole editor (queries, the one save mutation, the five fields,
+the voice anchor, the dynamic heading sub) into `src/components/settings/BriefSection.tsx`
+-- every other settings pane already lives under that directory (`DataSection`,
+`IntegrationsTab`, `ModelsSection`...), wired with one `{active === "..." && <X />}`
+line; leaving Brief inline would have been the one pane breaking that convention, and
+is the reason the route's line count went UP before I noticed and moved it, not down.
+Removed the now-dead `scrollToBrief`/`briefRef` mechanism entirely rather than
+threading it through the split -- there is nothing left to scroll to.
+
+**`usage` and `security` needed a `LEGACY_SECTION_MAP` entry the others did not.**
+`you`, `autonomy`, `brief`, `connections` and `workspace` are each BOTH a live
+`GroupId` and a real `SectionId` sharing the string, so `?section=<group>` resolves
+straight through `isSectionId` with no alias needed -- true before this packet for
+`autonomy`/`connections`/`workspace` and now also true for `brief`, since it moved
+from a fold target to a real section. `usage` and `security` are not also section ids
+(no pane called exactly that), so without an explicit alias `?section=usage` fell
+through to `DEFAULT_SECTION` and landed in `you` -- caught by
+`settings-sections.test.ts`'s own "every group id lands inside its own group"
+invariant, which is exactly why it is pinned. Added `usage: "billing"` and
+`security: "data"`.
+
+**One pre-existing UX nuance, not fixed, flagged instead.** `navTabStop`'s fallback
+for a doorless, non-folding section (`health`) is the GLOBAL first door
+(`NAV_DOOR_IDS[0]`, always Profile), not the owning group's first door. True before
+P-23 by coincidence (Profile happened to be both the global first door and Health's
+old group's first door); now less locally true, since Health moved to Usage and a
+keyboard user on `?section=health` still tab-stops on Profile rather than Billing.
+Fixing `navTabStop`'s fallback semantics is a real, separable change to a tightly
+pinned pure function and not something this regroup should do in passing -- noted in
+`settings-sections.test.ts` beside the assertion it affects.
+
+**One pre-existing test-precision gap, also not fixed.** The `brief` section's
+`constitution` keyword is "reachable" in `settings-search.test.ts`'s own guard only
+by coincidence: the word appears in `DesignMemoryPanel.tsx` ("paste a design
+constitution"), which is about Brand's design system import, not the mission/voice
+brief. This coincidence already existed before P-23 (the keyword was on the OLD
+fused `workspace` section, which also had `DesignMemoryPanel` nowhere near it, so the
+match was equally accidental then) -- not introduced or worsened by this packet, and
+the guard's own `.includes()` methodology has no way to tell a genuine keyword-to-pane
+match from a coincidental one. Left as-is; a precision fix to that guard is separable
+from a settings regroup.
+
+**Verified:** `bunx tsc --noEmit` 0 · `bun test` 13,672/0 fail · `bunx eslint` on
+every touched file: 0 errors (2 pre-existing, unrelated prettier issues remain
+elsewhere in `_authenticated.settings.tsx`, at lines this diff never touches).
+
+**Files touched.** `src/lib/settings-sections.ts` (regrouped, 979 -> 860 lines) ·
+`src/lib/settings-sections.test.ts` (rewritten for the new taxonomy) ·
+`src/lib/settings-search.test.ts` (2 assertions updated for Brief's real pane,
+`BriefSection.tsx` added to the reachability scan) · `src/routes/_authenticated.settings.tsx`
+(Brief extracted, `WorkspaceSection` trimmed, one new render branch) · new
+`src/components/settings/BriefSection.tsx` · new
+`src/routes/__tests__/settings-brief-is-its-own-pane.test.ts`. Nothing under
+`src/components/meridian/**`.
+
+**Blockers (A3 writes):**
+1. **BLOCKED: cannot walk this live in a browser, same credential gap as P-11/P-16/P-17.**
+   No `.env`, no `E2E_DEMO_PASSWORD`, `bun run dev`'s `predev` fails without Supabase
+   credentials. Asking A1's usual signed-in check on `supaprod.ai`: the search box
+   finds a row across all seven groups (try "invite", "voice", "spend"), each group
+   heading renders in the new order, `?section=brief` opens the real Brief pane
+   directly (not a scroll inside Workspace), and `?section=usage`/`?section=security`
+   land inside their own group rather than falling back to Profile.
+2. **Not a blocker, flagging for whoever picks up P-20 or P-22 next:** the promotion
+   bar and preview-deploys rows have no home in Autonomy/Connections yet because
+   neither packet is built. When either lands, its row goes in the group already
+   reserved for it -- no further regroup needed, just filling a row this packet left
+   named and empty.
 
 **A1 verdict:**
