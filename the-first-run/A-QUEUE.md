@@ -2030,7 +2030,7 @@ five. The count is unbounded and the list is bounded now, and the sentence says 
 
 ---
 
-### P-04 · The horizon verdict arrives · Lane: **A2** · Status: CLAIMED (A2, 05:20 IST) · Moves: 3, 4, 5
+### P-04 · The horizon verdict arrives · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 06:40 IST) — the live half is A1's · Moves: 3, 4, 5
 
 **Scope.** R-31 in Decide's brief (forecast about the user's product; observable never a Supaprod
 table; default horizon 14 days). The band surface on the Decide tab (`forecast-band.ts` exists;
@@ -2144,6 +2144,52 @@ and they are not mapped onto the spec-outcome verdicts. (3) `stopped-email.ts` i
 founder**, not built here: a stop email is a notification channel with no provider and no table,
 escalated before; A2 names the table in Blockers so his list is one line. The Start row now leads with
 whether the forecast held instead of an inventory sentence.
+
+**Report (A2, 06:40 IST) — code on main at `8572b2948`. tsc 0 · `bun test` 0 fail on every push.**
+
+**THE FINDING, and it is why this packet was never going to be built as scoped.** The grader was not
+missing. It was UNWIRED. `learning.record` is the tool Learn is told to finish with; it READ three
+`forecast_*` columns to guard itself and wrote none of them back. So an agent could grade at Learn,
+file a `learnings` row, and leave `decisions.forecast_resolution` NULL — the bet stayed due forever,
+the Learn desk kept offering it, and the verdict this product is built around never appeared. The
+only other closers were the human desk, MCP `settle_forecast`, and an auditor tick riding a workspace
+flag that is false on every workspace. **On a track driven by the loop, nothing closed the row at
+all.**
+
+The consequence for the packet: **most of P-04's surfaces were already built and correct.** The
+Decide and Learn bodies have rendered the resolution, its rationale and who graded it for some time,
+in the right vocabulary with the right three-way chip. They had never had a resolution to show.
+Wiring the grader lit surfaces that were already waiting, which is why the surface work here is far
+smaller than the scope line suggests.
+
+| Acceptance | Status |
+| --- | --- |
+| Graded verdict on the Learn tab and the Start row within one sweep, evidence quoted | **Code done, live half A1's.** The Start row leads with the verdict for a finished run; the Learn tab's *Actually* block now carries the number the grader read, beside the verdict rather than two blocks below it under a chip answering a different question. |
+| `forecast_resolution_log` gains its first non-seed row | **Code done.** Every resolution files a row now, grader included — it had exactly one writer, the reopen path, so it held a history of corrections with no history of the things corrected. |
+| One email sent with the verdict in the subject | **BLOCKED ON THE FOUNDER, not built** (A1 ruled it not this packet's job). See the Blockers block above: one object, one line. |
+| A test refuses a forecast whose observable names `prd.get`, `sources.status` or `workspace.search` | **Done.** All eight on the record are in the test verbatim, and half the file is forecasts that must NOT be refused — a predicate that refused everything would pass the first half and destroy the feature. |
+| The eight self-referential forecasts graded `inconclusive` through the platform's own path | **Code done.** They settle with the founder's sentence through `learning.record` itself, and the overlap guard is skipped for them: it would refuse the tool outright ("your verdict does not mention `prd.get`") and no verdict could mention it usefully. |
+
+**Two things I did not do as written, both ruled by A1 afterwards.**
+- **The words.** The packet asked for *held / missed / cannot tell*. `forecast-words.ts` already
+  carries these three states and an explicit rule that two surfaces must never call one thing two
+  things; a third vocabulary is the drift that file exists to prevent. A1: *"yours stand"*.
+- **The derive flag.** Ruled *"removed or defaulted true"*. Neither: `auto_derive_enabled` is a real
+  preference with a control Settings has written since 2026-08-14 (the comment saying nothing can set
+  it is stale), and it gates three subsystems, so defaulting it true switches on automatic theme
+  derivation for every workspace. Each pass is scoped to its own question instead. A1 corrected the
+  ruling.
+
+**Also corrected in the Files line above:** `forecast_observable` does not exist, and every
+`driver.ts` line number the packet cites is stale.
+
+**THE LIVE HALF, which is A1's to read:**
+1. `2fdf93b6`'s Learn tab, once a `studio.review` runs under the fixed join: `criteria_source` should
+   read `contract` (both its specs carry one), with the compared lines and the reading beside the
+   verdict.
+2. The Start row's forecast sentence on a finished run.
+3. The transcript's verdict row, which draws at the moment the bet was settled rather than at either
+   end of the stream.
 
 **Report / A1 verdict:**
 
