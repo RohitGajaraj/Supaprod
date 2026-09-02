@@ -137,7 +137,8 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 /** Every surface that derives a `loading` flag guarding an empty state. */
 const SURFACES = [
   ["Discover", "components/discover/DiscoverSurface.tsx"],
-  ["Decide", "routes/_authenticated.decide.tsx"],
+  // "Decide" left this list (P-14, A-QUEUE.md, R-34): /decide is now a
+  // redirect stub with no loading state of its own to derive.
   ["Build", "routes/_authenticated.build.index.tsx"],
   ["Ship", "routes/_authenticated.ship.tsx"],
   ["Learn", "routes/_authenticated.learn.tsx"],

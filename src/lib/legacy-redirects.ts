@@ -23,10 +23,20 @@ export type RedirectTarget = { to: string; search?: Record<string, string> };
  * longer folded into Brain's tabs. Decide folded into Discover's queue tab;
  * the ledger folded into the Engine Room's record room — both are legacy keys
  * below. */
+/**
+ * P-14 (A-QUEUE.md ruling, R-34: "there are no lanes, priority is Put
+ * first"). `/decide` is deleted (a redirect stub to `/start` now, per its own
+ * `beforeLoad`, not a mapping this documentation-only file expresses -- its
+ * destination is outside the Option-B canonical model this list still
+ * describes, not a fold within it). Deliberately NOT added to
+ * `LEGACY_REDIRECTS` below for the same reason: every entry there targets a
+ * CANONICAL_PATH, and `/start` is a rail door in the newer Start · Run ·
+ * Settings model, not one. `/plan`, `/design` and `/build` follow the same
+ * treatment as P-14's own remaining batches land.
+ */
 export const CANONICAL_PATHS = [
   "/today",
   "/arriving",
-  "/decide",
   "/plan",
   "/design",
   "/build",

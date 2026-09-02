@@ -151,7 +151,9 @@ describe("the surface lookup answers with the right one", () => {
    * converted so far to that pair, and it is the list that grows as the rest
    * are converted rather than a rule asserted over surfaces that have not been.
    */
-  const CONVERTED = ["/start", "/design", "/crew", "/arriving", "/decide", "/approvals"];
+  // "/decide" left this list (P-14, A-QUEUE.md, R-34): the surface and its
+  // keybindings are deleted, not converted.
+  const CONVERTED = ["/start", "/design", "/crew", "/arriving", "/approvals"];
   for (const path of CONVERTED) {
     it(`${path} accepts with a and declines with d`, () => {
       const keys = surfaceKeysFor(path)?.keys.map((k) => k.key) ?? [];

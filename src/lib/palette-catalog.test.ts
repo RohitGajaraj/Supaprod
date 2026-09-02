@@ -9,7 +9,16 @@ import {
 import { CANONICAL_PATHS, DOOR_INTERNAL_PATHS } from "./legacy-redirects";
 import { PRIMARY_NAV, navKeyHint } from "./nav-model";
 
-const KNOWN_ROUTES = new Set<string>([...CANONICAL_PATHS, ...DOOR_INTERNAL_PATHS]);
+// CANONICAL_PATHS is the legacy-redirect canon (paths a dead URL may land
+// on) and DOOR_INTERNAL_PATHS is reached-from-a-door-but-not-itself-one
+// (legacy-redirects.ts's own two lists). Neither was ever meant to cover a
+// rail door's own identity, so Start and Run are named here instead --
+// Settings is already a DOOR_INTERNAL_PATH. Module-scoped (P-14, A-QUEUE.md)
+// rather than redeclared per test: an ACT verb can point at a rail door too
+// (the ranked queue's replacement, "Name a bet" now lands on Start), the
+// same legal destination JUMP_DESTINATIONS already recognised.
+const RAIL_DOORS = ["/start", "/track"];
+const KNOWN_ROUTES = new Set<string>([...CANONICAL_PATHS, ...DOOR_INTERNAL_PATHS, ...RAIL_DOORS]);
 
 describe("palette-catalog", () => {
   it("filterCatalog is case-insensitive and matches on pitch", () => {
@@ -50,12 +59,6 @@ describe("palette-sections", () => {
   });
 
   it("every JUMP destination's run.to is a canonical path or a keyed rail door", () => {
-    // CANONICAL_PATHS is the legacy-redirect canon (paths a dead URL may land
-    // on) and DOOR_INTERNAL_PATHS is reached-from-a-door-but-not-itself-one
-    // (legacy-redirects.ts's own two lists). Neither was ever meant to cover
-    // a rail door's own identity, so Start and Run are named here instead —
-    // Settings is already a DOOR_INTERNAL_PATH.
-    const RAIL_DOORS = ["/start", "/track"];
     for (const dest of JUMP_DESTINATIONS) {
       const known =
         (CANONICAL_PATHS as readonly string[]).includes(dest.run.to) ||
@@ -114,14 +117,17 @@ describe("palette-sections", () => {
     }
   });
 
-  it("Decide is reachable from ACT, and a Discover verb always says which part it means", () => {
+  it("Naming a bet is reachable from ACT, and a Discover verb always says which part it means", () => {
     // The two halves of K-37's B+ that are visible in the data. Pinned as
     // CLAIMS rather than as label spellings, so improving the copy does not
     // fail the build and losing the reach does.
     //
-    // Decide owns NameABet (_authenticated.decide.tsx:3385), the most valuable
-    // act in the product, and ACT offered nothing for it until 2026-08-21.
-    expect(ACT_VERBS.map((v) => v.run.to)).toContain("/decide");
+    // P-14 (A-QUEUE.md ruling, R-34): /decide is deleted, "there are no
+    // lanes." NameABet's own page went with it; the verb that used to open
+    // it now lands on Start, where the ranked bets it named actually live.
+    // This asserts ACT still offers SOME reach for naming a bet, not that a
+    // specific page still exists to receive it.
+    expect(ACT_VERBS.map((v) => v.run.to)).toContain("/start");
     // Discover is a 3,400-line surface with several destinations inside it. A
     // verb that names one of them and then lands on the top of the page is the
     // broken deep link that route's own header was written about.

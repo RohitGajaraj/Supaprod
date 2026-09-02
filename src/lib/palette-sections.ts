@@ -73,9 +73,14 @@ export const ACT_VERBS: readonly ActVerb[] = [
   // _authenticated.discover.tsx's validateSearch, which is the same repair
   // `?focus=` needed: the route drops any param it does not parse.
   { label: "Capture a signal", run: { to: "/arriving", search: { capture: "1" } } },
-  // NameABet, _authenticated.decide.tsx:3385. The palette has never offered
-  // this and it is the most valuable act in the product. Plain navigation for
-  // now: /decide has no validateSearch at all, so the landing treatment above
-  // is a larger change there and is filed separately rather than bundled.
-  { label: "Name a bet", run: { to: "/decide" } },
+  /*
+   * P-14 (A-QUEUE.md ruling): /decide -- and the `NameABet` capture form that
+   * lived inline in that route -- is deleted. Repointed to `/start` so this
+   * entry does not dead-end, but the capability itself ("name a bet" as a
+   * manual capture form, distinct from the ranked queue A1's ruling already
+   * gave a home) has no destination yet: flagged in P-14's own Report as a
+   * genuine gap this ruling's per-row table did not cover, not silently
+   * dropped.
+   */
+  { label: "Name a bet", run: { to: "/start", search: {} } },
 ];

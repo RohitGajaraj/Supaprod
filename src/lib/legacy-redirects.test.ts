@@ -12,9 +12,9 @@ describe("legacy-redirects", () => {
     }
   });
 
-  it("has exactly twelve canonical paths, one per primary destination (Option B 2026-07-13; twelve since Approvals and Threads got doors 2026-08-24)", () => {
-    expect(CANONICAL_PATHS.length).toBe(12);
-    expect(new Set(CANONICAL_PATHS).size).toBe(12);
+  it("has exactly eleven canonical paths, one per primary destination still standing (Option B 2026-07-13, twelve since Approvals and Threads got doors 2026-08-24; eleven since P-14 deleted /decide, A-QUEUE.md, R-34)", () => {
+    expect(CANONICAL_PATHS.length).toBe(11);
+    expect(new Set(CANONICAL_PATHS).size).toBe(11);
   });
 
   it("no path appears in both the canonical set and the door-internal set", () => {

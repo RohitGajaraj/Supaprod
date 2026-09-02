@@ -38,10 +38,11 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
  *  reason — and Discover has always been listed as its component. If a
  *  surface's keyboard moves, this path moves with it, or the guard quietly
  *  starts checking a file that binds nothing and passes on an unguarded one. */
+// "Decide" left this list (P-14, A-QUEUE.md, R-34): the gate and every key
+// it bound are deleted, not rehomed.
 const GATES = [
   ["Today", "components/today/DecisionQueue.tsx"],
   ["Approvals", "routes/_authenticated.approvals.tsx"],
-  ["Decide", "routes/_authenticated.decide.tsx"],
   ["Design", "routes/_authenticated.design.tsx"],
   ["Crew", "routes/_authenticated.crew.tsx"],
   ["Discover", "components/discover/DiscoverSurface.tsx"],
@@ -69,7 +70,7 @@ describe("no gate key fires while something is open over it", () => {
     });
   }
 
-  it("all six share one selector rather than six copies of it", () => {
+  it("all five share one selector rather than five copies of it", () => {
     // This repo has twice paid for a guard that existed in two ages. The helper
     // lives in src/lib/overlay.ts and the chord uses the same constant.
     for (const [, rel] of GATES) {

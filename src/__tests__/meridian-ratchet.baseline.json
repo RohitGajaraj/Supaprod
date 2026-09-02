@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1599,
-  "fileCount": 133,
+  "totalOccurrences": 1598,
+  "fileCount": 132,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -443,9 +443,6 @@
       "data-obsidian": 28,
       "--ds- via alias": 79,
       "raw-colour": 138
-    },
-    "src/styles/decide.css": {
-      "--sp-": 1
     },
     "src/styles/ink.css": {
       "--sp-": 59,

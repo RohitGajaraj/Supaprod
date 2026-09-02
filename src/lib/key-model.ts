@@ -126,23 +126,10 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
       { key: "d", does: "Declines it, so it is not a pattern.", destructive: true },
     ],
   },
-  {
-    path: "/decide",
-    label: "Decide",
-    source: "src/routes/_authenticated.decide.tsx",
-    keys: [
-      { key: "a", does: "Keeps the bet, and drafts its spec.", destructive: true },
-      { key: "j", does: "Walks the ranking to the next bet under the question." },
-      { key: "k", does: "Walks the ranking back one bet." },
-      { key: "z", does: "Sends the bet under the question to Backlog." },
-      {
-        key: "c",
-        does: "Sends the Critic to challenge it. This spends credits.",
-        destructive: true,
-      },
-      { key: "d", does: "Drops it.", destructive: true },
-    ],
-  },
+  // "/decide" left this list (P-14, A-QUEUE.md, R-34): the page and every
+  // keybinding it drew is deleted, not rehomed. Start it, the run's own
+  // Decide station and a decision on the run replace Keep/Challenge/Drop,
+  // none of which are keyboard-bound acts today.
   {
     path: "/design",
     label: "Design",

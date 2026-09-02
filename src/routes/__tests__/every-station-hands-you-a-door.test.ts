@@ -29,12 +29,14 @@ import { join } from "node:path";
 const ROUTES = join(import.meta.dir, "..");
 
 /**
- * The seven stations, by the file that renders each.
+ * The stations, by the file that renders each.
  *
- * Build and Plan render from `.index` files; the others are flat. Discover,
- * Decide and Design keep their doors in components, so the surface file is read
+ * Build and Plan render from `.index` files; the others are flat. Discover
+ * and Design keep their doors in components, so the surface file is read
  * along with the component directory it mounts, which is why the check below
- * looks for a door anywhere in the station's own source rather than in one file.
+ * looks for a door anywhere in the station's own source rather than in one
+ * file. Decide left this list (P-14, A-QUEUE.md, R-34): the page is deleted,
+ * so it hands nobody a door any more.
  */
 const STATIONS: Array<{ station: string; files: string[]; components?: string[] }> = [
   {
@@ -43,7 +45,6 @@ const STATIONS: Array<{ station: string; files: string[]; components?: string[] 
     // Discover's route file is an 80-line shell; every control lives here.
     components: ["discover/DiscoverSurface.tsx"],
   },
-  { station: "02 Decide", files: ["_authenticated.decide.tsx"] },
   { station: "03 Plan", files: ["_authenticated.plan.index.tsx"] },
   { station: "04 Design", files: ["_authenticated.design.tsx"] },
   { station: "05 Build", files: ["_authenticated.build.index.tsx"] },

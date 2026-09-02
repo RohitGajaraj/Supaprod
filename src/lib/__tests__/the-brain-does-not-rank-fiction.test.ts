@@ -188,13 +188,13 @@ describe("Discover says which ones are examples", () => {
     expect(DISCOVER).toMatch(/<b>Example<\/b>/);
   });
 
-  it("and the Gate says it in full, in the same words Decide uses", () => {
-    // One vocabulary across the stations. Two different disclaimers for the
-    // same fact reads as two different facts.
+  it("and the Gate says it in full", () => {
+    // P-14 (A-QUEUE.md, R-34) deleted /decide, which this test used to check
+    // said the same disclaimer in the same words -- one vocabulary across two
+    // stations. One station now; the claim is unchanged for the one that
+    // remains.
     expect(DISCOVER).toMatch(/focused\.theme\.is_sample/);
     expect(DISCOVER).toMatch(/<b>This is an example\.<\/b> It came with your workspace/);
-    const decide = read(join("routes", "_authenticated.decide.tsx"));
-    expect(decide).toMatch(/<b>This is an example\.<\/b> It came with your workspace/);
   });
 
   it("the Gate puts it FIRST, above the evidence", () => {

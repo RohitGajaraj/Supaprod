@@ -85,21 +85,13 @@ describe("the seeder marks what it writes", () => {
   });
 });
 
-describe("the surface that asks you to judge a bet says when it is an example", () => {
-  const decide = stripComments(read(join("routes", "_authenticated.decide.tsx")));
-
-  it("Decide's gate reads is_sample", () => {
-    expect(decide).toMatch(/activeOpp\.is_sample/);
-  });
-
-  it("says it in plain words, not a badge nobody parses", () => {
-    expect(decide).toMatch(/This is an example\./);
-    // It must also say what that MEANS for the claim the product makes, or the
-    // label is decoration: the point is that nothing here came from the record.
-    expect(decide.replace(/\s+/g, " ")).toMatch(/not from your product/i);
-  });
-
-  it("the record type carries the flag, so a surface can read it at all", () => {
+// The two tests that used to open this describe block -- "Decide's gate reads
+// is_sample" and "says it in plain words, not a badge nobody parses" --
+// checked /decide's own judgment gate, deleted with the page (P-14,
+// A-QUEUE.md, R-34). What remains is the record type itself, which no
+// surface-specific deletion touches.
+describe("the record type carries the example flag", () => {
+  it("so a surface can read it at all", () => {
     const sheet = read(join("components", "discover", "OpportunityDetailSheet.tsx"));
     expect(sheet).toMatch(/is_sample\?: boolean \| null;/);
   });

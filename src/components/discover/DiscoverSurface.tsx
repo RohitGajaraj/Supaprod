@@ -2631,8 +2631,11 @@ export function DiscoverSurface({
 
           <button
             type="button"
-            onClick={() => navigate({ to: "/decide" })}
-            title="Open Decide"
+            /* P-14 (A-QUEUE.md ruling, R-34): /decide is deleted -- the
+               ranked queue's home is Start's "Or start one of these" (top
+               three by ICE) and Find anything › Findings. */
+            onClick={() => navigate({ to: "/start", search: {} })}
+            title="Open Start"
             className="rounded-mrd-xs transition-colors hover:text-mrd-ink"
           >
             {promotedCount > 0 ? (
