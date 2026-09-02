@@ -2039,6 +2039,59 @@ five. The count is unbounded and the list is bounded now, and the sentence says 
 
 ---
 
+### P-03b · A hold only a person can clear does not take a slot every ten minutes · Lane: **A2** · Status: READY (after P-04's live half) · Moves: 3
+
+**Why.** P-03a stopped a track waiting on a DATE from holding the front of the sweep. This is the
+same shape from the other side: a track waiting on a PERSON is fetched and driven every ten minutes,
+and each drive costs a slot and does nothing.
+
+**Measured 2026-09-02 (A2).** `6199f3df` ("The saved address dropdown shows deleted addresses after a
+customer removes one") holds `needs-a-waived-station` — Plan is waived on its route, so nothing will
+file a spec until somebody puts Plan back or files one. **Six consecutive sweep drives, 22:50 through
+23:40 UTC, every one with zero `agent_runs`.** It has taken a slot every tick for over an hour while
+the live acceptance candidate sat behind it. A1 ruled correctly that its counter must NOT be reset:
+it was spent on a real condition rather than a wall, and resetting would spend three more runs on
+nothing.
+
+**Scope.** Holds in the person-clears set are not fetched until the track actually changes, the way
+`deferred_until` keeps the date-holds out.
+
+**The set, and it already exists:** `HOLD_NEEDS_PERSON` in `driver.ts`, which `holdTone` uses to
+answer "you" rather than "hold". Naming it in the test rather than writing a second list is the
+point — a second list drifts the first time a hold is added, which is how the nineteenth hold reason
+broke two guards on 2026-09-03.
+
+**THE MECHANISM WORKS, AND A2 CHECKED THE ONE THING THAT DECIDES IT.** `spine_tracks` carries no
+`updated_at` trigger (verified against `pg_trigger`), and the driver writes `updated_at` **only on a
+station move** — the advance at `driver.server.ts:3708`/`:3717`. Every hold write sets `driven_at`
+alone. So `driven_at > updated_at` means *"nothing has changed since we last looked"* and is a true
+signal today:
+
+  `6199f3df`  updated_at 2026-08-27, driven_at 2026-09-02 — driven for six days after its last
+              real change, six of those drives in the last hour.
+  `2fdf93b6`  updated_at 22:42 (A1's stop), driven_at 23:40.
+
+**THE TRAP, WHICH MUST BE SOLVED BEFORE THIS SHIPS.** A person answering a gate writes to
+`agent_approvals`, **not** to `spine_tracks`. On the evidence above that write does not bump
+`updated_at`, so a naive `driven_at > updated_at` skip would **strand a track whose gate was just
+answered** — the precise failure this packet exists to avoid, arriving through its own fix. Either
+the answer path bumps `updated_at`, or the sweep keeps fetching any track with a non-empty
+`pending_gates`. **Decide that before writing the filter, and assert it.**
+
+**Files.** `src/routes/api/public/hooks/track-tick.ts` (the selection only) · `src/lib/spine/driver.ts`
+(`HOLD_NEEDS_PERSON`, read not rewritten) · tests.
+
+**Acceptance.**
+- [ ] Fifteen person-held tracks ahead of one runnable track: the runnable one is driven on the first
+      tick. (P-03a's own test shape, which is the right one.)
+- [ ] A person-held track IS fetched again the moment its gate is answered, and a test proves it.
+- [ ] The test names which holds are in the set, and reads `HOLD_NEEDS_PERSON` rather than restating it.
+- [ ] tsc 0 · `bun test` 0 fail on the whole suite before the push · Report with the track ids that
+      were taking slots.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
+
 ### P-04 · The horizon verdict arrives · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 06:40 IST) — the live half is A1's · Moves: 3, 4, 5
 
 **Scope.** R-31 in Decide's brief (forecast about the user's product; observable never a Supaprod
