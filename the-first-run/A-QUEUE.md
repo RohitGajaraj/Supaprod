@@ -1359,7 +1359,7 @@ a conflict on a file under active multi-lane iteration for a fact this Report no
 
 ---
 
-### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: Start half CLAIMED (A3, 2026-09-03); run-screen half DONE (A1, 22:30) · Moves: 5
+### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: Start half DONE-PENDING-VERIFY (A3, 2026-09-03); run-screen half DONE (A1, 22:30) · Moves: 5
 
 **Scope.** Keyboard reachability and focus order on `/start` and `/track/:id`; `aria-live` on the
 transcript and the runs region; focus moves to the ask when it appears; no colour as the only
@@ -1520,6 +1520,71 @@ the rest of that file) and the Playwright spec (a fourth test, locating each but
 computed accessible name via `getByRole("button", { name: ... })` rather than checking an
 attribute, so it proves what a screen reader hears rather than that a tag is present) --
 could not run the spec myself, same credential gap as the rest of this packet.
+
+**A1 verdict:**
+
+---
+
+**Start half, Report (A3, 2026-09-03).** Commit `fd84c7025`. `tsc` 0. `bun test`: junit reporter
+0 failures / 0 errors across 973 files (see P-15's Report for why the console reporter's own "1
+fail, 1 error" line is a Bun 1.4.0 counting flake in an unrelated pre-existing file, not a real
+failure -- reused verbatim here since the same investigation covers this packet's run too).
+**No `src/` change was needed.** P-05 already built the Start half's two live requirements
+correctly; this half's work is verification plus one new e2e test.
+
+**Acceptance line by line, Start half only:**
+
+| # | Acceptance | Status | Evidence |
+| --- | --- | --- | --- |
+| 1 | Tab order documented | **Done, source-derived** | see below -- same limit as the run-screen half, no live Tab key |
+| 2b | `aria-live` on the runs region | **Already built by P-05** | `YourRuns.tsx:181`, `aria-live="polite"` wrapping the rows, inside `aria-label="Your runs"` on the `section` -- with its own header comment already stating the reason (rows change without any act of the reader's). No change needed. |
+| 3 | Focus moves to the ask when it appears | **N/A to this half** | `/start` has no gate/consent widget of its own -- the only "ask" either surface has is `TrackConsent` on the run screen, already covered by the run-screen half above. |
+| 4 | No colour as the only signal on a status chip (R-19) | **Audited, no violation found** | see below |
+| 5 | Playwright spec, seed workspace only | **Written, could not execute** | added to `e2e/p16-run-screen-focus-and-live-regions.spec.ts` (kept as one file per this packet's own Files line); see Blockers |
+| 6 | Right pane's orphaned `role="tabpanel"` | **N/A to this half** | `/start` has no right pane -- that is the run screen's `ArtifactPane.tsx`, already fixed above |
+
+**Line 4, R-19 audit.** Searched `_authenticated.start.tsx` and every component under
+`src/components/start/` for a bare colour-only indicator. The only status renders on this surface
+go through Meridian's `StatusChip` (`YourRuns.tsx`'s `RunRow`: "Needs you" / "Finished" /
+"Abandoned" / "First") -- the same primitive the run-screen half already audited clean, whose own
+header states and enforces R-19. `grep` for a raw status-colour class
+(`red|green|amber|orchid|negative|positive|success|danger|warn`) across the route file and every
+`src/components/start/*.tsx` returned nothing. No code change needed.
+
+**Line 1, tab order (source-derived, not observed).** `_authenticated.start.tsx` composes its
+region in a single column with no `order-*` overrides anywhere in the file or in
+`src/components/start/*.tsx` (checked), so DOM order is tab order. Top to bottom: **the composer**
+(`Composer`, text field then submit) -> [a refusal `Receipt` if the last start failed -- no
+interactive elements, purely a status render, checked in `Receipt.tsx`] -> [an "Open Settings"
+button, only when the account has no workspace] -> **example jobs** (`ExampleJobs`, three
+pressable cards, each with its own "Start it" quiet action beneath) -> **your runs**
+(`YourRuns`, each row opens the track; a "Put first"/"Unpin" action per row where it applies; a
+"N abandoned, hidden" toggle at the foot) -> **arriving** (`Arriving`, one "See what came in"
+door, only when there is anything to report) -> **outcomes** (one door at the foot of the page).
+Read from source, not walked with a keyboard against a running page -- flagged as a Blocker below,
+same limit as every visual claim this lane makes without a live credential.
+
+**Line 5, the spec.** Extended `e2e/p16-run-screen-focus-and-live-regions.spec.ts` (one file, per
+this packet's Files line) with a new `describe` block, one test: opens `/start` in the seed
+workspace and asserts the real accessibility tree carries `role="region"` named "Your runs" with
+an `aria-live="polite"` child -- proof a source-only test cannot give, since `bun test` can see the
+JSX attribute exists but not that a real screen reader would announce the region politely. No
+`test.skip` needed here (unlike the run-screen tests): the region and its live wrapper render on
+`/start` regardless of whether the workspace has any runs, so this one always has something to
+check.
+
+**Files touched.** `e2e/p16-run-screen-focus-and-live-regions.spec.ts` (extended). No `src/` file
+changed for this half -- P-05 had already built the one thing this half required.
+
+**Blockers (A3 writes):**
+1. **BLOCKED: cannot execute the new Playwright test, or walk the Start tab order live, in this
+   environment.** Same credential gap as the run-screen half and every prior packet (P-11, P-17):
+   `bun run dev`'s `predev` needs Supabase env this lane does not have. Ran
+   `bunx playwright test e2e/p16-run-screen-focus-and-live-regions.spec.ts --grep "labelled, polite
+   live region"` to confirm the spec at least parses and the setup step fails the same way as
+   before it (`net::ERR_CONNECTION_REFUSED at http://localhost:8080/login`), not from anything new
+   in this file. Asking A1 to run it against the harbor workspace and separately confirm the tab
+   order above by hand, same ask as the run-screen half.
 
 **A1 verdict:**
 
