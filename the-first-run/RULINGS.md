@@ -980,6 +980,22 @@ is read by `driveTrackOnce` before every dispatch decision, and "Run it now" cle
 
 **Reverse by** dropping the column and restoring `setLegsLeft(0)`. Ledger: A-QUEUE P-01.
 
+## R-33 · Production promotes the merged commit, never the newest preview — 2026-09-03
+
+**Found by A2 in P-03.** `promoteChangesetToProductionCore` took the newest successful preview row
+for a changeset and used its `commit_sha` verbatim as the production ref. `landedShaForChangeset`,
+which reads the PR's own `merge_commit_sha`, had never been called from the promote path. So a fix
+pushed after the preview, a synced branch or a second CI run that did not finish would have promoted
+the earlier commit to production and recorded it as the release. On the one irreversible,
+customer-visible path in the product.
+
+**Ruled:** the production ref is the PR's merged commit. A preview counts as proof only when it was
+built at that exact commit, from any provider; the `provider='deno'` check was a proxy for "we built
+it so we know what is in it", and the commit equality is the thing it stood in for. When the merged
+commit cannot be read, the old provider gate stays as it was; a safety check never loosens on a
+failed read (R-22's rule, R-27 §7's sentence). Code: `deployments.functions.ts`, commit `5925236af`.
+
+
 ---
 
 ## Open, and I have not ruled yet

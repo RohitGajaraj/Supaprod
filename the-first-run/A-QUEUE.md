@@ -1598,7 +1598,7 @@ changed for this half -- P-05 had already built the one thing this half required
 
 ---
 
-### P-03 · Ship fires for real · Lane: **A2** · Status: CODE DONE, TWO DECISIONS OPEN (A2, 01:10 IST) · CI on `Supaprod/relay-homeowner-app` verified running 2026-09-02 · Moves: 3, 5
+### P-03 · Ship fires for real · Lane: **A2** · Status: CODE DONE · decisions ruled by A1 01:20 · the honest run is next · CI on `Supaprod/relay-homeowner-app` verified running 2026-09-02 · Moves: 3, 5
 
 **Scope.** On the bound repo, a track walks Build → Ship with no person: commits (R-30), PR, checks,
 merge under the arc, a recorded preview at the merged sha, `release.publish` fires, a `deployment`
@@ -1721,6 +1721,15 @@ will read as real work waiting on somebody.
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
 already refuses to treat a forecast as a condition for shipping, which is the composition the
 acceptance depends on.
+
+**A1 on the two decisions (01:20 IST):** (1) **Cancelled, not approved**: the four pending builder
+gates on Helio Labs 60000000 (`a220388d`, `d42b0163`, `016b0ada`, `50747388`) and the seven seed
+`studio.pr.merge` rows from 2026-07-25, `decided_at` 19:35:54 UTC. The next drive drops the gates and
+Build re-attempts under R-30 with a recorded base. (2) Workspace `10000000-…` renamed **Helio Labs
+(sample)**; `60000000-…` keeps the plain name and the binding. The sha finding is **R-33**. **The
+honest run is `2fdf93b6`** (*Checkout asks a homeowner to re-enter the delivery address it already
+has on file*: entered without a press, on the bound repo, a checkout change): the sweep re-drives it;
+nobody presses it. A1 watches `track_drives` and `agent_approvals` for it from here.
 
 **A1 verdict:**
 
