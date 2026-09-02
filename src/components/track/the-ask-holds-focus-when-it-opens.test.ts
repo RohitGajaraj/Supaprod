@@ -38,3 +38,36 @@ describe("TrackConsent moves focus to itself the instant a gate opens", () => {
     expect(src).toContain("consentRef.current?.focus(");
   });
 });
+
+/**
+ * P-16 INTERIM (A1 live, 2026-09-02 22:18): landing focus on the ask is not
+ * enough if what it lands on then says nothing. `read_page` on `supaprod.ai`
+ * listed the two answer buttons as bare `button [ref_16]`, `button [ref_17]`
+ * -- a screen reader that had just been told "your agent has stopped to ask
+ * you something" then heard "button, button" and nothing about what either
+ * one does. Each button's visible text lives in nested `<span>` children
+ * (a mono digit, a two-line label), and `Action` -- the class-answer button
+ * three lines below these on the same card, which A1's own read named
+ * correctly -- renders a single plain-string child instead; that contrast is
+ * the working reference this fix follows. An explicit `aria-label` wins over
+ * whatever left the nested-span buttons silent, without depending on why they
+ * were silent in the first place.
+ */
+describe("the ask's two answer buttons say what pressing them does", () => {
+  it("names the approve button with the actual consequence, not the bare digit", () => {
+    expect(src).toContain(
+      "aria-label={`Let it run. ${REVERSIBILITY_LABEL[c.reversible]}. ${c.undo}`}",
+    );
+  });
+
+  it("names the decline button the same way", () => {
+    expect(src).toContain(
+      'aria-label="Don\'t run it. Nothing runs. It stays on the record, and the agent working this run is told why."',
+    );
+  });
+
+  it("hides the decorative digit from the name now that the button states its own", () => {
+    // Two occurrences: the "1" and the "2" mono-digit spans.
+    expect(src.match(/aria-hidden[\s\S]{0,40}className="font-mrd-mono/g)?.length).toBe(2);
+  });
+});

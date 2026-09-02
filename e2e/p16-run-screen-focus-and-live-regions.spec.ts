@@ -85,4 +85,28 @@ test.describe("P-16: the run screen's live regions and the ask's focus", () => {
 
     await expect(ask, "TrackConsent moves focus to itself the moment a gate opens").toBeFocused();
   });
+
+  test("a pending ask's two answer buttons say what pressing them does", async ({ page }) => {
+    // P-16 interim (A1 live, 2026-09-02 22:18): `read_page` found these two
+    // buttons named nothing at all -- a screen reader landed on the ask, per
+    // the test above, and then heard "button, button". Located by their
+    // computed ACCESSIBLE NAME (Playwright's real a11y tree), not by an
+    // attribute, so this proves what a screen reader actually hears rather
+    // than that a particular attribute happens to be present.
+    const opened = await openAnExistingTrack(page);
+    test.skip(!opened, "Seed workspace has no open track to read right now.");
+
+    const ask = page.getByLabel("Your agent has stopped to ask you something");
+    const askVisible = await ask.isVisible().catch(() => false);
+    test.skip(askVisible === false, "This track has no pending gate right now to check.");
+
+    await expect(
+      ask.getByRole("button", { name: /^Let it run\./ }),
+      "the approve button's accessible name states the consequence",
+    ).toBeVisible();
+    await expect(
+      ask.getByRole("button", { name: /^Don't run it\./ }),
+      "the decline button's accessible name states the consequence",
+    ).toBeVisible();
+  });
 });

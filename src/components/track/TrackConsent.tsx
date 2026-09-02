@@ -324,6 +324,15 @@ export function TrackConsent({
                   type="button"
                   data-mrd=""
                   disabled={busy}
+                  /*
+                   * NAMED EXPLICITLY (P-16 interim, A1 live 2026-09-02 22:18):
+                   * the button reads as "button, button" to a screen reader
+                   * without this -- an explicit `aria-label` is guaranteed to
+                   * win over whatever computed the two visible child spans
+                   * into no name at all, rather than a fix that depends on
+                   * fixing content the accessibility tree already had.
+                   */
+                  aria-label={`Let it run. ${REVERSIBILITY_LABEL[c.reversible]}. ${c.undo}`}
                   onClick={() => {
                     setAnsweringId(g.approvalId);
                     decide.mutate({ approvalId: g.approvalId, verdict: "approve" });
@@ -331,7 +340,10 @@ export function TrackConsent({
                   className="flex w-full items-start gap-mrd-3 rounded-mrd-ctl px-mrd-4 py-mrd-3 text-left transition-colors enabled:hover:bg-mrd-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] disabled:cursor-default disabled:opacity-45"
                   style={{ transitionDuration: "var(--mrd-d-press)" }}
                 >
-                  <span className="font-mrd-mono mt-px shrink-0 text-mrd-data tabular-nums text-mrd-faint">
+                  <span
+                    aria-hidden
+                    className="font-mrd-mono mt-px shrink-0 text-mrd-data tabular-nums text-mrd-faint"
+                  >
                     1
                   </span>
                   <span className="flex min-w-0 flex-col gap-0.5">
@@ -345,6 +357,7 @@ export function TrackConsent({
                   type="button"
                   data-mrd=""
                   disabled={busy}
+                  aria-label="Don't run it. Nothing runs. It stays on the record, and the agent working this run is told why."
                   onClick={() => {
                     setDeclineAll(false);
                     setDecliningId(decliningId === g.approvalId ? null : g.approvalId);
@@ -352,7 +365,10 @@ export function TrackConsent({
                   className="mt-mrd-2 flex w-full items-start gap-mrd-3 rounded-mrd-ctl px-mrd-4 py-mrd-3 text-left transition-colors enabled:hover:bg-mrd-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] disabled:cursor-default disabled:opacity-45"
                   style={{ transitionDuration: "var(--mrd-d-press)" }}
                 >
-                  <span className="font-mrd-mono mt-px shrink-0 text-mrd-data tabular-nums text-mrd-faint">
+                  <span
+                    aria-hidden
+                    className="font-mrd-mono mt-px shrink-0 text-mrd-data tabular-nums text-mrd-faint"
+                  >
                     2
                   </span>
                   <span className="flex min-w-0 flex-col gap-0.5">
