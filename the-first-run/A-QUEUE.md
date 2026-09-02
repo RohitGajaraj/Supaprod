@@ -1776,6 +1776,26 @@ found by A2 and deliberately not touched under a live attempt: a horizon-waiting
 forever and eats a slot of the 15-row fetch every tick; two such tracks sort ahead of the honest run
 today. Filed as P-03a below.**
 
+
+**A1, 03:15 IST · the honest run, ticks 21:21 → 21:40 UTC, nobody pressed anything.** 21:21:36: the
+parked builder resumed after the publish, finished, and the self-check held the track:
+*self-check-failed · The checks were never run on this change. Call studio.checks.run…* (the send-back,
+working). 21:40:02: Build's crew re-ran with that line, staged twice, planned tests, staged again
+(changeset `ae547426`), then **`studio.commit` was refused three times: `BuilderFileConflict: path
+"src/checkout/AddressStep.test.ts" is claimed by another Studio changeset`**: the tablet track's PR #4
+(`e7565181`, `pr_open`) owns that path until it merges, and its merge gate `5dcbe54d` is waiting on a
+person. The run ended `completed_with_failures`; the track holds `out-of-time`. Three findings:
+1. **The wall is real and right**: two tracks on one repo writing one file must serialise, and the
+   first human gate on this route is *merge PR #4*. A1 does not press it. The founder sees *Needs you
+   before merging* on Start and decides in the morning; that is the product's own moment.
+2. **The hold lies about why, twice.** `last_hold_because` still reads the 21:21 sentence ("checks were
+   never run") under `out-of-time`, and `6817e386` reads "Stopped by you." under a merge gate. The
+   because-sentence must be written from the failure that set the hold, every time. (A2, P-03.)
+3. **A claimed path is a hold with a name**, not out-of-time: *Waiting on another change: the tablet
+   track's PR #4 also changes AddressStep.test.ts; this continues when it merges or closes*, with the
+   other run linked. A person who reads out-of-time will press Run it now and hit the same wall. (A2,
+   P-03.)
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
