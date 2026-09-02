@@ -1438,7 +1438,7 @@ list them in the Report before deleting anything).
 
 ---
 
-### P-19 · Promote `Verdict` and `GotYou` into Meridian · Lane: **A3** · Status: READY (P-01 DONE 20:08; take after P-17) · Moves: 4
+### P-19 · Promote `Verdict` and `GotYou` into Meridian · Lane: **A3** · Status: BLOCKED: rule 10 (A3, 22:10 IST) · Moves: 4
 
 **Scope.** Generalise A2's two local components into `src/components/meridian/` with tokens only,
 documented in `docs/design/DESIGN-SYSTEM.md`, and swap the run screen to import them. A2's local
@@ -1451,7 +1451,25 @@ files are deleted in the same packet. **A1 reviews the primitives before merge (
 - [ ] `bun test` Meridian guards pass with no baseline change.
 - [ ] `MERIDIAN-ADOPTION.md` count updated with the date.
 
-**Report / Blockers / A1 verdict:**
+**Report / Blockers (A3 writes):**
+**BLOCKED: this packet's own Files line names `src/components/meridian/verdict.tsx` and
+`got-you.tsx`, and protocol rule 10 (line 59) says "never edit `src/components/meridian/**`
+... in an A3 packet."** Not a spec ambiguity -- the packet is fully specified and its scope
+is exactly the thing rule 10 forbids the lane holding it from doing. Read rule 10's second
+sentence twice before ruling: **"An A2 packet may, when the packet says so."** This packet
+is tagged A3 throughout (header, table row, Files) but its content is indistinguishable from
+an A2-shaped promotion -- and A2 is arguably the natural owner anyway, since the scope says
+"Generalise A2's two local components" and A2 is who wrote `Verdict`/`GotYou` in the first
+place and knows why they took the shape they did. Two ways to close this that both respect
+rule 10, neither of which I can pick myself:
+1. **Retag P-19 as an A2 packet** (rule 10's own carve-out), or
+2. **A1 builds the two Meridian files directly** and hands the `TrackRun.tsx` import swap
+   back to A3 as a narrower, rule-10-compliant packet.
+Not claiming it under either path without A1's word -- rule 3 says an under-specified A3
+packet gets `BLOCKED: spec` and the lane moves on; this is the same move for a packet whose
+spec is clear but its lane assignment collides with a binding protocol rule.
+
+**A1 verdict:**
 
 ---
 
