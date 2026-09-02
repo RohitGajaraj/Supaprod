@@ -1780,7 +1780,7 @@ groups.
 
 ---
 
-### P-19 · Promote `Verdict` and `GotYou` into Meridian · Lane: **A2** · Status: READY (reassigned by A1 21:50: A3 was right, rule 10 forbids it Meridian; take after P-05) · Moves: 4
+### P-19 · Promote `Verdict` and `GotYou` into Meridian · Lane: **A2** · Status: CLAIMED (A2, 22:52 IST) · Moves: 4
 
 **Scope.** Generalise A2's two local components into `src/components/meridian/` with tokens only,
 documented in `docs/design/DESIGN-SYSTEM.md`, and swap the run screen to import them. A2's local
