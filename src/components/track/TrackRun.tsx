@@ -475,25 +475,20 @@ export function TrackRunLeft({
   const walkingMidRoute = Boolean(continuing || run.isPending);
 
   /*
-   * WHEN THIS PRESS STARTED WALKING, which is the only interval this client can
-   * honestly put a ticking clock on.
+   * ── THE PRESS CLOCK IS GONE WITH THE HEADER THAT SHOWED IT ──────────────
    *
-   * `spine_tracks.driven_at` stamps the END of a leg (eleven writes in
-   * `driver.server.ts`, all `new Date().toISOString()` at row-write time), so
-   * counting up from it measures time since the work last MOVED rather than
-   * time at the station -- SPEC-LAYOUT gap G10, still open. `useElapsed`'s own
-   * header is explicit that a timer reporting the age of the COMPONENT instead
-   * of the age of the WORK is "actively misleading", so this records a real
-   * instant instead: the moment this tab's press began.
+   * It recorded the instant this tab's press began, because `driven_at` stamps
+   * the END of a leg and counting up from it measures time since the work last
+   * MOVED rather than time at the station (SPEC-LAYOUT gap G10, still open).
+   * That reasoning is unchanged and the only reader was `RunRouteHeader`, which
+   * came off this pane with the meter and the route map.
    *
-   * IT SPANS THE WHOLE PRESS, not one leg. `run.isPending` drops to false for
-   * the 500ms between automatic legs, and a clock that reset there would report
-   * a two-minute walk as a series of eight-second ones.
+   * The clock a person now reads is the footer's, and it measures something
+   * else and better: `agent_runs.duration_ms` summed over the turns, which is
+   * time the AGENTS worked rather than time this tab has been watching. Keeping
+   * a second timer with no reader would be state that drifts unnoticed until
+   * somebody wires it to the wrong thing.
    */
-  const [walkStartedAt, setWalkStartedAt] = React.useState<number | null>(null);
-  React.useEffect(() => {
-    setWalkStartedAt((prev) => (walkingMidRoute ? (prev ?? Date.now()) : null));
-  }, [walkingMidRoute]);
 
   /*
    * QUEUE 71 + RUN-18: THE ONE LIVE FACT NOW COVERS BOTH SOURCES OF MOTION --
