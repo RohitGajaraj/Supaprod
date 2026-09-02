@@ -1736,7 +1736,7 @@ write) · tests.
 
 ---
 
-### P-23 · Settings: six tabs, mapped from Lovable's, with what exists today · Lane: **A3** · Status: CLAIMED (A3, 22:45 IST) · Moves: 4, 5
+### P-23 · Settings: six tabs, mapped from Lovable's, with what exists today · Lane: **A3** · Status: BLOCKED: spec (A3, 23:02 IST) · Moves: 4, 5
 
 **Why (founder, 2026-09-02 19:29; A1 read Lovable's project settings signed in at 19:35).** Lovable's
 settings are one searchable page with groups: Project (name, subdomain, owner, message and edit
@@ -1774,4 +1774,72 @@ P-14's fact audit places or removes it.
 - [ ] The Report's table names the existing writer for every row; a row with none is not built.
 - [ ] `settings.tsx` line count goes down, reported before and after.
 
-**Report / Blockers / A1 verdict:**
+**Report / Blockers (A3 writes):**
+**BLOCKED: spec.** Investigated fully before flagging -- this is not a "did not read the
+packet" block, it is a real gap in the six-group table that I cannot resolve without
+guessing at something with live-product consequences.
+
+**What I found, first.** `settings-sections.ts` already has real cross-group search
+(`searchSections`, tiered ranking, sub-target anchors) and a grouped-nav model
+(`SETTINGS_GROUPS`/`NAV_GROUPS`) -- the "one search box" half of this packet's own why
+is already built and does not need re-inventing. What is missing is the TAXONOMY: today's
+four groups (You · Data and access · Agents · Company, fifteen sections) do not match
+the six named here (Autonomy · Brief · Connections · Workspace · Usage · Security).
+
+**The gap.** The packet's own row table lists roughly twenty rows across the six groups,
+and every one of them traces to an existing `SectionId` or component I could find and
+name (see the table below). **Six of today's fifteen sections are not named in that
+table at all: `profile`, `notifications`, `ai` (Models/API keys), `brand`, `products`,
+`memory`.** These are not Engine Room content -- the packet's own escape clause
+("everything under Engine Room that is not one of those rows stays reachable at
+`/engine-room`") does not cover them -- and the scope line says `/settings` **becomes**
+one page with these six groups, which reads as exhaustive. Guessing wrong here is a
+different order of risk than a copy sweep: Profile carries a person's name, avatar,
+theme and working hours; Notifications carries their email digest settings; both are
+live, in daily use, on a shipped product. Silently dropping them to fit six groups, or
+silently inventing a seventh "More" group the packet does not ask for (Rule 3: A3 may
+not widen scope), are both wrong on their own authority.
+
+**What already maps cleanly (no ambiguity, ready to build the moment this clears):**
+
+| New group | Row | Existing writer |
+| --- | --- | --- |
+| Autonomy | mandate sentence, ceiling, kill switch, tool modes | `BoundaryPane` (P-17) -- built, live |
+| Autonomy | the promotion bar | **excluded, no writer** -- P-20 is not built |
+| Brief | one editor for `workspace_briefs` | `upsertBrief`/`getActiveBrief`, currently inside `WorkspaceSection` (`_authenticated.settings.tsx:1823`) -- needs splitting out, not building new |
+| Connections | sources (Slack/Linear/Notion/GitHub/Gmail) | `AccountConnectionsSection`/`ConnectorDetail`, today's `connections` section |
+| Connections | repo binding | **excluded, no writer found** -- no component or route references a bound-repo concept |
+| Connections | MCP connections + `last_error` | **excluded, no writer found** -- `mcp_connections.last_error` is read only in ingest/scout code, never rendered; `IntegrationsTab` is outbound MCP TOKENS (a different table, `interop`), not this |
+| Connections | preview deploys | **excluded, no writer found** -- feeds P-22, not built |
+| Workspace | name, slug, people, invites | inside `WorkspaceSection`/`ThisWorkspaceRegion`, today's `workspace` section |
+| Workspace | domains | **excluded, no writer found** -- no domains concept anywhere in this codebase |
+| Workspace | sample flag, read-only | present today (checked `ThisWorkspaceRegion`) |
+| Usage | spend, runs, tokens, credits | `BillingBanner` + today's `credits`/`billing` sections |
+| Security | export | `DataSection`, today's `data` section |
+| Security | audit trail door | a `Door` to `/engine-room`'s record rooms -- pure navigation, no writer needed |
+| Security | what the agent may read/write (`STUDIO_FORBIDDEN_PREFIXES`) | **excluded, no writer found** -- referenced only in `deployments.functions.ts`/`registry.server.ts`, never rendered anywhere |
+
+So even resolved, Connections and Security land smaller than the table implies -- four of
+the acceptance's implied rows have no writer and would be excluded either way, which is
+allowed by the packet's own rule and not itself blocking.
+
+**What I am asking A1 to rule on, specifically:** where do `profile`, `notifications`,
+`ai`, `brand`, `products`, `memory` go? My own read, for a starting point rather than a
+demand: `profile` and `notifications` are the two sections every visitor's bare
+`/settings` has landed on since 2026-08-10 (`DEFAULT_SECTION`) and are unrelated to
+governance -- they could reasonably become a seventh **You** group (not asked for here,
+so flagging rather than building it), OR fold into **Workspace** as "your own settings
+inside this workspace." `ai` (provider keys) is a credential, which argues for
+**Security**. `brand`/`products` are Company-scoped, written once and rarely reopened --
+closest to **Workspace**. `memory` is already dead (a redirect stub, `door: false`) and
+could simply keep answering its address unchanged regardless of which group question
+resolves.
+
+**Not proceeding with the full-page rewrite until this is answered** -- a wrong guess
+here means shipping a settings page that has quietly lost a paying user's ability to
+find their own name or turn off midnight emails, on a page `bun test` cannot catch
+because the ratchet and the section tests would all still pass against a taxonomy that
+is simply wrong. `tsc` 0, `bun test` unchanged (13,661 / 0 fail, no code written this
+packet) -- this Report is investigation only.
+
+**A1 verdict:**
