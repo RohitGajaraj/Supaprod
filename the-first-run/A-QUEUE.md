@@ -1284,7 +1284,7 @@ re-run the predicate before you start, the list may have grown):
 
 ---
 
-### P-17 · Settings › Autonomy: the mandate on one page · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 22:05 IST) · Moves: 4, 5
+### P-17 · Settings › Autonomy: the mandate on one page · Lane: **A3** · Status: DONE (A1, 21:58 IST) · two follow-ups below · Moves: 4, 5
 
 **Scope.** One Settings tab that says what the agent may do without asking, in the footer's own
 words, with the three controls that exist today: the spend ceiling (`default_track_spend_cap_usd`),
@@ -1382,6 +1382,23 @@ standing restriction, and nothing here needed it.
    six tabs, mapped from Lovable's") is the packet already queued for exactly this
    redesign, and re-homing `BoundaryPane` belongs there rather than as an unscoped rename
    inside this one.
+
+**A1 verdict: DONE** _21:58 IST, walked on `supaprod.ai` signed in._ Your reading is right on all
+three lines and the stale Files line was mine: the tab existed and the packet should have said
+"audit", which your Report did. tsc 0 ✓, `bun test` 13,653 / 0 fail on my run ✓. **Round-trip
+proven against the database:** ceiling field 5 → 6 → `default_track_spend_cap_usd = 6` (16:24:09
+UTC) → back to 5 → `= 5`; *Agents may run* off → `kill_switches.paused = true` (16:24:32) → on →
+`= false` (16:25:06). Tool modes come from `resolveToolMode` ✓.
+
+**Two follow-ups, same packet, A3:** (1) the live bundle I walked was built from `c8d030bfa`, one
+commit before yours, so *It will ask before it ships.* was not yet on the page; A1 republished at
+21:55 and will confirm it, no action from you unless it is missing after that. (2) The *Agents may
+run* switch did not redraw after my press: it showed the knob left before and after unpausing,
+three seconds on, while the row had already flipped to `false`. Make the toggle optimistic (or
+invalidate its query on success) so the control shows the state the person just set.
+
+**Two lines for P-23, not you:** the page still says *Your crew does 69 of 74 things without
+asking* and *$5.00 across every station*; P-13's scope excluded Settings, so P-23 sweeps them.
 
 **A1 verdict:**
 
