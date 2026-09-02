@@ -1600,6 +1600,43 @@ list them in the Report before deleting anything).
 
 ---
 
+### P-14a · Arriving and Outcomes take their own addresses · Lane: **A3** · Status: READY (split out of P-14 by A1 23:20 so A3 is not starved; the deletions stay in P-14 behind P-05) · Moves: 1, 4
+
+**Scope.** The two workspace views that survive the station-page deletion get their names now.
+`/discover` (`DiscoverSurface`) is re-addressed as **`/arriving`**; `/brain` (Insights) as
+**`/outcomes`**. The old addresses redirect to the new ones (one week, then P-14's follow-up
+deletes the stubs). Every rendered string on the two pages that says *Discover*, *station*,
+*Insights*, *Brain* or *the Record* as a name for the page changes to *Arriving* / *Outcomes* or to
+plain English; the page headings become *Arriving* (*"What came in, and what it is becoming"*) and
+*Outcomes* (*"Every decision, what it expected, and what happened"*). Any `Link` in `src/` that
+points at `/discover` or `/brain` re-points to the new address (grep both as raw strings too: the
+router does not check `href: string` fields, as P-10 and P-11 found). The rail is unchanged (P-11):
+neither page gets a door; they are reached from Start (P-05's Arriving region, and any verdict) and
+by address.
+
+**Files.** `src/routes/_authenticated.discover.tsx` → `_authenticated.arriving.tsx` and
+`_authenticated.brain.tsx` → `_authenticated.outcomes.tsx` (git mv, then edit) · two new
+redirect-only files at the old paths (the P-10 pattern, with a comment naming P-14's deletion date)
+· `src/components/discover/**` and `src/components/brain/**` copy strings only · `src/lib/nav-model.ts`
+and `src/lib/key-model.ts` where they name the routes · tests that pin the old addresses (update,
+do not delete) · `src/routeTree.gen.ts` regenerated.
+
+**Not in scope.** Deleting anything (P-14). The Start region (P-05). Changing what either page
+shows.
+
+**Acceptance.**
+- [ ] `/arriving` and `/outcomes` render what `/discover` and `/brain` rendered; `/discover` and
+      `/brain` redirect to them (A1 checks all four live).
+- [ ] `grep -rn '"/discover"\|"/brain"' src --include='*.ts' --include='*.tsx' | grep -v test`
+      returns only the two redirect stubs and comments; report the count.
+- [ ] No rendered string on either page contains *station*, *Discover* (as the page's name),
+      *Insights*, *Brain* or *the Record*; the P-13 guard is extended to these two directories.
+- [ ] tsc 0 · `bun test` 0 fail · pushed · Report with the before → after copy table.
+
+**Report / Blockers / A1 verdict:**
+
+---
+
 ### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: BLOCKED → P-05 · Moves: 3
 
 **Scope.** `tracks-feed.ts` becomes the one read model for a track's one-line state, used by
