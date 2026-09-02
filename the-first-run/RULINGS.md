@@ -957,6 +957,29 @@ about the user's product or its users; the observable is something the run can r
 user's repo, deploy, analytics or connected source; the default horizon is 14 days and a longer one
 must say why. **Reverse by one paragraph in `driver.ts`.** Packet: `A-QUEUE.md` P-04.
 
+## R-32 · A person's Stop is a row the driver reads, and three rules that came with it — 2026-09-02
+
+**Proposed by A2 in P-01's Report, promoted by A1.** Before P-01, Stop set a React state to zero in
+one browser tab; the sweep drove the same track again ten minutes later. Now `spine_tracks.stop_requested_at`
+is read by `driveTrackOnce` before every dispatch decision, and "Run it now" clears it.
+
+1. **A closed vocabulary gets a sentinel, not a new member.** A person's Stop and the workspace kill
+   switch both hold as `paused`; `STOPPED_BY_YOU` in `driver.ts` is a constant with one writer and
+   no model near it, so the footer and the pane print the same sentence. Same shape as
+   `PROMOTED_BECAUSE` in `promote.ts`. Adding a hold reason would need teaching to `holdTone`,
+   `nothingIsComing`, `wayOut`, `footerMode` and the sweep's selection first.
+2. **The stop read fails open; the kill-switch read fails closed.** Deliberately opposite: an
+   unreadable kill switch must stop everything; an unreadable stop flag must not, because the column
+   arrives in its own migration and code running against a database that has not taken it would
+   freeze the product. The cost is bounded to one sweep tick. This is R-22's rule applied with the
+   sign it needs here: the safe reading of an absent stop is "nobody asked".
+3. **A column the whole screen depends on is not named in that screen's `SELECT` until every
+   database has it.** Naming a missing column fails the whole PostgREST query; `stop_requested_at`
+   stays out of `getTrack`'s select and is read by the driver only. A missing field degrades one
+   figure; a missing column degrades the screen.
+
+**Reverse by** dropping the column and restoring `setLegsLeft(0)`. Ledger: A-QUEUE P-01.
+
 ---
 
 ## Open, and I have not ruled yet
