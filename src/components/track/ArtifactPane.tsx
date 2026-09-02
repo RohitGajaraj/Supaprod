@@ -1821,7 +1821,65 @@ export function TaskSteps({ items }: { items: ArtifactView[] }) {
  * facts that answer "what did the crew set out to do, and did it check its own
  * work". Exported for its test.
  */
-export function MissionCard({ item }: { item: ArtifactView }) {
+/**
+ * ── THE GOAL AND THE ORIGIN ARE THE SAME SENTENCE, SO ONE OF THEM GOES ────
+ *
+ * A1, walking `2fdf93b6`: the Build row's run card printed *"Created directly by
+ * S0 on 2026-09-01 as the FOURTH acceptance candidate, no press (F-164)..."* as
+ * its body. That is `spine_tracks.origin`, the exact internal prose the header
+ * was cut back for, arriving on the same screen through a different door.
+ *
+ * It is not a coincidence. `trackGoalSentence` composes a mission's goal as
+ * `${title}. ${originLine(title, origin)}`, so the mission's description IS the
+ * origin with the title in front of it. A1's rule: the run card shows the
+ * mission title, its state and its meta line, and `origin` renders nowhere on
+ * the run screen.
+ *
+ * ── COMPARED, NOT DELETED, AND THE DIFFERENCE MATTERS ─────────────────────
+ * Dropping the body outright would satisfy the letter and lose the case worth
+ * keeping: a mission whose goal is genuinely NOT the origin has something to
+ * say, and today nothing else on the screen says it. So the body is suppressed
+ * exactly when it is the origin wearing a title, which is the reported case and
+ * every case `trackGoalSentence` produces.
+ *
+ * Normalised before comparing, because the goal has been through `saidOnce` and
+ * `plainProse` by the time a reader sees it, and whitespace or a stripped `**`
+ * must not be what decides whether internal prose reaches a customer.
+ */
+export function goalRepeatsOrigin(
+  goal: string | null | undefined,
+  origin: string | null | undefined,
+): boolean {
+  const norm = (v: string) =>
+    v
+      /* `\u0060` rather than a literal backtick, and it is not a style choice.
+         `what-a-person-reads-has-no-em-dashes` reads this file with a hand-written
+         scanner that tracks strings so it can skip comments, and it is not
+         regex-aware: a backtick inside a character class opened a template
+         literal for it and desynced everything after, so three pre-existing
+         comment dashes two thousand lines below suddenly counted as prose a
+         person reads. The guard is right about the code this repo writes; the
+         escape costs nothing and keeps it working. */
+      .replace(/[*_\u0060#]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  const g = norm(goal ?? "");
+  const o = norm(origin ?? "");
+  /* A very short origin could be a substring of an unrelated goal by accident.
+     Forty characters is longer than any title in the database and shorter than
+     every composed origin measured on this table. */
+  if (!g || o.length < 40) return false;
+  return g.includes(o.slice(0, 120));
+}
+
+export function MissionCard({
+  item,
+  origin = null,
+}: {
+  item: ArtifactView;
+  origin?: string | null;
+}) {
   const f = item.fields;
   const goal = str(f.goal);
   const status = str(f.status);
@@ -1854,7 +1912,7 @@ export function MissionCard({ item }: { item: ArtifactView }) {
           `said-once.ts` for why this is a render fix rather than a bridge. */}
       {/* `saidOnce` for the doubled sentence, `plainProse` for the markers: 3
           mission goals carry `**bold**`. Two different defects on one string. */}
-      {plainProse(saidOnce(goal)) ? (
+      {plainProse(saidOnce(goal)) && !goalRepeatsOrigin(goal, origin) ? (
         <Prose markdown={false}>{plainProse(saidOnce(goal))}</Prose>
       ) : null}
       <span className="mrd-meta">
@@ -2584,7 +2642,7 @@ function StationPanel({
         ) : null}
         {stepItems.length > 0 ? <TaskSteps items={stepItems} /> : null}
         {missionItems.map((m) => (
-          <MissionCard key={`mission:${m.artifactId}`} item={m} />
+          <MissionCard key={`mission:${m.artifactId}`} item={m} origin={origin} />
         ))}
         {items.map((item) => {
           if (primaryItem && item.artifactId === primaryItem.artifactId && bodyFor(primaryItem)) {

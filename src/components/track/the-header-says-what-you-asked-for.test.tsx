@@ -32,6 +32,7 @@ import { describe, expect, it } from "bun:test";
 import { render } from "@testing-library/react";
 
 import { RunHeader } from "@/routes/_authenticated.track.$trackId";
+import { goalRepeatsOrigin } from "./ArtifactPane";
 import type { Track } from "@/lib/spine/track.functions";
 
 const ORIGIN =
@@ -109,5 +110,54 @@ describe("the run header", () => {
   it("says nothing is being forecast when the decision is waived", () => {
     const { container } = render(<RunHeader track={track()} decideWaived />);
     expect(container.textContent).toContain("nothing is being forecast");
+  });
+});
+
+describe("and the origin does not reach the screen through another door", () => {
+  /*
+   * ── THE SAME PROSE, ARRIVING AT THE OTHER PANE (A1, on `2fdf93b6`) ───────
+   * The header was cut back to the person's sentence and one chip, and the Build
+   * row's run card then printed *"Created directly by S0 on 2026-09-01 as the
+   * FOURTH acceptance candidate, no press (F-164)..."* as its body.
+   *
+   * Not a coincidence: `trackGoalSentence` composes a mission's goal as
+   * `${title}. ${originLine(title, origin)}`, so the mission's description IS
+   * the origin with the title in front of it. Cutting one door and leaving the
+   * other open is how internal prose keeps reaching a customer.
+   */
+  const ORIGIN_PROSE =
+    "Created directly by S0 on 2026-09-01 as the FOURTH acceptance candidate, and it carries no press: F-164 measured that 18 of 20 driven tracks were pressed as their FIRST drive.";
+
+  it("suppresses a run card body that is the origin wearing a title", () => {
+    const goal = `Make checkout accept an Amex card. ${ORIGIN_PROSE}`;
+    expect(goalRepeatsOrigin(goal, ORIGIN_PROSE)).toBe(true);
+  });
+
+  it("keeps a goal that is genuinely not the origin, because nothing else says it", () => {
+    /*
+     * Deleting the body outright would satisfy the rule and lose the one case
+     * worth keeping. A mission whose goal is its own sentence has something to
+     * say and no other place on this screen to say it.
+     */
+    expect(
+      goalRepeatsOrigin("Prefill the checkout address from the account record.", ORIGIN_PROSE),
+    ).toBe(false);
+  });
+
+  it("refuses to match on an origin too short to be evidence of anything", () => {
+    // A very short origin could be a substring of an unrelated goal by accident.
+    expect(goalRepeatsOrigin("Ship the thing", "Ship")).toBe(false);
+    expect(goalRepeatsOrigin("anything at all", null)).toBe(false);
+  });
+
+  it("is not defeated by the markdown the render strips on the way out", () => {
+    /*
+     * The goal has been through `saidOnce` and `plainProse` by the time a reader
+     * sees it, and 3 mission goals in the database carry `**bold**`. Whitespace
+     * or a stripped asterisk must not be what decides whether internal prose
+     * reaches a customer.
+     */
+    const goal = `Some title.  **${ORIGIN_PROSE}**`;
+    expect(goalRepeatsOrigin(goal, ORIGIN_PROSE)).toBe(true);
   });
 });
