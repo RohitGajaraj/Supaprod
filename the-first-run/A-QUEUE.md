@@ -1800,7 +1800,7 @@ groups.
 
 ---
 
-### P-19 · Promote `Verdict` and `GotYou` into Meridian · Lane: **A2** · Status: CLAIMED (A2, 22:52 IST) · Moves: 4
+### P-19 · Promote `Verdict` and `GotYou` into Meridian · Lane: **A2** · Status: DONE (A1, 00:05 IST, reviewed as a Meridian promotion under R-17 and R-20) · Moves: 4
 
 **Scope.** Generalise A2's two local components into `src/components/meridian/` with tokens only,
 documented in `docs/design/DESIGN-SYSTEM.md`, and swap the run screen to import them. A2's local
@@ -1934,6 +1934,17 @@ write) · tests.
       no deploy).
 - [ ] The frame is sandboxed (`sandbox` attribute set; no top-navigation) and the URL is shown beside
       it with an open-in-new-tab control.
+
+**A1 verdict: DONE, promotion reviewed** _00:05 IST, at `93ad512a5`._ The split is the right
+shape and is the reason to promote at all: `verdict.tsx` and `got-you.tsx` draw from facts, and
+the reading (`verdict-reading.ts`, `run-tally.ts`) stays in the track layer, so a design review or an
+eval suite can be the second caller without a `code_review` column. `absence` as a required prop is
+correct for a product where 0 of 45 changesets carried a review. Tokens only, no raw colour, no
+retired token; `DESIGN-SYSTEM.md` and `MERIDIAN-ADOPTION.md` updated; the local files are gone;
+Meridian and track suites 1,175 / 0, full suite green on my run ✓. **One Meridian-wide debt, not
+this packet's:** `duration-100` on the chip is a raw duration (R-20 §4), and Meridian already
+carries 24 of them beside `--mrd-d-*`; filed below as a standing item for whoever next touches
+`meridian.css`, never a per-surface fix.
 
 **Report / Blockers / A1 verdict:**
 
@@ -2182,3 +2193,27 @@ run, `settings.tsx` 4,096 → 3,824 ✓. The no-writer rows are listed for P-20,
 Nine packets DONE tonight.
 
 **A1 verdict:**
+
+---
+
+### P-26 · Meridian: raw durations become tokens · Lane: **A2** · Status: READY (after P-20) · Moves: 4
+
+**Why.** R-20 §4: a raw duration is a fail. Measured 2026-09-03 00:03 across `src/components/meridian/*.tsx`:
+`duration-100` ×24, `duration-150` ×11, `duration-200` ×8, `duration-300` ×7, beside `--mrd-d-press`
+×56, `--mrd-d-move` ×28, `--mrd-d-enter` ×10, `--mrd-d-alive` ×6. Two systems in one directory.
+
+**Scope.** Map each raw class to the existing `--mrd-d-*` token that means the same thing (press,
+move, enter, alive) or add the one token that is missing with its reason in `meridian.css`; replace
+every occurrence in `src/components/meridian/**`; extend the Meridian guard so a `duration-[0-9]+`
+class in that directory fails. Product surfaces outside Meridian are not in scope.
+
+**Files.** `src/styles/meridian.css` · `src/components/meridian/**` · the Meridian guard test ·
+`docs/design/DESIGN-SYSTEM.md` (the motion row).
+
+**Acceptance.**
+- [ ] `grep -rhoE "duration-[0-9]+" src/components/meridian | wc -l` → 0; the guard pins it.
+- [ ] No visual change a person would notice: each mapping is to the token whose value is closest,
+      and the Report lists any that changed by more than 50 ms with the reason.
+- [ ] tsc 0 · `bun test` 0 fail · pushed · Report.
+
+**Report / Blockers / A1 verdict:**
