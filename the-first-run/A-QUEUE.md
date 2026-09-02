@@ -1736,7 +1736,7 @@ write) · tests.
 
 ---
 
-### P-23 · Settings: six tabs, mapped from Lovable's, with what exists today · Lane: **A3** · Status: BLOCKED: spec (A3, 23:02 IST) · Moves: 4, 5
+### P-23 · Settings: six tabs, mapped from Lovable's, with what exists today · Lane: **A3** · Status: READY (A1 ruled the taxonomy 22:25; see verdict) · Moves: 4, 5
 
 **Why (founder, 2026-09-02 19:29; A1 read Lovable's project settings signed in at 19:35).** Lovable's
 settings are one searchable page with groups: Project (name, subdomain, owner, message and edit
@@ -1756,10 +1756,11 @@ component or server fn serves each row; nothing new behind a row that has no exi
 
 | Group | Rows (existing writer) |
 | --- | --- |
+| **You** | *(added by A1 ruling, 2026-09-02 22:25)* Profile (name, avatar, theme, working hours) and Notifications (the digest): a person's own settings inside this workspace, not governance. Lovable has the same group at the top of its rail (the account, devices and apps). Bare `/settings` keeps landing here (`DEFAULT_SECTION`) |
 | **Autonomy** | P-17's tab: the mandate sentence, spend ceiling, kill switch, tool modes, the promotion bar (P-20) |
 | **Brief** | the workspace brief the agents read at Discover (`workspace_briefs`; empty in 13 of 21 workspaces on 2026-09-02, and Discover starves without it): one editor, one sentence on what it feeds; Lovable's "Knowledge" |
-| **Connections** | repo binding (`helio-prism-build` style), sources, MCP connections with their last error visible (`mcp_connections.last_error` is write-only today), preview deploys (feeds P-22) |
-| **Workspace** | name, slug, people, invites, domains; the sample flag shown read-only with its consequence |
+| **Connections** | **Models** (provider keys: today's `ai` section; a key is a connection to what the agents run on, and it sits beside the repo and the sources so "everything external" is one group) · repo binding (`helio-prism-build` style), sources, MCP connections with their last error visible (`mcp_connections.last_error` is write-only today), preview deploys (feeds P-22) |
+| **Workspace** | name, slug, people, invites; the sample flag shown read-only with its consequence; **Brand** and **Products** (company-scoped, set once, rarely reopened: today's `brand` and `products` sections). Domains has no writer and is excluded |
 | **Usage** | spend this month against the ceiling, runs, tokens (`agent_runs`), credits (`BillingBanner` runway) |
 | **Security** | what the agent may read and write in the repo (`STUDIO_FORBIDDEN_PREFIXES`), the audit trail door (`/engine-room`'s record rooms), export |
 
@@ -1841,5 +1842,17 @@ find their own name or turn off midnight emails, on a page `bun test` cannot cat
 because the ratchet and the section tests would all still pass against a taxonomy that
 is simply wrong. `tsc` 0, `bun test` unchanged (13,661 / 0 fail, no code written this
 packet) -- this Report is investigation only.
+
+**A1 verdict on the spec block (22:25 IST): ruled, and the block was right to be raised.**
+Seven groups, not six: **You · Autonomy · Brief · Connections · Workspace · Usage · Security.**
+`profile` and `notifications` → **You** (your first read); `ai` → **Connections** as *Models* (a
+provider key is a connection to what the agents run on; one group for everything external);
+`brand` and `products` → **Workspace**; `memory` keeps answering its redirect and joins no group.
+The rows you found no writer for (repo binding, MCP `last_error`, preview deploys, domains,
+`STUDIO_FORBIDDEN_PREFIXES`) are **excluded, as the packet's own rule says**; list them in the
+Report as "no writer" so P-20, P-22 and P-03 know what to add. The promotion-bar row waits for
+P-20. Your finding that `searchSections` and `SETTINGS_GROUPS` already exist stands: this packet is
+a re-grouping and a fold, not a rebuild. Acceptance line 3 (`settings.tsx` line count goes down)
+still applies. Take it.
 
 **A1 verdict:**
