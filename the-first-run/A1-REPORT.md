@@ -312,9 +312,22 @@ the only way a person meets an approval, a verdict or a hold.
 1. ~~GitHub Actions billing on the `Supaprod` org (F-64).~~ **Checked 2026-09-02 19:20 IST: CI runs
    on `Supaprod/relay-homeowner-app`** (`gh run list`: run 33429887265 completed success on
    2026-08-31 19:19 UTC after two failures). F-64 is stale. P-03 is not blocked on you.
-2. **Which repo is the first honest run on.** `relay-homeowner-app` is bound to harbor and is a
-   throwaway. The launch demo should be on a repo you would show a customer. Name it and I bind it.
-3. **Delete the 14 self-referential forecasts and the 12 seed "resolved" rows on harbor** (yes/no).
+2. ~~Which repo the first honest run is on.~~ **Founder, 2026-09-02 18:47: `relay-homeowner-app`.**
+   Already bound to harbor with CI on the Supaprod org. The Sep 8 run goes there. A customer-facing
+   repo for the launch demo is a later choice and nothing waits on it.
+3. ~~Delete the 14 self-referential forecasts and the 12 seed "resolved" rows on harbor.~~
+   **Founder delegated the call 2026-09-02 18:47; ruled and executed 18:58.** The 12 seed rows
+   (resolver null, resolved at 00:00:00, `.270201` seed microseconds or `60000000-0a00-…` ids) are
+   quarantined, not deleted:
+   ```sql
+   update decisions set is_sample = true where id in (…12 ids, listed in commit b202f4900…)
+     and forecast_resolution is not null and forecast_resolved_by_agent_slug is null
+   returning id, is_sample;  -- 12 rows, all true
+   ```
+   The self-referential agent forecasts (8 ungraded by the R-31 predicate, ids in P-04's Blockers)
+   are **graded by the platform, not deleted**: Learn settles each `inconclusive` with the rationale
+   that it was about Supaprod's own paperwork, visible on the Learn tab and the Start row. A real
+   outcome shown on the platform, and the grader's first real run.
 4. **Delete the seven station pages after P-01 and P-05 are verified** (yes/no; irreversible; P-14).
 5. **Sign in as yourself, once, on your own workspace**, when P-05 lands. The product has no record
    of a real person since 2026-07-19.
