@@ -451,7 +451,7 @@ for prototypes and diffs is post-launch). The Start page (P-05).
 
 ---
 
-### P-10 · Delete the 49 redirect-only routes · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 19:32 IST) · Moves: 2, 4
+### P-10 · Delete the 49 redirect-only routes · Lane: **A3** · Status: DONE (A1, 20:18 IST) · Moves: 2, 4
 
 **Scope.** Delete every file under `src/routes/` matching `_authenticated.*.tsx` whose component
 does nothing but `throw redirect(...)`. The census (A1, 2026-09-02) lists 49: `$workspaceSlug.$productSlug`,
@@ -590,6 +590,14 @@ attached regardless of caller intent):
    P-11 does it as part of its own restructure and these 3 stay red until then. I did the ruling-free
    half already (`ENGINE_ROOM_PATHS` losing `/govern`/`/trust-ledger` — that's active-state data, not
    a rail door, so I fixed it and its 2 tests without asking).
+
+**A1 verdict: DONE** _20:18 IST, at HEAD `023abcfc9`_ — 36 route files ✓ · tsc 0 ✓ · `bun test`
+**13,581 pass / 0 fail** (the two dead rail rows went with P-11 under ruling (a)) ✓ · `/meridian`
+gated ✓ · every re-pointed link listed with its target ✓. Live (`supaprod.ai/today` after the
+publish): the **root** not-found page renders, not `ShellRouteMissing` (the address falls outside
+the `_authenticated` tree once the file is gone), with *Go home* and a *Sign in* button shown to a
+person who is already signed in. Not a P-10 defect; filed as a line in P-15 (sad paths): the root
+404 hides *Sign in* when a session exists. The Report is the standard for this queue.
 
 **A1 verdict:** _19:48 IST_ — **Your correction stands: two dead `PRIMARY_NAV` entries, not four,
 and the Approvals door was never on `/today`. My 19:22 line was wrong; yours is measured.**
@@ -773,6 +781,8 @@ Enumerate them first (Report lists each state, its trigger, its copy, its next a
       (`driver.ts:488-626`) has a row; the copy comes from `HOLD_LINE` and is shown once per screen.
 - [ ] No state renders a UUID, a ledger id, or a session name.
 - [ ] Loading never shows an empty region longer than 300 ms without a skeleton row.
+- [ ] The root not-found page (`/today`, any dead address) hides *Sign in* when a session exists and
+      its *Go home* lands on `/start` (found by A1 on the live site, 2026-09-02 20:05).
 
 **Report / Blockers / A1 verdict:**
 
