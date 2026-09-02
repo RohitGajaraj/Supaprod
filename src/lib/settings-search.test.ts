@@ -42,7 +42,7 @@ describe("the two queries that were broken", () => {
     expect(searchSections("balance")[0]).toBe("billing");
   });
 
-  it("finds Brief and voice when you type invite, because People lives on that pane", () => {
+  it("finds About your company when you type invite, because People lives on that pane", () => {
     expect(searchSections("invite")[0]).toBe("workspace");
     expect(searchSections("member")[0]).toBe("workspace");
     expect(searchSections("team")[0]).toBe("workspace");
@@ -62,9 +62,17 @@ describe("the ranking puts the likeliest door first", () => {
      * "voice" is in the LABEL "Brief and voice" and also inside the keyword "invoice"
      * on Billing. The label must win, or a person typing the name of the door they can
      * see gets offered a different one first.
+     *
+     * P-23 MOVED WHICH DOOR THAT IS. Before the regroup this ranking test found
+     * `workspace`, whose old label ("Brief and voice", pre-2026-08-27) happened
+     * to contain "voice" while its CURRENT label ("About your company") does
+     * not - the assertion was pinning yesterday's label on today's section by
+     * coincidence. Splitting Brief out gives the word a real home again: the
+     * new `brief` section's label is "Brief and voice" now, so this is the
+     * same rule finding the door the word actually names.
      */
     const hits = searchSections("voice");
-    expect(hits[0]).toBe("workspace");
+    expect(hits[0]).toBe("brief");
     expect(hits).toContain("billing");
   });
 
@@ -169,6 +177,9 @@ describe("every door is findable, and every keyword is true", () => {
       }
     };
     const panes = [
+      // Split out of the route into its own file (P-23); "brief", "voice",
+      // "tone" and "constitution" only live here now, not in the route.
+      "../components/settings/BriefSection.tsx",
       "../components/settings/DataSection.tsx",
       "../components/settings/NotificationsSection.tsx",
       "../components/settings/MembersCard.tsx",

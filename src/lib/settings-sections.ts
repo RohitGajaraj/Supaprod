@@ -8,112 +8,73 @@
  * browser, and so there is exactly ONE list of what Settings contains.
  *
  * ------------------------------------------------------------------------
- * 1. THE FIFTEEN, AND WHAT A PERSON IS ACTUALLY LOOKING FOR
+ * 1. SEVEN GROUPS, NOT FOUR (P-23, A1 ruling 2026-09-02 22:25)
  * ------------------------------------------------------------------------
  *
- * Fifteen panes render on /settings. Nobody has ever opened Settings to look at
- * things; they arrive mid-sentence, with one of these in their head:
+ * A1 read Lovable's own settings signed in (2026-08-05 19:35): one searchable
+ * page, groups named for the boundary they set, the ones that change what the
+ * AI does drawn as a switch with a sentence rather than a page of their own.
+ * `searchSections` and the four-group model already answered "one search box"
+ * - what did not exist was a group called **Autonomy**, so the mandate P-17
+ * built (the ceiling, the kill switch, the tool-mode list) sat one level down
+ * inside "Agents" rather than being the thing this surface leads with.
  *
- *   "stop asking me before it edits code"        -> autonomy
- *   "why did that agent touch production"        -> staff (reach)
- *   "which model is burning my credit"           -> ai
- *   "the crew keeps writing the wrong thing"     -> workspace (brief and voice)
- *   "it drew the wrong colours again"            -> brand
- *   "attach this mission to the right product"   -> products
- *   "where did the memory settings go"           -> memory
- *   "connect my GitHub"                          -> connections
- *   "which repo is this workspace pointed at"    -> sync
- *   "let Cursor read my workspace"               -> interop
- *   "export everything and delete me"            -> data
- *   "stop emailing me at midnight"               -> notifications
- *   "call me Jane, and I am asleep at 22:00"     -> profile
- *   "cancel my plan"                             -> billing
- *   "how much is left, and cap the top-ups"      -> credits
- *   "why is everything failing"                  -> health
+ * The seven, in the order they render:
  *
- * Every one of those is a BOUNDARY: something set once so it never has to be
- * asked in the moment. That is the surface's whole job, so the groups are named
- * by which boundary they set, in the product's own words. Not "General" and
- * "Advanced", which name nothing and are where settings go to be lost.
+ *   You            profile - notifications - health (reports, draws no door)
+ *   Autonomy       staff - autonomy - what they may do without asking
+ *   Brief          the one editor for what every mission reads before it starts
+ *   Connections    connections - ai - interop - everything outside this workspace
+ *   Workspace      workspace - brand - products - memory (dead, no door)
+ *   Usage          billing - credits - what this costs and what is left
+ *   Security       data - what leaves, and the trail of what happened
  *
- * ------------------------------------------------------------------------
- * 2. THE FIVE GROUPS
- * ------------------------------------------------------------------------
+ * BRIEF IS ITS OWN GROUP NOW, split out of `workspace`'s combined pane. It used
+ * to sit beside people/invites/name under "About your company" because both
+ * were "things about the company" - the data model's shape, not a person's. The
+ * two are different errands: one changes what an agent starts every mission by
+ * reading, the other changes who is in the workspace and what it is called. A
+ * person asking "why does the crew keep writing the wrong thing" was one click
+ * from a headline that also covers seats and slugs.
  *
- *   What the crew may do                  autonomy · staff · ai
- *   What the crew reads                   workspace · brand · products · memory
- *   What it can reach                     connections · sync · interop · data
- *   What reaches you                      profile · notifications
- *   What it costs, and whether it works   billing · credits · health
+ * `ai` MOVED FROM AGENTS TO CONNECTIONS, and this is A1's own reasoning kept
+ * beside the code that encodes it: "a provider key is a connection to what the
+ * agents run on - one group for everything external." `interop` (outside
+ * agents reading this workspace) sits beside it for the identical reason, so
+ * Connections now answers one question - "what does this workspace reach, and
+ * what reaches in" - for every direction at once.
  *
- * The retired cut (You · Workspace · Agents · Connections & Data · Plan & Usage)
- * grouped by WHOSE THING IT IS. That is the data model's shape, not a person's:
- * "Agents" and "Connections" are both places a person looks when the crew did
- * something they did not want, and no label told them which. These five group by
- * WHAT YOU ARE STOPPING OR STARTING, which is the sentence people actually
- * arrive with.
+ * WHAT HAS NO ROW HERE, AND WHY. P-23's own acceptance forbids building behind
+ * a row with no existing writer. Five rows the packet named have none today and
+ * are not built: the promotion bar (waits on P-20), repo binding, MCP
+ * connections with their `last_error`, preview deploys (waits on P-22), and a
+ * domains pane (no such concept exists anywhere in this codebase). Excluded,
+ * not guessed at - see the Report for P-23 in A-QUEUE.md for the full audit.
  *
  * ------------------------------------------------------------------------
- * 3. WHAT LEADS, AND WHY IT IS NOT AUTONOMY
+ * 2. WHAT LEADS, AND WHY IT IS NOT AUTONOMY
  * ------------------------------------------------------------------------
  *
- * DEFAULT_SECTION is `profile`, reverted from `autonomy` on 2026-08-10.
- *
- * The 2026-08-06 argument for leading on Autonomy was about USEFULNESS, and it
- * was right about the facts: of 16 profiles, ZERO have moved working hours off
- * the 9-18 default and ZERO have written a voice anchor, while "stop asking me
- * before it does X" is the most common sentence in the head of someone opening
- * this surface. It was still the wrong ruling, for two reasons it did not
- * weigh.
- *
- * FIRST, ARRIVING SOMEWHERE IS NOT CHOOSING IT. Autonomy is the pane a
- * security reviewer is shown, and the one whose contents are the safety
- * contract for unattended work. A person lands on `/settings` from the account
- * menu, from `g s`, from a legacy redirect off `/notifications`, and from a
- * palette entry that says only "Settings". None of those is a request to be
- * shown the governance surface, and a surface that consequential should be
- * somewhere you went on purpose. Every product that gets this right opens
- * settings on the ordinary and personal, and keeps the governance scope one
- * deliberate click away.
- *
- * SECOND, THE PANE STOPPED BEING AN EDITOR. Autonomy no longer sets a tool
- * boundary at all: the founder ruled /boundary the one home, so what renders
- * there now is a read plus a door. Landing every visitor on a read-only
- * restatement of another surface is the worst of both - it is neither the
- * thing they came for nor the place to change it.
- *
- * Autonomy loses nothing. It is still the FIRST door in the nav, so Home
- * reaches it in one keypress from anywhere in the index, `?section=autonomy`
- * still lands, and `?section=crew` still lands there too.
+ * DEFAULT_SECTION is `profile`, unchanged by the regroup. A person lands on
+ * `/settings` from the account menu, from `g s`, from a legacy redirect off
+ * `/notifications`, and from a palette entry that says only "Settings" - none
+ * of those is a request to be shown the governance surface, and a surface that
+ * consequential should be somewhere you went on purpose. Autonomy loses
+ * nothing: it is the second group, `?section=autonomy` still lands, and
+ * `?section=crew` still lands there too.
  *
  * ------------------------------------------------------------------------
- * 4. WHAT BELONGS ELSEWHERE, AND WHAT IS DEAD
+ * 3. THE ROUTING CONTRACT, UNCHANGED
  * ------------------------------------------------------------------------
  *
- * DEAD, reported not removed (removing it would break saved links, and the
- * fix belongs to whoever owns the redirect table):
- *   · `memory` renders a pane whose entire content is a sentence saying memory
- *     moved to Brain. A pane that exists to apologise for itself is dead weight;
- *     it should be a redirect to /brain, not a section. It keeps its address so
- *     old links land, and it draws no door.
- *
- * BELONGS ELSEWHERE (all left rendering - see the route header for the
- * hand-off notes, since moving them needs the receiving lane):
- *   · `staff` and `autonomy` -> /crew.
- *   · the credit debit ledger inside `credits` -> Engine room, Spend.
- *   · Members and Team inside `workspace` -> /admin.
- *   · `sync` -> /sync, which renders the same bindings. It already folds: the
- *     address answers on Connectors and draws no door of its own.
- *
- * ------------------------------------------------------------------------
- * 5. THE ROUTING CONTRACT, UNCHANGED
- * ------------------------------------------------------------------------
- *
- * Every `SectionId` survives, every `?section=` value still resolves, and every
- * legacy alias still lands. Regrouping moved which HEADING a door sits under and
- * nothing else. `?section=plan` still lands on Plan (the signup checkout
- * redirect and the account menu depend on it), `?section=brief` still lands on
- * Brief and voice, `?section=agents` still lands on the Roster.
+ * Every `SectionId` from before the regroup survives (plus the new `brief`),
+ * every `?section=` value still resolves, and every legacy alias still lands.
+ * Regrouping moves which HEADING a door sits under and nothing else.
+ * `?section=plan` still lands on Billing, `?section=agents` still lands on the
+ * Roster - and `?section=brief` now lands on the real Brief pane instead of
+ * folding into Workspace, which is the alias becoming MORE correct rather than
+ * breaking: a saved link that meant "take me to the brief" now does exactly
+ * that instead of landing beside it.
  */
 
 export type SectionId =
@@ -121,6 +82,7 @@ export type SectionId =
   | "ai"
   | "staff"
   | "autonomy"
+  | "brief"
   | "workspace"
   | "brand"
   | "products"
@@ -135,15 +97,21 @@ export type SectionId =
   | "memory";
 
 /**
- * FOUR GROUPS SINCE 2026-08-17, down from five. `plan` was retired as a GROUP and
- * its sections moved under `you`, which is where every shipped settings surface
- * this file already cites puts money: GitBook, ClickUp and Toggl all keep billing
- * beside the account rather than in a neighbourhood of its own.
+ * SEVEN GROUPS SINCE 2026-09-02 (P-23), up from four. `plan` was retired as a
+ * GROUP before that and its sections moved under `you`, which is where every
+ * shipped settings surface this file already cites puts money: GitBook,
+ * ClickUp and Toggl all keep billing beside the account rather than in a
+ * neighbourhood of its own. That id survives in `LEGACY_SECTION_MAP` so
+ * `?section=plan` still lands on Billing.
  *
- * The id survives in `LEGACY_SECTION_MAP` so `?section=plan` still lands on
- * Billing, which the signup checkout redirect and the account menu both depend on.
+ * The ids below are new strings, not a rename of the retired four - `you`
+ * is the one survivor because its meaning did not move (profile,
+ * notifications, and Diagnostics reporting rather than setting). `crew` and
+ * `reach`, the two retired GROUP ids, still resolve as `?section=` aliases in
+ * `LEGACY_SECTION_MAP` below; they are gone as group ids because "Agents" and
+ * "Data and access" no longer name real groups.
  */
-export type GroupId = "crew" | "brief" | "reach" | "you";
+export type GroupId = "you" | "autonomy" | "brief" | "connections" | "workspace" | "usage" | "security";
 
 /**
  * A named block INSIDE a pane, which search can name and land on.
@@ -222,76 +190,43 @@ export type SettingsGroup = {
 /**
  * GROUP LABELS ARE NOUNS THAT NAME A SCOPE (2026-08-11).
  *
- * All five used to be sentence fragments: "What the crew may do", "What the
- * crew reads", "What it can reach", "What reaches you", "What it costs, and
- * whether it works". They read well in a document and badly in a sidebar,
- * because a sidebar is scanned for a noun, not read for a sentence. Someone
- * looking for their notification settings has to parse "What reaches you";
- * someone looking for API keys has to work out that keys live under a clause
- * about permission.
+ * Eight shipped settings surfaces were checked when this rule was set and the
+ * convention is unanimous: GitBook uses Account and Organization; ClickUp uses
+ * Workspace and the person's name; Toggl uses Toggl Account and Availability;
+ * Lindy, Squarespace, Runway and Hume all use bare nouns. Not one uses a
+ * sentence, a question or a verb phrase - a sidebar is scanned for a noun, not
+ * read for a sentence. Each group's longer sentence lives in `desc`, which is
+ * the slot that can afford one.
  *
- * One of them was also plainly wrong rather than merely indirect. "What
- * reaches you" contained Profile, and your own name does not reach you: the
- * group was named after one of its two items.
- *
- * Eight shipped settings surfaces were checked and the convention is
- * unanimous. GitBook uses Account and Organization; ClickUp uses Workspace and
- * the person's name; Toggl uses Toggl Account and Availability; Lindy,
- * Squarespace, Runway and Hume all use bare nouns. Not one uses a sentence, a
- * question or a verb phrase.
- *
- * The sentences were not wasted, they were just in the wrong slot: each one is
- * now the group's `desc`, which is where a sidebar can afford a sentence.
- *
- * "Agents", not "Crew", since 2026-08-15 — and the paragraph that used to sit
- * here argued the opposite, on a premise that has since stopped being true. It
- * said Crew was kept BECAUSE THE RAIL ALREADY CARRIED CREW, so a second word
- * would be the very confusion this file exists to remove. That reasoning was
- * sound and its premise is gone: the rail no longer carries Crew at all. The
- * row was renamed Agents and then moved in here.
- *
- * The rule it was applying still holds, which is why the conclusion flipped
- * rather than the rule: ONE THING GETS ONE WORD. That word is now Agents,
- * everywhere, because it is what the substrate has always said. Kept here
- * verbatim rather than deleted, because a reader who finds only the new answer
- * cannot tell whether the old one was considered.
+ * ONE THING GETS ONE WORD, everywhere: a door and its own group heading never
+ * repeat the same word (the roster door reads "Who works here" rather than
+ * "Agents", because it sits inside the Autonomy group now and "Agents" would
+ * be a heading naming its own neighbourhood).
  */
 export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   /*
-   * ── WHY ACCOUNT LEADS, 2026-08-17 ─────────────────────────────────────────
-   * Founder, on the shipped rail: "don't you feel the profile section, which is at
-   * the bottom today, should be at the top? Sequentially, what our user uses should
-   * be there."
+   * ── WHY ACCOUNT LEADS, 2026-08-17 (STILL TRUE UNDER SEVEN GROUPS) ─────────
+   * Founder, on the shipped rail: "don't you feel the profile section, which is
+   * at the bottom today, should be at the top? Sequentially, what our user uses
+   * should be there." `DEFAULT_SECTION` has been `profile` since 2026-08-10, so
+   * a bare /settings, the account menu, `g s` and the /notifications redirect
+   * ALL land here - the group that owns the landing section has to lead, or the
+   * surface opens at the bottom of its own index.
    *
-   * That is an incoherence being reported, not a preference. `DEFAULT_SECTION` has
-   * been `profile` since 2026-08-10, so a bare /settings, the account menu, `g s`
-   * and the /notifications redirect ALL land on Profile -- and Profile was the
-   * eleventh row of twelve. The surface opened at the bottom of its own index, which
-   * is a large part of the "randomly dumped" feeling he described.
-   *
-   * ── THE WHOLE ORDER, BY HOW OFTEN A PERSON COMES FOR IT ───────────────────
-   * Founder ruling, same conversation: order the groups by frequency of use, "not
-   * just randomly moving around the things".
-   *
-   *   1. Account          your name, your theme, your hours, what this costs. Where a
-   *                       bare /settings already lands, and the shallowest errands.
-   *   2. Data and access  connectors, what an outside agent may read, what we hold.
-   *                       The group that grows: every new source, every new scope,
-   *                       every export request comes back here.
-   *   3. Agents           autonomy, the roster, the models. Set deliberately and
-   *                       revisited when a boundary turns out to be wrong.
-   *   4. Company          the brief, the brand, the products. The most consequential
-   *                       and the least frequent: written once and rarely reopened.
-   *
-   * Governance sits BELOW plumbing on purpose, which reads backwards until you count
-   * visits rather than importance. Autonomy is the pane a security reviewer is walked
-   * through; it is not the pane anybody opens on a Tuesday. The same argument made
-   * Profile the landing rather than Autonomy on 2026-08-10.
+   * ── THE REST OF THE ORDER, BY HOW OFTEN A PERSON COMES FOR IT ─────────────
+   * Autonomy leads the rest (P-23, A3): it is the pane a security reviewer is
+   * walked through and the one this session's own founder conversations have
+   * returned to most. Brief sits beside it - what they may do, then what they
+   * read before doing it. Connections is "the group that grows: every new
+   * source, every new scope comes back here" (2026-08-17's own words, still
+   * true). Workspace and Usage are the least frequent, consequential errands;
+   * Security last, for the same reason Company was last under four groups:
+   * written once and rarely reopened.
    */
   {
     id: "you",
     label: "You",
-    desc: "Your name, what may interrupt you, and what this workspace costs.",
+    desc: "Your name, your theme, and what may interrupt you.",
     sections: [
       {
         id: "profile",
@@ -328,216 +263,17 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
         label: "Notifications",
         keywords: ["email", "digest", "alert", "interrupt", "quiet"],
       },
-      /*
-       * "BILLING", NOT "PLAN", AND THIS IS A COLLISION FIX RATHER THAN A TIDY-UP.
-       *
-       * The product has a STATION called Plan -- the spine's third stop, at
-       * /plan, where specs are written -- and this door was also called Plan,
-       * meaning the subscription tier. Two unrelated things, one word, both
-       * reachable from the same shell. A person hunting for their spec and a
-       * person hunting for their invoice were being offered the same label.
-       *
-       * The id has always been `billing`, so only the label was ever wrong, and
-       * `?section=plan` still lands here through LEGACY_SECTION_MAP.
-       *
-       * ONE THING GETS ONE WORD is the rule this file already applies to Agents.
-       * This is the same rule catching a second offender.
-       */
-      {
-        id: "billing",
-        subs: [
-          {
-            /* The founder's own failing example: "typing credits found nothing". It
-               found the pane once keywords landed; this lands on the block. */
-            label: "Credits and top-ups",
-            anchor: "settings-credits",
-            keywords: ["credit", "credits", "top-up", "topup", "balance", "buy", "refill"],
-          },
-        ],
-        label: "Billing",
-        // Credits folded in here, so every word for the balance and the top-up has to
-        // reach this door or the fold made them unfindable.
-        keywords: [
-          "plan",
-          "tier",
-          "upgrade",
-          "downgrade",
-          "cancel",
-          "invoice",
-          "payment",
-          "card",
-          "subscription",
-          "credits",
-          "credit",
-          "balance",
-          "top-up",
-          "topup",
-          "buy",
-          "redeem",
-        ],
-      },
-      /*
-       * CREDITS FOLDS INTO BILLING, 2026-08-17 (founder agreed on the same read).
-       *
-       * A person does not arrive at Settings knowing whether their question is
-       * about the tier they pay for or the credit left on it. They arrive wanting
-       * to know what this costs and how much is left, which is ONE errand. Two
-       * doors made them guess, and guessing wrong is a wasted click on the surface
-       * where friction is least forgivable.
-       *
-       * The address survives, so `?section=credits` still answers and every saved
-       * link lands: it renders the Billing pane, which now carries the balance, the
-       * top-up and the debit history under one heading.
-       *
-       * Same mechanism `sync` uses to fold into Connectors, and for the same
-       * reason: two addresses that answer one question should render one pane
-       * rather than two that can disagree.
-       */
-      { id: "credits", label: "Credits", door: false, foldsInto: "billing" },
-      /*
-       * DIAGNOSTICS KEEPS ITS ADDRESS AND LOSES ITS DOOR, 2026-08-17.
-       *
-       * It never belonged in Settings. Settings is where a person states what they
-       * want; Diagnostics reports whether the machine is achieving it, which is
-       * the engine-room doctrine's own dividing line -- complexity lives in the
-       * engine, and the user meets the output of the machine rather than the
-       * machine. Every other reading of that kind already lives behind that door.
-       *
-       * The door is drawn from the Engine Room instead. The pane stays here, so
-       * `?section=health` and every saved link still answer, and nothing was
-       * rebuilt to move a heading.
-       */
-      /*
-       * NO DOOR AND NO KEYWORDS IS A PANE REACHABLE BY NOTHING. Both of the
-       * door-less sections shipped that way: search is their ONLY route, and it
-       * had no word to match on, so Diagnostics and Memory could be opened only
-       * by typing the address. See the invariant test beside this file.
-       */
-      {
-        id: "health",
-        label: "Diagnostics",
-        door: false,
-        keywords: ["health", "diagnostics", "status", "broken", "down", "outage", "failing"],
-      },
     ],
   },
   {
-    id: "reach",
-    /* "DATA AND ACCESS", 2026-08-17. "Connections and data" was two nouns joined
-     * by an "and", which is the shape a group takes when nobody could name the
-     * one idea underneath it. The one idea is the BOUNDARY OF YOUR DATA: what
-     * comes in, what an outside agent may read, and what we hold. Naming that
-     * lets a person decide from the heading whether their errand is in here. */
-    label: "Data and access",
-    desc: "What flows in, what an agent outside Supaprod may read, and what we keep of yours.",
-    sections: [
-      {
-        id: "connections",
-        label: "Connected tools",
-        keywords: [
-          "connect",
-          "connector",
-          "integration",
-          "integrations",
-          "source",
-          "sources",
-          "sync",
-          "binding",
-          "oauth",
-          "slack",
-          "linear",
-          "notion",
-          "github",
-          "calendar",
-          "gmail",
-        ],
-      },
-      // Folded into Connectors, which shows the same bindings. Address only.
-      { id: "sync", label: "Sync and bindings", door: false, foldsInto: "connections" },
-      {
-        id: "interop",
-        label: "Outside access",
-        keywords: [
-          "mcp",
-          "token",
-          "api",
-          "external agent",
-          "outside",
-          // The pane's own token-name field reads "e.g. claude-desktop, cursor,
-          // my-agent", so these are words it already puts in front of a reader.
-          "cursor",
-          "claude desktop",
-          "ide",
-        ],
-      },
-      {
-        id: "data",
-        label: "Your data",
-        keywords: ["export", "download", "delete", "privacy", "gdpr", "retention"],
-      },
-      /*
-       * ── MODELS MOVED HERE, 2026-08-17 ─────────────────────────────────────
-       * Founder: "Models and keys would come in data and access only, right? Why is it
-       * under agent? It is not the right thing."
-       *
-       * Correct, and the group descriptions make it obvious once said out loud. Agents
-       * is about WHO works here and how much rope each has. A model is not an agent and
-       * a key is not a boundary: they are an outside service this workspace reaches and
-       * a credential it reaches with, which is precisely what this group governs -- the
-       * same shape as a connector, one rung further in.
-       *
-       * It also removes a genuine confusion the old placement created: a reader looking
-       * for "which model runs my work" was being sent to a group about permissions, and
-       * a reader auditing what leaves the workspace never looked in Agents for an API
-       * key.
-       */
-      {
-        id: "ai",
-        label: "Models",
-        subs: [
-          {
-            label: "Your own provider keys",
-            anchor: "settings-byo-keys",
-            keywords: ["api key", "key", "keys", "byo", "openai", "anthropic", "provider", "token"],
-          },
-        ],
-        keywords: ["model", "models", "api key", "byo", "openai", "anthropic", "provider"],
-      },
-    ],
-  },
-  {
-    id: "crew",
-    /* "AGENTS", NOT "CREW", 2026-08-15. The substrate says agent everywhere —
-     * `agents`, `agent_runs`, `agent_tools`, `agent_autonomy`,
-     * `agent-vocabulary.ts` — and only the label said crew, which is a costume
-     * over the real word and the register split the 2026-08-11 vocabulary
-     * ruling retired. The group also became the HOME of the roster on the same
-     * day: the Crew row came off the rail and its surface now lives behind
-     * Settings, which is why the group carries the product's name for it
-     * rather than a house word. Ids are untouched; `?section=agents` already
-     * aliased to `staff` and still does. */
-    label: "Agents",
-    desc: "Who works here, and how much each one may do without you.",
+    id: "autonomy",
+    label: "Autonomy",
+    desc: "Who works here, and what they may do without you.",
     sections: [
       /*
-       * ── WHO WORKS HERE LEADS, 2026-08-17 ──────────────────────────────────
-       * Founder: "under the agent, I want this roaster thing to be on top, and
-       * whatever name you give, autonomy and approvals could be at the bottom one."
-       *
-       * Right on the reading order. A person arriving at Agents wants to see the crew
-       * before they can have an opinion about anybody's rope, and Autonomy was leading
-       * with a governance dial for agents the reader had not met yet.
-       *
-       * ── AND IT IS NOT CALLED "ROSTER" ANY MORE ────────────────────────────
-       * He asked whether "Roster" is right, and whether "Agents" would collide with the
-       * group heading. Both concerns are real and they pull opposite ways: "Roster" is
-       * a house word nobody types (the vocabulary rules retire exactly this kind), and
-       * "Agents" under a group called Agents is a door named after its own neighbourhood.
-       *
-       * "Who works here" answers it: it is the plainest English for the thing, it is
-       * what the pane's own first Block was already called, and it cannot collide with
-       * a heading because it is a phrase rather than a category. Nothing types "roster"
-       * to find their crew; the keywords carry that word so the search still lands.
+       * WHO WORKS HERE LEADS (2026-08-17, unchanged by the regroup): a person
+       * arriving here wants to see the crew before they can have an opinion
+       * about anybody's rope.
        */
       {
         id: "staff",
@@ -547,20 +283,6 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       {
         id: "autonomy",
         label: "What they may do without asking",
-        /*
-         * THESE WENT STALE THE DAY THE PANE CHANGED, AND THE CHANGE WAS MINE.
-         *
-         * Until 2026-08-27 this pane rendered a read plus a door, and the seven
-         * words below described that. Then the boundary controls were mounted
-         * here, so the pane now sets the per-tool mode, the SPEND CEILING on a
-         * run, what routes itself without asking, and the switch that stops
-         * everything -- and not one of those was findable.
-         *
-         * Probed with sixty words a person would actually type: "budget",
-         * "cap", "spend", "limit" and "stop" all returned nothing, on the one
-         * pane that now owns every one of them. The index describing a surface
-         * has to move when the surface does, and nothing made it.
-         */
         keywords: [
           "approval",
           "approvals",
@@ -592,10 +314,103 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       },
     ],
   },
+  /*
+   * SPLIT OUT OF `workspace` (P-23, 2026-09-02). It used to sit under "About
+   * your company" beside people and invites because both are "things about the
+   * company" - the data model's shape, not a person's. What an agent reads
+   * before every mission and who is in the workspace are different errands;
+   * see the file header §1 for the full argument.
+   */
   {
     id: "brief",
-    label: "Company",
+    label: "Brief",
     desc: "The standing instruction every mission starts by reading, before it does anything.",
+    sections: [
+      /*
+       * "BRIEF AND VOICE" REVIVED, NOT INVENTED. It was this pane's name until
+       * 2026-08-27 folded it into "About your company"; splitting it back out
+       * restores the name along with the content. Kept two words rather than
+       * the bare "Brief" so the door reads as a phrase distinct from its own
+       * group heading, the same rule "Who works here" already follows for
+       * Autonomy - and it happens to keep "co" unambiguous with "Connected
+       * tools" too, which "Company brief" would not have.
+       */
+      {
+        id: "brief",
+        label: "Brief and voice",
+        keywords: ["brief", "voice", "tone", "constitution"],
+      },
+    ],
+  },
+  /*
+   * "CONNECTIONS", NOT "DATA AND ACCESS" (P-23). The one idea underneath both
+   * names has always been the boundary of what this workspace reaches, in
+   * either direction; A1's ruling folded `ai` in for the identical reason data
+   * and access already existed for: "a provider key is a connection to what
+   * the agents run on - one group for everything external."
+   */
+  {
+    id: "connections",
+    label: "Connections",
+    desc: "What this workspace reaches outside itself, and what reaches in.",
+    sections: [
+      {
+        id: "connections",
+        label: "Connected tools",
+        keywords: [
+          "connect",
+          "connector",
+          "integration",
+          "integrations",
+          "source",
+          "sources",
+          "sync",
+          "binding",
+          "oauth",
+          "slack",
+          "linear",
+          "notion",
+          "github",
+          "calendar",
+          "gmail",
+        ],
+      },
+      // Folded into Connectors, which shows the same bindings. Address only.
+      { id: "sync", label: "Sync and bindings", door: false, foldsInto: "connections" },
+      {
+        id: "ai",
+        label: "Models",
+        subs: [
+          {
+            label: "Your own provider keys",
+            anchor: "settings-byo-keys",
+            keywords: ["api key", "key", "keys", "byo", "openai", "anthropic", "provider", "token"],
+          },
+        ],
+        keywords: ["model", "models", "api key", "byo", "openai", "anthropic", "provider"],
+      },
+      {
+        id: "interop",
+        label: "Outside access",
+        keywords: [
+          "mcp",
+          "token",
+          "api",
+          "external agent",
+          "outside",
+          // The pane's own token-name field reads "e.g. claude-desktop, cursor,
+          // my-agent", so these are words it already puts in front of a reader.
+          "cursor",
+          "claude desktop",
+          "ide",
+        ],
+      },
+    ],
+  },
+  {
+    id: "workspace",
+    label: "Workspace",
+    desc: "Your company: who is in it, what it looks like, and what it ships.",
     sections: [
       {
         id: "workspace",
@@ -607,20 +422,9 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
           },
         ],
         label: "About your company",
-        // People lives on this pane (MembersCard, TeamCard), which is why "invite"
-        // and "member" belong here and nowhere else.
-        keywords: [
-          "brief",
-          "voice",
-          "tone",
-          "constitution",
-          "people",
-          "members",
-          "member",
-          "invite",
-          "team",
-          "roles",
-        ],
+        // People lives on this pane (MembersCard, TeamCard); the brief moved
+        // out to its own group (P-23), so "brief"/"voice" no longer belong here.
+        keywords: ["people", "members", "member", "invite", "team", "roles"],
       },
       {
         id: "brand",
@@ -628,12 +432,74 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
         keywords: ["design", "design system", "logo", "colour", "color"],
       },
       { id: "products", label: "Products", keywords: ["product", "repo", "app", "ships"] },
-      // Dead pane, live address. See section 4 of the header.
+      // Dead pane, live address. See the header, §1.
       {
         id: "memory",
         label: "Memory",
         door: false,
         keywords: ["memory", "remember", "recall", "forget", "what it knows"],
+      },
+    ],
+  },
+  {
+    id: "usage",
+    label: "Usage",
+    desc: "What this workspace costs, what is left, and whether it is working.",
+    sections: [
+      {
+        id: "billing",
+        subs: [
+          {
+            label: "Credits and top-ups",
+            anchor: "settings-credits",
+            keywords: ["credit", "credits", "top-up", "topup", "balance", "buy", "refill"],
+          },
+        ],
+        label: "Billing",
+        keywords: [
+          "plan",
+          "tier",
+          "upgrade",
+          "downgrade",
+          "cancel",
+          "invoice",
+          "payment",
+          "card",
+          "subscription",
+          "credits",
+          "credit",
+          "balance",
+          "top-up",
+          "topup",
+          "buy",
+          "redeem",
+        ],
+      },
+      // Folds into Billing (2026-08-17): one money errand, not two doors.
+      { id: "credits", label: "Credits", door: false, foldsInto: "billing" },
+      /*
+       * DIAGNOSTICS KEEPS ITS ADDRESS AND LOSES ITS DOOR (2026-08-17, moved
+       * from `you` to `usage` under P-23: its own copy is "any run that went
+       * away with your credits", which is a cost fact, not a personal one).
+       * Its door is drawn from the Engine Room instead.
+       */
+      {
+        id: "health",
+        label: "Diagnostics",
+        door: false,
+        keywords: ["health", "diagnostics", "status", "broken", "down", "outage", "failing"],
+      },
+    ],
+  },
+  {
+    id: "security",
+    label: "Security",
+    desc: "What leaves this workspace, and the trail of what happened.",
+    sections: [
+      {
+        id: "data",
+        label: "Your data",
+        keywords: ["export", "download", "delete", "privacy", "gdpr", "retention"],
       },
     ],
   },
@@ -656,9 +522,10 @@ export const NAV_GROUPS: readonly SettingsGroup[] = SETTINGS_GROUPS.map((g) => (
 
 /**
  * Every door, flattened in nav order. This is the roving-tabindex ring: index 0
- * is what Home reaches and the last entry is what End reaches. End is
- * Diagnostics on purpose - it was the fourteen-stop Tab crawl the founder
- * named, and it is now one keypress from anywhere in the nav.
+ * is what Home reaches and the last entry is what End reaches - Security's one
+ * door, `data`, under seven groups; it was `products` under four. Diagnostics
+ * (`health`) can never be either end: it draws no door at all, so it is
+ * unreachable by Home/End and only found by search or by typing its address.
  */
 export const NAV_DOOR_IDS: readonly SectionId[] = NAV_GROUPS.flatMap((g) =>
   g.sections.map((s) => s.id),
@@ -668,34 +535,49 @@ export const NAV_DOOR_IDS: readonly SectionId[] = NAV_GROUPS.flatMap((g) =>
  * Where a bare `/settings` (no `?section=`) lands.
  *
  * `profile` and NOT `autonomy`, and the reason is worth carrying beside the
- * value rather than only in header §3: a bare `/settings` is an address people
+ * value rather than only in header §2: a bare `/settings` is an address people
  * ARRIVE at rather than one they ask for, and Autonomy is the governance pane -
  * the safety contract a security reviewer is walked through. Somewhere that
- * consequential is a destination you choose. Autonomy keeps the first slot in
- * the nav, so it is still one Home keypress away.
+ * consequential is a destination you choose. Autonomy keeps the second slot in
+ * the nav (the first door of the second group), so it is one Down-arrow past
+ * Home rather than buried.
  */
 export const DEFAULT_SECTION: SectionId = "profile";
 
 /**
  * Legacy and shorthand `?section=` values that must keep landing.
- *   brief    -> workspace   (the strategic brief lives in the Brief and voice pane)
  *   calendar -> connections (calendar accounts are a connector)
  *   plan     -> billing     (the account menu's "Plan and billing" item and the
  *                            signup checkout redirect both target this; they
  *                            must land on Plan, never on the default)
  *   agents   -> staff       (the retired Agents group id; saved links still send it)
- *   you      -> profile     (the retired You group id)
- * Plus group-id symmetry for the live groups, so `?section=<GroupId>` always
- * lands inside that group rather than falling back to the default.
+ *   you      -> profile     (the retired You group id from BEFORE it was reused
+ *                            as a real group id, 2026-08-05 - the two never
+ *                            collide, this key is only ever read as a section)
+ *   crew     -> autonomy    (the retired Agents group id)
+ *   reach    -> connections (the retired Data and access group id)
+ * `brief`, `autonomy`, `connections` and `workspace` are deliberately NOT
+ * mapped here (P-23): each is now BOTH a live `GroupId` and a real
+ * `SectionId` sharing the same string, so `?section=<that group>` resolves
+ * straight through `isSectionId` without needing an alias - `brief` in
+ * particular used to fold into `workspace`, and now landing on the real Brief
+ * pane instead is the alias becoming more correct rather than breaking (see
+ * the file header, §3).
+ *
+ * `usage` and `security` DO need an entry: neither is also a section id (no
+ * pane is called exactly that), so without one `?section=usage` would fall
+ * through to `DEFAULT_SECTION` and land in the wrong group entirely - the
+ * group-id symmetry every other live group gets for free.
  */
 export const LEGACY_SECTION_MAP: Readonly<Record<string, SectionId>> = {
-  brief: "workspace",
   calendar: "connections",
   plan: "billing",
   agents: "staff",
   you: "profile",
   crew: "autonomy",
   reach: "connections",
+  usage: "billing",
+  security: "data",
 };
 
 function isSectionId(raw: string): raw is SectionId {

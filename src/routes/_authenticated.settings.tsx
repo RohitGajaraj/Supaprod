@@ -246,7 +246,6 @@ import {
   testApiKey,
   BYO_PROVIDERS,
 } from "@/lib/byokeys.functions";
-import { getActiveBrief, upsertBrief } from "@/lib/briefs.functions";
 import { getBillingState, getCreditRunway, type BillingState } from "@/lib/billing.functions";
 import {
   getMySubscription,
@@ -286,6 +285,7 @@ import { WorkspaceClaimCard } from "@/components/billing/WorkspaceClaimCard";
 import { IntegrationsTab } from "@/components/settings/IntegrationsTab";
 import { ProductsTab } from "@/components/settings/ProductsTab";
 import { DataSection } from "@/components/settings/DataSection";
+import { BriefSection } from "@/components/settings/BriefSection";
 import { DiagnosticsSection } from "@/components/settings/DiagnosticsSection";
 import { NotificationsSection } from "@/components/settings/NotificationsSection";
 import { RedeemCodeCard } from "@/components/settings/RedeemCodeCard";
@@ -688,11 +688,21 @@ function SettingsPage() {
                 a-name, which only sees a heading written in the branch. */}
             <PageHeading
               title="About your company"
-              sub="The workspace itself, the standing instruction every mission reads before it acts, and who else is in it."
+              /* THE BRIEF MOVED OUT (P-23): it had its own sentence here
+                 ("the standing instruction every mission reads before it
+                 acts") because it rendered fused with this pane. It is a
+                 separate door now, `brief`, so this sub states only what is
+                 actually on this one. */
+              sub="The workspace itself, and who else is in it."
             />
-            <WorkspaceSection scrollToBrief={rawSection === "brief"} />
+            <WorkspaceSection />
           </>
         )}
+        {/* Self-headed, unlike the branch above: its `PageHeading` sub is
+            derived from the read (loading / empty / N-of-M answers), which a
+            wrapper here has no way to compute without lifting that state up
+            for no other reason than to draw one line. */}
+        {active === "brief" && <BriefSection />}
         {active === "brand" && (
           <>
             <PageHeading
@@ -1390,71 +1400,6 @@ function PasswordRegion() {
 }
 
 /* ================================================================== *
- * Workspace - the brief, the voice, the people
- * ================================================================== */
-
-type BriefFieldKey = "mission" | "target_user" | "current_focus" | "anti_goals" | "notes";
-
-/**
- * Prose spells its counts, and the data face uses `Num`. Indexed by
- * `BRIEF_FIELDS.length` on purpose: a sixth field changes the word rather than
- * leaving "five" standing over six answers.
- */
-const COUNT_IN_WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven"] as const;
-
-const BRIEF_FIELDS: {
-  key: BriefFieldKey;
-  label: string;
-  hint: string;
-  placeholder: string;
-  rows: number;
-}[] = [
-  {
-    key: "mission",
-    label: "Mission",
-    hint: "One paragraph. What this workspace exists to do.",
-    placeholder: "We help solo PMs run the work of a 10-person product org.",
-    rows: 3,
-  },
-  {
-    key: "target_user",
-    label: "Target user",
-    hint: "Who you are building for. Every agent anchors on this.",
-    placeholder: "Lead or solo PM at a 10 to 100 person B2B SaaS team. Ships weekly.",
-    rows: 3,
-  },
-  {
-    key: "current_focus",
-    label: "Current focus",
-    hint: "What to prioritise this quarter. Cut, do not expand.",
-    placeholder: "Q3 2026: close the Discover, Plan, Build loop on real signals.",
-    rows: 4,
-  },
-  {
-    key: "anti_goals",
-    label: "Anti-goals",
-    hint: "What the crew refuses, even when it looks reasonable.",
-    placeholder: "No new dashboards. No mocked data. No feature whose value cannot be measured.",
-    rows: 3,
-  },
-  {
-    key: "notes",
-    label: "Notes",
-    hint: "Constraints, decisions and references that do not fit above.",
-    placeholder: "Speak in product terms. Lean concise over verbose. Always cite evidence.",
-    rows: 4,
-  },
-];
-
-const EMPTY_BRIEF: Record<BriefFieldKey, string> = {
-  mission: "",
-  target_user: "",
-  current_focus: "",
-  anti_goals: "",
-  notes: "",
-};
-
-/* ================================================================== *
  * This workspace
  *
  * The management verbs the ScopeMenu link "Manage this workspace" promises
@@ -1820,265 +1765,48 @@ function ThisWorkspaceRegion() {
   );
 }
 
-function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
-  const briefRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (scrollToBrief && briefRef.current) {
-      briefRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [scrollToBrief]);
-
-  const qc = useQueryClient();
-  const { activeWorkspaceId, activeWorkspace, refreshWorkspaces } = useWorkspace();
-  const getFn = useServerFn(getActiveBrief);
-  const upsertFn = useServerFn(upsertBrief);
-  const fProfile = useServerFn(getProfile);
-  const mUpdate = useServerFn(updateProfile);
-
-  const brief = useQuery({
-    queryKey: ["workspace-brief", activeWorkspaceId],
-    queryFn: () => getFn({ data: { workspaceId: activeWorkspaceId ?? null } }),
-  });
-  const profile = useQuery({ queryKey: ["profile"], queryFn: () => fProfile() });
-
-  const effectiveWorkspaceId = activeWorkspaceId ?? brief.data?.workspace_id ?? null;
-
-  const [form, setForm] = useState<Record<BriefFieldKey, string>>(EMPTY_BRIEF);
-  const [voiceAnchor, setVoiceAnchor] = useState("");
-  const [briefDirty, setBriefDirty] = useState(false);
-  const [voiceDirty, setVoiceDirty] = useState(false);
-
-  useEffect(() => {
-    const d = brief.data;
-    if (!d) return;
-    setForm({
-      mission: d.mission ?? "",
-      target_user: d.target_user ?? "",
-      current_focus: d.current_focus ?? "",
-      anti_goals: d.anti_goals ?? "",
-      notes: d.notes ?? "",
-    });
-    setBriefDirty(false);
-  }, [brief.data]);
-
-  useEffect(() => {
-    const p = profile.data?.profile as { voice_anchor_text?: string | null } | null;
-    if (p) {
-      setVoiceAnchor(p.voice_anchor_text ?? "");
-      setVoiceDirty(false);
-    }
-  }, [profile.data]);
-
-  // ONE SAVE, because the brief and the voice anchor are one instrument: what
-  // the crew reads before it acts. Two cards with two Save buttons meant two
-  // primary actions on a surface entitled to one. Both server functions are
-  // still called, and only for what actually changed.
-  const save = useMutation({
-    mutationFn: async () => {
-      if (briefDirty) {
-        const row = await upsertFn({ data: { workspaceId: effectiveWorkspaceId, ...form } });
-        qc.setQueryData(["workspace-brief", activeWorkspaceId], row);
-        qc.setQueryData(["workspace-brief", null], row);
-        void refreshWorkspaces();
-      }
-      if (voiceDirty) {
-        await mUpdate({ data: { voice_anchor_text: voiceAnchor } });
-      }
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["profile"] });
-      setBriefDirty(false);
-      setVoiceDirty(false);
-      toast.success("Saved. The next mission reads it.");
-    },
-    /*
-     * THE SUCCESS SENTENCE IS "The next mission reads it", SO THE FAILURE HAS TO
-     * ANSWER THAT SAME QUESTION. This is the most load-bearing write on the
-     * surface -- the brief is injected into every agent's prompt -- and a bare
-     * error string left it ambiguous whether the crew is now running on the new
-     * text or the old. `briefDirty`/`voiceDirty` stay set on this path, so the
-     * draft is still in the fields and the stored copy is untouched.
-     */
-    onError: (e: Error) =>
-      toast.error(failureLine("The crew still reads the brief it read before.", e)),
-  });
-
-  const dirty = briefDirty || voiceDirty;
-  const filled = BRIEF_FIELDS.filter((f) => form[f.key].trim().length > 0).length;
-
+/**
+ * THE COMPANY RECORD: who is in it, and what it is called (P-23). The brief
+ * moved to its own pane above; this is everything else that was fused with
+ * it under "About your company" - the workspace record, People, the invite
+ * form and the admin door.
+ */
+function WorkspaceSection() {
   return (
-    /* One flex child of the pane, like `ProfileSection`'s form, so it restates the
-       40px column. See that comment for why the other panes do not have to.
-       The management region leads; the ref stays on the Brief block so the
-       ?section=brief deep link still lands there and not on this new top. */
     <div className="flex flex-col gap-mrd-7">
       <ThisWorkspaceRegion />
-      <div ref={briefRef} className="flex flex-col gap-mrd-7">
-        <PageHeading
-          title="Brief and voice"
-          /* The route above draws this pane's h1 ("About your company"), so this
-             heading is the section it names and not a second page title. Two h1
-             elements on one screen name two documents to a screen reader, which
-             is the whole reason `level` exists on this primitive. */
-          level={2}
-          sub={
-            /*
-             * ONE VOICE PER WAIT. This branch used to say "Reading the brief."
-             * and the Region below it says "Reading the brief." through
-             * `Reading`, so every cold load of this pane printed the same
-             * sentence twice, one directly above the other. The Region's copy is
-             * the one attached to the thing being waited on, so it keeps the
-             * line and the heading says nothing until it has something to say.
-             * Falling through to the branches below during the load would be
-             * worse than either: `filled` is 0 until the read lands, so the
-             * heading would assert "Nothing set" about a brief it has not read.
-             *
-             * AND THE RATIO ONLY PRINTS WHEN IT IS SHORT. "these 5 of 5 answers"
-             * was a ratio that can never be anything but N-of-N on a filled
-             * brief, sat on the same pane as MembersCard's "N of the 8 things
-             * that govern the crew". Two ratios, one screen, and the one that
-             * could only ever say one thing was this one. Filled says so in
-             * words; short still counts, because then the numbers differ and the
-             * gap is the point.
-             */
-            brief.isLoading
-              ? undefined
-              : brief.isError
-                ? "The brief did not load, so nothing here is safe to save yet."
-                : filled === 0
-                  ? "Nothing set. Every mission currently starts with no standing instruction."
-                  : filled === BRIEF_FIELDS.length
-                    ? `Every mission starts by reading all ${COUNT_IN_WORDS[BRIEF_FIELDS.length] ?? BRIEF_FIELDS.length} answers${activeWorkspace?.name ? `, for ${activeWorkspace.name}` : ""}.`
-                    : `Every mission starts by reading these ${filled} of ${BRIEF_FIELDS.length} answers${activeWorkspace?.name ? `, for ${activeWorkspace.name}` : ""}.`
-          }
-        />
-
-        <Region title="What the crew reads before it acts">
-          {brief.isLoading ? (
-            <Reading>Reading the brief.</Reading>
-          ) : brief.isError ? (
-            // A failed read must never render blank fields whose save would wipe
-            // the real brief.
-            <ReadFailedLine onRetry={() => void brief.refetch()}>
-              The brief did not load. {readFailureMessage(brief.error)}
-            </ReadFailedLine>
-          ) : (
-            /*
-             * THE STACK STATES ITS OWN GAP NOW. The retired `.sp-field` carried
-             * `margin-top: var(--sp-space-3)` (12px), so six stacked fields were
-             * spaced by the primitive and the Actions row underneath them was not
-             * spaced at all. Meridian's `Field` sets no outer margin, on the same
-             * rule `Actions` and `Pre` follow -- a composition decision belongs to
-             * the composition -- so one 16px column here replaces both, which is
-             * the nearest stop at or above the 12px it had.
-             */
-            <div className="flex flex-col gap-mrd-5">
-              {BRIEF_FIELDS.map((f) => (
-                <Field key={f.key} label={f.label} htmlFor={`brief-${f.key}`}>
-                  <Textarea
-                    id={`brief-${f.key}`}
-                    value={form[f.key]}
-                    rows={f.rows}
-                    placeholder={f.placeholder}
-                    aria-describedby={`brief-hint-${f.key}`}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setForm((prev) => ({ ...prev, [f.key]: val }));
-                      setBriefDirty(true);
-                    }}
-                  />
-                  {/*
-                   * NOT `Field`'s own `hint` slot, and the reason is the binding
-                   * rather than the paint: `hint` renders no id, so moving this
-                   * there would leave `aria-describedby` pointing at nothing and
-                   * silently drop the description for anyone reading by ear. The
-                   * 5px top margin is gone because `Field` is a 6px flex column
-                   * now, so the space is stated once instead of twice.
-                   */}
-                  <span
-                    id={`brief-hint-${f.key}`}
-                    style={{
-                      display: "block",
-                      fontSize: "var(--mrd-t-label)",
-                      color: "var(--mrd-mute)",
-                    }}
-                  >
-                    {f.hint}
-                  </span>
-                </Field>
-              ))}
-
-              <Field label="Voice" htmlFor="voice-anchor">
-                <Textarea
-                  id="voice-anchor"
-                  value={voiceAnchor}
-                  rows={3}
-                  maxLength={2000}
-                  placeholder="Direct, evidence first, no hype. Challenge weak assumptions. Short declarative sentences."
-                  aria-describedby="voice-hint"
-                  onChange={(e) => {
-                    setVoiceAnchor(e.target.value);
-                    setVoiceDirty(true);
-                  }}
-                />
-                <span
-                  id="voice-hint"
-                  style={{
-                    display: "block",
-                    fontSize: "var(--mrd-t-label)",
-                    color: "var(--mrd-mute)",
-                  }}
-                >
-                  The tone and stance every agent writes in. Leave it empty to skip.
-                </span>
-              </Field>
-
-              <Actions>
-                <Action
-                  variant="primary"
-                  disabled={!dirty || save.isPending || profile.isLoading}
-                  onClick={() => save.mutate()}
-                >
-                  {save.isPending ? "Saving" : dirty ? "Save the brief" : "Saved"}
-                </Action>
-              </Actions>
-            </div>
-          )}
+      {/*
+       * ── THE NESTED BLOCK IS GONE, 2026-08-17 ──────────────────────────────────
+       * Founder, twice: "in Brief and voice, if you go to the bottom, there is an
+       * Invite teammates button, so that is not at all working and opening."
+       *
+       * There is no broken button. TeamCard is fully wired -- email, role, a real
+       * `invite.mutate()`, the join link and the pending list. What was broken is what
+       * the surface LOOKED like: `TeamCard` draws its own `Block title="Invite
+       * teammates"`, and it sat inside `Block title="People"`. A Block renders card
+       * chrome and a heading, so nesting one produced a bordered, titled row inside
+       * another bordered, titled row -- which is the shape this product uses for a
+       * pressable thing everywhere else. He pressed a heading, correctly expecting it
+       * to open something, and nothing happened.
+       *
+       * A control that is not a control is still a defect, and this is the honest fix:
+       * the two cards are siblings at the same rung, each owning its own Block, so the
+       * invite form is visibly a form rather than a closed door.
+       *
+       * `id` so search can land on it: typing "invite" should arrive at this heading.
+       * Duplicated by /admin, which is gated on being an admin, so it stays here until
+       * it has a section of its own.
+       */}
+      <div id={PEOPLE_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
+        {/* MembersCard draws no Block of its own, so it keeps this one. TeamCard does
+          draw one, which is exactly why it must not be inside this. */}
+        <Region title="People">
+          <MembersCard />
         </Region>
-
-        {/*
-         * ── THE NESTED BLOCK IS GONE, 2026-08-17 ──────────────────────────────────
-         * Founder, twice: "in Brief and voice, if you go to the bottom, there is an
-         * Invite teammates button, so that is not at all working and opening."
-         *
-         * There is no broken button. TeamCard is fully wired -- email, role, a real
-         * `invite.mutate()`, the join link and the pending list. What was broken is what
-         * the surface LOOKED like: `TeamCard` draws its own `Block title="Invite
-         * teammates"`, and it sat inside `Block title="People"`. A Block renders card
-         * chrome and a heading, so nesting one produced a bordered, titled row inside
-         * another bordered, titled row -- which is the shape this product uses for a
-         * pressable thing everywhere else. He pressed a heading, correctly expecting it
-         * to open something, and nothing happened.
-         *
-         * A control that is not a control is still a defect, and this is the honest fix:
-         * the two cards are siblings at the same rung, each owning its own Block, so the
-         * invite form is visibly a form rather than a closed door.
-         *
-         * `id` so search can land on it: typing "invite" should arrive at this heading.
-         * Duplicated by /admin, which is gated on being an admin, so it stays here until
-         * it has a section of its own.
-         */}
-        <div id={PEOPLE_ANCHOR} style={{ scrollMarginTop: "var(--mrd-s7)" }}>
-          {/* MembersCard draws no Block of its own, so it keeps this one. TeamCard does
-            draw one, which is exactly why it must not be inside this. */}
-          <Region title="People">
-            <MembersCard />
-          </Region>
-        </div>
-        <TeamCard />
-
-        <AdminDoor />
       </div>
+      <TeamCard />
+
+      <AdminDoor />
     </div>
   );
 }
