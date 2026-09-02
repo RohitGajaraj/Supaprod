@@ -293,6 +293,7 @@ import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
 import { BoundaryControls } from "@/components/governance/BoundaryControls";
+import { WILL_ASK_BEFORE_IT_SHIPS } from "@/components/track/footer-mode";
 import { getBoundary } from "@/lib/governance.functions";
 import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { BudgetsPanel } from "@/components/governance/BudgetsPanel";
@@ -4030,7 +4031,17 @@ function BoundaryPane() {
        */}
       <PageHeading
         title="What they may do without asking"
-        sub="Every tool, the ceiling on a run, what routes itself, and the switch that stops all of it."
+        /*
+         * THE LAST SENTENCE IS THE ONE HALF OF THE FOOTER'S OWN MANDATE LINE
+         * THAT HOLDS NO MATTER WHAT THE PANE ABOVE SAYS (P-17). "Working on
+         * its own" is a run-in-progress fact this page has no single run to
+         * report; "It will ask before it ships" is R-27, a platform floor
+         * true whatever the arc, whatever the ceiling, whatever the kill
+         * switch says -- so it is imported from footer-mode.ts rather than
+         * retyped, and this page is the one honest place to say it before
+         * any run is even open.
+         */
+        sub={`Every tool, the ceiling on a run, what routes itself, and the switch that stops all of it. ${WILL_ASK_BEFORE_IT_SHIPS}`}
       />
       {/* BoundaryControls owns the kill switch now (S0 ruling A-006
                 section 2): one editor, and it is the panel that edits every

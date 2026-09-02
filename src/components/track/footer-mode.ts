@@ -32,6 +32,19 @@ import { nothingIsComing } from "@/components/track/nothing-is-coming";
 import { STOPPED_BY_YOU } from "@/lib/spine/driver";
 
 /**
+ * THE ONE HALF OF THE FOOTER SENTENCE THAT IS TRUE REGARDLESS OF STATE.
+ *
+ * "Working on its own" describes a run in progress and is false the moment
+ * nothing is running. This clause is different: it is R-27 (see the header
+ * above), a platform floor rather than a per-run fact, so it holds whether or
+ * not any track is walking and whatever the workspace's arc is set to. That is
+ * what makes it safe to state on a surface with no single run to report on --
+ * Settings > Autonomy imports this constant rather than a copy, so the two
+ * places can never say something different from the one this file proves.
+ */
+export const WILL_ASK_BEFORE_IT_SHIPS = "It will ask before it ships.";
+
+/**
  * Did a PERSON stop this run, as opposed to the workspace kill switch?
  *
  * Both hold as `paused`, because the hold vocabulary is closed and a new member
@@ -151,7 +164,7 @@ export function footerMode(input: {
    */
   if (input.walking) {
     return {
-      line: "Working on its own. It will ask before it ships.",
+      line: `Working on its own. ${WILL_ASK_BEFORE_IT_SHIPS}`,
       canStop: true,
       canRun: false,
       leave: "This page is buying its next steps. Close it and it finishes the step it is on.",
@@ -177,7 +190,7 @@ export function footerMode(input: {
    */
   if (input.crewLive) {
     return {
-      line: "Working on its own. It will ask before it ships.",
+      line: `Working on its own. ${WILL_ASK_BEFORE_IT_SHIPS}`,
       canStop: true,
       // The loop is driving this, not the page. Nothing here is required, and
       // saying so is the whole of SESSION-1's second unit.
