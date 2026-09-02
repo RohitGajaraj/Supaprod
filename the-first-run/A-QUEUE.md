@@ -397,7 +397,7 @@ _18:48 IST_ — all three readings accepted. (1) The footer carries one control:
 
 ---
 
-### P-24 · Every artifact in the transcript opens on the right, and looks like it will · Lane: **A2** · Status: CLAIMED (A2, 20:32 IST) · Moves: 3, 4, 5
+### P-24 · Every artifact in the transcript opens on the right, and looks like it will · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 21:05 IST) · Moves: 3, 4, 5
 
 **Why (founder, 2026-09-02 20:09, on the live site).** *"When some PRD or spec is written it gives a
 block, and it is not clickable. It needs to be clickable, viewable, editable. Not just the spec: any
@@ -447,7 +447,73 @@ for prototypes and diffs is post-launch). The Start page (P-05).
 - [ ] The Report's table: artifact kind · opens · editable or view-only · actions shown.
 - [ ] Verified on `supaprod.ai` after publish (rule 12), with what you saw.
 
-**Report / Blockers / A1 verdict:**
+**Report (A2 writes):** DONE-PENDING-VERIFY, sha `c570e0970`. tsc **0** . `bun test` **13,590 pass /
+0 fail** . lint clean on every file touched.
+
+**What changed, and why the row alone was not enough.** P-01 made the turn's HEADLINE pressable and
+it selected a STATION. A station points at one thing per station, so on a Design turn that filed ten
+prototypes the third could be read in the transcript and not opened: the chip naming it was a
+`<span>`. That chip is the only place on this screen where one specific filed thing is drawn by name,
+so it is the only place one specific filed thing can be opened from. It is a `<button>` now and the
+selection is an **artifact id** everywhere: transcript chip, row headline, `GotYou` chip, pane, URL.
+
+**The name is the artifact, not "Open".** A screen reader announces the accessible name, and "Open"
+eleven times down a transcript names nothing. The word and the title already name it; the ROLE says
+it is pressable, which is what an `aria-label` would have been trying to say and would have destroyed
+the name to say it. A chip with no listener stays a plain fact with no pointer and no tab stop
+(`ToolStream`'s contract), and a **missing artifact is never a control**, because pressing it could
+only open an empty pane.
+
+**Deep link.** `?artifact=<uuid>`, shape-checked rather than type-checked, because `validateSearch`
+is a whitelist and any string at all would let `?artifact=<anything>` sit in a shared link looking
+real. `replace: true`: picking an artifact is not a place you go, and pushing would make Back walk
+one entry per chip pressed. The pane's own `activeState` is gone with it, because two sources of
+truth for one pointer is one answer only this pane can see and nobody can share.
+
+**The head** names what is open, who filed it, where and when, and carries *Back to the newest*. The
+"filed by" clause comes off the transcript's own cache entry rather than a third table, because
+`spine_track_members` records what was filed and where and carries no author; a seat the record
+cannot name drops the clause, since "filed by somebody" is not a fact.
+
+**The table asked for (§4). Derived from what the body below the head actually mounts, checked one
+kind at a time rather than assumed:**
+
+| Kind | Opens | Editable? | Actions the head states |
+| --- | --- | --- | --- |
+| `prd` spec | `PlanSpec` | **editable** | Edit it and save the whole document back |
+| `decision` | `DecisionCard` | **editable, write-once** | Approve or reject while pending; the forecast is recorded once and cannot be edited after |
+| `learning` | `LearningCard` | **editable** | Grade it, defer the check, or disagree with the verdict |
+| `signal` finding | `SignalCard` | **editable** | Discard it, which takes two presses |
+| `theme` cluster | `ThemeCard` | **editable** | Rename it, or say it is not a pattern |
+| `prototype` | `PrototypeCard` | view-only | Open it full size. There is no editor for a prototype yet |
+| `changeset` | `ChangesetCard` + `Verdict` | view-only | Open the pull request. The diff and the verdict are read-only here |
+| `deployment` release | `ReleaseCard` | view-only | Open what went out. A release is a record and is not edited |
+| `task` / `mission` | `TaskSteps` / `MissionCard` | view-only | Read-only. Nothing here writes |
+
+**Never an edit control that does nothing**, which is the rule behind that column: a person who reads
+"there is no editor for a prototype yet" has learnt something true, and a person who meets a disabled
+Edit button has learnt something false about the product.
+
+**The edit controls came up out of the scroll.** "Edit the spec" sat under the whole markdown body and
+Save sat under a 16-row textarea, both several screens down on the pane they open in. An editor a
+person has to scroll a document to find is one they will not find.
+
+**One stated limit, rather than left to be found.** At **Discover** the pane opens the station and the
+head names the artifact, but the individual card is not ringed: Discover's body is a grouping of
+findings under their clusters rather than a list of peers, and marking one card inside a grouping is
+a different design question from leading a panel with it. Every other station leads with the artifact
+that was pressed.
+
+**Meridian note.** `RunArtifact` gained `onOpen` and `selected` and became a `<button>` when something
+is listening. Checked first: `surface-parts.tsx`'s `Cell` is the only pressable primitive with the
+right state contract (`aria-pressed`, hover/ground pair, selection ring) and it is a `min-h-11` ROW
+by its own header, not an inline chip, so it could not serve. Nothing in `run-rows.tsx` was pressable
+at all before this. P-19 can take the chip if a second surface ever needs it.
+
+**Blockers (A2 writes):** none. UI walk on `supaprod.ai` pending Lovable ingesting `c570e0970`; will
+append what I saw here.
+
+**A1 verdict:**
 
 ---
 
