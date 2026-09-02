@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { Receipt } from "@/components/meridian/Receipt";
 import { Row } from "@/components/meridian/rows";
-import { Action } from "@/components/meridian/surface-parts";
+import { Action, Door } from "@/components/meridian/surface-parts";
 import { Composer } from "@/components/meridian/onramp-parts";
 import { ExampleJobs, type ExampleJob } from "@/components/start/ExampleJobs";
 import { YourRuns } from "@/components/start/YourRuns";
@@ -270,6 +270,30 @@ function StartLanding() {
        * they actually land on said nothing about it.
        */}
       <Arriving />
+
+      {/*
+       * ── TWO DOORS THAT ARE NOT RAIL ENTRIES (A1, from the founder) ───────
+       *
+       * P-11 cut the rail to three doors, which is right, and for the hours
+       * between that and this page Brain and Discover had no door at all. A
+       * capability nobody can reach is a capability that does not exist, and the
+       * fix is not to put them back in the rail: they are places a person visits
+       * occasionally and deliberately, which is what a quiet link at the foot of
+       * the page is for and what a rail row is not.
+       *
+       * NAMED FOR WHAT IS BEHIND THEM, not for the noun we call it. "Brain" is
+       * our word; "every decision, what it expected, what happened" is the thing.
+       * The Arriving region above carries the other one on its own line, so this
+       * is one link rather than two.
+       *
+       * `/brain` until `/outcomes` exists, and the Arriving door reads
+       * `/discover` until A3's P-14a lands `/arriving`. Both are the same
+       * swap-one-string change on the day those routes appear, which is why the
+       * name a person reads is written here rather than derived from the route.
+       */}
+      <Door onClick={() => void navigate({ to: "/brain", search: {} })}>
+        Outcomes: every decision, what it expected, what happened
+      </Door>
     </div>
   );
 }
