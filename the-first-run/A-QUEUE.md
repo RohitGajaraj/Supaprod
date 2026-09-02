@@ -92,7 +92,6 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 
 **DEV SERVER: off** · any lane may start it when a packet needs a rendered check; the lane that starts it stops it and writes `off` here before reporting the packet.
 **LIVE WALKS (A1): paused 04:12 IST, the Chrome extension disconnected; publishes continue, walks resume when it reconnects. Pending walks: P-25a search panel, `/plan` and `/design` redirects, P-14 batch, P-18a.**
-**FOUNDER, ONE LINE (P-04):** the stop email needs a sent-table keyed `UNIQUE(track_id, hold)`; create it or authorise a lane to, then A2 builds the send.
 
 ---
 
@@ -2104,6 +2103,33 @@ the answer path bumps `updated_at`, or the sweep keeps fetching any track with a
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
+
+### P-03c · Build's need-check cannot see the spec it built from · Lane: **A2** · Status: READY, first in A2's line · Moves: 3
+
+**Why.** The honest run has cycled build → define → design → build since 22:20 UTC (stage_events:
+22:20, 22:31, 22:42, 23:50). At `attempts ≥ MAX_STATION_ATTEMPTS` `decideDrive` returns the computed
+hold `stalled`, which is in `CORRECTABLE_HOLDS`, and `decideCorrection` routes back to
+`STATION_NEEDS.build.from` (define) because `needIsMet` is false: it judges Build to be missing "a
+spec or the tasks to build from" on a track that has two specs and built from them. Every lap files
+another spec and another prototype, which is the duplication the run screen has shown for weeks.
+
+**Scope.** Find whether `filedAtThisStation` misses the spec at Build or the need is read against
+another station's filings; fix at the source. A track at the ceiling with a spec and a `pr_open`
+changeset holds at `given-up` with the red-tile sentence, never routes back. A track that has a spec
+never re-runs Define because of Build. Test both, and a canary on the cycle (no two consecutive
+`stage_events` may reverse each other on one track without a person's row between them).
+
+**Files.** `src/lib/spine/driver.ts` (`decideDrive`, `decideCorrection`, `needIsMet`,
+`filedAtThisStation`), `driver.server.ts`, their tests.
+
+**Acceptance.**
+- [ ] The two tests above; the cycle canary.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error (console) on the whole suite · pushed · Report naming
+      which read was wrong.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
+
 ### P-04 · The horizon verdict arrives · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 06:40 IST) — the live half is A1's · Moves: 3, 4, 5
 
 **Scope.** R-31 in Decide's brief (forecast about the user's product; observable never a Supaprod
@@ -2264,6 +2290,13 @@ smaller than the scope line suggests.
 2. The Start row's forecast sentence on a finished run.
 3. The transcript's verdict row, which draws at the moment the bet was settled rather than at either
    end of the stream.
+
+
+**A1, 05:30 IST · the stop email is not blocked.** A2 trusted `stopped-email.ts`'s own header, which
+says the migration is not applied; it landed 2026-09-01: `track_hold_notices` exists with
+`UNIQUE(track_id, hold)`, the send path is real, and `user_notification_preferences.email_stopped` is
+the preference. Blocker withdrawn, header corrected. Third stale "this does not exist" comment in two
+days about a thing that does; read the schema, not the comment.
 
 **Report / A1 verdict:**
 
