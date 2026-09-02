@@ -76,6 +76,10 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     module load, so its count climbs while main is red. Green means the junit report shows 0
     failures AND the console summary shows `0 fail` and `0 error`. A guard that reads a deleted
     route's source is such a file; delete the guard with the route.
+14. **A module mock outlives its file.** `mock.module` is process-wide in bun. Never register a
+    partial object for a shared module: snapshot the real exports first, spread them, override
+    only what the test observes, and pin a wrapped component to a `const` (the namespace is a live
+    binding and will point at the mock). "Passes alone, fails in the run" is this defect, not a flake.
 
 ### The bar a packet is verified against, in this order
 
