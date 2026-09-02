@@ -2327,7 +2327,7 @@ instead.
 
 ---
 
-### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: READY (P-05 DONE) · Moves: 3
+### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: CLAIMED (A3, 2026-09-03) · Moves: 3
 
 **Scope.** `tracks-feed.ts` becomes the one read model for a track's one-line state, used by
 `YourRuns` (P-05), the shell top bar ("3 runs are moving"), and the strip's produced-sentence
