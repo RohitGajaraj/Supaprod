@@ -1256,7 +1256,7 @@ abandoned · show them* (`b23adf166`). Closed.
 
 ---
 
-### P-15 · The sad path on Start and Run · Lane: **A3** · Status: CLAIMED (A3, 00:58 IST) · Moves: 2, 5
+### P-15 · The sad path on Start and Run · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 2026-09-03) · Moves: 2, 5
 
 **Scope.** Every empty, loading, failed, held and permission-denied state on `/start` and
 `/track/:id` says what happened and what to do next, in the canon's register, with no internal id.
@@ -1265,14 +1265,97 @@ Enumerate them first (Report lists each state, its trigger, its copy, its next a
 **Files.** The components P-01 and P-05 leave in place; tests.
 
 **Acceptance.**
-- [ ] A table in the Report: state · trigger · copy · action. Every hold reason in `HoldReason`
+- [x] A table in the Report: state · trigger · copy · action. Every hold reason in `HoldReason`
       (`driver.ts:488-626`) has a row; the copy comes from `HOLD_LINE` and is shown once per screen.
-- [ ] No state renders a UUID, a ledger id, or a session name.
-- [ ] Loading never shows an empty region longer than 300 ms without a skeleton row.
-- [ ] The root not-found page (`/today`, any dead address) hides *Sign in* when a session exists and
-      its *Go home* lands on `/start` (found by A1 on the live site, 2026-09-02 20:05).
+- [x] No state renders a UUID, a ledger id, or a session name.
+- [x] Loading never shows an empty region longer than 300 ms without a skeleton row.
+- [x] The root not-found page (`/today`, any dead address) hides *Sign in* when a session exists and
+      its *Go home* lands on `/start` (found by A1 on the live site, 2026-09-02 20:05). **Go-home
+      half built; hides-Sign-in half is a Meridian gap, see Blockers.**
 
 **Report / Blockers / A1 verdict:**
+
+Commit `3f52084cc` (pushed to `main`). `tsc` 0. Changed-file lint 0 (repo-wide `bun run lint` carries
+477 pre-existing problems across files this packet never touched -- `mcp.ts`, `a2a.*`, `drift-tick.ts`
+-- confirmed unrelated by running eslint scoped to just the 5 files this packet changed). `bun test`:
+junit reporter (authoritative, `--reporter=junit`) says **0 failures, 0 errors across 973 files**. The
+console reporter's own summary said "1 fail, 1 error" on every run, always attributed to
+`src/routes/api/public/hooks/-_auth.server.test.ts` (a pre-existing cron-hook auth test this packet
+never touched); that file alone runs 26/26 clean in isolation, and junit's per-testcase output shows
+it fully green too. Treating the console-reporter count as a Bun 1.4.0 flake in how it tallies async
+rejections that file deliberately triggers-and-catches (`RPC not mocked for this test`, its own
+documented "Default: RPC call fails" path) under full-suite load, not a real regression -- the
+authoritative reporter and the isolated run both say otherwise, twice each.
+
+**Acceptance line 1, the table.** Every `HoldReason` (18, `driver.ts:488-626`), its trigger, its
+`HOLD_LINE` copy verbatim, and the action a person actually gets -- which is one of three sources:
+ten reasons carry the action inside `HOLD_LINE` itself, six get a diagnosis+offer appended by
+`wayOut()` (`way-out.ts`), and two (`needs-evidence`, `needs-a-waived-station`) get a dynamic,
+per-track door from `last_hold_because` (written by `correction.ts` at hold time, not a static
+string -- see Blockers for a stale comment this surfaced).
+
+| State (`HoldReason`) | Trigger | Copy (`HOLD_LINE`) | Action |
+| --- | --- | --- | --- |
+| `paused` | A workspace-wide kill switch is on. | "Everything is paused for this workspace, so nothing ran." | `wayOut`: "Nothing on this screen can lift it." No offer -- lifting the pause is not a control this screen has. |
+| `waiting-on-a-person` | The agent hit its boundary and put a call in front of a person. | "A call is in front of you. The work continues once it is decided." | The call itself, rendered above this line on the screen -- not from `wayOut` (excluded by design; see file header). |
+| `no-agent` | The agent assigned to this station is switched off (`agent-disabled` halt; the null-lead branch is unreachable today, 7/7 stations have a lead). | "No agent is picking this step up, so it needs you." | `wayOut`: "The agent that covers it is switched off, and turning it back on under Agents is what starts this again. Do this step yourself and hand the result in." |
+| `done` | The track finished its route. | "The route is finished. This work has been graded." | N/A -- terminal success, not actually a hold (`way-out.ts`'s own header says so). |
+| `produced-nothing` | The station ran, completed cleanly, filed nothing. | "This step ran but filed nothing, so there is nothing to hand to the next one. It will try again." | Self-contained in the copy: it retries on its own. |
+| `nothing-to-hand-on` | The station filed something, but not what the next station needs. | "This step filed something, but not what the next one needs, so the work cannot move on yet. It will try again." | Self-contained: retries on its own. |
+| `stalled` | The station ran and produced nothing, repeatedly. | "This step ran and produced nothing several times, so it is being sent for a fix." | `wayOut`: "Another try lands in the same place." + whichever of undo/handback/steer this track has available (both undo+handback: "Send it back a step, or do this step yourself."). |
+| `out-of-time` | The tick ran out of wall clock before this seat could start (not counted as an attempt). | "This run of the loop ran long, so the rest of the work carries on next time." | Self-contained: carries on next tick. |
+| `over-budget` | The track spent what it was allowed. | "This work has spent its budget, so it stopped. Raise the ceiling to let it carry on." | Self-contained: raise the budget ceiling. |
+| `out-of-credit` | The workspace account ran out of credit before this station could run (not charged, not counted as an attempt). | "The account ran out of credit before this step could run, so nothing was tried and nothing was charged against this work. Top the account up and it carries on from here." | Self-contained: top up the account. |
+| `tools-refused` | F-41. A tool the station needs refused it (e.g. a GitHub 401) -- the connection, not the work. | "This station could not use a tool it needs, so nothing it filed would have been the work... Reconnect it and start this work again." | `wayOut`: "A door it needs is locked, and no step can unlock it for itself. Do this step yourself and hand the result in." |
+| `going-in-circles` | F-43. The station has been dispatched many times with zero net movement (distinct from `attempts`, which `out-of-time` never increments). | "This station has been run many times over and the work has not moved on once... nothing further will be spent on it until you look." | `wayOut`: "Trying again changes nothing." + undo/handback/steer, same as `stalled`. |
+| `self-check-failed` | S0-001. The station filed output but it failed the station's own quality check. | "This station filed something, but it did not meet the quality it checks for before handing it on. The output exists and will be examined again the next time it runs." | Self-contained: re-examined automatically, never reaches a person. |
+| `needs-evidence` | Nothing to work from, and no station on this route can produce it. | "This station is waiting rather than failing, and starts again on its own when what it needs arrives." | Dynamic, from `last_hold_because` (`correction.ts`) -- the static line is effect-only by design (F-177, avoiding a contradiction with Learn's horizon-date reason on the same field). |
+| `needs-a-waived-station` | The station that would file the missing thing is waived off this route. | "This station has stopped here, and nothing left on this route will move it on." | Dynamic, from `last_hold_because` -- same F-177 split; see Blockers for a stale quote of the old static text still sitting in `way-out.ts`'s own header comment. |
+| `station-cannot-finish` | Everything the station needs is on the record and it still finishes empty, repeatedly. | "This station has stopped here, and another run would land in the same place." | `wayOut`: no diagnosis line (HOLD_LINE already states cause+repetition), offer only -- undo/handback/steer per availability. |
+| `corrections-spent` | Sent back for the same fix as often as it is allowed, still short. | "Nothing further will be spent on this until you look." | `wayOut`: "It has been sent back for this same fix as often as it is allowed and is still short of it." + undo/handback/steer. |
+| `given-up` | Corrected, came back, still cannot finish -- nothing more will be tried automatically. | "This station was corrected, came back, and still cannot finish with everything it needs on the record. Nothing more will be tried on it automatically." | `wayOut`: "Nothing more will be tried here on its own." + undo/handback/steer. |
+
+**Acceptance line 2, no UUID/ledger id/session name.** Audited by grep across `track/`, `spine/`,
+`start/` and `today/` for direct id interpolation into JSX text -- every hit was a `key=` prop, a DOM
+`id=` attribute, or a value passed to another component as a prop, never rendered as visible text.
+Backstopped system-wide by `src/lib/error-copy.ts`'s `messageForPerson()`, which already strips
+UUIDs, snake_case, camelCase and SCREAMING_SNAKE tokens from any raw error text before it reaches a
+screen -- this is why `SessionEnded`'s own error prop is safe to pass a raw `Error` object into.
+
+**Acceptance line 3, the 300ms skeleton rule.** Argued from source, not measured with a stopwatch (no
+live browser this session, same credential gap as P-11/P-16/P-17): no component on either surface
+gates its loading UI behind an artificial delay: `Reading`/`ReadFailedLine` on both routes render
+directly off `isLoading`/`isError`, the same tick React commits. There is no code path that could
+produce a longer, un-skeletoned empty region than "however long the first paint takes."
+
+**Acceptance line 4, root not-found.** Built: `NotFoundComponent` (`__root.tsx`) now takes an
+injectable `getSession` prop (default: the real supabase client), and once a session is confirmed it
+overrides `PageRouteMissing`'s `onGoHome` to `/start`; tested in
+`not-found-lands-you-signed-in.test.tsx` (2 tests) by injecting a fake session read directly, not by
+mocking `@/integrations/supabase/client` -- that module is already mocked in `AskPane.test.tsx`, and
+`a-module-mock-is-process-wide.test.ts`'s frozen `KNOWN_SHARED` ratchet forbids a second file adding
+to that set. `NotFoundComponent`'s route registration is `notFoundComponent: () => <NotFoundComponent
+/>` because TanStack's `NotFoundRouteProps` type does not structurally accept the injectable-prop
+signature; the exported, testable component stays separate.
+
+**Not built: hiding Sign in when a session exists.** `PageRouteMissing`
+(`src/components/meridian/boundary-states.tsx`) has no visibility toggle for its own *Sign in*
+control -- it is unconditional. Rule 10 forbids A3 from editing anything under
+`src/components/meridian/**`, and CLAUDE.md is explicit that the fix is "build it into Meridian
+first," not fork it with a competing local wrapper. **Flagging for A1/A2**: `PageRouteMissing` needs
+an optional prop (e.g. `hideSignIn?: boolean`) that `NotFoundComponent` can pass once `getSession`
+resolves to a session, same shape as the `onGoHome` override already built.
+
+**Second, smaller flag: a stale quote in `way-out.ts`'s own header comment.** Lines 19-26 list ten
+`HoldReason`s that "already end with the action, in the driver's own words," and quote
+`needs-evidence` as ending "Connect a source, or file the missing input by hand" and
+`needs-a-waived-station` as ending "Put that station back on the route, or file it yourself." Neither
+string is in the live `HOLD_LINE` any more (verified by reading `driver.ts` directly, F-177 replaced
+both with effect-only text once the door moved to `last_hold_because` -- driver.ts's own comment
+block above `needs-evidence` documents exactly this move). The header comment in `way-out.ts` was
+never updated to match. Not fixing it myself: `way-out.ts` is dense with F-numbered history from
+multiple lanes (S0/S1/S2/S4) and outside this packet's file list; a two-line comment correction risks
+a conflict on a file under active multi-lane iteration for a fact this Report now records anyway.
 
 ---
 
