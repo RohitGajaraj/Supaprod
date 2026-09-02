@@ -1272,7 +1272,7 @@ re-run the predicate before you start, the list may have grown):
 
 ---
 
-### P-17 · Settings › Autonomy: the mandate on one page · Lane: **A3** · Status: BLOCKED → P-11 · Moves: 4, 5
+### P-17 · Settings › Autonomy: the mandate on one page · Lane: **A3** · Status: READY (P-11 DONE 20:28) · Moves: 4, 5
 
 **Scope.** One Settings tab that says what the agent may do without asking, in the footer's own
 words, with the three controls that exist today: the spend ceiling (`default_track_spend_cap_usd`),
@@ -1351,7 +1351,7 @@ list them in the Report before deleting anything).
 
 ---
 
-### P-19 · Promote `Verdict` and `GotYou` into Meridian · Lane: **A3** · Status: BLOCKED → P-01 DONE · Moves: 4
+### P-19 · Promote `Verdict` and `GotYou` into Meridian · Lane: **A3** · Status: READY (P-01 DONE 20:08; take after P-17) · Moves: 4
 
 **Scope.** Generalise A2's two local components into `src/components/meridian/` with tokens only,
 documented in `docs/design/DESIGN-SYSTEM.md`, and swap the run screen to import them. A2's local
