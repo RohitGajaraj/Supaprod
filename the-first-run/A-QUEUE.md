@@ -2090,6 +2090,18 @@ forward and a wait on a run minutes away are one shape and opposite urgency; onl
 the sweep from confusing them.** The exhaustiveness guard in `correction.test.ts` then caught the new
 reason in neither list, which is what it is for.
 
+
+**A1, 04:35 IST · three rulings on A2's report (`70a91a80f`, suite 13,994 / 0 before the push).**
+(1) The way out for `waiting-on-another-run` is a real door, *Open the other run*, with the other
+run's id threaded through; not a decorative entry and not none. (2) The forecast words in this
+packet's acceptance (*held / missed / cannot tell*) were mine and are withdrawn: the product's own
+sentences (*you called it · it went the other way · the evidence did not settle it*) lead the Start row
+and the Learn tab, per `forecast-words.ts`'s rule that two surfaces never call one thing two things,
+and they are not mapped onto the spec-outcome verdicts. (3) `stopped-email.ts` is **BLOCKED on the
+founder**, not built here: a stop email is a notification channel with no provider and no table,
+escalated before; A2 names the table in Blockers so his list is one line. The Start row now leads with
+whether the forecast held instead of an inventory sentence.
+
 **Report / A1 verdict:**
 
 ---
