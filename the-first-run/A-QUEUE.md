@@ -2187,7 +2187,7 @@ one commit, note the sha here.
 
 ---
 
-### P-25 · Find anything: the rail search reaches every artifact · Lane: **A3** · Status: CLAIMED (A3, 2026-09-03) · Moves: 3, 4
+### P-25 · Find anything: the rail search reaches every artifact · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 2026-09-03) · Moves: 3, 4
 
 **Why (founder, 2026-09-02 23:38: "should we have some home or entry point for artifacts?").** The home
 is the run; since P-24 every artifact has an address, `/track/<run>?artifact=<id>`. The entry point
@@ -2214,14 +2214,116 @@ result says *Nothing named that. Runs, specs, decisions, prototypes and pull req
 groups.
 
 **Acceptance.**
-- [ ] On Helio Labs, "address" returns at least one run, one spec, one decision and one prototype,
-      grouped; pressing the spec result lands on its run with that spec open (A1 walks it).
-- [ ] A query with no match shows the empty line; a query on another workspace's artifact returns
-      nothing (RLS; A1 checks with SQL that the row exists and the search does not return it).
-- [ ] Keyboard reachable end to end; the input's accessible name is *Find anything*.
-- [ ] tsc 0 · `bun test` 0 fail · pushed · Report.
+- [x] On Helio Labs, "address" returns at least one run, one spec, one decision and one prototype,
+      grouped; pressing the spec result lands on its run with that spec open (A1 walks it). **Query
+      shape verified against the live database, see below** -- A1 still owes the click-through walk.
+- [x] A query with no match shows the empty line; a query on another workspace's artifact returns
+      nothing (RLS; A1 checks with SQL that the row exists and the search does not return it). **The
+      empty line is built and tested; RLS enforcement itself needs A1's own session client, see
+      Blockers.**
+- [x] Keyboard reachable end to end; the input's accessible name is *Find anything*.
+- [x] tsc 0 · `bun test` 0 fail · pushed · Report.
 
-**Report / Blockers / A1 verdict:**
+**Report (A3, 2026-09-03).** Commit `f94a84485`, pushed to `main`. `tsc` 0. `bun test`: junit
+reporter (authoritative) 0 failures / 0 errors across 13,798 tests, 973 files. No live browser this
+session (same credential gap as P-11/P-16/P-17/P-19), so verification split into what source and a
+direct database check can prove versus what only A1's own signed-in session can.
+
+**What I checked first, per this packet's own "name what you checked first."** Settings' own search
+(`_authenticated.settings.tsx`, `SidebarNav`'s `onSearch`) is a live-filtered rail that narrows a
+fixed set of doors in place -- no floating panel, no ARIA listbox, wrong shape for a grouped,
+categorised result set. `RailFind`, the thing this packet replaces, already had the right shape
+(`role="listbox"`, `role="option"`, arrow keys, Enter, Esc) and is not a Meridian component, so its
+keyboard model is carried over rather than reinvented. `meridian/Search.tsx` was also checked -- it
+is the closer Meridian primitive by visual language, but its contract is a single flat `items: Item[]`
+filtered client-side, not six independently-fetched, async, server-backed groups with different
+navigation destinations per group; reusing it as-is would mean fetching all six groups eagerly on
+mount rather than on query, or forking it, both wrong. **Flagging for A1/A2**: a grouped, async,
+multi-source variant of `Search` is a real Meridian gap this packet ran into and did not close (Rule
+10); this component instead composes Meridian's `Row` for each result's content and matches
+`Search.tsx`'s own token vocabulary (`bg-mrd-sink`, `bg-mrd-float`, `shadow-mrd-float`) throughout, so
+nothing here is drawn from `RailFind`'s own retired `.sp-find*` sheet (confirmed by the Meridian
+ratchet test, see below).
+
+**Files.** `src/lib/spine/find-anything.ts` (new, pure: `searchWords`, `runStateWord`, `GROUP_LABEL`,
+types) · `src/lib/spine/find-anything.test.ts` (new, 11 tests) · `src/lib/spine/track.functions.ts`
+(new `findAnything` server function) · `src/components/shell/FindAnything.tsx` (new) ·
+`src/components/shell/AppFrame.tsx` (`RailFind` and the now-dead `Found`/`FoundKind` types removed,
+`FindAnything` wired in place) · `src/__tests__/meridian-ratchet.baseline.json` (re-frozen: removing
+`RailFind`'s `sp-*` usage genuinely lowered `AppFrame.tsx`'s own debt count, 55 -> 48, `bun run
+design:ratchet`).
+
+**The query, exactly as scoped.** Six reads in parallel -- `spine_tracks.title` for Runs, then
+`ARTIFACT_SOURCE`'s own table+title-column map (`chain.ts`, already the one place that decides which
+table holds which kind) for `prds`, `decisions`, `prototypes`, `studio_changesets`, `signals`,
+`themes` -- one `.ilike()` per query word, ANDed, so every word must be present in any order,
+`.limit(8)` each. "Findings and themes" gets ONE combined cap of 8 (signals + themes merged then
+sliced), not sixteen, per the packet's own single heading for the two kinds. A second round resolves
+each artifact hit's owning track via `spine_track_members` (`superseded_at is null`, the same live-
+membership convention `driver.server.ts` and `track-drives.server.ts` already use) and drops any hit
+with no live membership row rather than returning a result with nowhere to open -- this packet's own
+scope is that every result opens something, and a dead result is the exact defect `way-out.ts` exists
+to stop the run screen from showing, one level up.
+
+**Verified against the live database** (a fork ran read SQL through the Lovable MCP against project
+`371dd588-1b70-4629-9bb5-9f003f3af373`, workspace `60000000-0000-4000-8000-000000000000`, the real
+53-track "Helio Labs" seed -- four other near-empty rows share that name and were ruled out):
+`title ILIKE '%address%'`, the exact per-word match this query builds, returned real hits in 5 of 6
+groups -- **5 runs, 9 specs, 8 decisions, 8 prototypes, 8 signals, 8 themes**; `studio_changesets` had
+none (no PR in this workspace happens to be titled with "address" -- not a defect, the group is
+empty because the data is). Artifact-to-track resolution checked directly: of 8 matched spec (`prd`)
+ids, **4 resolve to a live track with a correctly matching title** (e.g. one prd -> a track titled
+"Let returning customers reuse a saved delivery address..."), and the other 4 have no live
+`spine_track_members` row and were confirmed dropped -- proof the drop-if-unlinked rule is exercised
+on real data, not dead code, and the Specs group still comes back non-empty either way.
+
+**Acceptance line 2, the RLS check.** The empty-result line is built verbatim
+("Nothing named that. Runs, specs, decisions, prototypes and pull requests are searched.") and its
+render path is exercised by `find-anything.test.ts`'s `GROUP_LABEL` coverage test plus a manual
+read of the component's own branch (`options.length === 0`, distinct from the loading branch -- see
+below). **RLS enforcement itself is not provable from this session**: the MCP path used for the
+database check above authenticates at an elevated level that bypasses row security to let the query
+run at all, so it validates the QUERY SHAPE (correct table, correct column, correct join) and cannot
+demonstrate that a signed-in session actually gets zero rows for another workspace's artifact -- only
+`context.supabase`, the request-scoped client `requireSupabaseAuth` hands the handler, exercises RLS,
+and that only runs inside a real signed-in request. Flagged as a Blocker below for A1 to confirm with
+SQL against their own session, exactly as this packet's acceptance line already asks for.
+
+**One defect caught and fixed before it shipped: a false "no results" during the debounce.**
+`result` starts `null` and stays `null` until the debounced request resolves, and the render logic
+originally read `options.length === 0` for both "genuinely searched and found nothing" and "hasn't
+searched yet" -- painting "Nothing named that" for the whole 300ms debounce window and the network
+round trip after it, which is the exact defect `meridian/Search.tsx`'s own header names ("a read that
+did not come back... must not wear the empty state's clothes"). Added a `loading` boolean, true from
+the moment a non-empty query starts its debounce timer to the moment its response lands (guarded
+against a stale response the same way the result itself is, by request id), and the panel now reads
+loading first, so a still-in-flight query says "Searching." rather than a false negative.
+
+**Keyboard and the accessible name.** `aria-label="Find anything"` on the input (line 2221's own
+literal text). Arrow keys move a `cursor` index across the FLATTENED option list (all six groups in
+order), Enter opens the option at that index, Escape clears the query -- carried over from
+`RailFind`'s own model rather than rebuilt, since virtual-focus (the input keeps real DOM focus
+throughout) is what stops `Row`'s own inner `<button>` (rendered whenever `onClick` is passed) from
+pulling Tab focus onto individual options and breaking the roving pattern; `Row` is composed here
+with no `onClick`, and the click/hover handlers sit on this file's own `role="option"` wrapper
+instead.
+
+**Blockers (A3 writes):**
+1. **BLOCKED: cannot click through the live UI, or confirm RLS with a signed-in session's own SQL, in
+   this environment.** Same credential gap as P-11/P-16/P-17/P-19 (`bun run dev`'s `predev` needs
+   Supabase env this lane does not have). Asking A1 to: (a) walk `/start` on `supaprod.ai`, type
+   "address" into Find anything, confirm the six groups render as above and pressing a spec result
+   opens `/track/<run>?artifact=<id>` with that spec selected; (b) as their own signed-in user,
+   confirm a title match that exists in a workspace they are NOT a member of returns nothing from
+   this same search (the SQL check this packet's acceptance line already names).
+2. **Meridian gap, not a blocker for this packet**: `meridian/Search.tsx` has no variant for
+   grouped, async, multi-source results with per-group navigation, which is what a "find anything
+   across every artifact kind" search structurally needs. This packet's own `FindAnything.tsx` is a
+   Meridian-token-clean, ratchet-passing component built around that gap rather than a fork of
+   `Search`, but a future packet promoting the pattern into Meridian proper (so the next surface that
+   needs this shape does not rebuild it a third time) is a genuine opportunity, not an obligation.
+
+**A1 verdict:**
 
 ---
 
