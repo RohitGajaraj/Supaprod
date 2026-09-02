@@ -1,5 +1,6 @@
 /**
- * P-16 (A-QUEUE.md): accessibility on the run screen, `/track/:id`.
+ * P-16 (A-QUEUE.md): accessibility on the run screen, `/track/:id`, and on
+ * `/start`.
  *
  * NEVER CREATES A TRACK. `round-8.spec.ts`'s own header records why: pressing
  * `/start` for real writes a live `spine_tracks` row against the shared demo
@@ -26,6 +27,11 @@
  *      it renders (`TrackConsent.tsx`, this packet). Source tests can prove
  *      the `.focus()` call exists; only a real DOM can prove `document
  *      .activeElement` actually moved.
+ *   4. `/start`'s "Your runs" list (P-05) is `aria-live="polite"` inside a
+ *      labelled region, so a screen reader hears a row change (a run finishes,
+ *      a gate opens) without polling. Same class of proof as #2: `bun test`
+ *      can see the JSX has the attribute, only a real accessibility tree can
+ *      see the computed ARIA role and live-region politeness a reader acts on.
  */
 import { test, expect } from "@playwright/test";
 import { login, waitForShell } from "./helpers/auth";
@@ -108,5 +114,28 @@ test.describe("P-16: the run screen's live regions and the ask's focus", () => {
       ask.getByRole("button", { name: /^Don't run it\./ }),
       "the decline button's accessible name states the consequence",
     ).toBeVisible();
+  });
+});
+
+test.describe("P-16: Start's runs list is a live region a screen reader can trust", () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  test('"Your runs" is a labelled, polite live region', async ({ page }) => {
+    const loggedIn = await login(page);
+    expect(loggedIn, "seed workspace login").toBe(true);
+
+    await page.goto("/start", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    const section = page.getByRole("region", { name: "Your runs" });
+    await expect(section, "YourRuns's own aria-label").toBeVisible();
+
+    // The live wrapper is the region's own child, not the section itself
+    // (YourRuns.tsx: aria-live sits on the inner div so the heading is not
+    // re-announced on every poll) -- so this locates it by its containment,
+    // not by a bare `[aria-live]` selector that could match anything on the
+    // page.
+    const live = section.locator('[aria-live="polite"]');
+    await expect(live, "the rows wrapper YourRuns polls into").toHaveCount(1);
   });
 });
