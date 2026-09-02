@@ -59,6 +59,17 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 10. **Meridian:** never edit `src/components/meridian/**` or `src/styles/meridian.css` in an A3
     packet. An A2 packet may, when the packet says so. A new local component must name in its
     Report which Meridian component was checked first and why it did not serve.
+12. **Migrations, deploys and UI verification (founder, 2026-09-02 19:02 IST, binding on every
+    lane).** If your packet writes a migration, **you apply it yourself, one file at a time, through
+    the Lovable MCP** (`mcp__plugin_lovable_lovable__query_database`, project
+    `371dd588-1b70-4629-9bb5-9f003f3af373`), and verify each one against `information_schema`
+    before applying the next. **Never leave a migration for Lovable to apply on its own merge**: it
+    concatenates them and drops rows, and the ledger has fallen behind the schema more than once.
+    After your push, **rebuild and publish** (`mcp__plugin_lovable_lovable__deploy_project`, or the
+    Publish button), then `read_file` the changed file through the MCP to confirm Lovable holds your
+    commit, then **verify in the UI on `supaprod.ai`**, signed in, and write what you saw in the
+    Report with the route. A packet is not DONE on tests alone; the founder wants it seen on the
+    live product. The `DEV SERVER` rule (7) still applies to local checks.
 11. **No new documents.** A packet's output is code, tests and its Report block. If a decision needs
     recording it goes in the Report and A1 promotes it to `RULINGS.md`.
 
@@ -76,6 +87,11 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 ---
 
 ## 1 · Packets
+
+**Notice to A2 and A3 (A1, 2026-09-02 19:05 IST, from the founder):** any migration you write, you
+apply yourself, one at a time, through the Lovable MCP, and verify each before the next. Then
+rebuild and publish, confirm Lovable holds your commit, and verify on `supaprod.ai` signed in.
+Protocol rule 12 has the exact steps. Do not hand a migration to Lovable's merge.
 
 **Notice to A2 and A3 (A1, 2026-09-02 18:45 IST, from the founder):** the dev server is available to
 either of you whenever a packet needs it. Start it, do the check, **kill it, and set the `DEV SERVER`
@@ -100,7 +116,7 @@ the two named below.
 `src/components/track/run-strip-spec.ts` · new `src/components/track/GotYou.tsx` · new
 `src/components/track/Verdict.tsx` · `src/lib/spine/track.functions.ts` (a `stopTrack` server fn and
 the `spine_tracks.stop_requested_at` read in `driveTrackOnce`'s pre-dispatch check) · one migration
-under `supabase/migrations/` adding that column (A1 applies it; write it, do not apply it) · tests
+under `supabase/migrations/` adding that column (you apply it through the Lovable MCP, rule 12) · tests
 under `src/components/track/__tests__/` and the existing
 `the-strip-is-a-runs-step-list.test.ts`.
 
@@ -588,8 +604,8 @@ it crosses the workspace bar (`promote.server.ts:274-290`, ranked severity → f
 confidence) and the sweep then serves runs in strict round robin by `driven_at` (`track-tick.ts:139`).
 No person can say "this first". That is the gap.
 
-**Scope.** One pin per run: `spine_tracks.pinned_at` (nullable timestamptz; migration written by
-A2, applied by A1). The sweep orders `pinned_at asc nulls last, driven_at asc`. The Start row gets one
+**Scope.** One pin per run: `spine_tracks.pinned_at` (nullable timestamptz; migration written and
+applied by A2 through the Lovable MCP, rule 12). The sweep orders `pinned_at asc nulls last, driven_at asc`. The Start row gets one
 control, *Put first* / *Unpin*, and shows *First* when pinned. `driveTrackNow` is unchanged. The
 Settings › Autonomy tab (P-17) shows the promotion bar in one sentence with the numbers it reads
 from the workspace row (*"Runs open on their own when a theme is seen 4 times at severity 5 or
