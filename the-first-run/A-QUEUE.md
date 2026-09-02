@@ -2654,7 +2654,7 @@ Your blocker was a walk, and this is it. Three follow-ups, none of which reopen 
 ---
 
 
-### P-25a · The search results can be read · Lane: **A2** · Status: CLAIMED (A2, 04:35 IST) · Moves: 3, 5
+### P-25a · The search results can be read · Lane: **A2** · Status: CODE DONE (A2, 05:10 IST) — visual acceptance needs A1's next publish · Moves: 3, 5
 
 **Why.** P-25 is done and its results panel is 204px wide, the rail's width, so every title
 truncates at three or four words and the "In <run>" line under it truncates the same way. A person
@@ -2675,8 +2675,48 @@ from P-25 unchanged. Also add `aria-activedescendant` on the input (P-25 follow-
 - [ ] Arrow keys, Enter, Escape as in P-25; `aria-activedescendant` follows the highlighted option.
 - [ ] Ratchet unchanged or lower · tsc 0 · `bun test` 0 fail · pushed · Report.
 
-**Report (A2 writes):** —
-**Blockers (A2 writes):** —
+**Report (A2 writes):** Code on main at `7214a3933`. tsc 0 · `bun test` 0 fail · ratchet unchanged.
+
+**Walked first, on `supaprod.ai`, searching *address*.** Five results, every title cut at three or
+four words, and two of them both reading *"Homeowners aband…"* — the same four words, no way to tell
+which was which. The fifth row was also sliced in half by the panel's 280px max-height, which reads
+as broken rather than as scrollable. A search whose results cannot be told apart has not answered the
+question.
+
+**Two causes, and fixing either alone fixes nothing.** The panel was `absolute left-0 right-0`, so it
+took the rail's 204px; AND `Row` was called with `tight`, which applies `truncate`. A wider panel
+with `tight` still cuts every title at one line, just further along; a wrapping title in a 204px
+panel is five lines of three words. Both fixed, both asserted.
+
+**A judgment call against the packet's own wording, flagged rather than quietly taken.** The scope
+line offered *"a results variant on Meridian `Search`"*. I did not do that. `Search` is an INLINE
+field that narrows a client-side list it is handed; this is an async, grouped, floating listbox over
+the whole workspace, and putting the second into that file gives two components one name and nothing
+else. What is genuinely shared, and was missing from Meridian, is the FLOATING PANEL: a box anchored
+to a control that has to be wider than the control and must not be clipped by whatever narrow thing
+it lives in. That is `meridian/results-popover.tsx`. Moving it into `Search` is a small change if A1
+prefers the packet's shape.
+
+**Checked before relying on it:** `.sp-rail` and `.sp-railhead` set no `overflow`, so the panel can
+escape rightwards. An `overflow: hidden` anywhere in that chain would clip it back to 204px and
+reintroduce the defect silently, with every test still green — which is why the check is recorded
+here rather than assumed in the code.
+
+**The width is a floor AND a ceiling.** A fixed 480px pushes a horizontal scrollbar onto the page
+below about 700px of viewport, so the max is the window minus the rail, and `max()` with the floor
+means a window narrower than the floor gets the window instead.
+
+**`aria-activedescendant` is in** with `role="combobox"` and `aria-controls`, closing P-25 follow-up
+3. It points at nothing when nothing is highlighted, and clamps to the list, so a shorter result set
+arriving under a cursor at index 9 cannot name an option that does not exist. P-25's keyboard model
+is unchanged and is asserted rather than assumed.
+
+**Blockers (A2 writes):** The visual acceptance needs a publish. `bun run dev` warns
+`SUPABASE_SERVICE_ROLE_KEY is not set`, so every authenticated route throws in this checkout and the
+browser's session is for `supaprod.ai` rather than localhost; the server was started, that was
+confirmed, and it was shut down. **A1's read on the next publish decides it:** search *address* from
+the rail on Helio Labs, and check the five titles read whole or wrap to two lines and that the two
+*"Homeowners abandon…"* rows can now be told apart.
 
 ### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: DONE (A1, 03:12 IST, spot-checked live) · Moves: 3
 
