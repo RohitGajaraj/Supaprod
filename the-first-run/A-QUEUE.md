@@ -553,6 +553,13 @@ Engine Room's other 22 tabs are not moved; they stay at `/engine-room` until P-1
 list them in the Report before deleting anything).
 
 **Acceptance.**
+- [ ] **First, before any deletion, the fact audit (founder, 2026-09-02 19:02).** For each of the
+      seven pages and `/runs/$missionId`, a table in the Report: every region and fact the page
+      shows · where that fact now lives (a run tab, a Start row, a Settings tab) · or **NO HOME**.
+      A1 walks the seven pages on `supaprod.ai` against the table. **Any NO HOME row blocks the
+      deletion of that page** until a packet gives the fact a home. The two known candidates: raw
+      signals that have not crossed the promotion bar (`/discover`), and a cross-run history per
+      station (`/learn`, `/decide`).
 - [ ] Route count reported before and after. tsc 0 after each deletion.
 - [ ] Every `Link` that pointed at a deleted page now points at `/track/:id` with the tab in search,
       or at `/start`.
