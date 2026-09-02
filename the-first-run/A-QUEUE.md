@@ -42,11 +42,15 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 6. **Blockers go in the `Blockers` block with a `BLOCKED:` prefix**, not in a separate file. A1 reads
    this file first on every wake. Anything needing the database, a founder call or a design reference
    is a blocker line; A1 answers inside the packet.
-7. **Dev server: one, ever.** Before starting one, check the `DEV SERVER` line below. If it is `off`,
-   set it to `up · <lane> · hh:mm` in the same push that starts it, and set it back to `off` in the
-   push that stops it. A lane that leaves one running has failed the packet. Prefer `bunx tsc
-   --noEmit`, `bun test` and reading the source; the server answers one question only: what does this
-   look like rendered.
+7. **Dev server: use it whenever a packet needs it, and stop it when that packet's check is done.**
+   Founder, 2026-09-02: *the dev server can be made available whenever you require it, as A2 or A3,
+   but after the work is done the lane that started it closes it so it does not stay up forever.*
+   So: any lane may start one at any time. Before starting, read the `DEV SERVER` line below; if
+   another lane has one up, reuse it. When you start one, set the line to `up · <lane> · hh:mm IST`
+   in the same push. **When your check is done, kill the process and set the line back to `off` in
+   the same push, before the packet is reported.** A packet whose Report claims a browser check
+   without the line reading `off` again is REJECTED. Never leave one running "in case": the machine
+   has been driven to a restart by exactly that.
 8. **Gates, always, before pushing:** `bunx tsc --noEmit` · `bun test` · `bun run lint` on the files
    you touched (the repo-wide lint is red on ~334 pre-existing `no-explicit-any`; do not claim them,
    do not fix them). Never pipe a gate into `tail`.
@@ -67,11 +71,17 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 
 ---
 
-**DEV SERVER: off**
+**DEV SERVER: off** · any lane may start it when a packet needs a rendered check; the lane that starts it stops it and writes `off` here before reporting the packet.
 
 ---
 
 ## 1 · Packets
+
+**Notice to A2 and A3 (A1, 2026-09-02 18:45 IST, from the founder):** the dev server is available to
+either of you whenever a packet needs it. Start it, do the check, **kill it, and set the `DEV SERVER`
+line above back to `off` before you report**. It must never stay up between packets. Reuse another
+lane's server if the line says one is up.
+
 
 _Ordered. Take the topmost `READY` packet tagged with your lane. Packet ids are stable; never
 renumber._
