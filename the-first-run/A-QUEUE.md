@@ -1741,6 +1741,19 @@ arcs `trusted`, tool in `BUILD_LANE_AUTONOMOUS`, not in either floor.
    the stale list comes back with the new gate appended. Merge from the harvested list, not the row.
 Do not answer `24ab7521` or `e53763c7`; A1 cancels both once the fix is live so the sweep re-drives.
 
+
+**A1, 02:12 IST · both defects fixed by A2 (`bfa51e4e6`), verified junit 13,834 / 0, published
+(deployment `0bbdc43c`). Gates withdrawn so the sweep re-drives without a person:**
+```sql
+update agent_approvals set status='cancelled', decided_at=now(),
+  decision_reason='A1 2026-09-03: R-30 is in effect (RULED_AUTO_STAYS_AUTO); ...'
+where id in ('24ab7521-…','e53763c7-419b-461c-8f7a-3d915db6c6c2');  -- 2 rows, 20:41:09 UTC
+```
+Spec check before the re-drive: `2fdf93b6` carries two specs (`dd0a33e8`, `64fa0caf`), both with a
+non-empty `contract` (1,940 and 3,297 chars), so P-02's verdict will read its lines from the contract,
+not fall back to the body. Next sweep 20:50 UTC; A1 reads `track_drives`, `tool_calls` and
+`agent_approvals` after it.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
