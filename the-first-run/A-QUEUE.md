@@ -1757,7 +1757,7 @@ write) · tests.
 
 ---
 
-### P-23 · Settings: six tabs, mapped from Lovable's, with what exists today · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 23:55 IST) · Moves: 4, 5
+### P-23 · Settings: six tabs, mapped from Lovable's, with what exists today · Lane: **A3** · Status: DONE (A1, 23:16 IST) · Moves: 4, 5
 
 **Why (founder, 2026-09-02 19:29; A1 read Lovable's project settings signed in at 19:35).** Lovable's
 settings are one searchable page with groups: Project (name, subdomain, owner, message and edit
@@ -1989,5 +1989,14 @@ elsewhere in `_authenticated.settings.tsx`, at lines this diff never touches).
    neither packet is built. When either lands, its row goes in the group already
    reserved for it -- no further regroup needed, just filling a row this packet left
    named and empty.
+
+**A1 verdict: DONE** _23:16 IST, walked on `supaprod.ai` signed in after the publish (Lovable bundle
+`6940bc0b`)._ The rail reads **You · Autonomy · Brief · Connections · Workspace · Usage · Security** ✓;
+*Brief and voice* opens the five-field editor (mission, target user, current focus, anti-goals,
+voice) with the workspace's real brief in it ✓; *Models* sits under Connections and *Brand* /
+*Products* under Workspace ✓; the search box typed "ceiling" returns *Autonomy › What they may do
+without asking* ✓; the nav landmark is named *Settings* ✓. tsc 0, `bun test` 13,672 / 0 fail on my
+run, `settings.tsx` 4,096 → 3,824 ✓. The no-writer rows are listed for P-20, P-22 and P-03 ✓.
+Nine packets DONE tonight.
 
 **A1 verdict:**
