@@ -202,6 +202,129 @@ then proceeded on:_
    `tool_calls.trace_id`) and the server fn already reads both sides; it will carry `runId` per call.
    That widens the parenthetical beside `track.functions.ts` in the Files list, not the file lock.
 
+---
+
+**DONE-PENDING-VERIFY (A2, 21:10 IST).** Shas `8b99e444f` (the screen), `8b572740d` (guards),
+`d43fc2829` (the 19:25 amendment). Gates: `bunx tsc --noEmit` **0** . `bun test` **13,586 pass, 3
+fail**, and all three fail on `nav-model.ts` naming `/today` and `/runs`, which P-10 deleted and P-11
+owns; they were red on `origin/main` before this packet's first commit. `bun run lint` clean on every
+file below. `check-humanized` clean on every commit.
+
+**Migration applied and verified, rule 12.** `20260902010000_a_stop_is_a_row_the_driver_reads.sql`,
+one file, through the Lovable MCP on `371dd588`. `information_schema` says
+`stop_requested_at | timestamp with time zone | is_nullable YES | no default`. The generated types
+carry it in the same commit, because `the-types-must-know-every-column-a-migration-added` requires
+migrations and types.ts to move together.
+
+**Acceptance, line by line.**
+
+- **Header.** Title and one status chip. `origin` and "Now: X. Next: Y." are gone, with the meter
+  and the route map. Two one-line facts stay and are argued in place: a track the return edge
+  created, and a run whose decision is waived. Neither is the origin and neither is a position; both
+  are true nowhere else on the screen. Pinned by
+  `the-header-says-what-you-asked-for.test.tsx`, which renders the header with an origin sharing no
+  word with the title and asserts every distinctive word of it is absent.
+- **Left pane.** Consent, presence, transcript, steer. `Teammates` is gone: the transcript below it
+  already draws every seat with what it filed and what it cost. Presence is silent while work is
+  moving, because three other things on the screen say so and it was the only one with no figure
+  attached; it still draws while the first read is in flight, which is the one distinction the
+  derivation cannot make. `role="log"` + `aria-live="polite"` were already on the transcript region.
+  **Kept, against a literal reading of "top to bottom":** the "Why it stopped" region, `TakeOver` and
+  the release receipt. §4's own removal list does not name them, and they are the only way out of a
+  hold on a surface where 97 of 106 tracks carry one. Deleting the diagnosis and the release control
+  would fail bar 2 (a failure that names what failed). One line to remove if you disagree.
+- **Tool calls.** Under the seat that made them, collapsed, one press from open, through
+  `ToolStream`. `getTrackToolCalls` now carries `runId`: the join existed on both sides and only the
+  id was being dropped, so the pane could say what the RUN called and never what THIS SEAT called.
+  A failure is said on the CLOSED line, because a failure behind a disclosure is a failure the
+  surface did not report. `LiveWork`'s coverage sentence survives its unmounting, at the head of the
+  transcript: a track older than `trace_id` must not read as agents that sat idle.
+- **Right pane.** `GotYou` above `ArtifactPane`. `TrackChain`, `LiveWork` and `RunCost` are not
+  mounted.
+- **The 19:25 amendment.** No station display. `usePublishRunStrip` is not called from the run
+  screen, `run-strip-spec.ts` and its test are deleted, and **no `role="tablist"` on the page**. A
+  transcript row that FILED something is pressable and opens what it filed; a row that filed nothing
+  is not, which is deliberate, because 81 of 106 tracks sit at a station with an empty record and a
+  control that opens a blank teaches a person not to press. `GotYou` is chips in the person's own
+  word, each selecting the row that made it, never naming a station that made nothing. The pane's
+  first paint moved from where the work STANDS to the newest thing it MADE, for the same reason:
+  with no strip overhead, the standing station is usually the empty one.
+- **One status per screen.** The mission card's `Completed` chip is gone; the fact moved into its
+  meta line, where it also gained WHEN, which the chip could not carry.
+- **Discover lineage.** The cluster that opened the run, the numbers it was judged on, the sentence
+  `originFor` wrote at the moment of the decision **verbatim**, and the evidence under it. That
+  sentence has existed since promotion shipped and **no screen in this product read it**: grepped
+  today, `qualifies` and `originFor` appear only under `src/lib/spine/` and their tests, zero times
+  in any component or route. Two refusals: the bar is READ from `workspaces.promotion_min_*`, never
+  the shipped 8/4/0.75 default, so a workspace that has not answered gets no bar clause rather than a
+  number that looks measured; and the promotion is claimed from `origin`, never from a theme on the
+  record, because a Discover seat files themes on tracks a person typed and the member row cannot
+  tell them apart.
+- **Build verdict.** `Verdict` lifted out of `ChangesetCard`, because it is the one place on this
+  surface where something other than the agent that did the work reports on the work, and the strip
+  needs the same sentence. Its two absences are two sentences: never ran, and ran and returned no
+  judgment, which `studio.review`'s own description says is not a pass. It states what it COMPARED
+  before what it concluded, and each finding cites the line it read. `files_reviewed` is the
+  denominator today; **it deliberately does not say "compared N acceptance lines"**, which is P-02's
+  to make true and would be an invention now.
+- **Footer.** Mode, elapsed, cost, and ONE control that is Stop or Run it now and never both. The
+  boxed "Run it" region left the middle of the left pane: starting and stopping one run were at
+  opposite ends of a scroll and whichever you wanted was off screen.
+- **Stop.** `stopTrack` stamps `stop_requested_at`; `driveTrackOnce` reads it after the gate harvest
+  and before every dispatch decision, and holds `paused`. The placement is the design: the harvest is
+  bookkeeping about work that already happened, and everything after it dispatches. **The footer now
+  offers Stop on a run the sweep is driving**, which it correctly refused while the control was
+  `setLegsLeft(0)` and could not reach one; the guard that pinned the old behaviour is updated with
+  the reason rather than deleted.
+
+**Three decisions worth promoting to RULINGS.**
+
+1. **`STOPPED_BY_YOU` (`driver.ts`).** A person's Stop and the workspace kill switch both hold as
+   `paused`, because the hold vocabulary is closed and a new member would need teaching to
+   `holdTone`, `nothingIsComing`, `wayOut`, `footerMode` and the sweep's selection first. Without a
+   sentinel the footer said "Stopped, and not on you." over a pane printing "Stopped by you." A
+   constant with ONE writer and no model near it is an enum spelled in English, not the prose-parsing
+   the surfaces are forbidden. Same shape as `PROMOTED_BECAUSE` in `promote.ts`.
+2. **The stop read FAILS OPEN, and `isPaused` ten lines above it fails closed.** Deliberate and
+   opposite: an unreadable kill switch must stop everything, and an unreadable stop flag must not,
+   because the column arrives in its own migration and a build carrying this code against a database
+   that has not taken it would freeze the product. The cost is bounded to one sweep tick.
+3. **`stop_requested_at` is deliberately NOT in `getTrack`'s `SELECT`.** Naming a column fails the
+   WHOLE PostgREST query when the database is behind, and that select feeds the entire run screen. A
+   missing field degrades one figure; a missing column degrades the screen.
+
+**Files touched beyond the packet's list, each named rather than slipped in.**
+`src/lib/spine/driver.server.ts` (the acceptance names `driveTrackOnce`, which lives there and not in
+`track.functions.ts`; no packet holds the file) · `src/lib/spine/driver.ts` (+2 exports: the sentinel
+and its argument) · `src/lib/spine/promote.ts` (+2 exports: `PROMOTED_BECAUSE`, `becameWorkOnItsOwn`)
+· `src/integrations/supabase/types.ts` (+3 lines, required by the types guard) ·
+`src/components/track/ArtifactPane.tsx` beyond Build and Learn (the 19:12 Discover acceptance line
+requires the Discover body) · three existing guards updated with the reason the fact changed
+(`footer-mode.test.ts`, `criterion-two-is-a-query-now.test.ts`,
+`the-plan-steps-are-steps-not-title-lines.test.tsx`).
+
+**Tests, beside the code as prose-named files rather than in a `__tests__/` folder** (reading 2
+above): `the-header-says-what-you-asked-for.test.tsx` ·
+`one-station-display-on-the-run-screen.test.ts` · `where-this-run-came-from.test.tsx` ·
+`a-zero-is-not-a-figure-on-the-strip.test.ts` · `two-absences-are-two-sentences.test.tsx` ·
+`src/lib/spine/a-stop-a-person-pressed-outlives-the-tab.test.ts` (beside the other nine
+`driveTrackOnce` guards, which all live in `src/lib/spine/`).
+
+**`mrd-` note, per "Meridian primitives not in scope".** `Verdict` and `GotYou` are local, and
+`RunRollup`'s own header refuses the disclosure triangle for the figures it carries, correctly, so
+the collapsed call list is a local control beside it rather than a change to that primitive. P-19
+promotes both.
+
+**Still open, and named rather than left to be found.** The AppFrame branch that draws the shell band
+on `mode: "tab"` now has no publisher anywhere in the product. It is dead rather than wrong, and
+`AppFrame.tsx` is P-11's file, so it is left for A3 with this line as the record.
+
+**Blockers (A2 writes):**
+
+BLOCKED: verification. Lovable's `latest_commit_sha` is `58065329a`, which is A1's commit before this
+packet's first. Rule 12's UI walk on `supaprod.ai` cannot be done until it picks up `d43fc2829`.
+Polling; will publish and walk `ce846e9b` and `d1168015` and write what I saw here.
+
 **Blockers (A2 writes):**
 
 **A1 verdict, interim:** _19:34 IST, on commit `315d009c9`_ — tsc 0 ✓. `bun test` 13,526 pass /
