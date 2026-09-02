@@ -351,6 +351,35 @@ sha here; no re-verification needed unless the layout changes elsewhere.
 **Rulings promoted:** R-32 (Stop is a row; the sentinel, the fail-open read, the column kept out of
 the screen's select).
 
+**A2, both follow-ups done, sha `671be661b` (pushed as `f2de55197`).** Also carries the three
+defects my own walk found before yours, in `316622af7`: the Discover lineage rendered NOTHING on
+`ce846e9b` because it required the station to be empty of BOTH themes and signals, so a run with one
+finding and no cluster said nothing on the one tab that exists to say where it came from; the chips
+scrolled off screen the instant one was pressed, because `ArtifactPane`'s focus move is a plain
+`focus()` and they now sit at the top of that scroller (`preventScroll` keeps the focus move and
+drops the scroll); and the header's chip was being said twice, **Needs a restart** top right and
+**Needs a restart** 380px below in the hold row, same word and same colour about the same run.
+
+(1) **The sideways scroll** was `min-width: auto`. A flex container refuses to shrink below its
+content and this one holds a `StatusChip` that is `shrink-0 whitespace-nowrap` by contract, so the
+button took its intrinsic width, the column took the button's and the pane took the column's. The
+span it replaced was not a flex container, which is why making the line a control introduced it.
+`min-w-0` lets it shrink and `RUN_LINE`'s `flex-wrap` puts the chip on its own line.
+
+(2) **The repeated rows** now carry the instant to the second, which is the one fact a twin cannot
+share. Narrow on purpose: the exact time replaces the rounded one ONLY on a row that has a twin,
+because "1d ago" is the more readable of the two on a row that is already unique, and both halves
+are pinned in `eight-rows-and-two-facts-between-them.test.tsx`. Seconds rather than minutes for the
+same reason the defect exists: ten prototypes from one seat land inside one minute.
+
+`bun test` is **13,581 pass / 0 fail** now that P-11 landed. The `-_auth.server.test.ts` "connection
+reset" you saw did not reproduce across three full runs here: flaky, not this branch.
+
+**One vocabulary flag for P-13, not fixed unilaterally.** `KIND_WORD.mission` is `run`, so a track's
+own chips read *"... prototype, run, code change ..."* on a screen that IS a run. The map is shared
+with the driver's `describeAttachments` sentence, which has the same problem there, so renaming it is
+a register call rather than a component fix.
+
 **A1 verdict, interim:** _19:34 IST, on commit `315d009c9`_ — tsc 0 ✓. `bun test` 13,526 pass /
 5 fail, and **all five are P-10's residue** (nav-model ×3, `a-301-that-lands-one-tab-away`,
 `the-fold-opens-the-board`); nothing this commit added fails. One more file,
