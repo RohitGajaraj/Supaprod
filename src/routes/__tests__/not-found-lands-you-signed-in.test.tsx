@@ -24,12 +24,24 @@ import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import { describe, it, expect, mock, afterEach } from "bun:test";
 
 let lastOnGoHome: (() => void) | undefined = "not called" as unknown as undefined;
+// `mock.module` is process-wide in bun and outlives this file: a partial stub
+// here left `boundary-states.test.tsx` reading a module with no
+// `ShellReadFailed` whenever the two ran in one process (three full runs on
+// 2026-09-03, green in isolation). So the mock keeps every real export and
+// wraps only the one component this test observes, rendering the real thing
+// underneath: any other file that lands on this module still sees Meridian.
+// Snapshot the real exports BEFORE the mock registers: the namespace import is
+// a live binding, and reading it inside the factory or the wrapper would hand
+// back the mock itself (the wrapper calling the wrapper ran the process out of
+// memory on the first try).
+const realBoundaryStates = { ...(await import("@/components/meridian/boundary-states")) };
+const RealPageRouteMissing = realBoundaryStates.PageRouteMissing;
 mock.module("@/components/meridian/boundary-states", () => ({
-  PageRouteMissing: ({ onGoHome }: { onGoHome?: () => void }) => {
-    lastOnGoHome = onGoHome;
-    return <div>404 stub</div>;
+  ...realBoundaryStates,
+  PageRouteMissing: (props: React.ComponentProps<typeof RealPageRouteMissing>) => {
+    lastOnGoHome = props.onGoHome;
+    return <RealPageRouteMissing {...props} />;
   },
-  PageReadFailed: () => <div>error stub</div>,
 }));
 
 const { NotFoundComponent } = await import("../__root");
@@ -43,7 +55,7 @@ describe("the root 404 knows whether a session exists", () => {
   it("passes an /start override to PageRouteMissing once a session is confirmed", async () => {
     render(<NotFoundComponent getSession={async () => ({ data: { session: { id: "u-1" } } })} />);
     await waitFor(() => {
-      expect(screen.getByText("404 stub")).toBeDefined();
+      expect(screen.getByText("Go home")).toBeDefined();
     });
     expect(typeof lastOnGoHome).toBe("function");
   });
@@ -51,7 +63,7 @@ describe("the root 404 knows whether a session exists", () => {
   it('passes no override while signed out, so PageRouteMissing\'s own default ("/") stands', async () => {
     render(<NotFoundComponent getSession={async () => ({ data: { session: null } })} />);
     await waitFor(() => {
-      expect(screen.getByText("404 stub")).toBeDefined();
+      expect(screen.getByText("Go home")).toBeDefined();
     });
     expect(lastOnGoHome).toBeUndefined();
   });
