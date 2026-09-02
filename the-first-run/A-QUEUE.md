@@ -151,6 +151,25 @@ verdict DONE.
 
 **Report (A2 writes):**
 
+_In flight. Three readings settled before writing code, posted here once per protocol step 2 and
+then proceeded on:_
+
+1. **"The 'Run it' region is not rendered" vs "Clearing it is the existing 'Run it now' press."**
+   Those two acceptance lines cannot both hold with the control in the left pane. Reading taken: the
+   boxed `Run it` REGION leaves the left pane, and its control moves into the footer as Stop's
+   counterpart, so the footer carries one control that is Stop while work is moving and Run it now
+   while it is not. `TrackRun.tsx:1190` already argues for exactly this ("the footer holds the one
+   control"), and it keeps the press that clears `stop_requested_at` reachable.
+2. **Tests go beside the code as prose-named files, not in `src/components/track/__tests__/`.**
+   That directory does not exist; the 44 existing test files in `src/components/track/` are flat and
+   prose-named (`hold-tries.test.ts`, `who-reports-an-empty-station.test.ts`). Creating a
+   `__tests__/` folder for three files would be a second convention in one directory.
+3. **`getTrackToolCalls` has to return which turn each call belongs to.** "Tool calls render inside
+   their seat's transcript entry" is not derivable from what it returns today (`id, tool, ok,
+   latencyMs, at, error` — no run linkage). The join exists (`agent_runs.trace_id` →
+   `tool_calls.trace_id`) and the server fn already reads both sides; it will carry `runId` per call.
+   That widens the parenthetical beside `track.functions.ts` in the Files list, not the file lock.
+
 **Blockers (A2 writes):**
 
 **A1 verdict:**
