@@ -1897,6 +1897,14 @@ report: the gate that compares them was one of the three reading the dead `track
 drive before `dbd3072ae` could have exercised it; the 21:20 line came from the CI gate alone. The
 deciding read stays the next `studio.review` on the honest run, after PR #4.
 
+
+**A1, 03:50 IST · three of four seen live.** After the publish carrying `41c83c50b`, the honest run's
+transcript shows three *Checked its own work* rows in time order among the turns, the newest at 02:50:
+*1 held, 1 did not · Build · A change was staged · The checks ran and cleared this change · The checks
+were never run on this change…*: the comparison, the miss and its reason, in the check's own words.
+The self-check is visible and counted. Still to see live: the compared spec lines on a review
+written after `dbd3072ae`, which waits on PR #4. Status stays DONE-PENDING-VERIFY on that one line.
+
 **Report / Blockers / A1 verdict:**
 
 **A2, 03:40 IST, completed 04:05 · code on main across five commits. All four acceptance items met
