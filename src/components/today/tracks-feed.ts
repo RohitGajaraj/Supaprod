@@ -451,3 +451,77 @@ export function startRows(
     }))
     .sort((a, b) => RANK[a.kind] - RANK[b.kind] || b.at - a.at);
 }
+
+/**
+ * ── TEN IDENTICAL ROWS ARE ONE FACT, AND THEY WERE FILLING THE PAGE ───────
+ *
+ * A1, walking Helio Labs 2026-09-02: ten rows reading *"PHASE 3: Verify visible
+ * agency works"*, all Abandoned, all 26 Aug -- an e2e spec that pressed
+ * production -- plus a dozen more abandoned rows, together filling the whole
+ * page below the fold. The list a person came to read was underneath them.
+ *
+ * Two rules, and they are different rules for different reasons.
+ *
+ * ── ABANDONED WORK COLLAPSES, BECAUSE IT IS OVER ──────────────────────────
+ * Every other kind on this list is a thing a person might act on. Abandoned work
+ * is the one kind that is finished AND arrived nowhere: it is worth being able
+ * to find and worth nothing at the top of a page. Closed by default, with the
+ * count in the line that opens it, so nothing is hidden and nothing is in the
+ * way.
+ *
+ * ── IDENTICAL TITLES FOLD, BECAUSE TEN OF THEM ARE ONE FACT ───────────────
+ * And this is the discriminator rule reaching its limit. `startRowMiddle`
+ * already gives two rows different sentences whenever the RECORD has different
+ * facts; ten abandoned runs of one e2e spec genuinely have the same facts, so
+ * there is no sentence that would tell them apart and inventing one would be the
+ * opposite defect. When rows are identical AND over, the honest form is one row
+ * that says how many.
+ *
+ * Folding is confined to the abandoned group on purpose. Live work with a
+ * repeated title still gets its own row: a person may need to open the third
+ * one specifically, and a count they cannot press is worse than a list.
+ */
+export type StartGroups = {
+  /** Everything a person might act on, in the order they need it. */
+  shown: StartRow[];
+  /** Over and arrived nowhere. Folded, and closed until asked for. */
+  abandoned: StartRow[];
+  /** How many runs the abandoned group stands for, before folding. */
+  abandonedCount: number;
+};
+
+export function groupStartRows(rows: readonly StartRow[]): StartGroups {
+  const shown = rows.filter((r) => r.kind !== "abandoned");
+  const over = rows.filter((r) => r.kind === "abandoned");
+
+  const byTitle = new Map<string, StartRow & { count: number }>();
+  for (const r of over) {
+    const key = r.title.trim().toLowerCase();
+    const held = byTitle.get(key);
+    if (!held) {
+      byTitle.set(key, { ...r, count: 1 });
+      continue;
+    }
+    held.count += 1;
+    /* The newest one owns the row: its id is what opening it should reach, and
+       its time is the one worth printing. */
+    if (r.at > held.at) {
+      held.id = r.id;
+      held.at = r.at;
+    }
+  }
+
+  const folded = [...byTitle.values()]
+    .map((r) => ({
+      ...r,
+      middle: r.count === 1 ? r.middle : `${r.count} runs, all abandoned`,
+    }))
+    .sort((a, b) => b.at - a.at);
+
+  return { shown, abandoned: folded, abandonedCount: over.length };
+}
+
+/** The line that opens the group, which states what is behind it. */
+export function abandonedLine(count: number): string {
+  return `${count} abandoned · show ${count === 1 ? "it" : "them"}`;
+}

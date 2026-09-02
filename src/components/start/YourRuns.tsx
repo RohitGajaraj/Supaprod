@@ -29,12 +29,18 @@ import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 
 import { Row } from "@/components/meridian/rows";
-import { Reading, ReadFailedLine, SectionHead } from "@/components/meridian/surface-parts";
+import { Chevron, Reading, ReadFailedLine, SectionHead } from "@/components/meridian/surface-parts";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { KIND_WORD } from "@/lib/spine/attach";
 import { toolActionLabel } from "@/lib/agent-vocabulary";
 import { relativeTime } from "@/lib/memory-view";
-import { startRows, type StartRowKind } from "@/components/today/tracks-feed";
+import {
+  abandonedLine,
+  groupStartRows,
+  startRows,
+  type StartRow,
+  type StartRowKind,
+} from "@/components/today/tracks-feed";
 import { listRunsForStart } from "@/lib/spine/track.functions";
 
 /**
@@ -52,6 +58,32 @@ const CHIP: Partial<Record<StartRowKind, { status: "you" | "pass" | "fail"; word
   abandoned: { status: "fail", word: "Abandoned" },
 };
 
+/** One run. Lifted so the open list and the abandoned one cannot diverge. */
+function RunRow({ r, now, onOpen }: { r: StartRow; now: number; onOpen: (id: string) => void }) {
+  const chip = CHIP[r.kind];
+  return (
+    <Row
+      lead={r.title}
+      /* THE ROW IS THE MIDDLE COLUMN. See `startRowMiddle`: every branch reaches
+         for the sharpest fact the record can source, so no two rows print the
+         same sentence unless the fact is identical -- and where the facts really
+         are identical and the work is over, `groupStartRows` folds them into one
+         row that says how many, because inventing a difference is the opposite
+         defect. */
+      sub={r.middle}
+      time={r.at ? relativeTime(new Date(r.at).toISOString(), now) : null}
+      onClick={() => onOpen(r.id)}
+      action={
+        chip ? (
+          <StatusChip status={chip.status} pulse={false}>
+            {chip.word}
+          </StatusChip>
+        ) : undefined
+      }
+    />
+  );
+}
+
 export function YourRuns() {
   const navigate = useNavigate();
   const fRuns = useServerFn(listRunsForStart);
@@ -67,12 +99,18 @@ export function YourRuns() {
     refetchInterval: 10_000,
   });
 
+  const [showAbandoned, setShowAbandoned] = React.useState(false);
   const now = Date.now();
   const rows = React.useMemo(
     () => startRows(q.data ?? [], Date.now(), KIND_WORD, (tool) => toolActionLabel(tool)),
     // `q.data` is the only input that changes; the clock is read at render so a
     // row's own elapsed figure moves with the poll rather than with a timer.
     [q.data],
+  );
+  const groups = React.useMemo(() => groupStartRows(rows), [rows]);
+  const open = React.useCallback(
+    (id: string) => void navigate({ to: "/track/$trackId", params: { trackId: id }, search: {} }),
+    [navigate],
   );
 
   return (
@@ -102,30 +140,36 @@ export function YourRuns() {
           <p className="text-mrd-base text-mrd-mute">Nothing running. Start one above.</p>
         ) : null}
 
-        {rows.map((r) => {
-          const chip = CHIP[r.kind];
-          return (
-            <Row
-              key={r.id}
-              lead={r.title}
-              /* THE ROW IS THE MIDDLE COLUMN. See `startRowMiddle`: every branch
-                 reaches for the sharpest fact the record can source, so no two
-                 rows print the same sentence unless the fact is identical. */
-              sub={r.middle}
-              time={r.at ? relativeTime(new Date(r.at).toISOString(), now) : null}
-              onClick={() =>
-                void navigate({ to: "/track/$trackId", params: { trackId: r.id }, search: {} })
-              }
-              action={
-                chip ? (
-                  <StatusChip status={chip.status} pulse={false}>
-                    {chip.word}
-                  </StatusChip>
-                ) : undefined
-              }
-            />
-          );
-        })}
+        {groups.shown.map((r) => (
+          <RunRow key={r.id} r={r} now={now} onOpen={open} />
+        ))}
+
+        {/*
+         * ── ABANDONED WORK IS BEHIND ONE LINE, CLOSED ───────────────────────
+         *
+         * Walked on Helio Labs: ten rows of one abandoned e2e spec plus a dozen
+         * more abandoned runs filled the whole page below the fold, and the list
+         * a person came to read was underneath them. It is the one kind that is
+         * finished AND arrived nowhere, so it is worth being able to find and
+         * worth nothing at the top of a page. The count is in the line that
+         * opens it: nothing hidden, nothing in the way.
+         */}
+        {groups.abandonedCount > 0 ? (
+          <div className="flex flex-col">
+            <button
+              type="button"
+              aria-expanded={showAbandoned}
+              onClick={() => setShowAbandoned((v) => !v)}
+              className="mrd-focus-inset flex w-fit items-center gap-1.5 rounded-mrd-chip py-1 text-mrd-data text-mrd-mute transition-colors duration-100 hover:text-mrd-ink"
+            >
+              <Chevron open={showAbandoned} />
+              <span>{abandonedLine(groups.abandonedCount)}</span>
+            </button>
+            {showAbandoned
+              ? groups.abandoned.map((r) => <RunRow key={r.id} r={r} now={now} onOpen={open} />)
+              : null}
+          </div>
+        ) : null}
       </div>
     </section>
   );

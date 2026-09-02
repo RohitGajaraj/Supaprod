@@ -21,7 +21,14 @@
  */
 import { describe, expect, it } from "bun:test";
 
-import { runClock, startRowMiddle, startRows, type StartRowInput } from "./tracks-feed";
+import {
+  abandonedLine,
+  groupStartRows,
+  runClock,
+  startRowMiddle,
+  startRows,
+  type StartRowInput,
+} from "./tracks-feed";
 
 const WORDS = {
   prd: { one: "spec", many: "specs" },
@@ -240,5 +247,76 @@ describe("the clock on a run in flight", () => {
     // stamped in the future must drop the clock, not print "-0:03".
     expect(runClock("2026-09-02T12:00:03Z", NOW)).toBeNull();
     expect(runClock("not a date", NOW)).toBeNull();
+  });
+});
+
+describe("ten identical rows are one fact", () => {
+  /*
+   * ── WHAT WAS ON THE SCREEN, WALKED 2026-09-02 ───────────────────────────
+   * Helio Labs: ten rows reading "PHASE 3: Verify visible agency works", all
+   * Abandoned, all 26 Aug -- an e2e spec that pressed production -- plus a dozen
+   * more abandoned runs, together filling the whole page below the fold. The
+   * list a person came to read was underneath them.
+   *
+   * This is the discriminator rule reaching its limit. `startRowMiddle` gives
+   * two rows different sentences whenever the RECORD has different facts; ten
+   * abandoned runs of one spec genuinely have the same facts, so no sentence
+   * would tell them apart and inventing one would be the opposite defect.
+   */
+  const abandoned = (title: string, updatedAt: string) =>
+    run({ id: `${title}-${updatedAt}`, title, status: "abandoned", updatedAt });
+
+  const grouped = (rows: StartRowInput[]) => groupStartRows(startRows(rows, NOW, WORDS, phrase));
+
+  it("folds abandoned runs that share a title into one row that says how many", () => {
+    const g = grouped([
+      abandoned("PHASE 3: Verify visible agency works", "2026-08-26T10:00:00Z"),
+      abandoned("PHASE 3: Verify visible agency works", "2026-08-26T10:05:00Z"),
+      abandoned("PHASE 3: Verify visible agency works", "2026-08-26T10:09:00Z"),
+    ]);
+    expect(g.abandoned).toHaveLength(1);
+    expect(g.abandoned[0].middle).toBe("3 runs, all abandoned");
+    // The count is what the opener says, so nothing is hidden by the fold.
+    expect(g.abandonedCount).toBe(3);
+  });
+
+  it("lets the newest of a folded group own the row, so opening it reaches the last one", () => {
+    const g = grouped([
+      abandoned("One spec", "2026-08-26T10:00:00Z"),
+      abandoned("One spec", "2026-08-26T12:00:00Z"),
+    ]);
+    expect(g.abandoned[0].id).toBe("One spec-2026-08-26T12:00:00Z");
+  });
+
+  it("leaves a lone abandoned run its own sentence rather than a count of one", () => {
+    const g = grouped([abandoned("A one-off", "2026-08-26T10:00:00Z")]);
+    expect(g.abandoned[0].middle).toBe("Abandoned");
+  });
+
+  it("does not fold live work, because a person may need the third one specifically", () => {
+    /*
+     * Folding is confined to the abandoned group on purpose. A count somebody
+     * cannot press is worse than a list when the runs are still going.
+     */
+    const g = grouped([
+      run({ id: "a", title: "Same title", drivenAt: null }),
+      run({ id: "b", title: "Same title", drivenAt: null }),
+    ]);
+    expect(g.shown).toHaveLength(2);
+    expect(g.abandoned).toHaveLength(0);
+  });
+
+  it("keeps abandoned work out of the list a person came to read", () => {
+    const g = grouped([
+      run({ id: "live", needsYou: { tool: "studio.pr.merge" } }),
+      abandoned("Old thing", "2026-08-26T10:00:00Z"),
+    ]);
+    expect(g.shown.map((r) => r.id)).toEqual(["live"]);
+    expect(g.abandonedCount).toBe(1);
+  });
+
+  it("says what is behind the closed line, and counts one correctly", () => {
+    expect(abandonedLine(14)).toBe("14 abandoned · show them");
+    expect(abandonedLine(1)).toBe("1 abandoned · show it");
   });
 });
