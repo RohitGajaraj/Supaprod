@@ -20,6 +20,7 @@
  * so. The tests below are as much about what the column refuses to say.
  */
 import { describe, expect, it } from "bun:test";
+import { holdLine } from "@/lib/spine/driver";
 
 import {
   abandonedLine,
@@ -144,10 +145,37 @@ describe("what the middle column says", () => {
     expect(m).toBe("GitHub is not connected.");
   });
 
-  it("falls back to where it stands, and says when it has never run", () => {
-    expect(startRowMiddle(run({ holdReason: "out-of-time" }), NOW, WORDS, phrase)).toBe(
-      "Stopped at Build",
-    );
+  /*
+   * ── "STOPPED AT BUILD" TWICE, ON THE LIVE LIST, 2026-09-03 ───────────────
+   *
+   * This assertion used to read `toBe("Stopped at Build")`, and walking the
+   * deployed list is what showed why that was the weaker answer: two rows held
+   * for DIFFERENT reasons both printed it, because the sentence named where the
+   * work stopped and threw away why. By the letter of the rule this file exists
+   * for they were allowed to -- neither carried `last_hold_because`, so the
+   * facts on the record really were identical -- and the list was still worse.
+   *
+   * `holdLine` is the driver's own words for each reason and was already on the
+   * row. So the fallback now says the reason, and the two rows differ.
+   */
+  it("says why it stopped, not just where, so two different stops read differently", () => {
+    const outOfTime = startRowMiddle(run({ holdReason: "out-of-time" }), NOW, WORDS, phrase);
+    const gaveUp = startRowMiddle(run({ holdReason: "given-up" }), NOW, WORDS, phrase);
+    expect(outOfTime).toBe(holdLine("out-of-time", { station: "build" }));
+    expect(outOfTime).not.toBe(gaveUp);
+    // And it is a sentence a person can read, not a slug.
+    expect(outOfTime).not.toContain("-");
+  });
+
+  it("falls back to the station for a reason this build has never heard of", () => {
+    /*
+     * `last_hold` is a text column, not an enum. A reason written by a newer
+     * deploy, or by hand, reaches `holdLine` as null -- and printing the raw
+     * slug at a person is the thing the fallback is for.
+     */
+    expect(
+      startRowMiddle(run({ holdReason: "a-reason-from-the-future" }), NOW, WORDS, phrase),
+    ).toBe("Stopped at Build");
     expect(startRowMiddle(run({ drivenAt: null }), NOW, WORDS, phrase)).toBe("Not started yet");
   });
 });

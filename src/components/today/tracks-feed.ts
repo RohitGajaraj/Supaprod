@@ -1,6 +1,7 @@
 import type { Track } from "@/lib/spine/track.functions";
 import { TERMINAL_HOLDS } from "@/lib/spine/correction";
-import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
+import { holdLine } from "@/lib/spine/driver";
 
 /**
  * SPINE WORK AS BOARD ROWS, so the board shows every piece of work in flight.
@@ -326,6 +327,8 @@ export type StartRowInput = {
   id: string;
   title: string;
   status: "open" | "done" | "abandoned";
+  /** The raw station, for `holdLine`'s station substitution. */
+  station?: AgentStation | null;
   stationName: string;
   updatedAt: string;
   drivenAt: string | null;
@@ -434,7 +437,28 @@ export function startRowMiddle(
   /* HELD. The driver's own sentence when it wrote one, because it names the
      thing that has to change; the coarse reason cannot. */
   if (r.holdBecause) return r.holdBecause;
-  if (r.holdReason) return `Stopped at ${r.stationName}`;
+  /*
+   * ── "STOPPED AT BUILD" TWICE, WALKED ON THE LIVE LIST ───────────────────
+   *
+   * Two rows printed exactly that, and by the letter of the discriminator rule
+   * they were allowed to: both were held at Build with no `last_hold_because`,
+   * so the facts really were identical. The rule was satisfied and the list was
+   * still worse for it, because the sentence threw away the one fact the record
+   * DID have -- WHY each stopped -- and replaced it with where.
+   *
+   * `HOLD_LINE` is the driver's own words for each reason and it has been on the
+   * row all along. `given-up` and `needs-evidence` are different sentences, so
+   * two rows that genuinely stopped for different reasons now say so, and two
+   * that stopped for the same reason still agree, which is correct.
+   *
+   * The station is kept as the fallback's fallback: `holdLine` tolerates an
+   * unknown string in that column (it is not an enum in the database), and a
+   * reason this build has never heard of should degrade to where it stopped
+   * rather than print a raw slug at a person.
+   */
+  if (r.holdReason) {
+    return holdLine(r.holdReason, { station: r.station }) ?? `Stopped at ${r.stationName}`;
+  }
 
   return r.drivenAt ? `Waiting at ${r.stationName}` : "Not started yet";
 }
