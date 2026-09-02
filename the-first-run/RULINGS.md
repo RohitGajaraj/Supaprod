@@ -998,6 +998,20 @@ failed read (R-22's rule, R-27 §7's sentence). Code: `deployments.functions.ts`
 
 ---
 
+## R-34 · There are no lanes. Priority is *Put first*. (2026-09-03)
+
+Now / Next / Later / Backlog on `/decide` and `/plan` was a roadmap control from the B2B-SaaS shape.
+The product ranks bets by ICE and a person says which run goes first (P-20). A lane a person has to
+maintain is state held in their head with a table under it. Retired, not rehomed.
+
+## R-35 · A mission without a track is not a run. (2026-09-03)
+
+395 of 407 `missions` rows have no track. Seven of the last eleven came from one workspace's
+scheduled "Investigate…" proposer, every 15 minutes; the rest are pre-spine test history. The rows
+stay in the database and behind `build.list_sessions`; they get no page, no search result and no
+row on Start. Every new mission is created by a run, and the generator that makes them without one
+is stopped. The `/runs/$missionId` page is deleted with the rest.
+
 ## Open, and I have not ruled yet
 
 | Question | Why it is still open |

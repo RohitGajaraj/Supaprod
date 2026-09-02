@@ -1975,7 +1975,7 @@ confirm the redraw is now instant.
 
 ---
 
-### P-14 · Delete five station pages and the mission run screen; keep Arriving and Outcomes · Lane: **A3** · Status: CLAIMED (A3, 2026-09-03) · Moves: 4
+### P-14 · Delete five station pages and the mission run screen; keep Arriving and Outcomes · Lane: **A3** · Status: CLAIMED (A3) · A1 ruled per row 02:45 IST, deletions may start · Moves: 4
 
 **Ruled by A1 after the founder's question of 2026-09-02 19:12.** Two workspace-wide views are
 needed and are not stations: **Arriving** (what came in, from where, what is forming, what has not
@@ -2062,9 +2062,55 @@ can go.
    stays necessary for nearly the entire mission archive until that backfill exists (the "request 021"
    `AppFrame.tsx`'s own comment already names). Not something this packet can close by itself.
 
-**A1 verdict:**
+**A1 verdict (02:45 IST), walked on supaprod.ai against the table. The audit is right that every
+page carries a fact; it is wrong that a fact needs a page. The product is Start · Run · Settings with
+Arriving and Outcomes surviving (founder, 2026-09-02), so the ruling per row is where the fact goes,
+not whether the page stays. A control that is not in the model any more is retired, not rehomed.**
+
+| Page | Fact with no home | Ruling |
+| --- | --- | --- |
+| `/decide` | 78 bets ranked by ICE; Keep / Challenge / Drop; Now / Next / Later / Backlog placement; the ICE weights | **Delete.** The ranking's home is Start's *Or start one of these* (top three by ICE, verify P-05 reads the ranking; if it does not, one acceptance line here) and Find anything › Findings. Keep = Start it; Challenge = the Critic already runs at the Decide station of a run (`critic.evaluate`); Drop = a decision on the run. **Lanes are retired (R-34): priority is *Put first*, there are no lanes.** ICE weights → Settings › Workspace. |
+| `/plan` (index) | Same board; "What does success look like for these 2 bets? Declare the first of 2"; work in flight; who works the plan | **Delete.** The undeclared-outcome gate is the forecast (R-31, P-04): the seat writes it and the run holds until it exists; Start rows already print the due date. Work in flight = Start. Who works the plan = the run. |
+| `/design` | 10 brand rules need you; drawings grid over 34 specs; fidelity / Critic review; "Design gates Build" switch | **Delete.** Brand rules → Settings › Workspace › Brand (P-23 put them there); a rule waiting on a person is an approval row and lands on Start as *Needs you*. The drawings → each run's artifact pane (P-24) and Find anything › Prototypes. The gate switch → Settings › Automation. |
+| `/build` (index) | "Nothing is being written. 6 need you"; approved-and-waiting list with *Build this*; waiting-on-you list; where the next build lands; spend policy | **Delete.** The live block is the top bar (P-18) and Start's rows. *Build this* on an approved spec is the old track-less path (see `/runs` below): a spec is built by its run, not from a list. Where builds land → Settings › Connections. Spend policy → Settings › Automation. |
+| `/ship` | One announcement waiting; where it is live; live releases with PR and Roll back; what shipped | **Delete after P-14b.** Outcomes gets *What shipped*: every release with its PR, live URL and date (`ship.list_releases`). Roll back stays on the run's Ship tab (P-03). **The announcement composer is retired:** the release note is the seat's at `release.publish`; the public reader at `/p/<slug>` is not one of the eight and stays. The heartbeat A3 found false is simply gone. |
+| `/learn` | "12 outcomes came back. 5 of 10 paid off"; forecasts due; the verdict form; the exception desk; the impact ledger | **Delete after P-04 and P-14b.** Forecasts due and their verdicts are P-04's on the run (R-31), and P-04 gains one line: **a person can overrule the verdict on the run.** The exception desk is *Needs you* on Start. The ledger ("Priority moved +1", "3 calls later replaced") → Outcomes › outcomes tab, per station, cross-run, which is the survivor's whole job. |
+| `/plan/spec/$id` | Assist verbs; Edit / Preview / Flow / Contract views; Send to Build; Create GitHub issue; Capture as decision | **Keep, demoted.** It is a document editor, not a station page. It is reached only from a run's artifact pane (*Open the full editor*), never from the rail; Send to Build and Create issue go, because the run does both. Rename under `/track/:id/spec/:specId` in P-24b, later. |
+| `/runs/$missionId` | 395 of 407 missions have no track; 7 of the last 11 | **Delete, and close the source (R-35).** The seven recent ones are one workspace's scheduled "Investigate the stale decision…" proposer firing every 15 minutes, not a person's work: **find and stop that generator in P-14 (A3, read-only find, A1 rules on the kill).** The 388 older rows are pre-spine history of one founder's testing: they stay in the database and in `build.list_sessions`; they get no page. A mission without a track is not a run. |
+| `today.tsx` Board mount | already gone | Delete `Board.tsx` itself in P-14: zero importers, 2,656 lines. |
+
+**Order of deletion, now:** `/decide`, `/plan` index, `/design`, `/build` index, `/runs/$missionId`,
+`Board.tsx`, with a redirect for each to Start (the P-15 boundary says a dead address once). `/ship`
+and `/learn` go when P-14b (Outcomes › What shipped + the ledger, A3) and P-04 (A2) are DONE. Every
+deletion: route count before/after, tsc 0, `bun test` 0 fail, ratchet not widened, pushed, Report.
+A1 publishes and walks Start, a run, Outcomes and Settings after the first batch.
+
 
 ---
+
+
+### P-14b · Outcomes carries what shipped and what the record moved · Lane: **A3** · Status: READY · Moves: 4, 5
+
+**Why.** `/ship` and `/learn` cannot go until their two cross-run facts have a home, and Outcomes is
+the survivor whose job is cross-run history per station (P-14 ruling).
+
+**Scope.** On `/outcomes`: (1) *What shipped*, one row per release from `ship.list_releases` with
+title, PR, live URL, date, and the run it came from (opens the run's Ship tab); (2) the impact ledger
+from `/learn` ("Priority moved +1 · across 2 measured outcomes", "3 calls later replaced") in the
+outcomes tab, reading the same server function `/learn` reads (`impact-ledger`). No new query shapes;
+move the readers. Copy plain (R-copy). No `meridian/**` edits.
+
+**Files.** `src/routes/_authenticated.outcomes.tsx`, the ledger and releases readers `/learn` and
+`/ship` already import.
+
+**Acceptance.**
+- [ ] On Helio Labs, Outcomes lists the one live release with PR 128 and its date, and the ledger's
+      two lines, byte-equal to what `/ship` and `/learn` print today (record both before).
+- [ ] Each release row opens its run's Ship tab.
+- [ ] tsc 0 · `bun test` 0 fail · ratchet not widened · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
 
 ### P-14a · Arriving and Outcomes take their own addresses · Lane: **A3** · Status: DONE (A1, 00:30 IST) · one copy follow-up below · Moves: 1, 4
 
