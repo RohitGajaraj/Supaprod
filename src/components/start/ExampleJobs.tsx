@@ -31,6 +31,7 @@ import { Action } from "@/components/meridian/surface-parts";
 import { PickCard } from "@/components/meridian/onramp-parts";
 import { SketchBroken, SketchProblem, SketchScreen } from "@/components/meridian/sketch-glyphs";
 import type { WorkShape } from "@/lib/spine/route";
+import type { TopOpportunity } from "@/lib/discovery.functions";
 
 export type ExampleJob = {
   /** The sentence, exactly as it lands in the composer. */
@@ -40,6 +41,28 @@ export type ExampleJob = {
   shape: WorkShape;
   glyph: React.ReactNode;
 };
+
+/**
+ * P-14 (A-QUEUE.md ruling): a real, ranked bet, converted into the shape this
+ * card already knows how to start. Pressing it IS "Keep" now -- `/decide`'s
+ * own Keep/Challenge/Drop retired with the page (R-34): Keep starts the run,
+ * Challenge is the Critic already running at that run's own Decide station,
+ * Drop is a decision made on the run, once it exists.
+ *
+ * `shape` is `"existing-feature"`, never `"new-capability"`: a bet came from
+ * evidence about something already true of the product, not a blank slate,
+ * and `existing-feature` is what carries `origin` (the bet's own problem
+ * statement) into the composer's `startTrack` call so Discover inherits why
+ * this was proposed rather than starting from nothing.
+ */
+export function jobFromOpportunity(o: TopOpportunity): ExampleJob {
+  return {
+    sentence: o.title,
+    sub: o.problem,
+    shape: "existing-feature",
+    glyph: <SketchProblem />,
+  };
+}
 
 /**
  * ── EVERY SENTENCE HERE IS ONE THE LOOP CAN ACTUALLY WALK ─────────────────
@@ -72,16 +95,32 @@ export const EXAMPLE_JOBS: readonly ExampleJob[] = [
 export function ExampleJobs({
   onStart,
   busy = false,
+  bets = [],
 }: {
   /** Fills the composer with the sentence and starts that run. */
   onStart: (job: ExampleJob) => void;
   busy?: boolean;
+  /**
+   * The top three real bets by ICE, when any exist (`listTopOpportunities`,
+   * P-14 ruling). Shown INSTEAD of the static examples, never alongside them:
+   * once a workspace has real ranked work, three generic examples beside it
+   * would outrank nothing and teach nothing a real bet does not teach better.
+   * An empty workspace has no bets yet, so the examples keep doing the job
+   * they were built for -- showing a new workspace what the product does.
+   */
+  bets?: readonly TopOpportunity[];
 }) {
+  const showingBets = bets.length > 0;
+  const jobs = showingBets ? bets.map(jobFromOpportunity) : EXAMPLE_JOBS;
   return (
-    <section data-mrd="" className="flex flex-col gap-mrd-3 font-mrd" aria-label="Example jobs">
+    <section
+      data-mrd=""
+      className="flex flex-col gap-mrd-3 font-mrd"
+      aria-label={showingBets ? "Ranked bets" : "Example jobs"}
+    >
       <p className="mrd-meta">Or start one of these.</p>
       <div className="grid gap-mrd-3 sm:grid-cols-3">
-        {EXAMPLE_JOBS.map((job) => (
+        {jobs.map((job) => (
           <div key={job.sentence} className="flex flex-col gap-mrd-2">
             {/*
              * `PickCard` with `selected={false}` always: these are not a choice

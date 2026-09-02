@@ -156,7 +156,9 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
       // no type error would catch it (a wrong column in a select string
       // typechecks clean here and only shows up at runtime).
       .from("themes")
-      .select("id, title, frequency, severity, status, novelty")
+      .select(
+        "id, title, frequency, severity, status, novelty, confidence, summary, project_id, product_id",
+      )
       .eq("is_sample", false)
       .eq("user_id", ownerId)
       .limit(100),
@@ -284,6 +286,52 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
 
   let written = 0;
   for (const p of proposals) {
+    /*
+     * P-14 (A-QUEUE.md), R-35's ruling: "ambient sensing proposes, it does not
+     * start." A cluster over the gate used to self-originate a `[auto]`
+     * mission every tick it stayed hot -- the live incident this closes,
+     * measured 2026-09-02 in workspace 0b792d52: the same theme, renamed
+     * three times over a week as its own signals never resolved, fired one
+     * "Investigate..." mission every 15 minutes because nothing closed its
+     * novelty gate. It now writes (or refreshes) exactly one `opportunities`
+     * row instead, keyed on `theme_id` so a hundred ticks on one hot theme
+     * still leave one bet, not a hundred missions. No mission, no track, no
+     * decision receipt -- Start's "Or start one of these" is where a person
+     * meets it, and pressing Start on it is the whole of "Keep" now.
+     */
+    if (p.kind === "cluster" && p.opportunity) {
+      const opp = p.opportunity;
+      const { data: existing } = await supabaseAdmin
+        .from("opportunities")
+        .select("id")
+        .eq("theme_id", opp.themeId)
+        .maybeSingle();
+      const row = {
+        user_id: ownerId,
+        workspace_id: workspaceId,
+        theme_id: opp.themeId,
+        title: opp.name,
+        problem: opp.problem,
+        hypothesis: `If we address "${opp.name}", we expect to reduce reported pain and improve activation.`,
+        impact: opp.impact,
+        confidence: opp.confidence,
+        ease: opp.ease,
+        project_id: opp.projectId,
+        product_id: opp.productId,
+      };
+      if (existing) {
+        const { error: uErr } = await supabaseAdmin
+          .from("opportunities")
+          .update(row as never)
+          .eq("id", (existing as { id: string }).id);
+        if (!uErr) written += 1;
+      } else {
+        const { error: iErr } = await supabaseAdmin.from("opportunities").insert(row as never);
+        if (!iErr) written += 1;
+      }
+      continue;
+    }
+
     // Resolve the pre-assigned sense agent UUID when the proposal targets one.
     let currentAgentId: string | null = null;
     if (p.agentSlug) {

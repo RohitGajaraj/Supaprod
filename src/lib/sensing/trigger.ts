@@ -33,6 +33,25 @@ export type ThemeState = {
    * deliberately treated as "unknown", never as "new" — see `RE_DISCOVERY`.
    */
   novelty?: number | null;
+  /**
+   * P-14 (A-QUEUE.md), R-35's ruling: a cluster over the gate writes or
+   * updates an `opportunities` row (the bet Start can show), never a mission.
+   * `confidence` and `summary` are what that write needs beyond what a
+   * mission proposal ever read from a theme, mirroring
+   * `promoteThemeToOpportunity`'s own field-by-field mapping so an automatic
+   * bet and a human-promoted one are made of the same theme the same way.
+   *
+   * Optional, not required: every existing fixture in this file's own test
+   * suite builds a `ThemeState` without them, and this file's contract is
+   * that ANY input shape is handled rather than assumed. `trigger-tick.ts`'s
+   * live query always selects both; a missing value here degrades to a
+   * neutral opportunity write (see the cluster branch below) rather than a
+   * type error blind to what a test fixture actually carries.
+   */
+  confidence?: number;
+  summary?: string;
+  project_id?: string | null;
+  product_id?: string | null;
 };
 
 export type OutcomeState = {
@@ -68,6 +87,26 @@ export type TriggerProposal = {
    *  UUID and sets current_agent_id so the mission arrives pre-routed to the right
    *  Sense agent. Absent for cluster/missed-outcome proposals (no default assignment). */
   agentSlug?: string;
+  /**
+   * P-14 (A-QUEUE.md), R-35: present ONLY on `kind: "cluster"`. The tick reads
+   * this instead of creating a mission -- a cluster over the gate becomes (or
+   * refreshes) one `opportunities` row, keyed on `themeId` so the same theme
+   * never writes a second bet. Fields mirror `promoteThemeToOpportunity`'s own
+   * mapping (`discovery.functions.ts`) so an automatic bet and a human-promoted
+   * one are built from a theme the same way.
+   */
+  opportunity?: {
+    themeId: string;
+    /** The theme's own name, truncated the same way the title's wrapped
+     *  form is -- the bet's title, not "Investigate the "..." cluster". */
+    name: string;
+    problem: string;
+    impact: number;
+    confidence: number;
+    ease: number;
+    projectId: string | null;
+    productId: string | null;
+  };
 };
 
 /** A cluster earns a mission when it is unaddressed AND has crossed an attention threshold. */
@@ -367,6 +406,20 @@ export function evaluateTriggers(
       rationale: `Self-initiated: the "${name}" cluster crossed the attention threshold (frequency ${freq}, severity ${sev}) with no active mission. Reversible internal review, so proposed for activation.`,
       reversible: true,
       priority: freq + sev * 2,
+      // Same mapping `promoteThemeToOpportunity` uses by hand: impact from
+      // severity (capped at the 10-point ceiling), confidence scaled to the
+      // same 10-point scale, ease left neutral because nobody has scored how
+      // hard this bet is to act on yet.
+      opportunity: {
+        themeId: t.id,
+        name,
+        problem: t.summary || name,
+        impact: Math.min(10, sev * 2),
+        confidence: Math.round((t.confidence ?? 0) * 10),
+        ease: 5,
+        projectId: t.project_id ?? null,
+        productId: t.product_id ?? null,
+      },
     });
   }
 

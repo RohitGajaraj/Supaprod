@@ -15,6 +15,7 @@ import { failureLine } from "@/lib/error-copy";
 import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listRunsForStart, startTrack } from "@/lib/spine/track.functions";
+import { listTopOpportunities } from "@/lib/discovery.functions";
 import type { WorkShape } from "@/lib/spine/route";
 
 /**
@@ -134,6 +135,17 @@ function StartLanding() {
   /* Only once the read has ANSWERED. Showing the first-run line while the read
      is in flight would flash it at every returning person on every visit. */
   const firstRun = runs.data !== undefined && runs.data.length === 0;
+
+  /* P-14 (A-QUEUE.md ruling): `/decide`'s 78-bet ranked queue is deleted; the
+     ranking's home is here. staleTime matches Arriving's own ("a setting
+     rather than a fact about this second"-adjacent reads poll gently) --
+     the top three by ICE do not need to be fresher than a page visit. */
+  const fBets = useServerFn(listTopOpportunities);
+  const bets = useQuery({
+    queryKey: ["start-top-opportunities"],
+    queryFn: () => fBets(),
+    staleTime: 60_000,
+  });
 
   const go = useMutation({
     mutationFn: async (job?: ExampleJob) => {
@@ -275,7 +287,7 @@ function StartLanding() {
         />
       ) : null}
 
-      <ExampleJobs onStart={(job) => go.mutate(job)} busy={go.isPending} />
+      <ExampleJobs onStart={(job) => go.mutate(job)} busy={go.isPending} bets={bets.data ?? []} />
 
       <YourRuns />
 

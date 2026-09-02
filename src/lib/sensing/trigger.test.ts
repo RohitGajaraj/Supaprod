@@ -49,6 +49,50 @@ describe("evaluateTriggers — clusters", () => {
     expect(evaluateTriggers({ themes: [theme({ frequency: 1, severity: 1 })] })).toHaveLength(0);
   });
 
+  // P-14 (A-QUEUE.md), R-35: a cluster over the gate carries what the tick
+  // needs to write (or refresh) an opportunities row, never a mission.
+  it("carries the theme's opportunity mapping, the same one promoteThemeToOpportunity uses by hand", () => {
+    const out = evaluateTriggers({
+      themes: [
+        theme({
+          id: "t-live",
+          frequency: CLUSTER_FREQUENCY_THRESHOLD,
+          severity: 4,
+          confidence: 0.7,
+          summary: "Off-hours requests time out past 30s.",
+          project_id: "proj-1",
+          product_id: "prod-1",
+        }),
+      ],
+    });
+    expect(out[0].opportunity).toEqual({
+      themeId: "t-live",
+      name: "Off-hours latency",
+      problem: "Off-hours requests time out past 30s.",
+      impact: 8, // min(10, severity * 2) = min(10, 8)
+      confidence: 7, // round(0.7 * 10)
+      ease: 5, // neutral, unscored
+      projectId: "proj-1",
+      productId: "prod-1",
+    });
+  });
+
+  it("degrades to a neutral opportunity mapping when a fixture carries no confidence or summary", () => {
+    const out = evaluateTriggers({
+      themes: [theme({ frequency: CLUSTER_FREQUENCY_THRESHOLD, severity: 4 })],
+    });
+    expect(out[0].opportunity?.confidence).toBe(0);
+    expect(out[0].opportunity?.problem).toBe("Off-hours latency"); // falls back to the cluster name
+  });
+
+  it("a non-cluster proposal carries no opportunity mapping", () => {
+    const out = evaluateTriggers({
+      outcomes: [outcome({ id: "o-miss" })],
+    });
+    expect(out[0].kind).toBe("missed-outcome");
+    expect(out[0].opportunity).toBeUndefined();
+  });
+
   it("fires on high severity even when frequency is low", () => {
     expect(evaluateTriggers({ themes: [theme({ frequency: 0, severity: 5 })] })).toHaveLength(1);
   });

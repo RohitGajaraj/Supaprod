@@ -1426,6 +1426,40 @@ export const listOpportunities = createServerFn({ method: "GET" })
     };
   });
 
+export type TopOpportunity = {
+  id: string;
+  title: string;
+  problem: string;
+  iceScore: number | null;
+};
+
+/**
+ * P-14 (A-QUEUE.md ruling): "The ranking's home is Start's *Or start one of
+ * these* (top three by ICE)." `/decide`'s own 78-row ranked queue is deleted;
+ * this is the one read Start needs, deliberately not `listOpportunities`
+ * (500 rows, a two-hop agent-attribution join neither Start's three cards nor
+ * anyone reading this fast needs) -- the same reasoning `listMovingTracks`
+ * (P-18) was split out of `listRunsForStart` for.
+ */
+export const listTopOpportunities = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<TopOpportunity[]> => {
+    const { data, error } = await context.supabase
+      .from("opportunities")
+      .select("id, title, problem, ice_score")
+      .order("ice_score", { ascending: false })
+      .limit(3);
+    if (error) return [];
+    return (
+      (data ?? []) as Array<{
+        id: string;
+        title: string;
+        problem: string;
+        ice_score: number | null;
+      }>
+    ).map((o) => ({ id: o.id, title: o.title, problem: o.problem, iceScore: o.ice_score }));
+  });
+
 export const promoteThemeToOpportunity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ theme_id: z.string().uuid() }).parse(i))
