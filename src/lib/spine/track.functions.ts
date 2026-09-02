@@ -2630,7 +2630,11 @@ export type SelfCheckTally = {
   retries: number;
   /** Set when the drives could not be read, so a zero is not read as a fact. */
   unreadable: string | null;
-  /** One per drive that compared something, oldest first, for the transcript. */
+  /**
+   * One per drive that compared something, for the transcript. Newest first,
+   * because that is the order the rows are fetched in and the transcript sorts
+   * by time itself -- nothing downstream depends on the order here.
+   */
   entries: SelfCheckEntry[];
 };
 
@@ -2781,7 +2785,23 @@ export const getTrackActivity = createServerFn({ method: "GET" })
             .from("track_drives" as never)
             .select("station,at,entry_hold,self_check")
             .eq("track_id", data.trackId)
-            .order("at", { ascending: true })
+            /*
+             * -- NEWEST FIRST, AND THE THREE QUERIES ABOVE ARE NOT WRONG ------
+             *
+             * They read `agent_runs`, `spine_track_members` and `stage_events`
+             * oldest-first, and this one copied that without asking whether the
+             * populations are the same size. They are not. `2fdf93b6` carries
+             * 285 `track_drives` rows against 200 here, so ascending returned
+             * the OLDEST 200 and the self-check written at 21:20 -- the only one
+             * on the whole track -- fell outside the window and rendered
+             * nothing. A1 read the live Build tab and found zero matches in the
+             * transcript while the row sat in the database.
+             *
+             * A drive is the highest-frequency row on a track by a wide margin:
+             * every ten minutes, whether or not anything happened. So this is
+             * the one of the four that has to take the newest.
+             */
+            .order("at", { ascending: false })
             .limit(200),
         ]);
 
