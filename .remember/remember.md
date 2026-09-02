@@ -130,3 +130,6 @@ sentence twice while its own test stayed green, and Quality > By surface renderi
 **And two numbers were only correct because they were checked against SQL rather than against the
 screen.** "18 agents finished" was 2 agents × 9 runs each. `passRate * 100` was a judge score out of
 100, so every surface on Quality was green permanently, whatever it scored.
+
+## 2026-09-02 20:20 IST — A1 lane (Fable). P-01 and P-10 DONE on the live site; suite green.
+Queue `the-first-run/A-QUEUE.md`; report `A1-REPORT.md`. Live at `d43fc2829`. In flight: P-11 (A3), P-24 (A2). Date: 15 Sep complete, 23 Sep public.

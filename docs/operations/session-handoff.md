@@ -620,3 +620,32 @@ explicit paths and check the index first.**
 - **Needs the founder:** GitHub Actions billing on the `Supaprod` org (blocks P-03); the repo for the
   first honest run; delete the 14 self-referential forecasts (yes/no); delete the seven station pages
   after P-01/P-05 (yes/no); sign in on his own workspace when P-05 lands.
+
+---
+
+## 2026-09-02 ~20:20 IST — A1 evening: two packets DONE on the live site, six more written, suite green
+
+**`main` · HEAD `5d278f9a6` · tsc 0 · `bun test` 13,581 pass / 0 fail · published to `supaprod.ai`
+at `d43fc2829` (Lovable publish `7626c911`).**
+
+- **P-01 DONE** (A2): the run screen has no station display; the transcript row opens what it filed;
+  one footer control; Stop is `spine_tracks.stop_requested_at` read by the driver (migration
+  `20260902010000`, applied and ledger-recorded). Walked live on `ce846e9b`. R-32 promoted.
+- **P-10 DONE** (A3): 85 → 36 route files, `/meridian` dev-only, every link re-pointed and listed.
+  A3's report corrected A1's count of dead rail rows (two, not four); A1 fixed the Meridian
+  not-found button in place.
+- **In flight:** P-11 (A3, rail to Start · Run · Settings; dev server line was `up · A3 · 20:09`),
+  P-24 (A2, every artifact chip opens on the right by id, ahead of P-05).
+- **Written today from the founder's questions:** P-20 (pin + visible promotion bar), P-21
+  (playbook files), P-22 (live preview of the thing being built), P-23 (Settings as one searchable
+  page, six groups), P-24. P-14 re-scoped: *Arriving* and *the Record* survive; five station pages
+  go after a fact audit. Founder approved 19:27.
+- **Rulings:** R-29 one queue · R-30 branch commits run without asking · R-31 forecasts are about
+  the user's product · R-32 Stop is a row. Rule 12 in the queue: lanes apply their own migrations
+  one at a time through the Lovable MCP, publish, and verify on the live UI.
+- **Data:** 12 seed "resolved" forecasts quarantined (`decisions.is_sample=true`, ids in commit
+  `b202f4900`). The eight self-referential forecasts get graded `inconclusive` by P-04, not deleted.
+- **References stored:** `docs/research/agentic-surface-patterns-2026-09.md` and
+  `docs/design/reference-2026-08-26/lovable-settings-2026-09.md`.
+- **Open on the founder:** sign in on his own workspace when P-05 lands. Everything else answered.
+- **Date call unchanged:** 15 Sep product-complete and in daily use · 23 Sep public.
