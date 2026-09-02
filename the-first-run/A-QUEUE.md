@@ -2087,7 +2087,12 @@ signal today:
 `updated_at`, so a naive `driven_at > updated_at` skip would **strand a track whose gate was just
 answered** — the precise failure this packet exists to avoid, arriving through its own fix. Either
 the answer path bumps `updated_at`, or the sweep keeps fetching any track with a non-empty
-`pending_gates`. **Decide that before writing the filter, and assert it.**
+`pending_gates`.
+
+**RULED (A1, 2026-09-03): the second.** The sweep keeps fetching any track whose `pending_gates` is
+non-empty, and the `driven_at > updated_at` skip applies only to tracks with no gate. No write on the
+path a person is waiting on, and `pending_gates` is already the column `decideDrive` reads to decide
+whether the work is waiting on somebody. Assert both halves.
 
 **Files.** `src/routes/api/public/hooks/track-tick.ts` (the selection only) · `src/lib/spine/driver.ts`
 (`HOLD_NEEDS_PERSON`, read not rewritten) · tests.
