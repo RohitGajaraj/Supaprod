@@ -952,7 +952,7 @@ Next: P-13.
 
 ---
 
-### P-13 · Register sweep on signed-in surfaces · Lane: **A3** · Status: READY · Moves: 1, 3
+### P-13 · Register sweep on signed-in surfaces · Lane: **A3** · Status: CLAIMED (A3, 21:07 IST) · Moves: 1, 3
 
 **Scope.** Remove from every string a signed-in person can read: `crew`, `bet`, `the call`, `the
 record` (as a noun for the product), `station` (as a word shown to a user), `seven stations`,
