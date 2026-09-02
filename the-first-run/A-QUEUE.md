@@ -397,7 +397,7 @@ _18:48 IST_ — all three readings accepted. (1) The footer carries one control:
 
 ---
 
-### P-24 · Every artifact in the transcript opens on the right, and looks like it will · Lane: **A2** · Status: READY (takes precedence over P-05) · Moves: 3, 4, 5
+### P-24 · Every artifact in the transcript opens on the right, and looks like it will · Lane: **A2** · Status: CLAIMED (A2, 20:32 IST) · Moves: 3, 4, 5
 
 **Why (founder, 2026-09-02 20:09, on the live site).** *"When some PRD or spec is written it gives a
 block, and it is not clickable. It needs to be clickable, viewable, editable. Not just the spec: any
