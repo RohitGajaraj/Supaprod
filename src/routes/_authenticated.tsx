@@ -273,7 +273,7 @@ function AuthedLayout() {
                   no reader: Rollup tree-shook it out of the production build
                   entirely. And every job the July rulings held it for is now
                   done by something mounted -- `GotoShortcuts` below for the
-                  chords, `RailFind` for search-by-name, `ShortcutSheet` for the
+                  chords, `FindAnything` for search-by-name, `ShortcutSheet` for the
                   chord table. Its data survives on purpose in
                   `lib/palette-catalog.ts` and `lib/palette-sections.ts`,
                   because the capability list is the one thing with no other

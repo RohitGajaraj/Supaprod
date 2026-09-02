@@ -11,7 +11,7 @@
 // `docs/decisions/palette-retired-2026-08.md`. Read that before rebuilding a
 // command palette here: the short version is that every job the palette was
 // held for is now done by something mounted -- `GotoShortcuts` for the chords
-// (`_authenticated.tsx`), `RailFind` for search-by-name and `ShortcutSheet`
+// (`_authenticated.tsx`), `FindAnything` for search-by-name and `ShortcutSheet`
 // for the chord table (`components/shell/AppFrame.tsx`) -- and that ⌘K is
 // Ask's by the founder's own call, so the palette had no key left to open on.
 //

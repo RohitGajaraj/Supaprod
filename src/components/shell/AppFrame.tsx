@@ -148,7 +148,7 @@ import { deriveRailPresence } from "./rail-presence";
 import { GLYPH_FOR_STATION, StationGlyph } from "@/components/meridian/station-glyphs";
 import { RunStripProvider, STAGE_LABEL, STATION_ROUTE, type RunStripSpec } from "./run-strip";
 import { SessionEndedProvider } from "./session-ended";
-import { agentDisplayName, agentStation, type AgentStation } from "@/lib/agent-vocabulary";
+import { agentDisplayName, agentStation } from "@/lib/agent-vocabulary";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
@@ -163,10 +163,10 @@ import { BoardPanel } from "./BoardPanel";
 import { ShortcutSheet, useShortcutSheetKey } from "./ShortcutSheet";
 import { AccountMenu, ScopeMenu } from "./ScopeMenu";
 import { AuditLineageSheet } from "@/components/supaprod/AuditLineageSheet";
+import { FindAnything } from "./FindAnything";
 import {
   IconAsk,
   IconBoard,
-  IconFind,
   IconGear,
   IconKeyboard,
   IconMoon,
@@ -689,193 +689,12 @@ function RailNew({ narrow }: { narrow: boolean }) {
   );
 }
 
-/** What a found thing is, said in one word beside it. A run title and a
- *  station name are otherwise two identical rows and the reader has to guess
- *  which one goes where. */
-type FoundKind = "run" | "go";
-type Found = {
-  key: string;
-  label: string;
-  kind: FoundKind;
-  to: string;
-  params?: { missionId: string };
-};
-
 /**
- * ── SEARCH, THE SECOND OF THE THREE ─────────────────────────────────────
- *
- * WHAT IT SEARCHES, AND WHY THAT IS THE ONLY HONEST ANSWER. Meridian's rail
- * filters its own rows; this rail has five, and a field that narrows five
- * visible rows is theatre. There is no workspace-wide search service in this
- * product and inventing a UI for one would be a door onto nothing.
- *
- * So it searches the two things the shell ALREADY HOLDS and can therefore
- * answer for truthfully:
- *   · RUNS, off the `missions` read the live line is already polling. No new
- *     query, no new server function, no second cache key — the header and the
- *     field are reading one fact.
- *   · DESTINATIONS, off `RAIL` and `STATION_ROUTE`, the same two lists the
- *     rail and the strip draw from. Typing "disc" jumps to Discover, which is
- *     the other half of what anyone means by search in a rail.
- *
- * A run wins over a destination when both match, because a person who types
- * four words is naming a thing, not a place.
- *
- * NO KEYCAP, and it is not an oversight. `/` is bound to nothing here and
- * `key-model.ts` holds a drift test over what each surface binds, in both
- * directions. Drawing a `/` cap would promise a key that does not fire, which
- * is this shell's own definition of a lie. The cap arrives with the binding.
+ * SEARCH, THE SECOND OF THE THREE. `FindAnything.tsx` -- its own header
+ * explains the P-25 swap from this rail's former in-memory search
+ * (`RailFind`, runs + destinations) to a server-backed search across every
+ * artifact kind a track can hold.
  */
-function RailFind({
-  narrow,
-  runs,
-  onExpand,
-}: {
-  narrow: boolean;
-  runs: ReadonlyArray<{ id: string; title: string }>;
-  onExpand: () => void;
-}) {
-  const navigate = useNavigate();
-  const [q, setQ] = React.useState("");
-  const [cursor, setCursor] = React.useState(0);
-  const box = React.useRef<HTMLInputElement | null>(null);
-
-  const found = React.useMemo<Found[]>(() => {
-    const needle = q.trim().toLowerCase();
-    if (!needle) return [];
-    const out: Found[] = [];
-    for (const m of runs) {
-      // The title as a person reads it. `[auto]` is a dedup marker from the
-      // trigger pipeline and must never reach a user, here included.
-      const clean = stripAutoPrefix(m.title);
-      if (!clean.toLowerCase().includes(needle)) continue;
-      out.push({
-        key: `run:${m.id}`,
-        label: clean,
-        kind: "run",
-        to: "/runs/$missionId",
-        params: { missionId: m.id },
-      });
-      if (out.length === 6) break;
-    }
-    for (const row of RAIL) {
-      if (row.label.toLowerCase().includes(needle)) {
-        out.push({ key: `go:${row.to}`, label: row.label, kind: "go", to: row.to });
-      }
-    }
-    for (const [station, to] of Object.entries(STATION_ROUTE)) {
-      const label = STAGE_LABEL[station as AgentStation];
-      if (label.toLowerCase().includes(needle)) {
-        out.push({ key: `go:${to}`, label, kind: "go", to });
-      }
-    }
-    return out;
-  }, [q, runs]);
-
-  const open = found.length > 0 || q.trim().length > 0;
-
-  const go = React.useCallback(
-    (hit: Found) => {
-      setQ("");
-      void navigate({ to: hit.to, params: hit.params } as never);
-    },
-    [navigate],
-  );
-
-  if (narrow) {
-    return (
-      <button
-        type="button"
-        className="sp-findbtn"
-        onClick={() => {
-          onExpand();
-          // The rail animates its width, so the field is not in the layout the
-          // frame this fires. One frame later it is.
-          requestAnimationFrame(() => box.current?.focus());
-        }}
-        title="Find a run"
-        aria-label="Find a run, opens the rail"
-      >
-        <IconFind />
-      </button>
-    );
-  }
-
-  return (
-    <div className="sp-find">
-      <IconFind />
-      <input
-        ref={box}
-        type="text"
-        value={q}
-        placeholder="Find a run"
-        aria-label="Find a run or a step"
-        onChange={(e) => {
-          setQ(e.target.value);
-          setCursor(0);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") {
-            setQ("");
-            return;
-          }
-          if (found.length === 0) return;
-          /*
-           * The cursor is clamped ONCE, here, rather than trusted. Typing
-           * shortens the list under it, so the index held from the last render
-           * can be past the end by the time a key arrives.
-           *
-           * WRITTEN AS A VALUE, NOT A FUNCTIONAL UPDATER, and that is
-           * deliberate rather than stylistic. `no-fabricated-agent-steps.test`
-           * bans `setX(c => (c + 1) % list.length)` in any file that also holds
-           * a timer, because that is the exact shape of a fake agent walking a
-           * label list on an interval -- and this file does hold a timer, for
-           * the live line's clock. The guard cannot tell a keypress from a
-           * tick, and it is right not to try: the shape is the tell. `cursor`
-           * is stable inside one handler, so the updater bought nothing here
-           * anyway.
-           */
-          const at = Math.min(cursor, found.length - 1);
-          if (e.key === "ArrowDown") {
-            e.preventDefault();
-            setCursor(at === found.length - 1 ? 0 : at + 1);
-          } else if (e.key === "ArrowUp") {
-            e.preventDefault();
-            setCursor(at === 0 ? found.length - 1 : at - 1);
-          } else if (e.key === "Enter") {
-            e.preventDefault();
-            go(found[at]);
-          }
-        }}
-      />
-      {open ? (
-        <div className="sp-findlist" role="listbox" aria-label="Results">
-          {found.length === 0 ? (
-            /* A search that matched nothing says so. A blank panel reads as a
-               broken component rather than as an answer. */
-            <p className="sp-findnone">Nothing here matches that.</p>
-          ) : (
-            found.map((hit, i) => (
-              <button
-                key={hit.key}
-                type="button"
-                role="option"
-                aria-selected={i === cursor}
-                className="sp-findrow mrd-focus-inset"
-                data-on={i === cursor ? "true" : "false"}
-                onMouseEnter={() => setCursor(i)}
-                onClick={() => go(hit)}
-              >
-                <span className="sp-findrow-text">{hit.label}</span>
-                <span className="sp-findrow-kind">{hit.kind === "run" ? "run" : "go"}</span>
-              </button>
-            ))
-          )}
-        </div>
-      ) : null}
-    </div>
-  );
-}
 
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -1533,11 +1352,9 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    * only thing the sentence names.
    */
   const liveTarget = React.useMemo(() => {
-    const go = (
-      to: string,
-      params?: Record<string, string>,
-      search?: Record<string, unknown>,
-    ) => () => void navigate({ to, params, search } as never);
+    const go =
+      (to: string, params?: Record<string, string>, search?: Record<string, unknown>) => () =>
+        void navigate({ to, params, search } as never);
     if (gateCount > 0) {
       // Calls are settled on Start's review queue. `/today` was the door to it
       // until P-10 deleted the redirect stub (2026-09-02); this raw string is
@@ -2058,7 +1875,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               rows where Meridian's own rail (SidebarNav.tsx) puts them. */}
             <div className="sp-railhead">
               <RailNew narrow={narrow} />
-              <RailFind narrow={narrow} runs={rows} onExpand={expandRail} />
+              <FindAnything narrow={narrow} onExpand={expandRail} />
             </div>
             <nav className="sp-nav" aria-label="Main">
               {

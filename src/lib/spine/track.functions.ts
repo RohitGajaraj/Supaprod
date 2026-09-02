@@ -58,6 +58,14 @@ import {
   type StopState,
 } from "@/lib/spine/chain";
 import { KIND_WORD, STATION_ARTIFACT, type PendingGate } from "@/lib/spine/attach";
+import {
+  EMPTY_RESULT,
+  runStateWord,
+  searchWords,
+  type FindAnythingResult,
+  type FoundArtifact,
+  type SearchKind,
+} from "@/lib/spine/find-anything";
 import { claimApprovalDecision, executeApproval } from "@/lib/ai/loop.server";
 import { recordGateSignalCore } from "@/lib/gate-signals.functions";
 import { expiryDefaultFor } from "@/lib/ai/approval-expiry";
@@ -703,6 +711,170 @@ export const listRunsForStart = createServerFn({ method: "GET" })
     } catch (e) {
       if (e instanceof Error && e.message.includes("could not be read")) throw e;
       return [];
+    }
+  });
+
+/**
+ * P-25 (A-QUEUE.md, "the entry point for a person who does not remember the
+ * run is search, not a page"). Runs, and every artifact kind a track can
+ * hold, matched by title, workspace-scoped through RLS the same way every
+ * other read in this file is -- `context.supabase` is the session's own
+ * client, so a row outside the caller's workspace never reaches the query in
+ * the first place.
+ *
+ * SIX READS IN PARALLEL, THEN A SECOND ROUND TO NAME EACH ARTIFACT'S RUN. One
+ * `.ilike()` per query word against the one table `ARTIFACT_SOURCE` already
+ * names for that kind (ANDed, so every word must be present, in any order) --
+ * the same map `getChainForTrack` reads elsewhere in this file, so there is
+ * still exactly one place that says which table holds which kind. A hit with
+ * no live `spine_track_members` row (superseded, or never attached) is
+ * dropped rather than returned with nowhere to open: this packet's own scope
+ * is that every result opens something, and a result that cannot is the dead
+ * end `way-out.ts` was written to stop the run screen from showing.
+ *
+ * BOTH HELPERS BELOW ARE CLOSURES OVER `supabase`, NOT FUNCTIONS THAT TAKE IT
+ * AS A PARAMETER, so each keeps the exact type TanStack's middleware infers
+ * for `context.supabase` rather than this file inventing and maintaining a
+ * second, parallel type for the same client.
+ */
+export const findAnything = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator(z.object({ query: z.string() }))
+  .handler(async ({ context, data }): Promise<FindAnythingResult> => {
+    const words = searchWords(data.query);
+    if (words.length === 0) return EMPTY_RESULT;
+    const { supabase } = context;
+
+    const searchArtifactTable = async (
+      table: string,
+      titleColumn: string,
+      limit: number,
+    ): Promise<Array<{ id: string; title: string }>> => {
+      let q = supabase.from(table).select(`id, title:${titleColumn}`).limit(limit);
+      for (const w of words) q = q.ilike(titleColumn, `%${w}%`);
+      const { data: rows, error } = await q;
+      if (error || !rows) return [];
+      return (rows as unknown as Array<{ id: string; title: string | null }>).filter(
+        (r): r is { id: string; title: string } =>
+          typeof r.title === "string" && r.title.length > 0,
+      );
+    };
+
+    /** The one live track each artifact id belongs to, keyed by artifact id. */
+    const resolveOwningTracks = async (
+      hits: ReadonlyArray<{ kind: SearchKind; id: string }>,
+    ): Promise<Map<string, { trackId: string; trackTitle: string }>> => {
+      const out = new Map<string, { trackId: string; trackTitle: string }>();
+      if (hits.length === 0) return out;
+
+      const idsByKind = new Map<SearchKind, string[]>();
+      for (const h of hits) idsByKind.set(h.kind, [...(idsByKind.get(h.kind) ?? []), h.id]);
+
+      const memberRows: Array<{ artifact_id: string; track_id: string }> = [];
+      await Promise.all(
+        [...idsByKind.entries()].map(async ([kind, ids]) => {
+          const { data: members } = await supabase
+            .from("spine_track_members")
+            .select("artifact_id, track_id")
+            .eq("artifact_kind", kind)
+            .in("artifact_id", ids)
+            .is("superseded_at", null);
+          for (const m of (members ?? []) as Array<{ artifact_id: string; track_id: string }>) {
+            memberRows.push(m);
+          }
+        }),
+      );
+      if (memberRows.length === 0) return out;
+
+      const trackIds = [...new Set(memberRows.map((m) => m.track_id))];
+      const { data: tracks } = await supabase
+        .from("spine_tracks")
+        .select("id, title")
+        .in("id", trackIds);
+      const titleByTrack = new Map(
+        ((tracks ?? []) as Array<{ id: string; title: string }>).map((t) => [t.id, t.title]),
+      );
+      for (const m of memberRows) {
+        // First live membership wins; an artifact re-attached elsewhere
+        // carries at most one row with `superseded_at is null` in practice,
+        // and if two ever existed the earliest scan result is as good a pick
+        // as any -- this is a search result's destination, not the chain's
+        // own authority on it.
+        if (out.has(m.artifact_id)) continue;
+        const title = titleByTrack.get(m.track_id);
+        if (title === undefined) continue;
+        out.set(m.artifact_id, { trackId: m.track_id, trackTitle: title });
+      }
+      return out;
+    };
+
+    const toFoundArtifacts = (
+      kind: SearchKind,
+      rows: ReadonlyArray<{ id: string; title: string }>,
+      tracks: ReadonlyMap<string, { trackId: string; trackTitle: string }>,
+    ): FoundArtifact[] =>
+      rows.flatMap((r) => {
+        const track = tracks.get(r.id);
+        // Dropped, not returned with a null destination -- see this
+        // function's own header.
+        if (!track) return [];
+        return [
+          { kind, id: r.id, title: r.title, trackId: track.trackId, trackTitle: track.trackTitle },
+        ];
+      });
+
+    try {
+      const [runRows, prdRows, decisionRows, prototypeRows, changesetRows, signalRows, themeRows] =
+        await Promise.all([
+          (async () => {
+            let q = supabase.from("spine_tracks").select("id, title, status, last_hold").limit(8);
+            for (const w of words) q = q.ilike("title", `%${w}%`);
+            const { data: rows } = await q;
+            return (rows ?? []) as unknown as Array<{
+              id: string;
+              title: string;
+              status: string;
+              last_hold: string | null;
+            }>;
+          })(),
+          searchArtifactTable(ARTIFACT_SOURCE.prd.table, ARTIFACT_SOURCE.prd.title, 8),
+          searchArtifactTable(ARTIFACT_SOURCE.decision.table, ARTIFACT_SOURCE.decision.title, 8),
+          searchArtifactTable(ARTIFACT_SOURCE.prototype.table, ARTIFACT_SOURCE.prototype.title, 8),
+          searchArtifactTable(ARTIFACT_SOURCE.changeset.table, ARTIFACT_SOURCE.changeset.title, 8),
+          searchArtifactTable(ARTIFACT_SOURCE.signal.table, ARTIFACT_SOURCE.signal.title, 8),
+          searchArtifactTable(ARTIFACT_SOURCE.theme.table, ARTIFACT_SOURCE.theme.title, 8),
+        ]);
+
+      // One group, one combined cap -- "Findings and themes" is a single
+      // heading in this packet's own scope, not two eights.
+      const findingHits = [
+        ...signalRows.map((r) => ({ kind: "signal" as const, ...r })),
+        ...themeRows.map((r) => ({ kind: "theme" as const, ...r })),
+      ].slice(0, 8);
+
+      const tracks = await resolveOwningTracks([
+        ...prdRows.map((r) => ({ kind: "prd" as const, id: r.id })),
+        ...decisionRows.map((r) => ({ kind: "decision" as const, id: r.id })),
+        ...prototypeRows.map((r) => ({ kind: "prototype" as const, id: r.id })),
+        ...changesetRows.map((r) => ({ kind: "changeset" as const, id: r.id })),
+        ...findingHits.map((r) => ({ kind: r.kind, id: r.id })),
+      ]);
+
+      return {
+        runs: runRows.map((r) => ({
+          id: r.id,
+          title: r.title,
+          state: runStateWord(r.status, r.last_hold),
+        })),
+        prd: toFoundArtifacts("prd", prdRows, tracks),
+        decision: toFoundArtifacts("decision", decisionRows, tracks),
+        prototype: toFoundArtifacts("prototype", prototypeRows, tracks),
+        changeset: toFoundArtifacts("changeset", changesetRows, tracks),
+        findings: findingHits.flatMap((r) => toFoundArtifacts(r.kind, [r], tracks)),
+      };
+    } catch {
+      // A broken search must never take the rail down with it.
+      return EMPTY_RESULT;
     }
   });
 
