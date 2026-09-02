@@ -16,23 +16,16 @@
  * name their station.
  */
 import { describe, expect, it } from "bun:test";
-import { readFileSync } from "node:fs";
 
 import { HOLD_LINE, holdLine, holdTone, type HoldReason } from "@/lib/spine/driver";
 
-const SOURCE = readFileSync("src/components/spine/TrackStart.tsx", "utf8");
-
-/**
- * The file with its prose removed.
- *
- * Every assertion below that checks something is ABSENT has to read this rather
- * than `SOURCE`, because the fix's own comment quotes the broken code it
- * replaced so the next reader can see what went. The first draft of this file
- * matched those quotations and failed on the explanation of the thing it was
- * checking for, which is the third time that trap has caught me: an absence
- * assertion against a commented file is really an assertion about the comments.
+/*
+ * 2026-09-03: `TrackStart.tsx` was deleted with the `/plan` index (P-14, R-34),
+ * and the assertions that read its source went with it. The tone is still
+ * pinned BY REASON below, which is the half that can catch a colour moving; the
+ * run screen's chip is `TrackRun.tsx`, guarded where it lives.
  */
-const CODE = SOURCE.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+
 
 const EVERY_REASON = Object.keys(HOLD_LINE) as HoldReason[];
 
@@ -138,63 +131,5 @@ describe("the classification cannot be read off the sentence", () => {
     expect(holdLine("waiting-on-a-person", { station: "build" })).toBe(
       HOLD_LINE["waiting-on-a-person"],
     );
-  });
-
-  it("reads the raw reason in the component, never the rendered sentence", () => {
-    expect(SOURCE).toContain("holdTone(t.holdReason)");
-    expect(CODE).not.toMatch(/t\.hold === HOLD_LINE/);
-    expect(CODE).not.toContain("HOLD_LINE");
-  });
-});
-
-describe("the station is a fact and the status is a chip", () => {
-  it("stops painting the station name by whether a hold exists", () => {
-    // The reflex fix was a `you` tone on `Value`, and that component refuses one
-    // on purpose: a value is something you read, and if a person is required that
-    // belongs on a control rather than on a fact.
-    expect(SOURCE).toContain('<Value tone="quiet">{AGENT_STATIONS[t.station].name}</Value>');
-    expect(CODE).not.toMatch(/tone=\{t\.hold \? "hold" : "quiet"\}/);
-  });
-
-  it("carries the state on a StatusChip, which is what may hold a status", () => {
-    // Standing law from 2026-08-19: on paper the five status hues collapse to
-    // between 5.06 and 6.00 against the ground, so coloured text cannot carry
-    // status and a chip has to. Three words now: you, calendar wait (queue 67),
-    // and the ordinary stop.
-    /*
-     * MATCHED ACROSS WHITESPACE, not as a contiguous string, and that is a fix
-     * this file needed rather than a loosening. Adding the fourth word pushed
-     * the chip past prettier's line width, so `<StatusChip status={tone}` split
-     * across two lines and this assertion failed on a REFORMAT while the
-     * behaviour was correct. A source-text test that pins a layout fails for
-     * reasons that are not about the product, and then gets relaxed under
-     * pressure, which is how a guard stops guarding.
-     */
-    expect(SOURCE).toMatch(/<StatusChip\s+status=\{tone\}/);
-    expect(SOURCE).toContain('"Waiting on you"');
-    expect(SOURCE).toContain('"Waiting on time"');
-    expect(SOURCE).toContain('"On hold"');
-    /*
-     * A FOURTH WORD, ADDED 2026-08-31 (RUN-129), and it is a correction rather
-     * than a widening. This list read three words, and the first of them was
-     * being said to 36 of the 37 open tracks that have nothing pending for
-     * anybody: four of the six reasons `holdTone` calls "you" ARE the whole of
-     * `TERMINAL_HOLDS`, and `track-tick.ts` drops those from its selection, so
-     * nothing is coming and only a person restarts it.
-     */
-    expect(SOURCE).toContain('"Needs a restart"');
-  });
-
-  it("pulses only where somebody is being waited on, AND not on a dead track", () => {
-    /*
-     * A condition changing on its own is not asking for attention; a person is.
-     * The clause after the `&&` is the half this test could not see before: a
-     * pulse is MOTION, and nothing is moving on a track the sweep has dropped,
-     * so drawing one there is the staged state SPEC-PRESENCE forbids outright.
-     *
-     * Asserted on the source because that is what this whole file does, and
-     * `nothing-is-coming.ts` carries the unit tests for the predicate itself.
-     */
-    expect(SOURCE).toMatch(/pulse=\{tone === "you" && !nothingIsComing\(t\.holdReason\)\}/);
   });
 });
