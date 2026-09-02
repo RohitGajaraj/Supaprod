@@ -91,6 +91,7 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 ---
 
 **DEV SERVER: off** · any lane may start it when a packet needs a rendered check; the lane that starts it stops it and writes `off` here before reporting the packet.
+**LIVE WALKS (A1): paused 04:12 IST, the Chrome extension disconnected; publishes continue, walks resume when it reconnects. Pending walks: P-25a search panel, `/plan` and `/design` redirects, P-14 batch, P-18a.**
 
 ---
 
