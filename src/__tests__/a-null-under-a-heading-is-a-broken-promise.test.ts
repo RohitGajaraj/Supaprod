@@ -89,12 +89,15 @@ const KNOWN: ReadonlyArray<string> = [
   "components/shell/AppFrame.tsx",
   "components/product/ProductAnalyticsPanel.tsx",
   "components/governance/TrustGraduations.tsx",
-  // Two the design lane's grep did not reach, because it searched
-  // `isLoading ? null` and these use `isPending` or `&& null`. Worth noting on
+  // The design lane's grep did not reach this one, because it searched
+  // `isLoading ? null` and this uses `isPending` or `&& null`. Worth noting on
   // its own: the same defect wearing two other spellings is why this guard
   // matches a shape rather than a string.
-  "components/build/ReadyToBuild.tsx",
   "components/engine-room/rooms/ReceiptsPanel.tsx",
+  // PAID OFF WITH THE PAGE 2026-09-03 (P-14, A-QUEUE.md, R-34):
+  // `components/build/ReadyToBuild.tsx` is deleted along with `/build`, not
+  // fixed in place, so the debt it carried left with it. The entry is deleted
+  // rather than left as a stale allowance, same as ControlsPanel's above.
   // PAID OFF 2026-08-11: `components/governance/ControlsPanel.tsx`. Its
   // `if (overview.isLoading) return null` was the whole body of both Settings >
   // Controls and the Engine Room's Safety room, so it was the textbook case

@@ -35,8 +35,8 @@ const ROUTES = join(import.meta.dir, "..");
  * doors in a component, so the surface file is read along with the component
  * directory it mounts, which is why the check below looks for a door
  * anywhere in the station's own source rather than in one file. Decide,
- * Plan and Design left this list (P-14, A-QUEUE.md, R-34): each page is
- * deleted, so none of them hands anybody a door any more.
+ * Plan, Design and Build left this list (P-14, A-QUEUE.md, R-34): each page
+ * is deleted, so none of them hands anybody a door any more.
  */
 const STATIONS: Array<{ station: string; files: string[]; components?: string[] }> = [
   {
@@ -45,7 +45,6 @@ const STATIONS: Array<{ station: string; files: string[]; components?: string[] 
     // Discover's route file is an 80-line shell; every control lives here.
     components: ["discover/DiscoverSurface.tsx"],
   },
-  { station: "05 Build", files: ["_authenticated.build.index.tsx"] },
   { station: "06 Ship", files: ["_authenticated.ship.tsx"] },
   { station: "07 Learn", files: ["_authenticated.learn.tsx"] },
 ];

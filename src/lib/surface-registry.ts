@@ -914,12 +914,9 @@ export const SURFACE_REGISTRY = {
   // the nav rail (AppFrame.tsx).
   "run-stages": { kind: "route", home: "runs", opensFrom: "nav-rail-runs", status: "live" },
 
-  // 05 Build's own engine at /build: every change the crew has written, across
-  // every run. Reached by clicking Build on the seven-stage strip, which is the
-  // only door it has and is the point of it. Build was the one station whose
-  // route was a redirect to /runs (a different axis entirely), so the engine
-  // did not exist until 2026-07-30.
-  "build-engine": { kind: "route", home: "build", opensFrom: "spine-strip", status: "live" },
+  // "build-engine" left this registry (P-14, A-QUEUE.md, R-34): /build itself
+  // is deleted, its module (build-engine.functions.ts) with it, so the domain
+  // this entry named no longer exists on disk.
 
   // ---- Mission Control shell and remaining routes ----
   dashboard: {

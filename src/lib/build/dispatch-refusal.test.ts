@@ -1,6 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 
 import {
   DISPATCH_REFUSED_PREFIX,
@@ -78,43 +76,11 @@ describe("only the handler's own pre-durable refusal may claim nothing happened"
   });
 });
 
-const HERE = join(import.meta.dir, "..");
-const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-const DISPATCH = strip(readFileSync(join(HERE, "build.functions.ts"), "utf8"));
-const PANEL = strip(
-  readFileSync(join(HERE, "..", "components", "build", "ReadyToBuild.tsx"), "utf8"),
-);
-
-describe("both halves of the mark are wired", () => {
-  test("the producer marks its pre-durable throws and makes no unmarked ones", () => {
-    /**
-     * WHOLE-HANDLER, because one unmarked throw is enough to put the false
-     * sentence back on screen: the panel's `refused` branch is keyed on the
-     * mark, and a `new Error` thrown from the pre-durable phase would be read
-     * as a transport failure, which is the SAFE direction, so this rule is
-     * about keeping the confident sentence reachable at all rather than about
-     * preventing a lie. The slice stops at the next export so
-     * `listSpecDispatches` (which reports rather than throws) is not swept in.
-     */
-    const handler = DISPATCH.slice(
-      DISPATCH.indexOf("export const dispatchBuilderMission"),
-      DISPATCH.indexOf("export type SpecDispatch"),
-    );
-    expect(handler.length).toBeGreaterThan(0);
-    expect(handler).toContain("refuseDispatch(");
-    // Every throw in the handler goes through the mark. `throw e`/`throw err`
-    // re-throws are allowed: they carry whatever mark they arrived with.
-    const throws = handler.match(/throw\s+[A-Za-z_$][\w$]*\(/g) ?? [];
-    expect(throws.length).toBeGreaterThan(0);
-    expect(throws.filter((t) => !t.startsWith("throw refuseDispatch"))).toEqual([]);
-  });
-
-  test("the consumer branches on it rather than asserting the old sentence", () => {
-    expect(PANEL).toContain("isDispatchRefusal(e.message)");
-    // The confident sentence survives, and only on the branch it is true of.
-    const onError = PANEL.slice(PANEL.indexOf("onError: (e: Error) => {"));
-    const refusedArm = onError.slice(0, onError.indexOf("});"));
-    expect(refusedArm).toContain("Nothing was dispatched");
-    expect(refusedArm).toContain("Check Runs before pressing again");
-  });
-});
+/**
+ * "BOTH HALVES OF THE MARK ARE WIRED" LEFT THIS FILE (P-14, A-QUEUE.md,
+ * R-34). It read `dispatchBuilderMission` in build.functions.ts against its
+ * one real consumer, `components/build/ReadyToBuild.tsx` -- deleted with
+ * `/build`, and `dispatchBuilderMission` now has no caller left to wire
+ * either half of the mark to. The mark's own pure contract (above) still
+ * holds regardless of who dispatches a build.
+ */

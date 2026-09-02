@@ -90,14 +90,14 @@ const STATIONS = [
   // the surface a person actually reads.
   "components/discover/DiscoverSurface.tsx",
   // "routes/_authenticated.decide.tsx", "routes/_authenticated.plan.
-  // index.tsx" and "routes/_authenticated.design.tsx" left this list (P-14,
-  // A-QUEUE.md, R-34): all three stations are deleted, so no agent runs
+  // index.tsx", "routes/_authenticated.design.tsx" and
+  // "routes/_authenticated.build.index.tsx" left this list (P-14,
+  // A-QUEUE.md, R-34): all four stations are deleted, so no agent runs
   // visibly on any of them any more.
   //
   // Station 03's surviving surface, and the only one in the product that
   // dispatches a build. See the note above this list.
   "routes/_authenticated.plan.spec.$id.tsx",
-  "routes/_authenticated.build.index.tsx",
   "routes/_authenticated.ship.tsx",
   "routes/_authenticated.learn.tsx",
   // Not a station. The company record, where agents write and where a reader

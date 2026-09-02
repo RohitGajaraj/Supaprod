@@ -65,11 +65,18 @@ export const CATALOG: CatalogEntry[] = [
     kind: "CALL",
     run: { to: "/today" },
   },
+  /*
+   * P-14 (A-QUEUE.md ruling, R-34): /build is deleted -- "there are no
+   * lanes." A running mission is now watched from Run (the rail's own
+   * `/track` identity) or found by name in Find anything; repointed to
+   * /start so the entry does not dead-end, the same treatment "Rank what to
+   * build next" and "Point the Critic at a claim" already got above.
+   */
   {
     id: "check-mission",
     pitch: "Check on a running mission",
     kind: "MISSION",
-    run: { to: "/build" },
+    run: { to: "/start" },
   },
   {
     id: "connect-source",

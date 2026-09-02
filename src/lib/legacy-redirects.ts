@@ -25,19 +25,17 @@ export type RedirectTarget = { to: string; search?: Record<string, string> };
  * below. */
 /**
  * P-14 (A-QUEUE.md ruling, R-34: "there are no lanes, priority is Put
- * first"). `/decide`, `/plan` and `/design` are deleted (each a redirect
- * stub to `/start` now, per its own `beforeLoad`, not a mapping this
- * documentation-only file expresses -- their destination is outside the
- * Option-B canonical model this list still describes, not a fold within
+ * first"). `/decide`, `/plan`, `/design` and `/build` are deleted (each a
+ * redirect stub to `/start` now, per its own `beforeLoad`, not a mapping
+ * this documentation-only file expresses -- their destination is outside
+ * the Option-B canonical model this list still describes, not a fold within
  * it). Deliberately NOT added to `LEGACY_REDIRECTS` below for the same
  * reason: every entry there targets a CANONICAL_PATH, and `/start` is a
- * rail door in the newer Start · Run · Settings model, not one. `/build`
- * follows the same treatment as P-14's own remaining batch lands.
+ * rail door in the newer Start · Run · Settings model, not one.
  */
 export const CANONICAL_PATHS = [
   "/today",
   "/arriving",
-  "/build",
   "/ship",
   "/learn",
   "/outcomes",
@@ -167,24 +165,12 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   "/impact": { to: "/outcomes", search: { tab: "impact" } },
   "/changelog": { to: "/outcomes", search: { tab: "changelog" } },
 
-  // -- Build (canonical /build; also the one true missions home, see below) --
-  "/cockpit": { to: "/build" },
-  // OBS-10 (2026-07-03, resumed): Build widened to list every agent-mesh
-  // mission (Studio/Build code-gen AND orchestrator goal-runs, distinguished
-  // by `StudioSessionListItem.kind`), so /missions no longer carries anything
-  // Build lacks - the composer's "Run a goal" mode replaced its composer, and
-  // MissionOrchestratorDetail replaced its detail page's hops/replay/cancel/
-  // compounding view. Both prior blockers (the 3 glance widgets, the 1399-vs-
-  // 530-line detail-page gap) are resolved; this is no longer in the
-  // "Deliberately NOT folded" list above.
-  "/missions": { to: "/build" },
-  // OBS-10 (2026-07-03, resumed, lane3): Fleet and Delegate folded in as two
-  // orthogonal view-mode tabs on Build (by-agent and by-lane lenses on the
-  // same agent-mesh activity, ported unchanged from computeAgentFleet /
-  // computeDelegateDesk) - both no longer in the "Genuinely remaining work"
-  // list above.
-  "/fleet": { to: "/build", search: { view: "agent" } },
-  "/delegate": { to: "/build", search: { view: "lane" } },
+  // -- Build left this section (P-14, A-QUEUE.md, R-34): /build itself is
+  // deleted, so these five no longer have a canonical target this map's own
+  // invariant allows (see the /plan precedent immediately above -- same
+  // reasoning, same removal rather than a point at a non-canonical rail
+  // door). "/cockpit", "/missions", "/fleet", "/delegate" and "/studio" all
+  // left with it.
 
   // -- Today --
   "/tasks": { to: "/today" },
@@ -222,7 +208,4 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   "/notifications": { to: "/settings" },
   "/briefing": { to: "/settings" },
   "/integrations": { to: "/settings" },
-
-  // -- Build (already-correct stubs, listed for completeness / the test's coverage) --
-  "/studio": { to: "/build" },
 };
