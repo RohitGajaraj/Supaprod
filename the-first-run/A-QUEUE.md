@@ -2058,7 +2058,7 @@ one commit, note the sha here.
 
 ---
 
-### P-25 · Find anything: the rail search reaches every artifact · Lane: **A3** · Status: READY (take after P-14a) · Moves: 3, 4
+### P-25 · Find anything: the rail search reaches every artifact · Lane: **A3** · Status: CLAIMED (A3, 2026-09-03) · Moves: 3, 4
 
 **Why (founder, 2026-09-02 23:38: "should we have some home or entry point for artifacts?").** The home
 is the run; since P-24 every artifact has an address, `/track/<run>?artifact=<id>`. The entry point
