@@ -706,3 +706,17 @@ Meridian's own raw durations. In flight: A3 P-15 (sad paths), A2 P-20 (the pin a
 promotion bar). READY: P-16 Start half, P-18, P-25 (A3); P-26 (A2). Open follow-ups: P-14a copy
 (*bet*, *crew* on the two renamed pages), P-11 collapsed-rail label, P-13 sweep of `start.tsx` and
 `tracks-feed.ts`. Suite 13,725 / 0. The founder has not yet signed in on his own workspace.
+
+## 2026-09-03 03:05 IST — A1 lane (Fable). Nineteen packets closed; the Build path ran unattended for the first time and showed three more defects.
+Queue `the-first-run/A-QUEUE.md` (R-29, the only queue); report `A1-REPORT.md`; rulings through R-35.
+DONE and live: P-01, P-05, P-10, P-11, P-12, P-13, P-14a, P-15, P-16, P-17, P-19, P-20, P-23, P-24,
+P-25. REJECTED with one fix: P-18 (bar claims present work on a parked run when nothing moves).
+Open: P-02 (A2, verdict at Build, code on main, no report), P-03 (A2: R-30 was inert in production
+because `approval-policy.ts` forced review; fixed `bfa51e4e6`; then a Build in `pr_open` re-driven
+every tick and a cancelled gate parks the run for good, both with A2), P-14 (A3: ruled per row,
+deletions may start; `/ship` and `/learn` wait for P-14b and P-04), P-14b (A3, READY), P-25a (A2,
+after P-02), P-04/P-21/P-22/P-26 (A2, later). Production state: `stop_requested_at` set on track
+`6817e386` (R-32) until the done rule knows an open PR is the verdict; PR #4 open on
+Supaprod/relay-homeowner-app, made unattended at 20:51 UTC. The honest run `2fdf93b6` has not been
+re-driven: its builder run `0f4de13b` is parked `waiting_approval` on a cancelled gate. Date call
+unchanged: 15 Sep product-complete, 23 Sep public; checkpoint 6 Sep.

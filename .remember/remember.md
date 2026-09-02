@@ -135,3 +135,5 @@ screen.** "18 agents finished" was 2 agents × 9 runs each. `passRate * 100` was
 Queue `the-first-run/A-QUEUE.md`; report `A1-REPORT.md`. Live at `d43fc2829`. In flight: P-11 (A3), P-24 (A2). Date: 15 Sep complete, 23 Sep public.
 
 ## 2026-09-02 22:05 IST — A1. Seven packets DONE and live (P-01, P-10, P-11, P-12, P-13, P-17, P-24). In flight P-05 (A2), P-16 (A3). Suite 13,653 / 0. Lovable publish builds the commit it holds at that moment; check latest_commit_sha before walking.
+
+## 2026-09-03 03:05 IST — A1 (Fable). 15 packets DONE and live; P-18 rejected (one fix); P-14 ruled per row (R-34 no lanes, R-35 a mission without a track is not a run). R-30 was inert in production (approval-policy forced review), fixed and published; first unattended PR on the bound repo (PR #4, 20:51 UTC); then two more Build-path defects (re-drive in pr_open; cancelled gate parks the run) with A2. Track 6817e386 stopped via stop_requested_at until fixed. Honest run 2fdf93b6 still parked. Date call unchanged.

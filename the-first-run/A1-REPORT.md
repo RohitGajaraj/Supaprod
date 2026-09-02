@@ -375,3 +375,11 @@ the 22nd.
 **What this plan does not do, said plainly:** it does not add a feature. It removes 49 routes, four
 doors, 15 files, three station displays, one composer and one queue system, and it makes the four
 things already built (start, transcript, artifact pane, ask-in-place) tell one story with an ending.
+
+**Checkpoint, 2026-09-03 03:05 IST.** Fifteen packets are done and live. The Build path ran
+unattended for the first time at 20:51 UTC and opened PR #4 on the bound repo, and in doing so showed
+three defects nobody could have found by reading: R-30 was inert in production (a policy matrix
+forced review after every mode layer said auto), a Build with an open PR is re-driven every tick, and
+a cancelled gate parks its run for good. One is fixed and published; two are with A2 tonight. The
+honest run has not yet walked Build → verdict → Ship. The 15 September call stands; it is re-read
+on 6 September against one question: has one run walked the whole route with nobody pressing anything.
