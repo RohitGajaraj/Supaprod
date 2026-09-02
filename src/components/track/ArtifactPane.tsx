@@ -83,6 +83,7 @@ import { STATION_ARTIFACT } from "@/lib/spine/attach";
 import { relativeTime } from "@/lib/memory-view";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { releaseStanding, shortSha } from "@/components/track/release-words";
+import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
@@ -1654,7 +1655,29 @@ function ChangesetDiffView({ changesetId }: { changesetId: string }) {
  * separates them and the sentence says what is missing, because a different
  * colour alone is a thing people learn to stop noticing.
  */
-function ReleaseCard({ item }: { item: ArtifactView }) {
+/**
+ * ── WHAT A RELEASE IS ON THE HOOK FOR (P-03) ──────────────────────────────
+ *
+ * This card said where the release went and what commit it was, which is what a
+ * deploy record knows. It did not say the one thing that makes shipping here
+ * different from shipping anywhere else: the claim somebody made BEFORE it went
+ * out, and the date it gets graded.
+ *
+ * That is the product's whole argument. A release with a forecast attached is a
+ * bet on the record; a release without one is a deploy, and every vendor has
+ * those. The forecast was already on the screen -- three tabs away, on Decide --
+ * and Learn grades it later, so the moment it is least visible is the moment it
+ * matters most: the thing has just gone live and nobody has looked at Decide
+ * since.
+ *
+ * ── READ FROM THE DECISION, AND ABSENT WHEN THERE IS NONE ─────────────────
+ * `decisions` is the same list `LearningCard` grades against, already threaded
+ * through `StationPanel`, so the release and the verdict quote one row. A track
+ * whose Decide was waived carries no forecast at all, and that is a real and
+ * common shape: it says so in one line rather than leaving a gap where a claim
+ * would be.
+ */
+function ReleaseCard({ item, decisions }: { item: ArtifactView; decisions?: ArtifactView[] }) {
   const f = item.fields;
   const standing = releaseStanding(str(f.status));
   const env = str(f.environment);
@@ -1699,6 +1722,42 @@ function ReleaseCard({ item }: { item: ArtifactView }) {
       ) : (
         <RecordSpeaks>No address was recorded, so there is nothing to open.</RecordSpeaks>
       )}
+
+      <OnTheHookFor decisions={decisions} />
+    </div>
+  );
+}
+
+/**
+ * The claim this release is answerable for, and when it gets graded.
+ *
+ * Every clause is dropped where its column is empty. A decision recorded before
+ * the forecast field existed carries a claim and no date; one recorded through a
+ * waived Decide carries neither. Printing "due unknown" would be worse than
+ * printing nothing, because a horizon nobody set is not a horizon.
+ */
+function OnTheHookFor({ decisions }: { decisions?: ArtifactView[] }) {
+  const withClaim = (decisions ?? []).find(
+    (d) => !d.missing && typeof d.fields.forecast_claim === "string" && d.fields.forecast_claim,
+  );
+  if (!withClaim) {
+    return (
+      <span className="mrd-meta">
+        Nothing was forecast on this one, so there is no claim for it to be graded against.
+      </span>
+    );
+  }
+  const claim = str(withClaim.fields.forecast_claim);
+  const know = str(withClaim.fields.forecast_how_we_will_know);
+  const dueRaw = str(withClaim.fields.forecast_horizon_date);
+  const due = dueRaw ? formatDeadlineDate(Date.parse(dueRaw)) : null;
+
+  return (
+    <div className="flex flex-col gap-mrd-1 rounded-mrd-chip bg-mrd-sink p-mrd-4">
+      <span className="mrd-eyebrow">What this release is on the hook for</span>
+      {claim ? <RunNote>{claim}</RunNote> : null}
+      {know ? <span className="mrd-meta">{`How we will know: ${know}`}</span> : null}
+      {due ? <span className="mrd-meta">{`Graded on ${due}.`}</span> : null}
     </div>
   );
 }
@@ -2594,7 +2653,9 @@ function StationPanel({
       case "prototype":
         return <PrototypeCard item={item} />;
       case "deployment":
-        return <ReleaseCard item={item} />;
+        /* The same `decisions` list `LearningCard` grades against, so the
+           release and the verdict quote one row rather than two reads. */
+        return <ReleaseCard item={item} decisions={decisions} />;
       default:
         return null;
     }
