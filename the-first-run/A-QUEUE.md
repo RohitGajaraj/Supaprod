@@ -581,6 +581,13 @@ Engine Room's other 22 tabs are not moved; they stay at `/engine-room` until P-1
 - [ ] Every tool in the list carries the mode the runtime would actually use, from
       `resolveToolMode`, not from `defaults.ts`.
 
+**Reference (A1, 2026-09-02 19:35, Lovable's own settings, signed in).** Their AI-affecting settings
+are switches with one sentence each: *Live preview — run your app on a live dev server in the editor
+preview; when off, the preview shows the latest built version* · *Project monitoring — regularly
+checks your project for issues and improvements; past checks and their credit usage are stored in
+your history* · *Auto-fix security issues — auto-fix is enabled for this project*. Take the form:
+the mandate is switches and one number, each with the consequence in one sentence, never a console.
+
 **Report / Blockers / A1 verdict:**
 
 ---
@@ -752,5 +759,47 @@ write) · tests.
       no deploy).
 - [ ] The frame is sandboxed (`sandbox` attribute set; no top-navigation) and the URL is shown beside
       it with an open-in-new-tab control.
+
+**Report / Blockers / A1 verdict:**
+
+---
+
+### P-23 · Settings: six tabs, mapped from Lovable's, with what exists today · Lane: **A3** · Status: BLOCKED → P-17 · Moves: 4, 5
+
+**Why (founder, 2026-09-02 19:29; A1 read Lovable's project settings signed in at 19:35).** Lovable's
+settings are one searchable page with groups: Project (name, subdomain, owner, message and edit
+counts, credit usage, project type, design system, **project monitoring** "regularly checks your
+project for issues", **live preview**, publishing: category, badge, visitor analytics, AI app
+context, auto-fix security issues, trust center, unpublish; sharing; remix/move/transfer; danger
+zone) · Git · Domains · Workspace (plans and credit usage, Slack) · Access (people, groups, identity)
+· Customization (**knowledge**, skills, templates, design systems, connector settings) · Build and
+deploy (build secrets, managed registry, MCP server, workspace domains) · Security (privacy, security
+center). The lesson is not the list. It is that every setting sits under one search box, states its
+consequence in one sentence, and the ones that change what the AI does (knowledge, auto-fix,
+monitoring, live preview) are switches with a sentence, not pages.
+
+**Scope.** `/settings` becomes one page with a search box and six groups, each entry one row with a
+one-sentence consequence, built from what already exists (name in the Report which existing
+component or server fn serves each row; nothing new behind a row that has no existing writer):
+
+| Group | Rows (existing writer) |
+| --- | --- |
+| **Autonomy** | P-17's tab: the mandate sentence, spend ceiling, kill switch, tool modes, the promotion bar (P-20) |
+| **Brief** | the workspace brief the agents read at Discover (`workspace_briefs`; empty in 13 of 21 workspaces on 2026-09-02, and Discover starves without it): one editor, one sentence on what it feeds; Lovable's "Knowledge" |
+| **Connections** | repo binding (`helio-prism-build` style), sources, MCP connections with their last error visible (`mcp_connections.last_error` is write-only today), preview deploys (feeds P-22) |
+| **Workspace** | name, slug, people, invites, domains; the sample flag shown read-only with its consequence |
+| **Usage** | spend this month against the ceiling, runs, tokens (`agent_runs`), credits (`BillingBanner` runway) |
+| **Security** | what the agent may read and write in the repo (`STUDIO_FORBIDDEN_PREFIXES`), the audit trail door (`/engine-room`'s record rooms), export |
+
+Everything under Engine Room that is not one of those rows stays reachable at `/engine-room` until
+P-14's fact audit places or removes it.
+
+**Files.** `src/routes/_authenticated.settings.tsx` (4,085 lines today: fold, do not add) ·
+`src/components/settings/**` · tests.
+
+**Acceptance.**
+- [ ] One search box filters rows across all six groups; every row has a one-sentence consequence.
+- [ ] The Report's table names the existing writer for every row; a row with none is not built.
+- [ ] `settings.tsx` line count goes down, reported before and after.
 
 **Report / Blockers / A1 verdict:**
