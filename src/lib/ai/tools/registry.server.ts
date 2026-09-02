@@ -109,6 +109,12 @@ import {
 import { runChangesetReview, loadStagedContent } from "@/lib/build/code-review.server";
 import { linesThatDidNotHold } from "@/lib/build/code-review";
 import { intentPointsWithSource } from "@/lib/intent-diff";
+import {
+  aboutOurOwnPaperwork,
+  whyItCannotBeGraded,
+  CANNOT_BE_GRADED,
+} from "@/lib/spine/a-forecast-about-our-own-paperwork";
+import { buildSettlePatch } from "@/lib/brain/forecast-resolution";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import type { ProviderAuthCache } from "@/lib/connectors/resolve.server";
 import { runRollbackRelease } from "@/lib/studio-rollbacks";
@@ -5797,16 +5803,22 @@ const learningRecord = def({
      * TWO COMPARISONS, EACH ONE LINE OF ARITHMETIC. Neither needs judgement,
      * which is precisely why neither should have been left to it.
      */
+    /** Set when the forecast cannot be graded at all. See the refusal below. */
+    let ungradeableBecause: string | null = null;
+
     if (resolvedDecisionId) {
       const { data: bet } = await supabase
         .from("decisions")
-        .select("forecast_claim,forecast_how_we_will_know,forecast_horizon_date")
+        .select(
+          "forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution",
+        )
         .eq("id", resolvedDecisionId)
         .maybeSingle();
       const forecast = bet as {
         forecast_claim?: string | null;
         forecast_how_we_will_know?: string | null;
         forecast_horizon_date?: string | null;
+        forecast_resolution?: string | null;
       } | null;
 
       // 1 · NOT BEFORE THE HORIZON. The date is on the decision row and needs
@@ -5832,7 +5844,31 @@ const learningRecord = def({
       //     case of the same fact worded differently, which is not this tool's
       //     business to police.
       const observable = forecast?.forecast_how_we_will_know ?? "";
-      if (observable.trim()) {
+
+      /*
+       * 1b -- A FORECAST THAT GRADES ITSELF IS SETTLED, NOT GRADED (R-31, P-04).
+       *
+       * Eight of the non-sample forecasts on the record are measured by our own
+       * tools: "prd.get will return status='approved'", "workspace.search
+       * returns >= 3 signals". Every one can be made true by using Supaprod, so
+       * grading it `hit` would put a win on the record for nothing that happened
+       * in the customer's product -- at exactly the moment this loop first
+       * closes, and on the one artifact this product calls its moat.
+       *
+       * NOT a refusal like the two around it, and that difference is the whole
+       * founder ruling of 2026-09-02: the bet is settled `inconclusive` with a
+       * sentence saying why, through this same path, rather than deleted or left
+       * hanging. A record that says "we could not grade this, and here is what
+       * to write differently" is worth more than a gap.
+       *
+       * The overlap check below is SKIPPED for these, and deliberately: it would
+       * refuse the tool outright ("your verdict does not mention prd.get"), and
+       * the honest answer is that nothing could mention it usefully.
+       */
+      const paperwork = aboutOurOwnPaperwork(observable, Object.keys(TOOL_REGISTRY));
+      if (paperwork.ourOwn) {
+        ungradeableBecause = whyItCannotBeGraded(paperwork.named);
+      } else if (observable.trim()) {
         const significant = (t: string) =>
           new Set(
             (t.toLowerCase().match(/[a-z_][a-z0-9_]{3,}/g) ?? []).filter(
@@ -5929,6 +5965,104 @@ const learningRecord = def({
       .single();
     if (error) throw new Error(error.message);
     const learningId = (data as { id: string }).id;
+
+    /*
+     * -- AND THE BET IS SETTLED, WHICH IS WHAT MAKES THIS A VERDICT ----------
+     *
+     * THE UNWIRED GRADER (P-04, found 2026-09-03). This tool read three
+     * `forecast_*` columns for its guards above and wrote none of them back. So
+     * an agent could grade at Learn, file a `learnings` row, and leave
+     * `decisions.forecast_resolution` NULL -- the bet stayed due forever, the
+     * Learn desk kept offering it, and the horizon verdict this product is built
+     * around never arrived. Not a missing grader: an unwired one.
+     *
+     * The only other closers are the human desk, MCP `settle_forecast`, and the
+     * auditor tick, and the auditor tick rides a workspace flag that defaults
+     * false. So on a track driven by the loop, nothing closed the row at all.
+     *
+     * A1's ruling, 2026-09-03: *"a verdict that does not close the row is not a
+     * verdict."*
+     *
+     * -- ONLY THE FIRST VERDICT, WHICH IS THE OPPOSITE OF THE DESK'S RULE ----
+     * `.is("forecast_resolution", null)` matches MCP's guard rather than the
+     * human desk's, and the asymmetry is deliberate: a person re-scoring on
+     * better evidence is legitimate and has a reopen path that files the old
+     * verdict first, while an agent silently overwriting a settled bet would
+     * destroy the record this product sells. If the row is already settled the
+     * learning still stands; only the settle is skipped.
+     *
+     * -- FAILS SOFT, BECAUSE THE LEARNING IS ALREADY WRITTEN ----------------
+     * The `learnings` row landed above. Throwing here would report the whole
+     * grade as failed and invite the seat to file it twice, which is worse than
+     * a bet that stays open one more tick.
+     */
+    if (resolvedDecisionId) {
+      const resolution = ungradeableBecause
+        ? CANNOT_BE_GRADED
+        : a.verdict === "validated"
+          ? "hit"
+          : a.verdict === "missed"
+            ? "miss"
+            : /* mixed */ "inconclusive";
+      /* The agent's own summary is the rationale, because it is the sentence
+         that was actually reasoned to. The ungradeable case overrides it: there
+         the summary grades something the forecast never asked about. */
+      const rationale = ungradeableBecause ?? a.summary;
+      const nowIso = new Date().toISOString();
+      try {
+        const { data: settled, error: settleErr } = await supabase
+          .from("decisions")
+          .update(
+            buildSettlePatch({
+              resolution,
+              rationale: rationale.slice(0, 2000),
+              nowIso,
+              agentSlug: agentSlug ?? null,
+            }) as never,
+          )
+          .eq("id", resolvedDecisionId)
+          .is("forecast_resolution", null)
+          .select("id,workspace_id");
+        if (settleErr) {
+          console.error(`[learning.record] could not settle the forecast: ${settleErr.message}`);
+        } else if (settled && settled.length > 0) {
+          /*
+           * THE LOG GETS A ROW FOR EVERY RESOLUTION, NOT ONLY FOR REOPENS.
+           *
+           * `forecast_resolution_log` had exactly one writer, the reopen path,
+           * so it recorded only verdicts somebody took BACK -- a history of
+           * corrections with no history of the things being corrected. A1's
+           * ruling, 2026-09-03: every resolution files a row, the grader's
+           * included.
+           *
+           * `reopened_by` and `reopened_at` are the reopen path's columns and
+           * are left null here, which reads correctly: this row is the verdict
+           * being made, not unmade.
+           */
+          const row = settled[0] as { id: string; workspace_id?: string | null };
+          const { error: logErr } = await supabase.from("forecast_resolution_log").insert({
+            decision_id: resolvedDecisionId,
+            workspace_id: row.workspace_id ?? resolvedWorkspace ?? null,
+            resolution,
+            resolution_rationale: rationale.slice(0, 2000),
+            resolved_at: nowIso,
+            resolved_by_agent_slug: agentSlug ?? null,
+            reason: ungradeableBecause
+              ? "Settled by the platform: the forecast could not be graded."
+              : "Graded at Learn when the horizon came due.",
+          } as never);
+          if (logErr) {
+            // The verdict is on the decision row either way. A missing log line
+            // costs the trail, not the answer.
+            console.error(`[learning.record] verdict filed but not logged: ${logErr.message}`);
+          }
+        }
+      } catch (e) {
+        console.error(
+          `[learning.record] settle threw: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    }
 
     // The verdict has to reach memory too, or the next Critic red-team cannot
     // cite it. Best effort: the learning is already written and a memory miss
