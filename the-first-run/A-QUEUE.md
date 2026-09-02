@@ -368,6 +368,60 @@ _18:48 IST_ — all three readings accepted. (1) The footer carries one control:
 
 ---
 
+### P-24 · Every artifact in the transcript opens on the right, and looks like it will · Lane: **A2** · Status: READY (takes precedence over P-05) · Moves: 3, 4, 5
+
+**Why (founder, 2026-09-02 20:09, on the live site).** *"When some PRD or spec is written it gives a
+block, and it is not clickable. It needs to be clickable, viewable, editable. Not just the spec: any
+artifact, design, a code block. When I click on the PRD the right side should open up."* What P-01
+built: a turn that filed something is a pressable row that calls `onSelect(station)`
+(`TrackActivity.tsx:1064-1067`), so the pane shows that **station's newest** artifact, not the one
+the row filed; the artifact chip inside the row is not a control; nothing on the row says it can be
+pressed. So a person sees a block, and the third prototype of ten cannot be opened from its row.
+
+**Scope.**
+1. **The artifact is the control.** Every artifact chip in the transcript (decision, spec, task,
+   prototype, changeset, deployment, learning, finding, theme) is a button that selects **that
+   artifact by id** in the right pane. The row's own press keeps working and selects the row's
+   newest artifact. Selection is by artifact id, with station derived from it, so ten prototypes
+   are ten selectable things.
+2. **It looks pressable.** The chip carries the affordance Meridian gives a link-like control (hover
+   and focus states, cursor, an *Open* hint on hover or focus), and the selected chip is marked;
+   `run-rows.tsx` is the vocabulary. Name in the Report which Meridian primitive you used and what
+   you checked first.
+3. **The pane says what is open.** A one-line head above the artifact: *Spec · filed by Prd Writer at
+   Plan · 1d ago*, with a *Back to newest* control.
+4. **Editable where an editor exists, and honest where it does not.** Spec: `PlanSpec` already saves
+   (`ArtifactPane.tsx:313`); decision: the forecast field already edits; keep both and make the edit
+   controls visible without scrolling. Prototype, diff, deployment, learning, finding: view-only
+   today, so the head states the actions that exist (*approve · send one instruction back · open the
+   PR*) and never an edit control that does nothing. The Report lists, per artifact kind, editable or
+   view-only and why.
+5. **Deep link.** The selected artifact id goes in the URL search (`?artifact=<id>`) so a person can
+   share exactly what they are looking at and reload to it.
+
+**Files.** `src/components/spine/TrackActivity.tsx` · `src/components/track/ArtifactPane.tsx` ·
+`src/components/track/TrackRun.tsx` (the selection state only) ·
+`src/routes/_authenticated.track.$trackId.tsx` (the search param only) · `src/components/meridian/run-rows.tsx`
+(only if the chip affordance needs a token or state that does not exist; say so) · tests beside the
+code, prose-named.
+
+**Not in scope.** New editors for artifacts that have none (P-21 gives Plan its files; edit-in-place
+for prototypes and diffs is post-launch). The Start page (P-05).
+
+**Acceptance.**
+- [ ] On `ce846e9b`, pressing the fourth prototype chip in the Design turn opens that prototype, the
+      head names it and its seat, and the URL carries its id; reload lands on it.
+- [ ] Pressing the spec chip opens the spec with *Save the spec* visible without scrolling; pressing
+      the decision chip opens the forecast field ready to edit.
+- [ ] Every chip has hover, focus and selected states; a test asserts every artifact chip renders as a
+      button with an accessible name naming the artifact.
+- [ ] The Report's table: artifact kind · opens · editable or view-only · actions shown.
+- [ ] Verified on `supaprod.ai` after publish (rule 12), with what you saw.
+
+**Report / Blockers / A1 verdict:**
+
+---
+
 ### P-10 · Delete the 49 redirect-only routes · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 19:32 IST) · Moves: 2, 4
 
 **Scope.** Delete every file under `src/routes/` matching `_authenticated.*.tsx` whose component
@@ -614,7 +668,7 @@ or add `src/lib/__tests__/a-user-never-reads-the-org-chart.test.ts`.
 
 ---
 
-### P-05 · Start tells the story before the run · Lane: **A2** · Status: READY · Moves: 1, 2, 3
+### P-05 · Start tells the story before the run · Lane: **A2** · Status: READY (after P-24) · Moves: 1, 2, 3
 
 **Scope.** `/start` becomes: one orientation line (only while the workspace has no track) · the
 composer · three example jobs, each a full sentence with a Start button that fills the composer and
