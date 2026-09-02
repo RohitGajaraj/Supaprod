@@ -1600,7 +1600,7 @@ list them in the Report before deleting anything).
 
 ---
 
-### P-14a · Arriving and Outcomes take their own addresses · Lane: **A3** · Status: READY (split out of P-14 by A1 23:20 so A3 is not starved; the deletions stay in P-14 behind P-05) · Moves: 1, 4
+### P-14a · Arriving and Outcomes take their own addresses · Lane: **A3** · Status: CLAIMED (A3, 23:16 IST) · Moves: 1, 4
 
 **Scope.** The two workspace views that survive the station-page deletion get their names now.
 `/discover` (`DiscoverSurface`) is re-addressed as **`/arriving`**; `/brain` (Insights) as
