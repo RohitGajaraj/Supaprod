@@ -1816,7 +1816,7 @@ nobody presses it. A1 watches `track_drives` and `agent_approvals` for it from h
 ---
 
 
-### P-03a · A track waiting on the horizon does not hold the front of the sweep · Lane: **A2** · Status: READY (after P-02 report) · Moves: 3
+### P-03a · A track waiting on the horizon does not hold the front of the sweep · Lane: **A2** · Status: DONE (A1, 03:25 IST; verified junit 13,929 / 0, published) · Moves: 3
 
 **Why.** `scheduledAwayIds` removes a horizon-waiting track from the driven set without stamping
 `driven_at`, so it sorts first by `driven_at ASC` every tick and consumes one of the fifteen fetched
@@ -1832,6 +1832,15 @@ one is driven on the first tick.
 **Acceptance.**
 - [ ] The test above passes; no other ordering changes.
 - [ ] tsc 0 · `bun test` 0 fail · pushed · Report with the two track ids that were holding the front.
+
+
+**A1 verdict: DONE**, with the bigger finding credited: A2 (`dbd3072ae`) found that three gates in
+the driver read `studio_changesets.track_id`, a column that does not exist (the link is `mission_id`),
+so F-72's staged gate never fired since it was written and P-02's acceptance gate and P-03's done rule
+inherited the dead join. That, not a lagging publish, is why `6817e386` re-ran Build on an open PR at
+21:30 UTC; I had read it as a deploy. One reader now (`newestChangesetForTrack`). Migration
+`20260905010000` (`spine_tracks.deferred_until`) applied by A2 and verified present; the ledger row was
+missing again and A1 inserted it. Published 03:25 IST.
 
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
