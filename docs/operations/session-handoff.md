@@ -507,3 +507,93 @@ starts.**
 
 **Timing S3 measured, which bears on #4:** **979 ms warm** to a readable count. The loading states are
 brief; the defect is what the rest of the screen claims *during* them.
+
+---
+
+## 2026-09-02 ~03:00 IST — JOURNEY SWEEP: the station-strip fold, and what each station produced
+
+**`main` · HEAD `dc4854abb` · 34 commits · all pushed · tsc 0 · 13,601 pass / 0 fail · tree clean**
+
+### What shipped
+
+**The horizontal seven-station strip came off every workspace screen** and now draws only inside a
+run. Founder decision, taken on measurements after he asked the question the band could not answer:
+if it is not clickable, what is it for? It cost **94.5px on every signed-in surface** — 10.6% of a
+900px viewport — and **four of seven chips carried nothing but a two-digit number and a word**. The
+three that carried a fact contradicted the header 150px above them: *"68 decisions are ready for
+you"* over *"89+ runs waiting on you"*, one counting gates and the other runs held at a gate.
+
+It also contradicted `README.md`'s own rule — *"never lead with the seven stations … a workflow tool
+is compared on features; three layers is a position"* — and **F-146 had already written this exact
+remedy down**: *"the fold: when the rail carries one primary door and stations appear only as the
+step list inside a run, the ambiguity has nowhere left to live."* Nobody had finished it.
+
+Inside a run it went **91px → 77px** and **finally says something**. `RunMapStation.outcome` had
+promised *"WHAT CAME OF THIS STATION"* since it was written and had never once been set, which is
+why the strip carried zero facts while costing 91px.
+
+The run screen also lost one of its **four** station displays (not three — `TrackChain` is the
+biggest at 2,706px, plus a fifth statement in prose). The *"What it has made"* tab row went: it and
+the strip were two `role=tablist` elements over the **same `paneStation` pointer**. The strip
+survives because reachability decides it — it sits outside both scrollers, while that row was at
+`y=-795` once a reader scrolled into a station's output.
+
+### The correction worth reading
+
+**I filled `outcome` twice.** Version one counted rows in `agent_runs` — "3 turns, 2 with failures".
+True, SQL-verified, and the wrong answer: it described the **work** where the field asks for the
+**product**. `whatItProduced()` had been in the tree the whole time, reading `spine_track_members`
+through `getTrackChain`, **which the run screen already polls**. The right build needed no new
+server function, no new query and no new vocabulary; mine needed all three, and
+`getTrackStationWork` was added and deleted in one session. I had seen `spine_track_members` in my
+own `information_schema` query and read past it as plumbing. A parallel read-only audit agent found
+it.
+
+### The reference point the founder asked for
+
+`docs/design/station-strip-before-the-fold.md`, written and committed **before** anything was
+removed. `docs/screenshots/` is gitignored and this repo does not commit screenshots, so a
+photograph could not be the record — the markup, CSS, measurements and reasoning are prose instead.
+It carries the two founder-reported fixes a rebuild would lose (`overflow-x: auto` and the
+`min-width` floor **are a pair**) and the commit-by-commit history of how the strip lost its doors.
+
+### Still open, and where to start
+
+1. **The strip and the left pane's route now print the IDENTICAL sentence 400px apart**, because
+   both read it from the same chain. That is the defect this pass removed everywhere else, and it
+   was introduced at the end. My inclination, unapproved: the strip keeps it, the left route drops
+   to holds and steps. **Ask the founder first.**
+2. **"Build filed 1 run." is thin.** Build's expected artifact is a `changeset` and there is none —
+   the member is a `mission`. Build made 55 tool calls on that run, all repo reads, staging nothing.
+   **A finding about the build path, not about the sentence.**
+3. **`TrackChain` (2,706px) is untouched** and is the largest remaining duplicate.
+4. **`bun run lint` red** (pre-existing, ~334 `no-explicit-any`). **`docs:check` red on four
+   pre-existing orphans** under gitignored `docs/screenshots/`; nothing this session added.
+
+### The defect class this session was mostly about
+
+**A value printed identically on every row distinguishes nothing.** Fixed in eight places — 16 agent
+cards, every armed automation switch, 40 audit rows reading "agent", 16 Brand rows, 24 Insights
+rows, every handoff row, the CI expectation list, and four of seven strip chips. **Print it when it
+DISCRIMINATES, computed over the rendered set; never suppress an exception.**
+
+**The trap inside that rule:** a `title` tooltip fixes a CUT string and does nothing for a REPEATED
+one. Six rows on Record shared a subject, so the tooltip I added handed back the same sentence six
+times. A repeated row needs a **different fact** — there, the exact timestamp.
+
+### Two numbers that were wrong on screen and right-looking
+
+Both caught only by checking SQL rather than the render. **Quality > By surface printed 8463%**:
+`passRate * 100` where `passRate` is a judge score out of 100 (production: min 68, max 91, mean
+84.63) — and its green threshold `>= 90` was therefore true for every surface, permanently, whatever
+it scored. And **"18 agents finished"** was 2 agents running 9 times each.
+
+### Shared-worktree notes
+
+`supaprod-eb` was live in this same checkout throughout. It archived the three root instruction files
+to `docs/archive/`, and hardened `playwright.config.ts` to exclude every **untracked** spec in `e2e/`
+after my agents left probe specs behind twice — a probe spec that presses production is a recorded
+incident in this repo. **My `git add` swept its three staged renames into `bed7bfe7c`**, whose
+message is about automation switches; it left them rather than rewrite shared history. **Commit
+explicit paths and check the index first.**
+
