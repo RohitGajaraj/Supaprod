@@ -153,7 +153,9 @@ describe("the surface lookup answers with the right one", () => {
    */
   // "/decide" left this list (P-14, A-QUEUE.md, R-34): the surface and its
   // keybindings are deleted, not converted.
-  const CONVERTED = ["/start", "/design", "/crew", "/arriving", "/approvals"];
+  // "/design" left this list too (P-14, A-QUEUE.md, R-34): the surface and
+  // its keybindings are deleted, not converted.
+  const CONVERTED = ["/start", "/crew", "/arriving", "/approvals"];
   for (const path of CONVERTED) {
     it(`${path} accepts with a and declines with d`, () => {
       const keys = surfaceKeysFor(path)?.keys.map((k) => k.key) ?? [];

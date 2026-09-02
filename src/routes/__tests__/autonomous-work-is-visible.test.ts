@@ -89,14 +89,14 @@ const STATIONS = [
   // Station 01. The route file is a shell that parses the deep link; this is
   // the surface a person actually reads.
   "components/discover/DiscoverSurface.tsx",
-  // "routes/_authenticated.decide.tsx" and "routes/_authenticated.plan.
-  // index.tsx" left this list (P-14, A-QUEUE.md, R-34): both stations are
-  // deleted, so no agent runs visibly on either any more.
+  // "routes/_authenticated.decide.tsx", "routes/_authenticated.plan.
+  // index.tsx" and "routes/_authenticated.design.tsx" left this list (P-14,
+  // A-QUEUE.md, R-34): all three stations are deleted, so no agent runs
+  // visibly on any of them any more.
   //
   // Station 03's surviving surface, and the only one in the product that
   // dispatches a build. See the note above this list.
   "routes/_authenticated.plan.spec.$id.tsx",
-  "routes/_authenticated.design.tsx",
   "routes/_authenticated.build.index.tsx",
   "routes/_authenticated.ship.tsx",
   "routes/_authenticated.learn.tsx",

@@ -55,8 +55,15 @@ function handler(src: string, name: string): string {
 }
 
 const SCAFFOLD = "lib/design-scaffold.functions.ts";
-const SURFACE = "routes/_authenticated.design.tsx";
-const DRAWING = "components/design/drawing.tsx";
+
+// P-14 (A-QUEUE.md, R-34's ruling: "there are no lanes, priority is Put
+// first") deleted /design and, with it, `components/design/drawing.tsx`
+// (zero real importers once /design's own route stopped being one -- the
+// same reachability shape `retry-station.test.ts` lost for /plan). The two
+// constants below, `SURFACE` and `DRAWING`, and the describe blocks and
+// individual assertions that read them, are gone; `designGateBlocksDispatch`
+// and `design-scaffold.functions.ts`'s own handlers -- the rule this whole
+// file is actually about -- are untouched and still fully tested below.
 
 describe("the rule itself decides what a drawing holds up", () => {
   it("does not block a spec with nothing drawn", () => {
@@ -96,41 +103,6 @@ describe("the rule itself decides what a drawing holds up", () => {
     const body = code(handler(read(SCAFFOLD), "getDesignWorkItem"));
     expect(body).not.toMatch(/blocksDispatch:\s*stageEnabled\s*&&/);
   });
-
-  it("the panel has a sentence for stage-on with nothing drawn", () => {
-    // That branch was unreachable while blocksDispatch was wrong, so it held the
-    // bare word "Nothing" under the most consequential question on the panel.
-    expect(code(read(DRAWING))).toMatch(/No screen is drawn, so the gate has nothing to hold/);
-  });
-});
-
-describe("a verdict needs a drawing to be a verdict about", () => {
-  it("the verdict pair is drawn under focus.drawing, not under the stage flag", () => {
-    const src = code(read(SURFACE));
-    // The taste loop's whole subject is a mockup: recordDesignScaffoldFeedback
-    // tells the extractor "The human APPROVED the resulting mockup", so with no
-    // mockup there is nothing the workspace can honestly learn.
-    expect(src).toMatch(/\{focus\.drawing \? \(\s*focus\.stageEnabled \? \(/);
-  });
-
-  it("the station can record that a spec needs no screen", () => {
-    const src = read(SURFACE);
-    // A capability with no door does not exist. `chooseDesignRoute`'s only
-    // caller was the spec page, while this surface displayed its answer twice.
-    expect(src).toMatch(/^\s*chooseDesignRoute,$/m);
-    expect(code(src)).toMatch(
-      /chooseRoute\(\{ data: \{ prdId: focus\.prdId, route: "direct" \} \}\)/,
-    );
-    expect(code(src)).toMatch(/Record that this needs no screen/);
-  });
-
-  it("the skip refreshes the two lists that show it", () => {
-    // Without these the row keeps saying "Nothing drawn yet" about a spec that
-    // was just recorded as skipped on purpose.
-    const src = code(read(SURFACE));
-    expect(src).toMatch(/queryKey: \["spec-design-route"\]/);
-    expect(src).toMatch(/const refreshWork = \(\) => \{/);
-  });
 });
 
 describe("a read whose error is discarded is never evidence of absence", () => {
@@ -164,20 +136,14 @@ describe("a read whose error is discarded is never evidence of absence", () => {
     expect(found.filter((d) => !/error/.test(d))).toEqual([]);
   });
 
-  it("the headline does not read a failed count as a count of zero", () => {
-    // The throw only reaches the LIST. Both queues behind the headline are
-    // counted off `?? []`, so an errored read counted zero and the station still
-    // announced "Nothing needs you." over a Failed line saying it could not read
-    // the drawings.
-    const src = code(read(SURFACE));
-    expect(src).toMatch(/rules\.isError \|\| work\.isError\s*\n?\s*\? "Design"/);
-  });
-
-  it("provenance can say it did not find out, and the surface honours it", () => {
+  it("provenance can say it did not find out", () => {
     // `ungrounded` is the strongest claim this panel makes -- every choice in
     // the drawing is the model's own -- and it was what a refused read printed.
+    // The surface half of this assertion (that the panel HONOURS the flag)
+    // read /design's own source and left with it (P-14, A-QUEUE.md, R-34);
+    // this half, that the data itself can say it did not find out, has no
+    // surface dependency.
     expect(code(read(SCAFFOLD))).toMatch(/read:\s*false/);
-    expect(code(read(SURFACE))).toMatch(/!q\.data\.read/);
   });
 });
 
@@ -190,21 +156,9 @@ describe("a drawing outside the window is still a drawing", () => {
     expect(body).toMatch(/drawnOutside/);
     expect(body).toMatch(/\.in\("id", drawnOutside\)/);
   });
-
-  it("a handoff that landed on a different spec says so", () => {
-    const src = code(read(SURFACE));
-    expect(src).toMatch(/handoffMissed/);
-    expect(src).toMatch(/The spec you were handed is not in this list/);
-  });
 });
 
 describe("a shared link is a snapshot and is labelled as one", () => {
-  it("the block no longer files every link under the drawing on screen", () => {
-    const src = code(read(SURFACE));
-    expect(src).not.toMatch(/title="Links to this drawing"/);
-    expect(src).toMatch(/Serves an earlier drawing, not the one above/);
-  });
-
   it("staleness is read from the markup, never from a timestamp", () => {
     // Both prototypes.updated_at and prd_scaffolds.updated_at move for reasons
     // that have nothing to do with what a visitor is served.

@@ -126,19 +126,10 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
       { key: "d", does: "Declines it, so it is not a pattern.", destructive: true },
     ],
   },
-  // "/decide" left this list (P-14, A-QUEUE.md, R-34): the page and every
-  // keybinding it drew is deleted, not rehomed. Start it, the run's own
-  // Decide station and a decision on the run replace Keep/Challenge/Drop,
-  // none of which are keyboard-bound acts today.
-  {
-    path: "/design",
-    label: "Design",
-    source: "src/routes/_authenticated.design.tsx",
-    keys: [
-      { key: "a", does: "Approves the brand rule the crew is asking about.", destructive: true },
-      { key: "d", does: "Declines it, so it binds nothing.", destructive: true },
-    ],
-  },
+  // "/decide" and "/design" left this list (P-14, A-QUEUE.md, R-34): each
+  // page and every keybinding it drew is deleted, not rehomed. A brand rule
+  // waiting on a person is now an approval row on Start, not a keyboard-
+  // bound approve/decline pair.
   {
     path: "/crew",
     // "Agents" since 2026-08-15, matching the rail, the command palette and

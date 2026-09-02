@@ -25,19 +25,18 @@ export type RedirectTarget = { to: string; search?: Record<string, string> };
  * below. */
 /**
  * P-14 (A-QUEUE.md ruling, R-34: "there are no lanes, priority is Put
- * first"). `/decide` and `/plan` are deleted (each a redirect stub to
- * `/start` now, per its own `beforeLoad`, not a mapping this documentation-
- * only file expresses -- their destination is outside the Option-B canonical
- * model this list still describes, not a fold within it). Deliberately NOT
- * added to `LEGACY_REDIRECTS` below for the same reason: every entry there
- * targets a CANONICAL_PATH, and `/start` is a rail door in the newer
- * Start · Run · Settings model, not one. `/design` and `/build` follow the
- * same treatment as P-14's own remaining batches land.
+ * first"). `/decide`, `/plan` and `/design` are deleted (each a redirect
+ * stub to `/start` now, per its own `beforeLoad`, not a mapping this
+ * documentation-only file expresses -- their destination is outside the
+ * Option-B canonical model this list still describes, not a fold within
+ * it). Deliberately NOT added to `LEGACY_REDIRECTS` below for the same
+ * reason: every entry there targets a CANONICAL_PATH, and `/start` is a
+ * rail door in the newer Start · Run · Settings model, not one. `/build`
+ * follows the same treatment as P-14's own remaining batch lands.
  */
 export const CANONICAL_PATHS = [
   "/today",
   "/arriving",
-  "/design",
   "/build",
   "/ship",
   "/learn",

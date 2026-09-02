@@ -31,12 +31,12 @@ const ROUTES = join(import.meta.dir, "..");
 /**
  * The stations, by the file that renders each.
  *
- * Build and Plan render from `.index` files; the others are flat. Discover
- * and Design keep their doors in components, so the surface file is read
- * along with the component directory it mounts, which is why the check below
- * looks for a door anywhere in the station's own source rather than in one
- * file. Decide left this list (P-14, A-QUEUE.md, R-34): the page is deleted,
- * so it hands nobody a door any more.
+ * Build renders from a `.index` file; the others are flat. Discover keeps its
+ * doors in a component, so the surface file is read along with the component
+ * directory it mounts, which is why the check below looks for a door
+ * anywhere in the station's own source rather than in one file. Decide,
+ * Plan and Design left this list (P-14, A-QUEUE.md, R-34): each page is
+ * deleted, so none of them hands anybody a door any more.
  */
 const STATIONS: Array<{ station: string; files: string[]; components?: string[] }> = [
   {
@@ -45,9 +45,6 @@ const STATIONS: Array<{ station: string; files: string[]; components?: string[] 
     // Discover's route file is an 80-line shell; every control lives here.
     components: ["discover/DiscoverSurface.tsx"],
   },
-  // "03 Plan" left this list (P-14, A-QUEUE.md, R-34): /plan is deleted, so
-  // it hands nobody a door any more.
-  { station: "04 Design", files: ["_authenticated.design.tsx"] },
   { station: "05 Build", files: ["_authenticated.build.index.tsx"] },
   { station: "06 Ship", files: ["_authenticated.ship.tsx"] },
   { station: "07 Learn", files: ["_authenticated.learn.tsx"] },
