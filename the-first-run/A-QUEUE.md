@@ -1284,7 +1284,7 @@ re-run the predicate before you start, the list may have grown):
 
 ---
 
-### P-17 · Settings › Autonomy: the mandate on one page · Lane: **A3** · Status: CLAIMED (A3, 21:42 IST) · Moves: 4, 5
+### P-17 · Settings › Autonomy: the mandate on one page · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 22:05 IST) · Moves: 4, 5
 
 **Scope.** One Settings tab that says what the agent may do without asking, in the footer's own
 words, with the three controls that exist today: the spend ceiling (`default_track_spend_cap_usd`),
@@ -1308,7 +1308,82 @@ checks your project for issues and improvements; past checks and their credit us
 your history* · *Auto-fix security issues — auto-fix is enabled for this project*. Take the form:
 the mandate is switches and one number, each with the consequence in one sentence, never a console.
 
-**Report / Blockers / A1 verdict:**
+**Report (A3 writes):**
+Commit `f4e2136f0`. `tsc` 0. `bun test`: 13,653 pass, 0 fail (up from 13,647 at P-13's report;
++6 for the new guard test below).
+
+**The tab already existed and covered two of the three controls -- this was an audit
+against the acceptance lines, not a build from zero.** `?section=autonomy` has rendered
+"What they may do without asking" since 2026-08-27 (S0 ruling A-006), mounting
+`BoundaryControls` (spend ceiling + kill switch, `BoundaryControls.tsx:1237-1313`),
+`BudgetsPanel`, `ControlsPanel`, `GuardrailsPanel`, `HouseRulesPanel`, `RoutinesPanel` as
+`BoundaryPane` in `_authenticated.settings.tsx`. The packet's own Files line (a new
+`src/components/settings/AutonomyTab.tsx`) is stale against that -- I did not build a
+second, competing tab; `settings-sections.ts`'s own extensive header (§1-3) already rules
+on why `autonomy` is one door, not two, and a second file mounting a second `autonomy`
+tab would either collide with that declarative system or silently not render.
+
+**Acceptance line by line:**
+
+| # | Acceptance | Status | Evidence |
+| --- | --- | --- | --- |
+| 1 | Footer sentence verbatim from `footer-mode.ts`, for the workspace's arc | **Built this packet** | see below |
+| 2 | Ceiling / kill switch round-trip | **Already wired** | `BoundaryControls.tsx:1237-1313`, `setTrackCap.mutate` / `setPause.mutate` -- needs A1's browser walk, not a static read |
+| 3 | Every tool's mode from `resolveToolMode`, not `defaults.ts` | **Already true** | `getBoundary` (`governance.functions.ts:1215,1269`) imports and calls `resolveToolMode` from `@/lib/ai/loop.server` and sets `t.runsAs`; `BoundaryControls.tsx`'s per-tool row reads `t.runsAs` (line ~759) and the file names no import from `@/lib/ai/tools/defaults` anywhere. New test pins both facts. |
+
+**Line 1, what I actually built.** `footer-mode.ts`'s two "Working on its own. It will ask
+before it ships." lines are one sentence, and only the second half is a claim this page can
+honestly make: "Working on its own" is a run-in-progress fact and this page has no single run
+to report on, while "It will ask before it ships" is R-27 -- footer-mode.ts's own header names
+it a platform floor, true regardless of the arc, the ceiling, or the kill switch (see its
+comment at the top of the file). Rendering the WHOLE two-sentence line unconditionally on
+Settings would have been false the moment nothing is running, so I did not do that -- I read
+"renders the footer sentence verbatim... for the workspace's arc" as asking for the one clause
+that is actually a fact about the arc's floor rather than about a specific run, and built that.
+
+Exported `WILL_ASK_BEFORE_IT_SHIPS = "It will ask before it ships."` as a named constant
+from `footer-mode.ts`, rewrote both of its own two call sites to compose from it
+(`` `Working on its own. ${WILL_ASK_BEFORE_IT_SHIPS}` ``, byte-identical to what rendered
+before), and imported the same constant into `_authenticated.settings.tsx`'s `BoundaryPane`,
+appended to the existing `PageHeading` sub. This is "verbatim" by construction rather than
+by copy-paste: the two places cannot say something different from each other because there
+is only one string literal in the codebase, in `footer-mode.ts`, and everything else imports
+it -- the same pattern this file already uses for `STOPPED_BY_YOU` from `driver.ts`.
+
+**New guard test**, `src/routes/__tests__/settings-autonomy-states-the-one-invariant.test.ts`,
+6 tests: pins the constant's export and its exact string, pins that both footer-mode.ts call
+sites compose from it (and that the two-sentence literal does not appear a second time
+anywhere in the file), pins that the settings route imports the constant rather than
+retyping the sentence, pins that `BoundaryPane` specifically (not merely the file) uses it,
+and pins the two `resolveToolMode`-not-`defaults.ts` facts for line 3 above. Source-scan
+style (`readFileSync` + string assertions), matching this directory's own convention
+(`settings-money-is-one-door.test.ts`) rather than a render test, since a render of
+`BoundaryPane` needs a live `QueryClient` and router context this file's neighbours also
+avoid mounting.
+
+**Files touched.** `src/components/track/footer-mode.ts` (new export, two calls reworded to
+use it, both byte-identical to before) · `src/routes/_authenticated.settings.tsx` (one
+import, one `sub` line) · new test file above. Nothing under
+`src/components/meridian/**` or `src/styles/meridian.css` -- out of my reach per this lane's
+standing restriction, and nothing here needed it.
+
+**Blockers (A3 writes):**
+1. **Acceptance line 2 (round-trip) needs a browser against a live workspace, which is
+   A1's step, not mine** -- same boundary this lane has held all session (P-11's
+   production-deploy blocker, P-05's own acceptance asking for A1's walk): I have no
+   Supabase credentials in this environment and the dev server hangs on any signed-in
+   route without them. The mutations are real (`setTrackCap.mutate`, `setPause.mutate`,
+   both already covered by the pre-existing implementation, not new code this packet
+   added), so this is a verify step, not an open build item.
+2. **Not a blocker, flagging for the record:** P-17's Files line names a new
+   `src/components/settings/AutonomyTab.tsx` that was never built, here or before. If a
+   future packet wants the Autonomy pane genuinely refactored into its own component file
+   (out of the 4,000-line settings route), that is real, separable work -- P-23 ("Settings:
+   six tabs, mapped from Lovable's") is the packet already queued for exactly this
+   redesign, and re-homing `BoundaryPane` belongs there rather than as an unscoped rename
+   inside this one.
+
+**A1 verdict:**
 
 ---
 
