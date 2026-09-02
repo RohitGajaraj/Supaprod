@@ -2346,6 +2346,31 @@ Your blocker was a walk, and this is it. Three follow-ups, none of which reopen 
 
 ---
 
+
+### P-25a · The search results can be read · Lane: **A2** · Status: READY (after P-02) · Moves: 3, 5
+
+**Why.** P-25 is done and its results panel is 204px wide, the rail's width, so every title
+truncates at three or four words and the "In <run>" line under it truncates the same way. A person
+searching for a spec sees "Let returning custom…" four times. The search works; the surface cannot
+be read.
+
+**Scope.** Give Meridian `Search` a results variant (a popover anchored to the field, ≥ 480px, that
+escapes the rail; or land results in the content column) and use it in `FindAnything.tsx`. Titles
+show whole at one line or wrap to two; the context line shows the run's title and state. Port the
+mechanics from beautifui.dev's search or command palette, not from a screenshot. Keyboard behaviour
+from P-25 unchanged. Also add `aria-activedescendant` on the input (P-25 follow-up 3) while there.
+
+**Files.** `src/components/meridian/Search.tsx` (variant), `src/components/shell/FindAnything.tsx`.
+
+**Acceptance.**
+- [ ] On Helio Labs, *address* shows every result's full title (or two wrapped lines) with no
+      ellipsis in the first 20 results, and the run context line reads whole.
+- [ ] Arrow keys, Enter, Escape as in P-25; `aria-activedescendant` follows the highlighted option.
+- [ ] Ratchet unchanged or lower · tsc 0 · `bun test` 0 fail · pushed · Report.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
+
 ### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: CLAIMED (A3, 2026-09-03) · Moves: 3
 
 **Scope.** `tracks-feed.ts` becomes the one read model for a track's one-line state, used by
