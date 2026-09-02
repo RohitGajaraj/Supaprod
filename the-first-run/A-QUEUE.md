@@ -1249,6 +1249,9 @@ show them*, closed by default; (2) rows with an identical title inside a group p
 discriminating fact (their exact time) or fold into one row with a count, per the 2026-09-02 rule.
 The founder's first sight of his own workspace must not be a wall of a robot's test runs.
 
+**Follow-up verified live 00:28 IST:** Start now ends the runs list with one closed line, *41
+abandoned · show them* (`b23adf166`). Closed.
+
 **A1 verdict:**
 
 ---
@@ -1707,7 +1710,7 @@ list them in the Report before deleting anything).
 
 ---
 
-### P-14a · Arriving and Outcomes take their own addresses · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, 00:55 IST) · Moves: 1, 4
+### P-14a · Arriving and Outcomes take their own addresses · Lane: **A3** · Status: DONE (A1, 00:30 IST) · one copy follow-up below · Moves: 1, 4
 
 **Scope.** The two workspace views that survive the station-page deletion get their names now.
 `/discover` (`DiscoverSurface`) is re-addressed as **`/arriving`**; `/brain` (Insights) as
@@ -1881,6 +1884,19 @@ own rule, none deleted). Nothing under `src/components/meridian/**`.
    remain in `components/discover/**` and `components/brain/**`, found and left on
    purpose -- see the Report body for the file list and the reasoning for not pulling
    them into this one.
+
+**A1 verdict: DONE** _00:30 IST, walked on `supaprod.ai` after the republish (Lovable bundle
+`bdf4570a`)._ `/discover` renders **Arriving** with the heading *What came in, and what it is
+becoming* ✓; `/brain` redirects to `/outcomes`, heading *Outcomes · Every decision, what it expected,
+and what happened* ✓; Start's two doors point at the real addresses ✓; the slug migration is applied
+(checked in `reserved_workspace_slugs`) and A1 recorded its ledger row ✓; tsc 0, `bun test` 13,725 /
+0 fail on my run ✓.
+
+**One copy follow-up, same packet, A3:** two words from P-13's list survive on the renamed pages,
+which P-13 could not reach (its scope excluded `discover/` and `brain/`): Arriving's crumb *"1 became
+bet"* and Outcomes' *"Your ratings have moved what the crew reaches for first"*. Sweep both
+directories against the P-13 list (`crew`, `bet`, `the call`, `station`) and extend the guard to them;
+one commit, note the sha here.
 
 **A1 verdict:**
 

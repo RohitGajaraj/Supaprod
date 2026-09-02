@@ -694,3 +694,15 @@ at `d43fc2829` (Lovable publish `7626c911`).**
   replied within minutes when asked for live status.
 - **Founder next:** sign in on his own workspace and type one sentence; that is the first real
   person on Start since 19 July.
+
+---
+
+## 2026-09-03 ~00:32 IST — A1: twelve packets DONE and live; both lanes still running
+
+Live at Lovable bundle `bdf4570a`: P-14a (Arriving and Outcomes at their own addresses, old ones
+redirect) and the P-05 abandoned-tail collapse (*41 abandoned · show them*) verified. P-19 reviewed
+and DONE as a Meridian promotion (drawing in Meridian, reading in the track layer). P-26 filed for
+Meridian's own raw durations. In flight: A3 P-15 (sad paths), A2 P-20 (the pin and the visible
+promotion bar). READY: P-16 Start half, P-18, P-25 (A3); P-26 (A2). Open follow-ups: P-14a copy
+(*bet*, *crew* on the two renamed pages), P-11 collapsed-rail label, P-13 sweep of `start.tsx` and
+`tracks-feed.ts`. Suite 13,725 / 0. The founder has not yet signed in on his own workspace.
