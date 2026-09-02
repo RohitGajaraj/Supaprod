@@ -4,9 +4,9 @@ import { chipLabel, contextForPath, scopeForPath } from "./ask-context";
 describe("ask-context - contextForPath", () => {
   it("maps each canonical destination to its plain-words label", () => {
     expect(contextForPath("/today", null)).toBe("Today");
-    expect(contextForPath("/discover", null)).toBe("Discover");
+    expect(contextForPath("/arriving", null)).toBe("Arriving");
     expect(contextForPath("/plan", null)).toBe("Plan");
-    expect(contextForPath("/knowledge", null)).toBe("Brain");
+    expect(contextForPath("/knowledge", null)).toBe("Outcomes");
   });
 
   it("Build without an open mission reads as Build", () => {
@@ -69,8 +69,8 @@ describe("ask-context - scopeForPath", () => {
     expect(scopeForPath("/plan/spec/p-9", null)?.label).toBe("this spec");
   });
 
-  it("scopes to the exact decision the Brain has open", () => {
-    expect(scopeForPath("/brain", null, { decision: "d-3" })).toEqual({
+  it("scopes to the exact decision the Outcomes pane has open", () => {
+    expect(scopeForPath("/outcomes", null, { decision: "d-3" })).toEqual({
       kinds: ["decision"],
       sourceId: "d-3",
       label: "this decision",
@@ -83,23 +83,23 @@ describe("ask-context - scopeForPath", () => {
     expect(scopeForPath("/plan", null)).toEqual({ kinds: ["prd"], label: "your specs" });
   });
 
-  it("scopes Brain/knowledge to doc/note/finding", () => {
-    expect(scopeForPath("/brain", null)).toEqual({
+  it("scopes Outcomes/knowledge to doc/note/finding", () => {
+    expect(scopeForPath("/outcomes", null)).toEqual({
       kinds: ["doc", "note", "finding"],
-      label: "Brain",
+      label: "Outcomes",
     });
     expect(scopeForPath("/knowledge", null)).toEqual({
       kinds: ["doc", "note", "finding"],
-      label: "Brain",
+      label: "Outcomes",
     });
   });
 
-  // Discover keeps its NAME on the chip and stays unscoped for retrieval:
+  // Arriving keeps its NAME on the chip and stays unscoped for retrieval:
   // nothing here proves signals are chunked, and a scope that returns nothing
   // is worse than no scope.
-  it("names Discover without narrowing retrieval to a kind it cannot prove", () => {
-    expect(scopeForPath("/discover", null)).toEqual({ label: "Discover" });
-    expect(scopeForPath("/discover", null)?.kinds).toBeUndefined();
+  it("names Arriving without narrowing retrieval to a kind it cannot prove", () => {
+    expect(scopeForPath("/arriving", null)).toEqual({ label: "Arriving" });
+    expect(scopeForPath("/arriving", null)?.kinds).toBeUndefined();
   });
 
   it("stays unscoped for screens with nothing to pin to", () => {

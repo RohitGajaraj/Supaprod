@@ -471,7 +471,7 @@ export function DecisionDetail({ id }: { id: string }) {
       ),
   });
 
-  const onBack = () => navigate({ to: "/brain", search: { tab: "decisions" } });
+  const onBack = () => navigate({ to: "/outcomes", search: { tab: "decisions" } });
 
   if (decisions.isLoading) return <Reading>Reading the call.</Reading>;
 
@@ -581,7 +581,7 @@ export function DecisionDetail({ id }: { id: string }) {
         goTo="Trace it in the graph"
         onGoTo={() =>
           navigate({
-            to: "/brain",
+            to: "/outcomes",
             search: { tab: "graph", focusKind: "decision", focusId: d.id },
           })
         }

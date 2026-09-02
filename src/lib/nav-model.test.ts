@@ -32,10 +32,10 @@ describe("nav-model - the three primary destinations", () => {
       "/approvals",
       "/runs",
       "/crew",
-      "/brain",
+      "/outcomes",
       "/threads",
       "/engine-room",
-      "/discover",
+      "/arriving",
       "/decide",
       "/plan",
       "/design",
@@ -172,8 +172,8 @@ describe("nav-model - every door resolves to a route file on disk", () => {
 
   /**
    * TanStack's flat file convention: dots are slashes, and a `.index` file
-   * serves the bare path. So /brain is `_authenticated.brain.tsx` and /plan is
-   * `_authenticated.plan.index.tsx`, and either spelling resolves.
+   * serves the bare path. So /outcomes is `_authenticated.outcomes.tsx` and
+   * /plan is `_authenticated.plan.index.tsx`, and either spelling resolves.
    *
    * Run's identity, "/track", resolves through its `$trackId` param file
    * rather than a bare or `.index` one — checked on its own line above,

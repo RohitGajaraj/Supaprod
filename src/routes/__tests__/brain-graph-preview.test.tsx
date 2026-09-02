@@ -27,7 +27,7 @@
  * different states, and neither may wear the other's clothes.
  */
 import { describe, it, expect } from "bun:test";
-import { graphPreview, PREVIEW_MIN_EDGES } from "../_authenticated.brain";
+import { graphPreview, PREVIEW_MIN_EDGES } from "../_authenticated.outcomes";
 
 /** A graph of the requested size. Only the counts matter to this decision, so
  *  the members are placeholders rather than a hand-built KnowledgeGraph. */

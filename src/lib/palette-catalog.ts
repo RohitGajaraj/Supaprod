@@ -20,7 +20,7 @@ export const CATALOG: CatalogEntry[] = [
     id: "challenge-belief",
     pitch: "Tear down a belief with evidence",
     kind: "BELIEF",
-    run: { to: "/discover", search: { tab: "opportunities" } },
+    run: { to: "/arriving", search: { tab: "opportunities" } },
   },
   {
     id: "rank-next",
@@ -31,12 +31,12 @@ export const CATALOG: CatalogEntry[] = [
     id: "tickets-to-signals",
     pitch: "Turn 48 hours of tickets into signals",
     kind: "SOURCE",
-    run: { to: "/discover", search: { tab: "signals" } },
+    run: { to: "/arriving", search: { tab: "signals" } },
   },
   {
     id: "export-record",
     pitch: "Export my decision record",
-    run: { to: "/brain", search: { tab: "decisions" } },
+    run: { to: "/outcomes", search: { tab: "decisions" } },
   },
   {
     id: "point-critic",
@@ -98,7 +98,7 @@ export const CATALOG: CatalogEntry[] = [
     id: "memory-graph",
     pitch: "Explore the knowledge graph",
     kind: "BELIEF",
-    run: { to: "/brain", search: { tab: "graph" } },
+    run: { to: "/outcomes", search: { tab: "graph" } },
   },
   {
     id: "prompt-studio",

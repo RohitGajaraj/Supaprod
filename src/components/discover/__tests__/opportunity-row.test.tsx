@@ -127,15 +127,16 @@ describe("DesignationTag", () => {
 // asserted `toBeDefined()` against an empty string, so they passed on any
 // markup at all and were only ever naming a look that no longer exists.
 describe("BestBetStamp", () => {
-  test("names itself, so the one chosen bet is readable rather than just coloured", () => {
+  test("names itself, so the one chosen opportunity is readable rather than just coloured", () => {
     render(<BestBetStamp />);
-    expect(screen.getByText("Best bet")).toBeDefined();
+    // "Best bet" -> "Best opportunity" (P-14a register sweep).
+    expect(screen.getByText("Best opportunity")).toBeDefined();
   });
 
   test("includes title attribute", () => {
     const { container } = render(<BestBetStamp />);
     const span = container.querySelector("span");
-    expect(span?.title).toContain("strongest bet");
+    expect(span?.title).toContain("strongest opportunity");
   });
 
   test("applies custom className when provided", () => {

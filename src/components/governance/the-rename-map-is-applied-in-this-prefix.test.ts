@@ -208,8 +208,18 @@ describe("§12 holds in route tab titles, which the checks above cannot see", ()
    * whole point of the rule.
    */
   it("the two tabs say what their rail doors say", () => {
+    /*
+     * "Insights · Supaprod" -> "Outcomes · Supaprod" (P-14a, 2026-09-02):
+     * `_authenticated.brain.tsx` became `_authenticated.outcomes.tsx`, and
+     * the tab title changed with it -- exactly the coupling this test
+     * exists to hold, not a defect it caught. "Insights" was the door's own
+     * word when this test was written; the rail this test's own header
+     * describes (Policies/Insights doors) no longer exists after P-11's
+     * three-door rework this session, and the page's honest name now is
+     * Outcomes.
+     */
     const all = titles().join("\n");
     expect(all).toContain("Policies · Supaprod");
-    expect(all).toContain("Insights · Supaprod");
+    expect(all).toContain("Outcomes · Supaprod");
   });
 });

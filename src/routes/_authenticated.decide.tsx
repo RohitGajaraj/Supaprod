@@ -1846,7 +1846,7 @@ function DecideSurface() {
                     title="Opens the decision this drop wrote, on the brain"
                     onClick={() =>
                       void navigate({
-                        to: "/brain",
+                        to: "/outcomes",
                         search: { tab: "decisions", decision: decisionId },
                       })
                     }
@@ -3215,7 +3215,7 @@ function DecideSurface() {
                 />
               ) : null}
               <Actions className="mt-mrd-4">
-                <Action variant="quiet" onClick={() => void navigate({ to: "/discover" })}>
+                <Action variant="quiet" onClick={() => void navigate({ to: "/arriving" })}>
                   Go to the signals
                 </Action>
               </Actions>
@@ -3307,7 +3307,7 @@ function DecideSurface() {
               <Door
                 onClick={() =>
                   void navigate({
-                    to: "/brain",
+                    to: "/outcomes",
                     search: activeLearning
                       ? { tab: "learnings", learning: activeLearning.id }
                       : { tab: "learnings" },

@@ -145,8 +145,9 @@ describe("the lane can settle a card, not merely show it", () => {
 
   it("still lands an unknown kind somewhere real", () => {
     // The writer will grow kinds. A lookup that can return undefined renders a
-    // link to nowhere; Brain holds everything, so it stays the soft landing.
-    expect(LANE).toMatch(/default:[\s\S]{0,400}return "\/brain";/);
+    // link to nowhere; Outcomes holds everything (Brain before P-14a's
+    // rename), so it stays the soft landing.
+    expect(LANE).toMatch(/default:[\s\S]{0,400}return "\/outcomes";/);
   });
 
   it("navigates BEFORE it settles, so a wrong destination is recoverable", () => {

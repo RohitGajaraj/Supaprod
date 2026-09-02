@@ -115,8 +115,8 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
     ],
   },
   {
-    path: "/discover",
-    label: "Discover",
+    path: "/arriving",
+    label: "Arriving",
     source: "src/components/discover/DiscoverSurface.tsx",
     keys: [
       { key: "j", does: "Moves down the ranking." },

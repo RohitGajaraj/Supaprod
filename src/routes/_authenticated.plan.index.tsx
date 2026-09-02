@@ -178,7 +178,7 @@ const MOVED_VIEWS: Record<string, { what: string; why: string; to: string; door:
   stakeholders: {
     what: "The stakeholder pack is not on Plan any more.",
     why: "Writing an update for an audience is a communication job, and it shares nothing with committing a bet except that both mention decisions. It lives with the record's readable output.",
-    to: "/brain",
+    to: "/outcomes",
     door: "Open the brain",
   },
   goals: {

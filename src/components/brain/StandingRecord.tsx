@@ -112,7 +112,7 @@ export function StandingRules() {
   const openDrafts = () =>
     navigate({ to: "/engine-room", search: { room: "safety", view: "house-rules" } });
 
-  const title = "What the record now tells the crew";
+  const title = "What the record now tells your agents";
 
   if (q.isLoading) {
     return (
@@ -294,7 +294,7 @@ export function CrewCarries({ children }: { children: ReactNode }) {
   const q = useStandingRecord();
   const sub = recallLine(q.data?.recall);
   return (
-    <Region title="What the crew carries" sub={sub ?? undefined}>
+    <Region title="What your agents carry" sub={sub ?? undefined}>
       {children}
     </Region>
   );

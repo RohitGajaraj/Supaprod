@@ -2975,7 +2975,7 @@ function SpecEditorPage() {
                     // Carries the signal id so Discover can focus it (the old
                     // link dropped it, audit D-14).
                     navigate({
-                      to: "/discover",
+                      to: "/arriving",
                       search: { tab: "signals", focus: s.id } as never,
                     })
                   }

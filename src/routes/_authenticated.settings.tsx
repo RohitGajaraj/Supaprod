@@ -377,7 +377,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
     const asked =
       (search as { section?: string; tab?: string }).section ??
       (search as { section?: string; tab?: string }).tab;
-    if (asked === "memory") throw redirect({ to: "/brain" });
+    if (asked === "memory") throw redirect({ to: "/outcomes" });
   },
   component: SettingsPage,
   head: () => ({ meta: [{ title: "Settings · Supaprod" }] }),

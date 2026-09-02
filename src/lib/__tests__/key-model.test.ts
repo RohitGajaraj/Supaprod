@@ -132,7 +132,7 @@ describe("the surface lookup answers with the right one", () => {
     // gate queues with nothing bound. They have keys now. These four still do
     // not, and the honest answer for them is none rather than the nearest
     // surface's keys.
-    for (const path of ["/brain", "/settings", "/learn", "/ship"]) {
+    for (const path of ["/outcomes", "/settings", "/learn", "/ship"]) {
       expect(surfaceKeysFor(path)).toBeNull();
     }
   });
@@ -151,7 +151,7 @@ describe("the surface lookup answers with the right one", () => {
    * converted so far to that pair, and it is the list that grows as the rest
    * are converted rather than a rule asserted over surfaces that have not been.
    */
-  const CONVERTED = ["/start", "/design", "/crew", "/discover", "/decide", "/approvals"];
+  const CONVERTED = ["/start", "/design", "/crew", "/arriving", "/decide", "/approvals"];
   for (const path of CONVERTED) {
     it(`${path} accepts with a and declines with d`, () => {
       const keys = surfaceKeysFor(path)?.keys.map((k) => k.key) ?? [];

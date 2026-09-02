@@ -189,7 +189,7 @@ export function ReceiptDetail({
     if (e.kind === "mission")
       return () => navigate({ to: "/runs/$missionId", params: { missionId: e.id } });
     if (e.kind === "opportunity")
-      return () => navigate({ to: "/discover", search: { tab: "queue" } as never });
+      return () => navigate({ to: "/arriving", search: { tab: "queue" } as never });
     return null;
   };
 

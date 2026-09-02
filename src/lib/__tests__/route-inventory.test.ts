@@ -180,7 +180,7 @@ function authRouteFiles(): string[] {
   });
 }
 
-/** "_authenticated.plan.index.tsx" -> "/plan"; "_authenticated.brain.tsx" -> "/brain". */
+/** "_authenticated.plan.index.tsx" -> "/plan"; "_authenticated.brain.tsx" -> "/outcomes". */
 function authRoutePath(file: string): string {
   return (
     "/" +
@@ -203,7 +203,7 @@ describe("route inventory - every authenticated surface has a LIVE door", () => 
     // /today and /runs left this canary list in P-10 (A-QUEUE.md, 2026-09-02):
     // both were pure redirect stubs to SIGNED_IN_HOME, deleted along with the
     // other 47 the packet's census found.
-    for (const p of ["/brain", "/crew", "/settings"]) {
+    for (const p of ["/outcomes", "/crew", "/settings"]) {
       expect(paths).toContain(p);
     }
   });

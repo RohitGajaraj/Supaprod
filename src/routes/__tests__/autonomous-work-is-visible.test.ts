@@ -98,9 +98,12 @@ const STATIONS = [
   "routes/_authenticated.build.index.tsx",
   "routes/_authenticated.ship.tsx",
   "routes/_authenticated.learn.tsx",
-  // Not a station. The company brain, where agents write and where a reader is
-  // most likely to assume nothing is running.
-  "routes/_authenticated.brain.tsx",
+  // Not a station. The company record, where agents write and where a reader
+  // is most likely to assume nothing is running.
+  // "_authenticated.brain.tsx" -> "_authenticated.outcomes.tsx" (P-14a): the
+  // page moved, taking CrewWorking with it. The stub left at the old path
+  // redirects and mounts nothing.
+  "routes/_authenticated.outcomes.tsx",
 ];
 
 describe("every surface where agents run shows the crew working on its own", () => {

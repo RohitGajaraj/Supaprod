@@ -109,12 +109,12 @@ describe("Learn's empty desk asks a question and answers it with a door", () => 
     const known = new Set([
       "/ship",
       "/plan",
-      "/discover",
+      "/arriving",
       "/decide",
       "/design",
       "/build",
       "/learn",
-      "/brain",
+      "/outcomes",
     ]);
     for (const t of targets) expect(known.has(t)).toBe(true);
   });

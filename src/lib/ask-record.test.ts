@@ -164,7 +164,7 @@ describe("ask-record: what a real fact turns into", () => {
   it("prefers the decision over a retrieved source", () => {
     const c = recordCitationFor({
       blocks: [DEC],
-      meta: meta({ sources: [{ n: 1, kind: "doc", title: "A note", href: "/brain" }] }),
+      meta: meta({ sources: [{ n: 1, kind: "doc", title: "A note", href: "/outcomes" }] }),
     });
     expect(c?.text).toContain("decided already");
   });

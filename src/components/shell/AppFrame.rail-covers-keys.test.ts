@@ -232,7 +232,7 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // "not in scope" line: real surfaces, kept, just no longer advertised —
     // and no longer owned. A row claiming one of these would be the fold
     // silently reappearing.
-    for (const path of ["/today", "/approvals", "/brain", "/threads", "/engine-room"]) {
+    for (const path of ["/today", "/approvals", "/outcomes", "/threads", "/engine-room"]) {
       expect(railOwnerOf(path)).toBeNull();
     }
   });

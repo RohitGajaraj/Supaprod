@@ -46,13 +46,13 @@ const DOORS: Record<string, (id: string) => NodeDoor> = {
   decision: (id) => ({
     label: "Open this call",
     tier: "row",
-    to: "/brain",
+    to: "/outcomes",
     search: { tab: "decisions", decision: id },
   }),
   learning: (id) => ({
     label: "Open this outcome",
     tier: "row",
-    to: "/brain",
+    to: "/outcomes",
     search: { tab: "learnings", learning: id },
   }),
   // The spec editor is addressed by path.
@@ -72,13 +72,13 @@ const DOORS: Record<string, (id: string) => NodeDoor> = {
   signal: (id) => ({
     label: "Open the signal",
     tier: "row",
-    to: "/discover",
+    to: "/arriving",
     search: { tab: "signals", focus: id },
   }),
   theme: (id) => ({
     label: "Open the cluster",
     tier: "row",
-    to: "/discover",
+    to: "/arriving",
     search: { tab: "signals", focus: id },
   }),
   /**
@@ -90,7 +90,7 @@ const DOORS: Record<string, (id: string) => NodeDoor> = {
   opportunity: () => ({
     label: "Open the queue",
     tier: "list",
-    to: "/discover",
+    to: "/arriving",
     search: { tab: "queue" },
   }),
   task: () => ({ label: "Open the tasks", tier: "list", to: "/start" }),

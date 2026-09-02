@@ -1026,7 +1026,7 @@ function OutcomeHistoryBlock({ opportunityId }: { opportunityId: string }) {
   if (rows.length === 0) return null;
 
   return (
-    <Region title="Outcomes on this bet" sub="What came back once it was live, newest first.">
+    <Region title="Outcomes on this opportunity" sub="What came back once it was live, newest first.">
       {rows.map((l) => {
         const note = rescoreNoteOf(l);
         return (
@@ -1086,9 +1086,9 @@ function BriefLinkLine({ opportunity }: { opportunity: OpportunityDetailRecord }
        a screen reader announced the VALUE and never the question. `Line` binds
        its label by name, the same way Meridian's `Field` does. */
     <Line
-      label="Strategic bet"
+      label="Strategic opportunity"
       htmlFor={id}
-      sub="A challenged assumption on the bet you tie it to sinks this one in the ranking."
+      sub="A challenged assumption on the opportunity you tie it to sinks this one in the ranking."
     >
       {/* A `Picker`, not a `MoreMenu`. This control CARRIES A VALUE -- which top
           bet this one is tied to -- and a native select shows it, opens with the
@@ -1368,7 +1368,7 @@ export function OpportunityDetailSheet({
             >
               <P>
                 {opportunity.theme_id
-                  ? "Promoted from a Discover theme, with its findings attached."
+                  ? "Promoted from an Arriving theme, with its findings attached."
                   : "Promoted directly. No theme backs it."}
               </P>
             </Region>
@@ -1397,7 +1397,7 @@ export function OpportunityDetailSheet({
             opportunity.hypothesis ||
             opportunity.target_user ||
             opportunity.decided_by_agent_slug ? (
-              <Region title="The bet">
+              <Region title="The opportunity">
                 {opportunity.problem ? (
                   <Stated label="Problem">{opportunity.problem}</Stated>
                 ) : null}
@@ -1663,7 +1663,7 @@ export function OpportunityDetailSheet({
                 <Action
                   disabled={busy || handOff.isPending}
                   onClick={() => handOff.mutate()}
-                  title="Starts a mission with this bet attached, and opens it in Build"
+                  title="Starts a mission with this opportunity attached, and opens it in Build"
                 >
                   {handOff.isPending ? "Starting the mission" : "Start a mission"}
                 </Action>

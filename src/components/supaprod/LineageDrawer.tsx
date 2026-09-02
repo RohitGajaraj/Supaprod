@@ -51,7 +51,7 @@ import { getLineage, getProvenance, type ArtifactKind } from "@/lib/lineage.func
 /**
  * Where a lineage node's link goes, and WHETHER IT CARRIES ITS ID.
  *
- * `signal` and `theme` used to be zero-arg — `() => ({ to: "/discover" })` —
+ * `signal` and `theme` used to be zero-arg — `() => ({ to: "/arriving" })` —
  * which dropped the id for exactly the two kinds this drawer is mostly made of.
  * Pressing a source quote under "Traces back to" landed you on bare /discover,
  * which opens on whichever cluster ranks first that day. The chain was intact
@@ -92,7 +92,7 @@ import { getLineage, getProvenance, type ArtifactKind } from "@/lib/lineage.func
  *
  * `decision` CARRIES ITS ID NOW, and it is the loudest of them. It was
  * `() => ({ to: "/meetings" })`, and /meetings is a redirect stub whose
- * beforeLoad throws `redirect({ to: "/brain", search: { tab: "calendar" } })`.
+ * beforeLoad throws `redirect({ to: "/outcomes", search: { tab: "calendar" } })`.
  *
  * THE DESTINATION WAS NEVER THE WRONG PAGE, and the first draft of this
  * paragraph said it was. It read "so a Decision node landed on Brain's CALENDAR
@@ -182,7 +182,7 @@ import { getLineage, getProvenance, type ArtifactKind } from "@/lib/lineage.func
  * missed it, which is worth saying because a reader takes a sweep for a full
  * pass over the map. /meetings/$id is a redirect stub too, but unlike /tasks
  * and /roadmap it PRESERVES the id, throwing
- * `redirect({ to: "/brain", search: { tab: "calendar", meeting: params.id } })`.
+ * `redirect({ to: "/outcomes", search: { tab: "calendar", meeting: params.id } })`.
  * `calendar` resolves to the decisions tab, /brain's `validateSearch` keeps
  * `?meeting=` for exactly that reason, and then nothing on that tab reads it:
  * the branch renders DecisionDetail for `?decision=` or the ledger, and the
@@ -229,20 +229,20 @@ const ROUTES: Partial<
   // Zero-arg because a task id does not resolve to a spec id here, same shape
   // as the `opportunity` row above.
   task: () => ({ to: "/plan" }),
-  signal: (id) => ({ to: "/discover", search: { focus: id } }),
-  theme: (id) => ({ to: "/discover", search: { focus: id } }),
+  signal: (id) => ({ to: "/arriving", search: { focus: id } }),
+  theme: (id) => ({ to: "/arriving", search: { focus: id } }),
   // Carries the id and still lands short: /meetings/$id forwards it to
   // /brain?tab=calendar&meeting=, `calendar` resolves to the decisions tab, and
   // nothing there reads `?meeting=`. Zero live rows of this kind, so it has
   // never rendered. See the sweep note above.
-  meeting: (id) => ({ to: "/brain", search: { tab: "calendar", meeting: id } }),
+  meeting: (id) => ({ to: "/outcomes", search: { tab: "calendar", meeting: id } }),
   roadmap_item: () => ({ to: "/plan", search: { view: "roadmap" } }),
   // Lands on the record itself, and it is the only kind here that gets there
   // through a SEARCH param instead of a route param: /brain's validateSearch
   // keeps `decision`, and its decisions tab renders DecisionDetail for that id.
   // `signal` and `theme` also carry a search param, but theirs asks a surface to
   // focus something, which it can decline; this one selects the record.
-  decision: (id) => ({ to: "/brain", search: { tab: "decisions", decision: id } }),
+  decision: (id) => ({ to: "/outcomes", search: { tab: "decisions", decision: id } }),
   mission: (id) => ({ to: "/build/$missionId", params: { missionId: id } }),
 };
 

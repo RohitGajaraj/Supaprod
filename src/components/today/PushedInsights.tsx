@@ -186,7 +186,7 @@ function targetRoute(kind: string): string {
     case "open_decision":
       return "/decide";
     case "open_theme":
-      return "/discover";
+      return "/arriving";
     case "open_prd":
       return "/plan";
     case "start_mission":
@@ -194,6 +194,6 @@ function targetRoute(kind: string): string {
     case "open_metric":
       return "/learn";
     default:
-      return "/brain";
+      return "/outcomes";
   }
 }

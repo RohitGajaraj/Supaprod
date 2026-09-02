@@ -395,7 +395,7 @@ describe("CompoundingPanel component states", () => {
 
   test.skip("renders Link with correct target (tab=learnings, learning=id)", () => {
     // TODO: Implement mock.module pattern for useQuery
-    // Expected: Link to="/brain" with search={{ tab: "learnings", learning: l.id }}
+    // Expected: Link to="/outcomes" with search={{ tab: "learnings", learning: l.id }}
   });
 
   test.skip("renders borders between rows (except last)", () => {

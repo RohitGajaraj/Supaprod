@@ -647,7 +647,7 @@ export const getRunStages = createServerFn({ method: "GET" })
             signalCount && signalCount > 0
               ? count(signalCount, "signal", "signals")
               : opportunity.title,
-          href: "/discover",
+          href: "/arriving",
         }
       : {
           station: "sense",

@@ -63,9 +63,11 @@ const BASE_PROPS = {
 describe("OpportunityRow designation marker", () => {
   test("designation 'best bet' renders the stamp's words", () => {
     const { unmount } = render(<OpportunityRowExport {...BASE_PROPS} designation="best bet" />);
-    // The reader's promise: the one chosen bet says so, in words.
-    expect(screen.getByText("Best bet")).toBeDefined();
-    // The best bet is the stamp, not a quiet tag.
+    // The reader's promise: the one chosen opportunity says so, in words.
+    // "Best bet" -> "Best opportunity" (P-14a); `designation` itself is the
+    // ranking.ts discriminator value and stays "best bet", unrendered.
+    expect(screen.getByText("Best opportunity")).toBeDefined();
+    // The best opportunity is the stamp, not a quiet tag.
     expect(screen.queryByText("needs validation")).toBeNull();
     unmount();
 

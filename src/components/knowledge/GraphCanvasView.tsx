@@ -298,7 +298,7 @@ export function GraphCanvasView({
     setSelectedKey(null);
     setStoryKey(null);
     setAsOf(null);
-    navigate({ to: "/brain", search: { tab: "graph", focusKind: kind, focusId: id } });
+    navigate({ to: "/outcomes", search: { tab: "graph", focusKind: kind, focusId: id } });
   };
 
   if (graphQ.isLoading) return <Reading>Drawing what connects to what.</Reading>;
@@ -324,7 +324,7 @@ export function GraphCanvasView({
         action={
           // `capture: true` lands on the capture box rather than on the top of
           // Discover, where this control's own label is not what you see.
-          <Action onClick={() => navigate({ to: "/discover", search: { capture: true } })}>
+          <Action onClick={() => navigate({ to: "/arriving", search: { capture: true } })}>
             Capture a signal
           </Action>
         }

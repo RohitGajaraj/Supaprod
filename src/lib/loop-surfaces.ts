@@ -20,9 +20,9 @@
 // Product); `produces` = what this stage hands forward (the felt-continuity payload).
 export const LOOP_SURFACES = [
   { id: "today", label: "Today", to: "/", produces: "your decision" },
-  // OBS-10: /product folded (final closure); Discover is now this stage's
+  // OBS-10: /product folded (final closure); Arriving is now this stage's
   // home (signals + opportunities + strategy all live there).
-  { id: "product", label: "Discover", to: "/discover", produces: "a ranked opportunity" },
+  { id: "product", label: "Arriving", to: "/arriving", produces: "a ranked opportunity" },
   // LOOM W2 (2026-07-04): the spec stage's home is Define (nav-model.ts).
   // /prds redirects there and the full editor lives at /plan/spec/$id (both
   // match via the "/plan" prefix, the internal identifier that stays per the
@@ -35,7 +35,7 @@ export const LOOP_SURFACES = [
   // Build's own "a working change"), it just shares Build's URL now rather
   // than having its own page.
   { id: "missions", label: "Missions", to: "/build", produces: "a shipped outcome" },
-  { id: "brain", label: "Memory", to: "/brain", produces: "a learned precedent" },
+  { id: "brain", label: "Memory", to: "/outcomes", produces: "a learned precedent" },
   // IA SPINE (2026-07-11): the receipts surface folded into the Engine Room's
   // record room; /trust-ledger is a redirect stub and nothing may link to it.
   { id: "trust", label: "Trust", to: "/engine-room", produces: "proof you can defend" },

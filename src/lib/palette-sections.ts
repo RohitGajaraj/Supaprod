@@ -62,7 +62,7 @@ export const GLOBALLY_MOUNTED_EVENTS: readonly string[] = [
 ];
 
 export const ACT_VERBS: readonly ActVerb[] = [
-  { label: "Challenge a belief", run: { to: "/discover", search: { tab: "opportunities" } } },
+  { label: "Challenge a belief", run: { to: "/arriving", search: { tab: "opportunities" } } },
   { label: "Connect a source", run: { to: "/settings", search: { section: "connections" } } },
   { label: "Answer the waiting call", run: { to: "/today" } },
   { label: "Ask about this screen", run: { to: "/today", event: "supaprod:open-ask" } },
@@ -72,7 +72,7 @@ export const ACT_VERBS: readonly ActVerb[] = [
   // right station with the box off screen. `?capture=1` is parsed by
   // _authenticated.discover.tsx's validateSearch, which is the same repair
   // `?focus=` needed: the route drops any param it does not parse.
-  { label: "Capture a signal", run: { to: "/discover", search: { capture: "1" } } },
+  { label: "Capture a signal", run: { to: "/arriving", search: { capture: "1" } } },
   // NameABet, _authenticated.decide.tsx:3385. The palette has never offered
   // this and it is the most valuable act in the product. Plain navigation for
   // now: /decide has no validateSearch at all, so the landing treatment above

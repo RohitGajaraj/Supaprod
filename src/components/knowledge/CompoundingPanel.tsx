@@ -478,7 +478,7 @@ export function CompoundingPanel() {
               }
               time={whenOf(l.created_at)}
               onClick={() =>
-                navigate({ to: "/brain", search: { tab: "learnings", learning: l.id } })
+                navigate({ to: "/outcomes", search: { tab: "learnings", learning: l.id } })
               }
             />
           );

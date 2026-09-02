@@ -19,7 +19,7 @@
  * again. Leaving Discover, Decide, Plan and the rest bound to a chord after
  * their rail doors are gone would reopen that exact defect in the other
  * direction: a shortcut nothing on screen advertises. So they leave with
- * their doors. `/brain`, `/threads`, `/engine-room` and `/approvals` all stay
+ * their doors. `/outcomes`, `/threads`, `/engine-room` and `/approvals` all stay
  * reachable by URL (P-11's own "not in scope" line); they are simply no
  * longer doors the keyboard or the rail name.
  *

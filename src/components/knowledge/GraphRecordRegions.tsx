@@ -193,7 +193,7 @@ export function GraphRecordRegions({
   const recentre = (key: string) => {
     const [kind, id] = splitKey(key);
     if (!kind || !id) return;
-    navigate({ to: "/brain", search: { tab: "graph", focusKind: kind, focusId: id } });
+    navigate({ to: "/outcomes", search: { tab: "graph", focusKind: kind, focusId: id } });
   };
 
   const openRecord = (key: string) => {

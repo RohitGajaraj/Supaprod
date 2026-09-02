@@ -211,7 +211,7 @@ export function LearningDetail({ id }: { id: string }) {
   const gradedDecision = gradeCtx.data?.decision ?? null;
   const overturns = gradeCtx.data?.overturns ?? [];
 
-  const onBack = () => navigate({ to: "/brain", search: { tab: "learnings" } });
+  const onBack = () => navigate({ to: "/outcomes", search: { tab: "learnings" } });
 
   if (learnings.isLoading) return <Reading>Reading the outcome.</Reading>;
 
@@ -461,7 +461,7 @@ export function LearningDetail({ id }: { id: string }) {
               variant="quiet"
               onClick={() =>
                 navigate({
-                  to: "/brain",
+                  to: "/outcomes",
                   search: { tab: "decisions", decision: gradedDecision.id },
                 })
               }
@@ -479,7 +479,7 @@ export function LearningDetail({ id }: { id: string }) {
               variant="quiet"
               onClick={() =>
                 navigate({
-                  to: "/brain",
+                  to: "/outcomes",
                   search: {
                     tab: "graph",
                     focusKind: "opportunity",

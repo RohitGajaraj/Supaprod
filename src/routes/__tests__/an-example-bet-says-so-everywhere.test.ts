@@ -68,9 +68,10 @@ describe("every surface that shows a bet says when it is an example", () => {
     // the ORDER this test exists to protect never moved. A guard on a component
     // name fails when the paint improves and passes when the meaning breaks,
     // which is the wrong way round. What matters is that the region titled "The
-    // bet" comes after the sample mark, whatever draws it.
+    // opportunity" ("The bet" before P-14a's register sweep) comes after the
+    // sample mark, whatever draws it or calls it.
     const sampleAt = SHEET.indexOf("opportunity.is_sample ?");
-    const theBetAt = SHEET.search(/title="The bet"/);
+    const theBetAt = SHEET.search(/title="The opportunity"/);
     expect(sampleAt).toBeGreaterThan(-1);
     expect(theBetAt).toBeGreaterThan(sampleAt);
   });

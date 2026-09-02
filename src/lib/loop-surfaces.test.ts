@@ -26,10 +26,10 @@ describe("LOOP_SURFACES — the surface-level loop model", () => {
 describe("loopIndexForPath — where the operator currently sits", () => {
   test("matches each surface on its exact route", () => {
     expect(loopIndexForPath("/")).toBe(0);
-    expect(loopIndexForPath("/discover")).toBe(1);
+    expect(loopIndexForPath("/arriving")).toBe(1);
     expect(loopIndexForPath("/plan")).toBe(2);
     expect(loopIndexForPath("/build")).toBe(3);
-    expect(loopIndexForPath("/brain")).toBe(5);
+    expect(loopIndexForPath("/outcomes")).toBe(5);
     // IA SPINE (2026-07-11): the Trust stage's home is the Engine Room
     // (record room); /trust-ledger is a redirect stub.
     expect(loopIndexForPath("/engine-room")).toBe(6);
@@ -67,13 +67,13 @@ describe("loopIndexForPath — where the operator currently sits", () => {
     expect(loopIndexForPath("/evals")).toBe(-1);
     expect(loopIndexForPath("/guardrails")).toBe(-1);
     expect(isLoopSurface("/settings")).toBe(false);
-    expect(isLoopSurface("/discover")).toBe(true);
+    expect(isLoopSurface("/arriving")).toBe(true);
   });
 });
 
 describe("loopNeighbors — the loop wraps (it has no end)", () => {
   test("interior stage has its immediate prev/next", () => {
-    const n = loopNeighbors(loopIndexForPath("/discover"));
+    const n = loopNeighbors(loopIndexForPath("/arriving"));
     expect(n?.prev.id).toBe("today");
     expect(n?.next.id).toBe("prd");
   });

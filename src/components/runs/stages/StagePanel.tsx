@@ -842,7 +842,7 @@ function emptyWords(station: AgentStation, fact: RunStageFact | null): string {
  *  changeset has no pull request to open, and inventing a destination is the
  *  arrow to nowhere the doctrine bans. */
 const DOOR: Partial<Record<AgentStation, string>> = {
-  sense: "/discover",
+  sense: "/arriving",
   decide: "/decide",
   learn: "/learn",
 };
@@ -898,7 +898,7 @@ export function StagePanel({
   const open = (to: string) => () => void navigate({ to });
 
   if (station === "sense" && evidence.discover) {
-    return <Discover e={evidence.discover} initials={initials} onOpen={open("/discover")} />;
+    return <Discover e={evidence.discover} initials={initials} onOpen={open("/arriving")} />;
   }
   if (station === "decide" && evidence.decide) {
     return <Decide e={evidence.decide} initials={initials} onOpen={open("/decide")} />;

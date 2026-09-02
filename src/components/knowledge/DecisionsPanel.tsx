@@ -563,7 +563,7 @@ export function DecisionsPanel() {
                 }
                 time={ageOf(d.created_at)}
                 onClick={() =>
-                  navigate({ to: "/brain", search: { tab: "decisions", decision: d.id } })
+                  navigate({ to: "/outcomes", search: { tab: "decisions", decision: d.id } })
                 }
               />
             );

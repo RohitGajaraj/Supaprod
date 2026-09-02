@@ -25,14 +25,14 @@ export type RedirectTarget = { to: string; search?: Record<string, string> };
  * below. */
 export const CANONICAL_PATHS = [
   "/today",
-  "/discover",
+  "/arriving",
   "/decide",
   "/plan",
   "/design",
   "/build",
   "/ship",
   "/learn",
-  "/brain",
+  "/outcomes",
   "/approvals",
   "/threads",
   "/engine-room",
@@ -128,14 +128,14 @@ export const DOOR_INTERNAL_PATHS = [
  */
 export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   // -- Discover --
-  "/discovery": { to: "/discover", search: { tab: "signals" } },
-  "/opportunities": { to: "/discover", search: { tab: "opportunities" } },
+  "/discovery": { to: "/arriving", search: { tab: "signals" } },
+  "/opportunities": { to: "/arriving", search: { tab: "opportunities" } },
   // Decide is now a first-class Loop stage (canonical /decide, Option B
   // 2026-07-13) — the ranked judgment queue is its own destination.
   // OBS-10 (2026-07-03, lane3, final closure): the bare-URL default (the
   // legacy page's own default tab is "signals"). The real stub branches on
   // ?tab= six ways - see the module doc above and the route stub itself.
-  "/product": { to: "/discover" },
+  "/product": { to: "/arriving" },
 
   // -- Plan --
   // LOOM W2 (2026-07-04): /plan honors ?view= (roadmap · specs ·
@@ -147,15 +147,15 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   "/stakeholder": { to: "/plan", search: { view: "stakeholders" } },
 
   // -- Brain (canonical /brain since LOOM W1; /knowledge is legacy) --
-  "/knowledge": { to: "/brain" },
-  "/memory": { to: "/brain", search: { tab: "memory" } },
-  "/docs": { to: "/brain", search: { tab: "docs" } },
+  "/knowledge": { to: "/outcomes" },
+  "/memory": { to: "/outcomes", search: { tab: "memory" } },
+  "/docs": { to: "/outcomes", search: { tab: "docs" } },
   // /learn is now a first-class Loop stage (canonical), not a Brain tab.
   "/outcome": { to: "/learn" },
-  "/calendar": { to: "/brain", search: { tab: "calendar" } },
-  "/meetings": { to: "/brain", search: { tab: "calendar" } },
-  "/impact": { to: "/brain", search: { tab: "impact" } },
-  "/changelog": { to: "/brain", search: { tab: "changelog" } },
+  "/calendar": { to: "/outcomes", search: { tab: "calendar" } },
+  "/meetings": { to: "/outcomes", search: { tab: "calendar" } },
+  "/impact": { to: "/outcomes", search: { tab: "impact" } },
+  "/changelog": { to: "/outcomes", search: { tab: "changelog" } },
 
   // -- Build (canonical /build; also the one true missions home, see below) --
   "/cockpit": { to: "/build" },

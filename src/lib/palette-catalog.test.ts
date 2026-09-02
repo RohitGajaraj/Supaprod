@@ -125,7 +125,7 @@ describe("palette-sections", () => {
     // Discover is a 3,400-line surface with several destinations inside it. A
     // verb that names one of them and then lands on the top of the page is the
     // broken deep link that route's own header was written about.
-    for (const verb of ACT_VERBS.filter((v) => v.run.to === "/discover")) {
+    for (const verb of ACT_VERBS.filter((v) => v.run.to === "/arriving")) {
       expect(Object.keys(verb.run.search ?? {}).length).toBeGreaterThan(0);
     }
   });

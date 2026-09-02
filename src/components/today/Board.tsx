@@ -2154,7 +2154,7 @@ export function Board() {
                       "Insights" -- so a stranger can predict the page before
                       pressing it, which is the whole test for a door. */}
                   <Num>{onRecord}</Num> {onRecord === 1 ? "day" : "days"} on the record.{" "}
-                  <Door onClick={() => navigate({ to: "/brain", search: {} })}>Open Insights</Door>
+                  <Door onClick={() => navigate({ to: "/outcomes", search: {} })}>Open Insights</Door>
                 </>
               ) : null}
             </>
@@ -2222,7 +2222,7 @@ export function Board() {
           >
             <RecordSpeaks
               evidence={
-                <Door onClick={() => navigate({ to: "/brain" })}>
+                <Door onClick={() => navigate({ to: "/outcomes" })}>
                   See which held and which missed
                 </Door>
               }
@@ -3153,7 +3153,7 @@ export function Board() {
                 </RecordSpeaks>
                 <Door
                   onClick={() =>
-                    navigate({ to: "/brain", search: { tab: "learnings", learning: learning.id } })
+                    navigate({ to: "/outcomes", search: { tab: "learnings", learning: learning.id } })
                   }
                 >
                   Open this outcome in the record

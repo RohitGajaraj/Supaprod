@@ -203,7 +203,7 @@ export function BestBetStamp({ className }: { className?: string }) {
   return (
     <span
       className={className}
-      title="The single strongest bet in the queue right now"
+      title="The single strongest opportunity in the queue right now"
       style={{
         fontSize: "12.5px",
         fontWeight: 600,
@@ -212,7 +212,7 @@ export function BestBetStamp({ className }: { className?: string }) {
         flexShrink: 0,
       }}
     >
-      Best bet
+      Best opportunity
     </span>
   );
 }
@@ -307,7 +307,7 @@ export const OpportunityRow = memo(function OpportunityRow({
         <AgentMark
           slug={reviewed ? CHALLENGER : null}
           state={actionsPending ? "running" : reviewed ? "idle" : "quiet"}
-          title={reviewed ? undefined : "Unattributed: nobody has reviewed this bet"}
+          title={reviewed ? undefined : "Unattributed: nobody has reviewed this opportunity"}
         />
       }
       lead={title}

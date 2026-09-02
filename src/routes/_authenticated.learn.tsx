@@ -1007,7 +1007,7 @@ function Learn() {
             travel beyond the product it was learned in.
           </RecordSpeaks>
           <div className="mt-mrd-3">
-            <Action onClick={() => navigate({ to: "/brain" })}>See the standing rules</Action>
+            <Action onClick={() => navigate({ to: "/outcomes" })}>See the standing rules</Action>
           </div>
         </Region>
 
@@ -1034,7 +1034,7 @@ function Learn() {
                 </>
               }
               sub="Read them on the signals desk, against the bets you have open"
-              onClick={() => navigate({ to: "/discover", search: { tab: "signals" } })}
+              onClick={() => navigate({ to: "/arriving", search: { tab: "signals" } })}
             />
           </Region>
         ) : null}

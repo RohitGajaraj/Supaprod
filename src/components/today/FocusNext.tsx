@@ -131,7 +131,7 @@ export function FocusNext({ workspaceId }: { workspaceId: string | null }) {
               title="Open supporting evidence in Discover"
               onClick={() =>
                 navigate({
-                  to: "/discover",
+                  to: "/arriving",
                   search: recommendation.themeId
                     ? ({ focus: recommendation.themeId } as never)
                     : undefined,

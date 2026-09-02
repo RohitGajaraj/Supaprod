@@ -225,7 +225,7 @@ describe("AskPane: the scope chip is real", () => {
   });
 
   test("on a decision it names the decision", async () => {
-    pathname = "/brain";
+    pathname = "/outcomes";
     search = { decision: "d-3" };
     await open();
     expect(screen.getAllByText("this decision").length).toBeGreaterThan(0);
@@ -832,7 +832,7 @@ describe("AskPane: the suggestion rail", () => {
   // those seven stations". A capability line wears the station it came out of,
   // and the station is one of the product's own seven.
   test("a capability row names the station it comes out of", async () => {
-    pathname = "/brain";
+    pathname = "/outcomes";
     search = { decision: "d-3" };
     const r = await openWithRuns();
     const tags = [...screen.getByTestId("ask-pane").querySelectorAll(".sp-suggest-station")];

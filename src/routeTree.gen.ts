@@ -48,6 +48,7 @@ import { Route as AuthenticatedStartRouteImport } from './routes/_authenticated.
 import { Route as AuthenticatedShipRouteImport } from './routes/_authenticated.ship'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
 import { Route as AuthenticatedPrdsRouteImport } from './routes/_authenticated.prds'
+import { Route as AuthenticatedOutcomesRouteImport } from './routes/_authenticated.outcomes'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated.onboarding'
 import { Route as AuthenticatedMeridianRouteImport } from './routes/_authenticated.meridian'
 import { Route as AuthenticatedLearnRouteImport } from './routes/_authenticated.learn'
@@ -57,6 +58,7 @@ import { Route as AuthenticatedDesignRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedDecideRouteImport } from './routes/_authenticated.decide'
 import { Route as AuthenticatedCrewRouteImport } from './routes/_authenticated.crew'
 import { Route as AuthenticatedBrainRouteImport } from './routes/_authenticated.brain'
+import { Route as AuthenticatedArrivingRouteImport } from './routes/_authenticated.arriving'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated.approvals'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -341,6 +343,11 @@ const AuthenticatedPrdsRoute = AuthenticatedPrdsRouteImport.update({
   path: '/prds',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedOutcomesRoute = AuthenticatedOutcomesRouteImport.update({
+  id: '/outcomes',
+  path: '/outcomes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -384,6 +391,11 @@ const AuthenticatedCrewRoute = AuthenticatedCrewRouteImport.update({
 const AuthenticatedBrainRoute = AuthenticatedBrainRouteImport.update({
   id: '/brain',
   path: '/brain',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedArrivingRoute = AuthenticatedArrivingRouteImport.update({
+  id: '/arriving',
+  path: '/arriving',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
@@ -925,6 +937,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/approvals': typeof AuthenticatedApprovalsRoute
+  '/arriving': typeof AuthenticatedArrivingRoute
   '/brain': typeof AuthenticatedBrainRoute
   '/crew': typeof AuthenticatedCrewRoute
   '/decide': typeof AuthenticatedDecideRoute
@@ -934,6 +947,7 @@ export interface FileRoutesByFullPath {
   '/learn': typeof AuthenticatedLearnRoute
   '/meridian': typeof AuthenticatedMeridianRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/outcomes': typeof AuthenticatedOutcomesRoute
   '/prds': typeof AuthenticatedPrdsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/ship': typeof AuthenticatedShipRoute
@@ -1062,6 +1076,7 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
+  '/arriving': typeof AuthenticatedArrivingRoute
   '/brain': typeof AuthenticatedBrainRoute
   '/crew': typeof AuthenticatedCrewRoute
   '/decide': typeof AuthenticatedDecideRoute
@@ -1071,6 +1086,7 @@ export interface FileRoutesByTo {
   '/learn': typeof AuthenticatedLearnRoute
   '/meridian': typeof AuthenticatedMeridianRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/outcomes': typeof AuthenticatedOutcomesRoute
   '/prds': typeof AuthenticatedPrdsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/ship': typeof AuthenticatedShipRoute
@@ -1202,6 +1218,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
+  '/_authenticated/arriving': typeof AuthenticatedArrivingRoute
   '/_authenticated/brain': typeof AuthenticatedBrainRoute
   '/_authenticated/crew': typeof AuthenticatedCrewRoute
   '/_authenticated/decide': typeof AuthenticatedDecideRoute
@@ -1211,6 +1228,7 @@ export interface FileRoutesById {
   '/_authenticated/learn': typeof AuthenticatedLearnRoute
   '/_authenticated/meridian': typeof AuthenticatedMeridianRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/outcomes': typeof AuthenticatedOutcomesRoute
   '/_authenticated/prds': typeof AuthenticatedPrdsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/ship': typeof AuthenticatedShipRoute
@@ -1342,6 +1360,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/approvals'
+    | '/arriving'
     | '/brain'
     | '/crew'
     | '/decide'
@@ -1351,6 +1370,7 @@ export interface FileRouteTypes {
     | '/learn'
     | '/meridian'
     | '/onboarding'
+    | '/outcomes'
     | '/prds'
     | '/settings'
     | '/ship'
@@ -1479,6 +1499,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/approvals'
+    | '/arriving'
     | '/brain'
     | '/crew'
     | '/decide'
@@ -1488,6 +1509,7 @@ export interface FileRouteTypes {
     | '/learn'
     | '/meridian'
     | '/onboarding'
+    | '/outcomes'
     | '/prds'
     | '/settings'
     | '/ship'
@@ -1618,6 +1640,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
     | '/_authenticated/approvals'
+    | '/_authenticated/arriving'
     | '/_authenticated/brain'
     | '/_authenticated/crew'
     | '/_authenticated/decide'
@@ -1627,6 +1650,7 @@ export interface FileRouteTypes {
     | '/_authenticated/learn'
     | '/_authenticated/meridian'
     | '/_authenticated/onboarding'
+    | '/_authenticated/outcomes'
     | '/_authenticated/prds'
     | '/_authenticated/settings'
     | '/_authenticated/ship'
@@ -2108,6 +2132,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPrdsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/outcomes': {
+      id: '/_authenticated/outcomes'
+      path: '/outcomes'
+      fullPath: '/outcomes'
+      preLoaderRoute: typeof AuthenticatedOutcomesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
       path: '/onboarding'
@@ -2169,6 +2200,13 @@ declare module '@tanstack/react-router' {
       path: '/brain'
       fullPath: '/brain'
       preLoaderRoute: typeof AuthenticatedBrainRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/arriving': {
+      id: '/_authenticated/arriving'
+      path: '/arriving'
+      fullPath: '/arriving'
+      preLoaderRoute: typeof AuthenticatedArrivingRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/approvals': {
@@ -2844,6 +2882,7 @@ const AuthenticatedTracesRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
+  AuthenticatedArrivingRoute: typeof AuthenticatedArrivingRoute
   AuthenticatedBrainRoute: typeof AuthenticatedBrainRoute
   AuthenticatedCrewRoute: typeof AuthenticatedCrewRoute
   AuthenticatedDecideRoute: typeof AuthenticatedDecideRoute
@@ -2853,6 +2892,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedLearnRoute: typeof AuthenticatedLearnRoute
   AuthenticatedMeridianRoute: typeof AuthenticatedMeridianRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedOutcomesRoute: typeof AuthenticatedOutcomesRoute
   AuthenticatedPrdsRoute: typeof AuthenticatedPrdsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShipRoute: typeof AuthenticatedShipRoute
@@ -2870,6 +2910,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
+  AuthenticatedArrivingRoute: AuthenticatedArrivingRoute,
   AuthenticatedBrainRoute: AuthenticatedBrainRoute,
   AuthenticatedCrewRoute: AuthenticatedCrewRoute,
   AuthenticatedDecideRoute: AuthenticatedDecideRoute,
@@ -2879,6 +2920,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedLearnRoute: AuthenticatedLearnRoute,
   AuthenticatedMeridianRoute: AuthenticatedMeridianRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedOutcomesRoute: AuthenticatedOutcomesRoute,
   AuthenticatedPrdsRoute: AuthenticatedPrdsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShipRoute: AuthenticatedShipRoute,

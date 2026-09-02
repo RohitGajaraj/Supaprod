@@ -1928,7 +1928,7 @@ export function DiscoverSurface({
    * way `listThemes` already does, and this can state the shortfall outright.
    */
   const headline: React.ReactNode = loading ? (
-    "Discover"
+    "Reading what has come in."
   ) : loadError ? (
     "The record could not be read."
   ) : rows.length === 0 ? (
@@ -2558,7 +2558,21 @@ export function DiscoverSurface({
           so pressing "Cluster them now" is still reported by the button's own
           label and nothing else. See use-live-agents.ts. */}
       <CrewWorking station="sense" />
+      {/*
+       * THE PAGE'S OWN NAME, ADDED FOR P-14a. `headline` below has always
+       * carried this page's ONLY title, and it is computed -- "Discover"
+       * while loading, then a count-based sentence -- so the page had no
+       * FIXED name outside the browser tab. Nothing computed changes:
+       * `headline`/its own `sub` still carry every fact they did, one level
+       * down (`level={2}`), so this is additive rather than a rewrite of
+       * what the page reports.
+       */}
       <PageHeading
+        title="Arriving"
+        sub="What came in, and what it is becoming."
+      />
+      <PageHeading
+        level={2}
         title={headline}
         sub={
           ranked.length > 0
@@ -2664,7 +2678,7 @@ export function DiscoverSurface({
                   variant="primary"
                   onClick={() =>
                     navigate({
-                      to: "/brain",
+                      to: "/outcomes",
                       search: { tab: "graph", focusKind: "theme", focusId: focusSettled.id },
                     })
                   }
@@ -3130,9 +3144,9 @@ export function DiscoverSurface({
           onToggle={() => setShowAllBets((v) => !v)}
           toggled={showAllBets}
         >
-          <Field label="Find the bet" htmlFor="merge-bet-filter">
+          <Field label="Find the opportunity" htmlFor="merge-opportunity-filter">
             <Input
-              id="merge-bet-filter"
+              id="merge-opportunity-filter"
               value={betFilter}
               onChange={(e) => setBetFilter(e.target.value)}
               placeholder="Type any part of its name"
@@ -3709,7 +3723,7 @@ export function DiscoverSurface({
                       }
                       onClick={() =>
                         navigate({
-                          to: "/brain",
+                          to: "/outcomes",
                           search: { tab: "graph", focusKind: "theme", focusId: t.id },
                         })
                       }
@@ -3810,12 +3824,12 @@ export function DiscoverSurface({
                  out of it, which is what "go and look at that one" means here.
 
                  Precedent that carries no opportunity id keeps no door. */
-              title={p.opportunityId ? "Open that bet and its chain" : undefined}
+              title={p.opportunityId ? "Open that opportunity and its chain" : undefined}
               onClick={
                 p.opportunityId
                   ? () =>
                       navigate({
-                        to: "/brain",
+                        to: "/outcomes",
                         search: {
                           tab: "graph",
                           focusKind: "opportunity",

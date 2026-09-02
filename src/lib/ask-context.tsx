@@ -69,7 +69,7 @@ export function scopeForPath(
   if (specId) return { kinds: ["prd"], sourceId: specId, label: "this spec" };
 
   const decisionId = typeof search?.decision === "string" ? search.decision : null;
-  if (decisionId && (pathname.startsWith("/brain") || pathname.startsWith("/knowledge"))) {
+  if (decisionId && (pathname.startsWith("/outcomes") || pathname.startsWith("/knowledge"))) {
     return { kinds: ["decision"], sourceId: decisionId, label: "this decision" };
   }
 
@@ -79,28 +79,28 @@ export function scopeForPath(
     // a word a stranger does not have. The rebuild says spec everywhere else.
     return { kinds: ["prd"], label: "your specs" };
   }
-  if (pathname.startsWith("/brain") || pathname.startsWith("/knowledge")) {
-    return { kinds: ["doc", "note", "finding"], label: "Brain" };
+  if (pathname.startsWith("/outcomes") || pathname.startsWith("/knowledge")) {
+    return { kinds: ["doc", "note", "finding"], label: "Outcomes" };
   }
   if (pathname.startsWith("/runs") || pathname.startsWith("/build")) {
     return { kinds: ["mission"], label: "your runs" };
   }
   // LABEL WITHOUT KINDS is a real state, not a half-finished one: the chip
   // names what you are looking at, and retrieval stays workspace-wide because
-  // narrowing it here would be a guess. Discover is the case: `signal` is in
+  // narrowing it here would be a guess. Arriving is the case: `signal` is in
   // the source-kind union but nothing in this codebase proves signals are
   // chunked, and a scope that quietly returns nothing is worse than no scope.
-  if (pathname.startsWith("/discover")) return { label: "Discover" };
+  if (pathname.startsWith("/arriving")) return { label: "Arriving" };
   return null;
 }
 
 /** Plain words for the screen you are on. Used in copy, never as the chip. */
 export function contextForPath(pathname: string, missionId: string | null): string {
   if (pathname.startsWith("/today")) return "Today";
-  if (pathname.startsWith("/discover")) return "Discover";
+  if (pathname.startsWith("/arriving")) return "Arriving";
   if (pathname.startsWith("/plan")) return "Plan";
   if (pathname.startsWith("/build")) return missionId ? "a mission" : "Build";
-  if (pathname.startsWith("/brain") || pathname.startsWith("/knowledge")) return "Brain";
+  if (pathname.startsWith("/outcomes") || pathname.startsWith("/knowledge")) return "Outcomes";
   if (pathname.startsWith("/engine-room") || pathname.startsWith("/govern")) {
     // "Guardrails" since 2026-08-15. This string is spoken back to the person
     // in the Ask composer -- it completes a sentence about where they are

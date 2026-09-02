@@ -59,7 +59,7 @@ export type LandedArtifact = {
  * id and display name.
  */
 const STATION_ROUTE = {
-  sense: "/discover",
+  sense: "/arriving",
   decide: "/decide",
   define: "/plan",
   design: "/design",

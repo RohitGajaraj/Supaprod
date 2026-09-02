@@ -112,7 +112,7 @@ function fromOpportunity(b: Extract<AnswerBlock, { kind: "opportunity" }>): Reco
       b.status ? `ranked ${b.status}` : null,
       typeof b.iceScore === "number" ? `ICE ${b.iceScore}` : null,
     ]),
-    href: "/discover",
+    href: "/arriving",
   };
 }
 

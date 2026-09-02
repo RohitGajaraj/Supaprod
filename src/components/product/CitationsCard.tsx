@@ -40,11 +40,11 @@ function linkFor(
   if (!c.source_id) return null;
   switch (c.source_kind) {
     case "signal":
-      return { to: "/discover" };
+      return { to: "/arriving" };
     case "doc":
-      return { to: "/brain", search: { tab: "docs" } };
+      return { to: "/outcomes", search: { tab: "docs" } };
     case "meeting":
-      return { to: "/brain", search: { tab: "calendar", meeting: c.source_id } };
+      return { to: "/outcomes", search: { tab: "calendar", meeting: c.source_id } };
     default:
       return null;
   }

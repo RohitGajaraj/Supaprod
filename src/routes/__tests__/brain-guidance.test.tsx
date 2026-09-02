@@ -31,7 +31,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import type { RecallRecord } from "@/lib/brain-standing.functions";
 import type { CompoundingSummary } from "@/lib/moat-vis";
 import type { ForecastCalibration } from "@/lib/brain-insights.functions";
-import { guidanceLines, recordHeadline, recordIsBlank } from "../_authenticated.brain";
+import { guidanceLines, recordHeadline, recordIsBlank } from "../_authenticated.outcomes";
 
 /** The rendered words of a line, with the markup and React's entity escaping
  *  taken back off, so an assertion reads as the sentence a person sees. */
@@ -160,7 +160,11 @@ describe("Brain headline: guidance outranks the manifest", () => {
   it("holds the placeholder until the recall rung is decidable", () => {
     // A head that settles on the manifest and then jumps to the recall claim
     // reads as the page correcting itself in front of the reader.
-    expect(recordHeadline(null, null, null, null, true)).toBe("Brain");
+    // "Brain" -> "Reading the record." (P-14a): this second-level headline
+    // no longer carries the page's own name -- that moved to the static
+    // "Outcomes" title above it -- so its own loading placeholder is a plain
+    // sentence instead, matching this file's own "Reading the X" convention.
+    expect(recordHeadline(null, null, null, null, true)).toBe("Reading the record.");
     expect(recordHeadline(null, null, null, null, false)).toBe("The record did not load.");
   });
 });

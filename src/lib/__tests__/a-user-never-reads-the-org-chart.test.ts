@@ -40,9 +40,34 @@ import { join } from "node:path";
 
 const ROOT = join(import.meta.dir, "..", "..", "..");
 
-const SCAN_DIRS = ["components/track", "components/spine", "components/today", "components/shell"];
+const SCAN_DIRS = [
+  "components/track",
+  "components/spine",
+  "components/today",
+  "components/shell",
+  /*
+   * P-14a (2026-09-02) DELIBERATELY DID NOT ADD `components/discover` and
+   * `components/brain` HERE. It read this test's own full REGISTER_WORDS
+   * list against both directories to see what extending it would demand,
+   * and found 41 genuine `crew`/`bet` hits -- a register sweep the size and
+   * shape of P-13 itself, and outside what P-14a's own acceptance actually
+   * asks for (station/Discover/Insights/Brain/"the Record" as THIS PAGE's
+   * name, not the whole crew/bet/agentic/autonomous ban). Fixed the nine it
+   * happened to run into while building the rename; left the other ~32
+   * named for whoever picks up the next register-sweep packet on these two
+   * surfaces, in the P-23 Report's own style, rather than pulled in here
+   * un-asked. See `describe("Arriving and Outcomes do not render their
+   * retired names", ...)` below for the check P-14a's own acceptance
+   * actually needs.
+   */
+];
 
-const SCAN_FILES = ["routes/_authenticated.start.tsx", "routes/_authenticated.track.$trackId.tsx"];
+const SCAN_FILES = [
+  "routes/_authenticated.start.tsx",
+  "routes/_authenticated.track.$trackId.tsx",
+  // Arriving and Outcomes route files deliberately NOT added here either --
+  // see the comment on SCAN_DIRS above.
+];
 
 /** Every non-test .ts/.tsx file under a directory, recursively. */
 function filesUnder(dir: string, out: string[] = []): string[] {
@@ -157,4 +182,69 @@ describe("HOLD_LINE, the one part of driver.ts a signed-in person reads", () => 
     }
     expect(offenders).toEqual([]);
   });
+});
+
+/**
+ * ARRIVING AND OUTCOMES DO NOT WEAR THEIR OLD NAMES (P-14a, 2026-09-02).
+ *
+ * `/discover` became `/arriving` and `/brain` became `/outcomes`; the ban is
+ * on "Discover", "Insights", "Brain" and "the Record" as NAMES FOR THESE
+ * PAGES, not on the words in general -- "Brain" is a real architecture
+ * concept elsewhere in this codebase (`brain.functions.ts`,
+ * `getCompanyBrainStats`, `useBrainStatus`...) and banning it everywhere
+ * would be exactly the identifier-vs-rendered-text confusion the header
+ * above already explains paying for once.
+ *
+ * WHY THIS IS A SEPARATE CHECK FROM THE ONE ABOVE. `REGISTER_WORDS` does not
+ * carry these four words -- they were never part of the crew/bet/agentic
+ * ban -- and unlike "station" (a bare identifier collision), the two
+ * genuine violations this check exists to catch were LOADING-PLACEHOLDER
+ * STRING LITERALS ("Brain", "Discover") returned bare from a function, never
+ * inside a `title=`/`sub=`-style prop, so `USER_FACING_PROP` scoping would
+ * have missed them. This scans every quoted string instead and allowlists
+ * the one proven-safe collision, the same shape
+ * `settings-search.test.ts`'s `ALLOWED_ABSENT` already uses for the same
+ * reason.
+ */
+describe("Arriving and Outcomes do not render their retired names", () => {
+  const PAGE_NAME_FILES = [
+    "routes/_authenticated.arriving.tsx",
+    "routes/_authenticated.outcomes.tsx",
+    ...filesUnder("components/discover"),
+    ...filesUnder("components/brain"),
+  ];
+
+  /**
+   * Any quoted string (comment-stripped) containing one of the four words,
+   * as a whole word so "Discovery" and "Brainstorm" do not false-positive.
+   * Unlike the `station` check above, nothing in either directory carries
+   * "Discover", "Insights" or "Brain" as a code identifier that this scan
+   * would need to exclude -- measured directly, not assumed: the same
+   * regex, run unscoped against every file below before this test existed,
+   * found exactly the two loading-placeholder strings this packet fixed and
+   * nothing else. So there is no allowlist here, on purpose; one that
+   * excludes nothing is worse than none, because it reads as a guard
+   * against a collision that was never real.
+   */
+  const PAGE_NAME_WORD = /(["'`])((?:(?!\1).)*?\b(?:Discover|Insights|Brain)\b(?:(?!\1).)*?)\1/;
+  const THE_RECORD_PROPER = /(["'`])((?:(?!\1).)*?\bThe Record\b(?:(?!\1).)*?)\1/;
+
+  for (const file of PAGE_NAME_FILES) {
+    it(`${file} carries no old-name string for this page`, () => {
+      const raw = readFileSync(join(ROOT, "src", file), "utf8");
+      const stripped = stripComments(raw);
+      const lines = stripped.split("\n");
+      const offenders: string[] = [];
+
+      lines.forEach((line, i) => {
+        if (!line.trim()) return;
+        const n = i + 1;
+        if (PAGE_NAME_WORD.test(line) || THE_RECORD_PROPER.test(line)) {
+          offenders.push(`${n}: ${line.trim()}`);
+        }
+      });
+
+      expect(offenders).toEqual([]);
+    });
+  }
 });

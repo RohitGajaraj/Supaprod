@@ -55,7 +55,10 @@ function importersOf(name: string, ownFile: string): string[] {
 describe("finished work that never reached a screen", () => {
   it("OutcomeHistory is drawn by the surface its own header names", () => {
     const hosts = importersOf("OutcomeHistory", "src/components/brain/OutcomeHistory.tsx");
-    expect(hosts).toContain("src/routes/_authenticated.brain.tsx");
+    // "_authenticated.brain.tsx" -> "_authenticated.outcomes.tsx" (P-14a):
+    // the file this test names moved, taking the import with it. The stub
+    // left at the old path redirects and mounts nothing.
+    expect(hosts).toContain("src/routes/_authenticated.outcomes.tsx");
   });
 
   it("AutoChip is drawn where the auto marker is stripped", () => {
