@@ -2533,6 +2533,9 @@ function StationPanel({
      */
     const stepItems = items.filter((it) => it.kind === "task" && !it.missing);
     const missionItems = items.filter((it) => it.kind === "mission" && !it.missing);
+    /* Which titles are printed more than once in THIS list, so a row that has a
+       twin can say the one thing its twin cannot. See `repeatedTitles`. */
+    const repeats = repeatedTitles(items);
     return (
       <div className="flex flex-col gap-mrd-4">
         {/* Quiet, and above everything: it introduces the cards rather than
@@ -2561,7 +2564,11 @@ function StationPanel({
           const key = `${item.kind}:${item.artifactId}`;
           return (
             <div key={key} style={arrival(key)}>
-              <MemberLine m={toMemberLine(item)} now={now} />
+              <MemberLine
+                m={toMemberLine(item)}
+                now={now}
+                repeated={repeats.has((item.title ?? "").trim().toLowerCase())}
+              />
             </div>
           );
         })}
@@ -2577,7 +2584,12 @@ function StationPanel({
       {primaryMember ? <PlanSpec prdId={primaryMember.artifactId} /> : null}
       {stop.members.map((m) =>
         m === primaryMember || (m.kind === "prd" && !m.missing) ? null : (
-          <MemberLine key={`${m.kind}:${m.artifactId}`} m={m} now={now} />
+          <MemberLine
+            key={`${m.kind}:${m.artifactId}`}
+            m={m}
+            now={now}
+            repeated={repeatedTitles(stop.members).has((m.title ?? "").trim().toLowerCase())}
+          />
         ),
       )}
     </div>
@@ -2597,13 +2609,74 @@ function toMemberLine(item: ArtifactView): ChainMember {
   };
 }
 
-function MemberLine({ m, now }: { m: ChainMember; now: number }) {
+/**
+ * ── A ROW THAT REPEATS NEEDS A FACT THAT SEPARATES IT ─────────────────────
+ *
+ * Founder report via A1, 2026-09-02, walking `ce846e9b`: Design's list printed
+ * *OTA Firmware Reboot Status Tile* four times and *...Tile Differentiation*
+ * four times, and every one of the eight rows also read "1d ago", because
+ * `relativeTime` rounds and all ten prototypes were filed inside the same
+ * minute. Eight rows, two facts between them. A reader cannot tell which is
+ * which, cannot tell whether it is one thing drawn four times or four things,
+ * and has no reason to press any particular one.
+ *
+ * This is the discriminator rule, which this repo has already paid for twice:
+ * `what-it-produced.ts` counts repeated titles and says so, and
+ * `an-example-says-so` was written for the same defect on another surface. The
+ * rule is that a row identical to its neighbour must carry a fact that is not.
+ *
+ * Returns the lower-cased titles that appear more than once, so the caller can
+ * ask per row rather than re-scanning. Exported for its test.
+ */
+export function repeatedTitles(
+  members: ReadonlyArray<{ title: string | null; missing?: boolean }>,
+): Set<string> {
+  const counts = new Map<string, number>();
+  for (const m of members) {
+    if (m.missing) continue;
+    const t = (m.title ?? "").trim().toLowerCase();
+    if (!t) continue;
+    counts.set(t, (counts.get(t) ?? 0) + 1);
+  }
+  return new Set([...counts.entries()].filter(([, n]) => n > 1).map(([t]) => t));
+}
+
+/**
+ * The instant, to the second, in the viewer's own locale.
+ *
+ * Seconds are included on purpose: ten prototypes filed by one seat land inside
+ * the same minute, so minute precision would produce eight identical rows again
+ * with a longer string on them.
+ */
+function exactTime(iso: string): string {
+  const ms = Date.parse(iso);
+  if (!Number.isFinite(ms)) return "";
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(new Date(ms));
+}
+
+function MemberLine({
+  m,
+  now,
+  repeated = false,
+}: {
+  m: ChainMember;
+  now: number;
+  /** This row's title is printed by at least one sibling. See above. */
+  repeated?: boolean;
+}) {
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
   return (
     <Row
       tight
       lead={m.missing ? `This ${m.word} is no longer there` : (m.title ?? cap(m.word))}
-      time={relativeTime(m.createdAt, now)}
+      /* The exact instant replaces the rounded one ONLY where the rounded one
+         has stopped distinguishing anything. On a row that is already unique,
+         "1d ago" is the more readable of the two and it stays. */
+      time={repeated ? exactTime(m.createdAt) : relativeTime(m.createdAt, now)}
       action={
         m.missing ? <Value tone="fail">not found</Value> : <Value tone="quiet">{m.word}</Value>
       }

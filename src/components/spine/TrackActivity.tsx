@@ -1065,7 +1065,25 @@ export function TrackActivity({
                       type="button"
                       aria-pressed={selected === t.station}
                       onClick={() => onSelect?.(t.station as string)}
-                      className={`${RUN_LINE} mrd-focus-inset w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
+                      /*
+                       * `min-w-0` IS THE WHOLE FIX, AND IT IS NOT DEFENSIVE
+                       * NOISE. A1 walked this and the left pane scrolled
+                       * SIDEWAYS on select, clipping the steer field below it to
+                       * "ay what to change". A flex container defaults to
+                       * `min-width: auto`, which means it refuses to shrink
+                       * below its content -- and this one holds a `StatusChip`
+                       * that is `shrink-0 whitespace-nowrap` by contract. So the
+                       * button took its intrinsic width, the grid column took
+                       * the button's, and the pane took the column's. The span
+                       * this replaced was not a flex container and never had the
+                       * problem, which is why turning the line into a control
+                       * introduced it.
+                       *
+                       * With `min-w-0` the button may shrink, `flex-wrap` in
+                       * `RUN_LINE` puts the chip on its own line, and nothing
+                       * overflows.
+                       */
+                      className={`${RUN_LINE} mrd-focus-inset w-full min-w-0 max-w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
                     >
                       <RunSubject>{headline(t)}</RunSubject>
                       {chipOf(t)}
