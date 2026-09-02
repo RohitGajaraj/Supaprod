@@ -152,6 +152,10 @@ row is Devin's *Worked for Ns*; the verdict cites what it checked the way Cursor
       horizon date, elapsed, cost) above `ArtifactPane`. `TrackChain` is not mounted. The strip is the
       only element with `role="tablist"` on the page. No text matching `/Station \d of \d/` anywhere.
 - [ ] One status per screen: the mission card inside Build shows no status chip of its own.
+- [ ] **Discover tab shows the lineage (founder, 2026-09-02 19:12).** The theme that opened the run,
+      expandable to each signal with source, text and time, and one line on why it crossed the bar
+      (*"seen 5 times · severity 5 · confidence 0.95, over a bar of 4 · 4 · 0.8"*), read from
+      `themes` and `signals` through the chain. A run started from a typed sentence says so instead.
 - [ ] Build tab shows `Verdict`: the latest `studio.review` result for the changeset (what it
       compared, pass/fail lines). When none exists it says so in one line and names the reason.
 - [ ] Footer: mode line · Stop · elapsed · cost. Stop calls `stopTrack`, which stamps
@@ -336,8 +340,10 @@ or add `src/lib/__tests__/a-user-never-reads-the-org-chart.test.ts`.
 composer · three example jobs, each a full sentence with a Start button that fills the composer and
 starts · **Your runs**, one row per track: title · what it is doing now (`Strategist is writing the
 decision · 0:34`, from the newest `agent_runs` row) or what it produced (`spec, prototype, PR #14`)
-or `Needs you: approve the PR` · when. Rows navigate to the run. Nothing else on the page. The
-`Board` is not mounted on `/start`. The "Ask the crew" second input is removed. The AskDock's "Hand it
+or `Needs you: approve the PR` · when. Rows navigate to the run. Below the runs, one region,
+**Arriving** (founder, 2026-09-02 19:12): *"14 signals this week from 3 sources · 2 themes forming ·
+none opened a run"*, with a door to the Arriving view (P-14 keeps `DiscoverSurface` for it). Nothing
+else on the page. The `Board` is not mounted on `/start`. The "Ask the crew" second input is removed. The AskDock's "Hand it
 over" fork creates a **track** through `startTrackCore` and navigates to it (R-24); the mission
 branch in `chat.ts` is no longer reached from the UI.
 
@@ -377,6 +383,8 @@ with our middle column instead of the diff stat.
 - [ ] ⌘K "Hand it over" with a sentence lands on `/track/:id?start=true`. A test asserts no path from
       the UI reaches `createMission` in `chat.ts`.
 - [ ] `aria-live` on the runs region; rows are keyboard-reachable.
+- [ ] The Arriving region's three numbers come from `signals` and `themes` on the workspace with the
+      bar applied (same predicate as `promoteClustersOnce`), and its door opens the Arriving view.
 - [ ] Verified in a browser on the harbor workspace and on an empty workspace (A1 walks it).
 
 **Definition of done.** tsc 0 · `bun test` 0 fail · pushed · Report · A1 DONE.
@@ -542,24 +550,31 @@ Engine Room's other 22 tabs are not moved; they stay at `/engine-room` until P-1
 
 ---
 
-### P-14 · Delete the seven station pages and the mission run screen · Lane: **A3** · Status: BLOCKED → P-01, P-05 verified, founder item 4 · Moves: 4
+### P-14 · Delete five station pages and the mission run screen; keep Arriving and the Record · Lane: **A3** · Status: BLOCKED → P-01, P-05 verified, founder item 4 · Moves: 4
 
-**Scope.** `_authenticated.discover.tsx`, `decide.tsx`, `plan.index.tsx`, `plan.spec.$id.tsx`,
-`design.tsx`, `build.index.tsx`, `ship.tsx`, `learn.tsx`, `runs.$missionId.tsx`, `today.tsx`'s
-`Board` mount, and the components only they reach. Each becomes a redirect to `/start` for one week
-(inbound links from email and Slack exist), then the redirect file is deleted in a follow-up packet.
+**Ruled by A1 after the founder's question of 2026-09-02 19:12.** Two workspace-wide views are
+needed and are not stations: **Arriving** (what came in, from where, what is forming, what has not
+opened a run: today `/discover`'s `DiscoverSurface`) and **the Record** (every decision with its
+forecast and grade: today `/brain`). They survive, renamed for what they are to a person, reached
+from Start's Arriving region and from any verdict, never from a rail door or a station name.
+
+**Scope.** `_authenticated.decide.tsx`, `plan.index.tsx`, `plan.spec.$id.tsx`, `design.tsx`,
+`build.index.tsx`, `ship.tsx`, `learn.tsx`, `runs.$missionId.tsx`, `today.tsx`'s `Board` mount, and
+the components only they reach. Each becomes a redirect to `/start` for one week (inbound links from
+email and Slack exist), then the redirect file is deleted in a follow-up packet. `/discover` is
+re-addressed as `/arriving` with its station vocabulary removed from the copy; `/brain` is
+re-addressed as `/record`, the same. The old addresses redirect for one week.
 
 **Files.** Those routes; the census of components they alone reach (run the P-12 method first and
 list them in the Report before deleting anything).
 
 **Acceptance.**
 - [ ] **First, before any deletion, the fact audit (founder, 2026-09-02 19:02).** For each of the
-      seven pages and `/runs/$missionId`, a table in the Report: every region and fact the page
+      five pages and `/runs/$missionId`, a table in the Report: every region and fact the page
       shows · where that fact now lives (a run tab, a Start row, a Settings tab) · or **NO HOME**.
-      A1 walks the seven pages on `supaprod.ai` against the table. **Any NO HOME row blocks the
-      deletion of that page** until a packet gives the fact a home. The two known candidates: raw
-      signals that have not crossed the promotion bar (`/discover`), and a cross-run history per
-      station (`/learn`, `/decide`).
+      A1 walks the five pages on `supaprod.ai` against the table. **Any NO HOME row blocks the
+      deletion of that page** until a packet gives the fact a home. The known candidate: a cross-run history per
+      station (`/learn`, `/decide`), which the Record must carry.
 - [ ] Route count reported before and after. tsc 0 after each deletion.
 - [ ] Every `Link` that pointed at a deleted page now points at `/track/:id` with the tab in search,
       or at `/start`.
