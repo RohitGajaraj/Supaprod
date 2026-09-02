@@ -1083,7 +1083,7 @@ it.
 
 ---
 
-### P-05 · Start tells the story before the run · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 22:40 IST) · Moves: 1, 2, 3
+### P-05 · Start tells the story before the run · Lane: **A2** · Status: DONE (A1, 23:58 IST) · one follow-up below · Moves: 1, 2, 3
 
 **Scope.** `/start` becomes: one orientation line (only while the workspace has no track) · the
 composer · three example jobs, each a full sentence with a Start button that fills the composer and
@@ -1229,11 +1229,31 @@ soft-catch canary counted two; the third was reviewed, not waved through).
 **Blockers (A2 writes):** none. UI walk on `supaprod.ai` pending Lovable ingesting `a4e7cb07e`; will
 append what I saw here.
 
+**A1 verdict: DONE** _23:58 IST, walked on `supaprod.ai` signed in (Lovable bundle `d5ddae41`)._
+The page opens on the composer with a real example as its placeholder, then *Or start one of these*
+with three checkout-shaped jobs and a *Start it* each, then **Your runs**: *Needs you* rows first
+(*Needs you before saving changes*), then running and stopped rows whose middle column
+discriminates (*Build has a spec… corrected 2 times*, *The forecast… comes due on 2026-10-15*,
+*Stopped at Ship*, *Produced code change, 2 decisions, 2 learnings…*), then finished, then abandoned
+✓. The top bar now says *Nothing running*, which is true, where it said *3 runs are moving* this
+morning ✓. The Board is gone from Start ✓. The Arriving region renders with its door *See what came
+in*, and the *Outcomes: every decision, what it expected, what happened* link is present ✓. tsc 0,
+`bun test` 13,704 / 0 fail on my run ✓. The ⌘K fork is pinned by test; I did not press it live
+because it would spend a run.
+
+**One follow-up, same packet, A2:** the abandoned tail. Helio Labs carries **ten identical rows
+titled "PHASE 3: Verify visible agency works", all Abandoned, Aug 26** (an e2e spec that pressed
+production; a recorded incident in this repo), plus a dozen more abandoned rows, and they take the
+whole page below the fold. Two rules: (1) abandoned rows collapse behind one line, *14 abandoned ·
+show them*, closed by default; (2) rows with an identical title inside a group print a
+discriminating fact (their exact time) or fold into one row with a count, per the 2026-09-02 rule.
+The founder's first sight of his own workspace must not be a wall of a robot's test runs.
+
 **A1 verdict:**
 
 ---
 
-### P-15 · The sad path on Start and Run · Lane: **A3** · Status: BLOCKED → P-01, P-05 · Moves: 2, 5
+### P-15 · The sad path on Start and Run · Lane: **A3** · Status: READY (P-01, P-05 DONE) · Moves: 2, 5
 
 **Scope.** Every empty, loading, failed, held and permission-denied state on `/start` and
 `/track/:id` says what happened and what to do next, in the canon's register, with no internal id.
@@ -1253,7 +1273,7 @@ Enumerate them first (Report lists each state, its trigger, its copy, its next a
 
 ---
 
-### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: DONE for the run screen (A1, 22:30 IST) · the Start half waits for P-05 · Moves: 5
+### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: READY for the Start half (P-05 DONE 23:58); run-screen half DONE (A1, 22:30) · Moves: 5
 
 **Scope.** Keyboard reachability and focus order on `/start` and `/track/:id`; `aria-live` on the
 transcript and the runs region; focus moves to the ask when it appears; no colour as the only
@@ -1762,7 +1782,7 @@ groups.
 
 ---
 
-### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: BLOCKED → P-05 · Moves: 3
+### P-18 · Start rows read the same facts as the run · Lane: **A3** · Status: READY (P-05 DONE) · Moves: 3
 
 **Scope.** `tracks-feed.ts` becomes the one read model for a track's one-line state, used by
 `YourRuns` (P-05), the shell top bar ("3 runs are moving"), and the strip's produced-sentence
@@ -1815,7 +1835,7 @@ spec is clear but its lane assignment collides with a binding protocol rule.
 
 ---
 
-### P-20 · Which one first: a pin, and the promotion bar made visible · Lane: **A2** · Status: BLOCKED → P-05, P-17 · Moves: 1, 3
+### P-20 · Which one first: a pin, and the promotion bar made visible · Lane: **A2** · Status: READY (P-05, P-17 DONE; after P-19) · Moves: 1, 3
 
 **Why (founder, 2026-09-02 18:54):** *"when various signals are queued, bucketed and themed, how do
 I decide which one to hack on? Is there any prominence for that?"* Today a theme becomes a run when

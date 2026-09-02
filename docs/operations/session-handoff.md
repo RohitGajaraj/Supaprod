@@ -674,3 +674,23 @@ at `d43fc2829` (Lovable publish `7626c911`).**
   push that lands seconds later is not in it. Check `get_project.latest_commit_sha` and the bundle
   id in `latest_screenshot_url` before walking; propagation to `supaprod.ai` takes 4 to 8 minutes
   and the site is briefly "temporarily unavailable" during the swap.
+
+---
+
+## 2026-09-03 ~00:00 IST — A1: ten packets DONE and live; Start is the new front door
+
+**`main` · tsc 0 · `bun test` 13,704 pass / 0 fail · live on `supaprod.ai` at Lovable bundle `d5ddae41`.**
+
+- **DONE tonight, all walked live:** P-01 run screen · P-10 route cull · P-11 rail · P-24 artifacts
+  open on the right · P-12 dead files · P-13 register sweep · P-17 Settings › Autonomy · P-16 run-screen
+  half · P-23 Settings in seven groups · **P-05 Start** (composer, three example jobs, Your runs with
+  a discriminating middle column, Arriving region, two quiet doors to `/discover` and `/brain`).
+- **In flight:** A3 P-14a (`/arriving`, `/outcomes`), A2 P-19 (Meridian promotion; A1 reviews).
+- **READY now that P-05 is DONE:** P-15, P-16 Start half, P-18 (A3) · P-20 (A2 after P-19) · P-25
+  Find anything (A3 after P-14a) · P-14 deletions (A3, after the fact audit).
+- **Open follow-ups inside DONE packets:** P-05 abandoned-tail collapse (A2) · P-11 collapsed-rail
+  label (A3) · P-13 sweep of `start.tsx`/`tracks-feed.ts` (A3, now unblocked).
+- **Lanes are reachable by SendMessage** (`A2 - Opus`, `A3 - Sonnet` on Remote Control); both
+  replied within minutes when asked for live status.
+- **Founder next:** sign in on his own workspace and type one sentence; that is the first real
+  person on Start since 19 July.
