@@ -1159,7 +1159,7 @@ Enumerate them first (Report lists each state, its trigger, its copy, its next a
 
 ---
 
-### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: BLOCKED → P-01, P-05 · Moves: 5
+### P-16 · Accessibility on the two surfaces · Lane: **A3** · Status: READY for the run screen (P-01 DONE); the Start half waits for P-05 · Moves: 5
 
 **Scope.** Keyboard reachability and focus order on `/start` and `/track/:id`; `aria-live` on the
 transcript and the runs region; focus moves to the ask when it appears; no colour as the only
@@ -1438,11 +1438,11 @@ list them in the Report before deleting anything).
 
 ---
 
-### P-19 · Promote `Verdict` and `GotYou` into Meridian · Lane: **A3** · Status: BLOCKED: rule 10 (A3, 22:10 IST) · Moves: 4
+### P-19 · Promote `Verdict` and `GotYou` into Meridian · Lane: **A2** · Status: READY (reassigned by A1 21:50: A3 was right, rule 10 forbids it Meridian; take after P-05) · Moves: 4
 
 **Scope.** Generalise A2's two local components into `src/components/meridian/` with tokens only,
 documented in `docs/design/DESIGN-SYSTEM.md`, and swap the run screen to import them. A2's local
-files are deleted in the same packet. **A1 reviews the primitives before merge (R-17, R-20).**
+files are deleted in the same packet. **A1 reviews the primitives before merge (R-17, R-20). A2 owns this packet because it edits `src/components/meridian/**`; A3 may not (rule 10).**
 
 **Files.** `src/components/meridian/verdict.tsx`, `got-you.tsx` · `docs/design/DESIGN-SYSTEM.md` ·
 `src/components/track/TrackRun.tsx` (imports only).
@@ -1577,7 +1577,7 @@ write) · tests.
 
 ---
 
-### P-23 · Settings: six tabs, mapped from Lovable's, with what exists today · Lane: **A3** · Status: BLOCKED → P-17 · Moves: 4, 5
+### P-23 · Settings: six tabs, mapped from Lovable's, with what exists today · Lane: **A3** · Status: READY (P-17 code landed 22:05; A1 verifies it live in parallel) · Moves: 4, 5
 
 **Why (founder, 2026-09-02 19:29; A1 read Lovable's project settings signed in at 19:35).** Lovable's
 settings are one searchable page with groups: Project (name, subdomain, owner, message and edit
