@@ -1272,7 +1272,7 @@ re-run the predicate before you start, the list may have grown):
 
 ---
 
-### P-17 · Settings › Autonomy: the mandate on one page · Lane: **A3** · Status: READY (P-11 DONE 20:28) · Moves: 4, 5
+### P-17 · Settings › Autonomy: the mandate on one page · Lane: **A3** · Status: CLAIMED (A3, 21:42 IST) · Moves: 4, 5
 
 **Scope.** One Settings tab that says what the agent may do without asking, in the footer's own
 words, with the three controls that exist today: the spend ceiling (`default_track_spend_cap_usd`),
