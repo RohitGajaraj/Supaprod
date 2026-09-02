@@ -286,12 +286,10 @@ function StartLanding() {
        * The Arriving region above carries the other one on its own line, so this
        * is one link rather than two.
        *
-       * `/brain` until `/outcomes` exists, and the Arriving door reads
-       * `/discover` until A3's P-14a lands `/arriving`. Both are the same
-       * swap-one-string change on the day those routes appear, which is why the
-       * name a person reads is written here rather than derived from the route.
+       * `/outcomes` and `/arriving` (P-14a, 2026-09-02): both were the
+       * swap-one-string change this comment named in advance, now made.
        */}
-      <Door onClick={() => void navigate({ to: "/brain", search: {} })}>
+      <Door onClick={() => void navigate({ to: "/outcomes", search: {} })}>
         Outcomes: every decision, what it expected, what happened
       </Door>
     </div>

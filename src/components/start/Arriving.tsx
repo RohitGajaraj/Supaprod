@@ -155,7 +155,8 @@ export function Arriving() {
     >
       <span className="mrd-eyebrow">Arriving</span>
       <span className="text-mrd-base text-mrd-mute">{line}</span>
-      <Door onClick={() => void navigate({ to: "/discover", search: {} })}>See what came in</Door>
+      {/* "/discover" -> "/arriving" (P-14a, 2026-09-02). */}
+      <Door onClick={() => void navigate({ to: "/arriving", search: {} })}>See what came in</Door>
     </section>
   );
 }
