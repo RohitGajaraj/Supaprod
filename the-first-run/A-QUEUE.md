@@ -2058,6 +2058,15 @@ the acceptance line means the grader's first real row. (4) `workspaces.auto_deri
 switch nothing can set, so it is not a switch: the horizon tick grades every workspace, and the flag
 is removed or defaulted true in the same change. R-31 stands over all of it.
 
+
+**A1, 04:10 IST · ruling (4) corrected on A2's evidence.** `workspaces.auto_derive_enabled` is a real
+preference (Settings writes it since 08-14) and gates three passes, so it is neither removed nor
+defaulted; grading a forecast whose horizon has passed rides its own condition and asks nobody
+(`1a3b2fefa`). The grader settles the decision it graded (validated → hit, missed → miss, mixed →
+inconclusive, first verdict only, log row written after the settle matched), and the eight
+self-referential forecasts settle inconclusive with the founder's sentence. The claimed-path rule is in
+code (`15d882e08`); the hold `waitingOnAnotherRun` is wired next, before the verdict's surfaces.
+
 **Report / A1 verdict:**
 
 ---
