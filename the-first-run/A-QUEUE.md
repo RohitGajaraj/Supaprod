@@ -7277,7 +7277,7 @@ that visit (re-run: rows newer than the stamp). Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
 
 
-### P-70 · The read-heavy surfaces name their workspace · Lane: **A2** (after P-69) · Status: IN PROGRESS (part one 695403959: analytics 14 to 0; baseline 155 across 78 files; dashboard, approvals-queue, discovery, threads next) · Moves: 1
+### P-70 · The read-heavy surfaces name their workspace · Lane: **A2** (after P-69) · Status: CODE DONE (2b916485d; A1 suite running; publish follows) · Moves: 1
 
 **Why.** P-67's ratchet holds 186 bare reads across 81 files. The ones a person compares across
 workspaces are the ones that borrow another desk first: `analytics.functions` 14, `dashboard` 7,
