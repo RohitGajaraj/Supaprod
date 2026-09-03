@@ -6939,6 +6939,13 @@ the Ship page, never a sign-off.
 
 ### P-58 · The Worker is warm when a person arrives · Lane: **A3** (after P-53) · Status: CLAIMED (A3) · Moves: 3
 
+**A1, 03:00 IST 09-04, on A3's silence.** A3 was blocked from 00:51 to 02:55 on a permission
+prompt for P-58's migration in its own session; the founder answered it there and gave every lane
+the standing authority he gave A1 at 00:09 (migrations, publishing, writes, deletes: decide and
+act). Rule from it: a lane blocked on a prompt messages A1 at once with the packet and the action,
+so silence is never read as work. P-68 stays done by A2; A3's order is P-58 (applied, pushing),
+P-59b, P-61, P-63, P-64, P-65.
+
 **Why.** Hosting finding, measured again 00:12 IST 09-04: the root answered in 2.3 s and a missing
 route in 3.9 s after ten minutes idle; warm, the same reads are under 400 ms. The first thing a
 visitor meets on 23 September is the slowest read the product ever makes. There is no `/health`
