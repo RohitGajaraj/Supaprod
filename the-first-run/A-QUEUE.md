@@ -5298,7 +5298,7 @@ at 2e8868d17 from 13:43 IST. Start's largest response on the deployed app is 78.
 9.9 KB on the wire, the same as before this packet, as expected: Start's readers were already
 column-named and P-35's savings land on Discover, the Brain and the record. **DONE.**
 
-### P-36 · The gate a person is asked to answer is on screen, and every open change is on its run · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
+### P-36 · The gate a person is asked to answer is on screen, and every open change is on its run · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3) · Moves: 2, 3
 
 **Why.** The founder opened the tablet track's run to answer PR #4's merge gate (11:56 IST) and
 could not find the pull request or the answer. Two causes, both seen by A1 on the same screen.
@@ -5320,12 +5320,80 @@ the count after); and a guard that `studio.pr.open` filing a changeset always at
 
 **Acceptance.**
 - [ ] On the tablet track's run, the merge gate's button is visible on load at 1440×756 and the
-      banner names the answer; A1 walks it.
-- [ ] Census before and after; zero `pr_open`/`merged` changesets on tracks without a member.
-- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+      banner names the answer; A1 walks it. **A3 has no live browser this session (unavailable the
+      whole run) — built and unit-tested against jsdom, not walked. A1: please verify live.**
+- [x] Census before and after; zero `pr_open`/`merged` changesets on tracks without a member.
+- [x] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
 
-**Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Report (A3 writes):**
+
+**(1) Scroll fix — `TrackConsent.tsx`.** The `preventScroll: true` focus call (P-16/R-19, added so
+a gate opening mid-read never yanks the view) was firing on every 0→n open-gate transition,
+including the very first render when a gate is *already* open on arrival. Fixed by splitting the
+two cases: on arrival at an already-open gate, the first gate's own answer-buttons container is
+also `scrollIntoView({block: "nearest"})`'d (visible, no yank risk — nothing was on screen yet to
+yank from); on a *later* transition while the pane is already mounted, only focus moves, exactly as
+before. Caught a real logic bug building this: the first attempt toggled an `isFirstRenderRef` off
+at the end of the effect's first run, but React's synchronous initial render (empty, before
+`getTrackGates` ever resolves) always fires first, so by the time real data with an open gate
+arrived the "first" flag was already spent. Fixed by gating on `q.isSuccess` with a
+`hasResolvedOnceRef` instead, so "arrival" is judged against the query's own first real resolution,
+not React's render count. New test `TrackConsent.test.tsx` (2 tests) asserts both branches
+separately — a real 0→1 transition forced via `qc.invalidateQueries`, no fake timers.
+
+**(2) Backfill census.** Queried live (`studio_changesets` in `pr_open`/`merged` with no
+non-superseded `spine_track_members` row, joined to whether *any* of the mission's `agent_runs` had
+a `track_id`): **25 rows, all `had_track: false`.** Every one is from missions created between
+2026-07-02 and 2026-08-02, all before the track system existed — per R-35 ("a mission without a
+track is not a run") none are eligible for a member backfill; they were never dispatched through a
+track to attach to. Backfill is a correct no-op today. Re-ran this exact query after the fix landed
+— same 25, same reasoning, nothing changed by this packet's own code (expected: nothing here writes
+`spine_track_members`).
+
+**(3) The guard — `attach.test.ts`.** `TOOL_PRODUCTS["studio.pr.open"]` and the
+`gatesOpenedBy`/`harvestGates` wiring (F-36, 2026-08-25) already make every *future*
+`studio.pr.open` call attach its changeset the moment the gate is answered and executed — this was
+existing code, not new. Added 3 tests proving that path end to end: a queued call is remembered the
+instant it opens (`gatesOpenedBy`), the changeset is filed at the asking station once answered and
+executed (`harvestGates`), and an unanswered call is neither filed nor dropped
+(`stillPending`). 42/42 pass in the file (39 pre-existing + 3 new).
+
+**(4) The banner — `src/components/track/GateBanner.tsx`, new file, composed (not new Meridian).**
+A1's ruling (this session) was explicit that composing existing Meridian pieces in a non-`meridian/`
+surface file is A3's own remit, not A2's — built accordingly. Reads the *same*
+`["track-gates", trackId]` query key `TrackConsent` already polls (react-query dedupes identical
+keys — one request, one cache entry, no drift risk) and answers through the *same* `decideTrackGate`
+mutation shape (`{approvalId, verdict}`), so this is a second door onto one fact, never a second
+fact. Shows only the oldest open gate's headline (via the existing `gateHeadline()` derivation —
+never a raw tool name) plus `Approve`/`Action` from `surface-parts.tsx` ("Let it run" / "Don't run
+it") — no evidence, no consequence text, deliberately: `CallGate`'s own header rule is "ONE
+QUESTION, THEN THE FACTS, THEN THE ACTIONS," and a header-row banner has no room for the facts a
+real decision needs, so it names the question and points down rather than repeating a bare verdict.
+Mounted as a sibling to `<RunHeader>` inside `<header className="mrd-workbench-header">` in
+`_authenticated.track.$trackId.tsx` — that row sits in the CSS grid's `auto` track
+(`.mrd-workbench { grid-template-rows: auto minmax(0, 1fr); }`), entirely outside
+`.mrd-workbench-panes`'s scroll context, so it is visible on load and while scrolling with **no**
+`position: sticky` and no overlap risk against `SteerComposer`'s existing sticky-bottom bar — a
+CSS bet I have no live browser to verify this session, so I deliberately avoided needing to make
+it. Did **not** touch `runStatus()`/`RunHeader`'s "no second sentence under the you-chip" rule
+(documented, hard-won, cited-incident guard) — this banner is a separate region, not a second
+sentence added to that one. New test `GateBanner.test.tsx` (2 tests: renders nothing with no open
+gate; renders the headline and calls `decideTrackGate` with `{approvalId, verdict: "approve"}` on
+press) — ran together with `TrackConsent.test.tsx` and `AskDock.test.tsx` (the other two files
+mocking `@/lib/spine/track.functions`) to rule out a Rule 14 cross-file mock collision: 8/8 pass.
+
+**Verification.** `bunx tsc --noEmit`: 0 errors. `bun test`: 13,749 pass / 2 fail (both in
+`-_auth.server.test.ts`, a file this packet never touched — confirmed pre-existing and unrelated by
+running it alone: 26/26 pass in isolation, 0 fail; cross-file interference from the full-suite run,
+not a regression) / 0 unhandled errors (`grep -c "# Unhandled error between tests"` = 0). `bunx
+eslint` clean on every touched/new file. `src/__tests__/meridian-ratchet.test.ts`: 5/5 pass — no new
+`sp-*`/retired-token debt, `GateBanner.tsx` uses only `--mrd-*` tokens.
+
+No live browser was available to me this whole session — item 1 of Acceptance needs A1's own walk
+at 1440×756 before this is called done.
+
+**Blockers (A3 writes):** — none. Flagging for A1: Acceptance item 1 needs a live walk I cannot
+perform.
 
 
 ### P-39 · A press that did nothing says so · Lane: **A3** · Status: READY (after P-36) · Moves: 2, 3

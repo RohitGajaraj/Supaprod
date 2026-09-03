@@ -481,3 +481,52 @@ describe("a tool that makes several rows in one call", () => {
     expect(out.stillPending).toEqual([]);
   });
 });
+
+describe("studio.pr.open filing a changeset always attaches it (P-36, A-QUEUE.md)", () => {
+  /*
+   * THE GUARD THIS PACKET ASKED FOR. `studio.pr.open` runs through the gate
+   * path, not `collectAttachments`'s own-tick path (it is operator-gated),
+   * so the only way it ever produces a member row is the SAME two-step
+   * lifecycle `harvestGates reads back what an approved gate produced` and
+   * `gatesOpenedBy remembers only gates worth harvesting` already test
+   * generically above: `gatesOpenedBy` records the approval id the moment
+   * the call is queued, `harvestGates` reads its result back once a person
+   * has answered and it has run. This block runs that exact lifecycle with
+   * `studio.pr.open` itself, not a stand-in tool name, so a regression in
+   * either step -- or in `TOOL_PRODUCTS["studio.pr.open"]` itself -- fails
+   * here rather than needing a live PR to notice.
+   */
+  it("a queued PR-open call is remembered as a gate the moment it opens", () => {
+    const queued: ToolStepLike = {
+      kind: "tool_call",
+      name: "studio.pr.open",
+      status: "queued",
+      approval_id: A,
+    };
+    expect(gatesOpenedBy([queued], "build")).toEqual([{ id: A, station: "build" }]);
+  });
+
+  it("once answered and run, the changeset it opened is filed at the station that asked", () => {
+    const gate = { id: A, station: "build" as const };
+    const out = harvestGates(
+      [gate],
+      [
+        {
+          id: A,
+          tool_name: "studio.pr.open",
+          status: "executed",
+          result: { changeset_id: B, repo: "example/repo", pr_number: 4, pr_url: "https://…" },
+        },
+      ],
+    );
+    expect(out.attachments).toEqual([{ artifactKind: "changeset", artifactId: B, station: "build" }]);
+    expect(out.stillPending).toEqual([]);
+  });
+
+  it("nothing is filed while the call sits unanswered, and it is not dropped either", () => {
+    const gate = { id: A, station: "build" as const };
+    const out = harvestGates([gate], [{ id: A, tool_name: "studio.pr.open", status: "pending", result: null }]);
+    expect(out.attachments).toEqual([]);
+    expect(out.stillPending).toEqual([gate]);
+  });
+});

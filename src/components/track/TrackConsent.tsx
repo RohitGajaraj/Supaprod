@@ -211,13 +211,43 @@ export function TrackConsent({
    */
   const consentRef = React.useRef<HTMLDivElement>(null);
   const hadOpenGateRef = React.useRef(false);
+  /**
+   * THE FIRST GATE'S OWN ANSWER BUTTONS, SCROLLED INTO VIEW ON ARRIVAL
+   * (P-36, A-QUEUE.md). The founder opened the tablet track's run specifically
+   * to answer PR #4's merge gate and could not find the button: `.focus()`
+   * above has always passed `preventScroll: true`, on purpose, for a landing
+   * mid-read -- a gate that opens WHILE a person is already reading something
+   * else on this pane must not yank their scroll position, which is exactly
+   * the P-16 reasoning this effect still carries. But arriving fresh at a page
+   * that ALREADY has an open gate is a different case: there is nothing on
+   * this pane yet to interrupt, and the whole reason the person is here is to
+   * answer it. `hasResolvedOnceRef` tells the two apart -- only the arrival
+   * case scrolls, and only far enough to bring the actual buttons into view
+   * (`block: "nearest"`, not the card's own top, which can sit well above the
+   * fold on a long consequence block).
+   *
+   * KEYED ON `q.isSuccess`, NOT ON MOUNT. React's own first render happens
+   * synchronously, before this query's promise has resolved even once, so a
+   * ref meant to mean "arriving" that flips to `false` on that empty first
+   * pass has already gone false by the time real data -- and the real
+   * transition -- ever arrives. `isSuccess` only turns true once this query
+   * has actually answered.
+   */
+  const hasResolvedOnceRef = React.useRef(false);
+  const firstGateActionsRef = React.useRef<HTMLDivElement>(null);
   const openCount = q.data && !q.data.unreadable ? q.data.open.length : 0;
   React.useEffect(() => {
+    if (!q.isSuccess) return;
     if (openCount > 0 && !hadOpenGateRef.current) {
+      const arrivingAtAnOpenGate = !hasResolvedOnceRef.current;
       consentRef.current?.focus({ preventScroll: true });
+      if (arrivingAtAnOpenGate) {
+        firstGateActionsRef.current?.scrollIntoView({ block: "nearest" });
+      }
     }
     hadOpenGateRef.current = openCount > 0;
-  }, [openCount]);
+    hasResolvedOnceRef.current = true;
+  }, [openCount, q.isSuccess]);
 
   /*
    * ── THE ONE REGION THAT ANSWERS "DOES THIS NEED ME" WAS SILENT (2026-09-01)
@@ -315,7 +345,12 @@ export function TrackConsent({
             consequence={expiryNote(g.toolName, declared, expiresAtShown ?? expiresAtIso)}
             consequenceTitle={expiresAtIso ?? undefined}
           >
-            <div className="flex w-full flex-col gap-mrd-3">
+            <div
+              className="flex w-full flex-col gap-mrd-3"
+              // Only the first (oldest, topmost) open gate's own buttons are
+              // the scroll target on arrival -- see firstGateActionsRef above.
+              ref={i === 0 ? firstGateActionsRef : undefined}
+            >
               {/* Two verdicts, drawn PlanGate's way: borderless rows, hover
                   wash, inset ring, mono digit. Each commits on press -- there
                   is no Submit between the choice and the effect (§3.6). */}

@@ -11,6 +11,7 @@ import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded"
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { TrackRunLeft, TrackPaneRight } from "@/components/track/TrackRun";
 import { RunFooter } from "@/components/track/RunFooter";
+import { GateBanner } from "@/components/track/GateBanner";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getTrack, type Track } from "@/lib/spine/track.functions";
 import { waiverFor } from "@/lib/spine/route";
@@ -369,6 +370,7 @@ function TrackPage() {
               fromLearningId={cameBack.data ?? null}
               decideWaived={decideWaived}
             />
+            <GateBanner trackId={trackId} />
           </>
         ) : (
           <PageHeading
