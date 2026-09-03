@@ -400,6 +400,17 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "reversible",
     undo: "Nothing to undo; read-only.",
   },
+  /*
+   * R-40 (P-72). It changes nothing in the world: it ends this run and records
+   * a sentence. The CONSEQUENCE it carries is that nothing else in the run
+   * writes, which is a refusal rather than an effect -- and refusing to act is
+   * the one thing that never needs undoing.
+   */
+  "build.halt": {
+    effect: "Stops this build and records why the work cannot be done in this repository.",
+    reversible: "reversible",
+    undo: "Nothing to undo; nothing was changed. The next run starts fresh.",
+  },
   "repo.search": {
     effect: "Searches the connected repo's code and returns matching paths.",
     reversible: "reversible",
@@ -624,6 +635,8 @@ const READ_ONLY_TOOLS = new Set<string>([
   "github.ci.read",
   "repo.tree",
   "repo.read",
+  /* R-40 (P-72). It writes nothing: it ends a run and records a reason. */
+  "build.halt",
   "repo.search",
   "ci.logs",
   "studio.secrets.scan",
@@ -1318,6 +1331,12 @@ const RISK_PROFILE: Record<string, ToolRiskProfile> = {
     changeSurface: "narrow",
   },
   "repo.read": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "build.halt": {
     dataExposure: "internal",
     opsImpact: "none",
     verificationGap: "verified",

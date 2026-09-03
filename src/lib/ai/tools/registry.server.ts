@@ -141,6 +141,7 @@ import { validateCommitment } from "@/lib/roadmap-governance";
 import { CONNECTOR_REGISTRY } from "@/lib/connectors/registry";
 import { requiredArgsClause } from "@/lib/ai/tools/required-args";
 import { derivedSpecTitle } from "@/lib/ai/a-spec-derives-its-title-on-a-word";
+import { refusalAfterHalt } from "@/lib/ai/tools/a-seat-that-halts-opens-nothing";
 import {
   CARRIED_FOOTING,
   declineIsRefused,
@@ -2902,10 +2903,14 @@ const studioCommit = def({
   }),
   preview: (a) => `Commit staged changes: "${a.message.slice(0, 80)}"`,
   run: async (a, ctx) => {
+    /* R-40 (P-72). See `studio.pr.open`: a halt binds every writing tool for
+       the rest of the run, not merely the next one. */
+    const haltedReason = await haltedInThisRun(ctx);
+    if (haltedReason !== null) throw new Error(refusalAfterHalt(haltedReason));
     const { supabase, userId, missionId, workspaceId, runId } = ctx;
     if (!missionId) throw new Error("studio.commit requires a mission");
     const changeset = await getActiveChangeset(supabase, missionId);
-    if (!changeset) throw new Error("no active changeset — call studio.stage first");
+    if (!changeset) throw new Error("There is no active changeset. Call studio.stage first.");
     const { data: changes } = await supabase
       .from("studio_changes")
       .select("path,op,base_content,new_content")
@@ -3762,6 +3767,71 @@ const studioReview = def({
   },
 });
 
+/**
+ * ── DID THIS SEAT ALREADY HALT? (P-72, R-40) ─────────────────────────────
+ *
+ * Read from `tool_calls` on this run's own trace, the same way
+ * `pathsReadInThisSession` reads its evidence. In-run memory would not survive
+ * the loop's own boundaries, and the halt has to bind every writing tool for the
+ * rest of the run rather than only the next one.
+ *
+ * A FAILED READ DOES NOT REFUSE. If we cannot tell whether a halt happened we
+ * behave exactly as before, for the reason every other evidence check here
+ * gives: a read that fails is not evidence, and blocking a legitimate commit on
+ * a lookup failure stops honest work to punish a case we did not observe.
+ */
+async function haltedInThisRun(ctx: ToolCtx): Promise<string | null> {
+  if (!ctx.traceId) return null;
+  /* Scoped, under P-67. The trace already narrows this to one run; the tenant
+     is added because `tool_calls` is the most revealing row this product holds
+     and a bare read of it is the shape the next person copies. */
+  let haltQ = ctx.supabase.from("tool_calls").select("args");
+  if (ctx.workspaceId) haltQ = haltQ.eq("workspace_id", ctx.workspaceId);
+  const { data, error } = await haltQ
+    .eq("trace_id", ctx.traceId)
+    .eq("tool_name", "build.halt")
+    .eq("ok", true)
+    .limit(1);
+  if (error) return null;
+  const row = ((data ?? []) as Array<{ args: unknown }>)[0];
+  if (!row) return null;
+  const reason = ((row.args ?? {}) as { reason?: unknown }).reason;
+  return typeof reason === "string" ? reason : "";
+}
+
+/**
+ * BUILD.HALT, the verb the seat did not have.
+ *
+ * On the tablet track the seat wrote "there is no address summary component ...
+ * I must halt and state plainly that the work belongs elsewhere", and then
+ * opened a pull request, because prose is not a control and the only shapes
+ * available to it were produce or fail.
+ *
+ * IT IS NOT A FAILURE AND MUST NOT READ AS ONE. A seat that halts here has done
+ * its job exactly right: it read the repository, compared it to the spec, and
+ * found the spec is about something else. The run ends, no change is opened,
+ * and the person is handed the seat's own sentence and the two doors that
+ * actually resolve it -- bind a different repository, or amend the spec.
+ */
+const buildHalt = def({
+  name: "build.halt",
+  description:
+    "Stop this build and explain why the work cannot be done here: the file, component or module the spec targets does not exist in the bound repository, or the spec is about a different codebase. Use it INSTEAD of staging something approximate. After this, nothing in this run may commit, open or merge -- a halt is a conclusion, not a pause. Say what you looked for and where you looked; the person reads your reason and decides whether to bind another repository or amend the spec.",
+  category: "read",
+  argsSchema: z.object({
+    reason: z.string().min(20).max(2000),
+  }),
+  preview: (a) => `Halt the build: ${a.reason.slice(0, 80)}`,
+  run: async (a) => ({
+    halted: true as const,
+    reason: a.reason,
+    /* Echoed so the seat's next turn cannot mistake this for a soft note. */
+    message:
+      "Build halted. Nothing will be committed, opened or merged in this run. Finish your turn: " +
+      "the person will read this reason.",
+  }),
+});
+
 const studioPrOpen = def({
   name: "studio.pr.open",
   description:
@@ -3773,11 +3843,20 @@ const studioPrOpen = def({
   }),
   preview: (a) => `Open Studio PR: "${a.title.slice(0, 80)}"`,
   run: async (a, ctx) => {
+    /*
+     * R-40 (P-72). A halt is a conclusion, not a pause: once this seat has
+     * halted in this run, nothing here writes. Checked at the tool rather than
+     * asked for in the brief, because the seat on the tablet track reached the
+     * right conclusion in prose and then opened a pull request anyway.
+     */
+    const haltedReason = await haltedInThisRun(ctx);
+    if (haltedReason !== null) throw new Error(refusalAfterHalt(haltedReason));
     const { supabase, userId, missionId, runId } = ctx;
     if (!missionId) throw new Error("studio.pr.open requires a mission");
     const changeset = await getActiveChangeset(supabase, missionId);
-    if (!changeset) throw new Error("no active changeset — stage and commit first");
-    if (!changeset.branch) throw new Error("changeset has no branch — call studio.commit first");
+    if (!changeset) throw new Error("There is no active changeset. Stage and commit first.");
+    if (!changeset.branch)
+      throw new Error("This changeset has no branch. Call studio.commit first.");
     /*
      * F-66. THE BINDING RESOLVES BEFORE THE CACHE IS TRUSTED, and the order is
      * the fix. This used to return the stored pointer and only THEN ask GitHub
@@ -3863,6 +3942,10 @@ const studioPrMerge = def({
   }),
   preview: (a) => `Merge Studio PR (${a.method ?? "squash"})`,
   run: async (a, ctx) => {
+    /* R-40 (P-72). See `studio.pr.open`. The merge is the last door and the one
+       that reached a customer on the tablet track, so it is guarded too. */
+    const haltedReason = await haltedInThisRun(ctx);
+    if (haltedReason !== null) throw new Error(refusalAfterHalt(haltedReason));
     const { supabase, userId, missionId, runId } = ctx;
     if (!missionId) throw new Error("studio.pr.merge requires a mission");
     const changeset = await getActiveChangeset(supabase, missionId);
@@ -8011,6 +8094,7 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     repoSearch,
     studioStage,
     studioUnstage,
+    buildHalt,
     studioCommit,
     studioFixCommit,
     studioSecretsScan,

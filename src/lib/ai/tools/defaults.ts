@@ -82,6 +82,15 @@ export const TOOL_DEFAULTS: Readonly<
   "sources.connect": { mode: "auto", enabled: true, label: "Connect a source" },
   "repo.tree": { mode: "auto", enabled: true, label: "Repo tree" },
   "repo.read": { mode: "auto", enabled: true, label: "Read a file" },
+  /*
+   * R-40 (P-72). `auto`, and it must be: a seat that has found the spec targets
+   * something absent from the repository has to be able to SAY so without
+   * waiting for a person, or the only unblocked path left to it is the one it
+   * took on the tablet track -- stage something approximate and open a pull
+   * request. Gating the halt would gate the honest answer and leave the
+   * dishonest one free.
+   */
+  "build.halt": { mode: "auto", enabled: true, label: "Stop and say why" },
   "repo.search": { mode: "auto", enabled: true, label: "Search the repo" },
   "ci.logs": { mode: "auto", enabled: true, label: "CI logs" },
   "github.ci.read": { mode: "auto", enabled: true, label: "Read GitHub CI" },
