@@ -4628,7 +4628,7 @@ Picking up the next READY A3 packet rather than sitting on this one.
 Not blocked on tooling or access — blocked on which of two readings of "Why" is current.
 
 
-### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: REJECTED again (A1, 10:20 IST: two 800 KB responses) · pass 3· Moves: 2, 3
+### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pass 3) · Moves: 2, 3
 
 **Why.** The front door reads *Reading your runs.* for three to six seconds on a warm load and
 over nine on this morning's cold one (A1, 06:34 and 09:20 IST, Helio Labs: 15 open tracks). A
@@ -4682,6 +4682,67 @@ runs are a few kilobytes, so a base select is returning whole member payloads (c
 columns, or artifact bodies), and a second reader does the same. Pass 3: name both readers, select
 only what the row needs, and add an acceptance line: **no `/start` server response over 32 KB on
 Helio Labs**, measured by A1. The round-trip work from passes 1 and 2 stands.
+
+**Report, pass 3 (A3 writes):** Named both readers by measuring every `/start`-reachable select
+against Helio Labs' real data (Lovable MCP, read-only) rather than guessing which of the seven was
+which.
+
+**Reader one: `listThemes` (Arriving.tsx's own read).** `select("*")` on `themes` — which carries a
+pgvector `embedding` column — was 2,755,246 chars of JSON for 138 rows on Helio Labs; the embedding
+alone was 2,615,973 of those chars. Nobody renders a raw vector. But this file's own header already
+named the real fix, unbuilt until now: *"`qualifies()` runs on the client over `listThemes`... it is
+the wrong place for it... that is where this moves server-side."* Built `getThemePromotionCounts`
+(discovery.functions.ts): reads the six columns `qualifies` actually needs, runs the identical
+predicate and bar resolution SERVER-SIDE (`qualifies`/`resolveAutonomyPolicy`/`promotionBarFor`,
+reused not re-derived, so the count can never drift from what the loop would do), returns only
+`{forming, crossed}`. Arriving.tsx no longer calls `listThemes` at all — nothing it renders ever
+needed a theme's title, summary or score in the browser. `listThemes` itself also had `embedding`
+dropped from its own select (2,755,246 → 136,923 chars); its one other caller, `DiscoverSurface.tsx`
+(not on `/start`), keeps every other column unchanged. `listSignals` carries the identical defect
+(`signals.embedding`, also `select("*")`) — flagged, not fixed: no caller on `/start`.
+
+**Reader two: `listRunsForStart`'s own pass-2 fix.** Embedding `spine_track_members` solved the
+round trip and created a payload one: 413 member rows nested in one response on Helio Labs, most of
+it a 36-char `artifact_id` uuid per row that `producedByTrack` never reads (it only counts kinds).
+Dropped `artifact_id` from the embed. The one place an id is genuinely needed — resolving each
+track's decision for the forecast branch — now reads it through its own small,
+`artifact_kind = "decision"`-filtered query (28 rows against the 413 the unfiltered read carried)
+inside that branch's existing two-hop chain, not a new sequential wave. **Also found and fixed while
+tracing every byte**: the base `spine_tracks` select (`SELECT`, shared with `listTracks`) fetches
+`origin`, `entry_station`, `path`, `waived`, `attempts`, `user_id`, `workspace_id` — seven columns
+`rowToTrack` computes into `route`/`summary`/`entry`/`hold` values `StartRun`'s own closing `.map()`
+never reads (confirmed by tracing every field the map actually uses; one track's `origin` alone
+carried 2,101 characters). `listRunsForStart` now reads its own 9-column select directly
+(`id,title,station,status,updated_at,driven_at,last_hold,last_hold_because,pending_gates`) instead
+of the shared `SELECT`/`rowToTrack`/`TrackRow` trio, which `listTracks` still uses byte-for-byte
+unchanged — the same "a second, scoped read rather than widening or narrowing the shared one" rule
+`listThemes`/`getThemePromotionCounts` were just given, one level up.
+
+**Measured, before and after, real JSON serialization (Lovable MCP), same workspace, same 50-track
+window:** base + full embed 75,816 → base + kind-only embed 30,627 chars. Every other `/start`
+response was already under 12,000 chars, confirmed for all of them by measurement, not assumption:
+`listMovingTracks`, `listGatesOnTracks`, `listMissions` (+ its `mission_steps` enrichment, 11,902
+chars for the same window), `listTopOpportunities`, `listCrew`, `listAgents`, `getSenseCoverage`,
+`getMyCreditsView`, `getCreditRunway`, `workspaces`/`products`.
+
+**The one number I could not close the loop on myself**: 30,627 raw JSON characters is under 32,000
+but with a thin margin, and `encodedBodySize` (what you measure) is the COMPRESSED wire size, not
+raw JSON — I have one real data point on the ratio, your own numbers: `listThemes`'s 2,755,246 raw
+chars compressed to your measured 802,416 bytes, roughly 3.4x. Applying that same ratio here would
+put `listRunsForStart` around 9,000 bytes, comfortably clear — but that is an inference from one
+other query's compression behavior, not a measurement of this one, and I want to say so plainly
+rather than round it up to a claim.
+
+tsc 0. `bun test`: 13,772 tests, 0 fail, 0 unhandled errors (full console-reporter run, not junit
+alone, before AND after rebasing onto your P-33 work — `Arriving.tsx` was touched by both of us;
+git's rebase merged it cleanly with no conflict, re-verified with a fresh full suite run after).
+eslint 0 new errors. Meridian ratchet: no baseline diff. New test file
+`discovery.functions.test.ts` (6 cases) pins `computeThemePromotionCounts` — the pure core extracted
+from `getThemePromotionCounts` — against `qualifies`'s own already-tested behavior: clears/misses
+the default bar per threshold, an ineligible status counts as neither, a workspace's own (stricter)
+bar is read rather than the shipped default, counts hold across several rows, zero themes is zero
+and zero rather than null or a throw. Pushed `39a0faed8` after rebasing cleanly onto `origin/main`
+(`d00472c4b`, your P-33 work, `Arriving.tsx` overlap merged automatically).
 
 **Report, pass 2 (A3 writes):** Both targets addressed.
 
