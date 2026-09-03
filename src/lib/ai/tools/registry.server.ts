@@ -2198,6 +2198,77 @@ function packageOfSpecifier(spec: string): string | null {
   return name;
 }
 
+/**
+ * ── "NEVER STAGE AN EDIT TO A FILE YOU HAVE NOT READ" WAS ONLY A SENTENCE ──
+ *
+ * `repo.read`'s description has carried that rule for as long as it has
+ * existed, and `studio.stage` never checked it. Found by looking for the CLASS
+ * rather than the instance, after P-41: a rule written as prose is a request,
+ * and today three separate defects were the same shape (a tool description that
+ * forbade absence-notes while 96 of one workspace's 277 signals were exactly
+ * that; four comments asserting the shell rendered a sample tag when nothing
+ * did; a seeder expected to mark its rows that never has).
+ *
+ * WHAT IT COSTS, WHICH IS WHY THIS ONE IS WORTH ENFORCING. `op: "update"`
+ * carries the whole new `content` (up to 150,000 characters) and REPLACES the
+ * file. So staging an update to a file the seat has not read is a blind
+ * whole-file overwrite of a customer's code, with whatever was there before
+ * gone and nothing on the record showing it was never looked at. `delete` is
+ * the same move with less typing.
+ *
+ * HOW IT KNOWS. `tool_calls` records every call's `args` against the run's
+ * `trace_id`, so the reads that actually happened are on the record and this
+ * asks them. No new bookkeeping, and it cannot drift from what the seat did:
+ * it IS what the seat did.
+ *
+ * `create` IS EXEMPT, and that is not a loophole. There is nothing to read: the
+ * file does not exist yet, so requiring a read would make the tool unable to add
+ * a file at all. `assertStudioPathAllowed` already bounds where a create may
+ * land, and a create that silently clobbers an existing path is a different bug
+ * with its own guard.
+ *
+ * NO TRACE MEANS NO OPINION. A caller outside a run (a test, a direct
+ * invocation) has no `trace_id` to ask about, and refusing there would break
+ * every such path to enforce a rule about agent sessions. It fails open with the
+ * behaviour that existed before this, which is the honest direction: this
+ * closes a hole for the callers it can see rather than inventing a claim about
+ * the ones it cannot.
+ */
+async function pathsReadInThisSession(
+  ctx: ToolCtx,
+  paths: readonly string[],
+): Promise<Set<string> | null> {
+  if (!ctx.traceId || paths.length === 0) return null;
+  const { data, error } = await ctx.supabase
+    .from("tool_calls")
+    .select("tool_name,args")
+    .eq("trace_id", ctx.traceId)
+    .in("tool_name", ["repo.read", "studio.stage"])
+    .limit(400);
+  /* A read that fails is not evidence the seat skipped its homework, so it
+     cannot be the thing that refuses a write. Same direction as above. */
+  if (error) return null;
+  const seen = new Set<string>();
+  for (const row of (data ?? []) as Array<{ tool_name: string; args: unknown }>) {
+    const args = (row.args ?? {}) as Record<string, unknown>;
+    if (row.tool_name === "repo.read") {
+      const list = Array.isArray(args.paths) ? args.paths : [];
+      for (const v of list) if (typeof v === "string") seen.add(v);
+      if (typeof args.path === "string") seen.add(args.path);
+    } else {
+      /* A path this session already staged has been read by definition: the
+         seat wrote its content. Without this, a second stage touching the same
+         file in one session would be refused for not re-reading it. */
+      const changes = Array.isArray(args.changes) ? args.changes : [];
+      for (const c of changes) {
+        const cp = (c as { path?: unknown } | null)?.path;
+        if (typeof cp === "string") seen.add(cp);
+      }
+    }
+  }
+  return seen;
+}
+
 /** Every bare package a file's non-type imports name. */
 export function importedPackages(content: string): string[] {
   const out = new Set<string>();
@@ -2282,6 +2353,25 @@ const studioStage = def({
     const { supabase, userId, missionId, workspaceId } = ctx;
     if (!missionId) throw new Error("studio.stage requires a mission (dispatch via Studio)");
     if (!workspaceId) throw new Error("studio.stage requires a workspace");
+
+    /*
+     * THE RULE `repo.read` HAS BEEN STATING ALL ALONG, now enforced. See
+     * `pathsReadInThisSession` for why this one is worth a refusal rather than a
+     * sentence: an `update` replaces the whole file, so staging one blind is an
+     * overwrite of code nobody looked at.
+     */
+    {
+      const touched = a.changes.filter((c) => c.op !== "create").map((c) => c.path);
+      const seen = await pathsReadInThisSession(ctx, touched);
+      if (seen) {
+        const blind = touched.filter((p) => !seen.has(p));
+        if (blind.length > 0) {
+          throw new Error(
+            `You have not read ${blind.join(", ")} in this session, and an update replaces the whole file. Call repo.read on ${blind.length === 1 ? "it" : "them"} first, then stage the change against what is actually there. This is the rule repo.read states; it is enforced here because staging blind overwrites work nobody has seen.`,
+          );
+        }
+      }
+    }
 
     /*
      * F-74. Refuse an import the repository cannot resolve.
