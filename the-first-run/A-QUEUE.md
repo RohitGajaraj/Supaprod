@@ -6576,7 +6576,74 @@ the footer. Read again after propagation. Item 5 (4b53bc32a) is in the suite now
 - [ ] Ratchet not widened; every new piece is in `meridian/**` with its reasoning.
 - [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
 
-**Report (A2 writes):** —
+**Report (A2 writes):** `4b53bc32a`, published 20:52 IST with `b84ac6d22`. Full console suite on the
+tip **13,967 pass / 0 fail / 0 error**, tsc 0, ratchet not widened. Mockups walked first at
+[`docs/design/run-screen-2026-09.md`](../docs/design/run-screen-2026-09.md), approved with seven
+amendments, all folded in.
+
+**The diagnosis, because it decided the shape of every fix.** The founder said *"everything is true
+and nothing is designed"*, and the second half is the useful half. The seven shapes A1 catalogued
+are not seven bugs; they are one: **a surface that reports rather than composes.** Nothing on it
+decided what mattered most, so everything arrived at one weight and the person did the sorting.
+Patching them one by one would have produced seven better-worded dumps.
+
+So the packet is three vocabularies and one rule. A card asks, a seat speaks, an action is a verb the
+person presses; one of each, and everything on screen is one of them. **A screen in one state asks
+for one thing**, which closes shapes 1, 2 and 3 together rather than separately.
+
+### What the five surfaces became
+
+| | before | after |
+|---|---|---|
+| **the gate card** | a "Waiting on you" chip, a subject, the question, the facts, the consequence: four regions before the thing being asked | question, risk in prose, the reason with its seat named inside it, the declared default mono and last, two answers |
+| **the seat's message** | the character narrating the run: *"I've stopped, the reason is on the hold line"* above a card headed *Why it stopped* | `SeatSays` has no action slot and no `children`, and the character has a `quiet` state where `Character` renders **null** |
+| **the transcript row** | *"Discovery Scout filed nothing"*, the seat first, a three-line paragraph open by default, tokens on the closed line | the verdict leads, the seat drops to the meta line, the paragraph is one line, tokens ride into the fold with the calls they measure |
+| **the hold card** | three doors for one state, two of which could not clear it | one door, its verb from the state, its target `/sync?product=` |
+| **the calendar wait** | an "On hold" chip, a character line, *"Stopped, and not on you"*, and a **Run it now** that cannot move a date | one sentence and no door, and the header says the board's own word, *"Waiting on time"* |
+
+Three components landed in Meridian first, each making a rule structural rather than remembered:
+**`Ask`** (no `children`, so the slot order cannot be undone by a caller), **`SeatSays`** (no action
+slot, so a message can never carry the door), **`FoldingRow`** (no chevron, because the row's height
+is already the state, and the lead sits outside the animated region).
+
+### The two lessons, which are worth more than the surfaces
+
+**1. A FIXED ORDER CANNOT SAVE A CARD WHOSE SLOTS ARE AMBIGUOUS.** I gave `CallGate` a fixed order
+and A1 walked the served build and found the order wrong on screen. Both were true. There was one
+slot named `consequence` and the caller was passing the DEFAULT sentence into it, so a person read
+*"Cancelled unrun: nobody answered by Sun, Sep 6..."* second while the actual risk sat in `lines` as
+one fact among facts. **A slot is a promise about MEANING, not about position**, and two sentences
+that answer different questions get two names however similar they look at the call site: "what
+happens if you say yes" and "what happens if you say nothing" are opposites wearing the same grammar.
+It is written into that component's header, where the next person adding a slot will read it.
+
+**2. THE HORIZON IN THE PREDICATE, AND WHY CHECKING BEAT COMPLYING.** A1 reported the footer still
+calling a calendar wait a stoppage, and diagnosed it as my predicate reading the hold string while
+the chip read the forecast horizon. **Both halves were wrong**: the database had `needs-evidence` at
+`learn`, exactly what the predicate keys on, and the chip reads the hold string too; the build was
+older than the push. Had I taken the instruction, I would have removed a condition the chip has
+always had and fixed nothing.
+
+What the check DID find was a real defect of mine, and a worse one. The chip asks three things and my
+predicate asked two: **a track at Learn whose horizon has already PASSED satisfied both of mine and
+is not waiting on the calendar.** It is overdue, and my footer told that person to wait for something
+that already happened. The horizon joined the predicate, and the chip now CALLS it rather than
+computing the same idea beside it, which was the actual cause of two surfaces differing by one
+condition: not two facts, but one idea written twice.
+
+### What I got wrong, kept because the pattern repeated
+
+Five slips inside a packet whose subject is claims that nothing implements, every one caught by a
+guard rather than shipped: `duration-mrd-move` and `ease-mrd`, utilities that do not exist, so the
+motion would have been silently absent while the file claimed it; `rounded-mrd-sm`, likewise; a
+comment saying `Reveal lines={0}` starts folded when `0` applies NO clamp and renders in full; the
+token count removed from a line and put nowhere, deleting a real fact to tidy a layout; and the
+door's verb derived from `scout_targets`, which has **no `product_id`**, gated on a predicate true
+only when no sources exist, so the case the item was written for could never have rendered a door.
+
+The pattern is one thing: **I kept asserting behaviour I had not verified existed**, in a packet
+whose entire subject is surfaces that do the same. The guards are the only reason none of it shipped,
+and three of the five were caught by guards written for other reasons.
 **Blockers (A2 writes):** —
 
 
