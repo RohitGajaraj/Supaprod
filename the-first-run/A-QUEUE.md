@@ -115,7 +115,7 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 ---
 
 **DEV SERVER: off** · any lane may start it when a packet needs a rendered check; the lane that starts it stops it and writes `off` here before reporting the packet.
-**LIVE WALKS (A1): the honest run is live, track `870b70d3`, Helio Labs, pressed by the founder 14:12:42 IST with *Show the last outage time on the homeowner status tile*. 14:12 to 14:16: Discovery Scout, 4 tool calls, 3m 12s, 40,715 tokens, filed nothing (no evidence in the workspace). 14:20 sweep: Scout again, Researcher, hold `out-of-time`. 14:30 sweep: Customer Insights, same answer, hold `produced-nothing`, attempt 1 of 3; on the current rule it gives up at 14:50. Ruled R-36 and filed P-40 (A2, before P-04). Cause on the record: the track carries product **Prism** because the switcher sat on Prism when he pressed, and the sentence is about **Relay** (P-16b, A3, carries the field-side fix). The screen at 14:23 told the story in words, with *Stopped, and not on you* beside *Finish it in Settings* and *Say what is unsettled*, three asks in one breath. Pending: P-36 banner walk on the tablet track's open gate (publish 14:25); P-33 §5 walk on *Arrival walk* by rule 18 (A2 read it clean at 14:26); P-04 Learn tab after a real ship. **14:40 sweep: fourth pass, Scout no evidence again, then the Researcher wrote two signals into the workspace restating an existing theme (R-37, P-41); hold `out-of-time`, attempts still 1.** **14:50 sweep: fifth pass; Customer Insights read the two agent-written rows by id and still said no evidence for the sentence; the driver advanced the track to Decide anyway, its only two Sense artifacts being those two rows (attached 14:41:08). The loop moves on its own, on evidence it wrote itself. Decide runs at 15:00.** **15:00 sweep, Decide: the Strategist filed a decision against the founder's sentence (*Do not add last outage time to homeowner status tile*, declined, forecast due 2026-10-03, lineage 0) with the two agent-written rows as its whole evidence; hold `out-of-time` before the Critic. Start's Arriving line moved from 15 to 17 findings on those two rows. The old path is fully on the record: no evidence, manufactured evidence, a decision on it. Second sentence from the founder under Relay still to come.** **15:10 sweep: the Critic upheld the decline; the track went straight to Learn with a forecast due 3 October. The first honest run is over: Sense to Learn in 58 minutes with nobody pressing, on evidence the loop wrote. P-40 and P-41 are live from 15:15; the second sentence proves the new path.****
+**LIVE WALKS (A1): the honest run is live, track `870b70d3`, Helio Labs, pressed by the founder 14:12:42 IST with *Show the last outage time on the homeowner status tile*. 14:12 to 14:16: Discovery Scout, 4 tool calls, 3m 12s, 40,715 tokens, filed nothing (no evidence in the workspace). 14:20 sweep: Scout again, Researcher, hold `out-of-time`. 14:30 sweep: Customer Insights, same answer, hold `produced-nothing`, attempt 1 of 3; on the current rule it gives up at 14:50. Ruled R-36 and filed P-40 (A2, before P-04). Cause on the record: the track carries product **Prism** because the switcher sat on Prism when he pressed, and the sentence is about **Relay** (P-16b, A3, carries the field-side fix). The screen at 14:23 told the story in words, with *Stopped, and not on you* beside *Finish it in Settings* and *Say what is unsettled*, three asks in one breath. Pending: P-36 banner walk on the tablet track's open gate (publish 14:25); P-33 §5 walk on *Arrival walk* by rule 18 (A2 read it clean at 14:26); P-04 Learn tab after a real ship. **14:40 sweep: fourth pass, Scout no evidence again, then the Researcher wrote two signals into the workspace restating an existing theme (R-37, P-41); hold `out-of-time`, attempts still 1.** **14:50 sweep: fifth pass; Customer Insights read the two agent-written rows by id and still said no evidence for the sentence; the driver advanced the track to Decide anyway, its only two Sense artifacts being those two rows (attached 14:41:08). The loop moves on its own, on evidence it wrote itself. Decide runs at 15:00.** **15:00 sweep, Decide: the Strategist filed a decision against the founder's sentence (*Do not add last outage time to homeowner status tile*, declined, forecast due 2026-10-03, lineage 0) with the two agent-written rows as its whole evidence; hold `out-of-time` before the Critic. Start's Arriving line moved from 15 to 17 findings on those two rows. The old path is fully on the record: no evidence, manufactured evidence, a decision on it. Second sentence from the founder under Relay still to come.** **15:10 sweep: the Critic upheld the decline; the track went straight to Learn with a forecast due 3 October. The first honest run is over: Sense to Learn in 58 minutes with nobody pressing, on evidence the loop wrote. P-40 and P-41 are live from 15:15; the second sentence proves the new path.** **22:09 IST, A1's own error: keystrokes meant for the Ask panel fired the approvals page's shortcuts; one seeded proposal moved to *now* and was restored by hand at 22:11; P-54 filed.****
 **A1 AUDIT OF EVERY CLOSED PACKET (12:15 IST, founder's instruction: verify, never accept on a
 report).** 35 closed; 21 carried A1's own live or database evidence at closing; 14 were report-only
 or deferred. Re-verified today: P-26 (A1's own grep, both duration forms, zero in code; the nine hits
@@ -6656,6 +6656,32 @@ now names its three shapes with file and line.
 
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
+
+### P-54 · A shortcut never fires into a field, and the settled list records what changed · Lane: **A3** · Status: READY, **before P-53** · Moves: 2, 3
+
+**Why.** A1, 22:09 IST, on the approvals page with the Ask panel open: a sentence typed into what
+the browser reported as the panel's textbox landed on the page's single-letter shortcuts instead
+(`a` approves, `d` declines, `z` snoozes the item in front). The page settled four times in three
+seconds, one real proposal moved to *now* on the demo roadmap (restored by A1 by hand at 22:11,
+row `60000000-0b00-4000-8000-000000000004`), and the *What you settled* list recorded three
+approvals and a decline when one row changed. A person typing into the Ask panel, a search box or
+the composer on that page would do the same.
+
+**Scope.** (1) The approvals page's shortcuts do not fire while focus is in any editable element
+or while any panel (Ask, a dialog) is open; the guard is in the key handler, not in each panel.
+(2) *What you settled* lists only actions whose write returned a changed row, with the row's title,
+and says *nothing changed* for a press that matched nothing (P-39's rule, applied here). (3) A test
+for each: a keydown with focus in a textarea does nothing; a settle whose write changes no row is
+not listed as settled.
+
+**Acceptance.**
+- [ ] Both tests, named after their sentences.
+- [ ] A1 types the same sentence into the Ask panel on the approvals page on the served build and
+      nothing settles.
+- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: READY (P-52 is on main and green; A3 may start) · Moves: 2, 3
 
