@@ -112,6 +112,7 @@ Most work here is an accelerator, incubator, residency or grant application. The
 
 | File | Open it when |
 | --- | --- |
+| [**`launch-page.md`**](./launch-page.md) | ⭐ **The landing page's own copy: hero, the mechanism in prose, the honest-run proof point (the loop caught 943 of 1,512 signals as its own manufactured evidence and fixed it at the write layer), and an updated Product Hunt tagline.** Every claim carries a proof row. Draft only. |
 | [`launch-assets.md`](./launch-assets.md) | Prepping the listing: Show HN, Product Hunt, share-link copy. |
 | [`teaser-video-plan.md`](./teaser-video-plan.md) | **The teaser: one 90-second master, and Product Hunt, the site hero and the YC cut as derivations of it.** Beat sheet on named live routes, the two things that must be true before the camera rolls, what would be misrepresentation and must not appear, and a ~$34 tooling list. |
 | [`design-partner-kit.md`](./design-partner-kit.md) | Recruiting beta partners. 25 sourced targets, evidence-first templates. |
