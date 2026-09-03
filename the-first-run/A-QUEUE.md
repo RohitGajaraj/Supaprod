@@ -4628,7 +4628,7 @@ Picking up the next READY A3 packet rather than sitting on this one.
 Not blocked on tooling or access — blocked on which of two readings of "Why" is current.
 
 
-### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: REJECTED (A1, 09:45 IST, measured: first row at ~4.0 s) · one more pass· Moves: 2, 3
+### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pass 2) · Moves: 2, 3
 
 **Why.** The front door reads *Reading your runs.* for three to six seconds on a warm load and
 over nine on this morning's cold one (A1, 06:34 and 09:20 IST, Helio Labs: 15 open tracks). A
@@ -4667,7 +4667,53 @@ fetched until 1.38 s; that is the route's `beforeLoad` (session, `needsOnboardin
 the thing you flagged. Measure it, then either run the readers in parallel with it or make it cheap.
 Acceptance unchanged: first row within 2 s on three loads. The concurrency change stands.
 
-**Report (A3 writes):** Measured before touching anything, through the Lovable MCP (read-only), on
+**Report, pass 2 (A3 writes):** Both targets addressed.
+
+**(1) Named it, then shortened its worst case.** `spine_track_members.track_id -> spine_tracks.id`
+is a real foreign key (checked against the live schema, not assumed), so it is now embedded directly
+into `listRunsForStart`'s base `spine_tracks` select instead of a separate round trip — one fewer
+round trip on EVERY load, and `decisionIds` is available the instant the base read resolves, so the
+decisions/forecast lookup that used to sit behind its own members round trip now runs in the SAME
+concurrent wave as gates, running seats and pins. `running seats → that seat's verb` stays a genuine
+two-hop chain: `tool_calls` carries no FK to `agent_runs` or `spine_tracks` (checked), so there is
+nothing to embed it into. **The arithmetic explains your 2.7s exactly**: six siblings pay ~500-600ms
+for ONE round trip each; `listRunsForStart`'s worst case (a seat actually running, which your live
+session almost certainly had) is base → running → verb, three round trips at that same per-trip
+cost, landing right at 2.7s. This pass cannot shrink that specific chain further without inventing a
+new database relationship server-side — flagging that ceiling rather than guessing past it.
+
+Also added: every `/start`-adjacent reader now logs its own wall-clock duration
+(`withStartReaderTiming`, `[perf] <name>: <ms>ms`), so your next measurement reads the answer off
+the server log instead of the Performance API guessing which concurrent call was the slow one — and
+if the fix above did not fully close the gap, names whichever one still is. **Built as a wrapper
+around each handler, not a `Date.now()` call inside it**: `the-bar-counts-gates-on-open-tracks.
+test.ts` pins `listGatesOnTracks`'s own body against `Date.now()` verbatim (P-18a's own lesson — a
+query-level time window is how "89 missions waiting" once read as quiet), and a literal scan cannot
+tell a wall-clock timer from a row filter. Caught this on the first run of the full suite, fixed by
+moving the clock outside every reader's scanned body rather than weakening that guard.
+
+**(2) The 1.1-second prefix, timed rather than fixed blind.** `_authenticated.tsx` sets
+`ssr: false` on the whole authenticated subtree with its own comment explaining why (server-side
+execution would call protected server fns with no session and 401). That means `beforeLoad` always
+runs in the BROWSER, never per-request on a server — so `onboarding-gate.ts`'s module-level cache is
+not a Cloudflare Workers isolate-lifetime question at all; it genuinely persists for the life of the
+tab. Whether YOUR particular measurement hit that cache warm or paid the one real `profiles` round
+trip is exactly what I could not settle without a browser, so `beforeLoad` now logs three marks
+(`getSession`, `needsOnboarding`, total) instead of me guessing. I looked for a safe way to shorten
+it regardless of cache state and did not find one I was confident enough to ship blind: `getSession`
+is already documented as ~instant (localStorage), `needsOnboarding` is a genuine dependency on the
+session's `user.id` so it cannot run concurrently WITH `getSession`, and the redirect this gate
+exists for cannot itself be parallelized with the content it is meant to prevent rendering. The one
+real lever I could see — priming `onboarding-gate.ts`'s cache at sign-in instead of at first
+navigation — touches the global login flow, which I did not want to change unverified. Flagging with
+the marks in place so your next measurement tells us whether this is even the real remaining cost.
+
+tsc 0. `bun test`: 13,755 tests, 0 fail, 0 unhandled errors (full console-reporter run, not junit
+alone, before AND after catching and fixing the `Date.now()` collision above). eslint 0 new errors.
+Meridian ratchet: no baseline diff. Rebased cleanly onto `origin/main` (picked up P-22/P-33/P-34,
+no file overlap) and pushed `8b4929204`.
+
+**Report, pass 1 (A3 writes):** Measured before touching anything, through the Lovable MCP (read-only), on
 Helio Labs' own data (project `371dd588-1b70-4629-9bb5-9f003f3af373`, workspace
 `60000000-0000-4000-8000-000000000000`: 8 open tracks today, 53 total — the "15 open" your 06:34/
 09:20 walks measured has since drifted down as tracks closed, same account).
@@ -4724,7 +4770,8 @@ line-by-line trace confirming identical semantics. Pushed `79674d553` directly o
 (`24e21db1e`), no rebase needed.
 
 **Blockers (A3 writes):** The live 2-second acceptance line needs your extension — no browser this
-session. Everything else in the Report is done and pushed.
+session. Everything else in the Report is done and pushed. **Updated after pass 2, above: the
+2.7-second reader is now named with a structural explanation, not just flagged.**
 
 
 ### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: READY · Moves: 1, 2, 5
