@@ -6606,6 +6606,10 @@ asking hold, though the screenshot does not show it; the rule says a card that i
 character silent. The door on a no-source hold is unseen until a run sits in one. The founder's
 walk decides the packet.
 
+**A1, 21:07 IST.** The open question is closed in code (9034b9157, *the card is asking, so the
+character is silent*): suite on the tip 13,908 / 0 / 0, tsc 0; published 21:07. Nothing of A1's
+remains on this packet; the founder's walk decides it.
+
 **Acceptance.**
 - [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
       first against the mockups.
