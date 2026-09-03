@@ -116,6 +116,90 @@
           "$schema": "http://json-schema.org/draft-07/schema#"
         },
         "outputSchema": null
+      },
+      {
+        "name": "list_runs",
+        "title": "List runs",
+        "description": "List pieces of work in a Supaprod workspace with the station each is standing on, whether it is moving or held, and why it stopped. Use list_workspaces to find the workspace_id. Pass waiting_on_person to see only the runs that need a human answer.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "workspace_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Workspace UUID from list_workspaces."
+            },
+            "waiting_on_person": {
+              "type": "boolean",
+              "description": "Only runs that have stopped and need a person to answer something."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          "required": [
+            "workspace_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_forecasts",
+        "title": "List forecasts",
+        "description": "List what a Supaprod workspace predicted before the outcome was known: the claim, the observable chosen to settle it, the date it comes due, and the verdict if one has been settled (hit, miss or inconclusive). Use list_workspaces to find the workspace_id, or pass decision_id from list_decisions to read one decision's forecast. state=due narrows to calls past their date that nobody has settled.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "workspace_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Workspace UUID from list_workspaces."
+            },
+            "decision_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Optional decision UUID from list_decisions, to read just that decision's forecast."
+            },
+            "state": {
+              "type": "string",
+              "enum": [
+                "all",
+                "open",
+                "due",
+                "settled"
+              ],
+              "description": "all: every forecast recorded here. open: no verdict yet, whether or not its date has passed. due: past its date, no verdict, and not deferred past today. settled: has a verdict.",
+              "default": "all"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          "required": [
+            "workspace_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
       }
     ]
   }
