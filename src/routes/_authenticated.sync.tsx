@@ -104,6 +104,7 @@ import { WorkspaceBindingsSection } from "@/components/connections/WorkspaceBind
 import { ProductBindingsSection } from "@/components/connections/ProductBindingsSection";
 import { ProviderMark } from "@/components/meridian/source-marks";
 import { listSyncMappings, resolveSyncConflict } from "@/lib/integrations.functions";
+import { listWorkspaceBindings } from "@/lib/connections.functions";
 import { pullMapping, pushMapping } from "@/lib/sync.functions";
 import { getIngestToken, rotateIngestToken, revokeIngestToken } from "@/lib/ingest.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
@@ -218,6 +219,43 @@ function providerLabel(p: string): string {
  *  that would fail. */
 const TWO_WAY = new Set(["google_docs", "notion", "linear"]);
 
+/**
+ * THE PAGE'S OWN HEADLINE, READ FROM THE SAME COUNT THE SECTION BELOW READS
+ * (P-44 follow-up, A-QUEUE.md — A1's live walk on Helio Labs / Relay: the
+ * header said "Nothing is syncing yet. Point a source at something below"
+ * directly above a region reading "1 pointed, all reading" -- one screen
+ * disagreeing with itself about whether anything was pointed anywhere).
+ *
+ * `synced`/`conflicts` count SYNC MAPPINGS -- two-way DOCUMENT sync (Notion,
+ * Google Docs, Linear), which a source like a bound GitHub repo never
+ * produces. So a workspace can be genuinely, correctly "0 documents in
+ * sync" while also having sources already pointed -- GitHub is exactly that
+ * case, and "point a source" is a lie to someone who just did. `boundCount`
+ * (the same number `WorkspaceBindingsSection` renders) is read here ONLY to
+ * choose which zero-documents sentence is honest, never folded into the
+ * document count itself.
+ */
+export function syncHeadline(state: {
+  failed: boolean;
+  loading: boolean;
+  conflictCount: number;
+  syncedCount: number;
+  boundCount: number;
+}): string {
+  if (state.failed) return "The sync state did not load, so nothing below is the whole picture.";
+  if (state.loading) return "Reading what is in sync.";
+  if (state.conflictCount > 0) {
+    return `${state.conflictCount} ${state.conflictCount === 1 ? "document was" : "documents were"} edited on both sides and need you to say which copy wins.`;
+  }
+  if (state.syncedCount > 0) {
+    return `Nothing is waiting on you. ${state.syncedCount} ${state.syncedCount === 1 ? "document agrees" : "documents agree"} with the copy in the tool that owns it.`;
+  }
+  if (state.boundCount > 0) {
+    return "Nothing is syncing as a document yet. What is pointed below is reading, just not through a two-way document sync.";
+  }
+  return "Nothing is syncing yet. Point a source at something below and the documents start flowing.";
+}
+
 function SyncPage() {
   const qc = useQueryClient();
   const { conflict: followedConflictId, product: wantedProductId } = Route.useSearch();
@@ -248,6 +286,19 @@ function SyncPage() {
   const mappings = (q.data?.mappings ?? []) as Mapping[];
   const allConflicts = mappings.filter((m) => m.conflict);
   const synced = mappings.filter((m) => !m.conflict);
+
+  /*
+   * SAME QUERY KEY AND FN `WorkspaceBindingsSection` already uses below --
+   * this shares its cache entry rather than firing a second request, and
+   * exists only so the page's own headline can read the count the section
+   * renders instead of contradicting it. See `syncHeadline`.
+   */
+  const fBindings = useServerFn(listWorkspaceBindings);
+  const bindingsQ = useQuery({
+    queryKey: ["workspace-bindings"],
+    queryFn: () => fBindings(),
+  });
+  const boundCount = bindingsQ.data?.bindings?.length ?? 0;
 
   // The conflict a person followed here is the one call in front of them, so it
   // is FIRST. Order is the emphasis; the retired surface bought the same thing
@@ -298,15 +349,13 @@ function SyncPage() {
     !q.isError &&
     !allConflicts.some((m) => m.id === followedConflictId);
 
-  const head = q.isError
-    ? "The sync state did not load, so nothing below is the whole picture."
-    : q.isLoading
-      ? "Reading what is in sync."
-      : conflicts.length > 0
-        ? `${conflicts.length} ${conflicts.length === 1 ? "document was" : "documents were"} edited on both sides and need you to say which copy wins.`
-        : synced.length > 0
-          ? `Nothing is waiting on you. ${synced.length} ${synced.length === 1 ? "document agrees" : "documents agree"} with the copy in the tool that owns it.`
-          : "Nothing is syncing yet. Point a source at something below and the documents start flowing.";
+  const head = syncHeadline({
+    failed: q.isError,
+    loading: q.isLoading,
+    conflictCount: conflicts.length,
+    syncedCount: synced.length,
+    boundCount,
+  });
 
   return (
     <Surface wide>
