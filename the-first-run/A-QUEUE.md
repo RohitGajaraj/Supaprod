@@ -7389,6 +7389,18 @@ promote without a preview. Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads the row and the card.
 
 
+
+**A1, 03:58 IST 09-04, on the served build.** The 22:20 UTC tick drove the tablet track again
+(attempts 1, `produced-nothing`) and `ci-poll-tick` ran at 22:22 (succeeded) and wrote no
+`deployments` row. Cause, in the code: the retry runs only while the FIRST recorded attempt is
+younger than `HOSTED_PREVIEW_RETRY_WINDOW_MS` (60 minutes, `ci-poll-tick.ts:513`); the tablet
+changeset's first attempt was 06:44 UTC on 09-03, so it is outside the window for good, as is
+every failure older than an hour. Right for a fresh merge (six tries in an hour), wrong for the
+one case that matters tonight. **P-68b (A2, before P-72's second part):** the hold card's *Try the
+preview again* (P-68's scope item 2) exists as an action: a server function that attempts the
+managed preview for the changeset now, ignoring the window, writing a reasoned `deployments` row
+either way, and the card reads that row. A1 presses it on the tablet track and records the 06:44
+reason at last.
 ### P-69 · Opening Arriving stamps the last look · Lane: **A2** (after P-67) · Status: DONE (A1 walked it live 02:27 IST 09-04: Arriving opened, Start then reads "Nothing new since you last looked.") · Moves: 1, 2
 
 **Why.** P-62 found `brain_last_seen` has a table, a row, and had no reader; it now has one
