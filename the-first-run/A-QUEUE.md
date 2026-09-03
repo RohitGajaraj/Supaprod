@@ -6855,7 +6855,7 @@ count from the same population; a test that the heading names families and omits
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads the heading live.
 
 
-### P-57 · A brief-path spec is guarded against its twin, and its derived title ends on a word · Lane: **A2** (moved from A3 at 23:55 IST; A3 stays on P-53) · Status: READY · Moves: 1, 2
+### P-57 · A brief-path spec is guarded against its twin, and its derived title ends on a word · Lane: **A2** (moved from A3 at 23:55 IST; A3 stays on P-53) · Status: CODE DONE (A2, `1d6d9bf4f`, suite 13,972 / 0 / 0, tsc 0); A1 reads the next brief-path Define pass · Moves: 1, 2
 
 **Why.** Read live 23:31 IST while closing P-50: the Ask panel answered "What needs my call before it
 can move?" with the same design gate twice, *Approve the design for Remove the redundant address
