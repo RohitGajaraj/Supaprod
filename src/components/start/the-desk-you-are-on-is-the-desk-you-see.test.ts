@@ -95,3 +95,74 @@ describe("the cache keys name the workspace too", () => {
     expect(flat).toContain("fBets({ data: { workspaceId: activeWorkspaceId ?? null } })");
   });
 });
+
+/**
+ * ── THE SAME DEFECT, FOUND IN TWO MORE PLACES (P-33, 2026-09-03) ──────────
+ *
+ * After Start was fixed, an audit found the identical shape twice more. Both
+ * are here rather than in their own files because the defect is one defect and
+ * the next instance will be found by someone reading this list.
+ *
+ *   `getStandingRecord`   counted `agent_memory` and `memory_recall_log` by
+ *                         OWNER, so an empty workspace printed "A run has read
+ *                         118 of these back" over a list saying "Nothing
+ *                         learned yet". Its comment argued FOR staying
+ *                         owner-scoped on the grounds that the list beside it
+ *                         was owner-scoped too -- which stopped being true on
+ *                         2026-08-10, when `getAgentMemory` was fixed for this
+ *                         exact defect and this function was not brought along.
+ *                         `memoriesTotal` also gates `recordIsBlank`, so one
+ *                         memory in ANY other workspace stopped the designed
+ *                         zero state from firing on a genuinely empty one.
+ *
+ *   `NothingToRead`       counted `scout_targets` with no workspace filter and
+ *                         cached it under a workspace-free key, so an empty
+ *                         workspace whose owner belongs to any workspace with a
+ *                         target was offered NO source to connect. The one
+ *                         remedy the product has, withheld at the one moment it
+ *                         is needed.
+ */
+const STANDING = strip(readFileSync("src/lib/brain-standing.functions.ts", "utf8"));
+const PANE = strip(readFileSync("src/components/track/ArtifactPane.tsx", "utf8"));
+
+describe("the counts on a record are that workspace's counts", () => {
+  it("scopes both agent_memory reads through one base", () => {
+    const flat = STANDING.replace(/\s+/g, " ");
+    expect(flat).toContain('wid ? q.eq("workspace_id", wid) : q');
+    expect(flat).toContain("const memoryBase = ()");
+    // Both reads go through it, so one cannot be scoped and the other not.
+    expect(flat).toContain("headCount(() => memoryBase())");
+    expect(flat).toContain('headCount(() => memoryBase().not("last_used_at", "is", null))');
+  });
+
+  it("scopes the recall log the same way", () => {
+    expect(STANDING.replace(/\s+/g, " ")).toContain("const recallBase = ()");
+    // Three counts share it: events, helped, against.
+    expect([...STANDING.matchAll(/recallBase\(\)/g)].length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("leaves the counts owner-wide when the workspace cannot be resolved", () => {
+    // A failed lookup must not become "you have nothing".
+    expect(STANDING).toContain("wid ? q.eq");
+  });
+});
+
+describe("the sources offered are this workspace's sources", () => {
+  it("filters scout_targets by workspace", () => {
+    expect(PANE.replace(/\s+/g, " ")).toContain(
+      'if (workspaceId) q = q.eq("workspace_id", workspaceId)',
+    );
+  });
+
+  it("puts the workspace in the cache key too", () => {
+    expect(PANE.replace(/\s+/g, " ")).toContain('["discover-source-count", workspaceId]');
+  });
+
+  it("is handed the workspace rather than reaching for the context", () => {
+    // `useWorkspace` throws outside its provider and these panes are rendered
+    // by guards that stand up no shell. The file's own convention.
+    expect(PANE.replace(/\s+/g, " ")).toContain(
+      "<NothingToRead station={stop.station} workspaceId={workspaceId} />",
+    );
+  });
+});

@@ -125,28 +125,56 @@ export const getStandingRecord = createServerFn({ method: "GET" })
     // a wrong one fails only at runtime (verified: renaming last_used_at below
     // to a nonexistent column still typechecks clean). Every column used here
     // is one that shipping code already reads or writes:
-    //   agent_memory.user_id / .last_used_at   memory.functions.ts:54-63
-    //   memory_recall_log.user_id / .outcome   feedback.functions.ts:40-43,
-    //                                          ai/memory.server.ts:193
-    //   house_rules.workspace_id / .status     house-rules.functions.ts:158-162
-    // agent_memory is owner-scoped (RLS auth.uid() = user_id, see
-    // memory.functions.ts), so it is counted the same way the memory list
-    // beside it is. Scoping one by workspace and one by owner would put two
-    // numbers on the same line that cannot be compared.
-    const recallBase = () =>
-      supabase.from("memory_recall_log").select("id", head).eq("user_id", userId);
+    //   agent_memory.user_id / .workspace_id / .last_used_at  memory.functions.ts
+    //   memory_recall_log.user_id / .workspace_id / .outcome  feedback.functions.ts,
+    //                                                         ai/memory.server.ts
+    //   house_rules.workspace_id / .status                    house-rules.functions.ts
+    /*
+     * ── THESE COUNTS ARE THIS WORKSPACE'S COUNTS (P-33, 2026-09-03) ────────
+     *
+     * The comment that stood here justified counting by owner alone: "agent_memory
+     * is owner-scoped (RLS auth.uid() = user_id), so it is counted the same way the
+     * memory list beside it is. Scoping one by workspace and one by owner would put
+     * two numbers on the same line that cannot be compared."
+     *
+     * The reasoning is right and its premise was false. The list beside it is NOT
+     * owner-scoped: `getAgentMemory` takes a `workspaceId` and filters on it, and it
+     * has since 2026-08-10, when it was repaired for THIS EXACT DEFECT. Its own
+     * header records the measurement -- "4 of the 5 multi-workspace users are members
+     * of a seeded demo workspace, so those counts were provably mixed" -- and this
+     * function was never brought along. So the comment described the world before
+     * that fix and then used it to argue for staying broken, which is the most
+     * expensive kind of stale comment: one that reads as a decision.
+     *
+     * What a person saw: an empty workspace printing "A run has read 118 of these
+     * back - 587 recalls on the record" directly above a list reading "Nothing
+     * learned yet." Both numbers were real and belonged to a different workspace.
+     * Worse, `memoriesTotal` gates `recordIsBlank` on Outcomes, so one memory in ANY
+     * other workspace stopped the designed zero state from ever firing on a genuinely
+     * empty one.
+     *
+     * Checked on production before filtering: `agent_memory` 2,180 rows and
+     * `memory_recall_log` 13,361 rows, ZERO with a null `workspace_id` in either. So
+     * the filter hides nothing, which is the same check the 2026-08-10 fix made.
+     *
+     * Unresolved stays unfiltered. A caller whose workspace cannot be resolved gets
+     * the owner-wide count it always got, because narrowing to a workspace we cannot
+     * name would turn a failed lookup into "you have nothing", and that is a claim.
+     */
+    const recallBase = () => {
+      const q = supabase.from("memory_recall_log").select("id", head).eq("user_id", userId);
+      return wid ? q.eq("workspace_id", wid) : q;
+    };
+    const memoryBase = () => {
+      const q = supabase.from("agent_memory").select("id", head).eq("user_id", userId);
+      return wid ? q.eq("workspace_id", wid) : q;
+    };
 
     const [rules, pending, total, reached, events, helped, against] = await Promise.all([
       rulesPromise,
       pendingPromise,
-      headCount(() => supabase.from("agent_memory").select("id", head).eq("user_id", userId)),
-      headCount(() =>
-        supabase
-          .from("agent_memory")
-          .select("id", head)
-          .eq("user_id", userId)
-          .not("last_used_at", "is", null),
-      ),
+      headCount(() => memoryBase()),
+      headCount(() => memoryBase().not("last_used_at", "is", null)),
       recallBase(),
       recallBase().eq("outcome", "used"),
       recallBase().eq("outcome", "contradicted"),

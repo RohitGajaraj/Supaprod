@@ -2140,19 +2140,48 @@ export function MissionCard({
  * The reasoning, the measurement and the honesty rule are in
  * `discover-has-no-sources.ts`. This is the render.
  */
-function NothingToRead({ station }: { station: AgentStation }) {
+function NothingToRead({
+  station,
+  workspaceId = null,
+}: {
+  station: AgentStation;
+  /*
+   * HANDED IN, not taken from the workspace context, for the reason `SenseBody`
+   * gives three hundred lines down: `useWorkspace` throws outside its provider
+   * and these panes are rendered directly by guards that stand up no shell.
+   */
+  workspaceId?: string | null;
+}) {
   /*
    * `head: true` with an exact count: this needs the NUMBER and never the rows.
    * On error the count stays null and the verdict is `cannot-tell` -- a failed
    * read is not zero sources, and here that matters more than usual, because
    * the remedy sends a person to connect something they may already have.
+   *
+   * ── AND IT COUNTS THIS WORKSPACE'S SOURCES (P-33, 2026-09-03) ───────────
+   *
+   * The read named no workspace and the key named no workspace, so it counted
+   * every `scout_targets` row RLS would show -- which is every workspace the
+   * person belongs to. The consequence lands at the worst possible moment: a
+   * brand-new empty workspace whose owner is a member of any other workspace
+   * that has a target resolves to `sources-exist`, so this panel says nothing
+   * and offers nothing. The one remedy the product has, withheld at the one
+   * moment it is needed, and silently.
+   *
+   * Same defect as `listRunsForStart` and `listTopOpportunities` (0e1b964a6),
+   * in a third place. RLS answers "may they see this"; it has never answered
+   * "whose desk is this".
+   *
+   * Unresolved stays unfiltered: a workspace we cannot name must not become a
+   * count of zero, because zero here sends a person to connect a source they
+   * may already have.
    */
   const sources = useQuery({
-    queryKey: ["discover-source-count"],
+    queryKey: ["discover-source-count", workspaceId],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from("scout_targets")
-        .select("id", { count: "exact", head: true });
+      let q = supabase.from("scout_targets").select("id", { count: "exact", head: true });
+      if (workspaceId) q = q.eq("workspace_id", workspaceId);
+      const { count, error } = await q;
       if (error) throw new Error(error.message);
       return count ?? 0;
     },
@@ -2707,7 +2736,7 @@ function StationPanel({
         {hold ? <RecordSpeaks>{hold}</RecordSpeaks> : null}
         {/* NO DEAD END, EVER (SESSION-1 unit 5), and this is where the 47
             tracks that filed nothing actually land. */}
-        <NothingToRead station={stop.station} />
+        <NothingToRead station={stop.station} workspaceId={workspaceId} />
         {/* AND WHAT IS STILL UNSETTLED (gap #29). Here as well as in `SenseBody`
             because THIS is the branch a Discover stop with zero members reaches
             -- 47 tracks -- and `SenseBody` never runs for them. RUN-134 shipped
