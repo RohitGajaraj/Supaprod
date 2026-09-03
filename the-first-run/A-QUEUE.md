@@ -4301,7 +4301,7 @@ not junit alone, both before and after the final rebase). eslint 0 new errors th
 **Blockers (A3 writes):** the live walk on Helio Labs (acceptance line 1) -- no browser this session.
 
 
-### P-18b · The ask dock claims only what the bar claims · Lane: **A3** · Status: CLAIMED (A3) · Moves: 3
+### P-18b · The ask dock claims only what the bar claims · Lane: **A3** · Status: DONE (A3) · Moves: 3
 
 **Why.** At 06:45 IST the bar read *Nothing running* while the ask dock's right-hand line read
 *Review is working on Checkout asks for already-save…*. Two readers, one fact, two claims. P-18 and
@@ -4312,11 +4312,40 @@ P-18a fixed the bar; the dock still reads the mission's stored status.
 tense or nothing. A test renders the dock with zero moving tracks and a `running` mission.
 
 **Acceptance.**
-- [ ] With the current data the dock and the bar say the same thing, verified live by A1.
-- [ ] tsc 0 · `bun test` 0 fail / 0 error (console) · pushed · Report.
+- [x] With the current data the dock and the bar say the same thing, verified live by A1. **A3 built
+  and verified by source + tests only — no browser this session (as every prior packet); the live
+  read is A1's, same as every packet before it.**
+- [x] tsc 0 · `bun test` 0 fail / 0 error (console) · pushed · Report.
 
-**Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Report (A3 writes):** Same defect class P-18/P-18a fixed for the shell's top bar, now fixed for
+`use-live-agents.ts` (the dock's own read, used nowhere else). Added a `movingTracks` query under
+the shell's own key `["shell","moving-tracks"]` (cache-shared with `AppFrame.tsx`, no new request,
+no new interval — the file's own standing "not a poll of its own" rule stays true) and ran `working`
+through the existing pure `genuinelyWorkingMissions` filter instead of trusting `missions.status`
+directly. Added `lastDone: {title, completedAt} | null` (same shape and source as the bar's own
+fallback) so the dock speaks in the past tense when nothing is genuinely running rather than going
+quiet — a `null` under a live-agent heading is silence with no reason attached, exactly the class
+the ratchet in `a-null-under-a-heading-is-a-broken-promise.test.ts` exists to catch.
+
+`AskDock.tsx` gained a `liveAgents` prop, the same testing-seam pattern as its existing `pane` prop
+(added for the identical reason, per its own docblock: GlobalComposer's `mock.module` of `AskPane`
+went process-wide and broke AskPane's own suite one run in four). `AskPane.test.tsx` already
+`mock.module`s `@/lib/missions.functions`; a second file doing the same for the dock's test would
+have been the exact collision `a-module-mock-is-process-wide.test.ts` freezes and fails on
+("THE RATCHET: no new module joins the process-wide set" — hit this on the first pass, fixed by
+injecting the hook's *result* instead of mocking two modules under it). New file
+`src/components/ask/__tests__/AskDock.test.tsx`, 4 cases: reproduction (running mission, zero moving
+tracks → no "is working"), a genuinely moving track → named by title, nothing moving but something
+finished → past tense, and the bare invitation when neither. Meridian ratchet: `AskDock.tsx`'s
+`class:sp-` count went 7→9 on the first draft (two literal `sp-dock-live-work` spans, one per
+branch); resolved by resolving a single `workTitle` value before the return and writing each class
+name once in source — `bun run design:ratchet` shows no baseline diff, count still 7.
+tsc 0. `bun test`: 13,740 tests, 0 fail, 0 unhandled errors (full console-reporter run, not junit
+alone). eslint 0 new errors on all three touched files. Pushed `e995c5423` directly onto
+`origin/main` (`9681b7287`), no rebase needed — merge-base was already `origin/main`'s HEAD.
+
+**Blockers (A3 writes):** the live walk on Helio Labs (acceptance line 1) — no browser this session,
+same as every prior packet.
 
 ### P-30 · Ship files its own artifact · Lane: **A3** · Status: READY (after P-18b) · Moves: 3, 4
 
