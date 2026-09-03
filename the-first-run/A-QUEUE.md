@@ -6960,7 +6960,7 @@ database module (a test that reads its import list). Full suite on the tip, tsc 
 **DoD.** Pushed; suite number per rule 17; migration applied by A3 via the Lovable MCP; A1 confirms
 the ledger row and the cron row, and publishes.
 
-### P-59 · A Ship that cannot deploy names the missing provider, and the one action · Lane: **A2** (after P-57) · Status: READY · Moves: 1, 3
+### P-59 · A Ship that cannot deploy names the missing provider, and the one action · Lane: **A2** (after P-57) · Status: CODE DONE (7eb96c94d; A2 reports 13,991 / 0 / 0, tsc 0; A1 suite running, publish and live read follow) · Moves: 1, 3
 
 **Why.** The first honest Ship (tablet track `0c7374b6`, 06:44 UTC 09-03) failed at preview with
 `deployments.failure_reason` NULL; P-39 item 3 now records it, and the next attempt will record
@@ -7146,6 +7146,28 @@ query keys include it. (3) Read the audit's "Waiting on you" badge (P-60) from t
 running* with no borrowed fact); in Helio Labs it reads Helio's. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 reads both workspaces live.
+
+
+### P-59b · A Ship that cannot deploy holds as waiting-on-a-person, in the record · Lane: **A3** (after P-58) · Status: READY · Moves: 1
+
+**Why.** P-59 made the screen say *Ship has no preview host. Set DENO_DEPLOY_TOKEN and
+DENO_DEPLOY_ORG on the Lovable project, then press Try again.* The record still says
+`produced-nothing`, so the track counts an attempt against the crew for a failure that is a
+person's to fix, and the two disagree. A2 left this deliberately: moving it needs the driver to
+read the deployment at the point the ship attempt fails.
+
+**Scope.** In `driver.server.ts`, where the Ship attempt's deployment result is known: when the
+newest deployment for the changeset failed with a missing-provider reason (matched on the variable
+name, as P-59 does, from the same constant), hold the track as `waiting-on-a-person` with that
+reason as `last_hold_because`, spend no attempt; any other failure keeps its current handling.
+`Try again` (P-59) re-runs from that hold. Guards: a missing-provider failure holds as
+waiting-on-a-person with attempts unchanged; an ordinary failure still counts.
+
+**Acceptance.** On the tablet track after the next Ship attempt with the token unset:
+`last_hold = waiting-on-a-person`, `attempts` unchanged, the hold card unchanged. Full suite on
+the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 reads the row and the card.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CODE DONE, pushed 03cbdafe0 (fixes e80ddc701's tsc break against A2's P-50 type), awaiting A1's live read · Moves: 2, 3
 
