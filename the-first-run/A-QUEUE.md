@@ -5643,7 +5643,7 @@ both panes; the card below carries the same question, the risk line, the reason 
 default. One answer, two doors to it, same mutation. Noted for P-37, not for this packet: the
 footer reads *Waiting on you.* beside a *Run it now* button, two verbs for one state.
 
-### P-39 · A press that did nothing says so · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3) · Moves: 2, 3
+### P-39 · A press that did nothing says so · Lane: **A3** · Status: DONE-PENDING-VERIFY, item 3 corrected (A3) · Moves: 2, 3
 
 **Why.** 2026-09-03 14:00 IST, the founder deleted the empty *A2 arrival check* workspace from the
 product and was told it worked; the workspace was still there. `deleteWorkspace`
@@ -5673,14 +5673,19 @@ no recorded reason and nobody can say whether it is the token, the app or the pa
       `leaveWorkspaceCore` directly (a fake `SupabaseClient`, not the live database — the new
       policy itself is verified against the live schema below, in `pg_policies`, since RLS cannot
       be exercised from a unit test without a real authenticated session).
-- [x] A test proves a non-OK deploy answer lands its status and body — on `DeploymentResult.detail`,
-      not "the deployments row" (see §3 of the Report: that row doesn't exist for this code path).
-      3 new cases across `deno-deploy.server.test.ts` and `hosting-poc.test.ts`.
+- [x] A test proves a non-OK deploy answer lands its status and body on the `deployments` row.
+      Corrected to the right module (A1, 15:24 IST): `changeset-deploy.server.ts`/`ci-poll-tick.ts`,
+      not `denoDeployProvider`/`hosting-poc.ts` — that earlier work stands (§3a below) but does not
+      satisfy this item on its own. `failure_reason` now lands on the row itself, verified live via
+      `information_schema.columns`, and reaches the run screen (§3b below).
 - [ ] Walked live by A1: the sentence on a real workspace the policy blocks; the reason on the next
       failed preview. **A3 has no live browser this session — the policy itself is verified live
       via `pg_policies` (below), the UI sentence is not walked. A1: please verify.**
-- [x] tsc 0 · `bun test` (full console suite, this branch's tip, post-rebase) 13,805 pass / 0 fail /
-      0 unhandled error · pushed (`882ecae9a`, rebased twice, landed `08a519232`) · Report.
+- [ ] tsc 0 · `bun test` — **13,805 pass / 1 fail / 0 unhandled error**, this tip, post-rebase. The
+      one failure is named and explained in §3c: `the-types-must-know-every-column-a-migration-added
+      .test.ts`, a real and correct catch (`types.ts` has not yet regenerated to know
+      `deployments.failure_reason`), not a false alarm. Pushed (`719300e3f`) with that one failure
+      still red rather than worked around. · Report.
 
 **A1, 15:24 IST.** Items 1 and 2 accepted: the server functions select the row back and throw the
 sentence; the policy *ws owner manages own regardless of membership* is in `pg_policy` and
@@ -5721,30 +5726,65 @@ beyond the one incident:** queried every workspace whose owner has no qualifying
 row — **two more exist today** ("Sample workspace", "My Workspace"), both now repairable by their
 own owner where they were not a moment ago.
 
-**(3) The deploy failure detail — built, with a real scope mismatch flagged rather than guessed
-past.** `DeploymentResult` now carries an optional `detail` field; `denoDeployProvider.deploy`
-populates it with the HTTP status and the first 500 bytes of the response body (truncated, not
-dropped) on any non-OK answer, and `deployHostingPoc` includes it in the failure message it already
-constructs. This flows into `provisionHostingPoc`'s existing `console.error` line — the one audit
-trail this code path has.
+**(3a) The deploy failure detail, first pass — real, kept, but the wrong module for this item.**
+`DeploymentResult` carries an optional `detail` field; `denoDeployProvider.deploy` populates it with
+the HTTP status and the first 500 bytes of the response body on any non-OK answer, flowing into
+`provisionHostingPoc`'s `console.error` line. This is correct and shipped — it is simply not what
+this scope item was written about. `denoDeployProvider` has exactly one caller, an admin-only PoC
+panel with no spine track and no run screen in its call path
+(`hosting-poc.functions.ts`'s own header: *"No new table or column, matching P5b's 'no DB
+wiring'"*). A1 confirmed (15:24 IST): the row that actually failed today,
+`97c7b268-94e5-43f2-8a53-c7a5a339e180` (changeset `e7565181-1f64-4145-82e5-6da9cf7063e6`, commit
+`5151319...`), was written by `deployChangesetApp` → `ci-poll-tick.ts`, a completely different
+module.
 
-**The mismatch:** scope item 3 asks for the detail recorded "on the `deployments` row" and "in the
-run's transcript line, so a failed preview says why on the run screen." Neither exists for
-`denoDeployProvider`. It has exactly **one** caller, `provisionHostingPoc` — an admin-role-gated
-server function behind the founder-only "Supaprod-hosted" toggle, with no spine track, no run, and
-no transcript anywhere in its call path. `hosting-poc.functions.ts`'s own header states the
-architecture plainly: *"No new table or column, matching P5b's 'no DB wiring' ... this logs to the
-server console instead of the DB for now; a real audit row is a P5d item."* That is a deliberate,
-founder-referenced staging decision (P5b/P5c/P5d, `docs/planning/byo-p5-managed-runtime-plan.md`),
-not an oversight — adding a `deployments` table/column now would reverse it without that being this
-packet's call to make. **A1: is real DB wiring wanted here despite the P5b decision, or does the
-console-log-carries-detail fix (which is real, tested, and ships today) answer the actual need?**
-Not guessing further past this; flagging rather than either silently skipping the item or
-unilaterally reversing a staged architecture decision.
+**(3b) The real fix.** `deployChangesetApp` (`changeset-deploy.server.ts`) already computed a
+`reason` string on every failure (HTTP status + response body) — widened from 200 to 500 bytes to
+match the scope's own number — and `ci-poll-tick.ts`'s upsert into `deployments` simply never wrote
+it anywhere: the reason existed and was thrown away at the write site, not missing at the source.
+Added `deployments.failure_reason text` live (migration `20260909040000`, applied through the
+Lovable MCP, verified via `information_schema.columns`, ledger row inserted), wrote it into the
+upsert, and threaded it to the run screen: `listDeployments`'s select
+(`deployments.functions.ts`), the `deployment` kind's `FIELDS` list (`track.functions.ts`, which is
+what `ArtifactPane.tsx`'s `getTrackArtifacts` actually reads for the run screen's right pane), and
+`ReleaseCard` now renders it as a `RecordSpeaks` line when a release failed.
 
-**Blockers (A3 writes):** The item-3 architecture question above is open and needs A1's or the
-founder's call. Everything else in this packet is complete and verified; nothing is blocked on the
-answer to it.
+**The row A1 found predates this fix and cannot be backfilled**: the original HTTP response body
+from that attempt was never persisted anywhere (that is precisely the defect), so there is nothing
+to write into its `failure_reason` after the fact — it will read `null` forever, honestly, and every
+failure from here forward carries the real reason.
+
+**A genuinely separate bug, found while wiring the last mile.** `ReleaseCard` reads its chip and
+tone from `releaseStanding(status)` (`release-words.ts`), whose switch matched `"failed"`/`"error"`
+— never `"failure"`, which is the literal, exact string `ci-poll-tick.ts`'s upsert writes (`status:
+result.ok ? "success" : "failure"`), matching `DeploymentResult.status`'s own type
+(`"success" | "failure" | "pending"`). Every real deploy failure was falling through to this file's
+own "unfamiliar word" default: a quiet tone and the raw string `"failure"` on screen, never the red
+chip the `"failed"`/`"error"` case already existed to draw. This meant a failed preview showed no
+outcome signal at all before this pass, independent of whether a reason was recorded — fixed
+(`"failure"` added to the same case) and pinned with a new test.
+
+**(3c) One known, expected, and reported failure.** `src/integrations/supabase/types.ts` is
+GENERATED and has not yet caught up to the live `failure_reason` column —
+`the-types-must-know-every-column-a-migration-added.test.ts` (a real, load-bearing guard citing a
+2026-09-01 incident where a stale generated file caused an agent to wrongly conclude a real column
+did not exist) correctly catches this. Confirmed I cannot regenerate the file myself: tried
+`npx supabase gen types typescript --project-id ysszyrczxanuzhiohygx` directly, which requires a
+`SUPABASE_ACCESS_TOKEN` the founder does not hold (DB access is Lovable-MCP-only, per this repo's
+own standing instruction). Per the founder's own direction mid-session — use the Lovable MCP for
+whatever is needed, do not stop on this — sent Lovable's own agent a message asking it to run its
+own codegen against the live schema (`send_message`, project `371dd588-1b70-4629-9bb5-9f003f3af373`,
+in progress as this Report is written). Not hand-editing the generated file myself, per that guard's
+own explicit instruction ("it is a tooling-owned act, not an edit").
+
+**The honest console number, per rule 17: 13,805 pass / 1 fail / 0 unhandled**, this tip, and the
+one failure is this one, named rather than smoothed over. Every other test, including the new
+`release-words.ts` regression and the `deleteWorkspaceCore`/`leaveWorkspaceCore`/deploy-detail cases
+from items 1–2, passes.
+
+**Blockers (A3 writes):** Item 3c — waiting on Lovable's own codegen to regenerate `types.ts`; will
+re-verify and report the clean number once it lands, or flag back if it does not land on its own.
+Everything else in this packet is complete and verified.
 
 
 ### P-16b · The sentence field is the first stop · Lane: **A3** · Status: DONE (A1 verified live, 15:18 IST) · Moves: 2, 5
