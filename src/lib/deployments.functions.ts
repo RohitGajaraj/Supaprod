@@ -536,7 +536,7 @@ export const listDeployments = createServerFn({ method: "GET" })
     let q = db
       .from("deployments")
       .select(
-        "id,product_id,changeset_id,provider,environment,status,commit_sha,deploy_url,deployed_at,created_at",
+        "id,product_id,changeset_id,provider,environment,status,commit_sha,deploy_url,deployed_at,created_at,failure_reason",
       )
       .eq("workspace_id", workspaceId)
       .order("created_at", { ascending: false })

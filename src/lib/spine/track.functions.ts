@@ -2101,7 +2101,17 @@ const FIELDS: Readonly<Record<string, readonly string[]>> = {
   // whether the verify loop ever cycled — the card that answers "what did the
   // crew actually set out to do" instead of a bare title line.
   mission: ["goal", "status", "hop_count", "build_driver", "verify_cycles", "completed_at"],
-  deployment: ["commit_sha", "deploy_url", "environment", "provider", "status", "deployed_at"],
+  deployment: [
+    "commit_sha",
+    "deploy_url",
+    "environment",
+    "provider",
+    "status",
+    "deployed_at",
+    // P-39 (A-QUEUE.md): the only place a failed preview's reason can reach
+    // the run screen -- ReleaseCard (ArtifactPane.tsx) reads it off `item.fields`.
+    "failure_reason",
+  ],
   learning: [
     "summary",
     "verdict",

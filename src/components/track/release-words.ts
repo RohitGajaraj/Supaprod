@@ -49,8 +49,17 @@ export function releaseStanding(status: string | null | undefined): ReleaseStand
         note: "Somebody typed this address in. Nothing here has checked it, so it cannot stand as proof that this shipped.",
       };
 
+    /*
+     * P-39 (A-QUEUE.md): "failure" is the actual word `ci-poll-tick.ts` and
+     * `denoDeployProvider`'s own `DeploymentResult.status` type write on a
+     * failed deploy -- not "failed". Its absence here meant every real
+     * deploy failure fell through to the unfamiliar-word default below: a
+     * quiet tone and the raw string "failure", never the red chip this case
+     * already existed to draw.
+     */
     case "failed":
     case "error":
+    case "failure":
       return { word: "Did not go out", tone: "fail", note: null };
 
     case "pending":

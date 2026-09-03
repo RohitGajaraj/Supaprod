@@ -1715,6 +1715,17 @@ function ReleaseCard({ item, decisions }: { item: ArtifactView; decisions?: Arti
   const url = str(f.deploy_url);
   const sha = shortSha(str(f.commit_sha));
   const provider = str(f.provider);
+  /*
+   * P-39 (A-QUEUE.md). The founder's own reproduction: a failed preview
+   * (`status = "failure"`, `deploy_url` null) said nothing about why, on
+   * this card or anywhere else. `failure_reason` (the provider's own HTTP
+   * status and response body, written by `ci-poll-tick.ts` -- see its own
+   * comment on the upsert) is read here, separately from `standing.note`:
+   * that field is a fact about the STATUS WORD alone ("claimed" always means
+   * the same warning), while this is dynamic data no status-only function
+   * can produce.
+   */
+  const failureReason = standing.tone === "fail" ? str(f.failure_reason) : null;
   // `deployed_at` is null on a row that never reached the provider, so the
   // record's own creation time is the honest fallback for "when this appeared".
   const at = str(f.deployed_at) ?? item.createdAt;
@@ -1738,6 +1749,7 @@ function ReleaseCard({ item, decisions }: { item: ArtifactView; decisions?: Arti
       </div>
 
       {standing.note ? <RecordSpeaks>{standing.note}</RecordSpeaks> : null}
+      {failureReason ? <RecordSpeaks>{failureReason}</RecordSpeaks> : null}
 
       {under ? <span className="mrd-meta">{under}</span> : null}
 

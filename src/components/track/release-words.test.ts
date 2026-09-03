@@ -26,6 +26,19 @@ describe("what Ship did, said honestly", () => {
     expect(releaseStanding("pending").tone).toBe("agent");
   });
 
+  /*
+   * P-39 (A-QUEUE.md). "failure" -- not "failed" -- is the literal word
+   * ci-poll-tick.ts and DeploymentResult.status actually write on a failed
+   * deploy. Its absence here was a real bug: every real deploy failure read
+   * as the unfamiliar-word default (quiet tone, no red chip) rather than
+   * the "fail" tone this file already drew for "failed"/"error".
+   */
+  it("reads the deploy pipeline's own word for a failure, not just 'failed'", () => {
+    const failure = releaseStanding("failure");
+    expect(failure.tone).toBe("fail");
+    expect(failure.word).toBe(releaseStanding("failed").word);
+  });
+
   it("passes an unfamiliar provider word through instead of guessing", () => {
     // A confident wrong colour is worse than none: holdTone's rule.
     const odd = releaseStanding("rolled_back_by_operator");

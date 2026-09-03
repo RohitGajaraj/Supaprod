@@ -635,6 +635,12 @@ export async function runCiPollTick() {
                     deploy_url: result.url,
                     triggered_by: "ci-poll-tick",
                     deployed_at: new Date().toISOString(),
+                    // P-39 (A-QUEUE.md): `result.reason` already carries the
+                    // provider's own HTTP status and response body on a
+                    // failure (`deployChangesetApp`'s own header) -- it was
+                    // computed and thrown away right here, never written to
+                    // the row it explains. Null on success: nothing to say.
+                    failure_reason: result.ok ? null : result.reason,
                   },
                   { onConflict: "changeset_id,environment,commit_sha" },
                 )

@@ -251,11 +251,14 @@ export async function deployChangesetApp(args: {
     }),
   });
   if (!deployRes.ok) {
+    // P-39 (A-QUEUE.md): 500 bytes, not 200 -- the scope's own number, and the
+    // body of a real provider error (a quota message, a validation detail)
+    // regularly runs past 200.
     return {
       ok: false,
       revisionId: null,
       url: null,
-      reason: `deploy failed (${deployRes.status}): ${(await deployRes.text()).slice(0, 200)}`,
+      reason: `deploy failed (${deployRes.status}): ${(await deployRes.text()).slice(0, 500)}`,
     };
   }
   const body = (await deployRes.json()) as { id?: string };
