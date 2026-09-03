@@ -316,6 +316,15 @@ list of names with nothing to choose between them is a menu, not a choice: the p
 first, or the one they recognise, which is the product deciding by ordering rather than the person
 deciding on evidence.
 
+**Where the deciding fact is unknown for one option, the row says so** (A1, amendment 1). A blank
+beside three numbers is the product deciding by ordering again, more quietly: the reader takes the
+blank for zero, or for irrelevant, and picks one of the three that answered. _Unknown_ is a fact
+about our reading, and it is the one the person needs to weigh that row honestly.
+
+**The whole row is the target and there is no radio** (same amendment). A radio is a control that
+reports a selection which does not exist yet, and it asks a person to hit a 12px circle on the
+device these defects keep being found on.
+
 **No option is the default and none is pre-selected.** This is the rule that separates a `Choice`
 from an `Ask`: an `Ask` has a primary because one answer is the expected one and the card can say so
 honestly. In a `Choice` the whole point is that the product does not know which is right, so a
@@ -352,7 +361,14 @@ door onto an empty room.
 an apology, and it is the same rule the arrival document settled for an empty workspace: *"0 findings
 this week"* over a product nobody has given anything to read is a reproach rather than a fact.
 
-**Where the queue is empty because something is wrong**, that is not this. A read that failed is a
+**Where the queue is empty because something is HELD, the component refuses** (A1, amendment 2). A
+queue empty because nothing is pointed at a source is not quiet: it is held, and
+[`arrival-2026-09.md`](./arrival-2026-09.md) already has its sentence and its one door. Calming that
+state is the worst thing this component could do, because it would make a workspace that **cannot**
+work look like one with nothing to do, and the person would never learn why.
+
+So it is refused rather than styled: the component renders nothing and says why in the log, and the
+guard proves a no-source state cannot arrive there. A read that FAILED is the same rule again: a
 different state with a different sentence, and collapsing the two is how a broken surface comes to
 look calm.
 
