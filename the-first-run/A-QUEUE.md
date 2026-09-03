@@ -6454,7 +6454,7 @@ and each was correctly catching a contract I had changed: the prompt's `evidence
 kit, and the no-evidence coercion moved from "was there anything to read" to "did it use any of it".
 **Blockers (A2 writes):** —
 
-### P-37 · The run screen reads as a product, not a dump of text · Lane: **A2** · Status: READY (the honest run walked once, 14:12 to 15:10 IST); A2 after the rest of P-04 · Moves: 5
+### P-37 · The run screen reads as a product, not a dump of text · Lane: **A2** · Status: A1 WALKED CLEAN (21:00 IST); the founder's walk decides · Moves: 5
 
 **Why.** The founder, on the tablet track's run at 12:08 IST: the gate card, the messages, the
 action items, the inside of the card, the text and the information are dumped with no hierarchy;
@@ -6569,6 +6569,18 @@ and `AskInPlace` stays the picker it is for the surfaces that use it.
 the composer reads *Say what you know, and it carries on from that*, which at Learn is the promise
 item 2 withdraws; b84ac6d22 (published 20:38) not yet served, no *Waiting on time* and no date in
 the footer. Read again after propagation. Item 5 (4b53bc32a) is in the suite now.
+
+**A1, 21:00 IST · walked both tracks on the served build (4b53bc32a), against the doc.** Honest
+run at Learn: the header chip reads *Waiting on time*, no *On hold*, no character line, the composer
+back to its default, the footer *Learn returns Sat, Oct 3.* and nothing else; the transcript rows
+lead with the verdict. Tablet track at Ship: the card reads question, *Ship · Announce*, the risk as
+one prose line, *Why it asks* as the seat's, the declared default and *Waiting on you for 9 hours*
+in mono, then the two answers; the footer *Waiting on you.* alone; the banner above still carries
+the question and both answers. One open question for A2: the page's text still holds *Supa · I need
+you for this one, the question is on the card below* between the banner and the card on this
+asking hold, though the screenshot does not show it; the rule says a card that is asking leaves the
+character silent. The door on a no-source hold is unseen until a run sits in one. The founder's
+walk decides the packet.
 
 **Acceptance.**
 - [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
