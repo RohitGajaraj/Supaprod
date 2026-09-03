@@ -7043,7 +7043,16 @@ door's name from P-60's single list.
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads the titles.
 
-### P-62 · Start is a home, not a run list · Lane: **A2** (after P-60) · Status: CODE DONE (028c7a156; A2 reports 14,021 / 0 / 0, tsc 0; A1 suite on the tip 14,021 / 0, tsc 0; PUBLISHED 01:42 IST 09-04; A1 re-runs the three sentences on the served page) · Moves: 2, 3
+### P-62 · Start is a home, not a run list · Lane: **A2** (after P-60) · Status: DONE (A1 read the three sentences live 02:20 IST 09-04 and re-ran each) · Moves: 2, 3
+
+**A1, 02:22 IST 09-04, DONE.** Served Start, Helio Labs: *21 design gates need you, and 30 other
+things.* (database at 20:50 UTC: 21 pending design gates; the other six families sum to 30);
+*140 findings are on the record. You have not looked yet.* (140 `themes` in the workspace; no
+`brain_last_seen` row yet, so the honest branch; P-69 stamps it on the next visit to Arriving);
+*1 call came back this week and the record was re-scored.* (`forecast_resolution_log` rows for
+Helio in seven days: 1). Each has its door (Answer them, See them, Read them). The run list beneath
+still carries the tablet track's given-up sentence from its three spent attempts; P-68's retry
+replaces it.
 
 **Why.** Audit §1 and §3; the founder, 00:08: "today we have only the app saying that start, so a
 lot of things are not in home."
