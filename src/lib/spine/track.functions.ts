@@ -67,10 +67,13 @@ import {
   EMPTY_RESULT,
   runStateWord,
   searchWords,
+  searchDoors,
   type FindAnythingResult,
   type FoundArtifact,
+  type FoundPerson,
   type SearchKind,
 } from "@/lib/spine/find-anything";
+import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { claimApprovalDecision, executeApproval } from "@/lib/ai/loop.server";
 import { recordGateSignalCore } from "@/lib/gate-signals.functions";
 import { expiryDefaultFor } from "@/lib/ai/approval-expiry";
@@ -1252,7 +1255,7 @@ export const findAnything = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<FindAnythingResult> => {
     const words = searchWords(data.query);
     if (words.length === 0) return EMPTY_RESULT;
-    const { supabase } = context;
+    const { supabase, userId } = context;
 
     const searchArtifactTable = async (
       table: string,
@@ -1332,27 +1335,175 @@ export const findAnything = createServerFn({ method: "GET" })
         ];
       });
 
+    /*
+     * P-64: SOURCES, CONVERSATIONS AND PEOPLE, each a shape `FoundArtifact`
+     * does not fit -- none of the three belongs to a track, so none can
+     * carry a `trackId`/`trackTitle` the way the six reads above do.
+     *
+     * `sync_mappings` has no per-document title at all (found while building
+     * this: each row is a connector mapping, and Sync's own page already
+     * displays `providerLabel(m.provider)`, never a document name) -- so
+     * this searches the provider's human word, the only one the table holds.
+     * RLS is `auth.uid() = user_id` (own rows only), matching
+     * `listSyncMappings`'s explicit filter below for the same reason that
+     * function states it explicitly rather than trusting RLS silently.
+     *
+     * `conversations` RLS is `is_workspace_member(workspace_id)`, so a plain
+     * select already scopes to every workspace this caller can see -- the
+     * same "search everything RLS lets you reach" rule the six reads above
+     * already follow, not a narrower "only your current workspace" rule.
+     *
+     * `workspace_members`' own RLS is "see own membership" (`user_id =
+     * auth.uid()`), so a plain select returns only the caller's OWN row per
+     * workspace -- never a co-member's. `profiles` RLS is own-row-only for
+     * the same reason (`workspaces.functions.ts`'s own comment on
+     * `listWorkspaceMembers`), so a co-member's name is reachable only
+     * through the membership-gated `workspace_members_with_identity` RPC,
+     * one call per workspace the caller belongs to (typically one, rarely
+     * more than a handful) -- the same bounded fan-out
+     * `resolveOwningTracks` above already does per artifact kind.
+     */
+    const searchSources = async (): Promise<
+      Array<{ id: string; provider: string; label: string }>
+    > => {
+      let q = supabase.from("sync_mappings").select("id, provider").eq("user_id", userId).limit(8);
+      for (const w of words) q = q.ilike("provider", `%${w}%`);
+      const { data: rows } = await q;
+      return ((rows ?? []) as Array<{ id: string; provider: string }>).map((r) => ({
+        id: r.id,
+        provider: r.provider,
+        label: CONNECTOR_REGISTRY[r.provider as ProviderId]?.label ?? r.provider.replace(/_/g, " "),
+      }));
+    };
+
+    const searchConversations = async (): Promise<Array<{ id: string; title: string }>> => {
+      /*
+       * P-67's own guard caught this: `conversations` and `messages` both
+       * carry `workspace_id`, and RLS (`is_workspace_member`) alone would
+       * have let this search quietly show a person two workspaces' threads
+       * under one heading the moment they hold two -- the exact class of
+       * defect P-67's header lists four instances of. `threads.functions.ts`'s
+       * own `listThreads` reads `conversations` the same way:
+       * `current_user_default_workspace` RPC, filtered only once it resolves,
+       * never a guess broader than what can be named. Mirrored here rather
+       * than invented, and reused for the `messages` read below too.
+       *
+       * TITLE ALONE MISSES MOST REAL THREADS. Checked against the live
+       * database: most conversations carry the default "New conversation"
+       * title forever -- the words a person actually remembers are in the
+       * first thing they typed, per this packet's own acceptance line ("a
+       * conversation's first line finds it"). So this searches `messages`
+       * too and merges the two hit sets, rather than a title-only search
+       * that would answer "New conversation" and nothing else for most
+       * threads.
+       */
+      const { data: wsDefault } = await supabase.rpc("current_user_default_workspace");
+      const wid = (wsDefault as string | null) ?? null;
+
+      let titleQ = supabase.from("conversations").select("id, title").limit(8);
+      if (wid) titleQ = titleQ.eq("workspace_id", wid);
+      for (const w of words) titleQ = titleQ.ilike("title", `%${w}%`);
+
+      let messageQ = supabase.from("messages").select("conversation_id").limit(8);
+      if (wid) messageQ = messageQ.eq("workspace_id", wid);
+      for (const w of words) messageQ = messageQ.ilike("content", `%${w}%`);
+
+      const [{ data: titleRows }, { data: messageRows }] = await Promise.all([titleQ, messageQ]);
+
+      const byMessage = [
+        ...new Set(
+          ((messageRows ?? []) as Array<{ conversation_id: string }>).map((r) => r.conversation_id),
+        ),
+      ];
+      let fromMessages: Array<{ id: string; title: string }> = [];
+      if (byMessage.length > 0) {
+        let convQ = supabase.from("conversations").select("id, title").in("id", byMessage);
+        if (wid) convQ = convQ.eq("workspace_id", wid);
+        const { data } = await convQ;
+        fromMessages = (data ?? []) as Array<{ id: string; title: string }>;
+      }
+
+      const seen = new Map<string, { id: string; title: string }>();
+      for (const r of (titleRows ?? []) as Array<{ id: string; title: string }>) seen.set(r.id, r);
+      for (const r of fromMessages) if (!seen.has(r.id)) seen.set(r.id, r);
+      return [...seen.values()].slice(0, 8);
+    };
+
+    const searchPeople = async (): Promise<FoundPerson[]> => {
+      const { data: mine } = await supabase
+        .from("workspace_members")
+        .select("workspace_id")
+        .eq("user_id", userId);
+      const workspaceIds = [
+        ...new Set(((mine ?? []) as Array<{ workspace_id: string }>).map((m) => m.workspace_id)),
+      ];
+      if (workspaceIds.length === 0) return [];
+
+      const seen = new Map<string, FoundPerson>();
+      await Promise.all(
+        workspaceIds.map(async (workspaceId) => {
+          const { data, error } = await supabase.rpc("workspace_members_with_identity", {
+            _workspace_id: workspaceId,
+          });
+          if (error || !Array.isArray(data)) return;
+          for (const r of data as Array<{
+            user_id: string;
+            display_name: string | null;
+            email: string | null;
+          }>) {
+            if (!seen.has(r.user_id)) {
+              seen.set(r.user_id, {
+                userId: r.user_id,
+                displayName: r.display_name,
+                email: r.email,
+              });
+            }
+          }
+        }),
+      );
+
+      return [...seen.values()]
+        .filter((p) => {
+          const hay = `${p.displayName ?? ""} ${p.email ?? ""}`.toLowerCase();
+          return words.every((w) => hay.includes(w));
+        })
+        .slice(0, 8);
+    };
+
     try {
-      const [runRows, prdRows, decisionRows, prototypeRows, changesetRows, signalRows, themeRows] =
-        await Promise.all([
-          (async () => {
-            let q = supabase.from("spine_tracks").select("id, title, status, last_hold").limit(8);
-            for (const w of words) q = q.ilike("title", `%${w}%`);
-            const { data: rows } = await q;
-            return (rows ?? []) as unknown as Array<{
-              id: string;
-              title: string;
-              status: string;
-              last_hold: string | null;
-            }>;
-          })(),
-          searchArtifactTable(ARTIFACT_SOURCE.prd.table, ARTIFACT_SOURCE.prd.title, 8),
-          searchArtifactTable(ARTIFACT_SOURCE.decision.table, ARTIFACT_SOURCE.decision.title, 8),
-          searchArtifactTable(ARTIFACT_SOURCE.prototype.table, ARTIFACT_SOURCE.prototype.title, 8),
-          searchArtifactTable(ARTIFACT_SOURCE.changeset.table, ARTIFACT_SOURCE.changeset.title, 8),
-          searchArtifactTable(ARTIFACT_SOURCE.signal.table, ARTIFACT_SOURCE.signal.title, 8),
-          searchArtifactTable(ARTIFACT_SOURCE.theme.table, ARTIFACT_SOURCE.theme.title, 8),
-        ]);
+      const [
+        runRows,
+        prdRows,
+        decisionRows,
+        prototypeRows,
+        changesetRows,
+        signalRows,
+        themeRows,
+        sourceRows,
+        conversationRows,
+        peopleRows,
+      ] = await Promise.all([
+        (async () => {
+          let q = supabase.from("spine_tracks").select("id, title, status, last_hold").limit(8);
+          for (const w of words) q = q.ilike("title", `%${w}%`);
+          const { data: rows } = await q;
+          return (rows ?? []) as unknown as Array<{
+            id: string;
+            title: string;
+            status: string;
+            last_hold: string | null;
+          }>;
+        })(),
+        searchArtifactTable(ARTIFACT_SOURCE.prd.table, ARTIFACT_SOURCE.prd.title, 8),
+        searchArtifactTable(ARTIFACT_SOURCE.decision.table, ARTIFACT_SOURCE.decision.title, 8),
+        searchArtifactTable(ARTIFACT_SOURCE.prototype.table, ARTIFACT_SOURCE.prototype.title, 8),
+        searchArtifactTable(ARTIFACT_SOURCE.changeset.table, ARTIFACT_SOURCE.changeset.title, 8),
+        searchArtifactTable(ARTIFACT_SOURCE.signal.table, ARTIFACT_SOURCE.signal.title, 8),
+        searchArtifactTable(ARTIFACT_SOURCE.theme.table, ARTIFACT_SOURCE.theme.title, 8),
+        searchSources(),
+        searchConversations(),
+        searchPeople(),
+      ]);
 
       // One group, one combined cap -- "Findings and themes" is a single
       // heading in this packet's own scope, not two eights.
@@ -1370,6 +1521,7 @@ export const findAnything = createServerFn({ method: "GET" })
       ]);
 
       return {
+        doors: searchDoors(words),
         runs: runRows.map((r) => ({
           id: r.id,
           title: r.title,
@@ -1380,6 +1532,9 @@ export const findAnything = createServerFn({ method: "GET" })
         prototype: toFoundArtifacts("prototype", prototypeRows, tracks),
         changeset: toFoundArtifacts("changeset", changesetRows, tracks),
         findings: findingHits.flatMap((r) => toFoundArtifacts(r.kind, [r], tracks)),
+        sources: sourceRows,
+        conversations: conversationRows,
+        people: peopleRows,
       };
     } catch {
       // A broken search must never take the rail down with it.

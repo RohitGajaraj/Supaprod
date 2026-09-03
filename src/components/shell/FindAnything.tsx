@@ -26,34 +26,61 @@
  * instead, and `Row` is called with no `onClick`.
  */
 import * as React from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Row } from "@/components/meridian/rows";
 import { findAnything } from "@/lib/spine/track.functions";
+import { OPEN_MODAL_SELECTOR } from "@/lib/overlay";
 import {
   GROUP_LABEL,
   type FindAnythingResult,
   type FoundArtifact,
   type FoundRun,
+  type FoundDoor,
+  type FoundSource,
+  type FoundConversation,
+  type FoundPerson,
 } from "@/lib/spine/find-anything";
 import { joinPlainly } from "@/lib/spine/attach";
 import { ResultsPopover } from "@/components/meridian/results-popover";
 import { IconFind } from "./icons";
 
-/** One flattened, navigable row -- a run or an artifact -- carrying enough to
- *  render itself and to say where Enter or a click sends the reader. */
+/** One flattened, navigable row -- a door, a run, an artifact, a source, a
+ *  conversation or a person -- carrying enough to render itself and to say
+ *  where Enter or a click sends the reader. */
 type Option =
+  | { key: string; group: "doors"; door: FoundDoor }
   | { key: string; group: "runs"; run: FoundRun }
-  | { key: string; group: Exclude<keyof FindAnythingResult, "runs">; artifact: FoundArtifact };
+  | {
+      key: string;
+      group: Exclude<
+        keyof FindAnythingResult,
+        "doors" | "runs" | "sources" | "conversations" | "people"
+      >;
+      artifact: FoundArtifact;
+    }
+  | { key: string; group: "sources"; source: FoundSource }
+  | { key: string; group: "conversations"; conversation: FoundConversation }
+  | { key: string; group: "people"; person: FoundPerson };
 
+/*
+ * P-64: doors lead, because "go somewhere" is the search a person reaches for
+ * most and the packet names it first. The order after that is unchanged
+ * from P-25 with the three new groups appended in the order the packet's
+ * own scope lists them.
+ */
 const GROUP_ORDER: ReadonlyArray<keyof FindAnythingResult> = [
+  "doors",
   "runs",
   "prd",
   "decision",
   "prototype",
   "changeset",
   "findings",
+  "sources",
+  "conversations",
+  "people",
 ];
 
 /**
@@ -75,8 +102,30 @@ export const NOTHING_NAMED_THAT = `Nothing named that. ${(() => {
 function flatten(result: FindAnythingResult): Option[] {
   const out: Option[] = [];
   for (const group of GROUP_ORDER) {
+    if (group === "doors") {
+      for (const door of result.doors) out.push({ key: `door:${door.to}`, group: "doors", door });
+      continue;
+    }
     if (group === "runs") {
       for (const run of result.runs) out.push({ key: `run:${run.id}`, group: "runs", run });
+      continue;
+    }
+    if (group === "sources") {
+      for (const source of result.sources) {
+        out.push({ key: `source:${source.id}`, group: "sources", source });
+      }
+      continue;
+    }
+    if (group === "conversations") {
+      for (const conversation of result.conversations) {
+        out.push({ key: `conversation:${conversation.id}`, group: "conversations", conversation });
+      }
+      continue;
+    }
+    if (group === "people") {
+      for (const person of result.people) {
+        out.push({ key: `person:${person.userId}`, group: "people", person });
+      }
       continue;
     }
     for (const artifact of result[group]) {
@@ -84,6 +133,29 @@ function flatten(result: FindAnythingResult): Option[] {
     }
   }
   return out;
+}
+
+/** What an option's row shows: the title line and the fact line beneath it.
+ *  One function rather than a ternary chain in the JSX below, now that there
+ *  are six shapes instead of two (P-64). */
+function rowContent(opt: Option): { lead: React.ReactNode; sub: React.ReactNode } {
+  switch (opt.group) {
+    case "doors":
+      return { lead: opt.door.label, sub: opt.door.tagline };
+    case "runs":
+      return { lead: opt.run.title, sub: opt.run.state };
+    case "sources":
+      return { lead: opt.source.label, sub: "Connected source" };
+    case "conversations":
+      return { lead: opt.conversation.title, sub: "Conversation" };
+    case "people":
+      return {
+        lead: opt.person.displayName ?? opt.person.email ?? "A member of this workspace",
+        sub: opt.person.email ?? "Workspace member",
+      };
+    default:
+      return { lead: opt.artifact.title, sub: `In ${opt.artifact.trackTitle}` };
+  }
 }
 
 /** The 300ms is `SidebarNav`'s own live-filter debounce (`shell.css`'s search
@@ -111,6 +183,60 @@ export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: 
   const [cursor, setCursor] = React.useState(0);
   const box = React.useRef<HTMLInputElement | null>(null);
   const requestId = React.useRef(0);
+
+  /*
+   * P-64: "/" REACHES THIS FIELD FROM ANYWHERE, KEYBOARD ONLY.
+   *
+   * ⌘K is Ask's, by founder ruling (2026-07-30; see GotoShortcuts.tsx's own
+   * header) -- this cannot reuse it. "/" is the convention this product's own
+   * reference set already uses (GitHub, Linear, Slack all bind it to search),
+   * and it was unbound here: the field could only be reached by clicking the
+   * narrow-rail button, which is exactly the mouse dependency the packet's
+   * own acceptance line rules out.
+   *
+   * THE GUARD IS GOTOSHORTCUTS' OWN, verbatim, for the reasons its header
+   * already states (a screen reader typing "/" into a native select must not
+   * be hijacked; a keystroke into an open dialog must not reach past it).
+   *
+   * AND ONE MORE REFUSAL THIS FILE ADDS: the run screen's own "/" already
+   * means "steer" there (`run-keys.ts`), and one keystroke must mean one
+   * thing. Pathname-gated rather than event-target-gated, because the run
+   * screen's steer box is not always focused when the key is pressed -- the
+   * whole point of that binding is that it reaches the composer FROM
+   * anywhere on the page.
+   */
+  const narrowRef = React.useRef(narrow);
+  narrowRef.current = narrow;
+  const onExpandRef = React.useRef(onExpand);
+  onExpandRef.current = onExpand;
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathnameRef = React.useRef(pathname);
+  pathnameRef.current = pathname;
+
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "/") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+      if (document.querySelector(OPEN_MODAL_SELECTOR)) return;
+      if (/^\/track\//.test(pathnameRef.current)) return;
+      e.preventDefault();
+      // Narrow: one frame deferred, same reason the click handler above defers
+      // -- the rail animates its width, so the field is not in the layout the
+      // frame this fires. Already expanded: the field is already there, so
+      // focusing on the same frame is correct and is what a synchronous key
+      // press should do.
+      if (narrowRef.current) {
+        onExpandRef.current();
+        requestAnimationFrame(() => box.current?.focus());
+      } else {
+        box.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, []);
 
   React.useEffect(() => {
     const query = q.trim();
@@ -142,8 +268,29 @@ export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: 
     (opt: Option) => {
       setQ("");
       setResult(null);
+      if (opt.group === "doors") {
+        /* Run's `to` is "/track", an identity rather than a route (see
+           nav-model.ts and GotoShortcuts' own identical guard) -- searchDoors
+           can still match it on "Run"/"the run you are standing in", and
+           there is nowhere to send a click on it without a live track. */
+        if (opt.door.to === "/track") return;
+        void navigate({ to: opt.door.to, search: opt.door.search as never });
+        return;
+      }
       if (opt.group === "runs") {
         void navigate({ to: "/track/$trackId", params: { trackId: opt.run.id }, search: {} });
+        return;
+      }
+      if (opt.group === "sources") {
+        void navigate({ to: "/sync" });
+        return;
+      }
+      if (opt.group === "conversations") {
+        void navigate({ to: "/threads", search: { c: opt.conversation.id } });
+        return;
+      }
+      if (opt.group === "people") {
+        void navigate({ to: "/settings", search: { section: "workspace" } });
         return;
       }
       void navigate({
@@ -247,7 +394,7 @@ export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: 
                   <p className="mrd-eyebrow px-mrd-3 pt-mrd-2">{GROUP_LABEL[group]}</p>
                   {rows.map((opt) => {
                     const i = options.indexOf(opt);
-                    const isRun = opt.group === "runs";
+                    const { lead, sub } = rowContent(opt);
                     return (
                       <div
                         key={opt.key}
@@ -279,16 +426,8 @@ export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: 
                          */}
                         <Row
                           focused={i === cursor}
-                          lead={
-                            <span className="line-clamp-2">
-                              {isRun ? opt.run.title : opt.artifact.title}
-                            </span>
-                          }
-                          sub={
-                            <span className="line-clamp-1">
-                              {isRun ? opt.run.state : `In ${opt.artifact.trackTitle}`}
-                            </span>
-                          }
+                          lead={<span className="line-clamp-2">{lead}</span>}
+                          sub={<span className="line-clamp-1">{sub}</span>}
                         />
                       </div>
                     );

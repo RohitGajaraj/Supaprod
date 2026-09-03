@@ -9,6 +9,7 @@
  * RLS -- lives in `track.functions.ts` per this packet's own Files line,
  * imports these two exports, and does nothing this file could also decide.
  */
+import { PRIMARY_NAV, type NavItemDef } from "@/lib/nav-model";
 
 /** The six artifact kinds `findAnything` searches, beyond the run itself. */
 export const SEARCH_KINDS = [
@@ -34,7 +35,26 @@ export type FoundArtifact = {
   trackTitle: string;
 };
 
+/** A door result: `nav-model.ts`'s own shape, unchanged. Matched on the
+ *  door's label and tagline, both already the person's own words. */
+export type FoundDoor = NavItemDef;
+
+/** `sync_mappings` carries no per-document title (P-64: found while building
+ *  this group -- each row is a connector mapping, not a document, and Sync's
+ *  own page already displays the provider name, not one). So a source result
+ *  names the connector, the only human word this table actually holds. */
+export type FoundSource = { id: string; provider: string; label: string };
+
+export type FoundConversation = { id: string; title: string };
+
+export type FoundPerson = { userId: string; displayName: string | null; email: string | null };
+
 export type FindAnythingResult = {
+  /** P-64: the nine doors, searched by their own label and tagline. Pure --
+   *  no I/O, `searchDoors` below -- and returned by the server function
+   *  anyway (not computed client-side) so this one type stays the whole
+   *  contract `FindAnything.tsx` renders from. */
+  doors: FoundDoor[];
   runs: FoundRun[];
   prd: FoundArtifact[];
   decision: FoundArtifact[];
@@ -44,16 +64,45 @@ export type FindAnythingResult = {
    *  group the packet names -- "Findings and themes" -- and capped at 8
    *  combined, not 8 each. */
   findings: FoundArtifact[];
+  /** P-64. */
+  sources: FoundSource[];
+  /** P-64. */
+  conversations: FoundConversation[];
+  /** P-64. */
+  people: FoundPerson[];
 };
 
 export const EMPTY_RESULT: FindAnythingResult = {
+  doors: [],
   runs: [],
   prd: [],
   decision: [],
   prototype: [],
   changeset: [],
   findings: [],
+  sources: [],
+  conversations: [],
+  people: [],
 };
+
+/**
+ * P-64: the nine doors, searched the same word-matching way as everything
+ * else this file matches, against the words a person actually reads on the
+ * rail -- the label and the tagline, never the route path or the zone.
+ * Pure, so it is provable without a database exactly like `searchWords`
+ * above; `findAnything`'s handler calls it with the same `words` split every
+ * other group already computed.
+ */
+export function searchDoors(
+  words: readonly string[],
+  doors: readonly NavItemDef[] = PRIMARY_NAV,
+): FoundDoor[] {
+  if (words.length === 0) return [];
+  return doors.filter((d) => {
+    const hay = `${d.label} ${d.tagline}`.toLowerCase();
+    return words.every((w) => hay.includes(w));
+  });
+}
 
 /**
  * Case-insensitively, every word present, in any order.
@@ -96,10 +145,14 @@ export function runStateWord(status: string, lastHold: string | null): string {
  *  sentence a track's own chain composes about itself; this is a rail
  *  search's own group heading, specified verbatim in the packet. */
 export const GROUP_LABEL: Record<keyof FindAnythingResult, string> = {
+  doors: "Go to",
   runs: "Runs",
   prd: "Specs",
   decision: "Decisions",
   prototype: "Prototypes",
   changeset: "Pull requests",
   findings: "Findings and themes",
+  sources: "Sources",
+  conversations: "Conversations",
+  people: "People",
 };

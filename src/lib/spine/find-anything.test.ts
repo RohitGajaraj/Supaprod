@@ -4,7 +4,8 @@
  * these two are split out of `track.functions.ts`.
  */
 import { describe, it, expect } from "bun:test";
-import { searchWords, runStateWord, GROUP_LABEL } from "./find-anything";
+import { searchWords, runStateWord, searchDoors, GROUP_LABEL } from "./find-anything";
+import type { NavItemDef } from "@/lib/nav-model";
 
 describe("searchWords: every word present, case-insensitively, in any order", () => {
   it("lowercases and splits on whitespace", () => {
@@ -55,7 +56,52 @@ describe("GROUP_LABEL: the packet's own group headings, not KIND_WORD's sentence
 
   it("covers every key FindAnythingResult has", () => {
     expect(Object.keys(GROUP_LABEL).sort()).toEqual(
-      ["runs", "prd", "decision", "prototype", "changeset", "findings"].sort(),
+      [
+        "doors",
+        "runs",
+        "prd",
+        "decision",
+        "prototype",
+        "changeset",
+        "findings",
+        "sources",
+        "conversations",
+        "people",
+      ].sort(),
     );
+  });
+});
+
+describe("searchDoors: P-64's nine doors, matched on their own label and tagline", () => {
+  const DOORS: readonly NavItemDef[] = [
+    { to: "/start", label: "Start", zone: "home", tagline: "Hand work over, watch it run." },
+    {
+      to: "/approvals",
+      label: "Waiting",
+      zone: "home",
+      tagline: "Everything that cannot move until you answer it.",
+    },
+    { to: "/sync", label: "Sources", zone: "home", tagline: "What the crew is allowed to read." },
+  ];
+
+  it("an empty query finds no doors, so a blank field never shows every door as a hit", () => {
+    expect(searchDoors([], DOORS)).toEqual([]);
+  });
+
+  it("matches a door on its own label", () => {
+    expect(searchDoors(["start"], DOORS).map((d) => d.label)).toEqual(["Start"]);
+  });
+
+  it("matches a door on its tagline, not only its label", () => {
+    expect(searchDoors(["answer"], DOORS).map((d) => d.label)).toEqual(["Waiting"]);
+  });
+
+  it("every word must be present, in either the label or the tagline", () => {
+    expect(searchDoors(["waiting", "answer"], DOORS).map((d) => d.label)).toEqual(["Waiting"]);
+    expect(searchDoors(["waiting", "read"], DOORS)).toEqual([]);
+  });
+
+  it("defaults to the real PRIMARY_NAV list", () => {
+    expect(searchDoors(["start"]).map((d) => d.to)).toContain("/start");
   });
 });

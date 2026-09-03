@@ -222,6 +222,10 @@ export function navChords(): Array<{ label: string; keys: string; to: string }> 
 export const GLOBAL_KEYS: readonly SurfaceKey[] = [
   { key: "⌘K", does: "Opens Ask, wherever you are. Press it again to close it." },
   { key: `${NAV_CHORD_PREFIX} ·`, does: "Hold to see every door's letter, then press one to go." },
+  {
+    key: "/",
+    does: "Finds a door, a run, a spec, a decision, a source, a conversation or a person.",
+  },
   { key: "Esc", does: "Closes the innermost thing that is open." },
   { key: "?", does: "Opens this sheet." },
 ];
