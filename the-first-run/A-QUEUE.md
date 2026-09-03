@@ -6531,6 +6531,11 @@ asks and its default line saying what silence does.
 - [ ] A1 reads an Ask answer with two pending gates on the served build.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
+**A1, 21:56 IST.** d1983b926: suite on the tip 13,918 / 0 / 0, tsc 0; published 21:56. Gate stays
+on A2's evidence (three shapes in one primitive; P-52 and P-53 carry the split), `since` optional
+in `Ask` since the panel's items carry no timestamp. The read of the Ask panel with two pending
+gates follows propagation.
+
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
