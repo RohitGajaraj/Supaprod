@@ -5949,7 +5949,7 @@ prior one).
 **Blockers (A3 writes):** None. Both acceptance items marked A1's-to-walk have no live browser
 available to me this session; everything else is verified.
 
-### P-43 · The run screen's states say one thing · Lane: **A3** · Status: READY · Moves: 2, 3
+### P-43 · The run screen's states say one thing · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** From the honest run's screen (A1, 14:12 to 15:10 IST; the list under P-37). These four are
 state and copy, not design, and they do not wait for the design pass: (a) *Waiting on you.* in the
