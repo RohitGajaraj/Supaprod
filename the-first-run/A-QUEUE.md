@@ -3700,7 +3700,7 @@ carry the three files under `.supaprod/`, and the Plan tab should offer copy and
 
 ---
 
-### P-22 · The thing being built runs in the right pane · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 09:40 IST) — first close complete; the running-app read needs a connected provider · Moves: 3, 4, 5
+### P-22 · The thing being built runs in the right pane · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2 `aceda8ad2`; the running frame needs a preview provider on the bound repo, the founder's item)· Moves: 3, 4, 5
 
 **Why (founder, 2026-09-02 19:29, from Lovable's Live preview setting: *"Run your app on a live dev
 server in the editor preview. When off, the preview shows the latest built version."*).** Watching
@@ -3716,6 +3716,12 @@ deploy steps with a clock (Vercel's streaming build log), never a spinner. When 
 the slot says why in one line (*"No preview: the repo has no preview deploys connected"*) with the
 door to Settings › Connections. Ship's row shows the production URL the same way once
 `release.publish` fires.
+
+
+**A1, 09:50 IST.** Ship half in: `ReleaseCard` draws the same running frame Build draws, labelled
+Live, only for a release that succeeded; one component, two callers, Build looking a preview up and
+Ship holding its own `deploy_url`. The empty state on the honest run reads as designed (seen 08:00).
+The frame itself cannot be seen until a preview provider is connected to `relay-homeowner-app`.
 
 **Report (A2, 09:40 IST) — first close complete on main at `aceda8ad2`. tsc 0 · `bun test` 0 fail ·
 ratchet unchanged. No code remains in this packet.**
@@ -4719,3 +4725,34 @@ line-by-line trace confirming identical semantics. Pushed `79674d553` directly o
 
 **Blockers (A3 writes):** The live 2-second acceptance line needs your extension — no browser this
 session. Everything else in the Report is done and pushed.
+
+
+### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: READY · Moves: 1, 2, 5
+
+**Why.** Every walk so far has been on Helio Labs, a workspace with 59 decisions and 15 tracks.
+The founder's own workspace, and every new customer's, starts with nothing: no runs, no bets, no
+record. The bar says empty, slow and wrong are the states that decide whether the product is
+trusted and the ones designed last. Nobody has designed this one since the fold.
+
+**Scope.** Create a fresh workspace on production through the product's own path (the founder's
+account, a new workspace; no seed), sign in, and walk Start → a first sentence → the run screen
+while the first run is at Discover → Outcomes → Settings. At each screen, what a person sees with
+no data must say what the product does, what is happening now, and what it will show them, in
+the product's register; no seed rows, no placeholders that look like data, no *Or start one of
+these* cards that are not the workspace's own. Write the arrival as one document
+(`docs/design/arrival-2026-09.md`, dated, linked from the folder index) with a screenshot-free
+description of each state, then build what is missing. Meridian first for any new component.
+Where the sample workspace (`Helio Labs (sample)`) is the right first thing to show, say so and
+make the door to it honest.
+
+**Files.** Start, the run screen's empty states, Outcomes' empty state, Settings' first-time state;
+`src/components/meridian/**` for anything new.
+
+**Acceptance.**
+- [ ] A1 walks the fresh workspace signed in and every screen with no data reads as designed, not
+      as an error or a blank; the first sentence starts a run that appears on Start within one poll.
+- [ ] Nothing on those screens claims a number the workspace does not have.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · ratchet not widened · pushed · Report with the document.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
