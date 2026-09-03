@@ -6416,7 +6416,7 @@ packets; needs your walk.
 
 **Blockers (A3 writes):** —
 
-### P-49 · The dead weight the audit named is gone, with its guards rewritten · Lane: **A3** · Status: READY (after P-48) · Moves: 5
+### P-49 · The dead weight the audit named is gone, with its guards rewritten · Lane: **A3** · Status: CLAIMED (A3) · Moves: 5
 
 **Why.** The report's §1.4 named what to delete; most of it went in P-10 to P-12. One file is
 still in the tree with zero non-test importers, found today: `src/components/chat/MessageMeta.tsx`
