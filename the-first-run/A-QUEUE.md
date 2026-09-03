@@ -4994,7 +4994,7 @@ Picking up the next READY A3 packet rather than sitting on this one.
 Not blocked on tooling or access — blocked on which of two readings of "Why" is current.
 
 
-### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: pass 4 built, pending A1's live measurement (A3) · Moves: 2, 3
+### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: DONE on the warm read (A1, 16:28 IST); one mark missing, one hosting finding · Moves: 2, 3
 
 **Why.** The front door reads *Reading your runs.* for three to six seconds on a warm load and
 over nine on this morning's cold one (A1, 06:34 and 09:20 IST, Helio Labs: 15 open tracks). A
@@ -5274,6 +5274,17 @@ tsc 0. `bun test`: 13,822 pass / 0 fail / 0 unhandled error, full console suite.
 **A1, 16:14 IST · pass 4 read, before.** Quiet machine, three loads: cold Worker first byte 4.2 s,
 first server call 7.3 s; warm 0.1 s and 0.2 s interactive, first server call 1.4 s and 1.4 s. No
 `start:*` measures on the page, so the 16:02 build was not yet served (rule 18); re-read at 16:24.
+
+**A1, 16:28 IST · pass 4 read, after, by its own marks.** Quiet machine, three loads on the 16:02
+build (the `start:*` marks are on the page, so this is the served commit). Warm loads two and
+three: first byte 0.13 s and 0.07 s, interactive 0.23 s and 0.14 s, the runs call starts at
+0.29 s and 0.20 s (was 1.4 s before pass 4) and its 38 KB answer lands at 1.2 s; the first run row
+is on screen by then. **The two-second line holds warm, on two of two loads.** Load one was a cold
+Worker: 5.0 s to first byte, first row after 9 s; that is Cloudflare cold start on Lovable's
+hosting, not the app's prefix, and it is the first visit of a user's day. Filed as a hosting finding
+for the report, not for this packet. One small thing left for A3: the runs reader has no
+`start:listRunsForStart` mark because the beforeLoad prefetch bypasses `measuredQueryFn`; the
+reader P-32 is about is the one without a mark. Add it on the prefetch path; no re-measure needed.
 
 ### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: §5 DONE (A2 walked, A1 verified 15:26 IST); one founder item left: the seven Prism and Trellis decisions in Helio Labs, delete or move· Moves: 1, 2, 5
 
