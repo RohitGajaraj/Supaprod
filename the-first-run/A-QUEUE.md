@@ -5709,6 +5709,12 @@ generated types must know every column a migration added*. The column is live an
 (`20260909040000`) and absent from `types.ts`. Not published. A3 adds it in the codegen's form and
 reruns tsc and the console suite on the tip; rule 17 covers tsc too.
 
+**A1, 15:55 IST · item 3 accepted, code side.** The bot's regeneration landed the three
+`failure_reason` lines (and requoted the same five files, reverted by A1 at e619e836e); on that tip
+tsc 0 and the suite prints 13,818 / 0 / 0; published 15:55 with A2's 837c08deb and e3398dbb9. The
+live read of a preview failure's reason on a run screen waits for the next failed preview; the
+delete sentence is walked after the founder's second run starts (the switcher is shared).
+
 **Report (A3 writes):**
 
 **(1) The delete/leave fix.** `deleteWorkspace`/`leaveWorkspace` ran a bare `.delete()` and reported
