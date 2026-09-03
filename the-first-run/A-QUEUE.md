@@ -6298,6 +6298,13 @@ second and the risk line sits inside a facts block with *What decides the risk* 
 to land: question, risk as one prose line, reason as the seat's, default and date mono and last,
 answers. The character's line above the card retires with SeatSays. A2 continues.
 
+**A1 walked shape 6 on the served build, 17:28 IST (f654ca53b).** The verdict leads (*Filed
+nothing*), the seat and duration sit in the meta line under it. Two more for A2: the row prints
+*Worked for 3m 12s* under a meta line that already carries 3m 12s; and the honest run at Learn,
+waiting for its date, says four things about one state (the *On hold* chip, the character's *I've
+stopped*, the footer's *Stopped, and not on you*, a *Run it now* button that does nothing on a
+date wait) where the rule wants one sentence and no door: *Learn returns Sat, Oct 3*.
+
 **Acceptance.**
 - [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
       first against the mockups.
