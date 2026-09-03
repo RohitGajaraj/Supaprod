@@ -495,3 +495,15 @@ narrates the run. The founder's walk decides the packet; the two screens are the
 the honest run. Forty-one of forty-eight packets are done with evidence; P-48 (the chat's seat turns
 in the same vocabulary) is filed for A3 so the two places a seat speaks stop being two dialects.
 Founder items unchanged. The date call holds at 23 September.
+
+**Checkpoint, 2026-09-03 22:00 IST. One card everywhere, and the second primitive named for what
+it was.** Since 21:05: P-48 (the chat's seat turns in the run screen's register), P-49 (the dead
+chat footer gone, its live type contract kept, both guards rewritten), P-51 (the last gate-card
+caller on the deprecated alias was the approvals page, carrying the live slot defect; alias gone)
+are done with evidence; P-50 (the Ask panel's gate cards compose `Ask`, *Not now* as the default's
+own action, the chip gone) is published and read after propagation. A2 discharged the burden on
+`Gate` with sixteen call sites in twelve files: three shapes, not one, so it is not retired but
+split, P-52 (a Choice and a Quiet, designed first) and P-53 (the migration and the retirement).
+Forty-six of fifty-three packets done with evidence. Founder items unchanged: the walk of the run
+screen, the second sentence under Relay, the release gate, the seven decisions. The date call
+holds at 23 September.
