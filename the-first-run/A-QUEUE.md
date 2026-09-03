@@ -7162,7 +7162,7 @@ kept as hers). No page says "Policies" or "Brain" live; the seven ruled titles r
 
 **DoD.** Pushed (`abd7da315`). Requesting A1 publish and read the titles live.
 
-### P-63 · Every surface with a door has a first-visit state · Lane: **A3** (after P-61) · Status: READY · Moves: 2
+### P-63 · Every surface with a door has a first-visit state · Lane: **A3** (after P-61) · Status: CLAIMED (A3) 22:24 UTC 09-03 · Moves: 2
 
 **Why.** Audit §3. The first run is designed; the first visit to each other surface is not. A door
 that lands on a blank is worse than no door.
