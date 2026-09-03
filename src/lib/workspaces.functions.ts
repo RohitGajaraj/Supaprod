@@ -106,10 +106,16 @@ export const createWorkspace = createServerFn({ method: "POST" })
      * -- AND THE MEMBERSHIP ROW, WITHOUT WHICH IT CANNOT BE READ ------------
      *
      * The second half of the same defect, and it would have outlived the policy
-     * fix on its own. `workspaces`' SELECT policy is `is_workspace_member(id)`,
-     * so a workspace created with no `workspace_members` row is invisible to the
-     * person who just made it: the insert succeeds, the `.select()` returns
-     * nothing, and the handler reports a failure over a row that exists.
+     * fix on its own. `workspaces`' SELECT policy was `is_workspace_member(id)`
+     * alone, so a workspace created with no `workspace_members` row is invisible
+     * to the person who just made it, and every collaborator surface reads
+     * through that function.
+     *
+     * WHAT THIS ROW DOES NOT FIX is the `.select()` above, and an earlier draft
+     * of this comment said it did. That `.select()` is a `RETURNING` inside the
+     * insert's OWN statement, so it is evaluated before this line has run and no
+     * membership row can help it. The read is what 20260908010000's `ws owner
+     * reads own` is for. This row is for everything after.
      *
      * `ensure_user_default_workspace` writes this row for the signup path, which
      * is why nobody noticed the second path never did.
