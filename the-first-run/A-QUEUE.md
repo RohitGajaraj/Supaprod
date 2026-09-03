@@ -1895,6 +1895,18 @@ PR #4 merges, and it walks the route on the fixed driver with nobody pressing an
 the plan said on 09-02 and it is truer now than a fourth reset would be. A2 is asked only whether the
 canary should ignore laps a person or an operator made; no action until it answers.
 
+
+**A1, 07:15 IST · the canary read, and the defect it was hiding (A2, `787072b94`).** `going-in-circles`
+reads `spine_tracks.station_drives`, one per dispatch at the current station, reset only on a move;
+`2fdf93b6` reads 12, the ceiling, against 15 Build drives since 22:42, blind to who caused them,
+which is its stated purpose (F-43: twelve dispatches have spent real money whatever the hold said).
+The reading stands; the instrumented run stays. Underneath it: a claim-held drive still counted a
+dispatch, so a track waiting two hours on another run's merge would have hit the terminal net before
+the claim rule ever saw a run. The fresh honest run would have died at the wall the same way. Now a
+wall is not a loop: a hold whose clearing condition lives outside the track does not count against
+it, mirroring `blockedOnMoney`, and the net keeps its case. Same commit: one pending gate per
+question, keyed on the mission, a second attempt points at the first.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
