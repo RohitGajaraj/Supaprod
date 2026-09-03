@@ -5375,7 +5375,7 @@ at 2e8868d17 from 13:43 IST. Start's largest response on the deployed app is 78.
 9.9 KB on the wire, the same as before this packet, as expected: Start's readers were already
 column-named and P-35's savings land on Discover, the Brain and the record. **DONE.**
 
-### P-36 · The gate a person is asked to answer is on screen, and every open change is on its run · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, both guard failures fixed) · Moves: 2, 3
+### P-36 · The gate a person is asked to answer is on screen, and every open change is on its run · Lane: **A3** · Status: DONE (A1 verified live, 14:36 IST) · Moves: 2, 3
 
 **Why.** The founder opened the tablet track's run to answer PR #4's merge gate (11:56 IST) and
 could not find the pull request or the answer. Two causes, both seen by A1 on the same screen.
@@ -5499,6 +5499,14 @@ at 1440×756 before this is called done.
 **Blockers (A3 writes):** — none. Flagging for A1: Acceptance item 1 needs a live walk I cannot
 perform.
 
+
+**A1, 14:36 IST · verified live and DONE.** Suite on 3af3aef9b: 13,755 pass / 0 fail / 0 error;
+published 14:25. On the tablet track (`6817e386`, Ship, `release.publish` open since 12:13) the run
+screen opens with the banner under the title: *Ships a merged changeset to production, where
+customers see it* with *Let it run* and *Don't run it*, before any scrolling, in the header above
+both panes; the card below carries the same question, the risk line, the reason and the Sep 6
+default. One answer, two doors to it, same mutation. Noted for P-37, not for this packet: the
+footer reads *Waiting on you.* beside a *Run it now* button, two verbs for one state.
 
 ### P-39 · A press that did nothing says so · Lane: **A3** · Status: READY (after P-36) · Moves: 2, 3
 
