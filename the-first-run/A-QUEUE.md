@@ -5972,6 +5972,8 @@ empty; while it reads, the field alone. (d) The hold pane leads with the reason 
 on; a machinery reason (`out-of-time`, `over-budget`) goes to the transcript row and the second
 line. No Meridian changes; `run-status.ts`, `RunFooter.tsx`, `TrackRun.tsx`, `character.ts`, Start.
 
+**A1, 16:25 IST:** item (d) moves to P-37 §4 (A2's hold card); this packet is (a), (b), (c).
+
 **Acceptance.**
 - [ ] A test per item, named after its sentence; the existing way-out and hold tests still pass.
 - [ ] A1 walks the honest run's screen and the tablet track's screen and sees one verb per state.
@@ -6129,6 +6131,32 @@ patch one by one; the shape is the defect).**
    one weight. Verdict and the one sentence that matters lead; the rest folds.
 7. The gate card (P-36 put it on screen; this packet makes it read): question, risk line, reason,
    default and date, two answers, each in its own register, nothing else.
+
+**A1 walked the mockups (`docs/design/run-screen-2026-09.md`, d29d027f1) at 16:25 IST. Build with
+these seven amendments; everything else in the doc stands as written, including the one rule, the
+slot order enforced by the component, risk as prose, the default mono and last, the seat in the
+first person and never imperative, the verdict leading the row, no chevron, the lead outside the
+animated region, the hold card leading with the person's reason.**
+1. The default line states the *declared* default, and an irreversible gate's declared default is
+   always that nothing runs (today's release gate says *cancel because it cannot be undone*). The
+   example's *this merges at 18:00* would be a card that merges by silence; that is never the copy.
+2. The seat that asks is named once, as the reason's author, in the reason's register (*Release:
+   the changeset is merged and CI passed*), not as a header. Tokens, elapsed and trace stay off.
+3. The hold card's one door takes its verb from the state: *Point a source at Relay* when a
+   connection exists and is unbound (today's case, P-44 supplies the target), *Connect a source*
+   when none exists. A door that lands in the wrong place is worse than three.
+4. R-36's line promises *say what you know*; that door is the run's composer, so in a no-source
+   or carried-on-your-sentence state the composer's placeholder reads *Say what you know, and it
+   carries on from that*. The card keeps one button; the composer is the quiet second door.
+5. Three row marks for three verdicts (filed, filed nothing, was stopped), and a stopped row leads
+   with the consequence sentence, not the seat's status.
+6. The character has no place in the three vocabularies, so it stops speaking on the run screen
+   as a separate voice; the card is the product speaking. That closes shape 3 structurally rather
+   than by discipline.
+7. The folded meta line drops the token count (*Scout · 48s · 3 tools*); tokens and cost go to the
+   open body's data line, the header already carries the dollar figure.
+Also: P-43 item (d), the hold pane's order, is this packet's §4 and leaves P-43; A3 keeps (a), (b),
+(c).
 
 **Acceptance.**
 - [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
