@@ -1882,3 +1882,66 @@ export const whyShipStopped = createServerFn({ method: "GET" })
     if (!newest || newest.status !== "failure") return { failureReason: null };
     return { failureReason: newest.failure_reason ?? null };
   });
+
+/**
+ * ── A GATE THAT CANNOT SUCCEED IS NOT OFFERED (P-68) ─────────────────────
+ *
+ * A1 pressed the tablet track's release gate at 19:46:47 UTC on 2026-09-03.
+ * `release.publish` failed in ONE SECOND on R-27 -- no successful preview --
+ * consumed the gate, and wrote no `deployments` row. The person spent the only
+ * press they had on a question whose answer could not be yes.
+ *
+ * THE RULE WAS PROSE. `release.publish`'s description says "Requires the
+ * changeset to be merged with a successful preview deploy already recorded",
+ * and the enforcement lived inside the promote, AFTER the approval was raised
+ * and answered. A description is a request; this is the same class this
+ * mission has closed a dozen times, and it reached a person's hands.
+ *
+ * So the question is asked BEFORE the gate is raised, from the same place the
+ * fifth R-27 precondition is asked, and the answer carries the words the card
+ * needs rather than a boolean: what is being waited on, and why the last
+ * attempt failed if it did.
+ *
+ * A FAILED READ DOES NOT BLOCK. `ok: true` on an unreadable deployments table
+ * means the gate is raised and the promote's own check still refuses if there
+ * is genuinely no preview -- the behaviour before this existed. Refusing to
+ * offer a gate because we could not look would strand a release that is ready.
+ */
+export async function shipHasASuccessfulPreview(
+  db: SupabaseClient,
+  changesetId: string,
+): Promise<{ ok: boolean; why: string; lastFailure: string | null }> {
+  try {
+    const { data, error } = await db
+      .from("deployments")
+      .select("status,failure_reason,created_at")
+      .eq("changeset_id", changesetId)
+      .eq("environment", "preview")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error) {
+      // Unreadable is not "no preview". See the header.
+      return { ok: true, why: "", lastFailure: null };
+    }
+    const rows = (data ?? []) as Array<{ status: string; failure_reason: string | null }>;
+    if (rows.some((r) => r.status === "success")) {
+      return { ok: true, why: "", lastFailure: null };
+    }
+    /*
+     * The newest failure's reason, which is the one thing a person can act on.
+     * Null when every attempt recorded none -- and that is now rare rather than
+     * normal, because every failure path records one (P-68 item 1).
+     */
+    const lastFailure =
+      rows.find((r) => r.status === "failure" && r.failure_reason)?.failure_reason ?? null;
+    return {
+      ok: false,
+      why: lastFailure
+        ? `no preview of this change has succeeded yet; the last attempt failed: ${lastFailure}`
+        : "no preview of this change has succeeded yet, so there is nothing to promote",
+      lastFailure,
+    };
+  } catch {
+    return { ok: true, why: "", lastFailure: null };
+  }
+}

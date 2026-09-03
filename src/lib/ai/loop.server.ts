@@ -51,7 +51,7 @@ import { resolveBestAgentModelForUser } from "./platform-keys.server";
 import { buildNativeToolDefs } from "./tool-schemas.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { classifyFailureCode } from "@/lib/observability/gates";
-import { unattendedShipIsGradable } from "@/lib/deployments.functions";
+import { unattendedShipIsGradable, shipHasASuccessfulPreview } from "@/lib/deployments.functions";
 import {
   countsAsResumption,
   isMissingColumnError,
@@ -2105,6 +2105,55 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         if (!gradable.ok) heldForYou = gradable.why;
       }
       if (heldForYou) mode = "review";
+    }
+
+    /*
+     * ── A GATE THAT CANNOT SUCCEED IS NOT RAISED AT ALL (P-68) ────────────
+     *
+     * Distinct from `heldForYou` above, and the difference is the whole point:
+     * that one DOWNGRADES an unattended ship into a question for a person,
+     * which is right when the answer could be yes. This refuses to ask at all,
+     * because the answer cannot be.
+     *
+     * A1 pressed the tablet track's release gate at 19:46:47 UTC on
+     * 2026-09-03. `release.publish` failed in one second on R-27 -- no
+     * successful preview -- CONSUMED the gate, and wrote no deployments row.
+     * The rule that would have prevented it was written in the tool's
+     * DESCRIPTION and enforced inside the promote, after the approval had been
+     * raised and answered. A description is a request.
+     *
+     * Checked for every mode, not just `auto`: the defect was a REVIEW-mode
+     * gate, so guarding only the unattended path would have left the case that
+     * actually happened untouched.
+     */
+    if (call.name === "release.publish") {
+      const changesetId = (parseRes.data as { changeset_id?: unknown } | null)?.changeset_id;
+      if (typeof changesetId === "string") {
+        const preview = await shipHasASuccessfulPreview(supabase, changesetId);
+        if (!preview.ok) {
+          /*
+           * Returned to the crew as a refusal it can act on, naming the one
+           * thing that changes the answer. It is not an error and not a hold:
+           * nothing is wrong with the request, the preview simply has not
+           * succeeded yet, and the retry in `ci-poll-tick` is what moves it.
+           */
+          const why = `This cannot ship yet: ${preview.why}. A preview is retried automatically; when one succeeds this becomes a call a person can answer.`;
+          steps.push({
+            kind: "tool_call",
+            name: call.name,
+            args: call.args as Json,
+            ok: false,
+            error: why,
+            status: "error",
+          });
+          conv.push({ role: "assistant", content: assistantContent });
+          conv.push({
+            role: "user",
+            content: `Tool refused: ${why} Do not ask again this run; pick another tool or finalize.`,
+          });
+          continue;
+        }
+      }
     }
     const isWrite = def.category === "write" || def.category === "planning";
 

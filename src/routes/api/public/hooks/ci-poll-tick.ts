@@ -602,17 +602,48 @@ export async function runCiPollTick() {
               continue;
             }
             {
-              const files = await collectRepoFiles({
-                token: gh.token,
-                repo: cs.repo,
-                ref: headSha,
-              });
-              const result = await deployChangesetApp({
-                workspaceId: cs.workspace_id ?? "",
-                changesetId: cs.id,
-                files,
-                production: false,
-              });
+              /*
+               * ── PATH (a) NOW RECORDS A ROW (P-68) ──────────────────────
+               *
+               * The policy note above enumerates two uncovered paths and says
+               * what they share: "neither records a failure row at all". This
+               * is the first of them. `collectRepoFiles` throws on an oversized
+               * repo, a missing `main.ts` and a failed repo-tree read, and the
+               * throw travelled past every writer below, so the attempt left NO
+               * trace: no row, no reason, and nothing for the backoff to read.
+               *
+               * That is exactly what the tablet track showed a person. Its one
+               * failed deployment carries `failure_reason` NULL, the hold card
+               * could only say "nothing on the attempt says why", and the
+               * retry ran again every sweep because there was no row to space
+               * it from.
+               *
+               * The reason is caught and carried into the SAME upsert the
+               * provider's own failure uses, so there is one row shape and one
+               * place /ship reads. A thrown attempt is a failed attempt, and it
+               * now says so in the row rather than in a log.
+               */
+              let files: Array<{ path: string; content: string }> = [];
+              let preflightReason: string | null = null;
+              try {
+                files = await collectRepoFiles({
+                  token: gh.token,
+                  repo: cs.repo,
+                  ref: headSha,
+                });
+              } catch (e) {
+                preflightReason =
+                  e instanceof Error ? e.message : "the repository could not be read";
+              }
+              const result: { ok: boolean; url: string | null; reason?: string | null } =
+                preflightReason === null
+                  ? await deployChangesetApp({
+                      workspaceId: cs.workspace_id ?? "",
+                      changesetId: cs.id,
+                      files,
+                      production: false,
+                    })
+                  : { ok: false, url: null, reason: preflightReason };
               // .select("id") on the row that /ship is entirely driven by. An
               // upsert refused by RLS or a constraint resolves with error null
               // here, and this call did not even read `error`, so a preview
@@ -640,7 +671,20 @@ export async function runCiPollTick() {
                     // failure (`deployChangesetApp`'s own header) -- it was
                     // computed and thrown away right here, never written to
                     // the row it explains. Null on success: nothing to say.
-                    failure_reason: result.ok ? null : result.reason,
+                    /*
+                     * NEVER UNDEFINED ON A FAILURE (P-68). `result.reason` is
+                     * optional, and an undefined value is OMITTED from the
+                     * upsert body, so the column keeps its default of NULL --
+                     * which is precisely the row the tablet track carries and
+                     * the reason the hold card can only say "nothing on the
+                     * attempt says why". A failure with no reason is still a
+                     * fact worth recording, so it records that fact in words
+                     * instead of leaving the column empty for a reader to
+                     * mistake for "not yet attempted".
+                     */
+                    failure_reason: result.ok
+                      ? null
+                      : (result.reason ?? "The attempt failed and the host gave no reason for it."),
                   },
                   { onConflict: "changeset_id,environment,commit_sha" },
                 )
