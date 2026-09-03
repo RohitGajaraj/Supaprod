@@ -6828,7 +6828,7 @@ status change on 11 or on 66 rows) are his call; A1 recommends C, which P-56 del
 if he wants the tail gone.
 
 
-### P-56 · The approvals page states its obligation once, and as a shape · Lane: **A2** · Status: CODE DONE (A2, `27ca936ac`, suite 13,959 / 0 / 0, tsc 0); A1 publishes and reads the heading live · Moves: 2, 3
+### P-56 · The approvals page states its obligation once, and as a shape · Lane: **A2** · Status: CODE DONE (27ca936ac; A2 reports 13,959 / 0 / 0, tsc 0; A1 suite running, publish and live read follow)· Moves: 2, 3
 
 **Why.** P-55's first finding: the page says *66 decisions are ready for you* and, below it, *65
 pieces of work are stopped, waiting on you*. Same rows; the second is the first minus the card
@@ -6855,7 +6855,7 @@ count from the same population; a test that the heading names families and omits
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads the heading live.
 
 
-### P-57 · A brief-path spec is guarded against its twin, and its derived title ends on a word · Lane: **A3** (after P-53) · Status: READY · Moves: 1, 2
+### P-57 · A brief-path spec is guarded against its twin, and its derived title ends on a word · Lane: **A2** (moved from A3 at 23:55 IST; A3 stays on P-53) · Status: READY · Moves: 1, 2
 
 **Why.** Read live 23:31 IST while closing P-50: the Ask panel answered "What needs my call before it
 can move?" with the same design gate twice, *Approve the design for Remove the redundant address
