@@ -7791,6 +7791,32 @@ tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 walks the probe again.
 
+
+### P-76 · The per-user AI rate limit exists · Lane: **A3** (after P-58b) · Status: READY · Moves: 1
+
+**Why.** F-192's guard found that `user_ai_rate_limits` does not exist in any schema:
+`checkUserAiRateLimit` reads it, gets 42P01, logs a warning and returns `{ allowed: true }`, so
+per-user AI rate limiting has never blocked a request in the product's life, and its comment
+reads as a deliberate degradation. Ruling under the founder's standing authority (A1, 05:32 IST
+09-04): **create it, do not delete the limiter.** The budget caps are the hard gate per run and
+per week; a per-user limit is the one thing that stops a single signed-in person, or a leaked
+session, from spending the week's budget in a minute, and 23 September is a public launch.
+
+**Scope.** (1) A migration in the `202609xx` series (rule 19) creating `user_ai_rate_limits` with
+exactly the shape the reader expects (read the function; the table serves it, not the reverse),
+RLS so a person reads only their own row, a trigger or the writer path that counts. (2) Limits
+from one constant with a generous default (a number the founder will not notice: on the order of
+a hundred AI calls per person per ten minutes) and the sentence a person sees when it trips,
+composed by the rules of P-37 (what happened, what to do, when it lifts). (3) The guard's exception
+for the table removed; a test that the limiter blocks on the limit and still fails OPEN on a read
+error, since availability was the deliberate choice. (4) The first day's counts in the report.
+
+**Acceptance.** Table present (verified by object), ledger row present, guard exception gone,
+limiter test green; a signed-in walk that stays under the limit sees nothing. Full suite on the
+tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; migration applied via the Lovable MCP; ledger row.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
