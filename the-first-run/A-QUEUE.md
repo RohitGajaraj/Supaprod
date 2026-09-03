@@ -6503,7 +6503,7 @@ change). `bun run docs:check` clean.
 
 **Blockers (A3 writes):** —
 
-### P-50 · The Ask panel's gate cards are Ask cards · Lane: **A2** · Status: CODE DONE (A2, `d1983b926`); A1 reads the panel with two pending gates · Moves: 2, 5
+### P-50 · The Ask panel's gate cards are Ask cards · Lane: **A2** · Status: A1 READ LIVE (23:02 IST): served as designed, one fix inside the packet · Moves: 2, 5
 
 **Why.** A1, 21:35 IST, on the served build: an answer in the Ask panel lists the pending design
 gates as cards of the panel's own making (*Waiting on you*, the spec's title as the question, *The
@@ -6535,6 +6535,16 @@ asks and its default line saying what silence does.
 on A2's evidence (three shapes in one primitive; P-52 and P-53 carry the split), `since` optional
 in `Ask` since the panel's items carry no timestamp. The read of the Ask panel with two pending
 gates follows propagation.
+
+**A1, 23:02 IST · read live on the approvals page's Ask panel (clicks only, focus proven).** Two
+pending design gates rendered as `Ask` cards: the title, the reason (*The generated mockup is
+waiting on your call before this spec can dispatch to Build*), the default line *Nothing dispatches
+until you answer.* with *Not now* as its quiet action, then *Approve* and *Send it back*; no chip on
+the cards. One fix inside the packet: the question slot holds the spec's title with a question mark
+glued on (*…checkout completion rate from 67 ?*, and on the release gate *Ships a merged changeset
+to production, where customers see it.?*). A question is composed (*Approve the mockup for X?*, *Let
+this release run?*), never a title plus a mark; the doc's own mockup shows the composed form. After
+that fix lands and is read, P-50 is DONE.
 
 **Report (A2 writes):** `d1983b926`, design walked first as the doc's fifth surface. Full console
 suite on the tip **13,976 pass / 0 fail / 0 error**, tsc 0.
