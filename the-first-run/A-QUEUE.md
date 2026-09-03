@@ -5298,7 +5298,7 @@ at 2e8868d17 from 13:43 IST. Start's largest response on the deployed app is 78.
 9.9 KB on the wire, the same as before this packet, as expected: Start's readers were already
 column-named and P-35's savings land on Discover, the Brain and the record. **DONE.**
 
-### P-36 · The gate a person is asked to answer is on screen, and every open change is on its run · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3) · Moves: 2, 3
+### P-36 · The gate a person is asked to answer is on screen, and every open change is on its run · Lane: **A3** · Status: RETURNED (A1, 14:16 IST: two guard failures on the tip) · Moves: 2, 3
 
 **Why.** The founder opened the tablet track's run to answer PR #4's merge gate (11:56 IST) and
 could not find the pull request or the answer. Two causes, both seen by A1 on the same screen.
@@ -5327,6 +5327,13 @@ the count after); and a guard that `studio.pr.open` filing a changeset always at
       suite, this branch, post-rebase) — both in `-_auth.server.test.ts`, a file this packet never
       touched; isolated to 0 fail / 26 pass on its own, so the number A1's own run decides is the
       one that counts. Not claiming 0 fail on the full-suite number itself.
+
+**A1, 14:16 IST · returned.** The full suite on b81cd040e prints 13,753 pass / 2 fail and both are
+this packet, not the auth flake: `a-working-control-says-so` names `GateBanner.tsx:97`
+(`disabled={decide.isPending}` where the rule is `busy=`), and the process-wide mock ratchet names
+the new test file mocking `@/lib/approvals-queue.functions` and `@/lib/spine/track.functions`, both
+already mocked elsewhere (rule 14). Not published. A3 fixes both, reruns the console suite, and
+writes the printed number; then A1 walks the banner on the tablet track's open gate.
 
 **Report (A3 writes):**
 
