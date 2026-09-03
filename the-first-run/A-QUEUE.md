@@ -6518,6 +6518,14 @@ as the default line's own quiet action, not as a third button. One vocabulary on
 the chip goes. Mockup first in `docs/design/run-screen-2026-09.md` as a fifth surface, walked with
 A1, then code.
 
+**A1 walked the design (§5 of the run-screen doc, fb07a6d8c) at 21:40 IST: build.** The third
+answer's ruling stands (two answers answer, one declines; *Not now* is the default line's own quiet
+action; the chip goes; the slot lives in `Ask` with no fourth answer slot). Two rulings added:
+`meridian/Gate` is retired in this packet wherever `Ask` covers its shape, with a guard that no
+surface composes it, and kept only for a composer whose card is not asking anything, named in the
+Report; the panel's policy card is the same shape with different words, its question saying what it
+asks and its default line saying what silence does.
+
 **Acceptance.**
 - [ ] The doc's fifth surface; the guard `one-state-one-sentence-one-door` covers the panel.
 - [ ] A1 reads an Ask answer with two pending gates on the served build.
