@@ -287,6 +287,75 @@ waiting, and the line below says since when.
 **This is a rule about the component, not about this card**, so it is written into `Ask` rather than
 into the panel: a slot for the default's own action, and no fourth answer slot to put it in.
 
+## 6. A Choice: one question, N named options
+
+**Found under `Gate`, not designed** (P-50's survey, five call sites). `Ask` has exactly one answer
+and one decline, and that constraint is the point of it. A four-way choice is a different question
+and forcing it through `Ask` would either lose options or put a fourth control beside the answers,
+which is the defect P-50 just closed.
+
+```
+  Which source should it read first?              ← the question, t-lead
+
+  Discover reads one at a time and starts with    ← why the order matters, t-small
+  whichever you pick.                               mute
+
+  ┌──────────────────────────────────────────┐
+  │  Intercom          2,140 conversations    │   ← each option carries the ONE
+  ├──────────────────────────────────────────┤     fact that decides between them
+  │  Zendesk             318 tickets          │
+  ├──────────────────────────────────────────┤
+  │  Slack            #support, 90 days       │
+  └──────────────────────────────────────────┘
+
+  Nothing is read until you pick one.             ← the default, mono
+```
+
+**Every option carries the one fact that distinguishes it**, and the same fact for every option. A
+list of names with nothing to choose between them is a menu, not a choice: the person picks the
+first, or the one they recognise, which is the product deciding by ordering rather than the person
+deciding on evidence.
+
+**No option is the default and none is pre-selected.** This is the rule that separates a `Choice`
+from an `Ask`: an `Ask` has a primary because one answer is the expected one and the card can say so
+honestly. In a `Choice` the whole point is that the product does not know which is right, so a
+pre-selected option would be the product pretending it does, and a person confirming a pick they did
+not make reads as consent.
+
+**The default line says what happens if nobody picks, and it is always that nothing does.** A choice
+that resolves itself by timing out is not a choice; it is a delay with extra steps, and it is the
+same defect the gate card's declared default was corrected for in §1.
+
+## 7. A Quiet: an empty queue is a state, not a question
+
+**Four call sites are an empty queue wearing the asking card's clothes**, complete with a question
+mark on a sentence that is a report: *"Nothing is waiting on a call."*, *"Nothing needs your
+verdict."*, *"What will come here to ship?"*
+
+An empty queue is **good news**. It is the ordinary state of a healthy workspace, and drawing it as a
+card that asks makes an absence of work look like an item of work.
+
+```
+  Nothing is waiting on a call.                   ← t-base, mute, NOT t-lead
+
+  What will appear here: a call the crew cannot   ← t-small, faint
+  make alone, with what it needs from you.
+```
+
+**No border, no card, no chip, no action.** The three things this must not do, each because a
+surface here has already done it: it must not draw a bordered container, because a card is what this
+product uses for something that needs answering; it must not carry a question mark, because it is
+not asking; and it must not offer a control, because there is nothing to do and a button here is a
+door onto an empty room.
+
+**It says what WILL appear, not that nothing has.** That is the difference between a zero state and
+an apology, and it is the same rule the arrival document settled for an empty workspace: *"0 findings
+this week"* over a product nobody has given anything to read is a reproach rather than a fact.
+
+**Where the queue is empty because something is wrong**, that is not this. A read that failed is a
+different state with a different sentence, and collapsing the two is how a broken surface comes to
+look calm.
+
 ## What this needs from Meridian
 
 Nothing forked, nothing local. In `meridian/**` with its reasoning:

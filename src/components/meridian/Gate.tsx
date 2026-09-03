@@ -4,6 +4,51 @@ import * as React from "react";
 /**
  * THE GATE: one question, the facts that answer it, then the actions.
  *
+ * ── READ THIS BEFORE REACHING FOR IT: IT IS CARRYING THREE SHAPES ────────
+ *
+ * P-50 asked whether this could be retired now that `meridian/Ask` exists. It
+ * cannot, and the reason is worth more than the answer: **twenty call sites are
+ * using one primitive for three different things**, and only the first is what
+ * this component's own header describes.
+ *
+ * 1. A BINARY ASK. One question, two answers, a declared default. `Ask` covers
+ *    this exactly and these should move to it.
+ *      governance/ApprovalsPanel.tsx:535   "Let NAME run TOOL?"
+ *      governance/ControlsPanel.tsx:471    "Let NAME run on EVENT?"
+ *      governance/HouseRulesPanel.tsx:211  "Should WHO follow this from now on?"
+ *      governance/TrustGraduations.tsx:145 "Let NAME run TOOL MODE?"
+ *      memory/MemoryReviewQueue.tsx:220     the memory itself as the question
+ *      routes/admin.index.tsx:377           "Start/Stop charging for AI use?"
+ *      routes/admin.platform.tsx:672        "Ship the current build to production?"
+ *      routes/ship.tsx:2365                 "Take X to production?"
+ *      routes/ship.tsx:2658                 "Send X to customers?"
+ *      learn/SettlePanel.tsx:701            "Did X pay off?"
+ *
+ * 2. A PICKER WITH N NAMED OPTIONS, which `Ask` deliberately does NOT cover:
+ *    it has exactly one answer and one decline, and that constraint is the
+ *    point. Forcing a four-way choice through it would either lose options or
+ *    reintroduce the fourth-slot problem P-50 just closed.
+ *      discover/DiscoverSurface.tsx:2749   "Which source should it read first?"
+ *      discover/DiscoverSurface.tsx:2859   "Which bet does this belong to?"
+ *      discover/DiscoverSurface.tsx:2877    a theme, picked among themes
+ *      routes/learn.tsx:908                 "What should this grade first?"
+ *      routes/sync.tsx:394                  "Which copy of X wins?"
+ *
+ * 3. A ZERO STATE, which is not asking anything at all. An empty queue wearing
+ *    the asking card's clothes, with a question mark on a sentence that is a
+ *    report.
+ *      discover/DiscoverSurface.tsx:3093   "Nothing is waiting on a call."
+ *      learn/SettlePanel.tsx:549           "Nothing needs your verdict."
+ *      routes/ship.tsx:2484                "What will come here to ship?"
+ *      routes/ship.tsx:2730                "Nothing has gone out, because
+ *                                           nothing has shipped yet."
+ *
+ * **Do not add a fourth.** P-52 designs the two missing vocabularies (a Choice
+ * and a Quiet) and P-53 migrates these lists; until then, a new surface that is
+ * a binary ask belongs in `Ask`, and one that is a picker or a zero state
+ * should say so in its packet rather than land here by default. This component
+ * became three things because it was the only card in the drawer.
+ *
  * ── THE ORDER IS THE COMPONENT ──────────────────────────────────────────
  * `primitives.Gate` carries a regression note from 2026-08-05 that is the
  * reason this shape is fixed rather than arranged by the caller. A change meant
