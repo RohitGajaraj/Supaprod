@@ -7213,7 +7213,7 @@ when the switcher is free and read the six sentences-with-doors against what is 
 
 **DoD.** Pushed (`3db9fd806`); design doc linked; live walk still open, handing to A1.
 
-### P-64 · Find Anything reaches everything (retitled 05:08 IST 09-04: ⌘K opens Ask by the 07-30 ruling; the palette is Find Anything, bound to "/") · Lane: **A3** (after P-63) · Status: CODE DONE (7ce689204; A3 reports 14,168 / 0, tsc 0; A1 suite running; the five-things search follows publish) · Moves: 2
+### P-64 · Find Anything reaches everything (retitled 05:08 IST 09-04: ⌘K opens Ask by the 07-30 ruling; the palette is Find Anything, bound to "/") · Lane: **A3** (after P-63) · Status: CODE DONE (aa1140668; A1 suite on the tip 14,168 / 0 / 0, tsc 0; PUBLISHED 05:10 IST 09-04; the five-things search follows propagation) · Moves: 2
 
 **Why.** Audit §1: find-anything searches one group, runs.
 
