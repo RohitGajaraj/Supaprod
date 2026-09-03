@@ -6523,6 +6523,15 @@ waiting for its date, says four things about one state (the *On hold* chip, the 
 stopped*, the footer's *Stopped, and not on you*, a *Run it now* button that does nothing on a
 date wait) where the rule wants one sentence and no door: *Learn returns Sat, Oct 3*.
 
+**A1, 18:35 IST · the calendar wait, as it happened.** A1 read the honest run's footer twice on the
+17:59 build, saw *Stopped, and not on you* with *Run it now*, and told A2 the predicate keyed on a
+hold the track did not carry, from a database read taken hours earlier. A2 re-read the row: the
+hold is `needs-evidence` and has been since the 09:50 UTC sweep; the observation was right, A1's
+evidence and mechanism were wrong. A2's check found the defect that mattered: the predicate
+lacked the horizon, so an overdue track would have been told to wait. Fixed at a415ecd5b, the chip
+and the footer now read one predicate with the horizon in it. Rule 18's spirit extends to the
+database: re-read the row and say when.
+
 **Acceptance.**
 - [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
       first against the mockups.
