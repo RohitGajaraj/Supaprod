@@ -6928,7 +6928,7 @@ migration's own comment; (3) a guard that a superseded spec cannot hold a pendin
 migration via the Lovable MCP; A1 confirms the ledger row and the population (expect 0 tracks with
 twin live specs, and the heading's design-gate count down by the twins). Then P-59.
 
-### P-58 · The Worker is warm when a person arrives · Lane: **A3** (after P-53) · Status: READY · Moves: 3
+### P-58 · The Worker is warm when a person arrives · Lane: **A3** (after P-53) · Status: CLAIMED (A3) · Moves: 3
 
 **Why.** Hosting finding, measured again 00:12 IST 09-04: the root answered in 2.3 s and a missing
 route in 3.9 s after ten minutes idle; warm, the same reads are under 400 ms. The first thing a
