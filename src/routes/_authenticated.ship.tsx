@@ -249,7 +249,6 @@ import { CrewWorking } from "@/components/shell/CrewWorking";
 // nested container the standard caps at one.
 import { NoReleaseYet, WhatShipped } from "@/components/ship/WhatShipped";
 import { stillWaiting } from "@/lib/query-state";
-import { askQuestion } from "@/components/meridian/question";
 
 /** Anti-scroll: each list opens short and expands on demand. */
 const VISIBLE = 6;

@@ -34,7 +34,6 @@ import { Receipt } from "@/components/meridian/Receipt";
 import { Ask } from "@/components/meridian/Ask";
 import { askQuestion } from "@/components/meridian/question";
 import { AgentMark } from "@/components/meridian/marks";
-import { askQuestion } from "@/components/meridian/question";
 import {
   listTrustGraduationProposals,
   decideTrustGraduation,

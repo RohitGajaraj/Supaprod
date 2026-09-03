@@ -63,7 +63,6 @@ import { Receipt } from "@/components/meridian/Receipt";
 import { Ask } from "@/components/meridian/Ask";
 import { askQuestion } from "@/components/meridian/question";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
-import { askQuestion } from "@/components/meridian/question";
 
 /** Who put this in front of you. The table has a source_kind and nothing else,
  *  so an agent-proposed candidate says the agent is not named rather than

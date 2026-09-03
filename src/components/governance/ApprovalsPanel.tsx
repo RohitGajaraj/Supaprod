@@ -78,7 +78,6 @@ import { askQuestion } from "@/components/meridian/question";
 import { AgentMark } from "@/components/meridian/marks";
 import { TrustGraduationsBlock } from "./TrustGraduations";
 import { relExpiry, fmtMedian, RESOLVED_LINE, RISK_NOTE, type GovTone } from "./governance-shared";
-import { askQuestion } from "@/components/meridian/question";
 
 /**
  * `governance-shared.ts` still speaks the RETIRED tone vocabulary, and it is
