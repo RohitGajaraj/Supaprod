@@ -6532,6 +6532,12 @@ lacked the horizon, so an overdue track would have been told to wait. Fixed at a
 and the footer now read one predicate with the horizon in it. Rule 18's spirit extends to the
 database: re-read the row and say when.
 
+**A1, 18:50 IST · calendar wait verified live** (a415ecd5b on the served build): the honest run's
+footer reads *Learn returns when the forecast comes due.* with no button. It took the broad reading
+because the route hands the footer no horizon while the card above names Sat, Oct 3; A2 plumbs the
+date so both lines say one fact. SeatSays and the composer placeholder (691f87dba) published 18:44,
+read at 19:00.
+
 **Acceptance.**
 - [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
       first against the mockups.
