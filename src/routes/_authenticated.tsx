@@ -58,10 +58,23 @@ export const Route = createFileRoute("/_authenticated")({
    */
   pendingComponent: () => <BrandWait overlay={false} size={44} label="Opening" />,
   beforeLoad: async ({ location }) => {
+    /*
+     * TIMED, NOT GUESSED (P-32, A-QUEUE.md). A1's live measurement found a
+     * 1.1-second prefix before ANY of the three `/start` readers fire, and
+     * this gate -- the one thing every authenticated navigation blocks on
+     * before `component` even mounts -- is the named suspect. `ssr: false`
+     * above means this always runs in the browser, never on the server, so
+     * `onboarding-gate.ts`'s module-level cache genuinely persists across
+     * client-side navigations in this tab; whether THIS particular
+     * measurement hits it warm or pays the one real round trip is exactly
+     * what these two marks settle instead of a second round of guessing.
+     */
+    const beforeLoadStarted = Date.now();
     // Use getSession() — reads from localStorage (instant, no network roundtrip).
     // getUser() hits /auth/v1/user on every navigation and, combined with
     // TanStack Router's hover-preload, makes the UI feel frozen.
     const { data } = await supabase.auth.getSession();
+    console.log(`[perf] beforeLoad:getSession: ${Date.now() - beforeLoadStarted}ms`);
     if (!data.session) {
       throw redirect({ to: "/login" });
     }
@@ -69,7 +82,9 @@ export const Route = createFileRoute("/_authenticated")({
     // /onboarding until they finish. Cached (one read per page load) —
     // see onboarding-gate.ts for the never-trap rules.
     // EXCEPTION: /start is the zero-config entry point and does not gate on onboarding.
+    const onboardingStarted = Date.now();
     const firstRun = await needsOnboarding(data.session.user.id);
+    console.log(`[perf] beforeLoad:needsOnboarding: ${Date.now() - onboardingStarted}ms`);
     if (
       !location.pathname.startsWith("/onboarding") &&
       !location.pathname.startsWith("/start") &&
@@ -82,6 +97,7 @@ export const Route = createFileRoute("/_authenticated")({
      * shell decision below needs the same answer. The read is cached
      * (`onboarding-gate.ts`, one per page load), so surfacing it costs nothing.
      */
+    console.log(`[perf] beforeLoad total: ${Date.now() - beforeLoadStarted}ms`);
     return { firstRun };
   },
   component: AuthedLayout,

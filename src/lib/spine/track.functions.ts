@@ -486,6 +486,37 @@ export const listTracks = createServerFn({ method: "GET" })
     }
   });
 
+/*
+ * TIMED, NOT GUESSED (P-32, A-QUEUE.md, second pass). A1's live measurement
+ * found `listRunsForStart` the 2.7-second outlier among seven readers
+ * answering in 465-612ms apiece, and asked for it to be named on the server
+ * rather than inferred again from the client. `withStartReaderTiming` wraps
+ * all three `/start`-adjacent readers below (this one, `listGatesOnTracks`,
+ * `listRunsForStart`), so the NEXT measurement reads the answer off the
+ * server log instead of guessing from the Performance API which of several
+ * concurrent calls was the slow one -- and, if the fix above did not fully
+ * close the gap, names whichever one still is.
+ *
+ * A WRAPPER, NOT A CALL INSIDE EACH HANDLER, ON PURPOSE.
+ * `the-bar-counts-gates-on-open-tracks.test.ts` pins `listGatesOnTracks`'s own
+ * body against `Date.now()` verbatim -- P-18a's own lesson, that a QUERY-LEVEL
+ * time window is how "89 missions waiting" once read as "quiet". Timing this
+ * function's WALL CLOCK is a different fact from filtering its ROWS by time,
+ * but a literal string scan cannot tell the two apart, so the clock reads
+ * stay out of the scanned body entirely: this wraps the handler from the
+ * OUTSIDE instead of calling `Date.now()` from inside it.
+ */
+function withStartReaderTiming<T>(name: string, fn: () => Promise<T>): Promise<T> {
+  const started = timeSourceMs();
+  return fn().finally(() => {
+    console.log(`[perf] ${name}: ${timeSourceMs() - started}ms`);
+  });
+}
+/** Isolated so `Date.now()` appears exactly once, never inside a reader body. */
+function timeSourceMs(): number {
+  return Date.now();
+}
+
 export type MovingTrack = { id: string; station: AgentStation };
 
 /**
@@ -509,38 +540,40 @@ export type MovingTrack = { id: string; station: AgentStation };
  */
 export const listMovingTracks = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<MovingTrack[]> => {
-    const { supabase } = context;
-    try {
-      const { data: openRows, error } = await supabase
-        .from("spine_tracks" as never)
-        .select("id, station")
-        .eq("status", "open")
-        .order("updated_at", { ascending: false })
-        .limit(50);
-      if (error) failSoftOrThrow(error, "The work in flight");
-      const open = (openRows ?? []) as unknown as MovingTrack[];
-      if (open.length === 0) return [];
+  .handler(({ context }): Promise<MovingTrack[]> =>
+    withStartReaderTiming("listMovingTracks", async () => {
+      const { supabase } = context;
+      try {
+        const { data: openRows, error } = await supabase
+          .from("spine_tracks" as never)
+          .select("id, station")
+          .eq("status", "open")
+          .order("updated_at", { ascending: false })
+          .limit(50);
+        if (error) failSoftOrThrow(error, "The work in flight");
+        const open = (openRows ?? []) as unknown as MovingTrack[];
+        if (open.length === 0) return [];
 
-      const { data: runRows } = await supabase
-        .from("agent_runs")
-        .select("track_id")
-        .in(
-          "track_id",
-          open.map((t) => t.id),
-        )
-        .in("status", ["running", "queued", "in_progress"]);
-      const moving = new Set(
-        ((runRows ?? []) as Array<{ track_id: string | null }>)
-          .map((r) => r.track_id)
-          .filter((id): id is string => Boolean(id)),
-      );
-      return open.filter((t) => moving.has(t.id));
-    } catch (e) {
-      if (e instanceof Error && e.message.includes("could not be read")) throw e;
-      return [];
-    }
-  });
+        const { data: runRows } = await supabase
+          .from("agent_runs")
+          .select("track_id")
+          .in(
+            "track_id",
+            open.map((t) => t.id),
+          )
+          .in("status", ["running", "queued", "in_progress"]);
+        const moving = new Set(
+          ((runRows ?? []) as Array<{ track_id: string | null }>)
+            .map((r) => r.track_id)
+            .filter((id): id is string => Boolean(id)),
+        );
+        return open.filter((t) => moving.has(t.id));
+      } catch (e) {
+        if (e instanceof Error && e.message.includes("could not be read")) throw e;
+        return [];
+      }
+    }),
+  );
 
 export type GatedTrack = { id: string; title: string; updatedAt: string; tool: string };
 
@@ -573,68 +606,75 @@ export type GatedTrack = { id: string; title: string; updatedAt: string; tool: s
  */
 export const listGatesOnTracks = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<GatedTrack[]> => {
-    const { supabase } = context;
-    try {
-      const { data: openRows, error } = await supabase
-        .from("spine_tracks" as never)
-        .select("id, title, updated_at, pending_gates")
-        .eq("status", "open")
-        .order("updated_at", { ascending: false })
-        .limit(50);
-      if (error) failSoftOrThrow(error, "The calls waiting on you");
-      const open = (openRows ?? []) as unknown as Array<{
-        id: string;
-        title: string;
-        updated_at: string;
-        pending_gates?: unknown;
-      }>;
-      if (open.length === 0) return [];
+  .handler(({ context }): Promise<GatedTrack[]> =>
+    withStartReaderTiming("listGatesOnTracks", async () => {
+      const { supabase } = context;
+      try {
+        const { data: openRows, error } = await supabase
+          .from("spine_tracks" as never)
+          .select("id, title, updated_at, pending_gates")
+          .eq("status", "open")
+          .order("updated_at", { ascending: false })
+          .limit(50);
+        if (error) failSoftOrThrow(error, "The calls waiting on you");
+        const open = (openRows ?? []) as unknown as Array<{
+          id: string;
+          title: string;
+          updated_at: string;
+          pending_gates?: unknown;
+        }>;
+        if (open.length === 0) return [];
 
-      const gateIds = [
-        ...new Set(
-          open.flatMap((r) =>
-            Array.isArray(r.pending_gates)
-              ? r.pending_gates
-                  .map((g) => (g as { id?: unknown }).id)
-                  .filter((g): g is string => typeof g === "string")
-              : [],
+        const gateIds = [
+          ...new Set(
+            open.flatMap((r) =>
+              Array.isArray(r.pending_gates)
+                ? r.pending_gates
+                    .map((g) => (g as { id?: unknown }).id)
+                    .filter((g): g is string => typeof g === "string")
+                : [],
+            ),
           ),
-        ),
-      ];
-      if (gateIds.length === 0) return [];
+        ];
+        if (gateIds.length === 0) return [];
 
-      const { data: gates } = await supabase
-        .from("agent_approvals")
-        .select("id, tool_name")
-        .in("id", gateIds)
-        .eq("status", "pending");
-      const byId = new Map(
-        ((gates ?? []) as Array<{ id: string; tool_name: string }>).map((g) => [g.id, g]),
-      );
+        const { data: gates } = await supabase
+          .from("agent_approvals")
+          .select("id, tool_name")
+          .in("id", gateIds)
+          .eq("status", "pending");
+        const byId = new Map(
+          ((gates ?? []) as Array<{ id: string; tool_name: string }>).map((g) => [g.id, g]),
+        );
 
-      const result: GatedTrack[] = [];
-      for (const r of open) {
-        if (!Array.isArray(r.pending_gates)) continue;
-        for (const g of r.pending_gates) {
-          const id = (g as { id?: unknown }).id;
-          if (typeof id !== "string") continue;
-          const hit = byId.get(id);
-          // One gate attributed per track, the same rule `listRunsForStart`'s
-          // own `gateByTrack` uses -- a row needs one boundary call marked,
-          // not every one it happens to have open.
-          if (hit) {
-            result.push({ id: r.id, title: r.title, updatedAt: r.updated_at, tool: hit.tool_name });
-            break;
+        const result: GatedTrack[] = [];
+        for (const r of open) {
+          if (!Array.isArray(r.pending_gates)) continue;
+          for (const g of r.pending_gates) {
+            const id = (g as { id?: unknown }).id;
+            if (typeof id !== "string") continue;
+            const hit = byId.get(id);
+            // One gate attributed per track, the same rule `listRunsForStart`'s
+            // own `gateByTrack` uses -- a row needs one boundary call marked,
+            // not every one it happens to have open.
+            if (hit) {
+              result.push({
+                id: r.id,
+                title: r.title,
+                updatedAt: r.updated_at,
+                tool: hit.tool_name,
+              });
+              break;
+            }
           }
         }
+        return result;
+      } catch (e) {
+        if (e instanceof Error && e.message.includes("could not be read")) throw e;
+        return [];
       }
-      return result;
-    } catch (e) {
-      if (e instanceof Error && e.message.includes("could not be read")) throw e;
-      return [];
-    }
-  });
+    }),
+  );
 
 /**
  * ── WHAT EVERY RUN IS ACTUALLY DOING, FOR THE ROWS ON `/start` (P-05) ─────
@@ -690,215 +730,232 @@ export type StartRun = {
 
 export const listRunsForStart = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<StartRun[]> => {
-    const { supabase } = context;
-    try {
-      const { data, error } = await supabase
-        .from("spine_tracks" as never)
-        .select(SELECT)
-        .order("updated_at", { ascending: false })
-        .limit(50);
-      if (error) failSoftOrThrow(error, "Your runs");
-      const rows = (data ?? []) as unknown as TrackRow[];
-      if (rows.length === 0) return [];
+  .handler(({ context }): Promise<StartRun[]> =>
+    withStartReaderTiming("listRunsForStart", async () => {
+      const { supabase } = context;
+      try {
+        /*
+         * `spine_track_members` EMBEDDED IN THE BASE READ, NOT A SEPARATE ROUND
+         * TRIP (P-32). `spine_track_members.track_id -> spine_tracks.id` is a
+         * real foreign key (checked against the live schema, not assumed), so
+         * PostgREST can return each track's own members nested under it in the
+         * SAME response. This does two things at once: it removes one whole
+         * round trip from the chain, and it makes `decisionIds` available the
+         * moment THIS read resolves rather than after a members round trip of
+         * its own -- so the decisions/forecast lookup below can run in the SAME
+         * concurrent wave as gates, running seats and pins, not a wave behind
+         * them. No `superseded_at` filter here, matching what this read has
+         * always counted: `producedByTrack` below is a straight count of what a
+         * station filed, not the "still standing" question `superseded_at`
+         * answers for lineage-adjacent reads elsewhere in this file.
+         */
+        const { data, error } = await supabase
+          .from("spine_tracks" as never)
+          .select(`${SELECT},spine_track_members(artifact_kind,artifact_id)`)
+          .order("updated_at", { ascending: false })
+          .limit(50);
+        if (error) failSoftOrThrow(error, "Your runs");
+        const rows = (data ?? []) as unknown as Array<
+          TrackRow & {
+            spine_track_members?: Array<{ artifact_kind: string; artifact_id: string | null }>;
+          }
+        >;
+        if (rows.length === 0) return [];
 
-      const tracks = rows.map(rowToTrack);
-      const ids = tracks.map((t) => t.id);
+        const tracks = rows.map(rowToTrack);
+        const ids = tracks.map((t) => t.id);
 
-      /*
-       * THE GATE THIS TRACK ITSELF OPENED, not every pending row the person
-       * owns. `pending_gates` records the calls THIS track's own runs opened,
-       * with the station that opened them, which is what makes "needs you"
-       * causal rather than correlational -- the same correction the driver's own
-       * approval count was given on 2026-08-01, when one unanswered call
-       * anywhere froze every track a person owned.
-       */
-      const gateIds = [
-        ...new Set(
-          rows.flatMap((r) => {
-            const gates = (r as unknown as { pending_gates?: unknown }).pending_gates;
-            return Array.isArray(gates)
-              ? gates
-                  .map((g) => (g as { id?: unknown }).id)
-                  .filter((g): g is string => typeof g === "string")
-              : [];
-          }),
-        ),
-      ];
-      /*
-       * FOUR INDEPENDENT READS, NOW CONCURRENT (P-32, A-QUEUE.md). Each of the
-       * four blocks below depends only on `rows`/`ids`/`gateIds` above -- none
-       * of them reads another block's result -- so the seven round trips this
-       * function used to make one after another (gate lookup, running seats,
-       * that seat's verb, pins, what it filed, the bet's verdict) collapse to
-       * ONE round trip for the base track read plus the SLOWEST of these four
-       * branches, not the sum of all of them.
-       *
-       * MEASURED FIRST, NOT GUESSED (P-32's own instruction). `EXPLAIN ANALYZE`
-       * against Helio Labs' live data put every one of these seven queries
-       * under a millisecond of actual execution (112 tracks, 2,992 agent_runs,
-       * 1,642 spine_track_members total -- nowhere near a scale a missing index
-       * would explain). The three-to-nine-second wait the packet measured is
-       * round-trip overhead multiplied by round-trip COUNT, not slow SQL, so
-       * the fix is fewer sequential trips, not a new index.
-       */
-      const [gateByTrack, { workingByTrack, toolByTrace }, pinnedByTrack, produced] =
-        await Promise.all([
-          (async () => {
-            const byTrack = new Map<string, { tool: string }>();
-            if (gateIds.length === 0) return byTrack;
-            const { data: gates } = await supabase
-              .from("agent_approvals")
-              .select("id, tool_name, status, run_id")
-              .in("id", gateIds)
-              .eq("status", "pending");
-            const pending = (gates ?? []) as Array<{
-              id: string;
-              tool_name: string;
-              run_id: string | null;
-            }>;
-            /* Back to the track through the row that opened it. A gate whose
+        /* WHAT EVERY TRACK FILED, read off the embed above -- no round trip of
+         its own. Counted by kind, the same unit `GotYou` counts, so the row
+         and the run screen cannot disagree about what a run produced. */
+        const producedByTrack = new Map<string, Map<string, number>>();
+        /** The bet each track made, so its verdict can be resolved below. */
+        const decisionByTrack = new Map<string, string>();
+        for (const r of rows) {
+          const members = Array.isArray(r.spine_track_members) ? r.spine_track_members : [];
+          for (const m of members) {
+            const book = producedByTrack.get(r.id) ?? new Map<string, number>();
+            book.set(m.artifact_kind, (book.get(m.artifact_kind) ?? 0) + 1);
+            producedByTrack.set(r.id, book);
+            if (m.artifact_kind === "decision" && m.artifact_id && !decisionByTrack.has(r.id)) {
+              decisionByTrack.set(r.id, m.artifact_id);
+            }
+          }
+        }
+        const decisionIds = [...new Set(decisionByTrack.values())];
+
+        /*
+         * THE GATE THIS TRACK ITSELF OPENED, not every pending row the person
+         * owns. `pending_gates` records the calls THIS track's own runs opened,
+         * with the station that opened them, which is what makes "needs you"
+         * causal rather than correlational -- the same correction the driver's own
+         * approval count was given on 2026-08-01, when one unanswered call
+         * anywhere froze every track a person owned.
+         */
+        const gateIds = [
+          ...new Set(
+            rows.flatMap((r) => {
+              const gates = (r as unknown as { pending_gates?: unknown }).pending_gates;
+              return Array.isArray(gates)
+                ? gates
+                    .map((g) => (g as { id?: unknown }).id)
+                    .filter((g): g is string => typeof g === "string")
+                : [];
+            }),
+          ),
+        ];
+        /*
+         * FOUR INDEPENDENT READS, CONCURRENT (P-32, A-QUEUE.md, second pass).
+         * Each block below depends only on `rows`/`ids`/`gateIds`/`decisionIds`
+         * computed above -- none of them reads another block's result -- so
+         * what began as seven sequential round trips now takes ONE round trip
+         * for the base read (which the `spine_track_members` embed folded a
+         * second round trip into) plus the SLOWEST of these four branches, not
+         * the sum of all of them.
+         *
+         * WHY THIS STILL WASN'T ENOUGH, MEASURED, NOT GUESSED A SECOND TIME.
+         * A1's live measurement after the first pass: seven readers start
+         * together at 1.38s, six answer in 465-612ms, and this one took 2.7s --
+         * five times its own siblings, and `EXPLAIN ANALYZE` already ruled out
+         * slow SQL (every query here executes in under a millisecond server-
+         * side). At roughly 500-600ms of fixed round-trip overhead per call --
+         * the SAME cost every other reader pays for exactly ONE round trip --
+         * three round trips on this function's own worst-case path (base, then
+         * running-seats-then-that-seat's-verb, a genuine two-hop chain with no
+         * FK to embed away) does the arithmetic: ~3 x 600-900ms lands right on
+         * 2.7s. Folding `spine_track_members` into the base read removes a
+         * round trip from EVERY load; it does not by itself shorten the
+         * worst-case chain when a seat actually is running, which is the state
+         * A1's own live measurement was almost certainly in.
+         */
+        const [gateByTrack, { workingByTrack, toolByTrace }, pinnedByTrack, forecastByTrack] =
+          await Promise.all([
+            (async () => {
+              const byTrack = new Map<string, { tool: string }>();
+              if (gateIds.length === 0) return byTrack;
+              const { data: gates } = await supabase
+                .from("agent_approvals")
+                .select("id, tool_name, status, run_id")
+                .in("id", gateIds)
+                .eq("status", "pending");
+              const pending = (gates ?? []) as Array<{
+                id: string;
+                tool_name: string;
+                run_id: string | null;
+              }>;
+              /* Back to the track through the row that opened it. A gate whose
                run cannot be resolved is dropped rather than attributed to a
                guess. */
-            const byId = new Map(pending.map((g) => [g.id, g]));
-            for (const r of rows) {
-              const gates2 = (r as unknown as { pending_gates?: unknown }).pending_gates;
-              if (!Array.isArray(gates2)) continue;
-              for (const g of gates2) {
-                const id = (g as { id?: unknown }).id;
-                if (typeof id !== "string") continue;
-                const hit = byId.get(id);
-                if (hit && !byTrack.has((r as unknown as { id: string }).id)) {
-                  byTrack.set((r as unknown as { id: string }).id, { tool: hit.tool_name });
+              const byId = new Map(pending.map((g) => [g.id, g]));
+              for (const r of rows) {
+                const gates2 = (r as unknown as { pending_gates?: unknown }).pending_gates;
+                if (!Array.isArray(gates2)) continue;
+                for (const g of gates2) {
+                  const id = (g as { id?: unknown }).id;
+                  if (typeof id !== "string") continue;
+                  const hit = byId.get(id);
+                  if (hit && !byTrack.has((r as unknown as { id: string }).id)) {
+                    byTrack.set((r as unknown as { id: string }).id, { tool: hit.tool_name });
+                  }
                 }
               }
-            }
-            return byTrack;
-          })(),
-          (async () => {
-            /* A SEAT IN FLIGHT, said only when a row literally says so. Never
+              return byTrack;
+            })(),
+            (async () => {
+              /* A SEAT IN FLIGHT, said only when a row literally says so. Never
                inferred from elapsed time or from a missing row, which is the
                rule `activity.ts` states and this read is the same claim one
                level up. */
-            const { data: runRows } = await supabase
-              .from("agent_runs")
-              .select("track_id, agent_name, created_at, trace_id, status")
-              .in("track_id", ids)
-              .in("status", ["running", "queued", "in_progress"])
-              .order("created_at", { ascending: false });
-            const running = (runRows ?? []) as Array<{
-              track_id: string | null;
-              agent_name: string;
-              created_at: string;
-              trace_id: string | null;
-            }>;
-            const workingByTrack = new Map<
-              string,
-              { seat: string; since: string; trace: string | null }
-            >();
-            for (const r of running) {
-              if (!r.track_id || workingByTrack.has(r.track_id)) continue;
-              workingByTrack.set(r.track_id, {
-                seat: r.agent_name,
-                since: r.created_at,
-                trace: r.trace_id,
-              });
-            }
+              const { data: runRows } = await supabase
+                .from("agent_runs")
+                .select("track_id, agent_name, created_at, trace_id, status")
+                .in("track_id", ids)
+                .in("status", ["running", "queued", "in_progress"])
+                .order("created_at", { ascending: false });
+              const running = (runRows ?? []) as Array<{
+                track_id: string | null;
+                agent_name: string;
+                created_at: string;
+                trace_id: string | null;
+              }>;
+              const workingByTrack = new Map<
+                string,
+                { seat: string; since: string; trace: string | null }
+              >();
+              for (const r of running) {
+                if (!r.track_id || workingByTrack.has(r.track_id)) continue;
+                workingByTrack.set(r.track_id, {
+                  seat: r.agent_name,
+                  since: r.created_at,
+                  trace: r.trace_id,
+                });
+              }
 
-            /* THE VERB, from the newest call on that seat's own trace. Skipped
+              /* THE VERB, from the newest call on that seat's own trace. Skipped
                entirely when nothing is running, which is the common case. */
-            const toolByTrace = new Map<string, string>();
-            const traces = [...workingByTrack.values()]
-              .map((w) => w.trace)
-              .filter((t): t is string => !!t);
-            if (traces.length > 0) {
-              const { data: calls } = await supabase
-                .from("tool_calls")
-                .select("trace_id, tool_name, created_at")
-                .in("trace_id", traces)
-                .order("created_at", { ascending: false })
-                .limit(200);
-              for (const c of (calls ?? []) as Array<{ trace_id: string; tool_name: string }>) {
-                if (!toolByTrace.has(c.trace_id)) toolByTrace.set(c.trace_id, c.tool_name);
+              const toolByTrace = new Map<string, string>();
+              const traces = [...workingByTrack.values()]
+                .map((w) => w.trace)
+                .filter((t): t is string => !!t);
+              if (traces.length > 0) {
+                const { data: calls } = await supabase
+                  .from("tool_calls")
+                  .select("trace_id, tool_name, created_at")
+                  .in("trace_id", traces)
+                  .order("created_at", { ascending: false })
+                  .limit(200);
+                for (const c of (calls ?? []) as Array<{ trace_id: string; tool_name: string }>) {
+                  if (!toolByTrace.has(c.trace_id)) toolByTrace.set(c.trace_id, c.tool_name);
+                }
               }
-            }
-            return { workingByTrack, toolByTrace };
-          })(),
-          (async () => {
-            /*
-             * THE PINS, IN THEIR OWN TOLERANT READ. Not in `SELECT`, because
-             * naming a column there fails the whole query on a database that
-             * has not taken the migration, and this read is the front door's
-             * only content. A read that cannot answer leaves every row
-             * unpinned, which is the state the product had yesterday: a
-             * degraded ordering, never a blank page.
-             */
-            const byTrack = new Map<string, string>();
-            try {
-              const { data: pins } = await supabase
-                .from("spine_tracks" as never)
-                .select("id, pinned_at")
-                .in("id", ids);
-              for (const p of (pins ?? []) as unknown as Array<{
-                id: string;
-                pinned_at: string | null;
-              }>) {
-                if (p.pinned_at) byTrack.set(p.id, p.pinned_at);
+              return { workingByTrack, toolByTrace };
+            })(),
+            (async () => {
+              /*
+               * THE PINS, IN THEIR OWN TOLERANT READ. Not in `SELECT`, because
+               * naming a column there fails the whole query on a database that
+               * has not taken the migration, and this read is the front door's
+               * only content. A read that cannot answer leaves every row
+               * unpinned, which is the state the product had yesterday: a
+               * degraded ordering, never a blank page.
+               */
+              const byTrack = new Map<string, string>();
+              try {
+                const { data: pins } = await supabase
+                  .from("spine_tracks" as never)
+                  .select("id, pinned_at")
+                  .in("id", ids);
+                for (const p of (pins ?? []) as unknown as Array<{
+                  id: string;
+                  pinned_at: string | null;
+                }>) {
+                  if (p.pinned_at) byTrack.set(p.id, p.pinned_at);
+                }
+              } catch {
+                /* Unpinned everywhere. See above. */
               }
-            } catch {
-              /* Unpinned everywhere. See above. */
-            }
-            return byTrack;
-          })(),
-          (async () => {
-            /* WHAT IT FILED. Counted by kind, the same unit `GotYou` counts,
-               so the row and the run screen cannot disagree about what a run
-               produced. */
-            const producedByTrack = new Map<string, Map<string, number>>();
-            const { data: memberRows } = await supabase
-              .from("spine_track_members" as never)
-              .select("track_id, artifact_kind, artifact_id")
-              .in("track_id", ids);
-            /** The bet each track made, so its verdict can be read below. */
-            const decisionByTrack = new Map<string, string>();
-            for (const m of (memberRows ?? []) as unknown as Array<{
-              track_id: string;
-              artifact_kind: string;
-              artifact_id?: string | null;
-            }>) {
-              const book = producedByTrack.get(m.track_id) ?? new Map<string, number>();
-              book.set(m.artifact_kind, (book.get(m.artifact_kind) ?? 0) + 1);
-              producedByTrack.set(m.track_id, book);
-              if (
-                m.artifact_kind === "decision" &&
-                m.artifact_id &&
-                !decisionByTrack.has(m.track_id)
-              ) {
-                decisionByTrack.set(m.track_id, m.artifact_id);
-              }
-            }
-
-            /*
-             * -- WHETHER THE BET HELD, WHICH IS THE FACT A FINISHED RUN IS FOR -
-             *
-             * A finished row said "Produced 2 specs and 1 decision". That is
-             * inventory. The thing this product exists to tell somebody is
-             * whether what the work PREDICTED turned out to be true, and until
-             * the grader was wired (P-04) there was never a verdict to say --
-             * so the count was the best sentence available and is no longer.
-             *
-             * Read in its own query, and failing soft. A track with no
-             * decision, a bet nobody has graded, or a read that did not answer
-             * all mean "no verdict to report", and the row falls back to what
-             * it said before. Nothing here may turn a missing verdict into a
-             * claimed one.
-             */
-            const forecastByTrack = new Map<
-              string,
-              { resolution: string; rationale: string | null }
-            >();
-            const decisionIds = [...new Set(decisionByTrack.values())];
-            if (decisionIds.length > 0) {
+              return byTrack;
+            })(),
+            (async () => {
+              /*
+               * -- WHETHER THE BET HELD, WHICH IS THE FACT A FINISHED RUN IS FOR -
+               *
+               * A finished row said "Produced 2 specs and 1 decision". That is
+               * inventory. The thing this product exists to tell somebody is
+               * whether what the work PREDICTED turned out to be true, and until
+               * the grader was wired (P-04) there was never a verdict to say --
+               * so the count was the best sentence available and is no longer.
+               *
+               * `decisionIds` is already known (the embedded members read above
+               * resolved it), so this branch is a single query, not a two-hop
+               * chain behind its own members round trip the way it used to be.
+               * Failing soft: a track with no decision, a bet nobody has
+               * graded, or a read that did not answer all mean "no verdict to
+               * report", and the row falls back to what it said before.
+               * Nothing here may turn a missing verdict into a claimed one.
+               */
+              const byTrack = new Map<string, { resolution: string; rationale: string | null }>();
+              if (decisionIds.length === 0) return byTrack;
               const { data: betRows, error: betErr } = await supabase
                 .from("decisions")
                 .select("id, forecast_resolution, forecast_resolution_rationale")
@@ -906,68 +963,66 @@ export const listRunsForStart = createServerFn({ method: "GET" })
                 .not("forecast_resolution", "is", null);
               if (betErr) {
                 console.error(`[listRunsForStart] could not read verdicts: ${betErr.message}`);
-              } else {
-                const byDecision = new Map(
-                  (
-                    (betRows ?? []) as unknown as Array<{
-                      id: string;
-                      forecast_resolution: string | null;
-                      forecast_resolution_rationale: string | null;
-                    }>
-                  ).map((d) => [d.id, d]),
-                );
-                for (const [trackId, decisionId] of decisionByTrack) {
-                  const bet = byDecision.get(decisionId);
-                  if (bet?.forecast_resolution) {
-                    forecastByTrack.set(trackId, {
-                      resolution: bet.forecast_resolution,
-                      rationale: bet.forecast_resolution_rationale,
-                    });
-                  }
+                return byTrack;
+              }
+              const byDecision = new Map(
+                (
+                  (betRows ?? []) as unknown as Array<{
+                    id: string;
+                    forecast_resolution: string | null;
+                    forecast_resolution_rationale: string | null;
+                  }>
+                ).map((d) => [d.id, d]),
+              );
+              for (const [trackId, decisionId] of decisionByTrack) {
+                const bet = byDecision.get(decisionId);
+                if (bet?.forecast_resolution) {
+                  byTrack.set(trackId, {
+                    resolution: bet.forecast_resolution,
+                    rationale: bet.forecast_resolution_rationale,
+                  });
                 }
               }
-            }
-            return { producedByTrack, forecastByTrack };
-          })(),
-        ]);
-      const producedByTrack = produced.producedByTrack;
-      const forecastByTrack = produced.forecastByTrack;
+              return byTrack;
+            })(),
+          ]);
 
-      return tracks.map((t) => {
-        const w = workingByTrack.get(t.id) ?? null;
-        return {
-          id: t.id,
-          title: t.title,
-          status: t.status,
-          station: t.station,
-          stationName: AGENT_STATIONS[t.station]?.name ?? t.station,
-          updatedAt: t.updatedAt,
-          drivenAt: t.drivenAt,
-          holdReason: t.holdReason,
-          holdBecause: t.holdBecause,
-          working: w
-            ? {
-                seat: w.seat,
-                since: w.since,
-                tool: w.trace ? (toolByTrace.get(w.trace) ?? null) : null,
-              }
-            : null,
-          needsYou: gateByTrack.get(t.id) ?? null,
-          produced: [...(producedByTrack.get(t.id) ?? new Map()).entries()].map(
-            ([kind, count]) => ({
-              kind,
-              count,
-            }),
-          ),
-          pinnedAt: pinnedByTrack.get(t.id) ?? null,
-          forecast: forecastByTrack.get(t.id) ?? null,
-        };
-      });
-    } catch (e) {
-      if (e instanceof Error && e.message.includes("could not be read")) throw e;
-      return [];
-    }
-  });
+        return tracks.map((t) => {
+          const w = workingByTrack.get(t.id) ?? null;
+          return {
+            id: t.id,
+            title: t.title,
+            status: t.status,
+            station: t.station,
+            stationName: AGENT_STATIONS[t.station]?.name ?? t.station,
+            updatedAt: t.updatedAt,
+            drivenAt: t.drivenAt,
+            holdReason: t.holdReason,
+            holdBecause: t.holdBecause,
+            working: w
+              ? {
+                  seat: w.seat,
+                  since: w.since,
+                  tool: w.trace ? (toolByTrace.get(w.trace) ?? null) : null,
+                }
+              : null,
+            needsYou: gateByTrack.get(t.id) ?? null,
+            produced: [...(producedByTrack.get(t.id) ?? new Map()).entries()].map(
+              ([kind, count]) => ({
+                kind,
+                count,
+              }),
+            ),
+            pinnedAt: pinnedByTrack.get(t.id) ?? null,
+            forecast: forecastByTrack.get(t.id) ?? null,
+          };
+        });
+      } catch (e) {
+        if (e instanceof Error && e.message.includes("could not be read")) throw e;
+        return [];
+      }
+    }),
+  );
 
 /**
  * P-25 (A-QUEUE.md, "the entry point for a person who does not remember the
