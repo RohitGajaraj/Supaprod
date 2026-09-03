@@ -217,7 +217,9 @@ export const Route = createFileRoute("/_authenticated/crew")({
     view: search.view === "methods" ? "methods" : undefined,
   }),
   component: Crew,
-  head: () => ({ meta: [{ title: "Crew · Supaprod" }] }),
+  // P-61 (A-QUEUE.md): the tab title is the rail's own word for this door
+  // (PRIMARY_NAV's "Team"), not the route's internal name.
+  head: () => ({ meta: [{ title: "Team · Supaprod" }] }),
 });
 
 /* ------------------------------------------------------------------ *

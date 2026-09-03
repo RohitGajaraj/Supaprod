@@ -145,7 +145,9 @@ export function parseSyncSearch(search: Record<string, unknown>): SyncSearch {
 
 export const Route = createFileRoute("/_authenticated/sync")({
   component: SyncPage,
-  head: () => ({ meta: [{ title: "Sync · Supaprod" }] }),
+  // P-61 (A-QUEUE.md): the tab title is the rail's own word for this door
+  // (PRIMARY_NAV's "Sources"), not the route's internal name.
+  head: () => ({ meta: [{ title: "Sources · Supaprod" }] }),
   // Deep-link target for the honest doors to this surface: /sync?conflict=<id>
   // lands on the conflict and floats it to the top of the list.
   validateSearch: parseSyncSearch,

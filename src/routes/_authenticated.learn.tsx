@@ -178,7 +178,11 @@ import { stillWaiting } from "@/lib/query-state";
 
 export const Route = createFileRoute("/_authenticated/learn")({
   component: Learn,
-  head: () => ({ meta: [{ title: "Learn · Supaprod" }] }),
+  // P-61 (A-QUEUE.md): "Learn" is a station name, and station names appear
+  // only inside a run. This surface is reached from Outcomes ("What we
+  // learned"), not the rail, so its tab says what it asks: which verdicts
+  // still need a person's reading.
+  head: () => ({ meta: [{ title: "Verdicts due · Supaprod" }] }),
   errorComponent: ({ error }) => {
     console.error("[Learn] route crashed:", error);
     return (

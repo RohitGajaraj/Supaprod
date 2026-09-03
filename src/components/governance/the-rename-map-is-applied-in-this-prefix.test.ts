@@ -217,9 +217,17 @@ describe("§12 holds in route tab titles, which the checks above cannot see", ()
      * describes (Policies/Insights doors) no longer exists after P-11's
      * three-door rework this session, and the page's honest name now is
      * Outcomes.
+     *
+     * "Policies · Supaprod" -> "Spend and limits · Supaprod" (P-61,
+     * 2026-09-04): §12 itself retires "Policies" (P-11's own rename map),
+     * so a test that required the tab to keep saying it was pinned to the
+     * violation, not the door. The engine room is P-60/P-61's "Team" door's
+     * own tab (`/crew`, "the engine room as its spend tab") -- "Spend and
+     * limits" is that door's own word for the surface, same coupling this
+     * test exists to hold, pointed the other way this time.
      */
     const all = titles().join("\n");
-    expect(all).toContain("Policies · Supaprod");
+    expect(all).toContain("Spend and limits · Supaprod");
     expect(all).toContain("Outcomes · Supaprod");
   });
 });

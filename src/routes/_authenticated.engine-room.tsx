@@ -193,18 +193,16 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
     return {
       meta: [
         /*
-         * THE TAB SAYS WHAT THE DOOR SAID (§12, 2026-09-01).
+         * THE TAB SAYS WHAT THE DOOR SAID (§12, 2026-09-01; corrected P-61,
+         * A-QUEUE.md).
          *
-         * This read "Engine room", which the rename map retires, and the browser
-         * tab is the one surface that reaches somebody who has stepped away from
-         * the page entirely — S1 made that point about the run and it is truer
-         * here, because a tab is all a backgrounded window shows.
-         *
-         * It matches S2's rail door, which now reads **Permissions**, rather than
-         * §12's full phrase "What it's allowed to do": the founder ruled a door is
-         * one word and not a sentence, and a tab that disagrees with the door the
-         * person just clicked is the same door-and-destination mismatch §12 warns
-         * about, pointing the other way.
+         * This read "Engine room", then "Policies", both retired rail words the
+         * tab kept saying after the rail itself moved on — the browser tab is
+         * the one surface that reaches somebody who has stepped away from the
+         * page entirely, so a stale word here outlives every other instance of
+         * it. P-60/P-61 fold this surface under Team (`/crew`) as its spend and
+         * limits sub-view, so the tab now says that rather than a word no door
+         * anywhere else uses.
          *
          * NOT the phrase for all four rooms. "What it's allowed to do" describes
          * the SAFETY room; spend, quality and record are not about permissions,
@@ -215,7 +213,11 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
          * rendering props and JSX text and never looks at a route's `head()`, so
          * a retired word lived in the one place no assertion was pointed.
          */
-        { title: open ? `${ROOM_NAMES[open]} · Policies · Supaprod` : "Policies · Supaprod" },
+        {
+          title: open
+            ? `${ROOM_NAMES[open]} · Spend and limits · Supaprod`
+            : "Spend and limits · Supaprod",
+        },
       ],
     };
   },

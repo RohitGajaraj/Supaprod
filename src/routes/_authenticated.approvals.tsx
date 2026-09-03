@@ -152,7 +152,9 @@ const NO_ITEMS: readonly ApprovalQueueItem[] = [];
 
 export const Route = createFileRoute("/_authenticated/approvals")({
   component: ApprovalsSurface,
-  head: () => ({ meta: [{ title: "Approvals · Supaprod" }] }),
+  // P-61 (A-QUEUE.md): the tab title is the rail's own word for this door
+  // (PRIMARY_NAV's "Waiting"), not the route's internal name.
+  head: () => ({ meta: [{ title: "Waiting · Supaprod" }] }),
 });
 
 const SETTLED_APPROVE: Record<ApprovalQueueItem["kindKey"], string> = {

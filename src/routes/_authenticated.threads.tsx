@@ -164,7 +164,9 @@ const searchSchema = z.object({ c: z.string().optional() });
 export const Route = createFileRoute("/_authenticated/threads")({
   validateSearch: (s: Record<string, unknown>) => searchSchema.parse(s),
   component: ThreadsSurface,
-  head: () => ({ meta: [{ title: "Threads · Supaprod" }] }),
+  // P-61 (A-QUEUE.md): the tab title is the rail's own word for this door
+  // (PRIMARY_NAV's "Conversations"), not the route's internal name.
+  head: () => ({ meta: [{ title: "Conversations · Supaprod" }] }),
 });
 
 /** The seat that answers you here. `api/chat.ts` dispatches the loop as
