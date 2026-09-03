@@ -115,7 +115,7 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 ---
 
 **DEV SERVER: off** · any lane may start it when a packet needs a rendered check; the lane that starts it stops it and writes `off` here before reporting the packet.
-**LIVE WALKS (A1): the honest run is live, track `870b70d3`, Helio Labs, pressed by the founder 14:12:42 IST with *Show the last outage time on the homeowner status tile*. 14:12 to 14:16: Discovery Scout, 4 tool calls, 3m 12s, 40,715 tokens, filed nothing (no evidence in the workspace). 14:20 sweep: Sense again, Scout again, Researcher, hold `out-of-time` (the loop ran long); the screen at 14:23 tells the story in words, with *Stopped, and not on you* beside *Finish it in Settings* and *Say what is unsettled*, three asks in one breath. Cause on the record: the track carries product **Prism** because the switcher sat on Prism when he pressed, and the sentence is about **Relay**; Sense read a product with nothing pointed at it. Next reads: the 14:30 sweep (does it circle a third time), then the ruling on a sentence with no evidence. Pending: P-36 banner walk after the 14:25 publish; P-33 §5 walk on *Arrival walk* by rule 18; P-04 Learn tab after a real ship.**
+**LIVE WALKS (A1): the honest run is live, track `870b70d3`, Helio Labs, pressed by the founder 14:12:42 IST with *Show the last outage time on the homeowner status tile*. 14:12 to 14:16: Discovery Scout, 4 tool calls, 3m 12s, 40,715 tokens, filed nothing (no evidence in the workspace). 14:20 sweep: Scout again, Researcher, hold `out-of-time`. 14:30 sweep: Customer Insights, same answer, hold `produced-nothing`, attempt 1 of 3; on the current rule it gives up at 14:50. Ruled R-36 and filed P-40 (A2, before P-04). Cause on the record: the track carries product **Prism** because the switcher sat on Prism when he pressed, and the sentence is about **Relay** (P-16b, A3, carries the field-side fix). The screen at 14:23 told the story in words, with *Stopped, and not on you* beside *Finish it in Settings* and *Say what is unsettled*, three asks in one breath. Pending: P-36 banner walk on the tablet track's open gate (publish 14:25); P-33 §5 walk on *Arrival walk* by rule 18 (A2 read it clean at 14:26); P-04 Learn tab after a real ship.**
 **A1 AUDIT OF EVERY CLOSED PACKET (12:15 IST, founder's instruction: verify, never accept on a
 report).** 35 closed; 21 carried A1's own live or database evidence at closing; 14 were report-only
 or deferred. Re-verified today: P-26 (A1's own grep, both duration forms, zero in code; the nine hits
@@ -2367,6 +2367,41 @@ artifact (`STATION_ARTIFACT[station].kind`, a changeset for Build); if it did, i
 the track gives up saying the problem is downstream. The trap A2 named in the test: "filed anything"
 is always true at Build because the driver files a mission row before any seat runs, and that version
 deletes the founder's case. Both directions asserted.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
+
+### P-40 · A sentence with no evidence is carried, not circled · Lane: **A2** · Status: READY, **before P-04** · Moves: 1, 2
+
+**Why.** R-36. On the honest run (track `870b70d3`, 14:12 IST) three seats at Sense filed nothing
+for the same reason and the driver spent an attempt on each pass; on its rule it gives up at
+14:50 IST, *Needs a restart*, with nothing built. The founder's sentence was the evidence and the
+loop treated it as a failed search.
+
+**Scope.**
+1. In `driver.server.ts`, when a Sense crew's seats all file nothing and every reason is the
+   no-evidence kind (the seats already say so in words; make it a typed reason on the seat result,
+   not a string match), the driver does not count `produced-nothing`. It records the reason on the
+   track (`last_hold_because` and the transcript), advances the track to Decide with the sentence
+   as the sole evidence, and marks the decision it makes there `evidence: the person's sentence, no
+   findings` so Learn's grading and the record carry the footing. Halts, throws and credit refusals
+   keep the existing attempt rule.
+2. The run screen on that transition: one line, once, in the transcript and the hold pane:
+   *Nothing in the workspace speaks to this. Carrying on from your sentence alone; add a source or
+   say what you know to change that.* The *Let Discover try again* door does not render on a
+   no-evidence transition; *Say what is unsettled* and the source door stay.
+3. A test drives a track through a Sense crew whose seats file nothing with the no-evidence reason
+   and proves: attempts unchanged, station Decide, the decision carries the footing, the line in
+   the transcript. A second test proves a credit halt still counts an attempt.
+4. Read the live track `870b70d3` after the publish: if it has not yet given up, the next sweep
+   carries it to Decide under the new rule; if it has, the founder presses once and the press takes
+   the new path. Either way the record shows the reason, not a restart.
+
+**Acceptance.**
+- [ ] Both tests, named after their sentences.
+- [ ] `870b70d3` reaches Decide with the footing on its decision, read by A1 in the database and on
+      the run screen.
+- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —

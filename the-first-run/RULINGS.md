@@ -1021,3 +1021,31 @@ is stopped. The `/runs/$missionId` page is deleted with the rest.
 | **Does the forecast become a required field on the human decision path?** | All 14 forecasts are agent-authored; **zero human-authored decisions carry one**, while the positioning says *what a team believed*. Either it becomes required server-side, or the claim is restated as *what the agent predicted* — a weaker, different product. **This is a founder call, not mine.** |
 | **How are we different from Cloverpop?** | Eleven years, $12.6M, selling "capture every decision, track how results compare with expectations". Not named anywhere in our corpus. No answer exists yet. |
 | **What replaces the 84 routes, exactly?** | `REIMAGINING.md` argues nine surfaces. I have not yet mapped which of the 84 map onto which nine, and I will not let a lane guess it. |
+
+## R-36 · A sentence with no evidence is carried on the person's word, not retried. (2026-09-03)
+
+Seen on the honest run, track `870b70d3`, 14:12 to 14:30 IST: the founder typed *Show the last
+outage time on the homeowner status tile*; Discovery Scout, then Researcher, then Customer Insights
+each searched the workspace and each filed nothing with the same reason, *no evidence for this
+sentence*. The driver counted `produced-nothing`, and on its current rule will retry Sense twice
+more at ten-minute intervals and then hold `given-up`, *Needs a restart*, forty-eight minutes
+after the press, with nothing built.
+
+The ruling. A sentence typed on Start is the person's intent stated ahead of the evidence, and
+that is the ordinary case for a founder, not a failure. When every seat at Sense files nothing and
+the reason is *no evidence in the workspace* (not a halt, not a crash, not a credit refusal), the
+driver does not spend a second attempt. It writes the reason on the track, tells the person once in
+one line, and hands the track to Decide with the sentence as the only evidence, marked so: the
+decision's evidence field says *the person's sentence, no findings*, Learn grades it on that
+footing, and the record never claims the workspace supported it. The person keeps two doors on the
+run screen, both already present: *Say what is unsettled* to add what they know, and a source to
+point at. A third door is retired: *Let Discover try again* on a no-evidence hold, because trying
+again with nothing new to read is the circle this ruling ends.
+
+Companion, on scope. The run carried product Prism because the switcher sat on Prism when the
+founder pressed, and the sentence names the homeowner app, which is Relay. The sentence field
+names the product the run will use beside the field, one press to change, and a sentence that
+names a product the workspace has is offered that product before the press (P-16b, A3).
+
+Reversible. If the product that a sentence names cannot be told from the sentence, the field shows
+the current product and the person's press stands.
