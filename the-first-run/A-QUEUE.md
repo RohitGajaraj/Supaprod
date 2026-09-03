@@ -6309,7 +6309,7 @@ packet, since P-46's scope is the copy, not the tooling.
 
 **Blockers (A3 writes):** —
 
-### P-47 · The humanizer scans a markdown page it was handed · Lane: **A3** · Status: READY · Moves: 5
+### P-47 · The humanizer scans a markdown page it was handed · Lane: **A3** · Status: CLAIMED (A3) · Moves: 5
 
 **Why.** A3, P-46: `scripts/hooks/check-humanized.sh` says in its header that passing a markdown
 path explicitly is the opt-in for scanning a public page, and a one-line `.md` with a bare em
