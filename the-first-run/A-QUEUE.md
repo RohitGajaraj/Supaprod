@@ -3450,7 +3450,7 @@ pinned; the pin control is on every live row on `/start`.
 
 ---
 
-### P-21 · Plan emits `intent.md` · `spec.md` · `plan.md` in the playbook's shape · Lane: **A2** · Status: BLOCKED → P-02 · Moves: 3, 4
+### P-21 · Plan emits `intent.md` · `spec.md` · `plan.md` in the playbook's shape · Lane: **A2** · Status: CLAIMED (A2, 06:20 IST) · Moves: 3, 4
 
 **Why.** Anthropic's AI-native SDLC playbook (adopted 2026-08-31, `SPEC-AI-NATIVE-SDLC.md` §4.1,
 gap 20) names three files a team keeps in its repo. A team on that playbook should be able to drop
