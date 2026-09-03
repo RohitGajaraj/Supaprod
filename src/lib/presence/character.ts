@@ -235,10 +235,24 @@ export function deriveCharacter(input: PresenceInput): Presence {
   // already refuses to walk past a hold (item 34's guard); the character must
   // not talk past one either.
   if (hold === ASKING_HOLD) {
-    return {
-      state: "asking",
-      line: "I need you for this one, the question is on the card below.",
-    };
+    /*
+     * ── THE CARD IS ASKING, SO THE CHARACTER IS SILENT (P-37, A1's walk) ──
+     *
+     * This said "I need you for this one, the question is on the card below."
+     * directly above the card that asks the question. A1 walked the tablet
+     * track at Ship and found it still in the page's text: a sentence whose
+     * entire content is that another element exists.
+     *
+     * It is the same shape as the held case one branch down and it survived
+     * because it returns FIRST: `if (hold)` was made quiet and this never
+     * reached it. Pointing at a control is what a surface does when it has not
+     * decided which element owns the moment. The card owns it.
+     *
+     * The `asking` state is kept in the union rather than removed: other
+     * surfaces draw the face without the line, and a mark that means "you are
+     * needed" is a true thing for a chip to carry. What goes is the sentence.
+     */
+    return { state: "quiet", line: "" };
   }
 
   if (hold === BLOCKED_HOLD) {

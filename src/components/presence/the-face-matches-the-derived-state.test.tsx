@@ -41,7 +41,11 @@ describe("Character derives, it is never handed a state", () => {
         })}
       />,
     );
-    expect(container.querySelector('[data-presence-state="asking"]')).not.toBeNull();
+    /* The whole element goes on an asking hold: the card below is asking, and a
+       mark with a blank beside it is a character visibly saying nothing. The
+       ordering property (a question beats a leg in flight) is asserted in
+       `the-character-never-claims-a-state-it-cannot-prove`. */
+    expect(container.querySelector("[data-presence-state]")).toBeNull();
   });
 
   test("a dead feed renders out-of-touch and says so in words", () => {

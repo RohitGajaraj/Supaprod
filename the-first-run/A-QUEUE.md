@@ -6667,6 +6667,32 @@ that already happened. The horizon joined the predicate, and the chip now CALLS 
 computing the same idea beside it, which was the actual cause of two surfaces differing by one
 condition: not two facts, but one idea written twice.
 
+### A1's walk, and the one thing it found still in the DOM
+
+Walked on the served `4b53bc32a` at 21:00 IST. The honest run at Learn reads *"Waiting on time"* in
+the header, no On hold, no character, the footer *"Learn returns Sat, Oct 3."* alone. The tablet
+track at Ship reads question, risk as one line, *Why it asks* as the seat's, the declared default and
+the wait in mono, the two answers, and the footer alone.
+
+**A1 asked whether the Supa line was still in the DOM on an asking hold. It was, and it is answered
+rather than reported.** *"I need you for this one, the question is on the card below"* rendered
+directly above the card that asks the question: a sentence whose entire content is that another
+element exists.
+
+It survived because it RETURNS FIRST. `if (hold)` was made quiet in `691f87dba`, and the asking
+branch sits above it and never reached that code. So the rule was right, the fix was real, and one
+branch had jumped the queue: pointing at a control is what a surface does when it has not decided
+which element owns the moment, and the card owns it.
+
+The `asking` STATE stays in the union: other surfaces draw the face without the line, and a mark
+meaning "you are needed" is a true thing for a chip to carry. What goes is the sentence.
+
+**One exception is left deliberately and needs a ruling rather than my choice.** `BLOCKED_HOLD`
+still speaks: *"A door I need is locked. Reconnect it and start me again, redoing the work would not
+open it."* Unlike the asking case, that sentence carries content which may not appear on any card,
+so silencing it could take the only statement of a fact off the screen. It is the last voice on this
+surface and I have not removed it blind.
+
 ### What I got wrong, kept because the pattern repeated
 
 Five slips inside a packet whose subject is claims that nothing implements, every one caught by a

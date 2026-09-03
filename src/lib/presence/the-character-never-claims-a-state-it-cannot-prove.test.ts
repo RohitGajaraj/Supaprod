@@ -56,11 +56,24 @@ describe("each state needs its proof", () => {
     expect(p.line).toContain("writing the spec");
   });
 
-  test("waiting-on-a-person is asking, even while a leg is in flight", () => {
+  test("a question still beats a leg in flight, and now says nothing", () => {
+    /*
+     * THE ORDERING IS THE PROPERTY and it is unchanged: an asking hold must win
+     * over `walking`, or a run with a question in front of the person renders
+     * as busy and the question reads as optional.
+     *
+     * What changed is the sentence. This branch said "I need you for this one,
+     * the question is on the card below" DIRECTLY ABOVE the card that asks the
+     * question (A1's walk of the tablet track at Ship, 21:00 IST): a sentence
+     * whose entire content is that another element exists. Pointing at a
+     * control is what a surface does when it has not decided which element owns
+     * the moment, and the card owns it.
+     */
     const p = deriveCharacter(
       base({ track: openTrack({ holdReason: "waiting-on-a-person" }), walking: true }),
     );
-    expect(p.state).toBe("asking");
+    expect(p.state).toBe("quiet");
+    expect(p.line).toBe("");
   });
 
   test("tools-refused is blocked, and the line says redoing the work will not help", () => {
