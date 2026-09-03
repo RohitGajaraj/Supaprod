@@ -378,3 +378,50 @@ describe("a calendar wait is one sentence and no door", () => {
     expect(m.line).not.toContain("Learn returns");
   });
 });
+
+describe("an overdue horizon is not a calendar wait", () => {
+  /**
+   * Found by checking a claim rather than acting on it. A1 reported the footer
+   * still saying "Stopped, and not on you" and reasoned that the predicate read
+   * a different fact from the chip: the hold string versus the forecast horizon.
+   *
+   * The database said otherwise (`last_hold` WAS "needs-evidence" at learn, so
+   * the predicate matched, and the build read was simply older than the fix) and
+   * the chip reads the hold string too. But the check surfaced a real bug of
+   * mine underneath the wrong diagnosis: my predicate asked TWO of the three
+   * things the chip asks, and the missing one is the horizon.
+   *
+   * A track at Learn on `needs-evidence` whose horizon has ALREADY PASSED is not
+   * waiting on the calendar. It is overdue, and telling that person to wait for
+   * something that already happened is the worst reading of the three.
+   */
+  const at = (horizon: string | null, now: number) =>
+    footerMode({
+      status: "open",
+      tone: "hold",
+      hold: "needs-evidence",
+      because: null,
+      walking: false,
+      crewLive: false,
+      station: "learn",
+      horizon,
+      now,
+    });
+
+  const NOW = Date.parse("2026-09-03T12:00:00.000Z");
+
+  it("still reads a future horizon as a calendar wait", () => {
+    expect(at("2026-10-03T00:00:00.000Z", NOW).line).toContain("Learn returns");
+  });
+
+  it("does NOT call an overdue track a calendar wait", () => {
+    const m = at("2026-08-01T00:00:00.000Z", NOW);
+    expect(m.line).not.toContain("Learn returns");
+  });
+
+  it("reads an unknown horizon broadly rather than calling it a stoppage", () => {
+    // Most surfaces have not plumbed the date. Calling a calendar wait a
+    // stoppage everywhere is the louder wrong.
+    expect(at(null, NOW).line).toContain("Learn returns");
+  });
+});

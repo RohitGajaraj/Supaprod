@@ -117,6 +117,14 @@ export function footerMode(input: {
   /** Which station the track is standing at, for the calendar-wait case. */
   station?: string | null;
   /**
+   * The forecast's horizon, when the caller has read one. Without it a Learn
+   * hold reads as a calendar wait; with it, an overdue one correctly does not.
+   * See `waitingOnTime` for why the two answers differ.
+   */
+  horizon?: string | null;
+  /** Injectable so the calendar-wait branch is deterministic in a test. */
+  now?: number;
+  /**
    * When Learn comes back, already formatted. Only read on a calendar wait.
    * Null when nobody recorded a horizon, which is a real state rather than a
    * reason to invent "soon".
@@ -136,7 +144,14 @@ export function footerMode(input: {
    * actually wants, which is WHEN it comes back, and draws no door because
    * there is nothing to press that would help.
    */
-  if (waitingOnTime({ station: input.station, holdReason: input.hold })) {
+  if (
+    waitingOnTime({
+      station: input.station,
+      holdReason: input.hold,
+      horizon: input.horizon,
+      now: input.now,
+    })
+  ) {
     return {
       line: calendarWaitLine(input.returnsOn ?? null),
       canStop: false,

@@ -90,6 +90,7 @@ import {
   useRunTally,
 } from "@/components/track/run-tally";
 import { stoppedByYou } from "@/components/track/footer-mode";
+import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 
 /**
  * What the walk did, said plainly.
@@ -461,17 +462,28 @@ export function TrackRunLeft({
   }, [artifactsQ.data?.stops]);
 
   // Check if this is a calm hold: needs-evidence at learn with future horizon.
-  const isCalmHold = React.useMemo(() => {
-    if (
-      track?.holdReason === "needs-evidence" &&
-      track.station === "learn" &&
+  const isCalmHold = React.useMemo(
+    () =>
+      /*
+       * P-37. The same predicate the run's FOOTER reads, so the chip and the bar
+       * cannot describe one state two ways. They were computing the same idea in
+       * two places, which is how the footer came to ask two of the three things
+       * this asks and to call an overdue track a calendar wait.
+       *
+       * `forecastHorizonDate` null keeps the chip's old behaviour of not
+       * claiming calm, because a chip is a claim about a specific date being
+       * ahead; the footer's broader reading is documented at the predicate.
+       */
       forecastHorizonDate
-    ) {
-      const horizonDate = new Date(forecastHorizonDate);
-      return horizonDate > new Date(nowMs);
-    }
-    return false;
-  }, [track?.holdReason, track?.station, forecastHorizonDate, nowMs]);
+        ? waitingOnTime({
+            station: track?.station,
+            holdReason: track?.holdReason,
+            horizon: forecastHorizonDate,
+            now: nowMs,
+          })
+        : false,
+    [track?.holdReason, track?.station, forecastHorizonDate, nowMs],
+  );
 
   /*
    * OUT-OF-TIME IS THE LOOP'S CLOCK, NOT A STOP (F-46/R027). While this press
