@@ -6865,7 +6865,7 @@ count from the same population; a test that the heading names families and omits
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads the heading live.
 
 
-### P-57 · A brief-path spec is guarded against its twin, and its derived title ends on a word · Lane: **A2** (moved from A3 at 23:55 IST; A3 stays on P-53) · Status: CODE DONE (A2, `1d6d9bf4f`, suite 13,972 / 0 / 0, tsc 0); A1 reads the next brief-path Define pass · Moves: 1, 2
+### P-57 · A brief-path spec is guarded against its twin, and its derived title ends on a word · Lane: **A2** (moved from A3 at 23:55 IST; A3 stays on P-53) · Status: CODE DONE (1d6d9bf4f; A2 reports 13,972 / 0 / 0, tsc 0; A1 suite running); second half below · Moves: 1, 2
 
 **Why.** Read live 23:31 IST while closing P-50: the Ask panel answered "What needs my call before it
 can move?" with the same design gate twice, *Approve the design for Remove the redundant address
@@ -6903,6 +6903,20 @@ the report. A1 reads the next brief-path Define pass on a live track and finds o
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads.
 
+
+
+**P-57b, A1, 00:20 IST 09-04 (A2, before P-59).** The guard stops the eleventh spec; the 21 live
+twins stay, and each carries a pending design gate, so the approvals heading still counts twins.
+Ruling under the founder's standing authority of 00:09: **on one track at one station, the newest
+live spec stands; the older live ones are superseded, and a superseded spec's pending design gate
+closes with it.** Build it as the invariant, not a sweep: (1) wherever a spec member is
+superseded (`spine_track_members.superseded_at`), the spec's `design_gate_status` leaves `pending`
+in the same write (a trigger in the day's `202609xx` series, or the one supersede path if there is
+exactly one; say which and why); (2) a backfill in the same migration for the 12 rows that are
+already superseded or are the older live twin on the 9 tracks, recording the ids it touched in the
+migration's own comment; (3) a guard that a superseded spec cannot hold a pending gate. Apply the
+migration via the Lovable MCP; A1 confirms the ledger row and the population (expect 0 tracks with
+twin live specs, and the heading's design-gate count down by the twins). Then P-59.
 
 ### P-58 · The Worker is warm when a person arrives · Lane: **A3** (after P-53) · Status: READY · Moves: 3
 
