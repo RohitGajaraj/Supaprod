@@ -37,10 +37,26 @@ const AUDIT = strip(readFileSync("src/lib/brain/forecast-audit.server.ts", "utf8
 const RULES = strip(readFileSync("src/lib/brain/forecast-resolution.ts", "utf8"));
 
 describe("a verdict reached with no evidence is inconclusive, whatever the model said", () => {
-  it("detects that there was nothing to judge against", () => {
-    expect(AUDIT.replace(/\s+/g, " ")).toContain(
-      "const nothingToJudgeAgainst = !link.evidence.trim();",
-    );
+  it("turns on what the verdict CITED, not on whether anything existed", () => {
+    /*
+     * This asserted `!link.evidence.trim()`, which was the right question while
+     * the linked spec's outcome was the only thing the grader could read. P-42
+     * gave it a kit, so the honest question moved from "was there anything to
+     * read" to "did it actually use any of it". `citedRows` matches ids the
+     * model was SHOWN, so a rationale cannot claim a source never in front of
+     * it, and a model reasoning from its own priors names nothing.
+     */
+    const flat = AUDIT.replace(/\s+/g, " ");
+    expect(flat).toContain('const cited = citedRows(kit, parsed.rationale ?? "");');
+    expect(flat).toContain('if (cited.length === 0 && parsed.verdict !== "inconclusive")');
+  });
+
+  it("tells the two silences apart, because they are different facts", () => {
+    // "There was nothing to read" and "it read nine things and cited none" are
+    // not the same report, and a person deciding whether to trust the desk
+    // needs to know which one happened.
+    expect(AUDIT).toContain("Graded without evidence.");
+    expect(AUDIT).toContain("Graded without naming a source.");
   });
 
   it("overrides a hit or a miss, and drops the confidence with it", () => {

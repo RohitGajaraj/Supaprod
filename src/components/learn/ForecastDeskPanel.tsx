@@ -296,6 +296,43 @@ export function ForecastDeskPanel() {
               />
             ) : null}
 
+            {/*
+              ── WHAT IT READ, UNDER WHAT IT CONCLUDED (P-42) ──────────────
+              A verdict is only worth as much as what stands behind it, and
+              until P-42 nothing stood behind these: the grader was handed one
+              line, the linked spec's outcome, and eight drafts on production
+              came back at confidence 1.0 having read nothing at all.
+
+              The CITED rows are marked, and the rest are shown anyway. "It saw
+              nine things and leaned on two" and "it saw two things" are
+              different facts about the same verdict, and a person deciding
+              whether to accept a draft needs both: the second is a thin desk,
+              the first is a judgment.
+
+              Absent on every suggestion drafted before P-42, which reads
+              correctly rather than as a gap: those were graded on one line.
+            */}
+            {picked.suggestion && picked.suggestion.read.length > 0 ? (
+              <div data-mrd="" className="flex flex-col gap-mrd-2 font-mrd">
+                <p className="mrd-eyebrow">What it read</p>
+                <ul className="flex flex-col gap-mrd-1">
+                  {picked.suggestion.read.map((r) => {
+                    const used = picked.suggestion!.cited.includes(`${r.kind}:${r.id}`);
+                    return (
+                      <li
+                        key={`${r.kind}:${r.id}`}
+                        className={`text-mrd-small ${used ? "text-mrd-ink" : "text-mrd-mute"}`}
+                      >
+                        {/* The one it leaned on is named as such rather than
+                            merely darker: colour alone is not a fact. */}
+                        {used ? <strong>Used</strong> : "Read"} · {r.kind} · {r.line}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : null}
+
             <Field label="What settled it" htmlFor="forecast-rationale">
               <Textarea
                 id="forecast-rationale"

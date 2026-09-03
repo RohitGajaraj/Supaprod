@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { callModel } from "@/lib/ai/runtime.server";
+import { readKitForForecast, readKitAsText, citedRows } from "@/lib/brain/what-the-grader-read";
 import {
   canAutoSettle,
   buildSettlePatch,
@@ -98,15 +99,29 @@ export function forecastAuditPrompt(input: {
   claim: string;
   howWeWillKnow: string;
   horizonDate: string;
-  evidence: string;
+  /**
+   * Everything the grader may look at, one row per line, each carrying the id it
+   * must cite. P-42. This replaced a single `evidence` string whose only source
+   * was the linked spec's outcome and which read "No linked outcome has been
+   * settled." whenever there was no spec, which was seven of the eight due
+   * forecasts on production.
+   */
+  readKit: string;
 }): string {
   return `THE TEAM EXPECTED: ${input.claim}
 HOW THEY SAID THEY WOULD KNOW: ${input.howWeWillKnow}
 THE HORIZON WAS: ${input.horizonDate}
 
-WHAT IS KNOWN NOW: ${input.evidence || "No linked outcome has been settled."}
+WHAT YOU CAN READ, and it is all you can read:
+${input.readKit}
 
-Did the forecast come true, judged only against the stated observable? Answer inconclusive if the observable does not settle it. Output JSON:
+Did the forecast come true, judged ONLY against the stated observable and ONLY against what is listed above?
+
+CITE WHAT YOU USED. Put the bracketed id of every row you relied on into your rationale, exactly as written, like [signal:abc-123]. A verdict that names no row is not a verdict: if nothing above settles the observable, answer inconclusive with confidence 0 and say what was missing.
+
+Do not reason from anything you were not shown. You have no other sources and you are not being asked to guess.
+
+Output JSON:
 {"outcome":"hit|miss|inconclusive","rationale":"...","confidence":0.0}`;
 }
 
@@ -305,6 +320,25 @@ export async function auditDueForecasts(
       }
 
       const link = await linkedOutcomeIsSettled(supabase, raw.prd_id);
+      /*
+       * P-42. The kit is assembled by US and handed over as text: four reads,
+       * no tools, no writes. Giving the grader tools would let it go looking for
+       * something that settles the claim, and a grader that chooses its evidence
+       * after seeing the question is what `trg_decisions_forecast_immutable`
+       * prevents one field over.
+       */
+      const kit = await readKitForForecast(
+        supabase,
+        {
+          id: raw.id,
+          workspace_id: workspaceId ?? null,
+          product_id: (raw as { product_id?: string | null }).product_id ?? null,
+          prd_id: raw.prd_id,
+          created_at: (raw as { created_at?: string | null }).created_at ?? null,
+          horizonDate: raw.forecast_horizon_date ?? null,
+        },
+        link.evidence,
+      );
       const res = await callModel(supabase as never, userId, {
         surface: "decision",
         surface_ref: "audit_forecast",
@@ -319,7 +353,7 @@ export async function auditDueForecasts(
               claim: raw.forecast_claim ?? "",
               howWeWillKnow: raw.forecast_how_we_will_know ?? "",
               horizonDate: raw.forecast_horizon_date ?? "",
-              evidence: link.evidence,
+              readKit: readKitAsText(kit),
             }),
           },
         ],
@@ -352,12 +386,26 @@ export async function auditDueForecasts(
        * The draft still lands, because a person settling this at the desk should
        * see that the agent looked and had nothing to look at.
        */
-      const nothingToJudgeAgainst = !link.evidence.trim();
-      if (nothingToJudgeAgainst && parsed.verdict !== "inconclusive") {
+      /*
+       * ── A VERDICT THAT NAMES NO SOURCE IS NOT A VERDICT (P-42) ─────────
+       *
+       * This asked whether `link.evidence` was empty, which was the right
+       * question while the linked outcome was the only thing the grader could
+       * read. Now that it has a kit, the honest question is not "was there
+       * anything to read" but "did it actually use any of it".
+       *
+       * `citedRows` matches on ids the model was SHOWN, so a rationale cannot
+       * claim a source that was never in front of it, and a model reasoning
+       * from its own priors names nothing and is caught here.
+       */
+      const cited = citedRows(kit, parsed.rationale ?? "");
+      if (cited.length === 0 && parsed.verdict !== "inconclusive") {
         parsed.verdict = "inconclusive";
         parsed.confidence = 0;
         parsed.rationale =
-          "Graded without evidence. Nothing outside this record was available to check the stated observable against, so this cannot be settled either way. " +
+          (kit.empty
+            ? "Graded without evidence. Nothing dated after this decision could be read, so the stated observable cannot be checked either way. "
+            : "Graded without naming a source. The verdict cited none of what it was shown, so it cannot be stored as a hit or a miss. ") +
           (parsed.rationale
             ? `The model's reading, for what it is worth: ${parsed.rationale}`
             : "");
@@ -372,6 +420,11 @@ export async function auditDueForecasts(
           confidence: parsed.confidence,
           drafted_at: nowIso,
           model: MODEL,
+          /* P-42. What it read and what it USED, kept apart on purpose: "it saw
+             nine things and leaned on two" and "it saw two things" are different
+             facts about the same verdict, and the Learn tab shows both. */
+          read: kit.rows.map((r) => ({ kind: r.kind, id: r.id, line: r.line })),
+          cited: cited.map((r) => `${r.kind}:${r.id}`),
         },
       };
 

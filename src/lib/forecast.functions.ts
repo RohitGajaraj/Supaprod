@@ -80,6 +80,15 @@ export type DueForecast = {
      * judgment, because both arrive as `inconclusive`.
      */
     quality: SuggestionQuality;
+    /**
+     * P-42. What the grader actually read, and which of it the verdict leaned
+     * on. Kept apart because "it saw nine things and used two" and "it saw two
+     * things" are different facts about the same verdict, and a person deciding
+     * whether to accept a draft needs both. Empty on every suggestion drafted
+     * before P-42, which reads correctly: those were graded on one line.
+     */
+    read: Array<{ kind: string; id: string; line: string }>;
+    cited: string[];
   } | null;
 };
 
@@ -228,6 +237,8 @@ export async function listDueForecastsImpl(
         verdict?: string;
         rationale?: string;
         confidence?: number;
+        read?: Array<{ kind?: string; id?: string; line?: string }>;
+        cited?: string[];
       } | null;
       return {
         id: String(row.id),
@@ -251,6 +262,14 @@ export async function listDueForecastsImpl(
                 rationale: s.rationale,
                 confidence: s.confidence,
               }),
+              read: Array.isArray(s.read)
+                ? s.read.map((r) => ({
+                    kind: String(r?.kind ?? "source"),
+                    id: String(r?.id ?? ""),
+                    line: String(r?.line ?? ""),
+                  }))
+                : [],
+              cited: Array.isArray(s.cited) ? s.cited.map((c) => String(c)) : [],
             }
           : null,
       };

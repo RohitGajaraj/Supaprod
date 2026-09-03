@@ -145,7 +145,38 @@ describe("listDueForecastsImpl (FC-01)", () => {
       // reading or the empty shape parseAuditReply writes for a reply it had to
       // correct. Those three used to render identically.
       quality: "considered",
+      /*
+       * P-42. A suggestion now carries what the grader read and which of it the
+       * verdict leaned on. Empty here BECAUSE this fixture is a pre-P-42 draft,
+       * and that reads correctly rather than as a gap: those were graded on one
+       * line of evidence, which is the defect P-42 exists to end. A draft made
+       * after it carries rows.
+       */
+      read: [],
+      cited: [],
     });
+  });
+
+  it("carries what the grader read, and which of it the verdict used", async () => {
+    // The two are kept apart because "it saw nine things and leaned on two" and
+    // "it saw two things" are different facts about the same verdict, and a
+    // person deciding whether to accept a draft needs both.
+    const withSources = {
+      ...dueRow,
+      forecast_resolution_suggestion: {
+        verdict: "hit",
+        rationale: "Completion rose, per [signal:s-1].",
+        confidence: 0.9,
+        read: [
+          { kind: "signal", id: "s-1", line: "Completion rate rose to 62 percent" },
+          { kind: "deployment", id: "dep-1", line: "succeeded to production" },
+        ],
+        cited: ["signal:s-1"],
+      },
+    };
+    const { due } = await listDueForecastsImpl(mockDb({ rows: [withSources] }), NOW);
+    expect(due[0].suggestion?.read.map((r) => r.id)).toEqual(["s-1", "dep-1"]);
+    expect(due[0].suggestion?.cited).toEqual(["signal:s-1"]);
   });
 
   it("applies the pure predicate, so a deferred row cannot slip through", async () => {

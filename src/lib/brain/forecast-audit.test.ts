@@ -6,6 +6,7 @@ import {
   linkedOutcomeIsSettled,
 } from "./forecast-audit.server";
 import { AUTO_SETTLE_CONFIDENCE_FLOOR, canAutoSettle } from "./forecast-resolution";
+import { readKitAsText } from "./what-the-grader-read";
 
 describe("parseAuditReply (FC-01)", () => {
   test("keeps a well formed verdict and its confidence", () => {
@@ -65,11 +66,30 @@ describe("forecastAuditPrompt (FC-01)", () => {
       claim: "Activation clears 20 percent in week one",
       howWeWillKnow: "The activation panel for the cohort",
       horizonDate: "2026-08-10T00:00:00.000Z",
-      evidence: "The linked spec outcome was settled on 2026-08-11.",
+      /* P-42: `evidence` (one line, whose only source was the linked spec's
+         outcome) became `readKit` (every row the grader may look at, each
+         carrying the id it must cite). */
+      readKit: "- [outcome:prd-1] The linked spec outcome was settled on 2026-08-11.",
     });
     expect(p).toContain("The activation panel for the cohort");
     expect(p).toContain("Activation clears 20 percent in week one");
     expect(p).toContain("The linked spec outcome was settled on 2026-08-11.");
+  });
+
+  test("demands a citation, because a verdict naming no source is not a verdict", () => {
+    // The whole of P-42 in one assertion: eight drafts came back at confidence
+    // 1.0 having read nothing, so the prompt now requires the model to name the
+    // rows it used and says what to do when none of them settle the observable.
+    const p = forecastAuditPrompt({
+      claim: "c",
+      howWeWillKnow: "o",
+      horizonDate: "2026-08-10T00:00:00.000Z",
+      readKit: "- [signal:s-1] Completion rate rose",
+    });
+    expect(p).toContain("CITE WHAT YOU USED");
+    expect(p).toContain("[signal:s-1]");
+    expect(p).toContain("answer inconclusive with confidence 0");
+    expect(p).toContain("Do not reason from anything you were not shown");
   });
 
   test("never invites a guess", () => {
@@ -82,14 +102,20 @@ describe("forecastAuditPrompt (FC-01)", () => {
     expect(p.toLowerCase()).toContain("inconclusive");
   });
 
-  test("says plainly when no linked outcome exists rather than leaving a blank", () => {
+  test("says plainly when there was nothing to read rather than leaving a blank", () => {
+    /*
+     * This asserted "No linked outcome has been settled.", which was the whole
+     * of what the grader could be told before P-42 and was the sentence seven of
+     * the eight due forecasts on production actually got. The kit says it now,
+     * and says it about everything rather than about the spec alone.
+     */
     const p = forecastAuditPrompt({
       claim: "c",
       howWeWillKnow: "o",
       horizonDate: "2026-08-10T00:00:00.000Z",
-      evidence: "",
+      readKit: readKitAsText({ rows: [], empty: true }),
     });
-    expect(p).toContain("No linked outcome has been settled.");
+    expect(p).toContain("NOTHING. No evidence dated after this decision could be read.");
   });
 });
 

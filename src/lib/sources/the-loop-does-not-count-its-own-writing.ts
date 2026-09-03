@@ -49,6 +49,16 @@ export const LOOP_AUTHORED_SOURCE = "agent";
 export const LOOP_AUTHORED_KIND = "loop_authored";
 
 /**
+ * The rule as data, for callers whose query builder is typed too deeply for the
+ * generic wrapper below (PostgREST's chained types hit TS2589 through it). Same
+ * two tests, one source of truth: apply BOTH.
+ */
+export const LOOP_AUTHORED_EXCLUSIONS: ReadonlyArray<readonly [string, string]> = [
+  ["source", LOOP_AUTHORED_SOURCE],
+  ["source_kind", LOOP_AUTHORED_KIND],
+];
+
+/**
  * Applied to any PostgREST query over `signals` that COUNTS or SURFACES
  * evidence. Not applied to reads that exist to show a person their whole
  * record: hiding a row from its owner is a different decision from refusing to
