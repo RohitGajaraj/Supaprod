@@ -1,12 +1,13 @@
 /**
- * F-STUDIO — server functions for the Studio surface + agent door.
+ * F-STUDIO — server functions for the Studio surface.
  *
  * Studio is the in-platform development engine (docs/features/studio.md).
- * Two doors, one contract:
- *   - Agent door: dispatchStudioSession (structured work order in, missionId
- *     out; the session runs unattended through the loop + tick machinery).
- *   - Human door: /studio reads sessions/steps/changesets here, steers via
- *     steerStudioSession, and clears gates with the existing decideApproval.
+ * `/studio` reads sessions/steps/changesets here, steers via
+ * steerStudioSession, and clears gates with the existing decideApproval.
+ *
+ * P-29 (A-QUEUE.md, 2026-09-03): the agent door this file used to name here,
+ * dispatchStudioSession, is deleted -- see the standalone note where it used
+ * to live, just after formatDesignDispatchSections.
  *
  * Legacy equivalence: the engine agent keeps slug 'builder'; sessions list
  * includes legacy Builder missions for history continuity.
@@ -15,15 +16,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { nativeBuildDriver } from "@/lib/build/native.server";
-import type { BuildSpec } from "@/lib/build/driver";
-import { buildArdDocument, parseArdDocument } from "@/lib/ard-schema";
-import {
-  formatArdWorkOrderBlock,
-  formatScaffoldHtmlBlock,
-  standingClauseTexts,
-} from "@/lib/build/ard-block";
-import { recordLineage } from "@/lib/lineage.functions";
+import { formatScaffoldHtmlBlock } from "@/lib/build/ard-block";
 import { TOOL_REGISTRY } from "@/lib/ai/tools/registry.server";
 import type { LoopStep } from "@/lib/ai/loop.server";
 import { runAgentLoop } from "@/lib/ai/loop.server";
@@ -46,15 +39,7 @@ import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { execGateFromChecks, type ExecGate } from "@/lib/exec/provider";
 import { formatDesignMemoryContext } from "@/lib/design-memory.functions";
 import { formatFlowContext, type PrdFlowRow } from "@/lib/design-parity.functions";
-import {
-  designGateBlocksDispatch,
-  toArdDesignSection,
-  DESIGN_GATE_BLOCK_MESSAGE,
-  type DesignDispatchContext,
-} from "@/lib/build/design-gate";
-import { specGateBlocksDispatch, SPEC_GATE_BLOCK_MESSAGE } from "@/lib/build/spec-gate";
-import { loadDesignGateState, loadDesignDispatchContext } from "@/lib/build/design-gate.server";
-import type { ArdDesignSection } from "@/lib/ard-schema";
+import type { DesignDispatchContext } from "@/lib/build/design-gate";
 import { recordStageEvent } from "@/lib/stage-events.server";
 /* `studio-format.ts` is a component-free module (zero imports, its own header
  * says "pure helpers, no components"), so pulling one formatter across the
@@ -215,9 +200,6 @@ export type StudioPreview = {
   html: string;
 } | null;
 
-const WORK_ORDER_HEADER =
-  "Studio work order · plan against the connected repo, stage a multi-file changeset, ship a PR, watch CI, and request the merge on green.";
-
 /**
  * PURE. Everything the design station contributes to a work order, in the order
  * a builder needs to read it: the workspace's standing design language, the
@@ -252,224 +234,21 @@ export function formatDesignDispatchSections(ctx: DesignDispatchContext | null):
   return out;
 }
 
-/**
- * Dispatch a Studio session (the agent door). Builds a structured work order
- * from a PRD, an opportunity, or a raw prompt; creates the mission; enqueues
- * the run (the resume-runs sweeper starts it within its next tick); records
- * the prd→mission lineage edge. Returns fast — sessions run unattended.
+/*
+ * P-29 (A-QUEUE.md, 2026-09-03): `dispatchStudioSession` (the agent door
+ * named in this file's own header) is deleted. It lost its only two real
+ * callers -- OpportunityDetailSheet.tsx's "Start a mission" and
+ * GraphNodeActions.tsx's equivalent -- to the same fix `startOrchestratedMission`
+ * got (R-35: no door outside the track path may create a mission), and
+ * plan.spec.$id.tsx's own "Send to Build" (its third caller) went with it
+ * per the P-14 ruling table's own line for that page. Everything it alone
+ * used (the design-gate/spec-gate lookups it called, `recordLineage`,
+ * `nativeBuildDriver`, `WORK_ORDER_HEADER`, `ArdDesignSection`, `BuildSpec`)
+ * is removed with it below; `formatDesignDispatchSections` and
+ * `formatScaffoldHtmlBlock` stay -- both are real, tested, still-imported by
+ * `build.functions.ts`'s own dispatch path, the sibling this file's header
+ * already named as the OTHER contract-holder.
  */
-export const dispatchStudioSession = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z
-      .object({
-        prdId: z.string().uuid().optional(),
-        opportunityId: z.string().uuid().optional(),
-        prompt: z.string().min(4).max(8000).optional(),
-        model: z.string().max(80).optional(),
-        // F-BUILDER-MULTIFILE: optional pre-declared touch list + max-files cap.
-        allowedPaths: z.array(z.string().max(400)).max(200).optional(),
-        maxFiles: z.number().int().min(1).max(1000).optional(),
-      })
-      .refine((v) => v.prdId || v.opportunityId || v.prompt, {
-        message: "Pass a prdId, an opportunityId, or a prompt.",
-      })
-      .parse(i),
-  )
-  .handler(async ({ context, data }): Promise<{ missionId: string }> => {
-    const { supabase, userId } = context;
-    // New tables/columns aren't in the generated Supabase types until the
-    // migration applies + types regenerate (same pattern as F-V5-LOOP-CLOSE).
-    const db = supabase as unknown as SupabaseClient;
-
-    const sections: string[] = [WORK_ORDER_HEADER];
-    let sourceTitle: string | null = null;
-    let workspaceId: string | null = null;
-
-    type PrdCtx = {
-      id: string;
-      title: string;
-      body_md: string | null;
-      github_issue_url: string | null;
-      workspace_id: string | null;
-      contract: unknown;
-      /** `prds.status`. Read by the approval gate; see ./build/spec-gate. */
-      status?: string | null;
-    };
-    let prd: PrdCtx | null = null;
-    // Mission 3.4: filled from the design station's loaders when the spec has
-    // a workspace; rides the ARD document as its structured design section.
-    let ardDesign: ArdDesignSection | null = null;
-    if (data.prdId) {
-      const { data: row, error } = await supabase
-        .from("prds")
-        .select("id,title,body_md,github_issue_url,workspace_id,contract,status")
-        .eq("id", data.prdId)
-        .single();
-      if (error) throw new Error(`PRD lookup failed: ${error.message}`);
-      prd = row as unknown as PrdCtx;
-      // THE APPROVAL GATE, AT THE SERVER, on the other dispatch path. Both paths
-      // enforce one rule from one module, which is the same contract
-      // `design-gate.ts` states for itself. Reasoning: ./build/spec-gate.
-      if (specGateBlocksDispatch({ status: prd.status })) throw new Error(SPEC_GATE_BLOCK_MESSAGE);
-      sourceTitle = prd.title;
-      workspaceId = prd.workspace_id;
-      sections.push(
-        `Linked spec (source of truth for scope): "${prd.title}" (id ${prd.id})\n\n${(prd.body_md ?? "").slice(0, 24_000)}`,
-      );
-      // 3-way issue resolution, same pattern as the legacy dispatch: a PRD
-      // with a linked issue gives the PR its "Closes #N".
-      const m = prd.github_issue_url?.match(/\/issues\/(\d+)/);
-      if (m) {
-        sections.push(`Linked GitHub issue: #${m[1]}. Include "Closes #${m[1]}" in the PR body.`);
-      }
-
-      // SW-4 / mission 3.4: the design station gates dispatch. When the
-      // workspace's design stage is on, a spec reaches Build only after a
-      // human approved its design gate; the state loads fail-open so the
-      // pre-migration window behaves exactly as before.
-      const designGate = await loadDesignGateState(db, prd);
-      if (designGateBlocksDispatch(designGate)) throw new Error(DESIGN_GATE_BLOCK_MESSAGE);
-
-      // DSN-04: the design contract rides into Build. The workspace's standing
-      // design language (DSN-01), this PRD's flow graph (DSN-03), and the
-      // gate-reviewed scaffold travel into the mission goal alongside the
-      // spec body, so the building agent sees the same design contract a
-      // human reviewer would; mission 3.4 also carries them structurally in
-      // the ARD's design section below.
-      const designCtx = await loadDesignDispatchContext(db, prd);
-      if (designCtx) {
-        sections.push(...formatDesignDispatchSections(designCtx));
-        ardDesign = toArdDesignSection(designCtx);
-      }
-    }
-
-    if (data.opportunityId) {
-      const { data: opp, error } = await supabase
-        .from("opportunities")
-        .select("id,title,problem,target_user,hypothesis,workspace_id")
-        .eq("id", data.opportunityId)
-        .single();
-      if (error) throw new Error(`Opportunity lookup failed: ${error.message}`);
-      sourceTitle = sourceTitle ?? (opp.title as string);
-      workspaceId = workspaceId ?? (opp.workspace_id as string | null);
-      sections.push(
-        [
-          `Linked opportunity: "${opp.title}" (id ${opp.id})`,
-          opp.problem ? `Problem: ${opp.problem}` : "",
-          opp.target_user ? `Target user: ${opp.target_user}` : "",
-          opp.hypothesis ? `Hypothesis: ${opp.hypothesis}` : "",
-        ]
-          .filter(Boolean)
-          .join("\n"),
-      );
-    }
-
-    if (data.prompt) {
-      sections.push(`Operator intent:\n${data.prompt}`);
-      sourceTitle = sourceTitle ?? data.prompt.split(/\r?\n/)[0].slice(0, 80);
-      if (/delegat|external.?agent|openhands/i.test(data.prompt)) {
-        sections.push(
-          "Delegation available: the operator wants external delegation. Call the `delegate.openhands` TOOL directly (NOT `agent.handoff`). Required args: task (string), repo_url (full GitHub URL), base_branch (e.g. 'main'). evidence_ids (array of {kind, id} pairs) is OPTIONAL: cite research/memory rows when they exist, but if the repo is new or empty there is nothing to cite. Pass an empty list and proceed, do NOT manufacture a signal or any other row just to populate it. The human approval gate is the real guardrail. If existing code is present, a quick repo.search/repo.read to ground the task is good practice, but a failed or empty repo.tree (an empty repo returns HTTP 409) is expected for greenfield work and is not a blocker.",
-        );
-      }
-    }
-
-    if (!workspaceId) {
-      const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
-    }
-    if (!workspaceId) throw new Error("No workspace. Create or join one first.");
-
-    const { data: agent } = await supabase
-      .from("agents")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("slug", "builder")
-      .maybeSingle();
-    if (!agent) throw new Error("Studio agent not found in your roster.");
-
-    // BD-1 / ARD rides dispatch: when the spec carries a compiled Outcome
-    // Contract, its machine-readable ARD document travels INSIDE the work
-    // order as a delimited fenced block AFTER the prose, and the standing
-    // success metrics become the BuildSpec's acceptance criteria — the engine
-    // receives the identical contract Supaprod checks the build against.
-    let acceptanceCriteria: string[] | undefined;
-    if (prd?.contract) {
-      const parsed = parseArdDocument(prd.contract);
-      if (parsed.ok && parsed.contract.intent.trim()) {
-        // Origin "" keeps schema_url an app-relative path (/api/public/ard/schema):
-        // a server fn has no request origin at hand, and a fabricated host would
-        // be dishonest data.
-        const ard = buildArdDocument("", prd.id, prd.title, parsed.contract, undefined, ardDesign);
-        sections.push(formatArdWorkOrderBlock(ard));
-        const criteria = standingClauseTexts(parsed.contract.success_metrics);
-        if (criteria.length) acceptanceCriteria = criteria;
-      }
-    }
-
-    const goal = sections.join("\n\n");
-
-    // BD-1: dispatch through the BuildDriver seam. The native adapter performs
-    // exactly the pre-seam behavior (createMission + queued agent_runs row the
-    // resume-runs sweeper promotes) and stamps missions.build_driver='native'.
-    const spec: BuildSpec = {
-      goal,
-      ...(acceptanceCriteria ? { acceptanceCriteria } : {}),
-    };
-    const session = await nativeBuildDriver.dispatch(
-      {
-        supabase: db,
-        userId,
-        workspaceId,
-        agent: { id: (agent as { id: string }).id, slug: "builder", name: "Studio" },
-        missionTitle: `Studio · ${(sourceTitle ?? "session").slice(0, 180)}`,
-        model: data.model ?? null,
-      },
-      spec,
-    );
-    const mission = { id: session.missionId };
-
-    // F-BUILDER-MULTIFILE: persist the pre-declared touch list + cap (mission-
-    // keyed, so it is in place before the agent lazily creates the changeset).
-    // Best-effort: if the constraints table has not been synced yet, dispatch
-    // must still succeed and the operator can re-declare on the Changes tab.
-    const declaredPaths = (data.allowedPaths ?? []).map((p) => p.trim()).filter(Boolean);
-    if (declaredPaths.length || (data.maxFiles ?? null) !== null) {
-      await db.from("studio_changeset_constraints").insert({
-        mission_id: mission.id,
-        workspace_id: workspaceId,
-        user_id: userId,
-        allowed_paths: declaredPaths,
-        max_files: data.maxFiles ?? null,
-      });
-    }
-
-    if (prd) {
-      await recordLineage(supabase, userId, {
-        parent_kind: "prd",
-        parent_id: prd.id,
-        child_kind: "mission",
-        child_id: mission.id,
-        relation: "dispatched",
-        rationale: "Sent to Studio",
-        created_by_agent: "studio",
-      });
-      // Mission 3.4: the spec's dispatch is a stage transition like any
-      // other; the ledger chain walks design -> build on real rows.
-      await recordStageEvent(supabase, {
-        entityType: "spec",
-        entityId: prd.id,
-        from: null,
-        to: "build",
-        actor: "human",
-        workspaceId,
-        userId,
-      });
-    }
-
-    return { missionId: mission.id };
-  });
 
 /** Latest trace id per run, via the checkpoint JSON projection (no full-state read). */
 async function traceByRun(

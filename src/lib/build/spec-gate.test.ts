@@ -80,7 +80,20 @@ describe("what the approval gate lets through", () => {
 
 describe("both dispatch paths enforce it, and the client is not the only guard", () => {
   const LIB = join(import.meta.dir, "..");
-  const PATHS = ["build.functions.ts", "studio.functions.ts"];
+  /*
+   * ONE PATH NOW, NOT TWO (P-29, A-QUEUE.md, 2026-09-03). `studio.functions.ts`'s
+   * `dispatchStudioSession` -- the "agent door" this describe block's own
+   * header names -- is deleted: it lost its last three callers to R-35 (no
+   * door outside the track path may create a mission) and the P-14 ruling
+   * that plan.spec.$id.tsx's own "Send to Build" goes, because the run does
+   * both. A file that no longer dispatches anything cannot be asked whether
+   * its dispatch enforces the gate; `build.functions.ts` (`runBuilder`)
+   * remains the one real server-side dispatch path this repo has, and it is
+   * still checked below. If a third dispatch path is ever added, add it here
+   * and make sure it enforces the gate -- do not shrink this list to dodge a
+   * real failure.
+   */
+  const PATHS = ["build.functions.ts"];
 
   for (const file of PATHS) {
     it(`${file} refuses an unapproved spec at the server`, () => {

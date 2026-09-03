@@ -138,7 +138,13 @@ const J4: Journey = {
   doneState: "Applied changeset, green CI, a preview URL, and a PR opened on your repo.",
   handoff: { artifactKind: "changeset", suggestedNextJourneyId: "j6" },
   wiredVia: [
-    { file: "src/lib/studio.functions.ts", fn: "dispatchStudioSession" },
+    // P-29 (A-QUEUE.md, 2026-09-03): dispatchStudioSession is deleted -- it
+    // lost its last three callers to R-35 (no door outside the track path
+    // may create a mission). dispatchBuilderMission (build.functions.ts) is
+    // the one remaining server-side dispatch path that enforces the spec
+    // gate (spec-gate.test.ts's own reachability check, and this file's own
+    // "j0" wiring-honesty test, both confirm the name).
+    { file: "src/lib/build.functions.ts", fn: "dispatchBuilderMission" },
     { file: "src/lib/new-build.functions.ts", fn: "canDispatchToRepo" },
     { file: "src/lib/new-build.functions.ts", fn: "provisionRepoForSpec" },
   ],

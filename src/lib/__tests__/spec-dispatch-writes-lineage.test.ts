@@ -31,6 +31,15 @@ import { join } from "node:path";
  *
  * IF YOU ADD A THIRD DISPATCH PATH, add it to DISPATCH_PATHS below and write the
  * edge. Do not delete a row to make this pass.
+ *
+ * PATH 1 RETIRED, NOT DODGED (P-29, A-QUEUE.md, 2026-09-03): `dispatchStudioSession`
+ * itself is deleted -- it lost its last three callers to R-35 (no door
+ * outside the track path may create a mission) and the P-14 ruling that
+ * plan.spec.$id.tsx's own "Send to Build" goes, because the run does both.
+ * A path that no longer dispatches anything cannot un-write an edge, so this
+ * is the one case "do not delete a row" does not forbid: the risk the row
+ * existed to catch (a real dispatch path silently skipping the edge) cannot
+ * occur for a function that has been removed outright.
  */
 
 const SRC = join(import.meta.dir, "..", "..");
@@ -41,10 +50,7 @@ function stripComments(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 }
 
-const DISPATCH_PATHS = [
-  { file: "lib/studio.functions.ts", fn: "dispatchStudioSession" },
-  { file: "lib/build.functions.ts", fn: "runBuilder" },
-] as const;
+const DISPATCH_PATHS = [{ file: "lib/build.functions.ts", fn: "dispatchBuilderMission" }] as const;
 
 describe("spec dispatch writes the prd -> mission lineage edge", () => {
   for (const { file, fn } of DISPATCH_PATHS) {
