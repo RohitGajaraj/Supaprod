@@ -2109,7 +2109,7 @@ whether the work is waiting on somebody. Assert both halves.
 **Blockers (A2 writes):** —
 
 
-### P-03c · Build's need-check cannot see the spec it built from · Lane: **A2** · Status: READY, first in A2's line · Moves: 3
+### P-03c · Build's need-check cannot see the spec it built from · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2 `5f2f85090`; A1 verifies on the honest run's next tick) · Moves: 3
 
 **Why.** The honest run has cycled build → define → design → build since 22:20 UTC (stage_events:
 22:20, 22:31, 22:42, 23:50). At `attempts ≥ MAX_STATION_ATTEMPTS` `decideDrive` returns the computed
@@ -2131,6 +2131,18 @@ never re-runs Define because of Build. Test both, and a canary on the cycle (no 
 - [ ] The two tests above; the cycle canary.
 - [ ] tsc 0 · `bun test` 0 fail / 0 error (console) on the whole suite · pushed · Report naming
       which read was wrong.
+
+
+**A1, 05:40 IST · A2's finding, on the record.** Neither suspect: `needIsMet` reads the track-wide
+filed list and sees the spec. With the need met and the budget spent, `decideCorrection` fell to its
+last branch, *not enough*: the station ran three times and produced nothing, so the spec must be
+unbuildable, send it back to Define. That branch is the founder's own rule and it is right when its
+premise holds; nothing checked the premise. `2fdf93b6` had filed a changeset and opened a PR and was
+told its spec was not buildable, four times. The rule now asks whether the station filed its OWN
+artifact (`STATION_ARTIFACT[station].kind`, a changeset for Build); if it did, it was not starved and
+the track gives up saying the problem is downstream. The trap A2 named in the test: "filed anything"
+is always true at Build because the driver files a mission row before any seat runs, and that version
+deletes the founder's case. Both directions asserted.
 
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
@@ -3797,6 +3809,29 @@ its test.
 - [ ] Case (a) prints the fetch-and-rebase sentence and exits non-zero without the word orphan;
       case (b) still blocks with the orphan sentence.
 - [ ] `bun test` 0 fail / 0 error (console) · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
+
+
+### P-28 · The duplicates the loop wrote are superseded on the record · Lane: **A3** · Status: READY (after P-14b) · Moves: 4
+
+**Why.** The build → define → design → build cycle (P-03c) filed a spec and a prototype per lap for
+weeks. On `2fdf93b6` alone: four `prds` rows and eight prototype rows for one piece of work; the run
+screen has said "12 of them repeat 5 things already filed" since 09-02. P-03c stops the machine; it
+does not clean what it wrote.
+
+**Scope.** A read-only census first (SQL in the Report): per track, the `spine_track_members` rows
+whose artifact repeats an earlier one at the same station (same title, or the run screen's own
+repeat detector). Then supersede, never delete: set `superseded_at` on the repeats so the newest of
+each stays live, the older ones stay in the record, and the run screen's *N of them repeat* line
+goes to zero. Seed workspace excluded. A1 rules on the census before the write.
+
+**Acceptance.**
+- [ ] Census filed with the query and counts per track before any write.
+- [ ] After the write, the honest run's screen shows no *repeat* line and every station's newest
+      artifact opens; the superseded rows are still readable from the record.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report with the update SQL.
 
 **Report (A3 writes):** —
 **Blockers (A3 writes):** —
