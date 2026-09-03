@@ -7063,7 +7063,7 @@ not a second query. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and walks all nine.
 
-### P-61 · One name per place · Lane: **A3** (after P-58) · Status: READY · Moves: 2
+### P-61 · One name per place · Lane: **A3** (after P-58) · Status: CLAIMED (A3) · Moves: 2
 
 **Amendment, A1, 01:30 IST 09-04.** The founder's ruling of 2026-09-01, quoted in the rail's own
 guard, forbids a sentence as a door's name, so P-60 shipped one word per door: Start, Waiting
