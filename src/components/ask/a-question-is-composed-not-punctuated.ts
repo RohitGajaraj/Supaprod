@@ -43,11 +43,7 @@ const ASKS: Record<ApprovalKind, { verb: string; takesSubject: boolean }> = {
  * one gate but whether the family should keep asking at all, so the verb comes
  * from the register and never from the family.
  */
-export function questionForGate(
-  kind: ApprovalKind,
-  title: string,
-  asPolicy = false,
-): AskQuestion {
+export function questionForGate(kind: ApprovalKind, title: string, asPolicy = false): AskQuestion {
   if (asPolicy) return askQuestion("Should this keep asking you:", title);
 
   // A family reaching this card before it reaches this map is a real

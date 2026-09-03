@@ -11,10 +11,7 @@ import { questionForGate } from "../a-question-is-composed-not-punctuated";
 
 describe("a question is composed, not punctuated", () => {
   it("closes A1's two, exactly as they arrived", () => {
-    const spec = questionForGate(
-      "design_gate",
-      "Raise checkout completion rate from 67 ",
-    );
+    const spec = questionForGate("design_gate", "Raise checkout completion rate from 67 ");
     expect(spec).toBe("Approve the design for Raise checkout completion rate from 67?");
     expect(wellFormedQuestion(spec)).toBe(true);
 
@@ -38,9 +35,16 @@ describe("a question is composed, not punctuated", () => {
 
   it("gives every gate family a well-formed question, in both registers", () => {
     const KINDS = [
-      "tool_call", "decision", "memory_candidate", "house_rule",
-      "trust_graduation", "spec", "opportunity", "assumption_challenge",
-      "design_gate", "playbook_proposal",
+      "tool_call",
+      "decision",
+      "memory_candidate",
+      "house_rule",
+      "trust_graduation",
+      "spec",
+      "opportunity",
+      "assumption_challenge",
+      "design_gate",
+      "playbook_proposal",
     ] as const;
     for (const k of KINDS) {
       for (const asPolicy of [false, true]) {
