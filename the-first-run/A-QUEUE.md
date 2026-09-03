@@ -3700,7 +3700,7 @@ carry the three files under `.supaprod/`, and the Plan tab should offer copy and
 
 ---
 
-### P-22 · The thing being built runs in the right pane · Lane: **A2** · Status: BLOCKED → P-03 · Moves: 3, 4, 5
+### P-22 · The thing being built runs in the right pane · Lane: **A2** · Status: CLAIMED (A2, 08:10 IST) · Moves: 3, 4, 5
 
 **Why (founder, 2026-09-02 19:29, from Lovable's Live preview setting: *"Run your app on a live dev
 server in the editor preview. When off, the preview shows the latest built version."*).** Watching
