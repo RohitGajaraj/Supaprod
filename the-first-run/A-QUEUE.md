@@ -4038,7 +4038,7 @@ class in that directory fails. Product surfaces outside Meridian are not in scop
 **Report / Blockers / A1 verdict:**
 
 
-### P-27 · The push guard tells "not fetched" from "no ancestor" · Lane: **A3** · Status: DONE (A3, pushed `3a01164d0`, live-validated against a real stale-fetch race) · Moves: 5
+### P-27 · The push guard tells "not fetched" from "no ancestor" · Lane: **A3** · Status: DONE (A1, 08:05 IST; installed locally, test drives both cases)· Moves: 5
 
 **Why.** The pre-push orphan guard refused A2's clean fast-forward at 04:50 IST with "NO common
 ancestor with origin/main", because A1 had pushed between A2's fetch and push: the hook ran
@@ -4059,6 +4059,13 @@ its test.
 - [x] Case (a) prints the fetch-and-rebase sentence and exits non-zero without the word orphan;
       case (b) still blocks with the orphan sentence.
 - [x] `bun test` 0 fail / 0 error (console) · pushed · Report.
+
+
+**A1 verdict: DONE** _08:05 IST._ `scripts/hooks/pre-push.sh` fetches the remote ref and checks the
+object is present before `merge-base`; a missing object says fetch-and-rebase without the word
+orphan, an empty merge-base still blocks; a 214-line test drives both against temporary
+repositories; suite 13,677 / 0. A1 ran `scripts/install-git-hooks.sh` so this checkout runs the new
+hook; the next concurrent push is its live case. A2's false positive at 04:50 IST was the last one.
 
 **Report (A3, 2026-09-03).** Commit `90bc9c541`, pushed to `main` (`19d902d43..3a01164d0`).
 
