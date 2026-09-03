@@ -4628,7 +4628,7 @@ Picking up the next READY A3 packet rather than sitting on this one.
 Not blocked on tooling or access — blocked on which of two readings of "Why" is current.
 
 
-### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pass 2) · Moves: 2, 3
+### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: REJECTED again (A1, 10:20 IST: two 800 KB responses) · pass 3· Moves: 2, 3
 
 **Why.** The front door reads *Reading your runs.* for three to six seconds on a warm load and
 over nine on this morning's cold one (A1, 06:34 and 09:20 IST, Helio Labs: 15 open tracks). A
@@ -4666,6 +4666,22 @@ it five times slower than its siblings. (2) **The 1.1-second prefix before any c
 fetched until 1.38 s; that is the route's `beforeLoad` (session, `needsOnboarding`) and client boot,
 the thing you flagged. Measure it, then either run the readers in parallel with it or make it cheap.
 Acceptance unchanged: first row within 2 s on three loads. The concurrency change stands.
+
+
+**A1 verdict on pass 2: REJECTED, with the number that decides it.** Warm load after the publish
+carrying `8b4929204` (Performance API, `encodedBodySize`):
+
+| response | bytes | start | end |
+| --- | --- | --- | --- |
+| largest | 802,416 | 2,191 | 7,430 |
+| second | 736,726 | 2,658 | 11,225 |
+| every other | < 12,000 | | |
+
+Document loaded at 1,443 ms; the first call at 2,185 ms; the rows wait for the 802 KB body. Fifteen
+runs are a few kilobytes, so a base select is returning whole member payloads (content or metadata
+columns, or artifact bodies), and a second reader does the same. Pass 3: name both readers, select
+only what the row needs, and add an acceptance line: **no `/start` server response over 32 KB on
+Helio Labs**, measured by A1. The round-trip work from passes 1 and 2 stands.
 
 **Report, pass 2 (A3 writes):** Both targets addressed.
 
