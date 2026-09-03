@@ -80,11 +80,12 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     partial object for a shared module: snapshot the real exports first, spread them, override
     only what the test observes, and pin a wrapped component to a `const` (the namespace is a live
     binding and will point at the mock). "Passes alone, fails in the run" is this defect, not a flake.
-15. **Parallelise inside a packet, three at most per lane** (founder, 2026-09-03 11:06 IST). Fan
-    independent halves of a packet out to sub-agents or a dynamic workflow rather than doing them
-    one after another; never more than three running per lane at once, because of the workload.
-    The rebase and the push stay in one hand; forks commit before anyone touches the shared tree;
-    rules 2, 13 and 14 apply to every push regardless of who wrote it.
+15. **One sub-agent at most per lane** (founder, 2026-09-03 11:43 IST, replacing the cap of three
+    set at 11:06). Alongside its own work a lane may run at most ONE sub-agent or dynamic workflow;
+    if one is not needed, the lane works serially on main itself. The machine is under RAM and
+    compute load. Anything already running mid-flight when this was set is not stopped; it finishes
+    and closes logically, and the cap applies to whatever starts next. The rebase and the push stay
+    in one hand; rules 2, 13 and 14 apply to every push regardless of who wrote it.
 16. **Design with the skills, land it in Meridian** (founder, 2026-09-03 11:08 IST). Before any UI or
     UX work, invoke the relevant design skills: `ui-ux-pro-max` (design, ui-styling, design-system),
     `emil-design-eng`, `design-taste-frontend` (with `gpt-taste`, `stitch-design-taste`), and
