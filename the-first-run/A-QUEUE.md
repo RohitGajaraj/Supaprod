@@ -3340,7 +3340,7 @@ precisely is this Report's job, stopping it is A1's per that ruling.
 ---
 
 
-### P-18a · The top bar counts only what a person can act on · Lane: **A3** · Status: READY · Moves: 3
+### P-18a · The top bar counts only what a person can act on · Lane: **A3** · Status: CLAIMED (A3) · Moves: 3
 
 **Why.** At 03:20 IST the bar on Helio Labs read *65 decisions are ready for you · Merges the pull
 request into the branch · 10m ago*. No count in the workspace is 65: 5 approvals are pending (2 on a
