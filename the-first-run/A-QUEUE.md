@@ -5582,7 +5582,7 @@ no recorded reason and nobody can say whether it is the token, the app or the pa
 **Blockers (A3 writes):** —
 
 
-### P-16b · The sentence field is the first stop · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 5
+### P-16b · The sentence field is the first stop · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3) · Moves: 2, 5
 
 **Why.** On Start the composer is the thirteenth tab stop (A1, DOM focus order, 12:15 IST). The
 screen exists for that field.
@@ -5602,17 +5602,85 @@ stands — no product is ever guessed and silently swapped in.
 
 **Acceptance.**
 - [ ] On Start, Tab from the document start reaches the composer within two presses, and on a
-      run with a waiting gate reaches its first answer within three; A1 walks both.
+      run with a waiting gate reaches its first answer within three; A1 walks both. **A3 has no
+      live browser this session — built and covered by a rendered-DOM test verified against the
+      real source, not walked. A1: please verify live.**
 - [ ] The composer names the product a run will use, beside the field, one press away from
       changing it. Typing a sentence that names a product the workspace has (its name, or a
       bound repo's name) offers that product before the press; typing one that names none leaves
       the current product showing and the press unchanged. A1 walks it against the tablet
-      track/Prism-Relay mismatch.
-- [ ] tsc 0 · `bun test` (full console suite, this branch's tip) 0 fail / 0 error · pushed ·
-      Report.
+      track/Prism-Relay mismatch. **A3: unit-tested against the exact founder incident sentence
+      ("the homeowner app" → Relay), not walked live.**
+- [x] tsc 0 · `bun test` (full console suite, this branch's tip, both halves, post-rebase)
+      13,785 pass / 0 fail / 0 unhandled error · pushed (`a890629f4`, `c55244776`) · Report.
 
-**Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Report (A3 writes):**
+
+**(1) The composer's focus.** `_authenticated.start.tsx`'s mount effect used to focus the field
+only when a sentence arrived pre-seeded via `?about=`; on an ordinary visit it claimed nothing, so
+the field was the thirteenth tab stop. Claims focus unconditionally now, gated through an exported
+`shouldClaimComposerFocus(document.activeElement)` — `document.body`/`null` means nothing else has
+it yet; anything else (a person who tabbed here first, the browser's own autofill) is left alone.
+Pulled into an exported function specifically so the decision is unit-testable against real DOM
+values without a route mount: `StartLanding` is not exported and reads `Route.useSearch()`, and
+this repo's own attempt at a full-router test harness
+(`src/routes/__tests__/integration.discover.test.tsx`) is an unfinished skeleton with every import
+commented out. New test: `the-composer-is-the-first-tab-stop.test.ts`, 3 cases.
+
+**(2) The rail's skip link.** `<aside className="sp-rail">` sits before `<main className="sp-work">`
+in `AppFrame.tsx`'s own source order on every signed-in route, so the same defect shape exists
+shell-wide, not just on Start. Added a skip link, hidden until focused (`.skip-link`/`.skip-link:focus`
+in `shell.css`), landing on `<main id="main-content" tabIndex={-1}>` — entirely outside AppFrame's
+own data-fetching, so it carries none of the header's live-line risk. Named `skip-link`/`main-content`
+rather than the `sp-*` AppFrame already carries: the first attempt named them `sp-skip-link`/`sp-main`
+and the Meridian ratchet caught it before it shipped — the guard's own scanner treats any
+sp-prefixed class/id string as "Cadence/ink" legacy debt regardless of whether the name is
+stylistically consistent with the file it sits in, and growing that count is not allowed.
+
+Verifying the skip link's DOM order cost two more real lessons, both now recorded in the test
+file's own header. A first attempt fully mounted AppFrame and hit two hazards only visible in the
+FULL suite, never this file alone: `@/integrations/supabase/client`'s exported client is a
+process-wide memoized singleton gated on `process.env.SUPABASE_URL`, which some other test file
+mutates for its own purposes — an "Unhandled error between tests" depending on load order; and
+mocking `@/hooks/use-theme` bare (not spreading the real module) shadowed its second export
+(`ThemeProvider`) for whichever file loaded it next — the exact Rule 14 mistake this same session
+had just paid to learn on a different module in P-36. Replaced with a scoped, source-verified
+reproduction instead: the exact skip-link/rail/main markup and the real `shell.css` rule, cited by
+line, rendered and DOM-order-tested with zero mocking (`AppFrame.skip-link.test.tsx`, 5 cases,
+2 of them asserting the reproduction still matches the real file rather than a paraphrase of it).
+
+**(3) The product beside the field (R-36, the honest run's Prism/Relay mismatch).**
+`ComposerProductPicker` shows the active product beside the composer (a native `<select>`, one
+press to change it — deliberately not a new Meridian menu primitive, since a real product picker
+needs no new component) and offers a one-press switch when `matchProductFromSentence` names a
+DIFFERENT product than the one selected. The offer never applies itself.
+
+The match checks the sentence against each candidate's own name and, since there is no
+product-to-repo binding column (`driver.server.ts`'s own comment on `DriveRow.product_id`: nullable,
+and `requireGithub` falls back to the workspace's default connection), against the most recent repo
+Build actually filed for that product — new `listProductRepos`, reading `studio_changesets`,
+first-seen-wins per product, workspace-scoped. Deliberately conservative: generic repo segments
+("app", "web", "api", "service", ...) and anything under 4 letters are never counted as evidence, a
+match requires a whole-word boundary (not a bare substring — "relayed" does not fire on "Relay"),
+and a sentence naming two candidates at once returns null rather than picking one. New tests:
+`product-match.test.ts`, 9 cases including the exact founder sentence ("Fix the login flow on the
+homeowner app for renters" → Relay, via its repo `acme/homeowner-app`) and every edge above.
+
+Gated on `productsVisible` (Loom W2's own ruling: the product concept stays invisible until a
+workspace has a second one) — the ordinary one-product workspace sees nothing new here.
+
+**(4) Two real guard breaks, caught and fixed rather than worked around.** Adding
+`listProductRepos` to the existing import line broke
+`one-way-in-and-it-starts-a-run.test.ts`'s literal source-string assertion (the guard proving the
+palette and the composer call the same `startTrack` path) — updated the expected string to match.
+And it grew `nothing-in-flight-was-also-what-a-failure-said.test.ts`'s soft-catch canary from 5 to
+6: that test counts every read function in `track.functions.ts` that re-raises a genuine failure
+instead of silently swallowing it, and `listProductRepos` correctly follows the same discipline
+(reviewed, documented as the sixth entry, matching the file's own established pattern for each
+prior one).
+
+**Blockers (A3 writes):** None. Both acceptance items marked A1's-to-walk have no live browser
+available to me this session; everything else is verified.
 
 ### P-37 · The run screen reads as a product, not a dump of text · Lane: **A2** · Status: READY after the honest run walks once · Moves: 5
 
