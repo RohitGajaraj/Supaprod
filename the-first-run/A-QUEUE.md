@@ -4031,7 +4031,7 @@ class in that directory fails. Product surfaces outside Meridian are not in scop
 **Report / Blockers / A1 verdict:**
 
 
-### P-27 · The push guard tells "not fetched" from "no ancestor" · Lane: **A3** · Status: READY (after P-14) · Moves: 5
+### P-27 · The push guard tells "not fetched" from "no ancestor" · Lane: **A3** · Status: CLAIMED (A3) · Moves: 5
 
 **Why.** The pre-push orphan guard refused A2's clean fast-forward at 04:50 IST with "NO common
 ancestor with origin/main", because A1 had pushed between A2's fetch and push: the hook ran
