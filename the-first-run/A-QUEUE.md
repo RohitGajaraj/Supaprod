@@ -7127,7 +7127,7 @@ user it refuses with the sentence above. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; migration applied via the Lovable MCP with its ledger row.
 
-### P-66 · The shell's live line reads the workspace it is standing in · Lane: **A2** (after P-59, before P-60) · Status: CODE DONE (225b33ae0; A2 reports 13,997 / 0 / 0, tsc 0; A1 suite running) · Moves: 1, 2
+### P-66 · The shell's live line reads the workspace it is standing in · Lane: **A2** (after P-59, before P-60) · Status: CODE DONE, PUBLISHED 01:03 IST 09-04 (A1 suite on the tip 13,997 / 0, tsc 0; live read of both headers follows) · Moves: 1, 2
 
 **Why.** Live 00:37 IST 09-04, in the empty probe workspace: the header read *1 decision is ready
 for you · What we expected did not happen: Decline shipping ...*. Both facts are Helio Labs'.
