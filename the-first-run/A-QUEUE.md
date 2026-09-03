@@ -6281,6 +6281,12 @@ Also: P-43 item (d), the hold pane's order, is this packet's §4 and leaves P-43
    That is the successor to a no-source hold; no new state, no driver line (`Turn.made` carries
    `source` for signal-kind items).
 
+**A1 walked the gate card on the served build, 17:12 IST (fb862cd1e).** Holds: the question leads,
+the chip is off the card, the answers are below. Does not match the doc yet: the default line sits
+second and the risk line sits inside a facts block with *What decides the risk* restating it. Order
+to land: question, risk as one prose line, reason as the seat's, default and date mono and last,
+answers. The character's line above the card retires with SeatSays. A2 continues.
+
 **Acceptance.**
 - [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
       first against the mockups.
