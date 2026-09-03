@@ -781,7 +781,19 @@ export function TrackRunLeft({
    * when the read actually answered; until then the static sentence stands,
    * which is what this screen said before and is never a claim about a cause.
    */
-  const shipStop = shipStopped.isSuccess ? shipStopFrom(shipStopped.data?.failureReason) : null;
+  /*
+   * ── A FAILURE WITH NO REASON IS STILL A FAILURE (P-59c) ────────────────
+   *
+   * `failureReason: null` meant two different things and only one of them is a
+   * stopped Ship: no failed deployment at all, or a failed one whose reason was
+   * never recorded. The read answers both now, and the card is drawn for the
+   * second -- which is the tablet track exactly, whose one failure carries a
+   * NULL reason and reads "nothing on the attempt says why".
+   */
+  const shipStop =
+    shipStopped.isSuccess && shipStopped.data?.failed
+      ? shipStopFrom(shipStopped.data.failureReason)
+      : null;
 
   /* P-68b. The offer in the hold card, as a real action. It ignores the sweep's
      retry window and nothing else, and it writes a reasoned row either way. */
@@ -1255,7 +1267,14 @@ export function TrackRunLeft({
                 down -- stated rather than relied on, because pressing it would
                 dispatch the station that just refused, into the same emptiness,
                 and spend money to arrive back here. */}
-            {answerTheCall || callIsYours ? null : (
+            {/*
+              ── AND SHIP'S OWN RETRY STANDS DOWN (P-59c) ───────────────────
+              When the preview is what stopped this, "Let Ship try again" runs
+              the station that cannot proceed without a preview, spends an
+              attempt, and returns here. The one control that changes anything
+              is "Try the preview again", which is drawn on the hold card above.
+            */}
+            {answerTheCall || callIsYours || shipStop ? null : (
               <div>
                 <Action busy={release.isPending} onClick={() => release.mutate()}>
                   {release.isPending

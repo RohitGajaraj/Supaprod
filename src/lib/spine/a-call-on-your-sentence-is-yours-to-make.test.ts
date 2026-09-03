@@ -187,7 +187,12 @@ describe("the refusal becomes a question (P-71b)", () => {
   it("is the ONE card on the screen, and stands the retry down", () => {
     // Pressing "let it try again" would dispatch the station that just refused,
     // into the same emptiness, and spend money to arrive back here.
-    expect(RUN).toContain("answerTheCall || callIsYours ? null : (");
+    /* P-59c added `|| shipStop` to the same guard, for the same reason one
+       clause down: the station's own retry must not be offered when pressing it
+       cannot change anything. The rule asserted here is that `callIsYours`
+       stands it down, not the exact list of things that also do. */
+    expect(RUN).toContain("answerTheCall || callIsYours ||");
+    expect(RUN).toContain("? null : (");
     // It replaces the gate card rather than sitting beside it: no approval row
     // exists for this hold, so the two can never both be up.
     expect(RUN).toContain("callIsYours ? (");

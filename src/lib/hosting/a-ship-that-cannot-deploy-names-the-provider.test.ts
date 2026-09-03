@@ -192,3 +192,53 @@ describe("try the preview again is a real action (P-68b)", () => {
     expect(RUN2).toContain('queryKey: ["why-ship-stopped", trackId]');
   });
 });
+
+describe("the read reaches the row it is about (P-59c)", () => {
+  const DEPLOY2 = code(readFileSync("src/lib/deployments.functions.ts", "utf8"));
+  const RUN3 = code(readFileSync("src/components/track/TrackRun.tsx", "utf8"));
+
+  /** Bounded at both ends (F-191). */
+  const FN = (() => {
+    const from = DEPLOY2.indexOf("export const whyShipStopped");
+    const to = DEPLOY2.indexOf("\nexport const ", from + 1);
+    expect(from).toBeGreaterThan(-1);
+    return DEPLOY2.slice(from, to === -1 ? DEPLOY2.length : to);
+  })();
+
+  it("names the table that exists", () => {
+    // It read `.from("changesets")`. There is no such table -- it is
+    // `studio_changesets` -- so PostgREST answered 42P01, the read threw, and
+    // the hold card fell back to the generic "This step ran but filed nothing"
+    // while the record underneath lined up perfectly. tsc does not check a
+    // PostgREST relation name; only a person reading the served surface does.
+    expect(FN).toContain('.from("studio_changesets")');
+    expect(FN).not.toContain('.from("changesets")');
+  });
+
+  it("bounds the deployment by nothing at all, so age cannot hide it", () => {
+    // The one failure this product has is from the previous day. A card that
+    // goes quiet once a failure is old tells a person their stuck run has no
+    // reason when the reason is right there.
+    expect(FN).not.toContain("interval");
+    expect(FN).not.toContain('gte("created_at"');
+  });
+
+  it("answers 'did it fail' separately from 'why'", () => {
+    // `failureReason: null` meant no failure AND a failure with no reason. Only
+    // one of those is a stopped Ship.
+    expect(FN).toContain("failed: false");
+    expect(FN).toContain("failed: true");
+    expect(RUN3).toContain("shipStopped.data?.failed");
+  });
+
+  it("still says 'nothing on the attempt says why' for a reasonless failure", () => {
+    expect(shipStopFrom(null).kind).toBe("unknown");
+    expect(shipStopLine(shipStopFrom(null))).toContain("nothing on the attempt says why");
+  });
+
+  it("stands the station's own retry down while the preview is the blocker", () => {
+    // "Let Ship try again" runs a station that cannot proceed without a preview,
+    // spends an attempt, and returns here.
+    expect(RUN3).toContain("answerTheCall || callIsYours || shipStop ? null : (");
+  });
+});

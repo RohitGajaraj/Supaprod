@@ -1842,46 +1842,80 @@ export const previewHostConfigured = createServerFn({ method: "GET" })
 export const whyShipStopped = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ trackId: z.string().uuid() }).parse(i))
-  .handler(async ({ context, data }): Promise<{ failureReason: string | null }> => {
-    const { supabase } = context;
+  .handler(
+    async ({ context, data }): Promise<{ failureReason: string | null; failed: boolean }> => {
+      const { supabase } = context;
 
-    const { data: runs, error: runErr } = await supabase
-      .from("agent_runs")
-      .select("mission_id")
-      .eq("track_id", data.trackId)
-      .not("mission_id", "is", null);
-    if (runErr) throw new Error(`runs for this track could not be read: ${runErr.message}`);
-    const missionIds = [
-      ...new Set(((runs ?? []) as { mission_id: string | null }[]).map((r) => r.mission_id)),
-    ].filter((m): m is string => !!m);
-    if (missionIds.length === 0) return { failureReason: null };
+      const { data: runs, error: runErr } = await supabase
+        .from("agent_runs")
+        .select("mission_id")
+        .eq("track_id", data.trackId)
+        .not("mission_id", "is", null);
+      if (runErr) throw new Error(`runs for this track could not be read: ${runErr.message}`);
+      const missionIds = [
+        ...new Set(((runs ?? []) as { mission_id: string | null }[]).map((r) => r.mission_id)),
+      ].filter((m): m is string => !!m);
+      if (missionIds.length === 0) return { failureReason: null, failed: false };
 
-    const { data: changesets, error: csErr } = await supabase
-      .from("changesets")
-      .select("id")
-      .in("mission_id", missionIds);
-    if (csErr) throw new Error(`changesets for this track could not be read: ${csErr.message}`);
-    const changesetIds = ((changesets ?? []) as { id: string }[]).map((c) => c.id);
-    if (changesetIds.length === 0) return { failureReason: null };
+      /*
+       * ── `studio_changesets`, AND THE TYPO IS THE WHOLE DEFECT (P-59c) ──────
+       *
+       * This read `.from("changesets")`. There is no such table -- it is
+       * `studio_changesets`, as the four other reads in this file already say --
+       * so PostgREST answered 42P01, the throw below fired, react-query set
+       * `isError`, and the hold card fell back to the generic "This step ran but
+       * filed nothing". A1 read exactly that on the served build at 04:55, with
+       * the record lining up perfectly underneath: the track's runs carry mission
+       * 69fc25b5, changeset e7565181 carries the same mission, and its one
+       * deployments row (06:44 UTC, failure, reason NULL) was there to be found.
+       *
+       * The name was wrong and nothing else was. This is the dead-column class
+       * one level up -- a dead TABLE -- and it is the same lesson: tsc does not
+       * check a PostgREST relation name, so the only thing that catches it is a
+       * person reading the served surface.
+       */
+      const { data: changesets, error: csErr } = await supabase
+        .from("studio_changesets")
+        .select("id")
+        .in("mission_id", missionIds);
+      if (csErr) {
+        throw new Error(`changesets for this track could not be read: ${csErr.message}`);
+      }
+      const changesetIds = ((changesets ?? []) as { id: string }[]).map((c) => c.id);
+      if (changesetIds.length === 0) return { failureReason: null, failed: false };
 
-    /*
-     * Both states in one read, ordered newest first, so "is the newest attempt a
-     * failure" is answered by the first row rather than by two queries whose
-     * answers can straddle a deploy that lands between them.
-     */
-    const { data: deploys, error: dErr } = await supabase
-      .from("deployments")
-      .select("status,failure_reason,created_at")
-      .in("changeset_id", changesetIds)
-      .in("status", ["failure", "success"])
-      .order("created_at", { ascending: false })
-      .limit(1);
-    if (dErr) throw new Error(`deployments for this track could not be read: ${dErr.message}`);
+      /*
+       * Both states in one read, ordered newest first, so "is the newest attempt a
+       * failure" is answered by the first row rather than by two queries whose
+       * answers can straddle a deploy that lands between them.
+       */
+      const { data: deploys, error: dErr } = await supabase
+        .from("deployments")
+        .select("status,failure_reason,created_at")
+        .in("changeset_id", changesetIds)
+        .in("status", ["failure", "success"])
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (dErr) throw new Error(`deployments for this track could not be read: ${dErr.message}`);
 
-    const newest = ((deploys ?? []) as { status: string; failure_reason: string | null }[])[0];
-    if (!newest || newest.status !== "failure") return { failureReason: null };
-    return { failureReason: newest.failure_reason ?? null };
-  });
+      /*
+       * WHATEVER ITS AGE (P-59c). Nothing here bounds the row by time, and that is
+       * deliberate: the one failure this product has is from the previous day, and
+       * a hold card that goes quiet once the failure is old tells a person their
+       * stuck run has no reason when the reason is right there.
+       *
+       * A NULL REASON IS STILL A FAILURE. `failureReason: null` on a failure row
+       * reaches `shipStopFrom` as the `unknown` case -- "nothing on the attempt
+       * says why" -- which is a true sentence and the one A1 will read until the
+       * retry records a reason. It is NOT the same as no failure at all, and this
+       * returns `{ failureReason: null }` for both, so the caller must ask the
+       * status question here rather than infer it from the reason.
+       */
+      const newest = ((deploys ?? []) as { status: string; failure_reason: string | null }[])[0];
+      if (!newest || newest.status !== "failure") return { failureReason: null, failed: false };
+      return { failureReason: newest.failure_reason ?? null, failed: true };
+    },
+  );
 
 /**
  * ── A GATE THAT CANNOT SUCCEED IS NOT OFFERED (P-68) ─────────────────────
