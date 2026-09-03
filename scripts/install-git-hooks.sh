@@ -5,11 +5,29 @@
 # Docker builds).
 set -euo pipefail
 
-if [ ! -d .git ]; then
+# P-27 (A-QUEUE.md, 2026-09-03): `[ ! -d .git ]` IS ALWAYS TRUE IN A
+# WORKTREE, so this script silently installed nothing there, ever. A linked
+# worktree's `.git` is a plain FILE (a "gitdir: <path>" pointer), never a
+# directory -- `-d .git` fails, the guard fires, and the script exits 0
+# before writing a single hook. Confirmed live: a worktree that had run this
+# script had the SAME pre-push hook installed from the main checkout months
+# earlier, still carrying the pre-P-27 orphan-guard bug this whole packet
+# exists to fix. `git rev-parse --is-inside-work-tree` is true in both a
+# plain checkout and a worktree, which a bare `.git` directory test is not.
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   exit 0
 fi
 
-HOOK=".git/hooks/post-merge"
+# THE HOOKS DIRECTORY, RESOLVED, NOT ASSUMED. Hooks are NOT per-worktree by
+# default: every worktree of one repository shares the common git directory's
+# hooks/ (unless core.hooksPath overrides it, which this repo does not set).
+# `git rev-parse --git-path hooks` returns the right path either way -- the
+# literal `.git/hooks` this script used to write to only happens to be
+# correct from the main checkout, where `.git` is that directory itself.
+HOOKS_DIR="$(git rev-parse --git-path hooks)"
+mkdir -p "$HOOKS_DIR"
+
+HOOK="$HOOKS_DIR/post-merge"
 cat > "$HOOK" <<'EOF'
 #!/usr/bin/env bash
 # Auto-installed by scripts/install-git-hooks.sh: verify DB migrations are
@@ -41,7 +59,7 @@ echo "[git-hooks] post-merge hook installed"
 # model-written text that agents wrote into the DATABASE through tool arguments,
 # which no source scan can reach. That hole is closed separately by
 # `humanizeToolArgs` at the tool-call chokepoint in `runtime.server.ts`.
-PRECOMMIT=".git/hooks/pre-commit"
+PRECOMMIT="$HOOKS_DIR/pre-commit"
 cat > "$PRECOMMIT" <<'EOF'
 #!/usr/bin/env bash
 # Auto-installed by scripts/install-git-hooks.sh: humanized-output backstop.
@@ -67,7 +85,7 @@ echo "[git-hooks] pre-commit hook installed (humanized-output check)"
 # kept as tags (archive-lovable-orphan-2026-07-28,
 # archive-final-sweep-2026-07-18), and a slash-only pattern would have let the
 # orphan history merge into main unchallenged.
-PREMERGE=".git/hooks/pre-merge-commit"
+PREMERGE="$HOOKS_DIR/pre-merge-commit"
 cat > "$PREMERGE" <<'INNER'
 #!/usr/bin/env bash
 if [ -f .git/MERGE_MSG ] && grep -qE "archive[/-]" .git/MERGE_MSG; then
@@ -96,55 +114,22 @@ echo "[git-hooks] pre-merge-commit archive lock installed"
 # GitHub branch protection would catch this server-side, but it needs GitHub Pro
 # on a private repo (verified 403 on both the protection and rulesets APIs), so
 # this hook is the guard. Install it in EVERY checkout and worktree.
-PREPUSH=".git/hooks/pre-push"
+#
+# P-27 (A-QUEUE.md, 2026-09-03): THE LOGIC MOVED TO scripts/hooks/pre-push.sh,
+# A TRACKED FILE, NOT A HEREDOC HERE. Every other hook in this script is
+# generated inline because nothing exercises it outside a real git push; this
+# one now has its own test (scripts/hooks/pre-push.test.ts) that drives real
+# git repos, and a test needs a real file to execute, not a string embedded in
+# an installer. The installed hook is a one-line shim so there is still one
+# source of truth: edit scripts/hooks/pre-push.sh, not this file.
+PREPUSH="$HOOKS_DIR/pre-push"
 cat > "$PREPUSH" <<'INNER'
 #!/usr/bin/env bash
-# Auto-installed by scripts/install-git-hooks.sh: orphan-history guard on main.
-# Background: docs/operations/git-recovery-and-orphan-guard.md
-zero="0000000000000000000000000000000000000000"
-blocked=0
-
-while read -r local_ref local_sha remote_ref remote_sha; do
-  [ "$local_sha" = "$zero" ] && continue
-  case "$remote_ref" in
-    refs/heads/main) ;;
-    *) continue ;;
-  esac
-
-  # 1. Orphan guard: a push to main must share history with what main already is.
-  if [ "$remote_sha" != "$zero" ] &&
-     ! git merge-base "$local_sha" "$remote_sha" >/dev/null 2>&1; then
-    if [ "${ALLOW_ORPHAN_MAIN:-0}" = "1" ]; then
-      echo "[pre-push] orphan push to main allowed via ALLOW_ORPHAN_MAIN=1."
-    else
-      echo ""
-      echo "BLOCKED: this push to main has NO common ancestor with origin/main."
-      echo "That is an orphan history. It is what wiped 4,124 commits on 2026-07-27."
-      echo ""
-      echo "Hit 'fatal: not a git repository: (null)' in a worktree? The fix is:"
-      echo "    git -C <main-checkout> worktree repair <worktree-path>"
-      echo "NEVER run 'git init' inside a broken worktree and push the result."
-      echo ""
-      echo "If you truly mean to replace main's history: archive the current main"
-      echo "first, then re-run this one command with ALLOW_ORPHAN_MAIN=1."
-      blocked=1
-    fi
-  fi
-
-  # 2. Re-init fingerprint: these files only ever exist because a broken
-  #    worktree was re-initialised and 'git add -A' swept them in.
-  for junk in .git.broken .git-staging-note.txt; do
-    if git cat-file -e "$local_sha:$junk" 2>/dev/null; then
-      echo ""
-      echo "BLOCKED: '$junk' is committed in the history being pushed to main."
-      echo "That file is the fingerprint of a re-initialised broken worktree."
-      echo "Remove it first:  git rm --cached '$junk'"
-      blocked=1
-    fi
-  done
-done
-
-exit $blocked
+# Auto-installed by scripts/install-git-hooks.sh: runs the tracked hook script
+# (scripts/hooks/pre-push.sh) so there is one source of truth, testable on its
+# own. `exec` replaces this process, so the hook's stdin (the ref list git
+# pipes to pre-push) passes through unchanged.
+exec bash "$(git rev-parse --show-toplevel)/scripts/hooks/pre-push.sh"
 INNER
 chmod +x "$PREPUSH"
 echo "[git-hooks] pre-push orphan-main guard installed"
