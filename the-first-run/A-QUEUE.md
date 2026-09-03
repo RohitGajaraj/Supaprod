@@ -7213,7 +7213,7 @@ when the switcher is free and read the six sentences-with-doors against what is 
 
 **DoD.** Pushed (`3db9fd806`); design doc linked; live walk still open, handing to A1.
 
-### P-64 · ⌘K reaches everything · Lane: **A3** (after P-63) · Status: READY · Moves: 2
+### P-64 · ⌘K reaches everything · Lane: **A3** (after P-63) · Status: CODE DONE, PUSHED 3af13d52e (14,148 / 0, tsc 0) · Moves: 2
 
 **Why.** Audit §1: find-anything searches one group, runs.
 
@@ -7226,6 +7226,56 @@ needed; the group order is the rail order.
 finds it and lands on it. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and searches five things.
+
+**A3, 23:40 UTC 09-03, P-64 Report.** The packet's own title is stale, worth naming before the
+work: ⌘K is retired as a command palette by founder ruling (2026-07-30, `GotoShortcuts.tsx`'s own
+header) and opens Ask now. The surface that actually does "search everything" is Find Anything,
+unbound to any key at all before this -- click-only. Fixed both halves the Scope actually names.
+
+Four new groups. **Doors** (`searchDoors`, `find-anything.ts`): pure, no I/O, filters
+`PRIMARY_NAV` on label and tagline, so it can never drift from the rail or need its own
+maintenance. Ordered first in the results -- "go somewhere" is the search a person reaches for
+most, and the Scope names it first. **Sources**: `sync_mappings` carries no per-document title at
+all (found while building this -- each row is a connector mapping, and Sync's own page already
+displays `providerLabel(m.provider)`, never a document name), so this searches the connector's own
+word, the only human one the table holds. **People**: `profiles` RLS is own-row-only
+(`workspaces.functions.ts`'s own comment on `listWorkspaceMembers`), so a co-member's name needs
+the membership-gated `workspace_members_with_identity` RPC, one call per workspace the caller
+belongs to. **Conversations**: title AND message content, not title alone -- queried the live
+database before writing this and most conversations never get renamed past "New conversation", so
+a title-only search would answer nothing for most real threads. The Scope's own acceptance line
+("a conversation's first line finds it") is what a message-content search actually needs.
+
+**Caught building it, not before**: P-67's own guard (`a-read-names-its-workspace.test.ts`,
+apparently landed by another lane today) failed on my first draft -- `conversations` and
+`messages` both carry `workspace_id`, and a bare list read would have shown a person two
+workspaces' threads under one heading the moment they hold two, the exact class of bug P-67's
+header lists four live instances of. Fixed properly rather than allowlisted: both now go through
+`current_user_default_workspace`, the same idiom `threads.functions.ts`'s own read of
+`conversations` already uses, filtered only once it resolves. `sources`/`people` are not
+workspace-scoped tables (`sync_mappings` is user-scoped; the `workspace_members` read is the
+caller's own membership row, and the RPC is per-workspace by construction), so neither needed the
+same fix.
+
+**"/" reaches it from anywhere.** ⌘K was not available to reuse (Ask's, by ruling); "/" is the
+convention this product's own reference set already uses (GitHub, Linear, Slack). Guard is
+GotoShortcuts' own, carried over verbatim (no input/select hijack, no firing under an open
+dialog), plus one refusal that is new here: the run screen's own "/" already means "steer"
+(`run-keys.ts`), so this stands down on `/track/*` routes rather than contesting the key. Declared
+in `key-model.ts`'s `GLOBAL_KEYS` so the shortcut sheet shows it -- checked live-database schema
+and RLS via the Lovable MCP before writing any of the three new queries, since I could not walk
+this myself (same `.env`-less worktree blocker as P-63; browser tools blocked by the same). Tests:
+`find-anything.test.ts` (`searchDoors`, pure), `slash-reaches-find-anything-from-anywhere.test.tsx`
+(RTL, mirrors `chord-stands-down-under-a-confirmation.test.tsx`'s own pattern for the five
+refusals). No test exercises the three new server reads directly against a live database -- the
+existing file's own boundary (pure logic unit-tested, I/O verified live), which is why this needs
+A1's own walk to close, same as P-63.
+
+**Acceptance.** Not yet served live. tsc 0; `bun test` 14,148 / 0 fail. Requesting A1 search five
+things (a door, a decision, a source, a conversation by its first line, a person) and confirm `/`
+reaches the field from a page it was never bound on before.
+
+**DoD.** Pushed (`3af13d52e`). Live walk open, handing to A1.
 
 
 ### LIVE WALK, A1, 00:45 IST 09-04 · the second sentence, in a workspace with nothing in it
