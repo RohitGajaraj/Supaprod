@@ -4754,5 +4754,38 @@ make the door to it honest.
 - [ ] Nothing on those screens claims a number the workspace does not have.
 - [ ] tsc 0 · `bun test` 0 fail / 0 error · ratchet not widened · pushed · Report with the document.
 
+
+**A1, 10:00 IST · the first wall, found by A2 in the first minute.** Nobody can create a second
+workspace: `workspaces` has one INSERT-permitting policy, `ws owner admin manage`, whose WITH CHECK asks
+whether you are already a member of the row being inserted, which cannot be true. The first workspace
+only exists because signup uses a SECURITY DEFINER function that bypasses RLS. `createWorkspace` uses
+the user client, creates no membership, and its comment says the opposite. Every non-sample
+workspace on the database has exactly one owner and no account has two. The person is told "No new
+workspace was created." and nothing else. **Ruled:** a dedicated INSERT policy (`owner_id =
+auth.uid()`) plus the owner membership written in the same handler, applied by A2 through the Lovable
+MCP under rule 12; the four invented signals seeded into every real workspace at onboarding are
+removed, the sample workspace is the honest door; the `ALTER TABLE … DISABLE TRIGGER` inside the
+signup function is P-34.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
+
+
+### P-34 · Signup does not lower a billing guard for everyone · Lane: **A2** · Status: READY (after P-33) · Moves: 5
+
+**Why.** `ensure_user_default_workspace` runs `ALTER TABLE public.workspaces DISABLE TRIGGER
+trg_protect_workspace_billing_columns` inside itself to set `plan_tier`, then re-enables it. That is
+a table-level lock taken during every signup, and while it is held the billing guard is off for
+every concurrent writer on the table (A2, P-33).
+
+**Scope.** Set the tier by a path the guard allows (a definer-owned helper that the trigger
+recognises, or a guard that permits the signup function by role), never by disabling the trigger.
+A test that a concurrent update to a billing column during signup is still refused. Migration
+applied by A2 through the Lovable MCP under rule 12, ledger row confirmed by A1.
+
+**Acceptance.**
+- [ ] `grep DISABLE TRIGGER supabase/migrations` shows no live function doing it.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report with the migration version.
+
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
