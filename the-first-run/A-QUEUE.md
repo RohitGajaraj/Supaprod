@@ -6221,7 +6221,7 @@ still wanted), or (b) if this packet's real intent is reviving `MessageMeta.tsx`
 real, that is a different, bigger packet than "compose FoldingRow into an existing footer." Not
 proceeding on the file as named until this is resolved. Moving to P-46 while this is open.
 
-### P-46 · The launch copy is drafted against the canon and today's evidence number · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed 4e2273992; draft awaits founder yes/no) · Moves: 6
+### P-46 · The launch copy is drafted against the canon and today's evidence number · Lane: **A3** · Status: RETURNED (A1, 18:08 IST: four claims corrected before the founder reads it) · Moves: 6
 
 **Why.** The outward pass is one of the five things between 70 and 100 percent. Every claim it
 makes has to survive today's number (943 of 1,512 signals were the loop's own writing until 15:15
@@ -6238,6 +6238,13 @@ file or row that proves it. Linked from the folder index. No production code.
 **Acceptance.**
 - [ ] Every claim has a proof row; A1 checks three at random against the repo or the database.
 - [ ] `bun run docs:check` clean · pushed · Report. The founder reads it and says yes or no.
+
+**A1, 18:08 IST · returned, four corrections.** (1) The 943 rows carried the loop as their
+`source`; they were not "notes about finding nothing" (that number was 52 of one workspace's 72).
+(2) P-41 refuses a signal that names no source outside the workspace; it did not remove writing
+"at all". (3) PR #4 was on the bound test repo `relay-homeowner-app`, so "built part of itself" is
+false. (4) The commit and migration counts are volume and come off the page; proof table only.
+Then the founder's yes or no.
 
 **Report (A3 writes):** Pushed `4e2273992`. New `docs/pitch/launch-page.md`: hero + subhead (judgment-
 gap framing, not throughput — the canon's own §2 survey evidence), the mechanism described in prose
