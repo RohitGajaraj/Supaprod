@@ -6864,6 +6864,15 @@ citation counts only when the row was shown). Suite on the tip 13,831 / 0 / 0, t
 (`read` and `cited`) and on the Learn tab with rows marked *Used*. A2's count (13,890) and mine
 (13,831) differ by 59 on the same sha; both are 0 fail, the difference is noted, not resolved.
 
+**A1, 23:10 IST · a defect under this packet found and fixed by A2 (42d256793).** Two decisions
+graded at 12:00 UTC today and `forecast_resolution_log` held zero rows: the log's `reason` was NOT
+NULL with no default, the auditor never set it, every insert raised 23502, and the write failure
+was swallowed by design with only a console line as witness. Now `reason` is a typed argument, a
+failed log write is counted in the tick's answer, and the table's reopen columns are nullable with
+a wholeness constraint (`20260903180000`, applied; verified by object: `reopened_at` nullable, the
+constraint present, two log rows with reasons; ledger row inserted by A1). Suite on the tip
+13,942 / 0 / 0, tsc 0; published 23:10. Tomorrow's 06:00 UTC read now has a log to read.
+
 **Report (A2 writes):** `7107fbaee`. Full console suite on the tip **13,890 pass / 0 fail / 0 error**,
 tsc 0.
 
