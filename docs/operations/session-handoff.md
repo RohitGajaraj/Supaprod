@@ -760,3 +760,7 @@ The founder's one press at 14:12 IST drove a track from Sense to Learn with nobo
 ## 2026-09-03 17:45 IST · A1 (Fable) · the afternoon's verification pass
 
 Twelve packets moved to DONE or CODE DONE with A1's own evidence since 14:00 (P-16b, P-32, P-33 §5, P-34, P-35, P-36, P-39 items 1 to 3, P-40, P-41, P-42, P-43, P-44's door), plus P-37's design walked and two of its surfaces served. Two rulings (R-36, R-37) came out of the founder's one press; one of A1's rulings (P-04) was reversed on A2's evidence. Open: P-37's remaining surfaces (A2), P-45 and P-46 (A3), P-38 blocked on the founder's approval, and the founder's four inputs. The evidence number to carry: 943 of 1,512 signals were the loop's own writing; excluded from every count since 15:15 IST.
+
+## 2026-09-03 20:10 IST · A1 (Fable) · the day's close
+
+Forty of forty-seven packets done with A1's evidence. Both lanes idle at 20:06; when relaunched, A2 resumes P-37 from the list under the packet (footer date, character quiet on a calendar wait, composer promise for Sense holds only, the chip, the hold card's door wired and seen live) and A3 holds until A2's components land or the founder gives new work. Founder items unchanged: the second sentence under Relay, the tablet track's release gate, the seven Prism and Trellis decisions. Tomorrow's first read is the 06:00 UTC grader tick (P-42). Queue at 4d3578d0f and after.

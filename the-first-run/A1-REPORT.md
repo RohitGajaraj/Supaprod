@@ -471,3 +471,11 @@ product:** Helio Labs has no live source beyond the repo, so any run there is ca
 person's word by design; the cold Worker's five seconds on a first visit is hosting. The date call
 holds at 23 September; a real Ship by 8 September is the one thing that keeps it, and it needs the
 release gate answered first.
+
+**Checkpoint, 2026-09-03 20:10 IST. Both lanes idle; the day closes with forty of forty-seven
+done.** P-38 and P-46 closed on the founder's approvals given in A3's own session, which is the
+route a refused write is meant to take; P-38 verified by object (36 of 37 cron jobs on the real host
+with a deadline). P-37 has three of its five surfaces served and the rest is one turn of A2's work,
+listed under the packet. Open on the founder, unchanged: the second sentence under Relay, the
+tablet track's release gate, the seven Prism and Trellis decisions. The 06:00 UTC tick tomorrow is
+the grader's first real read (P-42) and A1 reads it. The date call holds at 23 September.

@@ -164,3 +164,11 @@ Queue `the-first-run/A-QUEUE.md`; report `A1-REPORT.md`. Live at `d43fc2829`. In
 - Lovable's bot pushes `Work in progress` commits that requote five files every time it regenerates types.ts; reverted twice (e619e836e, 502ad462b). Read its commit before publishing.
 - Founder inputs still open at 17:45: the second sentence under Relay (proof of P-40/P-41 live), the tablet track's release gate (since 12:13), P-38's approval, the seven Prism and Trellis decisions. The `a1-delete-probe` workspace (owner demo user, no member row) still exists for the P-39 delete walk; walk it after his run starts, then it is gone.
 - The switcher and the theme are per-user state on the shared demo account; the page went dark at 17:10 without either lane touching it.
+
+## A1 · 2026-09-03 20:10 IST · both lanes idle; the day's close
+
+- 40 of 47 packets DONE with A1's evidence. Closed since 17:45: P-38 (founder approved in A3's session; verified by object, 36/37 cron jobs on supaprod.ai with deadlines, ledger 20260909050000), P-46 (founder approved; publish gates PC-04 and the beta stories still open; nothing went outward), P-47 (by repro), P-43, P-44's door and header; P-45 retired (my premise error).
+- P-37: gate card, transcript row, calendar wait served and verified; A2's 691f87dba (character quiet, composer promise) published 18:44 but the live run at Learn/`needs-evidence` still showed the Supa line and the default placeholder at 19:42; A2 has the read. Remaining items listed under P-37 in the queue.
+- Two of my claims were wrong today and are recorded as such: P-45's premise (unverified mount), the calendar-wait evidence (a stale DB read). Re-read the row and say when.
+- Founder inputs open: the second sentence under Relay (proof of R-36/R-37 live), the tablet release gate (`0c7374b6`, pending since 12:13 IST), the seven Prism/Trellis decisions. Helio Labs has no live source beyond the repo (founder decision). Probe workspace `a1-delete-probe` still exists for the P-39 delete walk.
+- Tomorrow 06:00 UTC: the grader's first real read (P-42); check `forecast_resolution_log` for `read` and `cited` and the Learn tab.

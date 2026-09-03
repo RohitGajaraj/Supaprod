@@ -6546,6 +6546,17 @@ because the route hands the footer no horizon while the card above names Sat, Oc
 date so both lines say one fact. SeatSays and the composer placeholder (691f87dba) published 18:44,
 read at 19:00.
 
+**A1, 20:10 IST · where P-37 stands for A2's next turn (both lanes idle at 20:06).** Served and
+verified: the gate card (two named slots, question first, no chip), the transcript row (verdict
+leads, one duration), the calendar wait (one sentence, no door). Published and not yet seen on the
+live run at 19:42: the character's retirement and the composer promise (691f87dba); the run at
+Learn on `needs-evidence` still showed the Supa line and the default placeholder, and A2 has the
+read. Remaining in the packet: the footer names the date; the character quiet on a calendar wait as
+on a running one; the composer promise limited to Sense holds, since nothing carries on at Learn
+until the date; the *On hold* chip on a calendar wait; the hold card's door wired at its two call
+sites and seen live on a no-source run. Then the founder walks the tablet track and the honest run
+and says whether it reads.
+
 **Acceptance.**
 - [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
       first against the mockups.
