@@ -424,3 +424,18 @@ manufactured, no outward claim about evidence ships. That second run is the 6 Se
 now. Verified this hour: P-33's six empty-workspace defects (A2, walked clean by rule 18), P-35,
 P-36 (live), the sample-data trigger (by its objects). Founder items: answer the tablet track's
 release gate; nothing else.
+
+**Checkpoint, 2026-09-03 15:40 IST. The two rulings are live, and the evidence base is mostly the
+loop's own writing.** P-40 (a sentence with no evidence is carried on the person's word) and P-41
+(a seat at Sense reads evidence and never writes it) were built, tested, published and proved on
+the live site inside ninety minutes of the founder's press: Start's Arriving count went 15, 17, 13
+as the Researcher's two rows entered and were excluded. The number that came out of P-41 is the
+one to carry into every outward claim until it is fixed in the record: **943 of the 1,512 signals
+in the database carry source "agent"; in Helio Labs, 96 of 277.** Most of what the product has been
+counting as evidence was written by its own seats. From today those rows count nowhere, they stay
+marked, and no seat can add one. The first honest run ended at Learn at 15:10 on the old path;
+the second sentence, under Relay with the new field, is the proof of the new one and is the
+founder's. Also live this hour: P-16b (the field names the product and offers the one the
+sentence sounds like), P-36 (the gate on screen on arrival), P-39 (a delete that matched nothing
+says so; an owner without a member row can delete; the deploy-reason part is redirected to the
+path that failed). The date call does not move.

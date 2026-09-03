@@ -752,3 +752,7 @@ run walked the whole route with nobody pressing anything. Tonight it reached the
 ## 2026-09-03 14:05 IST · A1 (Fable) · verification pass after the restart
 
 Verified this stretch, not accepted on report: P-35 (suite on the tip, guard proven by reintroducing a `select("*")`, published 13:43 IST), P-33's trigger migration `20260909020000` (twelve triggers, a rolled-back probe, backfill 0 unmarked of 2,467, ledger row restored by A1). Open on the empty workspace: Start's Arriving line still shows the signed-in person's counts, two more readers named in the queue. Founder items unchanged: a preview provider for `relay-homeowner-app`, the honest run's sentence on Start, the *A2 arrival check* membership row. Lovable's agent `send_message` never delivered; the ledger keeps dropping rows; pull before executing prepared SQL. Queue at fcff25dc8 and after.
+
+## 2026-09-03 15:40 IST · A1 (Fable) · the honest run and what it changed
+
+The founder's one press at 14:12 IST drove a track from Sense to Learn with nobody pressing, and on the way a seat wrote two signals into the workspace and Decide declined the sentence on them. Two rulings (R-36, R-37) and two packets (P-40, P-41) are live as of 15:15 IST and proved on the site. The number to carry: 943 of 1,512 signals are agent-written; excluded from every evidence count now, marked, never deleted. Open: the founder's second sentence under Relay (the proof of the new path), P-39 item 3 (A3), P-04 remainder (A2), P-38, P-34, P-37, the tablet track's release gate (founder). Queue at 5a19c44a2 and after.

@@ -147,3 +147,11 @@ Queue `the-first-run/A-QUEUE.md`; report `A1-REPORT.md`. Live at `d43fc2829`. In
 - Twelve Helio decisions carry `is_sample = true`: seven are seeder titles in the real workspace, five are Helio's own written from a parent opportunity that was marked on the day. Ruling in the queue under P-33; fix is A2's.
 - Start's Arriving line reads `getSenseCoverage` and `getThemePromotionCounts` (`discovery.functions.ts` 1263 and 599) with no `workspace_id` filter. Third and fourth readers of the P-33 item (1) defect; A2 told, guard test to be extended.
 - P-35 verified by reintroduction (scratch `select("*")` on signals fails the guard naming the file); published at 13:43 IST (Lovable at 2e8868d17).
+
+## A1 · 2026-09-03 15:40 IST · the honest run, two rulings, and the evidence number
+
+- Honest run `870b70d3` (founder, 14:12 IST, Helio Labs, product Prism by the switcher): five Sense passes on a no-evidence sentence; the Researcher wrote two signals into the workspace (14:41); Decide declined the sentence on them (15:00); Critic upheld; Learn at 15:10. Nobody pressed. R-36 (carry on the person's word, no attempt) and R-37 (Sense reads, never writes) in RULINGS.md; P-40 and P-41 built by A2, published 14:56 and 15:15, proved live (Arriving 15 → 17 → 13).
+- **943 of 1,512 signals are `source = 'agent'`; Helio 96 of 277.** Excluded from every evidence count from 15:15; marked `loop_authored`, never deleted.
+- The switcher (workspace and product) is per-user server state on the shared demo account: do not switch from A1's tab while the founder is about to press. Probe workspace `a1-delete-probe` (owner demo user, no member row) exists for the P-39 delete walk; walk it after his second run starts, then it is gone.
+- Live and verified this stretch: P-16b (both halves), P-36, P-39 items 1 and 2 (item 3 redirected to `changeset-deploy.server.ts` via `ci-poll-tick.ts`), P-33 §5 (A2's walk by rule 18), P-35. Rules 17 and 18 in §0.
+- Timer wakes: a background `sleep N; echo` gives one notification; the hook clock runs a few minutes behind the labels I write.
