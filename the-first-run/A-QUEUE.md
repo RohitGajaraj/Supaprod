@@ -4301,7 +4301,7 @@ not junit alone, both before and after the final rebase). eslint 0 new errors th
 **Blockers (A3 writes):** the live walk on Helio Labs (acceptance line 1) -- no browser this session.
 
 
-### P-18b · The ask dock claims only what the bar claims · Lane: **A3** · Status: READY · Moves: 3
+### P-18b · The ask dock claims only what the bar claims · Lane: **A3** · Status: CLAIMED (A3) · Moves: 3
 
 **Why.** At 06:45 IST the bar read *Nothing running* while the ask dock's right-hand line read
 *Review is working on Checkout asks for already-save…*. Two readers, one fact, two claims. P-18 and
