@@ -755,11 +755,48 @@ type StartTrackRow = {
   pending_gates?: unknown;
 };
 
+/**
+ * The active workspace, or the caller's default when the client did not name
+ * one. `current_user_default_workspace()` is the same resolver `startTrack`
+ * leans on for its column default, so a read and the write it precedes cannot
+ * disagree about which desk they are on.
+ */
+async function resolveStartWorkspaceId(
+  supabase: import("@supabase/supabase-js").SupabaseClient,
+  explicit: string | null,
+): Promise<string | null> {
+  if (explicit) return explicit;
+  const { data } = await supabase.rpc("current_user_default_workspace");
+  return (data as string | null) ?? null;
+}
+
+/**
+ * -- YOUR RUNS ARE THIS WORKSPACE'S RUNS (P-33, walked on production) -------
+ *
+ * This read filtered on `status` and nothing else, and leaned on RLS for the
+ * rest. RLS scopes to every workspace a person BELONGS TO, which is the right
+ * answer to "may they see this" and the wrong answer to "whose desk is this".
+ * So Start listed every open run the person could see, from every workspace,
+ * under whichever workspace name the switcher happened to be showing.
+ *
+ * Nobody could hit it, because until 2026-09-03 no account could hold two
+ * workspaces at all: `workspaces` had no INSERT policy and every attempt to
+ * make a second one was refused (20260907010000, 20260908010000). Fixing that
+ * wall is what exposed this: the first workspace ever created on production
+ * opened showing another workspace's runs as its own.
+ *
+ * `workspaceId` is optional and resolves to the caller's default, so the
+ * zero-configuration path is unchanged.
+ */
 export const listRunsForStart = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(({ context }): Promise<StartRun[]> =>
+  .inputValidator((d: { workspaceId?: string | null } | undefined) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(d ?? {}),
+  )
+  .handler(({ context, data }): Promise<StartRun[]> =>
     withStartReaderTiming("listRunsForStart", async () => {
       const { supabase } = context;
+      const workspaceId = await resolveStartWorkspaceId(supabase, data?.workspaceId ?? null);
       try {
         /*
          * `spine_track_members` EMBEDDED IN THE BASE READ, KIND ONLY (P-32).
@@ -779,11 +816,23 @@ export const listRunsForStart = createServerFn({ method: "GET" })
          * the "still standing" question `superseded_at` answers for
          * lineage-adjacent reads elsewhere in this file.
          */
-        const { data, error } = await supabase
+        let tracksQuery = supabase
           .from("spine_tracks" as never)
           .select(
             "id,title,station,status,updated_at,driven_at,last_hold,last_hold_because,pending_gates,spine_track_members(artifact_kind)",
-          )
+          );
+        /*
+         * ONLY WHEN IT IS KNOWN. A caller whose default workspace cannot be
+         * resolved gets what RLS allows, which is what this read did for its
+         * whole life -- narrowing to a workspace we could not name would turn
+         * an unresolved id into an empty desk, and an empty desk is a claim.
+         *
+         * `workspace_id` is filtered on without being selected, which is fine
+         * and deliberate: this row type is the narrow P-32 one and nothing
+         * below reads the column.
+         */
+        if (workspaceId) tracksQuery = tracksQuery.eq("workspace_id", workspaceId);
+        const { data, error } = await tracksQuery
           .order("updated_at", { ascending: false })
           .limit(50);
         if (error) failSoftOrThrow(error, "Your runs");

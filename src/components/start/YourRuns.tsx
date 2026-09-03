@@ -48,6 +48,7 @@ import {
   type StartRowKind,
 } from "@/components/today/tracks-feed";
 import { listRunsForStart, pinTrack } from "@/lib/spine/track.functions";
+import { useWorkspace } from "@/hooks/use-workspace";
 
 /**
  * The word on the chip, and only where a chip earns its place.
@@ -130,10 +131,19 @@ function RunRow({
 
 export function YourRuns() {
   const navigate = useNavigate();
+  /*
+   * THE SAME KEY AS `/start`'s OWN READ, AND IT HAS TO STAY THE SAME (P-33).
+   * That page and this component deliberately share one cache entry so they
+   * cannot disagree about whether this workspace has ever had a run. The key
+   * now carries the workspace, because the answer differs per workspace; if
+   * only one of the two were keyed that way they would stop sharing and the
+   * "first run" line would drift from the list under it.
+   */
+  const { activeWorkspaceId } = useWorkspace();
   const fRuns = useServerFn(listRunsForStart);
   const q = useQuery({
-    queryKey: ["start-runs"],
-    queryFn: () => fRuns(),
+    queryKey: ["start-runs", activeWorkspaceId ?? null],
+    queryFn: () => fRuns({ data: { workspaceId: activeWorkspaceId ?? null } }),
     /*
      * Ten seconds, which is the beat the run screen polls on. A person who
      * starts a run and comes back here should see it moving on the same clock
@@ -162,6 +172,8 @@ export function YourRuns() {
   const fPin = useServerFn(pinTrack);
   const pin = useMutation({
     mutationFn: (v: { trackId: string; pinned: boolean }) => fPin({ data: v }),
+    // Prefix match: invalidates this workspace's entry and any other the client
+    // still holds, which is what a pin changing the order should do.
     onSettled: () => void qc.invalidateQueries({ queryKey: ["start-runs"] }),
   });
 

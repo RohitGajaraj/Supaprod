@@ -130,10 +130,23 @@ function StartLanding() {
    * twice for one fact and let the two answers drift, which is the drift the run
    * screen has been repaired for twice.
    */
+  /*
+   * -- THE WORKSPACE IS PART OF THE QUESTION, SO IT IS PART OF THE KEY -------
+   *
+   * Both reads below were keyed on the page alone. React Query caches by key,
+   * so switching workspace served the PREVIOUS workspace's runs and bets under
+   * the new workspace's name until each read happened to refetch. The server
+   * halves were unscoped too, and both are fixed together: a key that omits
+   * the workspace and a query that omits the workspace are the same bug told
+   * twice, and fixing only one leaves a window where the page is still wrong.
+   *
+   * Found by making the first second workspace on production and watching it
+   * open with another workspace's ranked bets and runs listed as its own.
+   */
   const fRuns = useServerFn(listRunsForStart);
   const runs = useQuery({
-    queryKey: ["start-runs"],
-    queryFn: () => fRuns(),
+    queryKey: ["start-runs", activeWorkspaceId ?? null],
+    queryFn: () => fRuns({ data: { workspaceId: activeWorkspaceId ?? null } }),
     refetchInterval: 10_000,
   });
   /* Only once the read has ANSWERED. Showing the first-run line while the read
@@ -146,8 +159,8 @@ function StartLanding() {
      the top three by ICE do not need to be fresher than a page visit. */
   const fBets = useServerFn(listTopOpportunities);
   const bets = useQuery({
-    queryKey: ["start-top-opportunities"],
-    queryFn: () => fBets(),
+    queryKey: ["start-top-opportunities", activeWorkspaceId ?? null],
+    queryFn: () => fBets({ data: { workspaceId: activeWorkspaceId ?? null } }),
     staleTime: 60_000,
   });
 

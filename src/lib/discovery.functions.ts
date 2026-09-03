@@ -1554,6 +1554,16 @@ export type TopOpportunity = {
   iceScore: number | null;
 };
 
+/** See `resolveStartWorkspaceId`: the active workspace, or the caller's default. */
+async function resolveTopBetsWorkspaceId(
+  supabase: import("@supabase/supabase-js").SupabaseClient,
+  explicit: string | null,
+): Promise<string | null> {
+  if (explicit) return explicit;
+  const { data } = await supabase.rpc("current_user_default_workspace");
+  return (data as string | null) ?? null;
+}
+
 /**
  * P-14 (A-QUEUE.md ruling): "The ranking's home is Start's *Or start one of
  * these* (top three by ICE)." `/decide`'s own 78-row ranked queue is deleted;
@@ -1564,7 +1574,31 @@ export type TopOpportunity = {
  */
 export const listTopOpportunities = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<TopOpportunity[]> => {
+  .inputValidator((d: { workspaceId?: string | null } | undefined) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ context, data: input }): Promise<TopOpportunity[]> => {
+    /*
+     * -- THESE ARE THIS WORKSPACE'S BETS (P-33, walked on production) --------
+     *
+     * The read named no workspace and leaned on RLS, which scopes to every
+     * workspace a person BELONGS TO. So Start's three ranked cards were the
+     * top three bets across ALL of them, shown under whichever workspace the
+     * switcher was on, and a workspace with no evidence of its own presented
+     * another one's bets as work ranked for it.
+     *
+     * It could not be hit until 2026-09-03, because no account could hold two
+     * workspaces: `workspaces` had no INSERT policy (20260907010000,
+     * 20260908010000). The first second-workspace ever created on production
+     * opened showing Helio Labs' bets as its own, which is how this was found.
+     *
+     * Unresolved stays unfiltered, as it was: an id we cannot name must not
+     * become an empty desk, because an empty desk is itself a claim.
+     */
+    const workspaceId = await resolveTopBetsWorkspaceId(
+      context.supabase,
+      input?.workspaceId ?? null,
+    );
     /*
      * P-14 (A-QUEUE.md ruling), A1 live on `supaprod.ai`, 2026-09-03: "a bet
      * whose title is not a sentence does not qualify for a card." The write
@@ -1574,11 +1608,9 @@ export const listTopOpportunities = createServerFn({ method: "GET" })
      * wrong. Reads past the top three so the filter cannot starve the card
      * display when the top-ranked-by-ICE rows happen to be the bad titles.
      */
-    const { data, error } = await context.supabase
-      .from("opportunities")
-      .select("id, title, problem, ice_score")
-      .order("ice_score", { ascending: false })
-      .limit(20);
+    let betsQuery = context.supabase.from("opportunities").select("id, title, problem, ice_score");
+    if (workspaceId) betsQuery = betsQuery.eq("workspace_id", workspaceId);
+    const { data, error } = await betsQuery.order("ice_score", { ascending: false }).limit(20);
     if (error) return [];
     return (
       (data ?? []) as Array<{
