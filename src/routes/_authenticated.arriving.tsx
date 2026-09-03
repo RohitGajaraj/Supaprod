@@ -59,6 +59,8 @@ import { DiscoverSurface } from "@/components/discover/DiscoverSurface";
 import { searchFlag } from "@/lib/search-flag";
 import { Surface } from "@/components/meridian/Surface";
 import { Action, NothingHere, PageHeading } from "@/components/meridian/surface-parts";
+import { useWorkspace } from "@/hooks/use-workspace";
+import { useStampTheLastLook } from "@/components/start/use-stamp-the-last-look";
 
 export type DiscoverTab = "signals" | "queue";
 
@@ -68,6 +70,21 @@ export type DiscoverTab = "signals" | "queue";
  *  imports the component. */
 function DiscoverRoute() {
   const { focus, capture } = Route.useSearch();
+  /*
+   * ── THE VISIT IS STAMPED HERE, AT THE MOUNT (P-69) ──────────────────────
+   *
+   * `brain_last_seen` had a reader (Start's "since you last looked") and no
+   * writer, so every workspace read "You have not looked yet" against a full
+   * record, forever. This is the writer, and it is at the ROUTE's mount rather
+   * than inside `DiscoverSurface`'s reads deliberately: a refetch, a prefetch
+   * and a retry are reads, and none of them is a person looking.
+   *
+   * ABOVE THE PROBE THROW, so the hook order cannot change between renders --
+   * a hook after a conditional throw is the rules-of-hooks defect, and the
+   * throw below is exactly such a condition.
+   */
+  const { activeWorkspaceId } = useWorkspace();
+  useStampTheLastLook(activeWorkspaceId);
   if (focus === "__probe_forced_error__") throw new Error("probe: forced render failure");
   return <DiscoverSurface focus={focus} capture={capture} />;
 }
