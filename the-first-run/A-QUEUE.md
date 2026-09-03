@@ -7492,6 +7492,24 @@ a hold clears its sentence); it spends no attempt; the Choice replaces the gate 
 run's "try again" stands down. A1 suite on the tip 14,074 / 0, tsc 0; PUBLISHED 03:13 IST 09-04; a fresh sentence in the probe follows propagation.
 
 
+
+**A1, 04:20 IST 09-04: the second probe run declined again, and the refusal did not fire.** Track
+`fa059cf4`, "Let a homeowner save a second delivery address for a holiday home", started 22:22 UTC
+on the served build. Sense carried the sentence (22:30, `carried-on-your-sentence`); Decide ran
+out of time once (22:40, `out-of-time`); at 22:40:40 the `critic` seat recorded *Do not add second
+delivery address for holiday homes* [declined] with the rationale *"There is zero observed
+evidence ... including no signals about holiday homes ... The absence of demand signals means this
+is a speculative convenience feature"*; four stations waived; the track is at Learn. Two reads of
+the code say why: (1) `registry.server.ts:5742-5747` computes `carried` as `last_hold ===
+"carried-on-your-sentence"`, and after the continuation `last_hold` was `out-of-time`, so the
+footing read false; the footing is a fact of the track (Sense called `sense.found_nothing` on it)
+and must not be read from a transient hold. (2) The rationale does contain an absence phrase ("no
+signals"), so the classifier would have fired had the footing held. **P-71c (A2, now, before P-72's
+second part):** the footing is durable: read it from the record (the `sense.found_nothing` step, or
+the Decide entry drive's `entry_hold`, or a `footing` column set when Sense carries and cleared
+only when a source is pointed), never from `last_hold`; a regression guard with this track's exact
+shape (carried, out-of-time, decline); and the classifier stays secondary to the footing. The two
+probe tracks stay as evidence.
 ### LIVE WALK, A1, 03:00 IST 09-04 · what the first change to reach Ship actually is
 
 PR #4 on `relay-homeowner-app`, merged 06:42 UTC 09-03: `src/checkout/AddressStep.css` +90 (rules
