@@ -85,6 +85,12 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     one after another; never more than three running per lane at once, because of the workload.
     The rebase and the push stay in one hand; forks commit before anyone touches the shared tree;
     rules 2, 13 and 14 apply to every push regardless of who wrote it.
+16. **Design with the skills, land it in Meridian** (founder, 2026-09-03 11:08 IST). Before any UI or
+    UX work, invoke the relevant design skills: `ui-ux-pro-max` (design, ui-styling, design-system),
+    `emil-design-eng`, `design-taste-frontend` (with `gpt-taste`, `stitch-design-taste`), and
+    `design` (Claude Design's canvas for mockups and flows). Take what they give and land it in
+    Meridian first as tokens and components; Meridian is the floor, beautifui.dev its source, and
+    rule 10 still routes any Meridian addition from A3 through A2.
 
 ### The bar a packet is verified against, in this order
 
