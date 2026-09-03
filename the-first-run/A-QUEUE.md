@@ -6534,7 +6534,7 @@ asks and its default line saying what silence does.
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-51 · Every gate card names its two slots, and the alias goes · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
+### P-51 · Every gate card names its two slots, and the alias goes · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed 9703ab229) · Moves: 2, 3
 
 **Why.** P-37 gave `CallGate` two named slots, `risk` (prose, second) and `declaredDefault` (mono,
 last), because one slot called `consequence` had carried both sentences and they landed in each
@@ -6556,7 +6556,53 @@ Meridian edits beyond removing the alias and its test branch. A test that no cal
       last, both as prose and mono.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
-**Report (A3 writes):** —
+**Report (A3 writes):** Pushed `9703ab229`. `git grep -ln "<CallGate"` found exactly two composers,
+not the three-plus surfaces your broader `consequence=` grep suggested — verified each hit before
+touching anything, per your own warning. `TrackConsent.tsx` had already migrated (`risk`/
+`declaredDefault`, no alias). The only real remaining caller was `_authenticated.approvals.tsx`'s
+one `CallGate`. Every other `consequence=` hit across 36 files (`AskGateCard`, the governance/
+knowledge/memory/observe panels, several admin routes) belongs to `Receipt` or `Settled`, unrelated
+components with their own same-named prop — confirmed by reading each one, not assumed from the
+grep. Full list: `AskGateCard.tsx`, `AskRunCard.tsx`, `DiscoverSurface.tsx`, `ApprovalsPanel.tsx`,
+`BoundaryControls.tsx`, `BudgetsPanel.tsx`, `ControlsPanel.tsx`, `EvalSuiteDetail.tsx`,
+`GuardrailsPanel.tsx`, `HouseRulesPanel.tsx`, `PromptsPanel.tsx`, `SupportSignalsPanel.tsx`,
+`TrustGraduations.tsx`, `BriefPanel.tsx`, `ContradictionAuditSection.tsx`, `DecisionDetail.tsx`,
+`DecisionsPanel.tsx`, `DesignMemoryPanel.tsx`, `DocsPanel.tsx`, `GraphNodeActions.tsx`,
+`SettlePanel.tsx`, `MemoryList.tsx`, `MemoryReviewQueue.tsx`, `DriftPanel.tsx`,
+`DriftSurfaceDetail.tsx`, `MembersCard.tsx`, `WhatShipped.tsx`, `TakeOver.tsx`, `TrackRun.tsx`, and
+`_authenticated.admin.people/pricing/workspaces.tsx`, `_authenticated.crew.tsx`,
+`_authenticated.plan.spec.$id.tsx`, `_authenticated.ship.tsx`, `_authenticated.start.tsx`,
+`_authenticated.threads.tsx`.
+
+**The actual fix.** The sentence `_authenticated.approvals.tsx` was passing as `consequence`
+("Approve · unblocks Build for this spec" / `still-holds-work.ts`'s own replacement) answers "what
+happens if you say yes" — that is `risk`, not `declaredDefault`, which answers "what happens if
+nobody answers". This queue's items carry no expiry (`still-holds-work.ts`'s own header: "none is
+past an expiry that would clear them"), so `declaredDefault` is left unset rather than invented.
+This was the live instance of the exact P-37 defect `CallGate`'s own header describes — the wrong
+sentence still landing in the DEFAULT slot on the served build, not merely a stale prop name.
+
+**`CallGate` itself:** `consequence` and its deprecated-alias fallback removed; `fallbackLine` is
+now just `declaredDefault ?? null`. `consequenceTitle` is kept — it is `TrackConsent`'s live
+hover-title prop for the `declaredDefault` sentence, not part of the deprecated alias, and renaming
+it is a separate call outside this packet's scope. The stale "THE ORDER IS THE DESIGN" header
+comment, which still described the order as "consequence BEFORE the facts" (the pre-P-37 order,
+contradicting the actual current render order), corrected alongside it rather than left to mislead
+the next reader.
+
+`the-gate-card-asks-once.test.ts`: the alias-specific assertion (the `consequence ??` fallback line)
+removed from its existing test; new test asserts no `consequence` prop on `CallGate` and no
+`consequence=` in either real caller.
+
+`git grep "consequence=" -- src`, minus `consequenceTitle` and this test file's own assertions: the
+36 files above, all `Receipt`/`Settled` call sites.
+
+tsc 0. `bun test` 13911 pass / 22 skip / 37 todo / 0 fail / 36846 expect() across 1002 files. 0
+`# Unhandled error between tests`. eslint 0 errors on touched files. Meridian ratchet 5/5.
+
+Not yet done: the live read (acceptance box 2) — no browser access this session; needs your walk of
+the approvals page and one Ask gate card.
+
 **Blockers (A3 writes):** —
 
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
