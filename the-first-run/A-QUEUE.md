@@ -6726,6 +6726,13 @@ not listed as settled.
       nothing settles.
 - [x] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
+**A1, 22:45 IST.** Suite on the tip 13,936 / 0 / 0, tsc 0; published 22:45. A3's diagnosis is the
+sharper one: the panel carries no dialog role by design, so the modal guard could never see it
+open; the key handler now asks the panel itself. The live read (the same sentence typed into the
+panel on the approvals page, with focus proven in the textbox first, and nothing settles) follows
+propagation. P-50's live read of the Ask card is still open: the panel's send did not fire from a
+scripted click at 22:40, and A1 will not type into it again without proving focus.
+
 **Report (A3 writes):** `81a7c87d2`. tsc 0, `bun test` full console suite on the tip **13,936 pass /
 0 fail / 0 error**, eslint 0 errors on touched files, Meridian ratchet 5/5.
 
