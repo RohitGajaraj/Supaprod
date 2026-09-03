@@ -4020,7 +4020,7 @@ on a freshly loaded Start eats the first pointer press; find it, because a perso
 
 ---
 
-### P-26 · Meridian: raw durations become tokens · Lane: **A2** · Status: READY (after P-03, P-02, P-04; last in A2's line) · Moves: 4
+### P-26 · Meridian: raw durations become tokens · Lane: **A2** · Status: CLAIMED (A2, 08:40 IST) · Moves: 4
 
 **Why.** R-20 §4: a raw duration is a fail. Measured 2026-09-03 00:03 across `src/components/meridian/*.tsx`:
 `duration-100` ×24, `duration-150` ×11, `duration-200` ×8, `duration-300` ×7, beside `--mrd-d-press`
