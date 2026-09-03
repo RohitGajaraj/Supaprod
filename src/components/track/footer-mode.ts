@@ -266,15 +266,23 @@ export function footerMode(input: {
      *     and exists (select 1 from agent_runs r where r.track_id=t.id
      *                 and r.status in ('running','queued','in_progress'));   -- 0
      */
+    /*
+     * P-43 (A-QUEUE.md): "Run it now" beside "Waiting on you." was two verbs
+     * for one state. `nothingIsComing` already splits this branch's LINE on
+     * exactly the distinction the button needs: a terminal hold has no open
+     * question, and the run control genuinely IS the way out (the comment
+     * just above already said so); `waiting-on-a-person` has a real, open
+     * gate, and the way out is answering IT, not a second control here
+     * claiming to be one. `canRun` now follows the same split the line
+     * already draws instead of being true across both.
+     */
+    const terminal = nothingIsComing(input.hold);
     return {
-      line: nothingIsComing(input.hold)
+      line: terminal
         ? "Stopped here. Nothing will pick it up again on its own."
         : "Waiting on you.",
       canStop: false,
-      // The way out of every reason in this set runs through a person, and on a
-      // terminal hold the run control IS the way out: `track-tick` has dropped
-      // the track from its selection, so nothing else will ever press it.
-      canRun: true,
+      canRun: terminal,
       leave: null,
     };
   }

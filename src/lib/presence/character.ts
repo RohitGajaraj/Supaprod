@@ -88,6 +88,16 @@ export interface PresenceInput {
   currentTool?: string | null;
   /** The reads themselves errored. Distinct from "no rows". */
   feedDead?: boolean;
+  /**
+   * A press THIS SCREEN has made and not yet had confirmed (P-43,
+   * A-QUEUE.md). Deliberately NOT folded into `walking`: the header's own
+   * law is "reads the record, not this tab's own press", and a press is not
+   * proof the work started. This exists only to stop the ready-to-press
+   * invitation below from being said a second time, out of turn, to someone
+   * who already pressed it -- the record catching up is not the same
+   * question as whether to draw the button's own words again.
+   */
+  pressedRun?: boolean;
 }
 
 /**
@@ -303,6 +313,11 @@ export function deriveCharacter(input: PresenceInput): Presence {
   // Any other hold: stopped for a reason the hold line already states. The
   // character defers to it rather than restating it in different words —
   // two sentences disagreeing about one stop is how surfaces drift.
+  //
+  // P-43 (A-QUEUE.md): the character's own voice here is scoped to A2's
+  // P-37 §4 hold-card redesign (A1, from the P-37 walk) -- this line is
+  // deliberately left as it was; only the out-of-turn press invitation
+  // below is this packet's to fix.
   if (hold) {
     return {
       state: "awake",
@@ -311,9 +326,20 @@ export function deriveCharacter(input: PresenceInput): Presence {
   }
 
   if (input.track.drivenAt === null) {
+    /*
+     * P-43: "I'm ready, press run" said AFTER the person already had --
+     * `walking` above reads the record, never this tab's own press (by
+     * design, the header's law), so there is a real window between a press
+     * and the record confirming it where this branch is still reachable.
+     * `pressedRun` does not claim the work is running (that would be the
+     * theatre the Iron Law refuses); it only stops inviting a press that
+     * already happened.
+     */
     return {
       state: "awake",
-      line: "I'm ready, press run and I'll walk this from the top.",
+      line: input.pressedRun
+        ? "Starting this up."
+        : "I'm ready, press run and I'll walk this from the top.",
     };
   }
 

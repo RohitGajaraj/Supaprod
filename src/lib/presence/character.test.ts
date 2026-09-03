@@ -59,3 +59,34 @@ describe("the first read is not a missing track", () => {
     expect(withFlag).toEqual(without);
   });
 });
+
+/**
+ * P-43 (A-QUEUE.md). "I'm ready, press run" said after the person already
+ * had -- `walking` reads the record, not this tab's own press, so there is a
+ * real window where the record has not caught up yet.
+ */
+describe("never invites a press that already happened", () => {
+  const track = { status: "open", holdReason: null, drivenAt: null };
+
+  it("invites the press when none has been made", () => {
+    const p = deriveCharacter({ ...base, track, pressedRun: false });
+    expect(p.line).toBe("I'm ready, press run and I'll walk this from the top.");
+  });
+
+  it("acknowledges rather than re-inviting, once one has", () => {
+    const p = deriveCharacter({ ...base, track, pressedRun: true });
+    expect(p.line).toBe("Starting this up.");
+    expect(p.line).not.toContain("press run");
+  });
+
+  it("does not claim the work is running -- that would be a state the record has not proven", () => {
+    const p = deriveCharacter({ ...base, track, pressedRun: true });
+    expect(p.state).toBe("awake");
+  });
+
+  it("absent `pressedRun` behaves exactly as before", () => {
+    expect(deriveCharacter({ ...base, track }).line).toBe(
+      "I'm ready, press run and I'll walk this from the top.",
+    );
+  });
+});

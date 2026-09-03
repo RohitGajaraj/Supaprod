@@ -159,22 +159,36 @@ describe("whether anything is still coming for a stopped run", () => {
   const needsMe = (hold: string | null) =>
     footerMode({ status: "open", tone: "you", hold, walking: false, crewLive: false });
 
-  it("says nothing is coming, on every hold the sweep refuses", () => {
+  it("says nothing is coming, on every hold the sweep refuses -- and offers the restart, since it is the way out", () => {
     // The four in TERMINAL_HOLDS, named rather than looped over the constant,
     // so adding a fifth member does not silently pass this on four of five.
     for (const hold of ["given-up", "station-cannot-finish", "tools-refused", "going-in-circles"]) {
-      expect(needsMe(hold).line).toBe("Stopped here. Nothing will pick it up again on its own.");
+      const m = needsMe(hold);
+      expect(m.line).toBe("Stopped here. Nothing will pick it up again on its own.");
+      // P-43 (A-QUEUE.md): "Run it now" IS the way out on a terminal hold --
+      // track-tick has dropped the row from its own selection, so nothing
+      // else will ever press it again.
+      expect(m.canRun).toBe(true);
     }
   });
 
-  it("keeps 'waiting on you' for the one hold where a question really is open", () => {
+  it("keeps 'waiting on you' for the one hold where a question really is open -- and offers no second control for it", () => {
     /*
      * `waiting-on-a-person` is a boundary call with an answer pending, and it
      * is 1 of the 37 rows reaching this branch. The other 36 have nothing for
      * the person to answer, which is the whole reason for the split.
+     *
+     * P-43 (A-QUEUE.md): "Waiting on you." beside a "Run it now" button was
+     * two verbs for one state -- the real way out of an OPEN gate is
+     * answering it, not a footer control that only ever restarts a dead
+     * track. `canRun` follows the same terminal/non-terminal split the line
+     * already drew, so this branch offers no button at all.
      */
-    expect(needsMe("waiting-on-a-person").line).toBe("Waiting on you.");
-    expect(needsMe("corrections-spent").line).toBe("Waiting on you.");
+    for (const hold of ["waiting-on-a-person", "corrections-spent"]) {
+      const m = needsMe(hold);
+      expect(m.line).toBe("Waiting on you.");
+      expect(m.canRun).toBe(false);
+    }
   });
 
   it("leaves the not-on-you branch alone, because no terminal hold reaches it", () => {
@@ -196,6 +210,11 @@ describe("whether anything is still coming for a stopped run", () => {
      */
     expect(needsMe(null).line).toBe("Waiting on you.");
     expect(needsMe("a-reason-from-a-later-deploy").line).toBe("Waiting on you.");
+    // P-43 (A-QUEUE.md): the softer read also means no restart button offered
+    // in its place -- guessing "terminal" for an unknown reason would be the
+    // wrong direction the header above already refuses.
+    expect(needsMe(null).canRun).toBe(false);
+    expect(needsMe("a-reason-from-a-later-deploy").canRun).toBe(false);
   });
 
   it("still offers no Stop and no leave line either way", () => {

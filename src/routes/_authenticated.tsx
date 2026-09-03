@@ -9,6 +9,7 @@ import { FlowModeProvider } from "@/hooks/use-flow-mode";
 import { needsOnboarding } from "@/lib/onboarding-gate";
 import { WORKSPACE_STORAGE_KEY } from "@/hooks/use-workspace";
 import { listRunsForStart } from "@/lib/spine/track.functions";
+import { measuredQueryFn } from "@/routes/_authenticated.start";
 import { useApprovalPush } from "@/hooks/use-approval-push";
 import { BackendHealthBanner } from "@/components/system/BackendHealthBanner";
 import { EverythingIsPausedBanner } from "@/components/system/EverythingIsPausedBanner";
@@ -105,7 +106,12 @@ export const Route = createFileRoute("/_authenticated")({
       const workspaceId = localStorage.getItem(WORKSPACE_STORAGE_KEY);
       void context.queryClient.prefetchQuery({
         queryKey: ["start-runs", workspaceId ?? null],
-        queryFn: () => listRunsForStart({ data: { workspaceId: workspaceId ?? null } }),
+        // Folded in from A1's P-32 pass-4 measurement (A-QUEUE.md): this
+        // path bypassed measuredQueryFn, so the one reader P-32 is about was
+        // the one reader with no mark.
+        queryFn: measuredQueryFn("listRunsForStart", () =>
+          listRunsForStart({ data: { workspaceId: workspaceId ?? null } }),
+        ),
       });
     }
     // First-run gate: accounts with profiles.onboarded === false land on

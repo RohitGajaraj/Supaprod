@@ -219,6 +219,14 @@ function StartLanding() {
     ),
     staleTime: 60_000,
   });
+  /*
+   * P-43 (A-QUEUE.md): a workspace with ranked bets shows them regardless of
+   * how many runs it has; a workspace with none shows the static examples
+   * only once `runs` has genuinely settled empty -- never while it is still
+   * reading (that read is what `firstRun` already gates on above), and never
+   * to a returning person whose workspace simply has no bets yet.
+   */
+  const showExampleJobs = (bets.data && bets.data.length > 0) || firstRun;
 
   /*
    * WHICH PRODUCT A SENTENCE MEANS (P-16b, A-QUEUE.md, from R-36 and the
@@ -424,25 +432,39 @@ function StartLanding() {
        * example is a sentence we wrote, so it lands in the composer with the
        * cursor in it and the person edits it into their own product's words --
        * pressing it must never file a run about a checkout they do not have.
+       *
+       * P-43 (A-QUEUE.md): GATED ON THE SAME SETTLING `firstRun` ALREADY
+       * WAITS FOR. `ExampleJobs`'s own header says its static examples exist
+       * for an EMPTY WORKSPACE specifically -- "the examples keep doing the
+       * job they were built for" -- but the call here rendered unconditionally,
+       * so "No runs yet." could show (a) while `runs` was still loading,
+       * directly contradicting `YourRuns`'s own "Reading your runs." below
+       * it, one screen saying two things about whether the read has
+       * answered, and (b) to a RETURNING person with real runs and no ranked
+       * bets yet, which is simply false of them. Bets, once they exist, are
+       * never gated on `firstRun` -- a workspace with ranked work shows it
+       * regardless of how many runs it has.
        */}
-      <ExampleJobs
-        onStart={(job) => go.mutate(job)}
-        onUse={(job) => {
-          setSentence(job.sentence);
-          // Focus AND select: the sentence is a draft to be rewritten, not a
-          // value to be accepted, so the first keystroke should replace it
-          // rather than append to it. `select()` on an input the person did
-          // not focus themselves is only right because they just pressed the
-          // control that filled it.
-          const field = fieldRef.current;
-          if (field) {
-            field.focus();
-            field.select();
-          }
-        }}
-        busy={go.isPending}
-        bets={bets.data ?? []}
-      />
+      {showExampleJobs ? (
+        <ExampleJobs
+          onStart={(job) => go.mutate(job)}
+          onUse={(job) => {
+            // Focus AND select: the sentence is a draft to be rewritten, not a
+            // value to be accepted, so the first keystroke should replace it
+            // rather than append to it. `select()` on an input the person did
+            // not focus themselves is only right because they just pressed the
+            // control that filled it.
+            setSentence(job.sentence);
+            const field = fieldRef.current;
+            if (field) {
+              field.focus();
+              field.select();
+            }
+          }}
+          busy={go.isPending}
+          bets={bets.data ?? []}
+        />
+      ) : null}
 
       <YourRuns />
 

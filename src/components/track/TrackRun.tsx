@@ -605,6 +605,21 @@ export function TrackRunLeft({
     });
   }, [walkingHere, run.isPending, stopWalk.isPending, onDriveState]);
 
+  /*
+   * P-43 (A-QUEUE.md): "I'm ready, press run" said to someone who already
+   * had. `run.isPending` alone cannot carry this past the moment itself --
+   * it settles back to false once the server call returns, which can land
+   * BEFORE the polled `drivenAt`/`crewLive` reads catch up, and the
+   * character falls back to inviting a press that already happened. Set
+   * once, on the first sign a press was made, and never cleared for this
+   * mount: once true it stays true regardless of what the record does
+   * later, because the fact "a press was made" does not un-happen.
+   */
+  const [pressedRun, setPressedRun] = React.useState(false);
+  React.useEffect(() => {
+    if (run.isPending) setPressedRun(true);
+  }, [run.isPending]);
+
   /* A run a person stopped is drawn by its own line above, not as a hold: see
      the block there for why `paused` needs the sentinel to be read honestly. */
   const personStopped = track ? stoppedByYou(track.holdReason, track.holdBecause) : false;
@@ -799,6 +814,7 @@ export function TrackRunLeft({
             walking: run.isPending || crewLive,
             continuing,
             feedDead: trackQ.isError,
+            pressedRun,
             /*
              * ── THE CHARACTER NAMES THE TOOL NOW (2026-09-01) ──────────────
              *
