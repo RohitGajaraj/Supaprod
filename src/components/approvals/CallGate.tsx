@@ -103,48 +103,53 @@ export function CallGate({
       {...anchor}
       className="rounded-mrd-pane border border-mrd-line bg-mrd-sheet px-mrd-6 py-mrd-6 shadow-mrd-card"
     >
-      <div className="flex flex-wrap items-center justify-between gap-mrd-4">
-        <span className="flex min-w-0 items-center gap-1.5">
-          <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-mrd-you" />
-          <span className="shrink-0 text-mrd-tiny font-medium text-mrd-you">Waiting on you</span>
-          {subject ? (
-            <span className="min-w-0 truncate text-mrd-tiny text-mrd-mute">{subject}</span>
-          ) : null}
-        </span>
+      {/*
+       * ── THE ORDER IS THE DESIGN (P-37) ────────────────────────────────
+       *
+       * This card opened with a "Waiting on you" chip and a subject, then the
+       * question, then the facts, then the consequence. Four regions before the
+       * thing being asked, and the first of them was the defect A1 named as
+       * shape 2: *"Waiting on you." beside a "Run it now" button, two verbs for
+       * one state.* **A card that is asking IS the waiting**, and the line below
+       * says since when, so the chip was a third statement of one fact.
+       *
+       * The order now, and it is fixed rather than passed:
+       *
+       *   question       what is being asked, alone
+       *   consequence    what answering yes causes. BEFORE the facts, because
+       *                  the consequence is what changes the answer; the facts
+       *                  are what justify it once you know what is at stake.
+       *   facts          the reason, in the reason's register
+       *   waiting since  a fact about a clock, mono, LAST, because a clock
+       *                  above the answers makes a question read as a countdown
+       *   children       the controls
+       *
+       * The subject moves into the question's own line as quiet provenance,
+       * which is the same move `Ask` makes with the asking seat: who or what
+       * this is about qualifies the sentence and does not head it.
+       */}
+      <h2 className="text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">{question}</h2>
+      {subject ? <p className="mt-mrd-1 text-mrd-small text-mrd-mute">{subject}</p> : null}
 
-        {/*
-         * Tabular figures and mono, so the number reads as a measurement rather
-         * than as a word, and so it does not jitter when it ticks over. The
-         * exact instant rides along as a title for anyone who needs it; the
-         * phrase is what changes behaviour.
-         */}
-        {since !== null ? (
-          <span
-            title={new Date(since).toLocaleString()}
-            className={`font-mrd-mono shrink-0 text-mrd-small tabular-nums ${
-              overdue ? "font-semibold text-mrd-you" : "font-medium text-mrd-mute"
-            }`}
-          >
-            Stopped for {stoppedFor(since, now)}
-          </span>
-        ) : (
-          <span className="shrink-0 text-mrd-small text-mrd-faint">
-            How long this has been waiting is not known.
-          </span>
-        )}
-      </div>
+      {/* THE CONSEQUENCE LEADS THE EVIDENCE. It is one line and it is prose,
+          never a badge: a category asks the reader to know the taxonomy, a
+          sentence tells them what happens. */}
+      {consequence ? (
+        <p
+          title={consequenceTitle}
+          className="mt-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-ink"
+        >
+          {consequence}
+        </p>
+      ) : null}
 
-      <h2 className="mt-mrd-4 text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">
-        {question}
-      </h2>
-
-      {lines.length > 0 || consequence ? (
+      {lines.length > 0 ? (
         /*
          * A recess, not a second card. The standard caps a region at one
          * bordered container; the evidence reads as part of the question by
          * sitting BELOW the ground rather than on top of it.
          */
-        <div className="mt-mrd-5 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
+        <div className="mt-mrd-4 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
           <ul className="flex flex-col gap-mrd-3">
             {lines.map((line, i) => (
               <li key={i} className="leading-mrd-prose text-mrd-prose text-mrd-body">
@@ -165,17 +170,34 @@ export function CallGate({
               {hiddenLineCount} further {hiddenLineCount === 1 ? "line" : "lines"} not shown here.
             </p>
           ) : null}
-
-          {consequence ? (
-            <p
-              title={consequenceTitle}
-              className="mt-mrd-4 border-t border-mrd-line-soft pt-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-body"
-            >
-              {consequence}
-            </p>
-          ) : null}
         </div>
       ) : null}
+
+      {/*
+       * WAITING SINCE, MONO AND LAST. Tabular figures so the number reads as a
+       * measurement and does not jitter as it ticks. The exact instant rides
+       * along as a title for anyone who needs it; the phrase is what changes
+       * behaviour.
+       *
+       * It no longer turns accent when overdue. An overdue gate was drawing a
+       * second alarm on a card whose whole existence is the alarm, and the
+       * weight change alone carries "this has been a while" without adding a
+       * colour that means "act now" to a person who is already here.
+       */}
+      {since !== null ? (
+        <p
+          title={new Date(since).toLocaleString()}
+          className={`font-mrd-mono mt-mrd-4 text-mrd-data tabular-nums text-mrd-mute ${
+            overdue ? "font-semibold" : ""
+          }`}
+        >
+          Waiting on you for {stoppedFor(since, now)}.
+        </p>
+      ) : (
+        <p className="mt-mrd-4 text-mrd-data text-mrd-faint">
+          How long this has been waiting is not known.
+        </p>
+      )}
 
       {children ? <div className="mt-mrd-5 flex flex-wrap gap-mrd-3">{children}</div> : null}
     </section>
