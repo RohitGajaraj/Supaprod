@@ -4934,7 +4934,7 @@ applied by A2 through the Lovable MCP under rule 12, ledger row confirmed by A1.
 **Blockers (A2 writes):** —
 
 
-### P-35 · No reader selects a vector it will never render · Lane: **A3** · Status: READY · Moves: 2, 3
+### P-35 · No reader selects a vector it will never render · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** P-32 found `listThemes` selecting `*` on `themes`, which carries a pgvector `embedding`:
 2.6 MB of a 2.75 MB response for 138 rows, rendered nowhere. `listSignals` has the same shape on
