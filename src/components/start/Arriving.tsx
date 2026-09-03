@@ -121,8 +121,15 @@ export function Arriving() {
 
   const fCoverage = useServerFn(getSenseCoverage);
   const coverage = useQuery({
-    queryKey: ["arriving-coverage", activeProductId ?? null],
-    queryFn: () => fCoverage({ data: { productId: activeProductId ?? null } }),
+    /* The workspace is part of the question, so it is part of the key AND part
+       of the call. Keyed without it, a switch served the previous workspace's
+       findings under the new one's name; called without it, the first fetch
+       after the switch answered with every workspace's signals anyway. */
+    queryKey: ["arriving-coverage", activeWorkspaceId ?? null, activeProductId ?? null],
+    queryFn: () =>
+      fCoverage({
+        data: { productId: activeProductId ?? null, workspaceId: activeWorkspaceId ?? null },
+      }),
     staleTime: 5 * 60_000,
   });
 

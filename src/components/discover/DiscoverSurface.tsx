@@ -797,8 +797,13 @@ export function DiscoverSurface({
     queryFn: () => withTimeout(fThemes({ data: { productId: activeProductId } })),
   });
   const coverage = useQuery({
-    queryKey: ["sense-coverage", activeProductId],
-    queryFn: () => fCoverage({ data: { productId: activeProductId } }),
+    /* The workspace belongs in the key and in the call. Without it a switch
+       served the previous workspace's coverage under the new one's name, and
+       the first fetch after the switch answered across every workspace anyway
+       (P-33, the same shape as Start's). */
+    queryKey: ["sense-coverage", activeWorkspaceId ?? null, activeProductId],
+    queryFn: () =>
+      fCoverage({ data: { productId: activeProductId, workspaceId: activeWorkspaceId ?? null } }),
   });
 
   /** This station's boundary. RLS scopes the read to a workspace the caller

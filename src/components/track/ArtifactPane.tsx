@@ -2593,6 +2593,7 @@ function StationPanel({
   view,
   decisions,
   everDriven,
+  isRunning = false,
   hold,
   holdReason,
   origin = null,
@@ -2606,6 +2607,12 @@ function StationPanel({
   /** Every decision this track filed, for the by-key learning join. */
   decisions?: ArtifactView[];
   everDriven: boolean;
+  /**
+   * A seat is working this track RIGHT NOW. Read from `agent_runs`, the same
+   * fact the left pane draws its "working" line from, so the two panes cannot
+   * disagree about whether anything is happening.
+   */
+  isRunning?: boolean;
   hold: string | null;
   /**
    * The RAW `last_hold`, never the prose. `panelSaysItFiledNothing` reads it to
@@ -2697,6 +2704,38 @@ function StationPanel({
     // The person's own words for why this station is off the route. Never an
     // empty pane (SPEC-ARTIFACTS §2).
     return <RecordSpeaks>Waived. {stop.waivedReason ?? "No reason was recorded."}</RecordSpeaks>;
+  }
+
+  /*
+   * ── "HAS NOT RUN YET" WHILE IT IS RUNNING (P-33, 2026-09-03) ────────────
+   *
+   * `everDriven` is `track.drivenAt !== null`, and `driven_at` is stamped on
+   * the driver's EXIT paths. So for the whole first leg of the first station --
+   * about fifty seconds, the longest a person ever stares at this screen -- it
+   * is false while a seat is genuinely working. This pane said "Discover has
+   * not run yet" at the same moment the left pane said the Scout was working
+   * and the footer said "Working on its own". Three regions, one screen, and
+   * the one in the middle was wrong.
+   *
+   * The fix is NOT to stamp `driven_at` on entry. That column also orders the
+   * sweep, gates the resume, and bounds the external-evidence window, and
+   * changing what it means to serve a sentence would move all three. The pane
+   * already RECEIVED the answer: `isRunning` is threaded into `ArtifactPane`
+   * and was spent entirely on `refetchInterval`, never on a word. It is now
+   * spent on the word too.
+   *
+   * ORDER MATTERS. Running is checked first, because a station being worked
+   * right now is a stronger and more useful fact than never having finished.
+   * "not-reached" keeps the old sentence whatever is running, because a station
+   * the work has not arrived at genuinely has not run.
+   */
+  if (stop.state === "here" && !everDriven && isRunning) {
+    const purpose = PURPOSE[stop.station];
+    return (
+      <RecordSpeaks>
+        {`${stop.label} is running now, and has not filed anything yet.${purpose ? ` ${purpose}` : ""}`}
+      </RecordSpeaks>
+    );
   }
 
   const hasNotRun = stop.state === "not-reached" || (stop.state === "here" && !everDriven);
@@ -3292,6 +3331,20 @@ export function ArtifactPane({
   const view = bodies.data?.stops.find((s) => s.station === shown.station);
 
   /*
+   * ── IS THERE ANYTHING BESIDE THIS TO PRESS? (P-33, 2026-09-03) ──────────
+   *
+   * This Region's `sub` tells a person to "press an artifact in the record
+   * beside this", and the record beside it says "Nothing is recorded against
+   * this work yet" on a run that has filed nothing. That is the exact failure
+   * the comment three lines above the `sub` forbids in its own words: "A `sub`
+   * naming a control that is not on the screen is worse than no `sub` at all."
+   * It was written about the station tabs moving, and then went on being true
+   * about a case nobody checked -- the empty one, on a brand-new run, which is
+   * the first thing a person ever sees on this screen.
+   */
+  const recordHasSomethingToPress = chain.stops.some((st) => st.members.length > 0);
+
+  /*
    * TAKE THIS — the one control RANKED-BACKLOG authorises on this Region, and
    * it is scoped to the tab shown rather than to the whole run. The reasoning,
    * the format and why it is a file rather than a clipboard copy are all in
@@ -3373,9 +3426,14 @@ export function ArtifactPane({
        * control that is not on the screen is worse than no `sub` at all.
        */
       sub={
-        opened
-          ? `Showing one thing this run made. Press any artifact in the record beside this to open it.`
-          : `Showing ${shown.label}. Press an artifact in the record beside this to open it.`
+        !recordHasSomethingToPress
+          ? // Nothing has been filed anywhere on this run, so there is no row
+            // beside this to press. What this pane will do when there is one is
+            // still worth saying: it is the answer to "what is this region for".
+            `Nothing has been filed yet. Whatever the run makes will open here.`
+          : opened
+            ? `Showing one thing this run made. Press any artifact in the record beside this to open it.`
+            : `Showing ${shown.label}. Press an artifact in the record beside this to open it.`
       }
       act="Take this"
       onAct={take}
@@ -3481,6 +3539,7 @@ export function ArtifactPane({
              */
             decisions={decisionsForGrading(bodies.data?.stops)}
             everDriven={track.drivenAt !== null}
+            isRunning={isRunning}
             hold={track.hold}
             holdReason={track.holdReason ?? null}
             now={now}

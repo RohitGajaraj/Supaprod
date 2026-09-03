@@ -27,7 +27,16 @@ import { getBillingState } from "@/lib/billing.functions";
 import { FREE_MEMORY_RETENTION_DAYS } from "@/lib/entitlements";
 import { Figure } from "@/components/meridian/surface-parts";
 
-export function RetentionLine() {
+export function RetentionLine({
+  /**
+   * Nothing is on this workspace's record. Handed in rather than read here,
+   * because Outcomes has already computed exactly this to decide its own zero
+   * state and two answers to one question is how two regions come to disagree.
+   */
+  recordIsEmpty = false,
+}: {
+  recordIsEmpty?: boolean;
+} = {}) {
   const f = useServerFn(getBillingState);
   const billing = useQuery({
     queryKey: ["billing-state"],
@@ -36,6 +45,20 @@ export function RetentionLine() {
   });
 
   if ((billing.data?.planTier ?? null) !== "free") return null;
+
+  /*
+   * ── A RECORD THAT DOES NOT EXIST CANNOT EXPIRE (P-33, 2026-09-03) ───────
+   *
+   * This line is mounted unconditionally on Outcomes, and it was the one region
+   * the page's zero-state collapse did not stand down. So on a workspace with
+   * nothing on the record it sat directly under "Nothing is on the record yet."
+   * and warned the reader that the record they do not have fades in thirty
+   * days. Two sentences, one screen, and together they are nonsense.
+   *
+   * Retention is a real fact and worth saying the moment there is something to
+   * lose. Said over nothing, it is a threat about an empty box.
+   */
+  if (recordIsEmpty) return null;
 
   return (
     /* `data-mrd` is what gives the link below the system's neutral focus ring

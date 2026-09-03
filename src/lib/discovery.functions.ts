@@ -609,9 +609,18 @@ export const getThemePromotionCounts = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<{ forming: number; crossed: number } | null> => {
     if (!data.workspaceId) return null;
     const { supabase } = context;
+    /*
+     * ── THE BAR WAS THIS WORKSPACE'S; THE THEMES WERE NOT (P-33) ──────────
+     * `workspaceId` arrived here and was spent ONLY on the promotion-bar
+     * lookup below, while the themes it grades were read across every
+     * workspace RLS allows. So the Arriving strip counted another workspace's
+     * clusters and graded them against this one's bar. Fourth instance of the
+     * defect fixed on Start in 0e1b964a6.
+     */
     let themesQuery = supabase
       .from("themes")
       .select("id,title,frequency,severity,confidence,status")
+      .eq("workspace_id", data.workspaceId)
       .order("created_at", { ascending: false })
       .limit(300);
     if (data.productId)
@@ -1263,7 +1272,12 @@ export async function attachThemeToOpportunityCore(
 export const getSenseCoverage = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
-    z.object({ productId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+    z
+      .object({
+        productId: z.string().uuid().nullable().optional(),
+        workspaceId: z.string().uuid().nullable().optional(),
+      })
+      .parse(i ?? {}),
   )
   .handler(async ({ context, data }) => {
     const { supabase } = context;
@@ -1271,12 +1285,28 @@ export const getSenseCoverage = createServerFn({ method: "GET" })
     const windowMs = 7 * 86_400_000;
     const since = new Date(now - 2 * windowMs).toISOString();
 
+    /*
+     * ── THESE ARE THIS WORKSPACE'S FINDINGS (P-33, 2026-09-03) ────────────
+     *
+     * This read took a product and never a workspace, so it counted every
+     * signal RLS would show, which is every workspace the person belongs to.
+     * A1 walked a BRAND-NEW EMPTY workspace on the 13:43 publish and the
+     * Arriving strip read "15 findings this week from 2 sources - 138 clusters
+     * forming". Every one of those belonged to somewhere else.
+     *
+     * Fifth instance of the shape fixed on Start in 0e1b964a6. RLS answers
+     * "may they see this" and has never answered "whose desk is this".
+     *
+     * Unresolved stays unfiltered, as everywhere else: an id we cannot name
+     * must not become an empty desk, because an empty desk is itself a claim.
+     */
     let q = supabase
       .from("signals")
       .select("source,source_kind,created_at,theme_id")
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .limit(2000);
+    if (data.workspaceId) q = q.eq("workspace_id", data.workspaceId);
     if (data.productId) q = q.or(`project_id.eq.${data.productId},project_id.is.null`);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);

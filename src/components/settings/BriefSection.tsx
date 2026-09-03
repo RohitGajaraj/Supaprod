@@ -307,7 +307,26 @@ export function BriefSection() {
                 disabled={!dirty || save.isPending || profile.isLoading}
                 onClick={() => save.mutate()}
               >
-                {save.isPending ? "Saving" : dirty ? "Save the brief" : "Saved"}
+                {/*
+                  "SAVED" IS A RECEIPT, AND A RECEIPT NEEDS A TRANSACTION (P-33).
+                  `dirty` is false on arrival, so this button's RESTING label
+                  asserted a save that had never happened, on the one pane whose
+                  own heading directly above it reads "Nothing set. Every mission
+                  currently starts with no standing instruction." The screen
+                  contradicted itself in two adjacent elements.
+
+                  The resting label is now the verb, greyed by `disabled`,
+                  which is what an untouched form looks like everywhere else.
+                  "Saved" is kept for the case it was written for: a save that
+                  actually happened in this session.
+                */}
+                {save.isPending
+                  ? "Saving"
+                  : dirty
+                    ? "Save the brief"
+                    : save.isSuccess
+                      ? "Saved"
+                      : "Save the brief"}
               </Action>
             </Actions>
           </div>

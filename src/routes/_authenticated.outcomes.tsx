@@ -791,7 +791,8 @@ export function recordHeadline(
     // needs BOTH halves read. With one of them still null the pile is not known
     // to be empty, only unmeasured, and the page admits the read instead of
     // asserting an empty workspace it never confirmed.
-    if (calls === null || learnings === null) return loading ? "Reading the record." : "The record did not load.";
+    if (calls === null || learnings === null)
+      return loading ? "Reading the record." : "The record did not load.";
     return "Nothing is on the record yet.";
   }
   const verb = clauses.length === 1 && clauses[0].startsWith("one ") ? "is" : "are";
@@ -1622,10 +1623,7 @@ function MemoryPage() {
          * every fact they did, one level down (`level={2}`), so this is
          * additive rather than a rewrite of what the page reports.
          */}
-        <PageHeading
-          title="Outcomes"
-          sub="Every decision, what it expected, and what happened."
-        />
+        <PageHeading title="Outcomes" sub="Every decision, what it expected, and what happened." />
         <RecordHead title={headline} sub={sub} level={2} />
 
         {/* A NAKED "Try again" IS NOT AN ERROR STATE. This rendered one ghost
@@ -1659,7 +1657,7 @@ function MemoryPage() {
           </ReadFailedLine>
         ) : null}
 
-        <RetentionLine />
+        <RetentionLine recordIsEmpty={emptyRecord} />
 
         {/* THE RECESS OPENS ITSELF NOW. This was a hand-rolled twelve-line inline
           button reset wrapped around the Record, which is the precise

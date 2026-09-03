@@ -257,10 +257,33 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
          * enshrine it. It is the FIRST item in the request above, and if S0
          * rules it stays, this copy has to say so.
          */}
+        {/*
+          A ZERO IS NOT A RECEIPT (P-33, 2026-09-03). `getValueReceipts` answers
+          a workspace that has done nothing with an object of two zeros, and an
+          object of zeros is TRUTHY. So the fallback
+          sentence written for exactly this case was unreachable, and a
+          first-time reader was told their export includes the zero decisions
+          closed and zero pull requests shipped here: two counts offered as
+          evidence of value by a product that has not done anything for them yet.
+          The numbers appear the moment either one is real.
+
+          THIS COMMENT IS IN THE JSX FORM ON PURPOSE. A bare block comment
+          placed just inside the sub prop breaks this surface's own guard: its
+          stripper matches an opening brace, then a comment, then a closing
+          brace, non-greedily. An opening brace that is not immediately closed
+          lets that match run to a brace far below, silently deleting the whole
+          region the assertions read. Caught by the suite; written down here so
+          the next person does not have to re-find it.
+
+          And the reason this paragraph avoids naming those characters: a
+          comment that spells the JSX comment terminator ENDS ITSELF at that
+          point, and everything after it becomes markup. That is a second bug
+          this same edit shipped and the typechecker caught.
+        */}
         <Line
           label="Your work and its record, as one JSON file"
           sub={
-            closed ? (
+            closed && (closed.decisionsClosed > 0 || closed.prsShipped > 0) ? (
               <>
                 Every product, signal, opportunity, decision, spec, task, outcome and lesson,
                 including the <Num>{closed.decisionsClosed}</Num> decisions closed and{" "}

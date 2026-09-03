@@ -166,3 +166,69 @@ describe("the sources offered are this workspace's sources", () => {
     );
   });
 });
+
+/**
+ * ── AND TWO MORE, FOUND BY WALKING THE EMPTY WORKSPACE (A1, 13:43 IST) ────
+ *
+ * After Start, `getStandingRecord` and `NothingToRead` were fixed, A1 walked a
+ * brand-new empty workspace on the published build and the Arriving strip read
+ *
+ *   "15 findings this week from 2 sources - 138 clusters forming"
+ *
+ * Every one of those belonged to another workspace. Two more readers of the
+ * same defect, which makes six in total:
+ *
+ *   `getSenseCoverage`          took a productId and NEVER a workspaceId, and
+ *                               read `signals` across everything RLS allowed.
+ *   `getThemePromotionCounts`   took a workspaceId and spent it ONLY on the
+ *                               promotion-bar lookup, while the themes it
+ *                               grades were read unscoped. So it counted
+ *                               another workspace's clusters and graded them
+ *                               against this one's bar.
+ *
+ * The belief behind all six is written down at DiscoverSurface.tsx:804: "RLS
+ * scopes the read to a workspace". It does not. It scopes to every workspace
+ * the person BELONGS TO, which is the right answer to "may they see this" and
+ * has never been an answer to "whose desk is this".
+ */
+const ARRIVING = strip(readFileSync("src/components/start/Arriving.tsx", "utf8"));
+const DISCOVER_UI = strip(readFileSync("src/components/discover/DiscoverSurface.tsx", "utf8"));
+
+const COVERAGE_FN = DISCOVERY.slice(
+  DISCOVERY.indexOf("export const getSenseCoverage"),
+  DISCOVERY.indexOf("export const", DISCOVERY.indexOf("export const getSenseCoverage") + 20),
+);
+const PROMOTION_FN = DISCOVERY.slice(
+  DISCOVERY.indexOf("export const getThemePromotionCounts"),
+  DISCOVERY.indexOf("export const", DISCOVERY.indexOf("export const getThemePromotionCounts") + 20),
+);
+
+describe("what is arriving is what is arriving HERE", () => {
+  it("getSenseCoverage takes a workspace and filters the signals by it", () => {
+    const flat = COVERAGE_FN.replace(/\s+/g, " ");
+    expect(flat).toContain("workspaceId: z.string().uuid().nullable().optional()");
+    expect(flat).toContain('if (data.workspaceId) q = q.eq("workspace_id", data.workspaceId)');
+  });
+
+  it("getThemePromotionCounts grades this workspace's own themes", () => {
+    // It always had the id. It spent it only on the bar.
+    expect(PROMOTION_FN.replace(/\s+/g, " ")).toContain('.eq("workspace_id", data.workspaceId)');
+  });
+
+  it("both Arriving reads carry the workspace in the key and in the call", () => {
+    const flat = ARRIVING.replace(/\s+/g, " ");
+    expect(flat).toContain(
+      '["arriving-coverage", activeWorkspaceId ?? null, activeProductId ?? null]',
+    );
+    expect(flat).toContain("workspaceId: activeWorkspaceId ?? null");
+    expect(flat).toContain(
+      '["arriving-promotion-counts", activeWorkspaceId ?? null, activeProductId ?? null]',
+    );
+  });
+
+  it("Discover's own coverage read is scoped the same way", () => {
+    const flat = DISCOVER_UI.replace(/\s+/g, " ");
+    expect(flat).toContain('["sense-coverage", activeWorkspaceId ?? null, activeProductId]');
+    expect(flat).toContain("workspaceId: activeWorkspaceId ?? null");
+  });
+});

@@ -603,7 +603,15 @@ export function NotificationsSection() {
 
       <Actions>
         <Action variant="primary" disabled={!dirty || save.isPending} onClick={onSave}>
-          {save.isPending ? "Saving" : dirty ? "Save" : "Saved"}
+          {/*
+            Same resting-label defect as the brief pane, and here it contradicted
+            an honest disclosure this file went out of its way to write: the
+            region's own sub says "Nobody has changed any of these, so what you
+            see below is what we ship rather than anything you set", above a
+            button claiming the settings were saved. No
+            `user_notification_preferences` row exists, so nothing ever was.
+          */}
+          {save.isPending ? "Saving" : dirty ? "Save" : save.isSuccess ? "Saved" : "Save"}
         </Action>
       </Actions>
 
