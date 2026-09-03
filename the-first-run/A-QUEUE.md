@@ -6893,6 +6893,58 @@ the report. A1 reads the next brief-path Define pass on a live track and finds o
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads.
 
+
+### P-58 · The Worker is warm when a person arrives · Lane: **A3** (after P-53) · Status: READY · Moves: 3
+
+**Why.** Hosting finding, measured again 00:12 IST 09-04: the root answered in 2.3 s and a missing
+route in 3.9 s after ten minutes idle; warm, the same reads are under 400 ms. The first thing a
+visitor meets on 23 September is the slowest read the product ever makes. There is no `/health`
+route (404).
+
+**Scope.** (1) A `/health` route on the Worker that touches no database and answers `{ ok, sha }`
+in under 50 ms warm. (2) A pg_cron job in the day's `202609xx` series, every 4 minutes, calling
+it through pg_net with the same timeout pattern as migration `20260909050000` (cron jobs on
+supaprod.ai with timeouts), and the job's failures visible in `cron.job_run_details`. (3) Measure
+before and after over two cycles (a read at 12 minutes idle, twice, each side), with the
+Performance API numbers in the report, not a feeling. If a ping cannot keep the isolate warm (a
+real possibility on Workers), say so with the numbers and stop; do not add a second mechanism
+without a reading that shows the first failed.
+
+**Acceptance.** Health route served; cron row present and running; two idle reads after the change
+under 800 ms, with the query and the timings in the report. Guards: the health route imports no
+database module (a test that reads its import list). Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; migration applied by A3 via the Lovable MCP; A1 confirms
+the ledger row and the cron row, and publishes.
+
+### P-59 · A Ship that cannot deploy names the missing provider, and the one action · Lane: **A2** (after P-57) · Status: READY · Moves: 1, 3
+
+**Why.** The first honest Ship (tablet track `0c7374b6`, 06:44 UTC 09-03) failed at preview with
+`deployments.failure_reason` NULL; P-39 item 3 now records it, and the next attempt will record
+"DENO_DEPLOY_TOKEN not set" (`changeset-deploy.server.ts:221`). The bound repo is servable (its
+`main.ts` is a Deno.serve program with `/health`; `supaprod.json` names the managed template). What
+stops Ship is one secret the Worker does not hold, and nothing on the surface says so: the track
+shows `produced-nothing`, `ArtifactPane` shows a failure reason only inside the deployment card
+(line 1731), and Settings does not know the provider is unconfigured. The founder asked at 14:00
+what exactly he must set; the product should have told him.
+
+**Scope.** (1) The Ship hold card (the run screen's `Ask`/`SeatSays`, per P-37's vocabulary) reads
+the newest failed deployment's `failure_reason` and, when it is a missing provider, says which one
+and where it is set: *Ship has no preview host. Set DENO_DEPLOY_TOKEN and DENO_DEPLOY_ORG on the
+Lovable project, then press Try again.* The hold reason becomes `waiting-on-a-person`, not
+`produced-nothing`, because the crew did nothing wrong. (2) Settings › Connections shows the
+managed preview host as a row with its state (configured / not configured), read from
+`denoDeployConfigured()` through a server function that returns the boolean only, never the
+value. (3) A `Try again` on the hold card re-runs the Ship attempt without spending an attempt on
+`produced-nothing`. (4) Guards for each: the hold names the variable when the reason is the
+missing-token string; the settings row reads the boolean; the retry path does not count.
+
+**Acceptance.** On the served tablet track with the token still unset: the hold card reads the
+sentence above and the Connections page shows the host as not configured; both change the moment
+the founder sets the secret and republishes. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 publishes and reads both surfaces.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** One vocabulary is the point of the whole design pass. With `Ask`, `Choice` and `Quiet` in
