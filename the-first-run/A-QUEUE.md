@@ -2091,20 +2091,25 @@ product's own path. What is verified working, before and after:
 | the three cards | hardcoded sentences with **Start it**, filing real runs | **"No runs yet. These are examples of sentences this takes."** and three **Use this sentence** |
 | Your runs | Helio's entire run list under this workspace's name | **"Nothing running. Start one above."** |
 
-**AND ONE THAT IS NOT FIXED ON THE LIVE SITE, WITH THE REASON.** The Arriving strip still reads
-"15 findings this week from 2 sources, 127 clusters forming" on a workspace with **0 signals and 0
-themes** (confirmed in the database). The fix is correct in source and merged: with zero signals
-`arrivingLine` receives `sources: 0, signals7d: 0` and returns null, so the strip does not render at
-all. **It is not deployed.** Proven by a second fix from the same commit: the Brief pane's button
-still rests at "Saved", which `e21fe9043` changed to "Save the brief". Meanwhile `0e1b964a6` IS live,
-because Your runs is correctly scoped and empty.
+**THE ARRIVING STRIP, AND A CORRECTION TO MY OWN FINDING.** For about twenty minutes after the
+publish the strip still read "15 findings this week from 2 sources, 127 clusters forming" on a
+workspace with 0 signals and 0 themes, and I filed that as "a publish that does not ship what it
+says". **That was wrong and I withdraw it.** It was propagation delay, not a dropped publish: the
+build arrived a few minutes later and the strip is now ABSENT on `Arrival walk`, which is the
+designed behaviour (with zero signals `arrivingLine` receives `sources: 0, signals7d: 0` and returns
+null, so no strip renders at all). Proven by the same commit's second fix landing at the same
+moment: the Brief pane's button went from "Saved" to "Save the brief".
 
-So the served build sits BETWEEN `0e1b964a6` and `e21fe9043` while Lovable reports
-`latest_commit_sha: 57eea8477`, a commit later than both. **Lovable's reported sha tracks the GitHub
-sync, not what supaprod.ai serves.** This is the founder's own warning about Lovable dropping things
-under a concatenated publish, and it means no lane can trust a publish to have shipped what it
-pushed. Every live verification from here has to name the commit it PROVED, by a string only that
-commit introduced, rather than by the sha Lovable reports. Filed as its own finding.
+What survives from that episode is the METHOD, not the accusation, and A1 has made it rule 18: a
+live claim names the commit it PROVED by a string only that commit introduced, never the sha Lovable
+reports, and it waits for propagation before concluding anything. I concluded too early on
+insufficient evidence, which is the same error this packet exists to remove, committed by me.
+
+**THE FULL EMPTY ARRIVAL, VERIFIED LIVE.** `Arrival walk`, 0 signals, 0 themes, 1 member: the
+composer and its one-line explanation, "No runs yet. These are examples of sentences this takes.
+Edit one into your own words.", three cards each offering **Use this sentence**, "Nothing running.
+Start one above.", and the Outcomes door. **No count, no verdict, no claim the workspace has not
+earned, anywhere on the screen.**
 
 **A FINDING FROM THE BACKFILL, PRE-EXISTING AND NOT MINE.** `helio-labs-harbor` is NOT a sample
 workspace, yet **12 of its 59 decisions carry `is_sample = true`**, created between 2026-02-22 and
