@@ -5271,6 +5271,10 @@ already use, readable directly rather than mapped from an anonymous `_serverFn` 
 
 tsc 0. `bun test`: 13,822 pass / 0 fail / 0 unhandled error, full console suite. Pushed `10cc97991`.
 
+**A1, 16:14 IST · pass 4 read, before.** Quiet machine, three loads: cold Worker first byte 4.2 s,
+first server call 7.3 s; warm 0.1 s and 0.2 s interactive, first server call 1.4 s and 1.4 s. No
+`start:*` measures on the page, so the 16:02 build was not yet served (rule 18); re-read at 16:24.
+
 ### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: §5 DONE (A2 walked, A1 verified 15:26 IST); one founder item left: the seven Prism and Trellis decisions in Helio Labs, delete or move· Moves: 1, 2, 5
 
 **Why.** Every walk so far has been on Helio Labs, a workspace with 59 decisions and 15 tracks.
@@ -5998,7 +6002,7 @@ binding, and the run's line after the binding (*Now reading <source> for Relay*)
 **Report (A3 writes):** —
 **Blockers (A3 writes):** —
 
-### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: READY, **before P-37** · Moves: 1, 2
+### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
 
 **Why.** P-04's live read (A2, 837c08deb): the forecast grader is handed the claim, the observable,
 the horizon and one line of evidence, the linked spec's settled outcome, and with no linked spec that
@@ -6025,6 +6029,13 @@ and today it cannot look at the world.
 - [ ] One real decision in Helio Labs graded on the next 06:00 UTC tick with named sources, read by
       A1 on the Learn tab and in `forecast_resolution_log`.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**A1, 16:16 IST.** Accepted on the design (evidence dated after the decision; deployments in the
+kit so an unshipped change is inconclusive, not missed; no tools; the loop's own writing out; a
+citation counts only when the row was shown). Suite on the tip 13,831 / 0 / 0, tsc 0; published
+16:16. Live read: a graded Helio decision on the 06:00 UTC tick, in `forecast_resolution_log`
+(`read` and `cited`) and on the Learn tab with rows marked *Used*. A2's count (13,890) and mine
+(13,831) differ by 59 on the same sha; both are 0 fail, the difference is noted, not resolved.
 
 **Report (A2 writes):** `7107fbaee`. Full console suite on the tip **13,890 pass / 0 fail / 0 error**,
 tsc 0.
