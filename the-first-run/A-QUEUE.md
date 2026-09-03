@@ -7706,7 +7706,7 @@ one-card rule holds (the map is not a card and asks nothing). Full suite on the 
 **DoD.** Pushed; suite number per rule 17; A1 walks both tracks.
 
 
-### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: READY · Moves: 3
+### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: CLAIMED (A3) 00:05 UTC 09-04 · Moves: 3
 
 **Why.** P-58's ping keeps the isolate warm and "/" still costs 4.86 s after 31 minutes idle
 (A3, 04:15 IST 09-04), so the cold cost is in what "/" reads, not in the Worker starting. A3 said
