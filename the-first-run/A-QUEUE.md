@@ -6610,6 +6610,49 @@ the approvals page and one Ask gate card.
 
 **Blockers (A3 writes):** —
 
+### P-52 · Two more vocabularies: a Choice and a Quiet · Lane: **A2** · Status: READY (design first) · Moves: 2, 5
+
+**Why.** A2, P-50: `meridian/Gate` carries three shapes across sixteen call sites in twelve files.
+A binary ask (eight or nine sites, which `Ask` covers). A picker with N named options (*Which source
+should it read first?*, *Which bet does this belong to?*, *What should this grade first?*, *Which
+copy of X?*), which `Ask` must not cover, since its one-answer-one-decline shape is the design. A
+zero state (*Nothing is waiting on a call*, *What will come here to ship?*, *Nothing needs your
+verdict*), which is not asking anything and is wearing the asking card's clothes. Forcing three
+shapes through one primitive is how the fourth dialect appeared.
+
+**Scope.** Design, in the run-screen doc as the sixth and seventh surfaces, walked with A1 before
+code: **Choice** (one question, N named options in one register, the reason as the seat's, no
+default that presses itself; what silence does said once), and **Quiet** (an empty queue reported
+as a state: one sentence, no card, no door unless a door exists). Then the two components in
+`meridian/**` with their reasoning headers and a guard each. Gate's header names the three shapes
+with file and line now (A2, this turn); Gate is retired in P-53.
+
+**Acceptance.**
+- [ ] The doc's two surfaces; the two components; the guards.
+- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
+
+### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: READY (after P-52) · Moves: 2, 3
+
+**Why.** One vocabulary is the point of the whole design pass. With `Ask`, `Choice` and `Quiet` in
+Meridian, `Gate` has no shape left to carry.
+
+**Scope.** Each of Gate's call sites (the list with file and line is in Gate's header after P-52)
+moves to the component that fits its shape: the binary asks to `Ask`, the pickers to `Choice`,
+the zero states to `Quiet`; `Gate` is deleted with a guard that no surface composes it; its tests
+are rewritten to the new components. No Meridian edits beyond the deletion.
+
+**Acceptance.**
+- [ ] `git grep` finds no composer of `Gate`; the guard; the rewritten tests.
+- [ ] A1 reads one of each shape on the served build (the ship page's ask, Discover's picker, the
+      settle panel's zero state).
+- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
+
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
 
 **Why.** P-04's live read (A2, 837c08deb): the forecast grader is handed the claim, the observable,
