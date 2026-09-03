@@ -47,7 +47,7 @@ describe("the palette hands work over by starting a track", () => {
      */
     expect(PANE).toContain('import { startTrack } from "@/lib/spine/track.functions";');
     expect(START).toContain(
-      'import { listRunsForStart, startTrack } from "@/lib/spine/track.functions";',
+      'import { listProductRepos, listRunsForStart, startTrack } from "@/lib/spine/track.functions";',
     );
   });
 

@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { searchFlag } from "@/lib/search-flag";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -14,8 +14,10 @@ import { Arriving } from "@/components/start/Arriving";
 import { failureLine } from "@/lib/error-copy";
 import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { listRunsForStart, startTrack } from "@/lib/spine/track.functions";
+import { listProductRepos, listRunsForStart, startTrack } from "@/lib/spine/track.functions";
 import { listTopOpportunities } from "@/lib/discovery.functions";
+import { matchProductFromSentence, type ProductCandidate } from "@/lib/spine/product-match";
+import { ComposerProductPicker } from "@/components/start/ComposerProductPicker";
 import type { WorkShape } from "@/lib/spine/route";
 
 /**
@@ -134,7 +136,8 @@ export const Route = createFileRoute("/_authenticated/start")({
 
 function StartLanding() {
   const navigate = useNavigate();
-  const { activeWorkspaceId, activeProductId } = useWorkspace();
+  const { activeWorkspaceId, activeProductId, products, productsVisible, setActiveProductId } =
+    useWorkspace();
   const { about, queue } = Route.useSearch();
 
   const [sentence, setSentence] = useState(about ?? "");
@@ -181,6 +184,33 @@ function StartLanding() {
     queryFn: () => fBets({ data: { workspaceId: activeWorkspaceId ?? null } }),
     staleTime: 60_000,
   });
+
+  /*
+   * WHICH PRODUCT A SENTENCE MEANS (P-16b, A-QUEUE.md, from R-36 and the
+   * honest run). A product's repo essentially never changes between
+   * changesets, so this reads gently -- `listProductRepos`'s own header on
+   * why there is no binding column to read instead.
+   */
+  const fProductRepos = useServerFn(listProductRepos);
+  const productRepos = useQuery({
+    queryKey: ["start-product-repos", activeWorkspaceId ?? null],
+    queryFn: () => fProductRepos({ data: { workspaceId: activeWorkspaceId ?? null } }),
+    staleTime: 5 * 60_000,
+    enabled: productsVisible,
+  });
+  const productCandidates: ProductCandidate[] = useMemo(
+    () =>
+      products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        repo: productRepos.data?.find((r) => r.productId === p.id)?.repo ?? null,
+      })),
+    [products, productRepos.data],
+  );
+  const suggestedProduct = useMemo(
+    () => matchProductFromSentence(sentence, productCandidates),
+    [sentence, productCandidates],
+  );
 
   const go = useMutation({
     mutationFn: async (job?: ExampleJob) => {
@@ -287,7 +317,7 @@ function StartLanding() {
 
       {/* `data-page-composer` stands the ask dock down: one prompt per screen,
           and this is the one. See `one-prompt-per-screen`. */}
-      <div data-page-composer>
+      <div data-page-composer className="flex flex-col gap-mrd-2">
         <Composer
           value={sentence}
           onChange={setSentence}
@@ -297,6 +327,21 @@ function StartLanding() {
           label="Describe the work in one sentence"
           fieldRef={fieldRef}
         />
+        {/*
+         * WHICH PRODUCT THIS RUN WILL USE, BESIDE THE FIELD (P-16b,
+         * A-QUEUE.md). Loom W2's own ruling keeps the product concept
+         * invisible until a workspace has a second one to distinguish --
+         * `productsVisible` is that same gate, so a one-product workspace
+         * (the ordinary case) sees nothing new here.
+         */}
+        {productsVisible ? (
+          <ComposerProductPicker
+            products={products}
+            activeProductId={activeProductId}
+            suggested={suggestedProduct}
+            onSelect={setActiveProductId}
+          />
+        ) : null}
       </div>
 
       {/*

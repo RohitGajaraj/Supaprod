@@ -138,8 +138,18 @@ describe("the bare catches cannot swallow the distinction", () => {
      * never collapse into one silence. Reviewed 2026-09-03: it re-raises on a
      * genuine read failure and degrades to an empty list only on something
      * unexpected, the same split every catch above already keeps.
+     *
+     * The sixth is `listProductRepos` (P-16b, A-QUEUE.md), which feeds
+     * Start's own composer -- which product a sentence matches against.
+     * "This product has no known repo" and "we could not read your
+     * products' repos" are different facts too: the first is silent (the
+     * picker just offers nothing), the second would otherwise look
+     * identical while quietly matching against a stale or empty list.
+     * Reviewed 2026-09-03: it re-raises on a genuine read failure and
+     * degrades to an empty list only on something unexpected, the same
+     * split every catch above already keeps.
      */
-    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(5);
+    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(6);
   });
 
   it("but anything genuinely unexpected still degrades rather than breaking every surface", () => {

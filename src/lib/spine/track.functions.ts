@@ -575,6 +575,55 @@ export const listMovingTracks = createServerFn({ method: "GET" })
     }),
   );
 
+export type ProductRepo = { productId: string; repo: string };
+
+/**
+ * WHICH REPOSITORY A PRODUCT ACTUALLY MEANS (P-16b, A-QUEUE.md). There is no
+ * standing product-to-repo binding table -- `driver.server.ts`'s own comment
+ * on `DriveRow.product_id` records why: a track's product is nullable and
+ * `requireGithub` falls back to the workspace's default GitHub connection
+ * when it is absent, so "which repo does this product mean" is not a column
+ * anywhere, only a pattern in what Build has actually filed against it.
+ *
+ * So this reads it the same way a person would: the most recent
+ * `studio_changesets` row per product, workspace-scoped, `repo` is the
+ * `"owner/repo"` string Build itself wrote when it opened that changeset.
+ * `created_at DESC` and first-seen-wins is enough -- a product's repo
+ * essentially never changes between changesets, and this exists to let a
+ * sentence like "the homeowner app" resolve to whichever product's own repo
+ * is actually named that, not to audit repo history.
+ */
+export const listProductRepos = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { workspaceId?: string | null } | undefined) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(d ?? {}),
+  )
+  .handler(({ context, data }): Promise<ProductRepo[]> =>
+    withStartReaderTiming("listProductRepos", async () => {
+      const { supabase } = context;
+      const workspaceId = await resolveStartWorkspaceId(supabase, data?.workspaceId ?? null);
+      if (!workspaceId) return [];
+      try {
+        const { data: rows, error } = await supabase
+          .from("studio_changesets" as never)
+          .select("product_id,repo,created_at")
+          .eq("workspace_id", workspaceId)
+          .not("product_id", "is", null)
+          .order("created_at", { ascending: false })
+          .limit(200);
+        if (error) failSoftOrThrow(error, "The products' repositories");
+        const seen = new Map<string, string>();
+        for (const r of (rows ?? []) as Array<{ product_id: string | null; repo: string }>) {
+          if (r.product_id && !seen.has(r.product_id)) seen.set(r.product_id, r.repo);
+        }
+        return [...seen.entries()].map(([productId, repo]) => ({ productId, repo }));
+      } catch (e) {
+        if (e instanceof Error && e.message.includes("could not be read")) throw e;
+        return [];
+      }
+    }),
+  );
+
 export type GatedTrack = { id: string; title: string; updatedAt: string; tool: string };
 
 /**
