@@ -533,12 +533,13 @@ export function RunBoard({
 
       <div className="rb-head">
         <span className="rb-note">
-          Every run, by what it is doing now. Work that has not been handed over yet is on the
-          roadmap in{" "}
-          <Link to="/plan" search={{ view: "roadmap" }}>
-            Plan
-          </Link>
-          , and does not appear here.
+          {/* P-14 (A-QUEUE.md, R-34): /plan is deleted, and its roadmap view
+              with it -- there is no roadmap_items table backing the concept
+              either (graph-doors.ts documents the same finding). Work not yet
+              handed over is Start's own territory now, named plainly rather
+              than pointed at a view that no longer exists. */}
+          Every run, by what it is doing now. Work that has not been handed over yet is on{" "}
+          <Link to="/start">Start</Link>, and does not appear here.
         </span>
         {truncated || showAll ? (
           <Door onClick={onShowAll}>{showAll ? "Show fewer" : "Every run"}</Door>

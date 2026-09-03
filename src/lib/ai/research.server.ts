@@ -303,8 +303,12 @@ async function gatherInternal(
     snapshots.push({
       kind: "roadmap",
       title: "Roadmap (by lane)",
-      // OBS-10: the Now/Next/Later roadmap now lives on Plan.
-      href: "/plan",
+      // P-14 (A-QUEUE.md, R-34): /plan is deleted, and the lanes this reads
+      // are themselves retired ("priority is Put first, there are no
+      // lanes") -- the href fix is scoped to this sweep; whether this
+      // snapshot should still exist at all is a separate, larger question
+      // this file's own caller would need to answer.
+      href: "/start",
       lines: ["now", "next", "later"]
         .filter((l) => byLane.has(l))
         .map((l) => `- ${l}: ${byLane.get(l)!.join("; ")}`),
@@ -324,7 +328,9 @@ async function gatherInternal(
     snapshots.push({
       kind: "mission",
       title: "Active missions",
-      href: "/build",
+      // P-14 (A-QUEUE.md, R-34): /build is deleted; the live block it used
+      // to show is the top bar and Start's own rows now.
+      href: "/start",
       lines: missions.map((m) => `- ${m.title} (${m.status})`),
     });
   }

@@ -60,10 +60,15 @@ export type LandedArtifact = {
  */
 const STATION_ROUTE = {
   sense: "/arriving",
-  decide: "/decide",
-  define: "/plan",
-  design: "/design",
-  build: "/build",
+  // P-14 (A-QUEUE.md, R-34): /decide, /plan, /design and /build are deleted.
+  // Their own ruling table names Start as the honest destination for what
+  // each used to carry (the ranked queue, work in flight, brand rules and
+  // prototypes, the live block) -- the sentence above this link still names
+  // the real station ("The spec is on Define."), only the door changes.
+  decide: "/start",
+  define: "/start",
+  design: "/start",
+  build: "/start",
   ship: "/ship",
   learn: "/learn",
 } as const satisfies Record<AgentStation, string>;

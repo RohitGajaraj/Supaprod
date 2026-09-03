@@ -167,10 +167,15 @@ export function RailCrew({ workspaceId }: { workspaceId: string | null }) {
                    screen reader that gets the name alone gets half of it. */
                 aria-label={`${name}, ${m.verb}`}
                 title={`${name} - ${m.verb}`}
+                /* P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. The
+                   real record is /track/$trackId, but this read
+                   (getWorkspaceAnchors -> Anchor -> RailCrewMember) carries
+                   missionId, not trackId -- the underlying agent_runs read
+                   could select track_id cheaply, but plumbing it through
+                   three typed shapes is a real change, not a link repoint,
+                   so it stays out of this sweep and falls back to Start. */
                 onClick={() =>
-                  m.missionId
-                    ? navigate({ to: "/runs/$missionId", params: { missionId: m.missionId } })
-                    : navigate({ to: SIGNED_IN_HOME, search: { [REVIEW_QUEUE_SEARCH]: true } })
+                  navigate({ to: SIGNED_IN_HOME, search: { [REVIEW_QUEUE_SEARCH]: true } })
                 }
               >
                 <AgentMark slug={m.slug} size="sm" state="running" />

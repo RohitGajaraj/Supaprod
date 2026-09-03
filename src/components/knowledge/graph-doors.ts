@@ -13,7 +13,8 @@
  * to a page which cannot find the row is worse than no door at all. Three tiers,
  * and every kind is assigned to one deliberately:
  *
- *   `row`    the destination opens THIS artifact. Six kinds have one.
+ *   `row`    the destination opens THIS artifact. Five kinds have one (P-14,
+ *            A-QUEUE.md: `mission` moved to list when /runs/$missionId went).
  *   `list`   the destination is the right surface but cannot address the row, so
  *            the label says "the queue" and not "this bet". Four kinds.
  *   absent   the product genuinely has nowhere to send you. Named in the table
@@ -57,13 +58,13 @@ const DOORS: Record<string, (id: string) => NodeDoor> = {
   }),
   // The spec editor is addressed by path.
   prd: (id) => ({ label: "Open the spec", tier: "row", to: "/plan/spec/$id", params: { id } }),
-  // A mission's own surface, which is where the stage strip lives.
-  mission: (id) => ({
-    label: "Open the run",
-    tier: "row",
-    to: "/runs/$missionId",
-    params: { missionId: id },
-  }),
+  // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. A driven mission's
+  // real record is /track/$trackId, but only for the minority that has a
+  // track (measured: 395 of 407 do not), and this function has only the
+  // mission id to work with, synchronously -- no read to resolve a track
+  // from it. Downgraded to list tier rather than claiming a row door most
+  // missions do not have: Start carries the workspace's own runs.
+  mission: () => ({ label: "Open your runs", tier: "list", to: "/start" }),
   /**
    * Discover's `?focus=` deliberately takes either a signal id or a cluster id
    * and resolves whichever it was given (its own parser documents this), so both
@@ -95,7 +96,6 @@ const DOORS: Record<string, (id: string) => NodeDoor> = {
   }),
   task: () => ({ label: "Open the tasks", tier: "list", to: "/start" }),
   deployment: () => ({ label: "Open what shipped", tier: "list", to: "/ship" }),
-  prototype: () => ({ label: "Open Design", tier: "list", to: "/design" }),
   /** Design memory is settled brand direction, and it lives in Settings. */
   design_memory: () => ({
     label: "Open the brand record",
@@ -122,6 +122,12 @@ const DOORS: Record<string, (id: string) => NodeDoor> = {
  *   prd_flow       as above.
  *   roadmap_item   there is no roadmap_items table. A roadmap item is an
  *                  opportunity carrying a bucket, so no row exists to open.
+ *   prototype      /design is deleted (P-14, A-QUEUE.md, R-34); its own
+ *                  ruling names the drawing's new homes as each run's
+ *                  artifact pane and Find anything's prototype group, and
+ *                  neither is a URL a door can point at -- Find anything is
+ *                  a shell overlay with no route of its own, and the run
+ *                  that owns a given prototype is not known here.
  */
 export const KINDS_WITHOUT_A_DOOR = [
   "meeting",
@@ -129,6 +135,7 @@ export const KINDS_WITHOUT_A_DOOR = [
   "prd_scaffold",
   "prd_flow",
   "roadmap_item",
+  "prototype",
 ] as const;
 
 /** The door for a node, or null when the product has nowhere honest to send it. */

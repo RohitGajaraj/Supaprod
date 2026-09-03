@@ -100,7 +100,10 @@ function fromMission(b: Extract<AnswerBlock, { kind: "mission" }>): RecordCitati
   return {
     text: line ? line(title) : `The crew already has this on the record: ${title}.`,
     evidence: join([formatAuditId("mission", b.id), on(b.createdAt)]),
-    href: `/runs/${b.id}`,
+    // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. AnswerBlock
+    // carries only the mission id, not a track id, and the real record needs
+    // one -- falls back to Start rather than a dead link.
+    href: "/start",
   };
 }
 

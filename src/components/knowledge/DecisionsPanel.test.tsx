@@ -63,11 +63,10 @@ describe("SourceLink", () => {
       children: "Test Link",
     });
 
-    // Verify Link component is rendered to the mission route
-    expect((el?.props as { to?: string })?.to).toBe("/runs/$missionId");
-    expect((el?.props as { params?: { missionId: string } })?.params?.missionId).toBe(
-      "mission-abc",
-    );
+    // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted; DecisionRow
+    // carries no track id, so this falls back to Start rather than a route
+    // that only ever bounces there anyway.
+    expect((el?.props as { to?: string })?.to).toBe("/start");
   });
 
   test("renders Link to PRD when prd_id is present (and mission_id is null)", () => {
@@ -107,7 +106,7 @@ describe("SourceLink", () => {
     });
 
     // Mission takes precedence
-    expect((el?.props as { to?: string })?.to).toBe("/runs/$missionId");
+    expect((el?.props as { to?: string })?.to).toBe("/start");
   });
 
   test("renders null when neither mission_id nor prd_id is present (meeting-sourced)", () => {

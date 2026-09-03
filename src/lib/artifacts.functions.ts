@@ -60,7 +60,13 @@ export const listArtifacts = createServerFn({ method: "GET" })
             kind: "prototype",
             name: str(r.name) ?? "Prototype",
             updatedAt: str(r.updated_at),
-            href: slug ? `/p/${slug}` : "/design",
+            // P-14 (A-QUEUE.md, R-34): /design is deleted and, per its own
+            // ruling, has no single addressable replacement for an unshared
+            // prototype (same finding as graph-doors.ts's `prototype` entry,
+            // moved there to KINDS_WITHOUT_A_DOOR) -- but `href` here is a
+            // required string, not an optional door, so this falls back to
+            // Start rather than a dead link.
+            href: slug ? `/p/${slug}` : "/start",
             productId: str(r.project_id),
           });
         }
@@ -79,7 +85,12 @@ export const listArtifacts = createServerFn({ method: "GET" })
             kind: "spec",
             name: str(r.title) ?? "Spec",
             updatedAt: str(r.updated_at),
-            href: "/plan",
+            // P-14 (A-QUEUE.md): /plan (the index) is deleted, but the spec's
+            // own editor, /plan/spec/$id, survives ("Keep, demoted" in the
+            // ruling table) -- this was already pointing at the wrong URL
+            // even before P-14, a list page instead of the row itself, which
+            // this fixes properly rather than falling back to Start.
+            href: `/plan/spec/${r.id}`,
             productId: str(r.project_id),
           });
         }

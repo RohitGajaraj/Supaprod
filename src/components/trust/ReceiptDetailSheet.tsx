@@ -47,6 +47,7 @@ import { humanWriteError } from "@/lib/roles.functions";
 import { Row, Line } from "@/components/meridian/rows";
 import { Action, Num, Actions, ReadFailedLine, Value } from "@/components/meridian/surface-parts";
 import { useNavigate } from "@tanstack/react-router";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -175,8 +176,9 @@ export function ReceiptDetail({
   // opens the spec editor; a mission opens ITS Build page, not the Build root.
   const sourceGo = (s: { kind: string; id: string }): (() => void) | null => {
     if (s.kind === "prd") return () => navigate({ to: "/plan/spec/$id", params: { id: s.id } });
-    if (s.kind === "mission")
-      return () => navigate({ to: "/runs/$missionId", params: { missionId: s.id } });
+    // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted; this ref carries
+    // only the mission id, not a track id, so this falls back to Start.
+    if (s.kind === "mission") return () => navigate({ to: SIGNED_IN_HOME });
     return null;
   };
 
@@ -186,8 +188,8 @@ export function ReceiptDetail({
     if (!e.id) return null;
     if (e.kind === "decision" && onOpenReceipt) return () => onOpenReceipt(e.id);
     if (e.kind === "prd") return () => navigate({ to: "/plan/spec/$id", params: { id: e.id } });
-    if (e.kind === "mission")
-      return () => navigate({ to: "/runs/$missionId", params: { missionId: e.id } });
+    // P-14 (A-QUEUE.md, R-35): same fix as sourceGo above, same reason.
+    if (e.kind === "mission") return () => navigate({ to: SIGNED_IN_HOME });
     if (e.kind === "opportunity")
       return () => navigate({ to: "/arriving", search: { tab: "queue" } as never });
     return null;

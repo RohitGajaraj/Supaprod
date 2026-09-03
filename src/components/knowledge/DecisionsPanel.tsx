@@ -121,15 +121,14 @@ export function SourceLink({
   onClick?: (e: React.MouseEvent) => void;
   children: React.ReactNode;
 }) {
+  // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. DecisionRow carries
+  // mission_id, not a track id -- resolving one would need a real
+  // spine_track_members lookup (deployments.functions.ts documents that
+  // direction), not something this synchronous render can do -- so this
+  // falls back to Start rather than a dead link.
   if (d.mission_id) {
     return (
-      <Link
-        to="/runs/$missionId"
-        params={{ missionId: d.mission_id }}
-        className={className}
-        style={style}
-        onClick={onClick}
-      >
+      <Link to={SIGNED_IN_HOME} className={className} style={style} onClick={onClick}>
         {children}
       </Link>
     );

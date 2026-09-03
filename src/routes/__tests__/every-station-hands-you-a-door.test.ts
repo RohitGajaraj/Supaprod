@@ -104,16 +104,11 @@ describe("Learn's empty desk asks a question and answers it with a door", () => 
     const src = learn();
     const targets = [...src.matchAll(/navigate\(\s*\{\s*to:\s*"(\/[a-z-]+)"/g)].map((m) => m[1]);
     expect(targets.length).toBeGreaterThan(0);
-    const known = new Set([
-      "/ship",
-      "/plan",
-      "/arriving",
-      "/decide",
-      "/design",
-      "/build",
-      "/learn",
-      "/outcomes",
-    ]);
+    // P-14 (A-QUEUE.md, R-34): /decide, /plan, /design and /build are all
+    // deleted -- dropped from the allowlist rather than left naming routes
+    // that no longer resolve. /start added: it is the real destination
+    // learn.tsx's own "Open the specs" door now points at.
+    const known = new Set(["/ship", "/start", "/arriving", "/learn", "/outcomes"]);
     for (const t of targets) expect(known.has(t)).toBe(true);
   });
 

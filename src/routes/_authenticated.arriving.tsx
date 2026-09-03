@@ -93,7 +93,11 @@ export const Route = createFileRoute("/_authenticated/arriving")({
     capture: searchFlag(search.capture),
   }),
   beforeLoad: ({ search }) => {
-    if (search.tab === "queue") throw redirect({ to: "/decide" });
+    // P-14 (A-QUEUE.md, R-34): /decide is deleted; its own redirect stub
+    // would only bounce this on to /start a second hop later. The ranked
+    // queue's real home is Start's own top-opportunities read, which needs
+    // no tab param, so this goes straight there.
+    if (search.tab === "queue") throw redirect({ to: "/start" });
   },
   component: DiscoverRoute,
   head: () => ({ meta: [{ title: "Arriving · Supaprod" }] }),

@@ -1362,7 +1362,9 @@ function MemoryPage() {
           },
           { label: "signals", value: counts.signals, open: () => navigate({ to: "/arriving" }) },
           { label: "meetings", value: counts.meetings },
-          { label: "specs", value: counts.prds, open: () => navigate({ to: "/plan" }) },
+          // P-14 (A-QUEUE.md, R-34): /plan is deleted; specs in flight are
+          // Start's own territory now.
+          { label: "specs", value: counts.prds, open: () => navigate({ to: "/start" }) },
           { label: "saved notes", value: counts.findings },
           {
             label: "live connections",

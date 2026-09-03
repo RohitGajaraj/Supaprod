@@ -60,6 +60,7 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 import { toast } from "@/lib/notify";
 import { decideApproval } from "@/lib/agent_loop.functions";
@@ -313,14 +314,11 @@ export function ApprovalsPanel() {
             })
           }
           onExtend={() => extend.mutate({ approvalId: focused.id, tool: focused.tool_name })}
+          // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. This
+          // approval carries mission_id, not a track id, so this falls back
+          // to Start rather than a dead link.
           onOpenMission={
-            focused.mission_id
-              ? () =>
-                  void navigate({
-                    to: "/runs/$missionId",
-                    params: { missionId: focused.mission_id as string },
-                  })
-              : undefined
+            focused.mission_id ? () => void navigate({ to: SIGNED_IN_HOME }) : undefined
           }
         />
       ) : (

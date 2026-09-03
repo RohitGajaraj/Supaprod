@@ -166,6 +166,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { shipHeadline } from "@/components/ship/ship-headline";
 import { failureLine } from "@/lib/error-copy";
 import { Row } from "@/components/meridian/rows";
@@ -2501,11 +2502,14 @@ function Ship() {
             >
               {/* `Action`, not `Approve`. Both of these navigate, and nothing on
                 this station is held pending a click on either: the accent means
-                a person is REQUIRED, and a door to Build is an offer. */}
-              <Action variant="primary" onClick={() => navigate({ to: "/build" })}>
+                a person is REQUIRED, and a door to Build is an offer.
+                P-14 (A-QUEUE.md, R-34): /build and /plan are both deleted --
+                the live block and work in flight are both Start's rows now,
+                so both buttons land there. */}
+              <Action variant="primary" onClick={() => navigate({ to: SIGNED_IN_HOME })}>
                 See what is being built
               </Action>
-              <Action onClick={() => navigate({ to: "/plan" })}>Open the specs</Action>
+              <Action onClick={() => navigate({ to: SIGNED_IN_HOME })}>Open the specs</Action>
             </Gate>
 
             {/* WHAT THE THING BEING WAITED FOR LOOKS LIKE, drawn rather than
@@ -2764,8 +2768,10 @@ function Ship() {
               Primary when nothing has shipped, because then it IS the next act;
               absent otherwise, since a desk with releases on it does not need to
               be sent to Build. */}
+            {/* P-14 (A-QUEUE.md, R-34): /build is deleted; the live block is
+              Start's rows now. */}
             {nothingShipped ? (
-              <Action variant="primary" onClick={() => navigate({ to: "/build" })}>
+              <Action variant="primary" onClick={() => navigate({ to: SIGNED_IN_HOME })}>
                 See what is being built
               </Action>
             ) : null}

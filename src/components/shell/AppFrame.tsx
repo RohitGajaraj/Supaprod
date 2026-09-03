@@ -1405,10 +1405,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           title: "Open the piece of work that is moving",
         };
       }
-      return {
-        go: go("/runs/$missionId", { missionId: only.id }),
-        title: "Open the run that is working",
-      };
+      // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted; this branch is
+      // the genuinely track-less case (R021/R023's own null-is-real state)
+      // and there is nowhere else to send it. Start rather than a dead link.
+      return { go: go(SIGNED_IN_HOME), title: "Open the run that is working" };
     }
     /* THE BOARD BY NAME, not through the alias. This said `/runs`, which the
        fold turned into a redirect to `/today`, so the most-used control in the
@@ -1428,10 +1428,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       };
     }
     if (lastDone) {
-      return {
-        go: go("/runs/$missionId", { missionId: lastDone.id }),
-        title: "Open the last run that finished",
-      };
+      // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. `lastDone` is a
+      // mission (`listMissions`' own shape), not a track, and carries no
+      // track id to send this to /track/$trackId with. Start rather than a
+      // dead link.
+      return { go: go(SIGNED_IN_HOME), title: "Open the last run that finished" };
     }
     /* TRULY NOTHING — no working run, no moving track, nothing even finished
      * recently. The old door was the runs list, which in this state shows an

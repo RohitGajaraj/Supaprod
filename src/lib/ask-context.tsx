@@ -73,7 +73,10 @@ export function scopeForPath(
     return { kinds: ["decision"], sourceId: decisionId, label: "this decision" };
   }
 
-  if (pathname.startsWith("/decide")) return { kinds: ["decision"], label: "Decide" };
+  // P-14 (A-QUEUE.md, R-34): /decide is deleted and has no children, so
+  // nothing can ever settle on this pathname again (unlike /plan below, whose
+  // prefix still matches the live /plan/spec/$id). Removed rather than left
+  // as an unreachable branch pointing at a dead station.
   if (pathname.startsWith("/plan") || pathname.startsWith("/prds")) {
     // "your specs", not "PRDs". Question 7: every internal word on a surface is
     // a word a stranger does not have. The rebuild says spec everywhere else.

@@ -196,17 +196,22 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
           title: node.title,
         },
       }),
-    onSuccess: (res) => {
+    onSuccess: (_res) => {
       qc.invalidateQueries({ queryKey: ["missions"] });
       commit({
         verb: "You started a mission",
         consequence: `The crew is working on "${node.title || `this ${artifactWord(node.kind)}`}" and it spends credits until it finishes or you stop it.`,
         handoff: { slug: "orchestrator", name: "Orchestrator" },
       });
-      // Straight to the run's own surface, which is where the seven-stage
-      // strip lives. This used to go to /build?mission=, a URL that now only
-      // redirects, so it cost the person an extra hop on the way in.
-      navigate({ to: "/runs/$missionId", params: { missionId: res.mission_id } });
+      // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. A driven
+      // mission's real record is /track/$trackId, but startOrchestratedMission
+      // (this button's own server function, orchestrator.functions.ts) creates
+      // a mission row and no spine_tracks row -- this dispatch path has never
+      // produced a track, so there is no track id to send this to even in
+      // principle. Falls back to Start rather than a dead link; the mission
+      // this just started has no page of its own to watch it on, which is the
+      // same gap R-35 closed for the trigger-tick generator, still open here.
+      navigate({ to: "/start" });
     },
     onError: (e: Error) =>
       commit({

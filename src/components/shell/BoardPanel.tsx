@@ -45,6 +45,7 @@ import { RunBoard } from "@/components/runs/RunBoard";
 import { runState } from "@/components/runs/run-state";
 import { ReadFailed, Reading } from "@/components/meridian/surface-parts";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 
 export function BoardPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate();
@@ -153,9 +154,13 @@ export function BoardPanel({ open, onClose }: { open: boolean; onClose: () => vo
               // Opening a run is leaving the panel, so the panel closes. A
               // dialog left open behind a navigation is a dialog the person has
               // to dismiss twice.
-              onOpen={(missionId) => {
+              // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted.
+              // `sessions` (build.list_sessions) carries no track id, and the
+              // real record, /track/$trackId, needs one -- Start rather than
+              // a dead link.
+              onOpen={() => {
                 onClose();
-                void navigate({ to: "/runs/$missionId", params: { missionId } });
+                void navigate({ to: SIGNED_IN_HOME });
               }}
             />
           )}

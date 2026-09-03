@@ -27,6 +27,7 @@ import { Row } from "@/components/meridian/rows";
 import { NothingHere, Num, ReadFailed, Reading, Value } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { getIncidents, type Incident } from "@/lib/incidents.functions";
 import { CostIncidentBadge } from "./CostIncidentBadge";
 import { incidentTraceRefs, incidentTone, INCIDENT_VALUE_TONE } from "./incident-format";
@@ -80,7 +81,10 @@ function IncidentRow({ n, traceRef }: { n: Incident; traceRef: string }) {
   const hasMission = !hasTrace && Boolean(n.missionId);
   const open = () => {
     if (n.traceId) navigate({ to: "/traces/$traceId", params: { traceId: n.traceId } });
-    else if (n.missionId) navigate({ to: "/runs/$missionId", params: { missionId: n.missionId } });
+    // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. This incident
+    // carries missionId, not a track id, so this falls back to Start rather
+    // than a dead link.
+    else if (n.missionId) navigate({ to: SIGNED_IN_HOME });
   };
 
   return (

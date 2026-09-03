@@ -300,6 +300,7 @@
  * returns no design row per spec, so /plan reads `listDesignWork` beside it.
  */
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { supabase } from "@/integrations/supabase/client";
 import { failureLine, reasonLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
@@ -768,7 +769,13 @@ function SpecEditorPage() {
     // Success writes no receipt because it navigates: the run itself is what
     // the click caused, rendered in full, and a line saying so would be gone
     // before it could be read.
-    onSuccess: (r) => navigate({ to: "/runs/$missionId", params: { missionId: r.missionId } }),
+    // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted.
+    // dispatchStudioSession (studio.functions.ts) creates a mission row and
+    // no spine_tracks row -- this dispatch path has never produced a track,
+    // so there is no track id to send this to even in principle. Falls back
+    // to Start rather than a dead link; the same live gap R-35 closed for the
+    // trigger-tick generator is still open on this button.
+    onSuccess: (_r) => navigate({ to: SIGNED_IN_HOME }),
     onError: (e: Error) => {
       // The raw not-connected refusal becomes the gate with the real paths.
       if (isRepoNotConnectedError(e.message)) setRepoGate({ reason: e.message, retry: "dispatch" });
@@ -879,9 +886,13 @@ function SpecEditorPage() {
       // shows, so its list is stale the moment this lands.
       void qc.invalidateQueries({ queryKey: ["design-work"] });
       if (next === "design") {
-        // No receipt: this navigates, and a line nobody can read is not a
-        // receipt. The Design station itself is what the click caused.
-        void navigate({ to: "/design", search: { focus: id } as never });
+        // P-14 (A-QUEUE.md, R-34): /design is deleted, and its own ruling
+        // names no single addressable replacement for "go draw this spec" --
+        // the drawing's new homes are each run's artifact pane and Find
+        // anything's prototype group, neither reachable by a URL a click can
+        // aim at from here. Falls back to Start; flagged as a real gap this
+        // sweep cannot close, not papered over as a working door.
+        void navigate({ to: SIGNED_IN_HOME });
         return;
       }
       /**
@@ -1581,14 +1592,18 @@ function SpecEditorPage() {
               around it to draw a container: the page is this and nothing else.
               The way out is the empty state's own `action` slot rather than a
               second row underneath it. */}
+          {/* P-14 (A-QUEUE.md, R-34): /plan is deleted, and with it the only
+              surface that ever listed specs. Start is where work in flight
+              lives now, named plainly rather than claiming a listing that no
+              longer exists. */}
           <NothingHere
             action={
-              <Action variant="primary" onClick={() => navigate({ to: "/plan" })}>
-                Go to Plan
+              <Action variant="primary" onClick={() => navigate({ to: SIGNED_IN_HOME })}>
+                Go to Start
               </Action>
             }
           >
-            Every live spec is listed on Plan.
+            Start shows what is in flight.
           </NothingHere>
         </div>
       </Surface>
@@ -2461,14 +2476,12 @@ function SpecEditorPage() {
                   // reason a send cannot run — but the shape is the same one the
                   // retired `Empty` was drawing here: a sentence with the way out
                   // beside it, no box of its own.
+                  // P-14 (A-QUEUE.md, R-34): /design is deleted, same gap as
+                  // the route-choice branch above -- falls back to Start.
                   <NothingYet
                     action={
-                      <Action
-                        onClick={() =>
-                          void navigate({ to: "/design", search: { focus: id } as never })
-                        }
-                      >
-                        Open it on Design
+                      <Action onClick={() => void navigate({ to: SIGNED_IN_HOME })}>
+                        Go to Start
                       </Action>
                     }
                   >
@@ -2849,15 +2862,13 @@ function SpecEditorPage() {
                     </>
                   }
                 >
-                  {/* IT LANDS ON THE RANKING, NOT ON THE BET, and the label says
-                    so rather than promising a focus the route cannot honour:
-                    /decide declares no `validateSearch`, so a search param
-                    aimed at one bet would be dropped and the door would open on
-                    whatever ranks first. Naming the ranking is the true
-                    sentence available from this file. */}
+                  {/* P-14 (A-QUEUE.md, R-34): /decide is deleted. The ranking's
+                    home is now Start's own top-opportunities read, which
+                    also declares no per-bet focus param, so the same "lands
+                    on the ranking, not the bet" honesty still applies. */}
                   <Door
-                    onClick={() => void navigate({ to: "/decide" })}
-                    title="Open Decide, where this bet sits in the ranking"
+                    onClick={() => void navigate({ to: SIGNED_IN_HOME })}
+                    title="Open Start, where this bet sits in the ranking"
                   >
                     Open the ranking
                   </Door>

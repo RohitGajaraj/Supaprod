@@ -113,7 +113,9 @@ describe("ask-record: what a real fact turns into", () => {
       ],
     });
     expect(c?.text).toContain("has run this before");
-    expect(c?.href).toBe("/runs/11111111-2222-3333-4444-555555555555");
+    // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted; the citation
+    // falls back to Start rather than a dead link.
+    expect(c?.href).toBe("/start");
   });
 
   it("a failed run says it failed, which is the fact that matters", () => {

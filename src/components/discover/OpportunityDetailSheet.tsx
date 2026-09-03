@@ -1223,15 +1223,19 @@ export function OpportunityDetailSheet({
         },
       });
     },
-    onSuccess: (res) => {
+    onSuccess: (_res) => {
       // Receipt continuity: the run page takes a beat to draw, so the toast
       // carries the bet forward by name instead of dropping context here.
       toast.success(`The crew picked up "${opportunity?.title ?? "the bet"}".`);
       onOpenChange(false);
-      // Straight to the run's own surface, which is where the seven-stage
-      // strip lives. This used to go to /build?mission=, a URL that now only
-      // redirects, so it cost the person an extra hop on the way in.
-      navigate({ to: "/runs/$missionId", params: { missionId: res.mission_id } });
+      // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. A driven
+      // mission's real record is /track/$trackId, but startOrchestratedMission
+      // (this button's own server function) creates a mission row and no
+      // spine_tracks row -- this dispatch path has never produced a track, so
+      // there is no track id to send this to even in principle. Falls back to
+      // Start rather than a dead link; the toast above is what carries the
+      // bet's name forward now that this cannot land on the mission itself.
+      navigate({ to: "/start" });
     },
     onError: (e: Error) => toast.error(e.message),
   });

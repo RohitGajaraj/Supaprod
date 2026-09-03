@@ -920,7 +920,9 @@ function Learn() {
               <Action variant="primary" onClick={() => navigate({ to: "/ship" })}>
                 See what is waiting to go out
               </Action>
-              <Action onClick={() => navigate({ to: "/plan" })}>Open the specs</Action>
+              {/* P-14 (A-QUEUE.md, R-34): /plan is deleted; specs in flight
+                  are Start's own territory now. */}
+              <Action onClick={() => navigate({ to: "/start" })}>Open the specs</Action>
             </Gate>
           ) : (outcomes?.validated ?? 0) === 0 ? (
             <NothingYet>

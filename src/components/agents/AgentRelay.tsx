@@ -24,6 +24,7 @@
  */
 
 import { Link } from "@tanstack/react-router";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { Row, Who } from "@/components/meridian/rows";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -185,11 +186,13 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
     </div>
   );
 
+  // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. The swarm HUD read
+  // (getSwarmHud) carries missionId, not trackId, and the real record needs
+  // one -- Start rather than a dead link.
   if (r.missionId) {
     return (
       <Link
-        to="/runs/$missionId"
-        params={{ missionId: r.missionId }}
+        to={SIGNED_IN_HOME}
         style={{ textDecoration: "none", display: "block", color: "inherit" }}
       >
         {body}
@@ -253,11 +256,11 @@ function StationRelayLine({
     </div>
   );
 
+  // P-14 (A-QUEUE.md, R-35): same fix as MiniLine above, same reason.
   if (run.missionId) {
     return (
       <Link
-        to="/runs/$missionId"
-        params={{ missionId: run.missionId }}
+        to={SIGNED_IN_HOME}
         style={{ textDecoration: "none", display: "block", color: "inherit" }}
       >
         {body}

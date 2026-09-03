@@ -218,17 +218,18 @@ const ROUTES: Partial<
     }
   >
 > = {
-  // Right station, no row: /decide is where opportunities are ranked. Zero-arg
-  // until /decide declares a `?focus=` parser. See the sweep note above.
-  opportunity: () => ({ to: "/decide" }),
+  // P-14 (A-QUEUE.md, R-34): /decide is deleted, and its ruling table names
+  // Start's ranked list (top three by ICE) and Find anything as the
+  // opportunity's new home. Still zero-arg for the same reason as before --
+  // /start declares no `?focus=` parser either -- so this remains honestly
+  // short of a door rather than a door to the wrong place.
+  opportunity: () => ({ to: "/start" }),
   prd: (id) => ({ to: "/plan/spec/$id", params: { id } }),
-  // Right station, no row, and NOT `/tasks`: that route is a bare redirect to
-  // /today (_authenticated.tasks.tsx), and Today has no task list -- it imports
-  // `taskStatus` for a mission dot and nothing else. The surface that actually
-  // renders tasks is /plan/spec/$id (it calls `listTasks`), reached from /plan.
-  // Zero-arg because a task id does not resolve to a spec id here, same shape
-  // as the `opportunity` row above.
-  task: () => ({ to: "/plan" }),
+  // P-14: /plan (index) is deleted, and with it the only surface that ever
+  // rendered a task list reached from here (`_authenticated.tasks.tsx` is
+  // still a bare redirect to /today, unchanged). Work in flight now lives on
+  // Start, per the ruling; still zero-arg, same reason as `opportunity` above.
+  task: () => ({ to: "/start" }),
   signal: (id) => ({ to: "/arriving", search: { focus: id } }),
   theme: (id) => ({ to: "/arriving", search: { focus: id } }),
   // Carries the id and still lands short: /meetings/$id forwards it to
@@ -236,14 +237,25 @@ const ROUTES: Partial<
   // nothing there reads `?meeting=`. Zero live rows of this kind, so it has
   // never rendered. See the sweep note above.
   meeting: (id) => ({ to: "/outcomes", search: { tab: "calendar", meeting: id } }),
-  roadmap_item: () => ({ to: "/plan", search: { view: "roadmap" } }),
+  // P-14: /plan is deleted and its roadmap view never existed on the new
+  // destination either, so the search param is dropped rather than carried to
+  // a page that would ignore it. Dead vocabulary regardless (see the sweep
+  // note above: zero live rows, never once rendered).
+  roadmap_item: () => ({ to: "/start" }),
   // Lands on the record itself, and it is the only kind here that gets there
   // through a SEARCH param instead of a route param: /brain's validateSearch
   // keeps `decision`, and its decisions tab renders DecisionDetail for that id.
   // `signal` and `theme` also carry a search param, but theirs asks a surface to
   // focus something, which it can decline; this one selects the record.
   decision: (id) => ({ to: "/outcomes", search: { tab: "decisions", decision: id } }),
-  mission: (id) => ({ to: "/build/$missionId", params: { missionId: id } }),
+  // P-14: /build/$missionId never existed as a real page (folded into the
+  // /build index the whole time); the mission's own report now lives at
+  // /track/$trackId, but only for a mission that has a track, and this
+  // function is pure and synchronous -- it cannot look a mission's track up
+  // to know which case it is in. Falls back to /start rather than guess,
+  // same discipline as `/runs/$missionId`'s own callers elsewhere in the
+  // sweep this comes from.
+  mission: () => ({ to: "/start" }),
 };
 
 export const KIND_LABEL: Record<ArtifactKind, string> = {

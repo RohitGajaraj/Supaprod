@@ -62,6 +62,7 @@
  * drill into a mission.
  */
 import { useNavigate } from "@tanstack/react-router";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { reasonLine } from "@/lib/error-copy";
 import { Row, Line } from "@/components/meridian/rows";
 import {
@@ -350,11 +351,10 @@ export function AgentSpendDetail({ id }: { id: string }) {
                     </>
                   }
                   time={fmtUsd(m.cost)}
-                  onClick={
-                    missionId
-                      ? () => navigate({ to: "/runs/$missionId", params: { missionId } })
-                      : undefined
-                  }
+                  // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. This
+                  // spend breakdown carries missionId, not trackId, and the
+                  // real record needs one -- Start rather than a dead link.
+                  onClick={missionId ? () => navigate({ to: SIGNED_IN_HOME }) : undefined}
                 />
               );
             })
@@ -441,11 +441,10 @@ export function AgentSpendDetail({ id }: { id: string }) {
                     </>
                   }
                   time={relTime(r.created_at)}
-                  onClick={
-                    missionId
-                      ? () => navigate({ to: "/runs/$missionId", params: { missionId } })
-                      : undefined
-                  }
+                  // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. This
+                  // spend breakdown carries missionId, not trackId, and the
+                  // real record needs one -- Start rather than a dead link.
+                  onClick={missionId ? () => navigate({ to: SIGNED_IN_HOME }) : undefined}
                 />
               );
             })

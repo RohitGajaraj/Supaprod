@@ -101,8 +101,17 @@ describe("what it says instead", () => {
   });
 
   it("hands over two doors, one primary, the way Learn does", () => {
-    expect(has('navigate({ to: "/build" })')).toBe(true);
-    expect(has('navigate({ to: "/plan" })')).toBe(true);
+    // P-14 (A-QUEUE.md, R-34): /build and /plan are both deleted, so both
+    // doors this test originally pinned as DISTINCT destinations now land on
+    // the same page (Start carries the live block and specs in flight
+    // together). Still two Action buttons, still one primary, worth keeping
+    // that shape even though the destination collapsed -- the copy still
+    // frames two different questions ("what is being built" / "the specs"),
+    // and this page is itself blocked for deletion behind P-14b, so a
+    // redesign of the buttons themselves is out of this sweep's scope.
+    expect(has("See what is being built")).toBe(true);
+    expect(has("Open the specs")).toBe(true);
+    expect(has("navigate({ to: SIGNED_IN_HOME })")).toBe(true);
   });
 
   it("draws what a release will look like, and says three times that it is not one", () => {
