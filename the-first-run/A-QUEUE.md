@@ -4428,7 +4428,7 @@ today a ship agent at the default `arc: "trusted"` can attempt an unattended pro
 with no human confirmation, and the only reason it hasn't shipped anything yet is that its
 merged-PR precondition happens to fail first.
 
-### P-31 · No claim about a plan that does not exist · Lane: **A3** · Status: READY (after P-30) · Moves: 4
+### P-31 · No claim about a plan that does not exist · Lane: **A3** · Status: CLAIMED (A3) · Moves: 4
 
 **Why.** Outcomes reads *On the free plan this record fades after 30 days. Keep it.* There is no free
 plan, no paid plan, and nothing fades; the founder has not ruled on pricing. A sentence the repo
