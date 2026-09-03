@@ -7226,7 +7226,7 @@ not marked given-up for a fault that is the product's, and P-68's *Try the previ
 moment its attempts reset. A1 clears the deferral when P-68 is published.
 
 
-### P-68 · A managed preview that failed is tried again and says why, and a gate that cannot succeed is not offered · Lane: **A2** (moved from A3 at 02:00 IST 09-04, ahead of P-70: A3 silent since 00:47) · Status: READY · Moves: 1, 3
+### P-68 · A managed preview that failed is tried again and says why, and a gate that cannot succeed is not offered · Lane: **A2** (moved from A3 at 02:00 IST 09-04, ahead of P-70: A3 silent since 00:47) · Status: CODE DONE (3e340b629; A2 reports 14,040 / 0 / 0, tsc 0; A1 suite running; publish, then the deferral cleared and the retry read) · Moves: 1, 3
 
 **Why.** The live walk above. The path to an honest Ship is blocked by a preview deploy that
 failed once with no recorded reason and is never retried, while the release gate keeps offering
@@ -7268,7 +7268,7 @@ that visit (re-run: rows newer than the stamp). Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
 
 
-### P-70 · The read-heavy surfaces name their workspace · Lane: **A2** (after P-69) · Status: READY · Moves: 1
+### P-70 · The read-heavy surfaces name their workspace · Lane: **A2** (after P-69) · Status: IN PROGRESS (part one 695403959: analytics 14 to 0; baseline 155 across 78 files; dashboard, approvals-queue, discovery, threads next) · Moves: 1
 
 **Why.** P-67's ratchet holds 186 bare reads across 81 files. The ones a person compares across
 workspaces are the ones that borrow another desk first: `analytics.functions` 14, `dashboard` 7,
