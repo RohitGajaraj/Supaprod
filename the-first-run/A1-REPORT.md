@@ -389,3 +389,10 @@ exists. Running the Build path once exposed nine defects that reading never woul
 loop that has been writing duplicate specs and prototypes for weeks; eight are fixed and published,
 the ninth is in hand. The honest run stands at the first human gate: PR #4's merge, the founder's
 decision. The 15 September call stands.
+
+**Checkpoint, 2026-09-03 07:50 IST.** Twenty-four packets done and live; three more code-done and
+pending a live read. The instrumented run (`2fdf93b6`) exposed and paid for eleven Build-path
+defects, all fixed and published, and now rests where the driver put it. **The honest run is the
+founder's next sentence on Start after PR #4 is merged or declined**: a fresh track on the fixed
+driver, with nobody pressing anything, is the 6 September question's subject. The forecast grader
+fires at 11:30 IST; P-21's three playbook files appear on the next pull request a Build seat opens.
