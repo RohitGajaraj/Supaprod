@@ -6026,7 +6026,64 @@ and today it cannot look at the world.
       A1 on the Learn tab and in `forecast_resolution_log`.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
-**Report (A2 writes):** —
+**Report (A2 writes):** `7107fbaee`. Full console suite on the tip **13,890 pass / 0 fail / 0 error**,
+tsc 0.
+
+**The kit.** Post-decision signals in the decision's workspace and product, the linked spec's settled
+outcome, and the deployments of its changeset with `status` and `failure_reason`. Assembled by us and
+handed over as text.
+
+**Dated after the DECISION, not the horizon**, and that is the one judgement call in the packet worth
+recording: evidence that predates the call cannot be its result. Reading from the horizon backwards
+would have let a forecast be graded against the very rows it was made ON, which is re-reading its
+rationale and calling that a verdict.
+
+**Deployments earned their place.** A forecast about a change that never shipped is **inconclusive,
+not a miss**, and nothing the grader could previously read told those two apart. `failure_reason` is
+carried because "it shipped and broke" and "it never shipped" are different answers to the same
+question.
+
+**Two things deliberately kept out.**
+
+*The loop's own writing*, by P-41's rule. A grader marking its own homework is that defect with a
+verdict attached, which is strictly worse: it ends on the record as a **proven** call. On the
+workspace the team walks, 96 of 277 signals are seats' own writing, so this is not hypothetical.
+
+*Tools.* The kit is four reads, no writes, no search. A grader that can go looking for something that
+settles the claim, after seeing the question, is precisely what
+`trg_decisions_forecast_immutable` prevents one field over: *"choosing the test after seeing the
+result settles nothing."*
+
+**A verdict that names no source is not a verdict.** Every row carries the id the model must cite,
+and `citedRows` matches against ids it was **shown**, so a rationale cannot claim a source that was
+never in front of it, and a model reasoning from its own priors names nothing and is caught. Cite
+nothing and the verdict is coerced to `inconclusive` at confidence 0.
+
+**THE TWO SILENCES ARE NAMED SEPARATELY**, because they are different reports about the desk and the
+second is the worse one:
+
+| what happened | what the draft says |
+|---|---|
+| the kit was empty | *Graded without evidence. Nothing dated after this decision could be read.* |
+| it read rows and cited none | *Graded without naming a source. The verdict cited none of what it was shown.* |
+
+**The Learn tab** shows what it read, with the rows the verdict leaned on marked **Used** rather than
+merely rendered darker, because colour alone is not a fact. `read` and `cited` are stored apart: "it
+saw nine things and leaned on two" and "it saw two things" are different facts about one verdict, and
+a person deciding whether to accept a draft needs both. Absent on pre-P-42 drafts, which reads
+correctly rather than as a gap: those were graded on one line.
+
+**The settle gate is untouched.** `linkedOutcomeSettled` stays the human anchor, per the revised
+ruling.
+
+**For the live read.** Any decision whose only post-decision evidence is those 96 agent-written rows
+will come back inconclusive **by design rather than by failure**. A decision that actually grades
+needs a real connector or a deployment inside its window; worth picking one deliberately rather than
+reading the first that comes due.
+
+**Four guards needed updating rather than satisfying**, all of them mine from earlier the same day,
+and each was correctly catching a contract I had changed: the prompt's `evidence` argument became a
+kit, and the no-evidence coercion moved from "was there anything to read" to "did it use any of it".
 **Blockers (A2 writes):** —
 
 ### P-37 · The run screen reads as a product, not a dump of text · Lane: **A2** · Status: READY (the honest run walked once, 14:12 to 15:10 IST); A2 after the rest of P-04 · Moves: 5
