@@ -131,3 +131,59 @@ describe("the two surfaces read one source", () => {
     expect(DEPLOY).toContain("PREVIEW_HOST_VARS");
   });
 });
+
+describe("try the preview again is a real action (P-68b)", () => {
+  const DEPLOY = code(readFileSync("src/lib/deployments.functions.ts", "utf8"));
+  const RUN2 = code(readFileSync("src/components/track/TrackRun.tsx", "utf8"));
+
+  /** The function's body, bounded at both ends (F-191). */
+  const FN = (() => {
+    const from = DEPLOY.indexOf("export const retryPreviewNow");
+    const to = DEPLOY.indexOf("\nexport const ", from + 1);
+    return DEPLOY.slice(from, to === -1 ? DEPLOY.length : to);
+  })();
+
+  it("exists at all, so the sentence's own instruction is not empty", () => {
+    // P-68's line ends "then press Try again" and there was nothing to press.
+    expect(FN.length).toBeGreaterThan(200);
+    expect(RUN2).toContain("retryPreview.mutate()");
+    expect(RUN2).toContain("Try the preview again");
+  });
+
+  it("ignores the sweep's retry window, and nothing else", () => {
+    // The window stops an automatic loop paying for a deploy every two minutes.
+    // None of that applies to a person who has read the reason and acted on it.
+    expect(FN).not.toContain("HOSTED_PREVIEW_RETRY_WINDOW_MS");
+    expect(FN).not.toContain("HOSTED_PREVIEW_RETRY_BACKOFF_MS");
+    // Same row, same slot, so a success is a preview /ship and R-27 can see.
+    expect(FN).toContain('onConflict: "changeset_id,environment,commit_sha"');
+    expect(FN).toContain('environment: "preview"');
+  });
+
+  it("writes a reasoned row EVEN WHEN THE ATTEMPT THROWS", () => {
+    // resolveGitHub, collectRepoFiles and deployChangesetApp each throw before
+    // any row exists. That is exactly how the 06:44 attempt left a NULL reason.
+    expect(FN).toContain("} catch (e) {");
+    expect(FN).toContain("The attempt failed before it reached the host.");
+    // The upsert is OUTSIDE the try, so no failure path skips it.
+    expect(FN.indexOf("} catch (e) {")).toBeLessThan(FN.indexOf('.from("deployments").upsert'));
+  });
+
+  it("never writes a failure with an empty reason", () => {
+    expect(FN).toContain("The host refused the deploy and gave no reason for it.");
+    expect(FN).toContain("failure_reason: ok ? null : reason");
+  });
+
+  it("says 'ran and could not be recorded' rather than 'failed'", () => {
+    // The deploy may genuinely have gone out. Those are different facts.
+    expect(FN).toContain("The attempt ran and could not be recorded");
+  });
+
+  it("marks the row as a person's, not the tick's", () => {
+    expect(FN).toContain('triggered_by: "person"');
+  });
+
+  it("refreshes the sentence it just corrected", () => {
+    expect(RUN2).toContain('queryKey: ["why-ship-stopped", trackId]');
+  });
+});

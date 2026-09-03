@@ -1945,3 +1945,162 @@ export async function shipHasASuccessfulPreview(
     return { ok: true, why: "", lastFailure: null };
   }
 }
+
+/**
+ * ── "TRY THE PREVIEW AGAIN", AS A REAL ACTION (P-68b) ────────────────────
+ *
+ * P-68 made the hold card say what stopped Ship and offer *Try the preview
+ * again*. A1 read the served build at 03:58 and found the offer is empty for
+ * the one track that needs it: `ci-poll-tick` retries a failed preview only
+ * while the FIRST recorded attempt is younger than
+ * `HOSTED_PREVIEW_RETRY_WINDOW_MS` (ci-poll-tick.ts:513), and the tablet
+ * changeset's first attempt was 06:44 UTC the previous day. It is stranded for
+ * good, as is every failure older than an hour.
+ *
+ * That window is RIGHT for the sweep and wrong for a person. Its whole job is
+ * to stop an automatic loop paying for a repo-tree read and a deploy every two
+ * minutes forever. None of that reasoning applies to somebody pressing a
+ * button: they have read the reason, they have done something about it, and
+ * they are asking once.
+ *
+ * SO THIS IGNORES THE WINDOW AND NOTHING ELSE. It is the same deploy the tick
+ * performs, writing the same row into the same `(changeset_id, environment,
+ * commit_sha)` slot, so a success here is a preview `/ship` and R-27 can both
+ * see. What it does not share is the bound that exists to protect the sweep
+ * from itself.
+ *
+ * ── IT WRITES A ROW EITHER WAY, INCLUDING WHEN IT THROWS ─────────────────
+ *
+ * The lesson of P-68, restated where it now matters most: the paths that write
+ * NO row are the ones that leave a person with nothing to read and the backoff
+ * with nothing to measure. Every failure here -- an unreadable repo, a missing
+ * entrypoint, an absent token, a refused provider -- lands in `failure_reason`
+ * as words. The press must never be spent for silence.
+ */
+export const retryPreviewNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{ ok: boolean; reason: string | null; url: string | null }> => {
+      const { supabase, userId } = context;
+      const db = supabase as unknown as SupabaseClient;
+
+      /* The track's newest changeset, the same one the tick would have retried. */
+      const { data: runRows } = await db
+        .from("agent_runs")
+        .select("mission_id")
+        .eq("track_id", data.trackId)
+        .not("mission_id", "is", null);
+      const missionIds = [
+        ...new Set(((runRows ?? []) as { mission_id: string | null }[]).map((r) => r.mission_id)),
+      ].filter((m): m is string => !!m);
+      if (missionIds.length === 0) {
+        return { ok: false, reason: "This run has no build behind it to preview.", url: null };
+      }
+
+      const { data: csRows } = await db
+        .from("studio_changesets")
+        .select("id,repo,workspace_id,product_id,status,created_at")
+        .in("mission_id", missionIds)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const cs = ((csRows ?? []) as Array<Record<string, unknown>>)[0];
+      if (!cs) {
+        return { ok: false, reason: "This run has no change to preview.", url: null };
+      }
+      if (!cs.repo) {
+        return {
+          ok: false,
+          reason: "This change names no repository, so there is nothing to deploy.",
+          url: null,
+        };
+      }
+
+      /*
+       * ONE `try` AROUND THE WHOLE ATTEMPT, and it is the point of the function.
+       * `resolveGitHub`, `collectRepoFiles` and `deployChangesetApp` can each
+       * throw before any row exists, which is exactly how the 06:44 attempt left
+       * a NULL reason. Whatever comes out of here becomes words in the row.
+       */
+      let ok = false;
+      let url: string | null = null;
+      let reason: string | null = null;
+      let headSha: string | null = null;
+      try {
+        const gh = await resolveGitHub({
+          userId,
+          workspaceId: (cs.workspace_id as string | null) ?? null,
+          productId: (cs.product_id as string | null) ?? null,
+          userClient: db,
+        });
+        const refRes = await fetch(
+          `https://api.github.com/repos/${cs.repo as string}/git/ref/heads/main`,
+          {
+            headers: { Authorization: `Bearer ${gh.token}`, Accept: "application/vnd.github+json" },
+          },
+        );
+        if (!refRes.ok) {
+          throw new Error(
+            `The repository's main branch could not be read (${refRes.status}), so there is nothing to deploy.`,
+          );
+        }
+        headSha = ((await refRes.json()) as { object: { sha: string } }).object.sha;
+        const files = await collectRepoFiles({
+          token: gh.token,
+          repo: cs.repo as string,
+          ref: headSha,
+        });
+        const result = await deployChangesetApp({
+          workspaceId: (cs.workspace_id as string) ?? "",
+          changesetId: cs.id as string,
+          files,
+          production: false,
+        });
+        ok = result.ok;
+        url = result.url;
+        reason = result.ok
+          ? null
+          : (result.reason ?? "The host refused the deploy and gave no reason for it.");
+      } catch (e) {
+        ok = false;
+        reason = e instanceof Error ? e.message : "The attempt failed before it reached the host.";
+      }
+
+      /*
+       * The row is written even when the head could not be read, because a press
+       * that produced nothing readable is the defect this packet exists to end.
+       * `commit_sha` falls back to the changeset id so the upsert has a key: it
+       * is not a commit, and it is not claimed to be one anywhere that reads it.
+       */
+      const { error: depErr } = await db.from("deployments").upsert(
+        {
+          user_id: userId,
+          workspace_id: cs.workspace_id,
+          product_id: (cs.product_id as string | null) ?? null,
+          changeset_id: cs.id,
+          provider: "deno",
+          environment: "preview",
+          status: ok ? "success" : "failure",
+          commit_sha: headSha ?? (cs.id as string),
+          deploy_url: url,
+          triggered_by: "person",
+          deployed_at: new Date().toISOString(),
+          failure_reason: ok ? null : reason,
+        } as never,
+        { onConflict: "changeset_id,environment,commit_sha" },
+      );
+      if (depErr) {
+        /* The deploy may genuinely have gone out. Saying it was not recorded is
+           the honest half, and it is different from saying it failed. */
+        return {
+          ok: false,
+          reason: `The attempt ran and could not be recorded: ${depErr.message}`,
+          url,
+        };
+      }
+      return { ok, reason, url };
+    },
+  );

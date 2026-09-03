@@ -126,7 +126,16 @@ describe("the read behind it", () => {
   });
 
   it("reads and never writes, so looking at a tab cannot spend money", () => {
-    const fn = READ.slice(READ.indexOf("export const previewForChangeset"));
+    /*
+     * BOUNDED AT BOTH ENDS (F-191). This sliced to the END OF THE FILE, so
+     * `retryPreviewNow` -- appended below it by P-68b and legitimately an upsert
+     * -- became part of the function under test, and this guard failed naming a
+     * function that had not changed. Sixth site of that family.
+     */
+    const from = READ.indexOf("export const previewForChangeset");
+    const to = READ.indexOf("\nexport const ", from + 1);
+    expect(from).toBeGreaterThan(-1);
+    const fn = READ.slice(from, to === -1 ? READ.length : to);
     for (const write of [".insert(", ".update(", ".upsert(", ".delete("]) {
       expect(fn, `previewForChangeset must not ${write}`).not.toContain(write);
     }

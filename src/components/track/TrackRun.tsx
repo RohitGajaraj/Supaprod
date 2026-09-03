@@ -100,6 +100,7 @@ import { whyShipStopped } from "@/lib/deployments.functions";
 import { checkForecastObservable } from "@/lib/spine/track.functions";
 import { TheCallIsYours } from "@/components/track/TheCallIsYours";
 import { buildOnYourWord } from "@/lib/spine/track.functions";
+import { retryPreviewNow } from "@/lib/deployments.functions";
 import {
   shipStopFrom,
   shipStopLine,
@@ -782,6 +783,19 @@ export function TrackRunLeft({
    */
   const shipStop = shipStopped.isSuccess ? shipStopFrom(shipStopped.data?.failureReason) : null;
 
+  /* P-68b. The offer in the hold card, as a real action. It ignores the sweep's
+     retry window and nothing else, and it writes a reasoned row either way. */
+  const fRetryPreview = useServerFn(retryPreviewNow);
+  const retryPreview = useMutation({
+    mutationFn: () => fRetryPreview({ data: { trackId } }),
+    onSuccess: () => {
+      /* The hold card reads the newest failed deployment, so it is stale the
+         instant this lands, whichever way it went. */
+      void qc.invalidateQueries({ queryKey: ["why-ship-stopped", trackId] });
+      void qc.invalidateQueries({ queryKey: ["track", trackId] });
+    },
+  });
+
   const holdWayOut = wayOut(
     track?.holdReason,
     { undo: Boolean(holdTakeOver?.undoTo), handback: Boolean(holdTakeOver?.handback) },
@@ -1118,9 +1132,39 @@ export function TrackRunLeft({
               <Row
                 lead={holdWayOut.next}
                 sub={
-                  holdWayOut.onThisScreen
-                    ? "Both of those are under Take it over, just below."
-                    : undefined
+                  retryPreview.isError
+                    ? `That did not run: ${(retryPreview.error as Error).message}`
+                    : retryPreview.data && !retryPreview.data.ok
+                      ? `It ran and failed: ${retryPreview.data.reason ?? "no reason was given."}`
+                      : holdWayOut.onThisScreen
+                        ? "Both of those are under Take it over, just below."
+                        : undefined
+                }
+                action={
+                  /*
+                   * ── THE OFFER BECOMES A CONTROL (P-68b) ──────────────────
+                   *
+                   * P-68's sentence ends "then press Try again", and until now
+                   * there was nothing to press: `ci-poll-tick` retries only
+                   * while the FIRST recorded attempt is younger than the retry
+                   * window, so the tablet track -- whose first attempt was
+                   * 06:44 UTC the previous day -- was stranded for good, along
+                   * with every failure older than an hour.
+                   *
+                   * That window is right for the sweep and wrong for a person:
+                   * it exists to stop an automatic loop paying for a deploy
+                   * every two minutes, and somebody who has read the reason and
+                   * acted on it is asking once.
+                   *
+                   * The result is said HERE rather than in a toast, because the
+                   * sentence above is what it corrects: a failed retry writes a
+                   * new reason and this line reads it back.
+                   */
+                  shipStop ? (
+                    <Action busy={retryPreview.isPending} onClick={() => retryPreview.mutate()}>
+                      {retryPreview.isPending ? "Trying the preview" : "Try the preview again"}
+                    </Action>
+                  ) : undefined
                 }
               />
             ) : null}
