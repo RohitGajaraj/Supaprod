@@ -6380,6 +6380,11 @@ renders through `SeatSays` and never in the imperative.
 - [ ] A1 reads one chat with two seat turns and a folded tool result on the served build.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
+**A1, 21:16 IST.** Suite on the tip 13,910 / 0 / 0, tsc 0; published 21:16. A3's finding stands as
+the rule: `SeatSays` is the short declarative register, `Answer` keeps the crew's prose with
+markdown under the 2026-07-30 ruling. The live read (a chat with two seat turns and a folded
+landings list) follows propagation.
+
 **Report (A3 writes):** Pushed `b0b8cac81`. `AskTurn` composes `SeatSays` for its three genuinely
 short, first-person, no-markdown seat statements — "Sent back", the failed-plan note, the
 record-was-empty honest-absence line — each was a hand-styled inline `<p>` before, each is now
