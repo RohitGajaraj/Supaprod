@@ -1071,7 +1071,7 @@ with a source id on every row, and it does not sit at Sense.
 
 ## R-38 · A surface without a door is not shipped. (2026-09-04)
 
-**Ruled by A1 at 01:10 IST under the founder's standing authority of 00:09 and his direction of
+**Ruled by A1 at 00:45 IST under the founder's standing authority of 00:09 and his direction of
 00:08** ("for certain things there is no home, an entry point, or doors; where do approvals go,
 where do brain insights go"). Evidence: `the-first-run/PLATFORM-AUDIT.md`. On the served
 build the rail holds two doors (Start, Run) and seven surfaces are reachable only by URL, by a

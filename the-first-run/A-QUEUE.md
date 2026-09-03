@@ -6929,8 +6929,8 @@ migration via the Lovable MCP; A1 confirms the ledger row and the population (ex
 twin live specs, and the heading's design-gate count down by the twins). Then P-59.
 
 
-**A1, 01:40 IST 09-04.** P-57b on main at 948e440a2 (A2: 13,978 / 0 / 0, tsc 0; A1 suite on the
-tip 13,978 / 0, tsc 0). Published 01:40. Verified by object before the push: trigger
+**A1, 00:50 IST 09-04.** P-57b on main at 948e440a2 (A2: 13,978 / 0 / 0, tsc 0; A1 suite on the
+tip 13,978 / 0, tsc 0). Published 00:50. Verified by object before the push: trigger
 `close_design_gate_on_supersede` on `spine_track_members`; 0 twin tracks; 0 pending gates on
 superseded specs; Helio pending gates 35 to 21, and the served heading already read 21 at 00:35.
 Nine of the 21 had been superseded properly and were still asking, so supersession had never
@@ -7085,7 +7085,7 @@ finds it and lands on it. Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 publishes and searches five things.
 
 
-### LIVE WALK, A1, 01:35 IST 09-04 · the second sentence, in a workspace with nothing in it
+### LIVE WALK, A1, 00:45 IST 09-04 · the second sentence, in a workspace with nothing in it
 
 Workspace `a1-delete-probe` (no sources, no product, no runs), sentence "Reduce the time a
 homeowner spends on the address step at checkout", typed with focus proven, Start pressed 19:07:35
@@ -7106,7 +7106,7 @@ filed*. A1 inserted the owner's member row at 19:07:12 UTC and pressed again.
 
 ### P-65 · An owner can start work in their own workspace, and a refusal says why · Lane: **A3** (after P-61) · Status: READY · Moves: 1, 2
 
-**Why.** Live 01:15 IST 09-04: in a workspace whose owner has no `workspace_members` row, Start
+**Why.** Live 00:35 IST 09-04: in a workspace whose owner has no `workspace_members` row, Start
 threw `Forbidden: not a member of this workspace` (`resolveStartWorkspace`,
 `src/lib/spine/track.functions.ts`), and `messageForPerson` (`error-copy.ts`) dropped the
 sentence as machine copy, so the page read *Nothing was started · Your sentence is still in the
@@ -7129,7 +7129,7 @@ user it refuses with the sentence above. Full suite on the tip, tsc 0.
 
 ### P-66 · The shell's live line reads the workspace it is standing in · Lane: **A2** (after P-59, before P-60) · Status: READY · Moves: 1, 2
 
-**Why.** Live 01:20 IST 09-04, in the empty probe workspace: the header read *1 decision is ready
+**Why.** Live 00:37 IST 09-04, in the empty probe workspace: the header read *1 decision is ready
 for you · What we expected did not happen: Decline shipping ...*. Both facts are Helio Labs'.
 `listTracks` and `listGatesOnTracks` (`track.functions.ts:459`, `:670`) filter `status = open` with
 no workspace predicate, so the shell reads every open track the person can see across all their
@@ -7255,7 +7255,7 @@ which is what caught the drop before it shipped.
 
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
 
-**A1, 01:40 IST 09-04.** The first real verdict lands after 12:00 UTC 09-04, not 06:00: 34 of the 40 due forecasts sit in sample workspaces the tick skips, and the six Helio rows are backed off to 12:00:06 UTC by the redraft backoff (A2 read the rows). A1 reads `forecast_resolution_log` after 17:30 IST.
+**A1, 00:50 IST 09-04.** The first real verdict lands after 12:00 UTC 09-04, not 06:00: 34 of the 40 due forecasts sit in sample workspaces the tick skips, and the six Helio rows are backed off to 12:00:06 UTC by the redraft backoff (A2 read the rows). A1 reads `forecast_resolution_log` after 17:30 IST.
 
 **Why.** P-04's live read (A2, 837c08deb): the forecast grader is handed the claim, the observable,
 the horizon and one line of evidence, the linked spec's settled outcome, and with no linked spec that

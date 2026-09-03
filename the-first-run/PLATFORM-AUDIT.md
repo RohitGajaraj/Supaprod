@@ -1,6 +1,6 @@
 # Platform audit, 2026-09-04: where each thing lives, and which have no door
 
-> _A1, 00:30 to 01:10 IST, on the served build (`supaprod.ai`, signed in as the demo owner, Helio
+> _A1, 00:20 to 00:45 IST, on the served build (`supaprod.ai`, signed in as the demo owner, Helio
 > Labs / Relay). Every reading below is from the DOM of the served page, not from the source. The
 > founder asked for this at 00:08: "For certain things, there is no home, an entry point, or doors.
 > Where do approvals go? Where do brain insights go?" This is the answer, and the packets it makes._
@@ -21,7 +21,7 @@ decision, what it expected, what happened" (Outcomes). No links; every door is a
 **So the map, surface by surface** (inbound = files in `src` that name the route, tests and the
 route's own file excluded):
 
-| Surface | Route | What it said on arrival (served, 00:40 to 01:05 IST) | Door from the rail | Door from Start | Shortcut | ⌘K | Inbound refs |
+| Surface | Route | What it said on arrival (served, 00:25 to 00:40 IST) | Door from the rail | Door from Start | Shortcut | ⌘K | Inbound refs |
 |---|---|---|---|---|---|---|---|
 | Start | `/start` | "Your runs" | yes | is home | `g t` | no | 27 |
 | Run | `/track/$id` | the run screen (P-37) | yes ("Run") | each row | no | yes (runs only) | 12 |
