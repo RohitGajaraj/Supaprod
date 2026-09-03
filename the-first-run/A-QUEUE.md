@@ -4932,3 +4932,27 @@ applied by A2 through the Lovable MCP under rule 12, ledger row confirmed by A1.
 
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
+
+
+### P-35 · No reader selects a vector it will never render · Lane: **A3** · Status: READY · Moves: 2, 3
+
+**Why.** P-32 found `listThemes` selecting `*` on `themes`, which carries a pgvector `embedding`:
+2.6 MB of a 2.75 MB response for 138 rows, rendered nowhere. `listSignals` has the same shape on
+`signals.embedding` (A3, flagged, not on `/start`). Every table with an embedding column is one
+`select("*")` away from the same wall, on whichever screen calls it next.
+
+**Scope.** Census: every table with a `vector` column (information_schema, through the Lovable
+MCP, read-only), and every `.select("*")` or `select()` with no column list against those tables in
+`src`. Fix each reader to name its columns. Then a guard in the suite: no query builder in `src`
+selects `*` from a table that has a vector column (the schema-against-queries test from
+`c7410c869` already parses both; extend it), and a second guard that the embedding column is never
+in a client-facing select. `listSignals` first.
+
+**Acceptance.**
+- [ ] Census in the Report with bytes before and after for each reader on Helio Labs.
+- [ ] The two guards fail when a `select("*")` against a vector table is reintroduced (proven by
+      reintroducing one).
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
