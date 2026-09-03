@@ -439,3 +439,19 @@ founder's. Also live this hour: P-16b (the field names the product and offers th
 sentence sounds like), P-36 (the gate on screen on arrival), P-39 (a delete that matched nothing
 says so; an owner without a member row can delete; the deploy-reason part is redirected to the
 path that failed). The date call does not move.
+
+**Checkpoint, 2026-09-03 16:45 IST. Seventy percent, and the pace is the lanes'.** Since 15:40:
+P-32 is done on the served build by its own marks (warm, the runs answer lands at 1.2 s; the cold
+Worker's 5 s first byte is a hosting matter for the founder, filed as a launch item); P-42 is
+built, tested and published, so from the 06:00 UTC tick the horizon verdict names what it read or
+stays inconclusive; P-37 has its design walked and its three Meridian components landed with their
+reasoning, the surfaces next; P-43 (the run screen's states say one thing) is published; P-39's
+delete fix and the failed preview's reason are live. The queue was rebalanced at 16:10 so A3 holds
+four specified packets (P-43, P-44, P-38, P-34) and A2 holds the two that need judgment (P-37, and
+P-42's live read). One ruling of A1's was reversed on A2's evidence and recorded (P-04: the settle
+gate stays). **Of 44 packets, 34 are done with evidence; about 70 percent by weight.** The 30
+percent, in order: a real Ship end to end (the founder's release gate is unanswered since 12:13
+and the preview provider is Supaprod's own Deno hosting), the second honest run under Relay (the
+founder's sentence, not yet typed), the run screen's surfaces (P-37), the grader's first real read
+(tomorrow 06:00 UTC), and the outward pass against the evidence number. The date call holds:
+23 September, and a real Ship by 8 September is what keeps it.
