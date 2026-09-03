@@ -227,6 +227,66 @@ unsettled note is the composer, above.
 
 ---
 
+## 5. The Ask panel's gate cards
+
+**A fourth card dialect, found on the served build** (A1, 21:35 IST). An answer in the Ask panel
+lists the pending design gates as cards of the panel's own making:
+
+```
+  ┌──────────────────────────────────────────────────┐
+  │  ● Waiting on you                                │   ← the chip the run's card just lost
+  │  Approve the mockup for the address step?        │
+  │  The generated mockup is waiting on your call    │
+  │  before this spec can dispatch to Build          │
+  │                                                   │
+  │  [ Approve ]  [ Send it back ]      [ Not now ]  │   ← three answers
+  └──────────────────────────────────────────────────┘
+```
+
+Everything on it is true. It is the same defect as §1 in a second place: a surface composing its own
+card because there was no shared one to reach for. **There is now**, so this is `Ask`.
+
+### The ruling on the third answer
+
+This card has **three genuine verdicts** and the doc allows two registers, so the question is real
+rather than cosmetic: `approve`, `reject` and `snooze` are three different things a person can do,
+and none is a duplicate of another.
+
+**They are not three ANSWERS.** Two of them answer the question and one of them declines to:
+
+| | what it is | where it belongs |
+|---|---|---|
+| **Approve** | the answer | the primary |
+| **Send it back** | the other answer, in the other register | the quiet answer |
+| **Not now** | **what silence already does**, made pressable | the default line's own action |
+
+_Not now_ writes a snooze, and a snooze is the declared default arriving early. The card already
+says what happens if nobody answers; pressing _Not now_ is choosing that outcome deliberately rather
+than by walking away. Rendering it as a third button puts a non-answer in the row where the answers
+are, and it is the reason a person reading this card has to decide between three things when only
+two of them are decisions.
+
+So it renders **on the default line, as that line's own quiet action**:
+
+```
+  Approve the mockup for the address step?              ← question, t-lead
+
+  Discovery Scout could not proceed without it.         ← reason, the seat's
+
+  Waiting on you since 09:14. Nothing dispatches         ← the DECLARED DEFAULT, mono
+  until you answer.                        [ Not now ]  ← and its own action, quiet
+
+  ┌───────────┐  ┌────────────────┐
+  │  Approve  │  │  Send it back  │                     ← two answers, two registers
+  └───────────┘  └────────────────┘
+```
+
+**The chip goes**, for the reason the run's gate card lost the same one: a card that is asking IS the
+waiting, and the line below says since when.
+
+**This is a rule about the component, not about this card**, so it is written into `Ask` rather than
+into the panel: a slot for the default's own action, and no fourth answer slot to put it in.
+
 ## What this needs from Meridian
 
 Nothing forked, nothing local. In `meridian/**` with its reasoning:
