@@ -7208,7 +7208,7 @@ running* with no borrowed fact); in Helio Labs it reads Helio's. Full suite on t
 **DoD.** Pushed; suite number per rule 17; A1 reads both workspaces live.
 
 
-### P-59b · A Ship that cannot deploy holds as waiting-on-a-person, in the record · Lane: **A3** (after P-58) · Status: READY · Moves: 1
+### P-59b · A Ship that cannot deploy holds as waiting-on-a-person, in the record · Lane: **A3** (after P-58) · Status: CLAIMED (A3) · Moves: 1
 
 **Why.** P-59 made the screen say *Ship has no preview host. Set DENO_DEPLOY_TOKEN and
 DENO_DEPLOY_ORG on the Lovable project, then press Try again.* The record still says
