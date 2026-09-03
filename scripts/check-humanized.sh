@@ -263,6 +263,17 @@ consume_scanner() {
 }
 
 scan_file_args() {
+  # P-47 (A-QUEUE.md): an explicit path is scanned WHATEVER ITS EXTENSION.
+  # TEXT_EXT_RE governs the staged-diff sweep only (scan_staged_diff, below) --
+  # it is the "which files does the automatic sweep even look at" filter, not a
+  # statement about which file TYPES this scanner can handle. Naming a file on
+  # the command line is itself the opt-in the header above documents; gating
+  # that opt-in on the same extension list it exists to bypass made the
+  # documented escape hatch for a markdown-authored public page a no-op --
+  # confirmed with a one-line .md containing a bare em dash, reported clean.
+  # GENERATED_RE and TEST_RE still apply here: those exclude a category of
+  # content (build output, fixtures asserting the ban itself), not an
+  # extension, and that reasoning holds regardless of how the file was named.
   local f n line tmp
   tmp="$(mktemp)"
   for f in "$@"; do
@@ -270,7 +281,6 @@ scan_file_args() {
       printf 'check-humanized: not a file, skipping: %s\n' "$f" >&2
       continue
     fi
-    [[ "$f" =~ $TEXT_EXT_RE ]] || continue
     [[ "$f" =~ $GENERATED_RE ]] && continue
     [[ "$f" =~ $TEST_RE ]] && continue
     # Emit "<lineno>\t<line>" for every line, scan, capture, then consume in the
