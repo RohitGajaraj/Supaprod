@@ -6,6 +6,54 @@ import {
   dueCheckFilter,
   type ForecastResolution,
 } from "./forecast-resolution";
+import {
+  aboutOurOwnPaperwork,
+  whyItCannotBeGraded,
+  CANNOT_BE_GRADED,
+} from "@/lib/spine/a-forecast-about-our-own-paperwork";
+import { TOOL_REGISTRY } from "@/lib/ai/tools/registry.server";
+
+/**
+ * ── EVERY RESOLUTION FILES A ROW, THE GRADER'S INCLUDED ───────────────────
+ *
+ * `forecast_resolution_log` had two writers, the reopen path and the
+ * `learning.record` tool, and NEITHER is on a scheduled path. So the log held a
+ * history of verdicts taken back with no history of verdicts made, and its
+ * emptiness was repeatedly misread as evidence the tick was broken. It was not:
+ * the tick had simply never been able to write here.
+ *
+ * `reopened_by` and `reopened_at` belong to the reopen path and stay null, which
+ * reads correctly: this row is the verdict being made, not unmade.
+ *
+ * A FAILED LOG WRITE DOES NOT FAIL THE SETTLE. The verdict is already committed
+ * on `decisions` by the time this runs, and throwing here would leave the row
+ * settled with the caller told it failed, which is worse than a missing log
+ * line. It is recorded and swallowed.
+ */
+async function fileResolutionRow(
+  supabase: SupabaseClient,
+  input: {
+    decisionId: string;
+    workspaceId: string | null;
+    resolution: string;
+    rationale: string;
+    nowIso: string;
+  },
+): Promise<void> {
+  const { error } = await supabase.from("forecast_resolution_log").insert({
+    decision_id: input.decisionId,
+    workspace_id: input.workspaceId,
+    resolution: input.resolution,
+    resolution_rationale: input.rationale.slice(0, 2000),
+    resolved_at: input.nowIso,
+    resolved_by_agent_slug: AUDITOR_SLUG,
+  } as never);
+  if (error) {
+    console.error(
+      `[forecast-audit] settled ${input.decisionId} but its log row was not written: ${error.message}`,
+    );
+  }
+}
 
 // FC-01, the grading half. This drafts a verdict for every due forecast and
 // promotes only the gated subset. It never decides a forecast the gate refuses.
@@ -26,6 +74,15 @@ const AUDIT_BATCH = 10;
 
 /** Stamped onto every verdict this module promotes, so the set is one query. */
 export const AUDITOR_SLUG = "forecast-auditor" as const;
+
+/**
+ * How long a forecast that drafted but could not settle waits before it is
+ * redrafted. Six hours is the tick's own cadence, so this is "not every tick"
+ * rather than a new schedule; a day is long enough that a row nobody can settle
+ * stops costing four calls a day and short enough that a spec settled this
+ * afternoon is regraded tonight.
+ */
+const REDRAFT_BACKOFF_MS = 24 * 60 * 60 * 1000;
 
 const AUDIT_SYSTEM = `You judge whether a forecast came true. You are given what a team expected, the observable they chose to settle it, and what is known now.
 Rules:
@@ -94,7 +151,12 @@ type DueRow = {
  * agent-settled outcome satisfied "a person already judged this" and the chain
  * became agent-judges-outcome then agent-judges-forecast, with no human anywhere
  * in it. Nothing caught this because the auto leg has never executed: it is
- * gated on `auto_derive_enabled`, which no code in this repo can set.
+ * gated on `auto_derive_enabled`. THAT CLAUSE IS ITSELF NOW STALE, twice over,
+ * and is kept only because the sentence around it records real history: Settings
+ * has written that flag since 2026-08-14, and since `1a3b2fefa` the flag no
+ * longer gates this pass at all (the horizon does not ask permission). What
+ * remains true is the reason the chain was never caught: the auto leg had not
+ * executed.
  *
  * So the gate now reads the field that records WHO settled it. `applyOutcome`
  * writes `settled_by: "human" | "agent"` into the payload, and the codebase
@@ -177,6 +239,71 @@ export async function auditDueForecasts(
      * got drafts and k+1..10 got nothing and nobody learned which.
      */
     try {
+      /*
+       * ── OUR OWN PAPERWORK IS REFUSED HERE, NOT JUST AT THE LEARN SEAT ────
+       *
+       * `aboutOurOwnPaperwork` had exactly one caller, inside `learning.record`,
+       * which fires only when a track reaches Learn and the model chooses that
+       * tool. Live: two rows ever, both 2026-08-25. So the eight self-referential
+       * forecasts on production were handed to the model like any other, came
+       * back "inconclusive" for the wrong reason, and stayed due, re-billing a
+       * paid call every six hours forever.
+       *
+       * Settling these `inconclusive` is safe in a way widening the gate is not:
+       * it is a REFUSAL to grade, not a judgment about the customer's product.
+       * Nothing about the world is being asserted, so no human judgment is being
+       * originated or displaced.
+       *
+       * BEFORE the model call, deliberately: the answer does not depend on it,
+       * and paying for a reply we will discard is the defect this closes.
+       */
+      const paperwork = aboutOurOwnPaperwork(
+        raw.forecast_how_we_will_know,
+        Object.keys(TOOL_REGISTRY),
+      );
+      if (paperwork.ourOwn) {
+        const because = whyItCannotBeGraded(paperwork.named);
+        const { data: refused, error: refuseErr } = await supabase
+          .from("decisions")
+          .update({
+            ...buildSettlePatch({
+              resolution: CANNOT_BE_GRADED,
+              rationale: because,
+              nowIso,
+              agentSlug: AUDITOR_SLUG,
+            }),
+            forecast_resolution_suggestion: {
+              verdict: CANNOT_BE_GRADED,
+              rationale: because,
+              confidence: 1,
+              drafted_at: nowIso,
+              model: "rule:a-forecast-about-our-own-paperwork",
+            },
+          } as never)
+          .eq("id", raw.id)
+          .is("forecast_resolution", null)
+          .select("id,workspace_id");
+        if (refuseErr) {
+          failed++;
+          continue;
+        }
+        if (!refused || refused.length === 0) {
+          raced++;
+          continue;
+        }
+        await fileResolutionRow(supabase, {
+          decisionId: raw.id,
+          workspaceId:
+            (refused[0] as { workspace_id?: string | null }).workspace_id ?? workspaceId ?? null,
+          resolution: CANNOT_BE_GRADED,
+          rationale: because,
+          nowIso,
+        });
+        autoSettled++;
+        drafted++;
+        continue;
+      }
+
       const link = await linkedOutcomeIsSettled(supabase, raw.prd_id);
       const res = await callModel(supabase as never, userId, {
         surface: "decision",
@@ -211,7 +338,37 @@ export async function auditDueForecasts(
         },
       };
 
-      if (canAutoSettle({ linkedOutcomeSettled: link.settled, confidence: parsed.confidence })) {
+      const willSettle = canAutoSettle({
+        linkedOutcomeSettled: link.settled,
+        confidence: parsed.confidence,
+      });
+
+      /*
+       * ── A ROW THAT CANNOT SETTLE MUST NOT BE RE-BILLED EVERY SIX HOURS ───
+       *
+       * A draft that the gate refuses leaves `forecast_resolution` null, so the
+       * row is due again on the next tick and buys another paid model call, for
+       * ever. Measured on production: eight rows, all drafting at confidence
+       * 1.0, none able to settle, at four ticks a day. Thirty-two paid calls a
+       * day producing nothing settleable.
+       *
+       * `forecast_next_check_at` is the column the queue already respects for
+       * exactly this ("a person looked and said the evidence is not in yet"), so
+       * pushing it forward reuses the established meaning rather than inventing
+       * a second one. The draft still lands and the desk still shows it; what
+       * stops is paying to redraft the same verdict every six hours.
+       *
+       * NOT A SUPPRESSION OF THE CALL. `isForecastDue` consults the frozen
+       * horizon separately, so deferring can never hide a slipped forecast, and
+       * a person settling it at the desk is unaffected.
+       */
+      if (!willSettle) {
+        patch.forecast_next_check_at = new Date(
+          Date.parse(nowIso) + REDRAFT_BACKOFF_MS,
+        ).toISOString();
+      }
+
+      if (willSettle) {
         Object.assign(
           patch,
           buildSettlePatch({
@@ -262,6 +419,15 @@ export async function auditDueForecasts(
         if (settledThisRow) autoSettled--;
         raced++;
         continue;
+      }
+      if (settledThisRow) {
+        await fileResolutionRow(supabase, {
+          decisionId: raw.id,
+          workspaceId: workspaceId ?? null,
+          resolution: parsed.verdict,
+          rationale: parsed.rationale,
+          nowIso,
+        });
       }
       drafted++;
     } catch {
