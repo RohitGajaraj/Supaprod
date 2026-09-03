@@ -6557,6 +6557,14 @@ until the date; the *On hold* chip on a calendar wait; the hold card's door wire
 sites and seen live on a no-source run. Then the founder walks the tablet track and the honest run
 and says whether it reads.
 
+**A1, 20:38 IST.** A2 resumed on the founder's word. b84ac6d22 (the composer promise for Sense
+holds only, the footer naming the date from the card's own cache, the header *Waiting on time* on a
+calendar wait): suite on the tip 13,905 / 0 / 0, tsc 0; published 20:38. A2's check says the
+19:42 read was a stale build, and the string to prove the served one is *Waiting on time* on the
+honest run. Item 5 ruled: the target exists from P-44 (`/sync?product=<id>`, the run's product
+threaded through `getTrack`); the single door renders in ArtifactPane only, verb from the state,
+and `AskInPlace` stays the picker it is for the surfaces that use it.
+
 **Acceptance.**
 - [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
       first against the mockups.
