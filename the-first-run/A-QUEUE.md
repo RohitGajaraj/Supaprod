@@ -5444,8 +5444,44 @@ applied by A2 through the Lovable MCP under rule 12, ledger row confirmed by A1.
 - [ ] `grep DISABLE TRIGGER supabase/migrations` shows no live function doing it.
 - [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report with the migration version.
 
-**Report (A2 writes):** —
-**Blockers (A2 writes):** —
+**Report (A3 writes):** Migration `20260909060000_signup_sets_the_tier_without_lowering_the_guard_for_everyone`
+applied directly through the Lovable MCP `query_database` tool (this write went through — unlike
+P-38's, which the classifier refused) and the `supabase_migrations.schema_migrations` ledger row
+confirmed for `20260909060000`. Pushed `9eec7a29f`.
+
+`protect_workspace_billing_columns` now honors a transaction-local
+`set_config('app.workspace_billing_bypass', 'on', true)` alongside its existing `service_role`
+check; `ensure_user_default_workspace` sets that GUC instead of `DISABLE TRIGGER`. `is_local` scopes
+it to the current transaction only — no table lock, invisible to every other session — so it cannot
+lower the guard for a concurrent writer even for an instant, unlike the table-wide disable it
+replaces.
+
+Verified LIVE against production, both directions, each wrapped in a transaction and rolled back
+(no data changed): (1) a non-service-role `UPDATE ... SET plan_tier` without the bypass GUC still
+reverts silently — the guard held; (2) the identical UPDATE WITH the bypass GUC set goes through —
+the signup path still works. This is the "concurrent update... still refused" test the Scope asked
+for; this repo has no DB-behavior test harness in TS to encode it as a `bun test`, so it is filed
+here as live evidence instead of invented as a fake unit test. A permanent guard IS in `bun test`:
+`a-signup-does-not-lower-the-billing-guard-for-everyone.test.ts` scans every migration file for the
+table-lock pattern reappearing in a live function (the one historical one-time backfill,
+`20260709100000`, is allowlisted by name and confirmed still on disk) and asserts the current
+`ensure_user_default_workspace`/`protect_workspace_billing_columns` definitions read the bypass GUC
+— so a future regression back to `DISABLE TRIGGER` fails the suite even with no database in CI.
+
+Also folded in, per your P-44 live-walk note: `/sync`'s header sentence read "Nothing is syncing
+yet. Point a source at something below" directly above `WorkspaceBindingsSection` reading "1
+pointed, all reading." New `syncHeadline()` reads the same `["workspace-bindings"]` cache
+`WorkspaceBindingsSection` already populates (shared query key, no second request) and only invites
+pointing a source when the count is actually zero; a workspace with something bound but no
+two-way-synced documents yet reads "Nothing is syncing as a document yet. What is pointed below is
+reading, just not through a two-way document sync." instead.
+
+Numbers on the pushed tip, re-verified after rebase (rule 17): `tsc --noEmit` 0 · `bun test` 13882
+pass / 22 skip / 37 todo / 0 fail / 36763 expect() across 999 files · 0
+`# Unhandled error between tests` · `eslint` on touched files: 0 errors (pre-existing
+`react-refresh/only-export-components` warnings only) · Meridian ratchet 5/5.
+
+**Blockers (A3 writes):** —
 
 
 ### P-35 · No reader selects a vector it will never render · Lane: **A3** · Status: DONE (A1 verified 13:58 IST) · Moves: 2, 3
