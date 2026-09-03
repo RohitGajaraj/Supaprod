@@ -6122,6 +6122,11 @@ pass in the walked workspace can read anything but seeded rows; that is a founde
 (connect one real source to Helio Labs, or accept *carried on your sentence* as the demo's normal
 path) and goes in the report. The end-to-end walk still waits on a run in a no-source hold.
 
+**A1, 18:14 IST.** The Sync header now reads from the same count as its section (*Nothing is
+syncing as a document yet. What is pointed below is reading, just not through a two-way document
+sync* over *1 pointed, all reading*), on the served build. The door and the header are done; the
+packet stays open only for the end-to-end walk on a no-source run.
+
 **Report (A3 writes):** Pushed `2f8d8631d` (rebased clean onto `a6d3039f9`, no conflicts — none of
 A2's P-37 commits touched `ArtifactPane.tsx`, `AskInPlace.tsx`, `track.functions.ts` or
 `_authenticated.sync.tsx`).
