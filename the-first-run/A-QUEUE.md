@@ -3545,6 +3545,14 @@ apart by their second line; the input is `role=combobox` with `aria-controls`, a
 `aria-activedescendant` points at `find-anything-option-2`, which is `aria-selected`. The
 results-popover is Meridian's, as A2 argued.
 
+**A1, 15:52 IST · ruling revised on A2's evidence.** The settle gate stays. A2 showed the grader
+reads exactly one line and nothing of the world, and that eight drafts graded at confidence 1.0
+with nothing behind them; widening the gate would have let that through as verdicts. What shipped
+(a verdict with nothing behind it is inconclusive at confidence 0 with the reason said; our own
+paperwork refused before the paid call; a log row per resolution; no re-billing of a row that
+cannot settle, 32 paid calls a day) is accepted; the live read is on the next 06:00 UTC tick. The
+rest of P-04's scope moves to **P-42, the grader reads evidence before it grades**, ahead of P-37.
+
 **Report (A2 writes):** Code on main at `7214a3933`. tsc 0 · `bun test` 0 fail · ratchet unchanged.
 
 **Walked first, on `supaprod.ai`, searching *address*.** Five results, every title cut at three or
@@ -5904,6 +5912,37 @@ prior one).
 
 **Blockers (A3 writes):** None. Both acceptance items marked A1's-to-walk have no live browser
 available to me this session; everything else is verified.
+
+### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: READY, **before P-37** · Moves: 1, 2
+
+**Why.** P-04's live read (A2, 837c08deb): the forecast grader is handed the claim, the observable,
+the horizon and one line of evidence, the linked spec's settled outcome, and with no linked spec that
+line reads *No linked outcome has been settled*. It has no tools and reads nothing else. Eight
+drafts came back at confidence 1.0 with nothing behind them; those are now coerced to inconclusive
+with the reason said, which is honest and is not a grader. The horizon verdict is the moat claim
+and today it cannot look at the world.
+
+**Scope.**
+1. The grader gets a read kit, no writes: signals in the decision's workspace and product dated
+   after the decision, with the loop's own writing excluded (P-41's rule); the linked spec's
+   settled outcome; deployments of the decision's changeset with their status and reason;
+   the decision's lineage; a connected analytics source where one exists, read through the
+   connector, never assumed.
+2. The verdict names what it read, row by row, or says it read nothing and stays inconclusive at
+   confidence 0. A verdict without a named source is not stored as hit or miss.
+3. The Learn tab shows the verdict with its sources under it; the settle gate
+   (`linkedOutcomeSettled`) stays as the human anchor and is not widened.
+4. A test drives a decision with two post-horizon signals and a deployment and proves the verdict
+   names all three; a second proves a decision with nothing to read stays inconclusive.
+
+**Acceptance.**
+- [ ] Both tests, named after their sentences.
+- [ ] One real decision in Helio Labs graded on the next 06:00 UTC tick with named sources, read by
+      A1 on the Learn tab and in `forecast_resolution_log`.
+- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
 
 ### P-37 · The run screen reads as a product, not a dump of text · Lane: **A2** · Status: READY (the honest run walked once, 14:12 to 15:10 IST); A2 after the rest of P-04 · Moves: 5
 
