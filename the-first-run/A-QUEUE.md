@@ -7191,6 +7191,46 @@ carries the number of reads it covers. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17.
 
+
+### LIVE WALK, A1, 01:20 IST 09-04 · the release gate, pressed under the founder's authority
+
+Tablet track `6817e386` (Ship, waiting-on-a-person since 12:13 IST 09-03 on release gate
+`0c7374b6`, `release.publish`). Pressed *Let it run* at 19:46:47 UTC. The approval executed and
+FAILED in one second: *No successful preview deploy exists for this changeset yet. Supaprod deploys
+the preview itself for a repo it hosts ... usually within about two minutes of the merge, so if
+this is such a repo, try again shortly.* The gate is consumed (`status = failed`); no new
+`deployments` row; the only one is the 06:44 UTC failure with `failure_reason` NULL. And Settings ›
+Connections › Where previews are hosted reads **Managed preview host: Configured. Ship can deploy
+a preview.** So the token IS set, A1's 00:20 line to the founder ("set DENO_DEPLOY_TOKEN") was
+wrong, and the real fault is two things the product does: it tried the managed preview once at
+06:44, recorded nothing about why it failed (pre-P-39), and never tried again; and for thirteen
+hours it offered a release gate that could not succeed, then spent the person's press on it.
+P-68 filed. The founder has nothing to set.
+
+
+### P-68 · A managed preview that failed is tried again and says why, and a gate that cannot succeed is not offered · Lane: **A3** (after P-58, before P-59b) · Status: READY · Moves: 1, 3
+
+**Why.** The live walk above. The path to an honest Ship is blocked by a preview deploy that
+failed once with no recorded reason and is never retried, while the release gate keeps offering
+*Let it run* and consumes the press on a promote that R-27 refuses without a preview.
+
+**Scope.** (1) `ci-poll-tick.ts` / `changeset-deploy.server.ts`: a merged changeset on a hosted
+repo (`supaprod.json`) with no successful preview and its last attempt older than N minutes is
+tried again, up to three attempts with backoff, each attempt writing a `deployments` row with
+`failure_reason` (P-39 item 3 already records it; make sure every failure path does, including a
+thrown error before the provider is called). (2) The release gate is not raised, and *Let it run*
+not drawn, while no successful preview exists for the changeset; the card says what is being
+waited on (*Waiting for a preview of this change; the last attempt failed: <reason>*) and offers
+*Try the preview again* instead. (3) When the preview succeeds the gate is raised as today.
+(4) Guards for 1 and 2. (5) In the report: the recorded reason for the 06:44 failure once the
+retry runs, verbatim.
+
+**Acceptance.** On the served tablet track within one tick of publish: a new `deployments` row
+with a non-null reason, or a successful preview and the gate raised; the card never offers a
+promote without a preview. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 publishes and reads the row and the card.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CODE DONE, pushed 03cbdafe0 (fixes e80ddc701's tsc break against A2's P-50 type), awaiting A1's live read · Moves: 2, 3
 
 **A1, 00:25 IST 09-04: MAIN IS RED ON TSC from 1d888c337.** Suite 13,970 / 0 on the tip, but nine
