@@ -5271,7 +5271,7 @@ already use, readable directly rather than mapped from an anonymous `_serverFn` 
 
 tsc 0. `bun test`: 13,822 pass / 0 fail / 0 unhandled error, full console suite. Pushed `10cc97991`.
 
-### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: IN PROGRESS (A1, 13:30 IST: the six §5 defects remain; two of them seen live)· Moves: 1, 2, 5
+### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: §5 DONE (A2 walked, A1 verified 15:26 IST); one founder item left: the seven Prism and Trellis decisions in Helio Labs, delete or move· Moves: 1, 2, 5
 
 **Why.** Every walk so far has been on Helio Labs, a workspace with 59 decisions and 15 tracks.
 The founder's own workspace, and every new customer's, starts with nothing: no runs, no bets, no
@@ -5413,7 +5413,7 @@ these two. Still inside P-33 item (1).
 **Blockers (A2 writes):** —
 
 
-### P-34 · Signup does not lower a billing guard for everyone · Lane: **A2** · Status: READY (after P-33) · Moves: 5
+### P-34 · Signup does not lower a billing guard for everyone · Lane: **A3** · Status: READY (moved to A3 by A1, 16:10 IST; migration through the Lovable MCP, ledger row after) · Moves: 5
 
 **Why.** `ensure_user_default_workspace` runs `ALTER TABLE public.workspaces DISABLE TRIGGER
 trg_protect_workspace_billing_columns` inside itself to set `plan_tier`, then re-enables it. That is
@@ -5949,6 +5949,55 @@ prior one).
 **Blockers (A3 writes):** None. Both acceptance items marked A1's-to-walk have no live browser
 available to me this session; everything else is verified.
 
+### P-43 · The run screen's states say one thing · Lane: **A3** · Status: READY · Moves: 2, 3
+
+**Why.** From the honest run's screen (A1, 14:12 to 15:10 IST; the list under P-37). These four are
+state and copy, not design, and they do not wait for the design pass: (a) *Waiting on you.* in the
+footer beside a *Run it now* button, two verbs for one state; (b) the character speaking twice about
+one moment (*I've stopped, the reason is on the hold line* above a card headed *Why it stopped*)
+and once out of turn (*I'm ready, press run* after the person had pressed); (c) *No runs yet* under
+the field while *Your runs* still reads *Reading your runs*; (d) on a hold, the machinery's reason
+(*this run of the loop ran long*) as the headline while the person's reason (*nothing is pointed at
+a source*) sat third in the pane.
+
+**Scope.** (a) On a person hold the footer carries the answer's verb only; *Run it now* renders
+only when nothing is waiting on a person and nothing is running. (b) The character speaks once per
+state change, from the same constant the hold line uses, and never asks for a press that has
+happened. (c) *No runs yet* and the example cards render only after the runs read has settled
+empty; while it reads, the field alone. (d) The hold pane leads with the reason a person can act
+on; a machinery reason (`out-of-time`, `over-budget`) goes to the transcript row and the second
+line. No Meridian changes; `run-status.ts`, `RunFooter.tsx`, `TrackRun.tsx`, `character.ts`, Start.
+
+**Acceptance.**
+- [ ] A test per item, named after its sentence; the existing way-out and hold tests still pass.
+- [ ] A1 walks the honest run's screen and the tablet track's screen and sees one verb per state.
+- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
+
+### P-44 · The door from a no-source hold lands on the binding, and the binding takes · Lane: **A3** · Status: READY · Moves: 2, 3
+
+**Why.** On the honest run (14:23 IST) the pane said *Nothing is pointed at a source yet. This
+needs somewhere to read from, and the connection for it is already here, so connecting again
+would change nothing. What is missing is which one this work should use* with a door *Finish it in
+Settings*. `connection_bindings` exists. Nobody has walked that door to the binding and back to a
+run that reads.
+
+**Scope.** Walk it: press the door on a no-source hold, land where a connection is bound to a
+product (Relay), bind one, return to the run, and see the next Sense pass read it. Fix what breaks
+on the way: the door's target, the binding surface's copy for this case, the product picker on the
+binding, and the run's line after the binding (*Now reading <source> for Relay*). No new tables.
+
+**Acceptance.**
+- [ ] A test proves the door's target for a `carried-on-your-sentence` or no-source hold is the
+      binding surface with the run's product preselected.
+- [ ] A1 walks it end to end on Helio Labs / Relay and the next Sense pass names the source.
+- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
+
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: READY, **before P-37** · Moves: 1, 2
 
 **Why.** P-04's live read (A2, 837c08deb): the forecast grader is handed the claim, the observable,
@@ -6023,7 +6072,7 @@ patch one by one; the shape is the defect).**
 **Blockers (A2 writes):** —
 
 
-### P-38 · The cron says the host it runs against · Lane: **A2** · Status: READY (after P-04) · Moves: 5
+### P-38 · The cron says the host it runs against · Lane: **A3** · Status: READY (moved to A3 by A1, 16:10 IST; migration through the Lovable MCP, ledger row after) · Moves: 5
 
 **Why.** The live `calibrate-tick` (and its siblings) post to `supaprod.ai` with a timeout, while
 every checked-in migration that defines them says the `lovable.app` host with none (A2, checkpoint
