@@ -7259,7 +7259,7 @@ promote without a preview. Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads the row and the card.
 
 
-### P-69 · Opening Arriving stamps the last look · Lane: **A2** (after P-67) · Status: CODE DONE, PUBLISHED 01:51 IST 09-04 (51653a1a3; A1 suite on the tip 14,032 / 0, tsc 0; the walk follows) · Moves: 1, 2
+### P-69 · Opening Arriving stamps the last look · Lane: **A2** (after P-67) · Status: DONE (A1 walked it live 02:27 IST 09-04: Arriving opened, Start then reads "Nothing new since you last looked.") · Moves: 1, 2
 
 **Why.** P-62 found `brain_last_seen` has a table, a row, and had no reader; it now has one
 (Start's "what came in since you last looked") and still no writer that a person's visit fires, so
