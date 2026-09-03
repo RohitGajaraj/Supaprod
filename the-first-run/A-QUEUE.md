@@ -6276,6 +6276,11 @@ animated region, the hold card leading with the person's reason.**
 Also: P-43 item (d), the hold pane's order, is this packet's §4 and leaves P-43; A3 keeps (a), (b),
 (c).
 
+8. (17:10 IST, from P-44) The transcript row's verdict carries the source when the seat filed
+   signals with real `source` values: *Filed 3 findings from Intercom*, not *Filed 3 findings*.
+   That is the successor to a no-source hold; no new state, no driver line (`Turn.made` carries
+   `source` for signal-kind items).
+
 **Acceptance.**
 - [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
       first against the mockups.
