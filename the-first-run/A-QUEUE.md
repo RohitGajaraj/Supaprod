@@ -6632,6 +6632,12 @@ as a state: one sentence, no card, no door unless a door exists). Then the two c
 `meridian/**` with their reasoning headers and a guard each. Gate's header names the three shapes
 with file and line now (A2, this turn); Gate is retired in P-53.
 
+**A1 walked §6 and §7 (6d6425774) at 22:05 IST: build**, with two amendments. Choice: an unknown
+deciding fact reads *unknown* in its place, never blank, and the whole row is the target. Quiet: an
+empty queue that is empty because nothing is pointed at a source is a hold, not a Quiet; the
+component refuses it and the guard proves a no-source state cannot render as Quiet. Gate's header
+now names its three shapes with file and line.
+
 **Acceptance.**
 - [ ] The doc's two surfaces; the two components; the guards.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
