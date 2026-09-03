@@ -7218,7 +7218,7 @@ running* with no borrowed fact); in Helio Labs it reads Helio's. Full suite on t
 **DoD.** Pushed; suite number per rule 17; A1 reads both workspaces live.
 
 
-### P-59b · A Ship that cannot deploy holds as waiting-on-a-person, in the record · Lane: **A3** (after P-58) · Status: CODE DONE, PUBLISHED 03:30 IST 09-04 (360e7cdad; A1 suite on the tip 14,089 / 0, tsc 0; A3's report and the tablet track's next attempt decide DONE) · Moves: 1
+### P-59b · A Ship that cannot deploy holds as waiting-on-a-person, in the record · Lane: **A3** (after P-58) · Status: CODE DONE, PUBLISHED 03:30 IST 09-04 (A1: 14,089 / 0, tsc 0 on 360e7cdad) · Moves: 1
 
 **Why.** P-59 made the screen say *Ship has no preview host. Set DENO_DEPLOY_TOKEN and
 DENO_DEPLOY_ORG on the Lovable project, then press Try again.* The record still says
@@ -7239,6 +7239,30 @@ the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 reads the row and the card.
 
+**Report (A3 writes):** `360e7cdad`. tsc 0, `bun test` full console suite on the tip **14,089 pass /
+0 fail / 0 error**, eslint 0 errors on touched files.
+
+`driver.server.ts`: a new `!producedThisVisit && station === "ship"` branch, positioned ahead of the
+generic `!producedThisVisit` produced-nothing fallback (same slot the existing learn/sense branches
+use). It reads the newest `deployments` row for the track's changeset (via `newestChangesetForTrack`,
+already used by the build station's own check, then `.eq("changeset_id", ...).order("created_at",
+{ ascending: false }).limit(1)` on `deployments`), classifies `failure_reason` through P-59's own
+`shipStopFrom`, and only `shipStopWaitsOnAPerson` (missing-provider) holds as `waiting-on-a-person`
+with `attempts` left untouched and the reason on `last_hold_because`. Everything else -- an ordinary
+failure, no reason recorded, no deployment row, a failed read (logged, never thrown) -- falls through
+to the unchanged `produced-nothing` path: the branch has exactly one `return`, inside the gate.
+
+Merge note: rebased through A2's P-71b, which touched the same import block in `driver.server.ts`;
+resolved by keeping both imports (no logic overlap).
+
+Test fix alongside it: `a-hold-must-say-why.test.ts`'s `SAYS_ONLY_WHAT_THE_WORD_SAYS` list treated
+every `last_hold: "waiting-on-a-person"` site as generic (clears `last_hold_because` to null), true
+when there was exactly one such site. This packet's site carries a genuinely computed reason (which
+secret, where to set it) -- the opposite case that list exists to exclude -- so split into two
+site-specific checks by what makes each one unique, rather than folding the exception back into a
+rule that no longer held for every occurrence of the word.
+
+**Blockers (A3 writes):** None.
 
 ### P-67 · A read of a workspace-scoped table names its workspace, everywhere · Lane: **A2** (after P-62) · Status: DONE as a ratchet (da85a4682; A2 reports 14,025 / 0 / 0, tsc 0): 822 reads of 53 workspace-scoped tables, 618 narrowed by another id, 186 bare across 81 files, counted per file and never allowed to grow · Moves: 1
 
