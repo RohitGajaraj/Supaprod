@@ -4830,6 +4830,15 @@ MCP under rule 12; the four invented signals seeded into every real workspace at
 removed, the sample workspace is the honest door; the `ALTER TABLE … DISABLE TRIGGER` inside the
 signup function is P-34.
 
+
+**A1, 10:45 IST · the wall is down in the database.** `pg_policies` on `workspaces` now carries
+*ws owner creates own* (INSERT, `owner_id = auth.uid()`) and *ws owner reads own* (SELECT, same),
+A2's two migrations `20260907010000` and `20260908010000`; the second exists because an insert with
+RETURNING is a read and the first policy alone left the new row invisible to its maker. P-21's
+`20260906010000` (`decisions.intent`) is applied too. None of the three had a ledger row; A1 inserted
+all three. The live proof (a second workspace created and readable from the product) is A2's under
+rule 12 and is the next thing to report.
+
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
