@@ -2039,9 +2039,12 @@ export const getWorkspaceAnchors = createServerFn({ method: "GET" })
       const traceable = live.filter((r) => r.trace_id);
       if (traceable.length === 0) return { anchors: [], collisions: [], unknowableRuns };
 
-      const { data: calls, error: callsErr } = await supabase
-        .from("tool_calls")
-        .select("trace_id,tool_name,args,created_at")
+      /* SCOPED TOO (P-70). The workspace is REQUIRED on this reader, so unlike
+         the others there is no unresolved case: the trace ids already come from
+         runs in this workspace, and this makes the tenant explicit. */
+      let callsQ = supabase.from("tool_calls").select("trace_id,tool_name,args,created_at");
+      callsQ = callsQ.eq("workspace_id", data.workspaceId);
+      const { data: calls, error: callsErr } = await callsQ
         .in(
           "trace_id",
           traceable.map((r) => r.trace_id as string),

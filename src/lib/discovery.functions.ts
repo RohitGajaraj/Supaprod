@@ -1407,10 +1407,15 @@ export const getSenseCoverage = createServerFn({ method: "GET" })
      * here means telling somebody their scout is broken when they never set one
      * up.
      */
-    const targets = await supabase
-      .from("scout_targets")
-      .select("id", { count: "exact", head: true })
-      .eq("enabled", true);
+    /*
+     * SCOPED TOO (P-70). The signal read above takes the workspace and this
+     * count did not, so "you have asked us to watch nothing" was answered with
+     * every workspace's targets -- the same defect as the Discover source count
+     * (P-33), in the read that decides whether SILENCE needs an answer.
+     */
+    let targetsQ = supabase.from("scout_targets").select("id", { count: "exact", head: true });
+    if (data.workspaceId) targetsQ = targetsQ.eq("workspace_id", data.workspaceId);
+    const targets = await targetsQ.eq("enabled", true);
 
     const runRows = (runs.data ?? []) as ReadonlyArray<{
       outcome: string;
@@ -1528,14 +1533,17 @@ export const getThemePrecedent = createServerFn({ method: "POST" })
 export const listOpportunities = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    /* P-70. Unresolved stays unfiltered: see `listTopOpportunities`. */
+    const { data: oppWs } = await context.supabase.rpc("current_user_default_workspace");
+    const oppWid = (oppWs as string | null) ?? null;
+    let oppsQ = context.supabase
       .from("opportunities")
       // P-35: named columns, embedding excluded.
       .select(
         "confidence,created_at,critic_review,ease,embedding_model,goal_id,hypothesis,ice_score,id,impact,is_public,is_sample,linked_brief_item_id,posthog_event,problem,product_id,project_id,roadmap_bucket,roadmap_last_agent_slug,roadmap_measure,roadmap_outcome,roadmap_snapshot_before,share_slug,status,target_user,theme_id,title,updated_at,user_id,workspace_id",
-      )
-      .order("ice_score", { ascending: false })
-      .limit(500);
+      );
+    if (oppWid) oppsQ = oppsQ.eq("workspace_id", oppWid);
+    const { data, error } = await oppsQ.order("ice_score", { ascending: false }).limit(500);
     if (error) throw new Error(error.message);
     const opportunities = data ?? [];
 
@@ -2391,10 +2399,12 @@ const PRD_LIST_SELECT =
 export const listPrds = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("prds")
-      .select(PRD_LIST_SELECT)
-      .order("updated_at", { ascending: false });
+    /* P-70. Unresolved stays unfiltered: see `listTopOpportunities`. */
+    const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
+    const wid = (wsDefault as string | null) ?? null;
+    let prdsQ = context.supabase.from("prds").select(PRD_LIST_SELECT);
+    if (wid) prdsQ = prdsQ.eq("workspace_id", wid);
+    const { data, error } = await prdsQ.order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
     return { prds: data ?? [] };
   });
@@ -2412,11 +2422,12 @@ export const listPrds = createServerFn({ method: "GET" })
 export const listSpecs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("prds")
-      .select(PRD_LIST_SELECT)
-      .order("updated_at", { ascending: false })
-      .limit(300);
+    /* P-70. Unresolved stays unfiltered: see `listTopOpportunities`. */
+    const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
+    const wid = (wsDefault as string | null) ?? null;
+    let specsQ = context.supabase.from("prds").select(PRD_LIST_SELECT);
+    if (wid) specsQ = specsQ.eq("workspace_id", wid);
+    const { data, error } = await specsQ.order("updated_at", { ascending: false }).limit(300);
     if (error) throw new Error(error.message);
     return { prds: data ?? [] };
   });

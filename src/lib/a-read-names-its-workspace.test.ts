@@ -18,7 +18,7 @@
  *
  * ── THIS IS A RATCHET, NOT A CLEAN BILL ──────────────────────────────────
  *
- * There are 155 bare reads across 78 files today and this test does not demand
+ * There are 139 bare reads across 74 files today and this test does not demand
  * they be fixed. It records them per file and fails when a file grows: the
  * fifth instance cannot be written, and every packet that closes one lowers a
  * number that can never be raised again.
@@ -128,7 +128,6 @@ const BASELINE: Record<string, number> = {
   "src/lib/ai/run-attempt.server.ts": 1,
   "src/lib/ai/runtime.server.ts": 2,
   "src/lib/ai/tools/registry.server.ts": 4,
-  "src/lib/approvals-queue.functions.ts": 1,
   "src/lib/artifacts.functions.ts": 2,
   "src/lib/ask-blocks.server.ts": 4,
   "src/lib/ask-canvas.functions.ts": 1,
@@ -145,13 +144,11 @@ const BASELINE: Record<string, number> = {
   "src/lib/conversations.functions.ts": 2,
   "src/lib/copilot.functions.ts": 5,
   "src/lib/credits.functions.ts": 1,
-  "src/lib/dashboard.functions.ts": 7,
   "src/lib/decisions-share.functions.ts": 2,
   "src/lib/decisions.functions.ts": 1,
   "src/lib/delegate-desk.functions.ts": 1,
   "src/lib/deployments.functions.ts": 1,
   "src/lib/design-scaffold.functions.ts": 2,
-  "src/lib/discovery.functions.ts": 3,
   "src/lib/docs.functions.ts": 1,
   "src/lib/feedback.functions.ts": 1,
   "src/lib/forecast.functions.ts": 3,
@@ -184,7 +181,6 @@ const BASELINE: Record<string, number> = {
   "src/lib/studio.functions.ts": 3,
   "src/lib/support-triage.functions.ts": 1,
   "src/lib/tasks.functions.ts": 2,
-  "src/lib/threads.functions.ts": 5,
   "src/lib/today.functions.ts": 1,
   "src/lib/traces.functions.ts": 3,
   "src/lib/trust-chain.functions.ts": 1,

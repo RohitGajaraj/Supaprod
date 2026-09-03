@@ -46,10 +46,20 @@ export const listThreads = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<{ threads: ThreadSummary[] }> => {
     const db = context.supabase as unknown as SupabaseClient;
+    /*
+     * ── THREADS READ ONE WORKSPACE (P-70) ─────────────────────────────────
+     *
+     * These reads said "RLS-scoped" in their own comments and that was the
+     * mistake in one word: RLS answers whether this person may see the row, and
+     * a person in two workspaces may see both. So the thread list, the search
+     * and the memory-candidate lookup mixed desks. Unresolved stays unfiltered.
+     */
+    const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
+    const wid = (wsDefault as string | null) ?? null;
 
-    const { data: convRows, error } = await db
-      .from("conversations")
-      .select("id,title,updated_at,product_id,folder_id")
+    let convQ = db.from("conversations").select("id,title,updated_at,product_id,folder_id");
+    if (wid) convQ = convQ.eq("workspace_id", wid);
+    const { data: convRows, error } = await convQ
       .order("updated_at", { ascending: false })
       .limit(80);
     if (error) throw new Error(error.message);
@@ -86,10 +96,9 @@ export const listThreads = createServerFn({ method: "GET" })
     const inBrainByConv = new Set<string>();
     const waitingByConv = new Set<string>();
     if (ids.length > 0) {
-      const { data: memRows, error: memErr } = await db
-        .from("memory_candidates")
-        .select("source_conversation_id,status")
-        .in("source_conversation_id", ids);
+      let memQ = db.from("memory_candidates").select("source_conversation_id,status");
+      if (wid) memQ = memQ.eq("workspace_id", wid);
+      const { data: memRows, error: memErr } = await memQ.in("source_conversation_id", ids);
       if (!memErr) {
         for (const m of (memRows ?? []) as Row[]) {
           const cid = str(m.source_conversation_id);
@@ -163,11 +172,15 @@ export const searchConversations = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<{ threads: ThreadSummary[] }> => {
     const db = context.supabase as unknown as SupabaseClient;
     const like = `%${data.q.replace(/[%_]/g, (m) => `\\${m}`)}%`;
+    /* P-70. See the note in `listThreads`. */
+    const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
+    const wid = (wsDefault as string | null) ?? null;
 
-    // Title matches (RLS-scoped).
-    const { data: byTitle } = await db
-      .from("conversations")
-      .select("id,title,updated_at")
+    /* Title matches. NOT "RLS-scoped", which is what this comment used to say
+       and is the whole defect: RLS answers whether you MAY see it. */
+    let titleQ = db.from("conversations").select("id,title,updated_at");
+    if (wid) titleQ = titleQ.eq("workspace_id", wid);
+    const { data: byTitle } = await titleQ
       .ilike("title", like)
       .order("updated_at", { ascending: false })
       .limit(60);
@@ -175,9 +188,9 @@ export const searchConversations = createServerFn({ method: "GET" })
     // Message-content matches -> their conversation ids (RLS-scoped, tolerant).
     const convIds = new Set<string>();
     for (const r of (byTitle ?? []) as Row[]) convIds.add(String(r.id));
-    const { data: byMsg } = await db
-      .from("messages")
-      .select("conversation_id,content")
+    let msgQ = db.from("messages").select("conversation_id,content");
+    if (wid) msgQ = msgQ.eq("workspace_id", wid);
+    const { data: byMsg } = await msgQ
       .ilike("content", like)
       .order("created_at", { ascending: false })
       .limit(200);
@@ -283,9 +296,12 @@ export const listThreadsInFolder = createServerFn({ method: "GET" })
   .inputValidator((i: unknown) => z.object({ folderId: z.string().uuid() }).parse(i))
   .handler(async ({ context, data }): Promise<{ threads: ThreadSummary[] }> => {
     const db = context.supabase as unknown as SupabaseClient;
-    const { data: rows, error } = await db
-      .from("conversations")
-      .select("id,title,updated_at,product_id")
+    /* P-70. A folder belongs to a workspace, and so does what is in it. */
+    const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
+    const wid = (wsDefault as string | null) ?? null;
+    let folderQ = db.from("conversations").select("id,title,updated_at,product_id");
+    if (wid) folderQ = folderQ.eq("workspace_id", wid);
+    const { data: rows, error } = await folderQ
       .eq("folder_id", data.folderId)
       .order("updated_at", { ascending: false })
       .limit(80);

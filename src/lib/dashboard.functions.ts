@@ -23,6 +23,38 @@ export const getDashboard = createServerFn({ method: "GET" })
 
     const { supabase } = context;
 
+    /*
+     * ── THE DASHBOARD READS ONE WORKSPACE (P-70, under P-67's ratchet) ─────
+     *
+     * Seven reads here named no workspace, so a person in two workspaces saw
+     * one desk's tasks, meetings, projects and brief under the other's name.
+     * Four instances of this class were found on served surfaces before the
+     * ratchet existed; these were found by it.
+     *
+     * UNRESOLVED STAYS UNFILTERED, the rule the earlier four settled on:
+     * narrowing to a workspace we cannot name turns a failed lookup into "you
+     * have nothing", and that is a claim about an empty day.
+     */
+    const { data: wsDefault } = await supabase.rpc("current_user_default_workspace");
+    const wid = (wsDefault as string | null) ?? null;
+
+    let todayTasksQ = supabase.from("tasks").select("*");
+    if (wid) todayTasksQ = todayTasksQ.eq("workspace_id", wid);
+    let todayMeetingsQ = supabase.from("meetings").select("*");
+    if (wid) todayMeetingsQ = todayMeetingsQ.eq("workspace_id", wid);
+    let weekTasksQ = supabase
+      .from("tasks")
+      .select("id,is_deep_work,status,completed_at,created_at");
+    if (wid) weekTasksQ = weekTasksQ.eq("workspace_id", wid);
+    let recentMeetingsQ = supabase.from("meetings").select("id,stakeholder,start_at");
+    if (wid) recentMeetingsQ = recentMeetingsQ.eq("workspace_id", wid);
+    let projectsQ = supabase.from("projects").select("*");
+    if (wid) projectsQ = projectsQ.eq("workspace_id", wid);
+    let allTasksQ = supabase.from("tasks").select("id,status,project_id");
+    if (wid) allTasksQ = allTasksQ.eq("workspace_id", wid);
+    let briefQ = supabase.from("daily_briefs").select("*");
+    if (wid) briefQ = briefQ.eq("workspace_id", wid);
+
     const [
       { data: profile },
       { data: todayTasks },
@@ -34,34 +66,20 @@ export const getDashboard = createServerFn({ method: "GET" })
       { data: existingBrief },
     ] = await Promise.all([
       supabase.from("profiles").select("*").maybeSingle(),
-      supabase
-        .from("tasks")
-        .select("*")
-        .or(
-          `due_date.eq.${today.toISOString().slice(0, 10)},and(due_date.is.null,status.neq.done)`,
-        ),
-      supabase
-        .from("meetings")
-        .select("*")
+      todayTasksQ.or(
+        `due_date.eq.${today.toISOString().slice(0, 10)},and(due_date.is.null,status.neq.done)`,
+      ),
+      todayMeetingsQ
         .gte("start_at", today.toISOString())
         .lt("start_at", tomorrow.toISOString())
         .order("start_at"),
-      supabase
-        .from("tasks")
-        .select("id,is_deep_work,status,completed_at,created_at")
-        .gte("created_at", sevenAgo.toISOString()),
-      supabase
-        .from("meetings")
-        .select("id,stakeholder,start_at")
+      weekTasksQ.gte("created_at", sevenAgo.toISOString()),
+      recentMeetingsQ
         .gte("start_at", fourteenAgo.toISOString())
         .order("start_at", { ascending: false }),
-      supabase.from("projects").select("*"),
-      supabase.from("tasks").select("id,status,project_id"),
-      supabase
-        .from("daily_briefs")
-        .select("*")
-        .eq("brief_date", today.toISOString().slice(0, 10))
-        .maybeSingle(),
+      projectsQ,
+      allTasksQ,
+      briefQ.eq("brief_date", today.toISOString().slice(0, 10)).maybeSingle(),
     ]);
 
     // F-TODAY-AUTOSEED — auto-generate the brief on first sign-in instead of
