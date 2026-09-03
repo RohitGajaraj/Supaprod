@@ -1883,6 +1883,18 @@ correct end state for a spent counter. A1 reset once more (attempts 0, hold `sel
 `waiting-on-another-run`, attempts unchanged. Also for A2: two pending `studio.pr.merge` gates existed
 for one PR (see P-18a); one pending gate per changeset per tool.
 
+
+**A1, 07:05 IST · the 01:30 UTC tick, and a decision about the honest run.** First tick certainly
+under the general claim rule: the drive entered `self-check-failed`, ran no crew, and wrote
+`going-in-circles · attempts 0` in 0.13 seconds. The cycle canary read this track's record: four laps
+of build → define → design → build before P-03c, and three station resets by A1 since. That reading
+is honest for this record, so A1 does not clear it. **Decision:** `2fdf93b6` is the *instrumented*
+run, the one that exposed the Build path's nine defects and carries their evidence; it stays as it
+is. **The honest run is the next track**, started by the founder typing one sentence on Start after
+PR #4 merges, and it walks the route on the fixed driver with nobody pressing anything. That is what
+the plan said on 09-02 and it is truer now than a fourth reset would be. A2 is asked only whether the
+canary should ignore laps a person or an operator made; no action until it answers.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
