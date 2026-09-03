@@ -132,10 +132,9 @@ import { RailCrew } from "@/components/shell/RailCrew";
 import { TeammateCursors } from "@/components/shell/TeammateCursors";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { REVIEW_QUEUE_SEARCH } from "@/components/shell/post-auth-home";
-import { countIsAFloor } from "@/components/approvals/not-the-whole-queue";
 import { pollMs } from "@/components/shell/poll";
 import * as React from "react";
-import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
+import { missionsKey } from "@/lib/query-keys";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { sessionEndedMessage } from "@/lib/error-copy";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
@@ -154,8 +153,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
 import { listCrew } from "@/lib/crew.functions";
-import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
-import { listMovingTracks, listTracks } from "@/lib/spine/track.functions";
+import { listMovingTracks, listTracks, listGatesOnTracks } from "@/lib/spine/track.functions";
 import { initialsFrom } from "@/lib/initials";
 import { useTheme } from "@/hooks/use-theme";
 import { FOOTER_NAV, PRIMARY_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
@@ -819,7 +817,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchMissions = useServerFn(listMissions);
-  const fetchQueue = useServerFn(getApprovalsQueue);
   const workspaceId = activeWorkspace?.id ?? null;
 
   /* THE LIVE LINE WAS NOT LIVE, and it is the product's only always-on proof of
@@ -862,15 +859,22 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     },
     placeholderData: keepPreviousData,
   });
-  const queue = useQuery({
-    queryKey: approvalsQueueKey(workspaceId),
-    queryFn: () => fetchQueue({ data: { workspaceId: workspaceId ?? undefined } }),
-    staleTime: 30_000,
-    // A waiting call is not moving, so the queue never needs the fast cadence;
-    // it only has to notice a NEW one arriving.
+  /*
+   * P-18a (A-QUEUE.md). Gates on OPEN TRACKS, not `getApprovalsQueue`'s
+   * ten-family workspace-wide federation -- see `listGatesOnTracks`'s own
+   * header for the defect this replaces and the number that proved it.
+   */
+  const fetchGatedTracks = useServerFn(listGatesOnTracks);
+  const gated = useQuery({
+    queryKey: ["shell", "gated-tracks"],
+    queryFn: () => fetchGatedTracks(),
+    staleTime: 10_000,
+    // A waiting call is not moving, so this never needs the fast cadence; it
+    // only has to notice a NEW one arriving. Same cadence `moving` uses below.
     refetchInterval: (query) => livePoll(false, query.state.fetchFailureCount),
     placeholderData: keepPreviousData,
   });
+  const gatedTracks = React.useMemo(() => gated.data ?? [], [gated.data]);
 
   /* THE WALK THE HEADER COULD NOT SEE.
    *
@@ -925,15 +929,17 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       ),
     [rows, movingTrackIds],
   );
-  const gateCount = queue.data?.items.length ?? 0;
-  /* WHETHER THAT NUMBER IS A COUNT OR A FLOOR.
-     `getApprovalsQueue` bounds every one of ten families and degrades a family
-     that throws to an empty list, so `items.length` is what SURVIVED the read,
-     not what is waiting. S1 measured the gap: 116 specs pending a design gate
-     against a limit of 100, so sixteen calls that needed a person were on no
-     screen that lists them - including this rail, which is the number people
-     navigate by. */
-  const gatesArePartial = countIsAFloor(queue.data?.incomplete);
+  const gateCount = gatedTracks.length;
+  /*
+   * THE "AT LEAST" FLOOR IS GONE, ON PURPOSE (P-18a). It existed because
+   * `getApprovalsQueue` bounded ten families to a fixed limit each and could
+   * silently drop some of what it counted -- 116 specs pending a design gate
+   * against a limit of 100, S1's own measurement. `listGatesOnTracks` has no
+   * families to bound; it is one query over open tracks, capped at 50 the
+   * same way `listTracks` and `listMovingTracks` already are without either
+   * of them flagging that cap as partial. There is no equivalent "some of
+   * what is waiting is missing" fact left to say here.
+   */
 
   /*
    * ── WHAT AGENTS MOVING INTO SETTINGS MUST NOT COST ──────────────────────
@@ -1018,7 +1024,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    */
   const sessionEnded =
     sessionEndedMessage(missions.error) ??
-    sessionEndedMessage(queue.error) ??
+    sessionEndedMessage(gated.error) ??
     sessionEndedMessage(openTracks.error) ??
     sessionEndedMessage(crew.error) ??
     sessionEndedMessage(roster.error);
@@ -1090,7 +1096,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    * rows prove. The lead sentence keeps naming WHO is working; the mark
    * stopped duplicating it as a roster.
    *
-   * Every input is a read this file already polls: the queue's items are the
+   * Every input is a read this file already polls: the gated tracks are the
    * decisions waiting on a person, the missions' working statuses and the
    * freshness window on `spine_tracks.driven_at` are the proof something
    * moves. `deriveRailPresence` holds the precedence; nothing here stages a
@@ -1204,13 +1210,9 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
          * the single most common substantive term at 562.8 per million, while
          * "call" in this sense barely registers and is ambiguous with a phone
          * call in the same breath as agents and runs. */
-        /* "At least" WHEN THE READ WAS BOUNDED, the same wording the board's
-           headline uses. Two surfaces state this count within one viewport and
-           a caveat on one of them only would read as the two disagreeing. */
-        const lead = gatesArePartial ? "At least " : "";
         return gateCount === 1
-          ? `${lead}1 decision is ready for you`
-          : `${lead}${gateCount} decisions are ready for you`;
+          ? "1 decision is ready for you"
+          : `${gateCount} decisions are ready for you`;
       }
       /* A walk with no mission yet lands here, said from its own row. The
        * station is named the way the transcript names one in passing, which is
@@ -1283,7 +1285,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     missions.isLoading,
     running.length,
     gateCount,
-    gatesArePartial,
     onTheBoard,
     workers,
     unnamedRuns,
@@ -1344,11 +1345,15 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       return out;
     }
     if (gateCount > 0) {
-      // The one in front. Today opens on the same item, so the header is
-      // naming the call you will actually land on.
-      const first = queue.data?.items[0];
+      /* THE ONE IN FRONT, FROM THE SAME READER AS THE COUNT (P-18a). Naming
+         the track waiting on a call, not a phrase for the call's mechanics --
+         `gatedTracks` carries no such phrase, and inventing a second one here
+         risks the exact defect this packet exists to close: a count from one
+         source beside a detail from another that can name something the
+         count did not include. */
+      const first = gatedTracks[0];
       if (first?.title) out.push(<TitleFact title={first.title} />);
-      const at = first?.timestamp ? since(first.timestamp) : null;
+      const at = first?.updatedAt ? since(first.updatedAt) : null;
       if (at) out.push(<span className="sp-num">{at}</span>);
       return out;
     }
@@ -1362,7 +1367,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       if (at) out.push(<span className="sp-num">{at}</span>);
     }
     return out;
-  }, [missions.isError, missions.isLoading, running, gateCount, queue.data, lastDone]);
+  }, [missions.isError, missions.isLoading, running, gateCount, gatedTracks, lastDone]);
 
   /**
    * WHERE THE LINE TAKES YOU, and it follows what the line SAYS.
@@ -1974,24 +1979,18 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                         <Icon />
                         <span className="sp-navlabel">{label}</span>
                         {count && n > 0 ? (
-                          /* THE PLUS IS A FLOOR, and this chip has no room for
-                           the word. `getApprovalsQueue` bounds every family, so
-                           a capped or partly-failed read makes this number what
-                           SURVIVED rather than what is waiting - and this is the
-                           number a person navigates by. "52+" is the compact
-                           form of the board headline's "At least 52"; the title
-                           carries the sentence for anyone who stops on it. */
+                          /* NO FLOOR CAVEAT HERE ANY LONGER (P-18a). The old
+                             "52+" existed because `getApprovalsQueue` bounded
+                             ten families and could silently drop some of what
+                             it counted; `gates` now reads open tracks with a
+                             boundary call, one query with no families to
+                             bound, so there is nothing left to flag as a
+                             floor. See `listGatesOnTracks`'s own header. */
                           <span
                             className="sp-navcount"
                             data-hot={count === "gates" ? "true" : "false"}
-                            title={
-                              count === "gates" && gatesArePartial
-                                ? "More are waiting than this counts"
-                                : undefined
-                            }
                           >
                             {n}
-                            {count === "gates" && gatesArePartial ? "+" : ""}
                           </span>
                         ) : null}
                         {/* THE HINT, on the door it opens.

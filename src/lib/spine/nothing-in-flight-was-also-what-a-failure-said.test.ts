@@ -130,8 +130,16 @@ describe("the bare catches cannot swallow the distinction", () => {
      * calm to hide in. Reviewed 2026-09-03: it re-raises on a genuine read
      * failure and degrades to an empty list only on something unexpected, the
      * same split every catch above already keeps.
+     *
+     * The fifth is `listGatesOnTracks` (P-18a, A-QUEUE.md), which feeds the
+     * same header's "N decisions are ready for you" -- the sentence beside
+     * the one the fourth entry names, on the same surface, for the same
+     * reason: "nothing needs you" and "we could not tell what needs you" must
+     * never collapse into one silence. Reviewed 2026-09-03: it re-raises on a
+     * genuine read failure and degrades to an empty list only on something
+     * unexpected, the same split every catch above already keeps.
      */
-    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(4);
+    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(5);
   });
 
   it("but anything genuinely unexpected still degrades rather than breaking every surface", () => {

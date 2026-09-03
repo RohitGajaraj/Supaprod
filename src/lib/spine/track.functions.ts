@@ -541,6 +541,100 @@ export const listMovingTracks = createServerFn({ method: "GET" })
     }
   });
 
+export type GatedTrack = { id: string; title: string; updatedAt: string; tool: string };
+
+/**
+ * P-18a (A-QUEUE.md). Which open tracks have a boundary call nobody has
+ * answered, for the shell top bar's "N decisions are ready for you".
+ *
+ * THE DEFECT THIS REPLACES. The bar's count came from `getApprovalsQueue`,
+ * which federates TEN gate families across the WHOLE WORKSPACE with no
+ * regard for whether any of them sits on an open track. Measured live:
+ * "65 decisions are ready for you" beside 5 pending approvals (2 on a
+ * track), 8 pending decisions, 59 decisions total, 71 backlog bets -- no
+ * count in the workspace was 65, and none of the ten federated families is
+ * what a bar sitting beside "N runs are moving" actually claims. The only
+ * honest count for THIS bar is gates on OPEN TRACKS -- the same rows Start
+ * marks "Needs you" (`tracks-feed.ts`'s `kindOf`, `r.needsYou`).
+ * `listRunsForStart` already answers this correctly (`gateByTrack`,
+ * `pending_gates` on `spine_tracks` resolved against
+ * `agent_approvals.status = 'pending'`, a gate attributed only to the track
+ * that opened it -- never every pending call a person happens to own). This
+ * is that same resolution, factored out rather than duplicated with its own
+ * chance to drift, and kept separate from `listRunsForStart` itself for the
+ * same reason `listMovingTracks` above is: the shell's poll should not also
+ * pay for pins, produced-counts and forecasts it never reads.
+ *
+ * `title`/`updatedAt` travel with the gate (not just `id`/`tool`) so the
+ * bar's preview line can name the actual piece of work waiting, the same
+ * pairing Start's own "Needs you" row uses -- never a second, disconnected
+ * reader for the sentence beside the count.
+ */
+export const listGatesOnTracks = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<GatedTrack[]> => {
+    const { supabase } = context;
+    try {
+      const { data: openRows, error } = await supabase
+        .from("spine_tracks" as never)
+        .select("id, title, updated_at, pending_gates")
+        .eq("status", "open")
+        .order("updated_at", { ascending: false })
+        .limit(50);
+      if (error) failSoftOrThrow(error, "The calls waiting on you");
+      const open = (openRows ?? []) as unknown as Array<{
+        id: string;
+        title: string;
+        updated_at: string;
+        pending_gates?: unknown;
+      }>;
+      if (open.length === 0) return [];
+
+      const gateIds = [
+        ...new Set(
+          open.flatMap((r) =>
+            Array.isArray(r.pending_gates)
+              ? r.pending_gates
+                  .map((g) => (g as { id?: unknown }).id)
+                  .filter((g): g is string => typeof g === "string")
+              : [],
+          ),
+        ),
+      ];
+      if (gateIds.length === 0) return [];
+
+      const { data: gates } = await supabase
+        .from("agent_approvals")
+        .select("id, tool_name")
+        .in("id", gateIds)
+        .eq("status", "pending");
+      const byId = new Map(
+        ((gates ?? []) as Array<{ id: string; tool_name: string }>).map((g) => [g.id, g]),
+      );
+
+      const result: GatedTrack[] = [];
+      for (const r of open) {
+        if (!Array.isArray(r.pending_gates)) continue;
+        for (const g of r.pending_gates) {
+          const id = (g as { id?: unknown }).id;
+          if (typeof id !== "string") continue;
+          const hit = byId.get(id);
+          // One gate attributed per track, the same rule `listRunsForStart`'s
+          // own `gateByTrack` uses -- a row needs one boundary call marked,
+          // not every one it happens to have open.
+          if (hit) {
+            result.push({ id: r.id, title: r.title, updatedAt: r.updated_at, tool: hit.tool_name });
+            break;
+          }
+        }
+      }
+      return result;
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("could not be read")) throw e;
+      return [];
+    }
+  });
+
 /**
  * ── WHAT EVERY RUN IS ACTUALLY DOING, FOR THE ROWS ON `/start` (P-05) ─────
  *

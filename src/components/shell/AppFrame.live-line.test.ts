@@ -90,46 +90,22 @@ describe("the live line on the board", () => {
   });
 });
 
-describe("the shell states a bounded count as a bound", () => {
-  /*
-   * `AppFrame` took `queue.data?.items.length ?? 0` and put it in two places a
-   * person acts on: the rail's hot number, which is what they navigate by, and
-   * the live line's sentence.
-   *
-   * `getApprovalsQueue` bounds every one of ten families and degrades a family
-   * that throws to an empty list, so that length is what SURVIVED the read, not
-   * what is waiting. S1 measured the gap: 116 specs pending a design gate
-   * against a limit of 100.
-   *
-   * The board's headline was fixed for this first. Fixing one surface and not
-   * the other would be worse than fixing neither: two counts of one population
-   * within a viewport, one hedged and one not, reads as the two disagreeing.
-   */
-  it("knows whether the count is a floor", () => {
-    expect(SRC).toContain("const gatesArePartial = countIsAFloor(queue.data?.incomplete);");
-  });
-
-  it("uses the board's own wording in the sentence", () => {
-    expect(SRC).toContain('const lead = gatesArePartial ? "At least " : "";');
-  });
-
-  it("MARKS THE RAIL CHIP, which has no room for the word", () => {
-    // "52+" is the compact form of "At least 52". The title carries the
-    // sentence for anyone who stops on it.
-    expect(SRC).toContain('{count === "gates" && gatesArePartial ? "+" : ""}');
-    expect(SRC).toContain('"More are waiting than this counts"');
-  });
-
-  it("marks only the count that can actually be bounded", () => {
-    // The Runs row counts a different read and must not inherit a caveat that
-    // is not true of it.
-    const at = SRC.indexOf('{count === "gates" && gatesArePartial ? "+" : ""}');
-    expect(at).toBeGreaterThan(-1);
-    expect(SRC.slice(at - 500, at)).toContain('count === "gates"');
-  });
-
-  it("recomputes when the gap does", () => {
-    const memoEnd = SRC.indexOf("    strip,\n    movingRuns,\n  ]);");
-    expect(SRC.slice(memoEnd - 500, memoEnd)).toContain("gatesArePartial,");
-  });
-});
+/*
+ * "THE SHELL STATES A BOUNDED COUNT AS A BOUND" IS RETIRED, NOT RE-SPELLED
+ * (P-18a, A-QUEUE.md).
+ *
+ * It pinned `gatesArePartial`, the "At least N" / "N+" floor caveat that
+ * existed because `getApprovalsQueue` bounded ten gate families to a fixed
+ * limit each and could silently drop some of what it counted (S1's own
+ * measurement: 116 specs pending a design gate against a limit of 100).
+ *
+ * `gates` no longer reads `getApprovalsQueue` at all -- P-18a replaced it
+ * with `listGatesOnTracks` (src/lib/spine/track.functions.ts), which reads
+ * pending gates on OPEN TRACKS ONLY, the same rows Start marks "Needs you".
+ * That fixed the count's own defect (65 decisions claimed ready when no
+ * count in the workspace was 65) and, with it, removed the thing this block
+ * asserted: one query with no families to bound has no floor left to name.
+ * `listTracks` and `listMovingTracks` cap at the same 50 open tracks and
+ * neither flags that cap as partial; `gates` now matches them rather than
+ * carrying a caveat true of a reader it no longer uses.
+ */
