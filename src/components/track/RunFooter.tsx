@@ -36,6 +36,8 @@ export function RunFooter({
   status,
   tone,
   hold,
+  station,
+  returnsOn,
   because,
   walking,
   crewLive,
@@ -51,6 +53,10 @@ export function RunFooter({
   /** `track.holdReason`, the raw column. `tone` is derived from it and cannot
    *  answer whether anything will drive this again; see `footer-mode.ts`. */
   hold: string | null;
+  /** Which station it stands at, for the calendar-wait case. */
+  station?: string | null;
+  /** When Learn comes back, already formatted, or null when unrecorded. */
+  returnsOn?: string | null;
   /** `track.holdBecause`, for the person-stopped case only. See `stoppedByYou`. */
   because: string | null;
   walking: boolean;
@@ -66,7 +72,19 @@ export function RunFooter({
   /** Total recorded spend, or null when nothing recorded a price. */
   cost?: string | null;
 }) {
-  const mode = footerMode({ status, tone, hold, because, walking, crewLive });
+  const mode = footerMode({
+    status,
+    tone,
+    hold,
+    because,
+    walking,
+    crewLive,
+    /* P-37. A track at Learn on an unarrived horizon is waiting on the
+       calendar, not stopped, and this bar was calling it "Stopped, and not on
+       you." beside a Run it now that cannot move a date. */
+    station,
+    returnsOn,
+  });
 
   return (
     /*

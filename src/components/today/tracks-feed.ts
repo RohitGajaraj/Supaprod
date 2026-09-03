@@ -1,5 +1,6 @@
 import type { Track } from "@/lib/spine/track.functions";
 import { TERMINAL_HOLDS } from "@/lib/spine/correction";
+import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { holdLine } from "@/lib/spine/driver";
 import { FORECAST_SAYS } from "@/components/learn/forecast-words";
@@ -118,9 +119,9 @@ function cannotMove(holdReason: string | null | undefined): boolean {
  * hand"* — and only at `learn` does it mean the horizon has not arrived. S1's
  * `TrackStart.tsx` tests exactly this pair for the same reason.
  */
-function waitingOnTime(t: { station: string; holdReason: string | null | undefined }): boolean {
-  return t.holdReason === "needs-evidence" && t.station === "learn";
-}
+/* The predicate moved to `track/a-calendar-wait-is-not-a-stoppage`, because the
+   run screen needed it too and was saying the same state four different ways
+   without it. One writer, two readers. */
 
 export function trackToBoardRows(
   tracks: readonly Track[] | undefined,

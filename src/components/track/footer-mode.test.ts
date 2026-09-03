@@ -304,3 +304,77 @@ describe("whether this page is required", () => {
     expect(footerMode({ ...base, status: "abandoned" }).leave).toBeNull();
   });
 });
+
+describe("a calendar wait is one sentence and no door", () => {
+  /**
+   * A1, walking the honest run at 17:28 IST: a track at Learn waiting for a
+   * forecast date had the screen saying FOUR things about one state, and one of
+   * them was a control that could not change it.
+   *
+   *   an "On hold" chip
+   *   the character: "I've stopped, the reason is on the hold line"
+   *   this footer: "Stopped, and not on you."
+   *   a "Run it now" button
+   *
+   * Three statements of one fact and a door onto nothing. The chip already
+   * names the state, so the footer says only the thing a person wants, which is
+   * when it comes back.
+   */
+  it("does not call a date wait a stoppage", () => {
+    const m = footerMode({
+      status: "open",
+      tone: "hold",
+      hold: "needs-evidence",
+      because: null,
+      walking: false,
+      crewLive: false,
+      station: "learn",
+    });
+    expect(m.line).not.toContain("Stopped");
+    expect(m.line).toContain("Learn returns");
+  });
+
+  it("draws no door, because there is nothing to press that would help", () => {
+    const m = footerMode({
+      status: "open",
+      tone: "hold",
+      hold: "needs-evidence",
+      because: null,
+      walking: false,
+      crewLive: false,
+      station: "learn",
+    });
+    expect(m.canRun).toBe(false);
+    expect(m.canStop).toBe(false);
+  });
+
+  it("says the date when one is known and never invents one when it is not", () => {
+    const base = {
+      status: "open" as const,
+      tone: "hold" as const,
+      hold: "needs-evidence",
+      because: null,
+      walking: false,
+      crewLive: false,
+      station: "learn",
+    };
+    expect(footerMode({ ...base, returnsOn: "Sat, Oct 3" }).line).toBe("Learn returns Sat, Oct 3.");
+    // Nothing on `Track` carries the horizon yet, so this is the live case.
+    expect(footerMode(base).line).toBe("Learn returns when the forecast comes due.");
+  });
+
+  it("leaves needs-evidence at any OTHER station alone", () => {
+    // Only Learn waits on a forecast horizon. Discover with no sources is a
+    // person's to fix and keeps its own door.
+    const m = footerMode({
+      status: "open",
+      tone: "hold",
+      hold: "needs-evidence",
+      because: null,
+      walking: false,
+      crewLive: false,
+      station: "sense",
+    });
+    expect(m.line).not.toContain("Learn returns");
+  });
+});

@@ -445,6 +445,21 @@ function TrackPage() {
           tone={holdTone(track.holdReason)}
           hold={track.holdReason}
           because={track.holdBecause}
+          /*
+           * P-37. A track at Learn on a horizon that has not arrived is waiting
+           * on the CALENDAR, and this bar was calling it "Stopped, and not on
+           * you." beside a "Run it now" that cannot move a date. With the
+           * station the footer can tell that state apart.
+           *
+           * `returnsOn` IS NOT PASSED, deliberately. Nothing on `Track` carries
+           * the forecast's horizon date: `tracks-feed` found the same thing and
+           * wrote it down ("the date did not come free"). So the footer says
+           * "Learn returns when the forecast comes due", which is true, rather
+           * than a date nobody read. The dated sentence lands when a reader for
+           * it exists, and inventing "soon" in the meantime is the substitution
+           * this repo keeps paying for.
+           */
+          station={track.station}
           walking={drive.walking}
           crewLive={crewLive}
           onStop={drive.stop}

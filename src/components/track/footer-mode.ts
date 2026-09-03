@@ -90,6 +90,8 @@ export type FooterMode = {
   leave: string | null;
 };
 
+import { waitingOnTime, calendarWaitLine } from "./a-calendar-wait-is-not-a-stoppage";
+
 export function footerMode(input: {
   status: "open" | "done" | "abandoned";
   /** From `holdTone`, which reads the RAW reason. Never the prose. */
@@ -112,7 +114,36 @@ export function footerMode(input: {
   walking: boolean;
   /** The record says a seat is running, whoever started it. */
   crewLive: boolean;
+  /** Which station the track is standing at, for the calendar-wait case. */
+  station?: string | null;
+  /**
+   * When Learn comes back, already formatted. Only read on a calendar wait.
+   * Null when nobody recorded a horizon, which is a real state rather than a
+   * reason to invent "soon".
+   */
+  returnsOn?: string | null;
 }): FooterMode {
+  /*
+   * ── A CALENDAR WAIT IS ONE SENTENCE AND NO DOOR (P-37) ──────────────────
+   *
+   * FIRST, before every other arm, because those arms are about stoppages and
+   * this is not one. A track at Learn whose forecast horizon has not arrived
+   * was falling through to "Stopped, and not on you." with `canRun: true`, so
+   * the screen said the state four times over (the chip, the character, this
+   * line, and a button) and offered a control that cannot change a date.
+   *
+   * The chip already names the state. This says the only thing a person
+   * actually wants, which is WHEN it comes back, and draws no door because
+   * there is nothing to press that would help.
+   */
+  if (waitingOnTime({ station: input.station, holdReason: input.hold })) {
+    return {
+      line: calendarWaitLine(input.returnsOn ?? null),
+      canStop: false,
+      canRun: false,
+      leave: null,
+    };
+  }
   if (input.status === "done") {
     return { line: "This run is finished.", canStop: false, canRun: false, leave: null };
   }
