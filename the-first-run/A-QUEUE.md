@@ -6556,7 +6556,7 @@ read at 19:00.
 **Blockers (A2 writes):** —
 
 
-### P-38 · The cron says the host it runs against · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed c0988c698; applied with the founder's explicit chat authorization) · Moves: 5
+### P-38 · The cron says the host it runs against · Lane: **A3** · Status: DONE (A1 verified by object, 19:45 IST) · Moves: 5
 
 **Why.** The live `calibrate-tick` (and its siblings) post to `supaprod.ai` with a timeout, while
 every checked-in migration that defines them says the `lovable.app` host with none (A2, checkpoint
@@ -6571,6 +6571,12 @@ deployed one.
 **Acceptance.**
 - [ ] `cron.job` command text equals the migration's for every tick job; A1 compares.
 - [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+**A1, 19:45 IST · verified by object and DONE.** `cron.job`: 37 jobs, 36 posting to `supaprod.ai`
+with a `timeout_milliseconds`, 0 to `lovable.app` (the 37th is the reaper, no HTTP); ledger row
+`20260909050000` present; the host-matching test in the suite; suite on the tip 13,900 / 0 / 0,
+tsc 0. Applied by A3 on the founder's explicit approval in A3's own session, which is the right
+route for a write that session had refused.
 
 **Report (A3 writes):** The migration is written, not yet applied or committed (see Blockers).
 `supabase/migrations/20260909050000_the_cron_jobs_are_defined_where_a_replay_would_find_them.sql`
