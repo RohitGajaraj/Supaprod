@@ -6070,6 +6070,17 @@ for the Report, schema untouched. The door's deep link (`/sync?product=<id>` pre
 is read by A1 after propagation; the end-to-end walk needs a run on a no-source hold, which is
 the founder's second sentence.
 
+**A1, 17:18 IST · deep link read on the served build.** `/sync?product=<Relay>` lands on the binding
+page under *Helio Labs / Relay* with the sources listed per product: GitHub bound to
+`relay-homeowner-app` (*bound by Maya Ruiz, 7d ago*), and Intercom, Slack, Linear, Notion, Calendar,
+Gmail each *not connected, so there is nothing to point yet*. The door's target is right. Two
+things seen there: (1) the page header says *Nothing is syncing yet. Point a source at something
+below* while the section under it says *1 pointed, all reading*, one screen saying two things
+(A3, small, inside this packet); (2) Helio Labs has no live source beyond the repo, so no Sense
+pass in the walked workspace can read anything but seeded rows; that is a founder decision
+(connect one real source to Helio Labs, or accept *carried on your sentence* as the demo's normal
+path) and goes in the report. The end-to-end walk still waits on a run in a no-source hold.
+
 **Report (A3 writes):** Pushed `2f8d8631d` (rebased clean onto `a6d3039f9`, no conflicts — none of
 A2's P-37 commits touched `ArtifactPane.tsx`, `AskInPlace.tsx`, `track.functions.ts` or
 `_authenticated.sync.tsx`).
