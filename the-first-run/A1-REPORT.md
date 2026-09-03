@@ -549,3 +549,21 @@ deferred six hours after it spent three attempts on that fault. A3 has been sile
 (P-58 claimed 00:51); P-68 moved to A2. Open on A2: P-68, P-70. Open on A3 when it returns: P-58,
 P-59b, P-61, P-63, P-64, P-65. The founder has nothing to set; the date call holds at 23
 September, and 8 September for a real Ship now depends on P-68.
+
+**Checkpoint, 2026-09-04 05:05 IST. Sixty-eight of seventy-nine, and the night's three findings
+that change the product.** Since 02:00: P-58 (published; the ping warms the isolate and not what
+the root reads, so P-58b), P-59b, P-61, P-63 (published; four of nine doors leak another
+workspace's desk in an empty one, so P-75), P-66 DONE live, P-68 and P-68b (published; the retry's
+one-hour window strands the tablet changeset; P-59c because the card does not draw), P-69 DONE
+live, P-70 (five files to zero; the ratchet 139 across 74 files), P-71, P-71b and P-71c (published;
+the second probe run still declined on absence because the footing was read from a transient
+hold; the third sentence at 05:21 decides), P-72 in three parts (a halted seat opens no PR; a
+Design verdict against the premise holds; the merge gate shows the change), P-74 filed from the
+founder's 04:09 note (the run shows its route as a map, not a bar). The three findings: R-39 (a
+call on the person's sentence alone is the person's to make; Decide declined on nothing, twice),
+R-40 (the first change to reach Ship styles a component that does not exist; PR #4 is inert), and
+the reads with no workspace (P-66, P-67, P-70, P-75: a person in a fresh workspace sees another
+workspace's clusters, outcomes, sources and conversations). Both lanes running; A3 was silent
+00:51 to 02:55 on a permission prompt, which rule 20 now forbids. The date call holds at 23
+September; a real Ship by 8 September needs P-59c, P-72's candidate and P-75 landed, and the
+founder's release gate is no longer his to press: nothing on the tablet track is promoted.

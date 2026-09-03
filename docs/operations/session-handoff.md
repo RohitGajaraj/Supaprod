@@ -776,3 +776,7 @@ Fifty-one of fifty-seven packets done with evidence. P-50 DONE live (composed qu
 ## 2026-09-04 02:00 IST · A1 (Fable) · overnight
 
 Fifty-nine of seventy packets done with evidence. Founder asleep since 00:09 with every pending call handed to A1; calls made: P-55 C only; twins superseded with gates closed (P-57b); the release gate pressed (failed on R-27: no preview; P-68 filed; tablet track `6817e386` deferred to 02:01 UTC so it is not marked given-up). Platform audit at `the-first-run/PLATFORM-AUDIT.md` with R-38; rail now has nine doors (P-60, live). A3 silent since 00:47; P-68 moved to A2. P-42's grader read is after 12:00 UTC on six Helio rows. Probe workspace `a1-delete-probe` now has the owner's member row and one track at Decide; delete it via the UI (P-39 walk) when nothing is running there. Queue at 4c3302e4f and after.
+
+## 2026-09-04 05:05 IST · A1 (Fable) · late night
+
+Sixty-eight of seventy-nine packets done with evidence. New rulings R-38 (a surface without a door is not shipped), R-39 (a call on the person's sentence alone is the person's), R-40 (a shipped change is the change the spec asked for; PR #4 is inert). Open on A2: P-59c, P-75, P-74, P-73. Open on A3: P-64, P-58b, P-65. The tablet track `6817e386` is deferred to 01:24 UTC 09-04 with attempts 1; nothing on it is promoted. Probe workspace `a1-delete-probe` has three tracks (two declined on absence, one running); keep it for P-75's re-walk, then delete via the UI (P-39 walk). Use the hook line for times (two corrections tonight). Queue at d0b876595 and after.
