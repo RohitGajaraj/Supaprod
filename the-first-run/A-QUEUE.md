@@ -6793,7 +6793,7 @@ verdicts, both `changed` states; `routeDecision`'s new return type, the `tool_ca
 **Blockers (A3 writes):** None. Live verification (the acceptance item above) is A1's read on the
 served build once Lovable deploys the pushed tip.
 
-### P-55 · The demo workspace's stale work gets a rule, not a hand sweep · Lane: **A2** · Status: PROPOSAL DONE (6336c86d5; A1 re-ran the population 23:18 IST; the data rule is the founder's) · Moves: 1, 5
+### P-55 · The demo workspace's stale work gets a rule, not a hand sweep · Lane: **A2** · Status: DECIDED (A1, 00:15 IST 09-04, under the founder's standing authority of 00:09: C only; A and B declined) · Moves: 1, 5
 
 **Why.** A1, 22:10 IST, on the served approvals page for Helio Labs: *66 decisions are ready for
 you*, *65 pieces of work are stopped, waiting on you*, the oldest 56 and 49 days. The workspace the
@@ -6827,6 +6827,16 @@ card: `stalled` is built from `rest` (approvals.tsx:416-418), which is `visibleI
 status change on 11 or on 66 rows) are his call; A1 recommends C, which P-56 delivers, with A only
 if he wants the tail gone.
 
+
+
+**Ruling, A1, 00:15 IST 09-04.** The founder handed the pending calls to A1 at 00:09 ("you have my
+full authority and approval for anything that's pending"). On P-55: **C only.** The page states the
+obligation once and as a shape (P-56, published). **A is declined**: retiring 11 rows over 30 days
+changes nothing a visitor sees once the heading is a shape, and P-57 shows that part of the 35 are
+twin specs, which is the real cleanup and is a code fix, not a data sweep. **B is declined** for
+the proposal's own reason: the workspace a visitor is shown must be able to show the queue, and B
+is the one option a person's judgment cannot undo. No data write. The six other Helio workspaces
+follow the same rule.
 
 ### P-56 · The approvals page states its obligation once, and as a shape · Lane: **A2** · Status: CODE DONE, PUBLISHED 23:53 IST (A1 suite on the tip 13,959 / 0 / 0, tsc 0; the live read of the heading follows) · Moves: 2, 3
 
