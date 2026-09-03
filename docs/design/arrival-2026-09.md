@@ -176,10 +176,24 @@ This is the largest remaining piece of the arrival, and it is the next thing to 
 
 ---
 
-## 5. Still standing, with evidence
+## 5. Found by the audit, and all six now closed
 
 Verified by an adversarial audit of the surfaces the live walk could not reach (each finding
-refuted by an independent pass before being kept). Not yet fixed.
+refuted by an independent pass before being kept).
+
+> **All six were fixed by the P-33 work that this section was written to queue, and this heading
+> said "Not yet fixed" for a day after they were.** Re-checked against the source on 2026-09-03,
+> one by one, before this note was written: `getStandingRecord` now filters by workspace
+> (`brain-standing.functions.ts:165-172`); `RetentionLine` takes `recordIsEmpty`
+> (`_authenticated.outcomes.tsx:1660`); both "Saved" buttons gate on `save.isSuccess`; the export
+> line requires `closed.decisionsClosed > 0 || closed.prsShipped > 0` (`DataSection.tsx:287`);
+> `ArtifactPane` reports a running station before it reports one that has never run
+> (`ArtifactPane.tsx:2831`); and the source count is scoped and keyed by workspace
+> (`ArtifactPane.tsx:2827-2837`).
+>
+> **A document that lists closed defects as open costs the next lane a re-investigation, which is
+> exactly what the findings ledger exists to prevent.** Kept rather than deleted, because the
+> evidence below is the record of what was wrong and each entry names the class it belonged to.
 
 **Counts that belong to the person, printed as the workspace's.** `getStandingRecord` counts with
 `.eq("user_id", userId)` and **no workspace filter**, while the list underneath it is
