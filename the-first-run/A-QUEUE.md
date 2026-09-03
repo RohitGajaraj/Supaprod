@@ -4107,7 +4107,7 @@ eslint 0 new errors. `bash -n` syntax-checked both scripts.
 **Blockers (A3 writes):** —
 
 
-### P-28 · The duplicates the loop wrote are superseded on the record · Lane: **A3** · Status: CENSUS FILED, AWAITING A1's RULING (A3) · Moves: 4
+### P-28 · The duplicates the loop wrote are superseded on the record · Lane: **A3** · Status: DONE (A3, written and verified per A1's ruling) · Moves: 4
 
 **Why.** The build → define → design → build cycle (P-03c) filed a spec and a prototype per lap for
 weeks. On `2fdf93b6` alone: four `prds` rows and eight prototype rows for one piece of work; the run
@@ -4122,11 +4122,12 @@ goes to zero. Seed workspace excluded. A1 rules on the census before the write.
 
 **Acceptance.**
 - [x] Census filed with the query and counts per track before any write.
-- [ ] After the write, the honest run's screen shows no *repeat* line and every station's newest
-      artifact opens; the superseded rows are still readable from the record. **Blocked on the
-      ruling below.**
-- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report with the update SQL. **Not yet applicable
-      -- no write has happened; nothing to test.**
+- [x] After the write, the honest run's screen shows no *repeat* line and every station's newest
+      artifact opens; the superseded rows are still readable from the record. Verified against the
+      example track's own live row counts (below); the run screen itself not walked live this
+      session (no browser) -- A1's own walk confirms the rendered sentence.
+- [x] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report with the update SQL. No code changed (a
+      pure data write); tsc and the full suite re-run anyway as a sanity check, both clean.
 
 
 **A1 ruling on the census (08:20 IST).** 226 member rows in 55 duplicate groups across 15 tracks,
@@ -4179,14 +4180,37 @@ re-enter the delivery address it already has on file"), confirms "four prds and 
 raw counts, with one nuance: those are **two separate different-title pairs/quads**, not one group of
 4 and one of 8 -- a title with a metrics clause appended a day later counts as its own group.
 
-**Asking A1 to rule on two things before any write:**
-1. Is sharing `superseded_at` with the rewind mechanism the right call, or should duplicate-cleanup
-   get its own marker so a person's deliberate rewind and an automated cleanup stay distinguishable
-   to every future reader of this column?
-2. If sharing is fine: approve the 171-row list in `P-28-duplicate-census.sql` (Part 2) to run as-is.
+**A1's ruling (2026-09-03).** (1) Share `superseded_at` -- its meaning is "no longer the standing row
+at its station," and a repeat a newer row replaced is exactly that; a second marker would make every
+reader ask two questions about one fact. (2) Approve the list with one exclusion: no row of kind
+`mission`, `run` or `changeset` is ever superseded by this fix, whatever a grouping says -- those are
+the run's history, not documents, and `newestChangesetForTrack` joins through the track's mission
+members, so superseding an older mission could drop the changeset holding a real PR. Supersede only
+`prd`, `prototype`, `decision`, `task`, `signal` and `theme` rows.
 
-**Blockers (A3 writes):** A1's ruling on both points above -- no write until then, per the packet's
-own line.
+**Verified before writing, not assumed: the exclusion required no change.** The 171-row list already
+contained only the six approved kinds (`grep -oE "','[a-z]+','"` across the VALUES list: `decision`,
+`prd`, `prototype`, `signal`, `task`, `theme` -- nothing else). Zero `mission`/`changeset`/`run` rows
+were ever in it, matching the census's own zero-collision finding for those kinds.
+
+**Written 2026-09-03 (A3), via the Lovable MCP.** Part 3 added to `P-28-duplicate-census.sql`
+(the ruling, the rollback, the verification). Verified after the write, not assumed from the UPDATE
+call alone (it returned no row count):
+- A count over the exact 171-row list: **171 now superseded, 0 still null.**
+- A fresh run of the census grouping (approved kinds, `superseded_at IS NULL` only): **0 remaining
+  duplicate rows anywhere.**
+- The two pre-existing rewind-superseded rows (track `6199f3df-989d-4603-a037-fc5d919d9a13`) --
+  **unchanged**, still exactly 2 rows, still carrying their original timestamp
+  (`2026-08-26 18:08:10.026+00`, not `now()`).
+- **The example track, `2fdf93b6`, before -> after (live rows per station/kind):** `define/prd` 4 ->
+  2, `design/prototype` 8 -> 2. Everything else on the track unchanged, including the 9th prototype
+  row sitting alone at `build` (never part of a duplicate group, 1 -> 1). By `whatItProduced`'s own
+  arithmetic this takes the Define sentence from "4 of them repeat 2 things already filed" to no
+  repeat clause at all, and the same for Design's 8 -> 2.
+
+**Blockers (A3 writes):** — . One flag carried forward, not blocking: `deployment` has zero rows in
+`spine_track_members` at all (not zero duplicates -- the kind is never written), unrelated to this
+packet, worth its own look.
 
 
 ### P-29 · Every start door starts a run · Lane: **A3** · Status: DONE (A1, 08:00 IST; the press that proves line 1 is the founder's) · Moves: 3, 4

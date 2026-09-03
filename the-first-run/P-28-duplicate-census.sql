@@ -291,3 +291,57 @@ WHERE m.track_id = v.track_id::uuid
   AND m.artifact_kind = v.artifact_kind
   AND m.artifact_id = v.artifact_id::uuid
   AND m.superseded_at IS NULL;
+
+-- ============================================================================
+-- PART 3: A1's RULING (2026-09-03), THE EXCLUSION, AND THE ROLLBACK
+-- ============================================================================
+-- RULING: (1) share superseded_at -- its meaning is "no longer the standing
+-- row at its station," and a repeat a newer row replaced is exactly that; a
+-- second marker would make every reader ask two questions about one fact.
+-- (2) Approve the list with one exclusion: no row whose artifact_kind is
+-- mission, run or changeset is ever superseded by this fix, whatever a
+-- grouping says -- those are the run's HISTORY, not documents, and
+-- newestChangesetForTrack joins through the track's mission members, so
+-- superseding an older mission could drop the changeset holding a real PR.
+-- Supersede only prd, prototype, decision, task, signal and theme rows
+-- (this census found zero "finding"-kind rows and zero collisions on
+-- changeset/mission/learning; deployment has zero rows in the table at all).
+--
+-- VERIFIED, NOT ASSUMED: the 171-row list above was checked before running it
+-- and contains ONLY these six kinds -- decision, prd, prototype, signal, task,
+-- theme -- confirmed by `grep -oE "','[a-z]+','"` across the VALUES list.
+-- Zero rows of kind mission, run, or changeset appear in it. The exclusion
+-- ruling therefore required no change to the list already prepared.
+--
+-- EXECUTED 2026-09-03 (A3), via the Lovable MCP. Verified after the write,
+-- not assumed from the UPDATE call alone (its own response carried no
+-- affected-row count):
+--   * A count over the exact 171-row VALUES list: 171 now_superseded, 0
+--     still_null.
+--   * A fresh run of the census grouping (six approved kinds, superseded_at
+--     IS NULL only): 0 remaining duplicate rows anywhere.
+--   * The two pre-existing rewind-superseded rows (track
+--     6199f3df-989d-4603-a037-fc5d919d9a13, one changeset + one mission) --
+--     UNCHANGED: still exactly 2 rows, still carrying their ORIGINAL
+--     timestamp (2026-08-26 18:08:10.026+00, not `now()`), confirming this
+--     write's WHERE clause never touched them.
+--   * The example track, 2fdf93b6-eb95-4511-b6f4-f74d94a6d39c, before ->
+--     after (live rows per station/kind): define/prd 4 -> 2, design/prototype
+--     8 -> 2. Everything else on that track unchanged, including the 9th
+--     prototype row sitting alone at station `build` (never part of a
+--     duplicate group, still 1 -> 1).
+--
+-- ROLLBACK, if this write is ever found wrong. One line, using the exact same
+-- 171-row VALUES list from Part 2 (copy it in place of the ... below), which
+-- makes the rollback exact rather than a broader guess:
+--
+--   UPDATE spine_track_members AS m
+--   SET superseded_at = NULL
+--   FROM (VALUES ...) AS v(track_id, artifact_kind, artifact_id)
+--   WHERE m.track_id = v.track_id::uuid
+--     AND m.artifact_kind = v.artifact_kind
+--     AND m.artifact_id = v.artifact_id::uuid;
+--
+-- DO NOT run a bare "WHERE superseded_at IS NOT NULL" rollback -- that would
+-- also unset the two pre-existing rewind rows on track 6199f3df..., which
+-- this fix must never touch.
