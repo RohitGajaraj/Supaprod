@@ -111,7 +111,12 @@ describe("Ship's own ask argues before it asks for an answer", () => {
 
   it("hands the promote its evidence through risk/reason, never as a sibling after the buttons", () => {
     const flat = src.replace(/\s+/g, " ");
-    const gate = flat.slice(flat.indexOf('question={`Take "${ready[0].title}" to production?`}'));
+    // P-56 (A-QUEUE.md): `Ask.question` is a branded `AskQuestion`, made only
+    // by `askQuestion()`, so the literal template this anchor used to match
+    // no longer appears verbatim -- the mark is composed, not glued on.
+    const gate = flat.slice(
+      flat.indexOf('question={askQuestion(`Take "${ready[0].title}" to production`)}'),
+    );
     const body = gate.slice(0, gate.indexOf("/>"));
     expect(body.indexOf("reason=")).toBeGreaterThanOrEqual(0);
     expect(body.indexOf("risk=")).toBeGreaterThan(body.indexOf("reason="));

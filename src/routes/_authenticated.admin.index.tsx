@@ -85,6 +85,7 @@ import { useConfirm } from "@/hooks/use-confirm";
 import { inBandError } from "@/components/admin/admin-ui";
 import { Field, Input } from "@/components/meridian/forms";
 import { Ask } from "@/components/meridian/Ask";
+import { askQuestion } from "@/components/meridian/question";
 import {
   getPricingCatalog,
   adminSetCreditsEnabled,
@@ -344,7 +345,9 @@ function AdminOverview() {
       ) : (
         <>
           <Ask
-            question={charging ? "Stop charging for AI use?" : "Start charging for AI use?"}
+            question={askQuestion(
+              charging ? "Stop charging for AI use" : "Start charging for AI use",
+            )}
             // `Ask.risk` is one prose string, never a badge (its own header),
             // so the pre-flight checks -- previously a `Value`-toned row each
             // -- join into one sentence. Every check survives: unlike a track

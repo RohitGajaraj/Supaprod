@@ -133,6 +133,7 @@ import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { StalledWork, type StalledItem } from "@/components/meridian/StalledWork";
 
 import { Ask } from "@/components/meridian/Ask";
+import { askQuestion } from "@/components/meridian/question";
 import { Action, Actions, ReadFailed, Reading } from "@/components/meridian/surface-parts";
 import { CallContext, Key } from "@/components/approvals/CallContext";
 import { FilterExcludedEverything, QueueFilters } from "@/components/approvals/QueueFilters";
@@ -883,7 +884,7 @@ function ApprovalsSurface() {
             <Ask
               // The "[auto]" marker names a call the loop raised itself and must
               // never reach the sentence being judged.
-              question={stripAutoMarkers(focused.title)}
+              question={askQuestion(stripAutoMarkers(focused.title))}
               reason={focusedReason}
               /*
                * P-51 (A-QUEUE.md), still true through the Ask migration: this is

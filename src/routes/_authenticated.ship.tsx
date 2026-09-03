@@ -236,6 +236,7 @@ import { listWorkspaceMembers } from "@/lib/workspaces.functions";
 import { TRANSITION_ROLES, type WorkspaceRole } from "@/lib/announcements";
 import { Surface } from "@/components/meridian/Surface";
 import { Ask } from "@/components/meridian/Ask";
+import { askQuestion } from "@/components/meridian/question";
 import { Quiet } from "@/components/meridian/Quiet";
 import { CtxBody, CtxHead } from "@/components/meridian/ContextColumn";
 import { Field, Input, Textarea } from "@/components/meridian/forms";
@@ -2383,7 +2384,7 @@ function Ship() {
               .
             </p>
             <Ask
-              question={`Take "${ready[0].title}" to production?`}
+              question={askQuestion(`Take "${ready[0].title}" to production`)}
               reason={`Merged ${since(ready[0].releasedAt) ?? "recently"}${ready[0].productName ? ` into ${ready[0].productName}` : ""}.${ready.length > 1 ? ` ${ready.length - 1} more ${ready.length - 1 === 1 ? "is" : "are"} ready, each with its own promote under Where it is live.` : ""}`}
               risk="It moves that same commit to the production address. Customers see it immediately, and undoing it means a revert pull request."
               fallback={{ kind: "irreversible" }}
@@ -2620,7 +2621,7 @@ function Ship() {
              next steps, not answers to a yes/no) or no controls at all, so
              only this one, "Send X to customers?", routes through `Ask`. */
             <Ask
-              question={`Send "${call.title}" to customers?`}
+              question={askQuestion(`Send "${call.title}" to customers`)}
               reason={[
                 firstLine(call.body),
                 since(call.submitted_at ?? call.created_at)

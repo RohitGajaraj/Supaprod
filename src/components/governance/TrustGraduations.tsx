@@ -32,6 +32,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Ask } from "@/components/meridian/Ask";
+import { askQuestion } from "@/components/meridian/question";
 import { AgentMark } from "@/components/meridian/marks";
 import {
   listTrustGraduationProposals,
@@ -142,7 +143,9 @@ export function TrustGraduationsBlock({
     <>
       {live ? (
         <Ask
-          question={`Let ${liveName} run ${live.tool_name} ${MODE_PHRASE[live.to_mode]}?`}
+          question={askQuestion(
+            `Let ${liveName} run ${live.tool_name} ${MODE_PHRASE[live.to_mode]}`,
+          )}
           risk="The hard floors hold either way. A one way door still comes back to you."
           reason={`Today it runs ${MODE_PHRASE[live.from_mode]}. It is asking to run ${MODE_PHRASE[live.to_mode]}. It has done this ${live.clean_streak} times in a row and you changed nothing.${live.rationale ? ` ${live.rationale}` : ""}`}
           fallback={{

@@ -120,6 +120,7 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { CONSENT_PHILOSOPHY, groupToolsByConsequenceClass } from "@/lib/consent-classes";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Ask } from "@/components/meridian/Ask";
+import { askQuestion } from "@/components/meridian/question";
 import { AgentMark } from "@/components/meridian/marks";
 import { useConfirm } from "@/hooks/use-confirm";
 
@@ -467,7 +468,9 @@ export function ControlsPanel({
           One at a time, so there is one primary action on screen. */}
       {live ? (
         <Ask
-          question={`Let ${agentDisplayName(live.target_agent_slug)} run on ${eventLabel(live)}?`}
+          question={askQuestion(
+            `Let ${agentDisplayName(live.target_agent_slug)} run on ${eventLabel(live)}`,
+          )}
           reason={`${eventWord(live.event_type)} fired ${firedPhrase(live.created_at)}, and this pipeline asks you before it dispatches.`}
           risk="Skipping runs nothing. The event stays on the record either way."
           fallback={{ kind: "irreversible" }}

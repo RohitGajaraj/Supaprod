@@ -74,6 +74,7 @@ import {
 import { rejectionCountFor } from "@/lib/rejection-learning";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Ask } from "@/components/meridian/Ask";
+import { askQuestion } from "@/components/meridian/question";
 import { AgentMark } from "@/components/meridian/marks";
 import { TrustGraduationsBlock } from "./TrustGraduations";
 import { relExpiry, fmtMedian, RESOLVED_LINE, RISK_NOTE, type GovTone } from "./governance-shared";
@@ -520,7 +521,7 @@ function FocusedCall({
   return (
     <>
       <Ask
-        question={`Let ${name} run ${a.tool_name}?`}
+        question={askQuestion(`Let ${name} run ${a.tool_name}`)}
         risk={risk}
         reason={a.rationale}
         fallback={{ kind: "reversible", whatHappens }}

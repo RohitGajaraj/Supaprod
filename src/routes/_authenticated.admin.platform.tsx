@@ -86,6 +86,7 @@ import {
 } from "@/components/meridian/surface-parts";
 import { Checkbox, Field, Input } from "@/components/meridian/forms";
 import { Ask } from "@/components/meridian/Ask";
+import { askQuestion } from "@/components/meridian/question";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -683,7 +684,7 @@ function DeployGate() {
         />
       </Field>
       <Ask
-        question="Ship the current build to production?"
+        question={askQuestion("Ship the current build to production")}
         risk="Calls the hosting provider's deploy hook, which rebuilds and publishes the app. Everyone is on the new build as soon as the provider finishes. There is no undo from here. Rolling back is done at the hosting provider. It only works once an engineer has connected a deploy hook in the hosting settings."
         fallback={{ kind: "irreversible" }}
         answer={{ label: "Ship it", busy: deploy.isPending, onPress: () => void onDeploy() }}

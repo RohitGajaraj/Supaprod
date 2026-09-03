@@ -61,6 +61,7 @@ import { relativeTime } from "@/lib/memory-view";
 import { initialsFrom } from "@/lib/initials";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Ask } from "@/components/meridian/Ask";
+import { askQuestion } from "@/components/meridian/question";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 
 /** Who put this in front of you. The table has a source_kind and nothing else,
@@ -216,7 +217,7 @@ export function MemoryReviewQueue() {
         </ReadFailed>
       ) : focused ? (
         <Ask
-          question={focused.content}
+          question={askQuestion(focused.content)}
           reason={whoLine(focused.source_kind)}
           risk={
             willSupersede(focused.supersedes_memory_id)
