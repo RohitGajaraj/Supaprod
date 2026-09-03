@@ -6174,7 +6174,7 @@ packets.
 
 **Blockers (A3 writes):** —
 
-### P-45 · The chat footer ranks its facts · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
+### P-45 · The chat footer ranks its facts · Lane: **A3** · Status: BLOCKED (A3) · Moves: 2, 3
 
 **Why.** Found by A2 while hunting shape 6 for P-37: `src/components/chat/MessageMeta.tsx` puts
 every item behind one `style={item}`, so seat, verdict, duration, tokens and a paragraph render at
@@ -6192,7 +6192,26 @@ no token count.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
 **Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Blockers (A3 writes):** `src/components/chat/MessageMeta.tsx` (`MessageMetaFooter`) has zero real
+importers in `src` outside its own file and two guard tests — confirmed by grep, and independently
+already documented in this repo: `src/components/brain/__tests__/the-rating-has-no-door.test.ts`
+("that component is mounted NOWHERE") and `.../finished-work-that-never-reached-a-screen.test.ts`
+("`MessageMetaFooter` losing its mount"), the latter explicitly written to go red the day it is
+fixed. `src/components/ask/AskTurn.tsx` is the real, live chat surface (`AskDock` → `AskPane` →
+`AskTurn`, mounted in `_authenticated.tsx`), and it does not import `MessageMeta.tsx` at all — it
+reimplements its own model/cost line independently (`modelLabel`/`spendLabel` from
+`@/lib/model-label`). Its own `Provenance` component ALREADY does what this packet asks and further:
+under a founder ruling (2026-07-30, quoted in its own header — "it looks like a message itself...
+give it... three dots... view credits"), model/cost/records-read render nowhere by default at all,
+behind a "View credits" menu item, not merely faint.
+
+So building FoldingRow into `MessageMeta.tsx` would be styling a dead file nobody sees — the exact
+"finished work that never reached a screen" defect class this repo has already named twice. Two ways
+to actually close this: (a) confirm `AskTurn.tsx`'s `Provenance` genuinely has no remaining hierarchy
+problem (my read says it does not — happy to build a test pinning its current behavior if that is
+still wanted), or (b) if this packet's real intent is reviving `MessageMeta.tsx` as a mount somewhere
+real, that is a different, bigger packet than "compose FoldingRow into an existing footer." Not
+proceeding on the file as named until this is resolved. Moving to P-46 while this is open.
 
 ### P-46 · The launch copy is drafted against the canon and today's evidence number · Lane: **A3** · Status: READY (draft only; nothing outward ships without the founder) · Moves: 6
 
