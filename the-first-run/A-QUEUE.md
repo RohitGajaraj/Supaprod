@@ -6989,7 +6989,7 @@ the founder sets the secret and republishes. Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads both surfaces.
 
 
-### P-60 · The rail answers the person's questions · Lane: **A2** (after P-59) · Status: CODE DONE (76af3609e; A2 reports 14,005 / 0 / 0, tsc 0; A1 suite running). Names changed by the founder's 2026-09-01 ruling (one word on the rail): Start, Waiting, Arriving, Run, Outcomes, Team, Conversations, Sources, Settings · Moves: 2, 3
+### P-60 · The rail answers the person's questions · Lane: **A2** (after P-59) · Status: CODE DONE (76af3609e; A2 reports 14,005 / 0 / 0, tsc 0; A1 suite on the tip 14,005 / 0, tsc 0; PUBLISHED 01:23 IST 09-04; the nine-door walk follows). Names changed by the founder's 2026-09-01 ruling (one word on the rail): Start, Waiting, Arriving, Run, Outcomes, Team, Conversations, Sources, Settings · Moves: 2, 3
 
 **Why.** `PLATFORM-AUDIT.md` §1 and R-38. The rail holds Start and Run; seven surfaces
 have no door. Stations stay out of the rail (R-01 first half); the person's questions go in.
