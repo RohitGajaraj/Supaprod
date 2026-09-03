@@ -6043,7 +6043,7 @@ packets.
 
 **Blockers (A3 writes):** —
 
-### P-44 · The door from a no-source hold lands on the binding, and the binding takes · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
+### P-44 · The door from a no-source hold lands on the binding, and the binding takes · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed 2f8d8631d) · Moves: 2, 3
 
 **Why.** On the honest run (14:23 IST) the pane said *Nothing is pointed at a source yet. This
 needs somewhere to read from, and the connection for it is already here, so connecting again
@@ -6062,7 +6062,56 @@ binding, and the run's line after the binding (*Now reading <source> for Relay*)
 - [ ] A1 walks it end to end on Helio Labs / Relay and the next Sense pass names the source.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
-**Report (A3 writes):** —
+**Report (A3 writes):** Pushed `2f8d8631d` (rebased clean onto `a6d3039f9`, no conflicts — none of
+A2's P-37 commits touched `ArtifactPane.tsx`, `AskInPlace.tsx`, `track.functions.ts` or
+`_authenticated.sync.tsx`).
+
+The real defect: `AskInPlace`'s "connected, but not enough" door read *Finish it in Settings* and
+pointed at `/settings?section=connections` — the account list. That surface's own header names
+where a binding actually changes: `/sync`. The door sent a person to reconnect an account that was
+never the problem; the picker they needed was one surface over. Fixed:
+
+- `AskInPlace.tsx`: the door now goes to `/sync` ("Finish it on Sync"), via a new pure
+  `bindingDoorTarget(productId)` (unit-tested directly rather than through a mount).
+- `track.functions.ts`: `Track`/`getTrack`/`getTrackChain` did not carry `spine_tracks.product_id`
+  on the read at all before this — added as `productId`, threaded `ArtifactPane` → `StationPanel` →
+  `NothingToRead` → `AskInPlace`, so the door carries THIS run's own product rather than whatever
+  the workspace switcher happens to be on.
+- `_authenticated.sync.tsx`: `/sync?product=<id>` is a second deep-link param beside the existing
+  `?conflict=<id>`. A pure `productToPreselect()` decides whether to call the same
+  `setActiveProductId` the switcher itself uses — only when the id names a real product in this
+  workspace and differs from what is already active — so `ProductBindingsSection` opens already
+  pointed at the run's product.
+
+Two existing guards pinned the old shape and were updated with the source they check:
+`the-connect-control-stops-hiding-when-it-is-needed.test.tsx` asserted the literal "Finish it in
+Settings" text (now also asserts the `/sync` href), and `the-desk-you-are-on-is-the-desk-you-see.test.ts`
+pins the exact `NothingToRead` call-site string.
+
+**Not built, and why:** scope names "the run's line after the binding (*Now reading <source> for
+Relay*)" — I found no such string anywhere in the codebase (grepped), so either it does not exist
+yet, or Sense's own agent narration already says something like it in its transcript rather than a
+template string. I have no Claude-in-Chrome access this session to walk the live binding-to-Sense-
+read path and tell which, so I did not build a line that might already exist in a different form.
+Flagging for your walk rather than guessing at a fix.
+
+Also not built: binding a source that is satisfied purely by an env-managed credential with no
+`connections` row at all — `WorkspaceBindingsSection` has nothing to bind against for that case
+today (the `connection_bindings.connection_id` FK has no row to point at), which is a real gap but
+a schema question outside this packet's "no new tables" scope. The walk scenario (Helio Labs /
+Relay) is expected to use a real connected account, not an env-only one, so this should not block
+the walk — flagging in case it does.
+
+Numbers on the pushed tip, re-verified after rebase (rule 17): `tsc --noEmit` 0 · `bun test` 13870
+pass / 22 skip / 37 todo / 0 fail / 36743 expect() across 997 files · 0
+`# Unhandled error between tests` · `eslint` on every touched file: 0 errors (pre-existing
+`react-refresh/only-export-components` warnings only, unrelated to this change) · Meridian ratchet
+5/5 · the migration-columns guard 16/16 (`product_id` was already in `types.ts`, no hand-edit
+needed).
+
+Not yet done: your live walk (acceptance box 2) — no browser access this session, same as prior
+packets.
+
 **Blockers (A3 writes):** —
 
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
