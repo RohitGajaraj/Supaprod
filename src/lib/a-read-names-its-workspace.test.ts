@@ -18,7 +18,7 @@
  *
  * ── THIS IS A RATCHET, NOT A CLEAN BILL ──────────────────────────────────
  *
- * There are 186 bare reads across 81 files today and this test does not demand
+ * There are 155 bare reads across 78 files today and this test does not demand
  * they be fixed. It records them per file and fails when a file grows: the
  * fifth instance cannot be written, and every packet that closes one lowers a
  * number that can never be raised again.
@@ -119,7 +119,6 @@ const NARROWED =
  * `DELIBERATELY_UNSCOPED` with its reason, where a reader can weigh it.
  */
 const BASELINE: Record<string, number> = {
-  "src/components/track/ArtifactPane.tsx": 1,
   "src/lib/agent-fleet.functions.ts": 1,
   "src/lib/agents.functions.ts": 8,
   "src/lib/ai/loop.server.ts": 1,
@@ -129,8 +128,7 @@ const BASELINE: Record<string, number> = {
   "src/lib/ai/run-attempt.server.ts": 1,
   "src/lib/ai/runtime.server.ts": 2,
   "src/lib/ai/tools/registry.server.ts": 4,
-  "src/lib/analytics.functions.ts": 13,
-  "src/lib/approvals-queue.functions.ts": 6,
+  "src/lib/approvals-queue.functions.ts": 1,
   "src/lib/artifacts.functions.ts": 2,
   "src/lib/ask-blocks.server.ts": 4,
   "src/lib/ask-canvas.functions.ts": 1,
@@ -149,11 +147,11 @@ const BASELINE: Record<string, number> = {
   "src/lib/credits.functions.ts": 1,
   "src/lib/dashboard.functions.ts": 7,
   "src/lib/decisions-share.functions.ts": 2,
-  "src/lib/decisions.functions.ts": 2,
+  "src/lib/decisions.functions.ts": 1,
   "src/lib/delegate-desk.functions.ts": 1,
   "src/lib/deployments.functions.ts": 1,
   "src/lib/design-scaffold.functions.ts": 2,
-  "src/lib/discovery.functions.ts": 5,
+  "src/lib/discovery.functions.ts": 3,
   "src/lib/docs.functions.ts": 1,
   "src/lib/feedback.functions.ts": 1,
   "src/lib/forecast.functions.ts": 3,
@@ -164,7 +162,7 @@ const BASELINE: Record<string, number> = {
   "src/lib/linear.functions.ts": 1,
   "src/lib/meetings.functions.ts": 2,
   "src/lib/memory-candidates.functions.ts": 2,
-  "src/lib/missions.functions.ts": 5,
+  "src/lib/missions.functions.ts": 2,
   "src/lib/notion.functions.ts": 1,
   "src/lib/observability.functions.ts": 2,
   "src/lib/onboarding.functions.ts": 1,
@@ -175,20 +173,19 @@ const BASELINE: Record<string, number> = {
   "src/lib/proof-surface.functions.ts": 1,
   "src/lib/prototypes.functions.ts": 1,
   "src/lib/routing-console.functions.ts": 1,
-  "src/lib/run-analytics.functions.ts": 1,
   "src/lib/sources/signal-embedding.server.ts": 1,
   "src/lib/sources/sink.server.ts": 1,
   "src/lib/spine/correction.server.ts": 1,
   "src/lib/spine/driver.server.ts": 5,
   "src/lib/spine/return-edge.server.ts": 1,
-  "src/lib/spine/track.functions.ts": 8,
+  "src/lib/spine/track.functions.ts": 4,
   "src/lib/stage-events.functions.ts": 1,
   "src/lib/stakeholder-update.functions.ts": 1,
   "src/lib/studio.functions.ts": 3,
   "src/lib/support-triage.functions.ts": 1,
   "src/lib/tasks.functions.ts": 2,
   "src/lib/threads.functions.ts": 5,
-  "src/lib/today.functions.ts": 2,
+  "src/lib/today.functions.ts": 1,
   "src/lib/traces.functions.ts": 3,
   "src/lib/trust-chain.functions.ts": 1,
   "src/routes/api/chat.ts": 2,
@@ -234,6 +231,36 @@ function bareReads(file: string): number {
     if (!/\.select\(/.test(body)) continue;
     if (/workspace_id/.test(body)) continue;
     if (NARROWED.test(body)) continue;
+    /*
+     * ── THE TWO-STATEMENT IDIOM IS SCOPED (found by using this guard) ─────
+     *
+     * The first draft of this scan stopped at the `;` and so read
+     *
+     *     let q = supabase.from("prds").select("id");
+     *     if (wid) q = q.eq("workspace_id", wid);
+     *
+     * as UNSCOPED -- which is the repo's own idiom for "filter only when the
+     * workspace resolved", the one `listTracks` and every P-66 read use, and
+     * the only correct way to express it. A guard that fails the correct form
+     * teaches people to write the incorrect one, and it inflated the baseline
+     * with reads that were already right.
+     *
+     * So the assignment that follows is read too: if the same variable is
+     * given a `workspace_id` predicate in the next few statements, the read is
+     * scoped. Bounded to 400 characters and to THIS variable, so an unrelated
+     * mention further down cannot silently excuse a bare read.
+     */
+    /*
+     * Matched with a BACKREFERENCE, so no declaration parsing is needed: the
+     * form is literally `q = q.eq("workspace_id", ...)` for some q. Bounded to
+     * 400 characters after the statement, so a scoped query further down cannot
+     * excuse a bare one above it.
+     */
+    const tail = src.slice(
+      m.index + (end === -1 ? 0 : end),
+      m.index + (end === -1 ? 0 : end) + 400,
+    );
+    if (/(\w+)\s*=\s*\1\s*\.\s*(eq|in)\(\s*"workspace_id"/.test(tail)) continue;
     n++;
   }
   return n;

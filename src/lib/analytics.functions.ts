@@ -3,7 +3,37 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { cleanTitle } from "@/components/plan/format";
 
-const DaysSchema = z.object({ days: z.number().int().min(1).max(90).default(7) });
+/*
+ * ── ANALYTICS READS ONE WORKSPACE (P-70, under P-67's ratchet) ────────────
+ *
+ * Every read in this file aggregated across whatever RLS would return, which is
+ * every workspace the person belongs to. On a surface whose entire job is
+ * comparison -- spend, latency, tokens, throughput -- that is the worst place
+ * for the defect to live: the numbers LOOK like this workspace's and a person
+ * has no way to tell they are not. Four instances of this class were already
+ * found on served surfaces (P-67's header lists them); these fourteen were
+ * found by the ratchet rather than by somebody reading a wrong number.
+ *
+ * `workspaceId` is optional on the wire and resolved to the person's default
+ * when absent, so no caller breaks; UNRESOLVED STAYS UNFILTERED, the rule the
+ * earlier four settled on, because narrowing to a workspace we cannot name
+ * turns a failed lookup into "you have nothing" and that is a claim.
+ */
+const DaysSchema = z.object({
+  days: z.number().int().min(1).max(90).default(7),
+  workspaceId: z.string().uuid().nullable().optional(),
+});
+
+/** The workspace these numbers describe. Null only when it cannot be resolved,
+ *  and then the read is left as wide as it always was rather than emptied. */
+async function analyticsWorkspace(
+  supabase: { rpc: (fn: string) => PromiseLike<{ data: unknown }> },
+  explicit: string | null | undefined,
+): Promise<string | null> {
+  if (explicit) return explicit;
+  const { data } = await supabase.rpc("current_user_default_workspace");
+  return (data as string | null) ?? null;
+}
 
 type EventRow = {
   id: string;
@@ -34,9 +64,19 @@ export const getAnalyticsOverview = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => DaysSchema.parse(i ?? {}))
   .handler(async ({ context, data }) => {
     const since = new Date(Date.now() - data.days * 86400000).toISOString();
-    const { data: rows, error } = await context.supabase
+    const wid = await analyticsWorkspace(context.supabase, data.workspaceId);
+    /*
+     * THE PREDICATE IS WRITTEN OUT AT EVERY READ, not hidden behind a helper.
+     * A `scoped(q)` wrapper reads well and costs the one thing that matters
+     * here: `workspace_id` stops appearing in the query, so neither a person
+     * skimming the file nor P-67's ratchet can see which reads are tenanted.
+     * The rule is enforced by being legible, so it is written at every read.
+     */
+    let overviewQ = context.supabase
       .from("ai_events")
-      .select("id,created_at,surface,model,via,status,total_tokens,est_cost_usd,latency_ms")
+      .select("id,created_at,surface,model,via,status,total_tokens,est_cost_usd,latency_ms");
+    if (wid) overviewQ = overviewQ.eq("workspace_id", wid);
+    const { data: rows, error } = await overviewQ
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .limit(ANALYTICS_EVENT_READ_LIMIT);
@@ -151,19 +191,28 @@ export const getUnitEconomics = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => DaysSchema.parse(i ?? {}))
   .handler(async ({ context, data }) => {
     const since = new Date(Date.now() - data.days * 86400000).toISOString();
+    const wid = await analyticsWorkspace(context.supabase, data.workspaceId);
+    /*
+     * THE PREDICATE IS WRITTEN OUT AT EVERY READ, not hidden behind a helper.
+     * A `scoped(q)` wrapper reads well and costs the one thing that matters
+     * here: `workspace_id` stops appearing in the query, so neither a person
+     * skimming the file nor P-67's ratchet can see which reads are tenanted.
+     * The rule is enforced by being legible, so it is written at every read.
+     */
     const { supabase } = context;
+    let runsQ = supabase.from("agent_runs").select("spend_used_usd");
+    if (wid) runsQ = runsQ.eq("workspace_id", wid);
+    let specsQ = supabase.from("prds").select("id", { count: "exact", head: true });
+    if (wid) specsQ = specsQ.eq("workspace_id", wid);
+    let decisionsQ = supabase.from("decisions").select("id", { count: "exact", head: true });
+    if (wid) decisionsQ = decisionsQ.eq("workspace_id", wid);
+    let missionsQ = supabase.from("missions").select("id", { count: "exact", head: true });
+    if (wid) missionsQ = missionsQ.eq("workspace_id", wid);
     const [runsRes, specsRes, decisionsRes, missionsRes] = await Promise.all([
-      supabase.from("agent_runs").select("spend_used_usd").gte("created_at", since),
-      supabase.from("prds").select("id", { count: "exact", head: true }).gte("created_at", since),
-      supabase
-        .from("decisions")
-        .select("id", { count: "exact", head: true })
-        .gte("created_at", since),
-      supabase
-        .from("missions")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "completed")
-        .gte("completed_at", since),
+      runsQ.gte("created_at", since),
+      specsQ.gte("created_at", since),
+      decisionsQ.gte("created_at", since),
+      missionsQ.eq("status", "completed").gte("completed_at", since),
     ]);
     if (runsRes.error) throw new Error(runsRes.error.message);
     if (specsRes.error) throw new Error(specsRes.error.message);
@@ -197,6 +246,7 @@ export const listAiEvents = createServerFn({ method: "POST" })
         surface: z.string().max(40).optional(),
         status: z.string().max(20).optional(),
         limit: z.number().int().min(1).max(200).default(50),
+        workspaceId: z.string().uuid().nullable().optional(),
       })
       .parse(i ?? {}),
   )
@@ -208,6 +258,9 @@ export const listAiEvents = createServerFn({ method: "POST" })
       )
       .order("created_at", { ascending: false })
       .limit(data.limit);
+    // P-70. See the note in `getAnalyticsOverview`.
+    const wid = await analyticsWorkspace(context.supabase, data.workspaceId);
+    if (wid) q = q.eq("workspace_id", wid);
     if (data.surface) q = q.eq("surface", data.surface);
     if (data.status) q = q.eq("status", data.status);
     const { data: rows, error } = await q;
@@ -217,16 +270,37 @@ export const listAiEvents = createServerFn({ method: "POST" })
 
 export const getEventDetail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ eventId: z.string().uuid() }).parse(i))
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        eventId: z.string().uuid(),
+        workspaceId: z.string().uuid().nullable().optional(),
+      })
+      .parse(i),
+  )
   .handler(async ({ context, data }) => {
+    /*
+     * P-70. `event_id` already narrows each of these to one event, so scoping
+     * is defence rather than a fix here -- and it costs nothing, while leaving
+     * them bare leaves reads of tenanted tables with no tenant for the next
+     * person to copy into a place where it does matter.
+     */
+    const wid = await analyticsWorkspace(context.supabase, data.workspaceId);
+    let evtQ = context.supabase.from("ai_events").select("*");
+    if (wid) evtQ = evtQ.eq("workspace_id", wid);
+    let evalQ = context.supabase.from("ai_evals").select("*");
+    if (wid) evalQ = evalQ.eq("workspace_id", wid);
+    let hitsQ = context.supabase
+      .from("guardrail_hits")
+      .select("rule_name,side,action,kind,matched");
+    if (wid) hitsQ = hitsQ.eq("workspace_id", wid);
+    let fbQ = context.supabase.from("ai_feedback").select("rating,comment");
+    if (wid) fbQ = fbQ.eq("workspace_id", wid);
     const [evt, evals, hits, fb] = await Promise.all([
-      context.supabase.from("ai_events").select("*").eq("id", data.eventId).maybeSingle(),
-      context.supabase.from("ai_evals").select("*").eq("event_id", data.eventId).maybeSingle(),
-      context.supabase
-        .from("guardrail_hits")
-        .select("rule_name,side,action,kind,matched")
-        .eq("event_id", data.eventId),
-      context.supabase.from("ai_feedback").select("rating,comment").eq("event_id", data.eventId),
+      evtQ.eq("id", data.eventId).maybeSingle(),
+      evalQ.eq("event_id", data.eventId).maybeSingle(),
+      hitsQ.eq("event_id", data.eventId),
+      fbQ.eq("event_id", data.eventId),
     ]);
     return {
       event: evt.data,
@@ -283,15 +357,25 @@ export const getAgentSpendBreakdown = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => DaysSchema.parse(i ?? {}))
   .handler(async ({ context, data }) => {
     const since = new Date(Date.now() - data.days * 86400000).toISOString();
+    const wid = await analyticsWorkspace(context.supabase, data.workspaceId);
+    /*
+     * THE PREDICATE IS WRITTEN OUT AT EVERY READ, not hidden behind a helper.
+     * A `scoped(q)` wrapper reads well and costs the one thing that matters
+     * here: `workspace_id` stops appearing in the query, so neither a person
+     * skimming the file nor P-67's ratchet can see which reads are tenanted.
+     * The rule is enforced by being legible, so it is written at every read.
+     */
+    let spendQ = context.supabase.from("ai_events").select("surface_ref,total_tokens,est_cost_usd");
+    if (wid) spendQ = spendQ.eq("workspace_id", wid);
+    let agentsQ = context.supabase.from("agents").select("id,slug,name,role");
+    if (wid) agentsQ = agentsQ.eq("workspace_id", wid);
     const [evts, ags] = await Promise.all([
-      context.supabase
-        .from("ai_events")
-        .select("surface_ref,total_tokens,est_cost_usd")
+      spendQ
         .eq("surface", "agent")
         .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(2000),
-      context.supabase.from("agents").select("id,slug,name,role"),
+      agentsQ,
     ]);
     if (evts.error) throw new Error(evts.error.message);
     if (ags.error) throw new Error(ags.error.message);
@@ -342,6 +426,7 @@ export const getAgentSpendBreakdown = createServerFn({ method: "POST" })
   });
 
 const AgentDetailSchema = z.object({
+  workspaceId: z.string().uuid().nullable().optional(),
   agentSlug: z.string().min(1).max(120),
   days: z.number().int().min(1).max(90).default(30),
 });
@@ -354,14 +439,20 @@ export const getAgentAnalyticsDetail = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => AgentDetailSchema.parse(i))
   .handler(async ({ context, data }) => {
     const since = new Date(Date.now() - data.days * 86400000).toISOString();
+    const wid = await analyticsWorkspace(context.supabase, data.workspaceId);
+    /*
+     * THE PREDICATE IS WRITTEN OUT AT EVERY READ, not hidden behind a helper.
+     * A `scoped(q)` wrapper reads well and costs the one thing that matters
+     * here: `workspace_id` stops appearing in the query, so neither a person
+     * skimming the file nor P-67's ratchet can see which reads are tenanted.
+     * The rule is enforced by being legible, so it is written at every read.
+     */
 
     // (1) Resolve the agents row — by slug first; a pasted uuid still resolves.
     let agent: AgentRow | null = null;
-    const bySlug = await context.supabase
-      .from("agents")
-      .select("id,slug,name,role")
-      .eq("slug", data.agentSlug)
-      .maybeSingle();
+    let bySlugQ = context.supabase.from("agents").select("id,slug,name,role");
+    if (wid) bySlugQ = bySlugQ.eq("workspace_id", wid);
+    const bySlug = await bySlugQ.eq("slug", data.agentSlug).maybeSingle();
     if (bySlug.error) throw new Error(bySlug.error.message);
     agent = (bySlug.data as AgentRow | null) ?? null;
     if (!agent && UUID_RE.test(data.agentSlug)) {
@@ -380,9 +471,17 @@ export const getAgentAnalyticsDetail = createServerFn({ method: "POST" })
     const refs = agent
       ? Array.from(new Set([agent.slug, agent.id, data.agentSlug]))
       : [data.agentSlug];
-    const evts = await context.supabase
+    /*
+     * NOT `.eq("workspace_id", wid ?? "")`. An empty string matches no row, so
+     * an unresolved workspace would return zero events and the surface would
+     * report a real $0.00 for an agent it never looked up -- a failed lookup
+     * rendered as a measurement. Unresolved stays unfiltered.
+     */
+    let detailQ = context.supabase
       .from("ai_events")
-      .select("created_at,total_tokens,est_cost_usd,latency_ms")
+      .select("created_at,total_tokens,est_cost_usd,latency_ms");
+    if (wid) detailQ = detailQ.eq("workspace_id", wid);
+    const evts = await detailQ
       .eq("surface", "agent")
       .in("surface_ref", refs)
       .gte("created_at", since)
@@ -419,15 +518,17 @@ export const getAgentAnalyticsDetail = createServerFn({ method: "POST" })
     // migration 20260603205441 — so these columns will NOT sum to the
     // ai_events stats above. That disagreement is real, by design.
     const slug = agent?.slug ?? data.agentSlug;
+    let runCountQ = context.supabase
+      .from("agent_runs")
+      .select("id", { count: "exact", head: true });
+    if (wid) runCountQ = runCountQ.eq("workspace_id", wid);
+    let runRowsQ = context.supabase
+      .from("agent_runs")
+      .select("id,created_at,mission_id,tokens_used,duration_ms,spend_used_usd,status");
+    if (wid) runRowsQ = runRowsQ.eq("workspace_id", wid);
     const [runCount, runRows] = await Promise.all([
-      context.supabase
-        .from("agent_runs")
-        .select("id", { count: "exact", head: true })
-        .eq("agent_slug", slug)
-        .gte("created_at", since),
-      context.supabase
-        .from("agent_runs")
-        .select("id,created_at,mission_id,tokens_used,duration_ms,spend_used_usd,status")
+      runCountQ.eq("agent_slug", slug).gte("created_at", since),
+      runRowsQ
         .eq("agent_slug", slug)
         .gte("created_at", since)
         .order("created_at", { ascending: false })
