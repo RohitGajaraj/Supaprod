@@ -6971,6 +6971,13 @@ the founder sets the secret and republishes. Full suite on the tip, tsc 0.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
+**A1, 00:25 IST 09-04: MAIN IS RED ON TSC from 1d888c337.** Suite 13,970 / 0 on the tip, but nine
+migrated sites pass a plain string where `Ask` now takes an `AskQuestion` (P-50, bbc7145fc):
+ApprovalsPanel.tsx:523, ControlsPanel.tsx:470, TrustGraduations.tsx:145, MemoryReviewQueue.tsx:219,
+admin.index.tsx:347, admin.platform.tsx:686, approvals.tsx:886, ship.tsx:2387, ship.tsx:2623. A3's
+number was taken on a tree without A2's type. Nothing publishes until tsc is 0 on the tip; A3 is
+on it before P-58. Rule 17 reminder: the number is the merged tip's, after a pull.
+
 **Why.** One vocabulary is the point of the whole design pass. With `Ask`, `Choice` and `Quiet` in
 Meridian, `Gate` has no shape left to carry.
 
