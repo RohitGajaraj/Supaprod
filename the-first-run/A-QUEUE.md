@@ -4107,7 +4107,7 @@ eslint 0 new errors. `bash -n` syntax-checked both scripts.
 **Blockers (A3 writes):** —
 
 
-### P-28 · The duplicates the loop wrote are superseded on the record · Lane: **A3** · Status: READY (after P-14b) · Moves: 4
+### P-28 · The duplicates the loop wrote are superseded on the record · Lane: **A3** · Status: CLAIMED (A3) · Moves: 4
 
 **Why.** The build → define → design → build cycle (P-03c) filed a spec and a prototype per lap for
 weeks. On `2fdf93b6` alone: four `prds` rows and eight prototype rows for one piece of work; the run
