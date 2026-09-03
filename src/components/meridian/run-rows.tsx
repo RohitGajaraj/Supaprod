@@ -605,7 +605,7 @@ export function RunArtifact({
        * says it is pressable, which is what `aria-label="Open the spec"` would
        * have been trying to say and would have destroyed the name to say it.
        */
-      className={`${SHAPE} mrd-focus-inset cursor-pointer text-left transition-colors duration-100 ${
+      className={`${SHAPE} mrd-focus-inset cursor-pointer text-left transition-colors duration-[var(--mrd-d-press)] ${
         selected
           ? "border-mrd-you bg-mrd-lift text-mrd-ink"
           : "border-mrd-line bg-mrd-sink hover:bg-mrd-hover"

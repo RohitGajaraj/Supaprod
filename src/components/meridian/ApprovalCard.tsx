@@ -203,7 +203,7 @@ export function ApprovalCard({
         type="button"
         data-mrd=""
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-mrd-ctl border border-mrd-line bg-mrd-sheet px-3 py-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-hover"
+        className="flex items-center gap-2 rounded-mrd-ctl border border-mrd-line bg-mrd-sheet px-3 py-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-[var(--mrd-d-press)] hover:bg-mrd-hover"
       >
         <span aria-hidden className="size-1.5 rounded-full bg-mrd-you" />
         Still waiting on you
@@ -259,7 +259,7 @@ export function ApprovalCard({
                 type="button"
                 aria-label="Collapse this question"
                 onClick={() => setOpen(false)}
-                className="-mr-1 -mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-mrd-xs text-mrd-mute transition-colors duration-100 hover:bg-mrd-hover hover:text-mrd-ink"
+                className="-mr-1 -mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-mrd-xs text-mrd-mute transition-colors duration-[var(--mrd-d-press)] hover:bg-mrd-hover hover:text-mrd-ink"
               >
                 <Icon>
                   <path d="M18 6L6 18M6 6l12 12" />
@@ -278,7 +278,7 @@ export function ApprovalCard({
                     type="button"
                     aria-pressed={on}
                     onClick={() => toggle(option)}
-                    className="-mx-1.5 flex items-center gap-2 rounded-mrd-ctl px-1.5 py-1 text-left transition-colors duration-100 hover:bg-mrd-hover"
+                    className="-mx-1.5 flex items-center gap-2 rounded-mrd-ctl px-1.5 py-1 text-left transition-colors duration-[var(--mrd-d-press)] hover:bg-mrd-hover"
                   >
                     {/*
                      * Neutral on purpose. A chosen option is a reading of the
@@ -286,14 +286,14 @@ export function ApprovalCard({
                      * must not borrow the accent that says one is required.
                      */}
                     <span
-                      className={`flex size-4 shrink-0 items-center justify-center transition-colors duration-200 ${
+                      className={`flex size-4 shrink-0 items-center justify-center transition-colors duration-[var(--mrd-d-press)] ${
                         question.pick === "one" ? "rounded-full" : "rounded-[5px]"
                       } ${on ? "bg-mrd-ink text-mrd-bg" : "text-transparent"}`}
                       style={on ? undefined : { boxShadow: "inset 0 0 0 1.5px var(--mrd-edge)" }}
                     >
                       {question.pick === "one" ? (
                         <span
-                          className="size-1.5 rounded-full bg-mrd-bg transition-transform duration-200"
+                          className="size-1.5 rounded-full bg-mrd-bg transition-transform duration-[var(--mrd-d-move)]"
                           style={{ transform: on ? "scale(1)" : "scale(0)" }}
                         />
                       ) : (
@@ -303,7 +303,7 @@ export function ApprovalCard({
                       )}
                     </span>
                     <span
-                      className={`text-mrd-base transition-colors duration-200 ${on ? "text-mrd-ink" : "text-mrd-body"}`}
+                      className={`text-mrd-base transition-colors duration-[var(--mrd-d-press)] ${on ? "text-mrd-ink" : "text-mrd-body"}`}
                     >
                       {option}
                     </span>
@@ -312,7 +312,7 @@ export function ApprovalCard({
               })}
 
               {question.allowOther ? (
-                <label className="-mx-1.5 flex items-center gap-2 rounded-mrd-ctl px-1.5 py-1 transition-colors duration-100 focus-within:bg-mrd-hover hover:bg-mrd-hover">
+                <label className="-mx-1.5 flex items-center gap-2 rounded-mrd-ctl px-1.5 py-1 transition-colors duration-[var(--mrd-d-press)] focus-within:bg-mrd-hover hover:bg-mrd-hover">
                   <span aria-hidden className="size-4 shrink-0" />
                   <input
                     value={answer.other ?? ""}
@@ -335,7 +335,7 @@ export function ApprovalCard({
               aria-label="Previous question"
               disabled={qi === 0 || sent}
               onClick={() => setQi((current) => Math.max(0, current - 1))}
-              className="flex size-6 items-center justify-center rounded-mrd-xs text-mrd-mute transition-colors duration-100 enabled:hover:bg-mrd-hover enabled:hover:text-mrd-prose text-mrd-body disabled:opacity-35"
+              className="flex size-6 items-center justify-center rounded-mrd-xs text-mrd-mute transition-colors duration-[var(--mrd-d-press)] enabled:hover:bg-mrd-hover enabled:hover:text-mrd-prose text-mrd-body disabled:opacity-35"
             >
               <Icon>
                 <path d="M15 18l-6-6 6-6" />
@@ -362,7 +362,7 @@ export function ApprovalCard({
                       aria-current={here ? "step" : undefined}
                       disabled={sent}
                       onClick={() => setQi(i)}
-                      className="rounded-full transition-all duration-300 disabled:cursor-default"
+                      className="rounded-full transition-all duration-[var(--mrd-d-move)] disabled:cursor-default"
                       style={
                         here
                           ? { width: 9, height: 9, border: "2.5px solid var(--mrd-ink)" }
@@ -381,7 +381,7 @@ export function ApprovalCard({
               aria-label="Next question"
               disabled={last || sent}
               onClick={() => setQi((current) => Math.min(questions.length - 1, current + 1))}
-              className="flex size-6 items-center justify-center rounded-mrd-xs text-mrd-mute transition-colors duration-100 enabled:hover:bg-mrd-hover enabled:hover:text-mrd-prose text-mrd-body disabled:opacity-35"
+              className="flex size-6 items-center justify-center rounded-mrd-xs text-mrd-mute transition-colors duration-[var(--mrd-d-press)] enabled:hover:bg-mrd-hover enabled:hover:text-mrd-prose text-mrd-body disabled:opacity-35"
             >
               <Icon>
                 <path d="M9 6l6 6-6 6" />
@@ -394,7 +394,7 @@ export function ApprovalCard({
               type="button"
               disabled={!hasAnswer}
               onClick={() => (last ? approve() : setQi((current) => current + 1))}
-              className="flex h-7 items-center gap-1.5 rounded-mrd-ctl px-3 text-mrd-label font-medium transition-[background-color,color,box-shadow,transform] duration-200 enabled:active:scale-[0.96] disabled:cursor-default"
+              className="flex h-7 items-center gap-1.5 rounded-mrd-ctl px-3 text-mrd-label font-medium transition-[background-color,color,box-shadow,transform] duration-[var(--mrd-d-press)] enabled:active:scale-[0.96] disabled:cursor-default"
               style={{
                 /*
                  * THREE FACES, and each one states a different fact.

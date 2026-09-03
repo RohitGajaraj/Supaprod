@@ -430,7 +430,7 @@ export function ToolStream({
                 <button
                   type="button"
                   onClick={() => onSelectRow(row, i)}
-                  className={`${RUN_ROW} ${FOCUS_INSET} w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
+                  className={`${RUN_ROW} ${FOCUS_INSET} w-full rounded-mrd-chip text-left transition-colors duration-[var(--mrd-d-press)] hover:bg-mrd-hover`}
                 >
                   {body}
                 </button>
@@ -450,7 +450,7 @@ export function ToolStream({
           type="button"
           onClick={jump}
           data-mrd=""
-          className="mt-mrd-3 flex w-fit items-center gap-1.5 self-center rounded-mrd-ctl bg-mrd-lift px-2 py-1 text-mrd-data font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-lift-hover"
+          className="mt-mrd-3 flex w-fit items-center gap-1.5 self-center rounded-mrd-ctl bg-mrd-lift px-2 py-1 text-mrd-data font-medium text-mrd-ink transition-colors duration-[var(--mrd-d-press)] hover:bg-mrd-lift-hover"
         >
           <svg
             aria-hidden

@@ -702,7 +702,7 @@ export function SidebarNav({
             onClick={() => setCollapsed(true)}
             aria-label="Collapse rail to icons"
             aria-expanded
-            className={`flex size-7 shrink-0 items-center justify-center rounded-mrd-xs text-mrd-mute transition-[background-color,color] duration-100 hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body ${FOCUS_RING}`}
+            className={`flex size-7 shrink-0 items-center justify-center rounded-mrd-xs text-mrd-mute transition-[background-color,color] duration-[var(--mrd-d-press)] hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body ${FOCUS_RING}`}
           >
             <svg
               aria-hidden
@@ -738,7 +738,7 @@ export function SidebarNav({
           onFocus={() => openTip("__search")}
           onBlur={closeTip}
           aria-label="Search, expands the rail"
-          className={`relative flex h-8 items-center justify-center rounded-mrd-ctl bg-mrd-sink text-mrd-mute transition-colors duration-100 hover:text-mrd-prose text-mrd-body ${FOCUS_RING}`}
+          className={`relative flex h-8 items-center justify-center rounded-mrd-ctl bg-mrd-sink text-mrd-mute transition-colors duration-[var(--mrd-d-press)] hover:text-mrd-prose text-mrd-body ${FOCUS_RING}`}
           style={{ marginBottom: "var(--mrd-s2)" }}
         >
           <svg
@@ -810,7 +810,7 @@ export function SidebarNav({
           onFocus={() => openTip("__primary")}
           onBlur={closeTip}
           aria-label={isCollapsed ? primaryAction.label : undefined}
-          className={`relative flex w-full items-center gap-2 rounded-mrd-ctl bg-mrd-solid px-2 py-1.5 text-mrd-base font-medium text-mrd-on-solid transition-[filter,transform] duration-100 hover:brightness-110 active:scale-[0.96] ${isCollapsed ? "justify-center" : ""} ${FOCUS_RING}`}
+          className={`relative flex w-full items-center gap-2 rounded-mrd-ctl bg-mrd-solid px-2 py-1.5 text-mrd-base font-medium text-mrd-on-solid transition-[filter,transform] duration-[var(--mrd-d-press)] hover:brightness-110 active:scale-[0.96] ${isCollapsed ? "justify-center" : ""} ${FOCUS_RING}`}
           style={{
             marginBottom: "var(--mrd-s2)",
             /*
@@ -986,7 +986,7 @@ export function SidebarNav({
                           frame early reads as a flicker. */}
                         <span
                           aria-hidden
-                          className={`relative shrink-0 transition-colors duration-150 ${isActive ? "text-mrd-ink" : "text-mrd-mute"}`}
+                          className={`relative shrink-0 transition-colors duration-[var(--mrd-d-press)] ${isActive ? "text-mrd-ink" : "text-mrd-mute"}`}
                         >
                           {item.icon && <Icon kind={item.icon} />}
                           {isCollapsed && waiting > 0 && (
@@ -1006,7 +1006,7 @@ export function SidebarNav({
                         {!isCollapsed && (
                           <>
                             <span
-                              className={`min-w-0 flex-1 truncate text-mrd-base whitespace-nowrap transition-colors duration-150 ${isActive ? "font-medium text-mrd-ink" : "text-mrd-body"}`}
+                              className={`min-w-0 flex-1 truncate text-mrd-base whitespace-nowrap transition-colors duration-[var(--mrd-d-press)] ${isActive ? "font-medium text-mrd-ink" : "text-mrd-body"}`}
                             >
                               {item.label}
                             </span>
@@ -1084,7 +1084,7 @@ export function SidebarNav({
                        * to occupy it, so a rail without one keeps its full label
                        * width instead of reserving space for nothing.
                        */
-                      className: `relative z-10 flex w-full items-center gap-2 rounded-[7px] py-1.5 pl-2 text-left transition-transform duration-150 active:scale-[0.96] ${showAdd ? "pr-7" : "pr-2"} ${isCollapsed ? "justify-center" : ""} ${FOCUS_RING}`,
+                      className: `relative z-10 flex w-full items-center gap-2 rounded-[7px] py-1.5 pl-2 text-left transition-transform duration-[var(--mrd-d-press)] active:scale-[0.96] ${showAdd ? "pr-7" : "pr-2"} ${isCollapsed ? "justify-center" : ""} ${FOCUS_RING}`,
                     };
 
                     const row = item.href ? (
@@ -1128,7 +1128,7 @@ export function SidebarNav({
                             onFocus={() => setHovered(item.key)}
                             onBlur={() => setHovered(null)}
                             aria-label={item.addLabel ?? `New ${item.label}`}
-                            className={`absolute top-1/2 right-1 z-20 flex size-4.5 -translate-y-1/2 items-center justify-center rounded-[5px] text-mrd-mute transition-[background-color,color,opacity] duration-100 hover:bg-mrd-lift hover:text-mrd-ink ${FOCUS_RING}`}
+                            className={`absolute top-1/2 right-1 z-20 flex size-4.5 -translate-y-1/2 items-center justify-center rounded-[5px] text-mrd-mute transition-[background-color,color,opacity] duration-[var(--mrd-d-press)] hover:bg-mrd-lift hover:text-mrd-ink ${FOCUS_RING}`}
                             style={{
                               /*
                                * Revealed by the row's own hover state rather than
@@ -1182,7 +1182,7 @@ export function SidebarNav({
           onBlur={closeTip}
           aria-label="Expand rail to show labels"
           aria-expanded={false}
-          className={`relative mx-auto flex size-7 items-center justify-center rounded-mrd-xs text-mrd-mute transition-[background-color,color] duration-100 hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body ${FOCUS_RING}`}
+          className={`relative mx-auto flex size-7 items-center justify-center rounded-mrd-xs text-mrd-mute transition-[background-color,color] duration-[var(--mrd-d-press)] hover:bg-mrd-hover hover:text-mrd-prose text-mrd-body ${FOCUS_RING}`}
           style={{ marginTop: "var(--mrd-s4)" }}
         >
           <svg
@@ -1247,7 +1247,7 @@ function WorkspaceRow({
       type="button"
       onClick={onClick}
       aria-label={collapsed ? `${name}, switch workspace` : undefined}
-      className={`${shared} transition-[background-color,transform] duration-100 hover:bg-mrd-hover active:scale-[0.96] ${focusRing}`}
+      className={`${shared} transition-[background-color,transform] duration-[var(--mrd-d-press)] hover:bg-mrd-hover active:scale-[0.96] ${focusRing}`}
     >
       {children}
     </button>

@@ -422,7 +422,7 @@ export function Flowchart({
                  */
                 stroke={lit ? "var(--mrd-ink)" : "var(--mrd-edge)"}
                 strokeWidth="1.25"
-                className="transition-[stroke] duration-150"
+                className="transition-[stroke] duration-[var(--mrd-d-press)]"
               />
               {edge.label ? (
                 <text
@@ -532,7 +532,7 @@ export function Flowchart({
                   if (wasDragged()) return;
                   onSelect(active ? null : node.id);
                 }}
-                className={`w-full rounded-mrd-card border text-left transition-colors duration-150 ${
+                className={`w-full rounded-mrd-card border text-left transition-colors duration-[var(--mrd-d-press)] ${
                   active
                     ? "border-mrd-ink bg-mrd-float"
                     : "border-mrd-line bg-mrd-float hover:bg-mrd-lift-hover"

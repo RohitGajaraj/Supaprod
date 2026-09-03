@@ -435,7 +435,7 @@ export function TaskRows({
         return (
           <div
             key={task.id}
-            className={`self-stretch overflow-hidden transition-[border-radius] duration-300 ${
+            className={`self-stretch overflow-hidden transition-[border-radius] duration-[var(--mrd-d-move)] ${
               /* `line`, not `line-soft`. Soft is the token for a rule BETWEEN
                  SECTIONS; these are the edges between records, and at 5.5% on
                  the dark ground the four rows ran together into one slab with
@@ -454,7 +454,7 @@ export function TaskRows({
               aria-expanded={hasDetails ? open : undefined}
               disabled={!hasDetails}
               onClick={() => setOpenRows((current) => ({ ...current, [task.id]: !open }))}
-              className={`${FOCUS_INSET} flex h-11 w-full items-center gap-2.5 px-2.5 text-left transition-colors duration-100 enabled:hover:bg-mrd-hover disabled:cursor-default`}
+              className={`${FOCUS_INSET} flex h-11 w-full items-center gap-2.5 px-2.5 text-left transition-colors duration-[var(--mrd-d-press)] enabled:hover:bg-mrd-hover disabled:cursor-default`}
             >
               <Marker status={task.status} step={task.step} />
 
@@ -500,7 +500,7 @@ export function TaskRows({
                     strokeWidth="2.2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="transition-transform duration-300"
+                    className="transition-transform duration-[var(--mrd-d-move)]"
                     style={{ transform: open ? "rotate(180deg)" : "rotate(0)" }}
                   >
                     <path d="M6 9l6 6 6-6" />
@@ -516,7 +516,7 @@ export function TaskRows({
 
             {hasDetails ? (
               <div
-                className="grid transition-[grid-template-rows,opacity] duration-300"
+                className="grid transition-[grid-template-rows,opacity] duration-[var(--mrd-d-move)]"
                 style={{
                   gridTemplateRows: open ? "1fr" : "0fr",
                   opacity: open ? 1 : 0,
@@ -554,7 +554,7 @@ export function TaskRows({
                         <button
                           type="button"
                           onClick={() => onRetry(task)}
-                          className="mt-0.5 flex w-fit items-center gap-1.5 rounded-mrd-ctl bg-mrd-lift px-2 py-1 text-mrd-small font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-hover"
+                          className="mt-0.5 flex w-fit items-center gap-1.5 rounded-mrd-ctl bg-mrd-lift px-2 py-1 text-mrd-small font-medium text-mrd-ink transition-colors duration-[var(--mrd-d-press)] hover:bg-mrd-hover"
                         >
                           <Glyph d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" size={12} width={2.4} />
                           Run it again

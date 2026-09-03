@@ -89,7 +89,7 @@ function ScrubField({
      * name themselves explicitly here and the wrapper claims nothing.
      */
     <div
-      className="flex h-6.5 min-w-0 items-center gap-1 rounded-mrd-chip py-1 pr-1 pl-0.5 transition-[background-color,box-shadow] duration-200"
+      className="flex h-6.5 min-w-0 items-center gap-1 rounded-mrd-chip py-1 pr-1 pl-0.5 transition-[background-color,box-shadow] duration-[var(--mrd-d-press)]"
       style={{
         /*
          * AN EDITED FIELD IS TINTED, NOT MERELY LIFTED. This used to swap the
@@ -433,7 +433,7 @@ export function FineTuneCard({
                   setCurrentLayout(kind);
                   onLayoutChange?.(kind);
                 }}
-                className={`relative z-10 flex h-6 items-center justify-center rounded-[6px] transition-colors duration-200 ${
+                className={`relative z-10 flex h-6 items-center justify-center rounded-[6px] transition-colors duration-[var(--mrd-d-press)] ${
                   isActive ? (kind === layout ? "text-mrd-ink" : "text-mrd-you") : "text-mrd-mute"
                 } ${FOCUS_RING}`}
               >
@@ -471,7 +471,7 @@ export function FineTuneCard({
               aria-expanded={menuOpen}
               aria-label={choiceLabel}
               onClick={() => setMenuOpen((open) => !open)}
-              className={`flex h-6.5 w-full items-center justify-between rounded-mrd-chip border border-mrd-line bg-mrd-sink py-1 pr-1 pl-2 transition-[box-shadow] duration-200 ${FOCUS_RING}`}
+              className={`flex h-6.5 w-full items-center justify-between rounded-mrd-chip border border-mrd-line bg-mrd-sink py-1 pr-1 pl-2 transition-[box-shadow] duration-[var(--mrd-d-press)] ${FOCUS_RING}`}
               style={{
                 boxShadow: menuOpen ? "0 0 0 1px var(--mrd-edge-focus)" : undefined,
               }}
@@ -561,7 +561,7 @@ export function FineTuneCard({
                      * at all. Both states are classes now, so the cascade works
                      * the way the rest of the file assumes it does.
                      */
-                    className={`flex h-6.5 w-full items-center rounded-mrd-xs px-2 text-left text-mrd-label text-mrd-ink transition-colors duration-150 ${
+                    className={`flex h-6.5 w-full items-center rounded-mrd-xs px-2 text-left text-mrd-label text-mrd-ink transition-colors duration-[var(--mrd-d-press)] ${
                       option === currentChoice ? "bg-mrd-select" : "hover:bg-mrd-hover"
                     } ${FOCUS_RING}`}
                   >

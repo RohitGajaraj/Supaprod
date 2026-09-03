@@ -96,7 +96,7 @@ export function GotYou({
               type="button"
               aria-pressed={on}
               onClick={() => onOpen(c.id)}
-              className={`mrd-focus-inset inline-flex items-center gap-1.5 rounded-mrd-chip px-2 py-1 text-mrd-small transition-colors duration-100 ${
+              className={`mrd-focus-inset inline-flex items-center gap-1.5 rounded-mrd-chip px-2 py-1 text-mrd-small transition-colors duration-[var(--mrd-d-press)] ${
                 on ? "bg-mrd-lift text-mrd-ink" : "bg-mrd-sink text-mrd-body hover:bg-mrd-hover"
               }`}
             >

@@ -263,7 +263,7 @@ export function Thinking({
         aria-live="polite"
         disabled={!hasTrace}
         onClick={() => setManualExpanded((current) => !(current ?? autoExpanded))}
-        className="-mx-1.5 flex w-fit items-center gap-2 rounded-mrd-ctl px-1.5 py-1 transition-colors duration-100 enabled:hover:bg-mrd-hover disabled:cursor-default"
+        className="-mx-1.5 flex w-fit items-center gap-2 rounded-mrd-ctl px-1.5 py-1 transition-colors duration-[var(--mrd-d-press)] enabled:hover:bg-mrd-hover disabled:cursor-default"
       >
         <svg
           aria-hidden
@@ -313,7 +313,7 @@ export function Thinking({
             strokeWidth="2.2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="transition-transform duration-300"
+            className="transition-transform duration-[var(--mrd-d-move)]"
             style={{ transform: expanded ? "rotate(180deg)" : "rotate(0)" }}
           >
             <path d="M6 9l6 6 6-6" />
@@ -328,7 +328,7 @@ export function Thinking({
        * space for most of its duration.
        */}
       <div
-        className="grid transition-[grid-template-rows,opacity] duration-[400ms]"
+        className="grid transition-[grid-template-rows,opacity] duration-[var(--mrd-d-move)]"
         style={{
           gridTemplateRows: expanded ? "1fr" : "0fr",
           opacity: expanded ? 1 : 0,
@@ -412,7 +412,7 @@ export function Thinking({
                           : "font-medium text-mrd-ink"
                       } ${
                         variant === "Search"
-                          ? "underline decoration-transparent underline-offset-[3px] transition-colors duration-200 group-hover:decoration-current"
+                          ? "underline decoration-transparent underline-offset-[3px] transition-colors duration-[var(--mrd-d-press)] group-hover:decoration-current"
                           : ""
                       }`}
                     >
@@ -451,7 +451,7 @@ export function Thinking({
                       href={row.href}
                       target="_blank"
                       rel="noreferrer"
-                      className={`${rowClass} ${FOCUS_INSET} group transition-colors duration-150 hover:bg-mrd-hover`}
+                      className={`${rowClass} ${FOCUS_INSET} group transition-colors duration-[var(--mrd-d-press)] hover:bg-mrd-hover`}
                       style={enter}
                     >
                       {content}
@@ -481,7 +481,7 @@ export function Thinking({
                        * hover, and it is an alpha, so it reads the same whether
                        * this trace lands on sheet, sink or paper.
                        */
-                      className={`${rowClass} ${FOCUS_INSET} transition-colors duration-150 ${
+                      className={`${rowClass} ${FOCUS_INSET} transition-colors duration-[var(--mrd-d-press)] ${
                         isSelected ? "bg-mrd-select" : "hover:bg-mrd-hover"
                       }`}
                       style={enter}

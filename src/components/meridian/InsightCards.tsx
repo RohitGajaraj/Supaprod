@@ -701,7 +701,7 @@ function TrendBody({ insight }: { insight: TrendInsight }) {
                 type="button"
                 aria-pressed={i === view}
                 onClick={() => setView(i)}
-                className={`rounded-full px-2 py-0.5 text-mrd-tiny font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
+                className={`rounded-full px-2 py-0.5 text-mrd-tiny font-medium transition-[background-color,color,transform] duration-[var(--mrd-d-press)] active:scale-[0.96] ${
                   i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-body"
                 } ${FOCUS_RING}`}
               >
@@ -897,7 +897,7 @@ function SplitBody({ insight }: { insight: SplitInsight }) {
               aria-pressed={on}
               aria-label={`${segment.label}, ${segment.percent} percent`}
               onClick={() => setSelected(segment.id)}
-              className={`relative h-full overflow-hidden rounded-full transition-[opacity,transform,box-shadow] duration-300 active:scale-[0.98] ${FOCUS_RING}`}
+              className={`relative h-full overflow-hidden rounded-full transition-[opacity,transform,box-shadow] duration-[var(--mrd-d-press)] active:scale-[0.98] ${FOCUS_RING}`}
               style={{
                 /*
                  * A floor, so a 2% slice is still a target and still shows its
@@ -916,7 +916,7 @@ function SplitBody({ insight }: { insight: SplitInsight }) {
             >
               <span
                 aria-hidden
-                className="absolute inset-y-1 left-1 rounded-full transition-[width,opacity] duration-500"
+                className="absolute inset-y-1 left-1 rounded-full transition-[width,opacity] duration-[var(--mrd-d-move)]"
                 style={{
                   width: on ? "calc(100% - 8px)" : "0%",
                   opacity: on ? 1 : 0,
@@ -936,7 +936,7 @@ function SplitBody({ insight }: { insight: SplitInsight }) {
             type="button"
             aria-pressed={selected === segment.id}
             onClick={() => setSelected(segment.id)}
-            className={`flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-mrd-data transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
+            className={`flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-mrd-data transition-[background-color,color,transform] duration-[var(--mrd-d-press)] active:scale-[0.96] ${
               selected === segment.id
                 ? "bg-mrd-lift text-mrd-ink"
                 : "text-mrd-body hover:bg-mrd-hover hover:text-mrd-ink"
@@ -1029,7 +1029,7 @@ function ThresholdBody({ insight }: { insight: ThresholdInsight }) {
                 type="button"
                 aria-pressed={i === view}
                 onClick={() => setView(i)}
-                className={`rounded-full px-2 py-0.5 text-mrd-tiny font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.96] ${
+                className={`rounded-full px-2 py-0.5 text-mrd-tiny font-medium transition-[background-color,color,transform] duration-[var(--mrd-d-press)] active:scale-[0.96] ${
                   i === view ? "bg-mrd-lift text-mrd-ink" : "text-mrd-mute hover:text-mrd-body"
                 } ${FOCUS_RING}`}
               >
@@ -1176,7 +1176,7 @@ function CouldNotRead({ reason, onRetry }: { reason: string; onRetry?: () => voi
         <button
           type="button"
           onClick={onRetry}
-          className={`mt-[var(--mrd-s4)] rounded-mrd-ctl bg-mrd-solid px-3 py-1.5 text-mrd-base font-medium text-mrd-on-solid transition-[filter,transform] duration-100 hover:brightness-110 active:scale-[0.97] ${FOCUS_RING}`}
+          className={`mt-[var(--mrd-s4)] rounded-mrd-ctl bg-mrd-solid px-3 py-1.5 text-mrd-base font-medium text-mrd-on-solid transition-[filter,transform] duration-[var(--mrd-d-press)] hover:brightness-110 active:scale-[0.97] ${FOCUS_RING}`}
         >
           Try again
         </button>
@@ -1286,7 +1286,7 @@ export function InsightCards({
                 type="button"
                 aria-label={label}
                 onClick={() => move(direction)}
-                className={`flex size-6 items-center justify-center rounded-mrd-xs text-mrd-mute transition-[background-color,color,transform] duration-100 hover:bg-mrd-hover hover:text-mrd-ink active:scale-[0.96] ${FOCUS_RING}`}
+                className={`flex size-6 items-center justify-center rounded-mrd-xs text-mrd-mute transition-[background-color,color,transform] duration-[var(--mrd-d-press)] hover:bg-mrd-hover hover:text-mrd-ink active:scale-[0.96] ${FOCUS_RING}`}
               >
                 <svg
                   aria-hidden
@@ -1333,7 +1333,7 @@ export function InsightCards({
               <button
                 type="button"
                 onClick={() => onFollowUp?.(current.followUp as string)}
-                className={`mt-[var(--mrd-s4)] rounded-full border border-mrd-line bg-mrd-sheet px-3 py-1.5 text-left text-mrd-small text-mrd-ink transition-colors duration-100 hover:bg-mrd-hover ${FOCUS_RING}`}
+                className={`mt-[var(--mrd-s4)] rounded-full border border-mrd-line bg-mrd-sheet px-3 py-1.5 text-left text-mrd-small text-mrd-ink transition-colors duration-[var(--mrd-d-press)] hover:bg-mrd-hover ${FOCUS_RING}`}
               >
                 {current.followUp}
               </button>

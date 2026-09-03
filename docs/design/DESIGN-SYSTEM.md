@@ -83,7 +83,7 @@ Adding to Meridian is deliberately not free:
 | **Category** (never status) | `--mrd-viz-1..4`, `--mrd-code-kw/fn/str/num/type/var/punc/comment` |
 | **Type** | `--mrd-font` `--mrd-mono` `--mrd-t-nano…display` `--mrd-w-*` `--mrd-lh-*` `--mrd-track` `--mrd-measure` |
 | **Space / shape / depth** | `--mrd-s1..s8` `--mrd-r-xs/chip/ctl/card/pane` `--mrd-shadow-card/float/pane` `--mrd-scrim` |
-| **Motion** | `--mrd-d-press/move/enter` `--mrd-ease` `--mrd-ease-soft` |
+| **Motion** | `--mrd-d-press/move/enter/alive` `--mrd-ease` `--mrd-ease-soft` — **a raw duration is a fail** (R-20 §4), and the guard pins it: no `duration-[0-9]+` class may exist under `src/components/meridian/`. Pick the token that MEANS what is happening — a press acknowledging, a thing moving, content arriving, work still going — not the one whose number is nearest. |
 
 Components: [`src/components/meridian/`](../../src/components/meridian/) — 25 of them, plus `surface-parts.tsx` for the chrome every surface shares. **Compose from these.** A surface reaching for a raw `<div>` with a hand-written colour is doing it wrong.
 

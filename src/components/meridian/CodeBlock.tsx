@@ -342,7 +342,7 @@ export function CodeBlock({
                   : "Copy code"
             }
             onClick={copy}
-            className={`flex h-6 shrink-0 items-center gap-1 rounded-mrd-chip px-1.5 text-mrd-data font-medium transition-colors duration-100 hover:bg-mrd-hover ${
+            className={`flex h-6 shrink-0 items-center gap-1 rounded-mrd-chip px-1.5 text-mrd-data font-medium transition-colors duration-[var(--mrd-d-press)] hover:bg-mrd-hover ${
               copied === "yes"
                 ? "text-mrd-pass"
                 : copied === "failed"

@@ -316,7 +316,7 @@ function Stop({
           type="button"
           aria-expanded={open}
           onClick={onToggle}
-          className={`mrd-focus-inset flex w-full items-start gap-2 rounded-mrd-ctl px-2 py-2 text-left transition-colors duration-100 hover:bg-mrd-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]`}
+          className={`mrd-focus-inset flex w-full items-start gap-2 rounded-mrd-ctl px-2 py-2 text-left transition-colors duration-[var(--mrd-d-press)] hover:bg-mrd-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]`}
         >
           <StopFace stop={stop} meta={meta} chip={chip} waived={waived} hold={hold} stack={stack} />
           <span className="mt-[3px] shrink-0 text-mrd-mute">

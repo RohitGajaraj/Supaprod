@@ -644,7 +644,7 @@ export function ContextCards({
 
               {chunk.source && (
                 <div
-                  className="px-3 pb-3 transition-[opacity,transform] duration-300"
+                  className="px-3 pb-3 transition-[opacity,transform] duration-[var(--mrd-d-enter)]"
                   style={{
                     opacity: chipsIn ? 1 : 0,
                     /* From 0.95, never from 0: a chip that grows from nothing
