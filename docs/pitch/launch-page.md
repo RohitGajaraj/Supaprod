@@ -2,6 +2,8 @@
 
 > _Created: 2026-09-03. Draft only. Nothing here ships without the founder's explicit approval: not the page, not the Product Hunt listing, not one sentence of it. Register and vocabulary follow [`../strategy/positioning-locked-2026-08.md`](../strategy/positioning-locked-2026-08.md), the current canon; where this draft and an older pitch file disagree, the newer canon wins and the older file is stale, not this one. Every claim is tagged **PROVEN** (live and verifiable today), **WIRING** (built, not yet demonstrably run, never said present-tense) or **ROADMAP** (said as future). Every number below carries the query that reproduces it, re-run 2026-09-03; re-run again before publish, per [`verified-numbers.md`](./verified-numbers.md)'s own rule: a number without a query does not go outward. Corrected 2026-09-03 (A1's return, four claims): §3's centerpiece now says exactly what the query proved, the write-path fix is described as the refusal it actually is, §4 no longer claims Supaprod built itself, and the commit/migration counts came off the visible copy into the proof table only, since the canon bans leading with volume._
 
+**Founder approval, 2026-09-03:** the founder gave explicit approval in chat to proceed on this draft, after A1's 18:20 IST verification (three proof rows checked against the database and the repo, no dash in the prose, `docs:check` clean). This satisfies Scope's own acceptance line ("the founder reads it and says yes or no"). It does not, on its own, satisfy the separate sequence gate below: PC-04 and the beta-partner stories are unrelated blockers this approval does not touch.
+
 **Sequence dependency, unchanged from [`launch-assets.md`](./launch-assets.md):** this page assumes the no-signup demo (PC-04) is live before it publishes. The copy below is written so the moment that clears, the `[DEMO-LINK]` slots are the only fill-in-the-blank left.
 
 ---
@@ -102,7 +104,7 @@ the system caught itself.
 | A seat can no longer write a signal naming no source outside the workspace, and every evidence reader excludes one that has no source, from one shared rule | `src/lib/sources/the-loop-does-not-count-its-own-writing.ts` (`excludeLoopAuthored`), consumed by `src/lib/discovery.functions.ts` and `src/lib/brain/what-the-grader-read.ts`; guard test named after its own sentence, per P-41's acceptance box in `the-first-run/A-QUEUE.md` |
 | A scheduled engine advances the loop unattended, 37 jobs, each with an explicit timeout | `select count(*) from cron.job;` on production, live 2026-09-03; timeouts set by the already-applied `supabase/migrations/20260806031833_7ca287c2-a543-46de-9fb4-7859cd8ff8a0.sql` |
 | A migration exists to keep that true after a full database replay (today's per-job migrations still hardcode the preview host) | `supabase/migrations/20260909050000_the_cron_jobs_are_defined_where_a_replay_would_find_them.sql`, written, not yet applied, pending founder approval, see P-38 in the queue |
-| 8,838+ commits, 13 weeks | `git rev-list --count HEAD`; `git log --reverse --format=%ad --date=short \| head -5`, re-run at publish time, the count grows daily |
+| 8,859+ commits, 13 weeks | `git rev-list --count HEAD`; `git log --reverse --format=%ad --date=short \| head -5`, re-run at publish time, the count grows daily |
 | 605 migrations | `ls supabase/migrations/*.sql \| wc -l`, re-run at publish time |
 | A real PR opened and merged on the bound test repo through the product's own gated build path | PR #4 on `Supaprod/relay-homeowner-app` (the bound test repo, not Supaprod's own codebase); `docs/pitch/verified-numbers.md` §2/§3; founder to confirm the exact PR link at publish time |
 | `spine_tracks`: 113 total, 0 in a production workspace | `select count(*) from spine_tracks;`; `select count(*) from spine_tracks where workspace_id in (select production_workspace_ids());`, both live 2026-09-03 |
@@ -121,6 +123,7 @@ the system caught itself.
 
 ## Open before this can publish
 
-- [ ] Founder reads §3 aloud and confirms the honest-run story is told the way he wants it told outward. This is the single highest-leverage sentence on the page and it should not go out in an AI's own phrasing without that pass.
-- [ ] `8,838`, `13`, `605` re-run the morning of publish (they will have grown).
-- [ ] PC-04 (no-signup demo) ships; `[DEMO-LINK]` is still a slot.
+- [x] Founder approval: given in chat, 2026-09-03. The draft was not read aloud line by line, so if the exact phrasing of §3 still needs a pass before it goes on the live site, that is a separate, smaller check than the yes/no this satisfies.
+- [x] `8,859`, `13`, `605` refreshed 2026-09-03. Re-run again immediately before the actual publish, since the count grows daily and this approval does not freeze it.
+- [ ] PC-04 (no-signup demo) ships; `[DEMO-LINK]` is still a slot. Unrelated to the founder's approval above; still open.
+- [ ] Beta-partner stories exist (`launch-assets.md`'s own sequence gate). Also unrelated to the approval above; still open.
