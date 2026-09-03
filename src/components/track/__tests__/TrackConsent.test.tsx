@@ -17,31 +17,37 @@ import * as React from "react";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, test, expect, mock, beforeEach, afterEach } from "bun:test";
-import type { TrackGate, TrackGatesResult } from "@/lib/spine/track.functions";
+import {
+  getTrackGates,
+  decideTrackGate,
+  decideTrackGateClass,
+  type TrackGate,
+  type TrackGatesResult,
+} from "@/lib/spine/track.functions";
+import { snoozeApprovalItem } from "@/lib/approvals-queue.functions";
 
-// Spread the real module (Rule 14): track.functions.ts is shared by many
-// other files in this process, and a partial replacement would shadow every
-// export this file does not name for whichever OTHER test loads it next in
-// the same run.
+/*
+ * `@/lib/spine/track.functions` and `@/lib/approvals-queue.functions` are
+ * left UNMOCKED here (a-module-mock-is-process-wide.test.ts): both already
+ * have another test file replacing them process-wide (GateBanner.test.tsx
+ * and AskPane.test.tsx respectively), and Bun's mocks are process-wide, so a
+ * second file replacing the same module makes the suite's greenness depend
+ * on load order. Interception happens one layer up instead, at
+ * `useServerFn` -- already in the guard's own frozen shared set -- by
+ * identity-matching the REAL, unmocked function references against what the
+ * component actually calls.
+ */
+let gatesResult: TrackGatesResult = { open: [], settled: [], holdReason: null, unreadable: false };
 const startActual = await import("@tanstack/react-start");
 mock.module("@tanstack/react-start", () => ({
   ...startActual,
-  useServerFn: (fn: unknown) => fn,
-}));
-
-let gatesResult: TrackGatesResult = { open: [], settled: [], holdReason: null, unreadable: false };
-const trackFunctionsActual = await import("@/lib/spine/track.functions");
-mock.module("@/lib/spine/track.functions", () => ({
-  ...trackFunctionsActual,
-  getTrackGates: async () => gatesResult,
-  decideTrackGate: async () => ({ status: "pending" }),
-  decideTrackGateClass: async () => ({ status: "pending" }),
-}));
-
-const approvalsQueueActual = await import("@/lib/approvals-queue.functions");
-mock.module("@/lib/approvals-queue.functions", () => ({
-  ...approvalsQueueActual,
-  snoozeApprovalItem: async () => ({ ok: true }),
+  useServerFn: (fn: unknown) => {
+    if (fn === getTrackGates) return async () => gatesResult;
+    if (fn === decideTrackGate) return async () => ({ status: "pending" });
+    if (fn === decideTrackGateClass) return async () => ({ status: "pending" });
+    if (fn === snoozeApprovalItem) return async () => ({ ok: true });
+    return fn;
+  },
 }));
 
 const { TrackConsent } = await import("../TrackConsent");

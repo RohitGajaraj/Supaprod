@@ -4,28 +4,40 @@
  * the transcript pane. It shares `TrackConsent`'s own query key and mutation
  * shape -- this test asserts that sharing, not a second read of the same
  * fact.
+ *
+ * `@/lib/spine/track.functions` is left UNMOCKED here on purpose
+ * (a-module-mock-is-process-wide.test.ts): `TrackConsent.test.tsx` already
+ * mock.module's that path, and Bun's mocks are process-wide, so a second
+ * file replacing it would make the suite's greenness depend on load order.
+ * Interception happens one layer up instead, at `useServerFn` -- already in
+ * the guard's own frozen shared set -- by identity-matching the REAL,
+ * unmocked function reference against what the component actually calls.
  */
 import * as React from "react";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, test, expect, mock, afterEach } from "bun:test";
-import type { TrackGate, TrackGatesResult } from "@/lib/spine/track.functions";
+import {
+  getTrackGates,
+  decideTrackGate,
+  type TrackGate,
+  type TrackGatesResult,
+} from "@/lib/spine/track.functions";
+
+let gatesResult: TrackGatesResult = { open: [], settled: [], holdReason: null, unreadable: false };
+let decideCalls: Array<{ approvalId: string; verdict: string }> = [];
 
 const startActual = await import("@tanstack/react-start");
 mock.module("@tanstack/react-start", () => ({
   ...startActual,
-  useServerFn: (fn: unknown) => fn,
-}));
-
-let gatesResult: TrackGatesResult = { open: [], settled: [], holdReason: null, unreadable: false };
-let decideCalls: Array<{ approvalId: string; verdict: string }> = [];
-const trackFunctionsActual = await import("@/lib/spine/track.functions");
-mock.module("@/lib/spine/track.functions", () => ({
-  ...trackFunctionsActual,
-  getTrackGates: async () => gatesResult,
-  decideTrackGate: async (input: { data: { approvalId: string; verdict: string } }) => {
-    decideCalls.push({ approvalId: input.data.approvalId, verdict: input.data.verdict });
-    return { status: "answered" };
+  useServerFn: (fn: unknown) => {
+    if (fn === getTrackGates) return async () => gatesResult;
+    if (fn === decideTrackGate)
+      return async (input: { data: { approvalId: string; verdict: string } }) => {
+        decideCalls.push({ approvalId: input.data.approvalId, verdict: input.data.verdict });
+        return { status: "answered" };
+      };
+    return fn;
   },
 }));
 

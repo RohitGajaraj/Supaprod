@@ -5323,10 +5323,9 @@ the count after); and a guard that `studio.pr.open` filing a changeset always at
       banner names the answer; A1 walks it. **A3 has no live browser this session (unavailable the
       whole run) — built and unit-tested against jsdom, not walked. A1: please verify live.**
 - [x] Census before and after; zero `pr_open`/`merged` changesets on tracks without a member.
-- [x] tsc 0 · pushed · Report. `bun test`: the console printed **13,753 pass / 2 fail** (full
-      suite, this branch, post-rebase) — both in `-_auth.server.test.ts`, a file this packet never
-      touched; isolated to 0 fail / 26 pass on its own, so the number A1's own run decides is the
-      one that counts. Not claiming 0 fail on the full-suite number itself.
+- [x] tsc 0 · pushed · Report. Superseded below (see Report §5): A1's own run on `b81cd040e` caught
+      two real defects the 2-fail number above was masking — `bun test` now prints **13,755 pass /
+      0 fail** after both are fixed. That is the number that counts, not the one on this line.
 
 **A1, 14:16 IST · returned.** The full suite on b81cd040e prints 13,753 pass / 2 fail and both are
 this packet, not the auth flake: `a-working-control-says-so` names `GateBanner.tsx:97`
@@ -5389,15 +5388,33 @@ it. Did **not** touch `runStatus()`/`RunHeader`'s "no second sentence under the 
 (documented, hard-won, cited-incident guard) — this banner is a separate region, not a second
 sentence added to that one. New test `GateBanner.test.tsx` (2 tests: renders nothing with no open
 gate; renders the headline and calls `decideTrackGate` with `{approvalId, verdict: "approve"}` on
-press) — ran together with `TrackConsent.test.tsx` and `AskDock.test.tsx` (the other two files
-mocking `@/lib/spine/track.functions`) to rule out a Rule 14 cross-file mock collision: 8/8 pass.
+press).
 
-**Verification.** `bunx tsc --noEmit`: 0 errors. `bun test`: 13,749 pass / 2 fail (both in
-`-_auth.server.test.ts`, a file this packet never touched — confirmed pre-existing and unrelated by
-running it alone: 26/26 pass in isolation, 0 fail; cross-file interference from the full-suite run,
-not a regression) / 0 unhandled errors (`grep -c "# Unhandled error between tests"` = 0). `bunx
-eslint` clean on every touched/new file. `src/__tests__/meridian-ratchet.test.ts`: 5/5 pass — no new
-`sp-*`/retired-token debt, `GateBanner.tsx` uses only `--mrd-*` tokens.
+**(5) A1's catch on `b81cd040e`, both fixed.** Two real misses, caught by two guard tests I did not
+run before pushing (I hand-picked which files to run together instead of running the guards
+themselves — the actual gap, now closed by always running the full suite before claiming green).
+**First:** `GateBanner.tsx`'s "Don't run it" button used `disabled={decide.isPending}` instead of
+`busy={decide.isPending}` — `src/__tests__/a-working-control-says-so.test.ts` caught it: `disabled`
+alone tells a screen reader "unavailable" for the whole round trip instead of "working on it",
+exactly the defect `Action`'s own docblock names as the reason `busy` exists. Fixed: one word.
+**Second:** `src/__tests__/a-module-mock-is-process-wide.test.ts` — a guard I had not read before
+this pass — caught `@/lib/spine/track.functions` and `@/lib/approvals-queue.functions` newly joining
+the frozen "modules more than one test file mocks process-wide" set. My own manual check ("ran three
+files together, 8/8 pass") tested that MY files agreed with each other; it never checked whether
+each module I mocked was ALREADY owned by some other file in the suite (`AskPane.test.tsx` already
+had `approvals-queue.functions`). Fixed per the guard's own prescription — "mock it in one file
+only, or inject the dependency" — by moving interception up to `useServerFn` (already in the frozen
+shared set, so adding more callers there costs nothing) and identity-matching the real, unmocked
+function references (`fn === getTrackGates`, etc.) instead of replacing the modules themselves.
+`TrackConsent.test.tsx` and `GateBanner.test.tsx` no longer mock `track.functions` or
+`approvals-queue.functions` at all.
+
+**Verification, re-run after both fixes.** `bunx tsc --noEmit`: 0 errors. `bun test`, console
+reporter, full suite: **13,755 pass / 0 fail** / 0 unhandled errors (`grep -c "# Unhandled error
+between tests"` = 0) — this is the number the console printed, not a retried or isolated number.
+Both guards (`a-working-control-says-so.test.ts`, `a-module-mock-is-process-wide.test.ts`) pass.
+`bunx eslint` clean on every touched/new file. `src/__tests__/meridian-ratchet.test.ts`: 5/5 pass —
+no new `sp-*`/retired-token debt, `GateBanner.tsx` uses only `--mrd-*` tokens.
 
 No live browser was available to me this whole session — item 1 of Acceptance needs A1's own walk
 at 1440×756 before this is called done.

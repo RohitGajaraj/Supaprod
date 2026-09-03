@@ -95,7 +95,7 @@ export function GateBanner({ trackId }: { trackId: string }) {
           Let it run
         </Approve>
         <Action
-          disabled={decide.isPending}
+          busy={decide.isPending}
           onClick={() => decide.mutate({ approvalId: gate.approvalId, verdict: "reject" })}
         >
           Don&apos;t run it
