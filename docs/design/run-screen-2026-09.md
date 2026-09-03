@@ -2,9 +2,12 @@
 
 > _Created: 2026-09-03 · Last updated: 2026-09-03_
 >
-> **Mockups for P-37, to be walked before any code.** Four surfaces: the gate card, the seat's
-> message, the transcript row, the hold card. A3 has the four state-and-copy items (P-43); this is
-> the shape.
+> **Mockups for P-37.** Four surfaces: the gate card, the seat's message, the transcript row, the
+> hold card. A3 has P-43 (a), (b) and (c); **the hold pane's order is (d) and is §4 here.**
+>
+> **Walked and approved by A1 with seven amendments, all folded in below** and each marked where it
+> lands. The first of them corrected a real defect in this document rather than a preference, and it
+> is called out in §1.
 
 The founder, on the tablet track's run: _the gate card, the messages, the action items, the inside of
 the card, the text and the information are dumped with no hierarchy; everything is true and nothing
@@ -41,11 +44,11 @@ The order is the design. Question, risk, reason, default and date, two answers, 
 │                                                          │
 │  This is irreversible and customers see it.   ← t-base  │   the RISK, one line, never a badge
 │                                                          │
-│  Build ran twice and the tests pass. The      ← t-small │   the REASON, folds after 2 lines
-│  changeset touches three files.                 mute    │
+│  Builder ran it twice and the tests pass.     ← t-small │   the REASON, and its author named
+│  The changeset touches three files.             mute    │   once, inside it. Folds after 2 lines
 │                                                          │
-│  Waiting on you since 14:12. If nobody         ← t-data │   the DEFAULT and its DATE, mono,
-│  answers, this merges at 18:00.                  mute   │   because it is a fact about a clock
+│  Waiting on you since 14:12. Nothing merges    ← t-data │   the DECLARED DEFAULT and its date,
+│  until you answer.                               mute   │   mono, a fact about a clock
 │                                                          │
 │  ┌──────────────┐  ┌──────────────┐                     │
 │  │   Merge it   │  │  Not yet     │            ← ACTION │   two answers, two registers
@@ -54,10 +57,14 @@ The order is the design. Question, risk, reason, default and date, two answers, 
 └─────────────────────────────────────────────────────────┘
 ```
 
-**What comes off.** The seat name, the token count, the elapsed timer, the station chip, the trace
-id. Every one of them is true and none of them helps a person answer the question. They live in the
-transcript row for this moment, which is where a person goes when they want to audit rather than
-decide.
+**What comes off.** The token count, the elapsed timer, the station chip, the trace id. Every one of
+them is true and none of them helps a person answer the question. They live in the transcript row for
+this moment, which is where a person goes when they want to audit rather than decide.
+
+**The seat that asks is named ONCE, as the author of the reason, in the reason's own register**
+(A1, amendment 2): _"Builder ran it twice and the tests pass."_ Not a header, not a chip, not a byline
+above the question. Who is asking matters only as provenance for the reason, and provenance belongs
+inside the sentence it qualifies.
 
 **Why the risk line is prose and not a badge.** A red `HIGH RISK` chip is a category; _"this is
 irreversible and customers see it"_ is the actual consequence, and it is the thing that changes the
@@ -66,6 +73,14 @@ answer. A badge asks the person to know the taxonomy. A sentence does not.
 **Why the default is mono and last.** It is a fact about a clock, and it is the one thing a person
 needs when they are NOT going to answer now. Putting it above the answers would make the card read as
 a countdown; putting it below makes it what it is, the consequence of walking away.
+
+**THE LINE STATES THE DECLARED DEFAULT, AND FOR AN IRREVERSIBLE GATE THAT DEFAULT IS ALWAYS THAT
+NOTHING RUNS.** (A1, amendment 1.) The first draft of this mockup read _"If nobody answers, this
+merges at 18:00"_, which describes **a card that merges by silence**. That is not a gate, it is a
+delay, and on the one path in this product that customers see. It was wrong as copy and it would have
+been worse as a component, because a slot that renders whatever default it is handed will eventually
+be handed that one. The component takes the declared default and an irreversible gate may only
+declare "nothing runs"; there is no argument that makes this card say otherwise.
 
 ---
 
@@ -89,6 +104,12 @@ press run"_ after the person had already pressed.
 - **Never in the imperative.** A seat does not tell the person to press anything. The action is the
   card's, and the card is the only thing with a button.
 - **One message per moment.** If a card is already reporting the moment, the seat is silent.
+- **THE CHARACTER STOPS SPEAKING ON THIS SCREEN AS A SEPARATE VOICE** (A1, amendment 6). Shape 3 was
+  the character saying _"I've stopped, the reason is on the hold line"_ above a card headed _"Why it
+  stopped"_, and _"I'm ready, press run"_ after the person had pressed. Those are the PRODUCT's
+  sentences wearing a character's first person, and the fix is not better timing: the card is the
+  product speaking, and a seat only ever reports its own work. Removing the second voice closes shape
+  3 **structurally**, because there is no longer a speaker who COULD narrate the run's state.
 
 ---
 
@@ -97,12 +118,32 @@ press run"_ after the person had already pressed.
 Shape 6: seat name, verdict, duration, tokens, a paragraph, and a tool-call count, all at one weight.
 Six facts with no rank is six facts nobody reads.
 
+**Three marks, and only three** (A1, amendment 5). A row is one of: it **filed**, it **filed
+nothing**, or it **was stopped**. Anything finer is a taxonomy the reader has to learn.
+
+| mark | state | what leads |
+|---|---|---|
+| `✓` | filed | what it filed |
+| `◦` | filed nothing | what it looked for |
+| `⊘` | was stopped | **the consequence**, not the cause |
+
 **Folded**, which is how it renders:
 
 ```
   ✓  Filed 2 findings                             ← VERDICT leads, t-base, ink
-     Scout · 48s · 3 tools · 1.2k                 ← the meta, t-data, faint, one line
+     Scout · 48s · 3 tools                        ← the meta, t-data, faint, one line
 ```
+
+**A stopped row leads with the consequence** and not with what stopped it, because the consequence is
+what the reader has to act on:
+
+```
+  ⊘  Nothing was built for this step              ← the CONSEQUENCE, t-base, ink
+     Builder · 12s                                ← t-data, faint
+```
+
+**The token count is not on the folded line** (A1, amendment 7). Tokens and cost are an audit fact,
+not a scanning fact, and they belong with the tool names in the open body.
 
 **Open**, when the row is pressed:
 
@@ -113,6 +154,7 @@ Six facts with no rank is six facts nobody reads.
      I searched the workspace for anything about   ← t-prose, body
      the address step and grouped what was there.
      signals.list · cluster.trigger · repo.read    ← t-data, faint
+     1.2k tokens · $0.004                          ← t-data, faint (amendment 7)
 ```
 
 **The verdict leads because it is the only thing a person scanning a transcript is looking for.**
@@ -156,10 +198,32 @@ Shapes 1 and 5. Three asks in one breath, and the machinery's reason leading ove
 **The machinery's reason goes to the transcript**, as a row like any other: _"this run of the loop ran
 long."_ True, and it is an answer to a question about our scheduler, not about the person's work.
 
-**One door.** _Finish it in Settings_, _Say what is unsettled_ and _Let Discover try again_ were three
-doors for one state, and two of them could not clear the hold. The door that can is the only one that
-renders; the others are reachable where they belong (Settings is Settings; the run's own composer
-takes an unsettled note).
+**One door, and its VERB comes from the state** (A1, amendment 3). "Connect a source" is wrong
+whenever a connection already exists and is simply not pointed at this product, which is today's
+case:
+
+| the state | the door |
+|---|---|
+| a connection exists, unbound | **Point a source at Relay** |
+| no connection at all | **Connect a source** |
+
+A door that says "connect" to somebody who has already connected reads as the product not knowing
+what it has, and sends them to do a thing they have done. (P-44 supplies the target name.)
+
+**The card keeps one button, and the second promise lives in the composer** (A1, amendment 4). R-36's
+sentence promises two ways out: add a source, or _say what you know_. Both are real, so the second is
+not dropped, but it is not a second button either. It becomes the composer's placeholder in this
+state:
+
+> _Say what you know, and it carries on from that_
+
+The composer is already on the screen and already takes a sentence. Putting the promise where the
+typing happens keeps the card at one door and makes the offer at the moment it can be accepted, which
+a button would only announce.
+
+**What the three doors were.** _Finish it in Settings_, _Say what is unsettled_ and _Let Discover try
+again_, for one state, and two of them could not clear the hold. Settings stays in Settings; the
+unsettled note is the composer, above.
 
 ---
 

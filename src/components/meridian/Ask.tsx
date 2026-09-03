@@ -1,0 +1,127 @@
+/**
+ * ── ONE CARD VOCABULARY, AND THE ORDER IS THE DESIGN ──────────────────────
+ *
+ * P-37. The founder, on the tablet track's run: *the gate card, the messages,
+ * the action items, the inside of the card, the text and the information are
+ * dumped with no hierarchy; everything is true and nothing is designed.* The
+ * second half is the diagnosis. A surface that REPORTS puts everything at one
+ * weight and leaves the person to sort it; a surface that COMPOSES decides what
+ * matters most and says that first.
+ *
+ * So this component takes named slots and renders them in a fixed order:
+ *
+ *   question   what is being asked, alone, at `--mrd-t-lead`
+ *   risk       the consequence, in prose, one line
+ *   reason     why it is being asked, with its author named inside it
+ *   default    what happens if nobody answers, mono, last
+ *   answers    two, in two registers
+ *
+ * THE ORDER IS NOT A PROP, and that is the point of having a component at all.
+ * A `children` slot or an array of sections would let the next surface reorder
+ * it, and the order IS the design: the question leads because it is the thing
+ * being asked; the consequence comes before the reasoning because it is what
+ * changes the answer; the clock goes last because a clock above the answers
+ * makes a question read as a countdown.
+ *
+ * ── WHAT IS DELIBERATELY ABSENT ───────────────────────────────────────────
+ *
+ * There is no slot for the token count, the elapsed timer, the station chip or
+ * the trace id. Every one is true and none helps a person answer, and they are
+ * all available in that moment's transcript row, which is where somebody goes to
+ * audit rather than to decide. A slot that exists gets filled.
+ *
+ * The seat that asks is named ONCE, by the caller, inside `reason` and in the
+ * reason's own register ("Builder ran it twice and the tests pass"). Not a
+ * header, not a byline: who is asking matters as provenance for the reason, and
+ * provenance belongs in the sentence it qualifies (A1, amendment 2).
+ */
+import * as React from "react";
+
+import { Action } from "@/components/meridian/surface-parts";
+
+/**
+ * What happens if nobody answers.
+ *
+ * ── AN IRREVERSIBLE GATE MAY ONLY DECLARE THAT NOTHING RUNS ───────────────
+ *
+ * The first draft of P-37's mockup wrote this line as *"If nobody answers, this
+ * merges at 18:00"*, which describes **a card that merges by silence**. That is
+ * not a gate, it is a delay, on the one path in this product that customers see.
+ *
+ * It was caught as copy (A1, amendment 1) and it is fixed as a TYPE, because a
+ * slot that renders whatever default it is handed will eventually be handed that
+ * one. `irreversible` cards take no sentence at all: they get the only default
+ * they are allowed to have. A reversible card may name a real one, because
+ * "this reruns tonight" is a true and useful thing to say about work that can be
+ * done again.
+ */
+export type AskDefault =
+  | { kind: "irreversible"; since: string }
+  | { kind: "reversible"; since: string; whatHappens: string };
+
+function defaultLine(d: AskDefault): string {
+  /*
+   * Not a template a caller can slip past. The irreversible sentence is written
+   * here, once, and there is no argument that produces a different one.
+   */
+  return d.kind === "irreversible"
+    ? `Waiting on you since ${d.since}. Nothing runs until you answer.`
+    : `Waiting on you since ${d.since}. ${d.whatHappens}`;
+}
+
+export function Ask({
+  question,
+  risk,
+  reason,
+  fallback,
+  answer,
+  decline,
+}: {
+  /** The whole ask, in one sentence. Leads, alone, at `--mrd-t-lead`. */
+  question: string;
+  /**
+   * The consequence, in PROSE and never a badge. A red HIGH RISK chip is a
+   * category the reader has to know the taxonomy for; "this is irreversible and
+   * customers see it" is the actual consequence, and the consequence is what
+   * changes the answer. Absent when there is genuinely no consequence worth
+   * naming, rather than filled with a reassurance.
+   */
+  risk?: string | null;
+  /** Why it is being asked, with the asking seat named inside it. */
+  reason?: string | null;
+  fallback: AskDefault;
+  /** The one thing pressing this does, in the person's own words. */
+  answer: { label: string; onPress: () => void; busy?: boolean };
+  /** Declining is an answer too, and it is quiet rather than absent. */
+  decline: { label: string; onPress: () => void };
+}) {
+  return (
+    <section
+      data-mrd=""
+      className="flex flex-col gap-mrd-4 rounded-mrd-card border border-mrd-line bg-mrd-sheet p-mrd-5 font-mrd"
+      aria-label={question}
+    >
+      <p className="text-mrd-lead leading-mrd-tight text-mrd-ink">{question}</p>
+
+      {risk ? <p className="text-mrd-base text-mrd-ink">{risk}</p> : null}
+
+      {reason ? <p className="text-mrd-small text-mrd-mute">{reason}</p> : null}
+
+      {/* Mono, because it is a fact about a clock and the data face is where
+          this system puts those. Last, because above the answers it would read
+          as a countdown. */}
+      <p className="text-mrd-data text-mrd-mute">{defaultLine(fallback)}</p>
+
+      <div className="flex flex-wrap items-center gap-mrd-3">
+        <Action variant="primary" busy={answer.busy} onClick={answer.onPress}>
+          {answer.label}
+        </Action>
+        <Action variant="quiet" onClick={decline.onPress}>
+          {decline.label}
+        </Action>
+      </div>
+    </section>
+  );
+}
+
+export default Ask;
