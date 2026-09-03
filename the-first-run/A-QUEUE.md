@@ -6383,6 +6383,28 @@ renders through `SeatSays` and never in the imperative.
 **Report (A3 writes):** —
 **Blockers (A3 writes):** —
 
+### P-49 · The dead weight the audit named is gone, with its guards rewritten · Lane: **A3** · Status: READY (after P-48) · Moves: 5
+
+**Why.** The report's §1.4 named what to delete; most of it went in P-10 to P-12. Two items are
+still in the tree with zero callers, and today added a third: `src/components/chat/MessageMeta.tsx`
+(mounted nowhere, two guards already say so, one of them written to go red on the day it is
+mounted), `src/lib/ai/tools/autonomy-policy.ts` and its `resolveApprovalPolicy` (the mandate
+engine that never got a caller). A file nobody reaches is a claim the repo makes and cannot show.
+
+**Scope.** Verify each has zero non-test importers on the tip (grep, then the suite); delete it;
+rewrite the guards that named it so they assert the live surface instead (`AskTurn`'s
+`Provenance` for the chat footer; the approvals path for the policy) rather than deleting the
+guards. Do not touch `/runs/$missionId` or the seven station pages; those are parked by the
+report, not deleted. List each removed file and its rewritten guard in the Report.
+
+**Acceptance.**
+- [ ] `git grep` on the tip finds no importer of any removed file; the rewritten guards pass and
+      name the live surface.
+- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
+
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
 
 **Why.** P-04's live read (A2, 837c08deb): the forecast grader is handed the claim, the observable,
