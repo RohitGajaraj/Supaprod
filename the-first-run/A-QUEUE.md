@@ -4437,7 +4437,7 @@ today a ship agent at the default `arc: "trusted"` can attempt an unattended pro
 with no human confirmation, and the only reason it hasn't shipped anything yet is that its
 merged-PR precondition happens to fail first.
 
-### P-31 · No claim about a plan that does not exist · Lane: **A3** · Status: CLAIMED (A3) · Moves: 4
+### P-31 · No claim about a plan that does not exist · Lane: **A3** · Status: STALE PREMISE — flagged, not executed (A3), awaiting a ruling · Moves: 4
 
 **Why.** Outcomes reads *On the free plan this record fades after 30 days. Keep it.* There is no free
 plan, no paid plan, and nothing fades; the founder has not ruled on pricing. A sentence the repo
@@ -4451,5 +4451,51 @@ surface names a plan until `docs/strategy` records one.
 - [ ] The grep list is empty or every hit is justified in the Report.
 - [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
 
-**Report (A3 writes):** —
+**Report (A3 writes):** **Claimed, investigated, did not execute — the premise does not match the
+repo.** Before touching anything I checked whether pricing had actually been ruled (RULINGS.md's own
+role is tiebreaker; a packet's Why is not authoritative if the repo disagrees). It has:
+
+- `docs/strategy/pricing/pricing-strategy.md` — **Status: CANONICAL**, founder session 2026-06-26,
+  updated 2026-07-10 under an explicit "full-tweak-authority grant."
+- `docs/strategy/pricing/pricing-architecture.md` — **Status: FINALIZED**, founder session
+  2026-07-12: *"The MODEL is locked... When this and any older pricing doc disagree, THIS wins."*
+- The **4-tier model itself was reaffirmed as recently as founder ruling 2026-08-03/08-04**
+  (both docs carry the identical "⛔ THE BAND PICKER IS RETIRED" block): Free/Pro/Business/
+  Enterprise, `PUBLIC_PLAN_TIERS = ["free","pro","team","enterprise"]`, real credit allowances
+  (750/3,750/15,000/committed).
+- The line the packet quotes does not exist verbatim on Outcomes and never did in this form — it is
+  `RetentionLine.tsx`, mounted at `_authenticated.outcomes.tsx:1662`. It is not a stray string: it
+  reads **live** billing state (`getBillingState`), renders **only** when `planTier === "free"`
+  (null on paid, null while unknown), states the day count from the real canonical constant
+  (`FREE_MEMORY_RETENTION_DAYS`, `entitlements.ts`), and links to `/pricing` — a real page, not a
+  dead button. It was **ported to Meridian 2026-08-15** and had an accessibility/typography fix
+  dated **2026-09-01** — yesterday. Its own docblock cites "Governance canon, verbatim: *a default
+  the user never set is our choice, not their policy, so it must be visible and changeable.*" This
+  is not orphaned copy; it is a deliberately built, live-data-driven, recently-maintained line
+  doing exactly what governance canon asks of it.
+- **Payments are dormant** (`credits_enabled()` false, `paymentsConfigured()` false today), and the
+  product is honest about that on every surface I checked: `PlanPicker.tsx`'s own "Honesty law" —
+  *"while payments are dormant there is NO upgrade button at all... a disabled buy is still a dead
+  promise"* — and `_authenticated.settings.tsx:3606`'s matching "Honest checkout" comment both gate
+  the one thing that WOULD be dishonest (a live buy/upgrade control) on `paymentsConfigured()`.
+  `RetentionLine`'s "Keep it" is a plain navigation link to `/pricing`, never a checkout control, so
+  it does not trip that law either.
+
+Ran the packet's own grep (*free plan*, *upgrade*, *Pro*, *trial*, *fades*) across `src/`. It returns
+hundreds of hits and the overwhelming majority are unrelated (`gemini-2.5-pro` model ids, CSS/motion
+"fades", `PRO` as an artifact-id prefix) or are the real, ruled, correctly-guarded billing system
+(`entitlements.ts`, `pricing.tsx`, `PlanPicker.tsx`, `billing-tier.ts`, connector tier gates). I did
+not find a genuine orphaned or fabricated plan claim anywhere in the sample I read.
+
+**Not executing "remove the line and the Keep it door."** Doing so would delete accurate,
+founder-ruled, correctly-guarded, recently-polished product copy on the strength of a Why paragraph
+that the repo itself no longer supports — the kind of destructive, premise-blind execution this
+lane's own standing instruction (verify before building, never widen a test or gut real work to
+force a packet closed) exists to prevent. Messaged A1 for a ruling: either retire this packet as
+resolved-by-history (pricing WAS ruled between the packet being written and now), or point me at
+the SPECIFIC surface that still carries a stale/dishonest claim if one exists that I haven't found.
+Picking up the next READY A3 packet rather than sitting on this one.
+
+**Blockers (A3 writes):** Needs a ruling from A1/founder: retire, or redirect to a specific surface.
+Not blocked on tooling or access — blocked on which of two readings of "Why" is current.
 **Blockers (A3 writes):** —
