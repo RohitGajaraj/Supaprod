@@ -115,7 +115,7 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 ---
 
 **DEV SERVER: off** · any lane may start it when a packet needs a rendered check; the lane that starts it stops it and writes `off` here before reporting the packet.
-**LIVE WALKS (A1): the honest run is live, track `870b70d3`, Helio Labs, pressed by the founder 14:12:42 IST with *Show the last outage time on the homeowner status tile*. 14:12 to 14:16: Discovery Scout, 4 tool calls, 3m 12s, 40,715 tokens, filed nothing (no evidence in the workspace). 14:20 sweep: Scout again, Researcher, hold `out-of-time`. 14:30 sweep: Customer Insights, same answer, hold `produced-nothing`, attempt 1 of 3; on the current rule it gives up at 14:50. Ruled R-36 and filed P-40 (A2, before P-04). Cause on the record: the track carries product **Prism** because the switcher sat on Prism when he pressed, and the sentence is about **Relay** (P-16b, A3, carries the field-side fix). The screen at 14:23 told the story in words, with *Stopped, and not on you* beside *Finish it in Settings* and *Say what is unsettled*, three asks in one breath. Pending: P-36 banner walk on the tablet track's open gate (publish 14:25); P-33 §5 walk on *Arrival walk* by rule 18 (A2 read it clean at 14:26); P-04 Learn tab after a real ship. **14:40 sweep: fourth pass, Scout no evidence again, then the Researcher wrote two signals into the workspace restating an existing theme (R-37, P-41); hold `out-of-time`, attempts still 1.** **14:50 sweep: fifth pass; Customer Insights read the two agent-written rows by id and still said no evidence for the sentence; the driver advanced the track to Decide anyway, its only two Sense artifacts being those two rows (attached 14:41:08). The loop moves on its own, on evidence it wrote itself. Decide runs at 15:00.****
+**LIVE WALKS (A1): the honest run is live, track `870b70d3`, Helio Labs, pressed by the founder 14:12:42 IST with *Show the last outage time on the homeowner status tile*. 14:12 to 14:16: Discovery Scout, 4 tool calls, 3m 12s, 40,715 tokens, filed nothing (no evidence in the workspace). 14:20 sweep: Scout again, Researcher, hold `out-of-time`. 14:30 sweep: Customer Insights, same answer, hold `produced-nothing`, attempt 1 of 3; on the current rule it gives up at 14:50. Ruled R-36 and filed P-40 (A2, before P-04). Cause on the record: the track carries product **Prism** because the switcher sat on Prism when he pressed, and the sentence is about **Relay** (P-16b, A3, carries the field-side fix). The screen at 14:23 told the story in words, with *Stopped, and not on you* beside *Finish it in Settings* and *Say what is unsettled*, three asks in one breath. Pending: P-36 banner walk on the tablet track's open gate (publish 14:25); P-33 §5 walk on *Arrival walk* by rule 18 (A2 read it clean at 14:26); P-04 Learn tab after a real ship. **14:40 sweep: fourth pass, Scout no evidence again, then the Researcher wrote two signals into the workspace restating an existing theme (R-37, P-41); hold `out-of-time`, attempts still 1.** **14:50 sweep: fifth pass; Customer Insights read the two agent-written rows by id and still said no evidence for the sentence; the driver advanced the track to Decide anyway, its only two Sense artifacts being those two rows (attached 14:41:08). The loop moves on its own, on evidence it wrote itself. Decide runs at 15:00.** **15:00 sweep, Decide: the Strategist filed a decision against the founder's sentence (*Do not add last outage time to homeowner status tile*, declined, forecast due 2026-10-03, lineage 0) with the two agent-written rows as its whole evidence; hold `out-of-time` before the Critic. Start's Arriving line moved from 15 to 17 findings on those two rows. The old path is fully on the record: no evidence, manufactured evidence, a decision on it. Second sentence from the founder under Relay still to come.****
 **A1 AUDIT OF EVERY CLOSED PACKET (12:15 IST, founder's instruction: verify, never accept on a
 report).** 35 closed; 21 carried A1's own live or database evidence at closing; 14 were report-only
 or deferred. Re-verified today: P-26 (A1's own grep, both duration forms, zero in code; the nine hits
@@ -2424,6 +2424,10 @@ that evidence is provable; this is the one defect that breaks it.
 **14:50 IST, confirmed on the record:** the track's only two Sense members are those two rows
 (`spine_track_members`, attached 14:41:08), and the 14:50 sweep advanced it to Decide on them
 while Customer Insights, reading them by id, still said there was no evidence for the sentence.
+
+**15:07 IST:** at Decide the Strategist declined the founder's sentence on those two rows alone
+(decision `7a65b789`, forecast due 2026-10-03), and Start's Arriving count rose from 15 to 17 on
+them. Item 2 is what stops that count; item 3 marks the decision's footing as well as the rows.
 
 **Scope.**
 1. `signals.log` is removed from every Sense seat's tool kit (Discovery Scout, Researcher, Listen,
@@ -5613,6 +5617,12 @@ stands — no product is ever guessed and silently swapped in.
       ("the homeowner app" → Relay), not walked live.**
 - [x] tsc 0 · `bun test` (full console suite, this branch's tip, both halves, post-rebase)
       13,785 pass / 0 fail / 0 unhandled error · pushed (`a890629f4`, `c55244776`) · Report.
+
+**A1, 15:07 IST · first half verified live** (a890629f4, by its own string): on Start the first tab
+stop is *Skip to main content* landing on `#main-content`, and the composer has focus on load
+(`document.activeElement` is the textarea). Second half (the product beside the field, c55244776)
+published 15:05, read after propagation. Seen while there, for P-37 not this packet: *No runs
+yet* renders under the field while *Your runs* still says *Reading your runs*.
 
 **Report (A3 writes):**
 
