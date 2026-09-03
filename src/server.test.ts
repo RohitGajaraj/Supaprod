@@ -4,6 +4,7 @@ import {
   withAgentDiscoveryLink,
   withMarketingCacheHeaders,
   withSecurityHeaders,
+  withWorkerTotalTiming,
 } from "./server";
 
 describe("withMarketingCacheHeaders", () => {
@@ -220,5 +221,30 @@ describe("withSecurityHeaders", () => {
       expect(result.headers.get("X-Frame-Options")).toBe("DENY");
       expect(result.headers.get("X-Content-Type-Options")).toBe("nosniff");
     });
+  });
+});
+
+describe("withWorkerTotalTiming", () => {
+  test("adds worker-total to a response with no prior Server-Timing", () => {
+    const response = new Response("<html></html>", { status: 200 });
+    const result = withWorkerTotalTiming(response, 123.6);
+    expect(result.headers.get("Server-Timing")).toBe("worker-total;dur=124");
+  });
+
+  test("appends to a route's own phases rather than overwriting them (P-58b)", () => {
+    // The shape `lib/server-timing.ts`'s `timedPhase` would have already
+    // written before this runs -- a real loader's own read, named.
+    const response = new Response("<html></html>", {
+      status: 200,
+      headers: { "Server-Timing": "landing-data;dur=812" },
+    });
+    const result = withWorkerTotalTiming(response, 900);
+    expect(result.headers.get("Server-Timing")).toBe("landing-data;dur=812, worker-total;dur=900");
+  });
+
+  test("preserves the body and status it does not own", () => {
+    const response = new Response("hello", { status: 404 });
+    const result = withWorkerTotalTiming(response, 50);
+    expect(result.status).toBe(404);
   });
 });

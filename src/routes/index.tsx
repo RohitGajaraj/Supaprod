@@ -42,6 +42,7 @@ import { LandingFooter } from "@/components/landing/LandingFooter";
 import { getWaitlistCount, trackLandingEvent } from "@/lib/landing.functions";
 import { getLandingSessionKey } from "@/lib/landing-session";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
+import { timedPhase } from "@/lib/server-timing";
 
 const SITE = "https://supaprod.ai";
 
@@ -179,7 +180,13 @@ export const Route = createFileRoute("/")({
   // routes to be thrown away. See `getWaitlistCount`'s header for why the split
   // also fixes a coupling: the rendered number used to be discarded whenever an
   // unrendered one failed.
-  loader: async () => ({ waitlistCount: await getWaitlistCount() }),
+  // P-58b: the one server-side phase this route pays for, named so a cold
+  // hit's Server-Timing header says where the seconds went instead of
+  // leaving the isolate-warm ping (which touches no database) to take the
+  // blame for a database read it was never built to warm.
+  loader: async () => ({
+    waitlistCount: await timedPhase("landing-data", () => getWaitlistCount()),
+  }),
   component: LandingPage,
   head: () => ({
     meta: [

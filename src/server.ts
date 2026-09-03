@@ -151,6 +151,26 @@ export function withMarketingCacheHeaders(response: Response, pathname: string):
   });
 }
 
+/**
+ * P-58b: the one Server-Timing phase that carries no framework-context risk
+ * at all -- wall clock around the whole SSR handler call, measured at the
+ * Worker's own boundary rather than from inside a route `loader`. Appended,
+ * never set, because a route's own `loader` (see `lib/server-timing.ts`) may
+ * already have written phase entries onto this same response; overwriting
+ * would silently drop them.
+ */
+export function withWorkerTotalTiming(response: Response, ms: number): Response {
+  const headers = new Headers(response.headers);
+  const prior = headers.get("Server-Timing");
+  const entry = `worker-total;dur=${Math.round(ms)}`;
+  headers.set("Server-Timing", prior ? `${prior}, ${entry}` : entry);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export function withAgentDiscoveryLink(response: Response): Response {
   if (response.headers.has("Link")) return response;
   const headers = new Headers(response.headers);
@@ -429,7 +449,9 @@ export default {
 
     try {
       const handler = await getServerEntry();
+      const fetchStarted = performance.now();
       const response = await handler.fetch(request, env, ctx);
+      const fetchMs = performance.now() - fetchStarted;
       // Apply security headers (CSP, X-Frame-Options, etc.) to all responses
       // except well-known machine-readable endpoints which need CORS wildcard
       const securedResponse = withSecurityHeaders(
@@ -437,8 +459,12 @@ export default {
       );
       // Cache headers go on LAST so the marketing Cache-Control is not
       // overwritten by anything upstream, and only ever on a 200 for a route
-      // in the allow-list.
-      return withMarketingCacheHeaders(withAgentDiscoveryLink(securedResponse), url.pathname);
+      // in the allow-list. worker-total goes on last of all, appended rather
+      // than set, so it never drops a route's own Server-Timing phases.
+      return withWorkerTotalTiming(
+        withMarketingCacheHeaders(withAgentDiscoveryLink(securedResponse), url.pathname),
+        fetchMs,
+      );
     } catch (error) {
       console.error(error);
       persistServerError(error, request, ctx, "worker");
