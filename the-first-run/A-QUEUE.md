@@ -6534,6 +6534,31 @@ asks and its default line saying what silence does.
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
+### P-51 · Every gate card names its two slots, and the alias goes · Lane: **A3** · Status: READY · Moves: 2, 3
+
+**Why.** P-37 gave `CallGate` two named slots, `risk` (prose, second) and `declaredDefault` (mono,
+last), because one slot called `consequence` had carried both sentences and they landed in each
+other's places. `consequence` survives as a deprecated alias that renders where the default
+renders, so the old callers still compile and still put the wrong sentence in that place. The
+alias exists so the callers could migrate; this packet is the migration.
+
+**Scope.** Every composer of `CallGate` in `src` (start from `git grep -ln "<CallGate"`; A1's
+grep found the ask, governance and discover surfaces passing `consequence=`, some of which may
+be other components' own prop, so verify each) passes `risk` and `declaredDefault` with the right
+sentence in each; then the alias is removed from `CallGate` and its guard asserts absence. No
+Meridian edits beyond removing the alias and its test branch. A test that no caller passes
+`consequence` to `CallGate`.
+
+**Acceptance.**
+- [ ] The test; `git grep "consequence=" -- src` shows only other components' props, listed in
+      the Report with their files.
+- [ ] A1 reads the approvals page and one Ask gate card on the served build: risk second, default
+      last, both as prose and mono.
+- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
+
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
 
 **Why.** P-04's live read (A2, 837c08deb): the forecast grader is handed the claim, the observable,
