@@ -6309,7 +6309,7 @@ packet, since P-46's scope is the copy, not the tooling.
 
 **Blockers (A3 writes):** —
 
-### P-47 · The humanizer scans a markdown page it was handed · Lane: **A3** · Status: CLAIMED (A3) · Moves: 5
+### P-47 · The humanizer scans a markdown page it was handed · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed 67a1470bb) · Moves: 5
 
 **Why.** A3, P-46: `scripts/hooks/check-humanized.sh` says in its header that passing a markdown
 path explicitly is the opt-in for scanning a public page, and a one-line `.md` with a bare em
@@ -6324,7 +6324,26 @@ file under `docs/lanes/` in the sweep still passes as today). No change to what 
 - [ ] The test, named after its sentence; the hook's header matches its behaviour.
 - [ ] `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
-**Report (A3 writes):** —
+**Report (A3 writes):** Pushed `67a1470bb`. `scan_file_args` in `scripts/check-humanized.sh` still
+filtered every explicit argument through `TEXT_EXT_RE` (the same allowlist the automatic staged-diff
+sweep uses), so its own header's claim ("passing a markdown path explicitly is the deliberate
+opt-in") was false. Dropped that one check from `scan_file_args`; `scan_staged_diff` untouched, so
+the automatic sweep bans nothing new. `GENERATED_RE`/`TEST_RE` still apply to explicit args, since
+those exclude a content category, not an extension.
+
+Re-ran the exact repro from P-46 after the fix: `scripts/check-humanized.sh /tmp/dashtest.md` on a
+one-line file with a bare em dash now reports the hit and a non-zero exit under `STRICT=1`, where it
+previously reported clean.
+
+New `src/__tests__/the-humanizer-scans-a-markdown-page-it-was-handed.test.ts` drives the real script
+via `Bun.spawnSync` (same pattern as `the-push-guard-tells-not-fetched-from-no-ancestor.test.ts`),
+not a source-scan: explicit `.md` + em dash fails; the same dash inside a fenced block is not
+flagged; a clean `.md` still passes; and the same file staged under `docs/lanes/` in the automatic
+sweep still passes exactly as before, pinning that the sweep's own behavior did not change.
+
+tsc 0. `bun test` 13892 pass / 22 skip / 37 todo / 0 fail / 36780 expect() across 1000 files. 0
+`# Unhandled error between tests`. eslint 0 errors on the new test file.
+
 **Blockers (A3 writes):** —
 
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
