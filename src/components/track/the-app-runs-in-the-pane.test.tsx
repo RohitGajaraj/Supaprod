@@ -168,3 +168,60 @@ describe("where it sits on the page", () => {
     expect(paneCode).not.toContain("localStorage");
   });
 });
+
+/**
+ * ── SHIP SHOWS WHAT WENT OUT, RUNNING, THE SAME WAY ───────────────────────
+ *
+ * The packet's second half: *"Ship's row shows the production URL the same way
+ * once release.publish fires."* The same way is the point — Build showing a
+ * frame and Ship showing a link to the same kind of thing is exactly the drift
+ * one shared component exists to prevent.
+ */
+describe("Ship runs it too, and knows the address without asking", () => {
+  it("renders the frame rather than only a link", () => {
+    // Whitespace-insensitive: prettier decides where this JSX wraps, and a guard
+    // a reformat can break is a guard somebody deletes rather than fixes.
+    expect(paneCode.replace(/\s+/g, " ")).toContain("<RunningApp url={url}");
+  });
+
+  it("says Live for production and App otherwise", () => {
+    // The same frame, a different claim. "Live" is a stronger word and is only
+    // true of the environment that word means.
+    expect(paneCode).toContain('env === "production" ? "Live" : "App"');
+  });
+
+  it("only frames a release that actually succeeded", () => {
+    /*
+     * A blank iframe under a red chip reads as the product being broken rather
+     * than the deploy being. A failed or in-flight release keeps the link.
+     */
+    expect(paneCode).toContain('url && standing.tone === "pass"');
+    expect(paneCode).toContain("Open what went out");
+  });
+
+  it("keeps the honest line when there is no address at all", () => {
+    expect(paneCode).toContain("No address was recorded, so there is nothing to open.");
+  });
+
+  it("does not look up what it already holds", () => {
+    /*
+     * Build asks `previewForChangeset` because a preview is a row somebody
+     * else's pipeline wrote and this product has to go and find it. `ReleaseCard`
+     * renders a `deployments` row that carries `deploy_url` in hand; a lookup
+     * there would re-fetch a fact already on screen.
+     */
+    // Bounded at the end of ReleaseCard: an unbounded slice runs on into
+    // `AppOrDiff`, which legitimately renders <AppFrame>, and asserts its
+    // absence somewhere it was never claimed to be.
+    const from = paneCode.indexOf("function ReleaseCard");
+    const release = paneCode.slice(from, paneCode.indexOf("\nfunction ", from + 10));
+    expect(release).toContain("<RunningApp");
+    expect(release).not.toContain("previewForChangeset");
+    expect(release).not.toContain("<AppFrame");
+  });
+
+  it("both callers draw the same frame, so they cannot disagree about it", () => {
+    expect(frameCode).toContain("export function RunningApp(");
+    expect(frameCode).toContain("return <RunningApp url={url} sha={sha} label={label} />;");
+  });
+});

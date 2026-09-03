@@ -139,6 +139,31 @@ export function AppFrame({
     );
   }
 
+  return <RunningApp url={url} sha={sha} label={label} />;
+}
+
+/**
+ * THE FRAME ITSELF, TAKING AN ADDRESS RATHER THAN LOOKING ONE UP.
+ *
+ * Two callers with two different ways of knowing the URL. Build asks
+ * `previewForChangeset` because a preview is a row somebody else's pipeline
+ * wrote and this product has to go and find it. Ship already HOLDS the address:
+ * `ReleaseCard` renders a `deployments` row that carries `deploy_url` in hand,
+ * and a lookup there would re-fetch a fact already on screen.
+ *
+ * Split so the two agree on what a running app looks like. The alternative is
+ * Build showing a frame and Ship showing a link to the same kind of thing, which
+ * is the drift this file exists to avoid one level up.
+ */
+export function RunningApp({
+  url,
+  sha,
+  label,
+}: {
+  url: string | null;
+  sha: string | null;
+  label: string;
+}) {
   return (
     <div className="flex min-w-0 flex-col gap-mrd-2">
       <span className="flex flex-wrap items-center gap-mrd-3">

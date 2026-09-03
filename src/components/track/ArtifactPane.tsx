@@ -111,7 +111,7 @@ import { becameWorkOnItsOwn } from "@/lib/spine/promote";
 import { Verdict } from "@/components/meridian/verdict";
 import { verdictProps } from "@/components/track/verdict-reading";
 import { PlaybookFilesPanel } from "@/components/track/PlaybookFiles";
-import { AppFrame } from "@/components/track/AppFrame";
+import { AppFrame, RunningApp } from "@/components/track/AppFrame";
 
 /** What each station exists to do, for the not-run sentence. Display labels only. */
 const PURPOSE: Record<string, string> = {
@@ -1741,7 +1741,26 @@ function ReleaseCard({ item, decisions }: { item: ArtifactView; decisions?: Arti
 
       {under ? <span className="mrd-meta">{under}</span> : null}
 
-      {url ? (
+      {/*
+       * -- WHAT WENT OUT, RUNNING (P-22) ------------------------------------
+       *
+       * Ship's half of the same claim Build makes: watching the diff is watching
+       * the work, watching the app run is watching the result. Build has to go
+       * and FIND a preview row; this card already holds `deploy_url`, so it
+       * renders the frame directly rather than re-fetching a fact that is
+       * already on screen.
+       *
+       * Only for a release that actually SUCCEEDED. Framing a failed or
+       * in-flight deploy would put a blank iframe under a red chip, which reads
+       * as the product being broken rather than the deploy being.
+       */}
+      {url && standing.tone === "pass" ? (
+        <RunningApp
+          url={url}
+          sha={str(f.commit_sha)}
+          label={env === "production" ? "Live" : "App"}
+        />
+      ) : url ? (
         <a
           href={url}
           target="_blank"
