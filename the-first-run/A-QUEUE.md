@@ -2419,6 +2419,14 @@ real; `forecast_resolution_log` empty. The forecast audit rides `calibrate-tick`
 whose last run was 00:00 UTC, before the build carrying `1a3b2fefa` landed (~00:11 UTC). The eight
 self-referential forecasts grade at 06:00 UTC (11:30 IST); A1 reads the log then.
 
+
+**A1, 11:37 IST · the live half fails at the first tick.** `calibrate-tick` ran at 06:00:00 UTC and
+succeeded ("1 row"); at 06:06 Helio Labs has zero real forecasts resolved since, zero rows in
+`forecast_resolution_log`, and seven real decisions past `forecast_horizon_date` with no resolution.
+The grader is wired and the scheduled path did not reach it. Back to A2 before the sample door:
+what the cron's endpoint calls, whether the forecast pass is on that path at all, and what the seven
+rows fail on if it is. Status stays DONE-PENDING-VERIFY.
+
 **Report / A1 verdict:**
 
 ---
