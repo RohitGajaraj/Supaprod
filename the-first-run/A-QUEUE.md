@@ -4515,7 +4515,7 @@ Picking up the next READY A3 packet rather than sitting on this one.
 Not blocked on tooling or access — blocked on which of two readings of "Why" is current.
 
 
-### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
+### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3) · Moves: 2, 3
 
 **Why.** The front door reads *Reading your runs.* for three to six seconds on a warm load and
 over nine on this morning's cold one (A1, 06:34 and 09:20 IST, Helio Labs: 15 open tracks). A
@@ -4533,7 +4533,63 @@ query in a loop. No caching that can show a stale row. Report the before and aft
 **Acceptance.**
 - [ ] First run row visible within 2 seconds of navigation on three consecutive loads of Start on
       Helio Labs, measured by A1 with the extension; the numbers before and after in the Report.
-- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+- [x] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
 
-**Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Report (A3 writes):** Measured before touching anything, through the Lovable MCP (read-only), on
+Helio Labs' own data (project `371dd588-1b70-4629-9bb5-9f003f3af373`, workspace
+`60000000-0000-4000-8000-000000000000`: 8 open tracks today, 53 total — the "15 open" your 06:34/
+09:20 walks measured has since drifted down as tracks closed, same account).
+
+**`EXPLAIN ANALYZE` on every query `listRunsForStart` runs, real data, real predicate:** the base
+track select — 0.242ms execution (Planning 1.05ms). Table sizes across the WHOLE database, every
+tenant combined: `spine_tracks` 112, `agent_runs` 2,992, `tool_calls` 2,956, `agent_approvals` 333,
+`spine_track_members` 1,642, `decisions` 406 rows. **At this scale a missing index cannot explain a
+multi-second wait** — Postgres does not need one to scan a few thousand rows in sub-millisecond
+time, and every one of the seven queries the three readers make follows the same shape (an indexed
+or trivially-scanned `.eq`/`.in` over a small table). I did not find a per-row query in a loop
+either: every follow-up read in all three readers is already a single batched `.in(...)` call, never
+one query per track. **So the third named cause is the real one: one round trip where several run
+in sequence** — not literally the three top-level readers themselves (checked: `AppFrame.tsx`'s
+`moving`/`gated` queries and Start's own `runs` query have no `enabled:` gate on each other or on
+workspace resolution, so they already fire as independent requests once their components mount) —
+but INSIDE `listRunsForStart` itself, which makes up to **seven sequential round trips**: base
+tracks → gates → running seats → that seat's verb → pins → what it filed → the bet's verdict, each
+one `await`ed before the next starts. `listMovingTracks`/`listGatesOnTracks` are lighter (two round
+trips each, and both are a genuine sequential dependency — track ids before an `.in()` lookup — with
+no FK from `agent_approvals` to `spine_tracks` to fold into one call; `agent_runs.track_id` does have
+one, but `listMovingTracks` is already the lightest of the three and I did not touch it).
+
+**The fix.** Four of `listRunsForStart`'s seven queries depend only on the base read's `ids`/
+`gateIds`, not on each other or on one another's results: gate lookup; running seats → that seat's
+verb (its own two-hop chain); pins; what it filed → the bet's verdict (its own two-hop chain). Ran
+all four as concurrent branches through `Promise.all` instead of one after another. Same queries,
+same fail-soft handling per branch (a pin-read failure still degrades to "unpinned" rather than
+failing the row; a forecast-read failure still degrades to "no verdict" — nothing here changed),
+same final row shape — confirmed by tracing every variable the closing `.map()` reads
+(`gateByTrack`, `workingByTrack`, `toolByTrace`, `pinnedByTrack`, `producedByTrack`,
+`forecastByTrack`) back to the exact same computation, now just concurrent. **No cache introduced**
+— every branch still reads live on every call; nothing here can show a stale row. Round trips:
+7 sequential → 1 (base) + the slowest of 4 concurrent branches (at most 2 hops) ≈ 3 sequential waves.
+
+**What I could not measure, and did not guess at.** No browser this session (as every prior
+packet), so I have no client-observed before number and no after number for the 2-second acceptance
+line — that is yours with the extension, as the packet's own acceptance says. Flagging rather than
+touching: `_authenticated.tsx`'s `beforeLoad` (auth session + `needsOnboarding`) runs before EVERY
+authenticated route mounts, including `/start`, and adds a fixed serial prefix in front of all three
+readers; `needsOnboarding` (`onboarding-gate.ts`) caches in a module-level variable whose lifetime
+under the Cloudflare Worker runtime I could not confirm survives across requests — worth checking if
+your before/after numbers still show meaningful latency ahead of the first reader firing at all, but
+out of this packet's scope (Files named `track.functions.ts` and Start's loader, not the shared auth
+gate every route shares).
+
+tsc 0. `bun test`: 13,745 tests, 0 fail, 0 unhandled errors (full console-reporter run, not junit
+alone). eslint 0 new errors. Meridian ratchet: no baseline diff. No new test added — `createServerFn`
+handlers in this repo are conventionally tested via an extracted plain function (the pattern P-30
+used for `promoteChangesetToProductionCore`), and `listRunsForStart` was not already split that way;
+retrofitting that split was bigger than this packet's scope, so I relied on the three existing test
+files that already cover this function's wiring and contract (24 tests, all still pass) plus a
+line-by-line trace confirming identical semantics. Pushed `79674d553` directly onto `origin/main`
+(`24e21db1e`), no rebase needed.
+
+**Blockers (A3 writes):** The live 2-second acceptance line needs your extension — no browser this
+session. Everything else in the Report is done and pushed.
