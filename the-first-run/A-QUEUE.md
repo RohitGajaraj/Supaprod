@@ -7127,7 +7127,7 @@ user it refuses with the sentence above. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; migration applied via the Lovable MCP with its ledger row.
 
-### P-66 · The shell's live line reads the workspace it is standing in · Lane: **A2** (after P-59, before P-60) · Status: READY · Moves: 1, 2
+### P-66 · The shell's live line reads the workspace it is standing in · Lane: **A2** (after P-59, before P-60) · Status: CODE DONE (225b33ae0; A2 reports 13,997 / 0 / 0, tsc 0; A1 suite running) · Moves: 1, 2
 
 **Why.** Live 00:37 IST 09-04, in the empty probe workspace: the header read *1 decision is ready
 for you · What we expected did not happen: Decline shipping ...*. Both facts are Helio Labs'.
@@ -7168,6 +7168,28 @@ waiting-on-a-person with attempts unchanged; an ordinary failure still counts.
 the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 reads the row and the card.
+
+
+### P-67 · A read of a workspace-scoped table names its workspace, everywhere · Lane: **A2** (after P-62) · Status: READY · Moves: 1
+
+**Why.** Four instances of one defect in three days, each found live and fixed per site:
+`listRunsForStart`, `listTopOpportunities`, the Discover source count, and P-66's three shell reads
+(`listTracks`, `listGatesOnTracks`, `listMovingTracks`), which showed a person in one workspace
+another workspace's gate. RLS lets a person read every workspace they belong to, so a query with
+no workspace predicate is not refused, it is answered wrongly. Since migration `20260907010000` a
+person can hold two workspaces, so the fifth instance reaches a customer.
+
+**Scope.** A repo-wide guard, not a fifth fix: a test that walks every server function reading a
+table that carries `workspace_id` and fails unless the read carries a workspace predicate (or an
+explicit, named exemption with its reason, for the few reads that are meant to span workspaces:
+the switcher itself, admin, the user's own memberships). Report the count on the first run, the
+exemptions with their reasons, and fix what fails. Prefer reading the query builder's calls over
+matching source text (F-188).
+
+**Acceptance.** The guard is green on the tip with its exemption list committed; the report
+carries the number of reads it covers. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CODE DONE, pushed 03cbdafe0 (fixes e80ddc701's tsc break against A2's P-50 type), awaiting A1's live read · Moves: 2, 3
 
