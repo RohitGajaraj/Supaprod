@@ -6766,6 +6766,30 @@ verdicts, both `changed` states; `routeDecision`'s new return type, the `tool_ca
 **Blockers (A3 writes):** None. Live verification (the acceptance item above) is A1's read on the
 served build once Lovable deploys the pushed tip.
 
+### P-55 · The demo workspace's stale work gets a rule, not a hand sweep · Lane: **A2** · Status: READY (a proposal for the founder; no data write until he says yes) · Moves: 1, 5
+
+**Why.** A1, 22:10 IST, on the served approvals page for Helio Labs: *66 decisions are ready for
+you*, *65 pieces of work are stopped, waiting on you*, the oldest 56 and 49 days. The workspace the
+team walks, and the one a visitor is shown, greets a person with a graveyard before it tells a
+story. The arrival document settled how an empty workspace speaks; nobody has settled how a
+seeded one ages.
+
+**Scope.** A short proposal in `docs/design/` (linked from the folder index), for the founder's
+yes or no: the counts by kind and age (proposals, gates, memory reviews, stopped runs) with the
+query that produced each; a rule for seeded work that nobody answered (for example: a seeded
+proposal older than 30 days retires to the record as *not taken up*, a seeded stopped run older
+than 14 days is closed as *left*, both marked `loop_authored`-style so readers can tell); what the
+approvals page and Start read after the rule; and the one-statement reversal. No migration, no
+sweep, no data write in this packet.
+
+**Acceptance.**
+- [ ] The proposal with its queries; A1 re-runs two of them; the founder says yes, no, or a
+      different number. Then it becomes a packet with a migration through the Lovable MCP.
+- [ ] `bun run docs:check` clean · pushed · Report.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** One vocabulary is the point of the whole design pass. With `Ask`, `Choice` and `Quiet` in
