@@ -5695,6 +5695,12 @@ failed today is `changeset-deploy.server.ts` from `ci-poll-tick.ts`, which wrote
 row for `5151319` with no reason; the reason goes on that row (`failure_reason`) and on the owning
 track's transcript. Packet stays open for that.
 
+**A1, 15:45 IST · item 3 returned.** On 719300e3f tsc fails at `ci-poll-tick.ts(643,21)` (the
+`failure_reason` upsert typed `never`) and the suite prints 13,811 / 1 fail, the guard *the
+generated types must know every column a migration added*. The column is live and ledgered
+(`20260909040000`) and absent from `types.ts`. Not published. A3 adds it in the codegen's form and
+reruns tsc and the console suite on the tip; rule 17 covers tsc too.
+
 **Report (A3 writes):**
 
 **(1) The delete/leave fix.** `deleteWorkspace`/`leaveWorkspace` ran a bare `.delete()` and reported
