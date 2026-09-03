@@ -2675,7 +2675,36 @@ of these break anything: every deleted page still resolves and redirects to `/st
 
 **The order this packet named is complete: `/decide`, `/plan` index, `/design`, `/build` index,
 `/runs/$missionId`, `Board.tsx`.** `/ship` and `/learn` remain blocked on P-14b (A3) and P-04 (A2).
-Next: the leftover-reference sweep above, then P-14b.
+
+**Leftover-reference sweep -- done, pushed (`7ea18c0eb`).** Every live door that still navigated to
+or labelled a deleted page (29 files) now points at its real destination -- `/start` where the
+ruling names it, `/plan/spec/$id` and `/track/$trackId` where the row survives or a track exists.
+`AppFrame.live-line.test.ts` also fixed (A1's own item): the assertion that only passed on a stray
+comment mentioning `<Board />` is deleted, not re-spelled a third time; the deeper question (does
+Start still duplicate the top bar's claim at all) is now P-18a's, not guessed at here.
+
+**Two real findings from the sweep, not just dead links -- worth a look on their own:**
+1. **R-35's mission-track gap is still being created today, not just historical debt.** Three live
+   buttons (`GraphNodeActions.tsx` and `OpportunityDetailSheet.tsx`'s "start a mission," and
+   `plan.spec.$id.tsx`'s "Send to Build") dispatch through `startOrchestratedMission` /
+   `dispatchStudioSession`, and neither server function has ever written a `spine_tracks` row. Every
+   mission these buttons create lands in the same track-less state that made 395 of 407 missions
+   have no `/track/:id` address in the first place. R-35 closed the read side (`/runs/$missionId`
+   deleted, `trigger-tick` writes bets not missions); the write side that keeps minting new
+   track-less missions is untouched.
+2. **`src/lib/loop-surfaces.ts` is dead code, unrelated to P-14.** `LOOP_SURFACES`, `loopIndexForPath`,
+   `isLoopSurface` and `loopNeighbors` have zero real callers anywhere in the repo (two comment
+   mentions only, independently confirmed); `LoopThread.tsx`, the renderer its own header says it
+   feeds, does not exist. A deletion candidate for its own pass, not guessed at inside this sweep.
+
+Also flagged, real gaps rather than dead links: `graph-doors.ts`'s `mission` door downgraded row→list
+(most missions have no track to open a row on); its `prototype` door and `artifacts.functions.ts`'s
+unshared-prototype `href` both lose `/design` with no addressable replacement (Find anything is a
+shell overlay, not a route) -- moved to `KINDS_WITHOUT_A_DOOR`. One real pre-existing bug fixed along
+the way: `artifacts.functions.ts`'s spec entries pointed at the dead `/plan` index when the real
+per-row page, `/plan/spec/$id`, survives -- wrong even before this batch, corrected properly.
+
+Next: P-14b.
 
 
 ---
