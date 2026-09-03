@@ -7123,6 +7123,45 @@ zero state. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and walks both workspaces.
 
+**A3, 22:20 UTC 09-03 (~03:50 IST 09-04), P-61 Report.** Six route `<title>`s disagreed with the
+door a person clicked to reach them: `/approvals` said "Approvals · Supaprod" not "Waiting", `/crew`
+said "Crew · Supaprod" not "Team", `/threads` said "Threads · Supaprod" not "Conversations", `/sync`
+said "Sync · Supaprod" not "Sources", `/engine-room` said "Policies · Supaprod" (or a
+`Safety · Engine room` ternary branch) not the ruled "Spend and limits", and `/learn` (reached from
+Outcomes, not the rail) said "Learn · Supaprod" not the ruled "Verdicts due". Fixed all six to the
+Scope's exact words; `/start`, `/track`, `/outcomes`, `/settings` were already right.
+
+Swept the whole tree for live "Policies"/"Brain" hits beyond the packet's own examples
+(`git grep`, then read every hit): the only survivor is a comment in `engine-room.tsx` explicitly
+narrating the retirement ("This read 'Engine room', then 'Policies', both retired..."), not a live
+string. `GotoShortcuts.tsx` and `AskPane.tsx` already derive from `PRIMARY_NAV`/say "Conversations"
+with no changes needed. Left `replay/Replay.tsx` (marketing demo copy) and `audit-id.ts` (internal
+audit-taxonomy values, not user-facing) alone as out of scope — neither is a door or a title.
+
+No H1 touched: the amendment (A1, 01:30 IST) is explicit that H1 stays its own sentence, only
+`<title>` is pinned to the door word, so I left every heading alone and only edited `head()` calls.
+
+**The guard**, per the amendment's exact wording ("each route's title equals its door's label from
+`PRIMARY_NAV`'s one list"): `src/lib/every-door-s-title-is-its-word.test.ts`, new. It imports
+`PRIMARY_NAV` directly (no second hand-kept list to drift from it) and, for each of the nine doors,
+reads its route file's `head()` title by regex and asserts it is exactly `"${label} · Supaprod"`.
+`/track`'s `to` is an identity not a route (nav-model.ts's own comment says so), mapped by hand to
+`_authenticated.track.$trackId.tsx`.
+
+**One pre-existing guard broke and was fixed, not loosened:**
+`the-rename-map-is-applied-in-this-prefix.test.ts`'s "the two tabs say what their rail doors say"
+test literally asserted `"Policies · Supaprod"` had to exist — a stale requirement from before §12
+retired that word, now pinned to the exact violation P-61 removes. Updated it to expect
+`"Spend and limits · Supaprod"` instead, with a dated comment in the file's own voice explaining
+the supersession (same pattern the file already uses for its Insights → Outcomes note), rather than
+deleting the assertion or widening it.
+
+**Acceptance.** tsc 0; `bun test` 14,112 pass / 0 fail on the pushed tip (`abd7da315`, rebased
+clean onto `origin/main` after resolving one status-line conflict with A1's own concurrent edit,
+kept as hers). No page says "Policies" or "Brain" live; the seven ruled titles read as ruled.
+
+**DoD.** Pushed (`abd7da315`). Requesting A1 publish and read the titles live.
+
 ### P-63 · Every surface with a door has a first-visit state · Lane: **A3** (after P-61) · Status: READY · Moves: 2
 
 **Why.** Audit §3. The first run is designed; the first visit to each other surface is not. A door
@@ -7217,6 +7256,22 @@ running* with no borrowed fact); in Helio Labs it reads Helio's. Full suite on t
 
 **DoD.** Pushed; suite number per rule 17; A1 reads both workspaces live.
 
+
+**A3, 22:14 UTC 09-03 (~03:44 IST 09-04), P-58's idle readings, closing the packet.** Before:
+`200`, `4.887865s`, first hit against the freshly-applied route (Thu Sep 3 21:57:58 UTC 2026),
+body `{"ok":true,"sha":null}`. After, once the cron had ticked for a while: `200`, `4.139896s` on
+the first curl of this second visit, then `1.539231s` / `1.618928s` / `1.360208s` on three
+immediate follow-ups. `select * from cron.job_run_details join cron.job ... where jobname =
+'health-warm-tick'` (Lovable MCP) shows ten straight `succeeded` runs at 4-minute spacing through
+22:12 UTC, so the tick itself is live and reliable. Read honestly rather than claimed clean: these
+are curl's full round-trip numbers from this session's network location (DNS+TLS+one RTT+handler),
+not the Worker's own handler time the packet's "under 50 ms warm" line is about — a TLS-stripped
+breakdown still shows ~0.68-1.0s to first byte, which is mostly network RTT from here, not
+something this vantage point can cleanly separate from in-Worker latency. What the evidence
+supports: the cron is genuinely running every 4 minutes and the route answers `200` every time; it
+does not by itself prove the 50 ms warm-handler target, which needs a server-side timing read (a
+Worker-side log line or CF analytics) rather than an external curl. Flagging this gap rather than
+rounding it up to "confirmed."
 
 ### P-59b · A Ship that cannot deploy holds as waiting-on-a-person, in the record · Lane: **A3** (after P-58) · Status: CODE DONE, PUBLISHED 03:30 IST 09-04 (A1: 14,089 / 0, tsc 0 on 360e7cdad) · Moves: 1
 
