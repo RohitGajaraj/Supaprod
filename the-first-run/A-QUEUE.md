@@ -4301,7 +4301,7 @@ not junit alone, both before and after the final rebase). eslint 0 new errors th
 **Blockers (A3 writes):** the live walk on Helio Labs (acceptance line 1) -- no browser this session.
 
 
-### P-18b · The ask dock claims only what the bar claims · Lane: **A3** · Status: DONE (A3) · Moves: 3
+### P-18b · The ask dock claims only what the bar claims · Lane: **A3** · Status: DONE (A1, 09:05 IST, walked live)· Moves: 3
 
 **Why.** At 06:45 IST the bar read *Nothing running* while the ask dock's right-hand line read
 *Review is working on Checkout asks for already-save…*. Two readers, one fact, two claims. P-18 and
@@ -4316,6 +4316,12 @@ tense or nothing. A test renders the dock with zero moving tracks and a `running
   and verified by source + tests only — no browser this session (as every prior packet); the live
   read is A1's, same as every packet before it.**
 - [x] tsc 0 · `bun test` 0 fail / 0 error (console) · pushed · Report.
+
+
+**A1 verdict: DONE** _09:05 IST._ With zero moving tracks in the database (03:34 UTC), the bar read
+*Nothing running · What we expected did not happen…* and the ask dock on Outcomes read *finished 2d
+ago*, past tense, where at 06:45 it had read *Review is working on Checkout…*. Two readers, one
+fact, one claim. Suite 13,681 / 0.
 
 **Report (A3 writes):** Same defect class P-18/P-18a fixed for the shell's top bar, now fixed for
 `use-live-agents.ts` (the dock's own read, used nowhere else). Added a `movingTracks` query under
