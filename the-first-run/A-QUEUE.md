@@ -104,6 +104,16 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 
 **DEV SERVER: off** · any lane may start it when a packet needs a rendered check; the lane that starts it stops it and writes `off` here before reporting the packet.
 **LIVE WALKS (A1): current. Pending: P-04 Learn tab and transcript row after the 06:00 UTC calibrate tick; the honest run's row after the 01:30 UTC tick.**
+**A1 AUDIT OF EVERY CLOSED PACKET (12:15 IST, founder's instruction: verify, never accept on a
+report).** 35 closed; 21 carried A1's own live or database evidence at closing; 14 were report-only
+or deferred. Re-verified today: P-26 (A1's own grep, both duration forms, zero in code; the nine hits
+are comments and tests), P-21 (code: `playbook-files.ts` and its test; the PR check stays live),
+P-30 (code: `attach.ts` maps `release.publish` to a `deployment` member; live on the first release),
+P-03c (live: the 01:20 UTC drive under its build took `given-up`, not Define), P-18 (live zero case at
+03:34 UTC), P-19 (the promoted `Verdict` and `GotYou` seen on the run screen 03:14). P-16's Start half
+is verified from the DOM's focus order and found wanting (P-16b). Still honestly pending on events
+outside the code: P-02 and P-04 (the next review and the grader), P-22 (a preview provider), P-29's
+press (the founder's), P-03 (the honest run). Nothing closes from here without A1's own evidence.
 
 ---
 
@@ -1404,6 +1414,11 @@ signal on a status chip (R-19). Meridian tokens only.
       Meridian `TabPanel`) is an orphan role; it becomes a labelled `region` (found by A1 on the
       live site, 2026-09-02 21:40).
 
+
+**A1, 12:15 IST · Start half re-verified from the DOM, and one defect.** Focus order on Start:
+rail (home, collapse), the bar, Ask, account, New work item, Find anything, Start, Every run, theme,
+Settings, shortcuts, and only THEN the composer, thirteenth. A keyboard user tabs twelve times to
+reach the one control the screen exists for. Filed as P-16b.
 **Report (A3 writes):**
 Commit `b83de431b`. `tsc` 0. `bun test`: 13,657 pass, 0 fail (4 new tests).
 **Scoped to `/track/:id` only** per this packet's own split status line -- the Start
@@ -2194,7 +2209,7 @@ and `updated_at` were unchanged. One hold wide, each exclusion asserted, the gat
 **Blockers (A2 writes):** —
 
 
-### P-03c · Build's need-check cannot see the spec it built from · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2 `5f2f85090`; A1 verifies on the honest run's next tick) · Moves: 3
+### P-03c · Build's need-check cannot see the spec it built from · Lane: **A2** · Status: DONE (A1, 12:15 IST: the 01:20 UTC drive under its build took given-up, not Define)· Moves: 3
 
 **Why.** The honest run has cycled build → define → design → build since 22:20 UTC (stage_events:
 22:20, 22:31, 22:42, 23:50). At `attempts ≥ MAX_STATION_ATTEMPTS` `decideDrive` returns the computed
@@ -3675,6 +3690,10 @@ one that matters. Build the playbook's five as `SPEC-AI-NATIVE-SDLC.md` quotes t
 statement, proposed outcome, affected users and systems, constraints, open questions*. Non-goals
 belong to P-02's contract, not to intent. Unblocked: P-02 is code-done and pending only its live read.
 
+
+**A1 code read (12:15 IST).** `src/lib/spine/playbook-files.ts` names and writes `intent.md`,
+`spec.md`, `plan.md` per the spec's five fields; `the-repo-carries-what-the-verdict-graded.test.ts`
+pins it. The PR check stays: the next Build PR must carry the three files under `.supaprod/`.
 **Report (A2, 07:30 IST) — code on main at `c643c49f2`. tsc 0 · `bun test` 0 fail · ratchet unchanged.**
 
 **THE FIVE FIELDS ARE THE SOURCE'S, NOT THIS PACKET'S.** The scope line above paraphrased them as
@@ -4112,6 +4131,10 @@ class in that directory fails. Product surfaces outside Meridian are not in scop
 **A1 verdict: DONE** _09:45 IST._ Raw durations in `meridian/**` mapped by meaning onto tokens;
 the acceptance grep is empty; the second motion vocabulary is gone; suite 13,690 / 0; publishing.
 
+
+**A1 re-verification (12:15 IST).** `grep -rnE "duration-\[?[0-9]+" src/components/meridian`, both
+forms, non-test, non-comment: 0. The nine remaining matches are comments and tests. DONE stands on
+A1's own read.
 **Report (A2, 09:20 IST) — on main at `6347be46c`. `grep -rhoE "duration-[0-9]+" src/components/meridian
 | wc -l` → **0**, the guard pins it, tsc 0, `bun test` 0 fail, ratchet unchanged.**
 
@@ -5034,3 +5057,45 @@ the count after); and a guard that `studio.pr.open` filing a changeset always at
 
 **Report (A3 writes):** —
 **Blockers (A3 writes):** —
+
+
+### P-16b · The sentence field is the first stop · Lane: **A3** · Status: READY (after P-36) · Moves: 2, 5
+
+**Why.** On Start the composer is the thirteenth tab stop (A1, DOM focus order, 12:15 IST). The
+screen exists for that field.
+
+**Scope.** On Start, focus lands in the composer on load (respecting a person who is already
+typing elsewhere), and the rail's doors come after the main region in tab order or carry a skip
+link; the same rule on the run screen for the gate's answers when a call is waiting. Test the
+order from the DOM, not from source.
+
+**Acceptance.**
+- [ ] On Start, Tab from the document start reaches the composer within two presses, and on a
+      run with a waiting gate reaches its first answer within three; A1 walks both.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
+
+### P-37 · The run screen reads as a product, not a dump of text · Lane: **A2** · Status: READY after the honest run walks once · Moves: 5
+
+**Why.** The founder, on the tablet track's run at 12:08 IST: the gate card, the messages, the
+action items, the inside of the card, the text and the information are dumped with no hierarchy;
+everything is true and nothing is designed. He is right, and he has deferred it until the loop
+walks once. This packet is that pass, with the skills in rule 16 and Meridian as the landing.
+
+**Scope.** Design, then build: the gate card (what is asked, why, the answers, the default and its
+date, in that order and no more), the seat's message, the transcript row, the artifact record's
+header and its chips, the hold line and the way out. One vocabulary of card, one of message, one
+of action; type scale and spacing from Meridian; motion from Meridian's tokens. Mockups first on
+Claude Design's canvas or in `docs/design`, walked with A1 before code; then Meridian components;
+then the run screen uses them. Nothing local, nothing forked.
+
+**Acceptance.**
+- [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
+      first against the mockups.
+- [ ] Ratchet not widened; every new piece is in `meridian/**` with its reasoning.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
