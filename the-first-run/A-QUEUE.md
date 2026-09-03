@@ -5990,6 +5990,10 @@ line. No Meridian changes; `run-status.ts`, `RunFooter.tsx`, `TrackRun.tsx`, `ch
 - [ ] A1 walks the honest run's screen and the tablet track's screen and sees one verb per state.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
+**A1, 16:38 IST.** Suite on the tip 13,835 / 0 / 0, tsc 0; published 16:38. The walk of the footer's
+verbs on the tablet track and the honest run's screen, and the runs mark on Start, follows
+propagation.
+
 **Report (A3 writes):** Pushed `a90e882b6` (rebased clean onto `663eb824a`, no conflicts —
 `TrackRun.tsx` untouched upstream between our base and this push).
 
