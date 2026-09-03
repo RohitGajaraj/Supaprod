@@ -174,6 +174,12 @@ named "Maya Ruiz".
 
 - `resolveApprovalPolicy` and `autonomy-policy.ts`: the mandate engine, still zero callers on the
   live path. The footer reads the wired `resolveToolMode`. Wire or delete after the first honest run.
+  **CORRECTED 2026-09-03 (P-49, A-QUEUE.md).** This line is stale: `autonomy-policy.ts` has 11
+  non-test importers and `resolveApprovalPolicy` has 5 on today's tip, both live. Caught before a
+  packet was filed on the old claim, not after. **`MessageMeta.tsx` is the file this section missed
+  and P-49 found and deleted** — zero non-test importers, confirmed live, its two guards (one
+  already written to go red on the day it was mounted) rewritten to name the current live surface
+  (`AskTurn`'s `Provenance`) rather than a component that no longer exists.
 - `/runs/$missionId` (1,825 lines, a second run screen for a `mission`). Missions still exist because
   the ungated chat branch files them (F-04). P-05 stops that branch; the route is then unreachable
   and is deleted in P-14.

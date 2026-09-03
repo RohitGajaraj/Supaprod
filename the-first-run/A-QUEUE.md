@@ -6421,7 +6421,7 @@ packets; needs your walk.
 
 **Blockers (A3 writes):** —
 
-### P-49 · The dead weight the audit named is gone, with its guards rewritten · Lane: **A3** · Status: CLAIMED (A3) · Moves: 5
+### P-49 · The dead weight the audit named is gone, with its guards rewritten · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed 2b92bc3f9) · Moves: 5
 
 **Why.** The report's §1.4 named what to delete; most of it went in P-10 to P-12. One file is
 still in the tree with zero non-test importers, found today: `src/components/chat/MessageMeta.tsx`
@@ -6444,7 +6444,50 @@ parked by the report. List the removed file and each rewritten guard in the Repo
       name the live surface; §1.4 corrected.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
-**Report (A3 writes):** —
+**Report (A3 writes):** Pushed `2b92bc3f9`. **Real correction before building on the packet's own
+premise:** `MessageMeta.tsx` did not have zero non-test importers overall — its `MessageMetaFooter`
+component (and everything only it used) did, exactly as filed, but its type contract (`ChatMeta`,
+`ChatSource`, `ResearchMeta`, `parseChatMeta`) had real, live importers across seven files: every
+`ask-*` module plus `api/chat.ts`. "Delete the file" would have deleted a live contract along with
+the dead component. Caught before deleting anything, same discipline this packet's own Why already
+modeled once on `autonomy-policy.ts`.
+
+**What actually happened:** the live contract moved to new `src/lib/chat-meta.ts` (same shape, a
+header explaining the split); every real importer repointed there; only the dead UI code
+(`MessageMetaFooter`, `SourceChip`, `FeedbackButtons`, `pickFeedbackId`, the icon table, the format
+helpers) went with the deleted file.
+
+**The two guards, rewritten to name the live surface, per Scope:**
+- `the-rating-has-no-door.test.ts` — `submitFeedback`'s only caller used to be `MessageMetaFooter`;
+  now that file is gone, `submitFeedback` has zero callers anywhere, the same finding one step
+  further along. New assertion checks `AskTurn.tsx` (the live chat surface) directly for the symbol,
+  rather than checking importers of a file that no longer exists.
+- `finished-work-that-never-reached-a-screen.test.ts` — its only mention of `MessageMetaFooter` was
+  header prose (no executable assertion touched it); updated to say it is deleted, not merely
+  unmounted, naming the split and `AskTurn`'s `Provenance` as the live surface for the concern
+  `MessageMetaFooter` never reached.
+
+**§1.4 corrected** in `the-first-run/A1-REPORT.md`, dated and annotated rather than silently
+rewritten: `autonomy-policy.ts`/`resolveApprovalPolicy`'s "zero callers" line is stale (11 and 5
+non-test importers today), and a new line names `MessageMeta.tsx` as the file this section actually
+missed.
+
+**Two real, unforeseen consequences from the deletion, both fixed rather than worked around:** the
+Meridian ratchet's baseline went stale (5 retired `--ds-` tokens, 1 `components/ui` import, 3 usages
+reclaimed, all in the deleted file) — re-frozen with `bun run design:ratchet`. The surface registry's
+no-orphan guard found the `feedback` domain (`submitFeedback` is its only export) newly unreachable
+by import — added to `KNOWN_UNREACHED` with the reason, and flagged (not chased down) that the
+registry's own claim for it (`status: "live"`, `opensFrom: "help-menu-feedback"`) is itself
+unverified: nothing found while building this packet confirms a help-menu feedback dialog calls this
+function anywhere. Separate audit, not this packet's.
+
+`git grep` on the tip: the only two remaining mentions of the old path are these two guards' own
+explanatory prose, not imports. tsc 0. `bun test` 13910 pass / 22 skip / 37 todo / 0 fail / 36841
+expect() across 1002 files. 0 `# Unhandled error between tests`. eslint 0 errors on touched files
+(26 pre-existing `no-explicit-any` errors in `ResearchActivity.test.ts` confirmed unrelated —
+reproduced with the original import path restored, same 26 errors, before reverting back to my
+change). `bun run docs:check` clean.
+
 **Blockers (A3 writes):** —
 
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
