@@ -9,6 +9,7 @@
 import { describe, expect, it } from "bun:test";
 
 import { oneDoorFor, composerPromiseFor, type HoldFacts } from "./one-door-for-one-state";
+import { waitingOnTime } from "./a-calendar-wait-is-not-a-stoppage";
 
 const facts = (over: Partial<HoldFacts> = {}): HoldFacts => ({
   hold: "needs-evidence",
@@ -72,5 +73,68 @@ describe("the second promise moves to the composer rather than being dropped", (
     // A placeholder that changes when nothing is stuck is noise.
     expect(composerPromiseFor(facts({ hold: "produced-nothing" }))).toBeNull();
     expect(composerPromiseFor(facts({ hold: null }))).toBeNull();
+  });
+});
+
+describe("the promise is only made where it is true", () => {
+  /**
+   * A1, from the 19:42 read, and it is a real bug in the first version rather
+   * than a preference. `needs-evidence` means two different things at two
+   * stations:
+   *
+   *   at Sense   the workspace holds nothing about the person's sentence, and
+   *              what they type genuinely carries the work on.
+   *   at Learn   the forecast's horizon has not arrived, and NOTHING carries on
+   *              until the date, whatever anybody types.
+   *
+   * Offering "and it carries on from that" at Learn is false in the most
+   * expensive direction: it invites a person to do work that changes nothing
+   * and then look like it was ignored.
+   */
+  it("offers it at Sense, where typing does carry the work on", () => {
+    expect(composerPromiseFor(facts({ station: "sense" }))).toBe(
+      "Say what you know, and it carries on from that",
+    );
+  });
+
+  it("says nothing at Learn, because nothing carries on until the date", () => {
+    expect(composerPromiseFor(facts({ station: "learn" }))).toBeNull();
+  });
+
+  it("still offers it when the station is unknown", () => {
+    // Sense is the common case for this hold and the promise is true there.
+    expect(composerPromiseFor(facts({ station: null }))).not.toBeNull();
+  });
+});
+
+describe("the header says one word for one state", () => {
+  it("gives a calendar wait the board's own word", async () => {
+    /*
+     * The header said "On hold" while the footer said "Learn returns ..." and
+     * the pane said the same, which is §12's stated failure: one state named
+     * two ways. "Waiting on time" is `tracks-feed`'s word, reused rather than
+     * invented, so the header, the board, the footer and the pane agree.
+     */
+    const { runStatus } = await import("./run-status");
+    const track = {
+      station: "learn",
+      holdReason: "needs-evidence",
+      status: "open",
+      title: "t",
+    } as unknown as Parameters<typeof runStatus>[0];
+    const s = runStatus(track, false, "2099-01-01T00:00:00.000Z");
+    expect(s?.word).toBe("Waiting on time");
+    expect(s?.pulse).toBe(false);
+  });
+
+  it("does NOT claim a calendar wait once the horizon has passed", () => {
+    // The same overdue case the footer already guards.
+    expect(
+      waitingOnTime({
+        station: "learn",
+        holdReason: "needs-evidence",
+        horizon: "2020-01-01T00:00:00.000Z",
+      }),
+    ).toBe(false);
   });
 });

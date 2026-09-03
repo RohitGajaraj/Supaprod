@@ -44,6 +44,12 @@
 export type HoldFacts = {
   /** `spine_tracks.last_hold`, raw. */
   hold: string | null;
+  /**
+   * Which station it stands at. `needs-evidence` means two different things at
+   * two stations and only one of them is a person's to answer, which is why
+   * this is here rather than assumed. See `composerPromiseFor`.
+   */
+  station?: string | null;
   /** A connector exists on this workspace, whatever it is pointed at. */
   hasConnection: boolean;
   /** That connector is pointed at this product. */
@@ -95,5 +101,28 @@ export function oneDoorFor(facts: HoldFacts): OneDoor {
 export function composerPromiseFor(facts: HoldFacts): string | null {
   const stuckOnEvidence =
     facts.hold === "needs-evidence" || facts.hold === "carried-on-your-sentence";
-  return stuckOnEvidence ? "Say what you know, and it carries on from that" : null;
+  if (!stuckOnEvidence) return null;
+
+  /*
+   * ── AT LEARN THIS PROMISE WOULD BE A LIE (A1, from the 19:42 read) ──────
+   *
+   * `needs-evidence` means two different things at two stations, and the first
+   * version of this offered the same sentence for both.
+   *
+   *   at Sense   the workspace holds nothing about the person's sentence, and
+   *              what they type genuinely does carry the work on. The promise
+   *              is true and it is R-36's own.
+   *
+   *   at Learn   the forecast's horizon has not arrived. NOTHING carries on
+   *              until the date, whatever anybody types, so "and it carries on
+   *              from that" is false, and it is false in the most expensive
+   *              direction: it invites a person to do work that changes
+   *              nothing and then look like it was ignored.
+   *
+   * A calendar wait already has its own true sentence in the footer, and the
+   * right thing for the composer there is to say nothing special at all.
+   */
+  if (facts.station === "learn") return null;
+
+  return "Say what you know, and it carries on from that";
 }

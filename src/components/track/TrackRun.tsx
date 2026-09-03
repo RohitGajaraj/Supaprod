@@ -90,7 +90,10 @@ import {
   useRunTally,
 } from "@/components/track/run-tally";
 import { stoppedByYou } from "@/components/track/footer-mode";
-import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
+import {
+  waitingOnTime,
+  horizonFromStops,
+} from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 import { composerPromiseFor } from "@/components/track/one-door-for-one-state";
 
 /**
@@ -443,24 +446,14 @@ export function TrackRunLeft({
 
   // QUEUE 67: Calm hold tone for "needs-evidence" when forecast not yet due.
   // Extract the forecast_horizon_date from the decision artifact.
-  const forecastHorizonDate = React.useMemo(() => {
-    if (!artifactsQ.data?.stops) return null;
-    for (const stop of artifactsQ.data.stops) {
-      if (stop.station === "decide") {
-        for (const item of stop.items) {
-          if (
-            item.kind === "decision" &&
-            item.fields &&
-            typeof item.fields === "object" &&
-            "forecast_horizon_date" in item.fields
-          ) {
-            return item.fields.forecast_horizon_date as string | null;
-          }
-        }
-      }
-    }
-    return null;
-  }, [artifactsQ.data?.stops]);
+  /* Extracted to `a-calendar-wait-is-not-a-stoppage` so the run's FOOTER can
+     read the same date. It could not before, because the footer is the route's
+     and the stops are this pane's, so the card said "comes due Sat, Oct 3" and
+     the bar below said "when the forecast comes due". */
+  const forecastHorizonDate = React.useMemo(
+    () => horizonFromStops(artifactsQ.data?.stops),
+    [artifactsQ.data?.stops],
+  );
 
   // Check if this is a calm hold: needs-evidence at learn with future horizon.
   const isCalmHold = React.useMemo(
@@ -1234,6 +1227,9 @@ export function TrackRunLeft({
         stuckOnEvidence={
           composerPromiseFor({
             hold: track?.holdReason ?? null,
+            /* At Learn the promise would be false: nothing carries on until the
+               horizon, whatever anybody types. */
+            station: track?.station ?? null,
             hasConnection: false,
             connectionIsBound: false,
             productName: null,

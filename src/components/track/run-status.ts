@@ -12,6 +12,7 @@
  * already on the map's stop and in "Why it stopped".
  */
 import { holdTone } from "@/lib/spine/driver";
+import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 import { nothingIsComing } from "@/components/track/nothing-is-coming";
 import type { Track } from "@/lib/spine/track.functions";
 
@@ -30,6 +31,16 @@ import type { Track } from "@/lib/spine/track.functions";
 export function runStatus(
   track: Track,
   liveNow = false,
+  /**
+   * The forecast's horizon, when the caller has read one. P-37: a track at
+   * Learn whose horizon is ahead is waiting on the CALENDAR, and this header
+   * called it "On hold" beside a footer saying "Learn returns Sat, Oct 3" and a
+   * pane saying the same. Three surfaces, one state, two words.
+   *
+   * Optional, so every caller that has not plumbed the date keeps the behaviour
+   * it had rather than being told a date it does not know.
+   */
+  horizon: string | null = null,
 ): {
   status: "you" | "agent" | "pass" | "hold";
   word: string;
@@ -47,6 +58,24 @@ export function runStatus(
   if (track.status === "abandoned") {
     return { status: "hold", word: "Abandoned", pulse: false, second: undefined };
   }
+  /*
+   * ── A CALENDAR WAIT GETS THE BOARD'S OWN WORD (P-37) ────────────────────
+   *
+   * BEFORE the live check and before both hold arms, because a calendar wait is
+   * neither running nor stopped and both of those would claim it.
+   *
+   * "Waiting on time" is `tracks-feed`'s word, reused rather than invented:
+   * §12's stated failure is one state named two ways on two surfaces, and this
+   * state is already on the board under that name. The header, the board, the
+   * footer and the pane now say one thing.
+   *
+   * The `hold` tone and no pulse: nothing is happening and nothing is wrong,
+   * which is exactly the tone that pair carries.
+   */
+  if (waitingOnTime({ station: track.station, holdReason: track.holdReason, horizon })) {
+    return { status: "hold", word: "Waiting on time", pulse: false, second: undefined };
+  }
+
   const tone = holdTone(track.holdReason);
   if (tone !== "you" && liveNow) {
     return { status: "agent", word: "Running", pulse: true, second: undefined };

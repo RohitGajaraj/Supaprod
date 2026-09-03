@@ -83,3 +83,60 @@ export function waitingOnTime(t: {
 export function calendarWaitLine(returnsOn: string | null): string {
   return returnsOn ? `Learn returns ${returnsOn}.` : "Learn returns when the forecast comes due.";
 }
+
+/**
+ * ── THE HORIZON, READ ONCE ────────────────────────────────────────────────
+ *
+ * `TrackRun` walked the artifact stops for this and the run's FOOTER could not,
+ * because the footer is rendered by the route and the stops are the pane's. So
+ * the card said "The forecast comes due Sat, Oct 3" and the bar two inches
+ * below said "Learn returns when the forecast comes due", two lines about one
+ * date, one of which knew it.
+ *
+ * Extracted rather than repeated, for the reason the predicate above was
+ * extracted an hour earlier: one idea written in two places is how the chip and
+ * the footer came to differ by a condition.
+ *
+ * A NULL IS A REAL ANSWER. Not every track has a decision, and one that has not
+ * reached Decide has no horizon to find. The callers say the honest thing for
+ * that case rather than treating it as a failure.
+ */
+export function horizonFromStops(
+  stops:
+    | readonly {
+        station?: string | null;
+        items?: readonly { kind?: string | null; fields?: unknown }[] | null;
+      }[]
+    | null
+    | undefined,
+): string | null {
+  if (!stops) return null;
+  for (const stop of stops) {
+    if (stop.station !== "decide") continue;
+    for (const item of stop.items ?? []) {
+      if (
+        item.kind === "decision" &&
+        item.fields &&
+        typeof item.fields === "object" &&
+        "forecast_horizon_date" in item.fields
+      ) {
+        return (item.fields as { forecast_horizon_date?: string | null }).forecast_horizon_date as
+          string | null;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * The horizon as the footer says it: "Sat, Oct 3".
+ *
+ * The same shape the card two inches above uses, because two lines about one
+ * date that format it differently are two facts to a reader.
+ */
+export function horizonAsDate(horizon: string | null): string | null {
+  if (!horizon) return null;
+  const at = new Date(horizon);
+  if (Number.isNaN(at.getTime())) return null;
+  return at.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+}

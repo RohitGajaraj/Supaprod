@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { searchFlag } from "@/lib/search-flag";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 import * as React from "react";
@@ -11,6 +11,10 @@ import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded"
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { TrackRunLeft, TrackPaneRight } from "@/components/track/TrackRun";
 import { RunFooter } from "@/components/track/RunFooter";
+import {
+  horizonFromStops,
+  horizonAsDate,
+} from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 import { GateBanner } from "@/components/track/GateBanner";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getTrack, type Track } from "@/lib/spine/track.functions";
@@ -203,6 +207,9 @@ export function RunHeader({
 }
 
 function TrackPage() {
+  /* Reads the artifacts pane's own cache entry for the forecast horizon; see
+     the `returnsOn` prop below for why it is not a second query. */
+  const qc = useQueryClient();
   const { trackId } = Route.useParams();
   const { start, artifact } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
@@ -460,6 +467,28 @@ function TrackPage() {
            * this repo keeps paying for.
            */
           station={track.station}
+          /*
+           * P-37. The card two inches above says "The forecast comes due Sat,
+           * Oct 3" and this bar said "Learn returns when the forecast comes
+           * due": two lines about one date, one of which knew it.
+           *
+           * READ OFF THE PANE'S OWN CACHE ENTRY, not a second query.
+           * `["track-artifacts", trackId]` is the key `TrackRun` already polls,
+           * so this is one fact with two readers rather than two reads that can
+           * drift, which is the discipline `GateBanner` states for the same
+           * situation ("a second DOOR onto one fact, not a second fact").
+           *
+           * Null while that read is in flight or on a track that never reached
+           * Decide, and the footer says the undated sentence, which is true.
+           */
+          returnsOn={horizonAsDate(
+            horizonFromStops(
+              qc.getQueryData<{ stops?: Parameters<typeof horizonFromStops>[0] }>([
+                "track-artifacts",
+                trackId,
+              ])?.stops,
+            ),
+          )}
           walking={drive.walking}
           crewLive={crewLive}
           onStop={drive.stop}
