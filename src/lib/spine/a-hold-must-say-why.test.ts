@@ -50,7 +50,6 @@ const DRIVER = readFileSync(join(import.meta.dir, "driver.server.ts"), "utf8");
 const SAYS_ONLY_WHAT_THE_WORD_SAYS = [
   'last_hold: "out-of-time"',
   'last_hold: "over-budget"',
-  'last_hold: "waiting-on-a-person"',
   // F-127, and the file argues it at the site: this branch's line is
   // `HOLD_LINE[decision.hold]`, which `holdLine()` already derives on read.
   "last_hold: decision.hold",
@@ -113,6 +112,39 @@ describe("a hold must say why", () => {
         // F-127 refused.
         expect(site, `${expression} must clear the sentence`).toContain("last_hold_because: null");
       }
+    }
+  });
+
+  /**
+   * ── `waiting-on-a-person` IS NOT ONE SITE, SINCE P-59b ────────────────────
+   *
+   * It used to sit in `SAYS_ONLY_WHAT_THE_WORD_SAYS` because the only site
+   * that wrote it was the queued-gate branch, whose reason genuinely IS the
+   * gate on the record and nothing else. P-59b added a second: a Ship that
+   * cannot deploy because a secret is missing, which names the exact
+   * variables and where to set them -- a COMPUTED reason, the opposite case
+   * the generic list exists for. Same hold word, two different questions
+   * about what caused it, so this checks each site by what makes it unique
+   * rather than folding a real exception back into the blanket rule.
+   */
+  it("the queued-gate waiting-on-a-person still clears the column: the gate IS the reason", () => {
+    const sites = updateObjects().filter(
+      (o) => o.includes('last_hold: "waiting-on-a-person"') && o.includes("untracked"),
+    );
+    expect(sites.length).toBeGreaterThan(0);
+    for (const site of sites) {
+      expect(site).toContain("last_hold_because: null");
+    }
+  });
+
+  it("the ship missing-provider waiting-on-a-person carries a computed reason, not null", () => {
+    const sites = updateObjects().filter(
+      (o) =>
+        o.includes('last_hold: "waiting-on-a-person"') && o.includes("last_hold_because: because"),
+    );
+    expect(sites.length).toBeGreaterThan(0);
+    for (const site of sites) {
+      expect(site).not.toContain("last_hold_because: null");
     }
   });
 

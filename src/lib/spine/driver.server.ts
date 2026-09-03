@@ -95,6 +95,10 @@ import {
 } from "@/lib/spine/attach";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 import { refusalHappened } from "@/lib/spine/a-call-on-your-sentence-is-yours-to-make";
+import {
+  shipStopFrom,
+  shipStopWaitsOnAPerson,
+} from "@/lib/hosting/a-ship-that-cannot-deploy-names-the-provider";
 
 export type DriveOutcome = {
   trackId: string;
@@ -3507,6 +3511,68 @@ export async function driveTrackOnce(
         line: flagged(because),
         attached,
       };
+    }
+  }
+
+  /*
+   * ── A SHIP THAT CANNOT DEPLOY BECAUSE A SECRET IS MISSING IS NOT A FAILED
+   * CREW (P-59b, A-QUEUE.md) ─────────────────────────────────────────────
+   *
+   * P-59 gave the hold CARD the right sentence: *"Ship has no preview host. Set
+   * DENO_DEPLOY_TOKEN and DENO_DEPLOY_ORG on the Lovable project, then press Try
+   * again."* The RECORD still fell into `produced-nothing` below, which counts
+   * an attempt against the crew and reads as "the crew tried and produced
+   * nothing" — the exact wrong attribution for a station that ran, reached the
+   * host, and was correctly turned away for a secret nobody on this run could
+   * set. `shipStopFrom` is P-59's own classifier, read here from the newest
+   * deployment this track's changeset produced, so the card and the record
+   * agree about the one question that decides whose move it is.
+   *
+   * ONLY `missing-provider` HOLDS AS `waiting-on-a-person`. `other` and
+   * `unknown` fall straight through to the ordinary `produced-nothing` below —
+   * a deploy that failed for a reason we cannot act on, or said nothing at all,
+   * is not yet known to be a person's problem rather than the crew's.
+   */
+  if (!producedThisVisit && station === "ship") {
+    const cs = await newestChangesetForTrack(supabase, row.id, "id");
+    const changesetId = (cs?.id as string | undefined) ?? null;
+    if (changesetId) {
+      const { data: deploys, error: depErr } = await supabase
+        .from("deployments")
+        .select("failure_reason")
+        .eq("changeset_id", changesetId)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (depErr) {
+        console.error(
+          `[driver] could not read the newest deployment for track ${row.id}: ${depErr.message}`,
+        );
+      }
+      const newest = ((deploys ?? []) as Array<{ failure_reason: string | null }>)[0] ?? null;
+      const stop = shipStopFrom(newest?.failure_reason ?? null);
+      if (shipStopWaitsOnAPerson(stop)) {
+        const because =
+          "DENO_DEPLOY_TOKEN and DENO_DEPLOY_ORG are not set, so Ship has no preview host to deploy to.";
+        await supabase
+          .from("spine_tracks" as never)
+          .update({
+            // attempts deliberately UNCHANGED: the crew did nothing wrong, so
+            // this must not spend one of the station's three tries.
+            last_hold: "waiting-on-a-person",
+            last_hold_because: because,
+            driven_at: new Date().toISOString(),
+          } as never)
+          .eq("id", row.id);
+        return {
+          trackId: row.id,
+          station,
+          moved: false,
+          arrivedAt: null,
+          hold: "waiting-on-a-person",
+          line: say(because),
+          attached,
+        };
+      }
     }
   }
 
