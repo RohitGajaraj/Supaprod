@@ -1934,6 +1934,18 @@ wall is not a loop: a hold whose clearing condition lives outside the track does
 it, mirroring `blockedOnMoney`, and the net keeps its case. Same commit: one pending gate per
 question, keyed on the mission, a second attempt points at the first.
 
+
+**A1, 12:20 IST · one press carried a change from Build to the door of Ship.** The founder pressed
+*Let it run* on the tablet track's merge gate at 06:41:58 UTC. 06:42:03: the product merged PR #4
+(merge `5151319`, GitHub's *lint and test* green at that commit). 06:42:20 and 06:42:55: the track
+moved to Ship on its own; `release-verifier` and `release` seats ran (`prd.get`, `ship.get_release`,
+`ship.in_production`, `github.ci.read`). 06:44:14: a `deployments` row, environment `preview`, status
+`failure`: no preview provider is connected to `relay-homeowner-app`, so R-27's preconditions cannot
+be met and `release.publish` was never called. Track: `ship · produced-nothing`, because empty. **The
+founder's item 2 (a preview provider) is now the only thing between this track and production.**
+Defect for A2 after the restart: a Ship held on a missing provider names it and links Settings ›
+Connections, the same family as the claim hold; *produced nothing* is not the reason.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
