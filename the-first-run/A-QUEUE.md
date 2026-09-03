@@ -6786,7 +6786,7 @@ verdicts, both `changed` states; `routeDecision`'s new return type, the `tool_ca
 **Blockers (A3 writes):** None. Live verification (the acceptance item above) is A1's read on the
 served build once Lovable deploys the pushed tip.
 
-### P-55 · The demo workspace's stale work gets a rule, not a hand sweep · Lane: **A2** · Status: READY (a proposal for the founder; no data write until he says yes) · Moves: 1, 5
+### P-55 · The demo workspace's stale work gets a rule, not a hand sweep · Lane: **A2** · Status: PROPOSAL DONE (6336c86d5; A1 re-ran the population 23:18 IST; the data rule is the founder's) · Moves: 1, 5
 
 **Why.** A1, 22:10 IST, on the served approvals page for Helio Labs: *66 decisions are ready for
 you*, *65 pieces of work are stopped, waiting on you*, the oldest 56 and 49 days. The workspace the
@@ -6809,6 +6809,43 @@ sweep, no data write in this packet.
 
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
+
+
+**A1, 23:20 IST.** Proposal at `docs/design/the-approvals-graveyard-2026-09.md`. Re-ran its
+population query at 17:48 UTC: 66, shape 35 / 10 / 8 / 4 / 4 / 3 / 2 (design gates, assumption
+challenges, decisions, tool calls, house rules, opportunities, memory candidates); 11 over 30 days;
+14 in the last three days. Confirmed in code that the second headline is the first minus the open
+card: `stalled` is built from `rest` (approvals.tsx:416-418), which is `visibleItems` minus
+`focusedId` (line 396). The surface work is P-56 and does not wait on him. Options A and B (a
+status change on 11 or on 66 rows) are his call; A1 recommends C, which P-56 delivers, with A only
+if he wants the tail gone.
+
+
+### P-56 · The approvals page states its obligation once, and as a shape · Lane: **A2** · Status: READY · Moves: 2, 3
+
+**Why.** P-55's first finding: the page says *66 decisions are ready for you* and, below it, *65
+pieces of work are stopped, waiting on you*. Same rows; the second is the first minus the card
+already open. A visitor totals them and reads 131. The shell and `/today` were fixed for this
+exact defect on 2026-08-21; this surface was not. And a total is a wall where a shape is a queue:
+"35 design gates, 10 assumption challenges, 8 decisions" is a list a person can start on.
+
+**Scope.** `src/routes/_authenticated.approvals.tsx` and `src/components/meridian/StalledWork.tsx`.
+1. One population, counted once. `StalledWork` keeps its row list and its waiting-since (that is
+   its job) and loses the headline that restates the count above it. The page's heading is the only
+   place that states how much is waiting.
+2. The heading reads a shape, not a total: the families with their counts, largest first, zero
+   families omitted, in the vocabulary of the doc's §2 (the ten names as a person would say them).
+   The floor case (`notTheWholeQueue`) still reads "at least"; a failed family read still refuses
+   to say "Nothing is ready for you" (the existing guard stays).
+3. Nothing changes in the shell's count or on Start; both read the same population once already.
+
+**Acceptance.** On the served Helio Labs approvals page: one statement of how much is waiting, and
+it names families; no second number a reader can add to it; the row list under it unchanged with
+its waiting-since; the settled panel unaffected. Guards: a test that the page renders no second
+count from the same population; a test that the heading names families and omits zeros; the
+2026-08-21 guard for the shell still green. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 publishes and reads the heading live.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
