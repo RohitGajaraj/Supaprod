@@ -1789,3 +1789,96 @@ export const previewForChangeset = createServerFn({ method: "GET" })
       }
     },
   );
+
+/**
+ * ── IS THE MANAGED PREVIEW HOST CONFIGURED? (P-59) ───────────────────────
+ *
+ * Settings did not know the provider was unconfigured, so the one page a person
+ * would visit to check could not answer the question that stopped Ship.
+ *
+ * RETURNS A BOOLEAN AND NOTHING ELSE, and that is the whole contract. The value
+ * is a deploy token; the org slug is less sensitive and still not this
+ * function's to hand out, because a reader who can see the org can enumerate
+ * the preview apps. `denoDeployConfigured()` already answers presence without
+ * touching the value, and this exposes exactly that answer over the wire.
+ *
+ * Behind `requireSupabaseAuth` like every other read here: whether a host is
+ * configured is a fact about this install, not a public one.
+ */
+export const previewHostConfigured = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async (): Promise<{ configured: boolean; vars: readonly string[]; where: string }> => {
+    const { denoDeployConfigured } = await import("@/lib/hosting/changeset-deploy.server");
+    const { PREVIEW_HOST_VARS, PREVIEW_HOST_WHERE } =
+      await import("@/lib/hosting/a-ship-that-cannot-deploy-names-the-provider");
+    return {
+      configured: denoDeployConfigured(),
+      // Named here rather than in the component so the settings row and the
+      // hold card cannot drift into telling a person two different variables.
+      vars: PREVIEW_HOST_VARS,
+      where: PREVIEW_HOST_WHERE,
+    };
+  });
+
+/**
+ * ── WHY SHIP STOPPED ON THIS TRACK (P-59) ────────────────────────────────
+ *
+ * The failure reason already rides `spine_track_members.fields` for a
+ * `deployment` artifact -- and F-36 is that SHIP HAS NEVER FILED ONE. Not once
+ * in 1,516 member rows, against 42 successful `deployments` rows. So the path
+ * that was supposed to carry this to the run screen has never carried anything,
+ * and reading it there would have shipped a hold card that is correct in the
+ * code and blank on every real track.
+ *
+ * This reads `deployments` directly, the table that actually has the rows,
+ * joined back to the track the way `trackIdByChangeset` already does it:
+ * changeset to mission to run to track.
+ *
+ * NEWEST FAILURE ONLY, and never a failure older than the newest success: a
+ * track that failed, was fixed, and shipped must not keep showing the sentence
+ * that told the person what to set. That is the difference between a hold and
+ * a scar.
+ */
+export const whyShipStopped = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ trackId: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }): Promise<{ failureReason: string | null }> => {
+    const { supabase } = context;
+
+    const { data: runs, error: runErr } = await supabase
+      .from("agent_runs")
+      .select("mission_id")
+      .eq("track_id", data.trackId)
+      .not("mission_id", "is", null);
+    if (runErr) throw new Error(`runs for this track could not be read: ${runErr.message}`);
+    const missionIds = [
+      ...new Set(((runs ?? []) as { mission_id: string | null }[]).map((r) => r.mission_id)),
+    ].filter((m): m is string => !!m);
+    if (missionIds.length === 0) return { failureReason: null };
+
+    const { data: changesets, error: csErr } = await supabase
+      .from("changesets")
+      .select("id")
+      .in("mission_id", missionIds);
+    if (csErr) throw new Error(`changesets for this track could not be read: ${csErr.message}`);
+    const changesetIds = ((changesets ?? []) as { id: string }[]).map((c) => c.id);
+    if (changesetIds.length === 0) return { failureReason: null };
+
+    /*
+     * Both states in one read, ordered newest first, so "is the newest attempt a
+     * failure" is answered by the first row rather than by two queries whose
+     * answers can straddle a deploy that lands between them.
+     */
+    const { data: deploys, error: dErr } = await supabase
+      .from("deployments")
+      .select("status,failure_reason,created_at")
+      .in("changeset_id", changesetIds)
+      .in("status", ["failure", "success"])
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (dErr) throw new Error(`deployments for this track could not be read: ${dErr.message}`);
+
+    const newest = ((deploys ?? []) as { status: string; failure_reason: string | null }[])[0];
+    if (!newest || newest.status !== "failure") return { failureReason: null };
+    return { failureReason: newest.failure_reason ?? null };
+  });

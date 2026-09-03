@@ -95,6 +95,12 @@ import {
   horizonFromStops,
 } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 import { composerPromiseFor } from "@/components/track/one-door-for-one-state";
+import { whyShipStopped } from "@/lib/deployments.functions";
+import {
+  shipStopFrom,
+  shipStopLine,
+  shipStopWaitsOnAPerson,
+} from "@/lib/hosting/a-ship-that-cannot-deploy-names-the-provider";
 
 /**
  * What the walk did, said plainly.
@@ -689,11 +695,35 @@ export function TrackRunLeft({
     staleTime: 30_000,
   });
 
+  /*
+   * ── WHAT STOPPED SHIP, WHEN THE HOLD WORD CANNOT SAY (P-59) ─────────────
+   *
+   * Only at Ship, and only while held: everywhere else this read has no
+   * question to answer, and asking it would put a query on every run screen to
+   * be told null.
+   */
+  const fWhyShip = useServerFn(whyShipStopped);
+  const shipStopped = useQuery({
+    queryKey: ["why-ship-stopped", trackId],
+    queryFn: () => fWhyShip({ data: { trackId } }),
+    enabled: track?.station === "ship" && Boolean(track?.holdReason),
+    staleTime: 30_000,
+  });
+  /*
+   * A FAILED READ IS NOT "NOTHING STOPPED IT". `shipStopFrom` is only consulted
+   * when the read actually answered; until then the static sentence stands,
+   * which is what this screen said before and is never a claim about a cause.
+   */
+  const shipStop = shipStopped.isSuccess ? shipStopFrom(shipStopped.data?.failureReason) : null;
+
   const holdWayOut = wayOut(
     track?.holdReason,
     { undo: Boolean(holdTakeOver?.undoTo), handback: Boolean(holdTakeOver?.handback) },
     track ? (AGENT_STATIONS[track.station]?.name ?? null) : null,
     holder.data ?? null,
+    shipStop
+      ? { line: shipStopLine(shipStop), actionable: shipStopWaitsOnAPerson(shipStop) }
+      : null,
   );
   const showCalmHold = isCalmHold && !walkingMidRoute;
 

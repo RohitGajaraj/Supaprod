@@ -266,7 +266,27 @@ export function wayOut(
    * moving and the door stops being true.
    */
   waitingOn: { trackId: string; title: string } | null = null,
+  /**
+   * ── SHIP KNOWS MORE THAN ITS HOLD WORD (P-59) ──────────────────────────
+   *
+   * `produced-nothing` gets "It will try again." from the table above, which is
+   * true and useless when the reason it produced nothing is one secret nobody
+   * has set. The first honest Ship failed at preview on 2026-09-03, the screen
+   * said it would try again, and the founder had to ask what to set.
+   *
+   * So the newest FAILED deployment on this track is passed in, and when its
+   * reason names a missing provider this overrides the static sentence with the
+   * variables and the place. Only that case: an ordinary deploy failure really
+   * will be retried, and `unknown` must not claim a cause we do not have.
+   *
+   * It overrides the SENTENCE, never the control, for the reason this file's
+   * own header gives: the dead end was the absent next step, not the button.
+   */
+  shipStop: { line: string; actionable: boolean } | null = null,
 ): WayOut {
+  if (shipStop?.actionable) {
+    return { next: shipStop.line, onThisScreen: true };
+  }
   if (!hold) return NOTHING;
 
   /*

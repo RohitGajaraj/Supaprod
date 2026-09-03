@@ -56,6 +56,7 @@ import { ConnectTrustDialog } from "./ConnectTrustDialog";
 import { SUITE_PROVIDERS, useConnectorActions } from "./useConnectorActions";
 import { ProviderMark } from "@/components/meridian/source-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
+import { previewHostConfigured } from "@/lib/deployments.functions";
 
 /**
  * SOURCES. Redesigned 2026-07-29 against the founder's own words: "the
@@ -306,6 +307,14 @@ export function AccountConnectionsSection({
       toast.success("Noted. It goes on the list.");
     },
     onError: (e: Error) => toast.error(e.message || "That did not send. Try again."),
+  });
+
+  /* P-59: boolean only. See `previewHostConfigured`'s own contract. */
+  const fPreviewHost = useServerFn(previewHostConfigured);
+  const previewHost = useQuery({
+    queryKey: ["preview-host-configured"],
+    queryFn: () => fPreviewHost(),
+    staleTime: 5 * 60_000,
   });
 
   const byProvider = new Map<ProviderId, AccountConnection[]>();
@@ -593,6 +602,46 @@ export function AccountConnectionsSection({
           </NothingYet>
         ) : (
           readingSorted.map(readingLine)
+        )}
+      </Region>
+
+      {/*
+        ── THE PREVIEW HOST, WHICH THIS PAGE DID NOT KNOW ABOUT (P-59) ───────
+        Its own region rather than a row in "What the crew reads", because it is
+        not a connector account: nobody authorised it, there is no row in
+        `connections`, and it is set as an environment secret on the project.
+        Putting it in that list would promise a Manage action that cannot exist.
+
+        It earns a place on this page because it is the answer to the question
+        that stopped the first honest Ship. The founder had to ask what to set;
+        the page a person visits to check what is connected could not say.
+
+        THE STATE IS ALL IT SHOWS. `previewHostConfigured` returns a boolean and
+        the names, never the token and never the org value.
+      */}
+      <Region
+        title="Where previews are hosted"
+        sub="Ship needs this to put a change somewhere you can open. It is a project secret, not an account you connect."
+      >
+        {previewHost.isError ? (
+          <ReadFailedLine error={previewHost.error} onRetry={() => void previewHost.refetch()}>
+            Whether the preview host is set could not be read.
+          </ReadFailedLine>
+        ) : previewHost.isLoading ? (
+          <Reading>Checking the preview host.</Reading>
+        ) : (
+          <Row
+            tight
+            lead="Managed preview host"
+            sub={
+              previewHost.data?.configured
+                ? "Configured. Ship can deploy a preview."
+                : /* Names the variables and the place, from the same constants
+                     the Ship hold card reads, so the two surfaces cannot tell a
+                     person two different things to set. */
+                  `Not configured, so Ship cannot deploy. Set ${(previewHost.data?.vars ?? []).join(" and ")} on ${previewHost.data?.where ?? "the project"}.`
+            }
+          />
         )}
       </Region>
 
