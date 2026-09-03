@@ -6556,6 +6556,11 @@ Meridian edits beyond removing the alias and its test branch. A test that no cal
       last, both as prose and mono.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
+**A1, 21:52 IST.** Suite on the tip 13,911 / 0 / 0, tsc 0; published 21:52. A3 found the live
+instance of the slot defect on the approvals page (*Approve · unblocks Build for this spec* sat in
+the default's slot; it is the risk) and removed the alias with a test that no caller passes it.
+The read of the approvals page on the served build follows propagation.
+
 **Report (A3 writes):** Pushed `9703ab229`. `git grep -ln "<CallGate"` found exactly two composers,
 not the three-plus surfaces your broader `consequence=` grep suggested — verified each hit before
 touching anything, per your own warning. `TrackConsent.tsx` had already migrated (`risk`/
