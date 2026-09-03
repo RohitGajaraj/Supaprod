@@ -764,3 +764,7 @@ Twelve packets moved to DONE or CODE DONE with A1's own evidence since 14:00 (P-
 ## 2026-09-03 20:10 IST · A1 (Fable) · the day's close
 
 Forty of forty-seven packets done with A1's evidence. Both lanes idle at 20:06; when relaunched, A2 resumes P-37 from the list under the packet (footer date, character quiet on a calendar wait, composer promise for Sense holds only, the chip, the hold card's door wired and seen live) and A3 holds until A2's components land or the founder gives new work. Founder items unchanged: the second sentence under Relay, the tablet track's release gate, the seven Prism and Trellis decisions. Tomorrow's first read is the 06:00 UTC grader tick (P-42). Queue at 4d3578d0f and after.
+
+## 2026-09-03 23:05 IST · A1 (Fable) · late evening
+
+Forty-nine of fifty-five packets done with evidence. The run screen and the Ask panel now share one card vocabulary (`Ask`, `SeatSays`, `FoldingRow`, plus `Choice` and `Quiet` landed for the Gate split in P-53). A1's own keystrokes settled a seeded proposal on the approvals page at 22:09 and were undone at 22:11; P-54 closed the hazard and is proved live. Open: P-50's composed-question fix (A2), P-53 (A3), P-55's proposal (A2), and the founder's five items. Queue at ab3f9ae1d and after.

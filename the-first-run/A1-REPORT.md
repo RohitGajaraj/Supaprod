@@ -507,3 +507,14 @@ split, P-52 (a Choice and a Quiet, designed first) and P-53 (the migration and t
 Forty-six of fifty-three packets done with evidence. Founder items unchanged: the walk of the run
 screen, the second sentence under Relay, the release gate, the seven decisions. The date call
 holds at 23 September.
+
+**Checkpoint, 2026-09-03 23:05 IST. Forty-nine of fifty-five, and one more error of A1's on the
+record.** Since 22:00: P-54 (the approvals page's shortcuts no longer fire into a field or an open
+panel; a press that changed nothing says so) built, published and proved live after A1's own
+keystrokes had settled a seeded proposal at 22:09, restored by hand at 22:11; P-52's Choice and
+Quiet are in Meridian and published; P-50's Ask cards are served as designed with one fix left (a
+composed question, not a title with a mark glued on); P-53 (Gate's sites to the three vocabularies,
+Gate retired) is A3's in progress, five of nineteen sites moved; P-55 (a rule for the demo
+workspace's stale work, a proposal only) is A2's next. Founder items unchanged: the walk of the run
+screen, the second sentence under Relay, the release gate, the seven decisions, and now the demo
+queue's aging rule. The date call holds at 23 September.

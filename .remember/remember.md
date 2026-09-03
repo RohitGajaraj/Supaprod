@@ -172,3 +172,10 @@ Queue `the-first-run/A-QUEUE.md`; report `A1-REPORT.md`. Live at `d43fc2829`. In
 - Two of my claims were wrong today and are recorded as such: P-45's premise (unverified mount), the calendar-wait evidence (a stale DB read). Re-read the row and say when.
 - Founder inputs open: the second sentence under Relay (proof of R-36/R-37 live), the tablet release gate (`0c7374b6`, pending since 12:13 IST), the seven Prism/Trellis decisions. Helio Labs has no live source beyond the repo (founder decision). Probe workspace `a1-delete-probe` still exists for the P-39 delete walk.
 - Tomorrow 06:00 UTC: the grader's first real read (P-42); check `forecast_resolution_log` for `read` and `cited` and the Learn tab.
+
+## A1 · 2026-09-03 23:05 IST · late evening
+
+- 49 of 55 packets DONE with A1's evidence. Live since 21:00: P-37 (five surfaces), P-48, P-49, P-51, P-52 (Choice, Quiet), P-54 (proved with focus verified first). P-50 served; one fix pending (composed question). P-53 in progress (A3). P-55 (A2, proposal only).
+- **A1's own error at 22:09 IST:** typed into what `find` called the Ask textbox on the approvals page; the page's single-letter hotkeys settled a seeded proposal (`60000000-0b00-4000-8000-000000000004` → now); restored to backlog at 22:11 by exact id. Never type on a page with single-letter shortcuts without `document.activeElement` proving the field; clicks only where possible.
+- Gate kept on A2's evidence (three shapes in one primitive); its split is P-52 + P-53. CrewChrome's local Gate is deliberately separate (A3).
+- Founder items open: the walk of the run screen (P-37), the second sentence under Relay, the tablet release gate, the seven Prism/Trellis decisions, the demo queue's aging rule (P-55 proposal).
