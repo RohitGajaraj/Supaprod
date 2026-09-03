@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 
 /*
  * APPROVAL CARD, the question an agent stops to ask before it acts.
@@ -113,6 +114,7 @@ export function ApprovalCard({
   subject,
   confirmLabel = "Approve",
   onApprove,
+  zeroAction,
 }: {
   /** The queue for this one blocked run. An empty list is the normal case. */
   questions: ApprovalQuestion[];
@@ -125,6 +127,16 @@ export function ApprovalCard({
    */
   confirmLabel?: string;
   onApprove?: (answers: ApprovalAnswers) => void;
+  /**
+   * P-63: the one act that starts a workspace with nothing waiting on it at
+   * all, not because a workspace with an ordinary empty queue needs a button
+   * (it does not; see the zero case's own comment below) but because a
+   * first-visit workspace has nothing blocked for the honest reason that
+   * nothing has run yet, and that IS an act away. Optional and unset by
+   * default, so the ordinary "caught up" render this card was built for is
+   * unchanged; the caller passes it only for the true first-visit case.
+   */
+  zeroAction?: ReactNode;
 }) {
   const [qi, setQi] = useState(0);
   const [answers, setAnswers] = useState<ApprovalAnswers>({});
@@ -155,6 +167,7 @@ export function ApprovalCard({
           When an agent stops to ask something, the question arrives here and the run holds until
           you answer it.
         </p>
+        {zeroAction ? <div className="mt-mrd-3 flex flex-wrap gap-mrd-3">{zeroAction}</div> : null}
       </div>
     );
   }

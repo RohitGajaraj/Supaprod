@@ -407,6 +407,7 @@ import {
 } from "@/components/meridian/surface-parts";
 import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
+import { Quiet } from "@/components/meridian/Quiet";
 import { PageHeading } from "@/components/meridian/surface-parts";
 import { CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { Surface } from "@/components/meridian/Surface";
@@ -681,7 +682,10 @@ export const Route = createFileRoute("/_authenticated/outcomes")({
             </Action>
           }
         >
-          Everything the record holds is behind the five doors on Brain.
+          {/* P-61/P-63: "the five doors on Brain" named a door that no longer
+              exists and a count from before P-60's nine-door rework. This
+              page's own door is Outcomes, so it says that instead. */}
+          Everything the record holds is still on Outcomes.
         </NothingYet>
       </div>
     </Surface>
@@ -1625,6 +1629,18 @@ function MemoryPage() {
          */}
         <PageHeading title="Outcomes" sub="Every decision, what it expected, and what happened." />
         <RecordHead title={headline} sub={sub} level={2} />
+
+        {/* P-63: a genuinely empty record used to stop at the headline above
+            with nothing else on the page -- no blank, no spinner, but no
+            action either. `RetentionLine` already stands down for exactly
+            this case (see its own header); this is the door it left out. */}
+        {emptyRecord ? (
+          <Quiet
+            says="Nothing is on the record yet."
+            whatWillAppear="Every decision the crew makes and what came back from it lands here, the moment something has run."
+            action={<Action onClick={() => navigate({ to: "/start" })}>Start a sentence</Action>}
+          />
+        ) : null}
 
         {/* A NAKED "Try again" IS NOT AN ERROR STATE. This rendered one ghost
           button under the headline and said nothing at all about what had

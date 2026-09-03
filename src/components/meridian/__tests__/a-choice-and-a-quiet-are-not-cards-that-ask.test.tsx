@@ -115,4 +115,26 @@ describe("a Quiet is a state, not a question", () => {
     );
     expect(container.innerHTML).toBe("");
   });
+
+  it("draws no control by default, and the one an opted-in caller passes when it does (P-63)", () => {
+    // Same default as before this prop existed: an ordinary empty queue still
+    // draws nothing to press.
+    render(
+      <Quiet says="Nothing is waiting on a call." whatWillAppear="Appears here when it does." />,
+    );
+    expect(screen.queryByRole("button")).toBeNull();
+    cleanup();
+
+    // A first-visit zero state that opts in gets its one door, and it is not
+    // wrapped in the bordered chrome `Quiet` still refuses.
+    const { container } = render(
+      <Quiet
+        says="Nothing is connected yet."
+        whatWillAppear="Point a source at this workspace and it appears here."
+        action={<button type="button">Connect a source</button>}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Connect a source" })).toBeTruthy();
+    expect(container.innerHTML).not.toContain("border-mrd-line");
+  });
 });

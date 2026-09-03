@@ -105,7 +105,7 @@
  * all. The third must never wear the first's clothes and must offer a way out.
  */
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { failureLine } from "@/lib/error-copy";
 import { stillHoldsWork } from "@/components/approvals/still-holds-work";
 import { approvalsQueueKey, APPROVALS_QUEUE_PREFIX, invalidateShellReads } from "@/lib/query-keys";
@@ -134,7 +134,13 @@ import { StalledWork, type StalledItem } from "@/components/meridian/StalledWork
 
 import { Ask } from "@/components/meridian/Ask";
 import { askQuestion } from "@/components/meridian/question";
-import { Action, Actions, ReadFailed, Reading } from "@/components/meridian/surface-parts";
+import {
+  Action,
+  Actions,
+  ACTION_LINK_FACE,
+  ReadFailed,
+  Reading,
+} from "@/components/meridian/surface-parts";
 import { CallContext, Key } from "@/components/approvals/CallContext";
 import { FilterExcludedEverything, QueueFilters } from "@/components/approvals/QueueFilters";
 import { SettledTrail, type SettledLine } from "@/components/approvals/SettledTrail";
@@ -970,7 +976,17 @@ function ApprovalsSurface() {
              crew is mid-run and something is coming" are different facts to
              someone deciding whether to close the tab. */
           <div className="flex flex-col gap-mrd-4">
-            <ApprovalCard questions={[]} />
+            {/* P-63: nothing CAN be waiting until something has run, so a
+                first-visit workspace's honest next step is Start, not a
+                second "nothing here" apology beside the first. */}
+            <ApprovalCard
+              questions={[]}
+              zeroAction={
+                <Link to="/start" className={ACTION_LINK_FACE.default}>
+                  Start a sentence
+                </Link>
+              }
+            />
             {quietLine ? <p className="text-mrd-label text-mrd-mute">{quietLine}</p> : null}
           </div>
         ) : (

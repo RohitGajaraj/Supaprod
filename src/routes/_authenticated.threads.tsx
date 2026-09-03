@@ -568,7 +568,15 @@ function ThreadsSurface() {
                 The search did not run.
               </ReadFailedLine>
             ) : list.isLoading || (searching && found.isLoading) ? null : visible.length === 0 ? (
-              <NothingHere>
+              <NothingHere
+                action={
+                  // P-63: nothing has been asked yet, and the one act that
+                  // changes that is Start's composer, not a search retry.
+                  !searching ? (
+                    <Action onClick={() => navigate({ to: "/start" })}>Start a sentence</Action>
+                  ) : undefined
+                }
+              >
                 {searching ? "Nothing said matches that." : "No threads in this product yet."}
               </NothingHere>
             ) : (
@@ -749,7 +757,11 @@ function ThreadsSurface() {
              */
             <NothingHere>Nothing to open until the list loads.</NothingHere>
           ) : (
-            <NothingHere>Nothing has been asked in this workspace yet.</NothingHere>
+            <NothingHere
+              action={<Action onClick={() => navigate({ to: "/start" })}>Start a sentence</Action>}
+            >
+              Nothing has been asked in this workspace yet.
+            </NothingHere>
           )
         ) : thread.isError ? (
           <ReadFailedLine onRetry={() => void thread.refetch()} error={thread.error}>

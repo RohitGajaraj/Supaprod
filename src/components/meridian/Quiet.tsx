@@ -15,8 +15,25 @@
  *                that needs answering. There is no `Region`, no card chrome.
  *   no question  it is not asking. A question mark on a report is what turned
  *                these into gates in the first place.
- *   no action    there is nothing to do, and a button here is a door onto an
- *                empty room.
+ *   no action    by default. See `action` below for the one case that earns
+ *                an exception.
+ *
+ * ── AND THE ONE CASE `action` EXISTS FOR (P-63) ────────────────────────────
+ *
+ * "No action" above was written for an empty QUEUE: nothing waiting is good
+ * news and there is genuinely nothing to do about it. A first-visit surface
+ * is a different fact wearing the same "nothing here yet" sentence -- the
+ * workspace has no sources, no runs, no decisions, and there IS exactly one
+ * act that starts it (point a source, start a sentence, invite a person).
+ * Leaving that door off is the same defect this file's header opens with:
+ * an absence of work drawn as if it were the finished state.
+ *
+ * `NeedsSetup`'s own header draws the line this crosses on purpose: NeedsSetup
+ * is for a missing PRECONDITION ("fix that first, then the surface can even
+ * ask its question"); this is for a working surface with nothing in it yet
+ * ("do the first thing"). `action` is optional and defaults to none, so
+ * every existing empty-queue call site is unchanged -- a caller opts in only
+ * when there truly is a next step, never invents one to fill the slot.
  *
  * ── IT SAYS WHAT WILL APPEAR, NOT THAT NOTHING HAS ────────────────────────
  *
@@ -44,6 +61,7 @@ export function Quiet({
   says,
   whatWillAppear,
   heldBecause = null,
+  action = null,
 }: {
   /** The state, as a statement. No question mark; a period. */
   says: string;
@@ -58,6 +76,13 @@ export function Quiet({
    * hold cannot be dressed as calm.
    */
   heldBecause?: string | null;
+  /**
+   * The one act that starts this surface. Leave unset for an ordinary empty
+   * queue, where there is genuinely nothing to do; set it for a first-visit
+   * zero state, where there is exactly one thing that changes it. See the
+   * header above ("AND THE ONE CASE `action` EXISTS FOR").
+   */
+  action?: React.ReactNode | null;
 }) {
   if (heldBecause) {
     /*
@@ -78,6 +103,7 @@ export function Quiet({
           screen, because nothing here needs doing. */}
       <p className="text-mrd-base text-mrd-mute">{says}</p>
       <p className="text-mrd-small text-mrd-faint">{whatWillAppear}</p>
+      {action ? <div className="mt-mrd-3 flex flex-wrap gap-mrd-3">{action}</div> : null}
     </div>
   );
 }

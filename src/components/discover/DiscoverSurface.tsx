@@ -2752,7 +2752,16 @@ export function DiscoverSurface({
               with no shared fact between them. */}
           <Quiet
             says="Nothing is connected yet, so there is nothing to read."
-            whatWillAppear="Opens Settings, Connections. Reading starts the moment a source is linked. Or capture it yourself below: a note, a pasted list, a document, a transcript. Nothing has to be connected first."
+            whatWillAppear="Reading starts the moment a source is linked, or capture something yourself below: a note, a pasted list, a document, a transcript. Nothing has to be connected first."
+            action={
+              // P-63: the sentence above already tells the capture box below
+              // is the other door; this is the one that leaves the page.
+              <Action
+                onClick={() => navigate({ to: "/settings", search: { section: "connections" } })}
+              >
+                Connect a source
+              </Action>
+            }
           />
           {/*
            * THE SAMPLE DOOR NOW SAYS WHAT PRESSING IT DOES, because the
