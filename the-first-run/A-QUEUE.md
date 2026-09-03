@@ -7180,7 +7180,7 @@ the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 reads the row and the card.
 
 
-### P-67 · A read of a workspace-scoped table names its workspace, everywhere · Lane: **A2** (after P-62) · Status: READY · Moves: 1
+### P-67 · A read of a workspace-scoped table names its workspace, everywhere · Lane: **A2** (after P-62) · Status: DONE as a ratchet (da85a4682; A2 reports 14,025 / 0 / 0, tsc 0): 822 reads of 53 workspace-scoped tables, 618 narrowed by another id, 186 bare across 81 files, counted per file and never allowed to grow · Moves: 1
 
 **Why.** Four instances of one defect in three days, each found live and fixed per site:
 `listRunsForStart`, `listTopOpportunities`, the Discover source count, and P-66's three shell reads
@@ -7266,6 +7266,26 @@ from the route's mount, never from a query. Nothing else changes.
 that visit (re-run: rows newer than the stamp). Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
+
+
+### P-70 · The read-heavy surfaces name their workspace · Lane: **A2** (after P-69) · Status: READY · Moves: 1
+
+**Why.** P-67's ratchet holds 186 bare reads across 81 files. The ones a person compares across
+workspaces are the ones that borrow another desk first: `analytics.functions` 14, `dashboard` 7,
+`approvals-queue` 6, `discovery` 6, `missions` 6, `projects` 6, `threads` 6, `agents` 8,
+`outcome` 8, `spine/track` 8.
+
+**Scope.** Close the bare reads in `analytics.functions`, `dashboard`, `approvals-queue`,
+`discovery` and `threads` (the five a person looks at), each read taking the workspace it stands
+in through the same input shape P-66 settled, query keys carrying it, and the ratchet's per-file
+number lowered in the same commit. A read that is meant to span workspaces carries its reason in
+the file (the ratchet's exemption rule). Report the before and after counts per file.
+
+**Acceptance.** The five files at 0 in the ratchet's baseline (or their exemptions named); the
+ratchet green; a walk of Arriving, Waiting, Conversations and the analytics page in the probe
+workspace shows nothing of Helio's. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 publishes and walks the probe.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
