@@ -4900,6 +4900,16 @@ RETURNING is a read and the first policy alone left the new row invisible to its
 all three. The live proof (a second workspace created and readable from the product) is A2's under
 rule 12 and is the next thing to report.
 
+
+**A1, 11:00 IST · the second wall, found by using the first fix (A2, `0e1b964a6`).** The first
+second-workspace ever created on production, *A2 arrival check*, seconds old and empty, opened Start
+and saw Helio Labs' three ranked bets and its whole run list as its own. `listRunsForStart` filtered
+on nothing but status and `listTopOpportunities` ordered every bet by ICE; both leaned on RLS for
+scope, and RLS answers "may they see this" across every workspace a person belongs to, not "whose
+desk is this". Both readers now take the active workspace. Suite 13,720 / 0, published 11:00. Every
+customer with two workspaces would have met this on day one; a second workspace was impossible until
+this morning, which is why nobody had.
+
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
