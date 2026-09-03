@@ -4999,7 +4999,7 @@ session. Everything else in the Report is done and pushed. **Updated after pass 
 2.7-second reader is now named with a structural explanation, not just flagged.**
 
 
-### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: DONE (A2, 13:10 IST), one apply outstanding · Moves: 1, 2, 5
+### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: IN PROGRESS (A1, 13:30 IST: the six §5 defects remain; two of them seen live)· Moves: 1, 2, 5
 
 **Why.** Every walk so far has been on Helio Labs, a workspace with 59 decisions and 15 tracks.
 The founder's own workspace, and every new customer's, starts with nothing: no runs, no bets, no
@@ -5090,6 +5090,17 @@ working*, (3) the artifact pane instructing the person to press a record that is
 (4) `RetentionLine` under *Nothing is on the record yet*, (5) *Saved* under *Nothing set*, (6) zeros
 printed as receipts. Then the backfill of `is_sample` on the existing sample workspaces. P-33 closes
 when A1 walks the fresh workspace and sees none of the six.
+
+
+**A1, 13:30 IST · walked the empty workspace after the sample-door publish.** *A2 arrival check* on
+Start: the designed arrival copy renders (*Say what you want changed and what it should do. It does
+the work here, where you can watch, and tells you whether it worked.*; example sentences marked as
+examples; *Nothing running. Start one above.*). Two of §5's six are visible on the same screen:
+Arriving reads *15 findings this week from 2 sources · 138 clusters forming* in a workspace that has
+none (the counts are Helio Labs', by person), and the bar names a Helio Labs track. The seeder
+migration `20260909010000` is **not applied** (deployed function has zero `is_sample` mentions); the
+ledger row A1 inserted at 13:18 was wrong and is deleted. A1 applies the file verbatim through the
+Lovable MCP with an md5 of the function body as the proof, then restores the row.
 
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
