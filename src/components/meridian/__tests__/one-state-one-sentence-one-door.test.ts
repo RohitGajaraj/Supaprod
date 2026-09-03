@@ -28,10 +28,14 @@ describe("an irreversible gate cannot merge by silence", () => {
    */
   it("takes no sentence at all for an irreversible ask", () => {
     // The irreversible arm has `since` and nothing else to fill.
-    expect(ASK.replace(/\s+/g, " ")).toContain('{ kind: "irreversible"; since: string }');
-    expect(ASK.replace(/\s+/g, " ")).not.toContain(
-      '{ kind: "irreversible"; since: string; whatHappens: string }',
-    );
+    /*
+     * The irreversible arm has NOTHING to fill but the clock. P-50 made `since`
+     * optional, because the Ask panel's queue items carry no timestamp and a
+     * card that omits it says less rather than something false; the arm still
+     * takes no sentence, which is the property under test.
+     */
+    expect(ASK.replace(/\s+/g, " ")).toContain('{ kind: "irreversible"; since?: string | null }');
+    expect(ASK).not.toContain('kind: "irreversible"; since?: string | null; whatHappens');
   });
 
   it("writes that sentence itself, once, with no argument that changes it", () => {
@@ -128,6 +132,82 @@ describe("the row grew, it did not toggle", () => {
   it("has exactly three marks", () => {
     expect(ROW.replace(/\s+/g, " ")).toContain(
       'const MARK: Record<RowMark, string> = { filed: "✓", "filed-nothing": "◦", stopped: "⊘", }',
+    );
+  });
+});
+
+/**
+ * ── THE ASK PANEL WAS THE FOURTH CARD DIALECT (P-50) ──────────────────────
+ *
+ * A1 found it on the served build: the panel drew its own gate card, with a
+ * "Waiting on you" chip the run's card had just lost and three answers where
+ * the doc has two registers. Nothing on it was untrue. It is shape 1 in a
+ * second place, a surface composing its own card because there was no shared
+ * one to reach for.
+ */
+const PANEL = strip(readFileSync("src/components/ask/AskGateCard.tsx", "utf8"));
+
+describe("the Ask panel speaks the one card vocabulary", () => {
+  it("composes Ask and no longer draws its own card", () => {
+    expect(PANEL).toContain("<Ask");
+    expect(PANEL).not.toContain("<Gate");
+    // The three raw controls it used to lay out itself are gone with it.
+    expect(PANEL).not.toContain("<Actions");
+    expect(PANEL).not.toContain("<Approve");
+  });
+
+  it("puts the third verdict on the default line, not beside the answers", () => {
+    /*
+     * Approve, reject and snooze are three GENUINE verdicts and none is a
+     * duplicate, so "the card takes two answers" is not on its own the
+     * argument. The argument is that two of them answer the question and one
+     * declines to: a snooze is the declared default arriving early.
+     */
+    expect(PANEL).toContain("fallbackAction={{");
+    const fallbackAt = PANEL.indexOf("fallbackAction={{");
+    const declineAt = PANEL.indexOf("decline={{");
+    expect(declineAt).toBeGreaterThan(-1);
+    expect(fallbackAt).toBeGreaterThan(declineAt);
+  });
+
+  it("says what silence does, in both the gate and the policy wording", () => {
+    // A1's ruling: the same shape with different words, and the two registers
+    // keep their meaning when the verbs change.
+    expect(PANEL).toContain("Nothing dispatches until you answer.");
+    expect(PANEL).toContain("It keeps asking until you say otherwise.");
+  });
+
+  it("no longer wears the chip the run's card lost", () => {
+    expect(PANEL).not.toContain("Waiting on you");
+  });
+});
+
+describe("the default's action is not a fourth answer", () => {
+  it("Ask has a slot for it, and no slot to put a fourth answer in", () => {
+    /*
+     * The whole reason the rule lives in the component: a slot that exists gets
+     * filled, and the next surface with a third verdict would have put it
+     * beside the answers exactly as this one did.
+     */
+    expect(ASK).toContain("fallbackAction?:");
+    expect(ASK).not.toContain("answers:");
+    expect(ASK).not.toContain("third");
+  });
+
+  it("renders it on the default line rather than with the answers", () => {
+    const flat = ASK.replace(/\s+/g, " ");
+    expect(flat).toContain(
+      '<p className="text-mrd-data text-mrd-mute">{defaultLine(fallback)}</p>',
+    );
+    // Inside the same row as the default sentence, above the answers.
+    expect(ASK.indexOf("{fallbackAction.label}")).toBeLessThan(ASK.indexOf("{answer.label}"));
+  });
+
+  it("omits the clock rather than inventing one when nobody recorded it", () => {
+    // The panel's queue items carry no timestamp. A card that omits it says
+    // less; a card that fills it says something false.
+    expect(ASK.replace(/\s+/g, " ")).toContain(
+      'const waited = d.since ? `Waiting on you since ${d.since}. ` : "";',
     );
   });
 });

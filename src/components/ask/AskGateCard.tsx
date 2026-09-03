@@ -21,7 +21,6 @@
  */
 
 import * as React from "react";
-import { Action, Approve, Actions } from "@/components/meridian/surface-parts";
 import { APPROVALS_QUEUE_PREFIX, invalidateShellReads } from "@/lib/query-keys";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,7 +30,7 @@ import {
   type ApprovalQueueItem,
 } from "@/lib/approvals-queue.functions";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Gate } from "@/components/meridian/Gate";
+import { Ask } from "@/components/meridian/Ask";
 
 type Settled = { verdict: "approve" | "reject" | "snooze"; consequence: string; failed?: boolean };
 
@@ -138,41 +137,67 @@ export function AskGateCard({
       ? item.title
       : `${item.title}?`;
 
-  const lines: React.ReactNode[] = [];
+  /*
+   * `string[]` and not `ReactNode[]`, which it was. Every line pushed below is
+   * already a string (`evidence: string[]`, `impact?: string`,
+   * `projectName: string | null`), and the wider type let a future JSX line in
+   * that would reach `Ask`'s `reason` and render as "[object Object]" with
+   * nothing failing. The narrower type makes the compiler refuse it instead.
+   */
+  const lines: string[] = [];
   // The policy card leads with the streak, because the streak IS the argument:
   // the queue is a policy failure to surface, not a workload to render.
   for (const line of item.evidence.slice(0, asPolicy ? 3 : 2)) lines.push(line);
   if (item.impact) lines.push(item.impact);
   if (item.projectName) lines.push(item.projectName);
 
+  /*
+   * ── ONE CARD VOCABULARY, AND THIS WAS THE FOURTH DIALECT (P-50) ──────────
+   *
+   * A1 found this on the served build: the panel drew its own card, with a
+   * "Waiting on you" chip the run's gate card had just lost and three answers
+   * where the doc has two registers. Nothing on it was untrue. It is shape 1 in
+   * a second place: a surface composing its own card because there was no
+   * shared one to reach for. There is now.
+   *
+   * THE THIRD ANSWER, AND WHY IT MOVES RATHER THAN GOES. This card has three
+   * genuine verdicts and none is a duplicate: approve, reject, snooze. But two
+   * of them ANSWER the question and one declines to. "Not now" writes a snooze,
+   * and a snooze is the declared default arriving early, so it belongs to the
+   * default line and renders as that line's own quiet action. As a third button
+   * it put a non-answer in the row where the answers are, which is why reading
+   * this card meant deciding between three things when only two were decisions.
+   *
+   * THE POLICY MODE IS THE SAME SHAPE WITH DIFFERENT WORDS (A1's ruling): the
+   * question says what it asks and the default line says what silence does, so
+   * the two registers keep their meaning when the verbs change.
+   */
   return (
-    <Gate question={question} lines={lines}>
-      <Actions
-        trailing={
-          // TIER: clause 1, writes the snooze; quiet as the secondary move, disabled blocks bystanders
-          <Action
-            variant="quiet"
-            busy={pending === "snooze"}
-            disabled={!!pending}
-            onClick={() => void defer()}
-          >
-            Not now
-          </Action>
-        }
-      >
-        {/* TIER: clause 2, releases the held gate */}
-        <Approve
-          busy={pending === "approve"}
-          disabled={!!pending}
-          onClick={() => void act("approve")}
-        >
-          {asPolicy ? "Let it run alone" : "Approve"}
-        </Approve>
-        {/* TIER: clause 1, writes the reject verdict */}
-        <Action busy={pending === "reject"} disabled={!!pending} onClick={() => void act("reject")}>
-          {asPolicy ? "Keep asking me" : "Send it back"}
-        </Action>
-      </Actions>
-    </Gate>
+    <Ask
+      question={question}
+      reason={lines.length > 0 ? lines.join(" ") : null}
+      fallback={{
+        kind: "reversible",
+        /* No timestamp on a queue item, so the clock is absent rather than
+           invented; `Ask` omits that clause. */
+        whatHappens: asPolicy
+          ? "It keeps asking until you say otherwise."
+          : "Nothing dispatches until you answer.",
+      }}
+      answer={{
+        label: asPolicy ? "Let it run alone" : "Approve",
+        onPress: () => void act("approve"),
+        busy: pending === "approve",
+      }}
+      decline={{
+        label: asPolicy ? "Keep asking me" : "Send it back",
+        onPress: () => void act("reject"),
+      }}
+      fallbackAction={{
+        label: "Not now",
+        onPress: () => void defer(),
+        busy: pending === "snooze",
+      }}
+    />
   );
 }

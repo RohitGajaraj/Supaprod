@@ -56,17 +56,25 @@ import { Action } from "@/components/meridian/surface-parts";
  * done again.
  */
 export type AskDefault =
-  | { kind: "irreversible"; since: string }
-  | { kind: "reversible"; since: string; whatHappens: string };
+  | { kind: "irreversible"; since?: string | null }
+  | { kind: "reversible"; since?: string | null; whatHappens: string };
 
+/**
+ * `since` IS OPTIONAL AND ITS ABSENCE IS A REAL STATE (P-50). The Ask panel's
+ * queue items carry no timestamp, so that card cannot say when it started
+ * waiting without one being invented. The sentence's load-bearing half is what
+ * happens if nobody answers; the clock is an enrichment, and a card that omits
+ * it says less rather than something false.
+ */
 function defaultLine(d: AskDefault): string {
   /*
    * Not a template a caller can slip past. The irreversible sentence is written
    * here, once, and there is no argument that produces a different one.
    */
+  const waited = d.since ? `Waiting on you since ${d.since}. ` : "";
   return d.kind === "irreversible"
-    ? `Waiting on you since ${d.since}. Nothing runs until you answer.`
-    : `Waiting on you since ${d.since}. ${d.whatHappens}`;
+    ? `${waited}Nothing runs until you answer.`
+    : `${waited}${d.whatHappens}`;
 }
 
 export function Ask({
@@ -76,6 +84,7 @@ export function Ask({
   fallback,
   answer,
   decline,
+  fallbackAction,
 }: {
   /** The whole ask, in one sentence. Leads, alone, at `--mrd-t-lead`. */
   question: string;
@@ -94,6 +103,31 @@ export function Ask({
   answer: { label: string; onPress: () => void; busy?: boolean };
   /** Declining is an answer too, and it is quiet rather than absent. */
   decline: { label: string; onPress: () => void };
+  /**
+   * ── THE DEFAULT MADE PRESSABLE, AND WHY IT IS NOT A THIRD ANSWER ────────
+   *
+   * P-50. The Ask panel's gate cards carry THREE genuine verdicts, not two and
+   * a decoration: approve, reject and snooze are different things a person can
+   * do and none is a duplicate. So "the card takes two answers" is not on its
+   * own an argument for where the third goes.
+   *
+   * The argument is that **two of them answer the question and one declines
+   * to.** "Not now" writes a snooze, and a snooze is the DECLARED DEFAULT
+   * ARRIVING EARLY: the line directly above already says what happens if nobody
+   * answers, and pressing it is choosing that outcome deliberately rather than
+   * by walking away.
+   *
+   * So it belongs to the default line, and it renders there. As a third button
+   * it put a non-answer in the row where the answers are, which is why a person
+   * reading that card had to decide between three things when only two of them
+   * were decisions.
+   *
+   * THERE IS DELIBERATELY NO FOURTH ANSWER SLOT. This is the whole reason the
+   * rule lives in the component rather than in the panel: a slot that exists
+   * gets filled, and the next surface with a third verdict would have put it
+   * beside the answers exactly as this one did.
+   */
+  fallbackAction?: { label: string; onPress: () => void; busy?: boolean };
 }) {
   return (
     <section
@@ -109,8 +143,16 @@ export function Ask({
 
       {/* Mono, because it is a fact about a clock and the data face is where
           this system puts those. Last, because above the answers it would read
-          as a countdown. */}
-      <p className="text-mrd-data text-mrd-mute">{defaultLine(fallback)}</p>
+          as a countdown. The action rides ON this line rather than below it:
+          it is this sentence's own verb, not a third answer. */}
+      <div className="flex flex-wrap items-baseline gap-mrd-3">
+        <p className="text-mrd-data text-mrd-mute">{defaultLine(fallback)}</p>
+        {fallbackAction ? (
+          <Action variant="quiet" busy={fallbackAction.busy} onClick={fallbackAction.onPress}>
+            {fallbackAction.label}
+          </Action>
+        ) : null}
+      </div>
 
       <div className="flex flex-wrap items-center gap-mrd-3">
         <Action variant="primary" busy={answer.busy} onClick={answer.onPress}>
