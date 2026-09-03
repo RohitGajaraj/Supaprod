@@ -6033,7 +6033,7 @@ packets.
 
 **Blockers (A3 writes):** —
 
-### P-44 · The door from a no-source hold lands on the binding, and the binding takes · Lane: **A3** · Status: READY · Moves: 2, 3
+### P-44 · The door from a no-source hold lands on the binding, and the binding takes · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** On the honest run (14:23 IST) the pane said *Nothing is pointed at a source yet. This
 needs somewhere to read from, and the connection for it is already here, so connecting again
