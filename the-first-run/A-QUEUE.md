@@ -1866,6 +1866,14 @@ now.* P-03c and fix mode work. Then the drive wrote `out-of-time` with an empty 
 `waiting-on-another-run`. To A2 before P-21: a claim refusal seen during the run sets the claim hold
 whatever the deadline says, and the because-sentence is never empty.
 
+
+**A1, 06:05 IST · the claim now wins over the clock (A2, `8231ef2bc`).** The out-of-time branch
+returned before the claim handling could see the refusal; the check sits before that write now, no
+attempt counted, with the ordering asserted. My "the because-sentence is never empty" is withdrawn as
+stated: the column is null for generic holds on purpose (F-127) and what a person reads falls back to
+`HOLD_LINE`; what I read empty was the column. Next tick should hold `waiting-on-another-run` naming
+the tablet run and `AddressStep.tsx`; the wall comes down when PR #4 merges.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
@@ -3478,6 +3486,12 @@ parked).
 - [ ] The PR opened at Build contains `.supaprod/intent.md`, `spec.md`, `plan.md` at the run's
       content (A1 checks the PR on `relay-homeowner-app`).
 - [ ] `intent.md` carries the five fields and the forecast (claim, observable, horizon) verbatim.
+
+
+**A1 correction (06:05 IST).** The scope line's five intent fields were my paraphrase and drop the
+one that matters. Build the playbook's five as `SPEC-AI-NATIVE-SDLC.md` quotes them: *problem
+statement, proposed outcome, affected users and systems, constraints, open questions*. Non-goals
+belong to P-02's contract, not to intent. Unblocked: P-02 is code-done and pending only its live read.
 
 **Report / Blockers / A1 verdict:**
 
