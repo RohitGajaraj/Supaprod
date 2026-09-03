@@ -2489,6 +2489,12 @@ database (the two rows now carry `source_kind = 'loop_authored'`); the footing t
 P-40 is here (*a decision made with no findings says so*). Suite on the tip 13,794 / 0 / 0, tsc 0,
 published 15:15. Live proof rides on the founder's second sentence.
 
+**A1, 15:26 IST · item 2 proved live by its own number.** Start's Arriving line on Helio Labs read
+*15 findings this week from 2 sources* before the run, *17 from 3* after the Researcher's two rows,
+and *13 from 2* on the 15:15 publish: the excluder took those two and two older agent-written rows
+out of the seven-day window. Across the database 943 of 1,512 signals carry `source = 'agent'`; in
+Helio Labs 96 of 277. That number goes in the report.
+
 **Report (A2 writes):** `274562ffb` and `97ba24cf3`, published 15:15 IST. Full console suite on the
 tip **13,854 pass / 0 fail / 0 error**, tsc 0. Migration `20260909030000` applied and verified in
 `pg_constraint`.
