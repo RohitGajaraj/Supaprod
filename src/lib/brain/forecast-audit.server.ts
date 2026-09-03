@@ -24,12 +24,26 @@ import { TOOL_REGISTRY } from "@/lib/ai/tools/registry.server";
  * the tick had simply never been able to write here.
  *
  * `reopened_by` and `reopened_at` belong to the reopen path and stay null, which
- * reads correctly: this row is the verdict being made, not unmade.
+ * reads correctly: this row is the verdict being made, not unmade. That is now
+ * true of the TABLE and not just of this sentence: `reopened_at` was NOT NULL
+ * DEFAULT now(), so it could not stay null, and a verdict being made would have
+ * been stamped with the time it was taken back. Fixed in
+ * 20260903180000_a_verdict_being_made_is_not_a_verdict_taken_back.sql, which
+ * also constrains the pair to move together.
+ *
+ * `reason` IS REQUIRED, AND IT IS AN ARGUMENT RATHER THAN A REQUEST. It is NOT
+ * NULL on the table with no default, and this function did not set it, so every
+ * insert it ever attempted raised 23502. Measured on production 2026-09-03: two
+ * decisions settled by `forecast-auditor` at 12:00 UTC, zero rows in the log.
+ * Taking it as a typed parameter is what stops the next caller repeating this;
+ * a comment asking for one is exactly what was here.
  *
  * A FAILED LOG WRITE DOES NOT FAIL THE SETTLE. The verdict is already committed
  * on `decisions` by the time this runs, and throwing here would leave the row
  * settled with the caller told it failed, which is worse than a missing log
- * line. It is recorded and swallowed.
+ * line. So it is still swallowed -- but it is COUNTED and returned now, because
+ * a failure whose only witness is a console line is how this one survived a
+ * full day of ticks reporting ok.
  */
 async function fileResolutionRow(
   supabase: SupabaseClient,
@@ -38,9 +52,11 @@ async function fileResolutionRow(
     workspaceId: string | null;
     resolution: string;
     rationale: string;
+    /** Why this row exists. Required by the table, so required here. */
+    reason: string;
     nowIso: string;
   },
-): Promise<void> {
+): Promise<boolean> {
   const { error } = await supabase.from("forecast_resolution_log").insert({
     decision_id: input.decisionId,
     workspace_id: input.workspaceId,
@@ -48,12 +64,15 @@ async function fileResolutionRow(
     resolution_rationale: input.rationale.slice(0, 2000),
     resolved_at: input.nowIso,
     resolved_by_agent_slug: AUDITOR_SLUG,
+    reason: input.reason,
   } as never);
   if (error) {
     console.error(
       `[forecast-audit] settled ${input.decisionId} but its log row was not written: ${error.message}`,
     );
+    return false;
   }
+  return true;
 }
 
 // FC-01, the grading half. This drafts a verdict for every due forecast and
@@ -218,7 +237,19 @@ export async function auditDueForecasts(
   supabase: SupabaseClient,
   userId: string,
   workspaceId: string,
-): Promise<{ drafted: number; autoSettled: number; raced: number; failed: number }> {
+): Promise<{
+  drafted: number;
+  autoSettled: number;
+  raced: number;
+  failed: number;
+  /**
+   * Verdicts that landed on `decisions` but whose log row did not. Never a
+   * reason to fail the pass -- the answer is committed either way -- but it
+   * leaves the trail incomplete, so the tick reports it instead of a console
+   * line nobody reads.
+   */
+  unlogged: number;
+}> {
   const nowIso = new Date().toISOString();
   const { data: due, error } = await supabase
     .from("decisions")
@@ -244,6 +275,7 @@ export async function auditDueForecasts(
   let autoSettled = 0;
   let raced = 0;
   let failed = 0;
+  let unlogged = 0;
 
   for (const raw of (due ?? []) as unknown as DueRow[]) {
     let settledThisRow = false;
@@ -306,14 +338,19 @@ export async function auditDueForecasts(
           raced++;
           continue;
         }
-        await fileResolutionRow(supabase, {
-          decisionId: raw.id,
-          workspaceId:
-            (refused[0] as { workspace_id?: string | null }).workspace_id ?? workspaceId ?? null,
-          resolution: CANNOT_BE_GRADED,
-          rationale: because,
-          nowIso,
-        });
+        if (
+          !(await fileResolutionRow(supabase, {
+            decisionId: raw.id,
+            workspaceId:
+              (refused[0] as { workspace_id?: string | null }).workspace_id ?? workspaceId ?? null,
+            resolution: CANNOT_BE_GRADED,
+            rationale: because,
+            reason: "Refused at the horizon: the forecast measures our paperwork, not the product.",
+            nowIso,
+          }))
+        ) {
+          unlogged++;
+        }
         autoSettled++;
         drafted++;
         continue;
@@ -511,13 +548,18 @@ export async function auditDueForecasts(
         continue;
       }
       if (settledThisRow) {
-        await fileResolutionRow(supabase, {
-          decisionId: raw.id,
-          workspaceId: workspaceId ?? null,
-          resolution: parsed.verdict,
-          rationale: parsed.rationale,
-          nowIso,
-        });
+        if (
+          !(await fileResolutionRow(supabase, {
+            decisionId: raw.id,
+            workspaceId: workspaceId ?? null,
+            resolution: parsed.verdict,
+            rationale: parsed.rationale,
+            reason: "Graded at the horizon by the forecast auditor.",
+            nowIso,
+          }))
+        ) {
+          unlogged++;
+        }
       }
       drafted++;
     } catch {
@@ -528,5 +570,5 @@ export async function auditDueForecasts(
     }
   }
 
-  return { drafted, autoSettled, raced, failed };
+  return { drafted, autoSettled, raced, failed, unlogged };
 }

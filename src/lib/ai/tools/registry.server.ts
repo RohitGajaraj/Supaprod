@@ -6349,7 +6349,13 @@ const learningRecord = def({
            *
            * `reopened_by` and `reopened_at` are the reopen path's columns and
            * are left null here, which reads correctly: this row is the verdict
-           * being made, not unmade.
+           * being made, not unmade. That was true of this code and false of the
+           * table until 2026-09-03: `reopened_at` was NOT NULL DEFAULT now(), so
+           * leaving it out stamped every verdict MADE with the time it was taken
+           * BACK, and a log where every row looks reopened cannot be told apart
+           * from the record it corrects. The column is nullable now, and a
+           * constraint makes the pair move together
+           * (20260903180000_a_verdict_being_made_is_not_a_verdict_taken_back).
            */
           const row = settled[0] as { id: string; workspace_id?: string | null };
           const { error: logErr } = await supabase.from("forecast_resolution_log").insert({

@@ -66,6 +66,15 @@ export const Route = createFileRoute("/api/public/hooks/calibrate-tick")({
           // insight calibration that was here first.
           let totalForecastsDrafted = 0;
           let totalForecastsAutoSettled = 0;
+          /*
+           * A VERDICT THAT DID NOT REACH THE LOG IS REPORTED, NOT SWALLOWED.
+           * `fileResolutionRow` deliberately does not throw -- the verdict is
+           * already on the decision row and failing the settle would be worse --
+           * so for a full day this tick answered `ok` while every one of its log
+           * writes was rejected. The count travels with the answer now, so the
+           * next time the trail goes missing the tick is the one that says so.
+           */
+          let totalForecastsUnlogged = 0;
           const results: Array<{ workspace_id: string; scored?: number; error?: string }> = [];
 
           for (const ws of workspaces ?? []) {
@@ -83,6 +92,7 @@ export const Route = createFileRoute("/api/public/hooks/calibrate-tick")({
               const f = await auditDueForecasts(supabaseAdmin, ws.owner_id, ws.id);
               totalForecastsDrafted += f.drafted;
               totalForecastsAutoSettled += f.autoSettled;
+              totalForecastsUnlogged += f.unlogged;
               results.push({ workspace_id: ws.id, scored });
             } catch (e) {
               results.push({
@@ -98,6 +108,7 @@ export const Route = createFileRoute("/api/public/hooks/calibrate-tick")({
             scored: totalScored,
             forecastsDrafted: totalForecastsDrafted,
             forecastsAutoSettled: totalForecastsAutoSettled,
+            forecastsUnlogged: totalForecastsUnlogged,
           });
         });
       },
