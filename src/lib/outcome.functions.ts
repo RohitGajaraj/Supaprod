@@ -761,11 +761,14 @@ export async function applyOutcome(
 
     let learning: LearningRow | null = null;
     if (supersedes) {
+      // P-35: named columns, embedding excluded.
       const { data: updated, error: updErr } = await db
         .from("learnings")
         .update(learningFields)
         .eq("id", supersedes)
-        .select()
+        .select(
+          "created_at,decision_id,embedding_model,id,is_sample,metric_label,metric_value,mission_id,new_ice,opportunity_id,prd_id,prior_ice,product_id,recorded_by_agent_slug,summary,updated_at,user_id,verdict,workspace_id",
+        )
         .single();
       if (updErr) throw new Error(updErr.message);
       learning = updated;
@@ -780,12 +783,15 @@ export async function applyOutcome(
       // it: the `.is()` filter is in the WHERE clause rather than in a preceding
       // read, so a concurrent fill loses the race instead of being clobbered.
       if (decisionEdge.decisionId && !(updated as { decision_id?: string | null })?.decision_id) {
+        // P-35: named columns, embedding excluded.
         const { data: filled } = await db
           .from("learnings")
           .update({ decision_id: decisionEdge.decisionId })
           .eq("id", supersedes)
           .is("decision_id", null)
-          .select()
+          .select(
+            "created_at,decision_id,embedding_model,id,is_sample,metric_label,metric_value,mission_id,new_ice,opportunity_id,prd_id,prior_ice,product_id,recorded_by_agent_slug,summary,updated_at,user_id,verdict,workspace_id",
+          )
           .maybeSingle();
         if (filled) learning = filled;
       }
@@ -1942,13 +1948,17 @@ export async function draftOutcomeVerdict(
     .single();
   if (prdErr) throw new Error(prdErr.message);
 
-  // The prediction substrate = the linked opportunity. select("*") keeps this
-  // pre-migration tolerant for the H2 roadmap_outcome/roadmap_measure columns.
+  // The prediction substrate = the linked opportunity. Named columns (P-35):
+  // roadmap_outcome/roadmap_measure are in the schema now, so select("*")'s
+  // pre-migration tolerance is no longer needed, and it named an embedding
+  // vector nothing here reads.
   let opp: Record<string, unknown> | null = null;
   if (prd.opportunity_id) {
     const { data: o } = await db
       .from("opportunities")
-      .select("*")
+      .select(
+        "confidence,created_at,critic_review,ease,embedding_model,goal_id,hypothesis,ice_score,id,impact,is_public,is_sample,linked_brief_item_id,posthog_event,problem,product_id,project_id,roadmap_bucket,roadmap_last_agent_slug,roadmap_measure,roadmap_outcome,roadmap_snapshot_before,share_slug,status,target_user,theme_id,title,updated_at,user_id,workspace_id",
+      )
       .eq("id", prd.opportunity_id)
       .maybeSingle();
     opp = (o as Record<string, unknown> | null) ?? null;

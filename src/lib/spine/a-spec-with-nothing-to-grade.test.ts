@@ -74,7 +74,14 @@ describe("the seat that writes the spec is told to state the measure", () => {
 
 describe("the loop's own specs get their oracles compiled", () => {
   it("generatePrd compiles them, as the human draft path already did", () => {
-    const insert = DISCOVERY.slice(DISCOVERY.indexOf('.from("prds").insert(prdRow)'));
+    // Whitespace-tolerant anchor: P-35 (A-QUEUE.md) gave the `.select()` on
+    // this call a real column list instead of a bare select, which reflowed
+    // `.from("prds")` and `.insert(prdRow)` onto separate lines. The anchor's
+    // job is finding THIS insert (not the other one this file makes), not
+    // pinning its exact formatting.
+    const anchor = DISCOVERY.match(/\.from\(\s*"prds"\s*\)\s*\.insert\(prdRow\)/);
+    expect(anchor, 'could not find .from("prds").insert(prdRow) at all').not.toBeNull();
+    const insert = DISCOVERY.slice(anchor!.index!);
     expect(insert.slice(0, 2500)).toContain("compileContractOraclesCore");
   });
 

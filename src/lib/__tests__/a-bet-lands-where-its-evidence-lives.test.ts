@@ -65,7 +65,10 @@ describe("a promoted bet lands in the workspace its evidence lives in", () => {
     const body = promoteBody();
     const insertAt = body.indexOf('.from("opportunities")');
     const scopeAt = body.indexOf("workspace_id: theme.workspace_id");
-    const selectAt = body.indexOf(".select()", insertAt);
+    // `.select(` alone, not the literal `.select()`: P-35 (A-QUEUE.md) gave
+    // this call a real column list instead of a bare select, so the select
+    // this test needs to land AFTER the scope now takes an argument.
+    const selectAt = body.indexOf(".select(", insertAt);
     expect(insertAt).toBeGreaterThan(-1);
     expect(scopeAt).toBeGreaterThan(insertAt);
     expect(scopeAt).toBeLessThan(selectAt);

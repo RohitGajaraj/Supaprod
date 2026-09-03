@@ -345,9 +345,27 @@ export const exportProduct = createServerFn({ method: "GET" })
     if (!product) throw new Error("Product not found");
 
     const [signals, opportunities, prds, tasks] = await Promise.all([
-      supabase.from("signals").select("*").eq("project_id", data.id),
-      supabase.from("opportunities").select("*").eq("project_id", data.id),
-      supabase.from("prds").select("*").eq("project_id", data.id),
+      // P-35: named columns, embedding excluded
+      supabase
+        .from("signals")
+        .select(
+          "content,created_at,embedding_model,external_id,id,is_sample,last_restated_at,product_id,project_id,reference_urls,restated_count,sentiment,source,source_kind,tags,theme_id,title,url,user_id,workspace_id",
+        )
+        .eq("project_id", data.id),
+      // P-35: named columns, embedding excluded
+      supabase
+        .from("opportunities")
+        .select(
+          "confidence,created_at,critic_review,ease,embedding_model,goal_id,hypothesis,ice_score,id,impact,is_public,is_sample,linked_brief_item_id,posthog_event,problem,product_id,project_id,roadmap_bucket,roadmap_last_agent_slug,roadmap_measure,roadmap_outcome,roadmap_snapshot_before,share_slug,status,target_user,theme_id,title,updated_at,user_id,workspace_id",
+        )
+        .eq("project_id", data.id),
+      // P-35: named columns, embedding excluded
+      supabase
+        .from("prds")
+        .select(
+          "body_md,citations,contract,contract_migrated_at,created_at,critic_review,design_decided_at,design_decided_by,design_gate_status,embedding_model,github_issue_url,id,is_sample,model,opportunity_id,outcome,outcome_check_by,outcome_deferred_at,outcome_deferred_count,outcome_suggestion,product_id,project_id,shipped_at,snapshot_before,status,title,updated_at,user_id,workspace_id",
+        )
+        .eq("project_id", data.id),
       supabase.from("tasks").select("*").eq("project_id", data.id),
     ]);
     const firstErr = signals.error || opportunities.error || prds.error || tasks.error;
@@ -475,9 +493,27 @@ export const exportWorkspace = createServerFn({ method: "GET" })
     let tsk: JsonObject[] = [];
     if (projectIds.length > 0) {
       const [signals, opportunities, prds, tasks] = await Promise.all([
-        supabase.from("signals").select("*").in("project_id", projectIds),
-        supabase.from("opportunities").select("*").in("project_id", projectIds),
-        supabase.from("prds").select("*").in("project_id", projectIds),
+        // P-35: named columns, embedding excluded
+        supabase
+          .from("signals")
+          .select(
+            "content,created_at,embedding_model,external_id,id,is_sample,last_restated_at,product_id,project_id,reference_urls,restated_count,sentiment,source,source_kind,tags,theme_id,title,url,user_id,workspace_id",
+          )
+          .in("project_id", projectIds),
+        // P-35: named columns, embedding excluded
+        supabase
+          .from("opportunities")
+          .select(
+            "confidence,created_at,critic_review,ease,embedding_model,goal_id,hypothesis,ice_score,id,impact,is_public,is_sample,linked_brief_item_id,posthog_event,problem,product_id,project_id,roadmap_bucket,roadmap_last_agent_slug,roadmap_measure,roadmap_outcome,roadmap_snapshot_before,share_slug,status,target_user,theme_id,title,updated_at,user_id,workspace_id",
+          )
+          .in("project_id", projectIds),
+        // P-35: named columns, embedding excluded
+        supabase
+          .from("prds")
+          .select(
+            "body_md,citations,contract,contract_migrated_at,created_at,critic_review,design_decided_at,design_decided_by,design_gate_status,embedding_model,github_issue_url,id,is_sample,model,opportunity_id,outcome,outcome_check_by,outcome_deferred_at,outcome_deferred_count,outcome_suggestion,product_id,project_id,shipped_at,snapshot_before,status,title,updated_at,user_id,workspace_id",
+          )
+          .in("project_id", projectIds),
         supabase.from("tasks").select("*").in("project_id", projectIds),
       ]);
       const e = signals.error || opportunities.error || prds.error || tasks.error;
@@ -490,8 +526,20 @@ export const exportWorkspace = createServerFn({ method: "GET" })
 
     // Owner-scoped entities: the user's own outcome learnings and agent memory.
     const [learnings, memory] = await Promise.all([
-      supabase.from("learnings").select("*").eq("user_id", userId),
-      supabase.from("agent_memory").select("*").eq("user_id", userId),
+      // P-35: named columns, embedding excluded
+      supabase
+        .from("learnings")
+        .select(
+          "created_at,decision_id,embedding_model,id,is_sample,metric_label,metric_value,mission_id,new_ice,opportunity_id,prd_id,prior_ice,product_id,recorded_by_agent_slug,summary,updated_at,user_id,verdict,workspace_id",
+        )
+        .eq("user_id", userId),
+      // P-35: named columns, embedding excluded
+      supabase
+        .from("agent_memory")
+        .select(
+          "agent_id,agent_slug,content,created_at,embedding_model,expires_at,id,importance,is_sample,kind,last_used_at,metadata,product_id,scope,updated_at,user_id,visibility,workspace_id",
+        )
+        .eq("user_id", userId),
     ]);
     const ownErr = learnings.error || memory.error;
     if (ownErr) throw new Error(ownErr.message);
@@ -526,9 +574,21 @@ export const exportWorkspace = createServerFn({ method: "GET" })
      * promise was kept and the contents were not.
      */
     const [decisions, tracks, themes, prototypes, changesets, deployments] = await Promise.all([
-      supabase.from("decisions").select("*").eq("workspace_id", workspaceId),
+      // P-35: named columns, embedding excluded
+      supabase
+        .from("decisions")
+        .select(
+          "alternatives_considered,auto_origin,cited_by_count,created_at,decided_by_agent_slug,embedding_model,forecast_band_drifting_at,forecast_band_missed_at,forecast_baseline,forecast_claim,forecast_deferred_at,forecast_deferred_count,forecast_direction,forecast_horizon_date,forecast_how_we_will_know,forecast_if_drifting,forecast_if_missed,forecast_metric,forecast_next_check_at,forecast_observations,forecast_predicted,forecast_resolution,forecast_resolution_rationale,forecast_resolution_suggestion,forecast_resolved_at,forecast_resolved_by_agent_slug,id,intent,is_public,is_sample,meeting_id,mission_id,prd_id,product_id,project_id,rationale,share_slug,snapshot_before,source_kind,status,title,user_id,workspace_id",
+        )
+        .eq("workspace_id", workspaceId),
       supabase.from("spine_tracks").select("*").eq("workspace_id", workspaceId),
-      supabase.from("themes").select("*").eq("workspace_id", workspaceId),
+      // P-35: named columns, embedding excluded
+      supabase
+        .from("themes")
+        .select(
+          "confidence,created_at,dismissed_at_frequency,embedding_model,escalated_at,frequency,id,is_sample,last_signal_at,novelty,novelty_basis,product_id,project_id,scored_at,severity,status,status_reason,summary,title,user_id,workspace_id",
+        )
+        .eq("workspace_id", workspaceId),
       supabase.from("prototypes").select("*").eq("workspace_id", workspaceId),
       supabase.from("studio_changesets").select("*").eq("user_id", userId),
       supabase.from("deployments").select("*").eq("user_id", userId),

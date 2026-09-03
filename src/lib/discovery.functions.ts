@@ -112,7 +112,10 @@ export const runWedgeTeardown = createServerFn({ method: "POST" })
         ease: 5,
         project_id: data.project_id ?? null,
       })
-      .select()
+      // P-35: named columns, embedding excluded.
+      .select(
+        "confidence,created_at,critic_review,ease,embedding_model,goal_id,hypothesis,ice_score,id,impact,is_public,is_sample,linked_brief_item_id,posthog_event,problem,product_id,project_id,roadmap_bucket,roadmap_last_agent_slug,roadmap_measure,roadmap_outcome,roadmap_snapshot_before,share_slug,status,target_user,theme_id,title,updated_at,user_id,workspace_id",
+      )
       .single();
     if (error || !opp) throw new Error(error?.message ?? "Could not record the idea");
 
@@ -249,7 +252,10 @@ export const listSignals = createServerFn({ method: "GET" })
   .handler(async ({ context, data }) => {
     let query = context.supabase
       .from("signals")
-      .select("*")
+      // P-35: named columns, embedding excluded.
+      .select(
+        "content,created_at,embedding_model,external_id,id,is_sample,last_restated_at,product_id,project_id,reference_urls,restated_count,sentiment,source,source_kind,tags,theme_id,title,url,user_id,workspace_id",
+      )
       .order("created_at", { ascending: false })
       .limit(200);
     // A product-scoped view must still surface workspace-level signals with
@@ -1491,7 +1497,10 @@ export const listOpportunities = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("opportunities")
-      .select("*")
+      // P-35: named columns, embedding excluded.
+      .select(
+        "confidence,created_at,critic_review,ease,embedding_model,goal_id,hypothesis,ice_score,id,impact,is_public,is_sample,linked_brief_item_id,posthog_event,problem,product_id,project_id,roadmap_bucket,roadmap_last_agent_slug,roadmap_measure,roadmap_outcome,roadmap_snapshot_before,share_slug,status,target_user,theme_id,title,updated_at,user_id,workspace_id",
+      )
       .order("ice_score", { ascending: false })
       .limit(500);
     if (error) throw new Error(error.message);
@@ -1632,7 +1641,10 @@ export const promoteThemeToOpportunity = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data: theme, error } = await supabase
       .from("themes")
-      .select("*")
+      // P-35: named columns, embedding excluded.
+      .select(
+        "confidence,created_at,dismissed_at_frequency,embedding_model,escalated_at,frequency,id,is_sample,last_signal_at,novelty,novelty_basis,product_id,project_id,scored_at,severity,status,status_reason,summary,title,user_id,workspace_id",
+      )
       .eq("id", data.theme_id)
       .single();
     if (error || !theme) throw new Error("Theme not found");
@@ -1704,7 +1716,10 @@ export const promoteThemeToOpportunity = createServerFn({ method: "POST" })
          */
         workspace_id: theme.workspace_id,
       })
-      .select()
+      // P-35: named columns, embedding excluded.
+      .select(
+        "confidence,created_at,critic_review,ease,embedding_model,goal_id,hypothesis,ice_score,id,impact,is_public,is_sample,linked_brief_item_id,posthog_event,problem,product_id,project_id,roadmap_bucket,roadmap_last_agent_slug,roadmap_measure,roadmap_outcome,roadmap_snapshot_before,share_slug,status,target_user,theme_id,title,updated_at,user_id,workspace_id",
+      )
       .single();
     if (oErr) throw new Error(oErr.message);
     if (opp) {
@@ -1874,7 +1889,10 @@ export const updateOpportunity = createServerFn({ method: "POST" })
       .from("opportunities")
       .update(patch)
       .eq("id", id)
-      .select()
+      // P-35: named columns, embedding excluded.
+      .select(
+        "confidence,created_at,critic_review,ease,embedding_model,goal_id,hypothesis,ice_score,id,impact,is_public,is_sample,linked_brief_item_id,posthog_event,problem,product_id,project_id,roadmap_bucket,roadmap_last_agent_slug,roadmap_measure,roadmap_outcome,roadmap_snapshot_before,share_slug,status,target_user,theme_id,title,updated_at,user_id,workspace_id",
+      )
       .single();
     if (error) throw new Error(error.message);
 
@@ -2376,7 +2394,10 @@ export const getPrd = createServerFn({ method: "GET" })
   .handler(async ({ context, data }) => {
     const { data: row, error } = await context.supabase
       .from("prds")
-      .select("*")
+      // P-35: named columns, embedding excluded.
+      .select(
+        "body_md,citations,contract,contract_migrated_at,created_at,critic_review,design_decided_at,design_decided_by,design_gate_status,embedding_model,github_issue_url,id,is_sample,model,opportunity_id,outcome,outcome_check_by,outcome_deferred_at,outcome_deferred_count,outcome_suggestion,product_id,project_id,shipped_at,snapshot_before,status,title,updated_at,user_id,workspace_id",
+      )
       .eq("id", data.id)
       .single();
     if (error) throw new Error(error.message);
@@ -2758,7 +2779,10 @@ export const draftContractFromIntent = createServerFn({ method: "POST" })
         contract,
         contract_migrated_at: nowIso,
       })
-      .select()
+      // P-35: named columns, embedding excluded.
+      .select(
+        "body_md,citations,contract,contract_migrated_at,created_at,critic_review,design_decided_at,design_decided_by,design_gate_status,embedding_model,github_issue_url,id,is_sample,model,opportunity_id,outcome,outcome_check_by,outcome_deferred_at,outcome_deferred_count,outcome_suggestion,product_id,project_id,shipped_at,snapshot_before,status,title,updated_at,user_id,workspace_id",
+      )
       .single();
     if (error || !prd) throw new Error(error?.message ?? "Could not create the spec");
 
@@ -3218,7 +3242,10 @@ export const savePrd = createServerFn({ method: "POST" })
       .from("prds")
       .update(patch)
       .eq("id", id)
-      .select()
+      // P-35: named columns, embedding excluded.
+      .select(
+        "body_md,citations,contract,contract_migrated_at,created_at,critic_review,design_decided_at,design_decided_by,design_gate_status,embedding_model,github_issue_url,id,is_sample,model,opportunity_id,outcome,outcome_check_by,outcome_deferred_at,outcome_deferred_count,outcome_suggestion,product_id,project_id,shipped_at,snapshot_before,status,title,updated_at,user_id,workspace_id",
+      )
       .single();
     if (error) throw new Error(error.message);
 
@@ -3896,7 +3923,10 @@ export const generatePrd = createServerFn({ method: "POST" })
     if (data.opportunity_id) {
       const { data: opp, error } = await supabase
         .from("opportunities")
-        .select("*")
+        // P-35: named columns, embedding excluded.
+        .select(
+          "confidence,created_at,critic_review,ease,embedding_model,goal_id,hypothesis,ice_score,id,impact,is_public,is_sample,linked_brief_item_id,posthog_event,problem,product_id,project_id,roadmap_bucket,roadmap_last_agent_slug,roadmap_measure,roadmap_outcome,roadmap_snapshot_before,share_slug,status,target_user,theme_id,title,updated_at,user_id,workspace_id",
+        )
         .eq("id", data.opportunity_id)
         .single();
       if (error || !opp) throw new Error("Opportunity not found");
@@ -3952,7 +3982,10 @@ ICE. Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
       if (!data.force) {
         const { data: existing, error: existingErr } = await supabase
           .from("prds")
-          .select("*")
+          // P-35: named columns, embedding excluded.
+          .select(
+            "body_md,citations,contract,contract_migrated_at,created_at,critic_review,design_decided_at,design_decided_by,design_gate_status,embedding_model,github_issue_url,id,is_sample,model,opportunity_id,outcome,outcome_check_by,outcome_deferred_at,outcome_deferred_count,outcome_suggestion,product_id,project_id,shipped_at,snapshot_before,status,title,updated_at,user_id,workspace_id",
+          )
           .eq("opportunity_id", oppId)
           .order("created_at", { ascending: false })
           .limit(1)
@@ -4226,7 +4259,14 @@ ICE. Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
       contract_migrated_at: nowIso,
       ...(bet?.is_sample ? { is_sample: true } : {}),
     };
-    const { data: prd, error: pErr } = await supabase.from("prds").insert(prdRow).select().single();
+    // P-35: named columns, embedding excluded.
+    const { data: prd, error: pErr } = await supabase
+      .from("prds")
+      .insert(prdRow)
+      .select(
+        "body_md,citations,contract,contract_migrated_at,created_at,critic_review,design_decided_at,design_decided_by,design_gate_status,embedding_model,github_issue_url,id,is_sample,model,opportunity_id,outcome,outcome_check_by,outcome_deferred_at,outcome_deferred_count,outcome_suggestion,product_id,project_id,shipped_at,snapshot_before,status,title,updated_at,user_id,workspace_id",
+      )
+      .single();
     if (pErr) throw new Error(pErr.message);
     if (prd) {
       /*

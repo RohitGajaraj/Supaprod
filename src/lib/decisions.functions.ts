@@ -438,10 +438,13 @@ export const createDecision = createServerFn({ method: "POST" })
       source_kind,
       user_id: context.userId,
     } as unknown as TablesInsert<"decisions">;
+    // P-35: named columns, embedding excluded.
     const { data: row, error } = await context.supabase
       .from("decisions")
       .insert(insertPayload)
-      .select()
+      .select(
+        "alternatives_considered,auto_origin,cited_by_count,created_at,decided_by_agent_slug,embedding_model,forecast_band_drifting_at,forecast_band_missed_at,forecast_baseline,forecast_claim,forecast_deferred_at,forecast_deferred_count,forecast_direction,forecast_horizon_date,forecast_how_we_will_know,forecast_if_drifting,forecast_if_missed,forecast_metric,forecast_next_check_at,forecast_observations,forecast_predicted,forecast_resolution,forecast_resolution_rationale,forecast_resolution_suggestion,forecast_resolved_at,forecast_resolved_by_agent_slug,id,intent,is_public,is_sample,meeting_id,mission_id,prd_id,product_id,project_id,rationale,share_slug,snapshot_before,source_kind,status,title,user_id,workspace_id",
+      )
       .single();
     if (error) throw new Error(error.message);
     void track("decision_made", context.userId, { prd_id: data.prd_id ?? undefined });

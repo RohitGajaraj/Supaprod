@@ -82,9 +82,12 @@ export const getRoadmap = createServerFn({ method: "GET" })
     // 'dropped', NOT NULL default 'backlog') carries the lifecycle state that
     // discovery's updateOpportunity writes; without this filter, shipped and
     // dropped items permanently reappear on the Now/Next/Later board.
+    // P-35: named columns, embedding excluded.
     const { data, error } = await context.supabase
       .from("opportunities")
-      .select("*")
+      .select(
+        "confidence,created_at,critic_review,ease,embedding_model,goal_id,hypothesis,ice_score,id,impact,is_public,is_sample,linked_brief_item_id,posthog_event,problem,product_id,project_id,roadmap_bucket,roadmap_last_agent_slug,roadmap_measure,roadmap_outcome,roadmap_snapshot_before,share_slug,status,target_user,theme_id,title,updated_at,user_id,workspace_id",
+      )
       .not("status", "in", "(shipped,dropped)")
       .order("ice_score", { ascending: false })
       .limit(300);

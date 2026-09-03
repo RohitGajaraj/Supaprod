@@ -75,73 +75,190 @@ const SELECT = /\.select\(\s*"([^"]+)"/g;
 
 type Finding = { file: string; line: number; table: string; column: string };
 
+/** One `.from("table")` call site, found in a comment-stripped file. */
+type FromCall = { file: string; src: string; table: string; index: number; matchLength: number };
+
+function strippedSource(file: string): string {
+  /*
+   * COMMENTS STRIPPED FIRST. `trust.server.ts` documents its own defect by
+   * quoting the query verbatim, and a guard that fires on a correct
+   * explanation of a fixed bug is a guard that gets its explanation deleted.
+   * This file has been bitten by that three times in two days.
+   */
+  return readFileSync(file, "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, " "))
+    .replace(/^([^\n"'`]*?)\/\/.*$/gm, (_, keep) => keep);
+}
+
+function everyFromCall(): FromCall[] {
+  const out: FromCall[] = [];
+  for (const file of sourceFiles("src")) {
+    const src = strippedSource(file);
+    for (const m of src.matchAll(FROM)) {
+      out.push({ file, src, table: m[1]!, index: m.index!, matchLength: m[0].length });
+    }
+  }
+  return out;
+}
+
 function scan(): Finding[] {
   const schema = schemaFromTypes();
   const found: Finding[] = [];
-  for (const file of sourceFiles("src")) {
-    /*
-     * COMMENTS STRIPPED FIRST. `trust.server.ts` documents its own dead-column
-     * defect by quoting the query verbatim, and a guard that fires on a correct
-     * explanation of a fixed bug is a guard that gets its explanation deleted.
-     * This file has been bitten by that three times in two days.
-     */
-    const src = readFileSync(file, "utf8")
-      .replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, " "))
-      .replace(/^([^\n"'`]*?)\/\/.*$/gm, (_, keep) => keep);
-    const starts = [...src.matchAll(FROM)];
-    for (let i = 0; i < starts.length; i += 1) {
-      const m = starts[i]!;
-      const table = m[1]!;
-      const cols = schema.get(table);
-      if (!cols) continue;
-      /*
-       * THE CHAIN IS THE CONTIGUOUS RUN OF METHOD CALLS, and nothing looser
-       * works. Three bounds were tried against the real codebase:
-       *
-       *   a fixed character window   349 findings, 342 of them a neighbouring
-       *                              query's columns blamed on this table
-       *   up to the next `.from(`    7 findings, 4 of them noise
-       *   up to the next `;`         1 finding, still noise: a chain formatted
-       *                              as a `Promise.all` argument has no
-       *                              semicolon before the NEXT argument, so it
-       *                              swallowed `recallBase().eq("outcome", ...)`
-       *                              -- a builder on a different table entirely.
-       *
-       * A query builder is written as `.a().b().c()`, one call per line, and it
-       * ends where that stops. Walking the lines is exact where a character
-       * count and a delimiter are both guesses, and it is what makes this file
-       * safe to keep: a guard that reports four false positives is a guard
-       * somebody deletes on a busy morning.
-       */
-      const from = m.index! + m[0].length;
-      const rest = src.slice(from);
-      const lines = rest.split("\n");
-      const chainLines: string[] = [lines[0] ?? ""];
-      for (const line of lines.slice(1)) {
-        const t = line.trim();
-        // Blank lines and closing punctuation belong to the call that is still
-        // open; anything else is the next expression.
-        if (t === "" || t.startsWith(".") || /^[)\],;]/.test(t)) {
-          chainLines.push(line);
-          if (/^[)\],;]/.test(t) && !t.startsWith(".")) break;
-          continue;
-        }
-        break;
+  for (const call of everyFromCall()) {
+    const table = call.table;
+    const cols = schema.get(table);
+    if (!cols) continue;
+    const chain = chainFor(call);
+    const named = new Set([...chain.matchAll(FILTER)].map((f) => f[1]!));
+    for (const sel of [...chain.matchAll(SELECT)].map((s) => s[1]!)) {
+      // An embedded resource is a relationship, not a column on this table.
+      if (sel.includes("(")) continue;
+      for (const raw of sel.split(",")) {
+        const c = raw.trim().split(":").pop()!.trim();
+        if (/^[a-zA-Z_]+$/.test(c) && c !== "*") named.add(c);
       }
-      const chain = chainLines.join("\n");
-      const named = new Set([...chain.matchAll(FILTER)].map((f) => f[1]!));
-      for (const sel of [...chain.matchAll(SELECT)].map((s) => s[1]!)) {
-        // An embedded resource is a relationship, not a column on this table.
-        if (sel.includes("(")) continue;
-        for (const raw of sel.split(",")) {
-          const c = raw.trim().split(":").pop()!.trim();
-          if (/^[a-zA-Z_]+$/.test(c) && c !== "*") named.add(c);
-        }
+    }
+    for (const c of named) {
+      if (!cols.has(c)) {
+        found.push({ file: call.file, line: lineOf(call), table, column: c });
       }
-      for (const c of named) {
-        if (!cols.has(c)) {
-          found.push({ file, line: src.slice(0, m.index!).split("\n").length, table, column: c });
-        }
+    }
+  }
+  return found;
+}
+
+/**
+ * THE CHAIN IS THE CONTIGUOUS RUN OF METHOD CALLS, and nothing looser works.
+ * Three bounds were tried against the real codebase:
+ *
+ *   a fixed character window   349 findings, 342 of them a neighbouring
+ *                              query's columns blamed on this table
+ *   up to the next `.from(`    7 findings, 4 of them noise
+ *   up to the next `;`         1 finding, still noise: a chain formatted
+ *                              as a `Promise.all` argument has no
+ *                              semicolon before the NEXT argument, so it
+ *                              swallowed `recallBase().eq("outcome", ...)`
+ *                              -- a builder on a different table entirely.
+ *
+ * A query builder is written as `.a().b().c()`, one call per line, and it
+ * ends where that stops. Walking the lines is exact where a character
+ * count and a delimiter are both guesses, and it is what makes this file
+ * safe to keep: a guard that reports four false positives is a guard
+ * somebody deletes on a busy morning. Shared by every scan below (P-35,
+ * A-QUEUE.md) -- one chain-walk, not one per guard, so a future fourth
+ * check inherits the same exactness rather than re-deriving it.
+ */
+function chainFor(call: FromCall): string {
+  const from = call.index + call.matchLength;
+  const rest = call.src.slice(from);
+  const lines = rest.split("\n");
+  const chainLines: string[] = [lines[0] ?? ""];
+  for (const line of lines.slice(1)) {
+    const t = line.trim();
+    // Blank lines and closing punctuation belong to the call that is still
+    // open; anything else is the next expression.
+    if (t === "" || t.startsWith(".") || /^[)\],;]/.test(t)) {
+      chainLines.push(line);
+      if (/^[)\],;]/.test(t) && !t.startsWith(".")) break;
+      continue;
+    }
+    break;
+  }
+  return chainLines.join("\n");
+}
+
+function lineOf(call: FromCall): number {
+  return call.src.slice(0, call.index).split("\n").length;
+}
+
+/**
+ * ── EVERY TABLE WITH A VECTOR COLUMN, AND EVERY BLIND SELECT AGAINST ONE ──
+ * (P-35, A-QUEUE.md.) P-32 found `listThemes` selecting `*` on `themes`,
+ * which carries a pgvector `embedding`: 2.6 MB of a 2.75 MB response for 138
+ * rows, rendered nowhere on the one screen that read it.
+ *
+ * HAND-MAINTAINED, NOT DERIVED FROM `types.ts` -- AND THAT IS THE REASON THIS
+ * IS A SEPARATE MAP. `schemaFromTypes()` above reads column NAMES, and a
+ * pgvector column has no distinct TypeScript shape to detect by: Supabase's
+ * generator emits `embedding: string | null`, the identical shape as `title`
+ * or `origin`. There is nothing in the generated file that says "this one is
+ * 1536 floats" — only the live schema does (`udt_name = 'vector'`, checked
+ * against Helio Labs through the Lovable MCP, not assumed). Same discipline
+ * `attach.ts`'s `TOOL_PRODUCTS` and `chain.ts`'s `ARTIFACT_SOURCE` already
+ * use for a fact `types.ts` cannot state: verified once against the real
+ * database, kept here as the one place that says it.
+ */
+const VECTOR_COLUMNS: Readonly<Record<string, string>> = {
+  agent_memory: "embedding",
+  decisions: "embedding",
+  learnings: "embedding",
+  opportunities: "embedding",
+  prds: "embedding",
+  rag_chunks: "embedding",
+  signals: "embedding",
+  themes: "embedding",
+};
+
+/** `select("*")`, `select("*", {...})`, or a bare `select()` -- every shape
+ *  PostgREST reads as "every column", including the vector. */
+const STAR_OR_BARE_SELECT = /\.select\(\s*(?:\)|"\*"\s*[,)])/;
+
+type VectorFinding = { file: string; line: number; table: string; detail: string };
+
+function scanVectorSelectStar(): VectorFinding[] {
+  const found: VectorFinding[] = [];
+  for (const call of everyFromCall()) {
+    if (!(call.table in VECTOR_COLUMNS)) continue;
+    const chain = chainFor(call);
+    if (STAR_OR_BARE_SELECT.test(chain)) {
+      found.push({
+        file: call.file,
+        line: lineOf(call),
+        table: call.table,
+        detail: `select("*") or select() names every column, including ${call.table}.${VECTOR_COLUMNS[call.table]}`,
+      });
+    }
+  }
+  return found;
+}
+
+/**
+ * `.server.ts` FILES ARE EXCLUDED HERE, ON PURPOSE, AND ONLY HERE.
+ *
+ * The packet's own scope names it precisely: "the embedding column is never
+ * in a CLIENT-FACING select" (P-35, A-QUEUE.md). `cluster.server.ts` and
+ * `sink.server.ts` both read `signals.embedding` deliberately -- clustering
+ * and near-duplicate restatement screening are exactly what a vector column
+ * is FOR -- and neither ever returns a signal row to a caller: `clusterSignalsCore`
+ * resolves to `{ themes, theme_ids, message }`, `screenRestatements` to
+ * `{ keep, restated }`, neither carrying the vector past the function that
+ * read it. `.server.ts` is this repo's own existing convention for "internal,
+ * never a `createServerFn` client boundary" (`driver.server.ts`,
+ * `critic.server.ts`, and every other `*.server.ts` file already mean this),
+ * so it is the one line that separates a legitimate consumer from a leak
+ * without hand-listing every function that is allowed to compute with a
+ * vector. `scanVectorSelectStar` above stays UNSCOPED: naming columns
+ * explicitly instead of `*` is good practice everywhere, server-internal
+ * code included, and it is not the "reaches the browser" question this one
+ * guard is for.
+ */
+function scanVectorColumnNamed(): VectorFinding[] {
+  const found: VectorFinding[] = [];
+  for (const call of everyFromCall()) {
+    if (call.file.endsWith(".server.ts")) continue;
+    const vectorCol = VECTOR_COLUMNS[call.table];
+    if (!vectorCol) continue;
+    const chain = chainFor(call);
+    for (const sel of [...chain.matchAll(SELECT)].map((s) => s[1]!)) {
+      if (sel.includes("(")) continue; // an embedded resource, not a flat column list
+      const names = sel.split(",").map((raw) => raw.trim().split(":").pop()!.trim());
+      if (names.includes(vectorCol)) {
+        found.push({
+          file: call.file,
+          line: lineOf(call),
+          table: call.table,
+          detail: `select() names ${call.table}.${vectorCol} explicitly`,
+        });
       }
     }
   }
@@ -187,5 +304,47 @@ describe("no query names a column its table does not have", () => {
 
   it("scans a real number of files, so an empty walk cannot pass either", () => {
     expect(sourceFiles("src").length).toBeGreaterThan(500);
+  });
+});
+
+describe("no query selects a vector it will never render (P-35, A-QUEUE.md)", () => {
+  it("no select(*) or bare select() reaches a table that carries one", () => {
+    const found = scanVectorSelectStar();
+    const said = found.map((f) => `${f.file}:${f.line}  ${f.table}: ${f.detail}`).join("\n");
+    expect(found, `\n${said}\n`).toEqual([]);
+  });
+
+  it("no select ever names the vector column itself, even explicitly", () => {
+    const found = scanVectorColumnNamed();
+    const said = found.map((f) => `${f.file}:${f.line}  ${f.table}: ${f.detail}`).join("\n");
+    expect(found, `\n${said}\n`).toEqual([]);
+  });
+
+  it("the vector census is not stale, so a table added later cannot go unwatched", () => {
+    // THE GUARD ON THIS GUARD. `VECTOR_COLUMNS` cannot be derived from
+    // `types.ts` (see its own header) so nothing catches a NINTH vector
+    // column landing without this map growing to name it -- this at least
+    // pins the eight known today, so a silent drop of one is caught here
+    // even though a genuinely new one still needs a person to add it.
+    expect(Object.keys(VECTOR_COLUMNS).sort()).toEqual([
+      "agent_memory",
+      "decisions",
+      "learnings",
+      "opportunities",
+      "prds",
+      "rag_chunks",
+      "signals",
+      "themes",
+    ]);
+  });
+
+  it("both scans would catch a real select(*) if one existed", () => {
+    // Asserted against the regex directly, the same reasoning as "and would
+    // still catch the five it was written for" above: a synthetic chain,
+    // not a live bug reintroduced and reverted, proves the pattern matches
+    // without leaving a real regression in the tree between commits.
+    expect(STAR_OR_BARE_SELECT.test('.select("*", { count: "exact" })')).toBe(true);
+    expect(STAR_OR_BARE_SELECT.test(".select()")).toBe(true);
+    expect(STAR_OR_BARE_SELECT.test('.select("id,title")')).toBe(false);
   });
 });
