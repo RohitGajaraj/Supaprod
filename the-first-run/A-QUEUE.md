@@ -7365,7 +7365,7 @@ not marked given-up for a fault that is the product's, and P-68's *Try the previ
 moment its attempts reset. A1 clears the deferral when P-68 is published.
 
 
-### P-68 · A managed preview that failed is tried again and says why, and a gate that cannot succeed is not offered · Lane: **A2** (moved from A3 at 02:00 IST 09-04, ahead of P-70: A3 silent since 00:47) · Status: CODE DONE (3e340b629; A2 reports 14,040 / 0 / 0, tsc 0; A1 suite on the tip 14,040 / 0, tsc 0; PUBLISHED 02:15 IST 09-04; the tablet track has attempts 0 and a deferral to 20:56 UTC so the old build cannot drive it before the new one serves; the retry is read after) · Moves: 1, 3
+### P-68 · A managed preview that failed is tried again and says why, and a gate that cannot succeed is not offered · Lane: **A2** (moved from A3 at 02:00 IST 09-04, ahead of P-70: A3 silent since 00:47) · Status: CODE DONE (3e340b629; A2 reports 14,040 / 0 / 0, tsc 0; A1 suite on the tip 14,040 / 0, tsc 0; PUBLISHED 02:15 IST 09-04; the tablet track has attempts 0 and a deferral to 20:56 UTC so the old build cannot drive it before the new one serves; the retry is read after) · P-68b CODE DONE (c958e26fe; A2 reports 14,112 / 0 / 0, tsc 0; A1 suite running, publish, then the press) · Moves: 1, 3
 
 **Why.** The live walk above. The path to an honest Ship is blocked by a preview deploy that
 failed once with no recorded reason and is never retried, while the release gate keeps offering
@@ -7527,6 +7527,25 @@ seat's sentence with its door; the merge gate on any track shows the files and b
 Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
+
+
+### P-73 · A guard's subject is bounded at both ends · Lane: **A2** (after P-72) · Status: READY · Moves: 1
+
+**Why.** F-191: six guards in one night whose subject was defined by where a file happened to end
+or by a comment anchor that stripping removed, so appending an unrelated function put it under a
+test that had never been written about it, and one guard failed naming a function that had not
+changed. The ledger row understates how common the shape is.
+
+**Scope.** A ratchet in the shape of P-67: a test that walks the suite's source-reading guards,
+counts per file those that slice from an anchor to end-of-file or anchor on a comment, and fails
+when a file's count grows; a baseline committed with the first run's numbers; the six known sites
+bounded at both ends in the same commit and their entries lowered. Report the count before fixing
+anything; if it is large, the packet is the plan.
+
+**Acceptance.** The ratchet green on the tip with its baseline; the six sites at zero. Full suite on
+the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
