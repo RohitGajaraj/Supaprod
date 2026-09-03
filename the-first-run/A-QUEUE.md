@@ -7063,7 +7063,7 @@ not a second query. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and walks all nine.
 
-### P-61 · One name per place · Lane: **A3** (after P-58) · Status: CLAIMED (A3) · Moves: 2
+### P-61 · One name per place · Lane: **A3** (after P-58) · Status: CODE DONE, PUBLISHED 03:47 IST 09-04 (abd7da315; A1 suite on the tip 14,112 / 0, tsc 0; the titles read live after propagation) · Moves: 2
 
 **Amendment, A1, 01:30 IST 09-04.** The founder's ruling of 2026-09-01, quoted in the rail's own
 guard, forbids a sentence as a door's name, so P-60 shipped one word per door: Start, Waiting
@@ -7436,7 +7436,7 @@ the tablet track is evidence, not the Ship candidate. The 06:44 preview row and 
 useful as proof of the hosting path, and nothing on this track is promoted.
 
 
-### P-72 · A changeset is the change the spec asked for, and the merge gate shows what it is · Lane: **A2** (after P-71b) · Status: READY · Moves: 1, 2, 3
+### P-72 · A changeset is the change the spec asked for, and the merge gate shows what it is · Lane: **A2** (after P-71b) · Status: IN PROGRESS (part one 314832505: a seat that halts opens nothing; published with the 03:47 tip) · Moves: 1, 2, 3
 
 **Why.** R-40 and the live walk above. The product's first change to reach Ship styles a
 component that does not exist, opened after the Build seat said the work belongs elsewhere, and
