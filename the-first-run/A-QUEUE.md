@@ -4790,7 +4790,7 @@ session. Everything else in the Report is done and pushed. **Updated after pass 
 2.7-second reader is now named with a structural explanation, not just flagged.**
 
 
-### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: READY · Moves: 1, 2, 5
+### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: CLAIMED (A2, 10:00 IST) · Moves: 1, 2, 5
 
 **Why.** Every walk so far has been on Helio Labs, a workspace with 59 decisions and 15 tracks.
 The founder's own workspace, and every new customer's, starts with nothing: no runs, no bets, no
