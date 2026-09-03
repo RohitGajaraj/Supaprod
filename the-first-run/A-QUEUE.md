@@ -7277,7 +7277,7 @@ that visit (re-run: rows newer than the stamp). Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
 
 
-### P-70 · The read-heavy surfaces name their workspace · Lane: **A2** (after P-69) · Status: DONE in code (2b916485d; A1 suite on the tip 14,040 / 0, tsc 0; the five files at zero, ratchet 139 across 74 files; publish with P-68's confirmation; the probe walk follows) · Moves: 1
+### P-70 · The read-heavy surfaces name their workspace · Lane: **A2** (after P-69) · Status: DONE in code (2b916485d; A1 suite on the tip 14,040 / 0, tsc 0; the five files at zero, ratchet 139 across 74 files; publish with P-68's confirmation; the probe walk follows) · PUBLISHED 02:55 IST 09-04 (tip c27cc7ce7, A1 suite 14,053 / 0, tsc 0) · Moves: 1
 
 **Why.** P-67's ratchet holds 186 bare reads across 81 files. The ones a person compares across
 workspaces are the ones that borrow another desk first: `analytics.functions` 14, `dashboard` 7,
@@ -7309,7 +7309,7 @@ wrong answer, because the next station treated the person's sentence as evidence
 R-39 written; P-71 filed for A2.
 
 
-### P-71 · A call on the person's sentence alone is the person's to make · Lane: **A2** (after P-70) · Status: CODE DONE, first half (c7344eae1; A2 reports 14,053 / 0 / 0, tsc 0: the writer refuses a decline on absence; Learn holds needs-evidence on an ungradeable forecast); the Choice on the run screen is P-71b · Moves: 1, 2
+### P-71 · A call on the person's sentence alone is the person's to make · Lane: **A2** (after P-70) · Status: CODE DONE, first half (c7344eae1; A2 reports 14,053 / 0 / 0, tsc 0: the writer refuses a decline on absence; Learn holds needs-evidence on an ungradeable forecast); the Choice on the run screen is P-71b · PUBLISHED 02:55 IST 09-04 (tip c27cc7ce7, A1 suite 14,053 / 0, tsc 0) · Moves: 1, 2
 
 **Why.** R-39 and the live walk above. With no evidence, Decide declined on the absence and
 Learn now waits on a date that returns to nothing.
@@ -7343,6 +7343,43 @@ moves to Define; *Point a source first* lands on P-44's door and the track holds
 with the point-a-source door. Guards: a refused decline on a carried track raises the hold with
 attempts unchanged; each option's effect. Acceptance as P-71's: a new sentence in the empty probe
 reaches the Choice within one Sense pass.
+
+
+### LIVE WALK, A1, 03:00 IST 09-04 · what the first change to reach Ship actually is
+
+PR #4 on `relay-homeowner-app`, merged 06:42 UTC 09-03: `src/checkout/AddressStep.css` +90 (rules
+for `.address-summary`), `src/checkout/AddressStep.tsx` +1 -1. The repo holds an address ENTRY
+form and no summary component; the Build seat's transcript on the track says so and says it must
+halt; the Design critic's transcript says the spec's premise (layout) contradicts the brief
+(re-confirm). The PR was opened and merged anyway, on a green check. R-40 written; P-72 filed;
+the tablet track is evidence, not the Ship candidate. The 06:44 preview row and P-68's retry stay
+useful as proof of the hosting path, and nothing on this track is promoted.
+
+
+### P-72 · A changeset is the change the spec asked for, and the merge gate shows what it is · Lane: **A2** (after P-71b) · Status: READY · Moves: 1, 2, 3
+
+**Why.** R-40 and the live walk above. The product's first change to reach Ship styles a
+component that does not exist, opened after the Build seat said the work belongs elsewhere, and
+merged on a gate whose only evidence was a green check.
+
+**Scope.** (1) Build: when the seat's conclusion is that the target is absent from the bound repo
+(the seat already says so in words; give it the typed tool it lacks, `build.halt` with a reason),
+no changeset is opened, and the track holds `waiting-on-a-person` with that sentence and the door
+to bind another repo or amend the spec. (2) Design: a critic verdict that contradicts the spec's
+premise holds the track at Design (`waiting-on-a-person`, the verdict as the card) instead of
+passing with a note. (3) The merge gate card (run screen and Waiting): the files and line counts
+of the PR, the Build seat's conclusion, the Design critic's verdict, then the check; `Let it run`
+is drawn only when the seat did not halt. (4) Guards: a halted Build opens no PR; a contradicting
+Design verdict holds; the gate card names the files. (5) Report: a second honest candidate. Find
+one track in Helio whose spec targets something that exists in `relay-homeowner-app` (the
+checkout module: `AddressStep.tsx`, `funnel.ts`), or say that none does, so the honest Ship by 8
+September has a real change to carry.
+
+**Acceptance.** On a new run whose Build seat halts, no PR appears and the run screen shows the
+seat's sentence with its door; the merge gate on any track shows the files and both verdicts.
+Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 walks it.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 

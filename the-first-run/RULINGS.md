@@ -1116,3 +1116,29 @@ such a forecast (that is `needs-evidence` with the point-a-source door, never "L
 the date arrives").
 
 Reversible by the founder. Packet: P-71.
+
+## R-40 · A shipped change is the change the spec asked for, and the gate shows what it is. (2026-09-04)
+
+**Ruled by A1 at 03:00 IST under the founder's standing authority of 00:09.** Evidence: the
+tablet track `6817e386`, the first run to reach Ship. Its merged PR #4 on `relay-homeowner-app`
+("Fix tablet address summary layout for 7-inch wall tablets", merged 06:42 UTC 09-03 after the
+founder pressed the merge gate on a green check) adds 90 lines of CSS for `.address-summary`
+selectors and one line to `AddressStep.tsx`. The repository has no address summary component: the
+Build seat said so itself on the same track (*"There is no address summary component or review
+step component in this repository ... I must halt and state plainly that the work belongs
+elsewhere"*), and the Design critic had already said the spec's premise contradicts the brief
+(*"a functional problem, not a layout one"*). The change styles nothing. Had the preview and the
+promote worked, the product's first honest ship would have been an inert file, presented as a fix.
+
+**The rule.** A changeset is opened only for the change the spec asked for: when the Build seat
+concludes the target does not exist in the bound repo, no PR is opened and the track holds
+`waiting-on-a-person` with the seat's own sentence. A merge gate shows what the change IS: the
+files and lines, the Build seat's conclusion, and the Design critic's verdict, beside the check;
+a green check is never the whole card. A Design non-conformance that contradicts the spec's
+premise is a hold at Design, not a note in the transcript.
+
+**What it forbids.** Presenting a merge gate whose only evidence is CI; opening a PR from a seat
+that halted; promoting a change the crew itself called misplaced.
+
+The tablet track is not the honest Ship candidate. It stays as evidence; nothing on it is
+promoted. Reversible by the founder. Packet: P-72.
