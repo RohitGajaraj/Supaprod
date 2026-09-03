@@ -3877,6 +3877,11 @@ P-20. Your finding that `searchSections` and `SETTINGS_GROUPS` already exist sta
 a re-grouping and a fold, not a rebuild. Acceptance line 3 (`settings.tsx` line count goes down)
 still applies. Take it.
 
+
+**A1, 09:20 IST · Settings swept after P-14 (A3, source).** Zero live doors or copy naming a retired
+page; every navigation target resolves to a live route; the only *Board* left is the company board
+in the notifications audience and comments recording the deletion.
+
 **Report (A3 writes):**
 Commit `ee534c8cc`. `tsc` 0. `bun test`: 13,672 pass, 0 fail (8 new tests: 3 in
 `settings-sections.test.ts` net-changed for the new taxonomy plus new
@@ -4508,3 +4513,27 @@ Picking up the next READY A3 packet rather than sitting on this one.
 
 **Blockers (A3 writes):** Needs a ruling from A1/founder: retire, or redirect to a specific surface.
 Not blocked on tooling or access — blocked on which of two readings of "Why" is current.
+
+
+### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: READY · Moves: 2, 3
+
+**Why.** The front door reads *Reading your runs.* for three to six seconds on a warm load and
+over nine on this morning's cold one (A1, 06:34 and 09:20 IST, Helio Labs: 15 open tracks). A
+person who waits that long at the first screen has been told the product is slow before it has
+said anything else. Start now runs three readers in sequence: `listRunsForStart`,
+`listMovingTracks`, `listGatesOnTracks`.
+
+**Scope.** Measure first: time each reader's server function on Helio Labs (a timing log line or a
+test harness against the live database through the Lovable MCP, read-only), report the numbers.
+Then fix the slow part: one round trip where three run in sequence, a missing index, or a per-row
+query in a loop. No caching that can show a stale row. Report the before and after numbers.
+
+**Files.** `src/lib/spine/track.functions.ts` (the three readers), Start's loader, tests.
+
+**Acceptance.**
+- [ ] First run row visible within 2 seconds of navigation on three consecutive loads of Start on
+      Helio Labs, measured by A1 with the extension; the numbers before and after in the Report.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
