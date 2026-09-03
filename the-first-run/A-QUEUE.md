@@ -6960,7 +6960,7 @@ database module (a test that reads its import list). Full suite on the tip, tsc 
 **DoD.** Pushed; suite number per rule 17; migration applied by A3 via the Lovable MCP; A1 confirms
 the ledger row and the cron row, and publishes.
 
-### P-59 · A Ship that cannot deploy names the missing provider, and the one action · Lane: **A2** (after P-57) · Status: CODE DONE (7eb96c94d; A2 reports 13,991 / 0 / 0, tsc 0; A1 suite running, publish and live read follow) · Moves: 1, 3
+### P-59 · A Ship that cannot deploy names the missing provider, and the one action · Lane: **A2** (after P-57) · Status: CODE DONE, PUBLISHED 01:05 IST 09-04 (A1 suite on the tip 13,991 / 0, tsc 0; live reads of the hold card and the Connections region follow) · Moves: 1, 3
 
 **Why.** The first honest Ship (tablet track `0c7374b6`, 06:44 UTC 09-03) failed at preview with
 `deployments.failure_reason` NULL; P-39 item 3 now records it, and the next attempt will record
