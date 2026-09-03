@@ -72,7 +72,7 @@ describe("provisionApp", () => {
 describe("deploy", () => {
   test("posts assets + static runtime config, returns the confirmed dot-separated production URL", async () => {
     process.env.DENO_DEPLOY_TOKEN = "ddo_x";
-    let capturedBody: any;
+    let capturedBody: { assets: Record<string, unknown>; config: unknown };
     globalThis.fetch = (async (_url: string, opts: RequestInit) => {
       capturedBody = JSON.parse(opts.body as string);
       return new Response(JSON.stringify({ id: "rev_1" }), { status: 200 });
@@ -106,6 +106,25 @@ describe("deploy", () => {
     const result = await denoDeployProvider.deploy(HANDLE, { files: [] }, {});
     expect(result.status).toBe("failure");
     expect(result.url).toBe(null);
+  });
+
+  test("P-39: carries the status and body on failure, not a bare 'failure'", async () => {
+    process.env.DENO_DEPLOY_TOKEN = "ddo_x";
+    globalThis.fetch = (async () =>
+      new Response(JSON.stringify({ code: "QUOTA_EXCEEDED" }), { status: 429 })) as typeof fetch;
+
+    const result = await denoDeployProvider.deploy(HANDLE, { files: [] }, {});
+    expect(result.status).toBe("failure");
+    expect(result.detail).toBe('429 {"code":"QUOTA_EXCEEDED"}');
+  });
+
+  test("P-39: a body over 500 bytes is truncated, not dropped or unbounded", async () => {
+    process.env.DENO_DEPLOY_TOKEN = "ddo_x";
+    const longBody = "x".repeat(1000);
+    globalThis.fetch = (async () => new Response(longBody, { status: 502 })) as typeof fetch;
+
+    const result = await denoDeployProvider.deploy(HANDLE, { files: [] }, {});
+    expect(result.detail).toBe(`502 ${"x".repeat(500)}`);
   });
 });
 

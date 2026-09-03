@@ -105,12 +105,15 @@ export async function deployHostingPoc(
   }
 
   if (result.status !== "success" || !result.url) {
+    // P-39: `result.detail` carries the provider's own HTTP status and body
+    // when the failure is a real one, not a bare "failure" with no reason.
+    const why = result.detail ? ` (${result.detail})` : "";
     return {
       ok: false,
       reason: "provider_error",
       message: provisionError
-        ? `Deploy did not succeed (status: ${result.status}); provisioning had also failed: ${provisionError}`
-        : `Deploy did not succeed (status: ${result.status}).`,
+        ? `Deploy did not succeed (status: ${result.status}${why}); provisioning had also failed: ${provisionError}`
+        : `Deploy did not succeed (status: ${result.status}${why}).`,
     };
   }
 

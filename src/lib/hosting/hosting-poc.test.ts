@@ -113,6 +113,24 @@ describe("deployHostingPoc", () => {
     });
   });
 
+  test("P-39: a deploy failure carrying detail says why, not just the bare status", async () => {
+    const provider = fakeProvider({
+      deploy: async () =>
+        ({
+          deploymentId: "",
+          url: null,
+          status: "failure",
+          detail: '429 {"code":"QUOTA_EXCEEDED"}',
+        }) as DeploymentResult,
+    });
+    const result = await deployHostingPoc(provider, REF, "Acme");
+    expect(result).toEqual({
+      ok: false,
+      reason: "provider_error",
+      message: 'Deploy did not succeed (status: failure (429 {"code":"QUOTA_EXCEEDED"})).',
+    });
+  });
+
   test("deploy() throwing (e.g. a network error, not just a non-ok response) is caught, not an unhandled rejection", async () => {
     const provider = fakeProvider({
       deploy: async () => {

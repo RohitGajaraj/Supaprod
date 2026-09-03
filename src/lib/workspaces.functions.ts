@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { sendInviteEmail, absoluteUrl } from "@/lib/email.server";
 
@@ -172,36 +173,73 @@ export const renameWorkspace = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/*
+ * P-39 (A-QUEUE.md). The founder deleted an empty workspace, was told it
+ * worked, and it was still there: PostgREST answers a `.delete()` that RLS
+ * blocked (0 rows, no error) exactly the same as one that succeeded, and
+ * `deleteWorkspace` reported `{ ok: true }` either way. `removeWorkspaceMember`
+ * already carries the fix this mirrors -- the `.select()` after the delete
+ * turns "0 rows, no error" into a fact the caller can act on instead of a
+ * phantom success.
+ *
+ * PULLED OUT AS "CORE" FUNCTIONS, matching `captureDeploymentsCore`
+ * (`deployments.functions.ts`)'s own shape: `createServerFn`'s wrapped
+ * export cannot be called directly in a test without a real request's
+ * middleware context, so the DB-touching logic takes an explicit
+ * `SupabaseClient` instead and the server fn below is a thin delegate.
+ */
+export async function deleteWorkspaceCore(
+  supabase: SupabaseClient,
+  id: string,
+): Promise<{ ok: true }> {
+  const { data: deleted, error } = await supabase
+    .from("workspaces")
+    .delete()
+    .eq("id", id)
+    .select("id");
+  if (error) throw new Error(error.message);
+  if (!deleted || deleted.length === 0) {
+    throw new Error(
+      "Nothing was deleted: this workspace wasn't found, or you don't have permission to delete it.",
+    );
+  }
+  return { ok: true };
+}
+
 export const deleteWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
-  .handler(async ({ context, data }) => {
-    const { error } = await context.supabase.from("workspaces").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
+  .handler(({ context, data }) => deleteWorkspaceCore(context.supabase, data.id));
+
+/** Same fix as `deleteWorkspaceCore`, for `workspace_members` rather than
+ *  `workspaces` -- see its own header. */
+export async function leaveWorkspaceCore(
+  supabase: SupabaseClient,
+  userId: string,
+  id: string,
+): Promise<{ ok: true }> {
+  // Owners cannot leave their own workspace, they must delete or transfer it.
+  const { data: ws } = await supabase.from("workspaces").select("owner_id").eq("id", id).single();
+  if (ws?.owner_id === userId) {
+    throw new Error("Owners can't leave. Delete the workspace or transfer it first.");
+  }
+  const { data: removed, error } = await supabase
+    .from("workspace_members")
+    .delete()
+    .eq("workspace_id", id)
+    .eq("user_id", userId)
+    .select("user_id");
+  if (error) throw new Error(error.message);
+  if (!removed || removed.length === 0) {
+    throw new Error("You aren't a member of this workspace, so there's nothing to leave.");
+  }
+  return { ok: true };
+}
 
 export const leaveWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
-  .handler(async ({ context, data }) => {
-    // Owners cannot leave their own workspace, they must delete or transfer it.
-    const { data: ws } = await context.supabase
-      .from("workspaces")
-      .select("owner_id")
-      .eq("id", data.id)
-      .single();
-    if (ws?.owner_id === context.userId) {
-      throw new Error("Owners can't leave. Delete the workspace or transfer it first.");
-    }
-    const { error } = await context.supabase
-      .from("workspace_members")
-      .delete()
-      .eq("workspace_id", data.id)
-      .eq("user_id", context.userId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
+  .handler(({ context, data }) => leaveWorkspaceCore(context.supabase, context.userId, data.id));
 
 // WM-F4: hand a workspace to another member. The transactional, audited reassignment
 // (owner_id + member roles + audit row) lives in the `transfer_workspace_ownership`

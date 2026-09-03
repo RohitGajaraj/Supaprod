@@ -63,6 +63,15 @@ export interface DeploymentResult {
   deploymentId: string;
   url: string | null;
   status: "success" | "failure" | "pending";
+  /**
+   * WHY, when `status` is `"failure"` (P-39, A-QUEUE.md). A failed preview
+   * used to say only `status: "failure"`, the provider's own HTTP status and
+   * response body thrown away at the adapter boundary -- so the only failed
+   * deploy since fourteen successes had no recorded reason and nobody could
+   * say whether it was the token, the app, or the payload. Optional and only
+   * ever set on failure: a success needs no explanation.
+   */
+  detail?: string;
 }
 
 export interface DeploymentEntry {

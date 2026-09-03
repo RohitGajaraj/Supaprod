@@ -112,7 +112,19 @@ export const denoDeployProvider: AppRuntimeProvider = {
       }),
     });
     if (!res.ok) {
-      return { deploymentId: "", url: null, status: "failure" };
+      /*
+       * P-39: the status and the first 500 bytes of the body, not thrown
+       * away. `.text()` rather than `.json()` -- a non-OK response is not
+       * guaranteed to be valid JSON, and a failed parse here must not hide
+       * the failure it was trying to explain.
+       */
+      const body = await res.text().catch(() => "");
+      return {
+        deploymentId: "",
+        url: null,
+        status: "failure",
+        detail: `${res.status} ${body.slice(0, 500)}`.trim(),
+      };
     }
     const body = (await res.json()) as { id?: string };
     return { deploymentId: body.id ?? "", url: productionUrlFor(handle.ref), status: "success" };
