@@ -3570,7 +3570,7 @@ pinned; the pin control is on every live row on `/start`.
 
 ---
 
-### P-21 · Plan emits `intent.md` · `spec.md` · `plan.md` in the playbook's shape · Lane: **A2** · Status: CLAIMED (A2, 06:20 IST) · Moves: 3, 4
+### P-21 · Plan emits `intent.md` · `spec.md` · `plan.md` in the playbook's shape · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 07:30 IST) — the PR check is A1's · Moves: 3, 4
 
 **Why.** Anthropic's AI-native SDLC playbook (adopted 2026-08-31, `SPEC-AI-NATIVE-SDLC.md` §4.1,
 gap 20) names three files a team keeps in its repo. A team on that playbook should be able to drop
@@ -3605,7 +3605,48 @@ one that matters. Build the playbook's five as `SPEC-AI-NATIVE-SDLC.md` quotes t
 statement, proposed outcome, affected users and systems, constraints, open questions*. Non-goals
 belong to P-02's contract, not to intent. Unblocked: P-02 is code-done and pending only its live read.
 
-**Report / Blockers / A1 verdict:**
+**Report (A2, 07:30 IST) — code on main at `c643c49f2`. tsc 0 · `bun test` 0 fail · ratchet unchanged.**
+
+**THE FIVE FIELDS ARE THE SOURCE'S, NOT THIS PACKET'S.** The scope line above paraphrased them as
+*"problem · who it is for · constraints · what success looks like · non-goals"*.
+`SPEC-AI-NATIVE-SDLC.md` quotes the playbook's actual five: **problem statement · proposed outcome ·
+affected users and systems · constraints · open questions.** The paraphrase drops `open questions` —
+which the spec singles out as *"the field we would never have thought of: it is the one that makes a
+handoff honest rather than confident"* — and adds `non-goals`, which belongs to P-02's Outcome
+Contract. A1 withdrew the paraphrase when shown it, 2026-09-03.
+
+| Acceptance | State |
+| --- | --- |
+| Plan tab shows the three with the playbook's headings; a test renders from a fixture and checks every heading | **Done.** 16 assertions, including the order, which is an argument rather than a list. |
+| The PR at Build contains `.supaprod/intent.md`, `spec.md`, `plan.md` at the run's content | **Code done, A1 checks the PR on `relay-homeowner-app`.** |
+| `intent.md` carries the five fields and the forecast verbatim | **Done**, and asserted field by field rather than by shape. |
+
+**ONE COMPOSER, TWO READERS, and it is the decision the packet turns on.** The files are read on the
+Plan tab and by `studio.stage`. Composed twice they drift, and the drift is invisible in the worst
+way: the screen shows one `intent.md`, the repo holds another, both plausible, nothing to compare
+them against until somebody does and cannot say which is real.
+
+**Staged at stage, not at commit,** so one place decides what is in a changeset; re-staged through
+the existing upsert, so a spec edited after the branch opened is not frozen at its first commit. It
+never fails the stage: these files are a record OF the work, not the work, and refusing to stage in
+order to protect a document would stop the loop for the wrong reason.
+
+**Migration `20260906010000`** (`decisions.intent`, jsonb) applied and verified. NULL rather than
+`{}` when absent, because a decision predating the column and one whose intent is empty are
+different facts.
+
+**`intent` is OPTIONAL on `decision.record` while the forecast beside it is required.** A decision
+with no forecast is refused — that is what this product grades and there is no repair path once the
+row is written. Intent is a description: refusing a decision over prose would stop the loop.
+
+**Caught in passing: BOTH copies of the Decide brief needed it, and the first pass patched one.**
+`driver.ts` warns in its own comments that fixing one and leaving the other is how F-181 happened,
+and it was right — `CREW_ROLE.strategist.file` and `FILE_IT.decide` are worded differently. The test
+COUNTS occurrences rather than checking presence, because one copy carrying all five and the other
+carrying none passes a bare `toContain`.
+
+**Blockers:** none. **A1's live read:** the next PR opened at Build on `relay-homeowner-app` should
+carry the three files under `.supaprod/`, and the Plan tab should offer copy and download for each.
 
 ---
 
