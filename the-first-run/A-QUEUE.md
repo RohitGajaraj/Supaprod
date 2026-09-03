@@ -6828,7 +6828,7 @@ status change on 11 or on 66 rows) are his call; A1 recommends C, which P-56 del
 if he wants the tail gone.
 
 
-### P-56 · The approvals page states its obligation once, and as a shape · Lane: **A2** · Status: READY · Moves: 2, 3
+### P-56 · The approvals page states its obligation once, and as a shape · Lane: **A2** · Status: CODE DONE (A2, `27ca936ac`, suite 13,959 / 0 / 0, tsc 0); A1 publishes and reads the heading live · Moves: 2, 3
 
 **Why.** P-55's first finding: the page says *66 decisions are ready for you* and, below it, *65
 pieces of work are stopped, waiting on you*. Same rows; the second is the first minus the card
