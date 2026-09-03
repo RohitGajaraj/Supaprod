@@ -13,6 +13,7 @@ import {
   HOLDS_THAT_WAIT_ON_A_DATE,
   pickDrivable,
   scheduledAwayIds,
+  unchangedSinceLastDrive,
 } from "@/lib/spine/waiting-on-a-date-is-not-waiting-in-a-queue";
 import { dueDatesFor } from "@/lib/spine/waiting-on-a-date-is-not-waiting-in-a-queue.server";
 
@@ -254,6 +255,32 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
                 waiting.map((r) => r.id),
               )
             : new Map<string, string | null>();
+          /*
+           * -- P-03b. NOTHING HAS CHANGED, SO THERE IS NOTHING TO LOOK AT ----
+           *
+           * The date half of this is `deferred_until` above. This is the person
+           * half: a track held on something only a person can do, whose row has
+           * not moved since the last drive, has nothing new for this tick to
+           * read. `6199f3df` was driven six times in an hour that way while the
+           * acceptance candidate sat behind it.
+           *
+           * Filtered HERE rather than in SQL, deliberately and unlike
+           * `deferred_until`. The comparison is between two columns and the gate
+           * check reads a JSON array, which PostgREST cannot express without a
+           * view or an RPC; and the population is one page, so the cost is a
+           * comparison per row rather than a query. `pickDrivable` already takes
+           * a skip set, so this needs no new shape.
+           */
+          const unchanged = new Set(
+            fetched
+              .filter((r) =>
+                unchangedSinceLastDrive(
+                  r as unknown as Parameters<typeof unchangedSinceLastDrive>[0],
+                ),
+              )
+              .map((r) => r.id),
+          );
+
           const scheduledAway = scheduledAwayIds(
             fetched as unknown as Array<{ id: string; last_hold?: string | null }>,
             dueByTrack,
@@ -292,7 +319,7 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
 
           const rows = pickDrivable(
             fetched as unknown as Array<{ id: string; last_hold?: string | null }>,
-            scheduledAway,
+            new Set([...scheduledAway, ...unchanged]),
             MAX_TRACKS_PER_TICK,
           ) as unknown as DriveRow[];
           // One clock for the whole sweep. The Worker's request budget is spent

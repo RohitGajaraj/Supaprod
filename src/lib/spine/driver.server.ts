@@ -3825,6 +3825,15 @@ export const DRIVE_SELECT =
   "id,user_id,workspace_id,product_id,title,origin,entry_station,station,path,waived,attempts,last_hold," +
   // F-43: the counter that catches a station which never converges.
   "station_drives," +
+  /*
+   * P-03b. The sweep compares this against `driven_at` to tell a track that has
+   * genuinely changed from one that is being re-read every ten minutes for
+   * nothing. Without it the comparison reads `undefined`, the filter answers
+   * "cannot say", and the skip silently never fires -- which is the same
+   * shape as the dead-column defects `a-query-cannot-name-a-column-that-does-
+   * not-exist` was written for: correct-looking code that quietly does nothing.
+   */
+  "updated_at," +
   "pending_gates," +
   // The watermark `externalEvidence` measures new arrivals against. Absent, it
   // reads as null, which makes the check fall back to "has this workspace ever
