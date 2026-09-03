@@ -5298,7 +5298,7 @@ at 2e8868d17 from 13:43 IST. Start's largest response on the deployed app is 78.
 9.9 KB on the wire, the same as before this packet, as expected: Start's readers were already
 column-named and P-35's savings land on Discover, the Brain and the record. **DONE.**
 
-### P-36 · The gate a person is asked to answer is on screen, and every open change is on its run · Lane: **A3** · Status: RETURNED (A1, 14:16 IST: two guard failures on the tip) · Moves: 2, 3
+### P-36 · The gate a person is asked to answer is on screen, and every open change is on its run · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, both guard failures fixed) · Moves: 2, 3
 
 **Why.** The founder opened the tablet track's run to answer PR #4's merge gate (11:56 IST) and
 could not find the pull request or the answer. Two causes, both seen by A1 on the same screen.
