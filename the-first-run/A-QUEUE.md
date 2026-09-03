@@ -6359,6 +6359,30 @@ tsc 0. `bun test` 13892 pass / 22 skip / 37 todo / 0 fail / 36780 expect() acros
 
 **Blockers (A3 writes):** —
 
+### P-48 · The chat's seat turns speak in the run screen's vocabulary · Lane: **A3** · Status: READY · Moves: 2, 3
+
+**Why.** P-37 gave Meridian three components with the reasoning written in: `Ask` (a card asks),
+`SeatSays` (a seat speaks in the first person about its own work, no button slot), `FoldingRow`
+(the verdict leads, the body folds). The Ask chat (`AskDock` → `AskPane` → `AskTurn`, mounted in
+`_authenticated.tsx`) is the other surface where seats speak to the person, and it still renders
+its own turn layout. Same vocabulary, two dialects, is the founder's *nothing connects* in
+miniature.
+
+**Scope.** `AskTurn` composes `SeatSays` for a seat's message (mark, name, prose, meta) and
+`FoldingRow` where a turn carries a body worth folding (a search, a list, a tool result); the
+existing `Provenance` behaviour under the 2026-07-30 ruling (model, cost, records-read behind
+*View credits*) is kept as the meta's door, not duplicated. No edits under `meridian/**`; if a slot
+is missing, write it as a one-line finding for A2 and compose around it. A test that a seat turn
+renders through `SeatSays` and never in the imperative.
+
+**Acceptance.**
+- [ ] The test, named after its sentence; ratchet unchanged; no Meridian edits.
+- [ ] A1 reads one chat with two seat turns and a folded tool result on the served build.
+- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
+
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
 
 **Why.** P-04's live read (A2, 837c08deb): the forecast grader is handed the claim, the observable,

@@ -479,3 +479,13 @@ with a deadline). P-37 has three of its five surfaces served and the rest is one
 listed under the packet. Open on the founder, unchanged: the second sentence under Relay, the
 tablet track's release gate, the seven Prism and Trellis decisions. The 06:00 UTC tick tomorrow is
 the grader's first real read (P-42) and A1 reads it. The date call holds at 23 September.
+
+**Checkpoint, 2026-09-03 21:05 IST. The run screen reads.** P-37's five surfaces are served and
+walked by A1 against the mockups on both live tracks: the honest run at Learn says *Waiting on
+time* and *Learn returns Sat, Oct 3* and nothing else; the tablet track at Ship asks its question
+first, states the risk as one sentence, names the seat on the reason, prints the declared default
+in mono, and offers two answers, with the footer carrying one verb. The character no longer
+narrates the run. The founder's walk decides the packet; the two screens are the tablet track and
+the honest run. Forty-one of forty-eight packets are done with evidence; P-48 (the chat's seat turns
+in the same vocabulary) is filed for A3 so the two places a seat speaks stop being two dialects.
+Founder items unchanged. The date call holds at 23 September.
