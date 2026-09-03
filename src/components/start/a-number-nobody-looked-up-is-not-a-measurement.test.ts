@@ -74,10 +74,40 @@ describe("what it refuses to say", () => {
   });
 
   it("still speaks a real zero, because a quiet week is a fact", () => {
-    // Zero is only silent when it is UNKNOWN. A read that answered zero has
-    // measured something, and a quiet week is worth knowing about.
-    expect(arrivingLine({ signals7d: 0, sources: 0, forming: 0, crossed: 0 })).toBe(
-      "0 findings this week from 0 sources · 0 clusters forming · none has crossed the bar yet",
+    /*
+     * Zero is only silent when it is UNKNOWN. A read that answered zero has
+     * measured something, and a quiet week over CONNECTED sources is worth
+     * knowing about -- that is the case this assertion holds, and it is the
+     * one the principle was written for.
+     *
+     * It used to pass `sources: 0` here, which made it the guard for the exact
+     * sentence Arriving.tsx's own header calls a reproach:
+     *
+     *   "0 findings this week from 0 sources - 0 clusters forming -
+     *    none has crossed the bar yet"
+     *
+     * That is not a quiet week. Nothing was ever connected, so nothing could
+     * arrive, and four counts plus a verdict against an unseen bar were the
+     * first thing a new workspace said to the person who had just made it.
+     */
+    expect(arrivingLine({ signals7d: 0, sources: 3, forming: 0, crossed: 0 })).toBe(
+      "0 findings this week from 3 sources · 0 clusters forming · none has crossed the bar yet",
+    );
+  });
+
+  it("says nothing at all when nothing is connected, which no zero can express", () => {
+    // The clause-dropping in this file drops on null, and 0 is not null, so the
+    // silence has to be decided before the clauses are built. `if (!line)` at
+    // the call site was written for this and could never fire.
+    expect(arrivingLine({ signals7d: 0, sources: 0, forming: 0, crossed: 0 })).toBeNull();
+    expect(arrivingLine({ signals7d: null, sources: 0, forming: null, crossed: null })).toBeNull();
+  });
+
+  it("still speaks when a source is connected but the signal count is unknown", () => {
+    // Only the both-are-empty case is silent. A workspace with sources whose
+    // signal read failed is a different state and keeps its clauses.
+    expect(arrivingLine({ signals7d: null, sources: 2, forming: 1, crossed: 0 })).toBe(
+      "1 cluster forming · none has crossed the bar yet",
     );
   });
 });

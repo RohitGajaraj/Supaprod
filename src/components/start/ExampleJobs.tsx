@@ -92,13 +92,50 @@ export const EXAMPLE_JOBS: readonly ExampleJob[] = [
   },
 ];
 
+/**
+ * ── AN EXAMPLE IS A SENTENCE TO EDIT; A BET IS WORK TO START (P-33) ───────
+ *
+ * These two lists used to be one control. `jobs = showingBets ? bets : EXAMPLE_JOBS`
+ * rendered both through the same `PickCard`, under the same "Or start one of
+ * these.", each with the same **Start it**, and pressing either called the same
+ * `onStart` -- which starts a real run immediately. The only thing that differed
+ * was the `aria-label`, which nobody sees.
+ *
+ * So on a new workspace, the first three things the product offered were
+ * indistinguishable from work it had ranked for the person, and pressing one
+ * filed a real run about a checkout, a sign-up form or an address step that
+ * their product may not have. It spends a model budget and produces artifacts
+ * reasoning about a feature nobody has. P-33 names this directly: no "Or start
+ * one of these" cards that are not the workspace's own.
+ *
+ * The examples are still worth showing -- an empty workspace that offers only a
+ * blank box teaches nothing, and the fastest way to learn what a product takes
+ * is to read a sentence it would accept. What they must not do is pretend to be
+ * the workspace's own ranked work. So:
+ *
+ *   a real bet     starts the run on press. It IS this workspace's work,
+ *                  ranked from its own evidence, and Start it is the truth.
+ *   an example     loads the sentence into the composer and puts the cursor
+ *                  there. The person edits it into their own product's words
+ *                  and presses the one Start this page already has.
+ *
+ * That is also the honest teaching move: the lesson is the SHAPE of a sentence
+ * this product can walk, and you learn it by editing one, not by watching a run
+ * about somebody else's checkout.
+ */
 export function ExampleJobs({
   onStart,
+  onUse,
   busy = false,
   bets = [],
 }: {
-  /** Fills the composer with the sentence and starts that run. */
+  /** A real bet: start that run now. Never called for an example. */
   onStart: (job: ExampleJob) => void;
+  /**
+   * An example: put the sentence in the composer and focus it, starting
+   * nothing. Never called for a bet.
+   */
+  onUse: (job: ExampleJob) => void;
   busy?: boolean;
   /**
    * The top three real bets by ICE, when any exist (`listTopOpportunities`,
@@ -116,9 +153,19 @@ export function ExampleJobs({
     <section
       data-mrd=""
       className="flex flex-col gap-mrd-3 font-mrd"
-      aria-label={showingBets ? "Ranked bets" : "Example jobs"}
+      aria-label={showingBets ? "Ranked bets" : "Example sentences"}
     >
-      <p className="mrd-meta">Or start one of these.</p>
+      {/*
+       * THE LINE SAYS WHICH LIST THIS IS, because the cards below cannot.
+       * "Or start one of these" over three sentences we hard-coded is the claim
+       * P-33 forbids; said over three bets ranked from the workspace's own
+       * evidence it is simply true.
+       */}
+      <p className="mrd-meta">
+        {showingBets
+          ? "Or start one of these, ranked from what has arrived."
+          : "No runs yet. These are examples of sentences this takes. Edit one into your own words."}
+      </p>
       <div className="grid gap-mrd-3 sm:grid-cols-3">
         {jobs.map((job) => (
           <div key={job.sentence} className="flex flex-col gap-mrd-2">
@@ -132,18 +179,33 @@ export function ExampleJobs({
               sub={job.sub}
               glyph={job.glyph}
               selected={false}
-              onSelect={() => onStart(job)}
+              onSelect={() => (showingBets ? onStart(job) : onUse(job))}
             />
             {/*
-             * ITS OWN START, per the packet and per Codex's card. The card is
+             * ITS OWN CONTROL, per the packet and per Codex's card. The card is
              * pressable too, so this is a second door to one act rather than the
              * only one -- which is what makes it safe: a person who reads the
              * sentence and wants it can press either.
+             *
+             * The VERB is the difference between the two lists, and it is the
+             * only promise this card makes. "Start it" on an example we wrote
+             * would be a promise to run somebody else's work against their
+             * product; "Use this sentence" says exactly what the press does.
+             *
+             * `busy` is a start being in flight, so it only applies to the
+             * control that starts one. Filling a text field has nothing to
+             * wait for.
              */}
             <div>
-              <Action variant="quiet" busy={busy} onClick={() => onStart(job)}>
-                Start it
-              </Action>
+              {showingBets ? (
+                <Action variant="quiet" busy={busy} onClick={() => onStart(job)}>
+                  Start it
+                </Action>
+              ) : (
+                <Action variant="quiet" onClick={() => onUse(job)}>
+                  Use this sentence
+                </Action>
+              )}
             </div>
           </div>
         ))}

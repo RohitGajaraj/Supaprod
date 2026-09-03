@@ -35,22 +35,22 @@ describe("jobFromOpportunity: a real bet in the composer's own shape", () => {
 
 describe("ExampleJobs: real bets replace the examples, they do not join them", () => {
   it("shows the static examples when there are no bets", () => {
-    render(<ExampleJobs onStart={() => {}} />);
+    render(<ExampleJobs onStart={() => {}} onUse={() => {}} />);
     expect(screen.getByText(EXAMPLE_JOBS[0]!.sentence)).toBeDefined();
     expect(screen.queryByText("Off-hours latency")).toBeNull();
   });
 
   it("shows real bets instead of the examples once any exist", () => {
-    render(<ExampleJobs onStart={() => {}} bets={[bet()]} />);
+    render(<ExampleJobs onStart={() => {}} onUse={() => {}} bets={[bet()]} />);
     expect(screen.getByText("Off-hours latency")).toBeDefined();
     expect(screen.queryByText(EXAMPLE_JOBS[0]!.sentence)).toBeNull();
   });
 
   it("names the section for what it is showing, examples or ranked bets", () => {
-    const { unmount } = render(<ExampleJobs onStart={() => {}} />);
-    expect(screen.getByLabelText("Example jobs")).toBeDefined();
+    const { unmount } = render(<ExampleJobs onStart={() => {}} onUse={() => {}} />);
+    expect(screen.getByLabelText("Example sentences")).toBeDefined();
     unmount();
-    render(<ExampleJobs onStart={() => {}} bets={[bet()]} />);
+    render(<ExampleJobs onStart={() => {}} onUse={() => {}} bets={[bet()]} />);
     expect(screen.getByLabelText("Ranked bets")).toBeDefined();
   });
 
@@ -61,10 +61,68 @@ describe("ExampleJobs: real bets replace the examples, they do not join them", (
         onStart={(job) => {
           started = job.sentence;
         }}
+        onUse={() => {}}
         bets={[bet({ title: "Cut the checkout drop-off" })]}
       />,
     );
     screen.getByRole("button", { name: "Start it" }).click();
     expect(started).toBe("Cut the checkout drop-off");
+  });
+});
+
+/**
+ * ── P-33: AN EXAMPLE MUST NOT BE ABLE TO FILE A RUN ───────────────────────
+ * Both lists rendered through one `PickCard` under one "Or start one of these."
+ * with one **Start it**, and both called `onStart`, which starts a run. So the
+ * three sentences we hard-coded were offered as if the product had ranked them
+ * for this workspace, and pressing one filed real work about a checkout or a
+ * sign-up form the person may not have.
+ *
+ * These four assertions are the ones somebody would have to delete to bring
+ * that back.
+ */
+describe("an example is a sentence to edit, a bet is work to start", () => {
+  it("offers the examples as sentences to use, never as runs to start", () => {
+    render(<ExampleJobs onStart={() => {}} onUse={() => {}} />);
+    expect(screen.getAllByRole("button", { name: "Use this sentence" }).length).toBe(
+      EXAMPLE_JOBS.length,
+    );
+    expect(screen.queryByRole("button", { name: "Start it" })).toBeNull();
+  });
+
+  it("never calls onStart from an example, by either door", () => {
+    // Both doors, because the card is pressable as well as its button, and the
+    // card is the one that used to be wired straight to onStart.
+    let starts = 0;
+    const used: string[] = [];
+    render(
+      <ExampleJobs
+        onStart={() => {
+          starts += 1;
+        }}
+        onUse={(job) => used.push(job.sentence)}
+      />,
+    );
+    screen.getAllByRole("button", { name: "Use this sentence" })[0]!.click();
+    screen.getByText(EXAMPLE_JOBS[0]!.sentence).click();
+    expect(starts).toBe(0);
+    expect(used).toEqual([EXAMPLE_JOBS[0]!.sentence, EXAMPLE_JOBS[0]!.sentence]);
+  });
+
+  it("never calls onUse from a real bet, which IS the workspace's own work", () => {
+    let used = 0;
+    render(<ExampleJobs onStart={() => {}} onUse={() => (used += 1)} bets={[bet()]} />);
+    screen.getByRole("button", { name: "Start it" }).click();
+    expect(used).toBe(0);
+  });
+
+  it("does not say the examples were ranked, because nothing ranked them", () => {
+    const { unmount } = render(<ExampleJobs onStart={() => {}} onUse={() => {}} />);
+    expect(screen.queryByText(/ranked/i)).toBeNull();
+    expect(screen.getByText(/examples of sentences this takes/i)).toBeDefined();
+    unmount();
+    // And the bets, which WERE ranked, may say so.
+    render(<ExampleJobs onStart={() => {}} onUse={() => {}} bets={[bet()]} />);
+    expect(screen.getByText(/ranked from what has arrived/i)).toBeDefined();
   });
 });

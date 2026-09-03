@@ -52,8 +52,30 @@ export const createWorkspace = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data: created, error } = await supabase
       .from("workspaces")
-      // `account_id` is auto-filled by the trg_set_workspace_account trigger,
-      // and RLS already permits an owner insert. Same shape as onboarding's.
+      /*
+       * -- THIS COMMENT SAID RLS ALREADY PERMITTED THIS. IT DID NOT. ---------
+       *
+       * It read: "`account_id` is auto-filled by the trg_set_workspace_account
+       * trigger, and RLS already permits an owner insert. Same shape as
+       * onboarding's." The first clause is true. The other two were false, and
+       * between them they described a feature that has never once worked.
+       *
+       * `workspaces` carried one INSERT-capable policy, WITH CHECK
+       * `has_workspace_role(id, ...)`, which asks whether the caller is already
+       * a member of the workspace being inserted. On an insert the row does not
+       * exist and neither does its membership, so it is false by construction
+       * and every call here was refused. Walked on production 2026-09-03: the
+       * button, a name, Create, and a toast reading "No new workspace was
+       * created." No account on the database has ever had two non-sample
+       * workspaces.
+       *
+       * And onboarding's shape is NOT this one. `ensure_user_default_workspace`
+       * is SECURITY DEFINER: it bypasses RLS entirely and writes the membership
+       * row itself. Believing the two were the same is what hid this.
+       *
+       * Migration `20260907010000` adds the policy that permits exactly this
+       * insert -- a workspace you own, and nothing else.
+       */
       .insert([{ owner_id: userId, name: data.name } as never])
       .select("id, name")
       .single();
@@ -79,6 +101,42 @@ export const createWorkspace = createServerFn({ method: "POST" })
     }
 
     const workspace = created as unknown as { id: string; name: string };
+
+    /*
+     * -- AND THE MEMBERSHIP ROW, WITHOUT WHICH IT CANNOT BE READ ------------
+     *
+     * The second half of the same defect, and it would have outlived the policy
+     * fix on its own. `workspaces`' SELECT policy is `is_workspace_member(id)`,
+     * so a workspace created with no `workspace_members` row is invisible to the
+     * person who just made it: the insert succeeds, the `.select()` returns
+     * nothing, and the handler reports a failure over a row that exists.
+     *
+     * `ensure_user_default_workspace` writes this row for the signup path, which
+     * is why nobody noticed the second path never did.
+     *
+     * NOT a trigger, deliberately: a trigger on `workspaces` would also fire for
+     * the definer path, which already writes its own membership, and two writers
+     * for one row is how the second one comes to be wrong. `ON CONFLICT DO
+     * NOTHING` is the definer function's own guard against exactly that, and it
+     * is not a shape worth spreading.
+     *
+     * THIS ONE IS NOT FAIL-SOFT, unlike the product below it. A workspace
+     * without its owner's membership is unreadable and unfixable from any
+     * surface: there is no screen that can add you to a workspace you cannot
+     * see. Reporting success over that would hand somebody a row they can never
+     * open, so the failure is surfaced and the caller can try again.
+     */
+    const { error: memberError } = await supabase
+      .from("workspace_members")
+      .insert([{ workspace_id: workspace.id, user_id: userId, role: "owner" } as never]);
+    if (memberError) {
+      return {
+        ok: false as const,
+        reason: "failed" as const,
+        limit: null,
+        message: `The workspace was made but you were not added to it, so it would not open: ${memberError.message}`,
+      };
+    }
 
     /* Fail-soft, and never blocking. See the header. */
     try {

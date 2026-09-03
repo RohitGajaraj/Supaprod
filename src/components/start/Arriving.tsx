@@ -63,6 +63,33 @@ export function arrivingLine(input: {
   forming: number | null;
   crossed: number | null;
 }): string | null {
+  /*
+   * -- NOTHING CONNECTED HAS NOTHING TO SAY (P-33, walked 2026-09-03) -------
+   *
+   * This file's own header states the rule: "a strip reading '0 findings this
+   * week' over a product that has never been given anything to read is a
+   * reproach rather than a fact." The guard written for it -- `if (!line)
+   * return null` at the call site -- could never fire, because every clause
+   * below is built whenever its value is NON-NULL, and 0 is not null.
+   * `getSenseCoverage` answers an empty workspace with `total7d: 0` and
+   * `sources: []` rather than null, so a brand-new workspace read:
+   *
+   *   "0 findings this week from 0 sources - 0 clusters forming -
+   *    none has crossed the bar yet"
+   *
+   * Four assertions over a product nobody has been asked about, including a
+   * verdict against a promotion bar the person has never seen or set. The rule
+   * was right and the code could not keep it.
+   *
+   * NO SOURCES IS THE CASE, NOT NO SIGNALS. A workspace with three connected
+   * sources and no findings this week is a real fact worth saying -- that is a
+   * quiet week, and the strip is exactly where it belongs. What is not a fact is
+   * a count over a product that has never been given anything to read, and with
+   * no sources there can be no signals and therefore no clusters either, so the
+   * whole strip goes rather than one clause of it.
+   */
+  if (input.sources === 0 && (input.signals7d ?? 0) === 0) return null;
+
   const parts: string[] = [];
   if (input.signals7d != null) {
     const from =

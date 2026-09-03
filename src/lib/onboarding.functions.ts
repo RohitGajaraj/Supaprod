@@ -215,10 +215,29 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
 
       let projectId: string;
       if (!projects || projects.length === 0) {
-        // Create a new project
+        /*
+         * NAMED AFTER THE WORKSPACE, NOT AFTER AN EXAMPLE.
+         *
+         * This used `seed.projectName` -- "Example: Mobile App Roadmap",
+         * "Example: Startup MVP", "Example: Developer Platform". That name was
+         * honest while the seed put four example signals and four example bets
+         * inside it. With those gone (see the block below) it labels an EMPTY
+         * container as an example of nothing, which promises more than the old
+         * version did and delivers less.
+         *
+         * `ensureDefaultProduct` already names a project after its workspace,
+         * and that is the product's own convention for the same object. Reusing
+         * it means one naming rule rather than two.
+         */
+        const { data: ws } = await supabase
+          .from("workspaces")
+          .select("name")
+          .eq("id", workspaceId)
+          .maybeSingle();
+        const projectName = ((ws as { name?: string } | null)?.name ?? "").trim() || "My product";
         const { data: newProject, error: createError } = await supabase
           .from("projects")
-          .insert([{ user_id: userId, workspace_id: workspaceId, name: seed.projectName }])
+          .insert([{ user_id: userId, workspace_id: workspaceId, name: projectName }])
           .select("id")
           .single();
 
@@ -229,73 +248,39 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
         projectId = projects[0].id;
       }
 
-      // 4. Insert signals
-      // If this fails, the handler will throw and profile won't be marked onboarded (guard below).
-      /**
-       * THESE ROWS SAY WHAT THEY ARE NOW.
+      /*
+       * ── 4 & 5. THE INVENTED ROWS ARE GONE (P-33, founder's ruling via A1,
+       *    2026-09-03) ─────────────────────────────────────────────────────
        *
-       * They are invented: "90% of sign-ups drop after day 1", "Competitor
-       * just launched push notifications". Specific, alarming, and about a
-       * product the reader has told us nothing about. They land in the user's
-       * REAL workspace at step 1 of onboarding, and until 2026-08-05 nothing on
-       * any screen said so.
+       * This inserted four signals and their opportunities into the person's
+       * REAL workspace at step 1 of onboarding. They were invented: "90% of
+       * sign-ups drop after day 1", "Competitor just launched push
+       * notifications", "Premium tier at 8% conversion". Specific, alarming,
+       * numeric, and about a product the reader has told us nothing about.
        *
-       * The label was believed to exist and could not render. `track-seeds.ts`
-       * claims it lives in the project name and "the description under it";
-       * `projects` has no description column, and no surface joined the project
-       * name. So Decide opened on "4 bets ranked, strongest first" about a
-       * product the visitor does not have. For a product whose whole claim is
-       * that its judgement is grounded in YOUR record, that reads as a faked
-       * demo.
+       * ── WHAT WAS TRIED FIRST, AND WHY IT WAS NOT ENOUGH ─────────────────
+       * On 2026-08-05 they were marked `is_sample` and labelled, because the
+       * comment that stood here had already reached the right diagnosis: "for a
+       * product whose whole claim is that its judgement is grounded in YOUR
+       * record, that reads as a faked demo." Labelling answers a smaller
+       * question than the one that was asked. A label says "this is an example";
+       * it does not stop Decide from opening on four bets nobody made, and it
+       * does not stop those rows being real enough for the loop to pick up and
+       * spend money on.
+       *
+       * P-33's rule is flat: no placeholder that looks like data, and no number
+       * the workspace does not have. Four fabricated percentages in a real
+       * workspace are both.
+       *
+       * ── AND THERE IS ALREADY AN HONEST DOOR ────────────────────────────
+       * A full record IS worth showing somebody on their first day. That is what
+       * the sample workspace is for, and it is honest because it is somebody
+       * else's workspace and says so. Borrowing its shape into the person's own
+       * is the part that was never true.
+       *
+       * A real workspace now starts empty, which is the state P-33 exists to
+       * design rather than to paper over.
        */
-      const signalRows = seed.signals.map((sig) => ({
-        user_id: userId,
-        workspace_id: workspaceId,
-        project_id: projectId,
-        source: sig.source,
-        title: sig.title,
-        content: sig.content,
-        is_sample: true,
-      }));
-
-      const { error: signalsError } = await supabase.from("signals").insert(signalRows);
-
-      if (signalsError) throw signalsError;
-
-      // 5. Insert opportunities
-      // If this fails, signals are already inserted but will be orphaned.
-      // This is acceptable (partial seed is better than no seed), but profile won't be marked
-      // onboarded, so the user can retry. Signals are just extra data that won't be used.
-      const opportunityRows = seed.opportunities.map((opp) => ({
-        user_id: userId,
-        workspace_id: workspaceId,
-        project_id: projectId,
-        title: opp.title,
-        problem: opp.problem,
-        target_user: opp.target_user || null,
-        impact: opp.impact,
-        confidence: opp.confidence,
-        ease: opp.ease,
-        status: "backlog",
-        // See the note on signalRows above. A bet nobody made must never be
-        // presented as one the workspace holds.
-        is_sample: true,
-      }));
-
-      const { data: insertedOpps, error: opportunitiesError } = await supabase
-        .from("opportunities")
-        .insert(opportunityRows)
-        .select("id");
-
-      if (opportunitiesError) throw opportunitiesError;
-
-      await recordSeedOpportunityStageEvents(
-        supabase,
-        (insertedOpps ?? []).map((o) => o.id),
-        workspaceId,
-        userId,
-      );
-
       // 6. Deliberately NOT marking the profile onboarded here (SW-6 audit
       //    fix): this runs at STEP 1 of 4, and flipping the flag this early
       //    meant any interruption (notably the GitHub full-page install
@@ -318,8 +303,12 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
       await noteMoment("data_connected", userId, workspaceId, {
         path: "track_seed",
         track,
-        signals: seed.signals.length,
-        opportunities: seed.opportunities.length,
+        /* Zero, and stated rather than dropped. The seed no longer writes
+           signals or bets, and reporting `seed.signals.length` here would put a
+           count of rows that do not exist into the funnel -- the same class of
+           claim P-33 removed them for. */
+        signals: 0,
+        opportunities: 0,
       });
 
       // WHY THE WORKSPACE ID COMES BACK.
@@ -337,8 +326,8 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
         alreadySeeded: false,
         workspaceId,
         projectId,
-        signalsCount: seed.signals.length,
-        opportunitiesCount: seed.opportunities.length,
+        signalsCount: 0,
+        opportunitiesCount: 0,
       };
     } catch (error) {
       console.error("Error seeding workspace:", error);

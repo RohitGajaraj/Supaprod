@@ -39,9 +39,13 @@ import type { WorkShape } from "@/lib/spine/route";
  *   one line, first run only   what this product does, said once and then never
  *                              again, because a person who has runs has learnt it
  *   the composer               the one thing they came to do
- *   three example jobs         whole sentences that can be pressed, because the
- *                              fastest way to learn what a product does is to
- *                              watch it do one thing
+ *   three example sentences    whole sentences, to show what this takes. They
+ *                              load into the composer to be edited rather than
+ *                              starting a run: we wrote them, so they are not
+ *                              this workspace's work and must not be pressed
+ *                              as if they were (P-33). Once the workspace has
+ *                              ranked bets they replace these, and THOSE start
+ *                              on press, because they are its own.
  *   your runs                  the ONLY way a person meets an approval, a
  *                              verdict or a hold (A1-REPORT §4)
  *
@@ -287,7 +291,31 @@ function StartLanding() {
         />
       ) : null}
 
-      <ExampleJobs onStart={(job) => go.mutate(job)} busy={go.isPending} bets={bets.data ?? []} />
+      {/*
+       * TWO CALLBACKS, BECAUSE THE TWO LISTS DO DIFFERENT THINGS (P-33).
+       * A ranked bet is this workspace's own work and starts on press. An
+       * example is a sentence we wrote, so it lands in the composer with the
+       * cursor in it and the person edits it into their own product's words --
+       * pressing it must never file a run about a checkout they do not have.
+       */}
+      <ExampleJobs
+        onStart={(job) => go.mutate(job)}
+        onUse={(job) => {
+          setSentence(job.sentence);
+          // Focus AND select: the sentence is a draft to be rewritten, not a
+          // value to be accepted, so the first keystroke should replace it
+          // rather than append to it. `select()` on an input the person did
+          // not focus themselves is only right because they just pressed the
+          // control that filled it.
+          const field = fieldRef.current;
+          if (field) {
+            field.focus();
+            field.select();
+          }
+        }}
+        busy={go.isPending}
+        bets={bets.data ?? []}
+      />
 
       <YourRuns />
 
