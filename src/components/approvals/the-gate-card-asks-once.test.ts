@@ -50,16 +50,32 @@ describe("the gate card asks once, and asks first", () => {
      * by...", and the actual risk sat in `lines` as a fact among facts.
      *
      * A fixed order cannot save a card whose slots are ambiguous, so the two
-     * sentences have two names. `consequence` survives only as a deprecated
-     * alias while the approvals page migrates, and it renders where the DEFAULT
-     * renders, never where the risk does.
+     * sentences have two names.
      */
     expect(GATE).toContain("risk?: string | null;");
     expect(GATE).toContain("declaredDefault?: string | null;");
-    expect(GATE.replace(/\s+/g, " ")).toContain(
-      "const fallbackLine = declaredDefault ?? consequence ?? null;",
-    );
+    expect(GATE.replace(/\s+/g, " ")).toContain("const fallbackLine = declaredDefault ?? null;");
     expect(GATE.indexOf("{risk}")).toBeLessThan(GATE.indexOf("{fallbackLine}"));
+  });
+
+  it("the deprecated consequence alias is gone: no prop, no callers", () => {
+    // P-51 (A-QUEUE.md): the alias existed only while the two composers
+    // migrated to risk/declaredDefault. Both have. A prop named `consequence`
+    // reappearing here, or a caller reaching for it, is the exact regression
+    // this packet closed -- the old name landing the wrong sentence in the
+    // DEFAULT slot again.
+    expect(GATE).not.toMatch(/\bconsequence\??:\s/);
+    expect(GATE).not.toContain("consequence,");
+    expect(GATE).not.toContain("consequence ??");
+
+    const callers = [
+      "src/components/track/TrackConsent.tsx",
+      "src/routes/_authenticated.approvals.tsx",
+    ];
+    for (const file of callers) {
+      const src = strip(readFileSync(file, "utf8"));
+      expect(src, `${file} still passes consequence= to CallGate`).not.toMatch(/consequence=\{/);
+    }
   });
 
   it("puts the declared default last, above the answers", () => {

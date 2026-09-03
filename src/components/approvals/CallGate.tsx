@@ -22,10 +22,16 @@ import { isOverdue, stoppedFor } from "@/components/meridian/stopped-for";
  * THE RULE THAT FOLLOWS. A slot is a promise about MEANING, not about position.
  * Two sentences that answer different questions get two names, however similar
  * they look at the call site: "what happens if you say yes" and "what happens if
- * you say nothing" are opposites wearing the same grammar. `consequence` remains
- * only as a deprecated alias for `declaredDefault`, and it renders where the
- * DEFAULT renders and never where the risk does, so the old name cannot put that
- * sentence back above the facts.
+ * you say nothing" are opposites wearing the same grammar.
+ *
+ * P-51 (A-QUEUE.md): `consequence` was kept as a deprecated alias while the
+ * two composers migrated to `risk`/`declaredDefault`. Both have (`TrackConsent`
+ * already had; `_authenticated.approvals.tsx`'s own sentence turned out to
+ * answer "what happens if you say yes", which is `risk`, not `declaredDefault`
+ * -- the exact slot confusion this file exists to close, still live in the one
+ * remaining caller until this packet), so the alias is gone. A future caller
+ * that reaches for `consequence` now gets a type error instead of a sentence
+ * quietly landing above the facts again.
  *
  * ── WHAT IT REPLACES ────────────────────────────────────────────────────
  * The `Gate` primitive from src/components/shell/primitives.tsx, which drew
@@ -84,7 +90,6 @@ export function CallGate({
   hiddenLineCount = 0,
   risk,
   declaredDefault,
-  consequence,
   consequenceTitle,
   children,
   anchor,
@@ -125,8 +130,6 @@ export function CallGate({
    * each other's places.
    */
   declaredDefault?: string | null;
-  /** @deprecated Pass `declaredDefault`. Kept while the approvals page migrates. */
-  consequence?: string;
   /**
    * The exact record behind the consequence sentence, on hover only -- the
    * same rule the age line follows: the phrase is what changes behaviour,
@@ -144,9 +147,7 @@ export function CallGate({
   anchor?: Record<string, string>;
 }) {
   const overdue = since !== null && isOverdue(since, now);
-  /* One sentence, whichever slot it arrived in, so the deprecated name cannot
-     put it back above the facts. */
-  const fallbackLine = declaredDefault ?? consequence ?? null;
+  const fallbackLine = declaredDefault ?? null;
 
   return (
     <section
@@ -155,7 +156,7 @@ export function CallGate({
       className="rounded-mrd-pane border border-mrd-line bg-mrd-sheet px-mrd-6 py-mrd-6 shadow-mrd-card"
     >
       {/*
-       * ── THE ORDER IS THE DESIGN (P-37) ────────────────────────────────
+       * ── THE ORDER IS THE DESIGN (P-37, corrected P-51) ──────────────────
        *
        * This card opened with a "Waiting on you" chip and a subject, then the
        * question, then the facts, then the consequence. Four regions before the
@@ -164,13 +165,17 @@ export function CallGate({
        * one state.* **A card that is asking IS the waiting**, and the line below
        * says since when, so the chip was a third statement of one fact.
        *
-       * The order now, and it is fixed rather than passed:
+       * The order below, and it is fixed rather than passed. THIS DESCRIPTION
+       * USED TO SAY "consequence" HERE, before that one slot's ambiguity was
+       * the whole defect P-37/P-51 closed -- see the two named slots below:
        *
        *   question       what is being asked, alone
-       *   consequence    what answering yes causes. BEFORE the facts, because
-       *                  the consequence is what changes the answer; the facts
-       *                  are what justify it once you know what is at stake.
+       *   risk           what answering yes causes. BEFORE the facts, because
+       *                  it is what changes the answer; the facts are what
+       *                  justify it once you know what is at stake.
        *   facts          the reason, in the reason's register
+       *   declaredDefault what happens if nobody answers, mono, immediately
+       *                  above the clock -- never the same sentence as `risk`
        *   waiting since  a fact about a clock, mono, LAST, because a clock
        *                  above the answers makes a question read as a countdown
        *   children       the controls

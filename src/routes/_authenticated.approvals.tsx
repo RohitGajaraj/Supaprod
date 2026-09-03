@@ -808,7 +808,16 @@ function ApprovalsSurface() {
                replacement, same shape, same kind/id source. */
             anchor={presenceAnchor(`row:${focused.kindKey}`, focused.sourceId)}
             /*
-             * THE CONSEQUENCE IS REPLACED, NOT ARGUED WITH, when the work this
+             * P-51 (A-QUEUE.md): this is `risk`, not `declaredDefault`. It says
+             * what answering YES does ("Approve · unblocks Build for this
+             * spec"), which is exactly the question `risk` answers; it is not
+             * "what happens if nobody answers", which is what `declaredDefault`
+             * answers and this queue genuinely has none of -- these items carry
+             * no expiry (see `still-holds-work.ts`'s own header: "none is past
+             * an expiry that would clear them"), so `declaredDefault` is left
+             * unset rather than invented.
+             *
+             * THE SENTENCE IS REPLACED, NOT ARGUED WITH, when the work this
              * call held has already finished.
              *
              * "Approve · unblocks Build for this spec" is a promise the data
@@ -827,7 +836,7 @@ function ApprovalsSurface() {
              * see `still-holds-work.ts` for why null must never read as
              * finished.
              */
-            consequence={stillHoldsWork(focused.gatesLiveWork) ?? focused.approveConsequence}
+            risk={stillHoldsWork(focused.gatesLiveWork) ?? focused.approveConsequence}
           >
             <Approve
               shortcut="a"
