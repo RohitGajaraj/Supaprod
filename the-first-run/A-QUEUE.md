@@ -6309,7 +6309,7 @@ packet, since P-46's scope is the copy, not the tooling.
 
 **Blockers (A3 writes):** —
 
-### P-47 · The humanizer scans a markdown page it was handed · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed 67a1470bb) · Moves: 5
+### P-47 · The humanizer scans a markdown page it was handed · Lane: **A3** · Status: DONE (A1 verified by repro, 18:32 IST) · Moves: 5
 
 **Why.** A3, P-46: `scripts/hooks/check-humanized.sh` says in its header that passing a markdown
 path explicitly is the opt-in for scanning a public page, and a one-line `.md` with a bare em
@@ -6323,6 +6323,11 @@ file under `docs/lanes/` in the sweep still passes as today). No change to what 
 **Acceptance.**
 - [ ] The test, named after its sentence; the hook's header matches its behaviour.
 - [ ] `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**A1, 18:32 IST · verified by repro and DONE.** A one-line `.md` with an em dash under `docs/pitch`,
+passed explicitly, now reports *found 1 line with banned dashes* (it reported clean before); the
+hook stays warn-only without `STRICT=1`, as it was. Suite on the tip 13,892 / 0 / 0, tsc 0. A
+hook script, so no publish.
 
 **Report (A3 writes):** Pushed `67a1470bb`. `scan_file_args` in `scripts/check-humanized.sh` still
 filtered every explicit argument through `TEXT_EXT_RE` (the same allowlist the automatic staged-diff
