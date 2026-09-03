@@ -305,3 +305,42 @@ export function PairMark({
     </span>
   );
 }
+
+/**
+ * ── THE WORKSPACE ITSELF IS THE EXAMPLE (P-33, 2026-09-03) ────────────────
+ *
+ * The product marks individual seeded ROWS with a bold `Example` in front of
+ * the line they qualify. This is the same word for the container: a workspace
+ * whose whole contents are a fixture.
+ *
+ * It exists because four separate places in the codebase asserted the shell
+ * already rendered one and none of them did -- `use-workspace.tsx`'s own type
+ * comment says `is_sample` is carried "so the shell can label it (a tag + a
+ * banner)", and `ScopeMenu` rendered `activeWorkspace.name` alone. A person
+ * moved into the sample workspace by the empty-desk door had nothing on screen
+ * telling them an invented company's decisions were not their own.
+ *
+ * A TAG AND NOT A BANNER, at this size: it rides beside the name wherever the
+ * name is, which is the only place guaranteed to be on screen. The banner is a
+ * separate thing and says what to do about it; this says where you are.
+ */
+export function SampleTag({ size = "row" }: { size?: "row" | "inline" }) {
+  return (
+    <span
+      data-mrd=""
+      /*
+       * NOT `role="img"`. Unlike `YouMark` this is a word, and it is the word a
+       * screen reader should read in the reading order it appears in -- a
+       * person who cannot see the tag needs it more than one who can.
+       */
+      className={[
+        "inline-flex shrink-0 items-center rounded-mrd-xs",
+        size === "row" ? "px-1.5 py-px text-mrd-tiny" : "px-1 text-mrd-tiny",
+        "font-[650] uppercase tracking-mrd-label",
+        "bg-mrd-lift text-mrd-mute",
+      ].join(" ")}
+    >
+      Sample
+    </span>
+  );
+}

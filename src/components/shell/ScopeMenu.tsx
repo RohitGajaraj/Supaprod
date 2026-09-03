@@ -54,6 +54,7 @@ import * as React from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import { Avatar } from "@/components/supaprod/Avatar";
+import { SampleTag } from "@/components/meridian/marks";
 import { useAvatarChoice } from "@/hooks/use-avatar-choice";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -112,6 +113,23 @@ export function ScopeMenu() {
         title="Workspace and product"
       >
         {activeWorkspace.name}
+        {/*
+         * ── WHERE YOU ARE, WHEN WHERE YOU ARE IS A FIXTURE (P-33) ──────────
+         *
+         * This button rendered `activeWorkspace.name` alone. It is the only
+         * thing on screen naming the workspace, and the empty-desk door in
+         * Discover MOVES a person into the seeded workspace rather than
+         * previewing it (it writes that id to localStorage, so every later
+         * visit lands there). So a workspace full of an invented company's
+         * decisions was indistinguishable from the person's own empty one.
+         *
+         * Four separate places in the codebase already asserted this tag
+         * existed: this file's sibling `use-workspace.tsx` carries `is_sample`
+         * "so the shell can label it (a tag + a banner)", `_authenticated.tsx`
+         * says "no sample banner", and the label migration says the same. None
+         * of them rendered anything. It renders now.
+         */}
+        {activeWorkspace.is_sample ? <SampleTag size="inline" /> : null}
         {activeProduct?.name ? (
           <>
             <span className="sp-scope-sep">/</span>
@@ -143,6 +161,10 @@ export function ScopeMenu() {
                   }}
                 >
                   {w.name}
+                  {/* On every row, not just the active one: the switcher is
+                      where a person CHOOSES, and the moment to know which of
+                      these is a fixture is before pressing it, not after. */}
+                  {w.is_sample ? <SampleTag /> : null}
                 </button>
               ))}
               <div className="sp-menu-rule" />
