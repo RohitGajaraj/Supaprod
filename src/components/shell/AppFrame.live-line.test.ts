@@ -32,36 +32,38 @@ describe("the live line on the board", () => {
   });
 
   /*
-   * ── THIS ASSERTION IS WHY THE DEFECT CAME BACK (2026-09-01) ─────────────
+   * ── THIS ASSERTION IS WHY THE DEFECT CAME BACK ONCE ALREADY (2026-09-01),
+   * AND WHY ITS OWN FIX HAS NOW GONE STALE TOO (P-14, 2026-09-03) ──────────
    * It used to read `expect(SRC).toContain('const onTheBoard = pathname ===
-   * "/today";')`. That pins a SPELLING, and the spelling was not what went
-   * wrong: the guard's logic was untouched and correct, and the ADDRESS it
-   * names went stale underneath it when `/today` became a redirect and
-   * `<Board />` moved to `/start`.
+   * "/today";')`, a SPELLING pin that broke when `/today` redirected and
+   * `<Board />` moved to `/start`. The 2026-09-01 fix replaced that with a
+   * check that `SIGNED_IN_HOME`'s own route file contains the literal text
+   * `<Board />` -- which is ALSO a spelling pin, just one substring further
+   * removed, and it was never caught because the repo happened to keep a
+   * comment mentioning `<Board />` in `_authenticated.start.tsx` the whole
+   * time. `Board.tsx` is now deleted outright (P-14, A-QUEUE.md): there is no
+   * component by that name anywhere in the codebase for any route to render,
+   * so the literal-string check can now only pass on a comment, exactly the
+   * failure mode A1 named it for.
    *
-   * So the suppression stopped firing anywhere a reader can stand, the top bar
-   * and the headline said the same sentence again -- photographed on the front
-   * door, "70 decisions are ready for you" over "70 decisions are ready for
-   * your review" -- and this test went on passing, because the string it was
-   * watching had not changed. A guard on a literal fails when the code
-   * improves and passes when the meaning breaks.
+   * The claim underneath both versions -- "the top bar's gate sentence is
+   * suppressed because the surface it is suppressed ON already states the
+   * same count" -- needs a fresh answer, not a third spelling of the same
+   * check: `_authenticated.start.tsx` today shows no "N decisions are ready"
+   * sentence at all, in any form; it shows the person's own runs marked
+   * "Needs you" instead, a structurally different claim (a list of items, not
+   * a summed count). Whether that still justifies suppressing the top bar's
+   * sentence on this page, or whether the suppression is now hiding the only
+   * mention of pending gates a person on Start ever sees, is a live-behaviour
+   * question about AppFrame.tsx's own counting logic -- P-18a's stated scope,
+   * next after this sweep -- not something this test should guess at.
    *
-   * It now asserts the CLAIM: the suppression is keyed to wherever the board
-   * actually renders, named by the constant that decides it, so moving home
-   * again moves this with it.
+   * So the over-fit assertion is deleted rather than re-spelled a third time.
+   * The other four tests in this file stay: they pin the guard's own
+   * mechanics (it exists, matches exactly, never silences a failure,
+   * recomputes on navigation), which remain true regardless of what renders
+   * at SIGNED_IN_HOME.
    */
-  it("is keyed to where the board actually renders, not to a literal address", () => {
-    // `SIGNED_IN_HOME` is the constant `/today` redirects to and the one
-    // `/start` is; naming it is what stops this drifting a second time.
-    expect(SRC).toContain("const onTheBoard = pathname === SIGNED_IN_HOME");
-    expect(SRC).toContain('import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home"');
-    // The route that renders <Board /> is the route the constant points at.
-    const home = readFileSync("src/components/shell/post-auth-home.ts", "utf8");
-    const route = home.match(/SIGNED_IN_HOME = "([^"]+)"/)?.[1];
-    expect(route).toBeTruthy();
-    const board = readFileSync(`src/routes/_authenticated${route!.replace("/", ".")}.tsx`, "utf8");
-    expect(board).toContain("<Board />");
-  });
 
   it("matches the route EXACTLY, so a child route is not silenced by inheritance", () => {
     // A child route is a different surface making its own claims; inheriting
