@@ -91,7 +91,7 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 ---
 
 **DEV SERVER: off** · any lane may start it when a packet needs a rendered check; the lane that starts it stops it and writes `off` here before reporting the packet.
-**LIVE WALKS (A1): resumed 06:34 IST, the extension is back. Pending: P-14b (Outcomes), P-04 Learn tab and transcript row after the 06:00 UTC calibrate tick, P-18a.**
+**LIVE WALKS (A1): current. Pending: P-04 Learn tab and transcript row after the 06:00 UTC calibrate tick; the honest run's row after the 01:30 UTC tick.**
 
 ---
 
@@ -1874,6 +1874,15 @@ stated: the column is null for generic holds on purpose (F-127) and what a perso
 `HOLD_LINE`; what I read empty was the column. Next tick should hold `waiting-on-another-run` naming
 the tablet run and `AddressStep.tsx`; the wall comes down when PR #4 merges.
 
+
+**A1, 07:00 IST · the general rule is live; the read is the 01:30 UTC tick.** 01:10 UTC (before the
+publish landed): the qa seat ran and the drive ended out-of-time. 01:20 (landing): no crew, the
+correction path took the track to `given-up · attempts 3` with the red-tile sentence, which is P-03c's
+correct end state for a spent counter. A1 reset once more (attempts 0, hold `self-check-failed`,
+01:25:31 UTC) so the first tick certainly under `e47f5e663` can be read: expected
+`waiting-on-another-run`, attempts unchanged. Also for A2: two pending `studio.pr.merge` gates existed
+for one PR (see P-18a); one pending gate per changeset per tool.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
@@ -2729,7 +2738,7 @@ Next: P-14b.
 ---
 
 
-### P-14b · Outcomes carries what shipped and what the record moved · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed `e2efff02f`; A1's live walk closes it) · Moves: 4, 5
+### P-14b · Outcomes carries what shipped and what the record moved · Lane: **A3** · Status: DONE (A1, 07:00 IST, walked live) · Moves: 4, 5
 
 **Why.** `/ship` and `/learn` cannot go until their two cross-run facts have a home, and Outcomes is
 the survivor whose job is cross-run history per station (P-14 ruling).
@@ -2763,6 +2772,14 @@ move the readers. Copy plain (R-copy). No `meridian/**` edits.
       id; those rows draw no door at all, per A1's ruling, rather than a link to a screen that cannot
       show it.**
 - [x] tsc 0 · `bun test` 0 fail · ratchet not widened · pushed · Report.
+
+
+**A1 verdict: DONE** _07:00 IST, `/outcomes?tab=learnings` on Helio Labs._ *What shipped · Batch
+firmware push scheduler · Jul 9, 2026 · PR #128 · Live*, and *What the record moved · Priority moved
++1 · across 2 measured outcomes · 3 calls later replaced · you changed your mind on evidence*, byte-equal
+to `/learn`'s lines. The release row draws no door, which is the ruling: that release predates the
+spine and resolves to no track; the first release a run makes will carry one. `/ship` and `/learn` may
+go once P-04's grader has run (11:30 IST).
 
 **Report (A3, 2026-09-03).** Commit `e2efff02f`, pushed to `main` (`eaf9cdbbc..ed9be7d79`). Both
 readers reused exactly (`listChangelog`, `getImpactLedger`), no new query shapes -- the one addition
@@ -3360,7 +3377,7 @@ precisely is this Report's job, stopping it is A1's per that ruling.
 ---
 
 
-### P-18a · The top bar counts only what a person can act on · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed `372b855de`) · Moves: 3
+### P-18a · The top bar counts only what a person can act on · Lane: **A3** · Status: DONE (A1, 07:00 IST, walked live) · Moves: 3
 
 **Why.** At 03:20 IST the bar on Helio Labs read *65 decisions are ready for you · Merges the pull
 request into the branch · 10m ago*. No count in the workspace is 65: 5 approvals are pending (2 on a
@@ -3389,6 +3406,15 @@ does not render. Every rotating sentence in the bar names its source in a test: 
       header, so the reason survives the file the way `a-quiet-morning-is-a-claim-about-the-workspace.test.ts`
       did for the surface this one replaces.
 - [x] tsc 0 · `bun test` 0 fail · pushed · Report with the reader's old name and what it counted.
+
+
+**A1 verdict: DONE** _07:00 IST._ Before: *67 decisions are ready for you* at 06:45 under the old
+build. After the publish: *1 decision is ready for you · What we expected did not happen: Decline
+shipping…*. The database at 01:24 UTC held two pending gates on open tracks, both `studio.pr.merge` on
+the same track `6817e386` for the same PR #4 (`f88c612c` 21:05, `5dcbe54d` 21:32), raised twice by
+the re-dispatch loop P-03 fixed; one decision is the truth and the bar said it. A1 cancelled the
+older duplicate (`update agent_approvals set status='cancelled' … where id like 'f88c612c%'`).
+One pending gate per changeset per tool goes to A2 under P-03.
 
 **Report (A3, 2026-09-03).** Commit `372b855de`, pushed to `main` (`0c5da9091..3fa884b55`). The old
 reader was `getApprovalsQueue` (`src/lib/approvals-queue.functions.ts`), reading
