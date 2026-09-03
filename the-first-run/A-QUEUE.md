@@ -7231,7 +7231,15 @@ promote without a preview. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads the row and the card.
 
-### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CODE DONE, pushed 03cbdafe0 (fixes e80ddc701's tsc break against A2's P-50 type), awaiting A1's live read · Moves: 2, 3
+### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
+
+**A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
+this on: Predictive outage alerts from meter dips?* (composed; the 00:20 build had asked the bare
+title, which A2 recomposed on its rebase); Learn's settle panel reads *Nothing has shipped that
+needs a verdict.* as one sentence; Gate has no importer left. Two sites had no live case: the ship
+page's ask needs a pending publish call (none in Helio tonight; the release gate lives on the
+track, read separately) and Sync's *Which copy wins?* needs a conflict (none). tsc was red on the
+first push and green on 705257f91; the two mis-composed sites are in the ledger under F-188.
 
 **A1, 00:25 IST 09-04: MAIN IS RED ON TSC from 1d888c337.** Suite 13,970 / 0 on the tip, but nine
 migrated sites pass a plain string where `Ask` now takes an `AskQuestion` (P-50, bbc7145fc):
