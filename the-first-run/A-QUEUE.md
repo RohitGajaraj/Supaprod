@@ -7561,7 +7561,9 @@ second part):** the footing is durable: read it from the record (the `sense.foun
 the Decide entry drive's `entry_hold`, or a `footing` column set when Sense carries and cleared
 only when a source is pointed), never from `last_hold`; a regression guard with this track's exact
 shape (carried, out-of-time, decline); and the classifier stays secondary to the footing. The two
-probe tracks stay as evidence.
+probe tracks stay as evidence. **A1, 04:41 IST:** P-71c on main at bbb769b10 (`footingIsCarried(await
+carriedEvidenceFor(...))`, read from the record); A1 suite on the tip 14,143 / 0 / 0, tsc 0;
+PUBLISHED 04:41; a third sentence in the probe after propagation decides P-71 and P-71b.
 ### LIVE WALK, A1, 03:00 IST 09-04 · what the first change to reach Ship actually is
 
 PR #4 on `relay-homeowner-app`, merged 06:42 UTC 09-03: `src/checkout/AddressStep.css` +90 (rules
