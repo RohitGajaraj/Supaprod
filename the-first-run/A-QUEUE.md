@@ -4107,7 +4107,7 @@ eslint 0 new errors. `bash -n` syntax-checked both scripts.
 **Blockers (A3 writes):** —
 
 
-### P-28 · The duplicates the loop wrote are superseded on the record · Lane: **A3** · Status: DONE (A3, written and verified per A1's ruling) · Moves: 4
+### P-28 · The duplicates the loop wrote are superseded on the record · Lane: **A3** · Status: DONE (A1, 08:30 IST, verified in the database and on the run screen)· Moves: 4
 
 **Why.** The build → define → design → build cycle (P-03c) filed a spec and a prototype per lap for
 weeks. On `2fdf93b6` alone: four `prds` rows and eight prototype rows for one piece of work; the run
@@ -4139,6 +4139,12 @@ groups say, because they are the run's history and `newestChangesetForTrack` joi
 track's mission members. Documents only (prd, prototype, decision, task, signal, finding, theme),
 survivor the newest per group. Part 3 of the SQL file holds the ids written, the one-line rollback,
 and the two pre-existing rewind rows nobody may unset.
+
+
+**A1 verdict: DONE** _08:30 IST._ Database: 171 rows superseded in the last half hour, kinds
+decision · prd · prototype · signal · task · theme, zero of the excluded kinds; the two rewind rows
+untouched; `2fdf93b6` has 21 standing members. Run screen: *Design filed 2 prototypes*, no repeat
+line. `deployment` having zero member rows anywhere is filed as P-30.
 
 **Report (A3, 2026-09-03). The census, read-only, run via the Lovable MCP against the live database.
 Full read + prepared (unexecuted) write SQL: [`the-first-run/P-28-duplicate-census.sql`](./P-28-duplicate-census.sql).**
@@ -4293,3 +4299,61 @@ before every push.
 tsc 0 at every step. `bun test`: 13,730 tests, 0 fail, 0 unhandled errors (full console-reporter run,
 not junit alone, both before and after the final rebase). eslint 0 new errors throughout.
 **Blockers (A3 writes):** the live walk on Helio Labs (acceptance line 1) -- no browser this session.
+
+
+### P-18b · The ask dock claims only what the bar claims · Lane: **A3** · Status: READY · Moves: 3
+
+**Why.** At 06:45 IST the bar read *Nothing running* while the ask dock's right-hand line read
+*Review is working on Checkout asks for already-save…*. Two readers, one fact, two claims. P-18 and
+P-18a fixed the bar; the dock still reads the mission's stored status.
+
+**Scope.** The dock's live line reads `listMovingTracks` and the seat sentence the bar reads
+(`genuinely-working.ts`), nothing else; with nothing moving it shows the last moved line in the past
+tense or nothing. A test renders the dock with zero moving tracks and a `running` mission.
+
+**Acceptance.**
+- [ ] With the current data the dock and the bar say the same thing, verified live by A1.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error (console) · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
+
+### P-30 · Ship files its own artifact · Lane: **A3** · Status: READY (after P-18b) · Moves: 3, 4
+
+**Why.** `spine_track_members` holds zero rows of kind `deployment`, ever (A3, P-28 census). So
+the Ship station produces nothing on the record, `whatItProduced` cannot say *Ship filed 1
+release*, Outcomes' *What shipped* cannot link a release to its run, and P-14b's door stays empty.
+The station has a tool (`release.publish`) and a table (`deployments`); the attach step was never
+written.
+
+**Scope.** When `release.publish` succeeds (and when `promoteChangeset` records a production
+promotion), file a `deployment` member on the track at station `ship` through `attach.ts`'s
+existing path, the same way Build files its changeset. `STATION_ARTIFACT.ship` names it. A test:
+a track whose release published has a `deployment` member and the run screen says *Ship filed 1
+release*. No new query shapes.
+
+**Files.** `src/lib/spine/attach.ts`, the release tool's success path, `what-it-produced.ts`, tests.
+
+**Acceptance.**
+- [ ] The test above; `listChangelog`'s fourth hop resolves a release to its run through it.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
+
+### P-31 · No claim about a plan that does not exist · Lane: **A3** · Status: READY (after P-30) · Moves: 4
+
+**Why.** Outcomes reads *On the free plan this record fades after 30 days. Keep it.* There is no free
+plan, no paid plan, and nothing fades; the founder has not ruled on pricing. A sentence the repo
+cannot show is the one kind of copy that never ships (CLAUDE.md).
+
+**Scope.** Remove the line and the *Keep it* door, and grep every surface for *free plan*, *upgrade*,
+*Pro*, *trial* and *fades*; each hit is removed or made true, listed in the Report. A guard: no
+surface names a plan until `docs/strategy` records one.
+
+**Acceptance.**
+- [ ] The grep list is empty or every hit is justified in the Report.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
