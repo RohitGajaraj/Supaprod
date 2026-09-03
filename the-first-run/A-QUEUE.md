@@ -3700,7 +3700,7 @@ carry the three files under `.supaprod/`, and the Plan tab should offer copy and
 
 ---
 
-### P-22 · The thing being built runs in the right pane · Lane: **A2** · Status: CLAIMED (A2, 08:10 IST) · Moves: 3, 4, 5
+### P-22 · The thing being built runs in the right pane · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 09:40 IST) — first close complete; the running-app read needs a connected provider · Moves: 3, 4, 5
 
 **Why (founder, 2026-09-02 19:29, from Lovable's Live preview setting: *"Run your app on a live dev
 server in the editor preview. When off, the preview shows the latest built version."*).** Watching
@@ -3716,6 +3716,48 @@ deploy steps with a clock (Vercel's streaming build log), never a spinner. When 
 the slot says why in one line (*"No preview: the repo has no preview deploys connected"*) with the
 door to Settings › Connections. Ship's row shows the production URL the same way once
 `release.publish` fires.
+
+**Report (A2, 09:40 IST) — first close complete on main at `aceda8ad2`. tsc 0 · `bun test` 0 fail ·
+ratchet unchanged. No code remains in this packet.**
+
+| Acceptance | State |
+| --- | --- |
+| Build row shows the running app; toggling shows the diff; checks beneath | **Code done.** Needs a connected preview provider to see the frame filled — the founder's item, not a blocker on this packet. |
+| While building: deploy steps and a clock; no spinner, no empty region | **Done and asserted.** The test forbids `Spinner`, `animate-spin` and `LoadingState` by name in the file. |
+| With no preview: one-line reason and the Connections door | **Done — and this is what A1 can check today**, on any track with no deploy. |
+| The frame is sandboxed, no top-navigation, URL beside it with open-in-new-tab | **Done and asserted**, including that the sandbox string MATCHES the prototype frame's, since two iframes in one product with different sandboxes means one is wrong. |
+
+**The Meridian primitive checked first, as the packet asks be named:** there is none. No frame
+primitive exists and this is the first surface to need one, so it is built in the track layer rather
+than promoted — the second caller would be a design review or a docs preview and neither exists.
+What IS reused: **`NeedsSetup`** for the no-preview state (it already carries title, body, action and
+`thenWhat`, which is exactly *here is why nothing is running and here is the door*), **`StatusChip`**,
+and **`useElapsed`**.
+
+**Four answers, because they are four different facts.** `running` only at the HEAD commit — a
+preview at an older commit is a different program wearing this change's name, the trap R-33 closed on
+the promote path. `building` names the provider, the deploy's own state word and a clock. `stale` is
+separate from `none` on purpose: the pipeline is wired and *this commit* has not been built, and
+folding them together sends somebody to Settings to fix a connection that works. `none` gets the
+reason and the door.
+
+**The read triggers no deploy and writes no row** — asserted rather than intended, because a surface
+that provisions a preview when somebody opens a tab spends money on being looked at. It polls only
+while building.
+
+**Ship's half is in too:** `ReleaseCard` renders the same frame rather than a link, labelled *Live*
+for production, and only for a release that actually succeeded — a blank iframe under a red chip
+reads as the product being broken rather than the deploy being. The frame is one component both call,
+because Build showing a frame while Ship shows a link to the same kind of thing is the drift a shared
+component exists to prevent.
+
+**A guard caught the first version and was right.**
+`one-station-display-on-the-run-screen` forbids `role="tablist"` anywhere this route draws, because a
+tab band here once meant a seven-station display on every screen in the product. `aria-pressed` on
+two buttons is also the more honest ARIA for one card choosing between two answers.
+
+**Blockers:** none in code. The running frame cannot be seen until a preview provider is connected to
+`relay-homeowner-app`; that is the founder's item and the honest empty state is what ships until then.
 
 **Second close (post-launch, not this packet).** A sandbox per run that boots the repo at the
 changeset and hot-reloads as the builder edits, so the app changes in front of the person while the
