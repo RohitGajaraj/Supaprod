@@ -5428,7 +5428,7 @@ these two. Still inside P-33 item (1).
 **Blockers (A2 writes):** —
 
 
-### P-34 · Signup does not lower a billing guard for everyone · Lane: **A3** · Status: CLAIMED (A3) · Moves: 5
+### P-34 · Signup does not lower a billing guard for everyone · Lane: **A3** · Status: DONE (A1 verified by object, 17:40 IST) · Moves: 5
 
 **Why.** `ensure_user_default_workspace` runs `ALTER TABLE public.workspaces DISABLE TRIGGER
 trg_protect_workspace_billing_columns` inside itself to set `plan_tier`, then re-enables it. That is
@@ -5467,6 +5467,11 @@ in a client-facing select. `listSignals` first.
 - [x] The two guards fail when a `select("*")` against a vector table is reintroduced (proven by
       reintroducing one).
 - [x] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+**A1, 17:40 IST · verified by object and DONE.** `ensure_user_default_workspace` no longer
+contains *DISABLE TRIGGER* (read from `pg_proc`), `20260909060000` is in the ledger, the test is in
+the suite; suite on the tip 13,883 / 0 / 0, tsc 0; published 17:40 with A2's door wiring and the
+Sync header fix from P-44.
 
 **Report (A3 writes):** Census: every table with a `vector` column (`udt_name = 'vector'`, checked
 against the live schema, not `types.ts` — Supabase's own codegen renders a vector column as
@@ -6131,6 +6136,47 @@ needed).
 Not yet done: your live walk (acceptance box 2) — no browser access this session, same as prior
 packets.
 
+**Blockers (A3 writes):** —
+
+### P-45 · The chat footer ranks its facts · Lane: **A3** · Status: READY · Moves: 2, 3
+
+**Why.** Found by A2 while hunting shape 6 for P-37: `src/components/chat/MessageMeta.tsx` puts
+every item behind one `style={item}`, so seat, verdict, duration, tokens and a paragraph render at
+one weight in the chat footer. Same defect as the run screen's row, different surface, and P-37 does
+not touch it.
+
+**Scope.** One lead per message (what it did or found), the meta line under it faint, tokens and
+cost in the open body only, using P-37's `FoldingRow` from Meridian as it lands (compose, do not
+fork; no Meridian edits). A test that the footer's lead is the verdict and the meta line carries
+no token count.
+
+**Acceptance.**
+- [ ] The test, named after its sentence; ratchet unchanged.
+- [ ] A1 reads one chat with a seat message and sees the lead and the fold.
+- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
+
+### P-46 · The launch copy is drafted against the canon and today's evidence number · Lane: **A3** · Status: READY (draft only; nothing outward ships without the founder) · Moves: 6
+
+**Why.** The outward pass is one of the five things between 70 and 100 percent. Every claim it
+makes has to survive today's number (943 of 1,512 signals were the loop's own writing until 15:15
+IST) and the two rulings (a sentence with no evidence is carried on the person's word; a seat at
+Sense never writes evidence).
+
+**Scope.** In `docs/pitch/`, a draft of the launch page copy and the Product Hunt listing, in the
+register of `docs/strategy/positioning-locked-2026-08.md` and the plain-and-unsold rule: lead with
+a verifiable mechanism and a self-correction, never with volume; no claim the repo cannot show
+today; the honest run's story (one sentence, the loop drove itself, it caught its own manufactured
+evidence and stopped counting it) told as it happened. A table beside the draft: each claim, the
+file or row that proves it. Linked from the folder index. No production code.
+
+**Acceptance.**
+- [ ] Every claim has a proof row; A1 checks three at random against the repo or the database.
+- [ ] `bun run docs:check` clean · pushed · Report. The founder reads it and says yes or no.
+
+**Report (A3 writes):** —
 **Blockers (A3 writes):** —
 
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
