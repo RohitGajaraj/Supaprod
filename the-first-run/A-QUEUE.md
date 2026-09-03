@@ -2070,6 +2070,31 @@ brain stops ranking fiction in the seeded workspaces, which is that guard's own 
 slugs, 0903 pinned, 0904 self_check, 0905 deferred_until, 0906 intent, 0907, 0908). Checked against
 `information_schema` and `pg_policy` by the object each actually creates, not by its filename.
 
+**THE LIVE WALK, 14:1x IST, ON A FRESH EMPTY WORKSPACE ("Arrival walk").** Made through the
+product's own path. What is verified working, before and after:
+
+| | before | after |
+|---|---|---|
+| the workspace is created at all | refused, always, and never once succeeded | **"Arrival walk is ready."** |
+| its owner belongs to it | 0 members, invisible to every collaborator surface | **1 member, "Maya Ruiz (you), joined Sep 3"** |
+| the three cards | hardcoded sentences with **Start it**, filing real runs | **"No runs yet. These are examples of sentences this takes."** and three **Use this sentence** |
+| Your runs | Helio's entire run list under this workspace's name | **"Nothing running. Start one above."** |
+
+**AND ONE THAT IS NOT FIXED ON THE LIVE SITE, WITH THE REASON.** The Arriving strip still reads
+"15 findings this week from 2 sources, 127 clusters forming" on a workspace with **0 signals and 0
+themes** (confirmed in the database). The fix is correct in source and merged: with zero signals
+`arrivingLine` receives `sources: 0, signals7d: 0` and returns null, so the strip does not render at
+all. **It is not deployed.** Proven by a second fix from the same commit: the Brief pane's button
+still rests at "Saved", which `e21fe9043` changed to "Save the brief". Meanwhile `0e1b964a6` IS live,
+because Your runs is correctly scoped and empty.
+
+So the served build sits BETWEEN `0e1b964a6` and `e21fe9043` while Lovable reports
+`latest_commit_sha: 57eea8477`, a commit later than both. **Lovable's reported sha tracks the GitHub
+sync, not what supaprod.ai serves.** This is the founder's own warning about Lovable dropping things
+under a concatenated publish, and it means no lane can trust a publish to have shipped what it
+pushed. Every live verification from here has to name the commit it PROVED, by a string only that
+commit introduced, rather than by the sha Lovable reports. Filed as its own finding.
+
 **A FINDING FROM THE BACKFILL, PRE-EXISTING AND NOT MINE.** `helio-labs-harbor` is NOT a sample
 workspace, yet **12 of its 59 decisions carry `is_sample = true`**, created between 2026-02-22 and
 2026-07-14, long before today. Those twelve are silently excluded from the brain in the one workspace
