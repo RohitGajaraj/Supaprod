@@ -6226,7 +6226,7 @@ still wanted), or (b) if this packet's real intent is reviving `MessageMeta.tsx`
 real, that is a different, bigger packet than "compose FoldingRow into an existing footer." Not
 proceeding on the file as named until this is resolved. Moving to P-46 while this is open.
 
-### P-46 · The launch copy is drafted against the canon and today's evidence number · Lane: **A3** · Status: RETURNED (A1, 18:08 IST: four claims corrected before the founder reads it) · Moves: 6
+### P-46 · The launch copy is drafted against the canon and today's evidence number · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed 24e65343b; corrections applied, draft awaits founder yes/no) · Moves: 6
 
 **Why.** The outward pass is one of the five things between 70 and 100 percent. Every claim it
 makes has to survive today's number (943 of 1,512 signals were the loop's own writing until 15:15
@@ -6277,6 +6277,28 @@ Linked from `docs/pitch/README.md`'s folder index.
 warning on the new file, no orphan flag). No production code touched; no tsc/`bun test` run since
 Scope names none. Draft only — nothing outward ships without the founder's yes/no, per Scope's own
 acceptance line.
+
+**A3, 18:20 IST, corrections applied, pushed `24e65343b`.** All four: (1) §3's centerpiece now says
+the 943 rows "carried the loop itself as their source" and drops the "notes about finding nothing"
+characterization entirely. (2) Both §3's body copy and the PH first comment now say a seat can no
+longer write a signal naming no source outside the workspace, never "removed... at all". (3) §4 and
+the proof table now say "a real pull request opened and merged on the bound test repo
+(`relay-homeowner-app`) through the product's own gated build path" — no claim Supaprod built
+itself. (4) Commit and migration counts are out of §4's visible copy; they exist only in the proof
+table now, with a line in "What did not go in this draft" explaining why.
+
+**On the dashes: a second, unprompted finding.** `check-humanized.sh`'s own header says passing a
+markdown file's path explicitly is "the deliberate opt-in" for scanning a public page authored as
+`.md`. It is not: `scripts/check-humanized.sh /tmp/dashtest.md` on a one-line file containing a bare
+em dash outside any fence or backtick reports clean, because the extension/path allowlist
+(`TEXT_EXT_RE`/`CONSUMER_RE`) still applies underneath even to an explicit argument. Confirmed with
+that minimal repro before trusting it further. Removed every em/en dash from `launch-page.md`'s
+prose by hand (both the outward copy blocks and the explanatory prose around them) and from my own
+additions to `launch-assets.md` §2, leaving that file's pre-existing, untouched prose as it was.
+Flagging the hook gap as a real defect (queued for feedback) rather than folding a fix into this
+packet, since P-46's scope is the copy, not the tooling.
+
+`bun run docs:check` re-run clean of hard rot after the edits.
 
 **Blockers (A3 writes):** —
 
