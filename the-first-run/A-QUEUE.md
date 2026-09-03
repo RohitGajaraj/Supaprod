@@ -6915,8 +6915,6 @@ the report. A1 reads the next brief-path Define pass on a live track and finds o
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads.
 
-
-
 **P-57b, A1, 00:20 IST 09-04 (A2, before P-59).** The guard stops the eleventh spec; the 21 live
 twins stay, and each carries a pending design gate, so the approvals heading still counts twins.
 Ruling under the founder's standing authority of 00:09: **on one track at one station, the newest
@@ -6981,7 +6979,7 @@ the founder sets the secret and republishes. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads both surfaces.
 
-### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
+### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CODE DONE, pushed 03cbdafe0 (fixes e80ddc701's tsc break against A2's P-50 type), awaiting A1's live read · Moves: 2, 3
 
 **A1, 00:25 IST 09-04: MAIN IS RED ON TSC from 1d888c337.** Suite 13,970 / 0 on the tip, but nine
 migrated sites pass a plain string where `Ask` now takes an `AskQuestion` (P-50, bbc7145fc):
@@ -7003,13 +7001,89 @@ shape P-50 ruled on, so `CallGate` composes `Ask` (or is retired into it) with *
 default line's own action, not a third button.
 
 **Acceptance.**
-- [ ] `git grep` finds no composer of `Gate`; the guard; the rewritten tests.
-- [ ] A1 reads one of each shape on the served build (the ship page's ask, Discover's picker, the
-      settle panel's zero state).
-- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+- [x] `git grep` finds no composer of `Gate`; the guard; the rewritten tests.
+- [ ] A1 reads one of each shape on the served build (the ship page's ask, **sync's picker**
+      -- corrected below, Discover's own "picker" turned out not to be one -- the settle panel's
+      zero state).
+- [x] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
-**Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Report (A3 writes):** `03cbdafe0`. tsc 0, `bun test` full console suite on the tip **13,957 pass /
+0 fail / 0 error**, eslint 0 errors on touched files (pre-existing warnings only, verified via
+`git diff` not to be mine), Meridian ratchet 5/5, `docs:check` clean.
+
+**A break, caught by A1's own verify-on-the-merged-tree rule, not by mine.** `e80ddc701`'s own tsc
+check read an empty background log before the job had actually finished (still running, not yet
+failed), so it reported clean because it had not run rather than because it had passed. A2's P-50
+(landed mid-packet) made `Ask.question` an `AskQuestion`, produced only by `askQuestion(verb,
+subject)`; nine sites here still passed plain strings, typechecking against the tree each site was
+written on and not against main once P-50 landed on top of it. A1 named all nine exactly;
+`03cbdafe0` composes each through `askQuestion()` and updates the one test whose anchor string
+matched the old literal.
+
+**The nineteen sites, verified against `git grep -rl 'from "@/components/meridian/Gate"'` rather
+than trusted from the header** (which said twenty in its own prose; the twentieth was
+`_authenticated.crew.tsx`'s `<Gate`, confirmed to be `CrewChrome.tsx`'s own local, deliberately
+separate component, documented 2026-08-15 as intentionally not shared across the three gate
+surfaces -- not touched):
+
+**Several sites did not match the header's own shape label on a closer read, and moved on what
+they actually do rather than on the label:**
+- ship.tsx's "Send X to customers?" is a real binary ask only when `pending && canPublish`; every
+  other status/permission combination is a multi-verb draft workflow (send for approval / edit /
+  write another, none a decline) or a pure no-permission read, so it splits into one `Ask` and one
+  plain heading.
+- discover's "Which source should it read first?" and learn's "What should this grade first?"
+  were zero states wearing a question mark (one real answer, always "nothing"), not pickers --
+  `Quiet`, not `Choice`.
+- discover's "Which bet does this belong to?" card has no options of its own; the real picker is
+  the separate "Open bets" `Region` beside it. Plain markup, one cancel action.
+- discover's cluster-suggestion card ("Make it a bet") is a genuine binary ask with a real third
+  verb, "Add to an existing bet" (P-50's ruling: a real verdict, not the declared default), so it
+  renders beside the `Ask` rather than through `fallbackAction`.
+- **sync.tsx's "Which copy of X wins?" is the one real `Choice`** in the whole sweep: two options
+  (keep local / keep remote), one shared fact (version). Push/pull (two-way sync only) are a
+  different mechanism, not peer options, so they stay quiet actions beside the card.
+
+**`Ask`/`Choice`/`Quiet`'s narrower contracts (no `lines[]`, no `children`, no `disabled`, no
+`shortcut`, no `anchor` -- "no Meridian edits beyond the deletion") forced real content decisions,
+each left as a comment at the call site:** ApprovalsPanel and admin.index cut secondary facts
+(mission title, track record, declines, per-check colour tone) per `Ask`'s own stated exclusion
+list ("none helps a person answer... available in that moment's transcript row"); ship.tsx's
+promote card moved its `Door` link and Discover's cluster card moved its member-evidence list
+beside the `Ask` rather than inside it, since neither is a plain string and `Ask` has no
+`children`; **HouseRulesPanel's card stayed plain markup entirely** rather than route a permission
+gate through a contract with no `disabled` -- caught by `governed-write-controls.test.tsx`, which
+pins that a viewer's "Make it a rule" must be genuinely disabled, not clickable-and-a-no-op.
+
+**CallGate** (A1's addendum) had two composers. `_authenticated.approvals.tsx`'s
+Approve/Decline/Snooze/Send-back fit `Ask` + `fallbackAction` (Snooze) + a sibling action (Send
+back, a real fourth verb, not the default); the P-51 fix this exact shape closed is preserved --
+`risk` is still "what happens if you say yes", not the default. **`TrackConsent.tsx`'s answer area
+does not fit `Ask`'s fixed slots at all** (numbered custom buttons, an inline decline-reason
+field, a class-wide "answer all N" action), so CallGate's exact render moved into it as a local,
+exported `GateCard` -- retirement into its one remaining caller, not deletion.
+
+**Both deleted files' own test suites rewritten, not dropped**, and found by more than one grep:
+the first pass (`from "@/components/meridian/Gate"` / `CallGate`) missed
+`Gate.wait.test.ts`/`the-gate-card-asks-once.test.ts`, which read the files as TEXT
+(`readFileSync`) rather than importing them -- caught by the full suite, not by the first sweep.
+`Gate.wait.test.ts`'s `stoppedFor`/`isOverdue` coverage moved to `stopped-for.test.ts`; its
+Gate-specific assertions retarget `TrackConsent`'s `GateCard`, the one surviving hand-built gate.
+`the-gate-card-asks-once.test.ts` moved to `track/`, same invariants, read off `GateCard`.
+
+**Six more tests updated for the new shape**, each because the OLD assertion checked syntax that
+no longer exists rather than the invariant it was protecting: `key-model.ts` gained
+`keycapDrawn` (three keys lost their inline `<kbd>` -- `Ask`'s answer/decline/fallbackAction carry
+no `shortcut` slot -- while staying bound; documented per-key, not silently dropped);
+`the-brain-does-not-rank-fiction`, `every-station-hands-you-a-door`,
+`ship-says-one-thing-on-day-one`, `ship-can-ship` and `one-queue-two-stories` all had their
+string/order checks retargeted at the actual new code. **One real bug caught this way**:
+ApprovalsPanel's first draft of the fallback sentence dropped `expiry.text` entirely while
+restructuring an `if`/`else if` into a ternary; the rewritten test kept the old test's claim
+(stranded overrides expiry, expiry's own text survives) and only changed its syntax expectation,
+which is what caught the drop before it shipped.
+
+**Blockers (A3 writes):** None.
 
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
 
