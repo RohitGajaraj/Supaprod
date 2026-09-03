@@ -725,171 +725,213 @@ export const listRunsForStart = createServerFn({ method: "GET" })
           }),
         ),
       ];
-      const gateByTrack = new Map<string, { tool: string }>();
-      if (gateIds.length > 0) {
-        const { data: gates } = await supabase
-          .from("agent_approvals")
-          .select("id, tool_name, status, run_id")
-          .in("id", gateIds)
-          .eq("status", "pending");
-        const pending = (gates ?? []) as Array<{
-          id: string;
-          tool_name: string;
-          run_id: string | null;
-        }>;
-        /* Back to the track through the row that opened it. A gate whose run
-           cannot be resolved is dropped rather than attributed to a guess. */
-        const byId = new Map(pending.map((g) => [g.id, g]));
-        for (const r of rows) {
-          const gates2 = (r as unknown as { pending_gates?: unknown }).pending_gates;
-          if (!Array.isArray(gates2)) continue;
-          for (const g of gates2) {
-            const id = (g as { id?: unknown }).id;
-            if (typeof id !== "string") continue;
-            const hit = byId.get(id);
-            if (hit && !gateByTrack.has((r as unknown as { id: string }).id)) {
-              gateByTrack.set((r as unknown as { id: string }).id, { tool: hit.tool_name });
+      /*
+       * FOUR INDEPENDENT READS, NOW CONCURRENT (P-32, A-QUEUE.md). Each of the
+       * four blocks below depends only on `rows`/`ids`/`gateIds` above -- none
+       * of them reads another block's result -- so the seven round trips this
+       * function used to make one after another (gate lookup, running seats,
+       * that seat's verb, pins, what it filed, the bet's verdict) collapse to
+       * ONE round trip for the base track read plus the SLOWEST of these four
+       * branches, not the sum of all of them.
+       *
+       * MEASURED FIRST, NOT GUESSED (P-32's own instruction). `EXPLAIN ANALYZE`
+       * against Helio Labs' live data put every one of these seven queries
+       * under a millisecond of actual execution (112 tracks, 2,992 agent_runs,
+       * 1,642 spine_track_members total -- nowhere near a scale a missing index
+       * would explain). The three-to-nine-second wait the packet measured is
+       * round-trip overhead multiplied by round-trip COUNT, not slow SQL, so
+       * the fix is fewer sequential trips, not a new index.
+       */
+      const [gateByTrack, { workingByTrack, toolByTrace }, pinnedByTrack, produced] =
+        await Promise.all([
+          (async () => {
+            const byTrack = new Map<string, { tool: string }>();
+            if (gateIds.length === 0) return byTrack;
+            const { data: gates } = await supabase
+              .from("agent_approvals")
+              .select("id, tool_name, status, run_id")
+              .in("id", gateIds)
+              .eq("status", "pending");
+            const pending = (gates ?? []) as Array<{
+              id: string;
+              tool_name: string;
+              run_id: string | null;
+            }>;
+            /* Back to the track through the row that opened it. A gate whose
+               run cannot be resolved is dropped rather than attributed to a
+               guess. */
+            const byId = new Map(pending.map((g) => [g.id, g]));
+            for (const r of rows) {
+              const gates2 = (r as unknown as { pending_gates?: unknown }).pending_gates;
+              if (!Array.isArray(gates2)) continue;
+              for (const g of gates2) {
+                const id = (g as { id?: unknown }).id;
+                if (typeof id !== "string") continue;
+                const hit = byId.get(id);
+                if (hit && !byTrack.has((r as unknown as { id: string }).id)) {
+                  byTrack.set((r as unknown as { id: string }).id, { tool: hit.tool_name });
+                }
+              }
             }
-          }
-        }
-      }
-
-      /* A SEAT IN FLIGHT, said only when a row literally says so. Never
-         inferred from elapsed time or from a missing row, which is the rule
-         `activity.ts` states and this read is the same claim one level up. */
-      const { data: runRows } = await supabase
-        .from("agent_runs")
-        .select("track_id, agent_name, created_at, trace_id, status")
-        .in("track_id", ids)
-        .in("status", ["running", "queued", "in_progress"])
-        .order("created_at", { ascending: false });
-      const running = (runRows ?? []) as Array<{
-        track_id: string | null;
-        agent_name: string;
-        created_at: string;
-        trace_id: string | null;
-      }>;
-      const workingByTrack = new Map<
-        string,
-        { seat: string; since: string; trace: string | null }
-      >();
-      for (const r of running) {
-        if (!r.track_id || workingByTrack.has(r.track_id)) continue;
-        workingByTrack.set(r.track_id, {
-          seat: r.agent_name,
-          since: r.created_at,
-          trace: r.trace_id,
-        });
-      }
-
-      /* THE VERB, from the newest call on that seat's own trace. Skipped
-         entirely when nothing is running, which is the common case. */
-      const toolByTrace = new Map<string, string>();
-      const traces = [...workingByTrack.values()]
-        .map((w) => w.trace)
-        .filter((t): t is string => !!t);
-      if (traces.length > 0) {
-        const { data: calls } = await supabase
-          .from("tool_calls")
-          .select("trace_id, tool_name, created_at")
-          .in("trace_id", traces)
-          .order("created_at", { ascending: false })
-          .limit(200);
-        for (const c of (calls ?? []) as Array<{ trace_id: string; tool_name: string }>) {
-          if (!toolByTrace.has(c.trace_id)) toolByTrace.set(c.trace_id, c.tool_name);
-        }
-      }
-
-      /*
-       * THE PINS, IN THEIR OWN TOLERANT READ. Not in `SELECT`, because naming a
-       * column there fails the whole query on a database that has not taken the
-       * migration, and this read is the front door's only content. A read that
-       * cannot answer leaves every row unpinned, which is the state the product
-       * had yesterday: a degraded ordering, never a blank page.
-       */
-      const pinnedByTrack = new Map<string, string>();
-      try {
-        const { data: pins } = await supabase
-          .from("spine_tracks" as never)
-          .select("id, pinned_at")
-          .in("id", ids);
-        for (const p of (pins ?? []) as unknown as Array<{
-          id: string;
-          pinned_at: string | null;
-        }>) {
-          if (p.pinned_at) pinnedByTrack.set(p.id, p.pinned_at);
-        }
-      } catch {
-        /* Unpinned everywhere. See above. */
-      }
-
-      /* WHAT IT FILED. Counted by kind, the same unit `GotYou` counts, so the
-         row and the run screen cannot disagree about what a run produced. */
-      const producedByTrack = new Map<string, Map<string, number>>();
-      const { data: memberRows } = await supabase
-        .from("spine_track_members" as never)
-        .select("track_id, artifact_kind, artifact_id")
-        .in("track_id", ids);
-      /** The bet each track made, so its verdict can be read below. */
-      const decisionByTrack = new Map<string, string>();
-      for (const m of (memberRows ?? []) as unknown as Array<{
-        track_id: string;
-        artifact_kind: string;
-        artifact_id?: string | null;
-      }>) {
-        const book = producedByTrack.get(m.track_id) ?? new Map<string, number>();
-        book.set(m.artifact_kind, (book.get(m.artifact_kind) ?? 0) + 1);
-        producedByTrack.set(m.track_id, book);
-        if (m.artifact_kind === "decision" && m.artifact_id && !decisionByTrack.has(m.track_id)) {
-          decisionByTrack.set(m.track_id, m.artifact_id);
-        }
-      }
-
-      /*
-       * -- WHETHER THE BET HELD, WHICH IS THE FACT A FINISHED RUN IS FOR ------
-       *
-       * A finished row said "Produced 2 specs and 1 decision". That is
-       * inventory. The thing this product exists to tell somebody is whether
-       * what the work PREDICTED turned out to be true, and until the grader was
-       * wired (P-04) there was never a verdict to say -- so the count was the
-       * best sentence available and is no longer.
-       *
-       * Read in its own query, and failing soft. A track with no decision, a
-       * bet nobody has graded, or a read that did not answer all mean "no
-       * verdict to report", and the row falls back to what it said before.
-       * Nothing here may turn a missing verdict into a claimed one.
-       */
-      const forecastByTrack = new Map<string, { resolution: string; rationale: string | null }>();
-      const decisionIds = [...new Set(decisionByTrack.values())];
-      if (decisionIds.length > 0) {
-        const { data: betRows, error: betErr } = await supabase
-          .from("decisions")
-          .select("id, forecast_resolution, forecast_resolution_rationale")
-          .in("id", decisionIds)
-          .not("forecast_resolution", "is", null);
-        if (betErr) {
-          console.error(`[listRunsForStart] could not read verdicts: ${betErr.message}`);
-        } else {
-          const byDecision = new Map(
-            (
-              (betRows ?? []) as unknown as Array<{
-                id: string;
-                forecast_resolution: string | null;
-                forecast_resolution_rationale: string | null;
-              }>
-            ).map((d) => [d.id, d]),
-          );
-          for (const [trackId, decisionId] of decisionByTrack) {
-            const bet = byDecision.get(decisionId);
-            if (bet?.forecast_resolution) {
-              forecastByTrack.set(trackId, {
-                resolution: bet.forecast_resolution,
-                rationale: bet.forecast_resolution_rationale,
+            return byTrack;
+          })(),
+          (async () => {
+            /* A SEAT IN FLIGHT, said only when a row literally says so. Never
+               inferred from elapsed time or from a missing row, which is the
+               rule `activity.ts` states and this read is the same claim one
+               level up. */
+            const { data: runRows } = await supabase
+              .from("agent_runs")
+              .select("track_id, agent_name, created_at, trace_id, status")
+              .in("track_id", ids)
+              .in("status", ["running", "queued", "in_progress"])
+              .order("created_at", { ascending: false });
+            const running = (runRows ?? []) as Array<{
+              track_id: string | null;
+              agent_name: string;
+              created_at: string;
+              trace_id: string | null;
+            }>;
+            const workingByTrack = new Map<
+              string,
+              { seat: string; since: string; trace: string | null }
+            >();
+            for (const r of running) {
+              if (!r.track_id || workingByTrack.has(r.track_id)) continue;
+              workingByTrack.set(r.track_id, {
+                seat: r.agent_name,
+                since: r.created_at,
+                trace: r.trace_id,
               });
             }
-          }
-        }
-      }
+
+            /* THE VERB, from the newest call on that seat's own trace. Skipped
+               entirely when nothing is running, which is the common case. */
+            const toolByTrace = new Map<string, string>();
+            const traces = [...workingByTrack.values()]
+              .map((w) => w.trace)
+              .filter((t): t is string => !!t);
+            if (traces.length > 0) {
+              const { data: calls } = await supabase
+                .from("tool_calls")
+                .select("trace_id, tool_name, created_at")
+                .in("trace_id", traces)
+                .order("created_at", { ascending: false })
+                .limit(200);
+              for (const c of (calls ?? []) as Array<{ trace_id: string; tool_name: string }>) {
+                if (!toolByTrace.has(c.trace_id)) toolByTrace.set(c.trace_id, c.tool_name);
+              }
+            }
+            return { workingByTrack, toolByTrace };
+          })(),
+          (async () => {
+            /*
+             * THE PINS, IN THEIR OWN TOLERANT READ. Not in `SELECT`, because
+             * naming a column there fails the whole query on a database that
+             * has not taken the migration, and this read is the front door's
+             * only content. A read that cannot answer leaves every row
+             * unpinned, which is the state the product had yesterday: a
+             * degraded ordering, never a blank page.
+             */
+            const byTrack = new Map<string, string>();
+            try {
+              const { data: pins } = await supabase
+                .from("spine_tracks" as never)
+                .select("id, pinned_at")
+                .in("id", ids);
+              for (const p of (pins ?? []) as unknown as Array<{
+                id: string;
+                pinned_at: string | null;
+              }>) {
+                if (p.pinned_at) byTrack.set(p.id, p.pinned_at);
+              }
+            } catch {
+              /* Unpinned everywhere. See above. */
+            }
+            return byTrack;
+          })(),
+          (async () => {
+            /* WHAT IT FILED. Counted by kind, the same unit `GotYou` counts,
+               so the row and the run screen cannot disagree about what a run
+               produced. */
+            const producedByTrack = new Map<string, Map<string, number>>();
+            const { data: memberRows } = await supabase
+              .from("spine_track_members" as never)
+              .select("track_id, artifact_kind, artifact_id")
+              .in("track_id", ids);
+            /** The bet each track made, so its verdict can be read below. */
+            const decisionByTrack = new Map<string, string>();
+            for (const m of (memberRows ?? []) as unknown as Array<{
+              track_id: string;
+              artifact_kind: string;
+              artifact_id?: string | null;
+            }>) {
+              const book = producedByTrack.get(m.track_id) ?? new Map<string, number>();
+              book.set(m.artifact_kind, (book.get(m.artifact_kind) ?? 0) + 1);
+              producedByTrack.set(m.track_id, book);
+              if (
+                m.artifact_kind === "decision" &&
+                m.artifact_id &&
+                !decisionByTrack.has(m.track_id)
+              ) {
+                decisionByTrack.set(m.track_id, m.artifact_id);
+              }
+            }
+
+            /*
+             * -- WHETHER THE BET HELD, WHICH IS THE FACT A FINISHED RUN IS FOR -
+             *
+             * A finished row said "Produced 2 specs and 1 decision". That is
+             * inventory. The thing this product exists to tell somebody is
+             * whether what the work PREDICTED turned out to be true, and until
+             * the grader was wired (P-04) there was never a verdict to say --
+             * so the count was the best sentence available and is no longer.
+             *
+             * Read in its own query, and failing soft. A track with no
+             * decision, a bet nobody has graded, or a read that did not answer
+             * all mean "no verdict to report", and the row falls back to what
+             * it said before. Nothing here may turn a missing verdict into a
+             * claimed one.
+             */
+            const forecastByTrack = new Map<
+              string,
+              { resolution: string; rationale: string | null }
+            >();
+            const decisionIds = [...new Set(decisionByTrack.values())];
+            if (decisionIds.length > 0) {
+              const { data: betRows, error: betErr } = await supabase
+                .from("decisions")
+                .select("id, forecast_resolution, forecast_resolution_rationale")
+                .in("id", decisionIds)
+                .not("forecast_resolution", "is", null);
+              if (betErr) {
+                console.error(`[listRunsForStart] could not read verdicts: ${betErr.message}`);
+              } else {
+                const byDecision = new Map(
+                  (
+                    (betRows ?? []) as unknown as Array<{
+                      id: string;
+                      forecast_resolution: string | null;
+                      forecast_resolution_rationale: string | null;
+                    }>
+                  ).map((d) => [d.id, d]),
+                );
+                for (const [trackId, decisionId] of decisionByTrack) {
+                  const bet = byDecision.get(decisionId);
+                  if (bet?.forecast_resolution) {
+                    forecastByTrack.set(trackId, {
+                      resolution: bet.forecast_resolution,
+                      rationale: bet.forecast_resolution_rationale,
+                    });
+                  }
+                }
+              }
+            }
+            return { producedByTrack, forecastByTrack };
+          })(),
+        ]);
+      const producedByTrack = produced.producedByTrack;
+      const forecastByTrack = produced.forecastByTrack;
 
       return tracks.map((t) => {
         const w = workingByTrack.get(t.id) ?? null;
