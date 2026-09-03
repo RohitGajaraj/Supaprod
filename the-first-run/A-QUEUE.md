@@ -6703,7 +6703,7 @@ now names its three shapes with file and line.
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-54 · A shortcut never fires into a field, and the settled list records what changed · Lane: **A3** · Status: CODE DONE, pushed 81a7c87d2, awaiting A1's live read · Moves: 2, 3
+### P-54 · A shortcut never fires into a field, and the settled list records what changed · Lane: **A3** · Status: DONE (A1 verified live, 22:58 IST) · Moves: 2, 3
 
 **Why.** A1, 22:09 IST, on the approvals page with the Ask panel open: a sentence typed into what
 the browser reported as the panel's textbox landed on the page's single-letter shortcuts instead
@@ -6732,6 +6732,12 @@ open; the key handler now asks the panel itself. The live read (the same sentenc
 panel on the approvals page, with focus proven in the textbox first, and nothing settles) follows
 propagation. P-50's live read of the Ask card is still open: the panel's send did not fire from a
 scripted click at 22:40, and A1 will not type into it again without proving focus.
+
+**A1, 22:58 IST · verified live and DONE.** On the served build, approvals page, Ask panel
+opened and its textbox proven to hold focus (`document.activeElement`), the same sentence typed:
+the headline stayed *66 decisions are ready for you*, no *What you settled* appeared, and the
+letters reached the field (a second probe, *hello*, read back from the textarea). Probe text
+cleared, nothing sent.
 
 **Report (A3 writes):** `81a7c87d2`. tsc 0, `bun test` full console suite on the tip **13,936 pass /
 0 fail / 0 error**, eslint 0 errors on touched files, Meridian ratchet 5/5.
