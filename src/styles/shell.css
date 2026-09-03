@@ -237,6 +237,63 @@
   text-rendering: optimizeLegibility;
 }
 
+/*
+ * THE FIRST STOP, BEFORE THE RAIL'S OWN DOORS (P-16b, A-QUEUE.md).
+ *
+ * The rail's `<aside className="sp-rail">` sits before `<main className="sp-work">`
+ * in the DOM (four regions, header/rail/work/Ask, in that source order), so
+ * every keyboard Tab press from the top of a signed-in page walks the whole
+ * rail -- New work item, Find, Start, Run, the account controls -- before it
+ * ever reaches the page a person actually opened this route to read. Reordering
+ * the DOM so `<main>` comes first and the rail is repositioned onto the left
+ * with CSS `order` is the other fix this scope allows, and it was ruled out
+ * here on purpose: this shell has no live browser to verify a flex/grid
+ * reorder against in this session, and a visual regression in the four-region
+ * layout is a worse failure than the one being fixed. A skip link changes
+ * nothing about the rail's own tab order; it gives a keyboard or screen-reader
+ * user a way past it, which is the WCAG 2.4.1 pattern for exactly this shape
+ * of "the same navigation repeats atop every page" chrome.
+ *
+ * HIDDEN THE SAME WAY `.sp-sr-only` HIDES ANYTHING (primitives.css) until it is
+ * the thing actually focused, at which point it must be seen to be used: an
+ * `:focus` rule un-clips it into the header's own row, at the header's own
+ * z-index, so the first Tab press on any signed-in page reveals exactly one
+ * new control and the second press (or Enter) lands in the main region.
+ */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+  background: var(--mrd-sheet);
+  color: var(--mrd-ink);
+  font-size: var(--mrd-t-prose);
+  font-weight: var(--mrd-w-semi);
+  text-decoration: none;
+  border-radius: var(--mrd-r-chip);
+}
+.skip-link:focus {
+  width: auto;
+  height: auto;
+  padding: 10px 16px;
+  margin: 8px;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+  /* No outline rule here: `.sp-app` carries `data-mrd`, so meridian.css's own
+   * `[data-mrd][data-mrd] :focus-visible { outline: 2px solid var(--mrd-focus); }`
+   * already draws it. A second, hand-written outline on top would be the same
+   * ring told twice by two rules that could drift. */
+}
+
 /* ---------- header. Real presence, sans labels, icons not emoji ---------- */
 .sp-top {
   height: var(--sp-header-h);

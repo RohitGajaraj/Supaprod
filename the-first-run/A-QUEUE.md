@@ -5581,10 +5581,24 @@ typing elsewhere), and the rail's doors come after the main region in tab order 
 link; the same rule on the run screen for the gate's answers when a call is waiting. Test the
 order from the DOM, not from source.
 
+**Scope, added (A1, from R-36 and the honest run, product-switcher mismatch):** the founder
+pressed with the switcher on Prism and a sentence about the homeowner app, which is Relay, so the
+run searched a product with nothing pointed at it. The sentence field names the product the run
+will use beside the field, one press to change it. When the sentence names a product the
+workspace has (by product name or a bound repo's name), the field offers that product before the
+press. If the product cannot be told from the sentence, the current product shows and the press
+stands — no product is ever guessed and silently swapped in.
+
 **Acceptance.**
 - [ ] On Start, Tab from the document start reaches the composer within two presses, and on a
       run with a waiting gate reaches its first answer within three; A1 walks both.
-- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+- [ ] The composer names the product a run will use, beside the field, one press away from
+      changing it. Typing a sentence that names a product the workspace has (its name, or a
+      bound repo's name) offers that product before the press; typing one that names none leaves
+      the current product showing and the press unchanged. A1 walks it against the tablet
+      track/Prism-Relay mismatch.
+- [ ] tsc 0 · `bun test` (full console suite, this branch's tip) 0 fail / 0 error · pushed ·
+      Report.
 
 **Report (A3 writes):** —
 **Blockers (A3 writes):** —

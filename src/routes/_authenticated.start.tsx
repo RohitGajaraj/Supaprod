@@ -80,6 +80,24 @@ import type { WorkShape } from "@/lib/spine/route";
 const PLACEHOLDER = "Make the checkout accept an American Express card";
 
 /**
+ * THE DECISION, PULLED OUT SO IT CAN BE TESTED AGAINST REAL DOM VALUES
+ * (P-16b, A-QUEUE.md) rather than only through a full route mount --
+ * `StartLanding` is not exported and calls `Route.useSearch()`, which needs
+ * an actual router match this repo has no working harness for (see
+ * `src/routes/__tests__/integration.discover.test.tsx`'s own unfinished
+ * skeleton). The judgment itself does not need a router: it only needs
+ * whatever `document.activeElement` already is.
+ *
+ * `document.body`/`null` is what an untouched page reads as. Anything else --
+ * a person tabbed here first, the browser's own autofill focused a field --
+ * means somebody got here before this effect did, and the composer must not
+ * steal it back.
+ */
+export function shouldClaimComposerFocus(activeElement: Element | null): boolean {
+  return activeElement === null || activeElement === document.body;
+}
+
+/**
  * The one line, and it is on the screen exactly once in a person's life here.
  *
  * A1-REPORT §4 gives the words and the condition: first run only. An
@@ -210,12 +228,26 @@ function StartLanding() {
    */
   const problems = go.data?.problems ?? [];
 
-  // A seeded sentence gets the field's focus, because the person arrived to
-  // read and press, not to click into a box first.
+  /*
+   * THE COMPOSER IS THE FIRST TAB STOP (P-16b, A-QUEUE.md): it was the
+   * thirteenth (A1, DOM focus order, 12:15 IST) because nothing on this page
+   * claimed focus on load at all, so a keyboard or screen-reader arrival
+   * walked the errand line, every example card and the runs list before ever
+   * reaching the one control the screen exists for.
+   *
+   * "RESPECTING A PERSON WHO IS ALREADY TYPING ELSEWHERE" is the scope's own
+   * phrase, and it is the reason this checks `document.activeElement` rather
+   * than focusing unconditionally: a fast keyboard user can tab past this
+   * effect before it fires (it runs after paint, not before), and a control
+   * that steals focus back out from under a press already in flight is worse
+   * than one that arrives a beat late. `document.body`/`null` is what an
+   * untouched page reads as -- anything else means somebody, or the browser
+   * itself (autofill), got there first.
+   */
   useEffect(() => {
-    if (about) fieldRef.current?.focus();
-    // Fires once on mount; `about` cannot change without a remount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (shouldClaimComposerFocus(document.activeElement)) fieldRef.current?.focus();
+    // Fires once on mount; `fieldRef` is a stable ref and `shouldClaimComposerFocus`
+    // a stable top-level import, so the empty array is complete, not silenced.
   }, []);
 
   /*

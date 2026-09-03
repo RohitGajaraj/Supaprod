@@ -1493,6 +1493,13 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         data-rail={narrow ? "narrow" : "wide"}
         data-strip={strip ? "on" : "none"}
       >
+        {/* THE FIRST TAB STOP ON EVERY SIGNED-IN PAGE (P-16b, A-QUEUE.md). See
+            `.skip-link` in shell.css for why this is a skip link rather
+            than a DOM reorder. Hidden until focused; the second Tab press (or
+            Enter) lands in `#main-content`, past the rail's own doors. */}
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         <header className="sp-top">
           {/* THE BRAND AND THE RAIL TOGGLE, AS ONE BLOCK. Founder, 2026-08-15:
             the collapse control belongs at the top, next to the logo. See
@@ -2211,7 +2218,12 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               </Link>
             </div>
           ) : null}
-          <main className="sp-work" key={pathname}>
+          {/* `id` + `tabIndex={-1}` (P-16b, A-QUEUE.md): the skip link's landing
+              spot. `<main>` is not natively focusable, so without `tabIndex`
+              a click or Enter on the skip link would scroll here but leave
+              keyboard focus behind at the link itself -- the next Tab press
+              would walk right back into the rail it was meant to skip past. */}
+          <main className="sp-work" id="main-content" tabIndex={-1} key={pathname}>
             {/* THE SAME FACT, CARRIED DOWN RATHER THAN RECOMPUTED (S4-167).
               The banner above is the ONE door. A region inside that offers a
               second remedy - "Try again" against a dead token - offers what the
