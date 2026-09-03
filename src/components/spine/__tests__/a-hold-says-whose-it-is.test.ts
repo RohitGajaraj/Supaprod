@@ -41,6 +41,8 @@ const EVERY_REASON = Object.keys(HOLD_LINE) as HoldReason[];
  * changes "or it resolves itself", and a 401 does not resolve itself.
  */
 const ORCHID: HoldReason[] = [
+  /* P-71b / R-39: the machine said it cannot judge, so the person answers. */
+  "the-call-is-yours",
   "waiting-on-a-person",
   "station-cannot-finish",
   "corrections-spent",
@@ -93,7 +95,11 @@ describe("every hold reason is classified, and the set is closed", () => {
     // added to `HoldReason` could land in neither and silently take a default
     // colour. `HOLD_LINE` has to name every hold a person can hit, which is what
     // makes it the register to check against.
-    expect(EVERY_REASON.length).toBe(20);
+    /*
+     * TWENTY-ONE since P-71b. The count is a canary and the partition below is
+     * the property: a bare number would fail on any addition, handled or not.
+     */
+    expect(EVERY_REASON.length).toBe(21);
     const listed = [...ORCHID, ...AMBER, "done" as HoldReason];
     expect(new Set(listed).size).toBe(listed.length);
     expect([...listed].sort()).toEqual([...EVERY_REASON].sort());

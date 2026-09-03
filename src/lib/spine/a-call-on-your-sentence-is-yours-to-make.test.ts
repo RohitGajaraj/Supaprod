@@ -136,3 +136,81 @@ describe("a forecast nothing can grade is not a calendar wait", () => {
     expect(run).toContain("observable.isSuccess ? observable.data.checkable : null");
   });
 });
+
+describe("the refusal becomes a question (P-71b)", () => {
+  const DRIVER = code(readFileSync("src/lib/spine/driver.server.ts", "utf8"));
+  const TRACKS = code(readFileSync("src/lib/spine/track.functions.ts", "utf8"));
+  const RUN = code(readFileSync("src/components/track/TrackRun.tsx", "utf8"));
+  const CARD = code(readFileSync("src/components/track/TheCallIsYours.tsx", "utf8"));
+
+  it("keys on the refusal HAVING HAPPENED, not on the state it leaves behind", () => {
+    // A strategist that produced nothing lands in the same state, and so does a
+    // run that failed. Only the refusal means a no was ATTEMPTED on the
+    // person's own sentence.
+    expect(DRIVER).toContain("refusalHappened(errors)");
+    expect(DRIVER).toContain('.eq("ok", false)');
+  });
+
+  it("holds on its OWN word, not on waiting-on-a-person plus a sentence", () => {
+    // F-127's invariant: `waiting-on-a-person` always clears its reason column,
+    // because the GATE is the reason. This hold has no gate row at all, so
+    // reusing that word would have put a card in front of a person that
+    // `TrackConsent` cannot draw and forced a sentence into a column that must
+    // stay null. The first draft did exactly that and the guard caught it.
+    expect(DRIVER).toContain('last_hold: "the-call-is-yours"');
+    const block = DRIVER.slice(DRIVER.indexOf('last_hold: "the-call-is-yours"'));
+    expect(block.slice(0, 200)).toContain("last_hold_because: null");
+    expect(RUN).toContain('track?.holdReason === "the-call-is-yours"');
+  });
+
+  it("does not count as an attempt, so a person's thinking time is not a fault", () => {
+    /*
+     * Bounded to the block, not to EOF. The first draft anchored the end on a
+     * COMMENT ("Out of budget") which comment-stripping had already removed, so
+     * `indexOf` returned -1, the slice ran to the end of the file and found
+     * `attempts:` in an unrelated hold. The same slice-to-EOF bug this packet
+     * fixed in two other guards, written into a third by me.
+     */
+    const from = DRIVER.indexOf("refusalHappened(errors)");
+    const to = DRIVER.indexOf("if (overBudget)", from);
+    expect(from).toBeGreaterThan(-1);
+    expect(to).toBeGreaterThan(from);
+    expect(DRIVER.slice(from, to)).not.toContain("attempts:");
+  });
+
+  it("is the ONE card on the screen, and stands the retry down", () => {
+    // Pressing "let it try again" would dispatch the station that just refused,
+    // into the same emptiness, and spend money to arrive back here.
+    expect(RUN).toContain("answerTheCall || callIsYours ? null : (");
+    // It replaces the gate card rather than sitting beside it: no approval row
+    // exists for this hold, so the two can never both be up.
+    expect(RUN).toContain("callIsYours ? (");
+  });
+
+  it("records the person's own sentence as the forecast, and invents no observable", () => {
+    const fn = TRACKS.slice(TRACKS.indexOf("export const buildOnYourWord"));
+    expect(fn).toContain("forecast_claim: claim");
+    // A plausible-sounding metric in a workspace with no analytics is the
+    // sentence that produced this whole packet.
+    expect(fn).toContain("Nothing connected here can settle this yet");
+    expect(fn).toContain("decided_by_agent_slug: null");
+  });
+
+  it("refuses to record when there is no sentence to record", () => {
+    const fn = TRACKS.slice(TRACKS.indexOf("export const buildOnYourWord"));
+    expect(fn).toContain("This run carries no sentence");
+  });
+
+  it("clears the hold LAST, after the row exists", () => {
+    // Clearing first would let the sweep re-dispatch Decide into the same
+    // emptiness while the decision was still being written.
+    const fn = TRACKS.slice(TRACKS.indexOf("export const buildOnYourWord"));
+    expect(fn.indexOf('.from("decisions")')).toBeLessThan(fn.indexOf("last_hold: null"));
+  });
+
+  it("pre-selects neither option", () => {
+    expect(CARD).toContain("CARRIED_CHOICE.options.map");
+    expect(CARD).not.toContain("defaultId");
+    expect(CARD).not.toContain("selected");
+  });
+});

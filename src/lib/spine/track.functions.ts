@@ -4722,3 +4722,94 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
       return { calls, runs: rows.length, tracedRuns };
     },
   );
+
+/**
+ * ── "BUILD IT ON YOUR WORD" (P-71b, R-39) ────────────────────────────────
+ *
+ * The person answered the Choice the strategist could not. Their sentence IS
+ * the forecast, and the decision is recorded as theirs: `human` in the actor
+ * column, their words in `forecast_claim`, and an observable that says plainly
+ * that nothing here can grade it yet.
+ *
+ * ── WHY THE OBSERVABLE IS NOT INVENTED ───────────────────────────────────
+ *
+ * `forecast_how_we_will_know` is required and the honest value is the awkward
+ * one: no connected source can settle this. Writing a plausible-sounding metric
+ * instead -- "conversion on the checkout step" in a workspace with no analytics
+ * -- is exactly the sentence that produced this whole packet, and it would come
+ * back at the horizon as a verdict nobody could reach. So it says what is true,
+ * and P-71's Learn rule then holds the track at `needs-evidence` with the
+ * point-a-source door rather than counting down to a date.
+ *
+ * ── THE HORIZON IS THEIRS TOO ────────────────────────────────────────────
+ *
+ * Thirty days, and it is a real commitment rather than a placeholder: the
+ * forecast columns are immutable once written, and Learn will ask about it. A
+ * distant date to be safe is the thing the tool's own description warns against.
+ */
+export const buildOnYourWord = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<{ ok: true; decisionId: string }> => {
+    const { supabase, userId } = context;
+
+    const { data: trackRow, error: trackErr } = await supabase
+      .from("spine_tracks" as never)
+      .select("id,title,workspace_id,product_id")
+      .eq("id", data.trackId)
+      .maybeSingle();
+    if (trackErr) throw new Error(`This run could not be read: ${trackErr.message}`);
+    const track = trackRow as {
+      id: string;
+      title: string | null;
+      workspace_id: string | null;
+      product_id: string | null;
+    } | null;
+    if (!track) throw new Error("This run no longer exists.");
+
+    const claim = (track.title ?? "").trim();
+    if (!claim) {
+      // Their sentence is the whole forecast. Without it there is nothing to
+      // record on their behalf, and inventing one would be the defect again.
+      throw new Error("This run carries no sentence, so there is nothing to record as your claim.");
+    }
+
+    const horizon = new Date(Date.now() + 30 * 86400000).toISOString();
+    const { data: decRows, error: decErr } = await supabase
+      .from("decisions")
+      .insert({
+        user_id: userId,
+        workspace_id: track.workspace_id,
+        product_id: track.product_id,
+        title: claim,
+        status: "approved",
+        rationale:
+          "You chose to build this on your word. Nothing in this workspace bore on it, so the " +
+          "call was yours rather than ours.",
+        decided_by_agent_slug: null,
+        forecast_claim: claim,
+        forecast_how_we_will_know:
+          "Nothing connected here can settle this yet. Point a source at it and this becomes " +
+          "gradable; until then the record says it was your call.",
+        forecast_horizon_date: horizon,
+      } as never)
+      .select("id");
+    if (decErr) throw new Error(`Your call could not be recorded: ${decErr.message}`);
+    const decisionId = ((decRows ?? []) as Array<{ id: string }>)[0]?.id;
+    if (!decisionId) throw new Error("Your call could not be recorded, and nothing was changed.");
+
+    /*
+     * The hold is cleared LAST, and only after the row exists. Clearing first
+     * would let the sweep pick the track up and re-dispatch Decide into the
+     * same emptiness while the decision was still being written.
+     */
+    await supabase
+      .from("spine_tracks" as never)
+      .update({
+        last_hold: null,
+        last_hold_because: null,
+      } as never)
+      .eq("id", data.trackId);
+
+    return { ok: true as const, decisionId };
+  });

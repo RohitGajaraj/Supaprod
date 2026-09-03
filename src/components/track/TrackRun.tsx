@@ -98,6 +98,8 @@ import {
 import { composerPromiseFor } from "@/components/track/one-door-for-one-state";
 import { whyShipStopped } from "@/lib/deployments.functions";
 import { checkForecastObservable } from "@/lib/spine/track.functions";
+import { TheCallIsYours } from "@/components/track/TheCallIsYours";
+import { buildOnYourWord } from "@/lib/spine/track.functions";
 import {
   shipStopFrom,
   shipStopLine,
@@ -450,6 +452,26 @@ export function TrackRunLeft({
   const terminallyStopped = nothingIsComing(track?.holdReason);
   const held = track?.status === "open" && tone !== null;
   const answerTheCall = track?.holdReason === "waiting-on-a-person";
+  /*
+   * ── R-39's CHOICE IS UP (P-71b) ────────────────────────────────────────
+   *
+   * Its own hold word, not `waiting-on-a-person` plus a sentence. The first
+   * draft matched on the stored question and broke F-127's invariant, which
+   * requires `waiting-on-a-person` to clear that column because the GATE is its
+   * reason. This hold has no gate row: it has a question with two answers.
+   */
+  const callIsYours = track?.holdReason === "the-call-is-yours";
+
+  /* Their call, recorded as theirs. `press` afterwards so the run picks the
+     work straight back up, the same chain `TrackConsent`'s `onAnswered` is. */
+  const fBuildOnYourWord = useServerFn(buildOnYourWord);
+  const onYourWord = useMutation({
+    mutationFn: () => fBuildOnYourWord({ data: { trackId } }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["track", trackId] });
+      run.mutate("press");
+    },
+  });
   const nowMs = Date.now();
 
   // QUEUE 67: Calm hold tone for "needs-evidence" when forecast not yet due.
@@ -928,8 +950,22 @@ export function TrackRunLeft({
        * the work straight back up; that chain IS the item, and a card without
        * it is the approvals queue again.
        */}
-      {/* Answering a gate is a person acting: `press`, never `continuation`. */}
-      <TrackConsent trackId={trackId} onAnswered={() => run.mutate("press")} />
+      {/*
+       * R-39's choice, and it REPLACES the gate card rather than sitting beside
+       * it: this hold has no `agent_approvals` row to answer, so `TrackConsent`
+       * would draw nothing and the two cannot both be up. P-37: a screen in one
+       * state asks for one thing.
+       */}
+      {callIsYours ? (
+        <TheCallIsYours
+          busyId={onYourWord.isPending ? "build-on-your-word" : null}
+          onBuildOnYourWord={() => onYourWord.mutate()}
+          onPointASource={() => navigate({ to: "/settings", search: { section: "connections" } })}
+        />
+      ) : (
+        /* Answering a gate is a person acting: `press`, never `continuation`. */
+        <TrackConsent trackId={trackId} onAnswered={() => run.mutate("press")} />
+      )}
 
       {/*
        * ── WHAT THE PRESS ITSELF ANSWERED, AND NOTHING ELSE ────────────────
@@ -1171,7 +1207,11 @@ export function TrackRunLeft({
               />
             ) : null}
 
-            {answerTheCall ? null : (
+            {/* `callIsYours` is inside `answerTheCall`, so this already stands
+                down -- stated rather than relied on, because pressing it would
+                dispatch the station that just refused, into the same emptiness,
+                and spend money to arrive back here. */}
+            {answerTheCall || callIsYours ? null : (
               <div>
                 <Action busy={release.isPending} onClick={() => release.mutate()}>
                   {release.isPending

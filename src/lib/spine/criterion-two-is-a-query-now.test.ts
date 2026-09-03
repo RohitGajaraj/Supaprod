@@ -115,8 +115,19 @@ describe("both callers have to say which they are", () => {
      * equivalent that shared only a comment could drift, and one of them writing
      * `continuation` for a human act is the exact direction F-55 exists to fail
      * away from. They cannot drift now, because there is one call.
+     *
+     * ── FOUR SINCE 2026-09-04 (P-71b), REVIEWED AS THIS COMMENT DEMANDS ────
+     * R-39's Choice: the strategist tried to say no on the person's own
+     * sentence, the writer refused, and the track holds `the-call-is-yours`
+     * until they answer. `Build it on your word` records their call and then
+     * drives the run.
+     *
+     * `press` is correct and `continuation` would have been the F-55 direction
+     * exactly: a person chose, from two options with no default, on the one
+     * question where the machine has said out loud that it cannot judge. If any
+     * site in this product is a human act, it is that one.
      */
-    expect([...TRACKRUN.matchAll(/run\.mutate\("press"\)/g)].length).toBe(3);
+    expect([...TRACKRUN.matchAll(/run\.mutate\("press"\)/g)].length).toBe(4);
     // No call site left that never considered the question.
     expect(TRACKRUN).not.toContain("run.mutate()");
   });

@@ -127,3 +127,25 @@ export const CARRIED_CHOICE = {
     },
   ],
 } as const;
+
+/**
+ * A stable marker inside `R39_REFUSAL`, so the driver can recognise its own
+ * refusal in `tool_calls.error` without matching the whole paragraph.
+ *
+ * The driver could instead infer the situation from its own state -- carried
+ * footing, Decide, nothing attached -- and that was the first design. It is
+ * wrong: a strategist that simply produced nothing lands in the same state, and
+ * a run that FAILED lands there too. Only the refusal means "a no was attempted
+ * on the person's own sentence", which is the one thing worth asking them
+ * about, so the driver keys on the refusal actually having happened.
+ *
+ * Matched on a phrase this repo's humanizer will not rewrite and no other
+ * message contains, rather than on the whole sentence, which would break the
+ * moment somebody improves a word of it.
+ */
+export const R39_MARKER = "carried on the person's own sentence";
+
+/** Did this run attempt a no on the person's own sentence and get refused? */
+export function refusalHappened(errors: readonly (string | null | undefined)[]): boolean {
+  return errors.some((e) => (e ?? "").includes(R39_MARKER));
+}

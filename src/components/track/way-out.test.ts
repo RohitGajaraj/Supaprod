@@ -42,7 +42,21 @@ describe("no dead end, ever", () => {
      * names the door that must not appear on this transition -- *Let Discover
      * try again* -- and this is where it does not appear.
      */
-    expect(Object.keys(HOLD_LINE).length).toBe(20);
+    /*
+     * TWENTY-ONE since P-71b added `the-call-is-yours`, and it is deliberately
+     * NOT given an entry here for the same reason `carried-on-your-sentence` is
+     * not: its own `HOLD_LINE` sentence already names both ways forward, and
+     * the run screen draws the Choice itself. A door here would be a third
+     * statement of the same question.
+     *
+     * THIS COUNT IS A CANARY AND NOT THE PROPERTY, which is worth saying because
+     * a bare number is usually the F-189 anti-pattern. The property lives in the
+     * two tests below -- the eight silent reasons get a sentence, the quiet ones
+     * stay quiet -- and neither can notice a hold that exists in neither list.
+     * This does. Bumping it is not maintenance: it is the act of having decided
+     * which of those two lists the new hold belongs in.
+     */
+    expect(Object.keys(HOLD_LINE).length).toBe(21);
   });
 
   it("speaks for the eight reasons whose own sentence names no way out", () => {

@@ -104,6 +104,13 @@ const RETRIED_UNTOUCHED: HoldReason[] = [
  * rather than merged, because the assertion that fits them is a different one.
  */
 const ENDS_OR_WAITS: HoldReason[] = [
+  /*
+   * P-71b / R-39. The call went back to the person, and correcting it would be
+   * the machine answering the one question it has just said it cannot: rerouting
+   * a station because a PERSON has not replied yet spends their thinking time as
+   * if it were a fault. It waits, and the Choice on the run screen ends the wait.
+   */
+  "the-call-is-yours",
   "needs-a-waived-station",
   "corrections-spent",
   "station-cannot-finish",

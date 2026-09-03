@@ -16,7 +16,16 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const SRC = readFileSync(fileURLToPath(new URL("./track.functions.ts", import.meta.url)), "utf8");
-const FN = SRC.slice(SRC.indexOf("export const checkForecastObservable"));
+/*
+ * BOUNDED TO THIS FUNCTION, not to the end of the file. The slice used to run
+ * to EOF, so every export added below it silently became part of the subject:
+ * P-71b appended `buildOnYourWord` and this file started asserting things about
+ * a function it was never written about. A slice that ends where the code ends
+ * tests whatever lands there next.
+ */
+const FN_START = SRC.indexOf("export const checkForecastObservable");
+const FN_NEXT = SRC.indexOf("\nexport const ", FN_START + 1);
+const FN = SRC.slice(FN_START, FN_NEXT === -1 ? SRC.length : FN_NEXT);
 
 describe("the probe is reachable from a surface at last", () => {
   it("is exported as a server fn, not a bare async function", () => {

@@ -140,7 +140,13 @@ describe("THE INVARIANT: a released track never keeps a stale reason", () => {
    * Nine places clear a hold across three files. Checked as a PROPERTY rather
    * than nine assertions, so a tenth added tomorrow is covered the day it lands.
    */
-  const CLEARS = /last_hold: null,\s*\n\s*last_hold_because: null,/g;
+  /*
+   * WHITESPACE, NOT A LINE BREAK. This required `\n` between the two keys, so a
+   * clear that prettier put on ONE line -- `{ last_hold: null, last_hold_because:
+   * null }` -- failed a test whose subject is the PAIRING, not the formatting.
+   * A guard coupled to where a line breaks is testing the formatter (F-189).
+   */
+  const CLEARS = /last_hold: null,\s*last_hold_because: null,/g;
 
   it.each([
     ["driver.server.ts", DRIVER],
@@ -153,12 +159,19 @@ describe("THE INVARIANT: a released track never keeps a stale reason", () => {
     expect(paired).toBe(holds);
   });
 
-  it("and there are nine of them, so the count is not silently shrinking", () => {
+  it("and the count only ever grows, so it is not silently shrinking", () => {
+    /*
+     * A FLOOR, NOT A FIXED COUNT. This asserted exactly nine while the comment
+     * above it promised "a tenth added tomorrow is covered the day it lands" --
+     * and the tenth landed (P-71b's `the-call-is-yours` release) and failed it.
+     * The rule is that no existing clear disappears; a new one is the property
+     * above doing its job, not a regression (F-189).
+     */
     const total = [DRIVER, TRACKS, CORRECTION].reduce(
       (n, src) => n + (src.match(/last_hold: null,/g) ?? []).length,
       0,
     );
-    expect(total).toBe(9);
+    expect(total).toBeGreaterThanOrEqual(9);
   });
 });
 

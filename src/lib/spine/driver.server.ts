@@ -94,6 +94,7 @@ import {
   type ToolStepLike,
 } from "@/lib/spine/attach";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
+import { refusalHappened } from "@/lib/spine/a-call-on-your-sentence-is-yours-to-make";
 
 export type DriveOutcome = {
   trackId: string;
@@ -2985,6 +2986,65 @@ export async function driveTrackOnce(
       line: flagged(holdLine(haltedAs, { station }) ?? HOLD_LINE[haltedAs]),
       attached,
     };
+  }
+
+  /*
+   * ── R-39: THE CALL WENT BACK TO THE PERSON (P-71b) ─────────────────────
+   *
+   * P-71 put the refusal in the decision writer: a `do-not-build` resting on
+   * absence, on a track carried from the person's own sentence, cannot be
+   * recorded. That stops the wrong row being written and leaves the track with
+   * nowhere to go, which is only half an answer -- the person still typed a
+   * sentence and is owed one.
+   *
+   * So the refusal becomes a QUESTION. The track holds `waiting-on-a-person`
+   * and the run screen draws `CARRIED_CHOICE`: build it on your word, or point
+   * a source first. No spend: nothing is dispatched again until they answer.
+   *
+   * KEYED ON THE REFUSAL HAVING HAPPENED, not on the state it leaves behind. A
+   * strategist that simply produced nothing lands in the same state, and so
+   * does a run that failed; only the refusal means a no was ATTEMPTED on the
+   * person's own sentence, which is the one thing worth asking about.
+   *
+   * IT DOES NOT COUNT AS AN ATTEMPT, for the reason the boundary hold gives
+   * just below: the station did its job and handed a real question to a person.
+   * Counting it would spend the track's stall ceiling on the person's thinking
+   * time.
+   */
+  if (station === "decide" && traceIds.length > 0) {
+    /* Scoped, under P-67: `tool_calls` is the most revealing row this product
+       holds. The trace ids already come from this track's runs, so this is
+       defence, and it costs nothing. Unresolved stays unfiltered. */
+    let refusalsQ = supabase.from("tool_calls").select("error");
+    if (row.workspace_id) refusalsQ = refusalsQ.eq("workspace_id", row.workspace_id);
+    const { data: refusals } = await refusalsQ.in("trace_id", traceIds).eq("ok", false).limit(50);
+    const errors = ((refusals ?? []) as Array<{ error: string | null }>).map((r) => r.error);
+    if (refusalHappened(errors)) {
+      await supabase
+        .from("spine_tracks" as never)
+        .update({
+          last_hold: "the-call-is-yours",
+          /*
+           * NULL, and the hold WORD carries the meaning -- F-127's invariant,
+           * which `a-hold-must-say-why.test.ts` holds for every hold whose line
+           * is derived on read. The first draft of this stored the question
+           * here and broke it: a sentence in this column is for a cause the
+           * word cannot express, and this word expresses exactly one thing.
+           */
+          last_hold_because: null,
+          driven_at: new Date().toISOString(),
+        } as never)
+        .eq("id", row.id);
+      return {
+        trackId: row.id,
+        station,
+        moved: false,
+        arrivedAt: null,
+        hold: "the-call-is-yours",
+        line: say(HOLD_LINE["the-call-is-yours"]),
+        attached,
+      };
+    }
   }
 
   // Out of budget. Not a failure and not a refusal: the work is fine, the money

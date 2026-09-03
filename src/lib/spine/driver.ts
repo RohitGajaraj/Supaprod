@@ -513,6 +513,20 @@ export type HoldReason =
    */
   | "carried-on-your-sentence"
   /**
+   * R-39 / P-71b. The strategist tried to say no on the person's own sentence
+   * and the writer refused, so the call went back to them: the run screen draws
+   * one Choice, build it on your word or point a source first.
+   *
+   * NOT `waiting-on-a-person`, and the difference is load-bearing rather than
+   * cosmetic. That hold means a GATE is open -- an `agent_approvals` row the
+   * person answers -- and F-127's invariant is that its sentence column is
+   * always cleared, because the gate is the reason. This hold has no gate row
+   * at all; what it has is a question with two answers and no default. Reusing
+   * the word would have put a card in front of a person that `TrackConsent`
+   * could not draw, and forced a sentence into a column that must stay null.
+   */
+  | "the-call-is-yours"
+  /**
    * The station filed something, and not the thing the next station needs.
    *
    * DISTINCT FROM `produced-nothing`, and the distinction is the diagnosis. That
@@ -1526,6 +1540,8 @@ export const HOLD_LINE: Record<HoldReason, string> = {
    * contradiction, and I introduced it myself in F-175 an hour before finding
    * it.** The specific sentence is right in both cases; this one could not be.
    */
+  "the-call-is-yours":
+    "Nothing here bears on your sentence, so this call is yours: build it on your word, or point a source at it first.",
   "needs-evidence":
     "This station is waiting rather than failing, and starts again on its own when what it needs arrives.",
   /* The specific sentence -- which run, which file, which pull request -- is
@@ -1649,6 +1665,8 @@ export function holdLine(
  * the thing standing in the way.
  */
 const HOLD_NEEDS_PERSON: ReadonlySet<HoldReason> = new Set<HoldReason>([
+  /* P-71b. The Choice is a person's to answer and nothing else clears it. */
+  "the-call-is-yours",
   "waiting-on-a-person",
   "station-cannot-finish",
   "corrections-spent",
