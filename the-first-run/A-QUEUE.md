@@ -5117,6 +5117,31 @@ migration `20260909010000` is **not applied** (deployed function has zero `is_sa
 ledger row A1 inserted at 13:18 was wrong and is deleted. A1 applies the file verbatim through the
 Lovable MCP with an md5 of the function body as the proof, then restores the row.
 
+**A1, 13:50 IST · the replacement migration is verified on the live database, by its objects.**
+`20260909010000` is withdrawn (A2, a61243fdd) and A1 agrees with the reason: it fixed one writer, and
+the invariant is *a row in a sample workspace is an example*, whoever writes it. A1 had the 91 KB body
+staged in a scratch table with its md5 matching the file byte for byte (`77e95446…`), and did not
+execute it once the repo no longer carried it; the scratch table is dropped. `20260909020000` checked
+at 13:49 IST: `mark_rows_in_sample_workspaces` present; **12 triggers** named `mark_sample_rows`, one
+on each of agent_approvals, agent_memory, agent_runs, decisions, deployments, learnings,
+opportunities, prds, signals, spine_tracks, studio_changesets, themes; a rolled-back probe inserting
+one theme into the oldest sample workspace came back `is_sample = true` and the same insert into
+`helio-labs-harbor` came back `false`. Backfill: 0 unmarked of 498 themes, 1,119 signals, 449
+opportunities, 78 prds, 107 learnings, 216 decisions across the 11 sample workspaces; Helio's
+opportunities 0 of 79 marked. The ledger row was missing again (Lovable drops them); A1 inserted
+`20260909020000` at 13:49 IST after the checks above, not before.
+
+**Ruling on A2's finding (the 12 Helio decisions carrying `is_sample = true`).** Seven of the twelve
+are the seeder's own Prism and Trellis decisions by title (*Block aggressively on any fraud signal*,
+*Lead with the manual SQL explorer*, *Ship the guided first question*, and so on), created
+2026-02-22 to 2026-06-22, living in the real workspace: fixture rows in the wrong place, and the flag
+on them is true. The other five (2026-07-06 to 07-14, Relay, checkout, notification digest, written
+by agents from PRDs) are Helio's own story; the writer copies `is_sample` from the parent
+opportunity (`registry.server.ts` and `discovery.functions.ts`), so the parent was marked on the day
+and is not now. Fix inside P-33, A2: set the five to the current flag of their parent, move or delete
+the seven (they are not Helio's work), and write both counts down before and after. No brain
+exclusion should stand on a row that is a person's own decision.
+
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
