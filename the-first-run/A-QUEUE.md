@@ -6359,7 +6359,7 @@ tsc 0. `bun test` 13892 pass / 22 skip / 37 todo / 0 fail / 36780 expect() acros
 
 **Blockers (A3 writes):** —
 
-### P-48 · The chat's seat turns speak in the run screen's vocabulary · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed b0b8cac81) · Moves: 2, 3
+### P-48 · The chat's seat turns speak in the run screen's vocabulary · Lane: **A3** · Status: DONE (A1, 21:40 IST, on the rendered-DOM test and a live chat) · Moves: 2, 3
 
 **Why.** P-37 gave Meridian three components with the reasoning written in: `Ask` (a card asks),
 `SeatSays` (a seat speaks in the first person about its own work, no button slot), `FoldingRow`
@@ -6384,6 +6384,14 @@ renders through `SeatSays` and never in the imperative.
 the rule: `SeatSays` is the short declarative register, `Answer` keeps the crew's prose with
 markdown under the 2026-07-30 ruling. The live read (a chat with two seat turns and a folded
 landings list) follows propagation.
+
+**A1, 21:40 IST · DONE.** The three composed cases (sent back, the failed plan, an empty record)
+need states a live chat does not reach on demand, so acceptance box 2 rests on the rendered-DOM
+test; one live Ask on the served build (*What needs my call before it can move?*) answered through
+`Answer` with the markdown intact and the pending design gates listed under it, so nothing broke.
+Seen there, filed as P-50: the Ask panel renders gate cards of its own (*Waiting on you*, a
+question, a reason, *Approve / Send it back / Not now*), a fourth card dialect that the `Ask`
+component should own.
 
 **Report (A3 writes):** Pushed `b0b8cac81`. `AskTurn` composes `SeatSays` for its three genuinely
 short, first-person, no-markdown seat statements — "Sent back", the failed-plan note, the
@@ -6421,7 +6429,7 @@ packets; needs your walk.
 
 **Blockers (A3 writes):** —
 
-### P-49 · The dead weight the audit named is gone, with its guards rewritten · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed 2b92bc3f9) · Moves: 5
+### P-49 · The dead weight the audit named is gone, with its guards rewritten · Lane: **A3** · Status: DONE (A1 verified, 21:40 IST) · Moves: 5
 
 **Why.** The report's §1.4 named what to delete; most of it went in P-10 to P-12. One file is
 still in the tree with zero non-test importers, found today: `src/components/chat/MessageMeta.tsx`
@@ -6443,6 +6451,11 @@ parked by the report. List the removed file and each rewritten guard in the Repo
 - [ ] `git grep` on the tip finds no importer of the removed file; the rewritten guards pass and
       name the live surface; §1.4 corrected.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**A1, 21:40 IST · DONE.** A3 checked before deleting and found the file half alive (the type
+contract had seven importers); it moved the contract to `src/lib/chat-meta.ts` and deleted only the
+dead component, rewrote both guards to name `AskTurn`, corrected §1.4 with a dated note. On the
+tip: no importer of the old path, the file gone, suite 13,910 / 0 / 0, tsc 0; published 21:40.
 
 **Report (A3 writes):** Pushed `2b92bc3f9`. **Real correction before building on the packet's own
 premise:** `MessageMeta.tsx` did not have zero non-test importers overall — its `MessageMetaFooter`
@@ -6489,6 +6502,29 @@ reproduced with the original import path restored, same 26 errors, before revert
 change). `bun run docs:check` clean.
 
 **Blockers (A3 writes):** —
+
+### P-50 · The Ask panel's gate cards are Ask cards · Lane: **A2** · Status: READY · Moves: 2, 5
+
+**Why.** A1, 21:35 IST, on the served build: an answer in the Ask panel lists the pending design
+gates as cards of the panel's own making (*Waiting on you*, the spec's title as the question, *The
+generated mockup is waiting on your call before this spec can dispatch to Build*, then *Approve /
+Send it back / Not now*). That is a fourth card dialect after the run screen's, with a chip the
+run's card just lost and three answers where the doc has two registers.
+
+**Scope.** The Ask panel's gate cards compose Meridian's `Ask` (question, risk if any, reason as the
+seat's, the declared default and its date, answers), with a ruling written into the component on
+the third answer: *Not now* is the default made pressable (it is what silence does), so it renders
+as the default line's own quiet action, not as a third button. One vocabulary on both surfaces;
+the chip goes. Mockup first in `docs/design/run-screen-2026-09.md` as a fifth surface, walked with
+A1, then code.
+
+**Acceptance.**
+- [ ] The doc's fifth surface; the guard `one-state-one-sentence-one-door` covers the panel.
+- [ ] A1 reads an Ask answer with two pending gates on the served build.
+- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
 
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
 
