@@ -72,10 +72,10 @@ in one key, recorded in the track record as its own evidence.
 
 **Updated 2026-09-03 (P-46, `the-first-run/A-QUEUE.md`): the tagline/description/first-comment
 below replace the originals, which used vocabulary the canon has since retired on marketing
-surfaces ("track record", "audit trail" — see [`../strategy/positioning-locked-2026-08.md`](../strategy/positioning-locked-2026-08.md)
+surfaces ("track record", "audit trail", see [`../strategy/positioning-locked-2026-08.md`](../strategy/positioning-locked-2026-08.md)
 §5) and led with volume rather than the mechanism. The centerpiece is now the honest-run
 finding: full copy, the proof table and why it is the strongest thing to lead with are in
-[`launch-page.md`](./launch-page.md) §3 and §6 — draft there first, promoted here so this file
+[`launch-page.md`](./launch-page.md) §3 and §6, drafted there first, promoted here so this file
 stays the one place the actual submission copy lives.**
 
 **Tagline (60 chars):**
@@ -87,24 +87,25 @@ The AI product team that caught its own bad evidence
 **Description (short, PH-native, no adjectives doing a number's job):**
 
 ```
-Supaprod runs product work end to end with an agent fleet — signal to
+Supaprod runs product work end to end with an agent fleet: signal to
 decision to spec to shipped PR. It also checks its own work: a recent
-audit found 62% of its evidence was the loop's own notes miscounted as
-customer signal, and the fix is now a database rule, not a promise. Try
-it without signing up: [DEMO-LINK].
+audit found 62% of its evidence carried the loop itself as its source
+rather than a real one, and the fix is now a database rule, not a
+promise. Try it without signing up: [DEMO-LINK].
 ```
 
-**First comment (founder, posted immediately at launch — PH's own convention):**
+**First comment (founder, posted immediately at launch, PH's own convention):**
 
 ```
-Hey PH — built this because I hit the wall myself: the more agent work I
+Hey PH, built this because I hit the wall myself: the more agent work I
 delegated, the more I had to answer for with nothing to answer FROM. A
-few days before this listing, an audit of our own database found the
-loop had been quietly grading its own homework — most of what it called
-"evidence" was its own notes. We didn't paper over it; we removed the
-agents' ability to write evidence at all and required a real source on
-every row. That's the kind of catch I want this product doing for your
-team's decisions too. Ask me anything, including what's NOT built yet.
+few days before this listing, an audit of our own database found most
+of what the loop called "evidence" carried itself as the source, not a
+customer. We didn't paper over it: a seat can no longer write a signal
+that names no source outside the workspace, and every reader that
+counts evidence excludes one that fails that test. That's the kind of
+catch I want this product doing for your team's decisions too. Ask me
+anything, including what's NOT built yet.
 ```
 
 **Gallery shot list (5 assets, in this order — evidence before claims, per the doctrine):**
