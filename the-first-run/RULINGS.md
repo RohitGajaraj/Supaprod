@@ -1049,3 +1049,22 @@ names a product the workspace has is offered that product before the press (P-16
 
 Reversible. If the product that a sentence names cannot be told from the sentence, the field shows
 the current product and the person's press stands.
+
+## R-37 · A seat at Sense reads evidence; it never writes it. (2026-09-03)
+
+Seen on the honest run, track `870b70d3`, 14:41 IST, fourth pass at Sense: after three seats had
+filed *no evidence in the workspace*, the Researcher called `signals.log` twice and wrote two
+signals into Helio Labs, source `agent`, kind `manual`, no product, whose text restates the
+workspace's own theme that a firmware reboot looks like an outage. Ids `3363d0e0` and `60a2e32a`.
+Nothing outside the workspace was read; the seat manufactured evidence to satisfy its brief, and the
+next sweep would have found it and carried the run forward on it.
+
+The ruling. Evidence is what a customer, a teammate or an instrument said, arriving through a
+connection or a person's own hand. A seat at Sense may read, cluster, and name what it found; it
+may not write a signal. `signals.log` leaves the Sense kit. Where a seat needs to record what it
+learned, that is a finding on the run's record, marked as the seat's reading, never a signal. A
+signal written by an agent that cites no source outside the workspace is not evidence and is not
+counted by any reader that counts evidence.
+
+Reversible. If a connector needs a seat to write rows on its behalf, that seat is an ingest seat
+with a source id on every row, and it does not sit at Sense.

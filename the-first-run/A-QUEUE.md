@@ -115,7 +115,7 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 ---
 
 **DEV SERVER: off** · any lane may start it when a packet needs a rendered check; the lane that starts it stops it and writes `off` here before reporting the packet.
-**LIVE WALKS (A1): the honest run is live, track `870b70d3`, Helio Labs, pressed by the founder 14:12:42 IST with *Show the last outage time on the homeowner status tile*. 14:12 to 14:16: Discovery Scout, 4 tool calls, 3m 12s, 40,715 tokens, filed nothing (no evidence in the workspace). 14:20 sweep: Scout again, Researcher, hold `out-of-time`. 14:30 sweep: Customer Insights, same answer, hold `produced-nothing`, attempt 1 of 3; on the current rule it gives up at 14:50. Ruled R-36 and filed P-40 (A2, before P-04). Cause on the record: the track carries product **Prism** because the switcher sat on Prism when he pressed, and the sentence is about **Relay** (P-16b, A3, carries the field-side fix). The screen at 14:23 told the story in words, with *Stopped, and not on you* beside *Finish it in Settings* and *Say what is unsettled*, three asks in one breath. Pending: P-36 banner walk on the tablet track's open gate (publish 14:25); P-33 §5 walk on *Arrival walk* by rule 18 (A2 read it clean at 14:26); P-04 Learn tab after a real ship.**
+**LIVE WALKS (A1): the honest run is live, track `870b70d3`, Helio Labs, pressed by the founder 14:12:42 IST with *Show the last outage time on the homeowner status tile*. 14:12 to 14:16: Discovery Scout, 4 tool calls, 3m 12s, 40,715 tokens, filed nothing (no evidence in the workspace). 14:20 sweep: Scout again, Researcher, hold `out-of-time`. 14:30 sweep: Customer Insights, same answer, hold `produced-nothing`, attempt 1 of 3; on the current rule it gives up at 14:50. Ruled R-36 and filed P-40 (A2, before P-04). Cause on the record: the track carries product **Prism** because the switcher sat on Prism when he pressed, and the sentence is about **Relay** (P-16b, A3, carries the field-side fix). The screen at 14:23 told the story in words, with *Stopped, and not on you* beside *Finish it in Settings* and *Say what is unsettled*, three asks in one breath. Pending: P-36 banner walk on the tablet track's open gate (publish 14:25); P-33 §5 walk on *Arrival walk* by rule 18 (A2 read it clean at 14:26); P-04 Learn tab after a real ship. **14:40 sweep: fourth pass, Scout no evidence again, then the Researcher wrote two signals into the workspace restating an existing theme (R-37, P-41); hold `out-of-time`, attempts still 1.****
 **A1 AUDIT OF EVERY CLOSED PACKET (12:15 IST, founder's instruction: verify, never accept on a
 report).** 35 closed; 21 carried A1's own live or database evidence at closing; 14 were report-only
 or deferred. Re-verified today: P-26 (A1's own grep, both duration forms, zero in code; the nine hits
@@ -2401,6 +2401,34 @@ loop treated it as a failed search.
 - [ ] Both tests, named after their sentences.
 - [ ] `870b70d3` reaches Decide with the footing on its decision, read by A1 in the database and on
       the run screen.
+- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
+
+### P-41 · A seat at Sense reads evidence and never writes it · Lane: **A2** · Status: READY, **with P-40** · Moves: 1, 2
+
+**Why.** R-37. On the honest run's fourth pass (14:41 IST) the Researcher wrote two signals into
+Helio Labs through `signals.log` (`3363d0e0…`, `60a2e32a…`; source `agent`, kind `manual`, product
+null) restating an existing theme, with nothing read from outside the workspace. The next sweep
+would have found them and carried the run on manufactured evidence. The product's whole claim is
+that evidence is provable; this is the one defect that breaks it.
+
+**Scope.**
+1. `signals.log` is removed from every Sense seat's tool kit (Discovery Scout, Researcher, Listen,
+   Customer Insights, and whatever else sits at Sense); a seat that needs to record what it
+   learned files a finding on the run, marked as the seat's reading. Ingest paths that write
+   signals on a connection's behalf keep the tool with a source id required on the row.
+2. Readers that count evidence (`getSenseCoverage`, the Arriving line, the brain's candidate set,
+   Discover's counts) exclude rows with `source = 'agent'` and no external source reference.
+3. The two rows above: mark, do not delete (they are the honest run's record); a `source_kind`
+   readers exclude, with the reason on the row. Write the before and after counts.
+4. A test drives a Sense crew whose seat tries to log a signal and proves the tool is not in its
+   kit; a second proves an evidence reader excludes an agent-written row with no source.
+
+**Acceptance.**
+- [ ] Both tests, named after their sentences.
+- [ ] `870b70d3`'s record shows the two rows as the seat's reading, not as evidence.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
 **Report (A2 writes):** —
