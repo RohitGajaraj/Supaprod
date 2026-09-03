@@ -5195,6 +5195,36 @@ const decisionRecord = def({
        * "2026-09-05" is silently taken as midnight UTC and comes due on a day
        * nobody chose. Matched here rather than left to diverge.
        */
+      /*
+       * -- THE FIVE INTENT FIELDS (P-21) ------------------------------------
+       *
+       * The playbook's `intent.md` carries: problem statement, proposed
+       * outcome, affected users and systems, constraints, open questions. A
+       * team following it holds that file in their repo, and we held a decision
+       * row with eleven forecast columns and nothing saying what the work IS.
+       *
+       * OPTIONAL, unlike the forecast beside it, and the asymmetry is
+       * deliberate. A decision with no forecast is refused because the forecast
+       * is the thing this product grades and there is no repair path once the
+       * row is written. Intent is a description: a decision recorded without it
+       * is worse but not wrong, and refusing one would stop the loop over
+       * prose. The brief asks for it; the schema does not hold the run hostage
+       * to it.
+       *
+       * `open_questions` is the field to protect. The spec calls it "the one we
+       * would never have thought of: it is the one that makes a handoff honest
+       * rather than confident", and P-21's own scope line dropped it in a
+       * paraphrase before A1 withdrew that on 2026-09-03.
+       */
+      intent: z
+        .object({
+          problem_statement: z.string().max(2000).optional(),
+          proposed_outcome: z.string().max(2000).optional(),
+          affected_users_and_systems: z.string().max(2000).optional(),
+          constraints: z.string().max(2000).optional(),
+          open_questions: z.string().max(2000).optional(),
+        })
+        .optional(),
       forecast_claim: z
         .string({ required_error: FORECAST_REQUIRED, invalid_type_error: FORECAST_REQUIRED })
         .min(1)
@@ -5378,6 +5408,23 @@ const decisionRecord = def({
         forecast_claim: humanizeText(a.forecast_claim),
         forecast_how_we_will_know: humanizeText(a.forecast_how_we_will_know),
         forecast_horizon_date: a.forecast_horizon_date,
+        /*
+         * NULL rather than `{}` when the seat gave none. A decision that predates
+         * this column and one whose intent is an empty object are different
+         * facts, and the column's comment says so; writing `{}` here would
+         * collapse them at the moment the distinction is cheapest to keep.
+         *
+         * Humanized field by field, on the same rule as the forecast above: this
+         * is prose a person reads in their own repo, and the house style applies
+         * wherever our words reach them.
+         */
+        intent: a.intent
+          ? Object.fromEntries(
+              Object.entries(a.intent)
+                .filter(([, v]) => typeof v === "string" && v.trim().length > 0)
+                .map(([k, v]) => [k, humanizeText(v as string)]),
+            )
+          : null,
         /*
          * A refusal outranks the review's "approved", and only that one. If the
          * gate wants a person to look, it still does: a no-go with a

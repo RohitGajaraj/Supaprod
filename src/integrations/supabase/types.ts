@@ -2750,6 +2750,7 @@ export type Database = {
           forecast_resolved_at: string | null
           forecast_resolved_by_agent_slug: string | null
           id: string
+          intent: Json | null
           is_public: boolean
           is_sample: boolean
           meeting_id: string | null
@@ -2795,6 +2796,7 @@ export type Database = {
           forecast_resolved_at?: string | null
           forecast_resolved_by_agent_slug?: string | null
           id?: string
+          intent?: Json | null
           is_public?: boolean
           is_sample?: boolean
           meeting_id?: string | null
@@ -2840,6 +2842,7 @@ export type Database = {
           forecast_resolved_at?: string | null
           forecast_resolved_by_agent_slug?: string | null
           id?: string
+          intent?: Json | null
           is_public?: boolean
           is_sample?: boolean
           meeting_id?: string | null
