@@ -2573,22 +2573,63 @@ and `/learn` go when P-14b (Outcomes › What shipped + the ledger, A3) and P-04
 deletion: route count before/after, tsc 0, `bun test` 0 fail, ratchet not widened, pushed, Report.
 A1 publishes and walks Start, a run, Outcomes and Settings after the first batch.
 
-**Deletion log (A3, running).** Four of six done, each its own commit, redirect stub to `/start`,
-tsc 0, `bun test` 0 fail / 0 unhandled after each (dual-reporter checked, per Rule 14):
-- `/decide` -- `5874e3200`. Guard test `decide-holds-its-guard-across-the-confirm.test.ts` broke
-  main on `readFileSync` of the deleted route (invisible to junit); fixed same-day, `b25094c33`.
-- `/plan` index -- `2d765bbb9`.
-- `/design` -- `2fb721f05`, plus `ee1a753dd` (A1's live find: a bet's title was the theme's own
-  Title-Case name, not a sentence -- fixed on both the write side, `trigger-tick.ts`'s cluster
-  branch, and the read side, `listTopOpportunities`'s filter; `src/lib/bet-title.ts` new, tested).
-- `/build` index -- `d2fff6135`. Verified independently (census, tsc, full `bun test`, `eslint` on
-  the diff) before push, same standard as the other three.
-Live references deferred to the one sweep at the end, per standing guidance: `run-strip.tsx`,
-`ask-context.tsx`, `AskLanding.tsx`, `PushedInsights.tsx`, `loop-surfaces.ts`, `RunBoard.tsx`,
-`LineageDrawer.tsx`, `artifacts.functions.ts`, `research.server.ts`,
-`_authenticated.ship.tsx` (two `navigate({to:"/build"})` calls). Route count before/after: held for
-the whole batch, not per page, per standing guidance -- reported once `/runs/$missionId` and
-`Board.tsx` are both done. Next: `/runs/$missionId`.
+**Deletion log (A3), all six done.** Each its own commit, tsc 0, `bun test` 0 fail / 0 unhandled
+after each (dual-reporter checked, per Rule 14), pushed:
+- `/decide` -- `5874e3200`, redirect stub. Guard test `decide-holds-its-guard-across-the-confirm.test.ts`
+  broke main on `readFileSync` of the deleted route (invisible to junit); fixed same-day, `b25094c33`.
+- `/plan` index -- `2d765bbb9`, redirect stub.
+- `/design` -- `2fb721f05`, redirect stub, plus `ee1a753dd` (A1's live find: a bet's title was the
+  theme's own Title-Case name, not a sentence -- fixed on both the write side, `trigger-tick.ts`'s
+  cluster branch, and the read side, `listTopOpportunities`'s filter; `src/lib/bet-title.ts` new, tested).
+- `/build` index -- `d2fff6135`, redirect stub. Verified independently (census, tsc, full `bun test`,
+  `eslint` on the diff) before push, same standard as every page below.
+- `/runs/$missionId` -- `03b217dfc`, redirect stub. Nine exclusive files deleted (`StagePanel.tsx`,
+  `run-stages.functions.ts`, `ChangesPanel.tsx`, `PreviewPanel.tsx`, `ReceiptsPanel.tsx` (studio's,
+  not `engine-room/rooms/ReceiptsPanel.tsx` -- a basename false positive caught and left alone),
+  `RunReturn.tsx`, `use-now-while-live.ts`, `MissionOrchestratorDetail.tsx`, `TestStationPanel.tsx`).
+  Kept via a real relative import: `run-parts.tsx` (`RunBoard.tsx`'s `./run-parts`, the exact class
+  of near-miss this batch's relative-import step exists for). One real defect caught before it
+  shipped: `ship-can-ship.test.ts` had a module-scope `readFileSync` on `ChangesPanel.tsx`, same
+  class as the two incidents earlier in this batch -- trimmed, not left to break main. Independently
+  re-verified by me in an isolated worktree (`git worktree add --detach` at the commit, `bun install`,
+  tsc/test/lint run there) before push, since a concurrent fork's uncommitted edits made the shared
+  tree an unreliable read at review time.
+- `Board.tsx` -- `2dd55ee3c` plus `86d6118ce` (my own follow-up, a stale debt-allowlist entry).
+  ~24 source files and 30 test files, not the "zero importers, no cascading tests" the ruling table's
+  last row assumed -- **corrected in that row**: zero importers held, but 13 tests `readFileSync`'d
+  the file at module scope to pin real logic, the same defect class as the two earlier incidents,
+  so this went through the full census before deletion, not after (A1 ruling, 2026-09-03: proceed
+  under the same dual-reporter standard; the one fact worth keeping, a zero case that hides pending
+  gates, moves to P-18a, not to a board -- acceptance line added there, quoting the incident). Two
+  real regressions found and fixed rather than hidden by trimming the test that caught them: the
+  multiplayer presence-cursor layer's only stamping surface was dead code, rewired live into
+  `CallGate.tsx` (`/approvals`) via an optional `anchor` prop; the Notifications pane's App-column
+  claim for Budget/Drift was backed only by dead code too, reverted to the honest "not switched on
+  yet" state `a-toggle-that-cannot-deliver.test.ts` was written to hold. One pre-existing, unrelated
+  issue flagged rather than fixed: `AppFrame.live-line.test.ts` passes only by string-matching a
+  prose comment, not real JSX -- Start never actually rendered `<Board />`, before or after this
+  batch. Independently re-verified by me (spot-read both behavior diffs, isolated-worktree tsc/test/lint
+  on the full six-commit range) before push.
+
+**Route count, for the whole batch (A1's own instruction: once, not per page).** File count under
+`src/routes` is unchanged, 156 before and after -- every deletion replaced a route file with a
+redirect stub rather than removing it, so the file count was never going to move; the honest count
+is **redirect stubs: 13 before this batch, 18 after (+5, one per page)**. Across the six commits:
+**147 files changed, 565 insertions(+), 32,742 deletions(-)**.
+
+**Deferred to one final sweep (A3, next), consolidated from every page's own report:**
+`run-strip.tsx`, `ask-context.tsx`, `AskLanding.tsx`, `loop-surfaces.ts`, `RunBoard.tsx`,
+`LineageDrawer.tsx`, `artifacts.functions.ts`, `research.server.ts`, `_authenticated.ship.tsx` (two
+`navigate({to:"/build"})` calls), `OpportunityDetailSheet.tsx`, `BoardPanel.tsx`, `AppFrame.tsx`,
+`AgentRelay.tsx`, `RailCrew.tsx`, `AgentSpendDetail.tsx`, `graph-doors.ts`, `GraphNodeActions.tsx`,
+`DecisionsPanel.tsx`, `ApprovalsPanel.tsx`, `IncidentsPanel.tsx`, `ReceiptDetailSheet.tsx`,
+`_authenticated.traces.$traceId.tsx`, `_authenticated.plan.spec.$id.tsx`. Line numbers not repeated
+here since several have shifted across the batch's rebases -- re-grepped fresh at sweep time. None
+of these break anything: every deleted page still resolves and redirects to `/start`.
+
+**The order this packet named is complete: `/decide`, `/plan` index, `/design`, `/build` index,
+`/runs/$missionId`, `Board.tsx`.** `/ship` and `/learn` remain blocked on P-14b (A3) and P-04 (A2).
+Next: the leftover-reference sweep above, then P-14b.
 
 
 ---
