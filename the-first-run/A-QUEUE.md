@@ -2084,7 +2084,7 @@ five. The count is unbounded and the list is bounded now, and the sentence says 
 
 ---
 
-### P-03b · A hold only a person can clear does not take a slot every ten minutes · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2 `77eed934b`, suite 13,630 / 0; A1 reads `6199f3df`'s drives after the publish) · Moves: 3
+### P-03b · A hold only a person can clear does not take a slot every ten minutes · Lane: **A2** · Status: DONE (A1, 06:25 IST: `6199f3df` last driven 00:30 UTC, before the publish landed; not driven at 00:40 or 00:50) · Moves: 3
 
 **Why.** P-03a stopped a track waiting on a DATE from holding the front of the sweep. This is the
 same shape from the other side: a track waiting on a PERSON is fetched and driven every ten minutes,
@@ -2138,6 +2138,12 @@ whether the work is waiting on somebody. Assert both halves.
 - [ ] The test names which holds are in the set, and reads `HOLD_NEEDS_PERSON` rather than restating it.
 - [ ] tsc 0 · `bun test` 0 fail on the whole suite before the push · Report with the track ids that
       were taking slots.
+
+
+**A1 verdict: DONE** _06:25 IST._ `track_drives` for `6199f3df`: driven every tick through 00:30 UTC
+(the publish carrying `77eed934b` landed about 00:41), then no drive at 00:40 or 00:50 while its hold
+and `updated_at` were unchanged. One hold wide, each exclusion asserted, the gate rule in, the
+`DRIVE_SELECT` near-miss caught by A2 before it shipped.
 
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
