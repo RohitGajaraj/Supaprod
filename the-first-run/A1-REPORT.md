@@ -407,3 +407,20 @@ still shows Helio's counts on Start's Arriving line, two more readers of the one
 to file and line for A2. A3 is on the gate-on-screen packet. **Nothing in the plan moved.** The honest
 run is still the founder's next sentence on Start, and the tablet track's Ship still waits on a
 preview provider for the bound repo; both are founder items and both are older than this checkpoint.
+
+**Checkpoint, 2026-09-03 15:00 IST. The honest run has walked, and it is not honest.** The
+founder pressed once at 14:12 with a sentence the workspace had no evidence for. The loop drove
+itself five times at ten-minute intervals with nobody pressing anything, which is the first time
+that has been true. On the fourth pass a seat wrote two signals into the workspace restating an
+existing theme, and on the fifth the driver carried the track to Decide with those two rows as its
+only findings. Two rulings and two packets came out of it in the hour: R-36 (a sentence with no
+evidence is carried on the person's word, not circled; P-40) and R-37 (a seat at Sense reads
+evidence and never writes it; P-41), both A2's and both ahead of everything else. A second cause is
+on the record too: the run carries the product the switcher happened to show, not the one the
+sentence names (P-16b). **The date call.** 23 September stands, and the reason it is not earlier
+has changed shape: the loop no longer fails to move, it moves on evidence it made up. Until P-40
+and P-41 are live and a second honest run walks Sense to Decide on the person's word with nothing
+manufactured, no outward claim about evidence ships. That second run is the 6 September question
+now. Verified this hour: P-33's six empty-workspace defects (A2, walked clean by rule 18), P-35,
+P-36 (live), the sample-data trigger (by its objects). Founder items: answer the tablet track's
+release gate; nothing else.
