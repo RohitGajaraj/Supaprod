@@ -5142,6 +5142,16 @@ and is not now. Fix inside P-33, A2: set the five to the current flag of their p
 the seven (they are not Helio's work), and write both counts down before and after. No brain
 exclusion should stand on a row that is a person's own decision.
 
+**A1, 13:58 IST · walked Start again on the 13:43 publish (Lovable at 2e8868d17, which carries
+60a110f55).** The record pane's counts are A2's to re-check; Start's *Arriving* line is unchanged in
+the empty workspace: *15 findings this week from 2 sources · 138 clusters forming*. Two more readers
+of the same defect, both in `src/lib/discovery.functions.ts`: `getSenseCoverage` (line 1263) reads
+`signals` with no `workspace_id` filter, and `getThemePromotionCounts` (line 599) reads `themes` with
+no `workspace_id` filter and uses the workspace id only to fetch the bar's thresholds. RLS scopes both
+to the person, so the empty workspace shows Helio's evidence. `src/components/start/Arriving.tsx`
+passes `activeWorkspaceId` already; the handlers drop it. Same fix, same guard test extended to name
+these two. Still inside P-33 item (1).
+
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
@@ -5166,7 +5176,7 @@ applied by A2 through the Lovable MCP under rule 12, ledger row confirmed by A1.
 **Blockers (A2 writes):** —
 
 
-### P-35 · No reader selects a vector it will never render · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3) · Moves: 2, 3
+### P-35 · No reader selects a vector it will never render · Lane: **A3** · Status: DONE (A1 verified 13:58 IST) · Moves: 2, 3
 
 **Why.** P-32 found `listThemes` selecting `*` on `themes`, which carries a pgvector `embedding`:
 2.6 MB of a 2.75 MB response for 138 rows, rendered nowhere. `listSignals` has the same shape on
@@ -5273,6 +5283,13 @@ archived at `a4521f476`).
 now correctly excluded by guard 2 rather than either breaking clustering or leaving a guard blind
 spot undocumented.
 
+
+**A1, 13:58 IST · verified.** Suite on the tip 13,743 pass / 0 fail / 0 error with the console
+reporter; the guard proven independently by a scratch file carrying `from("signals").select("*")`,
+which failed naming that file, that table and `signals.embedding`, then removed; published, Lovable
+at 2e8868d17 from 13:43 IST. Start's largest response on the deployed app is 78.8 KB decoded and
+9.9 KB on the wire, the same as before this packet, as expected: Start's readers were already
+column-named and P-35's savings land on Discover, the Brain and the record. **DONE.**
 
 ### P-36 · The gate a person is asked to answer is on screen, and every open change is on its run · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
