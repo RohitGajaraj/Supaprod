@@ -84,7 +84,7 @@ import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { inBandError } from "@/components/admin/admin-ui";
 import { Field, Input } from "@/components/meridian/forms";
-import { Gate } from "@/components/meridian/Gate";
+import { Ask } from "@/components/meridian/Ask";
 import {
   getPricingCatalog,
   adminSetCreditsEnabled,
@@ -101,44 +101,13 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 });
 
 /**
- * THE TONE A FAILING CHECK SPEAKS IN, and it used to be a CLASS NAME.
- *
- * This was `checkClass`, and it returned the literal strings `"sp-fail"` and
- * `"sp-warn"`. A helper that hands back a retired class name is worse than a
- * hard-coded one written at a call site: the retired vocabulary is COMPUTED, so
- * every caller inherits it and the strings do not appear anywhere a reader is
- * looking at markup. Six of this file's class occurrences were `sp-*` status
- * words, and two of them lived in here.
- *
- * ── `warn` BECOMES `hold`, AND IT IS A DECISION RATHER THAN A RENAME ─────
- * `GoLiveCheck["status"]` has a `warn`. Meridian's tone union does not, on
- * purpose: it carries five status words and amber among them is `hold`, which
- * means WAITING ON A CONDITION. That is exactly what every warning check here
- * is -- a key that is not live yet, a bundle whose volume has not been proved
- * round-trippable. Orchid (`you`) would be the reflex and it is wrong, because
- * it promises a control on this screen that moves the thing. `Value` has no
- * `you` tone for the same reason.
- *
- * ── THE RETURN TYPE IS TAKEN FROM `Value` ITSELF ────────────────────────
- * Not a hand-written union, and not `string`. `shell/primitives` also exports a
- * `Value`, and THAT one has a `warn` tone, so a port that reached for it would
- * compile, change nothing, and defeat the whole item. Reading the type off the
- * Meridian component means the compiler enforces the mapping: a sixth status
- * word cannot be invented here without failing the typecheck.
- *
- * Only a problem wears colour. Five green lines would be colour carrying the
- * hierarchy, which the greyscale test exists to catch; the words already say
- * which check passed. So a passing check returns nothing and renders as plain
- * body text.
+ * P-53: the per-check tone (`checkClass` → `checkTone`, the retired-class-name
+ * fix and the `warn`-becomes-`hold` decision this comment used to record) is
+ * gone along with the coloured `Value` rows it painted. `Ask.risk` is one
+ * prose string, deliberately never a badge (its own header: "a red HIGH RISK
+ * chip is a category... the consequence is what changes the answer"), so the
+ * checks below join into one sentence with no tone at all.
  */
-type CheckTone = NonNullable<React.ComponentProps<typeof Value>["tone"]>;
-
-function checkTone(status: GoLiveCheck["status"]): CheckTone | undefined {
-  if (status === "fail") return "fail";
-  if (status === "warn") return "hold";
-  return undefined;
-}
-
 function AdminOverview() {
   const qc = useQueryClient();
   const confirm = useConfirm();
@@ -373,37 +342,37 @@ function AdminOverview() {
           {catalog.error instanceof Error ? catalog.error.message : "The read failed."}
         </ReadFailedLine>
       ) : (
-        <Gate
-          question={charging ? "Stop charging for AI use?" : "Start charging for AI use?"}
-          lines={
-            readiness.isLoading
-              ? ["Checking what the flip would do."]
-              : checks.length === 0
-                ? [
-                    <Value tone="fail" key="failed">
-                      The pre-flight checks did not load, so nothing here says what the flip would
-                      do.
-                    </Value>,
-                  ]
-                : checks.map((c) => {
-                    const tone = checkTone(c.status);
-                    return (
-                      <span key={c.id}>
-                        <b>{c.label}</b> {tone ? <Value tone={tone}>{c.detail}</Value> : c.detail}
-                      </span>
-                    );
-                  })
-          }
-        >
-          <Action variant="primary" busy={setFlag.isPending} onClick={() => void onFlip()}>
-            {setFlag.isPending ? "Saving" : charging ? "Turn off charging" : "Turn on charging"}
-          </Action>
+        <>
+          <Ask
+            question={charging ? "Stop charging for AI use?" : "Start charging for AI use?"}
+            // `Ask.risk` is one prose string, never a badge (its own header),
+            // so the pre-flight checks -- previously a `Value`-toned row each
+            // -- join into one sentence. Every check survives: unlike a track
+            // record or a mission title, EACH of these is itself a reason the
+            // flip could be unsafe, not background telemetry.
+            risk={
+              readiness.isLoading
+                ? "Checking what the flip would do."
+                : checks.length === 0
+                  ? "The pre-flight checks did not load, so nothing here says what the flip would do."
+                  : checks.map((c) => `${c.label}: ${c.detail}`).join(" ")
+            }
+            fallback={{ kind: "reversible", whatHappens: "Charging stays as it is." }}
+            answer={{
+              label: charging ? "Turn off charging" : "Turn on charging",
+              busy: setFlag.isPending,
+              onPress: () => void onFlip(),
+            }}
+            decline={{ label: "Leave it as it is", onPress: () => {} }}
+          />
           {readiness.isError || (readiness.data && "error" in readiness.data) ? (
-            <Action variant="quiet" onClick={() => void readiness.refetch()}>
-              Retry the checks
-            </Action>
+            <Actions>
+              <Action variant="quiet" onClick={() => void readiness.refetch()}>
+                Retry the checks
+              </Action>
+            </Actions>
           ) : null}
-        </Gate>
+        </>
       )}
 
       <Region

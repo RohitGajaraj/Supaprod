@@ -85,7 +85,7 @@ import {
   Value,
 } from "@/components/meridian/surface-parts";
 import { Checkbox, Field, Input } from "@/components/meridian/forms";
-import { Gate } from "@/components/meridian/Gate";
+import { Ask } from "@/components/meridian/Ask";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -668,17 +668,11 @@ function DeployGate() {
   }
 
   return (
-    <Gate
-      question="Ship the current build to production?"
-      lines={[
-        "Calls the hosting provider's deploy hook, which rebuilds and publishes the app.",
-        "Everyone is on the new build as soon as the provider finishes.",
-        "There is no undo from here. Rolling back is done at the hosting provider.",
-        "It only works once an engineer has connected a deploy hook in the hosting settings.",
-      ]}
-    >
-      {/* A definite width, not 100%: this Field is a flex item inside the gate's
-          action row, where a percentage has nothing to resolve against. */}
+    <>
+      {/* `Ask` has a fixed slot order and no `children` (its own header: a
+          children slot "would let the next surface reorder it"), so the
+          reason field -- form content, not one of the five named slots --
+          renders beside the card rather than inside it. */}
       <Field label="Why, for the build log" htmlFor="deploy-reason">
         <Input
           id="deploy-reason"
@@ -688,12 +682,18 @@ function DeployGate() {
           style={{ width: 340 }}
         />
       </Field>
-      <Actions>
-        <Action variant="primary" busy={deploy.isPending} onClick={() => void onDeploy()}>
-          {deploy.isPending ? "Sending" : "Ship it"}
-        </Action>
-        {last ? <Value>{last}</Value> : null}
-      </Actions>
-    </Gate>
+      <Ask
+        question="Ship the current build to production?"
+        risk="Calls the hosting provider's deploy hook, which rebuilds and publishes the app. Everyone is on the new build as soon as the provider finishes. There is no undo from here. Rolling back is done at the hosting provider. It only works once an engineer has connected a deploy hook in the hosting settings."
+        fallback={{ kind: "irreversible" }}
+        answer={{ label: "Ship it", busy: deploy.isPending, onPress: () => void onDeploy() }}
+        decline={{ label: "Not now", onPress: () => {} }}
+      />
+      {last ? (
+        <Actions>
+          <Value>{last}</Value>
+        </Actions>
+      ) : null}
+    </>
   );
 }

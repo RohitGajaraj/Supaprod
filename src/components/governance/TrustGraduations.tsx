@@ -25,13 +25,13 @@
  */
 import * as React from "react";
 import { Row } from "@/components/meridian/rows";
-import { Action, Approve, Num, ReadFailedLine, Region } from "@/components/meridian/surface-parts";
+import { Num, ReadFailedLine, Region } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Gate } from "@/components/meridian/Gate";
+import { Ask } from "@/components/meridian/Ask";
 import { AgentMark } from "@/components/meridian/marks";
 import {
   listTrustGraduationProposals,
@@ -141,28 +141,21 @@ export function TrustGraduationsBlock({
   return (
     <>
       {live ? (
-        <Gate
+        <Ask
           question={`Let ${liveName} run ${live.tool_name} ${MODE_PHRASE[live.to_mode]}?`}
-          lines={[
-            <>
-              It has done this <Num>{live.clean_streak}</Num> times in a row and you changed
-              nothing.
-            </>,
-            <>
-              Today it runs {MODE_PHRASE[live.from_mode]}. It is asking to run{" "}
-              {MODE_PHRASE[live.to_mode]}.
-            </>,
-            <>The hard floors hold either way. A one way door still comes back to you.</>,
-            ...(live.rationale ? [<>{live.rationale}</>] : []),
-          ]}
-        >
-          <Approve busy={decide.isPending} onClick={() => settle(true)}>
-            Give it the room
-          </Approve>
-          <Action busy={decide.isPending} onClick={() => settle(false)}>
-            Not yet
-          </Action>
-        </Gate>
+          risk="The hard floors hold either way. A one way door still comes back to you."
+          reason={`Today it runs ${MODE_PHRASE[live.from_mode]}. It is asking to run ${MODE_PHRASE[live.to_mode]}. It has done this ${live.clean_streak} times in a row and you changed nothing.${live.rationale ? ` ${live.rationale}` : ""}`}
+          fallback={{
+            kind: "reversible",
+            whatHappens: `It keeps running ${MODE_PHRASE[live.from_mode]} until you decide.`,
+          }}
+          answer={{
+            label: "Give it the room",
+            busy: decide.isPending,
+            onPress: () => settle(true),
+          }}
+          decline={{ label: "Not yet", onPress: () => settle(false) }}
+        />
       ) : null}
 
       {behind.length > 0 ? (

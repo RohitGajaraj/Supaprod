@@ -50,6 +50,18 @@ export type SurfaceKey = {
    * read a shortcut list before using it is to find out which keys bite.
    */
   destructive?: boolean;
+  /**
+   * FALSE ONLY WHEN THE CONTROL THAT FIRES THIS KEY HAS NO KEYCAP SLOT AT ALL
+   * (P-53). `Action`/`Approve` both take a `shortcut` prop and draw the
+   * keycap themselves; `Ask.answer`/`decline`/`fallbackAction` do not (its
+   * own header refuses a fourth answer slot, let alone a keycap on the two it
+   * has -- "no Meridian edits" is this packet's own rule). The key still
+   * fires: this only says the button beside it does not advertise the
+   * letter. Defaults true, so every ordinary entry keeps the drawn-keycap
+   * guarantee `key-model.test.ts` checks; only the sites this packet moved
+   * onto `Ask` set it false, and each says so at the call site.
+   */
+  keycapDrawn?: boolean;
 };
 
 /** A surface, its route path, and the keys it binds while you stand on it. */
@@ -93,9 +105,11 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
     keys: [
       { key: "j", does: "Moves to the next call in the queue." },
       { key: "k", does: "Moves back to the previous one." },
-      { key: "a", does: "Approves the focused call.", destructive: true },
-      { key: "d", does: "Declines it.", destructive: true },
-      { key: "z", does: "Snoozes it until later." },
+      // a, d and z fire through `Ask` (P-53): the card's own answer, decline
+      // and fallbackAction, none of which draws a keycap. See `keycapDrawn`.
+      { key: "a", does: "Approves the focused call.", destructive: true, keycapDrawn: false },
+      { key: "d", does: "Declines it.", destructive: true, keycapDrawn: false },
+      { key: "z", does: "Snoozes it until later.", keycapDrawn: false },
     ],
   },
   {
@@ -105,9 +119,21 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
     keys: [
       { key: "j", does: "Moves down the ranking." },
       { key: "k", does: "Moves up it." },
-      { key: "a", does: "Accepts the focused cluster as a bet.", destructive: true },
+      // a and d fire through `Ask` (P-53), same as /approvals above; m still
+      // draws its own keycap, on the plain `Action` beside the card.
+      {
+        key: "a",
+        does: "Accepts the focused cluster as a bet.",
+        destructive: true,
+        keycapDrawn: false,
+      },
       { key: "m", does: "Merges it into a bet you already have.", destructive: true },
-      { key: "d", does: "Declines it, so it is not a pattern.", destructive: true },
+      {
+        key: "d",
+        does: "Declines it, so it is not a pattern.",
+        destructive: true,
+        keycapDrawn: false,
+      },
     ],
   },
   // "/decide" and "/design" left this list (P-14, A-QUEUE.md, R-34): each

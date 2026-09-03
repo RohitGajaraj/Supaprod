@@ -39,7 +39,6 @@ import { Row } from "@/components/meridian/rows";
 import {
   Actions,
   Action,
-  Approve,
   Region,
   Reading,
   ReadFailed,
@@ -61,7 +60,7 @@ import { sourceLabel, supersedesPreview, willSupersede } from "@/lib/memory-cand
 import { relativeTime } from "@/lib/memory-view";
 import { initialsFrom } from "@/lib/initials";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Gate } from "@/components/meridian/Gate";
+import { Ask } from "@/components/meridian/Ask";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
 
 /** Who put this in front of you. The table has a source_kind and nothing else,
@@ -216,35 +215,29 @@ export function MemoryReviewQueue() {
           {humanWriteError(queue.error, "The read failed.")}
         </ReadFailed>
       ) : focused ? (
-        <Gate
+        <Ask
           question={focused.content}
-          lines={[
-            <span key="who">{whoLine(focused.source_kind)}</span>,
-            ...(willSupersede(focused.supersedes_memory_id)
-              ? [
-                  <span key="sup">
-                    <b>Letting it in retires</b>{" "}
-                    {supersedesPreview(focused.supersedes_content)
-                      ? `what it contradicts: "${supersedesPreview(focused.supersedes_content)}"`
-                      : "what it contradicts."}
-                  </span>,
-                ]
-              : []),
-          ]}
-        >
-          <Approve
-            busy={decide.isPending}
-            onClick={() => decide.mutate({ row: focused, decision: "approve" })}
-          >
-            Let it in
-          </Approve>
-          <Action
-            busy={decide.isPending}
-            onClick={() => decide.mutate({ row: focused, decision: "reject" })}
-          >
-            Keep it out
-          </Action>
-        </Gate>
+          reason={whoLine(focused.source_kind)}
+          risk={
+            willSupersede(focused.supersedes_memory_id)
+              ? `Letting it in retires ${
+                  supersedesPreview(focused.supersedes_content)
+                    ? `what it contradicts: "${supersedesPreview(focused.supersedes_content)}"`
+                    : "what it contradicts."
+                }`
+              : null
+          }
+          fallback={{ kind: "irreversible" }}
+          answer={{
+            label: "Let it in",
+            busy: decide.isPending,
+            onPress: () => decide.mutate({ row: focused, decision: "approve" }),
+          }}
+          decline={{
+            label: "Keep it out",
+            onPress: () => decide.mutate({ row: focused, decision: "reject" }),
+          }}
+        />
       ) : (
         <NothingHere>
           Nothing is waiting on you. Anything you save above, and anything the crew proposes from a

@@ -66,7 +66,7 @@ import {
   ReadFailed,
 } from "@/components/meridian/surface-parts";
 import { Choices, Field, Input, Textarea } from "@/components/meridian/forms";
-import { Gate } from "@/components/meridian/Gate";
+import { Quiet } from "@/components/meridian/Quiet";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -545,29 +545,17 @@ export function SettlePanel({
   if (!target) {
     return (
       <>
-        <Gate
-          question={
+        <Quiet
+          says={
             agentSettled.length > 0
               ? "Nothing needs your verdict."
               : "Nothing has shipped that needs a verdict."
           }
-          lines={[
-            <span key="how">
-              {agentSettled.length > 0 ? (
-                <>
-                  <b>{agentDisplayName(MEASURE_SLUG)} settled the last ones on the evidence.</b>{" "}
-                  They are below, with what each rested on. Disagree with any of them and the record
-                  keeps both.
-                </>
-              ) : (
-                <>
-                  A bet arrives here when its spec ships. {agentDisplayName(MEASURE_SLUG)} settles
-                  it from what the usage actually did, and asks you only when the evidence does not
-                  reach.
-                </>
-              )}
-            </span>,
-          ]}
+          whatWillAppear={
+            agentSettled.length > 0
+              ? `${agentDisplayName(MEASURE_SLUG)} settled the last ones on the evidence. They are below, with what each rested on. Disagree with any of them and the record keeps both.`
+              : `A bet arrives here when its spec ships. ${agentDisplayName(MEASURE_SLUG)} settles it from what the usage actually did, and asks you only when the evidence does not reach.`
+          }
         />
         <AgentSettledBlock
           rows={agentSettled}
@@ -697,20 +685,24 @@ export function SettlePanel({
 
   return (
     <>
-      <Gate
-        question={
-          settledByAgent
-            ? `Was ${target.title} really ${VERDICT_SAYS[settledByAgent.verdict]}?`
-            : `Did ${target.title} pay off?`
-        }
-        lines={lines}
-      >
-        {/* The way out, beside the question that needs it. The Gate line above
-            states the promise; this is for the person who wants the whole
-            contract, the body, and the discussion before writing a verdict that
-            does not come back. */}
-        <OpenTheSpec prdId={target.prdId} />
-      </Gate>
+      {/* NOT AN `Ask`: the question below is answered by the three-way
+          `Choices` radio group in the Region underneath, not by a yes/no
+          press here, and this card's own child was always a door
+          (`OpenTheSpec`), never a decline. `Ask` requires a real binary
+          answer/decline pair; forcing one on would invent a "no" this
+          surface has never offered. So this stays a plain heading, the way
+          ship.tsx's non-binary states do (P-53). */}
+      <p className="mrd-title text-mrd-ink">
+        {settledByAgent
+          ? `Was ${target.title} really ${VERDICT_SAYS[settledByAgent.verdict]}?`
+          : `Did ${target.title} pay off?`}
+      </p>
+      <div className="flex flex-col gap-mrd-3">{lines}</div>
+      {/* The way out, beside the question that needs it. The heading above
+          states the promise; this is for the person who wants the whole
+          contract, the body, and the discussion before writing a verdict that
+          does not come back. */}
+      <OpenTheSpec prdId={target.prdId} />
 
       {/* The Gate above asks and prices it; this is where the answer is given.
           The title is a verb rather than a noun so it does not restate the Line

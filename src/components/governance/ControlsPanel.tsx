@@ -88,7 +88,6 @@ import { Row, Line } from "@/components/meridian/rows";
 import {
   Action,
   Actions,
-  Approve,
   NothingYet,
   Num,
   Picker,
@@ -120,7 +119,7 @@ import { relTime, fmtUsd } from "@/components/product/format";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { CONSENT_PHILOSOPHY, groupToolsByConsequenceClass } from "@/lib/consent-classes";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Gate } from "@/components/meridian/Gate";
+import { Ask } from "@/components/meridian/Ask";
 import { AgentMark } from "@/components/meridian/marks";
 import { useConfirm } from "@/hooks/use-confirm";
 
@@ -467,43 +466,33 @@ export function ControlsPanel({
 
           One at a time, so there is one primary action on screen. */}
       {live ? (
-        <Gate
+        <Ask
           question={`Let ${agentDisplayName(live.target_agent_slug)} run on ${eventLabel(live)}?`}
-          lines={[
-            <>
-              <Num>{eventWord(live.event_type)}</Num> fired {firedPhrase(live.created_at)}, and this
-              pipeline asks you before it dispatches.
-            </>,
-            <>Skipping runs nothing. The event stays on the record either way.</>,
-          ]}
-        >
-          <Approve
-            disabled={deciding(live.id)}
-            onClick={() =>
+          reason={`${eventWord(live.event_type)} fired ${firedPhrase(live.created_at)}, and this pipeline asks you before it dispatches.`}
+          risk="Skipping runs nothing. The event stays on the record either way."
+          fallback={{ kind: "irreversible" }}
+          answer={{
+            label: "Dispatch it",
+            busy: deciding(live.id),
+            onPress: () =>
               decideEvtMut.mutate({
                 eventId: live.id,
                 decision: "approve",
                 agentSlug: live.target_agent_slug,
                 label: eventLabel(live),
-              })
-            }
-          >
-            Dispatch it
-          </Approve>
-          <Action
-            disabled={deciding(live.id)}
-            onClick={() =>
+              }),
+          }}
+          decline={{
+            label: "Skip it",
+            onPress: () =>
               decideEvtMut.mutate({
                 eventId: live.id,
                 decision: "reject",
                 agentSlug: live.target_agent_slug,
                 label: eventLabel(live),
-              })
-            }
-          >
-            Skip it
-          </Action>
-        </Gate>
+              }),
+          }}
+        />
       ) : null}
 
       {/* THE STOP, ON ITS OWN, IN THE TAB'S OWN WORDS. It used to be one Line

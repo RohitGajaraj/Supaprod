@@ -173,7 +173,6 @@ import { Row } from "@/components/meridian/rows";
 import {
   Action,
   Actions,
-  Approve,
   Door,
   NothingHere,
   NothingYet,
@@ -236,7 +235,8 @@ import {
 import { listWorkspaceMembers } from "@/lib/workspaces.functions";
 import { TRANSITION_ROLES, type WorkspaceRole } from "@/lib/announcements";
 import { Surface } from "@/components/meridian/Surface";
-import { Gate } from "@/components/meridian/Gate";
+import { Ask } from "@/components/meridian/Ask";
+import { Quiet } from "@/components/meridian/Quiet";
 import { CtxBody, CtxHead } from "@/components/meridian/ContextColumn";
 import { Field, Input, Textarea } from "@/components/meridian/forms";
 import { Receipt } from "@/components/meridian/Receipt";
@@ -2361,69 +2361,47 @@ function Ship() {
           different decisions and hiding either would be the surface deciding
           for the reader which one their morning is about. */}
         {ready.length > 0 ? (
-          <Gate
-            question={`Take "${ready[0].title}" to production?`}
-            lines={[
-              <span key="preview">
-                {/* THE ADDRESS QUOTED IS THE ONE THAT MOVES. `previewUrl` is the
-                  newest preview of any origin, which on a repo that also runs
-                  its own pipeline can be a different deploy from the one this
-                  button promotes. A confirmation naming a URL other than the
-                  one it is about to ship is a confirmation of the wrong thing.
-                  `isReadyToPromote` is what put this row here, so the hosted
-                  address is guaranteed present. */}
-                The preview is up at{" "}
-                {/* A `Door`, which is what this always was: a fact inside a
-                  sentence that happens to have an address. The hand-rolled
-                  anchor it replaces set `color: inherit` and nothing else, so
-                  the address announced itself as a link in no way at all -- no
-                  underline at rest, no hover, and a keyboard reader hitting a
-                  bare anchor with no affordance. `Door` inherits the line's size
-                  by design and paints `--mrd-body`, which is the colour that
-                  `inherit` was reaching for. */}
-                <Door href={ready[0].hostedPreviewUrl as string}>
-                  <Num>{ready[0].hostedPreviewUrl}</Num>
-                </Door>
-              </span>,
-              ...(since(ready[0].releasedAt)
-                ? [
-                    <span key="when">
-                      Merged <Num>{since(ready[0].releasedAt)}</Num>
-                      {ready[0].productName ? ` into ${ready[0].productName}` : ""}
-                    </span>,
-                  ]
-                : []),
-              <span key="cost">
-                It moves that same commit to the production address. Customers see it immediately,
-                and undoing it means a revert pull request.
-              </span>,
-              ...(ready.length > 1
-                ? [
-                    <span key="more">
-                      <Num>{ready.length - 1}</Num> more {ready.length - 1 === 1 ? "is" : "are"}{" "}
-                      ready, each with its own promote under Where it is live.
-                    </span>,
-                  ]
-                : []),
-            ]}
-          >
-            {/* `Approve`, NOT `Action variant="primary"`, and this is the one
-              control on the station that earns it. Meridian spends `--mrd-you`
-              on a single meaning -- a person is required -- and the promote is
-              literally that: the release is merged, the preview is up, and this
-              file's own header says "Promoting is always a person's call ... no
-              agent here can take that step on its own." The work is stopped
-              until this is pressed, which is the definition `Approve` is for.
-              Every other control here does something and unblocks nothing. */}
-            <Approve
-              busy={promote.isPending}
-              onClick={() =>
-                promote.mutate({ changesetId: ready[0].changesetId, title: ready[0].title })
-              }
-            >
-              {promote.isPending ? "Promoting it" : "Promote it"}
-            </Approve>
-          </Gate>
+          <>
+            {/* THE ADDRESS QUOTED IS THE ONE THAT MOVES. `previewUrl` is the
+              newest preview of any origin, which on a repo that also runs its
+              own pipeline can be a different deploy from the one this button
+              promotes. A confirmation naming a URL other than the one it is
+              about to ship is a confirmation of the wrong thing.
+              `isReadyToPromote` is what put this row here, so the hosted
+              address is guaranteed present.
+
+              Rendered beside `Ask` rather than inside it: `Ask.risk`/`reason`
+              are prose strings (its own header refuses a `children` slot), so
+              a real link has nowhere to go inside the card. Keeping the actual
+              clickable address is worth its own line rather than a URL a
+              reader cannot open. */}
+            <p className="mrd-copy">
+              The preview is up at{" "}
+              <Door href={ready[0].hostedPreviewUrl as string}>
+                <Num>{ready[0].hostedPreviewUrl}</Num>
+              </Door>
+              .
+            </p>
+            <Ask
+              question={`Take "${ready[0].title}" to production?`}
+              reason={`Merged ${since(ready[0].releasedAt) ?? "recently"}${ready[0].productName ? ` into ${ready[0].productName}` : ""}.${ready.length > 1 ? ` ${ready.length - 1} more ${ready.length - 1 === 1 ? "is" : "are"} ready, each with its own promote under Where it is live.` : ""}`}
+              risk="It moves that same commit to the production address. Customers see it immediately, and undoing it means a revert pull request."
+              fallback={{ kind: "irreversible" }}
+              // `Approve`, NOT the answer's default styling alone, earns its
+              // meaning by being the ONE thing on this station that unblocks a
+              // person's own decision (this file's own header: "Promoting is
+              // always a person's call... no agent here can take that step on
+              // its own"). `Ask.answer` renders through the same `Approve`
+              // tone Meridian reserves for exactly that.
+              answer={{
+                label: "Promote it",
+                busy: promote.isPending,
+                onPress: () =>
+                  promote.mutate({ changesetId: ready[0].changesetId, title: ready[0].title }),
+              }}
+              decline={{ label: "Not now", onPress: () => {} }}
+            />
+          </>
         ) : null}
 
         {/* THE ROLE READ SAYING IT FAILED, above the gate whose controls it
@@ -2480,37 +2458,30 @@ function Ship() {
           sees most. */}
         {stationEmpty && !composing ? (
           <>
-            <Gate
-              question="What will come here to ship?"
-              lines={[
-                <span key="what">
-                  A release lands here the moment a merged change carries release notes: the preview
-                  address, the one promote that puts it in front of customers, and the announcement
-                  afterwards.
-                </span>,
-                <span key="hosting">
-                  For a repo Supaprod hosts, a merged change deploys a preview on its own in about
-                  two minutes, and promoting that preview is what ships it. For a repo it does not
-                  host, Supaprod records the deploys your own pipeline publishes and you promote
-                  those where they were built.
-                </span>,
-                <span key="gate">
-                  Promoting is always a person&apos;s call. Customers see it immediately and undoing
-                  it means a revert, so no agent here can take that step on its own.
-                </span>,
-              ]}
-            >
-              {/* `Action`, not `Approve`. Both of these navigate, and nothing on
-                this station is held pending a click on either: the accent means
-                a person is REQUIRED, and a door to Build is an offer.
-                P-14 (A-QUEUE.md, R-34): /build and /plan are both deleted --
-                the live block and work in flight are both Start's rows now,
-                so both buttons land there. */}
+            {/* `Quiet.says` is a statement, never a question (its own header:
+                "No question mark; a period") -- P-53 rewrites the old
+                question-shaped headline as the fact it was actually reporting. */}
+            <Quiet
+              says="Nothing has come here to ship yet."
+              whatWillAppear="A release lands the moment a merged change carries release notes: the preview address, the one promote that puts it in front of customers, and the announcement afterwards. For a repo Supaprod hosts, a merged change deploys a preview on its own in about two minutes, and promoting that preview is what ships it. For a repo it does not host, Supaprod records the deploys your own pipeline publishes and you promote those where they were built. Promoting is always a person's call. Customers see it immediately and undoing it means a revert, so no agent here can take that step on its own."
+            />
+
+            {/* `Action`, not `Approve`, and rendered beside `Quiet` rather than
+              inside it: `Quiet` refuses an action slot on purpose (its own
+              header: "there is nothing to do, and a button here is a door onto
+              an empty room"), and these two are navigation, not answers to a
+              question this state is not asking. Both navigate, and nothing on
+              this station is held pending a click on either: the accent means
+              a person is REQUIRED, and a door to Build is an offer.
+              P-14 (A-QUEUE.md, R-34): /build and /plan are both deleted --
+              the live block and work in flight are both Start's rows now,
+              so both buttons land there. */}
+            <Actions>
               <Action variant="primary" onClick={() => navigate({ to: SIGNED_IN_HOME })}>
                 See what is being built
               </Action>
               <Action onClick={() => navigate({ to: SIGNED_IN_HOME })}>Open the specs</Action>
-            </Gate>
+            </Actions>
 
             {/* WHAT THE THING BEING WAITED FOR LOOKS LIKE, drawn rather than
               described. Discover's empty desk established this and states the
@@ -2643,7 +2614,30 @@ function Ship() {
           // ready to announce" is about the posts and this is about the reader.
           <Reading>Reading what you are allowed to do here.</Reading>
         ) : call ? (
-          <Gate
+          call.status === "pending" && canPublish ? (
+            /* THE ONE CASE THAT IS GENUINELY A BINARY ASK. Every other branch
+             below either has no real decline (draft, edit, compose are all
+             next steps, not answers to a yes/no) or no controls at all, so
+             only this one, "Send X to customers?", routes through `Ask`. */
+            <Ask
+              question={`Send "${call.title}" to customers?`}
+              reason={[
+                firstLine(call.body),
+                since(call.submitted_at ?? call.created_at)
+                  ? `Submitted ${since(call.submitted_at ?? call.created_at)}`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              fallback={{ kind: "irreversible" }}
+              // The second `Approve` on this station, and the last. A pending
+              // post is work that has STOPPED: a contributor sent it up and it
+              // does not reach anybody until an owner or an admin presses this,
+              // which `Ask.answer` renders through `Approve`'s own tone.
+              answer={{ label: "Publish it", busy, onPress: () => publish.mutate(call.id) }}
+              decline={{ label: "Not yet", onPress: () => {} }}
+            />
+          ) : (
             /* THE QUESTION IS THE FIRST THING READ, so it must not borrow the
              failed read's confidence either. "waiting on an owner or an admin"
              is `canPublish === false` said as a fact about the READER, and
@@ -2651,52 +2645,41 @@ function Ship() {
              publish, your role did not load, and the read answered with no
              membership row for you. Saying it to an owner whose
              `listWorkspaceMembers` timed out tells them they lack a permission
-             they hold. The middle sentence states the status and nothing about
-             the reader; `roleLines()` beneath it says why the controls are
-             gone. Word for word as before whenever the role read answered with
-             a role, which is every ordinary session. */
-            question={
-              call.status === "pending"
-                ? canPublish
-                  ? `Send "${call.title}" to customers?`
-                  : members.isError || roleUnknown
+             they hold. `roleLines()` beneath it says why the controls are gone.
+
+             NONE OF THESE ARE A BINARY ASK, so this stays a plain heading
+             rather than reaching for `Ask`, `Choice` or `Quiet`: a draft has
+             one or more real next steps (send for approval, edit, write
+             another) and none of them is a decline; a reader with no publish
+             right sees the same question with nothing to press at all. */
+            <div className="flex flex-col gap-mrd-3">
+              <p className="mrd-title text-mrd-ink">
+                {call.status === "pending"
+                  ? members.isError || roleUnknown
                     ? `"${call.title}" is waiting to be published.`
                     : `"${call.title}" is waiting on an owner or an admin.`
-                : `"${call.title}" is still a draft.`
-            }
-            // The announcement's own evidence FIRST, then the reason its controls
-            // are missing when they are. `roleLines` is empty in the ordinary
-            // case, so this is exactly `gateLines(call)` whenever the role read
-            // answered with a role.
-            lines={[...gateLines(call), ...roleLines()]}
-          >
-            {/* THE SECOND `Approve` ON THIS STATION, and the last. A pending post
-              is work that has STOPPED: a contributor sent it up and it does not
-              reach anybody until an owner or an admin presses this. That is the
-              one meaning `--mrd-you` carries. "Send for approval" beside it is
-              deliberately NOT an Approve -- it starts a wait rather than ending
-              one -- and neither are the two after it, which edit and compose. */}
-            {call.status === "pending" && canPublish ? (
-              <Approve busy={busy} onClick={() => publish.mutate(call.id)}>
-                Publish it
-              </Approve>
-            ) : null}
-            {call.status === "draft" && canContribute ? (
-              <Action variant="primary" busy={busy} onClick={() => submit.mutate(call.id)}>
-                Send for approval
-              </Action>
-            ) : null}
-            {canContribute ? (
-              <Action busy={busy} onClick={() => startEdit(call)}>
-                Edit the post
-              </Action>
-            ) : null}
-            {canContribute ? (
-              <Action variant="quiet" busy={busy} onClick={startNew}>
-                Write another
-              </Action>
-            ) : null}
-          </Gate>
+                  : `"${call.title}" is still a draft.`}
+              </p>
+              {[...gateLines(call), ...roleLines()]}
+              {call.status === "draft" && canContribute ? (
+                <Actions>
+                  <Action variant="primary" busy={busy} onClick={() => submit.mutate(call.id)}>
+                    Send for approval
+                  </Action>
+                </Actions>
+              ) : null}
+              {canContribute ? (
+                <Actions>
+                  <Action busy={busy} onClick={() => startEdit(call)}>
+                    Edit the post
+                  </Action>
+                  <Action variant="quiet" busy={busy} onClick={startNew}>
+                    Write another
+                  </Action>
+                </Actions>
+              ) : null}
+            </div>
+          )
         ) : (
           /*
            * THE QUESTION WITH NOTHING UNDER IT, which is what a lost role read
@@ -2720,62 +2703,76 @@ function Ship() {
            * is not a problem to solve on this screen, it is a fact about
            * somewhere else.
            */
-          <Gate
-            /* NOT DRAWN AT ALL WHEN THE FIRST-RUN SCREEN IS UP. `stationEmpty`
+          <>
+            {/* NOT DRAWN AT ALL WHEN THE FIRST-RUN SCREEN IS UP. `stationEmpty`
              already asks the station's one question with its own doors, and two
              gates about the same absence on one screen is the contradiction this
              surface's own notes keep warning about. Its `nothingShipped` arm still
              owns the case where something HAS shipped, or a deploy or merge exists,
-             and only the announcements are empty. */
-            question={
-              nothingShipped
-                ? "Nothing has gone out, because nothing has shipped yet."
-                : "Write the first announcement?"
-            }
-            lines={
-              nothingShipped
-                ? [
-                    "A release lands here once a merged change carries release notes. Until one does, there is nothing for an announcement to be about.",
-                    ...roleLines(),
-                  ]
-                : roleLines()
-            }
-          >
-            {canContribute ? (
-              <Action
-                variant={nothingShipped ? "default" : "primary"}
-                busy={busy}
-                onClick={startNew}
-              >
-                {nothingShipped ? "Write one anyway" : "Write an announcement"}
-              </Action>
+             and only the announcements are empty.
+
+             `Quiet.says` is a statement, never a question (its own header),
+             so "Write the first announcement?" -- a question with no real
+             decline, just an invitation -- becomes the fact it was reporting:
+             nothing has been announced. */}
+            <Quiet
+              says={
+                nothingShipped
+                  ? "Nothing has gone out, because nothing has shipped yet."
+                  : "Nothing has been announced yet."
+              }
+              whatWillAppear={
+                nothingShipped
+                  ? "A release lands here once a merged change carries release notes. Until one does, there is nothing for an announcement to be about."
+                  : "Write one and it appears here, live at its own address, the moment it publishes."
+              }
+            />
+            {/* Same reader-facing reason `roleLines()` already gives the
+                announcement gate below, reused rather than restated: a role
+                read that failed or came back empty is the same fact in both
+                places, and two hand-copied sentences is how they would drift. */}
+            {roleLines()}
+            {/* Rendered beside `Quiet` rather than inside it: `Quiet` refuses
+                an action slot on purpose (its own header). */}
+            {canContribute || nothingShipped ? (
+              <Actions>
+                {canContribute ? (
+                  <Action
+                    variant={nothingShipped ? "default" : "primary"}
+                    busy={busy}
+                    onClick={startNew}
+                  >
+                    {nothingShipped ? "Write one anyway" : "Write an announcement"}
+                  </Action>
+                ) : null}
+                {/* THE DOOR TO THE SOMEWHERE ELSE THIS GATE NAMES.
+
+                  The comment above already had the right idea and stopped one step
+                  short: "Nothing shipped is not a problem to solve on this screen, it
+                  is a fact about somewhere else." It said where the answer lives and
+                  did not open it, so a person on a day-one Ship desk read an accurate
+                  sentence and had nowhere to press.
+
+                  This station had NO in-app door of any kind. Every link on it is an
+                  anchor to an external address (a production URL, a pull request) or
+                  one raw href to a legacy route name, so the router was never used
+                  from here at all. Found by the guard in
+                  routes/__tests__/every-station-hands-you-a-door.test.ts, which
+                  flagged Ship and Learn together.
+
+                  Primary when nothing has shipped, because then it IS the next act;
+                  absent otherwise, since a desk with releases on it does not need to
+                  be sent to Build. */}
+                {/* P-14 (A-QUEUE.md, R-34): /build is deleted; the live block is
+                  Start's rows now. */}
+                {nothingShipped ? (
+                  <Action variant="primary" onClick={() => navigate({ to: SIGNED_IN_HOME })}>
+                    See what is being built
+                  </Action>
+                ) : null}
+              </Actions>
             ) : null}
-            {/* THE DOOR TO THE SOMEWHERE ELSE THIS GATE NAMES.
-
-              The comment above already had the right idea and stopped one step
-              short: "Nothing shipped is not a problem to solve on this screen, it
-              is a fact about somewhere else." It said where the answer lives and
-              did not open it, so a person on a day-one Ship desk read an accurate
-              sentence and had nowhere to press.
-
-              This station had NO in-app door of any kind. Every link on it is an
-              anchor to an external address (a production URL, a pull request) or
-              one raw href to a legacy route name, so the router was never used
-              from here at all. Found by the guard in
-              routes/__tests__/every-station-hands-you-a-door.test.ts, which
-              flagged Ship and Learn together.
-
-              Primary when nothing has shipped, because then it IS the next act;
-              absent otherwise, since a desk with releases on it does not need to
-              be sent to Build. */}
-            {/* P-14 (A-QUEUE.md, R-34): /build is deleted; the live block is
-              Start's rows now. */}
-            {nothingShipped ? (
-              <Action variant="primary" onClick={() => navigate({ to: SIGNED_IN_HOME })}>
-                See what is being built
-              </Action>
-            ) : null}
-          </Gate>
+          </>
         )}
 
         {/* What the last act caused. Publishing is the one thing here that reaches

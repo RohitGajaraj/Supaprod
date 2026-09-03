@@ -40,7 +40,6 @@ import {
   Approve,
   NothingHere,
   NothingYet,
-  Num,
   ReadFailed,
   ReadFailedLine,
   Reading,
@@ -62,7 +61,6 @@ import { humanWriteError } from "@/lib/roles.functions";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
 import { GovernedWriteNote } from "./GovernedWriteNote";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Gate } from "@/components/meridian/Gate";
 import { AgentMark } from "@/components/meridian/marks";
 
 /** Plain-words relative time. Mono is applied by the row, not here. */
@@ -207,41 +205,49 @@ export function HouseRulesPanel() {
   return (
     <>
       {live ? (
-        <Gate
-          question={`Should ${whoItBinds(live.agent_slug)} follow this from now on?`}
-          lines={[
-            live.rule_text,
-            ...(live.rationale ? [live.rationale] : []),
-            live.source_learning_ids.length > 0 ? (
-              <>
-                Distilled from <Num>{live.source_learning_ids.length}</Num>{" "}
-                {live.source_learning_ids.length === 1 ? "learning" : "learnings"} the steward found
-                repeating.
-              </>
-            ) : (
-              "Written straight in, with no learnings behind it yet."
-            ),
-            // The refusal rides INSIDE the question rather than above the
-            // surface, because it is this decision that is not yours to make.
-            // The rule itself, and everything behind it, still reads.
-            ...(decideWrite.reason ? [decideWrite.reason] : []),
-          ]}
+        // NOT `Ask` (P-53): a viewer or a member without decide rights must
+        // see a genuinely DISABLED "Make it a rule", not a live-looking
+        // button whose press silently does nothing -- `governed-write-
+        // controls.test.tsx` pins exactly that. `Ask.answer`/`decline` carry
+        // no `disabled` (only `busy`, and conflating the two is the mistake
+        // `Action`'s own header documents fixing elsewhere), so this card
+        // stays plain markup in `Ask`'s own visual order (question, risk,
+        // reason, answers) rather than force a permission gate through a
+        // contract that has no slot for it.
+        <section
+          data-mrd=""
+          className="flex flex-col gap-mrd-4 rounded-mrd-card border border-mrd-line bg-mrd-sheet p-mrd-5 font-mrd"
+          aria-label={`Should ${whoItBinds(live.agent_slug)} follow this from now on?`}
         >
-          <Approve
-            disabled={busyOn(live.id) || !decideWrite.allowed}
-            title={decideWrite.reason ?? undefined}
-            onClick={() => decide.mutate({ rule: live, decision: "approve" })}
-          >
-            Make it a rule
-          </Approve>
-          <Action
-            disabled={busyOn(live.id) || !decideWrite.allowed}
-            title={decideWrite.reason ?? undefined}
-            onClick={() => decide.mutate({ rule: live, decision: "reject" })}
-          >
-            Not this one
-          </Action>
-        </Gate>
+          <p className="text-mrd-lead leading-mrd-tight text-mrd-ink">
+            {`Should ${whoItBinds(live.agent_slug)} follow this from now on?`}
+          </p>
+          <p className="text-mrd-base text-mrd-ink">{live.rule_text}</p>
+          <p className="text-mrd-small text-mrd-mute">
+            {live.rationale ??
+              (live.source_learning_ids.length > 0
+                ? `Distilled from ${live.source_learning_ids.length} ${live.source_learning_ids.length === 1 ? "learning" : "learnings"} the steward found repeating.`
+                : "Written straight in, with no learnings behind it yet.")}
+            {decideWrite.reason ? ` ${decideWrite.reason}` : ""}
+          </p>
+          <div className="flex flex-wrap items-center gap-mrd-3">
+            <Approve
+              disabled={busyOn(live.id) || !decideWrite.allowed}
+              title={decideWrite.reason ?? undefined}
+              onClick={() => decide.mutate({ rule: live, decision: "approve" })}
+            >
+              Make it a rule
+            </Approve>
+            <Action
+              variant="quiet"
+              disabled={busyOn(live.id) || !decideWrite.allowed}
+              title={decideWrite.reason ?? undefined}
+              onClick={() => decide.mutate({ rule: live, decision: "reject" })}
+            >
+              Not this one
+            </Action>
+          </div>
+        </section>
       ) : null}
 
       {behind.length > 0 ? (

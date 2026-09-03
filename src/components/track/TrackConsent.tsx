@@ -47,8 +47,7 @@ import {
   toolConsequence,
 } from "@/lib/tool-consequences";
 import { expiryDefaultFor, expiryNote } from "@/lib/ai/approval-expiry";
-import { stoppedFor } from "@/components/meridian/stopped-for";
-import { CallGate } from "@/components/approvals/CallGate";
+import { isOverdue, stoppedFor } from "@/components/meridian/stopped-for";
 import { formatExpiryDeadline } from "@/components/track/expiry-deadline";
 import { Action, ReadFailedLine, RecordSpeaks } from "@/components/meridian/surface-parts";
 import { ReasonField } from "@/components/meridian/forms";
@@ -71,6 +70,99 @@ function settledLine(status: string): string {
 /** Statuses after which the run may be picked back up (SPEC-CONSENT §4.3). */
 function releasesRun(status: string): boolean {
   return status !== "approved" && status !== "pending";
+}
+
+/**
+ * ── `approvals/CallGate.tsx` RETIRED INTO ITS LAST CALLER (P-53) ─────────
+ *
+ * CallGate's own shell -- question, risk, facts, declared default, the
+ * waiting clock, then the controls -- with `_authenticated.approvals.tsx`'s
+ * simpler Approve/Decline/Snooze migrated to `Ask`. TrackConsent's own
+ * answer area is not a binary ask: numbered custom buttons, an inline
+ * decline-reason field, a class-wide "answer all N" action and a snooze that
+ * stays a fourth verb rather than the declared default's own action. None of
+ * that fits `Ask`'s fixed question/risk/reason/fallback/answer/decline
+ * shape, which has no `children` slot at all (its own header: a children
+ * slot "would let the next surface reorder it"). Rather than force it or
+ * leave `CallGate` alive for one caller, this is `CallGate`'s exact render,
+ * moved here since this is the only place it is still needed. The order and
+ * every rule behind it are unchanged -- see the original file's history for
+ * why each one exists (P-37, P-51): question, then risk, then the facts,
+ * then the declared default, then the waiting clock, then the controls.
+ */
+export function GateCard({
+  question,
+  subject,
+  since,
+  now,
+  lines,
+  risk,
+  declaredDefault,
+  consequenceTitle,
+  children,
+}: {
+  question: string;
+  subject?: string | null;
+  since: number | null;
+  now: number;
+  lines: string[];
+  risk?: string | null;
+  declaredDefault?: string | null;
+  consequenceTitle?: string;
+  children?: React.ReactNode;
+}) {
+  const overdue = since !== null && isOverdue(since, now);
+  return (
+    <section
+      data-mrd=""
+      className="rounded-mrd-pane border border-mrd-line bg-mrd-sheet px-mrd-6 py-mrd-6 shadow-mrd-card"
+    >
+      <h2 className="text-mrd-h3 leading-mrd-tight font-medium text-mrd-ink">{question}</h2>
+      {subject ? <p className="mt-mrd-1 text-mrd-small text-mrd-mute">{subject}</p> : null}
+
+      {risk ? (
+        <p className="mt-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-ink">{risk}</p>
+      ) : null}
+
+      {lines.length > 0 ? (
+        <div className="mt-mrd-4 rounded-mrd-card bg-mrd-sink px-mrd-5 py-mrd-4">
+          <ul className="flex flex-col gap-mrd-3">
+            {lines.map((line, i) => (
+              <li key={i} className="leading-mrd-prose text-mrd-prose text-mrd-body">
+                {line}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {declaredDefault ? (
+        <p
+          title={consequenceTitle}
+          className="font-mrd-mono mt-mrd-4 text-mrd-data leading-mrd-prose text-mrd-mute"
+        >
+          {declaredDefault}
+        </p>
+      ) : null}
+
+      {since !== null ? (
+        <p
+          title={new Date(since).toLocaleString()}
+          className={`font-mrd-mono mt-mrd-4 text-mrd-data tabular-nums text-mrd-mute ${
+            overdue ? "font-semibold" : ""
+          }`}
+        >
+          Waiting on you for {stoppedFor(since, now)}.
+        </p>
+      ) : (
+        <p className="mt-mrd-4 text-mrd-data text-mrd-faint">
+          How long this has been waiting is not known.
+        </p>
+      )}
+
+      {children ? <div className="mt-mrd-5 flex flex-wrap gap-mrd-3">{children}</div> : null}
+    </section>
+  );
 }
 
 export function TrackConsent({
@@ -327,7 +419,7 @@ export function TrackConsent({
         const busy = answeringId === g.approvalId;
 
         return (
-          <CallGate
+          <GateCard
             key={g.approvalId}
             question={gateHeadline(g.toolName)}
             subject={whoAsked(g)}
@@ -541,7 +633,7 @@ export function TrackConsent({
                 </RecordSpeaks>
               ) : null}
             </div>
-          </CallGate>
+          </GateCard>
         );
       })}
 

@@ -93,7 +93,7 @@ import {
   Reading,
   Region,
 } from "@/components/meridian/surface-parts";
-import { Gate } from "@/components/meridian/Gate";
+import { Choice } from "@/components/meridian/Choice";
 import { Surface } from "@/components/meridian/Surface";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -389,74 +389,82 @@ function SyncPage() {
         {conflicts.map((m) => {
           const twoWay = TWO_WAY.has(m.provider);
           return (
-            <Gate
-              key={m.id}
-              question={`Which copy of ${m.external_id} wins?`}
-              lines={[
-                <>
-                  Both sides changed since the last sync. Supaprod is on version{" "}
-                  {/* `raw`: a version is an identifier, not a quantity. Grouped,
-                      a four-digit version reads as a count of things. */}
-                  <Num raw>{m.version_local}</Num>, {providerLabel(m.provider)} is on version{" "}
-                  <Num raw>{m.version_remote}</Num>.
-                </>,
-              ]}
-            >
-              {/* Neither copy is inherently right, so neither button is primary.
-                The Gate itself is the emphasis. */}
-              <Action
-                busy={mResolve.isPending}
-                onClick={() => mResolve.mutate({ id: m.id, strategy: "keep_local" })}
-              >
-                Keep the Supaprod copy
-              </Action>
-              <Action
-                busy={mResolve.isPending}
-                onClick={() => mResolve.mutate({ id: m.id, strategy: "keep_remote" })}
-              >
-                Keep the {providerLabel(m.provider)} copy
-              </Action>
-              {twoWay ? (
-                <>
-                  <Action
-                    variant="quiet"
-                    disabled={isBusy(m.id)}
-                    onClick={() => mPush.mutate(m.id)}
-                  >
-                    {mPush.isPending && mPush.variables === m.id
-                      ? "Pushing"
-                      : "Push ours and resolve"}
-                  </Action>
-                  <Action
-                    variant="quiet"
-                    disabled={isBusy(m.id)}
-                    onClick={() => mPull.mutate(m.id)}
-                  >
-                    {mPull.isPending && mPull.variables === m.id
-                      ? "Pulling"
-                      : "Pull theirs and resolve"}
-                  </Action>
-                </>
+            <div key={m.id} className="flex flex-col gap-mrd-3">
+              {/* `Choice.option.fact` is required and the same fact on every
+                  row (its own header): the version each side is on. Push and
+                  pull are not peer options in that sense -- they resolve by a
+                  different MECHANISM, not by naming which version wins -- so
+                  they render as quiet actions beside the choice rather than a
+                  third and fourth row with no version fact of their own. */}
+              <Choice
+                question={`Which copy of ${m.external_id} wins?`}
+                why="Both sides changed since the last sync."
+                busyId={
+                  mResolve.isPending && mResolve.variables?.id === m.id
+                    ? mResolve.variables.strategy
+                    : null
+                }
+                options={[
+                  {
+                    id: "keep_local",
+                    label: "Keep the Supaprod copy",
+                    fact: `version ${m.version_local}`,
+                  },
+                  {
+                    id: "keep_remote",
+                    label: `Keep the ${providerLabel(m.provider)} copy`,
+                    fact: `version ${m.version_remote}`,
+                  },
+                ]}
+                onPick={(strategy) =>
+                  mResolve.mutate({ id: m.id, strategy: strategy as "keep_local" | "keep_remote" })
+                }
+              />
+              {twoWay || m.external_url ? (
+                <Actions>
+                  {twoWay ? (
+                    <>
+                      <Action
+                        variant="quiet"
+                        disabled={isBusy(m.id)}
+                        onClick={() => mPush.mutate(m.id)}
+                      >
+                        {mPush.isPending && mPush.variables === m.id
+                          ? "Pushing"
+                          : "Push ours and resolve"}
+                      </Action>
+                      <Action
+                        variant="quiet"
+                        disabled={isBusy(m.id)}
+                        onClick={() => mPull.mutate(m.id)}
+                      >
+                        {mPull.isPending && mPull.variables === m.id
+                          ? "Pulling"
+                          : "Pull theirs and resolve"}
+                      </Action>
+                    </>
+                  ) : null}
+                  {m.external_url ? (
+                    /* THE ONE CONTROL HERE THAT LEAVES THE APP, so it stays an
+                     `<a>` and takes only the paint. It never had an `onClick`
+                     and does not get one. `data-mrd` is what carries the
+                     Meridian focus ring; the shell root already grants it by
+                     descent, and it is written here too because every
+                     Meridian control root declares its own, so this one keeps
+                     the ring wherever it is dropped. */
+                    <a
+                      data-mrd=""
+                      className={ACTION_LINK_FACE.quiet}
+                      href={m.external_url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Read both first
+                    </a>
+                  ) : null}
+                </Actions>
               ) : null}
-              {m.external_url ? (
-                /* THE ONE CONTROL IN THIS GATE THAT LEAVES THE APP, so it stays
-                 an `<a>` and takes only the paint. It never had an `onClick`
-                 and does not get one. `data-mrd` is what carries the Meridian
-                 focus ring; the shell root already grants it by descent, and
-                 it is written here too because every Meridian control root
-                 declares its own, so this one keeps the ring wherever it is
-                 dropped. */
-                <a
-                  data-mrd=""
-                  className={ACTION_LINK_FACE.quiet}
-                  href={m.external_url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Read both first
-                </a>
-              ) : null}
-            </Gate>
+            </div>
           );
         })}
 

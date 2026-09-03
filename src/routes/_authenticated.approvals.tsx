@@ -132,15 +132,15 @@ import { ApprovalCard } from "@/components/meridian/ApprovalCard";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { StalledWork, type StalledItem } from "@/components/meridian/StalledWork";
 
-import { CallGate } from "@/components/approvals/CallGate";
-import { Action, Approve, ReadFailed, Reading } from "@/components/meridian/surface-parts";
+import { Ask } from "@/components/meridian/Ask";
+import { Action, Actions, ReadFailed, Reading } from "@/components/meridian/surface-parts";
 import { CallContext, Key } from "@/components/approvals/CallContext";
 import { FilterExcludedEverything, QueueFilters } from "@/components/approvals/QueueFilters";
 import { SettledTrail, type SettledLine } from "@/components/approvals/SettledTrail";
 import { UndatedCalls, type UndatedCall } from "@/components/approvals/UndatedCalls";
 import { SendBackSheet, canSendBack } from "@/components/approvals/SendBack";
 import { stripAutoMarkers } from "@/components/plan/format";
-import { waitingSince } from "@/components/meridian/stopped-for";
+import { stoppedFor, waitingSince } from "@/components/meridian/stopped-for";
 import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 import { queueShape, shapeSentence } from "@/components/approvals/a-queue-is-a-shape-not-a-total";
 
@@ -766,6 +766,20 @@ function ApprovalsSurface() {
     ? focused.evidence.slice(0, 3).map((line: string) => stripAutoMarkers(line))
     : [];
   const focusedHidden = focused ? Math.max(0, focused.evidence.length - 3) : 0;
+  // `Ask.reason` is one prose string; CallGate's `subject`, `lines` and
+  // `hiddenLineCount` join into it (P-53). A cap still prints its real
+  // number rather than silently dropping the rest.
+  const focusedReason = focused
+    ? [
+        subjectOf(focused),
+        ...focusedLines,
+        focusedHidden > 0
+          ? `${focusedHidden} further ${focusedHidden === 1 ? "line" : "lines"} not shown here.`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" ")
+    : "";
 
   return (
     <Surface
@@ -860,84 +874,84 @@ function ApprovalsSurface() {
             thenWhat="every call the crew stops to ask lands here, and the work it is holding up is named beside it."
           />
         ) : focused ? (
-          <CallGate
-            // The "[auto]" marker names a call the loop raised itself and must
-            // never reach the sentence being judged.
-            question={stripAutoMarkers(focused.title)}
-            subject={subjectOf(focused)}
-            since={focusedSince}
-            now={now}
-            lines={focusedLines}
-            hiddenLineCount={focusedHidden}
-            /* The first object on this page a teammate's cursor can land on.
-               `DecisionQueue.tsx` (P-14, deleted with the rest of its dead
-               cluster) was the only surface stamping this; this is its live
-               replacement, same shape, same kind/id source. */
-            anchor={presenceAnchor(`row:${focused.kindKey}`, focused.sourceId)}
-            /*
-             * P-51 (A-QUEUE.md): this is `risk`, not `declaredDefault`. It says
-             * what answering YES does ("Approve · unblocks Build for this
-             * spec"), which is exactly the question `risk` answers; it is not
-             * "what happens if nobody answers", which is what `declaredDefault`
-             * answers and this queue genuinely has none of -- these items carry
-             * no expiry (see `still-holds-work.ts`'s own header: "none is past
-             * an expiry that would clear them"), so `declaredDefault` is left
-             * unset rather than invented.
-             *
-             * THE SENTENCE IS REPLACED, NOT ARGUED WITH, when the work this
-             * call held has already finished.
-             *
-             * "Approve · unblocks Build for this spec" is a promise the data
-             * cannot always support. The number this comment used to give was
-             * measured on the wrong join and is corrected here rather than
-             * quietly dropped: "22 of the 29" came from matching approvals to
-             * runs by `run_id`, and `gatesLiveWork` resolves through
-             * `mission_id` to that mission's newest run. On that join the
-             * answer today is 0 finished, 14 live and 15 with no mission at
-             * all. The calls are still all 33+ days old and none is past an
-             * expiry that would clear them. Printing both sentences would put
-             * "approving unblocks Build" directly above "answering it now
-             * releases nothing" and leave the reader to work out which is real.
-             *
-             * Silent when the run is live, and silent when we cannot tell --
-             * see `still-holds-work.ts` for why null must never read as
-             * finished.
-             */
-            risk={stillHoldsWork(focused.gatesLiveWork) ?? focused.approveConsequence}
-          >
-            <Approve
-              shortcut="a"
-              busy={decide.isPending}
-              onClick={() => decide.mutate({ item: focused, verdict: "approve" })}
-            >
-              Approve
-            </Approve>
-            <Action
-              shortcut="d"
-              busy={decide.isPending}
-              onClick={() => decide.mutate({ item: focused, verdict: "reject" })}
-            >
-              Decline
-            </Action>
-            {/* The two quiet verbs, mounted so this queue stops offering only a
-                verdict pair. Snooze defers; nothing is settled. Send back opens
-                the note sheet and only exists on the kinds the server accepts,
-                drawn as absence rather than as a disabled control (the rule
-                canSendBack enforces for every caller). */}
-            <Action
-              variant="quiet"
-              shortcut="z"
-              busy={snooze.isPending}
-              onClick={() => snooze.mutate(focused)}
-            >
-              Snooze
-            </Action>
+          // P-53: `CallGate` retires into `Ask`. The presence anchor moves to
+          // a plain wrapper -- `Ask` carries no `anchor` prop (no Meridian
+          // edits beyond Gate's deletion) -- so this is still the first
+          // object on the page a teammate's cursor can land on, same
+          // kind/id source `DecisionQueue.tsx` used before it was deleted.
+          <div {...presenceAnchor(`row:${focused.kindKey}`, focused.sourceId)}>
+            <Ask
+              // The "[auto]" marker names a call the loop raised itself and must
+              // never reach the sentence being judged.
+              question={stripAutoMarkers(focused.title)}
+              reason={focusedReason}
+              /*
+               * P-51 (A-QUEUE.md), still true through the Ask migration: this is
+               * `risk`, not the declared default. It says what answering YES does
+               * ("Approve · unblocks Build for this spec"), which is exactly the
+               * question `risk` answers; it is not "what happens if nobody
+               * answers", which this queue genuinely has none of -- these items
+               * carry no expiry (see `still-holds-work.ts`'s own header: "none is
+               * past an expiry that would clear them").
+               *
+               * THE SENTENCE IS REPLACED, NOT ARGUED WITH, when the work this
+               * call held has already finished.
+               *
+               * "Approve · unblocks Build for this spec" is a promise the data
+               * cannot always support. The number this comment used to give was
+               * measured on the wrong join and is corrected here rather than
+               * quietly dropped: "22 of the 29" came from matching approvals to
+               * runs by `run_id`, and `gatesLiveWork` resolves through
+               * `mission_id` to that mission's newest run. On that join the
+               * answer today is 0 finished, 14 live and 15 with no mission at
+               * all. The calls are still all 33+ days old and none is past an
+               * expiry that would clear them. Printing both sentences would put
+               * "approving unblocks Build" directly above "answering it now
+               * releases nothing" and leave the reader to work out which is real.
+               *
+               * Silent when the run is live, and silent when we cannot tell --
+               * see `still-holds-work.ts` for why null must never read as
+               * finished.
+               */
+              risk={stillHoldsWork(focused.gatesLiveWork) ?? focused.approveConsequence}
+              // No declared expiry (see the header comment above), so this
+              // is irreversible by default: nothing runs until you answer.
+              // `since` folds the age clock CallGate drew as its own
+              // standalone line into the one sentence Ask has for it.
+              fallback={{
+                kind: "irreversible",
+                since: focusedSince !== null ? stoppedFor(focusedSince, now) : null,
+              }}
+              answer={{
+                label: "Approve",
+                busy: decide.isPending,
+                onPress: () => decide.mutate({ item: focused, verdict: "approve" }),
+              }}
+              decline={{
+                label: "Decline",
+                onPress: () => decide.mutate({ item: focused, verdict: "reject" }),
+              }}
+              // A1's ruling (P-53): Snooze is the third-answer shape P-50
+              // closed -- the declared default arriving early -- so it is
+              // the default line's own action, not a third button.
+              fallbackAction={{
+                label: "Snooze",
+                busy: snooze.isPending,
+                onPress: () => snooze.mutate(focused),
+              }}
+            />
+            {/* Send back is a real fourth verb (opens the note sheet, and
+                only exists on the kinds the server accepts), not the
+                declared default, so it renders beside the card rather than
+                folded into `fallbackAction`. */}
             {canSendBack(focused.kindKey) ? (
-              <Action variant="quiet" onClick={() => setSendBack(focused)}>
-                Send back
-              </Action>
+              <Actions>
+                <Action variant="quiet" onClick={() => setSendBack(focused)}>
+                  Send back
+                </Action>
+              </Actions>
             ) : null}
-          </CallGate>
+          </div>
         ) : allItems.length === 0 ? (
           /* NOTHING IS WAITING, which is good news and is drawn as such: no
              accent, no illustration, no call to action. The live line beside it

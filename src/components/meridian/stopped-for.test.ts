@@ -14,17 +14,13 @@ import { isOverdue, stoppedFor } from "./stopped-for";
  * in the gate had waited 49 days and said nothing, while the row beneath it
  * read "42d".
  *
- * `/approvals` already drew it (`CallGate`), and that route folds. The fix
- * therefore went into the PRIMITIVE rather than into either surface, so every
- * gate in the product can state it and none of them can word it differently.
- *
- * ── THREE STATES, NOT TWO ──────────────────────────────────────────────────
- * `undefined` is "this gate has no age", `null` is "it has one and we could not
- * read it". Absence and unknown are different facts. A missing time on a call
- * a person is about to settle may never be dressed as a fresh one.
+ * P-53 (A-QUEUE.md) deleted `meridian/Gate.tsx` and `approvals/CallGate.tsx`
+ * -- every real composer moved to `Ask`, `Choice`, `Quiet` or plain markup.
+ * This file was `Gate.wait.test.ts`, named for and reading the deleted file's
+ * source; renamed for what it actually protects now, `stoppedFor`/`isOverdue`
+ * themselves, still shared by every surface that shows an age (`TrackConsent`
+ * carries the one remaining hand-built gate card that draws one, see below).
  */
-
-const GATE = readFileSync("src/components/meridian/Gate.tsx", "utf8");
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -47,28 +43,25 @@ describe("the phrase", () => {
   });
 });
 
-describe("the gate", () => {
-  it("SAYS NOTHING when the caller has no age concept, so old callers are unchanged", () => {
-    expect(GATE).toContain("since === undefined ? null");
-  });
+describe("TrackConsent's own gate card, the last hand-built one", () => {
+  // CallGate's shell moved here (P-53's own header on `GateCard` explains
+  // why: TrackConsent's answer area does not fit `Ask`'s fixed slots). It is
+  // the one place left that draws a call's waiting clock outside `Ask`, so
+  // the invariants this file used to pin against `Gate.tsx` are pinned
+  // against it instead.
+  const SRC = readFileSync("src/components/track/TrackConsent.tsx", "utf8");
 
-  it("SAYS SO OUT LOUD when it has an age and cannot read it", () => {
-    expect(GATE).toContain("How long this has been waiting is not known.");
+  it("says so out loud when there is no age to show", () => {
+    expect(SRC).toContain("How long this has been waiting is not known.");
   });
 
   it("uses the shared phrase and the shared boundary, never its own", () => {
-    expect(GATE).toContain('from "@/components/meridian/stopped-for"');
-    expect(GATE).toContain("stoppedFor(since,");
-    expect(GATE).toContain("isOverdue(since,");
+    expect(SRC).toContain('from "@/components/meridian/stopped-for"');
+    expect(SRC).toContain("stoppedFor(since,");
+    expect(SRC).toContain("isOverdue(since,");
   });
 
   it("carries the exact instant for anyone who needs it", () => {
-    expect(GATE).toContain("title={new Date(since).toLocaleString()}");
+    expect(SRC).toContain("title={new Date(since).toLocaleString()}");
   });
 });
-
-// "the board's queue" left this file (P-14, A-QUEUE.md): it checked
-// `components/today/DecisionQueue.tsx`, unmounted (zero importers) and
-// deleted with the cluster it alone belonged to. `Gate.tsx` above is the
-// shared primitive every live gate (including /approvals's CallGate) draws
-// its age from, which is what this file exists to protect.

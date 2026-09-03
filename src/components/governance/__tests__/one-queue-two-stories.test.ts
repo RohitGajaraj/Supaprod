@@ -37,9 +37,18 @@ describe("one queue, two stories", () => {
 
   it("and it replaces the expiry line rather than sitting beside it", () => {
     const body = code(readFileSync(PANEL, "utf8"));
-    // The expiry arm must be the ELSE of the stranded arm. Both on screen would
-    // put two contradictory accounts of one row in front of a person.
-    expect(body).toMatch(/if \(stranded\)[\s\S]{0,120}\} else if \(expiry\)/);
+    // P-53 moved this off `if`/`else if` statements building a `lines` array
+    // onto a `whatHappens` ternary feeding `Ask.fallback` -- same precedence,
+    // expressed as a ternary rather than a branch: `stranded` decides first,
+    // `expiry` only reads once it is ruled out.
+    const start = body.indexOf("const whatHappens = stranded");
+    expect(start).toBeGreaterThan(-1);
+    const decl = body.slice(start, body.indexOf(";", start) + 1);
+    expect(decl).toMatch(/stranded\s*\?[\s\S]*?:\s*expiry\s*\?/);
+    // And the expiry sentence itself survives, not just the branch that
+    // reaches it -- the actual bug this test caught once already (P-53's own
+    // first draft dropped `expiry.text` entirely while restructuring this).
+    expect(decl).toContain("expiry.text");
   });
 
   /**

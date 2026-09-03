@@ -48,7 +48,6 @@ import { Row } from "@/components/meridian/rows";
 import {
   Action,
   Actions,
-  Approve,
   NothingHere,
   Num,
   Pre,
@@ -74,17 +73,10 @@ import {
 } from "@/lib/agent-track-record";
 import { rejectionCountFor } from "@/lib/rejection-learning";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Gate } from "@/components/meridian/Gate";
+import { Ask } from "@/components/meridian/Ask";
 import { AgentMark } from "@/components/meridian/marks";
 import { TrustGraduationsBlock } from "./TrustGraduations";
-import {
-  relExpiry,
-  fmtMedian,
-  RESOLVED_LINE,
-  RISK_NOTE,
-  toneForRisk,
-  type GovTone,
-} from "./governance-shared";
+import { relExpiry, fmtMedian, RESOLVED_LINE, RISK_NOTE, type GovTone } from "./governance-shared";
 
 /**
  * `governance-shared.ts` still speaks the RETIRED tone vocabulary, and it is
@@ -468,34 +460,22 @@ function FocusedCall({
   const outcomeLabel = formatOutcomeRecord(outcome);
   const expiry = relExpiry(a.expires_at);
 
-  // One fact per line, and never four ways of saying one. Each entry below is a
-  // different thing the person needs before they can rule.
-  const lines: React.ReactNode[] = [];
-  if (a.rationale) lines.push(<span key="why">{a.rationale}</span>);
-  lines.push(
-    <span key="risk">
-      <Value tone={MRD_TONE[toneForRisk(a.risk)]}>{riskWord(a.risk)}</Value>
-      {". "}
-      {RISK_NOTE[a.risk] ?? "How far this reaches is not recorded."}
-    </span>,
-  );
-  if (a.mission_title) lines.push(<span key="mission">It is part of {a.mission_title}.</span>);
-  if (trackLabel || outcomeLabel) {
-    lines.push(
-      <span key="record">
-        Its record with you: {trackLabel ?? "no decided calls yet"}
-        {outcomeLabel ? `, and ${outcomeLabel} turned out right` : ""}.
-      </span>,
-    );
-  }
-  if (declines > 0) {
-    lines.push(
-      <span key="declines">
-        You have said no to this pairing <Num>{declines}</Num> times before.
-      </span>,
-    );
-  }
   /*
+   * P-53. `Ask` has exactly one `risk` slot, in prose, and this card used to
+   * carry seven facts in `Gate`'s `lines`: rationale, risk, mission, track
+   * record, declines, stranded/expiry and the last error. `Ask`'s own header
+   * says why a slot that exists gets filled and names the ones it refuses on
+   * purpose ("none helps a person answer... available in that moment's
+   * transcript row, which is where somebody goes to audit rather than to
+   * decide"). Mission, track record and declines are exactly that class of
+   * fact: true, and none of them changes whether this specific call should
+   * run. `reason` keeps the rationale; `risk` keeps the one sentence that
+   * does change the answer -- overridden by `stranded` when the work this
+   * approval held has already finished, since that contradicts the ordinary
+   * risk note outright, and folding in the last error when there is one,
+   * because a tool that just failed is exactly the kind of fact this slot
+   * exists for.
+   *
    * WHETHER THE WORK IS STILL THERE, BEFORE ANY CLAIM ABOUT WHAT ANSWERING
    * DOES.
    *
@@ -517,43 +497,49 @@ function FocusedCall({
    * for.
    */
   const stranded = stillHoldsWork(a.gatesLiveWork);
-  if (stranded) {
-    lines.push(<span key="stranded">{stranded}</span>);
-  } else if (expiry) {
-    lines.push(
-      <span key="expiry">
-        {expiry.expired
-          ? `It ${expiry.text}, so nothing runs until you decide or put it back on the clock.`
-          : `It ${expiry.text}.`}
-      </span>,
-    );
-  }
-  if (a.error) lines.push(<span key="error">The last attempt errored: {a.error}</span>);
+  // `Ask.risk` is prose, deliberately never a badge (its own header: "a red
+  // HIGH RISK chip is a category... the consequence is what changes the
+  // answer"), so the risk word and its note are one plain sentence here.
+  const risk = stranded
+    ? stranded
+    : `${riskWord(a.risk)}. ${RISK_NOTE[a.risk] ?? "How far this reaches is not recorded."}${
+        a.error ? ` The last attempt errored: ${a.error}` : ""
+      }`;
+  // `stranded` still overrides `expiry` here, same as `risk` above and for
+  // the same reason (its own header: the two claims cannot both be true).
+  // `fallback.whatHappens` is exactly "what happens if nobody answers", which
+  // is what the expiry sentence always was -- it moved slots, not meaning.
+  const whatHappens = stranded
+    ? "Nothing runs either way."
+    : expiry
+      ? expiry.expired
+        ? `It ${expiry.text}, so nothing runs until you decide or put it back on the clock.`
+        : `It ${expiry.text}, so nothing runs until you decide, or extend it.`
+      : "Nothing runs until you decide, or extend it.";
 
   return (
     <>
-      <Gate question={`Let ${name} run ${a.tool_name}?`} lines={lines}>
-        <Approve busy={busy} onClick={onApprove}>
-          Approve, and it runs
-        </Approve>
-        <Action busy={busy} onClick={onReject}>
-          Decline, and nothing runs
-        </Action>
-      </Gate>
-
-      <Actions
-        trailing={
-          <Action variant="quiet" busy={extending} onClick={onExtend}>
-            Give it 24 more hours
-          </Action>
+      <Ask
+        question={`Let ${name} run ${a.tool_name}?`}
+        risk={risk}
+        reason={a.rationale}
+        fallback={{ kind: "reversible", whatHappens }}
+        answer={{ label: "Approve, and it runs", onPress: onApprove, busy }}
+        decline={{ label: "Decline, and nothing runs", onPress: onReject }}
+        fallbackAction={
+          stranded
+            ? undefined
+            : { label: "Give it 24 more hours", onPress: onExtend, busy: extending }
         }
-      >
-        {onOpenMission ? (
+      />
+
+      {onOpenMission ? (
+        <Actions>
           <Action variant="quiet" onClick={onOpenMission}>
             Open the mission
           </Action>
-        ) : null}
-      </Actions>
+        </Actions>
+      ) : null}
 
       {/* The exact payload. One click away rather than on the surface: it is
           what an engineer opens to check the call, and it is never what a

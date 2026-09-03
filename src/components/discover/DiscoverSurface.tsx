@@ -307,7 +307,6 @@ import { SourceMark } from "@/components/meridian/source-marks";
 import {
   Action,
   Actions,
-  Approve,
   Chevron,
   Figure,
   NothingYet,
@@ -324,7 +323,8 @@ import { Surface } from "@/components/meridian/Surface";
 import { Choices, Field, Input, Textarea } from "@/components/meridian/forms";
 import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
 import { Receipt } from "@/components/meridian/Receipt";
-import { Gate } from "@/components/meridian/Gate";
+import { Ask } from "@/components/meridian/Ask";
+import { Quiet } from "@/components/meridian/Quiet";
 import { CtxBody, CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { useSelection } from "@/components/shell/use-selection";
 import {
@@ -2745,381 +2745,341 @@ export function DiscoverSurface({
       ) : loading ? (
         <Reading>Reading what your sources have sent.</Reading>
       ) : signalsEmpty ? (
-        <Gate
-          question="Which source should it read first?"
-          lines={
-            [
-              <span key="where">
-                Opens Settings, Connections. Reading starts the moment a source is linked.
-              </span>,
-              /* The other honest answer, and it is right below this. Without
-                 saying so, the empty desk reads as though a connector is the
-                 only way in, which has never been true. */
-              <span key="hand">
-                Or capture it yourself below: a note, a pasted list, a document, a transcript.
-                Nothing has to be connected first.
-              </span>,
-              /*
-               * THE SAMPLE DOOR NOW SAYS WHAT PRESSING IT DOES, because the
-               * sentence that stood here said close to the opposite of the code
-               * under it. It read: "The sample opens a separate Explore
-               * workspace of labelled example data. Yours stays empty." Two
-               * things were wrong with that and only one of them was a word.
-               *
-               *   1. "OPENS ... YOURS STAYS EMPTY" reads as a preview standing
-               *      beside the person's own desk. It is not one. The mutation
-               *      above calls `setActiveWorkspaceId(id)` on success, which
-               *      writes that id to `localStorage` (`use-workspace.tsx:175`),
-               *      so the press is a MOVE and a sticky one: every later visit
-               *      lands in the sample until the person switches back. Their
-               *      own workspace does stay empty, which is why that fact is
-               *      kept, but standing alone it invited the reading that they
-               *      were still standing in it.
-               *   2. "LABELLED" WAS A PROMISE THE ROWS CANNOT KEEP.
-               *      `seed_sample_workspace` inserts every theme, signal,
-               *      opportunity and spec with no `is_sample` column, so each
-               *      row takes the `false` default and the row-level Example
-               *      marks this very surface renders (the `is_sample` branches
-               *      further down) never fire. Measured in production: 2,144
-               *      rows across sample workspaces, none marked. A separate
-               *      migration fixes the seed for FUTURE workspaces, and the
-               *      rows already seeded stay unmarked, so a labelling promise
-               *      made here would be false for the person reading it today.
-               *
-               * What IS true today is what gets said instead. The WORKSPACE
-               * carries the flag (`seed-workspace.server.ts:276` writes
-               * `is_sample: true` on the workspace row), the switcher in the top
-               * bar renders that workspace, and the switcher is the way back.
-               * Named the way a person names it, not by its component.
-               */
-              sampleOffered ? (
-                <span key="sample">
-                  The sample is a move, not a preview: it switches you into a separate Explore
-                  workspace of example data, and later visits land there until you switch back. Your
-                  own workspace is not touched and stays empty.
-                </span>
-              ) : null,
-              /* THE RETURN DOOR, on its own line rather than tucked into the
+        <div className="flex flex-col gap-mrd-3">
+          {/* P-53: not a picker. "Which source should it read first?" had one
+              real answer -- none is connected yet -- so this is the zero
+              state it always was, `Quiet` rather than a choice among options
+              with no shared fact between them. */}
+          <Quiet
+            says="Nothing is connected yet, so there is nothing to read."
+            whatWillAppear="Opens Settings, Connections. Reading starts the moment a source is linked. Or capture it yourself below: a note, a pasted list, a document, a transcript. Nothing has to be connected first."
+          />
+          {/*
+           * THE SAMPLE DOOR NOW SAYS WHAT PRESSING IT DOES, because the
+           * sentence that stood here said close to the opposite of the code
+           * under it. It read: "The sample opens a separate Explore
+           * workspace of labelled example data. Yours stays empty." Two
+           * things were wrong with that and only one of them was a word.
+           *
+           *   1. "OPENS ... YOURS STAYS EMPTY" reads as a preview standing
+           *      beside the person's own desk. It is not one. The mutation
+           *      above calls `setActiveWorkspaceId(id)` on success, which
+           *      writes that id to `localStorage` (`use-workspace.tsx:175`),
+           *      so the press is a MOVE and a sticky one: every later visit
+           *      lands in the sample until the person switches back. Their
+           *      own workspace does stay empty, which is why that fact is
+           *      kept, but standing alone it invited the reading that they
+           *      were still standing in it.
+           *   2. "LABELLED" WAS A PROMISE THE ROWS CANNOT KEEP.
+           *      `seed_sample_workspace` inserts every theme, signal,
+           *      opportunity and spec with no `is_sample` column, so each
+           *      row takes the `false` default and the row-level Example
+           *      marks this very surface renders (the `is_sample` branches
+           *      further down) never fire. Measured in production: 2,144
+           *      rows across sample workspaces, none marked. A separate
+           *      migration fixes the seed for FUTURE workspaces, and the
+           *      rows already seeded stay unmarked, so a labelling promise
+           *      made here would be false for the person reading it today.
+           *
+           * What IS true today is what gets said instead. The WORKSPACE
+           * carries the flag (`seed-workspace.server.ts:276` writes
+           * `is_sample: true` on the workspace row), the switcher in the top
+           * bar renders that workspace, and the switcher is the way back.
+           * Named the way a person names it, not by its component.
+           */}
+          {sampleOffered ? (
+            <p className="mrd-copy text-mrd-mute">
+              The sample is a move, not a preview: it switches you into a separate Explore workspace
+              of example data, and later visits land there until you switch back. Your own workspace
+              is not touched and stays empty.
+              {/* THE RETURN DOOR, on its own line rather than tucked into the
                  sentence above, because the person who needs it is the one who
                  has already been moved and is looking for the way out, not
                  re-reading the paragraph that moved them. It carries the
                  correction from (2) as well: the rows in there look like every
                  other row, so the only honest label to point at is the
-                 workspace's, and that is the one thing the shell does show. */
-              sampleOffered ? (
-                <span key="sample-back">
-                  Nothing inside it is marked as an example, so the workspace switcher at the top is
-                  what tells you where you are. Pick your own workspace there to come back.
-                </span>
-              ) : null,
-              /* Was "The sample workspace did not open. Try again." The switch
-                 happens only in `onSuccess`, so on this branch the person has
-                 not been moved anywhere. Saying so is the difference between a
-                 retry and a hunt through the switcher for a workspace they were
-                 never put into. */
-              sampleMutation.isError ? (
-                <span key="err" className="text-mrd-fail">
-                  The sample workspace did not open, so you are still in your own. Try again.
-                </span>
-              ) : null,
-            ].filter(Boolean) as React.ReactNode[]
-          }
-        >
-          {/* `Action`, not `Approve`, and the Gate around it does not change
-              that. Orchid is spent on the one control that RELEASES something
-              held, and this one navigates: the connecting happens in Settings,
-              two screens later. A person who reads this as the act itself has
-              been told something false about what their click does. */}
-          <Action
-            variant="primary"
-            onClick={() => navigate({ to: "/settings", search: { section: "connections" } })}
-          >
-            Connect a source
-          </Action>
-          {sampleOffered ? (
-            /* THE VERB HAS TO MATCH THE EVENT. These labels read "Explore a
-               sample workspace" and "Opening the sample", and both words are
-               the preview reading that the code does not support: the mutation
-               makes the seeded workspace ACTIVE and persists that choice, so
-               "explore" and "open" promised a look through a window and
-               delivered a relocation. The labels name the switch now, so the
-               button, the line above it and `setActiveWorkspaceId` all describe
-               the same thing happening. Label only: the wiring is untouched. */
-            <Action busy={sampleMutation.isPending} onClick={() => sampleMutation.mutate()}>
-              {sampleMutation.isPending ? "Switching you over" : "Switch to the sample"}
-            </Action>
+                 workspace's, and that is the one thing the shell does show. */}{" "}
+              Nothing inside it is marked as an example, so the workspace switcher at the top is
+              what tells you where you are. Pick your own workspace there to come back.
+            </p>
           ) : null}
-        </Gate>
+          {/* Was "The sample workspace did not open. Try again." The switch
+             happens only in `onSuccess`, so on this branch the person has
+             not been moved anywhere. Saying so is the difference between a
+             retry and a hunt through the switcher for a workspace they were
+             never put into. */}
+          {sampleMutation.isError ? (
+            <p className="mrd-copy text-mrd-fail">
+              The sample workspace did not open, so you are still in your own. Try again.
+            </p>
+          ) : null}
+          <Actions>
+            {/* `Action`, not `Approve`, and rendered beside `Quiet` rather
+                than inside it. Orchid is spent on the one control that
+                RELEASES something held, and this one navigates: the
+                connecting happens in Settings, two screens later. A person
+                who reads this as the act itself has been told something
+                false about what their click does. */}
+            <Action
+              variant="primary"
+              onClick={() => navigate({ to: "/settings", search: { section: "connections" } })}
+            >
+              Connect a source
+            </Action>
+            {sampleOffered ? (
+              /* THE VERB HAS TO MATCH THE EVENT. These labels read "Explore a
+                 sample workspace" and "Opening the sample", and both words are
+                 the preview reading that the code does not support: the mutation
+                 makes the seeded workspace ACTIVE and persists that choice, so
+                 "explore" and "open" promised a look through a window and
+                 delivered a relocation. The labels name the switch now, so the
+                 button, the line above it and `setActiveWorkspaceId` all describe
+                 the same thing happening. Label only: the wiring is untouched. */
+              <Action busy={sampleMutation.isPending} onClick={() => sampleMutation.mutate()}>
+                {sampleMutation.isPending ? "Switching you over" : "Switch to the sample"}
+              </Action>
+            ) : null}
+          </Actions>
+        </div>
       ) : picking && focused ? (
         /* THE MERGE PICKER, in place. Productboard's link-to-feature move: the
            most common real outcome is that a cluster is more weight for a bet
-           already running, not a new one. Opened over the Gate rather than
-           beside it, because it is the same one question in a different mode. */
-        <Gate
-          question="Which bet does this belong to?"
-          lines={[
-            <span key="what">
-              Its <Num>{focused.theme.frequency}</Num> signal{plural(focused.theme.frequency)} will
-              back that bet instead of starting a new one.
-            </span>,
-          ]}
-        >
-          <Action onClick={() => setPicking(false)}>Never mind</Action>
-        </Gate>
+           already running, not a new one.
+
+           NOT a `Choice`: the pickable options are the "Open bets" Region
+           below (its own filter field and rows), not anything this card
+           carries. This is the instruction sitting above that list, with one
+           cancel -- a plain heading rather than any of the three named
+           shapes, none of which fits a card with no options and no real
+           binary answer of its own (P-53). */
+        <div className="flex flex-col gap-mrd-2">
+          <p className="mrd-title text-mrd-ink">Which bet does this belong to?</p>
+          <p className="mrd-copy text-mrd-mute">
+            Its <Num>{focused.theme.frequency}</Num> signal{plural(focused.theme.frequency)} will
+            back that bet instead of starting a new one.
+          </p>
+          <Actions>
+            <Action onClick={() => setPicking(false)}>Never mind</Action>
+          </Actions>
+        </div>
       ) : focused ? (
-        <Gate
-          /* Keyed on the theme, so moving the focus down the ranking REMOUNTS the
-             Gate and it plays its entrance. Updated in place, the biggest element
-             on the station swaps its question and its evidence with no motion.
-             The two Gates below carry no subject of their own, so neither needs a
-             key: nothing about them changes while they are on screen. */
+        // P-53: not a picker (the header's own inventory named this one
+        // wrong -- there is no set of options here, only one theme and a
+        // real Approve/decline). `Ask` covers the shape; see below for what
+        // moved out of it and why.
+        <React.Fragment
+          /* Keyed on the theme, so moving the focus down the ranking REMOUNTS
+             this fragment and the card plays its entrance. Updated in place,
+             the biggest element on the station swaps its question and its
+             evidence with no motion. */
           key={focused.theme.id}
-          question={focused.theme.title}
-          lines={
-            [
-              /* THE SAME SENTENCE DECIDE USES, and first for the same reason: a
-                 person reads the question, then the facts, then presses a key,
-                 so a disclaimer under the evidence arrives after the decision
-                 has already formed. Onboarding seeds twenty signals into the
-                 real workspace and they cluster like any others, so a theme
-                 here can be made entirely of them while looking exactly like
-                 one the user's own evidence built. */
-              ...(focused.theme.is_sample
-                ? [
-                    <span key="sample">
-                      <b>This is an example.</b> It came with your workspace so this station had
-                      something to show. It is not from your product, and nothing here has been
-                      learned from your record.
-                    </span>,
-                  ]
-                : []),
-              /* WHICH ONE OF THEM THIS IS. The other half of keeping the
-                 selected row in the list: the row says where you are in the
-                 ranking, this says the Gate is showing that row. Without it the
-                 headline counts clusters and the Gate names one, and nothing
-                 tells you how the two relate. Suppressed when there is only one,
-                 because "1 of 1" is a fact about nothing. */
-              ranked.length > 1 ? (
-                <span key="rank">
-                  <Num>{focusedIndex + 1}</Num> of <Num>{ranked.length}</Num> in the ranking.
-                </span>
-              ) : null,
-              /* Volume and distinct sources are two numbers because they are two
-                 facts. Sentry keeps "events" and "users affected" apart for the
-                 same reason: one loud account and a broad pattern read the same
-                 by volume and are opposite decisions. */
-              <span key="ev">
-                {/* `wordFor`, not the literal word. S0 renamed the display word
-                    for this kind from "signal" to "finding" in KIND_WORD, and
-                    this surface still said the old one while the run screen and
-                    the Decide desk said the new one: one product, two words for
-                    one thing. */}
-                <Num>{focused.theme.frequency}</Num> {wordFor("signal", focused.theme.frequency)}{" "}
-                from <Num>{focusedSources.length}</Num> separate source
-                {plural(focusedSources.length)}
-                {focusedSources.length > 0
+        >
+          {(() => {
+            // `Ask.reason` is one prose string (its own header, and no
+            // `lines`-style array), so the several short facts join into one
+            // paragraph. Only the member list below does not fit a string at
+            // all -- it stays JSX, and RENDERS BEFORE `Ask` for the same
+            // reason it lived between the question and the buttons before:
+            // "evidence pulled out below the Approve is the exact regression
+            // [Gate] was rebuilt to prevent." `Ask` has no slot to put it in
+            // once the buttons are inside the card, so the fix is order, not
+            // a slot: the evidence still reads before the decision.
+            const reason = [
+              focused.theme.is_sample
+                ? "This is an example. It came with your workspace so this station had something to show. It is not from your product, and nothing here has been learned from your record."
+                : null,
+              ranked.length > 1 ? `${focusedIndex + 1} of ${ranked.length} in the ranking.` : null,
+              `${focused.theme.frequency} ${wordFor("signal", focused.theme.frequency)} from ${focusedSources.length} separate source${plural(focusedSources.length)}${
+                focusedSources.length > 0
                   ? `: ${focusedSources
                       .slice(0, 3)
                       .map((s) => sourceLabel(s))
                       .join(", ")}`
-                  : ""}
-                .
-              </span>,
-              <span key="when">
-                {heardInOneBreath ? (
-                  <>
-                    Heard <Num>{firstHeard}</Num>
-                  </>
-                ) : (
-                  <>
-                    First heard <Num>{firstHeard}</Num>, most recently <Num>{lastHeard}</Num>
-                  </>
-                )}
-                {/* THE CLAIM STOPS WHERE THE EVIDENCE STOPS. `noveltyRead` is a
-                    similarity number turned into the weakest sentence it
-                    supports, so on its own it says how much this RESEMBLES the
-                    record and never which thing. When the precedent read has
-                    actually named something, the recess below carries the name
-                    and the door, and this line says so instead of leaving the
-                    reader to notice a second block further down. */}
-                {claim ? `, and it ${claim.claim}` : ""}
-                {claim && precedentNamed ? ", named below" : ""}.
-              </span>,
-              focused.theme.summary ? <span key="sum">{focused.theme.summary}</span> : null,
-              /* THE FULL MEMBER LIST FOR THE ONE CLUSTER IN FOCUS, not just the
-                 four quotes the rail keeps. The rail stays capped on purpose --
-                 it is the glance while you scan the ranking -- and this is the
-                 read once you have stopped: every signal this desk holds for
-                 the theme, each marked with where it came from and when.
+                  : ""
+              }.`,
+              `${heardInOneBreath ? `Heard ${firstHeard}` : `First heard ${firstHeard}, most recently ${lastHeard}`}${claim ? `, and it ${claim.claim}` : ""}${claim && precedentNamed ? ", named below" : ""}.`,
+              focused.theme.summary ?? null,
+            ]
+              .filter(Boolean)
+              .join(" ");
 
-                 IT LIVES BETWEEN THE QUESTION AND THE BUTTONS because Gate's
-                 own contract fixes that order: evidence pulled out below the
-                 Approve is the exact regression that component was rebuilt to
-                 prevent. A scroll region here costs the page no height past its
-                 cap, so the ranking underneath does not move to make room.
+            return (
+              <>
+                {/* THE FULL MEMBER LIST FOR THE ONE CLUSTER IN FOCUS, not just
+                    the four quotes the rail keeps. The rail stays capped on
+                    purpose -- it is the glance while you scan the ranking --
+                    and this is the read once you have stopped: every signal
+                    this desk holds for the theme, each marked with where it
+                    came from and when.
 
-                 Rows are Meridian Row rather than CtxRow: the rail's row
-                 truncates its name to one line by contract, and a member list
-                 whose whole job is showing what the signal says cannot be one
-                 line deep. */
-              focusedMembers.length > 0 || memberShortfall ? (
-                <div key="members">
-                  <div className="flex flex-wrap items-baseline justify-between gap-mrd-inline">
-                    <CtxHead>Every finding in this cluster</CtxHead>
-                    {/* THE CLAIM STOPS WHERE THE READ STOPS. `listSignals`
-                        returns the newest 200 signals in the workspace and says
-                        nothing about what it dropped, so a loud cluster can hold
-                        more members than this desk was handed. When it does, the
-                        header names the slice, the way the ranking admits its
-                        own page further down. */}
-                    {memberShortfall ? (
-                      <span className="text-mrd-tiny text-mrd-mute">
-                        Showing the newest <Num>{focusedMembers.length}</Num> of{" "}
-                        <Num>{focused.theme.frequency}</Num> signals.
-                      </span>
+                    Rows are Meridian Row rather than CtxRow: the rail's row
+                    truncates its name to one line by contract, and a member
+                    list whose whole job is showing what the signal says
+                    cannot be one line deep. */}
+                {focusedMembers.length > 0 || memberShortfall ? (
+                  <div>
+                    <div className="flex flex-wrap items-baseline justify-between gap-mrd-inline">
+                      <CtxHead>Every finding in this cluster</CtxHead>
+                      {/* THE CLAIM STOPS WHERE THE READ STOPS. `listSignals`
+                          returns the newest 200 signals in the workspace and says
+                          nothing about what it dropped, so a loud cluster can hold
+                          more members than this desk was handed. When it does, the
+                          header names the slice, the way the ranking admits its
+                          own page further down. */}
+                      {memberShortfall ? (
+                        <span className="text-mrd-tiny text-mrd-mute">
+                          Showing the newest <Num>{focusedMembers.length}</Num> of{" "}
+                          <Num>{focused.theme.frequency}</Num> signals.
+                        </span>
+                      ) : null}
+                    </div>
+                    {focusedMembers.length > 0 ? (
+                      <div className="mt-mrd-3 max-h-[320px] overflow-y-auto pr-mrd-1">
+                        {focusedMembers.map((s) => {
+                          const memberReason = reasonBySignal.get(s.id);
+                          return (
+                            <Row
+                              key={s.id}
+                              marks={<SourceMark source={s.source} size={16} />}
+                              lead={signalPreview(s.content, 320)}
+                              sub={
+                                <>
+                                  {s.is_sample ? (
+                                    <>
+                                      <b>Example</b>
+                                      {" · "}
+                                    </>
+                                  ) : null}
+                                  {sourceLabel(s.source, s.source_kind)}
+                                  {s.is_sample || capturedByHand(s.source, s.source_kind)
+                                    ? ""
+                                    : ", sensed"}
+                                  {/* WHY IT LANDED HERE, the answer to "why did
+                                     it route into this cluster". Read back from
+                                     the lineage edge the clusterer wrote at
+                                     attach or founding time; a member with no
+                                     stored reason renders nothing rather than a
+                                     guess. One line quieter than the source
+                                     label above it. */}
+                                  {memberReason ? (
+                                    <span className="block text-mrd-tiny text-mrd-mute">
+                                      {memberReason}
+                                    </span>
+                                  ) : null}
+                                </>
+                              }
+                              time={since(s.created_at)}
+                              /* The same door the rail's quotes carry: the url is
+                                 the ticket, thread or review this sentence was
+                                 lifted out of, opened in a new tab because the
+                                 address belongs to somebody else's product. A hand
+                                 capture with nowhere to go keeps no door. */
+                              onClick={
+                                s.url
+                                  ? () => {
+                                      window.open(s.url as string, "_blank", "noopener,noreferrer");
+                                    }
+                                  : undefined
+                              }
+                            />
+                          );
+                        })}
+                      </div>
                     ) : null}
                   </div>
-                  {focusedMembers.length > 0 ? (
-                    <div className="mt-mrd-3 max-h-[320px] overflow-y-auto pr-mrd-1">
-                      {focusedMembers.map((s) => {
-                        const reason = reasonBySignal.get(s.id);
-                        return (
-                          <Row
-                            key={s.id}
-                            marks={<SourceMark source={s.source} size={16} />}
-                            lead={signalPreview(s.content, 320)}
-                            sub={
-                              <>
-                                {s.is_sample ? (
-                                  <>
-                                    <b>Example</b>
-                                    {" · "}
-                                  </>
-                                ) : null}
-                                {sourceLabel(s.source, s.source_kind)}
-                                {s.is_sample || capturedByHand(s.source, s.source_kind)
-                                  ? ""
-                                  : ", sensed"}
-                                {/* WHY IT LANDED HERE, the answer to "why did
-                                   it route into this cluster". Read back from
-                                   the lineage edge the clusterer wrote at
-                                   attach or founding time; a member with no
-                                   stored reason renders nothing rather than a
-                                   guess. One line quieter than the source
-                                   label above it. */}
-                                {reason ? (
-                                  <span className="block text-mrd-tiny text-mrd-mute">
-                                    {reason}
-                                  </span>
-                                ) : null}
-                              </>
-                            }
-                            time={since(s.created_at)}
-                            /* The same door the rail's quotes carry: the url is
-                               the ticket, thread or review this sentence was
-                               lifted out of, opened in a new tab because the
-                               address belongs to somebody else's product. A hand
-                               capture with nowhere to go keeps no door. */
-                            onClick={
-                              s.url
-                                ? () => {
-                                    window.open(s.url as string, "_blank", "noopener,noreferrer");
-                                  }
-                                : undefined
-                            }
-                          />
-                        );
-                      })}
-                    </div>
-                  ) : null}
-                </div>
-              ) : null,
-            ].filter(Boolean) as React.ReactNode[]
-          }
-        >
-          {/* THE ONE APPROVE ON THIS STATION. Meridian spends orchid on a
-              single meaning -- a person is required -- and a gate is the one
-              place that is literally true of a button, because the work is
-              stopped until it is pressed. This cluster sits unjudged until
-              somebody presses this, and pressing it settles the call and starts
-              the bet. Same shape /approvals and /crew already carry: `Approve`
-              on the positive settle at `a`, `Action` on the decline at `d`.
+                ) : null}
 
-              The decline is NOT a second Approve even though it also settles.
-              Red reports an outcome in this system and orchid means a person is
-              required, so neither is available to mark an intention, and two
-              accents in one row is how an accent stops meaning anything. */}
-          <Approve busy={busy} shortcut="a" onClick={() => promote.mutate(focused.theme.id)}>
-            {promote.isPending ? "Making it a bet" : "Make it a bet"}
-          </Approve>
-          <Action busy={busy} shortcut="m" onClick={() => setPicking(true)}>
-            Add to an existing bet
-          </Action>
-          <Action
-            busy={busy}
-            shortcut="d"
-            onClick={() => decline.mutate({ themeId: focused.theme.id })}
-          >
-            Not a pattern
-          </Action>
-          {renaming ? (
-            <RenameClusterForm
-              theme={{
-                id: focused.theme.id,
-                title: focused.theme.title,
-                summary: (focused.theme.summary as string | null) ?? null,
-              }}
-              onDone={() => {
-                setRenaming(false);
-                invalidate();
-              }}
-            />
-          ) : null}
-          <MoreMenu label={`More for ${focused.theme.title}`}>
-            <MoreItem
-              onClick={() => {
-                setRenaming(true);
-              }}
-            >
-              Rename it
-            </MoreItem>
-            <MoreItem onClick={() => draftSpec.mutate(focused.theme.id)}>
-              {draftSpec.isPending ? "Drafting the spec" : "Draft the spec directly"}
-            </MoreItem>
-          </MoreMenu>
-        </Gate>
+                <Ask
+                  question={focused.theme.title}
+                  reason={reason}
+                  fallback={{ kind: "irreversible" }}
+                  // The one Approve on this station. Meridian spends orchid on
+                  // a single meaning -- a person is required -- and this
+                  // cluster sits unjudged until somebody presses it. `Ask`
+                  // carries no `shortcut` (no Meridian edits beyond Gate's
+                  // deletion); `a`/`d` still work, bound on the page.
+                  answer={{
+                    label: promote.isPending ? "Making it a bet" : "Make it a bet",
+                    busy,
+                    onPress: () => promote.mutate(focused.theme.id),
+                  }}
+                  // The decline is NOT a second Approve even though it also
+                  // settles. Red reports an outcome in this system and orchid
+                  // means a person is required, so neither is available to
+                  // mark an intention, and two accents in one row is how an
+                  // accent stops meaning anything.
+                  decline={{
+                    label: "Not a pattern",
+                    onPress: () => decline.mutate({ themeId: focused.theme.id }),
+                  }}
+                />
+
+                {/* "Add to an existing bet" is a real third verdict (P-50's
+                    ruling on exactly this shape), not the declared default
+                    made pressable, so it is not `Ask.fallbackAction` -- it
+                    renders beside the card instead. */}
+                <Actions>
+                  <Action busy={busy} shortcut="m" onClick={() => setPicking(true)}>
+                    Add to an existing bet
+                  </Action>
+                  <MoreMenu label={`More for ${focused.theme.title}`}>
+                    <MoreItem
+                      onClick={() => {
+                        setRenaming(true);
+                      }}
+                    >
+                      Rename it
+                    </MoreItem>
+                    <MoreItem onClick={() => draftSpec.mutate(focused.theme.id)}>
+                      {draftSpec.isPending ? "Drafting the spec" : "Draft the spec directly"}
+                    </MoreItem>
+                  </MoreMenu>
+                </Actions>
+                {renaming ? (
+                  <RenameClusterForm
+                    theme={{
+                      id: focused.theme.id,
+                      title: focused.theme.title,
+                      summary: (focused.theme.summary as string | null) ?? null,
+                    }}
+                    onDone={() => {
+                      setRenaming(false);
+                      invalidate();
+                    }}
+                  />
+                ) : null}
+              </>
+            );
+          })()}
+        </React.Fragment>
       ) : (
-        <Gate
-          question="Nothing is waiting on a call."
-          lines={[
-            /* "The newest N" for the third and last time in this file: see the
-               note above `headline`. `rows.length` is a page of `listSignals`,
-               and on the desk that has not clustered anything yet this is the
-               only count a person is given, so it is the worst place of the
-               three to state a total we did not read. */
-            <span key="have">
-              The newest <Num>{rows.length}</Num> signal{plural(rows.length)} captured
-              {unclustered > 0 ? (
-                <>
-                  , <Num>{unclustered}</Num> of them not yet read together
-                </>
-              ) : null}
-              .
-            </span>,
-            <span key="what">
-              Clustering groups the ones saying the same thing, then ranks them by how severe, how
-              recent, and how new to the record each one is.
-            </span>,
-          ]}
-        >
-          {/* Not `Approve` either, and this Gate is the clearest case: its own
-              question is "Nothing is waiting on a call." Nothing is held, so
-              there is nothing to release. This dispatches a model run, which is
-              the same thing the Region above spends `act` on. */}
-          <Action variant="primary" busy={cluster.isPending} onClick={() => cluster.mutate()}>
-            {cluster.isPending ? "Reading them together" : "Cluster them now"}
-          </Action>
-        </Gate>
+        <div className="flex flex-col gap-mrd-3">
+          {/* P-53, the clearest zero state in this file: nothing is held, so
+              there is nothing to release, and `Quiet` says exactly that. The
+              cluster action renders beside it -- `Quiet` refuses an action
+              slot on purpose (its own header: "there is nothing to do, and a
+              button here is a door onto an empty room"), and this dispatches
+              a model run rather than answering a question the state does not
+              ask. */}
+          <Quiet
+            says="Nothing is waiting on a call."
+            whatWillAppear={
+              /* "The newest N" for the third and last time in this file: see the
+                 note above `headline`. `rows.length` is a page of `listSignals`,
+                 and on the desk that has not clustered anything yet this is the
+                 only count a person is given, so it is the worst place of the
+                 three to state a total we did not read. */
+              `The newest ${rows.length} signal${plural(rows.length)} captured${
+                unclustered > 0 ? `, ${unclustered} of them not yet read together` : ""
+              }. Clustering groups the ones saying the same thing, then ranks them by how severe, how recent, and how new to the record each one is.`
+            }
+          />
+          <Actions>
+            <Action variant="primary" busy={cluster.isPending} onClick={() => cluster.mutate()}>
+              {cluster.isPending ? "Reading them together" : "Cluster them now"}
+            </Action>
+          </Actions>
+        </div>
       )}
 
       {/* What your last judgment caused. One at a time, and it survives until

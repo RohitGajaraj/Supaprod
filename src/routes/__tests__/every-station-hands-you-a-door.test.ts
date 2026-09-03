@@ -80,14 +80,16 @@ describe("every station offers somewhere to go", () => {
 describe("Learn's empty desk asks a question and answers it with a door", () => {
   const learn = () => readFileSync(join(ROUTES, "_authenticated.learn.tsx"), "utf8");
 
-  it("puts a Gate on the nothing-settled branch, not a bare paragraph", () => {
+  it("puts a Quiet zero state on the nothing-settled branch, not a bare paragraph", () => {
     // THE DEFECT, stated as a property. The branch reached when `outcomes.total`
     // is zero is the one a brand-new workspace lands on, and it used to be an
-    // `Empty` with prose and no control.
+    // `Empty` with prose and no control. P-53 moved this card from `Gate` to
+    // `Quiet` (it asked a question with one answer, always "nothing", which is
+    // a zero state and not a real ask), with the door rendered beside it.
     const src = learn();
     const branch = src.slice(src.indexOf("(outcomes?.total ?? 0) === 0"));
     const untilNext = branch.slice(0, branch.indexOf("(outcomes?.validated ?? 0) === 0"));
-    expect(untilNext).toContain("<Gate");
+    expect(untilNext).toContain("<Quiet");
     expect(untilNext).toContain("navigate({ to:");
   });
 

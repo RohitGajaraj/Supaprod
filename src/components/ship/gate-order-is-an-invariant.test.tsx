@@ -1,118 +1,126 @@
 /**
- * A GATE ASKS, THEN SHOWS ITS REASONS, THEN OFFERS THE BUTTONS. IN THAT ORDER.
+ * AN ASK ASKS, THEN SHOWS ITS REASONS, THEN OFFERS THE ANSWERS. IN THAT ORDER.
+ *
+ * P-53 (A-QUEUE.md). `Gate` carried this invariant and is gone: its twenty
+ * call sites moved to `Ask`, `Choice` or `Quiet`, and `Ask` is the one that
+ * inherits the shape this file used to pin.
  *
  * ── THE REGRESSION THIS EXISTS TO STOP, WHICH ALREADY SHIPPED ONCE ──────
  * 2026-08-05. A change meant to make agent reasoning "visibly obvious" lifted
- * the evidence OUT of the Gate into a titled block placed after it. The actions
- * render last inside a Gate, so that put the reasoning BELOW the Approve button:
- * a person was asked to decide, with a keyboard shortcut, above the reasons for
- * deciding. Both `primitives.Gate` and `meridian/Gate` carry the story in their
- * headers, and until now that is all that carried it -- a paragraph, which is
- * the thing this codebase has repeatedly measured as not enough.
+ * the evidence OUT of the gate into a titled block placed after it. The
+ * actions render last, so that put the reasoning BELOW the Approve button: a
+ * person was asked to decide, with a keyboard shortcut, above the reasons for
+ * deciding. `Gate.tsx` and `Ask.tsx` both carry the story in their own
+ * headers, and `Ask`'s own contract makes the same claim `Gate`'s did: "THE
+ * ORDER IS NOT A PROP, and that is the point of having a component at all."
  *
- * `linesLabel` is the other half of the same fix, and the first Meridian draft
- * of `Gate` dropped it. It exists so attribution ("Read from the deploy record")
- * can be added WITHOUT moving the lines somewhere they can be placed wrongly.
- * A prop that only exists to prevent a defect is exactly the prop a tidy-up
- * deletes, so its absence is a failure here rather than a diff nobody reads.
- *
- * ── WHY THIS TEST LIVES WITH SHIP ───────────────────────────────────────
- * Ship carries FOUR of these questions -- take it to production, what will come
- * here to ship, the announcement waiting on an owner, the first announcement --
- * which is more than any other station, and the one that reaches customers is
- * here. It is written against `meridian/Gate` rather than against this route, so
- * it holds for every surface that mounts one.
+ * ── WHY THIS TEST STILL LIVES WITH SHIP ──────────────────────────────────
+ * Ship carried four `Gate`s before P-53; two survive as real `Ask`s ("Take X
+ * to production?", the one that reaches customers, and "Send X to
+ * customers?", the pending-post publish). The other two turned out not to be
+ * binary asks at all on a closer read (a zero state, and a status that is
+ * sometimes a multi-verb draft workflow with no real decline) and moved to
+ * `Quiet` or a plain heading instead -- see `_authenticated.ship.tsx` itself
+ * for that reasoning. This file keeps the promote case, the one that reaches
+ * customers.
  */
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { render, screen } from "@testing-library/react";
 
-import { Gate } from "@/components/meridian/Gate";
-import { Approve } from "@/components/meridian/surface-parts";
+import { Ask } from "@/components/meridian/Ask";
 
 /** True when `a` comes before `b` in document order. */
 function precedes(a: Element, b: Element): boolean {
   return Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
 }
 
-describe("the order inside a Gate is the component, not the caller's layout", () => {
-  it("puts the question above the evidence and the evidence above the actions", () => {
+describe("the order inside an Ask is the component, not the caller's layout", () => {
+  it("puts the question above the risk, the risk above the reason, and both above the answers", () => {
     render(
-      <Gate
+      <Ask
         question='Take "Batch firmware push" to production?'
-        linesLabel="Read from the deploy record"
-        lines={[
-          <span key="preview">The preview is up at https://preview.example.com</span>,
-          <span key="cost">Customers see it immediately, and undoing it means a revert.</span>,
-        ]}
-      >
-        <Approve>Promote it</Approve>
-      </Gate>,
+        risk="Customers see it immediately, and undoing it means a revert."
+        reason="Merged 2h ago into Supaprod."
+        fallback={{ kind: "irreversible" }}
+        answer={{ label: "Promote it", onPress: () => {} }}
+        decline={{ label: "Not now", onPress: () => {} }}
+      />,
     );
 
-    const question = screen.getByRole("heading", { level: 2 });
-    const evidence = screen.getByText(/The preview is up at/);
-    const action = screen.getByRole("button", { name: /Promote it/ });
+    const question = screen.getByText('Take "Batch firmware push" to production?');
+    const risk = screen.getByText(/Customers see it immediately/);
+    const reason = screen.getByText(/Merged 2h ago/);
+    const answer = screen.getByRole("button", { name: /Promote it/ });
+    const decline = screen.getByRole("button", { name: /Not now/ });
 
-    expect(precedes(question, evidence)).toBe(true);
-    expect(precedes(evidence, action)).toBe(true);
+    expect(precedes(question, risk)).toBe(true);
+    expect(precedes(risk, reason)).toBe(true);
+    expect(precedes(reason, answer)).toBe(true);
+    expect(precedes(answer, decline)).toBe(true);
   });
 
-  it("keeps the attribution ON the lines rather than beside them", () => {
-    // The whole point of `linesLabel`: the caption that says where the facts
-    // came from renders INSIDE the evidence block, so adding it can never be a
-    // reason to move the facts out of the Gate.
+  it("keeps the declared default above the answers, never below", () => {
+    // The default line is what happens if nobody presses anything, so it
+    // reads as a countdown if it sits below the two things a person can do
+    // about it instead.
     render(
-      <Gate question="Publish it?" linesLabel="Read from the deploy record" lines={["A fact."]}>
-        <Approve>Publish it</Approve>
-      </Gate>,
+      <Ask
+        question="Publish it?"
+        fallback={{ kind: "reversible", whatHappens: "It stays a draft until you decide." }}
+        answer={{ label: "Publish it", onPress: () => {} }}
+        decline={{ label: "Not yet", onPress: () => {} }}
+      />,
     );
 
-    const label = screen.getByText("Read from the deploy record");
-    const line = screen.getByText("A fact.");
-    const action = screen.getByRole("button", { name: /Publish it/ });
+    const fallback = screen.getByText(/stays a draft until you decide/);
+    const answer = screen.getByRole("button", { name: /Publish it/ });
 
-    expect(precedes(label, line)).toBe(true);
-    expect(precedes(line, action)).toBe(true);
+    expect(precedes(fallback, answer)).toBe(true);
   });
 
-  it("still offers `linesLabel` at all, which the first Meridian draft dropped", () => {
-    const src = readFileSync(
-      fileURLToPath(new URL("../meridian/Gate.tsx", import.meta.url)),
-      "utf8",
+  it("renders the fallback action on the default's own line, not as a third answer", () => {
+    // P-50's ruling, carried into `Ask` itself: a third verdict on the
+    // default line is the declared default arriving early, not a third
+    // button beside the two real answers.
+    render(
+      <Ask
+        question="Let the agent run the migration?"
+        fallback={{ kind: "irreversible" }}
+        answer={{ label: "Approve", onPress: () => {} }}
+        decline={{ label: "Decline", onPress: () => {} }}
+        fallbackAction={{ label: "Snooze it", onPress: () => {} }}
+      />,
     );
-    expect(src).toMatch(/linesLabel\?:/);
+
+    const fallbackLine = screen.getByText(/Nothing runs until you answer/);
+    const snooze = screen.getByRole("button", { name: /Snooze it/ });
+    const approve = screen.getByRole("button", { name: /^Approve$/ });
+
+    expect(precedes(fallbackLine, snooze)).toBe(true);
+    expect(precedes(snooze, approve)).toBe(true);
   });
 });
 
-describe("Ship's own gates argue before they ask", () => {
+describe("Ship's own ask argues before it asks for an answer", () => {
   const src = readFileSync(
     fileURLToPath(new URL("../../routes/_authenticated.ship.tsx", import.meta.url)),
     "utf8",
   );
 
-  it("hands every gate its evidence through `lines` and never as a sibling", () => {
-    // Four questions on this station, and each one is a `<Gate` with a `lines`
-    // prop. A gate whose reasons were rendered as a block AFTER it would show up
-    // here as an opening tag with no `lines=` in it, which is the exact shape of
-    // the 2026-08-05 defect.
-    const opens = src.match(/<Gate\b[\s\S]*?(?=\n\s*>)/g) ?? [];
-    expect(opens.length).toBe(4);
-    for (const tag of opens) {
-      expect(tag).toContain("question=");
-      expect(tag).toContain("lines=");
-    }
-  });
-
-  it("puts the promote's reasons in the gate that asks for the promote", () => {
-    // The one call on this station that reaches customers. Its cost sentence
-    // and the address it is about are both `lines`, above the control.
+  it("hands the promote its evidence through risk/reason, never as a sibling after the buttons", () => {
     const flat = src.replace(/\s+/g, " ");
     const gate = flat.slice(flat.indexOf('question={`Take "${ready[0].title}" to production?`}'));
-    const body = gate.slice(0, gate.indexOf("</Gate>"));
-    expect(body.indexOf("lines={[")).toBeGreaterThanOrEqual(0);
-    expect(body.indexOf("lines={[")).toBeLessThan(body.indexOf("<Approve"));
+    const body = gate.slice(0, gate.indexOf("/>"));
+    expect(body.indexOf("reason=")).toBeGreaterThanOrEqual(0);
+    expect(body.indexOf("risk=")).toBeGreaterThan(body.indexOf("reason="));
+    expect(body.indexOf("answer=")).toBeGreaterThan(body.indexOf("risk="));
     expect(body).toContain("It moves that same commit to the production address.");
+  });
+
+  it("is one of exactly two `<Ask`s on this station -- the other two questions were not binary asks", () => {
+    const opens = src.match(/<Ask\b/g) ?? [];
+    expect(opens.length).toBe(2);
   });
 });

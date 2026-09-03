@@ -463,42 +463,54 @@ describe("the role behind the announcement controls is a read like any other", (
     /*
      * PINS THE CLAIM, NOT THE SPELLING.
      *
-     * This asserted the literal `lines={roleLines()}`. The requirement it was
-     * protecting is that a reader who cannot see the controls always learns
-     * WHY, which means roleLines() must reach the announcement gate's `lines`.
-     * The day-one branch now prepends a sentence of its own, so the literal
-     * match failed on a change that satisfies the invariant completely. A guard
-     * on an exact string fails when the copy improves and passes when the
-     * meaning breaks, which is the wrong way round.
+     * This asserted the literal `lines={roleLines()}`. P-53 moved both cards
+     * off `Gate` (one to `Quiet` plus a plain heading, the other to a plain
+     * heading with no named component at all, since neither is a real binary
+     * ask), so `lines=` does not exist anywhere in this file any more. The
+     * requirement it was protecting still holds: a reader who cannot see the
+     * controls always learns WHY, which means `roleLines()` must actually be
+     * CALLED (not merely defined) everywhere the controls it explains can be
+     * missing. That is asserted directly instead of through the prop syntax
+     * that carried it before.
      *
-     * What is asserted instead: BOTH announcement gates carry the reason, and
-     * where a gate branches, EVERY arm carries it. That is stronger than the
-     * string it replaces, because it catches a future ternary that drops the
-     * reason from one arm, which the old assertion would have passed.
-     *
-     * The promote confirmation gate is deliberately not counted: it is about a
-     * release, not about the reader's role.
+     * The promote confirmation ask is deliberately not counted: it is about a
+     * release, not about the reader's role, and does not compose `roleLines()`.
      */
-    const withRole = flat.match(/lines=\{[^}]*roleLines\(\)[^}]*\}/g) ?? [];
-    expect(withRole.length).toBe(2);
-    for (const prop of withRole.filter((s) => s.includes("?") && s.includes(":"))) {
-      expect((prop.match(/roleLines\(\)/g) ?? []).length).toBeGreaterThanOrEqual(2);
-    }
+    // Comments explaining the reuse also say "roleLines()" in prose, so they
+    // are stripped first -- the same discipline `today-states-its-wait.test.ts`
+    // and this repo's other source-as-text guards use, rather than a naive
+    // count that a comment could quietly inflate or a rename could deflate.
+    const stripped = shipSrc.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
+    const occurrences = stripped.match(/roleLines\(\)/g) ?? [];
+    // One is the declaration (`function roleLines(): React.ReactNode[]`);
+    // every remaining occurrence is a real render site.
+    expect(occurrences.length - 1).toBe(2);
   });
 
   it("never states who the reader is waiting on from a role read that did not answer", () => {
-    // The two SENTENCES that read `canContribute` / `canPublish` as facts about
-    // the reader. Both flags are false in three different situations -- you may
-    // not, your role did not load, and the read answered with no membership row
-    // -- so both sentences told an owner whose `listWorkspaceMembers` timed out
-    // that they lack a permission they hold. A hedge is not a retry: the retry
-    // is the `Failed` above the gate, and this is only the assertion stopping.
+    // The SENTENCE that reads `canPublish` as a fact about the reader. It is
+    // false in three different situations -- you may not, your role did not
+    // load, and the read answered with no membership row -- so a bare "waiting
+    // on an owner or an admin" told an owner whose `listWorkspaceMembers`
+    // timed out that they lack a permission they hold. A hedge is not a retry:
+    // the retry is the `ReadFailed` above the desk, and this is only the
+    // assertion stopping.
+    //
+    // P-53 removed the SECOND copy of this hedge this test used to pin
+    // separately (it lived in the day-one Gate's own `lines`, worded
+    // slightly differently from `roleLines()`'s own sentence): that site now
+    // calls `roleLines()` directly, so there is exactly one wording of "your
+    // role did not load" in the file, checked by the previous test.
+    //
+    // P-53 also collapsed the four-way `canPublish` ternary into two branches
+    // at the top level (the true case is its own `Ask`; this file only
+    // reaches the ones below when it is false), so `members.isError ||
+    // roleUnknown` now sits directly under `call.status === "pending" ?`
+    // rather than under a `canPublish`-false `:` -- same fact, one fewer
+    // nested branch to reach it through.
     const flat = shipSrc.replace(/\s+/g, " ");
     expect(flat).toMatch(
-      /: members\.isError \|\| roleUnknown \? `"\$\{call\.title\}" is waiting to be published\.`/,
-    );
-    expect(flat).toMatch(
-      /: members\.isError \|\| roleUnknown \? "Supaprod could not confirm your role here/,
+      /\? members\.isError \|\| roleUnknown \? `"\$\{call\.title\}" is waiting to be published\.`/,
     );
     // The ordinary sentences survive word for word, for a role that answered.
     expect(flat).toContain("is waiting on an owner or an admin.`");

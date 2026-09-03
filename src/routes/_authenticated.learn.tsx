@@ -153,7 +153,7 @@ import {
   Region,
 } from "@/components/meridian/surface-parts";
 import { Field, Input } from "@/components/meridian/forms";
-import { Gate } from "@/components/meridian/Gate";
+import { Quiet } from "@/components/meridian/Quiet";
 import { Surface } from "@/components/meridian/Surface";
 import { CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -904,26 +904,23 @@ function Learn() {
              a button anywhere in the product. These two navigate: nothing on this
              page is blocked pending the click, and spending the accent on a door
              is how it stops meaning anything. */
-            <Gate
-              question="What should this grade first?"
-              lines={[
-                <span key="what">
-                  A verdict lands here the first time a shipped bet is graded against what its spec
-                  said it was for, and it stays on the record after that.
-                </span>,
-                <span key="need">
-                  Nothing has shipped yet, so there is nothing to grade. Write down what a bet is
-                  meant to move before it goes out, and the grade has something to measure against.
-                </span>,
-              ]}
-            >
-              <Action variant="primary" onClick={() => navigate({ to: "/ship" })}>
-                See what is waiting to go out
-              </Action>
-              {/* P-14 (A-QUEUE.md, R-34): /plan is deleted; specs in flight
-                  are Start's own territory now. */}
-              <Action onClick={() => navigate({ to: "/start" })}>Open the specs</Action>
-            </Gate>
+            <>
+              {/* P-53: this asked a question with one answer, always --
+                  "nothing", because nothing has shipped -- which is a zero
+                  state wearing a question mark, not a pick among options. */}
+              <Quiet
+                says="Nothing has shipped yet, so there is nothing to grade."
+                whatWillAppear="A verdict lands here the first time a shipped bet is graded against what its spec said it was for, and it stays on the record after that. Write down what a bet is meant to move before it goes out, and the grade has something to measure against."
+              />
+              <Actions>
+                <Action variant="primary" onClick={() => navigate({ to: "/ship" })}>
+                  See what is waiting to go out
+                </Action>
+                {/* P-14 (A-QUEUE.md, R-34): /plan is deleted; specs in flight
+                    are Start's own territory now. */}
+                <Action onClick={() => navigate({ to: "/start" })}>Open the specs</Action>
+              </Actions>
+            </>
           ) : (outcomes?.validated ?? 0) === 0 ? (
             <NothingYet>
               Nothing has paid off yet. <Num>{outcomes?.total}</Num> outcomes are on the record and

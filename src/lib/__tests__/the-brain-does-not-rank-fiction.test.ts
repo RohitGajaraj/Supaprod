@@ -188,21 +188,27 @@ describe("Discover says which ones are examples", () => {
     expect(DISCOVER).toMatch(/<b>Example<\/b>/);
   });
 
-  it("and the Gate says it in full", () => {
+  it("and the Ask says it in full", () => {
     // P-14 (A-QUEUE.md, R-34) deleted /decide, which this test used to check
     // said the same disclaimer in the same words -- one vocabulary across two
-    // stations. One station now; the claim is unchanged for the one that
-    // remains.
+    // stations. P-53 moved the card itself from `Gate` to `Ask`, whose
+    // `reason` is one prose string rather than a `<b>`-carrying line, so the
+    // disclaimer is plain text now; the claim is unchanged for the one
+    // station that remains.
     expect(DISCOVER).toMatch(/focused\.theme\.is_sample/);
-    expect(DISCOVER).toMatch(/<b>This is an example\.<\/b> It came with your workspace/);
+    expect(DISCOVER).toMatch(
+      /This is an example\. It came with your workspace so this station had something to show\./,
+    );
   });
 
-  it("the Gate puts it FIRST, above the evidence", () => {
+  it("the reason array puts it FIRST, above the evidence", () => {
     // A disclaimer under the evidence arrives after the decision has formed.
-    // Same reasoning, and the same ordering, as the Decide gate.
-    const lines = DISCOVER.slice(DISCOVER.indexOf("question={focused.theme.title}"));
+    // Same reasoning as the Decide gate; P-53 moved the disclaimer into the
+    // first entry of the `reason` array `Ask` reads, so array order is now
+    // where this is enforced rather than JSX order inside a `Gate`.
+    const lines = DISCOVER.slice(DISCOVER.indexOf("const reason = ["));
     const sample = lines.indexOf("focused.theme.is_sample");
-    const rank = lines.indexOf("WHICH ONE OF THEM THIS IS");
+    const rank = lines.indexOf("ranked.length > 1");
     expect(sample).toBeGreaterThan(-1);
     expect(rank).toBeGreaterThan(sample);
   });

@@ -198,7 +198,15 @@ describe("the surface lookup answers with the right one", () => {
       // its own to wear a keycap, and /discover states them in the ranking's
       // own subtitle instead. The rule that matters is that nothing which
       // changes a record can fire from a key a person was never shown.
-      for (const k of surface.keys.filter((x) => x.key.length === 1 && x.destructive)) {
+      //
+      // `keycapDrawn === false` (P-53) is the one other exemption, and it is
+      // narrower than it looks: it does not mean the key fires unshown, it
+      // means the CONTROL that fires it -- `Ask.answer`/`decline`/
+      // `fallbackAction` -- has no keycap slot at all, unlike `Action` and
+      // `Approve`. See `SurfaceKey.keycapDrawn`'s own header for why.
+      for (const k of surface.keys.filter(
+        (x) => x.key.length === 1 && x.destructive && x.keycapDrawn !== false,
+      )) {
         expect({ path, key: k.key, drawn: src.includes(`shortcut="${k.key}"`) }).toEqual({
           path,
           key: k.key,

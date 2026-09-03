@@ -80,10 +80,13 @@ describe("the first-run screen only draws when every read has answered", () => {
 });
 
 describe("what it says instead", () => {
-  it("asks what arrives rather than restating what is absent", () => {
+  it("says what arrives rather than restating what is absent", () => {
     // The old screen was a negation agreed with six times. A person could read all
-    // of it and still not know what the station is for.
-    expect(has('question="What will come here to ship?"')).toBe(true);
+    // of it and still not know what the station is for. P-53 moved this card
+    // from `Gate` to `Quiet`, whose `says` is a statement rather than a
+    // question (its own header: "No question mark; a period") -- so the old
+    // question-shaped headline is now the fact it was reporting.
+    expect(has('says="Nothing has come here to ship yet."')).toBe(true);
   });
 
   it("names the precondition a person cannot infer", () => {
