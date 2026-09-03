@@ -5547,7 +5547,7 @@ both panes; the card below carries the same question, the risk line, the reason 
 default. One answer, two doors to it, same mutation. Noted for P-37, not for this packet: the
 footer reads *Waiting on you.* beside a *Run it now* button, two verbs for one state.
 
-### P-39 · A press that did nothing says so · Lane: **A3** · Status: READY (after P-36) · Moves: 2, 3
+### P-39 · A press that did nothing says so · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** 2026-09-03 14:00 IST, the founder deleted the empty *A2 arrival check* workspace from the
 product and was told it worked; the workspace was still there. `deleteWorkspace`
