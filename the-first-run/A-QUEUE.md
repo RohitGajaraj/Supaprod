@@ -7218,11 +7218,12 @@ hours it offered a release gate that could not succeed, then spent the person's 
 P-68 filed. The founder has nothing to set.
 
 **01:31 IST addendum.** The 19:50 UTC tick drove Ship after the press: the crew ran, produced
-nothing, and the track now holds `produced-nothing` with `attempts = 2` of 3; no `deployments`
-row was written, so the managed preview was not retried and no reason exists. One more tick spends
-the third attempt and the track reads given-up for a fault that is the product's. A1 set
-`deferred_until = now() + 6 hours` on `6817e386` at 20:01 UTC (a hold, reversible by clearing the
-column) so P-68 lands before the next attempt; A1 clears it when P-68 is published.
+nothing, and the track held `produced-nothing` with `attempts = 2`, and the 20:00 tick spent the third (attempts 3, $0.30 on the track); no `deployments`
+row was written, so the managed preview was not retried and no reason exists. The first deferral
+matched nothing because the third attempt landed between two reads; A1 set `deferred_until = now()
++ 6 hours` on `6817e386` at 20:02 UTC (a hold, reversible by clearing the column) so the track is
+not marked given-up for a fault that is the product's, and P-68's *Try the preview again* is the
+moment its attempts reset. A1 clears the deferral when P-68 is published.
 
 
 ### P-68 · A managed preview that failed is tried again and says why, and a gate that cannot succeed is not offered · Lane: **A3** (after P-58, before P-59b) · Status: READY · Moves: 1, 3
