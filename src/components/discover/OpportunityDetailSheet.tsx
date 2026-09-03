@@ -131,7 +131,8 @@ import { toast } from "@/lib/notify";
 import { iceNum, rescoreNoteOf } from "@/lib/moat-vis";
 import { formatAuditId } from "@/lib/audit-id";
 import { submitPulse } from "@/lib/pulse.functions";
-import { startOrchestratedMission } from "@/lib/orchestrator.functions";
+import { startTrack } from "@/lib/spine/track.functions";
+import { jobFromOpportunity } from "@/components/start/ExampleJobs";
 import { updateOpportunity } from "@/lib/discovery.functions";
 import type { CriticReview } from "@/lib/discovery.functions";
 import { getTeardownShareState, setTeardownShared } from "@/lib/opportunities-share.functions";
@@ -1026,7 +1027,10 @@ function OutcomeHistoryBlock({ opportunityId }: { opportunityId: string }) {
   if (rows.length === 0) return null;
 
   return (
-    <Region title="Outcomes on this opportunity" sub="What came back once it was live, newest first.">
+    <Region
+      title="Outcomes on this opportunity"
+      sub="What came back once it was live, newest first."
+    >
       {rows.map((l) => {
         const note = rescoreNoteOf(l);
         return (
@@ -1113,43 +1117,6 @@ function BriefLinkLine({ opportunity }: { opportunity: OpportunityDetailRecord }
   );
 }
 
-/* ------------------------------------------------------------------ *
- * The hand-off goal. The crew was receiving one sentence -- title and ref
- * only -- while the case itself (problem, hypothesis, target user, scores,
- * the Critic's teardown) sat unused on this very record. Labelled sections,
- * because the orchestrator parses the goal as work, not prose.
- * ------------------------------------------------------------------ */
-
-/** Per-field caps sized so every section together can never pass the 4000-char
- * goal cap startOrchestratedMission enforces: worst case lands near 3600, so a
- * long teardown can never fail the dispatch. */
-const HANDOFF_CAPS = { problem: 1000, hypothesis: 900, targetUser: 350, critic: 800 } as const;
-
-/** Trim to the cap, marking what was cut rather than stopping mid-word silently. */
-function clip(text: string | null | undefined, cap: number): string {
-  const t = (text ?? "").trim();
-  return t.length <= cap ? t : `${t.slice(0, cap - 1).trimEnd()}…`;
-}
-
-/** The full case, one labelled line per fact the ranking already scored on. */
-function handOffGoal(o: OpportunityDetailRecord): string {
-  const ref = o.id.slice(0, 8).toUpperCase();
-  const critic = o.critic_review;
-  return [
-    "Red-team this opportunity before it is committed to.",
-    "",
-    `Bet: "${o.title}" (ref ${ref})`,
-    `Problem: ${clip(o.problem, HANDOFF_CAPS.problem) || "Not stated."}`,
-    `Hypothesis: ${clip(o.hypothesis, HANDOFF_CAPS.hypothesis) || "Not stated."}`,
-    `Target user: ${clip(o.target_user, HANDOFF_CAPS.targetUser) || "Not stated."}`,
-    `Scores: Impact ${o.impact} / Confidence ${o.confidence} / Ease ${o.ease} (ICE ${
-      o.ice_score ?? "unscored"
-    })`,
-    `Critic verdict: ${critic ? `${critic.verdict} at confidence ${critic.confidence}` : "none yet"}`,
-    `Critic summary: ${clip(critic?.summary, HANDOFF_CAPS.critic) || "No teardown recorded."}`,
-  ].join("\n");
-}
-
 export interface OpportunityDetailSheetProps {
   open: boolean;
   onOpenChange: (next: boolean) => void;
@@ -1206,36 +1173,58 @@ export function OpportunityDetailSheet({
 }: OpportunityDetailSheetProps) {
   const { activeWorkspaceId } = useWorkspace();
   const navigate = useNavigate();
-  const fStartMission = useServerFn(startOrchestratedMission);
+  const fStartTrack = useServerFn(startTrack);
   const challengerName = agentDisplayName(CHALLENGER);
 
-  // The bet, handed to the crew as real work. Same server function and same
-  // destination the retired one-item menu used; the goal now carries the whole
-  // case, and `origin` records that this mission was spawned by this bet.
-  const handOff = useMutation({
+  /*
+   * P-29 (A-QUEUE.md). THE SAME DOOR START'S OWN CARDS USE, not a second one.
+   *
+   * This used to dispatch through `startOrchestratedMission`, which creates a
+   * `missions` row and no `spine_tracks` row -- R-35's gap, still live on a
+   * real button until this packet (found by the P-14 leftover-reference
+   * sweep). `jobFromOpportunity` is the exact conversion Start's own
+   * top-opportunity cards already use (`ExampleJobs.tsx`); calling `startTrack`
+   * with it means this button creates a real track, drivable by the sweep and
+   * addressable at `/track/:id`, the same as every other way into the loop.
+   */
+  const startIt = useMutation({
     mutationFn: () => {
       if (!opportunity) throw new Error("No bet is open.");
-      return fStartMission({
+      // `jobFromOpportunity` reads only `title`/`problem`; `iceScore` is
+      // unused by it and named here only to satisfy `TopOpportunity`'s shape.
+      const job = jobFromOpportunity({
+        id: opportunity.id,
+        title: opportunity.title,
+        problem: opportunity.problem,
+        iceScore: opportunity.ice_score,
+      });
+      return fStartTrack({
         data: {
-          goal: handOffGoal(opportunity),
-          title: opportunity.title.slice(0, 200),
-          origin: { kind: "opportunity", id: opportunity.id },
+          title: job.sentence.slice(0, 200),
+          shape: job.shape,
+          origin: job.shape !== "new-capability" ? job.sentence : undefined,
+          workspaceId: activeWorkspaceId ?? undefined,
         },
       });
     },
-    onSuccess: (_res) => {
-      // Receipt continuity: the run page takes a beat to draw, so the toast
-      // carries the bet forward by name instead of dropping context here.
-      toast.success(`The crew picked up "${opportunity?.title ?? "the bet"}".`);
-      onOpenChange(false);
-      // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. A driven
-      // mission's real record is /track/$trackId, but startOrchestratedMission
-      // (this button's own server function) creates a mission row and no
-      // spine_tracks row -- this dispatch path has never produced a track, so
-      // there is no track id to send this to even in principle. Falls back to
-      // Start rather than a dead link; the toast above is what carries the
-      // bet's name forward now that this cannot land on the mission itself.
-      navigate({ to: "/start" });
+    onSuccess: (res) => {
+      if (res.track) {
+        // No toast: landing on the run IS the consequence, the same rule
+        // Start's own card press follows -- a toast on top of a navigation is
+        // the click confirming itself twice.
+        onOpenChange(false);
+        navigate({
+          to: "/track/$trackId",
+          params: { trackId: res.track.id },
+          search: { start: true },
+        });
+        return;
+      }
+      // `res.track === null` is a real refusal (startTrackCore's own
+      // validation), not a thrown error -- the sheet has no inline problem
+      // list the way Start's composer does, so the toast is this surface's
+      // only way to say what went wrong.
+      toast.error(res.problems.join(" ") || "The track could not be started.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -1658,18 +1647,18 @@ export function OpportunityDetailSheet({
                     controls away from "Challenge it". Two controls whose labels
                     say the same thing is hard ban 10, and the two are genuinely
                     different machinery: Challenge runs the Critic and writes
-                    back into this sheet, this starts a mission and leaves for
-                    Build. So the label now names the difference, and a one-item
+                    back into this sheet, this starts a track and leaves for the
+                    run. So the label now names the difference, and a one-item
                     menu is a button.
-                    No toast: landing on the mission IS the consequence, and a
-                    toast on top of a navigation is the click confirming
-                    itself. */}
+                    "Start it" (P-29, A-QUEUE.md), Start's own sentence for the
+                    same action on the same object, because pressing this bet
+                    here and pressing its card there are now the one door. */}
                 <Action
-                  disabled={busy || handOff.isPending}
-                  onClick={() => handOff.mutate()}
-                  title="Starts a mission with this opportunity attached, and opens it in Build"
+                  disabled={busy || startIt.isPending}
+                  onClick={() => startIt.mutate()}
+                  title="Starts a track with this bet as its first sentence, and opens the run"
                 >
-                  {handOff.isPending ? "Starting the mission" : "Start a mission"}
+                  {startIt.isPending ? "Starting it" : "Start it"}
                 </Action>
               </Actions>
             </Region>

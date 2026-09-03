@@ -1285,7 +1285,8 @@ function SpecEditorPage() {
    *
    * THE GAP, and it is the purest form of this repo's signature defect. Plan's
    * whole job is to turn a decision into an approved spec -- `loop-surfaces.ts`
-   * literally says the station "produces: an approved spec" -- and no control
+   * (now deleted, P-29, A-QUEUE.md -- dead code by then, zero real callers)
+   * literally said the station "produces: an approved spec" -- and no control
    * anywhere set that status. The ONLY app-code writer of `prds.status` sets it
    * to "review". Fifty-five approved specs exist on the live database and not
    * one of them was approved by a person using this product.

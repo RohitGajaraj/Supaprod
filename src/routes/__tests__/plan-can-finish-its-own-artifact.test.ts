@@ -6,7 +6,8 @@ import { join } from "node:path";
  * A STATION THAT CANNOT FINISH ITS OWN ARTIFACT.
  *
  * THE GAP, and it is the purest form of this repo's signature defect: a
- * capability with no door. `loop-surfaces.ts` says Plan "produces: an approved
+ * capability with no door. `loop-surfaces.ts` (now deleted, P-29, A-QUEUE.md
+ * -- dead code by then, zero real callers) said Plan "produces: an approved
  * spec". No control anywhere in the product set that status. The only app-code
  * writer of `prds.status` is in `decisions.functions.ts` and it writes "review".
  * Fifty-five approved specs sit on the live database and not one of them was

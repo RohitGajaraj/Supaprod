@@ -34,8 +34,14 @@
  *     nothing for a receipt to record.
  *
  * UNCHANGED: updateDecision, getDecisionShareState / setDecisionShared,
- * runCriticReview, startOrchestratedMission, every invalidation key, and the
- * navigation to the started mission.
+ * runCriticReview, every invalidation key.
+ *
+ * P-29 (A-QUEUE.md, 2026-09-03): the mission action dispatches through
+ * `startTrack` now, not `startOrchestratedMission` -- the same door Start's
+ * own composer uses, so this creates a real `spine_tracks` row (R-35's gap,
+ * found live on this button by the P-14 leftover-reference sweep) and opens
+ * the run it started rather than falling back to Start with no page to watch
+ * it on.
  */
 import { useState } from "react";
 import { Actions, Action } from "@/components/meridian/surface-parts";
@@ -46,10 +52,11 @@ import { toast } from "@/lib/notify";
 import { updateDecision } from "@/lib/decisions.functions";
 import { getDecisionShareState, setDecisionShared } from "@/lib/decisions-share.functions";
 import { runCriticReview } from "@/lib/discovery.functions";
-import { startOrchestratedMission } from "@/lib/orchestrator.functions";
+import { startTrack } from "@/lib/spine/track.functions";
 import type { GraphNode, GraphNodeKind } from "@/lib/knowledge-graph-view";
 import { artifactWord } from "@/lib/artifact-words";
 import { useConfirm } from "@/hooks/use-confirm";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { Receipt } from "@/components/meridian/Receipt";
 
 /**
@@ -104,6 +111,7 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const confirm = useConfirm();
+  const { activeWorkspaceId } = useWorkspace();
 
   const [settled, setSettled] = useState<Settled[]>([]);
   const commit = (s: Omit<Settled, "id">) =>
@@ -187,35 +195,58 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
       }),
   });
 
-  const fStartMission = useServerFn(startOrchestratedMission);
+  /*
+   * P-29 (A-QUEUE.md). THE SAME DOOR START'S OWN CARDS USE, not a second one.
+   *
+   * This used to dispatch through `startOrchestratedMission`, which creates a
+   * `missions` row and no `spine_tracks` row -- R-35's gap, still live on a
+   * real button until this packet (found by the P-14 leftover-reference
+   * sweep). `startTrack` is the one function every door that starts work now
+   * calls: `title`/`shape: "existing-feature"`/`origin` are the same three
+   * fields `jobFromOpportunity` (ExampleJobs.tsx) derives from a bet, applied
+   * here across all seven `MISSION_KINDS` -- each names evidence about
+   * something already true of the product, never a blank slate, which is
+   * exactly what `existing-feature` means.
+   */
+  const fStartTrack = useServerFn(startTrack);
   const startMission = useMutation({
     mutationFn: () =>
-      fStartMission({
+      fStartTrack({
         data: {
-          goal: `Follow up on: ${node.title || `this ${artifactWord(node.kind)}`}`,
-          title: node.title,
+          title: (node.title || `this ${artifactWord(node.kind)}`).slice(0, 200),
+          shape: "existing-feature",
+          origin: node.title || undefined,
+          workspaceId: activeWorkspaceId ?? undefined,
         },
       }),
-    onSuccess: (_res) => {
+    onSuccess: (res) => {
+      // `startTrack` RESOLVES a refusal rather than throwing it
+      // (`startTrackCore`'s own validation, e.g. no workspace to put the work
+      // in) -- `res.track === null` is that case, and nothing was actually
+      // started or spent, so the receipt must say that rather than the
+      // success sentence below.
+      if (!res.track) {
+        commit({
+          verb: "You tried to start a run",
+          consequence: res.problems.join(" ") || "Nothing started, and nothing was spent.",
+          failed: true,
+        });
+        return;
+      }
       qc.invalidateQueries({ queryKey: ["missions"] });
       commit({
-        verb: "You started a mission",
+        verb: "You started a run",
         consequence: `The crew is working on "${node.title || `this ${artifactWord(node.kind)}`}" and it spends credits until it finishes or you stop it.`,
         handoff: { slug: "orchestrator", name: "Orchestrator" },
       });
-      // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. A driven
-      // mission's real record is /track/$trackId, but startOrchestratedMission
-      // (this button's own server function, orchestrator.functions.ts) creates
-      // a mission row and no spine_tracks row -- this dispatch path has never
-      // produced a track, so there is no track id to send this to even in
-      // principle. Falls back to Start rather than a dead link; the mission
-      // this just started has no page of its own to watch it on, which is the
-      // same gap R-35 closed for the trigger-tick generator, still open here.
-      navigate({ to: "/start" });
+      // A real track now exists (P-29 closed the gap R-35 found: this door
+      // never used to produce one), so this opens the run itself rather than
+      // falling back to Start.
+      navigate({ to: "/track/$trackId", params: { trackId: res.track.id } });
     },
     onError: (e: Error) =>
       commit({
-        verb: "You tried to start a mission",
+        verb: "You tried to start a run",
         consequence: e.message || "Nothing started, and nothing was spent.",
         failed: true,
       }),
@@ -235,11 +266,9 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
   // nobody reads.
   async function confirmAndStartMission() {
     const ok = await confirm({
-      title: node.title
-        ? `Start a mission on "${node.title}"?`
-        : `Start a mission on this ${artifactWord(node.kind)}?`,
+      title: node.title ? `Start "${node.title}"?` : `Start this ${artifactWord(node.kind)}?`,
       body: `The crew picks up "${subject}" now and works on it without you. It spends credits the whole time it runs, and it does not stop until it finishes or you stop it.`,
-      confirmLabel: "Start the mission",
+      confirmLabel: "Start it",
     });
     if (ok) startMission.mutate();
   }
@@ -259,7 +288,7 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
       >
         {canStartMission ? (
           <Action busy={startMission.isPending} onClick={() => void confirmAndStartMission()}>
-            {startMission.isPending ? "Starting" : "Start a mission from this"}
+            {startMission.isPending ? "Starting" : "Start it"}
           </Action>
         ) : null}
         {isReviewable ? (
