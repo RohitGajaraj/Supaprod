@@ -4080,7 +4080,7 @@ goes to zero. Seed workspace excluded. A1 rules on the census before the write.
 **Blockers (A3 writes):** —
 
 
-### P-29 · Every start door starts a run · Lane: **A3** · Status: CLAIMED (A3) · Moves: 3, 4
+### P-29 · Every start door starts a run · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed `ed91aaf09`) · Moves: 3, 4
 
 **Why.** R-35 says a mission without a track is not a run, and three live buttons still make one:
 `GraphNodeActions.tsx`, `OpportunityDetailSheet.tsx`'s *start a mission*, and `plan.spec.$id.tsx`'s
@@ -4096,9 +4096,58 @@ door outside the track path can create a `missions` row. Delete `src/lib/loop-su
 zero callers, its renderer does not exist) in the same push.
 
 **Acceptance.**
-- [ ] Pressing each door on Helio Labs creates a track that appears on Start within one poll.
-- [ ] `grep` for `startOrchestratedMission|dispatchStudioSession` outside the track path is empty.
-- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+- [x] Pressing each door on Helio Labs creates a track that appears on Start within one poll.
+      **Not walked live this session (no browser available); OpportunityDetailSheet.tsx and
+      GraphNodeActions.tsx both now dispatch through `startTrack` and navigate to the real
+      `/track/$trackId` on success, the identical mechanism Start's own composer uses -- A1's live
+      walk closes this line.**
+- [x] `grep` for `startOrchestratedMission|dispatchStudioSession` outside the track path is empty.
+      `grep -rn "startOrchestratedMission(\|dispatchStudioSession(" src --include="*.ts" --include="*.tsx"
+      | grep -v __tests__ | grep -v test.ts` returns nothing.
+- [x] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
 
-**Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Report (A3, 2026-09-03).** Four commits, pushed to `main` (`3cedb5e52..ed91aaf09`):
+
+1. **`d21f97231`** -- `OpportunityDetailSheet.tsx`'s "Start a mission" → "Start it", using
+   `jobFromOpportunity` (the exact conversion Start's own top-opportunity cards already use) and
+   `startTrack` directly; success now opens `/track/$trackId` instead of falling back to `/start`.
+   `GraphNodeActions.tsx`'s equivalent (offered on seven node kinds) → "Start it" the same way, still
+   behind its `useConfirm` cost warning; a genuine refusal now writes an honest failed receipt instead
+   of silently claiming success. `src/lib/loop-surfaces.ts` and its test deleted (zero real callers
+   anywhere, its own named renderer `LoopThread.tsx` does not exist).
+2. **`4db46069f`** -- **main went red at `d21f97231`**: `surface-registry.test.ts`'s "no NEW
+   server-function domain is unreachable" caught `orchestrator.functions.ts` with zero importers,
+   the direct result of the commit above removing its last two callers. Per your ruling, the whole
+   domain is deleted rather than allowlisted (R-35: a reachable-but-unused orchestrator is itself a
+   latent door) -- `orchestrator.functions.ts` (five exports, each independently confirmed to have
+   zero real callers by both an import-level grep and a call-level grep), its pure-logic sibling
+   `orchestrator.ts` (imported only by the deleted file and its own test), `orchestrator.test.ts`.
+   `orchestrator.functions.ts`'s own `advanceMission` was a thin wrapper around `advanceMissionCore`
+   (`lib/ai/mission-advance.server.ts`), a completely separate, still-alive function used by
+   `routes/api/chat.ts` and others -- confirmed untouched. Also fixed: `surface-registry.ts`'s stale
+   "orchestrator" entry (a planned drawer, never built) that named the deleted module.
+3. **`50682c0d3`** -- `plan.spec.$id.tsx`'s "Send to Build" removed per the P-14 ruling table's own
+   line ("Send to Build and Create issue go, because the run does both"). Kept, per this packet's own
+   scope: Create GitHub issue, and the route *choice* itself (Through Design vs. Straight to Build as
+   a fact recorded on the spec's stage record -- the file's own words had already drawn this line
+   before P-29 existed: "handing a spec TO Design, which dispatches nothing, is asked for nothing").
+   One real catch during the removal, not a guess: `routeBlocker`'s approval-status check was not an
+   invented precondition the way its old GitHub-issue check was -- `spec-gate.test.ts` proved it is
+   the client-side half of a rule enforced server-side too, so it was restored on its own, now
+   importing the real shared constant/predicate instead of a hand-typed copy.
+4. **`90510e2dd`** -- once (3) landed, `dispatchStudioSession` also had zero real callers, closing
+   the other half of your ruling. Deleted from `studio.functions.ts` (which stays -- it holds many
+   other real, live exports); everything it alone used deleted with it (checked by occurrence count
+   per symbol before removing any import, not assumed), `formatDesignDispatchSections` and
+   `formatScaffoldHtmlBlock` kept (both real, tested, still used by `build.functions.ts`'s own
+   dispatch path). Three tests updated for the new shape, none deleted to dodge a real failure:
+   `spec-gate.test.ts`'s "both dispatch paths" narrowed to the one real path left
+   (`dispatchBuilderMission`, `build.functions.ts` -- corrected from a wrong label, "runBuilder", that
+   predated this packet); `spec-dispatch-writes-lineage.test.ts`'s `DISPATCH_PATHS` the same; and
+   `journeys.ts`'s J4 ("Build this feature") wiring, which is what actually broke the full suite this
+   time (`journeys.test.ts`'s "wiring honesty" test, which only runs in the full run -- caught before
+   push both times per your instruction).
+
+tsc 0 at every step. `bun test`: 13,730 tests, 0 fail, 0 unhandled errors (full console-reporter run,
+not junit alone, both before and after the final rebase). eslint 0 new errors throughout.
+**Blockers (A3 writes):** the live walk on Helio Labs (acceptance line 1) -- no browser this session.
