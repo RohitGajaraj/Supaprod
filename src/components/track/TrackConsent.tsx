@@ -51,6 +51,13 @@ import { isOverdue, stoppedFor } from "@/components/meridian/stopped-for";
 import { formatExpiryDeadline } from "@/components/track/expiry-deadline";
 import { Action, ReadFailedLine, RecordSpeaks } from "@/components/meridian/surface-parts";
 import { ReasonField } from "@/components/meridian/forms";
+import { mergeGateEvidence } from "@/lib/spine/track.functions";
+import { mergeGateLines, mayDrawApprove } from "@/lib/spine/what-the-merge-gate-shows";
+
+/** The one gate this evidence is about. Every other tool's card asks about a
+ *  call rather than about a diff, and would read as noise with files on it. */
+const isMergeGate = (tool: string | null | undefined): boolean =>
+  tool === "studio.pr.merge" || tool === "release.publish";
 
 /** Who asked, resolved through the display vocabulary with the roster fallback. */
 function whoAsked(g: TrackGate): string {
@@ -178,6 +185,26 @@ export function TrackConsent({
   const fDecideClass = useServerFn(decideTrackGateClass);
   const fSnooze = useServerFn(snoozeApprovalItem);
   const qc = useQueryClient();
+
+  /*
+   * ── WHAT THIS CHANGE ACTUALLY IS (P-72, R-40) ──────────────────────────
+   *
+   * The tablet track's pull request was merged on a gate whose only evidence
+   * was a green check. What it contained -- 90 lines of CSS for a component
+   * that does not exist -- and what the Build seat and the Design critic had
+   * both already said about it, were all in the record at the moment of the
+   * press, and none of them was on the card.
+   *
+   * A green check is evidence that what was built compiles. That the RIGHT
+   * thing was built is a different claim, and the gap between them is where
+   * this change went through.
+   */
+  const fMergeEvidence = useServerFn(mergeGateEvidence);
+  const evidence = useQuery({
+    queryKey: ["merge-gate-evidence", trackId],
+    queryFn: () => fMergeEvidence({ data: { trackId } }),
+    staleTime: 60_000,
+  });
 
   const q = useQuery({
     queryKey: ["track-gates", trackId],
@@ -447,6 +474,14 @@ export function TrackConsent({
              */
             risk={`${REVERSIBILITY_LABEL[c.reversible]} · ${c.undo}`}
             lines={[
+              /* The change itself leads, because "one file in a checkout
+                 module" and "ninety lines of CSS in a stylesheet nothing
+                 imports" are the same green check and different decisions.
+                 Only on the merge gate: every other tool's card is about a
+                 call, not about a diff. */
+              ...(isMergeGate(g.toolName) && evidence.isSuccess
+                ? mergeGateLines(evidence.data)
+                : []),
               ...(g.rationale ? [`Why it asks: ${g.rationale}`] : []),
               ...(g.snoozedUntilMs !== null
                 ? ["You set this aside earlier. The run is still stopped."]
@@ -465,39 +500,55 @@ export function TrackConsent({
                   wash, inset ring, mono digit. Each commits on press -- there
                   is no Submit between the choice and the effect (§3.6). */}
               <div role="group" aria-label="Your answer">
-                <button
-                  type="button"
-                  data-mrd=""
-                  disabled={busy}
-                  /*
-                   * NAMED EXPLICITLY (P-16 interim, A1 live 2026-09-02 22:18):
-                   * the button reads as "button, button" to a screen reader
-                   * without this -- an explicit `aria-label` is guaranteed to
-                   * win over whatever computed the two visible child spans
-                   * into no name at all, rather than a fix that depends on
-                   * fixing content the accessibility tree already had.
-                   */
-                  aria-label={`Let it run. ${REVERSIBILITY_LABEL[c.reversible]}. ${c.undo}`}
-                  onClick={() => {
-                    setAnsweringId(g.approvalId);
-                    decide.mutate({ approvalId: g.approvalId, verdict: "approve" });
-                  }}
-                  className="flex w-full items-start gap-mrd-3 rounded-mrd-ctl px-mrd-4 py-mrd-3 text-left transition-colors enabled:hover:bg-mrd-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] disabled:cursor-default disabled:opacity-45"
-                  style={{ transitionDuration: "var(--mrd-d-press)" }}
-                >
-                  <span
-                    aria-hidden
-                    className="font-mrd-mono mt-px shrink-0 text-mrd-data tabular-nums text-mrd-faint"
+                {/*
+                 * ── NO ONE-PRESS MERGE OF A CHANGE THE SEAT DISOWNED ───────
+                 *
+                 * When the Build seat halted, the affirmative is not drawn. A
+                 * person should not be offered a single press that merges work
+                 * the seat which wrote it said should not exist. The gate still
+                 * renders and declining is still one press: what goes is the
+                 * yes, and the reason sits in the lines above.
+                 */}
+                {isMergeGate(g.toolName) && evidence.isSuccess && !mayDrawApprove(evidence.data) ? (
+                  <p className="px-mrd-4 py-mrd-3 text-mrd-data leading-mrd-prose text-mrd-mute">
+                    Build halted on this change, so it is not offered for merging. Send it back, or
+                    open the pull request and decide for yourself.
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    data-mrd=""
+                    disabled={busy}
+                    /*
+                     * NAMED EXPLICITLY (P-16 interim, A1 live 2026-09-02 22:18):
+                     * the button reads as "button, button" to a screen reader
+                     * without this -- an explicit `aria-label` is guaranteed to
+                     * win over whatever computed the two visible child spans
+                     * into no name at all, rather than a fix that depends on
+                     * fixing content the accessibility tree already had.
+                     */
+                    aria-label={`Let it run. ${REVERSIBILITY_LABEL[c.reversible]}. ${c.undo}`}
+                    onClick={() => {
+                      setAnsweringId(g.approvalId);
+                      decide.mutate({ approvalId: g.approvalId, verdict: "approve" });
+                    }}
+                    className="flex w-full items-start gap-mrd-3 rounded-mrd-ctl px-mrd-4 py-mrd-3 text-left transition-colors enabled:hover:bg-mrd-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] disabled:cursor-default disabled:opacity-45"
+                    style={{ transitionDuration: "var(--mrd-d-press)" }}
                   >
-                    1
-                  </span>
-                  <span className="flex min-w-0 flex-col gap-0.5">
-                    <span className="text-mrd-small font-medium text-mrd-ink">Let it run</span>
-                    <span className="max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
-                      {`${REVERSIBILITY_LABEL[c.reversible]}. ${c.undo}`}
+                    <span
+                      aria-hidden
+                      className="font-mrd-mono mt-px shrink-0 text-mrd-data tabular-nums text-mrd-faint"
+                    >
+                      1
                     </span>
-                  </span>
-                </button>
+                    <span className="flex min-w-0 flex-col gap-0.5">
+                      <span className="text-mrd-small font-medium text-mrd-ink">Let it run</span>
+                      <span className="max-w-[62ch] text-mrd-data leading-mrd-prose text-mrd-mute">
+                        {`${REVERSIBILITY_LABEL[c.reversible]}. ${c.undo}`}
+                      </span>
+                    </span>
+                  </button>
+                )}
                 <button
                   type="button"
                   data-mrd=""

@@ -79,6 +79,9 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { TERMINAL_HOLDS } from "./correction";
 import { HOLD_LINE } from "./driver";
+import { countLines, type MergeGateEvidence } from "@/lib/spine/what-the-merge-gate-shows";
+import { parseDesignCriticReview } from "@/lib/ai/design-critic";
+import { findingIsAgainstThePremise } from "@/lib/spine/a-design-verdict-against-the-premise-holds";
 import {
   buildActivity,
   type MemberRow as ActivityMemberRow,
@@ -4812,4 +4815,120 @@ export const buildOnYourWord = createServerFn({ method: "POST" })
       .eq("id", data.trackId);
 
     return { ok: true as const, decisionId };
+  });
+
+/**
+ * ── WHAT THE MERGE GATE SHOWS (P-72, R-40) ───────────────────────────────
+ *
+ * Three facts that all existed in the record when the tablet track's pull
+ * request was merged, and none of which was on the card: what the change
+ * touches, what the Build seat concluded, what the Design critic said.
+ *
+ * EACH READ FAILS ON ITS OWN and `known` is false only when the CHANGE itself
+ * could not be read. A missing halt and a missing verdict are ordinary -- most
+ * builds do not halt and not every track has a critic -- so they are absences
+ * rather than failures, and the card simply says less.
+ */
+export const mergeGateEvidence = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<MergeGateEvidence> => {
+    const { supabase } = context;
+    const empty: MergeGateEvidence = {
+      files: [],
+      buildHalt: null,
+      designVerdict: null,
+      known: false,
+    };
+    try {
+      const { data: runRows, error: runErr } = await supabase
+        .from("agent_runs")
+        .select("mission_id,trace_id")
+        .eq("track_id", data.trackId);
+      if (runErr) return empty;
+      const rows = (runRows ?? []) as Array<{ mission_id: string | null; trace_id: string | null }>;
+      const missionIds = [
+        ...new Set(rows.map((r) => r.mission_id).filter((m): m is string => !!m)),
+      ];
+      const traceIds = [...new Set(rows.map((r) => r.trace_id).filter((t): t is string => !!t))];
+      if (missionIds.length === 0) return empty;
+
+      const { data: csRows, error: csErr } = await supabase
+        .from("studio_changesets")
+        .select("id,workspace_id,created_at")
+        .in("mission_id", missionIds)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (csErr) return empty;
+      const cs = ((csRows ?? []) as Array<{ id: string; workspace_id: string | null }>)[0];
+      if (!cs) return empty;
+
+      /* The change itself, from the record rather than from GitHub: the content
+         is already here, so the card costs no network call and cannot be told a
+         different story by a rate limit. */
+      const { data: changeRows, error: chErr } = await supabase
+        .from("studio_changes")
+        .select("path,base_content,new_content")
+        .eq("changeset_id", cs.id)
+        .limit(200);
+      if (chErr) return empty;
+      const files = (
+        (changeRows ?? []) as Array<{
+          path: string;
+          base_content: string | null;
+          new_content: string | null;
+        }>
+      ).map((c) => ({ path: c.path, ...countLines(c.base_content, c.new_content) }));
+
+      /* The seat's halt, if it made one. An absence here is ordinary. */
+      let buildHalt: string | null = null;
+      if (traceIds.length > 0) {
+        let haltQ = supabase.from("tool_calls").select("args");
+        if (cs.workspace_id) haltQ = haltQ.eq("workspace_id", cs.workspace_id);
+        const { data: halts } = await haltQ
+          .in("trace_id", traceIds)
+          .eq("tool_name", "build.halt")
+          .eq("ok", true)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        const args = ((halts ?? []) as Array<{ args: unknown }>)[0]?.args as
+          { reason?: unknown } | undefined;
+        if (typeof args?.reason === "string") buildHalt = args.reason;
+      }
+
+      /* Design's verdict, if a critic ran. Also ordinarily absent. */
+      let designVerdict: MergeGateEvidence["designVerdict"] = null;
+      const { data: proto } = await supabase
+        .from("spine_track_members" as never)
+        .select("artifact_id")
+        .eq("track_id", data.trackId)
+        .eq("artifact_kind", "prototype")
+        .is("superseded_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const protoId = (proto as { artifact_id?: string } | null)?.artifact_id;
+      if (protoId) {
+        const { data: scaffold } = await supabase
+          .from("prd_scaffolds")
+          .select("critic_review")
+          .eq("id", protoId)
+          .maybeSingle();
+        const raw = (scaffold as { critic_review?: unknown } | null)?.critic_review;
+        if (raw) {
+          const review = parseDesignCriticReview(raw);
+          const against = review.findings.find(
+            (f) => findingIsAgainstThePremise(f.issue) || findingIsAgainstThePremise(f.principle),
+          );
+          designVerdict = {
+            verdict: review.verdict,
+            finding: against?.issue ?? review.findings[0]?.issue ?? null,
+          };
+        }
+      }
+
+      return { files, buildHalt, designVerdict, known: true };
+    } catch {
+      return empty;
+    }
   });
