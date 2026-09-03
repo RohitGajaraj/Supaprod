@@ -6854,6 +6854,43 @@ count from the same population; a test that the heading names families and omits
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads the heading live.
 
+
+### P-57 · A brief-path spec is guarded against its twin, and its derived title ends on a word · Lane: **A3** (after P-53) · Status: READY · Moves: 1, 2
+
+**Why.** Read live 23:31 IST while closing P-50: the Ask panel answered "What needs my call before it
+can move?" with the same design gate twice, *Approve the design for Remove the redundant address
+re-confirmation step in Relay checkout to increase tablet checkout completion rate from 67?* Both
+are real rows. Track `2fdf93b6` (Relay, "Checkout asks a homeowner to re-enter the delivery
+address it already has on file", now at Build) carries FOUR specs, all filed at Define, in two
+pairs a minute apart: `dd0a33e8` 08-31 21:30:19 and `64fa0caf` 21:31:01; `378d26ea` 09-02
+22:30:26 and `f2aa82f1` 22:31:04. A supersede at 09-03 02:50:29 retired the FIRST of each pair and
+left `64fa0caf` and `f2aa82f1` live, each with `design_gate_status='pending'`; that is the two
+cards. Cause, in `prd.draft` (`src/lib/ai/tools/registry.server.ts` ~4419-4545): the duplicate
+guard keys on `opportunity_id`, and every one of the 10 specs Helio Labs filed in the last seven
+days has `opportunity_id` NULL (the `brief` path, `surface_ref: "brief"`), so the guard has never
+fired for any of them. Second defect on the same lines: with no `title` passed, the derived title
+is the brief's first sentence cut at 120 characters mid-phrase with no marker, so the row reads
+"...rate from 67 " (length exactly 120, trailing space) while the schema and the insert allow 280.
+
+**Scope.**
+1. The brief path gets a twin guard. A spec filed from a brief on a track that already holds a live
+   (`superseded_at IS NULL`) spec at Define returns that spec with `existing: true`, the same
+   answer the opportunity path gives; fail open on an unreadable check, as the existing guard does.
+   Key on the track (`spine_track_members` kind `prd`, station `define`), not on the brief text.
+2. The derived title ends on a word boundary within 280 characters, never inside a phrase, and if
+   the sentence is longer than that the cut is marked; no trailing space. Keep it deterministic
+   (no model call), as the comment above it insists.
+3. A guard for each: a second `prd.draft` on the same track from a brief files nothing new; the
+   derived title of a 200-character sentence is whole.
+4. Data: nothing. Which of the two live specs stands is the founder's, and the double card on the
+   Ask panel is the visible symptom that makes P-55's "35 design gates" partly a count of twins.
+   Report the population: how many tracks hold more than one live spec at Define, with the query.
+
+**Acceptance.** Guards green; full suite on the tip, tsc 0; the population query and its number in
+the report. A1 reads the next brief-path Define pass on a live track and finds one spec.
+
+**DoD.** Pushed; suite number per rule 17; A1 publishes and reads.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** One vocabulary is the point of the whole design pass. With `Ask`, `Choice` and `Quiet` in
