@@ -720,3 +720,31 @@ after P-02), P-04/P-21/P-22/P-26 (A2, later). Production state: `stop_requested_
 Supaprod/relay-homeowner-app, made unattended at 20:51 UTC. The honest run `2fdf93b6` has not been
 re-driven: its builder run `0f4de13b` is parked `waiting_approval` on a cancelled gate. Date call
 unchanged: 15 Sep product-complete, 23 Sep public; checkpoint 6 Sep.
+
+## 2026-09-03 06:05 IST — A1 lane (Fable). Morning summary for the founder.
+**Done and live (20):** P-01, P-02 (code; live half pending), P-03a, P-03b (pending live read),
+P-03c (pending tick), P-05, P-10, P-11, P-12, P-13, P-14 (six pages deleted, 32,742 lines out;
+`/ship` and `/learn` wait for P-14b and P-04), P-14a, P-15, P-16, P-17, P-18, P-19, P-20, P-23,
+P-24, P-25. P-04 code-done, live half pending. P-25a code-done, live read pending.
+**Open:** P-14b, P-18a, P-27, P-28 (A3); P-21, P-22, P-26 (A2); the out-of-time-over-claim ordering
+fix (A2, in hand).
+**The Build path ran unattended for the first time** (PR #4, 20:51 UTC) and, by running, showed nine
+defects nobody could find by reading. Fixed tonight: R-30 inert in production (approval-policy forced
+review); a Build re-driven every tick (a dead `track_id` join that also silenced F-72's gate for a
+month and P-02's acceptance gate); the sweep's front held by horizon-waiting tracks; a cancelled gate
+misread; a claimed path filed as CI-red then unstaged around; the done rule skipping the crew that
+would fix red CI; the correction loop sending a built track back to Define because nothing checked
+its premise (the machine behind weeks of duplicate specs and prototypes); a person's hold swept every
+ten minutes; a partial `mock.module` breaking a sibling test for days. A schema-against-queries test
+now closes the dead-join class. Rules 13 and 14 added to the queue protocol.
+**Rulings:** R-34 (no lanes; priority is Put first), R-35 (a mission without a track is not a run;
+the 15-minute mission generator now writes a bet, not a mission).
+**Founder decisions waiting:** merge or decline PR #4 on relay-homeowner-app (the honest run waits
+behind it on `AddressStep.tsx`); whether to wire the two Ask helpers A2 fixed.
+**Production state:** honest run `2fdf93b6` at Build, attempts 0, hold `out-of-time` (should read
+waiting-on-another-run; A2 fixing the ordering); tablet track `6817e386` on its merge gate; 50
+generator missions cancelled; `deferred_until` migration applied and ledgered.
+**Live walks paused since 04:12 IST:** the Chrome extension disconnected. Pending walks: P-25a,
+P-04's Learn tab and Start row, P-14's four surfaces, P-18a. Resume on reconnect.
+**Date call unchanged:** 15 Sep product-complete, 23 Sep public; 6 Sep checkpoint question: has one
+run walked the whole route with nobody pressing anything. Tonight it reached the first human gate.

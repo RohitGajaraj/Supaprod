@@ -383,3 +383,9 @@ forced review after every mode layer said auto), a Build with an open PR is re-d
 a cancelled gate parks its run for good. One is fixed and published; two are with A2 tonight. The
 honest run has not yet walked Build → verdict → Ship. The 15 September call stands; it is re-read
 on 6 September against one question: has one run walked the whole route with nobody pressing anything.
+
+**Checkpoint, 2026-09-03 06:05 IST.** Twenty packets done and live. The first unattended pull request
+exists. Running the Build path once exposed nine defects that reading never would have, including the
+loop that has been writing duplicate specs and prototypes for weeks; eight are fixed and published,
+the ninth is in hand. The honest run stands at the first human gate: PR #4's merge, the founder's
+decision. The 15 September call stands.
