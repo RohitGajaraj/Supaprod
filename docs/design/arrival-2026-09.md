@@ -1,5 +1,7 @@
 # The arrival: what an empty workspace says before any run exists
 
+> _Created: 2026-09-03 · Last updated: 2026-09-03_
+
 > _Written 2026-09-03 (A2, packet P-33). Walked on `supaprod.ai` against a workspace created for
 > the walk, plus a source audit of every first-time state the walk could not reach._
 

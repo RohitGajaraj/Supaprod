@@ -2011,7 +2011,62 @@ bound is a builder as a contiguous run of calls, comments stripped first, zero f
 reintroducing the driver's dead join. The two Ask helpers are fixed and still unwired; wiring them is
 a product decision for the founder's list.
 
-**Report (A2 writes):** —
+**Report (A2 writes):** Six commits on main: `b340a3fe6`, `112cc1dae`, `0e1b964a6`, `810a016c6`,
+`fd2b0dcaa` (sample door), `d39f363da`. Document at [`docs/design/arrival-2026-09.md`](../docs/design/arrival-2026-09.md).
+
+**The packet's own premise was the first finding: the empty workspace was not reachable.** A second
+workspace could not be created and never had been. `workspaces` had no INSERT policy, and its one
+INSERT-capable policy asks whether the caller is already a member of the row being inserted, which
+is false by construction. `20260907010000` adds it. **That was only half the wall.** The insert
+still failed with the same 42501, because `createWorkspace` ends `.insert(...).select().single()`,
+PostgREST turns that into `RETURNING`, and Postgres applies the SELECT policy to the returned row.
+The only one was `is_workspace_member(id)`, false for a workspace whose membership row cannot exist
+yet. `20260908010000` adds `ws owner reads own`. Both applied and verified in `pg_policy`; the whole
+path probed end to end under `set local role authenticated`, every probe rolled back. Then walked
+live: **"A2 arrival check is ready."**
+
+**Using it exposed a bigger defect.** The new workspace opened showing Helio Labs' ranked bets and
+run list as its own. `listRunsForStart` filtered on `status` alone and `listTopOpportunities` ordered
+every `opportunities` row by ICE, both leaning on RLS, which scopes to every workspace a person
+BELONGS TO: the right answer to "may they see this", the wrong one to "whose desk is this". Both
+`useQuery` keys named the page, not the workspace. All four halves fixed, narrowing only when the id
+resolves. Guard: `the-desk-you-are-on-is-the-desk-you-see.test.ts`.
+
+**Four things the empty workspace said that it had not earned**, all fixed: the strip reading "0
+findings this week from 0 sources" over a product never given anything to read (its own header
+states the rule; its guard could never fire because clauses drop on `null` and `0` is not `null`);
+four invented signals and two opportunities written to the tables real evidence lands in; three
+hardcoded cards in the same slot, styling and handler as ranked bets, whose press filed a real run
+about a checkout the person may not have; and a workspace whose owner had no membership row.
+
+**The sample door, all four dishonesties closed.** The tag and banner four separate comments claimed
+the shell already rendered now exist in Meridian; the copy says it is a move rather than a preview
+and names the switcher as the way back; the seeder marks what it invents.
+
+**ONE THING OUTSTANDING, and it is a real blocker, not a formality.**
+`20260909010000_the_seeder_marks_what_it_invents.sql` is **written, reviewed and committed but NOT
+applied.** Rule 12 asks the lane to apply it, and I could not, honestly: it is a `CREATE OR REPLACE`
+of a 91 KB plpgsql function, the Lovable MCP takes SQL only as an inline string, and reproducing 91 KB
+of seeded prose token by token risks a single character of drift in a function that **runs at every
+signup**. Verified live that the deployed function has `is_sample` **0 times**, so the defect stands.
+`.env` holds only anon keys and there is no `psql` or direct Postgres URL here, so there is no path
+from this lane that sends the file verbatim. **It needs applying by something that can send the
+file** (Supabase CLI, the SQL editor, or a paste). Nothing is broken meanwhile: it changes future
+seeds only, and the workspace-level tag and banner cover existing data.
+
+**And one decision deliberately not taken.** 2,144 rows across the sample workspaces carry
+`is_sample = false` (498 themes, 1,119 signals, 449 opportunities, 78 prds; counted on production),
+so the row-level Example marks the product renders have never once fired. I did **not** backfill
+them: `derive-insights.server.ts:129` and `insights.functions.ts:215` gate the brain's theme
+candidates on `.eq("is_sample", false)`, so flipping them would empty its candidate set in the demo
+workspaces the founder walks. **Founder call, not a lane call.**
+
+Six further findings are left standing with `file:line` evidence in §5 of the document, the sharpest
+being that `getStandingRecord` counts with `.eq("user_id", userId)` and no workspace filter, which is
+the same class as the Start defect above in a second place.
+
+tsc 0 · `bun test` 13733 pass / 0 fail · eslint 0 errors on touched files · `lint-migrations` 0
+apply-fatal · ratchet not widened · pushed.
 **Blockers (A2 writes):** —
 
 ### P-02 · The verdict at Build · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2: 4 of 4 in code; A1 reads the live half on the honest run) · Moves: 3, 4
@@ -4944,7 +4999,7 @@ session. Everything else in the Report is done and pushed. **Updated after pass 
 2.7-second reader is now named with a structural explanation, not just flagged.**
 
 
-### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: CLAIMED (A2, 10:00 IST) · Moves: 1, 2, 5
+### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: DONE (A2, 13:10 IST), one apply outstanding · Moves: 1, 2, 5
 
 **Why.** Every walk so far has been on Helio Labs, a workspace with 59 decisions and 15 tracks.
 The founder's own workspace, and every new customer's, starts with nothing: no runs, no bets, no
