@@ -7676,6 +7676,30 @@ idle, under 800 ms, with the Server-Timing lines in the report. Full suite on th
 
 **DoD.** Pushed; suite number per rule 17; ledger row if a migration.
 
+
+### P-59c · The Ship hold card reads the newest deployment for the track's changeset, whatever its age · Lane: **A2** (now, before P-74) · Status: READY · Moves: 1, 3
+
+**Why.** Live at 04:55 IST 09-04 on the served tablet track `6817e386` (hold `produced-nothing`
+at Ship, attempts 1): the card reads the generic *This step ran but filed nothing ... It will try
+again* with *Let Ship try again*. P-59's sentence and P-68b's *Try the preview again* do not draw.
+The record lines up: the track's runs carry mission `69fc25b5`, the changeset `e7565181` carries
+the same mission and is a `changeset@build` member of the track, and one `deployments` row exists
+for it (06:44 UTC, failure, reason NULL). So the read that decides the card is excluding that row,
+most likely by age against the current attempt, or by requiring a reason. A failure eighteen hours
+old is still the reason Ship cannot move.
+
+**Scope.** The card reads the newest deployment for the track's changeset (by the `changeset`
+member, not only by mission) regardless of age; a NULL reason reads *nothing on the attempt says
+why* as P-59 designed; *Try the preview again* draws on it and stands the station's own *try
+again* down (a re-drive spends an attempt on a promote that cannot pass). Guard: a track with a
+changeset member and a failed deployment of any age draws the P-59 card. Report the actual
+exclusion you found.
+
+**Acceptance.** Served tablet track: the card names the attempt and offers *Try the preview
+again*; A1 presses it and reads the row. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
