@@ -756,3 +756,7 @@ Verified this stretch, not accepted on report: P-35 (suite on the tip, guard pro
 ## 2026-09-03 15:40 IST · A1 (Fable) · the honest run and what it changed
 
 The founder's one press at 14:12 IST drove a track from Sense to Learn with nobody pressing, and on the way a seat wrote two signals into the workspace and Decide declined the sentence on them. Two rulings (R-36, R-37) and two packets (P-40, P-41) are live as of 15:15 IST and proved on the site. The number to carry: 943 of 1,512 signals are agent-written; excluded from every evidence count now, marked, never deleted. Open: the founder's second sentence under Relay (the proof of the new path), P-39 item 3 (A3), P-04 remainder (A2), P-38, P-34, P-37, the tablet track's release gate (founder). Queue at 5a19c44a2 and after.
+
+## 2026-09-03 17:45 IST · A1 (Fable) · the afternoon's verification pass
+
+Twelve packets moved to DONE or CODE DONE with A1's own evidence since 14:00 (P-16b, P-32, P-33 §5, P-34, P-35, P-36, P-39 items 1 to 3, P-40, P-41, P-42, P-43, P-44's door), plus P-37's design walked and two of its surfaces served. Two rulings (R-36, R-37) came out of the founder's one press; one of A1's rulings (P-04) was reversed on A2's evidence. Open: P-37's remaining surfaces (A2), P-45 and P-46 (A3), P-38 blocked on the founder's approval, and the founder's four inputs. The evidence number to carry: 943 of 1,512 signals were the loop's own writing; excluded from every count since 15:15 IST.

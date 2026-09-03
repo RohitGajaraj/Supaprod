@@ -155,3 +155,12 @@ Queue `the-first-run/A-QUEUE.md`; report `A1-REPORT.md`. Live at `d43fc2829`. In
 - The switcher (workspace and product) is per-user server state on the shared demo account: do not switch from A1's tab while the founder is about to press. Probe workspace `a1-delete-probe` (owner demo user, no member row) exists for the P-39 delete walk; walk it after his second run starts, then it is gone.
 - Live and verified this stretch: P-16b (both halves), P-36, P-39 items 1 and 2 (item 3 redirected to `changeset-deploy.server.ts` via `ci-poll-tick.ts`), P-33 §5 (A2's walk by rule 18), P-35. Rules 17 and 18 in §0.
 - Timer wakes: a background `sleep N; echo` gives one notification; the hook clock runs a few minutes behind the labels I write.
+
+## A1 · 2026-09-03 17:45 IST · the afternoon after the honest run
+
+- Live and verified since 15:40: P-32 (warm first row 1.2 s by its own marks; cold Worker 5 s first byte is a hosting item for the founder), P-42 (grader read kit; live read on the 06:00 UTC tick), P-43, P-44's door (lands on `/sync` with the product; Helio Labs has no live source beyond the repo, a founder decision), P-34 (by object), P-39 items 1 to 3 on the code; P-37's design walked, three Meridian components and two surfaces served (gate card slots fixed, verdict leads the row).
+- One ruling reversed on A2's evidence (P-04: the settle gate stays; the grader had no evidence, eight verdicts at confidence 1.0 with nothing behind them). P-42 came out of it.
+- Queue rebalanced at 16:10: A3 holds P-45, P-46 (READY) and P-38 (BLOCKED: its session's permission check refused the cron migration; A1 refused to run it for A3; the founder approves in A3's session or says the word to A1). A2 holds P-37's surfaces.
+- Lovable's bot pushes `Work in progress` commits that requote five files every time it regenerates types.ts; reverted twice (e619e836e, 502ad462b). Read its commit before publishing.
+- Founder inputs still open at 17:45: the second sentence under Relay (proof of P-40/P-41 live), the tablet track's release gate (since 12:13), P-38's approval, the seven Prism and Trellis decisions. The `a1-delete-probe` workspace (owner demo user, no member row) still exists for the P-39 delete walk; walk it after his run starts, then it is gone.
+- The switcher and the theme are per-user state on the shared demo account; the page went dark at 17:10 without either lane touching it.
