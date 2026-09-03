@@ -399,11 +399,34 @@ function plural(n: number, one: string, many: string): string {
 }
 
 /** The product's own word for a spec's design gate, never the raw enum. */
+/**
+ * A PERSON'S ANSWER, OR NOTHING. This feeds the "Who signed it off" block, which
+ * pairs these words with `design_decided_at`, so anything returned here is
+ * published as a human judgment with a date on it.
+ *
+ * `superseded` therefore returns null, deliberately (P-57b, 2026-09-04). It is
+ * the one status no person chose: the spec stopped applying and the gate closed
+ * with it, and `design_decided_at` stays null on those rows for the same reason.
+ * Twenty-one specs carry it, and wording any of them "Design rejected" would put
+ * a decision on the record that nobody made -- the defect this file's own header
+ * says it exists to prevent. It is named in the receipts below instead.
+ *
+ * `changes_requested` is kept and is unreachable: the column's CHECK has never
+ * allowed it (pending / approved / rejected, and now superseded). Left in place
+ * rather than deleted because removing it is a separate question from this
+ * packet, and recorded here so the next reader does not take it as evidence the
+ * value exists.
+ */
 function designGateWords(status: string | null): string | null {
   if (status === "approved") return "Design approved";
   if (status === "changes_requested") return "Design sent back for changes";
   if (status === "rejected") return "Design rejected";
   return null;
+}
+
+/** The spec stopped applying, so its gate closed with it. Never a judgment. */
+function gateClosedWithSpec(status: string | null): boolean {
+  return status === "superseded";
 }
 
 /** `stage_events.actor` in plain words. Same three readings the chain of custody
@@ -690,7 +713,23 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
      * line, and a route that was never read leaves this line standing, because
      * "we did not look" must never be published as "they decided".
      */
-    !approval && !!prd && !skipped
+    /*
+     * AND A THIRD CASE, SPLIT OUT THE SAME WAY THE SKIP WAS (P-57b).
+     *
+     * A superseded spec has no human approval either, and reporting that as a
+     * gap the team failed to close is the same error the paragraph above
+     * describes: nobody failed to answer this gate, the spec it belonged to
+     * stopped applying. Twenty-one specs are in this state as of 2026-09-04.
+     * So it gets its own line, which is a fact about the record rather than a
+     * hole in it, and the "genuine gap" sentence keeps its exact words.
+     */
+    !approval && !!prd && !skipped && gateClosedWithSpec(prd.design_gate_status)
+      ? fact(
+          "This spec was superseded, so its design gate closed with it and nobody was asked to approve how it looks.",
+          "prds.design_gate_status = superseded",
+        )
+      : null,
+    !approval && !!prd && !skipped && !gateClosedWithSpec(prd.design_gate_status)
       ? fact(
           "No design gate was decided on this spec, so no human approval is on the record for how it looks.",
           "prds.design_gate_status (undecided)",

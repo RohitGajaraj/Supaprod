@@ -107,6 +107,7 @@ import {
 } from "@/lib/admin-platform.functions";
 import { getMemoryExpiryEnabled, adminSetMemoryExpiryEnabled } from "@/lib/pricing.functions";
 import { inBandError } from "@/components/admin/admin-ui";
+import { askQuestion } from "@/components/meridian/question";
 
 export const Route = createFileRoute("/_authenticated/admin/platform")({
   component: AdminPlatform,

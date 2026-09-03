@@ -63,6 +63,7 @@ import { Receipt } from "@/components/meridian/Receipt";
 import { Ask } from "@/components/meridian/Ask";
 import { askQuestion } from "@/components/meridian/question";
 import { AgentMark, YouMark } from "@/components/meridian/marks";
+import { askQuestion } from "@/components/meridian/question";
 
 /** Who put this in front of you. The table has a source_kind and nothing else,
  *  so an agent-proposed candidate says the agent is not named rather than
@@ -217,7 +218,16 @@ export function MemoryReviewQueue() {
         </ReadFailed>
       ) : focused ? (
         <Ask
-          question={askQuestion(focused.content)}
+          /*
+           * COMPOSED, NOT PUNCTUATED, and this is the case that shows why the
+           * type alone is not the whole rule. A3 and I both fixed the tsc error
+           * here; passing the content as the entire question satisfies
+           * `askQuestion` and still asks the wrong thing. `content` is a
+           * statement -- "The installers lose signal in basements" -- so
+           * "...basements?" reads as doubting the fact. The card is asking
+           * whether to KEEP it, and that is the verb the question needs.
+           */
+          question={askQuestion("Keep this on the record:", focused.content)}
           reason={whoLine(focused.source_kind)}
           risk={
             willSupersede(focused.supersedes_memory_id)

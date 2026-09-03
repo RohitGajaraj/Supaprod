@@ -144,6 +144,7 @@ import { stripAutoMarkers } from "@/components/plan/format";
 import { stoppedFor, waitingSince } from "@/components/meridian/stopped-for";
 import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
 import { queueShape, shapeSentence } from "@/components/approvals/a-queue-is-a-shape-not-a-total";
+import { questionForGate } from "@/components/ask/a-question-is-composed-not-punctuated";
 
 /** One identity for the empty case, so a loading or failed read does not
  *  invalidate every memo that depends on the queue. See its use below. */
@@ -884,7 +885,14 @@ function ApprovalsSurface() {
             <Ask
               // The "[auto]" marker names a call the loop raised itself and must
               // never reach the sentence being judged.
-              question={askQuestion(stripAutoMarkers(focused.title))}
+              /*
+               * `questionForGate`, not `askQuestion(title)`. Both typecheck and
+               * only one asks a question: a title is a statement, so the second
+               * form is the glued mark again with the brand satisfied. It also
+               * has to be the SAME composer the row beside it uses, or the
+               * focused view and its own list word one gate two ways.
+               */
+              question={questionForGate(focused.kindKey, stripAutoMarkers(focused.title))}
               reason={focusedReason}
               /*
                * P-51 (A-QUEUE.md), still true through the Ask migration: this is

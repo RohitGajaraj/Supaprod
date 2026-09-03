@@ -123,6 +123,7 @@ import { Ask } from "@/components/meridian/Ask";
 import { askQuestion } from "@/components/meridian/question";
 import { AgentMark } from "@/components/meridian/marks";
 import { useConfirm } from "@/hooks/use-confirm";
+import { askQuestion } from "@/components/meridian/question";
 
 type EventType =
   | "signal.created"

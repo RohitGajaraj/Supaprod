@@ -96,6 +96,7 @@ import {
 import { getBillingGoLiveReadiness, type GoLiveCheck } from "@/lib/payments/go-live.functions";
 import { getObservabilityStatus } from "@/lib/observability.functions";
 import { getActiveBanner } from "@/lib/admin-platform.functions";
+import { askQuestion } from "@/components/meridian/question";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminOverview,
