@@ -512,10 +512,50 @@ const logSignal = def({
      */
     const ownKind = namesOwnArtifact(a.source);
     if (ownKind) throw new Error(ownArtifactRefusal(a.source ?? "", ownKind));
+    /*
+     * ── A SIGNAL MUST NAME SOMETHING OUTSIDE THIS LOOP (R-37, P-41) ────────
+     *
+     * `source` was optional and defaulted to the string "agent", so a seat that
+     * had read nothing outside the workspace could still write a row that every
+     * later Discover pass reads as evidence. On the founder's own run, 14:41
+     * IST, the Researcher did exactly that: two rows into Helio Labs (`source
+     * agent`, `source_kind manual`) restating a theme that was already there,
+     * having read nothing outside. The 14:50 sweep then advanced the track to
+     * Decide on those two rows, while another seat reading them by id still
+     * reported there was no evidence for the sentence. **The run was carried on
+     * evidence the run had just written about itself.**
+     *
+     * The header above this tool already measured the same disease once (54 of
+     * 75 rows agent-authored, a genuine customer request buried under fifty-two
+     * notes about absence) and answered it with a DESCRIPTION telling the model
+     * not to. A description is a request. This is the rule.
+     *
+     * WHY REFUSING BEATS REMOVING THE TOOL FROM THE SEAT. R-37 asks for
+     * `signals.log` to leave every Sense seat's kit and to stay for ingest paths
+     * "with a source id required on the row". There is no per-seat kit in this
+     * product: the registry IS the list and the only per-agent filter is a risk
+     * cap. So the two halves are one rule -- a caller that can name an outside
+     * source keeps the tool, and a caller that cannot is refused -- and it holds
+     * for any seat, including ones nobody has written yet.
+     *
+     * THE REFUSAL NAMES WHERE THE WORK GOES INSTEAD, because a refusal with no
+     * door is how a seat starts inventing one: reading the workspace and
+     * grouping what is already there is a complete outcome (`cluster.trigger`,
+     * `research.synthesize`), and finding nothing is an answer
+     * (`sense.found_nothing`).
+     */
+    const named = (a.source ?? "").trim();
+    if (!named || named.toLowerCase() === "agent") {
+      throw new Error(
+        "A signal has to name where it came from, and that has to be something outside this loop: a customer, a ticket, a review, a call, an analytics or session-replay reading. You did not name one, so this is your own writing and filing it would put it on the record as evidence for the next station. If you read what is already in the workspace and drew a conclusion, group it with cluster.trigger or research.synthesize, which is a complete outcome. If the workspace holds nothing about this, call sense.found_nothing. Neither is a workaround for this refusal; they are the two honest endings.",
+      );
+    }
     const { writeSignals } = await import("@/lib/sources/sink.server");
     const result = await writeSignals(userId, workspaceId, [
       {
-        source: a.source ?? "agent",
+        // Never `?? "agent"`: the refusal above guarantees a named outside
+        // source, and a default here would quietly restore the hole it closes.
+        source: named,
         sourceKind: "manual",
         title: a.title ?? a.content.slice(0, 120),
         content: a.content,

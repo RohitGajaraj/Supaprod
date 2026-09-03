@@ -310,8 +310,23 @@ describe("a filing tool hands back the id the driver reads", () => {
     if (at < 0) return null;
     const runAt = REGISTRY.indexOf("run:", at);
     if (runAt < 0) return null;
-    // Bounded so a match cannot leak in from the next tool's body.
-    return REGISTRY.slice(runAt, runAt + 4000);
+    /*
+     * Bounded so a match cannot leak in from the next tool's body, AND bounded
+     * at the next tool rather than at a fixed number of characters.
+     *
+     * It read `runAt + 4000`. That is a guess about how long a tool body is, and
+     * P-41 falsified it: `signals.log` gained a refusal (a signal must name a
+     * source outside this loop) whose comment and message pushed the `id:` this
+     * assertion looks for past character 4000, so the guard failed over a tool
+     * that was working perfectly. A window measured in characters fails
+     * whenever somebody explains themselves, which in this repo is always.
+     *
+     * `= def({` starts every tool in the registry, so the next one is the real
+     * edge. `length` when this is the last tool, which is the correct bound
+     * there rather than a shorter guess.
+     */
+    const nextTool = REGISTRY.indexOf("= def({", runAt);
+    return REGISTRY.slice(runAt, nextTool < 0 ? REGISTRY.length : nextTool);
   }
 
   it("signals.log returns the field TOOL_PRODUCTS reads off it", () => {

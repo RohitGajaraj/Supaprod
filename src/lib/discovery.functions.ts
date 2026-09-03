@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { excludeLoopAuthored } from "@/lib/sources/the-loop-does-not-count-its-own-writing";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
 import { extractArrayField } from "@/lib/ai/json-shape";
@@ -1300,10 +1301,12 @@ export const getSenseCoverage = createServerFn({ method: "GET" })
      * Unresolved stays unfiltered, as everywhere else: an id we cannot name
      * must not become an empty desk, because an empty desk is itself a claim.
      */
-    let q = supabase
-      .from("signals")
-      .select("source,source_kind,created_at,theme_id")
-      .gte("created_at", since)
+    let q = excludeLoopAuthored(
+      supabase
+        .from("signals")
+        .select("source,source_kind,created_at,theme_id")
+        .gte("created_at", since),
+    )
       .order("created_at", { ascending: false })
       .limit(2000);
     if (data.workspaceId) q = q.eq("workspace_id", data.workspaceId);

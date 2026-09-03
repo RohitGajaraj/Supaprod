@@ -969,6 +969,21 @@ export function stationGoal(
    * that matters.
    */
   branch: string | null = null,
+  /**
+   * R-36 / P-40. Sense searched, the workspace held nothing bearing on the
+   * sentence, and the work was carried here on the sentence alone.
+   *
+   * IT IS THE DECISION'S FOOTING AND IT HAS TO REACH THE RECORD. A call made
+   * with no findings behind it is not a worse decision, but it is a DIFFERENT
+   * one, and Learn grades it later against what it was standing on. If the
+   * decision does not say so, the record shows a call that looks evidence-backed
+   * and a grade that cannot be read honestly.
+   *
+   * Passed rather than derived, like `correction` and `specId` above it, so this
+   * stays a total function of its arguments and the driver stays the one place
+   * that reads the track's hold.
+   */
+  carriedOnTheSentence: boolean = false,
 ): string {
   const { subject, note: reScoped } = stationSubject(track, upstream);
   /**
@@ -1028,7 +1043,18 @@ export function stationGoal(
    * sentence and it travels to every seat automatically, so the next person to
    * edit it edits it once.
    */
-  const file = [FILE_IT[station], seat?.file?.trim()].filter(Boolean).join(" ");
+  /*
+   * R-36 / P-40. THE FOOTING RIDES WITH THE FILING INSTRUCTION, because it is an
+   * instruction about what to file, in the same way `correction` is. Decide
+   * only: it is the station that makes the call, and it is the call that has to
+   * carry what it was standing on. Learn reads that later to grade honestly.
+   */
+  const footing =
+    carriedOnTheSentence && station === "decide"
+      ? "There are no findings behind this: Discover searched and this workspace holds nothing bearing on the sentence, so you are deciding on the person's own words alone. Make the call anyway, and record it with evidence: the person's sentence, no findings. Do not describe it as evidence-backed and do not go looking for our own writing to stand on."
+      : null;
+
+  const file = [FILE_IT[station], seat?.file?.trim(), footing].filter(Boolean).join(" ");
 
   /*
    * F-68. A STEP YOU WERE TOLD FAILED MAY NEVER BE REPORTED AS DONE.

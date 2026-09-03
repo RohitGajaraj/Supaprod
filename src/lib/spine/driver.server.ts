@@ -2704,6 +2704,10 @@ export async function driveTrackOnce(
           fixNote ?? backNote,
           specId,
           workBranch,
+          /* R-36 / P-40. The hold Sense wrote when it carried this track here on
+             the sentence alone. The driver is the one place that reads it, so
+             `stationGoal` stays a total function of its arguments. */
+          (row.last_hold as string | null) === CARRIED_ON_YOUR_SENTENCE,
         ),
         workspaceId: row.workspace_id,
         missionId,
