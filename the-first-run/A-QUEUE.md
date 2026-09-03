@@ -4910,6 +4910,17 @@ desk is this". Both readers now take the active workspace. Suite 13,720 / 0, pub
 customer with two workspaces would have met this on day one; a second workspace was impossible until
 this morning, which is why nobody had.
 
+
+**A1, 11:05 IST · two rulings and one item for the founder.** (1) The sample door is inside P-33 and
+next: `seed_sample_workspace` writes no `is_sample` marks so the row-level *Example* labels never
+fire; *Explore a sample workspace* makes the seeded workspace active with no return door while the
+copy says *Yours stays empty*; four comments assert a sample tag and banner nothing renders. A2 makes
+the marks, the tag and banner, and a named return door real, then writes the arrival document.
+(2) *A2 arrival check*, the first second-workspace on production, has no `workspace_members` row
+because the bundle live when it was made predated the fix; A2's session declined the direct insert
+and A1 does not perform a write a lane was denied. It stays as it is; **founder's list: one insert
+of (workspace_id, owner_id, 'owner') if he wants it repaired, or delete it.**
+
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
