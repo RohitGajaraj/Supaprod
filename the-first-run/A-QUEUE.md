@@ -4020,7 +4020,7 @@ on a freshly loaded Start eats the first pointer press; find it, because a perso
 
 ---
 
-### P-26 · Meridian: raw durations become tokens · Lane: **A2** · Status: CLAIMED (A2, 08:40 IST) · Moves: 4
+### P-26 · Meridian: raw durations become tokens · Lane: **A2** · Status: DONE (A2, 09:20 IST) · Moves: 4
 
 **Why.** R-20 §4: a raw duration is a fail. Measured 2026-09-03 00:03 across `src/components/meridian/*.tsx`:
 `duration-100` ×24, `duration-150` ×11, `duration-200` ×8, `duration-300` ×7, beside `--mrd-d-press`
@@ -4040,8 +4040,69 @@ class in that directory fails. Product surfaces outside Meridian are not in scop
       and the Report lists any that changed by more than 50 ms with the reason.
 - [ ] tsc 0 · `bun test` 0 fail · pushed · Report.
 
-**Report / Blockers / A1 verdict:**
+**Report (A2, 09:20 IST) — on main at `6347be46c`. `grep -rhoE "duration-[0-9]+" src/components/meridian
+| wc -l` → **0**, the guard pins it, tsc 0, `bun test` 0 fail, ratchet unchanged.**
 
+**MAPPED BY MEANING, NOT BY NEAREST NUMBER**, which is the packet's own rule and why every occurrence
+was read in context rather than substituted. A hover colour written `duration-300` is still a press;
+a panel growing written `duration-100` is still a move. Each of the 52 was mapped from what actually
+transitions, on which element, and what triggers it — then a second pass tried to REFUTE each mapping
+against the token's stated meaning in `meridian.css`.
+
+| Token | Count | What it means |
+| --- | --- | --- |
+| `--mrd-d-press` | 43 | a control acknowledging the pointer |
+| `--mrd-d-move` | 8 | something changing position or size |
+| `--mrd-d-enter` | 1 | content arriving unasked |
+| `--mrd-d-alive` | **0** | correctly none — it is a PERIOD for a repeating highlight, and every occurrence here is a one-shot transition |
+
+**No new token was needed**, and that was a real question rather than a formality: the mapping pass
+was instructed to say so if an occurrence meant none of the four. None did.
+
+**THE SWEEP FOUND ONE THIS PACKET'S OWN GREP WOULD HAVE MISSED.** `Thinking.tsx:331` carries
+`duration-[400ms]` — Tailwind's arbitrary-value form, which `duration-[0-9]+` does not match. **The
+acceptance criterion as written would have passed with it still there.** The guard matches both
+forms, and the count above is 52 rather than the packet's measured 51 for that reason.
+
+**One mapping was refuted, and the refutation was right about the reasoning rather than the token.**
+`Thinking.tsx:454` was mapped to `press` — correct — but justified by a claim that its transition
+drove a child span's underline fade. It does not: `transition` is not inherited, and that span
+carries its own declaration at line 415. Both are mapped separately, which is what the refutation
+asked for.
+
+**The seventeen that changed by more than 50ms**, largest first, as the packet requires:
+
+| `InsightCards.tsx:919` | `duration-500` | `--mrd-d-move` | -360ms | width (0% to calc(100% - 8px)) and opacity on the aria-hidden --mrd-hover fill span absolutely positioned insi |
+| `Thinking.tsx:331` | `duration-[400ms]` | `--mrd-d-move` | -260ms | grid-template-rows (0fr to 1fr, i.e. the reveal panel's height) and opacity on the collapsible <div> that hold |
+| `InsightCards.tsx:900` | `duration-300` | `--mrd-d-press` | -180ms | opacity (0.58 to 1), box-shadow (the inset --mrd-focus selection ring) and transform on the SplitBody segment  |
+| `ApprovalCard.tsx:365` | `duration-300` | `--mrd-d-move` | -160ms | width, height, background-color and border (transition-all) on each pager dot <button> — 7px to 9px with a 2.5 |
+| `Thinking.tsx:316` | `duration-300` | `--mrd-d-move` | -160ms | transform on the chevron <svg> alone: rotate(0) to rotate(180deg) from the inline style keyed on `expanded`. N |
+| `TaskRows.tsx:438` | `duration-300` | `--mrd-d-move` | -160ms | `border-radius` only (transition-[border-radius]) on the per-task row container div; the inline style drives i |
+| `TaskRows.tsx:503` | `duration-300` | `--mrd-d-move` | -160ms | `transition-transform` on the chevron <svg> inside the row button; the inline style rotates it `rotate(0)` ->  |
+| `TaskRows.tsx:519` | `duration-300` | `--mrd-d-move` | -160ms | `grid-template-rows` (0fr -> 1fr) plus `opacity` (0 -> 1) on the grid wrapper around the detail block, with `t |
+| `ApprovalCard.tsx:289` | `duration-200` | `--mrd-d-press` | -80ms | background-color and color on the size-4 radio/checkbox indicator <span>, flipping between bg-mrd-ink/text-mrd |
+| `ApprovalCard.tsx:306` | `duration-200` | `--mrd-d-press` | -80ms | color on the option label <span> (text-mrd-body -> text-mrd-ink) when the option is picked |
+| `ApprovalCard.tsx:397` | `duration-200` | `--mrd-d-press` | -80ms | background-color, color, box-shadow and transform (explicit transition-[background-color,color,box-shadow,tran |
+| `Thinking.tsx:415` | `duration-200` | `--mrd-d-press` | -80ms | text-decoration-color on the Search row's primary <span> (decoration-transparent to group-hover:decoration-cur |
+| `FineTuneCard.tsx:92` | `duration-200` | `--mrd-d-press` | -80ms | background-color and box-shadow on the ScrubField wrapper <div> (transition-[background-color,box-shadow]); th |
+| `FineTuneCard.tsx:436` | `duration-200` | `--mrd-d-press` | -80ms | `color` only, on each segmented layout <button> (transition-colors, but the only class that changes is the tex |
+| `FineTuneCard.tsx:474` | `duration-200` | `--mrd-d-press` | -80ms | box-shadow on the dropdown trigger <button> (transition-[box-shadow]); the inline style adds `0 0 0 1px var(-- |
+| `ApprovalCard.tsx:296` | `duration-200` | `--mrd-d-move` | -60ms | transform only (scale(0) -> scale(1), set inline) on the size-1.5 inner dot <span> of a single-choice radio, w |
+| `ContextCards.tsx:647` | `duration-300` | `--mrd-d-enter` | +120ms | The wrapper <div> around <SourceChip> inside each context-card <li>: transition-[opacity,transform] drives opa |
+
+The largest two are both size changes landing on `--mrd-d-move`'s 140ms: a fill bar written 500ms and
+the trace disclosure written 400ms. Both are genuinely slower than the system's budget for a size
+change, and meaning decides — these are the two a reader would notice, named here rather than buried.
+
+**The guard is absolute, not ratcheted, and the shape is the argument.** The Meridian ratchet is a
+per-file debt ledger — right for retired vocabulary spread across 900 files of product surface, paid
+down over months. It is wrong for the system itself, where the count is zero and a ledger would
+record 52 entries as *permitted debt*. Two guards on the guard: the walk found real files, and the
+matcher fires on a raw class while NOT firing on `duration-[var(--mrd-d-press)]`, which is the thing
+it protects.
+
+**Method:** the mapping and its adversarial verification ran as a 65-agent workflow, one reader per
+file and one refuter per occurrence, so no occurrence was mapped by pattern-substitution.
 
 ### P-27 · The push guard tells "not fetched" from "no ancestor" · Lane: **A3** · Status: DONE (A1, 08:05 IST; installed locally, test drives both cases)· Moves: 5
 
