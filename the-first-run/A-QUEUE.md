@@ -5234,7 +5234,7 @@ now correctly excluded by guard 2 rather than either breaking clustering or leav
 spot undocumented.
 
 
-### P-36 · The gate a person is asked to answer is on screen, and every open change is on its run · Lane: **A3** · Status: READY, before P-32 pass 4 · Moves: 2, 3
+### P-36 · The gate a person is asked to answer is on screen, and every open change is on its run · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** The founder opened the tablet track's run to answer PR #4's merge gate (11:56 IST) and
 could not find the pull request or the answer. Two causes, both seen by A1 on the same screen.
