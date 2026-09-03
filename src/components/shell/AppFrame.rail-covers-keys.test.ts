@@ -83,9 +83,14 @@ describe("every bound key lands somewhere the rail can light", () => {
     // owns and no foot control matches shows up here by name and key, which is
     // enough to fix it without opening a browser.
     expect(dark).toEqual([]);
-    // A sanity floor, so a nav-model that silently emptied would not pass by
-    // having nothing left to check. Three since P-11: Start, Run, Settings.
-    expect(BOUND.length).toBe(3);
+    /*
+     * A sanity FLOOR, so a nav-model that silently emptied would not pass by
+     * having nothing left to check. It was a fixed 3, which is a ceiling as
+     * well as a floor and broke on P-60's nine without anything being wrong.
+     * Derived from the list it is checking instead.
+     */
+    expect(BOUND.length).toBe(PRIMARY_NAV.filter((d) => navKeyHint(d) !== "").length);
+    expect(BOUND.length).toBeGreaterThan(0);
   });
 
   it("keeps Settings lit from the foot, since it is deliberately not a row", () => {
@@ -109,7 +114,14 @@ describe("the rail's ownership is derived, and unambiguous", () => {
      * count and restore the six-day drift it existed to end, so the count
      * going down is what proves the derivation is in place.
      */
-    expect(rows).toEqual(["/track"]);
+    /*
+     * THE LOOP IS THE INVARIANT, and the list of paths above it was standing in
+     * for it. This read `toEqual(["/track"])`, which held only while the rail
+     * had two rows; P-60's nine broke it without breaking anything real. A
+     * hardcoded list here says what the rail held on one day, and the way to
+     * make it pass again is to retype it, which teaches nothing.
+     */
+    expect(rows.length).toBeGreaterThan(0);
     for (const r of rows) expect(railOwnerOf(r)).toBe(r);
     // THE HOME DOOR IS DERIVED, NOT SPELLED. Asserted on the source, because
     // that is the only place the difference is visible: at runtime the row's
@@ -128,9 +140,15 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     const block = railBlock();
     expect(block).not.toMatch(/owns:\s*\[/);
     const owns = [...block.matchAll(/owns:\s*([A-Z][A-Z_]*)\b/g)].map((m) => m[1]);
-    // One per row, so a row cannot drop the field and quietly go dark. Two
-    // since P-11: Start's owns and Run's (empty, named rather than repeated).
-    expect(owns.length).toBe(2);
+    /*
+     * ONE PER ROW, so a row cannot drop the field and quietly go dark. Counted
+     * against the rows themselves rather than a fixed number: the rule is
+     * "every row names its ownership", and a literal count only records how
+     * many rows there were the day it was written.
+     */
+    const rowCount = [...block.matchAll(/^\s{2}\{$/gm)].length;
+    expect(owns.length).toBe(rowCount);
+    expect(owns.length).toBeGreaterThan(0);
   });
 
   it("owns exactly the seven stations the strip navigates to", () => {
@@ -146,7 +164,24 @@ describe("the rail's ownership is derived, and unambiguous", () => {
      * watched, which is now Run's own row rather than Start's territory, but
      * a station page itself (/plan, /build, …) is still Start's.
      */
-    for (const path of stations) expect(railOwnerOf(path)).toBe(SIGNED_IN_HOME);
+    /*
+     * ── AND ONE OF THE SEVEN NOW HAS ITS OWN ROW (P-60) ──────────────────
+     *
+     * `/arriving` is the door "What came in" as well as Discover's surface, so
+     * standing there lights ITS row rather than Start's. That is the correct
+     * reading and not an exception being carved out: the rule was always "the
+     * row that owns this path", and Start owned the stations only because
+     * nothing else did. A row must never be swallowed by a neighbour, which is
+     * the assertion directly above this one.
+     *
+     * So the invariant is stated as it actually is: a station page lights its
+     * own door when it has one, and Start when it does not. Never dark.
+     */
+    const railPaths = new Set(RAIL_DOORS.map((d) => d.to));
+    for (const path of stations) {
+      expect(railOwnerOf(path)).toBe(railPaths.has(path) ? path : SIGNED_IN_HOME);
+      expect(railOwnerOf(path)).not.toBeNull();
+    }
     // And a station's own sub-surface stays under the same row: /plan/spec/<id>
     // is where a spec is written and it is still Start's.
     expect(railOwnerOf("/plan/spec/abc")).toBe(SIGNED_IN_HOME);
@@ -163,9 +198,23 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // to." Asserted on the row DESTINATIONS rather than the labels: renaming
     // the door would not make it stop being a station door.
     const rows = [...railBlock().matchAll(/to:\s*"([^"]+)"/g)].map((m) => m[1]);
-    const stations = new Set<string>(Object.values(STATION_ROUTE));
-    expect(rows.filter((r) => stations.has(r))).toEqual([]);
+    /*
+     * R-01 IS ABOUT THE SEVEN STATIONS AS NAVIGATION, and `/arriving` is a rail
+     * door under P-60 while also being Discover's surface. The rule that still
+     * has to hold is that no row is a STATION door -- named for a step in the
+     * route, taking a person to a stage of the machine. "What came in" is the
+     * person's question and the six station-only routes stay out.
+     */
+    const stationOnly = new Set<string>(
+      Object.values(STATION_ROUTE).filter((r) => r !== "/arriving"),
+    );
+    expect(rows.filter((r) => stationOnly.has(r))).toEqual([]);
     expect(rows).not.toContain("/runs");
+    // And no row is LABELLED for a station, which is the other half of R-01.
+    const labels = [...railBlock().matchAll(/label:\s*"([^"]+)"/g)].map((m) => m[1]);
+    for (const word of ["Discover", "Decide", "Plan", "Design", "Build", "Ship", "Learn"]) {
+      expect(labels).not.toContain(word);
+    }
   });
 
   it("draws both aria-current tokens, so a section row is lit and not merely claimed", () => {
@@ -207,14 +256,29 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // the filter's own logic by hand for both states of `trackId` is what
     // "the rail shows exactly Start and Settings [...] Start, Run, Settings"
     // asks for, without a RouterProvider this file does not carry.
-    expect(RAIL_DOORS.map((r) => r.to)).toEqual([SIGNED_IN_HOME, "/track"]);
+    /*
+     * The order is the rail's order and the list is derived, not retyped: this
+     * asserted exactly [Start, Run] and P-60's nine broke it without anything
+     * being wrong. What matters here is that Run is in the set and is the one
+     * row the filter below can drop.
+     */
+    expect(RAIL_DOORS.map((r) => r.to)[0]).toBe(SIGNED_IN_HOME);
+    expect(RAIL_DOORS.map((r) => r.to)).toContain("/track");
     const visible = (trackId: string | null) =>
       RAIL_DOORS.filter((r) => r.to !== "/track" || trackId);
     // Plus one for Settings, the foot control proven lit above — neither
     // list this file reads carries it, so it is added back by hand on both
     // sides rather than silently dropped from the count.
-    expect(visible(null).length + 1).toBe(2);
-    expect(visible("abc123").length + 1).toBe(3);
+    /*
+     * The RULE is that Run is the one row the filter drops, not that the rail
+     * has two rows. Stated as the difference between the two states so it holds
+     * at any door count (P-60).
+     */
+    expect(visible("t-1").length - visible(null).length).toBe(1);
+    expect(visible(null).map((r) => r.to)).not.toContain("/track");
+    expect(visible("t-1").map((r) => r.to)).toContain("/track");
+    // The sibling of the line above, same reason: a count here is a ceiling.
+    expect(visible("abc123").length).toBe(RAIL_DOORS.length);
   });
 
   it("Run's identity carries no ownership of its own beyond itself", () => {
@@ -232,8 +296,18 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     // "not in scope" line: real surfaces, kept, just no longer advertised —
     // and no longer owned. A row claiming one of these would be the fold
     // silently reappearing.
-    for (const path of ["/today", "/approvals", "/outcomes", "/threads", "/engine-room"]) {
+    /*
+     * FOUR OF THE FIVE CAME BACK (P-60, R-38: a surface without a door is not
+     * shipped). `/approvals`, `/outcomes` and `/threads` are rail doors now and
+     * are correctly owned; what is still folded away is `/today`, which Start
+     * genuinely absorbed, and `/engine-room`, reached from Crew and spend
+     * because "where is the machinery" is not a question a person arrives with.
+     */
+    for (const path of ["/today", "/engine-room"]) {
       expect(railOwnerOf(path)).toBeNull();
+    }
+    for (const path of ["/approvals", "/outcomes", "/threads"]) {
+      expect(railOwnerOf(path)).toBe(path);
     }
   });
 
@@ -255,7 +329,14 @@ describe("the rail's ownership is derived, and unambiguous", () => {
       // A row and the foot both claiming a path would say you are in two
       // places. The rows are the authority; the foot only picks up what no row
       // owns.
-      for (const path of ["/crew", "/boundary", "/settings"]) {
+      /*
+       * `/crew` IS A ROW NOW (P-60), so it is owned by that row and no longer by
+       * the foot -- which is the rule working, not an exception: the rows are
+       * the authority and the foot picks up only what no row owns. The two that
+       * still belong to the foot alone are asserted as before.
+       */
+      expect(railOwnerOf("/crew")).toBe("/crew");
+      for (const path of ["/boundary", "/settings"]) {
         expect(railOwnerOf(path)).toBeNull();
       }
     });

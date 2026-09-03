@@ -100,8 +100,9 @@ describe("the sheet cannot invent a door", () => {
     // /admin is keyless on purpose: the shell renders no admin control, so a
     // key there would go somewhere the rail cannot follow.
     expect(navChords().map((c) => c.to)).not.toContain("/admin");
-    // 3 since P-11 (A-QUEUE.md, 2026-09-02): Start, Run, Settings.
-    expect(navChords().length).toBe(3);
+    // Derived: every keyed door gets a chord and nothing else does. A count
+    // here would say what the list held on one day (P-60).
+    expect(navChords().length).toBe(PRIMARY_NAV.filter((d) => navKeyHint(d) !== "").length);
   });
 });
 

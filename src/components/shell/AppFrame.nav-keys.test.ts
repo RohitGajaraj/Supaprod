@@ -97,8 +97,15 @@ describe("which rail doors the keyboard reaches", () => {
      * by this packet); Run is the new conditional row, keyed on its identity
      * even though the rendered rail only draws it while a track is live.
      */
-    expect(keyed).toEqual(["/start", "/track"]);
+    /*
+     * NINE SINCE P-60. The invariant is `unkeyed` being empty -- a row with no
+     * key is a door the keyboard cannot reach -- and the list of keyed paths
+     * was a second copy of the rail that broke without anything being wrong.
+     */
     expect(unkeyed).toEqual([]);
+    expect(keyed).toContain("/start");
+    expect(keyed).toContain("/track");
+    expect(keyed.length).toBe(RAIL_DOORS.length);
   });
 
   it("still draws no ROW for Settings, which lights the foot instead", () => {

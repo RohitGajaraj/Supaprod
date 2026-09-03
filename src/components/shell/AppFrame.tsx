@@ -173,8 +173,14 @@ import {
   IconPlus,
   IconRailCollapse,
   IconRailExpand,
+  IconArrived,
+  IconBrain,
+  IconCrew,
   IconRun,
+  IconSources,
   IconSun,
+  IconThreads,
+  IconWaiting,
   IconWork,
 } from "./icons";
 
@@ -310,6 +316,78 @@ const RAIL = [
     to: "/track",
     label: "Run",
     Icon: IconRun,
+    count: null,
+    owns: OWNS_NOTHING,
+    tier: "primary",
+  },
+  /*
+   * ── SIX DOORS BACK, AND THE REASON IS NOT "WE WANT MORE ROWS" (P-60) ───
+   *
+   * The paragraph above this list is still the best argument in the file: a row
+   * costs eight of the most expensive pixels in the product, and a second door
+   * onto a surface another row owns is the "two doors, one question" defect.
+   *
+   * It leans hardest on Approvals having folded into Start's board, so its row
+   * was a duplicate. `/approvals` is a full surface again -- its own heading,
+   * queue and settled trail -- so that fold no longer describes the product.
+   * PLATFORM-AUDIT.md §1 counted the result: seven surfaces reachable only by a
+   * URL, a contextual link, or the live line. R-38: a surface without a door is
+   * not shipped.
+   *
+   * THE REPLACEMENT RULE IS NOT "A ROW PER SURFACE". Every row is one of the
+   * person's questions, in their words. That is why the seven stations stay out
+   * (R-01: they are the route the work takes, not places a person goes) and why
+   * the engine room is reached from Crew and spend rather than standing beside
+   * it -- "where is the machinery" is not a question a person arrives with.
+   */
+  {
+    to: "/approvals",
+    label: "Waiting",
+    Icon: IconWaiting,
+    /* THE ONLY COUNTED ROW, and it reads the gate count P-66 just scoped to the
+       workspace. Never a second query: a badge that counts differently from the
+       page it opens is the defect P-56 spent a packet removing one screen
+       lower. */
+    count: "gates",
+    owns: OWNS_NOTHING,
+    tier: "primary",
+  },
+  {
+    to: "/arriving",
+    label: "Arriving",
+    Icon: IconArrived,
+    count: null,
+    owns: OWNS_NOTHING,
+    tier: "primary",
+  },
+  {
+    to: "/outcomes",
+    label: "Outcomes",
+    Icon: IconBrain,
+    count: null,
+    owns: OWNS_NOTHING,
+    tier: "primary",
+  },
+  {
+    to: "/crew",
+    label: "Team",
+    Icon: IconCrew,
+    count: null,
+    owns: OWNS_NOTHING,
+    tier: "primary",
+  },
+  {
+    to: "/threads",
+    label: "Conversations",
+    Icon: IconThreads,
+    count: null,
+    owns: OWNS_NOTHING,
+    tier: "primary",
+  },
+  {
+    to: "/sync",
+    label: "Sources",
+    Icon: IconSources,
     count: null,
     owns: OWNS_NOTHING,
     tier: "primary",
@@ -461,8 +539,23 @@ export const SETTINGS_KEY = doorKey("/settings");
  * simply has no shortcut -- and only a test that counts can tell the difference
  * between "this door has no key" and "this door lost its key".
  */
+/*
+ * ── A STATION CHIP DRAWS NO KEY, WHATEVER ITS ROUTE IS (P-60) ────────────
+ *
+ * This derived the key from the route, which worked only while no station's
+ * route was also a rail door. P-60 made `/arriving` the door "What came in" and
+ * `STATION_ROUTE` maps `sense` there, so the Discover chip silently inherited
+ * `g i` -- a keycap on a chip that R-01 and F-146 deliberately made
+ * non-interactive, promising a control that is not there.
+ *
+ * The station's keylessness is a fact about the CHIP, not about the route: the
+ * same URL can be a person's door and a station's surface at once, and it is
+ * the chip that must not claim a key. So it is stated rather than derived, and
+ * the derivation that used to state it by accident cannot be broken again by
+ * the next door that shares a route.
+ */
 export const STATION_DOORS: ReadonlyArray<{ station: string; to: string; key: string }> =
-  Object.entries(STATION_ROUTE).map(([station, to]) => ({ station, to, key: doorKey(to) }));
+  Object.entries(STATION_ROUTE).map(([station, to]) => ({ station, to, key: "" }));
 
 /**
  * The keycap, quiet.

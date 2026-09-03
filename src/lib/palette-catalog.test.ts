@@ -17,7 +17,17 @@ import { PRIMARY_NAV, navKeyHint } from "./nav-model";
 // rather than redeclared per test: an ACT verb can point at a rail door too
 // (the ranked queue's replacement, "Name a bet" now lands on Start), the
 // same legal destination JUMP_DESTINATIONS already recognised.
-const RAIL_DOORS = ["/start", "/track"];
+/*
+ * DERIVED, NOT HAND-COPIED. This was `["/start", "/track"]`, a second copy of
+ * the rail living in a test, and P-60 walked straight into it: six new doors
+ * and the list still named two. A copy of the one list is the drift the nav
+ * model was built to make impossible, so it reads the list.
+ *
+ * `/crew` and `/sync` are in NEITHER `CANONICAL_PATHS` nor `DOOR_INTERNAL_PATHS`
+ * -- they are real routes on disk that the redirect canon never knew about --
+ * which is why deriving this matters rather than appending two strings.
+ */
+const RAIL_DOORS = PRIMARY_NAV.map((n) => n.to);
 const KNOWN_ROUTES = new Set<string>([...CANONICAL_PATHS, ...DOOR_INTERNAL_PATHS, ...RAIL_DOORS]);
 
 describe("palette-catalog", () => {
@@ -53,9 +63,10 @@ describe("palette-catalog", () => {
 
 describe("palette-sections", () => {
   it("JUMP_DESTINATIONS has one entry per primary destination (derived from PRIMARY_NAV)", () => {
+    // The derived length IS the invariant. A second hardcoded count only says
+    // what the list happened to hold on the day it was written (P-60).
     expect(JUMP_DESTINATIONS.length).toBe(PRIMARY_NAV.length);
-    // Three since P-11 (A-QUEUE.md, 2026-09-02): Start, Run, Settings.
-    expect(JUMP_DESTINATIONS.length).toBe(3);
+    expect(JUMP_DESTINATIONS.length).toBeGreaterThan(0);
   });
 
   it("every JUMP destination's run.to is a canonical path or a keyed rail door", () => {

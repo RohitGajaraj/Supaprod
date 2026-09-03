@@ -304,3 +304,55 @@ export function IconAsk({ className }: IconProps) {
     </svg>
   );
 }
+
+/*
+ * ── FOUR MORE DOORS, FOUR MORE MARKS (P-60) ──────────────────────────────
+ *
+ * Same 24 grid, stroke only, no fill and no container, per this file's own
+ * header and anti-slop ban 8. Each one draws the QUESTION its row asks rather
+ * than the noun of the surface behind it, because the row is the person's
+ * question: "Waiting on you" is a thing paused mid-motion, not an inbox.
+ */
+
+/** Waiting on you: motion stopped at a bar. The pause is the subject. */
+export function IconWaiting({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12h8M9 9l3 3-3 3" />
+      <path d="M16 5v14" />
+    </svg>
+  );
+}
+
+/** What came in: three things arriving over a threshold, newest leading. */
+export function IconArrived({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 4v9M9 10l3 3 3-3" />
+      <path d="M4 17h16" />
+    </svg>
+  );
+}
+
+/** Crew and spend: two figures, one ahead. People, never seats or avatars. */
+export function IconCrew({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="9" cy="8" r="2.6" />
+      <path d="M4 19a5 5 0 0 1 10 0" />
+      <path d="M16 7.2a2.6 2.6 0 0 1 0 5.2M17 19a5 5 0 0 0-2.2-4.1" />
+    </svg>
+  );
+}
+
+/** Sources: two feeds joining one line. What the crew is allowed to read. */
+export function IconSources({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="6" cy="6" r="2.2" />
+      <circle cx="6" cy="18" r="2.2" />
+      <circle cx="18" cy="12" r="2.4" />
+      <path d="M8.1 7.1 15.7 11M8.1 16.9 15.7 13" />
+    </svg>
+  );
+}

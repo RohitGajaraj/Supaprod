@@ -35,9 +35,13 @@ describe("derivation law - the shortcut range", () => {
      * number on a row can only ever mean identity.
      */
     const n = PRIMARY_NAV.length;
-    // Three since P-11: Start, Run, Settings. Everything else the rail once
-    // carried is reachable by URL only and correctly carries no chord.
-    expect(n).toBe(3);
+    /*
+     * NINE SINCE P-60 (R-38: a surface without a door is not shipped). The
+     * count is not the law -- the assertions below it are, and they hold at any
+     * number: a letter each, no digit, no door without a key, no letter twice.
+     * A hardcoded count here only records the day it was written.
+     */
+    expect(n).toBe(9);
     expect(PRIMARY_NAV[n]).toBeUndefined();
 
     const hints = PRIMARY_NAV.map((d) => navKeyHint(d));
@@ -49,10 +53,40 @@ describe("derivation law - the shortcut range", () => {
     expect(new Set(hints).size).toBe(n);
   });
 
-  it("the three doors are Start, Run and Settings, in that order", () => {
-    expect(PRIMARY_NAV.map((d) => d.to)).toEqual(["/start", "/track", "/settings"]);
-    expect(PRIMARY_NAV.map((d) => d.label)).toEqual(["Start", "Run", "Settings"]);
-    expect(PRIMARY_NAV.map((d) => navKeyHint(d))).toEqual(["t", "r", "s"]);
+  it("the nine doors are the person's questions, in order", () => {
+    expect(PRIMARY_NAV.map((d) => d.to)).toEqual([
+      "/start",
+      "/approvals",
+      "/arriving",
+      "/track",
+      "/outcomes",
+      "/crew",
+      "/threads",
+      "/sync",
+      "/settings",
+    ]);
+    expect(PRIMARY_NAV.map((d) => d.label)).toEqual([
+      "Start",
+      "Waiting",
+      "Arriving",
+      "Run",
+      "Outcomes",
+      "Team",
+      "Conversations",
+      "Sources",
+      "Settings",
+    ]);
+    expect(PRIMARY_NAV.map((d) => navKeyHint(d))).toEqual([
+      "t",
+      "w",
+      "i",
+      "r",
+      "o",
+      "m",
+      "c",
+      "u",
+      "s",
+    ]);
     expect(NAV_CHORD_PREFIX).toBe("g");
   });
 });

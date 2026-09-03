@@ -10,11 +10,50 @@ import { CANONICAL_PATHS } from "./legacy-redirects";
  */
 
 describe("nav-model - the three primary destinations", () => {
-  it("is one flat ordered list of exactly three destinations", () => {
-    expect(PRIMARY_NAV.length).toBe(3);
-    expect(PRIMARY_NAV.map((n) => n.label)).toEqual(["Start", "Run", "Settings"]);
-    expect(PRIMARY_NAV.map((n) => n.to)).toEqual(["/start", "/track", "/settings"]);
+  it("is one flat ordered list of exactly nine doors", () => {
+    /*
+     * WAS THREE, AND THE REASON IT WENT BACK UP IS NOT "WE CHANGED OUR MINDS".
+     * P-11 cut it to three because Approvals had folded into Start's board, so
+     * its row was a second door onto a surface Start owned. `/approvals` is a
+     * full surface again -- its own heading, queue and settled trail -- so that
+     * fold no longer describes the product, and PLATFORM-AUDIT.md §1 counted
+     * seven surfaces reachable only by URL. R-38: a surface without a door is
+     * not shipped.
+     *
+     * The replacement rule is NOT "a row per surface". Every row is one of the
+     * person's questions in their words; the seven stations stay out (R-01:
+     * they are the route the work takes, not places a person goes) and the
+     * engine room is reached from Crew and spend rather than beside it.
+     */
+    expect(PRIMARY_NAV.length).toBe(9);
+    expect(PRIMARY_NAV.map((n) => n.label)).toEqual([
+      "Start",
+      "Waiting",
+      "Arriving",
+      "Run",
+      "Outcomes",
+      "Team",
+      "Conversations",
+      "Sources",
+      "Settings",
+    ]);
     for (const n of PRIMARY_NAV) expect(n.zone).toBe("home");
+  });
+
+  it("keeps the seven stations and the engine room OFF the rail", () => {
+    // R-01's first half, and the reason the count is nine rather than sixteen.
+    const all = PRIMARY_NAV.map((n) => n.to);
+    for (const station of [
+      "/decide",
+      "/plan",
+      "/design",
+      "/build",
+      "/ship",
+      "/learn",
+      "/engine-room",
+    ]) {
+      expect(all).not.toContain(station);
+    }
   });
 
   it("every destination carries a non-empty tagline (the reason-for-everything)", () => {
@@ -26,16 +65,16 @@ describe("nav-model - the three primary destinations", () => {
 
   it("the Ledger and every folded-away door stay off the rail", () => {
     const all = [...PRIMARY_NAV, ...FOOTER_NAV].map((n) => n.to);
+    /*
+     * SIX OF THESE CAME BACK, and only these are still folded away. `/approvals`,
+     * `/crew`, `/outcomes`, `/threads`, `/arriving` and `/sync` are rail doors
+     * as of P-60; `/today` and `/runs` are still gone, and the stations are
+     * covered by their own test above.
+     */
     for (const gone of [
       "/trust-ledger",
       "/today",
-      "/approvals",
       "/runs",
-      "/crew",
-      "/outcomes",
-      "/threads",
-      "/engine-room",
-      "/arriving",
       "/decide",
       "/plan",
       "/design",
@@ -65,7 +104,13 @@ describe("nav-model - the three primary destinations", () => {
   it("navKeyHint is the second key of the chord, one letter per destination", () => {
     expect(PRIMARY_NAV.map((n) => navKeyHint(n))).toEqual([
       "t", // sTart; `s` is Settings
+      "w", // Waiting
+      "i", // arrIving
       "r", // Run's own first letter, free
+      "o", // Outcomes
+      "m", // teaM
+      "c", // Conversations
+      "u", // soUrces
       "s", // Settings
     ]);
   });
@@ -110,9 +155,15 @@ describe("nav-model - one key, one door, across the WHOLE nav model", () => {
   it("binds no key twice, anywhere in the model", () => {
     const bound = DOORS.map((d) => navKeyHint(d)).filter((k) => k !== "");
     expect(new Set(bound).size).toBe(bound.length);
-    // Three: Start (t), Run (r), Settings (s). Admin console draws no key —
-    // see navKeyHint's own `/admin` case for why.
-    expect(bound.length).toBe(3);
+    /*
+     * DERIVED FROM THE LIST, NOT A NUMBER. This read `toBe(3)` and a tenth door
+     * would have failed it while a door with no key at all passed -- the count
+     * was standing in for the rule. The rule is that EVERY rail door binds a
+     * key: nine doors, nine keys, and the Set check above proves them distinct.
+     * Admin console draws none; see navKeyHint's own `/admin` case for why.
+     */
+    expect(bound.length).toBe(PRIMARY_NAV.length);
+    for (const d of PRIMARY_NAV) expect(navKeyHint(d)).not.toBe("");
   });
 
   it("never binds the prefix itself, which would eat every chord", () => {
@@ -133,10 +184,13 @@ describe("nav-model - one key, one door, across the WHOLE nav model", () => {
     expect(end).toBeGreaterThan(start);
     const paths = [...src.slice(start, end).matchAll(/to:\s*"([^"]+)"/g)].map((m) => m[1]);
 
-    // Two rows: Run's `to: "/track"` is the only quoted string the block
-    // carries (Start names SIGNED_IN_HOME, deliberately invisible to this
-    // scan — see the comment above `RAIL` in AppFrame.tsx).
-    expect(paths).toEqual(["/track"]);
+    /*
+     * The RULE is that every spelled row resolves to a keyed door; the list of
+     * paths was standing in for it and broke on P-60's nine without anything
+     * being wrong. Start still names SIGNED_IN_HOME and is deliberately
+     * invisible to this scan (see the comment above `RAIL` in AppFrame.tsx).
+     */
+    expect(paths.length).toBeGreaterThan(0);
     for (const p of paths) {
       const door = DOORS.find((d) => d.to === p);
       expect(door).toBeDefined();

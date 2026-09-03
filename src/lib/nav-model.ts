@@ -59,6 +59,48 @@ export type NavItemDef = {
  * `/track/$trackId` for whichever track is live — at render time; nothing
  * here ever navigates a person to the bare string.
  */
+/*
+ * ── NINE DOORS, AND WHY THE COUNT WENT UP AGAIN (P-60, R-38) ─────────────
+ *
+ * This list was cut to three in P-11, and the reasoning above it is still the
+ * best argument in this file: a row is worth eight of the most expensive pixels
+ * in the product, and a second door onto a surface another one already owns is
+ * the "two doors, one question" defect.
+ *
+ * IT WAS TRUE WHEN IT WAS WRITTEN AND IT IS NOT TRUE NOW, for the case it leans
+ * hardest on. That paragraph says Approvals "folded into Start's own board", so
+ * its row was a duplicate. `/approvals` is a full surface again -- its own
+ * heading, its own queue, its own settled trail, walked live on 2026-09-03 -- so
+ * the fold it describes no longer describes the product, and the row it removed
+ * is now the only way in that does not require typing a URL.
+ *
+ * PLATFORM-AUDIT.md §1 counted the result: seven surfaces reachable only by URL,
+ * a contextual link, or the live line. R-38: a surface without a door is not
+ * shipped.
+ *
+ * SO THE RULE THAT REPLACED "AS FEW ROWS AS POSSIBLE" IS NOT "AS MANY AS WE
+ * HAVE": every row is one of the PERSON'S questions, in their words, and a
+ * surface that is not an answer to one does not get a row. That is why the
+ * seven stations stay out (R-01: they are the route the work takes, not places
+ * a person goes) and why the engine room is reached from Crew and spend rather
+ * than standing beside it.
+ *
+ *
+ * ── ONE WORD, BECAUSE THE FOUNDER RULED IT (2026-09-01) ────────────────
+ * "This is not an enterprise-grade naming ceremony. It has to be one single
+ * verb... Don't put the sentence as the name of the shell."
+ *
+ * P-60 named these doors as the person's questions -- "Waiting on you",
+ * "What came in", "Crew and spend" -- which is the right INSTINCT and the
+ * wrong slot: that ruling is exactly about not putting the sentence on the
+ * rail. The question lives in the tagline, which is the rail's subtitle, and
+ * the label is one word. "Crew" is also on the retired list in
+ * `the-rail-says-words-a-person-would-say.test.ts`, so that door is Team.
+ *
+ * THE LETTER RULE STILL HOLDS: every key is a letter in its own visible label,
+ * and `navKeyHint` below is still the single source for both the drawn keycap
+ * and the binding. Nine doors, nine distinct letters, no digits.
+ */
 export const PRIMARY_NAV: readonly NavItemDef[] = [
   {
     to: "/start",
@@ -67,10 +109,59 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     tagline: "Hand work over, watch it run.",
   },
   {
+    to: "/approvals",
+    label: "Waiting",
+    zone: "home",
+    tagline: "Everything that cannot move until you answer it.",
+  },
+  {
+    to: "/arriving",
+    label: "Arriving",
+    zone: "home",
+    tagline: "What the crew found since you last looked.",
+  },
+  {
+    /*
+     * RUN'S `to` IS AN IDENTITY, NOT A ROUTE, and that convention is unchanged:
+     * `/track` resolves to `/track/$trackId` for whichever run is live, and the
+     * row does not draw when none is. It answers "where am I", not "where can
+     * I go", which is why it keeps its old label rather than becoming a list.
+     *
+     * THE AUDIT ASKED FOR "Runs, the list" AND THERE IS NO SUCH ROUTE: only
+     * `/track/$trackId` exists. Start already draws every open run, so a Runs
+     * door would be a second door onto a surface Start owns -- the exact defect
+     * the header above this list spent a packet closing. Recorded rather than
+     * papered over: if a runs list is wanted it needs a route of its own first,
+     * and then this row splits in two.
+     */
     to: "/track",
     label: "Run",
     zone: "home",
     tagline: "The run you are standing in.",
+  },
+  {
+    to: "/outcomes",
+    label: "Outcomes",
+    zone: "home",
+    tagline: "Every decision, what it predicted, and what happened.",
+  },
+  {
+    to: "/crew",
+    label: "Team",
+    zone: "home",
+    tagline: "Who is working, what they cost, and their limits.",
+  },
+  {
+    to: "/threads",
+    label: "Conversations",
+    zone: "home",
+    tagline: "What you and the crew have said to each other.",
+  },
+  {
+    to: "/sync",
+    label: "Sources",
+    zone: "home",
+    tagline: "What the crew is allowed to read.",
   },
   {
     to: "/settings",
@@ -107,8 +198,20 @@ export function navKeyHint(item: NavItemDef): string {
   switch (item.to) {
     case "/start":
       return "t"; // sTart; `s` is Settings
+    case "/approvals":
+      return "w"; // Waiting
+    case "/arriving":
+      return "i"; // arrIving; `a` reads as a bare Approve elsewhere
     case "/track":
       return "r"; // Run's own first letter
+    case "/outcomes":
+      return "o"; // Outcomes
+    case "/crew":
+      return "m"; // teaM
+    case "/threads":
+      return "c"; // Conversations
+    case "/sync":
+      return "u"; // soUrces; `s` is Settings, `c` is Conversations
     case "/settings":
       return "s";
     case "/admin":
