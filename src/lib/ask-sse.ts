@@ -1,4 +1,4 @@
-import { parseChatMeta, type ChatMeta } from "@/components/chat/MessageMeta";
+import { parseChatMeta, type ChatMeta } from "@/lib/chat-meta";
 import { parseResearchStatus, type ResearchStatus } from "@/components/chat/ResearchActivity";
 import { isAnswerBlock, type AnswerBlock } from "@/lib/ask-blocks";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";

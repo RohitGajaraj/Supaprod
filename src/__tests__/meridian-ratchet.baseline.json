@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1596,
-  "fileCount": 130,
+  "totalOccurrences": 1587,
+  "fileCount": 129,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -53,11 +53,6 @@
     "src/components/billing/StripeEmbeddedCheckout.tsx": {
       "import:components/ui": 1,
       "usage:components/ui": 4
-    },
-    "src/components/chat/MessageMeta.tsx": {
-      "--ds- via alias": 5,
-      "import:components/ui": 1,
-      "usage:components/ui": 3
     },
     "src/components/connections/BindingPicker.tsx": {
       "import:components/ui": 2,

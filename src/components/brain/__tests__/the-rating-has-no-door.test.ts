@@ -6,8 +6,16 @@
  * why their own runs never appear in it.
  *
  * `submitFeedback` is the ONLY writer of `memory_recall_log.outcome`. Its only
- * caller is `MessageMetaFooter` in components/chat, and that component is
- * mounted NOWHERE -- zero importers in src/ outside its own file.
+ * caller USED TO BE `MessageMetaFooter` in `components/chat`, mounted nowhere
+ * -- zero importers in `src/` outside its own file. P-49 (A-QUEUE.md) deleted
+ * that file entirely (it was genuinely dead, not merely unmounted), so
+ * `submitFeedback` now has ZERO callers anywhere, which is the same finding
+ * one step further along rather than a different one: the door was missing
+ * when a component nobody reached still held the only key, and it is still
+ * missing with that component gone. The live chat surface (`AskDock` ->
+ * `AskPane` -> `AskTurn`) never called it either -- its own `Provenance`
+ * component covers cost and model, under a separate founder ruling
+ * (2026-07-30), and was never asked to cover rating.
  *
  * Measured on the live database, 2026-08-28: all 77 rated recalls fall between
  * 29 June and 23 July, and the last one is 23 July. Nothing since, because
@@ -19,9 +27,10 @@
  * What is missing is the control. Naming the missing half precisely is the
  * difference between a fact and a bug report.
  *
- * THIS GUARD IS WRITTEN TO GO RED WHEN SOMEBODY FIXES IT. If the control is
- * ever mounted, the sentence becomes false and this test says so, which is the
- * only way a line like it does not quietly outlive its own reason.
+ * THIS GUARD IS WRITTEN TO GO RED WHEN SOMEBODY FIXES IT. If a control that
+ * calls `submitFeedback` is ever mounted anywhere real, the sentence becomes
+ * false and this test says so, which is the only way a line like it does not
+ * quietly outlive its own reason.
  */
 import { describe, it, expect } from "bun:test";
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -38,7 +47,7 @@ function code(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
 }
 
-/** Files that only NAME these symbols in copy or in a guard are not callers. */
+/** Files that only NAME this symbol in copy or in a guard are not callers. */
 const NOT_A_CALL_SITE = new Set([
   "src/components/brain/standing-words.ts",
   "src/components/brain/StandingRecord.tsx",
@@ -59,25 +68,24 @@ function walk(dir: string): string[] {
 }
 
 describe("the rating has no door", () => {
-  it("submitFeedback still has exactly one caller", () => {
+  it("submitFeedback has no caller anywhere, not even an unmounted one", () => {
     const callers = walk("src").filter((f) => {
       if (f.endsWith("src/lib/feedback.functions.ts")) return false;
       if (f.endsWith("src/lib/ai/memory.server.ts")) return false; // names it in a comment
       if (NOT_A_CALL_SITE.has(f)) return false;
       return /\bsubmitFeedback\b/.test(code(readFileSync(f, "utf8")));
     });
-    expect(callers).toEqual(["src/components/chat/MessageMeta.tsx"]);
+    expect(callers).toEqual([]);
   });
 
-  it("and that caller's rating control is mounted nowhere", () => {
-    const importers = walk("src").filter((f) => {
-      if (f.endsWith("src/components/chat/MessageMeta.tsx")) return false;
-      if (NOT_A_CALL_SITE.has(f)) return false;
-      return /\bMessageMetaFooter\b/.test(code(readFileSync(f, "utf8")));
-    });
-    /* WHEN THIS FAILS, THE SENTENCE ON THE BRAIN IS WRONG AND MUST GO. That is
-       the point of asserting it here rather than trusting a comment. */
-    expect(importers).toEqual([]);
+  it("and the live chat surface's own answer register -- AskTurn's Provenance -- carries no rating control either", () => {
+    // WHEN THIS FAILS, THE SENTENCE ON THE BRAIN IS WRONG AND MUST GO. That is
+    // the point of asserting it against the live surface rather than trusting
+    // a comment: Provenance is what actually reached a screen for this
+    // register, and if it or anything beside it ever grows a feedback control,
+    // the rating door has been built and this test should say so by breaking.
+    const src = readFileSync("src/components/ask/AskTurn.tsx", "utf8");
+    expect(code(src)).not.toMatch(/\bsubmitFeedback\b/);
   });
 
   /**

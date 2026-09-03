@@ -25,7 +25,7 @@
  */
 
 import type { AnswerBlock } from "@/lib/ask-blocks";
-import type { ChatMeta } from "@/components/chat/MessageMeta";
+import type { ChatMeta } from "@/lib/chat-meta";
 import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";
 
 const UUID_IN_TEXT = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;

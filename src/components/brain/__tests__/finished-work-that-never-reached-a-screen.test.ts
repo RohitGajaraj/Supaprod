@@ -14,10 +14,22 @@
  * asked for and no person could reach it.
  *
  * Together with `BoundaryTool.chosen` shipping into nothing and
- * `MessageMetaFooter` losing its mount, that makes unreachable-finished-work
+ * `MessageMetaFooter` losing its mount, that made unreachable-finished-work
  * the most common defect on these surfaces -- more common than wrong logic, and
  * invisible to every gate: it typechecks, it lints, it builds, and its tests
  * pass if it has any.
+ *
+ * `MessageMetaFooter` ITSELF IS NOW GONE (P-49, A-QUEUE.md), not merely
+ * unmounted: `components/chat/MessageMeta.tsx` had zero non-test importers on
+ * the tip -- confirmed live, not assumed from this comment -- so it was
+ * deleted rather than left as a fourth instance of this defect. The live
+ * chat surface (`AskDock` -> `AskPane` -> `AskTurn`) never used it; its own
+ * `Provenance` component (model, cost, records-read, behind "View credits")
+ * is the surface that actually reached a screen for that concern, built
+ * independently under the founder's 2026-07-30 ruling. The type contract
+ * `MessageMeta.tsx` also carried (`ChatMeta`, `parseChatMeta`, real callers
+ * across every `ask-*` module) moved to `src/lib/chat-meta.ts` rather than
+ * going with it -- see that file's own header for the split.
  *
  * This guard is the cheap half of the fix: it keeps the two I mounted mounted.
  */

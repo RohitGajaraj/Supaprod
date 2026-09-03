@@ -20,7 +20,7 @@
  */
 
 import type { AnswerBlock } from "@/lib/ask-blocks";
-import type { ChatMeta, ChatSource } from "@/components/chat/MessageMeta";
+import type { ChatMeta, ChatSource } from "@/lib/chat-meta";
 import { formatAuditId } from "@/lib/audit-id";
 
 export type RecordCitation = {

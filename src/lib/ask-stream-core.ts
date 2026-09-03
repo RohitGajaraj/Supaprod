@@ -4,7 +4,7 @@
 // without a mounted React tree. AskPanel keeps its own inline copies and its
 // v1 single-conversation key; nothing here changes its behavior.
 
-import type { ChatMeta } from "@/components/chat/MessageMeta";
+import type { ChatMeta } from "@/lib/chat-meta";
 import type { AnswerBlock } from "@/lib/ask-blocks";
 import type { HydratedMsg, PromotedRecordIds } from "@/lib/ask-thread";
 

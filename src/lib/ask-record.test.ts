@@ -6,7 +6,7 @@
 import { describe, expect, it } from "bun:test";
 import { recordCitationFor } from "./ask-record";
 import type { AnswerBlock } from "./ask-blocks";
-import type { ChatMeta } from "@/components/chat/MessageMeta";
+import type { ChatMeta } from "@/lib/chat-meta";
 
 const meta = (over: Partial<ChatMeta> = {}): ChatMeta => ({
   model: "test",

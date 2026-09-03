@@ -195,6 +195,16 @@ const KNOWN_UNREACHED: readonly string[] = [
   "demo",
   "design-interchange",
   "fanout",
+  // Unreached from 2026-09-03 (P-49, A-QUEUE.md). `submitFeedback` is the
+  // domain's only export, and its only real caller was `MessageMetaFooter`
+  // (components/chat/MessageMeta.tsx) -- dead code, mounted nowhere, deleted
+  // this same packet (see the-rating-has-no-door.test.ts for the full
+  // finding). The registry entry claims `home: "feedback-dialog"`,
+  // `opensFrom: "help-menu-feedback"`, `status: "live"`; nothing found while
+  // building this packet confirms a help-menu feedback dialog actually calls
+  // this function anywhere in `src/`, so that claim is itself unverified
+  // rather than corrected here -- a separate audit, not this packet's.
+  "feedback",
   "funnel",
   "goals",
   "greeting",

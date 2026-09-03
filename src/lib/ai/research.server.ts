@@ -8,7 +8,7 @@
  *
  * Progress statuses are pushed through the caller's `emit` so the route can
  * flush SSE events as they happen (shared SSE protocol v2 — see the route and
- * src/components/chat/MessageMeta.tsx, which must stay in lockstep).
+ * src/lib/chat-meta.ts, which must stay in lockstep).
  *
  * NOTE: there is no roadmap_items table — the "roadmap" is just opportunities
  * grouped by roadmap lane, so the "roadmap" snapshot reads opportunities in the
@@ -23,7 +23,7 @@ import { retrieve } from "@/lib/rag/retriever.server";
 
 export type ResearchMode = "chat" | "web" | "internal" | "both";
 
-/** Shared SSE protocol v2 source kinds — keep in lockstep with MessageMeta.tsx. */
+/** Shared SSE protocol v2 source kinds — keep in lockstep with chat-meta.ts. */
 export type ResearchSourceKind =
   | "web"
   | "signal"

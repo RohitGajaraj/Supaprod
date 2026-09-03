@@ -46,7 +46,7 @@ function idAfter(pathname: string, prefix: string): string | null {
  * The retrieval scope for the surface in front of you.
  *
  * `kinds` are `source_kind` values the RAG store genuinely indexes (the same
- * union `MessageMeta.SourceKind` declares); nothing here invents one. A screen
+ * union `SourceKind` in `chat-meta.ts` declares); nothing here invents one. A screen
  * with no confident mapping returns null and Ask stays unscoped, which is the
  * honest read: it is the whole workspace.
  */

@@ -1,4 +1,4 @@
-import type { ChatMeta } from "@/components/chat/MessageMeta";
+import type { ChatMeta } from "@/lib/chat-meta";
 import { ShimmerText } from "@/components/supaprod/ShimmerText";
 
 /**

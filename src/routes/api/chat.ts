@@ -96,7 +96,7 @@ function sanitizeError(error: unknown, context: string): { message: string; erro
 }
 
 /**
- * Shared SSE protocol v2 with the chat UI (see MessageMeta.tsx):
+ * Shared SSE protocol v2 with the chat UI (see chat-meta.ts):
  * - zero or more `{"status":{phase,label}}` research-progress events first,
  * - token chunks (choices[0].delta.content),
  * - one meta event immediately before [DONE] on every path (success and

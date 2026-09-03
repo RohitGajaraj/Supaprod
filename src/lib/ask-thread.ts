@@ -2,7 +2,7 @@
 // out of AskPanel.tsx per the house convention (logic in a lib file, thin
 // JSX in the component) so it is unit-testable without the component graph.
 
-import { parseChatMeta, type ChatMeta } from "@/components/chat/MessageMeta";
+import { parseChatMeta, type ChatMeta } from "@/lib/chat-meta";
 import { isAnswerBlock, type AnswerBlock } from "@/lib/ask-blocks";
 
 /** The wire shape getConversation returns per message (generated types
