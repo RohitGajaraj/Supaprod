@@ -23,6 +23,7 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InvestorsRouteImport } from './routes/investors'
+import { Route as HealthRouteImport } from './routes/health'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FilmRouteImport } from './routes/film'
 import { Route as FaqRouteImport } from './routes/faq'
@@ -217,6 +218,11 @@ const LoginRoute = LoginRouteImport.update({
 const InvestorsRoute = InvestorsRouteImport.update({
   id: '/investors',
   path: '/investors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HealthRoute = HealthRouteImport.update({
+  id: '/health',
+  path: '/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -919,6 +925,7 @@ export interface FileRoutesByFullPath {
   '/faq': typeof FaqRoute
   '/film': typeof FilmRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/health': typeof HealthRoute
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
@@ -1059,6 +1066,7 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/film': typeof FilmRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/health': typeof HealthRoute
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
@@ -1200,6 +1208,7 @@ export interface FileRoutesById {
   '/faq': typeof FaqRoute
   '/film': typeof FilmRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/health': typeof HealthRoute
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
@@ -1342,6 +1351,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/film'
     | '/forgot-password'
+    | '/health'
     | '/investors'
     | '/login'
     | '/mcp'
@@ -1482,6 +1492,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/film'
     | '/forgot-password'
+    | '/health'
     | '/investors'
     | '/login'
     | '/mcp'
@@ -1622,6 +1633,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/film'
     | '/forgot-password'
+    | '/health'
     | '/investors'
     | '/login'
     | '/mcp'
@@ -1764,6 +1776,7 @@ export interface RootRouteChildren {
   FaqRoute: typeof FaqRoute
   FilmRoute: typeof FilmRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  HealthRoute: typeof HealthRoute
   InvestorsRoute: typeof InvestorsRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
@@ -1955,6 +1968,13 @@ declare module '@tanstack/react-router' {
       path: '/investors'
       fullPath: '/investors'
       preLoaderRoute: typeof InvestorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/health': {
+      id: '/health'
+      path: '/health'
+      fullPath: '/health'
+      preLoaderRoute: typeof HealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -2961,6 +2981,7 @@ const rootRouteChildren: RootRouteChildren = {
   FaqRoute: FaqRoute,
   FilmRoute: FilmRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  HealthRoute: HealthRoute,
   InvestorsRoute: InvestorsRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
