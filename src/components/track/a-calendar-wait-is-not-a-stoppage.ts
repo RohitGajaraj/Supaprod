@@ -57,10 +57,27 @@ export function waitingOnTime(t: {
   holdReason: string | null | undefined;
   /** The forecast's horizon, when the caller has read one. */
   horizon?: string | null;
+  /**
+   * ── R-39 / P-71: CAN ANYTHING HERE ACTUALLY GRADE IT? ──────────────────
+   *
+   * Walked live in an empty probe workspace: a decision was recorded against
+   * 1,000 sessions no connected source could ever see, and this surface read it
+   * as a calendar wait -- "Waiting on time, Learn returns Oct 3". A date that
+   * returns to nothing is worse than a stoppage, because a stoppage asks for
+   * something and this asks for patience.
+   *
+   * `false` means the forecast's observable names no source this workspace has,
+   * so waiting cannot resolve it and the honest hold is `needs-evidence` with
+   * the point-a-source door. `true` or absent leaves the reading unchanged: a
+   * caller that has not looked must not turn a real calendar wait into a
+   * stoppage, which is the mirror of the defect above.
+   */
+  gradableBySource?: boolean | null;
   /** Injectable so this is deterministic in a test. */
   now?: number;
 }): boolean {
   if (t.holdReason !== "needs-evidence" || t.station !== "learn") return false;
+  if (t.gradableBySource === false) return false;
   if (t.horizon == null) return true;
   const at = Date.parse(t.horizon);
   /* An unparseable date is not evidence the horizon passed, so it reads as the
@@ -139,4 +156,38 @@ export function horizonAsDate(horizon: string | null): string | null {
   const at = new Date(horizon);
   if (Number.isNaN(at.getTime())) return null;
   return at.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+}
+
+/**
+ * The forecast's OBSERVABLE from the same stops the horizon comes from.
+ *
+ * Read alongside `horizonFromStops` rather than folded into it, because the two
+ * answer different questions and one of them is now allowed to override the
+ * other: the horizon says WHEN, and this says whether anything here can tell.
+ */
+export function howWeWillKnowFromStops(
+  stops:
+    | readonly {
+        station?: string | null;
+        items?: readonly { kind?: string | null; fields?: unknown }[] | null;
+      }[]
+    | null
+    | undefined,
+): string | null {
+  if (!stops) return null;
+  for (const stop of stops) {
+    if (stop.station !== "decide") continue;
+    for (const item of stop.items ?? []) {
+      if (
+        item.kind === "decision" &&
+        item.fields &&
+        typeof item.fields === "object" &&
+        "forecast_how_we_will_know" in item.fields
+      ) {
+        return (item.fields as { forecast_how_we_will_know?: string | null })
+          .forecast_how_we_will_know as string | null;
+      }
+    }
+  }
+  return null;
 }

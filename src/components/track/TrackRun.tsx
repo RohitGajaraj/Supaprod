@@ -92,10 +92,12 @@ import {
 import { stoppedByYou } from "@/components/track/footer-mode";
 import {
   waitingOnTime,
+  howWeWillKnowFromStops,
   horizonFromStops,
 } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 import { composerPromiseFor } from "@/components/track/one-door-for-one-state";
 import { whyShipStopped } from "@/lib/deployments.functions";
+import { checkForecastObservable } from "@/lib/spine/track.functions";
 import {
   shipStopFrom,
   shipStopLine,
@@ -461,6 +463,48 @@ export function TrackRunLeft({
     [artifactsQ.data?.stops],
   );
 
+  /* Hoisted above the R-39 read below, which needs the workspace. Unconditional
+     and in one place, so hook order is unchanged between renders. */
+  const { activeWorkspace, activeProduct } = useWorkspace();
+
+  /*
+   * ── R-39 / P-71: CAN ANYTHING HERE GRADE IT? ───────────────────────────
+   *
+   * A decision recorded against 1,000 sessions no connected source can see read
+   * as a calendar wait: "Waiting on time, Learn returns Oct 3". A date that
+   * returns to nothing is worse than a stoppage, because a stoppage asks for
+   * something and this asks for patience.
+   *
+   * `checkForecastObservable` is the read the Decide station already uses to
+   * answer this at the moment of the call; the same question is asked here, of
+   * the same words, so the two cannot disagree. Only while held at Learn --
+   * everywhere else there is no wait to correct.
+   */
+  const howWeWillKnow = React.useMemo(
+    () => howWeWillKnowFromStops(artifactsQ.data?.stops),
+    [artifactsQ.data?.stops],
+  );
+  const fCheckObservable = useServerFn(checkForecastObservable);
+  const observable = useQuery({
+    queryKey: ["forecast-observable", trackId, howWeWillKnow, activeWorkspace?.id ?? null],
+    queryFn: () =>
+      fCheckObservable({
+        data: { howWeWillKnow: howWeWillKnow ?? "", workspaceId: activeWorkspace?.id as string },
+      }),
+    enabled:
+      track?.station === "learn" &&
+      track?.holdReason === "needs-evidence" &&
+      Boolean(howWeWillKnow) &&
+      Boolean(activeWorkspace?.id),
+    staleTime: 5 * 60_000,
+  });
+  /*
+   * UNREAD IS NOT UNGRADEABLE. `undefined` while the read is pending or failed
+   * leaves the calendar reading exactly as it was; only a definite "nothing here
+   * can check this" turns the wait into a stoppage.
+   */
+  const gradableBySource = observable.isSuccess ? observable.data.checkable : null;
+
   // Check if this is a calm hold: needs-evidence at learn with future horizon.
   const isCalmHold = React.useMemo(
     () =>
@@ -479,10 +523,11 @@ export function TrackRunLeft({
             station: track?.station,
             holdReason: track?.holdReason,
             horizon: forecastHorizonDate,
+            gradableBySource,
             now: nowMs,
           })
         : false,
-    [track?.holdReason, track?.station, forecastHorizonDate, nowMs],
+    [track?.holdReason, track?.station, forecastHorizonDate, gradableBySource, nowMs],
   );
 
   /*
@@ -661,7 +706,6 @@ export function TrackRunLeft({
    * one was bound to Relay.
    */
   const navigate = useNavigate();
-  const { activeWorkspace, activeProduct } = useWorkspace();
   const fCanDispatch = useServerFn(canDispatchToRepo);
   const repoCheck = useQuery({
     queryKey: ["track-build-repo", activeWorkspace?.id ?? null, activeProduct?.id ?? null],

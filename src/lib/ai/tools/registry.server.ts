@@ -141,6 +141,11 @@ import { validateCommitment } from "@/lib/roadmap-governance";
 import { CONNECTOR_REGISTRY } from "@/lib/connectors/registry";
 import { requiredArgsClause } from "@/lib/ai/tools/required-args";
 import { derivedSpecTitle } from "@/lib/ai/a-spec-derives-its-title-on-a-word";
+import {
+  CARRIED_FOOTING,
+  declineIsRefused,
+  R39_REFUSAL,
+} from "@/lib/spine/a-call-on-your-sentence-is-yours-to-make";
 
 export type ToolCtx = {
   supabase: SupabaseClient;
@@ -5623,7 +5628,45 @@ const decisionRecord = def({
    */
   preview: (a) =>
     `Record decision "${a.title}" against ${a.alternatives_considered.length} rejected alternative${a.alternatives_considered.length === 1 ? "" : "s"}, forecasting "${a.forecast_claim}" by ${a.forecast_horizon_date}`,
-  run: async (a, { supabase, userId, agentSlug, missionId, workspaceId }) => {
+  run: async (a, { supabase, userId, agentSlug, missionId, workspaceId, trackId }) => {
+    /*
+     * ── R-39: A NO ON THE PERSON'S OWN SENTENCE IS THEIRS (P-71) ──────────
+     *
+     * Walked live in an empty probe workspace: Sense searched, found nothing
+     * and carried the person's sentence (R-36, working). Decide's strategist
+     * then DECLINED on that same absence -- "not currently a meaningful
+     * friction point", forecast against 1,000 sessions no connected source can
+     * see -- the decline arm waived four stations, and Learn came to rest on
+     * "Waiting on time, Learn returns Oct 3". A person who typed one sentence
+     * into an empty workspace was told no, on nothing, with a date that returns
+     * to nothing.
+     *
+     * The brief can ASK the strategist not to do that. A rule written as a
+     * request is the defect this repo keeps paying for, so the refusal is here,
+     * where the row is written and no model's judgment reaches past it.
+     *
+     * REFUSED, NOT REWRITTEN. Turning the decline into a `build` would put
+     * words in the strategist's mouth and record a call nobody made. The
+     * refusal names both ways forward and the crew picks one.
+     *
+     * A FAILED READ DOES NOT REFUSE. If the track's footing cannot be read we
+     * do not know it was carried, and blocking a legitimate no on a lookup
+     * failure would stop the one station whose job is to stop work.
+     */
+    if (a.call === "do-not-build" && trackId) {
+      const { data: trackRow, error: trackErr } = await supabase
+        .from("spine_tracks" as never)
+        .select("last_hold")
+        .eq("id", trackId)
+        .maybeSingle();
+      const carried =
+        !trackErr &&
+        ((trackRow as { last_hold?: string | null } | null)?.last_hold ?? null) === CARRIED_FOOTING;
+      if (declineIsRefused({ call: a.call, carried, rationale: a.rationale })) {
+        throw new Error(R39_REFUSAL);
+      }
+    }
+
     /**
      * THE STATUS IS DECIDED HERE, NOT ASSERTED. This line used to read
      * `status: "approved"` outright.
