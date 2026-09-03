@@ -326,6 +326,43 @@ export async function auditDueForecasts(
       });
       const parsed = parseAuditReply((res.json ?? {}) as never);
 
+      /*
+       * ── A VERDICT WITH NOTHING BEHIND IT IS NOT A VERDICT ──────────────
+       *
+       * P-04. `forecastAuditPrompt` hands the model the claim, the observable,
+       * the horizon and `evidence`, and `evidence` has exactly one source: the
+       * linked spec's settled outcome. With no linked spec it reads, verbatim,
+       * "No linked outcome has been settled." The model gets no tools, no
+       * analytics, no signals, nothing about the world at all.
+       *
+       * MEASURED ON PRODUCTION 2026-09-03: eight due forecasts drafted, seven
+       * with `prd_id` null and the eighth's spec outcome null, and **all eight
+       * came back at confidence 1.0**. They were certain about nothing, because
+       * a model asked to judge with no evidence still answers.
+       *
+       * THIS IS WHY THE SETTLE GATE MUST NOT SIMPLY WIDEN. `linkedOutcomeSettled`
+       * was read as the human anchor, and it is, but it is also the only thing
+       * guaranteeing the grader has anything to LOOK at. Dropping it to let the
+       * pass settle on the stated observable would not free a blocked grader; it
+       * would let a model settle hits and misses from its own priors, on the one
+       * record this product claims nothing else has. The blocker was never the
+       * gate. It is that nobody has connected the grader to evidence.
+       *
+       * Until they do, the honest verdict is `inconclusive`, and it says why.
+       * The draft still lands, because a person settling this at the desk should
+       * see that the agent looked and had nothing to look at.
+       */
+      const nothingToJudgeAgainst = !link.evidence.trim();
+      if (nothingToJudgeAgainst && parsed.verdict !== "inconclusive") {
+        parsed.verdict = "inconclusive";
+        parsed.confidence = 0;
+        parsed.rationale =
+          "Graded without evidence. Nothing outside this record was available to check the stated observable against, so this cannot be settled either way. " +
+          (parsed.rationale
+            ? `The model's reading, for what it is worth: ${parsed.rationale}`
+            : "");
+      }
+
       // The draft always lands. It is enrichment, and a person settling this
       // forecast by hand should be able to read what the agent thought.
       const patch: Record<string, unknown> = {
