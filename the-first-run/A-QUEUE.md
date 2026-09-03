@@ -4994,7 +4994,7 @@ Picking up the next READY A3 packet rather than sitting on this one.
 Not blocked on tooling or access — blocked on which of two readings of "Why" is current.
 
 
-### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: pass 4 CLAIMED (A3) · Moves: 2, 3
+### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: pass 4 built, pending A1's live measurement (A3) · Moves: 2, 3
 
 **Why.** The front door reads *Reading your runs.* for three to six seconds on a warm load and
 over nine on this morning's cold one (A1, 06:34 and 09:20 IST, Helio Labs: 15 open tracks). A
@@ -5240,6 +5240,36 @@ the first server call starts at 4.2 s and the last ends at 6.4 s, slowest call 2
 response 78.8 KB decoded and 9.9 KB on the wire. The prefix before the first call is the pass-4
 target and it is 4.2 s on this read, not 1 s; the reads were taken while this machine ran the suite,
 so A3 re-measures on a quiet machine before either of us calls it.
+
+**Report, pass 4 (A3 writes):** Both named costs addressed structurally; A3 has no live browser
+this session, so the exact before/after millisecond numbers still need A1's own measurement — on a
+quiet machine, per the note just above, since a machine running the test suite concurrently is not
+a fair read of either number.
+
+**(1) The prefix.** `_authenticated.tsx`'s `beforeLoad` fires (does not await)
+`context.queryClient.prefetchQuery` for `listRunsForStart` the instant the destination is `/start`
+— running CONCURRENTLY with the `needsOnboarding` await immediately below it, rather than after
+`beforeLoad` resolves and `StartLanding` mounts, which is what forced the two into series before
+(React Router's own lifecycle: `useQuery` only fires once the component mounts, which only happens
+once `beforeLoad` resolves). Read `WORKSPACE_STORAGE_KEY` (exported from `use-workspace.tsx`, not a
+second guess at the string) so the prefetch's query key matches `useQuery`'s own key on the common
+path — a returning visitor whose stored workspace is still valid — and `useQuery` finds the promise
+already in flight instead of issuing a second request. The uncommon path (a first-time visitor, or
+a stored id that resolves to a different real workspace once `workspaces` itself loads) just wastes
+one harmless prefetch; `useQuery` still reads its own key's true state afterward, so nothing stale
+is ever shown on either path. Did not touch `needsOnboarding` itself, or the redirect logic — this
+is purely a "start the network call sooner" change, no behavior moved.
+
+**(2) The invisible marks.** `withStartReaderTiming` (`track.functions.ts`) wraps the SERVER
+handler, so its `console.log` reaches the server's own log and structurally never the browser's —
+no server-side change could have fixed what pass 3's verdict named. `measuredQueryFn`
+(`_authenticated.start.tsx`, exported, 4 new tests) wraps each of the three Start readers with a
+named `performance.mark`/`measure` pair around the ACTUAL round trip the browser makes, so the
+Performance panel now carries three named entries: `start:listRunsForStart`,
+`start:listTopOpportunities`, `start:listProductRepos` — the same names this packet's own Reports
+already use, readable directly rather than mapped from an anonymous `_serverFn` hash by hand.
+
+tsc 0. `bun test`: 13,822 pass / 0 fail / 0 unhandled error, full console suite. Pushed `10cc97991`.
 
 ### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: IN PROGRESS (A1, 13:30 IST: the six §5 defects remain; two of them seen live)· Moves: 1, 2, 5
 
