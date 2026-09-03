@@ -80,6 +80,11 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     partial object for a shared module: snapshot the real exports first, spread them, override
     only what the test observes, and pin a wrapped component to a `const` (the namespace is a live
     binding and will point at the mock). "Passes alone, fails in the run" is this defect, not a flake.
+15. **Parallelise inside a packet, three at most per lane** (founder, 2026-09-03 11:06 IST). Fan
+    independent halves of a packet out to sub-agents or a dynamic workflow rather than doing them
+    one after another; never more than three running per lane at once, because of the workload.
+    The rebase and the push stay in one hand; forks commit before anyone touches the shared tree;
+    rules 2, 13 and 14 apply to every push regardless of who wrote it.
 
 ### The bar a packet is verified against, in this order
 
