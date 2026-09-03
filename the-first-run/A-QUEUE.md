@@ -4107,7 +4107,7 @@ eslint 0 new errors. `bash -n` syntax-checked both scripts.
 **Blockers (A3 writes):** —
 
 
-### P-28 · The duplicates the loop wrote are superseded on the record · Lane: **A3** · Status: CLAIMED (A3) · Moves: 4
+### P-28 · The duplicates the loop wrote are superseded on the record · Lane: **A3** · Status: CENSUS FILED, AWAITING A1's RULING (A3) · Moves: 4
 
 **Why.** The build → define → design → build cycle (P-03c) filed a spec and a prototype per lap for
 weeks. On `2fdf93b6` alone: four `prds` rows and eight prototype rows for one piece of work; the run
@@ -4121,13 +4121,61 @@ each stays live, the older ones stay in the record, and the run screen's *N of t
 goes to zero. Seed workspace excluded. A1 rules on the census before the write.
 
 **Acceptance.**
-- [ ] Census filed with the query and counts per track before any write.
+- [x] Census filed with the query and counts per track before any write.
 - [ ] After the write, the honest run's screen shows no *repeat* line and every station's newest
-      artifact opens; the superseded rows are still readable from the record.
-- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report with the update SQL.
+      artifact opens; the superseded rows are still readable from the record. **Blocked on the
+      ruling below.**
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report with the update SQL. **Not yet applicable
+      -- no write has happened; nothing to test.**
 
-**Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Report (A3, 2026-09-03). The census, read-only, run via the Lovable MCP against the live database.
+Full read + prepared (unexecuted) write SQL: [`the-first-run/P-28-duplicate-census.sql`](./P-28-duplicate-census.sql).**
+
+Grouping matches the run screen's own live sentence exactly (`whatItProduced`,
+`src/components/track/what-it-produced.ts`, and `buildChain`/`ARTIFACT_SOURCE`, `src/lib/spine/chain.ts`):
+per `(track_id, station, LOWER(TRIM(title)))`, among members whose `artifact_id` resolves to a real
+row (an unresolved id is "missing," a different fact, excluded exactly as `whatItProduced` excludes
+it). A blank title never joins a group.
+
+**Two schema facts, confirmed live, correct the packet's own assumptions -- read the second one
+before ruling, it matters more than the count:**
+1. `spine_track_members` has **no `id` column**. Primary key is the composite
+   `(track_id, artifact_kind, artifact_id)`. The prepared write targets that, not a single id.
+2. **`superseded_at` already exists, and already carries a different live meaning.** `rewindTrackTo`
+   (`track.functions.ts:3959-3964`) sets it when a person manually rewinds a track past a station --
+   "undo a step, not the run." A partial index (`spine_track_members_standing_idx ON (track_id,
+   station) WHERE superseded_at IS NULL`) already backs other live reads (`driver.server.ts`,
+   `track.functions.ts`) that filter on it for "what is currently standing." Two rows are already
+   non-null today from one real rewind (track `6199f3df-989d-4603-a037-fc5d919d9a13`, unrelated,
+   zero overlap with the 171 below, verified). **The run screen's own repeat sentence does not filter
+   on `superseded_at` at all today** -- so marking these 171 rows superseded fixes the sentence, but
+   it also changes what OTHER readers see (whatever resolves "the mission for this track," for one),
+   because it reuses one column across two different meanings (a person's deliberate rewind, and an
+   automated duplicate cleanup) rather than a column of its own. That is presumably the intended
+   effect, but it is a real second-order consequence beyond the sentence, and it is the thing this
+   ruling is actually about.
+
+**Results.** 226 member rows sit in 55 duplicate groups across **15 tracks**, sample workspaces
+excluded (1,034 of 1,642 raw rows were in `is_sample = true` workspaces and correctly dropped). **171
+rows to supersede, 55 survive** (newest per group). By kind (in groups / supersede / survive): signal
+121/102/19, prototype 27/19/8, task 29/17/12, decision 18/14/4, theme 15/10/5, prd 16/9/7. Zero
+collisions in changeset, mission, learning. **`deployment` has zero rows in `spine_track_members` at
+all**, sample or not -- not zero duplicates, the kind is never written. Unrelated to this packet,
+flagged for its own look.
+
+The packet's own example track, `2fdf93b6-eb95-4511-b6f4-f74d94a6d39c` ("Checkout asks a homeowner to
+re-enter the delivery address it already has on file"), confirms "four prds and eight prototypes" as
+raw counts, with one nuance: those are **two separate different-title pairs/quads**, not one group of
+4 and one of 8 -- a title with a metrics clause appended a day later counts as its own group.
+
+**Asking A1 to rule on two things before any write:**
+1. Is sharing `superseded_at` with the rewind mechanism the right call, or should duplicate-cleanup
+   get its own marker so a person's deliberate rewind and an automated cleanup stay distinguishable
+   to every future reader of this column?
+2. If sharing is fine: approve the 171-row list in `P-28-duplicate-census.sql` (Part 2) to run as-is.
+
+**Blockers (A3 writes):** A1's ruling on both points above -- no write until then, per the packet's
+own line.
 
 
 ### P-29 · Every start door starts a run · Lane: **A3** · Status: DONE (A1, 08:00 IST; the press that proves line 1 is the founder's) · Moves: 3, 4
