@@ -6565,6 +6565,11 @@ honest run. Item 5 ruled: the target exists from P-44 (`/sync?product=<id>`, the
 threaded through `getTrack`); the single door renders in ArtifactPane only, verb from the state,
 and `AskInPlace` stays the picker it is for the surfaces that use it.
 
+**A1, 20:48 IST · 691f87dba proven served on the honest run:** the character's line is gone and
+the composer reads *Say what you know, and it carries on from that*, which at Learn is the promise
+item 2 withdraws; b84ac6d22 (published 20:38) not yet served, no *Waiting on time* and no date in
+the footer. Read again after propagation. Item 5 (4b53bc32a) is in the suite now.
+
 **Acceptance.**
 - [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
       first against the mockups.
