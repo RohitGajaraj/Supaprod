@@ -1850,6 +1850,13 @@ acceptance gate, live for the first time under the fixed join, sending a did-not
 the spec's station; or a give-up path that resets the route. Either way a track must never leave a
 station without a line in the transcript saying what moved it and why.
 
+
+**A1, 05:47 IST · restored.** P-03c published (05:46). `2fdf93b6`: stop cleared, `attempts` 0,
+`station` build, `last_hold` self-check-failed (SQL at 00:16:36 UTC). The 00:20 UTC tick is the first
+under the fix-mode rule and the premise check; A1 reads it at 00:29. Expected: the crew runs holding
+the check's words and `studio.fix.commit` appends to PR #5's branch; three real failures land on
+`given-up`, not on Define.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
@@ -1904,6 +1911,16 @@ be filed until a person puts Plan back or files one) and was driven six times in
 Its counter is not reset: the condition is real and a person's. Rule: holds in the person-clears set
 are not fetched until the track changes (an edit, a route change, a gate answered), the way
 `deferred_until` keeps the date-holds out. The test names the set.
+
+
+**A1, 05:50 IST · the class is closed, not the instance (A2, `c7410c869`).** A test now parses the
+schema and every query builder in `src` and fails on a column the table does not have. Five dead joins
+had been found by hand in this repo and four shipped (`studio_changesets.track_id` three times,
+`ai_events.agent_id`, `decisions.track_id` and `learnings.metadata` in two unwired Ask helpers). The
+bound is a builder as a contiguous run of calls, comments stripped first, zero false positives across
+`src`, with two guards on the guard (real tables parsed, real files walked) and proven to fire by
+reintroducing the driver's dead join. The two Ask helpers are fixed and still unwired; wiring them is
+a product decision for the founder's list.
 
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
