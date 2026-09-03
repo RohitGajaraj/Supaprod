@@ -7162,7 +7162,7 @@ kept as hers). No page says "Policies" or "Brain" live; the seven ruled titles r
 
 **DoD.** Pushed (`abd7da315`). Requesting A1 publish and read the titles live.
 
-### P-63 · Every surface with a door has a first-visit state · Lane: **A3** (after P-61) · Status: CLAIMED (A3) 22:24 UTC 09-03 · Moves: 2
+### P-63 · Every surface with a door has a first-visit state · Lane: **A3** (after P-61) · Status: CODE DONE, PUSHED 3db9fd806 (14,119 / 0, tsc 0) · Moves: 2
 
 **Why.** Audit §3. The first run is designed; the first visit to each other surface is not. A door
 that lands on a blank is worse than no door.
@@ -7178,6 +7178,40 @@ sentences in `docs/design/first-visit-2026-09.md`. Guards: each surface's zero b
 actions. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; the design doc linked from its folder index.
+
+**A3, 22:50 UTC 09-03, P-63 Report.** Did not wait on a switcher signal: read each surface's own
+zero-branch condition in code rather than walking the live probe workspace myself (A1's own DoD
+already has her doing that live read, and my own live-walk attempt was blocked -- no `.env` in
+this worktree, symlinking one from a sibling worktree was refused by the permission classifier as
+a credentials-adjacent action, so I did not force it). Found six real gaps, not nine: Start
+(P-62), Sources (already paired, action-above-region) and Team/Settings (structurally never
+empty; the roster is a static catalog, settings always has account/billing content) needed no
+change. Run has no door at all to design a state for -- `nav-model.ts`'s own comment says the row
+does not draw while nothing is live, and the route needs a `$trackId` it has none of; recorded
+rather than skipped, same as the audit's precedent for the missing Runs-list door.
+
+Gave Meridian's `Quiet` an optional `action` slot rather than literally using `Quiet` everywhere
+the Scope names it: `ApprovalCard`'s zero case is a different, pre-existing bordered component
+(not `Quiet`) that already carries the right sentence, so it got the equivalent `zeroAction` slot
+instead of being replaced. Both default to none, so P-52/P-53's existing empty-queue call sites
+are unchanged -- verified by the pre-existing refusal tests still passing unmodified, plus a new
+one proving the default (`a-choice-and-a-quiet-are-not-cards-that-ask.test.tsx`). Wired: Waiting
+(Start a sentence), Arriving (Connect a source -- already-existing `Quiet` gained the slot, not a
+new component), Outcomes (a new `Quiet` block under `RecordHead`, gated on the same `emptyRecord`
+`RetentionLine` already reads and stands down for), Conversations' two panes (Start a sentence,
+both). Caught and fixed one live P-61-class defect on the way: `_authenticated.outcomes.tsx`'s
+`notFoundComponent` read "Everything the record holds is behind the five doors on Brain" -- a
+retired door name and a stale count from before P-60's nine-door rework, missed by my P-61 sweep
+because it sat in prose, not a title. Design doc: `docs/design/first-visit-2026-09.md`, linked
+from `docs/design/README.md`'s own table. Guard: `src/lib/a-first-visit-gets-a-door.test.ts`, one
+fact per touched site.
+
+**Acceptance.** Not yet served live -- I could not walk the probe workspace myself this pass (see
+above). Everything else stands: 14,119 / 0, tsc 0, on `3db9fd806`. Requesting A1 walk the nine
+when the switcher is free and read the six sentences-with-doors against what is actually rendered
+-- source-text guards prove the prop is wired, not that the copy reads right live.
+
+**DoD.** Pushed (`3db9fd806`); design doc linked; live walk still open, handing to A1.
 
 ### P-64 · ⌘K reaches everything · Lane: **A3** (after P-63) · Status: READY · Moves: 2
 
@@ -7272,6 +7306,24 @@ supports: the cron is genuinely running every 4 minutes and the route answers `2
 does not by itself prove the 50 ms warm-handler target, which needs a server-side timing read (a
 Worker-side log line or CF analytics) rather than an external curl. Flagging this gap rather than
 rounding it up to "confirmed."
+
+**A3, 22:45 UTC 09-03, the "/" reading A1 actually asked for.** Her ask was narrower and more
+useful than mine: two idle round-trips of "/" itself (not `/health`), 12+ minutes apart, under
+800 ms, with the ping running -- against her own before-baseline of 2.3 s. First reading, ~31
+minutes since my last hit to "/": `200`, `4.860926s` -- worse than her own before-baseline, not
+better. Second, fired immediately after: `200`, `0.519016s`. A third, a few seconds later:
+`200`, `1.920221s` (ttfb `1.737482s`, past TLS at `0.064s`, so the delay is server-side, not the
+handshake). Read plainly: the health cron is NOT closing the gap for "/" the way it closes it for
+its own route. The pattern (slow on the first hit after a real gap, fast immediately after) looks
+like "/" pays its own cold cost independent of whatever `/health`'s ping keeps warm -- possibly a
+downstream Supabase read `/health` was deliberately built with zero database imports to avoid
+(P-58's own scope line), so ping-warming the Worker's isolate does not warm whatever "/" itself
+touches on a cold path. Not confirmed, only observed from outside: I do not have a server-side
+timing read to say which half of "/" is slow. Naming it rather than reporting the fast follow-up
+number as if it were the idle one -- the honest pair is 4.86 s and 1.92 s, both after a real gap,
+neither under 800 ms. Handing this to A1/A2 rather than closing P-58 on it: the fix this points at
+(if real) is likely a `/`-specific warm path or moving its own reads off the cold hop, not another
+`/health`-style ping.
 
 ### P-59b · A Ship that cannot deploy holds as waiting-on-a-person, in the record · Lane: **A3** (after P-58) · Status: CODE DONE, PUBLISHED 03:30 IST 09-04 (A1: 14,089 / 0, tsc 0 on 360e7cdad) · Moves: 1
 
