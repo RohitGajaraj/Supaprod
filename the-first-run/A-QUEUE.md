@@ -5328,6 +5328,41 @@ the count after); and a guard that `studio.pr.open` filing a changeset always at
 **Blockers (A3 writes):** —
 
 
+### P-39 · A press that did nothing says so · Lane: **A3** · Status: READY (after P-36) · Moves: 2, 3
+
+**Why.** 2026-09-03 14:00 IST, the founder deleted the empty *A2 arrival check* workspace from the
+product and was told it worked; the workspace was still there. `deleteWorkspace`
+(`src/lib/workspaces.functions.ts` line 175) runs `.delete().eq("id")` and returns `{ ok: true }`
+whatever happened; PostgREST answers a delete that matched nothing with success, and the policy
+`ws owner admin manage` is `has_workspace_role(id, owner|admin)`, which reads `workspace_members`.
+That workspace had no member row, so its own owner could not delete it, and the product said he had.
+A1 removed the row by hand. The same shape is in the hosted deploy: `deno-deploy.server.ts` line 115
+turns any non-OK answer from api.deno.com into `status: "failure"` with the status code and body
+thrown away, so today's failed preview (the only one since fourteen successes ending 2026-07-10) has
+no recorded reason and nobody can say whether it is the token, the app or the payload.
+
+**Scope.**
+1. `deleteWorkspace` and `leaveWorkspace` select the row back (`.select("id")`) and, when nothing
+   came back, throw the sentence the person needs: *You can't delete this workspace: you are its
+   owner but not a member of it* (or the case that applies). The switcher shows that sentence.
+2. The `ws owner admin manage` policy also admits `owner_id = auth.uid()`, as a migration applied
+   through the Lovable MCP, with A1 confirming the ledger row afterwards.
+3. `denoDeployProvider.deploy` and `createApp` record the HTTP status and the first 500 bytes of the
+   body on failure, on the `deployments` row (add `failure_reason text`) and in the run's transcript
+   line, so a failed preview says why on the run screen.
+
+**Acceptance.**
+- [ ] A test proves a delete that matches no row throws with the sentence, and one that matches
+      returns ok; a test proves an owner with no member row can delete under the new policy.
+- [ ] A test proves a non-OK deploy answer lands its status and body on the deployments row.
+- [ ] Walked live by A1: the sentence on a real workspace the policy blocks; the reason on the next
+      failed preview.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
+
+
 ### P-16b · The sentence field is the first stop · Lane: **A3** · Status: READY (after P-36) · Moves: 2, 5
 
 **Why.** On Start the composer is the thirteenth tab stop (A1, DOM focus order, 12:15 IST). The
