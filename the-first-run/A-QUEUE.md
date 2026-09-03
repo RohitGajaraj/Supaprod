@@ -6174,7 +6174,7 @@ packets.
 
 **Blockers (A3 writes):** —
 
-### P-45 · The chat footer ranks its facts · Lane: **A3** · Status: READY · Moves: 2, 3
+### P-45 · The chat footer ranks its facts · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** Found by A2 while hunting shape 6 for P-37: `src/components/chat/MessageMeta.tsx` puts
 every item behind one `style={item}`, so seat, verdict, duration, tokens and a paragraph render at
