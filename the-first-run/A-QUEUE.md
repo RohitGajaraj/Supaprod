@@ -6385,21 +6385,25 @@ renders through `SeatSays` and never in the imperative.
 
 ### P-49 · The dead weight the audit named is gone, with its guards rewritten · Lane: **A3** · Status: READY (after P-48) · Moves: 5
 
-**Why.** The report's §1.4 named what to delete; most of it went in P-10 to P-12. Two items are
-still in the tree with zero callers, and today added a third: `src/components/chat/MessageMeta.tsx`
-(mounted nowhere, two guards already say so, one of them written to go red on the day it is
-mounted), `src/lib/ai/tools/autonomy-policy.ts` and its `resolveApprovalPolicy` (the mandate
-engine that never got a caller). A file nobody reaches is a claim the repo makes and cannot show.
+**Why.** The report's §1.4 named what to delete; most of it went in P-10 to P-12. One file is
+still in the tree with zero non-test importers, found today: `src/components/chat/MessageMeta.tsx`
+(mounted nowhere; two guards already say so, one of them written to go red on the day it is
+mounted). A file nobody reaches is a claim the repo makes and cannot show. **Corrected before
+filing settled:** the report's other candidate, `autonomy-policy.ts` and `resolveApprovalPolicy`,
+has 11 and 5 non-test importers on today's tip, so the report's *zero callers* line is stale and
+that file stays; A1 checked after writing the first draft of this packet, which is the wrong
+order, and is saying so here.
 
-**Scope.** Verify each has zero non-test importers on the tip (grep, then the suite); delete it;
-rewrite the guards that named it so they assert the live surface instead (`AskTurn`'s
-`Provenance` for the chat footer; the approvals path for the policy) rather than deleting the
-guards. Do not touch `/runs/$missionId` or the seven station pages; those are parked by the
-report, not deleted. List each removed file and its rewritten guard in the Report.
+**Scope.** Verify `MessageMeta.tsx` has zero non-test importers on the tip (grep, then the suite);
+delete it; rewrite the two guards that named it (`the-rating-has-no-door.test.ts`,
+`finished-work-that-never-reached-a-screen.test.ts`) so they assert the live surface, `AskTurn`'s
+`Provenance`, rather than deleting them. Correct the report's §1.4 line on `autonomy-policy.ts` to
+say what the grep says. Do not touch `/runs/$missionId` or the seven station pages; those are
+parked by the report. List the removed file and each rewritten guard in the Report.
 
 **Acceptance.**
-- [ ] `git grep` on the tip finds no importer of any removed file; the rewritten guards pass and
-      name the live surface.
+- [ ] `git grep` on the tip finds no importer of the removed file; the rewritten guards pass and
+      name the live surface; §1.4 corrected.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
 **Report (A3 writes):** —
