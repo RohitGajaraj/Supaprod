@@ -6546,6 +6546,10 @@ to production, where customers see it.?*). A question is composed (*Approve the 
 this release run?*), never a title plus a mark; the doc's own mockup shows the composed form. After
 that fix lands and is read, P-50 is DONE.
 
+**A1, 23:12 IST.** bbc7145fc (the question is composed; a glued mark no longer typechecks): suite
+on the tip 13,947 / 0 / 0, tsc 0; published 23:12. The live read of a composed question on the
+Ask panel follows propagation; then DONE.
+
 **Report (A2 writes):** `d1983b926`, design walked first as the doc's fifth surface. Full console
 suite on the tip **13,976 pass / 0 fail / 0 error**, tsc 0.
 
