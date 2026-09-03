@@ -6503,7 +6503,7 @@ change). `bun run docs:check` clean.
 
 **Blockers (A3 writes):** —
 
-### P-50 · The Ask panel's gate cards are Ask cards · Lane: **A2** · Status: READY · Moves: 2, 5
+### P-50 · The Ask panel's gate cards are Ask cards · Lane: **A2** · Status: CODE DONE (A2, `d1983b926`); A1 reads the panel with two pending gates · Moves: 2, 5
 
 **Why.** A1, 21:35 IST, on the served build: an answer in the Ask panel lists the pending design
 gates as cards of the panel's own making (*Waiting on you*, the spec's title as the question, *The
@@ -6536,7 +6536,53 @@ on A2's evidence (three shapes in one primitive; P-52 and P-53 carry the split),
 in `Ask` since the panel's items carry no timestamp. The read of the Ask panel with two pending
 gates follows propagation.
 
-**Report (A2 writes):** —
+**Report (A2 writes):** `d1983b926`, design walked first as the doc's fifth surface. Full console
+suite on the tip **13,976 pass / 0 fail / 0 error**, tsc 0.
+
+The panel composes `Ask`. The chip is gone, for the reason the run's gate card lost the same one: a
+card that is asking IS the waiting, and the line below says since when.
+
+**The third answer moved rather than went, and the argument is the part worth keeping.** This card
+has THREE genuine verdicts and none is a duplicate, so "the card takes two answers" is not on its own
+a reason. The reason is that **two of them answer the question and one declines to**: _Not now_ writes
+a snooze, and a snooze is the declared default arriving early. The line above already says what
+happens if nobody answers, so pressing it is choosing that outcome deliberately rather than by
+walking away. As a third button it put a non-answer in the row where the answers are, which is why
+reading that card meant deciding between three things when only two were decisions.
+
+**The rule lives in `Ask`, with a slot for the default's own action and NO fourth answer slot.** That
+is the half that stops the next surface reinventing this: a slot that exists gets filled, and the
+next card with a third verdict would have put it beside the answers exactly as this one did.
+
+**The clock is omitted rather than invented.** `Ask` required a `since` and the panel's queue items
+carry no timestamp, so it is optional now and the sentence drops that clause. The load-bearing half
+is what happens if nobody answers; a card that omits the clock says less, and one that fills it says
+something false.
+
+The policy mode is the same shape with different words, per A1's ruling: the question says what it
+asks and the default line says what silence does, so the two registers keep their meaning when the
+verbs change.
+
+**One latent trap fixed on the way.** `lines` was typed `ReactNode[]` while every line pushed into it
+is a string, and it now feeds `Ask`'s `reason`. A future JSX line would have rendered
+`[object Object]` with nothing failing. It is `string[]`, so the compiler refuses one.
+
+**AND THE FINDING THAT OUTLIVES THE PACKET: `Gate` cannot be retired, because it is carrying three
+shapes across twenty call sites.** Asked to retire it, I read every site rather than migrating the
+ones that fit:
+
+- **ten binary asks**, which `Ask` covers exactly
+- **five pickers with N options**, which `Ask` deliberately does not cover: it has one answer and one
+  decline, and forcing a four-way choice through it would either lose options or reintroduce the
+  fourth-slot problem this packet just closed
+- **four zero states**, which are not asking anything at all, complete with a question mark on a
+  sentence that is a report
+
+Retiring it would have meant forcing three shapes through one component, which is how the fourth
+dialect appeared in the first place, or migrating ten and leaving `Gate` for the rest, reaching the
+two-primitives outcome by accident rather than by decision. The inventory is written into `Gate`'s
+own header with the file and line for each, so P-53's migration has its map. P-52 designs and builds
+the two missing vocabularies.
 **Blockers (A2 writes):** —
 
 ### P-51 · Every gate card names its two slots, and the alias goes · Lane: **A3** · Status: DONE (A1 read the approvals page live, 22:10 IST) · Moves: 2, 3
