@@ -6928,6 +6928,15 @@ migration's own comment; (3) a guard that a superseded spec cannot hold a pendin
 migration via the Lovable MCP; A1 confirms the ledger row and the population (expect 0 tracks with
 twin live specs, and the heading's design-gate count down by the twins). Then P-59.
 
+
+**A1, 01:40 IST 09-04.** P-57b on main at 948e440a2 (A2: 13,978 / 0 / 0, tsc 0; A1 suite on the
+tip 13,978 / 0, tsc 0). Published 01:40. Verified by object before the push: trigger
+`close_design_gate_on_supersede` on `spine_track_members`; 0 twin tracks; 0 pending gates on
+superseded specs; Helio pending gates 35 to 21, and the served heading already read 21 at 00:35.
+Nine of the 21 had been superseded properly and were still asking, so supersession had never
+closed a gate; the trigger is the fix and the backfill ran through it. 'superseded' is a fact on
+the Ship page, never a sign-off.
+
 ### P-58 · The Worker is warm when a person arrives · Lane: **A3** (after P-53) · Status: CLAIMED (A3) · Moves: 3
 
 **Why.** Hosting finding, measured again 00:12 IST 09-04: the root answered in 2.3 s and a missing
@@ -7075,6 +7084,69 @@ finds it and lands on it. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and searches five things.
 
+
+### LIVE WALK, A1, 01:35 IST 09-04 · the second sentence, in a workspace with nothing in it
+
+Workspace `a1-delete-probe` (no sources, no product, no runs), sentence "Reduce the time a
+homeowner spends on the address step at checkout", typed with focus proven, Start pressed 19:07:35
+UTC. Track `1c92c15c`. Sense ran as press then three continuations (each `out-of-time`, 19:07 to
+19:10), the seat reported *No evidence was found in the workspace ... No signals were logged, as
+required* (R-37 holds: `signals` in the workspace still 0), and at 19:10:22 the track advanced to
+Decide with `last_hold = carried-on-your-sentence`, `attempts = 0`, spend $0.026 (P-40, R-36,
+live). The run screen while it ran: the out-of-time sentence, then *Nothing is set up for me to
+read from, so there was nothing to find* with the door *Point a source at this* landing on
+`/sync` (P-44's door; no `?product=` because the workspace has no product). This closes the
+founder's "second sentence under Relay" item by a stricter case than Relay.
+
+Two defects found on the way, filed as P-65 and P-66. And one of A1's own: the probe workspace had
+no member row because A1 created it by SQL on 09-03; the first Start was refused for that reason
+and the page said only *Nothing was started · Your sentence is still in the box and nothing was
+filed*. A1 inserted the owner's member row at 19:07:12 UTC and pressed again.
+
+
+### P-65 · An owner can start work in their own workspace, and a refusal says why · Lane: **A3** (after P-61) · Status: READY · Moves: 1, 2
+
+**Why.** Live 01:15 IST 09-04: in a workspace whose owner has no `workspace_members` row, Start
+threw `Forbidden: not a member of this workspace` (`resolveStartWorkspace`,
+`src/lib/spine/track.functions.ts`), and `messageForPerson` (`error-copy.ts`) dropped the
+sentence as machine copy, so the page read *Nothing was started · Your sentence is still in the
+box and nothing was filed* with no reason. Migration `20260909030000` already lets an owner manage
+their workspace without a member row (P-39); this gate did not learn it.
+
+**Scope.** (1) `resolveStartWorkspace` accepts the workspace owner (`workspaces.owner_id =
+auth.uid()`) as well as a member, the same rule as the policy. (2) Every refusal from Start carries
+a sentence a person can act on (*You are not a member of this workspace; ask its owner to add
+you.*), returned as `problems`, not thrown, so `Receipt` renders it; a thrown error is reserved for
+the session ending and the server failing. (3) The root: every path that creates a workspace
+writes the owner's member row in the same transaction (find each `workspaces` insert; a guard that
+a workspace with an owner and no owner member row cannot exist, as a constraint or a trigger in the
+`202609xx` series). Guards for each.
+
+**Acceptance.** In the probe workspace with its member row removed, Start runs; with a non-member
+user it refuses with the sentence above. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; migration applied via the Lovable MCP with its ledger row.
+
+### P-66 · The shell's live line reads the workspace it is standing in · Lane: **A2** (after P-59, before P-60) · Status: READY · Moves: 1, 2
+
+**Why.** Live 01:20 IST 09-04, in the empty probe workspace: the header read *1 decision is ready
+for you · What we expected did not happen: Decline shipping ...*. Both facts are Helio Labs'.
+`listTracks` and `listGatesOnTracks` (`track.functions.ts:459`, `:670`) filter `status = open` with
+no workspace predicate, so the shell reads every open track the person can see across all their
+workspaces, and the query keys (`["shell","open-tracks"]`) carry no workspace either. Since
+migration `20260907010000` a person can hold two workspaces, so the header now tells a person in
+one workspace about gates in another, and a badge count on P-60's rail would inherit it.
+
+**Scope.** (1) The three shell reads (`listTracks`, `listGatesOnTracks`, `listMovingTracks`) take
+the active workspace and filter on it; the query keys carry it; switching workspaces refetches.
+(2) A guard: a test that each shell read names a workspace in its predicate, and one that the
+query keys include it. (3) Read the audit's "Waiting on you" badge (P-60) from the same scoped read.
+
+**Acceptance.** Served: in the probe workspace the live line reads its own state (*Nothing
+running* with no borrowed fact); in Helio Labs it reads Helio's. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 reads both workspaces live.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CODE DONE, pushed 03cbdafe0 (fixes e80ddc701's tsc break against A2's P-50 type), awaiting A1's live read · Moves: 2, 3
 
 **A1, 00:25 IST 09-04: MAIN IS RED ON TSC from 1d888c337.** Suite 13,970 / 0 on the tip, but nine
@@ -7182,6 +7254,8 @@ which is what caught the drop before it shipped.
 **Blockers (A3 writes):** None.
 
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
+
+**A1, 01:40 IST 09-04.** The first real verdict lands after 12:00 UTC 09-04, not 06:00: 34 of the 40 due forecasts sit in sample workspaces the tick skips, and the six Helio rows are backed off to 12:00:06 UTC by the redraft backoff (A2 read the rows). A1 reads `forecast_resolution_log` after 17:30 IST.
 
 **Why.** P-04's live read (A2, 837c08deb): the forecast grader is handed the claim, the observable,
 the horizon and one line of evidence, the linked spec's settled outcome, and with no linked spec that
