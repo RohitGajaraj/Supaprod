@@ -5431,7 +5431,7 @@ no recorded reason and nobody can say whether it is the token, the app or the pa
 **Blockers (A3 writes):** —
 
 
-### P-16b · The sentence field is the first stop · Lane: **A3** · Status: READY (after P-36) · Moves: 2, 5
+### P-16b · The sentence field is the first stop · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 5
 
 **Why.** On Start the composer is the thirteenth tab stop (A1, DOM focus order, 12:15 IST). The
 screen exists for that field.
