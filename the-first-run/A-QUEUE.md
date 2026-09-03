@@ -6979,6 +6979,102 @@ the founder sets the secret and republishes. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads both surfaces.
 
+
+### P-60 · The rail answers the person's questions · Lane: **A2** (after P-59) · Status: READY · Moves: 2, 3
+
+**Why.** `PLATFORM-AUDIT.md` §1 and R-38. The rail holds Start and Run; seven surfaces
+have no door. Stations stay out of the rail (R-01 first half); the person's questions go in.
+
+**Scope.** In Meridian first (the rail is a Meridian component or becomes one), then in `AppFrame`:
+Start · Waiting on you (`/approvals`; its badge is the approvals shape's total, read from the same
+`getApprovalsQueue` the page reads, never a second count) · What came in (`/arriving`) · Runs
+(`/track`, the list) · What we learned (`/outcomes`; P-61 fixes the name and this door follows it)
+· Crew and spend (`/crew`, with `/engine-room` reachable from it) · Conversations (`/threads`) ·
+Sources (`/sync`) · Settings. Each with a `g` key (one letter, listed in the shortcut sheet) and
+an entry in ⌘K under the same name. Collapsed rail keeps the glyph and the key. Design references
+from Mobbin before inventing (`mcp__mobbin__search_screens`, "sidebar navigation" in agent and
+developer tools); port the mechanics, land the tokens in Meridian. The live line stays as it is.
+
+**Acceptance.** Served: every one of the nine doors present, named as above, landing on a page
+whose heading agrees with the door; `g` keys work with focus outside a field; ⌘K lists all nine;
+the Waiting-on-you badge equals the page's shape total. Guards: the rail's items and the shortcut
+sheet and ⌘K are generated from one list (a test that the three agree); the badge reads the queue,
+not a second query. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 publishes and walks all nine.
+
+### P-61 · One name per place · Lane: **A3** (after P-58) · Status: READY · Moves: 2
+
+**Why.** Audit §2. Brain, Outcomes and Learn are three names on two surfaces; the engine room's
+tab reads "Policies"; Arriving, Discover and "See what came in" disagree; the live line and the
+approvals page count different populations under similar words.
+
+**Scope.** Ruling for the vocabulary, made here so the packet does not wait: **"What we learned"**
+is `/outcomes` (the record: every decision, its forecast, what happened); **"Verdicts due"** is
+`/learn` (outcomes that came back and need a person's reading), and it is reached from What we
+learned, not from the rail. `/brain` keeps redirecting. **"What came in"** is `/arriving`.
+**"Waiting on you"** is `/approvals`. **"Crew and spend"** is `/crew`, with the engine room as its
+"Spend and limits" tab or door. Every heading, tab title (`<title>`), door, Ask chip and shortcut
+sheet line uses these words; the station names (Discover, Decide, Plan, Design, Build, Ship,
+Learn) appear only inside a run. A guard: a test that every route's `<title>` and its H1 share the
+door's name from P-60's single list.
+
+**Acceptance.** Served: the seven titles and headings read as ruled; no page says "Policies" or
+"Brain". Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 publishes and reads the titles.
+
+### P-62 · Start is a home, not a run list · Lane: **A2** (after P-60) · Status: READY · Moves: 2, 3
+
+**Why.** Audit §1 and §3; the founder, 00:08: "today we have only the app saying that start, so a
+lot of things are not in home."
+
+**Scope.** Above "Your runs", three answers, each one sentence with one door, each refusing to
+draw when its read failed (an all-clear needs an answered read): what is waiting on you (the
+approvals shape, same read as P-56), what came in since you last looked (new clusters since the
+person's last visit, from the record of their last read, not from a clock), what the record
+learned this week (the newest re-scored calls from `/outcomes`). Second-visit state designed
+first: a person who ran one sentence yesterday sees where it got to and what it needs. The
+composer stays first. Design in Meridian; walk it in the probe workspace with nothing in it (P-63's
+zero states apply).
+
+**Acceptance.** Served, on Helio Labs: the three sentences read true against the database (A1
+re-runs each), each door lands where it says; in an empty workspace each reads its one-sentence
+zero state. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 publishes and walks both workspaces.
+
+### P-63 · Every surface with a door has a first-visit state · Lane: **A3** (after P-61) · Status: READY · Moves: 2
+
+**Why.** Audit §3. The first run is designed; the first visit to each other surface is not. A door
+that lands on a blank is worse than no door.
+
+**Scope.** Walk each of the nine doors in a workspace with no sources, no runs and no decisions
+(`a1-delete-probe`, owner the demo user; A1 will say when it is free to switch to). For each,
+Meridian `Quiet`: one sentence saying what will be here and one action that starts it (point a
+source, start a sentence, invite a person), never a blank and never a spinner. Record the nine
+sentences in `docs/design/first-visit-2026-09.md`. Guards: each surface's zero branch renders a
+`Quiet` with an action.
+
+**Acceptance.** A1 walks the nine in the empty workspace and reads nine sentences with nine
+actions. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; the design doc linked from its folder index.
+
+### P-64 · ⌘K reaches everything · Lane: **A3** (after P-63) · Status: READY · Moves: 2
+
+**Why.** Audit §1: find-anything searches one group, runs.
+
+**Scope.** Groups: the nine doors (from P-60's single list), runs, decisions, specs, sources,
+conversations, people; each result named the way its surface names it; the existing guard
+`find-anything-names-every-group-it-searches` extended to the new groups. Keyboard only, no mouse
+needed; the group order is the rail order.
+
+**Acceptance.** Served: typing a decision's title, a source's name or a conversation's first line
+finds it and lands on it. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 publishes and searches five things.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CODE DONE, pushed 03cbdafe0 (fixes e80ddc701's tsc break against A2's P-50 type), awaiting A1's live read · Moves: 2, 3
 
 **A1, 00:25 IST 09-04: MAIN IS RED ON TSC from 1d888c337.** Suite 13,970 / 0 on the tip, but nine

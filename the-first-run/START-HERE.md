@@ -70,6 +70,7 @@ say so where a person is looking.**
 | [`SPEC-ARTIFACTS.md`](./SPEC-ARTIFACTS.md) · [`SPEC-LAYOUT.md`](./SPEC-LAYOUT.md) · [`SPEC-CONSENT.md`](./SPEC-CONSENT.md) · [`SPEC-ONRAMP.md`](./SPEC-ONRAMP.md) | Build specs with `file:line` on every claim. **Read the one for your item before starting it** |
 | [`MERIDIAN-ADOPTION.md`](./MERIDIAN-ADOPTION.md) | 121 components, 95 adopted, 17 built with no door. Grep here before building |
 | **[`FINDINGS-LEDGER.md`](./FINDINGS-LEDGER.md)** | **What was found, what was FIXED, what is still OPEN, and what was investigated and proved FALSE. Read it before re-investigating anything — if a symptom says FIXED, check the commit and move on** |
+| [`PLATFORM-AUDIT.md`](./PLATFORM-AUDIT.md) | Where each surface lives on the served build, which seven have no door, the vocabulary drift, and the packets P-60 to P-64 that follow (R-38) |
 | [`GAP-AUDIT.md`](./GAP-AUDIT.md) | The full platform sweep: 40 findings across first-run, tenancy, failure states, settings and accessibility, each with `file:line` |
 | [`FRONTIER-BRIEF.md`](./FRONTIER-BRIEF.md) | How the frontier labs actually ship, the user-lens validation, and the strategic angle |
 | [`EVIDENCE.md`](./EVIDENCE.md) · [`ROOT-CAUSE.md`](./ROOT-CAUSE.md) · [`REIMAGINING.md`](./REIMAGINING.md) | The measurements and the strategy read, so nobody re-derives them |

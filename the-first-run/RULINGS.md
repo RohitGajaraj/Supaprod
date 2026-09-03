@@ -1068,3 +1068,24 @@ counted by any reader that counts evidence.
 
 Reversible. If a connector needs a seat to write rows on its behalf, that seat is an ingest seat
 with a source id on every row, and it does not sit at Sense.
+
+## R-38 · A surface without a door is not shipped. (2026-09-04)
+
+**Ruled by A1 at 01:10 IST under the founder's standing authority of 00:09 and his direction of
+00:08** ("for certain things there is no home, an entry point, or doors; where do approvals go,
+where do brain insights go"). Evidence: `the-first-run/PLATFORM-AUDIT.md`. On the served
+build the rail holds two doors (Start, Run) and seven surfaces are reachable only by URL, by a
+contextual link, or by a header line that draws only while a gate exists: Approvals, Learn, Crew,
+Engine room, Threads, Sync, Ship.
+
+**The rule.** Every surface a person is expected to return to has a door in the rail, a `g` key,
+and a ⌘K entry, named by the question it answers and not by the station that produces it. R-01's
+first half stands unchanged: **stations are never navigation.** The fold that reduced the rail to
+Start and Run was right for the first run and is superseded for the second visit; a first run
+that has nothing to compete with and a second visit that has nowhere to go are the same defect at
+two moments.
+
+**What it forbids.** Shipping a surface with no way in; a door whose name differs from the
+heading it lands on; a count on a door that a person cannot reconcile with the count on the page.
+
+Reversible by the founder. Packets: P-60 to P-64.
