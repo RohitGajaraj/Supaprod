@@ -6657,7 +6657,7 @@ now names its three shapes with file and line.
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-54 · A shortcut never fires into a field, and the settled list records what changed · Lane: **A3** · Status: READY, **before P-53** · Moves: 2, 3
+### P-54 · A shortcut never fires into a field, and the settled list records what changed · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** A1, 22:09 IST, on the approvals page with the Ask panel open: a sentence typed into what
 the browser reported as the panel's textbox landed on the page's single-letter shortcuts instead
