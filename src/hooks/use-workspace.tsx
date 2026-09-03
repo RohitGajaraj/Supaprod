@@ -56,7 +56,10 @@ type WorkspaceContextType = {
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
 
-const WORKSPACE_STORAGE_KEY = "supaprod.workspace.active";
+/** Exported so a reader outside this provider (the route's own `beforeLoad`,
+ *  P-32 pass 4, A-QUEUE.md) can look up the same stored id without a second,
+ *  drifting copy of the key. */
+export const WORKSPACE_STORAGE_KEY = "supaprod.workspace.active";
 const PRODUCT_STORAGE_KEY = "supaprod.product.active";
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {

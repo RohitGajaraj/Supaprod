@@ -82,6 +82,37 @@ import type { WorkShape } from "@/lib/spine/route";
 const PLACEHOLDER = "Make the checkout accept an American Express card";
 
 /**
+ * P-32 PASS 4 (A-QUEUE.md). A1's pass-3 verdict: "the timing marks A3 added
+ * are not visible in the browser (no `console` lines, no `performance`
+ * marks or measures)" -- true, and structurally so: `withStartReaderTiming`
+ * (`track.functions.ts`) wraps the HANDLER, which runs on the server, so its
+ * `console.log` reaches the server's own log, never the browser's. No
+ * server-side change can fix that; a browser Performance-panel entry has to
+ * be made in the browser.
+ *
+ * Wraps a reader's own `queryFn` with a named `performance.mark`/`measure`
+ * pair around the ACTUAL round trip a person's browser makes -- network
+ * latency included, which the server's own wall-clock timing never counted.
+ * Named per reader, so A1's own Performance-API measurement (already the
+ * technique every pass of this packet has used) can read "listRunsForStart:
+ * 2,678ms" directly instead of mapping an anonymous `_serverFn` hash to a
+ * name by hand.
+ */
+export function measuredQueryFn<T>(name: string, run: () => Promise<T>): () => Promise<T> {
+  return async () => {
+    const startMark = `start:${name}:begin`;
+    const endMark = `start:${name}:end`;
+    performance.mark(startMark);
+    try {
+      return await run();
+    } finally {
+      performance.mark(endMark);
+      performance.measure(`start:${name}`, startMark, endMark);
+    }
+  };
+}
+
+/**
  * THE DECISION, PULLED OUT SO IT CAN BE TESTED AGAINST REAL DOM VALUES
  * (P-16b, A-QUEUE.md) rather than only through a full route mount --
  * `StartLanding` is not exported and calls `Route.useSearch()`, which needs
@@ -167,7 +198,9 @@ function StartLanding() {
   const fRuns = useServerFn(listRunsForStart);
   const runs = useQuery({
     queryKey: ["start-runs", activeWorkspaceId ?? null],
-    queryFn: () => fRuns({ data: { workspaceId: activeWorkspaceId ?? null } }),
+    queryFn: measuredQueryFn("listRunsForStart", () =>
+      fRuns({ data: { workspaceId: activeWorkspaceId ?? null } }),
+    ),
     refetchInterval: 10_000,
   });
   /* Only once the read has ANSWERED. Showing the first-run line while the read
@@ -181,7 +214,9 @@ function StartLanding() {
   const fBets = useServerFn(listTopOpportunities);
   const bets = useQuery({
     queryKey: ["start-top-opportunities", activeWorkspaceId ?? null],
-    queryFn: () => fBets({ data: { workspaceId: activeWorkspaceId ?? null } }),
+    queryFn: measuredQueryFn("listTopOpportunities", () =>
+      fBets({ data: { workspaceId: activeWorkspaceId ?? null } }),
+    ),
     staleTime: 60_000,
   });
 
@@ -194,7 +229,9 @@ function StartLanding() {
   const fProductRepos = useServerFn(listProductRepos);
   const productRepos = useQuery({
     queryKey: ["start-product-repos", activeWorkspaceId ?? null],
-    queryFn: () => fProductRepos({ data: { workspaceId: activeWorkspaceId ?? null } }),
+    queryFn: measuredQueryFn("listProductRepos", () =>
+      fProductRepos({ data: { workspaceId: activeWorkspaceId ?? null } }),
+    ),
     staleTime: 5 * 60_000,
     enabled: productsVisible,
   });

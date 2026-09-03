@@ -7,6 +7,8 @@ import { AppFrame } from "@/components/shell/AppFrame";
 import { WorkspaceProvider } from "@/hooks/use-workspace";
 import { FlowModeProvider } from "@/hooks/use-flow-mode";
 import { needsOnboarding } from "@/lib/onboarding-gate";
+import { WORKSPACE_STORAGE_KEY } from "@/hooks/use-workspace";
+import { listRunsForStart } from "@/lib/spine/track.functions";
 import { useApprovalPush } from "@/hooks/use-approval-push";
 import { BackendHealthBanner } from "@/components/system/BackendHealthBanner";
 import { EverythingIsPausedBanner } from "@/components/system/EverythingIsPausedBanner";
@@ -57,7 +59,7 @@ export const Route = createFileRoute("/_authenticated")({
    * field (the 76 above exists for exactly that case).
    */
   pendingComponent: () => <BrandWait overlay={false} size={44} label="Opening" />,
-  beforeLoad: async ({ location }) => {
+  beforeLoad: async ({ location, context }) => {
     /*
      * TIMED, NOT GUESSED (P-32, A-QUEUE.md). A1's live measurement found a
      * 1.1-second prefix before ANY of the three `/start` readers fire, and
@@ -77,6 +79,34 @@ export const Route = createFileRoute("/_authenticated")({
     console.log(`[perf] beforeLoad:getSession: ${Date.now() - beforeLoadStarted}ms`);
     if (!data.session) {
       throw redirect({ to: "/login" });
+    }
+    /*
+     * P-32 PASS 4: THE RUNS READER STARTS HERE, NOT AFTER THIS GATE OPENS.
+     * A1's pass-3 verdict named two remaining costs: this prefix (0.4-0.7s)
+     * and `listRunsForStart` itself (1.2-1.6s), paid one after the other
+     * because `useQuery` only fires once `StartLanding` mounts, which only
+     * happens once `beforeLoad` resolves -- React Router's own lifecycle
+     * forces them into series.
+     *
+     * Fired, not awaited: this starts the network call the moment `/start`
+     * is the destination, running CONCURRENTLY with `needsOnboarding` below
+     * rather than after it. `queryClient.prefetchQuery` and the component's
+     * own `useQuery` share one cache by KEY -- reading the same
+     * `WORKSPACE_STORAGE_KEY` `WorkspaceProvider` itself reads (not a second,
+     * drifting guess at it) is what makes the keys match on the common path
+     * (a returning visitor whose stored workspace is still valid) so the
+     * mounted `useQuery` finds this promise already in flight instead of
+     * issuing a second, duplicate request. A first-time visitor or a stale
+     * stored id (workspaceId resolves differently once `workspaces` loads)
+     * just wastes one prefetch -- harmless, not wrong, never a stale row
+     * shown: `useQuery` still reads its own key's true state after this.
+     */
+    if (location.pathname === "/start") {
+      const workspaceId = localStorage.getItem(WORKSPACE_STORAGE_KEY);
+      void context.queryClient.prefetchQuery({
+        queryKey: ["start-runs", workspaceId ?? null],
+        queryFn: () => listRunsForStart({ data: { workspaceId: workspaceId ?? null } }),
+      });
     }
     // First-run gate: accounts with profiles.onboarded === false land on
     // /onboarding until they finish. Cached (one read per page load) —
