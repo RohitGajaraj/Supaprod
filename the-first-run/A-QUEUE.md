@@ -2410,7 +2410,43 @@ published 14:56. Item 4 cannot be proved on `870b70d3`, which advanced to Decide
 14:50; it needs a fresh sentence under Relay after propagation, and A1 reads that track. Open: a
 test that the decision at Decide carries the footing (P-41 or an addendum here).
 
-**Report (A2 writes):** —
+**Report (A2 writes):** `aeb2c8d1e`, published 14:56 IST. Full console suite on the tip
+**13,776 pass / 0 fail / 0 error**, tsc 0.
+
+The seat calls **`sense.found_nothing`** after searching, so the driver reads a typed row in
+`tool_calls` instead of grepping an answer. That is the instrument `driver.server.ts` had already
+asked for in its own words: telling a reasoned refusal from an empty visit "deserves a better
+instrument than a substring". The brief was the other half of the defect, and it is the half nobody
+had noticed: it told the seat to "say so in your answer", and an answer is prose the run cannot read.
+
+**No attempt is spent**, and the reasoning matters more than the rule. Attempts exist to stop a
+station that cannot finish from looping. This station DID finish: it answered the question it was
+asked and the answer was "nothing here". Retrying cannot change that answer, so charging for it
+turned a correct, complete outcome into a countdown to giving up. Halts, throws and credit refusals
+keep the old rule; their branch sits above this one, untouched, and a test pins that.
+
+`carried-on-your-sentence` is the only hold that rides **with a move**. Amber and not orchid, because
+nobody is being asked for anything and an orchid chip would put a job on somebody who has none. No
+way-out door, because its own line already says what would change it, and that is where R-36's *Let
+Discover try again must not render* actually lands.
+
+**The tool files nothing.** `FILE_IT.sense` forbids filing the absence of evidence and that rule is
+right: 52 of one workspace's 72 signals were once the agents' own notes about finding nothing. This
+records the absence on the RUN and never on the evidence record.
+
+**Six registers** the new tool and the new hold had to join, each caught by its own guard rather than
+by me remembering: consequences, risk dimensions, tool defaults, the character line, the hold-tone
+list and the way-out register.
+
+**A1 caught a real gap**, closed in the P-41 commit: I wrote the hold and nothing read it, so the
+decision Decide made carried no footing and Learn would have graded a call that looked
+evidence-backed against a record that had none. Decide's brief reads the hold now and records
+*evidence: the person's sentence, no findings*, with a test.
+
+**Live proof is A1's**, and it cannot come from `870b70d3`: that track had already advanced the bad
+way on the two manufactured rows before this shipped, and its first honest run closed at 15:10 with
+the Critic upholding the decline. The founder's second sentence under Relay is the proof for this
+and for P-41.
 **Blockers (A2 writes):** —
 
 ### P-41 · A seat at Sense reads evidence and never writes it · Lane: **A2** · Status: CODE DONE, published 15:15 IST (A1: suite 13,794 / 0 on 274562ffb); live proof on the next no-evidence run · Moves: 1, 2
@@ -2453,7 +2489,50 @@ database (the two rows now carry `source_kind = 'loop_authored'`); the footing t
 P-40 is here (*a decision made with no findings says so*). Suite on the tip 13,794 / 0 / 0, tsc 0,
 published 15:15. Live proof rides on the founder's second sentence.
 
-**Report (A2 writes):** —
+**Report (A2 writes):** `274562ffb` and `97ba24cf3`, published 15:15 IST. Full console suite on the
+tip **13,854 pass / 0 fail / 0 error**, tsc 0. Migration `20260909030000` applied and verified in
+`pg_constraint`.
+
+**A refusal, not a smaller kit, and the scope's own second clause is why.** R-37 asks for
+`signals.log` to leave every Sense seat while ingest paths keep it "with a source id required on the
+row". There is no per-seat kit in this product: `loop.server.ts` builds the list from the whole
+registry and the only per-agent filter is a risk cap. So both halves are ONE rule enforced where the
+write happens, and it holds for seats nobody has written yet, which a hand-maintained kit would not.
+`source` was optional and defaulted to the string `"agent"` -- which is exactly what produced both
+rows. It is required now and the default is gone.
+
+**The refusal names both honest endings**, because a refusal with no door is how a seat starts
+inventing one: group what is already in the workspace (`cluster.trigger`, `research.synthesize`), or
+say nothing is here (`sense.found_nothing`).
+
+**Counts, before and after, on the workspace the team walks.** 277 signals, **96 of them
+`source = 'agent'`**, 0 marked. After: the same 96 excluded from every evidence count, and the two
+rows A1 named also carrying the new lane. **The wider number is the finding: 35 percent of the
+evidence in `helio-labs-harbor` is the loop's own writing**, not two rows. The excluder therefore had
+to be a rule about a class, not a patch on two ids.
+
+**Marked, never deleted**, and there was no lane to mark them with: `source_kind` allowed the five
+real doors and nothing else, so a row the loop wrote about itself sat under `manual` -- the lane a
+PERSON pastes evidence in through. The most valuable rows in a young workspace and the loop's own
+exhaust wore one label, and marking one would have hidden the other. `20260909030000` widens the
+check; both rows carry `loop_authored` with the reason appended to their content.
+
+**The excluder tests the source AND the lane**, because either alone leaves a door: `source` catches
+the ninety-six, the lane catches a row marked deliberately, including one whose `source` somebody
+later edits to look legitimate. It never excludes `manual`.
+
+**This was measured a week ago and answered with a description telling the model not to** -- 54 of 75
+rows agent-authored in workspace `0b792d52`, one genuine customer request buried under fifty-two of
+the loop's own notes about absence. Asking was not enough, which is the whole lesson: the rule now
+lives where the write happens.
+
+**Three defects of my own, all caught by guards rather than by me.** The module header said "WHY
+`source` AND NOT `source_kind`" after I had changed it to use both, so the file contradicted itself.
+This packet's own guard read that module raw and failed on the header QUOTING the lane it must never
+exclude -- a matcher that reads comments is testing prose, not code. And `every-station-can-finish`
+sliced a fixed 4,000 characters from `run:`, so the new refusal pushed the `id:` it looks for outside
+the window and it failed over a working tool; a window measured in characters fails whenever somebody
+explains themselves, so it bounds at the next tool now.
 **Blockers (A2 writes):** —
 
 ### P-04 · The horizon verdict arrives · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2, 06:40 IST) — the live half is A1's · Moves: 3, 4, 5
