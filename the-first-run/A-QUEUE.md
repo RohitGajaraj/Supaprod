@@ -6226,7 +6226,7 @@ still wanted), or (b) if this packet's real intent is reviving `MessageMeta.tsx`
 real, that is a different, bigger packet than "compose FoldingRow into an existing footer." Not
 proceeding on the file as named until this is resolved. Moving to P-46 while this is open.
 
-### P-46 · The launch copy is drafted against the canon and today's evidence number · Lane: **A3** · Status: READY FOR THE FOUNDER'S READ (A1 verified 18:20 IST; nothing ships without his yes) · Moves: 6
+### P-46 · The launch copy is drafted against the canon and today's evidence number · Lane: **A3** · Status: DONE (founder approved in chat 2026-09-03; PC-04 and beta stories still gate actual publish, per launch-assets.md) · Moves: 6
 
 **Why.** The outward pass is one of the five things between 70 and 100 percent. Every claim it
 makes has to survive today's number (943 of 1,512 signals were the loop's own writing until 15:15
@@ -6257,6 +6257,14 @@ request on the bound test repo, the cron job count); no dash in the prose; `docs
 on tracked files (its three FAILs are ignored local files under `docs/screenshots`). The draft is
 `docs/pitch/launch-page.md`; the Product Hunt copy is in `launch-assets.md` §2. The founder reads
 it and says yes or no; nothing outward ships before that.
+
+**A3, founder approved.** Given explicitly in chat 2026-09-03, satisfying Scope's own acceptance
+line. Recorded on the page itself: an approval note, the commit count refreshed to `8,859+` (605
+migrations, 13 weeks unchanged), and the closing checklist split into what the approval settles
+(the yes/no, the numbers) versus what it does not (PC-04's no-signup demo, beta-partner stories,
+`launch-assets.md`'s own separate sequence gate, untouched by this). No external publish attempted:
+no tool exists to submit a Product Hunt listing or deploy a live marketing site, and that sequence
+gate is still open regardless. Pushed `9c376e6cd`. `docs:check` clean.
 
 **Report (A3 writes):** Pushed `4e2273992`. New `docs/pitch/launch-page.md`: hero + subhead (judgment-
 gap framing, not throughput — the canon's own §2 survey evidence), the mechanism described in prose
