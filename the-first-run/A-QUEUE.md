@@ -7711,19 +7711,25 @@ more waiting in your other workspaces* (true, and a deliberate cross-workspace l
 reads *135 clusters need your decisions ... The newest 200 signals, 135 clusters open, 5 became
 bets*: every number is Helio Labs'. **Outcomes** reads *1 of 2 graded forecasts came true lately.
 2 calls ... 8 of 16 lessons on the record*: Helio's again (the probe has no graded forecast and
-no lesson). P-70 took analytics, dashboard, threads, discovery and approvals-queue to zero; the
+no lesson). **Conversations** opens Helio's kept conversation (*What needs my call before it can
+move?*, A1's own from 23:29) in the probe: the list may be scoped since P-70, but the page opens
+the last thread by id and RLS lets it through. **Sources** reads *1 pointed, all reading. GitHub
+repository Supaprod/relay-homeowner-app*: Helio's source; the probe has none. **Team** reads *16
+agents work here*, which is the crew, the same in every workspace, and is by design. Tab titles
+read Team and Outcomes (P-61 live). P-70 took analytics, dashboard, threads, discovery and approvals-queue to zero; the
 reads behind Arriving (themes, clusters, the ranking) and Outcomes (graded forecasts, lessons) are
 still bare, and a person in a fresh workspace sees another workspace's desk. P-75 filed.
 
 
-### P-75 · Arriving and Outcomes read the workspace they stand in · Lane: **A2** (now, before P-74) · Status: READY · Moves: 1, 2
+### P-75 · Arriving, Outcomes, Sources and Conversations read the workspace they stand in · Lane: **A2** (now, before P-74) · Status: READY · Moves: 1, 2
 
 **Why.** The live walk above. In the empty probe workspace Arriving shows Helio's 135 clusters
 and Outcomes shows Helio's graded forecasts and lessons; Waiting says *One just came in* where
 nothing did. These are the two doors a person opens first after Start.
 
 **Scope.** Every read behind `/arriving` (themes, the cluster ranking, "became bets", the source
-count) and `/outcomes` (graded forecasts, re-scored calls, lessons, "what the record now tells
+count), `/outcomes`, `/sync` (sources, documents in sync) and `/threads` (the thread opened by id
+must belong to the active workspace, or the page opens nothing and says so), and `/outcomes` (graded forecasts, re-scored calls, lessons, "what the record now tells
 your agents") takes the active workspace through the P-66 input shape, with query keys carrying
 it; the approvals page's *One just came in* line reads the same scoped queue as the heading;
 P-67's ratchet lowered for each file touched. Guard: a walk-shaped test that renders the two
