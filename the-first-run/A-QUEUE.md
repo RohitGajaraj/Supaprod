@@ -5025,6 +5025,17 @@ will not fire there. Follow-up inside P-33: backfill `is_sample` on every row of
 seeder made, with the count before and after. Not yet verified by A1 on the live site (suite and
 publish after the restart).
 
+
+**A1, 13:30 IST · what closes P-33.** `docs/design/arrival-2026-09.md` §5 lists six defects an empty
+workspace still shows, each refuted by an independent pass before being kept, none fixed. They are
+this packet's remaining scope, in this order: (1) `getStandingRecord` and the sources-exist count read
+by person, not workspace (the Start-scope defect in two more places), (2) `driven_at` stamped only on
+the driver's exit, so the right pane says *Discover has not run yet* while the left says *Scout is
+working*, (3) the artifact pane instructing the person to press a record that is empty,
+(4) `RetentionLine` under *Nothing is on the record yet*, (5) *Saved* under *Nothing set*, (6) zeros
+printed as receipts. Then the backfill of `is_sample` on the existing sample workspaces. P-33 closes
+when A1 walks the fresh workspace and sees none of the six.
+
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
