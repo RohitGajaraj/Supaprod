@@ -7700,6 +7700,41 @@ again*; A1 presses it and reads the row. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17.
 
+
+### LIVE WALK, A1, 05:00 IST 09-04 · the nine doors in the empty workspace, first three
+
+Workspace `a1-delete-probe` (0 signals, 0 themes, 2 declined decisions of A1's, no product).
+**Waiting** reads *Nothing is ready for you. Nothing is waiting on you. When an agent stops to ask
+something, the question arrives here and the run holds until you answer it. Start a sentence*
+(P-63's Quiet, right), then *One just came in. Refresh to see it.* (nothing came in here) and *51
+more waiting in your other workspaces* (true, and a deliberate cross-workspace line). **Arriving**
+reads *135 clusters need your decisions ... The newest 200 signals, 135 clusters open, 5 became
+bets*: every number is Helio Labs'. **Outcomes** reads *1 of 2 graded forecasts came true lately.
+2 calls ... 8 of 16 lessons on the record*: Helio's again (the probe has no graded forecast and
+no lesson). P-70 took analytics, dashboard, threads, discovery and approvals-queue to zero; the
+reads behind Arriving (themes, clusters, the ranking) and Outcomes (graded forecasts, lessons) are
+still bare, and a person in a fresh workspace sees another workspace's desk. P-75 filed.
+
+
+### P-75 · Arriving and Outcomes read the workspace they stand in · Lane: **A2** (now, before P-74) · Status: READY · Moves: 1, 2
+
+**Why.** The live walk above. In the empty probe workspace Arriving shows Helio's 135 clusters
+and Outcomes shows Helio's graded forecasts and lessons; Waiting says *One just came in* where
+nothing did. These are the two doors a person opens first after Start.
+
+**Scope.** Every read behind `/arriving` (themes, the cluster ranking, "became bets", the source
+count) and `/outcomes` (graded forecasts, re-scored calls, lessons, "what the record now tells
+your agents") takes the active workspace through the P-66 input shape, with query keys carrying
+it; the approvals page's *One just came in* line reads the same scoped queue as the heading;
+P-67's ratchet lowered for each file touched. Guard: a walk-shaped test that renders the two
+routes' data hooks with a workspace that has nothing and asserts every count is zero.
+
+**Acceptance.** In the probe: Arriving reads its P-63 zero state; Outcomes reads its P-63 zero
+state; Waiting reads nothing "just came in". In Helio: unchanged numbers. Full suite on the tip,
+tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 walks the probe again.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
