@@ -455,3 +455,19 @@ and the preview provider is Supaprod's own Deno hosting), the second honest run 
 founder's sentence, not yet typed), the run screen's surfaces (P-37), the grader's first real read
 (tomorrow 06:00 UTC), and the outward pass against the evidence number. The date call holds:
 23 September, and a real Ship by 8 September is what keeps it.
+
+**Checkpoint, 2026-09-03 18:40 IST. Thirty-eight of forty-seven packets done with evidence; the
+rest is four founder answers and one design pass.** Since 16:45: P-34 (by object), P-43 and P-44's
+door (live), P-47 (by repro), P-45 retired on A3's premise check, P-46 drafted, corrected four
+times against the record, and waiting on the founder's yes; P-37's gate card and transcript row
+are served in their new shape, its calendar-wait fix found and fixed a defect of its own on the way
+(an overdue forecast told to wait), and the composer placeholder, the seat message and the hold
+card remain. Two of A1's own claims were wrong today and are on the record as such (P-45's premise,
+the calendar-wait's evidence); the lanes caught both by checking before acting, which is the rule
+working. **Open on the founder:** the second sentence under Relay (the live proof of the two
+rulings), the tablet track's release gate (since 12:13), P-38's migration approval in A3's
+session, the seven Prism and Trellis decisions, and the launch copy's yes or no. **Open on the
+product:** Helio Labs has no live source beyond the repo, so any run there is carried on the
+person's word by design; the cold Worker's five seconds on a first visit is hosting. The date call
+holds at 23 September; a real Ship by 8 September is the one thing that keeps it, and it needs the
+release gate answered first.
