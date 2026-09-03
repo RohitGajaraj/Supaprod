@@ -7547,6 +7547,42 @@ the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17.
 
+
+### P-74 · The run shows its route: seven stations, what happened at each, and what is ahead · Lane: **A2** (after P-72, before P-73) · Status: READY · Moves: 2, 3
+
+**Why.** The founder, 04:09 IST 09-04: a person in a run needs to see the lifecycle the work
+moves through and where it is on it. Read live on the tablet track at 04:12: the seven names
+appear only as transcript section labels and output-card titles (Discover, Decide, Plan, Design,
+Build once each; Ship and Learn not at all), so nothing on the screen says *this is a route of
+seven, it is here, these two are ahead, this one was skipped and why*. The horizontal strip was
+folded on 09-02 for being decoration and navigation (`docs/design/station-strip-before-the-fold.md`);
+that ruling stands and this is not a return of it. Meridian already holds `RunMap` (a route through
+the seven stations and what happened at each; a skipped station is a decision on the record with a
+reason), built for the plan gate and drawn nowhere else on the run screen.
+
+**Scope.** (1) The run screen's right column, above *What it has made*: `RunMap` in read mode, one
+row per station in route order, each carrying its glyph, its name and ONE sentence of what
+happened here, derived from the record, never composed by a model: Discover *found 3 things* /
+*found nothing; carried on your sentence*; Decide *you said build* / *the loop said build* / *the
+call is yours*; Plan *spec written, 2 versions*; Design *waived: the call was not to build*; Build
+*PR #4, 91 lines, checks green*; Ship *waiting for a preview* / *held: no preview host*; Learn
+*grades on 3 Oct* / *2 outcomes came back*. The current station is live (the same mark the
+transcript uses), stations ahead read what they will need, in low ink; a waived station shows its
+reason, never a blank. (2) Stations are not navigation (R-01): a row is not a link; at most, a row
+scrolls the transcript to that station's first entry. (3) The sentence vocabulary lives in one
+file next to `one-door-for-one-state.ts`, with a guard that every `HoldReason` and every
+artifact kind on the route has a sentence. (4) The AI-native SDLC playbook's seven stations are
+the vocabulary already; the map names them as the run does, in one word each. (5) Design first in
+Meridian (`RunMap` gains the read mode and the outcome sentence slot if it lacks them), then use
+it; Mobbin for a vertical stepper's mechanics before inventing.
+
+**Acceptance.** On the served tablet track: seven rows, Build reads the PR and its size, Ship
+reads what it waits on, Learn reads its date; on the probe track: Discover reads *carried on your
+sentence*, four rows read *waived: the call was not to build*, Learn reads its date. P-37's
+one-card rule holds (the map is not a card and asks nothing). Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 walks both tracks.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
