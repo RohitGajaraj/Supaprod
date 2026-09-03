@@ -5323,7 +5323,10 @@ the count after); and a guard that `studio.pr.open` filing a changeset always at
       banner names the answer; A1 walks it. **A3 has no live browser this session (unavailable the
       whole run) — built and unit-tested against jsdom, not walked. A1: please verify live.**
 - [x] Census before and after; zero `pr_open`/`merged` changesets on tracks without a member.
-- [x] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+- [x] tsc 0 · pushed · Report. `bun test`: the console printed **13,753 pass / 2 fail** (full
+      suite, this branch, post-rebase) — both in `-_auth.server.test.ts`, a file this packet never
+      touched; isolated to 0 fail / 26 pass on its own, so the number A1's own run decides is the
+      one that counts. Not claiming 0 fail on the full-suite number itself.
 
 **Report (A3 writes):**
 
