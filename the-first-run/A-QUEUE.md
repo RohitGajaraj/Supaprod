@@ -6297,7 +6297,7 @@ answers. The character's line above the card retires with SeatSays. A2 continues
 **Blockers (A2 writes):** —
 
 
-### P-38 · The cron says the host it runs against · Lane: **A3** · Status: READY (moved to A3 by A1, 16:10 IST; migration through the Lovable MCP, ledger row after) · Moves: 5
+### P-38 · The cron says the host it runs against · Lane: **A3** · Status: BLOCKED (A3) · Moves: 5
 
 **Why.** The live `calibrate-tick` (and its siblings) post to `supaprod.ai` with a timeout, while
 every checked-in migration that defines them says the `lovable.app` host with none (A2, checkpoint
@@ -6313,5 +6313,30 @@ deployed one.
 - [ ] `cron.job` command text equals the migration's for every tick job; A1 compares.
 - [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
 
-**Report (A2 writes):** —
-**Blockers (A2 writes):** —
+**Report (A3 writes):** The migration is written, not yet applied or committed (see Blockers).
+`supabase/migrations/20260909050000_the_cron_jobs_are_defined_where_a_replay_would_find_them.sql`
+(local, uncommitted): defines all 36 live tick jobs plus `reap-stuck-job-runs` by name, against
+`supaprod.ai` with the exact live schedule and timeout (read via `query_database` on production
+2026-09-03), `cron.unschedule` then `cron.schedule` per job — the same idiom
+`20260702202247...` already uses — plus the same host/timeout guard `20260806031833`'s rebuild
+carries, so a bad apply fails loudly. The real defect this closes: every per-job migration from
+2026-06/07 still hardcodes `lovable.app`; the live table only reads `supaprod.ai` because
+`20260806031833` is a DYNAMIC rewrite of whatever already exists in `cron.job` at apply time, and
+nothing since defines a job by name against the right host for a future migration to copy from.
+
+The "handlers' results stored so a tick can be read" half of Scope: already true, not something to
+build. All 35 HTTP tick handlers in `src/routes/api/public/hooks/` already call
+`withJobRunHttp`/`withJobRun` (`src/lib/observability/jobs.ts`), which writes every run into
+`job_runs`. Verified by grep, not by guessing.
+
+**Blockers (A3 writes):** Applying the migration to the live database (`query_database` with the
+`cron.unschedule`/`cron.schedule` DDL above) was refused by this session's own auto-mode permission
+classifier — "Blocked by classifier... a schema-changing query against production" — the same tool
+that applied P-39's/earlier packets' migrations this session without incident. I did not retry or
+route around it (the tool's own instructions are explicit: stop and surface rather than work
+around). The migration file is NOT committed — committing an unapplied migration would leave the
+repo and the live schema drifted, which is exactly the class of defect the types-column guard
+exists to catch. Needs either A1's own Lovable MCP call (if A1's session classifies this
+differently) or the founder's explicit go-ahead for A3 to retry. Once applied: insert the
+`supabase_migrations.schema_migrations` ledger row for `20260909050000`, commit the file, write the
+host-matching test, run tsc/`bun test`, push, update this Report.
