@@ -1376,8 +1376,29 @@ export function decideDrive(input: {
    *
    * Not gated on `blockedOnMoney`: a track that has been dispatched twelve times
    * has spent real money whatever its last hold said.
+   *
+   * ── EXCEPT WAITING ON ANOTHER RUN, AND THAT ONE IS NOT A LOOP ───────────
+   *
+   * This net catches a station that NEVER CONVERGES. A track held on
+   * `waiting-on-another-run` is not failing to converge: another run holds a
+   * file it needs, that clears when their pull request merges or closes, and
+   * every drive in between is the sweep correctly finding the wall still there.
+   *
+   * Without this, a wall lasting two hours -- twelve ten-minute ticks -- ends a
+   * correct piece of work at a TERMINAL hold. Found on `2fdf93b6` before it
+   * could happen to the honest run: that track reached `station_drives` 12 at
+   * Build and `decideDrive` returned `going-in-circles` in 0.13s, dispatching
+   * nobody, so the claim rule never got a run to read.
+   *
+   * The same shape as `blockedOnMoney` above and for the same reason: a hold
+   * whose clearing condition lives outside this track must not be counted as
+   * this track failing. The money argument does not reach it either, because a
+   * drive that ends at the wall is the sweep looking, not a station looping.
    */
-  if ((input.stationDrives ?? 0) >= MAX_STATION_DRIVES) {
+  if (input.lastHold === "waiting-on-another-run") {
+    // Falls through to the ordinary decision below. The claim is re-established
+    // from this drive's own refusal, or the wall is gone and the work moves.
+  } else if ((input.stationDrives ?? 0) >= MAX_STATION_DRIVES) {
     return { act: false, hold: "going-in-circles" };
   }
 

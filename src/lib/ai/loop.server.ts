@@ -2191,6 +2191,72 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
        * this codebase already keeps in `tool-consequences.ts` and returns both the
        * clock and what happens when it runs out. */
       const expiry = planApprovalExpiry(call.name);
+
+      /*
+       * -- ONE PENDING GATE PER TOOL PER MISSION (P-03, 2026-09-03) ----------
+       *
+       * MEASURED. PR #4 on `6817e386` carried TWO pending `studio.pr.merge`
+       * gates -- `f88c612c` at 21:05 and `5dcbe54d` at 21:32 -- raised by two
+       * runs the Build re-dispatch loop made. A1 cancelled the older by hand.
+       *
+       * The re-dispatch that produced them is fixed, and this is the defect
+       * underneath it rather than the same one again: ANY two attempts of the
+       * same tool on one piece of work raise two gates, and both ask the same
+       * person the same question about the same pull request. The second is not
+       * a second decision. It is the first decision asked twice, and a queue
+       * that does that teaches people to stop reading it.
+       *
+       * PENDING ONLY, and that is the whole scope. A gate that was ANSWERED is
+       * spent: a later attempt is a new question about a changed situation and
+       * must raise its own. Matching on `approved` or `rejected` would silently
+       * reuse a decision somebody made about something else.
+       *
+       * Keyed on the mission rather than the args. Two `studio.pr.merge` calls
+       * worded differently are the same ask about the same branch, and a person
+       * answering one has answered the work; the loop re-derives what it needs
+       * on resume. A tool with no mission -- most of the product -- is untouched,
+       * because there is no piece of work to key on and this rule would be
+       * guessing.
+       */
+      if (ctx.missionId) {
+        const { data: already } = await supabase
+          .from("agent_approvals")
+          .select("id")
+          .eq("mission_id", ctx.missionId)
+          .eq("tool_name", call.name)
+          .eq("status", "pending")
+          .order("created_at", { ascending: true })
+          .limit(1);
+        const open = (already ?? [])[0] as { id: string } | undefined;
+        if (open?.id) {
+          console.warn(
+            `[loop] ${call.name} already has a pending gate on mission ${ctx.missionId}; reusing ${open.id}`,
+          );
+          /* The SAME shape a freshly-raised gate takes, pointing at the gate
+             that already exists. A step that recorded this as an error would
+             read on the transcript as something going wrong, and nothing did:
+             the call was correct and the question was already asked. */
+          steps.push({
+            kind: "tool_call",
+            name: call.name,
+            args: parseRes.data as Json,
+            reason: call.reason,
+            ok: true,
+            status: "queued",
+            approval_id: open.id,
+          });
+          conv.push({ role: "assistant", content: assistantContent });
+          conv.push({
+            role: "user",
+            content: `${call.name} is already waiting on a person for this work. Answering that one answers this. Do not ask again; pick another tool or finalize.`,
+          });
+          /* NOT counted in `approvalsQueued`. Nothing new is waiting on anybody,
+             and a count that rose here would tell the run screen a person has
+             two things to answer when they have one. */
+          continue;
+        }
+      }
+
       const { data: appr } = await supabase
         .from("agent_approvals")
         .insert({

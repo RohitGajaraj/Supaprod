@@ -185,7 +185,7 @@ import {
   pathFromWaitingSentence,
 } from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
 import { wayOut } from "@/components/track/way-out";
-import { HOLD_LINE } from "@/lib/spine/driver";
+import { decideDrive, HOLD_LINE, MAX_STATION_DRIVES } from "@/lib/spine/driver";
 import { RESUMABLE_HOLDS, TERMINAL_HOLDS, CORRECTABLE_HOLDS } from "@/lib/spine/correction";
 import { HOLDS_THAT_WAIT_ON_A_DATE } from "@/lib/spine/waiting-on-a-date-is-not-waiting-in-a-queue";
 
@@ -402,5 +402,70 @@ describe("no later writer in the same drive replaces the claim", () => {
      */
     expect(HOLD_LINE["out-of-time"]).toBeTruthy();
     expect(HOLD_LINE[CLAIMED_PATH_HOLD]).toBeTruthy();
+  });
+});
+
+/**
+ * ── A WALL IS NOT A LOOP, AND THE CANARY COULD NOT TELL ───────────────────
+ *
+ * `going-in-circles` fires at `MAX_STATION_DRIVES` and is TERMINAL. It exists
+ * for the one case the attempt ceiling cannot see: a station that never fails,
+ * never produces, and is dispatched forever because `out-of-time` costs it
+ * nothing.
+ *
+ * A track waiting on another run's file is not that. Another run holds a file it
+ * needs, that clears when their pull request merges or closes, and every drive
+ * in between is the sweep correctly finding the wall still there. Twelve
+ * ten-minute ticks is two hours — a perfectly ordinary time to wait for a
+ * review — and at the end of it a correct piece of work was ended for good.
+ *
+ * Found on `2fdf93b6` at 01:30 UTC before it could happen to the honest run:
+ * `station_drives` reached 12 at Build, `decideDrive` returned
+ * `going-in-circles` in 0.13s having dispatched nobody, and so the claim rule
+ * never got a run to read.
+ */
+describe("waiting on another run is not going in circles", () => {
+  const at = (over: Partial<Parameters<typeof decideDrive>[0]> = {}) =>
+    decideDrive({
+      upstream: [{ kind: "prd", id: "p", title: "t" }],
+      stationDrives: MAX_STATION_DRIVES,
+      paused: false,
+      station: "build",
+      title: "A run",
+      origin: null,
+      pendingApprovals: 0,
+      attempts: 0,
+      lastHold: CLAIMED_PATH_HOLD,
+      ...over,
+    });
+
+  it("does not end a track that is waiting on a wall", () => {
+    expect(at().hold).not.toBe("going-in-circles");
+    expect(at().act).toBe(true);
+  });
+
+  it("still ends one that is genuinely looping", () => {
+    /*
+     * THE HALF THAT KEEPS THE NET. `out-of-time` costs a station nothing, which
+     * is the exact case F-43 added this ceiling for. An exemption that swallowed
+     * it would trade a terminal hold on correct work for an unbounded spend on
+     * work that never converges.
+     */
+    expect(at({ lastHold: "out-of-time" }).hold).toBe("going-in-circles");
+    expect(at({ lastHold: null }).hold).toBe("going-in-circles");
+  });
+
+  it("leaves the attempt ceiling alone, which is a different net", () => {
+    // A claim counts no attempts, so this should never fire for one; asserted so
+    // the exemption above cannot quietly widen into the other ceiling.
+    expect(at({ attempts: 99 }).hold).toBe("stalled");
+  });
+
+  it("mirrors the money exemption rather than inventing a shape", () => {
+    // `blockedOnMoney` already exempts a hold whose clearing condition lives
+    // outside the track. This is the same argument for the same reason.
+    const DRIVER_PURE = readFileSync("src/lib/spine/driver.ts", "utf8");
+    expect(DRIVER_PURE).toContain('if (input.lastHold === "waiting-on-another-run") {');
+    expect(DRIVER_PURE).toContain("const blockedOnMoney =");
   });
 });
