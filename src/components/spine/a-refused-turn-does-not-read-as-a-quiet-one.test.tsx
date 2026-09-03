@@ -43,7 +43,7 @@ import { render } from "@testing-library/react";
 
 import type { Turn } from "@/lib/spine/activity";
 import { RunRollup } from "@/components/meridian/run-rows";
-import { chipOf, headline, rollupOf, type TitleBook } from "./TrackActivity";
+import { chipOf, headline, turnMeta, rollupOf, type TitleBook } from "./TrackActivity";
 
 const turn = (o: Partial<Turn>): Turn => ({
   runId: "r1",
@@ -125,7 +125,15 @@ describe("the turn that hit a locked door", () => {
   });
 
   it("names the empty hands in the headline rather than burying them", () => {
-    expect(headline(REFUSED)).toBe("Studio filed nothing");
+    expect(headline(REFUSED)).toBe("Filed nothing");
+    /*
+     * P-37, shape 6. The seat no longer OPENS the sentence: every row began
+     * with a name, so the first word of the column carried nothing about the
+     * run and the thing being scanned for sat second. It moves under the
+     * verdict, where `RunMeta`'s own header already says it belongs ("who did
+     * it"), and it is still asserted, in its new place.
+     */
+    expect(turnMeta(REFUSED)).toContain("Studio");
   });
 
   it("still shows the seat's own claim, which is the disagreement a reader judges", () => {
@@ -139,13 +147,13 @@ describe("what must NOT get a chip, or the chip stops meaning anything", () => {
   it("leaves a with-failures turn that filed its work alone", () => {
     // 810 of 2,272 track-linked runs carry this status and most did the job.
     expect(chipMarkup(DID_THE_WORK)).toBeNull();
-    expect(headline(DID_THE_WORK)).toBe("Discovery Scout filed 2 findings");
+    expect(headline(DID_THE_WORK)).toBe("Filed 2 findings");
   });
 
   it("leaves a clean run that had nothing to add alone", () => {
     // Critique and Verify return verdicts. Filing nothing is the job, not a fault.
     expect(chipMarkup(CLEAN_VERDICT)).toBeNull();
-    expect(headline(CLEAN_VERDICT)).toBe("Critique filed nothing");
+    expect(headline(CLEAN_VERDICT)).toBe("Filed nothing");
   });
 });
 
@@ -160,7 +168,7 @@ describe("a turn the platform stopped", () => {
   it("reads as stopped and not as a finish", () => {
     expect(chipMarkup(HALTED)?.textContent).toBe("Stopped");
     expect(chipMarkup(HALTED)?.getAttribute("data-status")).toBe("fail");
-    expect(headline(HALTED)).toBe("Studio was stopped, filing nothing");
+    expect(headline(HALTED)).toBe("Nothing was filed for this step");
   });
 
   it("keeps the stop in the sentence even when the turn DID file something", () => {
@@ -170,15 +178,27 @@ describe("a turn the platform stopped", () => {
       outcome: "stopped",
       made: [{ kind: "changeset", word: "code change", id: "f9354439" }],
     });
-    expect(headline(stoppedAfterFiling)).toBe("Studio was stopped after filing a code change");
+    expect(headline(stoppedAfterFiling)).toBe("Stopped after filing a code change");
   });
 });
 
 describe("the rollup prints measurements and never placeholders", () => {
-  it("gives the duration and the token count in one line", () => {
+  it("gives the duration on the closed line, and NOT the token count", () => {
+    /*
+     * P-37, amendment 7. The token count came off this line. On a column of
+     * turns it competed with the verdict for the eye of somebody scanning, and
+     * it is an audit fact rather than a scanning one: it answers "what did that
+     * cost", which is a question you ask about ONE turn after you have found it.
+     *
+     * It is not deleted. `SeatCalls` takes it as `spend` and prints it inside
+     * the fold, next to the calls it is a measurement of. Removing a real fact
+     * to tidy a layout would be worse than the crowding it fixed, and this
+     * assertion is here so that the removal cannot quietly become a deletion.
+     */
     const text = rollupText(DID_THE_WORK);
     expect(text).toContain("Worked for 1m 16s");
-    expect(text).toContain("65,732 tokens");
+    expect(text).not.toContain("65,732 tokens");
+    expect(text).not.toContain("tokens");
   });
 
   it("prints no duration at all when nothing measured one", () => {
@@ -187,7 +207,6 @@ describe("the rollup prints measurements and never placeholders", () => {
     const text = rollupText(turn({ tookMs: null, tokens: 19411 }));
     expect(text).not.toContain("0s");
     expect(text).not.toContain("Worked");
-    expect(text).toContain("19,411 tokens");
   });
 
   it("drops a missing figure without leaving its separator behind", () => {

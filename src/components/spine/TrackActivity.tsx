@@ -125,16 +125,46 @@ export type TitleBook = Map<string, { title: string | null; missing: boolean }>;
  * word, because it is the single fact the record is surest about: it is a join
  * against `spine_track_members`, and no agent can write it.
  */
+/**
+ * ── THE VERDICT LEADS, AND THE SEAT IS NOT THE VERDICT (P-37, shape 6) ────
+ *
+ * This read `${t.agentName} filed nothing`, so every row on the transcript
+ * opened with a NAME. A person scanning a run is looking for what happened;
+ * the seat that did it is provenance, and provenance qualifies a sentence
+ * rather than heading it, which is the same move `Ask` makes with the asking
+ * seat and `CallGate` with its subject.
+ *
+ * Measured on the screen A1 walked: every row began "Discovery Scout ...",
+ * "Critique ...", "Studio ...", so the first word of the column carried no
+ * information about the run at all, and the thing being scanned for sat second.
+ *
+ * THE SEAT DOES NOT DISAPPEAR. It moves to the meta line under the verdict,
+ * where the duration already lives.
+ *
+ * A STOPPED TURN LEADS WITH ITS CONSEQUENCE (A1, amendment 5), because the
+ * consequence is what the reader has to act on. "Was stopped, filing nothing"
+ * describes the machinery; "Nothing was filed for this step" is what it means.
+ */
 export function headline(t: Turn): string {
-  if (t.outcome === "working") return `${t.agentName} is working`;
-  if (t.outcome === "waiting") return `${t.agentName} is queued`;
+  if (t.outcome === "working") return "Working";
+  if (t.outcome === "waiting") return "Queued";
   if (t.outcome === "stopped") {
     return t.made.length
-      ? `${t.agentName} was stopped after filing ${countKinds(t.made)}`
-      : `${t.agentName} was stopped, filing nothing`;
+      ? `Stopped after filing ${countKinds(t.made)}`
+      : "Nothing was filed for this step";
   }
-  if (t.made.length) return `${t.agentName} filed ${countKinds(t.made)}`;
-  return `${t.agentName} filed nothing`;
+  if (t.made.length) return `Filed ${countKinds(t.made)}`;
+  return "Filed nothing";
+}
+
+/**
+ * Who did it and how long it took, under the verdict. P-37, amendment 7: the
+ * TOKEN COUNT IS NOT HERE. Tokens and cost are an audit fact rather than a
+ * scanning fact, and they belong with the tool list inside the fold.
+ */
+export function turnMeta(t: Turn): string {
+  const took = t.tookMs != null ? formatElapsed(t.tookMs / 1000) : null;
+  return [t.agentName, took].filter(Boolean).join(" · ");
 }
 
 /*
@@ -332,10 +362,13 @@ export function rollupOf(
 
   // `toLocaleString` rather than a hand-built grouping: 65732 is unreadable and
   // `65,732` is wrong in every locale that groups with a space or a full stop.
-  const tokens =
-    t.tokens != null ? (
-      <RunTook key="tokens">{`${t.tokens.toLocaleString()} tokens`}</RunTook>
-    ) : null;
+  /*
+   * P-37, amendment 7. The token count came off the closed line: it is an audit
+   * fact, not a scanning fact, and on a column of turns it was competing with
+   * the verdict for the reader's eye. It is still said, inside the fold, next
+   * to the tool list it belongs with.
+   */
+  const tokens = null;
 
   const made = t.made.map((m) => {
     const known = titles.get(m.id);
@@ -387,11 +420,21 @@ function SeatCalls({
   calls,
   working,
   seat,
+  spend,
 }: {
   calls: ToolStreamRow[];
   working: boolean;
   /** The seat's own name, so the expanded log says whose calls these are. */
   seat: string;
+  /**
+   * What this turn cost, in tokens. P-37, amendment 7: it came OFF the closed
+   * rollup line, where it competed with the verdict for a reader scanning a
+   * column of turns, and it lands here, with the calls it is a measurement of.
+   *
+   * Removing it from the line without putting it anywhere would have deleted a
+   * real fact to tidy a layout, which is worse than the crowding it fixed.
+   */
+  spend?: string | null;
 }) {
   const [open, setOpen] = React.useState(false);
   if (calls.length === 0) return null;
@@ -421,6 +464,12 @@ function SeatCalls({
             label={`What ${seat} called`}
             maxHeight={220}
           />
+          {/* The audit fact, with the calls it measures. */}
+          {spend ? (
+            <span className="font-mrd-mono mt-mrd-2 block text-mrd-data tabular-nums text-mrd-faint">
+              {spend}
+            </span>
+          ) : null}
         </span>
       ) : null}
     </span>
@@ -1223,6 +1272,15 @@ export function TrackActivity({
                   )}
 
                   {/*
+                   * WHO DID IT AND HOW LONG IT TOOK, under the verdict rather
+                   * than inside it. The seat used to open the headline, so every
+                   * row began with a name and the thing being scanned for sat
+                   * second. `RunMeta`'s own header says it is "who did it", which
+                   * is exactly this and is where it should have been.
+                   */}
+                  <RunMeta>{turnMeta(t)}</RunMeta>
+
+                  {/*
                    * THE TWO TEAMMATES, ON THE ROW WHERE THE WORK CHANGED HANDS.
                    *
                    * SESSION-1's brief asks for from- and to-chips in the
@@ -1325,7 +1383,26 @@ export function TrackActivity({
                       the column total does.** */}
                   {said ? (
                     <RunNote>
-                      <Reveal lines={3}>{said}</Reveal>
+                      {/*
+                        P-37, shape 6. This was `<Reveal lines={3}>`: three lines
+                        of paragraph open by default, which made the seat's prose
+                        the MASS of every row and pushed the verdict into a
+                        header for it.
+                        
+                        One line, so the row shows that something was said and
+                        keeps the saying until it is asked for.
+
+                        NOT `lines={0}`, which I wrote first and which is wrong:
+                        `Reveal` clamps with `WebkitLineClamp: lines`, and `0` is
+                        not a zero-line clamp, it is an invalid value that
+                        applies NO clamp and renders the paragraph in full. The
+                        opposite of the intent, silently.
+
+                        A true fold, where the closed row carries no paragraph at
+                        all, arrives when this row moves onto `FoldingRow`. One
+                        line is what `Reveal` can honestly do today.
+                      */}
+                      <Reveal lines={1}>{said}</Reveal>
                     </RunNote>
                   ) : null}
 
@@ -1342,6 +1419,7 @@ export function TrackActivity({
                     calls={callsBySeat.get(t.runId) ?? []}
                     working={t.outcome === "working"}
                     seat={t.agentName}
+                    spend={t.tokens != null ? `${t.tokens.toLocaleString()} tokens` : null}
                   />
                 </span>
               </li>
