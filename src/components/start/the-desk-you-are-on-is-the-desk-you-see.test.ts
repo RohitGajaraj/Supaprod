@@ -162,7 +162,7 @@ describe("the sources offered are this workspace's sources", () => {
     // `useWorkspace` throws outside its provider and these panes are rendered
     // by guards that stand up no shell. The file's own convention.
     expect(PANE.replace(/\s+/g, " ")).toContain(
-      "<NothingToRead station={stop.station} workspaceId={workspaceId} />",
+      "<NothingToRead station={stop.station} workspaceId={workspaceId} productId={productId} />",
     );
   });
 });

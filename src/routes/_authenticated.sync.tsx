@@ -118,15 +118,36 @@ import { latestIso, relTimeCaps } from "@/components/discover/format";
  * door at the foot of this page moved to it unchanged.
  */
 
+export type SyncSearch = { conflict?: string; product?: string };
+
+/**
+ * Pulled out so it is testable without mounting the route (this repo's
+ * established substitute -- see `shouldClaimComposerFocus`,
+ * `measuredQueryFn`; there is no working precedent here for mounting a full
+ * TanStack Router route in a test).
+ *
+ * `product` is the second deep-link param (P-44, A-QUEUE.md), alongside the
+ * existing `conflict`: `/sync?product=<id>` is where the "Finish it on Sync"
+ * door from a connected-but-unbound need now lands, carrying the run's own
+ * product so `ProductBindingsSection` opens already pointed at it.
+ */
+export function parseSyncSearch(search: Record<string, unknown>): SyncSearch {
+  const out: SyncSearch = {};
+  if (typeof search.conflict === "string" && search.conflict.length > 0) {
+    out.conflict = search.conflict;
+  }
+  if (typeof search.product === "string" && search.product.length > 0) {
+    out.product = search.product;
+  }
+  return out;
+}
+
 export const Route = createFileRoute("/_authenticated/sync")({
   component: SyncPage,
   head: () => ({ meta: [{ title: "Sync · Supaprod" }] }),
   // Deep-link target for the honest doors to this surface: /sync?conflict=<id>
   // lands on the conflict and floats it to the top of the list.
-  validateSearch: (search: Record<string, unknown>): { conflict?: string } =>
-    typeof search.conflict === "string" && search.conflict.length > 0
-      ? { conflict: search.conflict }
-      : {},
+  validateSearch: parseSyncSearch,
   errorComponent: ({ error, reset }) => (
     <Surface wide>
       {/* Meridian's `PageHeading` and `Actions` both set no outer margin, on
@@ -163,6 +184,30 @@ type Mapping = {
   updated_at: string;
 };
 
+/**
+ * WHETHER TO SWITCH THE ACTIVE PRODUCT ON LANDING (P-44, A-QUEUE.md), pulled
+ * out pure for the same reason `parseSyncSearch` is: no route-mounting
+ * precedent to test against directly.
+ *
+ * Three refusals, each because acting anyway would be worse than doing
+ * nothing: no `?product=` named (nothing to preselect), it already matches
+ * what is active (switching is a no-op that would still re-fire the effect
+ * on every render without this check), or it names a product this workspace
+ * does not currently list (a stale link, or one for a different workspace --
+ * switching to an id `ProductBindingsSection` cannot resolve would trade a
+ * correct "nothing to override" state for a silently wrong one).
+ */
+export function productToPreselect(
+  wantedProductId: string | undefined,
+  activeProductId: string | null,
+  knownProductIds: string[],
+): string | null {
+  if (!wantedProductId) return null;
+  if (wantedProductId === activeProductId) return null;
+  if (!knownProductIds.includes(wantedProductId)) return null;
+  return wantedProductId;
+}
+
 /** Human name for a provider enum (google_docs -> Google Docs). */
 function providerLabel(p: string): string {
   return CONNECTOR_REGISTRY[p as ProviderId]?.label ?? p.replace(/_/g, " ");
@@ -175,8 +220,25 @@ const TWO_WAY = new Set(["google_docs", "notion", "linear"]);
 
 function SyncPage() {
   const qc = useQueryClient();
-  const { conflict: followedConflictId } = Route.useSearch();
-  const { activeProductId, activeWorkspaceId, activeProduct } = useWorkspace();
+  const { conflict: followedConflictId, product: wantedProductId } = Route.useSearch();
+  const { activeProductId, activeWorkspaceId, activeProduct, products, setActiveProductId } =
+    useWorkspace();
+
+  /*
+   * THE PRODUCT A DOOR NAMED, PRESELECTED (P-44, A-QUEUE.md). Routed through
+   * the same `setActiveProductId` the switcher itself calls -- not a local
+   * override -- so `ProductBindingsSection` below reads it exactly as it
+   * would if a person had clicked it there, and it stays selected on the way
+   * back rather than reverting the instant this effect stops re-running.
+   */
+  useEffect(() => {
+    const toSelect = productToPreselect(
+      wantedProductId,
+      activeProductId,
+      products.map((p) => p.id),
+    );
+    if (toSelect) setActiveProductId(toSelect);
+  }, [wantedProductId, activeProductId, products, setActiveProductId]);
   const fList = useServerFn(listSyncMappings);
   const fResolve = useServerFn(resolveSyncConflict);
   const fPull = useServerFn(pullMapping);

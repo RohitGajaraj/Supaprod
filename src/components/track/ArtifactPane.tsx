@@ -2155,6 +2155,7 @@ export function MissionCard({
 function NothingToRead({
   station,
   workspaceId = null,
+  productId = null,
 }: {
   station: AgentStation;
   /*
@@ -2163,6 +2164,8 @@ function NothingToRead({
    * and these panes are rendered directly by guards that stand up no shell.
    */
   workspaceId?: string | null;
+  /** This run's own product (P-44, A-QUEUE.md) — see `StationPanel`'s own doc. */
+  productId?: string | null;
 }) {
   /*
    * `head: true` with an exact count: this needs the NUMBER and never the rows.
@@ -2236,6 +2239,7 @@ function NothingToRead({
           why="Discover reads what customers and teammates have already said. Nothing is pointed at a source yet, so it had nothing to read."
           suggest={["intercom", "zendesk", "slack"]}
           needIsMet={false}
+          productId={productId}
         />
       ) : null}
     </section>
@@ -2610,6 +2614,7 @@ function StationPanel({
   holdReason,
   origin = null,
   workspaceId = null,
+  productId = null,
   openArtifactId = null,
   now,
   trackId,
@@ -2636,6 +2641,14 @@ function StationPanel({
   origin?: string | null;
   /** Whose promotion bar the lineage compares against. See `Lineage`. */
   workspaceId?: string | null;
+  /**
+   * THIS RUN'S OWN PRODUCT, `spine_tracks.product_id` (P-44, A-QUEUE.md). Not
+   * the workspace switcher's `activeProductId` -- a person can browse this
+   * screen with a different product selected than the one this run belongs
+   * to, and the door out of "nothing is set up to read from" has to land on
+   * THIS run's product, not on whatever the switcher happens to show.
+   */
+  productId?: string | null;
   /**
    * The artifact the person opened, which leads this panel.
    *
@@ -2787,7 +2800,7 @@ function StationPanel({
         {hold ? <RecordSpeaks>{hold}</RecordSpeaks> : null}
         {/* NO DEAD END, EVER (SESSION-1 unit 5), and this is where the 47
             tracks that filed nothing actually land. */}
-        <NothingToRead station={stop.station} workspaceId={workspaceId} />
+        <NothingToRead station={stop.station} workspaceId={workspaceId} productId={productId} />
         {/* AND WHAT IS STILL UNSETTLED (gap #29). Here as well as in `SenseBody`
             because THIS is the branch a Discover stop with zero members reaches
             -- 47 tracks -- and `SenseBody` never runs for them. RUN-134 shipped
@@ -3520,6 +3533,7 @@ export function ArtifactPane({
                `theme_id`. */
             origin={track.origin}
             workspaceId={activeWorkspaceId ?? null}
+            productId={track.productId}
             /*
              * EVERY STOP, NOT JUST DECIDE, and this was hiding the one thing
              * the product exists to show.

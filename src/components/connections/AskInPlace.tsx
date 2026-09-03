@@ -40,12 +40,38 @@ import { ConnectTrustDialog } from "./ConnectTrustDialog";
 import { SUITE_PROVIDERS, useConnectorActions } from "./useConnectorActions";
 import { ProviderLogo } from "./ProviderLogo";
 
+/**
+ * WHERE "FINISH IT IN SETTINGS" ACTUALLY LANDS (P-44, A-QUEUE.md).
+ *
+ * It said Settings and pointed at `/settings?section=connections`, which is
+ * the ACCOUNT list -- AccountConnectionsSection's own header names the door
+ * to the thing this sentence is asking for: "Changing a binding... live on
+ * /sync." A connection existing is exactly the fact this branch has already
+ * established (`connectedButNotEnough`); the door it drew sent a person back
+ * to reconnect an account that was never the problem, and the actual binding
+ * picker they needed was one surface over.
+ *
+ * `/sync` reads its product-scoped section from the workspace switcher's
+ * `activeProductId`, not from a URL -- so without `product`, landing here
+ * from a run whose product differs from whatever the switcher shows would
+ * repeat the same defect one level down: right surface, wrong product
+ * preselected. Passed only when the caller has it (a run's own
+ * `spine_tracks.product_id`); omitted rather than guessed.
+ */
+export function bindingDoorTarget(productId?: string | null): {
+  to: "/sync";
+  search: { product?: string };
+} {
+  return { to: "/sync", search: productId ? { product: productId } : {} };
+}
+
 export function AskInPlace({
   need,
   why,
   suggest,
   satisfiedByEnv = true,
   needIsMet,
+  productId,
 }: {
   /** What is missing, in the words the surface would say anyway: "an issue
    *  tracker", "somewhere to read the metric". Not a product name. */
@@ -80,6 +106,13 @@ export function AskInPlace({
    * sharper test than you do and it says no", and the control stops hiding.
    */
   needIsMet?: boolean;
+  /**
+   * This run's own product (`spine_tracks.product_id`), so the door on a
+   * connected-but-unbound need lands on `/sync` with the RIGHT product
+   * preselected rather than whatever the workspace switcher happens to show
+   * (P-44, A-QUEUE.md). Undefined where the caller has none.
+   */
+  productId?: string | null;
 }) {
   const qc = useQueryClient();
   const actions = useConnectorActions(qc);
@@ -119,8 +152,8 @@ export function AskInPlace({
    *
    * Connecting again fixes nothing here, so offering the connect buttons would
    * be worse than the silence it replaces. The rest of the fix is a binding,
-   * and Settings is where both halves live, which is where S1's hand-rolled row
-   * already points.
+   * and `/sync` is where that lives (P-44, A-QUEUE.md; see `bindingDoorTarget`
+   * above) -- not Settings, which only lists accounts.
    */
   const connectedButNotEnough = needIsMet === false && connectorPresent;
 
@@ -167,12 +200,13 @@ export function AskInPlace({
    * the half of the fix that is already done is worse than the silence it
    * replaces: it reads as "you did it wrong" when they did it right.
    *
-   * NO SECOND DOOR TO A THIRD PLACE. Settings is where both halves are fixed,
-   * connect the account and bind the thing, which is exactly where S1's
-   * hand-rolled row points. Sending someone somewhere else would put two
-   * answers on one question.
+   * NO SECOND DOOR TO A THIRD PLACE, and it used to be one: this branch sent a
+   * person to Settings, which only lists accounts, when the actual fix -- the
+   * bind -- lives on `/sync` (P-44, A-QUEUE.md). One door, and it goes where
+   * the thing it names actually happens.
    */
   if (connectedButNotEnough) {
+    const target = bindingDoorTarget(productId);
     return (
       <div>
         <p className="text-mrd-body">
@@ -181,12 +215,8 @@ export function AskInPlace({
           change nothing. What is missing is which one this work should use.
         </p>
         <Actions>
-          <Link
-            to="/settings"
-            search={{ section: "connections" }}
-            className={ACTION_LINK_FACE.default}
-          >
-            Finish it in Settings
+          <Link to={target.to} search={target.search} className={ACTION_LINK_FACE.default}>
+            Finish it on Sync
           </Link>
         </Actions>
       </div>

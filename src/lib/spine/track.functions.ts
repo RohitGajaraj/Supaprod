@@ -146,6 +146,18 @@ export type Track = {
    * reading it should expect the loop to recover or to give up next tick.
    */
   attempts: number;
+  /**
+   * The product this run belongs to, when the composer set one
+   * (`_authenticated.start.tsx`'s `productId: activeProductId`). Null for a
+   * run started before a product was chosen, or from a path that never sets
+   * one (a promoted theme carries `project_id` instead, a distinct column --
+   * see `listProductRepos`'s own comment on why there is no single column).
+   *
+   * P-44 (A-QUEUE.md): this is what lets a door leaving the run land on the
+   * binding surface already pointed at THIS run's product, rather than at
+   * whatever the workspace switcher happens to be on.
+   */
+  productId: string | null;
 };
 
 type TrackRow = {
@@ -164,6 +176,7 @@ type TrackRow = {
   last_hold_because?: string | null;
   driven_at: string | null;
   attempts: number | null;
+  product_id?: string | null;
 };
 
 /** Rebuild the route from its two stored columns, tolerating anything odd in them. */
@@ -199,11 +212,12 @@ function rowToTrack(r: TrackRow): Track {
     holdBecause: r.last_hold_because ?? null,
     drivenAt: r.driven_at ?? null,
     attempts: r.attempts ?? 0,
+    productId: r.product_id ?? null,
   };
 }
 
 const SELECT =
-  "id,user_id,workspace_id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,last_hold_because,driven_at,attempts," +
+  "id,user_id,workspace_id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,last_hold_because,driven_at,attempts,product_id," +
   // The ONLY edge from a track to the questions it is waiting on.
   // `agent_approvals` has no track back-reference — see SPEC-CONSENT §1.1 and
   // the migration that created this column, which rejects every correlational

@@ -129,7 +129,11 @@ describe("AskInPlace stops hiding when the need is genuinely unmet", () => {
   test("and it withholds the connect buttons, because connecting again fixes nothing", async () => {
     githubIsConnected();
     ui(<AskInPlace need="somewhere to push the change" suggest={["github"]} needIsMet={false} />);
-    expect(await screen.findByText(/Finish it in Settings/)).toBeTruthy();
+    // P-44 (A-QUEUE.md): this door used to read "Finish it in Settings" and
+    // point at the account list, which is not where a binding is changed.
+    const door = await screen.findByText(/Finish it on Sync/);
+    expect(door).toBeTruthy();
+    expect(door.closest("a")?.getAttribute("href")).toBe("/sync");
     expect(screen.queryByText(/^Connect GitHub$/)).toBeNull();
     expect(screen.queryByText(/connecting again would change nothing/)).toBeTruthy();
   });
@@ -138,6 +142,6 @@ describe("AskInPlace stops hiding when the need is genuinely unmet", () => {
     nothingIsConnected();
     ui(<AskInPlace need="somewhere to push the change" suggest={["github"]} />);
     expect(await screen.findByText(/This needs somewhere to push the change/)).toBeTruthy();
-    expect(screen.queryByText(/Finish it in Settings/)).toBeNull();
+    expect(screen.queryByText(/Finish it on Sync/)).toBeNull();
   });
 });
