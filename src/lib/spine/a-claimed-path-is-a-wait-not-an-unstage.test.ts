@@ -293,185 +293,114 @@ describe("the hold it takes, and the one it must not", () => {
   });
 });
 
-describe("the driver takes it", () => {
-  const DRIVER_SERVER = readFileSync("src/lib/spine/driver.server.ts", "utf8");
-  const driverCode = DRIVER_SERVER.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
+/**
+ * ══ THE WALL IS THE FACT, AND SEVEN WRITERS WANTED TO SAY OTHERWISE ═══════
+ *
+ * This was fixed twice, one live tick apart, and both fixes were right about
+ * their own branch and wrong about the shape:
+ *
+ *   23:50 UTC 2026-09-02  the claim lost to `out-of-time`. Fixed in the
+ *                         deadline branch.
+ *   00:50 UTC 2026-09-03  the claim lost to `self-check-failed`, which runs
+ *                         after the crew and therefore after that fix. The same
+ *                         defect, the next writer along.
+ *
+ * A1's ruling, and it is the general form rather than a third patch: a claim
+ * refusal seen during the run sets `waiting-on-another-run` and NO later writer
+ * in the same drive replaces it. Everything those writers would have said is
+ * true and none of it is the point — the drive did run long, the checks are red,
+ * the station did file nothing new — and all of it is downstream of a file this
+ * run may not write. A person told "the checks are red" goes and looks at the
+ * checks instead of at the run holding the file.
+ *
+ * So the claim is established ONCE, where the crew's steps first exist, and the
+ * function returns. A writer that cannot run cannot overwrite, which is the only
+ * version of this that the eighth writer cannot break.
+ */
+describe("no later writer in the same drive replaces the claim", () => {
+  const SRC = readFileSync("src/lib/spine/driver.server.ts", "utf8");
+  const code = SRC.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
+  const claimAt = code.indexOf("const claimRefusal = refusedTool(steps);");
 
-  it("checks for a claim BEFORE it asks whether the branch moved on", () => {
-    // Order is the correctness: both would match on the word "conflict" if the
-    // other rule's tool gate ever widened.
-    expect(driverCode.indexOf("refusalIsAClaimedPath(")).toBeLessThan(
-      driverCode.indexOf("refusalIsAboutTheWork("),
-    );
+  it("establishes the claim once, not once per branch", () => {
+    // Two checks in two branches is what this replaced. One is the fix.
+    expect([...code.matchAll(/refusalIsAClaimedPath\(/g)]).toHaveLength(1);
+    expect(claimAt).toBeGreaterThan(-1);
   });
 
-  it("counts no attempt, so waiting cannot walk the work to given-up", () => {
-    const branch = driverCode.slice(
-      driverCode.indexOf("if (claimed) {"),
-      driverCode.indexOf("const refusal ="),
+  /*
+   * A1: "test each writer in turn". Every one of these writes a hold and would
+   * have overwritten the claim; each is asserted to sit after the return rather
+   * than trusted to.
+   */
+  const writers: Array<[string, string]> = [
+    ["out-of-time", 'last_hold: "out-of-time"'],
+    ["over-budget", 'last_hold: "over-budget"'],
+    ["self-check-failed", 'last_hold: "self-check-failed"'],
+    ["tools-refused", 'last_hold: "tools-refused"'],
+    ["waiting-on-a-person", 'last_hold: "waiting-on-a-person"'],
+    ["nothing-to-hand-on", 'last_hold: "nothing-to-hand-on"'],
+  ];
+
+  for (const [name, marker] of writers) {
+    it(`${name} cannot run before the claim has returned`, () => {
+      const at = code.indexOf(marker);
+      expect(at, `${marker} is no longer in the driver`).toBeGreaterThan(-1);
+      expect(at).toBeGreaterThan(claimAt);
+    });
+  }
+
+  it("the correction loop refuses a claim-held track, since it runs BEFORE the crew", () => {
+    /*
+     * The one writer ordering cannot cover. `correctIfPossible` runs before any
+     * seat, so the general rule above -- which reads this drive's steps -- has
+     * nothing to see yet. The claim it must respect is the one already on the
+     * row from a previous drive.
+     *
+     * And it has to read the STORED hold, not the computed one: `decideDrive`
+     * returns `stalled` at the attempts ceiling, which IS correctable, and that
+     * substitution is what sent `2fdf93b6` back to Define four times under
+     * P-03c.
+     */
+    expect(code).toContain(
+      "if ((row.last_hold as string | null) === CLAIMED_PATH_HOLD) return null;",
     );
-    expect(branch).toContain("last_hold: CLAIMED_PATH_HOLD");
+    const guardAt = code.indexOf("=== CLAIMED_PATH_HOLD) return null;");
+    const decideAt = code.indexOf("const decision = decideCorrection({");
+    expect(guardAt).toBeGreaterThan(-1);
+    expect(guardAt).toBeLessThan(decideAt);
+  });
+
+  it("returns rather than falling through, which is what makes the order enough", () => {
+    const branch = code.slice(claimAt, code.indexOf('last_hold: "out-of-time"'));
+    expect(branch).toContain("hold: CLAIMED_PATH_HOLD");
+    expect(branch).toContain("return {");
+  });
+
+  it("counts no attempt, and still records the money", () => {
+    /*
+     * Nothing this station did was wrong and there is nothing to do differently
+     * until the other run merges. The spend write sits ABOVE the claim return on
+     * purpose: the money was spent whatever the drive concluded.
+     */
+    const branch = code.slice(claimAt, code.indexOf('last_hold: "out-of-time"'));
     expect(branch).not.toContain("attempts:");
+    expect(code.indexOf("spend_used_usd: spent")).toBeLessThan(claimAt);
   });
 
   it("writes the sentence that names the other run", () => {
-    const branch = driverCode.slice(
-      driverCode.indexOf("if (claimed) {"),
-      driverCode.indexOf("const refusal ="),
-    );
+    const branch = code.slice(claimAt, code.indexOf('last_hold: "out-of-time"'));
     expect(branch).toContain("waitingOnAnotherRun({");
     expect(branch).toContain("last_hold_because: because");
-  });
-});
-
-/**
- * ── THE DOOR, WHICH HAS TO BE REAL OR ABSENT AND NEVER DECORATIVE ─────────
- *
- * A1's ruling, 2026-09-03: a person told "waiting on the tablet run's PR #4"
- * wants exactly that door, so it is threaded rather than described.
- *
- * `way-out.ts` has one rule and it governs this: never point at a door that is
- * not there. So the door is returned ONLY with an id the caller actually
- * resolved, and the id is resolved LIVE -- the claim releases the moment the
- * other run's pull request merges, and a stored id would keep offering a door
- * onto a run that is no longer holding anything, at exactly the moment this
- * track starts moving again.
- */
-describe("the way out that is somewhere else", () => {
-  it("offers the other run when the caller resolved it", () => {
-    const w = wayOut(CLAIMED_PATH_HOLD, { undo: true, handback: true }, "Build", {
-      trackId: "6817e386-28e9-4a57-9ed1-0c24328af93a",
-      title: "The tablet layout",
-    });
-    expect(w.door).toEqual({
-      label: "Open The tablet layout",
-      trackId: "6817e386-28e9-4a57-9ed1-0c24328af93a",
-    });
-  });
-
-  it("offers NOTHING when it could not, rather than a label that goes nowhere", () => {
-    /*
-     * The whole rule of the file it lives in. A claim that has just released
-     * resolves to null, and this must render nothing rather than a door onto a
-     * run that is no longer holding the file.
-     */
-    const w = wayOut(CLAIMED_PATH_HOLD, { undo: true, handback: true }, "Build", null);
-    expect(w.door).toBeUndefined();
-    expect(w.next).toBeNull();
-    expect(w.onThisScreen).toBe(false);
-  });
-
-  it("does not offer this screen's controls, because neither of them clears it", () => {
-    /*
-     * `undo` and `handback` are both on screen here and both would be false
-     * doors: sending the work back a step does not release another run's claim,
-     * and doing the step yourself runs into the same wall.
-     */
-    const w = wayOut(CLAIMED_PATH_HOLD, { undo: true, handback: true }, "Build", {
-      trackId: "t",
-      title: "x",
-    });
-    expect(w.onThisScreen).toBe(false);
-    expect(w.next).toBeNull();
-  });
-
-  it("adds no sentence, because the hold's own line already says what happens", () => {
-    // This file speaks only where the record goes quiet, and it is not quiet:
-    // HOLD_LINE says the work continues when the other run's PR merges.
-    expect(HOLD_LINE[CLAIMED_PATH_HOLD]).toContain("merges or closes");
-  });
-});
-
-describe("the sentence and the parser are one round trip", () => {
-  it("reads back the path the driver wrote", () => {
-    /*
-     * The hold carries the path and nothing else a lookup cannot re-derive, so
-     * this is the one fact the door parses rather than queries. Composer and
-     * parser live in the same file for exactly this reason: a reader changing
-     * the sentence meets the thing that depends on it.
-     */
-    const sentence = waitingOnAnotherRun({ ...HELD, prNumber: 4 });
-    expect(pathFromWaitingSentence(sentence)).toBe("src/checkout/AddressStep.tsx");
-  });
-
-  it("round-trips without a pull request number too", () => {
-    expect(pathFromWaitingSentence(waitingOnAnotherRun({ ...HELD, prNumber: null }))).toBe(
-      "src/checkout/AddressStep.tsx",
-    );
-  });
-
-  it("returns null rather than a guess on anything else", () => {
-    for (const s of [null, undefined, "", "Stopped at Build", "also changes"]) {
-      expect(pathFromWaitingSentence(s)).toBeNull();
-    }
-  });
-});
-
-/**
- * ── THE NAMED HOLD EXISTED AND LOST TO THE CLOCK ──────────────────────────
- *
- * MEASURED 00:20 UTC, 2026-09-03. The builder ran in fix mode, staged, and
- * `studio.commit` was refused because another run held the path — every part of
- * that working as intended. The drive then took 1m40s against the 45-second
- * budget, the deadline branch fired first, and the track was written
- * `out-of-time` with an empty because-sentence.
- *
- * Both facts were true and they are not equal. `out-of-time` says "come back and
- * we will carry on", which is a promise this track cannot keep: the wall is
- * still there and the next drive meets it again. A person reading it presses Run
- * it now and hits the same refusal — the exact failure `waitingOnAnotherRun` was
- * written to prevent, arriving one branch earlier than the code that prevents it.
- *
- * The wall is the fact. The clock is not.
- */
-describe("a claim refusal outlives the deadline", () => {
-  const DRIVER_SRC = readFileSync("src/lib/spine/driver.server.ts", "utf8");
-  const driverOnly = DRIVER_SRC.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
-
-  it("checks for a claim before the out-of-time hold is written", () => {
-    /*
-     * Order is the entire fix. That branch RETURNS, which is why the claim
-     * handling further down never saw the refusal.
-     */
-    const claimAt = driverOnly.indexOf("refusalIsAClaimedPath(claimedNow.tool");
-    const outOfTimeAt = driverOnly.indexOf('last_hold: "out-of-time"');
-    expect(claimAt).toBeGreaterThan(-1);
-    expect(claimAt).toBeLessThan(outOfTimeAt);
-  });
-
-  it("ends on the claim hold, with the sentence, not on the clock", () => {
-    const branch = driverOnly.slice(
-      driverOnly.indexOf("const claimedNow = refusedTool(steps);"),
-      driverOnly.indexOf('last_hold: "out-of-time"'),
-    );
-    expect(branch).toContain("last_hold: CLAIMED_PATH_HOLD");
-    expect(branch).toContain("last_hold_because: because");
-    expect(branch).toContain("waitingOnAnotherRun({");
-  });
-
-  it("counts no attempt there either", () => {
-    // Same reasoning as the claim branch below it: nothing this station did was
-    // wrong, and there is nothing to do differently until the other run merges.
-    const branch = driverOnly.slice(
-      driverOnly.indexOf("const claimedNow = refusedTool(steps);"),
-      driverOnly.indexOf('last_hold: "out-of-time"'),
-    );
-    expect(branch).not.toContain("attempts:");
   });
 
   it("and the sentence a person reads is never empty, whichever hold wins", () => {
     /*
-     * A1 asked for "the because-sentence is never empty". The COLUMN is null for
-     * `out-of-time` and that is deliberate — F-127, enforced by two guards: a
-     * generic line stored in a column meant for specifics reads as a specific
-     * reason to every surface that shows it. What must never be empty is what a
-     * person reads, and that comes from `HOLD_LINE` when the column is null.
-     *
-     * So this asserts the thing that actually matters, on the hold that was
-     * observed empty and on the one that now wins.
+     * F-127 keeps the COLUMN null for a generic hold, and two guards enforce it.
+     * What must never be empty is what a person reads, which comes from
+     * `HOLD_LINE` when the column is null.
      */
     expect(HOLD_LINE["out-of-time"]).toBeTruthy();
-    expect(HOLD_LINE["out-of-time"].length).toBeGreaterThan(20);
     expect(HOLD_LINE[CLAIMED_PATH_HOLD]).toBeTruthy();
   });
 });

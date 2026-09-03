@@ -1242,6 +1242,25 @@ async function correctIfPossible(
 ): Promise<CorrectionOutcome | null> {
   if (!CORRECTABLE_HOLDS.has(at.hold)) return null;
 
+  /*
+   * -- A TRACK HELD ON ANOTHER RUN'S FILE IS NOT CORRECTED ----------------
+   *
+   * This runs BEFORE the crew, so the general claim rule in `driveTrackOnce`
+   * cannot cover it: that one reads this drive's steps, and there are none yet.
+   * The claim it must respect is the one already ON THE ROW from a previous
+   * drive.
+   *
+   * `at.hold` is `decideDrive`'s COMPUTED hold, which at the attempts ceiling is
+   * `stalled` and correctable -- the same substitution that sent `2fdf93b6` back
+   * to Define four times under P-03c. So the stored hold is read directly here
+   * rather than inferred from the computed one.
+   *
+   * Correcting a claim-held track sends a change back to be rewritten against a
+   * wall that is about to come down. Nothing about the work is wrong; another
+   * run holds a file it needs, and that clears on its own.
+   */
+  if ((row.last_hold as string | null) === CLAIMED_PATH_HOLD) return null;
+
   const need = STATION_NEEDS[at.station];
   // Read only when the station's precondition is one no station can file, which
   // today is Discover alone. Every other station is answered entirely from the
@@ -2830,29 +2849,40 @@ export async function driveTrackOnce(
     .eq("id", row.id);
 
   /*
-   * -- THE WALL IS THE FACT. THE CLOCK IS NOT. ------------------------------
+   * ══ THE WALL IS THE FACT. EVERYTHING AFTER IT IS A CONSEQUENCE. ═════════
    *
-   * MEASURED ON THE LIVE RUN, 00:20 UTC 2026-09-03. The builder ran in fix
-   * mode, staged, and `studio.commit` was refused because another run holds the
-   * path -- the claim refusal working exactly as intended. The drive then took
-   * 1m40s against the 45-second budget, this branch fired, and the track was
-   * written `out-of-time` with an EMPTY because-sentence. The named hold existed
-   * and lost to the clock.
+   * A claim refusal seen during this drive ends the drive, here, before any
+   * other writer runs. Not out-of-time, not the self-check, not the refusal
+   * path, not the correction loop.
    *
-   * Both facts are true and they are not equal. `out-of-time` says "come back
-   * and we will carry on", which is a promise this track cannot keep: the wall
-   * is still there and the next drive meets it again. A person reading it
-   * presses Run it now and hits the same refusal, which is the exact failure
-   * `waitingOnAnotherRun` was written to prevent, arriving one branch earlier.
+   * ── WHY THIS IS ONE RETURN AND NOT A CHECK IN EACH OF THEM ─────────────
+   * It was two checks in two branches, added one live tick apart, and both were
+   * right about their own branch and wrong about the shape:
    *
-   * So a claim refusal seen during the run wins over the deadline. Checked here
-   * rather than later because this branch RETURNS, which is why the claim
-   * handling further down never saw it.
+   *   23:50 UTC  the claim lost to `out-of-time`. Fixed in the deadline branch.
+   *   00:50 UTC  the claim lost to `self-check-failed`, which runs after the
+   *              crew and so after that fix. Same defect, next writer along.
+   *
+   * There are seven writers downstream of this point and patching them in the
+   * order a live run happens to reach them is a losing game -- the eighth is
+   * written by somebody who never reads this comment. The claim is established
+   * ONCE, where the crew's steps first exist, and the function returns. A writer
+   * that cannot run cannot overwrite.
+   *
+   * Everything those writers would have said is TRUE and none of it is the
+   * point. The drive did run long; the checks are red; the station did file
+   * nothing new. All of that is downstream of a file this run may not write, and
+   * a person told "the checks are red" goes and looks at the checks instead of
+   * at the run that is holding the file.
+   *
+   * NO ATTEMPT, for the reason the hold itself carries: nothing this station did
+   * was wrong and there is nothing to do differently until the other run merges.
+   * The spend above is still recorded, because the money was still spent.
    */
-  if (ranLong) {
-    const claimedNow = refusedTool(steps);
-    if (claimedNow && refusalIsAClaimedPath(claimedNow.tool, claimedNow.error)) {
-      const held = claimedPathFrom(claimedNow.error);
+  {
+    const claimRefusal = refusedTool(steps);
+    if (claimRefusal && refusalIsAClaimedPath(claimRefusal.tool, claimRefusal.error)) {
+      const held = claimedPathFrom(claimRefusal.error);
       const because = waitingOnAnotherRun({
         path: held.path ?? "a file",
         missionTitle: held.missionTitle,
@@ -2861,9 +2891,6 @@ export async function driveTrackOnce(
       await supabase
         .from("spine_tracks" as never)
         .update({
-          // No attempt, for the same reason the claim branch below counts none:
-          // nothing this station did was wrong and there is nothing to do
-          // differently until the other run merges.
           last_hold: CLAIMED_PATH_HOLD,
           last_hold_because: because,
           driven_at: new Date().toISOString(),
@@ -2875,7 +2902,7 @@ export async function driveTrackOnce(
         moved: false,
         arrivedAt: null,
         hold: CLAIMED_PATH_HOLD,
-        line: because,
+        line: flagged(because),
         attached,
       };
     }
@@ -3141,60 +3168,6 @@ export async function driveTrackOnce(
    * Everything else still takes F-41's path, because for everything else its
    * premise holds.
    */
-  /*
-   * -- A CLAIMED PATH IS WORK WAITING ON WORK, WHICH IS NEITHER OF THE ABOVE --
-   *
-   * Checked FIRST, and the order is the correctness: a claim refusal contains
-   * the word "conflict", so `refusalIsAboutTheWork` must never get the chance to
-   * read it as a stale branch and send a correct change back to be rewritten.
-   * `refusal-kind.ts` has always excluded it by tool gate; this makes the
-   * ordering explicit rather than relying on the two lists staying disjoint.
-   *
-   * And `tools-refused` is the wrong answer too, worse than the first: that hold
-   * is TERMINAL, so a path another run happens to be holding ENDED a piece of
-   * work for good -- over a condition that clears by itself when the other run's
-   * pull request merges or closes, usually within the hour.
-   *
-   * So it takes neither. No attempt is counted, because there is nothing this
-   * station did wrong and nothing for it to do differently; the hold is
-   * resumable, so the sweep comes back; and the sentence NAMES the other run and
-   * its pull request, because A1 watched a person read `out-of-time` on this
-   * exact track, press Run it now, and hit the same wall.
-   */
-  const claimed =
-    refusalFound && refusalIsAClaimedPath(refusalFound.tool, refusalFound.error)
-      ? refusalFound
-      : null;
-
-  if (claimed) {
-    const held = claimedPathFrom(claimed.error);
-    const because = waitingOnAnotherRun({
-      path: held.path ?? "a file",
-      missionTitle: held.missionTitle,
-      prNumber: null,
-    });
-    await supabase
-      .from("spine_tracks" as never)
-      .update({
-        // attempts UNCHANGED, deliberately. This station did nothing wrong and
-        // has nothing to do differently; counting it would walk a correct piece
-        // of work toward `given-up` while it waits for somebody else's merge.
-        last_hold: CLAIMED_PATH_HOLD,
-        last_hold_because: because,
-        driven_at: new Date().toISOString(),
-      } as never)
-      .eq("id", row.id);
-    return {
-      trackId: row.id,
-      station,
-      moved: false,
-      arrivedAt: null,
-      hold: CLAIMED_PATH_HOLD,
-      line: flagged(because),
-      attached,
-    };
-  }
-
   const refusal =
     refusalFound && refusalIsAboutTheWork(refusalFound.tool, refusalFound.error)
       ? null
