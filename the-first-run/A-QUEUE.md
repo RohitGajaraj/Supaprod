@@ -6759,7 +6759,7 @@ verdicts, both `changed` states; `routeDecision`'s new return type, the `tool_ca
 **Blockers (A3 writes):** None. Live verification (the acceptance item above) is A1's read on the
 served build once Lovable deploys the pushed tip.
 
-### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: READY (P-52 is on main and green; A3 may start) · Moves: 2, 3
+### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** One vocabulary is the point of the whole design pass. With `Ask`, `Choice` and `Quiet` in
 Meridian, `Gate` has no shape left to carry.
