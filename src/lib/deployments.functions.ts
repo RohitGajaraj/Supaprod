@@ -1591,3 +1591,132 @@ export const promoteToProduction = createServerFn({ method: "POST" })
       data.changesetId,
     ),
   );
+
+/**
+ * ── P-22. WHAT IS RUNNING, FOR THE CHANGE A PERSON IS LOOKING AT ──────────
+ *
+ * Founder, 2026-09-02, from Lovable's Live preview setting: watching the diff is
+ * watching the work, watching the app run is watching the result. Gap #11 in the
+ * operating model says it plainly: *nothing RUNS in front of the person*.
+ *
+ * A READ AND NOTHING ELSE. It triggers no deploy and writes no row. A surface
+ * that provisions a preview because somebody opened a tab is a surface that
+ * spends money on being looked at.
+ *
+ * ── FOUR ANSWERS, AND THEY ARE FOUR DIFFERENT FACTS ───────────────────────
+ * `running`   a successful preview AT THE HEAD COMMIT. The only state that may
+ *             show the app, because a preview at an older commit is a different
+ *             program wearing this change's name -- the same trap R-33 closed on
+ *             the promote path, where the newest preview was shipped without
+ *             asking what merged.
+ * `building`  a deployment row at head that has not succeeded yet. The slot
+ *             shows what it is doing, never a spinner.
+ * `stale`     previews exist for this changeset but none at head. Worth saying
+ *             out loud rather than folding into "none": the pipeline is wired
+ *             and this commit has not been built, which is a different thing to
+ *             do about it.
+ * `none`      no preview deployment for this changeset at all.
+ */
+export const previewForChangeset = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ changesetId: z.string().uuid() }).parse(i ?? {}))
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{
+      state: "running" | "building" | "stale" | "none";
+      url: string | null;
+      /** The commit this answer is about, so a reader can check it themselves. */
+      sha: string | null;
+      /** The deployment's own word for where it got to, when it has one. */
+      status: string | null;
+      provider: string | null;
+      startedAt: string | null;
+    }> => {
+      const db = context.supabase as unknown as SupabaseClient;
+      const empty = {
+        state: "none" as const,
+        url: null,
+        sha: null,
+        status: null,
+        provider: null,
+        startedAt: null,
+      };
+      try {
+        /* The head is the newest revision's commit. `base_sha` is where the
+           branch started, which is the one sha that is never what is running. */
+        const { data: revs } = await db
+          .from("studio_changeset_revisions")
+          .select("commit_sha")
+          .eq("changeset_id", data.changesetId)
+          .order("revision_no", { ascending: false })
+          .limit(1);
+        const head =
+          ((revs ?? [])[0] as { commit_sha?: string | null } | undefined)?.commit_sha ?? null;
+
+        const { data: rows, error } = await db
+          .from("deployments")
+          .select("commit_sha,deploy_url,status,provider,created_at")
+          .eq("changeset_id", data.changesetId)
+          .eq("environment", "preview")
+          .order("created_at", { ascending: false })
+          .limit(20);
+        if (error) {
+          // A read that failed is not an absence of previews. Reported, and the
+          // surface says it cannot tell rather than "none".
+          console.error(`[previewForChangeset] ${data.changesetId}: ${error.message}`);
+          return empty;
+        }
+        const deploys = (rows ?? []) as Array<{
+          commit_sha?: string | null;
+          deploy_url?: string | null;
+          status?: string | null;
+          provider?: string | null;
+          created_at?: string | null;
+        }>;
+        if (deploys.length === 0) return empty;
+
+        const atHead = head ? deploys.filter((d) => d.commit_sha === head) : [];
+        const good = atHead.find((d) => d.status === "success" && d.deploy_url);
+        if (good) {
+          return {
+            state: "running",
+            url: good.deploy_url ?? null,
+            sha: head,
+            status: good.status ?? null,
+            provider: good.provider ?? null,
+            startedAt: good.created_at ?? null,
+          };
+        }
+        const inFlight = atHead[0];
+        if (inFlight) {
+          return {
+            state: "building",
+            url: inFlight.deploy_url ?? null,
+            sha: head,
+            status: inFlight.status ?? null,
+            provider: inFlight.provider ?? null,
+            startedAt: inFlight.created_at ?? null,
+          };
+        }
+        /* Previews exist and none is at head. Named rather than folded into
+           "none", because the pipeline is wired and the answer for a person is
+           "this commit has not been built", not "connect something". */
+        const newest = deploys[0]!;
+        return {
+          state: "stale",
+          url: null,
+          sha: head,
+          status: newest.status ?? null,
+          provider: newest.provider ?? null,
+          startedAt: newest.created_at ?? null,
+        };
+      } catch (e) {
+        console.error(
+          `[previewForChangeset] ${data.changesetId}: ${e instanceof Error ? e.message : String(e)}`,
+        );
+        return empty;
+      }
+    },
+  );

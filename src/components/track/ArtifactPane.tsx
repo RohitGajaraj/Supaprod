@@ -111,6 +111,7 @@ import { becameWorkOnItsOwn } from "@/lib/spine/promote";
 import { Verdict } from "@/components/meridian/verdict";
 import { verdictProps } from "@/components/track/verdict-reading";
 import { PlaybookFilesPanel } from "@/components/track/PlaybookFiles";
+import { AppFrame } from "@/components/track/AppFrame";
 
 /** What each station exists to do, for the not-run sentence. Display labels only. */
 const PURPOSE: Record<string, string> = {
@@ -1792,6 +1793,60 @@ function OnTheHookFor({ decisions }: { decisions?: ArtifactView[] }) {
   );
 }
 
+/**
+ * The app and the diff, one at a time, the app first.
+ *
+ * TABS RATHER THAN BOTH STACKED. A diff and a running app are two answers to
+ * "what did this change do" and a person reads one of them at a time; stacked,
+ * the frame pushes the diff below the fold on every changeset in the product.
+ *
+ * The toggle keeps its own state per changeset and does not persist. A person
+ * who opened the diff on one change has said nothing about the next one, and a
+ * remembered preference here would quietly turn the feature off for anybody who
+ * ever looked at a diff.
+ */
+function AppOrDiff({ changesetId }: { changesetId: string }) {
+  const [showing, setShowing] = React.useState<"app" | "diff">("app");
+  return (
+    <div className="flex min-w-0 flex-col gap-mrd-3">
+      {/*
+       * `aria-pressed` ON TWO BUTTONS, NOT A TABLIST, and the guard that caught
+       * this is right. `one-station-display-on-the-run-screen` forbids
+       * `role="tablist"` anywhere the run screen draws, because a tab band on
+       * this route once meant a seven-station display on every screen in the
+       * product.
+       *
+       * The ARIA is also more honest for what this is. A tablist implies panels
+       * a reader moves between; this is one card choosing which of two answers
+       * to the same question it shows. `RunArtifact` took the same shape for the
+       * same reason when it became selectable.
+       */}
+      <span className="flex items-center gap-mrd-2" role="group" aria-label="App or diff">
+        {(["app", "diff"] as const).map((which) => (
+          <button
+            key={which}
+            type="button"
+            aria-pressed={showing === which}
+            onClick={() => setShowing(which)}
+            className={`mrd-focus rounded-mrd-ctl px-mrd-3 py-1 text-mrd-small transition-colors duration-[var(--mrd-d-press)] ${
+              showing === which
+                ? "bg-mrd-lift text-mrd-ink"
+                : "text-mrd-mute hover:bg-mrd-hover hover:text-mrd-ink"
+            }`}
+          >
+            {which === "app" ? "App" : "Diff"}
+          </button>
+        ))}
+      </span>
+      {showing === "app" ? (
+        <AppFrame changesetId={changesetId} />
+      ) : (
+        <ChangesetDiffView changesetId={changesetId} />
+      )}
+    </div>
+  );
+}
+
 function ChangesetCard({ item }: { item: ArtifactView }) {
   const f = item.fields;
   const summary = str(f.summary);
@@ -1823,7 +1878,18 @@ function ChangesetCard({ item }: { item: ArtifactView }) {
         </a>
       ) : null}
 
-      <ChangesetDiffView changesetId={item.artifactId} />
+      {/*
+       * -- THE APP FIRST, THE DIFF BEHIND A TOGGLE (P-22) ------------------
+       *
+       * Founder, 2026-09-02: watching the diff is watching the work, watching
+       * the app run is watching the result. The result leads.
+       *
+       * `App` is the default TAB and not the default CONTENT: when nothing is
+       * running the frame says why in one line, and the diff is one press away
+       * rather than replaced. A person whose preview is not wired must not lose
+       * the thing that did work.
+       */}
+      <AppOrDiff changesetId={item.artifactId} />
 
       {/* THE VERDICT, OR THE TRUTH ABOUT ITS ABSENCE. The block is Meridian's;
           the reading of `code_review` and the words for each of its two
