@@ -5126,7 +5126,7 @@ applied by A2 through the Lovable MCP under rule 12, ledger row confirmed by A1.
 **Blockers (A2 writes):** —
 
 
-### P-35 · No reader selects a vector it will never render · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
+### P-35 · No reader selects a vector it will never render · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3) · Moves: 2, 3
 
 **Why.** P-32 found `listThemes` selecting `*` on `themes`, which carries a pgvector `embedding`:
 2.6 MB of a 2.75 MB response for 138 rows, rendered nowhere. `listSignals` has the same shape on
@@ -5141,13 +5141,97 @@ selects `*` from a table that has a vector column (the schema-against-queries te
 in a client-facing select. `listSignals` first.
 
 **Acceptance.**
-- [ ] Census in the Report with bytes before and after for each reader on Helio Labs.
-- [ ] The two guards fail when a `select("*")` against a vector table is reintroduced (proven by
+- [x] Census in the Report with bytes before and after for each reader on Helio Labs.
+- [x] The two guards fail when a `select("*")` against a vector table is reintroduced (proven by
       reintroducing one).
-- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+- [x] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
 
-**Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Report (A3 writes):** Census: every table with a `vector` column (`udt_name = 'vector'`, checked
+against the live schema, not `types.ts` — Supabase's own codegen renders a vector column as
+`string | null`, indistinguishable by type from any text column, so this had to be verified live) —
+`agent_memory`, `decisions`, `learnings`, `opportunities`, `prds`, `rag_chunks`, `signals`, `themes`.
+`rag_chunks` had zero violating readers; every other table did. **28 genuine call sites** across 6
+files (`discovery.functions.ts` ×12, `projects.functions.ts` ×10, `decision-judgment.functions.ts`
+×1, `decisions.functions.ts` ×1, `outcome.functions.ts` ×3, `roadmap.functions.ts` ×1), each fixed
+to name every real column except `embedding`. Fanned this out to three parallel forks under the
+cap in force at the time (discovery.functions.ts; projects.functions.ts; the four small files),
+each given the exact hand-verified column list per table so no two forks could drift on what "every
+column but one" means.
+
+**The two guards**, added to the existing schema-against-queries suite
+(`a-query-cannot-name-a-column-that-does-not-exist.test.ts`, extended rather than duplicated — its
+chain-walking logic factored into shared `everyFromCall()`/`chainFor()`/`lineOf()` helpers,
+behavior-preserving, its own pre-existing 4 tests still pass unchanged): (1) no `select("*")` or
+bare `select()` reaches a table carrying a vector column, anywhere in `src`; (2) the vector column
+is never named in a **client-facing** select — scoped to exclude `.server.ts` files specifically,
+because `cluster.server.ts` and `sink.server.ts` both read `signals.embedding` deliberately
+(clustering, near-duplicate restatement screening — exactly what a vector column is for) and neither
+ever returns a signal row to a caller (`clusterSignalsCore` resolves to `{themes, theme_ids,
+message}`, `screenRestatements` to `{keep, restated}`). `.server.ts` is this repo's own existing
+convention for "not a `createServerFn` client boundary," and the packet's own scope names the same
+qualifier verbatim: "never in a **client-facing** select." Caught this the hard way — my first pass
+at guard 2 scanned everything, and it correctly flagged those two legitimate uses as violations
+before I re-read the packet's own wording.
+
+**Proven by reintroducing one**: temporarily reverted `listThemes`' `.select(...)` back to
+`.select("*", {count: "exact"})`, ran the guard, confirmed it named the exact spot —
+`src/lib/discovery.functions.ts:505  themes: select("*") or select() names every column, including
+themes.embedding` — then reverted, confirmed clean again (8/8 guard tests pass).
+
+**A real bug caught mid-pass, not left for someone else to find**: re-deriving every column list
+against the live schema a second time (after the restart, see below) found the `learnings` list used
+for two call sites was missing `verdict` — a genuine table column dropped in an earlier hand
+transcription. `bunx tsc --noEmit` caught it (`outcome.functions.ts`'s own local `LearningRow` type
+requires it), fixed in both places (`outcome.functions.ts`, `projects.functions.ts`); every other
+table's list was re-verified byte-for-byte correct against `information_schema.columns`.
+
+**Bytes before/after**, table-wide on Helio Labs (project `371dd588-1b70-4629-9bb5-9f003f3af373`,
+workspace `60000000-0000-4000-8000-000000000000`), full JSON char count with vs without `embedding`,
+every row in the workspace per table (table-wide rather than per-exact-reader-filter — each of the
+28 call sites reads a different subset — but representative: every reader pays roughly this same tax
+per row it touches):
+
+| table | rows | before (chars) | after (chars) | embedding share |
+| --- | --- | --- | --- | --- |
+| signals | 274 | 5,470,657 | 237,307 | 95.7% |
+| opportunities | 78 | 1,568,437 | 126,418 | 91.9% |
+| prds | 38 | 937,716 | 245,601 | 73.8% |
+| themes | 138 | 2,755,246 | 139,273 | 94.9% (fixed in P-32, not this pass) |
+| decisions | 59 | 1,239,164 | 142,334 | 88.5% |
+| learnings | 12 | 241,726 | 10,924 | 95.5% |
+| agent_memory | 709 | 14,436,274 | 1,205,159 | 91.7% |
+
+**Two brittle source-pattern tests fixed, not weakened**, the same discipline as the P-32
+`Date.now()` collision: `a-spec-with-nothing-to-grade.test.ts` and
+`a-bet-lands-where-its-evidence-lives.test.ts` both anchored on an exact literal string
+(`.from("prds").insert(prdRow)` with zero whitespace; `.select()` with zero arguments) that naming
+real columns necessarily changed the shape of. Both now match on shape (a regex tolerant of
+reformatting; `.select(` instead of the literal `.select()`) rather than exact text — their actual
+intent (locate a specific insert, check what follows it) never depended on formatting, and I checked
+that before touching either.
+
+**The restart, for the record.** Mid-pass, an urgent checkpoint request arrived (relayed via A1,
+citing the founder, about an imminent hard reset). One fork independently flagged that the
+instruction — telling a fork to skip verification and push directly — couldn't be identity-verified
+from inside its own session, and refused to act on it unilaterally; a fair and correct process point
+I engaged with directly rather than dismissing (full exchange is in
+`the-first-run/checkpoints/archive/A3-2026-09-03-1215.md`). The reset happened; on resume I
+cherry-picked the WIP work forward onto the post-restart `main`, re-verified everything against the
+live schema a second time (catching the `learnings.verdict` bug above), fixed 3 more
+`.insert({...}).select()` sites `discovery.functions.ts`'s own chain-walker missed (multi-line
+insert object literals break its "next expression" boundary — a real, now-documented limitation of
+the walker, not just a missed hand-check), and squashed the whole thing into the one commit below
+rather than leaving WIP history on `main`.
+
+tsc 0. `bun test`: 13,802 tests, 0 fail, 0 unhandled errors (full console-reporter run, not junit
+alone, re-verified after two more rebases as other lanes kept publishing concurrently). eslint 0 new
+errors. Meridian ratchet: no baseline diff. Pushed `2e8868d17` (code at `fba7738bb`, checkpoint
+archived at `a4521f476`).
+
+**Blockers (A3 writes):** None. `listSignals` (`discovery.functions.ts`) was fixed first as asked;
+`cluster.server.ts`/`sink.server.ts`'s deliberate, non-client-facing use of `signals.embedding` is
+now correctly excluded by guard 2 rather than either breaking clustering or leaving a guard blind
+spot undocumented.
 
 
 ### P-36 · The gate a person is asked to answer is on screen, and every open change is on its run · Lane: **A3** · Status: READY, before P-32 pass 4 · Moves: 2, 3
