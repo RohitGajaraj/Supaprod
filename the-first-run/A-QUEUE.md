@@ -7296,6 +7296,43 @@ workspace shows nothing of Helio's. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and walks the probe.
 
+
+### LIVE WALK, A1, 02:35 IST 09-04 · what the no-source run did after Sense
+
+Track `1c92c15c` (probe workspace, no sources, no product): Sense carried on the sentence (19:10
+UTC); Decide's strategist DECLINED at 19:20 on the same absence, with a forecast (*"not currently
+a meaningful friction point"*, to be checked against 1,000 sessions no source here can see);
+Define, Design, Build and Ship waived by the decline arm; Learn holds `needs-evidence` with a
+horizon of 2026-10-03 and the screen reads *Waiting on time ... Learn returns then*. Spend $0.06,
+33 minutes. R-36 held (no signal written, no attempt spent) and the route still produced the
+wrong answer, because the next station treated the person's sentence as evidence against itself.
+R-39 written; P-71 filed for A2.
+
+
+### P-71 · A call on the person's sentence alone is the person's to make · Lane: **A2** (after P-70) · Status: READY · Moves: 1, 2
+
+**Why.** R-39 and the live walk above. With no evidence, Decide declined on the absence and
+Learn now waits on a date that returns to nothing.
+
+**Scope.** (1) In the driver and the Decide brief: when the track's footing is
+`carried-on-your-sentence`, the strategist may not record `do-not-build` on grounds of absence;
+it records `build` with the forecast being the person's own claim and `forecast_how_we_will_know`
+naming a source that exists in the workspace, or, when no connected source could grade it, it
+raises one Choice (Meridian `Choice`, two options with their deciding facts: *Build it on your
+word* / *Point a source first*, nothing pre-selected), and the track holds `waiting-on-a-person`.
+(2) A guard in the decision writer: a `do-not-build` whose rationale is absence of evidence on a
+carried track is refused with the sentence R-39 gives. (3) Learn: a forecast whose
+how-we-will-know names no connected source holds `needs-evidence` with the point-a-source door
+(P-44), never a calendar wait. (4) The run screen on the Choice: the card is the one thing on the
+screen (P-37). (5) Data: the probe track `1c92c15c` is A1's to reset or delete; leave it.
+
+**Acceptance.** A new sentence in the empty probe workspace reaches the Choice within one Sense
+pass and holds without spend; choosing *Build it on your word* takes it to Define with the
+person's claim as the forecast; the tablet-style forecasts in Helio are unaffected. Guards green.
+Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 walks it in the probe.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take

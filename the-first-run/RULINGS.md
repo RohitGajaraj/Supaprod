@@ -1089,3 +1089,30 @@ two moments.
 heading it lands on; a count on a door that a person cannot reconcile with the count on the page.
 
 Reversible by the founder. Packets: P-60 to P-64.
+
+## R-39 · A call made on a person's sentence alone is the person's to make. (2026-09-04)
+
+**Ruled by A1 at 02:35 IST under the founder's standing authority of 00:09.** Evidence: the
+no-source run in `a1-delete-probe`, track `1c92c15c`. Sense found nothing and carried on the
+sentence (R-36). Decide's strategist then **declined** in 20 minutes on that same absence:
+*"The address step at checkout is not currently a meaningful friction point for homeowners"*, with
+a forecast to be checked against *"≥15% session abandonment ... across ≥1000 sessions within 30
+days"* in a workspace that has no source that could ever observe a session. The decline waived
+Define, Design, Build and Ship (F-174's arm), and Learn now reads *Waiting on time ... Learn returns
+Oct 3*. A person who typed one sentence into an empty workspace was told no, on nothing, with a
+date that returns to nothing, for $0.06.
+
+**The rule.** When the footing at Decide is the person's sentence (R-36's `carried-on-your-
+sentence`), the crew may not decline for absence of evidence: absence is what it was told about.
+It does one of two things. It builds on the person's word, with the forecast being the person's
+own claim and the how-we-will-know naming a source that exists in the workspace; or, if no source
+exists that could ever grade the forecast, it asks the person, once, as one Choice: *Nothing here
+speaks to this. Build it on your word, or point a source first?* The track holds
+`waiting-on-a-person`; nothing is spent while it waits.
+
+**What it forbids.** A "do not build" whose only ground is that nothing was found; a forecast whose
+how-we-will-know names a measurement no connected source can make; a calendar wait at Learn on
+such a forecast (that is `needs-evidence` with the point-a-source door, never "Learn returns when
+the date arrives").
+
+Reversible by the founder. Packet: P-71.

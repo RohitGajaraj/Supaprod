@@ -61,7 +61,7 @@ say so where a person is looking.**
 
 | File | What it settles |
 | --- | --- |
-| **[`RULINGS.md`](./RULINGS.md)** | **THE TIEBREAKER.** R-01…R-12. If two documents disagree, this wins. It also lists what is still OPEN — an open question is a request you file, never a call you make |
+| **[`RULINGS.md`](./RULINGS.md)** | **THE TIEBREAKER.** R-01…R-39. If two documents disagree, this wins. It also lists what is still OPEN — an open question is a request you file, never a call you make |
 | **[`A-QUEUE.md`](./A-QUEUE.md)** | **THE ONE QUEUE (R-29, 2026-09-02).** A1 writes packets; A2 and A3 claim, report and raise blockers inside them. `BUILD-QUEUE.md`, `RANKED-BACKLOG.md`, `docs/lanes/QUEUE-S*.md` and `coordination/` are frozen records |
 | **[`A1-REPORT.md`](./A1-REPORT.md)** | The audit, the positioning call, the three surfaces, the run-screen story, the deletions, the dated plan and the date call (23 September public; 15 September complete). Read it once before claiming a packet |
 | [`BUILD-QUEUE.md`](./BUILD-QUEUE.md) | FROZEN 2026-09-02. A record of the 2026-08-25 backlog; eight of its READY rows were already built |
