@@ -60,6 +60,8 @@ export function CallGate({
   now,
   lines,
   hiddenLineCount = 0,
+  risk,
+  declaredDefault,
   consequence,
   consequenceTitle,
   children,
@@ -77,7 +79,31 @@ export function CallGate({
   lines: string[];
   /** How many further lines exist and are not drawn. Printed, never silent. */
   hiddenLineCount?: number;
-  /** What settling it in the affirmative causes. */
+  /**
+   * THE RISK, in prose, one line, second on the card.
+   *
+   * P-37, walked 17:12 IST. This slot did not exist, so the reversibility and
+   * its undo sentence travelled in `lines` as the first fact, and what a person
+   * saw after the question was the DEFAULT, because that was what `consequence`
+   * happened to hold. The order was right in the component and the content was
+   * in the wrong slots, which is the failure a fixed order is supposed to make
+   * impossible and does not while the slots are ambiguous.
+   *
+   * Never a badge. A red HIGH RISK chip is a category the reader has to know the
+   * taxonomy for; "It is live. Undoing means shipping a revert." is the actual
+   * consequence, and the consequence is what changes the answer.
+   */
+  risk?: string | null;
+  /**
+   * WHAT HAPPENS IF NOBODY ANSWERS, mono and LAST, immediately above the
+   * answers. A clock above them makes a question read as a countdown.
+   *
+   * Named `declaredDefault` and not `consequence` because those are two
+   * different sentences and calling both by one name is how they ended up in
+   * each other's places.
+   */
+  declaredDefault?: string | null;
+  /** @deprecated Pass `declaredDefault`. Kept while the approvals page migrates. */
   consequence?: string;
   /**
    * The exact record behind the consequence sentence, on hover only -- the
@@ -96,6 +122,9 @@ export function CallGate({
   anchor?: Record<string, string>;
 }) {
   const overdue = since !== null && isOverdue(since, now);
+  /* One sentence, whichever slot it arrived in, so the deprecated name cannot
+     put it back above the facts. */
+  const fallbackLine = declaredDefault ?? consequence ?? null;
 
   return (
     <section
@@ -134,13 +163,8 @@ export function CallGate({
       {/* THE CONSEQUENCE LEADS THE EVIDENCE. It is one line and it is prose,
           never a badge: a category asks the reader to know the taxonomy, a
           sentence tells them what happens. */}
-      {consequence ? (
-        <p
-          title={consequenceTitle}
-          className="mt-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-ink"
-        >
-          {consequence}
-        </p>
+      {risk ? (
+        <p className="mt-mrd-4 leading-mrd-prose text-mrd-prose text-mrd-ink">{risk}</p>
       ) : null}
 
       {lines.length > 0 ? (
@@ -184,6 +208,16 @@ export function CallGate({
        * weight change alone carries "this has been a while" without adding a
        * colour that means "act now" to a person who is already here.
        */}
+      {/* The declared default, mono and last, immediately above the answers. */}
+      {fallbackLine ? (
+        <p
+          title={consequenceTitle}
+          className="font-mrd-mono mt-mrd-4 text-mrd-data leading-mrd-prose text-mrd-mute"
+        >
+          {fallbackLine}
+        </p>
+      ) : null}
+
       {since !== null ? (
         <p
           title={new Date(since).toLocaleString()}

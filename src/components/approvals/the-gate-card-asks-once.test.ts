@@ -29,17 +29,43 @@ describe("the gate card asks once, and asks first", () => {
     expect(q).toBeGreaterThan(-1);
     // Nothing renders above it.
     expect(GATE.indexOf("{subject}")).toBeGreaterThan(q);
-    expect(GATE.indexOf("{consequence}")).toBeGreaterThan(q);
+    expect(GATE.indexOf("{risk}")).toBeGreaterThan(q);
     expect(GATE.indexOf("lines.map")).toBeGreaterThan(q);
   });
 
-  it("puts the consequence BEFORE the facts", () => {
+  it("puts the risk BEFORE the facts", () => {
     /*
-     * The consequence is what changes the answer; the facts are what justify it
-     * once you know what is at stake. Reading the facts first is reading
-     * evidence for a question you have not been told the weight of.
+     * The risk is what changes the answer; the facts are what justify it once
+     * you know what is at stake. Reading the facts first is reading evidence
+     * for a question you have not been told the weight of.
      */
-    expect(GATE.indexOf("{consequence}")).toBeLessThan(GATE.indexOf("lines.map"));
+    expect(GATE.indexOf("{risk}")).toBeLessThan(GATE.indexOf("lines.map"));
+  });
+
+  it("keeps the risk and the declared default in SEPARATE slots", () => {
+    /*
+     * A1 walked the served build and the order on screen was wrong while the
+     * component's order was right: `consequence` was carrying the DEFAULT
+     * sentence, so the thing read second was "Cancelled unrun: nobody answered
+     * by...", and the actual risk sat in `lines` as a fact among facts.
+     *
+     * A fixed order cannot save a card whose slots are ambiguous, so the two
+     * sentences have two names. `consequence` survives only as a deprecated
+     * alias while the approvals page migrates, and it renders where the DEFAULT
+     * renders, never where the risk does.
+     */
+    expect(GATE).toContain("risk?: string | null;");
+    expect(GATE).toContain("declaredDefault?: string | null;");
+    expect(GATE.replace(/\s+/g, " ")).toContain(
+      "const fallbackLine = declaredDefault ?? consequence ?? null;",
+    );
+    expect(GATE.indexOf("{risk}")).toBeLessThan(GATE.indexOf("{fallbackLine}"));
+  });
+
+  it("puts the declared default last, above the answers", () => {
+    const d = GATE.indexOf("{fallbackLine}");
+    expect(d).toBeGreaterThan(GATE.indexOf("lines.map"));
+    expect(d).toBeLessThan(GATE.indexOf("{children}"));
   });
 
   it("puts the clock last, so the card does not read as a countdown", () => {

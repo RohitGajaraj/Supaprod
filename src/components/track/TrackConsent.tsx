@@ -316,7 +316,6 @@ export function TrackConsent({
 
       {open.map((g, i) => {
         const c = toolConsequence(g.toolName);
-        const drivenBy = assessTool(g.toolName).drivenBy;
         const declared = g.expiryDefault ?? expiryDefaultFor(g.toolName);
         const expiresAtIso = g.expiresAtMs !== null ? new Date(g.expiresAtMs).toISOString() : null;
         // MAIN's ruling (INBOX answer 6): the sentence carries the friendly
@@ -334,15 +333,34 @@ export function TrackConsent({
             subject={whoAsked(g)}
             since={g.askedAtMs}
             now={now}
+            /*
+             * ── THE SLOTS, AFTER A1 WALKED THE SERVED BUILD (P-37, 17:12) ──
+             *
+             * Every one of these was already on the card and three of them were
+             * in the wrong place, which is why the order looked wrong on screen
+             * while the component's order was right. `consequence` was carrying
+             * the DEFAULT sentence, so the thing a person read second was
+             * "Cancelled unrun: nobody answered by...", and the actual risk sat
+             * in `lines` as a fact among facts.
+             *
+             * risk               the reversibility and its undo. Second, in
+             *                    prose, because it is what changes the answer.
+             * lines              why it asks, named as the seat's.
+             * declaredDefault    what happens if nobody answers. Mono, last.
+             *
+             * AND ONE LINE IS GONE. "What decides the risk: it cannot be undone"
+             * restates the risk line directly above it in different words, which
+             * is the dump this packet is removing: two sentences for one fact
+             * teaches a reader to skim both.
+             */
+            risk={`${REVERSIBILITY_LABEL[c.reversible]} · ${c.undo}`}
             lines={[
-              `${REVERSIBILITY_LABEL[c.reversible]} · ${c.undo}`,
-              ...(drivenBy ? [`What decides the risk: ${drivenBy}.`] : []),
               ...(g.rationale ? [`Why it asks: ${g.rationale}`] : []),
               ...(g.snoozedUntilMs !== null
                 ? ["You set this aside earlier. The run is still stopped."]
                 : []),
             ]}
-            consequence={expiryNote(g.toolName, declared, expiresAtShown ?? expiresAtIso)}
+            declaredDefault={expiryNote(g.toolName, declared, expiresAtShown ?? expiresAtIso)}
             consequenceTitle={expiresAtIso ?? undefined}
           >
             <div
