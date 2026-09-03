@@ -6703,7 +6703,7 @@ now names its three shapes with file and line.
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-54 · A shortcut never fires into a field, and the settled list records what changed · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
+### P-54 · A shortcut never fires into a field, and the settled list records what changed · Lane: **A3** · Status: CODE DONE, pushed 81a7c87d2, awaiting A1's live read · Moves: 2, 3
 
 **Why.** A1, 22:09 IST, on the approvals page with the Ask panel open: a sentence typed into what
 the browser reported as the panel's textbox landed on the page's single-letter shortcuts instead
@@ -6721,13 +6721,43 @@ for each: a keydown with focus in a textarea does nothing; a settle whose write 
 not listed as settled.
 
 **Acceptance.**
-- [ ] Both tests, named after their sentences.
+- [x] Both tests, named after their sentences.
 - [ ] A1 types the same sentence into the Ask panel on the approvals page on the served build and
       nothing settles.
-- [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+- [x] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
-**Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Report (A3 writes):** `81a7c87d2`. tsc 0, `bun test` full console suite on the tip **13,936 pass /
+0 fail / 0 error**, eslint 0 errors on touched files, Meridian ratchet 5/5.
+
+Two defects, not one. (1) `isModalOpen()` cannot see AskPane open by design — its own header kills
+the scrim, the focus trap and `aria-modal` on purpose, so `role="dialog"`/`aria-modal` never match
+it. The field-focus guard only covers the instant focus sits inside INPUT/TEXTAREA/SELECT/
+contenteditable. `onKey` now also checks `ask.isOpen` (`useAsk()`), before any key is read; the
+effect re-subscribes on `[..., ask.isOpen]`.
+
+(2) `resolveApproval` (tool_call) and `resolveAssumptionChallenge` both already resolved a lost race
+— the gate decided a moment earlier — as `{ ok: true }`, correctly, but `routeDecision` discarded
+that signal for every kind. It now returns whether a row actually changed; `decideOneApprovalItem`
+propagates it and skips the flywheel signal when nothing changed (an unlanded verdict is not
+evidence about an agent); `DecideApprovalItemResult` carries `{ ok, changed }`. The other eight gate
+kinds already throw on a genuine zero-row write (`.select().single()` or an explicit
+`if (!updated) throw`), so they return `true` unconditionally — unchanged behaviour, verified by
+grep before touching anything rather than assumed.
+
+`decideSettledLine`, pulled out of the decide mutation's `onSuccess` (this repo's established
+pattern for a route's pure decisions — `bindingDoorTarget`, `syncHeadline`), is the one place the
+tray decides what to print: a real decision keeps "You approved"/"You declined"; `changed: false`
+prints "Nothing changed. This was already decided." in the `failed` shape `SettledTrail` already
+reserves for a press that did not do what it looked like.
+
+`a-shortcut-never-fires-into-a-panel-and-a-nonevent-is-not-settled.test.ts`: the `ask.isOpen` guard's
+position, text-based (this repo has no working precedent for mounting this route; extends the same
+harness `approvals-keys-stand-down.test.ts` already established); `decideSettledLine`'s branch, both
+verdicts, both `changed` states; `routeDecision`'s new return type, the `tool_call` arm reading
+`already_decided`, the flywheel skip.
+
+**Blockers (A3 writes):** None. Live verification (the acceptance item above) is A1's read on the
+served build once Lovable deploys the pushed tip.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: READY (P-52 is on main and green; A3 may start) · Moves: 2, 3
 
