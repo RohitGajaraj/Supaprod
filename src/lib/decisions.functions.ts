@@ -830,13 +830,41 @@ export const getDecisionsForAsk = createServerFn({ method: "POST" })
     const { supabase } = context;
 
     try {
-      // Get all decisions from the track
+      /*
+       * -- `decisions` HAS NO `track_id`, AND NEVER HAS (found 2026-09-03) ----
+       *
+       * This read said `.eq("track_id", data.trackId)`. That column is not on
+       * the table: a track's decisions are reached through its
+       * `spine_track_members` rows of kind `decision`, the same join
+       * `listRunsForStart` and the driver both use.
+       *
+       * PostgREST answers an unknown column with 42703, so `decisionsError` was
+       * always set, the `throw` below always fired, and the `catch` at the end
+       * of this handler swallowed it into `{ decisions: [] }`. The feature has
+       * never returned a single row in its life and said nothing about it: it
+       * looked exactly like a track with no decisions.
+       *
+       * Nothing calls it -- `grep -rn "getDecisionsForAsk" src/` finds only this
+       * definition -- so it is a feature that was written, never wired, and
+       * could not have worked if it had been.
+       */
+      const { data: memberRows, error: memberError } = await supabase
+        .from("spine_track_members")
+        .select("artifact_id")
+        .eq("track_id", data.trackId)
+        .eq("artifact_kind", "decision");
+      if (memberError) throw memberError;
+      const decisionIds = ((memberRows ?? []) as Array<{ artifact_id: string | null }>)
+        .map((m) => m.artifact_id)
+        .filter((id): id is string => typeof id === "string" && id.length > 0);
+      if (decisionIds.length === 0) return { decisions: [] };
+
       const { data: decisions, error: decisionsError } = await supabase
         .from("decisions")
         .select(
           "id,title,rationale,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution,forecast_resolved_at,created_at",
         )
-        .eq("track_id", data.trackId)
+        .in("id", decisionIds)
         .order("created_at", { ascending: false });
 
       if (decisionsError) throw decisionsError;
@@ -849,7 +877,10 @@ export const getDecisionsForAsk = createServerFn({ method: "POST" })
         decisions.map(async (decision) => {
           const { data: learning } = await supabase
             .from("learnings")
-            .select("id,verdict,metadata,created_at")
+            /* `learnings` has no `metadata` column. The reading this was reaching for is
+               `metric_label` / `metric_value`, which is what the grader writes and
+               what the Learn tab renders. */
+            .select("id,verdict,summary,metric_label,metric_value,created_at")
             .eq("decision_id", decision.id)
             .maybeSingle();
 
@@ -912,7 +943,10 @@ export const searchDecisionsForAsk = createServerFn({ method: "POST" })
         decisions.map(async (decision) => {
           const { data: learning } = await supabase
             .from("learnings")
-            .select("id,verdict,metadata,created_at")
+            /* `learnings` has no `metadata` column. The reading this was reaching for is
+               `metric_label` / `metric_value`, which is what the grader writes and
+               what the Learn tab renders. */
+            .select("id,verdict,summary,metric_label,metric_value,created_at")
             .eq("decision_id", decision.id)
             .maybeSingle();
 
