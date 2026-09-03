@@ -5676,6 +5676,14 @@ no recorded reason and nobody can say whether it is the token, the app or the pa
 - [x] tsc 0 · `bun test` (full console suite, this branch's tip, post-rebase) 13,805 pass / 0 fail /
       0 unhandled error · pushed (`882ecae9a`, rebased twice, landed `08a519232`) · Report.
 
+**A1, 15:24 IST.** Items 1 and 2 accepted: the server functions select the row back and throw the
+sentence; the policy *ws owner manages own regardless of membership* is in `pg_policy` and
+`20260909030000` is in the ledger. Suite on the tip 13,805 / 0 / 0, tsc 0, published 15:24. The
+sentence on screen is walked after propagation. Item 3 was built in the wrong module: the path that
+failed today is `changeset-deploy.server.ts` from `ci-poll-tick.ts`, which wrote the `deployments`
+row for `5151319` with no reason; the reason goes on that row (`failure_reason`) and on the owning
+track's transcript. Packet stays open for that.
+
 **Report (A3 writes):**
 
 **(1) The delete/leave fix.** `deleteWorkspace`/`leaveWorkspace` ran a bare `.delete()` and reported
