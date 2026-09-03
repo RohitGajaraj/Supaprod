@@ -550,7 +550,7 @@ deferred six hours after it spent three attempts on that fault. A3 has been sile
 P-59b, P-61, P-63, P-64, P-65. The founder has nothing to set; the date call holds at 23
 September, and 8 September for a real Ship now depends on P-68.
 
-**Checkpoint, 2026-09-04 05:05 IST. Sixty-eight of seventy-nine, and the night's three findings
+**Checkpoint, 2026-09-04 05:00 IST. Sixty-eight of seventy-nine, and the night's three findings
 that change the product.** Since 02:00: P-58 (published; the ping warms the isolate and not what
 the root reads, so P-58b), P-59b, P-61, P-63 (published; four of nine doors leak another
 workspace's desk in an empty one, so P-75), P-66 DONE live, P-68 and P-68b (published; the retry's
