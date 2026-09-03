@@ -4353,7 +4353,7 @@ alone). eslint 0 new errors on all three touched files. Pushed `e995c5423` direc
 **Blockers (A3 writes):** the live walk on Helio Labs (acceptance line 1) — no browser this session,
 same as every prior packet.
 
-### P-30 · Ship files its own artifact · Lane: **A3** · Status: CLAIMED (A3) · Moves: 3, 4
+### P-30 · Ship files its own artifact · Lane: **A3** · Status: DONE (A3) · Moves: 3, 4
 
 **Why.** `spine_track_members` holds zero rows of kind `deployment`, ever (A3, P-28 census). So
 the Ship station produces nothing on the record, `whatItProduced` cannot say *Ship filed 1
@@ -4370,11 +4370,63 @@ release*. No new query shapes.
 **Files.** `src/lib/spine/attach.ts`, the release tool's success path, `what-it-produced.ts`, tests.
 
 **Acceptance.**
-- [ ] The test above; `listChangelog`'s fourth hop resolves a release to its run through it.
-- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+- [x] The test above; `listChangelog`'s fourth hop resolves a release to its run through it.
+- [x] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
 
-**Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Report (A3 writes):** Dispatched a research agent before writing anything, because `attach.ts`
+already had `TOOL_PRODUCTS["release.publish"]` and `STATION_ARTIFACT.ship` fully registered — the
+packet's own "the attach step was never written" premise did not match the code. **The tool's
+return shape was always correct** (`registry.server.ts`'s handler returns a top-level
+`deployment_id`, exactly what `idFrom` reads). **Two things were actually wrong, and only one of
+them explains the 42-vs-0 gap:**
+1. `attach.ts`'s own comment — "pinned to review, so a call always leaves an approval row" — is
+   false against the current gating code. `SHIP_AUTONOMY_TOOLS` (`loop.server.ts`) exempts
+   `release.publish` from the high-risk force-review list, and a ship agent with no operator-set
+   arc defaults to `arc: "trusted"` (SW-7), so its mode resolves to `auto` and it runs inline —
+   not through `agent_approvals`. Corrected in three places in `attach.ts` (the `TOOL_PRODUCTS`
+   entry, `STATION_ARTIFACT.ship`, the file's own "MEASURED 2026-08-20" paragraph). **Flagging,
+   not fixing:** whether `release.publish` should stay ungated is a product/security call outside
+   this packet — worth a ruling.
+2. **The real cause.** Production promotes reach `deployments` through TWO doors sharing one core
+   (`promoteChangesetToProductionCore`, `deployments.functions.ts`): `release.publish` (the
+   agent's tool, dispatched through `driveTrackOnce`, the only place `collectAttachments`/
+   `harvestGates` run) and `promoteToProduction` (the person's, `/ship`'s own "Promote to
+   production" button) calling the same core *directly*, with no track, no mission, no
+   `runAgentLoop` involved at all. Given 42 successful deploys and an agent path that structurally
+   fails on an unmerged-PR precondition whenever it runs unattended, most or all of those 42 came
+   through the person's door — invisible to the spine no matter what `TOOL_PRODUCTS` said.
+
+**The fix.** `attachDeploymentToTrackSafe` (new, exported, `deployments.functions.ts`) is called
+once, right after the deployment row lands, at the ONE point both doors pass through — the same
+reasoning already written for the lineage edge two lines above it. Resolves the track by reusing
+`trackIdByChangeset`'s own two-hop resolution (`changelog.ts`, changeset → mission → track) rather
+than re-deriving it a second way, so a release that resolves a track here is guaranteed to resolve
+the same one `listChangelog` opens. Silent (no warning) when no track resolves — the ordinary case
+for a solo `/ship` promote today, not a failure. Fail-soft on write error, matching
+`recordLineageSafe`'s own pattern (index write, never fails the promote that already went live).
+Idempotent on `(track_id, artifact_kind, artifact_id)`, the same upsert `writeMembers`
+(`driver.server.ts`) and `attachToTrack` (`track.functions.ts`) already use.
+
+`what-it-produced.ts` needed **no change** — "Ship filed 1 release" was already covered
+(`what-it-produced.test.ts:94-96`, pre-existing) once a member exists to describe; the display
+layer was always ready, only the write was missing. New file `deployments.functions.test.ts`
+(5 tests, fake-Supabase pattern matching `studio.functions.test.ts`'s own): a track's mission
+resolves and files the member with the right shape; the resolved track agrees with
+`trackIdByChangeset`'s own answer for the identical fixture (closes the "listChangelog's fourth
+hop" acceptance line directly); silent with no mission; silent when the mission's run carries no
+track (R-35); a write failure is absorbed, never thrown.
+
+tsc 0 at every step. `bun test`: 13,745 tests, 0 fail, 0 unhandled errors (full console-reporter
+run, not junit alone, both before and after the rebase). eslint 0 new errors (one `--fix` pass for
+prettier formatting, verified clean after). Meridian ratchet: no baseline diff (comments only in
+`attach.ts`, no new `sp-*` classes anywhere). Rebased cleanly onto `origin/main` (`00e939f3b`, your
+P-18b live-walk close landed while this was in flight, no file overlap) and pushed `95fea6635`.
+
+**Blockers (A3 writes):** None for this packet. **Worth a ruling, out of scope:** whether
+`release.publish` should be forced to `review` mode rather than `SHIP_AUTONOMY_TOOLS`-exempted —
+today a ship agent at the default `arc: "trusted"` can attempt an unattended production promote
+with no human confirmation, and the only reason it hasn't shipped anything yet is that its
+merged-PR precondition happens to fail first.
 
 ### P-31 · No claim about a plan that does not exist · Lane: **A3** · Status: READY (after P-30) · Moves: 4
 
