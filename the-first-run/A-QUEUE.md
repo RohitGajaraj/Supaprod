@@ -5637,7 +5637,7 @@ both panes; the card below carries the same question, the risk line, the reason 
 default. One answer, two doors to it, same mutation. Noted for P-37, not for this packet: the
 footer reads *Waiting on you.* beside a *Run it now* button, two verbs for one state.
 
-### P-39 · A press that did nothing says so · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
+### P-39 · A press that did nothing says so · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3) · Moves: 2, 3
 
 **Why.** 2026-09-03 14:00 IST, the founder deleted the empty *A2 arrival check* workspace from the
 product and was told it worked; the workspace was still there. `deleteWorkspace`
@@ -5661,15 +5661,76 @@ no recorded reason and nobody can say whether it is the token, the app or the pa
    line, so a failed preview says why on the run screen.
 
 **Acceptance.**
-- [ ] A test proves a delete that matches no row throws with the sentence, and one that matches
+- [x] A test proves a delete that matches no row throws with the sentence, and one that matches
       returns ok; a test proves an owner with no member row can delete under the new policy.
-- [ ] A test proves a non-OK deploy answer lands its status and body on the deployments row.
+      `a-press-that-did-nothing-says-so.test.ts`, 7 cases against `deleteWorkspaceCore`/
+      `leaveWorkspaceCore` directly (a fake `SupabaseClient`, not the live database — the new
+      policy itself is verified against the live schema below, in `pg_policies`, since RLS cannot
+      be exercised from a unit test without a real authenticated session).
+- [x] A test proves a non-OK deploy answer lands its status and body — on `DeploymentResult.detail`,
+      not "the deployments row" (see §3 of the Report: that row doesn't exist for this code path).
+      3 new cases across `deno-deploy.server.test.ts` and `hosting-poc.test.ts`.
 - [ ] Walked live by A1: the sentence on a real workspace the policy blocks; the reason on the next
-      failed preview.
-- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+      failed preview. **A3 has no live browser this session — the policy itself is verified live
+      via `pg_policies` (below), the UI sentence is not walked. A1: please verify.**
+- [x] tsc 0 · `bun test` (full console suite, this branch's tip, post-rebase) 13,805 pass / 0 fail /
+      0 unhandled error · pushed (`882ecae9a`, rebased twice, landed `08a519232`) · Report.
 
-**Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Report (A3 writes):**
+
+**(1) The delete/leave fix.** `deleteWorkspace`/`leaveWorkspace` ran a bare `.delete()` and reported
+`{ ok: true }` whatever happened — the exact shape `removeWorkspaceMember` (same file) had already
+been fixed against: PostgREST answers a delete RLS blocked (0 rows, no error) identically to one
+that succeeded. Mirrored that fix exactly: `.select("id")`/`.select("user_id")` after the delete,
+throw a specific sentence when nothing came back. Pulled the DB-touching logic into exported
+`deleteWorkspaceCore(supabase, id)`/`leaveWorkspaceCore(supabase, userId, id)` — the same shape
+`captureDeploymentsCore` (`deployments.functions.ts`) already uses — because `createServerFn`'s
+wrapped export needs a real request's middleware context to invoke directly, and no test anywhere
+in this codebase does that; the exported Core function is what makes "a test proves it" possible at
+all. `_authenticated.settings.tsx`'s `mDelete`/`mLeave` mutations already call `toast.error(failureLine(...,
+e))` on `onError` — the client needed **no changes**: once the server actually throws instead of
+lying, the existing wiring surfaces it.
+
+**(2) The RLS migration, applied and verified live.** `has_workspace_role` (the function `ws owner
+admin manage` reads) requires a `workspace_members` row; an owner without one is refused by their
+own workspace. Added `20260909030000_an_owner_without_a_member_row_can_still_manage_their_own.sql`
+— a SEPARATE, additive policy (`owner_id = auth.uid()`, `for all`), following the exact precedent
+`20260908010000` set for the matching SELECT-side gap the same week: permissive policies OR, so
+this widens nothing else, and `has_workspace_role`'s own logic is untouched. Applied through the
+Lovable MCP (project `371dd588-1b70-4629-9bb5-9f003f3af373`). Verified via `pg_policies` **before**
+(4 policies on `workspaces`, confirming the diagnosis exactly: no policy admits a bare
+`owner_id = auth.uid()` for write) and **after** (5 policies, the new one present with the intended
+definition). Ledger row inserted into `supabase_migrations.schema_migrations`
+(`20260909030000` / `an_owner_without_a_member_row_can_still_manage_their_own`) since this was
+applied as raw DDL rather than through the CLI's own apply path. **Live evidence the fix is needed
+beyond the one incident:** queried every workspace whose owner has no qualifying `workspace_members`
+row — **two more exist today** ("Sample workspace", "My Workspace"), both now repairable by their
+own owner where they were not a moment ago.
+
+**(3) The deploy failure detail — built, with a real scope mismatch flagged rather than guessed
+past.** `DeploymentResult` now carries an optional `detail` field; `denoDeployProvider.deploy`
+populates it with the HTTP status and the first 500 bytes of the response body (truncated, not
+dropped) on any non-OK answer, and `deployHostingPoc` includes it in the failure message it already
+constructs. This flows into `provisionHostingPoc`'s existing `console.error` line — the one audit
+trail this code path has.
+
+**The mismatch:** scope item 3 asks for the detail recorded "on the `deployments` row" and "in the
+run's transcript line, so a failed preview says why on the run screen." Neither exists for
+`denoDeployProvider`. It has exactly **one** caller, `provisionHostingPoc` — an admin-role-gated
+server function behind the founder-only "Supaprod-hosted" toggle, with no spine track, no run, and
+no transcript anywhere in its call path. `hosting-poc.functions.ts`'s own header states the
+architecture plainly: *"No new table or column, matching P5b's 'no DB wiring' ... this logs to the
+server console instead of the DB for now; a real audit row is a P5d item."* That is a deliberate,
+founder-referenced staging decision (P5b/P5c/P5d, `docs/planning/byo-p5-managed-runtime-plan.md`),
+not an oversight — adding a `deployments` table/column now would reverse it without that being this
+packet's call to make. **A1: is real DB wiring wanted here despite the P5b decision, or does the
+console-log-carries-detail fix (which is real, tested, and ships today) answer the actual need?**
+Not guessing further past this; flagging rather than either silently skipping the item or
+unilaterally reversing a staged architecture decision.
+
+**Blockers (A3 writes):** The item-3 architecture question above is open and needs A1's or the
+founder's call. Everything else in this packet is complete and verified; nothing is blocked on the
+answer to it.
 
 
 ### P-16b · The sentence field is the first stop · Lane: **A3** · Status: DONE (A1 verified live, 15:18 IST) · Moves: 2, 5
