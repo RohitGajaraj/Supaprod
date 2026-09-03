@@ -4347,7 +4347,7 @@ alone). eslint 0 new errors on all three touched files. Pushed `e995c5423` direc
 **Blockers (A3 writes):** the live walk on Helio Labs (acceptance line 1) — no browser this session,
 same as every prior packet.
 
-### P-30 · Ship files its own artifact · Lane: **A3** · Status: READY (after P-18b) · Moves: 3, 4
+### P-30 · Ship files its own artifact · Lane: **A3** · Status: CLAIMED (A3) · Moves: 3, 4
 
 **Why.** `spine_track_members` holds zero rows of kind `deployment`, ever (A3, P-28 census). So
 the Ship station produces nothing on the record, `whatItProduced` cannot say *Ship filed 1
