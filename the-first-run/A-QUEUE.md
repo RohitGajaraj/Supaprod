@@ -3904,3 +3904,27 @@ goes to zero. Seed workspace excluded. A1 rules on the census before the write.
 
 **Report (A3 writes):** —
 **Blockers (A3 writes):** —
+
+
+### P-29 · Every start door starts a run · Lane: **A3** · Status: READY (after P-14b) · Moves: 3, 4
+
+**Why.** R-35 says a mission without a track is not a run, and three live buttons still make one:
+`GraphNodeActions.tsx`, `OpportunityDetailSheet.tsx`'s *start a mission*, and `plan.spec.$id.tsx`'s
+*Send to Build* dispatch through `startOrchestratedMission` / `dispatchStudioSession`, and neither has
+ever written a `spine_tracks` row (A3, P-14 sweep). Work started there never appears on Start.
+
+**Scope.** Every door that starts work calls the one function Start's composer calls, which creates
+the track (with the bet or spec attached as its first member) and lets the sweep drive it. *Send to
+Build* on the spec page goes, per the P-14 ruling; *start a mission* on a bet becomes *Start it* with
+the same sentence as Start's cards; the graph's action likewise. `startOrchestratedMission` and
+`dispatchStudioSession` lose their last callers or are folded into the track path; a test asserts no
+door outside the track path can create a `missions` row. Delete `src/lib/loop-surfaces.ts` (dead,
+zero callers, its renderer does not exist) in the same push.
+
+**Acceptance.**
+- [ ] Pressing each door on Helio Labs creates a track that appears on Start within one poll.
+- [ ] `grep` for `startOrchestratedMission|dispatchStudioSession` outside the track path is empty.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
