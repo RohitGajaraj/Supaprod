@@ -4020,7 +4020,7 @@ on a freshly loaded Start eats the first pointer press; find it, because a perso
 
 ---
 
-### P-26 · Meridian: raw durations become tokens · Lane: **A2** · Status: DONE (A2, 09:20 IST) · Moves: 4
+### P-26 · Meridian: raw durations become tokens · Lane: **A2** · Status: DONE (A1, 09:45 IST, on the report and the suite)· Moves: 4
 
 **Why.** R-20 §4: a raw duration is a fail. Measured 2026-09-03 00:03 across `src/components/meridian/*.tsx`:
 `duration-100` ×24, `duration-150` ×11, `duration-200` ×8, `duration-300` ×7, beside `--mrd-d-press`
@@ -4039,6 +4039,10 @@ class in that directory fails. Product surfaces outside Meridian are not in scop
 - [ ] No visual change a person would notice: each mapping is to the token whose value is closest,
       and the Report lists any that changed by more than 50 ms with the reason.
 - [ ] tsc 0 · `bun test` 0 fail · pushed · Report.
+
+
+**A1 verdict: DONE** _09:45 IST._ Raw durations in `meridian/**` mapped by meaning onto tokens;
+the acceptance grep is empty; the second motion vocabulary is gone; suite 13,690 / 0; publishing.
 
 **Report (A2, 09:20 IST) — on main at `6347be46c`. `grep -rhoE "duration-[0-9]+" src/components/meridian
 | wc -l` → **0**, the guard pins it, tsc 0, `bun test` 0 fail, ratchet unchanged.**
@@ -4576,7 +4580,7 @@ Picking up the next READY A3 packet rather than sitting on this one.
 Not blocked on tooling or access — blocked on which of two readings of "Why" is current.
 
 
-### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3) · Moves: 2, 3
+### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: REJECTED (A1, 09:45 IST, measured: first row at ~4.0 s) · one more pass· Moves: 2, 3
 
 **Why.** The front door reads *Reading your runs.* for three to six seconds on a warm load and
 over nine on this morning's cold one (A1, 06:34 and 09:20 IST, Helio Labs: 15 open tracks). A
@@ -4595,6 +4599,25 @@ query in a loop. No caching that can show a stale row. Report the before and aft
 - [ ] First run row visible within 2 seconds of navigation on three consecutive loads of Start on
       Helio Labs, measured by A1 with the extension; the numbers before and after in the Report.
 - [x] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+
+**A1 verdict: REJECTED on the measurement, with the numbers.** After the publish carrying
+`79674d553`, one warm load of `/start` on Helio Labs (Performance API, 09:44 IST):
+
+| mark | ms |
+| --- | --- |
+| document loaded | 315 |
+| first server call starts | 1,381 |
+| typical reader duration | 465–612 |
+| slowest reader duration | 2,678 (ends at 4,060) |
+
+Two targets, in order. (1) **The 2.7-second reader.** Seven calls start together at 1.38 s; six
+answer in about half a second; one takes 2.7 s and it is the one the rows wait for. Name it (time
+each server function on the server and log it once, or map the `_serverFn` hash), and fix what makes
+it five times slower than its siblings. (2) **The 1.1-second prefix before any call.** Nothing is
+fetched until 1.38 s; that is the route's `beforeLoad` (session, `needsOnboarding`) and client boot,
+the thing you flagged. Measure it, then either run the readers in parallel with it or make it cheap.
+Acceptance unchanged: first row within 2 s on three loads. The concurrency change stands.
 
 **Report (A3 writes):** Measured before touching anything, through the Lovable MCP (read-only), on
 Helio Labs' own data (project `371dd588-1b70-4629-9bb5-9f003f3af373`, workspace
