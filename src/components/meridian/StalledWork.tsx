@@ -260,27 +260,39 @@ export function StalledWork({
        * The headline states the cost before the list states the items. A person
        * who reads only this line should already know whether to act, and the
        * oldest age is the fact that decides it.
+       *
+       * ── AND IT NO LONGER STATES A COUNT (P-56) ────────────────────────────
+       *
+       * It read "65 pieces of work are stopped, waiting on you." on a page whose
+       * heading, directly above, read "66 decisions are ready for you." Same
+       * rows: this list is `rest`, which is the queue minus the card already
+       * open, so the second number was the first minus one. A visitor totals
+       * them and reads 131 obligations where there are 66. The shell and
+       * `/today` were fixed for this exact defect on 2026-08-21; this pair was
+       * the same defect one page lower.
+       *
+       * So the heading above states how much is waiting, ONCE, and this states
+       * the one fact only this component holds -- the oldest wait, which its own
+       * note above already calls the fact that decides whether to act. It was a
+       * label under a number; it is the sentence now.
+       *
+       * The no-one-waiting branch keeps its words: it carries no count, and it
+       * is the one case where nothing above says anything about this list.
        */}
       <h2 className="text-mrd-lead leading-mrd-snug font-medium text-mrd-ink">
-        {waitingOnPerson.length > 0 ? (
+        {waitingOnPerson.length === 0 ? (
+          "Work is stopped, and none of it is waiting on you."
+        ) : oldest ? (
           <>
-            {waitingOnPerson.length === 1
-              ? "One piece of work is stopped, waiting on you."
-              : `${waitingOnPerson.length} pieces of work are stopped, waiting on you.`}
+            The oldest has been stopped for{" "}
+            <span className="font-mrd-mono tabular-nums">{stoppedFor(oldest.since, now)}</span>.
           </>
         ) : (
-          "Work is stopped, and none of it is waiting on you."
+          /* Every row undated. `UndatedCalls` draws those separately, so this
+             says what it knows rather than inventing an age for them. */
+          "Work is stopped, and nothing here says how long."
         )}
       </h2>
-      {oldest ? (
-        <p className="mt-1 text-mrd-label text-mrd-body">
-          The oldest has been stopped for{" "}
-          <span className="font-mrd-mono tabular-nums text-mrd-ink">
-            {stoppedFor(oldest.since, now)}
-          </span>
-          .
-        </p>
-      ) : null}
 
       <ul className="mt-4 flex flex-col gap-2">
         {sorted.map((item) => (

@@ -142,6 +142,7 @@ import { SendBackSheet, canSendBack } from "@/components/approvals/SendBack";
 import { stripAutoMarkers } from "@/components/plan/format";
 import { waitingSince } from "@/components/meridian/stopped-for";
 import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
+import { queueShape, shapeSentence } from "@/components/approvals/a-queue-is-a-shape-not-a-total";
 
 /** One identity for the empty case, so a loading or failed read does not
  *  invalidate every memo that depends on the queue. See its use below. */
@@ -732,9 +733,23 @@ function ApprovalsSurface() {
           floor
           ? "Approvals"
           : "Nothing is ready for you."
-        : n === 1
-          ? `${floor ? "At least 1 decision is" : "1 decision is"} ready for you.`
-          : `${floor ? "At least " : ""}${n} decisions are ready for you.`;
+        : /*
+           * ── A SHAPE, NOT A TOTAL (P-56) ─────────────────────────────────
+           *
+           * This read `${n} decisions are ready for you.` -- 66 on the served
+           * Helio Labs page, which is a wall. The same 66 are 35 design gates,
+           * 10 assumption challenges, 8 decisions, 4 agent actions, 4 house
+           * rules, 3 opportunities and 2 memory notes, and a person told THAT
+           * knows one afternoon on one family clears half of it.
+           *
+           * The total is not hidden. It is the sum of what is named and every
+           * part is on screen; what is gone is the number nobody can act on.
+           *
+           * The floor and failed-read branches above are untouched: a capped
+           * read still says "at least", and a failed one still refuses to
+           * assert a count at all.
+           */
+          shapeSentence(queueShape(visibleItems.map((i) => i.kindKey)), floor);
 
   /* THE THIRD FACT, which this surface used to collapse into the first. A
      person in no workspace at all was told "Nothing is ready for you.", which
