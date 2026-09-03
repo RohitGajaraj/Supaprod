@@ -4515,7 +4515,7 @@ Picking up the next READY A3 packet rather than sitting on this one.
 Not blocked on tooling or access — blocked on which of two readings of "Why" is current.
 
 
-### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: READY · Moves: 2, 3
+### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** The front door reads *Reading your runs.* for three to six seconds on a warm load and
 over nine on this morning's cold one (A1, 06:34 and 09:20 IST, Helio Labs: 15 open tracks). A
