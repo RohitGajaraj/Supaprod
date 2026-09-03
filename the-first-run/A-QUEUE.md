@@ -6989,7 +6989,7 @@ the founder sets the secret and republishes. Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads both surfaces.
 
 
-### P-60 · The rail answers the person's questions · Lane: **A2** (after P-59) · Status: CODE DONE (76af3609e; A2 reports 14,005 / 0 / 0, tsc 0; A1 suite on the tip 14,005 / 0, tsc 0; PUBLISHED 01:23 IST 09-04; the nine-door walk follows). Names changed by the founder's 2026-09-01 ruling (one word on the rail): Start, Waiting, Arriving, Run, Outcomes, Team, Conversations, Sources, Settings · Moves: 2, 3
+### P-60 · The rail answers the person's questions · Lane: **A2** (after P-59) · Status: CODE DONE (76af3609e; A2 reports 14,005 / 0 / 0, tsc 0; A1 suite on the tip 14,005 / 0, tsc 0; PUBLISHED 01:23 IST 09-04; the nine-door walk follows) · A1 walked the rail live 01:58: Start, Waiting, Arriving, Outcomes, Team, Conversations, Sources as doors with g t/w/i/o/m/c/u; Run resolved at render; Settings below. Names changed by the founder's 2026-09-01 ruling (one word on the rail): Start, Waiting, Arriving, Run, Outcomes, Team, Conversations, Sources, Settings · Moves: 2, 3
 
 **Why.** `PLATFORM-AUDIT.md` §1 and R-38. The rail holds Start and Run; seven surfaces
 have no door. Stations stay out of the rail (R-01 first half); the person's questions go in.
@@ -7226,7 +7226,7 @@ not marked given-up for a fault that is the product's, and P-68's *Try the previ
 moment its attempts reset. A1 clears the deferral when P-68 is published.
 
 
-### P-68 · A managed preview that failed is tried again and says why, and a gate that cannot succeed is not offered · Lane: **A3** (after P-58, before P-59b) · Status: READY · Moves: 1, 3
+### P-68 · A managed preview that failed is tried again and says why, and a gate that cannot succeed is not offered · Lane: **A2** (moved from A3 at 02:00 IST 09-04, ahead of P-70: A3 silent since 00:47) · Status: READY · Moves: 1, 3
 
 **Why.** The live walk above. The path to an honest Ship is blocked by a preview deploy that
 failed once with no recorded reason and is never retried, while the release gate keeps offering

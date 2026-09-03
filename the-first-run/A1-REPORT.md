@@ -532,3 +532,20 @@ the derived title is cut mid-phrase at 120; nine tracks hold twin specs, 21 betw
 A2 since A2 was free. A3 remains on P-53. Founder items: the walk of the run screen, the second
 sentence under Relay, the release gate, the seven decisions, and P-55's A or B (C is being built).
 The date call holds at 23 September.
+
+**Checkpoint, 2026-09-04 02:00 IST. Fifty-nine of seventy, the rail has doors, and the founder's
+pending calls are made.** The founder went to sleep at 00:09 and handed every pending call to A1.
+Since 00:10: P-55 decided (C only); P-56 DONE live; P-57 and P-57b (the twin guard; a superseded
+spec closes its gate, trigger and backfill applied; Helio's pending gates 35 to 21); P-53 DONE
+(Gate gone; a tsc collision between the lanes fixed); P-59 (Ship names what stops it); P-66 (the
+shell's live line reads its own workspace; the borrowed fact proved); P-60 (nine doors, one word
+each by the 09-01 ruling, walked live); P-62 (three answers above the run list, published); P-67
+(a ratchet: 186 bare reads across 81 files can never grow); P-69 (Arriving stamps the last look,
+published). The platform audit (`PLATFORM-AUDIT.md`, R-38) found seven surfaces with no door and
+made P-60 to P-64. A1's own walks: the second sentence in an empty workspace (P-40 live, R-37
+holds), the release gate pressed (the promote fails for want of a preview tried once and never
+again: P-68; the token was configured all along, A1's 00:20 line was wrong), the tablet track
+deferred six hours after it spent three attempts on that fault. A3 has been silent since 00:47
+(P-58 claimed 00:51); P-68 moved to A2. Open on A2: P-68, P-70. Open on A3 when it returns: P-58,
+P-59b, P-61, P-63, P-64, P-65. The founder has nothing to set; the date call holds at 23
+September, and 8 September for a real Ship now depends on P-68.
