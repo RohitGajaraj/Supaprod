@@ -104,3 +104,34 @@ export function groupByProduct<T extends { product_name?: string | null }>(
   }
   return Array.from(groups.entries()).map(([label, es]) => ({ label, entries: es }));
 }
+
+/**
+ * The track a changeset's mission served, resolved changeset -> mission ->
+ * track (P-14b, A-QUEUE.md). `changelog_entries` carries only `changeset_id`;
+ * neither `missions` nor `studio_changesets` carries a `track_id` column at
+ * all -- only the run that recorded it does (`agent_runs`, the same table and
+ * the same last-non-null-wins-per-mission rule `listMissions` already uses:
+ * a mission's runs all serve one piece of work, so an older run that recorded
+ * the track is still telling the truth even when a newer one predates the
+ * link). Most releases predate the spine and resolve to `null` -- that is a
+ * real absence, not a bug, and every caller must treat it as "no door" rather
+ * than guess a destination.
+ */
+export function trackIdByChangeset(
+  changesets: readonly { id: string; mission_id: string | null }[],
+  runs: readonly { mission_id: string | null; track_id: string | null }[],
+): Map<string, string | null> {
+  const missionByChangeset = new Map<string, string>();
+  for (const c of changesets) {
+    if (c.mission_id) missionByChangeset.set(c.id, c.mission_id);
+  }
+  const trackByMission = new Map<string, string>();
+  for (const r of runs) {
+    if (r.mission_id && r.track_id) trackByMission.set(r.mission_id, r.track_id);
+  }
+  const result = new Map<string, string | null>();
+  for (const [changesetId, missionId] of missionByChangeset) {
+    result.set(changesetId, trackByMission.get(missionId) ?? null);
+  }
+  return result;
+}

@@ -386,6 +386,8 @@ import { getCompounding } from "@/lib/today.functions";
 import type { CompoundingSummary } from "@/lib/moat-vis";
 import { getStandingRecord, type RecallRecord } from "@/lib/brain-standing.functions";
 import { getForecastCalibration, type ForecastCalibration } from "@/lib/brain-insights.functions";
+import { listChangelog, type ChangelogEntry } from "@/lib/changelog.functions";
+import { getImpactLedger } from "@/lib/pm-impact.functions";
 import { getKnowledgeGraph } from "@/lib/knowledge-graph-view.functions";
 import type { GraphNodeKind, KnowledgeGraph } from "@/lib/knowledge-graph-view";
 import { RetentionLine } from "@/components/brain/RetentionLine";
@@ -397,6 +399,7 @@ import {
   Door,
   Figure,
   NothingYet,
+  Num,
   ReadFailed,
   ReadFailedLine,
   Reading,
@@ -405,6 +408,7 @@ import {
 import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { PageHeading } from "@/components/meridian/surface-parts";
+import { CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { Surface } from "@/components/meridian/Surface";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 
@@ -837,6 +841,11 @@ function day(iso: string | null | undefined): string | null {
   return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 }
 
+/** "+1" / "-3" / "0". Character-identical to `/learn`'s own helper (P-14b). */
+function signed(n: number): string {
+  return `${n >= 0 ? "+" : ""}${n}`;
+}
+
 /** What the record says about the newest call an outcome re-ranked. A claim in
  *  the record's own words, never a statistic dressed as one. */
 function verdictLine(verdict: "validated" | "missed" | "mixed", subject: string): string {
@@ -1242,6 +1251,37 @@ function MemoryPage() {
     queryKey: ["brain-standing", activeWorkspaceId],
     queryFn: () => fStanding({ data: { workspaceId: activeWorkspaceId } }),
   });
+  /*
+   * WHAT SHIPPED (P-14b, A-QUEUE.md). `/ship`'s own reader, moved rather than
+   * re-queried: same server function, same key shape (`wid`, the same
+   * `activeWorkspaceId ?? ""` fallback `/ship` uses), so a session with both
+   * pages open shares one cache entry instead of asking twice.
+   */
+  const wid = activeWorkspaceId ?? "";
+  const fChangelog = useServerFn(listChangelog);
+  const changelog = useQuery({
+    queryKey: ["changelog", wid],
+    queryFn: () => fChangelog({ data: { workspaceId: wid || undefined } }),
+  });
+  /*
+   * WHAT THE RECORD MOVED (P-14b, A-QUEUE.md). `/learn`'s own reader, moved
+   * rather than re-queried: same server function, same key name. The key's
+   * workspace scope is `activeWorkspaceId` (this page's own, matching every
+   * other query on it) rather than `/learn`'s `recordWorkspaceId`, which is
+   * scoped to whichever workspace its OWN pending/settled queues resolve to --
+   * a mechanic this page does not have and is not adding. The two pages will
+   * not always share this cache entry; the data is correct for this page's
+   * workspace either way.
+   */
+  const fLedger = useServerFn(getImpactLedger);
+  const ledgerQ = useQuery({
+    queryKey: ["impact-ledger", activeWorkspaceId],
+    queryFn: () => fLedger({ data: activeWorkspaceId ? { workspaceId: activeWorkspaceId } : {} }),
+  });
+  const releases: ChangelogEntry[] = changelog.data?.entries ?? [];
+  const ledger = ledgerQ.data?.ledger ?? null;
+  const movedPriority = (ledger?.measuredOutcomes ?? 0) > 0;
+  const revisedBeliefs = (ledger?.beliefsRevised ?? 0) > 0;
   // HOW OFTEN THE RECORD'S OWN FORECASTS CAME TRUE. THE KEY IS CHARACTER-
   // IDENTICAL TO GraphCompoundingStrip's consumer usage, so this page and the
   // strip above the Graph canvas are two readers of ONE request rather than a
@@ -1905,6 +1945,112 @@ function MemoryPage() {
                 <LearningDetail id={learning} />
               ) : (
                 <div className="flex flex-col gap-mrd-7">
+                  {/* WHAT SHIPPED (P-14b, A-QUEUE.md). `/ship`'s own list, one
+                      row per release: title, PR, live URL, date, and the run
+                      it came from when one is addressable. `/ship` itself is
+                      deleted once this and P-04 land. */}
+                  {changelog.isError ? (
+                    <Region title="What shipped">
+                      <p className="mrd-meta text-mrd-faint">Not readable right now.</p>
+                    </Region>
+                  ) : changelog.isLoading ? (
+                    <Region title="What shipped">
+                      <Reading />
+                    </Region>
+                  ) : releases.length > 0 ? (
+                    <Region title="What shipped">
+                      <div className="flex flex-col">
+                        {releases.map((e) => (
+                          <RecordLine
+                            key={e.id}
+                            lead={e.title}
+                            sub={e.opportunity_title ? <>from {e.opportunity_title}</> : null}
+                            time={day(e.released_at)}
+                            /* P-14b, per A1's ruling on P-14's own finding: the
+                               run's own address is /track/$trackId with the
+                               changeset open as its artifact (P-24), reusing
+                               the two ids this file's fourth listChangelog
+                               enrichment already resolves. Most releases
+                               predate the spine and carry no track_id -- for
+                               those the row draws no door at all rather than
+                               a link to a screen that cannot show it. */
+                            onClick={
+                              e.track_id
+                                ? () =>
+                                    navigate({
+                                      to: "/track/$trackId",
+                                      params: { trackId: e.track_id! },
+                                      search: { artifact: e.changeset_id ?? undefined },
+                                    })
+                                : undefined
+                            }
+                            action={
+                              <span className="flex items-center gap-mrd-3 text-mrd-label text-mrd-mute">
+                                {e.pr_number && e.pr_url ? (
+                                  <a
+                                    href={e.pr_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="hover:text-mrd-ink"
+                                  >
+                                    PR #{e.pr_number}
+                                  </a>
+                                ) : null}
+                                {e.production_url ? (
+                                  <a
+                                    href={e.production_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="hover:text-mrd-ink"
+                                  >
+                                    Live
+                                  </a>
+                                ) : null}
+                              </span>
+                            }
+                          />
+                        ))}
+                      </div>
+                    </Region>
+                  ) : null}
+                  {/* WHAT THE RECORD MOVED (P-14b, A-QUEUE.md). `/learn`'s own
+                      block, byte-identical: same server function, same gate,
+                      same two lines. `/learn` itself is deleted once this and
+                      P-04 land. */}
+                  {ledgerQ.isError ? (
+                    <div className="flex flex-col gap-mrd-4">
+                      <CtxHead>What the record moved</CtxHead>
+                      <p className="mrd-meta text-mrd-faint">Not readable right now.</p>
+                    </div>
+                  ) : ledger && (movedPriority || revisedBeliefs) ? (
+                    <div className="flex flex-col gap-mrd-4">
+                      <CtxHead>What the record moved</CtxHead>
+                      {movedPriority ? (
+                        <CtxRow
+                          name={
+                            <>
+                              Priority moved <Num>{signed(ledger.iceShiftTotal)}</Num>
+                            </>
+                          }
+                          sub={
+                            <>
+                              across <Num>{ledger.measuredOutcomes}</Num> measured outcomes
+                            </>
+                          }
+                        />
+                      ) : null}
+                      {revisedBeliefs ? (
+                        <CtxRow
+                          name={
+                            <>
+                              <Num>{ledger.beliefsRevised}</Num> calls later replaced
+                            </>
+                          }
+                          sub="you changed your mind on evidence"
+                        />
+                      ) : null}
+                    </div>
+                  ) : null}
                   <CompoundingPanel />
                   {/* The feed above lists the outcomes. This says how they
                       SPLIT -- paid off against mixed against missed -- which is

@@ -4,6 +4,7 @@ import {
   changelogTitleFor,
   changelogRowFor,
   groupByProduct,
+  trackIdByChangeset,
   type ChangesetForChangelog,
 } from "./changelog";
 
@@ -94,5 +95,56 @@ describe("groupByProduct", () => {
 
   it("returns an empty array for no entries", () => {
     expect(groupByProduct([])).toEqual([]);
+  });
+});
+
+describe("trackIdByChangeset (P-14b, A-QUEUE.md)", () => {
+  it("resolves a changeset to its mission's track", () => {
+    const result = trackIdByChangeset(
+      [{ id: "cs1", mission_id: "m1" }],
+      [{ mission_id: "m1", track_id: "t1" }],
+    );
+    expect(result.get("cs1")).toBe("t1");
+  });
+
+  it("resolves to null when the mission's run never recorded a track -- the majority case (R-35)", () => {
+    const result = trackIdByChangeset(
+      [{ id: "cs1", mission_id: "m1" }],
+      [{ mission_id: "m1", track_id: null }],
+    );
+    expect(result.get("cs1")).toBeNull();
+  });
+
+  it("resolves to null when the changeset carries no mission at all", () => {
+    const result = trackIdByChangeset([{ id: "cs1", mission_id: null }], []);
+    expect(result.has("cs1")).toBe(false);
+  });
+
+  it("takes the last non-null track across a mission's runs, ordered as given -- an earlier run that knew the track outranks a later one that predates the link", () => {
+    const result = trackIdByChangeset(
+      [{ id: "cs1", mission_id: "m1" }],
+      [
+        { mission_id: "m1", track_id: "t1" },
+        { mission_id: "m1", track_id: null },
+      ],
+    );
+    expect(result.get("cs1")).toBe("t1");
+  });
+
+  it("keeps two changesets on the same mission apart from two on different missions", () => {
+    const result = trackIdByChangeset(
+      [
+        { id: "cs1", mission_id: "m1" },
+        { id: "cs2", mission_id: "m1" },
+        { id: "cs3", mission_id: "m2" },
+      ],
+      [
+        { mission_id: "m1", track_id: "t1" },
+        { mission_id: "m2", track_id: "t2" },
+      ],
+    );
+    expect(result.get("cs1")).toBe("t1");
+    expect(result.get("cs2")).toBe("t1");
+    expect(result.get("cs3")).toBe("t2");
   });
 });

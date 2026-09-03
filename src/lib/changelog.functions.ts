@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { changelogRowFor, type ChangesetForChangelog } from "@/lib/changelog";
+import { changelogRowFor, trackIdByChangeset, type ChangesetForChangelog } from "@/lib/changelog";
 
 // Resolve the workspace to scope a read to (the active one, else the caller's
 // default). Mirrors the local helper in billing/briefs/audio.functions.ts.
@@ -63,6 +63,10 @@ export type ChangelogEntry = {
   /** Origin bet this release came from (when available). */
   opportunity_id?: string | null;
   opportunity_title?: string | null;
+  /** The track this release's changeset served, when one exists (P-14b,
+   *  A-QUEUE.md). Null for the majority whose changeset predates the spine or
+   *  ran outside it -- there is nowhere to send the row in that case. */
+  track_id?: string | null;
 };
 
 export const listChangelog = createServerFn({ method: "GET" })
@@ -212,6 +216,47 @@ export const listChangelog = createServerFn({ method: "GET" })
         }
       }
     }
+    // Resolve the track each release's changeset served, so a row can open the
+    // real run (P-14b, A-QUEUE.md). Two raw reads; `trackIdByChangeset`
+    // (src/lib/changelog.ts, pure, unit-tested) does the actual resolution.
+    if (changesetIds.length) {
+      const { data: changesets, error: changesetsErr } = await db
+        .from("studio_changesets")
+        .select("id,mission_id")
+        .in("id", changesetIds);
+      if (changesetsErr) {
+        console.error(
+          "listChangelog mission-lookup read failed (non-fatal); every release on this page will render with no run to open:",
+          changesetsErr.message,
+        );
+      }
+      const missionIds = Array.from(
+        new Set((changesets ?? []).map((c) => c.mission_id as string | null).filter(Boolean)),
+      ) as string[];
+      let runs: { mission_id: string | null; track_id: string | null }[] = [];
+      if (missionIds.length) {
+        const { data: runRows, error: runsErr } = await db
+          .from("agent_runs")
+          .select("mission_id,track_id")
+          .in("mission_id", missionIds)
+          .order("created_at", { ascending: true });
+        if (runsErr) {
+          console.error(
+            "listChangelog track-lookup read failed (non-fatal); every release on this page will render with no run to open:",
+            runsErr.message,
+          );
+        }
+        runs = (runRows ?? []) as { mission_id: string | null; track_id: string | null }[];
+      }
+      const trackByChangeset = trackIdByChangeset(
+        (changesets ?? []) as { id: string; mission_id: string | null }[],
+        runs,
+      );
+      for (const e of entries) {
+        if (e.changeset_id) e.track_id = trackByChangeset.get(e.changeset_id) ?? null;
+      }
+    }
+
     return { entries };
   });
 
