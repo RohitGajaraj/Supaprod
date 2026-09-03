@@ -6226,7 +6226,7 @@ still wanted), or (b) if this packet's real intent is reviving `MessageMeta.tsx`
 real, that is a different, bigger packet than "compose FoldingRow into an existing footer." Not
 proceeding on the file as named until this is resolved. Moving to P-46 while this is open.
 
-### P-46 · The launch copy is drafted against the canon and today's evidence number · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed 24e65343b; corrections applied, draft awaits founder yes/no) · Moves: 6
+### P-46 · The launch copy is drafted against the canon and today's evidence number · Lane: **A3** · Status: READY FOR THE FOUNDER'S READ (A1 verified 18:20 IST; nothing ships without his yes) · Moves: 6
 
 **Why.** The outward pass is one of the five things between 70 and 100 percent. Every claim it
 makes has to survive today's number (943 of 1,512 signals were the loop's own writing until 15:15
@@ -6250,6 +6250,13 @@ file or row that proves it. Linked from the folder index. No production code.
 "at all". (3) PR #4 was on the bound test repo `relay-homeowner-app`, so "built part of itself" is
 false. (4) The commit and migration counts are volume and come off the page; proof table only.
 Then the founder's yes or no.
+
+**A1, 18:20 IST · verified, waiting on the founder.** The four corrections are in the text; three
+proof rows checked by A1 against the database and the repo (the 943 of 1,512 query, the pull
+request on the bound test repo, the cron job count); no dash in the prose; `docs:check` is clean
+on tracked files (its three FAILs are ignored local files under `docs/screenshots`). The draft is
+`docs/pitch/launch-page.md`; the Product Hunt copy is in `launch-assets.md` §2. The founder reads
+it and says yes or no; nothing outward ships before that.
 
 **Report (A3 writes):** Pushed `4e2273992`. New `docs/pitch/launch-page.md`: hero + subhead (judgment-
 gap framing, not throughput — the canon's own §2 survey evidence), the mechanism described in prose
@@ -6300,6 +6307,24 @@ packet, since P-46's scope is the copy, not the tooling.
 
 `bun run docs:check` re-run clean of hard rot after the edits.
 
+**Blockers (A3 writes):** —
+
+### P-47 · The humanizer scans a markdown page it was handed · Lane: **A3** · Status: READY · Moves: 5
+
+**Why.** A3, P-46: `scripts/hooks/check-humanized.sh` says in its header that passing a markdown
+path explicitly is the opt-in for scanning a public page, and a one-line `.md` with a bare em
+dash passed as an explicit argument reports clean, because the extension allowlist still applies
+underneath. The outward copy is exactly the file the hook exists for.
+
+**Scope.** An explicit path is scanned whatever its extension; the allowlist governs only the
+staged-diff sweep. A test (a one-line `.md` with an em dash, passed explicitly, fails; the same
+file under `docs/lanes/` in the sweep still passes as today). No change to what the sweep bans.
+
+**Acceptance.**
+- [ ] The test, named after its sentence; the hook's header matches its behaviour.
+- [ ] `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**Report (A3 writes):** —
 **Blockers (A3 writes):** —
 
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
