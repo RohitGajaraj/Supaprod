@@ -5964,7 +5964,7 @@ prior one).
 **Blockers (A3 writes):** None. Both acceptance items marked A1's-to-walk have no live browser
 available to me this session; everything else is verified.
 
-### P-43 · The run screen's states say one thing · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed a90e882b6) · Moves: 2, 3
+### P-43 · The run screen's states say one thing · Lane: **A3** · Status: DONE (A1 verified live, 16:50 IST) · Moves: 2, 3
 
 **Why.** From the honest run's screen (A1, 14:12 to 15:10 IST; the list under P-37). These four are
 state and copy, not design, and they do not wait for the design pass: (a) *Waiting on you.* in the
@@ -5993,6 +5993,12 @@ line. No Meridian changes; `run-status.ts`, `RunFooter.tsx`, `TrackRun.tsx`, `ch
 **A1, 16:38 IST.** Suite on the tip 13,835 / 0 / 0, tsc 0; published 16:38. The walk of the footer's
 verbs on the tablet track and the honest run's screen, and the runs mark on Start, follows
 propagation.
+
+**A1, 16:50 IST · verified live and DONE.** On the served build: the tablet track's footer on its
+person hold reads *Waiting on you.* with the elapsed time and cost and no button (a); Start while
+its runs read renders the field alone, no *No runs yet*, no example cards, and the rows once the
+read settles (c); the character's out-of-turn press line rests on its test, since it needs a fresh
+press to see (b). The runs mark `start:listRunsForStart` is on Start now (P-32's last line).
 
 **Report (A3 writes):** Pushed `a90e882b6` (rebased clean onto `663eb824a`, no conflicts —
 `TrackRun.tsx` untouched upstream between our base and this push).
