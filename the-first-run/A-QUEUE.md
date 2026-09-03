@@ -2043,23 +2043,38 @@ about a checkout the person may not have; and a workspace whose owner had no mem
 the shell already rendered now exist in Meridian; the copy says it is a move rather than a preview
 and names the switcher as the way back; the seeder marks what it invents.
 
-**ONE THING OUTSTANDING, and it is a real blocker, not a formality.**
-`20260909010000_the_seeder_marks_what_it_invents.sql` is **written, reviewed and committed but NOT
-applied.** Rule 12 asks the lane to apply it, and I could not, honestly: it is a `CREATE OR REPLACE`
-of a 91 KB plpgsql function, the Lovable MCP takes SQL only as an inline string, and reproducing 91 KB
-of seeded prose token by token risks a single character of drift in a function that **runs at every
-signup**. Verified live that the deployed function has `is_sample` **0 times**, so the defect stands.
-`.env` holds only anon keys and there is no `psql` or direct Postgres URL here, so there is no path
-from this lane that sends the file verbatim. **It needs applying by something that can send the
-file** (Supabase CLI, the SQL editor, or a paste). Nothing is broken meanwhile: it changes future
-seeds only, and the workspace-level tag and banner cover existing data.
+**THE MIGRATION IS APPLIED, BY A DIFFERENT AND BETTER ROUTE (founder gave the authority, 13:4x).**
+`20260909010000` rewrote the seeder's 59 INSERTs. It is **superseded and removed**, for two reasons.
+It was a 91 KB `CREATE OR REPLACE` that no lane can apply without reproducing 91 KB of seeded prose
+by hand into a function that **runs at every signup**, where a single character of drift is
+undetectable afterwards. And it fixed ONE WRITER: the invariant is not "the seeder remembers", it is
+"a row that lives in a sample workspace is an example", and anything else that ever writes into one
+had to remember independently. That is exactly how this survived a month.
 
-**And one decision deliberately not taken.** 2,144 rows across the sample workspaces carry
-`is_sample = false` (498 themes, 1,119 signals, 449 opportunities, 78 prds; counted on production),
-so the row-level Example marks the product renders have never once fired. I did **not** backfill
-them: `derive-insights.server.ts:129` and `insights.functions.ts:215` gate the brain's theme
-candidates on `.eq("is_sample", false)`, so flipping them would empty its candidate set in the demo
-workspaces the founder walks. **Founder call, not a lane call.**
+`20260909020000_a_row_in_a_sample_workspace_says_so.sql` puts the rule in the database instead: one
+`BEFORE INSERT OR UPDATE OF workspace_id` trigger on all **twelve** tables carrying both `is_sample`
+and `workspace_id`. It is the house pattern already (`set_workspace_slug`, `set_workspace_account`,
+`protect_workspace_billing_columns`). It only ever sets the flag TRUE, never false: being an example
+is a fact about where a row was born, and unsetting would let an UPDATE launder fixture data into a
+real record. Applied and verified: **12 triggers installed**, and probed in a rolled-back
+transaction, a row inserted into a sample workspace comes out `is_sample = true` while the same
+insert into `helio-labs-harbor` stays `false`.
+
+**Backfill done, before and after recorded.** Before: 498 themes, 1,119 signals, 449 opportunities,
+78 prds, **0 marked**. After: **all marked**, plus 107 learnings and 216 decisions, 2,467 rows in
+total. `helio-labs-harbor` opportunities stayed 0 of 79 marked, as required. Reversal is one
+statement per table and is written into the migration header. Consequence named and accepted: the
+brain stops ranking fiction in the seeded workspaces, which is that guard's own purpose.
+
+**Every other migration was audited and all are applied** (0831 band, 0901 hold notices, 0902 stop +
+slugs, 0903 pinned, 0904 self_check, 0905 deferred_until, 0906 intent, 0907, 0908). Checked against
+`information_schema` and `pg_policy` by the object each actually creates, not by its filename.
+
+**A FINDING FROM THE BACKFILL, PRE-EXISTING AND NOT MINE.** `helio-labs-harbor` is NOT a sample
+workspace, yet **12 of its 59 decisions carry `is_sample = true`**, created between 2026-02-22 and
+2026-07-14, long before today. Those twelve are silently excluded from the brain in the one workspace
+the team walks. My statements could not have set them (both filter on sample workspaces only). Worth
+a ruling: either they are demo rows that belong in a sample workspace, or the flag is wrong on them.
 
 Six further findings are left standing with `file:line` evidence in §5 of the document, the sharpest
 being that `getStandingRecord` counts with `.eq("user_id", userId)` and no workspace filter, which is
