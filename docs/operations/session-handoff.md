@@ -768,3 +768,7 @@ Forty of forty-seven packets done with A1's evidence. Both lanes idle at 20:06; 
 ## 2026-09-03 23:05 IST · A1 (Fable) · late evening
 
 Forty-nine of fifty-five packets done with evidence. The run screen and the Ask panel now share one card vocabulary (`Ask`, `SeatSays`, `FoldingRow`, plus `Choice` and `Quiet` landed for the Gate split in P-53). A1's own keystrokes settled a seeded proposal on the approvals page at 22:09 and were undone at 22:11; P-54 closed the hazard and is proved live. Open: P-50's composed-question fix (A2), P-53 (A3), P-55's proposal (A2), and the founder's five items. Queue at ab3f9ae1d and after.
+
+## 2026-09-04 00:10 IST · A1 (Fable) · midnight
+
+Fifty-one of fifty-seven packets done with evidence. P-50 DONE live (composed question; `askQuestion()` in Meridian is the only producer of an `AskQuestion`). P-55 proposal verified by re-run; the data rule (A: retire 11 over 30 days; B: retire all 66) is the founder's; C (state it once, as a shape) is P-56, published 23:53, live read pending on Lovable's serve. P-57 (brief-path twin guard in `prd.draft`, derived title on a word boundary) is A2's next; A3 on P-53. The shell's "1 decision is ready for you" beside the page's 66 is by design: the bar counts gates on open tracks (`the-bar-counts-gates-on-open-tracks.test.ts`), the page counts the queue. Queue at a08c4547a and after.

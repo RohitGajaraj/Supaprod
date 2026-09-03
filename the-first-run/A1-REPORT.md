@@ -518,3 +518,17 @@ Gate retired) is A3's in progress, five of nineteen sites moved; P-55 (a rule fo
 workspace's stale work, a proposal only) is A2's next. Founder items unchanged: the walk of the run
 screen, the second sentence under Relay, the release gate, the seven decisions, and now the demo
 queue's aging rule. The date call holds at 23 September.
+
+**Checkpoint, 2026-09-04 00:10 IST. Fifty-one of fifty-seven, and the approvals page learns what
+the shell learned two weeks ago.** Since 23:05: P-50 DONE on a live read (the Ask panel's gate
+cards ask "Let this run?" and "Approve the design for ...?", a question only Meridian can compose,
+so a glued mark no longer typechecks); P-55's proposal verified by re-run (the 66 are 35 design
+gates, 10 assumption challenges, 8 decisions, 4 agent actions, 4 house rules, 3 opportunities and 2
+memory notes; 11 over 30 days; the 65 below it is the same rows minus the open card); P-56 built by
+A2 and published 23:53 (the page states its obligation once and as a shape; the live read is
+waiting on Lovable, which held the file at 00:06 and had not served it); P-57 filed from the P-50
+read (one Relay track carries four specs, two live, because the brief path has no twin guard, and
+the derived title is cut mid-phrase at 120; nine tracks hold twin specs, 21 between them), moved to
+A2 since A2 was free. A3 remains on P-53. Founder items: the walk of the run screen, the second
+sentence under Relay, the release gate, the seven decisions, and P-55's A or B (C is being built).
+The date call holds at 23 September.
