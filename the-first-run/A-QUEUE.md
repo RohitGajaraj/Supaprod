@@ -2710,7 +2710,7 @@ Next: P-14b.
 ---
 
 
-### P-14b · Outcomes carries what shipped and what the record moved · Lane: **A3** · Status: READY · Moves: 4, 5
+### P-14b · Outcomes carries what shipped and what the record moved · Lane: **A3** · Status: CLAIMED (A3) · Moves: 4, 5
 
 **Why.** `/ship` and `/learn` cannot go until their two cross-run facts have a home, and Outcomes is
 the survivor whose job is cross-run history per station (P-14 ruling).
