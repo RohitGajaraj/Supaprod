@@ -5,6 +5,8 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { missionsKey } from "@/lib/query-keys";
 import { listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { listMovingTracks } from "@/lib/spine/track.functions";
+import { genuinelyWorkingMissions } from "@/components/shell/genuinely-working";
 
 /**
  * WHICH AGENTS ARE ACTUALLY WORKING, RIGHT NOW.
@@ -95,6 +97,12 @@ export type LiveAgents = {
   working: LiveAgent[];
   /** True when anything at all is running, which is the common question. */
   any: boolean;
+  /**
+   * The most recently touched finished mission, for a reader when nothing is
+   * working -- "X finished" in the past tense rather than silence. Null when
+   * nothing has ever finished. P-18b (A-QUEUE.md).
+   */
+  lastDone: { title: string; completedAt: string } | null;
 };
 
 export function useLiveAgents(): LiveAgents {
@@ -122,10 +130,34 @@ export function useLiveAgents(): LiveAgents {
     queryFn: () => fetchMissions({ data: { workspaceId: workspaceId ?? undefined } }),
   });
 
+  /*
+   * P-18b (A-QUEUE.md). THE SAME CROSS-CHECK THE BAR ALREADY MAKES, not a
+   * second one invented here.
+   *
+   * At 06:45 IST the bar read "Nothing running" while this hook's own
+   * `working` still said an agent was mid-run on a mission whose `status`
+   * had gone stale independently of the work it names -- P-18/P-18a's own
+   * defect (`genuinely-working.ts`'s header), now caught a second time on
+   * the one reader P-18a never touched. `genuinelyWorkingMissions` is the
+   * exact pure filter `AppFrame.tsx` already runs its own `missions` read
+   * through; `listMovingTracks` is mounted under the SAME query key
+   * (`["shell","moving-tracks"]`) the shell already polls, so this is a
+   * cache read, never a second request or a second interval -- the file's
+   * own standing rule just above stays true.
+   */
+  const fetchMovingTracks = useServerFn(listMovingTracks);
+  const movingTracks = useQuery({
+    queryKey: ["shell", "moving-tracks"],
+    queryFn: () => fetchMovingTracks(),
+  });
+
   return React.useMemo(() => {
     const rows: MissionListRow[] = missions.data?.missions ?? [];
-    const working = rows
-      .filter((m) => WORKING.has(m.status))
+    const movingTrackIds = new Set((movingTracks.data ?? []).map((t) => t.id));
+    const working = genuinelyWorkingMissions(
+      rows.filter((m) => WORKING.has(m.status)),
+      movingTrackIds,
+    )
       .sort((a, b) => (b.updated_at ?? "").localeCompare(a.updated_at ?? ""))
       .map((m) => ({
         missionId: m.id,
@@ -134,6 +166,15 @@ export function useLiveAgents(): LiveAgents {
         name: agentDisplayName(m.current_agent_slug, null),
         subGoal: m.current_sub_goal,
       }));
-    return { working, any: working.length > 0 };
-  }, [missions.data]);
+
+    // Same source and shape as AppFrame.tsx's own `lastDone`: the most
+    // recently touched finished mission, said in the past tense rather than
+    // silence when nothing is currently working.
+    const done = rows
+      .filter((m) => !WORKING.has(m.status) && m.completed_at)
+      .sort((a, b) => (b.completed_at ?? "").localeCompare(a.completed_at ?? ""));
+    const lastDone = done[0] ? { title: done[0].title, completedAt: done[0].completed_at! } : null;
+
+    return { working, any: working.length > 0, lastDone };
+  }, [missions.data, movingTracks.data]);
 }

@@ -2,7 +2,8 @@ import * as React from "react";
 import { AskPane } from "@/components/ask/AskPane";
 import { useAsk } from "@/lib/ask-context";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
-import { useLiveAgents } from "@/hooks/use-live-agents";
+import { useLiveAgents, type LiveAgents } from "@/hooks/use-live-agents";
+import { ago } from "@/components/runs/run-state";
 
 /**
  * THE FRONT DOOR, STANDING OPEN.
@@ -58,10 +59,24 @@ import { useLiveAgents } from "@/hooks/use-live-agents";
  * A default prop is the whole fix. The app never passes it, so production is
  * byte-identical; a test passes its own stub and leaves the module registry
  * untouched, so nothing it does can reach another file.
+ *
+ * `liveAgents` IS THE SAME SEAM, FOR THE SAME REASON (P-18b). `useLiveAgents`
+ * itself reaches `listMissions` and `listMovingTracks` two modules deep, and
+ * `a-module-mock-is-process-wide.test.ts` already tracks `@/lib/missions.
+ * functions` as mocked by AskPane's own suite -- a second file mocking it
+ * would be the exact collision that test exists to catch. Injecting the
+ * hook's RESULT, not its dependencies, means a test never has to touch
+ * `mock.module` for either lower module at all.
  */
-export function AskDock({ pane: Pane = AskPane }: { pane?: React.ComponentType } = {}) {
+export function AskDock({
+  pane: Pane = AskPane,
+  liveAgents = useLiveAgents,
+}: {
+  pane?: React.ComponentType;
+  liveAgents?: () => LiveAgents;
+} = {}) {
   const ask = useAsk();
-  const { working } = useLiveAgents();
+  const { working, lastDone } = liveAgents();
 
   // The pane owns the screen while it is open; the dock stands down so there is
   // never a second input for the same conversation.
@@ -69,6 +84,7 @@ export function AskDock({ pane: Pane = AskPane }: { pane?: React.ComponentType }
 
   const lead = working[0];
   const others = working.length - 1;
+  const workTitle = lead ? lead.title : (lastDone?.title ?? null);
 
   return (
     <>
@@ -132,16 +148,48 @@ export function AskDock({ pane: Pane = AskPane }: { pane?: React.ComponentType }
               title come first it would degrade to a fragment with no state in
               it at all. The "N more" count sits outside the truncating span so
               a long title can never eat it. */}
-          {lead ? (
+          {/*
+           * P-18b (A-QUEUE.md). THE DOCK NOW READS THE SAME CROSS-CHECKED
+           * SOURCE THE BAR DOES.
+           *
+           * At 06:45 IST the bar read "Nothing running" while this line read
+           * "Review is working" -- two readers, one fact, two claims.
+           * `useLiveAgents` now filters `working` through the same
+           * `genuinelyWorkingMissions`/`listMovingTracks` cross-check
+           * `AppFrame.tsx`'s own live line already runs, so `lead` here can no
+           * longer name a mission whose status went stale independently of
+           * the run it describes.
+           *
+           * PAST TENSE WHEN NOTHING IS MOVING, NOT SILENCE. A row that only
+           * ever speaks in the present tense goes quiet the moment work
+           * pauses, which reads as "nothing has ever happened here" rather
+           * than "nothing is happening right now" -- the same distinction the
+           * bar's own `lastDone` fallback exists for.
+           */}
+          {/*
+           * ONE OCCURRENCE OF EACH CLASS IN SOURCE, ON PURPOSE. Two branches
+           * that both need `sp-dock-live`/`sp-dock-live-work` could have been
+           * written as two literal spans each, but the Meridian ratchet
+           * (`class:sp-`) counts literal string occurrences, not unique
+           * class names -- the same class written twice still reads as new
+           * debt. `workTitle` is resolved once, above, so the JSX below
+           * writes each class name exactly one time regardless of which
+           * branch is live.
+           */}
+          {lead || lastDone ? (
             <span className="sp-dock-live">
-              {lead.name} is working
-              {lead.title ? (
+              {lead ? (
                 <>
-                  {" on "}
-                  <span className="sp-dock-live-work">{lead.title}</span>
+                  {lead.name} is working
+                  {workTitle ? " on " : ""}
                 </>
               ) : null}
-              {others > 0 ? ` · ${others} more` : ""}
+              {workTitle ? <span className="sp-dock-live-work">{workTitle}</span> : null}
+              {lead
+                ? others > 0
+                  ? ` · ${others} more`
+                  : ""
+                : ` finished${ago(lastDone!.completedAt) ? ` ${ago(lastDone!.completedAt)} ago` : ""}`}
             </span>
           ) : null}
           <kbd className="sp-dock-key" aria-hidden="true">
