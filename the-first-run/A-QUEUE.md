@@ -5964,7 +5964,7 @@ prior one).
 **Blockers (A3 writes):** None. Both acceptance items marked A1's-to-walk have no live browser
 available to me this session; everything else is verified.
 
-### P-43 · The run screen's states say one thing · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
+### P-43 · The run screen's states say one thing · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed a90e882b6) · Moves: 2, 3
 
 **Why.** From the honest run's screen (A1, 14:12 to 15:10 IST; the list under P-37). These four are
 state and copy, not design, and they do not wait for the design pass: (a) *Waiting on you.* in the
@@ -5990,7 +5990,47 @@ line. No Meridian changes; `run-status.ts`, `RunFooter.tsx`, `TrackRun.tsx`, `ch
 - [ ] A1 walks the honest run's screen and the tablet track's screen and sees one verb per state.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
-**Report (A3 writes):** —
+**Report (A3 writes):** Pushed `a90e882b6` (rebased clean onto `663eb824a`, no conflicts —
+`TrackRun.tsx` untouched upstream between our base and this push).
+
+(a) `footer-mode.ts`: the `tone === "you"` branch now returns `canRun` only for a terminal hold
+(`nothingIsComing(input.hold)`); every non-terminal person-hold (`waiting-on-a-person`,
+`corrections-spent`, ...) no longer offers *Run it now* beside *Waiting on you.* Tests extended in
+`footer-mode.test.ts` (19/19 pass).
+
+(b) `character.ts`: added `PresenceInput.pressedRun?: boolean`, set once (never cleared) on the
+first `run.isPending` in `TrackRun.tsx`, and wired into the `drivenAt === null` branch so the ready
+line ("I'm ready, press run...") does not fire a second time after a press already landed — reads
+"Starting this up." instead, without claiming the run is in flight (kept out of `walking`, per the
+Iron Law). The hold-branch half of (b) — deriving the character's line from `holdLine()` to stop it
+repeating the hold pane's own sentence — was built, then reverted per A1's 16:25 IST note: the run
+screen's separate character voice there is being retired by A2's P-37 redesign, so this branch is
+left exactly as it was; only the out-of-turn press is this packet's fix.
+
+(c) `_authenticated.start.tsx`: `<ExampleJobs>` no longer renders unconditionally. New
+`showExampleJobs = (bets.data && bets.data.length > 0) || firstRun` — fixes both the loading-race
+case in the packet's own description (examples flashing under "Reading your runs.") and a second
+case found while building it: a returning workspace with real runs but no ranked bets yet was also
+shown the empty-state examples, against `ExampleJobs.tsx`'s own stated intent ("shown INSTEAD of
+the static examples, never alongside them").
+
+(d) — the hold pane's row order — not built. Moved to A2's P-37 §4 per A1's 16:25 IST ruling before
+any of it shipped; `TrackRun.tsx` carries no trace of it.
+
+Also folded in, unprompted by a new packet per A1's ask: the `/start` `beforeLoad` prefetch
+(P-32 pass 4) was the one runs-reader with no `start:listRunsForStart` mark, because it bypassed
+`measuredQueryFn`. Wrapped it the same way the mounted `useQuery` already is.
+
+Numbers on the pushed tip (`a90e882b6`), re-run after the rebase, rule 17: `tsc --noEmit` 0 ·
+`bun test` 13835 pass / 22 skip / 37 todo / 0 fail / 36672 expect() across 992 files · 0
+`# Unhandled error between tests` · `eslint` on every touched file: 0 errors (2 pre-existing
+`react-refresh/only-export-components` warnings on `_authenticated.start.tsx`, unrelated to this
+change) · Meridian ratchet 5/5 pass.
+
+Not yet done: A1's live walk of the honest run's screen and the tablet track's screen (acceptance
+box 2) — I have no Claude-in-Chrome access this session, so this needs A1's own pass, same as prior
+packets.
+
 **Blockers (A3 writes):** —
 
 ### P-44 · The door from a no-source hold lands on the binding, and the binding takes · Lane: **A3** · Status: READY · Moves: 2, 3
