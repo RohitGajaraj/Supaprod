@@ -2371,7 +2371,7 @@ deletes the founder's case. Both directions asserted.
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-40 · A sentence with no evidence is carried, not circled · Lane: **A2** · Status: READY, **before P-04** · Moves: 1, 2
+### P-40 · A sentence with no evidence is carried, not circled · Lane: **A2** · Status: CODE DONE, published 14:56 IST (A1: suite 13,776 / 0 on aeb2c8d1e); live proof needs a fresh sentence · Moves: 1, 2
 
 **Why.** R-36. On the honest run (track `870b70d3`, 14:12 IST) three seats at Sense filed nothing
 for the same reason and the driver spent an attempt on each pass; on its rule it gives up at
@@ -2402,6 +2402,13 @@ loop treated it as a failed search.
 - [ ] `870b70d3` reaches Decide with the footing on its decision, read by A1 in the database and on
       the run screen.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**A1, 14:57 IST.** Code read: a typed `sense.found_nothing` the seat calls after searching, the
+driver reads the step, spends no attempt, carries the track with hold `carried-on-your-sentence`
+and the one line; a halt or a silent seat still counts. Suite on the tip 13,776 / 0 / 0, tsc 0,
+published 14:56. Item 4 cannot be proved on `870b70d3`, which advanced to Decide the bad way at
+14:50; it needs a fresh sentence under Relay after propagation, and A1 reads that track. Open: a
+test that the decision at Decide carries the footing (P-41 or an addendum here).
 
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
