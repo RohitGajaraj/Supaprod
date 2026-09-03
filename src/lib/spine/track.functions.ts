@@ -456,17 +456,46 @@ export const startTrack = createServerFn({ method: "POST" })
   });
 
 /** Open tracks, most recently touched first. Empty, never thrown, pre-migration. */
+/** The three shell reads share one input shape, so a fourth cannot invent its
+ *  own name for the same field. Optional: the resolver falls back to the
+ *  person's default workspace, and an unresolved one stays unfiltered. */
+const ShellScope = z.object({ workspaceId: z.string().uuid().nullable().optional() });
+
+/*
+ * ── THE SHELL READS THE WORKSPACE IT IS STANDING IN (P-66) ────────────────
+ *
+ * Read live 00:37 IST 2026-09-04 in an EMPTY probe workspace: the header said
+ * "1 decision is ready for you - What we expected did not happen: Decline
+ * shipping ...". Both facts belonged to Helio Labs. These three reads filtered
+ * `status = open` and named no workspace, so the shell showed every open track
+ * the person could see anywhere, under the name of the one they were in.
+ *
+ * Since migration 20260907010000 a person can hold two workspaces, which is
+ * what turned a latent defect into a visible one. P-60's rail badge would have
+ * inherited it.
+ *
+ * SAME DEFECT AS `listRunsForStart`, `listTopOpportunities` and the Discover
+ * source count, in a fourth place. RLS answers "may they see this"; it has
+ * never answered "whose desk is this".
+ *
+ * UNRESOLVED STAYS UNFILTERED, the same rule those three settled on: a caller
+ * whose workspace cannot be resolved gets what it always got, because narrowing
+ * to a workspace we cannot name would turn a failed lookup into "nothing is
+ * running", and that is a claim.
+ */
 export const listTracks = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<Track[]> => {
+  .inputValidator((i: unknown) => ShellScope.parse(i ?? {}))
+  .handler(async ({ context, data }): Promise<Track[]> => {
     const { supabase } = context;
+    const workspaceId = await resolveStartWorkspaceId(supabase, data?.workspaceId ?? null);
     try {
-      const { data, error } = await supabase
+      let q = supabase
         .from("spine_tracks" as never)
         .select(SELECT)
-        .eq("status", "open")
-        .order("updated_at", { ascending: false })
-        .limit(50);
+        .eq("status", "open");
+      if (workspaceId) q = q.eq("workspace_id", workspaceId);
+      const { data, error } = await q.order("updated_at", { ascending: false }).limit(50);
       /*
        * ── F-126: "NOTHING IS IN FLIGHT" WAS ALSO WHAT A FAILED READ SAID ────
        *
@@ -554,14 +583,19 @@ export type MovingTrack = { id: string; station: AgentStation };
  */
 export const listMovingTracks = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(({ context }): Promise<MovingTrack[]> =>
+  .inputValidator((i: unknown) => ShellScope.parse(i ?? {}))
+  .handler(({ context, data }): Promise<MovingTrack[]> =>
     withStartReaderTiming("listMovingTracks", async () => {
       const { supabase } = context;
+      // P-66. See the note above `listTracks`.
+      const workspaceId = await resolveStartWorkspaceId(supabase, data?.workspaceId ?? null);
       try {
-        const { data: openRows, error } = await supabase
+        let q = supabase
           .from("spine_tracks" as never)
           .select("id, station")
-          .eq("status", "open")
+          .eq("status", "open");
+        if (workspaceId) q = q.eq("workspace_id", workspaceId);
+        const { data: openRows, error } = await q
           .order("updated_at", { ascending: false })
           .limit(50);
         if (error) failSoftOrThrow(error, "The work in flight");
@@ -669,14 +703,19 @@ export type GatedTrack = { id: string; title: string; updatedAt: string; tool: s
  */
 export const listGatesOnTracks = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(({ context }): Promise<GatedTrack[]> =>
+  .inputValidator((i: unknown) => ShellScope.parse(i ?? {}))
+  .handler(({ context, data }): Promise<GatedTrack[]> =>
     withStartReaderTiming("listGatesOnTracks", async () => {
       const { supabase } = context;
+      // P-66. See the note above `listTracks`. This one feeds the rail badge.
+      const workspaceId = await resolveStartWorkspaceId(supabase, data?.workspaceId ?? null);
       try {
-        const { data: openRows, error } = await supabase
+        let q = supabase
           .from("spine_tracks" as never)
           .select("id, title, updated_at, pending_gates")
-          .eq("status", "open")
+          .eq("status", "open");
+        if (workspaceId) q = q.eq("workspace_id", workspaceId);
+        const { data: openRows, error } = await q
           .order("updated_at", { ascending: false })
           .limit(50);
         if (error) failSoftOrThrow(error, "The calls waiting on you");

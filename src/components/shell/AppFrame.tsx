@@ -727,7 +727,22 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   // Only the id. The NAME and the product moved to ScopeMenu, which owns the
   // scope control now; keeping a second copy here is how two headers drift.
-  const { activeWorkspace, workspaces, setActiveWorkspaceId } = useWorkspace();
+  const { activeWorkspace, activeWorkspaceId, workspaces, setActiveWorkspaceId } = useWorkspace();
+  /*
+   * ── P-66: THE LIVE LINE READS THE WORKSPACE IT STANDS IN ────────────────
+   *
+   * Read live in an empty probe workspace: "1 decision is ready for you - What
+   * we expected did not happen: Decline shipping ...". Both facts were Helio
+   * Labs'. The three reads below named no workspace and neither did their query
+   * keys, so the shell reported every open track the person could see anywhere
+   * under the name of the one they were standing in.
+   *
+   * THE KEY CARRIES IT TOO, and that half is not cosmetic: without it, react-
+   * query serves the previous workspace's answer from cache on the switch, so
+   * the borrowed fact survives the fix that was supposed to remove it.
+   */
+  const wsKey = activeWorkspaceId ?? null;
+  const wsArg = activeWorkspaceId ? { workspaceId: activeWorkspaceId } : {};
 
   /* The first workspace this person has that is NOT a fixture, which is where
      the sample banner's return door goes. Undefined when they have none. */
@@ -871,8 +886,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    */
   const fetchGatedTracks = useServerFn(listGatesOnTracks);
   const gated = useQuery({
-    queryKey: ["shell", "gated-tracks"],
-    queryFn: () => fetchGatedTracks(),
+    queryKey: ["shell", "gated-tracks", wsKey],
+    queryFn: () => fetchGatedTracks({ data: wsArg }),
     staleTime: 10_000,
     // A waiting call is not moving, so this never needs the fast cadence; it
     // only has to notice a NEW one arriving. Same cadence `moving` uses below.
@@ -892,8 +907,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    */
   const fetchOpenTracks = useServerFn(listTracks);
   const openTracks = useQuery({
-    queryKey: ["shell", "open-tracks"],
-    queryFn: () => fetchOpenTracks(),
+    queryKey: ["shell", "open-tracks", wsKey],
+    queryFn: () => fetchOpenTracks({ data: wsArg }),
     staleTime: 30_000,
     refetchInterval: (query) => livePoll(false, query.state.fetchFailureCount),
     placeholderData: keepPreviousData,
@@ -913,8 +928,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    */
   const fetchMovingTracks = useServerFn(listMovingTracks);
   const moving = useQuery({
-    queryKey: ["shell", "moving-tracks"],
-    queryFn: () => fetchMovingTracks(),
+    queryKey: ["shell", "moving-tracks", wsKey],
+    queryFn: () => fetchMovingTracks({ data: wsArg }),
     staleTime: 10_000,
     refetchInterval: (query) =>
       livePoll((query.state.data ?? []).length > 0, query.state.fetchFailureCount),
