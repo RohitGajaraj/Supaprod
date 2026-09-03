@@ -707,7 +707,12 @@ export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!challenge || challenge.status !== "open") return { ok: true };
+    // P-54: gone or already decided is the SAME observable no-op PostgREST
+    // gives a zero-row write, and it used to report `{ ok: true }` here same as
+    // a real one. `changed` is what the approvals tray's settled list reads to
+    // tell the two apart, so a challenge someone else just closed does not
+    // print as this press's own verdict.
+    if (!challenge || challenge.status !== "open") return { ok: true, changed: false };
 
     const nowIso = new Date().toISOString();
     await supabase
@@ -724,7 +729,7 @@ export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
         .from("assumptions")
         .update({ status: "standing" })
         .eq("id", challenge.assumption_id);
-      return { ok: true };
+      return { ok: true, changed: true };
     }
 
     const { data: assumption } = await supabase
@@ -806,7 +811,7 @@ export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
         }
       }
     }
-    return { ok: true };
+    return { ok: true, changed: true };
   });
 
 // ─────────────────────────────────────────────────────────────────────────────

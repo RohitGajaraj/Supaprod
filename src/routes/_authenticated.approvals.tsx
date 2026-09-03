@@ -124,6 +124,7 @@ import {
 } from "@/lib/approvals-queue.functions";
 import { getLiveActivity } from "@/lib/agents.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useAsk } from "@/lib/ask-context";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { Surface } from "@/components/meridian/Surface";
 
@@ -164,6 +165,41 @@ const SETTLED_APPROVE: Record<ApprovalQueueItem["kindKey"], string> = {
   playbook_proposal: "Playbook adopted.",
 };
 const SETTLED_REJECT = "Declined. Noted for next time.";
+/** P-54: the write succeeded but changed no row -- someone, or another press
+ *  in the same burst, already decided this gate first. Never printed as
+ *  "You approved"/"You declined": that sentence is reserved for a verdict
+ *  that actually landed. */
+const NOTHING_CHANGED = "This was already decided.";
+
+/**
+ * WHAT A DECIDE PRESS PRINTS ON THE TRAY (P-54), pulled out as a pure function
+ * so the branch that matters -- `changed: false` never gets the verdict shape
+ * -- is testable without a mutation, a query client or a mount.
+ */
+export function decideSettledLine(
+  vars: { item: ApprovalQueueItem; verdict: "approve" | "reject" },
+  changed: boolean,
+  at: string,
+): SettledLine {
+  if (!changed) {
+    return {
+      id: vars.item.id,
+      verb: "Nothing changed",
+      consequence: NOTHING_CHANGED,
+      at,
+      failed: true,
+    };
+  }
+  return {
+    id: vars.item.id,
+    verb: vars.verdict === "approve" ? "You approved" : "You declined",
+    consequence:
+      vars.verdict === "approve"
+        ? (vars.item.approveConsequence ?? SETTLED_APPROVE[vars.item.kindKey])
+        : (vars.item.rejectConsequence ?? SETTLED_REJECT),
+    at,
+  };
+}
 
 /**
  * THE VOCABULARY, IN ORDER. What is DRAWN is decided below from what the queue
@@ -258,6 +294,7 @@ function oldestFirst(a: ApprovalQueueItem, b: ApprovalQueueItem): number {
 function ApprovalsSurface() {
   const qc = useQueryClient();
   const { activeWorkspaceId, workspaces, isLoading: workspacesLoading } = useWorkspace();
+  const ask = useAsk();
   const fetchQueue = useServerFn(getApprovalsQueue);
   const fetchLiveActivity = useServerFn(getLiveActivity);
   const mDecide = useServerFn(decideApprovalItem);
@@ -427,21 +464,18 @@ function ApprovalsSurface() {
       );
       return { prev };
     },
-    onSuccess: (_res, vars) => {
+    onSuccess: (res, vars) => {
       // No toast. The settled line IS the confirmation, and it says what the
       // click CAUSED rather than that it registered.
-      setSettled((r) => [
-        {
-          id: vars.item.id,
-          verb: vars.verdict === "approve" ? "You approved" : "You declined",
-          consequence:
-            vars.verdict === "approve"
-              ? (vars.item.approveConsequence ?? SETTLED_APPROVE[vars.item.kindKey])
-              : (vars.item.rejectConsequence ?? SETTLED_REJECT),
-          at: new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
-        },
-        ...r,
-      ]);
+      //
+      // P-54: `res.changed` is false when the write reached the server but a
+      // row never moved -- this press lost a race a moment earlier one won.
+      // That is not a failure (nothing is wrong, `onError` owns that shape)
+      // and it is not a verdict either, so `decideSettledLine` gives it its
+      // own line rather than borrowing "You approved"/"You declined" for
+      // something that did not happen.
+      const at = new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+      setSettled((r) => [decideSettledLine(vars, res.changed, at), ...r]);
     },
     onError: (e: Error, vars, ctx) => {
       if (ctx?.prev) qc.setQueryData(queueKey, ctx.prev);
@@ -577,6 +611,24 @@ function ApprovalsSurface() {
        */
       if (isModalOpen()) return;
 
+      /**
+       * P-54. `ask.isOpen` IS ITS OWN CHECK, NOT COVERED BY `isModalOpen()`.
+       *
+       * AskPane deliberately carries no `role="dialog"`, no `aria-modal` and no
+       * scrim (its own header: "KILL the scrim, the focus trap and aria-modal,
+       * deliberately... the page behind it stays live and readable"). That is
+       * the right call for a complementary panel, and it means
+       * `OPEN_MODAL_SELECTOR` will never see it open, by design.
+       *
+       * A1, 22:09 IST: a sentence typed into the Ask panel on this page landed
+       * on these shortcuts instead, settled four calls in three seconds and
+       * moved a real roadmap item to `now`. The field guard above only stands
+       * down for the exact instant focus sits inside an editable element; the
+       * fix belongs in the key handler, once, rather than asking AskPane (or
+       * the next panel) to fake a modal it correctly is not.
+       */
+      if (ask.isOpen) return;
+
       const t = e.target as HTMLElement | null;
       if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
       if (visibleItems.length === 0) return;
@@ -619,7 +671,7 @@ function ApprovalsSurface() {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [visibleItems, focusedId, decide, snooze]);
+  }, [visibleItems, focusedId, decide, snooze, ask.isOpen]);
 
   const activity = liveActivity.data;
   const quietLine =

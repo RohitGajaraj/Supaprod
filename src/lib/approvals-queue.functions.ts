@@ -1407,7 +1407,11 @@ const DecideSchema = z.object({
   verdict: z.enum(["approve", "reject"]),
 });
 
-export type DecideApprovalItemResult = { ok: boolean };
+/** `changed` is false when the press lost a race and decided nothing (P-54):
+ *  the write still succeeded, but the row was already settled by the time it
+ *  landed. The tray reads this to tell "you decided this" from "this was
+ *  already decided" apart, which it could not do before this field existed. */
+export type DecideApprovalItemResult = { ok: boolean; changed: boolean };
 
 /**
  * Decide ONE gate. The whole body of the single-item entry point, extracted so
@@ -1424,14 +1428,14 @@ async function decideOneApprovalItem(
   db: SupabaseClient,
   userId: string,
   data: z.infer<typeof DecideSchema>,
-): Promise<void> {
+): Promise<boolean> {
   // Provenance FIRST, while the row still describes the draft the human
   // judged. Every resolver below rewrites status, and `prds` in particular
   // moves to approved/draft, so the same read afterwards would attribute the
   // decision rather than the thing decided on.
   const attribution = await readGateAttribution(db, data.kind, data.id);
 
-  await routeDecision(db, data);
+  const changed = await routeDecision(db, data);
 
   // Then the flywheel, and only once the gate has actually moved: a resolver
   // that throws leaves no event, because a correction that never happened is
@@ -1440,7 +1444,11 @@ async function decideOneApprovalItem(
   // it observes. Skipped when the human wrote the draft themselves - that is
   // a real decision but not an agent correction, and scoring it as one would
   // bias every rate the ranking consumes.
-  if (attribution.agentDrafted) {
+  //
+  // ALSO SKIPPED WHEN `changed` IS FALSE (P-54): a press that lost the race
+  // decided nothing, so recording it as a correction would score an agent on
+  // a verdict that never actually landed.
+  if (attribution.agentDrafted && changed) {
     await recordGateSignalCore(db, userId, {
       gateType: data.verdict === "approve" ? "approval" : "rejection",
       subjectType: data.kind,
@@ -1451,6 +1459,7 @@ async function decideOneApprovalItem(
       workspaceId: attribution.workspaceId,
     });
   }
+  return changed;
 }
 
 /** One decide entry point for every gate kind, routing to the existing
@@ -1460,8 +1469,8 @@ export const decideApprovalItem = createServerFn({ method: "POST" })
   .inputValidator((d: z.input<typeof DecideSchema>) => DecideSchema.parse(d))
   .handler(async ({ context, data }): Promise<DecideApprovalItemResult> => {
     const db = context.supabase as unknown as SupabaseClient;
-    await decideOneApprovalItem(db, context.userId, data);
-    return { ok: true };
+    const changed = await decideOneApprovalItem(db, context.userId, data);
+    return { ok: true, changed };
   });
 
 /**
@@ -1559,43 +1568,58 @@ export const decideApprovalItems = createServerFn({ method: "POST" })
   });
 
 /** Routes one decided gate to the existing resolver for its family. Extracted
- *  from the handler so the decision and the telemetry that observes it stay
- *  separable: this function owns the write, and nothing here knows the
- *  flywheel exists. Never a new write path - every arm is the resolver that
- *  already owned that family. */
+ * from the handler so the decision and the telemetry that observes it stay
+ * separable: this function owns the write, and nothing here knows the
+ * flywheel exists. Never a new write path - every arm is the resolver that
+ * already owned that family.
+ *
+ * RETURNS WHETHER A ROW ACTUALLY CHANGED (P-54). Most resolvers already throw
+ * on a genuine zero-row write (`.select().single()` or an explicit
+ * `if (!updated) throw`), so a press against a gate that no longer exists
+ * surfaces there as a failure, which the tray already renders honestly.
+ * `tool_call` and `assumption_challenge` are the two exceptions: both resolve
+ * a lost race (someone, or another tab, decided the same gate a moment
+ * earlier) as `{ ok: true }` on purpose, because losing that race is not an
+ * error. It was ALSO not distinguishable from a real decision until now, which
+ * is the exact shape of the incident this packet closes: a burst of keys
+ * during the approvals page's own live-agent race settled the same tool-call
+ * gate more than once, and every one of those presses printed "You approved"
+ * on the settled tray. Every other kind returns `true` unconditionally: it
+ * either just wrote the row or it already threw.
+ */
 async function routeDecision(
   db: SupabaseClient,
   data: z.infer<typeof DecideSchema>,
-): Promise<void> {
+): Promise<boolean> {
   switch (data.kind) {
     case "tool_call": {
-      await resolveApproval({
+      const res = await resolveApproval({
         data: {
           approvalId: data.id,
           decision: data.verdict === "approve" ? "approved" : "rejected",
         },
       });
-      return;
+      return !res.already_decided;
     }
     case "decision": {
       await updateDecision({
         data: { id: data.id, status: data.verdict === "approve" ? "approved" : "rejected" },
       });
-      return;
+      return true;
     }
     case "memory_candidate": {
       await decideMemoryCandidate({ data: { id: data.id, decision: data.verdict } });
-      return;
+      return true;
     }
     case "house_rule": {
       await decideHouseRule({ data: { ruleId: data.id, decision: data.verdict } });
-      return;
+      return true;
     }
     case "trust_graduation": {
       await decideTrustGraduation({
         data: { proposalId: data.id, accept: data.verdict === "approve" },
       });
-      return;
+      return true;
     }
     case "spec": {
       // The queue only ever lists specs at status 'review', so this guard is
@@ -1604,25 +1628,25 @@ async function routeDecision(
       const to = data.verdict === "approve" ? "approved" : "draft";
       await assertSpecStatusWrite(db, data.id, to);
       await savePrd({ data: { id: data.id, status: to } });
-      return;
+      return true;
     }
     case "opportunity": {
       await updateOpportunity({
         data: { id: data.id, status: data.verdict === "approve" ? "now" : "dropped" },
       });
-      return;
+      return true;
     }
     case "assumption_challenge": {
-      await resolveAssumptionChallenge({
+      const res = await resolveAssumptionChallenge({
         data: { id: data.id, action: data.verdict === "approve" ? "confirm" : "dismiss" },
       });
-      return;
+      return res.changed;
     }
     case "design_gate": {
       await decideDesignGate({
         data: { prdId: data.id, decision: data.verdict === "approve" ? "approve" : "reject" },
       });
-      return;
+      return true;
     }
     case "playbook_proposal": {
       await decidePlaybookProposal({
@@ -1631,7 +1655,7 @@ async function routeDecision(
           decision: data.verdict === "approve" ? "confirm" : "dismiss",
         },
       });
-      return;
+      return true;
     }
     default:
       throw new Error(`decideApprovalItem: unknown kind ${String(data.kind)}`);
