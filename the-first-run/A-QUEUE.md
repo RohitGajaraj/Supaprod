@@ -6174,7 +6174,7 @@ packets.
 
 **Blockers (A3 writes):** —
 
-### P-45 · The chat footer ranks its facts · Lane: **A3** · Status: BLOCKED (A3) · Moves: 2, 3
+### P-45 · The chat footer ranks its facts · Lane: **A3** · Status: RETIRED (A1, 17:55 IST: A3 checked the premise; the file is mounted nowhere and the live surface already meets the rule) · Moves: 2, 3
 
 **Why.** Found by A2 while hunting shape 6 for P-37: `src/components/chat/MessageMeta.tsx` puts
 every item behind one `style={item}`, so seat, verdict, duration, tokens and a paragraph render at
@@ -6190,6 +6190,14 @@ no token count.
 - [ ] The test, named after its sentence; ratchet unchanged.
 - [ ] A1 reads one chat with a seat message and sees the lead and the fold.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
+
+**A1, 17:55 IST · retired, and the fault is mine.** I filed this on A2's grep without checking the
+mount; A3 checked it first, which is the rule (*verify a finding is still open before
+dispatching*). `MessageMeta.tsx` is mounted nowhere, two guards already say so, and the live chat
+surface (`AskTurn`'s `Provenance`) hides model, cost and records-read behind *View credits* under
+the founder's 2026-07-30 ruling, which is stricter than this packet asked. `MessageMeta.tsx` joins
+the delete list in the report (§1.4), with its two guards rewritten to name the live surface when
+it goes. A3 on P-46.
 
 **Report (A3 writes):** —
 **Blockers (A3 writes):** `src/components/chat/MessageMeta.tsx` (`MessageMetaFooter`) has zero real
