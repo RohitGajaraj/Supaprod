@@ -7395,6 +7395,11 @@ with the point-a-source door. Guards: a refused decline on a carried track raise
 attempts unchanged; each option's effect. Acceptance as P-71's: a new sentence in the empty probe
 reaches the Choice within one Sense pass.
 
+**A1, 03:12 IST.** P-71b on main at 3b2c9e254 (A2: 14,064 / 0 / 0, tsc 0). The hold is its own
+word, `the-call-is-yours` (reusing `waiting-on-a-person` would have broken F-127's invariant that
+a hold clears its sentence); it spends no attempt; the Choice replaces the gate card and the
+run's "try again" stands down. A1 suite running; publish, then a fresh sentence in the probe.
+
 
 ### LIVE WALK, A1, 03:00 IST 09-04 · what the first change to reach Ship actually is
 
