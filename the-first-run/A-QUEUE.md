@@ -2455,6 +2455,27 @@ The grader is wired and the scheduled path did not reach it. Back to A2 before t
 what the cron's endpoint calls, whether the forecast pass is on that path at all, and what the seven
 rows fail on if it is. Status stays DONE-PENDING-VERIFY.
 
+
+**A1, 12:35 IST · three retractions and a ruling (A2's checkpoint, before the restart).** Retracted:
+(1) "the eight self-referential forecasts grade at 06:00 UTC": nothing on the scheduled path calls
+`aboutOurOwnPaperwork`; it lives inside `learning.record` only. (2) "the log is empty so the tick
+missed": `forecast_resolution_log` has no scheduled writer at all; only the human reopen path and
+`learning.record` write it. (3) my "succeeded · 1 row" read: pg_cron reports the async `net.http_post`
+row, stamped before the handler began; the handler's own result (`forecastsDrafted 8`,
+`forecastsAutoSettled 0`) is discarded. What the 06:00 tick actually did: reached
+`auditDueForecasts`, spent eight paid calls, wrote eight `forecast_resolution_suggestion` drafts at
+confidence 1.0, settled none, because `canAutoSettle`'s first condition requires a human-settled
+linked spec outcome and seven of the eight rows have no spec at all. The pass is on and structurally
+unable to produce its output, and it re-bills those eight rows every tick.
+
+**Ruling (R-31 applied):** a forecast settles by its own observable, not by a spec a person graded.
+`canAutoSettle` becomes: settle when the linked outcome is settled, OR when the draft's confidence is
+at or above the floor and `forecast_how_we_will_know` is readable and the forecast is not about our
+own paperwork (those settle *inconclusive* with the founder's sentence, on this path). The grader
+writes the `forecast_resolution_log` row on every settle. The handler's result is stored where the
+tick can be read (`job_runs` body, or a `forecast_audit_runs` row), and the stale comment at
+`forecast-audit.server.ts:97` goes. A2 after the restart, first in line; P-38 filed for the cron host.
+
 **Report / A1 verdict:**
 
 ---
@@ -5107,6 +5128,26 @@ then the run screen uses them. Nothing local, nothing forked.
 - [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
       first against the mockups.
 - [ ] Ratchet not widened; every new piece is in `meridian/**` with its reasoning.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+**Report (A2 writes):** —
+**Blockers (A2 writes):** —
+
+
+### P-38 · The cron says the host it runs against · Lane: **A2** · Status: READY (after P-04) · Moves: 5
+
+**Why.** The live `calibrate-tick` (and its siblings) post to `supaprod.ai` with a timeout, while
+every checked-in migration that defines them says the `lovable.app` host with none (A2, checkpoint
+2026-09-03). A migration replayed today would silently re-point the jobs at a stale host and the
+ticks would look healthy in `cron.job_run_details` while hitting nothing.
+
+**Scope.** One migration that defines the cron jobs against the real host and timeout, applied by
+A2 through the Lovable MCP under rule 12 with the ledger row confirmed; the handlers' results
+stored so a tick can be read (see P-04's ruling); a test that the migration's host matches the
+deployed one.
+
+**Acceptance.**
+- [ ] `cron.job` command text equals the migration's for every tick job; A1 compares.
 - [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
 
 **Report (A2 writes):** —
