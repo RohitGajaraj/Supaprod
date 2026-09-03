@@ -6359,7 +6359,7 @@ tsc 0. `bun test` 13892 pass / 22 skip / 37 todo / 0 fail / 36780 expect() acros
 
 **Blockers (A3 writes):** —
 
-### P-48 · The chat's seat turns speak in the run screen's vocabulary · Lane: **A3** · Status: READY · Moves: 2, 3
+### P-48 · The chat's seat turns speak in the run screen's vocabulary · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** P-37 gave Meridian three components with the reasoning written in: `Ask` (a card asks),
 `SeatSays` (a seat speaks in the first person about its own work, no button slot), `FoldingRow`
