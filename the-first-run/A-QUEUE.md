@@ -4128,6 +4128,17 @@ goes to zero. Seed workspace excluded. A1 rules on the census before the write.
 - [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report with the update SQL. **Not yet applicable
       -- no write has happened; nothing to test.**
 
+
+**A1 ruling on the census (08:20 IST).** 226 member rows in 55 duplicate groups across 15 tracks,
+171 candidates, 55 survivors (`the-first-run/P-28-duplicate-census.sql`). (1) `superseded_at` is
+shared with the rewind mechanism: it means "no longer the standing row at its station", which a
+replaced repeat is; a second marker would make every reader ask two questions about one fact.
+(2) Approved with one exclusion: no `mission`, `run` or `changeset` row is superseded, whatever the
+groups say, because they are the run's history and `newestChangesetForTrack` joins through the
+track's mission members. Documents only (prd, prototype, decision, task, signal, finding, theme),
+survivor the newest per group. Part 3 of the SQL file holds the ids written, the one-line rollback,
+and the two pre-existing rewind rows nobody may unset.
+
 **Report (A3, 2026-09-03). The census, read-only, run via the Lovable MCP against the live database.
 Full read + prepared (unexecuted) write SQL: [`the-first-run/P-28-duplicate-census.sql`](./P-28-duplicate-census.sql).**
 
