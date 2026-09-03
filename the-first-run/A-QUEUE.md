@@ -3747,6 +3747,13 @@ this packet's:** `duration-100` on the chip is a raw duration (R-20 §4), and Me
 carries 24 of them beside `--mrd-d-*`; filed below as a standing item for whoever next touches
 `meridian.css`, never a per-surface fix.
 
+
+**A1, 08:00 IST · first commit seen live.** The run screen's artifact pane now carries *App | Diff*
+under the Build record, with *Open the pull request* and the branch named. On `relay-homeowner-app`
+it reads *No app to show yet · This repository has no preview deploys connected… Settings ›
+Connections*, which is the honest empty state. **Founder item:** connect a preview provider for the
+bound repo so the honest run's pane shows the app beside its diff.
+
 **Report / Blockers / A1 verdict:**
 
 ---
@@ -4080,7 +4087,7 @@ goes to zero. Seed workspace excluded. A1 rules on the census before the write.
 **Blockers (A3 writes):** —
 
 
-### P-29 · Every start door starts a run · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed `ed91aaf09`) · Moves: 3, 4
+### P-29 · Every start door starts a run · Lane: **A3** · Status: DONE (A1, 08:00 IST; the press that proves line 1 is the founder's) · Moves: 3, 4
 
 **Why.** R-35 says a mission without a track is not a run, and three live buttons still make one:
 `GraphNodeActions.tsx`, `OpportunityDetailSheet.tsx`'s *start a mission*, and `plan.spec.$id.tsx`'s
@@ -4105,6 +4112,15 @@ zero callers, its renderer does not exist) in the same push.
       `grep -rn "startOrchestratedMission(\|dispatchStudioSession(" src --include="*.ts" --include="*.tsx"
       | grep -v __tests__ | grep -v test.ts` returns nothing.
 - [x] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+
+**A1 verdict: DONE** _08:00 IST._ `grep` for `startOrchestratedMission|dispatchStudioSession` outside
+tests is empty; the orchestrator domain and the studio-session dispatcher are deleted, not
+allowlisted; *Send to Build* is gone from the spec editor; both remaining doors read *Start it* and
+call `startTrack`; suite 13,671 / 0 on the tip. Acceptance line 1, a press creating a track that
+appears on Start, is not pressed by A1: it spends credits and starts a real run, and the founder's
+own press on Start after PR #4 is that proof. A3's process note stands: the full console suite
+before every push.
 
 **Report (A3, 2026-09-03).** Four commits, pushed to `main` (`3cedb5e52..ed91aaf09`):
 
