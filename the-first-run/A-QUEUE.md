@@ -7727,7 +7727,7 @@ idle, under 800 ms, with the Server-Timing lines in the report. Full suite on th
 **DoD.** Pushed; suite number per rule 17; ledger row if a migration.
 
 
-### P-59c · The Ship hold card reads the newest deployment for the track's changeset, whatever its age · Lane: **A2** (now, before P-74) · Status: CODE DONE (9a3c11d40; A2 reports 14,162 / 0 / 0, tsc 0; A1 suite running). The exclusion: `whyShipStopped` read `.from("changesets")`, a table that does not exist (`studio_changesets`), so PostgREST answered 42P01 and the card fell back to the generic sentence; it shipped in P-59 and survived P-68 and P-68b because all three verified the code and not the screen. Also fixed: a NULL reason no longer reads as no failure; no time bound on the row; Ship's own retry stands down while the preview is the blocker · Moves: 1, 3
+### P-59c · The Ship hold card reads the newest deployment for the track's changeset, whatever its age · Lane: **A2** (now, before P-74) · Status: CODE DONE (9a3c11d40; A1 suite on the tip 14,173 / 0 / 0, tsc 0; PUBLISHED 05:22 IST 09-04; the press follows propagation). The exclusion: `whyShipStopped` read `.from("changesets")`, a table that does not exist (`studio_changesets`), so PostgREST answered 42P01 and the card fell back to the generic sentence; it shipped in P-59 and survived P-68 and P-68b because all three verified the code and not the screen. Also fixed: a NULL reason no longer reads as no failure; no time bound on the row; Ship's own retry stands down while the preview is the blocker · Moves: 1, 3
 
 **Why.** Live at 04:55 IST 09-04 on the served tablet track `6817e386` (hold `produced-nothing`
 at Ship, attempts 1): the card reads the generic *This step ran but filed nothing ... It will try
