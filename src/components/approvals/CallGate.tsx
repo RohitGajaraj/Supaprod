@@ -5,6 +5,28 @@ import { isOverdue, stoppedFor } from "@/components/meridian/stopped-for";
 /*
  * THE CALL IN FRONT OF YOU, drawn in Meridian.
  *
+ * ── A FIXED ORDER CANNOT SAVE A CARD WHOSE SLOTS ARE AMBIGUOUS ──────────
+ *
+ * Read this before adding a slot. It is the most expensive thing learned about
+ * this component and it cost a walk of the served build to find.
+ *
+ * P-37 gave this card a fixed order: question, risk, facts, declared default,
+ * answers. The order was correct in the code and WRONG ON SCREEN, because there
+ * was one slot named `consequence` and the caller was passing the DEFAULT
+ * sentence into it. So a person read, second, "Cancelled unrun: nobody answered
+ * by Sun, Sep 6..." while the actual risk sat in `lines` as one fact among
+ * facts. Both readings were true at once: the order was fixed, and two
+ * different sentences were sharing one name, so they landed in each other's
+ * places.
+ *
+ * THE RULE THAT FOLLOWS. A slot is a promise about MEANING, not about position.
+ * Two sentences that answer different questions get two names, however similar
+ * they look at the call site: "what happens if you say yes" and "what happens if
+ * you say nothing" are opposites wearing the same grammar. `consequence` remains
+ * only as a deprecated alias for `declaredDefault`, and it renders where the
+ * DEFAULT renders and never where the risk does, so the old name cannot put that
+ * sentence back above the facts.
+ *
  * ── WHAT IT REPLACES ────────────────────────────────────────────────────
  * The `Gate` primitive from src/components/shell/primitives.tsx, which drew
  * this surface until 2026-08-14. Everything that primitive's header insists on

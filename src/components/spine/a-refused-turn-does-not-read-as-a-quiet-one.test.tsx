@@ -183,7 +183,7 @@ describe("a turn the platform stopped", () => {
 });
 
 describe("the rollup prints measurements and never placeholders", () => {
-  it("gives the duration on the closed line, and NOT the token count", () => {
+  it("says the duration ONCE, in the meta line, and not in the rollup too", () => {
     /*
      * P-37, amendment 7. The token count came off this line. On a column of
      * turns it competed with the verdict for the eye of somebody scanning, and
@@ -195,10 +195,26 @@ describe("the rollup prints measurements and never placeholders", () => {
      * to tidy a layout would be worse than the crowding it fixed, and this
      * assertion is here so that the removal cannot quietly become a deletion.
      */
+    /*
+     * A REGRESSION I SHIPPED AND A1 CAUGHT ON THE SERVED BUILD. Moving the
+     * duration into the meta line without taking it out of the rollup printed
+     * it twice, one line apart: "Filed nothing / Discovery Scout · 3m 12s" and
+     * then "Worked for 3m 12s". The meta line owns it.
+     */
     const text = rollupText(DID_THE_WORK);
-    expect(text).toContain("Worked for 1m 16s");
-    expect(text).not.toContain("65,732 tokens");
+    expect(text).not.toContain("Worked for");
+    expect(turnMeta(DID_THE_WORK)).toContain("1m 16s");
     expect(text).not.toContain("tokens");
+  });
+
+  it("keeps the LIVE ticking figure, which is a different fact", () => {
+    /*
+     * `LiveTook` ticks while a seat is working. `turnMeta` is a string computed
+     * from a finished turn, so a running turn has no final duration in the meta
+     * line and there is nothing to duplicate. Dropping this one would take the
+     * only moving number off a screen whose claim is that you can watch.
+     */
+    expect(rollupText(turn({ outcome: "working", tookMs: null }))).not.toBe("");
   });
 
   it("prints no duration at all when nothing measured one", () => {

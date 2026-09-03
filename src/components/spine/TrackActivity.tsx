@@ -353,12 +353,21 @@ export function rollupOf(
    */
   open?: { onOpen: (artifactId: string) => void; selectedId: string | null },
 ): React.ReactNode[] {
+  /*
+   * ── THE DURATION IS SAID ONCE, AND THE META LINE OWNS IT (P-37) ─────────
+   *
+   * A regression I introduced and A1 caught on the served build at 17:28: the
+   * row read "Filed nothing / Discovery Scout · 3m 12s" and then, one line
+   * below, "Worked for 3m 12s". Moving the duration into the meta line without
+   * taking it out of the rollup printed it twice, a line apart.
+   *
+   * THE LIVE ONE STAYS, and it is not the same fact. `LiveTook` TICKS while a
+   * seat is working, which the meta line cannot do because `turnMeta` is a
+   * string computed from a finished turn. A running turn has no final duration
+   * to put in the meta line, so there is nothing to duplicate.
+   */
   const took =
-    t.outcome === "working" ? (
-      <LiveTook key="took" startedAt={Date.parse(t.at)} />
-    ) : t.tookMs != null ? (
-      <RunTook key="took">{`Worked for ${formatElapsed(t.tookMs / 1000)}`}</RunTook>
-    ) : null;
+    t.outcome === "working" ? <LiveTook key="took" startedAt={Date.parse(t.at)} /> : null;
 
   // `toLocaleString` rather than a hand-built grouping: 65732 is unreadable and
   // `65,732` is wrong in every locale that groups with a space or a full stop.

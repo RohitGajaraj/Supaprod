@@ -46,11 +46,30 @@ export function OpenQuestions({
   trackId,
   stationLabel,
   stationRan,
+  offerToRaise = true,
 }: {
   trackId: string;
   /** Whose questions these are, in the product's own word for that station. */
   stationLabel: string;
   stationRan: boolean;
+  /**
+   * ── THE SCREEN DECIDES WHICH DOOR, NOT THIS COMPONENT (P-37, shape 1) ──
+   *
+   * On the honest run a person looking at ONE held station was offered "Finish
+   * it in Settings", "Say what is unsettled" and "Let Discover try again" in one
+   * breath, and two of the three could not clear the hold.
+   *
+   * Nothing here was wrong: this control renders because its own condition is
+   * true and it knows nothing about the others. Only the screen can see that
+   * three of them are on it at once, so the screen decides, in `oneDoorFor`, and
+   * passes the answer down.
+   *
+   * The QUESTIONS still render when this is false. What stands down is the
+   * offer to raise a new one, because R-36 already promises that in a state
+   * where the run is stuck on evidence, and it makes the promise in the
+   * composer's placeholder, where the typing happens.
+   */
+  offerToRaise?: boolean;
 }) {
   const qc = useQueryClient();
   const fSteer = useServerFn(steerTrack);
@@ -173,11 +192,11 @@ export function OpenQuestions({
             onCommit={(text) => commit(raisedRecord(text))}
             onCancel={() => setOpen(null)}
           />
-        ) : (
+        ) : offerToRaise ? (
           <Action variant="quiet" onClick={() => setOpen("raise")}>
             Say what is unsettled
           </Action>
-        )
+        ) : null
       ) : null}
 
       {/*

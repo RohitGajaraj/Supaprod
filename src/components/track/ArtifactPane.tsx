@@ -41,6 +41,7 @@ import {
   sourceVerdict,
 } from "@/components/track/discover-has-no-sources";
 import { AskInPlace } from "@/components/connections/AskInPlace";
+import { oneDoorFor } from "@/components/track/one-door-for-one-state";
 import { plainProse } from "@/lib/plain-prose";
 /*
  * EVERY plain-text `Prose` on this pane runs agent-written text through
@@ -2806,7 +2807,30 @@ function StationPanel({
             -- 47 tracks -- and `SenseBody` never runs for them. RUN-134 shipped
             that exact mistake with `NothingToRead` and it is the same shape. */}
         {stop.station === "sense" ? (
-          <OpenQuestions trackId={trackId} stationLabel="Discover" stationRan />
+          /*
+           * P-37, shape 1. THE SCREEN DECIDES WHICH DOOR, not the control.
+           * `NothingToRead` directly above already draws the one door that can
+           * clear a station stuck for want of evidence, so this stands its own
+           * offer down rather than making a second. The questions still render;
+           * what stops is a second way to add one, which R-36 promises in the
+           * composer's placeholder where the typing happens.
+           */
+          <OpenQuestions
+            trackId={trackId}
+            stationLabel="Discover"
+            stationRan
+            offerToRaise={
+              oneDoorFor({
+                hold: holdReason,
+                /* Not known at this depth. Unknown resolves to
+                   `connect-a-source`, which is the door `NothingToRead` is
+                   already drawing, so the two agree rather than compete. */
+                hasConnection: false,
+                connectionIsBound: false,
+                productName: null,
+              }).door === "none"
+            }
+          />
         ) : null}
       </div>
     );
