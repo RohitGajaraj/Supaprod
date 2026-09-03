@@ -6838,7 +6838,7 @@ the proposal's own reason: the workspace a visitor is shown must be able to show
 is the one option a person's judgment cannot undo. No data write. The six other Helio workspaces
 follow the same rule.
 
-### P-56 · The approvals page states its obligation once, and as a shape · Lane: **A2** · Status: CODE DONE, PUBLISHED 23:53 IST (A1 suite on the tip 13,959 / 0 / 0, tsc 0; the live read of the heading follows) · Moves: 2, 3
+### P-56 · The approvals page states its obligation once, and as a shape · Lane: **A2** · Status: DONE (A1 read it live 00:35 IST 09-04) · Moves: 2, 3
 
 **Why.** P-55's first finding: the page says *66 decisions are ready for you* and, below it, *65
 pieces of work are stopped, waiting on you*. Same rows; the second is the first minus the card
@@ -6864,6 +6864,18 @@ count from the same population; a test that the heading names families and omits
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads the heading live.
 
+
+
+**A1, 00:35 IST 09-04, DONE.** Served build (chunk `_authenticated.approvals-BRrWSRmV`, carrying
+"standing permission", "agent action" and "memory note", none of which any earlier build held).
+The page states its obligation once: *21 design gates, 10 assumption challenges, 8 decisions, 4
+agent actions, 4 house rules, 3 opportunities and 2 memory notes waiting for you.* No second count
+anywhere on the page. StalledWork keeps its list and says the one fact only it holds: *The oldest
+has been stopped for 49 days.* The 21 (not 35) is P-57b already at work: A2's trigger
+`close_design_gate_on_supersede` is in the database and the population reads 0 tracks with twin
+live specs and 0 pending gates on superseded specs, Helio pending 21 (18:50 UTC). Lovable served
+the build about 35 minutes after the publish; the file was held at 00:06 and the chunk name
+changed at 00:33. Read twice before concluding.
 
 ### P-57 · A brief-path spec is guarded against its twin, and its derived title ends on a word · Lane: **A2** (moved from A3 at 23:55 IST; A3 stays on P-53) · Status: CODE DONE (1d6d9bf4f; A2 reports 13,972 / 0 / 0, tsc 0; A1 suite running); second half below · Moves: 1, 2
 
