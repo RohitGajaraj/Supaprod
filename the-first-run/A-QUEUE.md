@@ -7043,7 +7043,7 @@ door's name from P-60's single list.
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads the titles.
 
-### P-62 · Start is a home, not a run list · Lane: **A2** (after P-60) · Status: CODE DONE (028c7a156; A2 reports 14,021 / 0 / 0, tsc 0; A1 suite running; the three sentences re-run against the database follow) · Moves: 2, 3
+### P-62 · Start is a home, not a run list · Lane: **A2** (after P-60) · Status: CODE DONE (028c7a156; A2 reports 14,021 / 0 / 0, tsc 0; A1 suite on the tip 14,021 / 0, tsc 0; PUBLISHED 01:42 IST 09-04; A1 re-runs the three sentences on the served page) · Moves: 2, 3
 
 **Why.** Audit §1 and §3; the founder, 00:08: "today we have only the app saying that start, so a
 lot of things are not in home."
