@@ -105,6 +105,16 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     or absent, find on the page a word or number that did not exist before the fix, say which commit
     put it there, and read a second time before concluding it is not there.
 
+19. **A migration's version is the minute it was written, in UTC, never a rounded day** (A1, 03:10
+    IST 09-04, after A2's `20260904020000` and A3's first pick collided on the same version). Take
+    `date -u +%Y%m%d%H%M%S` at the moment of writing; if the ledger already holds a higher version,
+    move forward past it. A lane inserts its own ledger row after verifying the objects and says
+    the version in its report; A1 re-checks the row, because Lovable drops them.
+20. **A lane blocked on a permission prompt messages A1 at once** with the packet and the action.
+    Silence is never work; two hours were lost on 09-04 reading it as such. The founder's standing
+    authority of 00:09 (repeated to A3 at 02:55) covers migrations, publishing, writes and deletes
+    on this project; a prompt that still appears is answered by the lane, not waited on.
+
 ### The bar a packet is verified against, in this order
 
 1. Does it move one of the five symptoms in the report (landing says nothing · friction before
