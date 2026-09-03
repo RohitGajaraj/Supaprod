@@ -138,3 +138,35 @@ describe("the header says one word for one state", () => {
     ).toBe(false);
   });
 });
+
+describe("the door is derived from the binding, not from the source count", () => {
+  /**
+   * My first wiring took `hasConnection` from `sourceVerdict`, and it was wrong
+   * twice over.
+   *
+   * `scout_targets` has NO `product_id` column: a scout is workspace-scoped, so
+   * it cannot answer "is anything pointed at THIS product", which is the whole
+   * question the verb turns on. And the door was gated on `offerToConnect`,
+   * which is true only for `no-sources`, so the "Point a source" case, the case
+   * the honest run actually hit, would never have rendered a door at all.
+   *
+   * `connection_bindings` carries `product_id` and `listProductBindings`
+   * already reads it. These assertions pin the three states apart so the two
+   * facts cannot be collapsed back into one again.
+   */
+  it("points when a connector exists and nothing is bound to this product", () => {
+    expect(
+      oneDoorFor(facts({ hasConnection: true, connectionIsBound: false, productName: "Relay" })),
+    ).toEqual({ door: "point-a-source", label: "Point a source at Relay" });
+  });
+
+  it("connects only when there is genuinely no connector", () => {
+    expect(oneDoorFor(facts({ hasConnection: false, connectionIsBound: false })).door).toBe(
+      "connect-a-source",
+    );
+  });
+
+  it("draws nothing when a connector is bound and simply has nothing to say", () => {
+    expect(oneDoorFor(facts({ hasConnection: true, connectionIsBound: true })).door).toBe("none");
+  });
+});

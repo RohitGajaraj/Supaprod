@@ -40,7 +40,7 @@ import {
   sourceLine,
   sourceVerdict,
 } from "@/components/track/discover-has-no-sources";
-import { AskInPlace } from "@/components/connections/AskInPlace";
+import { listConnections, listProductBindings } from "@/lib/connections.functions";
 import { oneDoorFor } from "@/components/track/one-door-for-one-state";
 import { plainProse } from "@/lib/plain-prose";
 /*
@@ -87,10 +87,12 @@ import { releaseStanding, shortSha } from "@/components/track/release-words";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { buildSrcDoc, type PrototypeFileRow } from "@/lib/prototype-srcdoc";
 import {
   Action,
+  Actions,
+  ACTION_LINK_FACE,
   Diffstat,
   Reading,
   ReadFailedLine,
@@ -2212,6 +2214,27 @@ function NothingToRead({
    * -- the query is `enabled` only for Discover -- so it is a component that
    * does not apply here rather than a blank under a heading.
    */
+  /*
+   * WHAT IS CONNECTED, AND WHETHER ANY OF IT POINTS HERE. Two reads because
+   * they are two facts, and the door's verb is wrong without both: a workspace
+   * with a connector and no binding to this product is exactly the case that
+   * makes "Connect a source" read as the product not knowing what it has.
+   */
+  const fConnections = useServerFn(listConnections);
+  const connections = useQuery({
+    queryKey: ["connections"],
+    queryFn: () => fConnections(),
+    staleTime: 5 * 60_000,
+    enabled: station === "sense",
+  });
+  const fBindings = useServerFn(listProductBindings);
+  const bindings = useQuery({
+    queryKey: ["product-bindings", productId],
+    queryFn: () => fBindings({ data: { projectId: productId as string } }),
+    staleTime: 5 * 60_000,
+    enabled: station === "sense" && Boolean(productId),
+  });
+
   if (station !== "sense") return null;
   /*
    * AND THE PENDING READ SAYS SO, because a guard caught me returning null
@@ -2231,17 +2254,67 @@ function NothingToRead({
   const line = sourceLine(verdict);
   if (!line) return null;
 
+  /*
+   * ── THE BINDING IS A DIFFERENT FACT FROM THE SOURCE COUNT ───────────────
+   *
+   * My first pass derived the verb from `sourceVerdict`, and that is wrong
+   * twice over. `scout_targets` has no `product_id` at all, so it cannot answer
+   * "is anything pointed at THIS product", which is the whole question the verb
+   * turns on. And `offerToConnect` is true only for `no-sources`, so the "Point
+   * a source" case, which is the case the honest run actually hit, would never
+   * have rendered a door.
+   *
+   * `connection_bindings` is where the binding lives and it carries
+   * `product_id`; `listProductBindings` already reads it.
+   */
+  const door = oneDoorFor({
+    hold: "needs-evidence",
+    station,
+    /* A connector exists on this workspace, whatever it points at. */
+    hasConnection: (connections.data?.connections?.length ?? 0) > 0,
+    /* And one of them points at THIS product. */
+    connectionIsBound: (bindings.data?.bindings?.length ?? 0) > 0,
+    productName: null,
+  });
+
   return (
     <section aria-label="Nothing to read" className="flex flex-col gap-mrd-2">
       <RecordSpeaks>{line}</RecordSpeaks>
-      {offerToConnect(verdict) ? (
-        <AskInPlace
-          need="somewhere to read what people are saying"
-          why="Discover reads what customers and teammates have already said. Nothing is pointed at a source yet, so it had nothing to read."
-          suggest={["intercom", "zendesk", "slack"]}
-          needIsMet={false}
-          productId={productId}
-        />
+      {/*
+       * ── ONE DOOR, AND ITS VERB COMES FROM THE STATE (P-37, shape 1) ──────
+       *
+       * This rendered `AskInPlace`, which is a connector PICKER: three provider
+       * buttons and "Finish it on Sync". On a held Discover station that was one
+       * of THREE doors on the screen, and two of the three could not clear the
+       * hold.
+       *
+       * `AskInPlace` is not changed and is not wrong; other surfaces use it as
+       * the picker it is. What changes is that this surface asks `oneDoorFor`
+       * what this state gets and draws that, once.
+       *
+       * THE VERB IS THE WHOLE POINT. "Connect a source" said to somebody who
+       * HAS connected one, and simply has not pointed it at this product, reads
+       * as the product not knowing what it has and sends them to do a thing they
+       * have done. That was the honest run's case.
+       *
+       * The target is P-44's (`2f8d8631d`): `/sync` takes `?product=` and
+       * preselects it through the same `setActiveProductId` the switcher uses,
+       * so the door lands on the run's own product rather than on a page that
+       * asks which one again.
+       */}
+      {/* The door renders on its OWN state, not on `offerToConnect`, which is
+          true only for `no-sources` and would hide the very case this exists
+          for. */}
+      {door.door !== "none" ? (
+        <Actions>
+          <Link
+            to="/sync"
+            search={productId ? { product: productId } : {}}
+            className={ACTION_LINK_FACE.default}
+          >
+            {door.label}
+          </Link>
+        </Actions>
       ) : null}
     </section>
   );
