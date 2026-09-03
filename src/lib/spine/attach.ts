@@ -224,9 +224,33 @@ export const TOOL_PRODUCTS: Readonly<Record<string, ToolProduct>> = {
   "decision.record": { kind: "decision", table: "decisions", idField: "decision_id" },
   "design.draft": { kind: "prototype", table: "prototypes", idField: "prototype_id" },
   "learning.record": { kind: "learning", table: "learnings", idField: "learning_id" },
-  // Runs through a review gate, so its id arrives via `agent_approvals.result`
-  // and is picked up by the gate harvest rather than off a loop step. That path
-  // already exists and needs nothing special here.
+  /*
+   * NOT ACTUALLY GATED, AND THIS ENTRY USED TO CLAIM IT WAS (corrected P-30,
+   * A-QUEUE.md). The comment here used to say this tool "runs through a
+   * review gate", which was never true of the current code: `SHIP_AUTONOMY_
+   * TOOLS` (loop.server.ts) exempts `release.publish` from the high-risk
+   * force-review list, and a ship agent with no operator-set arc defaults to
+   * `arc: "trusted"` (trust.server.ts, founder ruling SW-7), which resolves
+   * its mode to `auto`. So it normally runs INLINE inside `runAgentLoop` as
+   * an ordinary executed step, the same channel every other entry in this
+   * table uses — this row was correct about the mechanism (an id off a loop
+   * step) for the wrong stated reason. Whether `release.publish` SHOULD stay
+   * ungated is a product question, flagged separately and out of scope here;
+   * only the comment describing today's behavior was wrong.
+   *
+   * IT STILL RARELY PRODUCES A `deployments` ROW FROM THIS PATH. When it does
+   * run inline unattended, it commonly fails its own precondition ("Only a
+   * merged changeset can promote") because `studio.pr.merge` stays
+   * review-pinned by default and nobody has answered it yet — an `error`
+   * step, correctly invisible to `collectAttachments` below. The 42-vs-0 gap
+   * this file's own docblock measured was never really about this table: it
+   * was that the PERSON-FACING promote (`/ship`'s "Promote to production",
+   * `promoteToProduction` in deployments.functions.ts) shares the same core
+   * as this tool but never runs through `driveTrackOnce`, so neither
+   * `collectAttachments` nor `harvestGates` ever saw it regardless of what
+   * this entry said. P-30 files the member at that shared core instead, so
+   * both doors write the same row now.
+   */
   "release.publish": { kind: "deployment", table: "deployments", idField: "deployment_id" },
 };
 
@@ -256,10 +280,20 @@ export const TOOL_PRODUCTS: Readonly<Record<string, ToolProduct>> = {
  *
  * MEASURED 2026-08-20, because a closed gap is not the same as a used tool.
  * `spine_track_members` on production holds rows for six of the seven stations;
- * **ship has none, of any kind, ever**, and `release.publish` -- pinned to
- * review, so a call always leaves an approval row -- has never raised one.
- * Meanwhile `deployments` holds 42 rows, all successful. **Shipping happens, and
- * it happens outside the spine.**
+ * **ship has none, of any kind, ever**, while `deployments` holds 42 rows, all
+ * successful. **Shipping happens, and it happened outside the spine.**
+ *
+ * WAS NOT ABOUT THE GATE, as first written here. This paragraph used to blame
+ * `release.publish` being "pinned to review" for the gap; it is not pinned to
+ * review (see `TOOL_PRODUCTS["release.publish"]`'s comment) and that was never
+ * the actual cause. The real cause, found by P-30 (A-QUEUE.md): production
+ * promotes reach `deployments` through TWO doors sharing one core function
+ * (`promoteChangesetToProductionCore`, deployments.functions.ts), and only the
+ * agent's door was ever dispatched through `driveTrackOnce` — the one place
+ * `collectAttachments`/`harvestGates` below run. The person's door, `/ship`'s
+ * own "Promote to production" button, called the same core directly and was
+ * invisible to the spine no matter what this table said. Closed by filing the
+ * member at the shared core itself, so both doors write the same row now.
  */
 export type StationArtifact = {
   /** The kind this station exists to produce. */
@@ -316,9 +350,12 @@ export const STATION_ARTIFACT: Readonly<Record<AgentStation, StationArtifact>> =
     table: "deployments",
     // WAS a gap. `release.publish` calls the SAME promote path a person does,
     // rather than adding a second way to ship that could disagree with the
-    // first. It is pinned to review and is the only gate in the loop: a
-    // production deploy is irreversible and customers see it, which is the one
-    // place a person genuinely belongs.
+    // first (deployments.functions.ts:promoteChangesetToProductionCore) — and
+    // since P-30 (A-QUEUE.md) that shared core is also where the member row is
+    // filed, so both doors produce the same record regardless of which one
+    // ran. (It is NOT pinned to review by default — see the corrected comment
+    // on the `TOOL_PRODUCTS` entry above; `release.publish` used to be
+    // documented here as gated and is not.)
     createdBy: "release.publish",
     gap: null,
   },

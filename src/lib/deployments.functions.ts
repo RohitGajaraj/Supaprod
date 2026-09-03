@@ -15,6 +15,7 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import { recordLineageSafe } from "@/lib/lineage.functions";
 import { defaultCheckByDate } from "@/lib/launch-plan.functions";
 import { generateReleaseNotesCore } from "@/lib/studio.functions";
+import { trackIdByChangeset } from "@/lib/changelog";
 
 // Resolve the workspace to scope a read to (the active one, else the caller's
 // default). Mirrors the local helper in billing/briefs/audio.functions.ts.
@@ -1034,6 +1035,66 @@ export async function unattendedShipIsGradable(
   }
 }
 
+/**
+ * File the deployment on the track it belongs to, best-effort (P-30, A-QUEUE.md).
+ *
+ * TWO DOORS SHARE THIS FUNCTION, and only one of them was ever seen by the
+ * spine. `release.publish` (the agent's tool) is dispatched through
+ * `driveTrackOnce`, the one place `collectAttachments`/`harvestGates`
+ * (spine/attach.ts) run; `promoteToProduction` (the person's, straight off
+ * `/ship`) calls this same core directly and never passes through the driver
+ * at all. `spine_track_members` held zero `deployment` rows ever measured
+ * (P-28 census) against 42+ successful promotes on record — not because the
+ * tool's return shape was wrong (it matches `attach.ts`'s `TOOL_PRODUCTS`
+ * entry exactly) but because nothing called the write from either door. Filed
+ * here, at the one point both doors pass through, the same reasoning as the
+ * lineage edge just above.
+ *
+ * REUSES `trackIdByChangeset`'s OWN TWO-HOP RESOLUTION (changelog.ts) rather
+ * than re-deriving mission-to-track by hand a second way — the same function
+ * `listChangelog` already uses to open a release's run, so a release that
+ * resolves a track here is guaranteed to resolve the SAME track there.
+ *
+ * SILENT WHEN NO TRACK RESOLVES, not a warning. A changeset with no mission,
+ * or a mission never dispatched through a track (R-35, RULINGS.md), is the
+ * ordinary case for a solo `/ship` promote today, not a failure to report.
+ */
+export async function attachDeploymentToTrackSafe(
+  db: SupabaseClient,
+  changesetId: string,
+  missionId: string | null,
+  deploymentId: string,
+): Promise<void> {
+  if (!missionId) return;
+  try {
+    const { data: runRows } = await db
+      .from("agent_runs")
+      .select("mission_id,track_id")
+      .eq("mission_id", missionId)
+      .order("created_at", { ascending: true });
+    const trackId =
+      trackIdByChangeset(
+        [{ id: changesetId, mission_id: missionId }],
+        (runRows ?? []) as { mission_id: string | null; track_id: string | null }[],
+      ).get(changesetId) ?? null;
+    if (!trackId) return;
+    // Idempotent on the primary key, the same upsert `writeMembers`
+    // (spine/driver.server.ts) and `attachToTrack` (spine/track.functions.ts)
+    // both use, so a re-promote of the same changeset never duplicates a row.
+    await db.from("spine_track_members").upsert(
+      {
+        track_id: trackId,
+        artifact_kind: "deployment",
+        artifact_id: deploymentId,
+        station: "ship",
+      },
+      { onConflict: "track_id,artifact_kind,artifact_id" },
+    );
+  } catch {
+    // Best-effort index; the deployment row already exists regardless.
+  }
+}
+
 export async function promoteChangesetToProductionCore(
   db: SupabaseClient,
   userId: string,
@@ -1327,6 +1388,14 @@ export async function promoteChangesetToProductionCore(
       created_by_agent: "ship",
       workspace_id: (cs.workspace_id as string | null) ?? null,
     });
+
+    // The track index, same reasoning as the lineage edge above (P-30).
+    await attachDeploymentToTrackSafe(
+      db,
+      cs.id as string,
+      (cs.mission_id as string | null) ?? null,
+      deploymentId,
+    );
 
     // Release notes attach automatically on ship (mission 3.7). Best-effort
     // and skip-if-present - a human may already have written/edited one, and
