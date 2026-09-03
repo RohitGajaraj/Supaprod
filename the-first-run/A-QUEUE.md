@@ -7575,7 +7575,7 @@ the tablet track is evidence, not the Ship candidate. The 06:44 preview row and 
 useful as proof of the hosting path, and nothing on this track is promoted.
 
 
-### P-72 · A changeset is the change the spec asked for, and the merge gate shows what it is · Lane: **A2** (after P-71b) · Status: IN PROGRESS (part one 314832505: a seat that halts opens nothing; part two 63b3fcf5f: a Design verdict that contradicts the premise holds waiting-on-a-person; the merge gate card remains) · Moves: 1, 2, 3
+### P-72 · A changeset is the change the spec asked for, and the merge gate shows what it is · Lane: **A2** (after P-71b) · Status: CODE DONE, all three parts (314832505, 63b3fcf5f, 2c38daa38: a seat that halts opens nothing; a Design verdict against the premise holds; the merge gate shows what the change is); A1 suite running; live read of the gate card follows; the honest candidate is in A2's report · Moves: 1, 2, 3
 
 **Why.** R-40 and the live walk above. The product's first change to reach Ship styles a
 component that does not exist, opened after the Build seat said the work belongs elsewhere, and
