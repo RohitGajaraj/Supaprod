@@ -430,6 +430,12 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "reversible",
     undo: "Nothing to undo; read-only.",
   },
+  "sense.found_nothing": {
+    effect:
+      "Records on the run that this workspace holds no evidence bearing on the sentence, after a search. Files nothing on the evidence record.",
+    reversible: "reversible",
+    undo: "Nothing to undo; it writes no evidence, only the reason the run carried on.",
+  },
   "themes.list": {
     effect: "Lists the workspace's grouped signal themes.",
     reversible: "reversible",
@@ -608,6 +614,10 @@ const READ_ONLY_TOOLS = new Set<string>([
   "workspace.search",
   "workspace.list_tasks",
   "signals.list",
+  // Reports an absence and writes no evidence. See its definition: recording
+  // "there is nothing here" on the RUN is what lets the work carry on from the
+  // person's sentence instead of being retried.
+  "sense.found_nothing",
   "themes.list",
   "sources.status",
   "sources.connect",
@@ -1344,6 +1354,12 @@ const RISK_PROFILE: Record<string, ToolRiskProfile> = {
     changeSurface: "narrow",
   },
   "signals.list": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "sense.found_nothing": {
     dataExposure: "internal",
     opsImpact: "none",
     verificationGap: "verified",

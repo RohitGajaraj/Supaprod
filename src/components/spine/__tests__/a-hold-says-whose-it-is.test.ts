@@ -49,7 +49,7 @@ const ORCHID: HoldReason[] = [
   "going-in-circles",
 ];
 
-/** The ten where a condition elsewhere has to change, or it resolves itself. */
+/** The rest, where a condition elsewhere has to change or it resolves itself. */
 const AMBER: HoldReason[] = [
   "paused",
   "no-agent",
@@ -73,15 +73,27 @@ const AMBER: HoldReason[] = [
    * orchid chip would put a job on a person who has none.
    */
   "waiting-on-another-run",
+  /*
+   * R-36 / P-40. The odd one in this whole register: the track carrying it has
+   * just MOVED. Sense searched, the workspace held nothing bearing on the
+   * sentence, and the work went on to Decide from the sentence alone.
+   *
+   * Amber and emphatically not orchid. Orchid's promise is that a person has to
+   * release something, and nobody does: the run is already continuing. The line
+   * invites a person to add a source, and an invitation is not a job. An orchid
+   * chip here would put a task on somebody who has none and make a run that is
+   * working look stopped.
+   */
+  "carried-on-your-sentence",
 ];
 
 describe("every hold reason is classified, and the set is closed", () => {
-  it("covers all nineteen with no reason in two lists and none in neither", () => {
+  it("covers all twenty with no reason in two lists and none in neither", () => {
     // THE GUARD ON THE GUARD. Both lists above are hand-written, so a reason
     // added to `HoldReason` could land in neither and silently take a default
     // colour. `HOLD_LINE` has to name every hold a person can hit, which is what
     // makes it the register to check against.
-    expect(EVERY_REASON.length).toBe(19);
+    expect(EVERY_REASON.length).toBe(20);
     const listed = [...ORCHID, ...AMBER, "done" as HoldReason];
     expect(new Set(listed).size).toBe(listed.length);
     expect([...listed].sort()).toEqual([...EVERY_REASON].sort());

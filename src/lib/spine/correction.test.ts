@@ -119,6 +119,14 @@ const ENDS_OR_WAITS: HoldReason[] = [
   // dispatched forever has not failed at anything the loop can name, so there is
   // no upstream fix to send it to — it needs a person, not a rewrite.
   "going-in-circles",
+  // R-36 / P-40. The odd one, and it belongs here for a reason none of the
+  // others share: the track carrying this hold has just MOVED. Sense searched,
+  // the workspace held nothing bearing on the sentence, and the work went on to
+  // Decide with the sentence as its only evidence. There is no failure to
+  // reroute and no station to send it back to; the hold is footing for the next
+  // station and the reader, not a stop. Correcting it would send a track
+  // backwards for having correctly reported an empty desk.
+  "carried-on-your-sentence",
 ];
 
 describe("what the rule refuses to touch", () => {

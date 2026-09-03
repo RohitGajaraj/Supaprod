@@ -99,6 +99,7 @@ export interface PresenceInput {
 export const VERB_BY_TOOL: Record<string, string> = {
   "workspace.search": "searching what the workspace holds",
   "signals.list": "reading the signals",
+  "sense.found_nothing": "saying that nothing here speaks to this",
   "signals.log": "filing the evidence I found",
   "research.synthesize": "pulling the findings together",
   "cluster.trigger": "grouping the evidence",

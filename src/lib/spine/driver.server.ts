@@ -930,6 +930,17 @@ async function missionForTrack(
 }
 
 /**
+ * R-36 / P-40. The one hold that travels WITH a move rather than instead of one.
+ * Named as a constant so the driver, the run screen and the Decide brief cannot
+ * spell it three ways.
+ */
+const CARRIED_ON_YOUR_SENTENCE = "carried-on-your-sentence" as const;
+
+/** Said once, in one place, so the transcript and the hold pane agree. */
+const NOTHING_SPEAKS_TO_THIS =
+  "Nothing in the workspace speaks to this. Carrying on from your sentence alone; add a source or say what you know to change that.";
+
+/**
  * The row's route, as the route module understands it.
  *
  * THE EMPTY-PATH DEFAULT IS THE SCHEMA'S OWN, not a guess this function makes,
@@ -1260,6 +1271,13 @@ async function correctIfPossible(
    * run holds a file it needs, and that clears on its own.
    */
   if ((row.last_hold as string | null) === CLAIMED_PATH_HOLD) return null;
+  /*
+   * R-36 / P-40. A track carrying this hold has just MOVED: Sense reported an
+   * empty workspace, correctly, and the work went on from the person's sentence.
+   * There is no failure to reroute. Correcting it would send a track backwards
+   * for having answered the question it was asked.
+   */
+  if ((row.last_hold as string | null) === CARRIED_ON_YOUR_SENTENCE) return null;
 
   const need = STATION_NEEDS[at.station];
   // Read only when the station's precondition is one no station can file, which
@@ -3351,6 +3369,78 @@ export async function driveTrackOnce(
         arrivedAt: null,
         hold: "needs-evidence",
         line: say(because),
+        attached,
+      };
+    }
+  }
+
+  /*
+   * ── A SENTENCE WITH NO EVIDENCE IS CARRIED, NOT CIRCLED (R-36, P-40) ─────
+   *
+   * On the founder's own run (`870b70d3`, pressed 14:12 IST) three seats at
+   * Sense searched the workspace, found nothing bearing on his sentence, and
+   * said so. The driver could not tell that from a seat that simply did nothing,
+   * so it counted `produced-nothing` three times and the track was one tick from
+   * *Needs a restart* with nothing built. **His sentence WAS the evidence and
+   * the loop treated it as a failed search.**
+   *
+   * TYPED, NOT MATCHED. The seat now calls `sense.found_nothing`, so this reads
+   * a tool call rather than grepping prose. That is the instrument the
+   * `produced-nothing` block below asked for in its own words: telling a
+   * reasoned refusal from an empty visit "deserves a better instrument than a
+   * substring".
+   *
+   * WHY IT DOES NOT SPEND AN ATTEMPT. Attempts exist to stop a station that
+   * cannot finish from looping for ever. This station DID finish: it answered
+   * the question it was asked, and the answer was "nothing here". Retrying it
+   * cannot change that answer, so charging for it converts a correct, complete
+   * outcome into a countdown to giving up.
+   *
+   * ONLY SENSE, AND ONLY THIS REASON. A halt, a throw or a credit refusal keeps
+   * the existing rule: those did not answer anything, and their branches are
+   * above this one. `attempts` is left untouched rather than reset, because
+   * nothing about the earlier attempts became untrue.
+   */
+  if (station === "sense" && !producedThisVisit) {
+    const saidNothingHere = steps.some(
+      (st) => st.name === "sense.found_nothing" && st.ok !== false && st.kind !== "queued",
+    );
+    if (saidNothingHere) {
+      const carriedTo = nextStation(routeOf(row), station);
+      const because = NOTHING_SPEAKS_TO_THIS;
+      await supabase
+        .from("spine_tracks" as never)
+        .update(
+          (carriedTo
+            ? {
+                station: carriedTo,
+                /* NOT reset to 0. A move normally resets attempts because the
+                   work advanced on its merits; here it advanced because there
+                   was nothing to find, and an earlier station's spent attempts
+                   remain true. */
+                station_drives: 0,
+                last_hold: CARRIED_ON_YOUR_SENTENCE,
+                last_hold_because: because,
+                driven_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              }
+            : {
+                last_hold: CARRIED_ON_YOUR_SENTENCE,
+                last_hold_because: because,
+                driven_at: new Date().toISOString(),
+              }) as never,
+        )
+        .eq("id", row.id);
+      return {
+        trackId: row.id,
+        station,
+        moved: Boolean(carriedTo),
+        arrivedAt: carriedTo,
+        /* The hold is carried WITH the move, which is unusual and deliberate:
+           it is not stopping the work, it is the footing the next station and
+           the reader both need. Decide's brief reads it to mark the decision. */
+        hold: CARRIED_ON_YOUR_SENTENCE,
+        line: flagged(because),
         attached,
       };
     }

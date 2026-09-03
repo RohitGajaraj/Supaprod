@@ -555,6 +555,52 @@ const logSignal = def({
   },
 });
 
+/**
+ * ── SAYING "THERE IS NOTHING HERE" IS AN ANSWER, AND IT NEEDS A CHANNEL ───
+ *
+ * R-36 / P-40. `FILE_IT.sense` told a seat that found an empty workspace to
+ * "say so in your answer and file nothing", so the one outcome the driver most
+ * needs to distinguish arrived as PROSE. The driver could not tell a seat that
+ * searched and reasoned from a seat that simply did nothing, counted an attempt
+ * against both, and on the founder's own run (`870b70d3`, 14:12 IST) three
+ * seats reported the same empty workspace three times and the track was headed
+ * for *Needs a restart* with nothing built. The sentence was the evidence and
+ * the loop treated it as a failed search.
+ *
+ * `driver.server.ts` already named the missing instrument, in its own words:
+ * telling a reasoned refusal from an empty visit "needs a way ... that is more
+ * than prose-matching", and "deserves a better instrument than a substring".
+ * This is that instrument. A tool call is a typed row in `tool_calls`, so the
+ * driver reads a fact rather than grepping an answer.
+ *
+ * IT FILES NOTHING, DELIBERATELY. `FILE_IT.sense` forbids filing the ABSENCE of
+ * evidence as evidence, and that rule is right: 52 of one workspace's 72 signals
+ * were once the agents' own notes recording that they found nothing. This
+ * records the absence on the RUN, where the driver and the reader can see it,
+ * and never on the evidence record.
+ */
+const senseFoundNothing = def({
+  name: "sense.found_nothing",
+  description:
+    "Report that this workspace holds no evidence bearing on this track's sentence, AFTER searching for it. Call this instead of filing anything when the search genuinely came up empty. Say what you searched. This does not put anything on the evidence record; it tells the run why nothing was filed, so the work can carry on from the person's own sentence instead of being retried.",
+  category: "read",
+  argsSchema: z.object({
+    searched: z
+      .string()
+      .min(1)
+      .max(2000)
+      .describe("What you looked for and where, in one or two sentences."),
+  }),
+  preview: (a) => `Report no evidence found (${a.searched.slice(0, 60)})`,
+  run: async (a) => ({
+    ok: true as const,
+    searched: a.searched,
+    /* The seat is told what happens next, so it does not try to compensate by
+       filing something weaker. */
+    next: "The run carries on from the person's sentence alone. Nothing was filed and no attempt was spent.",
+  }),
+});
+
 // ── Signal Fabric read / sense tools ──────────────────────────────────
 const listSignals = def({
   name: "signals.list",
@@ -7699,6 +7745,7 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     updateTaskStatus,
     logSignal,
     listSignals,
+    senseFoundNothing,
     listThemes,
     sourcesStatus,
     clusterTrigger,

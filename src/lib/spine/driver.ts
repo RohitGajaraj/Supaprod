@@ -506,6 +506,13 @@ export type HoldReason =
    */
   | "produced-nothing"
   /**
+   * R-36 / P-40. Sense searched and the workspace holds nothing bearing on the
+   * sentence, so the work carries on from the sentence alone. NOT a stop: it
+   * rides along with a move, and it is the footing Decide and the reader both
+   * need. The only hold reason that appears on a track that just advanced.
+   */
+  | "carried-on-your-sentence"
+  /**
    * The station filed something, and not the thing the next station needs.
    *
    * DISTINCT FROM `produced-nothing`, and the distinction is the diagnosis. That
@@ -1108,7 +1115,7 @@ const FILE_IT: Record<AgentStation, string> = {
    * as a finish is exactly when a crew starts looking for a cheaper one.
    */
   sense:
-    "Finish by putting evidence on this track's record. Evidence ALREADY IN THIS WORKSPACE COUNTS: search it first with signals.list, and if what you need is already there, group it with cluster.trigger or research.synthesize and you are done. That is a complete, correct outcome, not a shortcut. Call signals.log only for evidence that is genuinely not on the record yet. What you may never do is file the ABSENCE of evidence, or cite this product's own PRDs, decisions or briefs as a source: a number you read in our own spec is not a finding, it is our own writing coming back. If the workspace truly holds nothing about this, say so in your answer and file nothing. A finding that is only in your answer is not on the record and the next station cannot read it.",
+    "Finish by putting evidence on this track's record. Evidence ALREADY IN THIS WORKSPACE COUNTS: search it first with signals.list, and if what you need is already there, group it with cluster.trigger or research.synthesize and you are done. That is a complete, correct outcome, not a shortcut. Call signals.log only for evidence that is genuinely not on the record yet. What you may never do is file the ABSENCE of evidence, or cite this product's own PRDs, decisions or briefs as a source: a number you read in our own spec is not a finding, it is our own writing coming back. If the workspace truly holds nothing about this, call sense.found_nothing with what you searched, and file nothing. Say it with that tool and not only in your answer: an answer is prose the run cannot read, and this is the one outcome the run has to be able to tell apart from a seat that simply did nothing. A finding that is only in your answer is not on the record and the next station cannot read it.",
   /*
    * ── ATTRIBUTED TO A SEAT, BECAUSE EVERY SEAT WAS READING IT (F-181) ────────
    *
@@ -1445,6 +1452,8 @@ export const HOLD_LINE: Record<HoldReason, string> = {
    */
   "no-agent": "No agent is picking this step up, so it needs you.",
   done: "The route is finished. This work has been graded.",
+  "carried-on-your-sentence":
+    "Nothing in the workspace speaks to this. Carrying on from your sentence alone; add a source or say what you know to change that.",
   "produced-nothing":
     "This step ran but filed nothing, so there is nothing to hand to the next one. It will try again.",
   // S0-001: the output exists but did not pass the station's own verification

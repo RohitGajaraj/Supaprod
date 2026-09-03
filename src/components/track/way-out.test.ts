@@ -31,7 +31,18 @@ describe("no dead end, ever", () => {
      * record is not quiet here. Adding a door this screen cannot open would be
      * the false-door failure the header warns about.
      */
-    expect(Object.keys(HOLD_LINE).length).toBe(19);
+    /*
+     * Twenty since P-40 added `carried-on-your-sentence`, and it is deliberately
+     * NOT given an entry here for the same reason: its own `HOLD_LINE` sentence
+     * already says what happens next and what would change it ("Carrying on from
+     * your sentence alone; add a source or say what you know to change that").
+     *
+     * It is also the one hold that rides along with a MOVE rather than a stop,
+     * so a "way out" would be a door out of a run that is already going. R-36
+     * names the door that must not appear on this transition -- *Let Discover
+     * try again* -- and this is where it does not appear.
+     */
+    expect(Object.keys(HOLD_LINE).length).toBe(20);
   });
 
   it("speaks for the eight reasons whose own sentence names no way out", () => {

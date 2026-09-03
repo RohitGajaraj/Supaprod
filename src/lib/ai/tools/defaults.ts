@@ -72,6 +72,11 @@ export const TOOL_DEFAULTS: Readonly<
   "workspace.search": { mode: "auto", enabled: true, label: "Search workspace" },
   "workspace.list_tasks": { mode: "auto", enabled: true, label: "List tasks" },
   "signals.list": { mode: "auto", enabled: true, label: "List signals" },
+  "sense.found_nothing": {
+    mode: "auto",
+    enabled: true,
+    label: "Report that nothing here speaks to this",
+  },
   "themes.list": { mode: "auto", enabled: true, label: "List themes" },
   "sources.status": { mode: "auto", enabled: true, label: "Source status" },
   "sources.connect": { mode: "auto", enabled: true, label: "Connect a source" },

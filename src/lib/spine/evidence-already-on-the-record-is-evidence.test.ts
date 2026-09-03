@@ -94,8 +94,22 @@ describe("THE THREE REFUSALS REACH EVERY SEAT TOO", () => {
     }
   });
 
-  it("an empty workspace still means file nothing", () => {
-    for (const b of briefs) expect(b).toContain("say so in your answer and file nothing");
+  it("an empty workspace still means file nothing, and now says so in a way the run can read", () => {
+    /*
+     * The property is unchanged and the CHANNEL is not. This asserted the words
+     * "say so in your answer and file nothing", and an answer is prose the
+     * driver cannot read: it could not tell a seat that searched and found
+     * nothing from a seat that did nothing, charged an attempt against both,
+     * and on the founder's own run was one tick from giving up with nothing
+     * built (R-36, P-40). The seat now calls `sense.found_nothing`, which is a
+     * typed row in `tool_calls`.
+     *
+     * Both halves are still asserted: file nothing, AND say it.
+     */
+    for (const b of briefs) {
+      expect(b).toContain("call sense.found_nothing");
+      expect(b).toContain("file nothing");
+    }
   });
 });
 
