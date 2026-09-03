@@ -2716,7 +2716,7 @@ Next: P-14b.
 ---
 
 
-### P-14b · Outcomes carries what shipped and what the record moved · Lane: **A3** · Status: CLAIMED (A3) · Moves: 4, 5
+### P-14b · Outcomes carries what shipped and what the record moved · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed `e2efff02f`; A1's live walk closes it) · Moves: 4, 5
 
 **Why.** `/ship` and `/learn` cannot go until their two cross-run facts have a home, and Outcomes is
 the survivor whose job is cross-run history per station (P-14 ruling).
@@ -2731,13 +2731,35 @@ move the readers. Copy plain (R-copy). No `meridian/**` edits.
 `/ship` already import.
 
 **Acceptance.**
-- [ ] On Helio Labs, Outcomes lists the one live release with PR 128 and its date, and the ledger's
-      two lines, byte-equal to what `/ship` and `/learn` print today (record both before).
-- [ ] Each release row opens its run's Ship tab.
-- [ ] tsc 0 · `bun test` 0 fail · ratchet not widened · pushed · Report.
+- [x] On Helio Labs, Outcomes lists the one live release with PR 128 and its date, and the ledger's
+      two lines, byte-equal to what `/ship` and `/learn` print today (record both before). **Before,
+      recorded by direct query against `helio-labs-harbor` (the one non-sample Helio Labs workspace,
+      114 missions -- five others share the name and are seeded/sample): one `changelog_entries` row,
+      "Batch firmware push scheduler," PR 128, `released_at` 2026-07-08, one matching production
+      deployment (`https://atlas.helio-labs.example.com`). Ledger inputs: 2 `learnings` rows carry a
+      measurable ICE shift (a `+1` net), 2 `decisions` rows are superseded. Full detail in the
+      commit.** No live browser was available this session (down all session) for the byte-equality
+      walk itself -- A1's live walk is what closes this line.
+- [x] Each release row opens its run's Ship tab. **Corrected in the building: `/track/$trackId` has
+      no tabs at all (checked directly -- `validateSearch` only ever took `start`/`artifact`, no
+      `tab`). A1's ruling: the real address is `/track/$trackId?artifact=<changesetId>` (P-24's own
+      addressing, the changeset open as the code-change artifact), which is what each row opens when
+      a track resolves. `listChangelog` gained a fourth enrichment (changeset -> mission -> track,
+      pure `trackIdByChangeset` in `changelog.ts`, unit tested, same last-non-null-wins pattern
+      `listMissions` already uses) to resolve it. Most releases predate the spine and carry no track
+      id; those rows draw no door at all, per A1's ruling, rather than a link to a screen that cannot
+      show it.**
+- [x] tsc 0 · `bun test` 0 fail · ratchet not widened · pushed · Report.
 
-**Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Report (A3, 2026-09-03).** Commit `e2efff02f`, pushed to `main` (`eaf9cdbbc..ed9be7d79`). Both
+readers reused exactly (`listChangelog`, `getImpactLedger`), no new query shapes -- the one addition
+is the fourth `listChangelog` enrichment above, matching its existing three (product name, production
+URL, origin bet) in shape. The impact-ledger block is a byte-identical port of `/learn`'s own JSX
+(same gate, same two `CtxRow` lines). tsc 0, `bun test` 13,698 tests / 0 fail / 0 unhandled errors
+(dual-reporter checked), eslint 0 new errors (two pre-existing prettier-debt lines in
+`_authenticated.outcomes.tsx`, confirmed outside every hunk this touches), Meridian ratchet unchanged.
+**Blockers (A3 writes):** A1's live walk on Helio Labs against the recorded before-values, per the
+acceptance line -- no browser was available this session to do it myself.
 
 ### P-14a · Arriving and Outcomes take their own addresses · Lane: **A3** · Status: DONE (A1, 00:30 IST) · one copy follow-up below · Moves: 1, 4
 
