@@ -14,21 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _a1_mig_chunks: {
-        Row: {
-          body: string
-          seq: number
-        }
-        Insert: {
-          body: string
-          seq: number
-        }
-        Update: {
-          body?: string
-          seq?: number
-        }
-        Relationships: []
-      }
       account_billing_secrets: {
         Row: {
           account_id: string
