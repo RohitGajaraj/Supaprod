@@ -108,14 +108,27 @@ describe("both dispatch paths enforce it, and the client is not the only guard",
     });
   }
 
-  it("is not a second copy of a predicate living in a component", () => {
-    // The spec page keeps its own client-side refusal, which is right: it is the
-    // friendly path and it disables the control before a person presses it. What
-    // it must not be is the ONLY place the rule exists.
+  it("is not the ONLY place the rule exists, and is no longer even a hand-typed copy", () => {
+    // The spec page keeps its own client-side warning, which is right: it is
+    // the friendly, early path, read well before a person ever reaches
+    // whichever surface actually dispatches. What it must not be is the ONLY
+    // place the rule exists.
+    //
+    // P-29 (A-QUEUE.md, 2026-09-03): Send to Build is removed from this page
+    // (the run dispatches now), and its own client-side check used to
+    // hand-type this string rather than import it -- exactly the kind of
+    // copy this describe block's own header warns "must not tell two
+    // stories" and could have drifted from the server's own words without
+    // either test noticing. Fixed alongside the removal: the page now
+    // imports `SPEC_GATE_BLOCK_MESSAGE` and `specGateBlocksDispatch`
+    // directly, so there is no second string left to drift.
     const page = readFileSync(
       join(LIB, "..", "routes", "_authenticated.plan.spec.$id.tsx"),
       "utf8",
     );
-    expect(page).toContain("Approve the spec first");
+    expect(page).toContain(
+      'import { specGateBlocksDispatch, SPEC_GATE_BLOCK_MESSAGE } from "@/lib/build/spec-gate"',
+    );
+    expect(page).toContain("specGateBlocksDispatch({ status: prdQ.data?.prd?.status })");
   });
 });

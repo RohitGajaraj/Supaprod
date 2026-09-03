@@ -94,22 +94,14 @@ describe("the spec page does not say what its code will not do", () => {
     expect(SPEC).toMatch(/status: "approved"[\s\S]{0,400}?queryKey: \["prd", id\]/);
   });
 
-  it("does not disable the send on a missing GitHub issue", () => {
-    // `dispatchStudioSession` reads github_issue_url only to add an optional
-    // "Closes #N" line. Refusing the dispatch for want of one made plan to
-    // build a two-step, against the founder's non-linear ruling.
-    //
-    // Scoped to the function BODY on purpose: the docblock above it quotes the
-    // sentence it removed, which is the record of why, and a test that
-    // forbade the words would forbid explaining them.
-    const body = SPEC.match(
-      /const routeBlocker = \(\): string \| null => \{[\s\S]*?\n {2}\};/,
-    )?.[0];
-    expect(typeof body).toBe("string");
-    expect(body).not.toMatch(/github_issue_url/);
-    // The gate that IS real, and is refused by the server too, still blocks.
-    expect(body).toMatch(/routeInfo\.gateHolds/);
-    // The message survives as a note with the same door, not as a refusal.
+  // "does not disable the send on a missing GitHub issue" retired, not
+  // re-spelled (P-29, A-QUEUE.md, 2026-09-03): it pinned `routeBlocker`'s
+  // exact body, and `routeBlocker` answered "why can't the dispatch run" --
+  // a question with no subject once Send to Build is removed from this page
+  // (the P-14 ruling table's own line: "Send to Build and Create issue go,
+  // because the run does both"). `sendsWithoutIssue`, the note it demoted
+  // to, survives and stays pinned by name below.
+  it("still names a GitHub issue as optional, as a note rather than a blocker", () => {
     expect(SPEC).toMatch(/const sendsWithoutIssue = \(\): boolean =>/);
   });
 
