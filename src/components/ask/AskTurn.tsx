@@ -53,7 +53,7 @@ import { modelLabel, spendLabel } from "@/lib/model-label";
 import { MoreItem, MoreMenu } from "@/components/meridian/MoreMenu";
 import { Answer } from "./Answer";
 import { AskGateCard } from "./AskGateCard";
-import { AskLanding, type LandedArtifact } from "./AskLanding";
+import { AskLanding, landingForKind, type LandedArtifact } from "./AskLanding";
 import { AskBlocked } from "./AskBlocked";
 import { AskPlanGate } from "./AskPlanGate";
 import type { PlanProposal } from "@/lib/ask/plan-proposal";
@@ -62,6 +62,8 @@ import type { PlanDecisionState } from "@/hooks/use-ask-stream";
 import type { DispatchBlock } from "@/lib/chat-dispatch";
 import { AskRunCard } from "./AskRunCard";
 import { Working } from "./Working";
+import { SeatSays } from "@/components/meridian/SeatSays";
+import { FoldingRow } from "@/components/meridian/FoldingRow";
 
 export type Turn = { key: string; question: AskStreamMsg | null; answer: AskStreamMsg | null };
 
@@ -337,6 +339,25 @@ export function AskTurn({
           </Register>
         ) : (
           <Register name="Answer">
+            {/*
+                P-48 (A-QUEUE.md): NOT composed through SeatSays, and this is
+                the packet's own "slot missing" case, filed for A2 rather than
+                guessed around silently. `SeatSays.said` is a required plain
+                `string` with no markdown or `children` support; the crew's
+                answer is markdown that MUST render through `Answer`
+                (`Answer.tsx`'s own header, founder 2026-07-30: "AskTurn has
+                no other way to render content... or it does not render at
+                all"). Putting `answer.content` into `said` would either print
+                literal `**bold**` again (the exact regression `Answer` exists
+                to prevent) or require stripping the markdown to a plain-text
+                approximation, rendered nowhere near where the real prose
+                renders -- two copies of one answer in two voices. So this
+                register's actual words stay exactly as they were; SeatSays is
+                composed instead where AskTurn's own shorter, single-sentence,
+                no-markdown seat statements already exist (below: "Sent back",
+                the failed-plan note, the record-was-empty line), which is
+                its genuine shape.
+             */}
             {/* THE ONE PLACE THE CREW'S WORDS BECOME PIXELS, streaming and
                 settled alike. There is deliberately no second branch for the
                 in-flight case: the stream patches `content` on this same
@@ -371,10 +392,16 @@ export function AskTurn({
        */}
       {proposal && planDecision?.status === "sent-back" ? (
         <Register name="Sent back">
-          <p className="max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
-            Nothing started and nothing was charged. The crew has your note and comes back with a
-            new plan.
-          </p>
+          {/*
+              P-48 (A-QUEUE.md): a seat reporting what happened, in one plain
+              sentence with no markdown, is exactly SeatSays's shape. Composed,
+              not forked -- see the note above `Answer`'s own render for why
+              the crew's markdown prose stays in `Answer` instead.
+           */}
+          <SeatSays
+            seat="The crew"
+            said="Nothing started and nothing was charged. It has your note and comes back with a new plan."
+          />
         </Register>
       ) : null}
 
@@ -390,9 +417,12 @@ export function AskTurn({
               they had already taken.
            */}
           {planDecision?.status === "failed" ? (
-            <p className="mb-2 max-w-[62ch] text-mrd-small leading-mrd-prose text-mrd-mute">
-              {planDecision.message} Nothing started, so the plan still stands as it was.
-            </p>
+            <div className="mb-2">
+              <SeatSays
+                seat="The crew"
+                said={`${planDecision.message} Nothing started, so the plan still stands as it was.`}
+              />
+            </div>
           ) : null}
           <AskPlanGate
             proposal={proposal}
@@ -415,14 +445,11 @@ export function AskTurn({
           </RecordSpeaks>
         </Register>
       ) : recordWasEmpty ? (
-        <div
-          style={{
-            marginBottom: "var(--mrd-s6)",
-            fontSize: "var(--mrd-t-base)",
-            color: "var(--mrd-mute)",
-          }}
-        >
-          The record has nothing on this yet. That answer stands on the model alone.
+        <div style={{ marginBottom: "var(--mrd-s6)" }}>
+          <SeatSays
+            seat="The crew"
+            said="The record has nothing on this yet. That answer stands on the model alone."
+          />
         </div>
       ) : null}
 
@@ -432,11 +459,34 @@ export function AskTurn({
           the work still moving underneath it. Rendered even mid-stream: a
           result that has landed has landed, and holding the news until the
           stream closes would be withholding something already true. */}
-      {landings && landings.length > 0 ? (
-        <Register name={landings.length === 1 ? "Where it landed" : "Where these landed"}>
-          {landings.map((l) => (
-            <AskLanding key={`${l.kind}:${l.id}`} kind={l.kind} id={l.id} station={l.station} />
-          ))}
+      {landings && landings.length === 1 ? (
+        <Register name="Where it landed">
+          <AskLanding
+            key={`${landings[0].kind}:${landings[0].id}`}
+            kind={landings[0].kind}
+            id={landings[0].id}
+            station={landings[0].station}
+          />
+        </Register>
+      ) : landings && landings.length > 1 ? (
+        <Register name="Where these landed">
+          {/*
+              P-48 (A-QUEUE.md): FoldingRow's "a list" case. A single landing
+              is already one compact row (AskLanding's own contract: "one row,
+              three facts") with nothing to fold; more than one is the body
+              worth folding, so the register leads with the count and what
+              kinds landed, and the individual rows are the detail a person
+              opens for, not what they read by default.
+           */}
+          <FoldingRow
+            mark="filed"
+            lead={`Landed in ${landings.length} places.`}
+            meta={landings.map((l) => landingForKind(l.kind)?.noun ?? l.kind).join(", ")}
+          >
+            {landings.map((l) => (
+              <AskLanding key={`${l.kind}:${l.id}`} kind={l.kind} id={l.id} station={l.station} />
+            ))}
+          </FoldingRow>
         </Register>
       ) : null}
 
