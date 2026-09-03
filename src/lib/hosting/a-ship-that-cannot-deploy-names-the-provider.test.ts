@@ -11,6 +11,13 @@ import {
   PREVIEW_HOST_VARS,
 } from "./a-ship-that-cannot-deploy-names-the-provider";
 
+/** Comments stripped, so a guard cannot match the prose explaining the fix
+ *  (F-188). Module scope, because a later `describe` needs it too: it was
+ *  declared INSIDE one describe and the block added below could not see it,
+ *  which threw between tests and stopped the rest of the file running. */
+const code = (src: string): string =>
+  src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
 describe("a Ship that cannot deploy names the provider", () => {
   it("names the variable and the place, and ends on the action", () => {
     const stop = shipStopFrom("DENO_DEPLOY_TOKEN is not set");
@@ -79,8 +86,6 @@ describe("a Ship that cannot deploy names the provider", () => {
 });
 
 describe("the two surfaces read one source", () => {
-  const code = (src: string): string =>
-    src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   const RUN = code(readFileSync("src/components/track/TrackRun.tsx", "utf8"));
   const WAYOUT = code(readFileSync("src/components/track/way-out.ts", "utf8"));
   const CONN = code(

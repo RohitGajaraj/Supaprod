@@ -96,6 +96,11 @@ import {
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 import { refusalHappened } from "@/lib/spine/a-call-on-your-sentence-is-yours-to-make";
 import {
+  designVerdictHolds,
+  designHoldLine,
+} from "@/lib/spine/a-design-verdict-against-the-premise-holds";
+import { parseDesignCriticReview, type DesignCriticReview } from "@/lib/ai/design-critic";
+import {
   shipStopFrom,
   shipStopWaitsOnAPerson,
 } from "@/lib/hosting/a-ship-that-cannot-deploy-names-the-provider";
@@ -3051,6 +3056,57 @@ export async function driveTrackOnce(
     }
   }
 
+  /*
+   * ── R-40: A DESIGN VERDICT AGAINST THE PREMISE HOLDS HERE (P-72) ───────
+   *
+   * On the tablet track the critic said the spec's premise contradicts the
+   * brief, the track recorded that as a note and walked on to Build, and what
+   * reached a customer's repository was 90 lines of CSS for a component that
+   * does not exist.
+   *
+   * A critic that says the work is aimed at the wrong thing has not found a
+   * detail to improve. It has found that the next station should not run, and a
+   * note is not a control.
+   *
+   * `waiting-on-a-person` rather than `self-check-failed`: nothing malfunctioned
+   * and retrying changes nothing. The spec and the drawing disagree about what
+   * the work is, and only a person can settle which one is wrong.
+   *
+   * A CRITIC THAT DID NOT RUN IS NOT A VERDICT AGAINST. A missing or unreadable
+   * review leaves the track exactly as it was, for the reason every evidence
+   * check here gives: absence is not evidence.
+   */
+  if (station === "design") {
+    const verdict = await designVerdictForTrack(supabase, row.id);
+    if (designVerdictHolds(verdict)) {
+      const because = designHoldLine(verdict);
+      await supabase
+        .from("spine_tracks" as never)
+        .update({
+          last_hold: "waiting-on-a-person",
+          /*
+           * F-127 requires this hold to clear its sentence, because the GATE is
+           * normally the reason. There is no gate row here and the critic's own
+           * words ARE the reason, so they are carried in the returned line
+           * instead of the column, and the column is cleared as the invariant
+           * demands. The run screen reads the verdict from the record.
+           */
+          last_hold_because: null,
+          driven_at: new Date().toISOString(),
+        } as never)
+        .eq("id", row.id);
+      return {
+        trackId: row.id,
+        station,
+        moved: false,
+        arrivedAt: null,
+        hold: "waiting-on-a-person",
+        line: flagged(because),
+        attached,
+      };
+    }
+  }
+
   // Out of budget. Not a failure and not a refusal: the work is fine, the money
   // is finished. It deliberately does NOT count as an attempt, because attempts
   // exist to stop a station that cannot do its job, and this one was never given
@@ -4572,6 +4628,46 @@ async function reopenIfOutcomeContested(
     // An unreadable verdict leaves the route alone. Reopening four stations on a
     // read error would spend real money on a guess.
     return route;
+  }
+}
+
+/**
+ * The newest design critic review on this track, or null.
+ *
+ * `prd_scaffolds.critic_review` is where it lands (design-scaffold.functions.ts
+ * records the move off `prds.critic_review`), reached through the track's own
+ * prototype member so this can never read another track's verdict.
+ *
+ * NULL ON ANY FAILURE, and that is the safe direction here: a review that
+ * cannot be read is not a verdict against the work, and holding on one would
+ * stop every track whose critic failed for its own reasons.
+ */
+async function designVerdictForTrack(
+  supabase: SupabaseClient,
+  trackId: string,
+): Promise<DesignCriticReview | null> {
+  try {
+    const { data: member } = await supabase
+      .from("spine_track_members" as never)
+      .select("artifact_id")
+      .eq("track_id", trackId)
+      .eq("artifact_kind", "prototype")
+      .is("superseded_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const id = (member as { artifact_id?: string } | null)?.artifact_id;
+    if (!id) return null;
+    const { data } = await supabase
+      .from("prd_scaffolds")
+      .select("critic_review")
+      .eq("id", id)
+      .maybeSingle();
+    const raw = (data as { critic_review?: unknown } | null)?.critic_review;
+    if (!raw) return null;
+    return parseDesignCriticReview(raw);
+  } catch {
+    return null;
   }
 }
 
