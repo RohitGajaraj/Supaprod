@@ -6947,7 +6947,7 @@ Nine of the 21 had been superseded properly and were still asking, so supersessi
 closed a gate; the trigger is the fix and the backfill ran through it. 'superseded' is a fact on
 the Ship page, never a sign-off.
 
-### P-58 · The Worker is warm when a person arrives · Lane: **A3** (after P-53) · Status: CODE DONE, PUBLISHED 03:08 IST 09-04 (dad0909db; A1 suite on the tip 14,063 / 0, tsc 0; cron job and ledger verified by object; A3 takes the idle readings once the route serves) · Moves: 3
+### P-58 · The Worker is warm when a person arrives · Lane: **A3** (after P-53) · Status: PUBLISHED, NOT DONE: A3's idle reading of "/" after 31 minutes is 4.86 s, then 1.92 s; the ping warms the isolate and not what "/" reads. P-58b below · Moves: 3
 
 **A1, 03:00 IST 09-04, on A3's silence.** A3 was blocked from 00:51 to 02:55 on a permission
 prompt for P-58's migration in its own session; the founder answered it there and gave every lane
@@ -7417,7 +7417,7 @@ not marked given-up for a fault that is the product's, and P-68's *Try the previ
 moment its attempts reset. A1 clears the deferral when P-68 is published.
 
 
-### P-68 · A managed preview that failed is tried again and says why, and a gate that cannot succeed is not offered · Lane: **A2** (moved from A3 at 02:00 IST 09-04, ahead of P-70: A3 silent since 00:47) · Status: CODE DONE (3e340b629; A2 reports 14,040 / 0 / 0, tsc 0; A1 suite on the tip 14,040 / 0, tsc 0; PUBLISHED 02:15 IST 09-04; the tablet track has attempts 0 and a deferral to 20:56 UTC so the old build cannot drive it before the new one serves; the retry is read after) · P-68b pushed (c958e26fe) but NOT GREEN on the tip: A1 suite 14,112 / 0 fail / 1 ERROR (a-ship-that-cannot-deploy-names-the-provider.test.ts:136, "code is not defined"); A2 fixes before publish. Rule 17 counts errors · Moves: 1, 3
+### P-68 · A managed preview that failed is tried again and says why, and a gate that cannot succeed is not offered · Lane: **A2** (moved from A3 at 02:00 IST 09-04, ahead of P-70: A3 silent since 00:47) · Status: CODE DONE (3e340b629; A2 reports 14,040 / 0 / 0, tsc 0; A1 suite on the tip 14,040 / 0, tsc 0; PUBLISHED 02:15 IST 09-04; the tablet track has attempts 0 and a deferral to 20:56 UTC so the old build cannot drive it before the new one serves; the retry is read after) · P-68b pushed (c958e26fe), one unhandled error in its own guard on the tip, fixed in 63b3fcf5f (A2 reports 14,130 / 0 / 0, tsc 0; A1 suite running); publish then the press · Moves: 1, 3
 
 **Why.** The live walk above. The path to an honest Ship is blocked by a preview deploy that
 failed once with no recorded reason and is never retried, while the release gate keeps offering
@@ -7573,7 +7573,7 @@ the tablet track is evidence, not the Ship candidate. The 06:44 preview row and 
 useful as proof of the hosting path, and nothing on this track is promoted.
 
 
-### P-72 · A changeset is the change the spec asked for, and the merge gate shows what it is · Lane: **A2** (after P-71b) · Status: IN PROGRESS (part one 314832505: a seat that halts opens nothing; published with the 03:47 tip) · Moves: 1, 2, 3
+### P-72 · A changeset is the change the spec asked for, and the merge gate shows what it is · Lane: **A2** (after P-71b) · Status: IN PROGRESS (part one 314832505: a seat that halts opens nothing; part two 63b3fcf5f: a Design verdict that contradicts the premise holds waiting-on-a-person; the merge gate card remains) · Moves: 1, 2, 3
 
 **Why.** R-40 and the live walk above. The product's first change to reach Ship styles a
 component that does not exist, opened after the Build seat said the work belongs elsewhere, and
@@ -7652,6 +7652,27 @@ sentence*, four rows read *waived: the call was not to build*, Learn reads its d
 one-card rule holds (the map is not a card and asks nothing). Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 walks both tracks.
+
+
+### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: READY · Moves: 3
+
+**Why.** P-58's ping keeps the isolate warm and "/" still costs 4.86 s after 31 minutes idle
+(A3, 04:30 IST 09-04), so the cold cost is in what "/" reads, not in the Worker starting. A3 said
+so rather than closing the packet; that was right.
+
+**Scope.** Two steps, the cheap one first. (1) Attribution: a `Server-Timing` header on the root
+and on `/start` naming the SSR phases (auth read, workspace read, landing data, render) so a cold
+hit says where its seconds went; read it once cold and once warm and put both in the report. (2)
+The fix that the numbers point to, one of: the ping hits a route that performs the same reads
+as "/" (a HEAD of "/" itself, or a `/warm` route that touches the same tables with a `LIMIT 1`),
+or the landing's data is served from a cache that a cron refreshes, or the Supabase client is
+constructed once per isolate rather than per request. No second mechanism without the reading
+that names the cost. Migration in the `202609xx` series (rule 19) if the cron changes.
+
+**Acceptance.** Two idle round-trips of "/" and two of "/start" (signed in) after twelve minutes
+idle, under 800 ms, with the Server-Timing lines in the report. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; ledger row if a migration.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
