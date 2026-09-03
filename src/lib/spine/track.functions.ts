@@ -728,6 +728,33 @@ export type StartRun = {
   forecast: { resolution: string; rationale: string | null } | null;
 };
 
+/**
+ * The columns a `StartRun` row is actually built from -- NOT `TrackRow`
+ * (P-32, A-QUEUE.md). `TrackRow`/`SELECT`/`rowToTrack` build a full `Track`
+ * (route, origin, computed hold sentence, entry station, waivers, attempts),
+ * because `listTracks` -- the OTHER caller of that trio -- needs the whole
+ * thing. `StartRun`'s own closing `.map()` reads none of it: `origin`,
+ * `route`, `summary`, `entry`, the computed `hold` line and `attempts` are
+ * fetched, built by `rowToTrack`, and thrown away every time. Measured on
+ * Helio Labs: the full `SELECT` alone -- before the members embed below --
+ * ran 40 KB for 50 tracks, one track's own `origin` field carrying 2,101
+ * characters nothing here reads. This is that same "select only the columns
+ * the row needs" rule the members embed and `listThemes` were both just
+ * given, one level up: a SECOND select, scoped to this reader alone, rather
+ * than widening `SELECT` for `listTracks` or narrowing it out from under it.
+ */
+type StartTrackRow = {
+  id: string;
+  title: string;
+  station: string;
+  status: string;
+  updated_at: string;
+  driven_at: string | null;
+  last_hold: string | null;
+  last_hold_because?: string | null;
+  pending_gates?: unknown;
+};
+
 export const listRunsForStart = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(({ context }): Promise<StartRun[]> =>
@@ -735,54 +762,50 @@ export const listRunsForStart = createServerFn({ method: "GET" })
       const { supabase } = context;
       try {
         /*
-         * `spine_track_members` EMBEDDED IN THE BASE READ, NOT A SEPARATE ROUND
-         * TRIP (P-32). `spine_track_members.track_id -> spine_tracks.id` is a
-         * real foreign key (checked against the live schema, not assumed), so
-         * PostgREST can return each track's own members nested under it in the
-         * SAME response. This does two things at once: it removes one whole
-         * round trip from the chain, and it makes `decisionIds` available the
-         * moment THIS read resolves rather than after a members round trip of
-         * its own -- so the decisions/forecast lookup below can run in the SAME
-         * concurrent wave as gates, running seats and pins, not a wave behind
-         * them. No `superseded_at` filter here, matching what this read has
-         * always counted: `producedByTrack` below is a straight count of what a
-         * station filed, not the "still standing" question `superseded_at`
-         * answers for lineage-adjacent reads elsewhere in this file.
+         * `spine_track_members` EMBEDDED IN THE BASE READ, KIND ONLY (P-32).
+         * `spine_track_members.track_id -> spine_tracks.id` is a real foreign
+         * key (checked against the live schema, not assumed), so PostgREST
+         * returns each track's own members nested under it in the SAME
+         * response -- one fewer round trip than a separate query. `artifact_id`
+         * is deliberately NOT embedded here: `producedByTrack` below only ever
+         * counts kinds, and on Helio Labs 413 members over 50 tracks meant 413
+         * repeated uuids nobody read, the same "select only the columns the
+         * row needs" defect A1 caught in `listThemes`. The one place an id IS
+         * needed -- resolving each track's decision, for the forecast lookup
+         * below -- reads it through its own small, kind-filtered query
+         * instead, inside that same concurrent branch. No `superseded_at`
+         * filter here, matching what this read has always counted:
+         * `producedByTrack` is a straight count of what a station filed, not
+         * the "still standing" question `superseded_at` answers for
+         * lineage-adjacent reads elsewhere in this file.
          */
         const { data, error } = await supabase
           .from("spine_tracks" as never)
-          .select(`${SELECT},spine_track_members(artifact_kind,artifact_id)`)
+          .select(
+            "id,title,station,status,updated_at,driven_at,last_hold,last_hold_because,pending_gates,spine_track_members(artifact_kind)",
+          )
           .order("updated_at", { ascending: false })
           .limit(50);
         if (error) failSoftOrThrow(error, "Your runs");
         const rows = (data ?? []) as unknown as Array<
-          TrackRow & {
-            spine_track_members?: Array<{ artifact_kind: string; artifact_id: string | null }>;
-          }
+          StartTrackRow & { spine_track_members?: Array<{ artifact_kind: string }> }
         >;
         if (rows.length === 0) return [];
 
-        const tracks = rows.map(rowToTrack);
-        const ids = tracks.map((t) => t.id);
+        const ids = rows.map((r) => r.id);
 
         /* WHAT EVERY TRACK FILED, read off the embed above -- no round trip of
          its own. Counted by kind, the same unit `GotYou` counts, so the row
          and the run screen cannot disagree about what a run produced. */
         const producedByTrack = new Map<string, Map<string, number>>();
-        /** The bet each track made, so its verdict can be resolved below. */
-        const decisionByTrack = new Map<string, string>();
         for (const r of rows) {
           const members = Array.isArray(r.spine_track_members) ? r.spine_track_members : [];
           for (const m of members) {
             const book = producedByTrack.get(r.id) ?? new Map<string, number>();
             book.set(m.artifact_kind, (book.get(m.artifact_kind) ?? 0) + 1);
             producedByTrack.set(r.id, book);
-            if (m.artifact_kind === "decision" && m.artifact_id && !decisionByTrack.has(r.id)) {
-              decisionByTrack.set(r.id, m.artifact_id);
-            }
           }
         }
-        const decisionIds = [...new Set(decisionByTrack.values())];
 
         /*
          * THE GATE THIS TRACK ITSELF OPENED, not every pending row the person
@@ -805,13 +828,13 @@ export const listRunsForStart = createServerFn({ method: "GET" })
           ),
         ];
         /*
-         * FOUR INDEPENDENT READS, CONCURRENT (P-32, A-QUEUE.md, second pass).
-         * Each block below depends only on `rows`/`ids`/`gateIds`/`decisionIds`
-         * computed above -- none of them reads another block's result -- so
-         * what began as seven sequential round trips now takes ONE round trip
-         * for the base read (which the `spine_track_members` embed folded a
-         * second round trip into) plus the SLOWEST of these four branches, not
-         * the sum of all of them.
+         * FOUR INDEPENDENT READS, CONCURRENT (P-32, A-QUEUE.md). Each block
+         * below depends only on `rows`/`ids`/`gateIds` computed above -- none
+         * of them reads another block's result -- so what began as seven
+         * sequential round trips now takes ONE round trip for the base read
+         * (which the `spine_track_members` embed folded a second round trip
+         * into) plus the SLOWEST of these four branches, not the sum of all
+         * of them.
          *
          * WHY THIS STILL WASN'T ENOUGH, MEASURED, NOT GUESSED A SECOND TIME.
          * A1's live measurement after the first pass: seven readers start
@@ -946,15 +969,36 @@ export const listRunsForStart = createServerFn({ method: "GET" })
                * the grader was wired (P-04) there was never a verdict to say --
                * so the count was the best sentence available and is no longer.
                *
-               * `decisionIds` is already known (the embedded members read above
-               * resolved it), so this branch is a single query, not a two-hop
-               * chain behind its own members round trip the way it used to be.
-               * Failing soft: a track with no decision, a bet nobody has
-               * graded, or a read that did not answer all mean "no verdict to
-               * report", and the row falls back to what it said before.
-               * Nothing here may turn a missing verdict into a claimed one.
+               * ITS OWN SMALL, KIND-FILTERED READ, not the full members embed
+               * above -- that embed deliberately carries kind only (P-32), so
+               * the one id this branch needs is read here, scoped to
+               * `artifact_kind = "decision"` alone: on Helio Labs that is 28
+               * rows against the 413 the unfiltered read would have carried.
+               * Still concurrent with the other three branches; this and the
+               * `decisions` read below are this branch's own two-hop chain,
+               * exactly as `running seats -> that seat's verb` is its own.
+               * Failing soft throughout: a track with no decision, a bet
+               * nobody has graded, or a read that did not answer all mean "no
+               * verdict to report", and the row falls back to what it said
+               * before. Nothing here may turn a missing verdict into a
+               * claimed one.
                */
               const byTrack = new Map<string, { resolution: string; rationale: string | null }>();
+              const { data: memberRows } = await supabase
+                .from("spine_track_members" as never)
+                .select("track_id,artifact_id")
+                .eq("artifact_kind", "decision")
+                .in("track_id", ids);
+              const decisionByTrack = new Map<string, string>();
+              for (const m of (memberRows ?? []) as unknown as Array<{
+                track_id: string;
+                artifact_id: string | null;
+              }>) {
+                if (m.artifact_id && !decisionByTrack.has(m.track_id)) {
+                  decisionByTrack.set(m.track_id, m.artifact_id);
+                }
+              }
+              const decisionIds = [...new Set(decisionByTrack.values())];
               if (decisionIds.length === 0) return byTrack;
               const { data: betRows, error: betErr } = await supabase
                 .from("decisions")
@@ -987,18 +1031,19 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             })(),
           ]);
 
-        return tracks.map((t) => {
-          const w = workingByTrack.get(t.id) ?? null;
+        return rows.map((r) => {
+          const w = workingByTrack.get(r.id) ?? null;
+          const station = r.station as AgentStation;
           return {
-            id: t.id,
-            title: t.title,
-            status: t.status,
-            station: t.station,
-            stationName: AGENT_STATIONS[t.station]?.name ?? t.station,
-            updatedAt: t.updatedAt,
-            drivenAt: t.drivenAt,
-            holdReason: t.holdReason,
-            holdBecause: t.holdBecause,
+            id: r.id,
+            title: r.title,
+            status: (r.status as StartRun["status"]) ?? "open",
+            station,
+            stationName: AGENT_STATIONS[station]?.name ?? station,
+            updatedAt: r.updated_at,
+            drivenAt: r.driven_at ?? null,
+            holdReason: r.last_hold,
+            holdBecause: r.last_hold_because ?? null,
             working: w
               ? {
                   seat: w.seat,
@@ -1006,15 +1051,15 @@ export const listRunsForStart = createServerFn({ method: "GET" })
                   tool: w.trace ? (toolByTrace.get(w.trace) ?? null) : null,
                 }
               : null,
-            needsYou: gateByTrack.get(t.id) ?? null,
-            produced: [...(producedByTrack.get(t.id) ?? new Map()).entries()].map(
+            needsYou: gateByTrack.get(r.id) ?? null,
+            produced: [...(producedByTrack.get(r.id) ?? new Map()).entries()].map(
               ([kind, count]) => ({
                 kind,
                 count,
               }),
             ),
-            pinnedAt: pinnedByTrack.get(t.id) ?? null,
-            forecast: forecastByTrack.get(t.id) ?? null,
+            pinnedAt: pinnedByTrack.get(r.id) ?? null,
+            forecast: forecastByTrack.get(r.id) ?? null,
           };
         });
       } catch (e) {

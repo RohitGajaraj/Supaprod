@@ -26,27 +26,24 @@
  * the same refusal `Lineage` makes on the run screen. No workspace read, no
  * third number.
  *
- * ── WHAT THIS COSTS, SAID PLAINLY ────────────────────────────────────────
- * `qualifies()` runs on the client over `listThemes`, which is capped at 300
- * rows. That is O(themes) in the browser and it is fine at today's shape (181
- * themes across the whole database), and it is the wrong place for it if a
- * workspace ever carries thousands. P-18 folds the Start rows and the shell's
- * top bar into one read model; that is where this moves server-side.
+ * ── WHAT THIS USED TO COST, AND WHERE IT MOVED (P-32, A-QUEUE.md) ─────────
+ * `qualifies()` used to run on the client over `listThemes`'s full 300-row
+ * page -- O(themes) in the browser, and every row's full content (including,
+ * until this packet, a raw `embedding` vector) shipped to the front door to
+ * be reduced to two integers. A1's live measurement made the cost concrete:
+ * 2.6 MB of embedding data alone on Helio Labs. `getThemePromotionCounts`
+ * (discovery.functions.ts) now runs the SAME predicate against the SAME bar
+ * server-side and returns only `{forming, crossed}` -- nothing this page
+ * renders ever needed a single theme's title, summary or score in the
+ * browser at all.
  */
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 
 import { Door } from "@/components/meridian/surface-parts";
-import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { getSenseCoverage, listThemes } from "@/lib/discovery.functions";
-import { qualifies, type ThemeLike } from "@/lib/spine/promote";
-import {
-  promotionBarFor,
-  resolveAutonomyPolicy,
-  type AutonomyPolicyRow,
-} from "@/lib/autonomy-policy";
+import { getSenseCoverage, getThemePromotionCounts } from "@/lib/discovery.functions";
 
 /**
  * The sentence, built only from clauses that have a row behind them.
@@ -129,41 +126,30 @@ export function Arriving() {
     staleTime: 5 * 60_000,
   });
 
-  const fThemes = useServerFn(listThemes);
-  const themes = useQuery({
-    queryKey: ["arriving-themes", activeProductId ?? null],
-    queryFn: () => fThemes({ data: { productId: activeProductId ?? null } }),
-    staleTime: 5 * 60_000,
-  });
-
-  /* The workspace's own bar, cached hard: it is a setting rather than a fact
-     about this week, so re-reading it on a list's beat spends a request on a
-     value that cannot change while somebody is looking. */
-  const bar = useQuery({
-    queryKey: ["promotion-bar", activeWorkspaceId ?? null],
+  /*
+   * THE TWO COUNTS, COMPUTED SERVER-SIDE (P-32, A-QUEUE.md). One reader,
+   * keyed on both the product (which themes) and the workspace (whose bar),
+   * cached the same 5 minutes the bar itself used to be cached at -- a
+   * setting rather than a fact about this week.
+   */
+  const fPromotionCounts = useServerFn(getThemePromotionCounts);
+  const counts = useQuery({
+    queryKey: ["arriving-promotion-counts", activeWorkspaceId ?? null, activeProductId ?? null],
     enabled: Boolean(activeWorkspaceId),
     staleTime: 5 * 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("workspaces")
-        .select("promotion_min_frequency,promotion_min_severity,promotion_min_confidence")
-        .eq("id", activeWorkspaceId!)
-        .maybeSingle();
-      if (error) throw new Error(error.message);
-      return promotionBarFor(resolveAutonomyPolicy(data as AutonomyPolicyRow | null));
-    },
+    queryFn: () =>
+      fPromotionCounts({
+        data: { workspaceId: activeWorkspaceId ?? null, productId: activeProductId ?? null },
+      }),
   });
-
-  const rows = (themes.data?.themes ?? []) as unknown as ThemeLike[];
-  const verdicts = bar.data ? rows.map((t) => qualifies(t, bar.data)) : null;
 
   const line = arrivingLine({
     signals7d: coverage.data ? coverage.data.total7d : null,
     sources: coverage.data ? coverage.data.sources.filter((s) => s.recent > 0).length : null,
     /* Forming: eligible and not yet over the bar. A theme somebody already
        settled is not forming, and `qualifies` says so in its first branch. */
-    forming: verdicts ? verdicts.filter((v) => !v.ok).length : null,
-    crossed: verdicts ? verdicts.filter((v) => v.ok).length : null,
+    forming: counts.data ? counts.data.forming : null,
+    crossed: counts.data ? counts.data.crossed : null,
   });
 
   /*

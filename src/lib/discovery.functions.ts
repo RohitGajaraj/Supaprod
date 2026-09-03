@@ -31,6 +31,12 @@ import { forecastRefusal } from "@/lib/decisions.functions";
    prompts cannot drift into three different shapes for one artifact. */
 import { SPEC_SECTION_ORDER } from "@/lib/spec-sections";
 import { looksLikeASentence } from "@/lib/bet-title";
+import { qualifies } from "@/lib/spine/promote";
+import {
+  resolveAutonomyPolicy,
+  promotionBarFor,
+  type AutonomyPolicyRow,
+} from "@/lib/autonomy-policy";
 
 export { SPEC_SECTION_ORDER };
 
@@ -491,7 +497,33 @@ export const listThemes = createServerFn({ method: "GET" })
   .handler(async ({ context, data }) => {
     let query = context.supabase
       .from("themes")
-      .select("*", { count: "exact" })
+      /*
+       * EVERY COLUMN BUT ONE (P-32, A-QUEUE.md). `themes.embedding` is a
+       * pgvector column -- server-side similarity/clustering input, never
+       * rendered by any caller -- and `select("*")` sent all of it to the
+       * browser. Measured on Helio Labs: 138 rows, 2.75 MB of JSON, 2.6 MB of
+       * which was this one column. A1's live measurement caught the same
+       * response near-doubled (two ~800 KB loads): `activeProductId` resolves
+       * asynchronously after the workspace/product reads settle, and this
+       * read's own query key (`["arriving-themes", activeProductId ?? null]`,
+       * Arriving.tsx) changes when it does, firing the same full-embedding
+       * read twice on one page load.
+       *
+       * Every OTHER column stays, unchanged, because this function has a
+       * second caller (`DiscoverSurface.tsx`) with a richer read than
+       * `Arriving.tsx`'s own `id/title/summary/frequency/severity/confidence/
+       * status` (`ThemeLike`, spine/promote.ts) -- narrowing to only what
+       * `/start` needs would have silently broken Discover's fields the
+       * moment it read one this select stopped naming, the exact runtime
+       * failure this file's own header warns a `.select()` string cannot
+       * catch at compile time. `listSignals` two names below carries the
+       * identical shape (a `signals.embedding` column, the same `select("*")`)
+       * but has no caller on `/start` -- flagged, not fixed, to stay in scope.
+       */
+      .select(
+        "id,user_id,project_id,title,summary,frequency,severity,confidence,status,created_at,workspace_id,product_id,novelty,novelty_basis,scored_at,last_signal_at,dismissed_at_frequency,escalated_at,embedding_model,is_sample,status_reason",
+        { count: "exact" },
+      )
       .order("created_at", { ascending: false })
       .limit(300);
     // Same fix as listSignals: a theme clustered by the cron path (projectId
@@ -505,6 +537,94 @@ export const listThemes = createServerFn({ method: "GET" })
     // to the page length then understates rather than inventing a bigger number,
     // and a surface comparing the two simply says nothing.
     return { themes, total: count ?? themes.length };
+  });
+
+/**
+ * THE TWO COUNTS `Arriving.tsx` ITSELF SAID SHOULD LIVE HERE (P-32,
+ * A-QUEUE.md). That component's own header: *"`qualifies()` runs on the
+ * client over `listThemes`, which is capped at 300 rows... it is the wrong
+ * place for it if a workspace ever carries thousands... that is where this
+ * moves server-side."* A1's live measurement made the cost concrete before
+ * anyone acted on it: even with `listThemes`' `embedding` column stripped,
+ * its full row set is still tens of KB of theme content the front door never
+ * renders — Arriving only ever turned that list into two integers.
+ *
+ * THE SAME PREDICATE, NEVER A SECOND ONE. `qualifies` (spine/promote.ts) and
+ * the bar it is judged against (`resolveAutonomyPolicy`/`promotionBarFor`,
+ * autonomy-policy.ts) are the exact functions the client used and the ones
+ * `promoteClustersOnce` itself runs — reused here, not re-derived, so this
+ * count can never drift from what the loop would actually do. `outcomeSupport`
+ * is left unset here exactly as `Arriving.tsx`'s own call already left it
+ * unset (that field is a caller-supplied join `promote.ts`'s own header says
+ * is optional; Arriving never wired it in), so the numbers this returns are
+ * the same numbers the client-side version already computed — a performance
+ * fix, not a behavior change.
+ */
+export type ThemePromotionRow = {
+  id: string;
+  title: string | null;
+  frequency: number | null;
+  severity: number | null;
+  confidence: number | null;
+  status: string | null;
+};
+
+/**
+ * Pure: the exact reduction Arriving.tsx used to run in the browser, one row
+ * at a time through `qualifies`. Extracted so it is testable without a
+ * database — `qualifies` and `resolveAutonomyPolicy`/`promotionBarFor` are
+ * already covered by their own suites; this pins the composition.
+ */
+export function computeThemePromotionCounts(
+  rows: readonly ThemePromotionRow[],
+  wsRow: AutonomyPolicyRow | null,
+): { forming: number; crossed: number } {
+  const bar = promotionBarFor(resolveAutonomyPolicy(wsRow));
+  let forming = 0;
+  let crossed = 0;
+  for (const t of rows) {
+    const verdict = qualifies({ ...t, summary: null }, bar);
+    if (verdict.ok) crossed += 1;
+    else forming += 1;
+  }
+  return { forming, crossed };
+}
+
+export const getThemePromotionCounts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        productId: z.string().uuid().nullable().optional(),
+        workspaceId: z.string().uuid().nullable().optional(),
+      })
+      .parse(i ?? {}),
+  )
+  .handler(async ({ context, data }): Promise<{ forming: number; crossed: number } | null> => {
+    if (!data.workspaceId) return null;
+    const { supabase } = context;
+    let themesQuery = supabase
+      .from("themes")
+      .select("id,title,frequency,severity,confidence,status")
+      .order("created_at", { ascending: false })
+      .limit(300);
+    if (data.productId)
+      themesQuery = themesQuery.or(`project_id.eq.${data.productId},project_id.is.null`);
+
+    const [{ data: wsRow }, { data: themeRows, error }] = await Promise.all([
+      supabase
+        .from("workspaces")
+        .select("promotion_min_frequency,promotion_min_severity,promotion_min_confidence")
+        .eq("id", data.workspaceId)
+        .maybeSingle(),
+      themesQuery,
+    ]);
+    if (error) throw new Error(error.message);
+
+    return computeThemePromotionCounts(
+      (themeRows ?? []) as ThemePromotionRow[],
+      wsRow as AutonomyPolicyRow | null,
+    );
   });
 
 /** AI cluster: read unclustered signals, ask Gemini Pro for themes JSON, persist. */
