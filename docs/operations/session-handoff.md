@@ -748,3 +748,7 @@ generator missions cancelled; `deferred_until` migration applied and ledgered.
 P-04's Learn tab and Start row, P-14's four surfaces, P-18a. Resume on reconnect.
 **Date call unchanged:** 15 Sep product-complete, 23 Sep public; 6 Sep checkpoint question: has one
 run walked the whole route with nobody pressing anything. Tonight it reached the first human gate.
+
+## 2026-09-03 14:05 IST · A1 (Fable) · verification pass after the restart
+
+Verified this stretch, not accepted on report: P-35 (suite on the tip, guard proven by reintroducing a `select("*")`, published 13:43 IST), P-33's trigger migration `20260909020000` (twelve triggers, a rolled-back probe, backfill 0 unmarked of 2,467, ledger row restored by A1). Open on the empty workspace: Start's Arriving line still shows the signed-in person's counts, two more readers named in the queue. Founder items unchanged: a preview provider for `relay-homeowner-app`, the honest run's sentence on Start, the *A2 arrival check* membership row. Lovable's agent `send_message` never delivered; the ledger keeps dropping rows; pull before executing prepared SQL. Queue at fcff25dc8 and after.

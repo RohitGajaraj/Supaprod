@@ -5014,6 +5014,13 @@ session. Everything else in the Report is done and pushed. **Updated after pass 
 2.7-second reader is now named with a structural explanation, not just flagged.**
 
 
+**A1, 14:00 IST · two reads on the 13:43 publish, Start, signed in, empty workspace.** Cold: 9.8 s to
+load, server calls 1.4 to 4.4 s each. Warm, one minute later: first byte 1.9 s, interactive 2.1 s,
+the first server call starts at 4.2 s and the last ends at 6.4 s, slowest call 2.2 s, largest
+response 78.8 KB decoded and 9.9 KB on the wire. The prefix before the first call is the pass-4
+target and it is 4.2 s on this read, not 1 s; the reads were taken while this machine ran the suite,
+so A3 re-measures on a quiet machine before either of us calls it.
+
 ### P-33 · The arrival: an empty workspace tells the story before any run exists · Lane: **A2** · Status: IN PROGRESS (A1, 13:30 IST: the six §5 defects remain; two of them seen live)· Moves: 1, 2, 5
 
 **Why.** Every walk so far has been on Helio Labs, a workspace with 59 decisions and 15 tracks.

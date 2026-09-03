@@ -396,3 +396,14 @@ defects, all fixed and published, and now rests where the driver put it. **The h
 founder's next sentence on Start after PR #4 is merged or declined**: a fresh track on the fixed
 driver, with nobody pressing anything, is the 6 September question's subject. The forecast grader
 fires at 11:30 IST; P-21's three playbook files appear on the next pull request a Build seat opens.
+
+**Checkpoint, 2026-09-03 14:05 IST.** Twenty-seven packets done and live, verified by A1 against the
+suite, the database or the screen, not the report. The sample-data rule moved into the database this
+afternoon: A2 withdrew the 91 KB seeder rewrite for a trigger on twelve tables, and A1 verified it by
+its objects (twelve triggers, a rolled-back probe, 0 of 2,467 rows unmarked across eleven sample
+workspaces) and restored the ledger row Lovable had dropped. P-35 is done: no reader selects a
+vector it will not render, with a guard that fails when one is reintroduced. The empty workspace
+still shows Helio's counts on Start's Arriving line, two more readers of the one scope defect, named
+to file and line for A2. A3 is on the gate-on-screen packet. **Nothing in the plan moved.** The honest
+run is still the founder's next sentence on Start, and the tablet track's Ship still waits on a
+preview provider for the bound repo; both are founder items and both are older than this checkpoint.
