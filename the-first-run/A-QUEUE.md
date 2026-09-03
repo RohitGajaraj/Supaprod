@@ -5428,7 +5428,7 @@ these two. Still inside P-33 item (1).
 **Blockers (A2 writes):** —
 
 
-### P-34 · Signup does not lower a billing guard for everyone · Lane: **A3** · Status: READY (moved to A3 by A1, 16:10 IST; migration through the Lovable MCP, ledger row after) · Moves: 5
+### P-34 · Signup does not lower a billing guard for everyone · Lane: **A3** · Status: CLAIMED (A3) · Moves: 5
 
 **Why.** `ensure_user_default_workspace` runs `ALTER TABLE public.workspaces DISABLE TRIGGER
 trg_protect_workspace_billing_columns` inside itself to set `plan_tier`, then re-enables it. That is
