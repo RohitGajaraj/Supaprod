@@ -86,10 +86,25 @@ describe("each state needs its proof", () => {
     expect(p.state).toBe("awake");
   });
 
-  test("any other hold defers to the hold line rather than restating it", () => {
+  test("any other hold is SILENT, because the card owns the run's state", () => {
+    /*
+     * P-37, amendment 6. This asserted the character DEFERRED to the hold line
+     * in words ("I've stopped, the reason is on the hold line"), which was the
+     * best a required `line: string` allowed: every branch had to say something,
+     * so the branch for a held run said something about the run's state.
+     *
+     * Deferring in the wording is not the same as not speaking. On the honest
+     * run that sentence rendered directly above a card headed "Why it stopped",
+     * and the same voice said "I'm ready, press run" after the person had
+     * pressed. A voice that CAN narrate the run will narrate it twice, or late.
+     *
+     * `quiet` is the state that makes it structural, and `Character` returns
+     * null in it: not a mark with a blank beside it, which is a character
+     * visibly saying nothing, but no element at all.
+     */
     const p = deriveCharacter(base({ track: openTrack({ holdReason: "produced-nothing" }) }));
-    expect(p.state).toBe("awake");
-    expect(p.line).toContain("hold line");
+    expect(p.state).toBe("quiet");
+    expect(p.line).toBe("");
   });
 
   test("a never-driven track gets the ready-to-start line", () => {

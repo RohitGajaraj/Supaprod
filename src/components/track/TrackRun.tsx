@@ -91,6 +91,7 @@ import {
 } from "@/components/track/run-tally";
 import { stoppedByYou } from "@/components/track/footer-mode";
 import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
+import { composerPromiseFor } from "@/components/track/one-door-for-one-state";
 
 /**
  * What the walk did, said plainly.
@@ -1220,7 +1221,26 @@ export function TrackRunLeft({
        * says so rather than rendering a form that can do nothing. `/` from
        * anywhere on this page lands here (RUN-10).
        */}
-      <SteerComposer trackId={trackId} finished={finished} fieldRef={steerFieldRef} />
+      <SteerComposer
+        trackId={trackId}
+        finished={finished}
+        /*
+         * P-37. R-36 promises two ways on from a run stuck for want of
+         * evidence: add a source, or say what you know. The card keeps one
+         * door, so the second promise is made here, in the field that can
+         * accept it. `composerPromiseFor` is the same decision the door reads,
+         * so the two cannot offer different things about one state.
+         */
+        stuckOnEvidence={
+          composerPromiseFor({
+            hold: track?.holdReason ?? null,
+            hasConnection: false,
+            connectionIsBound: false,
+            productName: null,
+          }) !== null
+        }
+        fieldRef={steerFieldRef}
+      />
     </div>
   );
 }

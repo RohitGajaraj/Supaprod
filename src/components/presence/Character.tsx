@@ -45,6 +45,10 @@ const MARK_FACE: Record<CharacterState, string> = {
   blocked: "bg-mrd-hold-chip text-mrd-hold-on-chip",
   resting: "bg-mrd-agent-chip text-mrd-agent-dim",
   done: "bg-mrd-pass-chip text-mrd-pass-on-chip",
+  /* Never drawn on the run screen: `Character` returns null in this state. It
+     exists so the map stays total, and so a surface that DOES draw a mark for a
+     quiet character gets the resting body rather than a crash. */
+  quiet: "bg-mrd-sink text-mrd-faint",
 };
 
 /**
@@ -242,6 +246,20 @@ export function Character({
   className?: string;
 }) {
   const presence: Presence = deriveCharacter(input);
+
+  /*
+   * ── NOTHING TO SAY, SO NOTHING IS DRAWN (P-37, amendment 6) ─────────────
+   *
+   * The character used to speak about the RUN's state, which is the product's
+   * to say and belongs on the card: "I've stopped, the reason is on the hold
+   * line" rendered directly above a card headed "Why it stopped".
+   *
+   * Rendering an empty line would leave a mark and a blank beside it, which is
+   * a character visibly saying nothing rather than a character who is not
+   * speaking. The whole element goes.
+   */
+  if (presence.state === "quiet") return null;
+
   return (
     <div
       data-mrd=""

@@ -81,11 +81,26 @@ export function activeMention(
 export function SteerComposer({
   trackId,
   finished = false,
+  stuckOnEvidence = false,
   fieldRef: externalFieldRef,
 }: {
   trackId: string;
   /** A closed track has nothing running to steer, and saying so beats a form. */
   finished?: boolean;
+  /**
+   * ── R-36'S SECOND PROMISE, MADE WHERE IT CAN BE ACCEPTED (P-37) ────────
+   *
+   * The hold sentence promises two ways on: add a source, or *say what you
+   * know*. The card keeps ONE door, because three doors for one state is the
+   * defect this packet opened with, so the second promise is not a second
+   * button. It becomes this field's placeholder.
+   *
+   * The composer is already on the screen and already takes a sentence, so
+   * putting the offer where the typing happens makes it at the moment it can be
+   * accepted. A button would only announce it, and would announce it beside a
+   * door that does something else.
+   */
+  stuckOnEvidence?: boolean;
   /**
    * RUN-10: lets the host focus the field from the keyboard layer (`/`). The
    * primitive already takes a ref; this is a straight passthrough.
@@ -248,7 +263,14 @@ export function SteerComposer({
           onSubmit={submit}
           busy={send.isPending}
           placeholder={
-            roster.length ? `Say what to change, or try @${roster[0]}` : "Say what to change"
+            /* The stuck state's offer outranks the roster hint: a person whose
+               run is waiting for evidence needs to know that typing moves it,
+               not that they could mention a teammate. */
+            stuckOnEvidence
+              ? "Say what you know, and it carries on from that"
+              : roster.length
+                ? `Say what to change, or try @${roster[0]}`
+                : "Say what to change"
           }
           label="Steer this work without stopping it"
           hint="Enter to send · @ to name someone here"

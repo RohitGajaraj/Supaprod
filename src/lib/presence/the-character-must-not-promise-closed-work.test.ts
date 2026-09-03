@@ -55,15 +55,17 @@ describe("closed work is answered before the hold branch", () => {
 });
 
 describe("what must NOT change: open work still defers to the hold line", () => {
-  it("an open held track keeps the deferring sentence", () => {
+  it("an open held track says nothing at all now, rather than deferring in words", () => {
     /*
-     * The comment it protects is still right for this case: two sentences
-     * disagreeing about one stop is how surfaces drift, so the character does
-     * not restate a hold the screen is already showing.
+     * The rule this protects is unchanged and its remedy is stronger. Two
+     * sentences disagreeing about one stop is how surfaces drift, and the
+     * character used to avoid that by CHOOSING WORDS that deferred. P-37 takes
+     * the sentence away instead: the card owns the run's state, so there is no
+     * second sentence left to drift from.
      */
-    const line = at("open").line;
-    expect(line).toContain("hold line");
-    expect(line).toContain("carry on");
+    const p = at("open");
+    expect(p.state).toBe("quiet");
+    expect(p.line).toBe("");
   });
 
   it("and an open track with no hold is unaffected", () => {

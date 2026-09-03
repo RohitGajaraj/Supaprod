@@ -45,7 +45,23 @@ export type CharacterState =
   /** Between self-continuing legs of a watched walk. */
   | "resting"
   /** The route finished. */
-  | "done";
+  | "done"
+  /**
+   * ── THE CHARACTER HAS NOTHING TO SAY, AND SAYS IT (P-37, amendment 6) ───
+   *
+   * There was no way to express this, which is why the character always had a
+   * sentence: `Presence.line` is a required string, so every branch had to
+   * produce one, and the branch for a held run produced a sentence about the
+   * RUN'S STATE. On the honest run that read "I've stopped, the reason is on
+   * the hold line" directly above a card headed "Why it stopped", and "I'm
+   * ready, press run" after the person had pressed.
+   *
+   * The fix is not better timing. A voice that CAN narrate the run's state will
+   * narrate it twice, or late, and no amount of care removes that. What removes
+   * it is having somewhere for the character to be silent, so the product's own
+   * sentences belong to the card and a seat only ever reports its own work.
+   */
+  | "quiet";
 
 export interface Presence {
   state: CharacterState;
@@ -319,10 +335,18 @@ export function deriveCharacter(input: PresenceInput): Presence {
   // deliberately left as it was; only the out-of-turn press invitation
   // below is this packet's to fix.
   if (hold) {
-    return {
-      state: "awake",
-      line: "I've stopped, the reason is on the hold line. I'll carry on when it clears.",
-    };
+    /*
+     * P-37, amendment 6. This said "I've stopped, the reason is on the hold
+     * line. I'll carry on when it clears." directly above a card that says why
+     * it stopped, in a voice that is the PRODUCT's wearing a character's first
+     * person. Its own comment already knew the shape of the problem ("two
+     * sentences disagreeing about one stop is how surfaces drift") and answered
+     * it by deferring in the wording rather than in the speaking.
+     *
+     * The card owns the run's state. The character is quiet here, and the
+     * quiet is structural: there is no longer a sentence for it to drift from.
+     */
+    return { state: "quiet", line: "" };
   }
 
   if (input.track.drivenAt === null) {
