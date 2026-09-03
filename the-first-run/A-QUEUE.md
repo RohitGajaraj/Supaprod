@@ -6937,7 +6937,7 @@ Nine of the 21 had been superseded properly and were still asking, so supersessi
 closed a gate; the trigger is the fix and the backfill ran through it. 'superseded' is a fact on
 the Ship page, never a sign-off.
 
-### P-58 · The Worker is warm when a person arrives · Lane: **A3** (after P-53) · Status: CLAIMED (A3) · Moves: 3
+### P-58 · The Worker is warm when a person arrives · Lane: **A3** (after P-53) · Status: CODE DONE, pushed dad0909db, migration applied (ledger 20260909070000); idle readings pending publish · Moves: 3
 
 **A1, 03:00 IST 09-04, on A3's silence.** A3 was blocked from 00:51 to 02:55 on a permission
 prompt for P-58's migration in its own session; the founder answered it there and gave every lane
@@ -6966,6 +6966,40 @@ database module (a test that reads its import list). Full suite on the tip, tsc 
 
 **DoD.** Pushed; suite number per rule 17; migration applied by A3 via the Lovable MCP; A1 confirms
 the ledger row and the cron row, and publishes.
+
+**Report (A3 writes):** `dad0909db`. tsc 0, `bun test` full console suite on the tip **14,063 pass /
+0 fail / 0 error**, eslint 0 errors on touched files.
+
+`/health` (`src/routes/health.ts`) imports nothing that reaches a database, deliberately separate
+from `/api/public/health` (the existing readiness check, which correctly does probe the DB and the
+cron pulse) -- pinging the readiness route every 4 minutes forever would spend real DB load fixing
+a CPU cold-start problem. GET only, no auth, matching the sibling readiness route's own
+"monitors do not auth" stance.
+
+Migration applied via the Lovable MCP under the founder's now-standing authorization (project id
+`371dd588-1b70-4629-9bb5-9f003f3af373`): reserves `'health'` in `reserved_workspace_slugs`,
+schedules `health-warm-tick` every 4 minutes via `net.http_get` against `https://supaprod.ai/health`
+with an explicit 10s deadline, guard shape matching `20260909050000` (fails loudly on a bad apply).
+**Ledger note:** my first pick of version `20260904020000` (today's date) collided with A2's own
+migration already holding that exact version in the ledger (`a_superseded_spec_cannot_still_be_asking`);
+retimestamped the file to `20260909070000`, past the newest row, before inserting. Verified live:
+`cron.job` carries `health-warm-tick`, `active=true`, the exact command text; `reserved_workspace_slugs`
+carries `health`/`route`.
+
+Guards: `health-imports-no-database.test.ts` reads the route's own source (an import-list guard, not
+a runtime probe) so a future edit adding "one more read" fails it; also drives the real handler
+directly for response shape and the `sha:null` no-env case.
+`the-health-warm-tick-targets-the-right-route-and-has-a-deadline.test.ts` mirrors P-38's own
+text-only migration guard for this one job.
+
+**Open: the before/after idle-latency readings, the packet's other acceptance item.** These measure
+the LIVE deployed Worker (a read at 12 minutes idle, twice, before and after the ping is running),
+so they follow A1's publish, not this push -- reported once the route is actually being pinged and
+enough idle time has passed to take a real "before" reading against it.
+
+**Blockers (A3 writes):** None now. Was blocked 00:51-02:55 IST on the classifier's permission
+prompt for the migration write; resolved by the founder's direct chat authorization, now standing
+for all three lanes (see his message, relayed to A1 and A2 directly).
 
 ### P-59 · A Ship that cannot deploy names the missing provider, and the one action · Lane: **A2** (after P-57) · Status: CODE DONE, PUBLISHED 01:05 IST 09-04 (A1 suite on the tip 13,991 / 0, tsc 0; live reads of the hold card and the Connections region follow) · Moves: 1, 3
 
