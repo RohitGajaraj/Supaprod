@@ -6359,7 +6359,7 @@ tsc 0. `bun test` 13892 pass / 22 skip / 37 todo / 0 fail / 36780 expect() acros
 
 **Blockers (A3 writes):** —
 
-### P-48 · The chat's seat turns speak in the run screen's vocabulary · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
+### P-48 · The chat's seat turns speak in the run screen's vocabulary · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed b0b8cac81) · Moves: 2, 3
 
 **Why.** P-37 gave Meridian three components with the reasoning written in: `Ask` (a card asks),
 `SeatSays` (a seat speaks in the first person about its own work, no button slot), `FoldingRow`
@@ -6380,7 +6380,40 @@ renders through `SeatSays` and never in the imperative.
 - [ ] A1 reads one chat with two seat turns and a folded tool result on the served build.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
-**Report (A3 writes):** —
+**Report (A3 writes):** Pushed `b0b8cac81`. `AskTurn` composes `SeatSays` for its three genuinely
+short, first-person, no-markdown seat statements — "Sent back", the failed-plan note, the
+record-was-empty honest-absence line — each was a hand-styled inline `<p>` before, each is now
+`SeatSays(seat, said)` exactly.
+
+**NOT composed through SeatSays: the crew's actual answer prose.** Filed as a finding directly in
+the code (a comment on the `Answer` register, not guessed around): `SeatSays.said` is a required
+plain `string` with no markdown or `children` support, and the founder's 2026-07-30 ruling
+(`Answer.tsx`'s own header) requires the answer to render through `Answer` or not at all. Putting it
+in `said` would either print literal `**bold**` again — the exact regression `Answer` exists to
+prevent — or duplicate the answer in a second, plain-text voice beside the real one. The Answer
+register's own rendering is untouched.
+
+`FoldingRow` composed for the one genuine "list" body: more than one landing. A single landing stays
+one compact row (`AskLanding`'s own contract — "one row, three facts", nothing to fold); two or more
+now fold under a lead naming the count and which kinds landed (reusing the already-exported
+`landingForKind`, not re-deriving it), body is the individual rows. Gates ("Waiting on you") stay
+unfolded on purpose — that register IS the thing waiting on a person, not audit detail. `Provenance`
+(model/cost/records-read behind *View credits*, same 2026-07-30 ruling) is untouched — it is already
+its own fold, and wrapping a fold in a fold would be the thing this packet is fixing, done to itself.
+
+`src/components/ask/__tests__/a-seat-turn-speaks-through-seatsays.test.tsx` drives the real `AskTurn`
+render (not a source-scan): the "Sent back" and failed-plan cases render through `SeatSays`'s own
+two-line layout (seat name as its own distinct label, above the sentence — proving composition, not
+a look-alike paragraph), and neither sentence opens on an imperative verb.
+
+No edits under `meridian/**` (confirmed via `git status`). tsc 0. `bun test` 13910 pass / 22 skip /
+37 todo / 0 fail / 36841 expect() across 1002 files. 0 `# Unhandled error between tests`. eslint 0
+errors (one pre-existing `react-refresh/only-export-components` warning, unrelated — `toTurns` was
+already exported alongside the component before this change). Meridian ratchet 5/5.
+
+Not yet done: the live read (acceptance box 2) — no browser access this session, same as prior
+packets; needs your walk.
+
 **Blockers (A3 writes):** —
 
 ### P-49 · The dead weight the audit named is gone, with its guards rewritten · Lane: **A3** · Status: READY (after P-48) · Moves: 5
