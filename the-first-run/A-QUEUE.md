@@ -7217,6 +7217,13 @@ wrong, and the real fault is two things the product does: it tried the managed p
 hours it offered a release gate that could not succeed, then spent the person's press on it.
 P-68 filed. The founder has nothing to set.
 
+**01:31 IST addendum.** The 19:50 UTC tick drove Ship after the press: the crew ran, produced
+nothing, and the track now holds `produced-nothing` with `attempts = 2` of 3; no `deployments`
+row was written, so the managed preview was not retried and no reason exists. One more tick spends
+the third attempt and the track reads given-up for a fault that is the product's. A1 set
+`deferred_until = now() + 6 hours` on `6817e386` at 20:01 UTC (a hold, reversible by clearing the
+column) so P-68 lands before the next attempt; A1 clears it when P-68 is published.
+
 
 ### P-68 · A managed preview that failed is tried again and says why, and a gate that cannot succeed is not offered · Lane: **A3** (after P-58, before P-59b) · Status: READY · Moves: 1, 3
 
