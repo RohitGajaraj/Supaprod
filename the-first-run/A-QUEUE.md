@@ -4353,7 +4353,7 @@ alone). eslint 0 new errors on all three touched files. Pushed `e995c5423` direc
 **Blockers (A3 writes):** the live walk on Helio Labs (acceptance line 1) — no browser this session,
 same as every prior packet.
 
-### P-30 · Ship files its own artifact · Lane: **A3** · Status: DONE (A3) · Moves: 3, 4
+### P-30 · Ship files its own artifact · Lane: **A3** · Status: DONE (A1, 09:15 IST, on the test; the first release a run makes is its live proof)· Moves: 3, 4
 
 **Why.** `spine_track_members` holds zero rows of kind `deployment`, ever (A3, P-28 census). So
 the Ship station produces nothing on the record, `whatItProduced` cannot say *Ship filed 1
@@ -4372,6 +4372,15 @@ release*. No new query shapes.
 **Acceptance.**
 - [x] The test above; `listChangelog`'s fourth hop resolves a release to its run through it.
 - [x] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+
+**A1 verdict: DONE on the test** _09:15 IST._ Both promote doors attach a `deployment` member at
+Ship through `attach.ts`; suite 13,686 / 0; published. The live proof is the first release a run
+makes, which follows the honest run. **Ruling on the out-of-scope question: R-27 stands.**
+`release.publish` is not forced to review. The human gate on this route is the merge
+(`studio.pr.merge`, review-pinned unless the founder sets `STUDIO_AUTO_SHIP`), and a promote past it
+is safe by proof, not by a click: merged, CI green at that sha, a preview at that commit, a recorded
+forecast. That the merged-PR precondition fails first today is the design working, not luck.
 
 **Report (A3 writes):** Dispatched a research agent before writing anything, because `attach.ts`
 already had `TOOL_PRODUCTS["release.publish"]` and `STATION_ARTIFACT.ship` fully registered — the
