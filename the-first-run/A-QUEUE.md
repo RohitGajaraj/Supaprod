@@ -7417,7 +7417,7 @@ not marked given-up for a fault that is the product's, and P-68's *Try the previ
 moment its attempts reset. A1 clears the deferral when P-68 is published.
 
 
-### P-68 · A managed preview that failed is tried again and says why, and a gate that cannot succeed is not offered · Lane: **A2** (moved from A3 at 02:00 IST 09-04, ahead of P-70: A3 silent since 00:47) · Status: CODE DONE (3e340b629; A2 reports 14,040 / 0 / 0, tsc 0; A1 suite on the tip 14,040 / 0, tsc 0; PUBLISHED 02:15 IST 09-04; the tablet track has attempts 0 and a deferral to 20:56 UTC so the old build cannot drive it before the new one serves; the retry is read after) · P-68b pushed (c958e26fe), one unhandled error in its own guard on the tip, fixed in 63b3fcf5f (A2 reports 14,130 / 0 / 0, tsc 0; A1 suite running); publish then the press · Moves: 1, 3
+### P-68 · A managed preview that failed is tried again and says why, and a gate that cannot succeed is not offered · Lane: **A2** (moved from A3 at 02:00 IST 09-04, ahead of P-70: A3 silent since 00:47) · Status: CODE DONE (3e340b629; A2 reports 14,040 / 0 / 0, tsc 0; A1 suite on the tip 14,040 / 0, tsc 0; PUBLISHED 02:15 IST 09-04; the tablet track has attempts 0 and a deferral to 20:56 UTC so the old build cannot drive it before the new one serves; the retry is read after) · P-68b pushed (c958e26fe), one unhandled error in its own guard on the tip, fixed in 63b3fcf5f; A1 suite on the tip 14,137 / 0 / 0 errors, tsc 0; PUBLISHED 04:38 IST 09-04 with P-72 part two and P-63; the press on the tablet track follows propagation · Moves: 1, 3
 
 **Why.** The live walk above. The path to an honest Ship is blocked by a preview deploy that
 failed once with no recorded reason and is never retried, while the release gate keeps offering
