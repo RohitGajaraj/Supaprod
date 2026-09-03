@@ -6947,7 +6947,7 @@ Nine of the 21 had been superseded properly and were still asking, so supersessi
 closed a gate; the trigger is the fix and the backfill ran through it. 'superseded' is a fact on
 the Ship page, never a sign-off.
 
-### P-58 · The Worker is warm when a person arrives · Lane: **A3** (after P-53) · Status: CODE DONE, pushed dad0909db, migration applied (ledger 20260909070000); idle readings pending publish · Moves: 3
+### P-58 · The Worker is warm when a person arrives · Lane: **A3** (after P-53) · Status: CODE DONE, PUBLISHED 03:08 IST 09-04 (dad0909db; A1 suite on the tip 14,063 / 0, tsc 0; cron job and ledger verified by object; A3 takes the idle readings once the route serves) · Moves: 3
 
 **A1, 03:00 IST 09-04, on A3's silence.** A3 was blocked from 00:51 to 02:55 on a permission
 prompt for P-58's migration in its own session; the founder answered it there and gave every lane
