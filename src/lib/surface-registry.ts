@@ -720,12 +720,11 @@ export const SURFACE_REGISTRY = {
     status: "planned",
   },
   fanout: { kind: "drawer", home: "working-strip", opensFrom: "working-strip", status: "planned" },
-  orchestrator: {
-    kind: "drawer",
-    home: "working-strip",
-    opensFrom: "working-strip",
-    status: "planned",
-  },
+  // P-29 (A-QUEUE.md, 2026-09-03): "orchestrator" (a planned drawer, never
+  // built) left this registry with its module (orchestrator.functions.ts,
+  // startOrchestratedMission and its siblings) -- deleted for R-35: nothing
+  // in the product may create a mission outside the track path, and a
+  // reachable-but-unused orchestrator was itself a latent door.
   "product-context": {
     kind: "drawer",
     home: "crew-drawer",
