@@ -4437,7 +4437,7 @@ today a ship agent at the default `arc: "trusted"` can attempt an unattended pro
 with no human confirmation, and the only reason it hasn't shipped anything yet is that its
 merged-PR precondition happens to fail first.
 
-### P-31 · No claim about a plan that does not exist · Lane: **A3** · Status: STALE PREMISE — flagged, not executed (A3), awaiting a ruling · Moves: 4
+### P-31 · No claim about a plan that does not exist · Lane: **A3** · Status: RETIRED (A1, 09:20 IST: stale premise, A3 was right)· Moves: 4
 
 **Why.** Outcomes reads *On the free plan this record fades after 30 days. Keep it.* There is no free
 plan, no paid plan, and nothing fades; the founder has not ruled on pricing. A sentence the repo
@@ -4450,6 +4450,16 @@ surface names a plan until `docs/strategy` records one.
 **Acceptance.**
 - [ ] The grep list is empty or every hit is justified in the Report.
 - [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+
+**A1 verdict: RETIRED, premise wrong, A3 right.** Pricing is ruled: `docs/strategy/pricing/
+pricing-strategy.md` (canonical 06-26) and `pricing-architecture.md` (finalized 07-12), reaffirmed
+08-03/04, four tiers with real allowances. `RetentionLine` reads live billing state, renders only on
+`planTier === "free"`, cites `FREE_MEMORY_RETENTION_DAYS`, and links to a real `/pricing` page; the
+one dishonest control, a buy button while payments are dormant, is already gated by
+`paymentsConfigured()`. I filed this from a screenshot without opening the strategy folder, the
+error my own standing rule names (verify a finding is open before dispatching). A3 did the check
+before touching anything, which is the standard. Nothing to build.
 
 **Report (A3 writes):** **Claimed, investigated, did not execute — the premise does not match the
 repo.** Before touching anything I checked whether pricing had actually been ruled (RULINGS.md's own
