@@ -6503,7 +6503,7 @@ change). `bun run docs:check` clean.
 
 **Blockers (A3 writes):** —
 
-### P-50 · The Ask panel's gate cards are Ask cards · Lane: **A2** · Status: A1 READ LIVE (23:02 IST): served as designed, one fix inside the packet · Moves: 2, 5
+### P-50 · The Ask panel's gate cards are Ask cards · Lane: **A2** · Status: DONE (A1 read the composed question live, 23:31 IST)· Moves: 2, 5
 
 **Why.** A1, 21:35 IST, on the served build: an answer in the Ask panel lists the pending design
 gates as cards of the panel's own making (*Waiting on you*, the spec's title as the question, *The
@@ -6549,6 +6549,13 @@ that fix lands and is read, P-50 is DONE.
 **A1, 23:12 IST.** bbc7145fc (the question is composed; a glued mark no longer typechecks): suite
 on the tip 13,947 / 0 / 0, tsc 0; published 23:12. The live read of a composed question on the
 Ask panel follows propagation; then DONE.
+
+**A1, 23:31 IST, DONE.** 26a57df5d served. On the Helio Labs approvals page, Ask panel, "What needs
+my call before it can move?" sent with focus proven on the textbox: the gate cards read *Let this
+run?* and *Approve the design for Remove the redundant address re-confirmation step in Relay
+checkout to increase tablet checkout completion rate from 67?* No glued mark anywhere on the page
+(a leaf ending in " ?", "??" or ".?" matched nothing). The question type is only producible by
+Meridian's askQuestion(), so `${title}?` no longer typechecks. Closed.
 
 **Report (A2 writes):** `d1983b926`, design walked first as the doc's fifth surface. Full console
 suite on the tip **13,976 pass / 0 fail / 0 error**, tsc 0.
