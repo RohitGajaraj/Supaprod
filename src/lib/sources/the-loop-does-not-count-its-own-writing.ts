@@ -26,14 +26,27 @@
  *               still being counted, and deleting a customer's data to fix our
  *               bug is not ours to do.
  *
- * WHY `source` AND NOT `source_kind`. `source_kind: "manual"` is honest and is
- * shared with rows a PERSON pasted in by hand, which are real evidence and the
- * most valuable kind in a young workspace. The thing that makes a row ours is
- * that nothing outside named it, and `source` is where that is recorded.
+ * WHAT IS TESTED, AND WHAT IS DELIBERATELY NOT. The thing that makes a row ours
+ * is that nothing outside named it, and `source` is where that is recorded, so
+ * that is the primary test. The lane is tested too, but only the lane added FOR
+ * this (`loop_authored`, `20260909030000`). The five original lanes are never
+ * excluded, and one of them is the reason: rows arriving as `manual` are rows a
+ * PERSON pasted in by hand, which are real evidence and the most valuable kind
+ * in a young workspace. Until this migration the loop's own exhaust wore that
+ * same label, so there was no way to mark one without hiding the other.
  */
 
 /** The value `signals.log` used to default to when no source was named. */
 export const LOOP_AUTHORED_SOURCE = "agent";
+
+/**
+ * The lane a row wears when it was written by a seat inside this loop. Added by
+ * `20260909030000`, because until then the five lanes were the five real doors
+ * and there was none for "we wrote this ourselves": these rows sat under
+ * `manual`, which is the lane a PERSON pastes evidence in through. The most
+ * valuable rows in a young workspace and the loop's own exhaust wore one label.
+ */
+export const LOOP_AUTHORED_KIND = "loop_authored";
 
 /**
  * Applied to any PostgREST query over `signals` that COUNTS or SURFACES
@@ -42,5 +55,12 @@ export const LOOP_AUTHORED_SOURCE = "agent";
  * count it as proof, and this rule is only the second one.
  */
 export function excludeLoopAuthored<T extends { neq: (col: string, val: string) => T }>(q: T): T {
-  return q.neq("source", LOOP_AUTHORED_SOURCE);
+  /*
+   * BOTH, and they are not the same test. `source` catches every row the old
+   * default produced, which is 96 of the 277 signals in the workspace the team
+   * walks. `source_kind` catches a row marked deliberately, including one whose
+   * `source` somebody later edits to look legitimate. Either alone leaves a
+   * door: the first misses a hand-marked row, the second misses the ninety-six.
+   */
+  return q.neq("source", LOOP_AUTHORED_SOURCE).neq("source_kind", LOOP_AUTHORED_KIND);
 }

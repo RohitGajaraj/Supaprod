@@ -29,7 +29,12 @@ import { readFileSync } from "node:fs";
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
 
 const REGISTRY = strip(readFileSync("src/lib/ai/tools/registry.server.ts", "utf8"));
-const RULE = readFileSync("src/lib/sources/the-loop-does-not-count-its-own-writing.ts", "utf8");
+/* Comments stripped before scanning. This file's own guard failed once because
+   the module's header QUOTES the lane it must never exclude, and a matcher that
+   reads comments is testing the prose rather than the code. */
+const RULE = strip(
+  readFileSync("src/lib/sources/the-loop-does-not-count-its-own-writing.ts", "utf8"),
+);
 const DISCOVERY = strip(readFileSync("src/lib/discovery.functions.ts", "utf8"));
 const PURE = strip(readFileSync("src/lib/spine/driver.ts", "utf8"));
 
@@ -67,14 +72,25 @@ describe("an evidence reader does not count the loop's own writing", () => {
     expect(RULE).toContain('export const LOOP_AUTHORED_SOURCE = "agent"');
   });
 
-  it("excludes on source and never on source_kind", () => {
+  it("never excludes the lane a person pastes evidence in through", () => {
     /*
-     * `source_kind: "manual"` is shared with rows a PERSON pasted in by hand,
-     * which are real evidence and the most valuable kind in a young workspace.
-     * Excluding on it would delete the customer's own voice from the count.
+     * `manual` is shared with rows a PERSON pasted in by hand, which are real
+     * evidence and the most valuable kind in a young workspace. Excluding that
+     * lane would delete the customer's own voice from the count. The loop's own
+     * rows wear their own lane instead (`loop_authored`, added by
+     * `20260909030000` because until then there was no lane for "we wrote this").
      */
-    expect(RULE).toContain('q.neq("source", LOOP_AUTHORED_SOURCE)');
-    expect(RULE).not.toContain('neq("source_kind"');
+    expect(RULE).not.toContain('"manual"');
+    expect(RULE).toContain('export const LOOP_AUTHORED_KIND = "loop_authored"');
+  });
+
+  it("tests both the source and the lane, because either alone leaves a door", () => {
+    // `source` catches the ninety-six rows the old default produced; the lane
+    // catches a row marked deliberately, including one whose source somebody
+    // later edits to look legitimate.
+    expect(RULE.replace(/\s+/g, " ")).toContain(
+      'q.neq("source", LOOP_AUTHORED_SOURCE).neq("source_kind", LOOP_AUTHORED_KIND)',
+    );
   });
 
   it("getSenseCoverage applies it, which is what the Arriving line reads", () => {
