@@ -1237,10 +1237,19 @@ export function DiscoverSurface({
     void qc.invalidateQueries({ queryKey: ["sense-coverage"] });
   };
 
-  // SW-6 cold start: from an empty desk a user can open a SEPARATE Explore
+  // SW-6 cold start: from an empty desk a user can move into a SEPARATE Explore
   // workspace to look around, instead of staring at nothing. It never fills
   // their real workspace with example data. Dormant unless the founder turns
   // SAMPLE_WORKSPACE_ENABLED on. On success we switch the user into it.
+  //
+  // THAT SWITCH IS WHY THE COPY ON THE DOOR READS AS IT DOES. This is not a
+  // preview mounted beside the person's own desk, and it is not view state:
+  // `setActiveWorkspaceId` writes the id to `localStorage`
+  // (`use-workspace.tsx:175`) and clears every workspace-scoped query, so the
+  // person stays in the sample on every later visit until they pick their own
+  // workspace out of the switcher in the top bar. A door that relocates you has
+  // to say that it relocates you and has to name the way back. The Gate's lines
+  // below do both; the wiring here is unchanged.
   const sampleEnabledQ = useQuery({
     queryKey: ["sample-workspace-enabled"],
     queryFn: () => fSampleEnabled(),
@@ -2567,10 +2576,7 @@ export function DiscoverSurface({
        * down (`level={2}`), so this is additive rather than a rewrite of
        * what the page reports.
        */}
-      <PageHeading
-        title="Arriving"
-        sub="What came in, and what it is becoming."
-      />
+      <PageHeading title="Arriving" sub="What came in, and what it is becoming." />
       <PageHeading
         level={2}
         title={headline}
@@ -2748,15 +2754,67 @@ export function DiscoverSurface({
                 Or capture it yourself below: a note, a pasted list, a document, a transcript.
                 Nothing has to be connected first.
               </span>,
+              /*
+               * THE SAMPLE DOOR NOW SAYS WHAT PRESSING IT DOES, because the
+               * sentence that stood here said close to the opposite of the code
+               * under it. It read: "The sample opens a separate Explore
+               * workspace of labelled example data. Yours stays empty." Two
+               * things were wrong with that and only one of them was a word.
+               *
+               *   1. "OPENS ... YOURS STAYS EMPTY" reads as a preview standing
+               *      beside the person's own desk. It is not one. The mutation
+               *      above calls `setActiveWorkspaceId(id)` on success, which
+               *      writes that id to `localStorage` (`use-workspace.tsx:175`),
+               *      so the press is a MOVE and a sticky one: every later visit
+               *      lands in the sample until the person switches back. Their
+               *      own workspace does stay empty, which is why that fact is
+               *      kept, but standing alone it invited the reading that they
+               *      were still standing in it.
+               *   2. "LABELLED" WAS A PROMISE THE ROWS CANNOT KEEP.
+               *      `seed_sample_workspace` inserts every theme, signal,
+               *      opportunity and spec with no `is_sample` column, so each
+               *      row takes the `false` default and the row-level Example
+               *      marks this very surface renders (the `is_sample` branches
+               *      further down) never fire. Measured in production: 2,144
+               *      rows across sample workspaces, none marked. A separate
+               *      migration fixes the seed for FUTURE workspaces, and the
+               *      rows already seeded stay unmarked, so a labelling promise
+               *      made here would be false for the person reading it today.
+               *
+               * What IS true today is what gets said instead. The WORKSPACE
+               * carries the flag (`seed-workspace.server.ts:276` writes
+               * `is_sample: true` on the workspace row), the switcher in the top
+               * bar renders that workspace, and the switcher is the way back.
+               * Named the way a person names it, not by its component.
+               */
               sampleOffered ? (
                 <span key="sample">
-                  The sample opens a separate Explore workspace of labelled example data. Yours
-                  stays empty.
+                  The sample is a move, not a preview: it switches you into a separate Explore
+                  workspace of example data, and later visits land there until you switch back. Your
+                  own workspace is not touched and stays empty.
                 </span>
               ) : null,
+              /* THE RETURN DOOR, on its own line rather than tucked into the
+                 sentence above, because the person who needs it is the one who
+                 has already been moved and is looking for the way out, not
+                 re-reading the paragraph that moved them. It carries the
+                 correction from (2) as well: the rows in there look like every
+                 other row, so the only honest label to point at is the
+                 workspace's, and that is the one thing the shell does show. */
+              sampleOffered ? (
+                <span key="sample-back">
+                  Nothing inside it is marked as an example, so the workspace switcher at the top is
+                  what tells you where you are. Pick your own workspace there to come back.
+                </span>
+              ) : null,
+              /* Was "The sample workspace did not open. Try again." The switch
+                 happens only in `onSuccess`, so on this branch the person has
+                 not been moved anywhere. Saying so is the difference between a
+                 retry and a hunt through the switcher for a workspace they were
+                 never put into. */
               sampleMutation.isError ? (
                 <span key="err" className="text-mrd-fail">
-                  The sample workspace did not open. Try again.
+                  The sample workspace did not open, so you are still in your own. Try again.
                 </span>
               ) : null,
             ].filter(Boolean) as React.ReactNode[]
@@ -2774,8 +2832,16 @@ export function DiscoverSurface({
             Connect a source
           </Action>
           {sampleOffered ? (
+            /* THE VERB HAS TO MATCH THE EVENT. These labels read "Explore a
+               sample workspace" and "Opening the sample", and both words are
+               the preview reading that the code does not support: the mutation
+               makes the seeded workspace ACTIVE and persists that choice, so
+               "explore" and "open" promised a look through a window and
+               delivered a relocation. The labels name the switch now, so the
+               button, the line above it and `setActiveWorkspaceId` all describe
+               the same thing happening. Label only: the wiring is untouched. */
             <Action busy={sampleMutation.isPending} onClick={() => sampleMutation.mutate()}>
-              {sampleMutation.isPending ? "Opening the sample" : "Explore a sample workspace"}
+              {sampleMutation.isPending ? "Switching you over" : "Switch to the sample"}
             </Action>
           ) : null}
         </Gate>

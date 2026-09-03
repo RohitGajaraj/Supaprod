@@ -160,6 +160,7 @@ import { FOOTER_NAV, PRIMARY_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav
 import { BoardPanel } from "./BoardPanel";
 import { ShortcutSheet, useShortcutSheetKey } from "./ShortcutSheet";
 import { AccountMenu, ScopeMenu } from "./ScopeMenu";
+import { SampleBanner } from "@/components/meridian/SampleBanner";
 import { AuditLineageSheet } from "@/components/supaprod/AuditLineageSheet";
 import { FindAnything } from "./FindAnything";
 import { genuinelyWorkingMissions } from "./genuinely-working";
@@ -726,7 +727,14 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   // Only the id. The NAME and the product moved to ScopeMenu, which owns the
   // scope control now; keeping a second copy here is how two headers drift.
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, workspaces, setActiveWorkspaceId } = useWorkspace();
+
+  /* The first workspace this person has that is NOT a fixture, which is where
+     the sample banner's return door goes. Undefined when they have none. */
+  const firstOwnWorkspace = React.useMemo(
+    () => workspaces.find((w) => !w.is_sample),
+    [workspaces],
+  );
 
   /*
    * The rail's collapsed state is the user's, so it survives a reload.
@@ -1631,6 +1639,34 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             <AccountMenu initials={initialsFrom(me.email, me.name)} />
           </div>
         </header>
+
+        {/*
+         * ── SAYING WHERE YOU ARE WHEN WHERE YOU ARE IS A FIXTURE (P-33) ─────
+         *
+         * Directly under the header, above every surface, because the door
+         * that brings people here MOVES them rather than previewing: Discover's
+         * empty-desk button sets the seeded workspace active and persists that
+         * choice, so the next visit lands here too. Before this, nothing on any
+         * screen said so and no return door was named anywhere.
+         *
+         * `firstOwnWorkspace` is the first NON-sample workspace the person has.
+         * It is frequently null and that is the ordinary case rather than an
+         * error: the door is offered ON an empty desk, and plenty of accounts
+         * hold only the sample. The banner drops the return control and keeps
+         * the sentence, because where you are is still worth saying when there
+         * is nowhere else to be.
+         */}
+        {activeWorkspace?.is_sample ? (
+          <SampleBanner
+            workspaceName={activeWorkspace.name}
+            ownWorkspaceName={firstOwnWorkspace?.name ?? null}
+            onReturn={
+              firstOwnWorkspace
+                ? () => setActiveWorkspaceId(firstOwnWorkspace.id)
+                : undefined
+            }
+          />
+        ) : null}
 
         {/*
           ── THE STRIP IS A RUN'S OWN STEP LIST, AND NOTHING ELSE (2026-09-02) ──
