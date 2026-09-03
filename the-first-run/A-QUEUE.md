@@ -5905,7 +5905,7 @@ prior one).
 **Blockers (A3 writes):** None. Both acceptance items marked A1's-to-walk have no live browser
 available to me this session; everything else is verified.
 
-### P-37 · The run screen reads as a product, not a dump of text · Lane: **A2** · Status: READY after the honest run walks once · Moves: 5
+### P-37 · The run screen reads as a product, not a dump of text · Lane: **A2** · Status: READY (the honest run walked once, 14:12 to 15:10 IST); A2 after the rest of P-04 · Moves: 5
 
 **Why.** The founder, on the tablet track's run at 12:08 IST: the gate card, the messages, the
 action items, the inside of the card, the text and the information are dumped with no hierarchy;
@@ -5918,6 +5918,25 @@ header and its chips, the hold line and the way out. One vocabulary of card, one
 of action; type scale and spacing from Meridian; motion from Meridian's tokens. Mockups first on
 Claude Design's canvas or in `docs/design`, walked with A1 before code; then Meridian components;
 then the run screen uses them. Nothing local, nothing forked.
+
+**What A1 saw on the honest run's screen, 14:12 to 15:10 IST, to design against (not a checklist to
+patch one by one; the shape is the defect).**
+1. Three asks in one breath on a hold: *Stopped, and not on you* in the footer, *Finish it in
+   Settings* and *Say what is unsettled* in the pane, *Let Discover try again* in the hold card.
+   One state, one sentence, one door first.
+2. *Waiting on you.* beside a *Run it now* button, two verbs for one state; on a person hold the
+   only verb is the answer.
+3. The character speaks twice about the same moment (*I've stopped, the reason is on the hold
+   line* above a card that says *Why it stopped*), and once out of turn (*I'm ready, press run*
+   after the person had pressed).
+4. *No runs yet* under the field while *Your runs* still reads *Reading your runs*.
+5. The hold's headline was the machinery's reason (*this run of the loop ran long*) while the
+   person's reason (*nothing is pointed at a source*) sat third in the pane. The person's reason
+   leads; the machinery's goes to the transcript.
+6. The transcript row: seat name, verdict, duration, tokens, a paragraph, a tool-call count, all at
+   one weight. Verdict and the one sentence that matters lead; the rest folds.
+7. The gate card (P-36 put it on screen; this packet makes it read): question, risk line, reason,
+   default and date, two answers, each in its own register, nothing else.
 
 **Acceptance.**
 - [ ] The founder walks the tablet track's run and the honest run and says it reads; A1 walks it
