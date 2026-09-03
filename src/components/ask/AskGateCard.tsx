@@ -31,6 +31,7 @@ import {
 } from "@/lib/approvals-queue.functions";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Ask } from "@/components/meridian/Ask";
+import { questionForGate } from "./a-question-is-composed-not-punctuated";
 
 type Settled = { verdict: "approve" | "reject" | "snooze"; consequence: string; failed?: boolean };
 
@@ -131,11 +132,21 @@ export function AskGateCard({
     );
   }
 
-  const question = asPolicy
-    ? `${item.title}?`
-    : item.title.endsWith("?")
-      ? item.title
-      : `${item.title}?`;
+  /*
+   * ── THE QUESTION IS COMPOSED, NOT PUNCTUATED (A1's live read, 2026-09-03) ─
+   *
+   * This was `${item.title}?`, and on the served build it produced
+   * "...checkout completion rate from 67 ?" and "Ships a merged changeset to
+   * production, where customers see it.?". A title is not a question with its
+   * mark missing: `prds.title` is a descriptive sentence, and a tool gate's
+   * title is the CONSEQUENCE of the call, which is evidence and already the
+   * first line of the reason below.
+   *
+   * The `endsWith("?")` branch was the tell. It existed because titles
+   * sometimes already carried a mark, which is a caller checking whether the
+   * data happened to be a question rather than asking one.
+   */
+  const question = questionForGate(item.kindKey, item.title, asPolicy);
 
   /*
    * `string[]` and not `ReactNode[]`, which it was. Every line pushed below is

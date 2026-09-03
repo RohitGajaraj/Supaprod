@@ -36,6 +36,7 @@
  * provenance belongs in the sentence it qualifies (A1, amendment 2).
  */
 import * as React from "react";
+import type { AskQuestion } from "./question";
 
 import { Action } from "@/components/meridian/surface-parts";
 
@@ -87,7 +88,7 @@ export function Ask({
   fallbackAction,
 }: {
   /** The whole ask, in one sentence. Leads, alone, at `--mrd-t-lead`. */
-  question: string;
+  question: AskQuestion;
   /**
    * The consequence, in PROSE and never a badge. A red HIGH RISK chip is a
    * category the reader has to know the taxonomy for; "this is irreversible and
