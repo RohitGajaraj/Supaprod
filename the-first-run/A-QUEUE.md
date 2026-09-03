@@ -6221,7 +6221,7 @@ still wanted), or (b) if this packet's real intent is reviving `MessageMeta.tsx`
 real, that is a different, bigger packet than "compose FoldingRow into an existing footer." Not
 proceeding on the file as named until this is resolved. Moving to P-46 while this is open.
 
-### P-46 · The launch copy is drafted against the canon and today's evidence number · Lane: **A3** · Status: CLAIMED (A3) · Moves: 6
+### P-46 · The launch copy is drafted against the canon and today's evidence number · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed 4e2273992; draft awaits founder yes/no) · Moves: 6
 
 **Why.** The outward pass is one of the five things between 70 and 100 percent. Every claim it
 makes has to survive today's number (943 of 1,512 signals were the loop's own writing until 15:15
@@ -6239,7 +6239,33 @@ file or row that proves it. Linked from the folder index. No production code.
 - [ ] Every claim has a proof row; A1 checks three at random against the repo or the database.
 - [ ] `bun run docs:check` clean · pushed · Report. The founder reads it and says yes or no.
 
-**Report (A3 writes):** —
+**Report (A3 writes):** Pushed `4e2273992`. New `docs/pitch/launch-page.md`: hero + subhead (judgment-
+gap framing, not throughput — the canon's own §2 survey evidence), the mechanism described in prose
+(§5's refusal on a station diagram respected), and the centerpiece — the honest-run story your P-41
+found and fixed today: 943 of 1,512 signals, 62%, were the loop's own notes miscounted as customer
+evidence; two rows had already changed a real decision; the fix excludes every agent-authored row
+with no real source at the write layer (`excludeLoopAuthored`), not a patch on the two rows found.
+Deliberately makes no usage-volume claim — §5 states why and names the number that would have been
+the temptation (`spine_tracks`: 113 total, 0 in a production workspace, verified live).
+
+Every claim carries a proof row (file, migration, or a query run live 2026-09-03) per Scope. Caught
+and fixed two of my own citation errors while drafting: the manufactured-evidence finding is P-41,
+not P-37 (I'd misremembered the packet number); and a claim that today's 37 correctly-timed-out cron
+jobs are correct BECAUSE of P-38's migration — they are not, P-38 is still unapplied. The 08-06
+rebuild (already live) is why they're correct today; P-38 is what would keep them correct after a
+future full replay. Fixed both before committing rather than after.
+
+Also updated `docs/pitch/launch-assets.md` §2 (Product Hunt tagline/description/first-comment) in
+place with the same framing — the old draft led with volume and used vocabulary
+("track record"/"audit trail") the canon retired from marketing surfaces — per the "update in
+place, never fork a parallel copy" rule, rather than leaving two live PH drafts across two files.
+Linked from `docs/pitch/README.md`'s folder index.
+
+`bun run docs:check`: clean of hard rot (only pre-existing, unrelated WARN items — no date-header
+warning on the new file, no orphan flag). No production code touched; no tsc/`bun test` run since
+Scope names none. Draft only — nothing outward ships without the founder's yes/no, per Scope's own
+acceptance line.
+
 **Blockers (A3 writes):** —
 
 ### P-42 · The grader reads evidence before it grades · Lane: **A2** · Status: CODE DONE, published 16:16 IST (A1: suite 13,831 / 0 on 7107fbaee); live read on the 06:00 UTC tick · Moves: 1, 2
