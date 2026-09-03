@@ -47,6 +47,9 @@
 import { AGENT_STATIONS, AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 import { MAX_STATION_ATTEMPTS, type HoldReason } from "@/lib/spine/driver";
 import { waiverFor, type SpineRoute } from "@/lib/spine/route";
+/* A value import, and safe: `attach.ts` imports one TYPE and nothing else, so
+   there is no cycle to create by reading its station map here. */
+import { STATION_ARTIFACT } from "@/lib/spine/attach";
 
 /**
  * How many times one track may be sent back for a fix before a person is asked.
@@ -660,6 +663,44 @@ export function decideCorrection(i: CorrectionInputs): CorrectionDecision {
       missing: need.missing,
       kind: "absent",
       because: `${label(i.station)} cannot proceed without ${need.missing}, and ${label(target)} is the station that files it.`,
+    };
+  }
+
+  /*
+   * -- P-03c. A STATION THAT PRODUCED ITS OWN ARTIFACT WAS NOT STARVED -----
+   *
+   * The branch below concludes "the input is not enough to work from" and sends
+   * the spec back to be rewritten. Its premise is that the station ran against
+   * this input and produced NOTHING. Where that is true it is the founder's own
+   * example and it is right.
+   *
+   * MEASURED ON THE LIVE RUN, 2026-09-02. `2fdf93b6` reached Build, produced a
+   * changeset, opened a pull request -- and was sent back to Define anyway,
+   * four times, because its attempts hit the ceiling for reasons that had
+   * nothing to do with the spec: red CI, a claimed path, and two drives that
+   * counted an attempt without dispatching a seat at all.
+   *
+   * So the loop told Define that a spec Build had DEMONSTRABLY BUILT FROM was
+   * not enough to build from, and Define wrote another one. That is the machine
+   * behind the duplicates: four `prd` rows and eight `prototype` rows on one
+   * track, and A1's measurement that 12 filed artifacts repeat 5 things already
+   * on the record.
+   *
+   * `STATION_ARTIFACT[station].kind` is the station's OWN output -- `changeset`
+   * for Build. Its presence is proof the input was sufficient, whatever went
+   * wrong afterwards. NOT `filedAtThisStation.length`, which is never zero at
+   * Build: the driver files a `mission` there before any seat runs, so a
+   * non-empty check would fire on every track and delete the founder's case.
+   *
+   * The work still stops. It stops at `given-up`, which says nothing more will
+   * be tried automatically, rather than spending another lap and another spec on
+   * a station that was never short of one.
+   */
+  const ownKind = STATION_ARTIFACT[i.station]?.kind ?? null;
+  if (ownKind && (i.filedAtThisStation ?? []).includes(ownKind)) {
+    return {
+      action: "give-up",
+      because: `${label(i.station)} has ${need.missing}, produced its own work from it, and still cannot finish. What is wrong is downstream of the ${need.missing}, so sending it back would rewrite something that was never the problem. Nothing more will be tried on this automatically.`,
     };
   }
 
