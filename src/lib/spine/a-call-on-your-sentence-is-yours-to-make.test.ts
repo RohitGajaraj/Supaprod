@@ -17,6 +17,7 @@ import {
   R39_REFUSAL,
   CARRIED_FOOTING,
   CARRIED_CHOICE,
+  footingIsCarried,
 } from "./a-call-on-your-sentence-is-yours-to-make";
 import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 
@@ -85,13 +86,18 @@ describe("a no on the person's own sentence is refused", () => {
   it("does not refuse when the footing could not be read", () => {
     // Blocking a legitimate no on a lookup failure would stop the one station
     // whose job is to stop work.
+    /*
+     * P-71c MOVED THE READ, so this asserts the rule rather than the old code.
+     * It used to check `!trackErr &&` against a `last_hold` lookup; the footing
+     * is read from the record now and the fail-open lives in
+     * `carriedEvidenceFor`, which returns `known: false` on any failed read.
+     */
     const reg = code(readFileSync("src/lib/ai/tools/registry.server.ts", "utf8"));
-    expect(reg).toContain("!trackErr &&");
-    // Asserted as the identifier, not as `=== CARRIED_FOOTING`: prettier wraps
-    // that comparison across a line and a guard coupled to where a line breaks
-    // is testing the formatter (F-189).
     expect(reg).toContain("CARRIED_FOOTING");
-    expect(reg.replace(/\s+/g, " ")).toContain("?? null) === CARRIED_FOOTING");
+    const fn = reg.slice(reg.indexOf("async function carriedEvidenceFor"));
+    const body = fn.slice(0, fn.indexOf("\n}\n"));
+    expect(body).toContain("known: false");
+    expect(body).toContain("} catch {");
     expect(CARRIED_FOOTING).toBe("carried-on-your-sentence");
   });
 
@@ -212,5 +218,72 @@ describe("the refusal becomes a question (P-71b)", () => {
     expect(CARD).toContain("CARRIED_CHOICE.options.map");
     expect(CARD).not.toContain("defaultId");
     expect(CARD).not.toContain("selected");
+  });
+});
+
+describe("the footing survives a continuation (P-71c)", () => {
+  const REG2 = code(readFileSync("src/lib/ai/tools/registry.server.ts", "utf8"));
+
+  /**
+   * A1's SECOND PROBE WALK, EXACTLY (track fa059cf4, 2026-09-04):
+   *   22:22  Sense searched, found nothing, carried the sentence
+   *   22:40  Decide ran out of time, so `last_hold` became `out-of-time`
+   *   22:40  the critic declined citing "no signals about holiday homes"
+   *
+   * The rationale matches the classifier on its own. P-71 still let it through,
+   * because the footing was read from `last_hold` and one continuation had
+   * already overwritten it.
+   */
+  it("refuses the decline that got through, with the hold overwritten", () => {
+    const carried = footingIsCarried({
+      // `track_drives` kept it: the Decide drive entered on the carried hold.
+      senseCarried: true,
+      signalsOnTrack: 0,
+      known: true,
+    });
+    expect(carried).toBe(true);
+    expect(
+      declineIsRefused({
+        call: "do-not-build",
+        carried,
+        rationale:
+          "Zero observed evidence. There are no signals about holiday homes, and the absence " +
+          "of demand signals means this is not worth building.",
+      }),
+    ).toBe(true);
+  });
+
+  it("never reads the footing off last_hold again", () => {
+    // The transient column asked a durable question. That is the defect, and it
+    // is the shape rather than the threshold.
+    const from = REG2.indexOf('if (a.call === "do-not-build" && trackId)');
+    const to = REG2.indexOf("throw new Error(R39_REFUSAL)", from);
+    expect(from).toBeGreaterThan(-1);
+    expect(to).toBeGreaterThan(from);
+    const block = REG2.slice(from, to);
+    expect(block).not.toContain("last_hold");
+    expect(block).toContain("carriedEvidenceFor(supabase, trackId");
+  });
+
+  it("takes either durable record, so one unreadable table does not lose it", () => {
+    const fn = REG2.slice(REG2.indexOf("async function carriedEvidenceFor"));
+    const body = fn.slice(0, fn.indexOf("\n}\n"));
+    expect(body).toContain('.from("track_drives")');
+    expect(body).toContain('.eq("tool_name", "sense.found_nothing")');
+  });
+
+  it("lifts the footing once a signal is on the track", () => {
+    // Not "Sense once found nothing" but "there is nothing here bearing on this
+    // sentence". A signal answers that, and the strategist's no is its own again.
+    expect(footingIsCarried({ senseCarried: true, signalsOnTrack: 1, known: true })).toBe(false);
+  });
+
+  it("does not refuse when the footing could not be read", () => {
+    // Not knowing the footing is not evidence of one.
+    expect(footingIsCarried({ senseCarried: true, signalsOnTrack: 0, known: false })).toBe(false);
+  });
+
+  it("still lets a decline through on a track Sense never carried", () => {
+    expect(footingIsCarried({ senseCarried: false, signalsOnTrack: 0, known: true })).toBe(false);
   });
 });

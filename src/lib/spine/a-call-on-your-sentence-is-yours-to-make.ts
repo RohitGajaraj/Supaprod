@@ -149,3 +149,54 @@ export const R39_MARKER = "carried on the person's own sentence";
 export function refusalHappened(errors: readonly (string | null | undefined)[]): boolean {
   return errors.some((e) => (e ?? "").includes(R39_MARKER));
 }
+
+/**
+ * ── THE FOOTING IS A FACT ABOUT THE TRACK, NOT ITS CURRENT HOLD (P-71c) ──
+ *
+ * P-71 read the footing as `last_hold === "carried-on-your-sentence"`, and A1
+ * walked a fresh sentence in the probe that slipped straight through it:
+ *
+ *   22:22  Sense searched, found nothing, carried the sentence
+ *   22:40  Decide ran out of time, so `last_hold` became `out-of-time`
+ *   22:40  the critic recorded a decline citing "zero observed evidence",
+ *          "no signals about holiday homes", "the absence of demand signals"
+ *
+ * The rationale would have matched the classifier on its own. The FOOTING read
+ * false, because `last_hold` is the current hold and one continuation had
+ * already overwritten it.
+ *
+ * That is a defect in the shape of the check rather than in its threshold: a
+ * transient column was asked a durable question. Sense carrying the sentence is
+ * something that HAPPENED; it does not stop having happened because the next
+ * station timed out.
+ *
+ * ── TWO RECORDS, EITHER OF WHICH PROVES IT ───────────────────────────────
+ *
+ * `track_drives.entry_hold` is the hold a drive STARTED with, so the Decide
+ * drive that followed the carry recorded `carried-on-your-sentence` permanently.
+ * `sense.found_nothing` is the tool call the seat made, which is the event
+ * itself. Both are on both probe tracks; both survived the overwrite. Either is
+ * taken as proof, so one unreadable table does not lose the footing.
+ *
+ * ── AND IT LIFTS WHEN THE WORKSPACE STOPS BEING EMPTY ────────────────────
+ *
+ * The footing is not "Sense once found nothing" but "there is nothing here
+ * bearing on this sentence". A signal filed on the track answers that, so the
+ * footing lifts and an ordinary decline is the strategist's own again. Without
+ * this the rule would outlive its reason and refuse a legitimate no forever.
+ */
+export type CarriedEvidence = {
+  /** A drive entered on the carried hold, or the seat said it found nothing. */
+  senseCarried: boolean;
+  /** Signals filed on this track. Any at all lifts the footing. */
+  signalsOnTrack: number;
+  /** False when a read failed, so the caller can decline to refuse. */
+  known: boolean;
+};
+
+/** Was this call made on the person's sentence alone? */
+export function footingIsCarried(e: CarriedEvidence): boolean {
+  if (!e.known) return false;
+  if (!e.senseCarried) return false;
+  return e.signalsOnTrack === 0;
+}

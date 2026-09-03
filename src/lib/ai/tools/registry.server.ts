@@ -145,7 +145,9 @@ import { refusalAfterHalt } from "@/lib/ai/tools/a-seat-that-halts-opens-nothing
 import {
   CARRIED_FOOTING,
   declineIsRefused,
+  footingIsCarried,
   R39_REFUSAL,
+  type CarriedEvidence,
 } from "@/lib/spine/a-call-on-your-sentence-is-yours-to-make";
 
 export type ToolCtx = {
@@ -3780,6 +3782,88 @@ const studioReview = def({
  * gives: a read that fails is not evidence, and blocking a legitimate commit on
  * a lookup failure stops honest work to punish a case we did not observe.
  */
+/**
+ * The durable evidence that this track is carried on the person's sentence.
+ *
+ * TWO RECORDS, EITHER OF WHICH PROVES IT, so one unreadable table does not lose
+ * the footing: `track_drives.entry_hold` is the hold a drive STARTED with (the
+ * Decide drive after the carry recorded it permanently), and
+ * `sense.found_nothing` is the tool call the seat actually made. Both were
+ * present on both probe tracks after `last_hold` had been overwritten.
+ *
+ * `known: false` on a failed read, and the caller then declines to refuse: not
+ * knowing the footing is not evidence of one, and blocking a legitimate no on a
+ * lookup failure would stop the one station whose job is to stop work.
+ */
+async function carriedEvidenceFor(
+  supabase: ToolCtx["supabase"],
+  trackId: string,
+  workspaceId: string | null | undefined,
+): Promise<CarriedEvidence> {
+  try {
+    /* Narrowed by `track_id`, which is this track's own row, so it is already
+       one workspace's. Written out anyway under P-67: a bare read of a tenanted
+       table is the shape the next person copies. */
+    const drives = await supabase
+      .from("track_drives")
+      .select("entry_hold")
+      .eq("track_id", trackId)
+      .eq("entry_hold", CARRIED_FOOTING)
+      .limit(1);
+    if (drives.error) return { senseCarried: false, signalsOnTrack: 0, known: false };
+    let senseCarried = ((drives.data ?? []) as unknown[]).length > 0;
+
+    if (!senseCarried) {
+      const runs = await supabase
+        .from("agent_runs")
+        .select("trace_id")
+        .eq("track_id", trackId)
+        .not("trace_id", "is", null)
+        .limit(200);
+      if (runs.error) return { senseCarried: false, signalsOnTrack: 0, known: false };
+      const traceIds = [
+        ...new Set(
+          ((runs.data ?? []) as Array<{ trace_id: string | null }>)
+            .map((r) => r.trace_id)
+            .filter((t): t is string => !!t),
+        ),
+      ];
+      if (traceIds.length > 0) {
+        let saidQ = supabase.from("tool_calls").select("id");
+        if (workspaceId) saidQ = saidQ.eq("workspace_id", workspaceId);
+        const said = await saidQ
+          .in("trace_id", traceIds)
+          .eq("tool_name", "sense.found_nothing")
+          .limit(1);
+        if (said.error) return { senseCarried: false, signalsOnTrack: 0, known: false };
+        senseCarried = ((said.data ?? []) as unknown[]).length > 0;
+      }
+    }
+
+    /*
+     * THE FOOTING LIFTS WHEN THE WORKSPACE STOPS BEING EMPTY. It is not "Sense
+     * once found nothing" but "there is nothing here bearing on this sentence",
+     * and a signal filed on the track answers that.
+     */
+    const signals = await supabase
+      .from("spine_track_members" as never)
+      .select("artifact_id")
+      .eq("track_id", trackId)
+      .eq("artifact_kind", "signal")
+      .is("superseded_at", null)
+      .limit(1);
+    if (signals.error) return { senseCarried: false, signalsOnTrack: 0, known: false };
+
+    return {
+      senseCarried,
+      signalsOnTrack: ((signals.data ?? []) as unknown[]).length,
+      known: true,
+    };
+  } catch {
+    return { senseCarried: false, signalsOnTrack: 0, known: false };
+  }
+}
+
 async function haltedInThisRun(ctx: ToolCtx): Promise<string | null> {
   if (!ctx.traceId) return null;
   /* Scoped, under P-67. The trace already narrows this to one run; the tenant
@@ -5737,14 +5821,20 @@ const decisionRecord = def({
      * failure would stop the one station whose job is to stop work.
      */
     if (a.call === "do-not-build" && trackId) {
-      const { data: trackRow, error: trackErr } = await supabase
-        .from("spine_tracks" as never)
-        .select("last_hold")
-        .eq("id", trackId)
-        .maybeSingle();
-      const carried =
-        !trackErr &&
-        ((trackRow as { last_hold?: string | null } | null)?.last_hold ?? null) === CARRIED_FOOTING;
+      /*
+       * ── READ FROM THE RECORD, NEVER FROM `last_hold` (P-71c) ───────────
+       *
+       * This asked `last_hold === CARRIED_FOOTING`, and A1's second probe walk
+       * went straight through it: Sense carried at 22:22, Decide ran out of
+       * time at 22:40 so `last_hold` became `out-of-time`, and the decline
+       * landed forty seconds later citing "no signals about holiday homes".
+       * The classifier would have caught those words; the FOOTING read false,
+       * because a transient column had been asked a durable question.
+       *
+       * Sense carrying the sentence is something that HAPPENED. It does not
+       * stop having happened because the next station timed out.
+       */
+      const carried = footingIsCarried(await carriedEvidenceFor(supabase, trackId, workspaceId));
       if (declineIsRefused({ call: a.call, carried, rationale: a.rationale })) {
         throw new Error(R39_REFUSAL);
       }
