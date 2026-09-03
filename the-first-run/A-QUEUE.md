@@ -6534,7 +6534,7 @@ asks and its default line saying what silence does.
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-51 · Every gate card names its two slots, and the alias goes · Lane: **A3** · Status: READY · Moves: 2, 3
+### P-51 · Every gate card names its two slots, and the alias goes · Lane: **A3** · Status: CLAIMED (A3) · Moves: 2, 3
 
 **Why.** P-37 gave `CallGate` two named slots, `risk` (prose, second) and `declaredDefault` (mono,
 last), because one slot called `consequence` had carried both sentences and they landed in each
