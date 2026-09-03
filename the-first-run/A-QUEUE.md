@@ -5014,6 +5014,17 @@ because the bundle live when it was made predated the fix; A2's session declined
 and A1 does not perform a write a lane was denied. It stays as it is; **founder's list: one insert
 of (workspace_id, owner_id, 'owner') if he wants it repaired, or delete it.**
 
+
+**A1, 13:20 IST · A2's sample door and arrival document are on main** (`810a016c6`, `d3f3516d0`,
+checkpoint `d39f363da`): `docs/design/arrival-2026-09.md`, the shell's sample tag and return door
+with a render test, and migration `20260909010000` redefining `seed_sample_workspace` to write
+`is_sample` marks. The function is applied (checked in `pg_proc`); the ledger row was missing and A1
+inserted it. **Gap:** the migration marks what the seeder writes from now on and backfills nothing,
+so the existing sample workspace's rows are unmarked (0 of 47 opportunities); the *Example* labels
+will not fire there. Follow-up inside P-33: backfill `is_sample` on every row of every workspace the
+seeder made, with the count before and after. Not yet verified by A1 on the live site (suite and
+publish after the restart).
+
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
