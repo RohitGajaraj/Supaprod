@@ -3989,7 +3989,7 @@ goes to zero. Seed workspace excluded. A1 rules on the census before the write.
 **Blockers (A3 writes):** —
 
 
-### P-29 · Every start door starts a run · Lane: **A3** · Status: READY (after P-14b) · Moves: 3, 4
+### P-29 · Every start door starts a run · Lane: **A3** · Status: CLAIMED (A3) · Moves: 3, 4
 
 **Why.** R-35 says a mission without a track is not a run, and three live buttons still make one:
 `GraphNodeActions.tsx`, `OpportunityDetailSheet.tsx`'s *start a mission*, and `plan.spec.$id.tsx`'s
