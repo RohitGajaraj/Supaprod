@@ -91,7 +91,7 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 ---
 
 **DEV SERVER: off** · any lane may start it when a packet needs a rendered check; the lane that starts it stops it and writes `off` here before reporting the packet.
-**LIVE WALKS (A1): paused 04:12 IST, the Chrome extension disconnected; publishes continue, walks resume when it reconnects. Pending walks: P-25a search panel, `/plan` and `/design` redirects, P-14 batch, P-18a.**
+**LIVE WALKS (A1): resumed 06:34 IST, the extension is back. Pending: P-14b (Outcomes), P-04 Learn tab and transcript row after the 06:00 UTC calibrate tick, P-18a.**
 
 ---
 
@@ -2369,6 +2369,12 @@ says the migration is not applied; it landed 2026-09-01: `track_hold_notices` ex
 the preference. Blocker withdrawn, header corrected. Third stale "this does not exist" comment in two
 days about a thing that does; read the schema, not the comment.
 
+
+**A1, 06:40 IST · why nothing is graded yet.** `decisions` on Helio Labs: 12 graded, all sample; 0
+real; `forecast_resolution_log` empty. The forecast audit rides `calibrate-tick` (`0 */6 * * *`),
+whose last run was 00:00 UTC, before the build carrying `1a3b2fefa` landed (~00:11 UTC). The eight
+self-referential forecasts grade at 06:00 UTC (11:30 IST); A1 reads the log then.
+
 **Report / A1 verdict:**
 
 ---
@@ -2503,7 +2509,7 @@ confirm the redraw is now instant.
 
 ---
 
-### P-14 · Delete five station pages and the mission run screen; keep Arriving and Outcomes · Lane: **A3** · Status: CLAIMED (A3) · A1 ruled per row 02:45 IST, deletions may start · Moves: 4
+### P-14 · Delete five station pages and the mission run screen; keep Arriving and Outcomes · Lane: **A3** · Status: DONE (A1, 06:40 IST; `/ship` and `/learn` follow P-14b and P-04) · Moves: 4
 
 **Ruled by A1 after the founder's question of 2026-09-02 19:12.** Two workspace-wide views are
 needed and are not stations: **Arriving** (what came in, from where, what is forming, what has not
@@ -2533,6 +2539,13 @@ list them in the Report before deleting anything).
       below is the reason: nothing is clear to delete yet.**
 - [ ] Every `Link` that pointed at a deleted page now points at `/track/:id` with the tab in search,
       or at `/start`. **N/A until a page is actually deleted.**
+
+
+**A1 verdict: DONE for the six** _06:40 IST, walked live._ `/decide`, `/plan`, `/design`, `/build` and
+`/runs/<id>` each land on Start with the composer in place; Board.tsx and its cluster are gone;
+32,742 lines out, route count 156 before and after, two regressions found and fixed by A3 rather than
+hidden, the sweep repointed every live door. Start's three cards now read as sentences. `/ship` and
+`/learn` go when P-14b is walked and P-04's grader has run (next calibrate tick 06:00 UTC).
 
 **Report (A3, 2026-09-03): the fact audit, and why nothing is deleted yet.**
 
@@ -3113,7 +3126,7 @@ Your blocker was a walk, and this is it. Three follow-ups, none of which reopen 
 ---
 
 
-### P-25a · The search results can be read · Lane: **A2** · Status: CODE DONE (A2) · A1 03:55: not in the 03:36 build (panel still 204px, no combobox role); re-verified on the next publish · Moves: 3, 5
+### P-25a · The search results can be read · Lane: **A2** · Status: DONE (A1, 06:40 IST, walked live) · Moves: 3, 5
 
 **Why.** P-25 is done and its results panel is 204px wide, the rail's width, so every title
 truncates at three or four words and the "In <run>" line under it truncates the same way. A person
@@ -3133,6 +3146,13 @@ from P-25 unchanged. Also add `aria-activedescendant` on the input (P-25 follow-
       ellipsis in the first 20 results, and the run context line reads whole.
 - [ ] Arrow keys, Enter, Escape as in P-25; `aria-activedescendant` follows the highlighted option.
 - [ ] Ratchet unchanged or lower · tsc 0 · `bun test` 0 fail · pushed · Report.
+
+
+**A1 verdict: DONE** _06:40 IST, supaprod.ai, Helio Labs._ *address* opens a 480px panel that escapes
+the rail; every title reads whole on one or two lines; the two *Homeowners abandon…* rows are told
+apart by their second line; the input is `role=combobox` with `aria-controls`, and after two ArrowDowns
+`aria-activedescendant` points at `find-anything-option-2`, which is `aria-selected`. The
+results-popover is Meridian's, as A2 argued.
 
 **Report (A2 writes):** Code on main at `7214a3933`. tsc 0 · `bun test` 0 fail · ratchet unchanged.
 
