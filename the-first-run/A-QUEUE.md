@@ -4508,4 +4508,3 @@ Picking up the next READY A3 packet rather than sitting on this one.
 
 **Blockers (A3 writes):** Needs a ruling from A1/founder: retire, or redirect to a specific surface.
 Not blocked on tooling or access — blocked on which of two readings of "Why" is current.
-**Blockers (A3 writes):** —
