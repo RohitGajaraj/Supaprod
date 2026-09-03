@@ -7043,7 +7043,7 @@ door's name from P-60's single list.
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads the titles.
 
-### P-62 · Start is a home, not a run list · Lane: **A2** (after P-60) · Status: READY · Moves: 2, 3
+### P-62 · Start is a home, not a run list · Lane: **A2** (after P-60) · Status: CODE DONE (028c7a156; A2 reports 14,021 / 0 / 0, tsc 0; A1 suite running; the three sentences re-run against the database follow) · Moves: 2, 3
 
 **Why.** Audit §1 and §3; the founder, 00:08: "today we have only the app saying that start, so a
 lot of things are not in home."
@@ -7248,6 +7248,24 @@ with a non-null reason, or a successful preview and the gate raised; the card ne
 promote without a preview. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 publishes and reads the row and the card.
+
+
+### P-69 · Opening Arriving stamps the last look · Lane: **A2** (after P-67) · Status: READY · Moves: 1, 2
+
+**Why.** P-62 found `brain_last_seen` has a table, a row, and had no reader; it now has one
+(Start's "what came in since you last looked") and still no writer that a person's visit fires, so
+Helio reads *You have not looked yet* against 140 findings, which is the honest branch and will
+stay that way forever unless a visit writes the row.
+
+**Scope.** Whoever opens `/arriving` (and the Discover surface inside a run, if it is the same
+desk) stamps `brain_last_seen` for that person and workspace on arrival, once per visit, never
+from a background read; the sentence on Start then counts from it. A guard: the stamp writes only
+from the route's mount, never from a query. Nothing else changes.
+
+**Acceptance.** Open Arriving on Helio, return to Start: the sentence reads a since-count from
+that visit (re-run: rows newer than the stamp). Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 walks it.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
