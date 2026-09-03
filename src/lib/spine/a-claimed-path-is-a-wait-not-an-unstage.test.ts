@@ -406,3 +406,72 @@ describe("the sentence and the parser are one round trip", () => {
     }
   });
 });
+
+/**
+ * ── THE NAMED HOLD EXISTED AND LOST TO THE CLOCK ──────────────────────────
+ *
+ * MEASURED 00:20 UTC, 2026-09-03. The builder ran in fix mode, staged, and
+ * `studio.commit` was refused because another run held the path — every part of
+ * that working as intended. The drive then took 1m40s against the 45-second
+ * budget, the deadline branch fired first, and the track was written
+ * `out-of-time` with an empty because-sentence.
+ *
+ * Both facts were true and they are not equal. `out-of-time` says "come back and
+ * we will carry on", which is a promise this track cannot keep: the wall is
+ * still there and the next drive meets it again. A person reading it presses Run
+ * it now and hits the same refusal — the exact failure `waitingOnAnotherRun` was
+ * written to prevent, arriving one branch earlier than the code that prevents it.
+ *
+ * The wall is the fact. The clock is not.
+ */
+describe("a claim refusal outlives the deadline", () => {
+  const DRIVER_SRC = readFileSync("src/lib/spine/driver.server.ts", "utf8");
+  const driverOnly = DRIVER_SRC.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
+
+  it("checks for a claim before the out-of-time hold is written", () => {
+    /*
+     * Order is the entire fix. That branch RETURNS, which is why the claim
+     * handling further down never saw the refusal.
+     */
+    const claimAt = driverOnly.indexOf("refusalIsAClaimedPath(claimedNow.tool");
+    const outOfTimeAt = driverOnly.indexOf('last_hold: "out-of-time"');
+    expect(claimAt).toBeGreaterThan(-1);
+    expect(claimAt).toBeLessThan(outOfTimeAt);
+  });
+
+  it("ends on the claim hold, with the sentence, not on the clock", () => {
+    const branch = driverOnly.slice(
+      driverOnly.indexOf("const claimedNow = refusedTool(steps);"),
+      driverOnly.indexOf('last_hold: "out-of-time"'),
+    );
+    expect(branch).toContain("last_hold: CLAIMED_PATH_HOLD");
+    expect(branch).toContain("last_hold_because: because");
+    expect(branch).toContain("waitingOnAnotherRun({");
+  });
+
+  it("counts no attempt there either", () => {
+    // Same reasoning as the claim branch below it: nothing this station did was
+    // wrong, and there is nothing to do differently until the other run merges.
+    const branch = driverOnly.slice(
+      driverOnly.indexOf("const claimedNow = refusedTool(steps);"),
+      driverOnly.indexOf('last_hold: "out-of-time"'),
+    );
+    expect(branch).not.toContain("attempts:");
+  });
+
+  it("and the sentence a person reads is never empty, whichever hold wins", () => {
+    /*
+     * A1 asked for "the because-sentence is never empty". The COLUMN is null for
+     * `out-of-time` and that is deliberate — F-127, enforced by two guards: a
+     * generic line stored in a column meant for specifics reads as a specific
+     * reason to every surface that shows it. What must never be empty is what a
+     * person reads, and that comes from `HOLD_LINE` when the column is null.
+     *
+     * So this asserts the thing that actually matters, on the hold that was
+     * observed empty and on the one that now wins.
+     */
+    expect(HOLD_LINE["out-of-time"]).toBeTruthy();
+    expect(HOLD_LINE["out-of-time"].length).toBeGreaterThan(20);
+    expect(HOLD_LINE[CLAIMED_PATH_HOLD]).toBeTruthy();
+  });
+});

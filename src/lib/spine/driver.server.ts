@@ -2829,6 +2829,58 @@ export async function driveTrackOnce(
     .update({ spend_used_usd: spent, seat_cursor: ranLong ? ranLongAtSeat : 0 } as never)
     .eq("id", row.id);
 
+  /*
+   * -- THE WALL IS THE FACT. THE CLOCK IS NOT. ------------------------------
+   *
+   * MEASURED ON THE LIVE RUN, 00:20 UTC 2026-09-03. The builder ran in fix
+   * mode, staged, and `studio.commit` was refused because another run holds the
+   * path -- the claim refusal working exactly as intended. The drive then took
+   * 1m40s against the 45-second budget, this branch fired, and the track was
+   * written `out-of-time` with an EMPTY because-sentence. The named hold existed
+   * and lost to the clock.
+   *
+   * Both facts are true and they are not equal. `out-of-time` says "come back
+   * and we will carry on", which is a promise this track cannot keep: the wall
+   * is still there and the next drive meets it again. A person reading it
+   * presses Run it now and hits the same refusal, which is the exact failure
+   * `waitingOnAnotherRun` was written to prevent, arriving one branch earlier.
+   *
+   * So a claim refusal seen during the run wins over the deadline. Checked here
+   * rather than later because this branch RETURNS, which is why the claim
+   * handling further down never saw it.
+   */
+  if (ranLong) {
+    const claimedNow = refusedTool(steps);
+    if (claimedNow && refusalIsAClaimedPath(claimedNow.tool, claimedNow.error)) {
+      const held = claimedPathFrom(claimedNow.error);
+      const because = waitingOnAnotherRun({
+        path: held.path ?? "a file",
+        missionTitle: held.missionTitle,
+        prNumber: null,
+      });
+      await supabase
+        .from("spine_tracks" as never)
+        .update({
+          // No attempt, for the same reason the claim branch below counts none:
+          // nothing this station did was wrong and there is nothing to do
+          // differently until the other run merges.
+          last_hold: CLAIMED_PATH_HOLD,
+          last_hold_because: because,
+          driven_at: new Date().toISOString(),
+        } as never)
+        .eq("id", row.id);
+      return {
+        trackId: row.id,
+        station,
+        moved: false,
+        arrivedAt: null,
+        hold: CLAIMED_PATH_HOLD,
+        line: because,
+        attached,
+      };
+    }
+  }
+
   // Out of TIME, ours rather than the station's, so it is reported before the
   // budget hold and never counts as an attempt. The work is fine and the money
   // is fine; the Worker driving it has a duration limit.
