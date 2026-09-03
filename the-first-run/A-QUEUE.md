@@ -6539,7 +6539,7 @@ gates follows propagation.
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-51 · Every gate card names its two slots, and the alias goes · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed 9703ab229) · Moves: 2, 3
+### P-51 · Every gate card names its two slots, and the alias goes · Lane: **A3** · Status: DONE (A1 read the approvals page live, 22:10 IST) · Moves: 2, 3
 
 **Why.** P-37 gave `CallGate` two named slots, `risk` (prose, second) and `declaredDefault` (mono,
 last), because one slot called `consequence` had carried both sentences and they landed in each
@@ -6565,6 +6565,15 @@ Meridian edits beyond removing the alias and its test branch. A test that no cal
 instance of the slot defect on the approvals page (*Approve · unblocks Build for this spec* sat in
 the default's slot; it is the risk) and removed the alias with a test that no caller passes it.
 The read of the approvals page on the served build follows propagation.
+
+**A1, 22:10 IST · read live and DONE.** The approvals page's card: title, product, *Approve ·
+keeps it and moves it to Now on the roadmap* as the risk line second, the reason in its own block,
+*Waiting on you for 56 days.* in mono, then the answers. Two things seen there for the next
+packets, not this one: the card still offers three buttons (*Approve / Decline / Snooze*), which
+is P-50's third-answer shape on `CallGate` and belongs to P-53's migration to `Ask`; and the demo
+workspace's queue reads *66 decisions are ready for you*, *65 pieces of work are stopped, waiting on
+you*, the oldest 56 and 49 days, which is a fact about Helio Labs' seeded state that the arrival
+story should not inherit (founder item: the demo queue is a graveyard).
 
 **Report (A3 writes):** Pushed `9703ab229`. `git grep -ln "<CallGate"` found exactly two composers,
 not the three-plus surfaces your broader `consequence=` grep suggested — verified each hit before
@@ -6615,7 +6624,7 @@ the approvals page and one Ask gate card.
 
 **Blockers (A3 writes):** —
 
-### P-52 · Two more vocabularies: a Choice and a Quiet · Lane: **A2** · Status: READY (design first) · Moves: 2, 5
+### P-52 · Two more vocabularies: a Choice and a Quiet · Lane: **A2** · Status: CODE DONE, published 22:12 IST (A1: suite 13,926 / 0 on 9faa3bf37) · Moves: 2, 5
 
 **Why.** A2, P-50: `meridian/Gate` carries three shapes across sixteen call sites in twelve files.
 A binary ask (eight or nine sites, which `Ask` covers). A picker with N named options (*Which source
@@ -6642,10 +6651,13 @@ now names its three shapes with file and line.
 - [ ] The doc's two surfaces; the two components; the guards.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
+**A1, 22:12 IST.** Choice and Quiet landed with their headers and guards; suite on the tip
+13,926 / 0 / 0, tsc 0; published 22:12. They are read live when P-53 puts them on a surface.
+
 **Report (A2 writes):** —
 **Blockers (A2 writes):** —
 
-### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: READY (after P-52) · Moves: 2, 3
+### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: READY (P-52 is on main and green; A3 may start) · Moves: 2, 3
 
 **Why.** One vocabulary is the point of the whole design pass. With `Ask`, `Choice` and `Quiet` in
 Meridian, `Gate` has no shape left to carry.
@@ -6654,6 +6666,10 @@ Meridian, `Gate` has no shape left to carry.
 moves to the component that fits its shape: the binary asks to `Ask`, the pickers to `Choice`,
 the zero states to `Quiet`; `Gate` is deleted with a guard that no surface composes it; its tests
 are rewritten to the new components. No Meridian edits beyond the deletion.
+
+**A1, 22:12 IST:** `CallGate` is in scope too: the approvals page's *Snooze* is the third-answer
+shape P-50 ruled on, so `CallGate` composes `Ask` (or is retired into it) with *Snooze* as the
+default line's own action, not a third button.
 
 **Acceptance.**
 - [ ] `git grep` finds no composer of `Gate`; the guard; the rewritten tests.
