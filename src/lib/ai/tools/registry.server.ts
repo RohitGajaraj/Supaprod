@@ -115,6 +115,8 @@ import {
   CANNOT_BE_GRADED,
 } from "@/lib/spine/a-forecast-about-our-own-paperwork";
 import { buildSettlePatch } from "@/lib/brain/forecast-resolution";
+import { playbookFilesForTrack } from "@/lib/spine/playbook-files.server";
+import { PLAYBOOK_FILES, playbookPath } from "@/lib/spine/playbook-files";
 import { claimedPathRefusal } from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import type { ProviderAuthCache } from "@/lib/connectors/resolve.server";
@@ -2440,6 +2442,78 @@ const studioStage = def({
         .upsert(row, { onConflict: "changeset_id,path" });
       if (error) throw new Error(`stage failed for ${c.path}: ${error.message}`);
       staged.push({ path: c.path, op });
+    }
+
+    /*
+     * -- THE RECORD THE VERDICT WAS GRADED AGAINST GOES IN THE REPO (P-21) ---
+     *
+     * A team on Anthropic's AI-native SDLC playbook keeps `intent.md`, `spec.md`
+     * and `plan.md` committed, and every leading indicator that playbook defines
+     * is the gap between two of those files' git timestamps. We hold the same
+     * facts in `decisions`, `prds` and `tasks`, where nobody outside this product
+     * can read them. Staged under `.supaprod/`, the pull request carries them and
+     * the customer's own repo holds the record.
+     *
+     * WRITTEN HERE RATHER THAN AT COMMIT, because staging is the one place a
+     * changeset's contents are assembled and `studio.commit` pushes whatever is
+     * staged. Adding a second writer at commit would mean two places deciding
+     * what is in a changeset.
+     *
+     * RE-STAGED EVERY TIME, deliberately. `upsert` on `(changeset_id, path)`
+     * replaces the contents, so a spec edited after the first stage is reflected
+     * rather than frozen at whatever it said when the branch was opened.
+     *
+     * FAILS SOFT AND LOUDLY. These files are a record OF the work, not the work.
+     * A track whose spec cannot be read still has a real change to ship, and
+     * refusing the stage over a missing document would stop the loop to protect
+     * a document.
+     */
+    try {
+      const { data: trackRow } = await supabase
+        .from("spine_track_members")
+        .select("track_id")
+        .eq("artifact_kind", "mission")
+        .eq("artifact_id", missionId)
+        .maybeSingle();
+      const trackId = (trackRow as { track_id?: string } | null)?.track_id ?? null;
+      if (trackId) {
+        const { data: t } = await supabase
+          .from("spine_tracks")
+          .select("title")
+          .eq("id", trackId)
+          .maybeSingle();
+        const book = await playbookFilesForTrack(
+          supabase,
+          trackId,
+          (t as { title?: string } | null)?.title ?? "Untitled",
+        );
+        // Nothing on the record yet means three files of "not recorded yet",
+        // which is noise in a pull request rather than a record of anything.
+        if (book.anything) {
+          for (const name of PLAYBOOK_FILES) {
+            const { error: bookErr } = await supabase.from("studio_changes").upsert(
+              {
+                changeset_id: changeset.id,
+                user_id: userId,
+                path: playbookPath(name),
+                op: "create",
+                new_content: book.files[name],
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "changeset_id,path" },
+            );
+            if (bookErr) {
+              console.error(`[studio.stage] ${playbookPath(name)}: ${bookErr.message}`);
+              break;
+            }
+            staged.push({ path: playbookPath(name), op: "create" });
+          }
+        }
+      }
+    } catch (e) {
+      console.error(
+        `[studio.stage] could not stage the playbook files: ${e instanceof Error ? e.message : String(e)}`,
+      );
     }
 
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };

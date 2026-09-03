@@ -36,6 +36,7 @@ import {
   CLAIMED_PATH_HOLD,
   pathFromWaitingSentence,
 } from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
+import { playbookFilesForTrack, type PlaybookFiles } from "@/lib/spine/playbook-files.server";
 import {
   describeRoute,
   nextStation,
@@ -2993,6 +2994,37 @@ export const whoHoldsThePath = createServerFn({ method: "GET" })
       }
     },
   );
+
+/**
+ * The three playbook files for a track, for the Plan tab to draw.
+ *
+ * A thin wrapper on `playbookFilesForTrack`, which `studio.stage` also calls
+ * when it writes them into the pull request. One composer, two readers: composed
+ * twice they drift, and the screen showing one `intent.md` while the repo holds
+ * another is the kind of disagreement nobody finds until it matters.
+ */
+export const getPlaybookFiles = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<PlaybookFiles | null> => {
+    const { supabase } = context;
+    try {
+      const { data: t } = await supabase
+        .from("spine_tracks" as never)
+        .select("title")
+        .eq("id", data.trackId)
+        .maybeSingle();
+      const title = (t as { title?: string } | null)?.title ?? "Untitled";
+      return await playbookFilesForTrack(supabase, data.trackId, title);
+    } catch (e) {
+      // The pane draws nothing rather than an error: these files are a view of
+      // rows that are already on screen in other forms.
+      console.error(
+        `[getPlaybookFiles] ${data.trackId}: ${e instanceof Error ? e.message : String(e)}`,
+      );
+      return null;
+    }
+  });
 
 export const getTrackActivity = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

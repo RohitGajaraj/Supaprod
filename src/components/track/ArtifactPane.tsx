@@ -110,6 +110,7 @@ import {
 import { becameWorkOnItsOwn } from "@/lib/spine/promote";
 import { Verdict } from "@/components/meridian/verdict";
 import { verdictProps } from "@/components/track/verdict-reading";
+import { PlaybookFilesPanel } from "@/components/track/PlaybookFiles";
 
 /** What each station exists to do, for the not-run sentence. Display labels only. */
 const PURPOSE: Record<string, string> = {
@@ -2735,6 +2736,11 @@ function StationPanel({
           </div>
         ) : null}
         {stepItems.length > 0 ? <TaskSteps items={stepItems} /> : null}
+        {/* P-21. Drawn at Plan, which is the station that produces the shape the
+            playbook's `spec.md` and `plan.md` describe, and where a person is
+            already reading the spec above. It renders nothing until the record
+            holds something to put in them. */}
+        {stop.station === "define" ? <PlaybookFilesPanel trackId={trackId} /> : null}
         {missionItems.map((m) => (
           <MissionCard key={`mission:${m.artifactId}`} item={m} origin={origin} />
         ))}
