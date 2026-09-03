@@ -140,6 +140,7 @@ import { buildAuditInsert } from "@/lib/roadmap-audit";
 import { validateCommitment } from "@/lib/roadmap-governance";
 import { CONNECTOR_REGISTRY } from "@/lib/connectors/registry";
 import { requiredArgsClause } from "@/lib/ai/tools/required-args";
+import { derivedSpecTitle } from "@/lib/ai/a-spec-derives-its-title-on-a-word";
 
 export type ToolCtx = {
   supabase: SupabaseClient;
@@ -4460,6 +4461,73 @@ const prdDraft = def({
       }
     }
 
+    /*
+     * ── AND THE BRIEF PATH HAD NO TWIN GUARD AT ALL (P-57) ─────────────────
+     *
+     * The guard above keys on `opportunity_id`. Measured on production
+     * 2026-09-03: every one of the 10 specs Helio Labs filed in the last seven
+     * days came in on the BRIEF path with `opportunity_id` NULL, so that guard
+     * has never fired for any of them. It is not that it was too weak; it was
+     * never reachable on the path the product actually uses.
+     *
+     * What A1 read on the served Ask panel, 23:31 IST: the same design gate
+     * twice, both real rows. Track 2fdf93b6 carries FOUR specs filed at Define
+     * in two pairs a minute apart (dd0a33e8 21:30:19 / 64fa0caf 21:31:01, then
+     * 378d26ea 22:30:26 / f2aa82f1 22:31:04); a supersede retired the first of
+     * each pair and left two live, each with `design_gate_status='pending'`.
+     * Population the same day: 9 tracks hold more than one live spec at Define,
+     * 21 live specs between them.
+     *
+     * KEYED ON THE TRACK, NEVER ON THE BRIEF TEXT. Two runs a minute apart do
+     * not write identical briefs, so matching text would miss exactly the case
+     * that produced this. The track is what "one spec per Define" means.
+     *
+     * Fails OPEN on an unreadable check, for the reason the guard above states:
+     * a duplicate spec is recoverable, a Define station that refuses to work on
+     * a failed read is not.
+     */
+    if (!opp && trackId) {
+      const { data: liveOnTrack, error: liveErr } = await supabase
+        .from("spine_track_members" as never)
+        .select("artifact_id")
+        .eq("track_id", trackId)
+        .eq("artifact_kind", "prd")
+        .eq("station", "define")
+        .is("superseded_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const liveId = (liveOnTrack as { artifact_id?: string | null } | null)?.artifact_id ?? null;
+      if (liveErr) {
+        console.error(
+          `[prd.draft] could not check this track for a live spec (${trackId}): ${liveErr.message}`,
+        );
+      } else if (liveId) {
+        /*
+         * The member row proves a spec is attached; the spec itself carries the
+         * words the crew needs back. A member pointing at a spec that cannot be
+         * read is not a reason to block the draft, so that case falls through
+         * to generation exactly as an unreadable check does.
+         */
+        const { data: existingByTrack } = await supabase
+          .from("prds")
+          .select("id,title,status")
+          .eq("id", liveId)
+          .maybeSingle();
+        if (existingByTrack) {
+          return {
+            existing: true as const,
+            prd_id: existingByTrack.id,
+            title: existingByTrack.title,
+            status: existingByTrack.status,
+            message:
+              `This track already has a spec at Define: "${existingByTrack.title}" (${existingByTrack.id}, status ${existingByTrack.status}). ` +
+              "A second draft would put two competing specs on one track, and both would reach the design gate. Read it with prd.get or revise it with prd.revise instead of drafting again.",
+          };
+        }
+      }
+    }
+
     let themeCtx = "";
     if (opp?.theme_id) {
       const { data: th } = await supabase
@@ -4536,9 +4604,7 @@ const prdDraft = def({
      *  the same heuristic generatePrd falls back to (discovery.functions.ts:2583-2586).
      *  Deterministic on purpose: a second model call to name a spec is a cost
      *  the Define station's step budget has already proven it cannot spare. */
-    const derived = opp
-      ? `Spec: ${opp.title}`
-      : (brief.split(/[\n.!?]/)[0] ?? "").trim().slice(0, 120) || "Untitled spec";
+    const derived = opp ? `Spec: ${opp.title}` : derivedSpecTitle(brief);
 
     /** STAMP THE TENANT OR REFUSE BY NAME. DO NOT MAKE THIS KEY CONDITIONAL AGAIN,
      *  and do not "simplify" it to a plain null either — here is why both fail.
