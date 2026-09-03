@@ -4038,7 +4038,7 @@ class in that directory fails. Product surfaces outside Meridian are not in scop
 **Report / Blockers / A1 verdict:**
 
 
-### P-27 · The push guard tells "not fetched" from "no ancestor" · Lane: **A3** · Status: CLAIMED (A3) · Moves: 5
+### P-27 · The push guard tells "not fetched" from "no ancestor" · Lane: **A3** · Status: DONE (A3, pushed `3a01164d0`, live-validated against a real stale-fetch race) · Moves: 5
 
 **Why.** The pre-push orphan guard refused A2's clean fast-forward at 04:50 IST with "NO common
 ancestor with origin/main", because A1 had pushed between A2's fetch and push: the hook ran
@@ -4056,11 +4056,47 @@ temp repo with (a) a concurrent push and (b) a true orphan.
 its test.
 
 **Acceptance.**
-- [ ] Case (a) prints the fetch-and-rebase sentence and exits non-zero without the word orphan;
+- [x] Case (a) prints the fetch-and-rebase sentence and exits non-zero without the word orphan;
       case (b) still blocks with the orphan sentence.
-- [ ] `bun test` 0 fail / 0 error (console) · pushed · Report.
+- [x] `bun test` 0 fail / 0 error (console) · pushed · Report.
 
-**Report (A3 writes):** —
+**Report (A3, 2026-09-03).** Commit `90bc9c541`, pushed to `main` (`19d902d43..3a01164d0`).
+
+The hook's logic moved out of `install-git-hooks.sh`'s heredoc into a tracked, executable file,
+`scripts/hooks/pre-push.sh` -- the installed hook is now a one-line `exec` shim for it. `git cat-file
+-e "$remote_sha"` runs before `git merge-base`: absent means "fetch and rebase, then push" (no
+"orphan" anywhere in that message), present-but-no-common-ancestor is still the real block,
+`ALLOW_ORPHAN_MAIN` and the re-init-fingerprint check both unchanged.
+
+**One more real bug, found making the fix actually take effect:** `install-git-hooks.sh`'s own
+`[ ! -d .git ]` guard is always true inside a linked worktree (`.git` there is a pointer FILE, never
+a directory), so the script has silently installed nothing in ANY worktree of this repo, ever --
+confirmed live: this worktree's own pre-push hook, before this commit, was still the pre-P-27 version
+installed from the main checkout months ago, which is the hook that produced the original "NO common
+ancestor" false alarms this whole session hit repeatedly. Fixed with `git rev-parse
+--is-inside-work-tree` and `git rev-parse --git-path hooks` (resolves the real, shared hooks
+directory from any worktree). Installed and smoke-tested live in this worktree before pushing.
+
+**Live-validated by accident, in the best way.** The very first push attempt on this commit hit a
+genuine concurrent-push race (`19d902d43` landed between my fetch and push) -- the FIXED hook caught
+it correctly: "origin/main has moved and this checkout has not fetched it yet... Fetch and rebase,
+then push", no mention of orphan. Fetched, rebased, pushed clean on the second attempt. The exact
+failure mode this packet exists to fix, demonstrated by the fix itself on its own first real push.
+
+A second, narrower instance of the same class of bug -- `pre-merge-commit`'s own literal
+`.git/MERGE_MSG` path -- guards a separate concern (the archive-branch merge lock, F6) and is flagged
+rather than fixed here, out of this packet's scope.
+
+New test: `src/__tests__/the-push-guard-tells-not-fetched-from-no-ancestor.test.ts` (under `src/`,
+not beside the hook script, because `bunfig.toml`'s `[test] root` is `"src"` and only `src/` -- a
+test outside it is invisible to a plain `bun test`, found before it could ship that way). Drives the
+real hook against real temp git repos built with actual git commands, not a source-scan of its text:
+case (a) concurrent push (blocked, "fetch and rebase", never the orphan case's own wording) plus a
+clean-pass fast-forward variant; case (b) true orphan (blocked, says orphan) plus `ALLOW_ORPHAN_MAIN=1`
+still working; scope checks that a non-main ref and a branch delete are never guarded at all.
+
+tsc 0. `bun test`: 13,736 tests / 0 fail / 0 unhandled errors (console reporter's tail, Rule 14).
+eslint 0 new errors. `bash -n` syntax-checked both scripts.
 **Blockers (A3 writes):** —
 
 
