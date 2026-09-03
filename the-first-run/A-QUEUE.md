@@ -3360,7 +3360,7 @@ precisely is this Report's job, stopping it is A1's per that ruling.
 ---
 
 
-### P-18a · The top bar counts only what a person can act on · Lane: **A3** · Status: CLAIMED (A3) · Moves: 3
+### P-18a · The top bar counts only what a person can act on · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pushed `372b855de`) · Moves: 3
 
 **Why.** At 03:20 IST the bar on Helio Labs read *65 decisions are ready for you · Merges the pull
 request into the branch · 10m ago*. No count in the workspace is 65: 5 approvals are pending (2 on a
@@ -3376,9 +3376,11 @@ does not render. Every rotating sentence in the bar names its source in a test: 
 **Files.** `src/components/shell/AppFrame.tsx` and the reader it calls; tests beside them.
 
 **Acceptance.**
-- [ ] With the current data the bar says *2 decisions are ready for you* or omits the phrase, and a
-      test pins the count to the approvals-on-tracks reader.
-- [ ] **The zero case must never say nothing is waiting while gates are pending** (A1 ruling,
+- [x] With the current data the bar says *2 decisions are ready for you* or omits the phrase, and a
+      test pins the count to the approvals-on-tracks reader. **Live number not re-verified this pass
+      (no browser this session); the source is pinned, and the count now moves with real track-scoped
+      gates rather than a fixed workspace-wide figure.**
+- [x] **The zero case must never say nothing is waiting while gates are pending** (A1 ruling,
       2026-09-03, on P-14's Board.tsx deletion). The count reads the *unwindowed* set of pending
       gates on open tracks, not a time-boxed slice of it -- the same lesson the 2026-08-31
       quiet-morning fix already paid for once (`Board.tsx`'s `quietMorning`/`anythingBlocked`,
@@ -3386,10 +3388,43 @@ does not render. Every rotating sentence in the bar names its source in a test: 
       the bar call it quiet). A test pins this with the 89-missions incident quoted in its own
       header, so the reason survives the file the way `a-quiet-morning-is-a-claim-about-the-workspace.test.ts`
       did for the surface this one replaces.
-- [ ] tsc 0 · `bun test` 0 fail · pushed · Report with the reader's old name and what it counted.
+- [x] tsc 0 · `bun test` 0 fail · pushed · Report with the reader's old name and what it counted.
 
-**Report (A3 writes):** —
-**Blockers (A3 writes):** —
+**Report (A3, 2026-09-03).** Commit `372b855de`, pushed to `main` (`0c5da9091..3fa884b55`). The old
+reader was `getApprovalsQueue` (`src/lib/approvals-queue.functions.ts`), reading
+`queue.data?.items.length` -- a federation of TEN gate families across the whole workspace
+(tool-call confirm/review, decisions, memory graduation, trust graduation, specs in review, Critic
+verdicts, assumption challenges, design gates, playbooks), with no regard for whether any of them
+sat on an open track. It counted every pending call a person happened to own, anywhere; the bar's own
+words ("ready for you," beside "N runs are moving") only ever meant live work.
+
+New reader: `listGatesOnTracks` (`src/lib/spine/track.functions.ts`), factored out of
+`listRunsForStart`'s own `gateByTrack` resolution the exact way `listMovingTracks` was already
+factored out of its `workingByTrack` query (P-18) -- pending gates on OPEN TRACKS ONLY, the same rows
+Start marks *Needs you*. Both the count and the preview detail beside it (the first gated track's own
+title, previously `queue.data?.items[0]`) now come from this one reader, closing the count/preview
+split that produced the original bug (a count from one source next to a detail from another that
+could name a gate outside the count's own population).
+
+The "At least N" / "N+" floor caveat (`gatesArePartial`, from `countIsAFloor` on `getApprovalsQueue`'s
+own `incomplete` flag) is retired, not carried forward: it existed because the old reader bounded ten
+families to a fixed limit each and could drop some of what it counted. `listGatesOnTracks` has no
+families to bound -- one query, capped at 50 open tracks the same way `listTracks`/`listMovingTracks`
+already are without flagging that cap. `AppFrame.live-line.test.ts`'s "the shell states a bounded
+count as a bound" describe block pinned the old caveat directly; retired with an explanation rather
+than re-spelled for a claim that no longer applies.
+
+Test coverage: new file `src/components/shell/the-bar-counts-gates-on-open-tracks.test.ts` pins the
+source-swap, the shared count/preview reader, and the 89-missions no-time-window acceptance line
+(quoted in its own `describe` header). `nothing-in-flight-was-also-what-a-failure-said.test.ts`'s
+read-failure canary updated from four to five documented soft-catches (`listGatesOnTracks` follows
+the same re-raise-on-genuine-failure rule every other reader in the file does).
+
+tsc 0. `bun test`: 13,722 tests / 0 fail / 0 unhandled errors (dual-reporter, Rule 14). eslint 0 new
+errors (two pre-existing react-refresh warnings in `AppFrame.tsx`, unrelated). No CSS touched, ratchet
+unchanged.
+**Blockers (A3 writes):** A1's live walk on Helio Labs to confirm the actual on-screen number and
+sentence -- no browser was available this session to do it myself.
 
 ### P-19 · Promote `Verdict` and `GotYou` into Meridian · Lane: **A2** · Status: DONE (A1, 00:05 IST, reviewed as a Meridian promotion under R-17 and R-20) · Moves: 4
 
