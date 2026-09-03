@@ -6062,6 +6062,14 @@ binding, and the run's line after the binding (*Now reading <source> for Relay*)
 - [ ] A1 walks it end to end on Helio Labs / Relay and the next Sense pass names the source.
 - [ ] tsc 0 · `bun test` full console suite on the tip, 0 fail / 0 error (rule 17) · pushed · Report.
 
+**A1, 17:07 IST.** Suite on the tip 13,870 / 0 / 0, tsc 0; published 17:07 with A2's gate card
+and door decision. Two follow-ups inside this packet: the run's own line after a binding (*Now
+reading <source> for Relay*) does not exist and is built as the hold line's successor on the next
+Sense pass; a source satisfied only by an env credential with no `connections` row is a finding
+for the Report, schema untouched. The door's deep link (`/sync?product=<id>` preselecting Relay)
+is read by A1 after propagation; the end-to-end walk needs a run on a no-source hold, which is
+the founder's second sentence.
+
 **Report (A3 writes):** Pushed `2f8d8631d` (rebased clean onto `a6d3039f9`, no conflicts — none of
 A2's P-37 commits touched `ArtifactPane.tsx`, `AskInPlace.tsx`, `track.functions.ts` or
 `_authenticated.sync.tsx`).
