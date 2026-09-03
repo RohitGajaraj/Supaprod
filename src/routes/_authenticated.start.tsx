@@ -19,6 +19,12 @@ import { listTopOpportunities } from "@/lib/discovery.functions";
 import { matchProductFromSentence, type ProductCandidate } from "@/lib/spine/product-match";
 import { ComposerProductPicker } from "@/components/start/ComposerProductPicker";
 import type { WorkShape } from "@/lib/spine/route";
+import { readHomeAnswers } from "@/lib/start/home-answers.functions";
+import { homeAnswers } from "@/components/start/three-answers-above-your-runs";
+import { HomeAnswers } from "@/components/start/HomeAnswers";
+import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
+import { APPROVALS_QUEUE_PREFIX } from "@/lib/query-keys";
+import { queueShape } from "@/components/approvals/a-queue-is-a-shape-not-a-total";
 
 /**
  * ── THE FRONT DOOR, AND WHAT IT USED TO ASK BEFORE IT ASKED ANYTHING ──────
@@ -335,6 +341,43 @@ function StartLanding() {
    * names the surface for the one screen that needs to, here.
    */
   const sessionEnded = endedSessionFor(runs.error);
+  /*
+   * ── THE THREE ANSWERS ABOVE THE RUN LIST (P-62) ─────────────────────────
+   *
+   * FOUNDER 00:08 2026-09-04: "today we have only the app saying that start, so
+   * a lot of things are not in home."
+   *
+   * The waiting shape comes from the SAME `getApprovalsQueue` the approvals
+   * heading reads (P-56), never a second count, so the home and the page it
+   * opens cannot disagree about how much is waiting.
+   */
+  const fHomeReads = useServerFn(readHomeAnswers);
+  const homeReads = useQuery({
+    queryKey: ["start-home-answers", activeWorkspaceId ?? null],
+    queryFn: () => fHomeReads({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+    staleTime: 60_000,
+  });
+  const fQueue = useServerFn(getApprovalsQueue);
+  const queueRead = useQuery({
+    queryKey: [...APPROVALS_QUEUE_PREFIX, "start-home", activeWorkspaceId ?? null],
+    queryFn: () => fQueue({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+    staleTime: 60_000,
+  });
+  /*
+   * A PENDING READ IS UNREAD, NOT EMPTY, and that is why each is `isSuccess`
+   * rather than `data ?? []`. The first frame of a home that says "Nothing is
+   * waiting on your answer" before it has looked is the lie this whole region
+   * is typed to prevent.
+   */
+  const answers = homeAnswers({
+    waitingShape: queueRead.isSuccess
+      ? queueShape((queueRead.data?.items ?? []).map((i) => i.kindKey))
+      : null,
+    arrivingCount: homeReads.isSuccess ? homeReads.data.arrivingCount : null,
+    lastLookedAt: homeReads.isSuccess ? homeReads.data.lastLookedAt : null,
+    learnedCount: homeReads.isSuccess ? homeReads.data.learnedCount : null,
+  });
+
   if (sessionEnded) {
     return (
       <SessionEnded title="Start" error={runs.error}>
@@ -388,6 +431,10 @@ function StartLanding() {
           />
         ) : null}
       </div>
+
+      {/* The three answers sit BELOW the composer and above the run list: hand
+          work over, then what needs you, then what happened. */}
+      <HomeAnswers answers={answers} />
 
       {/*
        * A REFUSAL AND A THROW ARE DIFFERENT, AND BOTH ARE SAID.
