@@ -99,10 +99,11 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     the merged tip, read the console's `pass` / `fail` / `error` line, and write that line.
 
 18. **A live claim names the commit it proved, by a string only that commit introduced** (A2, P-33
-    walk, 14:20 IST). Lovable's `latest_commit_sha` tracks the GitHub sync, not what supaprod.ai
-    serves; a publish can build a commit behind the one it reports. Before saying a fix is live,
-    find on the page a word or number that did not exist before the fix, and say which commit put
-    it there.
+    walk, 14:20 IST; A2 withdrew the accusation at 14:26, the method stands). Lovable's
+    `latest_commit_sha` moves when the sync lands and the served build follows minutes later, so a
+    read taken in between says a fix is missing when it is on its way. Before saying a fix is live
+    or absent, find on the page a word or number that did not exist before the fix, say which commit
+    put it there, and read a second time before concluding it is not there.
 
 ### The bar a packet is verified against, in this order
 
