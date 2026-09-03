@@ -6884,7 +6884,9 @@ is the brief's first sentence cut at 120 characters mid-phrase with no marker, s
    derived title of a 200-character sentence is whole.
 4. Data: nothing. Which of the two live specs stands is the founder's, and the double card on the
    Ask panel is the visible symptom that makes P-55's "35 design gates" partly a count of twins.
-   Report the population: how many tracks hold more than one live spec at Define, with the query.
+   Population, A1 23:38 IST: 9 tracks hold more than one live spec at Define, 21 live specs between
+   them (`spine_track_members` kind `prd`, station `define`, `superseded_at IS NULL`, grouped by
+   track, having count > 1). Re-run it in the report.
 
 **Acceptance.** Guards green; full suite on the tip, tsc 0; the population query and its number in
 the report. A1 reads the next brief-path Define pass on a live track and finds one spec.
