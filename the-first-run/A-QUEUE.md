@@ -4639,7 +4639,7 @@ Picking up the next READY A3 packet rather than sitting on this one.
 Not blocked on tooling or access — blocked on which of two readings of "Why" is current.
 
 
-### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3, pass 3) · Moves: 2, 3
+### P-32 · Start's runs appear within two seconds · Lane: **A3** · Status: pass 3 accepted on bytes; 2-second line at ~2.4 s (A1, 11:15 IST) · pass 4 on the prefix· Moves: 2, 3
 
 **Why.** The front door reads *Reading your runs.* for three to six seconds on a warm load and
 over nine on this morning's cold one (A1, 06:34 and 09:20 IST, Helio Labs: 15 open tracks). A
@@ -4693,6 +4693,23 @@ runs are a few kilobytes, so a base select is returning whole member payloads (c
 columns, or artifact bodies), and a second reader does the same. Pass 3: name both readers, select
 only what the row needs, and add an acceptance line: **no `/start` server response over 32 KB on
 Helio Labs**, measured by A1. The round-trip work from passes 1 and 2 stands.
+
+
+**A1 verdict on pass 3: the byte line holds; the time line is 0.4 s short.** Two warm loads after
+the 11:00 publish (Performance API):
+
+| load | document loaded | first server call | runs reader answers | largest response | over 32 KB |
+| --- | --- | --- | --- | --- | --- |
+| v=92 | 547 ms | 898 ms | 2,510 ms | 9,733 B | 0 |
+| v=93 | 462 ms | 1,140 ms | 2,377 ms | 9,866 B | 0 |
+
+From about 4–7 s to about 2.4 s; the 800 KB responses are gone. What is left is two things of
+similar size: 0.4–0.7 s between document load and the first call (the route's `beforeLoad`), and
+1.2–1.6 s for the runs reader itself. **Pass 4:** cut the prefix (run the readers concurrently with
+the session and onboarding checks rather than after them, or prime the onboarding answer at sign-in)
+and shave the reader's remaining round trips; the timing marks A3 added are not visible in the
+browser (no `console` lines, no `performance` marks or measures), so say where they land or make them
+`performance.measure` entries A1 can read. Acceptance unchanged: first row within 2 s on three loads.
 
 **Report, pass 3 (A3 writes):** Named both readers by measuring every `/start`-reachable select
 against Helio Labs' real data (Lovable MCP, read-only) rather than guessing which of the seven was
