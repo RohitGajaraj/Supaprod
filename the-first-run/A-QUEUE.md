@@ -5004,3 +5004,33 @@ in a client-facing select. `listSignals` first.
 
 **Report (A3 writes):** —
 **Blockers (A3 writes):** —
+
+
+### P-36 · The gate a person is asked to answer is on screen, and every open change is on its run · Lane: **A3** · Status: READY, before P-32 pass 4 · Moves: 2, 3
+
+**Why.** The founder opened the tablet track's run to answer PR #4's merge gate (11:56 IST) and
+could not find the pull request or the answer. Two causes, both seen by A1 on the same screen.
+(1) The gate card's answer sits below the composer: the left pane is a 475px scroller holding
+4,285px, the card's text scrolls out of view, and the only button in it, *Let it run*, is off
+screen; nothing on the screen says there is a button below. (2) The track's changeset (PR #4) was
+never filed as a member, because it was created before the attach step existed, so the Build record
+read *Build filed 1 run*, with no *Open the pull request* and no *Diff*. A1 inserted that one member
+row by hand at 12:00 IST and the record now reads *1 run and 1 code change · PR #4 · Open the pull
+request · App | Diff*.
+
+**Scope.** (1) A gate that is waiting on a person renders with its answer visible without
+scrolling: the card pins its actions, or the pane opens scrolled to the card with the actions in
+view, and the run's banner says what the answer is (*Let it run* / send it back). Use the design
+skills per rule 16 and land any new piece in Meridian through A2. (2) Backfill: every
+`studio_changesets` row in `pr_open` or `merged` whose mission belongs to a track gets its
+`changeset` member at station `build` if missing (census SQL in the Report, then the insert, then
+the count after); and a guard that `studio.pr.open` filing a changeset always attaches it.
+
+**Acceptance.**
+- [ ] On the tablet track's run, the merge gate's button is visible on load at 1440×756 and the
+      banner names the answer; A1 walks it.
+- [ ] Census before and after; zero `pr_open`/`merged` changesets on tracks without a member.
+- [ ] tsc 0 · `bun test` 0 fail / 0 error · pushed · Report.
+
+**Report (A3 writes):** —
+**Blockers (A3 writes):** —
