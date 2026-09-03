@@ -5593,7 +5593,7 @@ no recorded reason and nobody can say whether it is the token, the app or the pa
 **Blockers (A3 writes):** —
 
 
-### P-16b · The sentence field is the first stop · Lane: **A3** · Status: DONE-PENDING-VERIFY (A3) · Moves: 2, 5
+### P-16b · The sentence field is the first stop · Lane: **A3** · Status: DONE (A1 verified live, 15:18 IST) · Moves: 2, 5
 
 **Why.** On Start the composer is the thirteenth tab stop (A1, DOM focus order, 12:15 IST). The
 screen exists for that field.
@@ -5630,6 +5630,12 @@ stop is *Skip to main content* landing on `#main-content`, and the composer has 
 (`document.activeElement` is the textarea). Second half (the product beside the field, c55244776)
 published 15:05, read after propagation. Seen while there, for P-37 not this packet: *No runs
 yet* renders under the field while *Your runs* still says *Reading your runs*.
+
+**A1, 15:18 IST · second half verified live and DONE** (c55244776, by its own string): under the
+field, *This run is for* with a picker holding Prism and Relay; typing *Show the last outage time
+on the homeowner app status tile* without pressing produced *The sentence sounds like Relay. Use
+it?* beside the picker, one press to take, nothing applied on its own; the draft was cleared. With
+the first half read at 15:07, both acceptance items are met on the live site.
 
 **Report (A3 writes):**
 
