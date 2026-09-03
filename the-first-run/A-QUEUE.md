@@ -1857,6 +1857,15 @@ under the fix-mode rule and the premise check; A1 reads it at 00:29. Expected: t
 the check's words and `studio.fix.commit` appends to PR #5's branch; three real failures land on
 `given-up`, not on Define.
 
+
+**A1, 06:00 IST · 00:20 UTC tick, both rules live.** The builder ran in fix mode (attempts stayed
+0), staged, planned tests, and `studio.commit` was refused with the new sentence: *This change
+touches src/checkout/AddressStep.tsx, which is claimed by "Work declined due to missed forecast" right
+now.* P-03c and fix mode work. Then the drive wrote `out-of-time` with an empty because: the run took
+~1m40s against the 45-second budget and the deadline path wrote the hold instead of
+`waiting-on-another-run`. To A2 before P-21: a claim refusal seen during the run sets the claim hold
+whatever the deadline says, and the because-sentence is never empty.
+
 **Blockers (A2 writes):** the two decisions above. Everything in the packet's Files list is done.
 `loop.server.ts` needed no change and `driver.ts`'s Ship brief needed none: the brief already says
 *"Call release.publish. A release that is only in your answer did not happen"* and `FILE_IT.ship`
@@ -2067,7 +2076,7 @@ five. The count is unbounded and the list is bounded now, and the sentence says 
 
 ---
 
-### P-03b · A hold only a person can clear does not take a slot every ten minutes · Lane: **A2** · Status: READY (after P-04's live half) · Moves: 3
+### P-03b · A hold only a person can clear does not take a slot every ten minutes · Lane: **A2** · Status: DONE-PENDING-VERIFY (A2 `77eed934b`, suite 13,630 / 0; A1 reads `6199f3df`'s drives after the publish) · Moves: 3
 
 **Why.** P-03a stopped a track waiting on a DATE from holding the front of the sweep. This is the
 same shape from the other side: a track waiting on a PERSON is fetched and driven every ten minutes,
