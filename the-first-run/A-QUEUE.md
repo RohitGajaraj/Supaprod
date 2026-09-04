@@ -9796,7 +9796,7 @@ its start and A1 reads it. Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers.
 
 
-### P-128 · Ship hosts a repo that is not ours · Lane: **A2** (after P-113) · Status: DECISION HALF PUSHED (8edeb8179; the ruling placed as R-41 by A1 16:00 IST; A1 gate running; the deploy path is P-128b) · Moves: 1, 3
+### P-128 · Ship hosts a repo that is not ours · Lane: **A2** (after P-113) · Status: DECISION HALF DONE AND PUBLISHED (8edeb8179; R-41 placed; A1 gate: build 0, tsc 0, 14,566 pass / 0 fail; published 16:01 IST; the deploy path is P-128b) · Moves: 1, 3
 
 **Why.** The honest Ship went live today because relay-homeowner-app is a Supaprod template app:
 `supaprod.json` at the root and a `main.ts` that `Deno.serve`s a static page. `changeset-deploy`
@@ -10217,8 +10217,11 @@ built in 41 s, 2.3 MB*) and the deployment row records the tool, the output dire
 build time. Guard: a fixture Vite repo previews to a URL with the host mocked; a build that
 crosses the ceiling holds with the reason; a server shape never reaches the build.
 
-**Acceptance.** A second repo in the Helio workspace (a Vite app under the Supaprod org, which A1
-creates) goes sentence to preview URL through the loop, the run screen naming the shape. Full
+**Acceptance.** A second repo in the Helio workspace (a Vite app under the Supaprod org) goes
+sentence to preview URL through the loop, the run screen naming the shape. A1's attempt to create
+that repo (`Supaprod/helio-status-site`, a plain Vite site with no `supaprod.json`) was denied at
+the founder's permission prompt at 16:00 IST; the founder creates it or allows the creation, and
+until then the walk uses A2's fixture. Full
 suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 walks the second repo.
