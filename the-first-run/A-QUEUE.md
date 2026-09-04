@@ -8406,6 +8406,15 @@ build 0.
 
 ### P-86 · The honest Ship: one real change through Build, preview, gate and promote · Lane: **A2** (now) · Status: IN PROGRESS, A2 report 10:29 IST: candidate `2fdf93b6` confirmed (not sample, bound to relay-homeowner-app, spec targets the read-only card and the Change Address link); the track is parked `going-in-circles` since 01:30 09-03 after six BuilderFileConflict refusals, because the waiting-on-another-run branch keyed on the credential-refusal detector and could never fire (fixed in e1a10235b); PR #5 is tests without the component change, CI red for the honest reason, and is NOT merged. Next: A1 un-parks the track (a person's press, under the founder's direct grant), the loop rebuilds the claim, A1 presses the merge gate on P-72's card and later the release gate; A2 does everything either side · Moves: 1, 3, 5
 
+**Plan for the press, A1, 10:33 IST (from A2's read).** On `2fdf93b6`'s run screen: *Let Build try
+again* (resets attempts and station_drives, which is what lifts the park), then *Run it now*. Not
+*Send it back to Design*: it would spend two stations to reach the same Build. Expected: Build
+dispatches, the claim on `AddressStep.tsx` (released 06:42 UTC 09-03) lands as a commit on the
+existing branch, so what rises at the merge gate is **PR #5 repaired** with green checks, not a new
+number; if something else holds the file, the fix now writes `waiting-on-another-run` naming the run
+instead of re-parking. A1 presses after the 10:32 publish serves (about 11:10), records the press
+here, and reads the P-72 card before the merge press.
+
 **Why.** R-40 retired the tablet track as the Ship candidate. The date call (23 September honest)
 rests on one run carrying a change that does something into production through the product's own
 route, before 8 September. Nothing else on the queue is that proof.
