@@ -11107,6 +11107,14 @@ line is written only by an actual drive. On the release track that is Sep 21, or
 press. P-144 scope 1's live read of the hold line therefore waits on P-151, and the card meanwhile
 reads the generic *Learn is waiting rather than failing* line with no sentence under it.
 
+**Composition with P-144 scope 3 (A2, 21:28 IST).** The sweep's own query fetches only rows whose
+`deferred_until` is null or past, so a deferred row never reaches a filter inside the sweep.
+Three writers touch the column: track-tick sets it, the press path clears it, and
+`recordMetricReading` clears it when a reading lifts the wait (scope 3) and drops the track from
+the tick's due map so it is not re-deferred on the same tick. P-151's press must compose with
+that: after a reading has lifted the wait, the press must not re-defer to the horizon, and the
+guard says so.
+
 **DoD.** Pushed; the three numbers.
 
 ### P-152 · Lint is green under src, one rule at a time · Lane: **A3** (after P-146, before P-130b) · Status: READY · Moves: 5
