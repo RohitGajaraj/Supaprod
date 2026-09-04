@@ -375,7 +375,10 @@ describe("mayUseEdgeCache", () => {
     // does not consider public is how a private page ends up held at a colo.
     for (const path of ["/", "/pricing", "/faq", "/investors"]) {
       expect(mayUseEdgeCache("GET", path, headersOf({}))).toBe(true);
-      const marked = withMarketingCacheHeaders(new Response("<html></html>", { status: 200 }), path);
+      const marked = withMarketingCacheHeaders(
+        new Response("<html></html>", { status: 200 }),
+        path,
+      );
       expect(marked.headers.get("Cache-Control")).toContain("s-maxage=300");
     }
   });
@@ -393,9 +396,9 @@ describe("mayStoreInEdgeCache", () => {
 
   test("a response carrying Set-Cookie is never stored", () => {
     // Storing it would hand the next visitor a cookie minted for someone else.
-    expect(mayStoreInEdgeCache(200, headersOf({ "Set-Cookie": "sb-a-auth-token=eyJ; Path=/" }))).toBe(
-      false,
-    );
+    expect(
+      mayStoreInEdgeCache(200, headersOf({ "Set-Cookie": "sb-a-auth-token=eyJ; Path=/" })),
+    ).toBe(false);
   });
 });
 

@@ -226,11 +226,7 @@ export function carriesASession(headers: HeaderReader): boolean {
  * cache. `no-cache` on the request is honoured: someone forcing a reload gets
  * a real render, which is also what makes this debuggable from outside.
  */
-export function mayUseEdgeCache(
-  method: string,
-  pathname: string,
-  headers: HeaderReader,
-): boolean {
+export function mayUseEdgeCache(method: string, pathname: string, headers: HeaderReader): boolean {
   if (method !== "GET") return false;
   if (!CACHEABLE_MARKETING_ROUTES.has(pathname)) return false;
   if (carriesASession(headers)) return false;
