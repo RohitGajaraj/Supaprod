@@ -9140,6 +9140,35 @@ dropped into `docs/screenshots/` changes nothing in the report.
 
 **DoD.** Pushed; the report shows the count before and after on a tree with an ignored file.
 
+
+### P-118 · A host that refuses to make the app says so, and Ship keeps its own house · Lane: **A2** (after P-114, before P-116) · Status: READY · Moves: 1, 3
+
+**Why.** Read live 06:24 to 06:31 UTC 09-04 on the merged Ship candidate. `deployChangesetApp`
+POSTs `/apps {slug}` to Deno Deploy and treats 409 **and 400** as "the app already exists", then
+deploys to `/apps/{slug}/deploy`, which answers 404 `APP_NOT_FOUND`. The 400's real body, read by
+A1 with the same token: `APP_LIMIT_EXCEEDED`, *Your plan includes 10 apps, and you're using all
+of them.* All ten are July test previews (`cad-b90da531-*`, 2026-07-08 to 07-10, the
+Test-Project-Cadence workspace); nothing has ever deleted a preview app. So the first customer
+Ship after July failed on a quota the product neither checked nor reported, and the run screen
+said *The host said: deploy failed (404)*, a sentence about the wrong call. The 09-03 preview
+failure on the tablet track (reason null) is likely the same wall, unrecorded.
+
+**Scope.** (1) The create call: 409 is "exists"; any other non-2xx is a failure whose body is the
+reason, in the product's voice on the hold card (*Deno Deploy allows 10 apps on this plan and all
+10 are in use. Remove one under Settings › Hosting, or raise the plan.*), never a deploy into a
+404. (2) Ship keeps its own house: a preview app is deleted when its changeset is promoted,
+closed or superseded, and previews older than 14 days are swept, with the deletion recorded on
+the deployment row; a setting for the retention. (3) Settings › Hosting lists the org's apps with
+what each belongs to and a delete per row, so a person can free a slot without the API. (4) Guard:
+a 400 on create never reaches the deploy call; the sweep deletes only apps whose slug the product
+derived. Report: how many of the ten July apps the sweep would remove today.
+
+**Acceptance.** A fixture host answering 400 on create produces a hold with the host's sentence
+and no deploy call; the retention sweep runs in a test; Settings › Hosting renders the list. Full
+suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; the count.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
