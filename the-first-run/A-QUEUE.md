@@ -10287,6 +10287,30 @@ against a repo whose lockfile was written by npm or pnpm, where the fix is a loc
 install step; (3) the generated entrypoint against a real single-page app's deep links, assumed
 rather than measured. Record each with its number on the walk.
 
+
+### P-138 · The stopped list says what is worth a person's next ten minutes · Lane: **A2** (after P-137) · Status: READY · Moves: 2
+
+**Why.** Helio's Waiting page at 16:37 IST 09-04: below the one card that moves, a flat list of
+53 stopped items, oldest first, from *Helio prefers concise release notes, stopped 50 days* down
+to *Mission completed: Checkout asks for already-saved delivery address, stopped 5 hours*, every
+row an *Open* press and a few with *Blocking: Relay*. Fifty of them are the demo's furniture and
+three are today's. A person arriving after lunch cannot tell which row is theirs, which is a
+seed, and which one is holding a live track. The heading above it, *The oldest has been stopped
+for 50 days*, is true and useless.
+
+**Scope.** (1) The list is grouped, not flat: *holding a live track* first with what it blocks,
+then *stopped this week*, then *older*, folded with a count and one press to open; each row says
+what it is (a spec, a decision, a mission, a memory) and what unblocks it, in one line. (2) Sample
+workspace furniture (`is_sample`) folds into one line at the bottom (*47 sample items from the
+demo*), never interleaved with the person's own. (3) The heading says the thing that matters
+(*2 stopped items are holding live work; 3 more stopped this week*). Guard: fixtures for the
+three groups and the sample fold; a row with `is_sample` never renders above a person's own.
+
+**Acceptance.** Served Waiting on Helio shows the groups and the sample fold. Full suite on the
+tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 reads.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
