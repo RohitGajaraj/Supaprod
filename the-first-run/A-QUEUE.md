@@ -7732,7 +7732,7 @@ the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17.
 
 
-### P-74 · The run shows its route: seven stations, what happened at each, and what is ahead · Lane: **A2** (after P-72, before P-73) · Status: CODE DONE (2d848d3f5; A1 gate running; publish in the batch; A1 walks both tracks) · Moves: 2, 3
+### P-74 · The run shows its route: seven stations, what happened at each, and what is ahead · Lane: **A2** (after P-72, before P-73) · Status: CODE DONE (2d848d3f5; A1 on the tip: build 0, tsc 0, 14,264 / 0 / 0; publish in the batch; A1 walks both tracks) · Moves: 2, 3
 
 **Why.** The founder, 04:09 IST 09-04: a person in a run needs to see the lifecycle the work
 moves through and where it is on it. Read live on the tablet track at 04:12: the seven names
