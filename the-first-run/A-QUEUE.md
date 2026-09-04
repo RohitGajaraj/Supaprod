@@ -7297,7 +7297,59 @@ and the page said only *Nothing was started · Your sentence is still in the box
 filed*. A1 inserted the owner's member row at 19:07:12 UTC and pressed again.
 
 
-### P-65 · An owner can start work in their own workspace, and a refusal says why · Lane: **A3** (after P-61) · Status: CLAIMED (A3) 01:10 UTC 09-04 · Moves: 1, 2
+### P-65 · An owner can start work in their own workspace, and a refusal says why · Lane: **A3** (after P-61) · Status: CODE DONE, PUSHED 5c610bbde (14,227 / 0, tsc 0) · Moves: 1, 2
+
+**A3, 01:50 UTC 09-04, P-65 Report.** `resolveStartWorkspace`
+(`track.functions.ts`) checked `workspace_members` alone and threw `"Forbidden: not a member of
+this workspace"` for an owner with no member row -- machine copy by `error-copy.ts`'s own
+`MACHINE` list ("forbidden" is on it), so `messageForPerson` dropped it and Start read "Nothing
+was started ... nothing was filed" with no reason, exactly as the Why describes. Fixed both halves
+of the Scope.
+
+**(1) Owner admitted.** When the membership read misses, a second check reads `workspaces.owner_id
+= auth.uid()`; either proof resolves the workspace. `spine_tracks`' own write policy is `auth.uid()
+= user_id` (checked against the live schema), not workspace membership at all, so once this gate
+admits the owner the insert itself needs nothing further -- no downstream RLS gap to also close.
+
+**(2) Returned, not thrown.** `resolveStartWorkspace` now returns `{ ok: true, workspaceId } | {
+ok: false, problem }` instead of throwing; `startTrack`'s handler returns `{ track: null, problems:
+[resolved.problem] }` on refusal. The route's own render already separated `problems.length > 0`
+(renders `consequence={problems.join(" ")}` via `Receipt`) from `go.isError` (the generic
+"nothing was filed" line) -- no client change needed, the existing branch was simply never fed a
+real reason before. Sentence: *"You are not a member of this workspace; ask its owner to add
+you."*
+
+**(3) The root.** Migration `20260909090000`: a safety-net trigger on `workspaces` (`AFTER
+INSERT`, `ON CONFLICT (workspace_id, user_id) DO NOTHING`) inserts the owner's `workspace_members`
+row for every new workspace, regardless of which code path created it. `workspaces.functions.ts`'s
+own `createWorkspace` comment argues against a trigger here specifically ("two writers for one row
+is how the second one comes to be wrong") -- that reasoning targets an UNCONDITIONAL trigger; this
+one is guarded by the identical `ON CONFLICT` shape `ensure_user_default_workspace` already uses
+for the same reason, so it only fills a gap nothing already filled, never competes with a writer
+that ran. Backfilled two existing orphaned workspaces found live (checked before writing the
+migration, both from 2026-07-22, predating this session): "My Workspace" (`is_sample: false`, a
+real account's own workspace, genuinely broken the same way the probe was) and the shared "Sample
+workspace". Applied via the Lovable MCP with a fail-loud verification block (trigger exists; zero
+workspaces left without an owner member row); ledger row inserted.
+
+**Also fixed in passing:** rebasing onto P-75's own new ratchet
+(`a-read-serves-the-workspace-you-are-in.test.ts`, landed after P-64b) found `track.functions.ts`'s
+baseline entry now stale -- P-64b's `searchConversations` fix already moved it off
+`current_user_default_workspace` entirely, so the count is genuinely zero. Baseline entry dropped,
+pushed separately (`5c610bbde`).
+
+**Acceptance.** Not yet served live: same `.env`-less-worktree/blocked-browser-tools limitation as
+P-63/P-64/P-64b -- could not walk the probe workspace with its member row removed myself. tsc 0;
+`bun test` 14,227 / 0 fail. Two new guards: `a-track-started-from-a-sentence-reaches-a-workspace
+.test.ts` extended (owner-admits, returns-not-throws, zero-config path, handler wiring) and
+`a-workspace-with-an-owner-and-no-owner-member-row-cannot-exist.test.ts` (new, migration-text:
+trigger fires after insert, is the `ON CONFLICT` backstop shape and not a competing writer, backfill
+present, fail-loud verification present). Requesting A1 confirm live: remove the probe workspace's
+member row (or use one of the two backfilled ones before the fix reaches them, if either is still
+reachable for a clean before/after) and press Start.
+
+**DoD.** Pushed (`5c610bbde`). Migration applied and ledger row present; live walk open, handing to
+A1.
 
 **Why.** Live 00:35 IST 09-04: in a workspace whose owner has no `workspace_members` row, Start
 threw `Forbidden: not a member of this workspace` (`resolveStartWorkspace`,
