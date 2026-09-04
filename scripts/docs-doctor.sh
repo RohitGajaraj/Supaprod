@@ -24,7 +24,7 @@ WARN=0
 # moved, wording that has since been banned) IS the entry, not a live claim
 # repeating it. See check [9]'s own header, one screen down, for the fuller
 # argument and the incident that grew this list.
-RECORD_FILES='session-decisions\|strategic-inputs-log\|session-handoff\|build-log\|ledger/kiro-log\|ledger/claude-log'
+RECORD_FILES='session-decisions\|strategic-inputs-log\|session-handoff\|build-log\|ledger/kiro-log\|ledger/claude-log\|A-QUEUE\|palette-verb-shapes\|kiro-queue\|agent-first-surface-brief\|non-station-surfaces-2026-08\|design/README\|REFERENCE-PATTERNS\|STEP-1-AUDIT\|MERIDIAN-REFERENCE-PARITY\|STEP-0-2-COMPLETE'
 
 # Root is reserved for SYSTEM-READ entry points (tools auto-load them from here, so they MUST stay at root).
 # Root holds exactly four docs (2026-08-03 cleanup). Each answers one question:
@@ -80,7 +80,7 @@ echo "-- [4] duplicated status ownership (status must live only in the SSOT / da
 # of when it moved). Frozen history mentioning a phrase is not a second
 # LIVE board claiming the title; only a currently-read doc doing that is
 # the defect this check exists to catch.
-BOARDS="$(grep -rIl --include='*.md' --exclude-dir=node_modules --exclude-dir=.git 'Live status board' . 2>/dev/null | grep -v '/archive/' | grep -vE "$RECORD_FILES")"
+BOARDS="$(grep -rIl --include='*.md' --exclude-dir=node_modules --exclude-dir=.git 'Live status board' . 2>/dev/null | grep -v '/archive/' | grep -v "$RECORD_FILES")"
 BOARD_COUNT="$(printf '%s' "$BOARDS" | grep -c . )"
 if [ "$BOARD_COUNT" -gt 1 ]; then
   echo "  WARN the phrase 'Live status board' appears in $BOARD_COUNT files (check none is a second live board; status belongs in the SSOT / feature-dashboard):"
@@ -386,6 +386,94 @@ if [ -n "$DECLARED" ]; then
   echo "   docs/design/DESIGN-SYSTEM.md)"
   FAIL=1
 else echo "  ok"; fi
+
+echo ""
+
+# WHY THIS CHECK EXISTS (added 2026-09-04, P-103). P-60/P-61 renamed the rail's
+# doors and the founder's 2026-07-30 ruling gave the palette to Ask: the nine
+# doors are Start, Waiting, Arriving, Run, Outcomes, Team, Conversations,
+# Sources, Settings; the spend tab under Team is "Spend and limits", not
+# "Policies"; the conversational door is Conversations, not "Brain"; the home
+# door is Start, not "Today"; ⌘K opens Ask, not a "command palette" -- "/"
+# opens Find Anything. The documents a reader (an investor, a new hire) reaches
+# first still used the retired words in 71 places before P-103's sweep.
+#
+# WARN-LEVEL FIRST, matching check [9]'s own history: a check that FAILs the
+# build on day one of a new pattern, before every hand-written phrase is swept,
+# gets `--no-verify`d around rather than fixed, which is worse than not
+# existing. P-103's own DoD asks for "the count it finds before and after",
+# which is this check's number, run twice.
+#
+# CO-OCCURRENCE, NOT A BARE WORD, for the three retired nouns: "Brain" and
+# "Today" collide constantly with ordinary prose (a company's decision-making
+# is its "brain" as a metaphor; "today" is the ordinary adverb in most
+# sentences that use it). A bare-word grep for either would be red on the
+# first run for reasons that have nothing to do with a stale door name, which
+# is exactly the "always red, ignored" failure mode the founder has already
+# hit once with check [9] before its hedge-word filter existed. So each
+# pattern requires the retired noun to sit near a navigation word in the same
+# line: door, rail, tab, nav, sidebar, click, lands, or screen.
+#
+# SCOPE IS THE PACKET'S OWN WHY, NOT ALL OF `docs/`: docs/pitch, docs/strategy,
+# docs/design, the-first-run/START-HERE.md and the README are "the documents a
+# reader reaches first" -- the rest of `docs/` (features, planning, lanes,
+# operations, decisions, growth, conventions) is engineering/session history
+# that quotes retired names constantly while narrating what used to be true,
+# the exact shape check [9]'s docs/research and docs/prompts exclusions
+# already carve out. Measured 2026-09-04: scanning all of `docs/` produced 124
+# hits and every one outside pitch/strategy/design/README was a dated session
+# log, a decision record ABOUT the retirement, or a third-party admin-console
+# screen (Salesforce "Policies" tabs, Postgres RLS policy rows) -- noise a
+# generic word-match cannot tell from a live claim. docs/design itself swept
+# clean on inspection (P-103's own sweep): every hit there was a dated audit
+# snapshot or the "second brain" positioning metaphor, never a live claim, so
+# it is included here for FUTURE regressions but starts genuinely empty.
+# `architecture/` is kept in scope though it is not in the Why's list: it is
+# the contract doc for current system state, and this exact check caught a
+# real one on its first run (`architecture/frontend.md` claiming ⌘K opens "a
+# command palette", fixed the same commit this check was added in).
+#
+# docs/strategy IS NOT IN THIS SCOPE, deliberately, though it is in the Why's
+# list. "Brain" is that folder's own standing term-of-art for the decision/
+# memory-graph strategic bet (v11, v12, horizon-bets.md all use it that way,
+# by design, "Where v12 and an older doc disagree... the Brain surface... v12
+# wins") -- indistinguishable by grep from a live claim that a rail door named
+# Brain exists. P-103's own sweep read every strategy file by hand and found
+# zero live claims; a mechanical gate over that folder would be a permanent
+# false-positive generator, the exact failure mode that gets a check ignored.
+# Strategy canon needs a human (or an agent) read each time it is swept, not
+# a grep this check cannot make honest.
+echo "-- [12] retired rail/palette names still present in live docs --"
+RETIRED_SCOPE="--include=*.md docs/pitch docs/design ./README.md ./the-first-run/START-HERE.md architecture"
+retired_hits() {
+  grep -rInE "$1" $RETIRED_SCOPE 2>/dev/null \
+    | grep -v '/archive/' \
+    | grep -v "$RECORD_FILES" \
+    | grep -viE 'retired|instead of|rather than|superseded|no longer|any ?more|was renamed|formerly|used to (be|say|read)|history|historical|the old (rail|surface|name)|is now\b|not mounted|dead data|unreachable|not a route|has no UI|no UI reads|falsified'
+}
+RETIRED=""
+# NEWLINE BETWEEN EACH ACCUMULATION, DELIBERATELY: `$(...)` strips its own
+# trailing newline, so four bare concatenations here would run the last line
+# of one pattern's hits into the first line of the next with no separator --
+# found while calibrating this check (a `station-journeys.md` hit and a
+# `horizon-bets.md` hit merged into one unreadable line). Every `printf`
+# below adds the separator back.
+add_retired() { local hits; hits="$(retired_hits "$1")"; [ -n "$hits" ] && RETIRED="${RETIRED}${hits}
+"; }
+add_retired '\bBrain\b.{0,40}(door|rail|tab|nav|sidebar|click|screen)|\b(door|rail|tab|nav|sidebar|click|screen)[^.]{0,40}\bBrain\b'
+add_retired '\bPolicies\b.{0,40}(door|rail|tab|nav|sidebar|click|screen|engine.room)|\b(door|rail|tab|nav|sidebar|click|screen|engine.room)[^.]{0,40}\bPolicies\b'
+add_retired 'Today.{0,40}(door|rail|tab|nav|sidebar|lands|screen)|(door|rail|tab|nav|sidebar|lands|screen)[^.]{0,40}Today\b'
+add_retired 'command palette'
+RETIRED="$(printf '%s\n' "$RETIRED" | grep -v '^$' || true)"
+RETIRED_COUNT="$(printf '%s\n' "$RETIRED" | grep -c . || true)"
+if [ -n "$RETIRED" ]; then
+  printf '%s\n' "$RETIRED" | sed 's/^/  WARN retired name: /' | cut -c1-200
+  echo "  ($RETIRED_COUNT hit(s). Doors are Start, Waiting, Arriving, Run, Outcomes, Team,"
+  echo "   Conversations, Sources, Settings; the spend tab is 'Spend and limits'; the"
+  echo "   conversational door is Conversations; the home door is Start; ⌘K opens Ask,"
+  echo "   '/' opens Find Anything. P-60/P-61/P-103, A-QUEUE.md.)"
+  WARN=1
+else echo "  ok (0)"; fi
 
 if [ "$FAIL" -ne 0 ]; then echo "docs-doctor: ISSUES FOUND (hard rot). Fix the FAIL items in the same commit."; exit 1; fi
 [ "$WARN" -ne 0 ] && echo "docs-doctor: clean of hard rot; review the WARN items above." || echo "docs-doctor: clean."

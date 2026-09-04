@@ -51,7 +51,7 @@ Supabase Realtime on `agent_runs` (cockpit feed); SSE on chat/studio; trace wate
 
 ## Keyboard-first
 
-⌘K command palette (`cmdk`) resolves every destination, create action, and recent artifact. Every interactive surface has a keyboard equivalent.
+⌘K opens Ask (founder ruling 2026-07-30; the old ⌘K command palette was retired — P-103, A-QUEUE.md); "/" opens Find Anything, which resolves every destination, create action, and recent artifact. Every interactive surface has a keyboard equivalent.
 
 ## Invariants
 

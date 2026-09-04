@@ -211,7 +211,7 @@ says, and nothing more.**
 ```
      Ask (top right, any surface): one composer, opens a pane, starts work at any station
 
-  /today ---> what changed, what needs you, what agents did overnight
+  /start ---> what changed, what needs you, what agents did overnight
      |
      +---> 01 /discover   signals land, cluster into themes
      +---> 02 /decide     the ranked bet queue, red-teamed BEFORE you see it
@@ -222,8 +222,8 @@ says, and nothing more.**
      +---> 07 /learn      the verdict is settled --------------------------->--+
                 |
                 v
-           /brain         decisions, evidence, outcomes, and what it now advises
-                          (/knowledge for the graph view)
+        /outcomes         decisions, evidence, outcomes, and what it now advises
+                          (a graph-view tab on the same page)
 
   /engine-room            one recessed door: traces, evals, prompts, budgets, guardrails
 ```

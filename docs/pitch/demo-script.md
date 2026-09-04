@@ -21,7 +21,7 @@
 
 **Beat 4 — the wrong path (90s, the trust moment).** Take an agent-drafted change and **rewind it in one key** — the revert lands in the track record as its own evidence. Then the calibration surface: _"Supaprod called N of the last M — including the misses. We publish our error rate. Ask the last AI tool you bought for theirs."_
 
-**Beat 5 — the compounding close (60s).** The Brain: what this workspace has learned — decisions, outcomes, the ranking visibly informed by the record (_"your last three bets in this area under-performed; this one mirrors #2"_). Close: **"Agents do the work. You answer for it. Supaprod is how you answer — and it gets smarter about YOUR product with every outcome it records."**
+**Beat 5 — the compounding close (60s).** Outcomes (P-103, A-QUEUE.md: the door is Outcomes, not Brain): what this workspace has learned — decisions, outcomes, the ranking visibly informed by the record (_"your last three bets in this area under-performed; this one mirrors #2"_). Close: **"Agents do the work. You answer for it. Supaprod is how you answer — and it gets smarter about YOUR product with every outcome it records."**
 
 ## Audience variants
 

@@ -332,9 +332,10 @@ drawing it, not a slide. It closes the loop the Ask opened in Beat 1.
   argument, and it survives compression. Use the 3D purely as a three-second establishing shot.
 - **The learnings show a title of `Untitled`** in this view. Do not point at or read the titles; read the
   bodies, which are the good part.
-- **Dismiss the upgrade banner first.** It is back on `/brain` ("On Star, your decision memory fades after 30
-  days"), and it sits directly above this panel. A4 covers it; confirm it is gone after a reload.
-- `+0 ICE MOVED` and `100% VALIDATED` sit in the Brain header above the panel. Frame the LIST panel so the
+- **Dismiss the upgrade banner first.** It is back on `/outcomes` (P-103, A-QUEUE.md: `/brain` now redirects
+  there) ("On Star, your decision memory fades after 30 days"), and it sits directly above this panel. A4
+  covers it; confirm it is gone after a reload.
+- `+0 ICE MOVED` and `100% VALIDATED` sit in the Outcomes header above the panel. Frame the LIST panel so the
   stat strip is off the top, and never claim bets re-ranked automatically.
 - Focus only on `theme` / `opportunity` / `decision` / `prd` / `mission`. `changeset`, `deployment` and
   `learning` edges exist in the data but are **not** in the `ARTIFACT_KINDS` enum, so focusing on them may

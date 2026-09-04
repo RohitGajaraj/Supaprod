@@ -4,7 +4,7 @@
 
 **The invariant: at every station the person and the external caller are walking two different journeys, and at five of the nine the second journey does not exist.** This file walks both columns side by side and names the asymmetry in one line per station. The asymmetry is the deliverable; the walk is how it is arrived at.
 
-**Read [`../docs/planning/initiatives/agent-first-platform.md`](../docs/planning/initiatives/agent-first-platform.md) §5 first.** It traces all seven stations plus Brain, Guardrails, Runs and Settings as Purpose → Intent → Inputs → Agent → Backend → Writes → Handoff → Next → Learning, with a `file:line` throughout. Nothing here restates it. What §5 does not do is split the walk in two, and that is the whole job of this file.
+**Read [`../docs/planning/initiatives/agent-first-platform.md`](../docs/planning/initiatives/agent-first-platform.md) §5 first.** That dated audit traces all seven stations plus its own era's four non-station surfaces (since renamed and re-doored by P-60/P-61) as Purpose → Intent → Inputs → Agent → Backend → Writes → Handoff → Next → Learning, with a `file:line` throughout. Nothing here restates it. What §5 does not do is split the walk in two, and that is the whole job of this file.
 
 **Read [`agent-to-agent.md`](./agent-to-agent.md) second.** It holds the protocol layer: the three machine doors, the tool contract on Question → Bet → Run → Verdict, and governance parity. This file sits on top of it and does not repeat it. Where the two touch, this one cites rather than re-derives.
 

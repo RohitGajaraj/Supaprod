@@ -17,7 +17,7 @@ Both are cheap and both are the difference between a demo and a misrepresentatio
 - `60000000-0001-4000-8000-000000000031` — "Add SSO to the billing site"
 - `60000000-0001-4000-8000-000000000002` — "Job handoff checklist for the homeowner"
 
-Settling one makes `applyOutcome` write `prior_ice` and `new_ice`, which makes `describeCompounding` emit its live line on `/brain?tab=learnings`: _"Memory has re-scored 1 decision from real outcomes, net ICE +X.X"_. **That single sentence is the only frame in the entire product where the compounding claim is produced by the running system rather than by seed data.** If it fails, you find out before the shoot rather than during.
+Settling one makes `applyOutcome` write `prior_ice` and `new_ice`, which makes `describeCompounding` emit its live line on `/outcomes?tab=learnings` (P-103, A-QUEUE.md: `/brain` is now a redirect stub, the page itself is `/outcomes`): _"Memory has re-scored 1 decision from real outcomes, net ICE +X.X"_. **That single sentence is the only frame in the entire product where the compounding claim is produced by the running system rather than by seed data.** If it fails, you find out before the shoot rather than during.
 
 **0.2 — Fix `/proof` or do not film it.** It currently renders _"Supaprod called 12 of the last 24 calls right"_ under copy promising _"never seeded or staged"_. All 24 scored insights come from the six Helio clones. Fix at `src/lib/proof-surface.functions.ts:123` by adding the seeded clone ids to `sampleWorkspaceIds()`, or set `is_sample=true` on all six in one UPDATE. The score then becomes 0 of 0, and the page already has honest empty-state copy for exactly that. **It is the most tempting trust frame in the product and it is currently false.**
 
@@ -113,9 +113,9 @@ Walk the eight beats silently, signed in as `harbor@supaprod.ai`, before recordi
 
 | | |
 | --- | --- |
-| **25 substantial screens** | `decide` · `ship` · `plan.spec` · `brain` · `today` · `learn` · `crew` · `boundary` · `runs` · `threads` · `traces` · `plan.index` · `build.index` · `settings` · `design` and the admin set |
+| **25 substantial screens (2026-08-11 count)** | `decide` · `ship` · `plan.spec` · `learn` · `crew` · `boundary` · `runs` · `threads` · `traces` · `plan.index` · `build.index` · `settings` · `design` and the admin set. `brain` and `today` have since moved to the stub row below (P-103, A-QUEUE.md: `brain` is a redirect to `/outcomes`, `today` was removed and its surface is `/start`) |
 | 7 medium | mostly admin: invites, landing, routing, proof, costs |
-| 49 stubs under 3KB | **and these are redirects, not empty pages.** Spot-checked: `observe` → `/engine-room`, `artifacts` → `/brain`, `govern` and `opportunities` both redirect. They are aliases, not holes. |
+| 51 stubs under 3KB | **and these are redirects, not empty pages.** Spot-checked: `observe` → `/engine-room`, `artifacts` → `/brain` → `/outcomes`, `govern` and `opportunities` both redirect. They are aliases, not holes. |
 
 **The seven-station story maps onto screens that already exist.** The gap is polish, which the UI lane is closing, not substance.
 

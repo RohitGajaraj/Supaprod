@@ -416,7 +416,7 @@ writes to workspace memory, and workspace memory is what the Ask reads.
 - The line reads **`from user`**, not "the agent noticed". Do not narrate this as the machine catching itself
   — say she is being asked what to keep. The second card on this tab (`Helio prefers concise release notes`,
   `from agent`) is the agent-authored one, and it is far too thin to close on.
-- Do not claim bets re-ranked automatically. The Brain's headline stats say `+0 ICE MOVED` and
+- Do not claim bets re-ranked automatically. The Outcomes header's stats say `+0 ICE MOVED` and
   `0 RE-RANKED A PRIORITY`. This card makes the compounding point without that claim.
 
 ---

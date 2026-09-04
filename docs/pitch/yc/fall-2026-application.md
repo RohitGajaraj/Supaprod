@@ -489,7 +489,7 @@ Re-record per [`video-scripts.md`](./video-scripts.md) Part 2 (~2:10). The old v
 
 ### Paste-day checklist (in this order)
 
-1. Incognito: log in `explore@supaprod.ai` on supaprod.ai; land on a populated Today view. Fail → use fallback creds, fix after.
+1. Incognito: log in `explore@supaprod.ai` on supaprod.ai; land on a populated Start (P-103, A-QUEUE.md: the post-login home is Start, not Today). Fail → use fallback creds, fix after.
 2. Numbers stay OUT of the pasted copy (founder ruling 2026-07-23) except the commit count, which appears in BOTH "how far along" and "how long" as "4,000+ commits" — settled 2026-07-28, the repo reads 4,119, so "4,000+" is literal truth in both places (the "about" hedge is retired). Counters and register numbers live on the interview card ([`interview-prep.md`](./interview-prep.md) §2); re-pull them before any interview window.
    **The weeks count ages too:** "seven weeks" appears in BOTH fields and anchors to the 2026-06-03 first commit — true through 2026-07-31, then it undercounts. On any later update, restate the true count ("eight weeks" from Aug 1, and so on), or expect a partner reading in late August to see a number three weeks stale. Every duration in pasted copy is a snapshot; re-pull it the day you paste, same as the commit count.
 3. Paste the Progress Update fields; set the radio truthfully; save.
