@@ -8557,6 +8557,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_ai_rate_limits: {
+        Row: {
+          id: string
+          request_count: number
+          updated_at: string
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          id?: string
+          request_count?: number
+          updated_at?: string
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          id?: string
+          request_count?: number
+          updated_at?: string
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       user_api_keys: {
         Row: {
           api_key_cipher: string | null

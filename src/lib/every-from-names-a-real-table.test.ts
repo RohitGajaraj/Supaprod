@@ -64,22 +64,6 @@ function sourceFiles(dir: string, out: string[] = []): string[] {
  */
 const NOT_A_RELATION: Record<string, string> = {
   /*
-   * FOUND BY THIS GUARD ON ITS FIRST RUN, AND IT IS NOT COSMETIC.
-   *
-   * `user_ai_rate_limits` does not exist in the database -- checked against the
-   * live schema 2026-09-04, in no schema at all. `checkUserAiRateLimit` reads
-   * it, the read answers 42P01, and the catch below it logs a warning and
-   * returns `{ allowed: true }`. So per-user AI rate limiting has never
-   * blocked a single request; it fails open on a table that was never created.
-   *
-   * Listed rather than left failing, because a red suite blocks every lane and
-   * the fix is a product call (create the table, or delete the limiter and rely
-   * on the budget caps its own comment already calls "the hard gate"). Recorded
-   * here so it cannot be forgotten, and reported to A1 for a packet.
-   */
-  user_ai_rate_limits:
-    "Does not exist in any schema. The limiter fails open on it, so per-user AI rate limiting has never blocked a request. Needs a founder call: create it, or delete the limiter.",
-  /*
    * A Supabase system table, present in `auth`, `realtime` and
    * `supabase_migrations` but not in `public`, so it is not in the generated
    * types and a PostgREST call for it from the app client cannot resolve it

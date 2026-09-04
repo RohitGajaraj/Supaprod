@@ -106,12 +106,7 @@ const TYPES_FILE = join(REPO_ROOT, "src", "integrations", "supabase", "types.ts"
  * When it is fixed, DELETE THE ENTRY -- the assertion below fails if a table
  * listed here turns up in the types, so the ground gained is kept.
  */
-const TABLES_KNOWN_ABSENT_FROM_TYPES: Record<string, string> = {
-  user_ai_rate_limits:
-    "created by 20260707195000_sw6_fresh_workspace_guards.sql; absent from pg_class in production " +
-    "on 2026-09-01 although the migration is recorded as applied. The per-user AI burst cap that " +
-    "reads it fails open. Needs a migration plus a fix in src/lib/ai-ratelimit.server.ts.",
-};
+const TABLES_KNOWN_ABSENT_FROM_TYPES: Record<string, string> = {};
 
 /**
  * Postgres identifier as it appears after ALTER TABLE / ADD COLUMN: bare,
