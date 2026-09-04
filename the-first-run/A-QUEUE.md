@@ -11069,6 +11069,30 @@ their readings counts. Full suite on the tip, tsc 0, build 0; sha pair per rule 
 
 **DoD.** Pushed; the three numbers; the before-and-after query.
 
+### P-151 · Letting a station try again on deferred work actually lets it try · Lane: **A3** (now, before the next P-146 commit) · Status: READY · Moves: 1, 2
+
+**Why (A1, 21:05 IST 09-04, F-202).** On the live release track, "Let Learn try again" cleared the
+hold and left `deferred_until` at 2026-09-21, so the page said *You released it · It runs again on
+its next turn* above *Ready when you are* on work the sweep will not touch for seventeen days,
+and the hold card with P-144's new sentence could never be recomposed because the free re-hold
+path needs the hold to still be set. A1 repaired the row by hand.
+
+**Scope.** `retryStation` on a track whose `deferred_until` is in the future lifts the deferral
+in the same update and drives the track once through `driveTrackOnce` with `via: "press"`, so a
+horizon-deferred Learn takes the free path, re-holds with the fresh composed sentence and re-defers
+to the horizon (P-143's card then reads *Learn returns on Sep 21* again), and a backoff-deferred
+track takes its next real attempt now. The release note says what the look found rather than
+promising a next turn that is not coming: *Learn looked again: the forecast is still due Sep 21*,
+or the station's own hold line. Guards: a horizon-deferred fixture (deferral lifted, free re-hold,
+re-deferred, no seat run), a backoff-deferred fixture (deferral lifted, attempt made), and the
+note in both cases.
+
+**Acceptance.** On 2fdf93b6 served: the press leaves the card reading P-144's sentence and
+*Learn returns on Sep 21*, with no agent run created (A1 reads `agent_runs` after the press).
+Full suite on the tip, tsc 0, build 0; sha pair per rule 23.
+
+**DoD.** Pushed; the three numbers.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
