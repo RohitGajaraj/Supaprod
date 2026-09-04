@@ -10858,6 +10858,12 @@ baseline goes down only, and only because a name no longer exists. Small commits
 exports each, so a wrong deletion is a small revert. When in doubt about one, leave it and say so
 in the commit.
 
+**A2, 20:20 IST.** After P-142c the counts are 179 against a baseline of 139 (down with the
+deletion, never up) and 43 against 26. The checker prints three categories and counts only one:
+"no importer in src", "inside a dynamically imported module" and "mounted through a dynamic
+import". A2 did not verify the split and does not assert it; the point is that the headline number
+needs reading, not sweeping, which is the same trap in a different coat.
+
 **Not in scope.** Widening the baseline. Wiring the check into a hook or CI, which is a rule
 decision for A1 and the founder once it is green.
 
