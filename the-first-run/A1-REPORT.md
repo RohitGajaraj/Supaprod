@@ -696,3 +696,22 @@ P-137 (Learn names what it can measure) is queued; P-42's grader read comes afte
 **Lanes.** A2 on P-135, then P-137, P-138. A3 on P-133, then P-136, P-104, P-105, P-109, P-130b.
 Rule 22 holds. **Date call unchanged:** 23 September honest if P-128b's live walk passes by about
 12 September; 15 September not.
+
+## Checkpoint, 18:22 IST 09-04
+
+**Since 16:59.** Published on A1's gate: P-104, P-133, P-136, P-139 (with its migration corrected
+to the PR head and confirmed in the ledger). Live reads DONE: P-131 (the release document names
+the spec), P-133 (the composer starts from the release), P-136 (the run screen reads 3,606
+credits, matching the ledger). The grader ran at 12:00 UTC and resolved nothing; the first
+release's contract has no forecast row, and A2's read under P-137 found why nothing can grade it
+yet (a resolving eval reference that never produced a result, no analytics connection, and a run
+screen reader that drops every object-shaped contract clause). P-135's three commits are ready on
+a side branch; landing them on main waits on the founder's word after A1's own attempt was denied
+at his prompt, and A2 rightly declined to route around that.
+
+**Open on the founder.** Landing P-135 (say "go"); the second repo for P-128b's walk; the Cohere
+card; the Deno plan; the supaprod.ai zone's cache rule (or authenticate the Cloudflare MCP so A1
+reads it).
+
+**Lanes.** A2 on P-137, then P-138 (P-135 lands between commits on the founder's word). A3 on
+P-140, then P-105, P-109, P-130b. Rule 22 holds. Date call unchanged.

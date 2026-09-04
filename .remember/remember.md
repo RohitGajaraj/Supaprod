@@ -203,3 +203,6 @@ Announcement public (/p/checkout-no-longer-asks-for-an-address-it-already-has-ea
 
 ## A1 16:59 IST 09-04
 Published: P-131 P-132(x3 runs) P-134 P-119b P-113 P-113b P-118c P-128 P-128b(code complete, walk blocked on founder's repo). R-41 placed. Announcement public. Cohere/Deno pending founder; repo Supaprod/helio-status-site denied at prompt. P-135 attribution: timer excluded entry-load; cache headers overwritten HTML-only; landing count-exact. Lanes: A2 P-135→P-137→P-138; A3 P-133→P-136→P-104→P-105→P-109→P-130b. P-42 grader read after 17:30.
+
+## A1 18:22 IST 09-04
+Published: P-104 P-133 P-136 P-139. Live DONE: P-131 P-133 P-136. Grader 12:00Z resolved nothing; P-137 read: eval refs resolve but never produced, no analytics, spec-contract reader drops object clauses. P-135 on branch a2-p135-edge-cache (3 commits), landing waits on founder's "go" (A1's attempt denied at prompt; A2 declined to route around). Founder open: P-135 go, second repo, Cohere card, Deno plan, zone cache rule. Lanes: A2 P-137→P-138; A3 P-140→P-105→P-109→P-130b.
