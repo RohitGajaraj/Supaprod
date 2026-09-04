@@ -8476,7 +8476,18 @@ Sense carried the sentence (03:22); the 03:40 sweep entered Decide with the carr
 track holds **`the-call-is-yours`** at 03:48 with spend unchanged since Sense ($0.030), no decision
 row, attempts 0. R-39 holds live end to end: the call is the person's before any seat runs. The
 run screen's Choice card and its two answers are read next; pressing *Build it on your word* is the
-acceptance for P-71 through P-71e.
+acceptance for P-71 through P-71e. **09:22 IST:** the run screen reads *Build this on your word, or point a
+source at it first* with the two options and their deciding facts (*Nothing here can grade it yet,
+so your claim is the forecast* / *Connect something that can tell us whether it worked*), the field
+*What would tell you this worked*, title *Waiting on you*; the P-74 map is live beside it
+(*Discover: Searched and found nothing; carried on your sentence*). A1 typed an observable with
+focus proven and pressed *Build it on your word* at 03:50:25 UTC: a decision row with
+`forecast_claim` = the sentence, `forecast_how_we_will_know` = the typed observable,
+`decided_by_agent_slug` NULL, horizon 2026-10-04. Two gaps: the map's Decide row read *On hold
+the-call-is-yours* (a raw hold key; P-74's vocabulary has no sentence for the new hold and its
+guard did not catch it) and the rows ahead were blank rather than saying what they will need; and
+35 seconds after the press the track still held `the-call-is-yours` at Decide (re-read after the
+next tick decides whether the press clears the hold itself or waits for the sweep).
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
