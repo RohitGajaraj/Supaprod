@@ -8567,6 +8567,16 @@ only). Left for the lanes: the release is titled *Shipped an update* while its n
 *Checkout: Address confirmation streamlined.* (P-124); the promote card stayed on the page after
 the press until a refetch (P-124); Ship's exit before the promote (P-123).
 
+
+**Founder's calls, 14:53 IST 09-04.** Asked what each pending item needs. The announcement: A1
+drafts it from the release and publishes only on his reply to the draft. Cohere: the 402 is a
+missing card, not a debt A1 can see; he adds a card or says no and A1 queues a provider switch.
+Deno: no new credentials; A1's call on his behalf is to stay on the free plan and reclaim July
+test previews as slots are needed, upgrading only when P-128 brings a second customer repo.
+Timezone: his call delegated to A1; the product should read the device's zone by default with the
+profile as an override (P-130), and A1 set his profile to Asia/Kolkata at 09:24 UTC so every
+surface reads IST now.
+
 ### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUBLISHED 09:38 IST 09-04 (b05fa6cf6; A1 on the tip: build 0 clean, tsc 0, 14,291 / 0 / 0; the keyboard walk follows) · Moves: 2, 5
 
 **Why.** Since 09-03 the product gained nine doors (P-60), a bottom bar and a sheet (P-81), the
