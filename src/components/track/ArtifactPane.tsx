@@ -188,8 +188,21 @@ function prdTone(status: string | null): "you" | "pass" | null {
  * The field only appears once asked for, so a spec whose metrics are all
  * measured shows no controls at all.
  *
- * A clause with no id cannot be written to, so it offers only the connect
- * door rather than a press that would fail on submit.
+ * ── THE "CONNECT A SOURCE" DOOR IS GONE, AND THAT IS THE HONEST STATE ─────
+ * P-137 shipped this with a second press to `/sync`. `/sync` binds a connected
+ * account to a repo, a team or a channel -- its own header says it answers
+ * "connected to WHICH team" -- and there is no path on it that produces a
+ * number for a success metric. So the sentence "nothing is connected that
+ * could measure this" offered a door that could not change what the sentence
+ * said: a person followed it, found nothing that applied, and came back to the
+ * same screen. A door that cannot do what its label promises is worse than no
+ * door, because it costs a trip to learn that.
+ *
+ * It offers only the press that works. P-149 builds the source a metric can
+ * actually have, and the door comes back pointing at that.
+ *
+ * A clause with no id cannot be written to, so it renders no press at all
+ * rather than one that would fail on submit.
  */
 function RecordReading({
   clauseId,
@@ -241,9 +254,7 @@ function RecordReading({
           </button>
         )
       ) : null}
-      <Link to="/sync" className="mrd-link">
-        Connect a source
-      </Link>
+
     </div>
   );
 }

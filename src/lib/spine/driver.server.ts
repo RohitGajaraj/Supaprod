@@ -28,6 +28,13 @@
  * go, never that policy stopped applying.
  */
 import { trackGoalSentence } from "@/lib/track-origin";
+import { whatLearnIsWaitingFor } from "@/lib/spine/what-learn-is-waiting-for";
+import {
+  whatWouldMeasure,
+  isStanding,
+  type SourceState,
+  type MetricClause,
+} from "@/lib/spine/what-would-measure-this";
 import { claimedPathFrom, claimRefusalIn, refusalIsAboutTheWork } from "@/lib/spine/refusal-kind";
 import {
   CLAIMED_PATH_HOLD,
@@ -1556,6 +1563,72 @@ async function correctIfPossible(
  * Fail-soft to null on any read error: an unreachable table must degrade to
  * today's behaviour, never invent a wait.
  */
+/**
+ * The source state of every standing metric on the spec this track carries, or
+ * NULL when we could not tell.
+ *
+ * P-144. The hold line and the spec's own sentence are composed from this one
+ * list, so the two cannot say opposite things on one screen again -- which is
+ * what they did on the shipped track: "nothing here is waiting on a person"
+ * beside "none of the 2 success metrics have a source", with a Record a
+ * reading press under the second.
+ *
+ * NULL, NOT [], WHEN A READ FAILS. An empty list means "the spec promises no
+ * outcome", which is a fact; a failed read means we do not know, and the two
+ * compose different sentences. Collapsing them is the same substitution this
+ * packet exists to undo.
+ */
+async function metricSourcesForTrack(
+  supabase: SupabaseClient,
+  trackId: string,
+): Promise<SourceState[] | null> {
+  const { data: member, error: memberErr } = await supabase
+    .from("spine_track_members" as never)
+    .select("artifact_id")
+    .eq("track_id", trackId)
+    .eq("artifact_kind", "prd")
+    .is("superseded_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (memberErr) return null;
+  const prdId = (member as { artifact_id?: string | null } | null)?.artifact_id ?? null;
+  // No spec on the track is not a failed read: there is no contract to promise
+  // an outcome, which is the empty-list case.
+  if (!prdId) return [];
+
+  const { data: prd, error: prdErr } = await supabase
+    .from("prds")
+    .select("contract")
+    .eq("id", prdId)
+    .maybeSingle();
+  if (prdErr) return null;
+  const raw = ((prd as { contract?: unknown } | null)?.contract as { success_metrics?: unknown })
+    ?.success_metrics;
+  if (!Array.isArray(raw)) return [];
+
+  const standing = raw.filter(
+    (c): c is MetricClause => typeof c === "object" && c !== null && isStanding(c as MetricClause),
+  );
+  if (standing.length === 0) return [];
+
+  const refs = standing
+    .map((c) => (typeof c.oracle_ref === "string" ? c.oracle_ref.trim() : ""))
+    .filter((r) => r.length > 0);
+  const withReadings = new Set<string>();
+  if (refs.length > 0) {
+    const { data: results, error: resultsErr } = await supabase
+      .from("eval_case_results")
+      .select("case_id")
+      .in("case_id", refs);
+    if (resultsErr) return null;
+    for (const row of (results ?? []) as { case_id?: string | null }[]) {
+      if (row.case_id) withReadings.add(row.case_id);
+    }
+  }
+  return standing.map((c) => whatWouldMeasure(c, withReadings));
+}
+
 async function forecastDueDate(supabase: SupabaseClient, trackId: string): Promise<string | null> {
   try {
     const { data: member } = await supabase
@@ -2437,7 +2510,7 @@ export async function driveTrackOnce(
         moved: false,
         arrivedAt: null,
         hold: "needs-evidence",
-        line: `The forecast this work is graded against comes due on ${dueIso.slice(0, 10)}. Learn returns when it does; nothing here is waiting on a person.`,
+        line: whatLearnIsWaitingFor(dueIso, await metricSourcesForTrack(supabase, row.id)),
         attached: harvested,
       };
     }
@@ -3688,7 +3761,7 @@ export async function driveTrackOnce(
     if (dueIso && Date.parse(dueIso) > Date.now()) {
       // F-175: hoisted so the row and the screen carry one sentence, not two
       // copies of it. The DATE is the part no reader can derive from the word.
-      const because = `The forecast this work is graded against comes due on ${dueIso.slice(0, 10)}. Learn returns when it does; nothing here is waiting on a person.`;
+      const because = whatLearnIsWaitingFor(dueIso, await metricSourcesForTrack(supabase, row.id));
       await supabase
         .from("spine_tracks" as never)
         .update({

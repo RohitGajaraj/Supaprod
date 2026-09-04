@@ -52,10 +52,26 @@ describe("the honest wait, pre-horizon", () => {
     expect(waitWrite).not.toContain("attempts: (row.attempts ?? 0) + 1");
   });
 
-  it("the line carries the due date, not a generic sentence", () => {
-    expect(body).toContain("comes due on ${dueIso.slice(0, 10)}");
-    // And it says whose wait it is NOT: nobody should walk over to unstick it.
-    expect(body).toContain("nothing here is waiting on a person");
+  it("the driver does not compose the line itself; one composer owns it", () => {
+    /*
+     * RE-AIMED 2026-09-04 (P-144). This pinned two literals in this file's
+     * source: "comes due on ${dueIso.slice(0, 10)}" and "nothing here is
+     * waiting on a person". Both have moved into
+     * `what-learn-is-waiting-for.ts`, and the second is now CONDITIONAL, which
+     * is the point of the packet: when no metric on the spec can produce a
+     * number, somebody does have to walk over, and the old sentence told them
+     * not to. Pinning the words here would have made the honest fix fail.
+     *
+     * The requirement is unchanged and is stronger stated this way: this file
+     * must not build that sentence, because it built it TWICE (:2440 and
+     * :3691, verbatim) and two copies is how the hold line and the spec's own
+     * sentence came to contradict each other on one screen. The wording in
+     * each state, and that it agrees with the spec sentence, is pinned in
+     * what-learn-is-waiting-for.test.ts.
+     */
+    expect(body).toContain("whatLearnIsWaitingFor(dueIso");
+    expect(body).not.toContain("nothing here is waiting on a person");
+    expect(body).not.toContain("comes due on ${dueIso.slice(0, 10)}");
   });
 
   it("a later pass skips the crew instead of paying for it", () => {
