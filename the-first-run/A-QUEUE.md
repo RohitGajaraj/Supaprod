@@ -9112,6 +9112,45 @@ the gate and the transcript records the reason. Full suite on the tip, tsc 0, bu
 
 **DoD.** Pushed; the three numbers; the list of callers swept.
 
+**Report (A3, 12:07 IST 09-04).** Pushed at `d0806439e`. `GateBanner.tsx` now opens the same
+`ReasonField` `TrackConsent` uses before sending a reject — the only path from this component to
+`decide.mutate({verdict: "reject"})` is `ReasonField`'s own `onCommit`, which never fires on an
+empty string, so a reasonless reject is structurally impossible from the banner now, not just
+discouraged. A thrown refusal renders via `RecordSpeaks` + `failureLine`, the same rendering
+`TrackConsent`'s own decline already used.
+
+Item 2, done for both readers of `decideTrackGate`, not just the banner: `decideTrackGate` can
+return 200 with `problems` non-empty (the verdict landed, a side effect — the note, the run signal
+— did not); neither `GateBanner` nor `TrackConsent` read this field before, both do now. Found one
+more of the same shape while in there: `decideTrackGateClass` ("answer all N") can settle fewer
+than the button's stated count (`refused` names items its own resolver rejected, `remaining` is
+what the cap left untouched), and `TrackConsent` echoed the button's INTENDED count unconditionally
+regardless of either. It now echoes `res.decided.length` and shows the shortfall when there is one.
+
+**Callers swept**, per item 3:
+- `decideTrackGate` — 2 callers, `GateBanner.tsx` and `TrackConsent.tsx`, both fixed above.
+- `resolveApproval` — routes through `decideApprovalItem` to 3 UI callers: `AskGateCard.tsx`
+  (try/catch, writes a failed receipt with the real message), `_authenticated.approvals.tsx` (a
+  full `onError` with optimistic rollback and an honest settled line — already the cleanest of the
+  three), `GotoShortcuts.tsx` (a comment naming the function in unrelated keyboard-shortcut history,
+  not an actual call site). All three already handled a thrown error correctly before this packet;
+  `decideApprovalItem`'s own result type (`{ok, changed}`) carries no `problems`-shaped field to
+  miss, so nothing to add there. `decideApproval` (a textually similar but distinct function, the
+  older `agent_approvals` path used by `ApprovalsPanel.tsx`/`AskRunCard.tsx`/`VerifyCockpit.tsx`) is
+  outside this packet's named scope (`decideTrackGate` and `resolveApproval` only) and was spot-
+  checked, not fully swept — `ApprovalsPanel.tsx` already has three `onError` handlers, so it reads
+  as already sound, but flagging that this was a spot check, not the same line-by-line pass.
+
+Two test-mock bugs found and fixed while writing coverage: both `GateBanner.test.tsx` and
+`TrackConsent.test.tsx` mocked `decideTrackGate`/`decideTrackGateClass` with result shapes missing
+`problems`/`refused`/`remaining` — fields the real server functions always return. The new
+`res.problems.length` reads would have thrown `undefined.length` the moment either mock's success
+path was actually exercised; both mocks now match the real result types.
+
+`bunx tsc --noEmit`: clean. `bun test`: 14353 pass, 22 skip, 37 todo, 0 fail, 38248 expect() calls,
+1045 files (4 new cases in `GateBanner.test.tsx` for the field-opens / reason-required / error-
+renders / problems-render behavior). `bun run build`: clean end to end. Returning to the watch loop.
+
 
 ### P-116 · Every merge gate carries the card, whichever path raised it · Lane: **A2** (after P-114, before P-112) · Status: READY · Moves: 1, 2
 
