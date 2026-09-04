@@ -10493,7 +10493,7 @@ first run; merged in instead, verified clean on a second pass. Full suite: tsc 0
 docs:check clean. A1's own gate on the tip A3 lands is the one that counts (rule 23); Start's own
 served figure is the acceptance A1 reads next.
 
-### P-141 · What a decision's own spend means on Outcomes · Lane: **A3** (after P-140) · Status: PUBLISHED, LIVE READ PENDING (f58ab7816; A1 gate 171 on the landed tip: build 0, tsc 0, 14,743 pass / 0 fail; published 20:41 IST with gate 172; A1 opens a decision on Outcomes once served) · Moves: 2
+### P-141 · What a decision's own spend means on Outcomes · Lane: **A3** (after P-140) · Status: DONE (live 21:50 IST on Helio's Outcomes, Decisions tab, "Do not ship redundant address re-confirmation removal until PRD approved and design gate cleared": the detail reads "Cost 3,606 credits across 37 runs.", which is the release track's whole spend attributed to its decision; whether a decision's own spend should read as its track's total is for A3's report to have answered, and the next A3 confirms the attribution is by lineage; f58ab7816; A1 gate 171 on the landed tip: build 0, tsc 0, 14,743 pass / 0 fail; published 20:41 IST with gate 172; A1 opens a decision on Outcomes once served) · Moves: 2
 
 **Why.** P-140's Scope assumed the Outcomes page has run rows the way Start does; it does not.
 Outcomes lists decisions and their graded forecasts, and a decision's own work can span more than one
