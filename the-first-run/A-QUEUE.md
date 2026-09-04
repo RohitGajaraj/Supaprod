@@ -148,6 +148,9 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     82 files under `src/`. A2 found its own lint check could not fail (`| head -5` on output whose
     first five errors are always the same five files outside `src/`), so gates 171 and 172 were
     A1's four lines and a local lint line that saw nothing; P-152 (A1, 21:09 IST).
+    **The lane's half (A2, 21:14 IST): every file a packet touches lints clean before the push, and
+    the lane says so with the sha pair.** A2 applied it to the eighteen files this lane has
+    touched since P-135, six of which carried errors its capped gate had hidden.
 26. **One full suite per machine at a time, and a run under contention is not a gate.** At 20:19 IST
     A2's machine was at load 327 with eight `bun test` processes, and the suite returned three
     failures that pass alone, two of them live-database guards that take 14 seconds unloaded. A
