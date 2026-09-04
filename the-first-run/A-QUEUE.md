@@ -10578,7 +10578,7 @@ install step; (3) the generated entrypoint against a real single-page app's deep
 rather than measured. Record each with its number on the walk.
 
 
-### P-138 · The stopped list says what is worth a person's next ten minutes · Lane: **A2** (after P-137) · Status: LANDED, A1 GATE RUNNING (gated by A2 at deca58fb3, 14,695 pass; landed at da6bbca5e after a rebase over four unrelated commits; three numbers: 53 rows, 11 seeded, 0 holding live work) · Moves: 2
+### P-138 · The stopped list says what is worth a person's next ten minutes · Lane: **A2** (after P-137) · Status: GATE GREEN ON THE LANDED TIP, PUBLISH WITH THE NEXT (da6bbca5e; A1 gate: build 0, tsc 0, 14,695 pass / 0 fail; three numbers: 53 rows, 11 seeded, 0 holding live work; publishes with P-109's second half once that tip is green) · Moves: 2
 
 **Why.** Helio's Waiting page at 16:37 IST 09-04: below the one card that moves, a flat list of
 53 stopped items, oldest first, from *Helio prefers concise release notes, stopped 50 days* down
