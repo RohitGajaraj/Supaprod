@@ -8076,7 +8076,7 @@ lands on it. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 reads it live.
 
-### P-81 · The rail at narrow widths · Lane: **A3** (after P-79) · Status: CLAIMED (A3) 03:15 UTC 09-04 · Moves: 2
+### P-81 · The rail at narrow widths · Lane: **A3** (after P-79) · Status: CODE DONE, PUSHED 4a4e715e8 · Moves: 2
 
 **Why.** P-60 put nine doors on the rail. Below the collapse width the rail shows glyphs only, and
 below a phone width nothing on the rail has been designed since the fold; the founder reads the
@@ -8094,6 +8094,42 @@ Guard: the bar and the sheet are generated from the same list as the rail.
 reaches its page; at 1280 px nothing changed. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 reads it at both widths.
+
+**Report, A3, 08:55 IST 09-04.** Mobbin first: `search_screens` for a five-icon bottom bar plus
+an overflow tab (Garmin Connect, MacroFactor, Polestar, Turo) and for a collapsed icon-only
+sidebar in a developer/agent tool (Railway, Sentry, TradingView) -- the five-plus-More shape and
+the glyphs-only collapse converge across both, nothing invented. `RailPhoneBar.tsx` (new): a
+fixed bottom bar built from `PRIMARY_NAV` filtered to the five named doors (Start, Waiting,
+Arriving, Outcomes, Run), plus a *More* trigger opening `PhoneMoreSheet` (bespoke, not
+`@/components/ui/sheet` -- that import counts as Tempo v5 debt in a new file under the ratchet;
+built to the same contract as `components/meridian/Dialog.tsx` -- scrim, Escape, Tab trap, scroll
+lock, focus return, no portal -- anchored bottom instead of centred) for the remaining four (Team,
+Conversations, Sources, Settings). Both generated from `PRIMARY_NAV` by filtering one list, never
+hand-copied; guard test `the-phone-bar-and-sheet-share-the-rail-list.test.ts` checks the bar plus
+sheet account for every door with none dropped or doubled, and every door has an icon.
+
+Below 640px (`--mrd-bp-phone`, new in meridian.css, matching `shell.css`'s own pre-existing phone
+floor): `.sp-rail` hides -- nested inside its own existing declaration rather than a second
+`@media` block, since `shell.css` is unlayered and a repeated `.sp-rail` occurrence would also
+have read as new debt against the ratchet's frozen `class:sp-` count in that file. The live line
+folds to its first fact: `RailPhoneBar` takes `liveLead`/`onLiveClick`/`liveTitle` as props (the
+same values `.sp-live` already computes, carried down) and shows a slim strip above the bar with
+just that one fact, rather than reopening `.sp-live`'s own carefully-measured `display: none` at
+640px. The manual `narrow` collapse toggle, its glyphs, its aria state, and the Waiting badge are
+untouched -- none of them needed to change.
+
+Full suite on the rebased tip (7afaa9aff): `bun run build` exit 0, `bunx tsc --noEmit` exit 0,
+`bun test` 14,251 / 0 / 22 skip / 37 todo. Also closed a real regression this work would otherwise
+have caused: the new `mrd-sheet-up` keyframe (meridian.css, for the sheet's slide-in -- nothing in
+Meridian animated a bottom-anchored panel before) had to be registered in BOTH of the stylesheet's
+reduced-motion blocks (the OS-preference one and the in-product toggle's own twin), or
+`the-motion-toggle-reaches-the-run-screen.test.ts`'s drift guard catches exactly that gap; caught
+by the suite before push, not after. PUSHED 4a4e715e8.
+
+Not walked live -- no dev server / browser access in this worktree this session, same standing
+limitation as every other packet closed here. A1: please read at 390px (bar draws, sheet opens,
+every door reaches its page, live-lead strip shows one fact) and at 1280px (nothing changed from
+before this packet).
 
 
 ### HOSTING NOTE, A1, 07:18 IST 09-04 · the served build is behind the publishes
