@@ -2470,22 +2470,68 @@ export const advanceTrack = createServerFn({ method: "POST" })
  * and the station as both ends, because the work did not move and a trail that
  * claimed a transition would be the false stage event `advanceTrack` was repaired
  * for. What it records is that somebody released this station to run again.
+ *
+ * ── P-151 / F-202: A PRESS ON DEFERRED WORK NOW ACTUALLY RETRIES IT ──────────
+ * Clearing `last_hold` was never enough on a track whose `deferred_until` sits
+ * in the future: the sweep's own query (`track-tick.ts`) fetches only rows
+ * whose deferral is null or past, so an unheld-but-still-deferred track stayed
+ * invisible to it until the horizon arrived by itself -- up to seventeen days,
+ * measured live. `deferred_until` is now cleared in the same update (belt and
+ * suspenders: `driveTrackOnce` clears it too, the instant it runs), and when
+ * the track WAS deferred, this calls `driveTrackOnce` directly rather than
+ * waiting for the next tick, so the press is the retry rather than a promise
+ * of one. `driveTrackOnce` composes its own fresh line for whatever it finds --
+ * `whatLearnIsWaitingFor` for a calendar wait still not due, a real dispatch
+ * for anything else -- and that becomes `note`, replacing the generic "runs
+ * again on its next turn" the client used to show unconditionally regardless
+ * of what actually happened. A horizon-deferred Learn re-enters the same wait
+ * (P-113b's own three-drives-before-backoff logic never sees a direct
+ * `driveTrackOnce` call, which is `attempts`/`station_drives` already being
+ * reset above rather than a new rule); the sweep's own next pass re-defers it
+ * to the horizon, which is exactly P-143's card reading the date again. A
+ * backoff-deferred track takes a real attempt now, for the same reason: the
+ * counters this control already resets are the only thing backoff reads.
  */
+type RetryStationResult = { track: Track | null; refused: string | null; note: string | null };
+
+/**
+ * Whether a track's own deferral was still in the future at press time.
+ *
+ * Pure and exported so the one genuinely new predicate this fix adds has a
+ * fixture-testable answer of its own, independent of the whole server-fn
+ * chain: `null`/`undefined` (never deferred) and a past ISO string (deferral
+ * already expired, the ordinary case the sweep already handles) both read as
+ * `false`, matching how the sweep's own SQL filter treats them
+ * (`deferred_until.is.null,deferred_until.lte.now`).
+ */
+export function stationWasDeferred(deferredUntil: string | null | undefined, now: Date): boolean {
+  if (!deferredUntil) return false;
+  const at = Date.parse(deferredUntil);
+  return !Number.isNaN(at) && at > now.getTime();
+}
+
 export const retryStation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
-  .handler(async ({ context, data }): Promise<{ track: Track | null; refused: string | null }> => {
-    const { supabase } = context;
+  .handler(async ({ context, data }): Promise<RetryStationResult> => {
+    const { supabase, userId } = context;
     try {
       const { data: row } = await supabase
         .from("spine_tracks" as never)
         .select(SELECT)
         .eq("id", data.trackId)
         .maybeSingle();
-      if (!row) return { track: null, refused: "That work could not be found." };
+      if (!row) return { track: null, refused: "That work could not be found.", note: null };
 
       const raw = row as unknown as TrackRow;
       const track = rowToTrack(raw);
+      // Read before the release update overwrites it. `deferred_until` is not
+      // on `TrackRow`'s own declared shape (only `rowToTrack` reads it, via
+      // the same loose cast), so this reads it the same way.
+      const wasDeferred = stationWasDeferred(
+        (raw as { deferred_until?: string | null }).deferred_until,
+        new Date(),
+      );
 
       /*
        * F-62. THIS CONTROL IS THE WORD "UNSTICKING", AND IT RECORDED NOTHING.
@@ -2516,7 +2562,11 @@ export const retryStation = createServerFn({ method: "POST" })
       });
 
       if (raw.status !== "open") {
-        return { track, refused: "This work is closed, so there is no station to run." };
+        return {
+          track,
+          refused: "This work is closed, so there is no station to run.",
+          note: null,
+        };
       }
 
       // Fails closed, the same direction driver.server.ts takes for the same
@@ -2538,6 +2588,7 @@ export const retryStation = createServerFn({ method: "POST" })
           return {
             track,
             refused: "Everything is paused for this workspace, so nothing was released.",
+            note: null,
           };
         }
       }
@@ -2550,6 +2601,7 @@ export const retryStation = createServerFn({ method: "POST" })
         return {
           track,
           refused: "This work is not held, so there is nothing waiting to be released.",
+          note: null,
         };
       }
 
@@ -2587,6 +2639,12 @@ export const retryStation = createServerFn({ method: "POST" })
           station_drives: 0,
           last_hold: null,
           last_hold_because: null,
+          // Lifted here, in the same update Scope asks for, even though
+          // `driveTrackOnce` below clears it too the instant it runs: this is
+          // the one write that always happens, on every press, deferred or
+          // not, so a track never reads "released" while still excluded from
+          // the sweep's own query.
+          deferred_until: null,
           driven_at: now,
           updated_at: now,
         } as never)
@@ -2600,6 +2658,7 @@ export const retryStation = createServerFn({ method: "POST" })
         return {
           track,
           refused: "The release did not come back confirmed, so nothing here is certain.",
+          note: null,
         };
       }
 
@@ -2614,12 +2673,50 @@ export const retryStation = createServerFn({ method: "POST" })
         userId: raw.user_id,
       });
 
-      return { track: rowToTrack(updated as unknown as TrackRow), refused: null };
+      /*
+       * ── THE ACTUAL RETRY, ONLY WHEN THE SWEEP WOULD OTHERWISE NEVER SEE IT ──
+       *
+       * A track that was not deferred is left to the sweep's own next pass, as
+       * before this fix: that path is not what F-202 found broken, and driving
+       * it here too would be a larger behaviour change than this packet asks
+       * for. A track that WAS deferred is invisible to the sweep's own query
+       * until the horizon (`track-tick.ts`'s `deferred_until.is.null,...lte.now`
+       * filter), so without this the hold is cleared and nothing drives it for
+       * up to seventeen days -- the bug itself, measured live.
+       */
+      let note: string | null = null;
+      if (wasDeferred) {
+        const { data: driveRow } = await supabase
+          .from("spine_tracks" as never)
+          .select(DRIVE_SELECT)
+          .eq("id", data.trackId)
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (driveRow) {
+          const outcome = await driveTrackOnce(supabase, driveRow as never, "press");
+          note = outcome.line;
+        }
+      }
+
+      const { data: final } = await supabase
+        .from("spine_tracks" as never)
+        .select(SELECT)
+        .eq("id", data.trackId)
+        .maybeSingle();
+
+      return {
+        track: final
+          ? rowToTrack(final as unknown as TrackRow)
+          : rowToTrack(updated as unknown as TrackRow),
+        refused: null,
+        note,
+      };
     } catch (e) {
       console.error("retryStation failed:", e);
       return {
         track: null,
         refused: "The release failed. Nothing on screen can be trusted until this list reloads.",
+        note: null,
       };
     }
   });

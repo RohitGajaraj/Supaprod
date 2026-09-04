@@ -17,6 +17,7 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { stationWasDeferred } from "./track.functions";
 
 const SPINE = join(import.meta.dir);
 const src = () => readFileSync(join(SPINE, "track.functions.ts"), "utf8");
@@ -55,13 +56,74 @@ describe("what releasing a station writes, and what it must not", () => {
     expect(body).not.toMatch(/status:\s*"(done|open|abandoned)"/);
   });
 
-  it("dispatches nothing and spends nothing", () => {
-    // The next tick does the driving. A control that dispatched here would spend
-    // money from a menu item, outside every budget the tick applies.
+  it("never calls a model or the orchestrator directly -- driveTrackOnce is the only path to either", () => {
+    // Unchanged: this control has never run a seat itself and still does not.
+    // What changed (P-151 / F-202) is whether it hands a deferred track to
+    // driveTrackOnce so the sweep is not the only thing that can ever drive
+    // it -- covered in its own describe block below, not here.
     const body = retryBody();
     expect(body).not.toContain("runAgentLoop");
-    expect(body).not.toContain("driveTrackOnce");
     expect(body).not.toContain("callModel");
+  });
+});
+
+describe("P-151 / F-202: a press on deferred work actually retries it", () => {
+  it("lifts deferred_until in the release update, on every press", () => {
+    // Belt and suspenders with driveTrackOnce's own unconditional clear: this
+    // write always runs, deferred or not, so a track never reads "released"
+    // while still excluded from the sweep's own deferred_until.is.null,...
+    // filter (track-tick.ts).
+    const body = retryBody();
+    expect(body).toContain("deferred_until: null");
+  });
+
+  it("computes wasDeferred from the row read before the release update overwrites it", () => {
+    const body = retryBody();
+    expect(body).toContain("stationWasDeferred(");
+    expect(body.indexOf("stationWasDeferred(")).toBeLessThan(body.indexOf("recordTrackDrive"));
+  });
+
+  it('calls driveTrackOnce with via "press" only when the track was deferred', () => {
+    // The non-deferred path is unchanged from before this fix: the sweep's
+    // own next pass still does that driving, which is not what F-202 found
+    // broken and is out of this packet's scope to also change.
+    const body = retryBody();
+    expect(body).toContain("if (wasDeferred)");
+    const ifIdx = body.indexOf("if (wasDeferred)");
+    const driveIdx = body.indexOf("driveTrackOnce(supabase, driveRow");
+    expect(driveIdx).toBeGreaterThan(ifIdx);
+    expect(body).toContain('"press"');
+  });
+
+  it("returns the station's own composed line as note, not a promise about a next turn", () => {
+    const body = retryBody();
+    expect(body).toContain("note = outcome.line");
+    expect(body).toContain("note,");
+  });
+});
+
+describe("stationWasDeferred: the one genuinely new predicate, fixture-tested directly", () => {
+  const NOW = new Date("2026-09-04T15:34:00Z");
+
+  it("a horizon-deferred fixture (the forecast still seventeen days out) reads true", () => {
+    expect(stationWasDeferred("2026-09-21T00:00:00Z", NOW)).toBe(true);
+  });
+
+  it("a backoff-deferred fixture (the ten-minute rung) reads true the same way", () => {
+    // The predicate does not and must not care WHY the row is deferred --
+    // P-113b's backoff and P-143's horizon write the same column, and
+    // driveTrackOnce's own logic is what tells them apart, not this.
+    expect(stationWasDeferred("2026-09-04T15:44:00Z", NOW)).toBe(true);
+  });
+
+  it("never deferred (null) reads false", () => {
+    expect(stationWasDeferred(null, NOW)).toBe(false);
+    expect(stationWasDeferred(undefined, NOW)).toBe(false);
+  });
+
+  it("a deferral that already expired reads false, matching the sweep's own is.null,...lte.now filter", () => {
+    expect(stationWasDeferred("2026-09-04T15:00:00Z", NOW)).toBe(false);
+    expect(stationWasDeferred(NOW.toISOString(), NOW)).toBe(false);
   });
 });
 

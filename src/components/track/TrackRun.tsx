@@ -370,9 +370,24 @@ export function TrackRunLeft({
         setReleaseNote({ verb: "Nothing was released", consequence: res.refused, failed: true });
         return;
       }
+      /*
+       * P-151 / F-202. A press on deferred work now actually drives the track
+       * (see `retryStation`'s own header), which files real artifacts and
+       * gates the other invalidations above never had to cover before this.
+       */
+      void qc.invalidateQueries({ queryKey: ["track-activity", trackId] });
+      void qc.invalidateQueries({ queryKey: ["track-gates", trackId] });
       setReleaseNote({
         verb: "You released it",
-        consequence: "It runs again on its next turn. Press Run it now to walk it immediately.",
+        /*
+         * `note` is what the look actually found -- the station's own hold
+         * line if it re-held, composed fresh, never a promise about "its next
+         * turn" that a deferred track's own bug made false. Absent only when
+         * the track was not deferred, in which case the sweep's own next pass
+         * (unchanged by this fix) is genuinely the next turn.
+         */
+        consequence:
+          res.note ?? "It runs again on its next turn. Press Run it now to walk it immediately.",
       });
     },
     onError: (e: Error) =>
