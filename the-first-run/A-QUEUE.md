@@ -9215,7 +9215,7 @@ path was actually exercised; both mocks now match the real result types.
 renders / problems-render behavior). `bun run build`: clean end to end. Returning to the watch loop.
 
 
-### P-116 · Every merge gate carries the card, whichever path raised it · Lane: **A2** (after P-114, before P-112) · Status: READY · Moves: 1, 2
+### P-116 · Every merge gate carries the card, whichever path raised it · Lane: **A2** (after P-114, before P-112) · Status: PUBLISHED, LIVE READ PENDING (6abb3cc3b; A1 gate on tip c2215b29f: build 0, tsc 0, 14,469 pass / 0 fail; published 14:01 IST; A1 reads the banner on the next live merge gate) · Moves: 1, 2
 
 **Why.** The merge gate that rose on the Ship track at 05:54:40 UTC 09-04 (0189ad0a) was raised
 by the seat (`studio.pr.merge` from run 2a4da7ba) with `rationale` null and `args` `{}`. The run
@@ -9580,7 +9580,7 @@ Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 presses one live.
 
 
-### P-124 · A release is named by its notes, and a pressed card leaves · Lane: **A3** (after P-122) · Status: DONE (A3) 13:56 IST 09-04 (c2215b29f) · Moves: 2
+### P-124 · A release is named by its notes, and a pressed card leaves · Lane: **A3** (after P-122) · Status: PUBLISHED, LIVE READ PENDING (c2215b29f; same gate; published 14:01 IST; A1 reads the release title on the served Ship page) · Moves: 2
 
 **Why.** The first live release on the Ship page (12:29 IST 09-04) is titled *Shipped an update*
 everywhere (the promote card, Live releases, Where it is live, What shipped) while its release
@@ -9724,6 +9724,27 @@ the Supaprod org) goes sentence to preview URL through the loop; the run screen 
 Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the ruling; the three numbers; A1 walks the second repo.
+
+
+### P-129 · One count per family on Waiting · Lane: **A3** (after P-126, before P-104) · Status: READY · Moves: 2
+
+**Why.** Served Waiting page, 12:14 IST 09-04: the heading said *21 design gates, 10 assumption
+challenges, 9 decisions, 4 agent actions, 4 house rules, 3 opportunities and 2 memory notes
+waiting for you* (53 in all) while the filter row said *All 52 · Proposals 33 · Gates 13 · Memory
+6*. At 11:5x the same page read 51 against *Gates 14*. Two counters on one screen, computed from
+two lists, disagree by one or more at every read; the person cannot tell which is the queue.
+
+**Scope.** One list, counted once: the heading's families and the filter row's tabs are both
+derived from the same array the cards render from (the settled list included or excluded the same
+way in both), and the numbers are the lengths of that array's partitions. Guard: a fixture queue
+renders a heading whose family counts sum to the *All* count and a Gates tab whose count equals
+the design-gate family plus the agent-action gates, or the packet writes down why one family is
+counted in two tabs.
+
+**Acceptance.** The served page's heading sum equals *All*, and the Gates tab equals its families,
+across two reads a minute apart. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 

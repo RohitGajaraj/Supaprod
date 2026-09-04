@@ -632,3 +632,23 @@ the Deno Deploy plan is at ten apps (P-118b gives him a reclaim press).
 
 **Lanes:** A2 on P-123, then P-118b, P-116, P-112, P-113. A3 on P-117, then P-119, P-120, P-121,
 P-122, P-124, P-104, P-105, P-109. Rule 22 holds.
+
+
+## Checkpoint, 14:01 IST 09-04
+
+**Since 12:30.** Published on A1's gate: P-117, P-118, P-119, P-120, P-121, P-122, P-123, P-125,
+P-118b, P-116, P-124 (the tip at 14:01 is 14,469 pass / 0 fail, tsc 0, build 0). Two incidents
+absorbed: the machine's volume filled at 13:10 IST (every shell call failed until 13:18; the
+founder approved a cleanup that freed 9.1 GB; one publish, P-120, went out on A3's own gate with
+the deviation recorded and was re-confirmed by A1's gate at 13:37) and the rtk hook rewrote the
+gate command into a parse error once (the gate now runs from a script file). The Chrome extension
+has not answered since 13:31, so six live reads are owed: P-119's embeddings item, P-121's July
+line, P-125's map at 1512 px, P-118b's Reclaim press, P-122's retry press, P-124's release title.
+
+**Filed this hour.** P-127 (the header said *Nothing running* while seats ran), P-128 (Ship hosts
+a repo that is not ours; the live Ship rests on our own template shape and the 23 September claim
+rests on this), P-129 (one count per family on Waiting).
+
+**Lanes.** A2 on P-127, then P-112, P-113, P-128. A3 on P-126, then P-129, P-104, P-105, P-109.
+Rule 22 holds. **Founder:** the announcement, the Cohere payment method, the Deno plan, and a
+reload of the Supaprod tab so the extension answers.

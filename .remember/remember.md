@@ -193,3 +193,7 @@ THE HONEST SHIP IS LIVE: PR #5 merged 06:22:41Z, preview 06:44, promoted 06:58:4
 
 ## A1 13:22 IST 09-04 (restart)
 Ship live (P-86 DONE). Published: P-96 P-97 P-103 P-114 P-115 P-117 P-118 P-119 P-120 P-123 P-125. Owed live reads: P-119 (Waiting/Team item), P-125 (map 1512), P-121 (Ship July line). P-121 on main, A3 numbers clean, A1 gate interrupted by restart: re-run tsc+suite (+build when disk allows) then publish. Disk: ENOSPC 13:10, 561 MB free; founder's files fill the volume. Lanes: A2 P-118b→P-116→P-112→P-113; A3 P-122→P-124→P-126→P-104→P-105→P-109. Founder: announce, Cohere card, Deno plan, disk. Probe tracks deferred to 09-06 07:02Z; tablet to 09-05 03:18Z; P-42 read after 17:30 IST.
+
+
+## A1 14:01 IST 09-04
+Published on A1 gate: P-117 P-118 P-119 P-120 P-121 P-122 P-123 P-125 P-118b P-116 P-124 (14,469 pass). Disk incident 13:10-13:18 (9.1 GB freed, memory written). Gate runs from scratchpad/gate.sh (rtk hook parse error). Chrome extension dead since 13:31: owed live reads P-119 P-121 P-125 P-118b P-122 P-124. Filed P-127 P-128 P-129. Lanes: A2 P-127→P-112→P-113→P-128; A3 P-126→P-129→P-104→P-105→P-109.
