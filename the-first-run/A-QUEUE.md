@@ -9220,6 +9220,50 @@ suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; the count.
 
+
+### P-119 · A paid service that stops paying out is told to the person · Lane: **A3** (after P-117) · Status: READY · Moves: 2, 3
+
+**Why.** `error_events` read 06:36 UTC 09-04: `cron.embed-tick.*` has failed on every tick since
+**2026-09-01 08:30 UTC** with `embeddings 402: Please add or update your payment method` from
+Cohere, 1,165 rows in the last 24 hours, and no surface in the product says so. Three days of
+Outcomes, decisions and opportunities have no embeddings, so Find Anything and the brain's
+recall are quietly degraded for every workspace, and the only place that knows is a table nobody
+opens. This is the founder's action (a card on the Cohere account), which is exactly why it must be
+in front of him.
+
+**Scope.** (1) A provider fault that repeats (the same surface failing on three consecutive ticks
+with a 4xx that is not a rate limit) raises one item on Waiting under agent actions, in the
+product's voice (*Embeddings have stopped: Cohere says the payment method needs updating. Fix it
+at dashboard.cohere.com › Billing; new work is not searchable until then.*), with the count of
+rows waiting, cleared by itself when the tick succeeds; one item per surface, never one per tick.
+(2) Team › Spend and limits shows the provider's state. (3) Guard: three fixtures of the same
+surface failing produce one item; a success clears it.
+
+**Acceptance.** The live Waiting page shows the embeddings item within one tick of publish; the
+count is real. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; the item read live by A1.
+
+### P-120 · A lineage edge carries its workspace · Lane: **A3** (after P-119) · Status: READY · Moves: 1
+
+**Why.** `error_events` 06:30:48 UTC 09-04, on the probe's Build (track a30d6b62): *lineage edge
+refused: null value in column "workspace_id" of relation "artifact_lineage"*, then *the prd ->
+mission edge ... is still absent after the write, so this build cannot be graded*. 53 refusals in
+seven days across two edge kinds (`prd->mission:dispatched`, `prd->prd:revised`). Every one is a
+build whose outcome the grader (P-42) cannot attribute: the forecast ledger loses the run.
+
+**Scope.** `recordLineage` receives and writes `workspace_id` on every edge; the two callers in
+`driver.server.ts` (line 704 and the revise path) pass it from the track row; a refused edge is a
+failure of the drive, not a logged aside. Backfill: the 53 refused edges are re-derived from their
+specs and missions where both still exist, by migration, ledger row confirmed by A1. Guard: an edge
+without a workspace cannot be constructed.
+
+**Acceptance.** `select count(*) from error_events where surface='lineage.recordLineage' and
+occurred_at > <publish>` stays 0 across a probe Build; the backfilled count reported. Full suite on
+the tip, tsc 0, build 0.
+
+**DoD.** Pushed; migration applied; the numbers.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
