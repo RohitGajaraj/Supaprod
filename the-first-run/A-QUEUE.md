@@ -8518,6 +8518,21 @@ test apps that held no production deploy (`cad-b90da531-426c2ee9ccbb`, `-187a976
 preview again* on the run screen. Kept: `test-project-cadence` and the July production app
 `cad-b90da531-f8b616c8399e`. Next read: the preview deployment row and its URL.
 
+
+**LIVE WALK, the preview is live, 12:14 to 12:19 IST 09-04 (06:44 to 06:49 UTC).** The tick's
+own retry at 06:44 deployed the merged commit: the deployment row is `success` and
+`https://cad-60000000-ae547426aa32-sgyj3nbef10h.cadencehostingtest.deno.net/` answers 200 with
+*Relay homeowner checkout, Preview build* (read by A1 at 06:46). The production alias 404s, as it
+should before a promote. **But Ship had already left.** At 06:11 the release-verifier seat filed a
+decision *Do not ship ... until PRD approved and design gate cleared* (the spec is `draft`, the
+design gate `pending`, both named as hard prerequisites in the workspace brief) and the sweep moved
+the track from Ship to Learn at 06:30:48 on that refusal: no release gate, no promote, Learn
+"waiting on time" for a forecast due 09-09 about a change that is not live. A refusal at Ship is a
+hold for the person, not a station done (**P-123**, A2). A1 pressed *Send it back to Ship* at
+06:48:47; the track is at Ship, nothing driving it. Next: the spec's approval and the design gate
+are the person's calls; A1 makes them on the Waiting page under the founder's authority, then
+presses *Run it now* at Ship and reads the release gate.
+
 ### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUBLISHED 09:38 IST 09-04 (b05fa6cf6; A1 on the tip: build 0 clean, tsc 0, 14,291 / 0 / 0; the keyboard walk follows) · Moves: 2, 5
 
 **Why.** Since 09-03 the product gained nine doors (P-60), a bottom bar and a sheet (P-81), the
@@ -9306,6 +9321,31 @@ where the binding read fails under RLS still resolves the binding, never `env`.
 on the host, not on GitHub) and the row names its source. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 presses live.
+
+
+### P-123 · A refusal at Ship holds for the person; it does not finish the station · Lane: **A2** (after P-118, before P-116) · Status: READY · Moves: 1
+
+**Why.** 06:11:28 UTC 09-04: the release-verifier seat declined to ship the merged change
+(*Do not ship ... until PRD approved and design gate cleared*, a decision row with `status:
+declined`, the spec `draft`, the gate `pending`). At 06:30:48 the sweep moved the track Ship to
+Learn. Nothing was promoted, no release gate rose, the production alias 404s, and Learn began
+waiting on a forecast about a change nobody can use. The refused-station rule (*a refused station
+is not a failed one*) is right about failure and wrong about completion: a refusal names what the
+person must decide, so the track holds at Ship with that hold, and Learn cannot start until a
+production deployment or an explicit handback exists for the changeset.
+
+**Scope.** (1) Ship's exit condition: a production deployment row (`success`, `environment:
+production`) or a recorded handback for the changeset; nothing else advances the station. (2) A
+release seat's decline becomes the hold: `waiting-on-a-person`, with the decision's rationale as
+the card and the two calls it names (approve the spec, clear the gate) as the card's actions. (3)
+Learn's entry guard: refuses to start without a shipped deployment and says so. (4) Guard: a
+declined release decision never advances the station; a promote does. Backfill: none needed, A1
+sent 2fdf93b6 back to Ship by hand at 06:48.
+
+**Acceptance.** A fixture with a declined release decision holds at Ship with the two actions; a
+fixture with a production deploy advances. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
