@@ -10512,7 +10512,7 @@ asserting 18 of 26.
 **DoD.** Pushed; the three numbers; the measured saving.
 
 
-### P-137 · Learn says what it can and cannot measure about the first release · Lane: **A2** (after P-135) · Status: PUBLISHED, LIVE READ PENDING (90c1b16aa; A1 gate: build 0, tsc 0, 14,670 pass / 0 fail; published 18:59 IST; A1 reads Learn on 2fdf93b6 once served: six clauses named, the honest sentence, the two presses; F-199 and F-200 in the ledger) · Moves: 1, 3
+### P-137 · Learn says what it can and cannot measure about the first release · Lane: **A2** (after P-135) · Status: DONE ON THE SPEC, THE LEARN PANEL IS P-144 (90c1b16aa; A1 gate: build 0, tsc 0, 14,670 pass / 0 fail; published 18:59 IST; live 20:08 IST on 2fdf93b6 with the spec open (`?artifact=f2aa82f1`): "None of the 6 success metrics on this spec have a source that could produce a number, so this release cannot be graded yet.", six clauses each with its source line, six Record a reading presses and six Connect a source links; the spec has six standing clauses, not the two the packet counted, and the sentence reads the real number; the run page's own Learn panel still reads "How we will know: Tablet checkout completion rate..." with "Graded on Mon, Sep 21" and "nothing here is waiting on a person", so a person arriving at Learn sees the sentence only if they open the spec, which is P-144 scope 1; F-199 and F-200 in the ledger) · Moves: 1, 3
 
 **Why.** The first live release (12:28 IST 09-04) sits at Learn with *The forecast this work is
 graded against comes due on 2026-09-09* and a horizon check on 09-21. Its spec's success metrics
@@ -10767,6 +10767,11 @@ same screen says *Learn returns when the forecast comes due; nothing here is wai
 says the person is the only source of a number, the other says nobody is waited on. And a person
 who does record the number waits seventeen days for a station that would not read it anyway.
 This is the shape the ledger already names twice: an index with no reader is half a feature.
+
+**A1, 20:08 IST, from the live read of P-137.** The honest sentence renders on the spec artifact
+only (`?artifact=f2aa82f1`); the run page's Learn panel reads the decision's observable under
+"How we will know" with "Graded on Mon, Sep 21" and the hold line, and never the sentence. Scope 1
+is that panel: the person arriving at Learn reads it there, not two clicks away.
 
 **Scope.**
 1. The hold line says which it is. When every standing clause has no source (the P-137 state),
