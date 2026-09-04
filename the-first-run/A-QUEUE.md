@@ -9040,7 +9040,7 @@ quoting a retirement, not a live claim).
 build`: clean end to end. Returning to the watch loop.
 
 
-### P-104 · A handed-back release reaches the Ship page · Lane: **A3** (after P-103) · Status: CLAIMED (A3) 17:42 IST 09-04 · Moves: 2, 3
+### P-104 · A handed-back release reaches the Ship page · Lane: **A3** (after P-103) · Status: PUBLISHED (c58a5c8ef; A1 gate: build 0, tsc 0, 14,619 pass / 0 fail; published 17:57 IST; no handback row exists in Helio today, so the live read is that merged releases are unchanged on the served Ship page, which A1 reads once served) · Moves: 2, 3
 
 **Why.** A2's finding in P-96: a build handed back to a person's own builder writes `pr_open`,
 never `merged`, and the Ship half writes a deployment with no `changeset_id`; the release list
