@@ -153,7 +153,10 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     20:23:** two of the eight suites were its own orphans, 13 and 15 minutes old, still running after
     the wrapper it polled had said done; killing them took the load from 327 to 63 in four minutes.
     So before starting a gate, `pgrep -fl "bun test"` and finish or kill what is there; a wrapper
-    that says done is not the suite.
+    that says done is not the suite. The measurement, same commit and same 1,070 files: eight
+    suites deep at load 327, 14,734 pass / 3 fail in 258 s; one suite at load 32, 14,737 pass /
+    0 fail in 40 s. The three failures did not exist, and nobody could have told which were real
+    by reading them (A2, 20:24 IST).
 
 ### The bar a packet is verified against, in this order
 
