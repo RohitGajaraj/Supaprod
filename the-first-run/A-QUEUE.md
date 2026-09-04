@@ -9939,7 +9939,7 @@ packet stays PARTIAL rather than DONE until the wider sweep -- or a scoped follo
 recipient-facing / date-only files specifically -- closes it.
 
 
-### P-131 · A changeset born from a track carries its spec and its bet · Lane: **A3** (after P-130) · Status: READY · Moves: 1, 3
+### P-131 · A changeset born from a track carries its spec and its bet · Lane: **A3** (after P-130) · Status: CLAIMED (A3) 16:04 IST 09-04 · Moves: 1, 3
 
 **Why.** The release document for the first live release (Ship page, 14:34 IST) says *This release
 is not linked to a spec, so what it set out to do and what it promised are not on the record* and
