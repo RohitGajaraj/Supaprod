@@ -8004,6 +8004,52 @@ from Helio, unchanged. Full suite on the tip, tsc 0.
 
 ### P-79 · Team carries Spend and limits, and the engine room is reached from it · Lane: **A3** (now) · Status: CODE DONE (4f32c38a4; A1 suite on the tip 14,233 / 0 / 0, tsc 0; publish batched until the served build carries the build header) · Moves: 2
 
+**A3, 02:55 UTC 09-04, P-79 Report.** The engine room's whole content (four rooms, chassis, Escape
+ladder, crumb, context aside, sources line) moved wholesale into
+`components/engine-room/EngineRoomEmbedded.tsx` -- not duplicated, not rewritten. Every internal
+`useNavigate({from: "/engine-room"})` is now scoped to `"/crew"`, and every search update carries
+`tab: "spend"` alongside `room`/`view`.
+
+**`/engine-room` is a redirect stub.** `beforeLoad` forwards `room`/`view`/`suite`/`surface`
+verbatim and translates `agent` to `roomAgent` -- Team's own `?agent=` already names a crew member,
+so the two collided the moment both lived on one route, and a redirect is exactly the place to
+absorb a rename without breaking whoever still has the old link. **Deliberately did not touch the
+~25 existing in-app `navigate({to: "/engine-room", ...})` call sites** across the codebase
+(`StandingRecord`, `EvalCalibrationPanel`, four room bodies, `ControlsPanel`, `EvalSuiteDetail`,
+`EvalsPanel`, two observe panels, `legacy-redirects.ts`, `palette-catalog.ts`, admin/settings/traces
+routes) -- the redirect is what makes them keep working without an audit, which is the entire point
+of building one rather than chasing every caller.
+
+**Team's own `?view=methods` became `?panel=methods`.** `room`/`view` now belong to the embedded
+content; the two switches could not share a name once both live on `/crew`. A new "Spend and
+limits" DoorRow opens the tab's overview from the roster; "The boundary" (already pointing at
+`safety`/`rules`) is repointed rather than duplicated, sitting beside it in the same "Across the
+whole crew" region.
+
+**Find Anything's doors group lists it.** `SEARCHABLE_DOORS` (`find-anything.ts`) is `PRIMARY_NAV`
+plus a small `SUB_DOORS` list -- "Spend and limits" is a section of a door, not a tenth rail entry,
+so it does not answer to the founder's one-word rail rule, and is searched alongside the nine.
+
+**Guards.** Three updated for the move: `escape-layers.test.tsx`'s source read (the room's own
+Escape handler moved files); `the-rename-map-is-applied-in-this-prefix.test.ts`'s P-61 tab-title
+check (expected "Spend and limits · Supaprod" as its own title, which P-79's own scope explicitly
+retires -- "the tab title stays Team" even with the spend tab open -- now checks "Team ·
+Supaprod"); `find-anything-names-every-group-it-searches.test.ts` and `find-anything.test.ts`
+extended for the new door. One new: `the-redirect-and-the-tab-share-one-list-of-rooms.test.ts`,
+proving both the redirect and the tab import the same `ROOM_KEYS` rather than each keeping its own
+copy.
+
+**Zero state (P-63).** Untouched, not new: `EngineRoomOverview`'s own pending/failed/clear states
+per room were already there before this move and are unchanged by it.
+
+**Acceptance.** Not yet served live: same blocker as every packet this session (`.env`-less
+worktree, browser tools blocked). tsc 0; `bun test` 14,233 / 0 fail. Requesting A1 read Team live:
+the new "Spend and limits" DoorRow opens the four-room overview, a room opens and its Escape closes
+it back to the overview (not the roster), the old `/engine-room?room=safety&view=rules` link lands
+on the same room under `/crew`, and the tab reads "Team · Supaprod" throughout.
+
+**DoD.** Pushed (`4f32c38a4`). Live walk open, handing to A1.
+
 **Why.** P-61's ruling: "Crew and spend" is `/crew` with the engine room as its spend tab; the
 rail's Team door landed (P-60) and the engine room still has no door of its own (audit §1: 25
 inbound links, none a person can find). The page a person needs when the bill surprises them is
