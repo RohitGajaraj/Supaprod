@@ -1,5 +1,7 @@
 # Supaprod Investor Deck
 
+> _Created: 2026-07-24 · Last updated: 2026-08-04_
+
 Frozen v20, 2026-07-24 (cover hint ruling applied). Built and reviewed slide by slide in the Hyperagent deck thread.
 
 

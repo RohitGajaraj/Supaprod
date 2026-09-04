@@ -1,5 +1,7 @@
 # QUEUE — S4 · THE PROVING GROUND (`lane/proof`)
 
+> _Created: 2026-08-26 · Last updated: 2026-09-01_
+
 > _Rewritten by S0 2026-08-31. **S0 writes this file; you read it and never write it.** Your brief is
 > [`SESSION-4-THE-PROVING-GROUND.md`](../../the-first-run/SESSION-4-THE-PROVING-GROUND.md)._
 >

@@ -1,5 +1,7 @@
 # The coherence cluster — cold-build specs v2 (PC-28..PC-33)
 
+> _Created: 2026-08-04 · Last updated: 2026-08-04_
+
 > _v2, 2026-07-10 late. **Rewritten after the founder's pressure-test directive** ("nothing is gated on me; think it through; bind to reality") **and a three-agent code audit** (Today's composition, the agent-roster reality, the design/prototype machinery — file:line pointers throughout). Every decision here is MADE, not deferred. A Sonnet lane builds any section cold; a Fable lane may deepen but not silently skip. Board: G17 sprint rows; summaries: [`v13-proof-campaign-plan.md`](./v13-proof-campaign-plan.md) §2; lane prompts: [`reports/research-sprint-lane-briefs.md`](./reports/research-sprint-lane-briefs.md)._
 
 **The cluster's single goal:** the founder's bar — _super light on the surface, an immense engine underneath, and unmistakably agentic-first._ Seven rows, one re-experience, built in this order: **PC-32 structure → PC-33 context → PC-34 the Brain restructure → PC-28 naming → PC-29 agency → PC-30 capability → PC-31 design station.** (PC-34 before 30/33's Brain-homed pieces so they land INTO its structure, not beside it as more tabs.) (Structure first because everything else needs the decluttered canvas; context before naming because the masthead is a naming surface; agency after both because bylines land in the new layout.)

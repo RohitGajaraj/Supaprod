@@ -1,5 +1,7 @@
 # NEXT STEPS — Credential Retrieval to Mission Gate Completion
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 **Blocker:** SUPABASE_SERVICE_ROLE_KEY missing (see BLOCKER-SUPABASE-CREDENTIALS-2026-08-27.md)
 
 **Timeline once credential is provided:** ~30 minutes to mission gate completion

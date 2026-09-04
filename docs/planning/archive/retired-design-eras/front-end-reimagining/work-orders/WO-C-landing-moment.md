@@ -1,5 +1,7 @@
 # WO-C — The landing moment: /start becomes the front door and it works
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **WHY.** The wow first-run exists only in mockups. In runtime: the gate (`_authenticated.tsx` beforeLoad) sends new users to `/onboarding` (the OLD five-screen flow); the reimagined `/start` is (a) unreachable for gated users — line ~34 exempts only `/onboarding`, so `/start` redirect-bounces; (b) a trap — `MissionOnboarding` never calls `markOnboarded()` after `completeOnboarding()`, so its exit loops back into onboarding; (c) it exits to `/today` (the old world). Founder complaint #2: "as soon as I land there is no surprise element."
 
 **Founder rulings reconciled:** `/start` stays frictionless — ONE question, nothing else added to the form. The moment comes from (i) the Pixel hero line, (ii) the starfield, (iii) exiting into the LIVE room that visibly picks the user's words up (that part is the room's job — see mockup screen-1b; this packet only fixes /start + the wiring).

@@ -1,5 +1,7 @@
 # Accelerator, incubator, residency and grant applications — the master tracker
 
+> _Created: 2026-07-31 · Last updated: 2026-09-02_
+
 > ### ❌ Five outcomes, all noes — and the biggest one arrived four days before anybody wrote it down
 >
 > **Y Combinator Fall 2026: REJECTED 2026-08-29, not selected for an interview.** Filed 2026-07-23

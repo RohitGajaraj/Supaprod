@@ -1,5 +1,7 @@
 # PC-35 — The premium build rung: `claude-agent` driver + execution sandbox (post-YC, founder-gated)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Every claim tagged: WORKS TODAY / WIRED-BUT-DORMANT / PLANNED. This packet is the architecture + phase plan; no phase starts without its named founder gate.
 
 ## The Conductor ruling (recorded)

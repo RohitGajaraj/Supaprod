@@ -1,5 +1,7 @@
 # Invite codes and the links to hand out
 
+> _Created: 2026-08-07 · Last updated: 2026-08-07_
+
 > _Created 2026-08-07, the evening signup went invite only._
 
 Signup is private beta. Nobody creates an account without a code. These six exist already, seeded by migration, so a link can be pasted into an email right now without minting anything first.

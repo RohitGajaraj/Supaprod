@@ -1,5 +1,7 @@
 # The governance principle: policy set in advance, not permission asked in the moment
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > Founder input, 2026-07-29 ~01:18. **Binding, and it outranks every doctrine in this folder on the
 > question of when a human is involved.** To be applied before the next design pass, not after.
 

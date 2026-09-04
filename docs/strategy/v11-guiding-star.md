@@ -44,7 +44,7 @@ On 2026-06-23 the founder asked for a brutally honest, outsider strategic teardo
 | The Critic-teardown wedge + competitor posture | [v9](./archive/v9-decision-wedge-and-build-next.md) |
 | The file-grounded blueprint (detail) | [v10](./archive/v10-master-blueprint.md) |
 | The role map (arbiter of which doc to pick) | [strategy/README.md](./README.md) |
-| Operating rules for all tools | [../../AGENTS.md](../../AGENTS.md) |
+| Operating rules for all tools | [../../AGENTS.md](../archive/agent-operating-manual.md) |
 
 ### 0.4 Table of contents
 

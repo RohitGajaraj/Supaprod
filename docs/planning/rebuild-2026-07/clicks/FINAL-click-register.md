@@ -1,5 +1,7 @@
 # FINAL click register - the deciding audit
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Consolidated 2026-07-28 from `clicks-a-chrome.md` (44), `clicks-b-surfaces.md` (59),
 > `clicks-c-conversation.md` (24). Raw 127 → **118 after dedup** (9 merges).
 > Every claim below was re-verified at source. Schema claims were re-verified against the

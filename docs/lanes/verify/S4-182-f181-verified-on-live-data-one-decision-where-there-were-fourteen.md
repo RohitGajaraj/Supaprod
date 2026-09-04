@@ -1,5 +1,7 @@
 # S4-182 — F-181 verified on live data: one decision where there were fourteen, and the critic critiqued
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 > _S4 · 2026-09-01 ~03:3x IST · Lovable project `371dd588`, all `SELECT`. No dev server, no row
 > written, nothing pressed. **S0 cannot sign its own spine work (R-11), and this is that signature.**_
 

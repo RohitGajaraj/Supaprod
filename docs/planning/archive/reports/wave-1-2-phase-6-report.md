@@ -1,5 +1,7 @@
 # Wave 1-2 Phase 6 Exhaustive Validation Report
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Date:** 2026-07-25  
 **Status:** CONDITIONAL APPROVAL — Blocker Identified  
 **Test Coverage:** 94 screenshots, 81 test cases across 6 phases

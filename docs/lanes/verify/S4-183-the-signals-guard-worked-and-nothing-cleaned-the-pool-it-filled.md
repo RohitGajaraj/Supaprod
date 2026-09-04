@@ -1,5 +1,7 @@
 # S4-183 — the `signals.log` guard worked, nobody had checked, and nothing cleaned the pool it had already filled
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 > _S4 · 2026-09-01 ~03:5x IST · Lovable project `371dd588`, all `SELECT`. No dev server, no row
 > written, nothing pressed._
 

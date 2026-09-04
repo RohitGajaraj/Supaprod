@@ -1,5 +1,7 @@
 # The 2026-08 funding sweep, harvested lane by lane
 
+> _Created: 2026-08-14 · Last updated: 2026-08-14_
+
 > _Written by [`scripts/harvest-workflow-journal.py`](../../../../scripts/harvest-workflow-journal.py) while the sweep runs, so a crash costs one lane rather than all of them. Every file here rebuilds from the run journal, which is the source of truth._
 
 **Why it is built this way.** The research tool returns everything at the end. A run that dies on the last lane takes every earlier lane with it, and each lane costs real time because every programme is checked against its own live apply page. **This has now survived two restarts.**

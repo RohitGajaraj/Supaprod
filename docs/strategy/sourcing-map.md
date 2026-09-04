@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-21 · The cluster-level Build-Buy-Integrate (BBI) decision for the whole build queue._
 
-> **Why this exists (founder ruling 2026-06-21):** BBI is a **cluster-level** decision, not a per-item label. If we buy or integrate the substrate for a whole capability cluster, most of that cluster's sub-features come for free and we should NOT build them; only the moat sub-items need building. This map makes the cluster call for the founder and tells each agent exactly what to build vs source elsewhere, with the named option behind each. Decision rule + the four sourcing types: [`build-buy-integrate.md`](./build-buy-integrate.md); operative gate in [`../../AGENTS.md`](../../AGENTS.md) §3.0c; the per-cluster pick context surfaces in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) "How to pick".
+> **Why this exists (founder ruling 2026-06-21):** BBI is a **cluster-level** decision, not a per-item label. If we buy or integrate the substrate for a whole capability cluster, most of that cluster's sub-features come for free and we should NOT build them; only the moat sub-items need building. This map makes the cluster call for the founder and tells each agent exactly what to build vs source elsewhere, with the named option behind each. Decision rule + the four sourcing types: [`build-buy-integrate.md`](./build-buy-integrate.md); operative gate in [`../../AGENTS.md`](../archive/agent-operating-manual.md) §3.0c; the per-cluster pick context surfaces in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) "How to pick".
 
 ## The headline
 

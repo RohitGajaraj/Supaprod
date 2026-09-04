@@ -1,5 +1,7 @@
 # STEP 1: Surface Audit & Findings
 
+> _Created: 2026-08-10 · Last updated: 2026-08-10_
+
 > _36-Hour Design Sprint · Audit Complete · 10 Highest-Impact Fixes Identified_
 
 > **Token destination corrected 2026-08-10.** Rows below originally named

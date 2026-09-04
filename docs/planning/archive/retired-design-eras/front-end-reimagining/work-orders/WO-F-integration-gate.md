@@ -1,5 +1,7 @@
 # WO-F — Integration gate: merge in order, verify everything, flip the row
 
+> _Created: 2026-08-03 · Last updated: 2026-08-04_
+
 **WHY.** Parallel lanes merge safely only in dependency order with one full gate at the end. This packet is executed by ONE agent (the integration agent) after the dispatched lanes report done.
 
 ## Merge order

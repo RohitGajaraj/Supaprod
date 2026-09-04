@@ -1,5 +1,7 @@
 # S4-121 · One tool of seventy-four always needs a person, and that is a design rather than a gap
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. The trust surface, counted. Traced through `defaults.ts`, `trust-ramp.ts`,
 > `trust.server.ts` and `loop.server.ts`; **nothing was executed**._
 

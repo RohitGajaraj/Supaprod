@@ -1,5 +1,7 @@
 # The demo story — one character, one pain, the product as her prop
 
+> _Created: 2026-07-25 · Last updated: 2026-08-11_
+
 > _Created 2026-07-25 (founder ruling, the YC session): **the demo tells a story. It does not tour features.**_
 >
 > _Governing source: **Pete Koomen (Y Combinator), "The secret to better product demos"** ([youtube.com/shorts/rNPJKpmp3TM](https://www.youtube.com/shorts/rNPJKpmp3TM)). His thesis, in his words: great demos focus on the user, not the product. A bad demo is a tour, "this is the login page, this is the dashboard," and the audience's eyes glaze over. A great demo is like a great book or movie: it tells a story, that story starts with a main character, and **your most important job is to get the audience to connect with that character and understand her pain.** The product is **just a prop she uses to solve a problem**. His closing instruction: don't show me your product, tell me a story about your user._

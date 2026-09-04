@@ -1,5 +1,7 @@
 # FINAL: the governance frame. Policy set in advance, gates as the exception.
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > _Rebuild 2026-07, the deciding document. Written 2026-07-29 against_
 > _[`../GOVERNANCE-PRINCIPLE.md`](../GOVERNANCE-PRINCIPLE.md) (binding founder input) and the three_
 > _audit lanes: [`gov-a-doctrine-audit.md`](./gov-a-doctrine-audit.md) (every decision point,_

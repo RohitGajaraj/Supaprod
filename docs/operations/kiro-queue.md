@@ -54,7 +54,7 @@
 
 **Every item's `Why` comes from the findings register: [`../planning/initiatives/audit-reports/agent-audit-2026-08.md`](../planning/initiatives/audit-reports/agent-audit-2026-08.md).** If an item's premise looks wrong to you, that file is where to check it — it records what was measured, when, and against what. It also names which existing docs are stale, which matters because several items exist only because a doc claimed something the code stopped doing.
 
-Direction this queue implements: [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md). **Its §5 traces every surface end to end — purpose, inputs, agent, backend, writes, handoff, learning loop — and §2 carries the object model.** Read §5's entry for the station you are touching before building anything that renders run state, station state, or a hold: that is **K-04, K-06, K-18, K-20, K-23, K-24, K-26, K-49, K-51 and K-60 to K-63**. For the rest, the direction is context rather than required reading. Design contract: [`../design/DESIGN-SYSTEM.md`](../design/DESIGN-SYSTEM.md). Build rules: [`../../AGENTS.md`](../../AGENTS.md).
+Direction this queue implements: [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md). **Its §5 traces every surface end to end — purpose, inputs, agent, backend, writes, handoff, learning loop — and §2 carries the object model.** Read §5's entry for the station you are touching before building anything that renders run state, station state, or a hold: that is **K-04, K-06, K-18, K-20, K-23, K-24, K-26, K-49, K-51 and K-60 to K-63**. For the rest, the direction is context rather than required reading. Design contract: [`../design/DESIGN-SYSTEM.md`](../design/DESIGN-SYSTEM.md). Build rules: [`../../AGENTS.md`](../archive/agent-operating-manual.md).
 
 ---
 
@@ -2943,4 +2943,4 @@ counting.
 
 - [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) — the direction this queue implements, with the evidence for every "why" above
 - [`../design/DESIGN-SYSTEM.md`](../design/DESIGN-SYSTEM.md) — the Meridian contract and the ratchet
-- [`../../AGENTS.md`](../../AGENTS.md) — build rules, gates, and the traps this repo has already paid for
+- [`../../AGENTS.md`](../archive/agent-operating-manual.md) — build rules, gates, and the traps this repo has already paid for

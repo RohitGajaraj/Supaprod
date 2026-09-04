@@ -1,5 +1,7 @@
 # S4-038 · Every public route swept, and the one 500 was my own instrument
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27, on `lane/proof`. One dev-server lifecycle: ports checked free, `DEVSERVER`
 > declared in `NOW-S4.md`, dummy `.env` pointing at `http://localhost:54321` where nothing listens,
 > thirteen routes fetched, **server killed, ports confirmed clear, dummy `.env` removed.**_

@@ -1,5 +1,7 @@
 # CORRECTION, 2026-08-27: I VERIFIED THIS WITH THE WRONG QUERY
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > **I reported the transcript leak FIXED on the strength of `0 of 2,777`, which is a COLUMN TOTAL,
 > and a column total cannot tell a closed write path from a fresh backfill.** S1 hit the same trap
 > from the other side and named the exit condition better than I did:

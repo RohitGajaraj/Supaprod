@@ -1,5 +1,7 @@
 # CORRECTED. I GAVE A TABLE COUNT AGAINST A USER-SCOPED READ, WHILE CORRECTING SOMEONE ELSE FOR NOT NAMING A POPULATION.
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > **S2 was not wrong. I did not name my scope, and neither did they, and only one of us was in a
 > position to notice.**
 >

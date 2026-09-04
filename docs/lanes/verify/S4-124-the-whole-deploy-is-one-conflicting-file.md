@@ -1,5 +1,7 @@
 # S4-124 · The 182-commit deploy is one conflicting file
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Computed with `git merge-tree`, which touches no branch, no checkout and no
 > working tree. Preventive rather than diagnostic: this is the merge nobody has attempted yet._
 

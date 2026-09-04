@@ -1,5 +1,7 @@
 # Sequoia Arc — the answers, NOT ready to paste
 
+> _Created: 2026-08-13 · Last updated: 2026-08-16_
+
 > ## 🛑 RE-SCREENED 2026-08-16. The application is NOT OPEN, and this draft breaks two rulings.
 >
 > **The form is not live.** `sequoiacap.com/arc/apply` renders a **completely blank page**: nav, empty body, footer, 246 characters of content, no form and no closure notice. Verified by direct browser render and screenshot; the URL returns HTTP 200, so the page has been emptied rather than removed. **The 2026-08-17 deadline below is stale and was never checked against Sequoia's own page.**

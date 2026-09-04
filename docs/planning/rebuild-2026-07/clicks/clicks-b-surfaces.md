@@ -1,5 +1,7 @@
 # Click audit B - the work surfaces
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Static analysis, 2026-07-28. Scope: every real authenticated work surface and its deep
 > sub-pages - Today, Build (index + detail), Plan (index + spec editor), Settings (all 16
 > section ids), Approvals, Brain, Design, Discover, Decide, Ship, Learn, Engine Room, Sync,

@@ -1,5 +1,7 @@
 # Repositioning — the triple-RFS intersection (2026-07-22, addendum 2026-07-24)
 
+> _Created: 2026-07-22 · Last updated: 2026-08-11_
+
 > _Status: **RATIFIED — founder sign-off 2026-07-22** ("reposition the documents at the root level: README.md, AGENTS.md, CLAUDE.md and so on"). Propagated same session: `README.md` (header, one-paragraph, positioning statement #6, moat validation), `AGENTS.md` §0, `CLAUDE.md` §1.45, [`one-pager.md`](./one-pager.md) (category line + intersection claim), `docs/strategy/session-decisions.md`. Next: the YC application third column ([`yc/fall-2026-application.md`](./yc/fall-2026-application.md)) and the deck draw from §3. Research history: live ycombinator.com/rfs fetch 2026-07-22, Wayback 2026-03-13 (Spring RFS), speedrun.a16z.com + FAQ + Substack, fresh competitor sweep 2026-07-22._
 
 ## 0. ⭐ Addendum: the 2026-07-24 investor-deck canon (founder-ratified)

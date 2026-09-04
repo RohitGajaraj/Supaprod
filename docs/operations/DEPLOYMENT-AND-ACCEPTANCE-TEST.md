@@ -1,5 +1,7 @@
 # Deployment and Acceptance Test Procedure — 2026-08-27
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > **Status:** Three fixes on main, ready to deploy. Lovable MCP token expires periodically; requires re-auth before deploy.
 > **Mission gate:** A track enters at sense, reaches learn, driven entirely by agents (sweep or foreground), watched on screen, returns verdict.
 

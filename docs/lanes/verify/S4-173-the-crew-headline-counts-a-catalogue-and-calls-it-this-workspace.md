@@ -1,5 +1,7 @@
 # S4-173 — standing questions 2 and 4: the crew headline counts a code catalogue and calls it "here"
 
+> _Created: 2026-08-31 · Last updated: 2026-08-31_
+
 > _S4 · 2026-08-31 ~14:3x UTC · `bash e2e/check-motion.sh --signed-in /brain /decide /crew /approvals`,
 > dead backend, dummy env on a dead port. **Dev server taken and released — the harness reports
 > `:8080` clear and the dummy `.env` removed.** No row written, nothing pressed._

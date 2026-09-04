@@ -1,5 +1,7 @@
 # Gap Closure Register — Comprehensive Launch Audit
 
+> _Created: 2026-08-05 · Last updated: 2026-08-22_
+
 > **SUPERSEDED, 2026-08-22.** This reads as live tracking at 9% complete against a 2026-08-07 target. It has not been touched since 2026-08-05. The current findings register is [`../initiatives/audit-reports/agent-audit-2026-08.md`](../initiatives/audit-reports/agent-audit-2026-08.md) (2026-08-19), and the platform direction built on it is [`../initiatives/agent-first-platform.md`](../initiatives/agent-first-platform.md). Treat the rows below as history.
 
 **Created**: 2026-08-05  

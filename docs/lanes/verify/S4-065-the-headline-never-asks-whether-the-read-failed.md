@@ -1,5 +1,7 @@
 # S4-065 · The body handles the failure and the headline lies above it
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Seven product surfaces rendered signed in against a database that does not exist.
 > `bash e2e/check-motion.sh --signed-in <paths>`. Screenshots in `docs/screenshots/s4-motion/`._
 

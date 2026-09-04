@@ -1,5 +1,7 @@
 # S4-110 · The Linear push was moved off one route and never arrived at the other
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. S2 asked for `sync_mappings`' three dead writers to get the same treatment as
 > `renameMission` rather than a guess. This is that._
 

@@ -1,5 +1,7 @@
 # S4-024 · C2-010 — the one answer this surface must never give is the one a broken read produces
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 against `origin/lane/control` @ `c5155e186`, **before merge**, which is
 > the cheapest moment to catch it. Static; no database required to reproduce the reasoning, and the
 > repro at the end needs only a forced error._

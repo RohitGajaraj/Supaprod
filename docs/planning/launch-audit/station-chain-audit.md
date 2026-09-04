@@ -1,5 +1,7 @@
 # The seven stations, measured against production
 
+> _Created: 2026-08-10 · Last updated: 2026-08-11_
+
 > # 🛑 EVERY EDGE COUNT IN THIS AUDIT IS SEED DATA. RETRACTED 2026-08-11.
 >
 > This document separated real lineage from demo lineage by **matching the shape of a workspace id**. `seed_sample_workspace()` gives its workspace an ordinary random id, so **seeded rows counted as production and the test was wrong in both directions.**

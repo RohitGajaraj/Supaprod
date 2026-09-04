@@ -1,5 +1,7 @@
 # Phase 3 Strategy — Screens (Home / Project / Approvals + Shell)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Status:** Ready to start. Phase 0/1/2 complete, Ink component library production-ready (12 components).
 
 **Kickoff time:** 2026-07-18 ~15:30 IST  

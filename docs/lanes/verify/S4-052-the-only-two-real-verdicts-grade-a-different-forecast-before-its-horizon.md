@@ -1,5 +1,7 @@
 # S4-052 · The only two real verdicts grade a different claim, four days before its horizon
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27, live database, read only. **This corrects my own `S4-040`, which told the founder
 > the loop's payoff had happened.** It happened in the sense that rows exist. It did not happen in
 > the sense the product sells._

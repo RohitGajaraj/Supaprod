@@ -1,5 +1,7 @@
 # Implementation Task: Decide Station Must Call decision.record
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 **Priority:** P0 · Mission-gate blocker  
 **Scope:** Add 1-3 tool invocation in Decide station  
 **Owner:** MAIN (requires loop.server.ts expertise)  

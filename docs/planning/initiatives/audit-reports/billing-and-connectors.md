@@ -1,5 +1,7 @@
 # Billing and connectors, from the user's side of the glass
 
+> _Created: 2026-08-14 · Last updated: 2026-08-14_
+
 > _Audit pass, 2026-08-14. Raw output, saved as it finished._
 
 Build state that shapes everything below: `VITE_PAYMENTS_CLIENT_TOKEN` is unset, so `paymentsConfigured()` is `false` and payments are dormant. Several findings are currently masked by that and go live the day a key is set.

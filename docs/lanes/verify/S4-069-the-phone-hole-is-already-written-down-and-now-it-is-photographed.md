@@ -1,5 +1,7 @@
 # S4-069 · The phone hole is already written down, and now it is photographed
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. The harness can measure any viewport now. First phone run: 390x844, signed in,
 > dead database. `bash e2e/check-motion.sh --signed-in --phone /today /approvals /guardrails`._
 

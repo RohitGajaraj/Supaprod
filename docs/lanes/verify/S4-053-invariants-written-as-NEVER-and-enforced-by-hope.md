@@ -1,5 +1,7 @@
 # S4-053 · Invariants written as NEVER, enforced by asking
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27, code plus live database, read only. A generalisation of `S4-052`, sized honestly:
 > one of these is serious and the other is small, and saying which is the point._
 

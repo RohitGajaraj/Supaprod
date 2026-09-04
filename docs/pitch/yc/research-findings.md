@@ -1,5 +1,7 @@
 # YC application research — findings and sources
 
+> _Created: 2026-07-10 · Last updated: 2026-08-11_
+
 > _Compiled 2026-07-10 via five parallel research passes: (1) YC primary sources, (2) community anti-patterns incl. the "seven deadly sins" video, (3) batch landscape + interview format, (4) pre-traction acceptance playbook, (5) language forensics on accepted applications. This is the reference layer behind [`fall-2026-application.md`](./fall-2026-application.md), [`interview-prep.md`](./interview-prep.md), and [`video-scripts.md`](./video-scripts.md) — when tweaking any of those, check the claim here first. Every claim carries its source. Quotes are verbatim._
 
 ## 1. The rules from YC itself

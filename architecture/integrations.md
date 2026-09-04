@@ -2,9 +2,9 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-06-19_
 
-> External systems and the "built for agents" surface. Rules: [`AGENTS.md`](../AGENTS.md). Runtime: [`runtime.md`](./runtime.md). Data: [`data.md`](./data.md).
+> External systems and the "built for agents" surface. Rules: [`AGENTS.md`](../docs/archive/agent-operating-manual.md). Runtime: [`runtime.md`](./runtime.md). Data: [`data.md`](./data.md).
 
-> **Live backend source of truth: the Lovable MCP.** OAuth, connector and client credentials, redirect URIs, and provider config are provisioned and managed by Lovable (Cadence is built on, hosted on, and published through Lovable). When wiring or debugging a connector, an OAuth flow, or any credential, read the live config from the connected Lovable MCP (`mcp__lovable__*`), and the Supabase MCP (`mcp__supabase__*`) for the underlying tables, never from assumption. Canonical rule: [`AGENTS.md`](../AGENTS.md) §0.
+> **Live backend source of truth: the Lovable MCP.** OAuth, connector and client credentials, redirect URIs, and provider config are provisioned and managed by Lovable (Cadence is built on, hosted on, and published through Lovable). When wiring or debugging a connector, an OAuth flow, or any credential, read the live config from the connected Lovable MCP (`mcp__lovable__*`), and the Supabase MCP (`mcp__supabase__*`) for the underlying tables, never from assumption. Canonical rule: [`AGENTS.md`](../docs/archive/agent-operating-manual.md) §0.
 
 ## Principle
 

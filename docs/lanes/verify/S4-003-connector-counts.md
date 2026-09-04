@@ -1,5 +1,7 @@
 # S4-003 · The connector wiring number is stale on main — three different counts for one file
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 on `lane/proof` at `27338f062`. Trigger: a routine spot-check of
 > S0-004's audit found grep counting 4 `stubAdapter` mentions where the audit said 6. Followed the
 > rules of evidence — suspect the instrument first, count by reading, and check the claim against

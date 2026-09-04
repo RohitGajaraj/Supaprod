@@ -1,5 +1,7 @@
 # S4-049 · The screen offers the one action its own sentence just ruled out
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27, on `main`, with the live hold distribution behind it. **First verdict written
 > under the corrected three-part bar (`S4-048`): taste first as the question, reference second as the
 > check, frontier bar third as the veto.**_

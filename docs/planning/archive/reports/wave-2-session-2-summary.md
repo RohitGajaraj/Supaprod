@@ -1,5 +1,7 @@
 # Wave 2 Execution — Session 2 Summary (2026-07-25)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Session Date:** 2026-07-25 (Session 2)  
 **Duration:** Continuous session  
 **Scope:** Wave 2 Batch 2.2 (Type-Class Migrations) — Partial execution  

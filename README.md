@@ -1,3 +1,5 @@
+> _Created: 2026-06-03 · Last updated: 2026-09-02_
+
 <p align="center">
   <img src="./docs/growth/branding/social/x-header-dark-1500x500@2x.png" alt="Supaprod. Agents that own outcomes. Not just output." width="100%">
 </p>

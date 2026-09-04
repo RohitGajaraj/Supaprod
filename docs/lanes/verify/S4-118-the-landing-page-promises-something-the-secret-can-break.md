@@ -1,5 +1,7 @@
 # S4-118 · The landing page makes an absolute promise the product is configured to break
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Outward copy, so this is presented rather than fixed: it is the founder's call and
 > `docs/pitch/`'s procedure, not a lane's._
 

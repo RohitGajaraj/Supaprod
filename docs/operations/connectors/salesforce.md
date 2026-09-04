@@ -1,5 +1,7 @@
 # Salesforce connector setup
 
+> _Created: 2026-07-17 · Last updated: 2026-08-03_
+
 **Status:** Verified working - registered + tested 2026-07-10 - real per-user OAuth connection live, replaced a dead legacy admin token.
 **Last verified:** 2026-07-17
 

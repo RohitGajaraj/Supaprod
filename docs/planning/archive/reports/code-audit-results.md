@@ -1,5 +1,7 @@
 # Wave 1-2 Comprehensive Audit Results
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 ## Code-Based Audits Completed
 
 ### 1. Icon Usage ✓

@@ -1,5 +1,7 @@
 # The system, as built
 
+> _Created: 2026-07-29 · Last updated: 2026-08-22_
+
 > **STALE, 2026-08-22.** Written 2026-07-29. It describes Cadence/ink as "the design system that now exists in code". That system was retired 2026-08-14. The design system is **Meridian** and there is no other one — contract [`DESIGN-SYSTEM.md`](../../design/DESIGN-SYSTEM.md), system `src/styles/meridian.css`, components `src/components/meridian/`. v1 Ember, v3 Obsidian, v4 Loom, v5 Tempo and Cadence/ink were all retired 2026-08-14 and the retirement is enforced by `src/__tests__/meridian-ratchet.test.ts`.
 
 

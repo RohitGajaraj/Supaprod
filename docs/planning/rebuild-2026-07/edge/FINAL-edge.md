@@ -1,5 +1,7 @@
 # FINAL: the Absorption Doctrine
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > _Rebuild 2026-07, the edge question, decided. Written 2026-07-29 under the founder's full-authority
 > mandate. Merges `edge-a-field-study.md` (fourteen products, the outside evidence),
 > `edge-b-absorption-line.md` (the sorter and the register model), and

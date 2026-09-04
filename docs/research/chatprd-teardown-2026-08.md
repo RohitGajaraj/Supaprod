@@ -1,5 +1,7 @@
 # ChatPRD, torn down — and what the category says about us
 
+> _Created: 2026-08-25 · Last updated: 2026-08-25_
+
 > _2026-08-25. Produced by a six-agent workflow: a product teardown, a category map, an outside read
 > of our own surfaces, a friction count, and an adversarial test of our moat. Every claim carries a
 > URL, a file:line or a production number._

@@ -1,5 +1,7 @@
 # Design craft references study: dark-first monotone, motion craft, AI presence, and the Supaprod color proposal
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Research stream for the front-end reimagining (Phase R). Created 2026-07-19.
 > Sources verified live this session: vercel.com/geist (colors, introduction), rauno.me/craft (incl. "Invisible Details of Interaction Design"), devouringdetails.com (Rauno Freiberg's interactive course, 3 units / 8 principle chapters), interfacecraft.dev (Josh Puckett), shapeof.ai/patterns/color, plus 2026 market chatter on AI working-state UI (Cursor vs Devin visibility models) and the "AI purple" saturation problem.
 > Local inputs: `src/styles/ink.css` (Ink v6 tokens), the landing applied record `design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md`, the charter's visual-direction section.

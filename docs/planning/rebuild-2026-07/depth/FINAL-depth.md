@@ -1,5 +1,7 @@
 # FINAL - The Depth Contract
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > _Written 2026-07-28. Merges depth-a (provenance), depth-b (agentic Ask), depth-c (telemetry)
 > into one binding contract. Where the three disagreed, this document rules and says why._
 >

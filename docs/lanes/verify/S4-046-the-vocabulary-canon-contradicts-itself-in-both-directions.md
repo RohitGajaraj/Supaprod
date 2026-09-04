@@ -1,5 +1,7 @@
 # S4-046 · The vocabulary canon contradicts itself, in both directions
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Found because S3 challenged a line in `S4-039` and was half right. Verifying the
 > challenge turned up a bigger problem than the line._
 

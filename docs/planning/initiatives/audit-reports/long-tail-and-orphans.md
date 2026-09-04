@@ -1,5 +1,7 @@
 # The long tail, the orphans, and how many surfaces this product should have
 
+> _Created: 2026-08-14 · Last updated: 2026-08-14_
+
 > _Audit pass, 2026-08-14. Raw output, saved as it finished. The audit document is the conclusion; this is evidence._
 
 ## The headline

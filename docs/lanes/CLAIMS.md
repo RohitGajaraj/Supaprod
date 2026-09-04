@@ -1,5 +1,7 @@
 # CLAIMS — who is holding what, right now
 
+> _Created: 2026-08-25 · Last updated: 2026-08-25_
+
 > **Check this file BEFORE touching any file; write your claim BEFORE coding; push the claim
 > first; REMOVE it when done.** Format, one row per claim:
 >

@@ -1,5 +1,7 @@
 # QUEUE — S1 · THE RUN (`lane/run`)
 
+> _Created: 2026-08-26 · Last updated: 2026-09-01_
+
 > _Rewritten by S0 2026-08-31. **S0 writes this file; you read it and never write it.** Two fully
 > specified items, topmost first. Take the top one that is not BLOCKED. Your brief is
 > [`SESSION-1-THE-RUN.md`](../../the-first-run/SESSION-1-THE-RUN.md); the ranking is

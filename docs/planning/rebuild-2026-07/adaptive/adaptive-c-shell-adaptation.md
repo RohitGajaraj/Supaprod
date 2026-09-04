@@ -1,5 +1,7 @@
 # Adaptive C - The Shell's Adaptive Choreography
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Angle: the app frame. How the shell RE-COMPOSES as space changes.
 > Status: proposal, buildable contract. Written 2026-07-28 against the live tree.
 > Verified against: `tailwindcss@4.3.3`, `src/styles.css` (3715 lines), `src/styles/ink.css`,

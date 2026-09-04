@@ -1,5 +1,7 @@
 # Current Status — 2026-08-27 Morning
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > **Mission Gate Status:** NOT MET — zero tracks have completed sense→learn in production  
 > **Code Status:** READY — all fixes in place and tested locally  
 > **Deployment Status:** BLOCKED — Lovable MCP token requires re-authorization  

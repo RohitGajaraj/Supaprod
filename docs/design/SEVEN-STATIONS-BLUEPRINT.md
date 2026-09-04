@@ -1,5 +1,7 @@
 # The Seven Stations: End-to-End Loop Blueprint
 
+> _Created: 2026-08-01 · Last updated: 2026-08-22_
+
 > **INCOMPLETE AND PRE-MERIDIAN, 2026-08-22.** Its own header records only Discover and Decide as complete. It predates Meridian. For current station thinking read [`../planning/initiatives/agent-first-platform.md`](../planning/initiatives/agent-first-platform.md) §5, which traces every station end to end.
 
 ## Complete User Journey from Signal to Outcome

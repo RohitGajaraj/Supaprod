@@ -1,5 +1,7 @@
 # SESSION S0 STATUS — 2026-08-27, Blocker Identified and Documented
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 **Mission:** Make SupaProd demonstrate complete 7-station autonomous loop end-to-end on screen  
 **Status:** ❌ BLOCKED — Not met, but root cause found and fix is straightforward  
 **Blocker:** Missing `SUPABASE_SERVICE_ROLE_KEY` environment variable  

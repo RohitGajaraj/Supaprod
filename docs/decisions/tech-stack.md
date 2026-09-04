@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-06-11_
 
-> Status: **DECISION BRIEF (for the founder to confirm).** Date: 2026-05-29. Owner: founder. Rules: [`../../AGENTS.md`](../../AGENTS.md), section 9 (open-source discipline). Stack as implemented: [`planning/archive/build-log.md`](../planning/archive/build-log.md).
+> Status: **DECISION BRIEF (for the founder to confirm).** Date: 2026-05-29. Owner: founder. Rules: [`../../AGENTS.md`](../archive/agent-operating-manual.md), section 9 (open-source discipline). Stack as implemented: [`planning/archive/build-log.md`](../planning/archive/build-log.md).
 
 This brief answers four questions you asked directly:
 
@@ -60,7 +60,7 @@ Keeping the stack is the **lowest-friction path for Lovable co-development**, be
 
 ## 4. Open source — can it be fully OSS? Cross-impacts, pros/cons
 
-**Can it be built fully open-source? Yes — the dependency stack is already overwhelmingly permissive (MIT/Apache/BSD): React, Vite, TanStack, Tailwind, shadcn/ui, Framer Motion, Tiptap, Postgres, pgvector, Supabase core.** Nothing in the core forces a copyleft or source-available obligation. The two things to watch are **vendor services** (the Lovable gateway and Lovable Cloud — these are conveniences, not open-source components) and **any future dependency** with a GPL/AGPL/BSL/SSPL license (flag before adding — see [`../../AGENTS.md`](../../AGENTS.md), section 9).
+**Can it be built fully open-source? Yes — the dependency stack is already overwhelmingly permissive (MIT/Apache/BSD): React, Vite, TanStack, Tailwind, shadcn/ui, Framer Motion, Tiptap, Postgres, pgvector, Supabase core.** Nothing in the core forces a copyleft or source-available obligation. The two things to watch are **vendor services** (the Lovable gateway and Lovable Cloud — these are conveniences, not open-source components) and **any future dependency** with a GPL/AGPL/BSL/SSPL license (flag before adding — see [`../../AGENTS.md`](../archive/agent-operating-manual.md), section 9).
 
 This is two separate decisions — do not conflate them:
 
@@ -90,7 +90,7 @@ This is two separate decisions — do not conflate them:
 2. Design the durable agent-runtime tier into the orchestration layer up front ([`../../architecture/orchestration.md`](../../architecture/orchestration.md)) so long/parallel missions are an addition, never a rewrite.
 3. Confirm the app runs on a vanilla Supabase project (export migrations) so Lovable-Cloud lock-in stays optional; keep BYO keys + model-agnostic adapters as the gateway escape hatch.
 4. Co-develop freely across Claude Code and Lovable — nothing is tool-specific.
-5. Enforce the permissive-license check on any new dependency ([`../../AGENTS.md`](../../AGENTS.md) section 9).
+5. Enforce the permissive-license check on any new dependency ([`../../AGENTS.md`](../archive/agent-operating-manual.md) section 9).
 6. Keep the open-core-vs-closed decision open; revisit only when there are real users.
 
 ---

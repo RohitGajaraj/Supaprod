@@ -1,5 +1,7 @@
 # Work orders — the dispatch pack (Round 3, 2026-07-23)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Written by the Fable planning session (founder-approved plan). These packets carry the thinking; the executing agent carries it out EXACTLY. If a packet and your own judgment disagree on scope, the packet wins — flag the disagreement in your final report instead of improvising.
 
 ## What this folder is

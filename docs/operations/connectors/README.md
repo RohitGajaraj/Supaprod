@@ -1,5 +1,7 @@
 # Connector setup runbooks
 
+> _Created: 2026-07-17 · Last updated: 2026-08-03_
+
 Step-by-step, field-by-field operator runbooks for connectors whose native OAuth (or GitHub App) registration is **already done and verified working in production**. Each one exists so the exact registration can be repeated later - rotating a secret, or moving the connection to a different account/org - without re-deriving it from scratch or from memory.
 
 This folder is the detail layer. [`../connector-setup.md`](../connector-setup.md) stays the master index: the full provider table (including the providers not yet registered), the shared "Known caveats" section, and what the code actually does with these connections. Start there for an at-a-glance status; come here for the actual click path.

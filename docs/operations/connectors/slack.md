@@ -1,5 +1,7 @@
 # Slack connector setup
 
+> _Created: 2026-07-17 · Last updated: 2026-07-17_
+
 **Status:** Verified working - registered + tested 2026-07-09 (native OAuth, SW-7)
 **Last verified:** 2026-07-17
 

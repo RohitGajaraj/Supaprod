@@ -1,5 +1,7 @@
 # Lang B: microcopy and state copy
 
+> _Created: 2026-07-28 · Last updated: 2026-07-28_
+
 > _Rebuild 2026-07. Angle B of three. Written 2026-07-28 under the founder's full-rename mandate._
 > _Scope: the sentences the user reads. Button grammar, the state copy system, toasts and confirmations, and the rules for numbers, dates, times, durations and counts._
 

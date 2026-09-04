@@ -1,5 +1,7 @@
 # The Gap Register
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Phase R synthesis, 2026-07-19. Every `GAP:` line from every research file under this folder, collected, deduplicated, and given a verdict. Nothing is silently ignored.
 > Verdicts: **ADD** (build in this rebuild sprint, sandbox branch), **CLUB** (fold into an existing surface, mechanism, or already-scheduled lane rather than a new build), **DEFER** (consciously postponed, with the why and the trigger that revives it).
 > Source key: DS = design-systems-study, VV = vocabulary-and-voice, CC = teardown-codex-cursor, LR = teardown-linear-raycast, LV = teardown-lovable-v0, RP = teardown-replit, DV = teardown-devin-agent-management, IA = ia-reclustering, JC = journey-catalog, BE = build-engine-strategy.

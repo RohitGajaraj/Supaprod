@@ -5,7 +5,7 @@
 
 > _Created: 2026-08-03 · Last updated: 2026-08-03_
 
-Audit findings, remediation state, and the one implementation guide. For the architectural contract (RLS, tenancy, the server boundary), read [`../../architecture/security.md`](../../../architecture/security.md). For the rules a change must satisfy, [`../../AGENTS.md`](../../../AGENTS.md) §3.
+Audit findings, remediation state, and the one implementation guide. For the architectural contract (RLS, tenancy, the server boundary), read [`../../architecture/security.md`](../../../architecture/security.md). For the rules a change must satisfy, [`../../AGENTS.md`](../../archive/agent-operating-manual.md) §3.
 
 ---
 
@@ -36,7 +36,7 @@ The disagreement is itself informative: two audits of one 60-line file produced 
 
 ## Standing rules
 
-- **Secrets are local-first.** Values live in the git-ignored `.env` and as wrangler secrets, under the client/server split in [`../../AGENTS.md`](../../../AGENTS.md) §3. Never add a `VITE_` prefix to a secret; that publishes it in the browser bundle.
+- **Secrets are local-first.** Values live in the git-ignored `.env` and as wrangler secrets, under the client/server split in [`../../AGENTS.md`](../../archive/agent-operating-manual.md) §3. Never add a `VITE_` prefix to a secret; that publishes it in the browser bundle.
 - **RLS on every user table, scoped by membership.** No client-trusted role checks.
 - **The service-role client is never imported from client code.**
 - Advisor output and live logs come from the Lovable MCP, not from a doc.

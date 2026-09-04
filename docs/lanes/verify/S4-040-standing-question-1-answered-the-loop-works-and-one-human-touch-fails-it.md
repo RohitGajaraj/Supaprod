@@ -1,5 +1,7 @@
 # S4-040 · Standing question 1, answered: the loop walked, and one human touch is the only thing that fails it
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-26 19:01 UTC, measured directly against the Lovable database (project
 > `371dd588-1b70-4629-9bb5-9f003f3af373`) with the plugin finally callable in this session.
 > **Read-only. No writes.** Every number below is followed by the query that produced it._

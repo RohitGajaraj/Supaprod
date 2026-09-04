@@ -34,4 +34,4 @@ Note: working tree only — live after the next Lovable Publish. Want a screensh
 
 - [`humanized-output.md`](./humanized-output.md) · [`ui-voice.md`](./ui-voice.md) — the voice these walkthroughs are written in.
 - [`doc-update-cadence.md`](./doc-update-cadence.md) — the broader "keep the founder oriented" cadence.
-- [`../../AGENTS.md`](../../AGENTS.md) §4 (behavioral guidelines: verify before declaring done) · §5 (closed documentation loop).
+- [`../../AGENTS.md`](../archive/agent-operating-manual.md) §4 (behavioral guidelines: verify before declaring done) · §5 (closed documentation loop).

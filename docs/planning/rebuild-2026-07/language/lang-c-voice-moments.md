@@ -1,5 +1,7 @@
 # Language C: VOICE AND THE BRAND MOMENTS
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Lane C of the 2026-07-28 language sweep. Owns: the register, the person and tense grammar, how
 > the machine names itself and the user, the five in-product brand moments, the working-state verb
 > system, the receipt grammar, and where a tagline is allowed inside the product.

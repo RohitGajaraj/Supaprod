@@ -1,5 +1,7 @@
 # Microsoft Suite connector setup
 
+> _Created: 2026-07-17 · Last updated: 2026-07-17_
+
 **Status:** Entra app registered 2026-07-17, but **not yet confirmed live** - a direct query of `user_calendar_connections` on 2026-07-17 found zero rows for any provider. Most likely cause: the app's redirect URIs were set against `cadence-flow-beta.lovable.app`, which went dead the same day when the live domain cut over to `supaprod.ai` (see this doc's Register-the-app step 4, already corrected below) - the OAuth flow likely failed before ever reaching Supaprod's callback. One shared Entra app registration covers both Outlook Calendar and Outlook Mail. Re-verify per "Verify it works" below before treating this as done.
 
 **Last verified:** not yet - pending re-test against the corrected redirect URIs

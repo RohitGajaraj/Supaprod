@@ -1,5 +1,7 @@
 # Test Coverage Analysis & Gap Report
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Date**: 2026-07-12  
 **Framework**: bun:test  
 **Testing Convention**: Shallow testing (no DOM renderer; components called as plain functions)  

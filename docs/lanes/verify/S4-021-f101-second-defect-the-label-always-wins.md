@@ -1,5 +1,7 @@
 # S4-021 · F-101's second defect is not one bad row — the surface is built to hide the owner
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 on `lane/proof` at the merged tree `8753765dd` (origin/main
 > `071b81710`). Static, no database — every claim below is a file and a line you can open._
 

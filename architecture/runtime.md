@@ -8,7 +8,7 @@
 > 2. **The `surface` list named two literals that are not in the union and omitted four that are.** That is the most load-bearing line in the file: a new AI surface needs a valid `CallSurface` literal, and this list was where an author would look for one.
 > 3. **The cron-hook list named six hooks, one of which (`agent-tick`) does not exist, out of 38 that do.**
 
-> Every AI call in Cadence goes through one function. This file is its contract. Rules: [`AGENTS.md`](../AGENTS.md). Build history: [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md).
+> Every AI call in Cadence goes through one function. This file is its contract. Rules: [`AGENTS.md`](../docs/archive/agent-operating-manual.md). Build history: [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md).
 
 ## The one rule
 
@@ -71,7 +71,7 @@ Lovable/AI gateway (default, no user key) and BYO adapters (Anthropic, DeepSeek,
 - Eval failure (≥10-point regression on a "Cadence core" case, 0–100 scale — KI-14) is a deploy gate; drift is a passive watcher.
 - Both `callModel()` and `callModelStream()` enforce the governance halt check identically. Streaming halts emit a `status='blocked'` event before the SSE stream is ever opened.
 
-Change anything here and update this file + [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md) (see [`AGENTS.md`](../AGENTS.md), section 5).
+Change anything here and update this file + [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md) (see [`AGENTS.md`](../docs/archive/agent-operating-manual.md), section 5).
 
 ## Observability hooks (AFD, planned · founder-gated)
 

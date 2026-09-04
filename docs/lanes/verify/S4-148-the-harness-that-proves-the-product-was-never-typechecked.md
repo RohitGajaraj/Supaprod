@@ -1,5 +1,7 @@
 # S4-148 · The harness that proves the product was never typechecked
 
+> _Created: 2026-08-28 · Last updated: 2026-08-28_
+
 > _S4, 2026-08-28. Found by breaking my own spec and watching every gate pass._
 
 ## What happened

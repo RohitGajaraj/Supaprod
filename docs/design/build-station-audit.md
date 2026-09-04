@@ -1,4 +1,7 @@
 # Design Audit: Build Station
+
+> _Created: 2026-08-01 · Last updated: 2026-08-01_
+
 ## Implementation & QA — From Power-User & Enterprise Lens
 
 > **Context**: Build is where designs (from Design) become working, tested code ready for Ship. The Engineer's job is ONE: **implement the design + acceptance criteria + success metrics, with testing that proves it works**.

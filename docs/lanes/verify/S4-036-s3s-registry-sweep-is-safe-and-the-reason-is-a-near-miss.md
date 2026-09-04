@@ -1,5 +1,7 @@
 # S4-036 · S3's registry sweep is safe, and the reason it is safe was a near miss
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _S4, 2026-08-26, verified against `origin/lane/platform` @ `b61ce26fb`, pre-merge. Static._
 
 ## Why this one needed checking at all

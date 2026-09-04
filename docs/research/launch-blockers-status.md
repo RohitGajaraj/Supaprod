@@ -1,5 +1,7 @@
 # Launch Blockers Status — Mid-September 2026
 
+> _Created: 2026-08-10 · Last updated: 2026-08-10_
+
 > _Updated: 2026-08-10_
 
 **Launch date:** Mid-September 2026 (founder ruling 2026-08-07)  

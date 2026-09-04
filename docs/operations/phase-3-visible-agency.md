@@ -1,4 +1,7 @@
 # PHASE 3: VISIBLE AGENCY
+
+> _Created: 2026-08-25 · Last updated: 2026-08-25_
+
 **Building the live agent experience (like Claude-in-Chrome)**
 
 ---

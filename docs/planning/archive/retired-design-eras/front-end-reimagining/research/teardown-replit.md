@@ -1,5 +1,7 @@
 # Teardown: Replit Agent (Agent 4 era, mid-2026)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Research stream for the front-end reimagining (Phase R). Written 2026-07-19 from live web sources, not training memory.
 > Current state verified: **Agent 4** launched 2026-03-11 ("Built for Creativity"); effort-based pricing rolled out to all users June 18 to July 2, 2026; Design Mode replaced by the Design Canvas; the old Autonomy Level setting has been removed. Sources listed at the end.
 

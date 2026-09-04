@@ -1,5 +1,7 @@
 # Test Coverage Improvements: DOM-Based Component Testing
 
+> _Created: 2026-08-04 · Last updated: 2026-08-04_
+
 **Date**: 2026-07-11  
 **Scope**: Gap 1 (real DOM tests) + Gap 2 (weak assertion fixes)  
 **Commit**: `0cffa532`

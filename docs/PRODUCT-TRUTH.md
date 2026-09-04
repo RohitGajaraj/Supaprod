@@ -1,5 +1,7 @@
 # PRODUCT TRUTH — One Page
 
+> _Created: 2026-08-25 · Last updated: 2026-08-26_
+
 > **PHASE 2 Foundation:** Defines what SupaProd solves, for whom, and why it compounds. Written 2026-08-26 from positioning canon and founder rulings. If the seven stations or the brain are wrong for the job, the founder has authority to cut or reshape them. This page is the design target for PHASE 3.
 
 ---

@@ -1,5 +1,7 @@
 # The lifecycle, signal to learning and back
 
+> _Created: 2026-08-02 · Last updated: 2026-08-03_
+
 > Status · Code-verified 2026-08-02 · Covers all seven stations · Supersedes `docs/design/*-station-audit.md` for canon
 
 ## What this document is

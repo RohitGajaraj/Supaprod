@@ -1,5 +1,7 @@
 # Founder verdict on the four directions, and the target state
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > 2026-07-29, ~01:10. Binding. **Read this first tomorrow, before anything else in this folder.**
 > It overrides every visual decision in `directions/`, and it overrides earlier founder rulings
 > where they conflict, including his own.

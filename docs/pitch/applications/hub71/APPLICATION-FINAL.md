@@ -1,5 +1,7 @@
 # Hub71 Access Programme, Cohort 20 — the complete fill sheet, all 26 fields
 
+> _Created: 2026-08-17 · Last updated: 2026-08-17_
+
 > # ✅ SUBMITTED 2026-08-17 by the founder.
 > **Deadline was 21 August 2026, so it went in four days early.** Cohort 20 runs 12 months from **February 2027**.
 > Terms if selected: **AED 250,000 cash on a SAFE + AED 250,000 in kind**, plus a further AED 250,000 top-up for high performers.

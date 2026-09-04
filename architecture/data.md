@@ -2,9 +2,9 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-06-19_
 
-> Supabase Postgres + RLS + pgvector + pg_cron. Rules: [`AGENTS.md`](../AGENTS.md). Runtime: [`runtime.md`](./runtime.md).
+> Supabase Postgres + RLS + pgvector + pg_cron. Rules: [`AGENTS.md`](../docs/archive/agent-operating-manual.md). Runtime: [`runtime.md`](./runtime.md).
 
-> **This database is provisioned and managed by Lovable.** Cadence is built on, hosted on, and published through Lovable; the Supabase Postgres instance, its schema, and its config come from there. Read live schema, migration state, and data from the connected Supabase MCP (`mcp__supabase__*`) or the Lovable MCP (`mcp__lovable__*`), never from assumption. Canonical rule: [`AGENTS.md`](../AGENTS.md) §0.
+> **This database is provisioned and managed by Lovable.** Cadence is built on, hosted on, and published through Lovable; the Supabase Postgres instance, its schema, and its config come from there. Read live schema, migration state, and data from the connected Supabase MCP (`mcp__supabase__*`) or the Lovable MCP (`mcp__lovable__*`), never from assumption. Canonical rule: [`AGENTS.md`](../docs/archive/agent-operating-manual.md) §0.
 
 ## The one rule
 

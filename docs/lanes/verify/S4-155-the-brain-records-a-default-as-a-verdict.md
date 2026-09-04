@@ -1,5 +1,7 @@
 # S4-155 · The brain records a default as a verdict
 
+> _Created: 2026-08-28 · Last updated: 2026-08-28_
+
 > _S4, 2026-08-28. Independent verification of S3's finding, plus the part that is mine. Measured
 > against the live database and the repository._
 

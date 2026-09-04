@@ -1,5 +1,7 @@
 # Teardown: OpenAI Codex (app) and Cursor (2.x/3.x) - mid-2026 state
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Research stream for the front-end reimagining (charter: `../problem-statement.md`).
 > All product claims below verified against mid-2026 web sources (listed at the end). Focus: how an agent-session product presents tasks/sessions, the composer, live progress, diffs/terminal, visibility while agents run, review/approve flows, onboarding, keyboard model, and what makes each feel zero-learning-curve.
 

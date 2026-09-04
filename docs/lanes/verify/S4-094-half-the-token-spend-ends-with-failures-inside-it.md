@@ -1,5 +1,7 @@
 # S4-094 · Half the token spend in a day ends in a run that finished with failures inside it
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27, measured live over the last 24 hours. Nobody had measured what the loop costs
 > against what it produces._
 

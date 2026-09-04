@@ -1,5 +1,7 @@
 # 02 — The Pre-Launch Copy Pack (days 3-7, ready to approve)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-11_
+
 > # ⚠️ THE TIMELINE IS FIXED. THE WORKSPACE FIGURES ARE NOT. Checked against the live database 2026-08-11.
 >
 > **Three claims in this file were contradicted by the data and two were tagged PROVEN. The timeline is now corrected; the workspace figures still need replacing wherever they appear.**

@@ -1,5 +1,7 @@
 # Launch execution tracker
 
+> _Created: 2026-08-07 · Last updated: 2026-08-07_
+
 > _Created 2026-08-07 · Rebuilt 2026-08-07 18:40 IST from live verification_
 
 **This is the single board.** Every status below was checked against the live site, the live account, or the source on 2026-08-07. Where something was not checked, the row says `NOT VERIFIED` rather than guessing. A tracker that guesses is worse than no tracker, which is the lesson from the previous version of this file: it shipped rows marked done that were not done, and rows marked not-started that had shipped.

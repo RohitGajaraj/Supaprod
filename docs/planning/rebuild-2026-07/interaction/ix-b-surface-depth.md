@@ -1,5 +1,7 @@
 # IX-B: Per-surface interaction depth
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Lane B of the interaction rebuild, 2026-07-28. Head of Product Design.
 > Scope: what a user can **do** with every artifact type the product renders, at the level of
 > gesture, key, and the exact server function each gesture writes to.

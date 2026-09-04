@@ -1,5 +1,7 @@
 # FINAL: the Supaprod language contract
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > _Rebuild 2026-07. Decided 2026-07-28 under the founder's full-rename mandate._
 > _Merges lang-a-lexicon.md (nouns and renames), lang-b-microcopy.md (sentences, states, numbers),_
 > _and lang-c-voice-moments.md (speaker, register, working states, receipts) into one binding file._

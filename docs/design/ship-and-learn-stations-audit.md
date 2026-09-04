@@ -1,4 +1,7 @@
 # Design Audits: Ship & Learn Stations
+
+> _Created: 2026-08-01 · Last updated: 2026-08-01_
+
 ## Deployment, Monitoring & Outcome Recording — From Power-User & Enterprise Lens
 
 ---

@@ -1,5 +1,7 @@
 # Supaprod Front-End Rebuild: Founder Decisions Needed (Awake Window: ~14:18)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Time-sensitive:** Answer these by ~14:18 to unblock Phase 1 Architecture work. Overnight build proceeds autonomously on these answers; no progress stalls waiting.
 
 ---

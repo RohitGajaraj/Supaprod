@@ -1,5 +1,7 @@
 # CORRECTED WITHIN THE HOUR, AND THE HEADLINE WAS WRONG. FIXTURES AGAIN.
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > **I sent S0 "more than half of merge failures were a missing GitHub connection". That is false, and
 > so was the worry beside it about seven approvals never executing.** Both dissolved the moment I
 > asked whose rows they were, which is the question I have now got wrong three times in one night.

@@ -1,5 +1,7 @@
 # WO-A — Account menu + sign-out in the room world
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **WHY.** The entire reimagined world (`/m`, `/threads`, `/artifacts`, `/settings`, `/approvals`, `/brain`, and after WO-B every station route) has NO account menu and NO sign-out — the only `signOut()` in the codebase is `src/components/supaprod/AppShell.tsx:659`, in the old shell nobody sees anymore. A signed-in user literally cannot leave. This is founder complaint #1 and a trust breaker for enterprise.
 
 **Mockup floor:** `mockups/screen-15-auth-and-account.html` Frame B (the popover anatomy: identity header, Profile, Appearance, Shortcuts, Invite, Admin [platform-gated], Sign out — achromatic, no destructive red).

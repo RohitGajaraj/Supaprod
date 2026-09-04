@@ -1,5 +1,7 @@
 # Design Audit Report — Waves 1–2 Completion to Vercel Standard
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Date:** 2026-07-16  
 **Scope:** Comprehensive audit of authenticated-app design system (Waves 1–2) against DESIGN-TEMPO.md contract and Vercel Geist reference standard.  
 **Status:** Audit complete, critical fix applied, architecture document for Wave 2+ completion.

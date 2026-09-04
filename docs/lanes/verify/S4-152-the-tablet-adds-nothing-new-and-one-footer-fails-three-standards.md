@@ -1,5 +1,7 @@
 # S4-152 · The tablet adds nothing new, and one footer fails three standards
 
+> _Created: 2026-08-28 · Last updated: 2026-08-28_
+
 > _S4, 2026-08-28. Measured at **768x1024** and **767x1024** against the running product, dead
 > backend. The tablet width had never been measured._
 

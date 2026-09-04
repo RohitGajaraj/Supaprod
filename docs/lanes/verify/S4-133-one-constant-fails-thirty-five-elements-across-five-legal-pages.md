@@ -1,5 +1,7 @@
 # S4-133 · One constant fails 35 elements across five legal pages
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Fourteen public surfaces measured in a real browser against the dev server on
 > :8080, dead backend. **Nothing was unjudged on any of them**, so every count below is of the whole
 > surface rather than the part the check could see. Measured on `lane/proof`, which does not contain

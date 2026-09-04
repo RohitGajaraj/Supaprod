@@ -1,5 +1,7 @@
 # Google Suite connector setup
 
+> _Created: 2026-07-17 · Last updated: 2026-08-03_
+
 **Status:** Verified working - Google Docs, Google Calendar, Gmail, and Google Tasks all registered + tested 2026-07-10, sharing one Google Cloud OAuth client (consent screen is in Testing publish status - see the gotcha right below and "Known caveats").
 
 > **Read this before switching accounts.** Reconnecting with a different Google account only works immediately if that account is already on the OAuth consent screen's **Test users** allow-list (or Google verification has completed by then). While the app is in Testing publish status, any Google account NOT on that list hits `Error 403: access_denied` at Google's own consent screen - this is not a Supaprod bug. See "Switching to a different account or org later" below for the exact fix.

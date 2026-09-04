@@ -1,5 +1,7 @@
 # S4-070 · How many times does one dead read announce itself?
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. A quality metric S3 asked for, built and measured. Six product surfaces, signed
 > in, one unreachable database. `bash e2e/check-motion.sh --signed-in <paths>`._
 

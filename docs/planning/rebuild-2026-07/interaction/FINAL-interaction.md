@@ -1,5 +1,7 @@
 # FINAL: the Supaprod interaction contract
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > **The ruling.** Head of Product Design, 2026-07-28, under the founder's mandate of the same day,
 > which grants authority to override any earlier decision including his own.
 >

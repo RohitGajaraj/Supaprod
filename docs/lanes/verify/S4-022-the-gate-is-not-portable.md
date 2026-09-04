@@ -1,5 +1,7 @@
 # S4-022 · The gate is green on one machine and red on another, and nothing pins the runner
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Measured 2026-08-26 by S4 on `lane/proof` at `2f2b92eaf`, whose only difference from origin/main
 > `071b81710` is documentation — **no `src/` change of mine exists, in this branch or ever**._
 

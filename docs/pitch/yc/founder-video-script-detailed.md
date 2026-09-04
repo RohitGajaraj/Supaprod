@@ -1,5 +1,7 @@
 # The founder video — script, delivery, and practice protocol
 
+> _Created: 2026-07-26 · Last updated: 2026-08-04_
+
 > [!IMPORTANT]
 > **⏸️ THE SCRIPT IN THIS FILE IS DEFERRED (founder ruling, 2026-07-26 13:07).** Use
 > [`founder-video-script.md`](./founder-video-script.md) instead. The founder

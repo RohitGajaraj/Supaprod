@@ -1,5 +1,7 @@
 # S4-102 · The route error boundary prints whatever the error said, and one public page proved it
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Two code-level findings, both bounded by what I could actually demonstrate rather
 > than by what the code permits._
 

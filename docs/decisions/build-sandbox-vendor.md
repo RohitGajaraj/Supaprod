@@ -1,5 +1,7 @@
 # The build sandbox: why E2B, why not Cloudflare, and what would change our mind
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > _Decided 2026-08-03, founder-authorised. Supersedes the sandbox recommendation in
 > [`launch-gates-seat-limits-and-sandbox.md`](./launch-gates-seat-limits-and-sandbox.md),
 > which said Cloudflare. That document is otherwise still correct and its cost analysis

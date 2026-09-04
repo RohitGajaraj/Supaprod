@@ -1,5 +1,7 @@
 # Mission Gate Completion Checklist — Deploy and Observe
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 **Status:** Code ready, pushed to origin/main. Awaiting founder deployment and observation.
 
 **Commits ready:**

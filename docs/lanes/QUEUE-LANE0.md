@@ -1,5 +1,7 @@
 # QUEUE — LANE 0 (`src/components/**` except `meridian/`, `shell/`)
 
+> _Created: 2026-08-25 · Last updated: 2026-08-25_
+
 > _Written by MAIN 2026-08-25. Fully-specified items, topmost first. The ordered master backlog
 > stays [`../../the-first-run/BUILD-QUEUE.md`](../../the-first-run/BUILD-QUEUE.md); this file is
 > your paste-ready view of the rows you own. Take the top item that is not BLOCKED._

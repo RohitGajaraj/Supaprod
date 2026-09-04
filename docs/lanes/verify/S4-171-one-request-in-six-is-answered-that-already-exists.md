@@ -1,5 +1,7 @@
 # S4-171 — one coordination request in six is answered "that already exists", and it has never been counted
 
+> _Created: 2026-08-31 · Last updated: 2026-08-31_
+
 > _S4 · 2026-08-31 ~13:0x UTC · repository measurement plus one gate run. No dev server, no browser,
 > no database write, nothing pressed._
 

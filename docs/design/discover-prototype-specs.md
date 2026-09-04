@@ -1,5 +1,7 @@
 # Discover Station — Visual Prototype & Component Specs
 
+> _Created: 2026-08-01 · Last updated: 2026-08-01_
+
 ## Overview
 
 This document shows the proposed revised layouts for Discover, with before/after comparisons and component specifications. All changes follow the proven pattern rule (reference: Sentry + Linear) and the engine-room doctrine (complexity hides, outcomes surface).

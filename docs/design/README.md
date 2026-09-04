@@ -1,5 +1,7 @@
 # Station design audits, 2026-08-01
 
+> _Created: 2026-08-01 · Last updated: 2026-09-04_
+
 > ## The contract is [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md), and the system is Meridian.
 >
 > Read it before building anything. **Every prior design system is retired** — v1 Ember, v3

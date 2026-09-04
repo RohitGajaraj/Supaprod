@@ -1,5 +1,7 @@
 # Session handoff — Round 3.1 mockups + dispatch pack (2026-07-24, Fable session)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > **STATUS UPDATE (2026-07-24, second Fable session): SECTIONS A-D BELOW ARE COMPLETE.** All 12 Round-3 mockups now exist in `../mockups/` at the raised bar: the 6 missing screens (1b, 3b, 16, 17, 18, 19) were authored per the specs + the brief's overriding law; ALL 12 passed an independent per-file verify pass against every §7 gate (banned 7-dot marks replaced with the canonical §6d epitrochoid everywhere, screen-13 re-tiered per §6c, screen-15 given the full §6d rework, screen-14's shared-block byte drift fixed); the cross-file §4 consistency pass ran clean (one canonical Monday open-gate ledger: 9:05→1, 10:05→2, ~10:20 BET-35 decided, 11:45-11:52→2 = promote + DEC-19, 12:15 onward→1 = DEC-19; Ask hint normalized to ⌘J program-wide per §6c.4); the gallery `index.html` gained its Round 3 section (cards 14-25) and `../fidelity-audit.md` records the new floors. Remaining for the FOUNDER: dispatch the work-order lanes per `README.md`, plus the two founder gates in WO-E (demo-repo GitHub OAuth + pre-run missions; the approvals re-seed). `.remember/remember.md` now points every new session here first.
 
 > For the NEXT agent (Fable-class). Deliverable scope per founder ruling: **HTML mockups + work orders ONLY — NO code implementation** (the founder dispatches code lanes to his own sub-agents from the packets in this folder).

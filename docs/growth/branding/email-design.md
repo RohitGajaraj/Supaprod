@@ -1,5 +1,7 @@
 # Email design: what is decided, what is measured, what is blocked
 
+> _Created: 2026-08-07 · Last updated: 2026-08-07_
+
 > _Created 2026-08-07, the evening the first real email was sent and read on a phone._
 
 **Read this before changing any email's appearance.** Three of the constraints below are measurements rather than opinions, and two of them have already been violated once each in this codebase.

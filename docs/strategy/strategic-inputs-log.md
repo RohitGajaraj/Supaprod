@@ -6,7 +6,7 @@
 >
 > **Who reads this, and why it exists.** Two audiences. (1) Any future session (human or agent) that wants the full reasoning behind a position, not just the conclusion. (2) **Fundraising and incubator applications (YC, accelerators, investor memos):** these inputs are the argued, evidence-backed narrative behind the strategy, exactly the material those applications draw on. Keep it current and quotable.
 >
-> **Standing rule (founder, 2026-06-17): no orphan documents.** This file is cross-linked from [`README.md`](./README.md), [`../../README.md`](../../README.md), [`../../CLAUDE.md`](../../CLAUDE.md), and [`../../AGENTS.md`](../../AGENTS.md), and it links back to the canon it fed. Every future strategic input is captured here in the same motion, and interlinked. Nothing strategic sits siloed.
+> **Standing rule (founder, 2026-06-17): no orphan documents.** This file is cross-linked from [`README.md`](./README.md), [`../../README.md`](../../README.md), [`../../CLAUDE.md`](../../CLAUDE.md), and [`../../AGENTS.md`](../archive/agent-operating-manual.md), and it links back to the canon it fed. Every future strategic input is captured here in the same motion, and interlinked. Nothing strategic sits siloed.
 >
 > **Relationship to the canon.** Decisions live in [`session-decisions.md`](./session-decisions.md); positioning in [`archive/v7-agentic-product-os.md`](./archive/v7-agentic-product-os.md); structure/build in [`archive/v8-calm-front-deep-engine.md`](./archive/v8-calm-front-deep-engine.md); the decision-lens + wedge + competitor posture + build-next in [`archive/v9-decision-wedge-and-build-next.md`](./archive/v9-decision-wedge-and-build-next.md). This log is the source reasoning _under_ all of them.
 >

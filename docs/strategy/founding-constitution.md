@@ -4,7 +4,7 @@
 
 > **This was `Ai_Cofounder.md` at the repo root until 2026-08-03.** It is the founding statement of *how this project is run*: the AI co-founder operating posture, the north star, the agentic-first and model-agnostic mandates, and documentation-first development.
 >
-> **It is context, not the operating rules.** The rules an agent follows on every task are in [`../../AGENTS.md`](../../AGENTS.md). Read this file when you want to understand the philosophy those rules came from, or when a judgment call has no rule covering it.
+> **It is context, not the operating rules.** The rules an agent follows on every task are in [`../../AGENTS.md`](../archive/agent-operating-manual.md). Read this file when you want to understand the philosophy those rules came from, or when a judgment call has no rule covering it.
 >
 > Its **Repo Concordance** section maps the 13 documents it mandates onto this repo's real files. Honour that mapping: never create those root files, update the mapped equivalents instead.
 
@@ -12,33 +12,33 @@
 
 ## REPO CONCORDANCE (added 2026-06-11 — how this constitution maps onto the live repo)
 
-> **Status:** Adopted into the repo on 2026-06-11 and interlinked from [`CLAUDE.md`](../../CLAUDE.md), [`GEMINI.md`](../../GEMINI.md), [`AGENTS.md`](../../AGENTS.md), [`README.md`](./README.md), [`README.md`](../../README.md), and the Lovable Knowledge field (`.lovable-config.txt`). This section exists so the constitution and the repo's established documentation system reinforce rather than duplicate each other. **No original content below this section was altered.**
+> **Status:** Adopted into the repo on 2026-06-11 and interlinked from [`CLAUDE.md`](../../CLAUDE.md), [`GEMINI.md`](../archive/gemini-brief.md), [`AGENTS.md`](../archive/agent-operating-manual.md), [`README.md`](./README.md), [`README.md`](../../README.md), and the Lovable Knowledge field (`.lovable-config.txt`). This section exists so the constitution and the repo's established documentation system reinforce rather than duplicate each other. **No original content below this section was altered.**
 >
 > **Precedence:** This file is the **founding constitution** — the enduring layer (co-founder posture, north star, agentic-first, model-agnostic/BYOK, documentation-first, founder velocity). For _what to do now_ (the 25-day ship, the launch/beta/YC-after sequencing, the campaign register G17), the current campaign canon is [`archive/v13-proof-campaign.md`](./archive/v13-proof-campaign.md) (2026-07-10) with its execution bible [`planning/archive/v13-proof-campaign-plan.md`](../planning/archive/v13-proof-campaign-plan.md). For _current_ feature scope, agent mesh, IA, and sequencing detail, the strategic source of truth is [`v11-guiding-star.md`](./v11-guiding-star.md) (direction canon), with [`v12-self-improving-os.md`](./v12-self-improving-os.md) as the depth/build-plan canon layered under it; [`archive/v4-feature-map.md`](./archive/v4-feature-map.md) is now archived and serves only as the engine/expansion detail reference (station catalogs, 19-agent mesh, HITL gate matrix), per the 2026-06-11 entries in [`session-decisions.md`](./session-decisions.md). Where this document and the current strategic canon diverge, the divergence is logged there for founder ruling — do not silently re-litigate either side.
 
 ### The 13 mandated living documents → where they actually live
 
-This repo already runs a closed documentation loop ([`AGENTS.md`](../../AGENTS.md) §5). Every document mandated in this constitution exists under a canonical name below. **Do not create the root-level files — update the mapped equivalents:**
+This repo already runs a closed documentation loop ([`AGENTS.md`](../archive/agent-operating-manual.md) §5). Every document mandated in this constitution exists under a canonical name below. **Do not create the root-level files — update the mapped equivalents:**
 
 | Constitution doc | Live equivalent in this repo |
 | --- | --- |
 | `README.md` | [`README.md`](./README.md) — thesis, MOAT, personas |
-| `PROJECT.md` | [`README.md`](../../README.md) (repo router) + [`AGENTS.md`](../../AGENTS.md) §0 (what we are building) |
+| `PROJECT.md` | [`README.md`](../../README.md) (repo router) + [`AGENTS.md`](../archive/agent-operating-manual.md) §0 (what we are building) |
 | `PRODUCT.md` | **[`archive/v7-agentic-product-os.md`](./archive/v7-agentic-product-os.md) (CURRENT positioning + build canon — Agentic Product OS umbrella; supersedes v6)** + [`archive/v4-feature-map.md`](./archive/v4-feature-map.md) (engine / expansion scope · agents · IA · milestones) + [`archive/v3-positioning-cadence.md`](./archive/v3-positioning-cadence.md) (personas). Map + file-placement policy: [`README.md`](../README.md). |
 | `ARCHITECTURE.md` | [`architecture/`](./architecture/) (runtime · orchestration · security · data · frontend · integrations) + [`decisions/tech-stack.md`](../decisions/tech-stack.md) |
-| `AGENTS.md` | ⚠️ Name collision: the repo's [`AGENTS.md`](../../AGENTS.md) is the **dev-tool operating manual**, not the product-agent roster. Product agent definitions live in the v4 feature map (19-agent mesh) + [`architecture/orchestration.md`](../../architecture/orchestration.md) + [`planning/archive/build-log.md`](../planning/archive/build-log.md) §6 |
+| `AGENTS.md` | ⚠️ Name collision: the repo's [`AGENTS.md`](../archive/agent-operating-manual.md) is the **dev-tool operating manual**, not the product-agent roster. Product agent definitions live in the v4 feature map (19-agent mesh) + [`architecture/orchestration.md`](../../architecture/orchestration.md) + [`planning/archive/build-log.md`](../planning/archive/build-log.md) §6 |
 | `CHANGELOG.md` | [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 — active build log (dated per-ship entries with WHY + Files) |
 | `DECISIONS.md` | [`session-decisions.md`](./session-decisions.md) + ADRs in [`docs/decisions/`](./docs/decisions/) |
 | `ROADMAP.md` | [`planning/archive/build-log.md`](../planning/archive/build-log.md) §3 (build order, milestones M1–M5) + v4 feature map §9 (proof bars) |
-| `BACKLOG.md` | [`planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md) — stable F-IDs, Live status board, Build-order rollup (the canonical task queue) |
+| `BACKLOG.md` | [`planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md) — stable F-IDs, the retired status board, Build-order rollup (the canonical task queue, now `planning/SOURCE-OF-TRUTH.md`) |
 | `KNOWN_ISSUES.md` | [`planning/known-issues.md`](../planning/known-issues.md) (live KI-ID tracker, created 2026-06-11) + [`planning/cross-cutting-gaps.md`](../planning/cross-cutting-gaps.md) (standing gap register) |
-| `WORKFLOWS.md` | [`docs/operations/`](./docs/operations/) + [`docs/conventions/`](./docs/conventions/) + the protocols in [`AGENTS.md`](../../AGENTS.md) |
+| `WORKFLOWS.md` | [`docs/operations/`](./docs/operations/) + [`docs/conventions/`](./docs/conventions/) + the protocols in [`AGENTS.md`](../archive/agent-operating-manual.md) |
 | `SESSION.md` | [`planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) section 0 (the live cursor, which folded in active-task.md on 2026-06-19) + [`planning/archive/v4-rebuild-handoff.md`](../planning/archive/v4-rebuild-handoff.md) (session resume) + `.remember/` (machine memory) |
 | `TASKS.md` | [`planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md) Build-order rollup (the F-ID scope track record) + [`planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (the live task queue) + [`planning/archive/strategic-tasks.md`](../planning/archive/strategic-tasks.md) (strategic P0-P3 view) |
 
 ### Session continuity (mapped)
 
-The "read `SESSION.md` + `TASKS.md` first" mandate in [AI SESSION CONTINUITY](#ai-session-continuity) is satisfied by the repo's established session entry contract: `git pull origin main` → [`planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) section 0 (the live cursor, which folded in active-task.md on 2026-06-19) → [`AGENTS.md`](../../AGENTS.md) (⚡ standing order + §1) → [`archive/v4-feature-map.md`](./archive/v4-feature-map.md) → Live status board in [`planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md). Tool entry points: [`CLAUDE.md`](../../CLAUDE.md) (Claude Code), [`GEMINI.md`](../../GEMINI.md) (Antigravity/Gemini CLI), the Lovable Knowledge field (`.lovable-config.txt`).
+The "read `SESSION.md` + `TASKS.md` first" mandate in [AI SESSION CONTINUITY](#ai-session-continuity) is satisfied by the repo's established session entry contract: `git pull origin main` → [`planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) section 0 (the live cursor, which folded in active-task.md on 2026-06-19) → [`AGENTS.md`](../archive/agent-operating-manual.md) (⚡ standing order + §1) → [`archive/v4-feature-map.md`](./archive/v4-feature-map.md) → the retired status board in [`planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md). Tool entry points: [`CLAUDE.md`](../../CLAUDE.md) (Claude Code), [`GEMINI.md`](../archive/gemini-brief.md) (Antigravity/Gemini CLI), the Lovable Knowledge field (`.lovable-config.txt`).
 
 ### Conflicts ruled (2026-06-11)
 

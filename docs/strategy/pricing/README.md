@@ -38,4 +38,4 @@ So the honest answer to "why did we choose this, and what does it cost us?" live
 - **One source per need.** Strategy = `pricing-strategy.md`; finalized architecture = `pricing-architecture.md`; evidence = `credit-model-and-byok-research.md`; build tasks = the monetization plan; code rail = `billing.md`/`credits.md`. Do not duplicate across them.
 - **Every pricing decision is recorded in `pricing-strategy.md` AND `session-decisions.md` in the same session** (the canon's maintainer rule).
 - **New pricing/billing docs get added to this index** in the same commit — never orphaned.
-- Parent entry points that route here: [`CLAUDE.md`](../../../CLAUDE.md), [`AGENTS.md`](../../../AGENTS.md), [`README.md`](../../../README.md), [`README.md`](../../README.md), [`README.md`](../README.md).
+- Parent entry points that route here: [`CLAUDE.md`](../../../CLAUDE.md), [`AGENTS.md`](../../archive/agent-operating-manual.md), [`README.md`](../../../README.md), [`README.md`](../../README.md), [`README.md`](../README.md).

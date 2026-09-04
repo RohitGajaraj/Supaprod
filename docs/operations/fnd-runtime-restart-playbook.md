@@ -54,7 +54,7 @@ The proof has been waiting on one thing: nobody has deliberately killed a worker
 On a clean pass, in one commit:
 
 - Flip foundation-audit row **0.9** to ✅ with the run date and a one-line note.
-- Flip the Live status board's "Step 1 forced-restart test still ◑" → ✅.
+- Flip the status board's "Step 1 forced-restart test still ◑" → ✅.
 - Append a one-liner to [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 with the run date and WHY.
 
 ## Out of scope

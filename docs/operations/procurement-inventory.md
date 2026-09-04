@@ -8,7 +8,7 @@
 >
 > ## STANDING RULE — keep this sheet live (founder-set 2026-06-25)
 >
-> **Whenever a build surfaces a new paid dependency, vendor choice, or spend decision — or an existing one's cost/plan changes — update THIS file in the same unit of work.** A new "we'll need to buy X" is not captured until it has a row here with: what it's for, why, the cost (with a source), the vendor options, a recommendation, and a "when to buy". This is the standing anti-surprise rule: no spend decision should be re-derived from scratch at demo/launch time. (Canonical home of this rule: [`../../AGENTS.md`](../../AGENTS.md) §5.)
+> **Whenever a build surfaces a new paid dependency, vendor choice, or spend decision — or an existing one's cost/plan changes — update THIS file in the same unit of work.** A new "we'll need to buy X" is not captured until it has a row here with: what it's for, why, the cost (with a source), the vendor options, a recommendation, and a "when to buy". This is the standing anti-surprise rule: no spend decision should be re-derived from scratch at demo/launch time. (Canonical home of this rule: [`../../AGENTS.md`](../archive/agent-operating-manual.md) §5.)
 >
 > Pricing below was web-verified on **2026-06-25**; re-verify any figure before you actually pay (vendors reprice). Confidence + source URLs are noted per item.
 

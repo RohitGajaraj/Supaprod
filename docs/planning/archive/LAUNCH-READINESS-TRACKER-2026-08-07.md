@@ -1,5 +1,7 @@
 # Launch Readiness Tracker — 2026-08-07
 
+> _Created: 2026-08-07 · Last updated: 2026-08-07_
+
 > **Deadline: THIS WEEK (Product Hunt + X launch, founder direction 2026-08-06)**
 > **Owner: Founder + agents (distributed below)**
 > **Single source of truth for execution status, risks, and next actions**

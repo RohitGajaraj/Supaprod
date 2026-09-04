@@ -4,7 +4,7 @@
 
 > Operator-facing reference for the `github.issue.create` → `prd.link_issue` slice. This is the exit ramp where the Discover → Define → Plan loop leaves Supaprod and lands as a real GitHub issue against the engineering system of record, under an explicit human approval gate.
 >
-> Operating rules: [`../../AGENTS.md`](../../AGENTS.md). Orchestration contract: [`../../architecture/orchestration.md`](../../architecture/orchestration.md). Connector contract: [`../../architecture/integrations.md`](../../architecture/integrations.md). Trust + autonomy: [`./trust-and-autonomy.md`](./trust-and-autonomy.md). A2A handoff: [`./a2a-handoff.md`](./a2a-handoff.md).
+> Operating rules: [`../../AGENTS.md`](../archive/agent-operating-manual.md). Orchestration contract: [`../../architecture/orchestration.md`](../../architecture/orchestration.md). Connector contract: [`../../architecture/integrations.md`](../../architecture/integrations.md). Trust + autonomy: [`./trust-and-autonomy.md`](./trust-and-autonomy.md). A2A handoff: [`./a2a-handoff.md`](./a2a-handoff.md).
 
 ---
 

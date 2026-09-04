@@ -1,5 +1,7 @@
 # GOV-C: The product frame, and the honest limits
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > _Governance audit, lane C. Written 2026-07-29 against the binding principle in_
 > _[`../GOVERNANCE-PRINCIPLE.md`](../GOVERNANCE-PRINCIPLE.md). Two jobs: correct the in-app frame,_
 > _and state where agent autonomy genuinely breaks._

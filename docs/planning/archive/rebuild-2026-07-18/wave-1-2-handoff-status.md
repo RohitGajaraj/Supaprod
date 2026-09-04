@@ -1,5 +1,7 @@
 # Wave 1-2 Design Refinement — Honest Completion Status & Handoff
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > **Date:** 2026-07-25 (End of Session)  
 > **Condition:** Waves 1-2 must be 100% complete before Wave 3 begins. User will be away. This document provides exact status + clear continuation path.
 

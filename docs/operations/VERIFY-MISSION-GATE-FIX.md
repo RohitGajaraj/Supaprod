@@ -1,5 +1,7 @@
 # Verifying Mission Gate Fix (2026-08-26)
 
+> _Created: 2026-08-25 · Last updated: 2026-08-25_
+
 **Change:** `signals.log` mode changed from "confirm" to "auto"  
 **Date:** 2026-08-26  
 **Commit:** See AUDIT.md for link  

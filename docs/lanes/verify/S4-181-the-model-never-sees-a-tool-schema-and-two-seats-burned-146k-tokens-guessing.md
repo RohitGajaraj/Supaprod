@@ -1,5 +1,7 @@
 # S4-181 — the model never sees a tool's parameter schema, and two Discover seats burned 146,239 tokens guessing one field name
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 > _S4 · 2026-09-01 ~03:1x IST · found by watching the third acceptance candidate rather than by
 > reading code. Lovable project `371dd588` for the run rows; source for the mechanism. No dev server,
 > no row written, nothing pressed._

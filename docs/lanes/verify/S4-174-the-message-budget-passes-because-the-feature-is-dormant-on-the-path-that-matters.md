@@ -1,5 +1,7 @@
 # S4-174 — the message budget passes over two cycles, and the reason corrects my own cycle-1 verdict
 
+> _Created: 2026-08-31 · Last updated: 2026-08-31_
+
 > _S4 · 2026-08-31 14:26 UTC · Lovable project `371dd588`, all `SELECT`, plus source. No dev server,
 > no browser, no row written._
 

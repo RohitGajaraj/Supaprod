@@ -1,5 +1,7 @@
 # Vercel Design Dissection Study — Ultra-Premium Analysis
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Study Date**: 2026-07-17  
 **Source**: vercel.com/geist (design system), vercel.com (product site), public design documentation  
 **Purpose**: Extract design principles that create "ultra-premium" perception and apply to Supaprod

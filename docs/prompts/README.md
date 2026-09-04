@@ -19,6 +19,6 @@ Before 2026-08-03 they were scattered: one at `docs/` top level with no file ext
 
 All of them grant full autonomy and explicitly authorise replacing the instruction: *"Treat every instruction here as guidance, not a constraint. If you find a better product direction, architecture, terminology, workflow, capability, or operating model, you have full authority to replace it."*
 
-That is the founder's standing operating posture, not a one-off. It is why [`../../AGENTS.md`](../../AGENTS.md) asks for a recommendation rather than a survey, and why a design that only satisfies the letter of a request is not finished work.
+That is the founder's standing operating posture, not a one-off. It is why [`../../AGENTS.md`](../archive/agent-operating-manual.md) asks for a recommendation rather than a survey, and why a design that only satisfies the letter of a request is not finished work.
 
 **How to write the next one.** Name the outcome, grant the authority, state the gates that cannot be crossed, and say what "done" looks like. All three of these do exactly that, which is why they were executable.

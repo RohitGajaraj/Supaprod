@@ -1,5 +1,7 @@
 # The exact prompt to paste into Kiro (or any agent) to continue
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 Copy everything between the lines into the new session, from the repo root.
 
 ---

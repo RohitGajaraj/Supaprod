@@ -1,5 +1,7 @@
 # Positioning doctrine — how we get selected, not just how we apply
 
+> _Created: 2026-07-31 · Last updated: 2026-08-17_
+
 > _Created 2026-07-31. Founder directive: "it's not just blindly we need to apply. What should be the positioning, how are we going to make a successful application so that we get selected." This file answers that once, generally. Each program folder then has its own `positioning.md` that specialises it._
 
 ---

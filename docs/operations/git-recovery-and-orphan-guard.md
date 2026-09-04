@@ -8,7 +8,7 @@ touching worktrees, before force-pushing anything to `main`, and before deleting
 branch on the assumption that it is stale.
 
 Related: [`commits.md`](./commits.md) (push discipline), [`session-handoff.md`](./session-handoff.md),
-[`parallel-build.md`](./parallel-build.md) (the lane worktree system), [`../../AGENTS.md`](../../AGENTS.md).
+[`parallel-build.md`](./parallel-build.md) (the lane worktree system), [`../../AGENTS.md`](../archive/agent-operating-manual.md).
 
 ---
 

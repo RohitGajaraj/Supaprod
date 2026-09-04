@@ -1,5 +1,7 @@
 # S4-175 — F-178 confirmed: `waived='[]'` cannot see a skipped station, and only `status='open'` is holding the false pass back
 
+> _Created: 2026-08-31 · Last updated: 2026-09-01_
+
 > _S4 · 2026-08-31 ~18:2x UTC · Lovable project `371dd588`, all `SELECT`. No dev server, no browser,
 > no row written, no approval answered._
 

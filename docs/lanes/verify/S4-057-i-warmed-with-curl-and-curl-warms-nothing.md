@@ -1,5 +1,7 @@
 # S4-057 · I warmed with curl, curl warms nothing, and three findings died of it
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. A method finding about my own instrument, filed because it produced a wrong
 > verdict that was sent to another lane with a fix attached._
 

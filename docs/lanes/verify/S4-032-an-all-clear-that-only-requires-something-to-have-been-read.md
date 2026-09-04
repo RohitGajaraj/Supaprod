@@ -1,5 +1,7 @@
 # S4-032 · One rule, three surfaces: an all-clear that requires *something* to have been read, not *everything*
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _S4, 2026-08-26, on `lane/proof`, merged tree, plus `origin/lane/control` for the third site.
 > Driven by hand. Two of these came from the `S4-028` audit and are now personally verified; the
 > third I found independently this morning in `S4-024`, which is why the pattern is worth stating

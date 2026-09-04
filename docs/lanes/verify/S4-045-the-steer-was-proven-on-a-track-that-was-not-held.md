@@ -1,5 +1,7 @@
 # S4-045 · The steer was proven, on a track that was not terminally held
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-26, live database, read only. S1 reported the steer working end to end and drew a
 > conclusion from it about `S4-041`'s 34 parked tracks. The drive log does not support the
 > conclusion. The feature works._

@@ -1,5 +1,7 @@
 # S4-055 · The field exists so the shell can label demo data. The shell does not label it.
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27, live database plus code, read only. **My first read of this was wrong and the data
 > corrected it before I wrote it up.** Both versions are here, because the wrong one is the tempting
 > one._

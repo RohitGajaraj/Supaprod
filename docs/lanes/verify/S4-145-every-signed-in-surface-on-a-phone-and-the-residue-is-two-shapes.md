@@ -1,5 +1,7 @@
 # S4-145 · All 18 signed-in surfaces on a phone, and the residue is two shapes
 
+> _Created: 2026-08-28 · Last updated: 2026-08-28_
+
 > _S4, 2026-08-28. Every authenticated surface in `e2e/surface-baseline.json` measured at **390x844**
 > in a real browser, dead backend, signed in. Twelve of the eighteen had never been measured on a
 > phone. Counts name their population; the raw count before every exemption is printed beside the

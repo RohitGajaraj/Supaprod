@@ -1,5 +1,7 @@
 # The Residency — the answers, ready to paste
 
+> _Created: 2026-07-31 · Last updated: 2026-08-14_
+
 > # ✅ SUBMITTED 2026-07-31
 >
 > **Decision by 2026-08-28 at the latest.** Confirmation screen received. Questions go to `support@livetheresidency.com`.

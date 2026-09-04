@@ -1,5 +1,7 @@
 # S4-075 · Ship refused correctly, and that is where the acceptance actually stands or falls
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27 ~02:45 UTC, measured live. The best track the product has ever produced stopped one
 > station short, and it stopped for a good reason._
 

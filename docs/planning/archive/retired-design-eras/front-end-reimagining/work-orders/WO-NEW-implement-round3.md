@@ -1,5 +1,7 @@
 # WO-NEW — Implement the Round-3 mockups (screens 10–19, 1b, 3b)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **WHY.** The Round-3 mockups are the founder-approved floor for the surfaces that had none. Each packet implements one surface to "do exactly what's shown" — including the FUNCTIONAL CONTRACT in each mockup's header comment (primary question, primary actions, lineage doors, agents/attribution, focus/collapse, empty/loading/blocked states). The mockup header is part of the spec: read it first, every time.
 
 **Shared rules:** the mockup + `../mockups/_round3-brief.md` bind. Reuse the existing face/server-fn wiring — every one of these surfaces has real data behind it (listed per packet); the work is presentation + wiring, not new backends. Honest GAP states where the mockup itself marks one. One ember locus; slate chips; Vellum memory. Verification per packet: `tsc/build/test` + walking the mockup's element inventory live (the WO-FID method applies to YOUR new code too).

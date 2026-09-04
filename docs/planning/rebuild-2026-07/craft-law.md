@@ -1,5 +1,7 @@
 # The craft law: no AI slop, and the brand mark is ours
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Founder ruling, 2026-07-28. Binding on every surface in the rebuild, and on every agent that
 > touches a pixel. This overrides any conflicting guidance, including design skills and plugins.
 

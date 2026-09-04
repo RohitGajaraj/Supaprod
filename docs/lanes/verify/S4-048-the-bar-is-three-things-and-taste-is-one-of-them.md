@@ -1,5 +1,7 @@
 # S4-048 · The bar is three things, and taste is one of them
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Founder correction, given directly, after I repeated a framing that excluded
 > taste. Recording it as a verdict standard because it changes how every surface verdict I write from
 > here is judged, and because the misreading is easy to make and was already in circulation._

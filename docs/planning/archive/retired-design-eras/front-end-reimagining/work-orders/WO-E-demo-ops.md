@@ -1,5 +1,7 @@
 # WO-E — Demo ops: the seeded environment + the recordable path
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > **PRE-FLIGHT FINDINGS (verified read-only via Lovable MCP, 2026-07-24)** — the executing agent starts from these facts:
 > - Both migrations APPLIED: `20260718120000` (Helio seed) and `20260722211500` (demo accounts). ✓
 > - Helio Labs ws `10000000-0000-4000-8000-000000000000` exists; projects Atlas, Beacon, Comet, Relay all present; `explore@supaprod.ai` is an **admin** member. ✓

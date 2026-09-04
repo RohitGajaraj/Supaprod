@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-06-11_
 
-> How to discover, pick, and invoke skills. The active list appears in the session reminder — **always scan it before invoking from memory.** Skill names from training are stale. Operating rules: [`AGENTS.md`](../../AGENTS.md). Subagents: [`subagents.md`](./subagents.md). Tools + hooks: [`tools.md`](./tools.md) · [`hooks.md`](./hooks.md).
+> How to discover, pick, and invoke skills. The active list appears in the session reminder — **always scan it before invoking from memory.** Skill names from training are stale. Operating rules: [`AGENTS.md`](../archive/agent-operating-manual.md). Subagents: [`subagents.md`](./subagents.md). Tools + hooks: [`tools.md`](./tools.md) · [`hooks.md`](./hooks.md).
 
 ## First principle: scan the whole library, prefer a skill over doing it yourself
 
@@ -24,7 +24,7 @@ There are 700+ skills/agents/plugins/hooks installed. **Before any non-trivial t
 
 ## Selection priority (all namespaces equal — no bias)
 
-1. **User instructions win.** If [`AGENTS.md`](../../AGENTS.md), the current message, or [`CLAUDE.md`](../../CLAUDE.md)/[`GEMINI.md`](../../GEMINI.md) says "use X," use X.
+1. **User instructions win.** If [`AGENTS.md`](../archive/agent-operating-manual.md), the current message, or [`CLAUDE.md`](../../CLAUDE.md)/[`GEMINI.md`](../archive/gemini-brief.md) says "use X," use X.
 2. **Scan the full installed set + project folders** and shortlist candidates across ALL namespaces equally.
 3. **Best fit wins.** Pick the skill that best solves the task. No namespace gets priority.
 4. **Process before implementation.** `superpowers:brainstorming`/`debugging` before building — shapes how you work.

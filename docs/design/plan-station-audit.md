@@ -1,4 +1,7 @@
 # Design Audit: Plan Station
+
+> _Created: 2026-08-01 · Last updated: 2026-08-01_
+
 ## Specification & Scope — From Power-User & Enterprise Lens
 
 > **Context**: Plan is where approved bets (from Decide) become detailed, scoped specifications ready for Design/Build handoff. The PM's job here is ONE: **turn a bet with evidence into a detailed spec with acceptance criteria, constraints, success metrics, and design/build estimates**.

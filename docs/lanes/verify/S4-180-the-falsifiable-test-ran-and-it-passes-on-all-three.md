@@ -1,5 +1,7 @@
 # S4-180 — the falsifiable test ran, and it passes on all three conditions
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 > _S4 · 2026-09-01 ~01:5x IST · Lovable project `371dd588`, all `SELECT`. No dev server, no row
 > written, no approval answered, nothing pressed._
 

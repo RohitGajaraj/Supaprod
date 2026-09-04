@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-06-19_
 
-> TanStack Start patterns. Rules: [`AGENTS.md`](../AGENTS.md). UI/visual contract: [`docs/design/archive/obsidian-v3.md`](../docs/design/archive/obsidian-v3.md) (app surfaces, v3 "Obsidian", adopted 2026-07-02; the live parchment styles in `src/styles.css` are legacy until surfaces are ported) · [`docs/design/archive/ember-editorial-landing.md`](../docs/design/archive/ember-editorial-landing.md) (landing page). Data: [`data.md`](./data.md).
+> TanStack Start patterns. Rules: [`AGENTS.md`](../docs/archive/agent-operating-manual.md). UI/visual contract: [`docs/design/archive/obsidian-v3.md`](../docs/design/archive/obsidian-v3.md) (app surfaces, v3 "Obsidian", adopted 2026-07-02; the live parchment styles in `src/styles.css` are legacy until surfaces are ported) · [`docs/design/archive/ember-editorial-landing.md`](../docs/design/archive/ember-editorial-landing.md) (landing page). Data: [`data.md`](./data.md).
 
 ## Stack
 
@@ -119,4 +119,4 @@ Operators never leave the current surface to administer a workspace or product. 
 
 Rule: any "manage X" affordance lives next to X or in a sheet over the current page, never on a separate route.
 
-Frontend pattern change → update this file (see [`AGENTS.md`](../AGENTS.md), section 5).
+Frontend pattern change → update this file (see [`AGENTS.md`](../docs/archive/agent-operating-manual.md), section 5).

@@ -1,5 +1,7 @@
 # Lane C: The Human-Agent Contract
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Rebuild sweep, 2026-07-28. Angle: the division of labour and how it is communicated.
 > Every file, line, column, enum and function named below was read or queried against this repo
 > this session. Where the brief or an earlier rebuild document was wrong, the corrected fact is

@@ -1,5 +1,7 @@
 # S4-187 · The CSP grants two npm CDNs nothing loads from, and the gate I built for it is not sound
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 **Measured 2026-09-01, ~03:1x IST. Lane `lane/proof`. Found while driving a local
 dev server, not by reading code.**
 

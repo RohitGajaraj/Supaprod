@@ -1,5 +1,7 @@
 # S4-157 · The detector for the commonest defect was run by nothing
 
+> _Created: 2026-08-28 · Last updated: 2026-08-28_
+
 > _S4, 2026-08-28. Static, whole-repo, deterministic across consecutive runs._
 
 ## The class

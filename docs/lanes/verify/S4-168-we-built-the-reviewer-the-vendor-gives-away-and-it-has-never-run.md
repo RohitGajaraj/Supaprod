@@ -1,5 +1,7 @@
 # S4-168 — we built the reviewer the vendor gives away, it has never run, and no argument was written for building it
 
+> _Created: 2026-08-31 · Last updated: 2026-08-31_
+
 > _S4 · 2026-08-31 ~11:3x UTC · Lovable project `371dd588`, all `SELECT`, plus source reads. No dev
 > server, no browser, no row written._
 

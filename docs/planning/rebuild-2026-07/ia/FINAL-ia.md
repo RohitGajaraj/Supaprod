@@ -1,5 +1,7 @@
 # FINAL IA - The Room
 
+> _Created: 2026-07-28 · Last updated: 2026-08-21_
+
 > The deciding architect's ruling, 2026-07-28. Winner: **A (ONE ROOM)**, with named grafts from
 > B (Work and Mind) and C (Verbs, Not Nouns) folded in.
 > Every file, line number, enum and line count below was read or run against live code this

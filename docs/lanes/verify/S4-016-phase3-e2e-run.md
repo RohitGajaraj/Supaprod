@@ -1,5 +1,7 @@
 # S4-016 · The phase-3 E2E run (`64c3808fe`) — real signal, theatre vocabulary, and one urgent question
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 on `lane/proof` at `299b9f467`. This is the first driven-browser
 > evidence of the entire phase, which is why it gets graded carefully instead of either dismissed
 > or celebrated._

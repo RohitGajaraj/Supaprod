@@ -8,8 +8,8 @@
 > `out-of-time` — the tick deadline — not a credential error. **Nobody should be
 > asked for a service-role key on this evidence.** Left otherwise unedited: the
 > analysis is its author's.
-
 # BLOCKER: Missing SUPABASE_SERVICE_ROLE_KEY Credential
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
 
 **Status:** MISSION GATE NOT MET — Loop stops at Discover because agents cannot write signals
 

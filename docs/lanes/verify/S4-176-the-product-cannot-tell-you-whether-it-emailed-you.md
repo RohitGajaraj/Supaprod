@@ -1,5 +1,7 @@
 # S4-176 — the settings page promises an email, and nothing anywhere records whether one was sent
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 > _S4 · 2026-08-31 ~19:0x UTC · source read end to end, plus a schema read on project `371dd588`. No
 > dev server, no browser, no row written._
 

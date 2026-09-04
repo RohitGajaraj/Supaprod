@@ -1,5 +1,7 @@
 # Interaction C: Screen Economy and Anticipation
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > Angle: the vertical axis, the fold, and the question the user has not asked yet.
 > Written 2026-07-28 against the live tree. Every pixel figure below was derived from a token or a
 > line of shipped code, and the derivation is shown. Nothing is estimated.

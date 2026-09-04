@@ -1,5 +1,7 @@
 # WO-LAND — Public landing sweep: a cold visitor understands, wants in, and nothing confuses
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Branch:** `wo/land-public-landing` · Fully disjoint from app lanes; dispatchable anytime after the Round-3 mockups land on main.
 
 **WHY.** Founder (2026-07-23): the landing carries elements he cannot explain to himself — "public teardown", "/demo", PRD vocabulary — and it doesn't yet deliver the designed ink+starfield experience end to end. The landing must showcase the core product (the loop, the agents, the brain) in vocabulary a cold visitor understands, serve the standing positioning (door → body → brain: "Cursor for PMs" is the door, the closed loop is the body, the compounding memory is the crescendo — one headline per surface, never all three at once), and cut everything that needs insider context.

@@ -1,5 +1,7 @@
 # SPC Founder Fellowship — how to actually submit
 
+> _Created: 2026-07-31 · Last updated: 2026-08-10_
+
 > **Deadline: Sunday 2026-08-02, 11:59pm PT.** That is Monday 2026-08-03, 12:29pm IST. You have until Monday lunchtime India time.
 
 ## Before you open the form (20 minutes)

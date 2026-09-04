@@ -4,7 +4,7 @@
 
 > **SSOT first.** The single front-door tracker is [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (status, build queue, founder rulings, findings, progress). This file is the cross-cutting engineering gap register it points to, not the tracker to follow day-to-day.
 
-> Status: **STANDING REVIEW.** A deliberate, multi-stakeholder pass over what the rest of the docs have _not_ yet called out — written wearing the hats of enterprise architect, CISO, SRE, data/privacy officer, finance, legal, GTM, support, and founder. Goal: surface what an enterprise-grade build needs so nothing blindsides us later. Operating rules: [`AGENTS.md`](../../AGENTS.md). Feature scope: [`archive/build-log.md`](./archive/build-log.md). Architecture: [`../architecture/`](../architecture/).
+> Status: **STANDING REVIEW.** A deliberate, multi-stakeholder pass over what the rest of the docs have _not_ yet called out — written wearing the hats of enterprise architect, CISO, SRE, data/privacy officer, finance, legal, GTM, support, and founder. Goal: surface what an enterprise-grade build needs so nothing blindsides us later. Operating rules: [`AGENTS.md`](../archive/agent-operating-manual.md). Feature scope: [`archive/build-log.md`](./archive/build-log.md). Architecture: [`../architecture/`](../architecture/).
 >
 > **How to use this:** each item is a _gap to close_, not a feature already built. Pull each into [`archive/build-log.md`](./archive/build-log.md) (sections 2/3) as it becomes relevant.
 >
@@ -138,7 +138,7 @@ Less central than the PM, but the build/ship stages must respect how an eng lead
 | ToS, privacy policy, AUP, DPA | Required to sell | P1 |
 | IP ownership of agent-generated code/content | Who owns what the agent makes? | P1 |
 | Liability for autonomous actions | The governance gates are part of the answer | P1 |
-| OSS license compliance of agent-installed deps | Ties to [`../../AGENTS.md`](../../AGENTS.md) section 9 | P1 |
+| OSS license compliance of agent-installed deps | Ties to [`../../AGENTS.md`](../archive/agent-operating-manual.md) section 9 | P1 |
 | SOC 2 / ISO 27001 / ISO 42001 (AI) path | Enterprise gate; substrate exists in security.md | P2 |
 
 ---

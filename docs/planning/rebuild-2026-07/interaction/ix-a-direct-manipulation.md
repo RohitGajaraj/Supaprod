@@ -1,5 +1,7 @@
 # IX-A: The Mark
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 **Direct manipulation and agent-mediated editing.** The complete interaction model for pointing at
 a thing and changing it, across every surface.
 

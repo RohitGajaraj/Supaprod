@@ -17,7 +17,7 @@
 
 1. **To build something:** find its `WM-*` ID in the index (Section 4.0), jump to its spec. Each spec has: why, current state with file paths, what to build, files to touch, the migration, gotchas, acceptance criteria, verification, and dependencies. That is everything needed to build it cold.
 2. **Pick order:** follow Section 5 (build order + dependencies). Respect `Depends on`. Claim the row in `SOURCE-OF-TRUTH.md` before you start (flip to In Dev, add an Active-claims line) so parallel tools do not collide.
-3. **Hard gates every tool MUST honor** (non-negotiable, from [`../../AGENTS.md`](../../../AGENTS.md) and the SSOT standing rules):
+3. **Hard gates every tool MUST honor** (non-negotiable, from [`../../AGENTS.md`](../../archive/agent-operating-manual.md) and the SSOT standing rules):
    - **Build gate:** `bun run lint` + `tsc --noEmit` + `bun run build` all green before any commit. Never commit red.
    - **Humanized output:** zero em/en dashes and zero AI-cliche phrasing in anything authored or generated (the runtime sanitizer is the hard gate; authored docs follow it too). See [`../conventions/humanized-output.md`](../../conventions/humanized-output.md).
    - **Migrations:** timestamped SQL in `supabase/migrations/`, RLS-aware, additive/forward-only, idempotent where possible; the migration-safety hook enforces this.
@@ -650,4 +650,4 @@ Flip switches (`memory_expiry_enabled`, `credits_enabled`, Stripe secrets) are l
 - Architecture: [`../../architecture/data.md`](../../../architecture/data.md), [`../../architecture/security.md`](../../../architecture/security.md).
 - Feature specs: [`../features/workspaces.md`](../../features/workspaces.md), [`../features/pricing.md`](../../features/pricing.md).
 - Conventions: [`../conventions/humanized-output.md`](../../conventions/humanized-output.md), [`../conventions/engine-room-doctrine.md`](../../conventions/engine-room-doctrine.md).
-- Entry points that reference this plan: [`../../AGENTS.md`](../../../AGENTS.md), [`../../CLAUDE.md`](../../../CLAUDE.md), [`../../README.md`](../../README.md), the Lovable config.
+- Entry points that reference this plan: [`../../AGENTS.md`](../../archive/agent-operating-manual.md), [`../../CLAUDE.md`](../../../CLAUDE.md), [`../../README.md`](../../README.md), the Lovable config.

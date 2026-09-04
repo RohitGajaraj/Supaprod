@@ -1,5 +1,7 @@
 # The Agent Roster — the final concrete set (founder ruling A8)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > One agent per job, no duplicates, every question answered: what it does, when it runs, where its work appears, what tools it holds, how you instruct it. Ground truth behind every row: `audit/agent-roster-audit.md`. End users still experience one coherent system (§6.4); this roster is the admin/operator view.
 
 ## The 13

@@ -1,5 +1,7 @@
 # Click audit C - the conversation layer
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Static analysis, 2026-07-28. Scope: the Ask panel, the composer chain, threads, and the streaming path.
 > Schema claims in this document were verified against the **live production database**
 > (`ysszyrczxanuzhiohygx.supabase.co`) via PostgREST, not inferred from migrations.

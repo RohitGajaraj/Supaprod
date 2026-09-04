@@ -1,5 +1,7 @@
 # S4-127 · Nine columns the schema promises and nothing has ever filled
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. The schema equivalent of an orphaned function: a column that is NULL on every row
 > is a promise the database makes that no code keeps._
 

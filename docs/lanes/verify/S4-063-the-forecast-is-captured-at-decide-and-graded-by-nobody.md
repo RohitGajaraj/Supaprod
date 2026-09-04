@@ -1,5 +1,7 @@
 # S4-063 · The forecast is captured at Decide and graded by nobody
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27, measured against the live database and read back against the source. This
 > corrects `S4-052`, which blamed the crew for doing exactly what it was told._
 

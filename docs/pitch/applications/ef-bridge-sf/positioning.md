@@ -1,5 +1,7 @@
 # EF The Bridge Residency, San Francisco — how we win this one
 
+> _Created: 2026-07-31 · Last updated: 2026-08-10_
+
 > _Researched live 2026-07-31. Drafted answers will land in `application.md` once the real question set is captured from the form._
 
 ## The facts

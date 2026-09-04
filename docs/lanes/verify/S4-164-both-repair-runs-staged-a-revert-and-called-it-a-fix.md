@@ -1,5 +1,7 @@
 # S4-164 — both repair runs staged a revert and called it a fix
 
+> _Created: 2026-08-31 · Last updated: 2026-08-31_
+
 > _S4 · 2026-08-31, measured 09:55–10:10 UTC on Lovable project `371dd588`, all `SELECT`. No dev
 > server (R-21), no browser, no row written, no approval answered, nothing pressed._
 

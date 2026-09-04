@@ -1,5 +1,7 @@
 # The Supaprod Design Language (Mission Control edition)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Phase R synthesis, 2026-07-19. Charter: [problem-statement.md](./problem-statement.md).
 > Distilled from the research streams in [research/](./research/) (design systems study, four teardowns, IA reclustering, vocabulary and voice) so a mockup builder needs no other document.
 > Inherits and extends `docs/design/archive/tempo-v5.md` and the landing's Ink v6 tokens (`src/styles/ink.css`). Where this spec and an older design doc disagree on the authenticated app, this spec wins; the landing stays governed by its own applied record.

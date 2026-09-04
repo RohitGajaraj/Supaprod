@@ -1,5 +1,7 @@
 # S4-037 · The sixty seconds, public half: the first screen shows a seven-station loop that is not this product's
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27, on `lane/proof`. **Standing question 2**, partially answered for the first time,
 > by rendering the page rather than reading its source._
 

@@ -1,5 +1,7 @@
 # The rename shortlist — registry-verified, collision-scanned (2026-07-14)
 
+> _Created: 2026-07-16 · Last updated: 2026-08-03_
+
 > _Why this exists: "Cadence" is unusable (Cadence Design Systems ships a literal "Cadence AI"). The founder needs a name + domain bought by 2026-07-15. This doc is the distilled result of a three-stage verified hunt run on 2026-07-14 night: 10 generation lanes (~220 real-word candidates) → live registry availability gate (RDAP + authoritative `whois.nic.ai`) → 8 self-verifying coining agents (only allowed to return names they confirmed unregistered) → adversarial web collision scan (15 names, 6-10 searches each). Every "available" below was confirmed unregistered directly at the registry on 2026-07-14 ~18:09 UTC. Re-verify at the moment of purchase._
 
 ## The one-line lesson from the failed week

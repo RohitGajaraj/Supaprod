@@ -1,5 +1,7 @@
 # Audit reports, 2026-08-14
 
+> _Created: 2026-08-14 · Last updated: 2026-08-14_
+
 The raw output of each audit pass behind [`../functionality-audit-2026-08.md`](../functionality-audit-2026-08.md). The audit is the conclusion; these are the evidence it was drawn from.
 
 **Why they are committed rather than left in a scratchpad.** Founder ruling, 2026-08-14: save each pass the moment it finishes, do not wait for the batch, because a reboot must not mean starting from the beginning. A scratchpad under `/private/tmp` does not survive a restart, so "saved" has to mean committed.

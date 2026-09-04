@@ -1,5 +1,7 @@
 # Launch research briefs — 2026-07-10 (the v13 evidence base)
 
+> _Created: 2026-07-10 · Last updated: 2026-08-04_
+
 > _Four sourced research briefs produced by the v13 goal session's agent sweep (competitive landscape · frontier-agent UX · market sizing · Airtable HyperAgent), preserved at full detail per the founder's 2026-07-10 documentation ruling (chat-showcased analysis must land in the repo, same session). Companion: [`pm-voice-and-ai-tooling-research.md`](./pm-voice-and-ai-tooling-research.md) (user voices). Consumers: the YC application (PC-27), the demo script, the beta trust surface, and [`strategy/archive/v13-proof-campaign.md`](../strategy/archive/v13-proof-campaign.md) §§4–9._
 
 ---

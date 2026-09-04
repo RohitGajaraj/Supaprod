@@ -1,5 +1,7 @@
 # EDGE C: Where to break convention to win
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > Rebuild 2026-07, edge lane C. Written 2026-07-28 against the founder's direct question:
 > how do we break a monopoly or a design principle to penetrate the market, attract users,
 > delight customers, and still do the job.

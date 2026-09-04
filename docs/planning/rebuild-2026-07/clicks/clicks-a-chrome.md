@@ -1,5 +1,7 @@
 # Clicks audit A - the shell and global chrome
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Static analysis, 2026-07-28. Scope: both shells and everything persistent - nav rails, top bars,
 > breadcrumbs, workspace/product switchers, the account menu, search, the notification bell,
 > keyboard shortcuts, the focus dock, banners, the approvals tray, the working strip, the Spine,

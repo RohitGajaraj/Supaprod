@@ -1,5 +1,7 @@
 # S4-186 · The sweep neglects nothing, and the live population is two
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 **Measured 2026-09-01, ~02:5x IST / 20:4x UTC. Lane `lane/proof`.**
 
 ## What I nearly published, and why I did not

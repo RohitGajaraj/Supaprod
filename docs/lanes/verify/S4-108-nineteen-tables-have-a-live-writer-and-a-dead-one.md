@@ -1,5 +1,7 @@
 # S4-108 · Nineteen tables have a live writer and a dead one, and three of the dead ones are edits
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. A narrowing of `S4-104`, built after finding the product-binding case by hand._
 
 ## Why multi-writer alone is not the signal

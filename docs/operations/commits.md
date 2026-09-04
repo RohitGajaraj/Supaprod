@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-06-19_
 
-> How code lands. Strict because one operator working with a swarm of agents cannot afford ambiguous git state. Operating rules: [`AGENTS.md`](../../AGENTS.md).
+> How code lands. Strict because one operator working with a swarm of agents cannot afford ambiguous git state. Operating rules: [`AGENTS.md`](../archive/agent-operating-manual.md).
 >
 > **Policy vs. enforcement.** This file is the _policy_ - what/when/how to commit (human judgment). The mechanical _enforcement_ (blocking `--no-verify`, requiring `gstack`, refusing force-push to `main`) runs as a Claude Code `PreToolUse` hook - see [`hooks.md`](./hooks.md). Policy decides intent; the hook guarantees the invariants.
 
@@ -100,7 +100,7 @@ Deleting branches, `git reset --hard`, force-pushing anywhere (refuse for `main`
 
 ## Never commit without explicit ask
 
-Only commit when the user requests it. After a long task, default to **stage, do not commit** - surface what is staged and let the user decide. See [`AGENTS.md`](../../AGENTS.md), section 6.
+Only commit when the user requests it. After a long task, default to **stage, do not commit** - surface what is staged and let the user decide. See [`AGENTS.md`](../archive/agent-operating-manual.md), section 6.
 
 ## Quick reference
 
@@ -125,4 +125,4 @@ Only commit when the user requests it. After a long task, default to **stage, do
 ## Related documents
 
 - [`hooks.md`](./hooks.md) - hook enforcement rules.
-- [`AGENTS.md`](../../AGENTS.md) §3 - engineering rules; §5 - the closed documentation loop (git changes must update docs); §6 - never commit without explicit ask.
+- [`AGENTS.md`](../archive/agent-operating-manual.md) §3 - engineering rules; §5 - the closed documentation loop (git changes must update docs); §6 - never commit without explicit ask.

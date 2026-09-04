@@ -1,5 +1,7 @@
 # Sweep lane: `nordics-baltics-benelux`
 
+> _Created: 2026-08-14 · Last updated: 2026-08-14_
+
 > _Harvested from the live run. Stage captured: **verified**. 46 programmes._
 
 **Every row was checked against the programme's own apply page.** `page_state` is what the form did, never what a listing said. `UNKNOWN` means a login or paywall blocked the check and it needs the founder, not a guess.

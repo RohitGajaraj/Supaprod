@@ -1,5 +1,7 @@
 # S4-163 — the deploy landed, the spin stopped inside a minute of it, and the acceptance is 0 for one reason
 
+> _Created: 2026-08-31 · Last updated: 2026-08-31_
+
 > _S4 · 2026-08-31, measured 09:25–09:41 UTC · first-hand reads on Lovable project `371dd588`, all
 > `SELECT`, no writes · one read-only `curl` of a static file on production, no browser and no row
 > created anywhere._

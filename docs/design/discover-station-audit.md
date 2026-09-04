@@ -1,4 +1,7 @@
 # Design Audit: Discover Station
+
+> _Created: 2026-08-01 · Last updated: 2026-08-01_
+
 ## From Power-User & Enterprise Product Lens
 
 > **Context**: Discover is the triage desk where signals cluster into patterns and the PM decides if a pattern is a bet, noise, or weight for existing work. The reference model is Sentry's issue stream + Linear's triage inbox. This audit evaluates the current surface against what a serious product leader (VP/head of product at a B2B SaaS company) needs to make fast, confident triage calls end-to-end.

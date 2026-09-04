@@ -1,5 +1,7 @@
 # S4-039 · The stranger's sixty seconds, in a real browser, and the timer caught on camera
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27, on `lane/proof`. **The first browser-driven measurement this session has been
 > able to make**, and it settles a claim that was static-only until now._
 

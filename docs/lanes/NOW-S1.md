@@ -1,5 +1,7 @@
 # NOW — S1 · THE RUN
 
+> _Created: 2026-08-26 · Last updated: 2026-09-01_
+
 **Unit:** relayed the founder's close-out instruction to S0, S2, S3 and S4, then closed my own set.
 
 **§0.9 correction:** this line previously read "CLOSED OUT". **That word is forbidden** — §0.9 is

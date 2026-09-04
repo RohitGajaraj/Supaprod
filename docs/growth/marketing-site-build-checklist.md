@@ -1,5 +1,7 @@
 # Marketing Site Redesign — Builder's Checklist
 
+> _Created: 2026-08-03 · Last updated: 2026-08-11_
+
 **Status:** Design & spec complete, ready for implementation  
 **Phase 1 effort:** ~40 hours (pricing + product showcase + proof continuity + responsive QA)  
 **Build-only mode:** Active (no docs overhead, just commit the WHY)

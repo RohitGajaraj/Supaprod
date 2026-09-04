@@ -1,5 +1,7 @@
 # The admin surfaces: controls that render, fire, and change nothing
 
+> _Created: 2026-08-14 · Last updated: 2026-08-14_
+
 > _Audit pass, 2026-08-14. Raw output, saved as it finished._
 
 **The pattern across all eleven admin tabs: the controls are not broken, they are disconnected.** Each one renders, calls a real server function, writes a real row, shows a receipt, and changes nothing about how the product behaves. An operator using this console believes they have acted.

@@ -1,5 +1,7 @@
 # S4-142 · Which safety mechanisms have ever had anything to compare against
 
+> _Created: 2026-08-28 · Last updated: 2026-08-28_
+
 > _S4, 2026-08-28, measured read-only against the Lovable database
 > (`371dd588-1b70-4629-9bb5-9f003f3af373`). Every number carries the query that produced it. This
 > answers a question S3 posed and nothing in the repo could answer: **has this mechanism never bound

@@ -1,5 +1,7 @@
 # Decision needed: collapse the `artifact_lineage.relation` vocabulary
 
+> _Created: 2026-08-02 · Last updated: 2026-08-03_
+
 > _Written 2026-08-02 by the knowledge-graph pass. **Proposal, not applied.** This is
 > deliberately NOT in `supabase/migrations/` because part 2 rewrites `parent_id` and
 > `child_id` on 105 production rows, and a file placed there would be applied by the next

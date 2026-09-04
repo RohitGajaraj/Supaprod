@@ -1,5 +1,7 @@
 # Gate 1: the founder's decision sheet
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > 2026-07-19. Companion to the mockup gallery ([index.html](./index.html)) and the [Build Engine Strategy memo](../build-engine-strategy.md).
 > Mark every box in your own words or with a check. Anything left unmarked stays open and blocks its section, not the whole gate.
 

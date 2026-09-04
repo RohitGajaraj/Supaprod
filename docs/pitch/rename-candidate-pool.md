@@ -1,5 +1,7 @@
 # The rename candidate pool — every name, categorized (2026-07-14/15)
 
+> _Created: 2026-07-16 · Last updated: 2026-08-11_
+
 > _The full browse-list behind [rename-shortlist.md](./rename-shortlist.md). ~250 names from the 2026-07-14 night hunt, grouped by theme. Availability was verified live at the registries; taken-status is fact, not guess._
 >
 > **Legend:** ✅ `name.ai` **verified available** at the registry · ✗ verified taken · ◇ not individually checked · ⛔ available but **killed by the collision scan** (see shortlist doc for why)

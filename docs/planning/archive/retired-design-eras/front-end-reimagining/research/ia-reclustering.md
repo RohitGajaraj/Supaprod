@@ -1,5 +1,7 @@
 # Settings + Auxiliary-Surface Reclustering Proposal
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Research stream for the front-end reimagining charter (requirement 6: every capability accessible, sensibly placed; requirement 8: brand config as a one-time feed; requirement 9: agents are manageable). Created 2026-07-19. Source of truth read: `src/lib/settings-sections.ts`, `src/routes/_authenticated.settings.tsx`, `src/routes/_authenticated.admin.tsx` (+ 9 children), `src/routes/_authenticated.sync.tsx`, `src/lib/ai/loop.server.ts`, `src/lib/ai/trust.server.ts`, `src/lib/ai/tools/registry.server.ts`, `src/lib/design-memory.functions.ts`, `src/components/settings/*`, `src/components/governance/*`.
 
 ---

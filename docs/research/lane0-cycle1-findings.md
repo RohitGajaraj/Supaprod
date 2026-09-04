@@ -1,5 +1,7 @@
 # Lane 0 Cycle 1 Findings (2026-08-10) — SUPERSEDED, kept for traceability
 
+> _Created: 2026-08-10 · Last updated: 2026-08-11_
+
 > ⚠️ **SUPERSEDED 2026-08-11. Do not cite this file for positioning.** It was written from a partial read and two of its locked conclusions were overturned by the full 679-document read and the outside-evidence test that followed.
 >
 > **What it got wrong, named so nobody re-derives it:**

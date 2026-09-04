@@ -1,5 +1,7 @@
 # S4-188 · The component half asked the server half's question, and 17 of 45 rows were wrong
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 **Measured 2026-09-01. Lane `lane/proof`. Found by S1, sized and fixed here.**
 
 ## What S1 found

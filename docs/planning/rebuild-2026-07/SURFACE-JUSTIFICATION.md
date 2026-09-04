@@ -1,5 +1,7 @@
 # Every surface must justify itself
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > 2026-07-29. **Binding, founder-directed, mid-build.** Read with
 > [`FOUNDER-VERDICT-2026-07-29.md`](./FOUNDER-VERDICT-2026-07-29.md), which it operationalises.
 > It governs every surface the approved prototype does NOT draw, and it outranks any instruction

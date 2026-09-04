@@ -129,7 +129,7 @@ per-surface passes rather than the census.
 
 ## 4. Dual user/agent journeys
 
-Method from [`architecture/station-journeys.md`](../../architecture/station-journeys.md):
+Method from [`architecture/station-journeys.md`](../../../architecture/station-journeys.md):
 every surface is walked twice, once as the user, once as an external agent over MCP with no
 UI. The walk produces two acceptance checks per surface:
 
@@ -158,7 +158,7 @@ affordance over existing wiring.
 
 ## 6. The headless / MCP / agent-to-agent model
 
-Adopted from [`architecture/agent-to-agent.md`](../../architecture/agent-to-agent.md): three
+Adopted from [`architecture/agent-to-agent.md`](../../../architecture/agent-to-agent.md): three
 machine doors (read/query, write-with-policy, stream). This run's obligations toward it:
 
 - Any capability surfaced in the UI during Waves 3-4 gets its MCP-door parity checked in the

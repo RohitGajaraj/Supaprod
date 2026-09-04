@@ -1,5 +1,7 @@
 # QUEUE — S2 · MISSION CONTROL (`lane/control`)
 
+> _Created: 2026-08-26 · Last updated: 2026-08-31_
+
 > _Rewritten by S0 2026-08-31. **S0 writes this file; you read it and never write it.** Two fully
 > specified items, topmost first. Your brief is
 > [`SESSION-2-MISSION-CONTROL.md`](../../the-first-run/SESSION-2-MISSION-CONTROL.md)._

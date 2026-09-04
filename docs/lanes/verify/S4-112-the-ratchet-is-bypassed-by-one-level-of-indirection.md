@@ -1,5 +1,7 @@
 # S4-112 · The Meridian ratchet is bypassed by one level of indirection, in 46 files
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. S3 found the class and handed me the probe. This is it measured across the tree
 > and shipped as a check._
 

@@ -1,5 +1,7 @@
 # Supaprod Front-End Rebuild: Phase 1 Architecture
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Version:** 1.0  
 **Date:** 2026-07-18  
 **Status:** Complete — ready for Phase 2 (Design System Ink)

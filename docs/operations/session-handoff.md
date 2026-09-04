@@ -1,5 +1,7 @@
 # JOURNEY SWEEP — 2026-09-01 ~15:20 IST — DESIGN FINDINGS APPLIED SERIALLY AFTER A SUBAGENT LIMIT KILL
 
+> _Created: 2026-07-28 · Last updated: 2026-09-04_
+
 **Branch `main` · HEAD `c244a4af7` · 15 commits unpushed · tsc 0 · 13,446 pass / 0 fail · build passes · all 8 station surfaces 200**
 
 ## THE THING TO KNOW BEFORE YOU TOUCH THIS

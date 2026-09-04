@@ -1,5 +1,7 @@
 # The three layers, and why we are not a builder — the application answer
 
+> _Created: 2026-08-26 · Last updated: 2026-08-31_
+
 > _Created 2026-08-26 by MAIN, on the founder's instruction: the layer-2 reasoning is a key
 > positioning statement and belongs where accelerator and incubator applications reach for it._
 >

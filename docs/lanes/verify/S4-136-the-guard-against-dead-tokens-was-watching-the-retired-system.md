@@ -1,5 +1,7 @@
 # S4-136 · The guard against dead tokens was watching the retired system
 
+> _Created: 2026-08-27 · Last updated: 2026-08-28_
+
 > _S4, 2026-08-27. Static, whole-repo, no server. Every count below is of `src/**`, excluding test
 > files, matching bare `var()` only — a use with a fallback degrades to something chosen and is not a
 > defect._

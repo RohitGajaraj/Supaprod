@@ -1,5 +1,7 @@
 # Adaptive Proposal B - Container Queries as the Primary Mechanism
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Angle B of three. Written against verified code on 2026-07-28. Every file, line number, count
 > and version below was read or run this session, not recalled.
 > Verified stack: `tailwindcss@4.3.3` (node_modules), Vite 7, TanStack Start, React 19,

@@ -1,5 +1,7 @@
 # Goal — Supaprod Front-End Rebuild (final sweep)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-11_
+
 Read `docs/planning/rebuild-2026-07/final-sweep/Supaprod Front-End Rebuild.md` (Master Brief v2.2) completely, start to finish, before touching code or any other document. Where this goal is silent, the brief governs; where they conflict, the brief wins. The brief supersedes all prior design canon (its PD 7), including where CLAUDE.md says otherwise.
 
 **Mission:** rebuild Supaprod's front end (backend only where the experience truly needs it) from a cluttered, plumbing-exposed app into a minimal, conversational, agentic product-lifecycle platform: Vercel-grade craft, three-surface IA (Home / Project / Approvals), the Ink design system, shipped to a sandbox in 2-3 days, customer- and YC-ready in ~4.

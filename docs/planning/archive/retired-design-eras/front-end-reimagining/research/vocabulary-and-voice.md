@@ -1,5 +1,7 @@
 # Working-State Vocabulary Deck + Microcopy Grammar
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Research stream for the front-end reimagining (charter: `../problem-statement.md`).
 > Sources of law: `src/lib/agent-vocabulary.ts` (PC-28 grammar), `docs/conventions/humanized-output.md`, `docs/conventions/ui-voice.md`.
 > Register: sharp PM. Contractions on. Sentence case. No em or en dashes, no trailing exclamation, no ellipsis filler, no buzzwords from the denylist, no mechanism words (mission, swarm, eval, guardrail, drift) outside the Engine Room.

@@ -1,5 +1,7 @@
 # The Residency — how we win this one
 
+> _Created: 2026-07-31 · Last updated: 2026-08-04_
+
 > _Form read live from the founder's screenshots, 2026-07-31. Answers in [`application.md`](./application.md). Steps in [`how-to-apply.md`](./how-to-apply.md)._
 
 ## The facts

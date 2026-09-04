@@ -1,5 +1,7 @@
 # S4-085 · Prose past Meridian's own measure, on the two pages a stranger sees first
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Measured line boxes, not container widths. Prompted by S2, who found the same
 > class on the signed-in board and correctly pointed out that a dead-backend harness is blind to it._
 

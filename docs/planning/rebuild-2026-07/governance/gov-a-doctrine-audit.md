@@ -1,5 +1,7 @@
 # GOV-A: the doctrine audit. Every place we ask a human, classified.
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > Lane A of the governance re-examination, 2026-07-29. Reads all nine FINAL documents in
 > `docs/planning/rebuild-2026-07/` plus `FOUNDER-VERDICT-2026-07-29.md`, against
 > [`../GOVERNANCE-PRINCIPLE.md`](../GOVERNANCE-PRINCIPLE.md) and against the working tree.

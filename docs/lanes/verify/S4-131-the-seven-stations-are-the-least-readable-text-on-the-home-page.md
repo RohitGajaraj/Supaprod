@@ -1,5 +1,7 @@
 # S4-131 · The seven stations are the least readable text on the home page
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Measured in a real browser against the running dev server on :8080, four public
 > surfaces, dead backend. Public surfaces render fully without a database, so this is the shop window
 > measured as a visitor gets it. Every count below names its population._

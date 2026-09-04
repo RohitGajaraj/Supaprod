@@ -1,5 +1,7 @@
 # Agentic product patterns, 2026-08 — what the frontier ships, and the delegation arc we sell into
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Created 2026-08-26 by MAIN, on the founder's instruction to research truly agentic platforms and
 > **store the result so no session pays for this sweep twice**. Complements
 > [`new-age-product-development-research.md`](./new-age-product-development-research.md) (which covers

@@ -1,5 +1,7 @@
 # Depth A - The Universal Provenance Layer
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > _Written 2026-07-28 · angle A of the three-way depth design for the rebuilt authenticated app._
 > _Owns: "why did we decide this". Hands off to B (agentic Ask) and C (analytics)._
 >

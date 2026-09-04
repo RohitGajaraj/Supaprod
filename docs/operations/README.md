@@ -4,7 +4,7 @@
 
 **How to run this thing.** Thirty documents grouped by the question you arrived with. Everything here is a procedure or a policy, never a plan and never a status.
 
-For the rules a change must satisfy, read [`../../AGENTS.md`](../../AGENTS.md). For where the project stands, [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §0.
+For the rules a change must satisfy, read [`../../AGENTS.md`](../archive/agent-operating-manual.md). For where the project stands, [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §0.
 
 ---
 

@@ -1,5 +1,7 @@
 # S4-134 · All 29 surfaces have a contrast number, and it can only get better
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Every surface in `e2e/surface-baseline.json` measured in a real browser against
 > the dev server on :8080, dead backend, the 18 authenticated ones signed in. **Nothing was unjudged
 > on any surface**, so every count is of the whole page. Measured on `lane/proof`, which does not

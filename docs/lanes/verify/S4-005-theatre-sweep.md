@@ -1,5 +1,7 @@
 # S4-005 · Static theatre sweep — surfaces rendering `learnings` / recall data
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 on `lane/proof` at `60dd95e34`. Standing question 3. Constraint named
 > up front: **theatre can only be half-proven statically** — I can establish what each surface
 > CLAIMS and which row would have to exist for the claim to be true; whether such a row exists

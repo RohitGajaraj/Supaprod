@@ -1,4 +1,7 @@
 # Design Audit: Decide Station
+
+> _Created: 2026-08-01 · Last updated: 2026-08-01_
+
 ## From Power-User & Enterprise Product Lens
 
 > **Context**: Decide is where ranked opportunities become reasoned bets with Critic red-team review and precedent checking. The PM's job here is ONE: settle the strongest bet with the account's own record in front of them. This audit evaluates the current surface against what a serious product leader needs to make confident, accountable decisions end-to-end.

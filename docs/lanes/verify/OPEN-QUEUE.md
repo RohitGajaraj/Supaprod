@@ -1,5 +1,7 @@
 # S4 · The open queue
 
+> _Created: 2026-08-27 · Last updated: 2026-08-28_
+
 > _Every S4 finding still open, ranked, with its owner and its fix. Written 2026-08-27, refreshed
 > the same night after S0 and S1 landed fixes and after the signed-in dead backend sweep._
 >

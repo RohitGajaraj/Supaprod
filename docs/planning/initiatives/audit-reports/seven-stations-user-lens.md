@@ -1,5 +1,7 @@
 # The seven stations, from the user's side
 
+> _Created: 2026-08-14 · Last updated: 2026-08-14_
+
 > _Audit pass, 2026-08-14. Raw output, saved as it finished. Judged mainly on the empty state, because in production almost every workspace is empty and 39 of 43 work items are stuck at the first station._
 
 ## The three worst problems

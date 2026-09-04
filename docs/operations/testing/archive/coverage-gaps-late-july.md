@@ -1,5 +1,7 @@
 # Test Coverage Audit & Gap Implementation (2026-07-24)
 
+> _Created: 2026-08-04 · Last updated: 2026-08-04_
+
 ## Overview
 
 This document summarizes the test coverage audit of cadence-lane-2's React/TypeScript codebase and the implementation strategy for three identified gaps.

@@ -1,5 +1,7 @@
 # PHASE 1: GROUND TRUTH AUDIT — 2026-08-27 REVISION
 
+> _Created: 2026-08-25 · Last updated: 2026-08-26_
+
 > **2026-08-26 audit archived. This revision (2026-08-27) re-verifies claims against actual code and database.**
 > Ground truth: direct verification of code, configuration, and documented evidence.
 > Every claim below verified by inspection of source files, git history, and documented database evidence.

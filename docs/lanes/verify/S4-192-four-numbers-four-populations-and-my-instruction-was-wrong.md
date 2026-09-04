@@ -1,5 +1,7 @@
 # S4-192 · Four numbers, four populations, and the instruction I gave was wrong
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 **2026-09-01. S3 measured the screen signed in; I traced the counts. Lane `lane/proof`.**
 
 ## What S3 measured on `/start`, signed in, one viewport

@@ -1,5 +1,7 @@
 # Reimagining HANDOFF — live state + continuation spec (updated 2026-07-19 night)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > For ANY tool continuing this work (Amazon Kiro, Claude Code, anything else). Branch: `sandbox/mission-control-v2` (pushed to origin). Production, main, and the public landing are untouched and MUST stay untouched. NO merge to main without the founder's explicit approval in his own words. Commit + push after every verified chunk, with a one-line WHY in the message.
 
 ## Read order (before any work)

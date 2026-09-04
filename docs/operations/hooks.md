@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-06-19_
 
-> How this repo uses Claude Code hooks to _enforce_ policy automatically. Operating rules: [`AGENTS.md`](../../AGENTS.md). Commit policy: [`commits.md`](./commits.md). Tool conventions: [`tools.md`](./tools.md).
+> How this repo uses Claude Code hooks to _enforce_ policy automatically. Operating rules: [`AGENTS.md`](../archive/agent-operating-manual.md). Commit policy: [`commits.md`](./commits.md). Tool conventions: [`tools.md`](./tools.md).
 >
 > **Why this file exists:** the founder asked whether commit discipline should move under "hooks." The decision: **policy decides intent (what/when to commit) — hooks enforce invariants (mechanically block violations).** Keep [`commits.md`](./commits.md) as the policy; use a hook to enforce it. Both, not either.
 
@@ -27,7 +27,7 @@ Control flow: a `PreToolUse` hook runs _before_ the tool and can **block** it (e
 
 ## Configuration home
 
-Hook definitions live in `.claude/settings.json` (shared, committed). Keep them thin and deterministic — enforcement and guardrails, not behavior the model should reason about. Behavior lives in [`AGENTS.md`](../../AGENTS.md); hooks make a few invariants non-bypassable.
+Hook definitions live in `.claude/settings.json` (shared, committed). Keep them thin and deterministic — enforcement and guardrails, not behavior the model should reason about. Behavior lives in [`AGENTS.md`](../archive/agent-operating-manual.md); hooks make a few invariants non-bypassable.
 
 ## Two different things both called "hooks" (disambiguation)
 
@@ -45,7 +45,7 @@ Set these in `.claude/settings.json` (committed). Keep them deterministic — en
 | `PreToolUse` | `Bash(git commit *)` / `Bash(git push *)` | Block `--no-verify`/`--no-gpg-sign`; require use of a commit skill (gstack-ship, commit-commands:commit, or similar — check available skills); refuse force-push to `main` | Enforce [`commits.md`](./commits.md) mechanically |
 | `PreToolUse` | `Edit\|Write` on `supabase/migrations/*` already applied | Block | Never edit applied migrations in place ([`architecture/data.md`](../../architecture/data.md)) |
 | `PostToolUse` | `Edit\|Write` on source files | Run formatter/linter; report | Keep the tree clean automatically |
-| `Stop` / `SubagentStop` | end of a work turn | Remind/verify the **closed documentation loop**: were the relevant docs + the active build log ([`planning/archive/build-log.md`](../planning/archive/build-log.md) section 4) updated? | Make [`AGENTS.md`](../../AGENTS.md) section 5 non-optional |
+| `Stop` / `SubagentStop` | end of a work turn | Remind/verify the **closed documentation loop**: were the relevant docs + the active build log ([`planning/archive/build-log.md`](../planning/archive/build-log.md) section 4) updated? | Make [`AGENTS.md`](../archive/agent-operating-manual.md) section 5 non-optional |
 | `SessionStart` | new session | Surface Project Memory (`.remember/`) + the active task list | Boot with context ([`memory.md`](./memory.md)) |
 
 ### Sample `.claude/settings.json` (illustrative shape)
@@ -120,4 +120,4 @@ The buzzword / template checks from the convention are intentionally NOT in this
 
 ## Cross-tool note
 
-Dev-time hooks are a Claude Code mechanism. The _policies_ they enforce ([`commits.md`](./commits.md), [`AGENTS.md`](../../AGENTS.md)) are tool-agnostic, so Antigravity/Gemini/Lovable honor the same rules by reading those files even without identical hook machinery — and the product runtime automation (above) is tool-independent entirely. See [`GEMINI.md`](../../GEMINI.md) for the multi-tool precedence model.
+Dev-time hooks are a Claude Code mechanism. The _policies_ they enforce ([`commits.md`](./commits.md), [`AGENTS.md`](../archive/agent-operating-manual.md)) are tool-agnostic, so Antigravity/Gemini/Lovable honor the same rules by reading those files even without identical hook machinery — and the product runtime automation (above) is tool-independent entirely. See [`GEMINI.md`](../archive/gemini-brief.md) for the multi-tool precedence model.

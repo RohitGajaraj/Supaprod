@@ -1,5 +1,7 @@
 # FINAL - The Adaptive Layout Contract
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Rebuild 2026-07 · the merged, ratified contract. Supersedes proposals A, B and C, which are
 > retained as reasoning records only.
 > Written 2026-07-28 against the live tree. Every count, version, line number and token value below

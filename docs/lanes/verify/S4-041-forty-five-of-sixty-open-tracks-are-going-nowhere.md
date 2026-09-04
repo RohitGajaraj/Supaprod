@@ -1,5 +1,7 @@
 # S4-041 · CORRECTED. Nine open tracks are real, and eight of them are terminally held
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > ## CORRECTION, 2026-08-27, and the headline below was WRONG
 >
 > **I did not break the counts down by workspace, and I flagged that as a limit without acting on

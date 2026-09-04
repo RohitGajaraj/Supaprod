@@ -1,5 +1,7 @@
 # Security Remediation Roadmap
 
+> _Created: 2026-08-04 · Last updated: 2026-08-04_
+
 **Audit Date:** 2026-07-18  
 **Risk Score:** 42/100 (Medium)  
 **Status:** IN PROGRESS  

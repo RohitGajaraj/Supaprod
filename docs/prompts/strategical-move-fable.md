@@ -1,3 +1,5 @@
+> _Created: 2026-08-03 · Last updated: 2026-08-11_
+
 **Mission: Build Supaprod as if it were conceived and shipped inside Anthropic, Google, or another world-class AI company.**
 
 Your first responsibility is **not** to implement this prompt. It is to identify everything that is missing, incomplete, inconsistent, incorrectly modeled, or not yet finalized. Challenge assumptions, rethink workflows, discover gaps, define the right solution, and build it. Treat every instruction here as guidance, not a constraint. If you find a better product direction, architecture, terminology, workflow, capability, or operating model, you have full authority to replace it. Optimize for solving real customer problems, product-market fit, monetization, adoption, and long-term product quality, not adherence to existing documentation.

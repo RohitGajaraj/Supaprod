@@ -1,5 +1,7 @@
 # WO-B — Strangler chrome-wrap: one skin for the whole journey
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **WHY.** The seven station routes (`/discover /decide /plan /design /build /ship /learn`) still wear the OLD left-rail `AppShell`, while the room world wears the new top-bar chrome. Walking a journey bounces the user between two skins (founder complaint #3). Rebuilding each station in-room is weeks; wrapping them in the room chrome at ONE choke point kills the bounce today and lets per-surface rebuilds proceed later (the strangler pattern).
 
 **Mockup floor:** the room TopBar per `mockups/_round3-brief.md` §3; the wrapped page keeps its own content masthead (PageHeader) — chrome comes from the wrapper, headers from the page.

@@ -1,5 +1,7 @@
 # S4-054 · I tried to automate the dead backend test. It does not discriminate yet.
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Built, ran, and reported honestly. The spec ships as a tool rather than a gate,
 > and the reason is the finding._
 

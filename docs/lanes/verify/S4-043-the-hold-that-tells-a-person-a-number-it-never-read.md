@@ -1,5 +1,7 @@
 # S4-043 · The hold that tells a person a number it never read, about work that is sitting right there
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-26, measured against the live database, read only, with the code beside it. This is
 > the diagnosis behind `S4-041`: why 32 of 60 open tracks are terminally parked._
 

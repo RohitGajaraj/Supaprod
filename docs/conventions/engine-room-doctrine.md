@@ -66,4 +66,4 @@ On any new surface, panel, metric, label, field, or architecture decision: run t
 - [`home-and-today-ia.md`](./home-and-today-ia.md) - the surface-placement rubric this extends (the engine-room-vs-front axis).
 - [`ui-voice.md`](./ui-voice.md) and [`humanized-output.md`](./humanized-output.md) - outcome-naming and calm copy are how rule 2 is executed in strings.
 - [`strategy/founding-constitution.md`](../strategy/founding-constitution.md) ("Complexity exists in the engine, not in the user experience") and [`strategy/archive/v7-agentic-product-os.md`](../strategy/archive/v7-agentic-product-os.md) ("simple front, powerful engine; hide the engine room").
-- [`../../AGENTS.md`](../../AGENTS.md) §3 (engineering rules, where this is wired as a non-negotiable).
+- [`../../AGENTS.md`](../archive/agent-operating-manual.md) §3 (engineering rules, where this is wired as a non-negotiable).

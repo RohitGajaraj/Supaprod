@@ -1,5 +1,7 @@
 # WO-FID — Functional fidelity: the existing mockup surfaces must WORK, not just look right
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **WHY.** Founder (2026-07-23): "everything in the HTML is not actually implemented at code level… the design screen is a placeholder, not functional and working." The love-gate proved visual fidelity; this packet family proves FUNCTION. For every element on a shipped mockup surface: is it wired (server fn, action, deep link, live state)? A control that does nothing may not ship — wire it, or render the honest GAP state ("record how it landed" not "we measured"; "drafts only, nothing sends itself"), never a dead button.
 
 **The shared method (every packet):**

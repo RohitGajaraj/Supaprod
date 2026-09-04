@@ -1,5 +1,7 @@
 # South Park Commons — how we win this one
 
+> _Created: 2026-07-31 · Last updated: 2026-08-10_
+
 > _Researched live 2026-07-31 against the real Airtable form and SPC's own published material. This file is the strategy. The drafted answers are in [`application.md`](./application.md). The submission steps are in [`how-to-apply.md`](./how-to-apply.md)._
 
 ## The facts

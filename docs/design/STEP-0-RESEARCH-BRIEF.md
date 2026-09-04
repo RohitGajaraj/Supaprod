@@ -1,5 +1,7 @@
 # STEP 0: Premium UI/UX Research Brief
 
+> _Created: 2026-08-10 · Last updated: 2026-08-10_
+
 > _36-Hour Design Sprint · Research Complete · Ready for STEP 1 Audit & STEP 2 System_
 
 ---

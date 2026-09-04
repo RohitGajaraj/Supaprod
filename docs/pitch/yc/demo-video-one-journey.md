@@ -1,5 +1,7 @@
 # The demo video — one bet, all the way through
 
+> _Created: 2026-07-27 · Last updated: 2026-08-11_
+
 > **Created 2026-07-27, on the founder's ruling: "take one journey and showcase across all the verticals, a
 > continuing journey, so the user gets connected."** This is the PRIMARY cut. The eleven-step tour in
 > [`video-scripts.md`](./video-scripts.md) is retained as the verified fallback — shoot that one only if a

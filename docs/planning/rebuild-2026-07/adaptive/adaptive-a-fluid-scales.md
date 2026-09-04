@@ -1,5 +1,7 @@
 # Adaptive Proposal A - Fluid Scales and Typography
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Rebuild 2026-07 · adaptive layout system · **proposal A of 3**
 > Owner angle: the mathematics. Type scale, space scale, measure, density, and the units that make
 > OS text scaling and browser zoom work.

@@ -1,5 +1,7 @@
 # SPC Founder Fellowship — the answers, ready to paste
 
+> _Created: 2026-07-31 · Last updated: 2026-08-11_
+
 > # ✅ SUBMITTED 2026-07-31
 >
 > Filed two days before the deadline. **Interview invitations go to all applicants by 2026-08-30.** Login given: `voyage@supaprod.ai`, now spent.

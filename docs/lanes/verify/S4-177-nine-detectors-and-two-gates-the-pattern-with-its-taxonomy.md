@@ -1,5 +1,7 @@
 # S4-177 — nine detectors, two gates, and a documented enforcement that does not exist
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 > _S4 · 2026-09-01 ~00:1x IST · source, hooks and CI read; the orphan-doc test run against the real
 > pre-commit hook. No dev server, no row written, nothing pressed._
 

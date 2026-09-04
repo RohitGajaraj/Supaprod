@@ -1,5 +1,7 @@
 # SESSION HANDOFF — 2026-08-26 Session B, S0 Conductor  
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 **Mission Status:** Code deployable (11,386 pass / 0 fail), but mission gate NOT MET.  
 **Acceptance Gate:** `SELECT id FROM spine_tracks WHERE entry_station='sense' AND station='learn' AND waived='[]'` → still returns **0 rows**
 

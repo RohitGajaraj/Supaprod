@@ -6,7 +6,7 @@
 
 These live at repo root rather than under `docs/` because they are read alongside code, not alongside planning.
 
-**If you are about to write code, the rules you must satisfy are in [`../AGENTS.md`](../AGENTS.md) §3.** These files are the detail behind those rules.
+**If you are about to write code, the rules you must satisfy are in [`../AGENTS.md`](../docs/archive/agent-operating-manual.md) §3.** These files are the detail behind those rules.
 
 ---
 

@@ -1,5 +1,7 @@
 # S4-130 · A clean merge into `main` does not mean the lanes agree
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Measured with `git merge-tree` against the four lane branches as fetched at the
 > time of writing. Read-only: no branch, no checkout and no working tree was touched._
 

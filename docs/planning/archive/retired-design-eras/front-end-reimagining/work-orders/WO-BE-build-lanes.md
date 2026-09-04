@@ -1,5 +1,7 @@
 # WO-BE — Build-engine lanes A/B/C (native path, honesty-tagged)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Context ruling (founder, 2026-07-23): Conductor (conductor.build) stays our internal dev tool — its terms allow internal use and prohibit embedding/white-labeling in a product. Supaprod builds the EQUIVALENT experience on its own seam. These three lanes make the native path Conductor-grade for real; the premium rung is PC-35 (separate packet). The patch driver flag (`CLAUDE_SDK_BUILD_DRIVER_ENABLED`) stays OFF — it is single-shot, never live-tested, and would not even fire without `spec.targetFiles`.
 
 ## BE-A — Route dispatch through the driver seam (S)

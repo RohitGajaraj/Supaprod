@@ -1,5 +1,7 @@
 # Betaworks AI Camp: The New Agentic Economy — Fall '26
 
+> _Created: 2026-07-31 · Last updated: 2026-08-11_
+
 # ✅ SUBMITTED 2026-07-31
 
 > Filed on the final deadline. Batch runs 2026-08-31 to 2026-11-20 in NYC; they review on a rolling basis.

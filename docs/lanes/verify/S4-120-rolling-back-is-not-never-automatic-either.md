@@ -1,5 +1,7 @@
 # S4-120 · "Rolling back is never automatic" is false too, and the reassuring comment is about a different flag
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. A correction to `S4-118`'s fix, caught minutes after it shipped. Traced through
 > four files and **not run**, which matters and is stated at the bottom._
 

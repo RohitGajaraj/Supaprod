@@ -1,5 +1,7 @@
 # S4-026 · Gap #2 is wired end to end and briefed, and the thing stopping it is a credential
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 on `lane/proof`, statically, on the merged tree and cross-checked
 > against `origin/lane/platform`. No database, so every claim here is a file and a line._
 

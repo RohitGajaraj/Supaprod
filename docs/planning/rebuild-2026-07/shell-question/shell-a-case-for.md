@@ -1,5 +1,7 @@
 # Shell A: the case FOR the conversational shell, and its design
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > Lane A of the shell question, 2026-07-28. Position argued at full strength: **the founder is
 > right, the app should collapse into one conversational surface with a pane, and here is what the
 > pane is a preview of.**

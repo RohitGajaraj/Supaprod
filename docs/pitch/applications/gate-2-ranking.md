@@ -1,5 +1,7 @@
 # Gate 2 — the ranked list, the calls, and the ask
 
+> _Created: 2026-08-14 · Last updated: 2026-08-14_
+
 > _Created 2026-08-14 from the eleven-lane global sweep. **568 programmes captured, 305 confirmed open against their own apply page.** Every row below carries terms read off the programme's own page, not an aggregator. Re-check the link before filing: programmes change dates without notice, and this sweep exists because one did._
 
 **Looking for what to file next? Read [`what-to-apply-for-next.md`](./what-to-apply-for-next.md) instead** — it carries the queue in order and does not need re-deriving. This file carries the reasoning behind the calls and the ask.

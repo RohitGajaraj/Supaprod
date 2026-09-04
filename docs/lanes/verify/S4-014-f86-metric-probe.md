@@ -1,5 +1,7 @@
 # S4-014 · F-86 — Decide's metric probe: the type makes the lie unrepresentable
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 on `lane/proof` at origin/main post-`c53a02733`._
 
 ## The claim

@@ -1,5 +1,7 @@
 # Hub71 Cohort 20 — outcome, and the first rejection that states criteria
 
+> _Created: 2026-08-24 · Last updated: 2026-08-24_
+
 > _Filed 2026-08-17 (four days early). **Rejected 2026-08-24, 18:19 IST — seven days.** Recorded same day._
 
 **Status: REJECTED.** Notion card updated: [Hub71 Access Programme + Hub71+ AI (Cohort 20)](https://app.notion.com/p/3ae3f54c86c281949f92ffd4f1f5f20e).

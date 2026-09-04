@@ -1,5 +1,7 @@
 # The founder video
 
+> _Created: 2026-07-26 · Last updated: 2026-08-19_
+
 > _Living file, ordered newest first._
 >
 > ## ⭐ V5, 2026-08-19, IS THE ONE TO SHOOT. Everything below it is superseded.

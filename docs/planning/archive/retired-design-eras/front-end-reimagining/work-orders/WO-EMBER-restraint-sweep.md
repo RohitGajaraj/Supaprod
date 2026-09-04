@@ -1,5 +1,7 @@
 # WO-EMBER — The restraint sweep: one ember per screen, everywhere
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Branch:** `wo/ember-restraint-sweep` · **Start only after WO-A and WO-B are on main** (you audit the merged shell).
 
 **WHY.** Founder ruling (2026-07-23): "there is too much amber; it's overpowering." The design law was always one-ember-locus-per-screen, but the built app drifted: ember chips, counts, badges, and secondary buttons compete with the actual gate. Brand color must mark exactly one thing per screen — the human's move. Everything else: ink, gray, white, silver, slate.

@@ -1,5 +1,7 @@
 # PHASE 3: Test Harness — Acceptance Query Execution Plan
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 **Goal:** The moment code deploys, run the narrowest autonomous loop (sense → learn) end-to-end and verify acceptance query returns > 0.
 
 ## Test Track Setup

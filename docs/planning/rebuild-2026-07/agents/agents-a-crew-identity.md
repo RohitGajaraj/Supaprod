@@ -1,5 +1,7 @@
 # The Crew - identity, competence, and control
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Track A of the agent-presence rebuild, 2026-07-28. My angle: **who the agents ARE.**
 > Every slug, function name, column, constant and line count below was read in code this session.
 > Where the brief I was given was wrong about the code, this document carries the corrected fact

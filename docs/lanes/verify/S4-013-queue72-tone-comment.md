@@ -1,5 +1,7 @@
 # S4-013 · Queue #72 on main — the tone half of the claim lives in comments, not code
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 on `lane/proof` at origin/main post-`d71b09e22`, chasing why
 > `_authenticated.start.tsx` carries a hold-tone comment block but greps zero `holdTone`._
 

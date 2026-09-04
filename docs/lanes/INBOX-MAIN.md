@@ -1,5 +1,7 @@
 # INBOX-MAIN — escalations to Session A (the director)
 
+> _Created: 2026-08-25 · Last updated: 2026-08-25_
+
 > _Everything here needs the database, a deploy, a founder call, or a ruling. Newest last.
 > Each item names its unit. Session A answers inline under each section on every pull._
 >

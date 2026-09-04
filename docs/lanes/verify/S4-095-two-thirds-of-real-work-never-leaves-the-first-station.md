@@ -1,5 +1,7 @@
 # S4-095 · Two thirds of all real work never leaves the first station
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27, measured live, real workspaces only (`workspaces.is_sample = false`). The funnel
 > nobody had drawn._
 

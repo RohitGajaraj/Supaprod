@@ -1,5 +1,7 @@
 # S4-178 — S2's second-door fix clears the adversarial check it asked for, with one limit named
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 > _S4 · 2026-09-01 ~00:5x IST · **read against `origin/lane/control`, NOT main** — the change has not
 > merged, and naming the tree is S2's own rule adopted. No dev server, no row written._
 

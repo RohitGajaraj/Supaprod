@@ -1,5 +1,7 @@
 # The functionality audit, 2026-08-14
 
+> _Created: 2026-08-14 · Last updated: 2026-08-15_
+
 > _Lane 0. Written before any code was changed, then kept current as fixes landed._
 
 **What this is.** A state-of-the-app audit of features, data, logic, integrations and correctness. Not design: look and feel is Lane 1's, and this document does not touch it.

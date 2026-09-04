@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-14 · Last updated: 2026-06-25_
 
-> **What this is.** Which docs update continuously, which update at feature milestones, and which update only when the structure actually changes, plus the per-feature 8-step closure checklist that closes the loop on every shipped change. The point is to keep the living docs true without churning the stable architecture docs on every build. This complements the closed-doc loop in [`../../AGENTS.md`](../../AGENTS.md) section 5.
+> **What this is.** Which docs update continuously, which update at feature milestones, and which update only when the structure actually changes, plus the per-feature 8-step closure checklist that closes the loop on every shipped change. The point is to keep the living docs true without churning the stable architecture docs on every build. This complements the closed-doc loop in [`../../AGENTS.md`](../archive/agent-operating-manual.md) section 5.
 >
 > **The principle.** Split docs by the rate of change of what they describe, not by document type. A feature map describes progress and changes constantly. An ERD describes structure and changes rarely. Tie each doc's update trigger to how fast its subject actually moves.
 
@@ -69,7 +69,7 @@ Rules:
 4. **Trackers** - update `docs/planning/SOURCE-OF-TRUTH.md` (section 0 the live cursor + section 6 progress) and the relevant board `docs/planning/SOURCE-OF-TRUTH.md` (flip the status mark, append a shipping note to the row). Do NOT update `docs/planning/archive/feature-backlog.md` — it is archived and frozen.
 5. **`docs/planning/archive/build-log.md` §4** - append a dated one-liner with a clear WHY (not just WHAT).
 6. **`docs/strategy/session-decisions.md`** - add an entry if a strategic decision or tradeoff was resolved.
-7. **`docs/conventions/`** - write a new convention file if the learning is a durable rule. Reference it from [`../../AGENTS.md`](../../AGENTS.md) §3 if it is a hard engineering rule.
+7. **`docs/conventions/`** - write a new convention file if the learning is a durable rule. Reference it from [`../../AGENTS.md`](../archive/agent-operating-manual.md) §3 if it is a hard engineering rule.
 8. **Cross-links** - add a "Related" block at the bottom of any new doc.
 
 **Optional.** Mirror to tool-private memory (`mem://`, Claude project memory, etc.) only as a _thin pointer_ (≤ 2 lines, "see `docs/conventions/<file>.md`"). Never duplicate body - that creates drift.
@@ -91,6 +91,6 @@ Living docs (the feature set, status, known issues) lose all value the moment th
 ## Related
 
 - [`humanized-output.md`](./humanized-output.md): the zero-fingerprint voice rule.
-- [`../../AGENTS.md`](../../AGENTS.md) section 5: the closed-doc loop and the cross-document update protocol (matrix view of the same idea).
+- [`../../AGENTS.md`](../archive/agent-operating-manual.md) section 5: the closed-doc loop and the cross-document update protocol (matrix view of the same idea).
 - [`./README.md`](./README.md): how to add a new convention.
 - [`../strategy/README.md`](../strategy/README.md): the strategy cascade rule (when the canon changes).

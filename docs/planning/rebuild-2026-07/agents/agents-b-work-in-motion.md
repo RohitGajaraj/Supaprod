@@ -1,5 +1,7 @@
 # Agents, angle B: WORK MADE VISIBLE
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > The moment an agent is DOING something. From the instant work starts to the instant it lands,
 > designed for the honest case where that is minutes or hours, not seconds.
 >

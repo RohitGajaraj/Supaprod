@@ -1,5 +1,7 @@
 # S4-166 — six of seven forecast desks are entirely demo fixtures, under a comment saying none of it is
 
+> _Created: 2026-08-31 · Last updated: 2026-08-31_
+
 > _S4 · 2026-08-31 ~10:50 UTC · Lovable project `371dd588`, all `SELECT`, plus source and `git log`.
 > No dev server (R-21), no browser, no row written. **Standing question 2.**_
 

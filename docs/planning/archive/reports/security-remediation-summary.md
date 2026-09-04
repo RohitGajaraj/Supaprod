@@ -1,5 +1,7 @@
 # Security Remediation Summary — 2026-07-10
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Session:** `rescue/lane1-2026-07-09` → comprehensive security vulnerability analysis + initial remediation
 
 ---

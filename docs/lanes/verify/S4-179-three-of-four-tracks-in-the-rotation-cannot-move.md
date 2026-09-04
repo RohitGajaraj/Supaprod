@@ -1,5 +1,7 @@
 # S4-179 — three of the four tracks in the sweep's rotation cannot move, and my "nothing is starved" has expired
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 > _S4 · 2026-09-01 ~01:2x IST · Lovable project `371dd588`, all `SELECT`, plus source. No dev server,
 > no row written, nothing pressed._
 

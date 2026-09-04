@@ -1,5 +1,7 @@
 # S4-044 · Two open verdicts closed on live rows
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-26, live database, read only. Both of these were filed with "needs a count" attached.
 > The counts are here, and both findings get bigger, not smaller._
 

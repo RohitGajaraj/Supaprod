@@ -1,5 +1,7 @@
 # S4-025 · The acceptance test has two canonical forms, and the annotation on the honest one misdiagnoses its own zero
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 on `lane/proof`, statically, against the merged tree. **I could not run
 > either query — this machine has no database** (`coordination/requests/S4/no-database-and-no-env-on-this-machine.md`),
 > so this is a verdict about the instruments, not about the number._

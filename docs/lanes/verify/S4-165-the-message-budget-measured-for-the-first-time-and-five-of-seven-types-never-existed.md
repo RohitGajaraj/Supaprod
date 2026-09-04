@@ -1,5 +1,7 @@
 # S4-165 — the message budget, measured for the first time, and five of the seven types never existed
 
+> _Created: 2026-08-31 · Last updated: 2026-08-31_
+
 > _S4 · 2026-08-31 ~10:30 UTC · Lovable project `371dd588`, all `SELECT`, plus source reads. No dev
 > server (R-21), no browser, no row written._
 

@@ -1,5 +1,7 @@
 # Mission Gate Status: READY FOR FOUNDER OBSERVATION
 
+> _Created: 2026-08-25 · Last updated: 2026-08-25_
+
 **Date:** 2026-08-26  
 **Status:** ⏳ AWAITING FOUNDER ACTION  
 **Blocker:** Founder observation required (only founder can satisfy this)

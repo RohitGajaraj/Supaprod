@@ -1,5 +1,7 @@
 # The reference-pattern library
 
+> _Created: 2026-08-01 · Last updated: 2026-08-26_
+
 > _Created 2026-08-01. **Standing rule (founder): research is captured here so it is never done
 > twice.** Before researching a surface's reference class, read this file. After researching one,
 > add it here in the same session._

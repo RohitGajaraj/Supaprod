@@ -1,5 +1,7 @@
 # The Named-Journey Catalog
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Front-end reimagining, Phase R deliverable. Created 2026-07-19.
 > Answers the founder's core test directly: where do I start, what happens next, how do I run just a slice.
 > Every journey below maps to server functions that exist today in `src/lib/*.functions.ts`. Claim never outruns wiring: where the wiring is thin, the journey carries a GAP line instead of a promise.

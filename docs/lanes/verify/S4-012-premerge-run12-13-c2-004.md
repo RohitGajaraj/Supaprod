@@ -1,5 +1,7 @@
 # S4-012 · Pre-merge verification — RUN-12/13 and C2-004 on their lane tips
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 against `origin/lane/run` @ `e48e422da` / `5c2debf41` and
 > `origin/lane/control` @ `34750369e`, before S0 merges them — catching defects before integration
 > is worth more than after._

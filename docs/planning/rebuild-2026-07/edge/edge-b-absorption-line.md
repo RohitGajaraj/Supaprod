@@ -1,5 +1,7 @@
 # EDGE B: The Absorption Line
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > _Rebuild 2026-07. Written 2026-07-28 under the founder's full-authority mandate ("if we need to
 > break some monopoly or some design principle, you can think about it")._
 >

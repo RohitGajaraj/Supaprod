@@ -1,5 +1,7 @@
 # getCreditRunway vs live DB — verification (2026-08-25, all DB times UTC)
 
+> _Created: 2026-08-25 · Last updated: 2026-08-25_
+
 ## VERDICT: MATCH
 
 The live `credit_runway` Postgres function carries the F-47 fix (`reason = 'debit'`, not

@@ -1,5 +1,7 @@
 # IA Proposal A - ONE ROOM
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Stance: the product IS the loop, so there is one place. Every other surface is a peel-back
 > layer off it, not a departure from it.
 > Written against verified code, 2026-07-28. Where this doc names a file, line count, or

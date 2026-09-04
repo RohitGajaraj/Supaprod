@@ -1,5 +1,7 @@
 # RETIRED: the design contract, 2026-08-03 to 2026-08-14
 
+> _Created: 2026-08-03 · Last updated: 2026-08-15_
+
 > ## THIS IS HISTORY. IT IS NOT AUTHORITY.
 >
 > **Superseded on 2026-08-15 by [`../DESIGN-SYSTEM.md`](../DESIGN-SYSTEM.md), which is Meridian and

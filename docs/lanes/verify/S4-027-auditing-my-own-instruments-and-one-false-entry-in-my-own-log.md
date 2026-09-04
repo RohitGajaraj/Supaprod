@@ -1,5 +1,7 @@
 # S4-027 · Auditing my own instruments — and retracting a claim in my own buildlog
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _S4, 2026-08-26, on `lane/proof`. `e2e/**` is my own path, and F-89 was caused by something in it.
 > R-11 says a lane never signs off its own work; the honest reading of that is that I have to be
 > hardest on mine._

@@ -1,5 +1,7 @@
 # Threads and Artifacts: the two revisitable homes
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Research stream for Addendum 1.1 red-lines #5 (Threads home) and #6 (Artifacts home) of the design language spec. Created 2026-07-19.
 > Source of truth read: `src/lib/conversations.functions.ts`, `src/lib/ask-thread.ts`, `src/lib/ask-promote.functions.ts`, `src/lib/memory-candidates.functions.ts`, `src/lib/prototypes.functions.ts`, `src/lib/docs.functions.ts`, plus web research on the mid-2026 state of Claude.ai, ChatGPT, Notion AI, v0, Lovable, and Devin.
 > Companion mockup: [`../mockups/screen-9-threads-home.html`](../mockups/screen-9-threads-home.html).

@@ -1,5 +1,7 @@
 # Mission Gate: Founder Observation
 
+> _Created: 2026-08-25 · Last updated: 2026-08-25_
+
 **Status:** Ready for founder to watch  
 **What's been built:** PHASE 3 visible agency (live polling, current station indicator, live transcript)  
 **What's needed:** Founder visual observation to satisfy mission gate

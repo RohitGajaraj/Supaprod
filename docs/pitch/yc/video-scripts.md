@@ -1,5 +1,7 @@
 # The demo video
 
+> _Created: 2026-07-10 · Last updated: 2026-08-19_
+
 > ## 🟡 PARKED 2026-08-19 by the founder. The 2:22 film stays on the YC form untouched.
 >
 > *"For now I am not focusing on recording a demo video because it was created by AI. Let's

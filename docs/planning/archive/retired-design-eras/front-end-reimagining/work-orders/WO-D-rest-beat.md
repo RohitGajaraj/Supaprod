@@ -1,5 +1,7 @@
 # WO-D — The rest beat: the room's first breath answers "what needs me"
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **WHY.** A returning user lands on the room's RestFace. Today it summarizes; it should LEAD with the one thing that needs them and make acting one click — the anticipatory rule ("deliver before the user asks"). The delight is the existing approval choreography firing from that click; we add no new spectacle (the Class-C motion budget is already spent on it).
 
 **Mockup floor:** `mockups/landing-when-you-login.html` Frame A (returning user) + `mockups/screen-2-room-rest.html`.

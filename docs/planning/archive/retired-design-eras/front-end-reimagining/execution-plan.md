@@ -1,5 +1,7 @@
 # Supaprod Front-End Reimagining — Problem Statement + Rebuild Plan
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Date: 2026-07-19 · Founder: Rohit · Mode: sandbox rebuild, production untouched, no merge without explicit founder approval
 > **v3 — CUMULATIVE.** This one document contains everything from v1 (problem statement, Mission Control IA, comprehension layer, no-orphan registry, phased execution) plus the v2 feedback round (journeys, cost-quiet, Settings reclustering, color liberty, tooltips/tours, breadcrumb bug, demo video) plus the v3 additions below (native Build engine strategy, Design-stage rework, agent management layer, gap register). Nothing from earlier versions was dropped.
 

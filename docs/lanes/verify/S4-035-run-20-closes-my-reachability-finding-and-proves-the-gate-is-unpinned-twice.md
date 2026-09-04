@@ -1,5 +1,7 @@
 # S4-035 · RUN-20 closes my reachability finding, and independently proves the gate problem twice
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _S4, 2026-08-26, verified against `origin/lane/run` @ `51711630e`, **pre-merge**. Two separate
 > results: one of my own findings is resolved, and a second, larger one is strengthened by evidence
 > I did not go looking for._

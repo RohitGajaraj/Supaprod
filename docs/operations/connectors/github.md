@@ -1,5 +1,7 @@
 # GitHub connector setup
 
+> _Created: 2026-07-17 · Last updated: 2026-07-17_
+
 **Status:** Verified working - registered + tested, GitHub App install flow (F-CONN Phase 1, predates the SW-7 native-OAuth rollout)
 **Last verified:** 2026-07-17
 

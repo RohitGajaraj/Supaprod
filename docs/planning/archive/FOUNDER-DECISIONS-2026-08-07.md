@@ -1,5 +1,7 @@
 # Three Founder Decisions — Launch Readiness 2026-08-07
 
+> _Created: 2026-08-07 · Last updated: 2026-08-07_
+
 > **These three decisions lock ALL marketing copy. Until decided, no Product Hunt tagline, no X thread, no landing page copy can be finalized. Decide by EOD 2026-08-08 to stay on launch schedule.**
 
 ---

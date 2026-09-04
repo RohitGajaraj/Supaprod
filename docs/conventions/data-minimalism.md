@@ -69,4 +69,4 @@ So `role` was removed from the capture step. It returns only when a real consume
 - [`engine-room-doctrine.md`](./engine-room-doctrine.md) — the first UX law (calm front, deep engine); this is its data-capture sibling.
 - [`home-and-today-ia.md`](./home-and-today-ia.md) — the same discipline applied to surface placement (Today is not a dashboard).
 - [`ui-voice.md`](./ui-voice.md) / [`humanized-output.md`](./humanized-output.md) — the same discipline applied to words (length budgets, no filler).
-- [`strategy/founding-constitution.md`](../strategy/founding-constitution.md) ("Complexity exists in the engine, not in the user experience") and [`../../AGENTS.md`](../../AGENTS.md) §4 (behavioral guidelines: "Nothing speculative").
+- [`strategy/founding-constitution.md`](../strategy/founding-constitution.md) ("Complexity exists in the engine, not in the user experience") and [`../../AGENTS.md`](../archive/agent-operating-manual.md) §4 (behavioral guidelines: "Nothing speculative").

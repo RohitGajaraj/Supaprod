@@ -1,5 +1,7 @@
 # RUNBOOK: Credential to Mission Completion (30 min, fully automated)
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 **Blocker:** SUPABASE_SERVICE_ROLE_KEY not set anywhere  
 **Status:** Ready to execute; awaiting credential retrieval  
 **Time to mission gate:** 30 minutes total, all steps documented below  

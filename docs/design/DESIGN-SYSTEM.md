@@ -1,5 +1,7 @@
 # The design system
 
+> _Created: 2026-08-03 · Last updated: 2026-09-03_
+
 > _Meridian. Contract since 2026-08-15 · This file replaced the 2026-08-03 contract, archived at [`archive/DESIGN-SYSTEM-2026-08-03-to-08-14.md`](./archive/DESIGN-SYSTEM-2026-08-03-to-08-14.md)._
 
 **Meridian is the design system. There is no other one, and there is no surface exempt from it.**

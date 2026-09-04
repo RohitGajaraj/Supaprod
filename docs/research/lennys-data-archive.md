@@ -55,7 +55,7 @@ Refresh cadence is irregular, roughly monthly: `RELEASES.md` shows 2026-06-21, 2
 
 ## Setting up on a new machine, or under a different agent
 
-Per [`AGENTS.md` §10](../../AGENTS.md), git is the only shared substrate and each tool's agent layer sits on top. That splits this setup cleanly:
+Per [`AGENTS.md` §10](../archive/agent-operating-manual.md), git is the only shared substrate and each tool's agent layer sits on top. That splits this setup cleanly:
 
 | Layer | Travels with the repo? | Where it lives |
 | --- | --- | --- |
@@ -134,5 +134,5 @@ The highest-value use is **verification and extension**, not repetition.
 
 - [`podcast-corpus-lenny.md`](./podcast-corpus-lenny.md) — the 16-episode sweep this archive extends.
 - [`pm-voice-and-ai-tooling-research.md`](./pm-voice-and-ai-tooling-research.md) — the §12.4 citation rule that binds all quoting here.
-- [`AGENTS.md` §10](../../AGENTS.md) — the cross-tool layering this setup follows.
+- [`AGENTS.md` §10](../archive/agent-operating-manual.md) — the cross-tool layering this setup follows.
 - [`README.md`](./README.md) — folder index and the two standing evidence rules.

@@ -1,5 +1,7 @@
 # QUEUE — S3 · THE PLATFORM (`lane/platform`)
 
+> _Created: 2026-08-26 · Last updated: 2026-09-01_
+
 > _Rewritten by S0 2026-08-31. **S0 writes this file; you read it and never write it.** Two fully
 > specified items, topmost first. Your brief is
 > [`SESSION-3-THE-PLATFORM.md`](../../the-first-run/SESSION-3-THE-PLATFORM.md)._

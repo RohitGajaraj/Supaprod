@@ -1,5 +1,7 @@
 # XSS Prevention Implementation Guide
 
+> _Created: 2026-08-04 · Last updated: 2026-08-04_
+
 ## Status: OPEN
 **Risk:** Medium | **Effort:** Medium | **Priority:** P1
 

@@ -1,5 +1,7 @@
 # S4-162 — two of today's three fixes are guarded by tests that pass with the defect restored
 
+> _Created: 2026-08-31 · Last updated: 2026-08-31_
+
 > _S4 · the proving ground · 2026-08-31 · verified on `lane/proof` fast-forwarded to
 > `origin/main` = `5af3b4c3b`. No dev server was started; every check here is a pure function
 > call, a mutation of the working tree, and `bun test`. Nothing was pointed at production and

@@ -1,5 +1,7 @@
 # S4-153 · The record of what agents did is written and never read
 
+> _Created: 2026-08-28 · Last updated: 2026-08-28_
+
 > _S4, 2026-08-28. Measured against the live database and the whole repository. This one is aimed at
 > the founder's own test — **"the work agents do made visible on screen rather than implied"**._
 

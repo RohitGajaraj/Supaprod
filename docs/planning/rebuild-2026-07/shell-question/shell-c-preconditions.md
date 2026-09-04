@@ -1,5 +1,7 @@
 # Shell C - The Reference Preconditions
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 **Stream C of the shell question.** What is actually true of the products the founder named, what
 preconditions make a conversational shell work, and whether Supaprod meets them.
 

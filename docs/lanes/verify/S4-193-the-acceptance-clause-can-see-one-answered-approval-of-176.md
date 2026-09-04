@@ -1,5 +1,7 @@
 # S4-193 · The acceptance query's F-79 clause reaches 1 answered approval of 176
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 **2026-09-01, at close-out. Found chasing an unrelated discrepancy S3 raised.
 Lane `lane/proof`.**
 

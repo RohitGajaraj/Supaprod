@@ -1,5 +1,7 @@
 # Depth B - The Agentic Conversation
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Rebuild 2026-07 · depth layer · angle B of three
 > Written 2026-07-28 against the live tree at `36cca7c5`. Every claim below was read in code this
 > session. Where the brief I was given is wrong, I say so in the margin and correct it.

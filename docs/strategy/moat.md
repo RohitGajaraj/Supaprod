@@ -26,7 +26,7 @@
 >
 > **Status:** LIVING canon. Current positioning (v11, 2026-06-23): **the moat is the decision-and-outcome layer** (own the loop, sense continuously, keep the evidence); **memory is one component**, not the headline. Three pillars verified real in code + live DB.
 >
-> **Standing rule (do not let this go stale):** this doc is updated on **every** strategic reposition, in the same session, and is never orphaned. A reposition also triggers the **Repositioning Ripple Review** in Section 11 (pricing, features, gating, IA, build-next, tests, canon). Wired into [`README.md`](../../README.md), [`AGENTS.md`](../../AGENTS.md), [`CLAUDE.md`](../../CLAUDE.md), [`GEMINI.md`](../../GEMINI.md), and the cascade rule in [`README.md`](./README.md) (this folder). Reasoning history lives in [`strategic-inputs-log.md`](./strategic-inputs-log.md); decisions in [`session-decisions.md`](./session-decisions.md).
+> **Standing rule (do not let this go stale):** this doc is updated on **every** strategic reposition, in the same session, and is never orphaned. A reposition also triggers the **Repositioning Ripple Review** in Section 11 (pricing, features, gating, IA, build-next, tests, canon). Wired into [`README.md`](../../README.md), [`AGENTS.md`](../archive/agent-operating-manual.md), [`CLAUDE.md`](../../CLAUDE.md), [`GEMINI.md`](../archive/gemini-brief.md), and the cascade rule in [`README.md`](./README.md) (this folder). Reasoning history lives in [`strategic-inputs-log.md`](./strategic-inputs-log.md); decisions in [`session-decisions.md`](./session-decisions.md).
 >
 > **Documentation bar (standing).** This and every strategy doc is written comprehensive and **thought-process-oriented**, the reasoning and the insights, not just conclusions, so it directly serves founder / YC / accelerator / investor applications and lets any future question be answered by reference without re-deriving. Capture the "why" and the "how we decided," not only the "what."
 
@@ -160,7 +160,7 @@ Whenever the positioning or moat shifts, run this checklist in the same session 
 3. **Feature priority:** re-rank the lanes in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) + [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) through the new lens.
 4. **IA / messaging:** does the hero path and the copy still reflect the lead? (Mark visual work for the design-last pass.)
 5. **What to test:** add/adjust the holistic test (is the moat path the prominent path?).
-6. **Canon cascade:** [`README.md`](../../README.md) (thesis + MOAT), [`AGENTS.md`](../../AGENTS.md) §0, [`session-decisions.md`](./session-decisions.md), [`strategic-inputs-log.md`](./strategic-inputs-log.md), and the role map in [`README.md`](./README.md).
+6. **Canon cascade:** [`README.md`](../../README.md) (thesis + MOAT), [`AGENTS.md`](../archive/agent-operating-manual.md) §0, [`session-decisions.md`](./session-decisions.md), [`strategic-inputs-log.md`](./strategic-inputs-log.md), and the role map in [`README.md`](./README.md).
 
 ---
 

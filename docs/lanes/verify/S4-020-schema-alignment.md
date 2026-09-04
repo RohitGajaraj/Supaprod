@@ -1,5 +1,7 @@
 # S4-019 · Schema Alignment — phantom field accesses removed, mapped to real PostgREST schema
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 on `lane/proof` at `fa5ccb1d2`._
 
 ## The fix

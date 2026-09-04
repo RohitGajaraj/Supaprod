@@ -1,5 +1,7 @@
 # Linear connector setup
 
+> _Created: 2026-07-17 · Last updated: 2026-07-17_
+
 **Status:** Verified working - registered and tested 2026-07-17. Confirmed via a live `connections` table query: a real `connected` row exists (`provider = 'linear'`, `auth_kind = 'token'`, a non-null `external_handle`).
 **Last verified:** 2026-07-17
 

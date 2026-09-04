@@ -1,5 +1,7 @@
 # The demo video — Maya's Monday (read-aloud script)
 
+> _Created: 2026-07-27 · Last updated: 2026-08-11_
+
 > **Created 2026-07-27. Founder rulings: no live build, no full lifecycle, under three minutes, and open on a
 > person rather than a product.** Every frame below was opened on the live site as `harbor@` tonight, so
 > nothing here is written from the database or from hope.

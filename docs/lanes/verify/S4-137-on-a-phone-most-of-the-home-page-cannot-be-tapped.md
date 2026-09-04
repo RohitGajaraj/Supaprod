@@ -1,5 +1,7 @@
 # S4-137 · On a phone, most of the home page's controls are under the tappable floor
 
+> _Created: 2026-08-28 · Last updated: 2026-08-28_
+
 > _S4, 2026-08-28. Measured at **390x844**, a real browser, dead backend, public surfaces. Public
 > pages render fully without a database, so this is what a visitor on a phone actually gets._
 

@@ -1,5 +1,7 @@
 # The Residency — how to submit
 
+> _Created: 2026-07-31 · Last updated: 2026-08-04_
+
 > **Deadline 2026-08-14.** Cohort runs **7 September to 29 November 2026**.
 > Form: `https://apply.livetheresidency.com/apply` — it saves progress and is already picked up under `rohit.gajaraj@gmail.com`.
 

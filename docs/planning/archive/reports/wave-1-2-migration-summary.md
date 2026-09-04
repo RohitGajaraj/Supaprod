@@ -1,5 +1,7 @@
 # Wave 1 & 2: Comprehensive Migration and Audit Summary
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 ## ✓ COMPLETED WORK (Session 3)
 
 ### Batch 2: Type-Class Migration (Nearly Complete)

@@ -1,5 +1,7 @@
 # S4-004 · Evidence audit of e2e/** — the instrument itself, before it is trusted again
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 on `lane/proof` at `60dd95e34`. S4 owns `e2e/**`; this is the audit of
 > my own instrument. A verdict produced through a broken instrument is how false proofs happen, and
 > two of the repo's named failures (the includes-detection spec, the six duplicate tracks) were

@@ -2,9 +2,9 @@
 
 > _Created: 2026-06-11 · Last updated: 2026-06-11_
 
-> How to pick, brief, and trust the agents you (Claude / Codex / Antigravity / Gemini) delegate to. Operating rules: [`AGENTS.md`](../../AGENTS.md). Skills: [`skills.md`](./skills.md).
+> How to pick, brief, and trust the agents you (Claude / Codex / Antigravity / Gemini) delegate to. Operating rules: [`AGENTS.md`](../archive/agent-operating-manual.md). Skills: [`skills.md`](./skills.md).
 >
-> **Note on naming:** this file is `subagents.md`, not `agents.md`, to avoid a case-insensitive collision with the cross-tool standard [`AGENTS.md`](../../AGENTS.md). Two different concepts; two different files.
+> **Note on naming:** this file is `subagents.md`, not `agents.md`, to avoid a case-insensitive collision with the cross-tool standard [`AGENTS.md`](../archive/agent-operating-manual.md). Two different concepts; two different files.
 
 ## Two kinds of "agent" — do not confuse them
 

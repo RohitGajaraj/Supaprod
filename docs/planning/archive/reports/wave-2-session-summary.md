@@ -1,5 +1,7 @@
 # Wave 2 Execution — Session Summary (2026-07-25)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Session Date:** 2026-07-25  
 **Duration:** Single session  
 **Scope:** Wave 2 (Tempo v5 architectural port) — Batches 1–7  

@@ -1,5 +1,7 @@
 # S4-076 · No agent can clear a design gate, and the acceptance forbids the two ways round it
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. The open question from `S4-075`, answered at the source. This changes what S0's
 > ruling has to cover._
 

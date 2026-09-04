@@ -4,7 +4,7 @@
 
 > **What this is.** The full map of every way something talks to Cadence: the public HTTP routes a browser or a script hits, the internal server-function surface the app calls, the agent-to-agent handoff contract the mesh runs on, and the dual-user interfaces (MCP server plus public API) that are still on the roadmap. Every entry is marked **Built**, **Partial**, or **Missing/Planned** so the claim never outruns the wiring.
 >
-> Canon: [`docs/strategy/archive/v7-agentic-product-os.md`](../docs/strategy/archive/v7-agentic-product-os.md) (§8 dual-user, §12 M-D). Rules: [`../AGENTS.md`](../AGENTS.md). Voice: [`../docs/conventions/humanized-output.md`](../docs/conventions/humanized-output.md).
+> Canon: [`docs/strategy/archive/v7-agentic-product-os.md`](../docs/strategy/archive/v7-agentic-product-os.md) (§8 dual-user, §12 M-D). Rules: [`../AGENTS.md`](../docs/archive/agent-operating-manual.md). Voice: [`../docs/conventions/humanized-output.md`](../docs/conventions/humanized-output.md).
 >
 > This file does not duplicate two siblings. The AI chokepoint contract (`callModel` / `callModelStream`, the governance and budget pipeline) lives in [`runtime.md`](./runtime.md). The connector platform (`resolveProviderAuth`, the credential chain, BYO keys) lives in [`integrations.md`](./integrations.md). Where an interface leans on those, this file links rather than restates.
 

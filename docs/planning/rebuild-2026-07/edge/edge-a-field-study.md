@@ -1,5 +1,7 @@
 # EDGE A: THE FIELD STUDY
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > _Rebuild 2026-07. Lane A of three on the absorption question. Written 2026-07-28._
 >
 > **The question.** The founder's principle is that the product absorbs the expertise: a user should

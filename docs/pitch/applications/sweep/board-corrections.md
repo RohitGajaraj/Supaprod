@@ -1,5 +1,7 @@
 # What the deadline rule found on the existing board
 
+> _Created: 2026-08-14 · Last updated: 2026-08-14_
+
 > _Checked 2026-08-14 by opening each programme's own page. This file exists because the founder ruled that **a listed deadline is a rumour until the form contradicts it**, and the first hour of applying that rule turned up five programmes we had written off or mis-scored._
 
 **Read the rule first: [`../README.md`](../README.md), the screening block at the top.** Nothing here is a score or a recommendation. It is only what the pages said, with the wording quoted, so Gate 2 can rank against facts rather than against a two-week-old listing.

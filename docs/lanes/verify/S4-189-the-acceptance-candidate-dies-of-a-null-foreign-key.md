@@ -1,5 +1,7 @@
 # S4-189 · The acceptance candidate is dying of a NULL foreign key, and the seat is right
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 **Measured 2026-09-01, 21:0x UTC. Lane `lane/proof`.**
 
 ## The state

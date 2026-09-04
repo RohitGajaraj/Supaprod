@@ -18,7 +18,7 @@ Any document in this folder that contradicts one of these is wrong, whatever its
 
 **3. The AI-native SDLC playbook is our framework (2026-08-31).** Anthropic published the standard shape of the pipeline we sit on, and the founder ruled we adopt it by default: *"they are the ones leading the industry, so we go with them and push back only where it does not fit."* **The burden of proof is on the refusal, and an unargued departure is drift.** What it does to us — strategically, tactically, and what it costs — is [**ai-native-sdlc-rewiring-2026-08.md**](./ai-native-sdlc-rewiring-2026-08.md); the item-by-item adoption register is [`../../the-first-run/SPEC-AI-NATIVE-SDLC.md`](../../the-first-run/SPEC-AI-NATIVE-SDLC.md). **The finding that matters: in six stages, ten artifacts and eighteen measures, nothing records a prediction before the outcome is known — the vendor published layers 01 and 02 and left 03 empty.**
 
-**4. Six-month-forward (2026-08-01).** Design for where the industry will be six months out, and also close the pain the user carried from the past. Anything one frontier release could absorb is not a moat. Canonical: [`../../AGENTS.md`](../../AGENTS.md).
+**4. Six-month-forward (2026-08-01).** Design for where the industry will be six months out, and also close the pain the user carried from the past. Anything one frontier release could absorb is not a moat. Canonical: [`../../AGENTS.md`](../archive/agent-operating-manual.md).
 
 ---
 
@@ -33,7 +33,7 @@ Any document in this folder that contradicts one of these is wrong, whatever its
 | **Direction, moat, the core-user lens, market** | [**v11 Guiding Star**](./v11-guiding-star.md) | The standing direction canon (2026-06-23). Supersedes v7 to v10. **Three of its four moat asymmetries were falsified 2026-08-10 and are corrected in place.** |
 | **The learning loop, foresight, the memory OS, design capability, journey coverage** | [**v12 Self-Improving OS**](./v12-self-improving-os.md) | The depth layer under v11 (2026-07-02, audit-grounded). v11 still wins direction. |
 | **The moat, competitors, objection answers** | [**moat.md**](./moat.md) | Decision-layer thesis, the integrate/absorb/race/ignore map, the investor Q&A. |
-| **Build, buy, or integrate a capability** | [**build-buy-integrate.md**](./build-buy-integrate.md) | The BBI gate. Operative summary: [`../../AGENTS.md`](../../AGENTS.md) §1.5. |
+| **Build, buy, or integrate a capability** | [**build-buy-integrate.md**](./build-buy-integrate.md) | The BBI gate. Operative summary: [`../../AGENTS.md`](../archive/agent-operating-manual.md) §1.5. |
 | **What to build vs source, per capability cluster** | [**sourcing-map.md**](./sourcing-map.md) | 11 clusters, and the named provider behind each obviated item. |
 | **Forward bets not yet queued** | [**horizon-bets.md**](./horizon-bets.md) | Links [`../features/decision-brain.md`](../features/decision-brain.md) and [`../features/command-canvas.md`](../features/command-canvas.md). |
 | **Whether serving existing products is a repositioning** | [**brownfield-positioning-evaluation.md**](./brownfield-positioning-evaluation.md) | Answer: no. Brownfield is the shipped position (2026-08-07 ruling, tested against code and the live database). Holds the verified connector inventory: which providers are real, which are `stubAdapter`, and which of the three tier gates actually enforces. |

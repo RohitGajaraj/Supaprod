@@ -1,5 +1,7 @@
 # Lane A: The Lexicon and the Rename Ledger
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Rebuild sweep, 2026-07-28. Founder mandate: full rename authority, nothing protected.
 > Scope: the authenticated app. Every ruling here was written against strings read in the
 > repo this session; every quoted string is verbatim from the file and line named beside it.

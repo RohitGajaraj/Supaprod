@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-08-20_
 
-> How autonomous work runs: the two driver layers, parallel sub-agents, multi-product isolation, and the automation engine. The second invariant of the system (the first is the chokepoint — [`runtime.md`](./runtime.md)). Rules: [`AGENTS.md`](../AGENTS.md). Data: [`data.md`](./data.md). Auth/tenancy: [`security.md`](./security.md).
+> How autonomous work runs: the two driver layers, parallel sub-agents, multi-product isolation, and the automation engine. The second invariant of the system (the first is the chokepoint — [`runtime.md`](./runtime.md)). Rules: [`AGENTS.md`](../docs/archive/agent-operating-manual.md). Data: [`data.md`](./data.md). Auth/tenancy: [`security.md`](./security.md).
 
 > **Corrected 2026-08-20 against the code. This file documented one of the two orchestration layers and named five tables that do not exist.**
 >
@@ -173,4 +173,4 @@ Every new opportunity (theme- or signal-promoted) and every freshly generated PR
 - Cross-product/session isolation is never bypassed.
 - Side-effecting nodes honor the mission's approval policy.
 
-Orchestration change → update this file + [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md) (see [`AGENTS.md`](../AGENTS.md), section 5).
+Orchestration change → update this file + [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md) (see [`AGENTS.md`](../docs/archive/agent-operating-manual.md), section 5).

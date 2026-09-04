@@ -1,5 +1,7 @@
 # S4-081 · Nothing has ever cited a decision, and no forecast resolution names who made it
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27, measured live. Three canon numbers I flagged as stale in `S4-040` and nobody had
 > re-measured. One of them nearly reversed a finding of mine, and does not._
 

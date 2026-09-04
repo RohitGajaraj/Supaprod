@@ -1,5 +1,7 @@
 # S0-001 Deployment Checklist
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > **SUPERSEDED 2026-08-26 by F-76 — do not deploy from this page.** What shipped could never pass
 > five of its seven stations: it asked for `decisions.forecast_text`, `prds.brief`, and the artifact
 > kinds `design_memory`, `deployment` and `verdict`, none of which exist. The 17 tests below imported

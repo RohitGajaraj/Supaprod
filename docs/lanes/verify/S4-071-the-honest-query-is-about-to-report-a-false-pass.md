@@ -1,5 +1,7 @@
 # S4-071 · The honest query is about to report a false pass, tonight
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27 ~02:10 UTC, measured against the live database. **This is time-critical: the track
 > that triggers it is one station away.**_
 

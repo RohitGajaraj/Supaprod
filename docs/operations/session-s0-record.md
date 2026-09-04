@@ -1,5 +1,7 @@
 # SESSION S0 — 2026-08-26, PHASE 1–4 Foundation
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > Claude Code, running under founder's 2026-08-26 rebriefing (PHASE 1–4 framework)
 
 ---

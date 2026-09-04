@@ -1,5 +1,7 @@
 # S4-104 · 141 of 656 server functions cannot be reached by anything a person opens
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. S3 suggested the method after tracing four dead Settings toggles by hand. Run it
 > with `bun run e2e/helpers/unreachable-server-functions.mjs`._
 

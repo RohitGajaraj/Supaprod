@@ -1,5 +1,7 @@
 # S4-101 · `workspaces.is_sample = false` is not enough, and only seven tables can do better
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. The fixture trap one level deeper than the one I fell into three times tonight.
 > Found while verifying S0's F-124b, which was itself a correction of the same kind._
 

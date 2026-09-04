@@ -1,5 +1,7 @@
 # S4-002 · The sixty seconds, with fresh eyes — BLOCKED at first attempt
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Recorded 2026-08-26 by S4. Status: **NOT DONE — UNREPRODUCIBLE this session**, and the blocker
 > is environmental, not judgemental._
 

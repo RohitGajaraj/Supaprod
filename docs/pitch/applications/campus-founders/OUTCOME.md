@@ -1,5 +1,7 @@
 # Campus Founders CF Accelerator Batch #9 — outcome, and the first rejection with a KNOWN structural cause
 
+> _Created: 2026-08-24 · Last updated: 2026-08-24_
+
 > _Filed 2026-08-16. **Rejected 2026-08-24**, before the pitch stage. Recorded same day._
 
 **Status: REJECTED.** Notion card: [🇩🇪 Campus Founders — CF Accelerator Batch #9](https://app.notion.com/p/3be3f54c86c28162be83f1e51834557e).

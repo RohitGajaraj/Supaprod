@@ -1,4 +1,7 @@
 # Design Audit: Design Station
+
+> _Created: 2026-08-01 · Last updated: 2026-08-01_
+
 ## Wireframes, Prototypes & UX Flow — From Power-User & Enterprise Lens
 
 > **Context**: Design is where specs (from Plan) become wireframes, prototypes, and component specs ready for Build handoff. The Designer's job is ONE: **turn a spec with acceptance criteria into achievable, accessible designs that Build can implement**.

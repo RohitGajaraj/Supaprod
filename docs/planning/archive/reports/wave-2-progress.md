@@ -1,5 +1,7 @@
 # Wave 2 Progress Report — 2026-07-25
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Session Focus:** Tempo v5 architectural port (Wave 2) — moving from legacy hand-rolled styles to design-system-aligned components
 
 **Status:** Batch 1 COMPLETE, Batches 2-7 SCOPED & READY

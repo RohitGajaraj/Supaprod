@@ -1,5 +1,7 @@
 # FINAL AGENT PRESENCE - The Crew Doctrine
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > The deciding designer's ruling, 2026-07-28. Merges `agents-a-crew-identity.md` (identity),
 > `agents-b-work-in-motion.md` (choreography) and `agents-c-human-agent-contract.md` (contract).
 > Those three stay as the reasoning record. **This one is the build contract.**

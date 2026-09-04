@@ -1,5 +1,7 @@
 # Front-End Reimagining (2026-07-19) — index
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 The active rebuild charter and its research base. Working branch: `sandbox/mission-control-v2`.
 
 - [problem-statement.md](./problem-statement.md) — THE charter (founder-approved v3). Read this first.

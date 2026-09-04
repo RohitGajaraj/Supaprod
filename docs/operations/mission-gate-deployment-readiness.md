@@ -1,5 +1,7 @@
 # Mission Gate Deployment Readiness
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 **Status:** Code Ready · Deployment Blocked · Founder Action Required
 
 **Date:** 2026-08-26 ~00:14 IST

@@ -1,5 +1,7 @@
 # S4-167 — the naming law has a map, an owner and zero rulings, and four of seven rail items are words it replaces
 
+> _Created: 2026-08-31 · Last updated: 2026-08-31_
+
 > _S4 · 2026-08-31 ~11:1x UTC · measured on the RENDERED signed-in shell via
 > `e2e/check-motion.sh --signed-in /inbox /learn /today`, dead backend, dummy env pointing at a dead
 > port. **Dev server taken and released: `:8080` clear, dummy `.env` removed, confirmed by the

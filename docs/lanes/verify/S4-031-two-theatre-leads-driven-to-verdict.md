@@ -1,5 +1,7 @@
 # S4-031 · Two of the theatre leads, driven to a verdict by hand
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _S4, 2026-08-26, on `lane/proof`, merged tree. `S4-028` listed thirteen findings as
 > **audit-reported, not personally driven**, and said that label was the point. This closes the two
 > highest-severity of them with my own hands on every link. Static; no database needed._

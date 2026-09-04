@@ -1,5 +1,7 @@
 # Getting Supaprod demo-ready: GitHub, accounts, and what an accelerator sees
 
+> _Created: 2026-08-25 · Last updated: 2026-08-25_
+
 > _Written 2026-08-25 by MAIN LANE, from live measurement. Every number here has
 > its query beside it._
 

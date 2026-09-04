@@ -1,5 +1,7 @@
 # IA Direction B: TWO HALVES (Work and Mind)
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > Author: principal product architect · 2026-07-28 · Rebuild 2026-07, direction B
 > Status: proposal, complete. Grounded against live code this session (route files, `nav-model.ts`, `legacy-redirects.ts`, `surface-registry.ts`, `_authenticated.tsx`, `MissionShellView.tsx`, `RoomChrome.tsx`, `journeys.ts`, `journey-wiring.ts`, `loop-state.functions.ts`, `approvals-queue.functions.ts`, `knowledge-graph-view.ts`, `lineage.functions.ts`, `settings-sections.ts`, `engine-room-glance.ts`, `agent-vocabulary.ts`).
 

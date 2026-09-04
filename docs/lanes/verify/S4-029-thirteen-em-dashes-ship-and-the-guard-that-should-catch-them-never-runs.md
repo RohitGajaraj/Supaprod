@@ -1,5 +1,7 @@
 # S4-029 · Thirteen em dashes ship to the browser, and the guard built to catch them reports clean
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _S4, 2026-08-26, on `lane/proof`. Founder's instruction, mid-session: no AI fingerprints, and
 > specifically no em or en dashes, anywhere user facing. He has seen some in the running app._
 >

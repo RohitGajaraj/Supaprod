@@ -1,5 +1,7 @@
 # Closing note · S4 · THE PROVING GROUND · 2026-09-01
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 **Branch `lane/proof` · 0 behind `origin/main` · 14 ahead · no migrations (this
 lane owns `e2e/**` and `docs/lanes/verify/**` and writes no product code and no
 schema).**

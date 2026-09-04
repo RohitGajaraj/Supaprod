@@ -1,5 +1,7 @@
 # S4-119 · The public evidence page has no public evidence, and the swallow beneath it is undetectable
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27, measured live. `/proof` is the public Trust Ledger — the page whose job is to show
 > that the product does what it claims._
 

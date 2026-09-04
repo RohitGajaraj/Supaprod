@@ -1,5 +1,7 @@
 # S4-151 · The brand link is fixed, and my instrument was wrong three times getting there
 
+> _Created: 2026-08-28 · Last updated: 2026-08-28_
+
 > _S4, 2026-08-28. Measured at 390x844 against the running product, dead backend, signed in._
 
 ## The fix

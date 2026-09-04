@@ -1,5 +1,7 @@
 # S4-051 · The dead backend test, and the rule for a negative claim
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Two verification rules formalised as procedures rather than principles, because a
 > rule nobody can run is a slogan. Both came out of tonight's exchanges; neither is mine alone._
 

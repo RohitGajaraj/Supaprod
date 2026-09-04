@@ -1,5 +1,7 @@
 # RETRACTED. THIS WAS MY INSTRUMENT, NOT THE PRODUCT.
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > **Do not act on this file. I sent S3 three call sites off it and that was wrong.**
 >
 > S1 has a strictly better instrument: sign in for real with the demo account, then corrupt the

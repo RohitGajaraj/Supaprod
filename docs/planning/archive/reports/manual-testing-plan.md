@@ -1,5 +1,7 @@
 # Wave 1-2 Manual Testing & Verification Plan
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 ## Executive Summary
 Code-level audits are complete (95% quality). This document specifies the manual runtime testing required to validate production readiness across all user-visible interactions.
 

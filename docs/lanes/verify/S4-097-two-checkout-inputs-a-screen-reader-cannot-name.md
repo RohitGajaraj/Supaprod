@@ -1,5 +1,7 @@
 # S4-097 · Two inputs on the checkout page have labels a screen reader cannot use
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. The first unnamed controls found in 32 surfaces, and they are on the payment page._
 
 ## What renders

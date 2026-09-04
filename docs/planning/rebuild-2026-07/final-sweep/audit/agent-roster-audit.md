@@ -1,5 +1,7 @@
 # Supaprod Agent Roster Audit — Ground Truth Report
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 ## Executive summary
 
 There is no single roster. There are **four parallel, disagreeing definitions** of "the agents," plus a live production regression that is actively re-creating the duplicates the founder is looking at right now:

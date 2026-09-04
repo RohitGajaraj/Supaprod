@@ -1,5 +1,7 @@
 # Record these two now. Demo last.
 
+> _Created: 2026-07-31 · Last updated: 2026-08-04_
+
 > Betaworks needs three videos, **2:00 maximum each**. Their form says "PLEASE stick to the time limits!"
 > Videos 1 and 3 are talking-head and are below. Timed at **129 wpm**, which is your real recorded rate: the v8.3 founder video is 372 words and you shot it at 2:53. The 115 wpm in the script doc is your cold-read rate, not your on-camera one.
 > Video 2 is the screen demo and is a separate job: [`../../yc/video-scripts.md`](../../yc/video-scripts.md).

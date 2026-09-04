@@ -1,5 +1,7 @@
 # S4-146 · My own baseline comparison was computed and never printed
 
+> _Created: 2026-08-28 · Last updated: 2026-08-28_
+
 > _S4, 2026-08-28. Found while verifying a new guard end to end, which is the only reason it was found
 > at all._
 

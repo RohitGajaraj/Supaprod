@@ -1,5 +1,7 @@
 # S4-028 · Standing question 3 — the theatre audit, and what it found in the shop window
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _S4, 2026-08-26, on `lane/proof`, merged tree. Standing question 3: **is anything on screen
 > theatre — a state not derived from a row that exists?** Static; no database and no browser were
 > needed for anything below, and every claim is a file and a line you can open._

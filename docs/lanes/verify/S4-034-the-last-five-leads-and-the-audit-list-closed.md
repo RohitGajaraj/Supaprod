@@ -1,5 +1,7 @@
 # S4-034 · The last five leads, and the `S4-028` list is closed
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _S4, 2026-08-26, on `lane/proof`, merged tree. `S4-028` published thirteen findings labelled
 > **audit-reported, not personally driven**. This drives the final five. **Every one of the thirteen
 > has now been read by me at the source, and three were corrected downward on the way.**_

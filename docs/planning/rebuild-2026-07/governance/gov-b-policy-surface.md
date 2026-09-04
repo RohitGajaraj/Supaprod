@@ -1,5 +1,7 @@
 # gov-b: The boundary. Designing the surface where the human's job actually lives.
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > _Rebuild 2026-07, governance lane B. Written 2026-07-29 against the binding principle in_
 > _[`../GOVERNANCE-PRINCIPLE.md`](../GOVERNANCE-PRINCIPLE.md)._
 >

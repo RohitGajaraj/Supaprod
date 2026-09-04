@@ -1,5 +1,7 @@
 # The answer bank — every accelerator application, one source
 
+> _Created: 2026-07-31 · Last updated: 2026-08-19_
+
 > _Created 2026-07-31._
 > **Last verified against: `docs/pitch/yc/APPLICATION-FINAL.md` (2026-08-19). The YC Fall 2026 update pass.**
 > _`bun run pitch:check` fails if a newer filing exists than that stamp. Bump it only after back-porting._

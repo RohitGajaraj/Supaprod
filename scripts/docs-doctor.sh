@@ -16,6 +16,16 @@ cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)" || exit 0
 FAIL=0
 WARN=0
 
+# THE APPEND-FORWARD LOGS ARE ONE LIST, shared by every check that has to tell a
+# LIVE CLAIM from a RECORD OF ONE (moved up from check [9]'s own section, 2026-09-04,
+# P-97: check [4] needed it too -- see that check's own comment for why). These
+# five are strictly append-only with one writer each, and their job is to record
+# what was said at the time; quoting a retired phrase (a board that has since
+# moved, wording that has since been banned) IS the entry, not a live claim
+# repeating it. See check [9]'s own header, one screen down, for the fuller
+# argument and the incident that grew this list.
+RECORD_FILES='session-decisions\|strategic-inputs-log\|session-handoff\|build-log\|ledger/kiro-log\|ledger/claude-log'
+
 # Root is reserved for SYSTEM-READ entry points (tools auto-load them from here, so they MUST stay at root).
 # Root holds exactly four docs (2026-08-03 cleanup). Each answers one question:
 # README = what is it and where is everything · AGENTS = how to build it ·
@@ -62,7 +72,15 @@ DUPES="$(find . \( -path ./node_modules -o -path ./.git -o -path ./dist -o -path
 if [ -n "$DUPES" ]; then echo "$DUPES" | sed 's/^/  FAIL dup artifact: /'; FAIL=1; else echo "  none"; fi
 
 echo "-- [4] duplicated status ownership (status must live only in the SSOT / dashboard) --"
-BOARDS="$(grep -rIl --include='*.md' --exclude-dir=node_modules --exclude-dir=.git 'Live status board' . 2>/dev/null)"
+# `/archive/` and the append-forward RECORD_FILES are excluded, the same
+# reasoning checks [9] and [11] already apply two screens down (P-97,
+# A-QUEUE.md: measured before excluding anything -- of the 9 files this
+# check found before the exclusion, 3 were under archive/ and one was
+# session-decisions.md, quoting a board that moved as the historical record
+# of when it moved). Frozen history mentioning a phrase is not a second
+# LIVE board claiming the title; only a currently-read doc doing that is
+# the defect this check exists to catch.
+BOARDS="$(grep -rIl --include='*.md' --exclude-dir=node_modules --exclude-dir=.git 'Live status board' . 2>/dev/null | grep -v '/archive/' | grep -vE "$RECORD_FILES")"
 BOARD_COUNT="$(printf '%s' "$BOARDS" | grep -c . )"
 if [ "$BOARD_COUNT" -gt 1 ]; then
   echo "  WARN the phrase 'Live status board' appears in $BOARD_COUNT files (check none is a second live board; status belongs in the SSOT / feature-dashboard):"
@@ -84,7 +102,18 @@ while IFS= read -r mdfile; do
     # link to a real file; testing it undecoded reported 8 healthy links as broken,
     # which is how a warn list gets ignored. Decode before the existence test.
     dec="$(printf '%s' "$link" | sed 's/%20/ /g')"
-    if [ ! -f "$d/$dec" ]; then BROKEN_LIST="${BROKEN_LIST}  BROKEN ${mdfile} -> ${link}"$'\n'; fi
+    if [ ! -f "$d/$dec" ]; then
+      # A GITIGNORED TARGET IS NOT A BROKEN LINK (P-97, A-QUEUE.md), the same
+      # reasoning check [11] already applies to a gitignored SOURCE file two
+      # sections down: `videos/`, `docs/screenshots/` and a handful of other
+      # directories hold real, referenced assets that are deliberately kept
+      # out of git (large media, per-machine exports). A worktree that has
+      # not unpacked them fails this test on a link that is entirely correct
+      # on the founder's own machine, where the file is real. `git
+      # check-ignore` asks git rather than hand-maintaining a second
+      # exclude list next to `.gitignore`'s own 300 lines.
+      git check-ignore -q "$d/$dec" 2>/dev/null || BROKEN_LIST="${BROKEN_LIST}  BROKEN ${mdfile} -> ${link}"$'\n'
+    fi
   done <<< "$links"
   # Scope: docs WE own. Vendored tool libraries (.agents, .claude, .kiro, .gemini,
   # .conductor) ship their own broken cross-references and we do not maintain them;
@@ -208,8 +237,8 @@ else echo "  ok"; fi
 # is the merge of the two, kept as one shared list rather than two copies of it,
 # for the reason the repo has already paid for seven times over. Both versions had
 # identical behaviour; the only difference is how many places the next name has to
-# be added in.
-RECORD_FILES='session-decisions\|strategic-inputs-log\|session-handoff\|build-log\|ledger/kiro-log\|ledger/claude-log'
+# be added in. `RECORD_FILES` itself now lives at the top of the script (P-97) --
+# check [4] needed the same list before this comment's own line ever runs.
 echo "-- [9] retired wording still present in LIVE docs --"
 STALE_SCOPE="--include=*.md docs architecture"
 stale_hits() {

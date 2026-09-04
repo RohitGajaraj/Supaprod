@@ -1,5 +1,7 @@
 # Teardown: Lovable and v0 by Vercel (state as of July 2026)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Research stream for the Supaprod front-end reimagining. All external claims verified via live web sources 2026-07-19 (listed at the end). Focus areas per assignment: prompt-to-artifact flow, chat beside live preview, credit/cost disclosure (the founder-mandated Lovable pattern, documented precisely), project knowledge / custom instructions, first-run experience and example prompts, presentation of generated design work.
 
 Both products solve the exact comprehension problem the charter names: a first-time user lands, types one sentence, and within a minute sees a real artifact being built in front of them. Neither needs a tour. The anatomy teaches.

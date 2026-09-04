@@ -1,5 +1,7 @@
 # Shell question, position B: the autopsy, and the case against the conversational shell
 
+> _Created: 2026-07-29 · Last updated: 2026-08-03_
+
 > Written 2026-07-28. Assigned position: argue against collapsing the authenticated app into a
 > single conversational surface with a preview pane. Every claim below was read out of the archived
 > tag, the live `main` tree, or the rebuild doctrine this session, and is cited by file and line.

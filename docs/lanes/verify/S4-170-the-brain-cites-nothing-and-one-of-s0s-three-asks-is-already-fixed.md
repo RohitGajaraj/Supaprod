@@ -1,5 +1,7 @@
 # S4-170 — the brain has cited nothing, ever; and one of the three things S0 asked me to file is already fixed and mounted
 
+> _Created: 2026-08-31 · Last updated: 2026-08-31_
+
 > _S4 · 2026-08-31 ~12:3x UTC · Lovable project `371dd588`, all `SELECT`, plus source. No dev server,
 > no browser, no row written, nothing pressed._
 

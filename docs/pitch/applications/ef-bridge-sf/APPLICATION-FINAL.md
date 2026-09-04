@@ -1,5 +1,7 @@
 # EF The Bridge Residency, San Francisco, Fall 26 — the complete fill sheet
 
+> _Created: 2026-08-17 · Last updated: 2026-08-18_
+
 > _Created 2026-08-17. **This is the paste source.** Every question below was read off the live form at <https://apply.joinef.com/app/san-francisco-thebridge-fall/your-achievements/> on 2026-08-17, inside the founder's own session, so these are the real questions._
 >
 > **Deadline 30 August 2026 (final). Residency starts October 2026, 8 weeks, Bay Area.**
@@ -23,7 +25,7 @@
 >
 > > **Supersede claims, never whole files.** A file is retired for the specific sentences that are wrong. Everything else in it is still an asset, and marking the container toxic makes the assets invisible to the next session — which then rewrites from scratch and loses them silently, with no error and nothing to grep for.
 >
-> **What actually governs `application.md` now:** four banned items, named individually. *"Supaprod's roadmap runs inside Supaprod"* (YC rule 6) · the falsification story (banned 2026-08-17) · *"receipt"* as a noun (banned vocabulary, [`../../../CLAUDE.md`](../../../CLAUDE.md)) · *"eight weeks"* and *"4,297 commits"* and *"401 features specced, 362 shipped"* (retired numbers and a volume claim dropped by founder ruling 2026-08-11). **Everything else in that file is live and usable.**
+> **What actually governs `application.md` now:** four banned items, named individually. *"Supaprod's roadmap runs inside Supaprod"* (YC rule 6) · the falsification story (banned 2026-08-17) · *"receipt"* as a noun (banned vocabulary, [`../../../../CLAUDE.md`](../../../../CLAUDE.md)) · *"eight weeks"* and *"4,297 commits"* and *"401 features specced, 362 shipped"* (retired numbers and a volume claim dropped by founder ruling 2026-08-11). **Everything else in that file is live and usable.**
 >
 > **The founder submits. Never an agent.** The form is behind reCAPTCHA in any case.
 >

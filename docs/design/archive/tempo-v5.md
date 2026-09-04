@@ -1,5 +1,7 @@
 # DESIGN-TEMPO.md — the v5 "Tempo" design contract
 
+> _Created: 2026-07-11 · Last updated: 2026-08-03_
+
 > _Adopted 2026-07-10 (founder ruling). **Tempo is THE standing design system for every
 > Supaprod surface — the authenticated app AND the public landing/marketing pages.** It
 > supersedes Loom v4 (`docs/design/archive/loom-v4.md`), Obsidian v3 (`docs/design/archive/obsidian-v3.md`), and the Ember

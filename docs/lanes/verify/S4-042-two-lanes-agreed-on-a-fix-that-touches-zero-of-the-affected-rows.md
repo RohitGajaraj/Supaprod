@@ -1,5 +1,7 @@
 # S4-042 · Two lanes agreed on a fix, and it touches zero of the affected rows
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-26, measured against the live database (read-only) plus the code. This is the verdict
 > S2 asked for when they said "if that changes your verdict on C2-012, change it; I would rather the
 > record be right than flattering."_

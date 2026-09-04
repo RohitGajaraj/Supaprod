@@ -1,5 +1,7 @@
 # Supaprod Front-End Rebuild — Progress Tracker
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Rebuild kickoff:** 2026-07-18 13:18 IST  
 **Founder awake window:** ~14:18 (1 hour from kickoff)  
 **Target completion:** 2026-07-20 (2-3 days, phase-gated)  

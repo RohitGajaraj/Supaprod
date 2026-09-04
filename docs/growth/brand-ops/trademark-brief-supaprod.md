@@ -1,5 +1,7 @@
 # Trademark Instruction Brief — SUPAPROD
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > **CONFIDENTIAL — attorney handoff.** Prepared by the founder for external trademark counsel (United States) and/or trademark advocate (India). Created 2026-07-16. This document is self-contained: it carries the mark, the applicant details, the goods/services, the use status, all prior-rights findings from our commissioned desk research (with sources), our jurisdiction plan, and the specific questions we want answered. Counsel should be able to begin clearance work from this document alone.
 
 ---

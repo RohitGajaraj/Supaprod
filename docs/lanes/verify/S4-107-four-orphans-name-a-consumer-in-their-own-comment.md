@@ -1,5 +1,7 @@
 # S4-107 · Four orphans name a consumer in their own comment, and one is a duplicated write path
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. A ranking on top of `S4-104`, suggested by the shape of S3's `getWorkspacePauseState`._
 
 ## The filter

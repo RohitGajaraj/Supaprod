@@ -18,7 +18,7 @@ bun test              # 0 failures
 bun run build         # succeeds
 ```
 
-Current scale: **402 test files**, and the suite runs clean. Canonical rule: [`../../AGENTS.md`](../../../AGENTS.md) §4.
+Current scale: **402 test files**, and the suite runs clean. Canonical rule: [`../../AGENTS.md`](../../archive/agent-operating-manual.md) §4.
 
 ## Three things this repo learned the hard way
 

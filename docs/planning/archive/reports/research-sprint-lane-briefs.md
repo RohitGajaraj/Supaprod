@@ -1,5 +1,7 @@
 # The lane briefs — four parallel sessions (G17 sprint + G18 research merge)
 
+> _Created: 2026-08-04 · Last updated: 2026-08-04_
+
 > _v2, 2026-07-10 late: unified four-lane protocol per the founder's directive (2 Fable + 2 Sonnet — the sprint's bottleneck is judgment, not typing). **Copy a fenced block below into a fresh Claude Code session verbatim.** Authority: the founder's full-tweak-authority grant — [`../strategy/session-decisions.md`](../../../strategy/session-decisions.md) 2026-07-10._
 
 **Shared protocol (all four lanes):** `git pull origin main` first · own worktree (`git worktree add ../cadence-lane-<X> -b parallel/lane-<X>` or reuse a cadence-lane-N checkout) · claim before building (flip the dashboard row to `🔨 In Dev (lane<X>)` + `bash scripts/lane.sh claim <ID> lane<X> "<globs>"`, globs disjoint) · AGENTS.md §3 gates (tsc/build/tests) · commit with a WHY · `git push origin parallel/lane-<X>:main` · flip the row ✅ + one-line note · next row. NEVER pick Gated/FOUNDER-CALL rows. The Love Gate governs everything user-facing: enterprise-credible AND consumer-grade, verified on a fresh production account.

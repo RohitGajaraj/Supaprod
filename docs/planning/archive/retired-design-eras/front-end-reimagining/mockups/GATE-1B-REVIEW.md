@@ -1,5 +1,7 @@
 # Gate 1b: the second decision sheet
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Round 2, 2026-07-19 late. Answers to the founder's red-lines (Addendum 1.1). Mark the boxes in this file or say the words; either is a ruling. Exhibits: [index.html](./index.html), Round 2 section. These color calls supersede screen 08's color section.
 
 ## 1. Color, from [color-v2-board.html](./color-v2-board.html)

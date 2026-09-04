@@ -1,5 +1,7 @@
 # S4-068 · What all 95 URLs actually do, measured rather than read off the file tree
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. Every routable path opened signed in against a database that does not exist.
 > `bun run e2e/helpers/surface-census.mjs`, 95 paths, one pass._
 

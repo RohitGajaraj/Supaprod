@@ -1,5 +1,7 @@
 # Teardown: Linear and Raycast (mid-2026 state)
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Research stream for the Supaprod front-end reimagining. Written 2026-07-19 against live sources (Linear changelog through 2026-07-02, Raycast v2 beta). Focus: calm enterprise craft, density done right, command surfaces, keyboard-first patterns, empty states and onboarding, delight inside a professional tool, notification/inbox models, and what earns the "premium" feel.
 
 Sources verified via web: [Linear changelog](https://linear.app/changelog), [Linear 2026 UI refresh](https://linear.app/changelog/2026-03-12-ui-refresh), [Linear Agent](https://linear.app/changelog/2026-03-24-introducing-linear-agent), [Coding sessions](https://linear.app/changelog/2026-06-11-coding-sessions), [Triage docs](https://linear.app/docs/triage), [Inbox docs](https://linear.app/docs/inbox), [Raycast v2](https://www.raycast.com/new), [Raycast Action Panel manual](https://manual.raycast.com/action-panel), [Aliases and hotkeys](https://manual.raycast.com/command-aliases-and-hotkeys), [Raycast AI](https://www.raycast.com/core-features/ai), [Unsung on the confetti cannon](https://unsung.aresluna.org/raycasts-confetti-cannon/).

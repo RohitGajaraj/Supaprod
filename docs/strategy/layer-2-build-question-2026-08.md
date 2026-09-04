@@ -1,5 +1,7 @@
 # Should Supaprod build the thing too? — the layer-2 question
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Created 2026-08-26 by MAIN, from the founder's question the same day: "why cannot our platform be
 > another Lovable, another Replit? Today they let you build anything and manage it. We can also be
 > that, and on top of that tell you what to build. Lovable and Replit are layer 2. Before that we have

@@ -1,5 +1,7 @@
 # Goal: Design and Execute the Complete GTM, Launch, Growth & Early Traction Strategy
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 We are a pre-seed startup preparing to launch our first product. The product is approaching launch readiness, and the objective is not simply to launch successfully. The objective is to maximize learning velocity, validate the market, acquire early users, convert them into paying customers, understand what customers truly value, create strong market awareness, generate sustainable momentum, and build compelling evidence of product-market pull.
 
 Act as if you are simultaneously an exceptional startup founder, Head of Growth, Principal Product Marketer, Growth Hacker, Community Builder, Product-Led Growth expert, YC advisor, and early-stage VC. Take complete ownership of the launch strategy from today until we have meaningful customer traction and a repeatable growth engine.

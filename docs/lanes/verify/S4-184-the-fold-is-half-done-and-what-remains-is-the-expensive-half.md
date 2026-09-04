@@ -1,5 +1,7 @@
 # S4-184 — the fold is 49 of 85 done, and what remains is the expensive half
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 > _S4 · 2026-09-01 ~04:2x IST · route files, `SURFACE-MAP.md` dispositions and line counts. No dev
 > server, no row written, nothing pressed. **A platform-level read at the founder's steer, from a
 > user's view rather than a defect's.**_

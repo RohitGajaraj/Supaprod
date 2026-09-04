@@ -1,5 +1,7 @@
 # S4-172 — the live acceptance candidate died at Decide, on a brief that calls a tool the tool's schema rejects
 
+> _Created: 2026-08-31 · Last updated: 2026-08-31_
+
 > _S4 · 2026-08-31 ~14:1x UTC · Lovable project `371dd588`, all `SELECT`, plus source. No dev server,
 > no browser, no row written, nothing pressed, nothing answered._
 

@@ -1,5 +1,7 @@
 # S4-009 · lane/run's RUN-09/10/11 — code real, log attribution crossed
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 against `origin/lane/run` at `1b2f8cf8e`. None of these units is
 > merged to `main` yet — but main already carries their LOG TEXT (via the "S1 log recorded"
 > commits), so this note exists to stop anyone reading main's log as shipped-on-main._

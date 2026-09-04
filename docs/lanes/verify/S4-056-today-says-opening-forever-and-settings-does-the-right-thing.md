@@ -1,5 +1,7 @@
 # RETRACTED IN FULL, 2026-08-27. THERE IS NO DEFECT HERE.
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > **`/runs` is not broken, `/today` is not broken, and nothing in this file should reach S2.**
 > The whole finding was an artifact of my own measuring instrument. Measured with a browser
 > warm-up instead of `curl`, signed out, backend dead:

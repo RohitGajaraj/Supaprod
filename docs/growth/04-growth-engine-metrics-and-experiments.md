@@ -1,5 +1,7 @@
 # 04 — Growth engine, metrics, and the experiment system
 
+> _Created: 2026-08-03 · Last updated: 2026-08-11_
+
 > _Part of the [GTM Launch Operating Manual](./README.md). Created 2026-07-12. Owner: founder + GTM lane (Lane C)._
 > _Binding anchors: [v13 Proof Campaign](../strategy/archive/v13-proof-campaign.md) (gates G-SPRINT → G-BETA → G-LAUNCH → G-REV; north star = weekly closed loops per workspace), [pricing architecture](../strategy/pricing/pricing-architecture.md) (credits-not-seats, free wedge), claim discipline PROVEN / WIRING / ROADMAP. Nothing here publishes without founder approval (standing rule, plan §4)._
 

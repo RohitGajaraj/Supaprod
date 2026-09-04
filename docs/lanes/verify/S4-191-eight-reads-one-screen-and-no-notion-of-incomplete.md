@@ -1,5 +1,7 @@
 # S4-191 · Eight reads, one screen, and no notion of "incomplete"
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 **2026-09-01. Lane `lane/proof`. Observed live by S3, diagnosed here from code.**
 
 ## What S3 saw, unprompted, on the first screen after sign-in

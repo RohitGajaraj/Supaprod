@@ -1,4 +1,7 @@
 # Security Audit Remediation Report
+
+> _Created: 2026-08-04 · Last updated: 2026-08-04_
+
 **Date:** 2026-07-18  
 **Audit Level:** Comprehensive static + dependency analysis  
 **Status:** 3 of 4 recommendations implemented ✅

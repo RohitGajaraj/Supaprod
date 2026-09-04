@@ -1,6 +1,6 @@
 # Build vs Buy vs Integrate (BBI) - the decision canon
 
-> _Created: 2026-06-20._ The standing decision framework for whether any Supaprod capability is **BUILT** (our moat), **BOUGHT** (a commodity API), or **INTEGRATED** (a provider wrapped behind our own swappable abstraction), plus the worked build-vs-buy decision for the memory / Decision-Brain stack. Founder-directed 2026-06-20: surface this question at a higher level on every new build. Canon it touches: [`moat.md`](./moat.md), [`../features/decision-brain.md`](../features/decision-brain.md), the model-agnostic/BYOK mandate in [`founding-constitution.md`](./founding-constitution.md), and the operating rule in [`../../AGENTS.md`](../../AGENTS.md).
+> _Created: 2026-06-20._ The standing decision framework for whether any Supaprod capability is **BUILT** (our moat), **BOUGHT** (a commodity API), or **INTEGRATED** (a provider wrapped behind our own swappable abstraction), plus the worked build-vs-buy decision for the memory / Decision-Brain stack. Founder-directed 2026-06-20: surface this question at a higher level on every new build. Canon it touches: [`moat.md`](./moat.md), [`../features/decision-brain.md`](../features/decision-brain.md), the model-agnostic/BYOK mandate in [`founding-constitution.md`](./founding-constitution.md), and the operating rule in [`../../AGENTS.md`](../archive/agent-operating-manual.md).
 
 ---
 
@@ -84,7 +84,7 @@ interface MemoryProvider {
 
 ## The BBI Gate (the standing rule - run before building ANY capability from core)
 
-> Operative copy lives in [`../../AGENTS.md`](../../AGENTS.md) (the manual agents follow) and is registered as a founder ruling in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §1. Carry a greppable `BBI:` stamp on the deciding doc/PR.
+> Operative copy lives in [`../../AGENTS.md`](../archive/agent-operating-manual.md) (the manual agents follow) and is registered as a founder ruling in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §1. Carry a greppable `BBI:` stamp on the deciding doc/PR.
 
 **Run the 7 questions:**
 

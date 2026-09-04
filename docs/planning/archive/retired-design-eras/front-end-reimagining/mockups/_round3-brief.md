@@ -1,5 +1,7 @@
 # Round 3 authoring brief — the shared law for screens 1b, 3b, 10–19
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Written 2026-07-23 (Fable session, founder-approved plan). Every Round-3 mockup is authored against THIS brief plus its per-file spec. Where this brief and an older mockup disagree, this brief wins (it encodes the founder rulings the old files predate).
 
 ## Read order for an authoring agent

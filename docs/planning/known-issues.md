@@ -8,7 +8,7 @@
 >
 > **Update rule.** Add a row the moment an issue is confirmed; flip status in the same commit that resolves it. An issue is not "known" until it is in this table. Standing design gaps (not bugs) stay in [`cross-cutting-gaps.md`](./cross-cutting-gaps.md).
 >
-> **Related:** [`archive/feature-backlog.md`](archive/feature-backlog.md) (Live status board · Blocked/stuck), [`cross-cutting-gaps.md`](./cross-cutting-gaps.md) (gap register), [`archive/foundation-audit.md`](./archive/foundation-audit.md) (point-in-time audit), [`../operations/fnd-runtime-restart-playbook.md`](../operations/fnd-runtime-restart-playbook.md), [`archive/build-log.md`](./archive/build-log.md) §4.
+> **Related:** [`archive/feature-backlog.md`](archive/feature-backlog.md) (the retired status board · Blocked/stuck), [`cross-cutting-gaps.md`](./cross-cutting-gaps.md) (gap register), [`archive/foundation-audit.md`](./archive/foundation-audit.md) (point-in-time audit), [`../operations/fnd-runtime-restart-playbook.md`](../operations/fnd-runtime-restart-playbook.md), [`archive/build-log.md`](./archive/build-log.md) §4.
 
 ## Open
 
@@ -62,7 +62,7 @@
 | ID | Issue | Resolution |
 | --- | --- | --- |
 | KI-04 | `docs/planning/archive/build-log.md` §6 heading was corrupted — spliced mid-line into a legacy-log bullet at ~line 396, clobbering that bullet's tail. | 2026-06-11 — heading restored to its own line; lost tail noted inline (recoverable from git history). |
-| KI-05 | 18 redirect stubs (root + `docs/`) pointed into the retired `project-Cadence-v3` repo via absolute `file://` links. | 2026-06-11 — all retargeted to live in-repo relative paths; anti-rot rule added to [`../../AGENTS.md`](../../AGENTS.md) §7. |
+| KI-05 | 18 redirect stubs (root + `docs/`) pointed into the retired `project-Cadence-v3` repo via absolute `file://` links. | 2026-06-11 — all retargeted to live in-repo relative paths; anti-rot rule added to [`../../AGENTS.md`](../archive/agent-operating-manual.md) §7. |
 | KI-07 | Orchestrator mission stayed `running` forever at 0 hops when the model call failed (no halt/failed transition). | 2026-06-11 — `F-V5-LOOP-CLOSE`: non-governance model errors now set `agent_runs.status='failed'` + `missions.status='halted'` in `loop.server.ts`. |
 | KI-08 | `F-V5-LOOP-CLOSE` migration awaited Lovable's sync (founder-chosen Lovable-operated DB path). | 2026-06-11 — Lovable pulled + applied the migration (REST probe confirms `learnings` + `prds.shipped_at` live); founder then verified the full loop e2e on the hosted app, incl. a real GitHub issue close. |
 | KI-19 | `resolveAgent` resolved a target agent by slug with no `enabled` filter, so a disabled or off-roster agent could still be dispatched a child run (via `agent.handoff` or the mission dispatcher). | 2026-06-14: closed at the single resolution chokepoint. `resolveAgent` (`handoff.server.ts`) now filters `enabled = true` and throws a clear slug-named error; the throw is caught per step so a bad target terminalizes one step, not the run. Adversarial-reviewed safe-to-land. Residual adjacent surfaces tracked as KI-20. |

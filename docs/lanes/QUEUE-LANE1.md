@@ -1,5 +1,7 @@
 # QUEUE — LANE 1 (`src/routes/**` except `api/`; `src/components/shell/**`; `src/styles/**` except `meridian.css`)
 
+> _Created: 2026-08-25 · Last updated: 2026-08-25_
+
 > _Written by MAIN 2026-08-25. Fully-specified items, topmost first. The ordered master backlog
 > stays [`../../the-first-run/BUILD-QUEUE.md`](../../the-first-run/BUILD-QUEUE.md)._
 

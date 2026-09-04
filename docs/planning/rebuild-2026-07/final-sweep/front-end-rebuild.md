@@ -1,5 +1,7 @@
 # Supaprod — Front-End Rebuild Master Brief
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **For:** Fable (executing agent) · **From:** Rohit (Founder) · **Version:** 2.2 (alignment pass, 2026-07-18) · **Status:** Authoritative baseline — supersedes all prior goal statements, including the v5 Tempo overhaul brief. Prime Directive 8 defines how "authoritative" is meant.
 
 ---

@@ -1,5 +1,7 @@
 # Public Marketing Site Redesign — Delivery Summary
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 **Date:** 2026-07-18  
 **Scope:** Redesign Supaprod public marketing site to match Vercel's ultra-premium standard  
 **Status:** COMPLETE — Design & spec delivery; implementation ready  

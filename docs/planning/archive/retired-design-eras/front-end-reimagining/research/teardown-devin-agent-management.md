@@ -1,5 +1,7 @@
 # Teardown: Devin (mid-2026) + the agent-management UX landscape
 
+> _Created: 2026-08-03 · Last updated: 2026-08-03_
+
 > Research stream for the front-end reimagining (Phase R). Written 2026-07-19.
 > Scope: Devin's current state (sessions, plan visibility, intervention moments, Knowledge, Playbooks, MCP marketplace) plus how Claude Code / Claude.ai, ChatGPT, and Lovable let users configure agents: tool/MCP grants, editable skills, per-project instructions and knowledge. Feeds the Supaprod agent-management layer (charter requirement 9) and the gate/approval anatomy (requirements 4, 13).
 > Sources: docs.devin.ai (knowledge, playbooks, interactive-planning, 2026 release notes), cognition.com blog, help.openai.com Projects article, docs.lovable.dev/features/knowledge, lovable.dev skills launch posts, Claude connectors directory coverage (claude.ai/directory unification, March 2026). All external-state claims verified by live web fetch/search on 2026-07-19.

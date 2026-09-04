@@ -1,5 +1,7 @@
 # Security Audit Findings (2026-07-18)
 
+> _Created: 2026-08-04 · Last updated: 2026-08-04_
+
 ## Executive Summary
 
 Comprehensive security audit completed covering hardcoded secrets, SQL injection risks, XSS vulnerabilities, insecure dependencies, and authentication/authorization. Risk score: **24/100** (low).

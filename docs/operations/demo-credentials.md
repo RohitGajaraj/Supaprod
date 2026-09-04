@@ -210,6 +210,6 @@ These accounts are public knowledge by design. Do not store any real customer or
 
 ## Related
 
-- [`AGENTS.md`](../../AGENTS.md) — operating manual
+- [`AGENTS.md`](../archive/agent-operating-manual.md) — operating manual
 - [`README.md`](../README.md) — product thesis
 - [`planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md) — live status board

@@ -1,5 +1,7 @@
 # S4-066 · The copy knows the read failed and the control does not
 
+> _Created: 2026-08-27 · Last updated: 2026-08-27_
+
 > _S4, 2026-08-27. The signed-in dead backend sweep finished: eleven paths, every one photographed.
 > `bash e2e/check-motion.sh --signed-in <paths>`._
 

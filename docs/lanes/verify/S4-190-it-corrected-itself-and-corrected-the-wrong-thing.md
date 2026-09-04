@@ -1,5 +1,7 @@
 # S4-190 · It corrected itself, unattended, and corrected the wrong thing
 
+> _Created: 2026-09-01 · Last updated: 2026-09-01_
+
 **Measured 2026-09-01, 21:10 UTC live. Lane `lane/proof`.**
 
 ## I said it would be given up. It was not, and I was wrong

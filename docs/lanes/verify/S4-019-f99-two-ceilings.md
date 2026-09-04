@@ -1,5 +1,7 @@
 # S4-018 · F-99 — the spine has two ceilings and only one had a door
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 on `lane/proof` at `c569d7c89` / `b69656851`._
 
 ## The finding

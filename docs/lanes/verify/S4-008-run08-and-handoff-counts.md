@@ -1,5 +1,7 @@
 # S4-008 · RUN-08 (the value audit) and the SwarmHandoff payload counts
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 on `lane/proof` rebased to `5d6289528`._
 
 ## RUN-08 — "was it worth it" gets a surface

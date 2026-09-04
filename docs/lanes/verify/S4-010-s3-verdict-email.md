@@ -1,5 +1,7 @@
 # S4-010 · S3's first unit — verified as far as main allows, with the held-back half confirmed intentional
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _Verified 2026-08-26 by S4 on `lane/proof` at `129b19934`._
 
 ## U-S3-001 — the verdict email

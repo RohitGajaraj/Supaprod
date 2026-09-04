@@ -1,5 +1,7 @@
 # Two launch gates: seat limits, and a sandbox to run tests in
 
+> _Created: 2026-08-02 · Last updated: 2026-08-03_
+
 > _Written 2026-08-02. Both are founder decisions with real money or real user impact
 > attached. Neither blocks anything today. Both block the same thing: charging people._
 

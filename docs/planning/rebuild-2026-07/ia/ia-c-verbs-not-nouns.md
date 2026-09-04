@@ -1,5 +1,7 @@
 # IA-C: Verbs, Not Nouns
 
+> _Created: 2026-07-28 · Last updated: 2026-08-03_
+
 > The complete information architecture and interaction wiring for the Supaprod authenticated app, rebuilt from zero.
 > Stance: organise around what a person is trying to DO right now. The machine routes them to the surface.
 > Written 2026-07-28. Grounded against live code, not docs.

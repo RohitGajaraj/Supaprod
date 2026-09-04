@@ -1,5 +1,7 @@
 # Reference — the board: many pieces of work at once
 
+> _Created: 2026-08-31 · Last updated: 2026-08-31_
+
 > **Pulled from Mobbin by S0, 2026-08-31.** Lanes do not hold that credential, so S0 pulls and
 > commits. **R-20 §7: port MECHANICS, never screenshots** — so what follows is the mechanics in
 > words, which is the deliverable. Each source is linked; open it if you want the pixels.

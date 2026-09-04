@@ -1,5 +1,7 @@
 # The agent, governance and trust surfaces
 
+> _Created: 2026-08-14 · Last updated: 2026-08-14_
+
 > _Audit pass, 2026-08-14. Raw output, saved as it finished._
 
 **The verdict, stated first: the line between machine and human is drawn beautifully in prose and breaks at exactly three seams.**

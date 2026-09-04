@@ -1,5 +1,7 @@
 # S4-033 · Three more leads driven, and two corrections to my own audit
 
+> _Created: 2026-08-26 · Last updated: 2026-08-26_
+
 > _S4, 2026-08-26, on `lane/proof`, merged tree. Continues closing the `S4-028` list by hand. Two of
 > the three are confirmed at a **smaller** size than the audit claimed, and that is recorded as
 > plainly as the confirmations._

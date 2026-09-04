@@ -1,5 +1,7 @@
 # FINAL SHELL RULING: the room is conversational at its centre and structural at its edges
 
+> _Created: 2026-07-29 · Last updated: 2026-08-21_
+
 > The deciding architect's ruling, 2026-07-29. Answers the founder's 2026-07-28 proposal that the
 > app collapse into one conversational surface with a preview pane.
 >
