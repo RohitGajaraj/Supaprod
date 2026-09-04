@@ -9939,7 +9939,7 @@ packet stays PARTIAL rather than DONE until the wider sweep -- or a scoped follo
 recipient-facing / date-only files specifically -- closes it.
 
 
-### P-131 · A changeset born from a track carries its spec and its bet · Lane: **A3** (after P-130) · Status: CLAIMED (A3) 16:04 IST 09-04 · Moves: 1, 3
+### P-131 · A changeset born from a track carries its spec and its bet · Lane: **A3** (after P-130) · Status: DONE (A3) 16:29 IST 09-04 (66486300d) · Moves: 1, 3
 
 **Why.** The release document for the first live release (Ship page, 14:34 IST) says *This release
 is not linked to a spec, so what it set out to do and what it promised are not on the record* and
@@ -9956,6 +9956,39 @@ lines when they resolve. Guard: a changeset created from a track with a spec car
 tsc 0, build 0.
 
 **DoD.** Pushed; migration applied; the numbers.
+
+**Report (A3, 16:29 IST 09-04, 66486300d).** The packet's own premise -- "Build never wrote
+`prd_id`" -- was checked against the live schema before writing anything and was half right.
+`studio_changesets.prd_id` on `ae547426` was ALREADY correctly set (`resolvePrdForMission`,
+registry.server.ts, already writes it at creation); what was actually stale is
+`changelog_entries.prd_id` -- the column the release document trusted alone, written once by the
+merge trigger and never kept in step with a changeset the application layer later resolved
+correctly. Same class of drift P-124 found in this trigger's own `title` column, one file over.
+Fixed at the read layer: `listAppliedChanges` now exposes `studio_changesets.prd_id`;
+`WhatShipped.tsx` resolves `applied?.prd_id ?? entry.prd_id` once, reordered ahead of the prd
+fetch, and feeds an `effectiveEntry` with the corrected `prd_id`/`opportunity_title` into
+`assembleReleaseDoc` rather than the raw, possibly-stale `entry`. The bet resolves the same way:
+`getPrd` now also returns the fetched spec's own `opportunity_title` (a plain second query --
+`prds.opportunity_id` carries no FK constraint, checked live, so PostgREST cannot embed it),
+preferred over `entry.opportunity_title`, which only ever came from the same stale
+`changelog_entries.prd_id` chain. `product_id` genuinely was never written by Build (that half of
+the premise held) -- added `resolveProductForPrd`, written alongside `prd_id` now. Migration
+`20260909091700` backfilled both for existing merged changesets that predate the fix: 2 rows,
+applied and confirmed via the Lovable MCP before this commit. **Read honestly, not assumed:** for
+THIS specific release, the spec now resolves and shows -- but the bet still will not, because
+`prds.opportunity_id` on `f2aa82f1` is genuinely null (confirmed twice, independently, in A3's own
+P-126-part-2 investigation: this track was agent-auto-discovered with no opportunity anywhere in
+its lineage). That is the true state of the record, not a remaining defect this packet left open.
+Guard tests: `WhatShipped.test.tsx` gained a "the spec id this document trusts" block (the exact
+live incident's own shape recovering both facts; the honest case where the changeset genuinely
+carries neither); `AppliedChange` fixtures and `spec-dispatch-writes-lineage.test.ts`'s own
+literal-source guard updated for the new field/shape. Full suite: `bunx tsc --noEmit` 0; `bun test`
+14576 pass / 0 fail / 22 skip / 37 todo across 1061 files; `bun run build` 0 (Cloudflare Worker
+output); `bun run docs:check` exit 0, docs-doctor clean, zero WARN/FAIL. Pushed directly to `main`
+(66486300d). No live browser access from this worktree -- the Acceptance's own "the live release
+document names the spec and the bet" needs a live read from A1, and per the paragraph above, only
+the spec half is expected to resolve for the specific release the packet's own Why cites.
+
 
 ### P-132 · The recall tests do not race the clock · Lane: **A3** (after P-131) · Status: READY · Moves: 5
 
