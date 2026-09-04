@@ -10191,7 +10191,7 @@ browser access from this worktree -- the Acceptance's own "the served Waiting pa
 embeddings card" needs a live read from A1.
 
 
-### P-135 · The first byte arrives in under a second · Lane: **A2** (after P-128) · Status: READY · Moves: 1, 3
+### P-135 · The first byte arrives in under a second · Lane: **A2** (after P-128) · Status: CODE ON A SIDE BRANCH, LANDING ON MAIN (a2-p135-edge-cache: 26240f97b entry-load span, 4360353f0 the Worker cache and the counter, 8a05f546a three F-rows; A2 gate on the branch 14,623 pass / 0 fail, tsc 0, build 0; the branch is main as of 16:40 plus three, main has 20 newer commits overlapping only in the ledger; A2 cherry-picks the three onto a fresh worktree of origin/main and pushes; A1 gates, publishes and reads X-Supaprod-Cache on the served routes with a cache-busting path) · Moves: 1, 3
 
 **Why.** P-58b measured the served root at 4.9, 2.6, 3.3 and 6.2 s to first byte cold, with
 `worker-total;dur=902` in the same responses: about five seconds are spent before the Worker's
