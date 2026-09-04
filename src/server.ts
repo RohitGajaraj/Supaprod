@@ -155,7 +155,7 @@ export function withMarketingCacheHeaders(response: Response, pathname: string):
  * P-58b: the one Server-Timing phase that carries no framework-context risk
  * at all -- wall clock around the whole SSR handler call, measured at the
  * Worker's own boundary rather than from inside a route `loader`. Appended,
- * never set, because a route's own `loader` (see `lib/server-timing.ts`) may
+ * never set, because a route's own `loader` (see `lib/server-timing.server.ts`) may
  * already have written phase entries onto this same response; overwriting
  * would silently drop them.
  *

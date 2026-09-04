@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { timedPhase, appendServerTiming } from "./server-timing";
+import { timedPhase, appendServerTiming } from "./server-timing.server";
 
 /**
  * P-58b. No request context exists in a unit test -- `setResponseHeader` and

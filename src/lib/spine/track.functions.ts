@@ -74,7 +74,7 @@ import {
   type SearchKind,
 } from "@/lib/spine/find-anything";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
-import { appendServerTiming } from "@/lib/server-timing";
+import { appendServerTiming } from "@/lib/server-timing.server";
 import { claimApprovalDecision, executeApproval } from "@/lib/ai/loop.server";
 import { recordGateSignalCore } from "@/lib/gate-signals.functions";
 import { expiryDefaultFor } from "@/lib/ai/approval-expiry";

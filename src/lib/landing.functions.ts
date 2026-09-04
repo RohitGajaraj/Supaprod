@@ -27,6 +27,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { LANDING_SESSION_KEY_RE } from "@/lib/landing-session";
 import { sendWaitlistWelcome } from "@/lib/waitlist-email.server";
 import { track, type TrackEvent } from "@/lib/observability";
+import { timedPhase } from "@/lib/server-timing.server";
 
 // waitlist_signups / landing_events postdate the generated types; same relaxed
 // pattern as proof-surface.functions.ts.
@@ -200,17 +201,26 @@ export const getLandingStats = createServerFn({ method: "GET" }).handler(
  * as a real "0 in line", which is the one number that beat must never publish.
  */
 export const getWaitlistCount = createServerFn({ method: "GET" }).handler(
-  async (): Promise<number | null> => {
-    try {
-      const { count, error } = await db
-        .from("waitlist_signups")
-        .select("id", { count: "exact", head: true });
-      if (error) return null;
-      return count ?? 0;
-    } catch {
-      return null;
-    }
-  },
+  async (): Promise<number | null> =>
+    // P-58b's Server-Timing header, moved in here rather than wrapped around
+    // the call in the route's own `loader` (Rule 21): a route file is bundled
+    // for the client too, and `timedPhase`'s own `@tanstack/react-start/server`
+    // import fails the build's import-protection check the moment a route
+    // module reaches for it directly, even only inside a `loader`. A
+    // `createServerFn` handler's body is already the one place the bundler
+    // guarantees stays server-only, so the timing rides along with the read it
+    // is timing instead of wrapping it from outside.
+    timedPhase("landing-data", async () => {
+      try {
+        const { count, error } = await db
+          .from("waitlist_signups")
+          .select("id", { count: "exact", head: true });
+        if (error) return null;
+        return count ?? 0;
+      } catch {
+        return null;
+      }
+    }),
 );
 
 // `film_play` added 2026-08-12 with the film embed. It carries a `surface`

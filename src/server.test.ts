@@ -233,7 +233,7 @@ describe("withWorkerTotalTiming", () => {
   });
 
   test("appends to a route's own phases rather than overwriting them (P-58b)", () => {
-    // The shape `lib/server-timing.ts`'s `timedPhase` would have already
+    // The shape `lib/server-timing.server.ts`'s `timedPhase` would have already
     // written before this runs -- a real loader's own read, named.
     const response = new Response("<html></html>", {
       status: 200,

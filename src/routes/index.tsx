@@ -42,7 +42,6 @@ import { LandingFooter } from "@/components/landing/LandingFooter";
 import { getWaitlistCount, trackLandingEvent } from "@/lib/landing.functions";
 import { getLandingSessionKey } from "@/lib/landing-session";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
-import { timedPhase } from "@/lib/server-timing";
 
 const SITE = "https://supaprod.ai";
 
@@ -183,9 +182,12 @@ export const Route = createFileRoute("/")({
   // P-58b: the one server-side phase this route pays for, named so a cold
   // hit's Server-Timing header says where the seconds went instead of
   // leaving the isolate-warm ping (which touches no database) to take the
-  // blame for a database read it was never built to warm.
+  // blame for a database read it was never built to warm. The timing itself
+  // now lives inside `getWaitlistCount`'s own handler (landing.functions.ts)
+  // -- see that file's comment; this route stays free of the server-only
+  // import that broke the build (Rule 21).
   loader: async () => ({
-    waitlistCount: await timedPhase("landing-data", () => getWaitlistCount()),
+    waitlistCount: await getWaitlistCount(),
   }),
   component: LandingPage,
   head: () => ({
