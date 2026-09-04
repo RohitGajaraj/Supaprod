@@ -148,6 +148,8 @@ import { CallContext, Key } from "@/components/approvals/CallContext";
 import { FilterExcludedEverything, QueueFilters } from "@/components/approvals/QueueFilters";
 import { SettledTrail, type SettledLine } from "@/components/approvals/SettledTrail";
 import { UndatedCalls, type UndatedCall } from "@/components/approvals/UndatedCalls";
+import { ProviderFaultNotice } from "@/components/approvals/ProviderFaultNotice";
+import { getProviderFaults } from "@/lib/provider-faults.functions";
 import { SendBackSheet, canSendBack } from "@/components/approvals/SendBack";
 import { stripAutoMarkers } from "@/components/plan/format";
 import { stoppedFor, waitingSince } from "@/components/meridian/stopped-for";
@@ -408,6 +410,23 @@ function ApprovalsSurface() {
     queryKey: ["approvals-live-activity", activeWorkspaceId ?? null],
     queryFn: () => fetchLiveActivity({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
     enabled: (queue.data?.items.length ?? 0) === 0 && !queue.isLoading,
+  });
+
+  /*
+   * P-119: a provider fault is operational, not per-workspace — the same
+   * Cohere account pays for embeddings across every workspace the founder
+   * owns, so this reads once, unscoped, the same read Team's Spend-and-
+   * limits room calls (one query, one answer, never two). Refetches on the
+   * same 10s cadence the rest of this page's live reads use, no faster:
+   * this clears on its own once the underlying tick starts succeeding
+   * again (see provider-faults.functions.ts), so there is no press to react
+   * to sooner than the next ordinary poll.
+   */
+  const fetchProviderFaults = useServerFn(getProviderFaults);
+  const providerFaults = useQuery({
+    queryKey: ["provider-faults"],
+    queryFn: () => fetchProviderFaults(),
+    refetchInterval: 60_000,
   });
 
   /*
@@ -1100,6 +1119,8 @@ function ApprovalsSurface() {
             onClearFilter={() => setFilter("all")}
           />
         )}
+
+        <ProviderFaultNotice faults={providerFaults.data?.faults ?? []} />
 
         <SettledTrail lines={settled} />
 

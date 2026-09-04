@@ -680,6 +680,18 @@ export const SURFACE_REGISTRY = {
     opensFrom: "spine-gate-chip",
     status: "planned",
   },
+  // P-119: a provider fault (Cohere billing, currently) needs the founder in
+  // front of it, live TODAY on the Waiting page's agent-actions notice and
+  // on Team's Spend-and-limits room -- the same read, so the two can never
+  // disagree. Filed under the approvals tray's future home, its nearest
+  // sibling, since it is the same "needs a person" shape as the rest of
+  // this section.
+  "provider-faults": {
+    kind: "drawer",
+    home: "approvals-tray",
+    opensFrom: "spine-gate-chip",
+    status: "planned",
+  },
   "house-rules": {
     kind: "drawer",
     home: "approvals-tray",

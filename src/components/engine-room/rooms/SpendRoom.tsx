@@ -8,6 +8,8 @@ import { zeroFillDaily } from "@/lib/engine-room-glance";
 import { Row, EmptyRow, ErrorRetry, PanelPending, type RoomBodyProps } from "../room-parts";
 import { FigureCard } from "../EngineChrome";
 import { Eyebrow } from "@/components/meridian/surface-parts";
+import { getProviderFaults } from "@/lib/provider-faults.functions";
+import { ProviderFaultNotice } from "@/components/approvals/ProviderFaultNotice";
 
 // LOOM W2 fold: /govern?tab=budgets lives here as CAPS (the one home for cap
 // management) and /govern?tab=analytics as USAGE (the full rollup), each
@@ -30,6 +32,15 @@ function fmtUsd(n: number): string {
 
 function TrendView() {
   const fAnalytics = useServerFn(getAnalyticsOverview);
+  // P-119: the same provider-fault read the Waiting page's "agent actions"
+  // item calls (provider-faults.functions.ts's own header: one query, one
+  // answer, never two) — Team is where the founder actually goes to fix a
+  // spend problem, so the same state shows here too.
+  const fProviderFaults = useServerFn(getProviderFaults);
+  const providerFaults = useQuery({
+    queryKey: ["provider-faults"],
+    queryFn: () => fProviderFaults(),
+  });
   const cost7Q = useQuery({
     queryKey: ["analytics-overview", 7],
     queryFn: () => fAnalytics({ data: { days: 7 } }),
@@ -72,6 +83,7 @@ function TrendView() {
   if (cost7Q.isLoading) return <PanelPending />;
   return (
     <div className="flex flex-col gap-mrd-5">
+      <ProviderFaultNotice faults={providerFaults.data?.faults ?? []} />
       <FigureCard label="Spend this week" value={fmtUsd(week)} note={trendNote} />
       {filled.some((c) => c > 0) ? (
         <div>
