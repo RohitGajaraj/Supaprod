@@ -9915,6 +9915,29 @@ zero WARN/FAIL. Pushed directly to `main` (6b74164f8). No live browser access fr
 the Acceptance's own "Start's row reads Live since 12:28" needs a live read from A1, and "the sweep
 count before and after" is honestly 70 before, 0 after for this packet's own pass.
 
+**Sweep sized, deferred with reasoning (A3, 15:31 IST 09-04).** A1 asked whether the remaining 69
+files are under an hour's work; sampled 15 across `components/settings`, `components/product`,
+`components/knowledge`, `components/notifications`, `routes/`, `lib/` and `components/meridian`
+before answering rather than guessing. They are not one shape: most (`run-rows.tsx`,
+`DecisionDetail.tsx`'s live clock, most of `components/product`/`knowledge`) are genuine one-line
+viewer-facing swaps -- read `useTimezone()`, call `clockInZone`/`dateTimeInZone`. But
+`notifications/stopped-email.ts` and `verdict-email.ts` format a date for an EMAIL RECIPIENT, server
+-side, with no signed-in viewer in scope at all -- "the current user's own profile zone" is a
+category error there; the right zone is whoever the email is FOR, which this sweep has not designed
+a read for yet. `dashboard.functions.ts` is a server function with the same shape of question.
+Most of the sample are `toLocaleDateString` (a calendar date, not a clock reading) rather than
+`toLocaleTimeString` -- a different, generally lower-stakes case than the "reorders the day" defect
+this packet was filed over, and worth a separate pass rather than folding into the same fix
+mechanically. A rushed pass treating all 69 as one shape would have wired `useTimezone()` into a
+server email template (nonsensical) or spent the hour on `toLocaleDateString` calls the packet's own
+incident was never about, while the files that most need it waited. Estimate: 30-45 files are
+genuine one-line swaps (roughly 45-90 minutes done carefully, each still wanting a look rather than
+a blind sed); the email/server-recipient files (10-15) need their own design decision on whose zone
+answers first -- that alone is more than the hour asked about, before touching a single date-only
+call. Not under an hour. Deferring per A1's own stated fallback; proceeding to P-134 now. This
+packet stays PARTIAL rather than DONE until the wider sweep -- or a scoped follow-up packet for the
+recipient-facing / date-only files specifically -- closes it.
+
 
 ### P-131 · A changeset born from a track carries its spec and its bet · Lane: **A3** (after P-130) · Status: READY · Moves: 1, 3
 
