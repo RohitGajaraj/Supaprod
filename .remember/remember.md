@@ -197,3 +197,6 @@ Ship live (P-86 DONE). Published: P-96 P-97 P-103 P-114 P-115 P-117 P-118 P-119 
 
 ## A1 14:01 IST 09-04
 Published on A1 gate: P-117 P-118 P-119 P-120 P-121 P-122 P-123 P-125 P-118b P-116 P-124 (14,469 pass). Disk incident 13:10-13:18 (9.1 GB freed, memory written). Gate runs from scratchpad/gate.sh (rtk hook parse error). Chrome extension dead since 13:31: owed live reads P-119 P-121 P-125 P-118b P-122 P-124. Filed P-127 P-128 P-129. Lanes: A2 P-127→P-112→P-113→P-128; A3 P-126→P-129→P-104→P-105→P-109.
+
+## A1 15:27 IST 09-04
+Announcement public (/p/checkout-no-longer-asks-for-an-address-it-already-has-ea1316) with founder's yes. Profile tz Asia/Kolkata. Published: P-112 P-118c P-129 P-130(partial). Live DONE: P-119 P-121 P-124 P-125 P-118b P-129. Owed: P-127 header (needs a drive), P-118c receipt (~15:47), P-112 card (next Build). Filed P-118c P-119b P-131 P-132 P-133 P-134. A2 buffer thin after P-113: refill.

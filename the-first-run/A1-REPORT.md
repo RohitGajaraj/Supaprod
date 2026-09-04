@@ -652,3 +652,25 @@ rests on this), P-129 (one count per family on Waiting).
 **Lanes.** A2 on P-127, then P-112, P-113, P-128. A3 on P-126, then P-129, P-104, P-105, P-109.
 Rule 22 holds. **Founder:** the announcement, the Cohere payment method, the Deno plan, and a
 reload of the Supaprod tab so the extension answers.
+
+## Checkpoint, 15:27 IST 09-04
+
+**The loop closed outward.** With the founder's approval at 15:06 the first release's
+announcement went public at `/p/checkout-no-longer-asks-for-an-address-it-already-has-ea1316`:
+sentence, gates, production address, announcement, all on the record. The founder's other calls:
+Cohere and the Deno plan he comes back on; the timezone he delegated, and his profile is
+Asia/Kolkata since 14:54 IST (P-130 makes the device's zone the default).
+
+**Since 14:01.** Published on A1's gate: P-112, P-118c (with its migration filed after the fact and
+the ledger confirmed), P-129, P-130's partial. Live reads: P-119, P-121, P-124, P-125, P-118b,
+P-129 DONE; P-126's part 2 traced by A3 to a link the record never held (P-134 filed); P-127's
+header awaits a live drive; P-118c's receipt awaits its build. Filed: P-118c, P-119b, P-130
+(refined), P-131, P-132, P-133, P-134.
+
+**Progress against the goal**, said to the founder at 14:47: about 65 to 70 percent of the work to
+a launchable product; the remaining third is P-128 (a customer repo that is not our template),
+P-113 (spend), the Learn loop proven live (P-42's read after 17:30), and a new-workspace walk.
+Date call unchanged: 23 September honest if P-128 lands by about 12 September; 15 September not.
+
+**Lanes.** A2 on P-113, then P-128. A3 on P-130's sweep, then P-134, P-119b, P-131, P-132, P-133,
+P-104, P-105, P-109. Rule 22 holds; A2's buffer is one deep after P-113 and A1 refills it next.
