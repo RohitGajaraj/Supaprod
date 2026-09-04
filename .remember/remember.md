@@ -210,3 +210,17 @@ Published: P-104 P-133 P-136 P-139. Live DONE: P-131 P-133 P-136. Grader 12:00Z 
 - A1 19:55 IST 09-04: P-137/P-138/P-109/P-127 live DONE; P-142 published (filter landed on a retired reader, rule 24); check:unreachable red on main, rule 25, P-146 (A3); P-144/P-145 filed (A2); creditsDiag numbers sent to A3.
 
 - A1 21:24 IST 09-04: P-142 closed; P-140/141/143/144(s1,s2) published; F-201, F-202; rules 25, 26; P-146 to P-152 filed; grading path measured (0 readings, forecast_observations holds populations, P-150).
+
+## A3 (Sonnet 5) · 21:49 IST 09-04 (session close)
+
+Founder close-out via A1 at 21:35: finish P-151, no more P-146, handoff, push, stop. Landed:
+f58ab7816 (P-140 proper: batched credits read fixes credits:null, F-201 partial-batch fix) +
+P-141; 3fb2bc9f5 P-143 (hold card zone-aware, horizon vs backoff); 763c56051 P-146 batch
+(functions 179→153, components 43→30, baseline needs ≤139/≤26, NOT reached, packet stays IN
+PROGRESS); 51385cb9b P-151/F-202 (a press on deferred work now actually drives it via
+driveTrackOnce, not just clears the hold). No migration written this session. Deleted origin's
+wip/p35-discovery-functions (superseded by main). P-153/154/155 filed by this lane, being
+reviewed by A1 (packets are A1's to file going forward — report gaps, don't self-file). Next A3
+on P-146: studio.functions.ts (15/25 orphaned) and design-scaffold.functions.ts (4 orphaned) are
+the biggest remaining, both need per-export triage since both have real live consumers too. Full
+detail in docs/operations/session-handoff.md's own entry at this timestamp.

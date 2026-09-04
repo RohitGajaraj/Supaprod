@@ -842,3 +842,60 @@ Published: P-142c (g169), P-144 s1 (g170), P-140+P-141 (g171), P-144 s2 (g172). 
 P-144 client half. F-201 (in-list past the URL cap), F-202 (try-again clears the hold, leaves the
 deferral; P-151). Rules 25 (gate = build, tsc, suite, unreachable, lint as ratchets) and 26 (one
 suite per machine). Filed P-146, P-147, P-148, P-149, P-150, P-151, P-152. Gate: scratchpad/gate.sh N.
+
+### A3 (Sonnet 5), 21:49 IST 09-04 (session close)
+
+Closing per the founder's instruction, relayed by A1 at 21:35: finish the logical unit in flight
+(P-151), do not pick up P-146's next commit or anything after it, write handoff, push, stop.
+
+**Landed this window, gated and pushed to main, in order:** `f58ab7816` P-140 proper (batched
+credits read, F-201 partial-batch fix) + P-141 (decision spend on Outcomes); `3fb2bc9f5` P-143 (the
+hold card reads the person's own zone and distinguishes a backoff retry from the forecast horizon);
+`763c56051` P-146 batch of five commits (server functions 179 → 153, components 43 → 30 against a
+baseline of 139 / 26 — **not yet reached**); `51385cb9b` P-151 / F-202 (a press on deferred work now
+actually drives it, not just clears the hold).
+
+**P-146 is the one packet left mid-flight.** Deleted whole: `meetings.functions.ts`,
+`calendar.functions.ts`, `audio.functions.ts` (zero importers, no route ever built), the threads
+FOLDERS server functions (dead per the route's own header), `listProducts`/`upsertProductBinding`/
+`removeProductBinding` (superseded by `connections.functions.ts`), `TrackChain.tsx`, `RunCost.tsx`,
+the `LiveWork` component, `MissionGraph.tsx`, `MissionDiff.tsx`, seven old row primitives from
+`run-parts.tsx`, and `TrackRun`'s dead combined-panes wrapper. Left deliberately, with reasons in
+the packet's own interim Report: `setStationWaiver`/`attachToTrack`/`applyTrigger` (filed as
+P-153), `getFocusNext`/`getInsightRail` (filed as P-154), `listPlatformProviders` (filed as P-155),
+`submitFeedback` (already F-85, its own guard test), `cancelMission`/`renameMission`/
+`promoteMission` and the `brain-insights.functions.ts` four (genuinely uncertain, left per the
+packet's own "when in doubt, leave it"). **The next A3 session's first move on P-146 should be the
+biggest remaining offender, `studio.functions.ts` (15 of its 25 exports orphaned) and
+`design-scaffold.functions.ts` (4 orphaned in an otherwise live file) — both need per-export
+triage, not wholesale deletion, since both files have real live consumers for other exports.**
+Three cascading breaks this packet's own deletions caused and this session fixed: two stale
+BASELINE entries (`a-read-names-its-workspace.test.ts`, `a-read-serves-the-workspace-you-are-in.test.ts`),
+`surface-registry.ts`'s own stale `calendar`/`meetings`/`audio` entries (its 2026-08-14 comment
+claiming two live routes was itself already false, corrected), and a bad `sed` range that ate a
+docblock opener (caught by tsc, fixed). Watch for this class of break on every further P-146
+deletion — a deleted file's name can be stale-referenced in more than the obvious places.
+
+**P-153/P-154/P-155 filed by this lane are being reviewed by A1**, per A1's own correction
+(21:26 IST): packets are A1's to file going forward; this lane should report a gap in the queue
+rather than write the packet itself. A1's own triage as of 21:34: P-153 (the waiver door) deferred,
+not urgent; P-154 (Signal Fabric) folded into A2's own P-145 measurement; P-155 (BYO-keys
+providers) is this lane's, last, after P-147.
+
+**No migration was written this session.** Every change was TypeScript/TSX + test files; nothing
+touched the schema.
+
+**The one thing to know first:** P-140's `credits: null` bug (open since earlier in the session)
+is fixed and live — root cause was `creditsSpentByTrace`'s own `.in()` call crossing a PostgREST
+URL cap at ~174 trace ids with the error silently swallowed, fixed by batching at 25
+(`knowledge-graph-view.functions.ts`'s own precedent) plus a correctness fix (F-201) so a trace
+touched by a failed batch reads as unread rather than a wrong partial sum. If credits still read
+null on Start after this lands, the bug is a NEW one, not a recurrence — re-diagnose from scratch
+rather than assuming the same root cause.
+
+Deleted origin's `wip/p35-discovery-functions` branch this session (confirmed fully superseded by
+main; main carries P-35's own named-column select and P-75b's workspace-scoping fix the branch
+predates and lacks).
+
+Rule 26 (one full suite per machine at a time) observed throughout; rule 25 (every file a packet
+touches lints clean before push, sha pair reported) applied to every commit above.
