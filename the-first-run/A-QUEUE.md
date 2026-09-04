@@ -9939,7 +9939,7 @@ packet stays PARTIAL rather than DONE until the wider sweep -- or a scoped follo
 recipient-facing / date-only files specifically -- closes it.
 
 
-### P-131 · A changeset born from a track carries its spec and its bet · Lane: **A3** (after P-130) · Status: PUBLISHED, LIVE READ PENDING (66486300d; migration 20260909091700 applied and in the ledger, file on main; A1 gate on tip 6004397f2: build 0, tsc 0, 14,590 pass / 0 fail; published 16:36 IST; A1 reads the release document for the spec line once served) · Moves: 1, 3
+### P-131 · A changeset born from a track carries its spec and its bet · Lane: **A3** (after P-130) · Status: DONE (66486300d; live 17:01 IST: the release document names the spec, "Remove the redundant address re-confirmation step... Spec · shipped · Open the spec", and keeps "not traced to a bet", which is the record's true state) · Moves: 1, 3
 
 **Why.** The release document for the first live release (Ship page, 14:34 IST) says *This release
 is not linked to a spec, so what it set out to do and what it promised are not on the record* and
@@ -10330,6 +10330,26 @@ three groups and the sample fold; a row with `is_sample` never renders above a p
 tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 reads.
+
+
+### P-139 · The release document names the check that passed · Lane: **A3** (after P-136) · Status: READY · Moves: 2
+
+**Why.** The first release's document (Ship page, 17:01 IST 09-04) says *No test evidence.
+Nothing records which tests ran for this release, so this document does not claim any did.*
+GitHub's status rollup at the merge held one check, *lint and test*, SUCCESS at 05:54:36 UTC on
+the head that merged, and the merge gate refused to raise over anything else. The evidence exists
+and the document says it does not.
+
+**Scope.** At merge (the `studio.pr.merge` executor already reads the checks), write the checks'
+names, conclusions and the head sha onto the changeset (`ci_checks` on `studio_changesets`, or the
+existing column if one holds them); the release document's *test evidence* line reads them (*lint
+and test passed on 428bb04 at 05:54 UTC*), and says *no check ran* only when the rollup was empty.
+Backfill the live release from the PR by migration if the column is new. Guard: a fixture merge
+with one green check renders the line; an empty rollup renders the honest absence.
+
+**Acceptance.** The served release document names the check. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
