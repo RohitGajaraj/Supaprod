@@ -8833,7 +8833,7 @@ concurrent A-QUEUE.md edits (no file overlap). `bunx tsc --noEmit`: clean. `bun 
 watch loop.
 
 
-### P-96 · The Ship page says what each release is · Lane: **A2** (while P-86 waits on A1's presses) · Status: CODE DONE (5447f00ad; A1 gate running; publish next; A1 reads the Ship page) · Moves: 2, 3
+### P-96 · The Ship page says what each release is · Lane: **A2** (while P-86 waits on A1's presses) · Status: DONE (5447f00ad; gate build 0, tsc 0, 14,349 pass / 0 fail; published 11:29 IST, deployment e7b8bec6; A1 reads the served Ship page once the build serves) · Moves: 2, 3
 
 **Why.** R-40 and P-72 made the merge gate show the change (files, lines, the Build seat's
 conclusion, the Design verdict, the check). The Ship page, the door a person opens to see what went
@@ -8875,7 +8875,7 @@ founder's standing authority: `account_credits` +10,000 (balance 1 to 10,001, to
 can reverse it with one negative row. The honest-Ship presses proceed on it.
 
 
-### P-103 · The documents say what the product now says · Lane: **A3** (now) · Status: CLAIMED (A3) 11:24 IST 09-04 · Moves: 5
+### P-103 · The documents say what the product now says · Lane: **A3** (now) · Status: DONE (5553b8856; A1 gate on tip 7b485ec69: build 0, tsc 0, 14,349 pass / 0 fail; published 12:00 IST) · Moves: 5
 
 **Why.** P-60, P-61 and R-38 settled the vocabulary: Start, Waiting, Arriving, Run, Outcomes,
 Team, Conversations, Sources, Settings; Find Anything on "/"; Ask on ⌘K; stations only inside a
@@ -9121,6 +9121,24 @@ renders the files and the CI conclusion.
 tick-raised; a fixture with `args` `{}` renders the card. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 reads the card on the served page before pressing.
+
+
+### P-117 · docs-doctor does not read files git ignores · Lane: **A3** (after P-115) · Status: READY · Moves: 5
+
+**Why.** On A1's machine `bun run docs:check` fails on the tip with four FAIL rows, all
+`docs/screenshots/*.md`, a gitignored folder (CLAUDE.md: never commit a screenshot). The gate is
+clean on a clean checkout and red on any machine that has ever saved a note there, so the same
+tip reads green for one lane and red for another (memory: two checkouts are only comparable if
+their environment matches). The four WARN rows for loose gitignored root files are the same shape.
+
+**Scope.** docs-doctor takes its file list from `git ls-files` (tracked files) plus untracked
+files that are not ignored (`git ls-files --others --exclude-standard`), never from a raw walk;
+the orphan, date-header and loose-root checks all read that list. Guard: a gitignored `.md`
+dropped into `docs/screenshots/` changes nothing in the report.
+
+**Acceptance.** `bun run docs:check` exit 0 on A1's machine with the four local files present.
+
+**DoD.** Pushed; the report shows the count before and after on a tree with an ignored file.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
