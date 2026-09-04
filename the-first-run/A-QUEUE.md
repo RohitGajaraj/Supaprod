@@ -9869,7 +9869,7 @@ zero WARN/FAIL. Pushed directly to `main` (b68b61e1f). No live browser access fr
 the Acceptance's own "across two reads a minute apart" needs a live read from A1.
 
 
-### P-130 · Every time on every surface is in the person's zone · Lane: **A3** (after P-129) · Status: PUBLISHED AS A PARTIAL (6b74164f8; A1 gate: build 0, tsc 0, 14,530 pass / 0 fail; published 15:22 IST; the P-126 sites and the shared formatter; the sweep of the remaining sites continues under this packet per A3's report) · Moves: 2
+### P-130 · Every time on every surface is in the person's zone · Lane: **A3** (after P-129) · Status: DONE AS SCOPED BY A3 (6b74164f8; one formatter, one zone source with the profile falling back to the browser, the one hard-coded UTC site fixed; published 15:22 IST; the 70 remaining browser-local sites are P-130b) · Moves: 2
 
 **Why.** Start's run row (P-126) reads *Live since 06:58* for a promote the founder pressed at
 12:28 IST; the run screen's transcript rows read *11:20* for the same morning's commits, which is
@@ -10080,6 +10080,24 @@ Guard: a run with three ledger rows shows their sum in credits.
 its runs. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
+
+
+### P-130b · The seventy remaining clocks use the one formatter · Lane: **A3** (after P-109) · Status: READY · Moves: 5
+
+**Why.** P-130 built `clockInZone`, `dateTimeInZone` and `useTimezone()` and rewired the P-126
+sites; A3's grep found 70 more files in `src/` formatting times with `toLocaleTimeString`,
+`toLocaleDateString` or `toISOString().slice(11`, all browser-local, none reading the profile's
+zone. They agree with each other today and disagree with the profile whenever a person sets one.
+
+**Scope.** Migrate the 70 in passes of ten, each pass its own commit with the file list, each file
+read for what the time means (a clock, a day, a duration) before it is swapped; a guard that no
+file in `src/` (tests excluded) calls the three raw formatters. Report: the count before and
+after each pass.
+
+**Acceptance.** The guard at 0; the run screen's transcript times match Start's zone for the
+same instant. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the numbers.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
