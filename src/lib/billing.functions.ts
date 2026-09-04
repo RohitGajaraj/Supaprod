@@ -24,6 +24,82 @@ async function resolveWorkspaceId(
   return (data as string | null) ?? null;
 }
 
+/**
+ * The workspace's own plan tier, resolved the same way `getBillingState`
+ * always has (workspace shim, then the account's plan once WM-M2 lands, with
+ * the same pre-migration tolerance) -- pulled out to its own function (P-94,
+ * A-QUEUE.md) so a SECOND reader needing "is this workspace paid" does not
+ * re-derive the resolution and risk disagreeing with the surface that already
+ * shows it. `getBillingState` itself now calls this rather than carrying the
+ * logic inline; behaviour is unchanged.
+ */
+export async function resolvePlanTier(
+  supabase: SupabaseClient,
+  userId: string,
+  workspaceId: string,
+): Promise<{ planTier: PlanTier; isOwner: boolean; planTierUnknown: boolean }> {
+  let planTier: PlanTier = "free";
+  let planTierUnknown = false;
+  let isOwner = false;
+  let accountId: string | null = null;
+  try {
+    // Post-migration: account_id is present. error (not throw) on a missing column,
+    // so re-throw to hit the known-columns fallback below.
+    const { data: row, error } = await supabase
+      .from("workspaces")
+      .select("id,owner_id,plan_tier,account_id")
+      .eq("id", workspaceId)
+      .maybeSingle();
+    if (error) throw error;
+    const r = (row ?? {}) as {
+      owner_id?: string;
+      plan_tier?: string | null;
+      account_id?: string | null;
+    };
+    planTier = normalizePlanTier(r.plan_tier); // workspace shim
+    isOwner = !!r.owner_id && r.owner_id === userId;
+    accountId = r.account_id ?? null;
+  } catch {
+    // pre-migration (no account_id column): read the known columns so isOwner still works.
+    try {
+      const { data: row } = await supabase
+        .from("workspaces")
+        .select("id,owner_id,plan_tier")
+        .eq("id", workspaceId)
+        .maybeSingle();
+      const r = (row ?? {}) as { owner_id?: string; plan_tier?: string | null };
+      planTier = normalizePlanTier(r.plan_tier);
+      isOwner = !!r.owner_id && r.owner_id === userId;
+    } catch (e) {
+      // Both reads failed: a real DB error, not the pre-migration shape.
+      // Log it and mark the tier unknown instead of silently reporting free
+      // (LOOM W4 silent-money-failure fix).
+      console.error("resolvePlanTier: workspace tier read failed", e);
+      planTierUnknown = true;
+    }
+  }
+
+  // WM-M2: the account's plan wins over the workspace shim once the migration lands.
+  // Pre-migration (no accounts table) or for a non-account-member, this is a no-op.
+  if (accountId) {
+    try {
+      const { data: acct } = await supabase
+        .from("accounts")
+        .select("plan_tier")
+        .eq("id", accountId)
+        .maybeSingle();
+      const a = (acct ?? {}) as { plan_tier?: string | null };
+      if (a.plan_tier != null) planTier = normalizePlanTier(a.plan_tier);
+    } catch (e) {
+      // accounts not present yet: keep the workspace shim (logged so a real
+      // read failure is visible instead of silent).
+      console.warn("resolvePlanTier: account tier read failed, using workspace shim", e);
+    }
+  }
+
+  return { planTier, isOwner, planTierUnknown };
+}
+
 export type BillingState = {
   workspaceId: string | null;
   planTier: PlanTier;
@@ -66,64 +142,11 @@ export const getBillingState = createServerFn({ method: "GET" })
       };
     }
 
-    let planTier: PlanTier = "free";
-    let planTierUnknown = false;
-    let isOwner = false;
-    let accountId: string | null = null;
-    try {
-      // Post-migration: account_id is present. error (not throw) on a missing column,
-      // so re-throw to hit the known-columns fallback below.
-      const { data: row, error } = await supabase
-        .from("workspaces")
-        .select("id,owner_id,plan_tier,account_id")
-        .eq("id", workspaceId)
-        .maybeSingle();
-      if (error) throw error;
-      const r = (row ?? {}) as {
-        owner_id?: string;
-        plan_tier?: string | null;
-        account_id?: string | null;
-      };
-      planTier = normalizePlanTier(r.plan_tier); // workspace shim
-      isOwner = !!r.owner_id && r.owner_id === userId;
-      accountId = r.account_id ?? null;
-    } catch {
-      // pre-migration (no account_id column): read the known columns so isOwner still works.
-      try {
-        const { data: row } = await supabase
-          .from("workspaces")
-          .select("id,owner_id,plan_tier")
-          .eq("id", workspaceId)
-          .maybeSingle();
-        const r = (row ?? {}) as { owner_id?: string; plan_tier?: string | null };
-        planTier = normalizePlanTier(r.plan_tier);
-        isOwner = !!r.owner_id && r.owner_id === userId;
-      } catch (e) {
-        // Both reads failed: a real DB error, not the pre-migration shape.
-        // Log it and mark the tier unknown instead of silently reporting free
-        // (LOOM W4 silent-money-failure fix).
-        console.error("getBillingState: workspace tier read failed", e);
-        planTierUnknown = true;
-      }
-    }
-
-    // WM-M2: the account's plan wins over the workspace shim once the migration lands.
-    // Pre-migration (no accounts table) or for a non-account-member, this is a no-op.
-    if (accountId) {
-      try {
-        const { data: acct } = await supabase
-          .from("accounts")
-          .select("plan_tier")
-          .eq("id", accountId)
-          .maybeSingle();
-        const a = (acct ?? {}) as { plan_tier?: string | null };
-        if (a.plan_tier != null) planTier = normalizePlanTier(a.plan_tier);
-      } catch (e) {
-        // accounts not present yet: keep the workspace shim (logged so a real
-        // read failure is visible instead of silent).
-        console.warn("getBillingState: account tier read failed, using workspace shim", e);
-      }
-    }
+    const { planTier, isOwner, planTierUnknown } = await resolvePlanTier(
+      supabase,
+      userId,
+      workspaceId,
+    );
 
     return {
       workspaceId,

@@ -20,6 +20,18 @@
  * migrated surface drops it." Colour, size and rhythm now come from `--mrd-*`
  * through utilities, so this line re-resolves on the paper ground with the rest
  * of the surface instead of holding one foot in the old system.
+ *
+ * THE SENTENCE IS NOW A FACT ABOUT THE NUMBER BESIDE IT (P-94, A-QUEUE.md).
+ * Checked live 2026-09-04: `memory_expiry_enabled()` reads false, and no read
+ * anywhere consulted `FREE_MEMORY_RETENTION_DAYS` on its own -- nothing faded
+ * for anyone, on any plan, and this line was marketing a mechanism that did
+ * not run. `getStandingRecord` (brain-standing.functions.ts) now excludes
+ * `agent_memory` rows older than the window from `memoriesTotal`/
+ * `memoriesReached` for a free-tier workspace -- a read-side hide, never a
+ * delete, so an upgrade still recovers every row. Left open, and named as
+ * such in that file's own comment: whether the LOOP itself (`recallMemoryRefs`,
+ * `ai/memory.server.ts`) still draws on a free workspace's memory past the
+ * window. That is a separate, larger change and was not bundled here.
  */
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";

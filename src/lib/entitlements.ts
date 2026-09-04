@@ -389,8 +389,19 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
           // what is NOT gated (one seat, sharing is free everywhere), which are true and
           // worth saying but are not why anyone upgrades. On Free the record fades at 30
           // days; that is the charge, so it goes first.
+          //
+          // P-94 (A-QUEUE.md): this used to say "Your decision record stops
+          // fading" -- the same phrase Free's OWN highlight below uses for
+          // the opposite claim ("Your decision record: exportable forever,
+          // never fades"). Two highlights on two tiers, one phrase,
+          // contradicting each other. What actually differs by plan is the
+          // memory the loop draws on (`memoryRetentionDays`), never the
+          // decisions/learnings record itself (RPT-14: no expiry in the
+          // schema, the export never reads a fading table, true on every
+          // tier). Reworded to match Free's own "past calls" vocabulary
+          // instead of borrowing the other claim's noun.
           "Everything in Free, plus:",
-          "Your decision record stops fading. It keeps guiding.",
+          "Past calls keep guiding forever. Nothing fades.",
           "Every spec and bet gets torn apart by the Critic before you commit to it",
           "Read connectors, unlimited sources. Connect your tools once and signals arrive on their own",
           "What one workspace learned guides them all",

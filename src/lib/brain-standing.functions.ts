@@ -31,6 +31,8 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getActiveHouseRulesForWorkspace } from "@/lib/house-rules.functions";
+import { resolvePlanTier } from "@/lib/billing.functions";
+import { FREE_MEMORY_RETENTION_DAYS } from "@/lib/entitlements";
 
 /** One standing rule the record produced, already approved and still active. */
 export type StandingRule = {
@@ -165,9 +167,59 @@ export const getStandingRecord = createServerFn({ method: "GET" })
       const q = supabase.from("memory_recall_log").select("id", head).eq("user_id", userId);
       return wid ? q.eq("workspace_id", wid) : q;
     };
+
+    /*
+     * ── THE FREE-PLAN FADE, MADE REAL ON THE READ SIDE (P-94, A-QUEUE.md) ────
+     *
+     * Outcomes tells a free-plan reader "this record fades after
+     * FREE_MEMORY_RETENTION_DAYS days" (RetentionLine.tsx). Checked, not
+     * assumed: `memory-tick.ts`'s DELETE-based expiry sweep exists but is
+     * gated behind `memory_expiry_enabled()`, which reads `false` live, and
+     * neither `recallMemoryRefs` nor this count ever consulted the window on
+     * their own -- so nothing fades for anyone, on any plan, and the sentence
+     * was false. Flipping that gate is explicitly out of reach here: its own
+     * comment and `entitlements.test.ts`'s G1.1 BLOCKER both say turning it
+     * on without founder approval "would silently start deleting", and this
+     * packet's own scope offers the other path -- "a read-side filter that
+     * hides rows older than the window ... never a delete".
+     *
+     * So: for a free-tier workspace, `memoriesTotal`/`memoriesReached` (the
+     * numbers RetentionLine's sentence is actually about) now exclude rows
+     * older than the window, computed here rather than trusted from
+     * `expires_at` -- that column is stamped by a SEPARATE gated trigger
+     * (memory-tick.ts's own comment: "Free-tier rows carry expires_at
+     * (stamped on insert by the gated trigger)") and is empty while that one
+     * is off too. Nothing is deleted; an upgrade still recovers every row,
+     * because the underlying data never moved.
+     *
+     * NAMED, NOT SILENTLY PARTIAL: this makes the DISPLAYED record fade.
+     * `recallMemoryRefs` (src/lib/ai/memory.server.ts) -- whether the loop
+     * itself still draws on a free workspace's memory past the window -- is
+     * untouched. That is a materially larger, separate change (a migration
+     * to the `match_agent_memory`/`recent_agent_reflections` RPCs, touching
+     * live AI-recall behaviour for every plan), and bundling it here risked
+     * doing it hastily under this packet's own pace. Recorded as open in
+     * this packet's report rather than left for a future reader to discover
+     * the gap unannounced.
+     */
+    /*
+     * `wid ? ... : null` deliberately, not `?? "free"`: this file's own rule
+     * one paragraph up ("unresolved stays unfiltered ... narrowing to a
+     * workspace we cannot name would turn a failed lookup into 'you have
+     * nothing'") applies here exactly as it does to the workspace scope
+     * itself. An unresolved workspace gets no cutoff, same as it gets no
+     * `workspace_id` filter.
+     */
+    const planTier = wid ? (await resolvePlanTier(supabase, userId, wid)).planTier : null;
+    const memoryCutoffIso =
+      planTier === "free"
+        ? new Date(Date.now() - FREE_MEMORY_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString()
+        : null;
     const memoryBase = () => {
-      const q = supabase.from("agent_memory").select("id", head).eq("user_id", userId);
-      return wid ? q.eq("workspace_id", wid) : q;
+      let q = supabase.from("agent_memory").select("id", head).eq("user_id", userId);
+      if (wid) q = q.eq("workspace_id", wid);
+      if (memoryCutoffIso) q = q.gte("created_at", memoryCutoffIso);
+      return q;
     };
 
     const [rules, pending, total, reached, events, helped, against] = await Promise.all([
