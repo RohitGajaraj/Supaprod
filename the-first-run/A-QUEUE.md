@@ -9560,7 +9560,7 @@ fixture with a production deploy advances. Full suite on the tip, tsc 0, build 0
 **DoD.** Pushed; the three numbers.
 
 
-### P-118b · Reclaiming a hosting slot is a person's press · Lane: **A2** (after P-123, before P-116) · Status: PUBLISHED, LIVE PRESS PENDING (f857f846a; A1 gate on tip 2f30f1b5b: build 0, tsc 0, 14,452 pass / 0 fail; published 13:40 IST; A1 presses one Reclaim live once served) · Moves: 2, 3
+### P-118b · Reclaiming a hosting slot is a person's press · Lane: **A2** (after P-123, before P-116) · Status: DONE WITH A FOLLOW-UP (f857f846a; live 14:47 IST: Settings › Hosting lists 11 apps with verdicts, "1 can be reclaimed, 10 still in use"; A1 pressed Reclaim it on cad-60000000-5139f3a8f8e6, the in-app confirm named the consequence, the toast said "was released", the host never held that slug so this exercised the already-gone path; after the press the row kept its Reclaim button and the count did not drop, and the plan's own count (10 of 10 on the Deno account) is not shown: P-118c) · Moves: 2, 3
 
 **Why.** P-118 built the verdict (*may this slot be reclaimed*: ours by slug, changeset closed, not
 serving production, past a seven-day keep) and, deliberately, nothing that deletes: a deleted
@@ -9786,7 +9786,7 @@ across two reads a minute apart. Full suite on the tip, tsc 0, build 0.
 IST. Two surfaces, two zones, one person. The database is UTC and the box is IST (memory), and a
 time in the wrong zone reorders the day for the reader.
 
-**Scope.** One formatter for every clock time and date the product shows, in the browser's zone,
+**Scope.** Settings › Profile already carries a Timezone field (*Every time on every surface is read in it*), set to UTC on the demo account while the run transcript renders in the browser's zone: two sources. One source, the profile's zone defaulting to the browser's, and one formatter for every clock time and date the product shows,
 with the day when it is not today (*12:28*, *yesterday 12:28*, *Sep 2, 12:28*); a sweep of every
 `toISOString().slice(11,16)` and hand-built time string in `src/` to that formatter; a guard that
 no component formats a time without it.
@@ -9828,6 +9828,28 @@ it deterministic (mock the provider, fake the clock); no raised timeout. Sweep t
 **Acceptance.** Three full-suite runs on the tip with 0 fail. tsc 0, build 0.
 
 **DoD.** Pushed; the numbers.
+
+
+### P-118c · A reclaimed row settles, and the account's count is shown · Lane: **A2** (after P-112, before P-113) · Status: READY · Moves: 2
+
+**Why.** Live 14:47 IST 09-04: after *Reclaim it* on cad-60000000-5139f3a8f8e6 the toast said the
+app was released, and the row stayed with its button and *1 can be reclaimed* stayed in the
+summary until the next load. The host had never held that slug (its create failed on the quota
+weeks ago), which the press treated as done, rightly, but nothing on the page or the record says
+*reclaimed 14:47, the host had no such app*. And the top line counts Supaprod's records (*11
+hosted previews*) while the fact the person needs is the account's (*10 of 10 apps on this plan*),
+which the API returns on the create refusal and `GET /apps` returns any time.
+
+**Scope.** (1) The press settles the row in place (*Reclaimed 14:47*, or *Reclaimed 14:47; the host
+had no such app*), drops the button, and the summary count follows; the deployment row records the
+outcome. (2) The summary's first sentence is the account's count read from the host (*10 of 10 apps
+on this plan; 1 of those is ours to reclaim*), with the read's failure said plainly. Guard: a
+reclaim on a 404 settles the same as on a 204; the count line from a fixture host.
+
+**Acceptance.** Live: the next reclaim settles without a reload; the summary shows the plan count.
+Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
