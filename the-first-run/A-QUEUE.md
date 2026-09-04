@@ -8712,7 +8712,7 @@ Start and Settings carry no second hand-typed plan sentence outside `planPresent
 Full suite on the rebased tip (6dbc2f113): `bun run build` exit 0 (twice, pre- and post-rebase),
 `bunx tsc --noEmit` exit 0, `bun test` 14,337 / 0 / 22 skip / 37 todo. PUSHED ffe40e990.
 
-### P-97 · The docs gate is clean · Lane: **A3** (after P-94) · Status: READY · Moves: 5
+### P-97 · The docs gate is clean · Lane: **A3** (after P-94) · Status: CLAIMED (A3) 10:39 IST 09-04 · Moves: 5
 
 **Why.** `bun run docs:check` reports 110 broken links in live docs, orphan files under
 `docs/screenshots` and four loose gitignored files at root, all as warnings and two as FAIL, so the
