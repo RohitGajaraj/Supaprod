@@ -9068,7 +9068,7 @@ fresh workspace: on Start. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 walks both.
 
-### P-112 · Supaprod-authored files in a customer's repository are a stated fact and a setting · Lane: **A2** (after P-86) · Status: CLAIMED (A2) 14:45 IST 09-04 · Moves: 1, 3
+### P-112 · Supaprod-authored files in a customer's repository are a stated fact and a setting · Lane: **A2** (after P-86) · Status: PUBLISHED, LIVE READ PENDING (cd3e10735; A1 gate on tip 6057b3d99: build 0, tsc 0, 14,512 pass / 0 fail; published 14:55 IST; the write_record_to_repo column dropped as inert; A1 reads the card and the record files on the next Build) · Moves: 1, 3
 
 **Why.** A2's read on P-86: the commit that repairs PR #5 carries `.supaprod/intent.md`, `plan.md`
 and `spec.md`, so the merge puts three Supaprod-authored files into the customer's repository.
@@ -9758,7 +9758,7 @@ Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the ruling; the three numbers; A1 walks the second repo.
 
 
-### P-129 · One count per family on Waiting · Lane: **A3** (after P-126, before P-104) · Status: DONE (A3) 14:48 IST 09-04 (b68b61e1f) · Moves: 2
+### P-129 · One count per family on Waiting · Lane: **A3** (after P-126, before P-104) · Status: PUBLISHED, LIVE READ PENDING (b68b61e1f; same gate; published 14:55 IST; A1 reads the heading against the tabs once served) · Moves: 2
 
 **Why.** Served Waiting page, 12:14 IST 09-04: the heading said *21 design gates, 10 assumption
 challenges, 9 decisions, 4 agent actions, 4 house rules, 3 opportunities and 2 memory notes
