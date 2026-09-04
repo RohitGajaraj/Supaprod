@@ -38,6 +38,30 @@ function entry(name: string, ms: number): string {
 }
 
 /**
+ * Append one already-timed phase to the response's `Server-Timing` header.
+ * The half `timedPhase` below shares with a caller that already has its own
+ * duration -- `track.functions.ts`'s `withStartReaderTiming` is the first of
+ * those: it already wraps every `/start`-adjacent reader with a wall-clock
+ * measurement and a `console.log`, so this rides the same number onto a
+ * header a person can `curl -sI` for, rather than a Worker log they would
+ * otherwise need `wrangler tail` to reach. Fails silent, same reason
+ * `timedPhase` does: see this file's own header.
+ */
+export function appendServerTiming(name: string, ms: number): void {
+  try {
+    const existing = getResponseHeader("Server-Timing") as unknown;
+    const prior =
+      typeof existing === "string" ? existing : Array.isArray(existing) ? existing.join(", ") : "";
+    const next = prior ? `${prior}, ${entry(name, ms)}` : entry(name, ms);
+    setResponseHeader("Server-Timing", next);
+  } catch {
+    // No request context reachable (see this file's own header) -- the
+    // caller's own timing (its console.log, its return value) is unaffected;
+    // only this header is silently lost.
+  }
+}
+
+/**
  * Time one phase and append it to the response's `Server-Timing` header.
  * Returns whatever `fn` returns either way -- a phase that cannot be timed
  * (no request context, e.g. a route rendered outside a real HTTP request)
@@ -48,21 +72,6 @@ export async function timedPhase<T>(name: string, fn: () => Promise<T>): Promise
   try {
     return await fn();
   } finally {
-    try {
-      const ms = performance.now() - started;
-      const existing = getResponseHeader("Server-Timing") as unknown;
-      const prior =
-        typeof existing === "string"
-          ? existing
-          : Array.isArray(existing)
-            ? existing.join(", ")
-            : "";
-      const next = prior ? `${prior}, ${entry(name, ms)}` : entry(name, ms);
-      setResponseHeader("Server-Timing", next);
-    } catch {
-      // No request context reachable (see this file's own header) -- the
-      // phase still ran and its result still returns; only the diagnostic
-      // is lost, silently, on purpose.
-    }
+    appendServerTiming(name, performance.now() - started);
   }
 }

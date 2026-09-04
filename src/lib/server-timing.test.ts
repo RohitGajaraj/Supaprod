@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { timedPhase } from "./server-timing";
+import { timedPhase, appendServerTiming } from "./server-timing";
 
 /**
  * P-58b. No request context exists in a unit test -- `setResponseHeader` and
@@ -37,5 +37,14 @@ describe("timedPhase runs the phase and never lets the diagnostic break it", () 
     });
     expect(ran).toBe(true);
     expect(result).toBe("done");
+  });
+});
+
+describe("appendServerTiming: the primitive a caller with its own duration reuses", () => {
+  // `track.functions.ts`'s `withStartReaderTiming` is the first such caller
+  // (P-58b): it already measures its own wall clock for a `console.log`, and
+  // reuses this rather than a second, drifting duration.
+  test("never throws with no request context reachable", () => {
+    expect(() => appendServerTiming("workspace-read", 12.4)).not.toThrow();
   });
 });

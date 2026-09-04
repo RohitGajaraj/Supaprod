@@ -74,6 +74,7 @@ import {
   type SearchKind,
 } from "@/lib/spine/find-anything";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
+import { appendServerTiming } from "@/lib/server-timing";
 import { claimApprovalDecision, executeApproval } from "@/lib/ai/loop.server";
 import { recordGateSignalCore } from "@/lib/gate-signals.functions";
 import { expiryDefaultFor } from "@/lib/ai/approval-expiry";
@@ -558,7 +559,11 @@ export const listTracks = createServerFn({ method: "GET" })
 function withStartReaderTiming<T>(name: string, fn: () => Promise<T>): Promise<T> {
   const started = timeSourceMs();
   return fn().finally(() => {
-    console.log(`[perf] ${name}: ${timeSourceMs() - started}ms`);
+    const ms = timeSourceMs() - started;
+    console.log(`[perf] ${name}: ${ms}ms`);
+    // P-58b: the same number, also on a header a person can `curl -sI` for
+    // instead of needing `wrangler tail` to read the Worker's own log.
+    appendServerTiming(name, ms);
   });
 }
 /** Isolated so `Date.now()` appears exactly once, never inside a reader body. */
@@ -874,7 +879,15 @@ async function resolveStartWorkspaceId(
   explicit: string | null,
 ): Promise<string | null> {
   if (explicit) return explicit;
+  // P-58b: named separately from the reader's own total, because A1 asked
+  // for "the workspace read, the runs read" as two facts and not one -- a
+  // returning visitor with a stored workspace id never pays this at all
+  // (`explicit` is set, the RPC never fires), so a header that only ever
+  // showed the reader's combined total could not tell that visitor's zero
+  // apart from a first-time visitor's real round trip.
+  const started = performance.now();
   const { data } = await supabase.rpc("current_user_default_workspace");
+  appendServerTiming("workspace-read", performance.now() - started);
   return (data as string | null) ?? null;
 }
 
