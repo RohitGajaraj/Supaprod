@@ -12,6 +12,7 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import { priorSettlement, type OutcomeOverturn } from "@/lib/outcome.functions";
 // Pure string helpers, zero imports of their own, so they are safe on the server.
 import { stripAutoPrefix } from "@/components/plan/format";
+import { creditsSpentByTrace } from "@/lib/credits.functions";
 
 /**
  * Every origin `decisions.source_kind` can hold, and the ONLY place the list is
@@ -969,5 +970,83 @@ export const searchDecisionsForAsk = createServerFn({ method: "POST" })
     } catch (error) {
       console.error("Failed to search decisions for Ask:", error);
       return { decisions: [] };
+    }
+  });
+
+/**
+ * A decision's own total spend, in credits, summed across every run any of
+ * its own tracks ever ran (P-141, A-QUEUE.md).
+ *
+ * A decision's work is not one run: it can span more than one track over its
+ * lifetime, and a run-shaped figure ("credits on this run row") is not a
+ * question Outcomes' own unit -- the decision -- can answer. Summing every
+ * trace's own total, already computed per-trace by `creditsSpentByTrace`,
+ * answers the question this page actually asks: what did this call cost,
+ * altogether.
+ */
+export function decisionSpendCredits(creditsByTrace: Record<string, number>): number {
+  return Object.values(creditsByTrace).reduce((sum, c) => sum + c, 0);
+}
+
+/**
+ * The decision's own spend, read live.
+ *
+ * TWO HOPS, THE SAME ONES `getDecisionsForAsk` ABOVE DOCUMENTS IN REVERSE.
+ * `decisions` has no `track_id` and never has; a decision's tracks are its
+ * `spine_track_members` rows of kind "decision". From each of those tracks,
+ * `agent_runs.trace_id` feeds `creditsSpentByTrace` -- the exact join P-136
+ * verified on the run screen and P-140 reused for Start, never a third
+ * reader that could disagree with the other two.
+ *
+ * `credits: null` for a decision with nothing debited yet is a real, common
+ * answer (no track, no run, or a real run that spent nothing), never a
+ * fabricated zero -- the same rule P-140's Start figure already keeps.
+ */
+export const getDecisionSpend = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ decisionId: z.string().uuid() }).parse(i ?? {}))
+  .handler(async ({ context, data }) => {
+    const { supabase } = context;
+    try {
+      const { data: memberRows, error: memberError } = await supabase
+        .from("spine_track_members")
+        .select("track_id")
+        .eq("artifact_kind", "decision")
+        .eq("artifact_id", data.decisionId);
+      if (memberError) throw memberError;
+      const trackIds = [
+        ...new Set(
+          ((memberRows ?? []) as Array<{ track_id: string | null }>)
+            .map((m) => m.track_id)
+            .filter((t): t is string => typeof t === "string" && t.length > 0),
+        ),
+      ];
+      if (trackIds.length === 0) return { credits: null, trackCount: 0, runCount: 0 };
+
+      const { data: runRows, error: runRowsErr } = await supabase
+        .from("agent_runs")
+        .select("trace_id")
+        .in("track_id", trackIds)
+        .not("trace_id", "is", null);
+      if (runRowsErr) throw runRowsErr;
+      const traceIds = [
+        ...new Set(
+          ((runRows ?? []) as Array<{ trace_id: string | null }>)
+            .map((r) => r.trace_id)
+            .filter((t): t is string => typeof t === "string" && t.length > 0),
+        ),
+      ];
+      if (traceIds.length === 0) return { credits: null, trackCount: trackIds.length, runCount: 0 };
+
+      const creditsByTrace = await creditsSpentByTrace(traceIds);
+      const total = decisionSpendCredits(creditsByTrace);
+      return {
+        credits: total > 0 ? total : null,
+        trackCount: trackIds.length,
+        runCount: traceIds.length,
+      };
+    } catch (error) {
+      console.error("getDecisionSpend failed:", error);
+      return { credits: null, trackCount: 0, runCount: 0 };
     }
   });

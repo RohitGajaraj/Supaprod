@@ -69,8 +69,10 @@ import {
   updateDecision,
   setDecisionForecast,
   forecastRefusal,
+  getDecisionSpend,
   type DecisionSource,
 } from "@/lib/decisions.functions";
+import { creditsWord } from "@/components/today/tracks-feed";
 import { getForecastHistory } from "@/lib/forecast.functions";
 import { FORECAST_SAYS } from "@/components/learn/forecast-words";
 import type { ForecastResolution } from "@/lib/brain/forecast-resolution";
@@ -436,6 +438,11 @@ export function DecisionDetail({ id }: { id: string }) {
     queryKey: ["lineage", "decision", id],
     queryFn: () => fLineage({ data: { kind: "decision", id } }),
   });
+  const fSpend = useServerFn(getDecisionSpend);
+  const spend = useQuery({
+    queryKey: ["decision-spend", id],
+    queryFn: () => fSpend({ data: { decisionId: id } }),
+  });
 
   const [settled, setSettled] = useState<Settled[]>([]);
   const commit = (verb: string, consequence: string, failed = false) =>
@@ -543,6 +550,21 @@ export function DecisionDetail({ id }: { id: string }) {
           <p className="sp-loading">
             Cited as precedent <Num>{citedByCount}</Num> {citedByCount === 1 ? "time" : "times"} by
             later decision contexts.
+          </p>
+        ) : null}
+        {/* A decision's own spend, summed across every run any of its tracks
+            ran -- the decision is the unit here, not the run (P-141). Absent
+            rather than a fabricated zero when nothing has been debited.
+            Meridian (text-mrd-*), not sp-loading: that class is retired
+            vocabulary this file is already over its own ratchet baseline
+            on, and new lines must not add to it. */}
+        {spend.data?.credits ? (
+          <p className="text-mrd-base text-mrd-mute">
+            Cost {creditsWord(spend.data.credits)}
+            {spend.data.runCount > 0
+              ? ` across ${spend.data.runCount === 1 ? "one run" : `${spend.data.runCount} runs`}`
+              : ""}
+            .
           </p>
         ) : null}
       </Region>

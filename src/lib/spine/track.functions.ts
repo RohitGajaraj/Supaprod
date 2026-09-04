@@ -1162,22 +1162,6 @@ export type StartRun = {
    * fabricated zero.
    */
   credits: number | null;
-  /**
-   * TEMPORARY (P-140 live investigation, A1 2026-09-04): Start reads
-   * `credits: null` on every row though the ledger holds real debits.
-   * Neither of us can read this function's own server console, so the four
-   * numbers that narrow which hop comes back empty are handed over in the
-   * payload itself instead -- the same react-query cache A1 already read to
-   * find the null. Remove this field and its computation once the cause is
-   * found and fixed.
-   */
-  creditsDiag?: {
-    ids: number;
-    runRows: number;
-    traces: number;
-    creditsKeys: number;
-    readError: string | null;
-  };
 };
 
 /**
@@ -1366,7 +1350,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
           pinnedByTrack,
           forecastByTrack,
           liveByTrack,
-          { byTrack: creditsByTrack, diag: creditsDiag },
+          creditsByTrack,
         ] = await Promise.all([
           (async () => {
             const byTrack = new Map<string, { tool: string }>();
@@ -1647,6 +1631,19 @@ export const listRunsForStart = createServerFn({ method: "GET" })
              * `gateByTrack`'s own reads carry none -- up to 50 tracks' worth
              * of runs on one page, which has not needed bounding elsewhere in
              * this function either.
+             *
+             * WHY THIS READ 0 CREDITS FOR EVERY ROW (P-140, found 2026-09-04).
+             * The diagnostic this comment replaces put four numbers in the
+             * payload since neither AI session can read this function's own
+             * server console: 50 tracks, 174 runs, 174 traces, and 0 credits
+             * keys with no error on THIS read. `creditsSpentByTrace`'s own
+             * `.in("trace_id", ...)` was one call carrying all 174 -- long
+             * enough to cross a PostgREST URL cap this account's infra
+             * enforces, which the run screen's single-track call (at most a
+             * few dozen traces) never approaches. The fix lives in
+             * `creditsSpentByTrace` itself: both its `.in()` calls now batch
+             * at 25, the same bound `knowledge-graph-view.functions.ts`
+             * already trusted for the identical reason.
              */
             const byTrack = new Map<string, number>();
             const { data: runRows, error: runRowsErr } = await supabase
@@ -1675,23 +1672,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
               if (!trackId) continue;
               byTrack.set(trackId, (byTrack.get(trackId) ?? 0) + credits);
             }
-            // TEMPORARY (P-140 live investigation, A1 2026-09-04): neither of
-            // us can read this function's own server console, so the four
-            // numbers that narrow which hop comes back empty travel in the
-            // payload itself -- read off `["start-runs", wsId]`'s cache entry
-            // the same way the null `credits` was found. Handed back on the
-            // Map itself as a non-enumerable-looking sentinel key would be
-            // fragile, so it rides alongside in a second return value instead.
-            return {
-              byTrack,
-              diag: {
-                ids: ids.length,
-                runRows: (runRows ?? []).length,
-                traces: traceToTrack.size,
-                creditsKeys: Object.keys(creditsByTrace).length,
-                readError: runRowsErr?.message ?? null,
-              },
-            };
+            return byTrack;
           })(),
         ]);
 
@@ -1726,8 +1707,6 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             forecast: forecastByTrack.get(r.id) ?? null,
             liveSince: liveByTrack.get(r.id) ?? null,
             credits: creditsByTrack.get(r.id) ?? null,
-            // TEMPORARY, see StartRun.creditsDiag's own comment.
-            creditsDiag,
           };
         });
       } catch (e) {

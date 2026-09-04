@@ -10410,7 +10410,7 @@ calls, 1,062 files. `bun run build`: clean end to end. `bun run docs:check`: exi
 "docs-doctor: clean." all 12 checks ok.
 
 
-### P-140 · Credits on Start's run rows and the Outcomes page · Lane: **A3** (after P-136) · Status: DIAGNOSTIC READ, FIX PENDING (051438c5a + 7b4c70903; published 19:24 IST; A1 read creditsDiag from the served start-runs payload on Helio at 19:54 IST, both rows: ids 50, runRows 174, traces 174, creditsKeys 0, readError null; every run row has a trace and the credits map comes back empty with no error, where P-136's run-screen join returns 3,606 for the same track; A3 compares the two reads and ships the fix with the diagnostic removed) · Moves: 3
+### P-140 · Credits on Start's run rows and the Outcomes page · Lane: **A3** (after P-136) · Status: FIXED, PUSHED, LIVE READ PENDING (tsc 0, 14,728 pass / 0 fail, build 0, docs:check clean; diag read confirmed the cause: ids 50, runRows 174, traces 174, creditsKeys 0, readError null -- creditsSpentByTrace's own .in() crossed a PostgREST URL cap; A1 presses Start and reads a real credits figure once served) · Moves: 3
 
 **Why.** P-136 closed the run screen's own two-dollar-figure defect, but Scope named three
 surfaces and only one shipped: Start's `YourRuns.tsx` carries no spend figure at all today, and the
@@ -10462,8 +10462,30 @@ even means on a page whose unit is a decision, not a run -- for whoever decides 
 1,064 files. `bun run build`: clean end to end. `bun run docs:check`: exit 0, "docs-doctor: clean."
 all 12 checks ok.
 
+**Report (A3, 20:33 IST 09-04), the `credits: null` bug proper.** Root cause found from A1's own
+diagnostic read (50 tracks, 174 traces, one `.in("trace_id", traceIds)` call: `runRows` 174, `traces`
+174, `creditsKeys` 0, `readError` null): `creditsSpentByTrace`'s own `.in()` carried all 174 trace ids
+in one GET query, long enough to cross a PostgREST URL cap this account's infra enforces, and the
+function's own `if (eventsError...) return {}` swallowed the failure with no trace of it --
+`knowledge-graph-view.functions.ts` already batches its own `.in()` calls at 25 for the identical
+reason, applied here. **First version of the fix was itself wrong**, caught by A1 before it shipped: a
+trace's own `ai_events` never split across batches, but its event ids CAN split across two different
+`credit_ledger` batches, and logging-and-skipping a failed batch let a trace with SOME rows read
+report a real, confident, understated total rather than an absence -- filed as **F-201**. Fixed: every
+trace touched by any failed batch (its own `ai_events` batch, or any `credit_ledger` batch holding one
+of its event ids) is dropped from the result entirely, never partially summed. Proven with a fixture
+built to force exactly that split (24 clean traces + one trace with two events at the 25/1 batch
+boundary, one ledger batch failing): the touched trace reports nothing, not the wrong partial number.
+`creditsDiag` (the temporary payload field) removed from `StartRun` and `listRunsForStart`. The two
+new describe blocks live inside `credits.functions.money-safety.test.ts` rather than a new file --
+`a-module-mock-is-process-wide.test.ts` freezes the set of modules more than one test file mocks
+process-wide, and a standalone file mocking the same `client.server` path tripped that ratchet on the
+first run; merged in instead, verified clean on a second pass. Full suite: tsc 0, 14,728 pass / 0 fail
+/ 22 skip / 37 todo, build 0 (clean nitro/cloudflare-module, diff matches exactly the changed files),
+docs:check clean. A1's own gate on the tip A3 lands is the one that counts (rule 23); Start's own
+served figure is the acceptance A1 reads next.
 
-### P-141 · What a decision's own spend means on Outcomes · Lane: **A3** (after P-140) · Status: READY · Moves: 2
+### P-141 · What a decision's own spend means on Outcomes · Lane: **A3** (after P-140) · Status: PUSHED, LIVE READ PENDING (tsc 0, 14,728 pass / 0 fail, build 0, docs:check clean; A1 opens a decision on Outcomes and reads the spend line once served) · Moves: 2
 
 **Why.** P-140's Scope assumed the Outcomes page has run rows the way Start does; it does not.
 Outcomes lists decisions and their graded forecasts, and a decision's own work can span more than one
@@ -10483,6 +10505,22 @@ decision would actually look for it. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
+**Report (A3, 20:33 IST 09-04).** Read `DecisionsPanel.tsx` (the list) and `DecisionDetail.tsx` (the
+click-through) in full first, per Scope's own instruction: the list is deliberately terse by the
+founder's own second-pass ruling ("if a user wants to know, he will click deeper"), so a run-shaped
+figure belongs in the detail view, not the row. `decisions` carries no `track_id` and never has
+(`getDecisionsForAsk`'s own comment); a decision's tracks are its `spine_track_members` rows of kind
+"decision" -- the same join, reversed. New `getDecisionSpend` server fn (`decisions.functions.ts`):
+those track ids -> `agent_runs.trace_id` for each -> `creditsSpentByTrace` (P-136's exact join, never a
+third reader) -> `decisionSpendCredits` sums the per-trace totals into one figure. `DecisionDetail.tsx`
+renders it in the header Region beside the existing "cited as precedent" line: *Cost {creditsWord(n)}
+across {runCount} runs.*, absent rather than a fabricated zero when nothing has been debited (same rule
+as P-140's Start figure). Guard: `decisions-spend.test.ts`, three fixtures on `decisionSpendCredits`
+including the packet's own named case (two runs across two tracks sum into one figure, regardless of
+which track each trace came from). First push tripped the Meridian ratchet (`sp-loading`, a retired
+class already 3-over-baseline in that file); fixed to the file's own established `text-mrd-base
+text-mrd-mute` pattern instead of adding to the retired count. Full suite: tsc 0, 14,728 pass / 0 fail
+/ 22 skip / 37 todo, build 0, docs:check clean.
 
 ### P-130b · The seventy remaining clocks use the one formatter · Lane: **A3** (after P-109) · Status: READY · Moves: 5
 
