@@ -8648,7 +8648,7 @@ probe, Arriving should read its P-63 zero state and Outcomes should read six cal
 in Helio, both should read unchanged.
 
 
-### P-94 · Every claim on Outcomes is one the repo can show · Lane: **A3** (now) · Status: CODE DONE, PUSHED ffe40e990 · Moves: 1, 2
+### P-94 · Every claim on Outcomes is one the repo can show · Lane: **A3** (now) · Status: CODE DONE (ffe40e990; A3: nothing had ever faded on any plan, the delete sweep is behind `memory_expiry_enabled()` = false which stays the founder's call; a read-side filter now hides free-tier memory older than the window from Outcomes' counts, never a delete; the Pro highlight "Your decision record stops fading" was false and is fixed, and that string also feeds the public /pricing page, which A1 allows as the correction of a false claim rather than new outward copy, flagged for the founder; recall itself untouched and named open; A1 gate running) · Moves: 1, 2
 
 **Why.** Outcomes reads *On the free plan this record fades after 30 days. Keep it.*
 `FREE_MEMORY_RETENTION_DAYS = 30` lives in `entitlements.ts` and `plg-memory-expiry.ts` describes a
