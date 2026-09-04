@@ -9090,7 +9090,7 @@ drift.
 all 12 checks ok.
 
 
-### P-105 · A transcript row leads with one sentence, and the rest folds · Lane: **A3** (after P-104) · Status: PUBLISHED, LIVE READ PENDING (d7872c0a1; A1 gate on tip 945214c0c: build 0, tsc 0, 14,640 pass / 0 fail; published 18:50 IST; A1 reads the shipped track's transcript rows once served) · Moves: 2
+### P-105 · A transcript row leads with one sentence, and the rest folds · Lane: **A3** (after P-104) · Status: DONE (d7872c0a1; live 19:13 IST on 2fdf93b6: 40 rows, leads like "Filed 4 findings. Discovery Scout, 40.5s.", longest 44 characters, none expanded by default) · Moves: 2
 
 **Why.** On the served tablet track the transcript rows carry the seats' full paragraphs (the
 Design critic's 400 words, the Build seat's 300) in the row itself; "a dump of text" was the
@@ -10686,6 +10686,25 @@ fixture with a shipped spec produces the outcome pointer.
 sentence on a solved problem lands on the shipped spec. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; migration applied; the counts before and after.
+
+
+### P-143 · A hold that waits for a day says the day · Lane: **A3** (after the P-140 fix, before P-141) · Status: READY · Moves: 2
+
+**Why.** The shipped track's run screen at Learn, 19:13 IST 09-04: *Tried 3 times and nothing
+changed; trying again at 00:00.* The track's `deferred_until` is 2026-09-21 00:00 UTC, the
+forecast horizon; the card printed the clock of a date seventeen days away and dropped the day,
+and it printed midnight UTC where the person's zone would say 05:30. The sentence beside it
+already says the right thing (*comes due on 2026-09-21*), so the card contradicts its neighbour.
+
+**Scope.** The P-113b hold card uses `dateTimeInZone` (P-130) for the retry moment, so a same-day
+retry reads *at 12:40* and a later one reads *on Sep 21*; when the deferral is the forecast
+horizon rather than the backoff ladder, the card says *Learn returns on Sep 21* and does not claim
+a retry. Guard: fixtures for the three cases.
+
+**Acceptance.** The served card on 2fdf93b6 reads *Learn returns on Sep 21*. Full suite on the
+tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
