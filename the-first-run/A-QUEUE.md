@@ -10146,6 +10146,33 @@ asserting 18 of 26.
 
 **DoD.** Pushed; the three numbers; the measured saving.
 
+
+### P-137 · Learn says what it can and cannot measure about the first release · Lane: **A2** (after P-135) · Status: READY · Moves: 1, 3
+
+**Why.** The first live release (12:28 IST 09-04) sits at Learn with *The forecast this work is
+graded against comes due on 2026-09-09* and a horizon check on 09-21. Its spec's success metrics
+are *tablet checkout completion from 67 percent* and *abandonment on the Shipping Address screen
+from 41 percent of all abandonments*. Nothing connected to Helio measures either: the Sources
+door holds seeded signals, not Relay's analytics, and the release document already says *the
+outcome is not settled yet* without saying whether it ever can be. When 09-09 arrives Learn will
+either grade against nothing or wait silently, and the story the founder asked for, *here is what
+it got you*, ends in a shrug. The third layer of the positioning rests on this station.
+
+**Scope.** (1) Learn, on entry, reads the spec's contract and names each metric's evidence source
+(a connected analytics source, a signal kind in Sources, a hand-entered reading) or says plainly
+that none is connected, on the run screen and on Outcomes, with the one press that connects one
+or records a reading by hand (a person's own number, labelled as such). (2) The grader (P-42)
+refuses to resolve a forecast whose metric has no source, with that reason, rather than resolving
+it as missed or drifting. (3) Guard: a contract with an unmeasured metric renders the sentence
+and the press; a resolution without a source is impossible. Report: which of the two metrics
+on f2aa82f1 has any source today, and what the honest Learn line for 09-09 will read.
+
+**Acceptance.** The run screen for 2fdf93b6 at Learn names both metrics and their sources or
+their absence; P-42's grader read after 17:30 IST shows the refusal, not a verdict. Full suite on
+the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 reads Learn live.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
