@@ -9973,7 +9973,7 @@ it deterministic (mock the provider, fake the clock); no raised timeout. Sweep t
 **DoD.** Pushed; the numbers.
 
 
-### P-118c · A reclaimed row settles, and the account's count is shown · Lane: **A2** (after P-112, before P-113) · Status: PUBLISHED, LIVE PRESS PENDING (7d5f73e6d + a08ce9672; migration 20260909091500 filed after the column was applied, ledger row inserted and confirmed by A1 09:39 UTC; A1 gate on tip a08ce9672: build 0, tsc 0, 14,520 pass / 0 fail; published 15:12 IST; A1 re-reads the reclaimed row once served) · Moves: 2
+### P-118c · A reclaimed row settles, and the account's count is shown · Lane: **A2** (after P-112, before P-113) · Status: DONE (7d5f73e6d + a08ce9672; live 15:40 IST: the top line names whose count it is and where the account's own lives; A1 pressed Reclaim it again on cad-60000000-5139f3a8f8e6, the row settled in place to "Reclaimed on 2026-09-04. Its slot is already free." with no button; one wording nit for a later pass: the top line then reads "11 previews created by Supaprod, all still in use" while one of the eleven was just reclaimed) · Moves: 2
 
 **Why.** Live 14:37 IST 09-04 (09:07 UTC): after *Reclaim it* on cad-60000000-5139f3a8f8e6 the toast said the
 app was released, and the row stayed with its button and *1 can be reclaimed* stayed in the
