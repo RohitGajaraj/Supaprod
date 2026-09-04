@@ -9932,7 +9932,7 @@ zero WARN/FAIL. Pushed directly to `main` (b68b61e1f). No live browser access fr
 the Acceptance's own "across two reads a minute apart" needs a live read from A1.
 
 
-### P-130 · Every time on every surface is in the person's zone · Lane: **A3** (after P-129) · Status: DONE AS SCOPED BY A3 (6b74164f8; one formatter, one zone source with the profile falling back to the browser, the one hard-coded UTC site fixed; published 15:22 IST; the 70 remaining browser-local sites are P-130b) · Moves: 2
+### P-130 · Every time on every surface is in the person's zone · Lane: **A3** (after P-129) · Status: DONE AS SCOPED BY A3 (6b74164f8; one formatter, one zone source with the profile falling back to the browser, the one hard-coded UTC site fixed; published 15:22 IST; live 18:57 IST: Start's run row reads "Live since 12:28", the profile's zone; the 70 remaining browser-local sites are P-130b) · Moves: 2
 
 **Why.** Start's run row (P-126) reads *Live since 06:58* for a promote the founder pressed at
 12:28 IST; the run screen's transcript rows read *11:20* for the same morning's commits, which is
