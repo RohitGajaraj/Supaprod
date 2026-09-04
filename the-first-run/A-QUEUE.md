@@ -8431,7 +8431,7 @@ screen. Full suite on the tip, tsc 0, build 0 for anything you change in Supapro
 **DoD.** Report in the queue with the track id, PR, deployment rows and URL; A1 walks the route.
 
 
-### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CLAIMED (A3) 09:17 IST 09-04 · Moves: 2, 5
+### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUSHED b05fa6cf6 · Moves: 2, 5
 
 **Why.** Since 09-03 the product gained nine doors (P-60), a bottom bar and a sheet (P-81), the
 Choice with a text field (P-71b/e), the run map (P-74), the Ship hold card with its press (P-59c),
@@ -8451,6 +8451,39 @@ the axe-style violations found and fixed, by surface.
 phone bar reaches everything; no control without a name. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 walks with the keyboard.
+
+**Report, A3, 09:34 IST 09-04.** Audited by surface, verified against the actual code rather than
+assumed (a forked read-only pass, then implemented directly). Five of the seven had NO violation:
+
+| Surface | Violations found |
+| --- | --- |
+| P-60's nine doors (rail + `AppFrame.rail-covers-keys.test.ts`) | None -- guard already comprehensive, not re-duplicated |
+| P-81's phone bar + `PhoneMoreSheet` | None -- `aria-modal="true"`, `role="dialog"`, `aria-labelledby`, a `Dialog.tsx`-idiom Tab-trap and focus-return all already present. Added a cheap regression guard (`RailPhoneBar.a11y.test.tsx`) anyway: this is the exact shape RunMap shipped in before this packet, correct on day one, unguarded, and eventually not |
+| P-71b/e's Choice + its text field | None -- both inherit the global `[data-mrd][data-mrd] :focus-visible` ring (`meridian.css:2523`); tab order is natural DOM order; names come from visible text |
+| P-74's run map (`RunMap.tsx`) | **Fixed.** No `aria-live` anywhere -- a screen reader had no way to notice the "here" station move short of re-walking the whole route. Added a `role="status" aria-live="polite" sr-only` paragraph naming the current station, silent when nothing is `here` yet; new `RunMap.a11y.test.tsx` (the file had no test at all before this) |
+| P-59c's Ship hold card | Swept, no violation found in the surface checked |
+| P-79's Team tab | None -- the three nav rows are real `<button data-mrd="">` via `DoorRow`, not click-trap divs |
+| P-63's first-visit Quiets | None -- root carries `data-mrd`, so any real control passed as `action` inherits the ring |
+
+One violation NOT named in the packet's own seven but caught by the same sweep: `_authenticated
+.approvals.tsx` (Waiting) carried no live region either, and the packet's own Scope explicitly
+asks for "Waiting's arrivals (P-83) once, not on every poll." **Fixed.** A delta announcement --
+a ref tracks the previous queue count, text is set only on a genuine increase -- rather than
+announcing the live count directly, which would double-announce on every page load too (the jump
+from "no data yet" to the real number is not an arrival). The empty-queue `quietLine` paragraph is
+now also a live region. New `waiting-announces-its-own-arrivals.test.ts` (source-derived, the same
+fallback P-16's own report used for a surface too heavy to full-mount: workspace context, router
+search params, three live queries, a keyboard effect).
+
+Both fixes follow the exact `role="status" aria-live="polite"` idiom `TrackConsent.tsx` and
+`ArtifactPane.tsx` already use for a value that changes while the page polls.
+
+Tab order and focus-visibility findings are source-derived throughout -- no dev server / browser
+access in this worktree this session, the same standing limitation as every packet closed here,
+matching P-16's own "I could not drive a live Tab key" methodology.
+
+Full suite on the rebased tip (041493291): `bun run build` exit 0, `bunx tsc --noEmit` exit 0,
+`bun test` 14,291 / 0 / 22 skip / 37 todo. PUSHED b05fa6cf6.
 
 ### P-93 · The other-workspaces line on Waiting is a door · Lane: **A3** (after P-90) · Status: READY · Moves: 2
 
