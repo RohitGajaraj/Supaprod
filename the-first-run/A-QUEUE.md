@@ -11121,7 +11121,7 @@ their readings counts. Full suite on the tip, tsc 0, build 0; sha pair per rule 
 
 **DoD.** Pushed; the three numbers; the before-and-after query.
 
-### P-151 · Letting a station try again on deferred work actually lets it try · Lane: **A3** (now, before the next P-146 commit) · Status: READY · Moves: 1, 2
+### P-151 · Letting a station try again on deferred work actually lets it try · Lane: **A3** (now, before the next P-146 commit) · Status: PUSHED, LIVE READ PENDING (9203b2651; tsc 0, 14,780 pass / 0 fail, build 0, docs:check clean; A1 presses "Let Learn try again" on 2fdf93b6 and reads the card once served) · Moves: 1, 2
 
 **Why (A1, 21:05 IST 09-04, F-202).** On the live release track, "Let Learn try again" cleared the
 hold and left `deferred_until` at 2026-09-21, so the page said *You released it · It runs again on
@@ -11250,6 +11250,40 @@ another way.
 **Acceptance.** Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
+
+**Report (A3, 21:49 IST 09-04).** `9203b2651`. `retryStation`'s release update now also clears
+`deferred_until` (belt and suspenders with `driveTrackOnce`'s own unconditional clear), and when
+the track WAS deferred (`stationWasDeferred`, a new pure predicate, fixture-tested for both a
+horizon fixture and a backoff fixture), the press calls `driveTrackOnce` directly with `via:
+"press"` instead of waiting on a sweep that would never see the row. A horizon-deferred Learn
+re-holds through `driveTrackOnce`'s own existing free-recheck path (`whatLearnIsWaitingFor`
+composes the fresh line, no seat run); the sweep's own next pass re-defers it to the same horizon,
+so P-143's card reads the date again. A backoff-deferred track takes a real attempt now: backoff
+is a sweep-side pre-filter (`track-tick.ts`) a direct `driveTrackOnce` call never passes through,
+and the F-43/F-62 counters this control already resets are the only thing that logic reads. The
+client's hardcoded "It runs again on its next turn" line is replaced with the server's own composed
+`note` (`DriveOutcome.line`), falling back to the old sentence only when the track was never
+deferred. `retry-station.test.ts`'s own "dispatches nothing" guard asserted the old, reversed
+behavior outright and is rewritten per this repo's own stale-guard-reversal precedent, header
+explaining why. Also composes correctly with P-144 scope 3 (`recordMetricReading`): a reading that
+already lifted the wait leaves `deferred_until` null before the press ever runs, so
+`stationWasDeferred` reads false and the existing (unchanged) non-deferred path is taken -- no
+special-casing needed, since the predicate only asks whether the column is set, never why.
+
+Also this session: deleted origin's `wip/p35-discovery-functions` branch, confirmed fully
+superseded by main (main carries P-35's own named-column select and P-75b's workspace-scoping fix
+the branch predates and lacks).
+
+Full suite: tsc 0, 14,780 pass / 0 fail / 22 skip / 37 todo, build 0 (clean nitro/cloudflare-module),
+docs:check clean. Every touched file lints clean (rule 25). Not live-verified on 2fdf93b6 itself
+(no server-console read available to either of us); A1's press is the acceptance criterion's own
+text, so this stays LIVE READ PENDING.
+
+**Session close, A3 (21:49 IST 09-04).** Per the founder's instruction (relayed by A1): this closes
+the session after P-151. Session handoff written to `docs/operations/session-handoff.md` and
+`.remember/remember.md`. P-146 stands at IN PROGRESS (153 server functions / 30 components against
+a baseline of 139 / 26 -- not yet reached); the next A3 session picks it up there, per its own
+interim Report a few sections up.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
