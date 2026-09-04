@@ -7297,7 +7297,7 @@ and the page said only *Nothing was started · Your sentence is still in the box
 filed*. A1 inserted the owner's member row at 19:07:12 UTC and pressed again.
 
 
-### P-65 · An owner can start work in their own workspace, and a refusal says why · Lane: **A3** (after P-61) · Status: CODE DONE, PUSHED 5c610bbde (14,227 / 0, tsc 0) · Moves: 1, 2
+### P-65 · An owner can start work in their own workspace, and a refusal says why · Lane: **A3** (after P-61) · Status: CODE DONE (973214bb0; A3 reports 14,227 / 0, tsc 0; the owner-member trigger backfilled two orphaned workspaces live, one a real account's; A1 suite running; A1 walks the probe with its member row removed after publish) · Moves: 1, 2
 
 **A3, 01:50 UTC 09-04, P-65 Report.** `resolveStartWorkspace`
 (`track.functions.ts`) checked `workspace_members` alone and threw `"Forbidden: not a member of
@@ -8001,6 +8001,44 @@ from Helio, unchanged. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 searches from both workspaces.
 
+
+### P-79 · Team carries Spend and limits, and the engine room is reached from it · Lane: **A3** (now) · Status: READY · Moves: 2
+
+**Why.** P-61's ruling: "Crew and spend" is `/crew` with the engine room as its spend tab; the
+rail's Team door landed (P-60) and the engine room still has no door of its own (audit §1: 25
+inbound links, none a person can find). The page a person needs when the bill surprises them is
+one click from nowhere.
+
+**Scope.** On `/crew` (Team), a second tab or section, *Spend and limits*, that IS the engine
+room's content (spend this week, the caps, the costliest model, failed calls), rendered from the
+same reads; `/engine-room` keeps working and redirects into that tab with its search preserved
+(`room`, `view`); the tab title stays Team; Find Anything's doors group lists *Spend and limits*
+under Team. Zero state per P-63. Guard: the redirect and the tab share one list of rooms.
+
+**Acceptance.** Served: Team shows the tab; opening it reads the engine room's numbers; the old URL
+lands on it. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 reads it live.
+
+### P-81 · The rail at narrow widths · Lane: **A3** (after P-79) · Status: READY · Moves: 2
+
+**Why.** P-60 put nine doors on the rail. Below the collapse width the rail shows glyphs only, and
+below a phone width nothing on the rail has been designed since the fold; the founder reads the
+product on a phone between meetings.
+
+**Scope.** Design first, from a real reference: `mcp__mobbin__search_screens` for "bottom
+navigation" and "sidebar collapsed" in developer and agent tools, then Meridian tokens for the
+breakpoints. Below the collapse width: glyphs with the door word on hover and in the accessible
+name (already), the Waiting badge kept. Below the phone width: a bottom bar with the five doors a
+person opens most (Start, Waiting, Arriving, Outcomes, Run) and a *More* sheet for the rest, all
+from `PRIMARY_NAV`'s one list; the `g` keys unchanged; the live line folds to its first fact.
+Guard: the bar and the sheet are generated from the same list as the rail.
+
+**Acceptance.** At 390 px wide the served Start shows the bar, the sheet opens, every door
+reaches its page; at 1280 px nothing changed. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 reads it at both widths.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
@@ -8221,7 +8259,7 @@ and each was correctly catching a contract I had changed: the prompt's `evidence
 kit, and the no-evidence coercion moved from "was there anything to read" to "did it use any of it".
 **Blockers (A2 writes):** —
 
-### P-37 · The run screen reads as a product, not a dump of text · Lane: **A2** · Status: A1 WALKED CLEAN (21:00 IST); the founder's walk decides · Moves: 5
+### P-37 · The run screen reads as a product, not a dump of text · Lane: **A2** · Status: DONE (A1 walked it clean 21:00 IST 09-03 and again on four live runs in the probe overnight; closed under the founder's standing authority of 00:09; his own walk stands as feedback, not as the gate) · Moves: 5
 
 **Why.** The founder, on the tablet track's run at 12:08 IST: the gate card, the messages, the
 action items, the inside of the card, the text and the information are dumped with no hierarchy;
