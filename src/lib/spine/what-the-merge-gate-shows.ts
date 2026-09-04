@@ -195,6 +195,27 @@ export function handRecordedLine(): string {
 }
 
 /**
+ * THREE STATES, NOT TWO (P-121, A-QUEUE.md). `filesLine([])` says "This
+ * change touches no files, which cannot be right" -- exactly right for the
+ * gate, where an empty changeset WE staged is a defect worth stopping on.
+ *
+ * A release row is not the gate. Served Ship, 12:10 IST 09-04, on the
+ * release the founder shows people ("Batch firmware push scheduler", live
+ * since July 9): the gate's own accusation, unearned. That changeset simply
+ * has no file rows recorded -- a seeded or historical release, from before
+ * file tracking existed or from a path that never wrote them -- which is not
+ * a malfunction to flag, the same distinction P-96 already drew for a
+ * DIFFERENT empty-files case (a customer's handback, `handRecordedLine`
+ * below). A release earns the neutral "no file list was recorded" sentence
+ * instead; only the gate itself, through `filesLine` directly
+ * (`mergeGateLines` above), keeps the accusation.
+ */
+export function releaseFilesLine(files: readonly ChangedFile[]): string {
+  if (files.length === 0) return "No file list was recorded for this change.";
+  return filesLine(files);
+}
+
+/**
  * The release row's evidence, in the order a person needs it.
  *
  * Same three facts as the gate, plus where it went. The hand-recorded case
@@ -202,7 +223,10 @@ export function handRecordedLine(): string {
  * the ordinary shape of a handback and `filesLine` reads an empty change as a
  * defect. Getting that wrong is worse than saying nothing: it would tell the
  * customers using the cheapest handback mechanism we have that the product
- * thinks their release is broken.
+ * thinks their release is broken. Every OTHER empty-files release (P-121)
+ * reads through `releaseFilesLine`, not `filesLine`, for the same reason one
+ * level up: only the gate stages its own changeset, so only the gate may
+ * call an empty one a defect.
  */
 export function releaseSummaryLines(e: ReleaseEvidence): string[] {
   if (!e.known) {
@@ -211,7 +235,8 @@ export function releaseSummaryLines(e: ReleaseEvidence): string[] {
       deploymentLine(e.deployment),
     ];
   }
-  const what = e.handRecorded && e.files.length === 0 ? handRecordedLine() : filesLine(e.files);
+  const what =
+    e.handRecorded && e.files.length === 0 ? handRecordedLine() : releaseFilesLine(e.files);
   return [
     what,
     buildLine(e.buildHalt),

@@ -29,6 +29,7 @@ import {
   filesLine,
   handRecordedLine,
   mayAnnounce,
+  releaseFilesLine,
   releaseSummaryLines,
   whyNotAnnounceable,
   type ReleaseEvidence,
@@ -44,11 +45,29 @@ const base: ReleaseEvidence = {
   handRecorded: false,
 };
 
-describe("an empty change means two different things", () => {
-  it("the gate's sentence still calls a built change with no files wrong", () => {
-    // Unchanged, and it must stay: this is the case it was written for.
+describe("an empty change means three different things now (P-121)", () => {
+  it("the GATE's own sentence still calls a built change with no files wrong", () => {
+    // Unchanged, and it must stay: this is the case it was written for. Only
+    // `filesLine` directly (mergeGateLines' own caller) reads this way --
+    // `releaseSummaryLines` no longer does, per the two tests below.
     expect(filesLine([])).toContain("cannot be right");
-    expect(releaseSummaryLines({ ...base, handRecorded: false })[0]).toContain("cannot be right");
+  });
+
+  it("a RELEASE with no files recorded, and no other reason for it, says so neutrally -- never that it 'cannot be right'", () => {
+    // Served Ship, 12:10 IST 09-04: a July release, live in production,
+    // whose changeset simply has no file rows recorded (not a handback --
+    // `handRecorded: false`) read the gate's own accusation. It is not a
+    // defect the product staged; it is a fact about the record.
+    const said = releaseSummaryLines({ ...base, handRecorded: false })[0];
+    expect(said).toBe("No file list was recorded for this change.");
+    expect(said).not.toContain("cannot be right");
+  });
+
+  it("releaseFilesLine only reads neutrally when there really are no files -- a real list still lists them", () => {
+    expect(releaseFilesLine([])).toBe("No file list was recorded for this change.");
+    expect(releaseFilesLine([{ path: "src/a.ts", added: 1, removed: 0 }])).toBe(
+      filesLine([{ path: "src/a.ts", added: 1, removed: 0 }]),
+    );
   });
 
   it("a hand-recorded release says who recorded it instead", () => {
