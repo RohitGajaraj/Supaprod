@@ -11047,6 +11047,21 @@ file, false in the product, and this time in a guard A2 argued for.
    (not well founded) and one with three recorded readings (well founded); the refusal; the
    migration's shape.
 
+**Rulings after A2's second measurement (20:59 IST).** Six decisions name a forecast metric, one
+carries a spec id, and the three metrics are spelt four ways, so "readings the record holds for
+this metric" has no key today and the rule as written would import the prose match scope 3
+refused. So: (1) the first move is the key, and the second is the rule. The decision is written
+before the spec, so the join is made at Plan by the writer that has both in view: the clause says
+which decision's forecast it measures and the decision's clause id is set in the same write;
+nothing is matched by prose, ever; where the columns live is A2's. (2) Founded on the record,
+every band today is thin (0 of 133 specs carry a reading, `product_analytics` is empty, the 56
+eval rows are one apiece), so `tierActionFor` answers *log* for everything until three readings
+of one metric exist. That is the call, made knowingly: a tier that fires on a session count is
+theatre, and the surfaces that would have shown a tier say why nothing fires, in the composer's
+words. (3) The four populations become NULL, not 1: the record shows zero readings behind those
+baselines and `forecast-band.ts` already gives null the meaning "nobody counted"; the two honest
+rows stay 1. (4) A value equal to its baseline is a warning on the writer, not a refusal.
+
 **Not in scope.** Fuzzy matching of a forecast's metric to a clause (its own packet, measured).
 
 **Acceptance.** The query in the report before and after: seven rows, their populations and
