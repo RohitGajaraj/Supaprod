@@ -10255,7 +10255,7 @@ the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads Learn live.
 
 
-### P-128b · The static build ships · Lane: **A2** (now, before P-135) · Status: PATH HALF PUBLISHED (ef26977dd + ef608c28a; migration 20260909093000 written first, applied, ledger confirmed by A1 10:57 UTC; A1 gate: build 0, tsc 0, 14,587 pass / 0 fail; published 16:30 IST; the run-screen shape line is the closing commit; the live walk waits on the founder's repo) · Moves: 1, 3
+### P-128b · The static build ships · Lane: **A2** (now, before P-135) · Status: CODE COMPLETE, ACCEPTANCE BLOCKED (ef26977dd + ef608c28a + 4347ac024; nineteen guards against a fixture with the host mocked; A1 gate on the closing tip running, publish on green; DONE only after the live walk of a second repo, which waits on the founder creating or allowing Supaprod/helio-status-site) · Moves: 1, 3
 
 **Why.** R-41 is placed. P-128 shipped the detection (a repo's shape read from `package.json`,
 the output directory from the dependency, the hold sentence and the handback for a shape we do not
@@ -10278,6 +10278,14 @@ until then the walk uses A2's fixture. Full
 suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 walks the second repo.
+
+
+**The walk's checklist (A2, 16:38 IST), for whoever walks the second repo.** Three things no
+fixture proves: (1) the manifest round trip at real size, a Vite build returning a few hundred
+files against ceilings that have never met a real number; (2) `bun install --frozen-lockfile`
+against a repo whose lockfile was written by npm or pnpm, where the fix is a lockfile-aware
+install step; (3) the generated entrypoint against a real single-page app's deep links, assumed
+rather than measured. Record each with its number on the walk.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
