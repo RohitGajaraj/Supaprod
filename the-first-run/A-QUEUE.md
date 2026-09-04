@@ -8543,6 +8543,12 @@ return flow is the host app's `onChangeAddress` callback and outside this repo, 
 are not in the MVP scope. Approved the spec on its page at 06:53 UTC (*Approved · saved 12:23 PM*)
 under the founder's authority, with those three dispositions as the reason. Next: the design gate.
 
+
+**LIVE WALK, the design gate, 12:25 IST 09-04 (06:55 UTC).** The gate for spec f2aa82f1 was on
+Waiting as *Approve the design for ...? Approve · unblocks Build for this spec*; A1 pressed Approve
+under the founder's authority (*You approved*). Both of the release seat's prerequisites are now
+met. Next: *Run it now* at Ship, then the release gate and the promote.
+
 ### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUBLISHED 09:38 IST 09-04 (b05fa6cf6; A1 on the tip: build 0 clean, tsc 0, 14,291 / 0 / 0; the keyboard walk follows) · Moves: 2, 5
 
 **Why.** Since 09-03 the product gained nine doors (P-60), a bottom bar and a sheet (P-81), the
@@ -9217,7 +9223,7 @@ dropped into `docs/screenshots/` changes nothing in the report.
 **DoD.** Pushed; the report shows the count before and after on a tree with an ignored file.
 
 
-### P-118 · A host that refuses to make the app says so, and Ship keeps its own house · Lane: **A2** (after P-114, before P-116) · Status: READY · Moves: 1, 3
+### P-118 · A host that refuses to make the app says so, and Ship keeps its own house · Lane: **A2** (after P-114, before P-116) · Status: DONE (cfb7cd2eb; A1 gate: build 0, tsc 0, 14,398 pass / 0 fail; published 12:26 IST, deployment 66902f7a; the reclaim press is P-118b) · Moves: 1, 3
 
 **Why.** Read live 06:24 to 06:31 UTC 09-04 on the merged Ship candidate. `deployChangesetApp`
 POSTs `/apps {slug}` to Deno Deploy and treats 409 **and 400** as "the app already exists", then
