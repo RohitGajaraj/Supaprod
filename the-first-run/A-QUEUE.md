@@ -143,6 +143,13 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     counts.** It is not `scripts/lane-gates.sh`, which runs more and is nobody's gate today. A lane
     that runs a check the gate does not is welcome to, and reports it by name (A1, 19:51 IST 09-04,
     after A2 found the unreachable check red on main with nobody told; P-146).
+26. **One full suite per machine at a time, and a run under contention is not a gate.** At 20:19 IST
+    A2's machine was at load 327 with eight `bun test` processes, and the suite returned three
+    failures that pass alone, two of them live-database guards that take 14 seconds unloaded. A
+    number the suite cannot tell from contention is not a number. A lane that cannot get a clean
+    run says so and pushes with its numbers labelled; A1's gate on the landed tip, on a machine
+    with nothing else running, is the one that closes the packet, as rule 23 already says. Nobody
+    calls a loaded run flaky and pushes on it (A2 and A1, 20:19 IST 09-04).
 
 ### The bar a packet is verified against, in this order
 
