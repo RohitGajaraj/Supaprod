@@ -10188,6 +10188,23 @@ warm under 300 ms, with `Server-Timing` showing where the rest goes. Full suite 
 
 **DoD.** Pushed; the numbers; RULINGS gets the hosting decision.
 
+
+**Attribution, A2, 16:52 to 17:02 IST 09-04.** (1) `worker-total` wrapped the handler and started
+after the SSR entry's dynamic import, so the cold seconds were attributed to render, bundle and
+network in turn; an `entry-load` span is added, reported only by the request that paid it. (2) The
+bundle thesis is dead: 193 modules / 6.5 MB compile in 150 ms and route splitting is already done.
+(3) The largest lever is written and inert: `withMarketingCacheHeaders` sets `s-maxage=300,
+stale-while-revalidate=86400` and the built Worker serves it locally in workerd, while production
+serves `no-cache, must-revalidate, max-age=0` on HTML only (other headers from the same call site
+survive; `/health`'s `no-store` survives; no `cf-cache-status` anywhere). The hosting layer
+rewrites Cache-Control on HTML between the Worker and the client, since 2026-08-07. Warm already
+meets the target (0.70 to 0.80 s); cold is dominated by spans our code does not own (a static
+favicon costs 2.4 s cold). **For the founder and Lovable:** whether the zone for supaprod.ai sets a
+cache rule or Browser Cache TTL that overrides origin Cache-Control on HTML; if the zone is in the
+founder's own Cloudflare account, A1 can read its rules through the Cloudflare MCP once he
+authenticates it. **Ours regardless:** the Worker caching its own anonymous marketing HTML through
+the Workers Cache API, and the landing count replaced by a cached counter; both inside P-135.
+
 ### P-136 · One currency on the run screen · Lane: **A3** (after P-133, before P-104) · Status: READY · Moves: 2
 
 **Why.** The run screen's bottom bar reads *40m 30s $0.75* and the artifact pane *$0.73*, while
