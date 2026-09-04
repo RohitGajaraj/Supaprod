@@ -6,6 +6,11 @@ import {
   withSecurityHeaders,
   withWorkerTotalTiming,
   withEntryLoadTiming,
+  carriesASession,
+  mayUseEdgeCache,
+  mayStoreInEdgeCache,
+  withCacheMarker,
+  withoutRenderTiming,
   withBuildCanary,
 } from "./server";
 
@@ -305,6 +310,132 @@ describe("withEntryLoadTiming", () => {
   test("preserves the body and status it does not own", () => {
     const response = new Response("hello", { status: 404 });
     expect(withEntryLoadTiming(response, 12).status).toBe(404);
+  });
+});
+
+/**
+ * A header reader built from a plain map. Not a convenience: happy-dom's
+ * globals are preloaded for this suite and they enforce the Fetch spec's
+ * forbidden-header rules, so a real Request silently drops Cookie and a real
+ * Response silently drops Set-Cookie. Asserting through one would prove
+ * happy-dom strips headers, not that our rules read them.
+ */
+function headersOf(entries: Record<string, string>) {
+  return { get: (name: string) => entries[name] ?? null };
+}
+
+describe("carriesASession", () => {
+  test("no cookie and no Authorization header is anonymous", () => {
+    expect(carriesASession(headersOf({}))).toBe(false);
+  });
+
+  test("a Supabase auth cookie is a session", () => {
+    expect(carriesASession(headersOf({ Cookie: "sb-abcdefgh-auth-token=eyJhbGciOi" }))).toBe(true);
+  });
+
+  test("an Authorization header is a session even with no cookie", () => {
+    expect(carriesASession(headersOf({ Authorization: "Bearer x" }))).toBe(true);
+  });
+
+  test("an unrelated cookie is not a session", () => {
+    // A visitor carrying only analytics state is still anonymous. Treating
+    // them as signed in would mean nobody who ever loaded the site is served
+    // a cached page again, which is most of the benefit gone.
+    expect(carriesASession(headersOf({ Cookie: "plausible_ignore=false" }))).toBe(false);
+  });
+});
+
+describe("mayUseEdgeCache", () => {
+  test("an anonymous GET of a marketing route may be cached", () => {
+    expect(mayUseEdgeCache("GET", "/", headersOf({}))).toBe(true);
+  });
+
+  test("a route outside the marketing set never is", () => {
+    expect(mayUseEdgeCache("GET", "/app", headersOf({}))).toBe(false);
+  });
+
+  test("a signed-in reader of a marketing route is served fresh", () => {
+    // The expensive failure: holding a page rendered for somebody with a
+    // session and handing it to the next visitor.
+    expect(mayUseEdgeCache("GET", "/", headersOf({ Cookie: "sb-abcdefgh-auth-token=eyJ" }))).toBe(
+      false,
+    );
+  });
+
+  test("a POST is never cached", () => {
+    expect(mayUseEdgeCache("POST", "/", headersOf({}))).toBe(false);
+  });
+
+  test("a reader forcing a reload gets a real render", () => {
+    expect(mayUseEdgeCache("GET", "/", headersOf({ "Cache-Control": "no-cache" }))).toBe(false);
+  });
+
+  test("every route it admits is one withMarketingCacheHeaders would cache", () => {
+    // The two gates must not drift apart: caching a route the header layer
+    // does not consider public is how a private page ends up held at a colo.
+    for (const path of ["/", "/pricing", "/faq", "/investors"]) {
+      expect(mayUseEdgeCache("GET", path, headersOf({}))).toBe(true);
+      const marked = withMarketingCacheHeaders(new Response("<html></html>", { status: 200 }), path);
+      expect(marked.headers.get("Cache-Control")).toContain("s-maxage=300");
+    }
+  });
+});
+
+describe("mayStoreInEdgeCache", () => {
+  test("a clean 200 is storable", () => {
+    expect(mayStoreInEdgeCache(200, headersOf({}))).toBe(true);
+  });
+
+  test("a redirect or an error is never stored", () => {
+    expect(mayStoreInEdgeCache(301, headersOf({}))).toBe(false);
+    expect(mayStoreInEdgeCache(500, headersOf({}))).toBe(false);
+  });
+
+  test("a response carrying Set-Cookie is never stored", () => {
+    // Storing it would hand the next visitor a cookie minted for someone else.
+    expect(mayStoreInEdgeCache(200, headersOf({ "Set-Cookie": "sb-a-auth-token=eyJ; Path=/" }))).toBe(
+      false,
+    );
+  });
+});
+
+describe("withCacheMarker", () => {
+  test("names where the bytes came from", () => {
+    expect(withCacheMarker(new Response("x"), "HIT").headers.get("X-Supaprod-Cache")).toBe("HIT");
+    expect(withCacheMarker(new Response("x"), "MISS").headers.get("X-Supaprod-Cache")).toBe("MISS");
+  });
+
+  test("a request that was never eligible reads BYPASS, not MISS", () => {
+    // Measured 2026-09-04 before this split existed: a cookie-bearing request
+    // came back X-Supaprod-Cache: MISS, which says the cache was consulted and
+    // empty. It was never consulted at all. A reader checking whether sessions
+    // bypass the cache would have read that as proof they do not.
+    expect(withCacheMarker(new Response("x"), "BYPASS").headers.get("X-Supaprod-Cache")).toBe(
+      "BYPASS",
+    );
+    expect(mayUseEdgeCache("GET", "/", headersOf({ Cookie: "sb-a-auth-token=eyJ" }))).toBe(false);
+  });
+
+  test("the stored copy drops the render's phases so a hit cannot replay them", () => {
+    // This test used to build a bare Response and assert it had no
+    // Server-Timing. It passed, and it proved nothing: nothing had put a
+    // phase on it. Live, hits came back carrying landing-data;dur=2 from the
+    // render that filled the cache -- a data fetch the hit never performed.
+    // The response is built here the way the real one arrives, with the
+    // route's own phase already on it.
+    const rendered = withMarketingCacheHeaders(
+      new Response("<html></html>", {
+        status: 200,
+        headers: { "Server-Timing": "landing-data;dur=272" },
+      }),
+      "/",
+    );
+    expect(rendered.headers.get("Server-Timing")).toBe("landing-data;dur=272");
+    const stored = withoutRenderTiming(rendered);
+    expect(stored.headers.get("Server-Timing")).toBeNull();
+    expect(stored.headers.get("X-Supaprod-Timing")).toBeNull();
+    // The cache headers the copy is stored under must survive the strip.
+    expect(stored.headers.get("Cache-Control")).toContain("s-maxage=300");
   });
 });
 

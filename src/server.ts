@@ -152,6 +152,152 @@ export function withMarketingCacheHeaders(response: Response, pathname: string):
 }
 
 /**
+ * P-135: the edge cache we ask for and are not given.
+ *
+ * `withMarketingCacheHeaders` asks the edge to hold these routes for five
+ * minutes. MEASURED 2026-09-04 against production, every marketing route:
+ * the served response is still `no-cache, must-revalidate, max-age=0`, while
+ * the same build answering in workerd sets `s-maxage=300`. So the header is
+ * rewritten between this Worker and the client and the ask has never once
+ * taken effect -- a month of every anonymous visitor paying a full SSR round
+ * trip the code already asked the edge to skip.
+ *
+ * A rule that rewrites a client-facing header does not touch the Worker's own
+ * cache store, so the Worker holds the response itself. This is not a
+ * workaround for the zone question, which is still open and still owned by
+ * whoever configured the zone; it is the half we can make true from here.
+ *
+ * Anonymous only, and deliberately conservative about what that means. A
+ * request carrying a Supabase auth cookie or an Authorization header is
+ * always served fresh. These routes render identical bytes for every
+ * anonymous visitor, which is what makes holding them safe; the moment a
+ * session is present that assumption is no longer ours to make. Being wrong
+ * toward "do not cache" costs one render. Being wrong the other way serves
+ * one person's page to somebody else, so the two errors are not weighed
+ * equally here.
+ */
+type EdgeCache = {
+  match: (request: Request) => Promise<Response | undefined>;
+  put: (request: Request, response: Response) => Promise<void>;
+};
+
+/**
+ * Null wherever the Cache API does not exist -- a test, a dev server, any
+ * runtime that is not workerd. Every caller treats null as "just render it",
+ * so the absence of a cache is never an error, only a miss.
+ */
+function edgeCache(): EdgeCache | null {
+  const store = (globalThis as { caches?: { default?: EdgeCache } }).caches;
+  return store?.default ?? null;
+}
+
+/**
+ * These three take a header reader rather than a Request or a Response, and
+ * that is deliberate rather than stylistic.
+ *
+ * `test/setup.ts` preloads happy-dom's globals, and happy-dom implements the
+ * Fetch spec's forbidden-header rules: `new Request(url, {headers: {Cookie}})`
+ * silently drops the cookie, and `new Response(body, {headers: {"Set-Cookie"}})`
+ * silently drops that. Under `bun run` both survive, and under workerd -- the
+ * runtime that actually serves this -- both survive. So a test that built a
+ * Request to prove "a signed-in reader is never served a cached page" would
+ * pass against a request carrying no cookie at all, and would go on passing if
+ * the rule were deleted. It would assert happy-dom's stripping, not ours.
+ *
+ * Taking the reader instead makes the predicate a pure function of the values
+ * it decides on, so the test states the rule and the environment cannot quietly
+ * answer for it. Same family as F-192: a check that cannot see what production
+ * sees is not a check.
+ */
+type HeaderReader = { get: (name: string) => string | null };
+
+/** A session in any form we mint or accept. Kept in one place so a reader can
+ * see the whole definition of "anonymous" at once rather than assembling it
+ * from three call sites. */
+export function carriesASession(headers: HeaderReader): boolean {
+  if (headers.get("Authorization")) return true;
+  const cookie = headers.get("Cookie");
+  if (!cookie) return false;
+  return cookie.includes("-auth-token") || cookie.includes("sb-");
+}
+
+/**
+ * Whether this request may be answered from, and stored in, the Worker's own
+ * cache. `no-cache` on the request is honoured: someone forcing a reload gets
+ * a real render, which is also what makes this debuggable from outside.
+ */
+export function mayUseEdgeCache(
+  method: string,
+  pathname: string,
+  headers: HeaderReader,
+): boolean {
+  if (method !== "GET") return false;
+  if (!CACHEABLE_MARKETING_ROUTES.has(pathname)) return false;
+  if (carriesASession(headers)) return false;
+  return !(headers.get("Cache-Control") ?? "").includes("no-cache");
+}
+
+/**
+ * What may be stored. A redirect, an error or anything carrying a Set-Cookie
+ * is never held: the first two would pin a wrong page for five minutes, and
+ * the third would hand the next visitor a cookie minted for someone else.
+ */
+export function mayStoreInEdgeCache(status: number, headers: HeaderReader): boolean {
+  if (status !== 200) return false;
+  return headers.get("Set-Cookie") === null;
+}
+
+/**
+ * Names where the bytes came from. Worth a header because without it a fast
+ * response and a cached one are indistinguishable from outside, which is the
+ * position this packet just spent a day getting out of.
+ *
+ * Three states, not two, and the third is the point. MISS means the cache was
+ * consulted and had nothing; BYPASS means it was never consulted, because the
+ * request carried a session or was not a cacheable route. Collapsing those
+ * into one label would report a lookup that never happened -- a signed-in
+ * reader would read as "we tried and missed", and a rule that stopped
+ * bypassing sessions would still say MISS while silently caching them. The
+ * distinction is the same one entry-load draws: only report what actually
+ * happened to this request.
+ */
+/**
+ * Strips the render's own timing from the copy that goes into the cache.
+ *
+ * MEASURED 2026-09-04, and it caught me: with the cache working, hits came
+ * back carrying `landing-data;dur=2` from the render that filled the cache.
+ * A hit does no data fetch at all, so that line reported a cost the request
+ * never paid -- the exact defect entry-load exists to prevent, reintroduced
+ * one layer down. The unit test missed it because it asserted against a
+ * synthetic Response that had no phases on it, so it proved the stored copy
+ * carried no Server-Timing only because nothing had put one there. Same trap
+ * as the happy-dom one: a check that cannot see what production sees.
+ *
+ * A hit keeps its own `worker-total` and nothing else, because that is the
+ * only number it actually spent.
+ */
+export function withoutRenderTiming(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.delete("Server-Timing");
+  headers.delete("X-Supaprod-Timing");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+export function withCacheMarker(response: Response, state: "HIT" | "MISS" | "BYPASS"): Response {
+  const headers = new Headers(response.headers);
+  headers.set("X-Supaprod-Cache", state);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+/**
  * P-58b: the one Server-Timing phase that carries no framework-context risk
  * at all -- wall clock around the whole SSR handler call, measured at the
  * Worker's own boundary rather than from inside a route `loader`. Appended,
@@ -506,6 +652,23 @@ export default {
       );
     }
 
+    // P-135: a hit answers before the SSR entry is even imported, so a cached
+    // request pays neither entry-load nor landing-data. The stored copy is
+    // taken BEFORE the timing wrappers, so a hit can never replay the
+    // render's Server-Timing as though it were its own -- the same rule that
+    // makes entry-load report only on the request that actually paid it.
+    const cacheEligible = mayUseEdgeCache(request.method, url.pathname, request.headers);
+    const cacheStore = cacheEligible ? edgeCache() : null;
+    if (cacheStore) {
+      const servedAt = performance.now();
+      const hit = await cacheStore.match(request);
+      if (hit) {
+        return withBuildCanary(
+          withWorkerTotalTiming(withCacheMarker(hit, "HIT"), performance.now() - servedAt),
+        );
+      }
+    }
+
     try {
       // P-135: `entryWasCold` is read before the await, because the await
       // itself is what populates the promise -- reading it after would call
@@ -528,10 +691,44 @@ export default {
       // than set, so it never drops a route's own Server-Timing phases. The
       // build canary rides every response, including the ones the earlier
       // wrappers stand down on.
+      const storable = withMarketingCacheHeaders(
+        withAgentDiscoveryLink(securedResponse),
+        url.pathname,
+      );
+      if (cacheStore && mayStoreInEdgeCache(storable.status, storable.headers)) {
+        // Clone before returning: the body is a stream and the copy has to be
+        // taken while it is still unread. The write is handed to waitUntil so
+        // a client that disconnects mid-response does not cancel it.
+        const stored = withoutRenderTiming(storable.clone());
+        const waitUntil = (ctx as WorkersCtx | null | undefined)?.waitUntil;
+        // A failed write must not fail the response -- the visitor already has
+        // their page -- but it must not vanish either. The first version of
+        // this swallowed the rejection, and the cache then missed on every
+        // request with nothing anywhere saying why; the reason a write is
+        // refused (a Set-Cookie, a status the API will not hold) is exactly
+        // what a reader needs to see.
+        const write = cacheStore.put(request, stored).catch((error: unknown) => {
+          captureError(error, {
+            surface: "edge-cache-put",
+            request_path: url.pathname,
+          });
+        });
+        if (typeof waitUntil === "function") {
+          waitUntil.call(ctx, write);
+        } else {
+          // No waitUntil here. Workers cancels any pending I/O the moment the
+          // response is returned, so a write left unawaited is not slow, it
+          // simply never happens -- and it never happens silently, which is
+          // how the first version of this missed on every request with no
+          // error anywhere. Awaiting costs a few ms on a miss and is the only
+          // thing that makes the next request a hit.
+          await write;
+        }
+      }
       return withBuildCanary(
         withWorkerTotalTiming(
           withEntryLoadTiming(
-            withMarketingCacheHeaders(withAgentDiscoveryLink(securedResponse), url.pathname),
+            withCacheMarker(storable, cacheEligible ? "MISS" : "BYPASS"),
             entryLoadMs,
           ),
           fetchMs,

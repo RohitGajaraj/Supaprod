@@ -28,6 +28,11 @@ import { LANDING_SESSION_KEY_RE } from "@/lib/landing-session";
 import { sendWaitlistWelcome } from "@/lib/waitlist-email.server";
 import { track, type TrackEvent } from "@/lib/observability";
 import { timedPhase } from "@/lib/server-timing.server";
+import {
+  isFresh,
+  resolveReading,
+  type CountReading,
+} from "./a-vanity-number-is-not-worth-a-full-scan";
 
 // waitlist_signups / landing_events postdate the generated types; same relaxed
 // pattern as proof-surface.functions.ts.
@@ -200,6 +205,13 @@ export const getLandingStats = createServerFn({ method: "GET" }).handler(
  * and the floor already hides small true totals. A failed count must not read
  * as a real "0 in line", which is the one number that beat must never publish.
  */
+/**
+ * The isolate's last good reading, or undefined before the first one. Module
+ * scope rather than global: a new isolate starts empty and reads fresh, so a
+ * deploy is never pinned behind a cached number.
+ */
+let waitlistCountReading: CountReading | undefined;
+
 export const getWaitlistCount = createServerFn({ method: "GET" }).handler(
   async (): Promise<number | null> =>
     // P-58b's Server-Timing header, moved in here rather than wrapped around
@@ -211,15 +223,25 @@ export const getWaitlistCount = createServerFn({ method: "GET" }).handler(
     // guarantees stays server-only, so the timing rides along with the read it
     // is timing instead of wrapping it from outside.
     timedPhase("landing-data", async () => {
+      // P-135: served from the isolate's last reading when that reading is
+      // still fresh. The read below is a full scan and it was 100% of the
+      // Worker's warm time on every one of fourteen live reads; the number it
+      // produces is floored and rounded before anyone sees it, so a reading
+      // minutes old is not distinguishable at the surface from a live one.
+      const now = Date.now();
+      if (isFresh(waitlistCountReading, now)) return waitlistCountReading.value;
+      let fetched: number | null = null;
       try {
         const { count, error } = await db
           .from("waitlist_signups")
           .select("id", { count: "exact", head: true });
-        if (error) return null;
-        return count ?? 0;
+        if (!error) fetched = count ?? 0;
       } catch {
-        return null;
+        fetched = null;
       }
+      const { served, remember } = resolveReading(waitlistCountReading, fetched, now);
+      waitlistCountReading = remember;
+      return served;
     }),
 );
 
