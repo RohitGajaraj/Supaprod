@@ -166,6 +166,8 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     0 fail in 40 s. The three failures did not exist, and nobody could have told which were real
     by reading them (A2, 20:24 IST).
 
+**Branches, %s IST 09-04 (the founder's word to A1 directly: every branch 0 ahead and 0 behind, everything on main).** Deleted on origin after verification: `wip/p35-discovery-functions` (A3, superseded by main's P-35 and P-75b), `p137-learn-sources` (52130eda3, identical to main's 90c1b16aa file by file), `lovable-backup-main-1788424131` and `-1788430715` (Lovable's own backups holding two bot WIP commits to the MCP routes from 09-03, 634b53f61 and 888f53108, that main never took). Archived as a tag on origin, then the branch deleted: `archive/p33-sample-door-d760bd387` (A2's WIP P-33 sample door, five files and about 280 lines over the merge base, AppFrame.tsx and ScopeMenu.tsx among them; P-33 shipped on main by another route; whether the sample door is still wanted is a product call, and the tag keeps the option). `a2-p135-edge-cache` lands on main through its own gate and publish, then goes.
+
 ### The bar a packet is verified against, in this order
 
 1. Does it move one of the five symptoms in the report (landing says nothing · friction before
@@ -11069,7 +11071,7 @@ changes accordingly. A1 does the POST. Full suite on the tip, tsc 0, build 0; sh
 
 **DoD.** Pushed; the three numbers; the curl and its response in the report.
 
-### P-150 · A band is well founded on readings the record holds, not on a number a seat declared · Lane: **A2** (after P-144, before P-145 and P-149) · Status: READY · Moves: 1, 3
+### P-150 · A band is well founded on readings the record holds, not on a number a seat declared · Lane: **A2** (after P-144, before P-145 and P-149) · Status: MOVE 1 LANDED, MOVES 2 AND 3 NOT STARTED (4d7b850e9, gated and landed as 34056119e: `decisions.forecast_clause_id` names the clause and the clause carries `measures_decision_id`, both written together in prd.draft, the graded clause the forecast's own observable copied in and never the closest drafted metric; migration 20260909093200 file first, applied by A2, ledger row confirmed by A1 at 21:58 IST, 0 of 422 rows linked; A2 local under rule 26: 14,792 / 0, tsc 0, build 0, lint 0 on touched files; A1 gate 176 running on the landed tip. **The next A2's first line: move 2, the record-founded rule, lands before P-149, because P-149's endpoint is what makes readings exist and a tier founded on a population would fire on day one.**) · Moves: 1, 3
 
 **Why (A2's measurement, 20:47 IST 09-04).** `forecast_observations` is asked for in the driver as
 "how many readings the baseline came from". Of the seven banded decisions in production, four
@@ -11121,7 +11123,7 @@ their readings counts. Full suite on the tip, tsc 0, build 0; sha pair per rule 
 
 **DoD.** Pushed; the three numbers; the before-and-after query.
 
-### P-151 · Letting a station try again on deferred work actually lets it try · Lane: **A3** (now, before the next P-146 commit) · Status: PUSHED, LIVE READ PENDING (9203b2651; tsc 0, 14,780 pass / 0 fail, build 0, docs:check clean; A1 presses "Let Learn try again" on 2fdf93b6 and reads the card once served) · Moves: 1, 2
+### P-151 · Letting a station try again on deferred work actually lets it try · Lane: **A3** (now, before the next P-146 commit) · Status: GREEN ON GATE 175, PUBLISHES WITH GATE 176 (A1 gate 175 on fa04e2559: build 0, tsc 0, 14,780 pass / 0 fail, unreachable 153 and 30, lint files under src 72; the press is read by the next A1 once served; 9203b2651; tsc 0, 14,780 pass / 0 fail, build 0, docs:check clean; A1 presses "Let Learn try again" on 2fdf93b6 and reads the card once served) · Moves: 1, 2
 
 **Why (A1, 21:05 IST 09-04, F-202).** On the live release track, "Let Learn try again" cleared the
 hold and left `deferred_until` at 2026-09-21, so the page said *You released it · It runs again on
