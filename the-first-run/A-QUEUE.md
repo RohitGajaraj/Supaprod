@@ -9264,6 +9264,25 @@ the tip, tsc 0, build 0.
 
 **DoD.** Pushed; migration applied; the numbers.
 
+
+### P-121 · A release with no recorded file list is not accused · Lane: **A3** (after P-120) · Status: READY · Moves: 2
+
+**Why.** Served Ship page, 12:10 IST 09-04, on the release the founder shows people ("Batch
+firmware push scheduler", in production since Jul 9): the entry reads *This change touches no
+files, which cannot be right.* The release's changeset has no file rows recorded; the sentence was
+written for a merge gate, where an empty file list is a defect (P-96 guarded the handback shape and
+not this one). On a seeded or historical release it is an accusation the page cannot back.
+
+**Scope.** The files line has three states: files recorded (list them), none recorded (*No file
+list was recorded for this change.*), and a merge gate with an empty list (the current sentence).
+The gate's sentence fires only where the surface is the gate. Guard: the three states from three
+fixtures; sweep every other reader of the same composer.
+
+**Acceptance.** The served Ship page no longer accuses the July release. Full suite on the tip,
+tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
