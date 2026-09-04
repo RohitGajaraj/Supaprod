@@ -9040,7 +9040,7 @@ quoting a retirement, not a live claim).
 build`: clean end to end. Returning to the watch loop.
 
 
-### P-104 · A handed-back release reaches the Ship page · Lane: **A3** (after P-103) · Status: PUBLISHED (c58a5c8ef; A1 gate: build 0, tsc 0, 14,619 pass / 0 fail; published 17:57 IST; no handback row exists in Helio today, so the live read is that merged releases are unchanged on the served Ship page, which A1 reads once served) · Moves: 2, 3
+### P-104 · A handed-back release reaches the Ship page · Lane: **A3** (after P-103) · Status: DONE (c58a5c8ef; live 18:27 IST: three hand-recorded July releases appear under What shipped as "Went out · Recorded by a person, not built here. There is no change for this product to show", with no announce control; merged releases unchanged) · Moves: 2, 3
 
 **Why.** A2's finding in P-96: a build handed back to a person's own builder writes `pr_open`,
 never `merged`, and the Ship half writes a deployment with no `changeset_id`; the release list
@@ -10565,7 +10565,7 @@ tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads.
 
 
-### P-139 · The release document names the check that passed · Lane: **A3** (after P-136) · Status: PUBLISHED, LIVE READ PENDING (00907e1e8 + 834b89343; migration 20260909093100 applied, ledger confirmed; A1 gate on tip 3f7e41c57: build 0, tsc 0, 14,622 pass / 0 fail; published 18:17 IST; A1 reads the release document's check line once served) · Moves: 2
+### P-139 · The release document names the check that passed · Lane: **A3** (after P-136) · Status: DONE (00907e1e8 + 834b89343; live 18:27 IST: the release document's evidence reads "lint and test passed on 428bb04, Sep 4, 2026" and the "No test evidence" line is gone) · Moves: 2
 
 **Why.** The first release's document (Ship page, 17:01 IST 09-04) says *No test evidence.
 Nothing records which tests ran for this release, so this document does not claim any did.*
