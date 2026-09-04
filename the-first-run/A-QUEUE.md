@@ -9056,7 +9056,7 @@ time inside ten minutes. Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers.
 
 
-### P-114 · A run follows its approval out of waiting · Lane: **A2** (now, before P-112; it is what blocks P-86) · Status: READY · Moves: 1
+### P-114 · A run follows its approval out of waiting · Lane: **A2** (now, before P-112; it is what blocks P-86) · Status: DONE (326e889e0; A1 gate on tip 8a6b671ea: build 0, tsc 0, 14,368 pass / 0 fail; published 12:05 IST, deployment 44043739; A2 reads the stranded-run count once served, A1 confirms any hand backfill) · Moves: 1
 
 **Why.** Read live 06:01 UTC 09-04: 14 runs are `waiting_approval`; 13 of them have no pending
 approval. Their gates were cancelled (the 09-02 sweep, A1's R-30 withdrawal), expired, failed, and
@@ -9088,7 +9088,7 @@ dispatches on 7bc7181b within one tick of the backfill. Full suite on the tip, t
 **DoD.** Pushed; migration applied; the count before and after; the three numbers.
 
 
-### P-115 · A press that the server refuses is told to the person · Lane: **A3** (now, ahead of P-104) · Status: CLAIMED (A3) 11:51 IST 09-04 · Moves: 2
+### P-115 · A press that the server refuses is told to the person · Lane: **A3** (now, ahead of P-104) · Status: CODE DONE (d0806439e; A1 gate running; publish next) · Moves: 2
 
 **Why.** Live 06:04 to 06:08 UTC 09-04, on the Ship track: A1 pressed "Don't run it" on the
 run screen's gate banner three times. Each press POSTed, the server answered 200 with a validation
