@@ -506,9 +506,28 @@ export function RunMap({
 
   const open = stops.find((s) => s.station === openStop) ?? null;
   const openSteps = open?.steps ?? [];
+  /* P-90: the route's own current station, for the live region below. `here`
+   * carries a visible TAG already (see this file's own header on why it is
+   * never spoken twice), so a sighted reader never sees this text -- it
+   * exists for a screen reader watching the route poll on its own. */
+  const here = stops.find((s) => s.state === "here") ?? null;
 
   return (
     <div data-mrd="" className="w-full font-mrd">
+      {/*
+       * ── THE ROUTE SAYS WHERE IT IS, NOT JUST WHERE IT WAS ───────────────
+       * `role="status" aria-live="polite"`, same idiom `TrackConsent.tsx` and
+       * `ArtifactPane.tsx` already use for a value that changes on its own
+       * while the page polls: rendered text, no manual dedup, because React
+       * only mutates the DOM node when the station name actually changes --
+       * the same mechanism that already keeps those two from re-announcing
+       * on every tick keeps this one from doing it too. `sr-only`: the
+       * station's own glyph already says this visually via its `here` tag,
+       * so this exists for the ear, not the eye.
+       */}
+      <p role="status" aria-live="polite" className="sr-only">
+        {here ? `Now at ${AGENT_STATIONS[here.station].name}` : ""}
+      </p>
       {/*
        * ── THE SPINE SCROLLS, THE PAGE NEVER DOES ──────────────────────────
        * `overflow-x-auto` on this element and a fixed width on each stop, so a

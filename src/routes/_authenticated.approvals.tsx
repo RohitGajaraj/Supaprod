@@ -113,7 +113,7 @@ import { isModalOpen } from "@/lib/overlay";
 import { presenceAnchor } from "@/components/shell/presence-anchor";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   getApprovalsQueue,
@@ -356,6 +356,36 @@ function ApprovalsSurface() {
     queryFn: () => fetchLiveActivity({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
     enabled: (queue.data?.items.length ?? 0) === 0 && !queue.isLoading,
   });
+
+  /*
+   * P-90: A SCREEN READER LEARNS OF AN ARRIVAL, ONCE. P-83 wired the queue to
+   * refetch the instant use-approval-push.ts's socket sees a new gate,
+   * proposal or memory review -- a sighted person watching this page sees
+   * the row land; nothing told a screen reader anything arrived at all.
+   *
+   * A count DELTA, not the count itself: rendering the live count directly
+   * would announce it once on every page LOAD too (the jump from "no data
+   * yet" to the real number), which is not an arrival. Silent (`""`) except
+   * on the tick the count actually goes UP -- the "once, not on every poll"
+   * rule the packet names, done by only ever writing non-empty text on a
+   * real increase rather than by suppressing a repeat of the same text (the
+   * mechanism `TrackConsent.tsx`/`ArtifactPane.tsx`'s own `aria-live`
+   * regions already lean on for their own case).
+   */
+  const previousQueueCount = useRef<number | null>(null);
+  const [arrivalAnnouncement, setArrivalAnnouncement] = useState("");
+  useEffect(() => {
+    if (queue.isLoading) return;
+    const count = queue.data?.items.length ?? 0;
+    const prev = previousQueueCount.current;
+    if (prev !== null && count > prev) {
+      const arrived = count - prev;
+      setArrivalAnnouncement(
+        arrived === 1 ? "One new call arrived." : `${arrived} new calls arrived.`,
+      );
+    }
+    previousQueueCount.current = count;
+  }, [queue.data?.items.length, queue.isLoading]);
 
   /*
    * ── `?? []` MINTED A NEW ARRAY ON EVERY RENDER (2026-09-01) ──────────────
@@ -835,6 +865,11 @@ function ApprovalsSurface() {
       }
     >
       <div className="flex flex-col gap-mrd-7">
+        {/* P-90: sr-only, see the effect above for why this is a delta rather
+            than the live count itself. */}
+        <p role="status" aria-live="polite" className="sr-only">
+          {arrivalAnnouncement}
+        </p>
         <header>
           <h1 className="text-mrd-h2 leading-mrd-tight font-medium text-mrd-ink">{headline}</h1>
           {/* THE SECOND CLAUSE EARNS ITS WORDS, and it is not decoration. The
@@ -999,7 +1034,11 @@ function ApprovalsSurface() {
                 </Link>
               }
             />
-            {quietLine ? <p className="text-mrd-label text-mrd-mute">{quietLine}</p> : null}
+            {quietLine ? (
+              <p role="status" aria-live="polite" className="text-mrd-label text-mrd-mute">
+                {quietLine}
+              </p>
+            ) : null}
           </div>
         ) : (
           <FilterExcludedEverything
