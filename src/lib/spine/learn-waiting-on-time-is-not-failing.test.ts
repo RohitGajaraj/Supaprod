@@ -71,16 +71,19 @@ describe("the honest wait, pre-horizon", () => {
 describe("what the wait must never loosen", () => {
   it("only learn gets it: every branch that names the station is deliberate", () => {
     /*
-     * WAS 2, NOW 3 (2026-08-27). The third is `reopenIfOutcomeContested`, which
-     * asks at Learn because that is the only station whose output can contest a
-     * refusal: a `missed` verdict against a decision that said no reopens the
-     * four stations the refusal skipped.
+     * WAS 2, THEN 3 (2026-08-27), NOW 4 (P-123). The third is
+     * `reopenIfOutcomeContested`, which asks at Learn because that is the only
+     * station whose output can contest a refusal. The fourth is `learnMayStart`:
+     * Learn refuses to grade a track that has not shipped, and that belongs at
+     * Learn and nowhere else for the same reason -- Learn is the only station
+     * that makes a claim about what happened in the world, so it is the only one
+     * that can be wrong about there being a world to speak of.
      *
      * The count is the point of the assertion. Raise it only after checking the
      * new branch belongs at Learn and nowhere else, which is what this test is
      * really guarding.
      */
-    expect([...body.matchAll(/station === "learn"/g)].length).toBe(3);
+    expect([...body.matchAll(/station === "learn"/g)].length).toBe(4);
   });
 
   it("a forecastless track falls through: the lookup answers null, never a date", () => {

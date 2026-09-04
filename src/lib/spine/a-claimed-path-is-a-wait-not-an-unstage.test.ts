@@ -374,11 +374,33 @@ describe("no later writer in the same drive replaces the claim", () => {
     ["nothing-to-hand-on", 'last_hold: "nothing-to-hand-on"'],
   ];
 
+  /*
+   * ── "LATER IN THE DRIVE", NOT "LATER IN THE FILE" ────────────────────────
+   *
+   * This took the FIRST occurrence of each marker and required it after the
+   * claim branch, which held only while every writer of these holds happened to
+   * sit after the crew. P-123 added a `waiting-on-a-person` write BEFORE the
+   * crew -- Learn refusing to grade an unshipped track -- and this failed on it,
+   * correctly by its own letter and wrongly by its meaning: a gate that runs
+   * before any seat has run cannot overwrite a claim established by this drive's
+   * seats, because there is not one yet.
+   *
+   * So the rule is stated as it was always meant: every writer that runs AFTER
+   * the crew must sit after the claim's return. Pre-crew gates are exempt, and
+   * the exemption is checked rather than assumed -- `crewAt` is the dispatch
+   * itself, so a writer that moves to the wrong side of it is caught.
+   */
+  const crewAt = code.indexOf("const result = await runAgentLoop(");
+
   for (const [name, marker] of writers) {
     it(`${name} cannot run before the claim has returned`, () => {
-      const at = code.indexOf(marker);
-      expect(at, `${marker} is no longer in the driver`).toBeGreaterThan(-1);
-      expect(at).toBeGreaterThan(claimAt);
+      const all = [
+        ...code.matchAll(new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")),
+      ].map((m) => m.index ?? -1);
+      expect(all.length, `${marker} is no longer in the driver`).toBeGreaterThan(0);
+      expect(crewAt, "the crew dispatch moved; re-point this guard").toBeGreaterThan(-1);
+      const afterTheCrew = all.filter((at) => at > crewAt);
+      for (const at of afterTheCrew) expect(at).toBeGreaterThan(claimAt);
     });
   }
 

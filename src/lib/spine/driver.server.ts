@@ -33,6 +33,11 @@ import {
   CLAIMED_PATH_HOLD,
   waitingOnAnotherRun,
 } from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
+import {
+  learnMayStart,
+  shipMayLeave,
+  type ReleaseFacts,
+} from "@/lib/spine/ship-exits-on-a-release-not-a-verdict";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
@@ -964,6 +969,103 @@ const NOTHING_SPEAKS_TO_THIS =
  * spec report above will fire on it; that is the known edge and it is cheaper to
  * name here than to guard against a state the schema forbids.
  */
+/**
+ * What the record says about whether this track's work actually went out.
+ *
+ * Three reads, each failing on its own. `known` is false only when the
+ * DEPLOYMENT read failed, because that is the one that could turn "nothing is
+ * live" into a wrong refusal; a missing decline is ordinary (most releases are
+ * not declined) and is an absence rather than a failure.
+ */
+async function releaseFactsForTrack(
+  supabase: SupabaseClient,
+  trackId: string,
+  workspaceId: string | null,
+): Promise<ReleaseFacts> {
+  const unknown: ReleaseFacts = {
+    liveInProduction: false,
+    handedBack: false,
+    declinedBecause: null,
+    known: false,
+  };
+  try {
+    const cs = await newestChangesetForTrack(supabase, trackId, "id");
+    const changesetId = (cs?.id as string | undefined) ?? null;
+
+    let liveInProduction = false;
+    if (changesetId) {
+      let q = supabase
+        .from("deployments")
+        .select("id")
+        .eq("changeset_id", changesetId)
+        .eq("environment", "production")
+        .eq("status", "success");
+      if (workspaceId) q = q.eq("workspace_id", workspaceId);
+      const { data: prod, error: prodErr } = await q.limit(1);
+      if (prodErr) return unknown;
+      liveInProduction = (prod ?? []).length > 0;
+    }
+
+    /*
+     * A HANDBACK IS ATTACHED TO THE TRACK, NOT TO A CHANGESET.
+     * `submitStationByHand` writes a `deployments` row with no `changeset_id`
+     * and files it as a track member, which is why the changeset join above
+     * cannot see it. Same fact that keeps a hand-recorded release off /ship
+     * (P-104): it is worth knowing that this read had to be written differently
+     * to find work a person did.
+     */
+    const { data: members } = await supabase
+      .from("spine_track_members" as never)
+      .select("artifact_id")
+      .eq("track_id", trackId)
+      .eq("artifact_kind", "deployment")
+      .is("superseded_at", null);
+    const deployIds = ((members ?? []) as Array<{ artifact_id?: string | null }>)
+      .map((m) => m.artifact_id)
+      .filter((d): d is string => !!d);
+    let handedBack = false;
+    if (deployIds.length > 0) {
+      let hq = supabase
+        .from("deployments")
+        .select("id")
+        .in("id", deployIds)
+        .eq("status", "claimed");
+      if (workspaceId) hq = hq.eq("workspace_id", workspaceId);
+      const { data: claimed } = await hq.limit(1);
+      handedBack = (claimed ?? []).length > 0;
+    }
+
+    /* The newest decision on this track that said no. Ordinarily absent. */
+    const { data: decMembers } = await supabase
+      .from("spine_track_members" as never)
+      .select("artifact_id")
+      .eq("track_id", trackId)
+      .eq("artifact_kind", "decision")
+      .is("superseded_at", null);
+    const decisionIds = ((decMembers ?? []) as Array<{ artifact_id?: string | null }>)
+      .map((m) => m.artifact_id)
+      .filter((d): d is string => !!d);
+    let declinedBecause: string | null = null;
+    if (decisionIds.length > 0) {
+      let dq = supabase
+        .from("decisions")
+        .select("rationale,title,created_at")
+        .in("id", decisionIds)
+        .eq("status", "declined");
+      if (workspaceId) dq = dq.eq("workspace_id", workspaceId);
+      const { data: declined } = await dq.order("created_at", { ascending: false }).limit(1);
+      const row = (
+        (declined ?? []) as Array<{ rationale: string | null; title: string | null }>
+      )[0];
+      if (row) declinedBecause = (row.rationale ?? row.title ?? "").trim() || null;
+    }
+
+    return { liveInProduction, handedBack, declinedBecause, known: true };
+  } catch {
+    return unknown;
+  }
+}
+
 function routeOf(row: DriveRow): SpineRoute {
   const path = (Array.isArray(row.path) ? row.path : []) as AgentStation[];
   return {
@@ -2620,6 +2722,44 @@ export async function driveTrackOnce(
      * does not meet the spec is still sent back. What is removed is only the
      * re-dispatch of seats whose work is already on the record.
      */
+    /*
+     * ── LEARN DOES NOT GRADE A CHANGE NOBODY CAN USE (P-123) ─────────────
+     *
+     * Asked separately from Ship's exit, and on purpose. Ship's gate can be
+     * bypassed -- a person rewinds a track, a route waives a station -- and
+     * Learn grading an unshipped change is the harm every one of those paths
+     * leads to. A grade is a claim about what happened in the world.
+     *
+     * BEFORE THE CREW, so it costs nothing. `waiting-on-a-person` rather than a
+     * failure: nothing malfunctioned, and no station can make this shipped.
+     */
+    if (station === "learn") {
+      const facts = await releaseFactsForTrack(supabase, row.id, row.workspace_id);
+      const may = learnMayStart(facts);
+      if (!may.start) {
+        await supabase
+          .from("spine_tracks" as never)
+          .update({
+            last_hold: "waiting-on-a-person",
+            last_hold_because: may.because,
+            driven_at: new Date().toISOString(),
+          } as never)
+          .eq("id", row.id);
+        return {
+          trackId: row.id,
+          station,
+          moved: false,
+          arrivedAt: null,
+          hold: "waiting-on-a-person",
+          /* `say` and `flagged` are declared below this point, and this line is
+             the gate's own: it needs no decoration. Same shape as the Decide
+             gate above, for the same reason. */
+          line: may.because,
+          attached: harvested,
+        };
+      }
+    }
+
     if (station === "build") {
       /* Through the mission. This read said `.eq("track_id", row.id)` when it
          first shipped and that column does not exist, so the rule evaluated to
@@ -3820,6 +3960,47 @@ export async function driveTrackOnce(
           reopensWhen: "outcome-contested",
         });
       }
+    }
+  }
+
+  /*
+   * ── SHIP LEAVES ON A RELEASE, NOT ON HAVING FORMED A VIEW (P-123) ───────
+   *
+   * At 06:30:48 on 2026-09-04 the sweep advanced the tablet track from Ship to
+   * Learn on a DECLINED release decision -- the seat had read the brief, found
+   * the spec a draft and the design gate pending, and correctly refused. Every
+   * gate above passed it: `producedThisVisit` because a decision is an
+   * artifact, and `STATION_NEEDS.learn` because a spec exists. Not one of them
+   * asked whether anything had shipped.
+   *
+   * So Learn sat down to grade a forecast about a change no customer can reach.
+   *
+   * Placed HERE, immediately before the advance, for the same reason F-72's
+   * Build gate sits where it does: this is the last point at which the station
+   * is still the station. `attempts` is untouched -- a correct refusal is not a
+   * failed try, and spending the stall ceiling on it would end the track for
+   * doing the right thing.
+   */
+  if (station === "ship") {
+    const facts = await releaseFactsForTrack(supabase, row.id, row.workspace_id);
+    const exit = shipMayLeave(facts);
+    if (!exit.leave) {
+      await supabase
+        .from("spine_tracks" as never)
+        .update({
+          ...(exit.hold ? { last_hold: exit.hold, last_hold_because: exit.because } : {}),
+          driven_at: new Date().toISOString(),
+        } as never)
+        .eq("id", row.id);
+      return {
+        trackId: row.id,
+        station,
+        moved: false,
+        arrivedAt: null,
+        hold: exit.hold,
+        line: exit.hold ? flagged(exit.because) : say(exit.because),
+        attached,
+      };
     }
   }
 
