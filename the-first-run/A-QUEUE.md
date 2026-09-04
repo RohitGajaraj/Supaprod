@@ -7297,7 +7297,7 @@ and the page said only *Nothing was started · Your sentence is still in the box
 filed*. A1 inserted the owner's member row at 19:07:12 UTC and pressed again.
 
 
-### P-65 · An owner can start work in their own workspace, and a refusal says why · Lane: **A3** (after P-61) · Status: CODE DONE (973214bb0; A3 reports 14,227 / 0, tsc 0; the owner-member trigger backfilled two orphaned workspaces live, one a real account's; A1 suite running; A1 walks the probe with its member row removed after publish) · Moves: 1, 2
+### P-65 · An owner can start work in their own workspace, and a refusal says why · Lane: **A3** (after P-61) · Status: CODE DONE (973214bb0; A3 reports 14,227 / 0, tsc 0; the owner-member trigger backfilled two orphaned workspaces live, one a real account's; A1 suite on the tip 14,227 / 0 / 0, tsc 0; PUBLISHED 07:11 IST 09-04 with P-75 part one; A1 walks the probe with its member row removed after propagation) · Moves: 1, 2
 
 **A3, 01:50 UTC 09-04, P-65 Report.** `resolveStartWorkspace`
 (`track.functions.ts`) checked `workspace_members` alone and threw `"Forbidden: not a member of
