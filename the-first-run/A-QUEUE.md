@@ -7909,7 +7909,7 @@ generic *This run of the loop ran long ... Let Decide try again*, because the ho
 moved on. P-71d filed. The decision row is evidence; leave it.
 
 
-### P-71d · While the call is the person's, nothing else moves · Lane: **A2** (after P-75, before P-74) · Status: READY · Moves: 1, 2
+### P-71d · While the call is the person's, nothing else moves · Lane: **A2** (after P-75, before P-74) · Status: CODE DONE (259823e40; A1 suite running; publish, then a fourth sentence in the probe) · Moves: 1, 2
 
 **Why.** The live walk above: `the-call-is-yours` was raised and ten minutes later the sweep drove
 Decide again, the seat recorded a `build` on its own, and the Choice was never drawn.
