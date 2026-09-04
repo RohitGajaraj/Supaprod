@@ -715,3 +715,30 @@ reads it).
 
 **Lanes.** A2 on P-137, then P-138 (P-135 lands between commits on the founder's word). A3 on
 P-140, then P-105, P-109, P-130b. Rule 22 holds. Date call unchanged.
+
+## Checkpoint, 20:17 IST 09-04
+
+**Since 18:22.** Published on A1's gate: P-137, P-138, P-109's second half, P-140's diagnostic
+(19:24), P-142 (19:47, gate 167: 14,719 / 0), P-143 (19:59, gate 168 on the landed tip: 14,722 /
+0). Live reads DONE: P-137 on the spec artifact (the honest sentence names all six clauses, six
+Record a reading presses, six Connect a source links), P-138 (Waiting's heading "Nothing stopped is
+holding live work; 9 items stopped this week, and 30 older." and the two groups), P-109 both halves
+and P-127's header on Helio with nothing running. P-140's diagnostic read from the served payload:
+ids 50, runRows 174, traces 174, creditsKeys 0, readError null; A3 has the numbers.
+
+**Three corrections in the hour, all the same shape.** P-142's list filter landed on `listSpecs`
+and `listPrds`, which have had no caller since R-34 retired the `/plan` board; A2 asserted the
+Specs list would show 15 for 29 and caught itself inside the hour. No surface lists a workspace's
+specs at all, which is now an open question for the founder beside P-142. Rule 24: a claim about
+what a surface renders is made after reading the surface. Then A2 found `check:unreachable` red on
+main, 181 of 682 server functions and 43 of 489 components against a frozen 140 and 26, in no hook
+and no CI; rule 25 says what A1's gate is (build, tsc, the suite, and from gate 169 that check,
+reported red until P-146 lands). And P-137's sentence turned out to live on the spec artifact only:
+the run page's Learn panel still says "nothing here is waiting on a person" beside "Graded on Mon,
+Sep 21"; that is P-144 scope 1, filed for A2 with P-145 (a learning guides the next call, measured
+first) behind it.
+
+**Lanes.** A2 on P-142's closing deletion, then P-144, P-145. A3 on P-141, then P-146 (the
+unreachable sweep, one export at a time), P-130b. Pending live reads: P-143's card once served, P-142's
+closing commit on gate 169. Founder: P-135's landing, the second repo for P-128b, the Cohere card,
+the Deno plan, and now the spec-list question.

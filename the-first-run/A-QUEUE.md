@@ -9156,7 +9156,7 @@ all 12 checks ok. Acceptance's own live read (seven or more rows, each one line 
 A1's served-page walk, the same handoff every UI packet in this session has used.
 
 
-### P-109 · The Run door with nothing running lands somewhere · Lane: **A3** (after P-105) · Status: PUBLISHED, LIVE READ PENDING (4f913ae35 + 2702720a7; A1 gate: 14,695 pass / 0 fail; published 19:24 IST; A1 presses the Run door with nothing running and reads the Quiet once served) · Moves: 2
+### P-109 · The Run door with nothing running lands somewhere · Lane: **A3** (after P-105) · Status: DONE (both halves; A1 gate on 2702720a7: build 0, tsc 0, 14,695 pass / 0 fail; published 19:24 IST; live 20:15 IST on Helio with nothing running: the Run door lands on the last run 2fdf93b6 and the run screen reads "Nothing is running. This is the last run; start a sentence to begin another." with Start a sentence, above the hold card; the header reads "Nothing running · last: Checkout asks for already-saved delivery address · 8h ago", which is P-127's read as well) · Moves: 2
 
 **Why.** Run is an identity on the rail (P-60): it resolves to the live run at render. With nothing
 running it resolves to nothing, and P-63 recorded "Run has no door to design for while nothing's
@@ -9861,7 +9861,7 @@ already declined once (the "announce it" door). Flagging for a founder/A1 call o
 de-duplication is worth its own packet, rather than guessing at a fix the data cannot support.
 
 
-### P-127 · The header says what is running · Lane: **A2** (after P-116, before P-112) · Status: PUBLISHED, LIVE READ PENDING (a88f70552; A1 gate: build 0, tsc 0, 14,496 pass / 1 fail, the fail a 5 s timeout in memory.server.test.ts that passes alone twice (P-132); published 14:39 IST; header read on the next live drive) · Moves: 2
+### P-127 · The header says what is running · Lane: **A2** (after P-116, before P-112) · Status: DONE (a88f70552; live 20:15 IST on Helio with nothing running: the header reads "Nothing running · last: Checkout asks for already-saved delivery address · 8h ago"; the running form is read on the next live drive and is not a condition of DONE, the nothing-running form was the one the packet was written on) · Moves: 2
 
 **Why.** Served Waiting page at 06:13 UTC 09-04: the header read *Nothing running · last:
 Checkout asks for already-saved delivery address · 3d ago* while run bce3febf (the orchestrator's
@@ -10396,7 +10396,7 @@ calls, 1,062 files. `bun run build`: clean end to end. `bun run docs:check`: exi
 "docs-doctor: clean." all 12 checks ok.
 
 
-### P-140 · Credits on Start's run rows and the Outcomes page · Lane: **A3** (after P-136) · Status: DIAGNOSTIC PUBLISHED (051438c5a + 7b4c70903; published 19:24 IST; A1 reads creditsDiag from the served payload and hands A3 the four numbers) · Moves: 3
+### P-140 · Credits on Start's run rows and the Outcomes page · Lane: **A3** (after P-136) · Status: DIAGNOSTIC READ, FIX PENDING (051438c5a + 7b4c70903; published 19:24 IST; A1 read creditsDiag from the served start-runs payload on Helio at 20:14 IST, both rows: ids 50, runRows 174, traces 174, creditsKeys 0, readError null; every run row has a trace and the credits map comes back empty with no error, where P-136's run-screen join returns 3,606 for the same track; A3 compares the two reads and ships the fix with the diagnostic removed) · Moves: 3
 
 **Why.** P-136 closed the run screen's own two-dollar-figure defect, but Scope named three
 surfaces and only one shipped: Start's `YourRuns.tsx` carries no spend figure at all today, and the
