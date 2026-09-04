@@ -8741,6 +8741,44 @@ tsc 0, build 0.
 
 **DoD.** Pushed; the numbers; the count of links fixed and files moved in the report.
 
+**Report (A3, 11:22 IST 09-04).** Pushed at `ed51c61e6`. `bun run docs:check` was clean on checks
+[1][2][3][6][8][9][10][11] already (no orphans, no stray root files, no `docs/screenshots` markdown
+found in this worktree — that part of the Why may be worktree-dependent, gitignored artifacts that
+another lane's checkout still holds; not present here to move or ignore). The gate's three soft
+checks carried the actual rot:
+
+- **[5] broken links: 110 → 0** in live docs (61 unique file→target pairs). 49 files fixed by one
+  batch redirect: every link to `AGENTS.md`/`GEMINI.md` now points at
+  `docs/archive/agent-operating-manual.md` / `docs/archive/gemini-brief.md`, the paths those files
+  moved to on 2026-09-01 when CLAUDE.md dropped the long instruction set — no link was ever
+  repointed. 9 more fixed individually: 2 path-depth bugs and 1 stale relative path in
+  `docs/pitch/applications/`, 2 stale `docs/planning/initiatives/` paths to `architecture/`, 1
+  stale filename in `docs/lanes/log/S4.md` (an S4 report was renamed on sharpening, the link
+  wasn't), and 3 links to `videos/supaprod-film/README.md` that were never actually broken — the
+  target is real but gitignored, present only on the founder's machine. That last case is a script
+  fix, not a doc edit: check [5] now calls `git check-ignore -q` on a missing target before calling
+  it broken, the same reasoning check [11] already applied to a different gitignored-file case.
+  18 files under `/archive/` that an early batch-script pass touched were reverted — frozen
+  historical record, not live doc content, matching the exclusion checks [9]/[10]/[11] already use.
+- **[4] "Live status board" duplication: 9 files → 1.** Excluded `/archive/` paths and a new
+  `RECORD_FILES` pattern (append-forward logs whose job is to quote the retired phrase as the
+  record of when it retired — `session-decisions.md` among them) from the count, then reworded the
+  4 files that were genuinely live and wrong: `docs/decisions/parallel-development-model.md` (8×),
+  `docs/operations/fnd-runtime-restart-playbook.md` (1×), `docs/planning/known-issues.md` (1×),
+  `docs/strategy/founding-constitution.md` (2×).
+- **[7] missing Created/Last-updated header: 419 files → 0.** A script derived each file's
+  Created/Last-updated date from its own git history (first/last commit touching the path) and
+  inserted the standard header line under the H1. One file
+  (`docs/operations/blocker-supabase-credentials.md`) already carried the line but past the check's
+  12-line scan window, behind an 11-line correction blockquote; tightened spacing so it falls
+  inside the window instead of duplicating it.
+
+`bun run docs:check`: exit 0, `docs-doctor: clean.` — reconfirmed after two rebases onto A1's
+concurrent A-QUEUE.md edits (no file overlap). `bunx tsc --noEmit`: clean. `bun test`: 14337 pass,
+22 skip, 37 todo, 0 fail, 38219 expect() calls, 1044 files. `bun run build`: clean end to end
+(client, SSR, cloudflare-module worker); no MCP route-file regen diff this run. Returning to the
+watch loop.
+
 
 ### P-96 · The Ship page says what each release is · Lane: **A2** (while P-86 waits on A1's presses) · Status: READY · Moves: 2, 3
 
