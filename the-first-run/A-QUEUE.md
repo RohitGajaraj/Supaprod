@@ -9161,6 +9161,17 @@ fresh workspace: on Start. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 walks both.
 
+**Report (A3, 19:26 IST 09-04).** Both halves on `2702720a7`: the rail/phone-bar destination fix
+(`4f913ae35`, Run's `href` resolves off the shared `["run-door", wsId]` query instead of the
+current route, rail row always draws, `aria-label` speaks live/last/none) and the run-screen half
+found missing while writing this same Report — Scope's own quoted Quiet ("Nothing is running. This
+is the last run...") now renders on `_authenticated.track.$trackId.tsx` when `runDoor.state ===
+"last"` and `runDoor.trackId === trackId`, reading the identical query key AppFrame shares so the
+two can't disagree. A1 already gated and published both at 19:24 IST (14,695 pass). This session's
+own full re-verification on the same tip: `bunx tsc --noEmit` 0 errors, `bun test` 14,695 pass / 0
+fail / 22 skip / 37 todo, `bun run build` clean (nitro/cloudflare-module, no diff after), `bun run
+docs:check` clean (0 broken live links, 12/12 checks ok). Nothing further to push for this packet.
+
 ### P-112 · Supaprod-authored files in a customer's repository are a stated fact and a setting · Lane: **A2** (after P-86) · Status: PUBLISHED, LIVE READ PENDING (cd3e10735; A1 gate on tip 6057b3d99: build 0, tsc 0, 14,512 pass / 0 fail; published 14:55 IST; the write_record_to_repo column dropped as inert; A1 reads the card and the record files on the next Build) · Moves: 1, 3
 
 **Why.** A2's read on P-86: the commit that repairs PR #5 carries `.supaprod/intent.md`, `plan.md`
