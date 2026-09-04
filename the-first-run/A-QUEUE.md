@@ -7897,7 +7897,7 @@ reads behind Arriving (themes, clusters, the ranking) and Outcomes (graded forec
 still bare, and a person in a fresh workspace sees another workspace's desk. P-75 filed.
 
 
-### P-75 · Arriving, Outcomes, Sources and Conversations read the workspace they stand in · Lane: **A2** (now, before P-74) · Status: CODE DONE, all parts (a4b7124a1, aacadbf80; A2 reports 14,245 / 0 / 0, tsc 0; a foreign thread by id is NOT FOUND, not forbidden; ratchet 136 across 73 files; A1 on the tip: build 0, tsc 0, 14,245 / 0 / 0; publish after the 08:05 build is confirmed served) · Moves: 1, 2 · A1 read 09:24 in the probe: Arriving still reads Helio's 135 clusters; the 08:46 publish may not be served yet (rule 18); re-read at 09:50 before concluding
+### P-75 · Arriving, Outcomes, Sources and Conversations read the workspace they stand in · Lane: **A2** (now, before P-74) · Status: PUBLISHED, PARTLY DONE (A1 read 09:52 IST 09-04 in the probe on the served build: Sources reads its own zero state and Conversations no longer opens Helio's thread; Arriving still reads Helio's 135 clusters, 200 signals and 5 bets; Outcomes reads the probe's 6 calls and Helio's "54 of 70 lessons"). P-75b · Moves: 1, 2
 
 **Why.** The live walk above. In the empty probe workspace Arriving shows Helio's 135 clusters
 and Outcomes shows Helio's graded forecasts and lessons; Waiting says *One just came in* where
@@ -8542,6 +8542,26 @@ on the record; say so in the report.
 the map's Decide row reads the answer. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 reads.
+
+
+### P-75b · Arriving's clusters and Outcomes' lessons read the workspace they stand in · Lane: **A3** (after P-93) · Status: READY · Moves: 1, 2
+
+**Why.** P-75 landed Sources and Conversations; on the served build at 09:52 IST the probe's
+Arriving still reads *135 clusters need your decisions ... 200 signals, 135 clusters open, 5 became
+bets* and its Outcomes reads *54 of 70 lessons on the record*, all Helio's. The reads behind the
+cluster ranking, the signal and bet counts, and the lessons block were not the ones P-75 scoped,
+or the page reads them through a path without the workspace.
+
+**Scope.** Find every read behind those four numbers and the lessons block (the themes ranking, the
+signal count, the became-bets count, `learnings`), take the workspace through the P-66 shape with
+the query key carrying it, lower the ratchet per file, and add the walk-shaped guard P-75 promised:
+render both routes' data hooks against a workspace with nothing and assert zeros for every number
+on the page. Report the reads you found, by file.
+
+**Acceptance.** In the probe: Arriving reads its P-63 zero state and Outcomes reads six calls and
+no lessons; in Helio: unchanged. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 walks the probe.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
