@@ -9459,6 +9459,28 @@ streamlined.* Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
+
+### P-125 · The run's map shows all seven stations at every width · Lane: **A2** (after P-123, before P-118b) · Status: READY · Moves: 2
+
+**Why.** Served run screen at 1512 px, 12:35 IST 09-04, on the shipped track: the map's row has
+seven cells in the DOM (*Discover · Found 4 things* through *Ship · Released* and *Learn ·
+Running*), and the last three sit at x = 1450, 1622 and 1794, past the pane's right edge, with the
+container `overflow: visible` and no wrap. The founder asked for the seven stations to be visible
+inside the run (04:09 IST); P-74 built the map and this is the map hiding the three stations that
+matter most on a shipped run. The station strip fold in the handoff of 09-02 recorded the same
+shape once: with clip and a fixed min-width the seventh chip vanishes off the right edge.
+
+**Scope.** In Meridian's `RunMap`: seven columns that share the row (`grid-template-columns:
+repeat(7, minmax(0, 1fr))`), labels that truncate before cells overflow, the outcome line
+wrapping to two lines at narrow widths, and below the pane's minimum a two-row layout (four and
+three) rather than a scroll or a clip; the active and last-done cells never hidden. Guard: a
+rendered map at 1200, 1512 and 1920 px has seven cells inside the container's box.
+
+**Acceptance.** The served run screen at the founder's width shows Build, Ship and Learn. Full
+suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 reads at 1512 px.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
