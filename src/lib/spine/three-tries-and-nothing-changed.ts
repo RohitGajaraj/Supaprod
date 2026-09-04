@@ -1,5 +1,9 @@
 /**
- * THREE DRIVES INTO THE SAME WALL DO NOT EARN A FOURTH TEN MINUTES LATER.
+ * THREE DRIVES THAT CHANGED NOTHING DO NOT EARN A FOURTH TEN MINUTES LATER.
+ *
+ * Named for the rule it ended up with. It shipped as "three of the same" and
+ * the measurement below retired that question within the hour; a filename that
+ * still asked it would be the first thing to mislead the next reader.
  *
  * ── WHAT IT COST, MEASURED ───────────────────────────────────────────────
  * The demo account spent 5,398 credits in one night for five sentences and one
@@ -21,6 +25,21 @@
  * So this counts neither attempts nor dispatches. It asks the only question
  * that matters to a bill: did the last three drives change anything.
  *
+ * ── AND IT ASKS THAT, NOT "WAS IT THE SAME WALL" (P-113b) ────────────────
+ * The first version required the three drives to have entered on the SAME
+ * hold. Simulated against the night it was written for -- the tablet track,
+ * 26 drives, 11 runs, $0.3971 -- it prevented TWO drives and saved 8%, because
+ * the churn alternates: `self-check-failed`, `out-of-time`,
+ * `self-check-failed`, `out-of-time`, four times in the last hour alone. It
+ * caught the one genuine run of six identical drives at 23:00 and let the rest
+ * of the night through.
+ *
+ * A1's call, on those numbers: the claim worth making is "nothing is changing",
+ * not "the same thing keeps happening". A track failing in two ways alternately
+ * is still a track filing nothing and spending every ten minutes. Same
+ * exemptions, same ladder; only the question is wider, and it takes the
+ * measured saving from 8% to 31% on the same window.
+ *
  * ── IT DEFERS, IT DOES NOT STOP ──────────────────────────────────────────
  * 10 minutes, then 30, then 90. A track whose wall clears -- a claim released,
  * a credential fixed, a person answering elsewhere -- still recovers on its own
@@ -35,8 +54,8 @@
  * reason. Backing either off would be this rule taking credit for silence.
  */
 
-/** How many identical, fruitless drives before the first backoff. */
-export const SAME_HOLD_BEFORE_BACKOFF = 3;
+/** How many fruitless drives before the first backoff. */
+export const DRIVES_BEFORE_BACKOFF = 3;
 
 /** The ladder, in minutes. The last rung repeats. */
 export const BACKOFF_MINUTES: readonly number[] = [10, 30, 90];
@@ -76,34 +95,41 @@ export function stuckBackoffMinutes(input: {
   newestArtifactAt: string | null;
 }): number | null {
   const recent = input.recent;
-  if (recent.length < SAME_HOLD_BEFORE_BACKOFF) return null;
+  if (recent.length < DRIVES_BEFORE_BACKOFF) return null;
 
   const hold = recent[0]?.hold ?? null;
   /* No hold is a track that moved. Nothing to back off. */
   if (!hold) return null;
   if (NEVER_BACKED_OFF.has(hold)) return null;
 
-  /* How many of the most recent drives entered on this same hold. */
-  let same = 0;
+  /*
+   * How many of the most recent drives got nowhere -- any hold, not this one.
+   *
+   * The run ends at the first drive that MOVED (no hold) or that stopped on a
+   * hold this rule does not price. Both are the same statement: the track
+   * stopped being a thing that spends for nothing, so the count starts again.
+   */
+  let stuck = 0;
   for (const d of recent) {
-    if (d.hold !== hold) break;
-    same += 1;
+    if (!d.hold || NEVER_BACKED_OFF.has(d.hold)) break;
+    stuck += 1;
   }
-  if (same < SAME_HOLD_BEFORE_BACKOFF) return null;
+  if (stuck < DRIVES_BEFORE_BACKOFF) return null;
 
   /*
-   * AND IT MUST HAVE PRODUCED NOTHING. Three identical entry holds with an
-   * artifact filed among them is a track that IS moving and happens to keep
-   * arriving at the same gate -- Build committing to the same branch across
-   * three drives, say. Backing that off would slow down work that is working.
+   * AND IT MUST HAVE PRODUCED NOTHING. Three held drives with an artifact filed
+   * among them is a track that IS moving and happens to keep stopping -- Build
+   * committing to the same branch across three drives, say. Backing that off
+   * would slow down work that is working, which is the one cost this rule must
+   * not impose.
    *
    * The window is the oldest of the drives being counted: anything filed since
    * then is progress, whoever filed it.
    */
-  const since = recent[same - 1]?.at ?? recent[recent.length - 1]?.at ?? null;
+  const since = recent[stuck - 1]?.at ?? recent[recent.length - 1]?.at ?? null;
   if (since && input.newestArtifactAt && input.newestArtifactAt > since) return null;
 
-  const rung = Math.min(same - SAME_HOLD_BEFORE_BACKOFF, BACKOFF_MINUTES.length - 1);
+  const rung = Math.min(stuck - DRIVES_BEFORE_BACKOFF, BACKOFF_MINUTES.length - 1);
   return BACKOFF_MINUTES[rung]!;
 }
 
@@ -131,5 +157,8 @@ export function triedAgainLine(
   if (!iso) return null;
   const at = Date.parse(iso);
   if (Number.isNaN(at) || at <= now.getTime()) return null;
-  return `Tried ${SAME_HOLD_BEFORE_BACKOFF} times with the same result; trying again at ${formatTime(iso)}.`;
+  /* "and nothing changed", not "with the same result": the three drives may
+     have stopped on different holds, and claiming they were identical would be
+     a sentence the record does not support (P-113b). */
+  return `Tried ${DRIVES_BEFORE_BACKOFF} times and nothing changed; trying again at ${formatTime(iso)}.`;
 }

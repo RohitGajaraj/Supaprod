@@ -146,14 +146,32 @@ export function houseLine(
     ? ` The host last said: ${capacitySaid.trim()}`
     : " Your Deno account may hold others; its dashboard has the account's own count.";
   if (apps.length === 0) return `No previews created by Supaprod are on the record.${cap}`;
-  const reclaimable = apps.filter((a) => mayReclaim(a, now).reclaim).length;
-  const held = apps.length - reclaimable;
-  const noun = apps.length === 1 ? "preview" : "previews";
+
+  /*
+   * ── A RECLAIMED APP HOLDS NOTHING, SO IT IS NOT COUNTED (P-113b) ────────
+   * A1 pressed Reclaim, the row settled correctly to "Reclaimed on ...", and
+   * this line still read "11 previews created by Supaprod, all still in use"
+   * -- because a reclaimed app is not reclaimable, and the old arithmetic
+   * counted everything that was not reclaimable as in use. The one app that had
+   * just been released was the one being described as holding a slot.
+   *
+   * The subject is what is STILL THERE. What was released is said separately,
+   * because it is a receipt rather than part of the total.
+   */
+  const released = apps.filter((a) => !!a.reclaimedAt).length;
+  const standing = apps.filter((a) => !a.reclaimedAt);
+  const gone = released > 0 ? ` ${released} released.` : "";
+  if (standing.length === 0) {
+    return `No previews created by Supaprod are still up.${gone}${cap}`;
+  }
+  const reclaimable = standing.filter((a) => mayReclaim(a, now).reclaim).length;
+  const held = standing.length - reclaimable;
+  const noun = standing.length === 1 ? "preview" : "previews";
   if (reclaimable === 0) {
-    return `${apps.length} ${noun} created by Supaprod, all still in use.${cap}`;
+    return `${standing.length} ${noun} created by Supaprod, all still in use.${gone}${cap}`;
   }
   return (
-    `${apps.length} ${noun} created by Supaprod: ` +
-    `${reclaimable} can be reclaimed, ${held} still in use.${cap}`
+    `${standing.length} ${noun} created by Supaprod: ` +
+    `${reclaimable} can be reclaimed, ${held} still in use.${gone}${cap}`
   );
 }

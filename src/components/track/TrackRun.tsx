@@ -76,7 +76,7 @@ import { SteerComposer } from "@/components/track/SteerComposer";
 import { TakeOver } from "@/components/track/TakeOver";
 import { triesLine } from "@/components/track/hold-tries";
 import { wayOut } from "@/components/track/way-out";
-import { triedAgainLine } from "@/lib/spine/three-of-the-same-is-not-a-fourth-try";
+import { triedAgainLine } from "@/lib/spine/three-tries-and-nothing-changed";
 import { buildBlocked } from "@/components/track/build-precondition";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { useWorkspace } from "@/hooks/use-workspace";

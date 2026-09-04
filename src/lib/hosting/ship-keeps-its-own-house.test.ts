@@ -144,3 +144,31 @@ describe("the sentence a person reads about their own account", () => {
     expect(said).not.toContain("reclaimed");
   });
 });
+
+describe("a reclaimed app is not part of the count", () => {
+  const NOW2 = new Date("2026-09-04T15:30:00Z");
+  const gone = () => app({ reclaimedAt: "2026-09-04T14:37:00Z" });
+
+  it("does not describe a released app as still in use", () => {
+    /*
+     * A1 pressed Reclaim, the row settled correctly, and the top line still
+     * read "11 previews ... all still in use" -- because a reclaimed app is not
+     * reclaimable, and everything not reclaimable was being counted as in use.
+     * The one app just released was the one described as holding a slot.
+     */
+    const said = houseLine([app({ servesProduction: true }), gone()], NOW2);
+    expect(said).toContain("1 preview created by Supaprod");
+    expect(said).toContain("1 released");
+    expect(said).not.toContain("2 previews");
+  });
+
+  it("says so plainly when everything has been released", () => {
+    const said = houseLine([gone(), gone()], NOW2);
+    expect(said).toContain("No previews created by Supaprod are still up");
+    expect(said).toContain("2 released");
+  });
+
+  it("says nothing about releases when there have been none", () => {
+    expect(houseLine([app()], NOW2)).not.toContain("released");
+  });
+});

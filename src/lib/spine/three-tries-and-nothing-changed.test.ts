@@ -16,11 +16,11 @@ import {
   BACKOFF_MINUTES,
   deferUntil,
   NEVER_BACKED_OFF,
-  SAME_HOLD_BEFORE_BACKOFF,
+  DRIVES_BEFORE_BACKOFF,
   stuckBackoffMinutes,
   triedAgainLine,
   type DriveEntry,
-} from "@/lib/spine/three-of-the-same-is-not-a-fourth-try";
+} from "@/lib/spine/three-tries-and-nothing-changed";
 
 const NOW = new Date("2026-09-04T12:30:00Z");
 const minsAgo = (n: number) => new Date(NOW.getTime() - n * 60_000).toISOString();
@@ -29,8 +29,8 @@ const minsAgo = (n: number) => new Date(NOW.getTime() - n * 60_000).toISOString(
 const drives = (holds: (string | null)[]): DriveEntry[] =>
   holds.map((hold, i) => ({ hold, at: minsAgo(i * 10) }));
 
-describe("three of the same, and nothing to show for them", () => {
-  it("backs off after three identical fruitless drives", () => {
+describe("three drives, nothing to show for them", () => {
+  it("backs off after three fruitless drives", () => {
     const m = stuckBackoffMinutes({
       recent: drives(["self-check-failed", "self-check-failed", "self-check-failed"]),
       newestArtifactAt: null,
@@ -56,12 +56,40 @@ describe("three of the same, and nothing to show for them", () => {
     ).toBeNull();
   });
 
-  it("does nothing when the holds differ", () => {
-    // Build to Ship and back is churn, but the rule keys on the SAME wall: a
-    // track alternating holds is caught by the drive ceiling, not by this.
+  it("catches the churn that alternates, which is the churn that happened", () => {
+    /*
+     * ── THE MEASUREMENT THAT CHANGED THE RULE (P-113b) ──────────────────
+     * The first version required the three drives to share a hold. Simulated
+     * against the night it was written for -- the tablet track, 26 drives, 11
+     * runs, $0.3971 -- it prevented TWO drives and saved 8%, because the churn
+     * alternates. This exact sequence appears four times in the last hour of
+     * that window and the same-hold rule fired on none of them.
+     */
     expect(
       stuckBackoffMinutes({
         recent: drives(["self-check-failed", "out-of-time", "self-check-failed"]),
+        newestArtifactAt: null,
+      }),
+    ).toBe(BACKOFF_MINUTES[0]);
+  });
+
+  it("the run ends at a drive that MOVED, so the count starts again", () => {
+    // A track that got somewhere is not spending for nothing, whatever it did
+    // before or does next.
+    expect(
+      stuckBackoffMinutes({
+        recent: drives(["out-of-time", null, "out-of-time", "out-of-time"]),
+        newestArtifactAt: null,
+      }),
+    ).toBeNull();
+  });
+
+  it("and at a hold this rule does not price", () => {
+    // Waiting on a person costs nothing, so the drives before it are not a run
+    // of spending -- the same statement as "it moved", for pricing purposes.
+    expect(
+      stuckBackoffMinutes({
+        recent: drives(["out-of-time", "waiting-on-a-person", "out-of-time", "out-of-time"]),
         newestArtifactAt: null,
       }),
     ).toBeNull();
@@ -83,7 +111,7 @@ describe("a track that filed something is working, whatever hold it keeps hittin
      */
     expect(
       stuckBackoffMinutes({
-        recent: drives(["self-check-failed", "self-check-failed", "self-check-failed"]),
+        recent: drives(["self-check-failed", "out-of-time", "self-check-failed"]),
         newestArtifactAt: minsAgo(5),
       }),
     ).toBeNull();
@@ -119,7 +147,11 @@ describe("the holds that spend nothing are never touched", () => {
 describe("what the card says", () => {
   it("names the count and the time it comes back", () => {
     const said = triedAgainLine(deferUntil(10, NOW), NOW);
-    expect(said).toContain(`Tried ${SAME_HOLD_BEFORE_BACKOFF} times with the same result`);
+    /* "and nothing changed", never "with the same result": the three drives may
+       have stopped on different holds, and claiming they were identical is a
+       sentence the record does not support. */
+    expect(said).toContain(`Tried ${DRIVES_BEFORE_BACKOFF} times and nothing changed`);
+    expect(said).not.toContain("same result");
     expect(said).toContain("12:40");
   });
 

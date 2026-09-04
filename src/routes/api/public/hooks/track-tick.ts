@@ -11,10 +11,10 @@ import { notInList, sampleWorkspaceIds } from "@/lib/ticks/real-workspaces.serve
 import { outOfTime } from "@/lib/spine/track-caps.server";
 import {
   deferUntil,
-  SAME_HOLD_BEFORE_BACKOFF,
+  DRIVES_BEFORE_BACKOFF,
   stuckBackoffMinutes,
   type DriveEntry,
-} from "@/lib/spine/three-of-the-same-is-not-a-fourth-try";
+} from "@/lib/spine/three-tries-and-nothing-changed";
 import {
   HOLDS_THAT_WAIT_ON_A_DATE,
   pickDrivable,
@@ -326,7 +326,7 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
           /*
            * ── THREE INTO THE SAME WALL DO NOT EARN A FOURTH (P-113) ────────
            *
-           * See `three-of-the-same-is-not-a-fourth-try`. Here rather than at
+           * See `three-tries-and-nothing-changed`. Here rather than at
            * the end of a drive because `driveTrackOnce` has fourteen exits and
            * this repo has already paid for chasing writers one at a time --
            * eligibility is one place and it is where a slot is actually spent.
@@ -346,7 +346,7 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
               .select("track_id,entry_hold,at")
               .in("track_id", candidateIds)
               .order("at", { ascending: false })
-              .limit(candidateIds.length * SAME_HOLD_BEFORE_BACKOFF * 3);
+              .limit(candidateIds.length * DRIVES_BEFORE_BACKOFF * 3);
             const { data: memberRows } = await supabaseAdmin
               .from("spine_track_members")
               .select("track_id,created_at")
@@ -365,7 +365,7 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
               }>) {
                 if (!d.track_id || !d.at) continue;
                 const list = byTrack.get(d.track_id) ?? [];
-                if (list.length < SAME_HOLD_BEFORE_BACKOFF * 2) {
+                if (list.length < DRIVES_BEFORE_BACKOFF * 2) {
                   list.push({ hold: d.entry_hold, at: d.at });
                   byTrack.set(d.track_id, list);
                 }
