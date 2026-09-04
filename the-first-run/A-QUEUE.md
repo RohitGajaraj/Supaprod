@@ -114,6 +114,12 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     Silence is never work; two hours were lost on 09-04 reading it as such. The founder's standing
     authority of 00:09 (repeated to A3 at 02:55) covers migrations, publishing, writes and deletes
     on this project; a prompt that still appears is answered by the lane, not waited on.
+21. **The production build on the tip is part of the gate** (A1, 07:50 IST 09-04). `bun run build`
+    exit 0 alongside tsc 0 and the full suite. The suite does not run import protection: P-58b's
+    `server-timing.ts` imported `@tanstack/react-start/server` into a route file, every build
+    since 05:34 failed on Lovable's side with no signal reaching anyone, and eight publishes served
+    nothing. A lane that touches a route, a loader or anything under `src/lib` a route imports runs
+    the build before pushing.
 
 ### The bar a packet is verified against, in this order
 
@@ -7758,7 +7764,7 @@ one-card rule holds (the map is not a card and asks nothing). Full suite on the 
 **DoD.** Pushed; suite number per rule 17; A1 walks both tracks.
 
 
-### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: CODE DONE, PUSHED 4ae98727b (14,183 / 0, tsc 0) — step 1 (attribution) extended per A1's steer, still no fix · A1: suite on the tip 14,182 / 0 / 0, tsc 0; PUBLISHED 05:34 and the extension (Start's arrival readers) at 05:42 IST 09-04 on 14,183 / 0 / 0; A1 readings of "/" at 00:40, 00:44 and 00:55 UTC: TTFB 4.86 s, 2.61 s, 3.31 s, and NO Server-Timing header on "/" or /health in any of them (73 minutes after the 05:42 publish); stale build or a stripped header, undecided; A3 adds an X- twin and a canary · Moves: 3
+### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: CODE DONE, PUSHED 4ae98727b (14,183 / 0, tsc 0) — step 1 (attribution) extended per A1's steer, still no fix · A1: suite on the tip 14,182 / 0 / 0, tsc 0; PUBLISHED 05:34 and the extension (Start's arrival readers) at 05:42 IST 09-04 on 14,183 / 0 / 0; A1 readings of "/" at 00:40, 00:44 and 00:55 UTC: TTFB 4.86 s, 2.61 s, 3.31 s, and NO Server-Timing header on "/" or /health in any of them (73 minutes after the 05:42 publish); stale build or a stripped header, undecided; A3 adds an X- twin and a canary · Moves: 3 · 07:50: step one BROKE THE PRODUCTION BUILD (import protection); A3 fixing before P-81
 
 **A3, 00:55 UTC 09-04, extending step 1 per A1's steer.** She named it precisely: `/start`'s real
 arrival cost is the server functions the shell calls first, not SSR. Those are all inside
@@ -8092,7 +8098,7 @@ Eight publishes between 05:22 and 07:11. At 01:46 UTC the served root carries no
 header (P-64b, published 06:46), the tablet track still draws the pre-P-59c card (published
 06:38), and Lovable's own latest preview screenshot is of commit `68f1ba07` (05:32 IST), while
 its `latest_commit_sha` is the tip. So the sync is current and the BUILD is behind: the queue of
-publishes has not caught up, or a build failed silently. Rule for the rest of the morning: no
+publishes has not caught up, or a build failed silently. **07:50: the build fails.** `bun run build` on the tip: import-protection denies `@tanstack/react-start/server` imported by `src/lib/server-timing.ts` (P-58b step one, 224ee7b65, 05:34) from `src/routes/index.tsx`. Every publish since 05:34 built nothing; the served build is 68f1ba07 (05:32). Unserved: P-59c's fix (which is why the Ship card stayed generic), P-64b, P-65, P-71d, P-71e, P-76 item 2, P-79, P-58b itself. A3 is fixing it first; rule 21 added. Rule for the rest of the morning: no
 publish until the served build carries `X-Supaprod-Build`; batch the lanes' pushes into one
 publish after that; read twice before concluding a fix is absent (rule 18).
 
