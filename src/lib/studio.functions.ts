@@ -1214,6 +1214,11 @@ export type AppliedChange = {
   product_id: string | null;
   mission_id: string | null;
   mission_title: string | null;
+  /** The spec this changeset carries, straight off `studio_changesets.prd_id`
+   *  (P-131, A-QUEUE.md) -- the live, trusted value, never the copy
+   *  `changelog_entries.prd_id` holds, which the merge trigger does not keep
+   *  in step with it. */
+  prd_id: string | null;
   title: string;
   repo: string;
   branch: string | null;
@@ -1248,7 +1253,7 @@ export const listAppliedChanges = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await db
       .from("studio_changesets")
-      .select("id,product_id,mission_id,repo,branch,pr_url,pr_number,title,updated_at")
+      .select("id,product_id,mission_id,prd_id,repo,branch,pr_url,pr_number,title,updated_at")
       .eq("workspace_id", workspaceId)
       .eq("status", "merged")
       .order("updated_at", { ascending: false })
@@ -1259,6 +1264,7 @@ export const listAppliedChanges = createServerFn({ method: "GET" })
       id: string;
       product_id: string | null;
       mission_id: string | null;
+      prd_id: string | null;
       repo: string | null;
       branch: string | null;
       pr_url: string | null;
@@ -1292,6 +1298,7 @@ export const listAppliedChanges = createServerFn({ method: "GET" })
       id: c.id,
       product_id: c.product_id,
       mission_id: c.mission_id,
+      prd_id: c.prd_id,
       mission_title: c.mission_id ? (titleByMission.get(c.mission_id) ?? null) : null,
       title: c.title ?? "Untitled change",
       repo: c.repo ?? "",

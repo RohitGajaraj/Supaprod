@@ -84,6 +84,13 @@ describe("spec dispatch writes the prd -> mission lineage edge", () => {
      */
     const registry = stripComments(read("lib/ai/tools/registry.server.ts")).replace(/\s+/g, " ");
     expect(registry).toMatch(/async function resolvePrdForMission\(/);
-    expect(registry).toMatch(/prd_id: await resolvePrdForMission\(supabase, missionId\)/);
+    // P-131 (A-QUEUE.md): resolved once into its own variable so the same
+    // value can also resolve `product_id` (`resolveProductForPrd`) without a
+    // second call to `resolvePrdForMission` -- still application code, still
+    // no trigger, which is this test's own claim.
+    expect(registry).toMatch(
+      /const resolvedPrdId = await resolvePrdForMission\(supabase, missionId\)/,
+    );
+    expect(registry).toMatch(/prd_id: resolvedPrdId,/);
   });
 });

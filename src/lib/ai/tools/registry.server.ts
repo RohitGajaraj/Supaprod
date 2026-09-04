@@ -1979,6 +1979,31 @@ async function resolvePrdForMission(
   }
 }
 
+/**
+ * The product a changeset's own spec belongs to (P-131, A-QUEUE.md): a
+ * second, small lookup rather than an embed, since `artifact_lineage` is a
+ * generic polymorphic table with no declared FK into `prds` for
+ * `resolvePrdForMission`'s own read to embed through. Only fired when a
+ * spec was actually resolved; a prompt-only session with no spec has no
+ * product to name here either.
+ */
+async function resolveProductForPrd(
+  supabase: SupabaseClient,
+  prdId: string | null,
+): Promise<string | null> {
+  if (!prdId) return null;
+  try {
+    const { data } = await supabase
+      .from("prds")
+      .select("product_id")
+      .eq("id", prdId)
+      .maybeSingle();
+    return (data as { product_id?: string | null } | null)?.product_id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 const repoTree = def({
   name: "repo.tree",
   description:
@@ -2512,6 +2537,7 @@ const studioStage = def({
 
     let changeset = await getActiveChangeset(supabase, missionId);
     if (!changeset) {
+      const resolvedPrdId = await resolvePrdForMission(supabase, missionId);
       const { data: created, error } = await supabase
         .from("studio_changesets")
         .insert({
@@ -2524,7 +2550,10 @@ const studioStage = def({
           // The link that lets a merge stamp its spec shipped. See
           // resolvePrdForMission: null here is the pre-2026-08-05 behaviour and
           // is still correct for a prompt-only session with no spec behind it.
-          prd_id: await resolvePrdForMission(supabase, missionId),
+          prd_id: resolvedPrdId,
+          // P-131 (A-QUEUE.md): the release document reads this to name the
+          // product a release belongs to; Build never wrote it before now.
+          product_id: await resolveProductForPrd(supabase, resolvedPrdId),
         })
         .select("id,mission_id,repo,branch,base_sha,status,title,pr_url,pr_number")
         .single();

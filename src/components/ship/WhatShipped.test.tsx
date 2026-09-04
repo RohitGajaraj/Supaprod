@@ -128,6 +128,7 @@ const APPLIED: AppliedChange = {
   id: "10000000-0006-4000-8000-000000000001",
   product_id: "10000000-0000-4000-8000-0000000000a1",
   mission_id: "10000000-0005-4000-8000-000000000001",
+  prd_id: "10000000-0001-4000-8000-000000000003",
   mission_title: "Batch firmware push",
   title: "Batch firmware push scheduler",
   repo: "helio-labs/atlas-installer-portal",
@@ -572,6 +573,64 @@ describe("the changeset behind a release", () => {
     expect(await screen.findByText("helio-labs/atlas-installer-portal")).toBeTruthy();
     expect(screen.queryByText(/files changed/)).toBeNull();
     expect(screen.getByText(/No file rows are stored for this changeset/)).toBeTruthy();
+  });
+});
+
+/*
+ * P-131 (A-QUEUE.md). Live incident: `studio_changesets.prd_id` was correctly
+ * set at Build time, but `changelog_entries.prd_id` -- the column this
+ * document used to trust alone -- stayed null, because the merge trigger
+ * never kept the two in step (the same class of drift P-124 found in this
+ * trigger's own `title` column). The document read "not linked to a spec"
+ * and "not traced to a bet" over a release that genuinely had both.
+ */
+describe("the spec id this document trusts (P-131)", () => {
+  test("resolves the spec from the changeset's own prd_id when changelog_entries.prd_id is null", async () => {
+    mount(
+      <AssembledRelease
+        entry={{ ...ENTRY, prd_id: null, opportunity_title: null }}
+        workspaceId={WS_A}
+        reads={reads()}
+        onOpen={() => {}}
+      />,
+    );
+
+    // The spec resolves and the document no longer reports a hole that was
+    // never real.
+    expect(await screen.findByText("Batch firmware push scheduler")).toBeTruthy();
+    expect(screen.queryByText(/This release is not linked to a spec/)).toBeNull();
+  });
+
+  test("resolves the bet from the freshly-fetched spec's own opportunity, not the stale changelog column", async () => {
+    mount(
+      <AssembledRelease
+        entry={{ ...ENTRY, prd_id: null, opportunity_title: null }}
+        workspaceId={WS_A}
+        reads={reads({
+          prd: async () => ({
+            prd: { ...PRD, opportunity_title: "Field techs cannot push firmware to a whole site" },
+          }),
+        })}
+        onOpen={() => {}}
+      />,
+    );
+
+    expect(await screen.findByText("Field techs cannot push firmware to a whole site")).toBeTruthy();
+    expect(screen.queryByText(/This release is not traced to a bet/)).toBeNull();
+  });
+
+  test("still reports both holes honestly when the changeset genuinely carries neither", async () => {
+    mount(
+      <AssembledRelease
+        entry={{ ...ENTRY, prd_id: null, opportunity_title: null }}
+        workspaceId={WS_A}
+        reads={reads({ applied: async () => ({ changes: [{ ...APPLIED, prd_id: null }] }) })}
+        onOpen={() => {}}
+      />,
+    );
+
+    expect(await screen.findByText(/This release is not linked to a spec/)).toBeTruthy();
+    expect(screen.getByText(/This release is not traced to a bet/)).toBeTruthy();
   });
 });
 

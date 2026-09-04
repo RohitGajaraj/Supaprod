@@ -374,6 +374,7 @@ function merged(over: Partial<AppliedChange> & { id: string }): AppliedChange {
   return {
     product_id: null,
     mission_id: null,
+    prd_id: null,
     mission_title: null,
     title: "A merged change",
     repo: "acme/app",

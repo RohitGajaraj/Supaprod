@@ -290,6 +290,12 @@ export type PrdSource = {
   /** The armed outcome window's check-back day, written at promote. Optional
    *  because rows read before the column existed carry nothing here. */
   outcome_check_by?: string | null;
+  /** The bet this spec came from, resolved fresh from `prds.opportunity_id`
+   *  (P-131, A-QUEUE.md) -- never trusted off `entry.opportunity_title`,
+   *  which `listChangelog` resolves through `changelog_entries.prd_id`, a
+   *  column the merge trigger does not keep in step with the changeset's
+   *  own (correct) `prd_id`. Null when this spec carries no opportunity. */
+  opportunity_title?: string | null;
 };
 
 export type DeploySource = {
@@ -1054,10 +1060,32 @@ export function AssembledRelease({
   onOpen?: (url: string) => void;
   onNavigate?: (to: string) => void;
 }) {
+  const appliedQ = useQuery({
+    queryKey: ["what-shipped-applied", workspaceId ?? null],
+    queryFn: () => reads.applied({ workspaceId: workspaceId ?? null }),
+  });
+  const applied =
+    (appliedQ.data?.changes ?? []).find((c: AppliedChange) => c.id === entry.changeset_id) ?? null;
+
+  /*
+   * THE SPEC ID THIS DOCUMENT ACTUALLY TRUSTS (P-131, A-QUEUE.md). This used
+   * to read `entry.prd_id` alone -- `changelog_entries.prd_id`, written once
+   * by the merge trigger. Build itself already writes the CORRECT
+   * `studio_changesets.prd_id` at changeset creation (`resolvePrdForMission`,
+   * registry.server.ts), but the trigger does not stay in step with it, so a
+   * changeset whose own `prd_id` was set correctly could still produce a
+   * changelog row reading null -- the same class of drift P-124 found in
+   * this trigger's own `title` column. `applied.prd_id` is the live
+   * changeset row itself, so it is preferred whenever it resolves; the
+   * changelog's own value is the fallback for a release this table cannot
+   * yet reach (an older row, or `listAppliedChanges`'s own page boundary).
+   */
+  const resolvedPrdId = applied?.prd_id ?? entry.prd_id ?? null;
+
   const prdQ = useQuery({
-    queryKey: ["what-shipped-prd", entry.prd_id],
-    queryFn: () => reads.prd({ id: entry.prd_id as string }),
-    enabled: !!entry.prd_id,
+    queryKey: ["what-shipped-prd", resolvedPrdId],
+    queryFn: () => reads.prd({ id: resolvedPrdId as string }),
+    enabled: !!resolvedPrdId,
     /**
      * A MISSING ROW IS NOT WORTH RETRYING, and retrying it costs the reader the
      * document. React Query retries a rejected read three times with backoff by
@@ -1067,10 +1095,6 @@ export function AssembledRelease({
      * change. Everything else still retries, because everything else might.
      */
     retry: (count, err) => !isAbsentRow(err) && count < 3,
-  });
-  const appliedQ = useQuery({
-    queryKey: ["what-shipped-applied", workspaceId ?? null],
-    queryFn: () => reads.applied({ workspaceId: workspaceId ?? null }),
   });
   const deployQ = useQuery({
     /**
@@ -1106,9 +1130,9 @@ export function AssembledRelease({
    * assembler's fallback is already the honest one.
    */
   const routeQ = useQuery({
-    queryKey: ["what-shipped-design-route", entry.prd_id],
-    queryFn: () => reads.designRoute!({ prdId: entry.prd_id as string }),
-    enabled: !!entry.prd_id && !!reads.designRoute,
+    queryKey: ["what-shipped-design-route", resolvedPrdId],
+    queryFn: () => reads.designRoute!({ prdId: resolvedPrdId as string }),
+    enabled: !!resolvedPrdId && !!reads.designRoute,
     retry: false,
   });
 
@@ -1117,23 +1141,23 @@ export function AssembledRelease({
   // second before the outcome arrives, and that is a false sentence on screen.
   // Only the reads that were actually ENABLED can hold the document up.
   const waiting =
-    (!!entry.prd_id && prdQ.isLoading) ||
     appliedQ.isLoading ||
+    (!!resolvedPrdId && prdQ.isLoading) ||
     (!!entry.changeset_id && deployQ.isLoading) ||
-    (!!entry.prd_id && !!reads.designRoute && routeQ.isLoading);
+    (!!resolvedPrdId && !!reads.designRoute && routeQ.isLoading);
 
   // A SPEC THAT IS NOT THERE IS NOT A BROKEN READ. `getPrd` throws for both, so
   // the two were indistinguishable here and the absent row won: one deleted spec
   // took down a document whose title, body, pull request and deployment had all
   // loaded. `isAbsentRow` separates them, and only the genuinely absent one
   // falls through to `prd: null`, where the assembler already knows what to say.
-  const prdAbsent = !!entry.prd_id && prdQ.isError && isAbsentRow(prdQ.error);
+  const prdAbsent = !!resolvedPrdId && prdQ.isError && isAbsentRow(prdQ.error);
 
   // A failed read is a different fact from a missing row, and the gap list would
   // otherwise report "no production deployment" when the truth is that we could
   // not find out. Failed says so, and offers the retry.
   const failed =
-    (!!entry.prd_id && prdQ.isError && !prdAbsent) || appliedQ.isError || deployQ.isError;
+    (!!resolvedPrdId && prdQ.isError && !prdAbsent) || appliedQ.isError || deployQ.isError;
 
   if (waiting) return <Reading>Assembling the release document.</Reading>;
   if (failed) {
@@ -1146,7 +1170,7 @@ export function AssembledRelease({
       <ReadFailed
         detail="Nothing has been changed and nothing has been lost. Some of what this document reads from did not load."
         onRetry={() => {
-          if (entry.prd_id) void prdQ.refetch();
+          if (resolvedPrdId) void prdQ.refetch();
           void appliedQ.refetch();
           if (entry.changeset_id) void deployQ.refetch();
         }}
@@ -1167,11 +1191,9 @@ export function AssembledRelease({
         design_gate_status: str((prdRow as Bag).design_gate_status),
         design_decided_at: str((prdRow as Bag).design_decided_at),
         outcome_check_by: str((prdRow as Bag).outcome_check_by),
+        opportunity_title: str((prdRow as Bag).opportunity_title),
       } as PrdSource)
     : null;
-
-  const applied =
-    (appliedQ.data?.changes ?? []).find((c: AppliedChange) => c.id === entry.changeset_id) ?? null;
 
   const deployments = ((deployQ.data?.deployments ?? []) as DeploySource[]).map((d) => ({
     environment: d.environment ?? null,
@@ -1186,7 +1208,19 @@ export function AssembledRelease({
   // reads as "not known" rather than "no route was chosen".
   const designRoute = routeQ.isSuccess ? (routeQ.data?.chosen ?? null) : undefined;
 
-  const doc = assembleReleaseDoc({ entry, prd, applied, deployments, designRoute });
+  /*
+   * THE ENTRY `assembleReleaseDoc` ACTUALLY SEES (P-131, A-QUEUE.md).
+   * `entry.prd_id`/`entry.opportunity_title` are `changelog_entries`' own
+   * stored columns, written once by the merge trigger and never kept in
+   * step with a changeset whose `prd_id` was corrected afterwards. `prd`
+   * above was fetched by `resolvedPrdId` -- the live, trusted value -- so
+   * once it has answered, its own id and opportunity title are what this
+   * document reports; the raw `entry` fields are the fallback only for a
+   * release neither `applied` nor a resolved `prd` could account for.
+   */
+  const effectiveEntry = { ...entry, prd_id: resolvedPrdId, opportunity_title: prd?.opportunity_title ?? entry.opportunity_title };
+
+  const doc = assembleReleaseDoc({ entry: effectiveEntry, prd, applied, deployments, designRoute });
   return <ReleaseDocument doc={doc} onOpen={onOpen} onNavigate={onNavigate} />;
 }
 

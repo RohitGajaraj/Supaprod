@@ -2624,7 +2624,29 @@ export const getPrd = createServerFn({ method: "GET" })
       .eq("id", data.id)
       .single();
     if (error) throw new Error(error.message);
-    return { prd: row };
+
+    /*
+     * THE BET THIS SPEC CAME FROM, BESIDE IT (P-131, A-QUEUE.md). No FK
+     * constraint exists on `prds.opportunity_id` (checked against the live
+     * schema before writing this -- a bare column, so PostgREST's embed
+     * syntax cannot resolve it), so this is a plain second query rather than
+     * an embed. Only fired when there is an id to look up, and a failed or
+     * absent lookup degrades to no title rather than failing the whole spec
+     * read -- the release document already knows how to say "not traced to
+     * a bet" when this comes back null.
+     */
+    const oppId = (row as { opportunity_id?: string | null } | null)?.opportunity_id ?? null;
+    let opportunity_title: string | null = null;
+    if (oppId) {
+      const { data: opp } = await context.supabase
+        .from("opportunities")
+        .select("title")
+        .eq("id", oppId)
+        .maybeSingle();
+      opportunity_title = (opp as { title?: string | null } | null)?.title ?? null;
+    }
+
+    return { prd: { ...row, opportunity_title } };
   });
 
 // ---------- CNV-01: The Outcome Contract (typed dual projection) ----------
