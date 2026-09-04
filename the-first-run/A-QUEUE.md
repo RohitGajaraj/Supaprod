@@ -9487,6 +9487,29 @@ suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 reads at 1512 px.
 
+
+### P-126 · Start knows what went live · Lane: **A3** (after P-124, before P-104) · Status: READY · Moves: 2, 3
+
+**Why.** Served Start, 12:50 IST 09-04, twenty minutes after the first release went to production:
+the first answer reads *Nothing new since you last looked.*, the second *1 call came back this
+week and the record was re-scored*, and the first suggestion under *Or start one of these* is
+*Skip the address re-confirm when nothing changed*, the opportunity that just shipped. The run's
+row below says only that Learn returns on 09-21. The one fact the person most wants on a second
+visit, *your change is live and here is the address*, is on the Ship page and nowhere on Start.
+
+**Scope.** (1) Start's first answer includes releases that went live since the person last looked
+(*Checkout asks a homeowner to re-enter the delivery address went live at 12:28, at
+cad-60000000-...deno.net*), ahead of re-scored calls, with the address as a link and the
+announcement as the next press when it is not yet announced. (2) An opportunity whose track
+shipped is not offered as a start; its card reads *Shipped 12:28* with the run link, or it leaves
+the ranked three. (3) The run row on Start leads with *Live since 12:28* when the track has a
+production deployment, then the Learn sentence. Guard: fixtures for each.
+
+**Acceptance.** Served Start on Helio shows the release in the first answer and does not offer the
+shipped opportunity. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 reads.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
