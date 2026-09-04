@@ -8314,7 +8314,7 @@ Not walked live -- no dev server / browser access in this worktree this session,
 limitation as every packet closed here. A1: two tabs on Helio, a press in one should land in the
 other's Waiting list within a tick with no reload.
 
-### P-85 · Start's example sentences fit the workspace · Lane: **A3** (after P-83) · Status: CLAIMED (A3) 09:02 IST 09-04 · Moves: 2
+### P-85 · Start's example sentences fit the workspace · Lane: **A3** (after P-83) · Status: CODE DONE, PUSHED 483233b41 · Moves: 2
 
 **Why.** In the empty probe workspace (no product), Start's examples read *Make the checkout
 accept an American Express card* and two more from Relay's checkout. A person whose product is a
@@ -8331,6 +8331,40 @@ workspace's examples contain no product or domain noun from any other workspace.
 build 0.
 
 **DoD.** Pushed; the three numbers; A1 reads both workspaces.
+
+**Report, A3, 09:15 IST 09-04.** Three tiers, in order: ranked bets (`listTopOpportunities`,
+unchanged, Helio's own path); a new middle tier -- a product with no arrivals yet gets three
+sentences shaped from that product's own name and stated goal (`projects.north_star`, new
+`listProductGoals` server function in `spine/track.functions.ts`; `projects` is the physical table
+backing `Product` in `use-workspace.tsx`, per that file's own comment); fully generic with neither
+(`GENERIC_EXAMPLE_JOBS`, renamed from `EXAMPLE_JOBS` which now aliases it) naming the three shapes
+-- a capability, a change, a question -- with no product or domain noun anywhere in it. The middle
+tier is phrased around the goal with "for"/"in the way of"/"between... and" rather than fused into
+it grammatically, since `north_star` is free text a founder wrote and a conjugation template would
+read wrong for half of what people actually write there.
+
+Guard (`example-jobs-name-no-domain.test.ts`): a denylist of every domain noun a live workspace's
+examples have carried (checkout, sign-up form, address step, Amex, Relay, Helio, payroll), checked
+against every sentence and sub-line of the generic tier -- a denylist rather than an allowlist
+because the failure mode is a FUTURE edit reintroducing a concrete noun, which this catches
+regardless of whether anyone thought to add it to a list first. Verified the denylist is not
+merely empty-handed: a second test proves it actually catches the retired checkout sentence.
+
+Two pre-existing tests needed real updates, not workarounds: `one-way-in-and-it-starts-a-run.test.ts`
+checked the exact text of the `track.functions` import line in `start.tsx`, so `listProductGoals`
+became its own import statement rather than folding into the existing one and breaking an exact
+substring match; `nothing-in-flight-was-also-what-a-failure-said.test.ts` enumerates every
+re-raise/degrade split in the file by hand and counts them, so `listProductGoals` following that
+same established split moved the count from 6 to 7 with a matching documented paragraph, the same
+convention its other six entries already use.
+
+Full suite on the rebased tip (61c44f351): `bun run build` exit 0, `bunx tsc --noEmit` exit 0,
+`bun test` 14,280 / 0 / 22 skip / 37 todo. PUSHED 483233b41.
+
+Not walked live -- no dev server / browser access in this worktree this session, same standing
+limitation as every packet closed here. A1: probe workspace should read three generic sentences
+naming a capability, a change and a question with nothing about a checkout; Helio should read
+unchanged (still its own ranked bets).
 
 
 ### LIVE WALK, A1, 08:50 IST 09-04 · the tablet track after its deferral lapsed
