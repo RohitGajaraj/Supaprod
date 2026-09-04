@@ -124,6 +124,9 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     `[.well-known]/oauth-protected-resource.ts`: the route generator rewrites them); after a local
     build, `git checkout --` those four before committing, or the gate quietly edits the repo (A2 and
     A1 both hit it on 09-04). P-82 makes the generator stop.
+22. **Each lane holds at least three READY packets ahead of the one it is on** (the founder, 11:23
+    IST 09-04: no lane idle for more than five minutes). A1 refills the buffer on every push it
+    reads, and a lane that finds fewer than three ahead says so in the queue instead of waiting.
 
 ### The bar a packet is verified against, in this order
 
@@ -8844,6 +8847,96 @@ Brain, Policies, Today (as a surface) and "command palette" returns only archive
 on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the numbers; the report lists the files touched and the sentences rewritten.
+
+
+### P-104 · A handed-back release reaches the Ship page · Lane: **A3** (after P-103) · Status: READY · Moves: 2, 3
+
+**Why.** A2's finding in P-96: a build handed back to a person's own builder writes `pr_open`,
+never `merged`, and the Ship half writes a deployment with no `changeset_id`; the release list
+joins on exactly that column, so a handed-back deploy shows on the run screen and never on the
+page whose job is "what shipped". Zero `claimed` deploys and zero `handback` rows exist today, so
+the first customer who uses their own pipeline finds an empty Ship page.
+
+**Scope.** The release list on `/ship` includes deployments with no changeset (the handback and
+`claimed` shapes) as their own rows, led by the P-96 sentence that says a person recorded it and
+the product can show no change; the announce control stays withheld for them (P-96's rule); the
+run screen and the Ship page agree on the count. Guard: a fixture with one handback deploy renders
+one row with the hand-recorded sentence and no announce control.
+
+**Acceptance.** A test-only proof plus a read on the served Helio Ship page that nothing changed
+for merged releases. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
+
+### P-105 · A transcript row leads with one sentence, and the rest folds · Lane: **A3** (after P-104) · Status: READY · Moves: 2
+
+**Why.** On the served tablet track the transcript rows carry the seats' full paragraphs (the
+Design critic's 400 words, the Build seat's 300) in the row itself; "a dump of text" was the
+founder's phrase for the old run screen (P-37). Meridian's `FoldingRow` exists for this: the lead
+outside the animated region, no chevron.
+
+**Scope.** Every transcript row's lead is one sentence composed from the verdict and the seat
+(*Filed nothing. Discovery Scout, 42 s.*), the seat's paragraph folds under it, opened by a press on
+the row; a row that was stopped or refused leads with that fact; the first line of the paragraph
+is never the lead. Guard: a rendered row's lead is under 140 characters and the body is folded by
+default.
+
+**Acceptance.** Served tablet track: seven or more rows, each one line until opened. Full suite on
+the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 reads.
+
+### P-109 · The Run door with nothing running lands somewhere · Lane: **A3** (after P-105) · Status: READY · Moves: 2
+
+**Why.** Run is an identity on the rail (P-60): it resolves to the live run at render. With nothing
+running it resolves to nothing, and P-63 recorded "Run has no door to design for while nothing's
+live". A door that goes nowhere is R-38's defect in its plainest form.
+
+**Scope.** With no live run, the Run door lands on the most recent run's screen with a Quiet at the
+top (*Nothing is running. This is the last run; start a sentence to begin another.*) and the
+composer; with no runs at all, on Start with the composer focused. The rail's Run row shows the
+state (live, last, none) in its accessible name. Guard: the three resolutions.
+
+**Acceptance.** Probe with runs but none live: the door lands on the last run with the Quiet; a
+fresh workspace: on Start. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 walks both.
+
+### P-112 · Supaprod-authored files in a customer's repository are a stated fact and a setting · Lane: **A2** (after P-86) · Status: READY · Moves: 1, 3
+
+**Why.** A2's read on P-86: the commit that repairs PR #5 carries `.supaprod/intent.md`, `plan.md`
+and `spec.md`, so the merge puts three Supaprod-authored files into the customer's repository.
+Perhaps intended; today it is unstated on the gate card and unchosen by the person.
+
+**Scope.** (1) The P-72 gate card lists those files under their own line (*Supaprod also writes
+three files of its own: the intent, the plan and the spec, under .supaprod/*), separate from the
+change. (2) A workspace setting, default on, for whether the product writes its record into the
+repository, with the sentence that says what is lost when it is off (the run's record lives only
+here). (3) A guard that the card names the record files whenever the commit carries them.
+
+**Acceptance.** The card on PR #5 shows the line; the setting exists and is read by Build. Full
+suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
+
+### P-113 · A stuck track stops spending · Lane: **A2** (after P-112) · Status: READY · Moves: 1
+
+**Why.** The demo account spent 5,398 credits in one night for five sentences and one track that
+churned Build to Ship every ten minutes on a fault that was not the crew's (the tablet track, before
+its deferral). P-59d closed one shape of that; the general one stands: the sweep re-drives a track
+whose last drives produced the same hold and the same nothing.
+
+**Scope.** In the sweep's eligibility: a track whose last three drives entered with the same hold
+and produced no artifact is deferred with backoff (10, 30, 90 minutes), the hold card says so
+(*Tried three times with the same result; trying again at 12:40*), and the person's press clears
+the backoff. Never for `waiting-on-a-person`, `the-call-is-yours` or a calendar wait, which spend
+nothing. Guard: the backoff and the exemptions. Report: the credits the overnight churn would have
+cost under the rule.
+
+**Acceptance.** A track driven three times into the same `produced-nothing` is not driven a fourth
+time inside ten minutes. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
