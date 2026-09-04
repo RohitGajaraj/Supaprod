@@ -9758,7 +9758,7 @@ Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the ruling; the three numbers; A1 walks the second repo.
 
 
-### P-129 · One count per family on Waiting · Lane: **A3** (after P-126, before P-104) · Status: READY · Moves: 2
+### P-129 · One count per family on Waiting · Lane: **A3** (after P-126, before P-104) · Status: CLAIMED (A3) 14:28 IST 09-04 · Moves: 2
 
 **Why.** Served Waiting page, 12:14 IST 09-04: the heading said *21 design gates, 10 assumption
 challenges, 9 decisions, 4 agent actions, 4 house rules, 3 opportunities and 2 memory notes
