@@ -10658,6 +10658,35 @@ all (every existing test fixture, unmodified) keeps the original sentence -- thr
 all 12 checks ok.
 
 
+
+### P-142 · Define finds the existing spec before it writes a new one · Lane: **A2** (after P-138) · Status: READY · Moves: 1, 3
+
+**Why.** A2's measurement on Helio, 19:10 IST 09-04: 13 of 29 draft specs are duplicates of
+another draft, in five title groups (four *Installers working panel and inverter basements lose
+cell...* from 08-18 to 08-21; three *Remove the redundant address re-confirmation step...* from
+08-31 to 09-02; two *Let returning customers reuse a saved delivery address...*; two pairs about
+the OTA firmware tile that are near-duplicates of each other, four rows for one problem). The
+three address re-confirmation drafts are siblings of f2aa82f1, which shipped today: two copies of
+a solved problem still sit on Waiting asking for approval. Define is producing a new spec where it
+should be finding the existing one, and every duplicate is a design gate, a Waiting row and a
+seat's spend.
+
+**Scope.** (1) Before Define writes a spec, it reads the workspace's specs (draft, review,
+approved, shipped) for the same problem, by the decision's subject and the bet's id (P-134) and
+by the spec embedding when one exists, and if it finds one it attaches the track to it
+(revise, supersede or reuse, on the record) instead of writing another; the transcript row says
+which. (2) A shipped spec's problem, re-entered, lands on the shipped spec's outcome (*this
+shipped on 09-04; Learn is measuring it*) rather than a new draft. (3) A one-time fold of the
+existing duplicates: supersede the older copies under the newest with the lineage recorded, by
+migration, ledger confirmed by A1; the two siblings of f2aa82f1 superseded under it. (4) Guard:
+a fixture with an existing draft on the same subject produces a revision, not a new row; a
+fixture with a shipped spec produces the outcome pointer.
+
+**Acceptance.** Helio's draft count drops from 29 to the distinct problems (about 16), and a new
+sentence on a solved problem lands on the shipped spec. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; migration applied; the counts before and after.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
