@@ -10704,7 +10704,7 @@ sentence on a solved problem lands on the shipped spec. Full suite on the tip, t
 **DoD.** Pushed; migration applied; the counts before and after.
 
 
-### P-143 · A hold that waits for a day says the day · Lane: **A3** (after the P-140 fix, before P-141) · Status: READY · Moves: 2
+### P-143 · A hold that waits for a day says the day · Lane: **A3** (after the P-140 fix, before P-141) · Status: PUSHED, LIVE READ PENDING (deadb4832; tsc 0, 14,698 pass / 0 fail, build 0, docs:check clean; A1 reads the served card on 2fdf93b6 once it deploys) · Moves: 2
 
 **Why.** The shipped track's run screen at Learn, 19:13 IST 09-04: *Tried 3 times and nothing
 changed; trying again at 00:00.* The track's `deferred_until` is 2026-09-21 00:00 UTC, the
@@ -10721,6 +10721,20 @@ a retry. Guard: fixtures for the three cases.
 tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
+
+**Report (A3, 19:43 IST 09-04).** `deadb4832`. `triedAgainLine` (three-tries-and-nothing-changed.ts)
+now takes `{zone, isForecastHorizon}` instead of a raw `formatTime` slice: a same-day retry reads
+*at 12:40*, a later one *on Sep 21* (via two additions to `time-of-day.ts`, `sameCalendarDay` and
+`monthDayInZone`, reusing the P-130 zone rather than a second formatter); when `deferred_until` is
+the same calendar day as the decision's `forecast_horizon_date` (`horizonFromStops`), the card says
+*Learn returns on Sep 21* instead of claiming a retry. `TrackRun.tsx` reads the person's own zone
+via `useTimezone()` and computes `deferralIsForecastHorizon` by comparing the two dates. Guard: 4
+new fixtures on `triedAgainLine` (same-day, later-day, forecast-horizon, and a UTC/Kolkata
+day-boundary case where the two zones disagree on which day it is). Full suite: tsc 0, 14,698 pass
+/ 0 fail / 22 skip / 37 todo, build 0 (clean nitro/cloudflare-module, no stray diff after), docs:check
+clean (0 broken live links, 12/12 ok). Not live-verified on 2fdf93b6 itself (no server-console read
+available to either of us, same constraint as P-140); A1's read of the served card is the
+acceptance criterion's own text, so it stays LIVE READ PENDING until she presses it post-deploy.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
