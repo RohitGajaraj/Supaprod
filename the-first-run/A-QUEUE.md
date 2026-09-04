@@ -7734,6 +7734,8 @@ the tip, tsc 0.
 
 ### P-74 · The run shows its route: seven stations, what happened at each, and what is ahead · Lane: **A2** (after P-72, before P-73) · Status: PUBLISHED 08:46, read live 10:10 IST 09-04 on the tablet track: *Discover Found 1 thing. Decide The call is on the record. Plan Spec written. Design 1 drawing filed. Build Running, A change was made.* with Ship and Learn blank; on the probe track *Discover Searched and found nothing; carried on your sentence*, Decide showing the raw hold key. DONE as a map; the two sentence gaps are P-74b · Moves: 2, 3
 
+**P-74b, A2, e1a10235b:** the map printed the raw hold id because the outcome line carried the enum; the outcome line now says what the station did and the hold stays with its renderer; rows ahead read the precondition (*Will need a spec to design against*).
+
 **Why.** The founder, 04:09 IST 09-04: a person in a run needs to see the lifecycle the work
 moves through and where it is on it. Read live on the tablet track at 04:12: the seven names
 appear only as transcript section labels and output-card titles (Discover, Decide, Plan, Design,
@@ -8402,7 +8404,7 @@ build 0.
 **DoD.** Pushed; the three numbers; A1 presses.
 
 
-### P-86 · The honest Ship: one real change through Build, preview, gate and promote · Lane: **A2** (now) · Status: READY · Moves: 1, 3, 5
+### P-86 · The honest Ship: one real change through Build, preview, gate and promote · Lane: **A2** (now) · Status: IN PROGRESS, A2 report 10:29 IST: candidate `2fdf93b6` confirmed (not sample, bound to relay-homeowner-app, spec targets the read-only card and the Change Address link); the track is parked `going-in-circles` since 01:30 09-03 after six BuilderFileConflict refusals, because the waiting-on-another-run branch keyed on the credential-refusal detector and could never fire (fixed in e1a10235b); PR #5 is tests without the component change, CI red for the honest reason, and is NOT merged. Next: A1 un-parks the track (a person's press, under the founder's direct grant), the loop rebuilds the claim, A1 presses the merge gate on P-72's card and later the release gate; A2 does everything either side · Moves: 1, 3, 5
 
 **Why.** R-40 retired the tablet track as the Ship candidate. The date call (23 September honest)
 rests on one run carrying a change that does something into production through the product's own
@@ -8555,7 +8557,7 @@ guard did not catch it) and the rows ahead were blank rather than saying what th
 next tick decides whether the press clears the hold itself or waits for the sweep).
 
 
-### P-71f · The person's answer moves the track · Lane: **A2** (now, with P-74b, before P-86 continues) · Status: READY · Moves: 1, 2
+### P-71f · The person's answer moves the track · Lane: **A2** (now, with P-74b, before P-86 continues) · Status: CODE DONE (e1a10235b; A2: the press had cleared the hold and a drive 1.0 s later refused again, so the answer is filed as the Decide artifact and the station advances in the same write; Point a source first now sets needs-evidence and records nothing; A1 gate running; A1 presses on a30d6b62 after publish) · Moves: 1, 2
 
 **Why.** Live, track `a30d6b62`: A1 pressed *Build it on your word* at 03:50:25 UTC; the decision
 row was written with the person's claim, a drive was recorded at 03:50 with no hold, and nineteen
