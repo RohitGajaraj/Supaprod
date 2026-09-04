@@ -8431,7 +8431,7 @@ screen. Full suite on the tip, tsc 0, build 0 for anything you change in Supapro
 **DoD.** Report in the queue with the track id, PR, deployment rows and URL; A1 walks the route.
 
 
-### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUSHED b05fa6cf6 · Moves: 2, 5
+### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUBLISHED 09:38 IST 09-04 (b05fa6cf6; A1 on the tip: build 0 clean, tsc 0, 14,291 / 0 / 0; the keyboard walk follows) · Moves: 2, 5
 
 **Why.** Since 09-03 the product gained nine doors (P-60), a bottom bar and a sheet (P-81), the
 Choice with a text field (P-71b/e), the run map (P-74), the Ship hold card with its press (P-59c),
