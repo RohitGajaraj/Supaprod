@@ -8456,6 +8456,25 @@ implemented the read-only address card and the Change Address link and *cannot b
 a persistent conflict with a non-existent file (src/checkout/AddressStep.test.ts) that is claimed
 by another Studio mission*. Next read: whether Build commits onto PR #5's branch or writes
 `waiting-on-another-run` naming the run.
+
+**LIVE WALK, the honest Ship, 11:20 to 11:41 IST 09-04 (05:50 to 06:11 UTC).** Build on
+`2fdf93b6` committed all seven files this time (run 2a4da7ba: stage, commit, PR #5 kept, checks
+run), CI red on five type errors (the tests import `isUnchanged` and `isComplete`, the component
+exports neither; two dead imports), and a merge gate 0189ad0a rose over the red CI at 05:54:40.
+A2 read the gate as the blocker of the fix loop. A1 read the table: three runs on mission
+7bc7181b were `waiting_approval`, and only one had a pending approval; across the account 13 of
+14 `waiting_approval` runs had none (cancelled, expired, failed, one executed). A2 then found the
+cause of the stranding: the resume sweep takes five runs oldest first, and seven July fixture rows
+with no agent fill every slot and throw, since July. **P-114** (A2) carries the class. A1's
+presses, all under the founder's authority of 00:09: the two ghost runs on the mission (5198e875,
+0f4de13b) halted with the reason at 06:03; "Don't run it" on the run screen's banner pressed
+three times, each a 200 carrying a validation error the banner never showed (**P-115**, A3); the
+decline made through the transcript card with the reason at 06:09:35 (approval `rejected`,
+`decided_by` the person, `pending_gates` cleared, the banner gone); run 2a4da7ba, still
+`waiting_approval` after the decline, halted with the reason at 06:10:56. Mission clear:
+`pr_open`, CI red, `fix_attempts` 0, no live run. Next read: the 06:12 `ci-poll-tick` dispatches
+a builder on PR #5, or does not, and why.
+
 ### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUBLISHED 09:38 IST 09-04 (b05fa6cf6; A1 on the tip: build 0 clean, tsc 0, 14,291 / 0 / 0; the keyboard walk follows) · Moves: 2, 5
 
 **Why.** Since 09-03 the product gained nine doors (P-60), a bottom bar and a sheet (P-81), the
