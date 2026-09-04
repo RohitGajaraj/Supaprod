@@ -899,3 +899,59 @@ predates and lacks).
 
 Rule 26 (one full suite per machine at a time) observed throughout; rule 25 (every file a packet
 touches lints clean before push, sha pair reported) applied to every commit above.
+### A2, 21:45 IST 09-04 (session end)
+
+**Landed this session, each with its own gate and sha pair.** P-135 (branch, unmerged, below),
+P-137, P-138, P-142, P-144 scopes 1, 2 and 3, P-150 move 1. Last two shas: scope 3 gated
+`2f38eda34`, landed `38b0710b6`, published by A1 on gate 173 (14,775 pass / 0 fail, and it took
+`src` lint from 82 files to 75). P-150 move 1 is the commit above this entry; its gate is
+14,787 pass / 0 fail, tsc 0, build 0, lint 0 on all six touched files.
+
+**Migration written and APPLIED.** `20260909093200_p150_a_forecast_names_the_clause_it_grades.sql`
+adds `decisions.forecast_clause_id uuid`, nullable, with a partial index and no backfill. Applied
+and verified: uuid, nullable, 0 of 422 rows linked. Rule 19 order held (file first, apply second).
+`src/integrations/supabase/types.ts` carries the column; two repo guards caught that it did not
+before this landed, which is what they exist for.
+
+**What is left on each packet.**
+- **P-150.** Move 1 (the key) is done. **Move 2, the rule, is NOT started**: `bandIsWellFounded`
+  and `tierActionFor` still read `forecast_observations`, the seat-declared number. Move 3 is the
+  migration correcting the seven existing rows -- A1 ruled NULL for the four populations, not 1,
+  and the two honest `1`s stay. Move 2 also needs the driver instruction to say population and
+  readings are different things, and a warning (not a refusal) when a declared value equals the
+  baseline.
+- **P-144.** All three scopes landed. Scope 3's lift is correct and **inert**: 0 of 133 specs
+  carry a reading, so nothing lifts until someone records a number.
+- **P-145, P-148, P-149** untouched. For P-145, A1 added: measure what `getFocusNext` returns on
+  Helio and decide whether it and the learning card are one card or two (P-154 is held on that).
+- **P-152** (the lint backlog) is A3's.
+
+**Branches on origin, and where their content lives.** I did not delete any: deleting a remote
+branch is destructive and the instruction reached me relayed through A1 rather than from the
+founder directly, so the shas are named here instead and the deletions are one command each.
+- `a2-p135-edge-cache` -- **KEEP, waits on the founder.** `8a05f546a`, `4360353f0`, `26240f97b`.
+  Genuinely unmerged: 235 lines of `src/server.ts` are on the branch and not on main.
+- `p137-learn-sources` (`52130eda3`) -- **content is identical to main's**, verified file by file.
+  Redundant; safe to delete.
+- `a2-wip-p33-sample-door` (`d760bd387`) -- **NOT on main.** Its own contribution over the merge
+  base is 5 files / ~280 lines (`AppFrame.tsx`, `ScopeMenu.tsx` and three others). Do not delete
+  until someone decides whether P-33's sample door is still wanted.
+- `wip/p35-discovery-functions` -- not mine; I did not inspect it.
+
+**The one thing the next A2 should know first.** *A check placed where it is convenient rather
+than where it is true will pass and mean nothing*, and it happened four times this session in
+other people's code and twice in mine. Mine: my gate ran `bun run lint | grep error | head -5`,
+and the repo's five pre-existing errors sort first, so **the five slots were always full before my
+own files were reached and the lint check could not fail** -- it hid twelve errors across three
+packets I had already reported as gated. Then I told A1 the fix was "no error under src", having
+still only seen the truncated view; run whole, `src` carries 539. **Before trusting any check,
+read its whole output once.** Rule 25's lane half is now: every file a packet touches lints clean
+before the push, and the lane says so with the sha pair.
+
+**Second thing, because it is the live one.** `forecast_observations` does not contain a count of
+observations. Four of seven banded decisions hold a population there (41,200; 1,420; 1,240) and
+one holds a value equal to its own baseline, against a database with zero `product_analytics`
+rows. `tierActionFor` ships today and would answer `open-work` on a missed verdict founded on a
+session count. It is latent only because no spec carries a reading -- and it stops being latent
+the same day P-149's endpoint lands. That is what P-150 move 2 is for, and it should go before
+P-149.
