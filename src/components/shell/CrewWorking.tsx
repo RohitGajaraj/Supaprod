@@ -140,7 +140,10 @@ export function CrewWorking({
             ? `${lead.name} is working on ${lead.title}, and ${others} more ${others === 1 ? "run is" : "runs are"} going`
             : `${lead.name} is working on ${lead.title}`
         }
-        seed={lead.slug ?? lead.missionId}
+        /* The RUN id, which every seat has (P-127). `missionId` is nullable
+           now -- a release seat has no mission -- so a seed built from it
+           would be undefined for exactly the seats this packet made visible. */
+        seed={lead.slug ?? lead.id}
         detail={lead.title}
       />
       {/* The step, in the planner's words, WHOLE. `sp-line-sub` rather than a

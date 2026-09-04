@@ -9705,7 +9705,7 @@ zero WARN/FAIL. Pushed directly to `main` (ecca49c96). No live browser access fr
 the Acceptance's own "served Start on Helio shows the release" needs a live read from A1.
 
 
-### P-127 · The header says what is running · Lane: **A2** (after P-116, before P-112) · Status: READY · Moves: 2
+### P-127 · The header says what is running · Lane: **A2** (after P-116, before P-112) · Status: CLAIMED (A2) 14:20 IST 09-04 · Moves: 2
 
 **Why.** Served Waiting page at 06:13 UTC 09-04: the header read *Nothing running · last:
 Checkout asks for already-saved delivery address · 3d ago* while run bce3febf (the orchestrator's

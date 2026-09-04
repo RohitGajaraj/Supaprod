@@ -5,8 +5,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { missionsKey } from "@/lib/query-keys";
 import { listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { listMovingTracks } from "@/lib/spine/track.functions";
-import { genuinelyWorkingMissions } from "@/components/shell/genuinely-working";
+import { listRunningNow } from "@/lib/spine/track.functions";
 
 /**
  * WHICH AGENTS ARE ACTUALLY WORKING, RIGHT NOW.
@@ -62,7 +61,14 @@ import { genuinelyWorkingMissions } from "@/components/shell/genuinely-working";
 const WORKING = new Set(["running", "in_progress"]);
 
 export type LiveAgent = {
-  missionId: string;
+  /** The RUN. Always present, and the only identity every seat has (P-127). */
+  id: string;
+  /** Null for a seat the spine dispatched outside a mission. */
+  missionId: string | null;
+  /** Null for a seat with no track, such as the orchestrator. */
+  trackId: string | null;
+  /** Where the work is, when it has a track. */
+  station: string | null;
   /** The mission's own title, so a surface can say WHAT is being worked on. */
   title: string;
   /** Roster slug, for the glyph and the stage hue. Null when never run. */
@@ -145,27 +151,52 @@ export function useLiveAgents(): LiveAgents {
    * cache read, never a second request or a second interval -- the file's
    * own standing rule just above stays true.
    */
-  const fetchMovingTracks = useServerFn(listMovingTracks);
-  const movingTracks = useQuery({
-    queryKey: ["shell", "moving-tracks"],
-    queryFn: () => fetchMovingTracks(),
+  /*
+   * ── THE SUBJECT IS THE RUN NOW (P-127) ─────────────────────────────────
+   *
+   * This asked `listMissions` for missions whose stored status looked like
+   * work, then confirmed each against `listMovingTracks` because that column
+   * goes stale. Both hops were right on their own terms and between them they
+   * dropped every seat the spine dispatches:
+   *
+   *   06:13 on 2026-09-04  the orchestrator was running, and had no TRACK, so
+   *                        `genuinelyWorkingMissions` could not confirm it and
+   *                        correctly refused to guess.
+   *   06:44               the release seats were running, and had no MISSION,
+   *                        so they were never in the list to begin with.
+   *
+   * The header said "Nothing running" both times, on the day this product
+   * shipped its first release. No amount of cross-checking a mission's status
+   * reaches a seat that has no mission -- so the question is asked of
+   * `agent_runs`, which is the table that knows.
+   *
+   * `genuinelyWorkingMissions` and its cross-check are NOT deleted: they still
+   * guard `AppFrame`'s mission-shaped read, and the defect they exist for
+   * (a stale `missions.status`) is untouched by this. What changes is that
+   * this hook no longer needs them, because a run's status is not a stored
+   * summary of something else.
+   */
+  const fetchRunning = useServerFn(listRunningNow);
+  const running = useQuery({
+    queryKey: ["shell", "running-now", workspaceId],
+    queryFn: () => fetchRunning({ data: { workspaceId } }),
   });
 
   return React.useMemo(() => {
     const rows: MissionListRow[] = missions.data?.missions ?? [];
-    const movingTrackIds = new Set((movingTracks.data ?? []).map((t) => t.id));
-    const working = genuinelyWorkingMissions(
-      rows.filter((m) => WORKING.has(m.status)),
-      movingTrackIds,
-    )
-      .sort((a, b) => (b.updated_at ?? "").localeCompare(a.updated_at ?? ""))
-      .map((m) => ({
-        missionId: m.id,
-        title: m.title,
-        slug: m.current_agent_slug,
-        name: agentDisplayName(m.current_agent_slug, null),
-        subGoal: m.current_sub_goal,
-      }));
+    const working = (running.data ?? []).map((seat) => ({
+      id: seat.runId,
+      missionId: seat.missionId,
+      trackId: seat.trackId,
+      station: seat.station,
+      title: seat.title ?? "",
+      slug: seat.slug,
+      name: agentDisplayName(seat.slug, null),
+      /* The planner's sentence for the step in flight, carried through from the
+         mission the run belongs to. Null for a seat with no mission -- honest,
+         rather than a sentence invented to fill the slot. */
+      subGoal: seat.subGoal,
+    }));
 
     // Same source and shape as AppFrame.tsx's own `lastDone`: the most
     // recently touched finished mission, said in the past tense rather than
@@ -176,5 +207,5 @@ export function useLiveAgents(): LiveAgents {
     const lastDone = done[0] ? { title: done[0].title, completedAt: done[0].completed_at! } : null;
 
     return { working, any: working.length > 0, lastDone };
-  }, [missions.data, movingTracks.data]);
+  }, [missions.data, running.data]);
 }

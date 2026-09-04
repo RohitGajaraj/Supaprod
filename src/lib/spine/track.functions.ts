@@ -83,6 +83,7 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { TERMINAL_HOLDS } from "./correction";
 import { HOLD_LINE } from "./driver";
+import { RUNNING_NOW, type RunningSeat } from "@/lib/spine/what-is-running";
 import {
   countLines,
   type ChangedFile,
@@ -655,6 +656,155 @@ function timeSourceMs(): number {
 }
 
 export type MovingTrack = { id: string; station: AgentStation };
+
+/**
+ * ── WHAT IS RUNNING, FOR EVERY SURFACE THAT ASKS (P-127) ─────────────────
+ *
+ * See `what-is-running.ts` for why the subject is the RUN. In short: the
+ * header asked a mission's stored status and then confirmed it against moving
+ * tracks, and both halves of the roster fell through -- a seat with a mission
+ * and no track was refused as unconfirmable, a seat with a track and no mission
+ * was never in the list. The product said "Nothing running" twice on the day it
+ * shipped its first release, while the orchestrator and then the release seats
+ * were working.
+ *
+ * ONE READ, AND IT IS THE SIMPLE ONE. `agent_runs` already says which seats are
+ * working. The station comes from the track when there is one, which is what
+ * lets the line name where the work is rather than only who is on it.
+ */
+export const listRunningNow = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { workspaceId?: string | null } | undefined) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ context, data }): Promise<RunningSeat[]> => {
+    const { supabase } = context;
+    const workspaceId = await resolveStartWorkspaceId(supabase, data?.workspaceId ?? null);
+    if (!workspaceId) return [];
+    try {
+      const { data: rows, error } = await supabase
+        .from("agent_runs")
+        .select("id,agent_slug,track_id,mission_id,created_at")
+        .eq("workspace_id", workspaceId)
+        .in("status", [...RUNNING_NOW])
+        .order("created_at", { ascending: false })
+        .limit(50);
+      /*
+       * A READ THAT FAILED IS NOT "NOTHING IS RUNNING", and returning `[]`
+       * here would have been this packet's own defect committed inside its own
+       * fix: the header would say the same false sentence for a different
+       * reason. `failSoftOrThrow` is the file's existing answer -- it throws a
+       * "could not be read" the caller can distinguish, so react-query lands in
+       * an error state and the surface says so instead of claiming quiet.
+       */
+      if (error) failSoftOrThrow(error, "What is running");
+      const runs = (rows ?? []) as Array<{
+        id: string;
+        agent_slug: string | null;
+        track_id: string | null;
+        mission_id: string | null;
+        created_at: string | null;
+      }>;
+      if (runs.length === 0) return [];
+
+      const trackIds = [...new Set(runs.map((r) => r.track_id).filter((t): t is string => !!t))];
+      const byTrack = new Map<string, { station: string | null; title: string | null }>();
+      if (trackIds.length > 0) {
+        const { data: tracks } = await supabase
+          .from("spine_tracks" as never)
+          .select("id,station,title")
+          .eq("workspace_id", workspaceId)
+          .in("id", trackIds);
+        for (const t of (tracks ?? []) as Array<{
+          id: string;
+          station: string | null;
+          title: string | null;
+        }>) {
+          byTrack.set(t.id, { station: t.station, title: t.title });
+        }
+      }
+
+      /*
+       * The mission's own words, for the runs that have a mission. Two things
+       * come from here and neither can be derived from the run: the planner's
+       * sub-goal for the step in flight -- which is what makes the line say
+       * WHAT is being done rather than only who is doing it -- and a title for
+       * a seat with no track to take one from.
+       */
+      const missionIds = [
+        ...new Set(runs.map((r) => r.mission_id).filter((m): m is string => !!m)),
+      ];
+      const byMission = new Map<string, { title: string | null; subGoal: string | null }>();
+      if (missionIds.length > 0) {
+        const { data: missions } = await supabase
+          .from("missions")
+          .select("id,title")
+          .eq("workspace_id", workspaceId)
+          .in("id", missionIds);
+        for (const m of (missions ?? []) as Array<{ id: string; title: string | null }>) {
+          byMission.set(m.id, { title: m.title, subGoal: null });
+        }
+        /*
+         * `current_sub_goal` IS NOT A COLUMN, and the first draft selected it as
+         * one. `tsc` cannot check a PostgREST name (F-192), so it typechecked
+         * and would have thrown at runtime; the column guard caught it.
+         *
+         * It is derived, in `missions.functions.ts`: the sub-goal of the step
+         * in flight, `running` before `dispatched` and never a done step --
+         * "a finished sentence presented in the present tense is the same
+         * defect as a fabricated one". Same precedence here, from the same
+         * table, so the two readers cannot come to describe one step
+         * differently.
+         */
+        const { data: steps } = await supabase
+          .from("mission_steps")
+          .select("mission_id,status,sub_goal")
+          .in("mission_id", missionIds)
+          .in("status", ["running", "dispatched"]);
+        const running = new Map<string, string>();
+        const dispatched = new Map<string, string>();
+        for (const st of (steps ?? []) as Array<{
+          mission_id: string | null;
+          status: string | null;
+          sub_goal: string | null;
+        }>) {
+          const goal = st.sub_goal?.trim();
+          if (!st.mission_id || !goal) continue;
+          const into = st.status === "running" ? running : dispatched;
+          if (!into.has(st.mission_id)) into.set(st.mission_id, goal);
+        }
+        for (const [id, v] of byMission) {
+          byMission.set(id, {
+            ...v,
+            subGoal: running.get(id) ?? dispatched.get(id) ?? null,
+          });
+        }
+      }
+
+      return runs.map((r) => {
+        const t = r.track_id ? (byTrack.get(r.track_id) ?? null) : null;
+        const m = r.mission_id ? (byMission.get(r.mission_id) ?? null) : null;
+        return {
+          runId: r.id,
+          slug: r.agent_slug,
+          station: t?.station ?? null,
+          trackId: r.track_id,
+          /* The track names the work when there is one; the mission when there
+             is not. A seat with neither has no honest title and gets null. */
+          title: t?.title ?? m?.title ?? null,
+          missionId: r.mission_id,
+          subGoal: m?.subGoal ?? null,
+          startedAt: r.created_at,
+        };
+      });
+    } catch (e) {
+      /* The same rule one layer out, and the same as `listProductRepos` two
+         functions along: a read we could not make is re-thrown so it reaches a
+         reader as a failure, and anything else degrades to empty. */
+      if (e instanceof Error && e.message.includes("could not be read")) throw e;
+      return [];
+    }
+  });
 
 /**
  * P-18 (A-QUEUE.md). Which open tracks have a SEAT LITERALLY IN FLIGHT right

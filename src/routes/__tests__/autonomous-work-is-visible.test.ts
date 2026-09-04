@@ -214,7 +214,26 @@ describe("the sentence survives every hop from the row to the surface", () => {
 
   it("carries it through the row type and the hook", () => {
     expect(server).toMatch(/current_sub_goal/);
-    expect(hook).toMatch(/subGoal: m\.current_sub_goal/);
+    /*
+     * THE HOP MOVED, THE REQUIREMENT DID NOT (P-127). The hook read
+     * `listMissions` and mapped `m.current_sub_goal`; its subject is
+     * `agent_runs` now, because a mission-shaped reader could not see the seats
+     * the spine dispatches and the header said "Nothing running" over two of
+     * them on the day this shipped its first release.
+     *
+     * The sentence still has to reach the surface, so the reader selects the
+     * same column and the hook still carries it -- which is what this test is
+     * about. Pinning the old expression would have made it a vote on WHICH
+     * reader, and it was never written about that.
+     */
+    const runsReader = strip(read("lib/spine/track.functions.ts"));
+    /* `current_sub_goal` is DERIVED, not a column -- the column guard caught
+       the first draft selecting it as one. The runs reader reads the step in
+       flight from `mission_steps`, with the same running-before-dispatched
+       precedence `missions.functions.ts` uses, so the two cannot describe one
+       step differently. */
+    expect(runsReader).toMatch(/select\("mission_id,status,sub_goal"\)/);
+    expect(hook).toMatch(/subGoal: seat\.subGoal/);
   });
 
   it("never shortens the sentence in JavaScript", () => {

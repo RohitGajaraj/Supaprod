@@ -160,7 +160,11 @@ describe("the bare catches cannot swallow the distinction", () => {
      * only on something unexpected, the same split every catch above
      * already keeps.
      */
-    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(7);
+    /* WAS 7, NOW 8 (P-127): `listRunningNow` joined them. It asks `agent_runs`
+       what is working, and returning an empty list on a failed read would have
+       been this very defect committed inside the packet that exists to remove
+       it -- the header saying "Nothing running" for a second, quieter reason. */
+    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(8);
   });
 
   it("but anything genuinely unexpected still degrades rather than breaking every surface", () => {
