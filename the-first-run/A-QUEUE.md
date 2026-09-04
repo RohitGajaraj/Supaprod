@@ -7706,7 +7706,7 @@ one-card rule holds (the map is not a card and asks nothing). Full suite on the 
 **DoD.** Pushed; suite number per rule 17; A1 walks both tracks.
 
 
-### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: CODE DONE, PUSHED 4ae98727b (14,183 / 0, tsc 0) — step 1 (attribution) extended per A1's steer, still no fix · A1: suite on the tip 14,182 / 0 / 0, tsc 0; PUBLISHED 05:34 IST 09-04; two header readings follow, twelve minutes apart · Moves: 3
+### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: CODE DONE, PUSHED 4ae98727b (14,183 / 0, tsc 0) — step 1 (attribution) extended per A1's steer, still no fix · A1: suite on the tip 14,182 / 0 / 0, tsc 0; PUBLISHED 05:34 and the extension (Start's arrival readers) at 05:42 IST 09-04 on 14,183 / 0 / 0; readings follow propagation · Moves: 3
 
 **A3, 00:55 UTC 09-04, extending step 1 per A1's steer.** She named it precisely: `/start`'s real
 arrival cost is the server functions the shell calls first, not SSR. Those are all inside
