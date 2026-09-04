@@ -86,26 +86,15 @@ describe("waiverLine", () => {
 });
 
 describe("the coupling this is only correct because of", () => {
-  it("TrackChain suppresses by the VOICE, never by a null reason", () => {
-    /*
-     * ── THE REGRESSION THIS GUARDS, WHICH IS NOT HYPOTHETICAL ───────────────
-     * `TrackChain` composes `sub = waivedReason ?? gap`, and `chain.ts:313`
-     * gives every member-less stop a `gap` -- which every waived station is. So
-     * suppressing a repeat by handing back a null reason falls THROUGH to the
-     * gap and prints "where this artifact usually comes from" on a station
-     * deliberately taken off the route.
-     *
-     * Asserting the predicate rather than the spelling: the file must consult
-     * `waiverVoices`, and its waived branch must not reach `gap`.
-     */
-    const src = readFileSync(
-      fileURLToPath(new URL("../spine/TrackChain.tsx", import.meta.url)),
-      "utf8",
-    );
-    expect(src).toContain("waiverVoices");
-    expect(src).toContain("already-said");
-  });
-
+  /*
+   * `TrackChain` (the coupling this described, `sub = waivedReason ?? gap`
+   * falling through to `gap` on a suppressed repeat) is gone -- deleted with
+   * P-146's unreachable-export sweep, 2026-09-04: the run screen's own guard
+   * (`one-station-display-on-the-run-screen.test.ts`) confirms its job moved
+   * to `TrackActivity`'s `SeatCalls`, not merely its mount. `waiverVoices` and
+   * `waiverLine` have no consumer left; the regression this test pinned in
+   * TrackChain's own source cannot recur in a file that renders nothing.
+   */
   it("the reason the driver waives four stations with is still one shared string", () => {
     /*
      * If S0 ever gives the four waives DIFFERENT reasons, this module correctly
