@@ -9117,7 +9117,7 @@ neither was filed as a migration. The net schema effect is zero (the column does
 verified against `information_schema`), so no file is written; this note is the record. From
 here A2 writes the migration file first and applies second (rule 19).
 
-### P-113 · A stuck track stops spending · Lane: **A2** (after P-112) · Status: CLAIMED (A2) 15:10 IST 09-04 · Moves: 1
+### P-113 · A stuck track stops spending · Lane: **A2** (after P-112) · Status: PUBLISHED AS SCOPED (d42f6a32e; A1 gate: build 0, tsc 0, 14,546 pass / 0 fail; published 15:36 IST; A2 measured it against the tablet night: 24 of 26 drives still run, 8 percent saved, because the holds alternate; the wider rule is P-113b) · Moves: 1
 
 **Why.** The demo account spent 5,398 credits in one night for five sentences and one track that
 churned Build to Ship every ten minutes on a fault that was not the crew's (the tablet track, before
@@ -10125,6 +10125,26 @@ after each pass.
 same instant. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the numbers.
+
+
+### P-113b · Three drives with nothing filed, whatever the hold · Lane: **A2** (now, before P-128) · Status: READY · Moves: 1
+
+**Why.** P-113 as scoped keys on three identical holds. A2 measured it against the night it was
+written for (the tablet track, 21:00 09-02 to 02:00 09-03: 26 drives, 11 runs, $0.40, 2.05 M
+tokens): 24 of 26 drives still run, 8 percent saved, because the churn alternates
+`self-check-failed` and `out-of-time`. Three drives, any hold, nothing filed: 18 of 26 run, 31
+percent saved. "Nothing is changing" is the stronger claim and A1 makes it: a track that has
+been driven three times and filed nothing is not learning from the fourth drive.
+
+**Scope.** The predicate in the sweep's eligibility becomes *three consecutive drives with nothing
+filed, whatever the hold*; the same 10 / 30 / 90 ladder, the same exemptions (`waiting-on-a-person`,
+`the-call-is-yours`, a calendar wait, and a failed read), the person's press clears it, the hold
+card says so. Guards re-aimed at the requirement; the tablet-night fixture as the measurement,
+asserting 18 of 26.
+
+**Acceptance.** The fixture; full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; the measured saving.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
