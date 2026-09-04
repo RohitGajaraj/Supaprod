@@ -9720,6 +9720,40 @@ files; `bun run build` 0 (Cloudflare Worker output); `bun run docs:check` exit 0
 zero WARN/FAIL. Pushed directly to `main` (ecca49c96). No live browser access from this worktree --
 the Acceptance's own "served Start on Helio shows the release" needs a live read from A1.
 
+**Part 2, investigated live (A3, 15:05 IST 09-04).** Read the actual rows behind both ids
+(371dd588-1b70-4629-9bb5-9f003f3af373): spec `f2aa82f1` (`shipped_at` 06:58:42, `status: shipped`)
+carries `opportunity_id: null`. The suspicion was that this is a resolution bug -- some join that
+should find the opportunity behind a shipped spec and does not. **It is not a resolution bug. There
+is no relationship to resolve.** `f2aa82f1` belongs to track `2fdf93b6`, and that track's own
+`decisions` row (`a7485d49`) reads `source_kind: "agent"`, `auto_origin: true` -- the loop found this
+on its own and decided it, with no `opportunity_id` anywhere on the decision, the mission, or any of
+the track's four `prds` across its history. Meanwhile the ranked card actually offered, opportunity
+`60000000-0b00-...-0001` ("Skip the address re-confirm when nothing changed", ICE 8.0), has exactly
+one spec of its own -- `4c0391d5`, `status: approved`, `shipped_at: null`, and **never attached to
+any track** (`spine_track_members` has zero rows for it). By every fact the record holds, this
+specific opportunity genuinely has not shipped. It is offered correctly.
+
+What actually happened: this workspace carries seven near-identical seed opportunities across demo
+workspaces (`10000000` through `70000000-0b00-...-0001`, same title, same problem sentence, same ICE)
+-- fixture furniture, not this workspace's own discovery -- and the SAME real-world problem (a
+redundant checkout address re-confirmation) was independently rediscovered and shipped by the
+autonomous loop, unprompted, through a completely different track with no data link to the seed row
+at all. Two systems, one real problem, zero relationship between them in the schema. `startTrack`
+(track.functions.ts) never writes an opportunity id anywhere it creates from -- confirmed by grep,
+zero hits for `opportunity_id`/`opportunityId` in that file -- so even a person who presses *Start
+it* on a ranked bet loses the link the moment the track begins; there was never a route by which
+`f2aa82f1` COULD have carried this opportunity's id forward.
+
+P-126's own shipped-detection code (`listTopOpportunities`, `prds.shipped_at` -> `spine_track_members`)
+is doing exactly what it was built to do and is not the defect. What is real: a person can see a
+ranked suggestion that reads as solved because the autonomous loop found the same fix by a different
+road, and the product has no way to notice the overlap. That is a genuine gap, but it is a
+DIFFERENT, larger question -- semantic de-duplication between ranked bets and autonomously-shipped
+work, with no reliable field to key it on today -- not a one-line fix inside this packet's own scope,
+and inventing a fuzzy title-match to paper over it would be the same mistake P-126's own report
+already declined once (the "announce it" door). Flagging for a founder/A1 call on whether that
+de-duplication is worth its own packet, rather than guessing at a fix the data cannot support.
+
 
 ### P-127 · The header says what is running · Lane: **A2** (after P-116, before P-112) · Status: PUBLISHED, LIVE READ PENDING (a88f70552; A1 gate: build 0, tsc 0, 14,496 pass / 1 fail, the fail a 5 s timeout in memory.server.test.ts that passes alone twice (P-132); published 14:39 IST; header read on the next live drive) · Moves: 2
 
