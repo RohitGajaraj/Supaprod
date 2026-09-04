@@ -8197,7 +8197,7 @@ writes the person's sentence as the claim. Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
 
 
-### P-82 · The build stops rewriting four route files · Lane: **A3** (after P-81) · Status: CODE DONE (1fa6d5520; A1 gate running, including whether the build leaves the tree clean; publish in the batch) · Moves: 1
+### P-82 · The build stops rewriting four route files · Lane: **A3** (after P-81) · Status: CODE DONE (1fa6d5520; A3 reports build 0 twice with a clean tree, tsc 0, 14,266 / 0; the writer was the Lovable MCP Vite plugin and Prettier requoting each other, fixed by .prettierignore; A1 gate running; publish in the batch) · Moves: 1
 
 **Why.** `bun run build` rewrites `src/routes/mcp.ts`, `src/routes/[.mcp]/list-tools.ts`,
 `src/routes/[.mcp]/invoke-tool/$tool.ts` and `src/routes/[.well-known]/oauth-protected-resource.ts`
@@ -8247,6 +8247,46 @@ restored it) before relying on it.
 `bun run build` twice in a row on the rebased tip (0473ad847): second run wrote nothing, `git
 status` clean both times -- the actual acceptance criterion, not just "no diff on this run."
 `bunx tsc --noEmit` exit 0. `bun test` 14,266 / 0 / 22 skip / 37 todo. PUSHED 1fa6d5520.
+
+
+### P-83 · Waiting updates itself; nobody is told to refresh · Lane: **A3** (now) · Status: READY · Moves: 2, 3
+
+**Why.** Read live 05:00 IST 09-04 on the approvals page: *One just came in. Refresh to see it.*
+A product that tells a person to refresh is asking them to do the machine's job; the run screen
+already updates itself as agents work, and the page a person keeps open while the crew works must
+do the same.
+
+**Scope.** The approvals page's queue refetches when the live channel it already listens to (the
+shell's live line and the run screen share one) reports a new gate, proposal or memory review for
+this workspace; the *just came in* line becomes the row arriving in place, with the P-56 heading's
+shape updating, and no imperative anywhere. Zero-refresh rule for the other doors that hold a
+list a person waits on: Arriving and Start's three answers refetch on the same signal. Guard: a
+test that the approvals queue's query is invalidated by the live event and that the copy contains
+no "refresh".
+
+**Acceptance.** Two tabs on Helio: a press in one lands in the other's Waiting list within a tick,
+no reload; the sentence "Refresh to see it" is gone from the repo. Full suite on the tip, tsc 0,
+build 0.
+
+**DoD.** Pushed; the three numbers; A1 reads with two tabs.
+
+### P-85 · Start's example sentences fit the workspace · Lane: **A3** (after P-83) · Status: READY · Moves: 2
+
+**Why.** In the empty probe workspace (no product), Start's examples read *Make the checkout
+accept an American Express card* and two more from Relay's checkout. A person whose product is a
+payroll tool is being shown someone else's homework on their first screen.
+
+**Scope.** The examples come from the workspace: with arrivals, three sentences drawn from its own
+top clusters (the ranking Arriving already computes); with a product and no arrivals, three
+sentences shaped from the product's name and stated goal; with neither, three generic sentences
+that name what a sentence can ask for (a capability, a change, a question) and nothing about
+checkouts. The ranked-from-arrivals path is the one Helio shows today; keep it. Guard: an empty
+workspace's examples contain no product or domain noun from any other workspace.
+
+**Acceptance.** Probe: three generic sentences; Helio: unchanged. Full suite on the tip, tsc 0,
+build 0.
+
+**DoD.** Pushed; the three numbers; A1 reads both workspaces.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
