@@ -5,7 +5,13 @@
  * .limit()` / `.from().select().or()` chains it actually calls.
  */
 import { describe, test, expect } from "bun:test";
-import { detectProviderFaults, providerFaultLine, type ProviderFault } from "./provider-faults.functions";
+import {
+  detectProviderFaults,
+  providerFaultLine,
+  groupFaultsByStatus,
+  providerFaultGroupLine,
+  type ProviderFault,
+} from "./provider-faults.functions";
 
 type FakeRow = { surface: string; error_message: string | null; occurred_at: string };
 
@@ -170,5 +176,91 @@ describe("providerFaultLine", () => {
       "Embeddings have stopped: the provider is refusing calls (403). " +
         "New work is not searchable until this clears. 1 row waiting.",
     );
+  });
+});
+
+/*
+ * P-119b (A-QUEUE.md): Waiting served four identical Cohere cards, 154 + 33
+ * + 35 + 6 rows, one per embed surface, telling the founder to fix the same
+ * account four times. "Four surfaces failing on one provider render one
+ * card with the summed count."
+ */
+const fault = (over: Partial<ProviderFault>): ProviderFault => ({
+  surface: "cron.embed-tick.prds",
+  table: "prds",
+  status: 402,
+  rawMessage: "embeddings 402: {}",
+  failures: 3,
+  since: t(45),
+  rowsWaiting: 0,
+  ...over,
+});
+
+describe("groupFaultsByStatus", () => {
+  test("folds four surfaces on one status into one group with the summed count", () => {
+    const groups = groupFaultsByStatus([
+      fault({ table: "prds", rowsWaiting: 154, since: t(60) }),
+      fault({ table: "decisions", rowsWaiting: 33, since: t(50) }),
+      fault({ table: "opportunities", rowsWaiting: 35, since: t(45) }),
+      fault({ table: "agent_memory", rowsWaiting: 6, since: t(70) }),
+    ]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({
+      status: 402,
+      rowsWaiting: 228,
+      kinds: ["specs", "decisions", "opportunities", "memory"],
+    });
+  });
+
+  test("keeps the earliest surface's own start as the group's since", () => {
+    const groups = groupFaultsByStatus([
+      fault({ table: "prds", since: t(10) }),
+      fault({ table: "decisions", since: t(70) }),
+    ]);
+    expect(groups[0]!.since).toBe(t(70));
+  });
+
+  test("never merges two different statuses into one group", () => {
+    const groups = groupFaultsByStatus([fault({ status: 402 }), fault({ status: 403 })]);
+    expect(groups).toHaveLength(2);
+  });
+
+  test("a single surface still produces its own group", () => {
+    const groups = groupFaultsByStatus([fault({ table: "prds", rowsWaiting: 12 })]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({ rowsWaiting: 12, kinds: ["specs"] });
+  });
+});
+
+describe("providerFaultGroupLine", () => {
+  test("sums the rows and names every kind, the packet's own exact sentence", () => {
+    const groups = groupFaultsByStatus([
+      fault({ table: "prds", rowsWaiting: 154 }),
+      fault({ table: "decisions", rowsWaiting: 33 }),
+      fault({ table: "opportunities", rowsWaiting: 35 }),
+      fault({ table: "agent_memory", rowsWaiting: 6 }),
+    ]);
+    expect(providerFaultGroupLine(groups[0]!)).toBe(
+      "Embeddings have stopped: Cohere says the payment method needs updating. " +
+        "Fix it at dashboard.cohere.com › Billing; new work is not searchable until then. " +
+        "228 rows waiting across specs, decisions, opportunities and memory.",
+    );
+  });
+
+  test("reads exactly as the single-fault line when there is only one kind -- no bare 'across' clause", () => {
+    const groups = groupFaultsByStatus([fault({ table: "agent_memory", rowsWaiting: 12 })]);
+    expect(providerFaultGroupLine(groups[0]!)).toBe(
+      "Embeddings have stopped: Cohere says the payment method needs updating. " +
+        "Fix it at dashboard.cohere.com › Billing; new work is not searchable until then. " +
+        "12 rows waiting.",
+    );
+  });
+
+  test("gets the singular right even inside a summed group", () => {
+    const groups = groupFaultsByStatus([
+      fault({ table: "prds", rowsWaiting: 1 }),
+      fault({ table: "decisions", rowsWaiting: 0 }),
+    ]);
+    expect(providerFaultGroupLine(groups[0]!)).toContain("1 row waiting across specs and decisions.");
   });
 });

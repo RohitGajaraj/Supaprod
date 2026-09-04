@@ -1,9 +1,12 @@
 /**
  * A paid service that stopped paying out, told to the person (P-119,
- * A-QUEUE.md). One card per faulting embed surface, read from
- * `detectProviderFaults` (provider-faults.functions.ts) — the same read
- * Team's Spend-and-limits room uses, so the two can never disagree about
- * which provider is down.
+ * A-QUEUE.md). One card per faulting PROVIDER, not per embed surface
+ * (P-119b: four surfaces sharing one Cohere account rendered as four
+ * identical cards on Waiting, each asking the founder to fix the same
+ * billing problem again). Read from `detectProviderFaults`
+ * (provider-faults.functions.ts) — the same read Team's Spend-and-limits
+ * room uses, so the two can never disagree about which provider is down —
+ * folded here by `groupFaultsByStatus` on the way to the screen.
  *
  * NO DECIDE ACTION, ON PURPOSE. Every other item on this page is a yes/no
  * gate with a real row behind it (`ApprovalKind`/`decideApprovalItem`); this
@@ -15,7 +18,7 @@
  * press.
  */
 import type { ProviderFault } from "@/lib/provider-faults.functions";
-import { providerFaultLine } from "@/lib/provider-faults.functions";
+import { groupFaultsByStatus, providerFaultGroupLine } from "@/lib/provider-faults.functions";
 
 const DASHBOARD_LINK: Partial<Record<number, { label: string; href: string }>> = {
   402: { label: "Open Cohere billing", href: "https://dashboard.cohere.com/billing" },
@@ -23,20 +26,21 @@ const DASHBOARD_LINK: Partial<Record<number, { label: string; href: string }>> =
 
 export function ProviderFaultNotice({ faults }: { faults: ProviderFault[] }) {
   if (faults.length === 0) return null;
+  const groups = groupFaultsByStatus(faults);
 
   return (
     <section aria-label="Agent actions: provider faults">
       <ul className="flex flex-col gap-mrd-3">
-        {faults.map((fault) => {
-          const link = DASHBOARD_LINK[fault.status];
+        {groups.map((group) => {
+          const link = DASHBOARD_LINK[group.status];
           return (
             <li
-              key={fault.surface}
+              key={group.status}
               data-mrd=""
               className="flex flex-col gap-mrd-2 rounded-mrd-ctl border border-mrd-line bg-mrd-sink px-mrd-5 py-mrd-4"
             >
               <p className="max-w-[62ch] text-mrd-base leading-mrd-prose text-mrd-ink">
-                {providerFaultLine(fault)}
+                {providerFaultGroupLine(group)}
               </p>
               {link ? (
                 <a

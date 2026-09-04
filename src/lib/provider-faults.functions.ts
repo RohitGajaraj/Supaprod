@@ -39,6 +39,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { ENTITY_EMBEDDING_SPECS } from "@/lib/brain/entity-embedding.server";
+import { joinPlainly } from "@/lib/spine/attach";
 
 /** Every embed sweeper's own `error_events.surface` and the table it drains,
  *  reusing the entity sweepers' own spec list (P-115's own precedent: one
@@ -224,6 +225,83 @@ export function providerFaultLine(fault: ProviderFault): string {
   return (
     `Embeddings have stopped: the provider is refusing calls (${fault.status}). ` +
     `New work is not searchable until this clears. ${rows} waiting.`
+  );
+}
+
+/** The friendly noun for each embed surface's own table, in the words a
+ *  person would use rather than the schema's (law 6.4) -- `prds` reads as
+ *  "specs" everywhere else this product names them (P-56's own NAMES map,
+ *  approvals/a-queue-is-a-shape-not-a-total.ts). */
+const KIND_NAME: Record<string, string> = {
+  prds: "specs",
+  decisions: "decisions",
+  opportunities: "opportunities",
+  agent_memory: "memory",
+  learnings: "learnings",
+};
+
+/** One provider's fault, however many embed surfaces it is hitting. */
+export type ProviderFaultGroup = {
+  status: number;
+  /** Every fault this group was built from, in the order `detectProviderFaults`
+   *  returned them -- kept so a caller can still reach a single surface's own
+   *  `table`/`since` when it needs to (a dashboard link, say). */
+  faults: readonly ProviderFault[];
+  /** Rows still waiting, summed across every surface this status is hitting. */
+  rowsWaiting: number;
+  /** The earliest surface's own start across the group -- the fault has been
+   *  live since whichever surface hit it first. */
+  since: string;
+  /** Friendly names, one per surface, same order as `faults`. */
+  kinds: string[];
+};
+
+/**
+ * ONE CARD PER PROVIDER FAULT, NOT ONE PER SURFACE (P-119b, A-QUEUE.md).
+ * Served Waiting, 15:24 IST 09-04: four identical *Embeddings have stopped:
+ * Cohere...* cards, one per embed surface (154, 33, 35 and 6 rows), telling
+ * the founder to fix the same Cohere account four times. `detectProviderFaults`
+ * stays per-surface -- the real backlog it reads is a per-TABLE fact -- so
+ * the fold happens here, on the way to the screen, keyed on `status`: two
+ * surfaces sharing a status share whatever caused it (today, only Cohere
+ * calls these surfaces at all, so status alone is the provider).
+ */
+export function groupFaultsByStatus(faults: readonly ProviderFault[]): ProviderFaultGroup[] {
+  const byStatus = new Map<number, ProviderFault[]>();
+  for (const f of faults) {
+    const g = byStatus.get(f.status);
+    if (g) g.push(f);
+    else byStatus.set(f.status, [f]);
+  }
+  return [...byStatus.entries()].map(([status, group]) => ({
+    status,
+    faults: group,
+    rowsWaiting: group.reduce((t, f) => t + f.rowsWaiting, 0),
+    since: group.reduce((oldest, f) => (f.since < oldest ? f.since : oldest), group[0]!.since),
+    kinds: group.map((f) => KIND_NAME[f.table] ?? f.table),
+  }));
+}
+
+/**
+ * The card's own sentence, summed and with every kind it is hitting named
+ * (P-119b's own scope: "the rows summed... the kinds named"). A group of
+ * one surface reads exactly as `providerFaultLine` always has -- the
+ * "across X" clause only earns its place once there is more than one kind
+ * to name.
+ */
+export function providerFaultGroupLine(group: ProviderFaultGroup): string {
+  const across = group.kinds.length > 1 ? ` across ${joinPlainly(group.kinds)}` : "";
+  const rows = `${group.rowsWaiting} row${group.rowsWaiting === 1 ? "" : "s"} waiting${across}`;
+  if (group.status === 402) {
+    return (
+      `Embeddings have stopped: Cohere says the payment method needs updating. ` +
+      `Fix it at dashboard.cohere.com › Billing; new work is not searchable until then. ` +
+      `${rows}.`
+    );
+  }
+  return (
+    `Embeddings have stopped: the provider is refusing calls (${group.status}). ` +
+    `New work is not searchable until this clears. ${rows}.`
   );
 }
 
