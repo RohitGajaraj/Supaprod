@@ -11141,6 +11141,72 @@ decision once it is green.
 
 **DoD.** Pushed; the three numbers and the lint line.
 
+### P-153 · A waiver is a one-way door, and route.ts already proved it · Lane: **unassigned** (filed by A3, P-146) · Status: READY · Moves: 3
+
+**Why.** `route.ts`'s own module header (checked symbol by symbol, 2026-08-06, and corrected twice
+before landing on the true state): waiving a station is built and works end to end, but nothing
+un-waives one. `applyTrigger`, the evaluator for `reopensWhen`, has no production caller -- the
+loop never derives a trigger from what a station filed. `setStationWaiver`, the only server
+function that could un-waive a station by hand, has no caller anywhere: no UI, no route, no test.
+And even a caller would not be enough on its own: the handler hard-codes `reopensWhen: "never"` on
+every human waiver (`track.functions.ts`, `setStationWaiver`) and then calls `reopen` with no
+`force` on its un-waive branch, which `reopen` refuses -- so a naive fix would write the unchanged
+path back and report `problems: []`, a no-op reported as success. P-146's `check:unreachable`
+triage found `setStationWaiver` and `attachToTrack` still orphaned and, per that packet's own
+Scope, files the gap here rather than wiring it back inline.
+
+**Scope.** Two changes, per `route.ts`'s own closing line: `{ force: true }` on
+`setStationWaiver`'s un-waive branch (`track.functions.ts`), and a surface that calls it. The
+surface is a product decision this packet does not make for whoever picks it up: does a person
+un-waive a station by hand from the track screen, does a trigger evaluator run on a schedule and
+read `reopensWhen` automatically (closing `applyTrigger`'s own gap too), or both. Read `route.ts`'s
+full module header before starting; it already states what is built, what is not, and why the
+prior two attempts at describing this were wrong.
+
+**Acceptance.** A waived station can be brought back onto the path by the mechanism this packet
+picks, proven live. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
+
+### P-154 · Signal Fabric's "focus on this next" has no screen · Lane: **unassigned** (filed by A3, P-146) · Status: READY · Moves: 1
+
+**Why.** `src/lib/brain/insights.functions.ts` (SF-FOCUS, Signal Fabric Phase 1) is a live,
+actively-maintained reader -- its own theme-status filter was investigated and fixed twice in
+August (2026-08-06, 2026-08-10), each time by someone reading real production data through the
+Lovable MCP. `getFocusNext` ranks the workspace's themes live and derives one concrete
+recommendation, "the one thing to focus on next"; `getInsightRail` lists graded insight history
+alongside it. P-146's `check:unreachable` triage found both with zero importers anywhere in
+`src/`: no route, no component, no test. The investment in correctness says this was built FOR a
+screen; the screen was never built, or was removed and the reader survived it.
+
+**Scope.** Decide and build where this renders -- Today or Brain are the two candidate homes, per
+the file's own "calm-front: render nothing" contract when `getFocusNext` returns null. Read the
+whole file first; it documents its own theme-status predicate carefully and that reasoning should
+not be re-derived. Wire both readers to a real card; do not build a new derivation, these already
+exist and are exercised.
+
+**Acceptance.** The served card reads a real "focus on this next" recommendation on a workspace
+with a live theme. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
+
+### P-155 · The BYO-keys settings page never shows which platform providers are configured · Lane: **unassigned** (filed by A3, P-146) · Status: READY · Moves: 1
+
+**Why.** `byokeys.functions.ts`'s `listPlatformProviders` (platform-level provider config plus
+the recommended model) has zero importers; its own comment says "used by the model picker", and
+the settings page (`_authenticated.settings.tsx`) that manages the REST of BYO-keys
+(`listApiKeys`/`saveApiKey`/`deleteApiKey`/`testApiKey`) never calls it. Smaller than P-154: one
+reader, one existing page.
+
+**Scope.** Read `_authenticated.settings.tsx`'s BYO-keys section and decide whether a platform-
+provider summary belongs there (most likely) or was superseded by something else; wire it in, or
+delete the reader with a one-line note why if the settings page already answers the question
+another way.
+
+**Acceptance.** Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
