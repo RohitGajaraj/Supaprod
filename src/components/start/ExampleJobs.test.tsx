@@ -134,7 +134,7 @@ describe("an example is a sentence to edit, a bet is work to start", () => {
  */
 describe("shippedLabel", () => {
   it("reads the UTC clock the spec shipped at", () => {
-    expect(shippedLabel("2026-09-04T12:28:00.000Z")).toBe("Shipped 12:28");
+    expect(shippedLabel("2026-09-04T12:28:00.000Z", "UTC")).toBe("Shipped 12:28");
   });
 });
 
@@ -145,13 +145,20 @@ describe("a shipped bet's card reads what happened, not an offer to redo it", ()
   });
 
   it("shows Shipped HH:MM instead of Start it", () => {
-    render(<ExampleJobs onStart={() => {}} onUse={() => {}} bets={[SHIPPED]} />);
+    render(<ExampleJobs onStart={() => {}} onUse={() => {}} bets={[SHIPPED]} zone="UTC" />);
     expect(screen.getByText("Shipped 12:28")).toBeDefined();
     expect(screen.queryByRole("button", { name: "Start it" })).toBeNull();
   });
 
   it("still shows an unshipped bet's Start it, on the same list", () => {
-    render(<ExampleJobs onStart={() => {}} onUse={() => {}} bets={[SHIPPED, bet({ id: "o-2" })]} />);
+    render(
+      <ExampleJobs
+        onStart={() => {}}
+        onUse={() => {}}
+        bets={[SHIPPED, bet({ id: "o-2" })]}
+        zone="UTC"
+      />,
+    );
     expect(screen.getByRole("button", { name: "Start it" })).toBeDefined();
     expect(screen.getByText("Shipped 12:28")).toBeDefined();
   });
@@ -184,6 +191,7 @@ describe("a shipped bet's card reads what happened, not an offer to redo it", ()
         onStart={() => {}}
         onUse={() => {}}
         bets={[bet({ shipped: { at: "2026-09-04T12:28:00.000Z", trackId: null } })]}
+        zone="UTC"
       />,
     );
     expect(screen.getByText("Shipped 12:28")).toBeDefined();

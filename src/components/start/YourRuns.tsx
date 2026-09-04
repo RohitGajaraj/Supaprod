@@ -49,6 +49,7 @@ import {
 } from "@/components/today/tracks-feed";
 import { listRunsForStart, pinTrack } from "@/lib/spine/track.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useTimezone } from "@/hooks/use-timezone";
 
 /**
  * The word on the chip, and only where a chip earns its place.
@@ -140,6 +141,7 @@ export function YourRuns() {
    * "first run" line would drift from the list under it.
    */
   const { activeWorkspaceId } = useWorkspace();
+  const zone = useTimezone();
   const fRuns = useServerFn(listRunsForStart);
   const q = useQuery({
     queryKey: ["start-runs", activeWorkspaceId ?? null],
@@ -156,10 +158,11 @@ export function YourRuns() {
   const [showAbandoned, setShowAbandoned] = React.useState(false);
   const now = Date.now();
   const rows = React.useMemo(
-    () => startRows(q.data ?? [], Date.now(), KIND_WORD, (tool) => toolActionLabel(tool)),
+    () => startRows(q.data ?? [], Date.now(), KIND_WORD, (tool) => toolActionLabel(tool), zone),
     // `q.data` is the only input that changes; the clock is read at render so a
     // row's own elapsed figure moves with the poll rather than with a timer.
-    [q.data],
+    // `zone` too: it settles once the profile read lands and rarely changes.
+    [q.data, zone],
   );
   const groups = React.useMemo(() => groupStartRows(rows), [rows]);
   /*

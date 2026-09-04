@@ -17,6 +17,12 @@ import {
 const code = (src: string): string =>
   src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
+/** P-130: `releasedAnswer`/`homeAnswers` read a zone and a "now" instant.
+ *  Fixed here so every test is deterministic regardless of the machine's
+ *  own zone. */
+const ZONE = "UTC";
+const NOW = "2026-09-04T12:50:00.000Z";
+
 /** Helio Labs, read from production 2026-09-04 (the P-56 shape). */
 const HELIO = [
   { n: 21, label: "21 design gates" },
@@ -31,7 +37,7 @@ describe("an all-clear needs an answered read", () => {
     expect(waitingAnswer(null)).toEqual({ read: "unread" });
     expect(learnedAnswer(null)).toEqual({ read: "unread" });
     expect(arrivingAnswer(null, "2026-09-01T00:00:00Z")).toEqual({ read: "unread" });
-    expect(releasedAnswer(null, "2026-09-01T00:00:00Z")).toEqual({ read: "unread" });
+    expect(releasedAnswer(null, "2026-09-01T00:00:00Z", ZONE, NOW)).toEqual({ read: "unread" });
   });
 
   it("still speaks when the read answered and there is nothing", () => {
@@ -42,7 +48,7 @@ describe("an all-clear needs an answered read", () => {
     });
     expect(learnedAnswer(0).read).toBe("answered-empty");
     expect(arrivingAnswer(0, "2026-09-01T00:00:00Z").read).toBe("answered-empty");
-    expect(releasedAnswer([], "2026-09-01T00:00:00Z").read).toBe("answered-empty");
+    expect(releasedAnswer([], "2026-09-01T00:00:00Z", ZONE, NOW).read).toBe("answered-empty");
   });
 
   it("gives an empty answer no door, because there is nowhere to go", () => {
@@ -50,7 +56,7 @@ describe("an all-clear needs an answered read", () => {
       waitingAnswer([]),
       learnedAnswer(0),
       arrivingAnswer(0, "2026-09-01T00:00:00Z"),
-      releasedAnswer([], "2026-09-01T00:00:00Z"),
+      releasedAnswer([], "2026-09-01T00:00:00Z", ZONE, NOW),
     ]) {
       expect(a).not.toHaveProperty("door");
     }
@@ -145,7 +151,7 @@ describe("what went live since you last looked", () => {
   };
 
   it("names the release, the UTC clock it went live at, and the address as a link", () => {
-    expect(releasedAnswer([RELEASE], "2026-09-04T00:00:00.000Z")).toEqual({
+    expect(releasedAnswer([RELEASE], "2026-09-04T00:00:00.000Z", ZONE, NOW)).toEqual({
       read: "answered",
       line: "Checkout: Address confirmation streamlined. went live at 12:28.",
       door: { label: "Open it", href: "https://cad-60000000.deno.net" },
@@ -155,7 +161,7 @@ describe("what went live since you last looked", () => {
   it("names the newest release and counts the rest, plural", () => {
     const older = { ...RELEASE, title: "Older release", releasedAt: "2026-09-04T10:00:00.000Z" };
     const newer = { ...RELEASE, title: "Newer release", releasedAt: "2026-09-04T13:00:00.000Z" };
-    expect(releasedAnswer([newer, older], "2026-09-04T00:00:00.000Z")).toMatchObject({
+    expect(releasedAnswer([newer, older], "2026-09-04T00:00:00.000Z", ZONE, NOW)).toMatchObject({
       line: "Newer release went live at 13:00, and 1 other release.",
     });
   });
@@ -164,23 +170,49 @@ describe("what went live since you last looked", () => {
     const a = { ...RELEASE, title: "A" };
     const b = { ...RELEASE, title: "B" };
     const c = { ...RELEASE, title: "C" };
-    expect(releasedAnswer([a, b, c], "2026-09-04T00:00:00.000Z")).toMatchObject({
+    expect(releasedAnswer([a, b, c], "2026-09-04T00:00:00.000Z", ZONE, NOW)).toMatchObject({
       line: "A went live at 12:28, and 2 other releases.",
     });
   });
 
   it("treats never-looked as its own answer, not as zero", () => {
-    expect(releasedAnswer([RELEASE], null)).toMatchObject({ read: "answered" });
-    expect(releasedAnswer([], null)).toEqual({
+    expect(releasedAnswer([RELEASE], null, ZONE, NOW)).toMatchObject({ read: "answered" });
+    expect(releasedAnswer([], null, ZONE, NOW)).toEqual({
       read: "answered-empty",
       line: "Nothing has shipped yet.",
     });
   });
 
   it("is a different sentence from arriving's own empty line, so the two never read as one fact", () => {
-    const releasedEmpty = releasedAnswer([], "2026-09-04T00:00:00.000Z");
+    const releasedEmpty = releasedAnswer([], "2026-09-04T00:00:00.000Z", ZONE, NOW);
     const arrivingEmpty = arrivingAnswer(0, "2026-09-04T00:00:00.000Z");
     expect(releasedEmpty).not.toEqual(arrivingEmpty);
+  });
+
+  /*
+   * P-130 (A-QUEUE.md): a release named here can be from before today -- a
+   * bare clock reading for one from two days ago would silently claim it
+   * happened this morning. `answeredRelease` reads it day-aware through
+   * `dateTimeInZone`, so it says so instead.
+   */
+  it("says yesterday, then a dated day, for a release from before today -- never a bare clock claiming it was this morning", () => {
+    const yesterday = { ...RELEASE, releasedAt: "2026-09-03T12:28:00.000Z" };
+    expect(releasedAnswer([yesterday], "2026-09-01T00:00:00.000Z", ZONE, NOW)).toMatchObject({
+      line: "Checkout: Address confirmation streamlined. went live at yesterday 12:28.",
+    });
+    const lastWeek = { ...RELEASE, releasedAt: "2026-08-28T12:28:00.000Z" };
+    expect(releasedAnswer([lastWeek], "2026-08-01T00:00:00.000Z", ZONE, NOW)).toMatchObject({
+      line: "Checkout: Address confirmation streamlined. went live at Aug 28, 12:28.",
+    });
+  });
+
+  it("reads the time through the given zone, not UTC", () => {
+    // The same instant, a different zone: IST is UTC+5:30, so 12:28 UTC
+    // reads as 17:58 there. A caller in the wrong zone would say 12:28 for
+    // an instant that, to the person, happened at 17:58.
+    expect(
+      releasedAnswer([RELEASE], "2026-09-04T00:00:00.000Z", "Asia/Kolkata", NOW),
+    ).toMatchObject({ line: "Checkout: Address confirmation streamlined. went live at 17:58." });
   });
 });
 
@@ -215,6 +247,8 @@ describe("the four, together", () => {
           releasedAt: "2026-09-01T12:28:00.000Z",
         },
       ],
+      zone: ZONE,
+      nowIso: NOW,
     });
     expect(a).toHaveLength(4);
     expect(a[0]).toMatchObject({ door: { to: "/approvals" } });
@@ -231,6 +265,8 @@ describe("the four, together", () => {
       lastLookedAt: "2026-09-01T00:00:00Z",
       learnedCount: 0,
       releases: [],
+      zone: ZONE,
+      nowIso: NOW,
     });
     expect(a).toHaveLength(4);
     expect(a[0]).toEqual({ read: "unread" });

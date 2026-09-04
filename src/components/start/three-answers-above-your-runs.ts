@@ -19,7 +19,7 @@
  * not a zero, not a reassurance.
  */
 
-import { utcClock } from "@/lib/time-of-day";
+import { dateTimeInZone } from "@/lib/time-of-day";
 
 /**
  * A door is a route inside the app (`to`) or, once (P-126, the release
@@ -114,26 +114,33 @@ export type ReleasedItem = { title: string; url: string; releasedAt: string };
  * Ahead of `learnedAnswer` in `homeAnswers`' own order: a release is a
  * bigger fact than a re-scored call, and "ahead of re-scored calls" is the
  * packet's own ordering rule.
+ *
+ * `zone`/`nowIso` (P-130, A-QUEUE.md): the time is read through the
+ * person's own saved zone, day-aware (`dateTimeInZone`), because a release
+ * named here can be from before today -- a bare clock reading for one from
+ * two days ago would silently claim it happened this morning.
  */
 export function releasedAnswer(
   releases: readonly ReleasedItem[] | null,
   since: string | null,
+  zone: string,
+  nowIso: string,
 ): Answer {
   if (releases === null) return UNREAD;
   if (since === null) {
     return releases.length > 0
-      ? answeredRelease(releases)
+      ? answeredRelease(releases, zone, nowIso)
       : { read: "answered-empty", line: "Nothing has shipped yet." };
   }
   if (releases.length === 0) {
     return { read: "answered-empty", line: "Nothing has shipped since you last looked." };
   }
-  return answeredRelease(releases);
+  return answeredRelease(releases, zone, nowIso);
 }
 
-function answeredRelease(releases: readonly ReleasedItem[]): Answer {
+function answeredRelease(releases: readonly ReleasedItem[], zone: string, nowIso: string): Answer {
   const [first, ...rest] = releases;
-  const time = utcClock(first.releasedAt);
+  const time = dateTimeInZone(first.releasedAt, zone, nowIso);
   const line =
     rest.length > 0
       ? `${first.title} went live at ${time}, and ${rest.length} other ${rest.length === 1 ? "release" : "releases"}.`
@@ -171,11 +178,16 @@ export function homeAnswers(input: {
   lastLookedAt: string | null;
   learnedCount: number | null;
   releases: readonly ReleasedItem[] | null;
+  /** The person's own zone (P-130), and the instant "today" is judged
+   *  against -- both threaded in rather than read here, so this stays pure
+   *  and testable without a clock or a profile. */
+  zone: string;
+  nowIso: string;
 }): Answer[] {
   return [
     waitingAnswer(input.waitingShape),
     arrivingAnswer(input.arrivingCount, input.lastLookedAt),
-    releasedAnswer(input.releases, input.lastLookedAt),
+    releasedAnswer(input.releases, input.lastLookedAt, input.zone, input.nowIso),
     learnedAnswer(input.learnedCount),
   ];
 }

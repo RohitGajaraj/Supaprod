@@ -14,6 +14,7 @@ import { Arriving } from "@/components/start/Arriving";
 import { failureLine } from "@/lib/error-copy";
 import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useTimezone } from "@/hooks/use-timezone";
 import { listProductRepos, listRunsForStart, startTrack } from "@/lib/spine/track.functions";
 import { listProductGoals } from "@/lib/spine/track.functions";
 import { listTopOpportunities } from "@/lib/discovery.functions";
@@ -177,6 +178,7 @@ function StartLanding() {
   const { activeWorkspaceId, activeProductId, products, productsVisible, setActiveProductId } =
     useWorkspace();
   const { about, queue } = Route.useSearch();
+  const timezone = useTimezone();
 
   const [sentence, setSentence] = useState(about ?? "");
   const fieldRef = useRef<HTMLTextAreaElement | null>(null);
@@ -410,6 +412,8 @@ function StartLanding() {
     lastLookedAt: homeReads.isSuccess ? homeReads.data.lastLookedAt : null,
     learnedCount: homeReads.isSuccess ? homeReads.data.learnedCount : null,
     releases: homeReads.isSuccess ? homeReads.data.releases : null,
+    zone: timezone,
+    nowIso: new Date().toISOString(),
   });
 
   if (sessionEnded) {
@@ -529,6 +533,7 @@ function StartLanding() {
       {showExampleJobs ? (
         <ExampleJobs
           onStart={(job) => go.mutate(job)}
+          zone={timezone}
           onOpenRun={(trackId) =>
             void navigate({ to: "/track/$trackId", params: { trackId }, search: {} })
           }

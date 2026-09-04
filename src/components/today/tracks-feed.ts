@@ -5,7 +5,7 @@ import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { holdLine } from "@/lib/spine/driver";
 import { FORECAST_SAYS } from "@/components/learn/forecast-words";
 import { joinPlainly } from "@/lib/spine/attach";
-import { utcClock } from "@/lib/time-of-day";
+import { clockInZone } from "@/lib/time-of-day";
 
 /**
  * SPINE WORK AS BOARD ROWS, so the board shows every piece of work in flight.
@@ -405,9 +405,12 @@ export function startRowMiddle(
   words: Readonly<Record<string, { one: string; many: string }>>,
   /** A tool name to a plain phrase, injected for the same reason. */
   phraseFor: (tool: string) => string | null,
+  /** The person's own zone (P-130), for the "Live since" clock. Defaults to
+   *  the browser's when the caller has not resolved one. */
+  zone: string = Intl.DateTimeFormat().resolvedOptions().timeZone,
 ): string {
   return r.liveSince
-    ? `Live since ${utcClock(r.liveSince)} · ${startRowRest(r, now, words, phraseFor)}`
+    ? `Live since ${clockInZone(r.liveSince, zone)} · ${startRowRest(r, now, words, phraseFor)}`
     : startRowRest(r, now, words, phraseFor);
 }
 
@@ -539,6 +542,8 @@ export function startRows(
   now: number,
   words: Readonly<Record<string, { one: string; many: string }>>,
   phraseFor: (tool: string) => string | null,
+  /** The person's own zone (P-130). Defaults to the browser's. */
+  zone: string = Intl.DateTimeFormat().resolvedOptions().timeZone,
 ): StartRow[] {
   return (
     runs
@@ -546,7 +551,7 @@ export function startRows(
         id: r.id,
         title: r.title,
         kind: kindOf(r),
-        middle: startRowMiddle(r, now, words, phraseFor),
+        middle: startRowMiddle(r, now, words, phraseFor, zone),
         at: Date.parse(r.updatedAt) || 0,
         pinnedAt: r.pinnedAt ? Date.parse(r.pinnedAt) || null : null,
       }))

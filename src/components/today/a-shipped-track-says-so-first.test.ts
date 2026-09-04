@@ -33,8 +33,10 @@ const run = (over: Partial<StartRowInput> = {}): StartRowInput => ({
 });
 
 describe("a shipped track's row leads with when it went live", () => {
+  // "UTC" is passed explicitly (P-130): `startRowMiddle`'s zone defaults to
+  // the browser's own, which this test process's is not guaranteed to be.
   it("prefixes 'Live since HH:MM' ahead of the Learn sentence, when the track has a production deployment", () => {
-    const m = startRowMiddle(run({ liveSince: "2026-09-04T12:28:00Z" }), NOW, WORDS, phrase);
+    const m = startRowMiddle(run({ liveSince: "2026-09-04T12:28:00Z" }), NOW, WORDS, phrase, "UTC");
     expect(m).toBe(
       "Live since 12:28 · The forecast this work is graded against comes due on 2026-09-21. Learn returns when it does; nothing here is waiting on a person.",
     );
@@ -59,6 +61,7 @@ describe("a shipped track's row leads with when it went live", () => {
       NOW,
       WORDS,
       phrase,
+      "UTC",
     );
     expect(m.startsWith("Live since 12:28 · ")).toBe(true);
     expect(m).toContain("Build is working");

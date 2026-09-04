@@ -32,7 +32,7 @@ import { PickCard } from "@/components/meridian/onramp-parts";
 import { SketchBroken, SketchProblem, SketchScreen } from "@/components/meridian/sketch-glyphs";
 import type { WorkShape } from "@/lib/spine/route";
 import type { TopOpportunity } from "@/lib/discovery.functions";
-import { utcClock } from "@/lib/time-of-day";
+import { clockInZone } from "@/lib/time-of-day";
 
 export type ExampleJob = {
   /** The sentence, exactly as it lands in the composer. */
@@ -70,9 +70,10 @@ export function jobFromOpportunity(o: TopOpportunity): ExampleJob {
   };
 }
 
-/** "Shipped 12:28" -- the card's own state once its bet has one (P-126). */
-export function shippedLabel(shippedAt: string): string {
-  return `Shipped ${utcClock(shippedAt)}`;
+/** "Shipped 12:28" -- the card's own state once its bet has one (P-126),
+ *  read through the person's own zone (P-130), never the deploy's UTC. */
+export function shippedLabel(shippedAt: string, zone: string): string {
+  return `Shipped ${clockInZone(shippedAt, zone)}`;
 }
 
 /**
@@ -198,6 +199,7 @@ export function ExampleJobs({
   busy = false,
   bets = [],
   productExample = null,
+  zone = Intl.DateTimeFormat().resolvedOptions().timeZone,
 }: {
   /** A real bet: start that run now. Never called for an example, and never
    *  for a bet that has already shipped. */
@@ -229,6 +231,9 @@ export function ExampleJobs({
    * tier. Null falls through to the fully generic `GENERIC_EXAMPLE_JOBS`.
    */
   productExample?: { name: string; northStar: string } | null;
+  /** The person's own zone (P-130), for a shipped card's own clock reading.
+   *  Defaults to the browser's when the caller has not resolved it yet. */
+  zone?: string;
 }) {
   const showingBets = bets.length > 0;
   const jobs = showingBets
@@ -302,7 +307,7 @@ export function ExampleJobs({
               <div>
                 {shipped ? (
                   <span className="flex items-center gap-mrd-2">
-                    <span className="mrd-meta">{shippedLabel(shipped.at)}</span>
+                    <span className="mrd-meta">{shippedLabel(shipped.at, zone)}</span>
                     {shipped.trackId
                       ? (() => {
                           const trackId = shipped.trackId as string;
