@@ -7706,7 +7706,7 @@ one-card rule holds (the map is not a card and asks nothing). Full suite on the 
 **DoD.** Pushed; suite number per rule 17; A1 walks both tracks.
 
 
-### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: CODE DONE, PUSHED 224ee7b65 (14,182 / 0, tsc 0) — step 1 (attribution) only, per the packet's own rule · Moves: 3
+### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: CODE DONE, PUSHED 224ee7b65 (14,182 / 0, tsc 0) — step 1 (attribution) only, per the packet's own rule · A1: suite on the tip 14,182 / 0 / 0, tsc 0; PUBLISHED 05:34 IST 09-04; two header readings follow, twelve minutes apart · Moves: 3
 
 **A3, 00:35 UTC 09-04, P-58b step 1 Report.** Before instrumenting anything, checked what
 `/start`'s Scope line actually assumes and it does not hold: `_authenticated.tsx` sets `ssr: false`
