@@ -8583,6 +8583,15 @@ page (*Checkout no longer asks for an address it already has*; what changed, wha
 date, PR #5, the live address), saved as a draft only, and put the text in front of the founder.
 Send for approval and publish wait for his reply; nothing outward has gone out.
 
+
+**The announcement went out, 15:07 IST 09-04.** The founder approved the draft at 15:06 (*"I'm
+approving you. You can go ahead"*). A1 pressed Send for approval and then Publish it on the Ship
+page; the post is public at
+`/p/checkout-no-longer-asks-for-an-address-it-already-has-ea1316` and the Ship page reads *The
+last one went out Sep 4*. The loop is closed outward for the first time: sentence, gates,
+production address, announcement. Cohere and the Deno plan: the founder comes back on both.
+Timezone: approved; the profile is Asia/Kolkata since 09:24 UTC.
+
 ### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUBLISHED 09:38 IST 09-04 (b05fa6cf6; A1 on the tip: build 0 clean, tsc 0, 14,291 / 0 / 0; the keyboard walk follows) · Moves: 2, 5
 
 **Why.** Since 09-03 the product gained nine doors (P-60), a bottom bar and a sheet (P-81), the
