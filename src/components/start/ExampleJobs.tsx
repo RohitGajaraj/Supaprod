@@ -65,32 +65,89 @@ export function jobFromOpportunity(o: TopOpportunity): ExampleJob {
 }
 
 /**
- * ── EVERY SENTENCE HERE IS ONE THE LOOP CAN ACTUALLY WALK ─────────────────
- * An example that stalls at the first station teaches a person the product does
- * not work, which is the most expensive thing a front door can teach. Each of
- * these is a shape the route already handles end to end, and each is written the
- * way a person writes: an outcome, not a ticket title.
+ * ── P-33 RETIRED THE CONCRETE CHECKOUT EXAMPLES (P-85, A-QUEUE.md) ─────────
+ * These three used to be "Make the checkout accept an American Express
+ * card", "Cut the sign-up form from nine fields to four" and "Find out why
+ * people abandon the address step" -- a real, specific e-commerce product's
+ * homework, shown unconditionally to every workspace with no arrivals yet,
+ * including a payroll tool's or a scheduling app's. Read live in the empty
+ * probe workspace: a person whose product has nothing to do with checkouts
+ * was handed three sentences about somebody else's.
+ *
+ * This is now the LAST tier, shown only when there is no product to shape an
+ * example from either (`productExampleJobs` below is tried first). So these
+ * three carry no product noun at all -- not "checkout", not "sign-up form",
+ * not "address step" -- and name the THREE SHAPES a sentence here can take
+ * (a capability, a change, a question) rather than a concrete instance of
+ * one. `phoneBarCoversEveryDoor`-style guard:
+ * `example-jobs-name-no-domain.test.ts` asserts no known product/domain noun
+ * from any other workspace ever appears here.
  */
-export const EXAMPLE_JOBS: readonly ExampleJob[] = [
+export const GENERIC_EXAMPLE_JOBS: readonly ExampleJob[] = [
   {
-    sentence: "Make the checkout accept an American Express card",
+    sentence: "Add a capability this product doesn't have yet",
     sub: "A capability that does not exist yet. It walks the whole route.",
     shape: "new-capability",
     glyph: <SketchScreen />,
   },
   {
-    sentence: "Cut the sign-up form from nine fields to four",
+    sentence: "Change how something already works",
     sub: "A change to something that already works, decided before it is built.",
     shape: "existing-feature",
     glyph: <SketchProblem />,
   },
   {
-    sentence: "Find out why people abandon the address step",
+    sentence: "Find out why something isn't happening the way you'd expect",
     sub: "Starts at the evidence rather than at a solution.",
     shape: "existing-feature",
     glyph: <SketchBroken />,
   },
 ];
+
+/**
+ * Retained under its old name for any import this repo has not yet moved
+ * (`git grep EXAMPLE_JOBS` before deleting this alias) -- same value as
+ * `GENERIC_EXAMPLE_JOBS`, so nothing reading it still sees a checkout.
+ */
+export const EXAMPLE_JOBS = GENERIC_EXAMPLE_JOBS;
+
+/**
+ * ── THE MIDDLE TIER: SHAPED FROM THE PRODUCT'S OWN NAME AND GOAL ──────────
+ * A workspace with a product but no arrivals yet (P-85's own middle case)
+ * gets three sentences naming ITS product and ITS stated goal
+ * (`projects.north_star`, read by `listProductGoals` in
+ * `spine/track.functions.ts`) instead of the fully generic set above. Still
+ * the three shapes -- capability, change, question -- so a person learns the
+ * same lesson the generic tier teaches, but reads their own product's name
+ * doing it.
+ *
+ * Phrased around the goal with "for"/"toward"/"and", not fused into it
+ * grammatically: `northStar` is free text a founder wrote (a noun phrase, a
+ * full sentence, anything), and a template that tried to conjugate it into a
+ * verb clause would read wrong for half of what people actually write there.
+ */
+export function productExampleJobs(productName: string, northStar: string): ExampleJob[] {
+  return [
+    {
+      sentence: `Give ${productName} a capability it needs for ${northStar}`,
+      sub: "A capability that does not exist yet. It walks the whole route.",
+      shape: "new-capability",
+      glyph: <SketchScreen />,
+    },
+    {
+      sentence: `Change something in ${productName} that's in the way of ${northStar}`,
+      sub: "A change to something that already works, decided before it is built.",
+      shape: "existing-feature",
+      glyph: <SketchProblem />,
+    },
+    {
+      sentence: `Find out what's standing between ${productName} and ${northStar}`,
+      sub: "Starts at the evidence rather than at a solution.",
+      shape: "existing-feature",
+      glyph: <SketchBroken />,
+    },
+  ];
+}
 
 /**
  * ── AN EXAMPLE IS A SENTENCE TO EDIT; A BET IS WORK TO START (P-33) ───────
@@ -128,6 +185,7 @@ export function ExampleJobs({
   onUse,
   busy = false,
   bets = [],
+  productExample = null,
 }: {
   /** A real bet: start that run now. Never called for an example. */
   onStart: (job: ExampleJob) => void;
@@ -146,9 +204,20 @@ export function ExampleJobs({
    * they were built for -- showing a new workspace what the product does.
    */
   bets?: readonly TopOpportunity[];
+  /**
+   * P-85's middle tier: this workspace's product name and its own stated
+   * goal (`north_star`), when both exist. Tried only once `bets` is empty --
+   * a workspace with real ranked work never reaches for either fallback
+   * tier. Null falls through to the fully generic `GENERIC_EXAMPLE_JOBS`.
+   */
+  productExample?: { name: string; northStar: string } | null;
 }) {
   const showingBets = bets.length > 0;
-  const jobs = showingBets ? bets.map(jobFromOpportunity) : EXAMPLE_JOBS;
+  const jobs = showingBets
+    ? bets.map(jobFromOpportunity)
+    : productExample
+      ? productExampleJobs(productExample.name, productExample.northStar)
+      : GENERIC_EXAMPLE_JOBS;
   return (
     <section
       data-mrd=""

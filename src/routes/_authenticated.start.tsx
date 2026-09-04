@@ -15,6 +15,7 @@ import { failureLine } from "@/lib/error-copy";
 import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listProductRepos, listRunsForStart, startTrack } from "@/lib/spine/track.functions";
+import { listProductGoals } from "@/lib/spine/track.functions";
 import { listTopOpportunities } from "@/lib/discovery.functions";
 import { matchProductFromSentence, type ProductCandidate } from "@/lib/spine/product-match";
 import { ComposerProductPicker } from "@/components/start/ComposerProductPicker";
@@ -263,6 +264,38 @@ function StartLanding() {
     [sentence, productCandidates],
   );
 
+  /*
+   * P-85: the middle example tier, shaped from a product's own name and
+   * stated goal rather than a checkout that may not be this workspace's.
+   * Read only once there is a product to ask about, same `enabled` gate
+   * `productRepos` already uses.
+   */
+  const fProductGoals = useServerFn(listProductGoals);
+  const productGoals = useQuery({
+    queryKey: ["start-product-goals", activeWorkspaceId ?? null],
+    queryFn: measuredQueryFn("listProductGoals", () =>
+      fProductGoals({ data: { workspaceId: activeWorkspaceId ?? null } }),
+    ),
+    staleTime: 5 * 60_000,
+    enabled: productsVisible,
+  });
+  /*
+   * THE ACTIVE PRODUCT'S OWN GOAL, WHEN IT HAS ONE. Falling back to the
+   * first product that stated one at all rather than showing nothing,
+   * because a workspace with several products and no active selection still
+   * has a real product to shape an example from -- it just is not the one
+   * with focus.
+   */
+  const productExample = useMemo(() => {
+    const goals = productGoals.data ?? [];
+    if (goals.length === 0) return null;
+    const active = activeProductId ? goals.find((g) => g.productId === activeProductId) : null;
+    const chosen = active ?? goals[0];
+    const name = products.find((p) => p.id === chosen?.productId)?.name;
+    if (!chosen || !name) return null;
+    return { name, northStar: chosen.northStar };
+  }, [productGoals.data, products, activeProductId]);
+
   const go = useMutation({
     mutationFn: async (job?: ExampleJob) => {
       const s = (job?.sentence ?? sentence).trim();
@@ -510,6 +543,7 @@ function StartLanding() {
           }}
           busy={go.isPending}
           bets={bets.data ?? []}
+          productExample={productExample}
         />
       ) : null}
 

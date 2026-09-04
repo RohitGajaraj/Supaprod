@@ -673,6 +673,50 @@ export const listMovingTracks = createServerFn({ method: "GET" })
     }),
   );
 
+export type ProductGoal = { productId: string; northStar: string };
+
+/**
+ * A PRODUCT'S OWN STATED GOAL (P-85, A-QUEUE.md). `projects.north_star` --
+ * the physical table backing `Product` in `use-workspace.tsx` is `projects`,
+ * that file's own comment records the rename ("represents products") -- is
+ * the one place a product says what it is FOR, in its own words, rather than
+ * in its name alone. `ExampleJobs`' three static sentences read as a
+ * checkout product's homework on a workspace with a payroll product and no
+ * arrivals yet; this is what lets Start shape its examples from THIS
+ * product's stated goal instead.
+ *
+ * A small, dedicated read rather than widening `Product`'s own shape in
+ * `use-workspace.tsx`: that context is read on every authenticated page,
+ * and a goal sentence is wanted by exactly one -- Start, only once a
+ * workspace has a product and no arrivals yet.
+ */
+export const listProductGoals = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { workspaceId?: string | null } | undefined) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(d ?? {}),
+  )
+  .handler(({ context, data }): Promise<ProductGoal[]> =>
+    withStartReaderTiming("listProductGoals", async () => {
+      const { supabase } = context;
+      const workspaceId = await resolveStartWorkspaceId(supabase, data?.workspaceId ?? null);
+      if (!workspaceId) return [];
+      try {
+        const { data: rows, error } = await supabase
+          .from("projects")
+          .select("id,north_star")
+          .eq("workspace_id", workspaceId)
+          .not("north_star", "is", null);
+        if (error) failSoftOrThrow(error, "The products' stated goals");
+        return ((rows ?? []) as Array<{ id: string; north_star: string | null }>)
+          .filter((r): r is { id: string; north_star: string } => Boolean(r.north_star?.trim()))
+          .map((r) => ({ productId: r.id, northStar: r.north_star }));
+      } catch (e) {
+        if (e instanceof Error && e.message.includes("could not be read")) throw e;
+        return [];
+      }
+    }),
+  );
+
 export type ProductRepo = { productId: string; repo: string };
 
 /**

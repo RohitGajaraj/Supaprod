@@ -148,8 +148,19 @@ describe("the bare catches cannot swallow the distinction", () => {
      * Reviewed 2026-09-03: it re-raises on a genuine read failure and
      * degrades to an empty list only on something unexpected, the same
      * split every catch above already keeps.
+     *
+     * The seventh is `listProductGoals` (P-85, A-QUEUE.md), which feeds
+     * Start's middle example tier -- a product's own stated goal. "This
+     * product has no stated goal yet" and "we could not read your
+     * products' goals" are different facts for the same reason the sixth
+     * is: the first falls through to the generic tier silently, the
+     * second would otherwise look identical while quietly showing generic
+     * examples for a read that actually failed. Added 2026-09-04: it
+     * re-raises on a genuine read failure and degrades to an empty list
+     * only on something unexpected, the same split every catch above
+     * already keeps.
      */
-    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(6);
+    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(7);
   });
 
   it("but anything genuinely unexpected still degrades rather than breaking every surface", () => {
