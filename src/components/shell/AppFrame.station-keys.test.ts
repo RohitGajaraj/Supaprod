@@ -150,15 +150,28 @@ describe("the keycap is rendered, and only where it tells the truth", () => {
 });
 
 describe("the rail speaks the chord it actually binds", () => {
+  /*
+   * P-109 (A-QUEUE.md) widened this aria-label to also carry the Run row's
+   * live/last/none state, which the single ternary this test used to pin
+   * could not hold alongside the shortcut clause. The rewrite is a join over
+   * an array rather than one template string; what this test still has to
+   * prove is unchanged -- "shortcut g then t" is spoken in full, not the bare
+   * letter the old bug left behind.
+   */
   it("says the prefix out loud, not just the letter", () => {
     // This read "Today, shortcut t" while the visible keycap correctly read
     // "g t" — so the sighted user was told the truth and the screen-reader
     // user was told a key that does nothing. In the narrow rail that string is
     // ALSO the tooltip (shell.css draws it from attr(aria-label)), so the wrong
     // key reached everybody. Left over from the bare-key scheme.
-    expect(SRC.replace(/\s+/g, " ")).toMatch(
-      /aria-label=\{ shortcut \? `\$\{label\}, shortcut \$\{NAV_CHORD_PREFIX\} then \$\{shortcut\}` : label \}/,
+    const flat = SRC.replace(/\s+/g, " ");
+    expect(flat).toContain(
+      "shortcut ? `shortcut ${NAV_CHORD_PREFIX} then ${shortcut}` : null,",
     );
+    // The composition itself: the label (with Run's own state folded in when
+    // there is one) always leads, the shortcut clause only when there is one,
+    // joined into the one string the DOM actually receives.
+    expect(flat).toContain('.filter(Boolean) .join(", ")');
   });
 });
 

@@ -1633,11 +1633,19 @@ export const listRunsForStart = createServerFn({ method: "GET" })
              * this function either.
              */
             const byTrack = new Map<string, number>();
-            const { data: runRows } = await supabase
+            const { data: runRows, error: runRowsErr } = await supabase
               .from("agent_runs")
               .select("track_id, trace_id")
               .in("track_id", ids)
               .not("trace_id", "is", null);
+            if (runRowsErr) {
+              // A refused read must not look like an account that has never
+              // debited a credit: the row silently shows nothing either way,
+              // but only this leaves a trace of WHY.
+              console.error(
+                `[listRunsForStart] credits: agent_runs read failed: ${runRowsErr.message}`,
+              );
+            }
             const traceToTrack = new Map<string, string>();
             for (const r of (runRows ?? []) as Array<{
               track_id: string | null;
@@ -1646,6 +1654,15 @@ export const listRunsForStart = createServerFn({ method: "GET" })
               if (r.track_id && r.trace_id) traceToTrack.set(r.trace_id, r.track_id);
             }
             const creditsByTrace = await creditsSpentByTrace([...traceToTrack.keys()]);
+            // TEMPORARY (P-140 live investigation, A1 2026-09-04): the served
+            // page reads `credits: null` on every row though the ledger holds
+            // real debits for at least one of them. Every number here narrows
+            // which of the three hops -- the ids this branch was handed, the
+            // agent_runs read, or creditsSpentByTrace itself -- is where the
+            // map comes back empty. Remove once the cause is found and fixed.
+            console.error(
+              `[listRunsForStart] credits diag: ids=${ids.length} runRows=${(runRows ?? []).length} traces=${traceToTrack.size} creditsKeys=${Object.keys(creditsByTrace).length}`,
+            );
             for (const [trace, credits] of Object.entries(creditsByTrace)) {
               const trackId = traceToTrack.get(trace);
               if (!trackId) continue;
@@ -1694,6 +1711,74 @@ export const listRunsForStart = createServerFn({ method: "GET" })
       }
     }),
   );
+
+/**
+ * ── THE RUN DOOR'S THREE RESOLUTIONS (P-109, A-QUEUE.md) ──────────────────
+ *
+ * P-11 built the rail's Run row as an identity keyed to the URL: it drew only
+ * while the person stood on `/track/$trackId` and vanished everywhere else,
+ * which P-63 named directly -- "Run has no door to design for while nothing's
+ * live" -- a door that goes nowhere the moment you are not already standing on
+ * one is R-38's defect in its plainest form. This is what the row resolves to
+ * instead, independent of the current page: a run somewhere in the workspace
+ * is actually running or queued ("live"); nothing is running but a run
+ * exists ("last", the most recently updated track); the workspace has never
+ * had one ("none").
+ */
+export type RunDoorState = { state: "live" | "last" | "none"; trackId: string | null };
+
+/**
+ * PURE, so the three resolutions are guarded without a database (Scope's own
+ * Guard). "live" always wins over "last" -- a track that is genuinely running
+ * right now is a truer answer to "where is my run" than the most recently
+ * touched one, even when they differ.
+ */
+export function resolveRunDoor(input: {
+  liveTrackId: string | null;
+  lastTrackId: string | null;
+}): RunDoorState {
+  if (input.liveTrackId) return { state: "live", trackId: input.liveTrackId };
+  if (input.lastTrackId) return { state: "last", trackId: input.lastTrackId };
+  return { state: "none", trackId: null };
+}
+
+/**
+ * The read behind `resolveRunDoor`, kept deliberately light: the rail mounts
+ * on every page, so this is two small, indexed, bounded reads rather than
+ * `listRunsForStart`'s own six-branch shape, which computes chips, gates,
+ * forecasts and credits the rail's one row does not need. Concurrent, so the
+ * cost is the slower of the two rather than their sum.
+ */
+export const getRunDoorState = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { workspaceId?: string | null } | undefined) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ context, data }): Promise<RunDoorState> => {
+    const { supabase } = context;
+    const workspaceId = await resolveStartWorkspaceId(supabase, data?.workspaceId ?? null);
+    if (!workspaceId) return { state: "none", trackId: null };
+    const [{ data: liveRuns }, { data: lastTracks }] = await Promise.all([
+      supabase
+        .from("agent_runs")
+        .select("track_id")
+        .eq("workspace_id", workspaceId)
+        .in("status", ["running", "queued"])
+        .not("track_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1),
+      supabase
+        .from("spine_tracks" as never)
+        .select("id")
+        .eq("workspace_id", workspaceId)
+        .order("updated_at", { ascending: false })
+        .limit(1),
+    ]);
+    const liveTrackId =
+      ((liveRuns ?? [])[0] as { track_id: string | null } | undefined)?.track_id ?? null;
+    const lastTrackId = ((lastTracks ?? [])[0] as unknown as { id: string } | undefined)?.id ?? null;
+    return resolveRunDoor({ liveTrackId, lastTrackId });
+  });
 
 /**
  * P-25 (A-QUEUE.md, "the entry point for a person who does not remember the

@@ -236,49 +236,37 @@ describe("the rail's ownership is derived, and unambiguous", () => {
   });
 
   /**
-   * THE RAIL ENTRY COUNT PER ROUTE (P-11's own acceptance line: "on /start
-   * the rail shows exactly Start and Settings... on /track/:id it shows
-   * Start, Run, Settings"), READ FROM THE FILTER RATHER THAN RENDERED.
+   * ── RUN NO LONGER DROPS, AND THIS TEST USED TO PROVE THAT IT DID (P-109) ──
    *
-   * A full mount needs a RouterProvider this file does not carry. The
-   * render's own filter — `RAIL_PRIMARY.filter((r) => r.to !== "/track" ||
-   * trackId)` — is pure and small enough that pinning its exact source and
-   * proving both rows resolve to real doors is a stronger, faster check
-   * than a DOM render would be: `RAIL_PRIMARY` has exactly two rows (Start,
-   * Run — proven by the ownership test above), Settings is the foot
-   * control proven lit earlier in this file, and this is the one line that
-   * decides whether Run joins them.
+   * P-11's own acceptance line, quoted here until this rewrite: "on /start the
+   * rail shows exactly Start and Settings... on /track/:id it shows Start,
+   * Run, Settings." That was right for the defect P-11 closed (a floating
+   * fifth row with no fixed home) and wrong for what P-63 found six packets
+   * later: a person NOT standing on a track had no Run door at all, which is
+   * R-38's defect -- a door that goes nowhere -- in its most literal shape,
+   * since here there was no door to go nowhere WITH. `runDoor` (the query in
+   * `AppFrame` itself) now answers "where is my run" from anywhere in the
+   * product: a live run, the most recently touched one, or `/start`. So the
+   * primary rail's row COUNT is now constant across every page -- Start, Run,
+   * Settings, always -- and this test's job changes from "prove Run can
+   * vanish" to "prove it no longer can."
    */
-  it("the render drops Run without a live track and keeps it with one", () => {
-    expect(SRC).toContain('RAIL_PRIMARY.filter((r) => r.to !== "/track" || trackId).map(');
+  it("Run draws unconditionally now, like every other primary row", () => {
+    // The old filter is gone from the source, not merely unused: a reader
+    // who re-adds `RAIL_PRIMARY.filter(...)` here would silently resurrect
+    // the exact defect P-109 closed.
+    expect(SRC).not.toContain('RAIL_PRIMARY.filter((r) => r.to !== "/track" || trackId)');
+    expect(SRC).toContain("RAIL_PRIMARY.map(");
+    // `runDoor` supplies the destination now; `SIGNED_IN_HOME` is the "none"
+    // fallback, so a workspace with no run at all still gets a real door.
+    expect(SRC).toContain("runDoor.trackId");
+    expect(SRC).toContain("? `/track/${runDoor.trackId}`");
+    expect(SRC).toContain(": SIGNED_IN_HOME");
     // RAIL_DOORS (exported, real, RAIL.map(...) with no tier filter) is the
-    // fixed set this filter draws from: Start and Run, two rows. Applying
-    // the filter's own logic by hand for both states of `trackId` is what
-    // "the rail shows exactly Start and Settings [...] Start, Run, Settings"
-    // asks for, without a RouterProvider this file does not carry.
-    /*
-     * The order is the rail's order and the list is derived, not retyped: this
-     * asserted exactly [Start, Run] and P-60's nine broke it without anything
-     * being wrong. What matters here is that Run is in the set and is the one
-     * row the filter below can drop.
-     */
+    // fixed set the primary rail draws from: Start and Run, both present,
+    // neither conditional on anything the test file itself can observe.
     expect(RAIL_DOORS.map((r) => r.to)[0]).toBe(SIGNED_IN_HOME);
     expect(RAIL_DOORS.map((r) => r.to)).toContain("/track");
-    const visible = (trackId: string | null) =>
-      RAIL_DOORS.filter((r) => r.to !== "/track" || trackId);
-    // Plus one for Settings, the foot control proven lit above — neither
-    // list this file reads carries it, so it is added back by hand on both
-    // sides rather than silently dropped from the count.
-    /*
-     * The RULE is that Run is the one row the filter drops, not that the rail
-     * has two rows. Stated as the difference between the two states so it holds
-     * at any door count (P-60).
-     */
-    expect(visible("t-1").length - visible(null).length).toBe(1);
-    expect(visible(null).map((r) => r.to)).not.toContain("/track");
-    expect(visible("t-1").map((r) => r.to)).toContain("/track");
-    // The sibling of the line above, same reason: a count here is a ceiling.
-    expect(visible("abc123").length).toBe(RAIL_DOORS.length);
   });
 
   it("Run's identity carries no ownership of its own beyond itself", () => {

@@ -60,6 +60,8 @@
 import * as React from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { PRIMARY_NAV, type NavItemDef } from "@/lib/nav-model";
+import { SIGNED_IN_HOME } from "./post-auth-home";
+import type { RunDoorState } from "@/lib/spine/track.functions";
 import {
   IconArrived,
   IconBrain,
@@ -97,14 +99,21 @@ function byTo(to: string): NavItemDef | undefined {
   return PRIMARY_NAV.find((d) => d.to === to);
 }
 
-/** Run's `to` is an identity, not a route (`nav-model.ts`'s own rule): it
- *  resolves to `/track/$trackId` for whichever track is live, and draws
- *  nothing when none is -- the same rule the rail and the chord both
- *  already follow, carried here rather than invented a third time. */
-function useRunHref(): string | null {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const match = /^\/track\/([^/]+)/.exec(pathname);
-  return match ? `/track/${match[1]}` : null;
+/**
+ * Run's `to` is an identity, not a route (`nav-model.ts`'s own rule).
+ *
+ * P-109 (A-QUEUE.md): this used to resolve off the URL and return null off
+ * it -- `DoorLink` below then dropped the door entirely, so a phone reader
+ * not literally standing on a track had no Run door in the bar OR the More
+ * sheet, the same defect P-63 named for the desktop rail carried here a
+ * second time, unfixed by the first fix. `runDoor` (the query `AppFrame`
+ * already makes, passed down rather than re-fetched) answers regardless of
+ * the current page: a live run, the most recently touched one, or `/start`
+ * with nothing to point at yet -- so the door never has to disappear.
+ */
+function runHrefFrom(runDoor: RunDoorState | undefined): string {
+  if (!runDoor || !runDoor.trackId) return SIGNED_IN_HOME;
+  return `/track/${runDoor.trackId}`;
 }
 
 const ITEM_CLASS =
@@ -115,26 +124,32 @@ function DoorLink({
   door,
   active,
   onNavigate,
+  runDoor,
 }: {
   door: NavItemDef;
   active: boolean;
   onNavigate?: () => void;
+  /** Only read for Run's own row; every other door ignores it. */
+  runDoor?: RunDoorState;
 }) {
   const Icon = DOOR_ICON[door.to];
-  const runHref = useRunHref();
   const isRun = door.to === "/track";
-  const href = isRun ? runHref : door.to;
-  // Run draws nothing while no track is live -- the same refusal the rail's
-  // own row and the `g` chord both already carry.
-  if (isRun && !href) return null;
+  const href = isRun ? runHrefFrom(runDoor) : door.to;
+  const runStateWord = isRun
+    ? runDoor?.state === "live"
+      ? "live"
+      : runDoor?.state === "last"
+        ? "the last one"
+        : "nothing yet"
+    : null;
   return (
     <Link
-      to={href ?? door.to}
+      to={href}
       search={isRun ? undefined : (door.search as never)}
       className={`${ITEM_CLASS} ${active ? ITEM_ACTIVE_CLASS : "text-mrd-mute"}`}
       aria-current={active ? "page" : undefined}
       title={door.label}
-      aria-label={door.label}
+      aria-label={runStateWord ? `${door.label}, ${runStateWord}` : door.label}
       onClick={onNavigate}
     >
       {Icon ? <Icon className="size-5" /> : null}
@@ -258,6 +273,7 @@ export function RailPhoneBar({
   liveLead,
   onLiveClick,
   liveTitle,
+  runDoor,
 }: {
   /** The desktop rail's own `.sp-live-lead` text -- the "first fact" this
    *  packet's own acceptance line asks for, carried down rather than
@@ -269,6 +285,9 @@ export function RailPhoneBar({
    *  instead of a `button`. */
   onLiveClick?: () => void;
   liveTitle?: string;
+  /** `AppFrame`'s own `runDoor` read, carried down rather than re-fetched
+   *  (P-109, A-QUEUE.md) -- see `runHrefFrom`. */
+  runDoor?: RunDoorState;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [moreOpen, setMoreOpen] = React.useState(false);
@@ -299,7 +318,7 @@ export function RailPhoneBar({
         aria-label="Main"
       >
         {bar.map((door) => (
-          <DoorLink key={door.to} door={door} active={isActive(door.to)} />
+          <DoorLink key={door.to} door={door} active={isActive(door.to)} runDoor={runDoor} />
         ))}
         <button
           type="button"

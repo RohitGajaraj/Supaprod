@@ -153,7 +153,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
 import { listCrew } from "@/lib/crew.functions";
-import { listMovingTracks, listTracks, listGatesOnTracks } from "@/lib/spine/track.functions";
+import {
+  listMovingTracks, listTracks,
+  listGatesOnTracks,
+  getRunDoorState,
+  type RunDoorState,
+} from "@/lib/spine/track.functions";
 import { initialsFrom } from "@/lib/initials";
 import { useTheme } from "@/hooks/use-theme";
 import { FOOTER_NAV, PRIMARY_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
@@ -297,21 +302,22 @@ const RAIL = [
     tier: "primary",
   },
   /*
-   * ── RUN: THE ROW THAT ANSWERS "WHERE AM I", NOT "WHERE CAN I GO" ───────
+   * ── RUN: THE ROW THAT ANSWERS "WHERE IS MY RUN", ALWAYS (P-109) ────────
    *
-   * P-11 (A-QUEUE.md, 2026-09-02): "Run appears only while the person is on
-   * `/track/$trackId` and points at it." Every other row in this file draws
-   * unconditionally; this one exists only while there is a track to point
-   * at, which the render below enforces by dropping it from the rendered
-   * list when `trackId` is null.
+   * P-11 (A-QUEUE.md, 2026-09-02) drew this row only while the person stood
+   * on `/track/$trackId`, and dropped it everywhere else — a door with
+   * nothing behind it the moment you were not already standing on one, which
+   * is R-38's defect in its plainest form and exactly what P-63 named: "Run
+   * has no door to design for while nothing's live." P-109 answers it
+   * instead of dropping the row: `runDoor` (the query in `AppFrame` itself)
+   * resolves to a live run, the most recently touched one, or `/start`, and
+   * the row draws unconditionally like every other one in this file now.
    *
-   * THE ROW'S DESTINATION IS AN IDENTITY, NOT A ROUTE — the same convention
-   * the old `START_PATHS` used for this exact prefix before Run had its own
-   * row. `railOwnerOf`, `doorKey` and the keyboard binding all key on it;
-   * only the render's own `<Link>` ever resolves the real destination,
-   * `/track/$trackId` for whichever track is live. Nothing here can navigate
-   * a person to the bare identity, because the row is never drawn without a
-   * live id to complete it.
+   * THE ROW'S DESTINATION IS STILL AN IDENTITY, NOT A ROUTE — the same
+   * convention the old `START_PATHS` used for this exact prefix before Run
+   * had its own row. `railOwnerOf`, `doorKey` and the keyboard binding all
+   * key on it; only the render's own `<Link>` ever resolves the real
+   * destination, which `runDoor` supplies now rather than the URL.
    */
   {
     to: "/track",
@@ -792,8 +798,13 @@ function RailNew({ narrow }: { narrow: boolean }) {
 
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  /** The live track id, or null. The Run rail row (P-11, A-QUEUE.md,
-   *  2026-09-02) exists only while this is not null. */
+  /**
+   * The track this PAGE is standing on, or null -- narrowed by P-109 to what
+   * it is actually for now: whether the rail's `owner`/`current` styling
+   * should light Run up as the section you are in. It is no longer what
+   * decides whether the Run row draws or where it points; `runDoor` below
+   * answers both of those regardless of which page this is.
+   */
   const trackId = /^\/track\/([^/]+)/.exec(pathname)?.[1] ?? null;
   /* Whether the surface below is the board, which states the gate count itself.
      Exact match, not `startsWith`: a child route of /today would be a different
@@ -822,6 +833,21 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // Only the id. The NAME and the product moved to ScopeMenu, which owns the
   // scope control now; keeping a second copy here is how two headers drift.
   const { activeWorkspace, activeWorkspaceId, workspaces, setActiveWorkspaceId } = useWorkspace();
+  /*
+   * THE RUN DOOR'S THREE RESOLUTIONS (P-109, A-QUEUE.md). Independent of
+   * `trackId` above on purpose: that reads the URL, this reads the account --
+   * live wins, then the most recently touched track, then none. 10s, the same
+   * beat `YourRuns`/`TrackActivity` already poll a live run on, so the rail
+   * cannot say "nothing running" a beat after a run screen says otherwise.
+   */
+  const fRunDoor = useServerFn(getRunDoorState);
+  const runDoorQ = useQuery({
+    queryKey: ["run-door", activeWorkspaceId ?? null],
+    queryFn: () => fRunDoor({ data: { workspaceId: activeWorkspaceId ?? null } }),
+    refetchInterval: (query) => pollMs(10_000, query.state.fetchFailureCount),
+    enabled: !!activeWorkspaceId,
+  });
+  const runDoor: RunDoorState = runDoorQ.data ?? { state: "none", trackId: null };
   /*
    * ── P-66: THE LIVE LINE READS THE WORKSPACE IT STANDS IN ────────────────
    *
@@ -2065,14 +2091,15 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             <nav className="sp-nav" aria-label="Main">
               {
                 /*
-                 * RUN ONLY DRAWS WITH A LIVE ID (P-11, A-QUEUE.md, 2026-09-02).
-                 * Run's own destination field in `RAIL` is an identity, never a
-                 * navigable path (see the row's own comment above `RAIL`), so
-                 * a row with no id to complete it is dropped here rather than
-                 * ever reaching a `<Link>`. Every other row draws unconditionally.
+                 * RUN ALWAYS DRAWS NOW (P-109, A-QUEUE.md). P-11 dropped the row
+                 * whenever there was no id to complete its identity with; P-63
+                 * named exactly what that cost -- "Run has no door to design for
+                 * while nothing's live" -- so every row draws unconditionally,
+                 * Run included, and `runDoor` below always has an answer for it:
+                 * a live run, the last one, or `/start` with nothing to point at
+                 * yet.
                  */
-                RAIL_PRIMARY.filter((r) => r.to !== "/track" || trackId).map(
-                  ({ to, label, Icon, count }) => {
+                RAIL_PRIMARY.map(({ to, label, Icon, count }) => {
                     const n = count ? counts[count] : 0;
                     // The key this row is actually bound to, read off the binding
                     // itself. "" for a row the keyboard does not reach.
@@ -2095,7 +2122,34 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                     // `<Link>` below is the only place the live id enters.
                     const owner = railOwnerOf(pathname) === to;
                     const current = owner ? (under(pathname, to) ? "page" : "true") : undefined;
-                    const href = to === "/track" && trackId ? `/track/${trackId}` : to;
+                    /*
+                     * THE THREE RESOLUTIONS, SPENT (P-109). "none" points at
+                     * Start rather than at nothing: `runDoor.trackId` is null
+                     * exactly there, and `/start` is where a person builds the
+                     * run this row currently has none of -- the same door
+                     * `RailNew` already opens, composer auto-focused on
+                     * arrival by that page's own effect.
+                     */
+                    const href =
+                      to === "/track"
+                        ? runDoor.trackId
+                          ? `/track/${runDoor.trackId}`
+                          : SIGNED_IN_HOME
+                        : to;
+                    /*
+                     * THE STATE, IN THE ACCESSIBLE NAME (Scope's own words),
+                     * never in the printed label: the row still reads "Run" on
+                     * screen, one word like its two neighbours, and a screen
+                     * reader is told the fact the glyph alone cannot carry.
+                     */
+                    const runStateWord =
+                      to === "/track"
+                        ? runDoor.state === "live"
+                          ? "live"
+                          : runDoor.state === "last"
+                            ? "the last one"
+                            : "nothing yet"
+                        : null;
                     return (
                       <Link
                         key={to}
@@ -2120,11 +2174,12 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                        scheme the chord replaced. "g then t" rather than "g t":
                        spoken, the space is inaudible and the two would run
                        together into one word. */
-                        aria-label={
-                          shortcut
-                            ? `${label}, shortcut ${NAV_CHORD_PREFIX} then ${shortcut}`
-                            : label
-                        }
+                        aria-label={[
+                          runStateWord ? `${label}, ${runStateWord}` : label,
+                          shortcut ? `shortcut ${NAV_CHORD_PREFIX} then ${shortcut}` : null,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")}
                       >
                         <Icon />
                         <span className="sp-navlabel">{label}</span>
@@ -2367,6 +2422,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           liveLead={liveLead ?? undefined}
           onLiveClick={strip?.mode === "tab" ? undefined : liveTarget.go}
           liveTitle={strip?.mode === "tab" ? undefined : liveTarget.title}
+          runDoor={runDoor}
         />
       </div>
     </RunStripProvider>
