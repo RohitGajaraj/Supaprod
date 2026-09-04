@@ -9313,7 +9313,7 @@ suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; the count.
 
 
-### P-119 · A paid service that stops paying out is told to the person · Lane: **A3** (after P-117) · Status: PUBLISHED, LIVE READ PENDING (fae06bd6b; A1 gate: build 0, tsc 0, 14,419 pass / 0 fail; published 12:58 IST; A1 reads the embeddings item on Waiting once served) · Moves: 2, 3
+### P-119 · A paid service that stops paying out is told to the person · Lane: **A3** (after P-117) · Status: DONE (fae06bd6b; live 14:32 IST: Helio Waiting shows "Embeddings have stopped: Cohere says the payment method needs updating... 154 rows waiting. Open Cohere billing") · Moves: 2, 3
 
 **Why.** `error_events` read 06:36 UTC 09-04: `cron.embed-tick.*` has failed on every tick since
 **2026-09-01 08:30 UTC** with `embeddings 402: Please add or update your payment method` from
@@ -9439,7 +9439,7 @@ under the service role, which is the root cause. One refusal since 07:00 UTC, at
 the change landed. The zero-across-a-Build acceptance is read on the next Helio Build once the
 code serves.
 
-### P-121 · A release with no recorded file list is not accused · Lane: **A3** (after P-120) · Status: DONE (72569bbd0; A1 gate on tip 16dd25778 after the disk was freed: build 0, tsc 0, 14,433 pass / 0 fail; published 13:37 IST; A1 reads the July release line once served) · Moves: 2
+### P-121 · A release with no recorded file list is not accused · Lane: **A3** (after P-120) · Status: DONE (72569bbd0; live 14:34 IST: the July release reads "No file list was recorded for this change") · Moves: 2
 
 **Why.** Served Ship page, 12:10 IST 09-04, on the release the founder shows people ("Batch
 firmware push scheduler", in production since Jul 9): the entry reads *This change touches no
@@ -9580,7 +9580,7 @@ Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 presses one live.
 
 
-### P-124 · A release is named by its notes, and a pressed card leaves · Lane: **A3** (after P-122) · Status: PUBLISHED, LIVE READ PENDING (c2215b29f; same gate; published 14:01 IST; A1 reads the release title on the served Ship page) · Moves: 2
+### P-124 · A release is named by its notes, and a pressed card leaves · Lane: **A3** (after P-122) · Status: DONE (c2215b29f; live 14:34 IST: every surface names the release "Checkout: Address confirmation streamlined.") · Moves: 2
 
 **Why.** The first live release on the Ship page (12:29 IST 09-04) is titled *Shipped an update*
 everywhere (the promote card, Live releases, Where it is live, What shipped) while its release
@@ -9628,7 +9628,7 @@ browser access from this worktree -- the Acceptance's own "served Ship page name
 *Checkout: Address confirmation streamlined.*" needs a live read from A1.
 
 
-### P-125 · The run's map shows all seven stations at every width · Lane: **A2** (after P-123, before P-118b) · Status: PUBLISHED, LIVE READ PENDING (352a65706; A1 gate: build 0, tsc 0, 14,429 pass / 0 fail; published 13:06 IST; A1 reads the map at 1512 px once served) · Moves: 2
+### P-125 · The run's map shows all seven stations at every width · Lane: **A2** (after P-123, before P-118b) · Status: DONE (352a65706; live 14:38 IST at 1440 px: all seven cells on screen, five on the first row and Ship and Learn on a second, x 736 and 871; the wrap is 5+2 where the packet said 4+3, cosmetic, A2 may fold it into P-112 or leave it) · Moves: 2
 
 **Why.** Served run screen at 1512 px, 12:35 IST 09-04, on the shipped track: the map's row has
 seven cells in the DOM (*Discover · Found 4 things* through *Ship · Released* and *Learn ·
@@ -9650,7 +9650,7 @@ suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads at 1512 px.
 
 
-### P-126 · Start knows what went live · Lane: **A3** (after P-124, before P-104) · Status: PUBLISHED, LIVE READ PENDING (ecca49c96; A1 gate: build 0, tsc 0, 14,482 pass / 0 fail; published 14:29 IST; A1 reads Start once served) · Moves: 2, 3
+### P-126 · Start knows what went live · Lane: **A3** (after P-124, before P-104) · Status: PUBLISHED, PART 2 NOT LIVE (ecca49c96; live 14:33 IST on Start: the run row reads "Live since 06:58" (part 3 works, the time is UTC, P-130), the first answer reads "Nothing has shipped since you last looked" because the baseline is the person's last look and A1 had looked after 06:58 (part 1 as designed), and the shipped opportunity "Skip the address re-confirm when nothing changed" is still offered with Start it (part 2 not effective on the live rows; A3 reads why with the live ids: spec f2aa82f1, track 2fdf93b6)) · Moves: 2, 3
 
 **Why.** Served Start, 12:50 IST 09-04, twenty minutes after the first release went to production:
 the first answer reads *Nothing new since you last looked.*, the second *1 call came back this
@@ -9705,7 +9705,7 @@ zero WARN/FAIL. Pushed directly to `main` (ecca49c96). No live browser access fr
 the Acceptance's own "served Start on Helio shows the release" needs a live read from A1.
 
 
-### P-127 · The header says what is running · Lane: **A2** (after P-116, before P-112) · Status: CLAIMED (A2) 14:20 IST 09-04 · Moves: 2
+### P-127 · The header says what is running · Lane: **A2** (after P-116, before P-112) · Status: PUBLISHED, LIVE READ PENDING (a88f70552; A1 gate: build 0, tsc 0, 14,496 pass / 1 fail, the fail a 5 s timeout in memory.server.test.ts that passes alone twice (P-132); published 14:39 IST; header read on the next live drive) · Moves: 2
 
 **Why.** Served Waiting page at 06:13 UTC 09-04: the header read *Nothing running · last:
 Checkout asks for already-saved delivery address · 3d ago* while run bce3febf (the orchestrator's
@@ -9777,6 +9777,57 @@ counted in two tabs.
 across two reads a minute apart. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
+
+
+### P-130 · Every time on every surface is in the person's zone · Lane: **A3** (after P-129) · Status: READY · Moves: 2
+
+**Why.** Start's run row (P-126) reads *Live since 06:58* for a promote the founder pressed at
+12:28 IST; the run screen's transcript rows read *11:20* for the same morning's commits, which is
+IST. Two surfaces, two zones, one person. The database is UTC and the box is IST (memory), and a
+time in the wrong zone reorders the day for the reader.
+
+**Scope.** One formatter for every clock time and date the product shows, in the browser's zone,
+with the day when it is not today (*12:28*, *yesterday 12:28*, *Sep 2, 12:28*); a sweep of every
+`toISOString().slice(11,16)` and hand-built time string in `src/` to that formatter; a guard that
+no component formats a time without it.
+
+**Acceptance.** Start's row reads *Live since 12:28*; the sweep count before and after. Full suite
+on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
+
+### P-131 · A changeset born from a track carries its spec and its bet · Lane: **A3** (after P-130) · Status: READY · Moves: 1, 3
+
+**Why.** The release document for the first live release (Ship page, 14:34 IST) says *This release
+is not linked to a spec, so what it set out to do and what it promised are not on the record* and
+*not traced to a bet*. Both exist: spec f2aa82f1 (approved, shipped 06:58) and the opportunity the
+track started from. `studio_changesets.prd_id` and `product_id` are null on ae547426 because Build
+never wrote them, so the one document that is supposed to prove the loop closed says it cannot.
+
+**Scope.** Build writes `prd_id` (from the track's spec via `spine_track_members`) and the bet's
+id onto the changeset at creation; a backfill for changesets whose track has a spec, by migration,
+ledger confirmed by A1; the release document reads them and drops the two *not on the record*
+lines when they resolve. Guard: a changeset created from a track with a spec carries it.
+
+**Acceptance.** The live release document names the spec and the bet. Full suite on the tip,
+tsc 0, build 0.
+
+**DoD.** Pushed; migration applied; the numbers.
+
+### P-132 · The recall tests do not race the clock · Lane: **A3** (after P-131) · Status: READY · Moves: 5
+
+**Why.** `memory.server.test.ts` (`recallMemoryRefs`) timed out at 5 s twice today under the full
+suite (13:24 on a starved disk, 14:38 on a healthy one) and passes alone in a second. A gate that
+fails on load and not on code costs a re-run per push and, worse, teaches everyone to shrug at a
+red suite.
+
+**Scope.** Find what the two tests wait on (an embedding call, a timer, a real fetch) and make
+it deterministic (mock the provider, fake the clock); no raised timeout. Sweep the suite for other
+`it(...)` bodies with a 5 s wall-clock dependency. Guard: the file runs under 1 s in isolation.
+
+**Acceptance.** Three full-suite runs on the tip with 0 fail. tsc 0, build 0.
+
+**DoD.** Pushed; the numbers.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
