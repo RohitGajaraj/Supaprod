@@ -27,7 +27,7 @@
  * calls", because the tool is ours and the action is theirs. `trust_graduation`
  * is "standing permissions", which is what granting one does.
  */
-import type { ApprovalKind } from "@/lib/approvals-queue.functions";
+import type { ApprovalFilter, ApprovalKind } from "@/lib/approvals-queue.functions";
 
 /** Singular and plural, in the words a person would use out loud. */
 const NAMES: Record<ApprovalKind, [one: string, many: string]> = {
@@ -76,6 +76,39 @@ export function queueShape(kinds: readonly ApprovalKind[]): FamilyCount[] {
       .sort((a, b) => (b.n !== a.n ? b.n - a.n : a.noun.localeCompare(b.noun)))
       .map(({ kind, n, label }) => ({ kind, n, label }))
   );
+}
+
+/**
+ * ONE PASS, BOTH PARTITIONS (P-129, A-QUEUE.md). Served Waiting, 12:14 IST
+ * 09-04: the heading's own families summed to 53 while the filter row's
+ * own tabs summed to 52, and a minute later the pair disagreed again by a
+ * different amount. The heading was built from `visibleItems` -- the
+ * ACTIVE FILTER's own slice -- while every tab's count was built from
+ * `allItems`, the whole queue. Two different lists, asked to describe
+ * either the same thing or two DIFFERENT things depending on which filter
+ * happened to be active, and nothing forced them to agree.
+ *
+ * The fix is not a reconciliation step; it is refusing to have two lists at
+ * all. Both the heading (via `queueShape`, keyed on `kindKey`) and the tabs
+ * (via this function, keyed on `filterBucket`) must be called with the SAME
+ * array -- the whole queue, `allItems`, never the active filter's slice, so
+ * the heading keeps describing the whole workload no matter which tab is
+ * open. `all` is that array's own length; every other key is how many of
+ * its items carry that `filterBucket`, so the parts can never outrun the
+ * whole by construction.
+ */
+export function queueCounts(
+  items: readonly { filterBucket: Exclude<ApprovalFilter, "all"> }[],
+): Record<ApprovalFilter, number> {
+  const c: Record<ApprovalFilter, number> = {
+    all: items.length,
+    proposals: 0,
+    gates: 0,
+    memory: 0,
+    spend: 0,
+  };
+  for (const it of items) c[it.filterBucket] += 1;
+  return c;
 }
 
 /**

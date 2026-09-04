@@ -6,8 +6,8 @@
  */
 import { describe, it, expect } from "bun:test";
 import { readFileSync } from "node:fs";
-import { queueShape, shapeSentence } from "./a-queue-is-a-shape-not-a-total";
-import type { ApprovalKind } from "@/lib/approvals-queue.functions";
+import { queueShape, queueCounts, shapeSentence } from "./a-queue-is-a-shape-not-a-total";
+import type { ApprovalFilter, ApprovalKind } from "@/lib/approvals-queue.functions";
 
 /** The live population, read from production 2026-09-03 (sums to 66). */
 const HELIO: ApprovalKind[] = [
@@ -79,6 +79,63 @@ describe("a queue is a shape, not a total", () => {
   });
 });
 
+/*
+ * P-129 (A-QUEUE.md). Served Waiting, 12:14 IST 09-04: the heading's own
+ * families summed to 53 while the filter row's tabs summed to 52, and a
+ * minute later they disagreed by a different amount. The heading read
+ * `visibleItems` (the active filter's own slice) and the tabs read
+ * `allItems` (the whole queue) -- two different lists, forced to agree only
+ * by coincidence, and only while the "All" tab happened to be the one open.
+ * `queueCounts` and `queueShape` now both run over the SAME array; these
+ * guards hold that invariant with a fixture, the way the packet's own Guard
+ * asks for.
+ */
+describe("one array, both partitions (P-129)", () => {
+  /** The real mapping (approvals-queue.functions.ts): built once here so a
+   *  fixture cannot silently drift from what the server actually assigns. */
+  const BUCKET: Record<ApprovalKind, Exclude<ApprovalFilter, "all">> = {
+    tool_call: "gates",
+    decision: "proposals",
+    memory_candidate: "memory",
+    house_rule: "memory",
+    trust_graduation: "gates",
+    spec: "proposals",
+    opportunity: "proposals",
+    assumption_challenge: "gates",
+    design_gate: "proposals",
+    playbook_proposal: "proposals",
+  };
+  const item = (kindKey: ApprovalKind) => ({ kindKey, filterBucket: BUCKET[kindKey] });
+  const QUEUE = HELIO.map(item);
+
+  it("sums the heading's own families to exactly the All tab, whatever the shape", () => {
+    const shape = queueShape(QUEUE.map((i) => i.kindKey));
+    const total = shape.reduce((t, f) => t + f.n, 0);
+    expect(total).toBe(queueCounts(QUEUE).all);
+    expect(total).toBe(QUEUE.length);
+  });
+
+  it(
+    "the Gates tab is tool-call gates, trust graduations and assumption " +
+      "challenges -- design gates read as a 'proposal' (deliberately: a " +
+      "design gate asks for new work, the same shape as a spec or an " +
+      "opportunity; a 'gate' on this page is a call that reopens something " +
+      "already standing, which a design gate does not). One family, one " +
+      "tab; it is simply not the tab its name would suggest.",
+    () => {
+      const counts = queueCounts(QUEUE);
+      const gatesByKind = QUEUE.filter((i) => i.filterBucket === "gates").length;
+      expect(counts.gates).toBe(gatesByKind);
+      expect(counts.gates).toBe(4 + 10); // tool_call + assumption_challenge, per HELIO
+    },
+  );
+
+  it("never drifts by filter: counting the whole queue matches counting each bucket and summing", () => {
+    const counts = queueCounts(QUEUE);
+    expect(counts.proposals + counts.gates + counts.memory + counts.spend).toBe(counts.all);
+  });
+});
+
 describe("the page states its obligation once", () => {
   const ROUTE = readFileSync("src/routes/_authenticated.approvals.tsx", "utf8");
   const STALLED = readFileSync("src/components/meridian/StalledWork.tsx", "utf8");
@@ -120,12 +177,18 @@ describe("the page states its obligation once", () => {
   it("leaves the heading as the one place a count is stated", () => {
     // Proves the stripper above did not simply eat the file, which would make
     // the second assertion pass vacuously.
-    expect(ROUTE_CODE).toContain(
-      "shapeSentence(queueShape(visibleItems.map((i) => i.kindKey)), floor)",
-    );
+    expect(ROUTE_CODE).toContain("shapeSentence(queueShape(allItems.map((i) => i.kindKey)), floor)");
     expect(ROUTE_CODE).not.toContain("decisions are ready for you.");
     // And the comment explaining the change is still there to be read.
     expect(ROUTE).toContain("A SHAPE, NOT A TOTAL");
+  });
+
+  it("reads the whole queue, not the active filter's own slice (P-129)", () => {
+    // `visibleItems` narrows to whichever tab is open; a heading built from
+    // it would describe only that tab while the filter row still counts
+    // everything. The heading must read `allItems`, always.
+    expect(ROUTE_CODE).not.toContain("queueShape(visibleItems.map");
+    expect(ROUTE_CODE).toContain("queueCounts(allItems)");
   });
 
   it("keeps the failed-read and floor guards the heading already had", () => {

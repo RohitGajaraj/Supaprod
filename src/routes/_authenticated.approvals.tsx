@@ -154,7 +154,11 @@ import { SendBackSheet, canSendBack } from "@/components/approvals/SendBack";
 import { stripAutoMarkers } from "@/components/plan/format";
 import { stoppedFor, waitingSince } from "@/components/meridian/stopped-for";
 import { countIsAFloor, notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
-import { queueShape, shapeSentence } from "@/components/approvals/a-queue-is-a-shape-not-a-total";
+import {
+  queueShape,
+  queueCounts,
+  shapeSentence,
+} from "@/components/approvals/a-queue-is-a-shape-not-a-total";
 import { questionForGate } from "@/components/ask/a-question-is-composed-not-punctuated";
 
 /** One identity for the empty case, so a loading or failed read does not
@@ -479,17 +483,11 @@ function ApprovalsSurface() {
    * array must never be written through: one mutation would reach every reader.
    */
   const allItems = queue.data?.items ?? NO_ITEMS;
-  const counts = useMemo(() => {
-    const c: Record<ApprovalFilter, number> = {
-      all: allItems.length,
-      proposals: 0,
-      gates: 0,
-      memory: 0,
-      spend: 0,
-    };
-    for (const it of allItems) c[it.filterBucket] += 1;
-    return c;
-  }, [allItems]);
+  // ONE ARRAY, BOTH PARTITIONS (P-129, A-QUEUE.md): `queueCounts` is the same
+  // function the heading's own `queueShape` call below reads `allItems`
+  // through -- never `visibleItems`, the active filter's own slice -- so the
+  // two can no longer describe two different lists.
+  const counts = useMemo(() => queueCounts(allItems), [allItems]);
 
   const shownFilters = useMemo(() => filtersWorthDrawing(counts, filter), [counts, filter]);
 
@@ -872,8 +870,20 @@ function ApprovalsSurface() {
            * The floor and failed-read branches above are untouched: a capped
            * read still says "at least", and a failed one still refuses to
            * assert a count at all.
+           *
+           * `allItems`, NEVER `visibleItems` (P-129, A-QUEUE.md). This read
+           * `visibleItems.map(...)` -- the ACTIVE FILTER's own slice -- so
+           * the heading narrowed to whatever tab was open while the filter
+           * row's own counts stayed keyed on the whole queue. Filtered to
+           * Gates, the heading would describe only the gates family and no
+           * longer sum to the "All" tab beside it; on "all" the two arrays
+           * happen to be the same length and the drift hid. The heading is
+           * the shape of the WHOLE workload (P-56's own point: "one
+           * afternoon on one family clears half of it" is a claim about
+           * everything waiting, not about whichever tab is in front), so it
+           * reads the same array the tab counts do.
            */
-          shapeSentence(queueShape(visibleItems.map((i) => i.kindKey)), floor);
+          shapeSentence(queueShape(allItems.map((i) => i.kindKey)), floor);
 
   /* THE THIRD FACT, which this surface used to collapse into the first. A
      person in no workspace at all was told "Nothing is ready for you.", which
