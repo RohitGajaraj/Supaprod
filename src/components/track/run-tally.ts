@@ -51,7 +51,7 @@ import type { GotYouChip } from "@/components/meridian/got-you";
 import { KIND_WORD } from "@/lib/spine/attach";
 import { formatElapsed } from "@/components/meridian/run-rows";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
-import { costSummary } from "@/components/track/cost-summary";
+import { costSummary, spendClause } from "@/components/track/cost-summary";
 import { parseReview, verdictLine } from "@/components/track/verdict-reading";
 import { selfCheckLine, type SelfCheckTally } from "@/lib/spine/track.functions";
 import {
@@ -138,7 +138,7 @@ function fieldOf(items: StationArtifactView["items"], kind: string, field: strin
  */
 export function runTally(input: {
   stops: readonly StationArtifactView[] | null;
-  turns: ReadonlyArray<Pick<Turn, "tookMs" | "tokens" | "usd">> | null;
+  turns: ReadonlyArray<Pick<Turn, "tookMs" | "tokens" | "usd" | "credits">> | null;
   /** What each drive's own check compared. Absent on a caller that cannot read it. */
   selfChecks?: SelfCheckTally | null;
   now: number;
@@ -227,10 +227,14 @@ export function runTally(input: {
    * price means no figure, never "$0.00". A run that genuinely cost nothing and
    * a run whose finalizer never wrote are different facts and this strip is not
    * the place that confuses them.
+   *
+   * `cost` leads with credits, not dollars -- `spendClause` (P-136, A-QUEUE) is
+   * the one composer this strip shares with the footer bar and the artifact
+   * pane's own audit, so the three cannot disagree.
    */
   const s = costSummary([...(input.turns ?? [])]);
   const elapsed = s.timedTurns > 0 ? formatElapsed(s.msTotal / 1000) : null;
-  const cost = s.usdTotal > 0 ? `$${s.usdTotal.toFixed(2)}` : null;
+  const cost = spendClause(s);
 
   return { made, pr, verdict, horizon, selfCheck: selfCheckLine(input.selfChecks), elapsed, cost };
 }

@@ -5,12 +5,14 @@ import {
   resetDelta,
   sumRunDebits,
   sumDebitCredits,
+  sumCreditsByTrace,
   rollupAttribution,
   capExceeded,
   creditWindowStartIso,
   computeCreditAttribution,
   type LedgerDebitRow,
   type RunLedgerRow,
+  type TraceLedgerRow,
   type CreditAttribution,
 } from "./credits.functions";
 
@@ -147,6 +149,53 @@ describe("credits.functions – pure math", () => {
       ];
       const result = sumRunDebits(rows);
       expect(result).toBe(150);
+    });
+  });
+
+  describe("sumCreditsByTrace (P-136: one currency on the run screen)", () => {
+    /* THE GUARD (A-QUEUE P-136 Scope): a run with three ledger rows shows their
+       sum in credits. */
+    it("sums three ledger rows for one trace to their total", () => {
+      const rows: TraceLedgerRow[] = [
+        { delta_credits: -8, trace_id: "run-a" },
+        { delta_credits: -25, trace_id: "run-a" },
+        { delta_credits: -7, trace_id: "run-a" },
+      ];
+      const result = sumCreditsByTrace(rows);
+      expect(result).toEqual({ "run-a": 40 });
+    });
+
+    it("keeps two runs' totals apart rather than pooling them", () => {
+      const rows: TraceLedgerRow[] = [
+        { delta_credits: -8, trace_id: "run-a" },
+        { delta_credits: -25, trace_id: "run-b" },
+        { delta_credits: -7, trace_id: "run-a" },
+      ];
+      const result = sumCreditsByTrace(rows);
+      expect(result).toEqual({ "run-a": 15, "run-b": 25 });
+    });
+
+    it("drops a row with no trace, rather than pooling it under a false key", () => {
+      const rows: TraceLedgerRow[] = [
+        { delta_credits: -8, trace_id: "run-a" },
+        { delta_credits: -25, trace_id: null },
+      ];
+      const result = sumCreditsByTrace(rows);
+      expect(result).toEqual({ "run-a": 8 });
+    });
+
+    it("ignores positive deltas (grants/refunds) and non-finite values", () => {
+      const rows: TraceLedgerRow[] = [
+        { delta_credits: -8, trace_id: "run-a" },
+        { delta_credits: 50, trace_id: "run-a" },
+        { delta_credits: NaN, trace_id: "run-a" },
+      ];
+      const result = sumCreditsByTrace(rows);
+      expect(result).toEqual({ "run-a": 8 });
+    });
+
+    it("returns an empty map for an empty read", () => {
+      expect(sumCreditsByTrace([])).toEqual({});
     });
   });
 

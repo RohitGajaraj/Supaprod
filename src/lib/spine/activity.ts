@@ -74,6 +74,15 @@ export type RunRow = {
   halted_reason?: string | null;
   /** What class of thing broke. `model_error` is the only value on record. */
   failure_kind?: string | null;
+  /**
+   * The run's own correlator into `ai_events`, and from there into
+   * `credit_ledger` -- see `creditsSpentByTrace` (credits.functions.ts) for why
+   * that join has to happen off this column rather than the run's own id.
+   * Optional for the same reason as the three columns above it: a caller that
+   * does not select it must not fail the whole query, and a run that predates
+   * the column has none to give.
+   */
+  trace_id?: string | null;
 };
 
 /** An artifact this track collected, with when it landed. */
@@ -161,6 +170,14 @@ export type Turn = {
    */
   stopLine: string | null;
   usd: number;
+  /**
+   * Credits this turn's own calls debited, summed off `credit_ledger` and
+   * keyed by `trace_id` -- see `RunRow.trace_id`. Like `usd`, a real debit
+   * legitimately lands on zero (a seat that refused before reaching a model),
+   * so this is never null; it is the account's own currency, and P-136 (one
+   * currency on the run screen) is what leads with it instead of `usd`.
+   */
+  credits: number;
 };
 
 const OUTCOME: Record<string, Turn["outcome"]> = {
@@ -186,7 +203,12 @@ const OUTCOME: Record<string, Turn["outcome"]> = {
 export const TRAILING_CREDIT_MS = 5 * 60 * 1000;
 
 /** The chronological story of one piece of work. */
-export function buildActivity(input: { runs: RunRow[]; members: MemberRow[] }): Turn[] {
+export function buildActivity(input: {
+  runs: RunRow[];
+  members: MemberRow[];
+  /** Each run's own credits, keyed by `trace_id` -- from `creditsSpentByTrace`. */
+  creditsByTrace?: Record<string, number>;
+}): Turn[] {
   const runs = [...input.runs].sort((a, b) => a.created_at.localeCompare(b.created_at));
   const members = [...input.members].sort((a, b) => a.created_at.localeCompare(b.created_at));
 
@@ -227,6 +249,7 @@ export function buildActivity(input: { runs: RunRow[]; members: MemberRow[] }): 
       tokens: measured(r.tokens_used),
       stopLine: stopLine(r),
       usd: Number(r.spend_used_usd ?? 0) || 0,
+      credits: (r.trace_id && input.creditsByTrace?.[r.trace_id]) || 0,
     };
   });
 }

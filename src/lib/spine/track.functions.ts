@@ -98,6 +98,7 @@ import {
   type RunRow,
   type Turn,
 } from "@/lib/spine/activity";
+import { creditsSpentByTrace } from "@/lib/credits.functions";
 
 const STATION = z.enum(AGENT_STATION_ORDER as unknown as [AgentStation, ...AgentStation[]]);
 const SHAPE = z.enum([
@@ -3942,7 +3943,7 @@ export const getTrackActivity = createServerFn({ method: "GET" })
              * the counts that force that.
              */
             .select(
-              "id,agent_slug,agent_name,status,output,created_at,spend_used_usd,duration_ms,tokens_used,halted_reason,failure_kind",
+              "id,agent_slug,agent_name,status,output,created_at,spend_used_usd,duration_ms,tokens_used,halted_reason,failure_kind,trace_id",
             )
             .eq("track_id", data.trackId)
             .order("created_at", { ascending: true })
@@ -4063,6 +4064,17 @@ export const getTrackActivity = createServerFn({ method: "GET" })
           }
         }
 
+        const runs = (runsRes.data ?? []) as unknown as RunRow[];
+        /*
+         * P-136: ONE CURRENCY ON THE RUN SCREEN. Its own read, after the runs
+         * are in hand, because the trace ids it is scoped to are the ones this
+         * request already proved the caller may see (RLS on `agent_runs`
+         * above) -- see `creditsSpentByTrace` for why the join itself has to
+         * run past that RLS rather than under it.
+         */
+        const traceIds = [...new Set(runs.map((r) => r.trace_id).filter((t): t is string => !!t))];
+        const creditsByTrace = await creditsSpentByTrace(traceIds);
+
         return {
           verdict,
           selfChecks: summariseSelfChecks(
@@ -4070,8 +4082,9 @@ export const getTrackActivity = createServerFn({ method: "GET" })
             drivesRes.error ? drivesRes.error.message : null,
           ),
           turns: buildActivity({
-            runs: (runsRes.data ?? []) as unknown as RunRow[],
+            runs,
             members: (membersRes.data ?? []) as unknown as ActivityMemberRow[],
+            creditsByTrace,
           }),
           transitions: (
             (eventsRes.data ?? []) as unknown as Array<{

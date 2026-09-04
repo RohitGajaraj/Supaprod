@@ -105,9 +105,13 @@ const WORKSPACE_SCOPED = new Set<string>([
 /**
  * An id that already narrows the read to rows reached through a workspace.
  * `slug` is here because a slug lookup is a single named row, not a list.
+ * `trace_id` / `ai_event_id` added 2026-09-04 (P-136): `creditsSpentByTrace`
+ * (credits.functions.ts) narrows `ai_events`/`credit_ledger` by a trace-id set
+ * the caller already fetched under RLS on `agent_runs`, the same shape as
+ * `run_id` above it -- an id one hop from a workspace, not a bare list.
  */
 const NARROWED =
-  /\.(eq|in)\(\s*"(id|track_id|mission_id|run_id|decision_id|prd_id|product_id|project_id|changeset_id|conversation_id|theme_id|opportunity_id|agent_id|user_id|artifact_id|signal_id|goal_id|loop_id|task_id|slug)"/;
+  /\.(eq|in)\(\s*"(id|track_id|mission_id|run_id|decision_id|prd_id|product_id|project_id|changeset_id|conversation_id|theme_id|opportunity_id|agent_id|user_id|artifact_id|signal_id|goal_id|loop_id|task_id|slug|trace_id|ai_event_id)"/;
 
 /**
  * BASELINE, MEASURED 2026-09-04. A number here may go DOWN and never up.
@@ -130,7 +134,6 @@ const BASELINE: Record<string, number> = {
   "src/lib/ai/tools/registry.server.ts": 4,
   "src/lib/artifacts.functions.ts": 2,
   "src/lib/ask-blocks.server.ts": 4,
-  "src/lib/ask-canvas.functions.ts": 1,
   "src/lib/ask-promote.functions.ts": 1,
   "src/lib/brain.functions.ts": 2,
   "src/lib/brain/memory-embedding.server.ts": 1,
@@ -149,7 +152,6 @@ const BASELINE: Record<string, number> = {
   "src/lib/deployments.functions.ts": 1,
   "src/lib/design-scaffold.functions.ts": 2,
   "src/lib/docs.functions.ts": 1,
-  "src/lib/feedback.functions.ts": 1,
   "src/lib/forecast.functions.ts": 3,
   "src/lib/gdocs.functions.ts": 1,
   "src/lib/guardrails.functions.ts": 3,
@@ -158,7 +160,6 @@ const BASELINE: Record<string, number> = {
   "src/lib/linear.functions.ts": 1,
   "src/lib/meetings.functions.ts": 2,
   "src/lib/memory-candidates.functions.ts": 2,
-  "src/lib/missions.functions.ts": 2,
   "src/lib/notion.functions.ts": 1,
   "src/lib/observability.functions.ts": 2,
   "src/lib/onboarding.functions.ts": 1,
@@ -174,13 +175,10 @@ const BASELINE: Record<string, number> = {
   "src/lib/spine/correction.server.ts": 1,
   "src/lib/spine/driver.server.ts": 5,
   "src/lib/spine/return-edge.server.ts": 1,
-  "src/lib/spine/track.functions.ts": 3,
   "src/lib/stage-events.functions.ts": 1,
   "src/lib/stakeholder-update.functions.ts": 1,
-  "src/lib/studio.functions.ts": 3,
   "src/lib/support-triage.functions.ts": 1,
   "src/lib/tasks.functions.ts": 2,
-  "src/lib/today.functions.ts": 1,
   "src/lib/traces.functions.ts": 3,
   "src/lib/trust-chain.functions.ts": 1,
   "src/routes/api/chat.ts": 2,

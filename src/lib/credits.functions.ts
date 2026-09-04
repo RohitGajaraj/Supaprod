@@ -202,6 +202,91 @@ export async function refundAbandonedRunCredits(
   }
 }
 
+// --- P-136: one currency on the run screen -----------------------------------
+// The run screen showed two dollar figures that could disagree (the bottom bar
+// and the artifact pane, both nominally reading the same `spend_used_usd`
+// column) while the account itself is billed and shown in credits everywhere
+// else -- Team > Spend and limits, the balance on Start. This reads what a
+// run's OWN calls actually debited from `credit_ledger`, keyed by the run, so
+// the screen can lead with the account's own currency instead.
+
+/** One credit_ledger debit row, already resolved to the run's own trace id. */
+export type TraceLedgerRow = { delta_credits: number; trace_id: string | null };
+
+/**
+ * Credits debited under a set of trace ids, summed per trace, as positive
+ * numbers -- the run-level guard: a run with three ledger rows shows their sum
+ * in credits. Mirrors `sumRunDebits`, grouped rather than flat; pure.
+ */
+export function sumCreditsByTrace(rows: TraceLedgerRow[]): Record<string, number> {
+  const totals: Record<string, number> = {};
+  for (const r of rows) {
+    if (!r.trace_id) continue;
+    const d = Number(r.delta_credits);
+    if (!Number.isFinite(d) || d >= 0) continue;
+    totals[r.trace_id] = (totals[r.trace_id] ?? 0) + -d;
+  }
+  return totals;
+}
+
+/**
+ * Each run's own credit spend, keyed by `agent_runs.trace_id`.
+ *
+ * WHY THIS DOES NOT JOIN THROUGH `ai_events` UNDER THE CALLER'S OWN CLIENT.
+ * `credit_ledger` carries no run or track column of its own; the only path
+ * from a ledger row back to a run is `ai_events.trace_id`, joined through
+ * `ai_event_id` (confirmed live, 2026-09-04: `ai_events.surface_ref` on the
+ * agentic-loop's own call is the agent's slug, not a run id -- the refund
+ * code's `surface_ref = runId` join is scoped to a different call path and is
+ * NOT this one). `ai_events` RLS is `auth.uid() = user_id`, per-user rather
+ * than per-account, so reading it under the caller's own client would silently
+ * drop a teammate's runs on a shared track -- exactly the class of leak
+ * [[P-33]] and [[P-32]] already found on this surface, just inverted (under-
+ * counting instead of over-showing). This reads through the service-role
+ * client instead, scoped strictly to the trace ids the caller already fetched
+ * under RLS on `agent_runs`: nothing untrusted reaches this query, and nothing
+ * the caller was not already authorized to see does either.
+ *
+ * Never throws; an empty map means the screen shows no credits figure for
+ * those runs, same as a missing `spend_used_usd`.
+ */
+export async function creditsSpentByTrace(traceIds: string[]): Promise<Record<string, number>> {
+  if (traceIds.length === 0) return {};
+  const admin = supabaseAdmin as unknown as SupabaseClient;
+  try {
+    const { data: events, error: eventsError } = await admin
+      .from("ai_events")
+      .select("id, trace_id")
+      .in("trace_id", traceIds);
+    if (eventsError || !events?.length) return {};
+    const traceOfEvent = new Map<string, string>();
+    for (const e of events as { id: string; trace_id: string | null }[]) {
+      if (e.trace_id) traceOfEvent.set(e.id, e.trace_id);
+    }
+    const eventIds = [...traceOfEvent.keys()];
+    if (eventIds.length === 0) return {};
+
+    const { data: ledger, error: ledgerError } = await admin
+      .from("credit_ledger")
+      .select("delta_credits, ai_event_id")
+      .eq("surface", "agent")
+      .eq("reason", "debit")
+      .in("ai_event_id", eventIds);
+    if (ledgerError || !ledger) return {};
+
+    const rows: TraceLedgerRow[] = (
+      ledger as { delta_credits: number; ai_event_id: string | null }[]
+    ).map((r) => ({
+      delta_credits: r.delta_credits,
+      trace_id: r.ai_event_id ? (traceOfEvent.get(r.ai_event_id) ?? null) : null,
+    }));
+    return sumCreditsByTrace(rows);
+  } catch (e) {
+    console.error("creditsSpentByTrace failed:", e);
+    return {};
+  }
+}
+
 async function creditsEngineEnabled(admin: SupabaseClient): Promise<boolean> {
   try {
     const { data, error } = await admin.rpc("credits_enabled");

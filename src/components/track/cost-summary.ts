@@ -32,15 +32,20 @@ export interface CostSummary {
   tokenTotal: number;
   /** Sum of `spend_used_usd` exactly as the record wrote it. */
   usdTotal: number;
+  /** Sum of what these turns' own calls debited from `credit_ledger`. */
+  creditsTotal: number;
   /** Every run linked to this track, however it ended. */
   turns: number;
 }
 
-export function costSummary(turns: Array<Pick<Turn, "tookMs" | "tokens" | "usd">>): CostSummary {
+export function costSummary(
+  turns: Array<Pick<Turn, "tookMs" | "tokens" | "usd" | "credits">>,
+): CostSummary {
   let msTotal = 0;
   let timedTurns = 0;
   let tokenTotal = 0;
   let usdTotal = 0;
+  let creditsTotal = 0;
   for (const t of turns) {
     if (t.tookMs != null) {
       msTotal += t.tookMs;
@@ -48,8 +53,36 @@ export function costSummary(turns: Array<Pick<Turn, "tookMs" | "tokens" | "usd">
     }
     if (t.tokens != null) tokenTotal += t.tokens;
     usdTotal += t.usd ?? 0;
+    creditsTotal += t.credits ?? 0;
   }
-  return { msTotal, timedTurns, tokenTotal, usdTotal, turns: turns.length };
+  return { msTotal, timedTurns, tokenTotal, usdTotal, creditsTotal, turns: turns.length };
+}
+
+/**
+ * THE ONE SPEND CLAUSE, credits first (P-136, A-QUEUE). The account is billed
+ * and shown in credits everywhere else this product has an opinion -- Team >
+ * Spend and limits, the balance on Start -- so this leads with the same
+ * currency instead of the dollar figure a person had to convert in their head.
+ * The dollar total is demoted into the parenthetical: real, in the summary,
+ * never the first thing read.
+ *
+ * ONE COMPOSER for the bottom bar (`run-tally.ts`), its own strip, and the
+ * artifact pane's audit (`RunCost.tsx`), so the run screen cannot show two
+ * currencies, or two numbers in the same one, again.
+ *
+ * WHEN CREDITS ARE ZERO BUT MONEY IS NOT: a run whose ledger rows never
+ * joined to a trace (older data, or a call path `creditsSpentByTrace` does not
+ * cover yet) still genuinely cost something, and saying otherwise would be the
+ * exact invented zero this file already refuses on `tookMs` and `tokens`. That
+ * one case falls back to the dollar figure alone, which is still one number in
+ * one currency, not two.
+ */
+export function spendClause(s: CostSummary): string | null {
+  if (s.creditsTotal > 0) {
+    const credits = `${s.creditsTotal.toLocaleString()} ${s.creditsTotal === 1 ? "credit" : "credits"}`;
+    return s.usdTotal > 0 ? `${credits} ($${s.usdTotal.toFixed(2)})` : credits;
+  }
+  return s.usdTotal > 0 ? `$${s.usdTotal.toFixed(2)}` : null;
 }
 
 /** One figure per line of the audit, or null when the record cannot vouch. */
@@ -68,6 +101,7 @@ export function costLines(s: CostSummary): string[] {
   if (s.tokenTotal > 0) {
     lines.push(`${s.tokenTotal.toLocaleString()} tokens`);
   }
-  lines.push(s.usdTotal > 0 ? `$${s.usdTotal.toFixed(2)} spent` : "Nothing was charged.");
+  const spend = spendClause(s);
+  lines.push(spend ? `${spend} spent` : "Nothing was charged.");
   return lines;
 }

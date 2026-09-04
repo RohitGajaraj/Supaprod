@@ -211,7 +211,7 @@ describe("the clock and the bill refuse a zero", () => {
   it("reports time only where a turn actually recorded some", () => {
     const measured = runTally({
       stops: null,
-      turns: [{ tookMs: 74_000, tokens: 100, usd: 0.2 }],
+      turns: [{ tookMs: 74_000, tokens: 100, usd: 0.2, credits: 8 }],
       now: NOW,
     });
     expect(measured.elapsed).toBe("1m 14s");
@@ -224,39 +224,59 @@ describe("the clock and the bill refuse a zero", () => {
      */
     const unmeasured = runTally({
       stops: null,
-      turns: [{ tookMs: null, tokens: 100, usd: 0.2 }],
+      turns: [{ tookMs: null, tokens: 100, usd: 0.2, credits: 8 }],
       now: NOW,
     });
     expect(unmeasured.elapsed).toBeNull();
   });
 
-  it("reports money only above zero, because $0.00 is not a price", () => {
+  /*
+   * P-136 (A-QUEUE): the strip leads with credits, never dollars, because the
+   * account is billed and shown in credits everywhere else this product has an
+   * opinion. The dollar figure survives, demoted into the parenthetical.
+   */
+  it("leads with credits, the dollar figure demoted to the parenthetical", () => {
     const paid = runTally({
       stops: null,
-      turns: [{ tookMs: 1000, tokens: 1, usd: 0.44 }],
+      turns: [{ tookMs: 1000, tokens: 1, usd: 0.44, credits: 40 }],
       now: NOW,
     });
-    expect(paid.cost).toBe("$0.44");
+    expect(paid.cost).toBe("40 credits ($0.44)");
 
     const nothing = runTally({
       stops: null,
-      turns: [{ tookMs: 1000, tokens: 1, usd: 0 }],
+      turns: [{ tookMs: 1000, tokens: 1, usd: 0, credits: 0 }],
       now: NOW,
     });
     expect(nothing.cost).toBeNull();
   });
 
-  it("sums across every turn rather than reporting the last one", () => {
+  it("falls back to the dollar figure alone rather than inventing a zero credits never joined", () => {
+    // Older data, or a call path the ledger join does not cover yet: the record
+    // still says money moved, and "Nothing was charged" would be the exact
+    // invented zero this file exists to refuse -- just on a new column.
+    const t = runTally({
+      stops: null,
+      turns: [{ tookMs: 1000, tokens: 1, usd: 0.44, credits: 0 }],
+      now: NOW,
+    });
+    expect(t.cost).toBe("$0.44");
+  });
+
+  /* THE GUARD (A-QUEUE P-136 Scope): a run with three ledger rows shows their
+     sum in credits. */
+  it("sums credits across every turn rather than reporting the last one", () => {
     const t = runTally({
       stops: null,
       turns: [
-        { tookMs: 30_000, tokens: 10, usd: 0.1 },
-        { tookMs: 44_000, tokens: 20, usd: 0.34 },
+        { tookMs: 30_000, tokens: 10, usd: 0.1, credits: 8 },
+        { tookMs: 44_000, tokens: 20, usd: 0.34, credits: 25 },
+        { tookMs: 12_000, tokens: 5, usd: 0.01, credits: 7 },
       ],
       now: NOW,
     });
-    expect(t.elapsed).toBe("1m 14s");
-    expect(t.cost).toBe("$0.44");
+    expect(t.elapsed).toBe("1m 26s");
+    expect(t.cost).toBe("40 credits ($0.45)");
   });
 });
 
