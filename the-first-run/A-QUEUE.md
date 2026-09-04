@@ -9059,6 +9059,37 @@ for merged releases. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
+**Report (A3, 17:54 IST 09-04).** Pushed at `c58a5c8ef`. `releaseStates`, the spine of every list
+on `/ship`, requires a changelog entry, and an entry is materialized only from a MERGED changeset
+-- so a Ship-station handback (`submitStationByHand`'s Ship branch, `spine/track.functions.ts`)
+writes a `deployments` row with `status: 'claimed'`, `triggered_by: 'handback'`, and NO
+`changeset_id` at all, and that row could never earn a changelog entry to be joined through. It was
+invisible on `/ship` by construction, not by a missing case: `listDeployments` was already returning
+it (no `changesetId` filter on this page's own call), and `releaseStates` was dropping every row with
+no `changeset_id` on the floor.
+
+`shipListItems` (`_authenticated.ship.tsx`) widens "What shipped" to a single newest-first list of
+real releases and these deploys together, rather than a second block bolted underneath -- a person
+scanning what went out should not have to check two lists for one release. Each handback row draws
+in its own words: `releaseStanding(status).word` as the lead (the SAME word the run screen's own
+artifact card already uses for this exact row, via `release-words.ts` -- one vocabulary, not two) and
+`handRecordedLine()`, P-96's own sentence, as the sub. The announce control is structurally absent:
+there is no `mayAnnounce` call anywhere in that row's branch, only the pasted address's own door,
+which stays because a person did tell us where to look.
+
+Guard (Scope's own words): `shipListItems([], [oneHandbackDeploy])` returns exactly one
+`{kind: "handback"}` item (`ship-shows-handback-deploys.test.ts`); source-level checks pin that its
+JSX branch renders `handRecordedLine()` and contains neither `mayAnnounce` nor `startFrom`.
+"The run screen and the Ship page agree on the count" holds by construction: one `deployments` row
+still yields exactly one artifact card on the run screen (unchanged, `release-words.ts`) and now
+exactly one row on Ship, both reading the same underlying row rather than two counts that could
+drift.
+
+`bunx tsc --noEmit`: clean. `bun test`: 14,619 pass, 22 skip, 37 todo, 0 fail, 39,284 expect() calls,
+1,063 files. `bun run build`: clean end to end. `bun run docs:check`: exit 0, "docs-doctor: clean."
+all 12 checks ok.
+
+
 ### P-105 · A transcript row leads with one sentence, and the rest folds · Lane: **A3** (after P-104) · Status: READY · Moves: 2
 
 **Why.** On the served tablet track the transcript rows carry the seats' full paragraphs (the
