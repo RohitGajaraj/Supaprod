@@ -567,3 +567,21 @@ workspace's clusters, outcomes, sources and conversations). Both lanes running; 
 00:51 to 02:55 on a permission prompt, which rule 20 now forbids. The date call holds at 23
 September; a real Ship by 8 September needs P-59c, P-72's candidate and P-75 landed, and the
 founder's release gate is no longer his to press: nothing on the tablet track is promoted.
+
+**Checkpoint, 2026-09-04 09:40 IST. Eighty-one of ninety-three, R-39 proved live, and the build
+that was never served.** Since 05:00: P-58b (attribution: the root's cold cost is 5.3 s before the
+Worker runs and 0.9 s inside it; the ping warms the wrong colo; hosting, not app); P-59c, P-59d
+(the Ship card's control rode on a row that never drew, then a table name that did not exist, then
+a hold that was null between ticks); P-61 to P-65, P-68b, P-71d, P-71e, P-72 (all three parts),
+P-73, P-74, P-75, P-76, P-79, P-81, P-82, P-83, P-85, P-90 published; P-93 and P-86 in hand. The
+finding that cost the most: from 05:34 to 08:05 every publish built nothing, because a route
+imported the server entry and only the bundler catches that; rule 21 adds `bun run build` to the
+gate and the served product was the 05:32 commit for two and a half hours. R-39 is live end to
+end: the fifth sentence in the empty workspace held at the person's call before any seat ran, the
+Choice drew with its two facts and the observable field, and the press wrote the person's own
+sentence as the forecast. Found and filed on the way: seven surfaces reading another workspace's
+desk (P-66, P-70, P-75, P-64b), the rate limiter that never existed (P-76), the Lovable plugin and
+Prettier requoting four route files at each other (P-82), the tablet track churning Build to Ship
+(deferred 24 hours, P-59d). A2's P-86 is the honest Ship itself: one real change to the address
+step through Build, preview, gate and promote by the product's own route. The date call holds at
+23 September; 8 September for a real Ship is P-86.

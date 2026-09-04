@@ -780,3 +780,7 @@ Fifty-nine of seventy packets done with evidence. Founder asleep since 00:09 wit
 ## 2026-09-04 05:00 IST · A1 (Fable) · late night
 
 Sixty-eight of seventy-nine packets done with evidence. New rulings R-38 (a surface without a door is not shipped), R-39 (a call on the person's sentence alone is the person's), R-40 (a shipped change is the change the spec asked for; PR #4 is inert). Open on A2: P-59c, P-75, P-74, P-73. Open on A3: P-64, P-58b, P-65. The tablet track `6817e386` is deferred to 01:24 UTC 09-04 with attempts 1; nothing on it is promoted. Probe workspace `a1-delete-probe` has three tracks (two declined on absence, one running); keep it for P-75's re-walk, then delete via the UI (P-39 walk). Use the hook line for times (two corrections tonight). Queue at d0b876595 and after.
+
+## 2026-09-04 09:40 IST · A1 (Fable) · morning
+
+Eighty-one of ninety-three packets done with evidence. Rules 19 to 21 added to the queue (migration versions by the minute; a blocked lane speaks; `bun run build` is in the gate and rewrites nothing since P-82). Served build proven by `X-Supaprod-Build`/`Server-Timing` since 08:45. Tablet track `6817e386` deferred to 03:18 UTC 09-05, evidence only. Probe `a1-delete-probe` holds five tracks; the fifth (`a30d6b62`) carries the person's own call. P-86 (A2) is the honest Ship on track `2fdf93b6`; P-93 (A3) next. The P-42 grader read is after 12:00 UTC. Queue at 3fd72d916 and after.
