@@ -10039,6 +10039,48 @@ suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
+
+### P-135 · The first byte arrives in under a second · Lane: **A2** (after P-128) · Status: READY · Moves: 1, 3
+
+**Why.** P-58b measured the served root at 4.9, 2.6, 3.3 and 6.2 s to first byte cold, with
+`worker-total;dur=902` in the same responses: about five seconds are spent before the Worker's
+handler runs (isolate start, edge hop, or the bundle the isolate must load), and the pg_net ping
+warms the wrong colo. Every door the founder opens pays it; the run screen's first paint is the
+product's first impression, and it is a spinner for five seconds today. P-58b's step 2 has sat
+open since 09-04 morning while the Ship took the day.
+
+**Scope.** A decision packet with a measured fix. (1) Attribute the five seconds with numbers:
+bundle size of the Worker (the `.output` from `bun run build`), isolate cold-start against a
+minimal Worker on the same account, and the edge-to-origin hop, each measured three times. (2)
+Take the largest and fix it: route-level code splitting so the shell loads without the whole
+app, a smaller server bundle (the import-protection seam from the 09-04 incident is the map of
+what the server pulls in), or a keep-warm that hits the colo the founder's traffic reaches. (3)
+Guard: a build-size ceiling on the Worker bundle that fails the suite when crossed. Report: the
+three numbers before and after.
+
+**Acceptance.** Root and `/start` cold TTFB under 1.0 s on three of three reads from Mumbai,
+warm under 300 ms, with `Server-Timing` showing where the rest goes. Full suite on the tip, tsc
+0, build 0.
+
+**DoD.** Pushed; the numbers; RULINGS gets the hosting decision.
+
+### P-136 · One currency on the run screen · Lane: **A3** (after P-133, before P-104) · Status: READY · Moves: 2
+
+**Why.** The run screen's bottom bar reads *40m 30s $0.75* and the artifact pane *$0.73*, while
+the account is billed in credits (10,000 a month, 7,449 left at 12:32 IST) and Team › Spend and
+limits speaks in credits. A person reconciling a run against their balance has to convert in
+their head, and the two dollar figures on one screen already disagree by two cents.
+
+**Scope.** Every spend figure on the run screen, the run rows on Start and the Outcomes page in
+credits, from the ledger rows the run wrote (`credit_ledger.surface='agent'`, keyed by run),
+with the dollar figure available on hover or in the summary and never as the lead; one composer.
+Guard: a run with three ledger rows shows their sum in credits.
+
+**Acceptance.** The served run screen for 2fdf93b6 shows credits that match the ledger's sum for
+its runs. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
