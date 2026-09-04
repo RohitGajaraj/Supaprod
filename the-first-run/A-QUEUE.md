@@ -8730,6 +8730,30 @@ tsc 0, build 0.
 
 **DoD.** Pushed; the numbers; the count of links fixed and files moved in the report.
 
+
+### P-96 · The Ship page says what each release is · Lane: **A2** (while P-86 waits on A1's presses) · Status: READY · Moves: 2, 3
+
+**Why.** R-40 and P-72 made the merge gate show the change (files, lines, the Build seat's
+conclusion, the Design verdict, the check). The Ship page, the door a person opens to see what went
+out, still lists releases by title: *Batch firmware push scheduler ... Started on Aug 6*, and a
+release recorded by hand reads only *You are telling us it shipped*. A person cannot tell from
+that page whether a release is a real change, an inert one, or a claim.
+
+**Scope.** Each release row on `/ship` (Merged not listed yet, Live releases, What shipped) carries
+the same summary P-72's card composes, from the same reads: files and line counts, the Build
+conclusion in one line, the Design verdict in one line, the deployment state (preview, production,
+the reason if it failed), and for a hand-recorded release the sentence that it was recorded by a
+person with no change the product can show. Announcements are offered only for a release with a
+production deployment on the record. One card vocabulary (P-37): the row leads with what it is, the
+rest folds. Guard: a hand-recorded release cannot render an announce control; a release with no
+files renders the "no change the product can show" line.
+
+**Acceptance.** Served Helio Ship page: every row says what the release is; the tablet track's
+change, if it appears, reads as 90 lines of CSS for a component the repo does not hold. Full suite
+on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 reads the page.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
