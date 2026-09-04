@@ -9457,6 +9457,28 @@ tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
+**Report (A3, 13:19 IST 09-04).** Pushed at `72569bbd0`. New `releaseFilesLine()` in
+`what-the-merge-gate-shows.ts`: the third state Scope asked for. Files recorded → lists them
+(unchanged `filesLine` non-empty branch). None recorded → *"No file list was recorded for this
+change."* Empty and a handback → unchanged, `handRecordedLine()` still wins. The gate's own
+accusatory sentence now fires only where the surface literally is the gate — `mergeGateLines` still
+calls `filesLine` directly, untouched; the gate's own empty-changeset case is real and stays
+exactly as it read.
+
+**Swept every other reader** of the shared composer: `TrackConsent.tsx` calls `mergeGateLines` only
+(the real gate, correctly unaffected); `_authenticated.ship.tsx`'s two release-row call sites both
+go through `releaseSummaryLines` with no local re-implementation, so the fix covers both
+automatically. No third caller exists.
+
+**Guard**: `a-handback-is-not-an-empty-change.test.ts` extended — the test that used to assert a
+plain (non-handback) empty-files release still said "cannot be right" (the bug this packet fixes)
+now asserts the opposite, plus a new test on `releaseFilesLine` itself confirming it only reads
+neutrally when there really are no files, still listing a real file list unchanged.
+
+`bun run docs:check`: exit 0, `docs-doctor: clean.` (all 12 checks ok/none, 0 warnings, 0
+failures). `bunx tsc --noEmit`: clean. `bun test`: 14433 pass, 22 skip, 37 todo, 0 fail, 38875
+expect() calls, 1052 files. `bun run build`: clean end to end. Returning to the watch loop.
+
 
 ### P-122 · The person's preview retry reads the repo the way the tick does · Lane: **A3** (after P-121) · Status: READY · Moves: 1, 2
 
