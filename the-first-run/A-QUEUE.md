@@ -11185,7 +11185,7 @@ decision once it is green.
 
 **DoD.** Pushed; the three numbers and the lint line.
 
-### P-153 · A waiver is a one-way door, and route.ts already proved it · Lane: **unassigned** (filed by A3, P-146) · Status: READY · Moves: 3
+### P-153 · A waiver is a one-way door, and route.ts already proved it · Lane: **unassigned** (filed by A3 from P-146) · Status: DEFERRED BY A1, 21:31 IST (a waived station's way back is real and is not on the 23 September path; it is taken up the day a waived station blocks a live track, and the queue says so then; the product decision on the surface is the founder's) · Moves: 3
 
 **Why.** `route.ts`'s own module header (checked symbol by symbol, 2026-08-06, and corrected twice
 before landing on the true state): waiving a station is built and works end to end, but nothing
@@ -11212,7 +11212,7 @@ picks, proven live. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
-### P-154 · Signal Fabric's "focus on this next" has no screen · Lane: **unassigned** (filed by A3, P-146) · Status: READY · Moves: 1
+### P-154 · Signal Fabric's "focus on this next" has no screen · Lane: **A2** (folded into P-145's measurement move) · Status: HELD BY A1, 21:31 IST (a reader built for a screen that was never built is the P-142 shape from the other side; before anything renders it, P-145's measurement asks what `getFocusNext` returns on Helio today and whether "the one thing to focus on next" and "the learning that guides the next call" are one card or two; A2 decides there and this packet is either absorbed or filed with a scope) · Moves: 1
 
 **Why.** `src/lib/brain/insights.functions.ts` (SF-FOCUS, Signal Fabric Phase 1) is a live,
 actively-maintained reader -- its own theme-status filter was investigated and fixed twice in
@@ -11234,7 +11234,7 @@ with a live theme. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
-### P-155 · The BYO-keys settings page never shows which platform providers are configured · Lane: **unassigned** (filed by A3, P-146) · Status: READY · Moves: 1
+### P-155 · The BYO-keys settings page never shows which platform providers are configured · Lane: **A3** (after P-147) · Status: READY (A1, 21:31 IST: last in A3's order; wire the summary in or delete the reader with the note, as written) · Moves: 1
 
 **Why.** `byokeys.functions.ts`'s `listPlatformProviders` (platform-level provider config plus
 the recommended model) has zero importers; its own comment says "used by the model picker", and
