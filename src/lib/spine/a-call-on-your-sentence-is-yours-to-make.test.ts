@@ -25,6 +25,24 @@ import {
 } from "./a-call-on-your-sentence-is-yours-to-make";
 import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 
+/**
+ * One declaration's body, bounded at BOTH ends (P-73 / F-191).
+ *
+ * Every slice in this file used to run to the end of the file, which is how a
+ * guard here starts asserting things about the next function somebody appends.
+ * `-1` is the sharp edge: `indexOf` does not throw, and `slice(-1)` quietly
+ * takes the last character, so an anchor that stops matching turns a guard into
+ * one that passes for no reason.
+ */
+function bodyOf(src: string, anchor: string): string {
+  const from = src.indexOf(anchor);
+  expect(from, `anchor not found: ${anchor}`).toBeGreaterThan(-1);
+  const next = src
+    .slice(from + anchor.length)
+    .search(/\n(?:export const |async function |function |const )/);
+  return next === -1 ? src.slice(from) : src.slice(from, from + anchor.length + next);
+}
+
 const code = (src: string): string =>
   src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
@@ -98,7 +116,7 @@ describe("a no on the person's own sentence is refused", () => {
      */
     const reg = code(readFileSync("src/lib/ai/tools/registry.server.ts", "utf8"));
     expect(reg).toContain("CARRIED_FOOTING");
-    const fn = reg.slice(reg.indexOf("async function carriedEvidenceFor"));
+    const fn = bodyOf(reg, "async function carriedEvidenceFor");
     const body = fn.slice(0, fn.indexOf("\n}\n"));
     expect(body).toContain("known: false");
     expect(body).toContain("} catch {");
@@ -168,7 +186,7 @@ describe("the refusal becomes a question (P-71b)", () => {
     // `TrackConsent` cannot draw and forced a sentence into a column that must
     // stay null. The first draft did exactly that and the guard caught it.
     expect(DRIVER).toContain('last_hold: "the-call-is-yours"');
-    const block = DRIVER.slice(DRIVER.indexOf('last_hold: "the-call-is-yours"'));
+    const block = bodyOf(DRIVER, 'last_hold: "the-call-is-yours"');
     expect(block.slice(0, 200)).toContain("last_hold_because: null");
     expect(RUN).toContain('track?.holdReason === "the-call-is-yours"');
   });
@@ -203,7 +221,7 @@ describe("the refusal becomes a question (P-71b)", () => {
   });
 
   it("records the person's own sentence as the forecast, and invents no observable", () => {
-    const fn = TRACKS.slice(TRACKS.indexOf("export const buildOnYourWord"));
+    const fn = bodyOf(TRACKS, "export const buildOnYourWord");
     expect(fn).toContain("forecast_claim: claim");
     // A plausible-sounding metric in a workspace with no analytics is the
     // sentence that produced this whole packet.
@@ -212,14 +230,14 @@ describe("the refusal becomes a question (P-71b)", () => {
   });
 
   it("refuses to record when there is no sentence to record", () => {
-    const fn = TRACKS.slice(TRACKS.indexOf("export const buildOnYourWord"));
+    const fn = bodyOf(TRACKS, "export const buildOnYourWord");
     expect(fn).toContain("This run carries no sentence");
   });
 
   it("clears the hold LAST, after the row exists", () => {
     // Clearing first would let the sweep re-dispatch Decide into the same
     // emptiness while the decision was still being written.
-    const fn = TRACKS.slice(TRACKS.indexOf("export const buildOnYourWord"));
+    const fn = bodyOf(TRACKS, "export const buildOnYourWord");
     expect(fn.indexOf('.from("decisions")')).toBeLessThan(fn.indexOf("last_hold: null"));
   });
 
@@ -275,7 +293,7 @@ describe("the footing survives a continuation (P-71c)", () => {
   });
 
   it("takes either durable record, so one unreadable table does not lose it", () => {
-    const fn = REG2.slice(REG2.indexOf("async function carriedEvidenceFor"));
+    const fn = bodyOf(REG2, "async function carriedEvidenceFor");
     const body = fn.slice(0, fn.indexOf("\n}\n"));
     expect(body).toContain('.from("track_drives")');
     expect(body).toContain('.eq("tool_name", "sense.found_nothing")');
@@ -341,7 +359,7 @@ describe("the choice holds until the person answers (P-71d)", () => {
     // The skip is `driven_at > updated_at`, and a hold write moves only
     // `driven_at`. Answering is the person acting, which is what that column
     // records.
-    const fn = TRACKS3.slice(TRACKS3.indexOf("export const buildOnYourWord"));
+    const fn = bodyOf(TRACKS3, "export const buildOnYourWord");
     const body = fn.slice(
       0,
       fn.indexOf("\nexport const ") === -1 ? fn.length : fn.indexOf("\nexport const "),
@@ -359,7 +377,7 @@ describe("the choice holds until the person answers (P-71d)", () => {
   it("stops asking once a decision is on the track", () => {
     // Whoever recorded it: the person, or a station that ran after they chose
     // to point a source. Either way the question is answered.
-    const fn = TRACKS3.slice(TRACKS3.indexOf("export const choiceStillOutstanding"));
+    const fn = bodyOf(TRACKS3, "export const choiceStillOutstanding");
     expect(fn).toContain('.eq("artifact_kind", "decision")');
     expect(fn).toContain("outstanding: ((decided.data ?? []) as unknown[]).length === 0");
   });
@@ -421,7 +439,7 @@ describe("the call is asked before a seat runs (P-71e)", () => {
   });
 
   it("does not re-ask a question already answered", () => {
-    const fn = DRV.slice(DRV.indexOf("async function carriedFootingForTrack"));
+    const fn = bodyOf(DRV, "async function carriedFootingForTrack");
     const body = fn.slice(0, fn.indexOf("\n}\n"));
     expect(body).toContain('.eq("artifact_kind", "decision")');
     // And the footing lifts once the workspace holds something.
