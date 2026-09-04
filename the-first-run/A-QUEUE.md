@@ -10127,7 +10127,7 @@ same instant. Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the numbers.
 
 
-### P-113b · Three drives with nothing filed, whatever the hold · Lane: **A2** (now, before P-128) · Status: READY · Moves: 1
+### P-113b · Three drives with nothing filed, whatever the hold · Lane: **A2** (now, before P-128) · Status: DONE (0cc59b70b; A1 gate: build 0, tsc 0, 14,551 pass / 0 fail; published 15:51 IST; the tablet-night fixture is the measurement, 18 of 26 drives; the receipt-outside-the-total fix on Hosting rode along) · Moves: 1
 
 **Why.** P-113 as scoped keys on three identical holds. A2 measured it against the night it was
 written for (the tablet track, 21:00 09-02 to 02:00 09-03: 26 drives, 11 runs, $0.40, 2.05 M
