@@ -7841,6 +7841,7 @@ export type Database = {
           base_sha: string | null
           branch: string | null
           branch_sync_attempts: number
+          ci_checks: Json | null
           code_review: Json | null
           created_at: string
           fix_attempts: number
@@ -7866,6 +7867,7 @@ export type Database = {
           base_sha?: string | null
           branch?: string | null
           branch_sync_attempts?: number
+          ci_checks?: Json | null
           code_review?: Json | null
           created_at?: string
           fix_attempts?: number
@@ -7891,6 +7893,7 @@ export type Database = {
           base_sha?: string | null
           branch?: string | null
           branch_sync_attempts?: number
+          ci_checks?: Json | null
           code_review?: Json | null
           created_at?: string
           fix_attempts?: number

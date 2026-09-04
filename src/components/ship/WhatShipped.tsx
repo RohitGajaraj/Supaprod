@@ -404,6 +404,64 @@ function plural(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`;
 }
 
+/* ------------------------------------------------------------------ *
+ * P-139 (A-QUEUE.md): what GitHub's rollup said at the merge, pinned
+ * on `studio_changesets.ci_checks` by `studio.pr.merge` itself.
+ * ------------------------------------------------------------------ */
+
+export type CiCheckFact = { name: string; conclusion: string };
+
+/**
+ * The rollup, read defensively off the JSONB column. `null` means the merge
+ * never captured one -- either it predates this column, or the PR was
+ * already merged before `studio.pr.merge` reached the read. That is a
+ * DIFFERENT fact from a real rollup that came back with zero checks, which
+ * `readCiChecks` reports as a resolved object whose `checks` array is empty:
+ * the release document is not entitled to say "no test evidence" about a
+ * repo GitHub told us has no CI configured at all.
+ */
+export function readCiChecks(
+  raw: unknown,
+): { headSha: string | null; at: string | null; checks: CiCheckFact[] } | null {
+  const c = bag(raw);
+  if (!c) return null;
+  const checksRaw = Array.isArray(c.checks) ? c.checks : [];
+  const checks: CiCheckFact[] = [];
+  for (const item of checksRaw) {
+    const b = bag(item);
+    if (!b) continue;
+    const name = str(b.name);
+    const conclusion = str(b.conclusion);
+    if (name && conclusion) checks.push({ name, conclusion });
+  }
+  return { headSha: str(c.headSha), at: str(c.at), checks };
+}
+
+/**
+ * The sentence a real rollup earns, or null for an empty one -- an empty
+ * rollup is a GAP ("no check ran"), never a receipt with nothing in it.
+ *
+ * `allClear` treats `skipped` and `neutral` as non-blocking alongside
+ * `success`, matching `overallFromChecks` (studio-ci.ts): the merge gate
+ * that pinned this rollup already allowed it through on that same reading,
+ * so this sentence must not call a check "failed" that the gate itself did
+ * not.
+ */
+export function ciChecksLine(c: {
+  headSha: string | null;
+  at: string | null;
+  checks: CiCheckFact[];
+}): string | null {
+  if (c.checks.length === 0) return null;
+  const names = c.checks.map((k) => k.name).join(" and ");
+  const nonBlocking = new Set(["success", "skipped", "neutral"]);
+  const allClear = c.checks.every((k) => nonBlocking.has(k.conclusion));
+  const where = [c.headSha ? shortSha(c.headSha) : null, onDay(c.at)].filter(Boolean).join(", ");
+  const suffix = where ? ` on ${where}` : "";
+  if (allClear) return `${names} passed${suffix}.`;
+  return `${c.checks.map((k) => `${k.name} ${k.conclusion}`).join(", ")}${suffix}.`;
+}
+
 /** The product's own word for a spec's design gate, never the raw enum. */
 /**
  * A PERSON'S ANSWER, OR NOTHING. This feeds the "Who signed it off" block, which
@@ -521,6 +579,11 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
    *  read would promise a page that cannot open it. */
   const specTo = prd?.id ? `/plan/spec/${prd.id}` : null;
   const checkBack = !outcome && prd ? onDay(prd.outcome_check_by) : null;
+  /** What GitHub's rollup said at the merge (P-139, A-QUEUE.md). `null` when
+   *  the merge never captured one; a resolved object with an empty `checks`
+   *  array when it did and the rollup was genuinely empty. */
+  const ciChecks = readCiChecks(applied?.ci_checks);
+  const ciLine = ciChecks ? ciChecksLine(ciChecks) : null;
 
   const title =
     fact(entry.title, "changelog_entries.title") ??
@@ -631,6 +694,10 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
     applied && applied.file_count > 0
       ? fact(plural(applied.file_count, "file changed", "files changed"), "studio_changes (count)")
       : null,
+    // THE CHECK THAT PASSED (P-139), where the merge captured one. Placed
+    // after what the change touches and before where it went: it is
+    // evidence about the CHANGE, not about the deploy.
+    ciLine ? fact(ciLine, "studio_changesets.ci_checks") : null,
     live
       ? fact(`Deployed to production`, "deployments.environment + .status", {
           href: live.deploy_url,
@@ -646,13 +713,30 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
   ]);
 
   const gaps = kept([
-    // Named FIRST because it is the one an engineer looks for and the one the
-    // product cannot answer at all. Constant on purpose: a hole that appears and
-    // disappears reads as a per-release finding rather than a product gap.
-    fact(
-      "No test evidence. Nothing records which tests ran for this release, so this document does not claim any did.",
-      "no substrate (see trust-chain.functions.ts)",
-    ),
+    /*
+     * NAMED FIRST because it is the one an engineer looks for. P-139
+     * (A-QUEUE.md) split what was one constant sentence into the three facts
+     * it was actually collapsing: a real rollup that PASSED is a receipt
+     * above (`ciLine`), never a gap; a real rollup that came back with
+     * NOTHING is the honest "no check ran", never the "nothing records"
+     * sentence, which claims a hole in the record where GitHub told us there
+     * was no CI configured at all; and a merge this column never captured --
+     * every release before this migration, or a rare merge whose PR was
+     * already merged when the read reached it -- keeps the original
+     * sentence, unchanged, because that is still the truest thing this
+     * document can say about it.
+     */
+    !ciLine
+      ? ciChecks
+        ? fact(
+            "No check ran for this release, so this document does not claim any test evidence.",
+            "studio_changesets.ci_checks (empty rollup)",
+          )
+        : fact(
+            "No test evidence. Nothing records which tests ran for this release, so this document does not claim any did.",
+            "no substrate (see trust-chain.functions.ts)",
+          )
+      : null,
     !entry.prd_id
       ? fact(
           "This release is not linked to a spec, so what it set out to do and what it promised are not on the record.",

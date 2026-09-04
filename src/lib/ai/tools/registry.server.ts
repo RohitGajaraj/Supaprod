@@ -87,7 +87,7 @@ import { runCriticTool } from "@/lib/ai/critic.server";
 import { promoteChangesetToProductionCore } from "@/lib/deployments.functions";
 import { autoReflect } from "@/lib/ai/reflection.server";
 import { studioBranchName } from "@/lib/ai/studio-branch";
-import { mergeReadinessFromCi, overallFromChecks } from "@/lib/ai/studio-ci";
+import { mergeReadinessFromCi, overallFromChecks, type CiCheckFact } from "@/lib/ai/studio-ci";
 import { fetchFailingCiDetail } from "@/lib/ai/studio-ci-logs.server";
 import { evalRegressionReadiness, type SuiteScorePair } from "@/lib/ai/eval-gate";
 import { isTestPath } from "@/lib/ai/studio-inspection";
@@ -4145,6 +4145,21 @@ const studioPrMerge = def({
      * read inside the gate's own scope, so it is captured here rather than
      * paying for a second GitHub round trip in the merge body. */
     let prBaseRef: string | null = null;
+    /*
+     * WHAT THE ROLLUP SAID, RIGHT NOW, PINNED FOR THE RELEASE DOCUMENT (P-139,
+     * A-QUEUE.md). This tool already fetches every check-run and legacy status
+     * to decide whether the merge may proceed; the names and conclusions were
+     * being read and then thrown away the moment the gate's own yes/no was
+     * taken. The release document later asked "what tests ran for this
+     * release" of a record that had already been standing in front of the
+     * answer and had not written it down.
+     *
+     * Null when the PR was already merged before this call reached it (the
+     * `if (!prJson.merged)` branch below never ran) or when the check reads
+     * outright failed the merge before this point could be reached -- honest
+     * absence, not an invented one.
+     */
+    let pinnedCiChecks: { headSha: string; at: string; checks: CiCheckFact[] } | null = null;
     {
       const prRes = await fetch(
         `https://api.github.com/repos/${repo}/pulls/${changeset.pr_number}`,
@@ -4178,10 +4193,10 @@ const studioPrMerge = def({
           throw new Error(`GitHub combined-status ${statusRes.status} (merge gate)`);
         const checksJson = (await checksRes.json()) as {
           total_count?: number;
-          check_runs?: Array<{ status: string; conclusion: string | null }>;
+          check_runs?: Array<{ name: string; status: string; conclusion: string | null }>;
         };
         const statusJson = (await statusRes.json()) as {
-          statuses?: Array<{ state: string }>;
+          statuses?: Array<{ context: string; state: string }>;
         };
         const runs = checksJson.check_runs ?? [];
         // Fail safe: if more check-runs exist than we fetched in one page, we
@@ -4204,6 +4219,27 @@ const studioPrMerge = def({
         ];
         const gate = mergeReadinessFromCi(overallFromChecks(ciChecks));
         if (!gate.allowed) throw new Error(`MergeBlocked: ${gate.reason}`);
+
+        /* THE SAME ROLLUP, NAMED, FOR THE RECORD (P-139). A completed check
+           with no conclusion cannot happen once the gate above has already
+           allowed the merge (pending fails `overallFromChecks`), so every
+           entry here genuinely finished; skipped entirely rather than
+           coerced into a fake conclusion. */
+        pinnedCiChecks = {
+          headSha,
+          at: new Date().toISOString(),
+          checks: [
+            ...runs
+              .filter((c) => c.conclusion !== null)
+              .map((c) => ({ name: c.name, conclusion: c.conclusion as string })),
+            ...(statusJson.statuses ?? [])
+              .filter((s) => s.state !== "pending")
+              .map((s) => ({
+                name: s.context,
+                conclusion: s.state === "success" ? "success" : "failure",
+              })),
+          ],
+        };
 
         // P4-GATE: eval-regression merge gate (the J2 pattern applied to the
         // eval trend instead of CI). Refuse the merge if the latest completed
@@ -4279,7 +4315,15 @@ const studioPrMerge = def({
         const j = (await res.json()) as { sha: string; merged: boolean };
         await supabase
           .from("studio_changesets")
-          .update({ status: "merged", updated_at: new Date().toISOString() })
+          .update({
+            status: "merged",
+            updated_at: new Date().toISOString(),
+            // P-139: what the rollup said, pinned. `null` when the merge
+            // reached this point without ever reading one (the PR was
+            // already merged when this call arrived) -- an honest absence,
+            // not a claim the record cannot back.
+            ci_checks: pinnedCiChecks as never,
+          })
           .eq("id", changeset.id);
 
         /* THE LOOP USED TO END HERE, and that is why the moat never filled.

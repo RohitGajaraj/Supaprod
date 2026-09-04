@@ -378,6 +378,53 @@ describe("every line traces to a row", () => {
       expect(doc.gaps.some((g) => g.text.includes("Nothing records which tests ran"))).toBe(true);
     }
   });
+
+  /*
+   * THE GUARD (P-139, A-QUEUE.md's own words): a fixture merge with one green
+   * check renders the line; an empty rollup renders the honest absence.
+   */
+  test("a real rollup with one green check is a receipt, not a gap", () => {
+    const doc = assembleReleaseDoc(
+      sources({
+        applied: {
+          ...APPLIED,
+          ci_checks: {
+            headSha: "963d9df200e5a2ae422bb87aae1b5256b497245a",
+            at: "2026-09-04T05:54:36Z",
+            checks: [{ name: "lint and test", conclusion: "success" }],
+          },
+        },
+      }),
+    );
+    // The date is asserted loosely on purpose, same reason the rendered-document
+    // test gives: `toLocaleDateString` follows the RUNNER's locale.
+    expect(
+      doc.receipts.some((f) => /^lint and test passed on 963d9df, .*2026\.$/.test(f.text)),
+    ).toBe(true);
+    expect(doc.gaps.some((g) => g.text.includes("Nothing records which tests ran"))).toBe(false);
+    expect(doc.gaps.some((g) => g.text.includes("No check ran"))).toBe(false);
+  });
+
+  test("an empty rollup says no check ran, never that nothing records what happened", () => {
+    const doc = assembleReleaseDoc(
+      sources({
+        applied: {
+          ...APPLIED,
+          ci_checks: { headSha: "abc1234", at: "2026-09-04T05:54:36Z", checks: [] },
+        },
+      }),
+    );
+    expect(doc.gaps.some((g) => g.text.includes("No check ran for this release"))).toBe(true);
+    expect(doc.gaps.some((g) => g.text.includes("Nothing records which tests ran"))).toBe(false);
+    expect(doc.receipts.some((f) => f.source === "studio_changesets.ci_checks")).toBe(false);
+  });
+
+  test("a release this column never captured keeps the original sentence, unchanged", () => {
+    // APPLIED carries no ci_checks at all -- every release merged before
+    // this migration, and the shape every existing test fixture already is.
+    const doc = assembleReleaseDoc(sources());
+    expect(doc.gaps.some((g) => g.text.includes("Nothing records which tests ran"))).toBe(true);
+  });
 });
 
 /* ------------------------------------------------------------------ *

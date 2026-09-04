@@ -18,6 +18,17 @@ export interface CiCheckLite {
   conclusion: string | null;
 }
 
+/**
+ * One check, named -- what `CiCheckLite` deliberately drops (it exists only
+ * to judge green/red, and a name earns nothing there). `studio.pr.merge`
+ * pins these onto `studio_changesets.ci_checks` so the release document can
+ * say WHICH check passed, not only that something did (P-139, A-QUEUE.md).
+ */
+export interface CiCheckFact {
+  name: string;
+  conclusion: string;
+}
+
 const FAILING_CONCLUSIONS = new Set(["failure", "timed_out", "action_required", "cancelled"]);
 
 /**

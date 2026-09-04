@@ -1226,6 +1226,22 @@ export type AppliedChange = {
   pr_number: number | null;
   file_count: number;
   merged_at: string;
+  /**
+   * What GitHub's status rollup said at `studio.pr.merge`, pinned then
+   * (P-139, A-QUEUE.md). `undefined` on a row this shape was fetched before
+   * this column existed on the type; `null` on a real row the merge never
+   * captured a rollup for. The release document tells the two apart.
+   *
+   * A concrete shape rather than `unknown`, deliberately: `createServerFn`'s
+   * own serialization checker refuses `unknown` on a response type, since it
+   * cannot prove what crosses the network is JSON-safe. This shape is
+   * exactly what `studio.pr.merge` writes and nothing wider.
+   */
+  ci_checks?: {
+    headSha?: string | null;
+    at?: string | null;
+    checks?: Array<{ name: string; conclusion: string }>;
+  } | null;
 };
 
 export const listAppliedChanges = createServerFn({ method: "GET" })
@@ -1253,7 +1269,9 @@ export const listAppliedChanges = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await db
       .from("studio_changesets")
-      .select("id,product_id,mission_id,prd_id,repo,branch,pr_url,pr_number,title,updated_at")
+      .select(
+        "id,product_id,mission_id,prd_id,repo,branch,pr_url,pr_number,title,updated_at,ci_checks",
+      )
       .eq("workspace_id", workspaceId)
       .eq("status", "merged")
       .order("updated_at", { ascending: false })
@@ -1271,6 +1289,7 @@ export const listAppliedChanges = createServerFn({ method: "GET" })
       pr_number: number | null;
       title: string | null;
       updated_at: string;
+      ci_checks: unknown;
     };
     const csRows = (rows ?? []) as Row[];
     if (!csRows.length) return { changes: [] };
@@ -1307,6 +1326,7 @@ export const listAppliedChanges = createServerFn({ method: "GET" })
       pr_number: c.pr_number,
       file_count: fileCount.get(c.id) ?? 0,
       merged_at: c.updated_at,
+      ci_checks: c.ci_checks as AppliedChange["ci_checks"],
     }));
     return { changes };
   });
