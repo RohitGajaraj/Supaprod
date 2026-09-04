@@ -9949,6 +9949,30 @@ suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
+
+### P-134 · A track remembers the bet it started from · Lane: **A3** (after P-130, before P-131) · Status: READY · Moves: 1, 2
+
+**Why.** A3's read on P-126 (14:59 IST 09-04): the shipped track 2fdf93b6 carries no opportunity
+id anywhere in its lineage (decision, mission, four spec revisions), and `startTrack` never
+writes one when a person presses *Start it* on a ranked bet, so the link between "what we bet
+on" and "what shipped" is lost at the moment it is made. Start therefore cannot mark a shipped
+bet as shipped (P-126 part 2 was built on a link that does not exist), Outcomes cannot say which
+bet a release paid off, and the grader (P-42) cannot attribute a forecast to the bet that made it.
+No fuzzy title match: the record either holds the id or it does not.
+
+**Scope.** (1) `startTrack` takes the opportunity id when the press comes from a bet and writes
+it on the track and its first decision (`decisions.opportunity_id` exists); the autonomous
+Sense→Decide path writes the id when the decision was made on an opportunity row, never by
+title. (2) Start's ranked cards, Outcomes and the release document resolve shipped, running and
+paid-off by that id. (3) Backfill none: the seeds are demo furniture and the one real track has no
+bet; say so in the report. Guard: a press from a bet produces a track carrying its id; the
+autonomous path with no opportunity row writes none.
+
+**Acceptance.** A track started from a ranked bet in the probe workspace carries the id, and the
+bet reads *Running* on Start. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
