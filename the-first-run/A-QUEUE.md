@@ -9824,7 +9824,7 @@ Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the ruling; the three numbers; A1 walks the second repo.
 
 
-### P-129 · One count per family on Waiting · Lane: **A3** (after P-126, before P-104) · Status: PUBLISHED, LIVE READ PENDING (b68b61e1f; same gate; published 14:55 IST; A1 reads the heading against the tabs once served) · Moves: 2
+### P-129 · One count per family on Waiting · Lane: **A3** (after P-126, before P-104) · Status: DONE (b68b61e1f; live 15:25 IST: the heading's families sum to 51 and All reads 51; Gates 13 against 20 design gates is the documented split, design gates counted with proposals) · Moves: 2
 
 **Why.** Served Waiting page, 12:14 IST 09-04: the heading said *21 design gates, 10 assumption
 challenges, 9 decisions, 4 agent actions, 4 house rules, 3 opportunities and 2 memory notes
