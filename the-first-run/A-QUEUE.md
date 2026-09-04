@@ -9989,6 +9989,26 @@ bet reads *Running* on Start. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
+
+### P-119b · One provider, one card · Lane: **A3** (after P-134, before P-131) · Status: READY · Moves: 2
+
+**Why.** Served Waiting page, 15:24 IST 09-04: four identical cards, *Embeddings have stopped:
+Cohere says the payment method needs updating...*, with 154, 33, 35 and 6 rows waiting, one per
+embed surface (`cron.embed-tick.prds`, `.decisions`, `.opportunities` and one more). P-119 said
+"one item per surface, never one per tick", and the surface the person cares about is the
+provider, not the table. Four sentences telling the founder to add the same card four times is
+the page shouting.
+
+**Scope.** One card per provider fault: the sentence once, the rows summed (*228 rows waiting
+across specs, decisions, opportunities and memory*), the kinds named, one *Open Cohere billing*
+press; Team › Spend and limits the same. Guard: four surfaces failing on one provider render one
+card with the summed count.
+
+**Acceptance.** The served Waiting page shows one embeddings card with the summed count. Full
+suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
