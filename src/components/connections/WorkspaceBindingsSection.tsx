@@ -20,6 +20,7 @@ import { ProviderName, UnderMark } from "@/components/meridian/source-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
 import { Region } from "@/components/meridian/surface-parts";
 import { useConfirm } from "@/hooks/use-confirm";
+import { useWorkspace } from "@/hooks/use-workspace";
 
 /**
  * WORKSPACE BINDINGS. What each connected source is actually pointed at.
@@ -54,13 +55,20 @@ import { useConfirm } from "@/hooks/use-confirm";
  */
 
 export function WorkspaceBindingsSection() {
+  const { activeWorkspaceId } = useWorkspace();
   const qc = useQueryClient();
   const fConnections = useServerFn(listConnections);
   const fBindings = useServerFn(listWorkspaceBindings);
   const fRemove = useServerFn(removeBinding);
 
   const qConnections = useQuery({ queryKey: ["connections"], queryFn: () => fConnections() });
-  const qBindings = useQuery({ queryKey: ["workspace-bindings"], queryFn: () => fBindings() });
+  const qBindings = useQuery({
+    /* P-75: the key and the call both name the workspace, or one cache entry
+       is shared across every workspace a person holds and Sources names another
+       desk's repository as something this one may read. */
+    queryKey: ["workspace-bindings", activeWorkspaceId ?? null],
+    queryFn: () => fBindings({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+  });
   const connections = (qConnections.data?.connections ?? []) as ConnectionRow[];
   const bindings = (qBindings.data?.bindings ?? []) as WorkspaceBindingRow[];
 

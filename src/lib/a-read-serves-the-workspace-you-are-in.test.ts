@@ -128,3 +128,84 @@ describe("a read serves the workspace you are standing in", () => {
     );
   });
 });
+
+describe("the doors A1 walked read their own workspace", () => {
+  const code = (src: string): string =>
+    src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  const AGENTS = code(readFileSync("src/lib/agents.functions.ts", "utf8"));
+  const CONN = code(readFileSync("src/lib/connections.functions.ts", "utf8"));
+  const THREADS = code(readFileSync("src/lib/threads.functions.ts", "utf8"));
+  const APPROVALS = code(readFileSync("src/routes/_authenticated.approvals.tsx", "utf8"));
+  const THREAD_ROUTE = code(readFileSync("src/routes/_authenticated.threads.tsx", "utf8"));
+
+  /** One function's body, bounded at both ends (F-191). */
+  const fn = (src: string, name: string): string => {
+    const from = src.indexOf(`export const ${name} = createServerFn`);
+    expect(from, `${name} not found`).toBeGreaterThan(-1);
+    const to = src.indexOf("\nexport const ", from + 1);
+    return src.slice(from, to === -1 ? src.length : to);
+  };
+
+  it("does not say 'one just came in' about another workspace", () => {
+    // A1 read it in an EMPTY probe workspace where nothing had. The sentence
+    // fires only when the queue is otherwise empty, so it appears exactly when
+    // it is most likely to be another desk's and says the most alarming thing.
+    const body = fn(AGENTS, "getLiveActivity");
+    expect(body).toContain('runsQ.eq("workspace_id", wid)');
+    expect(body).toContain("countNeedsYouCalls(");
+    // Both halves of the sentence read the same desk.
+    expect(body).toContain("wid,");
+    expect(APPROVALS).toContain('queryKey: ["approvals-live-activity", activeWorkspaceId ?? null]');
+  });
+
+  it("does not name another workspace's repository on Sources", () => {
+    // The page's whole subject is what THIS workspace may read, so another
+    // desk's binding reads as a permission the person granted.
+    const body = fn(CONN, "listWorkspaceBindings");
+    expect(body).toContain('bindingsQ.eq("workspace_id", wid)');
+  });
+
+  it("keys every bindings read on the workspace, or the cache shares one answer", () => {
+    for (const f of [
+      "src/components/connections/WorkspaceBindingsSection.tsx",
+      "src/components/connections/AccountConnectionsSection.tsx",
+      "src/components/engine-room/EngineRoomEmbedded.tsx",
+    ]) {
+      /*
+       * READS ONLY. `invalidateQueries({ queryKey: ["workspace-bindings"] })`
+       * is a PREFIX match and is correct as it stands: it clears every
+       * workspace's entry at once, which is what a write should do. The first
+       * draft of this guard banned the string outright and failed on four
+       * invalidations that were right.
+       */
+      const src = code(readFileSync(f, "utf8"));
+      const reads = [...src.matchAll(/useQuery\(\{[\s\S]{0,400}?\}\)/g)].map((m) => m[0]);
+      for (const r of reads) {
+        if (!r.includes('"workspace-bindings"')) continue;
+        expect(r, `${f} reads workspace-bindings without a workspace`).toContain(
+          "activeWorkspaceId",
+        );
+      }
+    }
+  });
+
+  it("does not open a thread that belongs to another workspace", () => {
+    // The LIST was scoped in P-70. This takes an id, and RLS says yes to a
+    // member of both: scoping a list does not scope what the list links to, and
+    // an id in a URL outlives the workspace it was copied from.
+    const body = fn(THREADS, "getThread");
+    expect(body).toContain('convQ.eq("workspace_id", wid)');
+    expect(body).toContain("if (!conv)");
+    expect(THREAD_ROUTE).toContain('queryKey: ["thread", selectedId, activeWorkspaceId ?? null]');
+  });
+
+  it("reads nothing further once the thread is not this workspace's", () => {
+    // Fetching its messages anyway would put another desk's conversation on
+    // screen under an empty title, which is worse than an honest absence.
+    const body = fn(THREADS, "getThread");
+    const refuse = body.indexOf("if (!conv)");
+    const messages = body.indexOf('.from("messages")');
+    expect(refuse).toBeGreaterThan(-1);
+    expect(messages).toBeGreaterThan(refuse);
+  });
+});

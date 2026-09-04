@@ -675,15 +675,34 @@ export const listBindableResources = createServerFn({ method: "POST" })
  * Connection rows belong to other members, so the decoration reads go through
  * the admin client — only non-secret display fields are exposed.
  */
+/*
+ * ── AND IT LISTS ONE WORKSPACE'S BINDINGS (P-75) ─────────────────────────
+ *
+ * A1 walked the empty probe workspace and read, on Sources: "1 pointed, all
+ * reading. GitHub repository Supaprod/relay-homeowner-app." That is Helio's
+ * repository, named on a page whose whole subject is what THIS workspace is
+ * allowed to read -- the most misleading place in the product for another
+ * desk's row to appear, because a person reads it as a permission they have
+ * granted.
+ *
+ * Unresolved stays unfiltered, the rule the earlier instances settled on.
+ */
 export const listWorkspaceBindings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((i: unknown) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+  )
+  .handler(async ({ context, data: input }) => {
     const db = context.supabase as unknown as SupabaseClient;
     const admin = supabaseAdmin as unknown as SupabaseClient;
-    const { data, error } = await db
-      .from("connection_bindings")
-      .select(BINDING_COLUMNS)
-      .order("created_at", { ascending: true });
+    let wid = input?.workspaceId ?? null;
+    if (!wid) {
+      const { data: ws } = await context.supabase.rpc("current_user_default_workspace");
+      wid = (ws as string | null) ?? null;
+    }
+    let bindingsQ = db.from("connection_bindings").select(BINDING_COLUMNS);
+    if (wid) bindingsQ = bindingsQ.eq("workspace_id", wid);
+    const { data, error } = await bindingsQ.order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
     const rows = (data ?? []) as unknown as BindingRow[];
 

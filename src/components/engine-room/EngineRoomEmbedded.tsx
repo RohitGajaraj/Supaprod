@@ -43,6 +43,7 @@ import { listSyncMappings } from "@/lib/integrations.functions";
 import { Surface } from "@/components/meridian/Surface";
 import { Crumb, StateWord } from "@/components/engine-room/EngineChrome";
 import { TabPanel, Tabs } from "@/components/meridian/Tabs";
+import { useWorkspace } from "@/hooks/use-workspace";
 import {
   Action,
   Actions,
@@ -273,7 +274,14 @@ function EngineRoomOverview({
 function SourcesLine({ onSync }: { onSync: (conflictId?: string) => void }) {
   const fBindings = useServerFn(listWorkspaceBindings);
   const fMappings = useServerFn(listSyncMappings);
-  const bindingsQ = useQuery({ queryKey: ["workspace-bindings"], queryFn: () => fBindings() });
+  const { activeWorkspaceId } = useWorkspace();
+  const bindingsQ = useQuery({
+    /* P-75: the key and the call both name the workspace, or one cache entry
+       is shared across every workspace a person holds and Sources names another
+       desk's repository as something this one may read. */
+    queryKey: ["workspace-bindings", activeWorkspaceId ?? null],
+    queryFn: () => fBindings({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+  });
   const syncQ = useQuery({ queryKey: ["sync-mappings"], queryFn: () => fMappings() });
 
   if (bindingsQ.isLoading) return <Reading>Reading the connections.</Reading>;

@@ -18,7 +18,7 @@
  *
  * ── THIS IS A RATCHET, NOT A CLEAN BILL ──────────────────────────────────
  *
- * There are 139 bare reads across 74 files today and this test does not demand
+ * There are 136 bare reads across 73 files today and this test does not demand
  * they be fixed. It records them per file and fails when a file grows: the
  * fifth instance cannot be written, and every packet that closes one lowers a
  * number that can never be raised again.
@@ -120,7 +120,7 @@ const NARROWED =
  */
 const BASELINE: Record<string, number> = {
   "src/lib/agent-fleet.functions.ts": 1,
-  "src/lib/agents.functions.ts": 8,
+  "src/lib/agents.functions.ts": 7,
   "src/lib/ai/loop.server.ts": 1,
   "src/lib/ai/mission-advance.server.ts": 1,
   "src/lib/ai/reflection.server.ts": 1,
@@ -139,7 +139,6 @@ const BASELINE: Record<string, number> = {
   "src/lib/budgets.functions.ts": 1,
   "src/lib/calendar.functions.ts": 1,
   "src/lib/changelog.functions.ts": 1,
-  "src/lib/connections.functions.ts": 1,
   "src/lib/connectors/product-binding.functions.ts": 1,
   "src/lib/conversations.functions.ts": 2,
   "src/lib/copilot.functions.ts": 5,

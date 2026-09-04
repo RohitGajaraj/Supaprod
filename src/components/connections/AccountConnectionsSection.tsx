@@ -273,7 +273,13 @@ export function AccountConnectionsSection({
   // Same query key /sync and ConnectorDetail read, so the cache is shared and
   // this costs no second fetch. It is here because "which repo does it read"
   // is half the question this pane exists to answer.
-  const bindings = useQuery({ queryKey: ["workspace-bindings"], queryFn: () => fBindings() });
+  const bindings = useQuery({
+    /* P-75: the key and the call both name the workspace, or one cache entry
+       is shared across every workspace a person holds and Sources names another
+       desk's repository as something this one may read. */
+    queryKey: ["workspace-bindings", activeWorkspaceId ?? null],
+    queryFn: () => fBindings({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+  });
 
   // Detect a newly-appeared GitHub connection (for the new-tab polling flow).
   // hadGithubRef starts null so we skip the toast on first data load.
@@ -871,8 +877,15 @@ export function ConnectorDetail({
   const fBindings = useServerFn(listWorkspaceBindings);
   const fSuiteList = useServerFn(listMySuiteConnections);
 
+  const { activeWorkspaceId } = useWorkspace();
   const list = useQuery({ queryKey: ["connections"], queryFn: () => fList() });
-  const bindingsQ = useQuery({ queryKey: ["workspace-bindings"], queryFn: () => fBindings() });
+  const bindingsQ = useQuery({
+    /* P-75: the key and the call both name the workspace, or one cache entry
+       is shared across every workspace a person holds and Sources names another
+       desk's repository as something this one may read. */
+    queryKey: ["workspace-bindings", activeWorkspaceId ?? null],
+    queryFn: () => fBindings({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+  });
   const suite = useQuery({
     queryKey: ["calendar-connections"],
     queryFn: () => fSuiteList(),

@@ -348,8 +348,12 @@ function ApprovalsSurface() {
     ? Math.max(0, (allWorkspacesQueue.data?.items.length ?? 0) - (queue.data?.items.length ?? 0))
     : 0;
   const liveActivity = useQuery({
-    queryKey: ["approvals-live-activity"],
-    queryFn: () => fetchLiveActivity(),
+    /* P-75: the key and the call both name the workspace. A1 read "One just
+       came in. Refresh to see it." in an EMPTY probe workspace, where nothing
+       had: every run this could see was Helio's, and the sentence fires exactly
+       when the queue is otherwise empty. */
+    queryKey: ["approvals-live-activity", activeWorkspaceId ?? null],
+    queryFn: () => fetchLiveActivity({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
     enabled: (queue.data?.items.length ?? 0) === 0 && !queue.isLoading,
   });
 

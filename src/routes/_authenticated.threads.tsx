@@ -352,8 +352,14 @@ function ThreadsSurface() {
   const selectedId = c ?? visible[0]?.id ?? threads[0]?.id ?? null;
 
   const thread = useQuery({
-    queryKey: ["thread", selectedId],
-    queryFn: () => fetchThread({ data: { id: selectedId as string } }),
+    /* P-75: the key carries the workspace and so does the call. An id in a URL
+       outlives the workspace it was copied from, and RLS says yes to a member
+       of both. */
+    queryKey: ["thread", selectedId, activeWorkspaceId ?? null],
+    queryFn: () =>
+      fetchThread({
+        data: { id: selectedId as string, workspaceId: activeWorkspaceId ?? undefined },
+      }),
     enabled: !!selectedId,
   });
 

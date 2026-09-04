@@ -131,17 +131,57 @@ export const listThreads = createServerFn({ method: "GET" })
 // exist on messages here (the shared getConversation selects messages.mission_id,
 // which is absent in this database); a narrow, tolerant read keeps the Threads
 // preview working regardless of that schema drift.
+/*
+ * ── A THREAD OPENED BY ID MUST BELONG TO THE WORKSPACE YOU ARE IN (P-75) ──
+ *
+ * A1 opened the empty probe workspace's Conversations and read Helio's kept
+ * thread: "What needs my call before it can move?", theirs, from 23:29. The
+ * LIST has been scoped since P-70. This read takes an id, and RLS answers
+ * "may this person see it" -- which for a member of both workspaces is yes.
+ *
+ * That is the whole class in miniature: scoping a list does not scope the
+ * thing the list links to, and an id in a URL outlives the workspace it was
+ * copied from. So the thread is fetched WITH the workspace, and a thread that
+ * belongs to another one is not found rather than shown.
+ *
+ * REFUSED AS NOT FOUND, deliberately, and not as "you may not see this": the
+ * person often may -- they are a member -- it simply is not part of the desk
+ * they have open, and a permission error would say something false about their
+ * access.
+ */
 export const getThread = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        workspaceId: z.string().uuid().nullable().optional(),
+      })
+      .parse(i),
+  )
   .handler(async ({ context, data }): Promise<{ title: string; messages: ThreadMessage[] }> => {
     const db = context.supabase as unknown as SupabaseClient;
 
-    const { data: conv } = await db
-      .from("conversations")
-      .select("id,title")
-      .eq("id", data.id)
-      .maybeSingle();
+    let wid = data.workspaceId ?? null;
+    if (!wid) {
+      const { data: ws } = await context.supabase.rpc("current_user_default_workspace");
+      wid = (ws as string | null) ?? null;
+    }
+
+    let convQ = db.from("conversations").select("id,title").eq("id", data.id);
+    if (wid) convQ = convQ.eq("workspace_id", wid);
+    const { data: conv } = await convQ.maybeSingle();
+    /*
+     * NOT THIS WORKSPACE'S THREAD. Nothing is read beyond this point: fetching
+     * its messages anyway would put another desk's conversation on the screen
+     * under an empty title, which is worse than an honest absence.
+     */
+    if (!conv) {
+      return {
+        title: "",
+        messages: [],
+      };
+    }
 
     const { data: msgRows, error } = await db
       .from("messages")

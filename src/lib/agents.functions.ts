@@ -93,15 +93,34 @@ export type LiveActivity = {
  * Never the mission title. Cheap: one runs query (+ the running run's latest
  * checkpoint); the needs-you count only runs when nothing is actively running.
  */
+/*
+ * ── AND IT ANSWERS FOR ONE WORKSPACE (P-75) ──────────────────────────────
+ *
+ * A1 walked the EMPTY probe workspace and read "One just came in. Refresh to
+ * see it." Nothing had. Every run and every pending call this read could see
+ * belonged to Helio Labs, and the sentence is the one a person reads when their
+ * queue is otherwise empty -- so it fires exactly when it is most likely to be
+ * another desk's, and says the most alarming thing it can.
+ *
+ * Unresolved stays unfiltered, the rule the earlier instances settled on.
+ */
 export const getLiveActivity = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<LiveActivity> => {
-    const { data, error } = await context.supabase
+  .inputValidator((i: unknown) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+  )
+  .handler(async ({ context, data: input }): Promise<LiveActivity> => {
+    let wid = input?.workspaceId ?? null;
+    if (!wid) {
+      const { data: ws } = await context.supabase.rpc("current_user_default_workspace");
+      wid = (ws as string | null) ?? null;
+    }
+    let runsQ = context.supabase
       .from("agent_runs")
       .select("id,mission_id,status,created_at")
-      .in("status", ["running", "queued"])
-      .order("created_at", { ascending: false })
-      .limit(8);
+      .in("status", ["running", "queued"]);
+    if (wid) runsQ = runsQ.eq("workspace_id", wid);
+    const { data, error } = await runsQ.order("created_at", { ascending: false }).limit(8);
     if (error) throw new Error(error.message);
     const rows = (data ?? []) as Array<{
       id: string;
@@ -135,7 +154,13 @@ export const getLiveActivity = createServerFn({ method: "GET" })
 
     // 2. Nothing running: is a GENUINE action pending on the human? (Same live
     // count the Today badge shows; expired/stale gates are already excluded.)
-    const counts = await countNeedsYouCalls(context.supabase as SupabaseClient, context.userId);
+    /* The same workspace the runs above were read for, or the two halves of
+       this one sentence describe two different desks. */
+    const counts = await countNeedsYouCalls(
+      context.supabase as SupabaseClient,
+      context.userId,
+      wid,
+    );
     if (counts.liveCalls > 0) {
       return { state: "waiting", missionId: null, action: "Waiting on you" };
     }
