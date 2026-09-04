@@ -6,6 +6,10 @@
  */
 import { z } from "zod";
 import {
+  findTheSpecThatAlreadySaysThis,
+  whatDefineDidInstead,
+} from "@/lib/spine/find-the-spec-that-already-says-this";
+import {
   stagedRevertPaths,
   revertRefusalMessage,
   type StagedChangeLike,
@@ -4837,6 +4841,81 @@ const prdDraft = def({
       if (th)
         themeCtx = `Theme: ${th.title}\n${th.summary}\n(severity ${th.severity}, frequency ${th.frequency})`;
     }
+    /*
+     * ── AND THE SAME PROBLEM ON A DIFFERENT TRACK (P-142) ──────────────────
+     *
+     * The guard above is keyed on the TRACK and its own note says why: two runs
+     * a minute apart do not write identical briefs, so matching text would miss
+     * exactly the case that produced it. That reasoning holds and this does not
+     * touch it. This is the case it cannot see -- the same problem entering on
+     * a DIFFERENT track, days apart, in near-identical words.
+     *
+     * MEASURED 2026-09-04: 13 of Helio's 29 drafts are duplicates in five title
+     * groups, four installer rows spanning 08-18 to 08-21 and three address
+     * rows spanning 08-31 to 09-02. Every one carries opportunity_id = null, so
+     * the bet guard never fired; each of the survivors is the only spec on its
+     * own track, so the track guard never fired either. The title is the only
+     * thing these have in common, and near-identity is a high enough bar that
+     * two genuinely different Relay problems in the same workspace do not meet
+     * it (pinned in find-the-spec-that-already-says-this.test.ts).
+     *
+     * BEFORE THE MODEL CALL, like the bet guard and for its stated reason: the
+     * second run costs one query instead of a generation plus a Critic. Placing
+     * it after the body was written would have saved the row and paid for it
+     * anyway, which is most of what a duplicate actually costs.
+     *
+     * Fails OPEN, the same direction as every other check on this path.
+     */
+    const p142Workspace = opp?.workspace_id ?? workspaceId ?? null;
+    if (!opp && p142Workspace) {
+      const incomingTitle = (a.title ?? derivedSpecTitle(brief) ?? "").trim();
+      if (incomingTitle) {
+        const { data: siblings, error: siblingErr } = await supabase
+          .from("prds")
+          .select("id,title,status,design_gate_status,shipped_at")
+          .eq("workspace_id", p142Workspace)
+          .in("status", ["draft", "review", "approved", "shipped"])
+          .order("created_at", { ascending: false })
+          .limit(200);
+        if (siblingErr) {
+          console.error(`[prd.draft] could not check for an existing spec: ${siblingErr.message}`);
+        } else if (siblings) {
+          const match = findTheSpecThatAlreadySaysThis(
+            incomingTitle,
+            (
+              siblings as {
+                id: string;
+                title: string | null;
+                status: string | null;
+                design_gate_status: string | null;
+                shipped_at: string | null;
+              }[]
+            ).map((r) => ({
+              id: r.id,
+              title: r.title ?? "",
+              status: r.status ?? "draft",
+              designGateStatus: r.design_gate_status,
+              shippedAt: r.shipped_at,
+            })),
+          );
+          if (match.kind !== "none") {
+            return {
+              existing: true as const,
+              prd_id: match.spec.id,
+              title: match.spec.title,
+              status: match.spec.status,
+              landed_on_outcome: match.kind === "shipped",
+              message:
+                `${whatDefineDidInstead(match)} ` +
+                (match.kind === "shipped"
+                  ? "Do not draft this again. Read it with prd.get and answer whether the outcome held, using learning.record."
+                  : "Read it with prd.get or revise it with prd.revise instead of drafting again."),
+            };
+          }
+        }
+      }
+    }
+
     let signalCtx = "";
     if (opp?.theme_id) {
       const { data: sigs } = await supabase

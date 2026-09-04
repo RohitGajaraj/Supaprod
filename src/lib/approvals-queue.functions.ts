@@ -358,6 +358,8 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .from("prds")
           .select("id,title,status,critic_review,updated_at,project_id")
           .eq("status", "review")
+          // P-142: a spec whose design gate closed with it is not asking.
+          .or("design_gate_status.is.null,design_gate_status.neq.superseded")
           .order("updated_at", { ascending: true })
           .limit(FAMILY_LIMIT);
         if (wsId) q = q.eq("workspace_id", wsId);

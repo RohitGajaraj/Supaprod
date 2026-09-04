@@ -1,4 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
+import {
+  findTheSpecThatAlreadySaysThis,
+  whatDefineDidInstead,
+  type SpecMatch,
+} from "@/lib/spine/find-the-spec-that-already-says-this";
 import { z } from "zod";
 import { excludeLoopAuthored } from "@/lib/sources/the-loop-does-not-count-its-own-writing";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -2565,6 +2570,9 @@ export const listPrds = createServerFn({ method: "GET" })
     }
     let prdsQ = context.supabase.from("prds").select(PRD_LIST_SELECT);
     if (wid) prdsQ = prdsQ.eq("workspace_id", wid);
+    // P-142: a spec whose design gate closed with it is not one to pick, plan
+    // against or roadmap. See the note on `listSpecs` for the measurement.
+    prdsQ = prdsQ.or("design_gate_status.is.null,design_gate_status.neq.superseded");
     const { data: prdRows, error } = await prdsQ.order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
     return { prds: prdRows ?? [] };
@@ -2602,13 +2610,43 @@ export const listSpecs = createServerFn({ method: "GET" })
       const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
       wid = (wsDefault as string | null) ?? null;
     }
+    /*
+     * ── A SPEC THAT STOPPED APPLYING IS NOT ON THE LIST (P-142) ───────────
+     *
+     * MEASURED 2026-09-04: Helio holds 29 specs at draft, and 14 of them carry
+     * `design_gate_status = 'superseded'` -- their design gate closed because
+     * the spec stopped applying, under the founder's ruling of 00:09 that
+     * P-57b's migration landed at 02:00. That migration deliberately left
+     * `prds.status` alone (nobody decided these, and `design_decided_at` stays
+     * null), so every one of them still reads `draft` to any query that asks
+     * about status alone. The record was corrected seventeen hours before this
+     * list was; the reads never caught up.
+     *
+     * So the list asks the question the record can answer -- did this spec stop
+     * applying -- rather than the one that is merely easy, which is what status
+     * says. 29 becomes 15 with no row mutated and no status value invented.
+     *
+     * The count of what was left out is RETURNED rather than dropped in
+     * silence. A person who remembers filing twenty-nine specs and sees fifteen
+     * is owed the difference, and a list that quietly shrinks is the defect
+     * this repo keeps finding in the other direction.
+     */
     let specsQ = context.supabase.from("prds").select(PRD_LIST_SELECT);
     if (wid) specsQ = specsQ.eq("workspace_id", wid);
+    specsQ = specsQ.or("design_gate_status.is.null,design_gate_status.neq.superseded");
     const { data: specRows, error } = await specsQ
       .order("updated_at", { ascending: false })
       .limit(300);
     if (error) throw new Error(error.message);
-    return { prds: specRows ?? [] };
+
+    let supersededQ = context.supabase
+      .from("prds")
+      .select("id", { count: "exact", head: true })
+      .eq("design_gate_status", "superseded");
+    if (wid) supersededQ = supersededQ.eq("workspace_id", wid);
+    const { count: supersededCount } = await supersededQ;
+
+    return { prds: specRows ?? [], superseded_count: supersededCount ?? 0 };
   });
 
 export const getPrd = createServerFn({ method: "GET" })
@@ -4247,6 +4285,19 @@ The user message contains a PRIOR REVIEW block: the Critic's teardown of the bet
   }`;
 }
 
+/** How many of the workspace's recent specs P-142 compares against. Bounded
+ *  because this runs on the write path; the duplicates it exists to catch are
+ *  days apart, not hundreds of specs apart. */
+const FAMILY_SPEC_SCAN = 200;
+
+type SiblingRow = {
+  id: string;
+  title: string | null;
+  status: string | null;
+  design_gate_status: string | null;
+  shipped_at: string | null;
+};
+
 export const generatePrd = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
@@ -4617,6 +4668,87 @@ ICE. Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
      * a closure: it protects this module's two writes and no other reader of
      * `rag_chunks`.
      */
+    /*
+     * ── DOES A SPEC ALREADY SAY THIS (P-142) ───────────────────────────────
+     *
+     * The guard above refuses a second spec for the same BET, workspace-wide,
+     * and it is a good guard that never fired on the duplicates we have:
+     * MEASURED 2026-09-04, all 13 of Helio's duplicate drafts carry
+     * `opportunity_id = null`. They came in through the brief, and the brief
+     * had no check at all. P-57 covers a second spec on the same TRACK, which
+     * is why `a3866e00` and `9277a817` survived the 02:00 fold -- each is the
+     * only spec on its own track, so a per-track rule cannot see them as twins.
+     * The same problem entering twice through two different tracks is the case
+     * nothing owned.
+     *
+     * Scoped to the workspace the new row would land in, which is
+     * `current_user_default_workspace()` -- the column's own default, so the
+     * candidates are exactly the specs the new one would sit beside rather
+     * than every spec RLS happens to allow.
+     *
+     * EVERY FAILURE HERE FALLS THROUGH TO WRITING THE SPEC. A read that failed
+     * is not a read that found nothing, and the existing guard above already
+     * settled which way to be wrong: a duplicate spec is visible and
+     * recoverable, a keystroke that quietly refuses to do anything is not.
+     */
+    let alreadySaidBy: SpecMatch = { kind: "none" };
+    if (!data.force && title.trim()) {
+      const { data: wsId } = await supabase.rpc("current_user_default_workspace");
+      if (typeof wsId === "string" && wsId) {
+        const { data: siblings, error: siblingErr } = await supabase
+          .from("prds")
+          .select("id,title,status,design_gate_status,shipped_at")
+          .eq("workspace_id", wsId)
+          .in("status", ["draft", "review", "approved", "shipped"])
+          .order("created_at", { ascending: false })
+          .limit(FAMILY_SPEC_SCAN);
+        if (siblingErr) {
+          console.error(`[generatePrd] could not check for an existing spec: ${siblingErr.message}`);
+        } else if (siblings) {
+          alreadySaidBy = findTheSpecThatAlreadySaysThis(
+            title,
+            (siblings as SiblingRow[]).map((r) => ({
+              id: r.id,
+              title: r.title ?? "",
+              status: r.status ?? "draft",
+              designGateStatus: r.design_gate_status,
+              shippedAt: r.shipped_at,
+            })),
+          );
+        }
+      }
+    }
+    if (alreadySaidBy.kind !== "none") {
+      /*
+       * The existing spec is RETURNED, never a refusal and never a deletion:
+       * the surface still navigates the person to a spec, `existing: true`
+       * says it is not a new one, and `already_says_this` carries the sentence
+       * a person can disagree with. A shipped match is the interesting one --
+       * a solved problem re-entered belongs on the shipped spec's outcome,
+       * where Learn is already measuring whether the fix worked, rather than
+       * becoming a fourteenth draft.
+       */
+      const { data: existingSpec, error: existingSpecErr } = await supabase
+        .from("prds")
+        // P-35: named columns, embedding excluded.
+        .select(
+          "body_md,citations,contract,contract_migrated_at,created_at,critic_review,design_decided_at,design_decided_by,design_gate_status,embedding_model,github_issue_url,id,is_sample,model,opportunity_id,outcome,outcome_check_by,outcome_deferred_at,outcome_deferred_count,outcome_suggestion,product_id,project_id,shipped_at,snapshot_before,status,title,updated_at,user_id,workspace_id",
+        )
+        .eq("id", alreadySaidBy.spec.id)
+        .maybeSingle();
+      if (!existingSpecErr && existingSpec) {
+        return {
+          prd: existingSpec,
+          existing: true,
+          already_says_this: whatDefineDidInstead(alreadySaidBy),
+          landed_on_outcome: alreadySaidBy.kind === "shipped",
+          placement: null,
+        };
+      }
+      // Could not re-read it: fall through and write, rather than returning
+      // nothing at all.
+    }
+
     const prdRow: Database["public"]["Tables"]["prds"]["Insert"] & { is_sample?: boolean } = {
       user_id: userId,
       opportunity_id: oppId,

@@ -57,11 +57,16 @@ type DbOpts = {
   existingSpec?: Record<string, unknown> | null;
   /** When set, the guard's read itself fails. */
   guardError?: string | null;
+  /** P-142: the workspace's other specs, as the brief-path check reads them. */
+  siblings?: Array<Record<string, unknown>>;
+  /** When set, that read fails and generation must proceed anyway. */
+  siblingError?: string | null;
 };
 
 function makeDb(opts: DbOpts = {}) {
   const inserted: Array<{ table: string; row: Record<string, unknown> }> = [];
   let guardReads = 0;
+  let siblingReads = 0;
 
   const oppBuilder = {
     select: () => oppBuilder,
@@ -72,11 +77,21 @@ function makeDb(opts: DbOpts = {}) {
   const db = {
     inserted,
     guardReads: () => guardReads,
+    siblingReads: () => siblingReads,
     from(table: string) {
       if (table === "opportunities") return oppBuilder;
       if (table === "prds") {
         return {
-          // The guard: select -> eq(opportunity_id) -> order -> limit -> maybeSingle
+          /*
+           * TWO GUARDS SHARE THIS BUILDER, and they end differently.
+           *
+           *   bet path (P-57b) : select -> eq(opportunity_id) -> order -> limit -> maybeSingle
+           *   brief path (P-142): select -> eq(workspace_id) -> in(status) -> order -> limit
+           *
+           * The brief one resolves to a LIST rather than one row, because it is
+           * asking which of the workspace's specs already says this rather than
+           * whether one bet has a spec.
+           */
           select: () => ({
             eq: () => ({
               order: () => ({
@@ -86,6 +101,17 @@ function makeDb(opts: DbOpts = {}) {
                     return {
                       data: opts.existingSpec ?? null,
                       error: opts.guardError ? { message: opts.guardError } : null,
+                    };
+                  },
+                }),
+              }),
+              in: () => ({
+                order: () => ({
+                  limit: async () => {
+                    siblingReads += 1;
+                    return {
+                      data: opts.siblings ?? [],
+                      error: opts.siblingError ? { message: opts.siblingError } : null,
                     };
                   },
                 }),
@@ -225,7 +251,20 @@ describe("the duplicate guard lands before anything is spent", () => {
     expect(modelCalls.length, "the body, and the contract extracted from it").toBe(2);
   });
 
-  it("runs no guard at all on the brief path -- there is no bet to be duplicated against", async () => {
+  it("the brief path checks the WORKSPACE, and writes when nothing already says it", async () => {
+    /*
+     * RE-AIMED 2026-09-04 (P-142). This asserted `guardReads() === 0` and read
+     * "runs no guard at all on the brief path -- there is no bet to be
+     * duplicated against". That was true of the bet guard and it was the wrong
+     * conclusion: a brief cannot duplicate a BET, and it can perfectly well
+     * duplicate a PROBLEM. All 13 of Helio's duplicate drafts came in this way,
+     * every one carrying opportunity_id = null.
+     *
+     * So the bet guard still does not run -- correctly, there is no bet -- and
+     * the workspace check does. With no sibling that says the same thing, the
+     * spec is still written, which is the half of the behaviour this test was
+     * always protecting.
+     */
     modelCalls.length = 0;
     const db = makeDb();
 
@@ -235,9 +274,96 @@ describe("the duplicate guard lands before anything is spent", () => {
     >;
 
     expect(out.existing).toBeUndefined();
-    expect(db.guardReads()).toBe(0);
+    expect(db.guardReads(), "no bet, so no bet guard").toBe(0);
+    expect(db.siblingReads(), "the workspace was asked whether it already says this").toBe(1);
     expect(db.inserted.length).toBe(1);
     expect((db.inserted[0]!.row.opportunity_id as string | null) ?? null).toBeNull();
+  });
+
+  it("a brief whose problem a live spec already states attaches instead of writing", async () => {
+    modelCalls.length = 0;
+    const db = makeDb({
+      siblings: [
+        {
+          id: "a3866e00-be32-4d4e-ba72-924e367b86c5",
+          title: "Installers working panel and inverter basements lose cell signal",
+          status: "draft",
+          design_gate_status: "pending",
+          shipped_at: null,
+        },
+      ],
+    });
+
+    const out = (await tool.run(
+      { brief: "Installers working panel and inverter basements lose cell signal" },
+      ctx(db),
+    )) as Record<string, unknown>;
+
+    expect(out.existing).toBe(true);
+    expect(out.prd_id).toBe("a3866e00-be32-4d4e-ba72-924e367b86c5");
+    expect(db.inserted.length, "nothing was written").toBe(0);
+    expect(modelCalls.length, "and nothing was spent").toBe(0);
+  });
+
+  it("a brief on a SHIPPED problem lands on that spec's outcome", async () => {
+    modelCalls.length = 0;
+    const db = makeDb({
+      siblings: [
+        {
+          id: "f2aa82f1-c6cb-498c-aba3-d45e0cdb82fc",
+          title: "Remove the redundant address re-confirmation step in Relay checkout",
+          status: "shipped",
+          design_gate_status: "approved",
+          shipped_at: "2026-09-04T07:00:00Z",
+        },
+      ],
+    });
+
+    const out = (await tool.run(
+      { brief: "Remove the redundant address re-confirmation step in Relay checkout" },
+      ctx(db),
+    )) as Record<string, unknown>;
+
+    expect(out.existing).toBe(true);
+    expect(out.landed_on_outcome).toBe(true);
+    expect(String(out.message)).toContain("already solved");
+    expect(db.inserted.length).toBe(0);
+  });
+
+  it("a superseded spec is never what a brief attaches to", async () => {
+    modelCalls.length = 0;
+    const db = makeDb({
+      siblings: [
+        {
+          id: "74730708-7222-4a6f-931e-b422462bacc0",
+          title: "Installers working panel and inverter basements lose cell signal",
+          status: "draft",
+          design_gate_status: "superseded",
+          shipped_at: null,
+        },
+      ],
+    });
+
+    const out = (await tool.run(
+      { brief: "Installers working panel and inverter basements lose cell signal" },
+      ctx(db),
+    )) as Record<string, unknown>;
+
+    expect(out.existing).toBeUndefined();
+    expect(db.inserted.length, "the retired spec is not a home for new work").toBe(1);
+  });
+
+  it("a sibling read that FAILED still writes the spec", async () => {
+    // Same direction as every other check on this path: a duplicate is
+    // recoverable, a Define station that refuses on an unreadable check is not.
+    modelCalls.length = 0;
+    const db = makeDb({ siblingError: "boom" });
+    const out = (await tool.run({ brief: "A weekly digest of overdue tasks." }, ctx(db))) as Record<
+      string,
+      unknown
+    >;
+    expect(out.existing).toBeUndefined();
+    expect(db.inserted.length).toBe(1);
   });
 });
 
