@@ -10359,6 +10359,57 @@ past what P-32 already fixed it to. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers, plus the before/after timing on `listRunsForStart`.
 
+**Report (A3, 18:23 IST 09-04).** Pushed at `051438c5a`. Start's half: `listRunsForStart` gets a
+sixth concurrent branch -- every visible track's `agent_runs.trace_id`, then `creditsSpentByTrace`
+(the exact join P-136 verified, through the service-role client for the same reason: `ai_events` RLS
+is per-user, and a track's runs may span more than one workspace member) -- summed per track. Its own
+two-hop chain, the same shape `workingByTrack` beside it already carries, concurrent with the other
+five branches so it adds to the slowest of six rather than to their sum; no `.limit()`, matching every
+other branch in this function. `YourRuns.tsx` draws it in the row's `action` slot, quiet and
+tabular-nums (the voice `RunFooter` already reads its own elapsed/cost in), before the status chip:
+credits only, no dollar detail -- Start is a dense list and the full figure is a click away on the run
+screen -- and absent rather than a fabricated zero when nothing has been debited. Four new tests in
+`credits-on-your-runs.test.ts` pin `creditsWord`'s plural rule and that `startRows` never invents a
+zero.
+
+`listRunsForStart`'s own before/after timing (Acceptance's own ask) needs a live read this session
+cannot take itself -- no browser access to the served page, and the branch's real cost depends on
+run volume per track, not on anything a unit test can measure. Flagging for A1's live read, the same
+way P-32's own original 2.7s finding was measured.
+
+Outcomes: read `_authenticated.outcomes.tsx` in full before touching it. Its subject is decisions and
+their graded forecasts (`PageHeading title="Outcomes" sub="Every decision, what it expected, and what
+happened."`), not individual runs -- no run-row list exists anywhere on it to extend. Scope's own
+hedge ("it may not exist yet in the shape this packet assumes") was correct. Forcing a run-shaped
+addition onto a decision-shaped page would be exactly the kind of ill-fitting bolt-on this repo's own
+standard bars, so this half is not built; P-141 below files the real question -- what a spend figure
+even means on a page whose unit is a decision, not a run -- for whoever decides that shape.
+
+`bunx tsc --noEmit`: clean. `bun test`: 14,629 pass, 22 skip, 37 todo, 0 fail, 39,299 expect() calls,
+1,064 files. `bun run build`: clean end to end. `bun run docs:check`: exit 0, "docs-doctor: clean."
+all 12 checks ok.
+
+
+### P-141 · What a decision's own spend means on Outcomes · Lane: **A3** (after P-140) · Status: READY · Moves: 2
+
+**Why.** P-140's Scope assumed the Outcomes page has run rows the way Start does; it does not.
+Outcomes lists decisions and their graded forecasts, and a decision's own work can span more than one
+run and more than one track over its lifetime. "Credits on a run row" is not a question this page can
+answer without first deciding what it is even asking: the spend behind one decision's own bet, summed
+across every run that served it, or something narrower.
+
+**Scope.** Decide and build the actual shape: most likely a decision's own total spend (credits,
+`spendClause`-style, dollar demoted) traced through `spine_track_members` / the track(s) a decision's
+own artifact chain touches, reusing `creditsSpentByTrace` rather than a third reader. Read the
+decision's full render path in `_authenticated.outcomes.tsx` first -- the list view, and whatever a
+picked decision expands into -- before deciding where the figure lands. Guard: a fixture decision with
+two runs across two tracks sums both into one figure.
+
+**Acceptance.** The served Outcomes page shows a real spend figure somewhere a person reading a
+decision would actually look for it. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
+
 
 ### P-130b · The seventy remaining clocks use the one formatter · Lane: **A3** (after P-109) · Status: READY · Moves: 5
 
