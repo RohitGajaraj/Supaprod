@@ -10896,7 +10896,7 @@ the tip, tsc 0, build 0; sha pair per rule 23.
 
 **DoD.** Pushed; the three numbers; the measurement in the report.
 
-### P-146 · The unreachable check is green again, one export at a time · Lane: **A3** (after P-141, before P-130b) · Status: READY · Moves: 5
+### P-146 · The unreachable check is green again, one export at a time · Lane: **A3** (after P-141, before P-130b) · Status: IN PROGRESS (5 commits pushed on 3771df1c3; tsc 0, 14,755 pass / 0 fail, build 0, docs:check clean; server functions 179 -> 153, components 43 -> 30, baseline needs <=139 / <=26, not yet reached) · Moves: 5
 
 **Why.** `bun run check:unreachable` is red on main and has been for some time: at 2076e8b65 it
 reports 181 of 682 server functions and 43 of 489 exported components with no importer in `src/`,
@@ -10932,6 +10932,50 @@ frozen counts; each removed export named in the commits; full suite on the tip, 
 sha pair per rule 23.
 
 **DoD.** Pushed; the three numbers and the two counts.
+
+**Report (A3, 21:29 IST 09-04), interim -- 5 commits, not yet at baseline.** Deleted whole:
+`meetings.functions.ts`, `calendar.functions.ts`, `audio.functions.ts` (three abandoned features,
+zero importers anywhere, no route ever built for any of the three -- confirmed the SURFACE_REGISTRY
+comment claiming "/calendar" and "/meetings" were live routes was itself stale, and fixed it
+alongside); the threads FOLDERS feature's four server functions, dead per `_authenticated.threads.tsx`'s
+own header ("KILL the FOLDERS feature entirely... server functions now have zero UI consumers");
+`listProducts`/`upsertProductBinding`/`removeProductBinding` (superseded by `connections.functions.ts`'s
+parallel implementation, confirmed by reading the one real consumer's own imports); `TrackChain.tsx`,
+`RunCost.tsx`, the `LiveWork` component (not its `useCurrentTool` hook), `MissionGraph.tsx`,
+`MissionDiff.tsx`, and seven old row-based primitives from `run-parts.tsx` (`RunRow`/`ContextNote`/
+`ContextLine`/`RunGate`/`Commit`/`Cards`/`Recess`) -- each confirmed dead via an existing guard test
+or a header comment naming a deleted route/component as its only call site (`MissionOrchestratorDetail.tsx`,
+`_authenticated.missions.$missionId.tsx`, neither exists). `TrackRun` (the combined-panes wrapper,
+distinct from `TrackRunLeft`) also removed the same way.
+
+**Left alone, deliberately.** `setStationWaiver`/`attachToTrack`/`applyTrigger` (a real, well-documented
+gap -- `route.ts`'s own header says a waiver has no way back, filed as its own packet rather than
+built inline, per this packet's own Scope). `getFocusNext`/`getInsightRail` (Signal Fabric's "focus
+on this next", actively maintained, no screen -- filed). `listPlatformProviders` (BYO-keys settings
+gap -- filed). `submitFeedback` -- already tracked as F-85 (OPEN) with its own guard test
+(`the-rating-has-no-door.test.ts`) asserting the absence on purpose; not this packet's to touch.
+`cancelMission`/`renameMission`/`promoteMission` and `getBrainInsights`/`getBrainAnalysis`/
+`getPushedInsights`/`markInsightActioned` -- genuinely uncertain after a first read, left per the
+packet's own "when in doubt, leave it" clause rather than forced.
+
+**Filed for whoever picks them up.** P-153 (the waiver door), P-154 (Signal Fabric focus card),
+P-155 (BYO-keys providers) -- filed by this lane per A1's own note that packets are A1's to file
+going forward; these three predate that note and are left as filed rather than withdrawn, since A1
+is reading them.
+
+**Cascading breakage caught and fixed.** Two baseline files (`a-read-names-its-workspace.test.ts`,
+`a-read-serves-the-workspace-you-are-in.test.ts`) had stale entries for deleted files; `surface-registry.ts`
+and its own test (`SURFACE_REGISTRY`, `KNOWN_UNREACHED`) had stale calendar/meetings/audio entries,
+with the registry's own 2026-08-14 claim of two live routes corrected. A bad `sed` range in an
+earlier commit this same packet ate `RunCard`'s docblock opener along with the `Cards` function it
+was meant to remove -- caught by tsc, fixed. Rule 25: every file this packet's five commits touch
+lints clean (`--fix` applied to `TrackRun.tsx`/`track.functions.ts`/`credits.functions.money-safety.test.ts`,
+whitespace only, carried over from this session's earlier P-109/P-140/P-141 work rather than
+P-146's own edits, fixed here since touched this session).
+
+**check:unreachable:** 179 -> 153 server functions, 43 -> 30 components. Baseline is 139 / 26;
+14 more functions and 4 more components still need triage to close the gap. Continuing in a later
+pass; not blocking the queue on it per A1's stated order (P-151 next, then back to P-146).
 
 ### P-147 · Outcomes says why the first release has no verdict · Lane: **A3** (after P-130b, and after A2's P-144 lands its composer) · Status: READY · Moves: 1, 3
 
