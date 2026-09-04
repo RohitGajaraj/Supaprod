@@ -315,6 +315,11 @@ function StartLanding() {
           // the column default resolves the caller's own default workspace
           // server-side (`resolveStartWorkspace`, R017).
           workspaceId: activeWorkspaceId ?? undefined,
+          // The ranked bet this press started, when the press came from one
+          // (P-134, A-QUEUE.md). Never set from an example: those are not
+          // this workspace's own ranked work, and `job.opportunityId` is
+          // undefined for every job `jobFromOpportunity` did not build.
+          opportunityId: job?.opportunityId ?? undefined,
         },
       });
     },

@@ -5965,6 +5965,27 @@ const decisionRecord = def({
      * ABSENCE as well as on "low", so a future edit that drops this field sends
      * the row to a human rather than through.
      */
+    /*
+     * THE OPPORTUNITY THIS TRACK STARTED FROM, WHEN IT HAS ONE (P-134,
+     * A-QUEUE.md). The autonomous Sense->Decide path writes no
+     * `opportunity_id` of its own -- it never resolved one at Sense, so
+     * there is nothing to attribute here for that path, correctly. A track
+     * a person started by pressing "Start it" on a ranked bet carries the
+     * id on `spine_tracks` from the moment it was created (`startTrack`);
+     * this reads it back onto the record's own first decision, the same
+     * "resolve by id, never by title" rule the packet's own scope states.
+     */
+    let trackOpportunityId: string | null = null;
+    if (trackId) {
+      const { data: trackRow } = await supabase
+        .from("spine_tracks" as never)
+        .select("opportunity_id")
+        .eq("id", trackId)
+        .maybeSingle();
+      trackOpportunityId =
+        (trackRow as unknown as { opportunity_id: string | null } | null)?.opportunity_id ?? null;
+    }
+
     const gate = decideDecisionReview({
       sourceKind: "agent",
       agentSlug: agentSlug ?? null,
@@ -5986,6 +6007,7 @@ const decisionRecord = def({
         workspace_id: workspaceId ?? null,
         mission_id: missionId ?? null,
         prd_id: a.prd_id ?? null,
+        opportunity_id: trackOpportunityId,
         // The band (gap #15). Null rather than undefined for the same reason the
         // rest of this insert is explicit: a column left out of an insert and a
         // column set to null read identically afterwards, and only one of them

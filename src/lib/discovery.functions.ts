@@ -1658,6 +1658,14 @@ export type TopOpportunity = {
    * bet still worth starting (P-126, A-QUEUE.md).
    */
   shipped: { at: string; trackId: string | null } | null;
+  /**
+   * A track already started from this bet, still in flight (P-134,
+   * A-QUEUE.md). `spine_tracks.opportunity_id` is written only by a press
+   * that named this opportunity (`startTrack`) -- resolved by that id,
+   * never by title. Null once `shipped` is set: a track that shipped is
+   * read as shipped, not as still running.
+   */
+  runningTrackId: string | null;
 };
 
 /** See `resolveStartWorkspaceId`: the active workspace, or the caller's default. */
@@ -1773,16 +1781,41 @@ export const listTopOpportunities = createServerFn({ method: "GET" })
       }
     }
 
+    /*
+     * A TRACK ALREADY RUNNING ON THIS BET (P-134, A-QUEUE.md). Resolved by
+     * `spine_tracks.opportunity_id`, the id `startTrack` writes when the
+     * press that opened this track named this opportunity -- never a title
+     * match. The oldest open track wins when more than one somehow exists,
+     * since that is the one the person is most likely already watching.
+     */
+    const { data: tracksFromOpp } = await context.supabase
+      .from("spine_tracks" as never)
+      .select("id,opportunity_id,status,created_at")
+      .in("opportunity_id", top3Ids)
+      .eq("status", "open")
+      .order("created_at", { ascending: true });
+    const runningByOpp = new Map<string, string>();
+    for (const t of (tracksFromOpp ?? []) as unknown as Array<{
+      id: string;
+      opportunity_id: string | null;
+    }>) {
+      if (t.opportunity_id && !runningByOpp.has(t.opportunity_id)) {
+        runningByOpp.set(t.opportunity_id, t.id);
+      }
+    }
+
     return top3.map((o) => {
       const shippedPrd = shippedByOpp.get(o.id);
+      const shipped = shippedPrd
+        ? { at: shippedPrd.shipped_at, trackId: trackByPrd.get(shippedPrd.id) ?? null }
+        : null;
       return {
         id: o.id,
         title: o.title,
         problem: o.problem,
         iceScore: o.ice_score,
-        shipped: shippedPrd
-          ? { at: shippedPrd.shipped_at, trackId: trackByPrd.get(shippedPrd.id) ?? null }
-          : null,
+        shipped,
+        runningTrackId: shipped ? null : (runningByOpp.get(o.id) ?? null),
       };
     });
   });

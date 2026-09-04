@@ -71,6 +71,11 @@ describe("a track started from a sentence reaches a workspace", () => {
     expect(INSERT).toContain("project_id: data.projectId ?? null");
     expect(INSERT).toContain("theme_id: data.themeId ?? null");
   });
+
+  /** P-134 (A-QUEUE.md): the ranked bet a press started from, when it did. */
+  it("writes the opportunity a press started from", () => {
+    expect(INSERT).toContain("opportunity_id: data.opportunityId ?? null");
+  });
 });
 
 describe("a caller cannot name a workspace it does not belong to, unless they own it", () => {

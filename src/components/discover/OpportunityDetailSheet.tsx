@@ -1201,6 +1201,7 @@ export function OpportunityDetailSheet({
         problem: opportunity.problem,
         iceScore: opportunity.ice_score,
         shipped: null,
+        runningTrackId: null,
       });
       return fStartTrack({
         data: {

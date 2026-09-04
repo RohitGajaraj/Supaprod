@@ -2755,6 +2755,7 @@ export type Database = {
           is_sample: boolean
           meeting_id: string | null
           mission_id: string | null
+          opportunity_id: string | null
           prd_id: string | null
           product_id: string | null
           project_id: string | null
@@ -2801,6 +2802,7 @@ export type Database = {
           is_sample?: boolean
           meeting_id?: string | null
           mission_id?: string | null
+          opportunity_id?: string | null
           prd_id?: string | null
           product_id?: string | null
           project_id?: string | null
@@ -2847,6 +2849,7 @@ export type Database = {
           is_sample?: boolean
           meeting_id?: string | null
           mission_id?: string | null
+          opportunity_id?: string | null
           prd_id?: string | null
           product_id?: string | null
           project_id?: string | null
@@ -2865,6 +2868,13 @@ export type Database = {
             columns: ["mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
             referencedColumns: ["id"]
           },
           {
@@ -7515,6 +7525,7 @@ export type Database = {
           last_driven_via: string | null
           last_hold: string | null
           last_hold_because: string | null
+          opportunity_id: string | null
           origin: string | null
           path: Json
           pending_gates: Json
@@ -7547,6 +7558,7 @@ export type Database = {
           last_driven_via?: string | null
           last_hold?: string | null
           last_hold_because?: string | null
+          opportunity_id?: string | null
           origin?: string | null
           path?: Json
           pending_gates?: Json
@@ -7579,6 +7591,7 @@ export type Database = {
           last_driven_via?: string | null
           last_hold?: string | null
           last_hold_because?: string | null
+          opportunity_id?: string | null
           origin?: string | null
           path?: Json
           pending_gates?: Json
@@ -7605,6 +7618,13 @@ export type Database = {
             columns: ["from_learning_id"]
             isOneToOne: false
             referencedRelation: "learnings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "spine_tracks_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
             referencedColumns: ["id"]
           },
           {

@@ -381,6 +381,15 @@ export async function startTrackCore(
     workspaceId?: string | null;
     /** The cluster this came from, when the platform started it. */
     themeId?: string | null;
+    /**
+     * The ranked bet this press started, when the press came from one
+     * (P-134, A-QUEUE.md). Never set for an example sentence or a
+     * new-capability press -- those are not this workspace's own ranked
+     * work, and stamping an id on them would claim a link that is not
+     * true. `startTrack`'s own `.functions.ts` caller is the only one that
+     * can know this; `startTrackCore` just carries it onto the row.
+     */
+    opportunityId?: string | null;
   },
 ): Promise<{ track: Track | null; problems: string[] }> {
   const origin = data.origin?.trim() || null;
@@ -428,6 +437,7 @@ export async function startTrackCore(
          */
         ...(data.workspaceId ? { workspace_id: data.workspaceId } : {}),
         theme_id: data.themeId ?? null,
+        opportunity_id: data.opportunityId ?? null,
       } as never)
       .select(SELECT)
       .single();
@@ -541,6 +551,9 @@ export const startTrack = createServerFn({ method: "POST" })
          * reach another tenant's data.
          */
         workspaceId: z.string().uuid().optional(),
+        /** The ranked bet this press started, when the press came from one
+         *  (P-134, A-QUEUE.md). See `startTrackCore`'s own doc. */
+        opportunityId: z.string().uuid().optional(),
       })
       .parse(d),
   )
@@ -558,6 +571,7 @@ export const startTrack = createServerFn({ method: "POST" })
       productId: data.productId ?? null,
       projectId: data.projectId ?? null,
       workspaceId: resolved.workspaceId,
+      opportunityId: data.opportunityId ?? null,
     });
   });
 

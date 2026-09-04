@@ -45,6 +45,14 @@ export type ExampleJob = {
    *  happened instead of offering to start it again. Null for every
    *  example, which cannot ship because it was never a real bet. */
   shipped?: { at: string; trackId: string | null } | null;
+  /** A track already started from this bet, still running (P-134). Never
+   *  set alongside `shipped` -- a shipped bet reads as shipped. */
+  runningTrackId?: string | null;
+  /** The opportunity this job IS, when it is a real ranked bet (P-134).
+   *  Undefined for every example: those are sentences we wrote, not this
+   *  workspace's own ranked work, and starting one must never stamp an id
+   *  claiming otherwise. */
+  opportunityId?: string;
 };
 
 /**
@@ -67,6 +75,8 @@ export function jobFromOpportunity(o: TopOpportunity): ExampleJob {
     shape: "existing-feature",
     glyph: <SketchProblem />,
     shipped: o.shipped ?? null,
+    runningTrackId: o.runningTrackId ?? null,
+    opportunityId: o.id,
   };
 }
 
@@ -269,6 +279,13 @@ export function ExampleJobs({
            * but names what happened instead of offering to redo it.
            */
           const shipped = showingBets ? job.shipped : null;
+          /*
+           * A BET WITH A TRACK ALREADY OPEN IS NOT A FRESH START (P-134,
+           * A-QUEUE.md). Pressing "Start it" again would file a SECOND
+           * track for the same bet; the card reads "Running" and opens the
+           * one that already exists instead.
+           */
+          const running = showingBets && !shipped ? job.runningTrackId : null;
           return (
             <div key={job.sentence} className="flex flex-col gap-mrd-2">
               {/*
@@ -284,6 +301,10 @@ export function ExampleJobs({
                 onSelect={() => {
                   if (shipped) {
                     if (shipped.trackId) onOpenRun?.(shipped.trackId);
+                    return;
+                  }
+                  if (running) {
+                    onOpenRun?.(running);
                     return;
                   }
                   showingBets ? onStart(job) : onUse(job);
@@ -318,6 +339,13 @@ export function ExampleJobs({
                           );
                         })()
                       : null}
+                  </span>
+                ) : running ? (
+                  <span className="flex items-center gap-mrd-2">
+                    <span className="mrd-meta">Running</span>
+                    <Action variant="quiet" onClick={() => onOpenRun?.(running)}>
+                      See the run
+                    </Action>
                   </span>
                 ) : showingBets ? (
                   <Action variant="quiet" busy={busy} onClick={() => onStart(job)}>

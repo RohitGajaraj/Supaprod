@@ -19,6 +19,7 @@ const bet = (over: Partial<TopOpportunity> = {}): TopOpportunity => ({
   problem: "Requests time out past 30s outside business hours.",
   iceScore: 6.7,
   shipped: null,
+  runningTrackId: null,
   ...over,
 });
 
@@ -196,5 +197,61 @@ describe("a shipped bet's card reads what happened, not an offer to redo it", ()
     );
     expect(screen.getByText("Shipped 12:28")).toBeDefined();
     expect(screen.queryByRole("button", { name: "See the run" })).toBeNull();
+  });
+});
+
+/*
+ * P-134 (A-QUEUE.md): a bet with a track already open must not be offered
+ * as a fresh Start it -- that would file a second track for the same bet.
+ */
+describe("a bet with a track already running reads Running, not Start it", () => {
+  const RUNNING = bet({
+    title: "Skip the address re-confirm when nothing changed",
+    runningTrackId: "track-2",
+  });
+
+  it("shows Running instead of Start it", () => {
+    render(<ExampleJobs onStart={() => {}} onUse={() => {}} bets={[RUNNING]} />);
+    expect(screen.getByText("Running")).toBeDefined();
+    expect(screen.queryByRole("button", { name: "Start it" })).toBeNull();
+  });
+
+  it("pressing See the run calls onOpenRun with the running track, never onStart", () => {
+    let opened: string | undefined;
+    let started = 0;
+    render(
+      <ExampleJobs
+        onStart={() => (started += 1)}
+        onUse={() => {}}
+        onOpenRun={(trackId) => {
+          opened = trackId;
+        }}
+        bets={[RUNNING]}
+      />,
+    );
+    screen.getByRole("button", { name: "See the run" }).click();
+    expect(opened).toBe("track-2");
+    expect(started).toBe(0);
+    screen.getByText(RUNNING.title).click();
+    expect(opened).toBe("track-2");
+    expect(started).toBe(0);
+  });
+
+  it("shipped outranks running: a shipped bet never reads Running", () => {
+    render(
+      <ExampleJobs
+        onStart={() => {}}
+        onUse={() => {}}
+        bets={[
+          bet({
+            shipped: { at: "2026-09-04T12:28:00.000Z", trackId: "track-1" },
+            runningTrackId: "track-2",
+          }),
+        ]}
+        zone="UTC"
+      />,
+    );
+    expect(screen.getByText("Shipped 12:28")).toBeDefined();
+    expect(screen.queryByText("Running")).toBeNull();
   });
 });
