@@ -7,6 +7,24 @@ package-lock.json
 bun.lock
 routeTree.gen.ts
 
+# @lovable.dev/mcp-js's own Vite plugin (mcpPlugin, vite.config.ts) regenerates
+# these four route files on every `configResolved`/`buildStart`, always to one
+# canonical single-line form (see GENERATED_BANNER's own writeIfChanged: it
+# throws rather than "leaving the file alone" if the banner is removed while
+# the file still exists at its canonical path -- verified empirically 2026-09-04,
+# the banner comment's own claim is wrong for this plugin version). Prettier's
+# printWidth (100) reformats that single-line handler call to multi-line, so
+# every local `bun run format`/lint --fix and Lovable's own bot flip these back
+# to multi-line, and the next `bun run build` flips them back to single-line --
+# a rewrite loop neither side ever won. Ignored here for the same reason
+# routeTree.gen.ts is above it: the plugin is the sole source of truth for this
+# file's exact bytes, and anything else reformatting it only fights the tool
+# that owns it. P-82, A-QUEUE.md.
+src/routes/mcp.ts
+src/routes/\[.mcp\]/list-tools.ts
+src/routes/\[.mcp\]/invoke-tool/$tool.ts
+src/routes/\[.well-known\]/oauth-protected-resource.ts
+
 # Markdown docs: prettier's table formatter pads every cell to the widest in its
 # column. One long note therefore inflates all 467 rows of the feature dashboard,
 # which is how that file reached 6.45 MB of which 5.5 MB (85%) was whitespace.
