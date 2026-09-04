@@ -8576,7 +8576,7 @@ the map's Decide row reads the answer. Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads.
 
 
-### P-75b · Arriving's clusters and Outcomes' lessons read the workspace they stand in · Lane: **A3** (after P-93) · Status: READY · Moves: 1, 2
+### P-75b · Arriving's clusters and Outcomes' lessons read the workspace they stand in · Lane: **A3** (after P-93) · Status: CLAIMED (A3) 10:06 IST 09-04 · Moves: 1, 2
 
 **Why.** P-75 landed Sources and Conversations; on the served build at 09:52 IST the probe's
 Arriving still reads *135 clusters need your decisions ... 200 signals, 135 clusters open, 5 became
