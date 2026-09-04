@@ -9108,6 +9108,38 @@ the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 reads.
 
+**Report (A3, 18:46 IST 09-04).** Pushed at `d7872c0a1`. `transcriptLead` composes `headline(t)`
+(what happened) and the seat plus `formatElapsed` (who, how long) into the one sentence Scope names
+-- `"Filed nothing. Discovery Scout, 42.0s."` -- under 140 characters by construction, since
+`headline` draws from a fixed short vocabulary and the rest is a name and a clock, never the seat's
+own paragraph. `headline` already leads with the consequence for a stopped or refused turn (P-37,
+amendment 5), so that rule carries through unchanged. Everything else -- the handoff marks, the
+instruction that travelled with the work, `RunRollup`, the platform's stop reason, the seat's own
+`said` paragraph (now `Reveal lines={3}` inside the fold rather than `lines={1}` always visible), and
+the tool calls -- folds under a `grid-template-rows` toggle, closed by default, keyed per turn.
+
+Did NOT reach for `meridian/FoldingRow.tsx` despite it existing for exactly this (found and tried
+first): its self-contained button owns its own click handler, and moving the row's header into it
+would have moved `aria-pressed`/the artifact-select `onClick` out of `TrackActivity.tsx` into a
+different file -- breaking two existing guards that pin the founder's own contract ("when I click on
+the PRD the right side should open up") as source text specifically in this file
+(`the-artifact-is-the-control.test.tsx`, `one-station-display-on-the-run-screen.test.ts`). Caught by
+a real failure mid-implementation (2 fails, not hypothetical) and fixed by keeping the exact existing
+`canOpen(t) ? (<button aria-pressed=... onClick=selectArtifact>) : (<span>)` structure and hand-rolling
+the same fold technique `FoldingRow` uses, so one press now does both jobs: selects the newest artifact
+when `canOpen(t)`, and toggles the fold either way. `FoldingRow.tsx` itself ends the packet byte-for-
+byte unchanged (still available for a future row shape with no such conflict).
+
+Guard (Scope's own words): pinned as pure-function tests (verdict+seat composition, stopped-leads-
+with-consequence, under-140-chars for the longest realistic shape) plus source-text checks that both
+contracts -- the artifact-select press and the fold toggle -- still coexist on the same button.
+
+`bunx tsc --noEmit`: clean. `bun test`: 14,640 pass, 22 skip, 37 todo, 0 fail, 39,314 expect() calls,
+1,065 files. `bun run build`: clean end to end. `bun run docs:check`: exit 0, "docs-doctor: clean."
+all 12 checks ok. Acceptance's own live read (seven or more rows, each one line until opened) needs
+A1's served-page walk, the same handoff every UI packet in this session has used.
+
+
 ### P-109 · The Run door with nothing running lands somewhere · Lane: **A3** (after P-105) · Status: READY · Moves: 2
 
 **Why.** Run is an identity on the rail (P-60): it resolves to the live run at render. With nothing
