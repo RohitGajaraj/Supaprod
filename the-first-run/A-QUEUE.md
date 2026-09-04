@@ -8095,7 +8095,8 @@ reaches its page; at 1280 px nothing changed. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 reads it at both widths.
 
-**Report, A3, 08:55 IST 09-04.** Mobbin first: `search_screens` for a five-icon bottom bar plus
+**Report, A3, 08:26 IST 09-04 (corrected -- A1 caught this stamp reading 08:55, ahead of the real
+clock; fixing per rule 19's spirit).** Mobbin first: `search_screens` for a five-icon bottom bar plus
 an overflow tab (Garmin Connect, MacroFactor, Polestar, Turo) and for a collapsed icon-only
 sidebar in a developer/agent tool (Railway, Sentry, TradingView) -- the five-plus-More shape and
 the glyphs-only collapse converge across both, nothing invented. `RailPhoneBar.tsx` (new): a
@@ -8196,7 +8197,7 @@ writes the person's sentence as the claim. Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
 
 
-### P-82 · The build stops rewriting four route files · Lane: **A3** (after P-81) · Status: READY · Moves: 1
+### P-82 · The build stops rewriting four route files · Lane: **A3** (after P-81) · Status: CLAIMED (A3) 08:28 IST 09-04 · Moves: 1
 
 **Why.** `bun run build` rewrites `src/routes/mcp.ts`, `src/routes/[.mcp]/list-tools.ts`,
 `src/routes/[.mcp]/invoke-tool/$tool.ts` and `src/routes/[.well-known]/oauth-protected-resource.ts`
