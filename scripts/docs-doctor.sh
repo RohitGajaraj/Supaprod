@@ -26,6 +26,23 @@ WARN=0
 # argument and the incident that grew this list.
 RECORD_FILES='session-decisions\|strategic-inputs-log\|session-handoff\|build-log\|ledger/kiro-log\|ledger/claude-log\|A-QUEUE\|palette-verb-shapes\|kiro-queue\|agent-first-surface-brief\|non-station-surfaces-2026-08\|design/README\|REFERENCE-PATTERNS\|STEP-1-AUDIT\|MERIDIAN-REFERENCE-PARITY\|STEP-0-2-COMPLETE'
 
+# GIT-SOURCED FILE LIST, NEVER A RAW WALK (P-117, A-QUEUE.md). `find`, `for f
+# in *` and `grep -r docs` all see every file physically on disk, including
+# ones git ignores. A founder's local `docs/screenshots/*.md` (CLAUDE.md:
+# never commit a screenshot, so it stays gitignored on purpose) or a loose
+# exported file at root then reads as rot on any machine that has ever saved
+# one there, and clean on every other checkout of the identical tip -- the
+# same tip failing for one lane and passing for another. Measured 2026-09-04:
+# four FAIL rows and four WARN rows, all of them exactly this shape, on a
+# tree with nothing wrong in it that git tracks or would ever track.
+#
+# `git ls-files` (tracked) plus `git ls-files --others --exclude-standard`
+# (untracked, not ignored) is what the repo actually contains. Every check
+# below that used to `find`/glob/`grep -r` the filesystem reads this instead;
+# a gitignored file never enters it, so dropping one anywhere changes nothing
+# in the report -- the packet's own guard.
+ALL_FILES="$(git ls-files; git ls-files --others --exclude-standard)"
+
 # Root is reserved for SYSTEM-READ entry points (tools auto-load them from here, so they MUST stay at root).
 # Root holds exactly four docs (2026-08-03 cleanup). Each answers one question:
 # README = what is it and where is everything · AGENTS = how to build it ·
@@ -48,24 +65,39 @@ echo "-- [1] stray files at repo root (docs, images, data, anything loose) --"
 # config below it, and it has to be at root: its "folders" paths are resolved
 # relative to the workspace file itself, so "." and "../cadence-lane-0" only mean
 # the repo and its sibling lanes from here.
-ROOT_ALLOWED=" AGENTS.md CLAUDE.md GEMINI.md README.md package.json package-lock.json bun.lock bunfig.toml tsconfig.json vite.config.ts eslint.config.js playwright.config.ts components.json wrangler.jsonc requirements.txt skills-lock.json cadence-parallel.code-workspace "
-for f in *; do
-  [ -f "$f" ] || continue
+ROOT_ALLOWED=" AGENTS.md CLAUDE.md GEMINI.md README.md package.json package-lock.json bun.lock bunfig.toml tsconfig.json vite.config.ts eslint.config.js playwright.config.ts components.json wrangler.jsonc requirements.txt skills-lock.json cadence-parallel.code-workspace .env.example .gitattributes .gitignore .graphifyignore .lovable-config.txt .mcp.json .prettierignore .prettierrc "
+# THE DOTFILES ABOVE WERE INVISIBLE TO `for f in *` (P-117): bash's bare `*`
+# glob does not match dotfiles without `shopt -s dotglob`, so these eight
+# tracked root config files were never candidates under the old raw walk --
+# not allowed, not flagged, simply never seen. `$ALL_FILES` (git-sourced)
+# sees everything git tracks, dotfiles included, so they need a real entry
+# here or every one of them reads as a brand-new stray file on the first run.
+# A GITIGNORED FILE NEVER REACHES THIS LOOP (P-117): reading `$ALL_FILES`
+# instead of a raw `for f in *` means a founder's local, deliberately-
+# gitignored file at root (a scratch export, a downloaded PDF) is never a
+# candidate here at all, on any machine -- no FAIL, no WARN, nothing. That
+# used to be a `git check-ignore` branch that downgraded a stray root file to
+# a WARN instead of a FAIL; the file list itself now does that job by never
+# presenting the file to begin with, so there is nothing left for that branch
+# to catch.
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  case "$f" in */*) continue ;; esac
   case "$ROOT_ALLOWED" in *" $f "*) continue ;; esac
-  git check-ignore -q "$f" 2>/dev/null && { echo "  WARN loose gitignored file at root: $f  (move it into a gitignored DIRECTORY; screenshots go in docs/screenshots/)"; WARN=1; continue; }
   echo "  FAIL stray root file: $f  (docs go in docs/<bucket>/ and get linked; images go in docs/screenshots/ or design-reference/)"; FAIL=1
-done
+done <<< "$ALL_FILES"
 
 # Checks EVERY loose file, not just *.md. A founder mission prompt sat at docs/
 # top level for weeks with NO file extension ("Readiness Audit & Consumer
 # Production grade"), so the old *.md glob never saw it. An extensionless file is
 # the easiest kind to lose, which makes it the most important kind to catch.
 echo "-- [2] stray files at docs/ top level (everything belongs in a subfolder) --"
-for f in docs/*; do
-  [ -f "$f" ] || continue
-  b="$(basename "$f")"
-  case "$DOCS_TOP_WHITELIST" in *" $b "*) ;; *) echo "  FAIL stray docs/ file: $f  (belongs in docs/<subfolder>/ and linked from its index)"; FAIL=1;; esac
-done
+while IFS= read -r f; do
+  case "$f" in docs/*) ;; *) continue ;; esac
+  rest="${f#docs/}"
+  case "$rest" in */*) continue ;; esac
+  case "$DOCS_TOP_WHITELIST" in *" $rest "*) ;; *) echo "  FAIL stray docs/ file: $f  (belongs in docs/<subfolder>/ and linked from its index)"; FAIL=1;; esac
+done <<< "$ALL_FILES"
 
 echo "-- [3] macOS ' 2' duplication artifacts --"
 DUPES="$(find . \( -path ./node_modules -o -path ./.git -o -path ./dist -o -path ./.venv \) -prune -o \( -name '* 2.*' -o -name '* 2' \) -print 2>/dev/null)"
@@ -171,7 +203,7 @@ MISS=0
 while IFS= read -r mdfile; do
   [ -z "$mdfile" ] && continue
   if ! head -12 "$mdfile" | grep -qiE 'Last updated|Created:'; then echo "  WARN no date header: $mdfile"; MISS=1; fi
-done < <( { find docs -name '*.md' 2>/dev/null; for r in AGENTS.md CLAUDE.md GEMINI.md README.md; do [ -f "$r" ] && echo "$r"; done; } )
+done < <( { printf '%s\n' "$ALL_FILES" | grep -E '^docs/.*\.md$'; for r in AGENTS.md CLAUDE.md GEMINI.md README.md; do [ -f "$r" ] && echo "$r"; done; } )
 if [ "$MISS" -ne 0 ]; then echo "  (add '> _Created: YYYY-MM-DD · Last updated: YYYY-MM-DD_' under the H1)"; WARN=1; else echo "  ok"; fi
 
 # WHY THIS CHECK REPLACED THE OLD ONE. Until 2026-08-03 slot [8] checked the CASE
@@ -295,8 +327,14 @@ echo "-- [10] live docs reachable from nowhere (orphans) --"
 DD_REFERENCED="$(mktemp "${TMPDIR:-/tmp}/dd_referenced.XXXXXX")"
 trap 'rm -f "$DD_REFERENCED"' EXIT
 
+# git-sourced candidate set (P-117): every tracked or untracked-not-ignored
+# .md under docs/ or architecture/, plus the four root entry points -- the
+# exact same universe check [7] reads, so the two checks can never disagree
+# about what "a live doc" even means.
+DOCS_MD_FILES="$(printf '%s\n' "$ALL_FILES" | grep -E '^(docs/|architecture/).*\.md$'; for r in AGENTS.md README.md CLAUDE.md GEMINI.md; do [ -f "$r" ] && echo "$r"; done)"
+
 # subtle part: a doc that only mentions its own filename is still an orphan.
-ORPH="$(grep -roE '[A-Za-z0-9._-]+\.md' docs architecture ./AGENTS.md ./README.md ./CLAUDE.md ./GEMINI.md --include='*.md' 2>/dev/null \
+ORPH="$(printf '%s\n' "$DOCS_MD_FILES" | tr '\n' '\0' | xargs -0 grep -oE '[A-Za-z0-9._-]+\.md' 2>/dev/null \
   | awk -F: '
       { path = $1; ref = $2
         n = split(path, parts, "/"); self = parts[n]
@@ -304,7 +342,7 @@ ORPH="$(grep -roE '[A-Za-z0-9._-]+\.md' docs architecture ./AGENTS.md ./README.m
       }
       END { for (r in seen) print r }' \
   | sort -u > "$DD_REFERENCED"; \
-  find docs architecture -name "*.md" -not -path "*/archive/*" 2>/dev/null \
+  printf '%s\n' "$DOCS_MD_FILES" | grep -E '^(docs|architecture)/' | grep -v '/archive/' \
   | while IFS= read -r f; do
       b="$(basename "$f")"
       [ "$b" = "README.md" ] && continue
