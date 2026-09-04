@@ -172,6 +172,7 @@ import { failureLine } from "@/lib/error-copy";
 import { Row } from "@/components/meridian/rows";
 import { releaseStanding } from "@/components/track/release-words";
 import {
+  handRecordedLine,
   mayAnnounce,
   releaseSummaryLines,
   whyNotAnnounceable,
@@ -1036,6 +1037,63 @@ export function unlistedMerges(
 }
 
 /**
+ * A DEPLOY WITH NO CHANGESET, ON EITHER SIDE OF ONE CIRCLE THIS STATION
+ * ALREADY DRAWS (P-104, A-QUEUE.md).
+ *
+ * `unlistedMerges` above finds merged CHANGESETS with no changelog entry.
+ * This finds the shape one step further out: a `deployments` row with no
+ * changeset at all, which no amount of writing release notes could ever
+ * attach to one, because there is no changeset for the notes to land on.
+ *
+ * TODAY'S ONLY WRITER IS `submitStationByHand`'s Ship branch
+ * (spine/track.functions.ts): a person pastes a URL at the Ship station and
+ * the row is written `status: 'claimed'`, `triggered_by: 'handback'`, with
+ * no `changeset_id` -- deliberately, per that function's own header, so a
+ * pasted address can never satisfy `release.publish`'s proof. The same
+ * person's press at the BUILD station writes a `studio_changesets` row
+ * instead (`status: 'pr_open'`, never `merged`), which `handRecordedLine`
+ * already covers on the merge-gate card via `ReleaseEvidence.handRecorded`
+ * -- a different table, a different reader, the same P-96 sentence.
+ */
+export function handbackDeploys(deployments: readonly ShipDeployment[]): ShipDeployment[] {
+  return deployments.filter((d) => !d.changeset_id);
+}
+
+/** One row of "What shipped": a real release, or a deploy with no changeset
+ *  standing in for one. See `shipListItems`. */
+export type ShipListItem =
+  | { kind: "release"; entry: ChangelogEntry }
+  | { kind: "handback"; deploy: ShipDeployment };
+
+function shipListStamp(item: ShipListItem): number {
+  const iso =
+    item.kind === "release"
+      ? item.entry.released_at
+      : (item.deploy.deployed_at ?? item.deploy.created_at ?? null);
+  const t = new Date(iso ?? "").getTime();
+  return Number.isFinite(t) ? t : 0;
+}
+
+/**
+ * "What shipped", widened to include the deploys `releaseStates` can never
+ * reach (P-104, A-QUEUE.md's own Scope: "deployments with no changeset ... as
+ * their own rows"). One list, newest first regardless of kind, rather than a
+ * second block bolted underneath -- a person scanning what went out should
+ * not have to check two lists to find the release from Tuesday.
+ */
+export function shipListItems(
+  notes: readonly ChangelogEntry[],
+  deployments: readonly ShipDeployment[],
+): ShipListItem[] {
+  const items: ShipListItem[] = [
+    ...notes.map((entry): ShipListItem => ({ kind: "release", entry })),
+    ...handbackDeploys(deployments).map((deploy): ShipListItem => ({ kind: "handback", deploy })),
+  ];
+  items.sort((a, b) => shipListStamp(b) - shipListStamp(a));
+  return items;
+}
+
+/**
  * Can a person move this one to production right now?
  *
  * The four conditions are the server's own, restated so the button is only
@@ -1508,6 +1566,9 @@ function Ship() {
   // The deployments table is not in the generated Supabase types yet, so the
   // read arrives untyped. Same cast ChangesPanel makes, made once.
   const deployRows = (deployments.data?.deployments ?? []) as ShipDeployment[];
+  /* "What shipped", widened to the deploys that will never have a changeset
+     to be listed by -- see `shipListItems`. */
+  const shipItems = shipListItems(notes, deployRows);
 
   const role = (members.data?.selfRole ?? null) as WorkspaceRole | null;
   const canContribute = !!role && TRANSITION_ROLES["draft->pending"].includes(role);
@@ -3374,13 +3435,48 @@ function Ship() {
               <ReadFailedLine onRetry={() => void changelog.refetch()} error={changelog.error}>
                 The release notes did not load.
               </ReadFailedLine>
-            ) : notes.length === 0 ? (
+            ) : shipItems.length === 0 ? (
               <NothingYet>
                 Nothing has shipped yet. A release note is written from a merged change, so the
                 first merge fills this in without anyone typing.
               </NothingYet>
             ) : (
-              (allNotes ? notes : notes.slice(0, VISIBLE)).map((e) => {
+              (allNotes ? shipItems : shipItems.slice(0, VISIBLE)).map((item) => {
+                /*
+                 * A DEPLOY WITH NO CHANGESET, DRAWN IN ITS OWN WORDS (P-104,
+                 * A-QUEUE.md). It carries none of the seven facts the release
+                 * rows below read off a `ChangelogEntry` -- no title, no PR, no
+                 * bet, no spec -- so it is not a `ReleaseEvidence` short of one
+                 * field; it is a different fact, told in `handRecordedLine`'s own
+                 * sentence rather than the merge gate's four-line summary, which
+                 * has nothing here to summarise.
+                 *
+                 * THE ANNOUNCE CONTROL IS NEVER OFFERED (P-96's rule, restated for
+                 * a row that has no `mayAnnounce` to call): `claimed` is written
+                 * precisely so a pasted address can never stand as proof that
+                 * something shipped, and this row is that address with nothing
+                 * else behind it. The pasted address itself is still a real door,
+                 * because a person did tell us where to look.
+                 */
+                if (item.kind === "handback") {
+                  const d = item.deploy;
+                  return (
+                    <Row
+                      key={`deploy-${d.id}`}
+                      tight
+                      lead={releaseStanding(d.status).word}
+                      sub={handRecordedLine()}
+                      time={ago(d.deployed_at ?? d.created_at ?? null)}
+                      action={d.deploy_url ? <Addr href={d.deploy_url}>Open it</Addr> : null}
+                      onClick={
+                        d.deploy_url
+                          ? () => window.open(d.deploy_url as string, "_blank", "noopener,noreferrer")
+                          : undefined
+                      }
+                    />
+                  );
+                }
+                const e = item.entry;
                 // A second line is a DIFFERENT fact, never the first one continued:
                 // which product, origin opportunity, which pull request, and whether it's live in production.
                 // The body belongs to the one post in focus, not to every row.
@@ -3512,10 +3608,10 @@ function Ship() {
                 );
               })
             )}
-            {notes.length > 0 && !changelog.isError && !docReading ? (
+            {shipItems.length > 0 && !changelog.isError && !docReading ? (
               <MoreRows
-                shown={Math.min(VISIBLE, notes.length)}
-                total={notes.length}
+                shown={Math.min(VISIBLE, shipItems.length)}
+                total={shipItems.length}
                 open={allNotes}
                 onToggle={() => setAllNotes((v) => !v)}
               />
