@@ -8485,7 +8485,7 @@ matching P-16's own "I could not drive a live Tab key" methodology.
 Full suite on the rebased tip (041493291): `bun run build` exit 0, `bunx tsc --noEmit` exit 0,
 `bun test` 14,291 / 0 / 22 skip / 37 todo. PUSHED b05fa6cf6.
 
-### P-93 · The other-workspaces line on Waiting is a door · Lane: **A3** (after P-90) · Status: CODE DONE (d56153215; A3 reports build 0, tsc 0, 14,299 / 0; the old line was itself the page's one unscoped read; A1 gate running; publish next; A1 walks both workspaces) · Moves: 2
+### P-93 · The other-workspaces line on Waiting is a door · Lane: **A3** (after P-90) · Status: CODE DONE (d56153215; A3 reports build 0, tsc 0, 14,299 / 0; the old line was itself the page's one unscoped read; A1 on the tip: build 0 clean, tsc 0, 14,299 / 0 / 0; PUBLISHED 10:09 IST 09-04; A1 walks both workspaces after propagation) · Moves: 2
 
 **Why.** In an empty workspace Waiting reads *51 more waiting in your other workspaces*: true,
 useful, and inert. A person who reads it has to find the switcher.
