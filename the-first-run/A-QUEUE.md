@@ -9670,6 +9670,34 @@ its start and A1 reads it. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
+
+### P-128 · Ship hosts a repo that is not ours · Lane: **A2** (after P-113) · Status: READY · Moves: 1, 3
+
+**Why.** The honest Ship went live today because relay-homeowner-app is a Supaprod template app:
+`supaprod.json` at the root and a `main.ts` that `Deno.serve`s a static page. `changeset-deploy`
+says so in its header: *only Supaprod-managed repos qualify; arbitrary customer repos keep the
+capture-only deployment records.* So for every repo a customer actually brings (a Vite or Next app,
+a Bun server), Ship ends at *merged* and *No app to show yet*, and the sentence on the landing page,
+*then builds it. ships it.*, is true of our own template and nothing else. The 23 September claim
+rests on this.
+
+**Scope.** A decision packet first, then the build. (1) Decide the first non-template shape to
+host and write it into RULINGS: the honest candidate is a static-build repo (Vite, Astro, plain
+`bun run build` to a `dist/`), hosted as a Deno Deploy static app (build in a sandbox the product
+already has for `studio.checks.run`, upload `dist/` as assets, a generated `main.ts` that serves
+it); a Node or Bun server is second, or explicitly deferred with the reason. (2) Detection reads the
+repo (`package.json` scripts, a build output path), never a marker file we own; the run screen
+says which shape it found and what it will do. (3) When neither shape fits, the hold says so in
+the product's voice and offers the handback (P-104) as the path, with no `capture-only` silence.
+(4) Guard: a fixture Vite repo previews to a URL in tests with the host mocked; a fixture with no
+build script gets the hold sentence.
+
+**Acceptance.** A second repo in the Helio workspace (a Vite app the founder or A1 creates under
+the Supaprod org) goes sentence to preview URL through the loop; the run screen names the shape.
+Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the ruling; the three numbers; A1 walks the second repo.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
