@@ -120,6 +120,10 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     since 05:34 failed on Lovable's side with no signal reaching anyone, and eight publishes served
     nothing. A lane that touches a route, a loader or anything under `src/lib` a route imports runs
     the build before pushing.
+    **The build mutates four tracked files** (`src/routes/mcp.ts`, both `[.mcp]` routes and
+    `[.well-known]/oauth-protected-resource.ts`: the route generator rewrites them); after a local
+    build, `git checkout --` those four before committing, or the gate quietly edits the repo (A2 and
+    A1 both hit it on 09-04). P-82 makes the generator stop.
 
 ### The bar a packet is verified against, in this order
 
@@ -7893,7 +7897,7 @@ reads behind Arriving (themes, clusters, the ranking) and Outcomes (graded forec
 still bare, and a person in a fresh workspace sees another workspace's desk. P-75 filed.
 
 
-### P-75 · Arriving, Outcomes, Sources and Conversations read the workspace they stand in · Lane: **A2** (now, before P-74) · Status: READY · Moves: 1, 2
+### P-75 · Arriving, Outcomes, Sources and Conversations read the workspace they stand in · Lane: **A2** (now, before P-74) · Status: CODE DONE, all parts (a4b7124a1, aacadbf80; A2 reports 14,245 / 0 / 0, tsc 0; a foreign thread by id is NOT FOUND, not forbidden; ratchet 136 across 73 files; A1 build, tsc and suite running; publish after the 08:05 build is confirmed served) · Moves: 1, 2
 
 **Why.** The live walk above. In the empty probe workspace Arriving shows Helio's 135 clusters
 and Outcomes shows Helio's graded forecasts and lessons; Waiting says *One just came in* where
@@ -8154,6 +8158,26 @@ carrying it, with spend unchanged from Sense and no decision row; choosing *Buil
 writes the person's sentence as the claim. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
+
+
+### P-82 · The build stops rewriting four route files · Lane: **A3** (after P-81) · Status: READY · Moves: 1
+
+**Why.** `bun run build` rewrites `src/routes/mcp.ts`, `src/routes/[.mcp]/list-tools.ts`,
+`src/routes/[.mcp]/invoke-tool/$tool.ts` and `src/routes/[.well-known]/oauth-protected-resource.ts`
+on every run (the route generator's own formatting), which is why the Lovable bot has requoted
+them for days and why two lanes and A1 had to discard them after every local build under rule 21.
+A gate that edits the repo is a gate people stop running.
+
+**Scope.** Find the generator option or the file shape that makes those four stable (write them in
+the form the generator emits, or exclude API routes from its rewrite, whichever the TanStack
+router generator documents; `mcp__plugin_context7_context7__query-docs` for the current option
+names). Guard: a test that runs the generator in check mode and fails if any tracked route file
+would change.
+
+**Acceptance.** `bun run build` on a clean tree leaves `git status` clean. Full suite on the tip,
+tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers per rules 17 and 21.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
