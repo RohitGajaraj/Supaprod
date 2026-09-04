@@ -227,6 +227,23 @@ export function TrackConsent({
    * know they widened their own policy cannot narrow it again.
    */
   const [answeredClassOf, setAnsweredClassOf] = React.useState<number | null>(null);
+  /**
+   * THE SERVER'S OWN SOFT-FAILURE LIST, SHOWN (P-115, queue item 2). A
+   * `decideTrackGate` result can come back `ok` with `problems` non-empty --
+   * the verdict landed but a side effect (the note, the run signal) did not.
+   * This was read nowhere before: `decide.onSuccess` invalidated and moved on
+   * regardless of what `problems` said. `GateBanner` had the identical gap.
+   */
+  const [problems, setProblems] = React.useState<string[]>([]);
+  /**
+   * THE CLASS ANSWER'S OWN SHORTFALL, SHOWN. `decideTrackGateClass` can
+   * settle FEWER than the count on the button: `refused` names items its own
+   * per-item resolver rejected, `remaining` is what the cap left untouched.
+   * `answeredClassOf` used to echo the INTENDED count unconditionally, so
+   * "Answer all 4" that actually settled 2 and refused 2 still read
+   * "Answered all 4" -- correct-shaped and wrong.
+   */
+  const [classShortfall, setClassShortfall] = React.useState<string | null>(null);
 
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ["track-gates", trackId] });
@@ -242,10 +259,14 @@ export function TrackConsent({
       reason?: string;
       steer?: boolean;
     }) => fDecide({ data: { trackId, ...input } }),
+    // Cleared here, not just set on success: a stale `problems` message from
+    // a prior press must not sit under an unrelated later one.
+    onMutate: () => setProblems([]),
     onSuccess: (res) => {
       setAnsweringId(null);
       setDecliningId(null);
       setDeclineAll(false);
+      setProblems(res.problems);
       invalidate();
       // SEQUENTIAL, NOT PARALLEL (SPEC-CONSENT §4.2): harvest reads stamped
       // rows, so the walk starts only after the decide has fully landed AND
@@ -259,15 +280,30 @@ export function TrackConsent({
   const decideClass = useMutation({
     mutationFn: (input: { toolName: string; verdict: "approve" | "reject"; reason?: string }) =>
       fDecideClass({ data: { trackId, ...input } }),
-    onSuccess: () => {
+    onMutate: () => setClassShortfall(null),
+    onSuccess: (res) => {
       setAnsweringId(null);
       setDecliningId(null);
       setDeclineAll(false);
-      // Only a SETTLED class answer gets the echo -- never the click.
+      // Only a SETTLED class answer gets the echo -- never the click, and the
+      // echo is what ACTUALLY settled (`res.decided.length`), never the
+      // intended count the button carried.
       if (classCountRef.current !== null) {
-        setAnsweredClassOf(classCountRef.current);
+        setAnsweredClassOf(res.decided.length);
         classCountRef.current = null;
       }
+      setClassShortfall(
+        res.refused.length > 0 || res.remaining > 0
+          ? [
+              res.refused.length > 0
+                ? `${res.refused.length} could not be settled: ${res.refused[0]?.reason ?? "the server refused it"}${res.refused.length > 1 ? ` (and ${res.refused.length - 1} more)` : ""}.`
+                : null,
+              res.remaining > 0 ? `${res.remaining} are still waiting.` : null,
+            ]
+              .filter(Boolean)
+              .join(" ")
+          : null,
+      );
       invalidate();
       if (onAnswered) onAnswered();
     },
@@ -687,6 +723,13 @@ export function TrackConsent({
           </GateCard>
         );
       })}
+
+      {/* A SETTLED decide can still carry a soft failure (P-115, queue item
+          2): the verdict landed, a side effect did not. Rendered here, not
+          inside the per-gate loop above, because the gate that produced it
+          has already left `open` by the time this state is set. */}
+      {problems.length > 0 ? <RecordSpeaks>{problems.join(" ")}</RecordSpeaks> : null}
+      {classShortfall ? <RecordSpeaks>{classShortfall}</RecordSpeaks> : null}
 
       {/*
        * WHAT ALREADY SETTLED, NEWEST FIRST. Rendered, never hidden (§4.3):

@@ -44,7 +44,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { decideTrackGate, getTrackGates } from "@/lib/spine/track.functions";
 import { gateHeadline } from "@/lib/tool-consequences";
-import { Action, Actions, Approve } from "@/components/meridian/surface-parts";
+import { failureLine } from "@/lib/error-copy";
+import { Action, Actions, Approve, RecordSpeaks } from "@/components/meridian/surface-parts";
+import { ReasonField } from "@/components/meridian/forms";
 
 export function GateBanner({ trackId }: { trackId: string }) {
   const fGates = useServerFn(getTrackGates);
@@ -59,10 +61,40 @@ export function GateBanner({ trackId }: { trackId: string }) {
     refetchInterval: 10_000,
   });
 
+  /*
+   * ── A PRESS THE SERVER REFUSED, SHOWN NOWHERE (P-115, live 06:04-06:08
+   * UTC 09-04) ────────────────────────────────────────────────────────────
+   * `decideTrackGate`'s own server-side rule (§ below its schema) is
+   * "declining records why": a reject with no `reason` never reaches the
+   * handler, it fails the input validator. This banner sent bare
+   * `{approvalId, verdict: "reject"}` with no reason field to fill one, so
+   * every decline here failed the same way, three times, silently -- no
+   * message rendered, because this component had no `decide.error` slot to
+   * put one in. `TrackConsent`'s card already has the reason field and
+   * already works; this is that exact field, moved here.
+   *
+   * `decliningId` rather than a bare boolean: the field's own open/closed
+   * state is keyed to the gate it is for, so a re-render after the gate
+   * rotates (this banner always shows only `q.data.open[0]`) cannot leave a
+   * stale field open for a call nobody is looking at.
+   */
+  const [decliningId, setDecliningId] = React.useState<string | null>(null);
+  /** The server's OWN soft-failure list (queue item 2): a decide can return
+   *  200 with `problems` non-empty -- the verdict landed but a side effect
+   *  (the note, the run signal) did not. Neither this banner nor the reason
+   *  field's own commit path checked it before; both silences are the same
+   *  defect, thrown or not. */
+  const [problems, setProblems] = React.useState<string[]>([]);
+
   const decide = useMutation({
-    mutationFn: (input: { approvalId: string; verdict: "approve" | "reject" }) =>
-      fDecide({ data: { trackId, ...input } }),
-    onSuccess: () => {
+    mutationFn: (input: { approvalId: string; verdict: "approve" | "reject"; reason?: string }) =>
+      fDecide({ data: { trackId, ...input, steer: input.verdict === "reject" } }),
+    // Cleared here, not just set on success: a stale `problems` message from
+    // a prior press must not sit under an unrelated later one.
+    onMutate: () => setProblems([]),
+    onSuccess: (res) => {
+      setDecliningId(null);
+      setProblems(res.problems);
       void qc.invalidateQueries({ queryKey: ["track-gates", trackId] });
       void qc.invalidateQueries({ queryKey: ["track-activity", trackId] });
       void qc.invalidateQueries({ queryKey: ["spine-track-chain"] });
@@ -79,28 +111,65 @@ export function GateBanner({ trackId }: { trackId: string }) {
       data-mrd=""
       role="region"
       aria-label="Waiting on you"
-      className="mt-mrd-4 flex flex-wrap items-center gap-mrd-4 rounded-mrd-ctl bg-mrd-lift px-mrd-4 py-mrd-3 text-mrd-base text-mrd-body"
+      className="mt-mrd-4 flex flex-col gap-mrd-3 rounded-mrd-ctl bg-mrd-lift px-mrd-4 py-mrd-3 text-mrd-base text-mrd-body"
     >
-      <span className="flex min-w-0 items-center gap-1.5">
-        <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-mrd-you" />
-        <span className="min-w-0 truncate font-medium text-mrd-ink">
-          {gateHeadline(gate.toolName)}
+      <div className="flex flex-wrap items-center gap-mrd-4">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-mrd-you" />
+          <span className="min-w-0 truncate font-medium text-mrd-ink">
+            {gateHeadline(gate.toolName)}
+          </span>
         </span>
-      </span>
-      <Actions className="ml-auto">
-        <Approve
+        <Actions className="ml-auto">
+          <Approve
+            busy={decide.isPending}
+            onClick={() => decide.mutate({ approvalId: gate.approvalId, verdict: "approve" })}
+          >
+            Let it run
+          </Approve>
+          <Action
+            busy={decide.isPending}
+            onClick={() =>
+              setDecliningId(decliningId === gate.approvalId ? null : gate.approvalId)
+            }
+          >
+            Don&apos;t run it
+          </Action>
+        </Actions>
+      </div>
+
+      {/*
+       * A REJECT WITH NO REASON IS IMPOSSIBLE FROM HERE (the packet's own
+       * guard): the only path from this banner to `decide.mutate` with
+       * `verdict: "reject"` is `ReasonField`'s `onCommit`, which never fires
+       * on an empty string (its own contract, see `forms.tsx`). There is no
+       * other reject control on this component.
+       */}
+      {decliningId === gate.approvalId ? (
+        <ReasonField
+          id={`gate-banner-reason-${gate.approvalId}`}
+          label="What should it do instead?"
+          hint="It goes to the agent working this run and stays on the record beside this call."
+          commitLabel="Don't run it, do this instead"
+          cancelLabel="Back to the answers"
           busy={decide.isPending}
-          onClick={() => decide.mutate({ approvalId: gate.approvalId, verdict: "approve" })}
-        >
-          Let it run
-        </Approve>
-        <Action
-          busy={decide.isPending}
-          onClick={() => decide.mutate({ approvalId: gate.approvalId, verdict: "reject" })}
-        >
-          Don&apos;t run it
-        </Action>
-      </Actions>
+          onCommit={(reason) =>
+            decide.mutate({ approvalId: gate.approvalId, verdict: "reject", reason })
+          }
+          onCancel={() => setDecliningId(null)}
+        />
+      ) : null}
+
+      {/* A refusal comes back as words from the server; repeating them is the
+          only honest option, the same rule TrackConsent's own decline follows. */}
+      {decide.error ? (
+        <RecordSpeaks>
+          {failureLine("Your answer was not recorded, so the call still stands.", decide.error)}
+        </RecordSpeaks>
+      ) : null}
+      {problems.length > 0 ? (
+        <RecordSpeaks>{problems.join(" ")}</RecordSpeaks>
+      ) : null}
     </div>
   );
 }

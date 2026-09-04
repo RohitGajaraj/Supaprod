@@ -43,8 +43,19 @@ mock.module("@tanstack/react-start", () => ({
   ...startActual,
   useServerFn: (fn: unknown) => {
     if (fn === getTrackGates) return async () => gatesResult;
-    if (fn === decideTrackGate) return async () => ({ status: "pending" });
-    if (fn === decideTrackGateClass) return async () => ({ status: "pending" });
+    // P-115: real returns always carry `problems`/`refused`/`remaining`; a
+    // mock missing them would let `res.problems.length` etc. throw
+    // undetected the moment a test actually exercises a successful decide.
+    if (fn === decideTrackGate)
+      return async () => ({ status: "pending", problems: [] as string[] });
+    if (fn === decideTrackGateClass)
+      return async () => ({
+        status: "pending",
+        decided: [] as Array<{ approvalId: string }>,
+        refused: [] as Array<{ approvalId: string; reason: string }>,
+        remaining: 0,
+        refusedAsUnsafeClass: false,
+      });
     if (fn === snoozeApprovalItem) return async () => ({ ok: true });
     return fn;
   },
