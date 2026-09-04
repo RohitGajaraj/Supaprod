@@ -186,12 +186,45 @@ describe("the transcript is the control the strip used to be", () => {
 });
 
 describe("no station meter, and no second route drawing", () => {
-  it("mounts no StepMeter and no RunMap anywhere on the run screen", () => {
+  it("mounts no StepMeter anywhere on the run screen", () => {
+    /*
+     * ── THE METER STAYS GONE. THE MAP CAME BACK. ──────────────────────────
+     *
+     * This banned both, on the founder's 2026-09-02 19:25 ruling that removed
+     * the station display. That ruling was right about what it removed: a
+     * STRIP and a METER are controls, and a control duplicating the
+     * transcript's own rows is what went.
+     *
+     * FOUNDER, 2026-09-04 04:09: "a person in a run needs to see the lifecycle
+     * and where the work is on it." On the served tablet track the seven names
+     * appeared only as transcript labels and Ship and Learn not at all, so a
+     * person could not tell how much route was left.
+     *
+     * A map is not a meter. `Station 5 of 7` is a progress bar wearing station
+     * names and is still banned three tests below; the map draws every station
+     * with one sentence saying what that station DID, read-only, no
+     * destination, R-01 intact. Both rulings hold at once, which is why this
+     * guard splits rather than loosens.
+     */
     for (const [name, src] of Object.entries(SURFACE)) {
       const code = strip(src);
       expect(`${name} StepMeter: ${code.includes("<StepMeter")}`).toBe(`${name} StepMeter: false`);
-      expect(`${name} RunMap: ${code.includes("<RunMap")}`).toBe(`${name} RunMap: false`);
     }
+  });
+
+  it("draws the route map in exactly ONE place, read-only", () => {
+    /*
+     * The original guard's real subject was "no SECOND route drawing", and that
+     * still holds: one map, in the pane that already reads the stops, and
+     * nowhere else. A second one on the same screen is the defect this file was
+     * written for whichever component draws it.
+     */
+    const drawers = Object.entries(SURFACE).filter(([, src]) => strip(src).includes("<RunMap"));
+    expect(drawers.map(([n]) => n)).toEqual(["ArtifactPane"]);
+    /* Read mode: the seven are the route the work takes, not places a person
+       goes, so the map may not be `editable` on this screen. */
+    expect(strip(SURFACE["ArtifactPane"])).toContain('mode="replay"');
+    expect(strip(SURFACE["ArtifactPane"])).not.toContain('mode="editable"');
   });
 
   it("mounts no TrackChain, which was one more drawing of one route", () => {

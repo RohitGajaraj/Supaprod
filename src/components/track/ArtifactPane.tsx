@@ -115,6 +115,8 @@ import { Verdict } from "@/components/meridian/verdict";
 import { verdictProps } from "@/components/track/verdict-reading";
 import { PlaybookFilesPanel } from "@/components/track/PlaybookFiles";
 import { AppFrame, RunningApp } from "@/components/track/AppFrame";
+import { RunMap } from "@/components/meridian/RunMap";
+import { stationsForMap, type StopLike } from "@/components/track/what-each-station-did";
 
 /** What each station exists to do, for the not-run sentence. Display labels only. */
 const PURPOSE: Record<string, string> = {
@@ -3507,6 +3509,17 @@ export function ArtifactPane({
     setTook(tookItLine(name, items.filter((i) => !i.missing).length));
   };
 
+  /*
+   * P-74. Derived from the stops this pane already reads; a station with
+   * nothing on the record gets no sentence rather than a plausible one.
+   *
+   * NOT a `useMemo`: this sits after an early return, where a hook would change
+   * the hook order between renders. `stationsForMap` is pure and walks at most
+   * seven stops, so memoising it would buy nothing and cost a rules-of-hooks
+   * violation -- which is exactly what the guard reported.
+   */
+  const mapStations = stationsForMap((bodies.data?.stops ?? []) as unknown as StopLike[]);
+
   return (
     /*
       ── THE FOURTH STATION LIST GOES (2026-09-02) ─────────────────────────
@@ -3537,140 +3550,165 @@ export function ArtifactPane({
       the thing that happened rather than at the stage it happened in, and a
       station that filed nothing has no row to press, so it cannot open a blank.
     */
-    <Region
-      title="What it has made"
-      /*
-       * ── THE SENTENCE FOLLOWED THE CONTROL, TWICE ──────────────────────────
-       * It read "pick a step to see its output" while the tabs were in this
-       * pane, then "pick a stage on the strip above" when they moved there. The
-       * strip is now gone too, and the control is a row in the transcript, so
-       * the sentence says where the control actually is. A `sub` naming a
-       * control that is not on the screen is worse than no `sub` at all.
-       */
-      sub={
-        !recordHasSomethingToPress
-          ? // Nothing has been filed anywhere on this run, so there is no row
-            // beside this to press. What this pane will do when there is one is
-            // still worth saying: it is the answer to "what is this region for".
-            `Nothing has been filed yet. Whatever the run makes will open here.`
-          : opened
-            ? `Showing one thing this run made. Press any artifact in the record beside this to open it.`
-            : `Showing ${shown.label}. Press an artifact in the record beside this to open it.`
-      }
-      act="Take this"
-      onAct={take}
-    >
-      {/* WHAT IT TOOK, SAID. Brief unit 9: "the control says what it copied."
+    <>
+      {/*
+       * ── THE LIFECYCLE CAME BACK, BY THE SAME AUTHORITY THAT REMOVED IT ──
+       *
+       * The paragraph directly above records the founder removing the station
+       * display from this screen on 2026-09-02 at 19:25, and it was right about
+       * what it removed: a station STRIP is a control, and a control that
+       * duplicates the transcript's own rows is the thing that went.
+       *
+       * FOUNDER, 2026-09-04 at 04:09: "a person in a run needs to see the
+       * lifecycle and where the work is on it." Live on the tablet track the
+       * seven names appeared only as transcript labels, and Ship and Learn not
+       * at all -- so a person could not tell how much route was left.
+       *
+       * This is a MAP, not a bar, and the distinction is what makes both
+       * rulings true at once: it draws every station with one sentence saying
+       * what that station DID, it is read-only (R-01: the seven are the route
+       * the work takes, not places a person goes), and it carries no
+       * destination. The strip's fold stands.
+       */}
+      {mapStations.length > 0 ? (
+        <RunMap stops={mapStations} mode="replay" label="Where this work is" />
+      ) : null}
+
+      <Region
+        title="What it has made"
+        /*
+         * ── THE SENTENCE FOLLOWED THE CONTROL, TWICE ──────────────────────────
+         * It read "pick a step to see its output" while the tabs were in this
+         * pane, then "pick a stage on the strip above" when they moved there. The
+         * strip is now gone too, and the control is a row in the transcript, so
+         * the sentence says where the control actually is. A `sub` naming a
+         * control that is not on the screen is worse than no `sub` at all.
+         */
+        sub={
+          !recordHasSomethingToPress
+            ? // Nothing has been filed anywhere on this run, so there is no row
+              // beside this to press. What this pane will do when there is one is
+              // still worth saying: it is the answer to "what is this region for".
+              `Nothing has been filed yet. Whatever the run makes will open here.`
+            : opened
+              ? `Showing one thing this run made. Press any artifact in the record beside this to open it.`
+              : `Showing ${shown.label}. Press an artifact in the record beside this to open it.`
+        }
+        act="Take this"
+        onAct={take}
+      >
+        {/* WHAT IT TOOK, SAID. Brief unit 9: "the control says what it copied."
           A download that reports nothing is a control a person cannot tell
           worked, and this one hands over a file they then have to find. */}
-      {took ? (
-        <p role="status" aria-live="polite" className="mrd-meta">
-          {took}
-        </p>
-      ) : null}
-      {/* The pane polls; when the shown station's body changes (a spec saved,
+        {took ? (
+          <p role="status" aria-live="polite" className="mrd-meta">
+            {took}
+          </p>
+        ) : null}
+        {/* The pane polls; when the shown station's body changes (a spec saved,
           a decision recorded), the change is said politely rather than
           silently repainting. */}
-      <div aria-live="polite">
-        {/*
-         * A LABELLED `region`, NOT MERIDIAN'S `TabPanel` (P-16, found live by
-         * A1 2026-09-02 21:40). `TabPanel` renders `role="tabpanel"`, which
-         * ARIA reserves for a panel a `tablist`/`tab` pair actually controls --
-         * true here once, when the pane's own tab row (then its replacement
-         * strip) drove this via `active`/`group`. Both are gone (see this
-         * file's header), so `role="tabpanel"` is now an orphaned role: a
-         * screen reader announces a tab panel with no tablist to relate it to.
-         * `id`, `tabIndex={-1}` and the focus-on-selection-change effect above
-         * are unchanged from what `TabPanel` gave this element -- only the
-         * role and the name-source (a direct label, not a borrowed tab id)
-         * move to match what actually drives the pane now.
-         */}
-        <div
-          data-mrd=""
-          id={`artifact-pane-${trackId}-panel`}
-          role="region"
-          aria-label={`${shown.label} output`}
-          tabIndex={-1}
-          className="mt-mrd-5"
-        >
+        <div aria-live="polite">
           {/*
-           * WHAT IS OPEN, SAID ABOVE IT. With no station strip on the screen, a
-           * person arriving here from a chip has no other way to know which of
-           * ten prototypes they are looking at, or that they are looking at a
-           * pinned selection rather than at the newest thing the run made.
+           * A LABELLED `region`, NOT MERIDIAN'S `TabPanel` (P-16, found live by
+           * A1 2026-09-02 21:40). `TabPanel` renders `role="tabpanel"`, which
+           * ARIA reserves for a panel a `tablist`/`tab` pair actually controls --
+           * true here once, when the pane's own tab row (then its replacement
+           * strip) drove this via `active`/`group`. Both are gone (see this
+           * file's header), so `role="tabpanel"` is now an orphaned role: a
+           * screen reader announces a tab panel with no tablist to relate it to.
+           * `id`, `tabIndex={-1}` and the focus-on-selection-change effect above
+           * are unchanged from what `TabPanel` gave this element -- only the
+           * role and the name-source (a direct label, not a borrowed tab id)
+           * move to match what actually drives the pane now.
            */}
-          {unresolved ? (
-            <div className="flex flex-wrap items-baseline justify-between gap-mrd-3 border-b border-mrd-line-soft pb-mrd-3">
-              <span className="min-w-0 text-mrd-small text-mrd-mute">
-                That link names something this run does not hold. It may belong to another run, or
-                its record may be gone. Showing the newest thing this run made instead.
-              </span>
-              <Action variant="quiet" onClick={() => onOpenArtifact?.(null)}>
-                Back to the newest
-              </Action>
-            </div>
-          ) : null}
-          {opened ? (
-            <OpenHead
-              item={opened.item}
-              stationLabel={shown.label}
-              seat={seatByArtifact.get(opened.item.artifactId) ?? null}
-              now={now}
-              onBack={() => onOpenArtifact?.(null)}
-            />
-          ) : null}
-          <StationPanel
-            stop={shown}
-            view={view}
-            /* The thing the person actually pressed leads the panel, rather
+          <div
+            data-mrd=""
+            id={`artifact-pane-${trackId}-panel`}
+            role="region"
+            aria-label={`${shown.label} output`}
+            tabIndex={-1}
+            className="mt-mrd-5"
+          >
+            {/*
+             * WHAT IS OPEN, SAID ABOVE IT. With no station strip on the screen, a
+             * person arriving here from a chip has no other way to know which of
+             * ten prototypes they are looking at, or that they are looking at a
+             * pinned selection rather than at the newest thing the run made.
+             */}
+            {unresolved ? (
+              <div className="flex flex-wrap items-baseline justify-between gap-mrd-3 border-b border-mrd-line-soft pb-mrd-3">
+                <span className="min-w-0 text-mrd-small text-mrd-mute">
+                  That link names something this run does not hold. It may belong to another run, or
+                  its record may be gone. Showing the newest thing this run made instead.
+                </span>
+                <Action variant="quiet" onClick={() => onOpenArtifact?.(null)}>
+                  Back to the newest
+                </Action>
+              </div>
+            ) : null}
+            {opened ? (
+              <OpenHead
+                item={opened.item}
+                stationLabel={shown.label}
+                seat={seatByArtifact.get(opened.item.artifactId) ?? null}
+                now={now}
+                onBack={() => onOpenArtifact?.(null)}
+              />
+            ) : null}
+            <StationPanel
+              stop={shown}
+              view={view}
+              /* The thing the person actually pressed leads the panel, rather
                than whatever the station happens to expect. See `primaryItem`. */
-            openArtifactId={opened?.item.artifactId ?? null}
-            /* Discover's lineage reads it; no other station does. See `Lineage`
+              openArtifactId={opened?.item.artifactId ?? null}
+              /* Discover's lineage reads it; no other station does. See `Lineage`
                for why the promotion is claimed from this sentence and not from
                `theme_id`. */
-            origin={track.origin}
-            workspaceId={activeWorkspaceId ?? null}
-            productId={track.productId}
-            /*
-             * EVERY STOP, NOT JUST DECIDE, and this was hiding the one thing
-             * the product exists to show.
-             *
-             * `LearningCard` finds the call its verdict grades by exact id --
-             * `x.artifactId === decision_id` -- and that fix is already recorded
-             * in its own header, because matching "the first decision on the
-             * decide stop" once put a verdict beside the wrong forecast. What
-             * was never widened is the LIST it searches. A decision recorded at
-             * any other station was invisible to it.
-             *
-             * Measured on `d1168015`, the only track in the database that has
-             * walked all seven stations: its learning carries
-             * `decision_id = 663c7376`, that decision is a member of the track,
-             * it holds a real `forecast_claim` -- "The PRD will be approved and
-             * design gate cleared within 3 business days" -- and it is filed at
-             * the SHIP stop. So the lookup came back empty and the Learn tab
-             * said "Nothing was recorded as expected, so there is nothing to
-             * check against", directly above a graded belief reading "Did not
-             * hold". Two sentences, one screen, and the first was false.
-             *
-             * That is the moat surface. A forecast written at decision time is
-             * the one artifact this product claims nothing else has, and on the
-             * single run that reached Learn it was being denied.
-             *
-             * Widening cannot mis-match, which is why this is the right fix
-             * rather than a lookup by station: the match is an exact id, so a
-             * larger haystack finds the same needle or none.
-             */
-            decisions={decisionsForGrading(bodies.data?.stops)}
-            everDriven={track.drivenAt !== null}
-            isRunning={isRunning}
-            hold={track.hold}
-            holdReason={track.holdReason ?? null}
-            now={now}
-            trackId={trackId}
-          />
+              origin={track.origin}
+              workspaceId={activeWorkspaceId ?? null}
+              productId={track.productId}
+              /*
+               * EVERY STOP, NOT JUST DECIDE, and this was hiding the one thing
+               * the product exists to show.
+               *
+               * `LearningCard` finds the call its verdict grades by exact id --
+               * `x.artifactId === decision_id` -- and that fix is already recorded
+               * in its own header, because matching "the first decision on the
+               * decide stop" once put a verdict beside the wrong forecast. What
+               * was never widened is the LIST it searches. A decision recorded at
+               * any other station was invisible to it.
+               *
+               * Measured on `d1168015`, the only track in the database that has
+               * walked all seven stations: its learning carries
+               * `decision_id = 663c7376`, that decision is a member of the track,
+               * it holds a real `forecast_claim` -- "The PRD will be approved and
+               * design gate cleared within 3 business days" -- and it is filed at
+               * the SHIP stop. So the lookup came back empty and the Learn tab
+               * said "Nothing was recorded as expected, so there is nothing to
+               * check against", directly above a graded belief reading "Did not
+               * hold". Two sentences, one screen, and the first was false.
+               *
+               * That is the moat surface. A forecast written at decision time is
+               * the one artifact this product claims nothing else has, and on the
+               * single run that reached Learn it was being denied.
+               *
+               * Widening cannot mis-match, which is why this is the right fix
+               * rather than a lookup by station: the match is an exact id, so a
+               * larger haystack finds the same needle or none.
+               */
+              decisions={decisionsForGrading(bodies.data?.stops)}
+              everDriven={track.drivenAt !== null}
+              isRunning={isRunning}
+              hold={track.hold}
+              holdReason={track.holdReason ?? null}
+              now={now}
+              trackId={trackId}
+            />
+          </div>
         </div>
-      </div>
-    </Region>
+      </Region>
+    </>
   );
 }
 
