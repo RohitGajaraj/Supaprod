@@ -7713,7 +7713,7 @@ Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
 
 
-### P-73 · A guard's subject is bounded at both ends · Lane: **A2** (after P-72) · Status: READY · Moves: 1
+### P-73 · A guard's subject is bounded at both ends · Lane: **A2** (after P-72) · Status: CODE DONE (3f76b39f2; A1 gate running; test-only, rides the next publish) · Moves: 1
 
 **Why.** F-191: six guards in one night whose subject was defined by where a file happened to end
 or by a comment anchor that stripping removed, so appending an unrelated function put it under a
