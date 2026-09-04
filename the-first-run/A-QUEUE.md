@@ -8314,7 +8314,7 @@ Not walked live -- no dev server / browser access in this worktree this session,
 limitation as every packet closed here. A1: two tabs on Helio, a press in one should land in the
 other's Waiting list within a tick with no reload.
 
-### P-85 · Start's example sentences fit the workspace · Lane: **A3** (after P-83) · Status: READY · Moves: 2
+### P-85 · Start's example sentences fit the workspace · Lane: **A3** (after P-83) · Status: CLAIMED (A3) 09:02 IST 09-04 · Moves: 2
 
 **Why.** In the empty probe workspace (no product), Start's examples read *Make the checkout
 accept an American Express card* and two more from Relay's checkout. A person whose product is a
