@@ -8110,7 +8110,7 @@ simpler rule closes both doors: on a carried track Decide does not decide; it ra
 before spending a model call. P-71e filed. The run stays as evidence.
 
 
-### P-71e · On a carried track, Decide asks before it spends · Lane: **A2** (after P-75, before P-74) · Status: CODE DONE (8be0aac46; A1 suite running; publish batched behind the build lag; a fifth probe sentence follows the publish) · Moves: 1, 2
+### P-71e · On a carried track, Decide asks before it spends · Lane: **A2** (after P-75, before P-74) · Status: CODE DONE (8be0aac46; A1 suite on the tip 14,240 / 0 / 0, tsc 0; publish batched behind the build lag; a fifth probe sentence follows the publish) · Moves: 1, 2
 
 **Why.** The walk above: a `build` recorded by a seat on the person's sentence alone, with a
 forecast the seat wrote, is the same fabricated call as the decline R-39 forbids, and it passed
