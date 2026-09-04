@@ -8475,6 +8475,37 @@ decline made through the transcript card with the reason at 06:09:35 (approval `
 `pr_open`, CI red, `fix_attempts` 0, no live run. Next read: the 06:12 `ci-poll-tick` dispatches
 a builder on PR #5, or does not, and why.
 
+
+**LIVE WALK, the merge, 11:46 to 11:53 IST 09-04 (06:16 to 06:23 UTC).** A correction first: PR
+#5 was green before the first gate rose. The Build run fixed its own CI inside the run, three
+commits between 05:51 and 05:54 (`0d20635`, `c0f4cd0`, `428bb04`), the check *lint and test*
+passed at 05:54:36, and the seat asked for the merge at 05:54:40. A2's "five errors" read was of
+the first commit; A1 declined at 06:09 on that read without reading the head's checks, so the
+decline's recorded reason is wrong on the facts. The rule from it: **read the head sha's checks
+yourself before any merge press; a teammate's read is from a moment.** The product recovered on
+its own: at 06:16:04 `ci-poll-tick` raised the deterministic merge gate 5327bafe (*CI is green on
+this PR, but the mission that opened it is no longer running to request the merge itself*). It has
+no `run_id` and is not in `spine_tracks.pending_gates`, so the run screen cannot show or decide
+it; the Waiting page can. A1 read PR #5 before pressing: 7 files, +240 −70, head `428bb04`,
+`MERGEABLE`, one check green; `AddressStep.tsx` becomes a read-only confirmation of the saved
+address with *Continue to Payment* and *Change Address* and a no-address fallback, the editable
+form and `isComplete` removed; `AddressStep.css` styles the summary; the two test files match the
+component; CI passes. **That is the change the spec asked for (R-40).** Two facts against it,
+recorded rather than blocking: the three `.supaprod/` record files are wrong for this track
+(`spec.md` is the tablet track's spec, "increase tablet checkout completion rate from 67";
+`plan.md` mixes both tracks' steps; `intent.md` is placeholders), which is P-112's subject and now
+its acceptance; and the Design verdict shown is *Revise* from 2026-09-02 on the old changeset,
+never re-run on the new commits (P-116 must read the verdict at the head, not the cached one).
+The card also said *The work this was holding has already finished, so answering it now releases
+nothing* (`still-holds-work.ts:63`), false for a tick-raised merge gate, whose answer executes the
+merge (P-116). **Pressed Approve on the Waiting page at 06:22:34 UTC.** Executed 06:22:35; PR #5
+merged at 06:22:41 by the connector, merge commit `963d9df2`; changeset `merged` 06:22:42. Track
+un-deferred at 06:23:48 so Ship runs its try on the next sweep. **The honest Ship is merged.** What
+Ship can do next is bounded by the known fact that relay-homeowner-app has no preview provider
+(the run screen says so: *No app to show yet*); the release gate needs a preview at the merged
+commit (R-27). Next read: the sweep's Ship drive, then the founder's call on a provider for the
+bound repo.
+
 ### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUBLISHED 09:38 IST 09-04 (b05fa6cf6; A1 on the tip: build 0 clean, tsc 0, 14,291 / 0 / 0; the keyboard walk follows) · Moves: 2, 5
 
 **Why.** Since 09-03 the product gained nine doors (P-60), a bottom bar and a sheet (P-81), the
@@ -8988,7 +9019,7 @@ change. (2) A workspace setting, default on, for whether the product writes its 
 repository, with the sentence that says what is lost when it is off (the run's record lives only
 here). (3) A guard that the card names the record files whenever the commit carries them.
 
-**Acceptance.** The card on PR #5 shows the line; the setting exists and is read by Build. Full
+**Acceptance.** The card on PR #5 shows the line; the setting exists and is read by Build; and the record files are this track's (live 06:20 UTC 09-04, PR #5's `spec.md` was the tablet track's spec, `plan.md` mixed both tracks' steps and `intent.md` was placeholders: a record that is wrong is worse than none, so the writer reads the track's own artifacts or writes nothing). Full
 suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
