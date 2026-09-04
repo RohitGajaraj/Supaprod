@@ -193,21 +193,14 @@ import {
   Value,
 } from "@/components/meridian/surface-parts";
 import { useServerFn } from "@tanstack/react-start";
-// The launch-kit import stands alone, and merging the two lines will go red.
-// ship-has-an-agent.test.ts guards the exact statement `import {
-// generateLaunchKit } from "@/lib/studio.functions"` because that capability
-// existed for weeks with its only caller on another surface, and the guard
-// exists so nobody quietly drops it again. Adding a name to that line breaks a
-// rule about a different thing entirely, so the rollback comes in on its own.
-import { generateLaunchKit } from "@/lib/studio.functions";
 import { rollbackRelease } from "@/lib/studio.functions";
 // THE READ THIS SURFACE USED TO SAY IT DID NOT HAVE, plus the door that repairs
 // what it finds. `listAppliedChanges` is every MERGED changeset in the
 // workspace, which is the only thing that can see a merge the changelog cannot,
 // and `generateReleaseNotes` is what gives such a merge a release at all. On
-// its own line for the same reason the launch kit is: ship-has-an-agent.test.ts
-// pins that statement character for character, so a name added to it breaks a
-// rule about a different thing entirely.
+// its own line because ship-has-an-agent.test.ts pins this exact statement
+// character for character, so a name added to it breaks a rule about a
+// different thing entirely.
 import {
   generateReleaseNotes,
   listAppliedChanges,
@@ -479,6 +472,44 @@ function onDate(ms: number | null): string | null {
   const d = new Date(ms);
   if (Number.isNaN(d.getTime())) return null;
   return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}
+
+/**
+ * The announcement composer's own prefilled body (P-133, A-QUEUE.md).
+ *
+ * A1 wrote the first announcement by hand, from the release notes and the
+ * PR, because the composer opened empty. `generateLaunchKit` -- a real
+ * model pass over the changeset -- had been drafting the customer half
+ * before this packet, and that is exactly what it stopped doing here:
+ * "no filler, a verifiable mechanism first" is the packet's own phrase, and
+ * a model inventing what a change "means for your customers" in a document
+ * with no review gate before it goes out is filler with a byline. Every
+ * word this function writes traces to a column on the release entry --
+ * the notes, the date, the PR, the address -- and the one part that
+ * cannot be assembled from a row, what the change means for a customer,
+ * is left as a bracketed prompt for the person to write, never guessed.
+ */
+export const CUSTOMER_MEANING_PROMPT =
+  "[Write a sentence or two about what this means for the people using it.]";
+
+export function announcementDraftBody(e: {
+  body: string | null;
+  released_at: string;
+  pr_number: number | null;
+  production_url?: string | null;
+}): string {
+  const notes = (e.body ?? "").trim();
+  const date = onDate(Date.parse(e.released_at));
+  const closing = [
+    date ? `Shipped ${date}` : null,
+    e.pr_number ? `PR #${e.pr_number}` : null,
+    e.production_url ?? null,
+  ]
+    .filter((x): x is string => !!x)
+    .join(" · ");
+  return ["What changed", notes, "", "What it means for your customers", CUSTOMER_MEANING_PROMPT, "", closing].join(
+    "\n",
+  );
 }
 
 /** The first real sentence of a body, for the gate's evidence line. */
@@ -1359,7 +1390,6 @@ function Ship() {
   const wid = activeWorkspaceId ?? "";
 
   const fChangelog = useServerFn(listChangelog);
-  const fLaunchKit = useServerFn(generateLaunchKit);
   const fList = useServerFn(listAnnouncements);
   const fMembers = useServerFn(listWorkspaceMembers);
   const fCreate = useServerFn(createAnnouncement);
@@ -1486,8 +1516,6 @@ function Ship() {
   const [mode, setMode] = React.useState<Mode>({ kind: "idle" });
   const [draftTitle, setDraftTitle] = React.useState("");
   const [draftBody, setDraftBody] = React.useState("");
-  /** True while the crew is writing the customer half of an announcement. */
-  const [drafting, setDrafting] = React.useState(false);
   const [picked, setPicked] = React.useState<string | null>(null);
   const [allNotes, setAllNotes] = React.useState(false);
   const [allPosts, setAllPosts] = React.useState(false);
@@ -2317,47 +2345,34 @@ function Ship() {
   }
 
   /**
-   * A release note becomes the announcement, and the CREW writes the customer
-   * half of it.
+   * A release note becomes the announcement's first draft (P-133, A-QUEUE.md).
    *
-   * WHAT THIS SURFACE USED TO ASK OF A PERSON. Ship was the one station with no
-   * agent anywhere on it: this function copied a release note's title and body
-   * into the composer verbatim, which is a clipboard rather than a draft, and
-   * then a human wrote "what it means for your customers" from a blank box.
-   * Meanwhile `generateLaunchKit` has existed the whole time, turns a shipped
-   * changeset into exactly that copy, and was reachable only from the Build
-   * panel. The capability was one surface away from the work it was written for.
+   * WHAT THIS SURFACE USED TO ASK OF A PERSON. *Pick one that is live to write
+   * the announcement from it* opened the release document, not the composer,
+   * and *Write another* opened an empty composer -- so A1 wrote the first
+   * announcement by hand, from the release notes and the PR, because nothing
+   * on the page did it for her.
    *
-   * A release note and a customer announcement are DIFFERENT DOCUMENTS, which is
-   * the whole reason copying one into the other read as unfinished. The note
-   * says what changed, in the repository's voice. The announcement says what it
-   * means for someone who does not read pull requests. So the title carries over
-   * (it is the same subject) and the body is drafted.
-   *
-   * FALLS BACK TO TODAY'S BEHAVIOUR, ALWAYS. An entry with no changeset behind
-   * it, a refused call, a model that is down: each lands the note's own body in
-   * the box, which is exactly what this function did before. The person is never
-   * left worse off than they were, and never left with an empty composer.
+   * This used to call `generateLaunchKit`, a real model pass over the
+   * changeset, to draft the customer half. That drafted prose in a document
+   * with no review gate before it goes out, which is filler with a byline:
+   * the packet's own words are "plain register, no filler, a verifiable
+   * mechanism first". `announcementDraftBody` composes the same three parts
+   * from columns already on the row instead -- the notes, the date, the PR,
+   * the address -- and leaves the one part no row can answer, what the change
+   * means for a customer, as a bracketed prompt for the person to write.
    */
   function startFrom(e: ChangelogEntry) {
     setDraftTitle(e.title.slice(0, 200));
-    setDraftBody(e.body ?? "");
+    setDraftBody(
+      announcementDraftBody({
+        body: e.body,
+        released_at: e.released_at,
+        pr_number: e.pr_number,
+        production_url: e.production_url,
+      }),
+    );
     setMode({ kind: "new" });
-
-    if (!e.changeset_id) return;
-    setDrafting(true);
-    void fLaunchKit({ data: { changesetId: e.changeset_id } })
-      .then((kit) => {
-        // `email` is the customer-facing register of the kit. `changelog` is the
-        // note we already have, and blog/social are other surfaces' shapes.
-        const written = kit?.email?.trim();
-        if (written) setDraftBody(written.slice(0, 20000));
-      })
-      .catch(() => {
-        // The note stays in the box. A failed draft must not cost the person
-        // the text they already had.
-      })
-      .finally(() => setDrafting(false));
   }
 
   const gateLines = (a: AnnouncementRow): React.ReactNode[] => {
@@ -2646,30 +2661,6 @@ function Ship() {
                 />
               </Field>
               <Field label="What it means for your customers" htmlFor="ship-announcement-body">
-                {/*
-                 * THE CREW WORKING, WHERE THE WORK IS.
-                 *
-                 * surface-discipline §7: `working` belongs only to a genuinely
-                 * dispatched agent, never to a plain read. This one is genuine.
-                 * `generateLaunchKit` is a real model pass over the changeset, and
-                 * it is the only agent on this station, so it is the one place
-                 * here that has earned the pulse.
-                 *
-                 * The box stays EDITABLE while the crew writes. A person who
-                 * already knows what they want to say must not be locked out
-                 * waiting for a draft they did not ask for, and if they type, what
-                 * they typed wins: the draft only lands if the field is theirs to
-                 * fill.
-                 */}
-                {drafting ? (
-                  <div className="mb-mrd-4">
-                    <AgentPulse
-                      label="The crew is writing what this means for your customers"
-                      seed="ship-launch-kit"
-                      detail="Reading the change, then saying what it means"
-                    />
-                  </div>
-                ) : null}
                 <Textarea
                   id="ship-announcement-body"
                   value={draftBody}
