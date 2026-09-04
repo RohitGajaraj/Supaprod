@@ -9480,7 +9480,7 @@ failures). `bunx tsc --noEmit`: clean. `bun test`: 14433 pass, 22 skip, 37 todo,
 expect() calls, 1052 files. `bun run build`: clean end to end. Returning to the watch loop.
 
 
-### P-122 · The person's preview retry reads the repo the way the tick does · Lane: **A3** (after P-121) · Status: CLAIMED (A3) 13:20 IST 09-04 · Moves: 1, 2
+### P-122 · The person's preview retry reads the repo the way the tick does · Lane: **A3** (after P-121) · Status: PUBLISHED, LIVE PRESS PENDING (c1d1fa65b; same gate; published 13:40 IST; A1 presses Try the preview again on a failed preview once served) · Moves: 1, 2
 
 **Why.** Live 06:32 UTC 09-04: A1 pressed *Try the preview again* (P-68b) on the merged Ship
 track and the row recorded *The repository's main branch could not be read (403), so there is
@@ -9560,7 +9560,7 @@ fixture with a production deploy advances. Full suite on the tip, tsc 0, build 0
 **DoD.** Pushed; the three numbers.
 
 
-### P-118b · Reclaiming a hosting slot is a person's press · Lane: **A2** (after P-123, before P-116) · Status: READY · Moves: 2, 3
+### P-118b · Reclaiming a hosting slot is a person's press · Lane: **A2** (after P-123, before P-116) · Status: PUBLISHED, LIVE PRESS PENDING (f857f846a; A1 gate on tip 2f30f1b5b: build 0, tsc 0, 14,452 pass / 0 fail; published 13:40 IST; A1 presses one Reclaim live once served) · Moves: 2, 3
 
 **Why.** P-118 built the verdict (*may this slot be reclaimed*: ours by slug, changeset closed, not
 serving production, past a seven-day keep) and, deliberately, nothing that deletes: a deleted
