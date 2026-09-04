@@ -8557,7 +8557,7 @@ guard did not catch it) and the rows ahead were blank rather than saying what th
 next tick decides whether the press clears the hold itself or waits for the sweep).
 
 
-### P-71f · The person's answer moves the track · Lane: **A2** (now, with P-74b, before P-86 continues) · Status: CODE DONE (e1a10235b; A2: the press had cleared the hold and a drive 1.0 s later refused again, so the answer is filed as the Decide artifact and the station advances in the same write; Point a source first now sets needs-evidence and records nothing; A1 gate running; A1 presses on a30d6b62 after publish) · Moves: 1, 2
+### P-71f · The person's answer moves the track · Lane: **A2** (now, with P-74b, before P-86 continues) · Status: CODE DONE (e1a10235b; A2: the press had cleared the hold and a drive 1.0 s later refused again, so the answer is filed as the Decide artifact and the station advances in the same write; Point a source first now sets needs-evidence and records nothing; A1 on the tip: build 0 clean, tsc 0, 14,328 / 0 / 0; PUBLISHED 10:32 IST 09-04; A1 presses on a30d6b62 after propagation) · Moves: 1, 2
 
 **Why.** Live, track `a30d6b62`: A1 pressed *Build it on your word* at 03:50:25 UTC; the decision
 row was written with the person's claim, a drive was recorded at 03:50 with no hold, and nineteen
