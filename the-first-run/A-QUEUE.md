@@ -8566,7 +8566,7 @@ guard did not catch it) and the rows ahead were blank rather than saying what th
 next tick decides whether the press clears the hold itself or waits for the sweep).
 
 
-### P-71f · The person's answer moves the track · Lane: **A2** (now, with P-74b, before P-86 continues) · Status: CODE DONE (e1a10235b; A2: the press had cleared the hold and a drive 1.0 s later refused again, so the answer is filed as the Decide artifact and the station advances in the same write; Point a source first now sets needs-evidence and records nothing; A1 on the tip: build 0 clean, tsc 0, 14,328 / 0 / 0; PUBLISHED 10:32 IST 09-04; A1 presses on a30d6b62 after propagation) · Moves: 1, 2
+### P-71f · The person's answer moves the track · Lane: **A2** (now, with P-74b, before P-86 continues) · Status: DONE (A1 pressed live 11:12 IST 09-04: the answer moved the track to Define in the same write) · Moves: 1, 2
 
 **Why.** Live, track `a30d6b62`: A1 pressed *Build it on your word* at 03:50:25 UTC; the decision
 row was written with the person's claim, a drive was recorded at 03:50 with no hold, and nineteen
@@ -8753,6 +8753,20 @@ change, if it appears, reads as 90 lines of CSS for a component the repo does no
 on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 reads the page.
+
+
+### LIVE WALK, A1, 11:12 IST 09-04 · the press that moved the track, and the account that ran dry
+
+Track `a30d6b62` on the 10:32 build: *Build it on your word* pressed with an observable typed at
+05:41:31 UTC; the decision landed with the person's claim, the track advanced to **Define** in the
+same write (P-71f live; the map's Decide row reads *On hold*, no raw key, and the rows ahead read
+their preconditions: P-74b live). Define then held **`out-of-credit`**: *AI credits exhausted:
+account credit balance (1) is below the projected cost (19).* The demo account (`5731ab6f`, a
+10,000-credit monthly grant anchored 08-25) spent 5,398 credits in the last 24 hours: five probe
+runs, the tablet track's Build-to-Ship churn before the deferral, and Helio's ticks. A1 granted
+10,000 credits through the product's own `grant_subscription_credits` under the founder's standing
+authority at 05:43 UTC and recorded it here; the grant is a ledger row with reason `grant`, no money
+moved. The honest-Ship presses proceed on it.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
