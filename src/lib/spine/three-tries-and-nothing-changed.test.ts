@@ -145,14 +145,37 @@ describe("the holds that spend nothing are never touched", () => {
 });
 
 describe("what the card says", () => {
-  it("names the count and the time it comes back", () => {
-    const said = triedAgainLine(deferUntil(10, NOW), NOW);
+  it("names the count and the time it comes back, same day", () => {
+    const said = triedAgainLine(deferUntil(10, NOW), NOW, { zone: "UTC" });
     /* "and nothing changed", never "with the same result": the three drives may
        have stopped on different holds, and claiming they were identical is a
        sentence the record does not support. */
     expect(said).toContain(`Tried ${DRIVES_BEFORE_BACKOFF} times and nothing changed`);
     expect(said).not.toContain("same result");
-    expect(said).toContain("12:40");
+    expect(said).toContain("at 12:40");
+  });
+
+  it("names the day, not the clock, for a retry that lands on a later day (P-143)", () => {
+    const said = triedAgainLine("2026-09-21T00:00:00Z", NOW, { zone: "UTC" });
+    expect(said).toContain(`Tried ${DRIVES_BEFORE_BACKOFF} times and nothing changed`);
+    expect(said).toContain("on Sep 21");
+    expect(said).not.toContain("00:00");
+  });
+
+  it("says the calendar wait's own sentence, not a false retry claim, when the deferral is the forecast horizon (P-143)", () => {
+    const said = triedAgainLine("2026-09-21T00:00:00Z", NOW, {
+      zone: "UTC",
+      isForecastHorizon: true,
+    });
+    expect(said).toBe("Learn returns on Sep 21.");
+    expect(said).not.toContain("Tried");
+  });
+
+  it("reads the person's own zone, not UTC, for both the clock and the day", () => {
+    /* 2026-09-04T23:15:00Z is still Sep 4 in UTC but already Sep 5 in
+       Kolkata (UTC+5:30) -- a zone-blind formatter would call this "today". */
+    const said = triedAgainLine("2026-09-04T23:15:00Z", NOW, { zone: "Asia/Kolkata" });
+    expect(said).toContain("on Sep 5");
   });
 
   it("says nothing once the wait is over, so a stale row cannot claim one", () => {

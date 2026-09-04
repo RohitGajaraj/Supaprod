@@ -77,6 +77,8 @@ import { TakeOver } from "@/components/track/TakeOver";
 import { triesLine } from "@/components/track/hold-tries";
 import { wayOut } from "@/components/track/way-out";
 import { triedAgainLine } from "@/lib/spine/three-tries-and-nothing-changed";
+import { sameCalendarDay } from "@/lib/time-of-day";
+import { useTimezone } from "@/hooks/use-timezone";
 import { builtWithLine } from "@/lib/hosting/what-shape-is-this-repo";
 import { buildBlocked } from "@/components/track/build-precondition";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
@@ -535,6 +537,19 @@ export function TrackRunLeft({
   const forecastHorizonDate = React.useMemo(
     () => horizonFromStops(artifactsQ.data?.stops),
     [artifactsQ.data?.stops],
+  );
+
+  const zone = useTimezone();
+
+  /* Whether `deferred_until` is holding this card's own words hostage to a
+     date it did not earn: the calendar wait (`needs-evidence`) writes the
+     forecast horizon into the same column the backoff ladder uses, and
+     "Tried 3 times" is false for a track that has never been driven three
+     times against this hold at all (P-143). */
+  const deferralIsForecastHorizon = Boolean(
+    track?.deferredUntil &&
+      forecastHorizonDate &&
+      sameCalendarDay(track.deferredUntil, forecastHorizonDate, zone),
   );
 
   /* Hoisted above the R-39 read below, which needs the workspace. Unconditional
@@ -1290,8 +1305,18 @@ export function TrackRunLeft({
               />
             ) : null}
 
-            {triedAgainLine(track?.deferredUntil, new Date()) ? (
-              <Row lead={triedAgainLine(track?.deferredUntil, new Date()) as string} />
+            {triedAgainLine(track?.deferredUntil, new Date(), {
+              zone,
+              isForecastHorizon: deferralIsForecastHorizon,
+            }) ? (
+              <Row
+                lead={
+                  triedAgainLine(track?.deferredUntil, new Date(), {
+                    zone,
+                    isForecastHorizon: deferralIsForecastHorizon,
+                  }) as string
+                }
+              />
             ) : null}
 
             {holdWayOut.next ? (

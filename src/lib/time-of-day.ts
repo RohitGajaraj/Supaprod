@@ -42,6 +42,22 @@ function calendarDate(iso: string, zone: string): string {
   }).format(new Date(iso));
 }
 
+/** Whether two ISO instants fall on the same calendar day in `zone`. */
+export function sameCalendarDay(a: string, b: string, zone: string): boolean {
+  return calendarDate(a, zone) === calendarDate(b, zone);
+}
+
+/** "Sep 21" for an ISO instant, read in `zone` -- the far-side half of
+ *  `dateTimeInZone` on its own, for a caller that wants the day without a
+ *  clock riding along (a horizon is a date, not a moment). */
+export function monthDayInZone(iso: string, zone: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: zone,
+    month: "short",
+    day: "numeric",
+  }).format(new Date(iso));
+}
+
 /**
  * The day-and-clock idiom every surface should read a time through: the
  * bare clock when `iso` falls on `nowIso`'s own calendar day in `zone`,

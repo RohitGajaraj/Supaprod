@@ -54,6 +54,8 @@
  * reason. Backing either off would be this rule taking credit for silence.
  */
 
+import { clockInZone, monthDayInZone, sameCalendarDay } from "@/lib/time-of-day";
+
 /** How many fruitless drives before the first backoff. */
 export const DRIVES_BEFORE_BACKOFF = 3;
 
@@ -147,18 +149,40 @@ export function deferUntil(minutes: number, now: Date): string {
  *
  * Null once the time has passed, so a stale row never claims a wait that is
  * over.
+ *
+ * ── THE DAY, NOT JUST THE CLOCK (P-143) ───────────────────────────────────
+ * A raw UTC slice read *at 00:00* for a track deferred seventeen days out --
+ * the moment was real, the sentence just described it as a coin flip on
+ * tonight. `zone` (P-130's `dateTimeInZone`) makes a same-day retry read the
+ * clock (*at 12:40*) and a later one read the day (*on Sep 21*), never a bare
+ * clock a reader would place today.
+ *
+ * ── AND THE FORECAST HORIZON IS NOT A RETRY (P-143) ───────────────────────
+ * `deferred_until` also carries the calendar wait's own horizon (P-113b's own
+ * comment: `needs-evidence` owns that column for its own reason). Three tries
+ * never happened there -- nothing drove the track three times, it is waiting
+ * on a date -- so `isForecastHorizon` swaps the sentence for the one this
+ * repo already uses for that wait (`calendarWaitLine`'s own wording) instead
+ * of claiming a retry count that has no drives behind it.
  */
 export function triedAgainLine(
   deferredUntil: string | null | undefined,
   now: Date,
-  formatTime: (iso: string) => string = (iso) => iso.slice(11, 16),
+  options?: { zone?: string; isForecastHorizon?: boolean },
 ): string | null {
   const iso = (deferredUntil ?? "").trim();
   if (!iso) return null;
   const at = Date.parse(iso);
   if (Number.isNaN(at) || at <= now.getTime()) return null;
+  const zone = options?.zone ?? "UTC";
+  if (options?.isForecastHorizon) {
+    return `Learn returns on ${monthDayInZone(iso, zone)}.`;
+  }
+  const when = sameCalendarDay(iso, now.toISOString(), zone)
+    ? `at ${clockInZone(iso, zone)}`
+    : `on ${monthDayInZone(iso, zone)}`;
   /* "and nothing changed", not "with the same result": the three drives may
      have stopped on different holds, and claiming they were identical would be
      a sentence the record does not support (P-113b). */
-  return `Tried ${DRIVES_BEFORE_BACKOFF} times and nothing changed; trying again at ${formatTime(iso)}.`;
+  return `Tried ${DRIVES_BEFORE_BACKOFF} times and nothing changed; trying again ${when}.`;
 }
