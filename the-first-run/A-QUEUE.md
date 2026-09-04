@@ -8288,6 +8288,21 @@ build 0.
 
 **DoD.** Pushed; the three numbers; A1 reads both workspaces.
 
+
+### LIVE WALK, A1, 08:50 IST 09-04 · the tablet track after its deferral lapsed
+
+Track `6817e386` (Ship, evidence under R-40, not the candidate). The six-hour deferral lapsed at
+01:24 UTC; the sweep then drove Ship at 01:30, 01:50 and 02:10 (`produced-nothing` each), at
+02:30 the track was at **Build** with no hold (the given-up or correction path sent it back), at
+02:40 Ship again with no hold, then 02:50, 03:00, 03:10 `produced-nothing`, and at 03:17 it sits
+at Build, hold null, attempts 0: a Build-to-Ship loop that spends on every tick and can never pass
+R-27 without a preview. The run screen for it reads *Ready when you are.* with no Why-it-stopped
+and no P-59c card, because the hold is null at the moment of reading. A1 deferred it 24 hours at
+03:18 UTC. Two things for A2 in P-73's slot or as P-59d: (1) a track whose Ship cannot pass for a
+recorded reason must not be returned to Build by the given-up path (the reason is not Build's);
+(2) the P-59c card must draw from the record of the newest failed deployment even when the current
+hold is null, since between ticks the track reads as ready. The press waits on that card.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
