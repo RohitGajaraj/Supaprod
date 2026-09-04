@@ -10019,7 +10019,7 @@ suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers.
 
 
-### P-134 · A track remembers the bet it started from · Lane: **A3** (after P-130, before P-131) · Status: DONE (A3) 15:50 IST 09-04 (d3c87d48c) · Moves: 1, 2
+### P-134 · A track remembers the bet it started from · Lane: **A3** (after P-130, before P-131) · Status: PUBLISHED, LIVE READ PENDING (d3c87d48c; migration 20260909091600 applied, file in the tree, ledger confirmed by A1 10:23 UTC; A1 gate on tip f6674040b: build 0, tsc 0, 14,555 pass / 0 fail; published 15:55 IST; the live read is a press from a bet, which A1 makes on the probe when its deferral lifts or on a Helio bet the founder wants run) · Moves: 1, 2
 
 **Why.** A3's read on P-126 (14:59 IST 09-04): the shipped track 2fdf93b6 carries no opportunity
 id anywhere in its lineage (decision, mission, four spec revisions), and `startTrack` never
