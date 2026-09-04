@@ -9105,6 +9105,14 @@ time inside ten minutes. Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers.
 
 
+
+**Evidence, 12:32 IST 09-04 (07:02 UTC).** Since the regrant at 04:1x UTC the account spent 2,566
+credits in under three hours (balance 7,449 of 10,001); 2,469 of them on surface `agent`. Of the
+47 runs since 04:00 UTC, 36 were the probe workspace's (`c8ffbbe7`, $0.16) against 11 for Helio
+($0.21), and the probe's five tracks have nothing left to prove. A1 deferred all five probe tracks
+48 hours at 07:02 UTC to stop the spend by hand; this packet is the rule that makes the hand
+unnecessary.
+
 ### P-114 · A run follows its approval out of waiting · Lane: **A2** (now, before P-112; it is what blocks P-86) · Status: DONE (326e889e0; A1 gate on tip 8a6b671ea: build 0, tsc 0, 14,368 pass / 0 fail; published 12:05 IST, deployment 44043739; A2 reads the stranded-run count once served, A1 confirms any hand backfill) · Moves: 1
 
 **Why.** Read live 06:01 UTC 09-04: 14 runs are `waiting_approval`; 13 of them have no pending
