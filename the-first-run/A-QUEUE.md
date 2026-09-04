@@ -9381,7 +9381,7 @@ packets with no browser in this environment.
 `bunx tsc --noEmit`: clean. `bun test`: 14406 pass, 22 skip, 37 todo, 0 fail, 38346 expect() calls,
 1049 files. `bun run build`: clean end to end. Returning to the watch loop.
 
-### P-120 · A lineage edge carries its workspace · Lane: **A3** (after P-119) · Status: READY · Moves: 1
+### P-120 · A lineage edge carries its workspace · Lane: **A3** (after P-119) · Status: CLAIMED (A3) 12:54 IST 09-04 · Moves: 1
 
 **Why.** `error_events` 06:30:48 UTC 09-04, on the probe's Build (track a30d6b62): *lineage edge
 refused: null value in column "workspace_id" of relation "artifact_lineage"*, then *the prd ->
