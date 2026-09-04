@@ -9480,7 +9480,7 @@ failures). `bunx tsc --noEmit`: clean. `bun test`: 14433 pass, 22 skip, 37 todo,
 expect() calls, 1052 files. `bun run build`: clean end to end. Returning to the watch loop.
 
 
-### P-122 · The person's preview retry reads the repo the way the tick does · Lane: **A3** (after P-121) · Status: READY · Moves: 1, 2
+### P-122 · The person's preview retry reads the repo the way the tick does · Lane: **A3** (after P-121) · Status: CLAIMED (A3) 13:20 IST 09-04 · Moves: 1, 2
 
 **Why.** Live 06:32 UTC 09-04: A1 pressed *Try the preview again* (P-68b) on the merged Ship
 track and the row recorded *The repository's main branch could not be read (403), so there is
