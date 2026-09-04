@@ -41,8 +41,11 @@
  * worked, one call at a time, and keeps one primary action on screen.
  *
  * Every behaviour is preserved: optimistic decide with rollback, a/d, the
- * workspace-scoped query key shared with the rail badge and Today, the
- * unscoped other-workspaces read, and the live-activity line on an empty queue.
+ * workspace-scoped query key shared with the rail badge and Today, and the
+ * live-activity line on an empty queue. The other-workspaces read is no
+ * longer unscoped -- P-93 (A-QUEUE.md) made it one scoped read per other
+ * workspace instead of one bare cross-workspace fan-out; see
+ * `otherWorkspacesLine`'s own header below for why.
  *
  * ─────────────────────────────────────────────────────────────────────────
  * 2026-08-14: THE COST OF WAITING IS NOW ON THE SURFACE (Meridian).
@@ -112,7 +115,7 @@ import { approvalsQueueKey, APPROVALS_QUEUE_PREFIX, invalidateShellReads } from 
 import { isModalOpen } from "@/lib/overlay";
 import { presenceAnchor } from "@/components/shell/presence-anchor";
 import { useServerFn } from "@tanstack/react-start";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -304,7 +307,12 @@ function oldestFirst(a: ApprovalQueueItem, b: ApprovalQueueItem): number {
 
 function ApprovalsSurface() {
   const qc = useQueryClient();
-  const { activeWorkspaceId, workspaces, isLoading: workspacesLoading } = useWorkspace();
+  const {
+    activeWorkspaceId,
+    workspaces,
+    setActiveWorkspaceId,
+    isLoading: workspacesLoading,
+  } = useWorkspace();
   const ask = useAsk();
   const fetchQueue = useServerFn(getApprovalsQueue);
   const fetchLiveActivity = useServerFn(getLiveActivity);
@@ -337,16 +345,61 @@ function ApprovalsSurface() {
     queryKey: approvalsQueueKey(activeWorkspaceId),
     queryFn: () => fetchQueue({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
   });
-  // Unscoped read, this page only, so the quiet "N more in other workspaces"
-  // line can be honest without every other surface paying for it too.
-  const allWorkspacesQueue = useQuery({
-    queryKey: ["approvals", "queue-unscoped"],
-    queryFn: () => fetchQueue({ data: {} }),
-    enabled: !!activeWorkspaceId,
+  /*
+   * P-93: A SCOPED READ PER WORKSPACE, NEVER ONE BARE CROSS-WORKSPACE COUNT.
+   *
+   * This used to be one unscoped `fetchQueue({data: {}})` fanned across every
+   * workspace the caller belongs to, subtracted against the active
+   * workspace's own count -- exactly the "bare cross-workspace count" the
+   * packet's own scope forbids, and the one place P-67's read-names-its-
+   * workspace guard would otherwise have to carve an exception for. Instead,
+   * one query PER other workspace, each naming that workspace by id --
+   * `a-read-names-its-workspace.test.ts`'s own `DELIBERATELY_UNSCOPED` entry
+   * for `calibrate-tick.ts` states the rule this follows: "the tick iterates
+   * workspaces itself and scopes each pass; that loop IS the scoping." Same
+   * `approvalsQueueKey`, so a workspace switched TO here starts warm.
+   */
+  const otherWorkspaces = useMemo(
+    () => workspaces.filter((w) => w.id !== activeWorkspaceId),
+    [workspaces, activeWorkspaceId],
+  );
+  const otherWorkspaceQueues = useQueries({
+    queries: otherWorkspaces.map((w) => ({
+      queryKey: approvalsQueueKey(w.id),
+      queryFn: () => fetchQueue({ data: { workspaceId: w.id } }),
+      enabled: !!activeWorkspaceId,
+      staleTime: 60_000,
+    })),
   });
-  const otherWorkspacesCount = activeWorkspaceId
-    ? Math.max(0, (allWorkspacesQueue.data?.items.length ?? 0) - (queue.data?.items.length ?? 0))
-    : 0;
+  const otherWorkspacesWithWork = useMemo(
+    () =>
+      otherWorkspaces
+        .map((w, i) => ({
+          id: w.id,
+          name: w.name,
+          count: otherWorkspaceQueues[i]?.data?.items.length ?? 0,
+        }))
+        .filter((w) => w.count > 0)
+        .sort((a, b) => b.count - a.count),
+    [otherWorkspaces, otherWorkspaceQueues],
+  );
+  /*
+   * THE DOOR ALWAYS TARGETS THE ONE WITH THE MOST WAITING, even when the
+   * line names a second and a tail count -- "the workspace with the most
+   * waiting... is a door that switches to it", singular, no matter how many
+   * are named in the sentence beside it.
+   */
+  const otherWorkspacesLine = useMemo(() => {
+    if (otherWorkspacesWithWork.length === 0) return null;
+    const [top, second] = otherWorkspacesWithWork;
+    if (!top) return null;
+    const parts = [`${top.count} waiting in ${top.name}`];
+    if (second) parts.push(`${second.count} in ${second.name}`);
+    const restCount = otherWorkspacesWithWork.length - parts.length;
+    const tail =
+      restCount === 0 ? "." : restCount === 1 ? ", and one more." : `, and ${restCount} more.`;
+    return { text: `${parts.join(", ")}${tail}`, targetWorkspaceId: top.id };
+  }, [otherWorkspacesWithWork]);
   const liveActivity = useQuery({
     /* P-75: the key and the call both name the workspace. A1 read "One just
        came in. Refresh to see it." in an EMPTY probe workspace, where nothing
@@ -1054,13 +1107,23 @@ function ApprovalsSurface() {
 
         <UndatedCalls calls={undated} />
 
-        {otherWorkspacesCount > 0 ? (
-          <p className="text-mrd-label text-mrd-mute">
-            <span className="font-mrd-mono tabular-nums text-mrd-prose text-mrd-body">
-              {otherWorkspacesCount}
-            </span>{" "}
-            more waiting in your other workspaces.
-          </p>
+        {/*
+         * P-93: a bare cross-workspace number said nothing a person could act
+         * on and left them to find the switcher themselves. This is the ONE
+         * place a cross-workspace number is allowed to appear at all
+         * (P-67's own read-names-its-workspace guard governs every other
+         * surface) -- named per workspace, per `otherWorkspacesLine`'s own
+         * header, and pressing it switches straight to the one that holds
+         * the most.
+         */}
+        {otherWorkspacesLine ? (
+          <button
+            type="button"
+            onClick={() => setActiveWorkspaceId(otherWorkspacesLine.targetWorkspaceId)}
+            className="text-left text-mrd-label text-mrd-mute underline decoration-mrd-line underline-offset-2 hover:text-mrd-body"
+          >
+            {otherWorkspacesLine.text}
+          </button>
         ) : null}
       </div>
 
