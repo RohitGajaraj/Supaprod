@@ -10723,7 +10723,7 @@ sentence on a solved problem lands on the shipped spec. Full suite on the tip, t
 **DoD.** Pushed; migration applied; the counts before and after.
 
 
-### P-143 · A hold that waits for a day says the day · Lane: **A3** (after the P-140 fix, before P-141) · Status: PUBLISHED, LIVE READ PENDING (deadb4832; tsc 0, 14,698 pass / 0 fail, build 0, docs:check clean; A1 reads the served card on 2fdf93b6 once it deploys; A1 gate 168 on the landed tip 598b32c79: build 0, tsc 0, 14,722 pass / 0 fail; published 19:49 IST; A1 reads the card on 2fdf93b6 once served) · Moves: 2
+### P-143 · A hold that waits for a day says the day · Lane: **A3** (after the P-140 fix, before P-141) · Status: DONE (deadb4832; tsc 0, 14,698 pass / 0 fail, build 0, docs:check clean; A1 reads the served card on 2fdf93b6 once it deploys; A1 gate 168 on the landed tip 598b32c79: build 0, tsc 0, 14,722 pass / 0 fail; published 19:49 IST; A1 reads the card on 2fdf93b6 once served; live 20:05 IST on 2fdf93b6: the card reads "Learn returns on Sep 21." and the "trying again at 00:00" line is gone) · Moves: 2
 
 **Why.** The shipped track's run screen at Learn, 19:13 IST 09-04: *Tried 3 times and nothing
 changed; trying again at 00:00.* The track's `deferred_until` is 2026-09-21 00:00 UTC, the
@@ -10951,6 +10951,13 @@ reading shape.
    and an endpoint with none as *connected, nothing received yet*, with the date it was minted.
 5. Guards for each; a migration for the token table per rule 19 if a new table is the right
    store (A2 decides; the readings themselves stay on the clause).
+
+**One path, stated so nobody adds a second (A2, 20:05 IST).** A person typing 71 and a connector
+POSTing 71 land in the same `readings[]` on the clause, with `by` and `at`; `whatWouldMeasure`
+already treats a hand reading as a first-class source, so nothing in P-137 or P-144 changes for a
+connector to work, and there is no parallel column for machine readings. Until this lands, P-144
+scope 1 drops the *Connect a source* press where nothing connectable exists, so the sentence offers
+only the door that works.
 
 **Acceptance.** On the probe track, never Helio's live spec: mint an endpoint, POST a number to
 it with curl, and the spec's clause shows the reading and the source line; the honest sentence
