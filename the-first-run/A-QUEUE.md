@@ -8197,7 +8197,7 @@ writes the person's sentence as the claim. Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
 
 
-### P-82 · The build stops rewriting four route files · Lane: **A3** (after P-81) · Status: CODE DONE, PUSHED 1fa6d5520 · Moves: 1
+### P-82 · The build stops rewriting four route files · Lane: **A3** (after P-81) · Status: CODE DONE (1fa6d5520; A1 gate running, including whether the build leaves the tree clean; publish in the batch) · Moves: 1
 
 **Why.** `bun run build` rewrites `src/routes/mcp.ts`, `src/routes/[.mcp]/list-tools.ts`,
 `src/routes/[.mcp]/invoke-tool/$tool.ts` and `src/routes/[.well-known]/oauth-protected-resource.ts`
