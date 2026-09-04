@@ -10050,7 +10050,7 @@ Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers.
 
 
-### P-133 · The announcement composer starts from the release · Lane: **A3** (after P-132) · Status: READY · Moves: 2
+### P-133 · The announcement composer starts from the release · Lane: **A3** (after P-132) · Status: CLAIMED (A3) 16:46 IST 09-04 · Moves: 2
 
 **Why.** Ship page, 15:00 IST 09-04: *What shipped: pick one that is live to write the announcement
 from it*, and picking the live release opens the release document, not the composer; *Write
