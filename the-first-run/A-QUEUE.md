@@ -10947,7 +10947,7 @@ reading shape.
    keeps every value.
 3. *Connect a source* on the spec goes to this, not to Sources; Sources gains a line saying
    metric sources live on the spec, so the two doors do not contradict.
-4.  reads an endpoint with at least one reading as a connected source
+4. `what-would-measure-this` reads an endpoint with at least one reading as a connected source
    and an endpoint with none as *connected, nothing received yet*, with the date it was minted.
 5. Guards for each; a migration for the token table per rule 19 if a new table is the right
    store (A2 decides; the readings themselves stay on the clause).
