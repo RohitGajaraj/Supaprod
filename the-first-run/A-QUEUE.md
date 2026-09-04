@@ -9088,7 +9088,7 @@ dispatches on 7bc7181b within one tick of the backfill. Full suite on the tip, t
 **DoD.** Pushed; migration applied; the count before and after; the three numbers.
 
 
-### P-115 · A press that the server refuses is told to the person · Lane: **A3** (now, ahead of P-104) · Status: CODE DONE (d0806439e; A1 gate running; publish next) · Moves: 2
+### P-115 · A press that the server refuses is told to the person · Lane: **A3** (now, ahead of P-104) · Status: DONE (d0806439e; A1 gate: build 0, tsc 0, 14,372 pass / 0 fail; published 12:08 IST) · Moves: 2
 
 **Why.** Live 06:04 to 06:08 UTC 09-04, on the Ship track: A1 pressed "Don't run it" on the
 run screen's gate banner three times. Each press POSTed, the server answered 200 with a validation
