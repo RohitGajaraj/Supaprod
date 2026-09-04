@@ -9886,6 +9886,36 @@ on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
+**Report (A3, 15:19 IST 09-04, 6b74164f8), PARTIAL -- read the scope line before treating this as
+closed.** Built the one formatter and the one source: `time-of-day.ts` now holds `clockInZone`
+(HH:MM in a given IANA zone) and `dateTimeInZone` (day-aware -- a bare clock on today's own
+calendar day in that zone, *yesterday HH:MM* the day before, *Mon D, HH:MM* further back). Neither
+reads the zone itself; both take it as an explicit parameter, so the source is one decision made
+once -- `useTimezone()` (`hooks/use-timezone.ts`), the profile's own saved zone, falling back to
+the browser's when unset (the same default Settings' own `ProfileSection` already applies to the
+field, sharing its `["profile"]` query key so a session that visited Settings pays no second round
+trip). Rewired every P-126 site onto it: `releasedAnswer`/`homeAnswers`, `shippedLabel`,
+`startRowMiddle`'s *Live since* prefix, all now zone-threaded rather than hard-coded UTC.
+**What is NOT done, stated plainly rather than folded into "pushed":** a grep for
+`toLocaleTimeString`/`toLocaleDateString`/`toISOString().slice(11` across `src/` (excluding tests)
+returns 70 files, none swept. This packet fixes the one acute, currently-live regression (P-126's
+own `utcClock`, the only place in the product hard-coded to UTC against everything else's
+browser-local convention) and builds the shared formatter the other 70 should migrate onto --
+attempting all of them in one pass, each needing its own careful read plus a guard, risked exactly
+the half-finished, compressed-instead-of-designed failure the repo's own bar exists to catch.
+Flagging the remaining sweep as real, scoped, follow-on work rather than claiming it. Guard tests:
+`time-of-day.test.ts` (new -- `clockInZone` across zones and a midnight-crossing instant;
+`dateTimeInZone`'s three branches plus the zone-vs-UTC calendar-day edge case);
+`three-answers-above-your-runs.test.ts` gained the exact yesterday/dated fixtures and a cross-zone
+assertion; `ExampleJobs.test.tsx`/`a-shipped-track-says-so-first.test.ts` pin `"UTC"` explicitly
+wherever a clock string is asserted literally, so neither depends on the test process's own zone.
+Full suite: `bunx tsc --noEmit` 0; `bun test` 14522 pass / 0 fail / 22 skip / 37 todo across 1059
+files; `bun run build` 0 (Cloudflare Worker output); `bun run docs:check` exit 0, docs-doctor clean,
+zero WARN/FAIL. Pushed directly to `main` (6b74164f8). No live browser access from this worktree --
+the Acceptance's own "Start's row reads Live since 12:28" needs a live read from A1, and "the sweep
+count before and after" is honestly 70 before, 0 after for this packet's own pass.
+
+
 ### P-131 · A changeset born from a track carries its spec and its bet · Lane: **A3** (after P-130) · Status: READY · Moves: 1, 3
 
 **Why.** The release document for the first live release (Ship page, 14:34 IST) says *This release
