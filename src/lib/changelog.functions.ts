@@ -2,7 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { changelogRowFor, trackIdByChangeset, type ChangesetForChangelog } from "@/lib/changelog";
+import {
+  changelogRowFor,
+  changelogTitleFor,
+  trackIdByChangeset,
+  type ChangesetForChangelog,
+} from "@/lib/changelog";
 
 // Resolve the workspace to scope a read to (the active one, else the caller's
 // default). Mirrors the local helper in billing/briefs/audio.functions.ts.
@@ -171,10 +176,11 @@ export const listChangelog = createServerFn({ method: "GET" })
     const prdIds = Array.from(
       new Set(entries.map((e) => e.prd_id).filter((id): id is string => !!id)),
     );
+    const specTitleByPrdId = new Map<string, string | null>();
     if (prdIds.length) {
       const { data: specs, error: specsErr } = await db
         .from("prds")
-        .select("id,opportunity_id")
+        .select("id,opportunity_id,title")
         .in("id", prdIds);
       if (specsErr) {
         console.error("listChangelog origin-spec read failed (non-fatal):", specsErr.message);
@@ -185,6 +191,15 @@ export const listChangelog = createServerFn({ method: "GET" })
           (s as { id: string; opportunity_id: string | null }).opportunity_id,
         ]),
       );
+      // P-124: the composer's own third tier ("the spec's title"), read here
+      // rather than a fifth round trip -- this query already has every spec
+      // this page's releases could name.
+      for (const s of specs ?? []) {
+        specTitleByPrdId.set(
+          (s as { id: string }).id,
+          (s as { title: string | null }).title,
+        );
+      }
       const oppIds = Array.from(
         new Set([...oppIdByPrdId.values()].filter((id): id is string => !!id)),
       );
@@ -219,15 +234,26 @@ export const listChangelog = createServerFn({ method: "GET" })
     // Resolve the track each release's changeset served, so a row can open the
     // real run (P-14b, A-QUEUE.md). Two raw reads; `trackIdByChangeset`
     // (src/lib/changelog.ts, pure, unit-tested) does the actual resolution.
+    // P-124: the composer's second tier ("the changeset's own title", which
+    // is that PR's title from the moment Supaprod opened it -- see
+    // changelogTitleFor's own header). Folded into the SAME read the
+    // mission/track lookup below already makes, not a sixth round trip.
+    const csTitleByChangesetId = new Map<string, string | null>();
     if (changesetIds.length) {
       const { data: changesets, error: changesetsErr } = await db
         .from("studio_changesets")
-        .select("id,mission_id")
+        .select("id,mission_id,title")
         .in("id", changesetIds);
       if (changesetsErr) {
         console.error(
           "listChangelog mission-lookup read failed (non-fatal); every release on this page will render with no run to open:",
           changesetsErr.message,
+        );
+      }
+      for (const c of changesets ?? []) {
+        csTitleByChangesetId.set(
+          (c as { id: string }).id,
+          (c as { title: string | null }).title,
         );
       }
       const missionIds = Array.from(
@@ -255,6 +281,25 @@ export const listChangelog = createServerFn({ method: "GET" })
       for (const e of entries) {
         if (e.changeset_id) e.track_id = trackByChangeset.get(e.changeset_id) ?? null;
       }
+    }
+
+    /*
+     * ── EVERY READER RECOMPUTES; NONE TRUSTS THE STORED TITLE (P-124) ────
+     * `changelog_entries.title` is written once, by the DB trigger, in SQL
+     * this function never runs -- the live row for the first real release
+     * held "Shipped an update" while `body` correctly carried the notes
+     * (changelogTitleFor's own header has the full incident). Recomputing
+     * here, on every read, means this station's own correctness never
+     * depends on the trigger's SQL agreeing with this file's TypeScript, and
+     * a stale stored value self-heals the next time anyone loads this page
+     * -- no backfill migration, no second source of truth to keep in sync.
+     */
+    for (const e of entries) {
+      e.title = changelogTitleFor({
+        release_notes: e.body,
+        prTitle: e.changeset_id ? csTitleByChangesetId.get(e.changeset_id) : null,
+        specTitle: e.prd_id ? specTitleByPrdId.get(e.prd_id) : null,
+      });
     }
 
     return { entries };

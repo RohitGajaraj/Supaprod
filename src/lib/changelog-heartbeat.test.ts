@@ -52,8 +52,11 @@ describe("isoWeekStart", () => {
 
 describe("buildHeartbeat bucketing", () => {
   it("buckets shipped changesets across a week boundary into different weeks", () => {
-    const thisWeek = cs({ release_notes_at: "2026-07-08T10:00:00.000Z", title: "This week" });
-    const lastWeek = cs({ release_notes_at: "2026-07-01T10:00:00.000Z", title: "Last week" });
+    // changelogTitleFor reads the notes first (P-124, changelog.ts) -- setting
+    // `title` alone no longer reaches the shipped line, so each fixture's own
+    // notes carry the distinguishing text this test buckets on.
+    const thisWeek = cs({ release_notes_at: "2026-07-08T10:00:00.000Z", release_notes: "This week" });
+    const lastWeek = cs({ release_notes_at: "2026-07-01T10:00:00.000Z", release_notes: "Last week" });
     const hb = buildHeartbeat([thisWeek, lastWeek], [], NOW, 6);
 
     expect(hb.weeks[0].week_of).toBe("2026-07-06");
@@ -68,7 +71,7 @@ describe("buildHeartbeat bucketing", () => {
     const c = cs({
       release_notes_at: "2026-07-07T09:00:00.000Z",
       updated_at: "2026-07-01T09:00:00.000Z",
-      title: "Follows release date",
+      release_notes: "Follows release date",
     });
     const hb = buildHeartbeat([c], [], NOW, 6);
     expect(hb.weeks[0].shipped.map((s) => s.title)).toEqual(["Follows release date"]);
@@ -150,8 +153,8 @@ describe("buildHeartbeat window, empties, totals, and order", () => {
   it("honors the N-weeks window and drops items older than it", () => {
     // 8 weeks before the current Monday (2026-07-06) is 2026-05-11, outside a
     // 6-week window.
-    const old = cs({ release_notes_at: "2026-05-12T10:00:00.000Z", title: "Ancient" });
-    const recent = cs({ release_notes_at: NOW, title: "Recent" });
+    const old = cs({ release_notes_at: "2026-05-12T10:00:00.000Z", release_notes: "Ancient" });
+    const recent = cs({ release_notes_at: NOW, release_notes: "Recent" });
     const hb = buildHeartbeat([old, recent], [], NOW, 6);
 
     expect(hb.weeks).toHaveLength(6);

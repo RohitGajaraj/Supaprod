@@ -8,6 +8,7 @@ import {
   isLive,
   isReadyToPromote,
   promoteAbsence,
+  readyToPromote,
   releaseStates,
   unlistedMerges,
   whereItIs,
@@ -223,6 +224,37 @@ describe("isReadyToPromote draws the button only where the click will work", () 
       );
       expect(isReadyToPromote(s)).toBe(false);
     }
+  });
+});
+
+/*
+ * P-124 (A-QUEUE.md): a successful promote and the Live-releases "Roll back"
+ * button for the same release were both visible at once. `ready` and `live`
+ * both derive from `states = releaseStates(notes, deployRows)`, and the two
+ * queries that feed them refetch asynchronously after the mutation's
+ * `invalidateQueries` -- for one window, `states` still calls a just-promoted
+ * changeset ready. `readyToPromote` closes that window by excluding a
+ * changeset id the instant its own promote resolves, before any refetch.
+ */
+describe("readyToPromote settles a card in place without waiting on a refetch", () => {
+  it("excludes a changeset the moment it is marked just-promoted, even though states still call it ready", () => {
+    const [s] = releaseStates([note({ changeset_id: "cs-1" })], [dep({ changeset_id: "cs-1" })]);
+    expect(isReadyToPromote(s)).toBe(true);
+    expect(readyToPromote([s], new Set(["cs-1"]))).toEqual([]);
+  });
+
+  it("leaves every other ready release alone", () => {
+    const states = releaseStates(
+      [note({ changeset_id: "cs-1" }), note({ changeset_id: "cs-2" })],
+      [dep({ changeset_id: "cs-1" }), dep({ changeset_id: "cs-2" })],
+    );
+    const result = readyToPromote(states, new Set(["cs-1"]));
+    expect(result.map((s) => s.changesetId)).toEqual(["cs-2"]);
+  });
+
+  it("agrees with isReadyToPromote alone once the set is empty", () => {
+    const states = releaseStates([note({ changeset_id: "cs-1" })], [dep({ changeset_id: "cs-1" })]);
+    expect(readyToPromote(states, new Set())).toEqual(states.filter(isReadyToPromote));
   });
 });
 

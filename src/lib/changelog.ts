@@ -34,19 +34,57 @@ export function shouldPublishChangelog(cs: ChangesetForChangelog): boolean {
   return cs.status === "merged" && !!(cs.release_notes && cs.release_notes.trim());
 }
 
-/**
- * Derive the changelog headline. Prefer the changeset title; fall back to the
- * first line of the release notes, then a generic shipped label. Never returns
- * empty so the list always renders something meaningful.
- */
-export function changelogTitleFor(cs: ChangesetForChangelog): string {
-  const title = (cs.title ?? "").trim();
-  if (title) return title.slice(0, 200);
-  const firstLine = (cs.release_notes ?? "")
+/** The first non-empty line of a body of release notes, heading markers
+ *  stripped. `null` when there is nothing to find one in. */
+export function firstNoteLine(notes: string | null | undefined): string | null {
+  const line = (notes ?? "")
     .split(/\r?\n/)
     .map((l) => l.replace(/^#+\s*/, "").trim())
     .find((l) => l.length > 0);
-  if (firstLine) return firstLine.slice(0, 200);
+  return line ? line.slice(0, 200) : null;
+}
+
+/**
+ * Derive the changelog headline (P-121's own rule, R-40's before it: say
+ * what is known before falling back).
+ *
+ * ── THE ORDER, AND WHY IT CHANGED (P-124, A-QUEUE.md) ────────────────────
+ * Used to prefer `cs.title` first, notes second. `studio_changesets.title`
+ * is EMPTY on every changeset merged through the run path -- confirmed live
+ * 2026-09-04, 371dd588-1b70-4629-9bb5-9f003f3af373 -- so that branch never
+ * fires for a real release and the function fell straight to release notes.
+ * It should have worked. It did not: the STORED `changelog_entries.title`
+ * this function feeds (via `changelogRowFor`) is written once, by the
+ * `studio_changeset_to_changelog` DB trigger, in its OWN SQL, not through
+ * this function at all -- and the live row for the first real release
+ * (pr #5, "Checkout: Address confirmation streamlined.") holds "Shipped an
+ * update" as its `title` while its `body` correctly carries the full notes.
+ * This function's own correctness was never the defect; being the ONLY
+ * place the title was computed was. Every reader now recomputes from the
+ * stored `body`/`title`/spec fields rather than trusting whatever the
+ * trigger already wrote -- see `listChangelog`'s own recomputation.
+ *
+ * NOTES FIRST, because the notes are written FOR a person reading a release
+ * list; a changeset's own `title` is a work-tracking label with no such
+ * promise, and a spec's `title` is one step further from what actually
+ * shipped. `prTitle` stands in for "the changeset's own title" in the
+ * packet's own wording -- `studio_changesets.title` is set from the spec's
+ * title at the moment Supaprod opens the pull request (discovery.
+ * functions.ts), so it is that PR's own title until someone renames it on
+ * GitHub, which this reads no differently than any other stored label.
+ */
+export function changelogTitleFor(cs: {
+  release_notes?: string | null;
+  title?: string | null;
+  prTitle?: string | null;
+  specTitle?: string | null;
+}): string {
+  const fromNotes = firstNoteLine(cs.release_notes);
+  if (fromNotes) return fromNotes;
+  const prTitle = (cs.prTitle ?? cs.title ?? "").trim();
+  if (prTitle) return prTitle.slice(0, 200);
+  const specTitle = (cs.specTitle ?? "").trim();
+  if (specTitle) return specTitle.slice(0, 200);
   return "Shipped an update";
 }
 

@@ -1033,6 +1033,21 @@ export function isReadyToPromote(s: ReleaseState): boolean {
   return s.lastProductionStatus === null || s.lastProductionStatus === "failure";
 }
 
+/**
+ * The promote list, minus whatever this browser just promoted (P-124,
+ * A-QUEUE.md). `states` settles onto the same fact once `ship-deployments`
+ * and `changelog` refetch after a promote's `invalidateQueries`, but that
+ * refetch is async -- for one window, `states` still says "ready" about a
+ * changeset a click just promoted. Excluding it here, client-side, closes
+ * that window instead of waiting on the network to agree.
+ */
+export function readyToPromote(
+  states: readonly ReleaseState[],
+  justPromoted: ReadonlySet<string>,
+): ReleaseState[] {
+  return states.filter((s) => isReadyToPromote(s) && !justPromoted.has(s.changesetId));
+}
+
 /** Live means a production address a stranger can open. Nothing weaker. */
 export function isLive(s: ReleaseState): boolean {
   return !!s.productionUrl;
@@ -1527,6 +1542,27 @@ function Ship() {
    */
   const [receipt, setReceipt] = React.useState<ShipReceipt | null>(null);
 
+  /**
+   * THE PRESS SETTLES THE CARD IN PLACE (P-124, A-QUEUE.md). `promote`'s own
+   * `onSuccess` already invalidates `ship-deployments`/`changelog` and those
+   * queries DO refetch immediately, not on the 30s poll -- but a refetch is
+   * still a round trip, and for however long it takes, `states`/`ready`
+   * below kept computing from the OLD rows: the promote card stayed up with
+   * "Promote it" still on it while the settled receipt rendered underneath,
+   * and once the deployment row that `deployments` reads DID land (often
+   * before `changelog` did, the two queries racing independently) "Roll
+   * back" appeared in Live releases at the same time -- both true at once,
+   * on screen, about the same release.
+   *
+   * A changeset id, once its own promote has resolved, is EXCLUDED from
+   * `ready` unconditionally below, so the card it belonged to is gone the
+   * instant the receipt renders -- no window where both can be seen. Never
+   * cleared by hand: the query invalidation this mutation already fires
+   * lands `states` on the same fact within one refetch, and the set simply
+   * stops mattering once `ready` itself agrees.
+   */
+  const [justPromoted, setJustPromoted] = React.useState<ReadonlySet<string>>(new Set());
+
   const submit = useMutation({
     mutationFn: (id: string) => fSubmit({ data: { id, workspaceId: wid } }),
     onSuccess: (_r, id) => {
@@ -1574,7 +1610,7 @@ function Ship() {
   // and 100 deploy rows at most), and a useMemo over two `?? []` fallbacks
   // re-runs on every render anyway because each fallback is a fresh array.
   const states = releaseStates(notes, deployRows);
-  const ready = states.filter(isReadyToPromote);
+  const ready = readyToPromote(states, justPromoted);
   const live = states.filter(isLive);
 
   /**
@@ -1702,6 +1738,10 @@ function Ship() {
           </>
         ),
       });
+      // THE CARD LEAVES BEFORE THE REFETCH LANDS (P-124): excluded from
+      // `ready` on this same render, so it cannot sit beside the receipt
+      // above showing "Promote it" for a release that already is one.
+      setJustPromoted((s) => new Set(s).add(v.changesetId));
       void qc.invalidateQueries({ queryKey: ["ship-deployments", wid] });
       void qc.invalidateQueries({ queryKey: ["changelog", wid] });
     },

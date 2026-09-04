@@ -34,17 +34,45 @@ describe("shouldPublishChangelog", () => {
   });
 });
 
+/*
+ * P-124 (A-QUEUE.md): the first live release on Ship was titled "Shipped an
+ * update" everywhere while its notes opened with "Checkout: Address
+ * confirmation streamlined." and the PR was titled "Remove redundant
+ * address re-confirmation step in Relay checkout" -- `studio_changesets.
+ * title` was empty (confirmed live), so the OLD order (title, then notes)
+ * should have fallen through to the notes and did not, because the STORED
+ * title this function feeds is written once by a DB trigger this function
+ * never runs. The order itself is now: notes first, then the PR title
+ * (`prTitle`, standing in for the changeset's own `title` field), then the
+ * spec's title, then the generic label -- and every reader recomputes from
+ * this rather than trusting whatever a trigger already stored.
+ */
 describe("changelogTitleFor", () => {
-  it("prefers the changeset title", () => {
-    expect(changelogTitleFor(cs({}))).toBe("Add export button");
+  it("prefers the first line of the release notes over any stored title", () => {
+    expect(changelogTitleFor(cs({}))).toBe("Adds a CSV export button to the report page.");
   });
-  it("falls back to the first non-empty release-note line, stripping markdown headers", () => {
-    expect(changelogTitleFor(cs({ title: "", release_notes: "## Release\nDid a thing" }))).toBe(
-      "Release",
+  it("strips a markdown header from the first note line", () => {
+    expect(
+      changelogTitleFor(cs({ release_notes: "## Release\nDid a thing" })),
+    ).toBe("Release");
+  });
+  it("falls back to the PR title when there are no notes", () => {
+    expect(
+      changelogTitleFor({ release_notes: "", prTitle: "Remove redundant re-confirmation step" }),
+    ).toBe("Remove redundant re-confirmation step");
+  });
+  it("a bare `title` field (the changeset's own) is read the same way as `prTitle`", () => {
+    expect(changelogTitleFor(cs({ release_notes: "" }))).toBe("Add export button");
+  });
+  it("falls back to the spec's title when there are no notes and no PR title", () => {
+    expect(
+      changelogTitleFor({ release_notes: "", prTitle: "", specTitle: "Streamline checkout" }),
+    ).toBe("Streamline checkout");
+  });
+  it("falls back to a generic label only when notes, PR title AND spec title are all empty", () => {
+    expect(changelogTitleFor({ release_notes: "\n\n", prTitle: "", specTitle: "" })).toBe(
+      "Shipped an update",
     );
-  });
-  it("falls back to a generic label when there is nothing", () => {
-    expect(changelogTitleFor(cs({ title: "", release_notes: "\n\n" }))).toBe("Shipped an update");
   });
 });
 
@@ -56,7 +84,7 @@ describe("changelogRowFor", () => {
       product_id: "p1",
       changeset_id: "c1",
       prd_id: "prd1",
-      title: "Add export button",
+      title: "Adds a CSV export button to the report page.",
       pr_number: 42,
       released_at: "2026-06-29T10:00:00.000Z",
     });

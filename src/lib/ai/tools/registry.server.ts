@@ -131,6 +131,7 @@ import { stampSpecShippedOnStudioMerge } from "@/lib/studio.functions";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { recordDecisionOrigins, recordLineageSafe } from "@/lib/lineage.functions";
+import { changelogTitleFor } from "@/lib/changelog";
 // design.draft draws through the SAME generator the human path uses, so an
 // agent's drawing inherits the workspace design language and lands in the one
 // row (`prd_scaffolds`) the gate, the Design surface and both dispatch paths
@@ -7201,9 +7202,18 @@ const shipGetRelease = def({
         deploy_url: string | null;
         deployed_at: string | null;
       }>,
+      // P-124: the same composer /ship's listChangelog uses, not the stale
+      // stored title -- `changelog_entries.title` is written once by a DB
+      // trigger whose own SQL never agreed with this vocabulary; recomputing
+      // here means an agent reading this tool's own answer is never told
+      // "Shipped an update" about a release whose notes say otherwise.
       changelog_entry: entry
         ? {
-            title: entry.title,
+            title: changelogTitleFor({
+              release_notes: entry.body,
+              prTitle: cs.title,
+              specTitle: specs.find((s) => s.id === cs.prd_id)?.title ?? null,
+            }),
             body_excerpt: (entry.body ?? "").slice(0, 1500),
             released_at: entry.released_at,
           }
