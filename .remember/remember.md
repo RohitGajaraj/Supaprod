@@ -207,4 +207,4 @@ Published: P-131 P-132(x3 runs) P-134 P-119b P-113 P-113b P-118c P-128 P-128b(co
 ## A1 18:22 IST 09-04
 Published: P-104 P-133 P-136 P-139. Live DONE: P-131 P-133 P-136. Grader 12:00Z resolved nothing; P-137 read: eval refs resolve but never produced, no analytics, spec-contract reader drops object clauses. P-135 on branch a2-p135-edge-cache (3 commits), landing waits on founder's "go" (A1's attempt denied at prompt; A2 declined to route around). Founder open: P-135 go, second repo, Cohere card, Deno plan, zone cache rule. Lanes: A2 P-137→P-138; A3 P-140→P-105→P-109→P-130b.
 
-- A1 20:17 IST 09-04: P-137/P-138/P-109/P-127 live DONE; P-142 published (filter landed on a retired reader, rule 24); check:unreachable red on main, rule 25, P-146 (A3); P-144/P-145 filed (A2); creditsDiag numbers sent to A3.
+- A1 19:55 IST 09-04: P-137/P-138/P-109/P-127 live DONE; P-142 published (filter landed on a retired reader, rule 24); check:unreachable red on main, rule 25, P-146 (A3); P-144/P-145 filed (A2); creditsDiag numbers sent to A3.

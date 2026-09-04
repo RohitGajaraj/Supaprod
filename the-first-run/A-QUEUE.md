@@ -137,11 +137,11 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     the two functions it filtered have had no caller since R-34 retired the board, and no surface
     lists a workspace's specs at all. The lane read the function and reasoned about the page for an
     hour without opening it, and caught itself inside the hour. A report that names a surface
-    names the file that renders it, or the served read (A2 and A1, 19:52 IST 09-04).
+    names the file that renders it, or the served read (A2 and A1, 19:47 IST 09-04).
 25. **A1's gate is four checks and says so: `bun run build` exit 0, `bunx tsc --noEmit` exit 0,
     `bun test` full suite on the tip, and from gate 169 `bun run check:unreachable` with its two
     counts.** It is not `scripts/lane-gates.sh`, which runs more and is nobody's gate today. A lane
-    that runs a check the gate does not is welcome to, and reports it by name (A1, 20:06 IST 09-04,
+    that runs a check the gate does not is welcome to, and reports it by name (A1, 19:51 IST 09-04,
     after A2 found the unreachable check red on main with nobody told; P-146).
 
 ### The bar a packet is verified against, in this order
@@ -9156,7 +9156,7 @@ all 12 checks ok. Acceptance's own live read (seven or more rows, each one line 
 A1's served-page walk, the same handoff every UI packet in this session has used.
 
 
-### P-109 · The Run door with nothing running lands somewhere · Lane: **A3** (after P-105) · Status: DONE (both halves; A1 gate on 2702720a7: build 0, tsc 0, 14,695 pass / 0 fail; published 19:24 IST; live 20:15 IST on Helio with nothing running: the Run door lands on the last run 2fdf93b6 and the run screen reads "Nothing is running. This is the last run; start a sentence to begin another." with Start a sentence, above the hold card; the header reads "Nothing running · last: Checkout asks for already-saved delivery address · 8h ago", which is P-127's read as well) · Moves: 2
+### P-109 · The Run door with nothing running lands somewhere · Lane: **A3** (after P-105) · Status: DONE (both halves; A1 gate on 2702720a7: build 0, tsc 0, 14,695 pass / 0 fail; published 19:24 IST; live 19:54 IST on Helio with nothing running: the Run door lands on the last run 2fdf93b6 and the run screen reads "Nothing is running. This is the last run; start a sentence to begin another." with Start a sentence, above the hold card; the header reads "Nothing running · last: Checkout asks for already-saved delivery address · 8h ago", which is P-127's read as well) · Moves: 2
 
 **Why.** Run is an identity on the rail (P-60): it resolves to the live run at render. With nothing
 running it resolves to nothing, and P-63 recorded "Run has no door to design for while nothing's
@@ -9861,7 +9861,7 @@ already declined once (the "announce it" door). Flagging for a founder/A1 call o
 de-duplication is worth its own packet, rather than guessing at a fix the data cannot support.
 
 
-### P-127 · The header says what is running · Lane: **A2** (after P-116, before P-112) · Status: DONE (a88f70552; live 20:15 IST on Helio with nothing running: the header reads "Nothing running · last: Checkout asks for already-saved delivery address · 8h ago"; the running form is read on the next live drive and is not a condition of DONE, the nothing-running form was the one the packet was written on) · Moves: 2
+### P-127 · The header says what is running · Lane: **A2** (after P-116, before P-112) · Status: DONE (a88f70552; live 19:54 IST on Helio with nothing running: the header reads "Nothing running · last: Checkout asks for already-saved delivery address · 8h ago"; the running form is read on the next live drive and is not a condition of DONE, the nothing-running form was the one the packet was written on) · Moves: 2
 
 **Why.** Served Waiting page at 06:13 UTC 09-04: the header read *Nothing running · last:
 Checkout asks for already-saved delivery address · 3d ago* while run bce3febf (the orchestrator's
@@ -10396,7 +10396,7 @@ calls, 1,062 files. `bun run build`: clean end to end. `bun run docs:check`: exi
 "docs-doctor: clean." all 12 checks ok.
 
 
-### P-140 · Credits on Start's run rows and the Outcomes page · Lane: **A3** (after P-136) · Status: DIAGNOSTIC READ, FIX PENDING (051438c5a + 7b4c70903; published 19:24 IST; A1 read creditsDiag from the served start-runs payload on Helio at 20:14 IST, both rows: ids 50, runRows 174, traces 174, creditsKeys 0, readError null; every run row has a trace and the credits map comes back empty with no error, where P-136's run-screen join returns 3,606 for the same track; A3 compares the two reads and ships the fix with the diagnostic removed) · Moves: 3
+### P-140 · Credits on Start's run rows and the Outcomes page · Lane: **A3** (after P-136) · Status: DIAGNOSTIC READ, FIX PENDING (051438c5a + 7b4c70903; published 19:24 IST; A1 read creditsDiag from the served start-runs payload on Helio at 19:54 IST, both rows: ids 50, runRows 174, traces 174, creditsKeys 0, readError null; every run row has a trace and the credits map comes back empty with no error, where P-136's run-screen join returns 3,606 for the same track; A3 compares the two reads and ships the fix with the diagnostic removed) · Moves: 3
 
 **Why.** P-136 closed the run screen's own two-dollar-figure defect, but Scope named three
 surfaces and only one shipped: Start's `YourRuns.tsx` carries no spend figure at all today, and the
@@ -10512,7 +10512,7 @@ asserting 18 of 26.
 **DoD.** Pushed; the three numbers; the measured saving.
 
 
-### P-137 · Learn says what it can and cannot measure about the first release · Lane: **A2** (after P-135) · Status: DONE ON THE SPEC, THE LEARN PANEL IS P-144 (90c1b16aa; A1 gate: build 0, tsc 0, 14,670 pass / 0 fail; published 18:59 IST; live 20:08 IST on 2fdf93b6 with the spec open (`?artifact=f2aa82f1`): "None of the 6 success metrics on this spec have a source that could produce a number, so this release cannot be graded yet.", six clauses each with its source line, six Record a reading presses and six Connect a source links; the spec has six standing clauses, not the two the packet counted, and the sentence reads the real number; the run page's own Learn panel still reads "How we will know: Tablet checkout completion rate..." with "Graded on Mon, Sep 21" and "nothing here is waiting on a person", so a person arriving at Learn sees the sentence only if they open the spec, which is P-144 scope 1; F-199 and F-200 in the ledger) · Moves: 1, 3
+### P-137 · Learn says what it can and cannot measure about the first release · Lane: **A2** (after P-135) · Status: DONE ON THE SPEC, THE LEARN PANEL IS P-144 (90c1b16aa; A1 gate: build 0, tsc 0, 14,670 pass / 0 fail; published 18:59 IST; live 19:51 IST on 2fdf93b6 with the spec open (`?artifact=f2aa82f1`): "None of the 6 success metrics on this spec have a source that could produce a number, so this release cannot be graded yet.", six clauses each with its source line, six Record a reading presses and six Connect a source links; the spec has six standing clauses, not the two the packet counted, and the sentence reads the real number; the run page's own Learn panel still reads "How we will know: Tablet checkout completion rate..." with "Graded on Mon, Sep 21" and "nothing here is waiting on a person", so a person arriving at Learn sees the sentence only if they open the spec, which is P-144 scope 1; F-199 and F-200 in the ledger) · Moves: 1, 3
 
 **Why.** The first live release (12:28 IST 09-04) sits at Learn with *The forecast this work is
 graded against comes due on 2026-09-09* and a horizon check on 09-21. Its spec's success metrics
@@ -10600,7 +10600,7 @@ install step; (3) the generated entrypoint against a real single-page app's deep
 rather than measured. Record each with its number on the walk.
 
 
-### P-138 · The stopped list says what is worth a person's next ten minutes · Lane: **A2** (after P-137) · Status: DONE (da6bbca5e; A1 gate on the landed tip and on 2702720a7: build 0, tsc 0, 14,695 pass / 0 fail; published 19:24 IST; live 20:11 IST on Helio's Waiting: the heading reads "Nothing stopped is holding live work; 9 items stopped this week, and 30 older.", the list is grouped STOPPED THIS WEEK then OLDER, each row with its title, "stopped 4 days" and Open) · Moves: 2
+### P-138 · The stopped list says what is worth a person's next ten minutes · Lane: **A2** (after P-137) · Status: DONE (da6bbca5e; A1 gate on the landed tip and on 2702720a7: build 0, tsc 0, 14,695 pass / 0 fail; published 19:24 IST; live 19:53 IST on Helio's Waiting: the heading reads "Nothing stopped is holding live work; 9 items stopped this week, and 30 older.", the list is grouped STOPPED THIS WEEK then OLDER, each row with its title, "stopped 4 days" and Open) · Moves: 2
 
 **Why.** Helio's Waiting page at 16:37 IST 09-04: below the one card that moves, a flat list of
 53 stopped items, oldest first, from *Helio prefers concise release notes, stopped 50 days* down
@@ -10686,9 +10686,9 @@ all 12 checks ok.
 
 
 
-### P-142 · Define finds the existing spec before it writes a new one · Lane: **A2** (after P-138) · Status: PUBLISHED, SCOPE 3 LANDED ON A RETIRED READER (912afe3f4; A1 gate 167 on the landed tip: build 0, tsc 0, 14,719 pass / 0 fail; published 19:47 IST; scopes 1 and 2 stand: both Define doors check the workspace before the model call, 13 guards on the agent door and 20 on the matcher; scope 3 is a correct rule on `listSpecs` and `listPrds`, which A2 found have no caller since R-34 retired the `/plan` board, so 29 to 15 is a fact about the database and not a change any person can see; the acceptance is restated as that fact, 29 drafts before, 15 after, 14 superseded, read from the database; closing move: delete the two dead readers with a guard that nothing composes them, keep the approvals family's clause, which is the live reader, and put the finding in the ledger, a rule landed on a function nothing calls) · Moves: 1, 3
+### P-142 · Define finds the existing spec before it writes a new one · Lane: **A2** (after P-138) · Status: PUBLISHED, SCOPE 3 LANDED ON A RETIRED READER (912afe3f4; A1 gate 167 on the landed tip: build 0, tsc 0, 14,719 pass / 0 fail; published 19:44 IST; scopes 1 and 2 stand: both Define doors check the workspace before the model call, 13 guards on the agent door and 20 on the matcher; scope 3 is a correct rule on `listSpecs` and `listPrds`, which A2 found have no caller since R-34 retired the `/plan` board, so 29 to 15 is a fact about the database and not a change any person can see; the acceptance is restated as that fact, 29 drafts before, 15 after, 14 superseded, read from the database; closing move: delete the two dead readers with a guard that nothing composes them, keep the approvals family's clause, which is the live reader, and put the finding in the ledger, a rule landed on a function nothing calls) · Moves: 1, 3
 
-**Open, for the founder (A2, 19:50 IST 09-04).** No surface lists a workspace's specs: `/plan` is a
+**Open, for the founder (A2, 19:45 IST 09-04).** No surface lists a workspace's specs: `/plan` is a
 redirect to `/start` under R-34 and nothing replaced the list. A spec is reached one at a time,
 through its track, by direct link, or as a gate on Waiting. If work living in the run is the
 design, the 14 retired drafts are invisible and cost nothing, and P-142 is done at scopes 1 and 2.
@@ -10723,7 +10723,7 @@ sentence on a solved problem lands on the shipped spec. Full suite on the tip, t
 **DoD.** Pushed; migration applied; the counts before and after.
 
 
-### P-143 · A hold that waits for a day says the day · Lane: **A3** (after the P-140 fix, before P-141) · Status: PUBLISHED, LIVE READ PENDING (deadb4832; tsc 0, 14,698 pass / 0 fail, build 0, docs:check clean; A1 reads the served card on 2fdf93b6 once it deploys; A1 gate 168 on the landed tip 598b32c79: build 0, tsc 0, 14,722 pass / 0 fail; published 19:59 IST; A1 reads the card on 2fdf93b6 once served) · Moves: 2
+### P-143 · A hold that waits for a day says the day · Lane: **A3** (after the P-140 fix, before P-141) · Status: PUBLISHED, LIVE READ PENDING (deadb4832; tsc 0, 14,698 pass / 0 fail, build 0, docs:check clean; A1 reads the served card on 2fdf93b6 once it deploys; A1 gate 168 on the landed tip 598b32c79: build 0, tsc 0, 14,722 pass / 0 fail; published 19:49 IST; A1 reads the card on 2fdf93b6 once served) · Moves: 2
 
 **Why.** The shipped track's run screen at Learn, 19:13 IST 09-04: *Tried 3 times and nothing
 changed; trying again at 00:00.* The track's `deferred_until` is 2026-09-21 00:00 UTC, the
@@ -10768,7 +10768,7 @@ says the person is the only source of a number, the other says nobody is waited 
 who does record the number waits seventeen days for a station that would not read it anyway.
 This is the shape the ledger already names twice: an index with no reader is half a feature.
 
-**A1, 20:08 IST, from the live read of P-137.** The honest sentence renders on the spec artifact
+**A1, 19:51 IST, from the live read of P-137.** The honest sentence renders on the spec artifact
 only (`?artifact=f2aa82f1`); the run page's Learn panel reads the decision's observable under
 "How we will know" with "Graded on Mon, Sep 21" and the hold line, and never the sentence. Scope 1
 is that panel: the person arriving at Learn reads it there, not two clicks away.
@@ -10858,7 +10858,7 @@ baseline goes down only, and only because a name no longer exists. Small commits
 exports each, so a wrong deletion is a small revert. When in doubt about one, leave it and say so
 in the commit.
 
-**A2, 20:20 IST.** After P-142c the counts are 179 against a baseline of 139 (down with the
+**A2, 19:55 IST.** After P-142c the counts are 179 against a baseline of 139 (down with the
 deletion, never up) and 43 against 26. The checker prints three categories and counts only one:
 "no importer in src", "inside a dynamically imported module" and "mounted through a dynamic
 import". A2 did not verify the split and does not assert it; the point is that the headline number

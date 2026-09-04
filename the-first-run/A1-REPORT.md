@@ -716,10 +716,10 @@ reads it).
 **Lanes.** A2 on P-137, then P-138 (P-135 lands between commits on the founder's word). A3 on
 P-140, then P-105, P-109, P-130b. Rule 22 holds. Date call unchanged.
 
-## Checkpoint, 20:17 IST 09-04
+## Checkpoint, 19:55 IST 09-04
 
 **Since 18:22.** Published on A1's gate: P-137, P-138, P-109's second half, P-140's diagnostic
-(19:24), P-142 (19:47, gate 167: 14,719 / 0), P-143 (19:59, gate 168 on the landed tip: 14,722 /
+(19:24), P-142 (19:44, gate 167: 14,719 / 0), P-143 (19:49, gate 168 on the landed tip: 14,722 /
 0). Live reads DONE: P-137 on the spec artifact (the honest sentence names all six clauses, six
 Record a reading presses, six Connect a source links), P-138 (Waiting's heading "Nothing stopped is
 holding live work; 9 items stopped this week, and 30 older." and the two groups), P-109 both halves
@@ -742,3 +742,9 @@ first) behind it.
 unreachable sweep, one export at a time), P-130b. Pending live reads: P-143's card once served, P-142's
 closing commit on gate 169. Founder: P-135's landing, the second repo for P-128b, the Cohere card,
 the Deno plan, and now the spec-list question.
+
+**Correction, 19:58 IST.** Every timestamp A1 wrote between 19:45 and 19:56 was ahead of the clock
+by twelve to twenty-five minutes (20:08 for a read made at 19:51, 20:17 for a checkpoint committed
+at 19:55). Corrected above and in the queue from the commit times. The cause is the one the memory
+already names: the times were written from the feel of the work after a long run of calls, not
+read from the hook line or the database clock.

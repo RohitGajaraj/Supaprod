@@ -829,8 +829,8 @@ The founder restarts A1 here. State to resume from, all in A-QUEUE.md:
   machine at 239 MB free; A3's gate on the same code was clean. Treat it as the disk, re-run on the
   fresh session before publishing P-121, and do not run a local build until the disk is freed.
 
-### A1, 20:17 IST 09-04 (checkpoint)
-Published: P-137, P-138, P-109, P-140 diag (19:24), P-142 (19:47), P-143 (19:59). Live DONE: P-137 (spec
+### A1, 19:55 IST 09-04 (checkpoint)
+Published: P-137, P-138, P-109, P-140 diag (19:24), P-142 (19:44), P-143 (19:49). Live DONE: P-137 (spec
 artifact only; the Learn panel is P-144), P-138, P-109, P-127. P-140 diag: ids 50, runRows 174, traces
 174, creditsKeys 0. Rules 24 (read the surface before claiming what it renders) and 25 (A1's gate is
 build, tsc, suite, and from gate 169 check:unreachable, red until P-146). Filed P-144, P-145 (A2),
