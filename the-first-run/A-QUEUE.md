@@ -10769,7 +10769,7 @@ clean (0 broken live links, 12/12 ok). Not live-verified on 2fdf93b6 itself (no 
 available to either of us, same constraint as P-140); A1's read of the served card is the
 acceptance criterion's own text, so it stays LIVE READ PENDING until she presses it post-deploy.
 
-### P-144 · A reading a person records is read by Learn · Lane: **A2** (after P-142) · Status: READY · Moves: 1, 3
+### P-144 · A reading a person records is read by Learn · Lane: **A2** (after P-142) · Status: SCOPE 1 PUBLISHED, LIVE READ PENDING; SCOPES 2 AND 3 IN FLIGHT (ad7d9dba3: one composer `what-learn-is-waiting-for.ts` for the hold line in four states, the unread-contract state saying only the half it knows, both verbatim driver copies closed, the Connect a source press dropped where nothing connectable exists with a two-sided guard that keeps Discover's working door under the same label, three agreement guards between the hold line and P-137's sentence; A2's local gate at load 32, one suite: 14,737 / 0 in 40 s, tsc and build clean; A1 gate 170 on the landed tip: build 0, tsc 0, 14,737 pass / 0 fail, unreachable red at 179 and 43 as before; published 20:34 IST; A1 reads the run page's Learn panel on 2fdf93b6 once served: the hold line naming the date and the gap, no "nothing here is waiting on a person", the spec block with one press) · Moves: 1, 3
 
 **Why.** P-137 put the honest sentence on the shipped track: none of the spec's two metrics has a
 source, and the person is offered *Record a reading*. That press writes `readings[]` onto the
