@@ -8249,7 +8249,7 @@ status` clean both times -- the actual acceptance criterion, not just "no diff o
 `bunx tsc --noEmit` exit 0. `bun test` 14,266 / 0 / 22 skip / 37 todo. PUSHED 1fa6d5520.
 
 
-### P-83 · Waiting updates itself; nobody is told to refresh · Lane: **A3** (now) · Status: CODE DONE, PUSHED 18908f00c · Moves: 2, 3
+### P-83 · Waiting updates itself; nobody is told to refresh · Lane: **A3** (now) · Status: CODE DONE, PUBLISHED 09:06 IST 09-04 (18908f00c; A1 on the tip: build 0 clean, tsc 0, 14,272 / 0 / 0; realtime publication verified by object with the four tables added; ledger 20260909090100 present; P-73 rides the same publish; the two-tab read follows) · Moves: 2, 3
 
 **Why.** Read live 05:00 IST 09-04 on the approvals page: *One just came in. Refresh to see it.*
 A product that tells a person to refresh is asking them to do the machine's job; the run screen
