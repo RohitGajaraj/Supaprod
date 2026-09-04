@@ -8050,6 +8050,41 @@ publishes has not caught up, or a build failed silently. Rule for the rest of th
 publish until the served build carries `X-Supaprod-Build`; batch the lanes' pushes into one
 publish after that; read twice before concluding a fix is absent (rule 18).
 
+
+### LIVE WALK, A1, 07:22 IST 09-04 · the fourth sentence in the probe
+
+Track `6cc7a010`, "Let a homeowner reschedule an installer visit from the order page", started
+01:25 UTC on the build served at the time (P-71c; P-71d not yet served, see the hosting note).
+Sense carried the sentence; Decide entered `carried-on-your-sentence` at 01:40 and on that FIRST
+pass the seat recorded *Reschedule installer visit from order page* **[approved]**, a `build` with
+a forecast it composed, and the track moved to Define with no Choice and no person. The refusal
+only guards a decline, so a seat that builds on nothing walks through. R-39 says a build on the
+person's word carries the person's own claim as its forecast; a seat cannot supply that. The
+simpler rule closes both doors: on a carried track Decide does not decide; it raises the Choice
+before spending a model call. P-71e filed. The run stays as evidence.
+
+
+### P-71e · On a carried track, Decide asks before it spends · Lane: **A2** (after P-75, before P-74) · Status: READY · Moves: 1, 2
+
+**Why.** The walk above: a `build` recorded by a seat on the person's sentence alone, with a
+forecast the seat wrote, is the same fabricated call as the decline R-39 forbids, and it passed
+because the refusal keys on `do-not-build`.
+
+**Scope.** (1) The driver: when a track enters Decide with the carried footing (P-71c's read), it
+raises `the-call-is-yours` with `CARRIED_CHOICE` at once, before any seat runs; no model call, no
+spend. (2) The writer: on a carried track, any decision not made through *Build it on your word*
+or *Point a source first* is refused with the R-39 sentence, `build` included. (3) *Build it on
+your word* records `build` with the person's sentence as the forecast claim and a
+`forecast_how_we_will_know` the person can edit before it is saved (one field on the Choice, prefilled
+from the sentence, never from a seat). (4) Guards for each, and a regression guard with this
+track's shape. (5) P-71d's sweep and screen rules stand.
+
+**Acceptance.** A fifth sentence in the empty probe holds at the Choice within one tick of Sense
+carrying it, with spend unchanged from Sense and no decision row; choosing *Build it on your word*
+writes the person's sentence as the claim. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 walks it.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
