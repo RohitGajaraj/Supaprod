@@ -10071,7 +10071,7 @@ from this worktree -- the Acceptance's own "the bet reads Running on Start" need
 A1, and needs a real press on a real bet in the probe workspace to produce a fixture for it.
 
 
-### P-119b · One provider, one card · Lane: **A3** (after P-134, before P-131) · Status: READY · Moves: 2
+### P-119b · One provider, one card · Lane: **A3** (after P-134, before P-131) · Status: CLAIMED (A3) 15:52 IST 09-04 · Moves: 2
 
 **Why.** Served Waiting page, 15:24 IST 09-04: four identical cards, *Embeddings have stopped:
 Cohere says the payment method needs updating...*, with 154, 33, 35 and 6 rows waiting, one per
