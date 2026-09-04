@@ -8522,6 +8522,27 @@ guard did not catch it) and the rows ahead were blank rather than saying what th
 35 seconds after the press the track still held `the-call-is-yours` at Decide (re-read after the
 next tick decides whether the press clears the hold itself or waits for the sweep).
 
+
+### P-71f · The person's answer moves the track · Lane: **A2** (now, with P-74b, before P-86 continues) · Status: READY · Moves: 1, 2
+
+**Why.** Live, track `a30d6b62`: A1 pressed *Build it on your word* at 03:50:25 UTC; the decision
+row was written with the person's claim, a drive was recorded at 03:50 with no hold, and nineteen
+minutes later the track still holds `the-call-is-yours` at Decide: the sweep skips that hold
+(P-71d), so nothing will ever move it. The person answered and the product did not hear.
+
+**Scope.** (1) Both answers clear `the-call-is-yours` in the same write that records them: *Build it
+on your word* moves the track to Define (the decline arm does not apply; the call is build) and
+the sweep picks it up on the next tick; *Point a source first* sets `needs-evidence` with the
+point-a-source door. (2) The run screen reflects the answer at once (the Choice leaves; the map's
+Decide row reads *you said build*). (3) A guard: after either answer the hold is not
+`the-call-is-yours`. (4) Data: clear `a30d6b62`'s hold to let it move, with the decision already
+on the record; say so in the report.
+
+**Acceptance.** On the served build, a press moves the probe track to Define within one tick and
+the map's Decide row reads the answer. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 reads.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
