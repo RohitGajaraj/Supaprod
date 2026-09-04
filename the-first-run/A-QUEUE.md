@@ -9758,7 +9758,7 @@ Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the ruling; the three numbers; A1 walks the second repo.
 
 
-### P-129 · One count per family on Waiting · Lane: **A3** (after P-126, before P-104) · Status: CLAIMED (A3) 14:28 IST 09-04 · Moves: 2
+### P-129 · One count per family on Waiting · Lane: **A3** (after P-126, before P-104) · Status: DONE (A3) 14:48 IST 09-04 (b68b61e1f) · Moves: 2
 
 **Why.** Served Waiting page, 12:14 IST 09-04: the heading said *21 design gates, 10 assumption
 challenges, 9 decisions, 4 agent actions, 4 house rules, 3 opportunities and 2 memory notes
@@ -9777,6 +9777,30 @@ counted in two tabs.
 across two reads a minute apart. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
+
+**Report (A3, 14:48 IST 09-04, b68b61e1f).** Recomputing the served numbers by hand found the exact
+seam: Proposals (33) and Memory (6) both match what the heading's own per-family numbers imply, but
+Gates does not -- 4 agent actions + 10 assumption challenges = 14, and the tab read 13. Root cause:
+the heading built its shape from `visibleItems` (the ACTIVE FILTER's own slice, sorted) while every
+tab's count came from `allItems` (the whole queue) through an inline `useMemo`. The two arrays are
+the same length only while the "All" tab happens to be open -- on any other tab the heading would
+silently narrow to that tab's own families while the row beside it kept counting everything, which
+is a worse defect than the one-off this specific screenshot shows. Fix: `queueCounts`, a new pure
+function beside `queueShape` in `a-queue-is-a-shape-not-a-total.ts`, computes every tab's count from
+one array in one pass; the route now calls `queueShape` and `queueCounts` over the SAME `allItems`,
+never `visibleItems`, so the two can no longer drift by construction, on any tab. **Deliberately not
+changed:** `design_gate` stays bucketed under "Proposals", not "Gates" -- the existing `ApprovalFilter`
+type comment already gives the reasoning (a design gate asks for new work, the same shape as a spec
+or an opportunity; a "gate" here is a call that reopens something already standing, which a design
+gate does not) -- taking the packet's own escape hatch ("or the packet writes down why one family is
+counted in two tabs") rather than forcing a formula against a reasoned existing design. Guard tests:
+`a-queue-is-a-shape-not-a-total.test.ts` gained a "one array, both partitions" block (heading-sum
+equals All; the Gates formula with the design_gate exclusion documented in the test itself; that
+every bucket always sums to the whole) plus two updated assertions on the existing heading test.
+Full suite: `bunx tsc --noEmit` 0; `bun test` 14486 pass / 0 fail / 22 skip / 37 todo across 1056
+files; `bun run build` 0 (Cloudflare Worker output); `bun run docs:check` exit 0, docs-doctor clean,
+zero WARN/FAIL. Pushed directly to `main` (b68b61e1f). No live browser access from this worktree --
+the Acceptance's own "across two reads a minute apart" needs a live read from A1.
 
 
 ### P-130 · Every time on every surface is in the person's zone · Lane: **A3** (after P-129) · Status: READY · Moves: 2
