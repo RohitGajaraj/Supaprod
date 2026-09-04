@@ -143,7 +143,7 @@ describe("a failed read and a missing route are never the same component", () =>
   it("hands the missing screen one real door and not a plausible-looking one", () => {
     let went = 0;
     render(<ShellRouteMissing onGoToToday={() => went++} />);
-    fireEvent.click(screen.getByRole("button", { name: "Back to Today" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back to Start" }));
     expect(went).toBe(1);
   });
 });

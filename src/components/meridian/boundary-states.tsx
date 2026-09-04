@@ -165,12 +165,12 @@ export function ShellRouteMissing({ onGoToToday }: { onGoToToday?: () => void })
       <NothingHere
         action={
           <Action variant="primary" onClick={go}>
-            Back to Today
+            Back to Start
           </Action>
         }
       >
         There is no screen at this address. Either the link is out of date or the URL has a typo in
-        it. Nothing you were working on is affected, so Today will pick you up where you left off.
+        it. Nothing you were working on is affected, so Start will pick you up where you left off.
       </NothingHere>
     </ShellFrame>
   );
