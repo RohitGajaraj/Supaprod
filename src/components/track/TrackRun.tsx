@@ -77,6 +77,7 @@ import { TakeOver } from "@/components/track/TakeOver";
 import { triesLine } from "@/components/track/hold-tries";
 import { wayOut } from "@/components/track/way-out";
 import { triedAgainLine } from "@/lib/spine/three-tries-and-nothing-changed";
+import { builtWithLine } from "@/lib/hosting/what-shape-is-this-repo";
 import { buildBlocked } from "@/components/track/build-precondition";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -1268,6 +1269,27 @@ export function TrackRunLeft({
              * person's own press still clears it -- `driveTrackOnce` wipes
              * `deferred_until` on every path in, whoever drove it.
              */}
+            {/*
+             * HOW THIS PREVIEW WAS PRODUCED (P-128b). With two hostable shapes
+             * a person cannot tell from a URL whether we uploaded their repo or
+             * built it, and `build_detail` knew and no surface read it. Shown
+             * for a successful preview as well as a failed one: which shape is
+             * a fact about the work, not about the failure.
+             */}
+            {builtWithLine({
+              shape: shipStopped.data?.shape ?? null,
+              build: shipStopped.data?.build ?? null,
+            }) ? (
+              <Row
+                lead={
+                  builtWithLine({
+                    shape: shipStopped.data?.shape ?? null,
+                    build: shipStopped.data?.build ?? null,
+                  }) as string
+                }
+              />
+            ) : null}
+
             {triedAgainLine(track?.deferredUntil, new Date()) ? (
               <Row lead={triedAgainLine(track?.deferredUntil, new Date()) as string} />
             ) : null}

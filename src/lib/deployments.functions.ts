@@ -1843,7 +1843,21 @@ export const whyShipStopped = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ trackId: z.string().uuid() }).parse(i))
   .handler(
-    async ({ context, data }): Promise<{ failureReason: string | null; failed: boolean }> => {
+    async ({
+      context,
+      data,
+    }): Promise<{
+      failureReason: string | null;
+      failed: boolean;
+      /*
+       * WHAT SHAPE THIS REPO TURNED OUT TO BE, from the newest attempt's own
+       * row (P-128b). Returned whether or not the attempt failed, because
+       * "which shape" is a fact about the work rather than about the failure,
+       * and a person reading a SUCCESSFUL preview wants it just as much.
+       */
+      shape: string | null;
+      build: { tool?: string; outDir?: string; buildMs?: number; bytes?: number } | null;
+    }> => {
       const { supabase } = context;
 
       const { data: runs, error: runErr } = await supabase
@@ -1855,7 +1869,8 @@ export const whyShipStopped = createServerFn({ method: "GET" })
       const missionIds = [
         ...new Set(((runs ?? []) as { mission_id: string | null }[]).map((r) => r.mission_id)),
       ].filter((m): m is string => !!m);
-      if (missionIds.length === 0) return { failureReason: null, failed: false };
+      if (missionIds.length === 0)
+        return { failureReason: null, failed: false, shape: null, build: null };
 
       /*
        * ── `studio_changesets`, AND THE TYPO IS THE WHOLE DEFECT (P-59c) ──────
@@ -1882,7 +1897,8 @@ export const whyShipStopped = createServerFn({ method: "GET" })
         throw new Error(`changesets for this track could not be read: ${csErr.message}`);
       }
       const changesetIds = ((changesets ?? []) as { id: string }[]).map((c) => c.id);
-      if (changesetIds.length === 0) return { failureReason: null, failed: false };
+      if (changesetIds.length === 0)
+        return { failureReason: null, failed: false, shape: null, build: null };
 
       /*
        * Both states in one read, ordered newest first, so "is the newest attempt a
@@ -1891,7 +1907,7 @@ export const whyShipStopped = createServerFn({ method: "GET" })
        */
       const { data: deploys, error: dErr } = await supabase
         .from("deployments")
-        .select("status,failure_reason,created_at")
+        .select("status,failure_reason,build_detail,created_at")
         .in("changeset_id", changesetIds)
         .in("status", ["failure", "success"])
         .order("created_at", { ascending: false })
@@ -1911,9 +1927,36 @@ export const whyShipStopped = createServerFn({ method: "GET" })
        * returns `{ failureReason: null }` for both, so the caller must ask the
        * status question here rather than infer it from the reason.
        */
-      const newest = ((deploys ?? []) as { status: string; failure_reason: string | null }[])[0];
-      if (!newest || newest.status !== "failure") return { failureReason: null, failed: false };
-      return { failureReason: newest.failure_reason ?? null, failed: true };
+      const newest = (
+        (deploys ?? []) as Array<{
+          status: string;
+          failure_reason: string | null;
+          build_detail: unknown;
+        }>
+      )[0];
+      /* Read off whatever row is newest, failure or not: the shape is a fact
+         about the work and a successful preview's reader wants it too. */
+      const detail = (newest?.build_detail ?? null) as {
+        shape?: unknown;
+        tool?: unknown;
+        outDir?: unknown;
+        buildMs?: unknown;
+        bytes?: unknown;
+      } | null;
+      const shape = typeof detail?.shape === "string" ? detail.shape : null;
+      const build =
+        detail && typeof detail.tool === "string"
+          ? {
+              tool: detail.tool,
+              outDir: typeof detail.outDir === "string" ? detail.outDir : undefined,
+              buildMs: typeof detail.buildMs === "number" ? detail.buildMs : undefined,
+              bytes: typeof detail.bytes === "number" ? detail.bytes : undefined,
+            }
+          : null;
+      if (!newest || newest.status !== "failure") {
+        return { failureReason: null, failed: false, shape, build };
+      }
+      return { failureReason: newest.failure_reason ?? null, failed: true, shape, build };
     },
   );
 

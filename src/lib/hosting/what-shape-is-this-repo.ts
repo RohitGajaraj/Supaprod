@@ -207,3 +207,37 @@ function contentType(p: string): string {
 }
 `;
 }
+
+/**
+ * What the run screen says about how this preview was produced.
+ *
+ * ── THE ROW KNEW AND NO SURFACE READ IT (P-128b) ─────────────────────────
+ * `deployments.build_detail` records the shape, the tool, the output directory
+ * and how long the build took. Written and then read by nobody is the shape of
+ * defect this repo has a guard for, and the fact is worth showing on its own
+ * terms: with two hostable shapes, a person looking at a preview cannot tell
+ * from a URL whether we uploaded their repo or built it.
+ *
+ * SAID FOR A SUCCESSFUL PREVIEW TOO, not only a failed one. "Which shape" is a
+ * fact about the work rather than about the failure.
+ *
+ * Null when nothing was built here -- a template deploy, or a captured row --
+ * because there is no build to describe and a sentence saying so would be
+ * filling a slot rather than telling anybody anything.
+ */
+export function builtWithLine(input: {
+  shape: string | null;
+  build: { tool?: string; outDir?: string; buildMs?: number; bytes?: number } | null;
+}): string | null {
+  const b = input.build;
+  if (!b?.tool) return input.shape?.trim() || null;
+  const secs = typeof b.buildMs === "number" ? Math.max(1, Math.round(b.buildMs / 1000)) : null;
+  const size =
+    typeof b.bytes === "number" && b.bytes > 0 ? `${(b.bytes / 1024).toFixed(0)} KB` : null;
+  const parts = [
+    `Built with ${b.tool}`,
+    b.outDir ? `from ${b.outDir}` : null,
+    secs ? `in ${secs}s` : null,
+  ].filter(Boolean);
+  return `${parts.join(" ")}${size ? ` (${size})` : ""}.`;
+}
