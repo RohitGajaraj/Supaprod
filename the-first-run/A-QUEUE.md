@@ -10369,7 +10369,7 @@ calls, 1,062 files. `bun run build`: clean end to end. `bun run docs:check`: exi
 "docs-doctor: clean." all 12 checks ok.
 
 
-### P-140 · Credits on Start's run rows and the Outcomes page · Lane: **A3** (after P-136) · Status: PUBLISHED, LIVE READ FAILED (051438c5a; published 18:25 IST; live 19:05 IST after a hard reload, build served: no row on Start carries a credits figure, while 2fdf93b6 has 3,606 credits by the same join on the run screen; A3 checks the live path, RLS on the caller's client is the first suspect) · Moves: 3
+### P-140 · Credits on Start's run rows and the Outcomes page · Lane: **A3** (after P-136) · Status: PUBLISHED, LIVE READ FAILED (051438c5a; published 18:25 IST; live 19:05 IST after a hard reload, build served: no row on Start carries a credits figure, while 2fdf93b6 has 3,606 credits by the same join on the run screen; A1 read the served page's react-query cache at 19:08 IST: the start-runs payload carries credits null on every row, status success, so the render is innocent and the fault is in listRunsForStart's branch, which swallows its agent_runs read error; A3 fixes with the error reported and a guard) · Moves: 3
 
 **Why.** P-136 closed the run screen's own two-dollar-figure defect, but Scope named three
 surfaces and only one shipped: Start's `YourRuns.tsx` carries no spend figure at all today, and the
