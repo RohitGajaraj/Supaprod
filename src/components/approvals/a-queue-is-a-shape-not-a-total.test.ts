@@ -166,12 +166,25 @@ describe("the page states its obligation once", () => {
     expect(code(HEADING)).not.toMatch(/\{\s*waitingOnPerson\.length\s*\}/);
   });
 
-  it("keeps what only StalledWork holds: the oldest wait, and the row list", () => {
-    expect(code(HEADING)).toContain("The oldest has been stopped for");
-    expect(HEADING).toContain("stoppedFor(oldest.since, now)");
+  it("keeps what only StalledWork holds: a fact the page heading does not state", () => {
+    /*
+     * RE-AIMED 2026-09-04 (P-138). This used to pin two spellings -- "The
+     * oldest has been stopped for" and `stoppedFor(oldest.since, now)` -- and
+     * so it guarded a SENTENCE rather than the requirement behind it. The
+     * requirement is that this component says something the heading above it
+     * does not, and that it never restates the count; the oldest wait was one
+     * way of doing that and turned out to be a poor one, because on Helio the
+     * oldest row was a note about release-note style that nothing waited on.
+     *
+     * Pinning the old wording would have made the honest fix fail the guard,
+     * which is the [[F-188]] / [[F-191]] shape: the check asserting the words
+     * instead of the rule.
+     */
+    expect(code(HEADING)).toContain("stoppedHeading(grouped)");
     expect(STALLED).toContain("Work is stopped, and none of it is waiting on you.");
-    // Every row undated is a real state and must not print an invented age.
-    expect(STALLED).toContain("Work is stopped, and nothing here says how long.");
+    // The lead fact is what is at stake, never an age. An age in the headline
+    // is what this replaced.
+    expect(code(HEADING)).not.toContain("stoppedFor(oldest");
   });
 
   it("leaves the heading as the one place a count is stated", () => {

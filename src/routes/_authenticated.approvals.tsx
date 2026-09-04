@@ -134,6 +134,7 @@ import { Surface } from "@/components/meridian/Surface";
 import { ApprovalCard } from "@/components/meridian/ApprovalCard";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { StalledWork, type StalledItem } from "@/components/meridian/StalledWork";
+import { looksSeeded } from "@/components/approvals/what-is-worth-your-next-ten-minutes";
 
 import { Ask } from "@/components/meridian/Ask";
 import { askQuestion } from "@/components/meridian/question";
@@ -546,6 +547,20 @@ function ApprovalsSurface() {
       asking: stripAutoMarkers(item.title),
       since,
       blocking: subjectOf(item) ?? undefined,
+      /*
+       * P-138. `gatesLiveWork` is passed through UNCHANGED, nulls included:
+       * only a tool-call gate carries a meaningful value and everything else is
+       * null by construction, so coercing it here would invent a claim about
+       * whether a spec is holding a run open.
+       *
+       * `isDemo` is decided from the SOURCE id rather than the composite
+       * `item.id`, which is prefixed by family and would never match. The
+       * seeded convention is the only thing that can answer this today; see
+       * `looksSeeded` for the measurement of why `is_sample` cannot.
+       */
+      kind: item.kindKey,
+      gatesLiveWork: item.gatesLiveWork,
+      isDemo: looksSeeded(item.sourceId),
       onOpen: () => setFocusedId(item.id),
     });
   }

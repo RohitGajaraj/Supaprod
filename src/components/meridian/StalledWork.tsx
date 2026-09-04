@@ -48,6 +48,11 @@
  */
 
 import { stoppedFor } from "@/components/meridian/stopped-for";
+import {
+  groupStopped,
+  stoppedHeading,
+  demoFoldLine,
+} from "@/components/approvals/what-is-worth-your-next-ten-minutes";
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -83,6 +88,16 @@ export type StalledItem = {
    * over-claiming a person's attention is the cheaper mistake to correct.
    */
   reason?: "you" | "source";
+  /**
+   * P-138. What the row is (a spec, a memory, a challenged assumption), whether
+   * the work it holds is still going, and whether it is the demo's furniture.
+   * All optional so a caller that does not know stays honest by omission: an
+   * absent `gatesLiveWork` is `null`, which never claims the row holds live
+   * work and never claims it does not.
+   */
+  kind?: string;
+  gatesLiveWork?: boolean | null;
+  isDemo?: boolean;
   /** The verb that unblocks it. Name the consequence, never "OK" or "Confirm". */
   allowLabel?: string;
   onAllow?: () => void;
@@ -229,6 +244,58 @@ function Item({ item, now }: { item: StalledItem; now: number }) {
   );
 }
 
+/**
+ * One group, drawn only when it has rows. An empty group renders nothing at
+ * all rather than a heading over a blank space: "Holding live work" above
+ * nothing reads as a bug, and worse, reads as reassurance nobody verified.
+ */
+function Group({
+  label,
+  rows,
+  now,
+}: {
+  label: string;
+  rows: readonly StalledItem[];
+  now: number;
+}) {
+  if (rows.length === 0) return null;
+  return (
+    <div className="mt-4">
+      <h3 className="mrd-eyebrow">{label}</h3>
+      <ul className="mt-2 flex flex-col gap-2">
+        {rows.map((item) => (
+          <Item key={item.id} item={item} now={now} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * The demo's furniture, folded. Closed by default and never interleaved: these
+ * rows are nobody's decision, and mixing them with a person's own work is what
+ * made the flat list unreadable.
+ *
+ * It is still openable rather than hidden. A person who wonders where the demo
+ * went is owed an answer, and a fold that cannot be opened is a deletion
+ * wearing a count.
+ */
+function DemoFold({ rows, now }: { rows: readonly StalledItem[]; now: number }) {
+  if (rows.length === 0) return null;
+  return (
+    <details className="mt-4">
+      <summary className="cursor-pointer text-mrd-base text-mrd-mute">
+        {demoFoldLine(rows.length)}
+      </summary>
+      <ul className="mt-2 flex flex-col gap-2">
+        {rows.map((item) => (
+          <Item key={item.id} item={item} now={now} />
+        ))}
+      </ul>
+    </details>
+  );
+}
+
 export function StalledWork({
   items,
   now = Date.now(),
@@ -238,8 +305,20 @@ export function StalledWork({
   now?: number;
 }) {
   const waitingOnPerson = items.filter((i) => (i.reason ?? "you") === "you");
-  const sorted = [...items].sort((a, b) => a.since - b.since);
-  const oldest = sorted[0];
+  /*
+   * P-138. Grouped by what is at stake rather than sorted by age. The rules and
+   * the measurement live in `what-is-worth-your-next-ten-minutes.ts`; this file
+   * draws what that decides and never re-decides it.
+   */
+  const grouped = groupStopped(
+    items.map((i) => ({
+      ...i,
+      kind: i.kind ?? "",
+      gatesLiveWork: i.gatesLiveWork ?? null,
+      isDemo: i.isDemo ?? false,
+    })),
+    now,
+  );
 
   if (items.length === 0) {
     /*
@@ -279,26 +358,21 @@ export function StalledWork({
        * The no-one-waiting branch keeps its words: it carries no count, and it
        * is the one case where nothing above says anything about this list.
        */}
+      {/*
+       * P-138. The heading said "The oldest has been stopped for 50 days",
+       * which was true of a note about release-note style that nothing was
+       * waiting on. It now says what decides whether to act.
+       */}
       <h2 className="text-mrd-lead leading-mrd-snug font-medium text-mrd-ink">
-        {waitingOnPerson.length === 0 ? (
-          "Work is stopped, and none of it is waiting on you."
-        ) : oldest ? (
-          <>
-            The oldest has been stopped for{" "}
-            <span className="font-mrd-mono tabular-nums">{stoppedFor(oldest.since, now)}</span>.
-          </>
-        ) : (
-          /* Every row undated. `UndatedCalls` draws those separately, so this
-             says what it knows rather than inventing an age for them. */
-          "Work is stopped, and nothing here says how long."
-        )}
+        {waitingOnPerson.length === 0
+          ? "Work is stopped, and none of it is waiting on you."
+          : stoppedHeading(grouped)}
       </h2>
 
-      <ul className="mt-4 flex flex-col gap-2">
-        {sorted.map((item) => (
-          <Item key={item.id} item={item} now={now} />
-        ))}
-      </ul>
+      <Group label="Holding live work" rows={grouped.holdingLiveWork} now={now} />
+      <Group label="Stopped this week" rows={grouped.thisWeek} now={now} />
+      <Group label="Older" rows={grouped.older} now={now} />
+      <DemoFold rows={grouped.demo} now={now} />
     </section>
   );
 }
