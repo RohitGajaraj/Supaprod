@@ -8303,6 +8303,26 @@ recorded reason must not be returned to Build by the given-up path (the reason i
 (2) the P-59c card must draw from the record of the newest failed deployment even when the current
 hold is null, since between ticks the track reads as ready. The press waits on that card.
 
+
+### P-59d · A Ship blocked on a recorded reason stays at Ship, and its card draws between ticks · Lane: **A2** (after P-73) · Status: READY · Moves: 1, 3
+
+**Why.** The live walk of 08:50: the tablet track looped Build to Ship and back overnight, and on
+the served build its screen read *Ready when you are.* with no card because the hold was null
+between ticks.
+
+**Scope.** (1) The given-up path does not return a track to Build when the newest deployment for
+its changeset failed for a recorded reason; it holds at Ship as `waiting-on-a-person` with that
+reason (P-59b's hold), because the reason is not Build's to fix. (2) The P-59c card reads the
+newest failed deployment from the record whatever the current hold, so the card and *Try the
+preview again* exist between ticks. (3) Guards for both, and a regression with this track's drive
+history (`produced-nothing` x3, Build, Ship, `produced-nothing` x3).
+
+**Acceptance.** Served tablet track with its deferral lifted for one tick: the card names the
+attempt and offers the press; the station does not move to Build. Full suite on the tip, tsc 0,
+build 0.
+
+**DoD.** Pushed; the three numbers; A1 presses.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
