@@ -29,6 +29,48 @@
  * written to keep shut, and it would do it while passing every check that only
  * asked whether the band answered.
  *
+ * ── AND WHAT THE FOURTH CONDITION ACTUALLY BUYS TODAY, MEASURED ───────────
+ * **It is a floor, not a defence, and the header said otherwise until this was
+ * measured on production 2026-09-04.** All seven banded decisions, with what
+ * the seats wrote into `forecast_observations`:
+ *
+ *   tablet_checkout_completion_rate  baseline 67    observations 41200
+ *   tablet_checkout_completion_rate  baseline 67    observations  1420
+ *   sign-up completion rate          baseline 0.62  observations  1240
+ *   support_ticket_count             baseline 17    observations    17
+ *   (no metric named)                baseline 42    observations     7
+ *   tablet_checkout_completion_rate  baseline 67    observations     1
+ *   tablet checkout completion rate  baseline 67    observations     1
+ *
+ * `product_analytics` holds 0 rows, so nothing here has read a completion rate
+ * 41,200 times. Those are POPULATION sizes, and `support_ticket_count` has
+ * observations exactly equal to its baseline, which is a seat copying the
+ * neighbouring field. `driver.ts` asks for "how many readings the baseline came
+ * from" in plain words; four of seven seats wrote something else.
+ *
+ * So `bandIsWellFounded` answers TRUE for 41200, 1420, 1240 and 17. This guard
+ * stops the two decisions that were honest about being thin and waves through
+ * the four that are not counting readings at all. **It is the right rule reading
+ * a field that does not yet mean what its name says** -- the family of F-190,
+ * F-192 and F-196, arriving this time inside the guard written to prevent it.
+ *
+ * It is KEPT, because the rule is right and a floor is worth more than nothing,
+ * and because the alternative is trusting the same field with no gate at all.
+ * It is not RELIED ON, and no caller should describe it as protection from
+ * noise until `forecast_observations` is trustworthy. That fix is not here: the
+ * field is misread by the seats writing it and by three shipped functions
+ * reading it, `tierActionFor` among them, which returns "open-work" on a missed
+ * verdict for exactly these bands. That is a live defect in the tier mechanism
+ * and is nothing to do with this predicate.
+ *
+ * ── WHY NOTHING LIFTS AT ALL TODAY, WHICH IS THE HONEST HEADLINE ──────────
+ * Measured the same hour: **133 specs, 0 carrying any reading on any clause.**
+ * Condition 1 fails universally, so this predicate is correct and inert. P-137
+ * built the press and nobody has pressed it. This is not a working behaviour
+ * being reported; it is the first reader that will make a recorded number
+ * matter, and it starts working the day somebody records one -- which is the
+ * same day `tierActionFor`'s defect above stops being latent.
+ *
  * ── AND WHY AN AMBIGUOUS MATCH DOES NOT LIFT ──────────────────────────────
  * The reading has to be on the clause the forecast's observable names. Matching
  * a decision's `forecast_metric` to a contract clause's prose is not something
@@ -53,14 +95,32 @@ export type LiftDecision =
 const KEEPS_THE_DATE = (because: string): LiftDecision => ({ lift: false, because });
 
 /**
- * The single hand-recorded reading on this spec, or null when there is not
- * exactly one.
+ * The latest reading on the one clause that carries readings, or null when
+ * more than one clause does -- or none.
  *
- * Exported because "how many readings are there" is the fact the ambiguity rule
- * turns on, and a caller that wants to explain itself needs it separately from
- * the decision.
+ * ── ONE CLAUSE, NOT ONE READING (A1's correction, 2026-09-04) ─────────────
+ * The count that matters is CLAUSES, and the value taken is that clause's
+ * LATEST. `recordMetricReading` appends rather than replaces, on purpose: a
+ * metric's history is the feature, and a person who records 71 on Monday and 73
+ * on Thursday has not made the forecast ambiguous -- they have measured twice
+ * and the second one is the current truth. Counting readings would refuse them,
+ * which punishes the exact behaviour the press exists to encourage.
+ *
+ * Two CLAUSES carrying readings is the real ambiguity and still keeps the date:
+ * see the header on why a clause is never matched to a forecast's metric by
+ * guessing.
+ *
+ * `whatWouldMeasure` already resolves "latest" by `at`, and that is sound here
+ * rather than merely inherited: every reading is written by
+ * `recordMetricReading` with `new Date().toISOString()`, so `at` is always UTC
+ * in one format and the lexical maximum is a true maximum. A mixed-offset
+ * timestamp would break that comparison, and nothing can write one today.
+ *
+ * Exported because "how many clauses carry a reading" is the fact the ambiguity
+ * rule turns on, and a caller that wants to explain itself needs it separately
+ * from the decision.
  */
-export function theOneReading(contract: unknown): number | null {
+export function theLatestReadingOnTheOneClause(contract: unknown): number | null {
   const raw = (contract as { success_metrics?: unknown } | null)?.success_metrics;
   if (!Array.isArray(raw)) return null;
   const readings = raw
@@ -84,7 +144,7 @@ export function aReadingCanBringLearnForward(
   contract: unknown,
   band: ForecastBand | null,
 ): LiftDecision {
-  const reading = theOneReading(contract);
+  const reading = theLatestReadingOnTheOneClause(contract);
   if (reading === null) {
     return KEEPS_THE_DATE(
       "no single recorded reading on this spec, so there is nothing unambiguous to settle it with",
@@ -98,7 +158,9 @@ export function aReadingCanBringLearnForward(
 
   const verdict = bandFor(reading, band);
   if (verdict === "unknown") {
-    return KEEPS_THE_DATE("the band cannot answer this reading, and a band that guesses is worse than no band");
+    return KEEPS_THE_DATE(
+      "the band cannot answer this reading, and a band that guesses is worse than no band",
+    );
   }
   if (!bandIsWellFounded(band)) {
     return KEEPS_THE_DATE(

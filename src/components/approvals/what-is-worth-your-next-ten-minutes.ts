@@ -169,7 +169,8 @@ export function stoppedHeading(groups: GroupedStopped<StoppedRow>): string {
   if (live > 0) {
     const head = `${plural(live, "stopped item is", "stopped items are")} holding live work`;
     if (week > 0) return `${head}; ${week} more stopped this week.`;
-    if (older > 0) return `${head}; ${plural(older, "other has", "others have")} been stopped longer.`;
+    if (older > 0)
+      return `${head}; ${plural(older, "other has", "others have")} been stopped longer.`;
     return `${head}.`;
   }
   if (week > 0) {
@@ -179,9 +180,7 @@ export function stoppedHeading(groups: GroupedStopped<StoppedRow>): string {
   if (older > 0) {
     return `Nothing stopped is holding live work; ${plural(older, "item has", "items have")} been stopped longer than a week.`;
   }
-  return groups.demo.length > 0
-    ? "Nothing of yours is stopped."
-    : "Nothing is stopped.";
+  return groups.demo.length > 0 ? "Nothing of yours is stopped." : "Nothing is stopped.";
 }
 
 /** The one line that folds the demo rows away. Says the true number. */

@@ -58,8 +58,7 @@ function clausesOf(contract: unknown): MetricClause[] {
   const raw = (contract as { success_metrics?: unknown } | null)?.success_metrics;
   if (!Array.isArray(raw)) return [];
   return raw.filter(
-    (c): c is MetricClause =>
-      typeof c === "object" && c !== null && isStanding(c as MetricClause),
+    (c): c is MetricClause => typeof c === "object" && c !== null && isStanding(c as MetricClause),
   );
 }
 
@@ -133,8 +132,9 @@ export function whatItWasGradedAgainst(
 ): string {
   const clauses = clausesOf(contract);
   if (clauses.length === 0) return "graded with no success metric on the spec";
-  const n = clauses.map((c) => whatWouldMeasure(c, refsWithReadings)).filter(canProduceAReading)
-    .length;
+  const n = clauses
+    .map((c) => whatWouldMeasure(c, refsWithReadings))
+    .filter(canProduceAReading).length;
   if (n === 0) return "graded with no reading";
   return `graded against ${n} reading${n === 1 ? "" : "s"}`;
 }

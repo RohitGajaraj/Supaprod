@@ -21,7 +21,10 @@ import {
   scheduledAwayIds,
   unchangedSinceLastDrive,
 } from "@/lib/spine/waiting-on-a-date-is-not-waiting-in-a-queue";
-import { dueDatesFor } from "@/lib/spine/waiting-on-a-date-is-not-waiting-in-a-queue.server";
+import {
+  dueDatesFor,
+  tracksAReadingBringsForward,
+} from "@/lib/spine/waiting-on-a-date-is-not-waiting-in-a-queue.server";
 
 /**
  * The heartbeat that makes the loop run when nobody is watching.
@@ -261,6 +264,31 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
                 waiting.map((r) => r.id),
               )
             : new Map<string, string | null>();
+          /*
+           * ── P-144 SCOPE 3. A RECORDED NUMBER SETTLES THE WAIT EARLY ───────
+           *
+           * The forecast's due date is the LATEST Learn returns, not the
+           * earliest. Where a person has recorded a number the forecast's band
+           * can settle, the wait is over and the track goes back in the queue
+           * today.
+           *
+           * DROPPED FROM THE MAP rather than added to a second skip set,
+           * because `scheduledAwayIds` already holds the law this needs: a
+           * candidate with no entry is never scheduled away. Expressing the lift
+           * as "this track is no longer waiting on a date" reuses that rule
+           * instead of adding a parallel one that could disagree with it.
+           *
+           * Nothing lifts today: 133 specs carry 0 readings between them
+           * (measured 2026-09-04), so this is the reader that makes the first
+           * recorded number matter rather than a behaviour already running.
+           */
+          const lifted = waiting.length
+            ? await tracksAReadingBringsForward(
+                supabaseAdmin as unknown as SupabaseClient,
+                waiting.map((r) => r.id),
+              )
+            : new Set<string>();
+          for (const id of lifted) dueByTrack.delete(id);
           /*
            * -- P-03b. NOTHING HAS CHANGED, SO THERE IS NOTHING TO LOOK AT ----
            *

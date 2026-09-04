@@ -37,7 +37,9 @@ describe("groupOf", () => {
   });
 
   test("false is not the same as null, and neither is in the first group", () => {
-    expect(groupOf(row({ id: "c", gatesLiveWork: false, since: NOW - DAY }), NOW)).toBe("this-week");
+    expect(groupOf(row({ id: "c", gatesLiveWork: false, since: NOW - DAY }), NOW)).toBe(
+      "this-week",
+    );
   });
 
   test("this week and older split on seven days, inclusive at the boundary", () => {
@@ -139,7 +141,11 @@ describe("stoppedHeading", () => {
   test("the demo count is never in the heading", () => {
     // P-56's defect: a headline number a person reads as their obligation must
     // not include rows that are nobody's decision.
-    const h = stoppedHeading({ ...empty, thisWeek: [row({ id: "a" })], demo: Array.from({ length: 11 }, (_, i) => row({ id: `d${i}`, isDemo: true })) });
+    const h = stoppedHeading({
+      ...empty,
+      thisWeek: [row({ id: "a" })],
+      demo: Array.from({ length: 11 }, (_, i) => row({ id: `d${i}`, isDemo: true })),
+    });
     expect(h).not.toContain("11");
     expect(h).not.toContain("sample");
   });

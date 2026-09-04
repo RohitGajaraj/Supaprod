@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, test, expect } from "bun:test";
 import { whatLearnIsWaitingFor, onlyAPersonCanGradeThis } from "./what-learn-is-waiting-for";
 import {
@@ -149,11 +151,8 @@ describe("the metric press offers only the door that works", () => {
    * source" door lower in the same file is CORRECT -- that one connects the
    * signal ingestion `/sync` actually does -- and must keep working.
    */
-  const src = require("node:fs").readFileSync(
-    require("node:path").join(
-      import.meta.dir,
-      "../../components/track/ArtifactPane.tsx",
-    ),
+  const src = readFileSync(
+    join(import.meta.dir, "../../components/track/ArtifactPane.tsx"),
     "utf8",
   ) as string;
 

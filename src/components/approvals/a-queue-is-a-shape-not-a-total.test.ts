@@ -190,7 +190,9 @@ describe("the page states its obligation once", () => {
   it("leaves the heading as the one place a count is stated", () => {
     // Proves the stripper above did not simply eat the file, which would make
     // the second assertion pass vacuously.
-    expect(ROUTE_CODE).toContain("shapeSentence(queueShape(allItems.map((i) => i.kindKey)), floor)");
+    expect(ROUTE_CODE).toContain(
+      "shapeSentence(queueShape(allItems.map((i) => i.kindKey)), floor)",
+    );
     expect(ROUTE_CODE).not.toContain("decisions are ready for you.");
     // And the comment explaining the change is still there to be read.
     expect(ROUTE).toContain("A SHAPE, NOT A TOTAL");

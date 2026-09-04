@@ -38,6 +38,7 @@ import { forecastRefusal } from "@/lib/decisions.functions";
 import { SPEC_SECTION_ORDER } from "@/lib/spec-sections";
 import { looksLikeASentence } from "@/lib/bet-title";
 import { qualifies } from "@/lib/spine/promote";
+import { tracksAReadingBringsForward } from "@/lib/spine/waiting-on-a-date-is-not-waiting-in-a-queue.server";
 import {
   resolveAutonomyPolicy,
   promotionBarFor,
@@ -2535,7 +2536,6 @@ export const deleteOpportunity = createServerFn({ method: "POST" })
  * page somebody can open.
  */
 
-
 export const getPrd = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
@@ -2589,10 +2589,10 @@ export const getPrd = createServerFn({ method: "GET" })
      * never-run. That is the honest direction to be wrong in: it understates
      * what we can measure rather than claiming a number exists.
      */
-    const clauses = ((row as { contract?: unknown } | null)?.contract as
-      | { success_metrics?: unknown }
-      | null
-      | undefined)?.success_metrics;
+    const clauses = (
+      (row as { contract?: unknown } | null)?.contract as
+        { success_metrics?: unknown } | null | undefined
+    )?.success_metrics;
     const refs = Array.isArray(clauses)
       ? Array.from(
           new Set(
@@ -3115,6 +3115,59 @@ export const recordMetricReading = createServerFn({ method: "POST" })
       .maybeSingle();
     if (upErr) throw new Error(upErr.message);
     if (!updated) throw new Error("Spec not found");
+
+    /*
+     * ── P-144 SCOPE 3. THE NUMBER THAT SETTLES THE FORECAST ENDS THE WAIT ──
+     *
+     * A Learn track waiting on a forecast horizon carries `deferred_until`, and
+     * the sweep's own SQL filters those rows out before they are fetched. So
+     * recording a number that settles the forecast would otherwise change
+     * nothing until the horizon it was meant to bring forward -- the person
+     * types 71, the product says thank you, and the track sleeps until October.
+     *
+     * **This is the half that makes the lift real, and the sweep-side filter is
+     * the half that makes it agree.** Clearing the column here is what puts the
+     * row back in front of the sweep; `tracksAReadingBringsForward` is what
+     * stops the sweep from immediately deferring it again. Either alone is a
+     * lift that never happens.
+     *
+     * FAILING HERE MUST NOT FAIL THE WRITE. The reading is recorded and is the
+     * thing the person asked for; the schedule is an optimisation on top of it.
+     * A track that is not woken waits for its horizon, which is exactly today's
+     * behaviour, so the cost of this failing is the feature not applying rather
+     * than a number being lost. It is logged, never swallowed silently.
+     */
+    try {
+      const { data: members } = await supabase
+        .from("spine_track_members")
+        .select("track_id")
+        .eq("artifact_kind", "prd")
+        .eq("artifact_id", data.id)
+        .is("superseded_at", null);
+      const trackIds = (members ?? []).map((m) => (m as { track_id: string }).track_id);
+      if (trackIds.length > 0) {
+        const lifted = await tracksAReadingBringsForward(
+          supabase as unknown as Parameters<typeof tracksAReadingBringsForward>[0],
+          trackIds,
+        );
+        if (lifted.size > 0) {
+          const { error: wakeErr } = await supabase
+            .from("spine_tracks")
+            .update({ deferred_until: null } as never)
+            .in("id", [...lifted]);
+          if (wakeErr) {
+            console.error(
+              `[reading] recorded on ${data.id} but could not wake ${[...lifted].join(",")}: ${wakeErr.message}`,
+            );
+          }
+        }
+      }
+    } catch (e) {
+      console.error(
+        `[reading] recorded on ${data.id}; the early-return check failed and the forecast date still governs: ${e instanceof Error ? e.message : String(e)}`,
+      );
+    }
+
     return { contract: updatedContract };
   });
 
@@ -4593,7 +4646,9 @@ ICE. Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
           .order("created_at", { ascending: false })
           .limit(FAMILY_SPEC_SCAN);
         if (siblingErr) {
-          console.error(`[generatePrd] could not check for an existing spec: ${siblingErr.message}`);
+          console.error(
+            `[generatePrd] could not check for an existing spec: ${siblingErr.message}`,
+          );
         } else if (siblings) {
           alreadySaidBy = findTheSpecThatAlreadySaysThis(
             title,

@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, test, expect } from "bun:test";
 import {
   metricsForTheBrief,
@@ -83,7 +85,9 @@ describe("metricsForTheBrief", () => {
 
   test("a ci clause is described as a build check, never as a number", () => {
     const block = metricsForTheBrief({
-      success_metrics: [{ text: "Telemetry is integrated.", status: "standing", oracle_kind: "ci" }],
+      success_metrics: [
+        { text: "Telemetry is integrated.", status: "standing", oracle_kind: "ci" },
+      ],
     })!;
     expect(block).toContain("not how people behaved");
     expect(block).toContain("NOTHING can produce a number");
@@ -137,10 +141,7 @@ describe("the driver refuses to stringify an object it cannot render", () => {
    * Read from source because the defect is what reaches a brief, and there is
    * no seam that returns the composed extras alone.
    */
-  const body = require("node:fs").readFileSync(
-    require("node:path").join(import.meta.dir, "driver.server.ts"),
-    "utf8",
-  ) as string;
+  const body = readFileSync(join(import.meta.dir, "driver.server.ts"), "utf8") as string;
 
   test("contract has a renderer rather than a String() cast", () => {
     expect(body).toContain("RENDER_FOR");
@@ -176,10 +177,7 @@ describe("gradedAgainstFromStates", () => {
 });
 
 describe("the verify says what it graded against, not only that it graded", () => {
-  const body = require("node:fs").readFileSync(
-    require("node:path").join(import.meta.dir, "driver.server.ts"),
-    "utf8",
-  ) as string;
+  const body = readFileSync(join(import.meta.dir, "driver.server.ts"), "utf8") as string;
 
   test("the learn branch composes the count and degrades silently", () => {
     /*
