@@ -8197,7 +8197,7 @@ writes the person's sentence as the claim. Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
 
 
-### P-82 · The build stops rewriting four route files · Lane: **A3** (after P-81) · Status: CLAIMED (A3) 08:28 IST 09-04 · Moves: 1
+### P-82 · The build stops rewriting four route files · Lane: **A3** (after P-81) · Status: CODE DONE, PUSHED 1fa6d5520 · Moves: 1
 
 **Why.** `bun run build` rewrites `src/routes/mcp.ts`, `src/routes/[.mcp]/list-tools.ts`,
 `src/routes/[.mcp]/invoke-tool/$tool.ts` and `src/routes/[.well-known]/oauth-protected-resource.ts`
@@ -8215,6 +8215,38 @@ would change.
 tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers per rules 17 and 21.
+
+**Report, A3, 08:38 IST 09-04.** Not the TanStack router generator -- `mcp__plugin_context7_context7`
+would have sent the wrong direction. It is `@lovable.dev/mcp-js`'s own Vite plugin (`mcpPlugin`,
+`vite.config.ts`), which regenerates all four on `configResolved`/`buildStart`, always to one
+canonical single-line handler-options form (read the compiled plugin source directly to confirm:
+`node_modules/@lovable.dev/mcp-js/dist/stacks/tanstack/vite.js`). Prettier's `printWidth` (100)
+was reformatting that line to multi-line on every `bun run format`/`lint --fix` (and whatever
+reformats inside the Lovable editor), so every local build flipped it back and the diff kept
+getting requoted.
+
+The banner each file carries ("delete this banner line; the plugin then leaves the file alone")
+is WRONG for this package version -- tested empirically before trusting it: removing the banner
+from one file and running the build throws `refusing to overwrite user-authored route` instead,
+because `writeIfChanged` still targets that same canonical path and only skips writing if the
+banner is present AND content already matches. So the fix is not adoption; it's stopping anything
+from reformatting the plugin's own bytes. `.prettierignore` now excludes the four, same precedent
+as `routeTree.gen.ts` immediately above them there. The bracket directories needed escaping
+(`\[.mcp\]`, `\[.well-known\]`) -- prettier's ignore syntax treats a bare `[` as a glob character
+class, so the first attempt silently matched nothing and I caught it only by re-running
+`prettier --check` directly rather than trusting the edit.
+
+Guard: `the-mcp-generated-routes-are-stable.test.ts` runs the REAL plugin (its actual
+`configResolved` hook, not a reimplementation) against a throwaway temp `projectRoot` -- never the
+repo's own tree, a check must not be able to write to what it is checking -- and diffs what it
+generates there against the tracked file actually committed; a second test checks all four paths
+are present in `.prettierignore`'s escaped form, closing the exact blind spot that caused this.
+Verified the guard actually fails on drift (tampered one file by hand, watched the test catch it,
+restored it) before relying on it.
+
+`bun run build` twice in a row on the rebased tip (0473ad847): second run wrote nothing, `git
+status` clean both times -- the actual acceptance criterion, not just "no diff on this run."
+`bunx tsc --noEmit` exit 0. `bun test` 14,266 / 0 / 22 skip / 37 todo. PUSHED 1fa6d5520.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
