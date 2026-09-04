@@ -8970,6 +8970,31 @@ dispatches on 7bc7181b within one tick of the backfill. Full suite on the tip, t
 
 **DoD.** Pushed; migration applied; the count before and after; the three numbers.
 
+
+### P-115 · A press that the server refuses is told to the person · Lane: **A3** (now, ahead of P-104) · Status: READY · Moves: 2
+
+**Why.** Live 06:04 to 06:08 UTC 09-04, on the Ship track: A1 pressed "Don't run it" on the
+run screen's gate banner three times. Each press POSTed, the server answered 200 with a validation
+error (*Declining records why. Say what was wrong with it.*, path `reason`), and the banner showed
+nothing: no message, no field, the same two buttons. `GateBanner.tsx` sends `{approvalId, verdict}`
+with no reason and its mutation has no error handling, so its decline can never succeed and never
+says so. The transcript card (`TrackConsent`) has the reason field and works. A control that fails
+silently is worse than a missing one; it spends the person's trust on nothing.
+
+**Scope.** (1) The banner's decline opens the same one-line reason field the transcript card has,
+inline, with the same sentence under it; the press sends the reason. (2) Every `decideTrackGate`
+result with `problems` or a thrown error is shown where the press was made, in the product's
+voice (*Declining records why. Say what was wrong with it.* is already a good sentence; show it).
+(3) Guard: a mutation on the gate banner that rejects renders its message; a reject with no
+reason is impossible from the banner. Sweep: every other caller of `decideTrackGate` and
+`resolveApproval` for the same silent shape (Waiting page, Ask cards, the settled list) and fix
+each in this packet, not a later one.
+
+**Acceptance.** Served run screen: pressing the banner's decline shows the field, sending declines
+the gate and the transcript records the reason. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; the list of callers swept.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
