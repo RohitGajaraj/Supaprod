@@ -9336,6 +9336,51 @@ count is real. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; the item read live by A1.
 
+**Report (A3, 13:00 IST 09-04).** Pushed at `fae06bd6b`. New `src/lib/provider-faults.functions.ts`:
+`detectProviderFaults()` scans `error_events` for every embed-tick surface (reusing
+`entity-embedding.server.ts`'s own `ENTITY_EMBEDDING_SPECS` list plus the memory sweeper) failing
+repeatedly on a non-rate-limit 4xx. "Three consecutive ticks" reads as a TIME WINDOW (3×
+`cron.embed-tick`'s own 15-minute cadence, plus slack) rather than a literal tick count, since no
+sweeper writes a per-surface success signal — only failures land in `error_events`. This is also
+what makes a fault clear itself: once the issue is fixed, no new rows land for that surface, so
+once the window passes with nothing new the query stops finding 3+ rows and the item disappears on
+its own — no separate "clear" write needed.
+
+The row count is the real backlog (A1's live correction: "the count should be the rows still
+unembedded, not the error rows"), read fresh from each surface's own table with the exact
+`.or("embedding.is.null,embedding_model.is.null")` filter its sweeper already applies — never
+derived from the error count. `providerFaultLine()` curates one sentence per fault: 402 gets the
+packet's own exact wording with a Cohere billing link; any other non-rate-limit 4xx gets an honest
+generic line naming the status, so a new kind of fault is never silent before it earns its own
+sentence.
+
+New `ProviderFaultNotice.tsx` renders one card per fault with no decide action — every other item
+on Waiting is a yes/no gate backed by a real row, and this is a notice about the founder's own
+account with a real external provider; forcing it through `decideApprovalItem` would give it an
+approve/reject that means nothing. Mounted on two surfaces reading the SAME `getProviderFaults`
+call: the Waiting page (`_authenticated.approvals.tsx`) and Team's Spend and limits room
+(`SpendRoom.tsx`'s `TrendView`) — one query, one answer, never two. `getProviderFaults` is
+admin-gated (mirrors `listErrorEvents`): `error_events` is RLS-admin-only, and the packet's own Why
+names this as literally the founder's action.
+
+**Guard**, asserting the packet's own words: three fixtures of the same surface failing inside the
+window produce one item, not fewer and not split; a 429 never counts no matter how often it
+repeats; failures outside the window produce nothing (the self-clearing case); distinct surfaces
+each raise their own item; a read failure returns no faults rather than throwing. 8 tests, all
+passing.
+
+Registered in `src/lib/surface-registry.ts` — the no-orphan gate caught the new `*.functions.ts`
+domain on its first run and I gave it an entry (filed under the approvals tray's future home,
+`approvals-queue`'s own nearest sibling).
+
+**Live verification note**: this worktree has no dev server or browser access. The Acceptance's
+"the live Waiting page shows the embeddings item within one tick of publish" could not be walked
+from here — over to A1 to read it live after publish, per this session's standing pattern for
+packets with no browser in this environment.
+
+`bunx tsc --noEmit`: clean. `bun test`: 14406 pass, 22 skip, 37 todo, 0 fail, 38346 expect() calls,
+1049 files. `bun run build`: clean end to end. Returning to the watch loop.
+
 ### P-120 · A lineage edge carries its workspace · Lane: **A3** (after P-119) · Status: READY · Moves: 1
 
 **Why.** `error_events` 06:30:48 UTC 09-04, on the probe's Build (track a30d6b62): *lineage edge
