@@ -46,6 +46,8 @@ const admin = supabaseAdmin as unknown as SupabaseClient;
  * skips waiting_approval runs that still have undecided gates.
  */
 const STALE_MS = 2 * 60 * 1000; // 2 minutes since last checkpoint = likely evicted
+import { GATE_STILL_HOLDS } from "@/lib/ai/a-decided-gate-releases-its-run";
+
 const BATCH = 5;
 // KI-16: per-tick fairness cap on running missions advanced (oldest-updated
 // first, so no mission starves). Env-tunable for high scale; sane default 50.
@@ -422,12 +424,17 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
               // PERF: Batch-fetch all pending/approved approvals in one query
               // instead of N+1 per waiting run.
               const waitingIds = (waiting as { id: string }[]).map((w) => w.id);
-              const { data: blockedApprovals } = await admin
+              const { data: blockedApprovals, error: blockedErr } = await admin
                 .from("agent_approvals")
-                .select("run_id")
+                .select("run_id,status")
                 .in("run_id", waitingIds)
-                .in("status", ["pending", "approved"]);
+                .in("status", [...GATE_STILL_HOLDS]);
               const blockedByRun = new Set<string>();
+              /* A READ THAT FAILED BLOCKS EVERYTHING. Treating an unreadable
+                 approvals table as "nothing is pending" would resume every
+                 paused run straight into tool calls nobody answered. Same rule
+                 `gateHasBeenAnswered` states for the single-run case. */
+              if (blockedErr) for (const id of waitingIds) blockedByRun.add(id);
               for (const a of (blockedApprovals ?? []) as { run_id: string }[]) {
                 blockedByRun.add(a.run_id);
               }

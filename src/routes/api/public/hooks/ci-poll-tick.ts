@@ -285,6 +285,36 @@ const HOSTED_PREVIEW_RETRY_WINDOW_MS =
   Math.max(5, Number(process.env.HOSTED_PREVIEW_RETRY_WINDOW_MIN ?? 60) || 60) * 60_000;
 const NON_TERMINAL_RUN = ["queued", "running", "in_progress", "waiting_approval"];
 
+/**
+ * ── A RUN WAITING ON A PERSON IS NOT A WORKER (P-114) ────────────────────
+ *
+ * `NON_TERMINAL_RUN` answers "is this run still alive", and it is right to
+ * count `waiting_approval`: a paused run has not finished and its mission is
+ * not done. But the "one worker per mission" checks below ask a DIFFERENT
+ * question -- is somebody already doing this work -- and a run stopped at a
+ * gate is doing nothing at all. It will do nothing until a human acts.
+ *
+ * MEASURED 2026-09-04 on the tablet track. The builder raised a
+ * `studio.pr.merge` gate, went `waiting_approval`, and the CI fix dispatch
+ * below counted it as a live worker and skipped the changeset. So:
+ *
+ *   the fix loop waited for the run,
+ *   the run waited for a person,
+ *   and the person was being asked to merge a pull request whose CI was red,
+ *   which `mergeReadinessFromCi` refuses -- and only the fix loop could have
+ *   turned it green.
+ *
+ * A closed circle, with the person's press as the only moving part and nothing
+ * for it to move. Excluding the gate state from the WORKER count breaks it
+ * without touching what "alive" means anywhere else.
+ *
+ * SAFE AGAINST THE OBVIOUS OBJECTION -- a fix landing under a pending merge
+ * approval cannot sneak a stale commit through, because `studio.pr.merge`
+ * re-proves the checks at the head sha when it executes. The merge would simply
+ * be against the newer head, which is the one a person would want anyway.
+ */
+const OCCUPIED_BY_A_WORKER = NON_TERMINAL_RUN.filter((s) => s !== "waiting_approval");
+
 type ChangesetLite = {
   id: string;
   mission_id: string | null;
@@ -970,7 +1000,7 @@ export async function runCiPollTick() {
               .from("agent_runs")
               .select("id", { count: "exact", head: true })
               .eq("mission_id", cs.mission_id)
-              .in("status", NON_TERMINAL_RUN);
+              .in("status", OCCUPIED_BY_A_WORKER);
             if (!liveRunsForMerge) {
               const { data: builderAgent } = await supabaseAdmin
                 .from("agents")
@@ -1168,12 +1198,13 @@ export async function runCiPollTick() {
           continue;
         }
 
-        // One worker per mission at a time.
+        // One worker per mission at a time. A run parked at a gate is not one
+        // (P-114) -- see OCCUPIED_BY_A_WORKER.
         const { count: liveRuns } = await supabaseAdmin
           .from("agent_runs")
           .select("id", { count: "exact", head: true })
           .eq("mission_id", cs.mission_id)
-          .in("status", NON_TERMINAL_RUN);
+          .in("status", OCCUPIED_BY_A_WORKER);
         if ((liveRuns ?? 0) > 0) continue;
 
         /*

@@ -112,6 +112,12 @@ async function refundIfAbandoned(
  * run PAUSES (status 'waiting_approval'); the resume-runs sweeper re-enters
  * it once the operator decides, injecting the outcome.
  */
+import {
+  CI_GATED_TOOLS,
+  refusalForRaisingOverRedChecks,
+  type ChecksResult,
+} from "@/lib/ai/a-gate-nobody-can-answer-is-not-raised";
+
 const PAUSE_ON_APPROVAL_TOOLS = new Set([
   "studio.commit",
   "studio.pr.open",
@@ -2306,6 +2312,54 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         }
       }
 
+      /*
+       * ── DO NOT ASK A QUESTION THE PRODUCT HAS ALREADY ANSWERED (P-114) ──
+       *
+       * See `a-gate-nobody-can-answer-is-not-raised`. Read off THIS run's own
+       * `studio.checks.run` results, which the seat produced seconds earlier,
+       * so it costs no network call and cannot be told a different story by a
+       * rate limit. Only a red result withholds the gate; green, pending and
+       * unreadable all raise it exactly as before.
+       */
+      if (CI_GATED_TOOLS.has(call.name) && traceId) {
+        let checksQ = supabase
+          .from("tool_calls")
+          .select("result")
+          .eq("trace_id", traceId)
+          .eq("tool_name", "studio.checks.run")
+          .eq("ok", true);
+        /* Named when it can be named (P-67). The trace already belongs to this
+           run, so this narrows nothing today; an unscoped read of a
+           workspace-scoped table is the shape that crosses a boundary the day
+           the key stops being unique. Unresolved stays unfiltered, because
+           filtering on a workspace nobody can name would read as "no checks
+           have run" and withhold nothing. */
+        if (workspaceId) checksQ = checksQ.eq("workspace_id", workspaceId);
+        const { data: checkRows } = await checksQ
+          .order("created_at", { ascending: false })
+          .limit(1);
+        const lastChecks = ((checkRows ?? []) as Array<{ result: unknown }>)[0]?.result as
+          ChecksResult | undefined;
+        const withheld = refusalForRaisingOverRedChecks({
+          toolName: call.name,
+          lastChecks: lastChecks ?? null,
+        });
+        if (withheld) {
+          steps.push({
+            kind: "tool_call",
+            name: call.name,
+            args: parseRes.data as Json,
+            reason: call.reason,
+            ok: false,
+            status: "error",
+            error: withheld,
+          });
+          conv.push({ role: "assistant", content: assistantContent });
+          conv.push({ role: "user", content: withheld });
+          continue;
+        }
+      }
+
       const { data: appr } = await supabase
         .from("agent_approvals")
         .insert({
@@ -2617,7 +2671,50 @@ export async function resumeAgentLoop(
     .eq("id", run.agent_id)
     .eq("user_id", run.user_id)
     .maybeSingle();
-  if (!agent) throw new Error(`agent not found for run ${runId}`);
+  /*
+   * ── A RUN WITH NO AGENT CANNOT RESUME, AND MUST NOT HOLD A SLOT ─────────
+   *
+   * This threw, and the throw is what starved the sweep for six weeks.
+   *
+   * MEASURED 2026-09-04. Seven rows dated 2026-07-20 -- one per demo workspace,
+   * `agent_id` NULL, no checkpoints, `is_sample` false -- were the OLDEST
+   * `waiting_approval` rows in the table. `resume-runs.ts` selects that status
+   * `created_at ASC` and stops at `BATCH` (5), so all five slots went to rows
+   * that reach this line and throw. `resumeRuns` catches per run, so the tick
+   * did not crash; it simply resumed nothing and reported ok, 96,773 times.
+   *
+   * Every genuinely resumable run sat behind them. One of them, `b9523c3c`, had
+   * a gate a person APPROVED AND EXECUTED on 2026-09-02 and was still
+   * `waiting_approval` two days later. The work was done and the run never
+   * heard about it.
+   *
+   * SETTLED, NOT THROWN, for the reason the disabled-agent branch below already
+   * gives in full: "a queue nobody can empty is worse than a decision somebody
+   * dislikes". A missing agent is strictly more terminal than a disabled one --
+   * there is no switch to flip back -- so it takes the same shape, the same
+   * compare-and-swap against `terminalStatusFilter()`, and its own reason.
+   *
+   * The distinction that matters for a reader of the row: `cancelled` here means
+   * nobody withdrew authority and nothing failed. The run's agent is not in the
+   * table, so there is nothing left that could carry it.
+   */
+  if (!agent) {
+    await supabase
+      .from("agent_runs")
+      .update({ status: "cancelled" })
+      .eq("id", runId)
+      .not("status", "in", terminalStatusFilter())
+      .select("id");
+    return {
+      trace_id: "",
+      agent_slug: run.agent_slug,
+      steps: [],
+      final: `The agent this run belongs to (${run.agent_slug}) no longer exists, so it was cancelled instead of resumed.`,
+      approvals_queued: 0,
+      run_id: runId,
+      halted: null,
+    };
+  }
 
   /*
    * ── A RUN DOES NOT RESUME ONTO AN AGENT ITS OWNER SWITCHED OFF ──────────

@@ -10,6 +10,7 @@ import { toolRisk } from "@/lib/tool-consequences";
 import { HIGH_RISK_FORCE_REVIEW, HIGH_RISK_MIN_CONFIRM } from "@/lib/ai/trust-ramp";
 import { cleanTitle } from "@/components/plan/format";
 import { claimApprovalDecision, executeApproval, type Json } from "@/lib/ai/loop.server";
+import { releaseRunIfGateAnswered } from "@/lib/ai/a-decided-gate-releases-its-run.server";
 import {
   summarizeAgentRecords,
   trackRecordsToObject,
@@ -832,8 +833,30 @@ export const resolveApproval = createServerFn({ method: "POST" })
       // OWN claim before running the tool, so winning the decision above is not
       // mistaken for permission to run.
       const result = await executeApproval(supabase, userId, data.approvalId);
+      /*
+       * ── AND THE RUN IS TOLD (P-114) ────────────────────────────────────
+       *
+       * Measured 2026-09-04: thirteen runs sat at `waiting_approval` with no
+       * pending approval, one of them for two days after a gate a person
+       * approved and this line executed. The tool ran, the change landed, and
+       * the run that asked for it was never moved.
+       *
+       * AFTER the execution, not before: while the approval is `approved` the
+       * gate still holds -- the tool has not fired yet -- and a run released
+       * then would resume alongside its own tool call.
+       *
+       * The resume sweep asks the same question every 60 seconds and is the
+       * real guarantee; this is here because a person who just pressed a button
+       * is watching, and a minute of nothing is a worse answer than it needs to
+       * be. Best-effort by construction: the decision is already recorded and
+       * must stand whatever this does.
+       */
+      await releaseRunIfGateAnswered(supabase, data.approvalId);
       return { ok: true, executed: true, already_decided: false, result: result as Json };
     }
+    /* Declined, denied, sent back: the run is entitled to hear the answer it
+       did not want as promptly as the one it did. */
+    await releaseRunIfGateAnswered(supabase, data.approvalId);
     return { ok: true, executed: false, already_decided: false, result: null as Json | null };
   });
 
