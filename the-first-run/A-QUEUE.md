@@ -8821,6 +8821,30 @@ founder's standing authority: `account_credits` +10,000 (balance 1 to 10,001, to
 `credit_ledger` row (reason `grant`, surface `admin`, id `ecd0b0d4`). No money moved; the founder
 can reverse it with one negative row. The honest-Ship presses proceed on it.
 
+
+### P-103 · The documents say what the product now says · Lane: **A3** (now) · Status: READY · Moves: 5
+
+**Why.** P-60, P-61 and R-38 settled the vocabulary: Start, Waiting, Arriving, Run, Outcomes,
+Team, Conversations, Sources, Settings; Find Anything on "/"; Ask on ⌘K; stations only inside a
+run. The documents a reader reaches first (`docs/pitch`, `docs/strategy`, `docs/design`,
+`the-first-run/START-HERE.md`, the README) still say Brain, Policies, Today, command palette and
+⌘K for the palette. The founder answers investors from these pages, and a document that names a
+surface the product no longer has is a claim the repo cannot show.
+
+**Scope.** Sweep every live document (not `docs/archive`) for the retired names and the retired
+bindings; replace each with the door word or the current binding; where a sentence describes a
+surface that changed shape (the run screen, the rail, the approvals heading), rewrite it to what
+is served today, citing the packet. Nothing outward is published by this: `docs/pitch` is edited in
+the repo and the founder decides what goes out. Guard: extend `docs-doctor` with a retired-names
+check for live docs (the list from P-61's ruling), warn-level first, and report the count it
+finds before and after.
+
+**Acceptance.** `bun run docs:check` exit 0 with the new check reporting 0; a grep of live docs for
+Brain, Policies, Today (as a surface) and "command palette" returns only archive hits. Full suite
+on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the numbers; the report lists the files touched and the sentences rewritten.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
