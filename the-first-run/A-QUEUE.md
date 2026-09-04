@@ -9939,7 +9939,7 @@ packet stays PARTIAL rather than DONE until the wider sweep -- or a scoped follo
 recipient-facing / date-only files specifically -- closes it.
 
 
-### P-131 · A changeset born from a track carries its spec and its bet · Lane: **A3** (after P-130) · Status: DONE (A3) 16:29 IST 09-04 (66486300d) · Moves: 1, 3
+### P-131 · A changeset born from a track carries its spec and its bet · Lane: **A3** (after P-130) · Status: PUBLISHED, LIVE READ PENDING (66486300d; migration 20260909091700 applied and in the ledger, file on main; A1 gate on tip 6004397f2: build 0, tsc 0, 14,590 pass / 0 fail; published 16:36 IST; A1 reads the release document for the spec line once served) · Moves: 1, 3
 
 **Why.** The release document for the first live release (Ship page, 14:34 IST) says *This release
 is not linked to a spec, so what it set out to do and what it promised are not on the record* and
