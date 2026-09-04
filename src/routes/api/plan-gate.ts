@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { startTrackCore } from "@/lib/spine/track.functions";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { checkUserAiRateLimit } from "@/lib/ai-ratelimit.server";
+import { checkUserAiRateLimit, aiRateLimitSentence } from "@/lib/ai-ratelimit.server";
 import { routeIntent } from "@/lib/ask/route-intent";
 import {
   asPlanAutonomy,
@@ -272,7 +272,7 @@ export const Route = createFileRoute("/api/plan-gate")({
         if (!rate.allowed) {
           return json(
             {
-              error: "You are sending requests too quickly. Give it a short breather.",
+              error: aiRateLimitSentence(rate.retryAfterSeconds),
               retryAfterSeconds: rate.retryAfterSeconds,
             },
             429,

@@ -24,6 +24,23 @@ export const AI_WINDOW_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 
 type RateLimitRow = { id: string; request_count: number; window_start: string };
 
+/**
+ * The sentence a person reads when this trips (P-76): what happened, what to
+ * do, when it lifts. Both callers (`/api/chat`, `/api/plan-gate`) carried
+ * the same literal string with no "when it lifts" half at all --
+ * `retryAfterSeconds` rode along in the JSON body unread by anything on the
+ * client, so a person who hit this had no way to know whether to wait five
+ * seconds or five minutes. Composed once here so both callers say the same
+ * true thing rather than two copies free to drift.
+ */
+export function aiRateLimitSentence(retryAfterSeconds: number): string {
+  const when =
+    retryAfterSeconds < 60
+      ? "in under a minute"
+      : `in about ${Math.ceil(retryAfterSeconds / 60)} minute${Math.ceil(retryAfterSeconds / 60) === 1 ? "" : "s"}`;
+  return `You're sending requests too quickly. Give it a short breather -- this opens up again ${when}.`;
+}
+
 /** Pure policy, delegated to the tested decidePublicReadRateLimit with AI-surface bounds. */
 export function decideUserAiRateLimit(row: RateLimitRow | null, nowMs: number): RateLimitDecision {
   return decidePublicReadRateLimit(row, nowMs, AI_LIMIT_PER_WINDOW, AI_WINDOW_DURATION_MS);

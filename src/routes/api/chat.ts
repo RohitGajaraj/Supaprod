@@ -23,7 +23,7 @@ import {
   type ResearchStatus,
 } from "@/lib/ai/research.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { checkUserAiRateLimit } from "@/lib/ai-ratelimit.server";
+import { checkUserAiRateLimit, aiRateLimitSentence } from "@/lib/ai-ratelimit.server";
 // `describeRoutedIntent` is deliberately NOT imported: see the routing comment
 // at the dispatch reply for why its sentence was built and then withdrawn.
 import { routeIntent, asStation } from "@/lib/ask/route-intent";
@@ -394,7 +394,7 @@ export const Route = createFileRoute("/api/chat")({
         if (!rate.allowed) {
           return new Response(
             JSON.stringify({
-              error: "You are sending requests too quickly. Give it a short breather.",
+              error: aiRateLimitSentence(rate.retryAfterSeconds),
               retryAfterSeconds: rate.retryAfterSeconds,
             }),
             {

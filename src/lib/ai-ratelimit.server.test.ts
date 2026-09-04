@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   decideUserAiRateLimit,
   checkUserAiRateLimit,
+  aiRateLimitSentence,
   AI_LIMIT_PER_WINDOW,
   AI_WINDOW_DURATION_MS,
 } from "./ai-ratelimit.server";
@@ -104,5 +105,32 @@ describe("checkUserAiRateLimit (SW-6, the DB half)", () => {
     const db = mockDb(row);
     const res = await checkUserAiRateLimit(db, "user-1");
     expect(res).toEqual({ allowed: true });
+  });
+});
+
+/**
+ * P-76 scope item 2: what happened, what to do, when it lifts. Both
+ * `/api/chat` and `/api/plan-gate` carried the same literal string with no
+ * "when it lifts" half -- `retryAfterSeconds` rode in the JSON body unread.
+ */
+describe("aiRateLimitSentence: names what happened, what to do, and when it lifts", () => {
+  it("says what happened and what to do, always", () => {
+    const s = aiRateLimitSentence(45);
+    expect(s).toContain("too quickly");
+    expect(s).toContain("breather");
+  });
+
+  it("names under a minute plainly, rather than '1 minutes'", () => {
+    expect(aiRateLimitSentence(45)).toContain("in under a minute");
+  });
+
+  it("rounds up to whole minutes, singular at exactly one", () => {
+    expect(aiRateLimitSentence(61)).toContain("in about 2 minutes");
+    expect(aiRateLimitSentence(60)).toContain("in about 1 minute");
+    expect(aiRateLimitSentence(60)).not.toContain("1 minutes");
+  });
+
+  it("never leaves 'when it lifts' unsaid at the window's own ceiling", () => {
+    expect(aiRateLimitSentence(AI_WINDOW_DURATION_MS / 1000)).toContain("in about 10 minutes");
   });
 });
