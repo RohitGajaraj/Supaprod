@@ -158,8 +158,19 @@ describe("the sweep actually reads it", () => {
     expect(DRIVER).toContain('"updated_at," +');
   });
 
-  it("passes both skips to pickDrivable, not one instead of the other", () => {
+  it("passes every skip to pickDrivable, not one instead of another", () => {
+    /*
+     * The RULE is that no skip is computed and then dropped -- the defect this
+     * file was written for, where one of two exclusions reached the picker and
+     * the other did not. The COUNT is not the rule: P-113 added a third
+     * (`stuckAway`, the backoff after three fruitless drives into the same
+     * hold), and pinning the exact two-set spread would have made this a vote
+     * on how many skips may exist rather than on all of them being honoured.
+     */
     const flat = TICK.replace(/\s+/g, " ");
-    expect(flat).toContain("new Set([...scheduledAway, ...unchanged])");
+    const spread = flat.match(/new Set\(\[([^\]]*)\]\)/)?.[1] ?? "";
+    for (const skip of ["scheduledAway", "unchanged", "stuckAway"]) {
+      expect(spread, `${skip} must reach pickDrivable`).toContain(`...${skip}`);
+    }
   });
 });

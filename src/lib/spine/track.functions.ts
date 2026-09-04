@@ -150,6 +150,16 @@ export type Track = {
    * Null means the track stopped before the column existed, or is not stopped.
    */
   holdBecause: string | null;
+  /**
+   * When the sweep will look at this again, ISO, or null.
+   *
+   * Written by two rules that must not be confused on screen: a calendar wait
+   * (`needs-evidence` with a forecast horizon) and P-113's backoff after three
+   * identical fruitless drives. `triedAgainLine` renders only the second, and
+   * the first has its own sentence, so the card never says "tried three times"
+   * about a track that is simply waiting for a date.
+   */
+  deferredUntil: string | null;
   /** When the driver last touched it. Null means it has never been driven. */
   drivenAt: string | null;
   /**
@@ -223,6 +233,7 @@ function rowToTrack(r: TrackRow): Track {
     hold: holdLine(r.last_hold, { station: r.station as AgentStation }),
     holdReason: r.last_hold,
     holdBecause: r.last_hold_because ?? null,
+    deferredUntil: (r as { deferred_until?: string | null }).deferred_until ?? null,
     drivenAt: r.driven_at ?? null,
     attempts: r.attempts ?? 0,
     productId: r.product_id ?? null,
@@ -231,6 +242,10 @@ function rowToTrack(r: TrackRow): Track {
 
 const SELECT =
   "id,user_id,workspace_id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,last_hold_because,driven_at,attempts,product_id," +
+  /* P-113: the sweep writes a backoff here when three drives ran into the same
+     wall and produced nothing, and the run screen has to be able to say so.
+     Without it the card shows a hold with no reason it is not being retried. */
+  "deferred_until," +
   // The ONLY edge from a track to the questions it is waiting on.
   // `agent_approvals` has no track back-reference — see SPEC-CONSENT §1.1 and
   // the migration that created this column, which rejects every correlational
@@ -1306,264 +1321,271 @@ export const listRunsForStart = createServerFn({ method: "GET" })
          * worst-case chain when a seat actually is running, which is the state
          * A1's own live measurement was almost certainly in.
          */
-        const [gateByTrack, { workingByTrack, toolByTrace }, pinnedByTrack, forecastByTrack, liveByTrack] =
-          await Promise.all([
-            (async () => {
-              const byTrack = new Map<string, { tool: string }>();
-              if (gateIds.length === 0) return byTrack;
-              const { data: gates } = await supabase
-                .from("agent_approvals")
-                .select("id, tool_name, status, run_id")
-                .in("id", gateIds)
-                .eq("status", "pending");
-              const pending = (gates ?? []) as Array<{
-                id: string;
-                tool_name: string;
-                run_id: string | null;
-              }>;
-              /* Back to the track through the row that opened it. A gate whose
+        const [
+          gateByTrack,
+          { workingByTrack, toolByTrace },
+          pinnedByTrack,
+          forecastByTrack,
+          liveByTrack,
+        ] = await Promise.all([
+          (async () => {
+            const byTrack = new Map<string, { tool: string }>();
+            if (gateIds.length === 0) return byTrack;
+            const { data: gates } = await supabase
+              .from("agent_approvals")
+              .select("id, tool_name, status, run_id")
+              .in("id", gateIds)
+              .eq("status", "pending");
+            const pending = (gates ?? []) as Array<{
+              id: string;
+              tool_name: string;
+              run_id: string | null;
+            }>;
+            /* Back to the track through the row that opened it. A gate whose
                run cannot be resolved is dropped rather than attributed to a
                guess. */
-              const byId = new Map(pending.map((g) => [g.id, g]));
-              for (const r of rows) {
-                const gates2 = (r as unknown as { pending_gates?: unknown }).pending_gates;
-                if (!Array.isArray(gates2)) continue;
-                for (const g of gates2) {
-                  const id = (g as { id?: unknown }).id;
-                  if (typeof id !== "string") continue;
-                  const hit = byId.get(id);
-                  if (hit && !byTrack.has((r as unknown as { id: string }).id)) {
-                    byTrack.set((r as unknown as { id: string }).id, { tool: hit.tool_name });
-                  }
+            const byId = new Map(pending.map((g) => [g.id, g]));
+            for (const r of rows) {
+              const gates2 = (r as unknown as { pending_gates?: unknown }).pending_gates;
+              if (!Array.isArray(gates2)) continue;
+              for (const g of gates2) {
+                const id = (g as { id?: unknown }).id;
+                if (typeof id !== "string") continue;
+                const hit = byId.get(id);
+                if (hit && !byTrack.has((r as unknown as { id: string }).id)) {
+                  byTrack.set((r as unknown as { id: string }).id, { tool: hit.tool_name });
                 }
               }
-              return byTrack;
-            })(),
-            (async () => {
-              /* A SEAT IN FLIGHT, said only when a row literally says so. Never
+            }
+            return byTrack;
+          })(),
+          (async () => {
+            /* A SEAT IN FLIGHT, said only when a row literally says so. Never
                inferred from elapsed time or from a missing row, which is the
                rule `activity.ts` states and this read is the same claim one
                level up. */
-              const { data: runRows } = await supabase
-                .from("agent_runs")
-                .select("track_id, agent_name, created_at, trace_id, status")
-                .in("track_id", ids)
-                .in("status", ["running", "queued", "in_progress"])
-                .order("created_at", { ascending: false });
-              const running = (runRows ?? []) as Array<{
-                track_id: string | null;
-                agent_name: string;
-                created_at: string;
-                trace_id: string | null;
-              }>;
-              const workingByTrack = new Map<
-                string,
-                { seat: string; since: string; trace: string | null }
-              >();
-              for (const r of running) {
-                if (!r.track_id || workingByTrack.has(r.track_id)) continue;
-                workingByTrack.set(r.track_id, {
-                  seat: r.agent_name,
-                  since: r.created_at,
-                  trace: r.trace_id,
+            const { data: runRows } = await supabase
+              .from("agent_runs")
+              .select("track_id, agent_name, created_at, trace_id, status")
+              .in("track_id", ids)
+              .in("status", ["running", "queued", "in_progress"])
+              .order("created_at", { ascending: false });
+            const running = (runRows ?? []) as Array<{
+              track_id: string | null;
+              agent_name: string;
+              created_at: string;
+              trace_id: string | null;
+            }>;
+            const workingByTrack = new Map<
+              string,
+              { seat: string; since: string; trace: string | null }
+            >();
+            for (const r of running) {
+              if (!r.track_id || workingByTrack.has(r.track_id)) continue;
+              workingByTrack.set(r.track_id, {
+                seat: r.agent_name,
+                since: r.created_at,
+                trace: r.trace_id,
+              });
+            }
+
+            /* THE VERB, from the newest call on that seat's own trace. Skipped
+               entirely when nothing is running, which is the common case. */
+            const toolByTrace = new Map<string, string>();
+            const traces = [...workingByTrack.values()]
+              .map((w) => w.trace)
+              .filter((t): t is string => !!t);
+            if (traces.length > 0) {
+              const { data: calls } = await supabase
+                .from("tool_calls")
+                .select("trace_id, tool_name, created_at")
+                .in("trace_id", traces)
+                .order("created_at", { ascending: false })
+                .limit(200);
+              for (const c of (calls ?? []) as Array<{ trace_id: string; tool_name: string }>) {
+                if (!toolByTrace.has(c.trace_id)) toolByTrace.set(c.trace_id, c.tool_name);
+              }
+            }
+            return { workingByTrack, toolByTrace };
+          })(),
+          (async () => {
+            /*
+             * THE PINS, IN THEIR OWN TOLERANT READ. Not in `SELECT`, because
+             * naming a column there fails the whole query on a database that
+             * has not taken the migration, and this read is the front door's
+             * only content. A read that cannot answer leaves every row
+             * unpinned, which is the state the product had yesterday: a
+             * degraded ordering, never a blank page.
+             */
+            const byTrack = new Map<string, string>();
+            try {
+              const { data: pins } = await supabase
+                .from("spine_tracks" as never)
+                .select("id, pinned_at")
+                .in("id", ids);
+              for (const p of (pins ?? []) as unknown as Array<{
+                id: string;
+                pinned_at: string | null;
+              }>) {
+                if (p.pinned_at) byTrack.set(p.id, p.pinned_at);
+              }
+            } catch {
+              /* Unpinned everywhere. See above. */
+            }
+            return byTrack;
+          })(),
+          (async () => {
+            /*
+             * -- WHETHER THE BET HELD, WHICH IS THE FACT A FINISHED RUN IS FOR -
+             *
+             * A finished row said "Produced 2 specs and 1 decision". That is
+             * inventory. The thing this product exists to tell somebody is
+             * whether what the work PREDICTED turned out to be true, and until
+             * the grader was wired (P-04) there was never a verdict to say --
+             * so the count was the best sentence available and is no longer.
+             *
+             * ITS OWN SMALL, KIND-FILTERED READ, not the full members embed
+             * above -- that embed deliberately carries kind only (P-32), so
+             * the one id this branch needs is read here, scoped to
+             * `artifact_kind = "decision"` alone: on Helio Labs that is 28
+             * rows against the 413 the unfiltered read would have carried.
+             * Still concurrent with the other three branches; this and the
+             * `decisions` read below are this branch's own two-hop chain,
+             * exactly as `running seats -> that seat's verb` is its own.
+             * Failing soft throughout: a track with no decision, a bet
+             * nobody has graded, or a read that did not answer all mean "no
+             * verdict to report", and the row falls back to what it said
+             * before. Nothing here may turn a missing verdict into a
+             * claimed one.
+             */
+            const byTrack = new Map<string, { resolution: string; rationale: string | null }>();
+            const { data: memberRows } = await supabase
+              .from("spine_track_members" as never)
+              .select("track_id,artifact_id")
+              .eq("artifact_kind", "decision")
+              .in("track_id", ids);
+            const decisionByTrack = new Map<string, string>();
+            for (const m of (memberRows ?? []) as unknown as Array<{
+              track_id: string;
+              artifact_id: string | null;
+            }>) {
+              if (m.artifact_id && !decisionByTrack.has(m.track_id)) {
+                decisionByTrack.set(m.track_id, m.artifact_id);
+              }
+            }
+            const decisionIds = [...new Set(decisionByTrack.values())];
+            if (decisionIds.length === 0) return byTrack;
+            const { data: betRows, error: betErr } = await supabase
+              .from("decisions")
+              .select("id, forecast_resolution, forecast_resolution_rationale")
+              .in("id", decisionIds)
+              .not("forecast_resolution", "is", null);
+            if (betErr) {
+              console.error(`[listRunsForStart] could not read verdicts: ${betErr.message}`);
+              return byTrack;
+            }
+            const byDecision = new Map(
+              (
+                (betRows ?? []) as unknown as Array<{
+                  id: string;
+                  forecast_resolution: string | null;
+                  forecast_resolution_rationale: string | null;
+                }>
+              ).map((d) => [d.id, d]),
+            );
+            for (const [trackId, decisionId] of decisionByTrack) {
+              const bet = byDecision.get(decisionId);
+              if (bet?.forecast_resolution) {
+                byTrack.set(trackId, {
+                  resolution: bet.forecast_resolution,
+                  rationale: bet.forecast_resolution_rationale,
                 });
               }
-
-              /* THE VERB, from the newest call on that seat's own trace. Skipped
-               entirely when nothing is running, which is the common case. */
-              const toolByTrace = new Map<string, string>();
-              const traces = [...workingByTrack.values()]
-                .map((w) => w.trace)
-                .filter((t): t is string => !!t);
-              if (traces.length > 0) {
-                const { data: calls } = await supabase
-                  .from("tool_calls")
-                  .select("trace_id, tool_name, created_at")
-                  .in("trace_id", traces)
-                  .order("created_at", { ascending: false })
-                  .limit(200);
-                for (const c of (calls ?? []) as Array<{ trace_id: string; tool_name: string }>) {
-                  if (!toolByTrace.has(c.trace_id)) toolByTrace.set(c.trace_id, c.tool_name);
-                }
-              }
-              return { workingByTrack, toolByTrace };
-            })(),
-            (async () => {
-              /*
-               * THE PINS, IN THEIR OWN TOLERANT READ. Not in `SELECT`, because
-               * naming a column there fails the whole query on a database that
-               * has not taken the migration, and this read is the front door's
-               * only content. A read that cannot answer leaves every row
-               * unpinned, which is the state the product had yesterday: a
-               * degraded ordering, never a blank page.
-               */
-              const byTrack = new Map<string, string>();
-              try {
-                const { data: pins } = await supabase
-                  .from("spine_tracks" as never)
-                  .select("id, pinned_at")
-                  .in("id", ids);
-                for (const p of (pins ?? []) as unknown as Array<{
-                  id: string;
-                  pinned_at: string | null;
-                }>) {
-                  if (p.pinned_at) byTrack.set(p.id, p.pinned_at);
-                }
-              } catch {
-                /* Unpinned everywhere. See above. */
-              }
-              return byTrack;
-            })(),
-            (async () => {
-              /*
-               * -- WHETHER THE BET HELD, WHICH IS THE FACT A FINISHED RUN IS FOR -
-               *
-               * A finished row said "Produced 2 specs and 1 decision". That is
-               * inventory. The thing this product exists to tell somebody is
-               * whether what the work PREDICTED turned out to be true, and until
-               * the grader was wired (P-04) there was never a verdict to say --
-               * so the count was the best sentence available and is no longer.
-               *
-               * ITS OWN SMALL, KIND-FILTERED READ, not the full members embed
-               * above -- that embed deliberately carries kind only (P-32), so
-               * the one id this branch needs is read here, scoped to
-               * `artifact_kind = "decision"` alone: on Helio Labs that is 28
-               * rows against the 413 the unfiltered read would have carried.
-               * Still concurrent with the other three branches; this and the
-               * `decisions` read below are this branch's own two-hop chain,
-               * exactly as `running seats -> that seat's verb` is its own.
-               * Failing soft throughout: a track with no decision, a bet
-               * nobody has graded, or a read that did not answer all mean "no
-               * verdict to report", and the row falls back to what it said
-               * before. Nothing here may turn a missing verdict into a
-               * claimed one.
-               */
-              const byTrack = new Map<string, { resolution: string; rationale: string | null }>();
-              const { data: memberRows } = await supabase
-                .from("spine_track_members" as never)
-                .select("track_id,artifact_id")
-                .eq("artifact_kind", "decision")
-                .in("track_id", ids);
-              const decisionByTrack = new Map<string, string>();
-              for (const m of (memberRows ?? []) as unknown as Array<{
-                track_id: string;
-                artifact_id: string | null;
-              }>) {
-                if (m.artifact_id && !decisionByTrack.has(m.track_id)) {
-                  decisionByTrack.set(m.track_id, m.artifact_id);
-                }
-              }
-              const decisionIds = [...new Set(decisionByTrack.values())];
-              if (decisionIds.length === 0) return byTrack;
-              const { data: betRows, error: betErr } = await supabase
-                .from("decisions")
-                .select("id, forecast_resolution, forecast_resolution_rationale")
-                .in("id", decisionIds)
-                .not("forecast_resolution", "is", null);
-              if (betErr) {
-                console.error(`[listRunsForStart] could not read verdicts: ${betErr.message}`);
-                return byTrack;
-              }
-              const byDecision = new Map(
+            }
+            return byTrack;
+          })(),
+          (async () => {
+            /*
+             * WHEN THIS TRACK'S OWN WORK WENT LIVE (P-126). Reverse of
+             * `trackIdByChangeset` (changelog.ts): there, changeset ->
+             * mission -> track; here, track -> mission -> changeset ->
+             * production deployment. `spine_track_members` is read the
+             * same way `promoteChangesetToProductionCore`'s own decision
+             * lookup reads it one hop further along
+             * (deployments.functions.ts) -- `artifact_kind = "mission"`,
+             * scoped to this page's own track ids.
+             *
+             * SCOPED TO THE HAND-BUILT MERGE PATH ONLY. A deployment
+             * `submitStationByHand` files carries no `changeset_id` and no
+             * `environment`/`status: "success"` (P-104, A-QUEUE.md flags
+             * this same gap for Ship's own exit read) -- reading that
+             * shape too belongs to the packet that fixes it for every
+             * reader at once, not to this row growing its own second,
+             * inconsistent copy of the same join.
+             */
+            const byTrack = new Map<string, string>();
+            const { data: missionMembers } = await supabase
+              .from("spine_track_members" as never)
+              .select("track_id,artifact_id")
+              .eq("artifact_kind", "mission")
+              .in("track_id", ids);
+            const missionIds = [
+              ...new Set(
                 (
-                  (betRows ?? []) as unknown as Array<{
-                    id: string;
-                    forecast_resolution: string | null;
-                    forecast_resolution_rationale: string | null;
-                  }>
-                ).map((d) => [d.id, d]),
-              );
-              for (const [trackId, decisionId] of decisionByTrack) {
-                const bet = byDecision.get(decisionId);
-                if (bet?.forecast_resolution) {
-                  byTrack.set(trackId, {
-                    resolution: bet.forecast_resolution,
-                    rationale: bet.forecast_resolution_rationale,
-                  });
-                }
-              }
-              return byTrack;
-            })(),
-            (async () => {
-              /*
-               * WHEN THIS TRACK'S OWN WORK WENT LIVE (P-126). Reverse of
-               * `trackIdByChangeset` (changelog.ts): there, changeset ->
-               * mission -> track; here, track -> mission -> changeset ->
-               * production deployment. `spine_track_members` is read the
-               * same way `promoteChangesetToProductionCore`'s own decision
-               * lookup reads it one hop further along
-               * (deployments.functions.ts) -- `artifact_kind = "mission"`,
-               * scoped to this page's own track ids.
-               *
-               * SCOPED TO THE HAND-BUILT MERGE PATH ONLY. A deployment
-               * `submitStationByHand` files carries no `changeset_id` and no
-               * `environment`/`status: "success"` (P-104, A-QUEUE.md flags
-               * this same gap for Ship's own exit read) -- reading that
-               * shape too belongs to the packet that fixes it for every
-               * reader at once, not to this row growing its own second,
-               * inconsistent copy of the same join.
-               */
-              const byTrack = new Map<string, string>();
-              const { data: missionMembers } = await supabase
-                .from("spine_track_members" as never)
-                .select("track_id,artifact_id")
-                .eq("artifact_kind", "mission")
-                .in("track_id", ids);
-              const missionIds = [
-                ...new Set(
-                  ((missionMembers ?? []) as unknown as Array<{
+                  (missionMembers ?? []) as unknown as Array<{
                     track_id: string;
                     artifact_id: string | null;
-                  }>)
-                    .map((m) => m.artifact_id)
-                    .filter((m): m is string => !!m),
-                ),
-              ];
-              if (missionIds.length === 0) return byTrack;
-              const trackByMission = new Map<string, string>();
-              for (const m of (missionMembers ?? []) as unknown as Array<{
-                track_id: string;
-                artifact_id: string | null;
-              }>) {
-                if (m.artifact_id) trackByMission.set(m.artifact_id, m.track_id);
-              }
-              const { data: changesets } = await supabase
-                .from("studio_changesets" as never)
-                .select("id,mission_id")
-                .in("mission_id", missionIds);
-              const missionByChangeset = new Map<string, string>();
-              for (const c of (changesets ?? []) as unknown as Array<{
-                id: string;
-                mission_id: string | null;
-              }>) {
-                if (c.mission_id) missionByChangeset.set(c.id, c.mission_id);
-              }
-              const changesetIds = [...missionByChangeset.keys()];
-              if (changesetIds.length === 0) return byTrack;
-              const { data: deploys } = await supabase
-                .from("deployments" as never)
-                .select("changeset_id,deployed_at,created_at")
-                .eq("environment", "production")
-                .eq("status", "success")
-                .in("changeset_id", changesetIds);
-              for (const d of (deploys ?? []) as unknown as Array<{
-                changeset_id: string | null;
-                deployed_at: string | null;
-                created_at: string;
-              }>) {
-                if (!d.changeset_id) continue;
-                const missionId = missionByChangeset.get(d.changeset_id);
-                const trackId = missionId ? trackByMission.get(missionId) : null;
-                if (!trackId) continue;
-                const at = d.deployed_at ?? d.created_at;
-                // Earliest wins: "live since" is when it FIRST reached
-                // production, not the most recent redeploy of the same track.
-                const existing = byTrack.get(trackId);
-                if (!existing || at < existing) byTrack.set(trackId, at);
-              }
-              return byTrack;
-            })(),
-          ]);
+                  }>
+                )
+                  .map((m) => m.artifact_id)
+                  .filter((m): m is string => !!m),
+              ),
+            ];
+            if (missionIds.length === 0) return byTrack;
+            const trackByMission = new Map<string, string>();
+            for (const m of (missionMembers ?? []) as unknown as Array<{
+              track_id: string;
+              artifact_id: string | null;
+            }>) {
+              if (m.artifact_id) trackByMission.set(m.artifact_id, m.track_id);
+            }
+            const { data: changesets } = await supabase
+              .from("studio_changesets" as never)
+              .select("id,mission_id")
+              .in("mission_id", missionIds);
+            const missionByChangeset = new Map<string, string>();
+            for (const c of (changesets ?? []) as unknown as Array<{
+              id: string;
+              mission_id: string | null;
+            }>) {
+              if (c.mission_id) missionByChangeset.set(c.id, c.mission_id);
+            }
+            const changesetIds = [...missionByChangeset.keys()];
+            if (changesetIds.length === 0) return byTrack;
+            const { data: deploys } = await supabase
+              .from("deployments" as never)
+              .select("changeset_id,deployed_at,created_at")
+              .eq("environment", "production")
+              .eq("status", "success")
+              .in("changeset_id", changesetIds);
+            for (const d of (deploys ?? []) as unknown as Array<{
+              changeset_id: string | null;
+              deployed_at: string | null;
+              created_at: string;
+            }>) {
+              if (!d.changeset_id) continue;
+              const missionId = missionByChangeset.get(d.changeset_id);
+              const trackId = missionId ? trackByMission.get(missionId) : null;
+              if (!trackId) continue;
+              const at = d.deployed_at ?? d.created_at;
+              // Earliest wins: "live since" is when it FIRST reached
+              // production, not the most recent redeploy of the same track.
+              const existing = byTrack.get(trackId);
+              if (!existing || at < existing) byTrack.set(trackId, at);
+            }
+            return byTrack;
+          })(),
+        ]);
 
         return rows.map((r) => {
           const w = workingByTrack.get(r.id) ?? null;

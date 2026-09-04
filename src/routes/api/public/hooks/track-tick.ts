@@ -10,6 +10,12 @@ import { notInList, sampleWorkspaceIds } from "@/lib/ticks/real-workspaces.serve
 // rather than re-deriving one is what keeps them from drifting apart.
 import { outOfTime } from "@/lib/spine/track-caps.server";
 import {
+  deferUntil,
+  SAME_HOLD_BEFORE_BACKOFF,
+  stuckBackoffMinutes,
+  type DriveEntry,
+} from "@/lib/spine/three-of-the-same-is-not-a-fourth-try";
+import {
   HOLDS_THAT_WAIT_ON_A_DATE,
   pickDrivable,
   scheduledAwayIds,
@@ -317,9 +323,88 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
             }
           }
 
+          /*
+           * ── THREE INTO THE SAME WALL DO NOT EARN A FOURTH (P-113) ────────
+           *
+           * See `three-of-the-same-is-not-a-fourth-try`. Here rather than at
+           * the end of a drive because `driveTrackOnce` has fourteen exits and
+           * this repo has already paid for chasing writers one at a time --
+           * eligibility is one place and it is where a slot is actually spent.
+           *
+           * Two batched reads for the whole page of candidates rather than two
+           * per track: the drives that have happened, and the newest artifact
+           * each has filed. A track that filed something among those drives is
+           * moving and is left alone.
+           */
+          const stuckAway = new Set<string>();
+          const candidateIds = (fetched as unknown as Array<{ id: string }>)
+            .map((r) => r.id)
+            .filter((id) => !scheduledAway.has(id) && !unchanged.has(id));
+          if (candidateIds.length > 0) {
+            const { data: driveRows, error: drivesErr } = await supabaseAdmin
+              .from("track_drives")
+              .select("track_id,entry_hold,at")
+              .in("track_id", candidateIds)
+              .order("at", { ascending: false })
+              .limit(candidateIds.length * SAME_HOLD_BEFORE_BACKOFF * 3);
+            const { data: memberRows } = await supabaseAdmin
+              .from("spine_track_members")
+              .select("track_id,created_at")
+              .in("track_id", candidateIds)
+              .order("created_at", { ascending: false });
+
+            /* A READ THAT FAILED DEFERS NOBODY. Holding a track back on
+               evidence we could not gather is the one direction this rule must
+               not fail in: it would cost the work rather than the money. */
+            if (!drivesErr) {
+              const byTrack = new Map<string, DriveEntry[]>();
+              for (const d of (driveRows ?? []) as Array<{
+                track_id: string | null;
+                entry_hold: string | null;
+                at: string | null;
+              }>) {
+                if (!d.track_id || !d.at) continue;
+                const list = byTrack.get(d.track_id) ?? [];
+                if (list.length < SAME_HOLD_BEFORE_BACKOFF * 2) {
+                  list.push({ hold: d.entry_hold, at: d.at });
+                  byTrack.set(d.track_id, list);
+                }
+              }
+              const newestArtifact = new Map<string, string>();
+              for (const m of (memberRows ?? []) as Array<{
+                track_id: string | null;
+                created_at: string | null;
+              }>) {
+                if (!m.track_id || !m.created_at) continue;
+                if (!newestArtifact.has(m.track_id)) newestArtifact.set(m.track_id, m.created_at);
+              }
+
+              const backoffNow = new Date();
+              for (const id of candidateIds) {
+                const minutes = stuckBackoffMinutes({
+                  recent: byTrack.get(id) ?? [],
+                  newestArtifactAt: newestArtifact.get(id) ?? null,
+                });
+                if (minutes === null) continue;
+                const { error: backErr } = await supabaseAdmin
+                  .from("spine_tracks" as never)
+                  .update({ deferred_until: deferUntil(minutes, backoffNow) } as never)
+                  .eq("id", id);
+                if (backErr) {
+                  /* The deferral above's contract: a failed write means the
+                     track is driven this tick, which is today's behaviour.
+                     Losing it costs money once; throwing costs the sweep. */
+                  console.error(`[track-tick] could not back off ${id}: ${backErr.message}`);
+                  break;
+                }
+                stuckAway.add(id);
+              }
+            }
+          }
+
           const rows = pickDrivable(
             fetched as unknown as Array<{ id: string; last_hold?: string | null }>,
-            new Set([...scheduledAway, ...unchanged]),
+            new Set([...scheduledAway, ...unchanged, ...stuckAway]),
             MAX_TRACKS_PER_TICK,
           ) as unknown as DriveRow[];
           // One clock for the whole sweep. The Worker's request budget is spent

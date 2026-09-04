@@ -76,6 +76,7 @@ import { SteerComposer } from "@/components/track/SteerComposer";
 import { TakeOver } from "@/components/track/TakeOver";
 import { triesLine } from "@/components/track/hold-tries";
 import { wayOut } from "@/components/track/way-out";
+import { triedAgainLine } from "@/lib/spine/three-of-the-same-is-not-a-fourth-try";
 import { buildBlocked } from "@/components/track/build-precondition";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -1252,6 +1253,23 @@ export function TrackRunLeft({
                   ) : undefined
                 }
               />
+            ) : null}
+
+            {/*
+             * ── WHY IT IS NOT BEING RETRIED RIGHT NOW (P-113) ──────────────
+             *
+             * The sweep holds a track back after three drives that entered on
+             * the same hold and produced nothing. Without this line the card
+             * shows a hold and a retry button and no reason the loop has gone
+             * quiet, which reads as the product having given up.
+             *
+             * Above the controls, for the reason the ship-stop row is: a
+             * sentence printed under a button has already lost. And the
+             * person's own press still clears it -- `driveTrackOnce` wipes
+             * `deferred_until` on every path in, whoever drove it.
+             */}
+            {triedAgainLine(track?.deferredUntil, new Date()) ? (
+              <Row lead={triedAgainLine(track?.deferredUntil, new Date()) as string} />
             ) : null}
 
             {holdWayOut.next ? (

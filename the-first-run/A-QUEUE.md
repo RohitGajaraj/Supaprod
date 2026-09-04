@@ -9117,7 +9117,7 @@ neither was filed as a migration. The net schema effect is zero (the column does
 verified against `information_schema`), so no file is written; this note is the record. From
 here A2 writes the migration file first and applies second (rule 19).
 
-### P-113 · A stuck track stops spending · Lane: **A2** (after P-112) · Status: READY · Moves: 1
+### P-113 · A stuck track stops spending · Lane: **A2** (after P-112) · Status: CLAIMED (A2) 15:10 IST 09-04 · Moves: 1
 
 **Why.** The demo account spent 5,398 credits in one night for five sentences and one track that
 churned Build to Ship every ten minutes on a fault that was not the crew's (the tablet track, before
