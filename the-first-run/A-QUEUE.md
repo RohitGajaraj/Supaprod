@@ -8348,7 +8348,7 @@ recorded reason must not be returned to Build by the given-up path (the reason i
 hold is null, since between ticks the track reads as ready. The press waits on that card.
 
 
-### P-59d · A Ship blocked on a recorded reason stays at Ship, and its card draws between ticks · Lane: **A2** (after P-73) · Status: READY · Moves: 1, 3
+### P-59d · A Ship blocked on a recorded reason stays at Ship, and its card draws between ticks · Lane: **A2** (after P-73) · Status: CODE DONE (5d347225f; A2 reports build 0, tsc 0, 14,273 / 0 / 0; A1 gate running; publish next) · Moves: 1, 3
 
 **Why.** The live walk of 08:50: the tablet track looped Build to Ship and back overnight, and on
 the served build its screen read *Ready when you are.* with no card because the hold was null
@@ -8366,6 +8366,35 @@ attempt and offers the press; the station does not move to Build. Full suite on 
 build 0.
 
 **DoD.** Pushed; the three numbers; A1 presses.
+
+
+### P-86 · The honest Ship: one real change through Build, preview, gate and promote · Lane: **A2** (now) · Status: READY · Moves: 1, 3, 5
+
+**Why.** R-40 retired the tablet track as the Ship candidate. The date call (23 September honest)
+rests on one run carrying a change that does something into production through the product's own
+route, before 8 September. Nothing else on the queue is that proof.
+
+**Scope.** (1) Pick the candidate: a Helio track whose spec targets what `relay-homeowner-app`
+holds (`src/checkout/AddressStep.tsx`, `funnel.ts`, `types.ts`). The first candidate is
+`2fdf93b6` ("Checkout asks a homeowner to re-enter the delivery address it already has on file", at
+Build): its spec is the re-confirm step, and the entry form is real code. If its spec still says
+"summary layout", correct the spec through the product (the spec editor, as a person would), not
+by hand in the database. (2) Let the loop build it: Build opens a PR that changes `AddressStep.tsx`
+(prefill from the profile, or skip when nothing changed), CI green, the P-72 gate card showing the
+files and both verdicts; press the merge gate under the founder's standing authority and record
+the press in the queue. (3) The managed preview: P-68's retry within the window or P-68b's press;
+the deployment row with a reason either way; if the host refuses, the reason is the finding and
+this packet reports it rather than working around it. (4) The release gate raised only with a
+preview (P-68), pressed, the promote, the production URL on the Ship page, the run at Learn with a
+forecast the record can grade. (5) Every press and every row in the report, with the queries; the
+run screen's map (P-74) read at each station. What you may not do: write to the bound repo by hand,
+edit rows to make a gate pass, or count a change that does nothing.
+
+**Acceptance.** A production URL served by the product's own promote for a change that alters
+what a homeowner sees at the address step; the track at Learn; the whole route readable on the run
+screen. Full suite on the tip, tsc 0, build 0 for anything you change in Supaprod itself.
+
+**DoD.** Report in the queue with the track id, PR, deployment rows and URL; A1 walks the route.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
