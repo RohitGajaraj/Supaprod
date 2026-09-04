@@ -8938,6 +8938,38 @@ time inside ten minutes. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
+
+### P-114 · A run follows its approval out of waiting · Lane: **A2** (now, before P-112; it is what blocks P-86) · Status: READY · Moves: 1
+
+**Why.** Read live 06:01 UTC 09-04: 14 runs are `waiting_approval`; 13 of them have no pending
+approval. Their gates were cancelled (the 09-02 sweep, A1's R-30 withdrawal), expired, failed, and
+in one case **executed** (b9523c3c, the tablet merge A1 approved on 09-03), and the run stayed
+`waiting_approval` in every case. `ci-poll-tick` counts `waiting_approval` as a live worker
+("one worker per mission at a time", line 1173), so on the Ship mission 7bc7181b two ghost runs
+(5198e875 from 08-31, 0f4de13b from 09-02) block the CI fix loop from ever dispatching, and today's
+merge gate 0189ad0a (run 2a4da7ba) rose over red CI, which `mergeReadinessFromCi` will refuse on
+the press. A2's read (11:5x IST) named the gate as the blocker; the gate is one of three.
+
+**Scope.** (1) When an approval leaves `pending` by any path (approved, rejected, cancelled,
+expired, failed, executed), its run leaves `waiting_approval`: approved resumes it as today;
+every other outcome moves it to a terminal status with a reason naming the approval and the
+outcome, and the transcript row says so (*Stopped: the merge was declined* / *withdrawn* /
+*expired*). One function, called by the decide path, the approvals sweep and the executor. (2) The
+"one worker per mission" count excludes `waiting_approval`: a run waiting on a person occupies no
+seat; `studio.pr.merge` re-proves checks at the head sha, so a fix landing under a pending merge
+cannot sneak a stale commit through. (3) The deterministic merge gate in `ci-poll-tick` rises only
+on green CI (it already does); the agent-raised one (`studio.pr.merge` from a seat) is refused
+before it is raised when CI is red, with the refusal in the transcript instead of a card the
+person cannot answer. (4) Backfill: the 13 stranded runs to their terminal status with the reason
+(the seven `10000000…` fixtures included), by migration, ledger row confirmed by A1.
+
+**Acceptance.** `select count(*) from agent_runs r where r.status='waiting_approval' and not
+exists (select 1 from agent_approvals a where a.run_id=r.id and a.status='pending')` returns 0
+after the backfill and stays 0 across a cancel, an expiry and an execute in tests; the fix loop
+dispatches on 7bc7181b within one tick of the backfill. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; migration applied; the count before and after; the three numbers.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
