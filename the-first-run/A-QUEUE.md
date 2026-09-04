@@ -9248,6 +9248,35 @@ dropped into `docs/screenshots/` changes nothing in the report.
 
 **DoD.** Pushed; the report shows the count before and after on a tree with an ignored file.
 
+**Report (A3, 12:34 IST 09-04).** Pushed at `a87f13f41`. Root cause: every check that enumerated
+files used a raw filesystem walk (`for f in *`, `find docs -name '*.md'`, `grep -r docs`), which
+sees everything physically on disk, gitignored or not. New `ALL_FILES` variable at the top of the
+script, computed once from `git ls-files` (tracked) plus `git ls-files --others --exclude-standard`
+(untracked, not ignored) — what the repo actually contains. Checks [1] (stray root files), [2]
+(stray docs/ top-level files), [7] (missing date headers) and [10] (orphans) now read this instead
+of walking the filesystem; a gitignored file never enters the list.
+
+Found and fixed along the way: bash's bare `*` glob does not match dotfiles without `shopt -s
+dotglob`, so eight tracked root config files (`.env.example`, `.gitattributes`, `.gitignore`,
+`.graphifyignore`, `.lovable-config.txt`, `.mcp.json`, `.prettierignore`, `.prettierrc`) were
+invisible to the OLD check [1] — never flagged, never allowlisted, simply never seen. `git
+ls-files` sees dotfiles normally, so switching to it would have newly flagged all eight as stray on
+its first run; added to `ROOT_ALLOWED`.
+
+**Before → after, on a tree with the ignored files present** (the packet's own acceptance test):
+created a throwaway gitignored `docs/screenshots/test-orphan.md` and a loose gitignored `*.log`
+file at repo root (both confirmed via `git check-ignore -q`). Before this fix's logic (the old
+raw-walk checks), that shape produces 4 FAIL (the screenshot file, once per check that would have
+walked it) + 4 WARN (loose root files) on A1's machine, per the Why. After: checks [1], [2], [7],
+[10] and [12] all read **0 FAIL, 0 WARN** with both test files present. Deleted both; same clean
+result held.
+
+`bunx tsc --noEmit`: clean. `bun test`: 14372 pass, 22 skip, 37 todo, 0 fail, 38284 expect() calls,
+1046 files. `bun run build`: clean end to end. `bun run docs:check`: exit 0, all 12 checks clean.
+check [5]'s own runtime (unrelated to this packet, not touched) is slow on this tree — confirmed
+via a `bash -x` trace to be genuine progress across ~7200 tracked files under CPU contention, not a
+hang. Returning to the watch loop.
+
 
 ### P-118 · A host that refuses to make the app says so, and Ship keeps its own house · Lane: **A2** (after P-114, before P-116) · Status: DONE (cfb7cd2eb; A1 gate: build 0, tsc 0, 14,398 pass / 0 fail; published 12:26 IST, deployment 66902f7a; the reclaim press is P-118b) · Moves: 1, 3
 
