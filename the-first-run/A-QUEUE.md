@@ -9645,6 +9645,31 @@ shipped opportunity. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 reads.
 
+
+### P-127 · The header says what is running · Lane: **A2** (after P-116, before P-112) · Status: READY · Moves: 2
+
+**Why.** Served Waiting page at 06:13 UTC 09-04: the header read *Nothing running · last:
+Checkout asks for already-saved delivery address · 3d ago* while run bce3febf (the orchestrator's
+Ship try on that very track) was `running` and its Ship seat was spending. At 06:44 the same header
+said *Nothing running* while the release-verifier and release seats ran. The header is the one
+line the founder reads on every page (P-60's rail gives it that job), and it reported the opposite
+of the table twice in an hour. Either it reads a different set of statuses than the loop writes
+(the `LIVE_RUN_STATUSES` and `NON_TERMINAL_RUN` split from P-114 is the likely seam), or it is
+scoped to the product picker while the run belongs to the workspace, or its poll is slower than a
+seat's life.
+
+**Scope.** (1) One reader of "what is running now" for the header, the Run door and Start's
+first answer, keyed on the workspace and the run's live status set, refreshed by the realtime
+publication (P-83) rather than a poll. (2) The header names the seat and the station while a run
+is live (*Release Coordinator at Ship · Checkout asks ... · 40 s*) and falls back to *last:* only
+when the table has nothing live. (3) Guard: a fixture with a `running` orchestrator run renders
+the live line; the three readers agree on one fixture.
+
+**Acceptance.** During the next live drive on Helio the header shows the seat within one tick of
+its start and A1 reads it. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
