@@ -32,6 +32,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Row } from "@/components/meridian/rows";
 import { findAnything } from "@/lib/spine/track.functions";
 import { OPEN_MODAL_SELECTOR } from "@/lib/overlay";
+import { useWorkspace } from "@/hooks/use-workspace";
 import {
   GROUP_LABEL,
   type FindAnythingResult,
@@ -172,6 +173,10 @@ const optionId = (i: number) => `find-anything-option-${i}`;
 export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: () => void }) {
   const navigate = useNavigate();
   const search = useServerFn(findAnything);
+  // P-64b: the workspace this search stands in, the same read every other
+  // shell surface already takes (P-66's shape) -- not the person's default,
+  // which can differ from the one on screen the moment they switch.
+  const { activeWorkspaceId } = useWorkspace();
   const [q, setQ] = React.useState("");
   const [result, setResult] = React.useState<FindAnythingResult | null>(null);
   /* Distinct from `result === null`: that is also true for the debounce
@@ -248,7 +253,7 @@ export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: 
     const id = ++requestId.current;
     setLoading(true);
     const timer = window.setTimeout(() => {
-      void search({ data: { query } }).then((r) => {
+      void search({ data: { query, workspaceId: activeWorkspaceId ?? null } }).then((r) => {
         // A stale response from a shorter, already-superseded query must never
         // overwrite what a longer one already found.
         if (requestId.current === id) {
@@ -259,7 +264,10 @@ export function FindAnything({ narrow, onExpand }: { narrow: boolean; onExpand: 
       });
     }, DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [q, search]);
+    // Switching workspaces re-runs the in-flight query, matching every other
+    // P-66-shaped shell read: a stale result naming another workspace's rows
+    // must never sit on screen labelled with the one now active.
+  }, [q, search, activeWorkspaceId]);
 
   const options = React.useMemo(() => (result ? flatten(result) : []), [result]);
   const open = q.trim().length > 0;

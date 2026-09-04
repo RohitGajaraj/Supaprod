@@ -1,10 +1,11 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, afterEach } from "bun:test";
 import {
   AGENT_DISCOVERY_LINK_HEADER,
   withAgentDiscoveryLink,
   withMarketingCacheHeaders,
   withSecurityHeaders,
   withWorkerTotalTiming,
+  withBuildCanary,
 } from "./server";
 
 describe("withMarketingCacheHeaders", () => {
@@ -245,6 +246,42 @@ describe("withWorkerTotalTiming", () => {
   test("preserves the body and status it does not own", () => {
     const response = new Response("hello", { status: 404 });
     const result = withWorkerTotalTiming(response, 50);
+    expect(result.status).toBe(404);
+  });
+
+  test("mirrors the same value onto X-Supaprod-Timing, a name nothing upstream has reason to touch", () => {
+    const response = new Response("<html></html>", { status: 200 });
+    const result = withWorkerTotalTiming(response, 200);
+    expect(result.headers.get("X-Supaprod-Timing")).toBe(result.headers.get("Server-Timing"));
+    expect(result.headers.get("X-Supaprod-Timing")).toBe("worker-total;dur=200");
+  });
+});
+
+describe("withBuildCanary", () => {
+  const original = process.env.CF_VERSION_METADATA_ID;
+  afterEach(() => {
+    if (original === undefined) delete process.env.CF_VERSION_METADATA_ID;
+    else process.env.CF_VERSION_METADATA_ID = original;
+  });
+
+  test("names the running deploy on the response", () => {
+    process.env.CF_VERSION_METADATA_ID = "abc123";
+    const result = withBuildCanary(new Response("<html></html>", { status: 200 }));
+    expect(result.headers.get("X-Supaprod-Build")).toBe("abc123");
+  });
+
+  test("adds nothing when the env var is unset -- a response is never worse off", () => {
+    delete process.env.CF_VERSION_METADATA_ID;
+    const response = new Response("<html></html>", { status: 200 });
+    const result = withBuildCanary(response);
+    expect(result).toBe(response);
+    expect(result.headers.has("X-Supaprod-Build")).toBe(false);
+  });
+
+  test("carries every response, not only a 200", () => {
+    process.env.CF_VERSION_METADATA_ID = "abc123";
+    const result = withBuildCanary(new Response("nope", { status: 404 }));
+    expect(result.headers.get("X-Supaprod-Build")).toBe("abc123");
     expect(result.status).toBe(404);
   });
 });

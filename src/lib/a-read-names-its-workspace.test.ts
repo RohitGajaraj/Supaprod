@@ -175,7 +175,7 @@ const BASELINE: Record<string, number> = {
   "src/lib/spine/correction.server.ts": 1,
   "src/lib/spine/driver.server.ts": 5,
   "src/lib/spine/return-edge.server.ts": 1,
-  "src/lib/spine/track.functions.ts": 4,
+  "src/lib/spine/track.functions.ts": 3,
   "src/lib/stage-events.functions.ts": 1,
   "src/lib/stakeholder-update.functions.ts": 1,
   "src/lib/studio.functions.ts": 3,

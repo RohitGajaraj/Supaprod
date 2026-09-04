@@ -20,6 +20,13 @@ mock.module("@tanstack/react-router", () => ({
   useRouterState: () => pathname,
 }));
 
+// P-64b: FindAnything now reads the active workspace to scope its search.
+// This file's own tests exercise the keyboard guard, not workspace scoping,
+// so a fixed id is enough -- no WorkspaceProvider/QueryClientProvider tree.
+mock.module("@/hooks/use-workspace", () => ({
+  useWorkspace: () => ({ activeWorkspaceId: "11111111-1111-1111-1111-111111111111" }),
+}));
+
 const searchActual = await import("@tanstack/react-start");
 mock.module("@tanstack/react-start", () => ({
   ...searchActual,

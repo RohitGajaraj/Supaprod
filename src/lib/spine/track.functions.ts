@@ -1264,11 +1264,24 @@ export const listRunsForStart = createServerFn({ method: "GET" })
  */
 export const findAnything = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator(z.object({ query: z.string() }))
+  .validator(z.object({ query: z.string(), workspaceId: z.string().uuid().nullable().optional() }))
   .handler(async ({ context, data }): Promise<FindAnythingResult> => {
     const words = searchWords(data.query);
     if (words.length === 0) return EMPTY_RESULT;
     const { supabase, userId } = context;
+    /*
+     * P-64b: THE WORKSPACE IT STANDS IN, NOT ITS DEFAULT. `data.workspaceId`
+     * is `useWorkspace()`'s own `activeWorkspaceId` (the P-66 shape every
+     * other shell read already takes) -- explicit and client-supplied,
+     * unlike `current_user_default_workspace`, which can name a DIFFERENT
+     * workspace than the one on screen the moment a person switches. Every
+     * table below carries `workspace_id` (checked against the live schema
+     * before writing this), so each group is filtered ONLY WHEN it is
+     * known -- the same "narrowing to a workspace we could not name would
+     * turn an unresolved id into an empty desk" rule `resolveStartWorkspaceId`
+     * and `listRunsForStart` already state, not a new one invented here.
+     */
+    const workspaceId = data.workspaceId ?? null;
 
     const searchArtifactTable = async (
       table: string,
@@ -1276,6 +1289,7 @@ export const findAnything = createServerFn({ method: "GET" })
       limit: number,
     ): Promise<Array<{ id: string; title: string }>> => {
       let q = supabase.from(table).select(`id, title:${titleColumn}`).limit(limit);
+      if (workspaceId) q = q.eq("workspace_id", workspaceId);
       for (const w of words) q = q.ilike(titleColumn, `%${w}%`);
       const { data: rows, error } = await q;
       if (error || !rows) return [];
@@ -1391,15 +1405,15 @@ export const findAnything = createServerFn({ method: "GET" })
 
     const searchConversations = async (): Promise<Array<{ id: string; title: string }>> => {
       /*
-       * P-67's own guard caught this: `conversations` and `messages` both
-       * carry `workspace_id`, and RLS (`is_workspace_member`) alone would
-       * have let this search quietly show a person two workspaces' threads
-       * under one heading the moment they hold two -- the exact class of
-       * defect P-67's header lists four instances of. `threads.functions.ts`'s
-       * own `listThreads` reads `conversations` the same way:
-       * `current_user_default_workspace` RPC, filtered only once it resolves,
-       * never a guess broader than what can be named. Mirrored here rather
-       * than invented, and reused for the `messages` read below too.
+       * P-67/P-64b: `conversations` and `messages` both carry `workspace_id`,
+       * and RLS (`is_workspace_member`) alone would let this search quietly
+       * show a person two workspaces' threads under one heading the moment
+       * they hold two -- the exact class of defect P-67's header lists four
+       * instances of. Filtered on the ACTIVE workspace (the outer
+       * `workspaceId`, the P-66 shape), not `current_user_default_workspace`
+       * -- a person's default can differ from the one on screen the moment
+       * they switch, and P-64b's own live walk found exactly that gap: the
+       * probe's own search answering with Helio's runs and decisions too.
        *
        * TITLE ALONE MISSES MOST REAL THREADS. Checked against the live
        * database: most conversations carry the default "New conversation"
@@ -1410,15 +1424,12 @@ export const findAnything = createServerFn({ method: "GET" })
        * that would answer "New conversation" and nothing else for most
        * threads.
        */
-      const { data: wsDefault } = await supabase.rpc("current_user_default_workspace");
-      const wid = (wsDefault as string | null) ?? null;
-
       let titleQ = supabase.from("conversations").select("id, title").limit(8);
-      if (wid) titleQ = titleQ.eq("workspace_id", wid);
+      if (workspaceId) titleQ = titleQ.eq("workspace_id", workspaceId);
       for (const w of words) titleQ = titleQ.ilike("title", `%${w}%`);
 
       let messageQ = supabase.from("messages").select("conversation_id").limit(8);
-      if (wid) messageQ = messageQ.eq("workspace_id", wid);
+      if (workspaceId) messageQ = messageQ.eq("workspace_id", workspaceId);
       for (const w of words) messageQ = messageQ.ilike("content", `%${w}%`);
 
       const [{ data: titleRows }, { data: messageRows }] = await Promise.all([titleQ, messageQ]);
@@ -1431,7 +1442,7 @@ export const findAnything = createServerFn({ method: "GET" })
       let fromMessages: Array<{ id: string; title: string }> = [];
       if (byMessage.length > 0) {
         let convQ = supabase.from("conversations").select("id, title").in("id", byMessage);
-        if (wid) convQ = convQ.eq("workspace_id", wid);
+        if (workspaceId) convQ = convQ.eq("workspace_id", workspaceId);
         const { data } = await convQ;
         fromMessages = (data ?? []) as Array<{ id: string; title: string }>;
       }
@@ -1443,37 +1454,37 @@ export const findAnything = createServerFn({ method: "GET" })
     };
 
     const searchPeople = async (): Promise<FoundPerson[]> => {
-      const { data: mine } = await supabase
-        .from("workspace_members")
-        .select("workspace_id")
-        .eq("user_id", userId);
-      const workspaceIds = [
-        ...new Set(((mine ?? []) as Array<{ workspace_id: string }>).map((m) => m.workspace_id)),
-      ];
-      if (workspaceIds.length === 0) return [];
+      /*
+       * P-64b: THE ACTIVE WORKSPACE'S PEOPLE, NOT EVERY WORKSPACE'S. This
+       * used to fan out across every workspace membership row -- searching
+       * "everything RLS lets you see", the same shape the runs/decisions
+       * groups had before this packet. One workspace, one RPC call, matching
+       * the rest of this file post-fix; unresolvable stays empty rather than
+       * falling back to a broader guess (`resolveStartWorkspaceId`'s own
+       * rule: narrowing to a workspace we could not name would turn an
+       * unresolved id into an empty desk, which is a claim, but so is
+       * guessing wider than the screen a person is standing on).
+       */
+      if (!workspaceId) return [];
+      const { data, error } = await supabase.rpc("workspace_members_with_identity", {
+        _workspace_id: workspaceId,
+      });
+      if (error || !Array.isArray(data)) return [];
 
       const seen = new Map<string, FoundPerson>();
-      await Promise.all(
-        workspaceIds.map(async (workspaceId) => {
-          const { data, error } = await supabase.rpc("workspace_members_with_identity", {
-            _workspace_id: workspaceId,
+      for (const r of data as Array<{
+        user_id: string;
+        display_name: string | null;
+        email: string | null;
+      }>) {
+        if (!seen.has(r.user_id)) {
+          seen.set(r.user_id, {
+            userId: r.user_id,
+            displayName: r.display_name,
+            email: r.email,
           });
-          if (error || !Array.isArray(data)) return;
-          for (const r of data as Array<{
-            user_id: string;
-            display_name: string | null;
-            email: string | null;
-          }>) {
-            if (!seen.has(r.user_id)) {
-              seen.set(r.user_id, {
-                userId: r.user_id,
-                displayName: r.display_name,
-                email: r.email,
-              });
-            }
-          }
-        }),
-      );
+        }
+      }
 
       return [...seen.values()]
         .filter((p) => {
@@ -1498,6 +1509,7 @@ export const findAnything = createServerFn({ method: "GET" })
       ] = await Promise.all([
         (async () => {
           let q = supabase.from("spine_tracks").select("id, title, status, last_hold").limit(8);
+          if (workspaceId) q = q.eq("workspace_id", workspaceId);
           for (const w of words) q = q.ilike("title", `%${w}%`);
           const { data: rows } = await q;
           return (rows ?? []) as unknown as Array<{

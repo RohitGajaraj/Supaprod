@@ -158,12 +158,43 @@ export function withMarketingCacheHeaders(response: Response, pathname: string):
  * never set, because a route's own `loader` (see `lib/server-timing.ts`) may
  * already have written phase entries onto this same response; overwriting
  * would silently drop them.
+ *
+ * A1's live reads of "/" showed neither `Server-Timing` nor `worker-total`
+ * at all, three times, well after the publishes that should carry them --
+ * ambiguous from outside between "the served build predates this code" and
+ * "something between the Worker and the browser strips the header". Both
+ * questions get a second, independent answer here: `X-Supaprod-Timing`
+ * carries the identical value under a header name nothing upstream has any
+ * standing reason to touch, and `X-Supaprod-Build` (server.ts's fetch
+ * handler) names the running deploy so a reader can confirm which build
+ * actually answered before reasoning about its numbers at all.
  */
 export function withWorkerTotalTiming(response: Response, ms: number): Response {
   const headers = new Headers(response.headers);
   const prior = headers.get("Server-Timing");
   const entry = `worker-total;dur=${Math.round(ms)}`;
-  headers.set("Server-Timing", prior ? `${prior}, ${entry}` : entry);
+  const next = prior ? `${prior}, ${entry}` : entry;
+  headers.set("Server-Timing", next);
+  headers.set("X-Supaprod-Timing", next);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+/**
+ * Names the running deploy on every response, so a live read can confirm
+ * which build actually answered before reasoning about anything else it
+ * says. Same source `/health` already reports (`CF_VERSION_METADATA_ID`),
+ * carried here as a header rather than a body field so it reaches every
+ * response, not only the one route that returns JSON.
+ */
+export function withBuildCanary(response: Response): Response {
+  const build = process.env.CF_VERSION_METADATA_ID?.trim();
+  if (!build) return response;
+  const headers = new Headers(response.headers);
+  headers.set("X-Supaprod-Build", build);
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -460,10 +491,14 @@ export default {
       // Cache headers go on LAST so the marketing Cache-Control is not
       // overwritten by anything upstream, and only ever on a 200 for a route
       // in the allow-list. worker-total goes on last of all, appended rather
-      // than set, so it never drops a route's own Server-Timing phases.
-      return withWorkerTotalTiming(
-        withMarketingCacheHeaders(withAgentDiscoveryLink(securedResponse), url.pathname),
-        fetchMs,
+      // than set, so it never drops a route's own Server-Timing phases. The
+      // build canary rides every response, including the ones the earlier
+      // wrappers stand down on.
+      return withBuildCanary(
+        withWorkerTotalTiming(
+          withMarketingCacheHeaders(withAgentDiscoveryLink(securedResponse), url.pathname),
+          fetchMs,
+        ),
       );
     } catch (error) {
       console.error(error);
