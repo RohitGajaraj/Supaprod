@@ -7834,7 +7834,7 @@ tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 walks the probe again.
 
 
-### P-76 · The per-user AI rate limit exists · Lane: **A3** (after P-58b) · Status: READY · Moves: 1
+### P-76 · The per-user AI rate limit exists · Lane: **A3** (after P-58b) · Status: CLAIMED (A3) 00:50 UTC 09-04, P-58b step 2 blocked on A1's live reading · Moves: 1
 
 **Why.** F-192's guard found that `user_ai_rate_limits` does not exist in any schema:
 `checkUserAiRateLimit` reads it, gets 42P01, logs a warning and returns `{ allowed: true }`, so
