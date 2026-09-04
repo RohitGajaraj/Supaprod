@@ -9511,7 +9511,7 @@ streamlined.* Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers.
 
 
-### P-125 · The run's map shows all seven stations at every width · Lane: **A2** (after P-123, before P-118b) · Status: READY · Moves: 2
+### P-125 · The run's map shows all seven stations at every width · Lane: **A2** (after P-123, before P-118b) · Status: PUBLISHED, LIVE READ PENDING (352a65706; A1 gate: build 0, tsc 0, 14,429 pass / 0 fail; published 13:06 IST; A1 reads the map at 1512 px once served) · Moves: 2
 
 **Why.** Served run screen at 1512 px, 12:35 IST 09-04, on the shipped track: the map's row has
 seven cells in the DOM (*Discover · Found 4 things* through *Ship · Released* and *Learn ·
