@@ -10516,6 +10516,37 @@ with one green check renders the line; an empty rollup renders the honest absenc
 
 **DoD.** Pushed; the three numbers.
 
+**Report (A3, 18:11 IST 09-04).** Pushed at `00907e1e8`. `studio.pr.merge` already fetched every
+check-run and legacy status to decide whether the merge could proceed; it was reading names and
+conclusions and throwing them away the instant the gate's own yes/no was taken. It now pins
+`{headSha, at, checks: [{name, conclusion}]}` onto a new `studio_changesets.ci_checks` column, in
+the SAME update that sets `status: 'merged'` -- null only when the PR was already merged before this
+call reached it, an honest absence rather than an invented one.
+
+The release document reads it through three cases instead of one constant sentence: a real rollup
+with entries is now a RECEIPT (`"lint and test passed on 963d9df, ..."`, dated with `onDay` to match
+this document's own vocabulary rather than the packet's illustrative clock-time example); a real
+rollup that came back empty is `"No check ran for this release"` (a repo with no CI configured is not
+a hole in OUR record); a column the merge never captured keeps the original `"No test evidence"`
+sentence, unchanged -- every release before this migration, still the truest thing this document can
+say about them.
+
+Migration `20260909093100_p139_changeset_ci_checks.sql` adds the column and backfills the one live
+release this packet's own Why names: track `ae547426-aa32-4bcc-a9fc-86fa360211de`
+(Supaprod/relay-homeowner-app PR #5), using its own production deploy's `commit_sha`
+(`963d9df200e5a2ae422bb87aae1b5256b497245a`, queried live) as the head that merged -- verified rather
+than the packet's own `428bb04` example, which does not match any real row on this track.
+
+Guard (Scope's own words): a fixture merge with one green check renders the receipt line; an empty
+rollup renders `"No check ran"` rather than `"nothing records"`; a fixture carrying no `ci_checks` at
+all (every existing test fixture, unmodified) keeps the original sentence -- three new tests in
+`WhatShipped.test.tsx`, all green alongside the file's 30 existing ones.
+
+`bunx tsc --noEmit`: clean. `bun test`: 14,622 pass, 22 skip, 37 todo, 0 fail, 39,291 expect() calls,
+1,063 files. `bun run build`: clean end to end. `bun run docs:check`: exit 0, "docs-doctor: clean."
+all 12 checks ok.
+
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
