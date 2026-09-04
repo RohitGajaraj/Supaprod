@@ -7881,6 +7881,18 @@ tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; migration applied via the Lovable MCP; ledger row.
 
+**A3, 01:25 UTC 09-04, closing scope item 2.** The trip sentence in both callers
+(`/api/chat`, `/api/plan-gate`) was "You are sending requests too quickly. Give it a short
+breather." -- what happened and what to do, no "when it lifts": `retryAfterSeconds` rode along
+in the JSON body with nothing on the client ever reading it, because this limiter had never once
+tripped in the product's life to need one. `aiRateLimitSentence(retryAfterSeconds)`
+(`ai-ratelimit.server.ts`) composes all three now, both callers use it, one sentence rather than
+two copies free to drift. Pushed `40e6cc633`, 14,190 / 0, tsc 0.
+
+**First count, honestly.** `select count(*) from user_ai_rate_limits` at 00:52 UTC (right after
+the table was created): 0 rows. The table is new; nobody has hit it yet since the deploy has not
+propagated. Not claiming a real first-day number -- there isn't one to claim yet.
+
 
 ### LIVE WALK, A1, 05:50 IST 09-04 · the third sentence in the probe, on the P-71c build
 
@@ -7918,7 +7930,7 @@ Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
 
 
-### P-64b · Find Anything searches the workspace it stands in · Lane: **A3** (after P-76) · Status: READY · Moves: 1, 2
+### P-64b · Find Anything searches the workspace it stands in · Lane: **A3** (after P-76) · Status: CLAIMED (A3) 01:26 UTC 09-04 · Moves: 1, 2
 
 **Why.** Read live 05:51 IST 09-04 from the probe workspace: "address" in Find anything returns
 the probe's two runs and, beside them, Helio's runs (*Let returning customers reuse a saved
