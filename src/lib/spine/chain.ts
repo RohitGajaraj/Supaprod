@@ -112,7 +112,21 @@ export type ArtifactSource = {
 export const ARTIFACT_SOURCE: Readonly<Record<string, ArtifactSource>> = {
   signal: { table: "signals", title: "title", body: "content" },
   theme: { table: "themes", title: "title", body: "summary" },
-  prd: { table: "prds", title: "title", body: "body_md" },
+  /*
+   * THE CONTRACT TRAVELS WITH THE SPEC, OR LEARN CANNOT GRADE THE NUMBER.
+   *
+   * Same shape as the decision below, one kind over. A spec reached the seat
+   * with `title` and `body_md`, so its success metrics -- and every reading a
+   * person recorded against them through P-137's press -- were never in the
+   * text Learn was handed. The spec arrives WHOLE at Learn and whole meant its
+   * prose, not its promises.
+   *
+   * `contract` is jsonb, so it is rendered to prose by `RENDER_FOR` in
+   * driver.server.ts rather than stringified. See the note there: the version
+   * of this change that just names the column here puts `[object Object]` in
+   * the brief and looks finished.
+   */
+  prd: { table: "prds", title: "title", body: "body_md", also: ["contract"] },
   task: { table: "tasks", title: "title", body: "detail" },
   changeset: { table: "studio_changesets", title: "title", body: "summary" },
   mission: { table: "missions", title: "title" },

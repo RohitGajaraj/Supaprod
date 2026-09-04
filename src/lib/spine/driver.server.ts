@@ -28,6 +28,10 @@
  * go, never that policy stopped applying.
  */
 import { trackGoalSentence } from "@/lib/track-origin";
+import {
+  metricsForTheBrief,
+  gradedAgainstFromStates,
+} from "@/lib/spine/the-number-a-person-gave-us";
 import { whatLearnIsWaitingFor } from "@/lib/spine/what-learn-is-waiting-for";
 import {
   whatWouldMeasure,
@@ -1124,6 +1128,19 @@ const LABEL_FOR: Record<string, string> = {
   forecast_horizon_date: "Expected by",
 };
 
+/**
+ * Columns that are not text, and the prose they become (P-144).
+ *
+ * `contract` is jsonb. Adding it to `also` and letting the line below
+ * `String()` it would have put `[object Object]` in the seat's brief -- the
+ * column genuinely sent, the change green in the diff and in the schema, and
+ * nine characters of nothing where the number was supposed to be. A renderer
+ * is what makes "the reading reaches the seat" true rather than filed.
+ */
+const RENDER_FOR: Record<string, (v: unknown) => string | null> = {
+  contract: (v) => metricsForTheBrief(v),
+};
+
 async function loadUpstream(
   supabase: SupabaseClient,
   trackId: string,
@@ -1183,7 +1200,25 @@ async function loadUpstream(
         const extras = (source.also ?? [])
           .map((c) => {
             const v = r[c];
-            return v == null || v === "" ? null : `${LABEL_FOR[c] ?? c}: ${String(v)}`;
+            if (v == null || v === "") return null;
+            const render = RENDER_FOR[c];
+            if (render) return render(v);
+            /*
+             * AND AN OBJECT WITH NO RENDERER IS SKIPPED, NOT STRINGIFIED.
+             *
+             * `String({})` is "[object Object]", which is not an error, does
+             * not throw, and reads in a brief as though the column arrived. The
+             * next person to add a jsonb column to `also` would ship that and
+             * see nothing wrong in the diff. Skipping and saying so out loud
+             * costs one log line and cannot be mistaken for content.
+             */
+            if (typeof v === "object") {
+              console.error(
+                `[brief] ${c} is not text and has no renderer, so it was left out rather than printed as [object Object]`,
+              );
+              return null;
+            }
+            return `${LABEL_FOR[c] ?? c}: ${String(v)}`;
           })
           .filter(Boolean);
         const body = [r.body ?? null, ...extras].filter(Boolean).join("\n") || null;
@@ -2183,7 +2218,23 @@ export async function verifyStationOutput(
     if (learningIds.length === 0) {
       return no("The forecast was graded", "No verdict was recorded");
     }
-    ok("The forecast was graded");
+    /*
+     * AND WHAT IT WAS GRADED AGAINST (P-144).
+     *
+     * This said only "The forecast was graded", which is true of a verdict
+     * composed from a recorded 71 and equally true of one composed from
+     * nothing at all. Those are different artifacts and the record could not
+     * tell them apart, so the check that exists to say the station did its job
+     * passed identically for the case where there was no job to do.
+     *
+     * Silent when the states cannot be read -- no `trackId` to read them
+     * against, or a failed read. "graded with no reading" is a claim, and
+     * putting it on a track that had one is worse than the shorter sentence.
+     */
+    const gradedAgainst = trackId
+      ? gradedAgainstFromStates(await metricSourcesForTrack(supabase, trackId))
+      : null;
+    ok(gradedAgainst ? `The forecast was graded (${gradedAgainst})` : "The forecast was graded");
     return done();
   }
 
