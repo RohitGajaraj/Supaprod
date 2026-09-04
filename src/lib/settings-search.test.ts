@@ -200,6 +200,9 @@ describe("every door is findable, and every keyword is true", () => {
       "../lib/connectors/registry.ts",
       "../lib/entitlements.ts",
       "../lib/byokeys.functions.ts",
+      // P-118b's pane. A door whose words are not in this list cannot be
+      // checked for truthfulness, which is the one thing this test is for.
+      "../components/settings/HostingSection.tsx",
     ]
       .map(read)
       .join("\n");

@@ -282,3 +282,41 @@ export async function deployChangesetApp(args: {
       : null;
   return { ok: true, revisionId, url };
 }
+
+/**
+ * ── RECLAIM ONE APP, AND ONLY AFTER THE SERVER HAS AGREED (P-118b) ───────
+ *
+ * The list a person presses this from is built from OUR OWN RECORD rather than
+ * from the host's API, and that is a deliberate limit rather than a shortcut:
+ * every app this product creates is `deriveAppSlug(workspace, changeset)`, so
+ * the record knows all of them, and it knows nothing about apps somebody else
+ * put in the account. Enumerating the org would list apps we must never touch
+ * beside ones we may, on one screen, behind one button.
+ *
+ * So the surface says what it can see and what it cannot, and this call refuses
+ * anything whose slug is not ours even if a caller asks for it.
+ */
+export async function reclaimHostedApp(slug: string): Promise<{ ok: boolean; reason: string }> {
+  const token = denoToken();
+  if (!token) return { ok: false, reason: "DENO_DEPLOY_TOKEN not set, so nothing was deleted." };
+  /* The last line of defence, and it is here rather than only at the caller
+     because this function deletes something that cannot be recovered. */
+  if (!slug.startsWith("cad-")) {
+    return {
+      ok: false,
+      reason: `${slug} was not created by this product, so it will not be deleted from here.`,
+    };
+  }
+  const res = await fetch(`${DENO_API_BASE}/apps/${slug}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  /* 404 is success for this act: the slot is free, which is what was asked for.
+     Anything else carries the host's own sentence, on P-39's argument and the
+     same 500 bytes as every other call in this file. */
+  if (res.ok || res.status === 404) return { ok: true, reason: `${slug} was released.` };
+  return {
+    ok: false,
+    reason: `The host would not delete ${slug} (${res.status}): ${(await res.text().catch(() => "")).slice(0, 500)}`,
+  };
+}

@@ -93,6 +93,7 @@ export type SectionId =
   | "profile"
   | "health"
   | "data"
+  | "hosting"
   | "notifications"
   | "memory";
 
@@ -111,7 +112,8 @@ export type SectionId =
  * `LEGACY_SECTION_MAP` below; they are gone as group ids because "Agents" and
  * "Data and access" no longer name real groups.
  */
-export type GroupId = "you" | "autonomy" | "brief" | "connections" | "workspace" | "usage" | "security";
+export type GroupId =
+  "you" | "autonomy" | "brief" | "connections" | "workspace" | "usage" | "security";
 
 /**
  * A named block INSIDE a pane, which search can name and land on.
@@ -404,6 +406,26 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
           "claude desktop",
           "ide",
         ],
+      },
+      {
+        /*
+         * P-118b. Hosting lives with Connections because a preview app is a
+         * thing this workspace put OUTSIDE itself -- the group's own line -- and
+         * because the account it fills is the founder's rather than the
+         * product's. It filled up silently once and the wall arrived as an
+         * unrelated deploy failure, so it needs somewhere to be looked at.
+         */
+        id: "hosting",
+        label: "Hosting",
+        /*
+         * A word may point at one door only, which the routing guard enforces
+         * as a forcing function on naming. Three of the obvious ones are
+         * already spoken for and rightly: "limit" is Autonomy's spend ceiling,
+         * "delete" is Your data's, and "app" is what Products calls the thing
+         * a customer ships. What is left is what actually distinguishes this
+         * door -- the host, the artefact, and the act.
+         */
+        keywords: ["deploy", "deno", "preview", "slot", "reclaim"],
       },
     ],
   },

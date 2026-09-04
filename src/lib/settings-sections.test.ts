@@ -39,7 +39,13 @@ import {
  * `settings-sections.ts`'s own header for the full ruling.
  */
 
-// The 17 section ids the route ships with - the routing contract that must hold.
+/*
+ * The 18 section ids the route ships with - the routing contract that must
+ * hold. WAS 17; `hosting` joined it (P-118b) because a preview app is a thing
+ * this workspace put outside itself and the account it fills is the founder's,
+ * so it needed somewhere to be looked at. Adding an id is meant to fail this
+ * list: a door nobody decided to add is the thing it is guarding against.
+ */
 const ORIGINAL_SECTION_IDS: SectionId[] = [
   "connections",
   "ai",
@@ -52,6 +58,7 @@ const ORIGINAL_SECTION_IDS: SectionId[] = [
   "billing",
   "credits",
   "interop",
+  "hosting",
   "sync",
   "profile",
   "health",
@@ -61,7 +68,7 @@ const ORIGINAL_SECTION_IDS: SectionId[] = [
 ];
 
 describe("settings-sections - the routing contract is preserved", () => {
-  it("exposes exactly the 17 section ids (no id added or dropped)", () => {
+  it("exposes exactly the 18 section ids (no id added or dropped)", () => {
     expect([...ALL_SECTION_IDS].sort()).toEqual([...ORIGINAL_SECTION_IDS].sort());
   });
 
@@ -189,8 +196,10 @@ describe("settings-sections - the seven groups are named by the boundary they se
 });
 
 describe("settings-sections - the nav ring", () => {
-  it("draws 13 doors: every section except the four that are address-only", () => {
-    expect(NAV_DOOR_IDS.length).toBe(13);
+  it("draws 14 doors: every section except the four that are address-only", () => {
+    /* 13 before Hosting. The four address-only sections below are unchanged:
+       this is one more DOOR, not one fewer exception. */
+    expect(NAV_DOOR_IDS.length).toBe(14);
     /*
      * FOUR ADDRESS-ONLY SECTIONS, unchanged in count and reason by the regroup:
      *   memory  - dead pane, live address
@@ -448,7 +457,12 @@ describe("settings-sections - Up, Down, Home and End", () => {
     expect(stepDoor("autonomy", "ArrowDown")).toBe("brief");
     expect(stepDoor("brief", "ArrowUp")).toBe("autonomy");
     expect(stepDoor("brief", "ArrowDown")).toBe("connections");
-    expect(stepDoor("interop", "ArrowDown")).toBe("workspace");
+    /* Hosting sits after Outside access in Connections, so the step that used
+       to cross into Workspace now lands on it first and crosses from there.
+       The ring still crosses the boundary, which is what this asserts. */
+    expect(stepDoor("interop", "ArrowDown")).toBe("hosting");
+    expect(stepDoor("hosting", "ArrowDown")).toBe("workspace");
+    expect(stepDoor("workspace", "ArrowUp")).toBe("hosting");
     expect(stepDoor("products", "ArrowDown")).toBe("billing");
     expect(stepDoor("billing", "ArrowDown")).toBe("data");
   });

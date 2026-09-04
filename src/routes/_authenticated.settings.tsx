@@ -285,6 +285,7 @@ import { WorkspaceClaimCard } from "@/components/billing/WorkspaceClaimCard";
 import { IntegrationsTab } from "@/components/settings/IntegrationsTab";
 import { ProductsTab } from "@/components/settings/ProductsTab";
 import { DataSection } from "@/components/settings/DataSection";
+import { HostingSection } from "@/components/settings/HostingSection";
 import { BriefSection } from "@/components/settings/BriefSection";
 import { DiagnosticsSection } from "@/components/settings/DiagnosticsSection";
 import { NotificationsSection } from "@/components/settings/NotificationsSection";
@@ -763,6 +764,7 @@ function SettingsPage() {
           </>
         )}
         {active === "data" && <DataSection workspaceId={activeWorkspace?.id} />}
+        {active === "hosting" && <HostingSection workspaceId={activeWorkspace?.id} />}
 
         {/*
          * ONE PANE ANSWERS BOTH MONEY QUESTIONS, 2026-08-17.
@@ -3318,8 +3320,8 @@ function RunwaySection() {
                 {/* In the data face like the other three. It was the one bare
                     figure in the sentence, so it sat in prose type beside
                     tabular ones and the row did not line up. */}
-                <Num>{r.runsInWindow}</Num> runs · <Num>{r.spendableCredits}</Num> credits
-                available now.
+                <Num>{r.runsInWindow}</Num> runs · <Num>{r.spendableCredits}</Num> credits available
+                now.
               </>
             }
           />
@@ -3634,9 +3636,8 @@ function CreditsSection() {
 
           {data ? (
             <NothingYet>
-              <Num>{data.cycleTopupCredits}</Num> of{" "}
-              <Num>{data.cycleTopupCapCredits}</Num> top-up credits used this
-              cycle.{" "}
+              <Num>{data.cycleTopupCredits}</Num> of <Num>{data.cycleTopupCapCredits}</Num> top-up
+              credits used this cycle.{" "}
               <a
                 href="mailto:sales@supaprod.ai?subject=Enterprise%20credits"
                 style={{ color: "var(--mrd-ink)" }}
