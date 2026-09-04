@@ -10440,6 +10440,23 @@ completion from 67 percent, address-screen abandonment from 41 percent) is not a
 has no evidence source, so nothing will grade it on 09-09 or 09-21; that is exactly the gap this
 packet names. P-42's read is otherwise clean: the tick runs and refuses what it cannot grade.
 
+
+**A2's read before building, 18:20 IST 09-04.** Both metrics on f2aa82f1 carry `oracle_kind:
+eval` with refs that resolve to real `eval_cases` rows (a653a20b, 6dbb1c54, suite 1b27272f, created
+09-02 22:31), and neither has ever produced a result; `product_analytics` holds 0 rows for Helio
+and the five connections are github, linear, salesforce and slack, no analytics provider. So "is
+a source present" says yes and is wrong; the question is "can this produce a reading now". A live
+defect on the run screen came with it: `components/track/spec-contract.ts` keeps only string
+clauses and every spec in the database stores objects (16 of 16), so `ArtifactPane` renders none
+of the six clauses, silently, while `OutcomeContractPanel` reads objects and is right. And the only
+decision linked to the spec (a21bb365) has no horizon and an empty how; the 09-09 decision is the
+paperwork one. **The honest Learn line for 09-09:** *neither success metric has a source that can
+produce a number; both point at a spec-acceptance eval that has never run, and no analytics
+source is connected to this workspace, so this release cannot be graded until one is connected or
+a reading is recorded by hand.* Build order confirmed by A1: the object-shape reader, the
+can-it-read source check, the grader refusal beside the paperwork one, the surface and guards;
+hand readings on the clause in `prds.contract`, no migration.
+
 ### P-128b · The static build ships · Lane: **A2** (now, before P-135) · Status: CODE COMPLETE, ACCEPTANCE BLOCKED (ef26977dd + ef608c28a + 4347ac024; nineteen guards against a fixture with the host mocked; A1 gate on the closing tip 4347ac024: build 0, tsc 0, 14,594 pass / 0 fail, published 16:43 IST; DONE only after the live walk of a second repo, which waits on the founder creating or allowing Supaprod/helio-status-site) · Moves: 1, 3
 
 **Why.** R-41 is placed. P-128 shipped the detection (a repo's shape read from `package.json`,
