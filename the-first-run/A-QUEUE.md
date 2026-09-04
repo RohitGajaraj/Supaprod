@@ -9990,7 +9990,7 @@ document names the spec and the bet" needs a live read from A1, and per the para
 the spec half is expected to resolve for the specific release the packet's own Why cites.
 
 
-### P-132 · The recall tests do not race the clock · Lane: **A3** (after P-131) · Status: CLAIMED (A3) 16:33 IST 09-04 · Moves: 5
+### P-132 · The recall tests do not race the clock · Lane: **A3** (after P-131) · Status: DONE (A3) 16:44 IST 09-04 (f130b64a2) · Moves: 5
 
 **Why.** `memory.server.test.ts` (`recallMemoryRefs`) timed out at 5 s twice today under the full
 suite (13:24 on a starved disk, 14:38 on a healthy one) and passes alone in a second. A gate that
@@ -10004,6 +10004,26 @@ it deterministic (mock the provider, fake the clock); no raised timeout. Sweep t
 **Acceptance.** Three full-suite runs on the tip with 0 fail. tsc 0, build 0.
 
 **DoD.** Pushed; the numbers.
+
+**Report (A3, 16:44 IST 09-04, f130b64a2).** Root cause: `recallMemoryRefs`/`rememberOutcome` both
+call `embedOne` (`embed.server.ts`), which reaches a real embedding provider over the network via
+`fetch` -- a genuine, unmocked network call inside what reads as a unit test. Fine with the network
+to itself in isolation; a flake under the full suite where dozens of other files' own real network
+calls contend for the same window. `embedOne` is not injectable into either caller, so the fix is a
+process-wide `mock.module` of `@/lib/rag/embed.server`, scoped to this one test file -- checked
+against `a-module-mock-is-process-wide.test.ts`'s own frozen set first: nothing else in this repo
+mocks this module, so this is a new entry with no collision. One existing test relied on stubbing
+`globalThis.fetch` to simulate the provider being down, which the mock no longer routes through;
+replaced with an `embedShouldFail` flag the mock's own `embedOne` checks, flipped and reset by that
+one test the same way the fetch stub was. Guard: the file runs in ~0.4s in isolation now (previously
+a real network round trip) and stayed green across three consecutive full-suite runs -- the packet's
+own acceptance criterion, run and confirmed rather than assumed from the single-file fix. Swept the
+rest of the suite for other callers of `embedOne`/`embedTexts`/`embedThroughChokepoint` with their
+own dedicated test path: sixteen source files call these functions; none of their own test files
+reference the embed module by name, so this was the only caller exercising the real network
+unmocked. Full suite: `bunx tsc --noEmit` 0; three consecutive `bun test` runs, each 14590 pass / 0
+fail / 22 skip / 37 todo across 1062 files; `bun run build` 0 (Cloudflare Worker output); `bun run
+docs:check` exit 0, docs-doctor clean, zero WARN/FAIL. Pushed directly to `main` (f130b64a2).
 
 
 ### P-118c · A reclaimed row settles, and the account's count is shown · Lane: **A2** (after P-112, before P-113) · Status: DONE (7d5f73e6d + a08ce9672; live 15:40 IST: the top line names whose count it is and where the account's own lives; A1 pressed Reclaim it again on cad-60000000-5139f3a8f8e6, the row settled in place to "Reclaimed on 2026-09-04. Its slot is already free." with no button; one wording nit for a later pass: the top line then reads "11 previews created by Supaprod, all still in use" while one of the eleven was just reclaimed) · Moves: 2
