@@ -133,11 +133,27 @@ describe("the route fits a rail without becoming a second route renderer", () =>
     expect(ol.className).toContain("flex-col");
   });
 
-  it("leaves the spine exactly as it was, because that caller did not ask to move", () => {
+  it("leaves the spine a separate direction, though its geometry has since changed", () => {
+    /*
+     * WHAT THIS TEST IS FOR, and it is not the 168px it used to assert. This
+     * file exists to prove that adding `stack` did not disturb `spine` -- one
+     * route renderer, two directions, no second component. That claim is about
+     * the SEPARATION, and it survives the spine's geometry changing underneath
+     * it.
+     *
+     * P-125 replaced the fixed-width scrolling row with seven shared grid
+     * tracks, because fixed cells walked past the pane's edge at 1512px on the
+     * first run that shipped. Pinning `168px` here made this file a second
+     * owner of that decision, which is how a test starts voting on a design it
+     * was not written about.
+     */
     const { container } = render(<RunMap stops={ROUTE} mode="live" />);
-    const first = container.querySelector("li") as HTMLElement;
-    expect(first.style.width).toBe("168px");
-    expect((container.querySelector("ol") as HTMLElement).className).toContain("overflow-x-auto");
+    const ol = container.querySelector("ol") as HTMLElement;
+    expect(ol.className).toContain("grid");
+    expect(ol.className).not.toContain("flex-col");
+    // Still the two directions, still one component drawing both.
+    const { container: stacked } = render(<RunMap stops={ROUTE} mode="live" orientation="stack" />);
+    expect((stacked.querySelector("ol") as HTMLElement).className).toContain("flex-col");
   });
 });
 

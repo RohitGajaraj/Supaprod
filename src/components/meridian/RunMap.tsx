@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { holdLine } from "@/lib/spine/driver";
+import { ROUTE_GRID_TEMPLATE, STOP_GAP_PX } from "@/components/meridian/the-route-fits-the-pane";
 
 import { Flowchart, flowFromSteps } from "./Flowchart";
 import { ReasonField } from "./forms";
@@ -298,14 +299,14 @@ function Stop({
 
   return (
     /*
-     * The fixed 168px is the SPINE's geometry and only the spine's. A stacked
-     * stop takes the rail's full width, which is what stops a seven-station
-     * route needing a horizontal scrollbar inside a 300px pane.
+     * NO FIXED WIDTH IN EITHER DIRECTION (P-125). The spine's stops were 168px
+     * and `shrink-0`, so seven of them needed 1176px and took it whether the
+     * pane had it or not -- measured at 1512px with the last three cells past
+     * the edge. They are grid tracks now: `min-w-0` is what lets a share go
+     * under its content's natural width so the label truncates instead of the
+     * row growing, and `w-full` fills whichever track the grid hands out.
      */
-    <li
-      className={`flex min-w-0 flex-col ${stack ? "w-full" : "shrink-0"}`}
-      style={stack ? undefined : { width: 168 }}
-    >
+    <li className="flex w-full min-w-0 flex-col">
       {/*
        * The whole stop is one control when it has steps to open, and a plain
        * fact when it does not. A card that looks pressable and does nothing is
@@ -529,12 +530,21 @@ export function RunMap({
         {here ? `Now at ${AGENT_STATIONS[here.station].name}` : ""}
       </p>
       {/*
-       * ── THE SPINE SCROLLS, THE PAGE NEVER DOES ──────────────────────────
-       * `overflow-x-auto` on this element and a fixed width on each stop, so a
-       * seven-station route on a narrow pane scrolls INSIDE its own container.
-       * The failure this avoids is the one that has no gate: a horizontal
-       * overflow on the body, which moves the whole layout sideways and is
-       * invisible on a wide development display.
+       * ── THE SPINE SHARES THE ROW; NOTHING SCROLLS AND NOTHING CLIPS ─────
+       *
+       * It used to scroll: fixed 168px stops inside `overflow-x-auto` (G3).
+       * That answers "the page must never scroll sideways" only while every
+       * ancestor actually clips, and one that does not lets seven fixed cells
+       * keep going -- photographed on 09-02 for the old strip and measured
+       * again at 1512px on 09-04 for this one. Twice in the same shape means
+       * the mechanism was wrong, not the number.
+       *
+       * A route has SEVEN stations, always. Seven equal shares of whatever
+       * width there is cannot overflow, because they are defined in terms of
+       * it. Below the width where a share stops being readable the row wraps to
+       * two -- `auto-fit`, no breakpoint, no measurement -- rather than
+       * shrinking to nothing or bringing the scrollbar back. The arithmetic is
+       * in `the-route-fits-the-pane` so it can be checked at real widths.
        */}
       <ol
         aria-label={label}
@@ -544,7 +554,12 @@ export function RunMap({
                  nothing can scroll sideways because nothing is wider than the
                  rail. The page's own scroll carries a long route. */
               "flex list-none flex-col items-stretch"
-            : "mrd-fade-scroll flex list-none items-start gap-1 overflow-x-auto pb-1"
+            : "grid list-none items-start gap-1 pb-1"
+        }
+        style={
+          orientation === "stack"
+            ? undefined
+            : { gridTemplateColumns: ROUTE_GRID_TEMPLATE, gap: STOP_GAP_PX }
         }
       >
         {stops.map((stop) => (

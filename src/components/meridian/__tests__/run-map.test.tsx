@@ -14,6 +14,7 @@ import { readFileSync } from "node:fs";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import { RunMap, type RunMapStation } from "../RunMap";
+import { ROUTE_GRID_TEMPLATE } from "@/components/meridian/the-route-fits-the-pane";
 import { GLYPH_FOR_STATION } from "../station-glyphs";
 import { HOLD_LINE, holdLine } from "@/lib/spine/driver";
 import { AGENT_STATIONS, AGENT_STATION_ORDER } from "@/lib/agent-vocabulary";
@@ -313,16 +314,38 @@ describe("the machine does not leak into the map", () => {
   });
 });
 
-describe("the spine scrolls inside itself", () => {
-  it("scrolls horizontally in its own container rather than moving the page", () => {
+describe("the spine shares the row instead of scrolling", () => {
+  it("gives seven stations seven shares of whatever width there is", () => {
+    /*
+     * ── THIS TEST USED TO ASSERT THE OPPOSITE, AND THE REQUIREMENT DID NOT
+     *    CHANGE (P-125) ────────────────────────────────────────────────────
+     *
+     * G3's rule was "the page must never scroll sideways", and its mechanism
+     * was a fixed 168px per stop inside `overflow-x-auto`: the row overflows,
+     * its own container clips, the page stays put. That works only while every
+     * ancestor actually clips. One that does not, and seven fixed cells simply
+     * keep going -- photographed on 09-02 for the old strip, and measured again
+     * at 1512px on 09-04 with the last three stations at x 1450, 1622 and 1794,
+     * past the pane's edge, on the first run this product ever shipped
+     * end to end.
+     *
+     * The same failure twice means the mechanism was wrong, not the number. A
+     * route has SEVEN stations, always, so they are grid tracks that are
+     * defined as shares of the available width and cannot exceed it -- no
+     * clipping ancestor required, and no scrollbar. The arithmetic is checked
+     * at real widths in `the-route-fits-the-pane.test.ts`.
+     */
     const { container } = render(<RunMap stops={SEVEN} />);
     const list = container.querySelector("ol") as HTMLElement;
-    expect(list.className).toContain("overflow-x-auto");
-    // A fixed stop width is what makes the row overflow rather than squeeze seven
-    // stations into a pane too narrow to read any of them.
+    expect(list.className).toContain("grid");
+    expect(list.className).not.toContain("overflow-x-auto");
+    expect(list.style.gridTemplateColumns).toBe(ROUTE_GRID_TEMPLATE);
+    // No stop may carry a width of its own, and every stop must be allowed to
+    // go under its content so the label truncates before the row grows.
     for (const stop of stopEls(container)) {
-      expect(stop.style.width).toBe("168px");
-      expect(stop.className).toContain("shrink-0");
+      expect(stop.style.width).toBe("");
+      expect(stop.className).not.toContain("shrink-0");
+      expect(stop.className).toContain("min-w-0");
     }
   });
 
