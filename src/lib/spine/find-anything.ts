@@ -93,9 +93,34 @@ export const EMPTY_RESULT: FindAnythingResult = {
  * above; `findAnything`'s handler calls it with the same `words` split every
  * other group already computed.
  */
+/**
+ * P-79: a named SECTION of a door, not a door of its own -- "Spend and
+ * limits" is Team's own tab (`/crew?tab=spend`), not a tenth rail entry, so
+ * it does not belong in `PRIMARY_NAV` and does not answer to the founder's
+ * one-word rail rule (`the-rail-says-words-a-person-would-say.test.ts`),
+ * which governs the RAIL's own labels and nothing outside it. Searched
+ * alongside the nine doors because it is still a real navigation target, and
+ * the packet's own acceptance line is explicit: "Find Anything's doors group
+ * lists Spend and limits under Team."
+ */
+const SUB_DOORS: readonly NavItemDef[] = [
+  {
+    to: "/crew",
+    label: "Spend and limits",
+    zone: "home",
+    tagline:
+      "What the crew is costing this week, the caps, the costliest model, and what has failed.",
+    search: { tab: "spend" },
+  },
+];
+
+/** Every door search actually reaches: the nine rail doors plus any named
+ *  section, in that order, so the rail's own doors are found first. */
+export const SEARCHABLE_DOORS: readonly NavItemDef[] = [...PRIMARY_NAV, ...SUB_DOORS];
+
 export function searchDoors(
   words: readonly string[],
-  doors: readonly NavItemDef[] = PRIMARY_NAV,
+  doors: readonly NavItemDef[] = SEARCHABLE_DOORS,
 ): FoundDoor[] {
   if (words.length === 0) return [];
   return doors.filter((d) => {

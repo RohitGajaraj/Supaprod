@@ -63,7 +63,10 @@ const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\
 
 const SHEET = strip(read(join("components", "supaprod", "AuditLineageSheet.tsx")));
 const ASK = strip(read(join("components", "ask", "AskPane.tsx")));
-const ROOM = strip(read(join("routes", "_authenticated.engine-room.tsx")));
+/* P-79 (A-QUEUE.md): the room's own content, and its Escape handler with it,
+ * moved from the now-redirect-only `_authenticated.engine-room.tsx` into
+ * `EngineRoomEmbedded.tsx`, mounted under Team's own URL. */
+const ROOM = strip(read(join("components", "engine-room", "EngineRoomEmbedded.tsx")));
 
 /* ------------------------------------------------------------- half one *
  * The ladder itself. Listeners in the four positions the shell really uses, one

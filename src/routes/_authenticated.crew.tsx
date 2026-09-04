@@ -193,6 +193,8 @@ import { isModalOpen } from "@/lib/overlay";
 import { setAgentToolCap, listAgentReflections } from "@/lib/agents.functions";
 import { setAgentEnabled } from "@/lib/onboarding.functions";
 import { CrewMethods } from "@/components/crew/CrewMethods";
+import { EngineRoomEmbedded, ROOM_KEYS } from "@/components/engine-room/EngineRoomEmbedded";
+import type { RoomKey } from "@/lib/engine-room-glance";
 import {
   ARC_CHOICE,
   ARC_ORDER,
@@ -203,18 +205,42 @@ import {
   arcHeadline,
 } from "@/components/crew/crew-words";
 
+/** Team's own combined search shape. `panel` is what `view=methods` used to
+ *  be called before P-79 -- renamed because `room`/`view` now belong to the
+ *  embedded engine-room content (Spend and limits), and Team's own panel
+ *  switch and the room's own sub-tab could not share the name `view` once
+ *  both live on this one route. `agent` still means a crew member; the
+ *  engine room's own agent-filter param is `roomAgent` for the same reason. */
+export type CrewSearch = {
+  agent?: string;
+  panel?: "methods";
+  tab?: "spend";
+  room?: RoomKey;
+  view?: string;
+  suite?: string;
+  roomAgent?: string;
+  surface?: string;
+};
+
 export const Route = createFileRoute("/_authenticated/crew")({
   // One agent open at a time, in the URL, so the browser's own back button
   // closes the detail and a teammate can be sent straight to it. A modal would
   // have neither, and a governance pane with three controls in it is exactly
   // the modal abuse the anti-slop list bans.
-  // `view` earns its place in the URL for the same three reasons `agent` did:
+  // `panel` earns its place in the URL for the same three reasons `agent` did:
   // the back button closes it, the address bar names what you are looking at,
   // and a teammate can be sent straight to it. It is a closed set of one, so an
   // unrecognised value falls back to the roster rather than rendering nothing.
-  validateSearch: (search: Record<string, unknown>): { agent?: string; view?: "methods" } => ({
+  validateSearch: (search: Record<string, unknown>): CrewSearch => ({
     agent: typeof search.agent === "string" && search.agent ? search.agent : undefined,
-    view: search.view === "methods" ? "methods" : undefined,
+    panel: search.panel === "methods" ? "methods" : undefined,
+    // P-79: the engine room, folded in as Team's own "Spend and limits" tab.
+    tab: search.tab === "spend" ? "spend" : undefined,
+    room: ROOM_KEYS.includes(search.room as RoomKey) ? (search.room as RoomKey) : undefined,
+    view: typeof search.view === "string" ? search.view : undefined,
+    suite: typeof search.suite === "string" ? search.suite : undefined,
+    roomAgent: typeof search.roomAgent === "string" ? search.roomAgent : undefined,
+    surface: typeof search.surface === "string" ? search.surface : undefined,
   }),
   component: Crew,
   // P-61 (A-QUEUE.md): the tab title is the rail's own word for this door
@@ -295,7 +321,7 @@ function lastWorkedLine(iso: string | null | undefined): string | null {
  * ------------------------------------------------------------------ */
 
 function Crew() {
-  const { agent, view } = Route.useSearch();
+  const { agent, panel, tab, room, view, suite, roomAgent, surface } = Route.useSearch();
   const navigate = useNavigate();
 
   const open = React.useCallback(
@@ -305,11 +331,26 @@ function Crew() {
     [navigate],
   );
 
+  // P-79: Spend and limits is its own top-level surface, same precedence as
+  // the methods panel below -- it takes over the URL rather than competing
+  // with an agent left open in the same one.
+  if (tab === "spend") {
+    return (
+      <EngineRoomEmbedded
+        room={room}
+        view={view}
+        suite={suite}
+        roomAgent={roomAgent}
+        surface={surface}
+      />
+    );
+  }
+
   // The methods surface answers a question about the crew as a WHOLE, so it
   // takes precedence over an agent left open in the same URL rather than
   // competing with it. `open(null)` clears both keys, so the one back control
   // closes whichever of the two is showing.
-  if (view === "methods") return <CrewMethods onBack={() => open(null)} />;
+  if (panel === "methods") return <CrewMethods onBack={() => open(null)} />;
 
   return agent ? <MemberView slug={agent} onBack={() => open(null)} /> : <Roster onOpen={open} />;
 }
@@ -612,8 +653,17 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
          */}
         <Region
           title="Across the whole crew"
-          sub="Two settings that are not about any one agent: what every one of them may reach, and the ways they all work."
+          sub="Not about any one agent: what it is costing, what every one of them may reach, and the ways they all work."
         >
+          {/* P-79 (A-QUEUE.md): the engine room's four rooms, as Team's own
+              Spend and limits tab. The general door lands on the overview;
+              "The boundary" below is the same content's own deep link into
+              one room, repointed rather than duplicated. */}
+          <DoorRow
+            lead="Spend and limits"
+            sub="What the crew is costing this week, the caps, the costliest model, and what has failed."
+            onClick={() => void navigate({ to: "/crew", search: { tab: "spend" } })}
+          />
           <DoorRow
             lead="The boundary"
             sub="Every tool, across the whole crew. Set once, and it never interrupts work already running."
@@ -622,15 +672,15 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
                than silently bouncing through a stub. */
             onClick={() =>
               void navigate({
-                to: "/engine-room",
-                search: { room: "safety", view: "rules" },
+                to: "/crew",
+                search: { tab: "spend", room: "safety", view: "rules" },
               })
             }
           />
           <DoorRow
             lead="The methods"
             sub="The named ways of working the crew draws on, how often each has been used, and what has held up so far."
-            onClick={() => void navigate({ to: "/crew", search: { view: "methods" } })}
+            onClick={() => void navigate({ to: "/crew", search: { panel: "methods" } })}
           />
         </Region>
         {asking.length > 0 ? (

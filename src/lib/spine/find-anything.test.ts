@@ -4,7 +4,13 @@
  * these two are split out of `track.functions.ts`.
  */
 import { describe, it, expect } from "bun:test";
-import { searchWords, runStateWord, searchDoors, GROUP_LABEL } from "./find-anything";
+import {
+  searchWords,
+  runStateWord,
+  searchDoors,
+  SEARCHABLE_DOORS,
+  GROUP_LABEL,
+} from "./find-anything";
 import type { NavItemDef } from "@/lib/nav-model";
 
 describe("searchWords: every word present, case-insensitively, in any order", () => {
@@ -101,7 +107,28 @@ describe("searchDoors: P-64's nine doors, matched on their own label and tagline
     expect(searchDoors(["waiting", "read"], DOORS)).toEqual([]);
   });
 
-  it("defaults to the real PRIMARY_NAV list", () => {
+  it("defaults to the real searchable-doors list, which includes PRIMARY_NAV", () => {
     expect(searchDoors(["start"]).map((d) => d.to)).toContain("/start");
+  });
+
+  /**
+   * P-79: "Spend and limits" is Team's own tab, not a tenth rail door -- it
+   * does not belong in `PRIMARY_NAV` (the one-word rail rule governs that
+   * list, not this one) and is still a real navigation target, per the
+   * packet's own acceptance line: "Find Anything's doors group lists Spend
+   * and limits under Team."
+   */
+  it("finds Spend and limits, Team's own named tab, and targets it correctly", () => {
+    const hits = searchDoors(["spend"], SEARCHABLE_DOORS);
+    const spend = hits.find((d) => d.label === "Spend and limits");
+    expect(spend).toBeTruthy();
+    expect(spend!.to).toBe("/crew");
+    expect(spend!.search).toEqual({ tab: "spend" });
+  });
+
+  it("SEARCHABLE_DOORS carries every PRIMARY_NAV door plus at least the one named tab", () => {
+    expect(SEARCHABLE_DOORS.length).toBeGreaterThan(9);
+    expect(SEARCHABLE_DOORS.map((d) => d.label)).toContain("Team");
+    expect(SEARCHABLE_DOORS.map((d) => d.label)).toContain("Spend and limits");
   });
 });
