@@ -7213,7 +7213,7 @@ when the switcher is free and read the six sentences-with-doors against what is 
 
 **DoD.** Pushed (`3db9fd806`); design doc linked; live walk still open, handing to A1.
 
-### P-64 · Find Anything reaches everything (retitled 05:08 IST 09-04: ⌘K opens Ask by the 07-30 ruling; the palette is Find Anything, bound to "/") · Lane: **A3** (after P-63) · Status: CODE DONE (aa1140668; A1 suite on the tip 14,168 / 0 / 0, tsc 0; PUBLISHED 05:10 IST 09-04; the five-things search follows propagation) · Moves: 2
+### P-64 · Find Anything reaches everything (retitled 05:08 IST 09-04: ⌘K opens Ask by the 07-30 ruling; the palette is Find Anything, bound to "/") · Lane: **A3** (after P-63) · Status: PUBLISHED, read live 05:58 IST 09-04: "/" from the body focuses Find anything (and stands down on the run screen, where it means steer); "address" returns runs, decisions and prototypes. NOT DONE: from the probe workspace the results carry Helio's runs, decisions and prototypes beside the probe's own; P-64b · Moves: 2
 
 **Why.** Audit §1: find-anything searches one group, runs.
 
@@ -7916,6 +7916,26 @@ with no spend and no decision row; the card offers the two options; choosing one
 Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
+
+
+### P-64b · Find Anything searches the workspace it stands in · Lane: **A3** (after P-76) · Status: READY · Moves: 1, 2
+
+**Why.** Read live 05:58 IST 09-04 from the probe workspace: "address" in Find anything returns
+the probe's two runs and, beside them, Helio's runs (*Let returning customers reuse a saved
+delivery address*), Helio's decisions and Helio's prototypes (*Relay Checkout Address Confirmation
+Screen*). P-64 scoped the conversations group and the older groups still read every workspace the
+person belongs to (P-67's class; the fifth surface tonight).
+
+**Scope.** Every Find Anything group (runs, decisions, specs, prototypes, sources, people, doors)
+takes the active workspace through the P-66 shape; the ratchet's per-file number lowered; a guard
+that every group's read carries the workspace predicate (extend `find-anything-names-every-group-
+it-searches`). If a cross-workspace search is ever wanted, it is a separate, named mode, not the
+default.
+
+**Acceptance.** From the probe, "address" returns only the probe's two runs and its decisions;
+from Helio, unchanged. Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 searches from both workspaces.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
