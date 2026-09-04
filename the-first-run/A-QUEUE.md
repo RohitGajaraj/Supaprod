@@ -10597,6 +10597,17 @@ tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads.
 
 
+
+**Correction, A2's measurement, 19:06 IST 09-04.** The packet's premise, *fifty of them are the
+demo's furniture*, was A1's guess and it is wrong. Measured on Helio: 29 specs pending (1 seeded),
+20 design gates (5 seeded), 11 challenges (0), 3 gates (3), 2 memory notes (2): eleven seeded
+rows in all, and `is_sample` is false on every pending row and absent from four of the seven
+source tables, so a fold on it would hide zero of 53. The rest is the founder's own accumulated
+work, much of it duplicated (four near-identical installer rows from 08-18 to 08-21), none of it
+recently touched. Ruled by A1: the fold keys on the seeded id and says the true number; the
+groups run on `gatesLiveWork` (never collapsed to false) and age; the duplicate specs are a Define
+problem and get their own packet from A2's report.
+
 ### P-139 · The release document names the check that passed · Lane: **A3** (after P-136) · Status: DONE (00907e1e8 + 834b89343; live 18:27 IST: the release document's evidence reads "lint and test passed on 428bb04, Sep 4, 2026" and the "No test evidence" line is gone) · Moves: 2
 
 **Why.** The first release's document (Ship page, 17:01 IST 09-04) says *No test evidence.
