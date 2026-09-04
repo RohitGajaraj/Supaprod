@@ -386,6 +386,25 @@ export type CorrectionInputs = {
    */
   filedAtThisStation?: readonly string[];
   /**
+   * ── SHIP IS BLOCKED BY SOMETHING THAT IS NOT BUILD'S (P-59d) ───────────
+   *
+   * A1 watched the tablet track after its deferral lapsed: Ship
+   * `produced-nothing` three times, sent back to Build at 02:30, Ship again at
+   * 02:40, `produced-nothing` three more times, and it sat at Build spending on
+   * every tick. Build was rewritten for a failure Build did not cause: the
+   * preview deploy failed at 06:44 the previous day and no code change can fix
+   * a deploy the host refused.
+   *
+   * `true` means a recorded deployment failure is why Ship cannot pass. The
+   * correction loop's whole premise -- "three clean runs against this input
+   * produced nothing, so the input is the thing to fix" -- is false here: the
+   * input is fine and the world outside is not.
+   *
+   * `undefined` means nobody looked, and the rule reads exactly as it did
+   * before: absence is not evidence.
+   */
+  shipBlockedByDeployment?: boolean;
+  /**
    * Whether the precondition no station can produce is satisfied now.
    *
    * Only consulted when the failing station's `from` is null, which today is
@@ -458,7 +477,13 @@ export type EscalationReason =
   /** Everything is on the record and the station still finishes empty. */
   | "station-cannot-finish"
   /** Sent back twice for the same thing and it is still missing. */
-  | "corrections-spent";
+  | "corrections-spent"
+  /**
+   * P-59d. Ship cannot pass because a deploy the host refused is on the record.
+   * Nothing upstream caused it and no station can clear it: the person presses
+   * "Try the preview again", which is the one control that changes the answer.
+   */
+  | "waiting-on-a-person";
 
 /**
  * Is the precondition on the record, or supplied from outside the loop?
@@ -701,6 +726,24 @@ export function decideCorrection(i: CorrectionInputs): CorrectionDecision {
     return {
       action: "give-up",
       because: `${label(i.station)} has ${need.missing}, produced its own work from it, and still cannot finish. What is wrong is downstream of the ${need.missing}, so sending it back would rewrite something that was never the problem. Nothing more will be tried on this automatically.`,
+    };
+  }
+
+  /*
+   * ── AND SHIP'S BLOCKER IS NOT SENT TO BUILD (P-59d) ───────────────────
+   *
+   * Checked before the go-back below, because that branch's argument does not
+   * survive here: "three clean runs against this input produced nothing, so the
+   * input is the thing to fix" is true of a spec Build cannot build from, and
+   * false of a preview the host refused. Rewriting Build cannot deploy a
+   * changeset, and the tablet track spent six station runs proving it.
+   */
+  if (i.station === "ship" && i.shipBlockedByDeployment === true) {
+    return {
+      action: "escalate",
+      reason: "waiting-on-a-person",
+      because:
+        "Ship cannot pass because the preview deploy failed, which nothing upstream caused and no station can clear. Try the preview again from the run screen; sending this back to Build would rewrite work that was never the problem.",
     };
   }
 

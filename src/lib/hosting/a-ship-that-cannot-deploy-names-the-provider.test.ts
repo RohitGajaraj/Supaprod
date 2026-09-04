@@ -93,10 +93,16 @@ describe("the two surfaces read one source", () => {
   );
   const DEPLOY = code(readFileSync("src/lib/deployments.functions.ts", "utf8"));
 
-  it("asks why Ship stopped only at Ship, and only while held", () => {
+  it("asks why Ship stopped only at Ship", () => {
     // Everywhere else the read has no question to answer, and firing it would
     // put a query on every run screen to be told null.
-    expect(RUN).toContain('enabled: track?.station === "ship" && Boolean(track?.holdReason)');
+    /*
+     * NO LONGER GATED ON A HOLD (P-59d). It was, and A1 read the cost: between
+     * ticks the hold is null, the screen says "Ready when you are." and the one
+     * control that changes anything is absent exactly when a person is looking.
+     * The failed deployment is on the record whatever the hold says.
+     */
+    expect(RUN).toContain('enabled: track?.station === "ship",');
   });
 
   it("does not treat a pending or failed read as 'nothing stopped it'", () => {
@@ -283,5 +289,54 @@ describe("the card says which branch fired (P-59c acceptance)", () => {
   it("names a failed read as a failed read, never as an absence", () => {
     expect(RUN5).toContain('kind: "unread"');
     expect(RUN5).toContain("shipStopped.isError");
+  });
+});
+
+describe("Ship's blocker is not sent to Build (P-59d)", () => {
+  const CORR = code(readFileSync("src/lib/spine/correction.ts", "utf8"));
+  const DRV2 = code(readFileSync("src/lib/spine/driver.server.ts", "utf8"));
+  const RUN6 = code(readFileSync("src/components/track/TrackRun.tsx", "utf8"));
+
+  /**
+   * A1 WATCHED IT HAPPEN, 2026-09-04 after the deferral lapsed at 01:24 UTC:
+   * Ship produced-nothing x3, back to Build at 02:30, Ship again at 02:40,
+   * produced-nothing x3 more, and it sat at Build with hold null and attempts 0,
+   * spending on every tick. Build was rewritten for a failure Build did not
+   * cause: the preview deploy failed at 06:44 the previous day.
+   */
+  it("escalates to a person instead of rewriting Build", () => {
+    // The go-back branch's argument -- "three clean runs against this input
+    // produced nothing, so the input is the thing to fix" -- is true of a spec
+    // Build cannot build from and false of a preview the host refused.
+    expect(CORR).toContain('i.station === "ship" && i.shipBlockedByDeployment === true');
+    expect(CORR).toContain('reason: "waiting-on-a-person"');
+    expect(CORR).toContain("would rewrite work that was never the problem");
+  });
+
+  it("checks that BEFORE the go-back it is replacing", () => {
+    const ship = CORR.indexOf('i.station === "ship" && i.shipBlockedByDeployment');
+    const goBack = CORR.indexOf('kind: "not-enough"');
+    expect(ship).toBeGreaterThan(-1);
+    expect(goBack).toBeGreaterThan(ship);
+  });
+
+  it("asks only at Ship, and reads undefined when it cannot tell", () => {
+    // Everywhere else there is no deployment to be blocked by, and a lookup
+    // failure must not send a track back to Build on a guess either way.
+    expect(DRV2).toContain('at.station === "ship" ? await shipHasAFailedDeploy(supabase, row.id)');
+    const from = DRV2.indexOf("async function shipHasAFailedDeploy");
+    const to = DRV2.indexOf("\nasync function ", from + 1);
+    expect(from).toBeGreaterThan(-1);
+    const body = DRV2.slice(from, to === -1 ? DRV2.length : to);
+    expect(body).toContain("return undefined;");
+    // A failure followed by a success is not a blocker.
+    expect(body).toContain('.order("created_at", { ascending: false })');
+  });
+
+  it("draws the card between ticks, when the hold is null", () => {
+    // A1 read "Ready when you are." with no card and no press: the hold is null
+    // between ticks, and the only control that changes anything was gated on it.
+    expect(RUN6).toContain('enabled: track?.station === "ship",');
+    expect(RUN6).not.toContain('track?.station === "ship" && Boolean(track?.holdReason)');
   });
 });

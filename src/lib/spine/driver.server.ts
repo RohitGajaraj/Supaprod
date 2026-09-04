@@ -1317,6 +1317,13 @@ async function correctIfPossible(
       (a) => a.artifactKind,
     ),
     externalMet,
+    /*
+     * P-59d. Only asked at Ship, and only then: everywhere else there is no
+     * deployment to be blocked by, and the read would be a query per correction
+     * to be told false.
+     */
+    shipBlockedByDeployment:
+      at.station === "ship" ? await shipHasAFailedDeploy(supabase, row.id) : undefined,
     priorHold: (row.last_hold as HoldReason | null) ?? null,
   });
 
@@ -4732,6 +4739,56 @@ async function designVerdictForTrack(
  * been decided is not waiting on this question, and re-raising it would ask
  * something already answered.
  */
+
+/**
+ * Does a recorded deployment failure explain why Ship cannot pass? (P-59d)
+ *
+ * `undefined` rather than `false` on a failed read, so the correction rule
+ * behaves exactly as it did before: absence is not evidence, and a lookup
+ * failure must not send a track back to Build on a guess either way.
+ */
+async function shipHasAFailedDeploy(
+  supabase: SupabaseClient,
+  trackId: string,
+): Promise<boolean | undefined> {
+  try {
+    const runs = await supabase
+      .from("agent_runs")
+      .select("mission_id")
+      .eq("track_id", trackId)
+      .not("mission_id", "is", null);
+    if (runs.error) return undefined;
+    const missionIds = [
+      ...new Set(
+        ((runs.data ?? []) as Array<{ mission_id: string | null }>)
+          .map((r) => r.mission_id)
+          .filter((m): m is string => !!m),
+      ),
+    ];
+    if (missionIds.length === 0) return undefined;
+
+    const cs = await supabase.from("studio_changesets").select("id").in("mission_id", missionIds);
+    if (cs.error) return undefined;
+    const ids = ((cs.data ?? []) as Array<{ id: string }>).map((c) => c.id);
+    if (ids.length === 0) return undefined;
+
+    /* Newest attempt decides, as the hold card reads it: a failure followed by
+       a success is not a blocker. */
+    const deploys = await supabase
+      .from("deployments")
+      .select("status")
+      .in("changeset_id", ids)
+      .in("status", ["failure", "success"])
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (deploys.error) return undefined;
+    const newest = ((deploys.data ?? []) as Array<{ status: string }>)[0];
+    return newest ? newest.status === "failure" : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 async function carriedFootingForTrack(supabase: SupabaseClient, trackId: string): Promise<boolean> {
   try {
     const decided = await supabase

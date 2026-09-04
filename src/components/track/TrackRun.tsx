@@ -802,7 +802,16 @@ export function TrackRunLeft({
   const shipStopped = useQuery({
     queryKey: ["why-ship-stopped", trackId],
     queryFn: () => fWhyShip({ data: { trackId } }),
-    enabled: track?.station === "ship" && Boolean(track?.holdReason),
+    /*
+     * ── NOT GATED ON A CURRENT HOLD (P-59d) ────────────────────────────────
+     *
+     * `Boolean(track?.holdReason)` was the gate, and A1 read the consequence:
+     * between ticks the hold is null, the run screen says "Ready when you are."
+     * with no card and no press, and the only control that changes anything is
+     * absent exactly when a person is looking. The failed deployment is on the
+     * record whatever the hold says.
+     */
+    enabled: track?.station === "ship",
     staleTime: 30_000,
   });
   /*
