@@ -20,6 +20,8 @@ import {
   footingIsCarried,
   choiceIsOutstanding,
   CHOICE_OUTSTANDING_REFUSAL,
+  seatMayDecide,
+  CARRIED_DECISION_REFUSAL,
 } from "./a-call-on-your-sentence-is-yours-to-make";
 import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 
@@ -370,5 +372,80 @@ describe("the choice holds until the person answers (P-71d)", () => {
 
   it("stops refusing once they have answered", () => {
     expect(choiceIsOutstanding({ choiceRaised: true, answered: true, known: true })).toBe(false);
+  });
+});
+
+describe("the call is asked before a seat runs (P-71e)", () => {
+  const DRV = code(readFileSync("src/lib/spine/driver.server.ts", "utf8"));
+  const REG4 = code(readFileSync("src/lib/ai/tools/registry.server.ts", "utf8"));
+  const TRACKS4 = code(readFileSync("src/lib/spine/track.functions.ts", "utf8"));
+  const CARD2 = code(readFileSync("src/components/track/TheCallIsYours.tsx", "utf8"));
+
+  /**
+   * A1'S FOURTH PROBE SENTENCE (track 6cc7a010, 2026-09-04):
+   *   01:40  Decide entered on the carried footing
+   *   01:40  the seat recorded "Reschedule installer visit from order page"
+   *          APPROVED, with a forecast it wrote, on the FIRST pass
+   *   ....   the track walked to Define with no Choice and no person
+   *
+   * Every earlier fix was downstream of a seat that had already decided. P-71
+   * refused a NO; P-71d refused either answer WHILE the Choice stood. Neither
+   * helps on the first pass, because nothing had been raised and the seat said
+   * YES.
+   */
+  it("refuses a BUILD on a carried track, not only a decline", () => {
+    expect(seatMayDecide({ carried: true, known: true })).toBe(false);
+    expect(CARRIED_DECISION_REFUSAL).toContain("build or do-not-build");
+    expect(REG4).toContain("seatMayDecide({ carried: footingIsCarried(evidence)");
+    expect(REG4).toContain("throw new Error(CARRIED_DECISION_REFUSAL)");
+  });
+
+  it("checks that before the decline rule, which only looks at a rationale", () => {
+    const any = REG4.indexOf("CARRIED_DECISION_REFUSAL");
+    const decline = REG4.indexOf('if (a.call === "do-not-build" && trackId)');
+    expect(any).toBeGreaterThan(-1);
+    expect(decline).toBeGreaterThan(any);
+  });
+
+  it("raises the Choice BEFORE the crew is dispatched, and spends nothing", () => {
+    // On a carried track arriving at Decide there is nothing to weigh: Sense has
+    // already reported the workspace holds nothing bearing on the sentence, and
+    // dispatching a strategist spends money to have it invent a forecast.
+    /* Anchored on CODE, not on the comment above the dispatch: the stripper
+       removes comments, so `indexOf` on one returns -1 and the comparison
+       passes or fails for the wrong reason (F-191). */
+    const raise = DRV.indexOf("carriedFootingForTrack(supabase, row.id)");
+    const crew = DRV.indexOf("const crew = stationCrew(station);");
+    expect(raise).toBeGreaterThan(-1);
+    expect(crew).toBeGreaterThan(raise);
+  });
+
+  it("does not re-ask a question already answered", () => {
+    const fn = DRV.slice(DRV.indexOf("async function carriedFootingForTrack"));
+    const body = fn.slice(0, fn.indexOf("\n}\n"));
+    expect(body).toContain('.eq("artifact_kind", "decision")');
+    // And the footing lifts once the workspace holds something.
+    expect(body).toContain('.eq("artifact_kind", "signal")');
+  });
+
+  it("lets a seat decide when the footing could not be read", () => {
+    // Not knowing is not evidence, and blocking every decision on a failed read
+    // would stop the one station whose job is deciding.
+    expect(seatMayDecide({ carried: true, known: false })).toBe(true);
+    expect(seatMayDecide({ carried: false, known: true })).toBe(true);
+  });
+
+  it("lets the person write what would settle it, and prefills nothing", () => {
+    // A box already holding a plausible metric gets accepted rather than read,
+    // and inventing an observable this workspace cannot see is the defect that
+    // produced this whole line of packets.
+    expect(CARD2).toContain('React.useState("")');
+    expect(CARD2).toContain("onBuildOnYourWord(howWeWillKnow.trim())");
+    expect(CARD2).not.toContain('placeholder="Nothing connected');
+    expect(TRACKS4).toContain("data.howWeWillKnow && data.howWeWillKnow.length > 0");
+  });
+
+  it("keeps the honest default when they write nothing", () => {
+    expect(TRACKS4).toContain("Nothing connected here can settle this yet");
   });
 });

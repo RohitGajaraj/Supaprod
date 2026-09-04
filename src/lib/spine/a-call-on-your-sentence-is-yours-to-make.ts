@@ -237,3 +237,35 @@ export function choiceIsOutstanding(input: {
   if (!input.known) return false;
   return input.choiceRaised && !input.answered;
 }
+
+/**
+ * ── A BUILD ON NOTHING IS ALSO THE MACHINE'S CALL (P-71e) ────────────────
+ *
+ * A1's fourth probe sentence: Decide entered carried and the seat recorded
+ * "Reschedule installer visit from order page" APPROVED on the first pass, with
+ * a forecast it composed, and the track walked to Define with no person
+ * involved. P-71 refused a NO on the person's sentence, so the seat said YES.
+ *
+ * Both are the same act. On a carried track NO decision is the machine's --
+ * neither answer -- and the only decisions that may land are the person's own,
+ * which arrive through `buildOnYourWord` and never through this tool.
+ *
+ * WHY THE VERDICT DOES NOT MATTER HERE, unlike in `declineIsRefused`: that rule
+ * keys on the RATIONALE because a strategist may honestly decline a bad idea in
+ * an empty workspace. There is no equivalent honest YES: approving work in a
+ * workspace that holds nothing bearing on it is, definitionally, a call made on
+ * the person's sentence alone.
+ */
+export const CARRIED_DECISION_REFUSAL =
+  "This track is carried on the person's own sentence: Sense searched and the workspace holds " +
+  "nothing bearing on it. Recording ANY decision here -- build or do-not-build -- makes a call " +
+  "on their sentence alone, and a forecast written against evidence this workspace does not have " +
+  "cannot be graded. The person answers it: they choose to build it on their word, with their " +
+  "own claim as the forecast, or to point a source at it first. Do not record a decision on this " +
+  "track; finish your turn and say what you found.";
+
+/** May a seat record ANY decision on this track? */
+export function seatMayDecide(input: { carried: boolean; known: boolean }): boolean {
+  if (!input.known) return true;
+  return !input.carried;
+}

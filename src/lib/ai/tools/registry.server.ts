@@ -147,6 +147,8 @@ import {
   declineIsRefused,
   footingIsCarried,
   choiceIsOutstanding,
+  seatMayDecide,
+  CARRIED_DECISION_REFUSAL,
   CHOICE_OUTSTANDING_REFUSAL,
   R39_REFUSAL,
   type CarriedEvidence,
@@ -5887,6 +5889,23 @@ const decisionRecord = def({
     if (trackId) {
       const outstanding = await choiceOutstandingFor(supabase, trackId, workspaceId);
       if (choiceIsOutstanding(outstanding)) throw new Error(CHOICE_OUTSTANDING_REFUSAL);
+    }
+
+    /*
+     * ── NEITHER ANSWER IS OURS ON A CARRIED TRACK (P-71e) ────────────────
+     *
+     * The block below refuses a NO whose rationale rests on absence. A1's
+     * fourth probe sentence showed the seat saying YES on the first pass, with
+     * a forecast it wrote, before any Choice had been raised for P-71d to
+     * catch. Both are the same act, so on a carried track no decision from a
+     * seat lands at all. The person's own answer arrives through
+     * `buildOnYourWord`, which is not this path.
+     */
+    if (trackId) {
+      const evidence = await carriedEvidenceFor(supabase, trackId, workspaceId);
+      if (!seatMayDecide({ carried: footingIsCarried(evidence), known: evidence.known })) {
+        throw new Error(CARRIED_DECISION_REFUSAL);
+      }
     }
 
     if (a.call === "do-not-build" && trackId) {

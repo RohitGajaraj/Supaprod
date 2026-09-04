@@ -493,7 +493,10 @@ export function TrackRunLeft({
      work straight back up, the same chain `TrackConsent`'s `onAnswered` is. */
   const fBuildOnYourWord = useServerFn(buildOnYourWord);
   const onYourWord = useMutation({
-    mutationFn: () => fBuildOnYourWord({ data: { trackId } }),
+    mutationFn: (howWeWillKnow: string) =>
+      fBuildOnYourWord({
+        data: { trackId, howWeWillKnow: howWeWillKnow || undefined },
+      }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["track", trackId] });
       run.mutate("press");
@@ -1030,7 +1033,7 @@ export function TrackRunLeft({
       {callIsYours ? (
         <TheCallIsYours
           busyId={onYourWord.isPending ? "build-on-your-word" : null}
-          onBuildOnYourWord={() => onYourWord.mutate()}
+          onBuildOnYourWord={(howWeWillKnow) => onYourWord.mutate(howWeWillKnow)}
           onPointASource={() => navigate({ to: "/settings", search: { section: "connections" } })}
         />
       ) : (

@@ -2330,6 +2330,54 @@ export async function driveTrackOnce(
     }
   }
 
+  /*
+   * ── THE CALL IS ASKED BEFORE A SEAT RUNS, NOT AFTER IT ANSWERS (P-71e) ──
+   *
+   * A1's fourth probe sentence. Decide entered on the carried footing at 01:40
+   * and on that FIRST pass the seat recorded "Reschedule installer visit from
+   * order page" approved -- a build, with a forecast it wrote itself -- and the
+   * track walked on to Define with no Choice and no person involved.
+   *
+   * Every earlier fix was downstream of a seat that had already decided.
+   * P-71 refused a NO on the person's sentence; P-71d refused either answer
+   * WHILE the Choice stood. Neither helps on the first pass, because nothing
+   * had been raised yet and the seat said YES.
+   *
+   * So the question is put before the crew is dispatched. On a carried track
+   * arriving at Decide there is nothing for a strategist to weigh -- Sense has
+   * already reported that the workspace holds nothing bearing on the sentence --
+   * and dispatching one spends money to have it invent a forecast. It holds
+   * instead, with no seat run and no spend, and the person answers.
+   *
+   * THE FOOTING IS READ FROM THE RECORD, not from `last_hold`, for the reason
+   * P-71c paid for: the hold is transient and this question is not.
+   */
+  if (station === "decide") {
+    const carried = await carriedFootingForTrack(supabase, row.id);
+    if (carried) {
+      await supabase
+        .from("spine_tracks" as never)
+        .update({
+          last_hold: "the-call-is-yours",
+          /* F-127: the hold word carries the meaning. */
+          last_hold_because: null,
+          driven_at: new Date().toISOString(),
+        } as never)
+        .eq("id", row.id);
+      return {
+        trackId: row.id,
+        station,
+        moved: false,
+        arrivedAt: null,
+        hold: "the-call-is-yours",
+        /* `say` is declared below this point; the line is the hold's own and
+           needs no decoration, so it is used directly. */
+        line: HOLD_LINE["the-call-is-yours"],
+        attached: harvested,
+      };
+    }
+  }
+
   // THE STATION'S WHOLE CREW, in order, through the pinned chokepoint. Every
   // guardrail, floor, trust arc and spend cap applies to each seat exactly as it
   // would to a run a person started by hand.
@@ -4668,6 +4716,57 @@ async function designVerdictForTrack(
     return parseDesignCriticReview(raw);
   } catch {
     return null;
+  }
+}
+
+/**
+ * Is this track carried on the person's sentence, and still unanswered?
+ *
+ * The same two durable records `carriedEvidenceFor` reads in the tool registry
+ * (P-71c): a drive that entered on the carried hold, or the `sense.found_nothing`
+ * call the seat made. Read here too rather than shared across the module
+ * boundary because the driver holds a service-role client and the registry holds
+ * the caller's, and one helper taking either would hide which one asked.
+ *
+ * FALSE ON ANY FAILED READ, and false once a decision exists: a track that has
+ * been decided is not waiting on this question, and re-raising it would ask
+ * something already answered.
+ */
+async function carriedFootingForTrack(supabase: SupabaseClient, trackId: string): Promise<boolean> {
+  try {
+    const decided = await supabase
+      .from("spine_track_members" as never)
+      .select("artifact_id")
+      .eq("track_id", trackId)
+      .eq("artifact_kind", "decision")
+      .is("superseded_at", null)
+      .limit(1);
+    if (decided.error) return false;
+    if (((decided.data ?? []) as unknown[]).length > 0) return false;
+
+    /* A signal on the track means the workspace is no longer empty for this
+       sentence, so the footing has lifted and the strategist's call is its own
+       again. Same rule as `footingIsCarried`. */
+    const signals = await supabase
+      .from("spine_track_members" as never)
+      .select("artifact_id")
+      .eq("track_id", trackId)
+      .eq("artifact_kind", "signal")
+      .is("superseded_at", null)
+      .limit(1);
+    if (signals.error) return false;
+    if (((signals.data ?? []) as unknown[]).length > 0) return false;
+
+    const drives = await supabase
+      .from("track_drives")
+      .select("entry_hold")
+      .eq("track_id", trackId)
+      .in("entry_hold", [CARRIED_ON_YOUR_SENTENCE, "the-call-is-yours"])
+      .limit(1);
+    if (drives.error) return false;
+    return ((drives.data ?? []) as unknown[]).length > 0;
+  } catch {
+    return false;
   }
 }
 

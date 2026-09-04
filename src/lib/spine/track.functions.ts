@@ -4971,7 +4971,23 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
  */
 export const buildOnYourWord = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        trackId: z.string().uuid(),
+        /*
+         * ── THEIRS TO EDIT (P-71e) ─────────────────────────────────────────
+         *
+         * The observable was written for them and they could not change it.
+         * A person building on their own word is the one person who knows what
+         * would settle it, and the sentence they are handed says only that
+         * nothing here can. Optional: the default stands if they leave it, so
+         * nothing breaks for a caller that sends none.
+         */
+        howWeWillKnow: z.string().trim().max(500).optional(),
+      })
+      .parse(d),
+  )
   .handler(async ({ context, data }): Promise<{ ok: true; decisionId: string }> => {
     const { supabase, userId } = context;
 
@@ -5010,9 +5026,14 @@ export const buildOnYourWord = createServerFn({ method: "POST" })
           "call was yours rather than ours.",
         decided_by_agent_slug: null,
         forecast_claim: claim,
+        /* Their words when they wrote any, and the honest default when they
+           did not. Never a plausible-sounding metric this workspace cannot
+           read: that invention is what produced this whole line of packets. */
         forecast_how_we_will_know:
-          "Nothing connected here can settle this yet. Point a source at it and this becomes " +
-          "gradable; until then the record says it was your call.",
+          data.howWeWillKnow && data.howWeWillKnow.length > 0
+            ? data.howWeWillKnow
+            : "Nothing connected here can settle this yet. Point a source at it and this becomes " +
+              "gradable; until then the record says it was your call.",
         forecast_horizon_date: horizon,
       } as never)
       .select("id");

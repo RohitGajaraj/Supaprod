@@ -26,10 +26,25 @@ export function TheCallIsYours({
   onPointASource,
   busyId = null,
 }: {
-  onBuildOnYourWord: () => void;
+  onBuildOnYourWord: (howWeWillKnow: string) => void;
   onPointASource: () => void;
   busyId?: string | null;
 }) {
+  /*
+   * ── WHAT WOULD SETTLE IT, IN THEIR WORDS (P-71e) ────────────────────────
+   *
+   * The observable was written FOR them and could not be changed. A person
+   * building on their own word is the one person who knows what would settle
+   * it, and the sentence they were handed says only that nothing here can.
+   *
+   * Empty by default and never prefilled with a guess. A box already holding a
+   * plausible metric gets accepted rather than read, and inventing an
+   * observable this workspace cannot see is the defect that produced this whole
+   * line of packets. Left blank, the honest default stands and the record says
+   * it was their call.
+   */
+  const [howWeWillKnow, setHowWeWillKnow] = React.useState("");
+
   return (
     <Choice
       question={CARRIED_CHOICE.question}
@@ -46,9 +61,34 @@ export function TheCallIsYours({
       }))}
       busyId={busyId}
       onPick={(id) => {
-        if (id === "build-on-your-word") onBuildOnYourWord();
+        if (id === "build-on-your-word") onBuildOnYourWord(howWeWillKnow.trim());
         else onPointASource();
       }}
+      /*
+       * Under the options, not above them: it belongs to one of the two answers
+       * and a field above the question would read as something to fill in
+       * before choosing.
+       */
+      after={
+        <label className="flex flex-col gap-mrd-1">
+          <span className="text-mrd-label text-mrd-mute">
+            If you know what would settle it, say so. Otherwise the record says nothing here can
+            grade it yet.
+          </span>
+          <input
+            type="text"
+            value={howWeWillKnow}
+            onChange={(e) => setHowWeWillKnow(e.target.value)}
+            placeholder="What would tell you this worked"
+            /* `data-mrd` and no focus classes: Meridian's rule is that the
+               focus ring is INHERITED from that attribute and never declared by
+               a component, so a surface cannot end up with two rings that
+               disagree. Its own guard caught this one. */
+            data-mrd=""
+            className="rounded-mrd-ctl border border-mrd-line bg-mrd-sink px-mrd-3 py-mrd-2 text-mrd-base text-mrd-ink placeholder:text-mrd-faint"
+          />
+        </label>
+      }
     />
   );
 }

@@ -52,6 +52,7 @@ export function Choice({
   options,
   onPick,
   busyId = null,
+  after,
 }: {
   /** What is being chosen, in one sentence. */
   question: string;
@@ -61,6 +62,21 @@ export function Choice({
   onPick: (id: string) => void;
   /** The row being written, so it can say so without the others moving. */
   busyId?: string | null;
+  /**
+   * One thing that belongs to an answer rather than to the question.
+   *
+   * ── WHY IT IS AFTER THE OPTIONS AND NOT A SLOT ABOVE THEM (P-71e) ──────
+   *
+   * R-39's Choice needed a field for "what would settle it", which qualifies
+   * exactly one of the two answers. Above the options it reads as something to
+   * fill in BEFORE choosing, which is the opposite of this component's rule
+   * that nothing is chosen until you pick one.
+   *
+   * Deliberately singular and deliberately last. A component that grows a
+   * general slot for arbitrary content stops being a Choice and becomes a
+   * layout, which is how the fourth dialect appeared the last time.
+   */
+  after?: React.ReactNode;
 }) {
   return (
     <section
@@ -106,6 +122,9 @@ export function Choice({
        * sentence is fixed here rather than passed, for the same reason `Ask`
        * writes its irreversible default itself.
        */}
+      {/* Between the options and the closing line: it qualifies an answer, and
+          the closing line is about the whole card. */}
+      {after ?? null}
       <p className="text-mrd-data text-mrd-mute">Nothing is chosen until you pick one.</p>
     </section>
   );
