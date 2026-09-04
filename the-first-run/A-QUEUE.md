@@ -10857,7 +10857,7 @@ tip, tsc 0, build 0; sha pair per rule 23.
 **DoD.** Pushed; the three numbers; the queue says which of scopes 2 and 3 have a live proof and
 which stand on guards only.
 
-### P-145 · A learning guides the next call · Lane: **A2** (after P-144) · Status: READY · Moves: 1, 3
+### P-145 · A learning guides the next call · Lane: **A2** (after P-150) · Status: READY · Moves: 1, 3
 
 **Why.** The landing page's fourth verb is *guides the next call*. Learn files a `learning`; the
 Outcomes page lists it and the lineage joins it to the decision (`outcome.functions.ts:848`). What
@@ -10973,7 +10973,7 @@ it. Full suite on the tip, tsc 0, build 0; sha pair per rule 23.
 
 **DoD.** Pushed; the three numbers; the table.
 
-### P-149 · A metric can have a source that produces a number · Lane: **A2** (after P-148) · Status: READY · Moves: 1, 3
+### P-149 · A metric can have a source that produces a number · Lane: **A2** (after P-148, and never before P-150) · Status: READY · Moves: 1, 3
 
 **Why.** P-137's second press, *Connect a source*, lands on Sources, which connects GitHub,
 Linear, Notion, Slack and a webhook for work, and nothing that can produce a number for a metric.
@@ -11016,6 +11016,43 @@ it with curl, and the spec's clause shows the reading and the source line; the h
 changes accordingly. A1 does the POST. Full suite on the tip, tsc 0, build 0; sha pair per rule 23.
 
 **DoD.** Pushed; the three numbers; the curl and its response in the report.
+
+### P-150 · A band is well founded on readings the record holds, not on a number a seat declared · Lane: **A2** (after P-144, before P-145 and P-149) · Status: READY · Moves: 1, 3
+
+**Why (A2's measurement, 20:47 IST 09-04).** `forecast_observations` is asked for in the driver as
+"how many readings the baseline came from". Of the seven banded decisions in production, four
+carry population sizes (41,200; 1,420; 1,240), one carries a value equal to its baseline (17,
+a seat copying the field beside it), and the two honest ones wrote 1. `product_analytics` has
+zero rows. So `bandIsWellFounded` returns true for the four that are not counting readings and
+false for the two that were honest about being thin, and `tierActionFor`, which already ships,
+would answer *open-work* on a missed verdict founded on a session count. Latent only because no
+spec in the database has a recorded reading (133 specs, 0 readings); P-149's endpoint is what
+makes readings exist, so this lands before it. It is the F-190 family again: correct in the
+file, false in the product, and this time in a guard A2 argued for.
+
+**Scope.**
+1. The rule: a band is well founded on readings the record holds, the clause's `readings[]` and
+   any analytics rows for the metric, never on a count a seat declares. `bandIsWellFounded` and
+   `tierActionFor` read the record. The seat's declared number is renamed to what the seats
+   actually wrote, a population, and kept as information on the decision, never as a count of
+   readings.
+2. `decision.record` refuses a declared population equal to the baseline, and the driver's
+   instruction says population and readings are different things in one sentence each.
+3. The seven existing rows are corrected by a migration per rule 19, stated with its query in
+   the report: populations moved to the population field, the readings count set to what the
+   record can show, which today is one, the baseline itself.
+4. Scope 3 of P-144's lift condition 4 reads the same source once this lands, so a thin band is
+   thin by the record.
+5. Guards: the record-founded check against a fixture with a declared 41,200 and zero readings
+   (not well founded) and one with three recorded readings (well founded); the refusal; the
+   migration's shape.
+
+**Not in scope.** Fuzzy matching of a forecast's metric to a clause (its own packet, measured).
+
+**Acceptance.** The query in the report before and after: seven rows, their populations and
+their readings counts. Full suite on the tip, tsc 0, build 0; sha pair per rule 23.
+
+**DoD.** Pushed; the three numbers; the before-and-after query.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
