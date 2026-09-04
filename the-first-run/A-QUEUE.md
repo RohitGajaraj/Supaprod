@@ -10019,7 +10019,7 @@ suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers.
 
 
-### P-134 · A track remembers the bet it started from · Lane: **A3** (after P-130, before P-131) · Status: READY · Moves: 1, 2
+### P-134 · A track remembers the bet it started from · Lane: **A3** (after P-130, before P-131) · Status: CLAIMED (A3) 15:28 IST 09-04 · Moves: 1, 2
 
 **Why.** A3's read on P-126 (14:59 IST 09-04): the shipped track 2fdf93b6 carries no opportunity
 id anywhere in its lineage (decision, mission, four spec revisions), and `startTrack` never
