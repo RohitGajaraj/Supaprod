@@ -9650,7 +9650,7 @@ suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads at 1512 px.
 
 
-### P-126 · Start knows what went live · Lane: **A3** (after P-124, before P-104) · Status: CLAIMED (A3) 13:59 IST 09-04 · Moves: 2, 3
+### P-126 · Start knows what went live · Lane: **A3** (after P-124, before P-104) · Status: DONE (A3) 14:25 IST 09-04 (ecca49c96) · Moves: 2, 3
 
 **Why.** Served Start, 12:50 IST 09-04, twenty minutes after the first release went to production:
 the first answer reads *Nothing new since you last looked.*, the second *1 call came back this
@@ -9671,6 +9671,38 @@ production deployment, then the Learn sentence. Guard: fixtures for each.
 shipped opportunity. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 reads.
+
+**Report (A3, 14:25 IST 09-04, ecca49c96).** All three, plus the flags. (1) `releasedAnswer`, a
+fourth home answer sitting ahead of `learnedAnswer` in `homeAnswers`' own return order ("ahead of
+re-scored calls"), reads the workspace's production releases since the same `brain_last_seen`
+baseline `arrivingAnswer` already reads. `AnswerDoor` now takes `to` (a route) or `href` (a plain
+address), since a production deploy is not a page this router has -- `HomeAnswers.tsx` renders each
+with the element that actually works. `changelog_entries` carries no `production_url` column of its
+own (caught live by the column-existence guard test, first draft got this wrong): the address comes
+from a second, changeset-keyed `deployments` read, the exact shape `listChangelog` already uses, and
+the title is recomputed through `changelogTitleFor` rather than trusted off the stored column (P-124,
+one file over -- would have reintroduced *Shipped an update* here otherwise). (2) `listTopOpportunities`
+marks a ranked bet whose spec has `shipped_at` set, resolved to a track via `spine_track_members`;
+`ExampleJobs` keeps the card in its ranked place, reading *Shipped HH:MM* with a *See the run* door
+instead of *Start it*. (3) `listRunsForStart` gained a fifth concurrent read (the reverse of
+`trackIdByChangeset`'s own changeset -> mission -> track join: here, track -> mission -> changeset ->
+production deployment); `startRowMiddle` prefixes *Live since HH:MM* ahead of whatever the row would
+otherwise say, universally rather than only for a held row. **Two deliberate scope trims, flagged
+rather than guessed past:** the live-since read only follows the normal merge-and-promote path --
+`submitStationByHand`'s hand-filed deployment carries no `changeset_id` and no `environment`/
+`status: "success"`, which is P-104's own named gap to fix for every reader at once, not this row's
+to duplicate inconsistently. And the released answer's door is always the production address, never
+a conditional *announce it* -- `AnnouncementRow` carries no `changeset_id` or any other link to a
+specific release, so "the announcement as the next press when it is not yet announced" had no real
+signal to read; inventing one seemed worse than the honest, smaller door. Guard tests:
+`three-answers-above-your-runs.test.ts` (`releasedAnswer` describe block built on the packet's own
+fixture; the four-together block checks both door shapes and the order); `ExampleJobs.test.tsx`
+(`shippedLabel`, the *Start it*/*See the run* swap, the no-trackId case); new
+`a-shipped-track-says-so-first.test.ts` (the prefix present, absent, and leading a running row too).
+Full suite: `bunx tsc --noEmit` 0; `bun test` 14482 pass / 0 fail / 22 skip / 37 todo across 1056
+files; `bun run build` 0 (Cloudflare Worker output); `bun run docs:check` exit 0, docs-doctor clean,
+zero WARN/FAIL. Pushed directly to `main` (ecca49c96). No live browser access from this worktree --
+the Acceptance's own "served Start on Helio shows the release" needs a live read from A1.
 
 
 ### P-127 · The header says what is running · Lane: **A2** (after P-116, before P-112) · Status: READY · Moves: 2
