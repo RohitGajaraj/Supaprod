@@ -7930,7 +7930,7 @@ Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 walks it.
 
 
-### P-64b · Find Anything searches the workspace it stands in · Lane: **A3** (after P-76) · Status: CODE DONE (9f24ae4bc; A3 reports 14,216 / 0, tsc 0; carries X-Supaprod-Timing and X-Supaprod-Build at the Worker boundary for P-58b; A1 suite running) · Moves: 1, 2
+### P-64b · Find Anything searches the workspace it stands in · Lane: **A3** (after P-76) · Status: CODE DONE (9f24ae4bc; A3 reports 14,216 / 0, tsc 0; carries X-Supaprod-Timing and X-Supaprod-Build at the Worker boundary for P-58b; A1 suite on the tip 14,216 / 0 / 0, tsc 0; PUBLISHED 06:46 IST 09-04; the search from both workspaces follows) · Moves: 1, 2
 
 **Why.** Read live 05:51 IST 09-04 from the probe workspace: "address" in Find anything returns
 the probe's two runs and, beside them, Helio's runs (*Let returning customers reuse a saved
