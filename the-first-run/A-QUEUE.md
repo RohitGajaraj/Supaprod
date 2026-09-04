@@ -7706,7 +7706,29 @@ one-card rule holds (the map is not a card and asks nothing). Full suite on the 
 **DoD.** Pushed; suite number per rule 17; A1 walks both tracks.
 
 
-### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: CODE DONE, PUSHED 224ee7b65 (14,182 / 0, tsc 0) — step 1 (attribution) only, per the packet's own rule · A1: suite on the tip 14,182 / 0 / 0, tsc 0; PUBLISHED 05:34 IST 09-04; two header readings follow, twelve minutes apart · Moves: 3
+### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: CODE DONE, PUSHED 4ae98727b (14,183 / 0, tsc 0) — step 1 (attribution) extended per A1's steer, still no fix · A1: suite on the tip 14,182 / 0 / 0, tsc 0; PUBLISHED 05:34 IST 09-04; two header readings follow, twelve minutes apart · Moves: 3
+
+**A3, 00:55 UTC 09-04, extending step 1 per A1's steer.** She named it precisely: `/start`'s real
+arrival cost is the server functions the shell calls first, not SSR. Those are all inside
+`track.functions.ts`'s `withStartReaderTiming`, which already wraps `listRunsForStart` /
+`listMovingTracks` / `listGatesOnTracks` with a wall-clock `console.log` (P-32's own instrumentation)
+-- extended to also append the same measured number to `Server-Timing` (`appendServerTiming`,
+`lib/server-timing.ts`), so the number a person would otherwise need `wrangler tail` to read is now
+on a header `curl -sI` reaches too. One correction to "the workspace read": `use-workspace.tsx`'s
+own workspace-LIST query is a direct browser-to-Supabase call and cannot carry a header I set (it
+never touches my server at all) -- what CAN, and does now, is `resolveStartWorkspaceId`'s
+`current_user_default_workspace` RPC, called from inside each reader and now timed separately as
+`workspace-read`. It only fires when the client did not already resolve an id, so a returning
+visitor with one stored pays nothing here and a first-time visitor pays the real round trip -- the
+combined reader total alone could not tell those two apart.
+
+**Acceptance.** Still not served: same blocker (no `.env`, browser tools blocked). tsc 0; `bun test`
+14,183 / 0 fail. Requesting the same live read A1 already offered to take, now covering
+`workspace-read` and each reader's own name (`listRunsForStart` etc.) alongside `/`'s
+`landing-data` and `worker-total`, before step 2 starts.
+
+**DoD.** Pushed (`4ae98727b`). Not touching the ping until both readings exist, per A1's
+instruction.
 
 **A3, 00:35 UTC 09-04, P-58b step 1 Report.** Before instrumenting anything, checked what
 `/start`'s Scope line actually assumes and it does not hold: `_authenticated.tsx` sets `ssr: false`
