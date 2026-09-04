@@ -9381,7 +9381,7 @@ packets with no browser in this environment.
 `bunx tsc --noEmit`: clean. `bun test`: 14406 pass, 22 skip, 37 todo, 0 fail, 38346 expect() calls,
 1049 files. `bun run build`: clean end to end. Returning to the watch loop.
 
-### P-120 · A lineage edge carries its workspace · Lane: **A3** (after P-119) · Status: DONE (46207d220; migration 20260909090200 applied and confirmed; published 13:16 IST from A3's gate on the tip, tsc clean, 14,421 pass / 0 fail, build clean, docs:check clean, while A1's machine had no disk; A1's own gate re-runs when space allows) · Moves: 1
+### P-120 · A lineage edge carries its workspace · Lane: **A3** (after P-119) · Status: DONE (46207d220; migration 20260909090200 applied and confirmed; published 13:16 IST from A3's gate on the tip, tsc clean, 14,421 pass / 0 fail, build clean, docs:check clean, while A1's machine had no disk; A1's gate on tip 16dd25778 confirmed it: build 0, tsc 0, 14,433 pass) · Moves: 1
 
 **Why.** `error_events` 06:30:48 UTC 09-04, on the probe's Build (track a30d6b62): *lineage edge
 refused: null value in column "workspace_id" of relation "artifact_lineage"*, then *the prd ->
@@ -9439,7 +9439,7 @@ under the service role, which is the root cause. One refusal since 07:00 UTC, at
 the change landed. The zero-across-a-Build acceptance is read on the next Helio Build once the
 code serves.
 
-### P-121 · A release with no recorded file list is not accused · Lane: **A3** (after P-120) · Status: CLAIMED (A3) 13:07 IST 09-04 · Moves: 2
+### P-121 · A release with no recorded file list is not accused · Lane: **A3** (after P-120) · Status: DONE (72569bbd0; A1 gate on tip 16dd25778 after the disk was freed: build 0, tsc 0, 14,433 pass / 0 fail; published 13:37 IST; A1 reads the July release line once served) · Moves: 2
 
 **Why.** Served Ship page, 12:10 IST 09-04, on the release the founder shows people ("Batch
 firmware push scheduler", in production since Jul 9): the entry reads *This change touches no
