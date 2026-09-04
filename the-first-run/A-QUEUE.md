@@ -8314,7 +8314,7 @@ Not walked live -- no dev server / browser access in this worktree this session,
 limitation as every packet closed here. A1: two tabs on Helio, a press in one should land in the
 other's Waiting list within a tick with no reload.
 
-### P-85 · Start's example sentences fit the workspace · Lane: **A3** (after P-83) · Status: CODE DONE (483233b41; A1 gate running; publish with P-59d) · Moves: 2
+### P-85 · Start's example sentences fit the workspace · Lane: **A3** (after P-83) · Status: CODE DONE (483233b41; A3 reports build 0, tsc 0, 14,280 / 0; A1 gate running; publish with P-59d) · Moves: 2
 
 **Why.** In the empty probe workspace (no product), Start's examples read *Make the checkout
 accept an American Express card* and two more from Relay's checkout. A person whose product is a
@@ -8429,6 +8429,44 @@ what a homeowner sees at the address step; the track at Learn; the whole route r
 screen. Full suite on the tip, tsc 0, build 0 for anything you change in Supaprod itself.
 
 **DoD.** Report in the queue with the track id, PR, deployment rows and URL; A1 walks the route.
+
+
+### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: READY · Moves: 2, 5
+
+**Why.** Since 09-03 the product gained nine doors (P-60), a bottom bar and a sheet (P-81), the
+Choice with a text field (P-71b/e), the run map (P-74), the Ship hold card with its press (P-59c),
+the Team tab (P-79) and the first-visit Quiets (P-63). P-16 covered accessibility on two surfaces
+before any of this existed. A launch to strangers on 23 September puts every one of these under a
+keyboard and a screen reader.
+
+**Scope.** For each of the seven: tab order reaches every control; each control has an accessible
+name that says what it does (the door word, the option's deciding fact, the press's verb); focus is
+visible with Meridian's ring, never suppressed; the sheet and the Choice trap focus while open and
+return it on close; live regions announce the run map's current station and Waiting's arrivals
+(P-83) once, not on every poll; `aria-current` on the rail's row. Extend the existing accessibility
+guards (`AppFrame.rail-covers-keys`, the P-16 tests) rather than writing a parallel suite. Report
+the axe-style violations found and fixed, by surface.
+
+**Acceptance.** Guards green; a keyboard-only walk of Start, Waiting, a run with the Choice, and the
+phone bar reaches everything; no control without a name. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 walks with the keyboard.
+
+### P-93 · The other-workspaces line on Waiting is a door · Lane: **A3** (after P-90) · Status: READY · Moves: 2
+
+**Why.** In an empty workspace Waiting reads *51 more waiting in your other workspaces*: true,
+useful, and inert. A person who reads it has to find the switcher.
+
+**Scope.** The line names the workspace with the most waiting (*51 waiting in Helio Labs*) and is a
+door that switches to it and lands on its Waiting; when several workspaces hold work, the line
+lists the top two and *and one more*; the read is the P-66 shape per workspace, never a bare
+cross-workspace count, and it is the only place a cross-workspace number is allowed to appear
+(P-67's exemption, with its reason in the file). Zero state per P-63 when nothing waits anywhere.
+
+**Acceptance.** From the probe: the line names Helio Labs and lands on its Waiting; from Helio: the
+line names none or the probe, whichever holds work. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 walks both.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
