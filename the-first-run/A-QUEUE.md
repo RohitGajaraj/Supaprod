@@ -9869,7 +9869,7 @@ zero WARN/FAIL. Pushed directly to `main` (b68b61e1f). No live browser access fr
 the Acceptance's own "across two reads a minute apart" needs a live read from A1.
 
 
-### P-130 · Every time on every surface is in the person's zone · Lane: **A3** (after P-129) · Status: CLAIMED (A3) 14:59 IST 09-04 · Moves: 2
+### P-130 · Every time on every surface is in the person's zone · Lane: **A3** (after P-129) · Status: PUBLISHED AS A PARTIAL (6b74164f8; A1 gate: build 0, tsc 0, 14,530 pass / 0 fail; published 15:22 IST; the P-126 sites and the shared formatter; the sweep of the remaining sites continues under this packet per A3's report) · Moves: 2
 
 **Why.** Start's run row (P-126) reads *Live since 06:58* for a promote the founder pressed at
 12:28 IST; the run screen's transcript rows read *11:20* for the same morning's commits, which is
