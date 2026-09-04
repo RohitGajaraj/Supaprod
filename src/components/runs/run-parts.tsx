@@ -404,6 +404,7 @@ export function Stat({
  * A card that is a door
  * ------------------------------------------------------------------ */
 
+/**
  * ONE RUN ON THE BOARD: a mark, a title, and one different fact.
  *
  * It replaces the shell's `Cell`, and the reason to replace rather than repaint

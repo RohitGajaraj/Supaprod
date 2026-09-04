@@ -335,19 +335,7 @@ export const SURFACE_REGISTRY = {
   },
 
   // ---- Canvas face 01: evidence (signals, clusters, ranked bets) ----
-  calendar: {
-    kind: "canvas-panel",
-    home: "canvas/01-evidence",
-    opensFrom: "spine-stage-01",
-    status: "planned",
-  },
   discovery: {
-    kind: "canvas-panel",
-    home: "canvas/01-evidence",
-    opensFrom: "spine-stage-01",
-    status: "planned",
-  },
-  meetings: {
     kind: "canvas-panel",
     home: "canvas/01-evidence",
     opensFrom: "spine-stage-01",
@@ -645,7 +633,6 @@ export const SURFACE_REGISTRY = {
     opensFrom: "composer",
     status: "planned",
   },
-  audio: { kind: "composer-verb", home: "composer", opensFrom: "composer-mic", status: "planned" },
   copilot: { kind: "composer-verb", home: "composer", opensFrom: "composer", status: "planned" },
   "delegate-desk": {
     kind: "composer-verb",

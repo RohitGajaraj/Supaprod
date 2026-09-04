@@ -40,7 +40,6 @@ const BASELINE: Record<string, number> = {
   "src/lib/brain/insights.functions.ts": 1,
   "src/lib/build.functions.ts": 1,
   "src/lib/connections.functions.ts": 1,
-  "src/lib/connectors/product-binding.functions.ts": 1,
   "src/lib/dashboard.functions.ts": 1,
   "src/lib/design-scaffold.functions.ts": 1,
   "src/lib/evidence.functions.ts": 1,

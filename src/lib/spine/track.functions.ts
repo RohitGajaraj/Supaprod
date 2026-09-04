@@ -1780,7 +1780,8 @@ export const getRunDoorState = createServerFn({ method: "GET" })
     ]);
     const liveTrackId =
       ((liveRuns ?? [])[0] as { track_id: string | null } | undefined)?.track_id ?? null;
-    const lastTrackId = ((lastTracks ?? [])[0] as unknown as { id: string } | undefined)?.id ?? null;
+    const lastTrackId =
+      ((lastTracks ?? [])[0] as unknown as { id: string } | undefined)?.id ?? null;
     return resolveRunDoor({ liveTrackId, lastTrackId });
   });
 

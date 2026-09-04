@@ -548,8 +548,8 @@ export function TrackRunLeft({
      times against this hold at all (P-143). */
   const deferralIsForecastHorizon = Boolean(
     track?.deferredUntil &&
-      forecastHorizonDate &&
-      sameCalendarDay(track.deferredUntil, forecastHorizonDate, zone),
+    forecastHorizonDate &&
+    sameCalendarDay(track.deferredUntil, forecastHorizonDate, zone),
   );
 
   /* Hoisted above the R-39 read below, which needs the workspace. Unconditional
@@ -1693,4 +1693,3 @@ export function TrackPaneRight({
     </div>
   );
 }
-

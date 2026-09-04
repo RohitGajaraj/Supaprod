@@ -151,8 +151,10 @@ describe("surface registry", () => {
  *
  * The verdicts are in docs/planning/initiatives/audit-reports/long-tail-and-orphans.md:
  * roughly half are a real capability one screen away and half are second copies
- * of something that shipped better. Two live routes (`/calendar`, `/meetings`)
- * currently advertise capabilities on this list.
+ * of something that shipped better. The `/calendar` and `/meetings` routes this
+ * comment once named as live are gone (found 2026-09-04, P-146): neither exists
+ * in `src/routes` any more, so the claim was already stale before today's
+ * deletion of the domains themselves.
  */
 /*
  * LEFT THIS LIST, in order, with what closed it.
@@ -166,12 +168,17 @@ describe("surface registry", () => {
  *     components or routes, so arming the flag still needed SQL. The fix moved
  *     the defect one layer out instead of closing it. Closed by
  *     components/governance/AutomationBoundary.tsx, mounted on /boundary.
+ *
+ *   audio, calendar, meetings  2026-09-04 (P-146)  Three whole domains,
+ *     deleted rather than wired: zero importers anywhere, no route for
+ *     `/calendar` or `/meetings` (this list's own 2026-08-14 claim that two
+ *     live routes advertised them was already false), and the `/meetings/$id`
+ *     link `LineageDrawer.tsx` still carries is dead too -- left as a dead
+ *     link rather than repaired, since that component itself has no mount.
  */
 const KNOWN_UNREACHED: readonly string[] = [
   "ambient",
-  "audio",
   "briefing",
-  "calendar",
   "changelog-heartbeat",
   "cost-per-outcome",
   "dashboard",
@@ -210,7 +217,6 @@ const KNOWN_UNREACHED: readonly string[] = [
   "greeting",
   "loop-health",
   "loops",
-  "meetings",
   "moat",
   "product-context",
   "researcher",

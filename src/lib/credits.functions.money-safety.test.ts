@@ -93,7 +93,8 @@ function resultFor(q: Recorded): { data: unknown; error: unknown } {
     // relies on. Also records the values so a batching test can assert the
     // caller split its own list under `TRACE_ID_BATCH`.
     if (state.aiEventsLookup) {
-      const ids = (q.filters.find(([col]) => col === "trace_id")?.[1] as string[] | undefined) ?? [];
+      const ids =
+        (q.filters.find(([col]) => col === "trace_id")?.[1] as string[] | undefined) ?? [];
       state.aiEventsInCalls.push(ids);
       const data = ids.flatMap((id) => state.aiEventsLookup!.get(id) ?? []);
       return { data, error: null };
@@ -102,7 +103,8 @@ function resultFor(q: Recorded): { data: unknown; error: unknown } {
   }
   if (q.table === "credit_ledger" && q.op === "select") {
     if (state.ledgerLookup) {
-      const ids = (q.filters.find(([col]) => col === "ai_event_id")?.[1] as string[] | undefined) ?? [];
+      const ids =
+        (q.filters.find(([col]) => col === "ai_event_id")?.[1] as string[] | undefined) ?? [];
       state.ledgerInCalls.push(ids);
       if (state.ledgerFailOn?.(ids)) {
         return { data: null, error: { message: "statement timeout" } };
@@ -299,9 +301,7 @@ describe("resetCreditCycle", () => {
 describe("creditsSpentByTrace batches its own .in() calls (P-140)", () => {
   test("60 traces split into batches of 25 or fewer, and every batch's credits land in one map", async () => {
     const traceIds = Array.from({ length: 60 }, (_, i) => `trace-${i}`);
-    state.aiEventsLookup = new Map(
-      traceIds.map((t, i) => [t, [{ id: `evt-${i}`, trace_id: t }]]),
-    );
+    state.aiEventsLookup = new Map(traceIds.map((t, i) => [t, [{ id: `evt-${i}`, trace_id: t }]]));
     state.ledgerLookup = new Map(
       traceIds.map((_, i) => [`evt-${i}`, { delta_credits: -1, ai_event_id: `evt-${i}` }]),
     );
@@ -319,9 +319,7 @@ describe("creditsSpentByTrace batches its own .in() calls (P-140)", () => {
 
   test("a short list makes exactly one batch, unchanged from before this fix", async () => {
     const traceIds = ["t-a", "t-b", "t-c"];
-    state.aiEventsLookup = new Map(
-      traceIds.map((t, i) => [t, [{ id: `evt-${i}`, trace_id: t }]]),
-    );
+    state.aiEventsLookup = new Map(traceIds.map((t, i) => [t, [{ id: `evt-${i}`, trace_id: t }]]));
     state.ledgerLookup = new Map(
       traceIds.map((_, i) => [`evt-${i}`, { delta_credits: -1, ai_event_id: `evt-${i}` }]),
     );
@@ -370,9 +368,7 @@ describe("F-201: a trace touched by a failed batch reads as unread, never a part
 
     // Sanity: the split landed where this test needs it to.
     expect(state.ledgerInCalls.length).toBe(2);
-    expect(
-      state.ledgerInCalls.some((b) => b.includes("evt-multi-b") && b.length === 1),
-    ).toBe(true);
+    expect(state.ledgerInCalls.some((b) => b.includes("evt-multi-b") && b.length === 1)).toBe(true);
 
     // The 24 untouched traces read their real, complete figure.
     for (const t of singleTraces) expect(result[t]).toBe(1);
