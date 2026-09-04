@@ -36,7 +36,11 @@ export const PREVIEW_HOST_WHERE = "the Lovable project";
 export type ShipStop =
   | { kind: "missing-provider"; vars: readonly string[]; where: string }
   | { kind: "other"; said: string }
-  | { kind: "unknown" };
+  | { kind: "unknown" }
+  /** The read itself failed. Distinct from every answer it could have given. */
+  | { kind: "unread"; said: string }
+  /** The read answered and there is no failed deployment at all. */
+  | { kind: "none" };
 
 /*
  * Matched on the variable NAME, not on a sentence. `deno-deploy.server.ts:61`
@@ -76,6 +80,12 @@ export function shipStopLine(stop: ShipStop): string {
   }
   if (stop.kind === "other") {
     return `Ship could not deploy. The host said: ${stop.said}`;
+  }
+  if (stop.kind === "unread") {
+    return `Whether a preview failed could not be read, so this says nothing about it: ${stop.said}`;
+  }
+  if (stop.kind === "none") {
+    return "No preview attempt has failed on this change.";
   }
   return "Ship could not deploy, and nothing on the attempt says why. Try again records a reason.";
 }

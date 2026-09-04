@@ -228,7 +228,7 @@ describe("the read reaches the row it is about (P-59c)", () => {
     // one of those is a stopped Ship.
     expect(FN).toContain("failed: false");
     expect(FN).toContain("failed: true");
-    expect(RUN3).toContain("shipStopped.data?.failed");
+    expect(RUN3).toContain("shipStopped.data.failed");
   });
 
   it("still says 'nothing on the attempt says why' for a reasonless failure", () => {
@@ -239,6 +239,49 @@ describe("the read reaches the row it is about (P-59c)", () => {
   it("stands the station's own retry down while the preview is the blocker", () => {
     // "Let Ship try again" runs a station that cannot proceed without a preview,
     // spends an attempt, and returns here.
-    expect(RUN3).toContain("answerTheCall || callIsYours || shipStop ? null : (");
+    /* `shipIsStopped` since the acceptance pass: "no failed deployment" is a
+       true answer and not a stoppage, so it must not stand the retry down. */
+    expect(RUN3).toContain("answerTheCall || callIsYours || shipIsStopped ? null : (");
+  });
+});
+
+describe("the card says which branch fired (P-59c acceptance)", () => {
+  const RUN5 = code(readFileSync("src/components/track/TrackRun.tsx", "utf8"));
+
+  it("does not hang the retry on a way-out that says nothing", () => {
+    /*
+     * THE DEFECT A1 READ FIFTY MINUTES AFTER PUBLISH. The control rode on
+     * `holdWayOut.next`, and `way-out.ts` returns null for `produced-nothing`
+     * by design -- its own header lists that hold as one whose sentence already
+     * ends with the action. So the Row was never rendered and the only control
+     * that changes anything went with it, while every other signal (the station
+     * retry standing down) said the state was read correctly.
+     */
+    const own = RUN5.indexOf("{shipStop ? (");
+    const wayOut = RUN5.indexOf("{holdWayOut.next ? (");
+    expect(own).toBeGreaterThan(-1);
+    expect(wayOut).toBeGreaterThan(own);
+  });
+
+  it("has a sentence for every answer the read can give", () => {
+    expect(shipStopLine({ kind: "unread", said: "boom" })).toContain("could not be read");
+    expect(shipStopLine({ kind: "none" })).toContain("No preview attempt has failed");
+    expect(shipStopLine(shipStopFrom(null))).toContain("nothing on the attempt says why");
+    expect(shipStopLine(shipStopFrom("DENO_DEPLOY_TOKEN is not set"))).toContain(
+      "DENO_DEPLOY_TOKEN",
+    );
+    expect(shipStopLine(shipStopFrom("build failed"))).toContain("build failed");
+  });
+
+  it("separates a real stop from 'nothing failed'", () => {
+    // "none" is a true answer and not a stoppage: it must not take the screen
+    // over or stand the station's own retry down.
+    expect(RUN5).toContain('shipStop.kind !== "none"');
+    expect(RUN5).toContain("answerTheCall || callIsYours || shipIsStopped ? null : (");
+  });
+
+  it("names a failed read as a failed read, never as an absence", () => {
+    expect(RUN5).toContain('kind: "unread"');
+    expect(RUN5).toContain("shipStopped.isError");
   });
 });

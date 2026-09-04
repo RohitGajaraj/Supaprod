@@ -102,6 +102,7 @@ import { TheCallIsYours } from "@/components/track/TheCallIsYours";
 import { buildOnYourWord, choiceStillOutstanding } from "@/lib/spine/track.functions";
 import { retryPreviewNow } from "@/lib/deployments.functions";
 import {
+  type ShipStop,
   shipStopFrom,
   shipStopLine,
   shipStopWaitsOnAPerson,
@@ -815,10 +816,29 @@ export function TrackRunLeft({
    * second -- which is the tablet track exactly, whose one failure carries a
    * NULL reason and reads "nothing on the attempt says why".
    */
-  const shipStop =
-    shipStopped.isSuccess && shipStopped.data?.failed
-      ? shipStopFrom(shipStopped.data.failureReason)
-      : null;
+  /*
+   * ── EVERY BRANCH THE READ CAN TAKE SAYS SO (P-59c acceptance) ──────────
+   *
+   * A1 read the served card fifty minutes after publish and it was still the
+   * generic "It will try again", with the station's retry correctly stood down
+   * -- so `shipStop` was truthy and the button still was not there. The cause
+   * is one line below this: the retry rode on `holdWayOut.next`, and way-out
+   * says NOTHING for `produced-nothing` on purpose, so the Row carrying it was
+   * never rendered at all.
+   *
+   * The screen could not say which branch fired, so a correct read and a broken
+   * one looked identical from the outside. It says it now: read failed, no
+   * failed deployment, a failure with no reason, a failure with one.
+   */
+  const shipStop: ShipStop | null = shipStopped.isError
+    ? { kind: "unread", said: (shipStopped.error as Error).message }
+    : !shipStopped.isSuccess
+      ? null
+      : shipStopped.data.failed
+        ? shipStopFrom(shipStopped.data.failureReason)
+        : { kind: "none" };
+  /** Only a real stop takes the screen over; "none" is drawn as a quiet line. */
+  const shipIsStopped = Boolean(shipStop && shipStop.kind !== "none");
 
   /* P-68b. The offer in the hold card, as a real action. It ignores the sweep's
      retry window and nothing else, and it writes a reasoned row either way. */
@@ -1165,43 +1185,44 @@ export function TrackRunLeft({
              * wanting exactly that button. The dead end was the missing
              * sentence, not the button.
              */}
-            {holdWayOut.next ? (
+            {/*
+              ── THE SHIP STOP IS ITS OWN ROW (P-59c acceptance) ────────────
+              It used to ride on `holdWayOut.next`, and way-out says NOTHING for
+              `produced-nothing` by design -- its own header lists that hold as
+              one whose sentence already ends with the action. So the Row was
+              never rendered, and with it the only control that changes
+              anything. A1 read the generic card fifty minutes after publish
+              with the station's retry correctly stood down, which is the exact
+              signature of this: the state was right and its one control was
+              attached to something that does not draw.
+            */}
+            {shipStop ? (
               <Row
-                lead={holdWayOut.next}
+                lead={shipStopLine(shipStop)}
                 sub={
                   retryPreview.isError
                     ? `That did not run: ${(retryPreview.error as Error).message}`
                     : retryPreview.data && !retryPreview.data.ok
                       ? `It ran and failed: ${retryPreview.data.reason ?? "no reason was given."}`
-                      : holdWayOut.onThisScreen
-                        ? "Both of those are under Take it over, just below."
-                        : undefined
+                      : undefined
                 }
                 action={
-                  /*
-                   * ── THE OFFER BECOMES A CONTROL (P-68b) ──────────────────
-                   *
-                   * P-68's sentence ends "then press Try again", and until now
-                   * there was nothing to press: `ci-poll-tick` retries only
-                   * while the FIRST recorded attempt is younger than the retry
-                   * window, so the tablet track -- whose first attempt was
-                   * 06:44 UTC the previous day -- was stranded for good, along
-                   * with every failure older than an hour.
-                   *
-                   * That window is right for the sweep and wrong for a person:
-                   * it exists to stop an automatic loop paying for a deploy
-                   * every two minutes, and somebody who has read the reason and
-                   * acted on it is asking once.
-                   *
-                   * The result is said HERE rather than in a toast, because the
-                   * sentence above is what it corrects: a failed retry writes a
-                   * new reason and this line reads it back.
-                   */
-                  shipStop ? (
+                  shipIsStopped ? (
                     <Action busy={retryPreview.isPending} onClick={() => retryPreview.mutate()}>
                       {retryPreview.isPending ? "Trying the preview" : "Try the preview again"}
                     </Action>
                   ) : undefined
+                }
+              />
+            ) : null}
+
+            {holdWayOut.next ? (
+              <Row
+                lead={holdWayOut.next}
+                sub={
+                  holdWayOut.onThisScreen
+                    ? "Both of those are under Take it over, just below."
+                    : undefined
                 }
               />
             ) : null}
@@ -1299,7 +1320,7 @@ export function TrackRunLeft({
               attempt, and returns here. The one control that changes anything
               is "Try the preview again", which is drawn on the hold card above.
             */}
-            {answerTheCall || callIsYours || shipStop ? null : (
+            {answerTheCall || callIsYours || shipIsStopped ? null : (
               <div>
                 <Action busy={release.isPending} onClick={() => release.mutate()}>
                   {release.isPending
