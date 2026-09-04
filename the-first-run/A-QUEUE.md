@@ -10263,7 +10263,7 @@ founder's own Cloudflare account, A1 can read its rules through the Cloudflare M
 authenticates it. **Ours regardless:** the Worker caching its own anonymous marketing HTML through
 the Workers Cache API, and the landing count replaced by a cached counter; both inside P-135.
 
-### P-136 · One currency on the run screen · Lane: **A3** (after P-133, before P-104) · Status: LIVE READ: NEAR (7c05da9d0; live 18:13 IST: the run screen reads "3,606 credits ($0.78)"; the ledger by A3's own mapping (agent_runs.trace_id to ai_events.trace_id to credit_ledger.ai_event_id, debits) sums to 3,620 for the track at 12:43 UTC, and runs_usd is 0.78; A3 says whether the 14-credit gap is a read before the last rows or a conversion from dollars, then DONE) · Moves: 2
+### P-136 · One currency on the run screen · Lane: **A3** (after P-133, before P-104) · Status: DONE (7c05da9d0; live 18:13 IST: the run screen reads "3,606 credits ($0.78)"; A3 reproduced the join with surface=agent and reason=debit at 3,606 exactly, 273 rows; A1's 3,620 summed every debit on the traces without that filter, A1's query, not the screen) · Moves: 2
 
 **Why.** The run screen's bottom bar reads *40m 30s $0.75* and the artifact pane *$0.73*, while
 the account is billed in credits (10,000 a month, 7,449 left at 12:32 IST) and Team › Spend and
