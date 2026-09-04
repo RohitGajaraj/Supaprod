@@ -9431,6 +9431,14 @@ publish to actually observe — over to A1 to confirm live, per this session's s
 forward-looking acceptance checks. Returning to the watch loop.
 
 
+
+**Ledger confirmed by A1, 13:08 IST 09-04 (07:37 UTC).** `20260909090200` is in
+`schema_migrations`; 21 edges written in the last hour (11 dispatched, 10 revised, A3's backfill);
+edges with a null workspace: 0. The column's default is `current_user_default_workspace()`, null
+under the service role, which is the root cause. One refusal since 07:00 UTC, at 07:00:33, before
+the change landed. The zero-across-a-Build acceptance is read on the next Helio Build once the
+code serves.
+
 ### P-121 · A release with no recorded file list is not accused · Lane: **A3** (after P-120) · Status: CLAIMED (A3) 13:07 IST 09-04 · Moves: 2
 
 **Why.** Served Ship page, 12:10 IST 09-04, on the release the founder shows people ("Batch
