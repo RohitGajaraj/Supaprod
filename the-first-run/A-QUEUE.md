@@ -8723,7 +8723,7 @@ Start and Settings carry no second hand-typed plan sentence outside `planPresent
 Full suite on the rebased tip (6dbc2f113): `bun run build` exit 0 (twice, pre- and post-rebase),
 `bunx tsc --noEmit` exit 0, `bun test` 14,337 / 0 / 22 skip / 37 todo. PUSHED ffe40e990.
 
-### P-97 · The docs gate is clean · Lane: **A3** (after P-94) · Status: CLAIMED (A3) 10:39 IST 09-04 · Moves: 5
+### P-97 · The docs gate is clean · Lane: **A3** (after P-94) · Status: DONE (ed51c61e6; 110 broken links to 0, 419 missing date headers to 0, the duplicate board phrase to 1; A1 confirms the only remaining lines on A1's machine are its own gitignored local files, which the gate cannot see on a clean checkout) · Moves: 5
 
 **Why.** `bun run docs:check` reports 110 broken links in live docs, orphan files under
 `docs/screenshots` and four loose gitignored files at root, all as warnings and two as FAIL, so the
@@ -8780,7 +8780,7 @@ concurrent A-QUEUE.md edits (no file overlap). `bunx tsc --noEmit`: clean. `bun 
 watch loop.
 
 
-### P-96 · The Ship page says what each release is · Lane: **A2** (while P-86 waits on A1's presses) · Status: READY · Moves: 2, 3
+### P-96 · The Ship page says what each release is · Lane: **A2** (while P-86 waits on A1's presses) · Status: CODE DONE (5447f00ad; A1 gate running; publish next; A1 reads the Ship page) · Moves: 2, 3
 
 **Why.** R-40 and P-72 made the merge gate show the change (files, lines, the Build seat's
 conclusion, the Design verdict, the check). The Ship page, the door a person opens to see what went
