@@ -8485,7 +8485,7 @@ matching P-16's own "I could not drive a live Tab key" methodology.
 Full suite on the rebased tip (041493291): `bun run build` exit 0, `bunx tsc --noEmit` exit 0,
 `bun test` 14,291 / 0 / 22 skip / 37 todo. PUSHED b05fa6cf6.
 
-### P-93 · The other-workspaces line on Waiting is a door · Lane: **A3** (after P-90) · Status: CLAIMED (A3) 09:35 IST 09-04 · Moves: 2
+### P-93 · The other-workspaces line on Waiting is a door · Lane: **A3** (after P-90) · Status: CODE DONE, PUSHED d56153215 · Moves: 2
 
 **Why.** In an empty workspace Waiting reads *51 more waiting in your other workspaces*: true,
 useful, and inert. A person who reads it has to find the switcher.
@@ -8500,6 +8500,38 @@ cross-workspace count, and it is the only place a cross-workspace number is allo
 line names none or the probe, whichever holds work. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 walks both.
+
+**Report, A3, 10:04 IST 09-04.** The old line was also this page's one UNSCOPED read
+(`fetchQueue({data: {}})`, fanned across every workspace the caller belongs to, subtracted against
+the active workspace's own count) -- exactly "a bare cross-workspace count" the scope forbids, and
+the read this packet's own P-67 exemption line anticipated. Replaced with one `getApprovalsQueue`
+call PER other workspace (`otherWorkspaceQueues`, `useQueries`), sharing `approvalsQueueKey` so a
+workspace switched TO here starts warm. No baseline change needed in
+`a-read-names-its-workspace.test.ts`: the actual table read lives inside `getApprovalsQueue`'s own
+handler, untouched, and it already carries the two-statement scoping idiom that guard requires --
+this packet only changed HOW MANY TIMES and WITH WHAT ARGUMENT the route calls it. The shape
+matches that guard's own `DELIBERATELY_UNSCOPED` precedent for `calibrate-tick.ts` in words: "the
+tick iterates workspaces itself and scopes each pass; that loop IS the scoping."
+
+`otherWorkspacesLine` (a small pure function, lifted and tested directly -- P-90's own established
+fallback for logic inside a route file too heavy to full-mount) builds the sentence: the top
+workspace by count, a second when one exists, then "and one more" / "and N more" beyond that. The
+door (a `<button>`, not a `Link` -- pressing it never changes the URL, it calls
+`setActiveWorkspaceId` and `/approvals` starts reading a different workspace) always targets the
+workspace with the MOST waiting, never the second one named beside it. Zero state: this line
+renders nothing when no other workspace holds work, which the page's existing P-63 zero state
+(`ApprovalCard questions=[] zeroAction=...`) already covers -- no new zero-state UI needed.
+
+Also fixed a stale header comment (line 45) that still claimed "the unscoped other-workspaces
+read... is preserved" as current behavior; corrected to point at this packet.
+
+Full suite on the rebased tip (b614278f8): `bun run build` exit 0 (twice, pre- and post-rebase),
+`bunx tsc --noEmit` exit 0, `bun test` 14,299 / 0 / 22 skip / 37 todo. PUSHED d56153215.
+
+Not walked live -- no dev server / browser access in this worktree this session, same standing
+limitation as every packet closed here. A1: from the probe the line should name Helio Labs and
+pressing it should land on Helio's own Waiting with no URL change; from Helio the line should name
+the probe if it holds work, or render nothing if it does not.
 
 
 ### LIVE WALK, A1, 09:20 IST 09-04 · the fifth sentence in the probe, on the build that carries P-71e
