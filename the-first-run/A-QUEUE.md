@@ -8249,7 +8249,7 @@ status` clean both times -- the actual acceptance criterion, not just "no diff o
 `bunx tsc --noEmit` exit 0. `bun test` 14,266 / 0 / 22 skip / 37 todo. PUSHED 1fa6d5520.
 
 
-### P-83 · Waiting updates itself; nobody is told to refresh · Lane: **A3** (now) · Status: CLAIMED (A3) 08:40 IST 09-04 · Moves: 2, 3
+### P-83 · Waiting updates itself; nobody is told to refresh · Lane: **A3** (now) · Status: CODE DONE, PUSHED 18908f00c · Moves: 2, 3
 
 **Why.** Read live 05:00 IST 09-04 on the approvals page: *One just came in. Refresh to see it.*
 A product that tells a person to refresh is asking them to do the machine's job; the run screen
@@ -8269,6 +8269,50 @@ no reload; the sentence "Refresh to see it" is gone from the repo. Full suite on
 build 0.
 
 **DoD.** Pushed; the three numbers; A1 reads with two tabs.
+
+**Report, A3, 09:01 IST 09-04.** The sentence was not stale copy, it was a real disagreement
+between two reads: `queue` (`getApprovalsQueue`, ten federated families) and `liveActivity`
+(`getLiveActivity` -> `countNeedsYouCalls`, a DIFFERENT read) can each be non-empty while the other
+is empty, and only `agent_approvals` ever pushed a live invalidation -- `use-approval-push.ts`,
+mounted once at `_authenticated.tsx`, already serving the whole app, is "the live channel it
+already listens to" the scope names. A memory candidate, a critic-flagged opportunity, a new theme
+or a settled decision could leave the queue empty while `liveActivity` said something was waiting,
+with nothing to refetch it but the person acting on the sentence.
+
+Checked LIVE against the database rather than trusting migration-file history: only
+`agent_approvals` was actually in `supabase_realtime`'s publication (`pg_publication_tables`),
+though older migrations named `agent_runs`/`messages`/`decisions` too -- at least one was since
+deliberately dropped. Migration `20260909090100` adds `memory_candidates` (memory review),
+`opportunities` (a proposal family here and Arriving's own read), `themes` (Arriving's "what the
+crew found" count and Start's `arrivingCount`) and `decisions` (Start's `learnedCount`) to the
+publication, `REPLICA IDENTITY FULL` on each matching the `agent_approvals` precedent. No
+`workspace_id` filter at the channel level -- RLS already scopes `postgres_changes` per subscriber,
+the same posture `trust_graduation_proposals`' own read documents, avoiding threading the active
+workspace id into a hook mounted above `WorkspaceProvider`.
+
+The one socket now binds INSERT+UPDATE on all four, and `invalidate()` widened past the three
+`ask-*` keys and `track-gates`: `approvals-live-activity` (never invalidated by anything before
+this -- the actual source of the disagreement), `start-home-answers`, `signals`, `themes`,
+`opportunities`. "Refresh to see it" is gone, replaced with "One just came in." (matching the
+declarative "working" line beside it) since the queue closes the gap on its own within a tick now.
+
+Guard hit its own instance of the exact class of bug P-82 taught: my first draft's test used
+`mock.module` on `@/integrations/supabase/client`, and `AskPane.test.tsx` already claims that
+module process-wide -- `a-module-mock-is-process-wide.test.ts`'s own ratchet caught it (a module
+newly shared by two files). Fixed by giving `useApprovalPush` an injectable client parameter
+(defaults to the real one) instead, so the test never touches `mock.module` for it at all. Guard
+tests: INSERT+UPDATE on all four new tables with no column filter while `agent_approvals` keeps its
+`user_id` filter; an event on any new table invalidates `approvals-queue`, `approvals-live-activity`,
+`start-home-answers`, `themes`, `opportunities`; a comment-stripped scan of the approvals route's
+own source contains no "refresh" (comments quoting the retired sentence for history are exempted by
+the strip, not by name).
+
+Full suite on the rebased tip (a3af111b9): `bun run build` exit 0 (twice, pre- and post-rebase),
+`bunx tsc --noEmit` exit 0, `bun test` 14,272 / 0 / 22 skip / 37 todo. PUSHED 18908f00c.
+
+Not walked live -- no dev server / browser access in this worktree this session, same standing
+limitation as every packet closed here. A1: two tabs on Helio, a press in one should land in the
+other's Waiting list within a tick with no reload.
 
 ### P-85 · Start's example sentences fit the workspace · Lane: **A3** (after P-83) · Status: READY · Moves: 2
 
