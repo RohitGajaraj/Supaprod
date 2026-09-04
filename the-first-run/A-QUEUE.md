@@ -8039,6 +8039,17 @@ reaches its page; at 1280 px nothing changed. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 reads it at both widths.
 
+
+### HOSTING NOTE, A1, 07:18 IST 09-04 · the served build is behind the publishes
+
+Eight publishes between 05:22 and 07:11. At 01:46 UTC the served root carries no X-Supaprod-Build
+header (P-64b, published 06:46), the tablet track still draws the pre-P-59c card (published
+06:38), and Lovable's own latest preview screenshot is of commit `68f1ba07` (05:32 IST), while
+its `latest_commit_sha` is the tip. So the sync is current and the BUILD is behind: the queue of
+publishes has not caught up, or a build failed silently. Rule for the rest of the morning: no
+publish until the served build carries `X-Supaprod-Build`; batch the lanes' pushes into one
+publish after that; read twice before concluding a fix is absent (rule 18).
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
