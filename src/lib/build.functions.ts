@@ -961,8 +961,9 @@ export type DispatchDesignGate = {
  * `unresolved` closes the other half. An id absent from the `prds` select is
  * absence of evidence, not evidence of an open gate; treating it as not-blocked
  * is the discarded-read pattern this repo keeps paying for. It should be empty
- * in practice — the caller's ids come from `listSpecs`, read under the same
- * RLS — and if it ever is not, the surface can say so instead of promising a
+ * in practice — the caller's ids came from `listSpecs`, read under the same
+ * RLS (that function was deleted 2026-09-04, P-142c, as unreachable; the
+ * argument holds for whatever caller supplies the ids) — and if it ever is not, the surface can say so instead of promising a
  * build that the dispatch will refuse.
  */
 export const listDispatchDesignGates = createServerFn({ method: "GET" })

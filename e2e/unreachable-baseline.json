@@ -5,7 +5,7 @@
   "_components_dropped_from_80": "The detector could not see React.lazy. Every lazily mounted panel is written as import(\"...\").then((m) => ({ default: m.Name })), which names its export and was still invisible, so 26 mounted components were reported as orphans. The count is 44 because the gate got better, not because 26 things were deleted. Anyone comparing against 80 is comparing across a change in the instrument.",
   "_names": "The SORTED `file::name` of every orphan at the frozen counts. Added 2026-09-01 because the ratchet fired -- server functions 140 -> 142, components 44 -> 45 -- and named nothing, so the lane that caused it would have had to re-derive a 142-entry list by hand and diff it against a number. The counts say THAT something regressed; these say WHAT. Re-freeze both together or the gate reports a name list one state behind, which is worse than none.",
   "_namesFrozenAt": "cda1276fa959cdeae05fafffc3c22d551b76510c, the commit that set 140/44. Measured by running the detector of THAT commit against the src/ tree of that commit, not by trimming today's list, so the two sides of the comparison are the same instrument.",
-  "serverFunctions": 140,
+  "serverFunctions": 139,
   "components": 26,
   "serverFunctionNames": [
     "src/lib/admin-workspaces.functions.ts::adminAddWorkspaceMember",
@@ -66,7 +66,6 @@
     "src/lib/design-interchange.functions.ts::importDesignMemory",
     "src/lib/design-parity.functions.ts::checkDesignParity",
     "src/lib/discovery.functions.ts::draftContractFromIntent",
-    "src/lib/discovery.functions.ts::listPrds",
     "src/lib/fanout.functions.ts::decideFanoutBatch",
     "src/lib/fanout.functions.ts::dispatchExploration",
     "src/lib/fanout.functions.ts::listFanoutBatches",

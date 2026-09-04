@@ -296,8 +296,12 @@
  *      followed by a dispatch that stops at the repo gate on any workspace with
  *      no repo. It reports the record now, and the dispatch reports itself.
  *
- * What is NOT fixed here and does not live in this file: `listSpecs` still
+ * What is NOT fixed here and does not live in this file: this said `listSpecs`
  * returns no design row per spec, so /plan reads `listDesignWork` beside it.
+ * BOTH ARE GONE. `/plan` was retired to a redirect stub under R-34 and
+ * `listSpecs` was deleted 2026-09-04 (P-142c) as unreachable. The sentence is
+ * corrected rather than dropped because it is the only place on the record
+ * that says why the two reads were ever separate.
  *
  * ----------------------------------------------------------------------------
  * P-29, 2026-09-03 (A-QUEUE.md): SEND TO BUILD IS REMOVED FROM THIS PAGE.

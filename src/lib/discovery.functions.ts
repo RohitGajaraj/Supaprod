@@ -2515,139 +2515,26 @@ export const deleteOpportunity = createServerFn({ method: "POST" })
  * thing that WOULD have caught a bad column -- but it never blocked this read.
  */
 /**
- * ONE SELECT, TWO READERS. Answering REQ-L0-015 item 3.
+ * `PRD_LIST_SELECT`, `listPrds` and `listSpecs` were DELETED here (P-142c).
  *
- * LANE 0's census found `listPrds` and `listSpecs` reading the same table with
- * different column lists and asked for them to be consolidated "before they
- * drift further apart". They already had: `listSpecs` carried
- * `critic_review`, `citations`, `project_id` and `design_gate_status` that
- * `listPrds` did not, and the narrower one survives on a single surface.
+ * They fed the Now/Next/Later board at `/plan`, which R-34 retired; that route
+ * is a redirect stub to `/start` and nothing replaced the list. Measured
+ * 2026-09-04: zero importers across every .ts and .tsx in `src`, two comment
+ * mentions and nothing else, and `check:unreachable` names both.
  *
- * THE DRIFT IS CLOSED HERE; THE SECOND EXPORT IS NOT DELETED HERE. Collapsing
- * to one function means repointing `_authenticated.runs.index.tsx`, which is a
- * ROUTE FILE and another lane's hand. Deleting the export from under it would
- * break `main` for however long the two commits are apart. So the shared select
- * lands now -- the two reads can no longer disagree about columns -- and the
- * export goes when its one consumer moves.
+ * They are deleted rather than left with a correct filter on them, and that is
+ * the whole point of this commit. P-142 landed a real rule on these two -- a
+ * spec whose design gate closed with it is not on the list -- and a correct
+ * filter on a function nobody calls is worse than no filter: it reads to the
+ * next person as "the list is filtered", which is true of the code and false
+ * of the product, because there is no list. The rule that survives is the one
+ * on the live reader, the approvals queue's SPEC family.
+ *
+ * If a surface that lists a workspace's specs comes back, it comes back with
+ * the filter and the superseded count in its own packet, written against a
+ * page somebody can open.
  */
-const PRD_LIST_SELECT =
-  "id,title,status,updated_at,opportunity_id,github_issue_url,critic_review,citations,project_id,design_gate_status,is_sample";
 
-/**
- * `listPrds` NOW READS THE SAME COLUMNS AS `listSpecs`, and it is deliberately
- * NOT capped where `listSpecs` caps at 300.
- *
- * Measured 2026-08-24: `prds` holds 101 rows, so the cap changes nothing today
- * for either reader. It is kept different on purpose rather than unified into a
- * third behaviour nobody asked for: /runs' picker is a complete list of what
- * exists and silently truncating it at some future 301st row is the kind of
- * quiet cut that is only noticed once it matters.
- *
- * ONE CONSUMER: `_authenticated.runs.index.tsx`. When it moves to `listSpecs`,
- * delete this.
- */
-export const listPrds = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
-  )
-  .handler(async ({ context, data }) => {
-    /*
-     * ── AND IT TAKES THE WORKSPACE, NOT ONLY THE DEFAULT (P-75) ───────────
-     *
-     * P-70 gave this a workspace and resolved the person's DEFAULT to get one.
-     * That closes the unscoped read and leaves a sharper defect: a person
-     * standing in a second workspace is answered with their first one's rows,
-     * while the caller's query key says otherwise. The caller names it now, and
-     * the default is the fallback rather than the answer.
-     */
-
-    /* P-70. Unresolved stays unfiltered: see `listTopOpportunities`. */
-    let wid = data?.workspaceId ?? null;
-    if (!wid) {
-      const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
-      wid = (wsDefault as string | null) ?? null;
-    }
-    let prdsQ = context.supabase.from("prds").select(PRD_LIST_SELECT);
-    if (wid) prdsQ = prdsQ.eq("workspace_id", wid);
-    // P-142: a spec whose design gate closed with it is not one to pick, plan
-    // against or roadmap. See the note on `listSpecs` for the measurement.
-    prdsQ = prdsQ.or("design_gate_status.is.null,design_gate_status.neq.superseded");
-    const { data: prdRows, error } = await prdsQ.order("updated_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    return { prds: prdRows ?? [] };
-  });
-
-/**
- * Specs table (Product · Specs, Ember Editorial port): PRD rows plus the
- * Critic verdict and citation payload the reference's State/Critic/Cites
- * columns render. Additive — `listPrds` keeps its narrow select for existing
- * consumers (roadmap, pickers).
- *
- * `is_sample` rides both reads. See the paragraph above `listPrds`: this is the
- * one /plan's spec row needs to print the Example tag /decide already prints on
- * the same bet, and it marks rather than filters on purpose.
- */
-export const listSpecs = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
-  )
-  .handler(async ({ context, data }) => {
-    /*
-     * ── AND IT TAKES THE WORKSPACE, NOT ONLY THE DEFAULT (P-75) ───────────
-     *
-     * P-70 gave this a workspace and resolved the person's DEFAULT to get one.
-     * That closes the unscoped read and leaves a sharper defect: a person
-     * standing in a second workspace is answered with their first one's rows,
-     * while the caller's query key says otherwise. The caller names it now, and
-     * the default is the fallback rather than the answer.
-     */
-
-    /* P-70. Unresolved stays unfiltered: see `listTopOpportunities`. */
-    let wid = data?.workspaceId ?? null;
-    if (!wid) {
-      const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
-      wid = (wsDefault as string | null) ?? null;
-    }
-    /*
-     * ── A SPEC THAT STOPPED APPLYING IS NOT ON THE LIST (P-142) ───────────
-     *
-     * MEASURED 2026-09-04: Helio holds 29 specs at draft, and 14 of them carry
-     * `design_gate_status = 'superseded'` -- their design gate closed because
-     * the spec stopped applying, under the founder's ruling of 00:09 that
-     * P-57b's migration landed at 02:00. That migration deliberately left
-     * `prds.status` alone (nobody decided these, and `design_decided_at` stays
-     * null), so every one of them still reads `draft` to any query that asks
-     * about status alone. The record was corrected seventeen hours before this
-     * list was; the reads never caught up.
-     *
-     * So the list asks the question the record can answer -- did this spec stop
-     * applying -- rather than the one that is merely easy, which is what status
-     * says. 29 becomes 15 with no row mutated and no status value invented.
-     *
-     * The count of what was left out is RETURNED rather than dropped in
-     * silence. A person who remembers filing twenty-nine specs and sees fifteen
-     * is owed the difference, and a list that quietly shrinks is the defect
-     * this repo keeps finding in the other direction.
-     */
-    let specsQ = context.supabase.from("prds").select(PRD_LIST_SELECT);
-    if (wid) specsQ = specsQ.eq("workspace_id", wid);
-    specsQ = specsQ.or("design_gate_status.is.null,design_gate_status.neq.superseded");
-    const { data: specRows, error } = await specsQ
-      .order("updated_at", { ascending: false })
-      .limit(300);
-    if (error) throw new Error(error.message);
-
-    let supersededQ = context.supabase
-      .from("prds")
-      .select("id", { count: "exact", head: true })
-      .eq("design_gate_status", "superseded");
-    if (wid) supersededQ = supersededQ.eq("workspace_id", wid);
-    const { count: supersededCount } = await supersededQ;
-
-    return { prds: specRows ?? [], superseded_count: supersededCount ?? 0 };
-  });
 
 export const getPrd = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -4633,9 +4520,12 @@ ICE. Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
      * WHY THE REAL SENTENCE WAS WRONG: it is not a typecheck failure, because
      * there is no typecheck. `context` reaches these handlers untyped, so an
      * INVENTED column name compiles just as happily (measured both ways,
-     * 2026-08-06). `listPrds` and `listSpecs` now select the column and the
-     * reasoning is written out above `listPrds`, including the PostgREST probe
-     * that shows the schema cache serves it.
+     * 2026-08-06). `listPrds` and `listSpecs` selected the column and carried
+     * that reasoning, including the PostgREST probe showing the schema cache
+     * serves it; BOTH WERE DELETED 2026-09-04 (P-142c) as unreachable, so that
+     * write-up went with them. The finding still holds and is restated here so
+     * it does not leave with the functions: the column IS selectable, and the
+     * block is the stale generated type and nothing else.
      *
      * The generated types ARE still stale -- `prds` carries no `is_sample` in
      * `Database` -- which is why the spread below keeps its explicit
