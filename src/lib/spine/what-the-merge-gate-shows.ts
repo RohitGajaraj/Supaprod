@@ -119,3 +119,134 @@ export function mergeGateLines(e: MergeGateEvidence): string[] {
 export function mayDrawApprove(e: MergeGateEvidence): boolean {
   return !e.buildHalt;
 }
+
+/**
+ * ── THE SAME SUMMARY, ON THE PAGE THAT LISTS RELEASES (P-96) ─────────────
+ *
+ * The merge gate got these three facts because a green check had been standing
+ * in for all of them. /ship lists the releases those merges produced and said
+ * less than the gate did: a title, a product name, and the words "live in
+ * production". A person reading the list could not see what any release
+ * contained, what the seat concluded, or what the critic said -- the same gap,
+ * one surface along, after the decision rather than before it.
+ *
+ * So the sentences are composed HERE, once, and both surfaces call them. Two
+ * copies of this vocabulary would drift within a week, and the drift would be
+ * invisible: the gate and the list would describe one release differently and
+ * nothing would compare them.
+ *
+ * ── AND A RELEASE HAS ONE FACT THE GATE NEVER HAS ────────────────────────
+ * Where it actually went. The gate is asked BEFORE the merge, so there is no
+ * deploy to describe; a release row is read after, when there is. That word
+ * comes from `releaseStanding`, which already owns the distinction this
+ * product's central claim rests on -- `success` is a provider reporting a
+ * deploy, `claimed` is a person having typed a link -- so it is passed in
+ * resolved rather than re-derived here. One vocabulary for the standing, one
+ * for the summary, and neither reimplements the other.
+ */
+
+/** Where this release went, in the standing vocabulary's own words. */
+export type ReleaseDeployment = {
+  /** `releaseStanding().word` -- resolved by the caller, never re-derived. */
+  word: string;
+  /** `releaseStanding().note`: what that word does not say. */
+  note: string | null;
+} | null;
+
+export type ReleaseEvidence = MergeGateEvidence & {
+  deployment: ReleaseDeployment;
+  /**
+   * True when this release is a person's handback rather than work the product
+   * did: `submitStationByHand` wrote a pasted link and there is no changeset of
+   * ours behind it.
+   */
+  handRecorded: boolean;
+};
+
+/** Where it went, and what that word does not say. */
+export function deploymentLine(d: ReleaseDeployment): string {
+  if (!d) return "No deploy is on the record for this release.";
+  return d.note ? `${d.word}. ${d.note}` : `${d.word}.`;
+}
+
+/**
+ * A release somebody else's builder made, and we were told about.
+ *
+ * ── WHY THIS CANNOT BE LEFT TO `filesLine` ───────────────────────────────
+ * `filesLine([])` says "This change touches no files, which cannot be right",
+ * and for a merge gate that is exactly right: a changeset we staged with
+ * nothing in it is a defect worth stopping on.
+ *
+ * For a handback it is a FALSE ACCUSATION. `paste-back.ts` exists so a customer
+ * can use their own builder, and the whole design is that we need only the
+ * outcome: "the verdict is measured against the forecast, not against the
+ * code." There are no files because the change was never ours to stage. Telling
+ * that person their release "cannot be right" reports the supported path as a
+ * malfunction.
+ *
+ * So it says the two true things instead -- who recorded it, and that the
+ * absence of a diff is a fact about our record rather than about their work.
+ */
+export function handRecordedLine(): string {
+  return (
+    "Recorded by a person, not built here. There is no change for this product to show: " +
+    "it was made somewhere else and we were told the outcome."
+  );
+}
+
+/**
+ * The release row's evidence, in the order a person needs it.
+ *
+ * Same three facts as the gate, plus where it went. The hand-recorded case
+ * REPLACES the files line rather than adding to it, because an empty change is
+ * the ordinary shape of a handback and `filesLine` reads an empty change as a
+ * defect. Getting that wrong is worse than saying nothing: it would tell the
+ * customers using the cheapest handback mechanism we have that the product
+ * thinks their release is broken.
+ */
+export function releaseSummaryLines(e: ReleaseEvidence): string[] {
+  if (!e.known) {
+    return [
+      "What this release contains could not be read, so nothing here describes it.",
+      deploymentLine(e.deployment),
+    ];
+  }
+  const what = e.handRecorded && e.files.length === 0 ? handRecordedLine() : filesLine(e.files);
+  return [
+    what,
+    buildLine(e.buildHalt),
+    designLine(e.designVerdict),
+    deploymentLine(e.deployment),
+  ].filter((l): l is string => !!l);
+}
+
+/**
+ * May this release be announced?
+ *
+ * ── ONLY WITH A PRODUCTION DEPLOY ON THE RECORD ──────────────────────────
+ * An announcement is the one thing in this product a stranger can read. Every
+ * other surface is answerable to the person looking at it; this one goes out.
+ *
+ * The list offered the composer on every release row, including releases that
+ * had merged and never been promoted, and releases whose only production
+ * evidence was a pasted address. Both would have been announced in the same
+ * words as something actually live, and the second is the sharper failure:
+ * `claimed` exists precisely so a typed link can never stand as proof that
+ * something shipped, and announcing one publishes that claim to people who
+ * cannot check it.
+ *
+ * `productionUrl` is the test because `listChangelog` resolves it from
+ * environment=production AND status=success -- so it is the provider's word,
+ * which is the only word strong enough to say this out loud.
+ */
+export function mayAnnounce(input: { productionUrl: string | null }): boolean {
+  return !!input.productionUrl?.trim();
+}
+
+/** Why the composer is not offered, for the row that cannot offer it. */
+export function whyNotAnnounceable(input: { deployment: ReleaseDeployment }): string {
+  if (input.deployment?.word) {
+    return `Not live yet, so there is nothing to announce. ${deploymentLine(input.deployment)}`;
+  }
+  return "Not live yet, so there is nothing to announce. Promote it first.";
+}

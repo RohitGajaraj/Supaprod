@@ -121,8 +121,20 @@ describe("the section says only what it knows", () => {
 describe("the new door costs the row nothing", () => {
   it("gives the document its own control instead of taking the row's click", () => {
     expect(shipSrc).toMatch(/onClick=\{\(\) => setDocId\(e\.id\)\}/);
-    // The two doors that were already on this row survive untouched.
-    expect(shipSrc).toMatch(/canContribute\s*\?\s*\(\)\s*=>\s*startFrom\(e\)/);
+    /*
+     * The two doors that were already on this row survive.
+     *
+     * The composer's is now CONDITIONAL, and that is P-96 rather than drift: an
+     * announcement is the only thing here a stranger reads, so it is offered
+     * over a release with a production deploy on the record and not over one
+     * that merged and was never promoted. The requirement this guard holds is
+     * that a contributor still reaches the composer from the row; which rows
+     * qualify is `mayAnnounce`'s, and its own guards hold that.
+     */
+    /* `[\s\S]{0,140}?` and not `[^?]*`: the condition now contains `??`, so a
+       class excluding `?` could never reach the ternary it is looking for. */
+    expect(shipSrc).toMatch(/canContribute[\s\S]{0,140}?\?\s*\(\)\s*=>\s*startFrom\(e\)/);
+    expect(shipSrc).toContain("mayAnnounce({ productionUrl: e.production_url ?? null })");
     expect(shipSrc).toContain("<Addr href={e.production_url}>Open it</Addr>");
   });
 

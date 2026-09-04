@@ -83,7 +83,12 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { TERMINAL_HOLDS } from "./correction";
 import { HOLD_LINE } from "./driver";
-import { countLines, type MergeGateEvidence } from "@/lib/spine/what-the-merge-gate-shows";
+import {
+  countLines,
+  type ChangedFile,
+  type MergeGateEvidence,
+  type ReleaseEvidence,
+} from "@/lib/spine/what-the-merge-gate-shows";
 import { parseDesignCriticReview } from "@/lib/ai/design-critic";
 import { findingIsAgainstThePremise } from "@/lib/spine/a-design-verdict-against-the-premise-holds";
 import {
@@ -5366,6 +5371,159 @@ export const mergeGateEvidence = createServerFn({ method: "GET" })
       return { files, buildHalt, designVerdict, known: true };
     } catch {
       return empty;
+    }
+  });
+
+/**
+ * ── THE SAME EVIDENCE, FOR A PAGE OF RELEASES (P-96) ─────────────────────
+ *
+ * `mergeGateEvidence` answers for ONE track, before the merge. /ship lists
+ * releases after it, and its rows are keyed on the changeset -- so this asks the
+ * same questions of a set of changesets and returns one answer each.
+ *
+ * BATCHED ON PURPOSE. A per-row server call over a page of a hundred releases
+ * is a hundred round trips for a list that renders at once, and the reads here
+ * are all `in (...)` over ids the caller already holds. Bounded at 60 because
+ * the page shows far fewer and an unbounded `in` list is how a read becomes a
+ * table scan.
+ *
+ * WHAT `known` MEANS, and it is per-changeset rather than for the batch: a read
+ * that failed proves nothing about any row, so a failure returns everything
+ * unknown rather than an empty map that reads as "nothing to show".
+ */
+export const releaseEvidence = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        changesetIds: z.array(z.string().uuid()).max(60),
+        /* Named so the reads can name it (P-67). Nullable because a caller that
+           has not resolved a workspace must not be made to invent one: an
+           unfiltered read is a wider question, a read filtered on a workspace
+           nobody could name is a wrong answer. */
+        workspaceId: z.string().uuid().nullable().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }): Promise<Record<string, ReleaseEvidence>> => {
+    const { supabase } = context;
+    const ids: string[] = [...new Set(data.changesetIds as string[])];
+    const unknown = (): ReleaseEvidence => ({
+      files: [],
+      buildHalt: null,
+      designVerdict: null,
+      known: false,
+      deployment: null,
+      handRecorded: false,
+    });
+    const out: Record<string, ReleaseEvidence> = {};
+    if (ids.length === 0) return out;
+    for (const id of ids) out[id] = unknown();
+
+    try {
+      const wid = (data.workspaceId ?? null) as string | null;
+      let csQ = supabase
+        .from("studio_changesets")
+        .select("id,workspace_id,mission_id")
+        .in("id", ids);
+      if (wid) csQ = csQ.eq("workspace_id", wid);
+      const { data: csRows, error: csErr } = await csQ;
+      if (csErr) return out;
+      const changesets = (csRows ?? []) as Array<{
+        id: string;
+        workspace_id: string | null;
+        mission_id: string | null;
+      }>;
+
+      /*
+       * THE FILES, in one read for the whole page. A changeset with no rows here
+       * is not an error: it is either a change that staged nothing, or a
+       * handback, and `releaseSummaryLines` tells those apart by `handRecorded`
+       * rather than by the emptiness.
+       */
+      const { data: changeRows, error: chErr } = await supabase
+        .from("studio_changes")
+        .select("changeset_id,path,base_content,new_content")
+        .in("changeset_id", ids)
+        .limit(1000);
+      if (chErr) return out;
+      const filesByChangeset = new Map<string, ChangedFile[]>();
+      for (const c of (changeRows ?? []) as Array<{
+        changeset_id: string;
+        path: string;
+        base_content: string | null;
+        new_content: string | null;
+      }>) {
+        const list = filesByChangeset.get(c.changeset_id) ?? [];
+        list.push({ path: c.path, ...countLines(c.base_content, c.new_content) });
+        filesByChangeset.set(c.changeset_id, list);
+      }
+
+      /* The seat's halt, per mission, for the missions this page actually has. */
+      const missionIds = changesets.map((c) => c.mission_id).filter((m): m is string => !!m);
+      const haltByMission = new Map<string, string>();
+      if (missionIds.length > 0) {
+        let runQ = supabase
+          .from("agent_runs")
+          .select("mission_id,trace_id")
+          .in("mission_id", missionIds);
+        if (wid) runQ = runQ.eq("workspace_id", wid);
+        const { data: runRows } = await runQ;
+        const traceToMission = new Map<string, string>();
+        for (const r of (runRows ?? []) as Array<{
+          mission_id: string | null;
+          trace_id: string | null;
+        }>) {
+          if (r.trace_id && r.mission_id) traceToMission.set(r.trace_id, r.mission_id);
+        }
+        const traceIds = [...traceToMission.keys()];
+        if (traceIds.length > 0) {
+          let haltQ = supabase
+            .from("tool_calls")
+            .select("trace_id,args,created_at")
+            .in("trace_id", traceIds)
+            .eq("tool_name", "build.halt")
+            .eq("ok", true);
+          if (wid) haltQ = haltQ.eq("workspace_id", wid);
+          const { data: halts } = await haltQ.order("created_at", { ascending: false }).limit(200);
+          for (const h of (halts ?? []) as Array<{ trace_id: string | null; args: unknown }>) {
+            const mission = h.trace_id ? traceToMission.get(h.trace_id) : null;
+            if (!mission || haltByMission.has(mission)) continue;
+            const reason = (h.args as { reason?: unknown } | null)?.reason;
+            if (typeof reason === "string") haltByMission.set(mission, reason);
+          }
+        }
+      }
+
+      for (const cs of changesets) {
+        out[cs.id] = {
+          files: filesByChangeset.get(cs.id) ?? [],
+          buildHalt: cs.mission_id ? (haltByMission.get(cs.mission_id) ?? null) : null,
+          /*
+           * Not read here. The critic's verdict hangs off a TRACK's prototype,
+           * and a release row knows only its changeset; resolving one to the
+           * other is a third join for a fact most releases do not have. The
+           * merge gate, which is asked with a track in hand, still shows it --
+           * so the summary is the same shape and this surface fills what it can
+           * actually see rather than guessing.
+           */
+          designVerdict: null,
+          known: true,
+          /* Filled by the caller from `releaseStanding`, which owns the word. */
+          deployment: null,
+          /*
+           * A CHANGESET THE PRODUCT DID NOT BUILD. `submitStationByHand` writes
+           * one with no mission behind it -- there was no run, because somebody
+           * else's builder made the change. That is the durable structural fact,
+           * so it is what this reads, rather than the deploy status, which
+           * describes where it went and not who made it.
+           */
+          handRecorded: !cs.mission_id,
+        };
+      }
+      return out;
+    } catch {
+      return out;
     }
   });
 

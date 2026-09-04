@@ -170,6 +170,14 @@ import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { shipHeadline } from "@/components/ship/ship-headline";
 import { failureLine } from "@/lib/error-copy";
 import { Row } from "@/components/meridian/rows";
+import { releaseStanding } from "@/components/track/release-words";
+import {
+  mayAnnounce,
+  releaseSummaryLines,
+  whyNotAnnounceable,
+  type ReleaseEvidence,
+} from "@/lib/spine/what-the-merge-gate-shows";
+import { releaseEvidence } from "@/lib/spine/track.functions";
 import {
   Action,
   Actions,
@@ -1430,6 +1438,27 @@ function Ship() {
   });
 
   const notes = changelog.data?.entries ?? [];
+
+  /**
+   * ── WHAT EACH RELEASE ACTUALLY CONTAINS (P-96) ─────────────────────────
+   *
+   * The same three facts the merge gate shows, for the releases those merges
+   * produced. Keyed on the changeset ids in hand rather than on the workspace,
+   * so it asks about exactly the rows on screen and re-asks when the page grows.
+   *
+   * Sorted before it becomes a key: `notes` arrives newest-first and a set built
+   * from it is stable, but a key that depends on order would refetch on any
+   * reordering of the same rows.
+   */
+  const fReleaseEvidence = useServerFn(releaseEvidence);
+  const evidenceIds = [...new Set(notes.map((n) => n.changeset_id).filter((c): c is string => !!c))]
+    .sort()
+    .slice(0, 60);
+  const evidence = useQuery({
+    queryKey: ["release-evidence", wid, evidenceIds.join(",")],
+    queryFn: () => fReleaseEvidence({ data: { changesetIds: evidenceIds, workspaceId: wid } }),
+    enabled: !!wid && evidenceIds.length > 0,
+  });
   const announcements = posts.data?.announcements ?? [];
   // The deployments table is not in the generated Supabase types yet, so the
   // read arrives untyped. Same cast ChangesPanel makes, made once.
@@ -2151,6 +2180,36 @@ function Ship() {
   const docReading = !wid || changelog.isLoading || (stillWaiting(changelog) && !changelog.isError);
   const docEntry: ChangelogEntry | null =
     (docId ? notes.find((e) => e.id === docId) : undefined) ?? notes[0] ?? null;
+
+  /**
+   * One release's evidence, with the deploy standing filled in.
+   *
+   * The server read answers what the change contains; where it went is already
+   * on `ReleaseState`, and its WORD belongs to `releaseStanding` -- the one
+   * vocabulary that keeps `success` (a provider reporting a deploy) apart from
+   * `claimed` (a person having typed a link). Resolved here and passed in, so
+   * the summary composer never re-derives a distinction this product's central
+   * claim rests on.
+   *
+   * Returns null while the read is out, so a row says nothing rather than
+   * saying "no files", which is a claim about the change and not about the read.
+   */
+  function evidenceFor(e: ChangelogEntry): ReleaseEvidence | null {
+    const csid = e.changeset_id;
+    if (!csid) return null;
+    const found = evidence.data?.[csid];
+    if (!found) return null;
+    const state = states.find((st) => st.changesetId === csid) ?? null;
+    const status = state?.lastProductionStatus ?? null;
+    const standing = status ? releaseStanding(status) : null;
+    return {
+      ...found,
+      deployment: standing ? { word: standing.word, note: standing.note } : null,
+    };
+  }
+
+  /** The focused release's evidence, resolved once for the document region. */
+  const docEvidence = docEntry ? evidenceFor(docEntry) : null;
 
   const headline = posts.isError
     ? "The announcements did not load."
@@ -3262,8 +3321,13 @@ function Ship() {
           <Region
             title="What shipped"
             sub={
+              /* Only the live ones can be picked now (P-96), so the invitation
+                 says which. Promising "pick one" over a list where most rows do
+                 nothing is the shape this packet removed from the rows. */
               canContribute && notes.length > 0
-                ? "Pick one to write the announcement from it."
+                ? live.length > 0
+                  ? "Pick one that is live to write the announcement from it."
+                  : "Nothing here is live yet, so there is nothing to announce."
                 : null
             }
           >
@@ -3305,7 +3369,32 @@ function Ship() {
                 // invalid markup React refuses to hydrate. The slot sits outside
                 // the clickable region, so the row keeps its own click AND the
                 // addresses become real doors.
+                /*
+                 * ── WHAT IT CONTAINS LEADS THE SECOND LINE (P-96) ──────────
+                 *
+                 * The merge gate learned this the expensive way: "one file in a
+                 * checkout module" and "ninety lines of CSS in a stylesheet
+                 * nothing imports" are the same green check and different
+                 * decisions. The list said neither -- it named the product and
+                 * whether it was live, both of which are true of a release that
+                 * contains nothing anyone would want.
+                 *
+                 * ONE LINE, not the gate's four. This surface's own rule is that
+                 * a row is one line plus a different second fact and never
+                 * wraps, so the row takes the summary's LEAD sentence and the
+                 * release in focus carries the rest. Absent while the read is
+                 * out: a row that says nothing is honest, and one that says "no
+                 * files" because a query has not answered is not.
+                 */
+                const ev = evidenceFor(e);
+                const contains = ev ? releaseSummaryLines(ev)[0] : null;
+                const cannotAnnounce =
+                  canContribute && !mayAnnounce({ productionUrl: e.production_url ?? null })
+                    ? whyNotAnnounceable({ deployment: ev?.deployment ?? null })
+                    : null;
                 const meta = [
+                  contains,
+                  cannotAnnounce,
                   e.product_name ?? null,
                   e.opportunity_title ? `from ${e.opportunity_title}` : null,
                   // A PR number with no URL is a fact but not a door, so it stays
@@ -3357,7 +3446,25 @@ function Ship() {
                     time={ago(e.released_at)}
                     action={doors}
                     onClick={
-                      canContribute
+                      /*
+                       * ── ONLY A LIVE RELEASE CAN BE ANNOUNCED (P-96) ────────
+                       *
+                       * An announcement is the one thing here a stranger reads.
+                       * Every row offered the composer, including releases that
+                       * merged and were never promoted -- so the act that goes
+                       * out was available over changes that had not.
+                       *
+                       * `mayAnnounce` reads `production_url`, which
+                       * `listChangelog` resolves from environment=production AND
+                       * status=success. That is the provider's word, and it is
+                       * the only word strong enough to say this out loud: a
+                       * pasted address is recorded `claimed` precisely so it can
+                       * never stand as proof that something shipped.
+                       *
+                       * The row keeps its other two clicks. What goes is the
+                       * composer, and the reason is on the row.
+                       */
+                      canContribute && mayAnnounce({ productionUrl: e.production_url ?? null })
                         ? () => startFrom(e)
                         : e.production_url
                           ? () =>
@@ -3462,30 +3569,42 @@ function Ship() {
             ) : !docEntry ? (
               <NoReleaseYet />
             ) : (
-              <Prose markdown>
-                <p>
-                  Everything below is read from rows this release already has: the bet it came from,
-                  the spec and its outcome contract, the design gate, the changeset and its pull
-                  request, the production deploy, and the outcome once Learn settles it. No sentence
-                  here was written for this document, and whatever is missing is named rather than
-                  left out.
-                  {notes.length > 1
-                    ? " It covers the release marked above; pick another to read that one instead."
-                    : null}
-                  {/* SAID BECAUSE THE CONTROL IS OTHERWISE UNEXPLAINED. "Refresh it
+              <>
+                {/* ── THE EVIDENCE, IN FULL, FOR THE ONE IN FOCUS (P-96) ──────
+                    The same lines the merge gate composes, plus where it went.
+                    Here rather than on every row because this surface's rule is
+                    that only the post in focus carries its evidence, and four
+                    facts on every row is the wrap it forbids. Above the prose:
+                    what the release contains decides whether the document below
+                    is worth reading. */}
+                {(docEvidence ? releaseSummaryLines(docEvidence) : []).map((line) => (
+                  <Row key={line} tight lead={line} />
+                ))}
+                <Prose markdown>
+                  <p>
+                    Everything below is read from rows this release already has: the bet it came
+                    from, the spec and its outcome contract, the design gate, the changeset and its
+                    pull request, the production deploy, and the outcome once Learn settles it. No
+                    sentence here was written for this document, and whatever is missing is named
+                    rather than left out.
+                    {notes.length > 1
+                      ? " It covers the release marked above; pick another to read that one instead."
+                      : null}
+                    {/* SAID BECAUSE THE CONTROL IS OTHERWISE UNEXPLAINED. "Refresh it
                   from the change" is in this region's header, and a reader who
                   does not know what it re-reads cannot tell it from a reload.
                   The named columns are exactly the ones the entry copies from
                   the changeset. */}
-                  {docEntry.changeset_id
-                    ? /* NO BARE DOUBLE HYPHENS IN A SENTENCE A CAMERA READS. The
+                    {docEntry.changeset_id
+                      ? /* NO BARE DOUBLE HYPHENS IN A SENTENCE A CAMERA READS. The
                      pair that stood here rendered as two hyphens either side of
                      a clause, which looks like a markdown artefact rather than
                      punctuation; commas carry the same aside. */
-                      ' If a line here is behind the change itself, most often the spec, which a promote links after this entry was written, "Refresh it from the change" re-reads the changeset and brings the title, the notes, the pull request and that link back into the entry.'
-                    : null}
-                </p>
-              </Prose>
+                        ' If a line here is behind the change itself, most often the spec, which a promote links after this entry was written, "Refresh it from the change" re-reads the changeset and brings the title, the notes, the pull request and that link back into the entry.'
+                      : null}
+                  </p>
+                </Prose>
+              </>
             )}
           </Region>
         )}
