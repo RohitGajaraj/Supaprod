@@ -8314,7 +8314,7 @@ Not walked live -- no dev server / browser access in this worktree this session,
 limitation as every packet closed here. A1: two tabs on Helio, a press in one should land in the
 other's Waiting list within a tick with no reload.
 
-### P-85 · Start's example sentences fit the workspace · Lane: **A3** (after P-83) · Status: CODE DONE (483233b41; A3 reports build 0, tsc 0, 14,280 / 0; A1 gate running; publish with P-59d) · Moves: 2
+### P-85 · Start's example sentences fit the workspace · Lane: **A3** (after P-83) · Status: CODE DONE (483233b41; A1 on the tip: build 0 clean, tsc 0, 14,280 / 0 / 0; PUBLISHED 09:20 IST 09-04; the probe read follows) · Moves: 2
 
 **Why.** In the empty probe workspace (no product), Start's examples read *Make the checkout
 accept an American Express card* and two more from Relay's checkout. A person whose product is a
@@ -8382,7 +8382,7 @@ recorded reason must not be returned to Build by the given-up path (the reason i
 hold is null, since between ticks the track reads as ready. The press waits on that card.
 
 
-### P-59d · A Ship blocked on a recorded reason stays at Ship, and its card draws between ticks · Lane: **A2** (after P-73) · Status: CODE DONE (5d347225f; A1 on the tip: build 0 clean, tsc 0, 14,276 / 0 / 0; publish with P-85) · Moves: 1, 3
+### P-59d · A Ship blocked on a recorded reason stays at Ship, and its card draws between ticks · Lane: **A2** (after P-73) · Status: CODE DONE (5d347225f; A1 on the tip: build 0 clean, tsc 0, 14,276 / 0 / 0; PUBLISHED 09:20 IST 09-04 with P-85; the press follows propagation) · Moves: 1, 3
 
 **Why.** The live walk of 08:50: the tablet track looped Build to Ship and back overnight, and on
 the served build its screen read *Ready when you are.* with no card because the hold was null
