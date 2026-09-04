@@ -5,6 +5,7 @@ import {
   withMarketingCacheHeaders,
   withSecurityHeaders,
   withWorkerTotalTiming,
+  withEntryLoadTiming,
   withBuildCanary,
 } from "./server";
 
@@ -254,6 +255,56 @@ describe("withWorkerTotalTiming", () => {
     const result = withWorkerTotalTiming(response, 200);
     expect(result.headers.get("X-Supaprod-Timing")).toBe(result.headers.get("Server-Timing"));
     expect(result.headers.get("X-Supaprod-Timing")).toBe("worker-total;dur=200");
+  });
+});
+
+describe("withEntryLoadTiming", () => {
+  test("a warm request reports nothing, because it paid nothing", () => {
+    // The whole point of the null: the entry promise is already resolved, so
+    // this request did not pay the import. Repeating the last cold number
+    // here would make one real cost look like every request's cost.
+    const response = new Response("<html></html>", {
+      status: 200,
+      headers: { "Server-Timing": "landing-data;dur=272" },
+    });
+    const result = withEntryLoadTiming(response, null);
+    expect(result.headers.get("Server-Timing")).toBe("landing-data;dur=272");
+    expect(result.headers.get("Server-Timing")).not.toContain("entry-load");
+  });
+
+  test("names the cold module load that worker-total structurally excludes", () => {
+    const response = new Response("<html></html>", { status: 200 });
+    const result = withEntryLoadTiming(response, 2612.4);
+    expect(result.headers.get("Server-Timing")).toBe("entry-load;dur=2612");
+  });
+
+  test("appends to a route's phases rather than overwriting them", () => {
+    const response = new Response("<html></html>", {
+      status: 200,
+      headers: { "Server-Timing": "landing-data;dur=471" },
+    });
+    const result = withEntryLoadTiming(response, 2600);
+    expect(result.headers.get("Server-Timing")).toBe("landing-data;dur=471, entry-load;dur=2600");
+  });
+
+  test("the cold request's header accounts for the TTFB the old one understated", () => {
+    // The measured shape on 2026-09-04: a 3.06s cold read whose worker-total
+    // said 471ms. Composed the way the fetch handler composes them, the
+    // header now carries the span that explains the difference.
+    const loader = new Response("<html></html>", {
+      status: 200,
+      headers: { "Server-Timing": "landing-data;dur=471" },
+    });
+    const result = withWorkerTotalTiming(withEntryLoadTiming(loader, 2600), 471);
+    expect(result.headers.get("Server-Timing")).toBe(
+      "landing-data;dur=471, entry-load;dur=2600, worker-total;dur=471",
+    );
+    expect(result.headers.get("X-Supaprod-Timing")).toBe(result.headers.get("Server-Timing"));
+  });
+
+  test("preserves the body and status it does not own", () => {
+    const response = new Response("hello", { status: 404 });
+    expect(withEntryLoadTiming(response, 12).status).toBe(404);
   });
 });
 

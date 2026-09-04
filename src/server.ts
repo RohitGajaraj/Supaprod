@@ -169,6 +169,34 @@ export function withMarketingCacheHeaders(response: Response, pathname: string):
  * handler) names the running deploy so a reader can confirm which build
  * actually answered before reasoning about its numbers at all.
  */
+/**
+ * P-135: the phase that was structurally invisible. `worker-total` wraps
+ * `handler.fetch` and therefore starts *after* the dynamic import that loads
+ * the SSR entry -- so the cold instantiation, measured live at 2.6s, reported
+ * itself as 471ms and every reading of that header understated a cold request
+ * by an order of magnitude. The span is not slow because it is unmeasured,
+ * but it stayed unexplained because it was: three sessions attributed the
+ * cold seconds to render, to bundle size and to the network in turn, and the
+ * header agreed with all three because it excluded the only span that moved.
+ *
+ * Only the request that actually performed the import reports the cost. A
+ * warm request inherits an already-resolved promise and pays nothing; having
+ * it repeat the last cold number would turn one real cost into a fleet-wide
+ * fiction, which is the same class of error as the timer this fixes.
+ */
+export function withEntryLoadTiming(response: Response, ms: number | null): Response {
+  if (ms === null) return response;
+  const headers = new Headers(response.headers);
+  const prior = headers.get("Server-Timing");
+  const entry = `entry-load;dur=${Math.round(ms)}`;
+  headers.set("Server-Timing", prior ? `${prior}, ${entry}` : entry);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export function withWorkerTotalTiming(response: Response, ms: number): Response {
   const headers = new Headers(response.headers);
   const prior = headers.get("Server-Timing");
@@ -479,7 +507,13 @@ export default {
     }
 
     try {
+      // P-135: `entryWasCold` is read before the await, because the await
+      // itself is what populates the promise -- reading it after would call
+      // every request warm and measure nothing.
+      const entryWasCold = serverEntryPromise === undefined;
+      const entryStarted = performance.now();
       const handler = await getServerEntry();
+      const entryLoadMs = entryWasCold ? performance.now() - entryStarted : null;
       const fetchStarted = performance.now();
       const response = await handler.fetch(request, env, ctx);
       const fetchMs = performance.now() - fetchStarted;
@@ -496,7 +530,10 @@ export default {
       // wrappers stand down on.
       return withBuildCanary(
         withWorkerTotalTiming(
-          withMarketingCacheHeaders(withAgentDiscoveryLink(securedResponse), url.pathname),
+          withEntryLoadTiming(
+            withMarketingCacheHeaders(withAgentDiscoveryLink(securedResponse), url.pathname),
+            entryLoadMs,
+          ),
           fetchMs,
         ),
       );
