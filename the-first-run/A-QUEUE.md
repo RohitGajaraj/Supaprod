@@ -132,6 +132,12 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     the gated one. The report names both shas and the count and files of the commits between, and
     never claims they are the same; A1's gate on the landed tip is the one that closes the packet
     (A2, 19:17 IST 09-04).
+24. **A claim about what a surface renders is made after reading the surface, never from the
+    function that feeds it.** P-142's report said the Specs list would show 15 where it showed 29;
+    the two functions it filtered have had no caller since R-34 retired the board, and no surface
+    lists a workspace's specs at all. The lane read the function and reasoned about the page for an
+    hour without opening it, and caught itself inside the hour. A report that names a surface
+    names the file that renders it, or the served read (A2 and A1, 19:52 IST 09-04).
 
 ### The bar a packet is verified against, in this order
 
@@ -10676,6 +10682,14 @@ all 12 checks ok.
 
 
 ### P-142 · Define finds the existing spec before it writes a new one · Lane: **A2** (after P-138) · Status: PUBLISHED, SCOPE 3 LANDED ON A RETIRED READER (912afe3f4; A1 gate 167 on the landed tip: build 0, tsc 0, 14,719 pass / 0 fail; published 19:47 IST; scopes 1 and 2 stand: both Define doors check the workspace before the model call, 13 guards on the agent door and 20 on the matcher; scope 3 is a correct rule on `listSpecs` and `listPrds`, which A2 found have no caller since R-34 retired the `/plan` board, so 29 to 15 is a fact about the database and not a change any person can see; the acceptance is restated as that fact, 29 drafts before, 15 after, 14 superseded, read from the database; closing move: delete the two dead readers with a guard that nothing composes them, keep the approvals family's clause, which is the live reader, and put the finding in the ledger, a rule landed on a function nothing calls) · Moves: 1, 3
+
+**Open, for the founder (A2, 19:50 IST 09-04).** No surface lists a workspace's specs: `/plan` is a
+redirect to `/start` under R-34 and nothing replaced the list. A spec is reached one at a time,
+through its track, by direct link, or as a gate on Waiting. If work living in the run is the
+design, the 14 retired drafts are invisible and cost nothing, and P-142 is done at scopes 1 and 2.
+If a person is expected to open a workspace and see what has been specified, the missing list is a
+larger gap than anything in the queue. A2 put the question to the founder; it is his call, and the
+queue carries no guess as a fact until he makes it.
 
 **Why.** A2's measurement on Helio, 19:10 IST 09-04: 13 of 29 draft specs are duplicates of
 another draft, in five title groups (four *Installers working panel and inverter basements lose
