@@ -10718,7 +10718,7 @@ sentence on a solved problem lands on the shipped spec. Full suite on the tip, t
 **DoD.** Pushed; migration applied; the counts before and after.
 
 
-### P-143 · A hold that waits for a day says the day · Lane: **A3** (after the P-140 fix, before P-141) · Status: PUSHED, LIVE READ PENDING (deadb4832; tsc 0, 14,698 pass / 0 fail, build 0, docs:check clean; A1 reads the served card on 2fdf93b6 once it deploys) · Moves: 2
+### P-143 · A hold that waits for a day says the day · Lane: **A3** (after the P-140 fix, before P-141) · Status: PUBLISHED, LIVE READ PENDING (deadb4832; tsc 0, 14,698 pass / 0 fail, build 0, docs:check clean; A1 reads the served card on 2fdf93b6 once it deploys; A1 gate 168 on the landed tip 598b32c79: build 0, tsc 0, 14,722 pass / 0 fail; published 19:59 IST; A1 reads the card on 2fdf93b6 once served) · Moves: 2
 
 **Why.** The shipped track's run screen at Learn, 19:13 IST 09-04: *Tried 3 times and nothing
 changed; trying again at 00:00.* The track's `deferred_until` is 2026-09-21 00:00 UTC, the
