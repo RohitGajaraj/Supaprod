@@ -8637,7 +8637,7 @@ probe, Arriving should read its P-63 zero state and Outcomes should read six cal
 in Helio, both should read unchanged.
 
 
-### P-94 · Every claim on Outcomes is one the repo can show · Lane: **A3** (now) · Status: READY · Moves: 1, 2
+### P-94 · Every claim on Outcomes is one the repo can show · Lane: **A3** (now) · Status: CLAIMED (A3) 10:25 IST 09-04 · Moves: 1, 2
 
 **Why.** Outcomes reads *On the free plan this record fades after 30 days. Keep it.*
 `FREE_MEMORY_RETENTION_DAYS = 30` lives in `entitlements.ts` and `plg-memory-expiry.ts` describes a
