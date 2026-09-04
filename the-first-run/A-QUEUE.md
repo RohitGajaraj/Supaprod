@@ -7856,7 +7856,7 @@ tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 walks the probe again.
 
 
-### P-76 · The per-user AI rate limit exists · Lane: **A3** (after P-58b) · Status: CODE DONE, PUBLISHED 05:53 IST 09-04 (0d05eea5f; A1 suite on the tip 14,186 / 0 / 0, tsc 0; table and ledger verified by object below) · Moves: 1
+### P-76 · The per-user AI rate limit exists · Lane: **A3** (after P-58b) · Status: CODE DONE, PUBLISHED 05:53 IST 09-04 (0d05eea5f; A1 suite on the tip 14,186 / 0 / 0, tsc 0; table and ledger verified by object below) · item 2 (the trip sentence) published 06:08 IST on 14,190 / 0 / 0 · Moves: 1
 
 **Why.** F-192's guard found that `user_ai_rate_limits` does not exist in any schema:
 `checkUserAiRateLimit` reads it, gets 42P01, logs a warning and returns `{ allowed: true }`, so
