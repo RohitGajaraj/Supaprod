@@ -10497,7 +10497,7 @@ tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads.
 
 
-### P-139 · The release document names the check that passed · Lane: **A3** (after P-136) · Status: READY · Moves: 2
+### P-139 · The release document names the check that passed · Lane: **A3** (after P-136) · Status: CLAIMED (A3) 17:55 IST 09-04 · Moves: 2
 
 **Why.** The first release's document (Ship page, 17:01 IST 09-04) says *No test evidence.
 Nothing records which tests ran for this release, so this document does not claim any did.*
