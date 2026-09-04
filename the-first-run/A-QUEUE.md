@@ -8442,6 +8442,17 @@ screen. Full suite on the tip, tsc 0, build 0 for anything you change in Supapro
 **DoD.** Report in the queue with the track id, PR, deployment rows and URL; A1 walks the route.
 
 
+
+**Press, A1, 11:17 IST 09-04.** On `2fdf93b6`'s run screen (title *Needs a restart*, map: *Discover
+Found 4 things. Decide The call is on the record. Plan Spec written. Design 8 drawings filed. Build
+On hold, A change was made. Ship Will need a code change to release.*): *Let Build try again*
+pressed at about 05:47 UTC, receipt *You released it. It runs again on its next turn. Press Run it
+now to walk it immediately.*, then *Run it now* pressed; title *Working*. Under the founder's
+standing authority of 00:09. The transcript's own words on why it was parked: the seat had
+implemented the read-only address card and the Change Address link and *cannot be committed due to
+a persistent conflict with a non-existent file (src/checkout/AddressStep.test.ts) that is claimed
+by another Studio mission*. Next read: whether Build commits onto PR #5's branch or writes
+`waiting-on-another-run` naming the run.
 ### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUBLISHED 09:38 IST 09-04 (b05fa6cf6; A1 on the tip: build 0 clean, tsc 0, 14,291 / 0 / 0; the keyboard walk follows) · Moves: 2, 5
 
 **Why.** Since 09-03 the product gained nine doors (P-60), a bottom bar and a sheet (P-81), the
