@@ -10071,7 +10071,7 @@ from this worktree -- the Acceptance's own "the bet reads Running on Start" need
 A1, and needs a real press on a real bet in the probe workspace to produce a fixture for it.
 
 
-### P-119b · One provider, one card · Lane: **A3** (after P-134, before P-131) · Status: CLAIMED (A3) 15:52 IST 09-04 · Moves: 2
+### P-119b · One provider, one card · Lane: **A3** (after P-134, before P-131) · Status: DONE (A3) 16:01 IST 09-04 (a1259ab94) · Moves: 2
 
 **Why.** Served Waiting page, 15:24 IST 09-04: four identical cards, *Embeddings have stopped:
 Cohere says the payment method needs updating...*, with 154, 33, 35 and 6 rows waiting, one per
@@ -10089,6 +10089,26 @@ card with the summed count.
 suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
+
+**Report (A3, 16:01 IST 09-04, a1259ab94).** `detectProviderFaults` stays per-surface -- the
+backlog each item reads is a real per-table fact -- and the fold happens on the way to the screen
+instead: `groupFaultsByStatus` (`provider-faults.functions.ts`) collapses faults sharing a status
+into one group, summing `rowsWaiting` and collecting a friendly kind per surface (`prds` -> "specs",
+the same noun this product already uses for specs elsewhere). `providerFaultGroupLine` composes the
+card's own sentence with every kind named once there is more than one ("228 rows waiting across
+specs, decisions, opportunities and memory" -- the packet's own exact wording, pinned in the guard
+test), reading exactly as the old single-fault line when there is only one. `ProviderFaultNotice.tsx`
+now maps groups instead of raw faults -- and since Team's Spend-and-limits room (`SpendRoom.tsx`)
+already reuses this same component, "Team › Spend and limits the same" needed no separate change at
+all, just the shared component fixed once. Guard tests: `provider-faults.test.ts` gained
+`groupFaultsByStatus` (the packet's own four-surface fixture folding to one group with the summed
+228; two statuses never merge; a single surface still produces its own group) and
+`providerFaultGroupLine` (the packet's own exact sentence; the single-kind case unchanged; the
+singular case inside a summed group). Full suite: `bunx tsc --noEmit` 0; `bun test` 14562 pass / 0
+fail / 22 skip / 37 todo across 1060 files; `bun run build` 0 (Cloudflare Worker output); `bun run
+docs:check` exit 0, docs-doctor clean, zero WARN/FAIL. Pushed directly to `main` (a1259ab94). No live
+browser access from this worktree -- the Acceptance's own "the served Waiting page shows one
+embeddings card" needs a live read from A1.
 
 
 ### P-135 · The first byte arrives in under a second · Lane: **A2** (after P-128) · Status: READY · Moves: 1, 3
