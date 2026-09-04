@@ -9431,7 +9431,7 @@ publish to actually observe — over to A1 to confirm live, per this session's s
 forward-looking acceptance checks. Returning to the watch loop.
 
 
-### P-121 · A release with no recorded file list is not accused · Lane: **A3** (after P-120) · Status: READY · Moves: 2
+### P-121 · A release with no recorded file list is not accused · Lane: **A3** (after P-120) · Status: CLAIMED (A3) 13:07 IST 09-04 · Moves: 2
 
 **Why.** Served Ship page, 12:10 IST 09-04, on the release the founder shows people ("Batch
 firmware push scheduler", in production since Jul 9): the entry reads *This change touches no
