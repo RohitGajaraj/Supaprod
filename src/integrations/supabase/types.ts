@@ -2733,6 +2733,7 @@ export type Database = {
           forecast_band_missed_at: number | null
           forecast_baseline: number | null
           forecast_claim: string | null
+          forecast_clause_id: string | null
           forecast_deferred_at: string | null
           forecast_deferred_count: number
           forecast_direction: string | null
@@ -2780,6 +2781,7 @@ export type Database = {
           forecast_band_missed_at?: number | null
           forecast_baseline?: number | null
           forecast_claim?: string | null
+          forecast_clause_id?: string | null
           forecast_deferred_at?: string | null
           forecast_deferred_count?: number
           forecast_direction?: string | null
@@ -2827,6 +2829,7 @@ export type Database = {
           forecast_band_missed_at?: number | null
           forecast_baseline?: number | null
           forecast_claim?: string | null
+          forecast_clause_id?: string | null
           forecast_deferred_at?: string | null
           forecast_deferred_count?: number
           forecast_direction?: string | null

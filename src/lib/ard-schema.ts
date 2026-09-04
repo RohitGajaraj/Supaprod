@@ -57,6 +57,12 @@ const CONTRACT_CLAUSE_JSON_SCHEMA = {
     oracle_ref: { type: ["string", "null"], maxLength: 2000 },
     uat_checked: { type: "boolean" },
     uat_checked_at: { type: ["string", "null"], format: "date-time" },
+    measures_decision_id: {
+      type: ["string", "null"],
+      format: "uuid",
+      description:
+        "P-150: the decision whose forecast this clause measures. Set at Plan alongside decisions.forecast_clause_id; never matched by prose. Absent means nobody linked this clause to a forecast.",
+    },
     created_at: { type: "string", format: "date-time" },
   },
   // `superseded_by`/`oracle_kind`/`oracle_ref` are `.nullable()` (not

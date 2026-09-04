@@ -1997,11 +1997,7 @@ async function resolveProductForPrd(
 ): Promise<string | null> {
   if (!prdId) return null;
   try {
-    const { data } = await supabase
-      .from("prds")
-      .select("product_id")
-      .eq("id", prdId)
-      .maybeSingle();
+    const { data } = await supabase.from("prds").select("product_id").eq("id", prdId).maybeSingle();
     return (data as { product_id?: string | null } | null)?.product_id ?? null;
   } catch {
     return null;
@@ -4655,6 +4651,26 @@ const researchSynthesize = def({
  * smaller loss than a station that cannot file at all, and it is the same loss
  * the human brief path has always carried.
  */
+/**
+ * One contract clause, as `prd.draft` files them.
+ *
+ * Hoisted out of the extraction block because P-150's forecast clause is built
+ * outside it and MUST have the identical shape: a clause the grader can read is
+ * one whose keys match what `ContractClauseSchema` requires, and two writers
+ * producing near-identical objects is how one of them quietly drifts.
+ */
+const clauseShape = (text: string, nowIso: string = new Date().toISOString()) => ({
+  id: crypto.randomUUID(),
+  text,
+  status: "standing" as const,
+  superseded_by: null,
+  // Every clause starts unclassified; `compileContractOraclesCore` is what fills
+  // these, and F-117's gate 9 reads them.
+  oracle_kind: null,
+  oracle_ref: null,
+  created_at: nowIso,
+});
+
 const prdDraft = def({
   name: "prd.draft",
   description:
@@ -5073,17 +5089,7 @@ const prdDraft = def({
       });
       const cj = (cres.json ?? {}) as ContractDraftJson;
       const nowIso = new Date().toISOString();
-      const clause = (text: string) => ({
-        id: crypto.randomUUID(),
-        text,
-        status: "standing" as const,
-        superseded_by: null,
-        // Every clause starts unclassified; `compileContractOraclesCore` below
-        // is what fills these, and F-117's gate 9 reads them.
-        oracle_kind: null,
-        oracle_ref: null,
-        created_at: nowIso,
-      });
+      const clause = (text: string) => clauseShape(text, nowIso);
       const metrics = contractStrings(cj.success_metrics, 8);
       const nonGoals = contractStrings(cj.non_goals, 6);
       const intent = typeof cj.intent === "string" ? cj.intent.trim().slice(0, 2000) : "";
@@ -5113,6 +5119,101 @@ const prdDraft = def({
       console.error(
         `prd.draft: contract extraction failed, spec filed without one: ${e instanceof Error ? e.message : String(e)}`,
       );
+    }
+
+    /*
+     * ── P-150 MOVE 1. THE FORECAST NAMES THE CLAUSE ITS READINGS WILL GRADE ──
+     *
+     * Measured on production 2026-09-04: three forecast metrics spelt four ways,
+     * one of six banded decisions carrying a spec id, and readings living on
+     * contract clauses keyed by clause id. **Nothing joined a forecast to the
+     * thing that measures it**, so "the readings the record holds for this
+     * metric" had no definition and the only way to compute it was to match
+     * prose against prose -- the guess P-144 scope 3 refused, because grading
+     * against the wrong number is worse than not grading.
+     *
+     * THE LINK IS MADE HERE BECAUSE THIS IS THE ONLY WRITER HOLDING BOTH. The
+     * decision is recorded at Decide, before any spec exists, so there is no
+     * clause for it to name at the time. `prd.draft` has the track, and the
+     * track has the decision.
+     *
+     * AND THE CLAUSE IS THE FORECAST'S OWN OBSERVABLE, NOT THE CLOSEST DRAFTED
+     * METRIC. Picking among the metrics the extractor invented would be the
+     * prose match wearing a different hat, and it can fail: nothing guarantees
+     * the extractor wrote a metric for the thing the decision actually bet on.
+     * Copying `forecast_how_we_will_know` in as a standing clause guarantees the
+     * graded clause EXISTS and is exactly what was promised. All 204 forecasts
+     * on the record carry an observable, averaging 110 characters, so this is
+     * always available and always fits.
+     *
+     * A duplicate of a drafted metric is possible and is the acceptable cost:
+     * two clauses saying the same thing is visible and correctable, while a
+     * forecast with nothing to grade it is the defect this closes.
+     */
+    let forecastLink: { decisionId: string; clauseId: string } | null = null;
+    if (trackId) {
+      try {
+        const { data: members } = await supabase
+          .from("spine_track_members")
+          .select("artifact_id,created_at")
+          .eq("track_id", trackId)
+          .eq("artifact_kind", "decision")
+          .is("superseded_at", null)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        const decisionId = (members ?? [])[0]?.artifact_id as string | undefined;
+        if (decisionId) {
+          const { data: d } = await supabase
+            .from("decisions")
+            .select("id,forecast_how_we_will_know,forecast_clause_id")
+            .eq("id", decisionId)
+            .maybeSingle();
+          const observable =
+            typeof (d as { forecast_how_we_will_know?: string | null } | null)
+              ?.forecast_how_we_will_know === "string"
+              ? (d as { forecast_how_we_will_know: string }).forecast_how_we_will_know.trim()
+              : "";
+          const alreadyLinked = (d as { forecast_clause_id?: string | null } | null)
+            ?.forecast_clause_id;
+          /*
+           * AN EXISTING LINK IS NEVER STOLEN. A second spec drafted on the same
+           * track does not get to repoint a forecast at its own clause: the
+           * readings already recorded against the first clause are what that
+           * forecast is graded on, and moving the pointer would silently change
+           * what a decision was judged by.
+           */
+          if (observable && !alreadyLinked) {
+            const forecastClause = {
+              ...clauseShape(observable.slice(0, 2000)),
+              measures_decision_id: decisionId,
+            };
+            const existing = (contract?.success_metrics ?? []) as unknown[];
+            contract = {
+              ...(contract ?? {
+                version: 1,
+                intent: "",
+                evidence_links: [],
+                non_goals: [],
+                budget: null,
+                ambiguity_policy: null,
+                drafted_by: "agent",
+                drafted_at: new Date().toISOString(),
+              }),
+              success_metrics: [...existing, forecastClause],
+            } as Record<string, unknown>;
+            forecastLink = { decisionId, clauseId: forecastClause.id };
+          }
+        }
+      } catch (e) {
+        /*
+         * FAIL-SOFT, like the contract extraction above. A spec filed without
+         * the link is today's behaviour exactly; a spec not filed at all because
+         * the link failed would lose the seat's work.
+         */
+        console.error(
+          `prd.draft: could not link the forecast to a clause on track ${trackId}: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
     }
 
     const { data: prd, error: pErr } = await supabase
@@ -5146,6 +5247,35 @@ const prdDraft = def({
       .select("id,title,status,workspace_id")
       .single();
     if (pErr) throw new Error(pErr.message);
+
+    /*
+     * ── P-150 MOVE 1, THE DECISION SIDE OF THE KEY ─────────────────────────
+     *
+     * Written after the insert rather than before it, because a decision
+     * pointing at a clause on a spec that was never filed is a dangling key,
+     * and a dangling key on the grading path is worse than no key: a reader
+     * that resolves it finds nothing and cannot tell "no reading yet" from
+     * "the spec does not exist". Absent is honest; broken is not.
+     *
+     * FAIL-SOFT AND LOUD. A failed write leaves the clause carrying
+     * `measures_decision_id` and the decision carrying nothing, which is a
+     * one-sided link -- readable, repairable, and no worse than today's zero
+     * links. Throwing here would lose a spec the seat has already written.
+     */
+    if (forecastLink) {
+      const { error: linkErr } = await supabase
+        .from("decisions")
+        .update({ forecast_clause_id: forecastLink.clauseId } as never)
+        .eq("id", forecastLink.decisionId)
+        // Only if nobody linked it in between. The same rule as the read above,
+        // enforced at the write so two concurrent drafts cannot both claim it.
+        .is("forecast_clause_id", null);
+      if (linkErr) {
+        console.error(
+          `prd.draft: clause ${forecastLink.clauseId} names decision ${forecastLink.decisionId}, but the decision could not be pointed back at it: ${linkErr.message}`,
+        );
+      }
+    }
     /*
      * F-136. The oracles, on the door the loop actually uses.
      *

@@ -2647,6 +2647,22 @@ const ContractClauseSchema = z.object({
   // "uat" clauses only: a real checklist item the human ticks off.
   uat_checked: z.boolean().optional(),
   uat_checked_at: z.string().nullable().optional(),
+  /*
+   * P-150 move 1: THE KEY, clause side. The decision whose forecast this clause
+   * measures, with `decisions.forecast_clause_id` pointing back at this clause.
+   *
+   * Both sides are written together at Plan by `prd.draft`, which is the only
+   * writer holding the decision and the spec at once -- at `decision.record`
+   * time the spec does not exist yet, so there is no clause to name. The link is
+   * a recorded fact with an author and a time, and is NEVER a similarity
+   * computed at read time: measured 2026-09-04, the three forecast metrics in
+   * production are spelt four ways and only one of six banded decisions carries
+   * a spec id, so a prose match is the guess P-144 refused.
+   *
+   * Optional because every clause written before this column existed has no
+   * decision behind it, and absent must keep meaning "nobody linked this".
+   */
+  measures_decision_id: z.string().uuid().nullable().optional(),
   created_at: z.string(),
 });
 export type ContractClause = z.infer<typeof ContractClauseSchema>;
