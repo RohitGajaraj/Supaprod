@@ -8648,7 +8648,7 @@ probe, Arriving should read its P-63 zero state and Outcomes should read six cal
 in Helio, both should read unchanged.
 
 
-### P-94 · Every claim on Outcomes is one the repo can show · Lane: **A3** (now) · Status: CLAIMED (A3) 10:25 IST 09-04 · Moves: 1, 2
+### P-94 · Every claim on Outcomes is one the repo can show · Lane: **A3** (now) · Status: CODE DONE, PUSHED ffe40e990 · Moves: 1, 2
 
 **Why.** Outcomes reads *On the free plan this record fades after 30 days. Keep it.*
 `FREE_MEMORY_RETENTION_DAYS = 30` lives in `entitlements.ts` and `plg-memory-expiry.ts` describes a
@@ -8669,6 +8669,48 @@ that a reader enforces.
 suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; the report lists each sentence and its enforcer.
+
+**Report, A3, 10:38 IST 09-04.** Checked live before writing anything: `memory_expiry_enabled()`
+reads `false`. `memory-tick.ts`'s DELETE-based expiry sweep is fully built and gated behind that
+flag; neither `recallMemoryRefs` (AI recall) nor `getStandingRecord` (Outcomes' own "X of Y
+lessons" count) ever consulted `FREE_MEMORY_RETENTION_DAYS` on their own. Nothing faded, for
+anyone, on any plan. The sentences, by surface:
+
+| Sentence | Where | Was | Enforcer now |
+| --- | --- | --- | --- |
+| "On the free plan this record fades after 30 days. Keep it." | `RetentionLine.tsx` (Outcomes) | Marketed a mechanism that did not run | `getStandingRecord` now excludes `agent_memory` older than `FREE_MEMORY_RETENTION_DAYS` from `memoriesTotal`/`memoriesReached` for free tier -- a read-side hide, never a delete |
+| "Your decision record stops fading. It keeps guiding." (Pro) | `entitlements.ts` `planPresentation` (Settings, via `PlanPicker`; also `/pricing`) | Contradicted Free's OWN highlight two lines below it, which correctly says the decision record never fades on any tier (RPT-14) | Reworded to Free's own "past calls" vocabulary -- "Past calls keep guiding forever. Nothing fades." |
+| Start | -- | No plan-rule sentence found | N/A |
+| Settings (route file itself) | -- | No hand-typed plan sentence; all plan copy renders from `planPresentation()` | Single source, already correct by construction once the string above was fixed |
+
+Chose the read-side filter over flipping `memory_expiry_enabled()`: that flag's own comment and
+`entitlements.test.ts`'s G1.1 BLOCKER both say turning it on without founder approval "would
+silently start deleting" -- a real, irreversible-in-effect action outside this packet's standing,
+distinct from the session's own broad authorization for migrations/writes. `resolvePlanTier()`
+extracted from `getBillingState`'s own inline logic (`billing.functions.ts`) so Outcomes' new
+filter and Settings' billing state resolve a workspace's tier through the SAME function --
+`getBillingState`'s own behavior is unchanged, a pure extraction.
+
+Named as open, not silently bundled: `recallMemoryRefs` itself (whether the LOOP still draws on a
+free workspace's memory past the window) is untouched. That is a migration to the
+`match_agent_memory`/`recent_agent_reflections` RPCs, touching live AI-recall behavior for every
+plan -- materially larger and separate, documented as a gap in `brain-standing.functions.ts`'s own
+comment rather than attempted hastily here.
+
+**For A1/founder awareness:** the Pro highlight fix touches a string `planPresentation()` also
+feeds to the public `/pricing` page -- outward-facing per CLAUDE.md, so flagging rather than
+treating the fix as final there. The in-app surfaces this packet actually scopes (Outcomes,
+Settings) are fixed either way.
+
+Guard (`every-plan-sentence-cites-an-enforcer.test.ts`): `RetentionLine` cites the constant, not a
+hand-typed number; `getStandingRecord`'s filter cites `FREE_MEMORY_RETENTION_DAYS` and
+`resolvePlanTier` and never applies the cutoff when the workspace is unresolved (matching this
+file's own existing rule for `workspace_id` itself); the deletion gate is named in the code, not
+silently left dark; the retired "decision record stops fading" contradiction cannot reappear;
+Start and Settings carry no second hand-typed plan sentence outside `planPresentation`.
+
+Full suite on the rebased tip (6dbc2f113): `bun run build` exit 0 (twice, pre- and post-rebase),
+`bunx tsc --noEmit` exit 0, `bun test` 14,337 / 0 / 22 skip / 37 todo. PUSHED ffe40e990.
 
 ### P-97 · The docs gate is clean · Lane: **A3** (after P-94) · Status: READY · Moves: 5
 
