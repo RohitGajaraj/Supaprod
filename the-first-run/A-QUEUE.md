@@ -8533,6 +8533,16 @@ hold for the person, not a station done (**P-123**, A2). A1 pressed *Send it bac
 are the person's calls; A1 makes them on the Waiting page under the founder's authority, then
 presses *Run it now* at Ship and reads the release gate.
 
+
+**LIVE WALK, the spec, 12:23 IST 09-04 (06:53 UTC).** The release seat's two prerequisites are
+the person's calls. The spec f2aa82f1 was `draft` with the critic at *Revise, 3 risks, 80%
+confident*: the return flow from address management undefined; no-address and multiple-address
+states listed as open questions; "seamlessly returned" not technically defined. A1 read the risks
+against the merged change: the no-address state is built (a fallback with *Add Address*), the
+return flow is the host app's `onChangeAddress` callback and outside this repo, multiple addresses
+are not in the MVP scope. Approved the spec on its page at 06:53 UTC (*Approved · saved 12:23 PM*)
+under the founder's authority, with those three dispositions as the reason. Next: the design gate.
+
 ### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUBLISHED 09:38 IST 09-04 (b05fa6cf6; A1 on the tip: build 0 clean, tsc 0, 14,291 / 0 / 0; the keyboard walk follows) · Moves: 2, 5
 
 **Why.** Since 09-03 the product gained nine doors (P-60), a bottom bar and a sheet (P-81), the
@@ -9046,7 +9056,7 @@ change. (2) A workspace setting, default on, for whether the product writes its 
 repository, with the sentence that says what is lost when it is off (the run's record lives only
 here). (3) A guard that the card names the record files whenever the commit carries them.
 
-**Acceptance.** The card on PR #5 shows the line; the setting exists and is read by Build; and the record files are this track's (live 06:20 UTC 09-04, PR #5's `spec.md` was the tablet track's spec, `plan.md` mixed both tracks' steps and `intent.md` was placeholders: a record that is wrong is worse than none, so the writer reads the track's own artifacts or writes nothing). Full
+**Acceptance.** The card on PR #5 shows the line; the setting exists and is read by Build; and the record files are this track's (live 06:20 UTC 09-04, PR #5's `spec.md` is this track's own spec f2aa82f1, which Define wrote with the tablet track's framing, `plan.md` mixes both tracks' steps and `intent.md` is placeholders: a record with placeholders is worse than none, so the writer fills every section from the track's artifacts or leaves the file out; A1's first read called the spec the tablet track's, which was wrong). Full
 suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
@@ -9346,6 +9356,26 @@ sent 2fdf93b6 back to Ship by hand at 06:48.
 fixture with a production deploy advances. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
+
+
+### P-118b · Reclaiming a hosting slot is a person's press · Lane: **A2** (after P-123, before P-116) · Status: READY · Moves: 2, 3
+
+**Why.** P-118 built the verdict (*may this slot be reclaimed*: ours by slug, changeset closed, not
+serving production, past a seven-day keep) and, deliberately, nothing that deletes: a deleted
+preview is not recoverable, not every app on the account is ours, and deleting from the founder's
+hosting account is an outward act that wants a person's authority (A2, 12:20 IST; A1 agrees).
+
+**Scope.** Settings › Hosting lists the org's apps with the verdict and the holding reason per row
+(*serving production*, *changeset still open*, *kept until 09-11*, *not ours*), a *Reclaim* press on
+each reclaimable row that deletes that one app and records it on the deployment row, and the
+plan's count (*10 of 10 in use*) at the top. Nothing unattended. Guard: the press deletes only a
+row whose verdict is reclaimable; the list never offers a press on an app the product did not
+derive.
+
+**Acceptance.** The live page lists the ten apps with verdicts; a press on a July shell removes it.
+Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 presses one live.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
