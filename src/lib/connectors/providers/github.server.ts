@@ -438,3 +438,25 @@ export async function resolveGitHub(args: {
   if (!envRepo) throw new Error(NOT_CONNECTED_ERROR);
   return { token, repo: envRepo, source: "env", actorLabel: "env token" };
 }
+
+/**
+ * A person's own words for `resolveGitHub`'s `source`, so a failure can name
+ * WHICH credential the attempt used, not just that it failed (P-122,
+ * A-QUEUE.md). Live 06:32 UTC 09-04: a failed preview retry's row said only
+ * "The repository's main branch could not be read (403)" -- true, and
+ * useless for telling a stale token apart from a wrong one, because nothing
+ * on the row said which of the workspace's connections had even been tried.
+ */
+export function githubAuthSourceLabel(source: "binding" | "user_connection" | "env"): string {
+  if (source === "binding") return "the workspace's GitHub connection";
+  if (source === "user_connection") return "your own GitHub connection";
+  return "the deployment's shared GitHub token";
+}
+
+/** "read with the workspace's GitHub connection as supaprod-connector" --
+ *  appended to a failure reason once a credential was actually resolved and
+ *  used, so a 403 from GitHub itself can be explained from the record
+ *  without a second trip to the logs. */
+export function readWithLine(gh: { source: "binding" | "user_connection" | "env"; actorLabel: string }): string {
+  return `read with ${githubAuthSourceLabel(gh.source)} as ${gh.actorLabel}`;
+}

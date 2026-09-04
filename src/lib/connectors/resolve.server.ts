@@ -84,6 +84,40 @@ function admin(): SupabaseClient {
   return supabaseAdmin as unknown as SupabaseClient;
 }
 
+/**
+ * A binding row's read came back with nothing, either because there
+ * genuinely is none or because the client that asked could not see one that
+ * exists (P-122, A-QUEUE.md).
+ *
+ * ── WHY A SILENT EMPTY RESULT ISN'T TRUSTED WHEN A userClient WAS GIVEN ──
+ * Live 06:32 UTC 09-04: a person's "Try the preview again" press passed its
+ * own RLS client as `userClient`, resolved a WEAKER source than the tick had
+ * reached the same repository with eight minutes earlier, and failed on
+ * GitHub with a 403 the record could not explain. This file's own header
+ * comment already loads the owning CONNECTION via admin "because connections
+ * rows are own-row RLS"; the BINDING lookup itself was the one link in the
+ * chain still trusting a caller-supplied client's empty read to mean "no
+ * binding exists" when it could just as easily mean "this client could not
+ * see one that does".
+ *
+ * Retrying with admin when the first read is empty does not widen who may
+ * ACT: `bindingConnectionAllowed`'s own KI-34 membership check still runs on
+ * whatever this returns, so a binding a caller has no business using is
+ * still refused there, unchanged. It only widens who may DISCOVER that their
+ * own workspace's binding exists, which is exactly what a workspace's own
+ * tick and a workspace member's own retry are both supposed to be able to
+ * do -- called only when `userClient` was actually supplied and came back
+ * empty; a caller with no client at all is already querying admin directly.
+ */
+export async function bindingOrRetryWithAdmin(
+  userClient: SupabaseClient | undefined,
+  found: BindingRow | undefined,
+  reread: (db: SupabaseClient) => Promise<BindingRow | undefined>,
+): Promise<BindingRow | undefined> {
+  if (found || !userClient) return found;
+  return reread(admin());
+}
+
 // Workspace plan_tier cache: tier is rarely flipped and requested on every
 // resolveProviderAuth call with requiredCapability set. Cache it in-process
 // so the hot path costs at most one RPC per workspace per TTL, not a round-trip
@@ -321,16 +355,26 @@ export async function resolveProviderAuth(args: {
   // 0. Product-scoped binding (BYO-P1b). Most specific — overrides workspace.
   if (productId && workspaceId) {
     try {
-      const db = userClient ?? admin();
-      let q = db
-        .from("connection_bindings")
-        .select("id,connection_id,resource_id,resource_label,config,created_by")
-        .eq("workspace_id", workspaceId)
-        .eq("product_id", productId)
-        .eq("provider", provider);
-      if (resourceKind) q = q.eq("resource_kind", resourceKind);
-      const { data: bindings, error } = await q.order("created_at", { ascending: true }).limit(1);
-      const binding = !error && bindings ? (bindings[0] as BindingRow | undefined) : undefined;
+      const readProductBinding = async (
+        db: SupabaseClient,
+      ): Promise<BindingRow | undefined> => {
+        let q = db
+          .from("connection_bindings")
+          .select("id,connection_id,resource_id,resource_label,config,created_by")
+          .eq("workspace_id", workspaceId)
+          .eq("product_id", productId)
+          .eq("provider", provider);
+        if (resourceKind) q = q.eq("resource_kind", resourceKind);
+        const { data: bindings, error } = await q
+          .order("created_at", { ascending: true })
+          .limit(1);
+        return !error && bindings ? (bindings[0] as BindingRow | undefined) : undefined;
+      };
+      const binding = await bindingOrRetryWithAdmin(
+        userClient,
+        await readProductBinding(userClient ?? admin()),
+        readProductBinding,
+      );
       if (binding) {
         const { data: conn } = await admin()
           .from("connections")
@@ -382,16 +426,26 @@ export async function resolveProviderAuth(args: {
   // supabaseAdmin because connections rows are own-row RLS.
   if (workspaceId) {
     try {
-      const db = userClient ?? admin();
-      let q = db
-        .from("connection_bindings")
-        .select("id,connection_id,resource_id,resource_label,config,created_by")
-        .eq("workspace_id", workspaceId)
-        .eq("provider", provider)
-        .is("product_id", null);
-      if (resourceKind) q = q.eq("resource_kind", resourceKind);
-      const { data: bindings, error } = await q.order("created_at", { ascending: true }).limit(1);
-      const binding = !error && bindings ? (bindings[0] as BindingRow | undefined) : undefined;
+      const readWorkspaceBinding = async (
+        db: SupabaseClient,
+      ): Promise<BindingRow | undefined> => {
+        let q = db
+          .from("connection_bindings")
+          .select("id,connection_id,resource_id,resource_label,config,created_by")
+          .eq("workspace_id", workspaceId)
+          .eq("provider", provider)
+          .is("product_id", null);
+        if (resourceKind) q = q.eq("resource_kind", resourceKind);
+        const { data: bindings, error } = await q
+          .order("created_at", { ascending: true })
+          .limit(1);
+        return !error && bindings ? (bindings[0] as BindingRow | undefined) : undefined;
+      };
+      const binding = await bindingOrRetryWithAdmin(
+        userClient,
+        await readWorkspaceBinding(userClient ?? admin()),
+        readWorkspaceBinding,
+      );
       if (binding) {
         const { data: conn } = await admin()
           .from("connections")

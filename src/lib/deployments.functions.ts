@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { resolveProviderAuth } from "@/lib/connectors/resolve.server";
 import { repoProviderFor, type RepoRef } from "@/lib/connectors/repo-provider";
 import { deploymentRowsFor, type DeploymentRow } from "@/lib/deployments";
-import { resolveGitHub } from "@/lib/connectors/providers/github.server";
+import { resolveGitHub, readWithLine } from "@/lib/connectors/providers/github.server";
 import {
   collectRepoFiles,
   deployChangesetApp,
@@ -2063,13 +2063,31 @@ export const retryPreviewNow = createServerFn({ method: "POST" })
       let url: string | null = null;
       let reason: string | null = null;
       let headSha: string | null = null;
+      // Set the moment resolveGitHub returns, so a failure that happens AFTER
+      // a credential was actually resolved can still name it (P-122).
+      let resolvedGh: { source: "binding" | "user_connection" | "env"; actorLabel: string } | null =
+        null;
       try {
+        /*
+         * NO userClient (P-122, A-QUEUE.md). This used to pass the caller's
+         * own RLS client, which is what let the retry resolve a WEAKER
+         * source than `ci-poll-tick.ts`'s own call (no userClient, always
+         * admin for the binding lookup) had reached the same repository
+         * with eight minutes earlier: live 06:32 UTC 09-04, "Try the preview
+         * again" resolved past the workspace's real binding and failed on
+         * GitHub with a 403 the record could not explain. `resolveGitHub`'s
+         * own binding lookup already loads the CONNECTION via admin either
+         * way (see resolve.server.ts's header); the retry now reads the
+         * BINDING the same way the tick always has, and
+         * `bindingOrRetryWithAdmin` (resolve.server.ts, this same packet)
+         * makes that safe even for a future caller that does pass one.
+         */
         const gh = await resolveGitHub({
           userId,
           workspaceId: (cs.workspace_id as string | null) ?? null,
           productId: (cs.product_id as string | null) ?? null,
-          userClient: db,
         });
+        resolvedGh = { source: gh.source, actorLabel: gh.actorLabel };
         const refRes = await fetch(
           `https://api.github.com/repos/${cs.repo as string}/git/ref/heads/main`,
           {
@@ -2101,6 +2119,13 @@ export const retryPreviewNow = createServerFn({ method: "POST" })
       } catch (e) {
         ok = false;
         reason = e instanceof Error ? e.message : "The attempt failed before it reached the host.";
+      }
+      // BESIDE THE REASON, NOT INSTEAD OF IT (P-122): only when a credential
+      // was actually resolved and used for this attempt -- `resolveGitHub`
+      // itself throwing ("not connected") already names the problem, and
+      // appending "read with ..." to that would claim a read happened.
+      if (!ok && reason && resolvedGh) {
+        reason = `${reason} (${readWithLine(resolvedGh)})`;
       }
 
       /*
