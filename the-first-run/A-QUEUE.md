@@ -9400,7 +9400,7 @@ on the host, not on GitHub) and the row names its source. Full suite on the tip,
 **DoD.** Pushed; the three numbers; A1 presses live.
 
 
-### P-123 · A refusal at Ship holds for the person; it does not finish the station · Lane: **A2** (after P-118, before P-116) · Status: READY · Moves: 1
+### P-123 · A refusal at Ship holds for the person; it does not finish the station · Lane: **A2** (after P-118, before P-116) · Status: DONE (cae865835; A1 gate: build 0, tsc 0, 14,411 pass / 0 fail; published 12:49 IST) · Moves: 1
 
 **Why.** 06:11:28 UTC 09-04: the release-verifier seat declined to ship the merged change
 (*Do not ship ... until PRD approved and design gate cleared*, a decision row with `status:
