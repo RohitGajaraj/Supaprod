@@ -10222,7 +10222,7 @@ the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads Learn live.
 
 
-### P-128b · The static build ships · Lane: **A2** (now, before P-135) · Status: READY · Moves: 1, 3
+### P-128b · The static build ships · Lane: **A2** (now, before P-135) · Status: BUILDER HALF PUBLISHED (ef26977dd; A1 gate: build 0, tsc 0, 14,587 pass / 0 fail; published 16:13 IST; the upload, preview and promote path continues under this packet) · Moves: 1, 3
 
 **Why.** R-41 is placed. P-128 shipped the detection (a repo's shape read from `package.json`,
 the output directory from the dependency, the hold sentence and the handback for a shape we do not
