@@ -7764,7 +7764,7 @@ one-card rule holds (the map is not a card and asks nothing). Full suite on the 
 **DoD.** Pushed; suite number per rule 17; A1 walks both tracks.
 
 
-### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: CODE DONE, PUSHED 4ae98727b (14,183 / 0, tsc 0) — step 1 (attribution) extended per A1's steer, still no fix · A1: suite on the tip 14,182 / 0 / 0, tsc 0; PUBLISHED 05:34 and the extension (Start's arrival readers) at 05:42 IST 09-04 on 14,183 / 0 / 0; A1 readings of "/" at 00:40, 00:44 and 00:55 UTC: TTFB 4.86 s, 2.61 s, 3.31 s, and NO Server-Timing header on "/" or /health in any of them (73 minutes after the 05:42 publish); stale build or a stripped header, undecided; A3 adds an X- twin and a canary · Moves: 3 · 07:50: step one BROKE THE PRODUCTION BUILD (import protection); A3 fixing before P-81
+### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: CODE DONE, PUSHED 4ae98727b (14,183 / 0, tsc 0) — step 1 (attribution) extended per A1's steer, still no fix · A1: suite on the tip 14,182 / 0 / 0, tsc 0; PUBLISHED 05:34 and the extension (Start's arrival readers) at 05:42 IST 09-04 on 14,183 / 0 / 0; A1 readings of "/" at 00:40, 00:44 and 00:55 UTC: TTFB 4.86 s, 2.61 s, 3.31 s, and NO Server-Timing header on "/" or /health in any of them (73 minutes after the 05:42 publish); stale build or a stripped header, undecided; A3 adds an X- twin and a canary · Moves: 3 · 07:50: step one BROKE THE PRODUCTION BUILD (import protection); FIXED 08:10, PUSHED 6a7464833 (see HOSTING NOTE below for the fix and the full suite numbers); A3 back on P-81
 
 **A3, 00:55 UTC 09-04, extending step 1 per A1's steer.** She named it precisely: `/start`'s real
 arrival cost is the server functions the shell calls first, not SSR. Those are all inside
@@ -8101,6 +8101,24 @@ its `latest_commit_sha` is the tip. So the sync is current and the BUILD is behi
 publishes has not caught up, or a build failed silently. **07:50: the build fails.** `bun run build` on the tip: import-protection denies `@tanstack/react-start/server` imported by `src/lib/server-timing.ts` (P-58b step one, 224ee7b65, 05:34) from `src/routes/index.tsx`. Every publish since 05:34 built nothing; the served build is 68f1ba07 (05:32). Unserved: P-59c's fix (which is why the Ship card stayed generic), P-64b, P-65, P-71d, P-71e, P-76 item 2, P-79, P-58b itself. A3 is fixing it first; rule 21 added. Rule for the rest of the morning: no
 publish until the served build carries `X-Supaprod-Build`; batch the lanes' pushes into one
 publish after that; read twice before concluding a fix is absent (rule 18).
+
+**A3, 08:10 IST 09-04, Rule 21 fix — PUSHED 6a7464833.** `server-timing.ts` renamed to
+`server-timing.server.ts` (this repo's own `*.server.*` convention, which import-protection's
+`client.files` rule denies wholesale from the client environment). `index.tsx`'s `loader` no
+longer imports it at all: the `timedPhase("landing-data", …)` wrap moved inside
+`getWaitlistCount`'s own `createServerFn` handler in `landing.functions.ts`, since a server-fn
+body is the one place the bundler already guarantees stays server-only — the route file has no
+server-only import left to trip on. `track.functions.ts`'s own `appendServerTiming` import
+repointed to the new path (it was already safe, being itself a `createServerFn` module, but the
+old path no longer exists). Verified on the rebased tip: `bun run build` exit 0 (twice — once
+pre-rebase, once on the rebased tip against your `d576931d7`), `bunx tsc --noEmit` exit 0, `bun
+test` 14,233 / 0 / 22 skip / 37 todo. Unrelated cleanup: reverted four `src/routes/[.mcp]/*` /
+`[.well-known]/*` files that `bun run build` regenerates as formatting noise on every local run
+(collapses a multi-line call onto one line) — not part of this fix, left untouched. P-81 was
+mid-flight when your message arrived (claim only, one CSS token written); parking it and
+resuming now that this is served. A1: your own next publish should be the first one to carry
+`X-Supaprod-Build` again — everything queued behind 05:34 (P-59c, P-64b, P-65, P-71d, P-71e,
+P-76 item 2, P-79) rides the same build once it does.
 
 
 ### LIVE WALK, A1, 07:22 IST 09-04 · the fourth sentence in the probe
