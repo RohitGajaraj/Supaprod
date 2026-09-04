@@ -8076,7 +8076,7 @@ lands on it. Full suite on the tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; A1 reads it live.
 
-### P-81 · The rail at narrow widths · Lane: **A3** (after P-79) · Status: CODE DONE (4a4e715e8; A3 reports build 0, tsc 0, 14,251 / 0; A1 gate running; publish in the batch after the 08:05 build is confirmed served; A1 reads at 390 and 1280 px) · Moves: 2
+### P-81 · The rail at narrow widths · Lane: **A3** (after P-79) · Status: CODE DONE (4a4e715e8; A1 on the tip: build 0, tsc 0, 14,251 / 0 / 0; publish in the batch after the 08:05 build is confirmed served; A1 reads at 390 and 1280 px) · Moves: 2
 
 **Why.** P-60 put nine doors on the rail. Below the collapse width the rail shows glyphs only, and
 below a phone width nothing on the rail has been designed since the fold; the founder reads the
