@@ -585,3 +585,26 @@ Prettier requoting four route files at each other (P-82), the tablet track churn
 (deferred 24 hours, P-59d). A2's P-86 is the honest Ship itself: one real change to the address
 step through Build, preview, gate and promote by the product's own route. The date call holds at
 23 September; 8 September for a real Ship is P-86.
+
+## Checkpoint, 11:45 IST 09-04
+
+**The honest Ship, one hour in.** Build on `2fdf93b6` committed all seven files (PR #5 is a
+coherent change now: the component, its tests, the CSS, three `.supaprod/` record files); CI is red
+on five type errors the tests and the component disagree on. A merge gate rose over the red CI
+with no card. Behind it, three blockers that were not the gate: two ghost runs on the mission
+counted as live workers (13 of 14 `waiting_approval` runs on the account have no pending
+approval; the resume sweep has been starved since July by seven un-resumable fixture rows), the
+run screen's decline button was refused by the server on every press and showed nothing, and the
+spine moved the track to Ship on the open red PR, taking the mission's one live-run slot. Presses
+made under the founder's authority: ghosts halted with reasons, the gate declined with the reason
+through the transcript card, the declined run ended, the track deferred to 08:13 UTC so the CI fix
+loop can spend its two attempts. Packets out of the hour: P-114 (A2, the class), P-115 (A3, the
+silent refusal), P-116 (A2, the card on both raise paths), P-112, P-113.
+
+**Lanes.** Rule 22 in force from the founder's 11:23: three READY packets ahead per lane. A3 on
+P-103, then P-115, P-104, P-105, P-109. A2 on P-114, then P-116, P-112, P-113; P-86's presses
+stay A1's. Published this hour: P-96, P-97 (deployment e7b8bec6; served-build read pending).
+
+**Next reads.** The fix loop's dispatch on PR #5 after the Ship try ends; then green checks, the
+deterministic merge gate with a card, the press; the served Ship page for P-96; P-42's grader
+after 17:30 IST; the tablet track stays deferred until 03:18 UTC 09-05.
