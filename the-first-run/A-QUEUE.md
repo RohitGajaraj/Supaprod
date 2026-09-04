@@ -10019,7 +10019,7 @@ suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers.
 
 
-### P-134 · A track remembers the bet it started from · Lane: **A3** (after P-130, before P-131) · Status: CLAIMED (A3) 15:28 IST 09-04 · Moves: 1, 2
+### P-134 · A track remembers the bet it started from · Lane: **A3** (after P-130, before P-131) · Status: DONE (A3) 15:50 IST 09-04 (d3c87d48c) · Moves: 1, 2
 
 **Why.** A3's read on P-126 (14:59 IST 09-04): the shipped track 2fdf93b6 carries no opportunity
 id anywhere in its lineage (decision, mission, four spec revisions), and `startTrack` never
@@ -10041,6 +10041,34 @@ autonomous path with no opportunity row writes none.
 bet reads *Running* on Start. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
+
+**Report (A3, 15:50 IST 09-04, d3c87d48c).** The packet's own premise -- "`decisions.opportunity_id`
+exists" -- was checked against the live schema before writing anything and was false: neither
+`spine_tracks` nor `decisions` carried the column. Migration `20260909091600` adds
+`opportunity_id` (uuid, nullable, FK to `opportunities`) to both, applied live via the Lovable MCP
+and patched by hand into `src/integrations/supabase/types.ts` -- this repo's own two guard tests
+(migrations-vs-generated-types, and no-query-names-a-column-its-table-lacks) both caught the gap
+immediately, exactly the failure mode they exist to catch. Write path: `startTrackCore`/`startTrack`
+take an optional `opportunityId`, written onto the track's own insert only when the press named a
+bet (never an example, never new-capability). The autonomous Sense->Decide path
+(`registry.server.ts`'s record-decision tool) reads the track's own `opportunity_id` back and
+stamps it onto the decision it writes -- resolved by id, never by title, exactly the packet's own
+rule. Read path: `listTopOpportunities` now also resolves a track already running on a bet
+(`spine_tracks.opportunity_id`, `status: open`, shipped outranks running); `ExampleJobs` reads
+*Running* with a *See the run* door instead of *Start it*, so a bet cannot be started twice.
+**Scoped down from the packet's own (2), stated rather than left implicit:** Outcomes and the
+release document's own "paid off by / traced to this bet" resolution are left for their own pass --
+the release document side IS the very next packet, P-131, and building it here risked two lanes
+converging on the same file for the same fact. (3) as asked: no backfill, the seeds are demo
+furniture and the one real historical track (2fdf93b6) predates this column and stays without one.
+Guard tests: `a-track-started-from-a-sentence-reaches-a-workspace.test.ts` gained the
+`opportunity_id` write assertion beside the existing `theme_id`/`product_id` ones;
+`ExampleJobs.test.tsx` gained a "running" describe block (the label, the door, shipped outranking
+running). Full suite: `bunx tsc --noEmit` 0; `bun test` 14534 pass / 0 fail / 22 skip / 37 todo
+across 1059 files; `bun run build` 0 (Cloudflare Worker output); `bun run docs:check` exit 0,
+docs-doctor clean, zero WARN/FAIL. Pushed directly to `main` (d3c87d48c). No live browser access
+from this worktree -- the Acceptance's own "the bet reads Running on Start" needs a live read from
+A1, and needs a real press on a real bet in the probe workspace to produce a fixture for it.
 
 
 ### P-119b · One provider, one card · Lane: **A3** (after P-134, before P-131) · Status: READY · Moves: 2
