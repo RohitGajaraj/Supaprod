@@ -8577,6 +8577,12 @@ Timezone: his call delegated to A1; the product should read the device's zone by
 profile as an override (P-130), and A1 set his profile to Asia/Kolkata at 09:24 UTC so every
 surface reads IST now.
 
+
+**The announcement, 15:00 IST 09-04.** A1 wrote the release's announcement as a draft on the Ship
+page (*Checkout no longer asks for an address it already has*; what changed, what it means, shipped
+date, PR #5, the live address), saved as a draft only, and put the text in front of the founder.
+Send for approval and publish wait for his reply; nothing outward has gone out.
+
 ### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUBLISHED 09:38 IST 09-04 (b05fa6cf6; A1 on the tip: build 0 clean, tsc 0, 14,291 / 0 / 0; the keyboard walk follows) · Moves: 2, 5
 
 **Why.** Since 09-03 the product gained nine doors (P-60), a bottom bar and a sheet (P-81), the
@@ -9884,6 +9890,28 @@ reclaim on a 404 settles the same as on a 204; the count line from a fixture hos
 
 **Acceptance.** Live: the next reclaim settles without a reload; the summary shows the plan count.
 Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
+
+
+### P-133 · The announcement composer starts from the release · Lane: **A3** (after P-132) · Status: READY · Moves: 2
+
+**Why.** Ship page, 15:00 IST 09-04: *What shipped: pick one that is live to write the announcement
+from it*, and picking the live release opens the release document, not the composer; *Write
+another* opens a composer with an empty title and body. A1 wrote the first announcement by hand
+from the release notes and the PR. The release already holds a title, notes, the PR and the live
+address (P-124, P-96); the composer should start from them and let the person edit, in the plain
+register (no filler, a verifiable mechanism first).
+
+**Scope.** The composer opens prefilled from the picked release: title from the release title,
+body with *What changed* from the notes, *What it means for your customers* left for the person
+with one prompt line, and the shipped date, PR and address as the closing line; the *from it*
+press on a live release opens the composer, the document stays one press away. Guard: a fixture
+release prefills the three parts; an empty composer is only reachable from *Write another* with no
+release picked.
+
+**Acceptance.** Picking the live release on the served page opens a prefilled composer. Full
+suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
