@@ -6,7 +6,10 @@ import { useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 
 import "../styles/workbench.css";
-import { PageHeading } from "@/components/meridian/surface-parts";
+import { PageHeading, Door } from "@/components/meridian/surface-parts";
+import { Quiet } from "@/components/meridian/Quiet";
+import { getRunDoorState } from "@/lib/spine/track.functions";
+import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { TrackRunLeft, TrackPaneRight } from "@/components/track/TrackRun";
@@ -213,7 +216,30 @@ function TrackPage() {
   const { trackId } = Route.useParams();
   const { start, artifact } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
-  const { activeWorkspace, activeProduct, productsVisible } = useWorkspace();
+  const { activeWorkspace, activeWorkspaceId, activeProduct, productsVisible } = useWorkspace();
+  /*
+   * ── ARRIVED HERE WITH NOTHING RUNNING (P-109, A-QUEUE.md) ────────────────
+   *
+   * The rail's Run door resolves to the account's own most recently touched
+   * track when nothing is live -- `runDoor` in `AppFrame.tsx`. Read here off
+   * the SAME query key rather than a second reader, so the two cannot
+   * disagree about which track that is: `isLastRunLanding` is true only when
+   * THIS track is the one the door itself would have opened, and nothing on
+   * it is running right now, which is the exact fact the banner states.
+   *
+   * Deliberately not "any idle track" -- a person reopening an OLDER, finished
+   * run they are intentionally reviewing is not "the last run" in the
+   * account-wide sense that sentence claims, and saying so there would be a
+   * fact about a different track.
+   */
+  const fRunDoor = useServerFn(getRunDoorState);
+  const runDoorQ = useQuery({
+    queryKey: ["run-door", activeWorkspaceId ?? null],
+    queryFn: () => fRunDoor({ data: { workspaceId: activeWorkspaceId ?? null } }),
+    enabled: !!activeWorkspaceId,
+  });
+  const isLastRunLanding =
+    runDoorQ.data?.state === "last" && runDoorQ.data.trackId === trackId;
 
   /*
    * QUEUE 71 ON THIS ROUTE, WHERE IT WAS MISSING. The route composes the two
@@ -378,6 +404,21 @@ function TrackPage() {
               decideWaived={decideWaived}
             />
             <GateBanner trackId={trackId} />
+            {/* THE RUN DOOR'S OWN "LAST" LANDING (P-109, A-QUEUE.md). Only
+                when THIS track is the one `runDoor` itself would have opened,
+                so a person deliberately reopening an older run never reads a
+                sentence about a different one. */}
+            {isLastRunLanding ? (
+              <Quiet
+                says="Nothing is running."
+                whatWillAppear="This is the last run; start a sentence to begin another."
+                action={
+                  <Door onClick={() => void navigate({ to: SIGNED_IN_HOME })}>
+                    Start a sentence
+                  </Door>
+                }
+              />
+            ) : null}
           </>
         ) : (
           <PageHeading
