@@ -110,6 +110,17 @@ function RunRow({
          * because pinning is a preference, not the run's own verdict.
          */
         <span className="flex items-center gap-mrd-2">
+          {/* WHAT THIS RUN HAS COST, IN THE ACCOUNT'S OWN CURRENCY (P-140,
+              A-QUEUE.md) -- the same lead the run screen settled on (P-136):
+              credits, never a fabricated zero when nothing has been debited
+              yet. Quiet and tabular, the same voice `RunFooter` reads its own
+              elapsed/cost figures in, so a person is not asked to read two
+              different registers for the same kind of fact on one page. */}
+          {r.creditsLine ? (
+            <span className="font-mrd-mono text-mrd-data tabular-nums text-mrd-mute">
+              {r.creditsLine}
+            </span>
+          ) : null}
           {r.pinnedAt ? (
             <StatusChip status="you" pulse={false}>
               First

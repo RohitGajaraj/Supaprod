@@ -1154,6 +1154,14 @@ export type StartRun = {
    * waiting, never that the thing it built was already live.
    */
   liveSince: string | null;
+  /**
+   * What this track's own runs have debited from `credit_ledger`, summed
+   * across every run regardless of status (P-140, A-QUEUE.md). Null when
+   * nothing has ever been debited under any of this track's runs -- a real,
+   * common answer for a track that has not reached Build yet -- never a
+   * fabricated zero.
+   */
+  credits: number | null;
 };
 
 /**
@@ -1342,6 +1350,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
           pinnedByTrack,
           forecastByTrack,
           liveByTrack,
+          creditsByTrack,
         ] = await Promise.all([
           (async () => {
             const byTrack = new Map<string, { tool: string }>();
@@ -1600,6 +1609,50 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             }
             return byTrack;
           })(),
+          (async () => {
+            /*
+             * CREDITS SPENT, PER TRACK (P-140, A-QUEUE.md). Reuses the exact
+             * join P-136 verified on the run screen -- agent_runs.trace_id ->
+             * ai_events.trace_id -> credit_ledger.ai_event_id, through the
+             * service-role client `creditsSpentByTrace` already reads with
+             * (ai_events RLS is per-user, and a track's runs may belong to
+             * more than one workspace member) -- rather than a second, looser
+             * reader that could disagree with the run screen's own number.
+             *
+             * ITS OWN TWO-HOP CHAIN, like `workingByTrack` above: this row's
+             * own `agent_runs.trace_id` read, then `creditsSpentByTrace`'s own
+             * two reads. Concurrent with the other five branches, so it adds
+             * to the SLOWEST branch's time rather than to the sum of all six
+             * -- the same shape P-32 already fixed this reader to have.
+             *
+             * NOT SCOPED TO RUNNING RUNS, unlike `workingByTrack`: a track's
+             * total spend has to count every run that ever debited, not only
+             * the one running right now. No `.limit()` for the same reason
+             * `gateByTrack`'s own reads carry none -- up to 50 tracks' worth
+             * of runs on one page, which has not needed bounding elsewhere in
+             * this function either.
+             */
+            const byTrack = new Map<string, number>();
+            const { data: runRows } = await supabase
+              .from("agent_runs")
+              .select("track_id, trace_id")
+              .in("track_id", ids)
+              .not("trace_id", "is", null);
+            const traceToTrack = new Map<string, string>();
+            for (const r of (runRows ?? []) as Array<{
+              track_id: string | null;
+              trace_id: string | null;
+            }>) {
+              if (r.track_id && r.trace_id) traceToTrack.set(r.trace_id, r.track_id);
+            }
+            const creditsByTrace = await creditsSpentByTrace([...traceToTrack.keys()]);
+            for (const [trace, credits] of Object.entries(creditsByTrace)) {
+              const trackId = traceToTrack.get(trace);
+              if (!trackId) continue;
+              byTrack.set(trackId, (byTrack.get(trackId) ?? 0) + credits);
+            }
+            return byTrack;
+          })(),
         ]);
 
         return rows.map((r) => {
@@ -1632,6 +1685,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             pinnedAt: pinnedByTrack.get(r.id) ?? null,
             forecast: forecastByTrack.get(r.id) ?? null,
             liveSince: liveByTrack.get(r.id) ?? null,
+            credits: creditsByTrack.get(r.id) ?? null,
           };
         });
       } catch (e) {

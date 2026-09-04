@@ -348,6 +348,9 @@ export type StartRowInput = {
   /** When this track's own work first reached production, or null (P-126,
    *  A-QUEUE.md). */
   liveSince?: string | null;
+  /** What this run has debited from `credit_ledger`, or null when nothing has
+   *  (P-140, A-QUEUE.md). */
+  credits?: number | null;
 };
 
 export type StartRowKind = "needs-you" | "running" | "finished" | "abandoned" | "waiting";
@@ -362,7 +365,16 @@ export type StartRow = {
   at: number;
   /** A person put this one first. Ordered by when they said it. */
   pinnedAt: number | null;
+  /** "1,234 credits", or null when nothing has been debited yet -- a real,
+   *  common answer, never a fabricated zero (P-140, A-QUEUE.md). */
+  creditsLine: string | null;
 };
+
+/** "1,234 credits" / "1 credit", the plural rule already in use everywhere
+ *  else this product states a credits figure (settings, payments). */
+export function creditsWord(n: number): string {
+  return `${n.toLocaleString()} ${n === 1 ? "credit" : "credits"}`;
+}
 
 /**
  * The order a person needs, which is not the order the database has.
@@ -554,6 +566,7 @@ export function startRows(
         middle: startRowMiddle(r, now, words, phraseFor, zone),
         at: Date.parse(r.updatedAt) || 0,
         pinnedAt: r.pinnedAt ? Date.parse(r.pinnedAt) || null : null,
+        creditsLine: r.credits && r.credits > 0 ? creditsWord(r.credits) : null,
       }))
       /*
        * ── A PIN OUTRANKS THE KIND, AND ONLY WITHIN WHAT IS STILL LIVE ────────
