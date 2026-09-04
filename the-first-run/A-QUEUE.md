@@ -9580,7 +9580,7 @@ Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 presses one live.
 
 
-### P-124 · A release is named by its notes, and a pressed card leaves · Lane: **A3** (after P-122) · Status: READY · Moves: 2
+### P-124 · A release is named by its notes, and a pressed card leaves · Lane: **A3** (after P-122) · Status: CLAIMED (A3) 13:34 IST 09-04 · Moves: 2
 
 **Why.** The first live release on the Ship page (12:29 IST 09-04) is titled *Shipped an update*
 everywhere (the promote card, Live releases, Where it is live, What shipped) while its release
