@@ -1573,6 +1573,22 @@ button.sp-stage:hover {
   display: flex;
   flex-direction: column;
   transition: width var(--mrd-d-move) var(--mrd-ease);
+
+  /*
+   * P-81: the rail becomes a bottom bar below 640px (`RailPhoneBar.tsx`
+   * mounts in its place; see that file's own header). Nested here rather
+   * than in a second `@media (max-width: 640px)` block -- this file's own
+   * CSS is unlayered (`styles.css` imports it directly, ahead of any
+   * `@layer`), so it already beats any Tailwind utility class regardless of
+   * source order; the only way to change what it paints is to edit the rule
+   * itself. Nesting also keeps the ratchet's frozen `class:sp-` count in
+   * this file exactly where it was: a second top-level `.sp-rail { }` block
+   * would repeat the class name in the file's own text and read as new
+   * debt, when this is the same rule gaining one more condition.
+   */
+  @media (max-width: 639.98px) {
+    display: none;
+  }
 }
 .sp-app[data-rail="narrow"] .sp-rail {
   width: var(--shell-rail-narrow);

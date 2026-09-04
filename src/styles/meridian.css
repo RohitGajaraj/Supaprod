@@ -995,6 +995,35 @@
   --mrd-gutter-x: clamp(20px, 2.9cqi, 44px);
 
   /*
+   * ── THE ONE STRUCTURAL BREAKPOINT, NAMED HERE, LITERAL EVERYWHERE ELSE
+   * (P-81, 2026-09-04) ──────────────────────────────────────────────────
+   *
+   * The gutter above is fluid on purpose (the founder's own ruling: "not just
+   * limited to these four sizes... dynamically adapt"), and that rule is right
+   * for SPACING, which can interpolate continuously. A layout MODE cannot: a
+   * vertical rail and a bottom tab bar are two different shapes, not one shape
+   * scaled down, so there is no `clamp()` between them -- at some width the
+   * product has to pick one. This is that width.
+   *
+   * `640px`, not invented for this packet: `shell.css`'s own `.sp-live` /
+   * `.sp-strip` rules already treat 640px as the phone floor, measured
+   * against real devices (390px, 360px, 320px) before this packet existed.
+   * P-81 extends the SAME floor to the rail rather than picking a second
+   * number two nearby breakpoints would have to agree on forever after.
+   *
+   * A CSS CUSTOM PROPERTY CANNOT APPEAR INSIDE AN `@media` CONDITION -- that
+   * is a hard limit of the language, not a choice this file is making. So
+   * this token documents the value and every `@media (max-width: 640px)`
+   * that answers to it repeats the literal number, the same way `shell.css`
+   * already did before this token existed. Grep `640px` to find every rule
+   * this token governs; changing the value means changing all of them, and
+   * a test cannot enforce that a CSS number matches a CSS number written in a
+   * different file, which is a known and accepted gap the comment closes
+   * instead.
+   */
+  --mrd-bp-phone: 640px;
+
+  /*
    * THE READING MEASURE AS A WIDTH. `--mrd-measure` is 68ch and belongs to
    * type; this is the same idea expressed as a box, for a COLUMN that holds a
    * heading, a paragraph and a field together -- those have different natural
@@ -2216,6 +2245,23 @@
 }
 
 /*
+ * P-81: a surface arriving from the SCREEN EDGE it is anchored to, not from
+ * the centre `mrd-pop-in` is for. `RailPhoneBar.tsx`'s "More" sheet is the
+ * first caller -- the same gap `Dialog.tsx`'s own header describes for
+ * `--mrd-scrim` and `--mrd-shadow-pane` before it was built: nothing in
+ * Meridian animated a bottom-anchored panel because nothing in Meridian was
+ * one yet.
+ */
+@keyframes mrd-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/*
  * REDUCED MOTION. Decoration stops; information does not. An elapsed timer
  * keeps ticking even with animation off, because freezing the number tells
  * someone waiting on a long job that it has stalled. That distinction is the
@@ -2228,6 +2274,7 @@
   [style*="mrd-fade-up"],
   [style*="mrd-fade-in"],
   [style*="mrd-pop-in"],
+  [style*="mrd-sheet-up"],
   [style*="mrd-eq"],
   [style*="mrd-spin"] {
     animation-duration: 1ms !important;
@@ -2355,6 +2402,7 @@ html[data-motion="off"] [style*="mrd-shimmer"],
 html[data-motion="off"] [style*="mrd-fade-up"],
 html[data-motion="off"] [style*="mrd-fade-in"],
 html[data-motion="off"] [style*="mrd-pop-in"],
+html[data-motion="off"] [style*="mrd-sheet-up"],
 html[data-motion="off"] [style*="mrd-eq"],
 html[data-motion="off"] [style*="mrd-spin"] {
   animation-duration: 1ms !important;

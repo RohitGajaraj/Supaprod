@@ -158,6 +158,7 @@ import { initialsFrom } from "@/lib/initials";
 import { useTheme } from "@/hooks/use-theme";
 import { FOOTER_NAV, PRIMARY_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
 import { BoardPanel } from "./BoardPanel";
+import { RailPhoneBar } from "./RailPhoneBar";
 import { ShortcutSheet, useShortcutSheetKey } from "./ShortcutSheet";
 import { AccountMenu, ScopeMenu } from "./ScopeMenu";
 import { SampleBanner } from "@/components/meridian/SampleBanner";
@@ -2044,6 +2045,9 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         ) : null}
 
         <div className="sp-mid">
+          {/* P-81: `.sp-rail` itself hides below 640px now (shell.css, nested
+              inside its own rule) -- `RailPhoneBar` takes over down there,
+              mounted below. */}
           <aside className="sp-rail">
             {/* ── THE HEAD OF THE RAIL ─────────────────────────────────────
               Two controls the founder asked for on review and that did not
@@ -2354,6 +2358,16 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         been a control that does nothing when pressed. It renders null until
         something opens it, so mounting it costs nothing until it is used. */}
         <AuditLineageSheet />
+        {/* P-81: the rail's phone-width replacement. Fixed-position, renders
+            nothing above 640px (its own `sm:hidden`) -- mounted once here
+            rather than inside `.sp-rail` so it survives the rail's own
+            `display: none` at that width. `liveLead` is `.sp-live`'s own
+            first fact, carried down rather than recomputed. */}
+        <RailPhoneBar
+          liveLead={liveLead ?? undefined}
+          onLiveClick={strip?.mode === "tab" ? undefined : liveTarget.go}
+          liveTitle={strip?.mode === "tab" ? undefined : liveTarget.title}
+        />
       </div>
     </RunStripProvider>
   );
