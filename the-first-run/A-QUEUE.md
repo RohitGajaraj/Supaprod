@@ -9796,7 +9796,7 @@ its start and A1 reads it. Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers.
 
 
-### P-128 · Ship hosts a repo that is not ours · Lane: **A2** (after P-113) · Status: READY · Moves: 1, 3
+### P-128 · Ship hosts a repo that is not ours · Lane: **A2** (after P-113) · Status: CLAIMED (A2) 16:05 IST 09-04 · Moves: 1, 3
 
 **Why.** The honest Ship went live today because relay-homeowner-app is a Supaprod template app:
 `supaprod.json` at the root and a `main.ts` that `Deno.serve`s a static page. `changeset-deploy`
