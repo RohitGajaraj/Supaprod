@@ -9313,7 +9313,7 @@ suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; the count.
 
 
-### P-119 · A paid service that stops paying out is told to the person · Lane: **A3** (after P-117) · Status: CLAIMED (A3) 12:34 IST 09-04 · Moves: 2, 3
+### P-119 · A paid service that stops paying out is told to the person · Lane: **A3** (after P-117) · Status: PUBLISHED, LIVE READ PENDING (fae06bd6b; A1 gate: build 0, tsc 0, 14,419 pass / 0 fail; published 12:58 IST; A1 reads the embeddings item on Waiting once served) · Moves: 2, 3
 
 **Why.** `error_events` read 06:36 UTC 09-04: `cron.embed-tick.*` has failed on every tick since
 **2026-09-01 08:30 UTC** with `embeddings 402: Please add or update your payment method` from
