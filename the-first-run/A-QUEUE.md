@@ -9174,7 +9174,7 @@ tick-raised; a fixture with `args` `{}` renders the card. Full suite on the tip,
 **DoD.** Pushed; the three numbers; A1 reads the card on the served page before pressing.
 
 
-### P-117 · docs-doctor does not read files git ignores · Lane: **A3** (after P-115) · Status: READY · Moves: 5
+### P-117 · docs-doctor does not read files git ignores · Lane: **A3** (after P-115) · Status: CLAIMED (A3) 12:06 IST 09-04 · Moves: 5
 
 **Why.** On A1's machine `bun run docs:check` fails on the tip with four FAIL rows, all
 `docs/screenshots/*.md`, a gitignored folder (CLAUDE.md: never commit a screenshot). The gate is
