@@ -1694,36 +1694,3 @@ export function TrackPaneRight({
   );
 }
 
-/** Today's stacked column, composed from the two panes. Unchanged callers. */
-export function TrackRun({ trackId, autoStart = false }: { trackId: string; autoStart?: boolean }) {
-  /*
-   * QUEUE 71: one crew-live fact for the whole screen, read off the
-   * transcript's run rows and shared with both panes, so a sweep-driven visit
-   * polls at visit speed on the artifact side too. The old wiring hardcoded
-   * this pane's flag to false, which is why tonight's watch watched real crews
-   * work behind a ten-second silence.
-   */
-  const [crewLive, setCrewLive] = React.useState(false);
-  /* The transcript row a person picked, which is what the right pane shows. */
-  const [selected, setSelected] = React.useState<string | null>(null);
-  return (
-    <div className="flex flex-col gap-mrd-6">
-      <TrackRunLeft
-        trackId={trackId}
-        autoStart={autoStart}
-        onCrewLive={setCrewLive}
-        crewLive={crewLive}
-        selectedArtifactId={selected}
-        onSelectArtifact={setSelected}
-      />
-      <TrackPaneRight
-        trackId={trackId}
-        isRunning={crewLive}
-        activeArtifactId={selected}
-        onOpenArtifact={setSelected}
-      />
-    </div>
-  );
-}
-
-export default TrackRun;
