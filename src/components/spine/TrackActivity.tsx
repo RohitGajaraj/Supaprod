@@ -212,6 +212,36 @@ export function chipOf(t: Turn) {
   return null;
 }
 
+/**
+ * ── ONE SENTENCE, VERDICT THEN SEAT (P-105, A-QUEUE.md) ───────────────────
+ *
+ * `headline` and `turnMeta` state two true facts about a turn and used to
+ * live on two lines of equal weight -- the verdict as a pressable subject,
+ * the seat and its duration in a meta line under it. Read on the served
+ * tablet track: a Design critic's turn carried its own 400-word paragraph
+ * ALWAYS VISIBLE under those two lines, so a transcript of seven turns was
+ * seven headings and a wall of prose, exactly the "dump of text" the founder
+ * named against the old run screen (P-37).
+ *
+ * This composes the same two facts into ONE sentence -- what happened, then
+ * who did it and how long it took -- which is the row's whole lead now, the
+ * rest folded underneath. Nothing here is a THIRD fact -- `headline` already
+ * leads with the consequence for a stopped turn (P-37, amendment 5), so a row
+ * that was stopped or refused leads with that fact automatically, the same
+ * way it always has.
+ *
+ * UNDER 140 CHARACTERS BY CONSTRUCTION, not by truncation: `headline` draws
+ * from a fixed, short vocabulary (`countKinds` joins at most a handful of
+ * kinds) and the rest is a name and a clock. There is no paragraph here to
+ * run long, which is the whole point -- the paragraph is what folds.
+ */
+export function transcriptLead(t: Turn): string {
+  const verdict = headline(t);
+  const took = t.tookMs != null ? formatElapsed(t.tookMs / 1000) : null;
+  const who = [t.agentName, took].filter(Boolean).join(", ");
+  return who ? `${verdict}. ${who}.` : `${verdict}.`;
+}
+
 /** The live turn's age, ticking. Reports the WORK, not the component. */
 /**
  * Can this turn's output be opened in the pane beside it?
@@ -529,6 +559,23 @@ export function TrackActivity({
   selected?: string | null;
 }) {
   const reducedMotion = usePrefersReducedMotion();
+  /*
+   * WHICH TURNS ARE OPEN (P-105, A-QUEUE.md). Closed by default: the seat's
+   * own paragraph, the handoff marks and the tool calls used to sit always
+   * visible under two lines already stating the verdict and the seat, which
+   * is exactly the "dump of text" the founder named against the old run
+   * screen (P-37). A press on the row opens it; the same press still selects
+   * the turn's newest artifact when there is one (`canOpen`), because that is
+   * a different, founder-cited contract this one press must not cost.
+   */
+  const [openTurns, setOpenTurns] = React.useState<Set<string>>(new Set());
+  const toggleTurn = (key: string) =>
+    setOpenTurns((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   const fetchActivity = useServerFn(getTrackActivity);
   const fetchChain = useServerFn(getTrackChain);
   const q = useQuery({
@@ -1230,25 +1277,40 @@ export function TrackActivity({
                   {i === ordered.length - 1 ? null : <RunRail />}
                 </span>
 
-                <span className="min-w-0 pb-1">
+                <div className="min-w-0 flex-1 pb-1">
                   {/*
-                   * THE HEADLINE IS THE CONTROL, AND ONLY WHERE THERE IS
-                   * SOMETHING TO OPEN.
+                   * ── ONE SENTENCE, AND THE SAME PRESS DOES BOTH JOBS (P-105) ─
                    *
-                   * The whole row cannot be the button: the calls below it are
-                   * their own disclosure, and a button inside a button is
-                   * invalid and unreachable by keyboard in the inner half. So
-                   * the sentence that names what the turn did is the press,
-                   * which is also the part a person is already reading when they
-                   * decide they want to see it.
+                   * `headline` + `turnMeta` used to be two lines of equal
+                   * weight, always both visible, with the seat's own paragraph
+                   * ALSO always visible under them -- three facts fighting for
+                   * one glance, on every row of every turn, and the paragraph
+                   * alone could run to hundreds of words on the served tablet
+                   * track. `transcriptLead` composes the first two into ONE
+                   * sentence; everything from the handoff marks down through
+                   * the seat's paragraph and its tool calls now folds, closed
+                   * by default, opened by a press on the row.
+                   *
+                   * THE ARTIFACT-SELECT PRESS IS NOT REPLACED, IT IS JOINED.
+                   * `canOpen(t)` is still what makes this a `<button>` rather
+                   * than a `<span>`, `aria-pressed` and the click that selects
+                   * the newest artifact are both still exactly what they were
+                   * (`the-artifact-is-the-control.test.tsx`,
+                   * `one-station-display-on-the-run-screen.test.ts`'s own
+                   * subjects) -- the founder's ask, "when I click on the PRD
+                   * the right side should open up," is a different contract
+                   * from this packet's, and one press does not get to cost the
+                   * other. `toggleTurn` rides along on the same click.
                    */}
                   {canOpen(t) ? (
                     <button
                       type="button"
                       aria-pressed={t.made.some((m) => m.id === selected)}
+                      aria-expanded={openTurns.has(row.key)}
                       onClick={() => {
                         const id = newestMade(t);
                         if (id) onSelect?.(id);
+                        toggleTurn(row.key);
                       }}
                       /*
                        * `min-w-0` IS THE WHOLE FIX, AND IT IS NOT DEFENSIVE
@@ -1270,25 +1332,37 @@ export function TrackActivity({
                        */
                       className={`${RUN_LINE} mrd-focus-inset w-full min-w-0 max-w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
                     >
-                      <RunSubject>{headline(t)}</RunSubject>
+                      <RunSubject>{transcriptLead(t)}</RunSubject>
                       {chipOf(t)}
                     </button>
                   ) : (
-                    <span className={RUN_LINE}>
-                      <RunSubject>{headline(t)}</RunSubject>
+                    <button
+                      type="button"
+                      aria-expanded={openTurns.has(row.key)}
+                      onClick={() => toggleTurn(row.key)}
+                      className={`${RUN_LINE} mrd-focus-inset w-full min-w-0 max-w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
+                    >
+                      <RunSubject>{transcriptLead(t)}</RunSubject>
                       {chipOf(t)}
-                    </span>
+                    </button>
                   )}
 
-                  {/*
-                   * WHO DID IT AND HOW LONG IT TOOK, under the verdict rather
-                   * than inside it. The seat used to open the headline, so every
-                   * row began with a name and the thing being scanned for sat
-                   * second. `RunMeta`'s own header says it is "who did it", which
-                   * is exactly this and is where it should have been.
-                   */}
-                  <RunMeta>{turnMeta(t)}</RunMeta>
-
+                  <div
+                    /* `1fr` to `0fr` animates to the fold's own height with no
+                       measurement, the same technique `meridian/FoldingRow.tsx`
+                       uses for the same reason: a resize cannot leave a stale
+                       pixel value behind. */
+                    className="grid transition-[grid-template-rows] duration-(--mrd-d-move) ease-(--mrd-ease) motion-reduce:transition-none"
+                    style={{ gridTemplateRows: openTurns.has(row.key) ? "1fr" : "0fr" }}
+                  >
+                  <div className="overflow-hidden">
+                  <div
+                    className="flex flex-col gap-mrd-1 pt-1 transition-[opacity,transform] duration-(--mrd-d-move) ease-(--mrd-ease) motion-reduce:transition-none motion-reduce:translate-y-0 motion-reduce:opacity-100"
+                    style={{
+                      opacity: openTurns.has(row.key) ? 1 : 0,
+                      transform: openTurns.has(row.key) ? "translateY(0)" : "translateY(4px)",
+                    }}
+                  >
                   {/*
                    * THE TWO TEAMMATES, ON THE ROW WHERE THE WORK CHANGED HANDS.
                    *
@@ -1393,25 +1467,15 @@ export function TrackActivity({
                   {said ? (
                     <RunNote>
                       {/*
-                        P-37, shape 6. This was `<Reveal lines={3}>`: three lines
-                        of paragraph open by default, which made the seat's prose
-                        the MASS of every row and pushed the verdict into a
-                        header for it.
-                        
-                        One line, so the row shows that something was said and
-                        keeps the saying until it is asked for.
-
-                        NOT `lines={0}`, which I wrote first and which is wrong:
-                        `Reveal` clamps with `WebkitLineClamp: lines`, and `0` is
-                        not a zero-line clamp, it is an invalid value that
-                        applies NO clamp and renders the paragraph in full. The
-                        opposite of the intent, silently.
-
-                        A true fold, where the closed row carries no paragraph at
-                        all, arrives when this row moves onto `FoldingRow`. One
-                        line is what `Reveal` can honestly do today.
+                        P-37, shape 6, AND NOW A TRUE FOLD (P-105): the closed
+                        row carries no paragraph at all, which this comment
+                        used to say "arrives" one day. Inside the open fold
+                        there is no longer a reason to clamp at one line to
+                        protect a row that is always visible; three lines is
+                        the transcript's own density, deep enough to read a
+                        thought, with `Reveal`'s own button for the rest.
                       */}
-                      <Reveal lines={1}>{said}</Reveal>
+                      <Reveal lines={3}>{said}</Reveal>
                     </RunNote>
                   ) : null}
 
@@ -1430,7 +1494,10 @@ export function TrackActivity({
                     seat={t.agentName}
                     spend={t.tokens != null ? `${t.tokens.toLocaleString()} tokens` : null}
                   />
-                </span>
+                  </div>
+                  </div>
+                  </div>
+                </div>
               </li>
             );
           })}
