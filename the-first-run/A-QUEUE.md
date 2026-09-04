@@ -9045,7 +9045,7 @@ dispatches on 7bc7181b within one tick of the backfill. Full suite on the tip, t
 **DoD.** Pushed; migration applied; the count before and after; the three numbers.
 
 
-### P-115 · A press that the server refuses is told to the person · Lane: **A3** (now, ahead of P-104) · Status: READY · Moves: 2
+### P-115 · A press that the server refuses is told to the person · Lane: **A3** (now, ahead of P-104) · Status: CLAIMED (A3) 11:51 IST 09-04 · Moves: 2
 
 **Why.** Live 06:04 to 06:08 UTC 09-04, on the Ship track: A1 pressed "Don't run it" on the
 run screen's gate banner three times. Each press POSTed, the server answered 200 with a validation
