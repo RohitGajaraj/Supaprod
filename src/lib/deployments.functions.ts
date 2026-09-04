@@ -6,11 +6,8 @@ import { resolveProviderAuth } from "@/lib/connectors/resolve.server";
 import { repoProviderFor, type RepoRef } from "@/lib/connectors/repo-provider";
 import { deploymentRowsFor, type DeploymentRow } from "@/lib/deployments";
 import { resolveGitHub, readWithLine } from "@/lib/connectors/providers/github.server";
-import {
-  collectRepoFiles,
-  deployChangesetApp,
-  denoDeployConfigured,
-} from "@/lib/hosting/changeset-deploy.server";
+import { deployChangesetApp, denoDeployConfigured } from "@/lib/hosting/changeset-deploy.server";
+import { filesForDeploy } from "@/lib/hosting/what-goes-to-the-host.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { recordLineageSafe } from "@/lib/lineage.functions";
 import { defaultCheckByDate } from "@/lib/launch-plan.functions";
@@ -1288,7 +1285,10 @@ export async function promoteChangesetToProductionCore(
       productId: (cs.product_id as string | null) ?? null,
       userClient: db,
     });
-    const files = await collectRepoFiles({
+    /* THE SAME ASSEMBLY THE PREVIEW USED (P-128b). A promote that built the
+       site differently from the preview a person approved would ship something
+       nobody looked at, so both presses go through one seam. */
+    const payload = await filesForDeploy({
       token: gh.token,
       repo: cs.repo as string,
       ref: preview.commit_sha as string,
@@ -1296,7 +1296,7 @@ export async function promoteChangesetToProductionCore(
     const result = await deployChangesetApp({
       workspaceId: (cs.workspace_id as string) ?? "",
       changesetId: cs.id as string,
-      files,
+      files: payload.files,
       production: true,
     });
     if (!result.ok || !result.url) {
@@ -2063,6 +2063,11 @@ export const retryPreviewNow = createServerFn({ method: "POST" })
       let url: string | null = null;
       let reason: string | null = null;
       let headSha: string | null = null;
+      /* What shape the repo turned out to be, and what its build cost, so the
+         row carries both rather than only a URL (P-128b). */
+      let shapeSaid: string | null = null;
+      let buildDetail: { tool: string; outDir: string; buildMs: number; bytes: number } | null =
+        null;
       // Set the moment resolveGitHub returns, so a failure that happens AFTER
       // a credential was actually resolved can still name it (P-122).
       let resolvedGh: { source: "binding" | "user_connection" | "env"; actorLabel: string } | null =
@@ -2100,15 +2105,20 @@ export const retryPreviewNow = createServerFn({ method: "POST" })
           );
         }
         headSha = ((await refRes.json()) as { object: { sha: string } }).object.sha;
-        const files = await collectRepoFiles({
+        /* R-41's two shapes, resolved from the repository rather than from a
+           marker we own. A shape we cannot host throws its own sentence, which
+           lands in `failure_reason` by the path that already exists. */
+        const payload = await filesForDeploy({
           token: gh.token,
           repo: cs.repo as string,
           ref: headSha,
         });
+        shapeSaid = payload.shape.said;
+        buildDetail = payload.build;
         const result = await deployChangesetApp({
           workspaceId: (cs.workspace_id as string) ?? "",
           changesetId: cs.id as string,
-          files,
+          files: payload.files,
           production: false,
         });
         ok = result.ok;
@@ -2148,6 +2158,17 @@ export const retryPreviewNow = createServerFn({ method: "POST" })
           triggered_by: "person",
           deployed_at: new Date().toISOString(),
           failure_reason: ok ? null : reason,
+          /*
+           * HOW IT WAS PRODUCED, not only where it went (P-128b). With two
+           * hostable shapes, "the site is blank" and "the build wrote to a
+           * directory we did not upload" are otherwise the same row. NULL for
+           * the template shape, which is honest: nothing was built here.
+           */
+          build_detail: buildDetail
+            ? { shape: shapeSaid, ...buildDetail }
+            : shapeSaid
+              ? { shape: shapeSaid }
+              : null,
         } as never,
         { onConflict: "changeset_id,environment,commit_sha" },
       );

@@ -2908,6 +2908,7 @@ export type Database = {
           deploy_url: string | null
           deployed_at: string | null
           environment: string
+          build_detail: Json | null
           failure_reason: string | null
           id: string
           is_sample: boolean
@@ -2926,6 +2927,7 @@ export type Database = {
           deploy_url?: string | null
           deployed_at?: string | null
           environment?: string
+          build_detail?: Json | null
           failure_reason?: string | null
           id?: string
           is_sample?: boolean
@@ -2944,6 +2946,7 @@ export type Database = {
           deploy_url?: string | null
           deployed_at?: string | null
           environment?: string
+          build_detail?: Json | null
           failure_reason?: string | null
           id?: string
           is_sample?: boolean

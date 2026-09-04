@@ -44,6 +44,9 @@ export type RepoShape =
       script: string;
       /** Where that script leaves the site. */
       outDir: string;
+      /** The dependency that decided the directory. Carried, never re-parsed
+       *  out of `said` -- a sentence is for a person, not a field. */
+      tool: string;
       said: string;
     }
   | {
@@ -113,6 +116,7 @@ export function repoShape(input: { rootFiles: readonly string[]; pkg: PackageJso
         kind: "static-build",
         script: buildScript,
         outDir: tool.outDir,
+        tool: tool.dep,
         said: `This is a ${tool.dep} site: its build script runs and what it writes to ${tool.outDir} is what goes live.`,
       };
     }
