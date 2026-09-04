@@ -9796,7 +9796,7 @@ its start and A1 reads it. Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers.
 
 
-### P-128 · Ship hosts a repo that is not ours · Lane: **A2** (after P-113) · Status: CLAIMED (A2) 16:05 IST 09-04 · Moves: 1, 3
+### P-128 · Ship hosts a repo that is not ours · Lane: **A2** (after P-113) · Status: DECISION HALF PUSHED (8edeb8179; the ruling placed as R-41 by A1 16:00 IST; A1 gate running; the deploy path is P-128b) · Moves: 1, 3
 
 **Why.** The honest Ship went live today because relay-homeowner-app is a Supaprod template app:
 `supaprod.json` at the root and a `main.ts` that `Deno.serve`s a static page. `changeset-deploy`
@@ -10200,6 +10200,28 @@ their absence; P-42's grader read after 17:30 IST shows the refusal, not a verdi
 the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 reads Learn live.
+
+
+### P-128b · The static build ships · Lane: **A2** (now, before P-135) · Status: READY · Moves: 1, 3
+
+**Why.** R-41 is placed. P-128 shipped the detection (a repo's shape read from `package.json`,
+the output directory from the dependency, the hold sentence and the handback for a shape we do not
+host) and the generated entrypoint with its guards. What remains is the path itself.
+
+**Scope.** For a repo detected as a static build: build it in the sandbox `studio.checks.run`
+already uses (the repo's own `build` script, its own package manager, a time and size ceiling
+with the host's own words when crossed), upload what the build wrote as the app's assets behind
+the generated entrypoint, deploy as a preview at the merge commit and promote on the person's
+press exactly as the template shape does today; the run screen names the shape (*a Vite site,
+built in 41 s, 2.3 MB*) and the deployment row records the tool, the output directory and the
+build time. Guard: a fixture Vite repo previews to a URL with the host mocked; a build that
+crosses the ceiling holds with the reason; a server shape never reaches the build.
+
+**Acceptance.** A second repo in the Helio workspace (a Vite app under the Supaprod org, which A1
+creates) goes sentence to preview URL through the loop, the run screen naming the shape. Full
+suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 walks the second repo.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 

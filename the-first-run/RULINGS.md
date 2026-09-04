@@ -1142,3 +1142,39 @@ that halted; promoting a change the crew itself called misplaced.
 
 The tablet track is not the honest Ship candidate. It stays as evidence; nothing on it is
 promoted. Reversible by the founder. Packet: P-72.
+
+## R-41 · The first non-template shape Supaprod hosts is a static build. (2026-09-04)
+
+**The contradiction this settles.** The landing page says *then builds it. ships it.* The header of
+`changeset-deploy.server.ts` says *only Supaprod-managed repos qualify; arbitrary customer repos
+keep the capture-only deployment records.* Both are in the repo. The first is true of
+`relay-homeowner-app`, which we scaffolded, and of nothing a customer brings. The honest Ship of
+2026-09-04 went live on our own template shape. Proposed by A2 on P-128 (15:57 IST); placed by A1.
+
+**Ruled.**
+
+- **The first non-template shape is a static build.** A repo whose `package.json` has a `build`
+  script and a build tool we recognise (Vite, Astro, SvelteKit, Next, Parcel) is built in the
+  sandbox that already runs `studio.checks.run`, and what that build writes is uploaded and served.
+  It is the shape most likely to be brought, the one whose output is unambiguous, and the one
+  buildable with what exists today.
+- **A server is deferred, not refused.** A repo with a `start` or `dev` script and no static build
+  is a shape we do not host yet. The run screen names it as that and offers the handback. Deferred
+  rather than declined because hosting a long-lived process is a different product (a runtime, a
+  port, a health check, a restart policy), and a promise on the landing page is one we would owe.
+- **Detection reads the repo, never a marker we own.** `supaprod.json` answers *did we scaffold
+  this*, not *can we host it*. A customer cannot make a repo hostable by learning our convention.
+- **The output directory comes from the dependency, never from a folder listing.** `dist` exists
+  in repos that do not build into it, and the cost of guessing wrong is publishing someone's
+  source as their website. A build script with no tool we recognise is not hosted on a guess.
+- **A shape we cannot host says so and offers the handback.** The *merged, then No app to show
+  yet* silence ends here.
+
+**What it forbids.** Hosting on a marker file; guessing an output directory; a refusal that names
+a convention the customer would have to adopt; a landing-page claim wider than the shapes hosted.
+
+**Why deferring the server is right rather than timid.** The static shape puts an address in front
+of a person the day their repo is connected. The server shape needs a runtime we do not have, and
+building it first would delay every customer whose repo is a site to serve the ones whose repo is
+an app. Reversible by the founder. Packets: P-128 (detection and this ruling), P-128b (the deploy
+path).
