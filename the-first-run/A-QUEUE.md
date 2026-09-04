@@ -8822,7 +8822,7 @@ founder's standing authority: `account_credits` +10,000 (balance 1 to 10,001, to
 can reverse it with one negative row. The honest-Ship presses proceed on it.
 
 
-### P-103 · The documents say what the product now says · Lane: **A3** (now) · Status: READY · Moves: 5
+### P-103 · The documents say what the product now says · Lane: **A3** (now) · Status: CLAIMED (A3) 11:24 IST 09-04 · Moves: 5
 
 **Why.** P-60, P-61 and R-38 settled the vocabulary: Start, Waiting, Arriving, Run, Outcomes,
 Team, Conversations, Sources, Settings; Find Anything on "/"; Ask on ⌘K; stations only inside a
