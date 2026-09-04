@@ -9145,7 +9145,7 @@ all 12 checks ok. Acceptance's own live read (seven or more rows, each one line 
 A1's served-page walk, the same handoff every UI packet in this session has used.
 
 
-### P-109 · The Run door with nothing running lands somewhere · Lane: **A3** (after P-105) · Status: PUBLISHED, LIVE READ PENDING (4f913ae35; A1 gate: build 0, tsc 0, 14,674 pass / 0 fail; published 19:11 IST; A1 presses the Run door on Helio with nothing running once served) · Moves: 2
+### P-109 · The Run door with nothing running lands somewhere · Lane: **A3** (after P-105) · Status: PUBLISHED, LIVE READ PENDING (4f913ae35 + 2702720a7; A1 gate: 14,695 pass / 0 fail; published 19:24 IST; A1 presses the Run door with nothing running and reads the Quiet once served) · Moves: 2
 
 **Why.** Run is an identity on the rail (P-60): it resolves to the live run at render. With nothing
 running it resolves to nothing, and P-63 recorded "Run has no door to design for while nothing's
@@ -10374,7 +10374,7 @@ calls, 1,062 files. `bun run build`: clean end to end. `bun run docs:check`: exi
 "docs-doctor: clean." all 12 checks ok.
 
 
-### P-140 · Credits on Start's run rows and the Outcomes page · Lane: **A3** (after P-136) · Status: PUBLISHED, LIVE READ FAILED (051438c5a; published 18:25 IST; live 19:05 IST after a hard reload, build served: no row on Start carries a credits figure, while 2fdf93b6 has 3,606 credits by the same join on the run screen; A1 read the served page's react-query cache at 19:08 IST: the start-runs payload carries credits null on every row, status success, so the render is innocent and the fault is in listRunsForStart's branch, which swallows its agent_runs read error; A3 fixes with the error reported and a guard) · Moves: 3
+### P-140 · Credits on Start's run rows and the Outcomes page · Lane: **A3** (after P-136) · Status: DIAGNOSTIC PUBLISHED (051438c5a + 7b4c70903; published 19:24 IST; A1 reads creditsDiag from the served payload and hands A3 the four numbers) · Moves: 3
 
 **Why.** P-136 closed the run screen's own two-dollar-figure defect, but Scope named three
 surfaces and only one shipped: Start's `YourRuns.tsx` carries no spend figure at all today, and the
@@ -10578,7 +10578,7 @@ install step; (3) the generated entrypoint against a real single-page app's deep
 rather than measured. Record each with its number on the walk.
 
 
-### P-138 · The stopped list says what is worth a person's next ten minutes · Lane: **A2** (after P-137) · Status: GATE GREEN ON THE LANDED TIP, PUBLISH WITH THE NEXT (da6bbca5e; A1 gate: build 0, tsc 0, 14,695 pass / 0 fail; three numbers: 53 rows, 11 seeded, 0 holding live work; publishes with P-109's second half once that tip is green) · Moves: 2
+### P-138 · The stopped list says what is worth a person's next ten minutes · Lane: **A2** (after P-137) · Status: PUBLISHED, LIVE READ PENDING (da6bbca5e; A1 gate on the landed tip and on 2702720a7: build 0, tsc 0, 14,695 pass / 0 fail; published 19:24 IST; A1 reads the grouped list and its heading on Helio once served) · Moves: 2
 
 **Why.** Helio's Waiting page at 16:37 IST 09-04: below the one card that moves, a flat list of
 53 stopped items, oldest first, from *Helio prefers concise release notes, stopped 50 days* down
