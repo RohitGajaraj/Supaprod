@@ -966,6 +966,14 @@ export type StartRun = {
    * it. Null until then, which is the state almost every run is in.
    */
   forecast: { resolution: string; rationale: string | null } | null;
+  /**
+   * When this track's own work first reached production, or null (P-126,
+   * A-QUEUE.md). A track can sit at Learn, still `open`, waiting on a dated
+   * forecast for weeks after its release went out -- this is the one fact
+   * that scenario's own row was missing: it said only where the track was
+   * waiting, never that the thing it built was already live.
+   */
+  liveSince: string | null;
 };
 
 /**
@@ -1148,7 +1156,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
          * worst-case chain when a seat actually is running, which is the state
          * A1's own live measurement was almost certainly in.
          */
-        const [gateByTrack, { workingByTrack, toolByTrace }, pinnedByTrack, forecastByTrack] =
+        const [gateByTrack, { workingByTrack, toolByTrace }, pinnedByTrack, forecastByTrack, liveByTrack] =
           await Promise.all([
             (async () => {
               const byTrack = new Map<string, { tool: string }>();
@@ -1326,6 +1334,85 @@ export const listRunsForStart = createServerFn({ method: "GET" })
               }
               return byTrack;
             })(),
+            (async () => {
+              /*
+               * WHEN THIS TRACK'S OWN WORK WENT LIVE (P-126). Reverse of
+               * `trackIdByChangeset` (changelog.ts): there, changeset ->
+               * mission -> track; here, track -> mission -> changeset ->
+               * production deployment. `spine_track_members` is read the
+               * same way `promoteChangesetToProductionCore`'s own decision
+               * lookup reads it one hop further along
+               * (deployments.functions.ts) -- `artifact_kind = "mission"`,
+               * scoped to this page's own track ids.
+               *
+               * SCOPED TO THE HAND-BUILT MERGE PATH ONLY. A deployment
+               * `submitStationByHand` files carries no `changeset_id` and no
+               * `environment`/`status: "success"` (P-104, A-QUEUE.md flags
+               * this same gap for Ship's own exit read) -- reading that
+               * shape too belongs to the packet that fixes it for every
+               * reader at once, not to this row growing its own second,
+               * inconsistent copy of the same join.
+               */
+              const byTrack = new Map<string, string>();
+              const { data: missionMembers } = await supabase
+                .from("spine_track_members" as never)
+                .select("track_id,artifact_id")
+                .eq("artifact_kind", "mission")
+                .in("track_id", ids);
+              const missionIds = [
+                ...new Set(
+                  ((missionMembers ?? []) as unknown as Array<{
+                    track_id: string;
+                    artifact_id: string | null;
+                  }>)
+                    .map((m) => m.artifact_id)
+                    .filter((m): m is string => !!m),
+                ),
+              ];
+              if (missionIds.length === 0) return byTrack;
+              const trackByMission = new Map<string, string>();
+              for (const m of (missionMembers ?? []) as unknown as Array<{
+                track_id: string;
+                artifact_id: string | null;
+              }>) {
+                if (m.artifact_id) trackByMission.set(m.artifact_id, m.track_id);
+              }
+              const { data: changesets } = await supabase
+                .from("studio_changesets" as never)
+                .select("id,mission_id")
+                .in("mission_id", missionIds);
+              const missionByChangeset = new Map<string, string>();
+              for (const c of (changesets ?? []) as unknown as Array<{
+                id: string;
+                mission_id: string | null;
+              }>) {
+                if (c.mission_id) missionByChangeset.set(c.id, c.mission_id);
+              }
+              const changesetIds = [...missionByChangeset.keys()];
+              if (changesetIds.length === 0) return byTrack;
+              const { data: deploys } = await supabase
+                .from("deployments" as never)
+                .select("changeset_id,deployed_at,created_at")
+                .eq("environment", "production")
+                .eq("status", "success")
+                .in("changeset_id", changesetIds);
+              for (const d of (deploys ?? []) as unknown as Array<{
+                changeset_id: string | null;
+                deployed_at: string | null;
+                created_at: string;
+              }>) {
+                if (!d.changeset_id) continue;
+                const missionId = missionByChangeset.get(d.changeset_id);
+                const trackId = missionId ? trackByMission.get(missionId) : null;
+                if (!trackId) continue;
+                const at = d.deployed_at ?? d.created_at;
+                // Earliest wins: "live since" is when it FIRST reached
+                // production, not the most recent redeploy of the same track.
+                const existing = byTrack.get(trackId);
+                if (!existing || at < existing) byTrack.set(trackId, at);
+              }
+              return byTrack;
+            })(),
           ]);
 
         return rows.map((r) => {
@@ -1357,6 +1444,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             ),
             pinnedAt: pinnedByTrack.get(r.id) ?? null,
             forecast: forecastByTrack.get(r.id) ?? null,
+            liveSince: liveByTrack.get(r.id) ?? null,
           };
         });
       } catch (e) {

@@ -8,7 +8,7 @@
 import * as React from "react";
 import { render, screen, cleanup } from "@testing-library/react";
 import { describe, it, expect, afterEach } from "bun:test";
-import { ExampleJobs, jobFromOpportunity, EXAMPLE_JOBS } from "./ExampleJobs";
+import { ExampleJobs, jobFromOpportunity, shippedLabel, EXAMPLE_JOBS } from "./ExampleJobs";
 import type { TopOpportunity } from "@/lib/discovery.functions";
 
 afterEach(cleanup);
@@ -18,6 +18,7 @@ const bet = (over: Partial<TopOpportunity> = {}): TopOpportunity => ({
   title: "Off-hours latency",
   problem: "Requests time out past 30s outside business hours.",
   iceScore: 6.7,
+  shipped: null,
   ...over,
 });
 
@@ -124,5 +125,68 @@ describe("an example is a sentence to edit, a bet is work to start", () => {
     // And the bets, which WERE ranked, may say so.
     render(<ExampleJobs onStart={() => {}} onUse={() => {}} bets={[bet()]} />);
     expect(screen.getByText(/ranked from what has arrived/i)).toBeDefined();
+  });
+});
+
+/*
+ * P-126 (A-QUEUE.md): a bet whose spec already shipped is not offered as a
+ * start -- its card reads "Shipped 12:28" and opens the run instead.
+ */
+describe("shippedLabel", () => {
+  it("reads the UTC clock the spec shipped at", () => {
+    expect(shippedLabel("2026-09-04T12:28:00.000Z")).toBe("Shipped 12:28");
+  });
+});
+
+describe("a shipped bet's card reads what happened, not an offer to redo it", () => {
+  const SHIPPED = bet({
+    title: "Skip the address re-confirm when nothing changed",
+    shipped: { at: "2026-09-04T12:28:00.000Z", trackId: "track-1" },
+  });
+
+  it("shows Shipped HH:MM instead of Start it", () => {
+    render(<ExampleJobs onStart={() => {}} onUse={() => {}} bets={[SHIPPED]} />);
+    expect(screen.getByText("Shipped 12:28")).toBeDefined();
+    expect(screen.queryByRole("button", { name: "Start it" })).toBeNull();
+  });
+
+  it("still shows an unshipped bet's Start it, on the same list", () => {
+    render(<ExampleJobs onStart={() => {}} onUse={() => {}} bets={[SHIPPED, bet({ id: "o-2" })]} />);
+    expect(screen.getByRole("button", { name: "Start it" })).toBeDefined();
+    expect(screen.getByText("Shipped 12:28")).toBeDefined();
+  });
+
+  it("pressing See the run calls onOpenRun with the shipped track, never onStart", () => {
+    let opened: string | undefined;
+    let started = 0;
+    render(
+      <ExampleJobs
+        onStart={() => (started += 1)}
+        onUse={() => {}}
+        onOpenRun={(trackId) => {
+          opened = trackId;
+        }}
+        bets={[SHIPPED]}
+      />,
+    );
+    screen.getByRole("button", { name: "See the run" }).click();
+    expect(opened).toBe("track-1");
+    expect(started).toBe(0);
+    // The card itself is the second door to the same act.
+    screen.getByText(SHIPPED.title).click();
+    expect(opened).toBe("track-1");
+    expect(started).toBe(0);
+  });
+
+  it("names no run door when the track cannot be resolved", () => {
+    render(
+      <ExampleJobs
+        onStart={() => {}}
+        onUse={() => {}}
+        bets={[bet({ shipped: { at: "2026-09-04T12:28:00.000Z", trackId: null } })]}
+      />,
+    );
+    expect(screen.getByText("Shipped 12:28")).toBeDefined();
+    expect(screen.queryByRole("button", { name: "See the run" })).toBeNull();
   });
 });

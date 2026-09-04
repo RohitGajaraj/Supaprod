@@ -1190,13 +1190,17 @@ export function OpportunityDetailSheet({
   const startIt = useMutation({
     mutationFn: () => {
       if (!opportunity) throw new Error("No bet is open.");
-      // `jobFromOpportunity` reads only `title`/`problem`; `iceScore` is
-      // unused by it and named here only to satisfy `TopOpportunity`'s shape.
+      // `jobFromOpportunity` reads only `title`/`problem`; `iceScore` and
+      // `shipped` are unused by it and named here only to satisfy
+      // `TopOpportunity`'s shape. This sheet's own "Start it" is never
+      // reachable for a bet that already shipped (P-126), so `shipped` is
+      // always null here regardless of what the real record says.
       const job = jobFromOpportunity({
         id: opportunity.id,
         title: opportunity.title,
         problem: opportunity.problem,
         iceScore: opportunity.ice_score,
+        shipped: null,
       });
       return fStartTrack({
         data: {

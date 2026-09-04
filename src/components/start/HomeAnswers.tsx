@@ -42,7 +42,20 @@ export function HomeAnswers({ answers }: { answers: readonly Answer[] }) {
           >
             {a.line}
           </span>
-          {a.read === "answered" ? (
+          {a.read === "answered" && "href" in a.door ? (
+            /* THE ADDRESS ITSELF (P-126): a production deploy is not a route
+               this app's own router has, so it is a plain anchor rather than
+               `<Link>`'s client-side navigation. */
+            <a
+              href={a.door.href}
+              target="_blank"
+              rel="noreferrer"
+              className="text-mrd-label text-mrd-mute underline decoration-mrd-line underline-offset-2 transition-colors duration-(--mrd-d-press) ease-(--mrd-ease) hover:text-mrd-ink"
+            >
+              {a.door.label}
+            </a>
+          ) : null}
+          {a.read === "answered" && "to" in a.door ? (
             /* ONE DOOR PER SENTENCE, and it is a link rather than a button:
                it navigates, and a button here would promise an action that
                happens on this page. */

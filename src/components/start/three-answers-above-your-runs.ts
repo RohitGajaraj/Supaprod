@@ -19,10 +19,21 @@
  * not a zero, not a reassurance.
  */
 
+import { utcClock } from "@/lib/time-of-day";
+
+/**
+ * A door is a route inside the app (`to`) or, once (P-126, the release
+ * answer), an address the deploy itself answers on (`href`) -- a production
+ * URL is not a page this router has a route for, so it needs its own anchor
+ * rather than `<Link>`'s client-side navigation. `HomeAnswers` renders each
+ * kind with the element that actually works for it.
+ */
+export type AnswerDoor = { label: string } & ({ to: string } | { href: string });
+
 /** What one line on the home can be. */
 export type Answer =
   /** The read answered and there is something to say. */
-  | { read: "answered"; line: string; door: { label: string; to: string } }
+  | { read: "answered"; line: string; door: AnswerDoor }
   /** The read answered and there is genuinely nothing. Still drawn: a home that
    *  says nothing at all is indistinguishable from a broken one. */
   | { read: "answered-empty"; line: string }
@@ -86,6 +97,53 @@ export function arrivingAnswer(count: number | null, since: string | null): Answ
   };
 }
 
+/** One release, as far as this answer needs to know it. */
+export type ReleasedItem = { title: string; url: string; releasedAt: string };
+
+/**
+ * WHAT WENT LIVE SINCE YOU LAST LOOKED (P-126, A-QUEUE.md).
+ *
+ * The first live release on Ship (12:29 IST 09-04) was on this page nowhere:
+ * the person's own last visit to the home answers stayed silent about the
+ * one fact they most wanted on a second visit -- that their change is live,
+ * and where. `since` is the same last-look baseline `arrivingAnswer` reads
+ * (`brain_last_seen`), because both answer "what happened while you were
+ * away" -- a second baseline for the same question would just be a second
+ * clock to keep in step with the first.
+ *
+ * Ahead of `learnedAnswer` in `homeAnswers`' own order: a release is a
+ * bigger fact than a re-scored call, and "ahead of re-scored calls" is the
+ * packet's own ordering rule.
+ */
+export function releasedAnswer(
+  releases: readonly ReleasedItem[] | null,
+  since: string | null,
+): Answer {
+  if (releases === null) return UNREAD;
+  if (since === null) {
+    return releases.length > 0
+      ? answeredRelease(releases)
+      : { read: "answered-empty", line: "Nothing has shipped yet." };
+  }
+  if (releases.length === 0) {
+    return { read: "answered-empty", line: "Nothing has shipped since you last looked." };
+  }
+  return answeredRelease(releases);
+}
+
+function answeredRelease(releases: readonly ReleasedItem[]): Answer {
+  const [first, ...rest] = releases;
+  const time = utcClock(first.releasedAt);
+  const line =
+    rest.length > 0
+      ? `${first.title} went live at ${time}, and ${rest.length} other ${rest.length === 1 ? "release" : "releases"}.`
+      : `${first.title} went live at ${time}.`;
+  // THE ADDRESS ITSELF, as a link -- the one fact P-126's own "Why" names as
+  // the thing a person most wants on a second visit. `href`, not `to`: a
+  // production deploy is not a route this app's own router knows.
+  return { read: "answered", line, door: { label: "Open it", href: first.url } };
+}
+
 /**
  * WHAT THE RECORD LEARNED THIS WEEK.
  *
@@ -112,10 +170,12 @@ export function homeAnswers(input: {
   arrivingCount: number | null;
   lastLookedAt: string | null;
   learnedCount: number | null;
+  releases: readonly ReleasedItem[] | null;
 }): Answer[] {
   return [
     waitingAnswer(input.waitingShape),
     arrivingAnswer(input.arrivingCount, input.lastLookedAt),
+    releasedAnswer(input.releases, input.lastLookedAt),
     learnedAnswer(input.learnedCount),
   ];
 }

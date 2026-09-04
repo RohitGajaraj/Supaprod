@@ -409,6 +409,7 @@ function StartLanding() {
     arrivingCount: homeReads.isSuccess ? homeReads.data.arrivingCount : null,
     lastLookedAt: homeReads.isSuccess ? homeReads.data.lastLookedAt : null,
     learnedCount: homeReads.isSuccess ? homeReads.data.learnedCount : null,
+    releases: homeReads.isSuccess ? homeReads.data.releases : null,
   });
 
   if (sessionEnded) {
@@ -528,6 +529,9 @@ function StartLanding() {
       {showExampleJobs ? (
         <ExampleJobs
           onStart={(job) => go.mutate(job)}
+          onOpenRun={(trackId) =>
+            void navigate({ to: "/track/$trackId", params: { trackId }, search: {} })
+          }
           onUse={(job) => {
             // Focus AND select: the sentence is a draft to be rewritten, not a
             // value to be accepted, so the first keystroke should replace it

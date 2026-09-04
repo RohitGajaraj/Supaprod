@@ -10,6 +10,7 @@ import {
   homeAnswers,
   waitingAnswer,
   arrivingAnswer,
+  releasedAnswer,
   learnedAnswer,
 } from "./three-answers-above-your-runs";
 
@@ -30,6 +31,7 @@ describe("an all-clear needs an answered read", () => {
     expect(waitingAnswer(null)).toEqual({ read: "unread" });
     expect(learnedAnswer(null)).toEqual({ read: "unread" });
     expect(arrivingAnswer(null, "2026-09-01T00:00:00Z")).toEqual({ read: "unread" });
+    expect(releasedAnswer(null, "2026-09-01T00:00:00Z")).toEqual({ read: "unread" });
   });
 
   it("still speaks when the read answered and there is nothing", () => {
@@ -40,6 +42,7 @@ describe("an all-clear needs an answered read", () => {
     });
     expect(learnedAnswer(0).read).toBe("answered-empty");
     expect(arrivingAnswer(0, "2026-09-01T00:00:00Z").read).toBe("answered-empty");
+    expect(releasedAnswer([], "2026-09-01T00:00:00Z").read).toBe("answered-empty");
   });
 
   it("gives an empty answer no door, because there is nowhere to go", () => {
@@ -47,6 +50,7 @@ describe("an all-clear needs an answered read", () => {
       waitingAnswer([]),
       learnedAnswer(0),
       arrivingAnswer(0, "2026-09-01T00:00:00Z"),
+      releasedAnswer([], "2026-09-01T00:00:00Z"),
     ]) {
       expect(a).not.toHaveProperty("door");
     }
@@ -127,6 +131,59 @@ describe("what came in since you last looked", () => {
   });
 });
 
+/*
+ * P-126 (A-QUEUE.md): the first live release on Ship (12:29 IST 09-04) --
+ * *Checkout: Address confirmation streamlined.*, live at
+ * cad-60000000-...deno.net -- was on Start nowhere. This is the fixture that
+ * exact incident against: the sentence, its time, and the address as a link.
+ */
+describe("what went live since you last looked", () => {
+  const RELEASE = {
+    title: "Checkout: Address confirmation streamlined.",
+    url: "https://cad-60000000.deno.net",
+    releasedAt: "2026-09-04T12:28:00.000Z",
+  };
+
+  it("names the release, the UTC clock it went live at, and the address as a link", () => {
+    expect(releasedAnswer([RELEASE], "2026-09-04T00:00:00.000Z")).toEqual({
+      read: "answered",
+      line: "Checkout: Address confirmation streamlined. went live at 12:28.",
+      door: { label: "Open it", href: "https://cad-60000000.deno.net" },
+    });
+  });
+
+  it("names the newest release and counts the rest, plural", () => {
+    const older = { ...RELEASE, title: "Older release", releasedAt: "2026-09-04T10:00:00.000Z" };
+    const newer = { ...RELEASE, title: "Newer release", releasedAt: "2026-09-04T13:00:00.000Z" };
+    expect(releasedAnswer([newer, older], "2026-09-04T00:00:00.000Z")).toMatchObject({
+      line: "Newer release went live at 13:00, and 1 other release.",
+    });
+  });
+
+  it("says 'releases' for a remainder greater than one", () => {
+    const a = { ...RELEASE, title: "A" };
+    const b = { ...RELEASE, title: "B" };
+    const c = { ...RELEASE, title: "C" };
+    expect(releasedAnswer([a, b, c], "2026-09-04T00:00:00.000Z")).toMatchObject({
+      line: "A went live at 12:28, and 2 other releases.",
+    });
+  });
+
+  it("treats never-looked as its own answer, not as zero", () => {
+    expect(releasedAnswer([RELEASE], null)).toMatchObject({ read: "answered" });
+    expect(releasedAnswer([], null)).toEqual({
+      read: "answered-empty",
+      line: "Nothing has shipped yet.",
+    });
+  });
+
+  it("is a different sentence from arriving's own empty line, so the two never read as one fact", () => {
+    const releasedEmpty = releasedAnswer([], "2026-09-04T00:00:00.000Z");
+    const arrivingEmpty = arrivingAnswer(0, "2026-09-04T00:00:00.000Z");
+    expect(releasedEmpty).not.toEqual(arrivingEmpty);
+  });
+});
+
 describe("what the record learned this week", () => {
   it("uses a window, and says so in its own words", () => {
     expect(learnedAnswer(3)).toMatchObject({
@@ -140,19 +197,30 @@ describe("what the record learned this week", () => {
   });
 });
 
-describe("the three, together", () => {
-  it("keeps the order a person needs: what stops work, what is new, what was learned", () => {
+describe("the four, together", () => {
+  it("keeps the order a person needs: what stops work, what is new, what shipped, what was learned", () => {
+    // Released sits ahead of learned (P-126's own ordering rule: "ahead of
+    // re-scored calls"); its own door carries `href`, not `to`, so the
+    // release itself is checked by its line rather than folded into the
+    // same `.to` projection as the three route-linked answers.
     const a = homeAnswers({
       waitingShape: HELIO,
       arrivingCount: 2,
       lastLookedAt: "2026-09-01T00:00:00Z",
       learnedCount: 1,
+      releases: [
+        {
+          title: "Checkout: Address confirmation streamlined.",
+          url: "https://cad-60000000.deno.net",
+          releasedAt: "2026-09-01T12:28:00.000Z",
+        },
+      ],
     });
-    expect(a.map((x) => (x.read === "answered" ? x.door.to : x.read))).toEqual([
-      "/approvals",
-      "/arriving",
-      "/outcomes",
-    ]);
+    expect(a).toHaveLength(4);
+    expect(a[0]).toMatchObject({ door: { to: "/approvals" } });
+    expect(a[1]).toMatchObject({ door: { to: "/arriving" } });
+    expect(a[2]).toMatchObject({ door: { href: "https://cad-60000000.deno.net" } });
+    expect(a[3]).toMatchObject({ door: { to: "/outcomes" } });
   });
 
   it("keeps an unread one in the list, so a test can see which read failed", () => {
@@ -162,8 +230,9 @@ describe("the three, together", () => {
       arrivingCount: 2,
       lastLookedAt: "2026-09-01T00:00:00Z",
       learnedCount: 0,
+      releases: [],
     });
-    expect(a).toHaveLength(3);
+    expect(a).toHaveLength(4);
     expect(a[0]).toEqual({ read: "unread" });
   });
 

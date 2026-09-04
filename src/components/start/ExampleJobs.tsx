@@ -32,6 +32,7 @@ import { PickCard } from "@/components/meridian/onramp-parts";
 import { SketchBroken, SketchProblem, SketchScreen } from "@/components/meridian/sketch-glyphs";
 import type { WorkShape } from "@/lib/spine/route";
 import type { TopOpportunity } from "@/lib/discovery.functions";
+import { utcClock } from "@/lib/time-of-day";
 
 export type ExampleJob = {
   /** The sentence, exactly as it lands in the composer. */
@@ -40,6 +41,10 @@ export type ExampleJob = {
   sub: string;
   shape: WorkShape;
   glyph: React.ReactNode;
+  /** Set when this bet already shipped (P-126): the card reads what
+   *  happened instead of offering to start it again. Null for every
+   *  example, which cannot ship because it was never a real bet. */
+  shipped?: { at: string; trackId: string | null } | null;
 };
 
 /**
@@ -61,7 +66,13 @@ export function jobFromOpportunity(o: TopOpportunity): ExampleJob {
     sub: o.problem,
     shape: "existing-feature",
     glyph: <SketchProblem />,
+    shipped: o.shipped ?? null,
   };
+}
+
+/** "Shipped 12:28" -- the card's own state once its bet has one (P-126). */
+export function shippedLabel(shippedAt: string): string {
+  return `Shipped ${utcClock(shippedAt)}`;
 }
 
 /**
@@ -183,17 +194,24 @@ export function productExampleJobs(productName: string, northStar: string): Exam
 export function ExampleJobs({
   onStart,
   onUse,
+  onOpenRun,
   busy = false,
   bets = [],
   productExample = null,
 }: {
-  /** A real bet: start that run now. Never called for an example. */
+  /** A real bet: start that run now. Never called for an example, and never
+   *  for a bet that has already shipped. */
   onStart: (job: ExampleJob) => void;
   /**
    * An example: put the sentence in the composer and focus it, starting
    * nothing. Never called for a bet.
    */
   onUse: (job: ExampleJob) => void;
+  /**
+   * A shipped bet's own door (P-126): open the run that shipped it, when
+   * one can be named. Never called for anything that has not shipped.
+   */
+  onOpenRun?: (trackId: string) => void;
   busy?: boolean;
   /**
    * The top three real bets by ICE, when any exist (`listTopOpportunities`,
@@ -236,48 +254,79 @@ export function ExampleJobs({
           : "No runs yet. These are examples of sentences this takes. Edit one into your own words."}
       </p>
       <div className="grid gap-mrd-3 sm:grid-cols-3">
-        {jobs.map((job) => (
-          <div key={job.sentence} className="flex flex-col gap-mrd-2">
-            {/*
-             * `PickCard` with `selected={false}` always: these are not a choice
-             * a person makes and then confirms, they are three things that can
-             * be started. Carrying a selected state would promise a form.
-             */}
-            <PickCard
-              lead={job.sentence}
-              sub={job.sub}
-              glyph={job.glyph}
-              selected={false}
-              onSelect={() => (showingBets ? onStart(job) : onUse(job))}
-            />
-            {/*
-             * ITS OWN CONTROL, per the packet and per Codex's card. The card is
-             * pressable too, so this is a second door to one act rather than the
-             * only one -- which is what makes it safe: a person who reads the
-             * sentence and wants it can press either.
-             *
-             * The VERB is the difference between the two lists, and it is the
-             * only promise this card makes. "Start it" on an example we wrote
-             * would be a promise to run somebody else's work against their
-             * product; "Use this sentence" says exactly what the press does.
-             *
-             * `busy` is a start being in flight, so it only applies to the
-             * control that starts one. Filling a text field has nothing to
-             * wait for.
-             */}
-            <div>
-              {showingBets ? (
-                <Action variant="quiet" busy={busy} onClick={() => onStart(job)}>
-                  Start it
-                </Action>
-              ) : (
-                <Action variant="quiet" onClick={() => onUse(job)}>
-                  Use this sentence
-                </Action>
-              )}
+        {jobs.map((job) => {
+          /*
+           * A SHIPPED BET IS A FACT TO READ, NOT WORK TO START (P-126,
+           * A-QUEUE.md). Pressing this card once meant "run this now"; once
+           * its own spec has `shipped_at`, that promise is false -- the work
+           * already happened. The card stays in its ranked place (removing
+           * it silently would read as the ranking forgetting what it did)
+           * but names what happened instead of offering to redo it.
+           */
+          const shipped = showingBets ? job.shipped : null;
+          return (
+            <div key={job.sentence} className="flex flex-col gap-mrd-2">
+              {/*
+               * `PickCard` with `selected={false}` always: these are not a choice
+               * a person makes and then confirms, they are three things that can
+               * be started. Carrying a selected state would promise a form.
+               */}
+              <PickCard
+                lead={job.sentence}
+                sub={job.sub}
+                glyph={job.glyph}
+                selected={false}
+                onSelect={() => {
+                  if (shipped) {
+                    if (shipped.trackId) onOpenRun?.(shipped.trackId);
+                    return;
+                  }
+                  showingBets ? onStart(job) : onUse(job);
+                }}
+              />
+              {/*
+               * ITS OWN CONTROL, per the packet and per Codex's card. The card is
+               * pressable too, so this is a second door to one act rather than the
+               * only one -- which is what makes it safe: a person who reads the
+               * sentence and wants it can press either.
+               *
+               * The VERB is the difference between the two lists, and it is the
+               * only promise this card makes. "Start it" on an example we wrote
+               * would be a promise to run somebody else's work against their
+               * product; "Use this sentence" says exactly what the press does.
+               *
+               * `busy` is a start being in flight, so it only applies to the
+               * control that starts one. Filling a text field has nothing to
+               * wait for.
+               */}
+              <div>
+                {shipped ? (
+                  <span className="flex items-center gap-mrd-2">
+                    <span className="mrd-meta">{shippedLabel(shipped.at)}</span>
+                    {shipped.trackId
+                      ? (() => {
+                          const trackId = shipped.trackId as string;
+                          return (
+                            <Action variant="quiet" onClick={() => onOpenRun?.(trackId)}>
+                              See the run
+                            </Action>
+                          );
+                        })()
+                      : null}
+                  </span>
+                ) : showingBets ? (
+                  <Action variant="quiet" busy={busy} onClick={() => onStart(job)}>
+                    Start it
+                  </Action>
+                ) : (
+                  <Action variant="quiet" onClick={() => onUse(job)}>
+                    Use this sentence
+                  </Action>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

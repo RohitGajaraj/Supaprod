@@ -1651,6 +1651,13 @@ export type TopOpportunity = {
   title: string;
   problem: string;
   iceScore: number | null;
+  /**
+   * Set once the spec this bet became has shipped (`prds.shipped_at`, the
+   * one column two writers set and nothing else touches -- see
+   * `studio.functions.ts`'s own header on it). Null for the ordinary case: a
+   * bet still worth starting (P-126, A-QUEUE.md).
+   */
+  shipped: { at: string; trackId: string | null } | null;
 };
 
 /** See `resolveStartWorkspaceId`: the active workspace, or the caller's default. */
@@ -1711,7 +1718,7 @@ export const listTopOpportunities = createServerFn({ method: "GET" })
     if (workspaceId) betsQuery = betsQuery.eq("workspace_id", workspaceId);
     const { data, error } = await betsQuery.order("ice_score", { ascending: false }).limit(20);
     if (error) return [];
-    return (
+    const top3 = (
       (data ?? []) as Array<{
         id: string;
         title: string;
@@ -1720,8 +1727,64 @@ export const listTopOpportunities = createServerFn({ method: "GET" })
       }>
     )
       .filter((o) => looksLikeASentence(o.title))
-      .slice(0, 3)
-      .map((o) => ({ id: o.id, title: o.title, problem: o.problem, iceScore: o.ice_score }));
+      .slice(0, 3);
+    if (top3.length === 0) return [];
+
+    /*
+     * AN OPPORTUNITY WHOSE SPEC SHIPPED IS NOT OFFERED AS A START (P-126,
+     * A-QUEUE.md): the ranked three is meant to be work a person can begin,
+     * and a bet that already went out is a fact to read, not a run to file.
+     * Scoped to only these THREE ids, not the 20 read above -- the same
+     * "select only what the row needs" discipline this file's own header
+     * comment on `StartTrackRow` names for a sibling reader.
+     */
+    const top3Ids = top3.map((o) => o.id);
+    const { data: prds } = await context.supabase
+      .from("prds")
+      .select("id,opportunity_id,shipped_at")
+      .in("opportunity_id", top3Ids)
+      .not("shipped_at", "is", null);
+    const shippedPrds = (prds ?? []) as Array<{
+      id: string;
+      opportunity_id: string | null;
+      shipped_at: string;
+    }>;
+    const shippedByOpp = new Map(shippedPrds.map((p) => [p.opportunity_id, p]));
+
+    // The run a shipped card can link to: `spine_track_members` is the only
+    // record of which track a prd belongs to (no FK on `prds` itself), the
+    // same read `promoteChangesetToProductionCore`'s own decision lookup
+    // makes one hop further along (deployments.functions.ts).
+    const prdIds = shippedPrds.map((p) => p.id);
+    const trackByPrd = new Map<string, string>();
+    if (prdIds.length > 0) {
+      const { data: members } = await context.supabase
+        .from("spine_track_members" as never)
+        .select("artifact_id,track_id")
+        .eq("artifact_kind", "prd")
+        .in("artifact_id", prdIds);
+      for (const m of (members ?? []) as unknown as Array<{
+        artifact_id: string | null;
+        track_id: string;
+      }>) {
+        if (m.artifact_id && !trackByPrd.has(m.artifact_id)) {
+          trackByPrd.set(m.artifact_id, m.track_id);
+        }
+      }
+    }
+
+    return top3.map((o) => {
+      const shippedPrd = shippedByOpp.get(o.id);
+      return {
+        id: o.id,
+        title: o.title,
+        problem: o.problem,
+        iceScore: o.ice_score,
+        shipped: shippedPrd
+          ? { at: shippedPrd.shipped_at, trackId: trackByPrd.get(shippedPrd.id) ?? null }
+          : null,
+      };
+    });
   });
 
 export const promoteThemeToOpportunity = createServerFn({ method: "POST" })

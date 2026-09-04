@@ -5,6 +5,7 @@ import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { holdLine } from "@/lib/spine/driver";
 import { FORECAST_SAYS } from "@/components/learn/forecast-words";
 import { joinPlainly } from "@/lib/spine/attach";
+import { utcClock } from "@/lib/time-of-day";
 
 /**
  * SPINE WORK AS BOARD ROWS, so the board shows every piece of work in flight.
@@ -344,6 +345,9 @@ export type StartRowInput = {
   produced: Array<{ kind: string; count: number }>;
   /** When a person said this one goes first, or null. */
   pinnedAt?: string | null;
+  /** When this track's own work first reached production, or null (P-126,
+   *  A-QUEUE.md). */
+  liveSince?: string | null;
 };
 
 export type StartRowKind = "needs-you" | "running" | "finished" | "abandoned" | "waiting";
@@ -400,6 +404,22 @@ export function startRowMiddle(
   /** `KIND_WORD`-style display words, injected so this module stays pure. */
   words: Readonly<Record<string, { one: string; many: string }>>,
   /** A tool name to a plain phrase, injected for the same reason. */
+  phraseFor: (tool: string) => string | null,
+): string {
+  return r.liveSince
+    ? `Live since ${utcClock(r.liveSince)} · ${startRowRest(r, now, words, phraseFor)}`
+    : startRowRest(r, now, words, phraseFor);
+}
+
+/**
+ * Everything `startRowMiddle` said before P-126 gave a shipped track its own
+ * lead. Split out rather than inlined so the "Live since" prefix is one
+ * `if` at the top instead of five, one per branch below.
+ */
+function startRowRest(
+  r: StartRowInput,
+  now: number,
+  words: Readonly<Record<string, { one: string; many: string }>>,
   phraseFor: (tool: string) => string | null,
 ): string {
   if (r.needsYou) {
