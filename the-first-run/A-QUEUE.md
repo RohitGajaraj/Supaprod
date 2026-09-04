@@ -8468,6 +8468,16 @@ line names none or the probe, whichever holds work. Full suite on the tip, tsc 0
 
 **DoD.** Pushed; the three numbers; A1 walks both.
 
+
+### LIVE WALK, A1, 09:20 IST 09-04 · the fifth sentence in the probe, on the build that carries P-71e
+
+Track `a30d6b62`, "Warn a homeowner before an installer visit is cancelled", started 03:20 UTC.
+Sense carried the sentence (03:22); the 03:40 sweep entered Decide with the carried footing and the
+track holds **`the-call-is-yours`** at 03:48 with spend unchanged since Sense ($0.030), no decision
+row, attempts 0. R-39 holds live end to end: the call is the person's before any seat runs. The
+run screen's Choice card and its two answers are read next; pressing *Build it on your word* is the
+acceptance for P-71 through P-71e.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
