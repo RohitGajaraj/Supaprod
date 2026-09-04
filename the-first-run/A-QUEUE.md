@@ -10104,7 +10104,7 @@ from this worktree -- the Acceptance's own "the bet reads Running on Start" need
 A1, and needs a real press on a real bet in the probe workspace to produce a fixture for it.
 
 
-### P-119b · One provider, one card · Lane: **A3** (after P-134, before P-131) · Status: PUBLISHED, LIVE READ PENDING (a1259ab94; A1 gate: build 0, tsc 0, 14,573 pass / 0 fail; published 16:06 IST; A1 reads one card on Waiting once served) · Moves: 2
+### P-119b · One provider, one card · Lane: **A3** (after P-134, before P-131) · Status: DONE (a1259ab94; live 16:37 IST on Helio's Waiting: one card, "229 rows waiting across memory, opportunities, decisions and specs", one Open Cohere billing press) · Moves: 2
 
 **Why.** Served Waiting page, 15:24 IST 09-04: four identical cards, *Embeddings have stopped:
 Cohere says the payment method needs updating...*, with 154, 33, 35 and 6 rows waiting, one per
