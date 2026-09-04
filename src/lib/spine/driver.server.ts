@@ -714,6 +714,14 @@ async function linkSpecToMissionOrThrow(
     relation: "dispatched",
     rationale: "Dispatched by the autonomous driver",
     created_by_agent: agentSlug,
+    // P-120: `artifact_lineage.workspace_id`'s own default,
+    // `current_user_default_workspace()`, resolves to NULL here -- the
+    // driver writes through a service-role/background context with no
+    // `auth.uid()` for that function to read, so an omitted value hit the
+    // column's NOT NULL constraint on every call, not just the ones for a
+    // multi-workspace user. `row` (the track) already carries the real
+    // workspace this edge belongs to.
+    workspace_id: row.workspace_id ?? undefined,
   });
 
   // CONFIRM IT LANDED. supabase-js RESOLVES a refused write rather than

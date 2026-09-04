@@ -5183,6 +5183,12 @@ const prdRevise = def({
       child_id: prd.id,
       relation: "revised",
       created_by_agent: agentSlug ?? null,
+      // P-120: same NOT NULL refusal as driver.server.ts's dispatched edge
+      // -- `current_user_default_workspace()` reads NULL outside an
+      // authenticated request, and this tool runs through the agent
+      // toolcall path, not a browser session. `prd` was already selected
+      // with `workspace_id` above for exactly this.
+      workspace_id: prd.workspace_id ?? undefined,
     });
     return { prd_id: prd.id, title: prd.title, revised: true };
   },
