@@ -9990,7 +9990,7 @@ document names the spec and the bet" needs a live read from A1, and per the para
 the spec half is expected to resolve for the specific release the packet's own Why cites.
 
 
-### P-132 · The recall tests do not race the clock · Lane: **A3** (after P-131) · Status: DONE (A3) 16:44 IST 09-04 (f130b64a2) · Moves: 5
+### P-132 · The recall tests do not race the clock · Lane: **A3** (after P-131) · Status: DONE (f130b64a2; A1 ran the full gate three times in sequence on the tip: build 0, tsc 0, 14,594 pass / 0 fail on each; published 16:57 IST) · Moves: 5
 
 **Why.** `memory.server.test.ts` (`recallMemoryRefs`) timed out at 5 s twice today under the full
 suite (13:24 on a starved disk, 14:38 on a healthy one) and passes alone in a second. A gate that
