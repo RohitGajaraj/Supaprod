@@ -9110,6 +9110,13 @@ suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
+
+**Schema record, 15:10 IST 09-04.** A2 applied `workspaces.write_record_to_repo` through the
+MCP for this packet's first pass and dropped it through the MCP when the setting was set aside;
+neither was filed as a migration. The net schema effect is zero (the column does not exist,
+verified against `information_schema`), so no file is written; this note is the record. From
+here A2 writes the migration file first and applies second (rule 19).
+
 ### P-113 · A stuck track stops spending · Lane: **A2** (after P-112) · Status: READY · Moves: 1
 
 **Why.** The demo account spent 5,398 credits in one night for five sentences and one track that
@@ -9913,7 +9920,7 @@ it deterministic (mock the provider, fake the clock); no raised timeout. Sweep t
 **DoD.** Pushed; the numbers.
 
 
-### P-118c · A reclaimed row settles, and the account's count is shown · Lane: **A2** (after P-112, before P-113) · Status: READY · Moves: 2
+### P-118c · A reclaimed row settles, and the account's count is shown · Lane: **A2** (after P-112, before P-113) · Status: PUBLISHED, LIVE PRESS PENDING (7d5f73e6d + a08ce9672; migration 20260909091500 filed after the column was applied, ledger row inserted and confirmed by A1 09:39 UTC; A1 gate on tip a08ce9672: build 0, tsc 0, 14,520 pass / 0 fail; published 15:12 IST; A1 re-reads the reclaimed row once served) · Moves: 2
 
 **Why.** Live 14:37 IST 09-04 (09:07 UTC): after *Reclaim it* on cad-60000000-5139f3a8f8e6 the toast said the
 app was released, and the row stayed with its button and *1 can be reclaimed* stayed in the
