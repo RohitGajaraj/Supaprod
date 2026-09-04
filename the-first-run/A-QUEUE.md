@@ -9650,7 +9650,7 @@ suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads at 1512 px.
 
 
-### P-126 · Start knows what went live · Lane: **A3** (after P-124, before P-104) · Status: READY · Moves: 2, 3
+### P-126 · Start knows what went live · Lane: **A3** (after P-124, before P-104) · Status: CLAIMED (A3) 13:59 IST 09-04 · Moves: 2, 3
 
 **Why.** Served Start, 12:50 IST 09-04, twenty minutes after the first release went to production:
 the first answer reads *Nothing new since you last looked.*, the second *1 call came back this
