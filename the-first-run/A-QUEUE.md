@@ -10112,8 +10112,12 @@ sites; A3's grep found 70 more files in `src/` formatting times with `toLocaleTi
 `toLocaleDateString` or `toISOString().slice(11`, all browser-local, none reading the profile's
 zone. They agree with each other today and disagree with the profile whenever a person sets one.
 
-**Scope.** Migrate the 70 in passes of ten, each pass its own commit with the file list, each file
-read for what the time means (a clock, a day, a duration) before it is swapped; a guard that no
+**Scope.** Two shapes, from A3's sample of fifteen (15:28 IST): viewer-facing sites (30 to 45
+one-line swaps onto the viewer's zone) and recipient-facing sites (the stopped and verdict
+emails, the dashboard digest: 10 to 15 files where the zone is the recipient's, read from that
+person's profile, never the sender's or the server's). Design the recipient read first, then
+migrate the 70 in passes of ten, each pass its own commit with the file list, each file read for
+what the time means (a clock, a day, a duration) before it is swapped; a guard that no
 file in `src/` (tests excluded) calls the three raw formatters. Report: the count before and
 after each pass.
 
