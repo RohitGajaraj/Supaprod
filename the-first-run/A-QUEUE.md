@@ -8867,6 +8867,61 @@ on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the numbers; the report lists the files touched and the sentences rewritten.
 
+**Report (A3, 11:56 IST 09-04).** Pushed at `5553b8856`. Three parallel sweeps (one per directory,
+each reading every hit in context rather than blind-replacing, since Brain/Policies/Today collide
+constantly with ordinary usage): docs/strategy and docs/design came back with **zero genuine
+hits** — every occurrence is either this repo's own deliberate positioning term-of-art ("Brain" as
+the name for the decision/memory-graph strategic bet in v11/v12/horizon-bets.md, used that way on
+purpose) or a dated audit snapshot recording a surface's shape on the date it was written (the
+STEP-0/STEP-1 design-sprint files, non-station-surfaces-2026-08.md). docs/pitch and README.md had
+9 genuine live claims across 7 files, fixed:
+
+- `docs/pitch/teaser-video-plan.md` — `/brain?tab=learnings` → `/outcomes?tab=learnings` (2 refs);
+  the "25 substantial screens" count corrected for the two now-retired routes.
+- `docs/pitch/demo-script.md:24` — "The Brain: what this workspace has learned" → "Outcomes: what
+  this workspace has learned".
+- `docs/pitch/yc/video-scripts.md:419` — "The Brain's headline stats" → "The Outcomes header's
+  stats".
+- `docs/pitch/yc/fall-2026-application.md:492` — "a populated Today view" → "a populated Start".
+- `docs/pitch/yc/interview-prep.md:157` — "Today view" → "Start".
+- `docs/pitch/yc/demo-video-one-journey.md:335,337` — `/brain` → `/outcomes` (2 refs).
+- `README.md` — the architecture diagram: `/today` → `/start`, `/brain` → `/outcomes`, and the
+  stale `/knowledge` sub-route corrected to "a graph-view tab on the same page" (verified via
+  `grep -rln GraphPanel src/routes` — no separate route exists).
+
+Two more found outside the sweep's own file list, while calibrating the guard below:
+
+- `architecture/frontend.md` claimed "⌘K command palette (`cmdk`) resolves every destination" as
+  current architecture. It does not: ⌘K opens Ask, "/" opens Find Anything (`FindAnything.tsx`'s
+  own header comment cites the same 2026-07-30 founder ruling). Fixed.
+- `architecture/station-journeys.md` cited a dated planning doc's scope using the retired surface
+  names as if current; reworded to name the doc as dated and the surfaces as since-renamed.
+
+**Guard**, per the packet's own ask: `docs-doctor.sh` check [12], warn-level, scoped to
+`docs/pitch` + `docs/design` + `README.md` + `START-HERE.md` + `architecture` — **not**
+`docs/strategy`, on purpose: its "Brain" is a standing canon term (v12's own header: "Where v12
+and an older doc disagree... the Brain surface... v12 wins") indistinguishable from a live UI
+claim by grep, and the hand-sweep above already verified it clean; a mechanical gate over it would
+be a permanent false-positive generator, the exact "always red, ignored" failure this repo has
+already paid for once (check [9]'s own history). Calibrated from 124 raw hits down to 0 real ones:
+required the retired noun to co-occur with a navigation word (door, rail, tab, nav, sidebar,
+click, screen) rather than bare-word matching, and reused the RECORD_FILES/archive exclusions
+checks [4]/[9]/[11] already established for append-forward logs and dated historical record.
+
+**Found and fixed while calibrating check [12]:** check [4]'s `RECORD_FILES` exclusion used
+`grep -vE` (ERE) with a `\|`-style BRE alternation pattern — under `-E`, `\|` is a literal pipe,
+not alternation, so the exclusion silently never worked for that one call site (the other three
+`RECORD_FILES` uses are plain `grep -v`/BRE and were fine). Masked since P-97 because the count
+stayed on the "ok" side of the `>1` threshold; P-97's own report entry in this file — quoting the
+retired "Live status board" phrase as the record of its own fix — pushed the count to 2 and
+exposed it. Fixed by dropping `-E` to match the other three call sites; also added `A-QUEUE`,
+`palette-verb-shapes` and `kiro-queue` to `RECORD_FILES` (each is itself an append-forward record
+quoting a retirement, not a live claim).
+
+`bun run docs:check`: exit 0, all 12 checks clean, check [12] at 0. `bunx tsc --noEmit`: clean.
+`bun test`: 14349 pass, 22 skip, 37 todo, 0 fail, 38244 expect() calls, 1045 files. `bun run
+build`: clean end to end. Returning to the watch loop.
+
 
 ### P-104 · A handed-back release reaches the Ship page · Lane: **A3** (after P-103) · Status: READY · Moves: 2, 3
 
