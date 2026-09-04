@@ -9580,7 +9580,7 @@ Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 presses one live.
 
 
-### P-124 · A release is named by its notes, and a pressed card leaves · Lane: **A3** (after P-122) · Status: CLAIMED (A3) 13:34 IST 09-04 · Moves: 2
+### P-124 · A release is named by its notes, and a pressed card leaves · Lane: **A3** (after P-122) · Status: DONE (A3) 13:56 IST 09-04 (c2215b29f) · Moves: 2
 
 **Why.** The first live release on the Ship page (12:29 IST 09-04) is titled *Shipped an update*
 everywhere (the promote card, Live releases, Where it is live, What shipped) while its release
@@ -9599,6 +9599,33 @@ order from fixtures; the card's state after a successful mutation.
 streamlined.* Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
+
+**Report (A3, 13:56 IST 09-04, c2215b29f).** The actual defect was narrower than "the composer got
+the order wrong": `changelogTitleFor` preferred `cs.title` over notes, and that branch never fires
+for a real release because `studio_changesets.title` is empty for every changeset merged through
+the run path (confirmed live, 371dd588-1b70-4629-9bb5-9f003f3af373). The STORED
+`changelog_entries.title` this function feeds is written once by the `studio_changeset_to_changelog`
+DB trigger, in its own SQL, never through this function at all -- the live row for the first release
+held *Shipped an update* as `title` while `body` correctly carried the notes. Fixed: `changelogTitleFor`
+reordered (notes first, then PR title / `prTitle` falling back to a bare `title` field for backward
+compat, then a spec's title, then the generic label), and every reader now recomputes live rather
+than trusting the stored value -- `listChangelog` (joins `prds.title` and `studio_changesets.title`
+in its existing reads, no new round trip), the registry.server changelog-entry tool, and
+`buildHeartbeat`'s shipped lines. Self-heals on next read; no backfill needed for `changelog_entries`
+itself. Card-settling: added `readyToPromote(states, justPromoted)`, a new exported pure fn beside
+`isReadyToPromote`; Ship's promote mutation adds the changeset id to a `justPromoted` Set in
+`onSuccess`, excluding it from `ready` the instant the promote resolves, before `invalidateQueries`'s
+async refetch lands -- closing the window where the promote card and Live releases' *Roll back* were
+both visible for the same release. Guard tests: `changelog.test.ts`'s `changelogTitleFor` block
+rewritten, 6 cases on the new order; `changelog-heartbeat.test.ts`'s three fixtures that set only
+`title` (no `release_notes` override) updated to set `release_notes` too, since notes now win --
+these were legitimate fallout from the reorder, not a regression; `ship-can-ship.test.ts` gained a
+`readyToPromote` describe block (exclusion on just-promoted, other releases untouched, agreement with
+`isReadyToPromote` once the set is empty). Full suite: `bunx tsc --noEmit` 0; `bun test` 14458 pass /
+0 fail / 22 skip / 37 todo across 1054 files; `bun run build` 0 (Cloudflare Worker output); `bun run
+docs:check` exit 0, docs-doctor clean, zero WARN/FAIL. Pushed directly to `main` (c2215b29f). No live
+browser access from this worktree -- the Acceptance's own "served Ship page names the release
+*Checkout: Address confirmation streamlined.*" needs a live read from A1.
 
 
 ### P-125 · The run's map shows all seven stations at every width · Lane: **A2** (after P-123, before P-118b) · Status: PUBLISHED, LIVE READ PENDING (352a65706; A1 gate: build 0, tsc 0, 14,429 pass / 0 fail; published 13:06 IST; A1 reads the map at 1512 px once served) · Moves: 2
