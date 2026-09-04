@@ -9090,7 +9090,7 @@ drift.
 all 12 checks ok.
 
 
-### P-105 · A transcript row leads with one sentence, and the rest folds · Lane: **A3** (after P-104) · Status: READY · Moves: 2
+### P-105 · A transcript row leads with one sentence, and the rest folds · Lane: **A3** (after P-104) · Status: CLAIMED (A3) 18:24 IST 09-04 · Moves: 2
 
 **Why.** On the served tablet track the transcript rows carry the seats' full paragraphs (the
 Design critic's 400 words, the Build seat's 300) in the row itself; "a dump of text" was the
