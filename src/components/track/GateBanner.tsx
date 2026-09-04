@@ -42,7 +42,8 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { decideTrackGate, getTrackGates } from "@/lib/spine/track.functions";
+import { decideTrackGate, getTrackGates, mergeGateEvidence } from "@/lib/spine/track.functions";
+import { isMergeGate, mergeCardLines } from "@/lib/spine/what-the-merge-gate-shows";
 import { gateHeadline } from "@/lib/tool-consequences";
 import { failureLine } from "@/lib/error-copy";
 import { Action, Actions, Approve, RecordSpeaks } from "@/components/meridian/surface-parts";
@@ -85,6 +86,26 @@ export function GateBanner({ trackId }: { trackId: string }) {
    *  field's own commit path checked it before; both silences are the same
    *  defect, thrown or not. */
   const [problems, setProblems] = React.useState<string[]>([]);
+
+  /*
+   * ── THE SAME CARD THE TRANSCRIPT DRAWS (P-116) ─────────────────────────
+   *
+   * This banner showed a headline and two buttons. Measured on the tablet
+   * track's merge gate at 05:54: no files, no check conclusion, no verdict, on
+   * the card a person actually presses from. P-72 gave the merge gate its
+   * three facts and only `TrackConsent` was drawing them.
+   *
+   * SAME QUERY KEY AS `TrackConsent`, deliberately: react-query dedupes them,
+   * so a run screen with both mounted pays for one read and the two can never
+   * describe one change differently -- which is the drift P-96 found between
+   * the gate and the release list a packet ago.
+   */
+  const fMergeEvidence = useServerFn(mergeGateEvidence);
+  const evidence = useQuery({
+    queryKey: ["merge-gate-evidence", trackId],
+    queryFn: () => fMergeEvidence({ data: { trackId } }),
+    staleTime: 60_000,
+  });
 
   const decide = useMutation({
     mutationFn: (input: { approvalId: string; verdict: "approve" | "reject"; reason?: string }) =>
@@ -129,14 +150,32 @@ export function GateBanner({ trackId }: { trackId: string }) {
           </Approve>
           <Action
             busy={decide.isPending}
-            onClick={() =>
-              setDecliningId(decliningId === gate.approvalId ? null : gate.approvalId)
-            }
+            onClick={() => setDecliningId(decliningId === gate.approvalId ? null : gate.approvalId)}
           >
             Don&apos;t run it
           </Action>
         </Actions>
       </div>
+
+      {/*
+       * WHAT IT IS ABOUT, under the headline and above the controls.
+       *
+       * ABOVE the buttons on purpose: a reason printed under a control has
+       * already lost, which this repo measured once at 373,096 tokens. Live
+       * evidence when the read has answered, the sentence the raise pinned when
+       * it has not, and an honest "not on this card" when there is neither --
+       * a card with nothing on it reads as a change with nothing in it.
+       */}
+      {isMergeGate(gate.toolName)
+        ? mergeCardLines({
+            evidence: evidence.isSuccess ? evidence.data : null,
+            rationale: gate.rationale,
+          }).map((line) => (
+            <p key={line} className="text-mrd-small leading-mrd-prose text-mrd-mute">
+              {line}
+            </p>
+          ))
+        : null}
 
       {/*
        * A REJECT WITH NO REASON IS IMPOSSIBLE FROM HERE (the packet's own
@@ -167,9 +206,7 @@ export function GateBanner({ trackId }: { trackId: string }) {
           {failureLine("Your answer was not recorded, so the call still stands.", decide.error)}
         </RecordSpeaks>
       ) : null}
-      {problems.length > 0 ? (
-        <RecordSpeaks>{problems.join(" ")}</RecordSpeaks>
-      ) : null}
+      {problems.length > 0 ? <RecordSpeaks>{problems.join(" ")}</RecordSpeaks> : null}
     </div>
   );
 }

@@ -52,12 +52,7 @@ import { formatExpiryDeadline } from "@/components/track/expiry-deadline";
 import { Action, ReadFailedLine, RecordSpeaks } from "@/components/meridian/surface-parts";
 import { ReasonField } from "@/components/meridian/forms";
 import { mergeGateEvidence } from "@/lib/spine/track.functions";
-import { mergeGateLines, mayDrawApprove } from "@/lib/spine/what-the-merge-gate-shows";
-
-/** The one gate this evidence is about. Every other tool's card asks about a
- *  call rather than about a diff, and would read as noise with files on it. */
-const isMergeGate = (tool: string | null | undefined): boolean =>
-  tool === "studio.pr.merge" || tool === "release.publish";
+import { isMergeGate, mayDrawApprove, mergeCardLines } from "@/lib/spine/what-the-merge-gate-shows";
 
 /** Who asked, resolved through the display vocabulary with the roster fallback. */
 function whoAsked(g: TrackGate): string {
@@ -515,10 +510,23 @@ export function TrackConsent({
                  imports" are the same green check and different decisions.
                  Only on the merge gate: every other tool's card is about a
                  call, not about a diff. */
-              ...(isMergeGate(g.toolName) && evidence.isSuccess
-                ? mergeGateLines(evidence.data)
+              /* One composer, three surfaces (P-116). This drew
+                 `mergeGateLines` directly and the banner drew nothing; both
+                 call the same function now, so a card cannot say two things. */
+              ...(isMergeGate(g.toolName)
+                ? mergeCardLines({
+                    evidence: evidence.isSuccess ? evidence.data : null,
+                    rationale: g.rationale,
+                  })
                 : []),
-              ...(g.rationale ? [`Why it asks: ${g.rationale}`] : []),
+              /*
+               * NOT ON A MERGE CARD, because `mergeCardLines` already falls
+               * back to this exact string when the live read has not answered.
+               * Printing it twice under two different labels is the "two
+               * sentences agreeing a line apart" defect way-out.ts names: a
+               * reader cannot tell which one is the surface's own claim.
+               */
+              ...(g.rationale && !isMergeGate(g.toolName) ? [`Why it asks: ${g.rationale}`] : []),
               ...(g.snoozedUntilMs !== null
                 ? ["You set this aside earlier. The run is still stopped."]
                 : []),

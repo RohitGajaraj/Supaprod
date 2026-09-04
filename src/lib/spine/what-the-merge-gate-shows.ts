@@ -275,3 +275,95 @@ export function whyNotAnnounceable(input: { deployment: ReleaseDeployment }): st
   }
   return "Not live yet, so there is nothing to announce. Promote it first.";
 }
+
+/**
+ * ── ONE CARD, THREE SURFACES, AND FACTS PINNED WHEN THE GATE ROSE (P-116) ─
+ *
+ * P-72 gave the merge gate its three facts and `TrackConsent` draws them. The
+ * other two places a person meets the same question did not: the run screen's
+ * banner showed a headline and two buttons, and the Waiting page showed the
+ * tool's name. Measured on the tablet track's own merge gate -- `rationale`
+ * null, `args` `{}` -- so the card a person actually pressed from carried no
+ * files, no check conclusion and no verdict.
+ *
+ * Two halves, and the second is the one that matters.
+ *
+ * ── THE CARD IS COMPOSED ONCE ────────────────────────────────────────────
+ * `mergeCardLines` is what all three call. A second surface writing its own
+ * sentences is how the gate and the list came to describe one release
+ * differently in P-96, one packet ago.
+ *
+ * ── AND THE FACTS ARE PINNED AT THE RAISE, NOT ONLY READ AT THE RENDER ───
+ * `mergeGateEvidence` reads the changeset LIVE, which is right for a card that
+ * wants the current diff and wrong for a decision. Between the raise and the
+ * press the loop can commit again -- it did exactly that on 2026-09-04, twice
+ * in three minutes -- so a card read at render can describe a diff that is not
+ * the one the gate was raised about. Worse, both of us then read a stale checks
+ * result and reported a green PR as red.
+ *
+ * So the raise writes down what it knew: the files it had just committed and
+ * what the checks said at that moment. The render still prefers live evidence,
+ * because a person deciding now wants the current state -- but when there is
+ * none, the pinned sentence is what the gate was raised about rather than
+ * silence.
+ */
+
+/**
+ * The gates this card is about.
+ *
+ * MOVED HERE FROM `TrackConsent` (P-116). It was a private const in the one
+ * surface that drew the card, so the two surfaces that did not draw it had no
+ * way to ask the question -- which is a small version of the same defect: the
+ * knowledge of what a merge card IS lived with one renderer.
+ *
+ * Every other tool's card asks about a call rather than about a diff, and would
+ * read as noise with files on it.
+ */
+export const isMergeGate = (tool: string | null | undefined): boolean =>
+  tool === "studio.pr.merge" || tool === "release.publish";
+
+/** What the run knew about itself at the moment it asked. */
+export function raisedOverLine(input: {
+  /** Paths from the run's own `studio.commit` result, if it made one. */
+  committedFiles: readonly string[];
+  /** Check names that failed at the raise, from `studio.checks.run`. */
+  failingChecks: readonly string[];
+  /** True when the checks ran and all passed. */
+  checksPassed: boolean;
+}): string | null {
+  const files = input.committedFiles.filter((f) => f.trim().length > 0);
+  const parts: string[] = [];
+  if (files.length > 0) {
+    const names = files.slice(0, 3).join(", ");
+    const rest = files.length > 3 ? `, and ${files.length - 3} more` : "";
+    parts.push(
+      `Raised over ${files.length} ${files.length === 1 ? "file" : "files"}: ${names}${rest}.`,
+    );
+  }
+  if (input.failingChecks.length > 0) {
+    parts.push(`The checks were red at the time: ${input.failingChecks.join(", ")}.`);
+  } else if (input.checksPassed) {
+    parts.push("The checks had passed at the time.");
+  }
+  return parts.length > 0 ? parts.join(" ") : null;
+}
+
+/**
+ * The lines a merge card shows, wherever it is drawn.
+ *
+ * Live evidence first, because a person deciding now is deciding about the
+ * change as it is. The pinned sentence when there is none. And when there is
+ * neither, it SAYS so -- a card with nothing on it reads as a change with
+ * nothing in it, which is the one reading that must never be available.
+ */
+export function mergeCardLines(input: {
+  /** Live evidence, when the surface has a track to read one for. */
+  evidence: MergeGateEvidence | null;
+  /** `agent_approvals.rationale`, which the raise pins for a merge gate. */
+  rationale: string | null;
+}): string[] {
+  if (input.evidence && input.evidence.known) return mergeGateLines(input.evidence);
+  const pinned = (input.rationale ?? "").trim();
+  if (pinned) return [pinned];
+  return ["What this change contains is not on this card. Open the pull request before answering."];
+}

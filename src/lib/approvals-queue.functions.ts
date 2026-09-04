@@ -44,6 +44,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { resolveApprovalPolicy } from "@/lib/ai/approval-policy";
+import { isMergeGate, mergeCardLines } from "@/lib/spine/what-the-merge-gate-shows";
 import { approvalRecordFor } from "@/lib/ai/approval-policy.server";
 import { collisionsFrom, targetOf, type Anchor, type Collision } from "@/lib/presence/collision";
 import { z } from "zod";
@@ -691,7 +692,26 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       const consequence = toolConsequence(a.tool_name);
       const track = a.agent_slug ? govern.trackByAgent[a.agent_slug] : undefined;
       const evidence: string[] = [];
-      if (a.rationale) evidence.push(a.rationale);
+      /*
+       * ── THE MERGE CARD IS COMPOSED, NOT ASSEMBLED HERE (P-116) ──────────
+       *
+       * This pushed the bare rationale, which was right until the rationale
+       * became the place the raise PINS what the gate is about. Going through
+       * the composer means this page, the run banner and the transcript card
+       * are one function rather than three that happen to agree -- and it means
+       * a merge gate with no rationale says "not on this card" instead of
+       * silently contributing nothing, which is how the tablet gate reached a
+       * person as a tool name and two buttons.
+       *
+       * No live evidence here: this queue federates ten gate families across a
+       * workspace and has no track in hand. The pinned sentence is exactly what
+       * that case was built for.
+       */
+      if (isMergeGate(a.tool_name)) {
+        evidence.push(...mergeCardLines({ evidence: null, rationale: a.rationale ?? null }));
+      } else if (a.rationale) {
+        evidence.push(a.rationale);
+      }
       evidence.push(`${REVERSIBILITY_LABEL[consequence.reversible]} · ${consequence.undo}`);
       if (track && track.total > 0) {
         evidence.push(`This agent: ${track.approved} of ${track.total} approved before.`);

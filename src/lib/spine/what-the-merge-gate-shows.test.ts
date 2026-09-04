@@ -125,11 +125,18 @@ describe("the card reads it", () => {
   it("shows the evidence only on the merge gate", () => {
     // Every other tool's card asks about a call, not about a diff.
     expect(CARD).toContain("isMergeGate(g.toolName)");
-    expect(CARD).toContain('tool === "studio.pr.merge"');
+    /* The predicate moved to the shared module (P-116): it was private to this
+       one surface, so the two surfaces that did NOT draw the card could not
+       even ask the question. What must hold is that the card asks it, not
+       where the answer is spelled. */
+    expect(CARD).toContain("isMergeGate");
   });
 
   it("puts the change ABOVE the reason it asks", () => {
-    const from = CARD.indexOf("mergeGateLines(evidence.data)");
+    /* `mergeGateLines(evidence.data)` became `mergeCardLines({...})` when the
+       three surfaces were given one composer. The ORDER is the requirement and
+       it is unchanged: what the change contains comes before why it asks. */
+    const from = CARD.indexOf("mergeCardLines({");
     const to = CARD.indexOf("Why it asks", from);
     expect(from).toBeGreaterThan(-1);
     expect(to).toBeGreaterThan(from);

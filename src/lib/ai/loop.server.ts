@@ -114,9 +114,11 @@ async function refundIfAbandoned(
  */
 import {
   CI_GATED_TOOLS,
+  failingCheckNames,
   refusalForRaisingOverRedChecks,
   type ChecksResult,
 } from "@/lib/ai/a-gate-nobody-can-answer-is-not-raised";
+import { raisedOverLine } from "@/lib/spine/what-the-merge-gate-shows";
 
 const PAUSE_ON_APPROVAL_TOOLS = new Set([
   "studio.commit",
@@ -2321,6 +2323,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
        * rate limit. Only a red result withholds the gate; green, pending and
        * unreadable all raise it exactly as before.
        */
+      let pinnedForCard: string | null = null;
       if (CI_GATED_TOOLS.has(call.name) && traceId) {
         let checksQ = supabase
           .from("tool_calls")
@@ -2358,6 +2361,49 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
           conv.push({ role: "user", content: withheld });
           continue;
         }
+
+        /*
+         * ── WHAT THE GATE WAS RAISED OVER, WRITTEN DOWN NOW (P-116) ───────
+         *
+         * The card is read live at render, which is right for somebody
+         * deciding about the change as it is -- and wrong as the only source,
+         * because the loop can commit again between the raise and the press. It
+         * did exactly that on 2026-09-04, twice in three minutes, and two of us
+         * then read a two-commit-stale result and called a green PR red.
+         *
+         * The run knows both facts already: `studio.commit`'s result lists the
+         * paths it pushed, and the checks were just read above. Pinning them
+         * costs one query and gives every surface something true to draw even
+         * where it has no track to read evidence for -- which is why the
+         * banner showed a headline and two buttons.
+         */
+        const failing = failingCheckNames(lastChecks ?? null);
+        let commitQ = supabase
+          .from("tool_calls")
+          .select("result")
+          .eq("trace_id", traceId)
+          .eq("tool_name", "studio.commit")
+          .eq("ok", true);
+        /* Named when it can be named (P-67), on the same argument as the checks
+           read above: the trace already belongs to this run, so this narrows
+           nothing today and stops crossing a boundary the day the key is not
+           unique. Unresolved stays unfiltered rather than pinning nothing. */
+        if (workspaceId) commitQ = commitQ.eq("workspace_id", workspaceId);
+        const { data: commitRows } = await commitQ
+          .order("created_at", { ascending: false })
+          .limit(1);
+        const committed =
+          (((commitRows ?? []) as Array<{ result: unknown }>)[0]?.result as
+            { files?: unknown } | undefined) ?? undefined;
+        pinnedForCard = raisedOverLine({
+          committedFiles: Array.isArray(committed?.files)
+            ? (committed.files as unknown[]).filter((f): f is string => typeof f === "string")
+            : [],
+          failingChecks: failing,
+          /* Only when checks actually ran and none failed. An absent result is
+             not a pass, and saying so would be the stale-read defect again. */
+          checksPassed: !!lastChecks && failing.length === 0,
+        });
       }
 
       const { data: appr } = await supabase
@@ -2379,10 +2425,15 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
           rationale:
             [
               call.reason ?? null,
+              /* P-116: what the raise knew, so a card drawn without a track to
+                 read live evidence for still says what this is about. Appended
+                 to the seat's own words rather than replacing them, on the same
+                 rule the held-for-you clause below already follows. */
+              pinnedForCard,
               heldForYou ? `Held for you rather than shipped automatically: ${heldForYou}` : null,
             ]
               .filter(Boolean)
-              .join(", ") || null,
+              .join(" ") || null,
           expires_at: expiry.expiresAt,
           // F-STUDIO: mission context so gated tools can execute post-approval
           // (outside the live loop) and the sweeper can resume the paused run.
