@@ -215,7 +215,15 @@ export interface ChangesetDeployResult {
 export async function deployChangesetApp(args: {
   workspaceId: string;
   changesetId: string;
-  files: Array<{ path: string; content: string }>;
+  /**
+   * `encoding` defaults to `utf-8`, which is every file the template shape has
+   * ever sent. A BUILT site is not text (P-128b): a Vite build carries PNGs and
+   * woff2, and sending those as UTF-8 corrupts them silently -- the file
+   * uploads, the deploy succeeds, and the image is broken on the served page.
+   * That was the second reason a customer's repo could never have shipped
+   * through this call, after the missing `main.ts`.
+   */
+  files: Array<{ path: string; content: string; encoding?: "utf-8" | "base64" }>;
   production: boolean;
 }): Promise<ChangesetDeployResult> {
   const token = denoToken();
@@ -251,7 +259,7 @@ export async function deployChangesetApp(args: {
 
   const assets: Record<string, unknown> = {};
   for (const f of args.files) {
-    assets[f.path] = { kind: "file", encoding: "utf-8", content: f.content };
+    assets[f.path] = { kind: "file", encoding: f.encoding ?? "utf-8", content: f.content };
   }
   const deployRes = await fetch(`${DENO_API_BASE}/apps/${slug}/deploy`, {
     method: "POST",
