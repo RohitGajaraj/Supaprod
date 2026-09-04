@@ -48,7 +48,6 @@ const BASELINE: Record<string, number> = {
   "src/lib/guardrails.functions.ts": 1,
   "src/lib/onboarding.functions.ts": 1,
   "src/lib/playbooks.functions.ts": 2,
-  "src/lib/spine/track.functions.ts": 1,
   "src/lib/stakeholder-pack.functions.ts": 1,
   "src/lib/threads.functions.ts": 3,
   "src/lib/today-lanes.functions.ts": 1,
