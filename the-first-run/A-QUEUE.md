@@ -7732,7 +7732,7 @@ the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17.
 
 
-### P-74 · The run shows its route: seven stations, what happened at each, and what is ahead · Lane: **A2** (after P-72, before P-73) · Status: CODE DONE (2d848d3f5; A1 on the tip: build 0, tsc 0, 14,264 / 0 / 0; publish in the batch; A1 walks both tracks) · Moves: 2, 3
+### P-74 · The run shows its route: seven stations, what happened at each, and what is ahead · Lane: **A2** (after P-72, before P-73) · Status: PUBLISHED 08:46, read live 10:10 IST 09-04 on the tablet track: *Discover Found 1 thing. Decide The call is on the record. Plan Spec written. Design 1 drawing filed. Build Running, A change was made.* with Ship and Learn blank; on the probe track *Discover Searched and found nothing; carried on your sentence*, Decide showing the raw hold key. DONE as a map; the two sentence gaps are P-74b · Moves: 2, 3
 
 **Why.** The founder, 04:09 IST 09-04: a person in a run needs to see the lifecycle the work
 moves through and where it is on it. Read live on the tablet track at 04:12: the seven names
@@ -8382,7 +8382,7 @@ recorded reason must not be returned to Build by the given-up path (the reason i
 hold is null, since between ticks the track reads as ready. The press waits on that card.
 
 
-### P-59d · A Ship blocked on a recorded reason stays at Ship, and its card draws between ticks · Lane: **A2** (after P-73) · Status: CODE DONE (5d347225f; A1 on the tip: build 0 clean, tsc 0, 14,276 / 0 / 0; PUBLISHED 09:20 IST 09-04 with P-85; the press follows propagation) · Moves: 1, 3
+### P-59d · A Ship blocked on a recorded reason stays at Ship, and its card draws between ticks · Lane: **A2** (after P-73) · Status: CODE DONE (5d347225f; A1 on the tip: build 0 clean, tsc 0, 14,276 / 0 / 0; PUBLISHED 09:20 IST 09-04 with P-85; the press follows propagation) · Moves: 1, 3 · A1, 10:12: the tablet track sits at Build (sent there by the old path before P-59d landed) under a 24-hour deferral, so the Ship card cannot draw for it and the press is moot there; the 06:44 reason will come from P-86's fresh preview attempt instead. The track stays as evidence
 
 **Why.** The live walk of 08:50: the tablet track looped Build to Ship and back overnight, and on
 the served build its screen read *Ready when you are.* with no card because the hold was null
