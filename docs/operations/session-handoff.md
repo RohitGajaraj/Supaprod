@@ -824,3 +824,7 @@ The founder restarts A1 here. State to resume from, all in A-QUEUE.md:
   Deno Deploy plan (P-118b gives a reclaim press), disk space on this Mac.
 - Hand-set state to remember: the five probe tracks are deferred until 2026-09-06 07:02 UTC; the
   tablet track 6817e386 until 2026-09-05 03:18 UTC; P-42's grader read is due after 17:30 IST.
+- Addendum 13:24 IST: A1's tsc + suite on tip e37a2e56c (P-121 included): tsc 0, 14,432 pass /
+  1 fail, the failure a 5 s timeout in `recallMemoryRefs` ("calls touch on recalled IDs") on a
+  machine at 239 MB free; A3's gate on the same code was clean. Treat it as the disk, re-run on the
+  fresh session before publishing P-121, and do not run a local build until the disk is freed.
