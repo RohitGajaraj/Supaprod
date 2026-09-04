@@ -674,3 +674,25 @@ Date call unchanged: 23 September honest if P-128 lands by about 12 September; 1
 
 **Lanes.** A2 on P-113, then P-128. A3 on P-130's sweep, then P-134, P-119b, P-131, P-132, P-133,
 P-104, P-105, P-109. Rule 22 holds; A2's buffer is one deep after P-113 and A1 refills it next.
+
+## Checkpoint, 16:59 IST 09-04
+
+**Since 15:27.** Published on A1's gate: P-131, P-132 (three consecutive runs at 14,594 / 0),
+P-134, P-119b, P-113, P-113b, P-118c, P-128's decision half and P-128b's three halves. Live reads
+DONE: P-118c (the reclaim receipt), P-119b (one card, 229 rows), P-129. Rulings: R-41 placed (the
+first non-template shape Supaprod hosts is a static build; a server is deferred, not refused).
+Founder's calls at 14:53 and 15:06: the announcement published (public since 15:07), the timezone
+delegated and set, Cohere and the Deno plan pending his return; the second repo for P-128b's walk
+was denied at his permission prompt and waits on him.
+
+**Where the third of work stands.** P-128 and P-128b are code complete: a customer repo that is a
+static build is detected, built in the sandbox, uploaded, previewed and promoted through one seam,
+proven against a fixture with the host mocked and not yet against a real Vite site. P-113b
+prices a stuck track (31 percent of the tablet night's spend). P-135 is at attribution: the timer
+excluded the SSR entry load, the bundle thesis is dead, marketing cache headers are overwritten
+somewhere between the Worker and the client, and the landing read is a full count blocking SSR.
+P-137 (Learn names what it can measure) is queued; P-42's grader read comes after 17:30.
+
+**Lanes.** A2 on P-135, then P-137, P-138. A3 on P-133, then P-136, P-104, P-105, P-109, P-130b.
+Rule 22 holds. **Date call unchanged:** 23 September honest if P-128b's live walk passes by about
+12 September; 15 September not.
