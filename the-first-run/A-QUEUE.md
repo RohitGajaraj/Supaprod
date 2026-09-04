@@ -8506,6 +8506,18 @@ Ship can do next is bounded by the known fact that relay-homeowner-app has no pr
 commit (R-27). Next read: the sweep's Ship drive, then the founder's call on a provider for the
 bound repo.
 
+
+**LIVE WALK, the preview, 11:54 to 12:02 IST 09-04 (06:24 to 06:32 UTC).** The tick's preview
+deploy at 06:24:14 failed: *deploy failed (404) APP_NOT_FOUND*. A1 read the Deno Deploy org with
+the product's token: the July apps were still there, the new slug did not exist, and the create
+call the product had made answered **400 `APP_LIMIT_EXCEEDED`, ten of ten apps in use**, which the
+code reads as "already exists" (P-118, A2). Under the founder's authority A1 deleted five July
+test apps that held no production deploy (`cad-b90da531-426c2ee9ccbb`, `-187a9760bb42`,
+`-675489717dca`, `-ccc8f33a29a4`, none with a recorded successful deploy, and `-2b91970799cf`, a
+07-08 preview), created `cad-60000000-ae547426aa32` at 06:31:24 UTC (200), and pressed *Try the
+preview again* on the run screen. Kept: `test-project-cadence` and the July production app
+`cad-b90da531-f8b616c8399e`. Next read: the preview deployment row and its URL.
+
 ### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUBLISHED 09:38 IST 09-04 (b05fa6cf6; A1 on the tip: build 0 clean, tsc 0, 14,291 / 0 / 0; the keyboard walk follows) · Moves: 2, 5
 
 **Why.** Since 09-03 the product gained nine doors (P-60), a bottom bar and a sheet (P-81), the
