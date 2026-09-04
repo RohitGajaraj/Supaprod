@@ -955,3 +955,45 @@ rows. `tierActionFor` ships today and would answer `open-work` on a missed verdi
 session count. It is latent only because no spec carries a reading -- and it stops being latent
 the same day P-149's endpoint lands. That is what P-150 move 2 is for, and it should go before
 P-149.
+## Session end, A1, 22:09 IST 09-04 (the founder's call at 21:35: close after the logical unit)
+
+**Everything is on main and main is the only branch.** origin holds `main` and the tag
+`archive/p33-sample-door-d760bd387`; every other branch was verified against main and deleted
+(the list, with shas, is under "Branches" in A-QUEUE.md). Both lanes closed on the founder's
+instruction with their session ends appended to this file and to `.remember/remember.md`: A3 at
+21:49 (P-151 landed, P-146 at 153 of 655 and 30 of 476 against 139 and 26), A2 at 21:45 (P-150
+move 1 landed with its migration applied and the ledger row confirmed; moves 2 and 3 not started).
+P-135 landed on main from its branch through gate 177 (14,821 / 0) and its own deploy at 22:08, the branch deleted; that was the founder's word at 21:39, every branch on main, and the zone's cache rewrite of the client header stays his question.
+
+**Published tonight on A1's gate, one gate per landing:** P-137, P-138, P-109's second half and
+P-140's diagnostic (19:24); P-142 (19:44); P-143 (19:49); P-142c (19:59); P-144 scope 1 (20:34);
+P-140 proper and P-141 (20:42); P-144 scope 2 (20:42); P-144 scope 3 and P-146's first batch
+(21:36); P-151 and P-150 move 1 (21:59, one deploy because a deploy is always of the tip);
+P-135 (22:08). Live reads DONE: P-137 on the spec artifact, P-138, P-109, P-127, P-143, P-140
+(3,606 credits on the release track's Start row), P-141 ("Cost 3,606 credits across 37 runs").
+
+**What the next A1 reads first.** P-151's press on 2fdf93b6 once served (it re-holds Learn for
+free and composes P-144's hold line; the card should read the date and the gap, no "nothing here
+is waiting on a person"). P-144's hold line on the run page follows from that same press. P-146's
+sweep continues (A3), P-150 move 2 before P-149 (A2, its first line), then P-145, P-148, P-149.
+Rule 22 buffers: A2 has P-150 (moves 2 and 3), P-145, P-148, P-149; A3 has P-146, P-152, P-130b,
+P-147, P-155.
+
+**What the founder still holds.** The second repo for P-128b's live walk; the Cohere card
+(embeddings stopped, 229 rows waiting); the Deno plan (A1's call: stay free); the supaprod.ai
+zone's cache rule (the Worker asks for s-maxage on thirteen marketing routes and the zone rewrites
+it to no-cache; P-135's Worker-side cache lands regardless); and the spec-list question beside
+P-142 (no surface lists a workspace's specs; is that the design?).
+
+**The gate is five lines now** (rule 25): build, tsc, the full suite, `check:unreachable` and
+`bun run lint`, the last two reported as ratchets that may only go down (tonight: unreachable
+179 to 153 server functions and 43 to 30 components; lint files under `src/` 82 to 71). Script:
+this session's scratchpad `gate.sh N`; the next A1 recreates it from rule 25 in a minute. One
+suite per machine (rule 26).
+
+**Three things worth carrying.** (1) Four packets today had a premise the data did not support;
+the ones caught before building were caught by measuring the thing rather than the thing that
+describes it, and rule 24 names it for surfaces. (2) Two guards nobody ran were red on main for
+days; a check nobody can fail is a check nobody runs, and A1's gate now reports them. (3) A1
+wrote timestamps up to 25 minutes ahead of the clock twice today and corrected them from commit
+times; `date` goes in the Bash call that writes the record.

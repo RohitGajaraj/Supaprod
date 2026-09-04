@@ -788,3 +788,19 @@ surfaces.
 P-146, P-152, P-130b, P-147. Pending reads: P-140 and P-141 once the 20:42 build serves, the hold
 line once P-151 lands. Founder: P-135's landing, the second repo for P-128b, the Cohere card, the
 Deno plan, the spec-list question beside P-142.
+
+## Session end, 22:09 IST 09-04
+
+The founder closed the session at 21:35 after the logical unit in flight. A3 closed at 21:49
+(P-151 landed; P-146 at 153 of 655 and 30 of 476 against 139 and 26) and A2 at 21:45 (P-150
+move 1 landed with its migration applied and confirmed; moves 2 and 3 not started, and move 2
+must land before P-149). Every landing was gated on its own; P-151 and P-150 move 1 shared one
+deploy because a deploy is always of the tip, and P-135 was held unpushed until that deploy had
+begun so it could go out alone. Origin holds `main` and one archive tag; local main is 0 ahead
+and 0 behind. Live reads DONE tonight: P-137, P-138, P-109, P-127, P-143, P-140, P-141. The
+full account is A1's session end in `docs/operations/session-handoff.md`.
+
+**Date call unchanged:** 23 September honest if P-128b's live walk on a second repo passes by
+about 12 September; the second repo is still the founder's to create or allow. The grading path
+is now measured rather than assumed (0 readings on 133 specs; populations in the observations
+field; the key landed; the rule next), which is the Learn half of the honest story.
