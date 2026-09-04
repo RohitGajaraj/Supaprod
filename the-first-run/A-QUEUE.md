@@ -10485,7 +10485,7 @@ asserting 18 of 26.
 **DoD.** Pushed; the three numbers; the measured saving.
 
 
-### P-137 · Learn says what it can and cannot measure about the first release · Lane: **A2** (after P-135) · Status: READY · Moves: 1, 3
+### P-137 · Learn says what it can and cannot measure about the first release · Lane: **A2** (after P-135) · Status: PUBLISHED, LIVE READ PENDING (90c1b16aa; A1 gate: build 0, tsc 0, 14,670 pass / 0 fail; published 18:59 IST; A1 reads Learn on 2fdf93b6 once served: six clauses named, the honest sentence, the two presses; F-199 and F-200 in the ledger) · Moves: 1, 3
 
 **Why.** The first live release (12:28 IST 09-04) sits at Learn with *The forecast this work is
 graded against comes due on 2026-09-09* and a horizon check on 09-21. Its spec's success metrics
