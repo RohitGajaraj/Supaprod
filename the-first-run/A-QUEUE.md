@@ -10418,7 +10418,7 @@ calls, 1,062 files. `bun run build`: clean end to end. `bun run docs:check`: exi
 "docs-doctor: clean." all 12 checks ok.
 
 
-### P-140 · Credits on Start's run rows and the Outcomes page · Lane: **A3** (after P-136) · Status: PUBLISHED, LIVE READ PENDING (f58ab7816; the in-list of 174 traces crossed the PostgREST URL cap and the error branch returned an empty map with no error, F-201; batched at 25, a failed batch reads as unread rather than a smaller total; A3 local: tsc 0, 14,728 / 0, build 0; A1 gate 171 on the landed tip: build 0, tsc 0, 14,743 pass / 0 fail; published 20:41 IST with gate 172; A1 reads Start's run rows for a credits figure once served) · Moves: 3
+### P-140 · Credits on Start's run rows and the Outcomes page · Lane: **A3** (after P-136) · Status: DONE (live 21:48 IST on Helio's Start: the run rows read 3,606 credits for 2fdf93b6, the run screen's own number, then 2,785, 626 and 196, and the diagnostic field is gone from the payload; f58ab7816; the in-list of 174 traces crossed the PostgREST URL cap and the error branch returned an empty map with no error, F-201; batched at 25, a failed batch reads as unread rather than a smaller total; A3 local: tsc 0, 14,728 / 0, build 0; A1 gate 171 on the landed tip: build 0, tsc 0, 14,743 pass / 0 fail; published 20:41 IST with gate 172; A1 reads Start's run rows for a credits figure once served) · Moves: 3
 
 **Why.** P-136 closed the run screen's own two-dollar-figure defect, but Scope named three
 surfaces and only one shipped: Start's `YourRuns.tsx` carries no spend figure at all today, and the
