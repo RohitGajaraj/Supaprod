@@ -320,12 +320,44 @@ describe("the hold it takes, and the one it must not", () => {
 describe("no later writer in the same drive replaces the claim", () => {
   const SRC = readFileSync("src/lib/spine/driver.server.ts", "utf8");
   const code = SRC.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
-  const claimAt = code.indexOf("const claimRefusal = refusedTool(steps);");
+  const claimAt = code.indexOf("const claimRefusal =");
+
+  /*
+   * ── THE ANCHOR IS ASSERTED BEFORE ANYTHING SLICES ON IT ─────────────────
+   * This guard used to anchor on `const claimRefusal = refusedTool(steps);` --
+   * the exact line that turned out to be the defect. When it was fixed,
+   * `indexOf` returned -1, and every `code.slice(claimAt, ...)` below quietly
+   * became `slice(-1)`: the last character of the file, which contains none of
+   * the things these tests look for. The assertions failed loudly here, but the
+   * same shape passes silently whenever a guard's subject is a `not.toContain`.
+   *
+   * So the anchor is checked ONCE, first, with a message that says what to do.
+   */
+  const branchFrom = (): string => {
+    expect(claimAt, "the claim branch's anchor is gone; re-point it").toBeGreaterThan(-1);
+    const end = code.indexOf('last_hold: "out-of-time"');
+    expect(end, "the out-of-time writer is gone; re-point the branch end").toBeGreaterThan(claimAt);
+    return code.slice(claimAt, end);
+  };
 
   it("establishes the claim once, not once per branch", () => {
-    // Two checks in two branches is what this replaced. One is the fix.
-    expect([...code.matchAll(/refusalIsAClaimedPath\(/g)]).toHaveLength(1);
+    /*
+     * Two checks in two branches is what this replaced; one is the fix. Counted
+     * on the WRITE rather than on the predicate: the predicate now lives in
+     * `claimRefusalIn` (refusal-kind.ts) because asking `refusedTool` for a
+     * claim and then testing the answer with `refusalIsAClaimedPath` composed
+     * two disjoint sets and could never be true. What must stay singular is the
+     * number of places this driver establishes the hold.
+     */
+    expect([...code.matchAll(/last_hold: CLAIMED_PATH_HOLD/g)]).toHaveLength(1);
+    expect([...code.matchAll(/claimRefusalIn\(steps\)/g)]).toHaveLength(1);
     expect(claimAt).toBeGreaterThan(-1);
+  });
+
+  it("does not ask the credential detector for a claim", () => {
+    // The defect this file now also covers: `refusedTool` matches 401/403/
+    // forbidden/not-configured and a `BuilderFileConflict` carries none of them.
+    expect(/refusalIsAClaimedPath\s*\(/.test(code)).toBe(false);
   });
 
   /*
@@ -372,7 +404,7 @@ describe("no later writer in the same drive replaces the claim", () => {
   });
 
   it("returns rather than falling through, which is what makes the order enough", () => {
-    const branch = code.slice(claimAt, code.indexOf('last_hold: "out-of-time"'));
+    const branch = branchFrom();
     expect(branch).toContain("hold: CLAIMED_PATH_HOLD");
     expect(branch).toContain("return {");
   });
@@ -383,13 +415,13 @@ describe("no later writer in the same drive replaces the claim", () => {
      * until the other run merges. The spend write sits ABOVE the claim return on
      * purpose: the money was spent whatever the drive concluded.
      */
-    const branch = code.slice(claimAt, code.indexOf('last_hold: "out-of-time"'));
+    const branch = branchFrom();
     expect(branch).not.toContain("attempts:");
     expect(code.indexOf("spend_used_usd: spent")).toBeLessThan(claimAt);
   });
 
   it("writes the sentence that names the other run", () => {
-    const branch = code.slice(claimAt, code.indexOf('last_hold: "out-of-time"'));
+    const branch = branchFrom();
     expect(branch).toContain("waitingOnAnotherRun({");
     expect(branch).toContain("last_hold_because: because");
   });

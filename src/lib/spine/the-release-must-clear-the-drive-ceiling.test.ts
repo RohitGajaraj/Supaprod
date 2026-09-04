@@ -49,16 +49,19 @@ describe("a person's release clears BOTH ceilings", () => {
   it("every release in track.functions.ts resets station_drives", () => {
     const found = releases(TRACK_FNS);
     /*
-     * retryStation, submitStationByHand, and rewindTrackTo.
+     * retryStation, submitStationByHand, rewindTrackTo, and buildOnYourWord.
      *
      * This count is the point of the assertion, and it has already earned its
-     * keep: `rewindTrackTo` landed later the same day and this test failed on
-     * the count before the code shipped, which is exactly the intended catch —
-     * a new release path is forced to be looked at rather than inheriting half
-     * a reset by omission. Raise it only after checking the new path resets
-     * `station_drives` too.
+     * keep twice: `rewindTrackTo` landed later the same day and this test
+     * failed on the count before the code shipped, and `buildOnYourWord` became
+     * a release under P-71f — answering R-39's Choice now advances the track off
+     * Decide, because a carried track can never finish that station by machine.
+     * Both times a new release path was forced to be looked at rather than
+     * inheriting half a reset by omission. Raise it only after checking the new
+     * path resets `station_drives` too; this one does, in the same spread that
+     * sets the station it moves to.
      */
-    expect(found.length).toBe(3);
+    expect(found.length).toBe(4);
     for (const u of found) {
       expect(u, "a release that leaves station_drives cannot un-stick anything").toContain(
         "station_drives: 0",

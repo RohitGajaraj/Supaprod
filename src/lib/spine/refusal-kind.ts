@@ -225,3 +225,70 @@ export function conflictLine(): string {
   // the case this product has actually recorded seven times.
   return "The change could not land because the branch it was built on has moved on. That is not a dead end: the work goes back to be rebuilt on what is there now.";
 }
+
+/**
+ * THE CLAIM REFUSAL, FOUND BY ASKING FOR A CLAIM REFUSAL.
+ *
+ * ── THE GATE THAT COULD NOT OPEN, MEASURED ON TRACK `2fdf93b6` ────────────
+ * `driver.server.ts` established the claim hold like this:
+ *
+ *     const claimRefusal = refusedTool(steps);
+ *     if (claimRefusal && refusalIsAClaimedPath(claimRefusal.tool, ...))
+ *
+ * and that `if` **can never be true**. `refusedTool` is F-41's detector and its
+ * own header says what it is for: a door that was LOCKED -- 401, 403,
+ * unauthorised, forbidden, permission denied, token expired, not configured.
+ * The comment on `refusedToolInTraces` states the rule outright: *"that set is
+ * deliberately narrow and should stay narrow -- it decides a terminal hold."*
+ *
+ * A claim refusal carries none of those words. `claimedPathRefusal` composes it
+ * and the tool stamps `BuilderFileConflict:` on the front. So `refusedTool`
+ * returns `null` for a claim every time, and the one branch that reads the claim
+ * was gated behind the one function guaranteed not to hand it one.
+ *
+ * The two predicates are DISJOINT BY CONSTRUCTION, and each is right on its own.
+ * Composing them with `&&` asked for a refusal that is both a locked door and a
+ * claimed path, which nothing is.
+ *
+ * ── WHAT IT COST ──────────────────────────────────────────────────────────
+ * Track `2fdf93b6` took a `BuilderFileConflict` on
+ * `src/checkout/AddressStep.tsx` on six consecutive Build drives between 22:00
+ * on 2026-09-02 and 01:00 on 2026-09-03, and `waiting-on-another-run` was never
+ * written once. Each drive fell through to the writers this branch exists to
+ * pre-empt -- `out-of-time`, then `self-check-failed` -- until `station_drives`
+ * reached 12 and the F-43 ceiling parked it at `going-in-circles`, which is
+ * TERMINAL and excluded from the sweep. $0.50 spent, and a person now has to
+ * un-park it by hand.
+ *
+ * `decideDrive` already carries the exemption that would have prevented all of
+ * it, keyed on `lastHold === "waiting-on-another-run"` -- a hold this path was
+ * structurally unable to write. The escape hatch was built and then sealed
+ * behind the gate it was supposed to open.
+ *
+ * The claim cleared on its own at 06:42 the next morning, `released_reason
+ * studio_merge`, exactly as the refusal sentence promised it would.
+ *
+ * ── SO THIS ASKS THE QUESTION IT MEANS ────────────────────────────────────
+ * Scans every failed step for a CLAIM, rather than taking the first
+ * credential-shaped refusal and testing whether it happens to be one. The live
+ * drive refused twice -- a missing `@testing-library/react` dependency first,
+ * the claim second -- so even a `refusedTool` widened to return the first
+ * failure of any kind would have handed back the dependency error and missed
+ * the claim. First-match-of-the-wrong-kind is the same defect one layer along.
+ *
+ * `refusedTool` is deliberately NOT widened. It decides `tools-refused`, which
+ * is terminal, and letting a claim reach it would trade a recoverable wait for
+ * an unrecoverable stop.
+ */
+export function claimRefusalIn(
+  steps: readonly { kind: string; name?: string; status?: string; error?: string | null }[],
+): { tool: string; error: string } | null {
+  for (const s of steps) {
+    if (s.kind !== "tool_call" || s.status !== "error") continue;
+    const err = (s.error ?? "").trim();
+    if (!err) continue;
+    const tool = s.name ?? "a tool";
+    if (refusalIsAClaimedPath(tool, err)) return { tool, error: err.slice(0, 300) };
+  }
+  return null;
+}

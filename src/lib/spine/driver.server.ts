@@ -28,11 +28,7 @@
  * go, never that policy stopped applying.
  */
 import { trackGoalSentence } from "@/lib/track-origin";
-import {
-  claimedPathFrom,
-  refusalIsAboutTheWork,
-  refusalIsAClaimedPath,
-} from "@/lib/spine/refusal-kind";
+import { claimedPathFrom, claimRefusalIn, refusalIsAboutTheWork } from "@/lib/spine/refusal-kind";
 import {
   CLAIMED_PATH_HOLD,
   waitingOnAnotherRun,
@@ -2967,8 +2963,21 @@ export async function driveTrackOnce(
    * The spend above is still recorded, because the money was still spent.
    */
   {
-    const claimRefusal = refusedTool(steps);
-    if (claimRefusal && refusalIsAClaimedPath(claimRefusal.tool, claimRefusal.error)) {
+    /*
+     * ── ASKED FOR A LOCKED DOOR AND EXPECTED A CLAIM (see `claimRefusalIn`) ──
+     * This read `refusedTool(steps)` and then tested the result with
+     * `refusalIsAClaimedPath`. Those two sets are disjoint by construction --
+     * `refusedTool` matches 401/403/forbidden/not-configured and a claim carries
+     * none of them -- so the condition was unsatisfiable and this branch had
+     * never once run when track `2fdf93b6` was parked at `going-in-circles`
+     * after six claim refusals in a row.
+     *
+     * The record fallback is F-41's, for F-41's reason: the in-memory steps are
+     * free but they have already been observed not to arrive.
+     */
+    const claimRefusal =
+      claimRefusalIn(steps) ?? (await claimRefusalInTraces(supabase, traceIds, row.workspace_id));
+    if (claimRefusal) {
       const held = claimedPathFrom(claimRefusal.error);
       const because = waitingOnAnotherRun({
         path: held.path ?? "a file",
@@ -4249,6 +4258,56 @@ async function refusedToolInTraces(
     // `getTrackArtifacts` follows for `missing`.
     if (error || !data) return null;
     return refusedTool(
+      data.map((r) => ({
+        kind: "tool_call",
+        name: (r as { tool_name?: string }).tool_name ?? "a tool",
+        status: "error",
+        error: (r as { error?: string | null }).error ?? null,
+      })),
+    );
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The same read, asking for a CLAIM instead of a locked door.
+ *
+ * Separate from `refusedToolInTraces` rather than a flag on it, because the two
+ * answer different questions and one of them decides a TERMINAL hold. Sharing a
+ * scan and branching inside it is how the claim ended up behind the credential
+ * detector in the first place.
+ *
+ * Why the record and not only `steps`: F-41 above is the whole argument. The
+ * first version of that fix read the in-memory steps, shipped, and did not fire
+ * on a live 401 twice while `tool_calls` held the proof both times. A claim
+ * refusal reaches this driver through exactly the same plumbing, so it gets
+ * exactly the same fallback -- in-memory first because it is free, the record
+ * second because it is what actually happened.
+ */
+async function claimRefusalInTraces(
+  supabase: SupabaseClient,
+  traceIds: string[],
+  workspaceId: string | null,
+): Promise<{ tool: string; error: string } | null> {
+  if (!traceIds.length) return null;
+  try {
+    let q = supabase
+      .from("tool_calls")
+      .select("tool_name,error,created_at")
+      .in("trace_id", traceIds)
+      .eq("ok", false);
+    // Named when it can be named. A trace id is already specific to one run, so
+    // this narrows nothing in practice -- but an unscoped read of a
+    // workspace-scoped table is the shape that reads across a boundary the day
+    // the key stops being unique, and `null` here means UNKNOWN rather than
+    // none: filtering on a workspace we cannot name would turn a failed lookup
+    // into "there was no claim", which is a claim.
+    if (workspaceId) q = q.eq("workspace_id", workspaceId);
+    const { data, error } = await q.order("created_at", { ascending: true }).limit(50);
+    // A read that failed proves nothing, so it claims nothing.
+    if (error || !data) return null;
+    return claimRefusalIn(
       data.map((r) => ({
         kind: "tool_call",
         name: (r as { tool_name?: string }).tool_name ?? "a tool",

@@ -24,6 +24,7 @@
  * the turn it describes.
  */
 import type { AgentStation } from "@/lib/agent-vocabulary";
+import { STATION_NEEDS } from "@/lib/spine/correction";
 import type { PlanStepState } from "@/components/meridian/PlanCard";
 import type { RunMapStation } from "@/components/meridian/RunMap";
 
@@ -32,8 +33,8 @@ export type StopLike = {
   station: AgentStation;
   state: "passed" | "here" | "not-reached" | "waived";
   waivedReason: string | null;
+  /** The raw `HoldReason` id. `RunMap` turns it into a sentence via `holdLine`. */
   hold: string | null;
-  holdReason: string | null;
   everDriven: boolean;
   items: ReadonlyArray<{ kind?: string | null; title?: string | null; fields?: unknown }>;
 };
@@ -71,11 +72,57 @@ export function didLine(stop: StopLike): string | null {
   }
 
   /*
-   * THE HOLD SPEAKS FIRST WHERE THE WORK IS STANDING. A station stopped on
-   * something is not described by what it filed before stopping, and the hold
-   * is the thing a person can act on.
+   * ── THE HOLD IS DRAWN BY THE MAP, FROM THE VOCABULARY, AND NOT HERE ──────
+   *
+   * This returned `stop.holdReason` on the reasoning that a station stopped on
+   * something is not described by what it filed before stopping. Both halves of
+   * that were wrong in practice.
+   *
+   * `holdReason` READS LIKE A SENTENCE AND CARRIES AN ENUM. `TrackRun` passes
+   * `track.holdReason`, which is the raw `HoldReason` id -- the same value it
+   * compares against `"the-call-is-yours"` and `CLAIMED_PATH_HOLD` three lines
+   * away. So the Decide row rendered `the-call-is-yours` at a person, which is
+   * the plain-words rule broken by a field name.
+   *
+   * This guard did not catch it because ITS FIXTURE PASSED A SENTENCE --
+   * "Waiting for a preview of this change." -- which is what the name suggests
+   * and not what production sends. A test that invents a nicer input than the
+   * caller supplies is testing the name, not the code.
+   *
+   * AND IT WAS ALREADY DRAWN ANYWAY. `RunMap` renders `holdLine(stop.hold)`
+   * beside the outcome (K-18, "verbatim from `holdLine`, never re-worded
+   * here"), so even with the id translated this would have printed the hold
+   * sentence twice in one row.
+   *
+   * So the outcome line says what the station DID and the hold stays with the
+   * one renderer that owns it. A held station that filed something now says
+   * both -- "Spec written." under an "On hold" chip and the hold's own sentence
+   * -- which is more than it said before, not less.
    */
-  if (stop.state === "here" && stop.holdReason) return stop.holdReason;
+
+  /*
+   * ── A STATION AHEAD SAYS WHAT IT WILL NEED (P-74b) ───────────────────────
+   *
+   * A1 read the map live and the four rows ahead of the work -- Plan, Design,
+   * Build, Ship -- were blank. Blank is honest about what they DID and useless
+   * about what is coming, and the whole point of drawing the route is that a
+   * person can see what is coming.
+   *
+   * THIS IS NOT THE THING THE HEADER FORBIDS. "Derived, never invented" bars
+   * guessing at an OUTCOME a station has not produced. What a station will need
+   * before it can run is not an outcome and not a guess: it is
+   * `STATION_NEEDS`, the same table the correction loop uses to decide whether
+   * a station may be dispatched at all. The map is reading the route, which is
+   * exactly what it is for.
+   *
+   * Worded as a requirement so it can never be misread as a result -- "Will
+   * need a spec to design against" cannot be mistaken for "designed against a
+   * spec", which is the confusion that would make this a decoration.
+   */
+  if (stop.state === "not-reached") {
+    const needs = STATION_NEEDS[stop.station]?.missing;
+    return needs ? `Will need ${needs}.` : null;
+  }
 
   switch (stop.station) {
     case "sense": {

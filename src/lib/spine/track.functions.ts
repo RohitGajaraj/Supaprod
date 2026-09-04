@@ -309,6 +309,45 @@ async function attachOriginTheme(
   }
 }
 
+/**
+ * File the person's own call as what Decide produced.
+ *
+ * Without this the decision exists in `decisions` and the track's record shows
+ * Decide filing nothing -- so the map says the station did nothing, and
+ * `STATION_NEEDS` has no artifact to hand Define. The row IS Decide's output;
+ * the only unusual thing about it is who wrote it.
+ *
+ * Best-effort, on the same contract as `attachOriginTheme` above: losing the
+ * index row is recoverable, refusing a person's recorded answer because the
+ * index write failed is not.
+ */
+async function attachPersonsDecision(
+  supabase: SupabaseClient,
+  trackId: string,
+  decisionId: string,
+): Promise<void> {
+  try {
+    const { error } = await supabase.from("spine_track_members" as never).upsert(
+      {
+        track_id: trackId,
+        artifact_kind: "decision",
+        artifact_id: decisionId,
+        station: "decide",
+      } as never,
+      { onConflict: "track_id,artifact_kind,artifact_id" },
+    );
+    if (error) {
+      console.error(
+        `[spine] track ${trackId} recorded the person's call ${decisionId} but did not file it: ${error.message}`,
+      );
+    }
+  } catch (e) {
+    console.error(
+      `[spine] filing the person's call for track ${trackId} threw: ${e instanceof Error ? e.message : String(e)}`,
+    );
+  }
+}
+
 export async function startTrackCore(
   supabase: SupabaseClient,
   userId: string,
@@ -5013,6 +5052,54 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
  * forecast columns are immutable once written, and Learn will ask about it. A
  * distant date to be safe is the thing the tool's own description warns against.
  */
+/**
+ * ── THE OTHER ANSWER, WHICH RECORDED NOTHING AT ALL (P-71f) ───────────────
+ *
+ * "Point a source first" was a `navigate()` to the connections settings and
+ * nothing else. The person answered the Choice and the track kept
+ * `the-call-is-yours`, so `driven_at > updated_at` held and P-71d's skip took
+ * it out of the sweep permanently -- the same dead end `buildOnYourWord` was
+ * just fixed for, reached through the door nobody measured because it looked
+ * like navigation rather than an answer.
+ *
+ * Both options on a Choice are answers. This one says "I am going to get you
+ * evidence", which is precisely `needs-evidence`: the hold whose whole meaning
+ * is that no station can manufacture what this work needs and a person is
+ * bringing it. It keeps its sweep slot -- `scheduledAwayIds` skips a
+ * `needs-evidence` track only when it carries a FUTURE date, and this one
+ * carries none -- so the track is picked up again the moment a source lands.
+ *
+ * NO DECISION ROW. They did not decide anything; they declined to decide
+ * without evidence, which is the opposite. Writing an approval here would be
+ * the same invention R-39 exists to refuse.
+ */
+export const pointASourceFirst = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<{ ok: true }> => {
+    const { supabase } = context;
+
+    const { error } = await supabase
+      .from("spine_tracks" as never)
+      .update({
+        last_hold: "needs-evidence",
+        /*
+         * The door, in their words rather than the machine's. `needs-evidence`
+         * is set by stations too, so the sentence has to say that a PERSON
+         * chose this -- otherwise the run screen reports their answer as a
+         * station's complaint.
+         */
+        last_hold_because:
+          "You chose to point a source at this first. Nothing connected here can tell us whether " +
+          "it worked yet; connect one and this run picks up again.",
+        updated_at: new Date().toISOString(),
+      } as never)
+      .eq("id", data.trackId);
+    if (error) throw new Error(`Your answer could not be recorded: ${error.message}`);
+
+    return { ok: true as const };
+  });
+
 export const buildOnYourWord = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
@@ -5037,7 +5124,7 @@ export const buildOnYourWord = createServerFn({ method: "POST" })
 
     const { data: trackRow, error: trackErr } = await supabase
       .from("spine_tracks" as never)
-      .select("id,title,workspace_id,product_id")
+      .select("id,title,workspace_id,product_id,station,path,entry_station,waived,origin")
       .eq("id", data.trackId)
       .maybeSingle();
     if (trackErr) throw new Error(`This run could not be read: ${trackErr.message}`);
@@ -5046,6 +5133,11 @@ export const buildOnYourWord = createServerFn({ method: "POST" })
       title: string | null;
       workspace_id: string | null;
       product_id: string | null;
+      station: string | null;
+      path: unknown;
+      entry_station: string | null;
+      waived: unknown;
+      origin: string | null;
     } | null;
     if (!track) throw new Error("This run no longer exists.");
 
@@ -5086,15 +5178,55 @@ export const buildOnYourWord = createServerFn({ method: "POST" })
     if (!decisionId) throw new Error("Your call could not be recorded, and nothing was changed.");
 
     /*
-     * The hold is cleared LAST, and only after the row exists. Clearing first
-     * would let the sweep pick the track up and re-dispatch Decide into the
-     * same emptiness while the decision was still being written.
+     * ── THE ANSWER IS THE DECIDE ARTIFACT, SO THE TRACK LEAVES DECIDE ───────
+     *
+     * Clearing the hold was not enough, and A1's fifth probe measured exactly
+     * how much:
+     *
+     *   03:50:25.732  the decision row lands -- their claim, their observable,
+     *                 `decided_by_agent_slug` NULL
+     *   03:50:25.811  this write clears `the-call-is-yours`
+     *   03:50:26.849  a drive runs Decide again
+     *   03:50:28.513  R-39 refuses again and re-raises the Choice
+     *
+     * Two point eight seconds. Then `driven_at > updated_at`, which is P-71d's
+     * skip, so the sweep never looks at it again: the person answered and the
+     * product asked the same question back, permanently.
+     *
+     * IT CANNOT BE FIXED BY CLEARING HARDER. The track is `carried` -- Sense
+     * searched and found nothing, and P-71c made that a durable fact rather
+     * than a hold that can be overwritten. `seatMayDecide` therefore refuses
+     * EVERY machine decision on it, correctly and forever. Decide has no
+     * machine completion available, so leaving the station at Decide schedules
+     * the identical refusal for whenever the track is next driven.
+     *
+     * The person's decision IS the thing Decide exists to produce. So it is
+     * attached as Decide's artifact and the station advances in the same write
+     * that clears the hold -- one round trip, no window in which the track sits
+     * answered-but-unmoved for a sweep to walk into.
      */
-    await supabase
+    const route = {
+      entry: (track.entry_station ?? "sense") as AgentStation,
+      path: (Array.isArray(track.path) && track.path.length > 0
+        ? track.path
+        : [...AGENT_STATION_ORDER]) as AgentStation[],
+      waived: (Array.isArray(track.waived) ? track.waived : []) as SpineRoute["waived"],
+      origin: track.origin,
+    } as SpineRoute;
+    /* Only ever moves a track that is actually standing at Decide. Answering
+       the Choice from anywhere else records the call and moves nothing, which
+       is the honest reading of a question that is no longer where it was. */
+    const here = (track.station ?? "") as AgentStation;
+    const movesOn = here === "decide" ? nextStation(route, here) : null;
+
+    await attachPersonsDecision(supabase, data.trackId, decisionId);
+
+    const { error: clearErr } = await supabase
       .from("spine_tracks" as never)
       .update({
         last_hold: null,
         last_hold_because: null,
+        ...(movesOn ? { station: movesOn, attempts: 0, station_drives: 0 } : {}),
         /*
          * `updated_at` MOVES, and it is what lets the sweep pick this up again
          * (P-71d). The skip that keeps `the-call-is-yours` out of the sweep is
@@ -5105,6 +5237,18 @@ export const buildOnYourWord = createServerFn({ method: "POST" })
         updated_at: new Date().toISOString(),
       } as never)
       .eq("id", data.trackId);
+    /*
+     * CHECKED, because the first version did not. A silent failure here returns
+     * `{ ok: true }` to a person whose answer changed nothing on the row -- the
+     * screen says the call is recorded and the track goes on asking. The
+     * decision row is real either way, so this reports the half that failed
+     * rather than pretending the whole thing did.
+     */
+    if (clearErr) {
+      throw new Error(
+        `Your call was recorded, but this run could not be moved on: ${clearErr.message}`,
+      );
+    }
 
     return { ok: true as const, decisionId };
   });

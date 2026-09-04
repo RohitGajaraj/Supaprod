@@ -99,7 +99,11 @@ import { composerPromiseFor } from "@/components/track/one-door-for-one-state";
 import { whyShipStopped } from "@/lib/deployments.functions";
 import { checkForecastObservable } from "@/lib/spine/track.functions";
 import { TheCallIsYours } from "@/components/track/TheCallIsYours";
-import { buildOnYourWord, choiceStillOutstanding } from "@/lib/spine/track.functions";
+import {
+  buildOnYourWord,
+  choiceStillOutstanding,
+  pointASourceFirst,
+} from "@/lib/spine/track.functions";
 import { retryPreviewNow } from "@/lib/deployments.functions";
 import {
   type ShipStop,
@@ -502,6 +506,22 @@ export function TrackRunLeft({
       run.mutate("press");
     },
   });
+  /*
+   * The other answer. Recorded BEFORE the navigation, and it does not press:
+   * there is nothing to drive until a source actually lands, and pressing would
+   * spend a dispatch to rediscover the same emptiness. The navigation happens
+   * either way -- a failed write must not strand the person on a screen whose
+   * button did nothing, and the settings page is where they were going.
+   */
+  const fPointASourceFirst = useServerFn(pointASourceFirst);
+  const pointASource = useMutation({
+    mutationFn: () => fPointASourceFirst({ data: { trackId } }),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ["track", trackId] });
+      navigate({ to: "/settings", search: { section: "connections" } });
+    },
+  });
+
   const nowMs = Date.now();
 
   // QUEUE 67: Calm hold tone for "needs-evidence" when forecast not yet due.
@@ -1041,9 +1061,15 @@ export function TrackRunLeft({
        */}
       {callIsYours ? (
         <TheCallIsYours
-          busyId={onYourWord.isPending ? "build-on-your-word" : null}
+          busyId={
+            onYourWord.isPending
+              ? "build-on-your-word"
+              : pointASource.isPending
+                ? "point-a-source"
+                : null
+          }
           onBuildOnYourWord={(howWeWillKnow) => onYourWord.mutate(howWeWillKnow)}
-          onPointASource={() => navigate({ to: "/settings", search: { section: "connections" } })}
+          onPointASource={() => pointASource.mutate()}
         />
       ) : (
         /* Answering a gate is a person acting: `press`, never `continuation`. */
