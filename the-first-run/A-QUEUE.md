@@ -7881,6 +7881,42 @@ tip, tsc 0.
 
 **DoD.** Pushed; suite number per rule 17; migration applied via the Lovable MCP; ledger row.
 
+
+### LIVE WALK, A1, 05:50 IST 09-04 · the third sentence in the probe, on the P-71c build
+
+Track `0c0db8e6`, "Show a homeowner the installer arrival window on the order page", started
+23:52 UTC. Sense carried the sentence; Decide entered `carried-on-your-sentence` at 00:00 UTC; at
+00:10 the writer refused the decline and the track held **`the-call-is-yours`** (R-39 and P-71b/c
+fired, and the seats' own words in the transcript are the question: *"I cannot decide 'build' or
+'do-not-build' based solely on the person's sentence ... Which do you choose?"*). Then two
+things went wrong. The 00:20 sweep DROVE the track again (the hold is not one the sweep skips),
+Decide ran out of time, and the seat recorded *Show installer arrival window on order page*
+**[approved]** on its own: a `build` nobody chose, with a forecast the seat composed, which is the
+call R-39 says only the person makes. And the run screen never drew the Choice: it reads the
+generic *This run of the loop ran long ... Let Decide try again*, because the hold had already
+moved on. P-71d filed. The decision row is evidence; leave it.
+
+
+### P-71d · While the call is the person's, nothing else moves · Lane: **A2** (after P-75, before P-74) · Status: READY · Moves: 1, 2
+
+**Why.** The live walk above: `the-call-is-yours` was raised and ten minutes later the sweep drove
+Decide again, the seat recorded a `build` on its own, and the Choice was never drawn.
+
+**Scope.** (1) The sweep treats `the-call-is-yours` as it treats `waiting-on-a-person`: the track
+is not eligible until the hold clears; a guard in the eligibility predicate. (2) The decision
+writer refuses ANY decision on a track whose hold is `the-call-is-yours` with the R-39 sentence,
+so a seat cannot answer the person's question for them; a guard. (3) The run screen draws the
+Choice card (`CARRIED_CHOICE`) as the one card whenever the hold is `the-call-is-yours`, and
+*Let Decide try again* stands down while it is. (4) A regression guard with this track's exact
+shape (carried, refused, held, swept, approved). (5) Data: the approved decision on `0c0db8e6` and
+the track stay as evidence.
+
+**Acceptance.** A fourth sentence in the probe reaches the Choice and stays there across two ticks
+with no spend and no decision row; the card offers the two options; choosing one moves the track.
+Full suite on the tip, tsc 0.
+
+**DoD.** Pushed; suite number per rule 17; A1 walks it.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
