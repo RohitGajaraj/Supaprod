@@ -8002,7 +8002,7 @@ from Helio, unchanged. Full suite on the tip, tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 searches from both workspaces.
 
 
-### P-79 · Team carries Spend and limits, and the engine room is reached from it · Lane: **A3** (now) · Status: CLAIMED (A3) 02:10 UTC 09-04 · Moves: 2
+### P-79 · Team carries Spend and limits, and the engine room is reached from it · Lane: **A3** (now) · Status: CODE DONE (4f32c38a4; A1 suite running; publish batched until the served build carries the build header) · Moves: 2
 
 **Why.** P-61's ruling: "Crew and spend" is `/crew` with the engine room as its spend tab; the
 rail's Team door landed (P-60) and the engine room still has no door of its own (audit §1: 25
