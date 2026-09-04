@@ -127,6 +127,11 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
 22. **Each lane holds at least three READY packets ahead of the one it is on** (the founder, 11:23
     IST 09-04: no lane idle for more than five minutes). A1 refills the buffer on every push it
     reads, and a lane that finds fewer than three ahead says so in the queue instead of waiting.
+23. **A lane reports the sha it gated and the sha it landed.** At today's machine load a full gate
+    takes about 40 minutes and main moves several commits during it, so the landed tip is rarely
+    the gated one. The report names both shas and the count and files of the commits between, and
+    never claims they are the same; A1's gate on the landed tip is the one that closes the packet
+    (A2, 19:17 IST 09-04).
 
 ### The bar a packet is verified against, in this order
 
@@ -10573,7 +10578,7 @@ install step; (3) the generated entrypoint against a real single-page app's deep
 rather than measured. Record each with its number on the walk.
 
 
-### P-138 · The stopped list says what is worth a person's next ten minutes · Lane: **A2** (after P-137) · Status: READY · Moves: 2
+### P-138 · The stopped list says what is worth a person's next ten minutes · Lane: **A2** (after P-137) · Status: LANDED, A1 GATE RUNNING (gated by A2 at deca58fb3, 14,695 pass; landed at da6bbca5e after a rebase over four unrelated commits; three numbers: 53 rows, 11 seeded, 0 holding live work) · Moves: 2
 
 **Why.** Helio's Waiting page at 16:37 IST 09-04: below the one card that moves, a flat list of
 53 stopped items, oldest first, from *Helio prefers concise release notes, stopped 50 days* down
