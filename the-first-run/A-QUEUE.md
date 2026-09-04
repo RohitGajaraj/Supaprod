@@ -142,7 +142,12 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     `bun test` full suite on the tip, and from gate 169 `bun run check:unreachable` with its two
     counts.** It is not `scripts/lane-gates.sh`, which runs more and is nobody's gate today. A lane
     that runs a check the gate does not is welcome to, and reports it by name (A1, 19:51 IST 09-04,
-    after A2 found the unreachable check red on main with nobody told; P-146).
+    after A2 found the unreachable check red on main with nobody told; P-146). **From gate 173 a
+    fifth line: `bun run lint`, its problems summary and the count of files under `src/` with an
+    error, which may only go down.** Measured at 21:09 IST on 252385cc6: 752 problems, 578 errors,
+    82 files under `src/`. A2 found its own lint check could not fail (`| head -5` on output whose
+    first five errors are always the same five files outside `src/`), so gates 171 and 172 were
+    A1's four lines and a local lint line that saw nothing; P-152 (A1, 21:09 IST).
 26. **One full suite per machine at a time, and a run under contention is not a gate.** At 20:19 IST
     A2's machine was at load 327 with eight `bun test` processes, and the suite returned three
     failures that pass alone, two of them live-database guards that take 14 seconds unloaded. A
@@ -11092,6 +11097,30 @@ note in both cases.
 Full suite on the tip, tsc 0, build 0; sha pair per rule 23.
 
 **DoD.** Pushed; the three numbers.
+
+### P-152 · Lint is green under src, one rule at a time · Lane: **A3** (after P-146, before P-130b) · Status: READY · Moves: 5
+
+**Why (A1, 21:09 IST 09-04).** `bun run lint` on 252385cc6: 752 problems, 578 errors, 174 warnings,
+82 files under `src/` carrying an error, most of them prettier wraps and `require()` imports in
+test files. Lint is in no hook, no CI workflow and, until gate 173, no gate; A2's own gate capped
+its view at five lines and could not see its own eight errors. CLAUDE.md is right that tsc and
+lint passing is not green, and it is also true that a check nobody can fail is a check nobody
+runs. From gate 173 A1 reports the count under `src/` and it may only go down.
+
+**Scope.** The 82 files, in small commits by rule rather than by file: prettier first (`--fix`
+on `src/` only, read the diff, nothing but whitespace and wraps), then `no-require-imports`
+(the top-level `import { readFileSync } from "node:fs"` eleven spine tests already use), then
+whatever is left by hand. Never a rule disabled, never an eslint-disable comment added, never a
+file outside `src/` touched (the workflows, the archive and the e2e specs are their own question
+and are left as found). Each commit says the rule and the count before and after.
+
+**Not in scope.** Warnings. Files outside `src/`. Wiring lint into a hook or CI, which is a rule
+decision once it is green.
+
+**Acceptance.** `bun run lint` reports zero errors under `src/`; the count in A1's gate line reads
+0. Full suite on the tip, tsc 0, build 0; sha pair per rule 23.
+
+**DoD.** Pushed; the three numbers and the lint line.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
