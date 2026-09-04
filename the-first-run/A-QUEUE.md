@@ -9140,7 +9140,7 @@ all 12 checks ok. Acceptance's own live read (seven or more rows, each one line 
 A1's served-page walk, the same handoff every UI packet in this session has used.
 
 
-### P-109 · The Run door with nothing running lands somewhere · Lane: **A3** (after P-105) · Status: READY · Moves: 2
+### P-109 · The Run door with nothing running lands somewhere · Lane: **A3** (after P-105) · Status: CLAIMED (A3) 18:47 IST 09-04 · Moves: 2
 
 **Why.** Run is an identity on the rail (P-60): it resolves to the live run at render. With nothing
 running it resolves to nothing, and P-63 recorded "Run has no door to design for while nothing's
