@@ -786,15 +786,29 @@ export function DiscoverSurface({
   });
   const watcher = fleet.data?.fleet.agents.find((a) => SENSE_AGENTS.includes(a.slug)) ?? null;
 
-  // The same two query keys the rest of the app reads, so react-query dedupes
-  // rather than opening a second network call per surface.
+  /*
+   * P-75b (A-QUEUE.md): THE WORKSPACE BELONGS IN THE KEY AND IN THE CALL,
+   * same rule `coverage` just below already follows and `signals`/`themes`
+   * did not -- without it a switch to an empty workspace kept reading the
+   * PREVIOUS workspace's rows (`listSignals`/`listThemes` took only a
+   * product, never a workspace, so a workspace with no product of its own
+   * read every row RLS would show, every OTHER workspace's included). The
+   * query keys still carry `activeProductId` too, unchanged: a product
+   * switch inside the same workspace still has to refetch.
+   */
   const signals = useQuery({
-    queryKey: ["signals", activeProductId],
-    queryFn: () => withTimeout(fSignals({ data: { productId: activeProductId } })),
+    queryKey: ["signals", activeWorkspaceId, activeProductId],
+    queryFn: () =>
+      withTimeout(
+        fSignals({ data: { workspaceId: activeWorkspaceId, productId: activeProductId } }),
+      ),
   });
   const themes = useQuery({
-    queryKey: ["themes", activeProductId],
-    queryFn: () => withTimeout(fThemes({ data: { productId: activeProductId } })),
+    queryKey: ["themes", activeWorkspaceId, activeProductId],
+    queryFn: () =>
+      withTimeout(
+        fThemes({ data: { workspaceId: activeWorkspaceId, productId: activeProductId } }),
+      ),
   });
   const coverage = useQuery({
     /* The workspace belongs in the key and in the call. Without it a switch

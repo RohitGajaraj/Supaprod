@@ -248,9 +248,25 @@ Be concrete and buildable. Only tasks the spec actually implies - do not invent 
 export const listSignals = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
-    z.object({ productId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+    z
+      .object({
+        productId: z.string().uuid().nullable().optional(),
+        workspaceId: z.string().uuid().nullable().optional(),
+      })
+      .parse(i ?? {}),
   )
   .handler(async ({ context, data }) => {
+    /*
+     * P-75b (A-QUEUE.md): THIS READ TOOK A PRODUCT AND NEVER A WORKSPACE.
+     * The `productId` narrows within a workspace; it names no workspace on
+     * its own, and RLS answers "may they see this", never "whose desk is
+     * this" -- the same defect `listThemes` (below), `getSenseCoverage` and
+     * `getThemePromotionCounts` were already fixed for on this exact page.
+     * A workspace with no product read every signal RLS would show across
+     * every workspace the caller belongs to, unfiltered by the `productId`
+     * branch below since it never fires with nothing to narrow. Read live:
+     * the probe's Arriving showed "200 signals", all of them Helio's.
+     */
     let query = context.supabase
       .from("signals")
       // P-35: named columns, embedding excluded.
@@ -259,6 +275,7 @@ export const listSignals = createServerFn({ method: "GET" })
       )
       .order("created_at", { ascending: false })
       .limit(200);
+    if (data.workspaceId) query = query.eq("workspace_id", data.workspaceId);
     // A product-scoped view must still surface workspace-level signals with
     // no product of their own (connector ingest - github/slack/etc - never
     // assigns project_id, since a bound repo or channel isn't inherently
@@ -499,9 +516,22 @@ export const deleteSignal = createServerFn({ method: "POST" })
 export const listThemes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
-    z.object({ productId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+    z
+      .object({
+        productId: z.string().uuid().nullable().optional(),
+        workspaceId: z.string().uuid().nullable().optional(),
+      })
+      .parse(i ?? {}),
   )
   .handler(async ({ context, data }) => {
+    /*
+     * P-75b (A-QUEUE.md): THIS READ TOOK A PRODUCT AND NEVER A WORKSPACE,
+     * same shape as `listSignals` above -- `productId` narrows within a
+     * workspace, it names no workspace on its own, and a workspace with no
+     * product read every theme RLS would show across every workspace the
+     * caller belongs to. Read live: the probe's Arriving showed "135
+     * clusters need your decisions", all of them Helio's.
+     */
     let query = context.supabase
       .from("themes")
       /*
@@ -533,6 +563,7 @@ export const listThemes = createServerFn({ method: "GET" })
       )
       .order("created_at", { ascending: false })
       .limit(300);
+    if (data.workspaceId) query = query.eq("workspace_id", data.workspaceId);
     // Same fix as listSignals: a theme clustered by the cron path (projectId
     // null - it clusters a whole workspace, not one product) must still show
     // inside a product-scoped view, not just the unreachable all-products one.

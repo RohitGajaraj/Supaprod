@@ -186,10 +186,18 @@ describe("the sources offered are this workspace's sources", () => {
  *                               another workspace's clusters and graded them
  *                               against this one's bar.
  *
- * The belief behind all six is written down at DiscoverSurface.tsx:804: "RLS
- * scopes the read to a workspace". It does not. It scopes to every workspace
- * the person BELONGS TO, which is the right answer to "may they see this" and
- * has never been an answer to "whose desk is this".
+ * The belief behind all of these is written down at DiscoverSurface.tsx:804:
+ * "RLS scopes the read to a workspace". It does not. It scopes to every
+ * workspace the person BELONGS TO, which is the right answer to "may they see
+ * this" and has never been an answer to "whose desk is this". Two more below
+ * (P-75b, A-QUEUE.md): `listSignals` and `listThemes` themselves -- the reads
+ * `getSenseCoverage`/`getThemePromotionCounts` above were fixed for, but
+ * which fed Discover's own comprehension strip (the newest N signals, the
+ * cluster ranking, "became bets") straight from `signals`/`themes`, took a
+ * product and never a workspace, and were never brought along either. Read
+ * live: the probe's Arriving showed "135 clusters need your decisions ...
+ * 200 signals, 135 clusters open, 5 became bets", all four numbers derived
+ * from the same two now-fixed reads.
  */
 const ARRIVING = strip(readFileSync("src/components/start/Arriving.tsx", "utf8"));
 const DISCOVER_UI = strip(readFileSync("src/components/discover/DiscoverSurface.tsx", "utf8"));
@@ -230,5 +238,120 @@ describe("what is arriving is what is arriving HERE", () => {
     const flat = DISCOVER_UI.replace(/\s+/g, " ");
     expect(flat).toContain('["sense-coverage", activeWorkspaceId ?? null, activeProductId]');
     expect(flat).toContain("workspaceId: activeWorkspaceId ?? null");
+  });
+});
+
+/**
+ * ── AND THE FIFTH AND SIXTH, THE READS BEHIND THE COMPREHENSION STRIP
+ * ITSELF (P-75b, A-QUEUE.md) ────────────────────────────────────────────
+ *
+ * `getSenseCoverage`/`getThemePromotionCounts` above answer for the FINDINGS
+ * strip and the promotion BAR. Neither one is where "135 clusters need your
+ * decisions ... 200 signals, 135 clusters open, 5 became bets" comes from --
+ * all four of those numbers are `rows.length`/`ranked.length`/`promotedCount`,
+ * derived straight from `listSignals`/`listThemes`'s own row sets
+ * (DiscoverSurface.tsx: `signals`, `themes`, `ranked`, `promotedCount`,
+ * `clustersFacts`). Those two reads took only a `productId` and never a
+ * `workspaceId`, so a workspace with no product of its own read every row RLS
+ * would show -- every other workspace's included.
+ */
+const LIST_SIGNALS_FN = DISCOVERY.slice(
+  DISCOVERY.indexOf("export const listSignals"),
+  DISCOVERY.indexOf("export const", DISCOVERY.indexOf("export const listSignals") + 20),
+);
+const LIST_THEMES_FN = DISCOVERY.slice(
+  DISCOVERY.indexOf("export const listThemes"),
+  DISCOVERY.indexOf("export const", DISCOVERY.indexOf("export const listThemes") + 20),
+);
+
+describe("the comprehension strip's own numbers are this workspace's numbers", () => {
+  it("listSignals takes a workspace and filters by it", () => {
+    const flat = LIST_SIGNALS_FN.replace(/\s+/g, " ");
+    expect(flat).toContain("workspaceId: z.string().uuid().nullable().optional()");
+    expect(flat).toContain(
+      'if (data.workspaceId) query = query.eq("workspace_id", data.workspaceId)',
+    );
+  });
+
+  it("listThemes takes a workspace and filters by it", () => {
+    const flat = LIST_THEMES_FN.replace(/\s+/g, " ");
+    expect(flat).toContain("workspaceId: z.string().uuid().nullable().optional()");
+    expect(flat).toContain(
+      'if (data.workspaceId) query = query.eq("workspace_id", data.workspaceId)',
+    );
+  });
+
+  it("leaves both unfiltered when the workspace cannot be resolved, same rule as everywhere else", () => {
+    expect(LIST_SIGNALS_FN).toContain("if (data.workspaceId)");
+    expect(LIST_THEMES_FN).toContain("if (data.workspaceId)");
+  });
+
+  it("both queries in DiscoverSurface.tsx carry the workspace in the key and in the call", () => {
+    const flat = DISCOVER_UI.replace(/\s+/g, " ");
+    expect(flat).toContain('["signals", activeWorkspaceId, activeProductId]');
+    expect(flat).toContain(
+      "fSignals({ data: { workspaceId: activeWorkspaceId, productId: activeProductId } })",
+    );
+    expect(flat).toContain('["themes", activeWorkspaceId, activeProductId]');
+    expect(flat).toContain(
+      "fThemes({ data: { workspaceId: activeWorkspaceId, productId: activeProductId } })",
+    );
+  });
+
+  it("every number the strip renders derives from those two reads alone, not a third unscoped one", () => {
+    // rows (signals), ranked/promotedCount (themes): if a future edit adds a
+    // fourth number to the strip from a new read, this does not catch it --
+    // but it does prove the four numbers this packet was filed over all
+    // trace to the two reads just proven scoped above.
+    const flat = DISCOVER_UI.replace(/\s+/g, " ");
+    expect(flat).toContain("(themes.data?.themes ?? [])");
+    expect(flat).toContain("const ranked = React.useMemo(() => { const all = themes.data?.themes");
+  });
+});
+
+/**
+ * ── THE WALK-SHAPED GUARD P-75 PROMISED, TAKEN AS FAR AS A SOURCE READ CAN
+ * GO (P-75b) ──────────────────────────────────────────────────────────────
+ *
+ * "Render both routes' data hooks against an empty workspace and assert
+ * zeros" needs a live Supabase read behind a mocked empty-vs-populated
+ * table, which this worktree cannot drive this session (no dev server /
+ * browser access, the same standing limitation every packet here has
+ * noted). What a source read CAN prove, and does: every reader behind
+ * Arriving's four numbers and Outcomes' lessons block resolves its
+ * workspace the same way (`if (data.workspaceId) ... .eq("workspace_id",
+ * ...)`, never a bare unconditional filter and never a silent fallback to
+ * "this workspace has nothing" when the id cannot be resolved) -- which is
+ * the actual property "assert zeros for an empty workspace, unchanged for a
+ * real one" depends on. A workspace with a real id and zero rows gets
+ * `.eq("workspace_id", <that id>)` same as one with a thousand; the query
+ * shape does not know the difference, only the row count answers with.
+ */
+const BRAIN_STATS_FN = readFileSync("src/lib/brain.functions.ts", "utf8")
+  .replace(/\/\*[\s\S]*?\*\//g, " ")
+  .slice(
+    readFileSync("src/lib/brain.functions.ts", "utf8").indexOf("export const getCompanyBrainStats"),
+  );
+
+describe("Outcomes' lessons block resolves the same way -- checked, not assumed", () => {
+  it("getStandingRecord's recall counts (the 'X of Y lessons' line) are already proven above", () => {
+    // Not re-tested here: "the counts on a record are that workspace's
+    // counts" (this file, above) already covers memoryBase/recallBase in
+    // full. Named here so a reader looking for the lessons-block guard
+    // finds a pointer rather than a gap.
+    expect(STANDING).toContain("const memoryBase = ()");
+  });
+
+  it("getCompanyBrainStats' learnings count takes the workspace and filters by it", () => {
+    const flat = BRAIN_STATS_FN.replace(/\s+/g, " ");
+    expect(flat).toContain('wid ? learningsQ.eq("workspace_id", wid) : learningsQ');
+  });
+
+  it("the outcomes route passes the workspace into both reads, in the key and in the call", () => {
+    const OUTCOMES = strip(readFileSync("src/routes/_authenticated.outcomes.tsx", "utf8"));
+    const flat = OUTCOMES.replace(/\s+/g, " ");
+    expect(flat).toContain('["brain-standing", activeWorkspaceId]');
+    expect(flat).toContain("fStanding({ data: { workspaceId: activeWorkspaceId } })");
+    expect(flat).toContain("fStats({ data: { workspaceId: activeWorkspaceId } })");
   });
 });
