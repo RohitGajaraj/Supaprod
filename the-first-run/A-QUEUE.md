@@ -8576,7 +8576,7 @@ the map's Decide row reads the answer. Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads.
 
 
-### P-75b · Arriving's clusters and Outcomes' lessons read the workspace they stand in · Lane: **A3** (after P-93) · Status: CODE DONE, PUSHED bba883f3d · Moves: 1, 2
+### P-75b · Arriving's clusters and Outcomes' lessons read the workspace they stand in · Lane: **A3** (after P-93) · Status: CODE DONE (bba883f3d; A1 gate running; publish next; A1 walks the probe) · Moves: 1, 2
 
 **Why.** P-75 landed Sources and Conversations; on the served build at 09:52 IST the probe's
 Arriving still reads *135 clusters need your decisions ... 200 signals, 135 clusters open, 5 became
@@ -8635,6 +8635,47 @@ Full suite on the rebased tip (350483e4b): `bun run build` exit 0 (twice, pre- a
 Not walked live -- same standing limitation as every packet closed here this session. A1: in the
 probe, Arriving should read its P-63 zero state and Outcomes should read six calls and no lessons;
 in Helio, both should read unchanged.
+
+
+### P-94 · Every claim on Outcomes is one the repo can show · Lane: **A3** (now) · Status: READY · Moves: 1, 2
+
+**Why.** Outcomes reads *On the free plan this record fades after 30 days. Keep it.*
+`FREE_MEMORY_RETENTION_DAYS = 30` lives in `entitlements.ts` and `plg-memory-expiry.ts` describes a
+rolling window; A1 found no writer that deletes or hides anything by that window. R-40's spirit
+applies to copy as to code: a claim the repo cannot show does not ship, and a billing claim that is
+false in either direction (fades when it does not, or keeps when it fades) is the worst kind.
+
+**Scope.** (1) Read what actually happens to a free workspace's decisions, learnings and signals
+after 30 days: the code path, the cron, the RLS, or nothing. (2) If nothing: either implement the
+window as the entitlements say (a read-side filter that hides rows older than the window for free
+workspaces, never a delete, with the upgrade door) or change the sentence to what is true, and say
+which you chose and why in the report; the founder's pricing page must agree. (3) Sweep Outcomes,
+Start and Settings for every other sentence that states a plan rule, and check each against
+`entitlements.ts`. Guard: a test that every plan sentence in the UI cites an entitlement constant
+that a reader enforces.
+
+**Acceptance.** No sentence on those three surfaces states something the code does not do. Full
+suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; the report lists each sentence and its enforcer.
+
+### P-97 · The docs gate is clean · Lane: **A3** (after P-94) · Status: READY · Moves: 5
+
+**Why.** `bun run docs:check` reports 110 broken links in live docs, orphan files under
+`docs/screenshots` and four loose gitignored files at root, all as warnings and two as FAIL, so the
+gate that is meant to fail on rot is furniture. `docs/pitch` is where the investor answers live and
+the founder reads them from the rendered links.
+
+**Scope.** Fix or remove every broken link in live docs (a link to a retired doc points at its
+archive entry or is dropped with the sentence it was in rewritten), resolve the orphans by linking
+from their folder index or deleting them if they are screenshots that should never have been
+committed as markdown, move or ignore the four root files as the gate asks, and leave
+`docs:check` exiting 0 with zero warnings. Guard: the gate itself.
+
+**Acceptance.** `bun run docs:check` exit 0, no WARN, no FAIL, on the tip. Full suite on the tip,
+tsc 0, build 0.
+
+**DoD.** Pushed; the numbers; the count of links fixed and files moved in the report.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
