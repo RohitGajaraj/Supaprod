@@ -18,6 +18,8 @@
  * deployments table) and app slugs derive from workspace + changeset ids.
  */
 
+import { readAppCreate } from "@/lib/hosting/a-bad-request-is-not-an-existing-app";
+
 const DENO_API_BASE = "https://api.deno.com/v2";
 
 const TEXT_EXTENSIONS = new Set([
@@ -222,19 +224,29 @@ export async function deployChangesetApp(args: {
   const slug = deriveAppSlug(args.workspaceId, args.changesetId);
   const auth = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 
-  // Ensure the app exists; an already-taken slug is fine (idempotent ensure).
+  /*
+   * Ensure the app exists; an already-taken slug is fine (idempotent ensure).
+   *
+   * THE BODY IS READ BEFORE THE STATUS IS FORGIVEN. See
+   * `a-bad-request-is-not-an-existing-app`: this tolerated ANY 400 as "it is
+   * already there", and on 2026-09-04 the 400 was APP_LIMIT_EXCEEDED. The
+   * ensure passed, the deploy went to an app that had never been created, and
+   * the person was shown a failure about the deploy instead of the quota the
+   * host had named. 500 bytes, the same number and the same reason as the
+   * deploy call below (P-39): a quota message runs past 200.
+   */
   const createRes = await fetch(`${DENO_API_BASE}/apps`, {
     method: "POST",
     headers: auth,
     body: JSON.stringify({ slug }),
   });
-  if (!createRes.ok && createRes.status !== 409 && createRes.status !== 400) {
-    return {
-      ok: false,
-      revisionId: null,
-      url: null,
-      reason: `app create failed (${createRes.status})`,
-    };
+  const created = readAppCreate({
+    ok: createRes.ok,
+    status: createRes.status,
+    body: createRes.ok ? "" : await createRes.text().catch(() => ""),
+  });
+  if (created.kind === "refused") {
+    return { ok: false, revisionId: null, url: null, reason: created.reason };
   }
 
   const assets: Record<string, unknown> = {};
