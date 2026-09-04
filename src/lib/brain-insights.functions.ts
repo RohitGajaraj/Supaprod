@@ -547,12 +547,35 @@ export type ForecastCalibration = {
   risk: CalibrationSummary;
 };
 
+/*
+ * ── THE DEFAULT WORKSPACE IS NOT THE ONE YOU ARE STANDING IN (P-75) ──────
+ *
+ * A1 walked the empty probe workspace and read "1 of 2 graded forecasts came
+ * true" on Outcomes. Both were Helio's.
+ *
+ * This is a sharper shape than the unscoped reads P-67 ratchets. It IS scoped
+ * -- to `current_user_default_workspace()`, which is the person's default and
+ * not the workspace they have open. Worse, the caller's query key already
+ * carried `activeWorkspaceId`, so react-query cached one workspace's answer
+ * under another's name: the read LOOKED scoped from every angle except the
+ * screen, and switching workspaces changed the key without changing the data.
+ *
+ * The rule: take the workspace as an argument, resolve the default ONLY when
+ * the caller supplies none. Unresolved stays unfiltered, the same rule the
+ * earlier instances settled on.
+ */
 export const getForecastCalibration = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<ForecastCalibration> => {
+  .inputValidator((i: unknown) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+  )
+  .handler(async ({ context, data }): Promise<ForecastCalibration> => {
     const supabase = context.supabase as SupabaseClient;
-    const { data: ws } = await supabase.rpc("current_user_default_workspace");
-    const workspaceId = (ws as string | null) ?? null;
+    let workspaceId = data?.workspaceId ?? null;
+    if (!workspaceId) {
+      const { data: ws } = await supabase.rpc("current_user_default_workspace");
+      workspaceId = (ws as string | null) ?? null;
+    }
     if (!workspaceId) {
       const empty = {
         kind: "prediction" as const,

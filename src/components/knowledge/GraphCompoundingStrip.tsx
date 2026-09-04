@@ -87,7 +87,10 @@ export function GraphCompoundingStrip({
   });
   const calibrationQ = useQuery({
     queryKey: ["forecast-calibration", activeWorkspaceId],
-    queryFn: () => fCalibration(),
+    /* P-75: the workspace the person is STANDING IN, not their default. The
+       key already carried it while the read resolved its own, so the cache said
+       one workspace and the answer was another's. */
+    queryFn: () => fCalibration({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
   });
 
   const growth = useMemo(() => weeklyGrowth(nodes), [nodes]);

@@ -1297,7 +1297,10 @@ function MemoryPage() {
   const fCalibration = useServerFn(getForecastCalibration);
   const calibrationQ = useQuery({
     queryKey: ["forecast-calibration", activeWorkspaceId],
-    queryFn: () => fCalibration(),
+    /* P-75: the workspace the person is STANDING IN, not their default. The
+       key already carried it while the read resolved its own, so the cache said
+       one workspace and the answer was another's. */
+    queryFn: () => fCalibration({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
   });
   // The record DRAWN. THE KEY IS CHARACTER-IDENTICAL TO GraphCanvasView's, so
   // this page and the Graph tab are two consumers of ONE request: the preview

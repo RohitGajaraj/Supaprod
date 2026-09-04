@@ -1532,10 +1532,26 @@ export const getThemePrecedent = createServerFn({ method: "POST" })
 
 export const listOpportunities = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((i: unknown) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+  )
+  .handler(async ({ context, data }) => {
+    /*
+     * ── AND IT TAKES THE WORKSPACE, NOT ONLY THE DEFAULT (P-75) ───────────
+     *
+     * P-70 gave this a workspace and resolved the person's DEFAULT to get one.
+     * That closes the unscoped read and leaves a sharper defect: a person
+     * standing in a second workspace is answered with their first one's rows,
+     * while the caller's query key says otherwise. The caller names it now, and
+     * the default is the fallback rather than the answer.
+     */
+
     /* P-70. Unresolved stays unfiltered: see `listTopOpportunities`. */
-    const { data: oppWs } = await context.supabase.rpc("current_user_default_workspace");
-    const oppWid = (oppWs as string | null) ?? null;
+    let oppWid = data?.workspaceId ?? null;
+    if (!oppWid) {
+      const { data: oppWs } = await context.supabase.rpc("current_user_default_workspace");
+      oppWid = (oppWs as string | null) ?? null;
+    }
     let oppsQ = context.supabase
       .from("opportunities")
       // P-35: named columns, embedding excluded.
@@ -1543,9 +1559,11 @@ export const listOpportunities = createServerFn({ method: "GET" })
         "confidence,created_at,critic_review,ease,embedding_model,goal_id,hypothesis,ice_score,id,impact,is_public,is_sample,linked_brief_item_id,posthog_event,problem,product_id,project_id,roadmap_bucket,roadmap_last_agent_slug,roadmap_measure,roadmap_outcome,roadmap_snapshot_before,share_slug,status,target_user,theme_id,title,updated_at,user_id,workspace_id",
       );
     if (oppWid) oppsQ = oppsQ.eq("workspace_id", oppWid);
-    const { data, error } = await oppsQ.order("ice_score", { ascending: false }).limit(500);
+    const { data: oppRows, error } = await oppsQ
+      .order("ice_score", { ascending: false })
+      .limit(500);
     if (error) throw new Error(error.message);
-    const opportunities = data ?? [];
+    const opportunities = oppRows ?? [];
 
     // PC-29 layer 3 (2026-07-17 repair pass): decided_by_agent_slug
     // attribution on Decide's opportunity cards. No FK runs from
@@ -2398,15 +2416,31 @@ const PRD_LIST_SELECT =
  */
 export const listPrds = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((i: unknown) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+  )
+  .handler(async ({ context, data }) => {
+    /*
+     * ── AND IT TAKES THE WORKSPACE, NOT ONLY THE DEFAULT (P-75) ───────────
+     *
+     * P-70 gave this a workspace and resolved the person's DEFAULT to get one.
+     * That closes the unscoped read and leaves a sharper defect: a person
+     * standing in a second workspace is answered with their first one's rows,
+     * while the caller's query key says otherwise. The caller names it now, and
+     * the default is the fallback rather than the answer.
+     */
+
     /* P-70. Unresolved stays unfiltered: see `listTopOpportunities`. */
-    const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
-    const wid = (wsDefault as string | null) ?? null;
+    let wid = data?.workspaceId ?? null;
+    if (!wid) {
+      const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
+      wid = (wsDefault as string | null) ?? null;
+    }
     let prdsQ = context.supabase.from("prds").select(PRD_LIST_SELECT);
     if (wid) prdsQ = prdsQ.eq("workspace_id", wid);
-    const { data, error } = await prdsQ.order("updated_at", { ascending: false });
+    const { data: prdRows, error } = await prdsQ.order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return { prds: data ?? [] };
+    return { prds: prdRows ?? [] };
   });
 
 /**
@@ -2421,15 +2455,33 @@ export const listPrds = createServerFn({ method: "GET" })
  */
 export const listSpecs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((i: unknown) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+  )
+  .handler(async ({ context, data }) => {
+    /*
+     * ── AND IT TAKES THE WORKSPACE, NOT ONLY THE DEFAULT (P-75) ───────────
+     *
+     * P-70 gave this a workspace and resolved the person's DEFAULT to get one.
+     * That closes the unscoped read and leaves a sharper defect: a person
+     * standing in a second workspace is answered with their first one's rows,
+     * while the caller's query key says otherwise. The caller names it now, and
+     * the default is the fallback rather than the answer.
+     */
+
     /* P-70. Unresolved stays unfiltered: see `listTopOpportunities`. */
-    const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
-    const wid = (wsDefault as string | null) ?? null;
+    let wid = data?.workspaceId ?? null;
+    if (!wid) {
+      const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
+      wid = (wsDefault as string | null) ?? null;
+    }
     let specsQ = context.supabase.from("prds").select(PRD_LIST_SELECT);
     if (wid) specsQ = specsQ.eq("workspace_id", wid);
-    const { data, error } = await specsQ.order("updated_at", { ascending: false }).limit(300);
+    const { data: specRows, error } = await specsQ
+      .order("updated_at", { ascending: false })
+      .limit(300);
     if (error) throw new Error(error.message);
-    return { prds: data ?? [] };
+    return { prds: specRows ?? [] };
   });
 
 export const getPrd = createServerFn({ method: "GET" })

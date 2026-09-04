@@ -1086,8 +1086,10 @@ export function DiscoverSurface({
 
   /** The open bets, read only while the merge picker is up. */
   const opportunities = useQuery({
-    queryKey: ["opportunities"],
-    queryFn: () => fOpportunities(),
+    /* P-75: the key carries the workspace and so does the call. A key without
+       it shares one cache entry across every workspace a person holds. */
+    queryKey: ["opportunities", activeWorkspaceId ?? null],
+    queryFn: () => fOpportunities({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
     enabled: picking,
   });
 
