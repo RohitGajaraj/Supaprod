@@ -22,6 +22,36 @@
  * can be tested against real shapes without a database.
  */
 
+/**
+ * ── THE MERGE PUTS OUR OWN FILES IN THEIR REPOSITORY (P-112) ─────────────
+ *
+ * `studio.stage` writes `.supaprod/intent.md`, `spec.md` and `plan.md` into
+ * every changeset, so the record the verdict was graded against lives in the
+ * customer's repo rather than only in our tables. That is P-21's idea and it is
+ * a good one. It was invisible at the one moment it matters: the card counted
+ * them inside "touches 7 files" and named at most three, so a person approving
+ * a merge could not see that three of the files about to land in their
+ * repository were written by us rather than by the work.
+ *
+ * A team has opinions about what goes in their repo. Being told afterwards is
+ * being told too late, and finding out by reading a diff is finding out by
+ * accident.
+ *
+ * NOT A WARNING. These files are the product working as designed; the sentence
+ * exists so the person SEES them, not so they distrust them.
+ */
+export function recordFilesLine(files: readonly ChangedFile[]): string | null {
+  const ours = files.filter((f) => f.path.startsWith(`${PLAYBOOK_DIR}/`));
+  if (ours.length === 0) return null;
+  const names = ours.map((f) => f.path).join(", ");
+  return (
+    `${ours.length} of these ${ours.length === 1 ? "is" : "are"} Supaprod's record of the work, ` +
+    `not the change itself: ${names}. Merging puts ${ours.length === 1 ? "it" : "them"} in the repository.`
+  );
+}
+
+import { PLAYBOOK_DIR } from "@/lib/spine/playbook-files";
+
 /** One file in the change, with how much of it moved. */
 export type ChangedFile = { path: string; added: number; removed: number };
 
@@ -103,9 +133,15 @@ export function mergeGateLines(e: MergeGateEvidence): string[] {
       "What this change contains could not be read, so nothing here describes it. Open the pull request before answering.",
     ];
   }
-  return [filesLine(e.files), buildLine(e.buildHalt), designLine(e.designVerdict)].filter(
-    (l): l is string => !!l,
-  );
+  return [
+    filesLine(e.files),
+    /* Immediately after what it touches, because it is a fact ABOUT that list:
+       the count above includes these, and a person reading "touches 7 files"
+       should not have to reach the diff to learn that three of them are ours. */
+    recordFilesLine(e.files),
+    buildLine(e.buildHalt),
+    designLine(e.designVerdict),
+  ].filter((l): l is string => !!l);
 }
 
 /**

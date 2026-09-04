@@ -42,7 +42,16 @@ async function membersOf(
     .from("spine_track_members")
     .select("artifact_id")
     .eq("track_id", trackId)
-    .eq("artifact_kind", kind);
+    .eq("artifact_kind", kind)
+    /*
+     * LIVE MEMBERS ONLY (P-112). This read everything the track had ever
+     * carried, so a spec the track had replaced was still a candidate for the
+     * record -- and the record is the one artifact whose whole worth is that it
+     * says what was actually decided. The tablet track carried four specs and
+     * three of them were superseded; the newest happened to be the live one, so
+     * the file was right by accident rather than by rule.
+     */
+    .is("superseded_at", null);
   if (error) {
     console.error(`[playbook] could not read ${kind} for ${trackId}: ${error.message}`);
     return [];
@@ -104,16 +113,22 @@ export async function playbookFilesForTrack(
   let body: string | null = null;
   let measures: string[] = [];
   let nonGoals: string[] = [];
+  /** The spec the record is about, so the plan can be scoped to it. */
+  let specId: string | null = null;
+  /** The contract's own intent sentence, when the spec carries one. */
+  let contractIntent: string | null = null;
   if (prdIds.length > 0) {
     const { data } = await supabase
       .from("prds")
-      .select("title,body_md,contract,created_at")
+      .select("id,title,body_md,contract,created_at")
       .in("id", prdIds)
       .order("created_at", { ascending: false })
       .limit(1);
     const p = (data ?? [])[0] as
-      { title?: string | null; body_md?: string | null; contract?: unknown } | undefined;
+      | { id?: string; title?: string | null; body_md?: string | null; contract?: unknown }
+      | undefined;
     if (p) {
+      specId = p.id ?? null;
       specTitle = p.title?.trim() || title;
       body = p.body_md ?? null;
       /* The same reader the Plan tab uses, so the contract sections in the file
@@ -121,6 +136,7 @@ export async function playbookFilesForTrack(
       const c = specContract(p.contract);
       measures = c.measures;
       nonGoals = c.nonGoals;
+      contractIntent = c.intent || null;
     }
   }
 
@@ -128,17 +144,41 @@ export async function playbookFilesForTrack(
   if (taskIds.length > 0) {
     const { data } = await supabase
       .from("tasks")
-      .select("title,detail,status,seq")
+      .select("title,detail,status,seq,prd_id")
       .in("id", taskIds)
       // The plan's own order, which is what a reader works down.
       .order("seq", { ascending: true });
-    tasks = (
-      (data ?? []) as Array<{
-        title?: string | null;
-        detail?: string | null;
-        status?: string | null;
-      }>
-    )
+    const rows = (data ?? []) as Array<{
+      title?: string | null;
+      detail?: string | null;
+      status?: string | null;
+      prd_id?: string | null;
+    }>;
+    /*
+     * ── THE PLAN IS THE PLAN FOR THIS SPEC (P-112) ─────────────────────────
+     *
+     * `plan.md` carried every task the track had ever been given, and a track
+     * that has been re-specced has two generations of them. Measured on the
+     * tablet track: seven tasks, none superseded, and near-duplicate pairs --
+     * "Implement read-only address confirmation screen in Relay checkout" beside
+     * "Implement read-only address confirmation screen with exact prototype
+     * specifications", "Fix tablet address summary layout" beside "Fix tablet
+     * address summary layout for 768px+ portrait orientation". A reader cannot
+     * tell which list is the plan, and a record nobody can read is worse than
+     * no record: it looks authoritative and is not.
+     *
+     * A task knows its spec (`tasks.prd_id`), so the plan is the tasks belonging
+     * to the spec this file is about.
+     *
+     * FALLS BACK TO ALL OF THEM when no task carries the spec's id -- an older
+     * track whose tasks predate the column, or a plan written before the spec.
+     * Half a plan silently is worse than one that is honestly wide, and this
+     * fallback is visible in the file rather than in a comment: the reader sees
+     * everything, as before.
+     */
+    const forThisSpec = specId ? rows.filter((t) => t.prd_id === specId) : [];
+    const chosen = forThisSpec.length > 0 ? forThisSpec : rows;
+    tasks = chosen
       .filter((t) => (t.title ?? "").trim().length > 0)
       .map((t) => ({
         title: t.title as string,
@@ -149,7 +189,7 @@ export async function playbookFilesForTrack(
 
   return {
     files: {
-      "intent.md": intentMd({ title, intent, forecast }),
+      "intent.md": intentMd({ title, intent, forecast, contractIntent }),
       "spec.md": specMd({ title: specTitle, body, measures, nonGoals }),
       "plan.md": planMd({ title, tasks }),
     },

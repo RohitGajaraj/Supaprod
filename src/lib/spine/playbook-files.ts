@@ -84,11 +84,28 @@ export function intentMd(input: {
   title: string;
   intent?: Intent | null;
   forecast?: IntentForecast | null;
+  /**
+   * The spec contract's own intent sentence.
+   *
+   * ── WHY THIS EXISTS, AND WHY IT IS NOT SLOTTED INTO A HEADING (P-112) ──
+   * `decisions.intent` is the structured five-field object these headings are
+   * built from, and it is populated on FIVE of 422 decisions. So this file's
+   * headline sections read "not recorded yet" almost always -- while the same
+   * work's intent sits in the spec's contract, written out, one row away.
+   *
+   * It is rendered as its own statement rather than filed under
+   * `proposed_outcome` or `problem_statement`, because it was not written to
+   * answer either of those questions and putting it under one would be this
+   * file deciding what the author meant. It says where it came from instead.
+   */
+  contractIntent?: string | null;
 }): string {
   const i = input.intent ?? {};
   const f = input.forecast ?? {};
+  const stated = input.contractIntent?.trim();
   const parts = [
     `# ${input.title.trim() || "Untitled"}\n`,
+    ...(stated ? [`## Intent\n\n${stated}\n\n_From the spec's outcome contract._\n`] : []),
     ...INTENT_FIELDS.map((field) => section(field.heading, i[field.key])),
   ];
   /*
