@@ -10319,6 +10319,17 @@ the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads Learn live.
 
 
+
+**The grader's read, 17:33 IST 09-04 (12:03 UTC).** `calibrate-tick` ran at 12:00:00 UTC and
+succeeded; `forecast_resolution_log` still holds two rows, both from 09-03 12:00 UTC, both
+*inconclusive: this forecast was about Supaprod's own paperwork, not your product* (measured by
+`prd.get` and `signals.list`). The only Helio forecast due within six days is the release seat's
+decision 180fbac2 (*the PRD will be approved and the design gate cleared within 3 business days*,
+horizon 09-09), the same paperwork shape. The spec's contract for the first live release (tablet
+completion from 67 percent, address-screen abandonment from 41 percent) is not a forecast row and
+has no evidence source, so nothing will grade it on 09-09 or 09-21; that is exactly the gap this
+packet names. P-42's read is otherwise clean: the tick runs and refuses what it cannot grade.
+
 ### P-128b · The static build ships · Lane: **A2** (now, before P-135) · Status: CODE COMPLETE, ACCEPTANCE BLOCKED (ef26977dd + ef608c28a + 4347ac024; nineteen guards against a fixture with the host mocked; A1 gate on the closing tip 4347ac024: build 0, tsc 0, 14,594 pass / 0 fail, published 16:43 IST; DONE only after the live walk of a second repo, which waits on the founder creating or allowing Supaprod/helio-status-site) · Moves: 1, 3
 
 **Why.** R-41 is placed. P-128 shipped the detection (a repo's shape read from `package.json`,
