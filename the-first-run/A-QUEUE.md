@@ -9145,6 +9145,12 @@ dispatches on 7bc7181b within one tick of the backfill. Full suite on the tip, t
 **DoD.** Pushed; migration applied; the count before and after; the three numbers.
 
 
+
+**Live read, 12:38 IST 09-04 (07:08 UTC).** Served. `waiting_approval` runs: 0 (from 14 at 06:01).
+Stranded (no pending approval): 0 (from 13). The seven July fixture rows are `cancelled` by the
+missing-agent branch on the resume tick; the four real ghosts had been halted by A1 by hand at
+06:03 and 06:10. Acceptance met without a hand backfill; no ledger row needed.
+
 ### P-115 · A press that the server refuses is told to the person · Lane: **A3** (now, ahead of P-104) · Status: DONE (d0806439e; A1 gate: build 0, tsc 0, 14,372 pass / 0 fail; published 12:08 IST) · Moves: 2
 
 **Why.** Live 06:04 to 06:08 UTC 09-04, on the Ship track: A1 pressed "Don't run it" on the
