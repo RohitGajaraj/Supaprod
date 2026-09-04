@@ -10263,7 +10263,7 @@ founder's own Cloudflare account, A1 can read its rules through the Cloudflare M
 authenticates it. **Ours regardless:** the Worker caching its own anonymous marketing HTML through
 the Workers Cache API, and the landing count replaced by a cached counter; both inside P-135.
 
-### P-136 · One currency on the run screen · Lane: **A3** (after P-133, before P-104) · Status: PUBLISHED, LIVE READ PENDING (7c05da9d0; A1 gate: build 0, tsc 0, 14,606 pass / 0 fail; published 17:45 IST; Start and Outcomes split to P-140 by A3; A1 reads the run screen in credits once served) · Moves: 2
+### P-136 · One currency on the run screen · Lane: **A3** (after P-133, before P-104) · Status: LIVE READ IN PROGRESS (7c05da9d0; published 17:45 IST; live 18:13 IST: the run screen's bar reads "3,606 credits ($0.78)", credits leading; A1 checks the sum against the ledger by A3's mapping) · Moves: 2
 
 **Why.** The run screen's bottom bar reads *40m 30s $0.75* and the artifact pane *$0.73*, while
 the account is billed in credits (10,000 a month, 7,449 left at 12:32 IST) and Team › Spend and
@@ -10497,7 +10497,7 @@ tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads.
 
 
-### P-139 · The release document names the check that passed · Lane: **A3** (after P-136) · Status: CLAIMED (A3) 17:55 IST 09-04 · Moves: 2
+### P-139 · The release document names the check that passed · Lane: **A3** (after P-136) · Status: GATE GREEN, PUBLISH WAITS ON THE MIGRATION (00907e1e8; A1 gate: build 0, tsc 0, 14,622 pass / 0 fail; migration 20260909093100 is in the tree and not yet applied, and its backfill pins the merge commit where the check ran on the PR head 428bb04; A3 corrects and applies, A1 confirms the ledger, then publishes) · Moves: 2
 
 **Why.** The first release's document (Ship page, 17:01 IST 09-04) says *No test evidence.
 Nothing records which tests ran for this release, so this document does not claim any did.*
