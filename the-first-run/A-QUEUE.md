@@ -10873,6 +10873,91 @@ sha pair per rule 23.
 
 **DoD.** Pushed; the three numbers and the two counts.
 
+### P-147 · Outcomes says why the first release has no verdict · Lane: **A3** (after P-130b, and after A2's P-144 lands its composer) · Status: READY · Moves: 1, 3
+
+**Why.** Outcomes is the door the landing page's fourth verb opens (*grades it. guides the next
+call.*). Today, with one release shipped and graded on nothing, its settle panel says *Nothing has
+shipped that needs a verdict* (P-53's read, 01:15 IST 09-04), which was true when nothing had
+shipped and is a lie now: a release has shipped, it needs a verdict, and the reason it has none is
+that none of its six metrics has a source that could produce a number. The spec artifact says so
+(P-137); Outcomes, the page a person opens to ask "did it work", says nothing.
+
+**Scope.** Outcomes reads the shipped releases whose Learn has not returned and says, per release,
+what P-144's composer says on the run page: comes due on the date, and until a source is connected
+or a reading recorded, nothing will grade it; with the same two presses. One composer, imported,
+never a second sentence. The *Nothing has shipped that needs a verdict* line stays for the case it
+was written for and is guarded against the shipped-and-ungraded case. Guards: a fixture with one
+shipped release and no source; one with a reading; one with nothing shipped.
+
+**Acceptance.** Served Outcomes on Helio names the address release and says why it has no
+verdict, with the two presses. Full suite on the tip, tsc 0, build 0; sha pair per rule 23.
+
+**DoD.** Pushed; the three numbers.
+
+### P-148 · A new workspace's first screens say what they have and what to do · Lane: **A2** (after P-145) · Status: READY · Moves: 1, 2
+
+**Why.** The bar (docs/conventions/the-bar.md): empty, slow and wrong are the states that decide
+whether the product is trusted, and they are designed last. On 23 September a person signs in to a
+workspace with zero rows, and every surface built this month was read on Helio, which has
+thousands. A1 cannot walk the arrival on the shared demo account without creating a workspace in
+the founder's own switcher, so the first pass is by fixture, and the live walk follows on a real
+fresh workspace when one exists.
+
+**Scope.** Each primary door (Start, Run, Waiting, Arriving, Outcomes, Team, Conversations,
+Sources) is rendered in a test with a workspace that has no rows at all, then with exactly one
+track at its first station, and the text of each is read against three questions: does it say
+what this door is for in one sentence, does it say what it has (nothing, and that nothing is not
+an error), and does it offer the one press that changes that (a sentence on Start; nothing
+elsewhere pretends there is a press when there is not). A surface that shows a spinner, a count of
+zero with no sentence, a card that asks for a decision on nothing, or copy that assumes Helio's
+history, is fixed in place using Meridian's Quiet and the boundary-state components, never a local
+empty state. Two fixtures, eight doors, the findings in one commit each.
+
+**Not in scope.** Onboarding flows, sample data, a tour. The empty state IS the onboarding.
+
+**Acceptance.** The sixteen renders read right by the three questions, in a table in the report
+with the sentence each door shows; the guards pin them. A1's live walk on a fresh workspace closes
+it. Full suite on the tip, tsc 0, build 0; sha pair per rule 23.
+
+**DoD.** Pushed; the three numbers; the table.
+
+### P-149 · A metric can have a source that produces a number · Lane: **A2** (after P-148) · Status: READY · Moves: 1, 3
+
+**Why.** P-137's second press, *Connect a source*, lands on Sources, which connects GitHub,
+Linear, Notion, Slack and a webhook for work, and nothing that can produce a number for a metric.
+The honest sentence says none of the six metrics has a source; the door it offers cannot change
+that. Until it can, the Learn loop's only number is the one a person types (P-137, P-144), and
+the product's fourth verb is a hand-entered field.
+
+**A1's call on the first shape, the founder may override.** The first metric source is a reading
+endpoint, not a pull connector: each standing clause can mint a signed URL, and anything that can
+POST a number, a customer's own analytics job, a cron, a spreadsheet script, an agent, writes a
+reading onto that clause with the same shape P-137's press writes (value, at, by = the endpoint's
+name, note). It works for every analytics stack at once, it is the platform shape rather than a
+vendor list, and it is the thing a Vercel or a Segment would ship first. Pull connectors
+(PostHog, GA, a warehouse query) are a later packet each, and each is one adapter behind the same
+reading shape.
+
+**Scope.**
+1. Mint and revoke a reading endpoint per clause from the spec artifact, beside *Record a
+   reading*; the URL is shown once, the token is stored hashed, revocation is a press.
+2. The endpoint accepts a number and an optional note, rejects a non-number and a revoked or
+   unknown token with a sentence, writes the reading, and answers with the clause it wrote to.
+   Rate-limited; a burst is not a source going wrong, it is a source, and the reading history
+   keeps every value.
+3. *Connect a source* on the spec goes to this, not to Sources; Sources gains a line saying
+   metric sources live on the spec, so the two doors do not contradict.
+4.  reads an endpoint with at least one reading as a connected source
+   and an endpoint with none as *connected, nothing received yet*, with the date it was minted.
+5. Guards for each; a migration for the token table per rule 19 if a new table is the right
+   store (A2 decides; the readings themselves stay on the clause).
+
+**Acceptance.** On the probe track, never Helio's live spec: mint an endpoint, POST a number to
+it with curl, and the spec's clause shows the reading and the source line; the honest sentence
+changes accordingly. A1 does the POST. Full suite on the tip, tsc 0, build 0; sha pair per rule 23.
+
+**DoD.** Pushed; the three numbers; the curl and its response in the report.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
