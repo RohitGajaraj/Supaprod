@@ -4,6 +4,7 @@ import {
   parseAuditReply,
   AUDITOR_SLUG,
   linkedOutcomeIsSettled,
+  nothingCouldMeasureIt,
 } from "./forecast-audit.server";
 import { AUTO_SETTLE_CONFIDENCE_FLOOR, canAutoSettle } from "./forecast-resolution";
 import { readKitAsText } from "./what-the-grader-read";
@@ -127,6 +128,109 @@ describe("AUDITOR_SLUG (FC-01)", () => {
   test("is a non-empty stable identifier", () => {
     expect(AUDITOR_SLUG).toBe("forecast-auditor");
     expect(AUDITOR_SLUG.length).toBeGreaterThan(0);
+  });
+});
+
+describe("nothingCouldMeasureIt (P-137: the grader refuses what nothing measures)", () => {
+  /** A spec row plus the eval results its clauses point at. */
+  const db = (contract: unknown, caseIdsWithResults: string[], opts?: { prdError?: boolean }) =>
+    ({
+      from: (table: string) =>
+        table === "prds"
+          ? {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: async () =>
+                    opts?.prdError
+                      ? { data: null, error: { message: "boom" } }
+                      : { data: { contract }, error: null },
+                }),
+              }),
+            }
+          : {
+              select: () => ({
+                in: async () => ({
+                  data: caseIdsWithResults.map((case_id) => ({ case_id })),
+                  error: null,
+                }),
+              }),
+            },
+    }) as never;
+
+  /** The two clauses exactly as production stores them on spec f2aa82f1. */
+  const LIVE_CONTRACT = {
+    success_metrics: [
+      {
+        text: "Increase in tablet checkout completion rate from 67 percent.",
+        status: "standing",
+        oracle_kind: "eval",
+        oracle_ref: "a653a20b-7c05-4eb6-9cc9-7e0ed807467e",
+      },
+      {
+        text: "Reduction in abandonment rate on the 'Shipping Address' screen.",
+        status: "standing",
+        oracle_kind: "eval",
+        oracle_ref: "6dbb1c54-9a78-406a-b5ab-9ce0ca7abf42",
+      },
+    ],
+  };
+
+  test("the first live release refuses: both oracles resolve, neither has ever run", async () => {
+    // MEASURED 2026-09-04. This is the row the 09-09 horizon would otherwise
+    // hand to the model, which would return miss or drifting from the absence
+    // of any observation.
+    const r = await nothingCouldMeasureIt(db(LIVE_CONTRACT, []), "f2aa82f1");
+    expect(r.refuse).toBe(true);
+    expect(r.metric).toContain("67 percent");
+  });
+
+  test("one reading anywhere is enough to hand it back to the model", async () => {
+    const r = await nothingCouldMeasureIt(
+      db(LIVE_CONTRACT, ["a653a20b-7c05-4eb6-9cc9-7e0ed807467e"]),
+      "f2aa82f1",
+    );
+    expect(r.refuse).toBe(false);
+  });
+
+  test("a hand-recorded reading on the clause is a source", async () => {
+    const withHand = {
+      success_metrics: [
+        {
+          ...LIVE_CONTRACT.success_metrics[0],
+          readings: [{ value: 71, at: "2026-09-08T10:00:00Z", by: "founder" }],
+        },
+      ],
+    };
+    expect((await nothingCouldMeasureIt(db(withHand, []), "p1")).refuse).toBe(false);
+  });
+
+  test("an unlinked forecast is never refused, because its metric is unknown", async () => {
+    // "We cannot identify the metric" is not "the metric has no source".
+    expect((await nothingCouldMeasureIt(db(LIVE_CONTRACT, []), null)).refuse).toBe(false);
+  });
+
+  test("a failed read refuses nothing, so a transient fault cannot become a verdict", async () => {
+    const r = await nothingCouldMeasureIt(db(LIVE_CONTRACT, [], { prdError: true }), "p1");
+    expect(r.refuse).toBe(false);
+  });
+
+  test("a spec with no standing metric promises no outcome, so nothing is refused", async () => {
+    expect((await nothingCouldMeasureIt(db({ success_metrics: [] }, []), "p1")).refuse).toBe(false);
+    expect(
+      (
+        await nothingCouldMeasureIt(
+          db({ success_metrics: [{ text: "old", status: "superseded" }] }, []),
+          "p1",
+        )
+      ).refuse,
+    ).toBe(false);
+  });
+
+  test("a ci-only contract refuses: a green build is not an observation of users", async () => {
+    const ciOnly = {
+      success_metrics: [{ text: "Telemetry is integrated.", status: "standing", oracle_kind: "ci" }],
+    };
+    expect((await nothingCouldMeasureIt(db(ciOnly, []), "p1")).refuse).toBe(true);
   });
 });
 

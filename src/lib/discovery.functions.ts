@@ -2646,7 +2646,58 @@ export const getPrd = createServerFn({ method: "GET" })
       opportunity_title = (opp as { title?: string | null } | null)?.title ?? null;
     }
 
-    return { prd: { ...row, opportunity_title } };
+    /*
+     * WHICH OF THIS SPEC'S ORACLES HAVE EVER PRODUCED A READING (P-137).
+     *
+     * The surface cannot ask this for itself: it renders on the client, and
+     * "does this metric have a source?" is only answerable against
+     * `eval_case_results`. Sent as the set of refs that HAVE readings rather
+     * than as a verdict per clause, so the rule stays in one pure place
+     * (`what-would-measure-this.ts`) and this query stays a fact.
+     *
+     * MEASURED 2026-09-04: for spec f2aa82f1 this comes back empty. Both of
+     * its outcome clauses name an eval case that resolves and has zero
+     * results, which is why a check shaped "is oracle_ref set?" reports two
+     * sources where there are none.
+     *
+     * A failed read returns an empty set, which reports every eval clause as
+     * never-run. That is the honest direction to be wrong in: it understates
+     * what we can measure rather than claiming a number exists.
+     */
+    const clauses = ((row as { contract?: unknown } | null)?.contract as
+      | { success_metrics?: unknown }
+      | null
+      | undefined)?.success_metrics;
+    const refs = Array.isArray(clauses)
+      ? Array.from(
+          new Set(
+            clauses
+              .filter(
+                (c): c is { status?: unknown; oracle_ref?: unknown } =>
+                  typeof c === "object" && c !== null,
+              )
+              .filter((c) => c.status === "standing")
+              .map((c) => (typeof c.oracle_ref === "string" ? c.oracle_ref.trim() : ""))
+              .filter((r) => r.length > 0),
+          ),
+        )
+      : [];
+    let metric_refs_with_readings: string[] = [];
+    if (refs.length > 0) {
+      const { data: results } = await context.supabase
+        .from("eval_case_results")
+        .select("case_id")
+        .in("case_id", refs);
+      metric_refs_with_readings = Array.from(
+        new Set(
+          ((results ?? []) as { case_id?: string | null }[])
+            .map((r) => r.case_id)
+            .filter((id): id is string => typeof id === "string" && id.length > 0),
+        ),
+      );
+    }
+
+    return { prd: { ...row, opportunity_title, metric_refs_with_readings } };
   });
 
 // ---------- CNV-01: The Outcome Contract (typed dual projection) ----------
@@ -3069,6 +3120,79 @@ export const draftContractFromIntent = createServerFn({ method: "POST" })
  * mutates a clause in place, so a machine reader can always see what a
  * requirement used to say and why it changed.
  */
+/**
+ * RECORD A PERSON'S OWN READING AGAINST A SUCCESS METRIC (P-137).
+ *
+ * The press beside a metric nothing measures. MEASURED 2026-09-04: the first
+ * live release states two outcome metrics and neither has a source that could
+ * produce a number, so the only way this release is ever graded is somebody
+ * reading their own dashboard and typing what it says.
+ *
+ * Appended, never replaced: a second reading a week later is the interesting
+ * one precisely BECAUSE the first is still there, and a metric's history is
+ * the thing a calibration record is made of. `by` and `at` are stamped here
+ * from the session and the clock rather than accepted from the caller -- a
+ * reading is only worth anything if it is attributable, and a client-supplied
+ * author is not attribution.
+ *
+ * The clause is matched by id and must be standing. Recording against a
+ * superseded clause would attach a number to a promise nobody is making.
+ */
+export const recordMetricReading = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        clause_id: z.string().uuid(),
+        value: z.number().finite(),
+        note: z.string().max(500).optional(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: prd, error } = await supabase
+      .from("prds")
+      .select("contract")
+      .eq("id", data.id)
+      .single();
+    if (error || !prd) throw new Error(error?.message ?? "Spec not found");
+
+    const contract = ((prd as { contract: unknown }).contract ?? {}) as Record<string, unknown>;
+    const clauses = contract.success_metrics;
+    if (!Array.isArray(clauses)) throw new Error("This spec states no success metrics");
+
+    const nowIso = new Date().toISOString();
+    let found = false;
+    const next = clauses.map((c) => {
+      if (typeof c !== "object" || c === null) return c;
+      const clause = c as Record<string, unknown>;
+      if (clause.id !== data.clause_id || clause.status !== "standing") return c;
+      found = true;
+      const prior = Array.isArray(clause.readings) ? clause.readings : [];
+      return {
+        ...clause,
+        readings: [
+          ...prior,
+          { value: data.value, at: nowIso, by: userId, ...(data.note ? { note: data.note } : {}) },
+        ],
+      };
+    });
+    if (!found) throw new Error("That metric is not a standing clause on this spec");
+
+    const updatedContract = { ...contract, success_metrics: next };
+    const { data: updated, error: upErr } = await supabase
+      .from("prds")
+      .update({ contract: updatedContract, updated_at: nowIso })
+      .eq("id", data.id)
+      .select("id")
+      .maybeSingle();
+    if (upErr) throw new Error(upErr.message);
+    if (!updated) throw new Error("Spec not found");
+    return { contract: updatedContract };
+  });
+
 export const supersedeContractClause = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>

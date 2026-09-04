@@ -59,6 +59,59 @@ describe("what a spec promises", () => {
   });
 });
 
+describe("the shape the column actually holds", () => {
+  it("reads object clauses, which is every spec in production", () => {
+    // MEASURED 2026-09-04: 16 of 16 specs carrying a contract store
+    // success_metrics as an array of objects; none store strings. The reader
+    // kept only strings, so `measures` was empty on every spec that exists and
+    // the run screen rendered none of them, silently.
+    const c = specContract({
+      intent: "Remove the redundant address re-confirmation step.",
+      success_metrics: [
+        {
+          id: "5c92f3bd-f182-45de-9211-9f4e794f1f87",
+          text: "Increase in tablet checkout completion rate from 67 percent.",
+          status: "standing",
+          oracle_kind: "eval",
+          oracle_ref: "a653a20b-7c05-4eb6-9cc9-7e0ed807467e",
+        },
+        {
+          id: "775f05de-8ee3-42d2-ad13-7c8db40037dc",
+          text: "Reduction in abandonment rate on the 'Shipping Address' screen.",
+          status: "standing",
+          oracle_kind: "eval",
+          oracle_ref: "6dbb1c54-9a78-406a-b5ab-9ce0ca7abf42",
+        },
+      ],
+    });
+    expect(c.measures).toHaveLength(2);
+    expect(c.measures[0]).toContain("67 percent");
+    expect(c.empty).toBe(false);
+  });
+
+  it("still reads the string shape, so a reader is never narrower than the data", () => {
+    const c = specContract({ success_metrics: ["Completion rate rises.", "  "] });
+    expect(c.measures).toEqual(["Completion rate rises."]);
+  });
+
+  it("leaves a superseded clause out, because it no longer promises anything", () => {
+    const c = specContract({
+      success_metrics: [
+        { text: "The standing one.", status: "standing" },
+        { text: "The withdrawn one.", status: "superseded" },
+      ],
+    });
+    expect(c.measures).toEqual(["The standing one."]);
+  });
+
+  it("drops a clause whose text is not text rather than rendering an object", () => {
+    const c = specContract({
+      success_metrics: [{ text: { nested: true }, status: "standing" }, { status: "standing" }],
+    });
+    expect(c.measures).toEqual([]);
+  });
+});
+
 describe("the empty contract does not claim the spec is silent", () => {
   /* The three shapes actually in the database, in their measured proportions. */
   const withMetrics = "## Problem\nSlow checkout.\n\n## Success Metrics\n- p95 under 400ms\n";

@@ -13,6 +13,13 @@ import {
   CANNOT_BE_GRADED,
 } from "@/lib/spine/a-forecast-about-our-own-paperwork";
 import { TOOL_REGISTRY } from "@/lib/ai/tools/registry.server";
+import {
+  whatWouldMeasure,
+  canProduceAReading,
+  whyItCannotBeResolved,
+  isStanding,
+  type MetricClause,
+} from "@/lib/spine/what-would-measure-this";
 
 /**
  * ── EVERY RESOLUTION FILES A ROW, THE GRADER'S INCLUDED ───────────────────
@@ -173,6 +180,73 @@ type DueRow = {
 };
 
 /**
+ * Whether anything could produce a number for the spec this forecast is about.
+ *
+ * ── WHY THIS REFUSES ONLY A *LINKED* FORECAST ─────────────────────────────
+ * A forecast with no `prd_id` names no clause, so nothing here knows what its
+ * metric is -- and "we cannot identify the metric" is not the same fact as
+ * "the metric has no source". Refusing both would take every prose forecast
+ * out of the grader's hands on a guess, which is a bigger change than this
+ * packet is making and a worse one: the model can often grade those. So the
+ * refusal fires only where the absence is KNOWN, which is a spec whose
+ * standing outcome clauses were read and none of them can be measured.
+ *
+ * ── AND WHY A FAILED READ REFUSES NOTHING ─────────────────────────────────
+ * If the contract or the results cannot be read, this returns "measurable" and
+ * the row goes to the model as it does today. A read that failed is not
+ * evidence of an absent source, and settling a forecast `inconclusive` because
+ * a query errored would put a permanent verdict on a transient fault.
+ */
+export async function nothingCouldMeasureIt(
+  supabase: SupabaseClient,
+  prdId: string | null,
+): Promise<{ refuse: boolean; metric: string | null }> {
+  if (!prdId) return { refuse: false, metric: null };
+  const { data, error } = await supabase
+    .from("prds")
+    .select("contract")
+    .eq("id", prdId)
+    .maybeSingle();
+  if (error || !data) return { refuse: false, metric: null };
+
+  const contract = (data as { contract: unknown }).contract as Record<string, unknown> | null;
+  const raw = contract?.success_metrics;
+  if (!Array.isArray(raw)) return { refuse: false, metric: null };
+
+  const standing = raw.filter(
+    (c): c is MetricClause => typeof c === "object" && c !== null && isStanding(c as MetricClause),
+  );
+  // A spec stating no standing metric promises no outcome, so there is no
+  // metric to call unmeasurable and nothing for this rule to say.
+  if (standing.length === 0) return { refuse: false, metric: null };
+
+  const refs = standing
+    .map((c) => (typeof c.oracle_ref === "string" ? c.oracle_ref.trim() : ""))
+    .filter((r) => r.length > 0);
+  const withReadings = new Set<string>();
+  if (refs.length > 0) {
+    const { data: results, error: resultsErr } = await supabase
+      .from("eval_case_results")
+      .select("case_id")
+      .in("case_id", refs);
+    // Same rule as above: a failed read refuses nothing.
+    if (resultsErr) return { refuse: false, metric: null };
+    for (const row of (results ?? []) as { case_id: string | null }[]) {
+      if (row.case_id) withReadings.add(row.case_id);
+    }
+  }
+
+  const states = standing.map((c) => whatWouldMeasure(c, withReadings));
+  if (states.some(canProduceAReading)) return { refuse: false, metric: null };
+
+  const named = standing.find((c) => typeof c.text === "string" && c.text.trim().length > 0);
+  return {
+    refuse: true,
+    metric: named && typeof named.text === "string" ? named.text.trim() : null,
+  };
+}
+
+/**
  * The first half of the gate: a person already judged the thing this forecast
  * was about, so the agent applies a stated observable to existing human
  * judgment rather than originating any.
@@ -304,6 +378,74 @@ export async function auditDueForecasts(
        * BEFORE the model call, deliberately: the answer does not depend on it,
        * and paying for a reply we will discard is the defect this closes.
        */
+      /*
+       * ── A METRIC NOTHING MEASURES IS REFUSED, NOT GUESSED AT ────────────
+       *
+       * P-137. The first live release's spec states two outcome metrics and
+       * MEASURED 2026-09-04 neither has a source that could produce a number:
+       * both name an eval case that resolves and has zero results, the
+       * workspace has no analytics rows and no analytics connection. Handed to
+       * the model, a forecast like that comes back `miss` or `drifting` -- a
+       * verdict about the customer's product derived from the ABSENCE of any
+       * observation of it, which is worse than no verdict because the record
+       * then reads as though the work was measured and fell short.
+       *
+       * Refusing is safe in the same way the paperwork refusal is: it asserts
+       * nothing about the world, so no human judgment is originated or
+       * displaced. BEFORE the model call, for the same reason as well -- the
+       * answer does not depend on it.
+       */
+      const unmeasured = await nothingCouldMeasureIt(supabase, raw.prd_id);
+      if (unmeasured.refuse) {
+        const because = whyItCannotBeResolved(unmeasured.metric);
+        const { data: refused, error: refuseErr } = await supabase
+          .from("decisions")
+          .update({
+            ...buildSettlePatch({
+              resolution: CANNOT_BE_GRADED,
+              rationale: because,
+              nowIso,
+              agentSlug: AUDITOR_SLUG,
+            }),
+            forecast_resolution_suggestion: {
+              verdict: CANNOT_BE_GRADED,
+              rationale: because,
+              confidence: 1,
+              drafted_at: nowIso,
+              model: "rule:what-would-measure-this",
+            },
+          } as never)
+          .eq("id", raw.id)
+          .is("forecast_resolution", null)
+          .select("id,workspace_id");
+        if (refuseErr) {
+          failed++;
+          continue;
+        }
+        if (!refused || refused.length === 0) {
+          raced++;
+          continue;
+        }
+        if (
+          !(await fileResolutionRow(supabase, {
+            decisionId: raw.id,
+            workspaceId:
+              (refused[0] as { workspace_id?: string | null }).workspace_id ?? workspaceId ?? null,
+            resolution: CANNOT_BE_GRADED,
+            rationale: because,
+            reason:
+              "Refused at the horizon: nothing connected to this workspace measures the metric.",
+            nowIso,
+          }))
+        ) {
+          unlogged++;
+        }
+        autoSettled++;
+        drafted++;
+        settledThisRow = true;
+        continue;
+      }
+
       const paperwork = aboutOurOwnPaperwork(
         raw.forecast_how_we_will_know,
         Object.keys(TOOL_REGISTRY),

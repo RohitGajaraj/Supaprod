@@ -25,19 +25,56 @@
  * Build spend against this spec is entitled to know that nothing bounds it.
  */
 
+import { isStanding, type MetricClause } from "@/lib/spine/what-would-measure-this";
+
 export type SpecContract = {
   intent: string | null;
   /** How anyone would know it worked. Stored as a list. */
   measures: string[];
+  /**
+   * The same standing clauses, unflattened, so a caller can ask what would
+   * MEASURE each one. `measures` keeps its shape for the callers that only
+   * render sentences; anything asking about oracles needs the objects, and
+   * re-parsing the jsonb a second time in the component is how two readers of
+   * one column drift apart (see the note on `list`).
+   */
+  metrics: MetricClause[];
   /** What this deliberately does not do. */
   nonGoals: string[];
   /** True when the row carries no contract clauses at all. */
   empty: boolean;
 };
 
+/**
+ * A clause list, in BOTH shapes the column actually holds.
+ *
+ * MEASURED 2026-09-04 (P-137): this kept only strings, and of the 16 specs in
+ * production carrying a contract, **16 store `success_metrics` as an array of
+ * OBJECTS and none store strings.** So `measures` came back empty for every
+ * spec that has ever existed, and `ArtifactPane` -- the run screen pane whose
+ * whole job is to say how anyone would know the work worked -- rendered none
+ * of them, silently, on all of them. `OutcomeContractPanel` on the product
+ * surface reads the object shape correctly, so two readers of one column
+ * disagreed and only the other one was right.
+ *
+ * The string branch is kept rather than replaced: it costs one line, and a
+ * reader that only understands today's shape is how this happened.
+ */
 function list(v: unknown): string[] {
   if (!Array.isArray(v)) return [];
-  return v.filter((x): x is string => typeof x === "string" && x.trim().length > 0);
+  return v
+    .map((x) => {
+      if (typeof x === "string") return x.trim();
+      if (typeof x === "object" && x !== null) {
+        const clause = x as Record<string, unknown>;
+        // A superseded clause is history, not a promise, and must not be
+        // rendered beside the standing ones as though it still bound anything.
+        if ("status" in clause && clause.status !== "standing") return "";
+        return typeof clause.text === "string" ? clause.text.trim() : "";
+      }
+      return "";
+    })
+    .filter((x) => x.length > 0);
 }
 
 function text(v: unknown): string | null {
@@ -56,9 +93,19 @@ export function specContract(contract: unknown): SpecContract {
   const intent = text(c.intent);
   const measures = list(c.success_metrics);
   const nonGoals = list(c.non_goals);
+  const metrics = Array.isArray(c.success_metrics)
+    ? c.success_metrics.filter(
+        (m): m is MetricClause =>
+          typeof m === "object" &&
+          m !== null &&
+          isStanding(m as MetricClause) &&
+          typeof (m as MetricClause).text === "string",
+      )
+    : [];
   return {
     intent,
     measures,
+    metrics,
     nonGoals,
     empty: !intent && measures.length === 0 && nonGoals.length === 0,
   };

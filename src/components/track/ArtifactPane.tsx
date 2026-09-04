@@ -57,6 +57,17 @@ import { FORECAST_SAYS } from "@/components/learn/forecast-words";
 import { bandReading, bandShape } from "@/components/learn/forecast-band-words";
 import type { ForecastResolution } from "@/lib/brain/forecast-resolution";
 import { NO_NON_GOALS, noContractLine, specContract } from "@/components/track/spec-contract";
+import {
+  whatWouldMeasure,
+  whatLearnCanMeasure,
+  // `metricSourceLine`, not `sourceLine`: `discover-has-no-sources` already
+  // exports one, about whether Discover has SIGNAL sources to read. Different
+  // question, same word, and one file importing both is exactly where that
+  // becomes a bug.
+  metricSourceLine,
+  canProduceAReading,
+  type MetricClause,
+} from "@/lib/spine/what-would-measure-this";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -68,7 +79,7 @@ import {
   type ArtifactView,
   type StationArtifactView,
 } from "@/lib/spine/track.functions";
-import { getPrd, savePrd } from "@/lib/discovery.functions";
+import { getPrd, savePrd, recordMetricReading } from "@/lib/discovery.functions";
 import { deleteSignal, renameTheme, setThemeStatus } from "@/lib/discovery.functions";
 import { getChangesetDiff } from "@/lib/studio.functions";
 import { computeHunks } from "@/lib/ai/studio-hunks";
@@ -137,6 +148,12 @@ type PrdRow = {
   updated_at: string;
   /** The outcome contract. `getPrd` selects *, so this was always arriving. */
   contract?: unknown;
+  /**
+   * Which of this spec's oracles have ever produced a reading (P-137). The
+   * client cannot answer this, so `getPrd` sends the facts and the rule stays
+   * in `what-would-measure-this.ts`.
+   */
+  metric_refs_with_readings?: string[];
 };
 
 /** The prd status word, on the same five-word scale every surface shares.
@@ -163,8 +180,88 @@ function prdTone(status: string | null): "you" | "pass" | null {
  * every template demotes to a footnote. Same heading, same type, same order of
  * appearance as what the spec IS for.
  */
-function SpecPromise({ contract, body }: { contract: unknown; body: string | null }) {
+/**
+ * The press beside a metric nothing measures.
+ *
+ * An inline number rather than a dialog: the person is already looking at the
+ * metric, and a modal would take the sentence they are answering off screen.
+ * The field only appears once asked for, so a spec whose metrics are all
+ * measured shows no controls at all.
+ *
+ * A clause with no id cannot be written to, so it offers only the connect
+ * door rather than a press that would fail on submit.
+ */
+function RecordReading({
+  clauseId,
+  onRecord,
+}: {
+  clauseId: string | null;
+  onRecord?: (clauseId: string, value: number) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [value, setValue] = React.useState("");
+  const parsed = Number(value);
+  const usable = value.trim().length > 0 && Number.isFinite(parsed);
+
+  return (
+    <div className="flex flex-wrap items-center gap-mrd-2">
+      {clauseId && onRecord ? (
+        open ? (
+          <>
+            <input
+              type="number"
+              inputMode="decimal"
+              autoFocus
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder="e.g. 71"
+              aria-label="The number you read"
+              className="mrd-input w-[10ch]"
+            />
+            <button
+              type="button"
+              className="mrd-btn mrd-btn-quiet"
+              disabled={!usable}
+              onClick={() => {
+                if (!usable) return;
+                onRecord(clauseId, parsed);
+                setOpen(false);
+                setValue("");
+              }}
+            >
+              Save
+            </button>
+            <button type="button" className="mrd-link" onClick={() => setOpen(false)}>
+              Cancel
+            </button>
+          </>
+        ) : (
+          <button type="button" className="mrd-btn mrd-btn-quiet" onClick={() => setOpen(true)}>
+            Record a reading
+          </button>
+        )
+      ) : null}
+      <Link to="/sync" className="mrd-link">
+        Connect a source
+      </Link>
+    </div>
+  );
+}
+
+function SpecPromise({
+  contract,
+  body,
+  refsWithReadings,
+  onRecordReading,
+}: {
+  contract: unknown;
+  body: string | null;
+  refsWithReadings: readonly string[];
+  onRecordReading?: (clauseId: string, value: number) => void;
+}) {
   const c = specContract(contract);
+  const readings = React.useMemo(() => new Set(refsWithReadings), [refsWithReadings]);
+  const states = c.metrics.map((m) => whatWouldMeasure(m, readings));
 
   /*
    * THE BODY IS PASSED IN BECAUSE THE OLD SENTENCE WAS DISPROVED BY IT.
@@ -187,14 +284,37 @@ function SpecPromise({ contract, body }: { contract: unknown; body: string | nul
         </div>
       ) : null}
 
-      {c.measures.length > 0 ? (
-        <div className="flex flex-col gap-mrd-1">
+      {c.metrics.length > 0 ? (
+        <div className="flex flex-col gap-mrd-2">
           <span className="mrd-eyebrow">How we will know</span>
-          {c.measures.map((m) => (
-            <p key={m} className="mrd-copy max-w-[62ch]">
-              {m}
-            </p>
-          ))}
+          {/*
+            THE LEAD SENTENCE SAYS WHETHER THIS RELEASE CAN BE GRADED AT ALL.
+            Measured 2026-09-04 on the first live release: neither of its two
+            metrics has a source that could produce a number, and every surface
+            was silent about it. A reader arriving at Learn on the horizon date
+            is entitled to know that before they are shown a verdict, or the
+            absence of one.
+          */}
+          <p className="mrd-copy max-w-[62ch]">{whatLearnCanMeasure(states)}</p>
+          {c.metrics.map((m, i) => {
+            const state = states[i];
+            const text = typeof m.text === "string" ? m.text : "";
+            return (
+              <div key={typeof m.id === "string" ? m.id : text} className="flex flex-col gap-mrd-1">
+                <p className="mrd-copy max-w-[62ch]">{text}</p>
+                <p className="mrd-meta max-w-[62ch]">{metricSourceLine(state)}</p>
+                {/* The press sits beside the metric it would measure, not in a
+                    settings screen: the person is looking at the thing that
+                    cannot be graded at the moment they learn it cannot. */}
+                {!canProduceAReading(state) ? (
+                  <RecordReading
+                    clauseId={typeof m.id === "string" ? m.id : null}
+                    onRecord={onRecordReading}
+                  />
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       ) : null}
 
@@ -220,10 +340,18 @@ function SpecPromise({ contract, body }: { contract: unknown; body: string | nul
 function PlanSpec({ prdId }: { prdId: string }) {
   const fGet = useServerFn(getPrd);
   const fSave = useServerFn(savePrd);
+  const fRecordReading = useServerFn(recordMetricReading);
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["track-prd", prdId],
     queryFn: () => fGet({ data: { id: prdId } }),
+  });
+
+  /** P-137: a person's own number against a metric nothing else measures. */
+  const recordReading = useMutation({
+    mutationFn: (v: { clause_id: string; value: number }) =>
+      fRecordReading({ data: { id: prdId, clause_id: v.clause_id, value: v.value } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["track-prd", prdId] }),
   });
 
   const [editing, setEditing] = React.useState(false);
@@ -306,7 +434,14 @@ function PlanSpec({ prdId }: { prdId: string }) {
           was most often a false statement standing directly on top of its own
           disproof. It now reads the body before it speaks.
         */}
-        <SpecPromise contract={prd.contract} body={prd.body_md} />
+        <SpecPromise
+          contract={prd.contract}
+          body={prd.body_md}
+          refsWithReadings={prd.metric_refs_with_readings ?? []}
+          onRecordReading={(clause_id, value) =>
+            recordReading.mutate({ clause_id, value })
+          }
+        />
         <Prose markdown>{prd.body_md}</Prose>
       </div>
     );
