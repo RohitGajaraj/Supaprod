@@ -138,6 +138,11 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     lists a workspace's specs at all. The lane read the function and reasoned about the page for an
     hour without opening it, and caught itself inside the hour. A report that names a surface
     names the file that renders it, or the served read (A2 and A1, 19:52 IST 09-04).
+25. **A1's gate is four checks and says so: `bun run build` exit 0, `bunx tsc --noEmit` exit 0,
+    `bun test` full suite on the tip, and from gate 169 `bun run check:unreachable` with its two
+    counts.** It is not `scripts/lane-gates.sh`, which runs more and is nobody's gate today. A lane
+    that runs a check the gate does not is welcome to, and reports it by name (A1, 20:06 IST 09-04,
+    after A2 found the unreachable check red on main with nobody told; P-146).
 
 ### The bar a packet is verified against, in this order
 
@@ -10825,6 +10830,37 @@ state exists; until then the guards and the measurement stand and the queue says
 the tip, tsc 0, build 0; sha pair per rule 23.
 
 **DoD.** Pushed; the three numbers; the measurement in the report.
+
+### P-146 · The unreachable check is green again, one export at a time · Lane: **A3** (after P-141, before P-130b) · Status: READY · Moves: 5
+
+**Why.** `bun run check:unreachable` is red on main and has been for some time: at 2076e8b65 it
+reports 181 of 682 server functions and 43 of 489 exported components with no importer in `src/`,
+against a baseline frozen on 2026-08-31 at 140 and 26 whose own header says it may only go down.
+The check is a lane gate (`scripts/lane-gates.sh:99`) and is in no hook and no CI workflow, so
+41 server functions and 17 components accumulated with nobody told. A2 found it while deleting
+`listSpecs` and `listPrds` for P-142 (181 to 179, baseline 140 to 139). It is exactly the guard
+that would have made P-142's inert filter impossible, and it was already in the repo, already
+red, and not in the gate anybody runs. A1's gate has always been three checks, build, tsc and
+`bun test`; from gate 169 it runs this as a fourth and reports it red with the counts until this
+packet lands.
+
+**Scope.** Every export the check names is read, one at a time, and one of three things is true
+of it and is written in the commit: it is dead and is deleted with its tests; it is alive through
+a path the checker cannot see (a string registry, an e2e helper, a server-only import) and the
+checker is taught that path, never the baseline; or it is a reader the product lost and should
+have (the P-142 shape) and it is filed as its own packet rather than wired back here. The
+baseline goes down only, and only because a name no longer exists. Small commits, a handful of
+exports each, so a wrong deletion is a small revert. When in doubt about one, leave it and say so
+in the commit.
+
+**Not in scope.** Widening the baseline. Wiring the check into a hook or CI, which is a rule
+decision for A1 and the founder once it is green.
+
+**Acceptance.** `bun run check:unreachable` exits 0 on the tip with the baseline at or below the
+frozen counts; each removed export named in the commits; full suite on the tip, tsc 0, build 0;
+sha pair per rule 23.
+
+**DoD.** Pushed; the three numbers and the two counts.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
