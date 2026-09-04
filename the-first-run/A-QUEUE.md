@@ -7897,7 +7897,7 @@ reads behind Arriving (themes, clusters, the ranking) and Outcomes (graded forec
 still bare, and a person in a fresh workspace sees another workspace's desk. P-75 filed.
 
 
-### P-75 · Arriving, Outcomes, Sources and Conversations read the workspace they stand in · Lane: **A2** (now, before P-74) · Status: CODE DONE, all parts (a4b7124a1, aacadbf80; A2 reports 14,245 / 0 / 0, tsc 0; a foreign thread by id is NOT FOUND, not forbidden; ratchet 136 across 73 files; A1 build, tsc and suite running; publish after the 08:05 build is confirmed served) · Moves: 1, 2
+### P-75 · Arriving, Outcomes, Sources and Conversations read the workspace they stand in · Lane: **A2** (now, before P-74) · Status: CODE DONE, all parts (a4b7124a1, aacadbf80; A2 reports 14,245 / 0 / 0, tsc 0; a foreign thread by id is NOT FOUND, not forbidden; ratchet 136 across 73 files; A1 on the tip: build 0, tsc 0, 14,245 / 0 / 0; publish after the 08:05 build is confirmed served) · Moves: 1, 2
 
 **Why.** The live walk above. In the empty probe workspace Arriving shows Helio's 135 clusters
 and Outcomes shows Helio's graded forecasts and lessons; Waiting says *One just came in* where
