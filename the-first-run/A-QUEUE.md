@@ -7706,7 +7706,49 @@ one-card rule holds (the map is not a card and asks nothing). Full suite on the 
 **DoD.** Pushed; suite number per rule 17; A1 walks both tracks.
 
 
-### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: CLAIMED (A3) 00:05 UTC 09-04 · Moves: 3
+### P-58b · Warm what the root actually reads · Lane: **A3** (after P-64) · Status: CODE DONE, PUSHED 224ee7b65 (14,182 / 0, tsc 0) — step 1 (attribution) only, per the packet's own rule · Moves: 3
+
+**A3, 00:35 UTC 09-04, P-58b step 1 Report.** Before instrumenting anything, checked what
+`/start`'s Scope line actually assumes and it does not hold: `_authenticated.tsx` sets `ssr: false`
+for the whole authenticated subtree ("the client-side beforeLoad below handles the real auth
+gate"). `/start` has no SSR phase to time -- a curl against it reads the same static shell every
+client route gets, cold or warm, warmed ping or not. Its real cost lives entirely in the browser,
+in the `beforeLoad` chain that file already marks with `console.log("[perf] getSession...")` /
+`needsOnboarding...` / total, visible only in devtools, not to curl or a Server-Timing header. So
+this step instruments `/`, the one route that genuinely renders server-side and pays a real read
+(`getWaitlistCount`), and reports the finding on `/start` rather than forcing a header onto a route
+that has nothing to time.
+
+`src/lib/server-timing.ts`: `timedPhase(name, fn)` times one phase and appends it to the response's
+`Server-Timing` header via `setResponseHeader`/`getResponseHeader`
+(`@tanstack/react-start/server`) -- no prior use of either anywhere in `src/`, so wrapped so a
+request context this call cannot reach costs the page nothing (the phase still runs, its result
+still returns, only the diagnostic is silently lost). Wired around `/`'s `loader`:
+`timedPhase("landing-data", () => getWaitlistCount())`. `server.ts` gained
+`withWorkerTotalTiming`, appended last, measuring the whole SSR handler call at the Worker's own
+boundary -- zero framework-context risk, and it is the network-vs-server split this session's own
+curl readings couldn't make from outside. Tests: `server-timing.test.ts` proves the fail-silent
+contract holds with no request context (this repo's unit-test environment has none, which is
+itself a live proof rather than a mock); `server.test.ts` gained three for the append-not-overwrite
+behaviour.
+
+**A hypothesis, named as one, not built.** `/health`'s whole point is "touches no database" (its
+own scope line); if `/`'s real cold cost is the database round-trip inside `getWaitlistCount`
+(a live COUNT against `waitlist_signups`), the ping cannot be warming it no matter how often it
+fires, because the two never touch the same resource. `landing.functions.ts`'s own Supabase client
+(`supabaseAdmin`) is already a lazy per-isolate singleton (checked before writing anything: a
+`Proxy` memoising construction on first access), so "one client per isolate" is already true and is
+not the missing piece. The database-round-trip theory is the strongest of the packet's three fix
+options on this reading, but it is a theory: the packet's own rule is no second mechanism without
+the reading that names the cost, and I have not read it -- see Acceptance.
+
+**Acceptance.** Not served: could not curl the deployed root myself to read the header (same
+blocker as P-63/P-64 -- no `.env` in this worktree, browser tools blocked). tsc 0; `bun test`
+14,182 / 0 fail. Requesting A1 (or A2) read `Server-Timing` on `/` once cold and once warm --
+`curl -sI https://supaprod.ai/` after the publish propagates, twice, 12+ minutes apart -- and put
+both lines in the report before step 2 (the fix) starts.
+
+**DoD.** Pushed (`224ee7b65`). Step 2 blocked on the live reading above; not claiming P-58b closed.
 
 **Why.** P-58's ping keeps the isolate warm and "/" still costs 4.86 s after 31 minutes idle
 (A3, 04:15 IST 09-04), so the cold cost is in what "/" reads, not in the Worker starting. A3 said
