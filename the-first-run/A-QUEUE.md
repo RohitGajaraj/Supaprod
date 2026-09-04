@@ -7213,7 +7213,7 @@ when the switcher is free and read the six sentences-with-doors against what is 
 
 **DoD.** Pushed (`3db9fd806`); design doc linked; live walk still open, handing to A1.
 
-### P-64 · Find Anything reaches everything (retitled 05:08 IST 09-04: ⌘K opens Ask by the 07-30 ruling; the palette is Find Anything, bound to "/") · Lane: **A3** (after P-63) · Status: PUBLISHED, read live 05:58 IST 09-04: "/" from the body focuses Find anything (and stands down on the run screen, where it means steer); "address" returns runs, decisions and prototypes. NOT DONE: from the probe workspace the results carry Helio's runs, decisions and prototypes beside the probe's own; P-64b · Moves: 2
+### P-64 · Find Anything reaches everything (retitled 05:08 IST 09-04: ⌘K opens Ask by the 07-30 ruling; the palette is Find Anything, bound to "/") · Lane: **A3** (after P-63) · Status: PUBLISHED, read live 05:51 IST 09-04: "/" from the body focuses Find anything (and stands down on the run screen, where it means steer); "address" returns runs, decisions and prototypes. NOT DONE: from the probe workspace the results carry Helio's runs, decisions and prototypes beside the probe's own; P-64b · Moves: 2
 
 **Why.** Audit §1: find-anything searches one group, runs.
 
@@ -7791,7 +7791,7 @@ idle, under 800 ms, with the Server-Timing lines in the report. Full suite on th
 **DoD.** Pushed; suite number per rule 17; ledger row if a migration.
 
 
-### P-59c · The Ship hold card reads the newest deployment for the track's changeset, whatever its age · Lane: **A2** (now, before P-74) · Status: CODE DONE (9a3c11d40; A1 suite on the tip 14,173 / 0 / 0, tsc 0; PUBLISHED 05:22 IST 09-04; the press follows propagation). The exclusion: `whyShipStopped` read `.from("changesets")`, a table that does not exist (`studio_changesets`), so PostgREST answered 42P01 and the card fell back to the generic sentence; it shipped in P-59 and survived P-68 and P-68b because all three verified the code and not the screen. Also fixed: a NULL reason no longer reads as no failure; no time bound on the row; Ship's own retry stands down while the preview is the blocker · Moves: 1, 3 · A1 read 06:00: the station's own retry has stood down on the served track; the P-59 sentence and Try the preview again not yet drawn (propagation); read again at 06:11
+### P-59c · The Ship hold card reads the newest deployment for the track's changeset, whatever its age · Lane: **A2** (now, before P-74) · Status: CODE DONE (9a3c11d40; A1 suite on the tip 14,173 / 0 / 0, tsc 0; PUBLISHED 05:22 IST 09-04; the press follows propagation). The exclusion: `whyShipStopped` read `.from("changesets")`, a table that does not exist (`studio_changesets`), so PostgREST answered 42P01 and the card fell back to the generic sentence; it shipped in P-59 and survived P-68 and P-68b because all three verified the code and not the screen. Also fixed: a NULL reason no longer reads as no failure; no time bound on the row; Ship's own retry stands down while the preview is the blocker · Moves: 1, 3 · A1 read 05:52: the station's own retry has stood down on the served track; the P-59 sentence and Try the preview again not yet drawn (propagation); read again at the next wake
 
 **Why.** Live at 04:55 IST 09-04 on the served tablet track `6817e386` (hold `produced-nothing`
 at Ship, attempts 1): the card reads the generic *This step ran but filed nothing ... It will try
@@ -7856,7 +7856,7 @@ tsc 0.
 **DoD.** Pushed; suite number per rule 17; A1 walks the probe again.
 
 
-### P-76 · The per-user AI rate limit exists · Lane: **A3** (after P-58b) · Status: CODE DONE, PUBLISHED 06:02 IST 09-04 (0d05eea5f; A1 suite on the tip 14,186 / 0 / 0, tsc 0; table and ledger verified by object below) · Moves: 1
+### P-76 · The per-user AI rate limit exists · Lane: **A3** (after P-58b) · Status: CODE DONE, PUBLISHED 05:53 IST 09-04 (0d05eea5f; A1 suite on the tip 14,186 / 0 / 0, tsc 0; table and ledger verified by object below) · Moves: 1
 
 **Why.** F-192's guard found that `user_ai_rate_limits` does not exist in any schema:
 `checkUserAiRateLimit` reads it, gets 42P01, logs a warning and returns `{ allowed: true }`, so
@@ -7920,7 +7920,7 @@ Full suite on the tip, tsc 0.
 
 ### P-64b · Find Anything searches the workspace it stands in · Lane: **A3** (after P-76) · Status: READY · Moves: 1, 2
 
-**Why.** Read live 05:58 IST 09-04 from the probe workspace: "address" in Find anything returns
+**Why.** Read live 05:51 IST 09-04 from the probe workspace: "address" in Find anything returns
 the probe's two runs and, beside them, Helio's runs (*Let returning customers reuse a saved
 delivery address*), Helio's decisions and Helio's prototypes (*Relay Checkout Address Confirmation
 Screen*). P-64 scoped the conversations group and the older groups still read every workspace the
