@@ -1162,6 +1162,22 @@ export type StartRun = {
    * fabricated zero.
    */
   credits: number | null;
+  /**
+   * TEMPORARY (P-140 live investigation, A1 2026-09-04): Start reads
+   * `credits: null` on every row though the ledger holds real debits.
+   * Neither of us can read this function's own server console, so the four
+   * numbers that narrow which hop comes back empty are handed over in the
+   * payload itself instead -- the same react-query cache A1 already read to
+   * find the null. Remove this field and its computation once the cause is
+   * found and fixed.
+   */
+  creditsDiag?: {
+    ids: number;
+    runRows: number;
+    traces: number;
+    creditsKeys: number;
+    readError: string | null;
+  };
 };
 
 /**
@@ -1350,7 +1366,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
           pinnedByTrack,
           forecastByTrack,
           liveByTrack,
-          creditsByTrack,
+          { byTrack: creditsByTrack, diag: creditsDiag },
         ] = await Promise.all([
           (async () => {
             const byTrack = new Map<string, { tool: string }>();
@@ -1654,21 +1670,28 @@ export const listRunsForStart = createServerFn({ method: "GET" })
               if (r.track_id && r.trace_id) traceToTrack.set(r.trace_id, r.track_id);
             }
             const creditsByTrace = await creditsSpentByTrace([...traceToTrack.keys()]);
-            // TEMPORARY (P-140 live investigation, A1 2026-09-04): the served
-            // page reads `credits: null` on every row though the ledger holds
-            // real debits for at least one of them. Every number here narrows
-            // which of the three hops -- the ids this branch was handed, the
-            // agent_runs read, or creditsSpentByTrace itself -- is where the
-            // map comes back empty. Remove once the cause is found and fixed.
-            console.error(
-              `[listRunsForStart] credits diag: ids=${ids.length} runRows=${(runRows ?? []).length} traces=${traceToTrack.size} creditsKeys=${Object.keys(creditsByTrace).length}`,
-            );
             for (const [trace, credits] of Object.entries(creditsByTrace)) {
               const trackId = traceToTrack.get(trace);
               if (!trackId) continue;
               byTrack.set(trackId, (byTrack.get(trackId) ?? 0) + credits);
             }
-            return byTrack;
+            // TEMPORARY (P-140 live investigation, A1 2026-09-04): neither of
+            // us can read this function's own server console, so the four
+            // numbers that narrow which hop comes back empty travel in the
+            // payload itself -- read off `["start-runs", wsId]`'s cache entry
+            // the same way the null `credits` was found. Handed back on the
+            // Map itself as a non-enumerable-looking sentinel key would be
+            // fragile, so it rides alongside in a second return value instead.
+            return {
+              byTrack,
+              diag: {
+                ids: ids.length,
+                runRows: (runRows ?? []).length,
+                traces: traceToTrack.size,
+                creditsKeys: Object.keys(creditsByTrace).length,
+                readError: runRowsErr?.message ?? null,
+              },
+            };
           })(),
         ]);
 
@@ -1703,6 +1726,8 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             forecast: forecastByTrack.get(r.id) ?? null,
             liveSince: liveByTrack.get(r.id) ?? null,
             credits: creditsByTrack.get(r.id) ?? null,
+            // TEMPORARY, see StartRun.creditsDiag's own comment.
+            creditsDiag,
           };
         });
       } catch (e) {
