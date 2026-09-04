@@ -9283,6 +9283,30 @@ tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
+
+### P-122 · The person's preview retry reads the repo the way the tick does · Lane: **A3** (after P-121) · Status: READY · Moves: 1, 2
+
+**Why.** Live 06:32 UTC 09-04: A1 pressed *Try the preview again* (P-68b) on the merged Ship
+track and the row recorded *The repository's main branch could not be read (403), so there is
+nothing to deploy.* Eight minutes earlier the tick had read the same repository with
+`resolveGitHub` and reached the host. The retry calls `resolveGitHub` with the caller's RLS client
+and records neither which source it resolved (`binding`, `user_connection`, `env`) nor which
+token owner, so the 403 cannot be explained from the record, and the person's only control on a
+failed preview fails where the machine's path succeeds.
+
+**Scope.** (1) The retry resolves GitHub exactly as the tick does for the changeset's workspace
+binding (the binding path already reads the connection with the admin client; the retry must not
+fall through to a weaker source when the binding exists). (2) Every deployment failure row
+records the auth source and the actor label beside the reason, and the hold card shows the
+source in the sentence (*read with the workspace's GitHub connection as supaprod-connector*).
+(3) Guard: with a workspace binding present, the retry's resolved source is `binding`; a fixture
+where the binding read fails under RLS still resolves the binding, never `env`.
+
+**Acceptance.** On the live Ship track a press of *Try the preview again* reads the repo (or fails
+on the host, not on GitHub) and the row names its source. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 presses live.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
