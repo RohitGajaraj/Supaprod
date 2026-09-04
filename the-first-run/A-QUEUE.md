@@ -10255,7 +10255,7 @@ the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads Learn live.
 
 
-### P-128b · The static build ships · Lane: **A2** (now, before P-135) · Status: CODE COMPLETE, ACCEPTANCE BLOCKED (ef26977dd + ef608c28a + 4347ac024; nineteen guards against a fixture with the host mocked; A1 gate on the closing tip running, publish on green; DONE only after the live walk of a second repo, which waits on the founder creating or allowing Supaprod/helio-status-site) · Moves: 1, 3
+### P-128b · The static build ships · Lane: **A2** (now, before P-135) · Status: CODE COMPLETE, ACCEPTANCE BLOCKED (ef26977dd + ef608c28a + 4347ac024; nineteen guards against a fixture with the host mocked; A1 gate on the closing tip 4347ac024: build 0, tsc 0, 14,594 pass / 0 fail, published 16:43 IST; DONE only after the live walk of a second repo, which waits on the founder creating or allowing Supaprod/helio-status-site) · Moves: 1, 3
 
 **Why.** R-41 is placed. P-128 shipped the detection (a repo's shape read from `package.json`,
 the output directory from the dependency, the hold sentence and the handback for a shape we do not
