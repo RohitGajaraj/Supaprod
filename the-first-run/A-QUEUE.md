@@ -8576,7 +8576,7 @@ the map's Decide row reads the answer. Full suite on the tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads.
 
 
-### P-75b · Arriving's clusters and Outcomes' lessons read the workspace they stand in · Lane: **A3** (after P-93) · Status: CLAIMED (A3) 10:06 IST 09-04 · Moves: 1, 2
+### P-75b · Arriving's clusters and Outcomes' lessons read the workspace they stand in · Lane: **A3** (after P-93) · Status: CODE DONE, PUSHED bba883f3d · Moves: 1, 2
 
 **Why.** P-75 landed Sources and Conversations; on the served build at 09:52 IST the probe's
 Arriving still reads *135 clusters need your decisions ... 200 signals, 135 clusters open, 5 became
@@ -8594,6 +8594,47 @@ on the page. Report the reads you found, by file.
 no lessons; in Helio: unchanged. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 walks the probe.
+
+**Report, A3, 10:23 IST 09-04.** The reads, by file:
+
+| File | Read | Was | Fixed |
+| --- | --- | --- | --- |
+| `src/lib/discovery.functions.ts` | `listSignals` | `productId` only; a workspace with no product read every signal RLS would show | Added `workspaceId`, `if (data.workspaceId) query = query.eq("workspace_id", data.workspaceId)` |
+| `src/lib/discovery.functions.ts` | `listThemes` | Same shape, same fix | Same |
+| `src/lib/discovery.functions.ts` | `getSenseCoverage` | Already fixed (P-33, 2026-09-03) | Verified, not re-touched |
+| `src/lib/discovery.functions.ts` | `getThemePromotionCounts` | Already fixed (P-33) | Verified, not re-touched |
+| `src/lib/brain-standing.functions.ts` | `getStandingRecord` (`recall.memoriesTotal`/`memoriesReached`, Outcomes' "X of Y lessons" line) | Already fixed (P-33) | Verified, not re-touched |
+| `src/lib/brain.functions.ts` | `getCompanyBrainStats` (`learnings` count) | Already the two-statement idiom | Verified, not re-touched |
+
+All four numbers on Arriving ("135 clusters need your decisions", "200 signals", "135 clusters
+open", "5 became bets") trace to `DiscoverSurface.tsx`'s own `signals`/`themes`/`ranked`/
+`promotedCount` state, sourced directly from the two now-fixed reads -- confirmed by reading the
+component, not assumed. `DiscoverSurface.tsx`'s own query keys for both now carry
+`activeWorkspaceId` alongside `activeProductId`, matching the `coverage` query beside them that
+already followed this rule.
+
+Outcomes' "54 of 70 lessons" was checked and found ALREADY correctly scoped -- P-33 fixed
+`getStandingRecord` for this exact defect yesterday, and
+`the-desk-you-are-on-is-the-desk-you-see.test.ts` already guarded it before this packet. If A1's
+09:52 read still showed Helio's numbers there, the served build was behind the fix rather than the
+source behind it -- today's queue has spent real time on exactly that publish-lag class of problem
+already (P-58b, the HOSTING NOTE). Did not invent a fix for code that reads correctly.
+
+The walk-shaped guard P-75 promised, taken as far as a source read can go this session (no dev
+server / browser access; these are also route files too heavy to full-mount): extended
+`the-desk-you-are-on-is-the-desk-you-see.test.ts` -- already the canonical guard for this exact
+defect, covering four prior instances -- with two more `describe` blocks: one proving
+`listSignals`/`listThemes` take and filter by `workspaceId` with the query keys naming it too, one
+proving Outcomes' lessons-block readers do the same (pointing back at this file's own earlier
+coverage rather than re-testing it). No P-67 baseline change needed: `discovery.functions.ts`
+carried no entry before this and passes cleanly either way, since the fix only adds scoping.
+
+Full suite on the rebased tip (350483e4b): `bun run build` exit 0 (twice, pre- and post-rebase),
+`bunx tsc --noEmit` exit 0, `bun test` 14,307 / 0 / 22 skip / 37 todo. PUSHED bba883f3d.
+
+Not walked live -- same standing limitation as every packet closed here this session. A1: in the
+probe, Arriving should read its P-63 zero state and Outcomes should read six calls and no lessons;
+in Helio, both should read unchanged.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
