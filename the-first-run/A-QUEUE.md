@@ -9014,6 +9014,28 @@ the gate and the transcript records the reason. Full suite on the tip, tsc 0, bu
 
 **DoD.** Pushed; the three numbers; the list of callers swept.
 
+
+### P-116 · Every merge gate carries the card, whichever path raised it · Lane: **A2** (after P-114, before P-112) · Status: READY · Moves: 1, 2
+
+**Why.** The merge gate that rose on the Ship track at 05:54:40 UTC 09-04 (0189ad0a) was raised
+by the seat (`studio.pr.merge` from run 2a4da7ba) with `rationale` null and `args` `{}`. The run
+screen showed one line, *Merges the pull request into the branch.*, and two buttons. P-72's card
+(the files, Build's conclusion, Design's verdict, the check) exists for the merge decision, and it
+did not appear here: it is fed on one path and not the other, or it reads the gate's `args`, which
+this path leaves empty. A person was asked to merge a change they could not see.
+
+**Scope.** One composer for the merge card, called by both raisers (the seat's `studio.pr.merge`
+and the deterministic gate in `ci-poll-tick`), reading the changeset, the checks and the review
+verdict at raise time and again at render, so an empty `args` cannot produce an empty card; the
+run screen's banner and the transcript card and the Waiting page all draw from it; P-112's line
+about the record files is part of it when P-112 lands. Guard: a gate raised with empty `args` still
+renders the files and the CI conclusion.
+
+**Acceptance.** The next merge gate on PR #5 shows the card on the run screen, seat-raised or
+tick-raised; a fixture with `args` `{}` renders the card. Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers; A1 reads the card on the served page before pressing.
+
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
 **A1, 01:25 IST 09-04, DONE.** Served (b75768ba9 then 948e440a2): the approvals card asks *Take
