@@ -8763,10 +8763,11 @@ same write (P-71f live; the map's Decide row reads *On hold*, no raw key, and th
 their preconditions: P-74b live). Define then held **`out-of-credit`**: *AI credits exhausted:
 account credit balance (1) is below the projected cost (19).* The demo account (`5731ab6f`, a
 10,000-credit monthly grant anchored 08-25) spent 5,398 credits in the last 24 hours: five probe
-runs, the tablet track's Build-to-Ship churn before the deferral, and Helio's ticks. A1 granted
-10,000 credits through the product's own `grant_subscription_credits` under the founder's standing
-authority at 05:43 UTC and recorded it here; the grant is a ledger row with reason `grant`, no money
-moved. The honest-Ship presses proceed on it.
+runs, the tablet track's Build-to-Ship churn before the deferral, and Helio's ticks. A1 called the
+product's `grant_subscription_credits(account, 10000)` at 05:44 UTC and it answered
+`{granted:false, reason:"unchanged"}`: it is the idempotent monthly setting, already 10,000, not a
+top-up, and the balance stayed 1. The real top-up path is being read; the honest-Ship presses wait
+on credits.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
