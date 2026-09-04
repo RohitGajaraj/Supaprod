@@ -190,3 +190,6 @@ Ship track 2fdf93b6 deferred to 08:13 UTC for the CI fix loop; gate 0189ad0a dec
 
 ## A1 12:30 IST 09-04
 THE HONEST SHIP IS LIVE: PR #5 merged 06:22:41Z, preview 06:44, promoted 06:58:42Z; prod https://cad-60000000-ae547426aa32.cadencehostingtest.deno.net 200 + /health ok. Presses: merge (Waiting), spec approve, design gate approve, Send it back to Ship, Promote it. Walls filed: P-114 (live), P-115 (live), P-118 (live), P-122, P-123 (A2 now), P-124. Founder: announce (outward), Cohere payment method, Deno plan.
+
+## A1 13:22 IST 09-04 (restart)
+Ship live (P-86 DONE). Published: P-96 P-97 P-103 P-114 P-115 P-117 P-118 P-119 P-120 P-123 P-125. Owed live reads: P-119 (Waiting/Team item), P-125 (map 1512), P-121 (Ship July line). P-121 on main, A3 numbers clean, A1 gate interrupted by restart: re-run tsc+suite (+build when disk allows) then publish. Disk: ENOSPC 13:10, 561 MB free; founder's files fill the volume. Lanes: A2 P-118b→P-116→P-112→P-113; A3 P-122→P-124→P-126→P-104→P-105→P-109. Founder: announce, Cohere card, Deno plan, disk. Probe tracks deferred to 09-06 07:02Z; tablet to 09-05 03:18Z; P-42 read after 17:30 IST.

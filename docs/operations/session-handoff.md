@@ -805,3 +805,22 @@ The honest Ship is live: PR #5 merged 06:22:41 UTC, preview at the merge commit 
 06:58:42 UTC; production `https://cad-60000000-ae547426aa32.cadencehostingtest.deno.net` answers
 200. Every press and every wall is under P-86 in A-QUEUE.md. Open for the founder: the
 announcement, the Cohere payment method, the Deno plan. Lanes are three or more packets deep each.
+
+### A1, 13:22 IST 2026-09-04 (session restart)
+
+The founder restarts A1 here. State to resume from, all in A-QUEUE.md:
+- The honest Ship is live (P-86 DONE): PR #5 merged 06:22 UTC, preview 06:44, promoted 06:58;
+  production `https://cad-60000000-ae547426aa32.cadencehostingtest.deno.net`.
+- Published today: P-96, P-97, P-103, P-114, P-115, P-117, P-118, P-119, P-120, P-123, P-125.
+  Live reads still owed: P-119 (embeddings item on Waiting and Team), P-125 (map at 1512 px),
+  P-121 (Ship page's July release line). Deployments a73bea52 and e2097438 were pending at 13:16.
+- P-121 (03b5c01d6) is on main with A3's four numbers clean in its queue report; A1's own
+  tsc + suite were running at restart (no local build: the machine had 561 MB free after an
+  ENOSPC at 13:10 IST; the volume is 96% full with the founder's own files, see the 13:20
+  message). Publish P-121 after re-running the gate, or from A3's numbers with the deviation noted.
+- Lanes: A2 on P-118b, then P-116, P-112, P-113. A3 on P-122, then P-124, P-126, P-104, P-105,
+  P-109. Rule 22 (three READY packets ahead per lane) holds; refill on every push.
+- Founder actions open: the release announcement (outward), the Cohere payment method, the
+  Deno Deploy plan (P-118b gives a reclaim press), disk space on this Mac.
+- Hand-set state to remember: the five probe tracks are deferred until 2026-09-06 07:02 UTC; the
+  tablet track 6817e386 until 2026-09-05 03:18 UTC; P-42's grader read is due after 17:30 IST.
