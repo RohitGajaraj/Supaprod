@@ -689,11 +689,19 @@ function ApprovalsSurface() {
   }, [visibleItems, focusedId, decide, snooze, ask.isOpen]);
 
   const activity = liveActivity.data;
+  /*
+   * P-83: "Refresh to see it" is gone. The queue itself now refetches on the
+   * same live channel that told `liveActivity` something was waiting
+   * (use-approval-push.ts's own header explains the four tables that closed
+   * this exact gap), so the row this line used to ask a person to fetch
+   * lands here on its own within a tick -- an imperative describing a manual
+   * step the product no longer requires them to take.
+   */
   const quietLine =
     activity?.state === "working"
       ? "The crew is working. The next call comes to you here."
       : activity?.state === "waiting"
-        ? "One just came in. Refresh to see it."
+        ? "One just came in."
         : null;
 
   const n = allItems.length;
