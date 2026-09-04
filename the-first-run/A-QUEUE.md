@@ -149,7 +149,11 @@ READY → CLAIMED (lane, hh:mm IST) → DONE-PENDING-VERIFY (lane) → DONE (A1)
     number the suite cannot tell from contention is not a number. A lane that cannot get a clean
     run says so and pushes with its numbers labelled; A1's gate on the landed tip, on a machine
     with nothing else running, is the one that closes the packet, as rule 23 already says. Nobody
-    calls a loaded run flaky and pushes on it (A2 and A1, 20:19 IST 09-04).
+    calls a loaded run flaky and pushes on it (A2 and A1, 20:19 IST 09-04). **Corrected by A2 at
+    20:23:** two of the eight suites were its own orphans, 13 and 15 minutes old, still running after
+    the wrapper it polled had said done; killing them took the load from 327 to 63 in four minutes.
+    So before starting a gate, `pgrep -fl "bun test"` and finish or kill what is there; a wrapper
+    that says done is not the suite.
 
 ### The bar a packet is verified against, in this order
 
