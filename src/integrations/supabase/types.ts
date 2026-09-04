@@ -7825,6 +7825,7 @@ export type Database = {
           is_sample: boolean
           mission_id: string | null
           pr_number: number | null
+          preview_reclaimed_at: string | null
           pr_url: string | null
           prd_id: string | null
           product_id: string | null
@@ -7849,6 +7850,7 @@ export type Database = {
           is_sample?: boolean
           mission_id?: string | null
           pr_number?: number | null
+          preview_reclaimed_at?: string | null
           pr_url?: string | null
           prd_id?: string | null
           product_id?: string | null
@@ -7873,6 +7875,7 @@ export type Database = {
           is_sample?: boolean
           mission_id?: string | null
           pr_number?: number | null
+          preview_reclaimed_at?: string | null
           pr_url?: string | null
           prd_id?: string | null
           product_id?: string | null

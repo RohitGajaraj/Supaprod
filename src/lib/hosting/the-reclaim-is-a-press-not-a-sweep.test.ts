@@ -93,11 +93,16 @@ describe("it will not touch an app this product did not create", () => {
   });
 
   it("and the surface says what it cannot see", () => {
-    /* The CLAIM, not the phrasing. The first draft pinned the exact sentence
-       and broke when the sub gained "each one holds a slot" -- a guard failing
-       on a copy edit that improved the thing it guards. */
-    expect(UI).toContain("This lists what Supaprod created");
-    expect(UI).toContain("may hold others");
+    /*
+     * THE CLAIM, AND NOW IT HAS ONE WRITER (P-118c). The sentence moved into
+     * `houseLine`, because the surface was saying it too and two sentences
+     * agreeing a line apart is the defect this repo keeps paying for. So the
+     * assertion moved with it rather than being deleted.
+     */
+    const house = readFileSync("src/lib/hosting/ship-keeps-its-own-house.ts", "utf8");
+    expect(house).toContain("created by Supaprod");
+    expect(house).toContain("may hold others");
+    expect(UI).not.toContain("may hold others");
   });
 });
 
@@ -109,5 +114,42 @@ describe("every row says what is holding it", () => {
 
   it("a button appears only where the verdict allows one", () => {
     expect(UI).toContain("a.verdict.reclaim ? (");
+  });
+});
+
+describe("the act goes on the record (P-118c)", () => {
+  it("a successful reclaim is written down", () => {
+    /*
+     * The press worked and the row kept its button. Not a refresh bug: the
+     * verdict is derived from the changeset, and deleting an app changes
+     * nothing about one. Nothing anywhere said the slot had been released.
+     */
+    expect(FNS).toContain("preview_reclaimed_at: new Date().toISOString()");
+  });
+
+  it("only after the host confirms it, never before", () => {
+    const write = FNS.indexOf("preview_reclaimed_at: new Date().toISOString()");
+    const guard = FNS.indexOf("if (!done.ok) return done;");
+    expect(guard).toBeGreaterThan(-1);
+    expect(guard).toBeLessThan(write);
+  });
+
+  it("and a failure to record it is reported, not swallowed", () => {
+    /*
+     * An app that is gone with no record of it going is the state this exists
+     * to prevent, so a person needs to know when that is where they are.
+     */
+    expect(FNS).toContain("It could not be recorded here");
+  });
+
+  it("the list reads it back, so the button goes", () => {
+    expect(FNS).toContain("reclaimedAt: c.preview_reclaimed_at");
+  });
+
+  it("the count says whose it is, from the one writer", () => {
+    // The surface said it too; two sentences agreeing a line apart is the
+    // defect this repo keeps paying for.
+    expect(FNS).toContain("houseLine(apps, now, capacitySaid)");
+    expect(FNS).toContain("no app slots left");
   });
 });

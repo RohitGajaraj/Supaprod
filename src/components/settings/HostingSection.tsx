@@ -85,7 +85,11 @@ export function HostingSection({ workspaceId }: { workspaceId?: string | null })
       title="Hosting"
       sub={
         house.isSuccess && house.data.known
-          ? `${house.data.line} Each one holds a slot in your Deno account. This lists what Supaprod created; the account may hold others.`
+          ? /* `houseLine` says whose count this is and where the account's own
+               lives (P-118c). It said it here too, and two sentences agreeing a
+               line apart is the defect this repo keeps paying for -- a reader
+               cannot tell which one is the surface's own claim. One writer. */
+            `${house.data.line} Each preview holds a slot.`
           : undefined
       }
     >

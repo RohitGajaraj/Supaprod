@@ -45,6 +45,18 @@ export type HostedApp = {
   servesProduction: boolean;
   /** When the app was created, ISO. Null when unknown. */
   createdAt: string | null;
+  /**
+   * When a person reclaimed this app, ISO, or null.
+   *
+   * ── A DESTRUCTIVE ACT WITH NOTHING ON THE RECORD (P-118c) ──────────────
+   * A1 pressed Reclaim live at 14:37 and the row kept its button, and "1 can be
+   * reclaimed" stayed until a reload. Neither is a refresh bug: the verdict is
+   * derived from the CHANGESET, and deleting the app changes nothing about the
+   * changeset. Nothing anywhere said the slot had been released, so the list
+   * could only go on offering it -- and a product whose claim is that acts are
+   * on the record had just taken an irreversible one and written nothing down.
+   */
+  reclaimedAt: string | null;
 };
 
 /** A changeset in one of these is finished with its preview. */
@@ -66,6 +78,14 @@ export function mayReclaim(app: HostedApp, now: Date): ReclaimVerdict {
   }
   if (app.servesProduction) {
     return { reclaim: false, because: "Serving this release in production." };
+  }
+  if (app.reclaimedAt) {
+    /* Said in the past tense with its date, because "cannot be reclaimed" over
+       a row somebody reclaimed reads as a refusal rather than as a receipt. */
+    return {
+      reclaim: false,
+      because: `Reclaimed on ${app.reclaimedAt.slice(0, 10)}. Its slot is already free.`,
+    };
   }
   if (!app.changesetId) {
     /* The slug is ours but resolves to nothing we hold. That is a gap in our
@@ -99,15 +119,41 @@ export function mayReclaim(app: HostedApp, now: Date): ReclaimVerdict {
 }
 
 /** The house, in one sentence a person can act on. */
-export function houseLine(apps: readonly HostedApp[], now: Date): string {
-  if (apps.length === 0) return "No hosted previews are on the record.";
+/**
+ * The house, in one sentence a person can act on.
+ *
+ * ── IT COUNTS WHAT WE MADE, AND MUST NOT LOOK LIKE THE ACCOUNT (P-118c) ──
+ * This said "11 hosted previews" while the plan said 10 of 10 used, and A1 read
+ * the 11 as the account -- reasonably, because a bare count on a page titled
+ * Hosting is read as the account's. It is not: this list is built from our own
+ * record on purpose (it must never offer to delete an app somebody else made),
+ * so its number answers a different question from the one a full account
+ * prompts.
+ *
+ * A number that looks like the one a person needs and is not is worse than no
+ * number. So the sentence says whose count it is, and where the real one lives.
+ *
+ * `capacitySaid` is the host's own last word, when we have one -- the
+ * APP_LIMIT_EXCEEDED body a failed create carried. Never derived, never
+ * estimated: we cannot see the account and do not pretend to.
+ */
+export function houseLine(
+  apps: readonly HostedApp[],
+  now: Date,
+  capacitySaid?: string | null,
+): string {
+  const cap = capacitySaid?.trim()
+    ? ` The host last said: ${capacitySaid.trim()}`
+    : " Your Deno account may hold others; its dashboard has the account's own count.";
+  if (apps.length === 0) return `No previews created by Supaprod are on the record.${cap}`;
   const reclaimable = apps.filter((a) => mayReclaim(a, now).reclaim).length;
   const held = apps.length - reclaimable;
+  const noun = apps.length === 1 ? "preview" : "previews";
   if (reclaimable === 0) {
-    return `${apps.length} hosted ${apps.length === 1 ? "preview" : "previews"}, all still in use.`;
+    return `${apps.length} ${noun} created by Supaprod, all still in use.${cap}`;
   }
   return (
-    `${apps.length} hosted ${apps.length === 1 ? "preview" : "previews"}: ` +
-    `${reclaimable} can be reclaimed, ${held} still in use.`
+    `${apps.length} ${noun} created by Supaprod: ` +
+    `${reclaimable} can be reclaimed, ${held} still in use.${cap}`
   );
 }

@@ -24,6 +24,7 @@ const app = (over: Partial<HostedApp> = {}): HostedApp => ({
   changesetStatus: "merged",
   servesProduction: false,
   createdAt: daysAgo(45),
+  reclaimedAt: null,
   ...over,
 });
 
@@ -63,6 +64,19 @@ describe("what is refused, and every refusal says what holds the slot", () => {
     });
   }
 
+  it("an app somebody already reclaimed is not offered again", () => {
+    /*
+     * A1 pressed Reclaim live and the row kept its button, because the verdict
+     * comes from the changeset and deleting an app changes nothing about one.
+     * Said in the past tense with its date: "cannot be reclaimed" over a row
+     * somebody reclaimed reads as a refusal rather than as a receipt.
+     */
+    const v = mayReclaim(app({ reclaimedAt: daysAgo(1) }), NOW);
+    expect(v.reclaim).toBe(false);
+    expect(v.because).toContain("Reclaimed on");
+    expect(v.because).toContain("slot is already free");
+  });
+
   it("production beats every other consideration", () => {
     /*
      * The one that must never be reachable by accident: an ancient, merged,
@@ -87,12 +101,33 @@ describe("what is refused, and every refusal says what holds the slot", () => {
 
 describe("the sentence a person reads about their own account", () => {
   it("says nothing is there when nothing is", () => {
-    expect(houseLine([], NOW)).toContain("No hosted previews");
+    expect(houseLine([], NOW)).toContain("No previews created by Supaprod");
+  });
+
+  it("says WHOSE count this is, and where the account's own lives", () => {
+    /*
+     * P-118c. It said "11 hosted previews" while the plan said 10 of 10 used,
+     * and A1 read the 11 as the account -- reasonably, on a page called
+     * Hosting. This list is built from our own record on purpose, so its number
+     * answers a different question, and a number that looks like the one a
+     * person needs and is not is worse than no number.
+     */
+    const said = houseLine([app()], NOW);
+    expect(said).toContain("created by Supaprod");
+    expect(said).toContain("may hold others");
+  });
+
+  it("prefers the host's own words about capacity when the record has them", () => {
+    // Never derived, never estimated: we cannot see the account.
+    const said = houseLine([app()], NOW, "The hosting account has no app slots left (10 of 10).");
+    expect(said).toContain("The host last said:");
+    expect(said).toContain("10 of 10");
+    expect(said).not.toContain("may hold others");
   });
 
   it("counts what can be reclaimed against what cannot", () => {
     const said = houseLine([app(), app(), app({ servesProduction: true })], NOW);
-    expect(said).toContain("3 hosted previews");
+    expect(said).toContain("3 previews created by Supaprod");
     expect(said).toContain("2 can be reclaimed");
     expect(said).toContain("1 still in use");
   });

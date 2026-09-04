@@ -67,7 +67,7 @@ export const listHostedApps = createServerFn({ method: "GET" })
     try {
       const { data: csRows, error: csErr } = await supabase
         .from("studio_changesets")
-        .select("id,status,title,created_at")
+        .select("id,status,title,created_at,preview_reclaimed_at")
         .eq("workspace_id", workspaceId)
         .order("created_at", { ascending: false })
         .limit(200);
@@ -77,9 +77,34 @@ export const listHostedApps = createServerFn({ method: "GET" })
         status: string | null;
         title: string | null;
         created_at: string | null;
+        preview_reclaimed_at: string | null;
       }>;
       if (changesets.length === 0) {
         return { apps: [], line: houseLine([], new Date()), known: true };
+      }
+
+      /*
+       * THE HOST'S OWN LAST WORD ABOUT CAPACITY (P-118c), when there is one.
+       * `a-bad-request-is-not-an-existing-app` puts the APP_LIMIT_EXCEEDED body
+       * on the failed deploy, so the account's real limit is already in the
+       * record -- said by the host rather than counted by us. We cannot see the
+       * account and this is the closest honest thing to the number a person
+       * actually needs.
+       */
+      let capacitySaid: string | null = null;
+      const { data: refusals } = await supabase
+        .from("deployments")
+        .select("failure_reason,created_at")
+        .eq("workspace_id", workspaceId)
+        .not("failure_reason", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      for (const d of (refusals ?? []) as Array<{ failure_reason: string | null }>) {
+        const said = d.failure_reason ?? "";
+        if (said.toLowerCase().includes("no app slots left")) {
+          capacitySaid = said.slice(0, 300);
+          break;
+        }
       }
 
       /* Which of them are serving production. One read, not one per row. */
@@ -108,11 +133,12 @@ export const listHostedApps = createServerFn({ method: "GET" })
           changesetStatus: c.status,
           servesProduction: live.has(c.id),
           createdAt: c.created_at,
+          reclaimedAt: c.preview_reclaimed_at,
         };
         return { ...app, verdict: mayReclaim(app, now), title: c.title ?? null };
       });
 
-      return { apps, line: houseLine(apps, now), known: true };
+      return { apps, line: houseLine(apps, now, capacitySaid), known: true };
     } catch {
       return empty;
     }
@@ -136,12 +162,17 @@ export const reclaimOneApp = createServerFn({ method: "POST" })
 
     const { data: csRow, error: csErr } = await supabase
       .from("studio_changesets")
-      .select("id,status,created_at")
+      .select("id,status,created_at,preview_reclaimed_at")
       .eq("id", data.changesetId)
       .eq("workspace_id", data.workspaceId)
       .maybeSingle();
     if (csErr) return { ok: false, reason: "That change could not be read, so nothing was done." };
-    const cs = csRow as { id: string; status: string | null; created_at: string | null } | null;
+    const cs = csRow as {
+      id: string;
+      status: string | null;
+      created_at: string | null;
+      preview_reclaimed_at: string | null;
+    } | null;
     if (!cs) {
       /* Scoped by workspace above, so this also covers a slug from another
          workspace: it is not found HERE, which is the honest answer. */
@@ -168,9 +199,39 @@ export const reclaimOneApp = createServerFn({ method: "POST" })
       changesetStatus: cs.status,
       servesProduction: (prod ?? []).length > 0,
       createdAt: cs.created_at,
+      reclaimedAt: cs.preview_reclaimed_at,
     };
     const verdict = mayReclaim(app, new Date());
     if (!verdict.reclaim) return { ok: false, reason: verdict.because };
 
-    return await reclaimHostedApp(app.slug);
+    const done = await reclaimHostedApp(app.slug);
+
+    /*
+     * ── THE ACT GOES ON THE RECORD (P-118c) ─────────────────────────────
+     *
+     * A1 pressed Reclaim live and the row kept its button, because the verdict
+     * is derived from the changeset and deleting an app changes nothing about
+     * one. Nothing said the slot had been released -- so the list could only go
+     * on offering it, and a product whose claim is that acts are on the record
+     * had taken an irreversible one and written nothing down.
+     *
+     * Written only on success, and its failure is REPORTED rather than
+     * swallowed: an app that is gone with no record of it going is the state
+     * this exists to prevent, so a person needs to know if that is where they
+     * are. The app is not deleted twice by saying so -- `reclaimHostedApp`
+     * treats an absent app as done.
+     */
+    if (!done.ok) return done;
+    const { error: markErr } = await supabase
+      .from("studio_changesets")
+      .update({ preview_reclaimed_at: new Date().toISOString() })
+      .eq("id", cs.id)
+      .eq("workspace_id", data.workspaceId);
+    if (markErr) {
+      return {
+        ok: true,
+        reason: `${done.reason} It could not be recorded here, so this row may still offer it: ${markErr.message}`,
+      };
+    }
+    return done;
   });
