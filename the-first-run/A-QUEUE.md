@@ -9090,7 +9090,7 @@ drift.
 all 12 checks ok.
 
 
-### P-105 · A transcript row leads with one sentence, and the rest folds · Lane: **A3** (after P-104) · Status: CLAIMED (A3) 18:24 IST 09-04 · Moves: 2
+### P-105 · A transcript row leads with one sentence, and the rest folds · Lane: **A3** (after P-104) · Status: PUBLISHED, LIVE READ PENDING (d7872c0a1; A1 gate on tip 945214c0c: build 0, tsc 0, 14,640 pass / 0 fail; published 18:50 IST; A1 reads the shipped track's transcript rows once served) · Moves: 2
 
 **Why.** On the served tablet track the transcript rows carry the seats' full paragraphs (the
 Design critic's 400 words, the Build seat's 300) in the row itself; "a dump of text" was the
