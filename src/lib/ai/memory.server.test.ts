@@ -1,6 +1,41 @@
-import { describe, it, expect, beforeEach } from "bun:test";
+import { describe, it, expect, beforeEach, mock } from "bun:test";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import {
+import type { MemoryRef, RecalledMemory } from "./memory.server";
+
+/*
+ * P-132 (A-QUEUE.md): `recallMemoryRefs` and `rememberOutcome` both call
+ * `embedOne`, which reaches a real embedding provider over the network
+ * (`embed.server.ts`'s own `fetch`). That is a genuine, unmocked network
+ * call inside what reads as a unit test -- fine in isolation, where it has
+ * the field to itself, and a 5s-timeout flake under the full suite, where
+ * dozens of other files' own real network calls contend for the same
+ * window. `embedOne` is not injectable into `recallMemoryRefs`/
+ * `rememberOutcome` (no parameter carries it), so the fix is a
+ * process-wide `mock.module` of `@/lib/rag/embed.server` -- checked
+ * against `a-module-mock-is-process-wide.test.ts`'s own frozen set first:
+ * nothing else in this repo mocks this module today, so this is a single
+ * new entry with no collision, not a second file racing an existing one.
+ */
+const embedActual = await import("@/lib/rag/embed.server");
+/** A fixed, deterministic vector -- its VALUES are never asserted on;
+ *  only that recall/write proceed as if a real embed had answered. */
+const FAKE_VECTOR = new Array(8).fill(0.1);
+/** Flipped by the one test that needs the provider to be DOWN rather than
+ *  mocking `globalThis.fetch`, which this mock no longer routes through.
+ *  Always reset in that test's own `finally`, the same discipline the
+ *  fetch-stub it replaces already held to. */
+let embedShouldFail = false;
+mock.module("@/lib/rag/embed.server", () => ({
+  ...embedActual,
+  embedOne: async () => {
+    if (embedShouldFail) throw new Error("embeddings 503: upstream unavailable");
+    return FAKE_VECTOR;
+  },
+  embedTexts: async (inputs: string[]) => inputs.map(() => FAKE_VECTOR),
+  embedThroughChokepoint: async (inputs: string[]) => inputs.map(() => FAKE_VECTOR),
+}));
+
+const {
   recallMemoryRefs,
   touchMemory,
   logMemoryRecall,
@@ -8,9 +43,7 @@ import {
   supersededContent,
   selectSupersedable,
   SUPERSEDED_MARK,
-  type MemoryRef,
-  type RecalledMemory,
-} from "./memory.server";
+} = await import("./memory.server");
 
 type AnyRecord = Record<string, unknown>;
 type PriorRow = { id: string; content: string | null; metadata: AnyRecord | null };
@@ -696,14 +729,12 @@ describe("rememberOutcome (persist outcome memory)", () => {
     // match_agent_memory hard filters embedding IS NOT NULL and an unrecallable
     // row is worse than none, and the reason must reach the caller rather than
     // dying in a console line inside a Worker.
-    const priorFetch = globalThis.fetch;
-    globalThis.fetch = (async () =>
-      new Response("upstream unavailable", { status: 503 })) as unknown as typeof fetch;
+    embedShouldFail = true;
     let result;
     try {
       result = await rememberOutcome(client, outcomeArgs());
     } finally {
-      globalThis.fetch = priorFetch;
+      embedShouldFail = false;
     }
 
     expect(result.id).toBeNull();
