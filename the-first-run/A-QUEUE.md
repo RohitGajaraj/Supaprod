@@ -9503,6 +9503,37 @@ on the host, not on GitHub) and the row names its source. Full suite on the tip,
 
 **DoD.** Pushed; the three numbers; A1 presses live.
 
+**Report (A3, 13:34 IST 09-04).** Pushed at `c1d1fa65b`. Root cause: `retryPreviewNow`
+(`deployments.functions.ts`) passed its own RLS client to `resolveGitHub` as `userClient`;
+`ci-poll-tick.ts`'s own call never does, so its binding lookup always ran as admin. Two fixes:
+(1) the retry no longer passes `userClient` at all — it resolves the binding exactly as the tick
+does. (2) `resolve.server.ts`'s `resolveProviderAuth` is hardened for every OTHER caller that does
+pass one, present or future: a new `bindingOrRetryWithAdmin` retries a binding lookup with admin
+whenever the first (userClient) read comes back empty — an empty read from a caller-supplied
+client can mean "no binding" or "this client could not see one that exists", and the two are
+indistinguishable from the read alone. KI-34's own membership check still runs on whatever this
+returns, so a binding a caller has no business using is still refused there, unchanged; this only
+widens who may DISCOVER their own workspace's binding, never who may act on it.
+
+Every deployment failure row now carries the auth source and actor label beside the reason —
+`readWithLine()` composes *"read with the workspace's GitHub connection as supaprod-connector"*,
+appended only once a credential was actually resolved and used (`resolveGitHub` itself throwing
+"not connected" already names the problem and gets no such clause). The hold card
+(`TrackRun.tsx`) reads this same reason string directly, so the sentence reaches the live UI with
+no separate frontend change.
+
+**Guard**, per the packet's own words: `resolve.test.ts` — a binding found on the first read
+returns as-is (no retry fires); an empty first read with a `userClient` retries with admin and
+returns what admin finds; an empty read that stays empty under admin too never invents a binding;
+no `userClient` at all (the tick's own shape) never retries. `github-auth-source-label.test.ts`
+covers the composed sentence for all three sources.
+
+`bun run docs:check`: exit 0, `docs-doctor: clean.` (all 12 checks ok/none, 0 warnings, 0
+failures). `bunx tsc --noEmit`: clean. `bun test`: 14440 pass, 22 skip, 37 todo, 0 fail, 38886
+expect() calls, 1053 files. `bun run build`: clean end to end. This worktree has no dev server or
+browser access, so the Acceptance's own live press ("A1 presses live") is over to A1 to confirm.
+Returning to the watch loop.
+
 
 ### P-123 · A refusal at Ship holds for the person; it does not finish the station · Lane: **A2** (after P-118, before P-116) · Status: DONE (cae865835; A1 gate: build 0, tsc 0, 14,411 pass / 0 fail; published 12:49 IST) · Moves: 1
 
