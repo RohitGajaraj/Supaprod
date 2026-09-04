@@ -10071,6 +10071,33 @@ suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
+**Report (A3, 17:12 IST 09-04).** Pushed at `8f8d259f7`. `startFrom` now composes the draft
+deterministically via `announcementDraftBody` (`src/routes/_authenticated.ship.tsx`), sourced
+entirely from the release row: title, the note body as "What changed", and a closing line naming
+when it shipped, the PR, and the live address — a part with nothing behind it (no PR, no address)
+drops rather than printing a bare label. "What it means for your customers" is left as an explicit
+bracketed prompt for the person to write.
+
+Removed the prior path: `startFrom` called `generateLaunchKit`, a real model pass over the
+changeset, to draft "what it means" before a human ever saw the box. That was the right fix for a
+different defect (Ship having no agent anywhere on it) and the wrong one for what publishes to a
+customer — the packet's own Why: "plain register (no filler, a verifiable mechanism first)". A
+model inventing what a change means for a customer, in a document with no review gate before it
+goes out, is filler with a byline. Removed along with the call: the `fLaunchKit` hook and its
+import, the `drafting` state, and the `<AgentPulse>` block that showed it "working" — all dead
+once the call it announced was gone.
+
+`ship-has-an-agent.test.ts` asserted the OLD shape by name (the exact `fLaunchKit` call, the
+`<AgentPulse>` element, `drafting ?`). Rewritten to guard the new contract: `startFrom` calls
+`announcementDraftBody` and reaches no model; `generateLaunchKit` is not imported by this route at
+all (its real callers — `studio.functions.ts`, `launch-plan.functions.ts`, `journeys.ts` — are
+untouched); a fixture release prefills all three parts in order; a missing PR or address drops its
+part of the closing line cleanly; an empty composer is reachable only from `Write another`.
+
+`bunx tsc --noEmit`: clean. `bun test`: 14594 pass, 22 skip, 37 todo, 0 fail, 39241 expect() calls,
+1062 files. `bun run build`: clean end to end. `bun run docs:check`: exit 0, "docs-doctor: clean."
+all 12 checks ok. Returning to the watch loop.
+
 
 ### P-134 · A track remembers the bet it started from · Lane: **A3** (after P-130, before P-131) · Status: PUBLISHED, LIVE READ PENDING (d3c87d48c; migration 20260909091600 applied, file in the tree, ledger confirmed by A1 10:23 UTC; A1 gate on tip f6674040b: build 0, tsc 0, 14,555 pass / 0 fail; published 15:55 IST; the live read is a press from a bet, which A1 makes on the probe when its deferral lifts or on a Helio bet the founder wants run) · Moves: 1, 2
 
