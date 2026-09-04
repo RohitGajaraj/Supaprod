@@ -10675,7 +10675,7 @@ all 12 checks ok.
 
 
 
-### P-142 · Define finds the existing spec before it writes a new one · Lane: **A2** (after P-138) · Status: READY · Moves: 1, 3
+### P-142 · Define finds the existing spec before it writes a new one · Lane: **A2** (after P-138) · Status: PUBLISHED, SCOPE 3 LANDED ON A RETIRED READER (912afe3f4; A1 gate 167 on the landed tip: build 0, tsc 0, 14,719 pass / 0 fail; published 19:47 IST; scopes 1 and 2 stand: both Define doors check the workspace before the model call, 13 guards on the agent door and 20 on the matcher; scope 3 is a correct rule on `listSpecs` and `listPrds`, which A2 found have no caller since R-34 retired the `/plan` board, so 29 to 15 is a fact about the database and not a change any person can see; the acceptance is restated as that fact, 29 drafts before, 15 after, 14 superseded, read from the database; closing move: delete the two dead readers with a guard that nothing composes them, keep the approvals family's clause, which is the live reader, and put the finding in the ledger, a rule landed on a function nothing calls) · Moves: 1, 3
 
 **Why.** A2's measurement on Helio, 19:10 IST 09-04: 13 of 29 draft specs are duplicates of
 another draft, in five title groups (four *Installers working panel and inverter basements lose
@@ -10735,6 +10735,82 @@ day-boundary case where the two zones disagree on which day it is). Full suite: 
 clean (0 broken live links, 12/12 ok). Not live-verified on 2fdf93b6 itself (no server-console read
 available to either of us, same constraint as P-140); A1's read of the served card is the
 acceptance criterion's own text, so it stays LIVE READ PENDING until she presses it post-deploy.
+
+### P-144 · A reading a person records is read by Learn · Lane: **A2** (after P-142) · Status: READY · Moves: 1, 3
+
+**Why.** P-137 put the honest sentence on the shipped track: none of the spec's two metrics has a
+source, and the person is offered *Record a reading*. That press writes `readings[]` onto the
+standing clause in `prds.contract` (`recordMetricReading`), and nothing reads it back: the only
+reader of `clause.readings` is `what-would-measure-this.ts`, which composes the sentence. The
+Learn driver has no reference to a reading at all. Meanwhile the driver's own hold line on the
+same screen says *Learn returns when the forecast comes due; nothing here is waiting on a person*
+(driver.server.ts:2440 and :3691). Both sentences are served together and they contradict: one
+says the person is the only source of a number, the other says nobody is waited on. And a person
+who does record the number waits seventeen days for a station that would not read it anyway.
+This is the shape the ledger already names twice: an index with no reader is half a feature.
+
+**Scope.**
+1. The hold line says which it is. When every standing clause has no source (the P-137 state),
+   the hold reads that the forecast comes due on the date **and** that until a source is
+   connected or a reading recorded, Learn will have nothing to grade it with. When a source is
+   connected or a reading exists, the line says so. One composer, shared with P-137's sentence,
+   so the two cannot drift apart again.
+2. A recorded reading reaches the Learn seat. The brief the seat is composed from (the
+   `learn` upstream, `driver.ts:1031` and the `learn-must-grade-the-forecast` contract) carries
+   each standing clause's readings: value, when, by whom, the note. The learning grades the
+   forecast against the number it was given and names it; the station's verify says what was
+   graded against (*graded against 1 reading*, or *graded with no reading*), not only that a
+   learning exists.
+3. A reading can bring Learn forward. The forecast's due date is the latest Learn returns, not
+   the earliest. When a reading lands on the clause the forecast's observable names and the
+   forecast carries a band, the reading settles it and Learn runs now. A prose forecast is not
+   lifted by a reading; the brief carries the reading and the date still governs. A2 states the
+   rule in the code where the wait is set, and the calibrate tick's forecast resolution is
+   reused rather than a second grader written.
+4. Guards: the hold line in its three states; the brief carrying a reading; a banded forecast
+   lifted by a reading and a prose one not; the verify naming what it graded against.
+
+**Not in scope.** Connecting a source (the second press) stays as P-137 left it. No new table:
+readings live where P-137 put them.
+
+**Acceptance.** Served on 2fdf93b6: the hold line and P-137's sentence agree, in one read. The
+brief and the lift are proven by guards and by one recorded reading on a probe track, never on
+Helio's live spec (a made-up number on the shipped release is a false record). Full suite on the
+tip, tsc 0, build 0; sha pair per rule 23.
+
+**DoD.** Pushed; the three numbers; the queue says which of scopes 2 and 3 have a live proof and
+which stand on guards only.
+
+### P-145 · A learning guides the next call · Lane: **A2** (after P-144) · Status: READY · Moves: 1, 3
+
+**Why.** The landing page's fourth verb is *guides the next call*. Learn files a `learning`; the
+Outcomes page lists it and the lineage joins it to the decision (`outcome.functions.ts:848`). What
+the loop does not yet show is the grade arriving where the next call is made: Discover composes
+its brief from evidence, and A1 could not find a Discover input that has ever carried a learning.
+The forecast had the same defect for a month (`learn-must-grade-the-forecast.test.ts`: 18 of 18
+grading briefs never saw the forecast), and it was found by measuring the population, not by
+reading the code. Measure first here too.
+
+**Scope.**
+1. The measurement, in the packet's report before any code: across every Discover and Sense run
+   in the workspace, how many briefs carried a learning (the query, with its numbers). If the
+   answer is more than zero, say where, and the packet narrows to what is missing.
+2. The carry. A learning that grades a shipped decision lands as evidence on the problem it
+   shipped against, so the next Discover on that problem starts from the grade: the learning's
+   verdict, the reading it was graded against, and the decision it graded, in the brief and on
+   the opportunity card (*Graded: the address change missed its completion target*, or
+   *held*). The source is the record, never the seat's memory.
+3. A learning with no reading (P-137's state, P-144 scope 2's *graded with no reading*) does not
+   pose as evidence: it lands as the open question it is, and the card says what would settle it.
+4. Guards: the carry from a real learning fixture; the no-reading learning landing as a question;
+   the brief carrying the learning.
+
+**Acceptance.** The measurement is in the report with its query. On the served build, Helio's
+Discover surface shows the shipped problem carrying its grade, or its open question, once P-144's
+state exists; until then the guards and the measurement stand and the queue says so. Full suite on
+the tip, tsc 0, build 0; sha pair per rule 23.
+
+**DoD.** Pushed; the three numbers; the measurement in the report.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 
