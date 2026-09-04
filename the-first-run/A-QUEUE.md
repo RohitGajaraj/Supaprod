@@ -10497,7 +10497,7 @@ tip, tsc 0, build 0.
 **DoD.** Pushed; the three numbers; A1 reads.
 
 
-### P-139 · The release document names the check that passed · Lane: **A3** (after P-136) · Status: MIGRATION APPLIED AND CONFIRMED (00907e1e8 + 834b89343; ledger 20260909093100 confirmed by A1 12:43 UTC, ci_checks live with the PR head 428bb04; A1 gate on the corrected tip running, publish on green) · Moves: 2
+### P-139 · The release document names the check that passed · Lane: **A3** (after P-136) · Status: PUBLISHED, LIVE READ PENDING (00907e1e8 + 834b89343; migration 20260909093100 applied, ledger confirmed; A1 gate on tip 3f7e41c57: build 0, tsc 0, 14,622 pass / 0 fail; published 18:17 IST; A1 reads the release document's check line once served) · Moves: 2
 
 **Why.** The first release's document (Ship page, 17:01 IST 09-04) says *No test evidence.
 Nothing records which tests ran for this release, so this document does not claim any did.*
