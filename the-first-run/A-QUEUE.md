@@ -8407,7 +8407,7 @@ build 0.
 **DoD.** Pushed; the three numbers; A1 presses.
 
 
-### P-86 · The honest Ship: one real change through Build, preview, gate and promote · Lane: **A2** (now) · Status: IN PROGRESS, A2 report 10:29 IST: candidate `2fdf93b6` confirmed (not sample, bound to relay-homeowner-app, spec targets the read-only card and the Change Address link); the track is parked `going-in-circles` since 01:30 09-03 after six BuilderFileConflict refusals, because the waiting-on-another-run branch keyed on the credential-refusal detector and could never fire (fixed in e1a10235b); PR #5 is tests without the component change, CI red for the honest reason, and is NOT merged. Next: A1 un-parks the track (a person's press, under the founder's direct grant), the loop rebuilds the claim, A1 presses the merge gate on P-72's card and later the release gate; A2 does everything either side · Moves: 1, 3, 5
+### P-86 · The honest Ship: one real change through Build, preview, gate and promote · Lane: **A2** (now) · Status: DONE, THE HONEST SHIP IS LIVE (PR #5 merged 06:22:41 UTC, preview 06:44, promoted 06:58:42 UTC 09-04; production https://cad-60000000-ae547426aa32.cadencehostingtest.deno.net answers 200 and /health returns {"ok":true,"app":"relay-homeowner-app"}) · Moves: 1, 3, 5
 
 **Plan for the press, A1, 10:33 IST (from A2's read).** On `2fdf93b6`'s run screen: *Let Build try
 again* (resets attempts and station_drives, which is what lifts the park), then *Run it now*. Not
@@ -8548,6 +8548,24 @@ under the founder's authority, with those three dispositions as the reason. Next
 Waiting as *Approve the design for ...? Approve · unblocks Build for this spec*; A1 pressed Approve
 under the founder's authority (*You approved*). Both of the release seat's prerequisites are now
 met. Next: *Run it now* at Ship, then the release gate and the promote.
+
+
+**LIVE WALK, the promote, 12:26 to 12:29 IST 09-04 (06:56 to 06:59 UTC).** After the send-back
+the sweep re-ran Ship at 06:50: release-verifier and release both `completed`, the release seat
+raised the promote decision, and the sweep moved the track to Learn at 06:51:17 again before the
+person answered (P-123 stands). The Ship page carried the release gate as the person's card: *The
+preview is up at <the preview URL>. Take "Shipped an update" to production? It moves that same
+commit to the production address ... Merged 14m ago.* R-27 satisfied: the preview row is `success`
+at the merge commit `963d9df2`. **A1 pressed Promote it at 06:58:42 UTC** under the founder's
+authority. `deploy.promote` approved and executed, a `production` deployment row `success` with
+`https://cad-60000000-ae547426aa32.cadencehostingtest.deno.net`; A1 fetched it at 06:59: 200,
+*Relay homeowner checkout*, and `/health` returns `{"ok":true,"app":"relay-homeowner-app"}`. The
+Ship page lists it under *Live releases: Shipped an update · live since just now · PR 5 · Roll
+back* and *Where it is live*. **The first customer-repo change to go from a sentence to a live
+production address on this product.** Left for the founder: the announcement (outward, his yes
+only). Left for the lanes: the release is titled *Shipped an update* while its notes open with
+*Checkout: Address confirmation streamlined.* (P-124); the promote card stayed on the page after
+the press until a refetch (P-124); Ship's exit before the promote (P-123).
 
 ### P-90 · Every new door and card is reachable by keyboard and named for a screen reader · Lane: **A3** (now) · Status: CODE DONE, PUBLISHED 09:38 IST 09-04 (b05fa6cf6; A1 on the tip: build 0 clean, tsc 0, 14,291 / 0 / 0; the keyboard walk follows) · Moves: 2, 5
 
@@ -9382,6 +9400,27 @@ derive.
 Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers; A1 presses one live.
+
+
+### P-124 · A release is named by its notes, and a pressed card leaves · Lane: **A3** (after P-122) · Status: READY · Moves: 2
+
+**Why.** The first live release on the Ship page (12:29 IST 09-04) is titled *Shipped an update*
+everywhere (the promote card, Live releases, Where it is live, What shipped) while its release
+notes open with *Checkout: Address confirmation streamlined.* and the PR is titled *Remove
+redundant address re-confirmation step in Relay checkout*. A generic title on the one thing that
+shipped is the page saying less than it knows (P-96's own rule). And the promote card stayed on
+the page after the press until the next refetch, with *Roll back* appearing beside *Promote it*.
+
+**Scope.** (1) A release's title is the first line of its notes, then the PR title, then the
+spec's title, and *Shipped an update* only when all three are missing; every reader of the title
+uses the one composer. (2) The promote press settles the card in place (the settled tray's
+sentence, then the row moves to Live releases) without waiting for the poll. (3) Guard: the title
+order from fixtures; the card's state after a successful mutation.
+
+**Acceptance.** The served Ship page names the release *Checkout: Address confirmation
+streamlined.* Full suite on the tip, tsc 0, build 0.
+
+**DoD.** Pushed; the three numbers.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 

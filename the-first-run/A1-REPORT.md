@@ -608,3 +608,27 @@ stay A1's. Published this hour: P-96, P-97 (deployment e7b8bec6; served-build re
 **Next reads.** The fix loop's dispatch on PR #5 after the Ship try ends; then green checks, the
 deterministic merge gate with a card, the press; the served Ship page for P-96; P-42's grader
 after 17:30 IST; the tablet track stays deferred until 03:18 UTC 09-05.
+
+
+## Checkpoint, 12:30 IST 09-04: the honest Ship is live
+
+PR #5 on relay-homeowner-app is merged (06:22:41 UTC), previewed at the merge commit (06:44) and
+promoted to production (06:58:42 UTC): `https://cad-60000000-ae547426aa32.cadencehostingtest.deno.net`
+answers 200 and `/health` returns ok. This is the first change on this product to go from a
+person's sentence to a live production address through the loop, with the person's presses where
+the product asked for them (the merge, the spec, the design gate, the promote) and A1 making those
+calls under the founder's authority of 00:09.
+
+**What it took beyond the presses, all recorded under P-86 in the queue:** a stale CI read
+corrected (the seat had fixed its own CI), two ghost runs and a declined run ended by hand
+(P-114, the class, is live), the run screen's silent decline (P-115, live), a Deno Deploy app quota
+read as "exists" (P-118, live; five July shells removed by hand), Ship leaving for Learn on a
+release refusal (P-123, A2 now), a person's preview retry with a weaker token (P-122), and the
+record files written into the customer's repo with placeholders (P-112).
+
+**Standing for the founder:** the announcement of the release is outward and waits for him; the
+Cohere account needs a payment method (embeddings have failed since 09-01, P-119 will surface it);
+the Deno Deploy plan is at ten apps (P-118b gives him a reclaim press).
+
+**Lanes:** A2 on P-123, then P-118b, P-116, P-112, P-113. A3 on P-117, then P-119, P-120, P-121,
+P-122, P-124, P-104, P-105, P-109. Rule 22 holds.

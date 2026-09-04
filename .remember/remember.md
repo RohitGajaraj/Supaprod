@@ -186,3 +186,7 @@ Queue `the-first-run/A-QUEUE.md`; report `A1-REPORT.md`. Live at `d43fc2829`. In
 
 ## A1 11:45 IST 09-04
 Ship track 2fdf93b6 deferred to 08:13 UTC for the CI fix loop; gate 0189ad0a declined with reason via the transcript card (banner decline is silently refused, P-115); ghosts 5198e875/0f4de13b and run 2a4da7ba halted (P-114 class: 13 stranded waiting_approval runs, resume sweep starved by 7 July fixtures). Rule 22: three READY packets ahead per lane. P-96/P-97 published e7b8bec6. Next: fix-loop dispatch on PR #5 after the Ship try ends.
+
+
+## A1 12:30 IST 09-04
+THE HONEST SHIP IS LIVE: PR #5 merged 06:22:41Z, preview 06:44, promoted 06:58:42Z; prod https://cad-60000000-ae547426aa32.cadencehostingtest.deno.net 200 + /health ok. Presses: merge (Waiting), spec approve, design gate approve, Send it back to Ship, Promote it. Walls filed: P-114 (live), P-115 (live), P-118 (live), P-122, P-123 (A2 now), P-124. Founder: announce (outward), Cohere payment method, Deno plan.
