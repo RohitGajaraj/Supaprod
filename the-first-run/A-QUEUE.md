@@ -9401,6 +9401,35 @@ the tip, tsc 0, build 0.
 
 **DoD.** Pushed; migration applied; the numbers.
 
+**Report (A3, 13:07 IST 09-04).** Pushed at `46207d220`; migration `20260909090200_
+p120_lineage_workspace_backfill.sql` applied live (query_database,
+371dd588-1b70-4629-9bb5-9f003f3af373) and registered in the ledger. Root cause:
+`artifact_lineage.workspace_id`'s default, `current_user_default_workspace()`, resolves via
+`auth.uid()` — NULL for the service-role/background context both refusing callers actually run in
+(the autonomous driver, the `prd.revise` agent tool), so every write that omitted the column hit
+its own NOT NULL constraint. Fixed both: `driver.server.ts`'s dispatched-edge write now passes
+`row.workspace_id` (the track row it already holds); `registry.server.ts`'s revised-edge write now
+passes `prd.workspace_id` (already selected on that row). Guard:
+`lineage-edges-carry-their-workspace.test.ts`, a source-scan in `spec-dispatch-writes-lineage.
+test.ts`'s own style, asserting both call sites carry `workspace_id` — the damage this catches is
+four hops downstream in a table neither file's own unit tests read.
+
+**Backfill, the numbers**: `error_events` carries no parent_id/child_id for a NOT NULL violation
+(Postgres names the column, not the row), so the 53 refused writes could not be replayed literally.
+Every edge was instead RE-DERIVED live from tables that still hold the fact each edge would have
+recorded — `spine_track_members`' newest non-superseded prd/mission pair per track for dispatched
+edges, `prds.snapshot_before` (proof a revision happened) for revised edges — using the exact
+parent-selection rule the live code itself uses. Measured before backfilling: **11 missing
+dispatched edges, 10 missing revised edges, 21 total** (fewer than 53 refusal events because the
+driver retries the same unlinked mission on every Build tick until it succeeds — one gap produced
+many refusals). Both derivation queries re-run after applying: **0 remaining gaps of either kind.**
+
+`bunx tsc --noEmit`: clean. `bun test`: 14421 pass, 22 skip, 37 todo, 0 fail, 38390 expect() calls,
+1051 files. `bun run build`: clean end to end. The Acceptance's own live query (`error_events`
+staying 0 for this surface across a probe Build going forward) needs real Build traffic after
+publish to actually observe — over to A1 to confirm live, per this session's standing pattern for
+forward-looking acceptance checks. Returning to the watch loop.
+
 
 ### P-121 · A release with no recorded file list is not accused · Lane: **A3** (after P-120) · Status: READY · Moves: 2
 
