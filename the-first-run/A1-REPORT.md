@@ -748,3 +748,43 @@ by twelve to twenty-five minutes (20:08 for a read made at 19:51, 20:17 for a ch
 at 19:55). Corrected above and in the queue from the commit times. The cause is the one the memory
 already names: the times were written from the feel of the work after a long run of calls, not
 read from the hook line or the database clock.
+
+## Checkpoint, 21:24 IST 09-04
+
+**Since 19:55.** Published on A1's gate: P-142c (gate 169, the dead readers deleted), P-144 scope
+1 (gate 170, 14,737 / 0), P-140 proper and P-141 (gate 171, 14,743 / 0), P-144 scope 2 (gate 172,
+14,758 / 0). Live reads DONE: P-143 (the card reads *Learn returns on Sep 21*), P-144's client
+half (six Record a reading presses, no Connect a source). P-140's root cause was found from the
+served diagnostic: 174 traces in one `.in()` crossed the PostgREST URL cap and the error branch
+returned an empty map (F-201); batched at 25, a failed batch now reads as unread.
+
+**Two guards nobody ran, both found by A2 inside an hour.** `check:unreachable` red on main at
+179 of 680 server functions and 43 of 489 components against a frozen 140 and 26 (P-146, A3);
+`bun run lint` at 752 problems with 82 files under `src/` carrying an error, and A2's own gate
+capped at five lines so it could not see its eight (P-152, A3). A1's gate now reports both as
+ratchets, rules 25 and 26. Rule 26 came from A2's machine at load 327 with eight suites running,
+two of them its own orphans: the same commit gave 3 phantom failures in 258 s eight-deep and 0 in
+40 s alone.
+
+**The loop's grading path, measured rather than assumed.** No spec in the database has a
+recorded reading (0 of 133), so P-144 scope 3's lift is structurally inert until the first
+number is typed, and it is reported that way. `forecast_observations` holds population sizes in
+four of seven banded decisions, so the tier mechanism that already ships would fire on a session
+count: P-150 makes a band well founded on readings the record holds, with the key written at Plan
+by the writer that has both the decision and the clause in view, and the tier mechanism goes
+inert until three readings of one metric exist, knowingly.
+
+**A press on the release track found F-202.** *Let Learn try again* on a horizon-deferred track
+clears the hold and leaves the deferral, so the page promised a next turn seventeen days away and
+P-144's composed hold line could never be written; A1 repaired the row by hand and the sweep
+re-deferred it without driving. P-151 (A3, now) makes the press lift the deferral and drive once.
+
+**Four packets today had a premise the data did not support** (P-135's bundle, P-138's sample
+fold, P-142's migration and its list, P-144's one-line `also`). The ones caught before building
+were caught by measuring the thing rather than the thing that describes it; rule 24 names it for
+surfaces.
+
+**Lanes.** A2 on P-144 scope 3 (agreed, landing), then P-150, P-145, P-148, P-149. A3 on P-151,
+P-146, P-152, P-130b, P-147. Pending reads: P-140 and P-141 once the 20:42 build serves, the hold
+line once P-151 lands. Founder: P-135's landing, the second repo for P-128b, the Cohere card, the
+Deno plan, the spec-list question beside P-142.

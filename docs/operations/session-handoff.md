@@ -836,3 +836,9 @@ artifact only; the Learn panel is P-144), P-138, P-109, P-127. P-140 diag: ids 5
 build, tsc, suite, and from gate 169 check:unreachable, red until P-146). Filed P-144, P-145 (A2),
 P-146 (A3). Open for the founder: no surface lists a workspace's specs (beside P-142). Gate script:
 scratchpad/gate.sh N, one at a time.
+
+### A1, 21:24 IST 09-04 (checkpoint)
+Published: P-142c (g169), P-144 s1 (g170), P-140+P-141 (g171), P-144 s2 (g172). Live DONE: P-143,
+P-144 client half. F-201 (in-list past the URL cap), F-202 (try-again clears the hold, leaves the
+deferral; P-151). Rules 25 (gate = build, tsc, suite, unreachable, lint as ratchets) and 26 (one
+suite per machine). Filed P-146, P-147, P-148, P-149, P-150, P-151, P-152. Gate: scratchpad/gate.sh N.
