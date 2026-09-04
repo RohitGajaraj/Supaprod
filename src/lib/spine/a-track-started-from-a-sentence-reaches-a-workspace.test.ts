@@ -73,7 +73,7 @@ describe("a track started from a sentence reaches a workspace", () => {
   });
 });
 
-describe("a caller cannot name a workspace it does not belong to", () => {
+describe("a caller cannot name a workspace it does not belong to, unless they own it", () => {
   /**
    * Tenant isolation, and the reason the gate cannot live in `startTrackCore`.
    * Core is also called by the promotion sweep on a SERVICE-ROLE client, where a
@@ -87,21 +87,50 @@ describe("a caller cannot name a workspace it does not belong to", () => {
     const body = fn.slice(0, fn.indexOf("\n}\n"));
     expect(body).toContain('.from("workspace_members")');
     expect(body).toContain('.eq("workspace_id", explicit)');
-    expect(body).toContain("Forbidden: not a member of this workspace");
+  });
+
+  /**
+   * P-65. An owner without a member row (the probe workspace's own shape,
+   * live 00:35 IST 09-04) is still the owner: the membership check alone
+   * used to throw for this exact case, and `messageForPerson` drops
+   * "forbidden" as machine copy (`error-copy.ts`'s own `MACHINE` list), so
+   * the refusal reached nobody. `workspaces`' own RLS ("ws owner manages own
+   * regardless of membership", 20260909030000) already admits this; this
+   * function did not know it.
+   */
+  it("admits the workspace owner even with no member row", () => {
+    const fn = SRC.slice(SRC.indexOf("async function resolveStartWorkspace"));
+    const body = fn.slice(0, fn.indexOf("\n}\n"));
+    expect(body).toContain('.from("workspaces")');
+    expect(body).toContain('.eq("owner_id", userId)');
+  });
+
+  /**
+   * P-65's other half of the same rule: a refusal is RETURNED, not thrown.
+   * A thrown error is reserved for the session ending and the server
+   * failing; this is a fact `problems` already knows how to carry, and
+   * `Receipt` already knows how to render.
+   */
+  it("returns a refusal rather than throwing one, with a sentence a person can act on", () => {
+    const fn = SRC.slice(SRC.indexOf("async function resolveStartWorkspace"));
+    const body = fn.slice(0, fn.indexOf("\n}\n"));
+    expect(body).not.toContain("throw new Error");
+    expect(body).toContain("You are not a member of this workspace; ask its owner to add you.");
   });
 
   it("asks for no proof when no workspace was named, which is the zero-config path", () => {
     const fn = SRC.slice(SRC.indexOf("async function resolveStartWorkspace"));
     const body = fn.slice(0, fn.indexOf("\n}\n"));
-    expect(body).toContain("if (!explicit) return null;");
+    expect(body).toContain("if (!explicit) return { ok: true, workspaceId: null };");
   });
 
-  it("the server function routes its input through the gate rather than past it", () => {
+  it("the server function routes its input through the gate and stands down on a refusal", () => {
     const handler = SRC.slice(SRC.indexOf("export const startTrack = createServerFn"));
     const body = handler.slice(0, handler.indexOf("\n  });"));
     expect(body).toContain("workspaceId: z.string().uuid().optional()");
+    expect(body).toContain("resolveStartWorkspace(");
     expect(body).toContain(
-      "await resolveStartWorkspace(context.supabase, data.workspaceId ?? null)",
+      "if (!resolved.ok) return { track: null, problems: [resolved.problem] };",
     );
   });
 });

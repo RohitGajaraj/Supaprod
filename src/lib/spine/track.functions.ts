@@ -415,20 +415,54 @@ export async function startTrackCore(
  * Null means "let the column default decide", which is the zero-configuration
  * path and the one the on-ramp uses: a person types a sentence and does not pick
  * a workspace.
+ *
+ * P-65: AN OWNER WITHOUT A MEMBER ROW IS STILL THE OWNER. Live 00:35 IST
+ * 09-04: a workspace whose owner had no `workspace_members` row (created
+ * by SQL, per `arrival-2026-09.md`'s own record of how the probe workspace
+ * came to exist) hit the membership-only check below, and the refusal
+ * THROWN was "Forbidden: not a member of this workspace" -- machine copy
+ * by `error-copy.ts`'s own `MACHINE` list ("forbidden" is on it), so
+ * `messageForPerson` dropped it and Start read "Nothing was started ...
+ * nothing was filed" with no reason at all. Migration `20260909030000`
+ * (P-39) already lets an owner manage their workspace at the RLS layer
+ * without a member row ("ws owner manages own regardless of membership");
+ * this was the one place that guarantee stopped short of. `spine_tracks`'s
+ * own write policy is `auth.uid() = user_id` (checked against the live
+ * schema), not workspace membership at all, so once this gate admits the
+ * owner the actual insert needs nothing further.
+ *
+ * A DISCRIMINATED RETURN, NOT A THROW, per this packet's own rule: a
+ * refusal is a fact this surface already knows how to say
+ * (`problems`, rendered by `Receipt`); a thrown error is reserved for the
+ * session ending and the server failing, which this is neither of.
  */
 async function resolveStartWorkspace(
   supabase: import("@supabase/supabase-js").SupabaseClient,
+  userId: string,
   explicit: string | null | undefined,
-): Promise<string | null> {
-  if (!explicit) return null;
+): Promise<{ ok: true; workspaceId: string | null } | { ok: false; problem: string }> {
+  if (!explicit) return { ok: true, workspaceId: null };
   const { data: member } = await supabase
     .from("workspace_members")
     .select("workspace_id")
     .eq("workspace_id", explicit)
     .limit(1)
     .maybeSingle();
-  if (!member) throw new Error("Forbidden: not a member of this workspace");
-  return explicit;
+  if (member) return { ok: true, workspaceId: explicit };
+
+  const { data: owned } = await supabase
+    .from("workspaces")
+    .select("id")
+    .eq("id", explicit)
+    .eq("owner_id", userId)
+    .limit(1)
+    .maybeSingle();
+  if (owned) return { ok: true, workspaceId: explicit };
+
+  return {
+    ok: false,
+    problem: "You are not a member of this workspace; ask its owner to add you.",
+  };
 }
 
 export const startTrack = createServerFn({ method: "POST" })
@@ -451,14 +485,19 @@ export const startTrack = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ context, data }): Promise<{ track: Track | null; problems: string[] }> => {
-    const workspaceId = await resolveStartWorkspace(context.supabase, data.workspaceId ?? null);
+    const resolved = await resolveStartWorkspace(
+      context.supabase,
+      context.userId,
+      data.workspaceId ?? null,
+    );
+    if (!resolved.ok) return { track: null, problems: [resolved.problem] };
     return startTrackCore(context.supabase, context.userId, {
       title: data.title,
       shape: data.shape as WorkShape,
       origin: data.origin,
       productId: data.productId ?? null,
       projectId: data.projectId ?? null,
-      workspaceId,
+      workspaceId: resolved.workspaceId,
     });
   });
 
