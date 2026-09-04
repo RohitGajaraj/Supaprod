@@ -10232,7 +10232,7 @@ founder's own Cloudflare account, A1 can read its rules through the Cloudflare M
 authenticates it. **Ours regardless:** the Worker caching its own anonymous marketing HTML through
 the Workers Cache API, and the landing count replaced by a cached counter; both inside P-135.
 
-### P-136 · One currency on the run screen · Lane: **A3** (after P-133, before P-104) · Status: READY · Moves: 2
+### P-136 · One currency on the run screen · Lane: **A3** (after P-133, before P-104) · Status: CLAIMED (A3) 17:10 IST 09-04 · Moves: 2
 
 **Why.** The run screen's bottom bar reads *40m 30s $0.75* and the artifact pane *$0.73*, while
 the account is billed in credits (10,000 a month, 7,449 left at 12:32 IST) and Team › Spend and
