@@ -7297,7 +7297,7 @@ and the page said only *Nothing was started · Your sentence is still in the box
 filed*. A1 inserted the owner's member row at 19:07:12 UTC and pressed again.
 
 
-### P-65 · An owner can start work in their own workspace, and a refusal says why · Lane: **A3** (after P-61) · Status: READY · Moves: 1, 2
+### P-65 · An owner can start work in their own workspace, and a refusal says why · Lane: **A3** (after P-61) · Status: CLAIMED (A3) 01:10 UTC 09-04 · Moves: 1, 2
 
 **Why.** Live 00:35 IST 09-04: in a workspace whose owner has no `workspace_members` row, Start
 threw `Forbidden: not a member of this workspace` (`resolveStartWorkspace`,
