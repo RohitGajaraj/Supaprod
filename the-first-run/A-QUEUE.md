@@ -10600,7 +10600,7 @@ install step; (3) the generated entrypoint against a real single-page app's deep
 rather than measured. Record each with its number on the walk.
 
 
-### P-138 · The stopped list says what is worth a person's next ten minutes · Lane: **A2** (after P-137) · Status: PUBLISHED, LIVE READ PENDING (da6bbca5e; A1 gate on the landed tip and on 2702720a7: build 0, tsc 0, 14,695 pass / 0 fail; published 19:24 IST; A1 reads the grouped list and its heading on Helio once served) · Moves: 2
+### P-138 · The stopped list says what is worth a person's next ten minutes · Lane: **A2** (after P-137) · Status: DONE (da6bbca5e; A1 gate on the landed tip and on 2702720a7: build 0, tsc 0, 14,695 pass / 0 fail; published 19:24 IST; live 20:11 IST on Helio's Waiting: the heading reads "Nothing stopped is holding live work; 9 items stopped this week, and 30 older.", the list is grouped STOPPED THIS WEEK then OLDER, each row with its title, "stopped 4 days" and Open) · Moves: 2
 
 **Why.** Helio's Waiting page at 16:37 IST 09-04: below the one card that moves, a flat list of
 53 stopped items, oldest first, from *Helio prefers concise release notes, stopped 50 days* down
