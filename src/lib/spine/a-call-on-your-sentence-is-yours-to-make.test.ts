@@ -18,6 +18,8 @@ import {
   CARRIED_FOOTING,
   CARRIED_CHOICE,
   footingIsCarried,
+  choiceIsOutstanding,
+  CHOICE_OUTSTANDING_REFUSAL,
 } from "./a-call-on-your-sentence-is-yours-to-make";
 import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 
@@ -290,5 +292,83 @@ describe("the footing survives a continuation (P-71c)", () => {
 
   it("still lets a decline through on a track Sense never carried", () => {
     expect(footingIsCarried({ senseCarried: false, signalsOnTrack: 0, known: true })).toBe(false);
+  });
+});
+
+describe("the choice holds until the person answers (P-71d)", () => {
+  const REG3 = code(readFileSync("src/lib/ai/tools/registry.server.ts", "utf8"));
+  const SWEEP = code(
+    readFileSync("src/lib/spine/waiting-on-a-date-is-not-waiting-in-a-queue.ts", "utf8"),
+  );
+  const TRACKS3 = code(readFileSync("src/lib/spine/track.functions.ts", "utf8"));
+  const RUN4 = code(readFileSync("src/components/track/TrackRun.tsx", "utf8"));
+
+  /**
+   * A1'S THIRD PROBE WALK, EXACTLY (track 0c0db8e6, 2026-09-04):
+   *   00:00  Decide entered carried
+   *   00:10  the writer refused; the track held `the-call-is-yours` with the
+   *          seat's own question on the record
+   *   00:20  the sweep drove it again, Decide ran out of time, and the seat
+   *          recorded "Show installer arrival window on order page" APPROVED
+   *
+   * The refusal worked. The wait did not hold, and the machine then made the
+   * call by saying YES -- which the decline-only guard never looked at.
+   */
+  it("refuses a BUILD too, not only a decline, while the question stands", () => {
+    expect(choiceIsOutstanding({ choiceRaised: true, answered: false, known: true })).toBe(true);
+    expect(CHOICE_OUTSTANDING_REFUSAL).toContain("to build or not to build");
+    expect(REG3).toContain("choiceIsOutstanding(outstanding)");
+    expect(REG3).toContain("throw new Error(CHOICE_OUTSTANDING_REFUSAL)");
+  });
+
+  it("checks it BEFORE the rationale, because it does not depend on one", () => {
+    const both = REG3.indexOf("choiceIsOutstanding(outstanding)");
+    const decline = REG3.indexOf('if (a.call === "do-not-build" && trackId)');
+    expect(both).toBeGreaterThan(-1);
+    expect(decline).toBeGreaterThan(both);
+  });
+
+  it("keeps the track out of the sweep, which no gate row was doing for it", () => {
+    // Every other person-shaped hold keeps its place through `pending_gates`.
+    // This one has no gate row by design: it is a Choice on the run screen.
+    expect(SWEEP).toContain('"the-call-is-yours"');
+    expect(SWEEP).toContain("HOLDS_A_PERSON_CLEARS_ELSEWHERE");
+  });
+
+  it("lifts that skip when the person answers, or the track waits forever", () => {
+    // The skip is `driven_at > updated_at`, and a hold write moves only
+    // `driven_at`. Answering is the person acting, which is what that column
+    // records.
+    const fn = TRACKS3.slice(TRACKS3.indexOf("export const buildOnYourWord"));
+    const body = fn.slice(
+      0,
+      fn.indexOf("\nexport const ") === -1 ? fn.length : fn.indexOf("\nexport const "),
+    );
+    expect(body).toContain("updated_at: new Date().toISOString()");
+  });
+
+  it("draws the card from the record, not from the current hold", () => {
+    // The hold was overwritten within ten minutes and the screen fell back to
+    // the generic out-of-time card while the question was still unanswered.
+    expect(RUN4).toContain("choiceRaised.isSuccess && choiceRaised.data.outstanding");
+    expect(TRACKS3).toContain("export const choiceStillOutstanding");
+  });
+
+  it("stops asking once a decision is on the track", () => {
+    // Whoever recorded it: the person, or a station that ran after they chose
+    // to point a source. Either way the question is answered.
+    const fn = TRACKS3.slice(TRACKS3.indexOf("export const choiceStillOutstanding"));
+    expect(fn).toContain('.eq("artifact_kind", "decision")');
+    expect(fn).toContain("outstanding: ((decided.data ?? []) as unknown[]).length === 0");
+  });
+
+  it("treats an unread state as NOT outstanding", () => {
+    // Drawing the Choice over a track that has moved on would ask a question
+    // that has already been answered.
+    expect(choiceIsOutstanding({ choiceRaised: true, answered: false, known: false })).toBe(false);
+  });
+
+  it("stops refusing once they have answered", () => {
+    expect(choiceIsOutstanding({ choiceRaised: true, answered: true, known: true })).toBe(false);
   });
 });

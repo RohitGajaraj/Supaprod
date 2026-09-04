@@ -99,7 +99,7 @@ import { composerPromiseFor } from "@/components/track/one-door-for-one-state";
 import { whyShipStopped } from "@/lib/deployments.functions";
 import { checkForecastObservable } from "@/lib/spine/track.functions";
 import { TheCallIsYours } from "@/components/track/TheCallIsYours";
-import { buildOnYourWord } from "@/lib/spine/track.functions";
+import { buildOnYourWord, choiceStillOutstanding } from "@/lib/spine/track.functions";
 import { retryPreviewNow } from "@/lib/deployments.functions";
 import {
   shipStopFrom,
@@ -461,7 +461,32 @@ export function TrackRunLeft({
    * requires `waiting-on-a-person` to clear that column because the GATE is its
    * reason. This hold has no gate row: it has a question with two answers.
    */
-  const callIsYours = track?.holdReason === "the-call-is-yours";
+  /* P-71d. Whether R-39's question is still in front of this person, read from
+     the record rather than from the current hold. */
+  const fChoiceOutstanding = useServerFn(choiceStillOutstanding);
+  const choiceRaised = useQuery({
+    queryKey: ["choice-outstanding", trackId],
+    queryFn: () => fChoiceOutstanding({ data: { trackId } }),
+    staleTime: 30_000,
+  });
+
+  /*
+   * ── DURABLE, FOR THE SAME REASON THE FOOTING IS (P-71d) ────────────────
+   *
+   * This read the current hold, and A1's third probe walk overwrote it: the
+   * Choice was raised at 00:10, the sweep drove the track again at 00:20,
+   * Decide ran out of time, and the screen fell back to the generic out-of-time
+   * card with "Let Decide try again" while the question was still unanswered.
+   *
+   * P-71d stops the sweep taking the track back, so the hold now survives on
+   * its own. This ALSO reads the durable record, because a hold is a current
+   * fact and the question being unanswered is a historical one -- the same
+   * lesson P-71c already paid for once, and the reason that walk found this at
+   * all.
+   */
+  const callIsYours =
+    track?.holdReason === "the-call-is-yours" ||
+    (choiceRaised.isSuccess && choiceRaised.data.outstanding);
 
   /* Their call, recorded as theirs. `press` afterwards so the run picks the
      work straight back up, the same chain `TrackConsent`'s `onAnswered` is. */

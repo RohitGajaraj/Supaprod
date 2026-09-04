@@ -4979,6 +4979,14 @@ export const buildOnYourWord = createServerFn({ method: "POST" })
       .update({
         last_hold: null,
         last_hold_because: null,
+        /*
+         * `updated_at` MOVES, and it is what lets the sweep pick this up again
+         * (P-71d). The skip that keeps `the-call-is-yours` out of the sweep is
+         * `driven_at > updated_at`, so a hold write alone would leave the track
+         * theirs forever. Answering is the person acting, which is exactly the
+         * event that column exists to record.
+         */
+        updated_at: new Date().toISOString(),
       } as never)
       .eq("id", data.trackId);
 
@@ -5098,5 +5106,50 @@ export const mergeGateEvidence = createServerFn({ method: "GET" })
       return { files, buildHalt, designVerdict, known: true };
     } catch {
       return empty;
+    }
+  });
+
+/**
+ * Is R-39's Choice still in front of this person? (P-71d)
+ *
+ * Read from `track_drives.entry_hold` rather than from the current hold, for
+ * the reason P-71c already paid for: a hold is a current fact and a question
+ * being unanswered is a historical one. A1's third probe walk overwrote the
+ * hold within ten minutes and the run screen fell back to a generic card while
+ * the question was still on the record and still unanswered.
+ */
+export const choiceStillOutstanding = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<{ outstanding: boolean }> => {
+    const { supabase } = context;
+    try {
+      const raised = await supabase
+        .from("track_drives")
+        .select("entry_hold")
+        .eq("track_id", data.trackId)
+        .eq("entry_hold", "the-call-is-yours")
+        .limit(1);
+      if (raised.error) return { outstanding: false };
+      if (((raised.data ?? []) as unknown[]).length === 0) return { outstanding: false };
+
+      /*
+       * A decision on the track is the answer, whoever recorded it: the person
+       * through `buildOnYourWord`, or a station that ran after they chose to
+       * point a source. Either way the question is no longer in front of them.
+       */
+      const decided = await supabase
+        .from("spine_track_members" as never)
+        .select("artifact_id")
+        .eq("track_id", data.trackId)
+        .eq("artifact_kind", "decision")
+        .is("superseded_at", null)
+        .limit(1);
+      if (decided.error) return { outstanding: false };
+      return { outstanding: ((decided.data ?? []) as unknown[]).length === 0 };
+    } catch {
+      /* Unread is not outstanding: drawing the Choice over a track that has
+         moved on would ask a question that has already been answered. */
+      return { outstanding: false };
     }
   });

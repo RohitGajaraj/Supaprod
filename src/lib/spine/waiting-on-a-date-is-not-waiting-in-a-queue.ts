@@ -137,7 +137,27 @@ export function pickDrivable<T extends ScheduleCandidate>(
  * nothing has changed. Two different questions, and reusing one set for both is
  * how the wrong tracks get skipped.
  */
-export const HOLDS_A_PERSON_CLEARS_ELSEWHERE = ["needs-a-waived-station"] as const;
+export const HOLDS_A_PERSON_CLEARS_ELSEWHERE = [
+  "needs-a-waived-station",
+  /*
+   * ── R-39's CHOICE, AND WHY IT BELONGS HERE (P-71d) ─────────────────────
+   *
+   * A1's third probe walk: Decide entered carried at 00:00, the writer refused
+   * at 00:10 and the track held `the-call-is-yours` with the seat's own
+   * question on the record. The 00:20 sweep then drove it AGAIN, Decide ran out
+   * of time, and the seat recorded "Show installer arrival window on order
+   * page" approved -- a build nobody chose, with a forecast it composed.
+   *
+   * The refusal worked and the wait did not hold. Every other person-shaped
+   * hold keeps its place through `pending_gates`, and this one has NO gate row
+   * by design: it is a Choice on the run screen, not an `agent_approvals` row.
+   * So nothing kept it and the sweep took it back.
+   *
+   * `buildOnYourWord` moves `updated_at` when the person answers, which is what
+   * lifts this skip. Until then the track is theirs and the sweep leaves it.
+   */
+  "the-call-is-yours",
+] as const;
 
 /**
  * Track ids to leave out of this sweep because nothing has changed since the

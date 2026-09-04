@@ -200,3 +200,40 @@ export function footingIsCarried(e: CarriedEvidence): boolean {
   if (!e.senseCarried) return false;
   return e.signalsOnTrack === 0;
 }
+
+/**
+ * ── WHILE THE CHOICE STANDS, NO DECISION IS THE MACHINE'S (P-71d) ────────
+ *
+ * A1's third probe walk. The refusal fired at 00:10 and the track held
+ * `the-call-is-yours` with the seat's own question on the record: "I cannot
+ * decide ... Which do you choose?" The 00:20 sweep drove the track anyway,
+ * Decide ran out of time, and the seat recorded "Show installer arrival window
+ * on order page" as approved -- a BUILD, not a decline, so the refusal that
+ * only guards `do-not-build` never looked at it.
+ *
+ * That is the hole: P-71 refused the machine saying NO on the person's
+ * sentence, and the machine said YES instead. Both are the same act -- making
+ * the call that was handed to the person -- and the question on the screen was
+ * still unanswered when it happened.
+ *
+ * So while the Choice is outstanding, NOTHING records a decision on this track.
+ * The person's own answer arrives through `buildOnYourWord`, which is not this
+ * path and is unaffected.
+ */
+export const CHOICE_OUTSTANDING_REFUSAL =
+  "This track is waiting on the person: they were asked whether to build it on their word or " +
+  "point a source at it first, and they have not answered. Recording any decision now -- to " +
+  "build or not to build -- makes the call that was handed to them. Wait for their answer.";
+
+/** Is R-39's Choice still in front of the person on this track? */
+export function choiceIsOutstanding(input: {
+  /** A drive entered on `the-call-is-yours`, from the record. */
+  choiceRaised: boolean;
+  /** Has the person answered since? Their answer clears the hold. */
+  answered: boolean;
+  /** False when a read failed, so the caller declines to refuse. */
+  known: boolean;
+}): boolean {
+  if (!input.known) return false;
+  return input.choiceRaised && !input.answered;
+}

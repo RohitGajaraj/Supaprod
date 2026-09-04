@@ -146,6 +146,8 @@ import {
   CARRIED_FOOTING,
   declineIsRefused,
   footingIsCarried,
+  choiceIsOutstanding,
+  CHOICE_OUTSTANDING_REFUSAL,
   R39_REFUSAL,
   type CarriedEvidence,
 } from "@/lib/spine/a-call-on-your-sentence-is-yours-to-make";
@@ -3795,6 +3797,55 @@ const studioReview = def({
  * knowing the footing is not evidence of one, and blocking a legitimate no on a
  * lookup failure would stop the one station whose job is to stop work.
  */
+/**
+ * Is R-39's Choice still outstanding on this track?
+ *
+ * `choiceRaised` comes from `track_drives.entry_hold`, the same durable record
+ * P-71c moved the footing onto: a drive that STARTED on `the-call-is-yours`
+ * proves the question was put. `answered` is the track's current hold no longer
+ * being that -- which `buildOnYourWord` clears, and which the sweep can no
+ * longer clear on its own now that the hold keeps its place.
+ *
+ * `known: false` on any failed read, and the caller then declines to refuse.
+ */
+async function choiceOutstandingFor(
+  supabase: ToolCtx["supabase"],
+  trackId: string,
+  workspaceId: string | null | undefined,
+): Promise<{ choiceRaised: boolean; answered: boolean; known: boolean }> {
+  void workspaceId;
+  try {
+    const raised = await supabase
+      .from("track_drives")
+      .select("entry_hold")
+      .eq("track_id", trackId)
+      .eq("entry_hold", "the-call-is-yours")
+      .limit(1);
+    if (raised.error) return { choiceRaised: false, answered: false, known: false };
+
+    const track = await supabase
+      .from("spine_tracks" as never)
+      .select("last_hold")
+      .eq("id", trackId)
+      .maybeSingle();
+    if (track.error) return { choiceRaised: false, answered: false, known: false };
+    const hold = (track.data as { last_hold?: string | null } | null)?.last_hold ?? null;
+
+    return {
+      choiceRaised: ((raised.data ?? []) as unknown[]).length > 0 || hold === "the-call-is-yours",
+      /*
+       * Answered means the hold is no longer the Choice. `buildOnYourWord`
+       * clears it, and P-71d stops the sweep clearing it by accident -- which
+       * is what made this readable at all.
+       */
+      answered: hold !== "the-call-is-yours",
+      known: true,
+    };
+  } catch {
+    return { choiceRaised: false, answered: false, known: false };
+  }
+}
+
 async function carriedEvidenceFor(
   supabase: ToolCtx["supabase"],
   trackId: string,
@@ -5820,6 +5871,24 @@ const decisionRecord = def({
      * do not know it was carried, and blocking a legitimate no on a lookup
      * failure would stop the one station whose job is to stop work.
      */
+    /*
+     * ── AND WHILE THE CHOICE STANDS, NEITHER ANSWER IS OURS (P-71d) ──────
+     *
+     * The block below refuses a NO on the person's sentence. A1's third probe
+     * walk showed the machine saying YES instead: the track held
+     * `the-call-is-yours` with the seat's own question on the record, the sweep
+     * drove it again, and the seat recorded an approved decision with a
+     * forecast it composed. A build nobody chose.
+     *
+     * Both are the same act. This refuses either while the question is
+     * unanswered, and it is checked FIRST because it does not depend on the
+     * rationale at all.
+     */
+    if (trackId) {
+      const outstanding = await choiceOutstandingFor(supabase, trackId, workspaceId);
+      if (choiceIsOutstanding(outstanding)) throw new Error(CHOICE_OUTSTANDING_REFUSAL);
+    }
+
     if (a.call === "do-not-build" && trackId) {
       /*
        * ── READ FROM THE RECORD, NEVER FROM `last_hold` (P-71c) ───────────

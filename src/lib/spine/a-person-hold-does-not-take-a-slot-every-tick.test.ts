@@ -73,8 +73,38 @@ describe("nothing has changed, so there is nothing to look at", () => {
 });
 
 describe("the set is one hold, and every exclusion has a reason", () => {
-  it("is needs-a-waived-station, the case that produced the packet", () => {
-    expect([...HOLDS_A_PERSON_CLEARS_ELSEWHERE]).toEqual(["needs-a-waived-station"]);
+  it("holds only what the sweep can see cleared", () => {
+    /*
+     * TWO SINCE P-71d, and the second earns its place by the same criterion the
+     * `corrections-spent` case below states: a hold belongs here only when the
+     * sweep can TELL that a person has acted.
+     *
+     * `the-call-is-yours` is R-39's Choice. It has no `agent_approvals` row --
+     * it is a card on the run screen, not a gate -- so `pending_gates` was
+     * keeping every other person-shaped hold in place and keeping this one
+     * nowhere. A1's third probe walk: the Choice was raised at 00:10, the 00:20
+     * sweep drove the track anyway, Decide ran out of time, and the seat
+     * recorded an approved decision with a forecast it composed. A build nobody
+     * chose, on a question still in front of the person.
+     *
+     * It qualifies because `buildOnYourWord` writes `updated_at` when they
+     * answer, which is exactly the signal this filter reads. Without that write
+     * it would have stranded the track forever and belonged nowhere near here.
+     */
+    expect([...HOLDS_A_PERSON_CLEARS_ELSEWHERE]).toEqual([
+      "needs-a-waived-station",
+      "the-call-is-yours",
+    ]);
+  });
+
+  it("has a writer that moves `updated_at` for every hold in the set", () => {
+    // The filter is `driven_at > updated_at`. A hold whose exit does not touch
+    // `updated_at` would be skipped forever, which is the failure mode this
+    // whole set is one line away from at all times.
+    const tracks = readFileSync("src/lib/spine/track.functions.ts", "utf8");
+    const fn = tracks.slice(tracks.indexOf("export const buildOnYourWord"));
+    const to = fn.indexOf("\nexport const ");
+    expect(fn.slice(0, to === -1 ? fn.length : to)).toContain("updated_at:");
   });
 
   it("does not include a hold the sweep already excludes as terminal", () => {
