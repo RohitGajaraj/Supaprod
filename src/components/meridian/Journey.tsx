@@ -584,7 +584,15 @@ export function Journey({
           {i > 0 ? (
             <span
               aria-hidden="true"
-              className="flex h-[32px] min-w-[12px] flex-1 items-center pt-mrd-1 max-sm:ml-[23px] max-sm:h-3 max-sm:min-w-0 max-sm:flex-none max-sm:pt-0"
+              /* THE ROAD RUNS THROUGH THE NODES' CENTRES, ON BOTH AXES (fourth
+                 review, 2026-09-09). Down the phone: the wrapper starts at the
+                 Stop's own padding token and is the node's 32px wide, so flex
+                 centres the 1px line at 20px, the node's centre; it was a
+                 hand-typed 23px margin, 3.5px right of it, a kink at every
+                 stop. Across: 34px with the 2px lead leaves the node's own
+                 32px, so the line centres at 18px, under the Stop's 2px
+                 padding where the node's centre is; it was 32px, 1px high. */
+              className="flex h-[34px] min-w-[12px] flex-1 items-center pt-mrd-1 max-sm:ml-mrd-2 max-sm:w-[32px] max-sm:justify-center max-sm:h-3 max-sm:min-w-0 max-sm:flex-none max-sm:pt-0"
             >
               <Link from={stations[i - 1]!} to={s} size="full" />
             </span>

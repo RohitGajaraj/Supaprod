@@ -28,16 +28,23 @@
  * guard is that every entry resolves to a real `PRIMARY_NAV` item, not that
  * the two lists happen to agree today.
  *
- * ── ICONS, AND THE ONE PLACE THIS FILE ACCEPTS A SMALL RISK ───────────────
+ * ── ICONS AND THE COUNT: THE RAIL'S OWN, DOOR FOR DOOR ───────────────────
  * `PRIMARY_NAV` carries no icon (`nav-model.ts`'s own shape is pure data:
  * `to`, `label`, `zone`, `tagline`, `search?`). `AppFrame.tsx`'s own `RAIL`
- * array pairs an icon with eight of the nine doors, but reaching into that
- * array here would be a circular import (`AppFrame.tsx` mounts this file).
- * `DOOR_ICON` below is a second, small mapping of the SAME choice, checked by
- * its own guard for completeness (every `PRIMARY_NAV` door has an entry) but
- * not for matching `RAIL`'s choice exactly -- an icon glyph disagreeing
- * between two surfaces is a real but minor defect; a door silently having no
- * icon on a phone is the one this file actually guards against.
+ * array pairs an icon with each door, but reaching into that array here
+ * would be a circular import (`AppFrame.tsx` mounts this file). `DOOR_ICON`
+ * below is a second, small mapping of the SAME choice, and it has to stay
+ * the same choice: this paragraph once called a glyph disagreeing between
+ * the two surfaces "a real but minor defect" and accepted it, and the rail's
+ * Outcomes glyph then changed on the desktop (dc46271a8, the road's own
+ * Learn glyph) while the phone kept the three joined circles it had, one
+ * door with two faces across the breakpoint (fourth review, 2026-09-09).
+ * The glyphs live in `icons.tsx`, the phone draws the ones the rail draws,
+ * and `DOOR_COUNT` carries the rail's one counted row down the same way,
+ * because below 640px the Inbox count had no row at all: off the home with
+ * a run moving, nothing on a phone said a call was waiting.
+ * `the-phone-bar-and-sheet-share-the-rail-list.test.ts` holds both maps to
+ * `RAIL`'s own choice.
  *
  * ── THE `g` KEYS ARE UNCHANGED, ON PURPOSE ────────────────────────────────
  * `GotoShortcuts` is a global `window` listener mounted once at
@@ -62,10 +69,10 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { PRIMARY_NAV, type NavItemDef } from "@/lib/nav-model";
 import {
   IconArrived,
-  IconBrain,
   IconCrew,
   IconGear,
   IconMore,
+  IconOutcomes,
   IconSources,
   IconWaiting,
   IconWork,
@@ -73,17 +80,23 @@ import {
 
 type IconComponent = React.ComponentType<{ className?: string }>;
 
-/** Every door's icon, keyed by its own `to` -- see this file's own header for
- *  why this is a second, small choice rather than a shared import. */
+/** Every door's icon, keyed by its own `to`: the glyph `RAIL` gives the same
+ *  door, held to it by the rail-list test (see this file's own header). */
 const DOOR_ICON: Record<string, IconComponent> = {
   "/start": IconWork,
   "/approvals": IconWaiting,
   "/arriving": IconArrived,
-  "/outcomes": IconBrain,
+  "/outcomes": IconOutcomes,
   "/crew": IconCrew,
   "/sync": IconSources,
   "/settings": IconGear,
 };
+
+/** The rail's counted doors, keyed the way `DOOR_ICON` is, to the key in the
+ *  `counts` AppFrame already derives (`RAIL`'s own `count: "gates"`, its one
+ *  counted row). Carried down as a prop, never re-read: a badge that counts
+ *  differently from the page it opens is the defect P-56 removed. */
+const DOOR_COUNT: Record<string, string> = { "/approvals": "gates" };
 
 /** The five doors a person opens most, per this packet's own scope --
  *  matched against `PRIMARY_NAV` by `to`, not re-typed. */
@@ -114,13 +127,17 @@ const ITEM_ACTIVE_CLASS = "text-mrd-ink";
 function DoorLink({
   door,
   active,
+  count,
   onNavigate,
 }: {
   door: NavItemDef;
   active: boolean;
+  /** What is waiting behind the door, for the one door the rail counts. */
+  count?: number;
   onNavigate?: () => void;
 }) {
   const Icon = DOOR_ICON[door.to];
+  const n = count && count > 0 ? count : 0;
   return (
     <Link
       to={door.to}
@@ -128,10 +145,27 @@ function DoorLink({
       className={`${ITEM_CLASS} ${active ? ITEM_ACTIVE_CLASS : "text-mrd-mute"}`}
       aria-current={active ? "page" : undefined}
       title={door.label}
-      aria-label={door.label}
+      /* THE COUNT IS SPOKEN, in the desktop rail's own sentence: the numeral
+         is aria-hidden, so without this a screen reader would hear "Inbox"
+         beside a 3 it could not see (fourth review, 2026-09-09). */
+      aria-label={n > 0 ? `${door.label}, ${n} waiting` : door.label}
       onClick={onNavigate}
     >
-      {Icon ? <Icon className="size-5" /> : null}
+      <span className="relative">
+        {Icon ? <Icon className="size-5" /> : null}
+        {n > 0 ? (
+          /* The numeral at the glyph's shoulder, the way a phone's tab bar
+             carries a count. The same as the desktop's hot count: ember on
+             the number, because it is waiting on you, and nothing on the
+             label (status colour is restrained and never on a label). */
+          <span
+            aria-hidden
+            className="font-mrd-mono absolute -top-1 left-full ml-0.5 text-mrd-tiny leading-none tabular-nums text-mrd-you"
+          >
+            {n}
+          </span>
+        ) : null}
+      </span>
       <span className="text-mrd-tiny leading-none">{door.label}</span>
     </Link>
   );
@@ -252,6 +286,7 @@ export function RailPhoneBar({
   liveLead,
   onLiveClick,
   liveTitle,
+  counts,
 }: {
   /** The desktop rail's own `.sp-live-lead` text -- the "first fact" this
    *  packet's own acceptance line asks for, carried down rather than
@@ -263,6 +298,10 @@ export function RailPhoneBar({
    *  instead of a `button`. */
   onLiveClick?: () => void;
   liveTitle?: string;
+  /** AppFrame's own `counts` (`gates`, `runs`), the object its rail rows
+   *  read, carried down so the phone counts what the desktop counts.
+   *  Optional: the bar draws no count until it is given one. */
+  counts?: Readonly<Record<string, number>>;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [moreOpen, setMoreOpen] = React.useState(false);
@@ -272,40 +311,58 @@ export function RailPhoneBar({
   const more = PRIMARY_NAV.filter((d) => !barTo.has(d.to));
 
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
+  const countOf = (to: string): number | undefined => {
+    const key = DOOR_COUNT[to];
+    return key ? counts?.[key] : undefined;
+  };
 
+  /* ONE FIXED BOX, THE LINE OVER THE DOORS (fourth review, 2026-09-09). The
+     line used to be fixed on its own, 3.75rem up, a number typed when the
+     doors were 39px; the doors grew to 44 and the line floated 15px above
+     them with the page scrolling through the slit. As children of one box
+     the two cannot drift, the status line stays out of the "Main"
+     landmark, and the line is a finger's height when it is a door:
+     `min-h-11`, the same floor as the doors under it. The work region
+     clears the stack by `--mrd-shell-phone-bar-h`, which
+     `the-phone-bar-and-its-clearance-share-one-number.test.ts` holds to
+     this arithmetic. */
   return (
     <>
-      {liveLead
-        ? React.createElement(
-            onLiveClick ? "button" : "div",
-            {
-              type: onLiveClick ? "button" : undefined,
-              onClick: onLiveClick,
-              title: liveTitle,
-              className:
-                "fixed inset-x-0 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] z-40 truncate border-t border-mrd-line bg-mrd-sheet px-mrd-3 py-mrd-1 text-left text-mrd-tiny text-mrd-mute sm:hidden",
-            },
-            liveLead,
-          )
-        : null}
-      <nav
-        className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-mrd-line bg-mrd-sheet pb-[env(safe-area-inset-bottom)] sm:hidden"
-        aria-label="Main"
-      >
-        {bar.map((door) => (
-          <DoorLink key={door.to} door={door} active={isActive(door.to)} />
-        ))}
-        <button
-          type="button"
-          className={`${ITEM_CLASS} text-mrd-mute`}
-          onClick={() => setMoreOpen(true)}
-          aria-haspopup="dialog"
-          aria-expanded={moreOpen}
-        >
-          <IconMore className="size-5" />
-          <span className="text-mrd-tiny leading-none">More</span>
-        </button>
-      </nav>
+      <div className="fixed inset-x-0 bottom-0 z-40 flex flex-col border-t border-mrd-line bg-mrd-sheet pb-[env(safe-area-inset-bottom)] sm:hidden">
+        {liveLead
+          ? React.createElement(
+              onLiveClick ? "button" : "div",
+              {
+                type: onLiveClick ? "button" : undefined,
+                onClick: onLiveClick,
+                title: liveTitle,
+                className:
+                  "flex min-h-11 items-center border-b border-mrd-line px-mrd-3 text-left text-mrd-small text-mrd-mute",
+              },
+              React.createElement("span", { className: "truncate" }, liveLead),
+            )
+          : null}
+        <nav className="flex items-stretch" aria-label="Main">
+          {bar.map((door) => (
+            <DoorLink
+              key={door.to}
+              door={door}
+              active={isActive(door.to)}
+              count={countOf(door.to)}
+            />
+          ))}
+          <button
+            type="button"
+            className={`${ITEM_CLASS} text-mrd-mute`}
+            onClick={() => setMoreOpen(true)}
+            aria-haspopup="dialog"
+            aria-expanded={moreOpen}
+          >
+            <IconMore className="size-5" />
+            <span className="text-mrd-tiny leading-none">More</span>
+          </button>
+        </nav>
+      </div>
 
       <PhoneMoreSheet open={moreOpen} onClose={() => setMoreOpen(false)}>
         <div className="grid grid-cols-2 gap-mrd-2 py-mrd-2">
@@ -345,6 +402,6 @@ export function phoneBarCoversEveryDoor(): boolean {
   );
 }
 
-export { BAR_TO, DOOR_ICON };
+export { BAR_TO, DOOR_COUNT, DOOR_ICON };
 
 export default RailPhoneBar;

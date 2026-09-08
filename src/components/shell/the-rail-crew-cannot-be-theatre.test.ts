@@ -94,5 +94,12 @@ describe("mounted once, for everyone", () => {
      */
     expect(code(CREW)).toContain("if (pathname === SIGNED_IN_HOME) return null;");
     expect(code(CREW)).toContain('from "@/components/shell/post-auth-home"');
+    /*
+     * And the run screen (fourth review, 2026-09-09): standing on /track/X
+     * while X's seat works, the row's door was a navigate to /track/X, which
+     * the router turns into a silent reload. The seat stays in the rail (the
+     * rail is workspace-wide); only the door to the room you are in goes.
+     */
+    expect(code(CREW)).toContain("s.trackId !== hereTrackId");
   });
 });

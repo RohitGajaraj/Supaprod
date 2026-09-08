@@ -83,6 +83,24 @@ const ROW_BLEED = "-mx-2.5 w-[calc(100%+20px)] px-2.5";
  */
 export const ROW_GAP = 13;
 
+/**
+ * A FIXED COLUMN IS A DESKTOP GRID, AND ON A PHONE IT FOLDS UNDER THE SENTENCE
+ * (fourth review, 2026-09-09). The phone batch wrapped the row so its controls
+ * drop under the body, and the fixed time column landed four hours later
+ * INSIDE the body, where the wrap could not reach it: on a 390px phone the
+ * home's 168px column beside its 96px marks slot left the title 68px, one or
+ * two words a line, the whose-move sentence crushed hardest. Below the
+ * breakpoint the time takes its own line under the sentence, indented to it
+ * the way the controls are; from `sm:` up it is the right-aligned column the
+ * founder ruled on. A row with no `timeWidth` is untouched: its time is as
+ * wide as its digits and stays on the line.
+ */
+const FOLDING_TIME =
+  "sm:w-[var(--mrd-row-time)] sm:text-right max-sm:basis-full max-sm:mt-0.5 max-sm:pl-[var(--mrd-row-under)]";
+/** The box that holds a folding column wraps below the breakpoint, with no
+ *  row gap: the folded line carries its own 2px lead. */
+const FOLDING_ROW = "max-sm:flex-wrap max-sm:gap-y-0";
+
 const ROW_SHAPE =
   "flex items-center gap-[13px] min-h-11 py-[9px] rounded-mrd-ctl text-left transition-colors";
 
@@ -227,11 +245,15 @@ export function Row({
       </span>
       {time ? (
         <span
-          className="font-mrd-mono flex-none text-right text-mrd-small tabular-nums text-mrd-mute"
+          className={`font-mrd-mono flex-none text-mrd-small tabular-nums text-mrd-mute ${
+            timeWidth ? FOLDING_TIME : "text-right"
+          }`}
           /* A fixed width when the caller gives one, so the column lines up
              down a list instead of drifting with each row's digits
-             (founder, 2026-09-08: "no button positions"). */
-          style={timeWidth ? { width: timeWidth } : undefined}
+             (founder, 2026-09-08: "no button positions"). Carried as a var
+             rather than an inline width so it applies from the breakpoint
+             up only; below it the column folds (FOLDING_TIME above). */
+          style={timeWidth ? { ["--mrd-row-time" as string]: `${timeWidth}px` } : undefined}
         >
           {time}
         </span>
@@ -252,7 +274,9 @@ export function Row({
     /* ON A PHONE THE CONTROL DROPS UNDER THE SENTENCE. A trailing cluster
        beside a 250px title squeezed the title to nothing (phone review,
        2026-09-08); below the breakpoint the row wraps, the body takes the
-       full width and the actions sit under it, indented to the text. */
+       full width and the actions sit under it, indented to the text. The
+       fixed time column inside the body folds the same way (fourth review,
+       2026-09-09; FOLDING_TIME above), since the wrap here never reached it. */
     return (
       <div
         data-mrd=""
@@ -279,8 +303,8 @@ export function Row({
           aria-label={typeof lead === "string" ? (leadTitle ?? lead) : undefined}
           aria-description={typeof sub === "string" ? (subTitle ?? sub) : undefined}
           className={`flex min-w-0 flex-1 gap-[13px] rounded-mrd-ctl text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] max-sm:basis-full ${
-            align === "start" ? "items-start" : "items-center"
-          }`}
+            timeWidth ? FOLDING_ROW : ""
+          } ${align === "start" ? "items-start" : "items-center"}`}
         >
           {body}
         </button>
@@ -316,8 +340,17 @@ export function Row({
         interactive
           ? "cursor-pointer hover:bg-mrd-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]"
           : "cursor-default"
-      } ${focused ? "bg-mrd-hover shadow-[inset_0_0_0_1px_var(--mrd-line)]" : ""}`}
-      style={{ transitionDuration: "var(--mrd-d-press)" }}
+      } ${timeWidth ? FOLDING_ROW : ""} ${focused ? "bg-mrd-hover shadow-[inset_0_0_0_1px_var(--mrd-line)]" : ""}`}
+      /* `body` is shared with the branch above, so a folding column needs
+         its indent here too. */
+      style={
+        timeWidth
+          ? {
+              transitionDuration: "var(--mrd-d-press)",
+              ["--mrd-row-under" as string]: `${marksWidth + ROW_GAP}px`,
+            }
+          : { transitionDuration: "var(--mrd-d-press)" }
+      }
     >
       {body}
       {action ? <span className="flex flex-none items-center gap-mrd-2">{action}</span> : null}

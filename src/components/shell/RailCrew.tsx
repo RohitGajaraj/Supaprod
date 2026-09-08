@@ -38,6 +38,11 @@ import { listRunningNow } from "@/lib/spine/track.functions";
 export function RailCrew({ workspaceId }: { workspaceId: string | null }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  /* THE RUN THE PAGE IS ON, the derivation AppFrame's nav row uses. A seat's
+     door opens its run; on that run's own screen the road already draws the
+     seat, and a door there is a same-URL navigate the router turns into a
+     silent reload: a lit row that does nothing (fourth review, 2026-09-09). */
+  const hereTrackId = /^\/track\/([^/]+)/.exec(pathname)?.[1] ?? null;
   const fRunning = useServerFn(listRunningNow);
 
   const seedInFlight = useSeedInFlight(workspaceId);
@@ -99,14 +104,16 @@ export function RailCrew({ workspaceId }: { workspaceId: string | null }) {
           <li key={s.runId} className="min-w-0">
             {/* The same presence the home strip and the road draw, in the
                 seat's own colour and with the same quiet-past-stall rule;
-                the door opens the run it is inside. */}
+                the door opens the run it is inside, unless that run is the
+                page: then the row stays and the door goes (AgentPresence
+                draws a plain div), the rule the home already keeps above. */}
             <AgentPresence
               seat={s.seat}
               verb={seatLine(s, Date.now()).doing}
               alive={!seatLine(s, Date.now()).quiet}
               since={s.since}
               onOpen={
-                s.trackId
+                s.trackId && s.trackId !== hereTrackId
                   ? () => navigate({ to: "/track/$trackId", params: { trackId: s.trackId! } })
                   : undefined
               }

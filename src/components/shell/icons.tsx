@@ -57,18 +57,6 @@ export function IconThreads({ className }: IconProps) {
   );
 }
 
-/** Brain: three nodes and the edges between them. The record, not a head. */
-export function IconBrain({ className }: IconProps) {
-  return (
-    <svg {...base} className={className} strokeLinecap="round">
-      <circle cx="7" cy="7" r="2.4" />
-      <circle cx="17.5" cy="10" r="2.4" />
-      <circle cx="9" cy="17.5" r="2.4" />
-      <path d="M8.9 8.6 15.6 9M8.1 9.3l.5 5.9M15.9 12l-5.2 4.1" />
-    </svg>
-  );
-}
-
 /**
  * Settings. A COG, with teeth.
  *

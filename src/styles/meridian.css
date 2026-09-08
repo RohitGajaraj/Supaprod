@@ -1118,11 +1118,24 @@
   --mrd-shell-work-pad-x: clamp(20px, 2.9cqi, 44px);
   --mrd-shell-work-pad-y: clamp(20px, 2.5cqi, 36px);
   --mrd-shell-work-pad-bottom: 72px;
+  /* The phone bar's own height: a 1px border, the 44px live line, the 44px
+     doors (`RailPhoneBar.tsx`, both at the finger floor). The work region's
+     phone clearance reads this and nothing else; the bar's offset and its
+     clearance were two hand-typed rems 15px apart (fourth review,
+     2026-09-09). `the-phone-bar-and-its-clearance-share-one-number.test.ts`
+     holds the sum. */
+  --mrd-shell-phone-bar-h: 89px;
   --mrd-shell-main-max: 74ch; /* measure, not pixels: it tracks the type */
   /* The indent of anything mounted UNDER a Row (the home's answer card):
      the default marks column plus the row's gap. A Row overrides it inline
      with its own marks width; declared here so the bare var resolves. */
   --mrd-row-under: 47px;
+  /* The width of a Row's fixed time column. The Row sets it inline from its
+     caller's `timeWidth` and reads it from the phone breakpoint up only;
+     below it the column folds under the sentence, indented like the row's
+     controls (fourth review, 2026-09-09). Declared so the bare var resolves;
+     the default is no column. */
+  --mrd-row-time: auto;
   --mrd-measure-region: 34rem;
   --mrd-measure-prose: 32rem;
 

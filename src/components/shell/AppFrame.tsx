@@ -2559,6 +2559,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           liveLead={liveLead ?? undefined}
           onLiveClick={liveIsStatic ? undefined : liveTarget.go}
           liveTitle={liveIsStatic ? undefined : liveTarget.title}
+          counts={counts}
         />
       </div>
     </RunStripProvider>

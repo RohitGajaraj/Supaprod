@@ -395,6 +395,12 @@
   max-width: 34ch;
   overflow: hidden;
   white-space: nowrap;
+  /* The same finger floor as .sp-askbtn beside it (fourth review,
+   * 2026-09-09): this was about 31px tall on the phone. Height only; the
+   * workspace name keeps every pixel of width the row can give it. */
+  @media (pointer: coarse) {
+    min-height: 44px;
+  }
 }
 .sp-scope:hover {
   background: var(--mrd-hover);
@@ -570,6 +576,13 @@
   align-items: center;
   gap: 4px;
   flex: none;
+  /* Room for the account disc's 44px hit area to clear the Ask button:
+   * 12 minus the 7.5px overhang leaves 4.5px, so the two never share a pixel
+   * (fourth review, 2026-09-09; see .sp-me). Costs 8px on the phone row and
+   * the keycap gives back 29, so the workspace name nets 21px. */
+  @media (pointer: coarse) {
+    gap: 12px;
+  }
 }
 /* `.sp-iconbtn`, its hover and its `svg` sizing sat here and were DELETED
  * 2026-08-20: three rules, no `className` anywhere in the tree. Icon buttons
@@ -617,6 +630,14 @@
     background-color var(--mrd-d-press) var(--mrd-ease),
     border-color var(--mrd-d-press) var(--mrd-ease),
     transform var(--mrd-d-press) var(--mrd-ease);
+  /* A FINGER, NOT A CURSOR: 44px on a coarse pointer, the floor every
+   * Meridian control and the phone bar's doors already keep; the header is
+   * 56px, so it fits without growing the row (fourth review, 2026-09-09).
+   * This was 34px beside a 29px account disc, the two smallest targets on
+   * the phone screen. Width is untouched: the row has none to spare. */
+  @media (pointer: coarse) {
+    min-height: 44px;
+  }
 }
 .sp-askbtn:hover {
   background-image: linear-gradient(var(--mrd-hover), var(--mrd-hover));
@@ -638,6 +659,15 @@
   font-family: var(--mrd-mono);
   font-size: var(--mrd-t-data);
   color: var(--mrd-mute);
+  /* A PHONE HAS NO COMMAND KEY. The composer already hides its own key hint
+   * on a coarse pointer ("A phone keyboard has no Shift+Enter"); the header
+   * named a key the phone lacks and spent the keycap's 22px and its 7px gap
+   * on the one row where "every pixel is one the workspace name does not
+   * have to give up" (fourth review, 2026-09-09). Nested, the way .sp-rail
+   * nests its phone rule, so the ratchet's frozen count does not move. */
+  @media (pointer: coarse) {
+    display: none;
+  }
 }
 /* The brand mark renders its own <span role="img">, so the box is here. */
 .sp-logo {
@@ -680,6 +710,26 @@
   transition:
     background var(--mrd-d-press) var(--mrd-ease),
     box-shadow var(--mrd-d-press) var(--mrd-ease);
+  /* A THUMB-SIZED HIT AREA THAT MOVES NOTHING, the shape .sp-brand already
+   * wears (fourth review, 2026-09-09). The disc stays 29px to the eye: an
+   * in-flow 44px would spend 15px of the row the workspace name needs. The
+   * area is out of flow, 44px centred on the disc, so it overhangs 7.5px a
+   * side: the header's 12px phone padding clears the viewport edge, and the
+   * 12px tools gap below leaves 4.5px between it and the Ask button, so no
+   * two targets share a pixel (the wrong-target rule .sp-brand keeps).
+   * `position: relative` only here, so nothing on a desk changes. */
+  @media (pointer: coarse) {
+    position: relative;
+    &::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 44px;
+      height: 44px;
+      transform: translate(-50%, -50%);
+    }
+  }
 }
 .sp-me:hover {
   background: var(--mrd-float);
@@ -2267,14 +2317,22 @@ body:has([data-page-composer]) .sp-dock {
 body:has([data-page-composer]) .sp-work {
   padding-bottom: 0;
 }
-/* ON A PHONE the fixed bar (3.75rem plus the safe area) and the live strip
- * above it cover the last rows and the Arriving line unless the work region
- * clears them (phone review, 2026-09-08). The composer rule above zeroes the
- * dock's reservation; this one puts the bar's back, below the breakpoint. */
+/* ON A PHONE the fixed bar (the live line over the doors, plus the safe
+ * area) covers the last rows and the Arriving line unless the work region
+ * clears it (phone review, 2026-09-08). The composer rule above zeroes the
+ * dock's reservation; this one puts the bar's back, below the breakpoint.
+ * ONE NUMBER: the bar's height is `--mrd-shell-phone-bar-h` in meridian.css
+ * and this is its only reader. It was 3.75rem here and again in the bar's
+ * own offset, typed when the doors were 39px; the doors grew to 44 and the
+ * live line floated 15px above them with the page scrolling through the
+ * slit (fourth review, 2026-09-09). `RailPhoneBar.tsx` now stacks the line
+ * and the doors in one fixed box, so there is no offset left to drift. */
 @media (max-width: 640px) {
   .sp-work,
   body:has([data-page-composer]) .sp-work {
-    padding-bottom: calc(3.75rem + 2.25rem + env(safe-area-inset-bottom) + var(--mrd-s6));
+    padding-bottom: calc(
+      var(--mrd-shell-phone-bar-h) + env(safe-area-inset-bottom) + var(--mrd-s6)
+    );
   }
 }
 
@@ -2879,6 +2937,11 @@ button.sp-me {
   padding: 1px 5px;
   border-radius: var(--mrd-r-xs);
   background: color-mix(in oklab, currentColor 13%, transparent);
+  /* The same keycap as the header's, and the same rule: a phone has no
+   * command key (fourth review, 2026-09-09; see .sp-askbtn-key). */
+  @media (pointer: coarse) {
+    display: none;
+  }
 }
 /* The dock's own height, given back to the scroller so the last row of a
  * station is never trapped underneath it. */
