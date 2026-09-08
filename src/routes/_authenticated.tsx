@@ -8,7 +8,8 @@ import { WorkspaceProvider, useWorkspace } from "@/hooks/use-workspace";
 import { FlowModeProvider } from "@/hooks/use-flow-mode";
 import { needsOnboarding } from "@/lib/onboarding-gate";
 import { WORKSPACE_STORAGE_KEY } from "@/hooks/use-workspace";
-import { listRunsForStart } from "@/lib/spine/track.functions";
+import { readHome } from "@/lib/spine/track.functions";
+import { HOME_STALE_MS, homeKey, seedHome } from "@/components/start/home-read";
 import { measuredQueryFn } from "@/routes/_authenticated.start";
 import { useApprovalPush } from "@/hooks/use-approval-push";
 import { BackendHealthBanner } from "@/components/system/BackendHealthBanner";
@@ -84,9 +85,9 @@ export const Route = createFileRoute("/_authenticated")({
       throw redirect({ to: "/login" });
     }
     /*
-     * P-32 PASS 4: THE RUNS READER STARTS HERE, NOT AFTER THIS GATE OPENS.
+     * P-32 PASS 4: THE HOME'S READER STARTS HERE, NOT AFTER THIS GATE OPENS.
      * A1's pass-3 verdict named two remaining costs: this prefix (0.4-0.7s)
-     * and `listRunsForStart` itself (1.2-1.6s), paid one after the other
+     * and the runs read itself (1.2-1.6s), paid one after the other
      * because `useQuery` only fires once `StartLanding` mounts, which only
      * happens once `beforeLoad` resolves -- React Router's own lifecycle
      * forces them into series.
@@ -104,17 +105,25 @@ export const Route = createFileRoute("/_authenticated")({
      * just wastes one prefetch -- harmless, not wrong, never a stale row
      * shown: `useQuery` still reads its own key's true state after this.
      */
+    /* THE HOME'S ONE READ, not the runs read alone (2026-09-08). `readHome`
+       carries the runs and seeds their key, so prefetching the runs here as
+       well paid the page's largest read twice before the home had mounted;
+       the composite read is what the home joins on arrival (home-read.ts).
+       No stored workspace means nothing to read yet, and the home's own
+       query starts it once the id is known. */
     if (location.pathname === "/start") {
       const workspaceId = localStorage.getItem(WORKSPACE_STORAGE_KEY);
-      void context.queryClient.prefetchQuery({
-        queryKey: ["start-runs", workspaceId ?? null],
-        // Folded in from A1's P-32 pass-4 measurement (A-QUEUE.md): this
-        // path bypassed measuredQueryFn, so the one reader P-32 is about was
-        // the one reader with no mark.
-        queryFn: measuredQueryFn("listRunsForStart", () =>
-          listRunsForStart({ data: { workspaceId: workspaceId ?? null } }),
-        ),
-      });
+      if (workspaceId) {
+        void context.queryClient.prefetchQuery({
+          queryKey: homeKey(workspaceId),
+          queryFn: measuredQueryFn("readHome", async () => {
+            const r = await readHome({ data: { workspaceId } });
+            seedHome(context.queryClient, workspaceId, r);
+            return r;
+          }),
+          staleTime: HOME_STALE_MS,
+        });
+      }
     }
     // First-run gate: accounts with profiles.onboarded === false land on
     // /onboarding until they finish. Cached (one read per page load) —

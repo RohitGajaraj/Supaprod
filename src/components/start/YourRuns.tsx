@@ -47,6 +47,7 @@ import { callWithoutAGate, journeyOfRun, standingState } from "@/components/star
 import { TrackConsent } from "@/components/track/TrackConsent";
 import { HoldCard } from "@/components/track/HoldCard";
 import { listRunsForStart, pinTrack, type StartRun } from "@/lib/spine/track.functions";
+import { HOME_STALE_MS } from "@/components/start/home-read";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useTimezone } from "@/hooks/use-timezone";
 
@@ -233,6 +234,9 @@ export function YourRuns({
     queryKey: ["start-runs", activeWorkspaceId ?? null],
     queryFn: () => fRuns({ data: { workspaceId: activeWorkspaceId ?? null } }),
     refetchInterval: 10_000,
+    /* Seeded by the home's one read; fresh for one poll, so this mount
+       joins it rather than fetching the largest read on the page again. */
+    staleTime: HOME_STALE_MS,
   });
 
   const [showAbandoned, setShowAbandoned] = React.useState(false);

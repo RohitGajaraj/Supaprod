@@ -19,6 +19,7 @@ import { StarterRuns } from "@/components/start/StarterRuns";
 import { presenceColour } from "@/components/meridian/AgentPresence";
 import { listRunningNow, readHome, readStationTimings } from "@/lib/spine/track.functions";
 import { runningNowKey } from "@/lib/query-keys";
+import { HOME_STALE_MS, homeKey, seedHome } from "@/components/start/home-read";
 import { WhatWeAlreadyHold } from "@/components/spine/WhatWeAlreadyHold";
 import { journeyMap, withPresences, withTimings } from "@/components/start/journey-of-a-run";
 import { failureLine } from "@/lib/error-copy";
@@ -241,18 +242,15 @@ function StartLanding() {
   const qc = useQueryClient();
   const fHome = useServerFn(readHome);
   const home = useQuery({
-    queryKey: ["home", activeWorkspaceId ?? null],
+    queryKey: homeKey(activeWorkspaceId ?? null),
     queryFn: measuredQueryFn("readHome", async () => {
-      const ws = activeWorkspaceId ?? null;
-      const r = await fHome({ data: { workspaceId: ws as string } });
-      qc.setQueryData(["start-runs", ws], r.runs);
-      qc.setQueryData([...APPROVALS_QUEUE_PREFIX, "shell", ws], r.queue);
-      qc.setQueryData(runningNowKey(ws), r.running);
-      qc.setQueryData(["start-home-answers", ws], r.answers);
+      const ws = activeWorkspaceId as string;
+      const r = await fHome({ data: { workspaceId: ws } });
+      seedHome(qc, ws, r);
       return r;
     }),
     enabled: Boolean(activeWorkspaceId),
-    staleTime: 10_000,
+    staleTime: HOME_STALE_MS,
   });
   const seeded = !activeWorkspaceId || home.isSuccess || home.isError;
 
@@ -263,6 +261,8 @@ function StartLanding() {
       fRuns({ data: { workspaceId: activeWorkspaceId ?? null } }),
     ),
     refetchInterval: 10_000,
+    /* The seed is fresh for one poll, so mounting does not refetch it. */
+    staleTime: HOME_STALE_MS,
     enabled: seeded,
   });
   /* Only once the read has ANSWERED. */

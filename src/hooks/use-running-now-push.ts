@@ -45,7 +45,8 @@ export function useRunningNowPush(
          hero kept it working for up to ten seconds (third review, 2026-09-08). */
       void queryClient.invalidateQueries({ queryKey: runningNowKey(workspaceId) });
       for (const queryKey of trackChangeKeys(workspaceId)) {
-        void queryClient.invalidateQueries({ queryKey });
+        /* Joins an in-flight read rather than restarting it (Lane 2, 2026-09-08). */
+        void queryClient.invalidateQueries({ queryKey }, { cancelRefetch: false });
       }
     };
 

@@ -52,7 +52,11 @@ export function subscribeTrackChanges(
 ) {
   const invalidate = () => {
     for (const queryKey of trackChangeKeys(workspaceId)) {
-      void queryClient.invalidateQueries({ queryKey });
+      /* A change that lands while the read is in flight joins that read
+         rather than cancelling it: a burst of row updates restarted the
+         page's largest read on each one and it never finished (Lane 2,
+         2026-09-08). The poll is the safety net for what the flight missed. */
+      void queryClient.invalidateQueries({ queryKey }, { cancelRefetch: false });
     }
   };
   const channel = client.channel(`track-changes-${workspaceId}`).on(
