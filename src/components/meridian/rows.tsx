@@ -190,14 +190,14 @@ export function Row({
       <span className="min-w-0 flex-1">
         <span
           title={hint(lead, leadTitle)}
-          className={`block text-mrd-prose leading-[1.4] text-mrd-ink ${clamp}`}
+          className={`block text-mrd-prose leading-mrd-snug text-mrd-ink ${clamp}`}
         >
           {lead}
         </span>
         {sub ? (
           <span
             title={hint(sub, subTitle)}
-            className={`mt-0.5 block text-mrd-base leading-[1.4] text-mrd-mute ${clamp}`}
+            className={`mt-0.5 block text-mrd-base leading-mrd-snug text-mrd-mute ${clamp}`}
           >
             {sub}
           </span>

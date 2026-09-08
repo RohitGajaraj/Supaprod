@@ -42,7 +42,7 @@ describe("heroCopy", () => {
       ],
     });
     expect(c.title).toBe("1 run needs you.");
-    expect(c.line).toContain("1 run is moving on their own");
+    expect(c.line).toContain("1 run is moving on its own");
   });
 
   it("counts a run stopped on a condition a person must look at, and never calls it quiet", () => {

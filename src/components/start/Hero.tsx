@@ -71,7 +71,15 @@ export function heroCopy(input: {
     (r) => !r.needsYou && !r.working && "holdReason" in r && standingState(r as RunLike) === "held",
   ).length;
 
-  const rest = moving > 0 ? ` ${plural(moving, "run is", "runs are")} moving on their own.` : "";
+  /* THE SECOND LINE CARRIES BOTH FACTS. It used to say only what was
+     moving, and "1 run is moving on their own" (entry review, 2026-09-08). */
+  const restBits: string[] = [];
+  if (moving > 0)
+    restBits.push(
+      `${plural(moving, "run is", "runs are")} moving on ${moving === 1 ? "its" : "their"} own`,
+    );
+  if (stopped > 0) restBits.push(`${plural(stopped, "has", "have")} stopped`);
+  const rest = restBits.length > 0 ? ` ${restBits.join("; ")}.` : "";
   /*
    * THE ASKS BEYOND THE RUNS. Read live: the Inbox page listed six calls
    * (design gates, decisions) while this line said nothing was waiting,
