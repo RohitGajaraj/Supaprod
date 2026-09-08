@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import {
   parseStarterRuns,
+  readStarterRunsRefusal,
   readStoredStarterRuns,
   STARTER_RUNS_SYSTEM,
   starterRunsPrompt,
@@ -83,5 +84,31 @@ describe("a fresh product's first three runs", () => {
     expect(src.slice(from, end)).toContain("generateStarterRunsForProduct(");
     // Stored on the row, so the home's read is a row read.
     expect(src).toContain(".update({ starter_runs: { runs }, starter_runs_at:");
+  });
+});
+
+describe("a refusal is final, a timeout is not", () => {
+  it("a refusal kept on the row is read back with its reason and time", () => {
+    expect(
+      readStarterRunsRefusal({
+        runs: [],
+        refused: { reason: "The model refused.", at: "2026-09-08T09:00:00.000Z" },
+      }),
+    ).toEqual({ reason: "The model refused.", at: "2026-09-08T09:00:00.000Z" });
+    expect(readStarterRunsRefusal({ runs: [] })).toBeNull();
+    expect(readStarterRunsRefusal({ refused: { reason: " ", at: "x" } })).toBeNull();
+    expect(readStarterRunsRefusal(null)).toBeNull();
+  });
+
+  it("the read answers a refusal as final and keeps it, and a timeout as pending", () => {
+    const src = readFileSync("src/lib/onboarding.functions.ts", "utf8");
+    const from = src.indexOf("export const listStarterRuns");
+    const end = src.indexOf("\nexport ", from + 1);
+    const body = src.slice(from, end === -1 ? undefined : end);
+    expect(body).toContain(
+      "if (refused) return { pending: false, runs: [], reason: refused.reason };",
+    );
+    expect(body).toContain("starter_runs: { runs: [], refused: { reason, at } }");
+    expect(body).toContain("return { pending: true, runs: [], reason: null };");
   });
 });

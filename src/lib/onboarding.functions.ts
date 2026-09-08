@@ -8,6 +8,7 @@ import { callModel } from "@/lib/ai/runtime.server";
 import { resolveBestAgentModel } from "@/lib/ai/platform-keys.server";
 import {
   parseStarterRuns,
+  readStarterRunsRefusal,
   readStoredStarterRuns,
   STARTER_RUNS_SYSTEM,
   starterRunsPrompt,
@@ -538,12 +539,21 @@ export const listStarterRuns = createServerFn({ method: "GET" })
         .eq("id", data.productId)
         .maybeSingle();
       if (error) throw new Error(`The product could not be read: ${error.message}`);
-      const stored = readStoredStarterRuns(
-        (project as { starter_runs?: unknown } | null)?.starter_runs,
-      );
+      const storedRaw = (project as { starter_runs?: unknown } | null)?.starter_runs;
+      const stored = readStoredStarterRuns(storedRaw);
       if (stored) return { pending: false, runs: stored, reason: null };
       if (!project)
         return { pending: false, runs: [], reason: "That product is not one you can read." };
+      /*
+       * A REFUSAL IS FINAL, A TIMEOUT IS NOT (Lane 1, 2026-09-08). This
+       * answered a thrown generation as `pending: true` with a reason, so a
+       * model that said no read as "still writing" for ever. A refusal kept
+       * on the row is answered as what it is, and the model is not asked
+       * again until the row is cleared; a timeout stores nothing and the next
+       * read tries again.
+       */
+      const refused = readStarterRunsRefusal(storedRaw);
+      if (refused) return { pending: false, runs: [], reason: refused.reason };
       try {
         const generated = await Promise.race([
           generateStarterRunsForProduct(db, context.userId, data.productId),
@@ -552,11 +562,14 @@ export const listStarterRuns = createServerFn({ method: "GET" })
         if (generated) return { pending: false, runs: generated, reason: null };
         return { pending: true, runs: [], reason: null };
       } catch (e) {
-        return {
-          pending: true,
-          runs: [],
-          reason: e instanceof Error ? e.message : String(e),
-        };
+        const reason = e instanceof Error ? e.message : String(e);
+        const at = new Date().toISOString();
+        const { error: markErr } = await db
+          .from("projects")
+          .update({ starter_runs: { runs: [], refused: { reason, at } }, starter_runs_at: at })
+          .eq("id", data.productId);
+        if (markErr) console.error(`[listStarterRuns] refusal not kept: ${markErr.message}`);
+        return { pending: false, runs: [], reason };
       }
     },
   );
