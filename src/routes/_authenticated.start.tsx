@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { Receipt } from "@/components/meridian/Receipt";
 import { Row } from "@/components/meridian/rows";
-import { Action, Door } from "@/components/meridian/surface-parts";
+import { Action } from "@/components/meridian/surface-parts";
 import { Composer } from "@/components/meridian/onramp-parts";
 import type { JourneyKey } from "@/components/meridian/Journey";
 import { ExampleJobs, type ExampleJob } from "@/components/start/ExampleJobs";
@@ -58,7 +58,9 @@ import { APPROVALS_QUEUE_PREFIX } from "@/lib/query-keys";
  *   your runs        one row per run with its position on the road, one
  *                    sentence, and the one control its state needs
  *   since you looked what came in, what shipped, what was learned, only when
- *                    the number is not zero; the record's door at the foot
+ *                    the number is not zero. Outcomes is a rail row, so the
+ *                    foot carries no second door to it (two doors, one
+ *                    question).
  *
  * ── THE REFERENCE, NAMED BEFORE BUILDING ──────────────────────────────────
  * Anthropic, OpenAI and Perplexity open on one sentence and one box. Codex
@@ -427,10 +429,6 @@ function StartLanding() {
           product's central claim, evidence becomes work on its own, provable
           on the page a person actually lands on. */}
       <Arriving />
-
-      <Door onClick={() => void navigate({ to: "/outcomes", search: {} })}>
-        Outcomes: every decision, what it expected, what happened
-      </Door>
     </div>
   );
 }
