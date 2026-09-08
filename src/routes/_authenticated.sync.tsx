@@ -106,6 +106,7 @@ import { pullMapping, pushMapping } from "@/lib/sync.functions";
 import { getIngestToken, rotateIngestToken, revokeIngestToken } from "@/lib/ingest.functions";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
 import { humanWriteError } from "@/lib/roles.functions";
+import { failureLine, reasonLine } from "@/lib/error-copy";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
 
@@ -148,9 +149,17 @@ export const Route = createFileRoute("/_authenticated/sync")({
           decides once, here. `gap-mrd-7` is 40px, the step every ported surface
           in this product states for exactly this. */}
       <div className="flex flex-col gap-mrd-7">
+        {/* `failureLine` AND NOT THE RAW MESSAGE. `(error as Error).message` put
+            whatever was thrown -- an RLS refusal, a Postgres code, a truncated
+            body -- under the page title, and fell back to a decent sentence only
+            when there was nothing at all to say. `failureLine` inverts that:
+            this surface's own honest sentence always, and the server's only when
+            the server wrote one for a person. It is `failureLine` rather than
+            `reasonLine` because nothing wraps this heading -- no `ReadFailed`
+            below it will name an ended session, so this line has to. */}
         <PageHeading
           title="Sources did not open."
-          sub={(error as Error)?.message ?? "The read failed."}
+          sub={failureLine("Nothing connected has changed.", error)}
         />
         <Actions>
           <Action variant="primary" onClick={reset}>
@@ -485,7 +494,7 @@ function SyncPage() {
              failed. Nothing below it is drawn, because a Connected list read
              off half the answer would be a confident wrong picture. */
           <ReadFailedLine error={failedError} onRetry={retryAll}>
-            Your sources did not load. {(failedError as Error)?.message ?? "The read failed."}
+            {reasonLine("Your sources did not load. Nothing connected has changed.", failedError)}
           </ReadFailedLine>
         ) : loading ? (
           <Reading>Reading what is connected and what each source is pointed at.</Reading>
@@ -1160,8 +1169,8 @@ function WebhookIngest() {
       ) : q.isError ? (
         // A failed token read must not dress as "no token yet" and offer
         // Generate: that would create a second token nobody asked for.
-        <ReadFailedLine onRetry={() => void q.refetch()}>
-          The token did not load. {(q.error as Error)?.message ?? "The read failed."}
+        <ReadFailedLine onRetry={() => void q.refetch()} error={q.error}>
+          {reasonLine("The token did not load. Nothing was issued or revoked.", q.error)}
         </ReadFailedLine>
       ) : token ? (
         <Line

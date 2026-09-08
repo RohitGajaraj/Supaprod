@@ -3252,9 +3252,15 @@ export function DiscoverSurface({
               onRetry={() => void opportunities.refetch()}
               error={opportunities.error}
             >
-              {opportunities.error instanceof Error
-                ? opportunities.error.message
-                : "The open bets did not load."}
+              {/* THE SENTENCE IS ALWAYS OURS. The ternary handed the raw
+                  `error.message` to a person whenever there was one, and fell
+                  back to the written sentence only when the error carried
+                  nothing -- so the good copy was reachable only in the case
+                  where there was nothing to say. `error` is already passed
+                  above, which is what turns the retry into a sign-in door when
+                  the session has ended rather than a button that re-reads with
+                  the same dead token forever. */}
+              The open bets did not load. Nothing you ranked has changed.
             </ReadFailedLine>
           ) : stillWaiting(opportunities) ? (
             <Reading>Reading the queue.</Reading>

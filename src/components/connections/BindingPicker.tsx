@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronsUpDown, Loader2 } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -12,6 +12,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { ReadFailedLine, Reading } from "@/components/meridian/surface-parts";
 import { listBindableResources, upsertBinding } from "@/lib/connections.functions";
 import { humanWriteError } from "@/lib/roles.functions";
 
@@ -88,14 +89,17 @@ export function BindingPicker({
             token (`hairline`) that no longer exists. */}
         <button
           type="button"
-          className="rounded-mrd-chip border border-mrd-line bg-mrd-lift px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-lift-hover hover:text-mrd-ink"
+          className="rounded-mrd-chip border border-mrd-line bg-mrd-lift px-mrd-3 py-mrd-2 font-mrd text-mrd-label font-medium text-mrd-ink transition-colors duration-100 hover:bg-mrd-lift-hover hover:text-mrd-ink disabled:cursor-default disabled:opacity-45"
+          /* THE BIND IS ANNOUNCED, NOT SPUN. A spinner swapped in for the
+             disclosure chevron said "something is happening" to a sighted
+             reader and nothing at all to anyone else, and it took away the one
+             mark that tells you this control opens a list. `aria-busy` beside
+             `disabled` is the same fact Meridian's `Action` tells with `busy`:
+             the control is not unavailable, it is working. */
           disabled={mBind.isPending}
+          aria-busy={mBind.isPending || undefined}
         >
-          {mBind.isPending ? (
-            <Loader2 size={15} className="animate-spin" />
-          ) : (
-            <ChevronsUpDown size={15} />
-          )}
+          <ChevronsUpDown size={15} />
           Point it at a {kindLabel.toLowerCase()}
         </button>
       </PopoverTrigger>
@@ -107,18 +111,30 @@ export function BindingPicker({
             placeholder={`Search ${plural(kindLabel.toLowerCase())}`}
           />
           <CommandList>
+            {/* THE THREE READ STATES, IN MERIDIAN'S OWN REGISTER. A spinner and
+                the word "Loading…" said that the machine was busy; `Reading`
+                says what is being read, which is the only version of the fact a
+                person can do anything with. */}
             {q.isFetching && (
-              <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" /> Loading…
+              <div className="px-mrd-3 py-mrd-2">
+                <Reading>Reading what this can point at.</Reading>
               </div>
             )}
             {q.isError && (
-              <div className="px-3 py-2 text-xs text-[color:var(--mrd-fail)]">
-                {q.error instanceof Error ? q.error.message : "Could not list resources"}
+              <div className="px-mrd-3 py-mrd-2">
+                {/* The sentence names the read that failed AND the fact that
+                    matters most here: opening a picker changes nothing, so a
+                    person who was mid-choice has not lost the choice. The
+                    colour is `ReadFailedLine`'s own; this wrapper only pads. */}
+                <ReadFailedLine onRetry={() => void q.refetch()} error={q.error}>
+                  The list did not load. Nothing you chose has changed.
+                </ReadFailedLine>
               </div>
             )}
             {!q.isFetching && !q.isError && (
-              <CommandEmpty>No {plural(kindLabel.toLowerCase())} found.</CommandEmpty>
+              <CommandEmpty>
+                Nothing to point at yet. {plural(kindLabel)} appear here once the source has them.
+              </CommandEmpty>
             )}
             <CommandGroup>
               {items.map((it) => (
