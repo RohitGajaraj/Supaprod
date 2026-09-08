@@ -1956,6 +1956,7 @@ function ReleaseCard({ item, decisions }: { item: ArtifactView; decisions?: Arti
           url={url}
           sha={str(f.commit_sha)}
           label={env === "production" ? "Live" : "App"}
+          embeddable={typeof f.embeddable === "boolean" ? f.embeddable : null}
         />
       ) : url ? (
         <a

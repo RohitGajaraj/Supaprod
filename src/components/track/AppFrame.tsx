@@ -159,11 +159,46 @@ export function RunningApp({
   url,
   sha,
   label,
+  embeddable = null,
 }: {
   url: string | null;
   sha: string | null;
   label: string;
+  /**
+   * Whether the host lets this product frame it, from the deployment row
+   * (Lane 3, 2026-09-08: `deployments.embeddable`, null until checked). Seen
+   * live on the shipped run: the pane drew a blank white rectangle under a
+   * green Live chip because the host answered every frame with a refusal.
+   * False draws the address as a door instead; null keeps the frame, because
+   * an unchecked host is more often a host that draws.
+   */
+  embeddable?: boolean | null;
 }) {
+  if (embeddable === false) {
+    return (
+      <div className="flex min-w-0 flex-col gap-mrd-2">
+        <span className="flex flex-wrap items-center gap-mrd-3">
+          <StatusChip status="pass">{label}</StatusChip>
+          {sha ? (
+            <span className="font-mrd-mono text-mrd-data text-mrd-faint">{sha.slice(0, 7)}</span>
+          ) : null}
+        </span>
+        <a
+          href={url ?? "#"}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="mrd-focus flex min-w-0 flex-col gap-mrd-1 rounded-mrd-card border border-mrd-line bg-mrd-lift px-mrd-5 py-mrd-4 transition-colors hover:bg-mrd-lift-hover"
+        >
+          <span className="min-w-0 truncate font-mrd-mono text-mrd-data text-mrd-ink">
+            {url?.replace(/^https?:\/\//, "")}
+          </span>
+          <span className="text-mrd-small text-mrd-mute">
+            This host does not let itself be shown inside another page. Open it in its own tab.
+          </span>
+        </a>
+      </div>
+    );
+  }
   return (
     <div className="flex min-w-0 flex-col gap-mrd-2">
       <span className="flex flex-wrap items-center gap-mrd-3">
