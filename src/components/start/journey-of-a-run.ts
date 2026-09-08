@@ -150,7 +150,7 @@ export function journeyMap(runs: readonly RunLike[]): JourneyStation[] {
  */
 export function withPresences(
   stations: readonly JourneyStation[],
-  seats: ReadonlyArray<{ seat: string; station: string | null }>,
+  seats: ReadonlyArray<{ seat: string; station: string | null; alive?: boolean }>,
   colourOf: (seat: string) => string,
 ): JourneyStation[] {
   if (seats.length === 0) return [...stations];
@@ -160,7 +160,7 @@ export function withPresences(
     const seen = new Set<string>();
     const presences = here
       .filter((w) => (seen.has(w.seat) ? false : (seen.add(w.seat), true)))
-      .map((w) => ({ seat: w.seat, colour: colourOf(w.seat) }));
+      .map((w) => ({ seat: w.seat, colour: colourOf(w.seat), alive: w.alive ?? true }));
     return { ...s, presences };
   });
 }

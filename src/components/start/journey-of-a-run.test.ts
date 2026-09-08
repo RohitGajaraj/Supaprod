@@ -42,7 +42,7 @@ describe("withPresences", () => {
 
   test("a seat working at a station is drawn there, in its own colour", () => {
     const out = withPresences(stations, [{ seat: "Ada", station: "sense" }], colour);
-    expect(out[0]!.presences).toEqual([{ seat: "Ada", colour: "--mrd-viz-3" }]);
+    expect(out[0]!.presences).toEqual([{ seat: "Ada", colour: "--mrd-viz-3", alive: true }]);
     expect(out[1]!.presences).toBeUndefined();
   });
 

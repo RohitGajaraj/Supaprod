@@ -221,6 +221,10 @@ export function Row({
    * because the trailing control is not part of what "open this" means.
    */
   if (onClick && action) {
+    /* ON A PHONE THE CONTROL DROPS UNDER THE SENTENCE. A trailing cluster
+       beside a 250px title squeezed the title to nothing (phone review,
+       2026-09-08); below the breakpoint the row wraps, the body takes the
+       full width and the actions sit under it, indented to the text. */
     return (
       <div
         data-mrd=""
@@ -228,10 +232,13 @@ export function Row({
         data-tight={tight}
         data-focused={focused}
         data-has-action="true"
-        className={`${ROW_SHAPE} ${ROW_BLEED} ${ROW_DIVIDER} cursor-default ${
+        className={`${ROW_SHAPE} ${ROW_BLEED} ${ROW_DIVIDER} cursor-default max-sm:flex-wrap ${
           focused ? "bg-mrd-hover shadow-[inset_0_0_0_1px_var(--mrd-line)]" : ""
         }`}
-        style={{ transitionDuration: "var(--mrd-d-press)" }}
+        style={{
+          transitionDuration: "var(--mrd-d-press)",
+          ["--mrd-row-under" as string]: `${marksWidth + ROW_GAP}px`,
+        }}
       >
         <button
           type="button"
@@ -242,11 +249,13 @@ export function Row({
              sentence under it is the description. */
           aria-label={typeof lead === "string" ? (leadTitle ?? lead) : undefined}
           aria-description={typeof sub === "string" ? (subTitle ?? sub) : undefined}
-          className="flex min-w-0 flex-1 items-center gap-[13px] rounded-mrd-ctl text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]"
+          className="flex min-w-0 flex-1 items-center gap-[13px] rounded-mrd-ctl text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] max-sm:basis-full"
         >
           {body}
         </button>
-        <span className="flex flex-none items-center gap-mrd-2">{action}</span>
+        <span className="flex flex-none items-center gap-mrd-2 max-sm:basis-full max-sm:justify-end max-sm:pl-[var(--mrd-row-under)]">
+          {action}
+        </span>
       </div>
     );
   }

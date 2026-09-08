@@ -1106,6 +1106,10 @@
   --mrd-shell-work-pad-y: clamp(20px, 2.5cqi, 36px);
   --mrd-shell-work-pad-bottom: 72px;
   --mrd-shell-main-max: 74ch; /* measure, not pixels: it tracks the type */
+  /* The indent of anything mounted UNDER a Row (the home's answer card):
+     the default marks column plus the row's gap. A Row overrides it inline
+     with its own marks width; declared here so the bare var resolves. */
+  --mrd-row-under: 47px;
   --mrd-measure-region: 34rem;
   --mrd-measure-prose: 32rem;
 
@@ -2410,6 +2414,25 @@
    */
   [style*="mrd-shimmer"] {
     background-position: 50% 0 !important;
+  }
+}
+
+/*
+ * ── A FINGER, NOT A CURSOR (2026-09-08) ─────────────────────────────────
+ * On a coarse pointer every Meridian field is at least 16px type, so iOS
+ * Safari does not zoom the page when the composer or the first run's fields
+ * take focus, and at least 44px tall, so it is a finger target. Desktop
+ * keeps its 13px, 32px density; this is the one place the two differ.
+ */
+@media (pointer: coarse) {
+  [data-mrd] input:not([type="checkbox"]):not([type="radio"]),
+  input[data-mrd]:not([type="checkbox"]):not([type="radio"]),
+  [data-mrd] textarea,
+  textarea[data-mrd],
+  [data-mrd] select,
+  select[data-mrd] {
+    font-size: max(1em, 16px);
+    min-height: 44px;
   }
 }
 

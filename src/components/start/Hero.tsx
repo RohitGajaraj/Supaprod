@@ -141,7 +141,14 @@ export function heroCopy(input: {
 
 export function Hero({ copy }: { copy: HeroCopy }) {
   return (
-    <header data-mrd="" className="flex flex-col gap-mrd-3">
+    <header
+      data-mrd=""
+      className="flex flex-col gap-mrd-3"
+      /* It arrives once, on the arrival, and on Meridian's own fade rather
+         than in one frame (motion review, 2026-09-08); the reduced-motion
+         block in meridian.css keys on the keyframe name and stops it. */
+      style={{ animation: "mrd-fade-in var(--mrd-d-move) var(--mrd-ease-soft) both" }}
+    >
       {copy.eyebrow ? <span className="mrd-eyebrow">{copy.eyebrow}</span> : null}
       <h1 className="font-mrd-display text-mrd-h1 leading-mrd-tight font-medium tracking-[-0.015em] text-mrd-ink">
         {copy.title}

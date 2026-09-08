@@ -105,8 +105,10 @@ function byTo(to: string): NavItemDef | undefined {
  * the current page: a live run, the most recently touched one, or `/start`
  * with nothing to point at yet -- so the door never has to disappear.
  */
+/* Each door fills its share of the bar and is a full finger target (44px):
+   they were 36 by 39 (phone review, 2026-09-08). */
 const ITEM_CLASS =
-  "flex flex-col items-center justify-center gap-1 rounded-mrd-ctl px-mrd-2 py-mrd-1 text-mrd-body";
+  "flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-mrd-ctl px-mrd-2 py-mrd-1 text-mrd-body";
 const ITEM_ACTIVE_CLASS = "text-mrd-ink";
 
 function DoorLink({
@@ -222,7 +224,7 @@ function PhoneMoreSheet({
         tabIndex={-1}
         onClick={onClose}
         className="absolute inset-0 bg-mrd-scrim"
-        style={{ animation: "mrd-fade-in 160ms var(--mrd-ease-soft) both" }}
+        style={{ animation: "mrd-fade-in var(--mrd-d-press) var(--mrd-ease-soft) both" }}
       />
       <div
         ref={panelRef}
@@ -234,7 +236,7 @@ function PhoneMoreSheet({
         className="relative flex max-h-[75vh] flex-col gap-mrd-3 rounded-t-mrd-pane border-t border-mrd-line bg-mrd-float px-mrd-5 pt-mrd-4 pb-[calc(var(--mrd-s5)+env(safe-area-inset-bottom))]"
         style={{
           boxShadow: "var(--mrd-shadow-pane)",
-          animation: "mrd-sheet-up 220ms var(--mrd-ease) both",
+          animation: "mrd-sheet-up var(--mrd-d-move) var(--mrd-ease) both",
         }}
       >
         <h2 id={titleId} className="shrink-0 mrd-title">
@@ -287,7 +289,7 @@ export function RailPhoneBar({
           )
         : null}
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-mrd-line bg-mrd-sheet pb-[env(safe-area-inset-bottom)] sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-mrd-line bg-mrd-sheet pb-[env(safe-area-inset-bottom)] sm:hidden"
         aria-label="Main"
       >
         {bar.map((door) => (

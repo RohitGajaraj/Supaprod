@@ -22,6 +22,11 @@ describe("the first three runs say what is happening at every state", () => {
     expect(line).toContain("then Enter");
   });
 
+  test("still writing after a failed try says so, and that it is trying again", () => {
+    const line = starterLine({ pending: true, runs: [], reason: "timed out" }, "Prism");
+    expect(line).toBe("It could not write the first runs yet (timed out). Trying again.");
+  });
+
   test("a refusal says so and hands the first sentence back to the person", () => {
     const line = starterLine(
       { pending: false, runs: [], reason: "The model declined the request." },
