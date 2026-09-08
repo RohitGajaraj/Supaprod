@@ -125,7 +125,13 @@ function RunRow({
         action={
           <span
             className="grid items-center gap-mrd-2"
-            style={{ width: CONTROL_SLOT, gridTemplateColumns: "minmax(0, 1fr) auto" }}
+            /* Items keep their own width: a Finished chip in the first cell
+               must not stretch to the slot (seen live 20:00 IST 09-08). */
+            style={{
+              width: CONTROL_SLOT,
+              gridTemplateColumns: "minmax(0, 1fr) auto",
+              justifyItems: "start",
+            }}
           >
             {needsYou ? (
               /* THE ONE THING ONLY A PERSON CAN DO, AS THE ROW'S OWN CONTROL.
@@ -310,6 +316,7 @@ export function YourRuns({
             <button
               type="button"
               aria-expanded={showAbandoned}
+              aria-label={abandonedLine(groups.abandonedCount)}
               onClick={() => setShowAbandoned((v) => !v)}
               className="mrd-focus-inset flex w-fit items-center gap-1.5 rounded-mrd-chip py-1 text-mrd-data text-mrd-mute transition-colors hover:text-mrd-ink"
               style={{ transitionDuration: "var(--mrd-d-press)" }}
