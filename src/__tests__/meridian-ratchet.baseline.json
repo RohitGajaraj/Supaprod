@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1572,
-  "fileCount": 126,
+  "totalOccurrences": 1571,
+  "fileCount": 125,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -232,9 +232,6 @@
     "src/components/product/RoadmapHistory.tsx": {
       "import:components/ui": 1,
       "usage:components/ui": 3
-    },
-    "src/components/runs/RunBoard.tsx": {
-      "class:sp-": 1
     },
     "src/components/settings/MembersCard.tsx": {
       "class:sp-": 1
