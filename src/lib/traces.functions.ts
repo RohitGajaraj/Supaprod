@@ -4,6 +4,7 @@
  * - getTrace: full waterfall (events + guardrail hits + evals) for a single trace_id
  */
 import { createServerFn } from "@tanstack/react-start";
+import { SPECIALIST_CATALOG } from "@/lib/agent-vocabulary";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Json } from "@/integrations/supabase/types";
@@ -279,17 +280,22 @@ export const getTrace = createServerFn({ method: "POST" })
       } | null;
       if (!run) return null;
       let trackTitle: string | null = null;
-      let station: string | null = null;
       if (run.track_id) {
         const { data: track } = await supabase
           .from("spine_tracks" as never)
-          .select("title,station")
+          .select("title")
           .eq("id", run.track_id)
           .maybeSingle();
-        const t = track as { title?: string | null; station?: string | null } | null;
-        trackTitle = t?.title ?? null;
-        station = t?.station ?? null;
+        trackTitle = (track as { title?: string | null } | null)?.title ?? null;
       }
+      /*
+       * THE TURN'S OWN STATION, not where the track stands now. Lane 2 read a
+       * Discover turn from Sep 1 headed "at Learn" because this carried the
+       * track's current station. A seat's station is fixed in the catalog
+       * (the same fallback the transcript uses when a turn filed nothing), so
+       * a Discovery Scout turn is a Discover turn whatever the track did since.
+       */
+      const station = SPECIALIST_CATALOG.find((e) => e.slug === run.agent_slug)?.station ?? null;
       return {
         runId: run.id,
         agentSlug: run.agent_slug,

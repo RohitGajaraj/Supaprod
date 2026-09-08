@@ -23,8 +23,11 @@ describe("a trace names the run it belongs to", () => {
     expect(body).toContain('.eq("trace_id", data.traceId)');
   });
 
-  it("carries the track's title and station beside it, and returns it as `run`", () => {
-    expect(body).toContain('.select("title,station")');
+  it("carries the track's title, the seat's own station, and returns it as `run`", () => {
+    expect(body).toContain('.select("title")');
+    // The turn's station is the seat's, fixed in the catalog: a Discover turn
+    // is a Discover turn whatever station the track stands at today.
+    expect(body).toContain("SPECIALIST_CATALOG.find((e) => e.slug === run.agent_slug)?.station");
     expect(body).toMatch(/return \{\s*traceId: data\.traceId,[\s\S]*?\n\s*run,\n/);
   });
 
