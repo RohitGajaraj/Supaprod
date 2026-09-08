@@ -32,6 +32,7 @@ import { homeAnswers } from "@/components/start/three-answers-above-your-runs";
 import { HomeAnswers } from "@/components/start/HomeAnswers";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { APPROVALS_QUEUE_PREFIX } from "@/lib/query-keys";
+import { queueShape } from "@/components/approvals/a-queue-is-a-shape-not-a-total";
 
 /**
  * ── THE FRONT DOOR ────────────────────────────────────────────────────────
@@ -79,7 +80,13 @@ import { APPROVALS_QUEUE_PREFIX } from "@/lib/query-keys";
 const PLACEHOLDER = "Make the checkout accept an American Express card";
 
 export function placeholderFor(product: { name: string; northStar: string | null } | null): string {
-  if (product?.northStar) return `Give ${product.name} what it needs for ${product.northStar}`;
+  if (product?.northStar) {
+    /* The goal is a sentence in the product's own words ("Get 40% of active
+       users to a funded savings goal"), so it follows "Help <name>" with its
+       first letter lowered, and never a preposition it was not written for. */
+    const goal = product.northStar.trim().replace(/[.]+$/, "");
+    return `Help ${product.name} ${goal.charAt(0).toLowerCase()}${goal.slice(1)}`;
+  }
   if (product?.name) return `Change one thing in ${product.name}, and say what it should do`;
   return PLACEHOLDER;
 }
@@ -288,6 +295,9 @@ function StartLanding() {
     staleTime: 10_000,
   });
   const waiting = queueRead.isSuccess ? (queueRead.data?.items ?? []).length : null;
+  const waitingShape = queueRead.isSuccess
+    ? queueShape((queueRead.data?.items ?? []).map((i) => i.kindKey))
+    : null;
 
   const sinceYouLooked = homeAnswers({
     waitingShape: null,
@@ -318,6 +328,7 @@ function StartLanding() {
           product: activeProduct?.name ?? activeWorkspace?.name ?? null,
           runs: runs.data,
           waiting,
+          waitingShape,
         })}
       />
 
