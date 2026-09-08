@@ -4,9 +4,10 @@
  * out: `dispatch` is EXACTLY what `dispatchStudioSession` did after work-order
  * assembly (createMission + a queued `agent_runs` row the resume-runs sweeper
  * promotes), `poll` reads the mission/run rows, `result` summarizes the
- * terminal mission, and `cancel` performs the same writes as the operator's
- * `cancelMission` brake pedal (missions.functions.ts), guarded mission flip,
- * in-flight runs/steps flipped, held file claims released.
+ * terminal mission, and `cancel` performs the writes the operator's
+ * `cancelMission` brake pedal once made (deleted 2026-09-08 with no door
+ * left; a person stops work through `stopTrack`, R-32): guarded mission
+ * flip, in-flight runs/steps flipped, held file claims released.
  *
  * Server-only: it writes through the caller's RLS-scoped client.
  */
@@ -89,7 +90,7 @@ export function buildNativeGoal(spec: BuildSpec): string {
 
 const MISSION_DONE = new Set(["completed", "done"]);
 const MISSION_FAILED = new Set(["failed", "halted", "cancelled"]);
-/** Same lists as cancelMission (missions.functions.ts), keep them in lockstep. */
+/** The one copy of these lists since cancelMission went (2026-09-08). */
 const MISSION_TERMINAL = ["completed", "done", "failed", "halted", "cancelled"];
 const RUN_IN_FLIGHT = ["queued", "running", "dispatched", "waiting_approval"];
 const STEP_IN_FLIGHT = ["planned", "queued", "dispatched", "running", "waiting_approval"];

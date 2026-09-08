@@ -43,10 +43,7 @@ import {
   type AuditKind,
 } from "@/lib/audit-id";
 import {
-  countLineage,
-  NO_LINEAGE,
   walkLineage,
-  type LineageCounts,
   type LineageEdgeRow,
   type LineageRef,
   type LineageStep,
@@ -453,37 +450,3 @@ const CountsInput = z.object({
   kind: z.string().trim().min(1).max(60),
   ids: z.array(z.string().trim().regex(UUID_RE)).min(1).max(200),
 });
-
-export type LineageCountsResult = {
-  /** `null` means THE READ FAILED — never a board with no lineage (F-76). */
-  counts: Record<string, LineageCounts> | null;
-};
-
-export const getLineageCounts = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => CountsInput.parse(i))
-  .handler(async ({ context, data }): Promise<LineageCountsResult> => {
-    const db = context.supabase as unknown as LineageDb;
-
-    // Both directions in one read. `.or` takes a RAW PostgREST filter string, so
-    // the uuid check in the validator is load-bearing here exactly as it is in
-    // `kindFromEdges` — an unvalidated id would be an injection point.
-    const list = data.ids.join(",");
-    const res = await db
-      .from("artifact_lineage")
-      .select(`${EDGE_COLS},seeded`)
-      .or(`parent_id.in.(${list}),child_id.in.(${list})`)
-      .limit(EDGE_LIMIT);
-    // A FAILED READ IS NOT A BOARD WITH NO LINEAGE. Returning zeroes would draw
-    // "nothing produced any of this" out of a database error, on the one surface
-    // whose whole claim is that the loop connects things up.
-    if (res.error) return { counts: null };
-
-    const counted = countLineage(
-      data.ids.map((id) => ({ kind: data.kind, id })),
-      (res.data ?? []) as Array<LineageEdgeRow & { seeded?: boolean | null }>,
-    );
-    const counts: Record<string, LineageCounts> = {};
-    for (const id of data.ids) counts[id] = counted.get(`${data.kind}:${id}`) ?? { ...NO_LINEAGE };
-    return { counts };
-  });
