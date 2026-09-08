@@ -244,8 +244,10 @@ import {
   saveApiKey,
   deleteApiKey,
   testApiKey,
+  listPlatformProviders,
   BYO_PROVIDERS,
 } from "@/lib/byokeys.functions";
+import { platformCoverageLine } from "@/lib/byokeys-words";
 import { getBillingState, getCreditRunway, type BillingState } from "@/lib/billing.functions";
 import {
   getMySubscription,
@@ -2663,6 +2665,14 @@ function ByoKeysBlock() {
   const fDelKey = useServerFn(deleteApiKey);
   const fTestKey = useServerFn(testApiKey);
   const keys = useQuery({ queryKey: ["api-keys"], queryFn: () => fKeys() });
+  /*
+   * WHICH PROVIDERS SUPAPROD'S OWN KEYS COVER (P-155). The subtitle below
+   * said "it just uses our keys" and never said which, while the read that
+   * knows had no reader. One line, under the heading, on every plan: the
+   * providers by name and the model agents run on when a run names none.
+   */
+  const fPlatform = useServerFn(listPlatformProviders);
+  const platform = useQuery({ queryKey: ["platform-providers"], queryFn: () => fPlatform() });
   // Bring-your-own AI keys are enterprise only. Same ["billing"] key as the
   // Plan section, so this dedupes with it rather than firing a second fetch.
   const fGetBilling = useServerFn(getBillingState);
@@ -2793,6 +2803,23 @@ function ByoKeysBlock() {
               : "An Enterprise boundary. Every other plan runs on Supaprod credits, with the same model-agnostic routing. It just uses our keys."
         }
       >
+        {platform.isLoading ? (
+          <Reading>Reading which providers Supaprod's own keys cover.</Reading>
+        ) : platform.isError ? (
+          <ReadFailedLine onRetry={() => void platform.refetch()} error={platform.error}>
+            Which providers Supaprod's own keys cover could not be read.
+          </ReadFailedLine>
+        ) : platform.data ? (
+          <p className="text-mrd-base text-mrd-mute">
+            {platformCoverageLine({
+              providers: platform.data.providers,
+              recommendedModel: platform.data.recommendedModel,
+              labels: BYO_PROVIDERS,
+              canAddOwn: isEnterprise,
+            })}
+          </p>
+        ) : null}
+
         {billingRefused ? (
           /* THE SUBTITLE STATES THE GAP AND THIS STATES THE WAY BACK, which is the
              split `ReadFailedLine` exists for: it is the half that carries the
