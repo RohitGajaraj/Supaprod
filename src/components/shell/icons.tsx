@@ -19,10 +19,20 @@ const base = {
 };
 
 /** Work: the handover. A sentence leaves your side and keeps going. */
+/**
+ * THE RAIL'S GLYPHS, 2026-09-08. Founder, on the rail: "the arrow marks we
+ * have used so much ... why is the need for an arrow mark really required?"
+ * Home, Inbox and Findings all drew arrows, which say direction and nothing
+ * about the place. Each row now draws the thing the row IS: a home is a
+ * roof over a door; an inbox is a tray; findings and outcomes borrow the
+ * road's own Discover and Learn glyphs, because that is the station each
+ * list comes from. Thin strokes, one weight, the same 24-box.
+ */
 export function IconWork({ className }: IconProps) {
   return (
     <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 12h15M14 7l5 5-5 5" />
+      <path d="M4.5 11.2 12 4.8l7.5 6.4" />
+      <path d="M6.5 10v8.2a1 1 0 0 0 1 1H10v-5h4v5h2.5a1 1 0 0 0 1-1V10" />
     </svg>
   );
 }
@@ -286,18 +296,33 @@ export function IconAsk({ className }: IconProps) {
 export function IconWaiting({ className }: IconProps) {
   return (
     <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 12h8M9 9l3 3-3 3" />
-      <path d="M16 5v14" />
+      <path d="M4.5 13.5h4l1.6 2.5h3.8l1.6-2.5h4" />
+      <path d="M4.5 13.5v4.2a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1v-4.2" />
+      <path d="M4.5 13.5 7 6.8a1 1 0 0 1 .9-.6h8.2a1 1 0 0 1 .9.6l2.5 6.7" />
     </svg>
   );
 }
 
 /** What came in: three things arriving over a threshold, newest leading. */
 export function IconArrived({ className }: IconProps) {
+  /* Findings are what Discover produced: the road's own Discover glyph, a
+     point with its signal. */
   return (
     <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 4v9M9 10l3 3 3-3" />
-      <path d="M4 17h16" />
+      <circle cx="12" cy="12" r="1.8" />
+      <path d="M8.2 8.2a5.4 5.4 0 0 0 0 7.6M15.8 8.2a5.4 5.4 0 0 1 0 7.6" />
+      <path d="M5.4 5.4a9.3 9.3 0 0 0 0 13.2M18.6 5.4a9.3 9.3 0 0 1 0 13.2" />
+    </svg>
+  );
+}
+
+/** Outcomes: what happened to what was decided. The road's own Learn glyph,
+ *  an open record. */
+export function IconOutcomes({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 6.5c-1.6-1.3-3.8-1.6-7-1.4v12.4c3.2-.2 5.4.1 7 1.4 1.6-1.3 3.8-1.6 7-1.4V5.1c-3.2-.2-5.4.1-7 1.4Z" />
+      <path d="M12 6.5v12.4" />
     </svg>
   );
 }

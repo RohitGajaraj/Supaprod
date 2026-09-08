@@ -91,6 +91,8 @@ export function Row({
   lead,
   sub,
   time,
+  timeWidth,
+  align = "center",
   onClick,
   tight = false,
   focused = false,
@@ -108,6 +110,16 @@ export function Row({
   lead: ReactNode;
   sub?: ReactNode;
   time?: string | null;
+  /** A fixed width for the time column, so a list's rows line up. */
+  timeWidth?: number;
+  /**
+   * "start": marks and controls sit on the FIRST line of the title rather
+   * than the row's vertical middle, so a two-line title does not float its
+   * road up and its button down (founder, 2026-09-08: "the dots are not
+   * aligned properly"). Lists of sentences want this; single-line rows the
+   * default.
+   */
+  align?: "center" | "start";
   onClick?: () => void;
   /** A row in a LIST never wraps. Founder ruling: one or two lines, and depth
    *  is a click away rather than showcased on the surface. Pass tight for any
@@ -184,7 +196,12 @@ export function Row({
 
   const body = (
     <>
-      <span className="flex flex-none items-center" style={{ width: marksWidth }}>
+      <span
+        className={`flex flex-none items-center ${align === "start" ? "self-start" : ""}`}
+        /* On the first line: the title's line box is 22px at prose size, so
+           the marks' centre sits 11px down; a 9px node needs 6.5px of lead. */
+        style={{ width: marksWidth, marginTop: align === "start" ? 6 : undefined }}
+      >
         {marks}
       </span>
       <span className="min-w-0 flex-1">
@@ -204,7 +221,13 @@ export function Row({
         ) : null}
       </span>
       {time ? (
-        <span className="font-mrd-mono flex-none text-mrd-small tabular-nums text-mrd-mute">
+        <span
+          className="font-mrd-mono flex-none text-right text-mrd-small tabular-nums text-mrd-mute"
+          /* A fixed width when the caller gives one, so the column lines up
+             down a list instead of drifting with each row's digits
+             (founder, 2026-09-08: "no button positions"). */
+          style={timeWidth ? { width: timeWidth } : undefined}
+        >
           {time}
         </span>
       ) : null}
@@ -233,8 +256,8 @@ export function Row({
         data-focused={focused}
         data-has-action="true"
         className={`${ROW_SHAPE} ${ROW_BLEED} ${ROW_DIVIDER} cursor-default max-sm:flex-wrap ${
-          focused ? "bg-mrd-hover shadow-[inset_0_0_0_1px_var(--mrd-line)]" : ""
-        }`}
+          align === "start" ? "items-start" : ""
+        } ${focused ? "bg-mrd-hover shadow-[inset_0_0_0_1px_var(--mrd-line)]" : ""}`}
         style={{
           transitionDuration: "var(--mrd-d-press)",
           ["--mrd-row-under" as string]: `${marksWidth + ROW_GAP}px`,
@@ -249,11 +272,17 @@ export function Row({
              sentence under it is the description. */
           aria-label={typeof lead === "string" ? (leadTitle ?? lead) : undefined}
           aria-description={typeof sub === "string" ? (subTitle ?? sub) : undefined}
-          className="flex min-w-0 flex-1 items-center gap-[13px] rounded-mrd-ctl text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] max-sm:basis-full"
+          className={`flex min-w-0 flex-1 gap-[13px] rounded-mrd-ctl text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] max-sm:basis-full ${
+            align === "start" ? "items-start" : "items-center"
+          }`}
         >
           {body}
         </button>
-        <span className="flex flex-none items-center gap-mrd-2 max-sm:basis-full max-sm:justify-end max-sm:pl-[var(--mrd-row-under)]">
+        <span
+          className={`flex flex-none items-center gap-mrd-2 max-sm:basis-full max-sm:justify-end max-sm:pl-[var(--mrd-row-under)] ${
+            align === "start" ? "self-start -mt-[5px]" : ""
+          }`}
+        >
           {action}
         </span>
       </div>

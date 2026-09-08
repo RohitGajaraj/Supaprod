@@ -125,7 +125,12 @@ export function shouldClaimComposerFocus(activeElement: Element | null): boolean
 }
 
 export const Route = createFileRoute("/_authenticated/start")({
-  validateSearch: (search: Record<string, unknown>): { about?: string; queue?: true } => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { about?: string; queue?: true; compose?: true } => ({
+    /* "START A RUN" from the rail, anywhere but here: open the home with the
+       cursor already in the composer (founder, 2026-09-08). */
+    compose: searchFlag(search.compose),
     /*
      * "SHOW ME WHAT IS WAITING ON ME." Five live doors set this. `searchFlag`
      * rather than a hand-rolled comparison: TanStack runs every value through
@@ -155,7 +160,12 @@ function StartLanding() {
     setActiveProductId,
     isLoading: workspaceLoading,
   } = useWorkspace();
-  const { about, queue } = Route.useSearch();
+  const { about, queue, compose } = Route.useSearch();
+  /* "Start a run" from another page lands here with the cursor in the box. */
+  useEffect(() => {
+    if (!compose) return;
+    fieldRef.current?.focus();
+  }, [compose]);
   const timezone = useTimezone();
 
   const [sentence, setSentence] = useState(about ?? "");

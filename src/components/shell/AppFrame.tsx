@@ -174,8 +174,8 @@ import {
   IconPlus,
   IconRailCollapse,
   IconRailExpand,
+  IconOutcomes,
   IconArrived,
-  IconBrain,
   IconCrew,
   IconSources,
   IconSun,
@@ -327,7 +327,7 @@ const RAIL = [
   {
     to: "/outcomes",
     label: "Outcomes",
-    Icon: IconBrain,
+    Icon: IconOutcomes,
     count: null,
     owns: OWNS_NOTHING,
     tier: "primary",
@@ -722,9 +722,25 @@ function since(iso: string | null): string | null {
  * link address and open-in-new-tab all work, and none of them work on a button.
  */
 function RailNew({ narrow }: { narrow: boolean }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const onHome = pathname === SIGNED_IN_HOME;
   return (
     <Link
       to="/start"
+      search={{ compose: true }}
+      /* FOUNDER, 2026-09-08: "what happens if you click on Start a run? There
+         is no action." It opened the home and nothing else. Now: on the
+         home, the press puts the cursor in the composer; elsewhere, it opens
+         the home with the composer focused (the route reads `compose`). A
+         real Link still, so middle-click and copy-address keep working. */
+      onClick={(e) => {
+        if (!onHome) return;
+        const field = document.querySelector<HTMLElement>("[data-page-composer]");
+        if (field) {
+          e.preventDefault();
+          field.focus();
+        }
+      }}
       className="sp-new"
       /* Named out loud only when the label is not on screen, so a screen
          reader is never handed the same words twice. */
@@ -2114,6 +2130,12 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                  */
                 RAIL.map(({ to, label, Icon, count, tier }) => {
                   const n = count ? counts[count] : 0;
+                  /* The lower tier is NAMED, not only ruled off (founder,
+                     2026-09-08, on whether Sources belongs in the rail): it
+                     stays, under the word that says why it is not one of
+                     the person's questions. */
+                  const firstSetup =
+                    tier === "setup" && RAIL.find((r) => r.tier === "setup")?.to === to;
                   // The key this row is actually bound to, read off the binding
                   // itself. "" for a row the keyboard does not reach.
                   const shortcut = doorKey(to);
@@ -2145,14 +2167,23 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                    */
                   const href = to;
                   return (
-                    <Link
-                      key={to}
-                      to={href}
-                      className="sp-navrow"
-                      data-tier={tier}
-                      activeProps={{ "aria-current": "page" }}
-                      aria-current={current}
-                      /* The name carries the key, and that is not decoration. In
+                    <React.Fragment key={to}>
+                      {firstSetup && !narrow ? (
+                        <span
+                          data-rail-eyebrow=""
+                          aria-hidden="true"
+                          className="block px-mrd-3 pt-mrd-5 pb-mrd-1 text-mrd-nano font-[650] tracking-mrd-label text-mrd-faint uppercase"
+                        >
+                          Setup
+                        </span>
+                      ) : null}
+                      <Link
+                        to={href}
+                        className="sp-navrow"
+                        data-tier={tier}
+                        activeProps={{ "aria-current": "page" }}
+                        aria-current={current}
+                        /* The name carries the key, and that is not decoration. In
                        the narrow rail this string IS the tooltip (shell.css
                        draws it from attr(aria-label)), so collapsing the rail
                        stops costing you the hint instead of hiding it, and a
@@ -2169,34 +2200,34 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                        scheme the chord replaced. "g then t" rather than "g t":
                        spoken, the space is inaudible and the two would run
                        together into one word. */
-                      aria-label={[
-                        /* THE COUNT IS SPOKEN (Lane 1, 2026-09-08): the badge is
+                        aria-label={[
+                          /* THE COUNT IS SPOKEN (Lane 1, 2026-09-08): the badge is
                            aria-hidden, so without this a screen reader heard "Inbox"
                            beside a 6 it could not see. */
-                        count && n > 0 ? `${label}, ${n} waiting` : label,
-                        shortcut ? `shortcut ${NAV_CHORD_PREFIX} then ${shortcut}` : null,
-                      ]
-                        .filter(Boolean)
-                        .join(", ")}
-                    >
-                      <Icon />
-                      <span className="sp-navlabel">{label}</span>
-                      {count && n > 0 ? (
-                        /* NO FLOOR CAVEAT HERE ANY LONGER (P-18a). The old
+                          count && n > 0 ? `${label}, ${n} waiting` : label,
+                          shortcut ? `shortcut ${NAV_CHORD_PREFIX} then ${shortcut}` : null,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")}
+                      >
+                        <Icon />
+                        <span className="sp-navlabel">{label}</span>
+                        {count && n > 0 ? (
+                          /* NO FLOOR CAVEAT HERE ANY LONGER (P-18a). The old
                              "52+" existed because `getApprovalsQueue` bounded
                              ten families and could silently drop some of what
                              it counted; `gates` now reads open tracks with a
                              boundary call, one query with no families to
                              bound, so there is nothing left to flag as a
                              floor. See `listGatesOnTracks`'s own header. */
-                        <span
-                          className="sp-navcount"
-                          data-hot={count === "gates" ? "true" : "false"}
-                        >
-                          {n}
-                        </span>
-                      ) : null}
-                      {/* THE HINT, on the door it opens.
+                          <span
+                            className="sp-navcount"
+                            data-hot={count === "gates" ? "true" : "false"}
+                          >
+                            {n}
+                          </span>
+                        ) : null}
+                        {/* THE HINT, on the door it opens.
                         `sp-navcount` is worn for ONE property and it is not
                         colour: it is the only selector in shell.css that drops
                         a rail row's trailing text at 64px and under 900px, and
@@ -2205,22 +2236,23 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                         keycap's own look is the inline style; the class is the
                         responsive rule. aria-hidden because the accessible
                         name above already says it, in better words. */}
-                      {shortcut ? (
-                        /* THE PREFIX IS DRAWN, not assumed. A keycap reading a
-                         * bare "d" would be a promise the keyboard does not
-                         * keep: `d` alone does nothing, `g` then `d` opens
-                         * Discover. Showing both is also what teaches the chord
-                         * without a tour, the way Gmail's "g i" does. */
-                        <kbd
-                          className="sp-navcount sp-navkey"
-                          data-shortcut={`${NAV_CHORD_PREFIX} ${shortcut}`}
-                          aria-hidden="true"
-                          style={KEYCAP}
-                        >
-                          {NAV_CHORD_PREFIX} {shortcut}
-                        </kbd>
-                      ) : null}
-                    </Link>
+                        {shortcut ? (
+                          /* THE PREFIX IS DRAWN, not assumed. A keycap reading a
+                           * bare "d" would be a promise the keyboard does not
+                           * keep: `d` alone does nothing, `g` then `d` opens
+                           * Discover. Showing both is also what teaches the chord
+                           * without a tour, the way Gmail's "g i" does. */
+                          <kbd
+                            className="sp-navcount sp-navkey"
+                            data-shortcut={`${NAV_CHORD_PREFIX} ${shortcut}`}
+                            aria-hidden="true"
+                            style={KEYCAP}
+                          >
+                            {NAV_CHORD_PREFIX} {shortcut}
+                          </kbd>
+                        ) : null}
+                      </Link>
+                    </React.Fragment>
                   );
                 })
               }
