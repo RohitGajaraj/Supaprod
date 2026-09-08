@@ -112,7 +112,7 @@ describe("the rail speaks plain words", () => {
   it("finds the rail's labels at all, so a silent parse failure cannot pass", () => {
     const labels = railLabels();
     expect(labels.length).toBeGreaterThan(0);
-    expect(labels).toContain("Start");
+    expect(labels).toContain("Home");
   });
 
   it("carries no word §12's rename map retired — P-11 cut the exception along with its door", () => {
@@ -175,7 +175,7 @@ describe("the rail speaks plain words", () => {
      */
     const labels = railLabels();
     expect(labels.length).toBeGreaterThanOrEqual(2);
-    expect(labels).toContain("Start");
-    expect(labels).toContain("Run");
+    expect(labels).toContain("Home");
+    expect(labels).toContain("Inbox");
   });
 });

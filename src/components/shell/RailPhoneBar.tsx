@@ -60,17 +60,13 @@
 import * as React from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { PRIMARY_NAV, type NavItemDef } from "@/lib/nav-model";
-import { SIGNED_IN_HOME } from "./post-auth-home";
-import type { RunDoorState } from "@/lib/spine/track.functions";
 import {
   IconArrived,
   IconBrain,
   IconCrew,
   IconGear,
   IconMore,
-  IconRun,
   IconSources,
-  IconThreads,
   IconWaiting,
   IconWork,
 } from "./icons";
@@ -81,19 +77,17 @@ type IconComponent = React.ComponentType<{ className?: string }>;
  *  why this is a second, small choice rather than a shared import. */
 const DOOR_ICON: Record<string, IconComponent> = {
   "/start": IconWork,
-  "/track": IconRun,
   "/approvals": IconWaiting,
   "/arriving": IconArrived,
   "/outcomes": IconBrain,
   "/crew": IconCrew,
-  "/threads": IconThreads,
   "/sync": IconSources,
   "/settings": IconGear,
 };
 
 /** The five doors a person opens most, per this packet's own scope --
  *  matched against `PRIMARY_NAV` by `to`, not re-typed. */
-const BAR_TO: readonly string[] = ["/start", "/approvals", "/arriving", "/outcomes", "/track"];
+const BAR_TO: readonly string[] = ["/start", "/approvals", "/arriving", "/outcomes", "/settings"];
 
 function byTo(to: string): NavItemDef | undefined {
   return PRIMARY_NAV.find((d) => d.to === to);
@@ -111,11 +105,6 @@ function byTo(to: string): NavItemDef | undefined {
  * the current page: a live run, the most recently touched one, or `/start`
  * with nothing to point at yet -- so the door never has to disappear.
  */
-function runHrefFrom(runDoor: RunDoorState | undefined): string {
-  if (!runDoor || !runDoor.trackId) return SIGNED_IN_HOME;
-  return `/track/${runDoor.trackId}`;
-}
-
 const ITEM_CLASS =
   "flex flex-col items-center justify-center gap-1 rounded-mrd-ctl px-mrd-2 py-mrd-1 text-mrd-body";
 const ITEM_ACTIVE_CLASS = "text-mrd-ink";
@@ -124,32 +113,20 @@ function DoorLink({
   door,
   active,
   onNavigate,
-  runDoor,
 }: {
   door: NavItemDef;
   active: boolean;
   onNavigate?: () => void;
-  /** Only read for Run's own row; every other door ignores it. */
-  runDoor?: RunDoorState;
 }) {
   const Icon = DOOR_ICON[door.to];
-  const isRun = door.to === "/track";
-  const href = isRun ? runHrefFrom(runDoor) : door.to;
-  const runStateWord = isRun
-    ? runDoor?.state === "live"
-      ? "live"
-      : runDoor?.state === "last"
-        ? "the last one"
-        : "nothing yet"
-    : null;
   return (
     <Link
-      to={href}
-      search={isRun ? undefined : (door.search as never)}
+      to={door.to}
+      search={door.search as never}
       className={`${ITEM_CLASS} ${active ? ITEM_ACTIVE_CLASS : "text-mrd-mute"}`}
       aria-current={active ? "page" : undefined}
       title={door.label}
-      aria-label={runStateWord ? `${door.label}, ${runStateWord}` : door.label}
+      aria-label={door.label}
       onClick={onNavigate}
     >
       {Icon ? <Icon className="size-5" /> : null}
@@ -273,7 +250,6 @@ export function RailPhoneBar({
   liveLead,
   onLiveClick,
   liveTitle,
-  runDoor,
 }: {
   /** The desktop rail's own `.sp-live-lead` text -- the "first fact" this
    *  packet's own acceptance line asks for, carried down rather than
@@ -285,9 +261,6 @@ export function RailPhoneBar({
    *  instead of a `button`. */
   onLiveClick?: () => void;
   liveTitle?: string;
-  /** `AppFrame`'s own `runDoor` read, carried down rather than re-fetched
-   *  (P-109, A-QUEUE.md) -- see `runHrefFrom`. */
-  runDoor?: RunDoorState;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [moreOpen, setMoreOpen] = React.useState(false);
@@ -318,7 +291,7 @@ export function RailPhoneBar({
         aria-label="Main"
       >
         {bar.map((door) => (
-          <DoorLink key={door.to} door={door} active={isActive(door.to)} runDoor={runDoor} />
+          <DoorLink key={door.to} door={door} active={isActive(door.to)} />
         ))}
         <button
           type="button"

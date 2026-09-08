@@ -4,7 +4,7 @@ import { chipLabel, contextForPath, scopeForPath } from "./ask-context";
 describe("ask-context - contextForPath", () => {
   it("maps each canonical destination to its plain-words label", () => {
     expect(contextForPath("/today", null)).toBe("Today");
-    expect(contextForPath("/arriving", null)).toBe("Arriving");
+    expect(contextForPath("/arriving", null)).toBe("Findings");
     expect(contextForPath("/plan", null)).toBe("Plan");
     expect(contextForPath("/knowledge", null)).toBe("Outcomes");
   });

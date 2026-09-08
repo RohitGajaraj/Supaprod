@@ -104,7 +104,6 @@ describe("which rail doors the keyboard reaches", () => {
      */
     expect(unkeyed).toEqual([]);
     expect(keyed).toContain("/start");
-    expect(keyed).toContain("/track");
     expect(keyed.length).toBe(RAIL_DOORS.length);
   });
 

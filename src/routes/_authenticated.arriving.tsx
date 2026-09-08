@@ -117,7 +117,7 @@ export const Route = createFileRoute("/_authenticated/arriving")({
     if (search.tab === "queue") throw redirect({ to: "/start" });
   },
   component: DiscoverRoute,
-  head: () => ({ meta: [{ title: "Arriving · Supaprod" }] }),
+  head: () => ({ meta: [{ title: "Findings · Supaprod" }] }),
   errorComponent: () => (
     <Surface>
       <PageHeading title="Arriving did not load." sub="Nothing already captured is lost." />

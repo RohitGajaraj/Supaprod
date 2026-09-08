@@ -88,11 +88,11 @@ describe("a chord under an open overlay never moves the router", () => {
    * passes if the chord is broken outright, so without this one a typo that
    * disabled navigation entirely would read as four green refusals.
    */
-  test("with nothing open, `g` then `t` goes to Start", () => {
+  test("with nothing open, `g` then `h` goes to Home", () => {
     render(<GotoShortcuts />);
     press("g");
     expect(chordAttr()).toBe("armed");
-    press("t");
+    press("h");
     expect(navigatedTo()).toBe("/start");
     expect(chordAttr()).toBe(null);
   });
@@ -102,7 +102,7 @@ describe("a chord under an open overlay never moves the router", () => {
     // Exactly what ConfirmProvider's AlertDialogContent renders while open.
     openOverlay({ role: "alertdialog", "data-state": "open", "aria-modal": "true" });
     press("g");
-    press("t");
+    press("h");
     expect(navigatedTo()).toBe("");
     // And the keycaps never lit, so nothing under the scrim invited the press.
     expect(chordAttr()).toBe(null);
@@ -116,7 +116,7 @@ describe("a chord under an open overlay never moves the router", () => {
     // landing in that window looks to a person exactly like the bug above.
     openOverlay({ role: "alertdialog", "data-state": "closed", "aria-modal": "true" });
     press("g");
-    press("t");
+    press("h");
     expect(navigatedTo()).toBe("");
   });
 
@@ -124,7 +124,7 @@ describe("a chord under an open overlay never moves the router", () => {
     render(<GotoShortcuts />);
     openOverlay({ role: "alertdialog", "data-state": "open" });
     press("g");
-    press("t");
+    press("h");
     expect(navigatedTo()).toBe("");
   });
 
@@ -132,7 +132,7 @@ describe("a chord under an open overlay never moves the router", () => {
     render(<GotoShortcuts />);
     openOverlay({ role: "dialog", "data-state": "open", "aria-modal": "true" });
     press("g");
-    press("t");
+    press("h");
     expect(navigatedTo()).toBe("");
   });
 
@@ -151,7 +151,7 @@ describe("a chord under an open overlay never moves the router", () => {
     expect(chordAttr()).toBe("armed");
 
     openOverlay({ role: "alertdialog", "data-state": "open", "aria-modal": "true" });
-    press("t");
+    press("h");
 
     expect(navigatedTo()).toBe("");
     expect(chordAttr()).toBe(null);
@@ -180,7 +180,7 @@ describe("a pane you consult beside the work keeps the keyboard alive", () => {
     render(<GotoShortcuts />);
     openOverlay({ role: "complementary", "aria-label": "Lineage" });
     press("g");
-    press("t");
+    press("h");
     expect(navigatedTo()).toBe("/start");
   });
 });

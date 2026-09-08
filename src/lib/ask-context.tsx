@@ -100,7 +100,7 @@ export function scopeForPath(
 /** Plain words for the screen you are on. Used in copy, never as the chip. */
 export function contextForPath(pathname: string, missionId: string | null): string {
   if (pathname.startsWith("/today")) return "Today";
-  if (pathname.startsWith("/arriving")) return "Arriving";
+  if (pathname.startsWith("/arriving")) return "Findings";
   if (pathname.startsWith("/plan")) return "Plan";
   if (pathname.startsWith("/build")) return missionId ? "a mission" : "Build";
   if (pathname.startsWith("/outcomes") || pathname.startsWith("/knowledge")) return "Outcomes";

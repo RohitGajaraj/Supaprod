@@ -239,7 +239,9 @@ export function evidenceLine(e: SubjectEvidence): string {
     .slice(0, 3)
     .map((t) => `${t.term} ${t.count}`)
     .join(" · ");
-  const where = e.sources.length ? `, from ${e.sources.slice(0, 3).join(", ")}` : "";
+  const where = e.sources.length
+    ? `, from ${joinSources(e.sources.slice(0, 3).map(sourceName))}`
+    : "";
   // NAMES WHAT THE LOOP WROTE ITSELF when that is most of it. 63% of the whole
   // table is `source='agent'`, so a bare count routinely flatters a subject the
   // product has only ever talked to itself about.
@@ -248,6 +250,41 @@ export function evidenceLine(e: SubjectEvidence): string {
       ? ` ${e.agentAuthored} of ${e.count} were written by the loop itself.`
       : "";
   return top
-    ? `Already here${where}: ${top}.${ours}`
+    ? `Already on the record${where}: ${top}.${ours}`
     : `${e.count === 1 ? "1 thing" : `${e.count} things`} in this workspace loosely match${where}.${ours}`;
+}
+
+/**
+ * A source is named as a person would say it, never as its slug (Lane 1,
+ * 2026-09-08, read live under the home's composer: "from steward, slack,
+ * workspace-theme"). Unknown names pass through untouched, because a source a
+ * person named themselves is already in their words.
+ */
+const SOURCE_NAME: Readonly<Record<string, string>> = {
+  slack: "Slack",
+  github: "GitHub",
+  intercom: "Intercom",
+  gmail: "Gmail",
+  hubspot: "HubSpot",
+  linear: "Linear",
+  jira: "Jira",
+  notion: "Notion",
+  zendesk: "Zendesk",
+  salesforce: "Salesforce",
+  productboard: "Productboard",
+  canny: "Canny",
+  steward: "the steward",
+  scout: "the scout",
+  "workspace-theme": "a theme it formed",
+  manual: "what you captured",
+  paste: "what you pasted",
+};
+
+export function sourceName(slug: string): string {
+  return SOURCE_NAME[slug.toLowerCase()] ?? slug;
+}
+
+function joinSources(names: string[]): string {
+  if (names.length <= 1) return names.join("");
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }

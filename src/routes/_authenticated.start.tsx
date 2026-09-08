@@ -112,7 +112,7 @@ export const Route = createFileRoute("/_authenticated/start")({
         : undefined,
   }),
   component: StartLanding,
-  head: () => ({ meta: [{ title: "Start · Supaprod" }] }),
+  head: () => ({ meta: [{ title: "Home · Supaprod" }] }),
 });
 
 function StartLanding() {

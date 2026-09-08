@@ -182,8 +182,27 @@ function Node({
 }) {
   const p = paintOf(station);
   const working = station.state === "working";
-  const px = size === "full" ? 32 : station.state === "pending" ? 6 : 8;
-  const ringWidth = size === "full" ? (active || CURRENT.has(station.state) ? 1.5 : 1) : 1;
+  /*
+   * ROW FORM PAINTS BY WEIGHT, NOT ONLY BY HUE. At six pixels a lift fill
+   * and a transparent fill are the same grey, so the road behind the work
+   * and the road ahead read alike (seen live, 2026-09-08). Behind: a solid
+   * faint dot. Ahead: an outline. Here: larger, and filled with the state's
+   * own ink so a neutral wait is still unmistakably the current stop.
+   */
+  const current = CURRENT.has(station.state);
+  const px = size === "full" ? 32 : current ? 9 : 6;
+  const ringWidth = size === "full" ? (active || current ? 1.5 : 1) : 1;
+  const rowFill =
+    size === "row"
+      ? station.state === "done"
+        ? p.ring
+        : station.state === "pending" || station.state === "waived"
+          ? "transparent"
+          : current && (station.state === "waiting" || station.state === "scheduled")
+            ? "var(--mrd-body)"
+            : p.ink
+      : p.fill;
+  const rowRing = size === "row" && current ? rowFill : p.ring;
 
   return (
     <span
@@ -192,8 +211,8 @@ function Node({
       style={{
         width: px,
         height: px,
-        background: p.fill,
-        boxShadow: `inset 0 0 0 ${ringWidth}px ${p.ring}`,
+        background: rowFill,
+        boxShadow: `inset 0 0 0 ${ringWidth}px ${size === "row" ? rowRing : p.ring}`,
         outline: p.dashed ? `1px dashed ${p.ring}` : undefined,
         outlineOffset: p.dashed ? -1 : undefined,
         color: p.ink,

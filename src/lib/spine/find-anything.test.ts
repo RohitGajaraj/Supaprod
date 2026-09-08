@@ -108,7 +108,7 @@ describe("searchDoors: P-64's nine doors, matched on their own label and tagline
   });
 
   it("defaults to the real searchable-doors list, which includes PRIMARY_NAV", () => {
-    expect(searchDoors(["start"]).map((d) => d.to)).toContain("/start");
+    expect(searchDoors(["home"]).map((d) => d.to)).toContain("/start");
   });
 
   /**
@@ -127,7 +127,7 @@ describe("searchDoors: P-64's nine doors, matched on their own label and tagline
   });
 
   it("SEARCHABLE_DOORS carries every PRIMARY_NAV door plus at least the one named tab", () => {
-    expect(SEARCHABLE_DOORS.length).toBeGreaterThan(9);
+    expect(SEARCHABLE_DOORS.length).toBeGreaterThan(7);
     expect(SEARCHABLE_DOORS.map((d) => d.label)).toContain("Team");
     expect(SEARCHABLE_DOORS.map((d) => d.label)).toContain("Spend and limits");
   });

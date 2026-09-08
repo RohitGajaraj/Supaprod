@@ -153,12 +153,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
 import { listCrew } from "@/lib/crew.functions";
-import {
-  listMovingTracks, listTracks,
-  listGatesOnTracks,
-  getRunDoorState,
-  type RunDoorState,
-} from "@/lib/spine/track.functions";
+import { listMovingTracks, listTracks, listGatesOnTracks } from "@/lib/spine/track.functions";
 import { initialsFrom } from "@/lib/initials";
 import { useTheme } from "@/hooks/use-theme";
 import { FOOTER_NAV, PRIMARY_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
@@ -182,10 +177,8 @@ import {
   IconArrived,
   IconBrain,
   IconCrew,
-  IconRun,
   IconSources,
   IconSun,
-  IconThreads,
   IconWaiting,
   IconWork,
 } from "./icons";
@@ -222,7 +215,7 @@ const BOUNDARY_PATHS: readonly string[] = ["/boundary"];
  * deliberately NOT here: that identity now belongs to the Run row below, and
  * `railOwnerOf`'s own-`to` pass resolves it before ever consulting this list.
  */
-const START_PATHS: readonly string[] = ["/start", "/runs", ...LOOP_STATIONS];
+const START_PATHS: readonly string[] = ["/start", "/runs", "/track", ...LOOP_STATIONS];
 
 /** Paths that live behind the Settings door but are not under /settings.
  *  Agents is the roster at /crew, which Settings now holds. */
@@ -277,91 +270,55 @@ const STATION_MARK = GLYPH_FOR_STATION;
 
 const RAIL = [
   /*
-   * ── THE FIRST ROW, AND IT IS DERIVED (F-144, 2026-08-31; unchanged by
-   * P-11) ──────────────────────────────────────────────────────────────
+   * ── SIX ROWS IN TWO TIERS (Lane 1, 2026-09-08) ────────────────────────
    *
-   * `SIGNED_IN_HOME` was flipped to /start on 2026-08-25 because an audit of
-   * the real first sixty seconds found /today opens an empty workspace with
-   * five negations in the first viewport and no control that starts a run.
-   * THE ROW NAMES THE CONSTANT rather than the literal, so a future flip of
-   * `SIGNED_IN_HOME` moves this row in the same edit instead of surviving as
-   * a second, stale answer to "where does a signed-in person land" — which is
-   * exactly how the rail and the home constant disagreed for six days once.
+   * Founder, 2026-09-08: "rename, merge, split or delete surfaces so
+   * structure matches how a user thinks. Plain language, no jargon." Eight
+   * rows read as a list of nouns. These are the person's four questions, in
+   * the order they ask them, then the two things they set up once:
    *
-   * The colocated guard is `AppFrame.rail-covers-keys.test.ts`. It extracts
-   * rail paths by reading this block as SOURCE and matching every destination
-   * field spelled as a quoted string, so this row is DELIBERATELY INVISIBLE
-   * to that scan and the test asserts the identifier is here instead.
+   *   Home       what should it do next, and where is everything
+   *   Inbox      what needs me (the only counted row)
+   *   Findings   what came in from my sources
+   *   Outcomes   what happened to what we decided
+   *   ---
+   *   Team       who does the work, and their limits
+   *   Sources    what they are allowed to read
+   *
+   * WHAT LEFT. "Run" pointed at one specific run, which the home's rows and
+   * the header's live line already open; a row that is a shortcut to a list
+   * item is not a place. "Conversations" is Ask's own history and is reached
+   * from Ask (AskSwitcher) and Find; the route stays. "Start", "Waiting" and
+   * "Arriving" are renamed: "Start" is a verb on a page that is the home,
+   * "Waiting" did not say waiting for what, and "Arriving" named the machine's
+   * motion rather than what the person gets.
+   *
+   * THE FIRST ROW IS STILL DERIVED (F-144): it names `SIGNED_IN_HOME`, so a
+   * future flip of the home moves this row in the same edit. The colocated
+   * guard `AppFrame.rail-covers-keys.test.ts` reads this block as SOURCE.
    */
   {
     to: SIGNED_IN_HOME,
-    label: "Start",
+    label: "Home",
     Icon: IconWork,
     count: null,
     owns: START_PATHS,
     tier: "primary",
   },
-  /*
-   * ── RUN: THE ROW THAT ANSWERS "WHERE IS MY RUN", ALWAYS (P-109) ────────
-   *
-   * P-11 (A-QUEUE.md, 2026-09-02) drew this row only while the person stood
-   * on `/track/$trackId`, and dropped it everywhere else — a door with
-   * nothing behind it the moment you were not already standing on one, which
-   * is R-38's defect in its plainest form and exactly what P-63 named: "Run
-   * has no door to design for while nothing's live." P-109 answers it
-   * instead of dropping the row: `runDoor` (the query in `AppFrame` itself)
-   * resolves to a live run, the most recently touched one, or `/start`, and
-   * the row draws unconditionally like every other one in this file now.
-   *
-   * THE ROW'S DESTINATION IS STILL AN IDENTITY, NOT A ROUTE — the same
-   * convention the old `START_PATHS` used for this exact prefix before Run
-   * had its own row. `railOwnerOf`, `doorKey` and the keyboard binding all
-   * key on it; only the render's own `<Link>` ever resolves the real
-   * destination, which `runDoor` supplies now rather than the URL.
-   */
-  {
-    to: "/track",
-    label: "Run",
-    Icon: IconRun,
-    count: null,
-    owns: OWNS_NOTHING,
-    tier: "primary",
-  },
-  /*
-   * ── SIX DOORS BACK, AND THE REASON IS NOT "WE WANT MORE ROWS" (P-60) ───
-   *
-   * The paragraph above this list is still the best argument in the file: a row
-   * costs eight of the most expensive pixels in the product, and a second door
-   * onto a surface another row owns is the "two doors, one question" defect.
-   *
-   * It leans hardest on Approvals having folded into Start's board, so its row
-   * was a duplicate. `/approvals` is a full surface again -- its own heading,
-   * queue and settled trail -- so that fold no longer describes the product.
-   * PLATFORM-AUDIT.md §1 counted the result: seven surfaces reachable only by a
-   * URL, a contextual link, or the live line. R-38: a surface without a door is
-   * not shipped.
-   *
-   * THE REPLACEMENT RULE IS NOT "A ROW PER SURFACE". Every row is one of the
-   * person's questions, in their words. That is why the seven stations stay out
-   * (R-01: they are the route the work takes, not places a person goes) and why
-   * the engine room is reached from Crew and spend rather than standing beside
-   * it -- "where is the machinery" is not a question a person arrives with.
-   */
   {
     to: "/approvals",
-    label: "Waiting",
+    label: "Inbox",
     Icon: IconWaiting,
-    /* THE ONLY COUNTED ROW, and it reads the gate count P-66 just scoped to the
-       workspace. Never a second query: a badge that counts differently from the
-       page it opens is the defect P-56 spent a packet removing one screen
-       lower. */
+    /* THE ONLY COUNTED ROW, and it reads the gate count P-66 scoped to the
+       workspace. Never a second query: a badge that counts differently from
+       the page it opens is the defect P-56 spent a packet removing. */
     count: "gates",
     owns: OWNS_NOTHING,
     tier: "primary",
   },
   {
     to: "/arriving",
-    label: "Arriving",
+    label: "Findings",
     Icon: IconArrived,
     count: null,
     owns: OWNS_NOTHING,
@@ -381,15 +338,7 @@ const RAIL = [
     Icon: IconCrew,
     count: null,
     owns: OWNS_NOTHING,
-    tier: "primary",
-  },
-  {
-    to: "/threads",
-    label: "Conversations",
-    Icon: IconThreads,
-    count: null,
-    owns: OWNS_NOTHING,
-    tier: "primary",
+    tier: "setup",
   },
   {
     to: "/sync",
@@ -397,7 +346,7 @@ const RAIL = [
     Icon: IconSources,
     count: null,
     owns: OWNS_NOTHING,
-    tier: "primary",
+    tier: "setup",
   },
 ] as const;
 
@@ -410,7 +359,6 @@ const RAIL = [
  * reshaping every row that came before it; both rows are "primary" today
  * because there is no secondary group left to put anything in.
  */
-const RAIL_PRIMARY = RAIL.filter((r) => r.tier === "primary");
 
 /** True when `path` is `base` or lives underneath it, so /runs/<id> and
  *  /plan/spec/<id> keep the row that owns them lit. The same shape as
@@ -833,21 +781,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // Only the id. The NAME and the product moved to ScopeMenu, which owns the
   // scope control now; keeping a second copy here is how two headers drift.
   const { activeWorkspace, activeWorkspaceId, workspaces, setActiveWorkspaceId } = useWorkspace();
-  /*
-   * THE RUN DOOR'S THREE RESOLUTIONS (P-109, A-QUEUE.md). Independent of
-   * `trackId` above on purpose: that reads the URL, this reads the account --
-   * live wins, then the most recently touched track, then none. 10s, the same
-   * beat `YourRuns`/`TrackActivity` already poll a live run on, so the rail
-   * cannot say "nothing running" a beat after a run screen says otherwise.
-   */
-  const fRunDoor = useServerFn(getRunDoorState);
-  const runDoorQ = useQuery({
-    queryKey: ["run-door", activeWorkspaceId ?? null],
-    queryFn: () => fRunDoor({ data: { workspaceId: activeWorkspaceId ?? null } }),
-    refetchInterval: (query) => pollMs(10_000, query.state.fetchFailureCount),
-    enabled: !!activeWorkspaceId,
-  });
-  const runDoor: RunDoorState = runDoorQ.data ?? { state: "none", trackId: null };
   /*
    * ── P-66: THE LIVE LINE READS THE WORKSPACE IT STANDS IN ────────────────
    *
@@ -2099,65 +2032,47 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                  * a live run, the last one, or `/start` with nothing to point at
                  * yet.
                  */
-                RAIL_PRIMARY.map(({ to, label, Icon, count }) => {
-                    const n = count ? counts[count] : 0;
-                    // The key this row is actually bound to, read off the binding
-                    // itself. "" for a row the keyboard does not reach.
-                    const shortcut = doorKey(to);
-                    // THE ROW THAT STAYS LIT. `activeProps` only knows this row's
-                    // own route, so pressing 3 for Plan - or opening /govern - used
-                    // to leave the whole rail dark. `railOwnerOf` answers the wider
-                    // question the rail is actually asking, "which section am I
-                    // in", and it is written on the same attribute the CSS already
-                    // draws so nothing about the look is invented here.
-                    // "page" is a promise that THIS row is the page you are on, so a
-                    // row that is merely the section containing it says "true"
-                    // instead. Both are drawn identically (shell.css matches the two
-                    // tokens), so the rail looks the same and stops telling a screen
-                    // reader you are on Runs when you are standing on Plan.
-                    //
-                    // BOTH READ THE IDENTITY `to`, NEVER THE RESOLVED HREF: Run's
-                    // `to` is always "/track", so `owner`/`current` answer "am I on
-                    // some track" the same way regardless of which one, and the
-                    // `<Link>` below is the only place the live id enters.
-                    const owner = railOwnerOf(pathname) === to;
-                    const current = owner ? (under(pathname, to) ? "page" : "true") : undefined;
-                    /*
-                     * THE THREE RESOLUTIONS, SPENT (P-109). "none" points at
-                     * Start rather than at nothing: `runDoor.trackId` is null
-                     * exactly there, and `/start` is where a person builds the
-                     * run this row currently has none of -- the same door
-                     * `RailNew` already opens, composer auto-focused on
-                     * arrival by that page's own effect.
-                     */
-                    const href =
-                      to === "/track"
-                        ? runDoor.trackId
-                          ? `/track/${runDoor.trackId}`
-                          : SIGNED_IN_HOME
-                        : to;
-                    /*
-                     * THE STATE, IN THE ACCESSIBLE NAME (Scope's own words),
-                     * never in the printed label: the row still reads "Run" on
-                     * screen, one word like its two neighbours, and a screen
-                     * reader is told the fact the glyph alone cannot carry.
-                     */
-                    const runStateWord =
-                      to === "/track"
-                        ? runDoor.state === "live"
-                          ? "live"
-                          : runDoor.state === "last"
-                            ? "the last one"
-                            : "nothing yet"
-                        : null;
-                    return (
-                      <Link
-                        key={to}
-                        to={href}
-                        className="sp-navrow"
-                        activeProps={{ "aria-current": "page" }}
-                        aria-current={current}
-                        /* The name carries the key, and that is not decoration. In
+                RAIL.map(({ to, label, Icon, count, tier }) => {
+                  const n = count ? counts[count] : 0;
+                  // The key this row is actually bound to, read off the binding
+                  // itself. "" for a row the keyboard does not reach.
+                  const shortcut = doorKey(to);
+                  // THE ROW THAT STAYS LIT. `activeProps` only knows this row's
+                  // own route, so pressing 3 for Plan - or opening /govern - used
+                  // to leave the whole rail dark. `railOwnerOf` answers the wider
+                  // question the rail is actually asking, "which section am I
+                  // in", and it is written on the same attribute the CSS already
+                  // draws so nothing about the look is invented here.
+                  // "page" is a promise that THIS row is the page you are on, so a
+                  // row that is merely the section containing it says "true"
+                  // instead. Both are drawn identically (shell.css matches the two
+                  // tokens), so the rail looks the same and stops telling a screen
+                  // reader you are on Runs when you are standing on Plan.
+                  //
+                  // BOTH READ THE IDENTITY `to`, NEVER THE RESOLVED HREF: Run's
+                  // `to` is always "/track", so `owner`/`current` answer "am I on
+                  // some track" the same way regardless of which one, and the
+                  // `<Link>` below is the only place the live id enters.
+                  const owner = railOwnerOf(pathname) === to;
+                  const current = owner ? (under(pathname, to) ? "page" : "true") : undefined;
+                  /*
+                   * THE THREE RESOLUTIONS, SPENT (P-109). "none" points at
+                   * Start rather than at nothing: `runDoor.trackId` is null
+                   * exactly there, and `/start` is where a person builds the
+                   * run this row currently has none of -- the same door
+                   * `RailNew` already opens, composer auto-focused on
+                   * arrival by that page's own effect.
+                   */
+                  const href = to;
+                  return (
+                    <Link
+                      key={to}
+                      to={href}
+                      className="sp-navrow"
+                      data-tier={tier}
+                      activeProps={{ "aria-current": "page" }}
+                      aria-current={current}
+                      /* The name carries the key, and that is not decoration. In
                        the narrow rail this string IS the tooltip (shell.css
                        draws it from attr(aria-label)), so collapsing the rail
                        stops costing you the hint instead of hiding it, and a
@@ -2174,31 +2089,31 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                        scheme the chord replaced. "g then t" rather than "g t":
                        spoken, the space is inaudible and the two would run
                        together into one word. */
-                        aria-label={[
-                          runStateWord ? `${label}, ${runStateWord}` : label,
-                          shortcut ? `shortcut ${NAV_CHORD_PREFIX} then ${shortcut}` : null,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")}
-                      >
-                        <Icon />
-                        <span className="sp-navlabel">{label}</span>
-                        {count && n > 0 ? (
-                          /* NO FLOOR CAVEAT HERE ANY LONGER (P-18a). The old
+                      aria-label={[
+                        label,
+                        shortcut ? `shortcut ${NAV_CHORD_PREFIX} then ${shortcut}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
+                    >
+                      <Icon />
+                      <span className="sp-navlabel">{label}</span>
+                      {count && n > 0 ? (
+                        /* NO FLOOR CAVEAT HERE ANY LONGER (P-18a). The old
                              "52+" existed because `getApprovalsQueue` bounded
                              ten families and could silently drop some of what
                              it counted; `gates` now reads open tracks with a
                              boundary call, one query with no families to
                              bound, so there is nothing left to flag as a
                              floor. See `listGatesOnTracks`'s own header. */
-                          <span
-                            className="sp-navcount"
-                            data-hot={count === "gates" ? "true" : "false"}
-                          >
-                            {n}
-                          </span>
-                        ) : null}
-                        {/* THE HINT, on the door it opens.
+                        <span
+                          className="sp-navcount"
+                          data-hot={count === "gates" ? "true" : "false"}
+                        >
+                          {n}
+                        </span>
+                      ) : null}
+                      {/* THE HINT, on the door it opens.
                         `sp-navcount` is worn for ONE property and it is not
                         colour: it is the only selector in shell.css that drops
                         a rail row's trailing text at 64px and under 900px, and
@@ -2207,25 +2122,24 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                         keycap's own look is the inline style; the class is the
                         responsive rule. aria-hidden because the accessible
                         name above already says it, in better words. */}
-                        {shortcut ? (
-                          /* THE PREFIX IS DRAWN, not assumed. A keycap reading a
-                           * bare "d" would be a promise the keyboard does not
-                           * keep: `d` alone does nothing, `g` then `d` opens
-                           * Discover. Showing both is also what teaches the chord
-                           * without a tour, the way Gmail's "g i" does. */
-                          <kbd
-                            className="sp-navcount sp-navkey"
-                            data-shortcut={`${NAV_CHORD_PREFIX} ${shortcut}`}
-                            aria-hidden="true"
-                            style={KEYCAP}
-                          >
-                            {NAV_CHORD_PREFIX} {shortcut}
-                          </kbd>
-                        ) : null}
-                      </Link>
-                    );
-                  },
-                )
+                      {shortcut ? (
+                        /* THE PREFIX IS DRAWN, not assumed. A keycap reading a
+                         * bare "d" would be a promise the keyboard does not
+                         * keep: `d` alone does nothing, `g` then `d` opens
+                         * Discover. Showing both is also what teaches the chord
+                         * without a tour, the way Gmail's "g i" does. */
+                        <kbd
+                          className="sp-navcount sp-navkey"
+                          data-shortcut={`${NAV_CHORD_PREFIX} ${shortcut}`}
+                          aria-hidden="true"
+                          style={KEYCAP}
+                        >
+                          {NAV_CHORD_PREFIX} {shortcut}
+                        </kbd>
+                      ) : null}
+                    </Link>
+                  );
+                })
               }
             </nav>
             {/* THE CREW, ON EVERY SURFACE (SPEC-MULTIPLAYER-PRESENCE 3.4).
@@ -2422,7 +2336,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           liveLead={liveLead ?? undefined}
           onLiveClick={strip?.mode === "tab" ? undefined : liveTarget.go}
           liveTitle={strip?.mode === "tab" ? undefined : liveTarget.title}
-          runDoor={runDoor}
         />
       </div>
     </RunStripProvider>

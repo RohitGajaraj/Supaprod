@@ -251,31 +251,22 @@ describe("the rail's ownership is derived, and unambiguous", () => {
    * Settings, always -- and this test's job changes from "prove Run can
    * vanish" to "prove it no longer can."
    */
-  it("Run draws unconditionally now, like every other primary row", () => {
-    // The old filter is gone from the source, not merely unused: a reader
-    // who re-adds `RAIL_PRIMARY.filter(...)` here would silently resurrect
-    // the exact defect P-109 closed.
-    expect(SRC).not.toContain('RAIL_PRIMARY.filter((r) => r.to !== "/track" || trackId)');
-    expect(SRC).toContain("RAIL_PRIMARY.map(");
-    // `runDoor` supplies the destination now; `SIGNED_IN_HOME` is the "none"
-    // fallback, so a workspace with no run at all still gets a real door.
-    expect(SRC).toContain("runDoor.trackId");
-    expect(SRC).toContain("? `/track/${runDoor.trackId}`");
-    expect(SRC).toContain(": SIGNED_IN_HOME");
-    // RAIL_DOORS (exported, real, RAIL.map(...) with no tier filter) is the
-    // fixed set the primary rail draws from: Start and Run, both present,
-    // neither conditional on anything the test file itself can observe.
+  it("draws every row unconditionally, in two tiers, Home first (Lane 1, 2026-09-08)", () => {
+    /*
+     * The Run row left the rail: a row that was a shortcut to one list item
+     * is not a place, and the home's rows and the header's live line already
+     * open the current run. A run screen is Home's territory now.
+     */
+    expect(SRC).toContain("RAIL.map(");
+    expect(SRC).toContain("data-tier={tier}");
     expect(RAIL_DOORS.map((r) => r.to)[0]).toBe(SIGNED_IN_HOME);
-    expect(RAIL_DOORS.map((r) => r.to)).toContain("/track");
+    expect(RAIL_DOORS.map((r) => r.to)).not.toContain("/track");
+    expect(RAIL_DOORS.map((r) => r.to)).not.toContain("/threads");
   });
 
-  it("Run's identity carries no ownership of its own beyond itself", () => {
-    // Run answers only for a live track (its own `to`, resolved above); it
-    // does not reach for anything else the way Start's `owns` list does.
-    // Asserted so a future edit that quietly grows Run's territory is caught
-    // here rather than discovered as a mislit row.
-    expect(railOwnerOf("/track")).toBe("/track");
-    expect(railOwnerOf("/track/abc123")).toBe("/track");
+  it("a run screen lights Home, which is where the run was opened from", () => {
+    expect(railOwnerOf("/track")).toBe(SIGNED_IN_HOME);
+    expect(railOwnerOf("/track/abc123")).toBe(SIGNED_IN_HOME);
   });
 
   it("what left the rail is reachable by URL, but owned by no row", () => {
@@ -291,10 +282,15 @@ describe("the rail's ownership is derived, and unambiguous", () => {
      * genuinely absorbed, and `/engine-room`, reached from Crew and spend
      * because "where is the machinery" is not a question a person arrives with.
      */
-    for (const path of ["/today", "/engine-room"]) {
+    /*
+     * AND CONVERSATIONS LEFT AGAIN (Lane 1, 2026-09-08): it is Ask's own
+     * history, reached from AskSwitcher and Find, so it is reachable and owned
+     * by no row, like /today and /engine-room.
+     */
+    for (const path of ["/today", "/engine-room", "/threads"]) {
       expect(railOwnerOf(path)).toBeNull();
     }
-    for (const path of ["/approvals", "/outcomes", "/threads"]) {
+    for (const path of ["/approvals", "/outcomes", "/crew", "/sync"]) {
       expect(railOwnerOf(path)).toBe(path);
     }
   });

@@ -141,20 +141,6 @@ export function SketchProblem(props: { size?: number; tone?: "brand" | "quiet" }
   );
 }
 
-/** A CALL ALREADY MADE, WRITTEN DOWN. Three strokes that read as a page: one
- *  edge, two lines of writing, the second shorter because the last line of
- *  anything written by hand is. */
-export function SketchSpec(props: { size?: number; tone?: "brand" | "quiet" }) {
-  return (
-    <Sketch {...props} spin={2}>
-      <path d="M6.9 3.2c-.6 5.9-.7 11.9-.3 17.8 3.9.4 7.9.3 11.8-.2.5-4.6.5-9.2.1-13.8" />
-      <path d="M13.9 2.9c1.7 1.2 3.3 2.6 4.7 4.1-1.6.3-3.2.4-4.8.2-.2-1.4-.2-2.9.1-4.3Z" />
-      <path d="M9.8 11.9c2.2-.4 4.4-.4 6.6-.1" />
-      <path d="M9.9 15.4c1.3-.3 2.7-.3 4-.1" />
-    </Sketch>
-  );
-}
-
 /** SOMETHING PEOPLE LOOK AT. A frame sketched in one pass that overshoots its
  *  own corner, with a stand under it and a stray mark inside where the change
  *  lands. */

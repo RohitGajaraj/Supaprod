@@ -104,40 +104,21 @@ export type NavItemDef = {
 export const PRIMARY_NAV: readonly NavItemDef[] = [
   {
     to: "/start",
-    label: "Start",
+    label: "Home",
     zone: "home",
-    tagline: "Hand work over, watch it run.",
+    tagline: "Say what should change, and watch it run.",
   },
   {
     to: "/approvals",
-    label: "Waiting",
+    label: "Inbox",
     zone: "home",
     tagline: "Everything that cannot move until you answer it.",
   },
   {
     to: "/arriving",
-    label: "Arriving",
+    label: "Findings",
     zone: "home",
-    tagline: "What the crew found since you last looked.",
-  },
-  {
-    /*
-     * RUN'S `to` IS AN IDENTITY, NOT A ROUTE, and that convention is unchanged:
-     * `/track` resolves to `/track/$trackId` for whichever run is live, and the
-     * row does not draw when none is. It answers "where am I", not "where can
-     * I go", which is why it keeps its old label rather than becoming a list.
-     *
-     * THE AUDIT ASKED FOR "Runs, the list" AND THERE IS NO SUCH ROUTE: only
-     * `/track/$trackId` exists. Start already draws every open run, so a Runs
-     * door would be a second door onto a surface Start owns -- the exact defect
-     * the header above this list spent a packet closing. Recorded rather than
-     * papered over: if a runs list is wanted it needs a route of its own first,
-     * and then this row splits in two.
-     */
-    to: "/track",
-    label: "Run",
-    zone: "home",
-    tagline: "The run you are standing in.",
+    tagline: "What came in from your sources since you last looked.",
   },
   {
     to: "/outcomes",
@@ -150,12 +131,6 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     label: "Team",
     zone: "home",
     tagline: "Who is working, what they cost, and their limits.",
-  },
-  {
-    to: "/threads",
-    label: "Conversations",
-    zone: "home",
-    tagline: "What you and the crew have said to each other.",
   },
   {
     to: "/sync",
@@ -197,21 +172,17 @@ export const NAV_CHORD_PREFIX = "g";
 export function navKeyHint(item: NavItemDef): string {
   switch (item.to) {
     case "/start":
-      return "t"; // sTart; `s` is Settings
+      return "h"; // Home
     case "/approvals":
-      return "w"; // Waiting
+      return "i"; // Inbox
     case "/arriving":
-      return "i"; // arrIving; `a` reads as a bare Approve elsewhere
-    case "/track":
-      return "r"; // Run's own first letter
+      return "f"; // Findings
     case "/outcomes":
       return "o"; // Outcomes
     case "/crew":
       return "m"; // teaM
-    case "/threads":
-      return "c"; // Conversations
     case "/sync":
-      return "u"; // soUrces; `s` is Settings, `c` is Conversations
+      return "u"; // soUrces; `s` is Settings
     case "/settings":
       return "s";
     case "/admin":

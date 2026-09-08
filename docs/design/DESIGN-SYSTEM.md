@@ -1,10 +1,29 @@
 # The design system
 
-> _Created: 2026-08-03 · Last updated: 2026-09-03_
+> _Created: 2026-08-03 · Last updated: 2026-09-08_
 
 > _Meridian. Contract since 2026-08-15 · This file replaced the 2026-08-03 contract, archived at [`archive/DESIGN-SYSTEM-2026-08-03-to-08-14.md`](./archive/DESIGN-SYSTEM-2026-08-03-to-08-14.md)._
 
 **Meridian is the design system. There is no other one, and there is no surface exempt from it.**
+
+## The founder's standing ruling, 2026-09-08: Meridian is the floor, not the ceiling
+
+**Meridian is the base standard every lane builds to. It is not a base system to inherit from.**
+It is not perfect and it is not complete. Whatever in it is breaking is bad and gets fixed. Whatever
+is missing gets built. Whatever is wrong gets modified or deleted. The bar is not "does Meridian
+allow this"; the bar is **what Google, Anthropic or OpenAI would ship if they were designing this
+product**: thought through from the user's journey first, premium on every surface, and unmistakably
+agentic, with the machine's work visible as it happens (which agent, on what, right now, with its own
+identity on screen). Whatever clears that bar gets landed in Meridian first, as tokens and
+components, so the whole product gets it.
+
+**For component reference beyond beautifui.dev, use 21st.dev**, porting mechanics from real source
+rather than from a screenshot, and the Mobbin MCP for patterns from well-built apps. **Every skill or
+file that names Tempo, Obsidian, Loom, Cadence, ink or `--sp-*` is retired and is ignored**,
+including `supaprod-design`, `supaprod-tempo`, `src/styles/ink.css`,
+`src/components/shell/primitives.tsx` and `primitives.css`. No lane builds on them, ever.
+
+_Relayed to Lanes 1, 2 and 3 on 2026-09-08 by Lane 1, and written here so it outlives the session._
 
 Its source and its reasoning live in [`../../src/styles/meridian.css`](../../src/styles/meridian.css). Read that header before you build anything: it carries the scene that decided the ground, the colour law, and why each token exists. This file is the contract; that file is the system.
 

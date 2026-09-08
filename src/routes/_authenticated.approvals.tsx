@@ -170,7 +170,7 @@ export const Route = createFileRoute("/_authenticated/approvals")({
   component: ApprovalsSurface,
   // P-61 (A-QUEUE.md): the tab title is the rail's own word for this door
   // (PRIMARY_NAV's "Waiting"), not the route's internal name.
-  head: () => ({ meta: [{ title: "Waiting · Supaprod" }] }),
+  head: () => ({ meta: [{ title: "Inbox · Supaprod" }] }),
 });
 
 const SETTLED_APPROVE: Record<ApprovalQueueItem["kindKey"], string> = {

@@ -1662,6 +1662,23 @@ button.sp-stage:hover {
  * only one; here a second word ("Manage", "System") would be a category name
  * invented to justify a line, and the line says the same thing for free.
  */
+/* THE SECOND TIER (Lane 1, 2026-09-08). The rail's rows are the person's four
+   questions, then the two things set up once. One gap and one soft rule
+   between the tiers, drawn on the first setup row so the list stays one list
+   for the keyboard and the guards. */
+.sp-navrow[data-tier="primary"] + .sp-navrow[data-tier="setup"] {
+  margin-top: 22px;
+  position: relative;
+}
+.sp-navrow[data-tier="primary"] + .sp-navrow[data-tier="setup"]::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: -11px;
+  height: 1px;
+  background: var(--mrd-line-soft);
+}
 .sp-navrule {
   display: block;
   height: 1px;

@@ -18,15 +18,6 @@ const base = {
   focusable: false as const,
 };
 
-/** Today: a brief, shortening. Three rules, each one shorter than the last. */
-export function IconToday({ className }: IconProps) {
-  return (
-    <svg {...base} className={className} strokeLinecap="round">
-      <path d="M4 6h16M4 12h11M4 18h7" />
-    </svg>
-  );
-}
-
 /** Work: the handover. A sentence leaves your side and keeps going. */
 export function IconWork({ className }: IconProps) {
   return (
@@ -64,18 +55,6 @@ export function IconBrain({ className }: IconProps) {
       <circle cx="17.5" cy="10" r="2.4" />
       <circle cx="9" cy="17.5" r="2.4" />
       <path d="M8.9 8.6 15.6 9M8.1 9.3l.5 5.9M15.9 12l-5.2 4.1" />
-    </svg>
-  );
-}
-
-/** Engine room: three lines with a node on each. The machinery, on demand. */
-export function IconEngine({ className }: IconProps) {
-  return (
-    <svg {...base} className={className} strokeLinecap="round">
-      <path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h13M21 17h-1" />
-      <circle cx="15" cy="7" r="2" />
-      <circle cx="9" cy="12" r="2" />
-      <circle cx="19" cy="17" r="2" />
     </svg>
   );
 }

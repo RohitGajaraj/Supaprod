@@ -25,15 +25,15 @@ describe("nav-model - the three primary destinations", () => {
      * they are the route the work takes, not places a person goes) and the
      * engine room is reached from Crew and spend rather than beside it.
      */
-    expect(PRIMARY_NAV.length).toBe(9);
+    /* SEVEN SINCE 2026-09-08 (Lane 1): four questions, two set-up rows, and
+       Settings in the foot. Run and Conversations left; see AppFrame's RAIL. */
+    expect(PRIMARY_NAV.length).toBe(7);
     expect(PRIMARY_NAV.map((n) => n.label)).toEqual([
-      "Start",
-      "Waiting",
-      "Arriving",
-      "Run",
+      "Home",
+      "Inbox",
+      "Findings",
       "Outcomes",
       "Team",
-      "Conversations",
       "Sources",
       "Settings",
     ]);
@@ -95,21 +95,19 @@ describe("nav-model - the three primary destinations", () => {
     expect(CANONICAL_PATHS as readonly string[]).not.toContain("/track");
   });
 
-  it("Run's identity is a real route prefix, not a key pointing at nothing", () => {
+  it("every door is a real route file, not a key pointing at nothing", () => {
     const routes = join(import.meta.dir, "..", "routes");
-    expect(PRIMARY_NAV.map((n) => n.to)).toContain("/track");
+    expect(PRIMARY_NAV.map((n) => n.to)).not.toContain("/track");
     expect(existsSync(join(routes, "_authenticated.track.$trackId.tsx"))).toBe(true);
   });
 
   it("navKeyHint is the second key of the chord, one letter per destination", () => {
     expect(PRIMARY_NAV.map((n) => navKeyHint(n))).toEqual([
-      "t", // sTart; `s` is Settings
-      "w", // Waiting
-      "i", // arrIving
-      "r", // Run's own first letter, free
+      "h", // Home
+      "i", // Inbox
+      "f", // Findings
       "o", // Outcomes
       "m", // teaM
-      "c", // Conversations
       "u", // soUrces
       "s", // Settings
     ]);

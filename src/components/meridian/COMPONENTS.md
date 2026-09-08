@@ -4,13 +4,13 @@
 
 **`ls` this directory and you will not find `Block.tsx` or `Pre.tsx`, and you will
 conclude those components do not exist. They do.** `surface-parts.tsx` alone carries
-31 exports. Search this table before
+35 exports. Search this table before
 filing a `meridian-gap` request.
 
 There is deliberately **no `index.ts` barrel** -- it would break the adoption metric,
 which matches on the deep import path. Import from the file named here.
 
-## Components (110)
+## Components (130)
 
 | Export | File | |
 | --- | --- | --- |
@@ -20,14 +20,17 @@ which matches on the deep import path. Import from the file named here.
 | `AgentCards` | `AgentCards.tsx` | function |
 | `AgentInbox` | `AgentInbox.tsx` | function |
 | `AgentMark` | `marks.tsx` | function |
+| `AgentPresence` | `AgentPresence.tsx` | function |
 | `AgentPulse` | `AgentPulse.tsx` | function |
 | `AiPulse` | `AiPulse.tsx` | function |
 | `ApprovalCard` | `ApprovalCard.tsx` | function |
 | `Approve` | `surface-parts.tsx` | function |
+| `Ask` | `Ask.tsx` | function |
 | `BulkBar` | `surface-parts.tsx` | function |
 | `Cell` | `surface-parts.tsx` | function |
 | `Checkbox` | `forms.tsx` | function |
 | `Chevron` | `surface-parts.tsx` | function |
+| `Choice` | `Choice.tsx` | function |
 | `Choices` | `forms.tsx` | function |
 | `CodeBlock` | `CodeBlock.tsx` | function |
 | `Composer` | `onramp-parts.tsx` | function |
@@ -47,11 +50,13 @@ which matches on the deep import path. Import from the file named here.
 | `FilterTable` | `FilterTable.tsx` | function |
 | `FineTuneCard` | `FineTuneCard.tsx` | function |
 | `Flowchart` | `Flowchart.tsx` | function |
-| `Gate` | `Gate.tsx` | function |
+| `FoldingRow` | `FoldingRow.tsx` | function |
+| `GotYou` | `got-you.tsx` | function |
 | `GraphSlider` | `graph-slider.tsx` | function |
 | `Grid` | `surface-parts.tsx` | function |
 | `Input` | `forms.tsx` | function |
 | `InsightCards` | `InsightCards.tsx` | function |
+| `Journey` | `Journey.tsx` | function |
 | `Line` | `rows.tsx` | function |
 | `LoadingState` | `LoadingState.tsx` | function |
 | `MarkStack` | `marks.tsx` | function |
@@ -66,15 +71,19 @@ which matches on the deep import path. Import from the file named here.
 | `PageReadFailed` | `boundary-states.tsx` | function |
 | `PageRouteMissing` | `boundary-states.tsx` | function |
 | `PairMark` | `marks.tsx` | function |
+| `Panel` | `surface-parts.tsx` | function |
+| `PanelPair` | `surface-parts.tsx` | function |
 | `PickCard` | `onramp-parts.tsx` | function |
 | `Picker` | `surface-parts.tsx` | function |
 | `PlanCard` | `PlanCard.tsx` | function |
 | `PlanGate` | `PlanGate.tsx` | function |
 | `Pre` | `surface-parts.tsx` | function |
+| `PresenceDot` | `AgentPresence.tsx` | function |
 | `PromotionCard` | `PromotionCard.tsx` | function |
 | `Prose` | `Prose.tsx` | function |
 | `ProviderMark` | `source-marks.tsx` | function |
 | `ProviderName` | `source-marks.tsx` | function |
+| `Quiet` | `Quiet.tsx` | function |
 | `ReadFailed` | `surface-parts.tsx` | function |
 | `ReadFailedLine` | `surface-parts.tsx` | function |
 | `Reading` | `surface-parts.tsx` | function |
@@ -86,6 +95,8 @@ which matches on the deep import path. Import from the file named here.
 | `RecordTag` | `RecordsTable.tsx` | function |
 | `Refused` | `surface-parts.tsx` | function |
 | `Region` | `surface-parts.tsx` | function |
+| `ResultsPopover` | `results-popover.tsx` | function |
+| `Reveal` | `Reveal.tsx` | function |
 | `Row` | `rows.tsx` | function |
 | `RunArtifact` | `run-rows.tsx` | function |
 | `RunClock` | `run-rows.tsx` | function |
@@ -100,14 +111,22 @@ which matches on the deep import path. Import from the file named here.
 | `RunSubject` | `run-rows.tsx` | function |
 | `RunTimeline` | `RunTimeline.tsx` | function |
 | `RunTook` | `run-rows.tsx` | function |
+| `SampleBanner` | `SampleBanner.tsx` | function |
+| `SampleTag` | `marks.tsx` | function |
 | `Search` | `Search.tsx` | function |
+| `SeatSays` | `SeatSays.tsx` | function |
+| `SectionHead` | `surface-parts.tsx` | function |
 | `SelectionActions` | `SelectionActions.tsx` | function |
 | `ShellReadFailed` | `boundary-states.tsx` | function |
 | `ShellRouteMissing` | `boundary-states.tsx` | function |
 | `SidebarNav` | `SidebarNav.tsx` | function |
+| `SketchBroken` | `sketch-glyphs.tsx` | function |
+| `SketchProblem` | `sketch-glyphs.tsx` | function |
+| `SketchScreen` | `sketch-glyphs.tsx` | function |
 | `SourceMark` | `source-marks.tsx` | function |
 | `Spend` | `Spend.tsx` | function |
 | `StalledWork` | `StalledWork.tsx` | function |
+| `Stat` | `surface-parts.tsx` | function |
 | `StationGlyph` | `station-glyphs.tsx` | function |
 | `StatusChip` | `StatusChip.tsx` | function |
 | `StepMeter` | `progress.tsx` | function |
@@ -121,11 +140,12 @@ which matches on the deep import path. Import from the file named here.
 | `ToolStream` | `ToolStream.tsx` | function |
 | `UnderMark` | `source-marks.tsx` | function |
 | `Value` | `surface-parts.tsx` | function |
+| `Verdict` | `verdict.tsx` | function |
 | `Who` | `rows.tsx` | function |
 | `WorkGlyph` | `work-glyphs.tsx` | function |
 | `YouMark` | `marks.tsx` | function |
 
-## Types, constants and helpers (117)
+## Types, constants and helpers (151)
 
 | Export | File | Kind |
 | --- | --- | --- |
@@ -137,13 +157,18 @@ which matches on the deep import path. Import from the file named here.
 | `ApprovalAnswer` | `ApprovalCard.tsx` | type |
 | `ApprovalAnswers` | `ApprovalCard.tsx` | type |
 | `ApprovalQuestion` | `ApprovalCard.tsx` | type |
+| `AskDefault` | `Ask.tsx` | type |
+| `askQuestion` | `question.ts` | function |
+| `AskQuestion` | `question.ts` | type |
 | `Autonomy` | `PlanGate.tsx` | type |
 | `BRAND_GLYPHS` | `brand-glyphs.gen.ts` | const |
 | `BrandGlyph` | `brand-glyphs.gen.ts` | type |
 | `CellTone` | `surface-parts.tsx` | type |
+| `ChoiceOption` | `Choice.tsx` | type |
 | `ChoiceOption` | `forms.tsx` | type |
 | `CodeToken` | `CodeBlock.tsx` | type |
 | `CodeTone` | `CodeBlock.tsx` | type |
+| `columnsAt` | `the-route-fits-the-pane.ts` | function |
 | `COMPOSER_MAX_LINES` | `composer-height.ts` | const |
 | `composerMaxHeight` | `composer-height.ts` | function |
 | `ContextCardsProps` | `ContextCards.tsx` | type |
@@ -154,6 +179,11 @@ which matches on the deep import path. Import from the file named here.
 | `CtxHeadProps` | `ContextColumn.tsx` | interface |
 | `CtxRowProps` | `ContextColumn.tsx` | interface |
 | `edgeMask` | `SidebarNav.tsx` | function |
+| `EMAIL_BODY` | `email-palette.ts` | const |
+| `EMAIL_INK` | `email-palette.ts` | const |
+| `EMAIL_LINE` | `email-palette.ts` | const |
+| `EMAIL_MUTE` | `email-palette.ts` | const |
+| `EMAIL_PALETTE_PROVENANCE` | `email-palette.ts` | const |
 | `Facet` | `FilterTable.tsx` | type |
 | `FilterTableProps` | `FilterTable.tsx` | type |
 | `FineTuneField` | `FineTuneCard.tsx` | type |
@@ -165,6 +195,7 @@ which matches on the deep import path. Import from the file named here.
 | `GLYPH_FOR_ARTIFACT_KIND` | `work-glyphs.tsx` | const |
 | `GLYPH_FOR_STATION` | `station-glyphs.tsx` | const |
 | `glyphForArtifactKind` | `work-glyphs.tsx` | function |
+| `GotYouChip` | `got-you.tsx` | type |
 | `graphPoints` | `graph-slider.tsx` | function |
 | `GraphSliderProps` | `graph-slider.tsx` | interface |
 | `graphX` | `graph-slider.tsx` | function |
@@ -175,16 +206,27 @@ which matches on the deep import path. Import from the file named here.
 | `indexOfExtreme` | `graph-slider.tsx` | function |
 | `Insight` | `InsightCards.tsx` | type |
 | `InsightSeries` | `InsightCards.tsx` | type |
+| `isOverdue` | `stopped-for.ts` | function |
 | `isRailKey` | `SidebarNav.tsx` | function |
+| `JOURNEY_ORDER` | `Journey.tsx` | const |
+| `JOURNEY_PRODUCES` | `Journey.tsx` | const |
+| `JOURNEY_STATE_WORD` | `Journey.tsx` | const |
+| `JourneyKey` | `Journey.tsx` | type |
+| `JourneyState` | `Journey.tsx` | type |
+| `JourneyStation` | `Journey.tsx` | type |
 | `LoadingVariant` | `LoadingState.tsx` | type |
 | `MarkState` | `marks.tsx` | type |
 | `MarkTone` | `source-marks.tsx` | type |
 | `measureSelectionRects` | `SelectionActions.tsx` | function |
+| `MIN_STOP_PX` | `the-route-fits-the-pane.ts` | const |
 | `nearestIndex` | `graph-slider.tsx` | function |
+| `overflowsAt` | `the-route-fits-the-pane.ts` | function |
 | `placeSelectionBar` | `SelectionActions.tsx` | function |
 | `PlanGateDecision` | `PlanGate.tsx` | type |
 | `PlanStep` | `PlanCard.tsx` | type |
 | `PlanStepState` | `PlanCard.tsx` | type |
+| `PRESENCE_COLOURS` | `AgentPresence.tsx` | const |
+| `presenceColour` | `AgentPresence.tsx` | function |
 | `PromotionEvidence` | `PromotionCard.tsx` | type |
 | `PromotionOutcome` | `PromotionCard.tsx` | type |
 | `RailIconKind` | `SidebarNav.tsx` | type |
@@ -194,6 +236,11 @@ which matches on the deep import path. Import from the file named here.
 | `RecordColumn` | `RecordsTable.tsx` | type |
 | `RecordsTableProps` | `RecordsTable.tsx` | type |
 | `RecordTone` | `RecordsTable.tsx` | type |
+| `RESULTS_MIN_WIDTH` | `results-popover.tsx` | const |
+| `ROUTE_GRID_TEMPLATE` | `the-route-fits-the-pane.ts` | const |
+| `ROUTE_STATIONS` | `the-route-fits-the-pane.ts` | const |
+| `RowMark` | `FoldingRow.tsx` | type |
+| `rowsAt` | `the-route-fits-the-pane.ts` | function |
 | `RUN_GRID` | `run-rows.tsx` | const |
 | `RUN_LINE` | `run-rows.tsx` | const |
 | `RUN_ROW` | `run-rows.tsx` | const |
@@ -227,6 +274,8 @@ which matches on the deep import path. Import from the file named here.
 | `StepMeterState` | `progress.tsx` | type |
 | `StepMeterStep` | `progress.tsx` | type |
 | `stepRail` | `SidebarNav.tsx` | function |
+| `STOP_GAP_PX` | `the-route-fits-the-pane.ts` | const |
+| `stoppedFor` | `stopped-for.ts` | function |
 | `TabDef` | `Tabs.tsx` | type |
 | `Task` | `TaskRows.tsx` | type |
 | `TASK_LABEL` | `TaskRows.tsx` | const |
@@ -244,6 +293,11 @@ which matches on the deep import path. Import from the file named here.
 | `ToolStreamState` | `ToolStream.tsx` | type |
 | `TrendInsight` | `InsightCards.tsx` | type |
 | `useElapsed` | `use-elapsed.ts` | function |
+| `VerdictCheck` | `verdict.tsx` | type |
+| `VerdictFinding` | `verdict.tsx` | type |
+| `VerdictTone` | `verdict.tsx` | type |
+| `waitingSince` | `stopped-for.ts` | function |
+| `wellFormedQuestion` | `question.ts` | function |
 | `WORK_GLYPHS` | `work-glyphs.tsx` | const |
 | `WorkGlyphKind` | `work-glyphs.tsx` | type |
 

@@ -41,7 +41,7 @@ describe("derivation law - the shortcut range", () => {
      * number: a letter each, no digit, no door without a key, no letter twice.
      * A hardcoded count here only records the day it was written.
      */
-    expect(n).toBe(9);
+    expect(n).toBe(7);
     expect(PRIMARY_NAV[n]).toBeUndefined();
 
     const hints = PRIMARY_NAV.map((d) => navKeyHint(d));
@@ -58,35 +58,21 @@ describe("derivation law - the shortcut range", () => {
       "/start",
       "/approvals",
       "/arriving",
-      "/track",
       "/outcomes",
       "/crew",
-      "/threads",
       "/sync",
       "/settings",
     ]);
     expect(PRIMARY_NAV.map((d) => d.label)).toEqual([
-      "Start",
-      "Waiting",
-      "Arriving",
-      "Run",
+      "Home",
+      "Inbox",
+      "Findings",
       "Outcomes",
       "Team",
-      "Conversations",
       "Sources",
       "Settings",
     ]);
-    expect(PRIMARY_NAV.map((d) => navKeyHint(d))).toEqual([
-      "t",
-      "w",
-      "i",
-      "r",
-      "o",
-      "m",
-      "c",
-      "u",
-      "s",
-    ]);
+    expect(PRIMARY_NAV.map((d) => navKeyHint(d))).toEqual(["h", "i", "f", "o", "m", "u", "s"]);
     expect(NAV_CHORD_PREFIX).toBe("g");
   });
 });
