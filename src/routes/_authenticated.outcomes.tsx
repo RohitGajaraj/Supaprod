@@ -1048,14 +1048,12 @@ export function guidanceLines(args: {
    * THE ONE POSITIVE FACT LEADS (Lane 1's walk, 2026-09-08). On a workspace
    * with 74 of 91 lessons fed back, this region opened with three "No ...
    * yet" lines and the one thing the record had actually done sat fourth.
-   * What has happened comes first; what has not is one line, the first of
-   * them, because three admissions in a row are a wall and one is a fact.
+   * What has happened comes first; what has not follows, each admission
+   * still naming the act that ends it (the guards on this region hold that).
    */
   const isNotYet = (g: (typeof out)[number]) =>
     typeof g.lead === "string" && /^(No |None )/.test(g.lead);
-  const done = out.filter((g) => !isNotYet(g));
-  const notYet = out.filter(isNotYet);
-  return [...done, ...notYet.slice(0, 1)];
+  return [...out.filter((g) => !isNotYet(g)), ...out.filter(isNotYet)];
 }
 
 /**

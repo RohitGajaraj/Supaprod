@@ -140,6 +140,7 @@ import * as React from "react";
 import {
   AGENT_STATION_ORDER,
   AGENT_STATIONS,
+  SPECIALIST_CATALOG,
   agentBlurb,
   agentDisplayName,
   castEntries,
@@ -896,7 +897,10 @@ function MemberView({ slug, onBack }: { slug: string; onBack: () => void }) {
     return (
       <Surface>
         <div className="flex flex-col gap-mrd-7">
-          <PageHeading title={agentDisplayName(slug)} />
+          <PageHeading
+            station={SPECIALIST_CATALOG.find((e) => e.slug === slug)?.station}
+            title={agentDisplayName(slug)}
+          />
           <Reading>Reading what this one is allowed to do.</Reading>
         </div>
       </Surface>
@@ -935,6 +939,9 @@ function MemberView({ slug, onBack }: { slug: string; onBack: () => void }) {
     <Surface context={<MemberRecord member={m} />}>
       <div className="flex flex-col gap-mrd-7">
         <PageHeading
+          /* The seat's station as the eyebrow, the same glyph the road uses,
+             so a teammate's page stays on the road a person saw on the home. */
+          station={SPECIALIST_CATALOG.find((e) => e.slug === slug)?.station}
           // The headline is the boundary in force, which is the one thing this
           // page exists to change. It is never stated for an agent that has no
           // row, because that one is not running under any boundary at all and
