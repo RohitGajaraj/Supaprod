@@ -167,7 +167,16 @@ export function PickCard({
           {lead}
         </span>
         {sub ? (
-          <span className="mt-mrd-2 block text-mrd-base leading-mrd-snug text-mrd-mute">{sub}</span>
+          /* THREE LINES, THEN THE TOOLTIP. A ranked bet's problem statement
+             runs to a paragraph (seen live: one card three times the height of
+             its neighbours). A card is a door, and the whole statement waits
+             one press away on the run it starts. */
+          <span
+            title={sub}
+            className="mt-mrd-2 line-clamp-3 block text-mrd-base leading-mrd-snug text-mrd-mute"
+          >
+            {sub}
+          </span>
         ) : null}
       </span>
     </button>
