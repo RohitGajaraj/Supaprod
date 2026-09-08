@@ -600,6 +600,14 @@ export function shortHoldLine(r: StartRowInput): string | null {
       return "The workspace is out of credits, so nothing ran.";
     case "tools-refused":
       return `${s} needs a tool it is not allowed to use.`;
+    case "needs-a-waived-station":
+    case "station-cannot-finish":
+      /* Seen live on Helio (2026-09-08): "Build cannot proceed without a
+         spec or the tasks to build from, and Plan is waived on this route so
+         nothing is going to file it. Put Plan back on the route, or file it
+         yourself." The driver names the skipped step; the row keeps it as
+         the detail and says the way out. */
+      return `${s} needs a step this route skips. Put it back, or file it yourself.`;
     case "carried-on-your-sentence":
       return null;
     default:

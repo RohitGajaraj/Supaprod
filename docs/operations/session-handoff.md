@@ -1119,3 +1119,8 @@ pass lands within the hour and touches track.functions.ts: rebase before the nex
 decide it once, on purpose, in a pure function with the priority written down. And walk the
 live site after every publish: three of the eleven fixes today were only findable there (the
 calendar wait falling to amber, a clipped sentence, twelve identical rows).
+## Lane 1 · 11:52 IST 09-08 · seen on the founder's workspace, and corrected
+
+- Live on Helio Labs / Prism at 11:49 IST: the new home with the hero, the road (Discover 1, Build 2, Ship 2, Learn 4), three ranked bets, "Start a run", the Inbox row's count. Two copy defects seen there and fixed in `9bb4eb264`: the hero printed the raw queue total ("53 calls are waiting for you", the number P-18a warned nobody can find) and now names the largest family the way the Inbox page does ("20 design gates and 33 other calls are waiting for you."); the composer's placeholder glued the product's goal onto a preposition and now reads "Help Prism get 40% of active users to a funded savings goal within 30 days of signup."
+- Lane 2 fixed the two brain-guidance guards their Outcomes rework had broken (`cced15d0e`) and put the seat's station eyebrow on Team member pages.
+- A push raced Lane 2's and `git pull --rebase origin main` refused ("Cannot rebase onto multiple branches"); `git fetch origin main && git rebase origin/main && git push origin HEAD:main` is the form that works in this checkout.
