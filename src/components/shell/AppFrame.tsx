@@ -134,7 +134,7 @@ import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { REVIEW_QUEUE_SEARCH } from "@/components/shell/post-auth-home";
 import { pollMs } from "@/components/shell/poll";
 import * as React from "react";
-import { missionsKey } from "@/lib/query-keys";
+import { missionsKey, runningNowKey } from "@/lib/query-keys";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { sessionEndedMessage } from "@/lib/error-copy";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
@@ -154,6 +154,7 @@ import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
 import { listCrew } from "@/lib/crew.functions";
 import { listMovingTracks, listTracks, listGatesOnTracks } from "@/lib/spine/track.functions";
+import { listRunningNow } from "@/lib/spine/track.functions";
 import { initialsFrom } from "@/lib/initials";
 import { useTheme } from "@/hooks/use-theme";
 import { FOOTER_NAV, PRIMARY_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
@@ -980,6 +981,32 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    * approximating it a second way.
    */
   const fetchMovingTracks = useServerFn(listMovingTracks);
+  /*
+   * WHAT EACH SEAT IS DOING RIGHT NOW (Lane 1 with Lane 3, 2026-09-08). The
+   * one key every surface reads live work under; the home's strip and the
+   * rail's crew share this cache entry, and `useRunningNowPush` invalidates
+   * it on every agent_runs change. Read here only for the VERB: the lead
+   * sentence names who is working, and "Scribe is writing the spec" is what
+   * a person can act on where "Scribe is working" is not.
+   */
+  const fetchRunningNow = useServerFn(listRunningNow);
+  const runningNow = useQuery({
+    queryKey: runningNowKey(wsKey),
+    queryFn: () => fetchRunningNow({ data: wsArg }),
+    staleTime: 10_000,
+    refetchInterval: (query) =>
+      livePoll((query.state.data ?? []).length > 0, query.state.fetchFailureCount),
+    placeholderData: keepPreviousData,
+  });
+  const verbFor = React.useCallback(
+    (slug: string | null): string | null => {
+      if (!slug) return null;
+      const seat = (runningNow.data ?? []).find((r) => r.slug === slug && r.now?.verb);
+      return seat?.now?.verb ?? null;
+    },
+    [runningNow.data],
+  );
+
   const moving = useQuery({
     queryKey: ["shell", "moving-tracks", wsKey],
     queryFn: () => fetchMovingTracks({ data: wsArg }),
@@ -1312,7 +1339,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       // a station the strip is already saying it two rows down, and this file's
       // own rule bans the third statement of one fact inside 100 pixels.
       const at = !strip && workingStation ? ` at ${STAGE_LABEL[workingStation]}` : "";
-      if (workers.length === 1) return `${agentDisplayName(workers[0].slug)} is working${at}`;
+      if (workers.length === 1) {
+        const verb = verbFor(workers[0].slug);
+        return `${agentDisplayName(workers[0].slug)} is ${verb ?? "working"}${at}`;
+      }
       return `${workers.length} agents are working${at}`;
     }
     /* AN AGENT IS ALWAYS THE ACTOR. The count is only ever of what we can count.
@@ -1370,6 +1400,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     unnamedRuns,
     workingStation,
     lastDone,
+    verbFor,
     strip,
     movingRuns,
   ]);
