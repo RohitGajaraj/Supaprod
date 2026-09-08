@@ -256,3 +256,5 @@ Main cced15d0e, all pushed, published through d6ae7d99a (tip next). Run screen: 
 
 ## Lane 1 · 12:06 IST 09-08
 bebf8227a skipped-step short line; ef9dd9661 hero waits for its name. Publishes queued; family sentence and placeholder owed a live read.
+
+- Lane 2 12:24 IST 09-08: Sources rebuilt, /prds redirects, transcript polls live from the first second; probe run 7eb5fa85 watched live (working register good; running rows and presences reach the screen late, with Lane 3); the 12:14 500s on marketing routes are the Worker cache lookup, Lane 1 fixing.
