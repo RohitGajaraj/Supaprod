@@ -111,9 +111,30 @@ export type PaddleNormalizedAction =
  * custom_data.kind !== 'topup' so it is ignored (the grant path is
  * subscription-driven, mirroring the Stripe rail's design).
  */
-export function mapPaddleEvent(event: { event_type?: string; data?: any }): PaddleNormalizedAction {
+/**
+ * The fields this mapper reads off a Paddle event's `data`, typed loosely on
+ * purpose: the HMAC proves the payload came from Paddle, not that it has any
+ * particular shape, so every field is narrowed where it is read.
+ */
+export type PaddleEventData = {
+  status?: unknown;
+  custom_data?: { userId?: unknown; kind?: unknown; lookup_key?: unknown } | null;
+  id?: unknown;
+  customer_id?: unknown;
+  items?: unknown;
+  current_billing_period?: { ends_at?: unknown } | null;
+  scheduled_change?: { action?: unknown } | null;
+  details?: { totals?: { total?: unknown } | null } | null;
+  currency_code?: unknown;
+  [key: string]: unknown;
+};
+
+export function mapPaddleEvent(event: {
+  event_type?: string;
+  data?: PaddleEventData | null;
+}): PaddleNormalizedAction {
   const type = event.event_type ?? "unknown";
-  const data = event.data ?? {};
+  const data: PaddleEventData = event.data ?? {};
 
   if (
     type === "subscription.created" ||

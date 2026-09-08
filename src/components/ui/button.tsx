@@ -139,7 +139,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     // Map legacy obsidian variant names to Tempo grammar, with deprecation warnings
-    const variant = mapLegacyVariant(rawVariant as any);
+    const variant = mapLegacyVariant(rawVariant as string | undefined);
 
     if (import.meta.env.DEV && svgOnly && !props["aria-label"]) {
       console.warn(

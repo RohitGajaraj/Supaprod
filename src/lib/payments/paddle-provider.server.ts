@@ -25,7 +25,7 @@ import {
   grantForSubscription,
   type PaymentsEnv,
 } from "./grant-core.server";
-import { mapPaddleEvent, parsePaddleSignature } from "./paddle-events";
+import { mapPaddleEvent, parsePaddleSignature, type PaddleEventData } from "./paddle-events";
 
 function apiBase(env: PaymentsEnv): string {
   return env === "sandbox" ? "https://sandbox-api.paddle.com" : "https://api.paddle.com";
@@ -131,7 +131,7 @@ async function paddleVerifyWebhook(req: Request, _env: PaymentsEnv): Promise<unk
 }
 
 async function paddleGrantFromEvent(event: unknown, env: PaymentsEnv): Promise<void> {
-  const action = mapPaddleEvent(event as { event_type?: string; data?: unknown });
+  const action = mapPaddleEvent(event as { event_type?: string; data?: PaddleEventData | null });
 
   if (action.kind === "subscription") {
     if (!action.userId) {

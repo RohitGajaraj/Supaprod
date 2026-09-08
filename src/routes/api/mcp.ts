@@ -3,7 +3,7 @@ import { checkRateLimit } from "@/lib/mcp-auth.server";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
 import { createFileRoute } from "@tanstack/react-router";
 import crypto from "crypto";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   searchSignals,
   searchOpportunities,
@@ -95,7 +95,7 @@ interface TokenValidationResult {
  * Returns token_id, workspace_id, and rate limit if valid.
  */
 async function validateToken(
-  supabase: any,
+  supabase: SupabaseClient,
   slug: string,
   secretHash: string,
 ): Promise<TokenValidationResult> {
@@ -173,7 +173,7 @@ async function validateToken(
  * Dispatch an MCP tool call based on the method name.
  */
 async function dispatchTool(
-  supabase: any,
+  supabase: SupabaseClient,
   method: string,
   workspace_id: string,
   params: Record<string, unknown>,
@@ -311,7 +311,7 @@ async function dispatchTool(
  * Resolve the global outward-write gate (`interop_write_enabled()`). Fails CLOSED:
  * any error returns false, so a DB hiccup can never accidentally open writes.
  */
-async function resolveWriteEnabled(supabase: any): Promise<boolean> {
+async function resolveWriteEnabled(supabase: SupabaseClient): Promise<boolean> {
   try {
     const { data, error } = await supabase.rpc("interop_write_enabled");
     if (error) return false;
@@ -346,7 +346,7 @@ async function resolveWriteEnabled(supabase: any): Promise<boolean> {
  * retries after a genuine failure genuinely retries.
  */
 async function dispatchWriteTool(
-  supabase: any,
+  supabase: SupabaseClient,
   toolName: string,
   workspace_id: string,
   user_id: string,
@@ -384,7 +384,7 @@ async function dispatchWriteTool(
 }
 
 async function runWriteTool(
-  supabase: any,
+  supabase: SupabaseClient,
   toolName: string,
   workspace_id: string,
   user_id: string,
@@ -441,12 +441,12 @@ export const Route = createFileRoute("/api/mcp")({
 
         try {
           // 1. Parse the MCP request
-          const body = await request.json().catch(() => ({}));
+          const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
           mcpReq = {
-            jsonrpc: (body as any).jsonrpc || "2.0",
-            method: (body as any).method || "unknown",
-            params: (body as any).params,
-            id: (body as any).id,
+            jsonrpc: typeof body.jsonrpc === "string" && body.jsonrpc ? body.jsonrpc : "2.0",
+            method: typeof body.method === "string" && body.method ? body.method : "unknown",
+            params: body.params as MCPRequest["params"],
+            id: body.id as MCPRequest["id"],
           };
 
           // 1b. Classify the request (pure; no auth/DB). MCP notifications
@@ -515,7 +515,7 @@ export const Route = createFileRoute("/api/mcp")({
             process.env.SUPABASE_URL || "",
             process.env.SUPABASE_SERVICE_ROLE_KEY || "",
             { auth: { persistSession: false } },
-          ) as any;
+          );
 
           const validation = await validateToken(supabase, slug, secretHash);
           if (!validation.valid) {
@@ -901,7 +901,7 @@ export const Route = createFileRoute("/api/mcp")({
               process.env.SUPABASE_URL || "",
               process.env.SUPABASE_SERVICE_ROLE_KEY || "",
               { auth: { persistSession: false } },
-            ) as any;
+            );
             await logMCPCall(
               {
                 token_id,

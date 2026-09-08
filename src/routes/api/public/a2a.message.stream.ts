@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@supabase/supabase-js";
 import {
   parseBearerToken,
@@ -57,7 +58,7 @@ const SSE_HEADERS = {
 } as const;
 
 async function dispatchSkill(
-  supabase: any,
+  supabase: SupabaseClient,
   skillId: string,
   workspace_id: string,
   user_id: string,

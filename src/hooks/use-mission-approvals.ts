@@ -20,26 +20,28 @@ export interface MissionApprovalRow {
 
 const getMissionApprovalsServerFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context, data }: { context: any; data: { missionId: string } }) => {
-    const { supabase } = context;
-    const db = supabase as unknown as SupabaseClient;
+  .handler(
+    async ({ context, data }: { context: { supabase: unknown }; data: { missionId: string } }) => {
+      const { supabase } = context;
+      const db = supabase as unknown as SupabaseClient;
 
-    // Pre-migration tolerant: try with mission_id column first.
-    const { data: rows, error } = await db
-      .from("agent_approvals")
-      .select("id,agent_slug,tool_name,rationale,status,expires_at")
-      .eq("mission_id", data.missionId)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
+      // Pre-migration tolerant: try with mission_id column first.
+      const { data: rows, error } = await db
+        .from("agent_approvals")
+        .select("id,agent_slug,tool_name,rationale,status,expires_at")
+        .eq("mission_id", data.missionId)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
 
-    // If mission_id doesn't exist, return empty (pre-migration).
-    if (error && /mission_id/.test(error.message)) {
-      return { approvals: [] as MissionApprovalRow[] };
-    }
-    if (error) throw new Error(error.message);
+      // If mission_id doesn't exist, return empty (pre-migration).
+      if (error && /mission_id/.test(error.message)) {
+        return { approvals: [] as MissionApprovalRow[] };
+      }
+      if (error) throw new Error(error.message);
 
-    return { approvals: (rows ?? []) as MissionApprovalRow[] };
-  });
+      return { approvals: (rows ?? []) as MissionApprovalRow[] };
+    },
+  );
 
 export function useMissionApprovals(missionId: string) {
   const fGetApprovals = useServerFn(getMissionApprovalsServerFn);
@@ -60,34 +62,36 @@ export function useMissionApprovals(missionId: string) {
  */
 const getSpecApprovalsServerFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context, data }: { context: any; data: { prdId: string } }) => {
-    const { supabase } = context;
-    const db = supabase as unknown as SupabaseClient;
+  .handler(
+    async ({ context, data }: { context: { supabase: unknown }; data: { prdId: string } }) => {
+      const { supabase } = context;
+      const db = supabase as unknown as SupabaseClient;
 
-    const { data: changesetRows, error: csError } = await db
-      .from("studio_changesets")
-      .select("mission_id")
-      .eq("prd_id", data.prdId)
-      .not("mission_id", "is", null);
-    if (csError) throw new Error(csError.message);
-    const missionIds = [
-      ...new Set(
-        (changesetRows ?? [])
-          .map((r: { mission_id: string | null }) => r.mission_id)
-          .filter((id): id is string => Boolean(id)),
-      ),
-    ];
-    if (!missionIds.length) return { approvals: [] as MissionApprovalRow[] };
+      const { data: changesetRows, error: csError } = await db
+        .from("studio_changesets")
+        .select("mission_id")
+        .eq("prd_id", data.prdId)
+        .not("mission_id", "is", null);
+      if (csError) throw new Error(csError.message);
+      const missionIds = [
+        ...new Set(
+          (changesetRows ?? [])
+            .map((r: { mission_id: string | null }) => r.mission_id)
+            .filter((id): id is string => Boolean(id)),
+        ),
+      ];
+      if (!missionIds.length) return { approvals: [] as MissionApprovalRow[] };
 
-    const { data: rows, error } = await db
-      .from("agent_approvals")
-      .select("id,agent_slug,tool_name,rationale,status,expires_at")
-      .in("mission_id", missionIds)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    return { approvals: (rows ?? []) as MissionApprovalRow[] };
-  });
+      const { data: rows, error } = await db
+        .from("agent_approvals")
+        .select("id,agent_slug,tool_name,rationale,status,expires_at")
+        .in("mission_id", missionIds)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      return { approvals: (rows ?? []) as MissionApprovalRow[] };
+    },
+  );
 
 export function useSpecApprovals(prdId: string) {
   const fGetApprovals = useServerFn(getSpecApprovalsServerFn);

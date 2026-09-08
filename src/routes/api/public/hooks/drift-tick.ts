@@ -26,7 +26,9 @@ export const Route = createFileRoute("/api/public/hooks/drift-tick")({
               headers: { "Content-Type": "application/json" },
             });
           }
-          const uniqueUsers = Array.from(new Set((users ?? []).map((u: any) => u.user_id)));
+          const uniqueUsers = Array.from(
+            new Set(((users ?? []) as Array<{ user_id: string }>).map((u) => u.user_id)),
+          );
           const results: Array<{
             user_id: string;
             snapshots?: number;
@@ -38,8 +40,8 @@ export const Route = createFileRoute("/api/public/hooks/drift-tick")({
             try {
               const r = await runDriftForUser(supabaseAdmin, userId);
               results.push({ user_id: userId, ...r });
-            } catch (e: any) {
-              results.push({ user_id: userId, error: e?.message ?? String(e) });
+            } catch (e) {
+              results.push({ user_id: userId, error: e instanceof Error ? e.message : String(e) });
             }
           }
           return new Response(JSON.stringify({ ok: true, users: uniqueUsers.length, results }), {
