@@ -549,6 +549,7 @@ function SeatCalls({
 export function TrackActivity({
   trackId,
   isRunning = false,
+  settled = false,
   onLiveChange,
   onLiveSeats,
   onSelect,
@@ -556,6 +557,13 @@ export function TrackActivity({
 }: {
   trackId: string;
   isRunning?: boolean;
+  /**
+   * The run is done or abandoned, so nothing here can change again: every
+   * poll below stands down (Lane 2, 2026-09-09: the shipped run refetched
+   * four reads every ten seconds four days after it ended). A push still
+   * invalidates, so a late row would still land.
+   */
+  settled?: boolean;
   /**
    * QUEUE 71: tells the host whether a crew is genuinely here, so the WHOLE
    * pane can poll at visit speed. The sweep serves tracks with no local
@@ -634,6 +642,7 @@ export function TrackActivity({
       // (queue 71), not only from a press this screen made. The sweep serves
       // tracks nobody has touched, and its work deserves the same liveness.
       const turns = (query.state.data?.turns ?? []) as Array<Pick<Turn, "outcome">>;
+      if (settled && !hasLiveVisit(turns)) return false;
       return isRunning || hasLiveVisit(turns) ? 500 : 10_000;
     },
   });
@@ -666,7 +675,7 @@ export function TrackActivity({
   const callsQ = useQuery({
     queryKey: ["track-tool-calls", trackId],
     queryFn: () => fetchCalls({ data: { trackId } }),
-    refetchInterval: live ? 500 : 10_000,
+    refetchInterval: live ? 500 : settled ? false : 10_000,
   });
 
   /*
@@ -761,7 +770,7 @@ export function TrackActivity({
   const chainQ = useQuery({
     queryKey: ["spine-track-chain", trackId],
     queryFn: () => fetchChain({ data: { trackId } }),
-    refetchInterval: isRunning || live ? 500 : 10_000,
+    refetchInterval: isRunning || live ? 500 : settled ? false : 10_000,
   });
 
   /*
@@ -877,7 +886,7 @@ export function TrackActivity({
       if (error) throw new Error(error.message);
       return (data ?? []) as unknown as HandoffRow[];
     },
-    refetchInterval: isRunning || live ? 2_000 : 30_000,
+    refetchInterval: isRunning || live ? 2_000 : settled ? false : 30_000,
   });
 
   /*

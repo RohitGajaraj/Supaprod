@@ -3753,9 +3753,12 @@ export function ArtifactPane({
   activeArtifactId = null,
   onOpenArtifact,
   isRunning = false,
+  settled = false,
   stationOverride = null,
 }: {
   trackId: string;
+  /** The run is done or abandoned: nothing here changes again, so no poll. */
+  settled?: boolean;
   /**
    * A stop pressed on the road that has nothing to open yet. The pane shows
    * that station's own state (what it will do, or why it stopped) instead of
@@ -3791,13 +3794,14 @@ export function ArtifactPane({
     queryKey: ["spine-track-chain", trackId],
     queryFn: () => fChain({ data: { trackId } }),
     // PHASE 3: During active run, poll faster (500ms) to show live updates.
-    // After run completes, poll slower (10s) to reduce DB load.
-    refetchInterval: isRunning ? 500 : 10_000,
+    // After run completes, poll slower (10s) to reduce DB load; on a run that
+    // is done or abandoned, not at all (Lane 2, 2026-09-09).
+    refetchInterval: isRunning ? 500 : settled ? false : 10_000,
   });
   const bodies = useQuery({
     queryKey: ["track-artifacts", trackId],
     queryFn: () => fArtifacts({ data: { trackId } }),
-    refetchInterval: isRunning ? 500 : 10_000,
+    refetchInterval: isRunning ? 500 : settled ? false : 10_000,
   });
 
   /*

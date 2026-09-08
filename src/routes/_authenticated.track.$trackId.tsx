@@ -577,6 +577,7 @@ function TrackPage() {
           <TrackPaneRight
             trackId={trackId}
             isRunning={crewLive}
+            settled={track ? track.status !== "open" : false}
             activeArtifactId={selected}
             onOpenArtifact={openArtifact}
             stationOverride={openedStation ? null : peek}

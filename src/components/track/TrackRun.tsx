@@ -1347,6 +1347,7 @@ export function TrackRunLeft({
            a beat; polling at the live rate from the first second means the
            seat's row appears the moment it is written, not ten seconds on. */
         isRunning={workingNow}
+        settled={finished}
         onLiveChange={onCrewLive}
         onLiveSeats={setLiveSeats}
         onSelect={onSelectArtifact}
@@ -1418,12 +1419,14 @@ function RunGotYou({
 export function TrackPaneRight({
   trackId,
   isRunning = false,
+  settled = false,
   activeArtifactId = null,
   onOpenArtifact,
   stationOverride = null,
 }: {
   trackId: string;
   isRunning?: boolean;
+  settled?: boolean;
   /** A stop pressed on the road with nothing to open; see `ArtifactPane`. */
   stationOverride?: AgentStation | null;
   /**
@@ -1466,6 +1469,7 @@ export function TrackPaneRight({
         activeArtifactId={activeArtifactId}
         onOpenArtifact={onOpenArtifact}
         isRunning={isRunning}
+        settled={settled}
         stationOverride={stationOverride}
       />
       {/*
