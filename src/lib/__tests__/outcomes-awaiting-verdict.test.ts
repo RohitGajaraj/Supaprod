@@ -7,10 +7,17 @@ import { readFileSync } from "node:fs";
  * sentence is `whatLearnIsWaitingFor`'s and is tested with it.
  */
 describe("the releases awaiting a verdict are read the way the run page reads them", () => {
-  const src = readFileSync("src/lib/outcomes-awaiting-verdict.functions.ts", "utf8");
+  // Bounded at both ends: the reader, not the rest of the file.
+  const whole = readFileSync("src/lib/outcome.functions.ts", "utf8");
+  const from = whole.indexOf("export const listReleasesAwaitingVerdict");
+  const end = whole.indexOf("\nexport ", from + 1);
+  const src = whole.slice(from, end === -1 ? undefined : end);
+  it("the reader exists in the outcome domain", () => {
+    expect(from).toBeGreaterThan(-1);
+  });
 
   it("imports the one composer and the driver's own two reads, never a second sentence", () => {
-    expect(src).toContain('from "@/lib/spine/what-learn-is-waiting-for"');
+    expect(whole).toContain('from "@/lib/spine/what-learn-is-waiting-for"');
     expect(src).toContain("whatLearnIsWaitingFor(dueIso, states)");
     expect(src).toContain("forecastDueDate(supabase, t.id)");
     expect(src).toContain("metricSourcesForTrack(supabase, t.id)");
