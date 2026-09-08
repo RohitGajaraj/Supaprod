@@ -2759,7 +2759,9 @@ export function DiscoverSurface({
           {reasonLine("Nothing below would be right, so nothing is shown.", loadError)}
         </ReadFailed>
       ) : loading ? (
-        <Reading>Reading what your sources have sent.</Reading>
+        /* One wait line per page: the heading above already says what is
+           being read, so the list holds its place silently. */
+        <div aria-hidden className="min-h-[96px]" />
       ) : signalsEmpty ? (
         <div className="flex flex-col gap-mrd-3">
           {/* P-53: not a picker. "Which source should it read first?" had one

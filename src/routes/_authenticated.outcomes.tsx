@@ -1044,7 +1044,18 @@ export function guidanceLines(args: {
     );
   }
 
-  return out;
+  /*
+   * THE ONE POSITIVE FACT LEADS (Lane 1's walk, 2026-09-08). On a workspace
+   * with 74 of 91 lessons fed back, this region opened with three "No ...
+   * yet" lines and the one thing the record had actually done sat fourth.
+   * What has happened comes first; what has not is one line, the first of
+   * them, because three admissions in a row are a wall and one is a fact.
+   */
+  const isNotYet = (g: (typeof out)[number]) =>
+    typeof g.lead === "string" && /^(No |None )/.test(g.lead);
+  const done = out.filter((g) => !isNotYet(g));
+  const notYet = out.filter(isNotYet);
+  return [...done, ...notYet.slice(0, 1)];
 }
 
 /**
@@ -1680,8 +1691,6 @@ function MemoryPage() {
           </ReadFailedLine>
         ) : null}
 
-        <RetentionLine recordIsEmpty={emptyRecord} />
-
         {/* THE RECESS OPENS ITSELF NOW. This was a hand-rolled twelve-line inline
           button reset wrapped around the Record, which is the precise
           duplication the primitives were written to end: Record has carried its
@@ -1862,10 +1871,10 @@ function MemoryPage() {
             onGoTo={() => setTab("graph")}
           >
             {/* A read in flight, holding the shape of what is coming. */}
+            {/* One wait line per page: the headline already says the record
+                is being read, so the map's reserve holds its shape silently. */}
             {preview.state === "loading" ? (
-              <div className={PREVIEW_RESERVE} style={PREVIEW_RESERVE_HEIGHT}>
-                <Reading>Drawing what the record connects.</Reading>
-              </div>
+              <div className={PREVIEW_RESERVE} style={PREVIEW_RESERVE_HEIGHT} aria-hidden />
             ) : null}
 
             {/* NOT an empty state. The map exists; this read of it failed. */}
@@ -2116,8 +2125,13 @@ function MemoryPage() {
           </Suspense>
         </TabPanel>
 
+        {/* THE PLAN'S NUDGE, UNDER THE RECORD (2026-09-08). It opened the page
+          ("On the free plan this record fades after 30 days. Keep it") above
+          the record it was about; a person arriving to read what happened met
+          a bill first. It stands where the record's own counts do. */}
+        <RetentionLine recordIsEmpty={emptyRecord} />
         {substrate ? (
-          <Disclosure label="The rest of the substrate" id="brain-substrate">
+          <Disclosure label="Everything else on the record" id="brain-substrate">
             {/* THE SURFACE'S OWN RULE, APPLIED TO ITS OWN GRID. The diff on the
               record recess above refuses to draw a "+0" because "a zero
               rendered as if it were a finding" is a lie about what was found.
