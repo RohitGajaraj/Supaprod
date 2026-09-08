@@ -1048,3 +1048,9 @@ times; `date` goes in the Bash call that writes the record.
 **Verified live on supaprod.ai (probe workspace, 11:26 IST):** "Start a run" in the rail head; hero "2 runs have stopped." with its line; header "Last finished · title · 3d ago". A transient "Internal server error" at 11:25 was the deploy switching over; every route and both health endpoints were 200 a minute later.
 
 **Owed live reads once the next publish lands:** the hero's "6 calls are waiting for you." with the Inbox row's count on the probe; the Decide press opening the hold card under a held row; Answer opening the ask under a needs-you row (needs an open gate on a run row).
+
+## Lane 1 · 11:34 IST 09-08 · accessibility names, and one decision not taken
+
+- `ae799bbd0` a run row's body button names itself by its lead and describes itself by its sentence (the live tree had five unnamed buttons); the rail's Inbox row reads "Inbox, 6 waiting" (the badge is aria-hidden).
+- **Verified live (probe, 11:31 IST):** the hero "6 calls are waiting for you." with the Inbox line; the road's toggles announce their state and count ("Design: stopped, 2 here"). Owed: Decide under a held row (d6ae7d99a publishing).
+- **Decision not taken, on purpose:** no global type-scale lift. Meridian's 13/14 px row tiers are the reference's own and read correctly at 1440; legibility on the entry comes from the h1 hero and the prose tier, not from moving every row a pixel under two lanes mid-flight. Revisit only with a measured complaint.
