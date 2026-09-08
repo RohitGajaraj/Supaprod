@@ -572,9 +572,12 @@ function TabSkeleton() {
       style={{ width: w ?? "100%", height: h }}
     />
   );
+  /* The wait is SAID, to everyone: three grey bars alone told a sighted
+     reader nothing, and the sentence was screen-reader only (Lane 2,
+     2026-09-08). `Reading` carries the status role itself. */
   return (
-    <div role="status" className="flex flex-col gap-mrd-3">
-      <span className="sr-only">Reading the record.</span>
+    <div className="flex flex-col gap-mrd-3">
+      <Reading>Reading the record.</Reading>
       {bar(56)}
       {bar(96)}
       {bar(96, "72%")}
@@ -657,15 +660,11 @@ export const Route = createFileRoute("/_authenticated/outcomes")({
     <Surface wide>
       <div className="flex flex-col gap-mrd-6">
         <RecordHead title="The record did not load." sub="Nothing it holds is lost." />
-        <NothingYet
-          action={
-            <Action variant="primary" onClick={reset}>
-              Try again
-            </Action>
-          }
-        >
-          {(error as Error)?.message ?? "The read failed."}
-        </NothingYet>
+        {/* A failed read wears the failed-read register, not the empty one,
+            and the reason goes through the one wrapper rather than raw. */}
+        <ReadFailed onRetry={reset} error={error as Error}>
+          The record did not load, so nothing below is the record.
+        </ReadFailed>
       </div>
     </Surface>
   ),
@@ -2024,11 +2023,16 @@ function MemoryPage() {
                       deleted once this and P-04 land. */}
                   {changelog.isError ? (
                     <Region title="What shipped">
-                      <p className="mrd-meta text-mrd-faint">Not readable right now.</p>
+                      <ReadFailedLine
+                        onRetry={() => void changelog.refetch()}
+                        error={changelog.error}
+                      >
+                        What shipped did not load. Every release is still on the record.
+                      </ReadFailedLine>
                     </Region>
                   ) : changelog.isLoading ? (
                     <Region title="What shipped">
-                      <Reading />
+                      <Reading>Reading what shipped.</Reading>
                     </Region>
                   ) : releases.length > 0 ? (
                     <Region title="What shipped">
@@ -2085,7 +2089,13 @@ function MemoryPage() {
                         ))}
                       </div>
                     </Region>
-                  ) : null}
+                  ) : (
+                    <Region title="What shipped">
+                      <NothingYet>
+                        Nothing has shipped yet. A release lands here the moment Ship puts one out.
+                      </NothingYet>
+                    </Region>
+                  )}
                   {/* WHAT THE RECORD MOVED (P-14b, A-QUEUE.md). `/learn`'s own
                       block, byte-identical: same server function, same gate,
                       same two lines. `/learn` itself is deleted once this and
@@ -2093,7 +2103,14 @@ function MemoryPage() {
                   {ledgerQ.isError ? (
                     <div className="flex flex-col gap-mrd-4">
                       <CtxHead>What the record moved</CtxHead>
-                      <p className="mrd-meta text-mrd-faint">Not readable right now.</p>
+                      <ReadFailedLine onRetry={() => void ledgerQ.refetch()} error={ledgerQ.error}>
+                        What the record moved did not load. The record itself is untouched.
+                      </ReadFailedLine>
+                    </div>
+                  ) : ledgerQ.isLoading ? (
+                    <div className="flex flex-col gap-mrd-4">
+                      <CtxHead>What the record moved</CtxHead>
+                      <Reading>Reading what the record moved.</Reading>
                     </div>
                   ) : ledger && (movedPriority || revisedBeliefs) ? (
                     <div className="flex flex-col gap-mrd-4">

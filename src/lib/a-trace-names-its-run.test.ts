@@ -31,7 +31,16 @@ describe("a trace names the run it belongs to", () => {
     expect(body).toMatch(/return \{\s*traceId: data\.traceId,[\s\S]*?\n\s*run,\n/);
   });
 
-  it("a seat with no display name is named by its slug, never blank", () => {
-    expect(body).toContain("agentName: run.agent_name?.trim() || run.agent_slug,");
+  /*
+   * ONE SEAT, ONE NAME (Lane 1 ruling, 2026-09-08). The trace heading and
+   * the transcript named the same seat two ways ("Discovery Scout" here,
+   * "Watch" on the home), and `presenceColour` hashes the name, so the seat
+   * wore two colours. Both now resolve through `agentDisplayName(slug,
+   * stored)`: the catalog role where the slug is known, the stored name
+   * otherwise, the slug only when there is nothing else. Still never blank.
+   */
+  it("a seat is named by the same resolver the transcript uses, never blank", () => {
+    expect(body).toContain("agentName: agentDisplayName(run.agent_slug, run.agent_name),");
+    expect(body).not.toContain("run.agent_name?.trim() || run.agent_slug");
   });
 });

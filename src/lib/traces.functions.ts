@@ -4,7 +4,7 @@
  * - getTrace: full waterfall (events + guardrail hits + evals) for a single trace_id
  */
 import { createServerFn } from "@tanstack/react-start";
-import { SPECIALIST_CATALOG } from "@/lib/agent-vocabulary";
+import { SPECIALIST_CATALOG, agentDisplayName } from "@/lib/agent-vocabulary";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Json } from "@/integrations/supabase/types";
@@ -299,7 +299,10 @@ export const getTrace = createServerFn({ method: "POST" })
       return {
         runId: run.id,
         agentSlug: run.agent_slug,
-        agentName: run.agent_name?.trim() || run.agent_slug,
+        /* One seat, one name (Lane 1 ruling, 2026-09-08): the catalog role
+           where the slug is known, the stored name otherwise. Same resolver
+           as the transcript, so the trace heading and the run agree. */
+        agentName: agentDisplayName(run.agent_slug, run.agent_name),
         trackId: run.track_id,
         trackTitle,
         station,

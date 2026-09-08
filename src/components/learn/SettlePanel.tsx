@@ -1041,7 +1041,17 @@ function AgentSettledBlock({
   loading: boolean;
   onReconsider: (prdId: string) => void;
 }) {
-  if (loading || rows.length === 0) return null;
+  /* A read in flight and a read that returned nothing are different facts:
+     the first says so, the second stays out of the way of the page above it
+     (Lane 2, 2026-09-08). */
+  if (loading) {
+    return (
+      <Region title={`${agentDisplayName(MEASURE_SLUG)} settled these`}>
+        <Reading>{`Reading what ${agentDisplayName(MEASURE_SLUG)} settled.`}</Reading>
+      </Region>
+    );
+  }
+  if (rows.length === 0) return null;
   return (
     <Region
       title={`${agentDisplayName(MEASURE_SLUG)} settled these`}
