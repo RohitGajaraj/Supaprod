@@ -24,13 +24,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Action, Actions } from "@/components/meridian/surface-parts";
 import { Receipt } from "@/components/meridian/Receipt";
-import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
+import { STATION_NEEDS } from "@/lib/spine/correction";
 import { failureLine } from "@/lib/error-copy";
 import {
   driveTrackNow,
   getTrack,
   getTrackArtifacts,
   retryStation,
+  setStationWaiver,
   stopTrack,
 } from "@/lib/spine/track.functions";
 import { horizonFromStops } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
@@ -49,6 +51,7 @@ export function HoldCard({ trackId, onSettled }: { trackId: string; onSettled?: 
   const fRetry = useServerFn(retryStation);
   const fStop = useServerFn(stopTrack);
   const fDrive = useServerFn(driveTrackNow);
+  const fWaiver = useServerFn(setStationWaiver);
   const zone = useTimezone();
 
   const trackQ = useQuery({
@@ -112,6 +115,39 @@ export function HoldCard({ trackId, onSettled }: { trackId: string; onSettled?: 
         failed: true,
       }),
   });
+  /*
+   * ── PUT THE SKIPPED STEP BACK (Lane 1's walk, 2026-09-08) ──────────────
+   * A run held on `needs-a-waived-station` says "Build needs a step this
+   * route skips. Put it back, or file it yourself", and nothing on the home
+   * or in the card could put it back; a release re-holds on the same missing
+   * step. The step is the one that files what the held station needs
+   * (`STATION_NEEDS[station].from`), and putting it back is one press that
+   * drives the run again.
+   */
+  const putBack = useMutation({
+    mutationFn: (station: AgentStation) => fWaiver({ data: { trackId, station, waived: false } }),
+    onSuccess: (res, station) => {
+      if (res.problems.length > 0) {
+        setNote({
+          verb: "Nothing was put back",
+          consequence: res.problems.join(" "),
+          failed: true,
+        });
+        return;
+      }
+      setNote({
+        verb: "You put it back",
+        consequence: `${AGENT_STATIONS[station].name} is on the route again and runs next.`,
+      });
+      run.mutate();
+    },
+    onError: (e: Error) =>
+      setNote({
+        verb: "Nothing was put back",
+        consequence: failureLine("The route is unchanged.", e),
+        failed: true,
+      }),
+  });
   const run = useMutation({
     mutationFn: () => fDrive({ data: { trackId, origin: "press" } }),
     onSuccess: () => {
@@ -162,7 +198,11 @@ export function HoldCard({ trackId, onSettled }: { trackId: string; onSettled?: 
     zone,
     isForecastHorizon: deferralIsForecastHorizon,
   });
-  const busy = release.isPending || stop.isPending || run.isPending;
+  const busy = release.isPending || stop.isPending || run.isPending || putBack.isPending;
+  const skipped: AgentStation | null =
+    track.holdReason === "needs-a-waived-station"
+      ? (STATION_NEEDS[track.station]?.from ?? null)
+      : null;
 
   return (
     <RunNow now={now}>
@@ -171,9 +211,22 @@ export function HoldCard({ trackId, onSettled }: { trackId: string; onSettled?: 
       <Actions>
         {now.register === "held" ? (
           <>
-            <Action busy={release.isPending} disabled={busy} onClick={() => release.mutate()}>
-              {release.isPending ? "Releasing it" : `Let ${here} try again`}
-            </Action>
+            {skipped ? (
+              <Action
+                variant="primary"
+                busy={putBack.isPending}
+                disabled={busy}
+                onClick={() => putBack.mutate(skipped)}
+              >
+                {putBack.isPending
+                  ? "Putting it back"
+                  : `Put ${AGENT_STATIONS[skipped].name} back on the route`}
+              </Action>
+            ) : (
+              <Action busy={release.isPending} disabled={busy} onClick={() => release.mutate()}>
+                {release.isPending ? "Releasing it" : `Let ${here} try again`}
+              </Action>
+            )}
             <Action
               variant="quiet"
               busy={stop.isPending}

@@ -57,12 +57,14 @@ import {
   getTrackChain,
   getTrackArtifacts,
   retryStation,
+  setStationWaiver,
   stopTrack,
   whoHoldsThePath,
   type DriveNowResult,
   type Track,
 } from "@/lib/spine/track.functions";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
+import { STATION_NEEDS } from "@/lib/spine/correction";
 import { holdTone } from "@/lib/spine/driver";
 import { summaryText } from "@/components/track/run-summary";
 import { runTabState } from "@/components/track/run-tab";
@@ -677,6 +679,39 @@ export function TrackRunLeft({
    * whether or not the write lands, and whether or not the write is even
    * possible against a database that has not taken the column yet.
    */
+  /* The skipped step a held station needs, and the press that puts it back;
+     see HoldCard.tsx for the walk that asked for it. */
+  const fWaiver = useServerFn(setStationWaiver);
+  const putBack = useMutation({
+    mutationFn: (station: AgentStation) => fWaiver({ data: { trackId, station, waived: false } }),
+    onSuccess: (res, station) => {
+      void qc.invalidateQueries({ queryKey: ["spine-track", trackId] });
+      if (res.problems.length > 0) {
+        setReleaseNote({
+          verb: "Nothing was put back",
+          consequence: res.problems.join(" "),
+          failed: true,
+        });
+        return;
+      }
+      setReleaseNote({
+        verb: "You put it back",
+        consequence: `${AGENT_STATIONS[station].name} is on the route again and runs next.`,
+      });
+      setLegsLeft(AUTO_MAX);
+      run.mutate("press");
+    },
+    onError: (e: Error) =>
+      setReleaseNote({
+        verb: "Nothing was put back",
+        consequence: failureLine("The route is unchanged.", e),
+        failed: true,
+      }),
+  });
+  const skippedStation: AgentStation | null =
+    track?.holdReason === "needs-a-waived-station"
+      ? (STATION_NEEDS[track.station]?.from ?? null)
+      : null;
   const fStop = useServerFn(stopTrack);
   /* Only called while the hold says so; see the query below. */
   const fWhoHolds = useServerFn(whoHoldsThePath);
@@ -1048,6 +1083,9 @@ export function TrackRunLeft({
      nothing will pick the work up again. */
   const retryStandsDown =
     answerTheCall || callIsYours || shipIsStopped || now.register === "stopped";
+  /* A skipped step is put back, not retried: a release re-holds on the same
+     missing step, so the generic retry yields to the one press that helps. */
+  const putBackFirst = skippedStation !== null;
 
   return (
     <div className="flex flex-col gap-mrd-5">
@@ -1181,7 +1219,20 @@ export function TrackRunLeft({
               ) : null}
               {/* Ship's own retry stands down when the preview is what stopped
                   it; the one control that changes anything is drawn above. */}
-              {retryStandsDown ? null : (
+              {skippedStation ? (
+                <div>
+                  <Action
+                    variant="primary"
+                    busy={putBack.isPending}
+                    onClick={() => putBack.mutate(skippedStation)}
+                  >
+                    {putBack.isPending
+                      ? "Putting it back"
+                      : `Put ${AGENT_STATIONS[skippedStation].name} back on the route`}
+                  </Action>
+                </div>
+              ) : null}
+              {retryStandsDown ? null : putBackFirst ? null : (
                 <div>
                   <Action busy={release.isPending} onClick={() => release.mutate()}>
                     {release.isPending

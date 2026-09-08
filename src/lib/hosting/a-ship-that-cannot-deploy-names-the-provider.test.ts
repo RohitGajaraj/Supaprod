@@ -253,7 +253,12 @@ describe("the read reaches the row it is about (P-59c)", () => {
     expect(RUN3).toContain(
       'answerTheCall || callIsYours || shipIsStopped || now.register === "stopped"',
     );
-    expect(RUN3).toContain("{retryStandsDown ? null : (");
+    expect(RUN3).toContain(
+      /* 2026-09-08: a skipped step is put back rather than retried, so the
+         retry yields to that press too; the stand-down this guard holds is
+         unchanged and still first. */
+      "{retryStandsDown ? null : putBackFirst ? null : (",
+    );
   });
 });
 
@@ -292,7 +297,12 @@ describe("the card says which branch fired (P-59c acceptance)", () => {
     expect(RUN5).toContain(
       'answerTheCall || callIsYours || shipIsStopped || now.register === "stopped"',
     );
-    expect(RUN5).toContain("{retryStandsDown ? null : (");
+    expect(RUN5).toContain(
+      /* 2026-09-08: a skipped step is put back rather than retried, so the
+         retry yields to that press too; the stand-down this guard holds is
+         unchanged and still first. */
+      "{retryStandsDown ? null : putBackFirst ? null : (",
+    );
   });
 
   it("names a failed read as a failed read, never as an absence", () => {
