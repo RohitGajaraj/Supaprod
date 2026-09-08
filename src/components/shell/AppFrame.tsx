@@ -735,7 +735,9 @@ function RailNew({ narrow }: { narrow: boolean }) {
          real Link still, so middle-click and copy-address keep working. */
       onClick={(e) => {
         if (!onHome) return;
-        const field = document.querySelector<HTMLElement>("[data-page-composer]");
+        const field = document.querySelector<HTMLElement>(
+          "[data-page-composer] textarea, [data-page-composer] input",
+        );
         if (field) {
           e.preventDefault();
           field.focus();
@@ -1585,7 +1587,9 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
        and again on the first home, entry review 2026-09-08). On the home the
        press puts the cursor in the composer, which is the next action. */
     const composer = () => {
-      const field = document.querySelector<HTMLElement>("[data-page-composer]");
+      const field = document.querySelector<HTMLElement>(
+        "[data-page-composer] textarea, [data-page-composer] input",
+      );
       if (field) field.focus();
     };
     if (pathname === SIGNED_IN_HOME && running.length !== 1 && movingRuns.length === 0) {
