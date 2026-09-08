@@ -19,7 +19,7 @@
  * zero. The seed is as fresh as the poll it feeds, so it is fresh for one
  * poll interval, and an observer that mounts inside that window reads it.
  */
-import type { QueryClient } from "@tanstack/react-query";
+import { useIsFetching, type QueryClient } from "@tanstack/react-query";
 import { APPROVALS_QUEUE_PREFIX, runningNowKey } from "@/lib/query-keys";
 import type { readHome } from "@/lib/spine/track.functions";
 
@@ -30,6 +30,20 @@ export const HOME_STALE_MS = 10_000;
 
 export function homeKey(workspaceId: string | null) {
   return ["home", workspaceId] as const;
+}
+
+/**
+ * WHETHER THE COMPOSITE IS STILL IN FLIGHT, for an observer of a key it
+ * seeds. Read live on 72c04f6e (2026-09-08): the loader started `readHome`
+ * at 4.1 s, the shell and the run list mounted at 6.3 s while it was still
+ * out, and each of them fetched its own row 170 ms before the seed landed.
+ * A stale time cannot stop that, because there is nothing in the cache yet
+ * to be fresh. An observer that waits while the composite is out mounts
+ * onto the seed instead; off the home nothing is in flight and it does not
+ * wait at all.
+ */
+export function useSeedInFlight(workspaceId: string | null): boolean {
+  return useIsFetching({ queryKey: homeKey(workspaceId), exact: true }) > 0;
 }
 
 /** Each read's own key, seeded from the composite answer. */

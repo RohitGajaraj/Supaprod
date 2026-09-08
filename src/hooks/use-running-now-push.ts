@@ -66,9 +66,14 @@ export function useRunningNowPush(
       .channel(`running-now-${workspaceId}`)
       .on("postgres_changes", { ...match, event: "INSERT" }, invalidate)
       .on("postgres_changes", { ...match, event: "UPDATE" }, invalidate);
+    // A RECONNECT may have missed events while the socket was down; the
+    // first connect has not (the rows were just read), and refetching on it
+    // cost the home its largest read again on every arrival (2026-09-08).
+    let connected = false;
     channel.subscribe((status) => {
-      // A (re)connect may have missed events while the socket was down.
-      if (status === "SUBSCRIBED") invalidate();
+      if (status !== "SUBSCRIBED") return;
+      if (connected) invalidate();
+      connected = true;
     });
 
     return () => {

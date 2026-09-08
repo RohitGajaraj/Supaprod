@@ -61,7 +61,7 @@ describe("a run's position moves the moment it changes", () => {
     expect(invalidated).toContainEqual(["approvals-queue", "shell", "ws-1"]);
   });
 
-  test("a (re)connect refetches once, so a gap while the socket was down is closed", () => {
+  test("a reconnect refetches once, so a gap while the socket was down is closed; the first connect has no gap", () => {
     const fake = fakeClient();
     let calls = 0;
     subscribeTrackChanges(fake.client, "ws-2", {
@@ -71,6 +71,11 @@ describe("a run's position moves the moment it changes", () => {
       },
     } as never);
     expect(calls).toBe(0);
+    // The first SUBSCRIBED follows the read that just seeded the rows; a
+    // refetch here paid the home's largest read again on every arrival.
+    fake.connect();
+    expect(calls).toBe(0);
+    // A later SUBSCRIBED is a reconnect, and the gap it may hide is closed.
     fake.connect();
     expect(calls).toBe(trackChangeKeys("ws-2").length);
   });

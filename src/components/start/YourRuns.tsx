@@ -237,6 +237,7 @@ export function YourRuns({
     /* Seeded by the home's one read; fresh for one poll, so this mount
        joins it rather than fetching the largest read on the page again. */
     staleTime: HOME_STALE_MS,
+    enabled: Boolean(activeWorkspaceId),
   });
 
   const [showAbandoned, setShowAbandoned] = React.useState(false);
@@ -304,11 +305,13 @@ export function YourRuns({
           </ReadFailedLine>
         ) : null}
 
-        {!q.isLoading && !q.isError && rows.length === 0 ? (
+        {/* Only from an answered read: a disabled or pending one is not
+            "nothing yet", and the sentence used to flash for that beat. */}
+        {q.isSuccess && rows.length === 0 ? (
           <p className="text-mrd-base text-mrd-mute">Nothing yet. Your first run starts above.</p>
         ) : null}
 
-        {!q.isLoading && !q.isError && rows.length > 0 && shown.length === 0 && station ? (
+        {q.isSuccess && rows.length > 0 && shown.length === 0 && station ? (
           <p className="text-mrd-base text-mrd-mute">
             Nothing is standing at {AGENT_STATIONS[station].name}.
           </p>

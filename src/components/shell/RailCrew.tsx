@@ -32,6 +32,7 @@ import { SlowRead } from "@/components/shell/SlowRead";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { seatLine, workingSeats } from "@/components/start/CrewAtWork";
 import { runningNowKey } from "@/lib/query-keys";
+import { useSeedInFlight } from "@/components/start/home-read";
 import { listRunningNow } from "@/lib/spine/track.functions";
 
 export function RailCrew({ workspaceId }: { workspaceId: string | null }) {
@@ -39,10 +40,13 @@ export function RailCrew({ workspaceId }: { workspaceId: string | null }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const fRunning = useServerFn(listRunningNow);
 
+  const seedInFlight = useSeedInFlight(workspaceId);
   const q = useQuery({
     queryKey: runningNowKey(workspaceId),
     queryFn: () => fRunning({ data: { workspaceId } }),
-    enabled: Boolean(workspaceId),
+    /* Waits for the home's composite read when it is in flight, so the
+       seed is mounted onto rather than raced (2026-09-08). */
+    enabled: Boolean(workspaceId) && !seedInFlight,
     staleTime: 10_000,
     refetchInterval: (q) => pollMs(10_000, q.state.fetchFailureCount),
   });

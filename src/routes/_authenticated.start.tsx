@@ -252,7 +252,12 @@ function StartLanding() {
     enabled: Boolean(activeWorkspaceId),
     staleTime: HOME_STALE_MS,
   });
-  const seeded = !activeWorkspaceId || home.isSuccess || home.isError;
+  /* Seeded once the composite has answered for THIS workspace. Not before
+     the id is known: the reads below used to fire once against a null
+     workspace and again when the id arrived (2026-09-08). A person with no
+     workspace at all has nothing to read, and is not held. */
+  const noWorkspace = !workspaceLoading && !activeWorkspaceId;
+  const seeded = noWorkspace || (Boolean(activeWorkspaceId) && (home.isSuccess || home.isError));
 
   const fRuns = useServerFn(listRunsForStart);
   const runs = useQuery({
@@ -626,7 +631,12 @@ function StartLanding() {
         />
       ) : null}
 
-      {!firstRun ? <YourRuns station={station} onClearStation={() => setStation(null)} /> : null}
+      {/* Mounted onto the seed, not before it: mounted earlier it fetched the
+          largest read on the page 170 ms ahead of the seed that carried the
+          same rows (read live 2026-09-08). */}
+      {seeded && !firstRun ? (
+        <YourRuns station={station} onClearStation={() => setStation(null)} />
+      ) : null}
 
       <HomeAnswers answers={sinceYouLooked} />
 

@@ -27,6 +27,7 @@ import { ReadFailedLine } from "@/components/meridian/surface-parts";
 import { AGENT_STATIONS, agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
 import { STALL_MINUTES } from "@/lib/loop-health.functions";
 import { runningNowKey } from "@/lib/query-keys";
+import { HOME_STALE_MS, useSeedInFlight } from "@/components/start/home-read";
 import { listRunningNow } from "@/lib/spine/track.functions";
 import type { RunningSeat } from "@/lib/spine/what-is-running";
 
@@ -104,10 +105,15 @@ export function CrewAtWork({
   onOpen: (trackId: string) => void;
 }) {
   const fRunning = useServerFn(listRunningNow);
+  /* Seeded by the home's composite read; this waits for it rather than
+     racing it, and never reads a null workspace (2026-09-08). */
+  const seedInFlight = useSeedInFlight(workspaceId);
   const q = useQuery({
     queryKey: runningNowKey(workspaceId),
     queryFn: () => fRunning({ data: { workspaceId } }),
     refetchInterval: 10_000,
+    staleTime: HOME_STALE_MS,
+    enabled: Boolean(workspaceId) && !seedInFlight,
   });
   const seats = React.useMemo(() => workingSeats(q.data), [q.data]);
   /* NEVER A CALM ROOM ON A DEAD FEED. Nothing drawn means nobody is

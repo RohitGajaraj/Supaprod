@@ -148,6 +148,7 @@ import { RunStripProvider, STAGE_LABEL, STATION_ROUTE, type RunStripSpec } from 
 import { SessionEndedProvider } from "./session-ended";
 import { agentDisplayName, agentStation } from "@/lib/agent-vocabulary";
 import { seatLine, workingSeats } from "@/components/start/CrewAtWork";
+import { useSeedInFlight } from "@/components/start/home-read";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
@@ -1033,6 +1034,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    * reads, under the same prefix the page invalidates on every decision.
    */
   const fetchQueue = useServerFn(getApprovalsQueue);
+  /* THE HOME SEEDS THIS KEY AND THE SEATS' KEY from its composite read. While
+     that read is out, these two wait for it rather than fetching the row it
+     is about to hand them (read live on 72c04f6e: both fired 170 ms before
+     the seed landed). Off the home nothing is in flight and nothing waits. */
+  const seedInFlight = useSeedInFlight(wsKey);
   const queue = useQuery({
     queryKey: [...APPROVALS_QUEUE_PREFIX, "shell", wsKey],
     queryFn: () => fetchQueue({ data: wsArg }),
@@ -1042,7 +1048,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
        2026-09-08, every shell read fired once with a null workspace and again
        when the id arrived, seven wasted round trips on every arrival and a
        read against a desk the person is not on. */
-    enabled: Boolean(wsKey),
+    enabled: Boolean(wsKey) && !seedInFlight,
   });
   const waitingCount = queue.isSuccess ? (queue.data?.items ?? []).length : null;
 
@@ -1054,11 +1060,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     refetchInterval: (query) =>
       livePoll((query.state.data ?? []).length > 0, query.state.fetchFailureCount),
     placeholderData: keepPreviousData,
-    /* Not before the workspace is known: read off the live network log on
-       2026-09-08, every shell read fired once with a null workspace and again
-       when the id arrived, seven wasted round trips on every arrival and a
-       read against a desk the person is not on. */
-    enabled: Boolean(wsKey),
+    enabled: Boolean(wsKey) && !seedInFlight,
   });
   const moving = useQuery({
     queryKey: ["shell", "moving-tracks", wsKey],

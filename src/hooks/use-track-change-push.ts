@@ -69,8 +69,16 @@ export function subscribeTrackChanges(
     },
     invalidate,
   );
+  /* A RECONNECT refetches once, so a gap while the socket was down is closed.
+     The FIRST connect has no gap: the rows were read moments ago, and this
+     refetched the page's largest read on every arrival (read live on
+     72c04f6e, 2026-09-08). The poll carries anything between that read and
+     the socket coming up. */
+  let connected = false;
   channel.subscribe((status) => {
-    if (status === "SUBSCRIBED") invalidate();
+    if (status !== "SUBSCRIBED") return;
+    if (connected) invalidate();
+    connected = true;
   });
   return () => {
     void client.removeChannel(channel);
