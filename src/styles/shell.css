@@ -1666,6 +1666,15 @@ button.sp-stage:hover {
    questions, then the two things set up once. One gap and one soft rule
    between the tiers, drawn on the first setup row so the list stays one list
    for the keyboard and the guards. */
+/* The lower tier's name (2026-09-08): a word above Sources saying why it
+ * sits under the rule. Drawn with Meridian utilities in AppFrame; when it
+ * is present the rule and its gap are not needed twice. */
+[data-rail-eyebrow] + .sp-navrow[data-tier="setup"] {
+  margin-top: 0;
+}
+[data-rail-eyebrow] + .sp-navrow[data-tier="setup"]::before {
+  display: none;
+}
 .sp-navrow[data-tier="primary"] + .sp-navrow[data-tier="setup"] {
   margin-top: 22px;
   position: relative;

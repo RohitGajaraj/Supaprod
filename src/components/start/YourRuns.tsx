@@ -23,7 +23,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 
-import { Journey, type JourneyKey } from "@/components/meridian/Journey";
+import { Journey, JOURNEY_ROW_WIDTH, type JourneyKey } from "@/components/meridian/Journey";
 import { ROW_GAP, Row } from "@/components/meridian/rows";
 import {
   Action,
@@ -64,7 +64,14 @@ const CHIP: Partial<Record<StartRowKind, { status: "pass" | "fail"; word: string
 };
 
 /** The marks column: seven dots and their links. */
-const MARKS_WIDTH = 84;
+/* The marks column is the road's own width, so the road can never run into
+   the title (founder, 2026-09-08). */
+const MARKS_WIDTH = JOURNEY_ROW_WIDTH;
+/* The time-and-credits column and the control slot are fixed, so every row's
+   controls stand in the same place down the list, whether or not this row
+   has a Decide. */
+const META_WIDTH = 168;
+const CONTROL_SLOT = 176;
 
 function RunRow({
   r,
@@ -107,15 +114,19 @@ function RunRow({
         lead={r.title}
         sub={r.middle}
         subTitle={r.detail ?? undefined}
-        time={r.at ? relativeTime(new Date(r.at).toISOString(), now) : null}
+        align="start"
+        timeWidth={META_WIDTH}
+        time={
+          [r.at ? relativeTime(new Date(r.at).toISOString(), now) : null, r.creditsLine]
+            .filter(Boolean)
+            .join(" · ") || null
+        }
         onClick={() => onOpen(r.id)}
         action={
-          <span className="flex items-center gap-mrd-2">
-            {r.creditsLine ? (
-              <span className="font-mrd-mono text-mrd-data tabular-nums text-mrd-mute">
-                {r.creditsLine}
-              </span>
-            ) : null}
+          <span
+            className="grid items-center gap-mrd-2"
+            style={{ width: CONTROL_SLOT, gridTemplateColumns: "minmax(0, 1fr) auto" }}
+          >
             {needsYou ? (
               /* THE ONE THING ONLY A PERSON CAN DO, AS THE ROW'S OWN CONTROL.
                It opens the ask UNDER THE ROW (R-04: consent is asked in
@@ -140,12 +151,16 @@ function RunRow({
               <StatusChip status={chip.status} pulse={false}>
                 {chip.word}
               </StatusChip>
-            ) : null}
+            ) : (
+              <span aria-hidden="true" />
+            )}
             {canPin && !needsYou ? (
               <Action variant="quiet" busy={pinning} onClick={() => onPin(r.id, !r.pinnedAt)}>
                 {r.pinnedAt ? "Unpin" : "Put first"}
               </Action>
-            ) : null}
+            ) : (
+              <span aria-hidden="true" />
+            )}
           </span>
         }
       />

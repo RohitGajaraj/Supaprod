@@ -623,16 +623,18 @@ describe("the canvas ground carries a colour, and it is not a status", () => {
   });
 
   it("carries far too little chroma to be read as a status", () => {
-    // Every status token runs 0.105 to 0.195, always as a saturated mark on a
-    // neutral field. Measured, this ground is a quarter of the weakest on dark
-    // and a fifteenth of it on paper. Dark is the near case on purpose: a dark
-    // ground needs about four times the chroma to carry the same faint cast.
+    // Every status token ran 0.105 to 0.195 until 2026-09-08, when the
+    // founder ruled the hold gold "AI-written" and every status hue came
+    // down; the weakest is now the hold sand at 0.07. The ground did not
+    // move: its pair below was matched by eye against the panel, not against
+    // a status, so the margin is 2.7x on dark rather than 4x. The hue test
+    // beneath is the other half of "not a status": 297 is no status hue.
     const weakest = Math.min(
       ...["you", "agent", "pass", "fail", "hold", "stop"].flatMap((t) => oklch(t).map((v) => v.C)),
     );
-    expect(weakest).toBe(0.105);
+    expect(weakest).toBe(0.07);
     for (const m of oklch("map")) {
-      expect(weakest / m.C).toBeGreaterThan(3.5);
+      expect(weakest / m.C).toBeGreaterThan(2.5);
     }
   });
 

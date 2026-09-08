@@ -452,14 +452,27 @@
   --mrd-scrim: oklch(0.09 0.005 70 / 0.62);
 
   /* ── SEMANTIC. Five meanings, and no sixth. ──────────────────────────── */
-  --mrd-you: oklch(0.72 0.16 315); /* ORCHID: a person is required */
+  /* ORCHID: a person is required. Chroma 0.16 -> 0.11 on 2026-09-08 (founder's ruling). */
+  --mrd-you: oklch(0.74 0.11 315);
   --mrd-you-dim: oklch(0.6 0.13 315); /* the same meaning, at rest */
-  --mrd-agent: oklch(0.68 0.11 235); /* AZURE: a machine is working */
+  --mrd-agent: oklch(0.7 0.09 235); /* AZURE: a machine is working */
   --mrd-agent-dim: oklch(0.58 0.1 235);
-  --mrd-pass: oklch(0.74 0.15 152); /* outcome: it worked */
-  --mrd-fail: oklch(0.66 0.19 27); /* outcome: it did not */
-  --mrd-hold: oklch(0.79 0.125 78); /* AMBER: stopped, and not on you */
-  --mrd-hold-dim: oklch(0.62 0.095 78);
+  --mrd-pass: oklch(0.74 0.11 152); /* outcome: it worked */
+  --mrd-fail: oklch(0.68 0.15 27); /* outcome: it did not */
+  /*
+   * ── THE HOLD HUE, 2026-09-08 ────────────────────────────────────────────
+   * FOUNDER, on the home's road: "this yellow or golden colour is not at
+   * all looking good, it looks like an AI-written design ... it's not even
+   * the brand colour." It was oklch(0.79 0.125 78): a gold at high chroma,
+   * and four of seven stations wore it as a filled node, a coloured label
+   * and a filled badge at once. The hue is now a sand at a third of the
+   * chroma, and (see Journey.tsx) a stopped station carries it in its ring
+   * and glyph only: the label stays ink, the badge stays neutral. Every
+   * status hue came down with it, so no state shouts over another: colour
+   * says which state, weight says how much it matters.
+   */
+  --mrd-hold: oklch(0.76 0.07 74); /* SAND: stopped, and not on you */
+  --mrd-hold-dim: oklch(0.6 0.055 74);
 
   /*
    * ── STATUS CHIPS, BECAUSE COLOURED TEXT CANNOT CARRY STATUS ON PAPER ───
@@ -503,8 +516,8 @@
   --mrd-pass-on-chip: oklch(0.84 0.22 152);
   --mrd-fail-chip: oklch(0.32 0.132 27); /* 4.8 */
   --mrd-fail-on-chip: oklch(0.71 0.183 27);
-  --mrd-hold-chip: oklch(0.34 0.071 78); /* 6.68 */
-  --mrd-hold-on-chip: oklch(0.82 0.17 78);
+  --mrd-hold-chip: oklch(0.31 0.035 74);
+  --mrd-hold-on-chip: oklch(0.82 0.08 74);
 
   /*
    * ── CONTROL, WHICH IS A THIRD PALETTE AND NOT A SIXTH STATUS ───────────
@@ -1524,10 +1537,10 @@
   --mrd-faint: oklch(0.61 0.006 70);
   /* demo and product draw ember reads on a pinned ground; you is value-
      identical to what --ember resolved to here before the port. */
-  --mrd-you: oklch(0.72 0.16 315);
-  --mrd-pass: oklch(0.74 0.15 152);
-  --mrd-fail: oklch(0.66 0.19 27);
-  --mrd-hold: oklch(0.79 0.125 78);
+  --mrd-you: oklch(0.74 0.11 315);
+  --mrd-pass: oklch(0.74 0.11 152);
+  --mrd-fail: oklch(0.68 0.15 27);
+  --mrd-hold: oklch(0.76 0.07 74);
   /* Requested by S3 (U-lane platform), and it is the last thing keeping ten
      public routes on the retired palette. d.$slug, t.$slug, index, product,
      demo, proof, subprocessors, film, ard and checkout.return all pin a dark
@@ -1617,7 +1630,7 @@
    * fail 5.0, pass 4.5. `pass` was authored at 0.52 and measured 4.19, just
    * under AA, so it moved to 0.50. Every semantic clears 4.5 on both grounds.
    */
-  --mrd-you: oklch(0.5 0.19 315);
+  --mrd-you: oklch(0.52 0.13 315);
   --mrd-agent: oklch(0.48 0.13 235);
 
   /*
@@ -1653,8 +1666,8 @@
   /* Amber is the hue that suffers most on paper: at the dark theme's lightness
      it is unreadable on white, so this drops much further than its neighbours.
      Measured, like the rest of this block — see the note on the dark ramp. */
-  --mrd-hold: oklch(0.52 0.12 78);
-  --mrd-hold-dim: oklch(0.56 0.11 78);
+  --mrd-hold: oklch(0.55 0.075 74);
+  --mrd-hold-dim: oklch(0.6 0.06 74);
 
   /*
    * Status chips on paper. The argument is in the dark block; this is the half
@@ -1687,8 +1700,8 @@
   --mrd-pass-on-chip: oklch(0.46 0.12 152);
   --mrd-fail-chip: oklch(0.8 0.115 27);
   --mrd-fail-on-chip: oklch(0.41 0.168 27);
-  --mrd-hold-chip: oklch(0.83 0.16 78);
-  --mrd-hold-on-chip: oklch(0.42 0.088 78);
+  --mrd-hold-chip: oklch(0.9 0.04 74);
+  --mrd-hold-on-chip: oklch(0.42 0.06 74);
 
   /* Re-darkened like every semantic hue, and by the same amount the neighbours
      move: 0.68 to 0.48 with the hue and chroma held, so a stop control is the

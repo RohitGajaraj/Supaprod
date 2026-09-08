@@ -81,6 +81,14 @@ export type JourneyStation = {
   presences?: ReadonlyArray<{ seat: string; colour: string; alive?: boolean }> | null;
 };
 
+/**
+ * THE ROW FORM'S WIDTH, so a list's marks column fits it by construction.
+ * Seven nodes at 6px (the current one 9px), six links at 4px, twelve gaps
+ * at 2px: 45 + 24 + 24 = 93px. The home's rows used to reserve 84 and the
+ * road ran into the title (founder, 2026-09-08: "the dots are not aligned").
+ */
+export const JOURNEY_ROW_WIDTH = 96;
+
 export const JOURNEY_ORDER: readonly JourneyKey[] = [
   "sense",
   "decide",
@@ -125,12 +133,21 @@ type Paint = { ring: string; ink: string; fill: string; dashed?: boolean };
 const PAINT: Record<JourneyState, Paint> = {
   pending: { ring: "var(--mrd-line)", ink: "var(--mrd-faint)", fill: "transparent" },
   done: { ring: "var(--mrd-edge)", ink: "var(--mrd-body)", fill: "var(--mrd-lift)" },
+  /*
+   * RESTRAINT, 2026-09-08 (founder: the road "looks like an AI-written
+   * design"). A current station carries its status in the ring and the
+   * glyph; the fill is the neutral lift for a stop or a wait, and the
+   * tinted chip only where something is alive inside it (a machine at work,
+   * a person required). Labels are never coloured and the badge is never
+   * coloured (see Node and Stop): colour says which state, the weight of
+   * the label says it is the current one.
+   */
   working: { ring: "var(--mrd-agent)", ink: "var(--mrd-agent)", fill: "var(--mrd-agent-chip)" },
   you: { ring: "var(--mrd-you)", ink: "var(--mrd-you)", fill: "var(--mrd-you-chip)" },
-  held: { ring: "var(--mrd-hold)", ink: "var(--mrd-hold)", fill: "var(--mrd-hold-chip)" },
+  held: { ring: "var(--mrd-hold)", ink: "var(--mrd-hold)", fill: "var(--mrd-lift)" },
   scheduled: { ring: "var(--mrd-edge)", ink: "var(--mrd-mute)", fill: "var(--mrd-lift)" },
   waiting: { ring: "var(--mrd-edge)", ink: "var(--mrd-body)", fill: "var(--mrd-lift)" },
-  failed: { ring: "var(--mrd-fail)", ink: "var(--mrd-fail)", fill: "var(--mrd-fail-chip)" },
+  failed: { ring: "var(--mrd-fail)", ink: "var(--mrd-fail)", fill: "var(--mrd-lift)" },
   waived: { ring: "var(--mrd-line)", ink: "var(--mrd-faint)", fill: "transparent", dashed: true },
 };
 
@@ -284,10 +301,7 @@ function Node({
       {size === "full" && station.count && station.count > 0 ? (
         <span
           className="font-mrd-mono absolute -top-1 -right-1.5 min-w-[16px] rounded-full px-1 text-center text-mrd-micro leading-mrd-snug tabular-nums"
-          style={{
-            background: CURRENT.has(station.state) ? p.ring : "var(--mrd-solid)",
-            color: "var(--mrd-on-solid)",
-          }}
+          style={{ background: "var(--mrd-solid)", color: "var(--mrd-on-solid)" }}
         >
           {station.count}
         </span>
@@ -315,7 +329,7 @@ function Link({
       className={
         size === "full"
           ? "h-px min-w-[12px] flex-1 max-sm:h-full max-sm:w-px max-sm:min-w-0 max-sm:flex-none"
-          : "h-px w-[3px] shrink-0"
+          : "h-px w-[4px] shrink-0"
       }
       style={{
         background: reached || travelled ? "var(--mrd-edge)" : "var(--mrd-line-soft)",
@@ -362,7 +376,7 @@ function Stop({
           className={`mt-mrd-2 block max-w-[9rem] truncate text-center text-mrd-label leading-mrd-snug max-sm:mt-0 max-sm:max-w-none max-sm:text-left ${
             current || active ? "font-medium" : ""
           }`}
-          style={{ color: current ? p.ink : active ? "var(--mrd-ink)" : "var(--mrd-mute)" }}
+          style={{ color: current || active ? "var(--mrd-ink)" : "var(--mrd-mute)" }}
         >
           {labelOf(station)}
         </span>
@@ -465,7 +479,7 @@ export function Journey({
         role="img"
         aria-label={`${label}: ${summary}`}
         title={summary}
-        className={`inline-flex items-center gap-[3px] ${className}`}
+        className={`inline-flex items-center gap-[2px] ${className}`}
       >
         {stations.map((s, i) => (
           <React.Fragment key={s.key}>
@@ -481,7 +495,7 @@ export function Journey({
             {labelOf(here)}
           </span>
         ) : null}
-        {clockStation ? <RowClock at={clockStation.at ?? null} /> : null}
+        {clockStation && word ? <RowClock at={clockStation.at ?? null} /> : null}
       </span>
     );
   }
