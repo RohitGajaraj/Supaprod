@@ -179,9 +179,14 @@ export type TranscriptItem =
 function foldKey(row: ActivityRow): string | null {
   if (row.kind !== "turn") return null;
   const t = row.turn;
-  if (t.made.length > 0 || t.said) return null;
+  if (t.made.length > 0) return null;
   if (t.outcome === "working" || t.outcome === "waiting") return null;
-  return [t.agentName, t.station ?? "", t.outcome, t.stopLine ?? ""].join(" ");
+  /* The seat's own last line is part of the identity: twelve turns that said
+     the same sentence are one event repeated, twelve that said different
+     things are twelve. The walk that found this had twelve identical rows
+     each carrying the same closed sentence, so the first rule (fold nothing
+     that said anything) folded none of them. */
+  return [t.agentName, t.station ?? "", t.outcome, t.stopLine ?? "", t.said ?? ""].join(" ");
 }
 
 export function foldRepeats(rows: readonly ActivityRow[], floor = 3): TranscriptItem[] {

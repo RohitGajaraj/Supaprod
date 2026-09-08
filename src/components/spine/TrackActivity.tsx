@@ -1691,6 +1691,11 @@ export function TrackActivity({
                               </span>
                               <RunMeta>{span}</RunMeta>
                               {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
+                              {saidLine(t.said) ? (
+                                <RunNote>
+                                  <Reveal lines={3}>{saidLine(t.said)}</Reveal>
+                                </RunNote>
+                              ) : null}
                             </span>
                           </li>
                         );

@@ -102,12 +102,18 @@ describe("foldRepeats", () => {
     expect(foldRepeats(rows).map((i) => i.kind)).toEqual(["row", "row"]);
   });
 
-  it("never folds a turn that filed, said or is still working", () => {
+  it("never folds a turn that filed or is still working, and folds by what was said", () => {
     const a = turn("design", 1000, "stopped", "Design", 600);
     const b = turn("design", 2000, "stopped", "Design", 600);
     const c = turn("design", 3000, "stopped", "Design", 600);
     (c as { turn: Turn }).turn.said = "I tried.";
     expect(foldRepeats([a, b, c]).map((i) => i.kind)).toEqual(["row", "row", "row"]);
+    const same = [1, 2, 3].map((n) => {
+      const t = turn("design", n * 1000, "stopped", "Design", 600);
+      (t as { turn: Turn }).turn.said = "The tree could not be read.";
+      return t;
+    });
+    expect(foldRepeats(same)).toHaveLength(1);
     const w = turn("design", 4000, "working", "Design", null);
     expect(foldRepeats([a, b, w, w]).every((i) => i.kind === "row")).toBe(true);
   });

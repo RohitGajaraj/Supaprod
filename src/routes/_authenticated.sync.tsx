@@ -1,123 +1,113 @@
 /**
- * SYNC. Redesigned, not ported (SURFACE-JUSTIFICATION.md, founder-directed
- * 2026-07-29). This surface was the last one in the app still drawing the
- * retired system: its own h1 with a gradient rule under it, `bento` cards,
- * `mono-label` headings, `--hairline` borders and `--ink-subtle` text. Every
- * one of those classes and tokens was deleted from the stylesheets in the
- * rebuild, so the page was rendering as unstyled stacks. It is rebuilt on the
- * primitives here. The six questions, answered before a line was written:
+ * SOURCES (/sync). Rebuilt around what the person came to learn, 2026-09-08.
  *
- * 1. WHO IS STANDING HERE, AND WHAT DID THEY COME TO DO?
- *    Someone who just read "not reading" or "nothing bound yet" on a source,
- *    here to point that source at the right repo, team, channel or database.
- *    Or, less often and more urgently, someone whose doc was edited on both
- *    sides and who has to say which copy wins. Two jobs, one object: the link
- *    between a source and a specific thing inside it.
+ * ── WHAT WAS WRONG ───────────────────────────────────────────────────────
+ * A teammate walked this page live as someone arriving from the rail with ONE
+ * connected source, a GitHub repository. They met eleven lines each saying
+ * "<X> is not connected, so there is nothing to point yet. Connect it", then a
+ * region headed "Just for Prism" with eleven more saying "<X> has no connected
+ * account, so there is nothing to override with". Twenty-two negations for one
+ * fact. Every region iterated the registry and asked each provider to explain
+ * its own absence, and the one connected thing was buried in the middle of
+ * them. That is a data dump; the founder's brief is to turn data into meaning.
  *
- * 2. THE ONE THING THIS SURFACE EXISTS TO MAKE POSSIBLE:
- *    Choosing what a connected source actually acts on. Settings answers "is
- *    Linear connected"; this answers "connected to WHICH team", which is the
- *    difference between an agent that can see an account and an agent that can
- *    do something. A two-sided edit is the same decision arriving late.
+ * ── WHAT THE PERSON IS TRYING TO LEARN, IN ORDER ─────────────────────────
+ *   1. Is anything waiting on me?         the conflict Choice, first, as before.
+ *   2. What is connected, and what is     "Connected": one row per connected
+ *      it pointed at, and is it current?  source, with its controls.
+ *   3. What could I add?                  "Connect a source": one press per
+ *                                         provider that is not connected,
+ *                                         saying what it brings, never what it
+ *                                         is not.
+ *   4. Does this product differ?          "Just for <product>": drawn only when
+ *                                         there is something connected to
+ *                                         override, and naming only that.
+ *   5. How do I send anything else in?    the ingest endpoint, at the foot.
  *
- * 3. KEEP / MOVE / KILL, every element:
- *    KEEP - workspace bindings (the reason the surface exists), the per-product
- *      override (the most specific link of the credential chain), conflicts,
- *      the recently-synced evidence, and the inbound webhook, which is the one
- *      source that is not a connector.
- *    KILL - the page's own h1, the 24x2px gradient rule under it, and the
- *      paragraph explaining the page to itself. The frame already titles the
- *      surface, and a rule that carries no information is decoration.
- *    KILL - the "Settings, Connections" breadcrumb at the top left. A
- *      breadcrumb to a settings section is not navigation, it is an apology for
- *      the surface not being on the rail. One door back sits with the bindings,
- *      where a person who cannot find their source actually needs it.
- *    KILL - every `bento` card. Six bordered containers in one column, several
- *      nested. One bordered container per region, maximum, and Blocks divide
- *      with a rule instead.
- *    KILL - every animate-pulse skeleton (three of them). Motion that carries
- *      no information; Loading says it in words and reserves the height.
- *    KILL - the ember border on the conflict you followed here. A coloured
- *      border on one side of a rounded card is the most recognisable AI tell,
- *      and the emphasis it was buying is bought better by ORDER: the followed
- *      conflict is simply first.
- *    KILL - the armed two-step Rotate and Revoke buttons that turned amber and
- *      red and reset themselves after four seconds. A destructive action asks
- *      once, in a sentence, through the confirm the rest of the product uses.
- *    KILL - the icon-only external-link glyph on every synced row. The row is
- *      the door now; clicking it opens the document where it lives.
- *    MOVE - nothing off this surface. Account-level connecting already lives in
- *      Settings and this page has not tried to duplicate it since 2026-07-06.
- *    ADD, later the same night on the founder's second look - the provider mark
- *      on every synced row. That row already reserved a 34px mark slot and left
- *      it empty, and which tool owns the document is the one fact its lead
- *      does not say. Monochrome, because the row's subject is the sync state.
+ * The partition itself is pure and tested: `components/connections/sources-
+ * model.ts`. `WorkspaceBindingsSection` and `ProductBindingsSection` are no
+ * longer mounted here; every server function, query key, mutation, confirm
+ * sentence and the repo-creation flow they carried is kept below unchanged.
  *
- * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE:
- *    The document itself (the row opens it in the tool that owns it), the
- *    source's own page and its accounts (Settings, ?connector=), and the curl
- *    example for the webhook, which is folded until someone is actually wiring
- *    something up. Rows are one or two lines and never wrap.
+ * ONE READING LINE AND ONE FAILURE LINE for the whole page. The reads land
+ * together, so a person waits once and is told once; three regions each
+ * saying "reading" is three claims about one wait.
  *
- * 5. DELIGHT, AND CONFUSION:
- *    The delight is that every binding line names what it is pointed at, who
- *    pointed it, and whether it is still reading, so a person can audit the
- *    crew's whole reach in one screen without opening anything. What would
- *    confuse, and is therefore not drawn: two Pull and Push buttons on a
- *    provider that only reads (it says "reads only" instead), a primary button
- *    on either side of a conflict (neither copy is inherently right, so the
- *    Gate carries the emphasis and no button claims to be the answer), and a
- *    conflict count that says zero when the read failed.
- *
- * 6. WHERE DOES THE CREW APPEAR ON THIS SURFACE, AND WHAT DOES IT PROVE?
- *    A binding is the crew's reach: it is the exact object an agent writes
- *    through when it files an issue or publishes a spec. So every binding line
- *    carries attribution, `bound by <person>`, and states plainly when the
- *    connection behind it has stopped reading, which is a capability the
- *    product has lost and must not keep implying it has. No agent mark is drawn
- *    on this page because no agent acts here; the honest answer to "where is
- *    the crew" is "downstream of every line on this screen", and inventing a
- *    running mark to satisfy the question would be the overclaim R12 bans.
+ * ── THE ORIGINAL SIX QUESTIONS (2026-07-29) STILL HOLD ───────────────────
+ * 1. WHO IS STANDING HERE: someone who just read "not reading" or "nothing
+ *    bound yet" on a source, here to point it at the right repo, team, channel
+ *    or database; or, less often and more urgently, someone whose doc was
+ *    edited on both sides and who has to say which copy wins.
+ * 2. THE ONE THING THIS SURFACE MAKES POSSIBLE: choosing what a connected
+ *    source actually acts on. Settings answers "is Linear connected"; this
+ *    answers "connected to WHICH team".
+ * 3. KEEP / MOVE / KILL: bindings, the per-product override, conflicts, the
+ *    synced evidence and the inbound webhook are kept. No bento cards, no
+ *    skeletons, no ember border on the followed conflict (order is the
+ *    emphasis), no armed two-step destructive buttons.
+ * 4. ONE CLICK AWAY: the document itself (a synced row opens it where it
+ *    lives), the source's own page and accounts (a connected row opens it in
+ *    Settings), and the curl example.
+ * 5. DELIGHT, AND CONFUSION: every connected line names what it is pointed at,
+ *    who pointed it, and whether it is still reading. Not drawn: Pull and Push
+ *    on a provider that only reads, a primary button on either side of a
+ *    conflict, a zero that means "the read failed".
+ * 6. THE CREW: a binding is the crew's reach. No agent mark is drawn here
+ *    because no agent acts here; the honest answer to "where is the crew" is
+ *    "downstream of every line on this screen".
  */
 import { useEffect, useState } from "react";
-import { Row, Line } from "@/components/meridian/rows";
+import { Line, Row } from "@/components/meridian/rows";
 import {
   ACTION_LINK_FACE,
   Action,
   Actions,
+  Cell,
+  Grid,
   NothingYet,
   Num,
   PageHeading,
+  Picker,
   Pre,
   ReadFailedLine,
   Reading,
   Region,
+  Value,
 } from "@/components/meridian/surface-parts";
 import { Choice } from "@/components/meridian/Choice";
 import { Surface } from "@/components/meridian/Surface";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
-import { WorkspaceBindingsSection } from "@/components/connections/WorkspaceBindingsSection";
-import { ProductBindingsSection } from "@/components/connections/ProductBindingsSection";
-import { ProviderMark } from "@/components/meridian/source-marks";
+import { BindingPicker } from "@/components/connections/BindingPicker";
+import { CreateRepoModal } from "@/components/connections/CreateRepoModal";
+import {
+  connectedSummary,
+  sourceBrings,
+  sourcesModel,
+  type ConnectPress,
+  type ConnectedSource,
+} from "@/components/connections/sources-model";
+import { ProviderMark, ProviderName, UnderMark } from "@/components/meridian/source-marks";
 import { listSyncMappings, resolveSyncConflict } from "@/lib/integrations.functions";
-import { listWorkspaceBindings } from "@/lib/connections.functions";
+import {
+  addProductBinding,
+  listConnections,
+  listProductBindings,
+  listWorkspaceBindings,
+  removeBinding,
+  type BindingRow,
+  type ConnectionRow,
+  type WorkspaceBindingRow,
+} from "@/lib/connections.functions";
 import { pullMapping, pushMapping } from "@/lib/sync.functions";
 import { getIngestToken, rotateIngestToken, revokeIngestToken } from "@/lib/ingest.functions";
-import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
+import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
+import { humanWriteError } from "@/lib/roles.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
-
-/**
- * THE QUIET LINK FACE lived here as a local constant, the second copy in the
- * product beside AccountConnectionsSection.tsx. Both collapsed into
- * ACTION_LINK_FACE.quiet in meridian/surface-parts.tsx (R005, 2026-08-23),
- * whose default face is byte-identical to run-parts' LINK_AS_CONTROL, so the
- * door at the foot of this page moved to it unchanged.
- */
 
 export type SyncSearch = { conflict?: string; product?: string };
 
@@ -130,7 +120,7 @@ export type SyncSearch = { conflict?: string; product?: string };
  * `product` is the second deep-link param (P-44, A-QUEUE.md), alongside the
  * existing `conflict`: `/sync?product=<id>` is where the "Finish it on Sync"
  * door from a connected-but-unbound need now lands, carrying the run's own
- * product so `ProductBindingsSection` opens already pointed at it.
+ * product so the per-product region opens already pointed at it.
  */
 export function parseSyncSearch(search: Record<string, unknown>): SyncSearch {
   const out: SyncSearch = {};
@@ -197,7 +187,7 @@ type Mapping = {
  * what is active (switching is a no-op that would still re-fire the effect
  * on every render without this check), or it names a product this workspace
  * does not currently list (a stale link, or one for a different workspace --
- * switching to an id `ProductBindingsSection` cannot resolve would trade a
+ * switching to an id the per-product region cannot resolve would trade a
  * correct "nothing to override" state for a silently wrong one).
  */
 export function productToPreselect(
@@ -214,6 +204,12 @@ export function productToPreselect(
 /** Human name for a provider enum (google_docs -> Google Docs). */
 function providerLabel(p: string): string {
   return CONNECTOR_REGISTRY[p as ProviderId]?.label ?? p.replace(/_/g, " ");
+}
+
+/** "3D AGO" is the retired system's caps grammar. Lower case reads as a fact
+ *  rather than a label, and the number sits in Num like every other number. */
+function ago(iso: string): string {
+  return relTimeCaps(iso).toLowerCase();
 }
 
 /** The three providers whose adapters implement a real two-way document sync.
@@ -233,7 +229,7 @@ const TWO_WAY = new Set(["google_docs", "notion", "linear"]);
  * produces. So a workspace can be genuinely, correctly "0 documents in
  * sync" while also having sources already pointed -- GitHub is exactly that
  * case, and "point a source" is a lie to someone who just did. `boundCount`
- * (the same number `WorkspaceBindingsSection` renders) is read here ONLY to
+ * (the same number the Connected region renders) is read here ONLY to
  * choose which zero-documents sentence is honest, never folded into the
  * document count itself.
  */
@@ -260,6 +256,8 @@ export function syncHeadline(state: {
 
 function SyncPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
+  const confirm = useConfirm();
   const { conflict: followedConflictId, product: wantedProductId } = Route.useSearch();
   const { activeProductId, activeWorkspaceId, activeProduct, products, setActiveProductId } =
     useWorkspace();
@@ -267,9 +265,9 @@ function SyncPage() {
   /*
    * THE PRODUCT A DOOR NAMED, PRESELECTED (P-44, A-QUEUE.md). Routed through
    * the same `setActiveProductId` the switcher itself calls -- not a local
-   * override -- so `ProductBindingsSection` below reads it exactly as it
-   * would if a person had clicked it there, and it stays selected on the way
-   * back rather than reverting the instant this effect stops re-running.
+   * override -- so the per-product region below reads it exactly as it would
+   * if a person had clicked it there, and it stays selected on the way back
+   * rather than reverting the instant this effect stops re-running.
    */
   useEffect(() => {
     const toSelect = productToPreselect(
@@ -279,28 +277,73 @@ function SyncPage() {
     );
     if (toSelect) setActiveProductId(toSelect);
   }, [wantedProductId, activeProductId, products, setActiveProductId]);
+
   const fList = useServerFn(listSyncMappings);
   const fResolve = useServerFn(resolveSyncConflict);
   const fPull = useServerFn(pullMapping);
   const fPush = useServerFn(pushMapping);
+  const fConnections = useServerFn(listConnections);
+  const fBindings = useServerFn(listWorkspaceBindings);
+  const fProductBindings = useServerFn(listProductBindings);
+  const fRemove = useServerFn(removeBinding);
+  const fAddOverride = useServerFn(addProductBinding);
+  const fIngest = useServerFn(getIngestToken);
 
   const q = useQuery({ queryKey: ["sync-mappings"], queryFn: () => fList() });
+  const qConnections = useQuery({ queryKey: ["connections"], queryFn: () => fConnections() });
+  const qBindings = useQuery({
+    /* P-75: the key and the call both name the workspace, or one cache entry
+       is shared across every workspace a person holds and Sources names another
+       desk's repository as something this one may read. */
+    queryKey: ["workspace-bindings", activeWorkspaceId ?? null],
+    queryFn: () => fBindings({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+  });
+  const qProduct = useQuery({
+    queryKey: ["product-bindings", activeProductId],
+    queryFn: () => fProductBindings({ data: { projectId: activeProductId ?? "" } }),
+    enabled: Boolean(activeProductId),
+  });
+  /* The foot's token read, started WITH the page's reads rather than after
+     them. `WebhookIngest` mounts once the page has landed and reads the same
+     key, so it finds the answer already there and never draws a second
+     "Reading" after the page's one has gone. */
+  useQuery({ queryKey: ["ingest-token"], queryFn: () => fIngest() });
+
   const mappings = (q.data?.mappings ?? []) as Mapping[];
   const allConflicts = mappings.filter((m) => m.conflict);
   const synced = mappings.filter((m) => !m.conflict);
+  const connections = (qConnections.data?.connections ?? []) as ConnectionRow[];
+  const bindings = (qBindings.data?.bindings ?? []) as WorkspaceBindingRow[];
+  const productBindings = (qProduct.data?.bindings ?? []) as BindingRow[];
 
-  /*
-   * SAME QUERY KEY AND FN `WorkspaceBindingsSection` already uses below --
-   * this shares its cache entry rather than firing a second request, and
-   * exists only so the page's own headline can read the count the section
-   * renders instead of contradicting it. See `syncHeadline`.
-   */
-  const fBindings = useServerFn(listWorkspaceBindings);
-  const bindingsQ = useQuery({
-    queryKey: ["workspace-bindings"],
-    queryFn: () => fBindings(),
+  const model = sourcesModel({
+    connections,
+    bindings,
+    mappings,
+    availability: qConnections.data?.providerAvailability,
   });
-  const boundCount = bindingsQ.data?.bindings?.length ?? 0;
+
+  const loading =
+    q.isLoading ||
+    qConnections.isLoading ||
+    qBindings.isLoading ||
+    (Boolean(activeProductId) && qProduct.isLoading);
+  const failedError = q.isError
+    ? q.error
+    : qConnections.isError
+      ? qConnections.error
+      : qBindings.isError
+        ? qBindings.error
+        : qProduct.isError
+          ? qProduct.error
+          : null;
+  const failed = failedError !== null;
+  const retryAll = () => {
+    if (q.isError) void q.refetch();
+    if (qConnections.isError) void qConnections.refetch();
+    if (qBindings.isError) void qBindings.refetch();
+    if (qProduct.isError) void qProduct.refetch();
+  };
 
   // The conflict a person followed here is the one call in front of them, so it
   // is FIRST. Order is the emphasis; the retired surface bought the same thing
@@ -343,6 +386,74 @@ function SyncPage() {
   const isBusy = (id: string) =>
     (mPull.isPending && mPull.variables === id) || (mPush.isPending && mPush.variables === id);
 
+  /*
+   * UNBINDING A WORKSPACE SOURCE ASKS FIRST, and the per-product removal
+   * below deliberately does not. A workspace binding is the bottom of the
+   * credential chain (product binding > workspace binding > user connection);
+   * `removeBinding` is a hard DELETE on `connection_bindings`, so there is no
+   * layer underneath and nothing to inherit. The crew stops being able to
+   * reach that resource, and work already in flight finds it gone. A product
+   * override, by contrast, falls back to the workspace one, and its own label
+   * says so, so a question there would be friction guarding nothing.
+   */
+  const mUnbind = useMutation({
+    mutationFn: (id: string) => fRemove({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Binding removed");
+      qc.invalidateQueries({ queryKey: ["workspace-bindings"] });
+    },
+    onError: (e: unknown) => toast.error(humanWriteError(e, "Unbind failed")),
+  });
+  const askThenUnbind = async (id: string, what: string) => {
+    const ok = await confirm({
+      title: `Unbind ${what}?`,
+      body: `The crew reaches this through the binding, so it stops being able to act on it the moment you confirm, including work that is running right now. Nothing is deleted where it lives and the connection itself stays. Pointing at it again means choosing the resource from scratch.`,
+      confirmLabel: "Unbind it",
+      destructive: true,
+    });
+    if (ok) mUnbind.mutate(id);
+  };
+
+  const mAddOverride = useMutation({
+    mutationFn: (args: {
+      connectionId: string;
+      provider: string;
+      resourceKind: string;
+      resourceId: string;
+      resourceLabel?: string;
+    }) =>
+      fAddOverride({
+        data: {
+          projectId: activeProductId ?? "",
+          workspaceId: activeWorkspaceId ?? "",
+          connectionId: args.connectionId,
+          provider: args.provider,
+          resourceKind: args.resourceKind,
+          resourceId: args.resourceId,
+          resourceLabel: args.resourceLabel,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Product binding saved");
+      qc.invalidateQueries({ queryKey: ["product-bindings", activeProductId] });
+    },
+    onError: (e: unknown) => toast.error(humanWriteError(e, "Bind failed")),
+  });
+  const mRemoveOverride = useMutation({
+    mutationFn: (id: string) => fRemove({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Override removed. This product falls back to the workspace binding.");
+      qc.invalidateQueries({ queryKey: ["product-bindings", activeProductId] });
+    },
+    onError: (e: unknown) => toast.error(humanWriteError(e, "Unbind failed")),
+  });
+
+  /* The source's own page in Settings: its accounts, scopes, verify and
+     disconnect. The same door the retired "Connect it" link opened, and the
+     one every press in "Connect a source" opens. */
+  const openSource = (provider: ProviderId) =>
+    navigate({ to: "/settings", search: { section: "connections", connector: provider } });
+
   // Honesty: a followed conflict that is no longer in the list was resolved
   // (here or remotely) between the click and the landing. Say so quietly.
   const followedGone =
@@ -352,240 +463,595 @@ function SyncPage() {
     !allConflicts.some((m) => m.id === followedConflictId);
 
   const head = syncHeadline({
-    failed: q.isError,
-    loading: q.isLoading,
+    failed,
+    loading,
     conflictCount: conflicts.length,
     syncedCount: synced.length,
-    boundCount,
+    boundCount: bindings.length,
   });
 
   return (
     <Surface wide>
-      {/* THE COLUMN OWNS ITS OWN RHYTHM, WHICH IS WHAT CHANGED HERE. The retired
-          `Block` baked a 36px top margin and a hairline into every region, so the
-          space between sections was decided eight times over by the components
-          that happened to be in them. Meridian's `Region` draws neither, so the
-          surface states the gap once: `gap-mrd-7`, 40px, the step Brain, Crew,
-          Decide, Design, Learn, Plan and Ship all took for the same job. */}
+      {/* THE COLUMN OWNS ITS OWN RHYTHM. Meridian's `Region` draws no margin and
+          no hairline of its own, so the surface states the gap once: `gap-mrd-7`,
+          40px, the step Brain, Crew, Decide, Design, Learn, Plan and Ship all
+          took for the same job. */}
       <div className="flex flex-col gap-mrd-7">
         <PageHeading station="sense" title="Sources" sub={head} />
 
-        {/* The decision, first and biggest, because it is the only thing on this
-          surface that is waiting on a person. */}
-        {q.isError ? (
-          <ReadFailedLine onRetry={() => void q.refetch()}>
-            The sync state did not load. {(q.error as Error)?.message ?? "The read failed."}
+        {failed ? (
+          /* ONE LINE FOR THE WHOLE PAGE. Four reads land together; whichever
+             failed first is named, and one retry refetches every one that
+             failed. Nothing below it is drawn, because a Connected list read
+             off half the answer would be a confident wrong picture. */
+          <ReadFailedLine error={failedError} onRetry={retryAll}>
+            Your sources did not load. {(failedError as Error)?.message ?? "The read failed."}
           </ReadFailedLine>
-        ) : null}
+        ) : loading ? (
+          <Reading>Reading what is connected and what each source is pointed at.</Reading>
+        ) : (
+          <>
+            {/* THE BARE HALF OF THE PAIR, and not `NothingHere`: one quiet
+                sentence standing in the column with no region around it. */}
+            {followedGone ? (
+              <NothingYet>The conflict you followed here is already resolved.</NothingYet>
+            ) : null}
 
-        {/* THE BARE HALF OF THE PAIR, and not `NothingHere`. This is one quiet
-          sentence standing in the column with no region around it, and the
-          bordered box is what this surface's own rebuild went out of its way to
-          remove ("KILL - every bento card ... one bordered container per region,
-          maximum"). The retired `Empty` drew no border either, so the bare half
-          is also the faithful port. */}
-        {followedGone ? (
-          <NothingYet>The conflict you followed here is already resolved.</NothingYet>
-        ) : null}
+            {/* The decision, first and biggest, because it is the only thing on
+                this surface that is waiting on a person. */}
+            {conflicts.map((m) => {
+              const twoWay = TWO_WAY.has(m.provider);
+              return (
+                <div key={m.id} className="flex flex-col gap-mrd-3">
+                  {/* `Choice.option.fact` is required and the same fact on every
+                      row (its own header): the version each side is on. Push and
+                      pull are not peer options in that sense -- they resolve by a
+                      different MECHANISM, not by naming which version wins -- so
+                      they render as quiet actions beside the choice rather than a
+                      third and fourth row with no version fact of their own. */}
+                  <Choice
+                    question={`Which copy of ${m.external_id} wins?`}
+                    why="Both sides changed since the last sync."
+                    busyId={
+                      mResolve.isPending && mResolve.variables?.id === m.id
+                        ? mResolve.variables.strategy
+                        : null
+                    }
+                    options={[
+                      {
+                        id: "keep_local",
+                        label: "Keep the Supaprod copy",
+                        fact: `version ${m.version_local}`,
+                      },
+                      {
+                        id: "keep_remote",
+                        label: `Keep the ${providerLabel(m.provider)} copy`,
+                        fact: `version ${m.version_remote}`,
+                      },
+                    ]}
+                    onPick={(strategy) =>
+                      mResolve.mutate({
+                        id: m.id,
+                        strategy: strategy as "keep_local" | "keep_remote",
+                      })
+                    }
+                  />
+                  {twoWay || m.external_url ? (
+                    <Actions>
+                      {twoWay ? (
+                        <>
+                          <Action
+                            variant="quiet"
+                            disabled={isBusy(m.id)}
+                            onClick={() => mPush.mutate(m.id)}
+                          >
+                            {mPush.isPending && mPush.variables === m.id
+                              ? "Pushing"
+                              : "Push ours and resolve"}
+                          </Action>
+                          <Action
+                            variant="quiet"
+                            disabled={isBusy(m.id)}
+                            onClick={() => mPull.mutate(m.id)}
+                          >
+                            {mPull.isPending && mPull.variables === m.id
+                              ? "Pulling"
+                              : "Pull theirs and resolve"}
+                          </Action>
+                        </>
+                      ) : null}
+                      {m.external_url ? (
+                        /* THE ONE CONTROL HERE THAT LEAVES THE APP, so it stays an
+                           `<a>` and takes only the paint. `data-mrd` carries the
+                           Meridian focus ring; every Meridian control root
+                           declares its own, so this one keeps the ring wherever
+                           it is dropped. */
+                        <a
+                          data-mrd=""
+                          className={ACTION_LINK_FACE.quiet}
+                          href={m.external_url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Read both first
+                        </a>
+                      ) : null}
+                    </Actions>
+                  ) : null}
+                </div>
+              );
+            })}
 
-        {conflicts.map((m) => {
-          const twoWay = TWO_WAY.has(m.provider);
-          return (
-            <div key={m.id} className="flex flex-col gap-mrd-3">
-              {/* `Choice.option.fact` is required and the same fact on every
-                  row (its own header): the version each side is on. Push and
-                  pull are not peer options in that sense -- they resolve by a
-                  different MECHANISM, not by naming which version wins -- so
-                  they render as quiet actions beside the choice rather than a
-                  third and fourth row with no version fact of their own. */}
-              <Choice
-                question={`Which copy of ${m.external_id} wins?`}
-                why="Both sides changed since the last sync."
-                busyId={
-                  mResolve.isPending && mResolve.variables?.id === m.id
-                    ? mResolve.variables.strategy
-                    : null
-                }
-                options={[
-                  {
-                    id: "keep_local",
-                    label: "Keep the Supaprod copy",
-                    fact: `version ${m.version_local}`,
-                  },
-                  {
-                    id: "keep_remote",
-                    label: `Keep the ${providerLabel(m.provider)} copy`,
-                    fact: `version ${m.version_remote}`,
-                  },
-                ]}
-                onPick={(strategy) =>
-                  mResolve.mutate({ id: m.id, strategy: strategy as "keep_local" | "keep_remote" })
+            {/* ── 3. CONNECTED ─────────────────────────────────────────── */}
+            <Region title="Connected" sub={connectedSummary(model.connected)}>
+              {model.connected.length === 0 ? (
+                <NothingYet>
+                  Nothing is connected yet. Connect a source below and Discover can read it.
+                </NothingYet>
+              ) : (
+                model.connected.map((source) => (
+                  <ConnectedRow
+                    key={source.key}
+                    source={source}
+                    unbinding={
+                      mUnbind.isPending && mUnbind.variables === (source.binding?.id ?? null)
+                    }
+                    onOpen={() => openSource(source.spec.id)}
+                    onUnbind={() => {
+                      if (!source.binding) return;
+                      const what = source.kind
+                        ? `${source.spec.label} ${source.kind.label.toLowerCase()}`
+                        : source.spec.label;
+                      void askThenUnbind(source.binding.id, what);
+                    }}
+                  />
+                ))
+              )}
+            </Region>
+
+            {/* The evidence that a two-way source is reading: only drawn when
+                there is any. A Notion database with nothing synced yet is
+                already said on its Connected row, so an empty region here would
+                be the same fact twice. */}
+            {synced.length > 0 ? (
+              <Region
+                title="Documents in sync"
+                sub="Each row opens the document in the tool that owns it."
+              >
+                {synced.slice(0, 20).map((m) => {
+                  const twoWay = TWO_WAY.has(m.provider);
+                  const lastSync = latestIso([m.last_pulled_at, m.last_pushed_at]);
+                  const verb =
+                    m.last_pushed_at && (!m.last_pulled_at || m.last_pushed_at > m.last_pulled_at)
+                      ? "pushed"
+                      : "pulled";
+                  return (
+                    <Row
+                      key={m.id}
+                      tight
+                      // Monochrome: the subject of the row is the sync state,
+                      // and the provider is its context.
+                      marks={<ProviderMark provider={m.provider} tone="mono" />}
+                      lead={m.external_id}
+                      sub={
+                        <>
+                          {providerLabel(m.provider)}
+                          {" · "}
+                          {lastSync ? (
+                            <>
+                              {verb} <Num>{ago(lastSync)}</Num>
+                            </>
+                          ) : (
+                            "not synced yet"
+                          )}
+                          {twoWay ? null : " · reads only"}
+                        </>
+                      }
+                      onClick={
+                        m.external_url
+                          ? () => window.open(m.external_url!, "_blank", "noopener,noreferrer")
+                          : undefined
+                      }
+                      action={
+                        twoWay ? (
+                          <>
+                            <Action
+                              variant="quiet"
+                              disabled={isBusy(m.id)}
+                              onClick={() => mPull.mutate(m.id)}
+                            >
+                              {mPull.isPending && mPull.variables === m.id ? "Pulling" : "Pull"}
+                            </Action>
+                            <Action
+                              variant="quiet"
+                              disabled={isBusy(m.id)}
+                              onClick={() => mPush.mutate(m.id)}
+                            >
+                              {mPush.isPending && mPush.variables === m.id ? "Pushing" : "Push"}
+                            </Action>
+                          </>
+                        ) : null
+                      }
+                    />
+                  );
+                })}
+              </Region>
+            ) : null}
+
+            {/* ── 4. CONNECT A SOURCE ──────────────────────────────────── */}
+            <ConnectPresses presses={model.toConnect} onConnect={openSource} />
+
+            {/* ── 5. JUST FOR <PRODUCT> ────────────────────────────────── */}
+            {activeProductId && activeWorkspaceId && model.overridable.length > 0 ? (
+              <JustForProduct
+                productId={activeProductId}
+                workspaceId={activeWorkspaceId}
+                productName={activeProduct?.name}
+                providers={model.overridable}
+                connections={connections}
+                bindings={productBindings}
+                adding={mAddOverride.isPending}
+                onAdd={(args) => mAddOverride.mutate(args)}
+                removingId={mRemoveOverride.isPending ? (mRemoveOverride.variables ?? null) : null}
+                onRemove={(id) => mRemoveOverride.mutate(id)}
+                onRepoCreated={() =>
+                  qc.invalidateQueries({ queryKey: ["product-bindings", activeProductId] })
                 }
               />
-              {twoWay || m.external_url ? (
-                <Actions>
-                  {twoWay ? (
-                    <>
-                      <Action
-                        variant="quiet"
-                        disabled={isBusy(m.id)}
-                        onClick={() => mPush.mutate(m.id)}
-                      >
-                        {mPush.isPending && mPush.variables === m.id
-                          ? "Pushing"
-                          : "Push ours and resolve"}
-                      </Action>
-                      <Action
-                        variant="quiet"
-                        disabled={isBusy(m.id)}
-                        onClick={() => mPull.mutate(m.id)}
-                      >
-                        {mPull.isPending && mPull.variables === m.id
-                          ? "Pulling"
-                          : "Pull theirs and resolve"}
-                      </Action>
-                    </>
-                  ) : null}
-                  {m.external_url ? (
-                    /* THE ONE CONTROL HERE THAT LEAVES THE APP, so it stays an
-                     `<a>` and takes only the paint. It never had an `onClick`
-                     and does not get one. `data-mrd` is what carries the
-                     Meridian focus ring; the shell root already grants it by
-                     descent, and it is written here too because every
-                     Meridian control root declares its own, so this one keeps
-                     the ring wherever it is dropped. */
-                    <a
-                      data-mrd=""
-                      className={ACTION_LINK_FACE.quiet}
-                      href={m.external_url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Read both first
-                    </a>
-                  ) : null}
-                </Actions>
-              ) : null}
-            </div>
-          );
-        })}
+            ) : null}
+          </>
+        )}
 
-        <WorkspaceBindingsSection />
-
-        {activeProductId && activeWorkspaceId ? (
-          <ProductBindingsSection
-            projectId={activeProductId}
-            workspaceId={activeWorkspaceId}
-            projectName={activeProduct?.name}
-          />
-        ) : null}
-
-        {/* One door back, and it sits where a person who cannot find their source
-          actually needs it, rather than as a breadcrumb at the top left.
-
-          A router `<Link>` renders its own anchor, so this takes the shared face
-          rather than becoming a `<button>` that navigates: a middle click, a
-          modifier click and the status bar all have to keep working. The default
-          face, because that is what it wore, and `runs.index` points the
-          mirror-image door here wearing run-parts' `LINK_AS_CONTROL`, which
-          holds the same string. */}
-        <Actions>
-          <Link
-            data-mrd=""
-            to="/settings"
-            search={{ section: "connections" }}
-            className={ACTION_LINK_FACE.default}
-          >
-            Connect another source
-          </Link>
-        </Actions>
-
-        <Region
-          title="Documents in sync"
-          sub={
-            q.isError || q.isLoading
-              ? undefined
-              : synced.length === 0
-                ? undefined
-                : "Each row opens the document in the tool that owns it."
-          }
-        >
-          {q.isError ? (
-            <NothingYet>The list needs the read above. Retry it and this fills in.</NothingYet>
-          ) : q.isLoading ? (
-            <Reading>Reading what is in sync.</Reading>
-          ) : synced.length === 0 ? (
-            <NothingYet>
-              Nothing synced yet. Point a Notion database or a Google Docs folder at this workspace
-              above and the documents appear here.
-            </NothingYet>
-          ) : (
-            synced.slice(0, 20).map((m) => {
-              const twoWay = TWO_WAY.has(m.provider);
-              const lastSync = latestIso([m.last_pulled_at, m.last_pushed_at]);
-              const verb =
-                m.last_pushed_at && (!m.last_pulled_at || m.last_pushed_at > m.last_pulled_at)
-                  ? "pushed"
-                  : "pulled";
-              return (
-                <Row
-                  key={m.id}
-                  tight
-                  // The mark slot on this list was 34px of nothing, and the one
-                  // fact it should have carried is which tool owns the document.
-                  // Monochrome: the subject of the row is the sync state.
-                  marks={<ProviderMark provider={m.provider} />}
-                  lead={m.external_id}
-                  sub={
-                    <>
-                      {providerLabel(m.provider)}
-                      {" · "}
-                      {lastSync ? (
-                        <>
-                          {verb} <Num>{relTimeCaps(lastSync).toLowerCase()}</Num>
-                        </>
-                      ) : (
-                        "not synced yet"
-                      )}
-                      {twoWay ? null : " · reads only"}
-                    </>
-                  }
-                  onClick={
-                    m.external_url
-                      ? () => window.open(m.external_url!, "_blank", "noopener,noreferrer")
-                      : undefined
-                  }
-                  action={
-                    twoWay ? (
-                      <>
-                        <Action
-                          variant="quiet"
-                          disabled={isBusy(m.id)}
-                          onClick={() => mPull.mutate(m.id)}
-                        >
-                          {mPull.isPending && mPull.variables === m.id ? "Pulling" : "Pull"}
-                        </Action>
-                        <Action
-                          variant="quiet"
-                          disabled={isBusy(m.id)}
-                          onClick={() => mPush.mutate(m.id)}
-                        >
-                          {mPush.isPending && mPush.variables === m.id ? "Pushing" : "Push"}
-                        </Action>
-                      </>
-                    ) : null
-                  }
-                />
-              );
-            })
-          )}
-        </Region>
-
-        <WebhookIngest />
+        {/* ── 6. SEND ANYTHING IN ──────────────────────────────────────── */}
+        {loading ? null : <WebhookIngest />}
       </div>
     </Surface>
   );
 }
+
+/* ------------------------------------------------------------------ *
+ * 3. One connected source
+ * ------------------------------------------------------------------ */
+
+/**
+ * ONE ROW PER CONNECTED SOURCE: the provider, what it is pointed at, who
+ * pointed it, and when it last did anything. The row is a door to the source's
+ * own page in Settings (accounts, verify, disconnect); the control at its
+ * trailing edge is the one decision the row itself carries.
+ *
+ * THE TIME IS THE MOST RECENT TRUE THING, and the verb says which: `synced`
+ * when the provider has a two-way document sync, `pointed` when the binding is
+ * the latest event, `verified` when all the product knows is that the account
+ * answered. No time is invented for a source that has none.
+ */
+function ConnectedRow({
+  source,
+  unbinding,
+  onOpen,
+  onUnbind,
+}: {
+  source: ConnectedSource;
+  unbinding: boolean;
+  onOpen: () => void;
+  onUnbind: () => void;
+}) {
+  const { spec, kind, connection, reading, binding, lastSyncIso } = source;
+  const lead = kind ? `${spec.label} ${kind.label.toLowerCase()}` : spec.label;
+  const account = connection.account_label ?? connection.account_email ?? null;
+  const resource = binding ? (binding.resource_label ?? binding.resource_id) : null;
+
+  const when = lastSyncIso
+    ? { verb: "synced", iso: lastSyncIso }
+    : binding
+      ? { verb: "pointed", iso: latestIso([binding.updated_at, binding.created_at]) }
+      : connection.last_verified_at
+        ? { verb: "verified", iso: connection.last_verified_at }
+        : null;
+  const whenText = when?.iso ? `${when.verb} ${ago(when.iso)}` : null;
+
+  /* The sentence is built twice on purpose: once as nodes, so the number wears
+     `Num` and a stopped source wears `Value`, and once as plain text, so the
+     truncated row still has a tooltip that reads whole (Row's own rule). */
+  let sub: React.ReactNode;
+  let subText: string;
+  if (!reading) {
+    const rest = [resource, "open it to reconnect"].filter(Boolean).join(" · ");
+    subText = `stopped reading · ${rest}`;
+    sub = (
+      <>
+        <Value tone="fail">stopped reading</Value>
+        {` · ${rest}`}
+      </>
+    );
+  } else if (binding) {
+    const parts: string[] = [resource ?? ""];
+    if (account) parts.push(`via ${account}`);
+    if (binding.owner_display) parts.push(`bound by ${binding.owner_display}`);
+    subText = [...parts, whenText].filter(Boolean).join(" · ");
+    sub = (
+      <>
+        {parts.join(" · ")}
+        {when?.iso ? (
+          <>
+            {" · "}
+            {when.verb} <Num>{ago(when.iso)}</Num>
+          </>
+        ) : null}
+      </>
+    );
+  } else if (kind) {
+    subText = account
+      ? `Nothing chosen yet, so the crew can see ${account} and nothing inside it.`
+      : "Nothing chosen yet, so the crew can see the account and nothing inside it.";
+    sub = subText;
+  } else {
+    const parts = [account, "reads the whole account"].filter(Boolean) as string[];
+    subText = [...parts, whenText].filter(Boolean).join(" · ");
+    sub = (
+      <>
+        {parts.join(" · ")}
+        {when?.iso ? (
+          <>
+            {" · "}
+            {when.verb} <Num>{ago(when.iso)}</Num>
+          </>
+        ) : null}
+      </>
+    );
+  }
+
+  return (
+    <Row
+      tight
+      // Brand hue: this list's subject IS the provider, which is the one case
+      // source-marks.tsx reserves colour for.
+      marks={<ProviderMark provider={spec.id} size={18} />}
+      lead={lead}
+      sub={sub}
+      subTitle={subText}
+      onClick={onOpen}
+      action={
+        binding ? (
+          /* TIER: Action, destructive face - unbinds the resource the crew acts
+             through, a removal on the credential chain. Asks first; see
+             `askThenUnbind`. */
+          <Action variant="destructive" busy={unbinding} onClick={onUnbind}>
+            Unbind
+          </Action>
+        ) : reading && kind ? (
+          <BindingPicker
+            connectionId={connection.id}
+            resourceKind={kind.kind}
+            kindLabel={kind.label}
+          />
+        ) : null
+      }
+    />
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * 4. Connect a source
+ * ------------------------------------------------------------------ */
+
+/**
+ * ONE PRESS PER PROVIDER THAT IS NOT CONNECTED. Each says what the source
+ * brings, and the region says once, at the top, what pressing does. What a
+ * press never says is what its provider is not: that was the twenty-two-line
+ * page this replaces.
+ *
+ * Three subs, in priority order, and two of them are the catalogue's own
+ * sentences so the two surfaces cannot drift: a provider that connects but
+ * sends nothing back yet says so before anything else (the FAQ, the catalogue
+ * and this press all read the same registry facts); one waiting on an admin
+ * to register its app is dimmed and says that; the rest say what they bring.
+ */
+function ConnectPresses({
+  presses,
+  onConnect,
+}: {
+  presses: ConnectPress[];
+  onConnect: (provider: ProviderId) => void;
+}) {
+  return (
+    <Region
+      title="Connect a source"
+      sub="Each one opens that source's own sign-in. Once it is connected it appears above, ready to be pointed at a repository, team, channel or database."
+    >
+      {presses.length === 0 ? (
+        <NothingYet>Every source we carry is connected.</NothingYet>
+      ) : (
+        <Grid>
+          {presses.map((p) => (
+            <Cell
+              key={p.spec.id}
+              mark={<ProviderMark provider={p.spec.id} size={18} />}
+              lead={p.spec.label}
+              sub={
+                !p.readsSomething
+                  ? "Connects, but sends nothing back yet"
+                  : p.ready
+                    ? sourceBrings(p.spec.id)
+                    : "Waiting on an admin"
+              }
+              title={p.ready ? p.spec.description : (p.spec.setupHint ?? p.spec.description)}
+              // A cell nobody can connect dims and never lights up: an
+              // affordance is a promise.
+              disabled={!p.ready}
+              onClick={p.ready ? () => onConnect(p.spec.id) : undefined}
+            />
+          ))}
+        </Grid>
+      )}
+    </Region>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * 5. Just for this product
+ * ------------------------------------------------------------------ */
+
+/**
+ * PER-PRODUCT OVERRIDE. The most specific link in the credential chain:
+ *   product binding > workspace binding > user connection > env fallback
+ *
+ * Drawn only when there is something connected to override, and naming only
+ * that: a line for a provider with no connected account was the second half
+ * of the twenty-two negations. Every server function, the pick-then-bind
+ * flow and the repo-creation door are the ones `ProductBindingsSection`
+ * carried; the override is still named on the second line, because an
+ * override that does not say what it overrides is a setting nobody can audit.
+ */
+function JustForProduct({
+  productId,
+  workspaceId,
+  productName,
+  providers,
+  connections,
+  bindings,
+  adding,
+  onAdd,
+  removingId,
+  onRemove,
+  onRepoCreated,
+}: {
+  productId: string;
+  workspaceId: string;
+  productName?: string;
+  providers: ProviderSpec[];
+  connections: ConnectionRow[];
+  bindings: BindingRow[];
+  adding: boolean;
+  onAdd: (args: {
+    connectionId: string;
+    provider: string;
+    resourceKind: string;
+    resourceId: string;
+    resourceLabel?: string;
+  }) => void;
+  removingId: string | null;
+  onRemove: (id: string) => void;
+  onRepoCreated: () => void;
+}) {
+  const [picking, setPicking] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const title = productName ? `Just for ${productName}` : "Just for this product";
+  const hasGithub = providers.some((spec) => spec.id === "github");
+
+  return (
+    <Region
+      title={title}
+      sub={
+        bindings.length === 0
+          ? "Nothing overridden, so this product uses whatever the workspace is pointed at."
+          : `${bindings.length} ${bindings.length === 1 ? "override" : "overrides"} in force. They win over the workspace binding above.`
+      }
+    >
+      {providers.flatMap((spec) =>
+        spec.resourceTypes.map((rt) => {
+          const binding = bindings.find(
+            (b) => b.provider === spec.id && b.resource_kind === rt.kind,
+          );
+          const connected = connections.filter(
+            (c) => c.provider === spec.id && c.status === "connected",
+          );
+          const pickKey = `${spec.id}:${rt.kind}`;
+
+          return (
+            <Line
+              key={pickKey}
+              // Monochrome: the subject here is which binding wins, not which
+              // brand it belongs to.
+              label={
+                <ProviderName provider={spec.id}>
+                  {`${spec.label} ${rt.label.toLowerCase()}`}
+                </ProviderName>
+              }
+              sub={
+                <UnderMark>
+                  {binding
+                    ? `${binding.resource_label ?? binding.resource_id} · overrides the workspace default`
+                    : "Follows the workspace default."}
+                </UnderMark>
+              }
+            >
+              {binding ? (
+                /* TIER: Action, destructive face - unlinks the override so the
+                   product falls back to the workspace default. */
+                <Action
+                  variant="destructive"
+                  busy={removingId === binding.id}
+                  onClick={() => onRemove(binding.id)}
+                >
+                  {removingId === binding.id ? "Removing" : "Use the workspace one"}
+                </Action>
+              ) : picking === pickKey ? (
+                <>
+                  <Picker
+                    aria-label={`Pick the account for ${spec.label}`}
+                    defaultValue=""
+                    disabled={adding}
+                    onChange={(e) => {
+                      const conn = connected.find((c) => c.id === e.target.value);
+                      if (!conn) return;
+                      onAdd({
+                        connectionId: conn.id,
+                        provider: spec.id,
+                        resourceKind: rt.kind,
+                        resourceId: conn.account_label ?? conn.id,
+                        resourceLabel: conn.account_label ?? undefined,
+                      });
+                      setPicking(null);
+                    }}
+                  >
+                    <option value="" disabled>
+                      Pick an account
+                    </option>
+                    {connected.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.account_label ?? c.id.slice(0, 8)}
+                      </option>
+                    ))}
+                  </Picker>
+                  {/* TIER: clause 3, dismisses the picker; nothing is written. */}
+                  <Action variant="quiet" onClick={() => setPicking(null)}>
+                    Cancel
+                  </Action>
+                </>
+              ) : (
+                /* TIER: clause 3, reveals the picker; nothing is written. */
+                <Action variant="quiet" onClick={() => setPicking(pickKey)}>
+                  Override it
+                </Action>
+              )}
+            </Line>
+          );
+        }),
+      )}
+
+      {hasGithub ? (
+        <Actions>
+          {/* TIER: clause 3, opens the repo-creation modal; nothing is written here. */}
+          <Action onClick={() => setShowCreateModal(true)}>Create a new GitHub repo</Action>
+        </Actions>
+      ) : null}
+
+      <CreateRepoModal
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        productId={productId}
+        workspaceId={workspaceId}
+        productName={productName}
+        onSuccess={onRepoCreated}
+      />
+    </Region>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * 6. Send anything in
+ * ------------------------------------------------------------------ */
 
 type IngestToken = {
   id: string;
@@ -675,9 +1141,7 @@ function WebhookIngest() {
   return (
     /* `toggle` rather than `goTo`, and that is not a rename. This control reveals
        the curl example in place instead of leaving the region, and `Region` emits
-       `aria-expanded` for a toggle and not for a way out. The retired `more` slot
-       emitted neither, so a reader who could not see the label change was told
-       nothing at all. */
+       `aria-expanded` for a toggle and not for a way out. */
     <Region
       title="Send anything in"
       sub="Point Zapier, a Slack outgoing webhook, a form or a script at this endpoint. Each request becomes signals in this workspace."
@@ -719,13 +1183,10 @@ function WebhookIngest() {
           <Action busy={mRotate.isPending} onClick={onRotate}>
             {mRotate.isPending ? "Rotating" : "Rotate"}
           </Action>
-          {/* QUIET, AND NOT `destructive`, WHICH IS THE ONE THING THIS PORT
-              DELIBERATELY DID NOT DECIDE. Revoke does remove something, so
-              Meridian's `destructive` face is arguable — but it was `ghost` here,
-              and moving a control onto `--mrd-stop` changes what the colour says
-              on this surface rather than restating what the old one said. What
-              protects it is unchanged and is the part that matters: it sits
-              behind a confirm that names what stops. */}
+          {/* QUIET, AND NOT `destructive`: revoke was `ghost` here, and moving a
+              control onto `--mrd-stop` changes what the colour says on this
+              surface. What protects it is unchanged and is the part that
+              matters: it sits behind a confirm that names what stops. */}
           <Action variant="quiet" busy={mRevoke.isPending} onClick={onRevoke}>
             {mRevoke.isPending ? "Revoking" : "Revoke"}
           </Action>
@@ -745,13 +1206,9 @@ function WebhookIngest() {
         <NothingYet>The full token is only ever shown once, at the moment it is made.</NothingYet>
       ) : null}
 
-      {/* 16px above the example, said here rather than by the box: the retired
-          `.sp-pre` baked a 12px top margin in, and Meridian's `Pre` sets none so
-          the composition owns the space. 12px straddles `--mrd-s4` (10px) and
-          `--mrd-s5` (16px), and the ratchet forbids shrinking as a port answer,
-          so it takes the larger stop. A WRAPPER rather than a class on `Pre`,
-          which takes no `className` — its own header says a caller "writes
-          `mt-mrd-3` where it can be seen", and there is no prop to write it on. */}
+      {/* 16px above the example, said here rather than by the box: Meridian's
+          `Pre` sets no margin so the composition owns the space, and `Pre`
+          takes no `className`, so it is a wrapper. */}
       {curlOpen ? (
         <div className="mt-mrd-5">
           <Pre>{curlExample}</Pre>
