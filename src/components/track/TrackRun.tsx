@@ -1179,8 +1179,11 @@ export function TrackRunLeft({
             <>
               {track.holdBecause ? <HoldFact>{track.holdBecause}</HoldFact> : null}
               {shipStop ? (
+                /* Not `tight`: seen live as "Ship could not deploy, …" beside
+                   its retry, the one sentence that says why Ship stopped
+                   clipped to nothing. `tight` is for a row whose full text
+                   opens elsewhere; this row is the text. */
                 <Row
-                  tight
                   lead={shipStopLine(shipStop)}
                   sub={
                     retryPreview.isError

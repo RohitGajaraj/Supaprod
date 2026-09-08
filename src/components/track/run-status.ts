@@ -42,7 +42,7 @@ export function runStatus(
    */
   horizon: string | null = null,
 ): {
-  status: "you" | "agent" | "pass" | "hold";
+  status: "you" | "agent" | "pass" | "hold" | "quiet";
   word: string;
   pulse: boolean;
   second: string | undefined;
@@ -69,11 +69,13 @@ export function runStatus(
    * state is already on the board under that name. The header, the board, the
    * footer and the pane now say one thing.
    *
-   * The `hold` tone and no pulse: nothing is happening and nothing is wrong,
-   * which is exactly the tone that pair carries.
+   * QUIET, not `hold` (founder, 2026-09-08): a calendar wait the machine has
+   * in hand carries no status hue. Seen live on 433da23d: the Now card said
+   * "Verdict Mon, Sep 21" in the quiet chip while this chip, on the same
+   * screen, wore the hold sand for the same fact. One state, one hue.
    */
   if (waitingOnTime({ station: track.station, holdReason: track.holdReason, horizon })) {
-    return { status: "hold", word: "Waiting on time", pulse: false, second: undefined };
+    return { status: "quiet", word: "Waiting on time", pulse: false, second: undefined };
   }
 
   const tone = holdTone(track.holdReason);
