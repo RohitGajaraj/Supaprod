@@ -108,18 +108,25 @@ function RunRow({
   const callOnRun = run ? callWithoutAGate(run) : false;
   /* FOCUS COMES BACK. When the card under the row closes (answered, or
      Close), keyboard focus used to drop to the document body; it returns to
-     the control that opened it (third review, 2026-09-08). */
+     the control that opened it, and when the answer took that control away
+     with it (the row is no longer waiting on anyone, so Answer and Decide
+     are gone), to the row itself (third review, 2026-09-08). Keyed on the
+     card being mounted, not on askOpen alone: the row can change kind under
+     an open card, and that unmounts the card with focus inside it. */
   const toggleRef = React.useRef<HTMLSpanElement | null>(null);
-  const wasOpen = React.useRef(askOpen);
+  const bodyRef = React.useRef<HTMLButtonElement | null>(null);
+  const cardOpen = (needsYou || held) && askOpen;
+  const wasOpen = React.useRef(cardOpen);
   React.useEffect(() => {
-    if (wasOpen.current && !askOpen) {
-      toggleRef.current?.querySelector<HTMLElement>("button")?.focus();
+    if (wasOpen.current && !cardOpen) {
+      (toggleRef.current?.querySelector<HTMLElement>("button") ?? bodyRef.current)?.focus();
     }
-    wasOpen.current = askOpen;
-  }, [askOpen]);
+    wasOpen.current = cardOpen;
+  }, [cardOpen]);
   return (
     <>
       <Row
+        bodyRef={bodyRef}
         marksWidth={MARKS_WIDTH}
         marks={run ? <Journey size="row" word={false} stations={journeyOfRun(run)} /> : null}
         lead={r.title}

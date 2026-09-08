@@ -100,6 +100,7 @@ export function Row({
   leadTitle,
   subTitle,
   marksWidth = 34,
+  bodyRef,
 }: {
   /** The mark slot is a fixed width, so text starts on the same line whether
    *  the row carries one mark or two. */
@@ -129,6 +130,10 @@ export function Row({
   /** A control belonging to THIS row (revert, copy, open elsewhere). It sits
    *  outside the clickable region so it is never a button inside a button. */
   action?: ReactNode;
+  /** The row's clickable body, for a caller that has to hand keyboard focus
+   *  back to the row after something under it closes (a card that answered
+   *  a call and took its own control away with it). */
+  bodyRef?: React.Ref<HTMLButtonElement>;
   /**
    * The plain-text form of `lead` / `sub`, for a caller whose value is a
    * fragment rather than a string.
@@ -264,6 +269,7 @@ export function Row({
         }}
       >
         <button
+          ref={bodyRef}
           type="button"
           onClick={onClick}
           /* THE ROW'S NAME IS ITS LEAD (Lane 1, 2026-09-08). Read off the live

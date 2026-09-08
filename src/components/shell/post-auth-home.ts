@@ -49,38 +49,11 @@
  */
 export const SIGNED_IN_HOME = "/start" as const;
 
-/**
- * THE ELEMENT ID THE REVIEW QUEUE CARRIES ON THE HOME SCREEN.
- *
- * ── THE RAIL'S ONLY COUNTED DOOR WAS A NO-OP (2026-09-01) ────────────────
- *
- * Measured signed in, on a workspace with 70 waiting calls: the rail's
- * **Approvals** row carries the hot `gates` count and points at `/today`;
- * `/today` throws a redirect to `SIGNED_IN_HOME`, which is `/start`; and the
- * board -- with the queue on it -- is already mounted on `/start`. So a person
- * looking at a badge reading **70** presses it and lands on the page they were
- * already standing on, roughly 1,400px above the thing the badge counts.
- * Nothing moves. Rail rows 1 and 2 resolve to one URL.
- *
- * THIS IS THE SAME FAULT TWICE, and the comment above the row says so about
- * its own predecessor: *"The home flip was half a change: it moved the landing
- * and left the signpost."* `/today` folding into `/start` moved the surface
- * and left the door. A fold is not finished until every door that pointed at
- * the folded surface points at the thing it folded INTO -- which for a section
- * means the section, not the top of the page.
- *
- * WHY AN ANCHOR RATHER THAN GIVING APPROVALS ITS OWN ROUTE BACK. `/approvals`
- * still exists, is 904 lines, and is unreachable from the rail. Pointing the
- * row there would restore a working door and reintroduce the defect this whole
- * phase is about: two surfaces answering one question, drifting apart. The
- * queue lives on the home now -- same filters, same j/k/a/d keys, same
- * optimistic settle -- so the honest door scrolls to it.
+/*
+ * THE REVIEW QUEUE ANCHOR AND ITS `?queue` FLAG ARE GONE (third review,
+ * 2026-09-08). They dated from the fold that put the queue on the home
+ * (2026-09-01); the queue moved back to Inbox (`/approvals`, its own rail
+ * row), the home stopped reading the flag, and two doors kept sending people
+ * to the top of the home under a label naming the retired Today. Calls are
+ * settled in Inbox; a door to them says so and goes there.
  */
-export const REVIEW_QUEUE_ANCHOR = "review-queue" as const;
-
-/**
- * The search flag that asks the home to bring the review queue into view.
- * Carried by `/today`'s redirect so the rail row needs no edit and keeps both
- * its `owns` highlighting and its `g o` chord.
- */
-export const REVIEW_QUEUE_SEARCH = "queue" as const;

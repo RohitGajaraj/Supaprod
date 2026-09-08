@@ -115,7 +115,7 @@ export function arrivingLine(input: {
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
-export function Arriving() {
+export function Arriving({ door = true }: { door?: boolean } = {}) {
   const navigate = useNavigate();
   const { activeWorkspaceId, activeProductId } = useWorkspace();
 
@@ -175,8 +175,13 @@ export function Arriving() {
     >
       <span className="mrd-eyebrow">Findings</span>
       <span className="text-mrd-base text-mrd-mute">{line}</span>
-      {/* "/discover" -> "/arriving" (P-14a, 2026-09-02). */}
-      <Door onClick={() => void navigate({ to: "/arriving", search: {} })}>See what came in</Door>
+      {/* "/discover" -> "/arriving" (P-14a, 2026-09-02). The door is the
+          caller's to withhold: on the home the arriving answer one line up
+          already opens Findings, and two doors to one page in two paints
+          read as two pages (third review, 2026-09-08). */}
+      {door ? (
+        <Door onClick={() => void navigate({ to: "/arriving", search: {} })}>See what came in</Door>
+      ) : null}
     </section>
   );
 }

@@ -63,8 +63,11 @@ import { queueShape } from "@/components/approvals/a-queue-is-a-shape-not-a-tota
  *   your runs        one row per run with its position on the road, one
  *                    sentence, and the one control its state needs
  *   since you looked what came in, what shipped, what was learned, only when
- *                    the number is not zero. Outcomes is a rail row, so the
- *                    foot carries no second door to it (two doors, one
+ *                    the number is not zero. Each sentence keeps its one door
+ *                    (P-62); the foot carries no standalone Outcomes door
+ *                    beside them, since Outcomes is a rail row, and the
+ *                    Findings strip under it withholds its own door when the
+ *                    arriving sentence already opens Findings (two doors, one
  *                    question).
  *
  * ── THE REFERENCE, NAMED BEFORE BUILDING ──────────────────────────────────
@@ -180,19 +183,10 @@ export function shouldClaimComposerFocus(activeElement: Element | null): boolean
 }
 
 export const Route = createFileRoute("/_authenticated/start")({
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): { about?: string; queue?: true; compose?: true } => ({
+  validateSearch: (search: Record<string, unknown>): { about?: string; compose?: true } => ({
     /* "START A RUN" from the rail, anywhere but here: open the home with the
        cursor already in the composer (founder, 2026-09-08). */
     compose: searchFlag(search.compose),
-    /*
-     * "SHOW ME WHAT IS WAITING ON ME." Five live doors set this. `searchFlag`
-     * rather than a hand-rolled comparison: TanStack runs every value through
-     * `JSON.parse` before a validator sees it, so `?queue=1` arrives as the
-     * NUMBER 1 and a string comparison misses it.
-     */
-    queue: searchFlag(search.queue),
     /* A sentence carried in from somewhere else, as a head start. */
     about:
       typeof search.about === "string" && search.about.trim()
@@ -215,7 +209,7 @@ function StartLanding() {
     setActiveProductId,
     isLoading: workspaceLoading,
   } = useWorkspace();
-  const { about, queue, compose } = Route.useSearch();
+  const { about, compose } = Route.useSearch();
   /* "Start a run" from another page lands here with the cursor in the box. */
   useEffect(() => {
     if (!compose) return;
@@ -639,7 +633,7 @@ function StartLanding() {
       {/* WHAT IS ARRIVING, UNDER THE RUNS (founder, 2026-09-02 19:12): the
           product's central claim, evidence becomes work on its own, provable
           on the page a person actually lands on. */}
-      <Arriving />
+      <Arriving door={!sinceYouLooked.some((a) => "to" in a.door && a.door.to === "/arriving")} />
     </div>
   );
 }

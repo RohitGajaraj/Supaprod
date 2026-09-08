@@ -147,6 +147,7 @@ import { GLYPH_FOR_STATION, StationGlyph } from "@/components/meridian/station-g
 import { RunStripProvider, STAGE_LABEL, STATION_ROUTE, type RunStripSpec } from "./run-strip";
 import { SessionEndedProvider } from "./session-ended";
 import { agentDisplayName, agentStation } from "@/lib/agent-vocabulary";
+import { seatLine, workingSeats } from "@/components/start/CrewAtWork";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
@@ -1059,15 +1060,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
        read against a desk the person is not on. */
     enabled: Boolean(wsKey),
   });
-  const verbFor = React.useCallback(
-    (slug: string | null): string | null => {
-      if (!slug) return null;
-      const seat = (runningNow.data ?? []).find((r) => r.slug === slug && r.now?.verb);
-      return seat?.now?.verb ?? null;
-    },
-    [runningNow.data],
-  );
-
   const moving = useQuery({
     queryKey: ["shell", "moving-tracks", wsKey],
     queryFn: () => fetchMovingTracks({ data: wsArg }),
@@ -1327,6 +1319,28 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // But saying "Reading" advertises latency. The dot already communicates the
   // idle state and the shell provides enough structure; the words appear the
   // moment data resolves (instant from cache on revisit).
+  /* ELAPSED TIME WAS FROZEN, which made a polling fix only half a fix.
+   *
+   * `since()` computes against Date.now() at RENDER, and nothing re-rendered
+   * this component on a clock. So even once the reads poll, a run that reported
+   * "started 4m ago" kept saying 4m until some unrelated state changed. The
+   * header's whole job is to be true at a glance, and a stopped clock beside a
+   * live dot is the same class of lie as a mark for work nobody is doing.
+   *
+   * One tick a minute is all the resolution `since()` has (it renders whole
+   * minutes, then hours, then days), so anything faster would re-render for no
+   * visible change. It stops while the tab is hidden for the same reason the
+   * polls do. The count is kept and read by the lead's memo: a seat going
+   * quiet changes nothing in the data, so without it the quiet suffix could
+   * never appear (third review, 2026-09-08). */
+  const [clock, forceClock] = React.useReducer((n: number) => n + 1, 0);
+  React.useEffect(() => {
+    const id = window.setInterval(() => {
+      if (document.visibilityState !== "hidden") forceClock();
+    }, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   const liveLead = React.useMemo(() => {
     /*
      * BOTH READS, NOT ONE (S0 -> S2, 2026-08-27, found at the source).
@@ -1378,21 +1392,15 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
        * see what is running" must survive on every surface including this one.
        */
       if (gateCount > 0 && !onTheBoard) {
-        /* "DECISIONS", NOT "CALLS", and the two surfaces now agree.
-         *
-         * The shell said "83 calls need you" while /today, one inch below it,
-         * said "83 decisions are ready for your review". Same number, same
-         * things, two nouns -- which reads as two different counts until you
-         * work out that it isn't.
-         *
-         * "Decision" is also the word the market uses and "call" is not:
-         * measured across 5.72M words of operator conversation, "decisions" is
-         * the single most common substantive term at 562.8 per million, while
-         * "call" in this sense barely registers and is ambiguous with a phone
-         * call in the same breath as agents and runs. */
+        /* ONE NOUN FOR THE QUEUE: CALL (third review, 2026-09-08). This said
+           "decisions" while its own tooltip, the hero, the run rows and the
+           driver said "calls", and on Inbox it sat above a "N decisions"
+           count of a different population: two numbers, one word. "Decision"
+           now names a kind inside the queue and the decision record that is
+           the moat; the thing waiting on a person is a call. */
         return gateCount === 1
-          ? "1 decision is ready for you"
-          : `${gateCount} decisions are ready for you`;
+          ? "1 call is waiting for you"
+          : `${gateCount} calls are waiting for you`;
       }
       /* A walk with no mission yet lands here, said from its own row. The
        * station is named the way the transcript names one in passing, which is
@@ -1401,14 +1409,14 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       /* THE SEAT BY NAME, NOT "YOUR AGENTS" (Lane 1, 2026-09-08). The
          live-work read already holds who is working, on what and at which
          station; a generic line over that is the machine's work hidden. */
-      const seats = runningNow.data ?? [];
+      const seats = workingSeats(runningNow.data);
       if (seats.length > 0) {
         const first = seats[0];
-        const doing = first.now
-          ? `${first.now.verb}${first.now.objectLabel ? ` ${first.now.objectLabel}` : ""}`
-          : "working";
         const more = seats.length > 1 ? ` · ${seats.length - 1} more` : "";
-        return `${agentDisplayName(first.slug)} is ${doing}${more}`;
+        /* THE SAME SENTENCE THE STRIP, THE RAIL AND THE ROW SAY, quiet suffix
+           included: this line said present-tense work over a seat every other
+           surface called quiet for 31 min (third review, 2026-09-08). */
+        return `${agentDisplayName(first.seat)} is ${seatLine(first, Date.now()).doing}${more}`;
       }
       if (movingRuns.length === 1) {
         const label = STAGE_LABEL[movingRuns[0].station];
@@ -1432,8 +1440,9 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       // own rule bans the third statement of one fact inside 100 pixels.
       const at = !strip && workingStation ? ` at ${STAGE_LABEL[workingStation]}` : "";
       if (workers.length === 1) {
-        const verb = verbFor(workers[0].slug);
-        return `${agentDisplayName(workers[0].slug)} is ${verb ?? "working"}${at}`;
+        const seat = workingSeats(runningNow.data).find((r) => r.seat === workers[0].slug);
+        const doing = seat ? seatLine(seat, Date.now()).doing : "working";
+        return `${agentDisplayName(workers[0].slug)} is ${doing}${at}`;
       }
       return `${workers.length} agents are working${at}`;
     }
@@ -1492,9 +1501,9 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     unnamedRuns,
     workingStation,
     lastDone,
-    verbFor,
     runningNow.data,
     wsKey,
+    clock,
     strip,
     movingRuns,
   ]);
@@ -1502,26 +1511,17 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // The two trailing facts, in importance order: the first survives to 860px,
   // the second goes at 1100px. Positional, so a state that has only one fact
   // still gives it the slot that lasts longest.
-  /* ELAPSED TIME WAS FROZEN, which made a polling fix only half a fix.
-   *
-   * `since()` computes against Date.now() at RENDER, and nothing re-rendered
-   * this component on a clock. So even once the reads poll, a run that reported
-   * "started 4m ago" kept saying 4m until some unrelated state changed. The
-   * header's whole job is to be true at a glance, and a stopped clock beside a
-   * live dot is the same class of lie as a mark for work nobody is doing.
-   *
-   * One tick a minute is all the resolution `since()` has (it renders whole
-   * minutes, then hours, then days), so anything faster would re-render for no
-   * visible change. It stops while the tab is hidden for the same reason the
-   * polls do. */
-  const [, forceClock] = React.useReducer((n: number) => n + 1, 0);
-  React.useEffect(() => {
-    const id = window.setInterval(() => {
-      if (document.visibilityState !== "hidden") forceClock();
-    }, 60_000);
-    return () => window.clearInterval(id);
-  }, []);
-
+  const lastDoneFacts = (done: NonNullable<typeof lastDone>): React.ReactNode[] => {
+    const facts: React.ReactNode[] = [<TitleFact key="title" title={done.title} />];
+    const at = since(done.completed_at);
+    if (at)
+      facts.push(
+        <span key="at" className="sp-num">
+          {at}
+        </span>,
+      );
+    return facts;
+  };
   const liveFacts = React.useMemo(() => {
     const out: React.ReactNode[] = [];
     if (missions.isError || missions.isLoading) return out;
@@ -1558,18 +1558,26 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
          source beside a detail from another that can name something the
          count did not include. */
       const first = gatedTracks[0];
+      /* Not on the home, where the lead skips the gate too: "Last finished"
+         must not be followed by a waiting track's title (2026-09-08). */
+      if (onTheBoard) return lastDone ? lastDoneFacts(lastDone) : out;
       if (first?.title) out.push(<TitleFact title={first.title} />);
       const at = first?.updatedAt ? since(first.updatedAt) : null;
       if (at) out.push(<span className="sp-num">{at}</span>);
       return out;
     }
-    if (lastDone) {
-      out.push(<TitleFact title={lastDone.title} />);
-      const at = since(lastDone.completed_at);
-      if (at) out.push(<span className="sp-num">{at}</span>);
-    }
+    if (lastDone) out.push(...lastDoneFacts(lastDone));
     return out;
-  }, [missions.isError, missions.isLoading, running, gateCount, gatedTracks, lastDone]);
+  }, [
+    missions.isError,
+    missions.isLoading,
+    running,
+    gateCount,
+    gatedTracks,
+    lastDone,
+    onTheBoard,
+    clock,
+  ]);
 
   /**
    * WHERE THE LINE TAKES YOU, and it follows what the line SAYS.
@@ -1591,7 +1599,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     const go =
       (to: string, params?: Record<string, string>, search?: Record<string, unknown>) => () =>
         void navigate({ to, params, search } as never);
-    if (gateCount > 0) {
+    if (gateCount > 0 && !onTheBoard) {
       // Calls are settled on Start's review queue. `/today` was the door to it
       // until P-10 deleted the redirect stub (2026-09-02); this raw string is
       // exactly the shape tsc cannot check, which is how it outlived the route.
@@ -1659,7 +1667,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
      * these words is awake, and SPEC-PRESENCE §Anatomy #2 rules that an idle
      * one is the door to where work starts. */
     return { go: go("/start"), title: "Start a run" };
-  }, [gateCount, running, movingRuns, lastDone, navigate, pathname]);
+  }, [gateCount, running, movingRuns, lastDone, navigate, pathname, onTheBoard]);
 
   /* THE ONE THING ON THE STRIP THAT MOVES.
    * A gate outranks a run in progress, because the gate is the one asking for a

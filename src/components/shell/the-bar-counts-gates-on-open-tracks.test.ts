@@ -92,14 +92,14 @@ describe(
 
     it("the bar's own sentence never omits the count while gates are pending", () => {
       // No "At least" hedge and no silent zero: `gateCount > 0` alone gates
-      // the branch that says "N decisions are ready for you," with nothing
+      // the branch that says "N calls are waiting for you," with nothing
       // else -- no freshness check, no windowed sub-count -- standing between
       // a real pending gate and the sentence naming it.
       const at = SRC.indexOf("if (gateCount > 0 && !onTheBoard) {");
       expect(at).toBeGreaterThan(-1);
       const body = SRC.slice(at, at + 1800);
-      expect(body).toContain("decisions are ready for you");
-      expect(body).toContain("decision is ready for you");
+      expect(body).toContain("`${gateCount} calls are waiting for you`");
+      expect(body).toContain("1 call is waiting for you");
     });
   },
 );
