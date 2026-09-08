@@ -18,6 +18,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
 
@@ -226,8 +227,19 @@ const UpsertBriefItemSchema = z.object({
 export const upsertBriefItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.input<typeof UpsertBriefItemSchema>) => UpsertBriefItemSchema.parse(d))
-  .handler(async ({ context, data }): Promise<BriefItem> => {
-    const { supabase, userId } = context;
+  .handler(({ context, data }): Promise<BriefItem> =>
+    upsertBriefItemCore(context.supabase, context.userId, data),
+  );
+
+/** The write behind `upsertBriefItem`, callable with a client you already hold
+ *  (`openFirstRun` writes the positioning line with the rest of the door's
+ *  work in one round trip). */
+export async function upsertBriefItemCore(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  data: z.output<typeof UpsertBriefItemSchema>,
+): Promise<BriefItem> {
+  {
     const workspaceId = await resolveWorkspaceId(supabase, data.workspaceId ?? null);
     if (!workspaceId) throw new Error("No workspace is available for this account.");
 
@@ -283,7 +295,8 @@ export const upsertBriefItem = createServerFn({ method: "POST" })
     );
 
     return row as BriefItem;
-  });
+  }
+}
 
 /** Retire a top_bet with no replacement (the portfolio just shrinks). Refuses
  *  silently (no-op) on an already-superseded id so a double-click is safe. */

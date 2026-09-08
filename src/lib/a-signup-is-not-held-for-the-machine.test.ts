@@ -60,7 +60,9 @@ describe("the row says what every reader does", () => {
 
 describe("nobody waits on the model", () => {
   it("completeOnboarding returns without awaiting the generation", () => {
-    const body = block(ONBOARDING, "export const completeOnboarding");
+    // The body is completeOnboardingCore since 2026-09-09; openFirstRun runs
+    // it last, on the request's own client.
+    const body = block(ONBOARDING, "export async function completeOnboardingCore");
     expect(body).not.toContain("Promise.race");
     expect(body).not.toContain("await generateStarterRunsForProduct");
     expect(body).toContain("void keepStarterRuns(db, userId, productId);");

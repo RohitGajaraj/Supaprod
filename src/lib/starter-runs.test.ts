@@ -78,7 +78,7 @@ describe("a fresh product's first three runs", () => {
     const src = readFileSync("src/lib/onboarding.functions.ts", "utf8");
     expect(src).toContain("export const listStarterRuns");
     expect(src).toContain("generateStarterRunsForProduct(");
-    const from = src.indexOf("export const completeOnboarding");
+    const from = src.indexOf("export async function completeOnboardingCore");
     const end = src.indexOf("\nexport ", from + 1);
     expect(from).toBeGreaterThan(-1);
     // Since 2026-09-08 the kick is behind the response (keepStarterRuns wraps

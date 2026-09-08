@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { upsertBriefItemCore } from "@/lib/briefs.functions";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
@@ -169,9 +170,28 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
       })
       .parse(i),
   )
-  .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
-    const track = data.track as OnboardingTrack;
+  .handler(({ context, data }) =>
+    seedWorkspaceCore(context.supabase, context.userId, data.track as OnboardingTrack),
+  );
+
+/**
+ * THE SEED, as a plain function: `openFirstRun` runs it with the rest of the
+ * door's work on the request's own client instead of as one of seven
+ * nested server-function hops (Lane 1's fourth review, 2026-09-09).
+ */
+export async function seedWorkspaceCore(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  track: OnboardingTrack,
+): Promise<{
+  success: boolean;
+  alreadySeeded: boolean;
+  workspaceId: string | null;
+  projectId: string | null;
+  signalsCount: number;
+  opportunitiesCount: number;
+}> {
+  {
     const seed = getTrackSeed(track);
 
     try {
@@ -353,7 +373,8 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
       }
       throw error;
     }
-  });
+  }
+}
 
 /**
  * Export OnboardingTrack type so it can be imported by TrackSelector
@@ -371,9 +392,18 @@ export const completeOnboarding = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) =>
     z.object({ productId: z.string().uuid().optional() }).parse(i ?? {}),
   )
-  .handler(async ({ context, data: input }) => {
-    const { supabase, userId } = context;
+  .handler(({ context, data: input }) =>
+    completeOnboardingCore(context.supabase, context.userId, input.productId ?? null),
+  );
 
+/** The end of the funnel as a plain function; `openFirstRun` runs it last. */
+export async function completeOnboardingCore(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  productIdIn: string | null,
+): Promise<{ success: boolean }> {
+  {
+    const input = { productId: productIdIn ?? undefined };
     const { error, data } = await supabase
       .from("profiles")
       .update({ onboarded: true })
@@ -419,7 +449,8 @@ export const completeOnboarding = createServerFn({ method: "POST" })
     }
 
     return { success: true };
-  });
+  }
+}
 
 /**
  * Take the claim on a product's starter runs: one writer per
@@ -457,18 +488,46 @@ export async function keepStarterRuns(
   userId: string,
   productId: string,
 ): Promise<StarterRun[] | null> {
+  let runs: StarterRun[] | null;
   try {
-    return await generateStarterRunsForProduct(db, userId, productId);
+    runs = await generateStarterRunsForProduct(db, userId, productId);
   } catch (e) {
-    const reason = e instanceof Error ? e.message : String(e);
-    const at = new Date().toISOString();
-    const { error: markErr } = await db
+    /*
+     * A THROW IS NOT A REFUSAL (Lane 1's fourth review, 2026-09-09). The
+     * first version of this wrote every throw, a transient provider error
+     * included, as a refusal, which `starterRunsState` calls final: the
+     * home printed the raw runtime error and nothing ever retried, because
+     * the sweep and the claim take only rows with nothing stored. So a throw
+     * leaves `starter_runs` NULL and re-stamps the claim, which gives the
+     * STARTER_RUNS_CLAIM_MS backoff and hands the row to the sweep. The
+     * reason goes to the log, where a runtime error belongs.
+     */
+    const message = e instanceof Error ? e.message : String(e);
+    console.error(`[starter runs] generation for ${productId} failed, will retry: ${message}`);
+    const { error: stampErr } = await db
       .from("projects")
-      .update({ starter_runs: { runs: [], refused: { reason, at } }, starter_runs_at: at })
-      .eq("id", productId);
-    if (markErr) console.error(`[starter runs] refusal not kept: ${markErr.message}`);
+      .update({ starter_runs_at: new Date().toISOString() })
+      .eq("id", productId)
+      .is("starter_runs", null);
+    if (stampErr) console.error(`[starter runs] backoff not stamped: ${stampErr.message}`);
     return null;
   }
+  if (runs) return runs;
+  /*
+   * THE MODEL ANSWERED AND HAD NOTHING USABLE TO SAY: the one genuine refusal,
+   * kept on the row as final in words written for the person, since asking
+   * the same model the same question again would answer the same way until
+   * the product says more about itself.
+   */
+  const reason =
+    "The model could not describe this product from what it has so far. Add a sentence about who it is for and what it does, and the first runs will be written from that.";
+  const at = new Date().toISOString();
+  const { error: markErr } = await db
+    .from("projects")
+    .update({ starter_runs: { runs: [], refused: { reason, at } }, starter_runs_at: at })
+    .eq("id", productId);
+  if (markErr) console.error(`[starter runs] refusal not kept: ${markErr.message}`);
+  return null;
 }
 
 async function newestProjectId(
@@ -900,3 +959,108 @@ Key metric I care about: ${data.keyMetric}`;
       opportunitiesCount: oppRows.length,
     };
   });
+
+/**
+ * ── THE DOOR, IN ONE ROUND TRIP (Lane 1's fourth review, 2026-09-09) ────────
+ *
+ * "Open Supaprod" on FirstRun ran seven authenticated server functions one
+ * after another (the name, the seed, the workspace's name, the milestone, the
+ * product's name, the positioning line, the completion), each a Worker
+ * round trip of 275 to 550 ms on this deployment (F-212), so the first press
+ * in the product sat disabled for seconds. This is the same work on the
+ * request's own client: the name and the seed leave together; everything
+ * keyed on the seed leaves together; then the completion, which claims the
+ * starter runs and returns at once (F-214). The non-fatal steps stay
+ * non-fatal: a person who wrote a line is not stopped at the door because
+ * the brief write failed; the home asks again where it is used.
+ */
+export const openFirstRun = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        productName: z.string().trim().min(1).max(120),
+        oneLine: z.string().trim().max(2000).optional(),
+        /** The person's name, when the profile had none. */
+        name: z.string().trim().min(1).max(200).optional(),
+        track: z.enum(["solo", "founding", "tech"]).default("solo"),
+      })
+      .parse(i),
+  )
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{
+      workspaceId: string | null;
+      projectId: string | null;
+      productId: string | null;
+      alreadySeeded: boolean;
+    }> => {
+      const { supabase, userId } = context;
+      const [seeded] = await Promise.all([
+        seedWorkspaceCore(supabase, userId, data.track as OnboardingTrack),
+        data.name
+          ? Promise.resolve(
+              supabase
+                .from("profiles")
+                .update({
+                  display_name: data.name.split(/\s+/)[0] ?? data.name,
+                  full_name: data.name,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", userId),
+            ).then(({ error }) => {
+              if (error) throw new Error(error.message);
+            })
+          : Promise.resolve(),
+      ]);
+      const workspaceId = seeded.workspaceId ?? null;
+      const projectId = seeded.projectId ?? null;
+      const swallow = (what: string) => (e: unknown) => {
+        console.error(`[openFirstRun] ${what}: ${e instanceof Error ? e.message : String(e)}`);
+      };
+      await Promise.all([
+        workspaceId
+          ? Promise.resolve(
+              supabase.from("workspaces").update({ name: data.productName }).eq("id", workspaceId),
+            ).then(({ error }) => {
+              if (error) throw new Error(error.message);
+            })
+          : Promise.resolve(),
+        workspaceId
+          ? import("@/lib/activation.functions")
+              .then(({ recordActivationMoment }) =>
+                recordActivationMoment({
+                  moment: "product_named",
+                  userId,
+                  workspaceId,
+                  metadata: { productName: data.productName },
+                }),
+              )
+              .then(() => undefined)
+              .catch(swallow("milestone"))
+          : Promise.resolve(),
+        projectId
+          ? Promise.resolve(
+              supabase.from("projects").update({ name: data.productName }).eq("id", projectId),
+            )
+              .then(() => undefined)
+              .catch(swallow("product name"))
+          : Promise.resolve(),
+        workspaceId && data.oneLine
+          ? upsertBriefItemCore(supabase, userId, {
+              workspaceId,
+              kind: "positioning",
+              title: data.productName,
+              body: data.oneLine,
+              supersedesId: null,
+            })
+              .then(() => undefined)
+              .catch(swallow("positioning line"))
+          : Promise.resolve(),
+      ]);
+      await completeOnboardingCore(supabase, userId, projectId);
+      return { workspaceId, projectId, productId: projectId, alreadySeeded: seeded.alreadySeeded };
+    },
+  );
