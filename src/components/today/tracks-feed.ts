@@ -1,4 +1,5 @@
 import type { Track } from "@/lib/spine/track.functions";
+import { STALL_MINUTES } from "@/lib/loop-health.functions";
 import { TERMINAL_HOLDS } from "@/lib/spine/correction";
 import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
@@ -340,7 +341,16 @@ export type StartRowInput = {
   drivenAt: string | null;
   holdReason: string | null;
   holdBecause: string | null;
-  working: { seat: string; since: string; tool: string | null } | null;
+  working: {
+    seat: string;
+    since: string;
+    tool: string | null;
+    /** The seat's verb and object in the strip's own words (Lane 3, 4d50df6ac). */
+    verb?: string | null;
+    objectLabel?: string | null;
+    /** When the seat's newest call happened, for the quiet-past-stall line. */
+    lastCallAt?: string | null;
+  } | null;
   needsYou: { tool: string } | null;
   produced: Array<{ kind: string; count: number }>;
   /** When a person said this one goes first, or null. */
@@ -460,10 +470,23 @@ function startRowRest(
 
   if (r.working) {
     const clock = runClock(r.working.since, now);
-    const verb = r.working.tool ? phraseFor(r.working.tool) : null;
-    /* A seat that has called nothing YET is a real state and gets its own
-       words. "is working" claims exactly what the row supports. */
-    const doing = verb ? `${r.working.seat} is ${verb}` : `${r.working.seat} is working`;
+    /* ONE VOCABULARY FOR ONE CALL (third review, 2026-09-08). The strip, the
+       rail and the header say nowPerTrace's verb and object; the row said a
+       different phrase for the same call from its own tool table. The
+       server's verb wins; the table stands only for a row the server has
+       not yet described. A seat that has called nothing YET is a real state
+       and gets its own words: "is working" claims exactly what the row
+       supports. */
+    const verb = r.working.verb ?? (r.working.tool ? phraseFor(r.working.tool) : null);
+    const object = r.working.verb && r.working.objectLabel ? ` ${r.working.objectLabel}` : "";
+    const doing = verb ? `${r.working.seat} is ${verb}${object}` : `${r.working.seat} is working`;
+    /* Quiet past the stall threshold: the sentence says so instead of a
+       clock that keeps counting a seat that has stopped. */
+    const last = r.working.lastCallAt ?? r.working.since;
+    const quietMs = last ? now - Date.parse(last) : NaN;
+    if (Number.isFinite(quietMs) && quietMs > STALL_MINUTES * 60_000) {
+      return `${doing} · quiet for ${Math.round(quietMs / 60_000)} min`;
+    }
     return clock ? `${doing} · ${clock}` : doing;
   }
 
