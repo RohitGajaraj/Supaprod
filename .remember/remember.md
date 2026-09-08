@@ -281,3 +281,6 @@ Third addendum in docs/operations/session-handoff.md: the live station (100f44fe
 ## Lane 1 · 19:52 IST 09-08
 Founder's three rulings landed (dc46271a8): hold hue is a sand, all status hues down, road colour in ring+glyph only; rows on a grid (Row align/timeWidth, JOURNEY_ROW_WIDTH, fixed control slot); rail glyphs not arrows, Start a run focuses the composer, Setup tier named. f1d408a45 phone batch; 03d2b1872 stall clock. Both review workflows died at the session limit; journals read, confirmed items landed. Deploy pending on Lovable sync.
 - 20:15 Lane 2 evening: Findings leads with the one cluster to start with; header calendar wait quiet; Ship hold sentence wraps; a Lovable build can predate the sha it reports, verify on the surface.
+
+## Lane 1 · 20:57 IST 09-08
+Round three landed: d57a5613d (live seat reaches every reader; keyboard honest; rail crew quiet like the strip) and 2161e7888 (copy register; doors: Inbox press on the hero, station caption with Show all, FirstRun sign-out). Shell reads gated on the workspace (9a3e73713, ca0690457). Two asks with Lane 3: async starter generation, working.verb/objectLabel. Deploy pending.
