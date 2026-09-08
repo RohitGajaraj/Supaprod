@@ -1323,3 +1323,11 @@ that nothing here speaks to this") while the drive is in flight and no seat is l
 should say the next seat is starting; (3) the spec editor's title is not a `PageHeading`, so it
 has no `station="define"` eyebrow; (4) `/ship` and `/learn` have no rail door: delete or fold is
 a founder call.
+
+**Later, 16:05 IST (Lane 2):** on main since the third addendum: every transcript turn wears its
+seat's colour (breathing only while it works); Ship and Learn carry their station eyebrow and a
+door each from the run's release card and verdict card; the forecasts desk now sits at the top of
+Outcomes and the settle gate opens its outcomes tab, so the loop's closing act is where the rail
+lands (a forecast due three days ago had been waiting on /learn, a page with no door). Lane 3
+closed both walk findings on the server (9d30d3162 fresh tracks drive off the sweep within 60 s;
+85783d22a the home's seat name through the resolver).

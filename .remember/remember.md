@@ -276,3 +276,4 @@ Entry review (6 lenses, 2 agents at a time) landed in 6995c805f, ec5abfa74, c2fb
 
 ## Lane 2 · 15:10 IST 09-08
 Third addendum in docs/operations/session-handoff.md: the live station (100f44fe6), one seat one name (b8f6c1fca), F-206 Share and F-208 Release the claim, Outcomes and Sources read states, lint clearance; walk findings for Lanes 1 and 3 (composer start not driven off-screen, row mark green, rail row truncates, top strip pairs the seat with the last finished run). Open: /start hero silent on cold read (Lane 1), Now card between seats, spec editor eyebrow, /ship and /learn doors.
+- 16:05 Lane 2 later: transcript seat colour on every turn; Ship/Learn eyebrows and doors from the run; forecasts desk and settle gate on Outcomes; Lane 3 closed the composer-start and home-name gaps.
