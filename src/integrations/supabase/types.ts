@@ -9986,6 +9986,10 @@ export type Database = {
         Args: { p_exclude?: string }
         Returns: { workspace_id: string; name: string; waiting: number }[]
       }
+      credits_spent_by_trace: {
+        Args: { p_trace_ids: string[] }
+        Returns: { trace_id: string; credits: number }[]
+      }
       current_user_default_workspace: { Args: never; Returns: string }
       data_retention_enabled: { Args: never; Returns: boolean }
       debit_account_credits: {

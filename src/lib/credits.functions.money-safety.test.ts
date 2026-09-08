@@ -67,6 +67,11 @@ const state = {
   ledgerLookup: null as Map<string, { delta_credits: number; ai_event_id: string }> | null,
   ledgerInCalls: [] as string[][],
   ledgerFailOn: null as ((batch: string[]) => boolean) | null,
+  /* creditsSpentByTrace is one RPC since 2026-09-08 (credits_spent_by_trace,
+     migration 20260909100600): what the database answers per trace, and
+     whether the call fails. */
+  creditsByTrace: new Map<string, number>(),
+  creditsRpcError: null as { message: string } | null,
 };
 
 function resultFor(q: Recorded): { data: unknown; error: unknown } {
@@ -163,6 +168,16 @@ const fakeAdmin = {
     if (fn === "reset_subscription_cycle") {
       return { data: { reset: true, credits: 3750, delta: 100 }, error: null };
     }
+    if (fn === "credits_spent_by_trace") {
+      if (state.creditsRpcError) return { data: null, error: state.creditsRpcError };
+      const ids = (args.p_trace_ids as string[]) ?? [];
+      return {
+        data: ids
+          .filter((t) => state.creditsByTrace.has(t))
+          .map((t) => ({ trace_id: t, credits: state.creditsByTrace.get(t) })),
+        error: null,
+      };
+    }
     return { data: null, error: null };
   },
 };
@@ -193,6 +208,8 @@ beforeEach(() => {
   state.ledgerLookup = null;
   state.ledgerInCalls.length = 0;
   state.ledgerFailOn = null;
+  state.creditsByTrace = new Map();
+  state.creditsRpcError = null;
 });
 
 const refunds = () => state.rpcCalls.filter((c) => c.fn === "refund_account_credits");
@@ -284,98 +301,55 @@ describe("resetCreditCycle", () => {
 });
 
 /**
- * P-140, found 2026-09-04. Start's own diagnostic on the served payload: 50
- * tracks, 174 traces, one `.in("trace_id", traceIds)` call into `ai_events`
- * -- and `creditsKeys` came back 0 with no error on the outer read, while the
- * run screen's own single-track call (at most a few dozen traces) returned
- * the real figure for the same data. `knowledge-graph-view.functions.ts`
- * already batches its own `.in()` calls at 25 "so a PostgREST URL can never
- * run long, even at the node cap" -- the same fix, applied here.
+ * P-140 (2026-09-04) found the first shape of this read failing on 174 trace
+ * ids in one URL, and F-201 (A1's correction) found its batched replacement
+ * able to report a partial sum when one credit_ledger batch failed. Both
+ * shapes are gone: since 2026-09-08 (F-212's census of the Worker's hops)
+ * the read is ONE call to `credits_spent_by_trace`, which sums whole traces
+ * in the database. The claims those two findings pinned are kept here in
+ * the form the new shape makes them take.
  *
  * Lives in THIS file, not a new one: `a-module-mock-is-process-wide.test.ts`
  * freezes the set of modules more than one test file mocks process-wide, and
- * this file already mocks `../integrations/supabase/client.server` -- a
- * second file mocking the same path would grow that ratchet for no reason
- * this fake couldn't absorb instead.
+ * this file already mocks `../integrations/supabase/client.server`.
  */
-describe("creditsSpentByTrace batches its own .in() calls (P-140)", () => {
-  test("60 traces split into batches of 25 or fewer, and every batch's credits land in one map", async () => {
-    const traceIds = Array.from({ length: 60 }, (_, i) => `trace-${i}`);
-    state.aiEventsLookup = new Map(traceIds.map((t, i) => [t, [{ id: `evt-${i}`, trace_id: t }]]));
-    state.ledgerLookup = new Map(
-      traceIds.map((_, i) => [`evt-${i}`, { delta_credits: -1, ai_event_id: `evt-${i}` }]),
-    );
+describe("creditsSpentByTrace is one round trip (P-140, F-212)", () => {
+  test("174 traces go in one call, no URL, and every trace's figure lands in one map", async () => {
+    const traceIds = Array.from({ length: 174 }, (_, i) => `trace-${i}`);
+    state.creditsByTrace = new Map(traceIds.map((t, i) => [t, i + 1]));
 
     const result = await creditsSpentByTrace(traceIds);
 
-    expect(Object.keys(result).length).toBe(60);
-    expect(Object.values(result).every((v) => v === 1)).toBe(true);
-    expect(state.aiEventsInCalls.length).toBeGreaterThan(1);
-    for (const batch of state.aiEventsInCalls) expect(batch.length).toBeLessThanOrEqual(25);
-    expect(state.aiEventsInCalls.flat().length).toBe(60);
-    for (const batch of state.ledgerInCalls) expect(batch.length).toBeLessThanOrEqual(25);
-    expect(state.ledgerInCalls.flat().length).toBe(60);
+    const calls = state.rpcCalls.filter((c) => c.fn === "credits_spent_by_trace");
+    expect(calls.length).toBe(1);
+    expect((calls[0].args.p_trace_ids as string[]).length).toBe(174);
+    expect(Object.keys(result).length).toBe(174);
+    expect(result["trace-173"]).toBe(174);
   });
 
-  test("a short list makes exactly one batch, unchanged from before this fix", async () => {
-    const traceIds = ["t-a", "t-b", "t-c"];
-    state.aiEventsLookup = new Map(traceIds.map((t, i) => [t, [{ id: `evt-${i}`, trace_id: t }]]));
-    state.ledgerLookup = new Map(
-      traceIds.map((_, i) => [`evt-${i}`, { delta_credits: -1, ai_event_id: `evt-${i}` }]),
-    );
+  test("a trace with no debits is absent, not zero", async () => {
+    state.creditsByTrace = new Map([["t-a", 12]]);
+    const result = await creditsSpentByTrace(["t-a", "t-b"]);
+    expect(result).toEqual({ "t-a": 12 });
+  });
 
-    const result = await creditsSpentByTrace(traceIds);
-
-    expect(state.aiEventsInCalls.length).toBe(1);
-    expect(Object.keys(result).length).toBe(3);
+  test("no trace ids means no call at all", async () => {
+    expect(await creditsSpentByTrace([])).toEqual({});
+    expect(state.rpcCalls.some((c) => c.fn === "credits_spent_by_trace")).toBe(false);
   });
 });
 
-/**
- * F-201, A1's own correction to the first version of the P-140 batching fix
- * above: logging and skipping a failed batch let a trace whose OWN event ids
- * happened to split across two `credit_ledger` batches show whatever the
- * surviving batch found -- a real, confident, WRONG number, not an absence.
- */
-describe("F-201: a trace touched by a failed batch reads as unread, never a partial sum", () => {
-  test("one trace's two events split across two credit_ledger batches -- one batch fails, the trace is absent, not partially reported", async () => {
-    // 24 single-event traces plus one multi-event trace, 25 total: exactly
-    // one ai_events batch, so eventIds' insertion order is fully controlled
-    // by the array this test constructs, not by async completion timing. 26
-    // events -> credit_ledger chunks as [25, 1]: the multi trace's SECOND
-    // event is alone in the second batch, which this test fails on purpose.
-    const singleTraces = Array.from({ length: 24 }, (_, i) => `single-${i}`);
-    const traceIds = [...singleTraces, "multi"];
-
-    const singleEvents = singleTraces.map((t, i) => ({ id: `evt-single-${i}`, trace_id: t }));
-    const multiEvents = [
-      { id: "evt-multi-a", trace_id: "multi" },
-      { id: "evt-multi-b", trace_id: "multi" },
-    ];
-    state.aiEventsLookup = new Map<string, Array<{ id: string; trace_id: string }>>([
-      ...singleTraces.map((t, i) => [t, [singleEvents[i]]] as const),
-      ["multi", multiEvents],
+describe("F-201: a failed read is an absence for every trace, never a partial sum", () => {
+  test("the call fails: the map is empty and nothing is reported for any trace", async () => {
+    state.creditsByTrace = new Map([
+      ["single", 1],
+      ["multi", 12],
     ]);
+    state.creditsRpcError = { message: "statement timeout" };
 
-    state.ledgerLookup = new Map([
-      ...singleEvents.map((e) => [e.id, { delta_credits: -1, ai_event_id: e.id }] as const),
-      ["evt-multi-a", { delta_credits: -5, ai_event_id: "evt-multi-a" }],
-      ["evt-multi-b", { delta_credits: -7, ai_event_id: "evt-multi-b" }],
-    ]);
-    state.ledgerFailOn = (batch) => batch.includes("evt-multi-b");
+    const result = await creditsSpentByTrace(["single", "multi"]);
 
-    const result = await creditsSpentByTrace(traceIds);
-
-    // Sanity: the split landed where this test needs it to.
-    expect(state.ledgerInCalls.length).toBe(2);
-    expect(state.ledgerInCalls.some((b) => b.includes("evt-multi-b") && b.length === 1)).toBe(true);
-
-    // The 24 untouched traces read their real, complete figure.
-    for (const t of singleTraces) expect(result[t]).toBe(1);
-
-    // "multi" had 5 of its own 12 credits confirmed (evt-multi-a's batch
-    // succeeded) and 7 lost to the failed batch. A partial-sum bug would
-    // report 5 here; the fix must report nothing at all.
+    expect(result).toEqual({});
     expect(result.multi).toBeUndefined();
   });
 });

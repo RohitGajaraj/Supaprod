@@ -229,17 +229,6 @@ export function sumCreditsByTrace(rows: TraceLedgerRow[]): Record<string, number
   return totals;
 }
 
-/** Batch `.in()` id lists so a PostgREST URL can never run long -- the same
- *  bound `knowledge-graph-view.functions.ts`'s own `chunk` already uses, not
- *  duplicated from there because this file stays free of that file's
- *  `createServerFn` / route-level imports (its own header's own rule). */
-const TRACE_ID_BATCH = 25;
-function chunk<T>(arr: readonly T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size) as T[]);
-  return out;
-}
-
 /**
  * Each run's own credit spend, keyed by `agent_runs.trace_id`.
  *
@@ -293,60 +282,29 @@ export async function creditsSpentByTrace(traceIds: string[]): Promise<Record<st
   if (traceIds.length === 0) return {};
   const admin = supabaseAdmin as unknown as SupabaseClient;
   try {
-    const traceOfEvent = new Map<string, string>();
-    /* Traces this call cannot vouch for -- their own batch failed, or one of
-       their events landed in a credit_ledger batch that failed. Removed from
-       the final totals even if some of their rows were read successfully. */
-    const unreadTraces = new Set<string>();
-
-    await Promise.all(
-      chunk(traceIds, TRACE_ID_BATCH).map(async (batch) => {
-        const { data, error } = await admin
-          .from("ai_events")
-          .select("id, trace_id")
-          .in("trace_id", batch);
-        if (error) {
-          console.error("creditsSpentByTrace: ai_events batch failed:", error.message);
-          for (const t of batch) unreadTraces.add(t);
-          return;
-        }
-        for (const e of (data ?? []) as { id: string; trace_id: string | null }[]) {
-          if (e.trace_id) traceOfEvent.set(e.id, e.trace_id);
-        }
-      }),
-    );
-
-    const eventIds = [...traceOfEvent.keys()];
-    if (eventIds.length === 0) return {};
-
-    const rows: TraceLedgerRow[] = [];
-    await Promise.all(
-      chunk(eventIds, TRACE_ID_BATCH).map(async (batch) => {
-        const { data, error } = await admin
-          .from("credit_ledger")
-          .select("delta_credits, ai_event_id")
-          .eq("surface", "agent")
-          .eq("reason", "debit")
-          .in("ai_event_id", batch);
-        if (error) {
-          console.error("creditsSpentByTrace: credit_ledger batch failed:", error.message);
-          for (const eventId of batch) {
-            const traceId = traceOfEvent.get(eventId);
-            if (traceId) unreadTraces.add(traceId);
-          }
-          return;
-        }
-        for (const r of (data ?? []) as { delta_credits: number; ai_event_id: string | null }[]) {
-          rows.push({
-            delta_credits: r.delta_credits,
-            trace_id: r.ai_event_id ? (traceOfEvent.get(r.ai_event_id) ?? null) : null,
-          });
-        }
-      }),
-    );
-
-    const totals = sumCreditsByTrace(rows);
-    for (const traceId of unreadTraces) delete totals[traceId];
+    /*
+     * ── ONE ROUND TRIP, IN THE DATABASE (2026-09-08, F-212's census) ────────
+     * The two-hop, twice-batched read this replaces (ai_events by trace in
+     * 25s, then credit_ledger by event id in 25s, under the service role) was
+     * the longest chain on the home's read and sat on an unindexed column.
+     * `credits_spent_by_trace` (migration 20260909100600) is the same join,
+     * done once, summing debits per trace the way `sumCreditsByTrace` does,
+     * with an index on credit_ledger.ai_event_id beside it. F-201 holds by
+     * construction: a whole trace is summed or the call fails, so a partial
+     * sum cannot exist; a failed call is an empty map, never a number.
+     */
+    const { data, error } = await admin.rpc("credits_spent_by_trace", {
+      p_trace_ids: traceIds,
+    });
+    if (error) {
+      console.error("creditsSpentByTrace: the read failed, no figure shown:", error.message);
+      return {};
+    }
+    const totals: Record<string, number> = {};
+    for (const r of (data ?? []) as Array<{ trace_id: string | null; credits: number | null }>) {
+      const n = Number(r.credits);
+      if (r.trace_id && Number.isFinite(n) && n > 0) totals[r.trace_id] = n;
+    }
     return totals;
   } catch (e) {
     console.error("creditsSpentByTrace failed:", e);
