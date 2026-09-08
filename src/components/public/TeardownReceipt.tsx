@@ -262,9 +262,12 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
  *  file survived the removal at all. It read "Try your own:
  *  https://supaprod.ai/p/teardown". The public teardown is retired (record:
  *  docs/decisions/public-teardown-retired-2026-08.md) and this string is not
- *  confined to that page: ObsidianOnboarding reuses `asPlainText` for the
+ *  confined to that page: the first-run screen of the day (ObsidianOnboarding,
+ *  retired for FirstRun and deleted 2026-09-08) reused `asPlainText` for the
  *  copy-to-share on an AUTHENTICATED user's Critic review, so the retirement
  *  would have quietly put a redirecting URL on every clipboard in the product.
+ *  Today its only reader is its own test; the rule it records still holds for
+ *  the next reader.
  *  "Try your own" also stopped being true the moment there was nothing for a
  *  stranger to try, so the whole clause goes rather than just the path. */
 export function asPlainText(t: Teardown): string {

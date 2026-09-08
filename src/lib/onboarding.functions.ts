@@ -10,8 +10,8 @@ import { ONBOARDING_MILESTONES, type ActivationMoment } from "@/lib/activation.f
 /**
  * Record a moment from inside a server handler that already holds a verified
  * session. Lazy import for the same reason the funnel import always was: this
- * module is imported by a client component (ObsidianOnboarding), and the
- * registry reaches the admin Supabase client.
+ * module is imported by a client component (FirstRun, and ObsidianOnboarding
+ * before it), and the registry reaches the admin Supabase client.
  *
  * The moment is recorded server-side ON PURPOSE. The client fires the same
  * moments too, and both resolve to one row (the funnel ledger deduplicates in

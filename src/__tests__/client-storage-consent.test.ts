@@ -234,10 +234,10 @@ const DECLARED_LOCAL = [
 const DECLARED_SESSION = [
   "cad_landing_visit", // measurement
   "supaprod.credits.low-dismissed", // functional
-  "supaprod.onboarding.criticReview", // necessary
-  "supaprod.onboarding.justLanded", // necessary
-  "supaprod.onboarding.phase", // necessary
-  "supaprod.onboarding.startTime", // necessary
+  /* The four `supaprod.onboarding.*` keys are GONE, 2026-09-08, with
+     `ObsidianOnboarding.tsx` (Lane 1 landed FirstRun, one screen with no
+     tab-scoped state; Lane 3 deleted the old screen). This guard caught the
+     stale declaration the same day, which is its job. */
   "supaprod-machine-view", // functional
   "supaprod:landing-session", // measurement
   /* `supaprod:recents` is GONE, 2026-08-20, with `src/lib/palette-recents.ts`.

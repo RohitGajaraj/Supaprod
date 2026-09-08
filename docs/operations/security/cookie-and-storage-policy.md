@@ -1,6 +1,6 @@
 # Cookies and client-side storage
 
-> _Created: 2026-08-07 · Last updated: 2026-08-20_
+> _Created: 2026-08-07 · Last updated: 2026-09-08_
 
 **Supaprod sets no cookies and loads no third-party script, so no consent banner is shown.** This file is the evidence behind that sentence: every key the app writes into a browser, the file and line that writes it, why it exists, how long it lives, and the legal reading that follows. It is the factual base under the "Cookies and local storage" section of [`/privacy`](../../../src/routes/privacy.tsx), the way [`/subprocessors`](../../../src/routes/subprocessors.tsx) is the factual base under the sub-processor paragraph.
 
@@ -60,10 +60,6 @@ Two keys are read or deleted and never written, so they are migration debris rat
 | `supaprod:landing-session` | [`src/lib/landing-session.ts:96`](../../../src/lib/landing-session.ts) | 32 hex characters of `crypto.getRandomValues` and nothing else. Its only power is joining the `landing_events` rows this tab wrote to the account that tab may create. It is deleted the moment the session is claimed. | measurement |
 | `cad_landing_visit` | [`src/routes/index.tsx:182`](../../../src/routes/index.tsx) | A single flag so one tab records one `landing_visit`, not one per navigation. | measurement |
 | `supaprod_demo_session` | [`src/routes/demo.tsx:119`](../../../src/routes/demo.tsx) | The id of the demo run in progress, so the demo survives a reload. | necessary |
-| `supaprod.onboarding.phase` | [`src/components/onboarding/ObsidianOnboarding.tsx:651`](../../../src/components/onboarding/ObsidianOnboarding.tsx) | Where onboarding got to, so a reload returns there instead of restarting. | necessary |
-| `supaprod.onboarding.startTime` | [`ObsidianOnboarding.tsx:663`](../../../src/components/onboarding/ObsidianOnboarding.tsx) | When onboarding began, for the elapsed readout. | necessary |
-| `supaprod.onboarding.justLanded` | [`ObsidianOnboarding.tsx:1001`](../../../src/components/onboarding/ObsidianOnboarding.tsx) | A one-shot handoff to Today, removed as it is read. | necessary |
-| `supaprod.onboarding.criticReview` | [`ObsidianOnboarding.tsx:1126`](../../../src/components/onboarding/ObsidianOnboarding.tsx) | The review just produced, handed to Today, removed as it is read. | necessary |
 | `supaprod.credits.low-dismissed` | [`src/components/billing/BillingBanner.tsx:106`](../../../src/components/billing/BillingBanner.tsx) | A banner dismissed for this tab. | functional |
 | `supaprod-machine-view` | [`src/hooks/use-machine-view.tsx:30`](../../../src/hooks/use-machine-view.tsx) | Human or machine view. | functional |
 

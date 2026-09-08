@@ -55,7 +55,7 @@ mock.module("@tanstack/react-router", () => ({
  * `mock.module` is process-global in bun and every test file shares one process,
  * so a mock that returns ONLY the export this file needs deletes the rest of the
  * module for every other file. Replacing this one wholesale broke
- * `onboarding/ObsidianOnboarding.test.tsx` with `SyntaxError: Export named
+ * `onboarding/ObsidianOnboarding.test.tsx` (since deleted) with `SyntaxError: Export named
  * 'saveGatewayConnection' not found`, and it broke it only when the two ran
  * together, which is why the file passed alone and the suite did not. Same
  * discipline as the `@tanstack/react-start` mock above and for the same reason.

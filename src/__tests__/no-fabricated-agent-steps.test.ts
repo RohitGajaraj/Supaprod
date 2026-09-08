@@ -13,7 +13,8 @@ import { join, extname, relative } from "node:path";
  *   setInterval. "Recording it on the Trust Ledger" appeared while nothing had
  *   been recorded, then UN-appeared as the modulo wrapped.
  *
- *   ObsidianOnboarding stepped through ["Reading your belief", "Hunting
+ *   ObsidianOnboarding (the first-run screen before FirstRun; deleted
+ *   2026-09-08) stepped through ["Reading your belief", "Hunting
  *   counter-evidence", "Scoring confidence"] on a 2400ms timer, tied only to a
  *   mutation's isPending. The critic call's catch swallows its error, so the
  *   full three-step performance also played when the critic had already failed
