@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { standingState, withPresences } from "./journey-of-a-run";
+import { roughDuration, standingState, withPresences, withTimings } from "./journey-of-a-run";
 
 const base = {
   status: "open" as const,
@@ -62,5 +62,50 @@ describe("withPresences", () => {
 
   test("no seats leaves the map exactly as it was", () => {
     expect(withPresences(stations, [], colour)).toEqual(stations);
+  });
+});
+
+describe("withTimings", () => {
+  const stations = [
+    { key: "sense" as const, state: "working" as const },
+    { key: "build" as const, state: "pending" as const },
+  ];
+
+  test("a working station says how long it usually takes here, from a real sample", () => {
+    const out = withTimings(stations, {
+      byStation: { sense: { p50Ms: 4 * 60_000, n: 3 }, build: { p50Ms: 60_000, n: 2 } },
+    });
+    expect(out[0]!.outcome).toBe("usually about 4 min here");
+    expect(out[1]!.outcome).toBeUndefined();
+  });
+
+  test("no sample says nothing, and a station's own outcome line is never overwritten", () => {
+    expect(
+      withTimings(stations, { byStation: { sense: { p50Ms: null, n: 0 } } })[0]!.outcome,
+    ).toBeUndefined();
+    const own = [{ key: "sense" as const, state: "working" as const, outcome: "3 findings" }];
+    expect(withTimings(own, { byStation: { sense: { p50Ms: 60_000, n: 9 } } })[0]!.outcome).toBe(
+      "3 findings",
+    );
+    expect(withTimings(stations, undefined)).toEqual(stations);
+  });
+
+  test("a seat past the usual time says so, with the usual time beside it", () => {
+    const now = Date.parse("2026-09-08T09:00:00Z");
+    const late = [{ key: "sense" as const, state: "working" as const, at: "2026-09-08T08:50:00Z" }];
+    const out = withTimings(late, { byStation: { sense: { p50Ms: 4 * 60_000, n: 3 } } }, now);
+    expect(out[0]!.outcome).toBe("past its usual time here (about 4 min)");
+    const early = [
+      { key: "sense" as const, state: "working" as const, at: "2026-09-08T08:59:00Z" },
+    ];
+    expect(
+      withTimings(early, { byStation: { sense: { p50Ms: 4 * 60_000, n: 3 } } }, now)[0]!.outcome,
+    ).toBe("usually about 4 min here");
+  });
+
+  test("the duration is coarse on purpose", () => {
+    expect(roughDuration(20_000)).toBe("under a minute");
+    expect(roughDuration(7 * 60_000)).toBe("about 7 min");
+    expect(roughDuration(2.6 * 3_600_000)).toBe("about 3 h");
   });
 });

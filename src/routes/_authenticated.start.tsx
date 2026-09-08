@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { searchFlag } from "@/lib/search-flag";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Receipt } from "@/components/meridian/Receipt";
@@ -17,10 +17,10 @@ import { JourneyMap, promiseStations } from "@/components/start/JourneyMap";
 import { CrewAtWork, workingSeats } from "@/components/start/CrewAtWork";
 import { StarterRuns } from "@/components/start/StarterRuns";
 import { presenceColour } from "@/components/meridian/AgentPresence";
-import { listRunningNow } from "@/lib/spine/track.functions";
+import { listRunningNow, readHome, readStationTimings } from "@/lib/spine/track.functions";
 import { runningNowKey } from "@/lib/query-keys";
 import { WhatWeAlreadyHold } from "@/components/spine/WhatWeAlreadyHold";
-import { journeyMap, withPresences } from "@/components/start/journey-of-a-run";
+import { journeyMap, withPresences, withTimings } from "@/components/start/journey-of-a-run";
 import { failureLine } from "@/lib/error-copy";
 import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -170,6 +170,33 @@ function StartLanding() {
    *
    * THE WORKSPACE IS PART OF THE QUESTION, SO IT IS PART OF THE KEY.
    */
+  /*
+   * ONE ROUND TRIP FOR THE ARRIVAL (Lane 3's readHome, 2026-09-08). The home
+   * used to open on four reads racing (runs, the queue, who is working, what
+   * arrived), and the hero waited on two of them. readHome answers all four
+   * at once and seeds each read's own key, so the four below mount already
+   * answered and the first paint is one paint. They keep their own keys and
+   * cadences after that, because the rail and the run screen read the same
+   * keys; if the composite read fails, they fetch on their own as before.
+   */
+  const qc = useQueryClient();
+  const fHome = useServerFn(readHome);
+  const home = useQuery({
+    queryKey: ["home", activeWorkspaceId ?? null],
+    queryFn: measuredQueryFn("readHome", async () => {
+      const ws = activeWorkspaceId ?? null;
+      const r = await fHome({ data: { workspaceId: ws as string } });
+      qc.setQueryData(["start-runs", ws], r.runs);
+      qc.setQueryData([...APPROVALS_QUEUE_PREFIX, "shell", ws], r.queue);
+      qc.setQueryData(runningNowKey(ws), r.running);
+      qc.setQueryData(["start-home-answers", ws], r.answers);
+      return r;
+    }),
+    enabled: Boolean(activeWorkspaceId),
+    staleTime: 10_000,
+  });
+  const seeded = !activeWorkspaceId || home.isSuccess || home.isError;
+
   const fRuns = useServerFn(listRunsForStart);
   const runs = useQuery({
     queryKey: ["start-runs", activeWorkspaceId ?? null],
@@ -177,6 +204,7 @@ function StartLanding() {
       fRuns({ data: { workspaceId: activeWorkspaceId ?? null } }),
     ),
     refetchInterval: 10_000,
+    enabled: seeded,
   });
   /* Only once the read has ANSWERED. */
   const firstRun = runs.data !== undefined && runs.data.length === 0;
@@ -290,6 +318,7 @@ function StartLanding() {
     queryKey: ["start-home-answers", activeWorkspaceId ?? null],
     queryFn: () => fHomeReads({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
     staleTime: 60_000,
+    enabled: seeded,
   });
   /*
    * WHAT IS WAITING FOR A PERSON, from the one reader the Inbox page and the
@@ -302,6 +331,7 @@ function StartLanding() {
     queryKey: [...APPROVALS_QUEUE_PREFIX, "shell", activeWorkspaceId ?? null],
     queryFn: () => fQueue({ data: activeWorkspaceId ? { workspaceId: activeWorkspaceId } : {} }),
     staleTime: 10_000,
+    enabled: seeded,
   });
   const waiting = queueRead.isSuccess ? (queueRead.data?.items ?? []).length : null;
   const waitingShape = queueRead.isSuccess
@@ -319,6 +349,7 @@ function StartLanding() {
    */
   const heroReady =
     !workspaceLoading &&
+    seeded &&
     !queueRead.isPending &&
     !(runs.isPending && runs.fetchStatus === "fetching");
 
@@ -343,10 +374,24 @@ function StartLanding() {
     queryKey: runningNowKey(activeWorkspaceId ?? null),
     queryFn: () => fRunning({ data: { workspaceId: activeWorkspaceId ?? null } }),
     refetchInterval: 10_000,
+    enabled: seeded,
+  });
+  /* HOW LONG EACH STATION USUALLY TAKES HERE (Lane 3, readStationTimings):
+     the map's working station says it, so the wait has a shape. */
+  const fTimings = useServerFn(readStationTimings);
+  const timings = useQuery({
+    queryKey: ["station-timings", activeWorkspaceId ?? null],
+    queryFn: () => fTimings({ data: { workspaceId: activeWorkspaceId as string } }),
+    enabled: Boolean(activeWorkspaceId),
+    staleTime: 5 * 60_000,
   });
   const map = useMemo(
-    () => withPresences(journeyMap(runs.data ?? []), workingSeats(running.data), presenceColour),
-    [runs.data, running.data],
+    () =>
+      withTimings(
+        withPresences(journeyMap(runs.data ?? []), workingSeats(running.data), presenceColour),
+        timings.data,
+      ),
+    [runs.data, running.data, timings.data],
   );
   const openRun = (trackId: string) =>
     void navigate({ to: "/track/$trackId", params: { trackId }, search: {} });
