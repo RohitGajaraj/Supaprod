@@ -1340,6 +1340,18 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
        * station is named the way the transcript names one in passing, which is
        * where this vocabulary is allowed to appear (R-13); it is a fact about
        * the work, never a menu. */
+      /* THE SEAT BY NAME, NOT "YOUR AGENTS" (Lane 1, 2026-09-08). The
+         live-work read already holds who is working, on what and at which
+         station; a generic line over that is the machine's work hidden. */
+      const seats = runningNow.data ?? [];
+      if (seats.length > 0) {
+        const first = seats[0];
+        const doing = first.now
+          ? `${first.now.verb}${first.now.objectLabel ? ` ${first.now.objectLabel}` : ""}`
+          : "working";
+        const more = seats.length > 1 ? ` · ${seats.length - 1} more` : "";
+        return `${agentDisplayName(first.slug)} is ${doing}${more}`;
+      }
       if (movingRuns.length === 1) {
         const label = STAGE_LABEL[movingRuns[0].station];
         return label ? `Your agents are moving · ${label}` : "Your agents are moving";
@@ -1423,6 +1435,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     workingStation,
     lastDone,
     verbFor,
+    runningNow.data,
     strip,
     movingRuns,
   ]);
@@ -1550,6 +1563,16 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
        shell took a person through a bounce to reach a page it could have named.
        It always MEANT the board and now it says so. */
     // Every run is listed on Start; `/today` was its redirect stub until P-10.
+    /* A DOOR TO THE ROOM YOU ARE STANDING IN IS NOT A DOOR (S2, 2026-08-31,
+       and again on the first home, entry review 2026-09-08). On the home the
+       press puts the cursor in the composer, which is the next action. */
+    const composer = () => {
+      const field = document.querySelector<HTMLElement>("[data-page-composer]");
+      if (field) field.focus();
+    };
+    if (pathname === SIGNED_IN_HOME && running.length !== 1 && movingRuns.length === 0) {
+      return { go: composer, title: "Start a run" };
+    }
     if (running.length > 1) return { go: go(SIGNED_IN_HOME), title: "See every run" };
     /* Nothing in the mission world is working, but a spine run moved moments
      * ago -- so the door opens THE address of that run, not a list. The track
@@ -1575,7 +1598,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
      * these words is awake, and SPEC-PRESENCE §Anatomy #2 rules that an idle
      * one is the door to where work starts. */
     return { go: go("/start"), title: "Start a run" };
-  }, [gateCount, running, movingRuns, lastDone, navigate]);
+  }, [gateCount, running, movingRuns, lastDone, navigate, pathname]);
 
   /* THE ONE THING ON THE STRIP THAT MOVES.
    * A gate outranks a run in progress, because the gate is the one asking for a

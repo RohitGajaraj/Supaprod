@@ -14,20 +14,18 @@ import { readFileSync } from "node:fs";
 
 const CREW = readFileSync("src/components/shell/RailCrew.tsx", "utf8");
 const FRAME = readFileSync("src/components/shell/AppFrame.tsx", "utf8");
-const READ = readFileSync("src/lib/approvals-queue.functions.ts", "utf8");
+const STRIP = readFileSync("src/components/start/CrewAtWork.tsx", "utf8");
 const code = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 
 describe("no teammate without a row", () => {
-  it("DRAWS FROM ANCHORS ONLY, which the read ties to a live run", () => {
+  it("DRAWS FROM THE LIVE-WORK READ ONLY, which the server ties to a running seat", () => {
     // The guarantee is structural, not careful: there is no input to this
-    // component that carries a teammate without a row behind it.
-    expect(code(CREW)).toContain("crewFromAnchors(anchors.data?.anchors)");
-  });
-
-  it("and the read admits only running runs", () => {
-    const at = READ.indexOf("getWorkspaceAnchors");
-    const handler = READ.slice(at, at + 1400);
-    expect(handler).toContain('.in("status", ["running", "in_progress"])');
+    // component that carries a teammate without a run row behind it.
+    // `listRunningNow` is the one read every surface that names who is
+    // working shares (Lane 1, 2026-09-08); the home strip is the other reader.
+    expect(code(CREW)).toContain("workingSeats(q.data)");
+    expect(code(CREW)).toContain("queryKey: runningNowKey(workspaceId)");
+    expect(code(STRIP)).toContain("queryKey: runningNowKey(workspaceId)");
   });
 
   it("has no timer, no interval position, no interpolation", () => {
@@ -59,12 +57,11 @@ describe("it never shows a calm room on a dead feed", () => {
     expect(code(CREW)).not.toContain("Nothing running.");
   });
 
-  it("counts the runs it cannot speak for, and only upward", () => {
-    // A live run with no `trace_id` has no action to name. Omitting it would
-    // undercount the crew on the one control that answers "how many". A
-    // positive count is provable; zero is not, so it only ever draws upward.
-    expect(code(CREW)).toContain("unknowable > 0 ?");
-    expect(code(CREW)).toContain("are running and not saying what");
+  it("names a seat with no verb by its station rather than dropping it", () => {
+    // A live seat whose newest call has no verb is still a live seat; the
+    // station it stands at is the honest fact, and omitting it would
+    // undercount the crew on the one control that answers "how many".
+    expect(code(CREW)).toContain("`working at ${AGENT_STATIONS[s.station].name}`");
   });
 });
 
@@ -75,17 +72,9 @@ describe("mounted once, for everyone", () => {
     expect(code(FRAME)).toContain("<RailCrew workspaceId={workspaceId} />");
   });
 
-  it("reads from the shared presence key", () => {
-    // "OverlapNote drew collisions from the same read" left this case (P-14,
-    // A-QUEUE.md): `components/today/OverlapNote.tsx` was exclusively owned by
-    // `components/today/Board.tsx`, unmounted (zero importers) and deleted
-    // with the cluster it alone belonged to. RailCrew's own key stands alone.
-    expect(code(CREW)).toContain('queryKey: ["presence", "anchors", workspaceId]');
-  });
-
-  it("carries the verb in the accessible name, not only beside the mark", () => {
-    // "Engineer, writing the change" is the whole fact; the name alone is half.
-    expect(code(CREW)).toContain("aria-label={`${name}, ${m.verb}`}");
+  it("draws the same presence the home strip draws, so the two agree by construction", () => {
+    expect(code(CREW)).toContain("<AgentPresence");
+    expect(code(STRIP)).toContain("<AgentPresence");
   });
 
   it("backs its poll off like every other live read in this lane", () => {
@@ -107,26 +96,5 @@ describe("mounted once, for everyone", () => {
      */
     expect(code(CREW)).toContain("if (pathname === SIGNED_IN_HOME) return null;");
     expect(code(CREW)).toContain('from "@/components/shell/post-auth-home"');
-  });
-
-  it("still claims nothing in that branch, because the read swallows its failure", () => {
-    /*
-     * THE REASON IT RENDERS NOTHING RATHER THAN A SENTENCE, pinned so a future
-     * edit that "improves" it has to answer this first.
-     *
-     * `getWorkspaceAnchors` returns an empty result on a failed `agent_runs`
-     * read instead of throwing, so `isError` stays false and this branch is
-     * reached by BOTH "nobody is working" and "we could not find out". A
-     * sentence here is a false all-clear on a dead feed, which SPEC-MULTIPLAYER
-     * -PRESENCE §2 forbids by name. Drawing nothing claims nothing.
-     *
-     * The guard reads the SERVER function, so the day S0 makes that read throw,
-     * this test fails and tells whoever is standing there that the quiet branch
-     * can finally speak.
-     */
-    const fn = readFileSync("src/lib/approvals-queue.functions.ts", "utf8");
-    expect(fn).toContain(
-      "if (runsErr || !runs) return { anchors: [], collisions: [], unknowableRuns: 0 };",
-    );
   });
 });

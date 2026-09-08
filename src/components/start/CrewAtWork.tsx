@@ -23,6 +23,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { AgentPresence } from "@/components/meridian/AgentPresence";
+import { ReadFailedLine } from "@/components/meridian/surface-parts";
 import { AGENT_STATIONS, agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
 import { runningNowKey } from "@/lib/query-keys";
 import { listRunningNow } from "@/lib/spine/track.functions";
@@ -73,6 +74,18 @@ export function CrewAtWork({
     refetchInterval: 10_000,
   });
   const seats = React.useMemo(() => workingSeats(q.data), [q.data]);
+  /* NEVER A CALM ROOM ON A DEAD FEED. Nothing drawn means nobody is
+     working; a failed read must not look the same (entry review, 2026-09-08). */
+  if (q.isError) {
+    return (
+      <section data-mrd="" aria-label="Working now" className="flex flex-col gap-mrd-2">
+        <span className="mrd-eyebrow">Working now</span>
+        <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
+          Cannot see who is working.
+        </ReadFailedLine>
+      </section>
+    );
+  }
   if (seats.length === 0) return null;
   return (
     <section
