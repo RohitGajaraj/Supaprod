@@ -335,6 +335,7 @@ import {
   type RingFill,
 } from "@/components/decisions/queue-instruments";
 import { capturedByHand, signalPreview, sourceLabel, withTimeout } from "./format";
+import { leadOfRanking } from "./lead-of-ranking";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { stillWaiting } from "@/lib/query-state";
@@ -1957,6 +1958,15 @@ export function DiscoverSurface({
    * The durable fix is still in the read: return a total beside the page, the
    * way `listThemes` already does, and this can state the shortfall outright.
    */
+  /*
+   * ── THE HEADLINE NAMES THE ONE TO START WITH (Lane 2, 2026-09-08) ──────
+   * "133 clusters need your decisions" is a count, and the ranking below
+   * had already decided which comes first. So the headline says which, and
+   * the sub line says why (severity, newest signal, corroboration) and how
+   * deep the queue is behind it. An Example at the top yields no lead and
+   * the count sentence stands. See `lead-of-ranking.ts`.
+   */
+  const lead = React.useMemo(() => leadOfRanking(ranked, Date.now()), [ranked]);
   const headline: React.ReactNode = loading ? (
     "Reading what has come in."
   ) : loadError ? (
@@ -1967,6 +1977,8 @@ export function DiscoverSurface({
     <>
       The newest <Num>{rows.length}</Num> signal{plural(rows.length)}, none in the ranking.
     </>
+  ) : lead ? (
+    lead.lead
   ) : ranked.length === 1 ? (
     "One cluster needs your decision."
   ) : (
@@ -2603,7 +2615,8 @@ export function DiscoverSurface({
         title={headline}
         sub={
           ranked.length > 0
-            ? "Ordered by how severe, how recent, and how new to the record each one is."
+            ? (lead?.why ??
+              "Ordered by how severe, how recent, and how new to the record each one is.")
             : undefined
         }
       />
