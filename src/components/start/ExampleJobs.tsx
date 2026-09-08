@@ -27,6 +27,7 @@
  * today, and each one below names a station the product actually reaches. A
  * fourth card would be there to fill the row.
  */
+import { StatusChip } from "@/components/meridian/StatusChip";
 import { Action } from "@/components/meridian/surface-parts";
 import { PickCard } from "@/components/meridian/onramp-parts";
 import { SketchBroken, SketchProblem, SketchScreen } from "@/components/meridian/sketch-glyphs";
@@ -343,7 +344,12 @@ export function ExampleJobs({
                   </span>
                 ) : running ? (
                   <span className="flex items-center gap-mrd-2">
-                    <span className="mrd-meta">Running</span>
+                    {/* A bet in flight is a machine at work, and it breathes
+                        on the agent hue like every other one (entry review,
+                        2026-09-08); mute meta text read as a label. */}
+                    <StatusChip status="agent" pulse>
+                      Running
+                    </StatusChip>
                     <Action variant="quiet" onClick={() => onOpenRun?.(running)}>
                       See the run
                     </Action>
