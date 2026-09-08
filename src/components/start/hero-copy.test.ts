@@ -25,7 +25,12 @@ describe("heroCopy", () => {
     expect(heroCopy({ product: "Prism", runs: undefined }).title).toBe(
       "What should Prism do next?",
     );
-    expect(heroCopy({ product: "Prism", runs: [] }).title).toBe("What should Prism do next?");
+    /* The first home does not repeat the first run screen: unread still
+       invites with the promise, but a workspace that has never run asks for
+       the FIRST thing and points at the three sentences below it. */
+    const first = heroCopy({ product: "Prism", runs: [] });
+    expect(first.title).toBe("What should Prism do first?");
+    expect(first.line).toContain("press one of the three below");
   });
 
   it("leads with what needs a person", () => {

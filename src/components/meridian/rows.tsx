@@ -76,6 +76,13 @@ const ROW_BLEED = "-mx-2.5 w-[calc(100%+20px)] px-2.5";
  * than chosen — see the note on `Line` below, which is the same story with the
  * numbers written down.
  */
+/**
+ * The gap between the marks column and the text, exported so a caller that
+ * mounts something UNDER a row (the home's answer card) can start it exactly
+ * where the row's own sentence starts: the marks width plus this.
+ */
+export const ROW_GAP = 13;
+
 const ROW_SHAPE =
   "flex items-center gap-[13px] min-h-11 py-[9px] rounded-mrd-ctl text-left transition-colors";
 

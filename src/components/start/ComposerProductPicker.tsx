@@ -23,6 +23,7 @@
  */
 import type { Product } from "@/hooks/use-workspace";
 import type { ProductCandidate } from "@/lib/spine/product-match";
+import { Door, Picker } from "@/components/meridian/surface-parts";
 
 export function ComposerProductPicker({
   products,
@@ -41,29 +42,27 @@ export function ComposerProductPicker({
 
   return (
     <div className="flex flex-wrap items-center gap-mrd-2 text-mrd-small text-mrd-mute">
-      <label htmlFor="composer-product" className="flex items-center gap-1.5">
+      <label htmlFor="composer-product" className="flex items-center gap-mrd-2">
         <span>This run is for</span>
-        <select
+        {/* Meridian's own picker and door, not a hand-rolled select and a
+            link (entry review, 2026-09-08): one keystroke to open, one to
+            choose, and the offer reads as a door because it is one. */}
+        <Picker
           id="composer-product"
           value={activeProductId ?? ""}
           onChange={(e) => onSelect(e.target.value)}
-          className="rounded-mrd-ctl border border-mrd-field bg-mrd-sink px-2 py-1 text-[13px] text-mrd-ink transition-colors focus:border-mrd-field-focus focus:outline-none"
         >
           {products.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>
           ))}
-        </select>
+        </Picker>
       </label>
       {offerSuggestion ? (
-        <button
-          type="button"
-          onClick={() => onSelect(suggested.id)}
-          className="text-mrd-you underline underline-offset-2"
-        >
+        <Door onClick={() => onSelect(suggested.id)}>
           The sentence sounds like {suggested.name}. Use it?
-        </button>
+        </Door>
       ) : null}
     </div>
   );

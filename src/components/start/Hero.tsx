@@ -94,7 +94,14 @@ export function heroCopy(input: {
     };
   }
   if (runs.length === 0) {
-    return { eyebrow, title: `What should ${name} do next?`, line: PROMISE };
+    /* The person just read the road on the first run screen; saying it
+       again word for word is the product repeating itself on its second
+       screen (entry review, 2026-09-08). Here the line is about the sentence. */
+    return {
+      eyebrow,
+      title: `What should ${name} do first?`,
+      line: `Say it in one sentence, or press one of the three below. You will watch it happen on the run's own page, and it stops to ask you only where the call is yours.`,
+    };
   }
   if (needs > 0) {
     return {

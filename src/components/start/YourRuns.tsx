@@ -24,7 +24,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 
 import { Journey, type JourneyKey } from "@/components/meridian/Journey";
-import { Row } from "@/components/meridian/rows";
+import { ROW_GAP, Row } from "@/components/meridian/rows";
 import {
   Action,
   Chevron,
@@ -150,12 +150,20 @@ function RunRow({
         }
       />
       {needsYou && askOpen ? (
-        <div className="mb-mrd-3 ml-[84px] mt-mrd-2" data-mrd="">
+        <div
+          className="mb-mrd-3 mt-mrd-2"
+          style={{ marginLeft: MARKS_WIDTH + ROW_GAP }}
+          data-mrd=""
+        >
           <TrackConsent trackId={r.id} onAnswered={onAnswered} />
         </div>
       ) : null}
       {held && askOpen ? (
-        <div className="mb-mrd-3 ml-[84px] mt-mrd-2" data-mrd="">
+        <div
+          className="mb-mrd-3 mt-mrd-2"
+          style={{ marginLeft: MARKS_WIDTH + ROW_GAP }}
+          data-mrd=""
+        >
           <HoldCard trackId={r.id} onSettled={onAnswered} />
         </div>
       ) : null}
@@ -184,15 +192,33 @@ export function YourRuns({
   const [showAbandoned, setShowAbandoned] = React.useState(false);
   /* One ask open at a time: the row whose question is on screen. */
   const [askOpen, setAskOpen] = React.useState<string | null>(null);
+  /* THE CLOCK TICKS WHILE ANYTHING RUNS. The row's "3m 12s" was frozen
+     between polls while the strip above ticked per second for the same seat
+     (entry review, 2026-09-08). One second is the strip's own cadence. */
+  const anyRunning = (q.data ?? []).some((t) => t.working);
+  const [tick, bump] = React.useReducer((n: number) => n + 1, 0);
+  React.useEffect(() => {
+    if (!anyRunning) return;
+    const id = setInterval(bump, 1_000);
+    return () => clearInterval(id);
+  }, [anyRunning]);
   const now = Date.now();
   const byId = React.useMemo(() => new Map((q.data ?? []).map((r) => [r.id, r])), [q.data]);
   const rows = React.useMemo(
     () => startRows(q.data ?? [], Date.now(), KIND_WORD, (tool) => toolActionLabel(tool), zone),
-    [q.data, zone],
+    // `tick` is the clock: the rows are recomposed once a second while a seat works.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [q.data, zone, tick],
   );
   const groups = React.useMemo(() => groupStartRows(rows), [rows]);
+  /* THE MAP COUNTS OPEN RUNS, SO A STATION'S LIST IS THE OPEN RUNS THERE.
+     "Learn · 2 here" used to open every finished run as well (entry
+     review, 2026-09-08). */
   const shown = React.useMemo(
-    () => (station ? groups.shown.filter((r) => r.station === station) : groups.shown),
+    () =>
+      station
+        ? groups.shown.filter((r) => r.station === station && r.kind !== "finished")
+        : groups.shown,
     [groups.shown, station],
   );
   const qc = useQueryClient();

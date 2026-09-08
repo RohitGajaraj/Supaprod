@@ -68,11 +68,11 @@ export function FirstRun() {
   const [name, setName] = React.useState("");
   const [product, setProduct] = React.useState("");
   const [line, setLine] = React.useState("");
-  const productRef = React.useRef<HTMLInputElement | null>(null);
-
-  React.useEffect(() => {
-    productRef.current?.focus();
-  }, []);
+  /* THE FORM ARRIVES ONCE. The name field used to pop in above an already
+     focused product field when the profile read landed (entry review,
+     2026-09-08). The header stands at once; the fields mount when the read
+     has settled either way, with the first of them focused. */
+  const ready = profile.isSuccess || profile.isError;
 
   const go = useMutation({
     mutationFn: async () => {
@@ -156,77 +156,87 @@ export function FirstRun() {
           </p>
         </header>
 
-        <form
-          className="flex flex-col gap-mrd-5"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (canGo) go.mutate();
-          }}
-        >
-          {needsName ? (
-            <Field label="Your name" htmlFor="first-run-name">
+        {!ready ? (
+          <div className="min-h-[14rem]" aria-hidden="true" />
+        ) : (
+          <form
+            className="flex flex-col gap-mrd-5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (canGo) go.mutate();
+            }}
+          >
+            {needsName ? (
+              <Field label="Your name" htmlFor="first-run-name">
+                <Input
+                  id="first-run-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="name"
+                  placeholder="Maya Ruiz"
+                  autoFocus
+                />
+              </Field>
+            ) : null}
+            <Field label="The product" htmlFor="first-run-product">
               <Input
-                id="first-run-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoComplete="name"
-                placeholder="Maya Ruiz"
+                id="first-run-product"
+                autoFocus={!needsName}
+                value={product}
+                onChange={(e) => setProduct(e.target.value)}
+                autoComplete="off"
+                placeholder="Prism"
+                maxLength={120}
               />
             </Field>
-          ) : null}
-          <Field label="The product" htmlFor="first-run-product">
-            <Input
-              id="first-run-product"
-              ref={productRef}
-              value={product}
-              onChange={(e) => setProduct(e.target.value)}
-              autoComplete="off"
-              placeholder="Prism"
-              maxLength={120}
-            />
-          </Field>
-          <Field
-            label="In one line, who it is for and what it does"
-            htmlFor="first-run-line"
-            hint="Optional. It becomes the first thing on the record, and every run reads it."
-          >
-            <Textarea
-              id="first-run-line"
-              value={line}
-              onChange={(e) => setLine(e.target.value)}
-              rows={2}
-              placeholder="An expense tool for freelancers who hate spreadsheets"
-              maxLength={300}
-            />
-          </Field>
+            <Field
+              label="In one line, who it is for and what it does"
+              htmlFor="first-run-line"
+              hint="Optional. It becomes the first thing on the record, and every run reads it."
+            >
+              <Textarea
+                id="first-run-line"
+                value={line}
+                onChange={(e) => setLine(e.target.value)}
+                rows={2}
+                placeholder="An expense tool for freelancers who hate spreadsheets"
+                maxLength={300}
+              />
+            </Field>
 
-          {go.isError ? (
-            <Receipt
-              verb="Nothing was set up"
-              consequence={failureLine(
-                "What you typed is still here and nothing was saved.",
-                go.error as Error,
-              )}
-              failed
-            />
-          ) : null}
+            {go.isError ? (
+              <Receipt
+                verb="Nothing was set up"
+                consequence={failureLine(
+                  "What you typed is still here and nothing was saved.",
+                  go.error as Error,
+                )}
+                failed
+              />
+            ) : null}
 
-          <div className="flex items-center justify-between gap-mrd-4">
-            <span className="mrd-meta">
-              Slack, GitHub, Intercom and the rest connect later, from Sources. Nothing has to be
-              connected first.
-            </span>
-            <Action type="submit" variant="primary" busy={go.isPending} disabled={!canGo}>
-              {go.isPending ? "Setting up" : "Open Supaprod"}
-            </Action>
-          </div>
-        </form>
+            <div className="flex items-center justify-between gap-mrd-4">
+              <span className="mrd-meta">
+                Slack, GitHub, Intercom and the rest connect later, from Sources. Nothing has to be
+                connected first.
+              </span>
+              <Action type="submit" variant="primary" busy={go.isPending} disabled={!canGo}>
+                {go.isPending ? "Setting up" : "Open Supaprod"}
+              </Action>
+            </div>
+          </form>
+        )}
 
         <section
           aria-label="What happens after you press Enter"
           className="flex flex-col gap-mrd-4 rounded-mrd-pane bg-mrd-sheet px-mrd-5 pt-mrd-5 pb-mrd-4"
         >
-          <Journey size="full" stations={promiseStations()} label="The road every run travels" />
+          <Journey
+            size="full"
+            stations={promiseStations()}
+            label="The road every run travels"
+            promise
+          />
           <p className="mrd-meta">
             Every run travels this road, and it stops to ask you only where the call is yours.
           </p>

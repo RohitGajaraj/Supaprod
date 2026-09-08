@@ -59,6 +59,7 @@ export function JourneyMap({
         }
         label={mode === "promise" ? "The road every run travels" : "Where your work stands"}
         selects="filter"
+        promise={mode === "promise"}
       />
       <p className="mrd-meta">{caption}</p>
     </section>

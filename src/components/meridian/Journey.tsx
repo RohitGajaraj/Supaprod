@@ -148,7 +148,12 @@ function labelOf(s: JourneyStation): string {
   return s.label ?? AGENT_STATIONS[s.key].name;
 }
 
-function describe(s: JourneyStation): string {
+function describe(s: JourneyStation, promise = false): string {
+  /* A PROMISE IS NOT A RUN. Read off the live accessibility tree on the first
+     home: the road before any run announced "Discover: not yet" seven times
+     for work that does not exist. In promise form each stop reads what it
+     hands on ("Discover: the evidence"), with no state word at all. */
+  if (promise) return s.outcome ? `${labelOf(s)}: ${s.outcome}` : labelOf(s);
   const bits = [`${labelOf(s)}: ${JOURNEY_STATE_WORD[s.state]}`];
   if (s.outcome) bits.push(s.outcome);
   if (s.count && s.count > 0) bits.push(`${s.count} here`);
@@ -317,12 +322,14 @@ function Stop({
   onSelect,
   interactive,
   selects,
+  promise,
 }: {
   station: JourneyStation;
   active: boolean;
   onSelect?: (key: JourneyKey) => void;
   interactive: boolean;
   selects: "pane" | "filter";
+  promise: boolean;
 }) {
   const clock = useClock(station.at, station.state === "working");
   const current = CURRENT.has(station.state);
@@ -361,7 +368,7 @@ function Stop({
         {...(selects === "pane"
           ? { role: "tab", "aria-selected": active }
           : { "aria-pressed": active })}
-        aria-label={describe(station)}
+        aria-label={describe(station, promise)}
         data-mrd=""
         data-state={station.state}
         onClick={() => onSelect?.(station.key)}
@@ -390,6 +397,7 @@ export function Journey({
   className = "",
   word = true,
   selects = "pane",
+  promise = false,
 }: {
   /** Row form: print the current station's name after the dots. Off in a
    *  list whose rows already say the station in their sentence. */
@@ -411,12 +419,15 @@ export function Journey({
    * announce. The drawing is the same; only the roles differ.
    */
   selects?: "pane" | "filter";
+  /** The road drawn before any run exists: every stop pending, each carrying
+   *  what it hands on. Changes only what is read aloud. */
+  promise?: boolean;
   className?: string;
 }) {
   if (stations.length === 0) return null;
   const interactive = size === "full" && typeof onSelect === "function";
   const here = stations.find((s) => CURRENT.has(s.state)) ?? null;
-  const summary = stations.map(describe).join(" · ");
+  const summary = stations.map((s) => describe(s, promise)).join(" · ");
 
   if (size === "row") {
     /* A clock on a single working station, for the presence strip. */
@@ -478,6 +489,7 @@ export function Journey({
             onSelect={onSelect}
             interactive={interactive}
             selects={selects}
+            promise={promise}
           />
         </React.Fragment>
       ))}

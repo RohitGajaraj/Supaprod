@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { Receipt } from "@/components/meridian/Receipt";
 import { Row } from "@/components/meridian/rows";
-import { Action } from "@/components/meridian/surface-parts";
+import { Action, Reading } from "@/components/meridian/surface-parts";
 import { Composer } from "@/components/meridian/onramp-parts";
 import type { JourneyKey } from "@/components/meridian/Journey";
 import { ExampleJobs, type ExampleJob } from "@/components/start/ExampleJobs";
@@ -376,7 +376,11 @@ function StartLanding() {
               waitingShape,
             })}
           />
-        ) : null}
+        ) : (
+          /* A sentence, not a hole: the first paint said nothing for the
+             length of two reads (entry review, 2026-09-08). */
+          <Reading>Reading your workspace.</Reading>
+        )}
       </div>
 
       {queue ? (
