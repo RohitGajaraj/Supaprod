@@ -36,6 +36,9 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
+
+import { Door } from "@/components/meridian/surface-parts";
 
 import { getSubjectEvidence } from "@/lib/evidence.functions";
 import { evidenceLine, NO_EVIDENCE_READ } from "@/lib/spine/what-the-evidence-already-says";
@@ -53,6 +56,7 @@ const ENOUGH = 8;
 const SETTLE_MS = 450;
 
 export function WhatWeAlreadyHold({ subject }: { subject: string }) {
+  const navigate = useNavigate();
   const fEvidence = useServerFn(getSubjectEvidence);
 
   /*
@@ -104,7 +108,21 @@ export function WhatWeAlreadyHold({ subject }: { subject: string }) {
    */
   const evidence = q.isError ? NO_EVIDENCE_READ : (q.data ?? NO_EVIDENCE_READ);
 
-  return <span className="mrd-meta">{evidenceLine(evidence)}</span>;
+  /* ZERO IS AN INVITATION WITH A DOOR. The line already says "connect a
+     source, or start it anyway"; on a workspace with nothing connected it
+     read as a reproach with no way to act on it (entry review, 2026-09-08).
+     The door opens Sources; Enter in the box above is the other half. */
+  return (
+    <span className="mrd-meta">
+      {evidenceLine(evidence)}
+      {evidence.count === 0 ? (
+        <>
+          {" "}
+          <Door onClick={() => void navigate({ to: "/sync" })}>Connect a source</Door>
+        </>
+      ) : null}
+    </span>
+  );
 }
 
 export default WhatWeAlreadyHold;

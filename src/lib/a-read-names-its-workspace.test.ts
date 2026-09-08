@@ -109,9 +109,14 @@ const WORKSPACE_SCOPED = new Set<string>([
  * (credits.functions.ts) narrows `ai_events`/`credit_ledger` by a trace-id set
  * the caller already fetched under RLS on `agent_runs`, the same shape as
  * `run_id` above it -- an id one hop from a workspace, not a bare list.
+ * `entity_id` added 2026-09-08 (Lane 3, readStationTimings): `stage_events`
+ * is keyed by the row it is about, and `.in("entity_id", trackIds)` over ids
+ * the caller already read from `spine_tracks` under the workspace is the same
+ * one-hop shape; old stage rows carry no workspace_id, so the id set is the
+ * only honest scope for them.
  */
 const NARROWED =
-  /\.(eq|in)\(\s*"(id|track_id|mission_id|run_id|decision_id|prd_id|product_id|project_id|changeset_id|conversation_id|theme_id|opportunity_id|agent_id|user_id|artifact_id|signal_id|goal_id|loop_id|task_id|slug|trace_id|ai_event_id)"/;
+  /\.(eq|in)\(\s*"(id|track_id|mission_id|run_id|decision_id|prd_id|product_id|project_id|changeset_id|conversation_id|theme_id|opportunity_id|agent_id|user_id|artifact_id|entity_id|signal_id|goal_id|loop_id|task_id|slug|trace_id|ai_event_id)"/;
 
 /**
  * BASELINE, MEASURED 2026-09-04. A number here may go DOWN and never up.
@@ -149,7 +154,6 @@ const BASELINE: Record<string, number> = {
   "src/lib/decisions.functions.ts": 1,
   "src/lib/delegate-desk.functions.ts": 1,
   "src/lib/deployments.functions.ts": 1,
-  "src/lib/design-scaffold.functions.ts": 2,
   "src/lib/docs.functions.ts": 1,
   "src/lib/forecast.functions.ts": 3,
   "src/lib/gdocs.functions.ts": 1,
@@ -170,15 +174,11 @@ const BASELINE: Record<string, number> = {
   "src/lib/routing-console.functions.ts": 1,
   "src/lib/sources/signal-embedding.server.ts": 1,
   "src/lib/sources/sink.server.ts": 1,
-  "src/lib/spine/correction.server.ts": 1,
-  "src/lib/spine/driver.server.ts": 5,
   "src/lib/spine/return-edge.server.ts": 1,
-  "src/lib/stage-events.functions.ts": 1,
   "src/lib/stakeholder-update.functions.ts": 1,
   "src/lib/support-triage.functions.ts": 1,
   "src/lib/tasks.functions.ts": 2,
   "src/lib/traces.functions.ts": 3,
-  "src/lib/trust-chain.functions.ts": 1,
   "src/routes/api/chat.ts": 2,
   "src/routes/api/public/hooks/approvals-tick.ts": 4,
   "src/routes/api/public/hooks/delegate-poll-tick.ts": 1,

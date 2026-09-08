@@ -130,8 +130,10 @@ Two rules they carry that are worth copying:
 | Primitive | It draws | Where it is used |
 | --- | --- | --- |
 | **`Journey`** (`Journey.tsx`) | The seven stations as the road one piece of work travels, in two sizes: full (a tablist when it selects a pane) and row (the mark at the left of a run row). States: pending, done, working, you, held, scheduled, waiting, failed, waived. The working node breathes on the agent hue with a ticking clock; a calendar wait is neutral, never amber. A full-size station carries `presences`, the seats working there now as live dots in each seat's own presence colour (`presenceColour`), so the road shows where the machine is, not only where the work stands. | The home's map and its run rows, the first run's promise, the run screen's header |
-| **`AgentPresence`** and **`PresenceDot`** (`AgentPresence.tsx`) | One seat at work: a colour from `--mrd-viz-1..4` that is the same for that seat everywhere (`presenceColour`, a stable hash), its name, the verb of its latest tool call, the thing it is doing it to, a clock. Never a status hue. | The home's Working now strip, the rail's crew, the run screen's presence strip, cursors and diff gutters |
+| **`AgentPresence`** and **`PresenceDot`** (`AgentPresence.tsx`) | One seat at work: a colour from `--mrd-seat-1..5` that is the same for that seat everywhere (`presenceColour`, a stable hash), its name, the verb of its latest tool call, the thing it is doing it to, a clock. Never a status hue. | The home's Working now strip, the rail's crew, the run screen's presence strip, cursors and diff gutters |
 | **`PageHeading` with `station`** (`surface-parts.tsx`) | The station a depth page's content comes from, as the eyebrow above the title, with the road's own glyph. | Findings (`sense`), Outcomes (`learn`), the spec editor (`define`) |
+
+**Tokens added the same day.** `--mrd-seat-1..5` (seat identity, both themes); `--mrd-shell-header-h`, `--mrd-shell-mark`, `--mrd-icon`, `--mrd-icon-sm`, `--mrd-shell-pane-inset`, `--mrd-shell-pane-ask-w`, `--mrd-shell-ctx-gap`, `--mrd-shell-work-pad-x|y|bottom`, `--mrd-shell-main-max` (the shell's dimensions, moved out of the retired sheet with their reasons; `shell.css` reads no `--sp-*` token any more). `Journey` stations carry `presences`; `Choice` options carry `sub` and may omit `fact`; `Row` exports `ROW_GAP`.
 
 **`StatusChip` gains `quiet`**: mute ink on the sink fill, for a wait the machine has in hand (a release live in production with its verdict due on a date). The five status words are still five; this is the absence of one, drawn as a chip so it sits in a row of chips without vanishing.
 
@@ -204,9 +206,11 @@ Categorical colour (`--mrd-viz-*`, the syntax palette) is a **separate system** 
 
 **It must survive a greyscale test.** If the screen stops making sense in greyscale, the colour was doing work that structure should have done.
 
-### 4. Identity is shape. Status is hue.
+### 4. Identity is shape. Status is hue. A seat's identity is its own hue, from its own set.
 
 A station, an agent or a mission is identified by its **glyph**. Painting identity as a colour ramp — seven stations, seven hues — has now been found and removed **three separate times**. See [`station-glyphs.tsx`](../../src/components/meridian/station-glyphs.tsx), which also carries the corollary learned the hard way: *a glyph sitting beside real controls may not borrow one of their shapes, however apt the metaphor feels.*
+
+**The one identity that is a colour (2026-09-08): a seat at work.** Many seats on one screen, each writing, need telling apart at a glance, and a glyph cannot do that for eight of them. So a seat carries a presence colour from `--mrd-seat-1..5`, hashed from its one resolved name (`presenceColour`), the same everywhere it appears: the Working-now strip, the dot at its station on the road, the run row's mark, the run screen's live pane and transcript. The set is chosen away from every status hue and from the brand ember, and it is never a status: a seat's dot says who, the ring around the station says what state.
 
 ### 5. Look at it before you ship it
 

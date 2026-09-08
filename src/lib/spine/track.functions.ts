@@ -50,6 +50,14 @@ import {
 } from "@/lib/spine/route";
 import { holdLine, STOPPED_BY_YOU, type HoldReason } from "@/lib/spine/driver";
 import { cancelPendingApprovalsForTrack } from "@/lib/spine/a-stop-cancels-its-asks";
+import {
+  stationTimingsFrom,
+  type StageMove,
+  type StationTimings,
+  type TrackStart,
+} from "@/lib/spine/station-timings";
+import { getApprovalsQueue, type ApprovalsQueueResult } from "@/lib/approvals-queue.functions";
+import { readHomeAnswers, type HomeAnswerReads } from "@/lib/start/home-answers.functions";
 import { driveTrackOnce, DRIVE_SELECT } from "@/lib/spine/driver.server";
 import { recordTrackDrive } from "@/lib/spine/track-drives.server";
 import { readPasteBack, pasteBackLine } from "@/lib/spine/paste-back";
@@ -6005,3 +6013,72 @@ export const choiceStillOutstanding = createServerFn({ method: "GET" })
       return { outstanding: false };
     }
   });
+
+/**
+ * HOW LONG EACH STATION USUALLY TAKES IN THIS WORKSPACE (Lane 1, 2026-09-08).
+ *
+ * See station-timings.ts for the rule. The reads: the workspace's tracks (for
+ * each one's creation, the first station's arrival) and every move on them,
+ * both scoped to the workspace on the row, the moves also by the tracks' own
+ * ids since old rows carry no workspace. Bounded at the newest 300 tracks,
+ * which is months of work at today's volume and enough for a median.
+ */
+export const readStationTimings = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ workspaceId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<StationTimings> => {
+    const { supabase } = context;
+    const { data: tracks, error } = await supabase
+      .from("spine_tracks" as never)
+      .select("id,created_at")
+      .eq("workspace_id", data.workspaceId)
+      .order("created_at", { ascending: false })
+      .limit(300);
+    if (error) throw new Error(`The stations' timings could not be read: ${error.message}`);
+    const starts = (tracks ?? []) as unknown as TrackStart[];
+    if (starts.length === 0) return stationTimingsFrom([], [], new Date().toISOString());
+    const { data: moves, error: movesErr } = await supabase
+      .from("stage_events")
+      .select("entity_id,from_stage,to_stage,at")
+      .eq("entity_type", "spine_track")
+      .in(
+        "entity_id",
+        starts.map((t) => t.id),
+      )
+      .order("at", { ascending: true })
+      .limit(5000);
+    if (movesErr) throw new Error(`The stations' timings could not be read: ${movesErr.message}`);
+    return stationTimingsFrom((moves ?? []) as StageMove[], starts, new Date().toISOString());
+  });
+
+/**
+ * THE HOME IN ONE ROUND TRIP (Lane 1, 2026-09-08). The same four shapes
+ * listRunsForStart, getApprovalsQueue, listRunningNow and readHomeAnswers
+ * return today, read together so the arrival is one paint instead of four
+ * staggered ones; the client seeds the four shared keys from it and nothing
+ * else changes. Each read keeps its own failure: one refused read refuses the
+ * composite, since a home drawn from three answers and a silence is the
+ * "failed read wearing an empty state's clothes" this product keeps meeting.
+ */
+export const readHome = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ workspaceId: z.string().uuid() }).parse(d))
+  .handler(
+    async ({
+      data,
+    }): Promise<{
+      runs: StartRun[];
+      queue: ApprovalsQueueResult;
+      running: RunningSeat[];
+      answers: HomeAnswerReads;
+    }> => {
+      const scope = { data: { workspaceId: data.workspaceId } };
+      const [runs, queue, running, answers] = await Promise.all([
+        listRunsForStart(scope),
+        getApprovalsQueue(scope),
+        listRunningNow(scope),
+        readHomeAnswers(scope),
+      ]);
+      return { runs, queue, running, answers };
+    },
+  );
