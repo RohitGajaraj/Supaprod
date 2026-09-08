@@ -1930,6 +1930,14 @@ button.sp-stage:hover {
 .sp-setcount[data-hot="true"] {
   color: var(--mrd-you);
 }
+/* THE MOTION SWITCH REACHES THE SHELL (motion review, 2026-09-08). Meridian
+ * stops its own keyframes under html[data-motion="off"]; the shell's count
+ * pop and sheet motion answered only the OS preference. Same rule, here. */
+html[data-motion="off"] .sp-setcount,
+html[data-motion="off"] .sp-findlist,
+html[data-motion="off"] .sp-stage-dot {
+  animation: none;
+}
 /* ---------- the collapse, which moved to the top ----------
  * FOUNDER, 2026-08-15: the collapse control belongs at the top, next to the
  * logo. It was the fifth button in a row of five at the FOOT of the rail,

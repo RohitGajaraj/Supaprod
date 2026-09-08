@@ -19,6 +19,7 @@ import {
 import { KIND_WORD, STATION_ARTIFACT } from "@/lib/spine/attach";
 import type { StartRun } from "@/lib/spine/track.functions";
 import { holdTone } from "@/lib/spine/driver";
+import { STALL_MINUTES } from "@/lib/loop-health.functions";
 import { presenceColour } from "@/components/meridian/AgentPresence";
 import { nothingIsComing } from "@/components/track/nothing-is-coming";
 
@@ -83,7 +84,13 @@ function producedLine(kind: string, n: number): string | null {
   return `${n} ${n === 1 ? w.one : w.many}`;
 }
 
-export function journeyOfRun(r: RunLike): JourneyStation[] {
+function quietSince(iso: string | null | undefined, nowMs: number): boolean {
+  if (!iso) return false;
+  const ms = nowMs - Date.parse(iso);
+  return Number.isFinite(ms) && ms > STALL_MINUTES * 60_000;
+}
+
+export function journeyOfRun(r: RunLike, nowMs: number = Date.now()): JourneyStation[] {
   const at = JOURNEY_ORDER.indexOf(r.station);
   const byKind = new Map(r.produced.map((p) => [p.kind, p.count] as const));
   return JOURNEY_ORDER.map((key, i) => {
@@ -102,7 +109,15 @@ export function journeyOfRun(r: RunLike): JourneyStation[] {
          (entry review, 2026-09-08). The mark is filled with the seat's
          presence colour, the same one the strip and the map's dots carry. */
       const presences = r.working
-        ? [{ seat: r.working.seat, colour: presenceColour(r.working.seat) }]
+        ? [
+            {
+              seat: r.working.seat,
+              colour: presenceColour(r.working.seat),
+              /* Quiet past the stall threshold: the mark keeps the seat's
+                 colour but stops breathing (Lane 3's lastCallAt, 2026-09-08). */
+              alive: !quietSince(r.working.lastCallAt ?? r.working.since, nowMs),
+            },
+          ]
         : undefined;
       return { key, state: standingState(r), outcome, at: r.working?.since ?? null, presences };
     }

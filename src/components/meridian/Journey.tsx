@@ -215,7 +215,11 @@ function Node({
   active: boolean;
 }) {
   const p = paintOf(station);
-  const working = station.state === "working";
+  /* A working station breathes unless the seat inside it has gone quiet
+     past the stall threshold (presences[].alive === false). */
+  const working =
+    station.state === "working" &&
+    !(station.presences?.length && station.presences.every((pr) => pr.alive === false));
   /*
    * ROW FORM PAINTS BY WEIGHT, NOT ONLY BY HUE. At six pixels a lift fill
    * and a transparent fill are the same grey, so the road behind the work

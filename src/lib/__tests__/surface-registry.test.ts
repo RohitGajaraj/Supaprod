@@ -215,7 +215,6 @@ const KNOWN_UNREACHED: readonly string[] = [
   "funnel",
   "goals",
   "greeting",
-  "loop-health",
   "loops",
   "moat",
   "product-context",
