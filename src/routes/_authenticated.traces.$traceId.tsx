@@ -135,7 +135,7 @@ import * as React from "react";
 
 import { getTrace } from "@/lib/traces.functions";
 import { evalScoreVerdict } from "@/components/observe/EvalScoreChips";
-import { AGENT_STATIONS, agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { Fact, FactLabel, Facts, IdFact, CopyButton } from "@/components/traces/TraceFacts";
 import { TracePane } from "@/components/traces/TracePane";
@@ -654,8 +654,10 @@ export function TraceDetail({ id }: { id: string }) {
 
   const ranAgo = since(new Date(t0).toISOString());
   const run = trace.data?.run ?? null;
-  const runStation: AgentStation | undefined =
-    run?.station && run.station in AGENT_STATIONS ? (run.station as AgentStation) : undefined;
+  /* `run.station` is where the TRACK stands now, not where this turn ran
+     (seen live: a Discover turn from Sep 1 headed "at Learn"). Until the read
+     carries the turn's own station, the heading names the seat and the
+     sentence and claims no station. */
 
   return (
     <Surface
@@ -747,16 +749,10 @@ export function TraceDetail({ id }: { id: string }) {
          * one door goes back to the run.
          */}
         <PageHeading
-          station={runStation}
           title={run?.trackTitle ?? (mission ? stripAutoPrefix(mission.title) : shortTitle)}
           sub={
             <>
-              {run ? (
-                <>
-                  {run.agentName}&rsquo;s turn
-                  {runStation ? ` at ${AGENT_STATIONS[runStation].name}` : ""} ·{" "}
-                </>
-              ) : null}
+              {run ? <>{run.agentName}&rsquo;s turn · </> : null}
               <Num>{hopRows.length}</Num> {hopRows.length === 1 ? "hop" : "hops"} ·{" "}
               <Num>{fmtMs(totalMs)}</Num> wall
               {ranAgo ? <> · {ranAgo}</> : null}
