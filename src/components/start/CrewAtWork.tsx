@@ -25,6 +25,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AgentPresence } from "@/components/meridian/AgentPresence";
 import { ReadFailedLine } from "@/components/meridian/surface-parts";
 import { AGENT_STATIONS, agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
+import { STALL_MINUTES } from "@/lib/loop-health.functions";
 import { runningNowKey } from "@/lib/query-keys";
 import { listRunningNow } from "@/lib/spine/track.functions";
 import type { RunningSeat } from "@/lib/spine/what-is-running";
@@ -50,7 +51,7 @@ export type WorkingSeat = {
  * pulsing past that was the machine claiming work it was not doing (motion
  * review, 2026-09-08). The dot goes still and the verb says how long.
  */
-export const QUIET_AFTER_MS = 30 * 60_000;
+export const QUIET_AFTER_MS = STALL_MINUTES * 60_000;
 
 export function quietFor(
   seat: Pick<WorkingSeat, "lastCallAt" | "since">,
@@ -127,7 +128,13 @@ export function CrewAtWork({
               ? `working at ${AGENT_STATIONS[s.station].name}`
               : "working";
           return (
-            <li key={s.runId}>
+            <li
+              key={s.runId}
+              /* A seat that was not there a moment ago arrives on Meridian's
+                 fade rather than in one frame; a poll that redraws the same
+                 seat keeps its key and does not replay it. */
+              style={{ animation: "mrd-fade-in var(--mrd-d-move) var(--mrd-ease-soft) both" }}
+            >
               <AgentPresence
                 seat={s.seat}
                 verb={quiet ? `${doing} · quiet for ${Math.round(quiet / 60_000)} min` : doing}
