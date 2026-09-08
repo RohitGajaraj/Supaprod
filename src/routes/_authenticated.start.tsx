@@ -14,7 +14,7 @@ import { YourRuns } from "@/components/start/YourRuns";
 import { Arriving } from "@/components/start/Arriving";
 import { Hero, heroCopy } from "@/components/start/Hero";
 import { JourneyMap, promiseStations } from "@/components/start/JourneyMap";
-import { CrewAtWork, workingSeats } from "@/components/start/CrewAtWork";
+import { CrewAtWork, quietFor, workingSeats } from "@/components/start/CrewAtWork";
 import { StarterRuns } from "@/components/start/StarterRuns";
 import { presenceColour } from "@/components/meridian/AgentPresence";
 import { listRunningNow, readHome, readStationTimings } from "@/lib/spine/track.functions";
@@ -388,7 +388,11 @@ function StartLanding() {
   const map = useMemo(
     () =>
       withTimings(
-        withPresences(journeyMap(runs.data ?? []), workingSeats(running.data), presenceColour),
+        withPresences(
+          journeyMap(runs.data ?? []),
+          workingSeats(running.data).map((s) => ({ ...s, alive: !quietFor(s, Date.now()) })),
+          presenceColour,
+        ),
         timings.data,
       ),
     [runs.data, running.data, timings.data],

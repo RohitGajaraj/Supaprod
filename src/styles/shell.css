@@ -2250,6 +2250,16 @@ body:has([data-page-composer]) .sp-dock {
 body:has([data-page-composer]) .sp-work {
   padding-bottom: 0;
 }
+/* ON A PHONE the fixed bar (3.75rem plus the safe area) and the live strip
+ * above it cover the last rows and the Arriving line unless the work region
+ * clears them (phone review, 2026-09-08). The composer rule above zeroes the
+ * dock's reservation; this one puts the bar's back, below the breakpoint. */
+@media (max-width: 640px) {
+  .sp-work,
+  body:has([data-page-composer]) .sp-work {
+    padding-bottom: calc(3.75rem + 2.25rem + env(safe-area-inset-bottom) + var(--mrd-s6));
+  }
+}
 
 .sp-work {
   flex: 1;

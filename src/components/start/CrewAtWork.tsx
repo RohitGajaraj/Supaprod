@@ -39,8 +39,28 @@ export type WorkingSeat = {
    *  own name: "the spec", "Address.tsx". Lane 3's objectLabel, 2026-09-08. */
   objectLabel: string | null;
   since: string | null;
+  /** When the seat's newest call happened; null when it has made none. */
+  lastCallAt: string | null;
   station: AgentStation | null;
 };
+
+/**
+ * A SEAT QUIET FOR LONGER THAN THIS HAS STOPPED BREATHING. Loop-health calls
+ * a run stalled after thirty minutes without a call; a presence that kept
+ * pulsing past that was the machine claiming work it was not doing (motion
+ * review, 2026-09-08). The dot goes still and the verb says how long.
+ */
+export const QUIET_AFTER_MS = 30 * 60_000;
+
+export function quietFor(
+  seat: Pick<WorkingSeat, "lastCallAt" | "since">,
+  nowMs: number,
+): number | null {
+  const last = seat.lastCallAt ?? seat.since;
+  if (!last) return null;
+  const ms = nowMs - Date.parse(last);
+  return Number.isFinite(ms) && ms > QUIET_AFTER_MS ? ms : null;
+}
 
 function stationOf(s: string | null): AgentStation | null {
   return s && s in AGENT_STATIONS ? (s as AgentStation) : null;
@@ -56,6 +76,7 @@ export function workingSeats(rows: readonly RunningSeat[] | undefined): WorkingS
     verb: r.now?.verb ?? null,
     objectLabel: r.now?.objectLabel ?? null,
     since: r.startedAt ?? null,
+    lastCallAt: r.now?.at ?? null,
     station: stationOf(r.station),
   }));
 }
@@ -96,25 +117,28 @@ export function CrewAtWork({
     >
       <span className="mrd-eyebrow">Working now</span>
       <ul className="flex flex-col gap-mrd-1">
-        {seats.map((s) => (
-          <li key={s.runId}>
-            <AgentPresence
-              seat={s.seat}
-              verb={
-                s.verb
-                  ? s.objectLabel
-                    ? `${s.verb} ${s.objectLabel}`
-                    : s.verb
-                  : s.station
-                    ? `working at ${AGENT_STATIONS[s.station].name}`
-                    : "working"
-              }
-              object={s.title ? `· ${s.title}` : null}
-              since={s.since}
-              onOpen={s.trackId ? () => onOpen(s.trackId!) : undefined}
-            />
-          </li>
-        ))}
+        {seats.map((s) => {
+          const quiet = quietFor(s, Date.now());
+          const doing = s.verb
+            ? s.objectLabel
+              ? `${s.verb} ${s.objectLabel}`
+              : s.verb
+            : s.station
+              ? `working at ${AGENT_STATIONS[s.station].name}`
+              : "working";
+          return (
+            <li key={s.runId}>
+              <AgentPresence
+                seat={s.seat}
+                verb={quiet ? `${doing} · quiet for ${Math.round(quiet / 60_000)} min` : doing}
+                object={s.title ? `· ${s.title}` : null}
+                since={s.since}
+                alive={!quiet}
+                onOpen={s.trackId ? () => onOpen(s.trackId!) : undefined}
+              />
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

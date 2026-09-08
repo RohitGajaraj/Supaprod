@@ -204,6 +204,24 @@ export function PickCard({
  * The hint line is not decoration. A keyboard contract nobody states is a
  * keyboard contract nobody uses.
  */
+/**
+ * Whether the pointer is a finger. Read once, kept current: a laptop with a
+ * touch screen reports fine, a phone coarse, and the keyboard contract in
+ * the composer's hint follows it.
+ */
+export function useCoarsePointer(): boolean {
+  const [coarse, setCoarse] = React.useState(false);
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const m = window.matchMedia("(pointer: coarse)");
+    setCoarse(m.matches);
+    const onChange = (e: MediaQueryListEvent) => setCoarse(e.matches);
+    m.addEventListener("change", onChange);
+    return () => m.removeEventListener("change", onChange);
+  }, []);
+  return coarse;
+}
+
 export function Composer({
   value,
   onChange,
@@ -231,6 +249,7 @@ export function Composer({
   /** Lets a page land focus here, e.g. after a card is picked. */
   fieldRef?: React.RefObject<HTMLTextAreaElement | null>;
 }) {
+  const coarse = useCoarsePointer();
   const grow = React.useCallback((el: HTMLTextAreaElement) => {
     // Measured against content on every keystroke rather than derived from
     // `rows`, so deleting a line shrinks the field again instead of leaving a
@@ -279,7 +298,9 @@ export function Composer({
           grow(e.target);
         }}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey && canSubmit) {
+          /* A phone keyboard has no Shift+Enter, so Enter is a new line
+             there and the button is the press (phone review, 2026-09-08). */
+          if (e.key === "Enter" && !e.shiftKey && !coarse && canSubmit) {
             e.preventDefault();
             onSubmit();
           }
@@ -291,7 +312,7 @@ export function Composer({
         }
       />
       <div className="flex items-center justify-between gap-mrd-3 px-mrd-4 pb-mrd-3">
-        <span className="mrd-meta">{hint}</span>
+        <span className="mrd-meta">{coarse ? `Press ${submitLabel}` : hint}</span>
         <Action variant="primary" busy={busy} disabled={!canSubmit} onClick={onSubmit}>
           {busy ? busyLabel : submitLabel}
         </Action>

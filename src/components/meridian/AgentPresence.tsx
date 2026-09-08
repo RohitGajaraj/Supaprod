@@ -143,7 +143,8 @@ export function AgentPresence({
     </>
   );
 
-  const shape = "flex w-full items-center gap-mrd-3 rounded-mrd-ctl px-mrd-3 py-mrd-2 text-left";
+  const shape =
+    "flex w-full items-center gap-mrd-3 rounded-mrd-ctl px-mrd-3 py-mrd-2 text-left max-md:min-h-11";
 
   if (onOpen) {
     return (

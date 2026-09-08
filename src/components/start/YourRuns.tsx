@@ -151,8 +151,8 @@ function RunRow({
       />
       {needsYou && askOpen ? (
         <div
-          className="mb-mrd-3 mt-mrd-2"
-          style={{ marginLeft: MARKS_WIDTH + ROW_GAP }}
+          className="mb-mrd-3 mt-mrd-2 sm:ml-[var(--mrd-row-under)]"
+          style={{ ["--mrd-row-under" as string]: `${MARKS_WIDTH + ROW_GAP}px` }}
           data-mrd=""
         >
           <TrackConsent trackId={r.id} onAnswered={onAnswered} />
@@ -160,8 +160,8 @@ function RunRow({
       ) : null}
       {held && askOpen ? (
         <div
-          className="mb-mrd-3 mt-mrd-2"
-          style={{ marginLeft: MARKS_WIDTH + ROW_GAP }}
+          className="mb-mrd-3 mt-mrd-2 sm:ml-[var(--mrd-row-under)]"
+          style={{ ["--mrd-row-under" as string]: `${MARKS_WIDTH + ROW_GAP}px` }}
           data-mrd=""
         >
           <HoldCard trackId={r.id} onSettled={onAnswered} />

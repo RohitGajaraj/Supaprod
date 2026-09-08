@@ -35,6 +35,8 @@ export type StarterState = {
 /** The one line above the cards, or the line that stands in for them. */
 export function starterLine(state: StarterState | undefined, name: string): string | null {
   if (!state) return null;
+  if (state.pending && state.reason)
+    return `It could not write the first runs yet (${state.reason}). Trying again.`;
   if (state.pending)
     return `Reading what you said about ${name}, and writing three runs it could start with.`;
   if (state.runs.length > 0)

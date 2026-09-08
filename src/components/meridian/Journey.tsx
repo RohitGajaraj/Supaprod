@@ -78,7 +78,7 @@ export type JourneyStation = {
    * shows where the machine is, not only where the work stands. The
    * founder's standing goal, 2026-09-08: the work is visibly seen.
    */
-  presences?: ReadonlyArray<{ seat: string; colour: string }> | null;
+  presences?: ReadonlyArray<{ seat: string; colour: string; alive?: boolean }> | null;
 };
 
 export const JOURNEY_ORDER: readonly JourneyKey[] = [
@@ -227,7 +227,7 @@ function Node({
   return (
     <span
       aria-hidden="true"
-      className="relative inline-flex shrink-0 items-center justify-center rounded-full transition-colors"
+      className="relative inline-flex shrink-0 items-center justify-center rounded-full transition-[background-color,box-shadow,width,height]"
       style={{
         width: px,
         height: px,
@@ -236,7 +236,10 @@ function Node({
         outline: p.dashed ? `1px dashed ${p.ring}` : undefined,
         outlineOffset: p.dashed ? -1 : undefined,
         color: p.ink,
+        /* The ring and the size move with the fill, on Meridian's own curve;
+           `transition-colors` left them snapping (motion review, 2026-09-08). */
         transitionDuration: "var(--mrd-d-move)",
+        transitionTimingFunction: "var(--mrd-ease)",
       }}
     >
       {working ? (
@@ -266,6 +269,7 @@ function Node({
             <PresenceDot
               key={pr.seat}
               colour={pr.colour}
+              alive={pr.alive ?? true}
               size={8}
               className={i > 0 ? "-ml-1 ring-2 ring-mrd-bg" : "ring-2 ring-mrd-bg"}
             />
@@ -308,10 +312,16 @@ function Link({
   return (
     <span
       aria-hidden="true"
-      className={size === "full" ? "h-px min-w-[12px] flex-1" : "h-px w-[3px] shrink-0"}
+      className={
+        size === "full"
+          ? "h-px min-w-[12px] flex-1 max-sm:h-full max-sm:w-px max-sm:min-w-0 max-sm:flex-none"
+          : "h-px w-[3px] shrink-0"
+      }
       style={{
         background: reached || travelled ? "var(--mrd-edge)" : "var(--mrd-line-soft)",
+        transitionProperty: "background-color",
         transitionDuration: "var(--mrd-d-move)",
+        transitionTimingFunction: "var(--mrd-ease)",
       }}
     />
   );
@@ -339,30 +349,38 @@ function Stop({
   const p = paintOf(station);
   const line = clock ?? station.outcome ?? null;
 
+  /* ON A PHONE THE ROAD RUNS DOWN THE SCREEN. Seven stops across 390px put
+     the last three off the right edge and made the home pan sideways (phone
+     review, 2026-09-08). Below the phone breakpoint each stop is a row, node
+     at the left, name and line beside it, and the connectors turn vertical;
+     the same drawing, the same states, and nothing compressed to fit. */
   const body = (
     <>
       <Node station={station} size="full" active={active} />
-      <span
-        className={`mt-mrd-2 block max-w-[9rem] truncate text-center text-mrd-label leading-mrd-snug ${
-          current || active ? "font-medium" : ""
-        }`}
-        style={{ color: current ? p.ink : active ? "var(--mrd-ink)" : "var(--mrd-mute)" }}
-      >
-        {labelOf(station)}
-      </span>
-      {line ? (
+      <span className="flex min-w-0 flex-col items-center max-sm:items-start">
         <span
-          className={`block max-w-[9rem] truncate text-center text-mrd-small leading-mrd-snug text-mrd-mute ${
-            clock ? "font-mrd-mono tabular-nums" : ""
+          className={`mt-mrd-2 block max-w-[9rem] truncate text-center text-mrd-label leading-mrd-snug max-sm:mt-0 max-sm:max-w-none max-sm:text-left ${
+            current || active ? "font-medium" : ""
           }`}
+          style={{ color: current ? p.ink : active ? "var(--mrd-ink)" : "var(--mrd-mute)" }}
         >
-          {line}
+          {labelOf(station)}
         </span>
-      ) : null}
+        {line ? (
+          <span
+            className={`block max-w-[9rem] truncate text-center text-mrd-small leading-mrd-snug text-mrd-mute max-sm:max-w-none max-sm:text-left ${
+              clock ? "font-mrd-mono tabular-nums" : ""
+            }`}
+          >
+            {line}
+          </span>
+        ) : null}
+      </span>
     </>
   );
 
-  const shape = "flex flex-col items-center px-mrd-2 py-mrd-1 rounded-mrd-ctl";
+  const shape =
+    "flex flex-col items-center px-mrd-2 py-mrd-1 rounded-mrd-ctl max-sm:min-h-11 max-sm:flex-row max-sm:items-center max-sm:gap-mrd-3";
 
   if (interactive) {
     return (
@@ -474,14 +492,14 @@ export function Journey({
       data-mrd=""
       {...(interactive ? { role: selects === "pane" ? "tablist" : "group" } : {})}
       aria-label={label}
-      className={`flex w-full items-start ${className}`}
+      className={`flex w-full items-start max-sm:flex-col max-sm:items-stretch ${className}`}
     >
       {stations.map((s, i) => (
         <React.Fragment key={s.key}>
           {i > 0 ? (
             <span
               aria-hidden="true"
-              className="flex h-[32px] min-w-[12px] flex-1 items-center pt-mrd-1"
+              className="flex h-[32px] min-w-[12px] flex-1 items-center pt-mrd-1 max-sm:ml-[23px] max-sm:h-3 max-sm:min-w-0 max-sm:flex-none max-sm:pt-0"
             >
               <Link from={stations[i - 1]!} to={s} size="full" />
             </span>
