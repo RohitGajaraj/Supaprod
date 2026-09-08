@@ -129,6 +129,8 @@ import { Verdict } from "@/components/meridian/verdict";
 import { verdictProps } from "@/components/track/verdict-reading";
 import { PlaybookFilesPanel } from "@/components/track/PlaybookFiles";
 import { LiveStation } from "@/components/track/LiveStation";
+import { Receipt } from "@/components/meridian/Receipt";
+import { togglePrototypeShare } from "@/lib/prototypes.functions";
 import { AppFrame, RunningApp } from "@/components/track/AppFrame";
 
 /** What each station exists to do, for the not-run sentence. Display labels only. */
@@ -1685,6 +1687,40 @@ function ReopenControl({ decisionId }: { decisionId: string }) {
  * prototype cannot read the app's storage or cookies from inside the frame.
  */
 function PrototypeCard({ item }: { item: ArtifactView }) {
+  /*
+   * ── SHARE, AND STOP SHARING, HERE (F-206, Lane 3, 2026-09-08) ──────────
+   * Every drawing is filed private with a share slug, and the only writer of
+   * `is_public` had no door since /decide went, so no drawing could ever be
+   * shown to anyone outside the workspace. The press lives beside the
+   * drawing it opens, and the pane says plainly who the link opens for.
+   */
+  const qc = useQueryClient();
+  const fToggle = useServerFn(togglePrototypeShare);
+  const [note, setNote] = React.useState<{
+    verb: string;
+    consequence: string;
+    failed?: boolean;
+  } | null>(null);
+  const share = useMutation({
+    mutationFn: (isPublic: boolean) => fToggle({ data: { id: item.artifactId, isPublic } }),
+    onSuccess: (res) => {
+      setNote(
+        res.isPublic
+          ? { verb: "You shared it", consequence: "Anyone with the link can open it now." }
+          : {
+              verb: "You stopped sharing it",
+              consequence: "The link opens for nobody outside this workspace now.",
+            },
+      );
+      void qc.invalidateQueries({ queryKey: ["pane-prototype", item.artifactId] });
+    },
+    onError: (e: Error) =>
+      setNote({
+        verb: "Nothing changed",
+        consequence: failureLine("The drawing is as it was.", e),
+        failed: true,
+      }),
+  });
   const proto = useQuery({
     queryKey: ["pane-prototype", item.artifactId],
     queryFn: async () => {
@@ -1732,6 +1768,22 @@ function PrototypeCard({ item }: { item: ArtifactView }) {
             Open full size
           </a>
         ) : null}
+        {row.share_slug ? (
+          <Action
+            variant="quiet"
+            busy={share.isPending}
+            disabled={share.isPending}
+            onClick={() => share.mutate(!row.is_public)}
+          >
+            {share.isPending
+              ? row.is_public
+                ? "Stopping"
+                : "Sharing"
+              : row.is_public
+                ? "Stop sharing"
+                : "Share"}
+          </Action>
+        ) : null}
       </div>
       {files.length > 0 ? (
         <iframe
@@ -1745,7 +1797,13 @@ function PrototypeCard({ item }: { item: ArtifactView }) {
       )}
       <span className="mrd-meta">
         {files.length} {files.length === 1 ? "file" : "files"}, rendered exactly as filed.
+        {row.is_public && row.share_slug
+          ? " Open to anyone with the link."
+          : " Only this workspace can see it."}
       </span>
+      {note ? (
+        <Receipt verb={note.verb} consequence={note.consequence} failed={note.failed} />
+      ) : null}
     </div>
   );
 }
