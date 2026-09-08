@@ -8,6 +8,7 @@ import { deploymentRowsFor, type DeploymentRow } from "@/lib/deployments";
 import { resolveGitHub, readWithLine } from "@/lib/connectors/providers/github.server";
 import { deployChangesetApp, denoDeployConfigured } from "@/lib/hosting/changeset-deploy.server";
 import { filesForDeploy } from "@/lib/hosting/what-goes-to-the-host.server";
+import { checkFrameable } from "@/lib/hosting/can-it-be-framed";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { recordLineageSafe } from "@/lib/lineage.functions";
 import { defaultCheckByDate } from "@/lib/launch-plan.functions";
@@ -1327,6 +1328,9 @@ export async function promoteChangesetToProductionCore(
       .select("id")
       .maybeSingle();
     if (depErr) throw new Error(depErr.message);
+    // The frame question is asked once, here, where the row is new and the
+    // host is live. The pane reads the answer off the row from then on.
+    await stampEmbeddable(db, (depRow as { id: string } | null)?.id ?? null, result.url);
     /**
      * THE FOURTH UNCHECKED WRITE, TEN LINES FROM THREE THAT WERE JUST HARDENED.
      *
@@ -1702,6 +1706,16 @@ export const previewForChangeset = createServerFn({ method: "GET" })
       status: string | null;
       provider: string | null;
       startedAt: string | null;
+      /** The row, so the pane can ask `checkDeploymentEmbeddable` for a null. */
+      deploymentId: string | null;
+      /**
+       * Whether `url` can be drawn in a frame on supaprod.ai. Null until the
+       * host has been asked; false when it refuses, could not be reached or
+       * answered with an error. A pane draws a door for false, never a blank
+       * frame (Lane 2, 09-08, the shipped run's white iframe).
+       */
+      embeddable: boolean | null;
+      embeddableCheckedAt: string | null;
     }> => {
       const db = context.supabase as unknown as SupabaseClient;
       const empty = {
@@ -1711,6 +1725,9 @@ export const previewForChangeset = createServerFn({ method: "GET" })
         status: null,
         provider: null,
         startedAt: null,
+        deploymentId: null,
+        embeddable: null,
+        embeddableCheckedAt: null,
       };
       try {
         /* The head is the newest revision's commit. `base_sha` is where the
@@ -1726,7 +1743,9 @@ export const previewForChangeset = createServerFn({ method: "GET" })
 
         const { data: rows, error } = await db
           .from("deployments")
-          .select("commit_sha,deploy_url,status,provider,created_at")
+          .select(
+            "id,commit_sha,deploy_url,status,provider,created_at,embeddable,embeddable_checked_at",
+          )
           .eq("changeset_id", data.changesetId)
           .eq("environment", "preview")
           .order("created_at", { ascending: false })
@@ -1738,11 +1757,14 @@ export const previewForChangeset = createServerFn({ method: "GET" })
           return empty;
         }
         const deploys = (rows ?? []) as Array<{
+          id?: string | null;
           commit_sha?: string | null;
           deploy_url?: string | null;
           status?: string | null;
           provider?: string | null;
           created_at?: string | null;
+          embeddable?: boolean | null;
+          embeddable_checked_at?: string | null;
         }>;
         if (deploys.length === 0) return empty;
 
@@ -1756,6 +1778,9 @@ export const previewForChangeset = createServerFn({ method: "GET" })
             status: good.status ?? null,
             provider: good.provider ?? null,
             startedAt: good.created_at ?? null,
+            deploymentId: good.id ?? null,
+            embeddable: good.embeddable ?? null,
+            embeddableCheckedAt: good.embeddable_checked_at ?? null,
           };
         }
         const inFlight = atHead[0];
@@ -1767,6 +1792,9 @@ export const previewForChangeset = createServerFn({ method: "GET" })
             status: inFlight.status ?? null,
             provider: inFlight.provider ?? null,
             startedAt: inFlight.created_at ?? null,
+            deploymentId: inFlight.id ?? null,
+            embeddable: inFlight.embeddable ?? null,
+            embeddableCheckedAt: inFlight.embeddable_checked_at ?? null,
           };
         }
         /* Previews exist and none is at head. Named rather than folded into
@@ -1780,6 +1808,9 @@ export const previewForChangeset = createServerFn({ method: "GET" })
           status: newest.status ?? null,
           provider: newest.provider ?? null,
           startedAt: newest.created_at ?? null,
+          deploymentId: null,
+          embeddable: null,
+          embeddableCheckedAt: null,
         };
       } catch (e) {
         console.error(
@@ -2224,6 +2255,105 @@ export const retryPreviewNow = createServerFn({ method: "POST" })
           url,
         };
       }
+      if (ok && url) {
+        /* The retry is the person's own press on this preview, so the frame
+           answer is re-read here too: a host that started refusing frames
+           after the first check is the case a stale answer would hide. */
+        const { data: fresh } = await db
+          .from("deployments")
+          .select("id")
+          .eq("changeset_id", cs.id as string)
+          .eq("environment", "preview")
+          .eq("commit_sha", headSha ?? (cs.id as string))
+          .maybeSingle();
+        await stampEmbeddable(db, (fresh as { id: string } | null)?.id ?? null, url);
+      }
       return { ok, reason, url };
+    },
+  );
+
+/**
+ * ── CAN THE DEPLOYMENT BE DRAWN IN A FRAME? ASKED ONCE, KEPT ON THE ROW ─────
+ *
+ * The run screen framed the shipped run's production URL and drew a blank
+ * white rectangle: the host refuses framing, the browser enforces it silently,
+ * and the page cannot read the host's headers. So the host is asked from the
+ * server (`checkFrameable`: X-Frame-Options and CSP frame-ancestors, HEAD then
+ * GET), and the answer lands on `deployments.embeddable` (migration
+ * 20260909100100). Null until asked; false for a refusal, an error, or a host
+ * that could not be reached, so a frame that cannot be proven to draw is
+ * never offered.
+ *
+ * Written by every path that produces a live URL (promote, the person's
+ * preview retry, the CI tick's preview) and readable on demand below for a
+ * row written before the column existed.
+ */
+export async function stampEmbeddable(
+  db: SupabaseClient,
+  deploymentId: string | null,
+  url: string | null,
+  fetchImpl: typeof fetch = fetch,
+): Promise<{ embeddable: boolean; reason: string } | null> {
+  if (!deploymentId || !url) return null;
+  const verdict = await checkFrameable(url, undefined, fetchImpl);
+  const { error } = await db
+    .from("deployments")
+    .update({ embeddable: verdict.embeddable, embeddable_checked_at: new Date().toISOString() })
+    .eq("id", deploymentId);
+  if (error) {
+    // The verdict is still returned to the caller; only its record failed.
+    console.error(`[stampEmbeddable] ${deploymentId}: ${error.message}`);
+  }
+  return verdict;
+}
+
+/**
+ * The on-demand half, for a pane that reads `embeddable: null`. Idempotent: an
+ * answer under a day old is returned as it stands unless `force` is set, so a
+ * pane mounting ten times asks the host once. RLS scopes the row.
+ */
+export const checkDeploymentEmbeddable = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ deploymentId: z.string().uuid(), force: z.boolean().optional() }).parse(d),
+  )
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{
+      embeddable: boolean | null;
+      checkedAt: string | null;
+      /** Why, in a clause a person can read beside the door. Null when nothing was asked. */
+      reason: string | null;
+    }> => {
+      const db = context.supabase as unknown as SupabaseClient;
+      const { data: row, error } = await db
+        .from("deployments")
+        .select("id,deploy_url,embeddable,embeddable_checked_at")
+        .eq("id", data.deploymentId)
+        .maybeSingle();
+      if (error) throw new Error(`The deployment could not be read: ${error.message}`);
+      const dep = row as {
+        id: string;
+        deploy_url: string | null;
+        embeddable: boolean | null;
+        embeddable_checked_at: string | null;
+      } | null;
+      if (!dep) throw new Error("That deployment is not one you can read.");
+      if (!dep.deploy_url) return { embeddable: null, checkedAt: null, reason: null };
+      const fresh =
+        dep.embeddable !== null &&
+        dep.embeddable_checked_at &&
+        Date.now() - new Date(dep.embeddable_checked_at).getTime() < 24 * 60 * 60 * 1000;
+      if (fresh && !data.force) {
+        return { embeddable: dep.embeddable, checkedAt: dep.embeddable_checked_at, reason: null };
+      }
+      const verdict = await stampEmbeddable(db, dep.id, dep.deploy_url);
+      return {
+        embeddable: verdict?.embeddable ?? null,
+        checkedAt: verdict ? new Date().toISOString() : null,
+        reason: verdict?.reason ?? null,
+      };
     },
   );

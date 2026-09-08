@@ -9,7 +9,7 @@ import { overallFromChecks, type CiCheckLite } from "@/lib/ai/studio-ci";
 import { fetchFailingCiDetail } from "@/lib/ai/studio-ci-logs.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { generateReleaseNotesCore, stampSpecShippedOnStudioMerge } from "@/lib/studio.functions";
-import { captureDeploymentsCore } from "@/lib/deployments.functions";
+import { captureDeploymentsCore, stampEmbeddable } from "@/lib/deployments.functions";
 import {
   collectRepoFiles,
   denoDeployConfigured,
@@ -720,6 +720,14 @@ export async function runCiPollTick() {
                 )
                 .select("id");
               const previewRecorded = !depErr && !!depRows && depRows.length > 0;
+              if (previewRecorded && result.ok && result.url) {
+                // Asked here, where the host is live, so the pane never has to.
+                await stampEmbeddable(
+                  supabaseAdmin as unknown as SupabaseClient,
+                  (depRows[0] as { id: string }).id,
+                  result.url,
+                );
+              }
               if (!previewRecorded) {
                 failures.push(
                   `${cs.id.slice(0, 8)}: preview row not written (${depErr?.message ?? "refused, no row"})`,

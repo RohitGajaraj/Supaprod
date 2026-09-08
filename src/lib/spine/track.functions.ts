@@ -3028,6 +3028,12 @@ const FIELDS: Readonly<Record<string, readonly string[]>> = {
     "provider",
     "status",
     "deployed_at",
+    // Whether `deploy_url` can be drawn in a frame on supaprod.ai, read from
+    // the host once and kept (migration 20260909100100). Null until checked;
+    // the pane asks `checkDeploymentEmbeddable` for a null and draws a door
+    // for a false, never a blank frame.
+    "embeddable",
+    "embeddable_checked_at",
     // P-39 (A-QUEUE.md): the only place a failed preview's reason can reach
     // the run screen -- ReleaseCard (ArtifactPane.tsx) reads it off `item.fields`.
     "failure_reason",

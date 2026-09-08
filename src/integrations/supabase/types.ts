@@ -2910,6 +2910,8 @@ export type Database = {
           created_at: string
           deploy_url: string | null
           deployed_at: string | null
+          embeddable: boolean | null
+          embeddable_checked_at: string | null
           environment: string
           build_detail: Json | null
           failure_reason: string | null
@@ -2929,6 +2931,8 @@ export type Database = {
           created_at?: string
           deploy_url?: string | null
           deployed_at?: string | null
+          embeddable?: boolean | null
+          embeddable_checked_at?: string | null
           environment?: string
           build_detail?: Json | null
           failure_reason?: string | null
@@ -2948,6 +2952,8 @@ export type Database = {
           created_at?: string
           deploy_url?: string | null
           deployed_at?: string | null
+          embeddable?: boolean | null
+          embeddable_checked_at?: string | null
           environment?: string
           build_detail?: Json | null
           failure_reason?: string | null
