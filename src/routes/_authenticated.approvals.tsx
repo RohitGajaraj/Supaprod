@@ -115,7 +115,11 @@ import { approvalsQueueKey, APPROVALS_QUEUE_PREFIX, invalidateShellReads } from 
 import { isModalOpen } from "@/lib/overlay";
 import { presenceAnchor } from "@/components/shell/presence-anchor";
 import { useServerFn } from "@tanstack/react-start";
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  countApprovalsQueueByWorkspace,
+  type WorkspaceWaiting,
+} from "@/lib/approvals-queue.functions";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -366,29 +370,28 @@ function ApprovalsSurface() {
    * workspaces itself and scopes each pass; that loop IS the scoping." Same
    * `approvalsQueueKey`, so a workspace switched TO here starts warm.
    */
-  const otherWorkspaces = useMemo(
-    () => workspaces.filter((w) => w.id !== activeWorkspaceId),
-    [workspaces, activeWorkspaceId],
-  );
-  const otherWorkspaceQueues = useQueries({
-    queries: otherWorkspaces.map((w) => ({
-      queryKey: approvalsQueueKey(w.id),
-      queryFn: () => fetchQueue({ data: { workspaceId: w.id } }),
-      enabled: !!activeWorkspaceId,
-      staleTime: 60_000,
-    })),
+  /*
+   * ── ONE COUNT, ONE ROUND TRIP (Lane 3, 5f6487d90; wired by Lane 2) ──────
+   * The per-workspace reads above were each the FULL queue, fetched once per
+   * other workspace, to draw a number and a name. `countApprovalsQueueByWorkspace`
+   * is one SQL function that answers every workspace the caller is in, still
+   * scoped by naming the active one to exclude, so P-93's rule holds and the
+   * line costs one hop rather than a queue per workspace.
+   */
+  const fetchWaiting = useServerFn(countApprovalsQueueByWorkspace);
+  const otherWaiting = useQuery({
+    queryKey: ["approvals-waiting-elsewhere", activeWorkspaceId ?? null],
+    queryFn: () => fetchWaiting({ data: { excludeWorkspaceId: activeWorkspaceId ?? undefined } }),
+    enabled: !!activeWorkspaceId,
+    staleTime: 60_000,
   });
   const otherWorkspacesWithWork = useMemo(
     () =>
-      otherWorkspaces
-        .map((w, i) => ({
-          id: w.id,
-          name: w.name,
-          count: otherWorkspaceQueues[i]?.data?.items.length ?? 0,
-        }))
-        .filter((w) => w.count > 0)
+      (otherWaiting.data?.workspaces ?? [])
+        .filter((w: WorkspaceWaiting) => w.workspaceId !== activeWorkspaceId && w.waiting > 0)
+        .map((w: WorkspaceWaiting) => ({ id: w.workspaceId, name: w.name, count: w.waiting }))
         .sort((a, b) => b.count - a.count),
-    [otherWorkspaces, otherWorkspaceQueues],
+    [otherWaiting.data, activeWorkspaceId],
   );
   /*
    * THE DOOR ALWAYS TARGETS THE ONE WITH THE MOST WAITING, even when the
