@@ -1067,3 +1067,55 @@ times; `date` goes in the Bash call that writes the record.
 - `3b6a9d718` FirstRun fires the activation funnel's `product_named` moment after the workspace rename (Lane 3's note).
 - `726f257b1` `shell/BoardPanel.tsx` deleted with the rail foot's "Every run" button: it opened the retired mission board (missions and studio sessions) over any page as a second answer to "where is all the work"; the home's road and rows are the answer. Four guards that read the file as source now name the deletion; the Meridian ratchet re-frozen (two counts reclaimed). `IconBoard` in `shell/icons.tsx` is the new orphan, Lane 3's to drop. RunBoard keeps other readers.
 - Lane 2 landed the depth headings (Findings, Sources, Inbox) with station marks at `caad90517`, and is on the Outcomes and Findings copy from my walk.
+
+## Lane 2 · 11:52 IST 09-08 · the run screen tells its story; the depth is stitched
+
+**Branch: `lane-2` in worktree-1, merged to main on every push; main at cced15d0e. All pushed.
+Live at supaprod.ai through Lovable publishes of 503b3f71f and d6ae7d99a; the tip publishes
+next.** Walked live three times on the shipped run (2fdf93b6), the run stopped at Design
+(6cc7a010) and the run between steps at Plan (a30d6b62).
+
+**What changed, in the order a person meets it (all on main, one commit each with the reason):**
+- **The road in the header** (6a6b801c0): Meridian's Journey is the run screen's one station
+  display; every stop says what it made ("4 findings", "PR #5", "live · production", "due Mon,
+  Sep 21"); pressing a stop opens what it made on the right through the same URL pointer;
+  a stop with nothing to open shows that station's own state (67a7de392); the road draws from
+  the route before the artifacts arrive (d3f38d5c7). A station sent back keeps what it filed.
+- **One sentence about now** (`run-now.ts`, `RunNow.tsx`): the five blocks that each said what
+  was happening are one card in the register the state decides; a wait the machine has in hand
+  is QUIET (Meridian's new sixth chip), amber only for a condition that must change. The shipped
+  run opens on "Live in production, went out 3 days ago. The verdict arrives Mon, Sep 21. Nothing
+  connected here can measure it yet: connect a source before then, or grade it yourself on the
+  day" with a Connect a source door (503b3f71f). Seats live on the track draw as AgentPresence
+  rows inside the card, off Lane 3's running-now key (f5faf3b84).
+- **The transcript by station** (`transcript-sections.ts`): one section per station with a header
+  readable closed (seats, turns, time, what it filed), the current and any stopped section open,
+  the day printed where it changes, a live turn open with its tool stream, twelve identical
+  "filed nothing" rows folded to one with count and span, "Open the full trace" on an expanded
+  turn, and a turn that filed nothing placed by its seat's own station (d86e61fc5).
+- **What this run got you** (`run-proof.ts`, `RunProof.tsx`): five rows (Made, Checked, Shipped,
+  On the hook, Verdict), each pressable, instead of one line of counts.
+- **The pane**: product-first station sentence, four versions of one prototype folded into one
+  row, the standing station leads, a host that refuses framing gets a door (embeddable, with
+  Lane 3's check), depth doors on the spec, the decision and the learning.
+- **HoldCard** (`HoldCard.tsx`, 91b2ce65b): the hold settles where it is met; Lane 1 mounts it
+  under held rows on the home. The shell follows the object: opening a run from another
+  workspace switches the shell (Lane 1 ruling).
+- **Depth pages**: Inbox, Findings, Sources, Outcomes and Team headings match the rail with
+  station eyebrows; Outcomes leads with what happened, the plan nudge sits under the record,
+  "substrate" is gone, one wait line per page on Findings and Outcomes.
+
+**In flight:** a subagent is rebuilding `/sync` (Sources): connected sources first, one
+"Connect a source" region, overrides only when there is something to override. Its report is
+owed; gate and commit it, then publish.
+
+**Open, in priority order:** (1) the spec editor's main heading has no `station="define"`
+eyebrow yet (its title is not a PageHeading); (2) `/ship` (3,815 lines) and `/learn` render but
+have no rail door and no door from the run screen, and `/prds` renders an empty Outlet: decide
+delete or fold; (3) `bun run lint` repo-wide is still the pre-existing red; (4) Lane 3's P-146
+pass lands within the hour and touches track.functions.ts: rebase before the next push.
+
+**Two things worth carrying.** A register decided by whichever branch fires first is an accident;
+decide it once, on purpose, in a pure function with the priority written down. And walk the
+live site after every publish: three of the eleven fixes today were only findable there (the
+calendar wait falling to amber, a clipped sentence, twelve identical rows).
