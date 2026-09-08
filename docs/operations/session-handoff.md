@@ -1343,5 +1343,47 @@ build fact worth carrying: 433da23d did not contain 874cc12b5 although Lovable's
 so a landing is proven by the served surface, never by `latest_commit_sha`. Pressed 644939db on
 af7a43796 at 20:12 to carry the desk.
 
+### Lane 3 · addendum 21:35 IST 09-08 · the evening: the Worker's hops, and four asks landed
+
+**The finding of the evening (F-212, F-213):** on this Worker a slow read is almost never the query.
+Lane 2 timed the Inbox's queue read at 7,694 ms; every query behind it runs in 0.05 to 6 ms as the
+signed-in user with RLS on (about 20 ms for the lot, `pg_stat_statements` agreeing), and the cost was
+twelve sequential Worker-to-PostgREST round trips at ~275 ms warm / ~550 ms cold each, seven of them
+inside `listGovernApprovals` called as a nested server function. Landed: **the queue at two hops**
+(`996ab01dc`: the four nested readers are plain functions called with the request's client, embeds
+replace three dependent reads, the decisions read carries mission status and spec project, snoozes
+and the scoped design-gate read leave with the first hop; `readHome`, the briefing and loop-state call
+`readApprovalsQueue` directly; handler wrapped in a `Server-Timing` entry `approvals-queue`), read live
+on 2e038667 at **995 to 1,519 ms** handler time, cards at 3,163 ms on Lane 2's walk against about ten
+seconds before; **`approvals_queue_counts`** (`5f6487d90`, migration `20260909100500`, SECURITY
+INVOKER, applied and ledgered) for the Inbox's "N waiting in X" line, which had fired the whole queue
+once per other workspace (21 calls on one load), 53 both ways on Helio Labs, mounted by Lane 2 in
+`f4cf505da`; **the shell strip's read at three hops** (`3be14ea45`: `listStudioSessions` was eleven
+serial hops and 3.7 to 3.9 s inside the Worker on every page; not yet read live at close, the deploy
+after it was not pressed). The guard for all of it is a fake client that counts rounds
+(`src/__tests__/a-wire-that-counts-rounds.ts`, driven by `a-queue-is-two-hops-deep` and
+`a-strip-read-is-three-hops-deep`); "every await outside a Promise.all" is what a person greps for and
+it was wrong twice, so the wire counts what the wire sees.
+
+**Lanes' asks landed (all pushed, gated on `fails: 0`):** Lane 1's refusal-is-final + `lastCallAt` +
+exported `STALL_MINUTES` (`2d059de97`); the catalog name on `working.seat` with `slug` (`85783d22a`);
+a start pressed anywhere is driven by the minute sweep within 60 s (`9d30d3162`, Lane 2's composer
+start); the workspace-read guard's per-read register `DELIBERATE_READS` (`ad3b778ad`); the unreachable
+baseline re-frozen twice by name (`273292a56` at 125, then the count function's deliberate rise, now
+back at 125 after Lane 2's mount); Lane 1's third-review pair (`4d50df6ac`): **a signup is not held
+for the machine** (F-214: `completeOnboarding` returns at once, the generation runs behind the
+response after a claim, `listStarterRuns` answers pending at once, the minute sweep finishes what a
+cancelled Worker dropped, `starterRunsState` decides for every reader) and **`StartRun.working.verb` /
+`objectLabel`** from `nowPerTrace`, so the home's row reads the strip's words. P-130b's server half
+(`588907227`: `zoneForUser`, the briefing, weekday, receipt and export dates in the person's zone, with
+a clock ratchet freezing 69 raw-clock files) also went up this evening.
+
+**Open, for whoever is next:** read F-213 live once a deploy after `3be14ea45` serves (the strip's
+call carries `worker-total`; compare against 3,734 / 3,856 ms); the same hop census on any other read a
+Server-Timing shows over a second (`getLiveActivity` was next on the Inbox at ~1.1 s worker-total, six
+calls per load); Lane 1's third review is still running and sends its asks as they come; the 15 lint
+files, P-130b's client half (Lanes 1 and 2), F-207 (founder's call) as before. Rule 26 held all evening
+(every full suite announced to Lane 2 before and after; one per machine).
+
 ### Lane 1 · addendum 20:57 IST 09-08 · the third review round, landed
 Round three (copy, keyboard, the arrival with a live seat, the doors back; two agents at a time) surfaced 31 findings; the ones I could verify in code are on main in two batches. `d57a5613d`: useRunningNowPush invalidates the home's runs and the queue too, so a finishing seat reaches the rows, the road and the hero with the strip; the road's working stop shows clock and usual time together; the map is recomposed once a second while a seat works so "past its usual time" and "quiet for N min" can appear; the rail's Working now shares CrewAtWork's `seatLine` and quiet rule, draws nothing on the home and no second Start a run; the runs list and the strip are no longer live regions with a clock in them; focus returns to the row's control when the card under it closes; Escape releases the composer; the promise road reads right in its plain form; a starter card is a button, not a toggle; the strip's gate door opens Inbox; the navigating Answer says "Answer on the run". `2161e7888`: the zero-evidence line no longer repeats the door beside it and speaks without "I"; "your agents", not "the loop"; the starter line and the hero's first-home line say what is true on any pointer; Sources' tagline; the home's Findings section named like its door; the Inbox sentence carries Inbox as a press; a station press names its selection in the map's caption with Show all and scrolls the list up; the ?queue paragraph is gone; FirstRun has "Not you? Sign out" and an honest failure receipt. Earlier this evening: `9a3e73713` and `ca0690457` gate the shell's seven reads on a known workspace (they fired twice per arrival, once against a null desk) and hold the strip silent until then; `af7a43796`, `099d669ce`, `8953e85a6` (Start a run focuses the field, verified live). Two asks are with Lane 3 (Open Supaprod no longer waits on starter-run generation; StartRun.working gains verb and objectLabel). Not taken from the round, with reasons: the header's "N decisions are ready for you" stays (it counts gates on runs, has a recorded rationale, four guards pin it); Lane 2's Inbox count is theirs. Deploy of everything since 2e038667 is pending Lovable's sync at 20:57.
