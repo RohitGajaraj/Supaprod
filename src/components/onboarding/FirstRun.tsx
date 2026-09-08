@@ -37,7 +37,11 @@ import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { supabase } from "@/integrations/supabase/client";
 import { markOnboarded } from "@/lib/onboarding-gate";
-import { completeOnboarding, seedWorkspaceForTrack } from "@/lib/onboarding.functions";
+import {
+  completeOnboarding,
+  recordOnboardingMilestone,
+  seedWorkspaceForTrack,
+} from "@/lib/onboarding.functions";
 import { getProfile, updateProfile } from "@/lib/profile.functions";
 import { renameWorkspace } from "@/lib/workspaces.functions";
 import { updateProject } from "@/lib/projects.functions";
@@ -54,6 +58,7 @@ export function FirstRun() {
   const fProduct = useServerFn(updateProject);
   const fBrief = useServerFn(upsertBriefItem);
   const fComplete = useServerFn(completeOnboarding);
+  const fMilestone = useServerFn(recordOnboardingMilestone);
 
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => fGetProfile() });
   const needsName =
@@ -84,6 +89,12 @@ export function FirstRun() {
       const workspaceId = seeded?.workspaceId ?? null;
       if (workspaceId) {
         await fRename({ data: { id: workspaceId, name: productName } });
+        /* The activation funnel's "product_named" moment (Lane 3's note):
+           the old screen fired it from its name field; the server fires
+           "onboarding_completed" itself. Non-fatal. */
+        await fMilestone({
+          data: { workspaceId, stage: "product_named", metadata: { productName } },
+        }).catch(() => undefined);
       }
       /* The product row is what the home greets by name; the seed named it
          after the workspace before the person had typed anything. The one
