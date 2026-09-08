@@ -52,9 +52,7 @@ describe("changelogTitleFor", () => {
     expect(changelogTitleFor(cs({}))).toBe("Adds a CSV export button to the report page.");
   });
   it("strips a markdown header from the first note line", () => {
-    expect(
-      changelogTitleFor(cs({ release_notes: "## Release\nDid a thing" })),
-    ).toBe("Release");
+    expect(changelogTitleFor(cs({ release_notes: "## Release\nDid a thing" }))).toBe("Release");
   });
   it("falls back to the PR title when there are no notes", () => {
     expect(

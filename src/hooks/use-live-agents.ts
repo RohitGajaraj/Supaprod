@@ -2,7 +2,7 @@ import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { missionsKey } from "@/lib/query-keys";
+import { missionsKey, runningNowKey } from "@/lib/query-keys";
 import { listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { listRunningNow } from "@/lib/spine/track.functions";
@@ -178,7 +178,7 @@ export function useLiveAgents(): LiveAgents {
    */
   const fetchRunning = useServerFn(listRunningNow);
   const running = useQuery({
-    queryKey: ["shell", "running-now", workspaceId],
+    queryKey: runningNowKey(workspaceId),
     queryFn: () => fetchRunning({ data: { workspaceId } }),
   });
 

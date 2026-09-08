@@ -457,6 +457,9 @@ export function githubAuthSourceLabel(source: "binding" | "user_connection" | "e
  *  appended to a failure reason once a credential was actually resolved and
  *  used, so a 403 from GitHub itself can be explained from the record
  *  without a second trip to the logs. */
-export function readWithLine(gh: { source: "binding" | "user_connection" | "env"; actorLabel: string }): string {
+export function readWithLine(gh: {
+  source: "binding" | "user_connection" | "env";
+  actorLabel: string;
+}): string {
   return `read with ${githubAuthSourceLabel(gh.source)} as ${gh.actorLabel}`;
 }

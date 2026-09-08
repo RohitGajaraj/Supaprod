@@ -41,7 +41,7 @@ describe("the announcement composer starts from the release, never from a model"
   it("startFrom composes the draft from announcementDraftBody, not a server call", () => {
     const flat = code.replace(/\s+/g, " ");
     const fn = flat.slice(flat.indexOf("function startFrom("));
-    const body = fn.slice(0, fn.indexOf("setMode({ kind: \"new\" }") + 40);
+    const body = fn.slice(0, fn.indexOf('setMode({ kind: "new" }') + 40);
     expect(body).toMatch(/announcementDraftBody\(/);
     // The old shape is gone, not merely unused: no model call inside startFrom,
     // no drafting pulse to key off of. A regression here would silently bring

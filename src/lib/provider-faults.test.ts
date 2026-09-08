@@ -62,9 +62,21 @@ describe("detectProviderFaults", () => {
   test("three fixtures of the same surface failing produce one item", async () => {
     const client = fakeClient(
       [
-        { surface: "cron.embed-tick.memory", error_message: "embeddings 402: {}", occurred_at: ago(5) },
-        { surface: "cron.embed-tick.memory", error_message: "embeddings 402: {}", occurred_at: ago(10) },
-        { surface: "cron.embed-tick.memory", error_message: "embeddings 402: {}", occurred_at: ago(15) },
+        {
+          surface: "cron.embed-tick.memory",
+          error_message: "embeddings 402: {}",
+          occurred_at: ago(5),
+        },
+        {
+          surface: "cron.embed-tick.memory",
+          error_message: "embeddings 402: {}",
+          occurred_at: ago(10),
+        },
+        {
+          surface: "cron.embed-tick.memory",
+          error_message: "embeddings 402: {}",
+          occurred_at: ago(15),
+        },
       ],
       { agent_memory: 42 },
     );
@@ -78,19 +90,47 @@ describe("detectProviderFaults", () => {
 
   test("two fixtures of the same surface produce zero items", async () => {
     const client = fakeClient([
-      { surface: "cron.embed-tick.memory", error_message: "embeddings 402: {}", occurred_at: ago(5) },
-      { surface: "cron.embed-tick.memory", error_message: "embeddings 402: {}", occurred_at: ago(10) },
+      {
+        surface: "cron.embed-tick.memory",
+        error_message: "embeddings 402: {}",
+        occurred_at: ago(5),
+      },
+      {
+        surface: "cron.embed-tick.memory",
+        error_message: "embeddings 402: {}",
+        occurred_at: ago(10),
+      },
     ]);
     expect(await detectProviderFaults(client)).toEqual([]);
   });
 
   test("a rate limit (429) never counts toward a fault, however many times it repeats", async () => {
     const client = fakeClient([
-      { surface: "cron.embed-tick.memory", error_message: "embeddings 429: {}", occurred_at: ago(5) },
-      { surface: "cron.embed-tick.memory", error_message: "embeddings 429: {}", occurred_at: ago(10) },
-      { surface: "cron.embed-tick.memory", error_message: "embeddings 429: {}", occurred_at: ago(15) },
-      { surface: "cron.embed-tick.memory", error_message: "embeddings 429: {}", occurred_at: ago(20) },
-      { surface: "cron.embed-tick.memory", error_message: "embeddings 429: {}", occurred_at: ago(25) },
+      {
+        surface: "cron.embed-tick.memory",
+        error_message: "embeddings 429: {}",
+        occurred_at: ago(5),
+      },
+      {
+        surface: "cron.embed-tick.memory",
+        error_message: "embeddings 429: {}",
+        occurred_at: ago(10),
+      },
+      {
+        surface: "cron.embed-tick.memory",
+        error_message: "embeddings 429: {}",
+        occurred_at: ago(15),
+      },
+      {
+        surface: "cron.embed-tick.memory",
+        error_message: "embeddings 429: {}",
+        occurred_at: ago(20),
+      },
+      {
+        surface: "cron.embed-tick.memory",
+        error_message: "embeddings 429: {}",
+        occurred_at: ago(25),
+      },
     ]);
     expect(await detectProviderFaults(client)).toEqual([]);
   });
@@ -101,9 +141,21 @@ describe("detectProviderFaults", () => {
     // the real one), which is exactly how a fault clears itself once the
     // provider recovers and stops producing new rows.
     const client = fakeClient([
-      { surface: "cron.embed-tick.memory", error_message: "embeddings 402: {}", occurred_at: ago(200) },
-      { surface: "cron.embed-tick.memory", error_message: "embeddings 402: {}", occurred_at: ago(210) },
-      { surface: "cron.embed-tick.memory", error_message: "embeddings 402: {}", occurred_at: ago(220) },
+      {
+        surface: "cron.embed-tick.memory",
+        error_message: "embeddings 402: {}",
+        occurred_at: ago(200),
+      },
+      {
+        surface: "cron.embed-tick.memory",
+        error_message: "embeddings 402: {}",
+        occurred_at: ago(210),
+      },
+      {
+        surface: "cron.embed-tick.memory",
+        error_message: "embeddings 402: {}",
+        occurred_at: ago(220),
+      },
     ]);
     expect(await detectProviderFaults(client)).toEqual([]);
   });
@@ -111,12 +163,36 @@ describe("detectProviderFaults", () => {
   test("distinct surfaces each raise their own item, never merged into one", async () => {
     const client = fakeClient(
       [
-        { surface: "cron.embed-tick.memory", error_message: "embeddings 402: {}", occurred_at: ago(5) },
-        { surface: "cron.embed-tick.memory", error_message: "embeddings 402: {}", occurred_at: ago(10) },
-        { surface: "cron.embed-tick.memory", error_message: "embeddings 402: {}", occurred_at: ago(15) },
-        { surface: "cron.embed-tick.decisions", error_message: "embeddings 402: {}", occurred_at: ago(5) },
-        { surface: "cron.embed-tick.decisions", error_message: "embeddings 402: {}", occurred_at: ago(10) },
-        { surface: "cron.embed-tick.decisions", error_message: "embeddings 402: {}", occurred_at: ago(15) },
+        {
+          surface: "cron.embed-tick.memory",
+          error_message: "embeddings 402: {}",
+          occurred_at: ago(5),
+        },
+        {
+          surface: "cron.embed-tick.memory",
+          error_message: "embeddings 402: {}",
+          occurred_at: ago(10),
+        },
+        {
+          surface: "cron.embed-tick.memory",
+          error_message: "embeddings 402: {}",
+          occurred_at: ago(15),
+        },
+        {
+          surface: "cron.embed-tick.decisions",
+          error_message: "embeddings 402: {}",
+          occurred_at: ago(5),
+        },
+        {
+          surface: "cron.embed-tick.decisions",
+          error_message: "embeddings 402: {}",
+          occurred_at: ago(10),
+        },
+        {
+          surface: "cron.embed-tick.decisions",
+          error_message: "embeddings 402: {}",
+          occurred_at: ago(15),
+        },
       ],
       { agent_memory: 10, decisions: 3 },
     );
@@ -261,6 +337,8 @@ describe("providerFaultGroupLine", () => {
       fault({ table: "prds", rowsWaiting: 1 }),
       fault({ table: "decisions", rowsWaiting: 0 }),
     ]);
-    expect(providerFaultGroupLine(groups[0]!)).toContain("1 row waiting across specs and decisions.");
+    expect(providerFaultGroupLine(groups[0]!)).toContain(
+      "1 row waiting across specs and decisions.",
+    );
   });
 });

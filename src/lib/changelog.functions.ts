@@ -195,10 +195,7 @@ export const listChangelog = createServerFn({ method: "GET" })
       // rather than a fifth round trip -- this query already has every spec
       // this page's releases could name.
       for (const s of specs ?? []) {
-        specTitleByPrdId.set(
-          (s as { id: string }).id,
-          (s as { title: string | null }).title,
-        );
+        specTitleByPrdId.set((s as { id: string }).id, (s as { title: string | null }).title);
       }
       const oppIds = Array.from(
         new Set([...oppIdByPrdId.values()].filter((id): id is string => !!id)),
@@ -251,10 +248,7 @@ export const listChangelog = createServerFn({ method: "GET" })
         );
       }
       for (const c of changesets ?? []) {
-        csTitleByChangesetId.set(
-          (c as { id: string }).id,
-          (c as { title: string | null }).title,
-        );
+        csTitleByChangesetId.set((c as { id: string }).id, (c as { title: string | null }).title);
       }
       const missionIds = Array.from(
         new Set((changesets ?? []).map((c) => c.mission_id as string | null).filter(Boolean)),

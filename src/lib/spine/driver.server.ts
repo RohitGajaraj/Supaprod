@@ -54,6 +54,7 @@ import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { recordSelfCheck, recordTrackDrive } from "@/lib/spine/track-drives.server";
+import { forTheSeat, splitInstruction } from "@/lib/spine/self-check-words";
 import { recordLineage } from "@/lib/lineage.functions";
 import { applyTrigger, nextStation, waive, waiverFor, type SpineRoute } from "@/lib/spine/route";
 import {
@@ -1798,7 +1799,19 @@ function unionFiled(attached: Attachment[], onRecord: Attachment[]): Attachment[
  * says what was looked for, so a reader can tell whether the check was worth
  * anything. `why` is only meaningful when it did not hold.
  */
-export type SelfCheck = { what: string; held: boolean; why?: string };
+export type SelfCheck = {
+  what: string;
+  held: boolean;
+  /** For the PERSON: one sentence saying what did not hold. */
+  why?: string;
+  /**
+   * For the SEAT: what to do about it, in the seat's own vocabulary. Kept out
+   * of `why` because the transcript prints `why` under "Checked its own work"
+   * and an imperative aimed at an agent reads, on a screen, as the product
+   * telling the person to go and call a tool (Lane 2, 09-08).
+   */
+  instruction?: string;
+};
 
 /**
  * THE ACCEPTANCE LINES THE REVIEWER SAID DID NOT HOLD.
@@ -1859,7 +1872,14 @@ export async function verifyStationOutput(
    * than discovered: a caller that wants the gate must pass this.
    */
   trackId?: string,
-): Promise<{ passed: boolean; reason?: string; checks: SelfCheck[] }> {
+): Promise<{
+  passed: boolean;
+  /** The person's sentence, and the only thing written where a person reads. */
+  reason?: string;
+  /** The seat's sentence. Joined with `reason` by `forTheSeat` for the seat's own note. */
+  instruction?: string | null;
+  checks: SelfCheck[];
+}> {
   /*
    * -- WHAT THIS STATION COMPARED, AND HOW IT WENT -------------------------
    *
@@ -1883,9 +1903,9 @@ export async function verifyStationOutput(
   const ok = (what: string) => {
     checks.push({ what, held: true });
   };
-  const no = (what: string, why: string) => {
-    checks.push({ what, held: false, why });
-    return { passed: false, reason: why, checks };
+  const no = (what: string, why: string, instruction?: string) => {
+    checks.push(instruction ? { what, held: false, why, instruction } : { what, held: false, why });
+    return { passed: false, reason: why, instruction: instruction ?? null, checks };
   };
   /** Every comparison this station makes has been made, and all of them held. */
   const done = () => ({ passed: true, checks });
@@ -2121,7 +2141,8 @@ export async function verifyStationOutput(
       ok("A change was staged");
       return no(
         "The checks ran and cleared this change",
-        "The checks were never run on this change. Call studio.checks.run and read its verdict before handing this on.",
+        "The checks were never run on this change.",
+        "Call studio.checks.run and read its verdict before handing this on.",
       );
     }
     const result = (newest.result ?? {}) as { may_proceed?: boolean; reason?: string };
@@ -2728,13 +2749,15 @@ export async function driveTrackOnce(
     !correctionBack && row.last_hold === "self-check-failed"
       ? selfCheckNote(
           station,
-          (
-            await verifyStationOutput(
+          /* Both halves: what the check refused and what to do about it. The
+             person's column carries only the first. */
+          forTheSeat(
+            ...(await verifyStationOutput(
               supabase,
               station,
               await filedAtStation(supabase, row.id, station),
-            )
-          ).reason ?? null,
+            ).then((v) => [v.reason, v.instruction] as const)),
+          ),
         )
       : null;
 
@@ -2944,7 +2967,10 @@ export async function driveTrackOnce(
              the failing acceptance lines or the red checks, in the words the
              check used. Without this it would re-stage blind against a branch
              that is already wrong, which is the loop the seat cannot see. */
-          fixNote = selfCheckNote(station, alreadyRight.reason ?? null);
+          fixNote = selfCheckNote(
+            station,
+            forTheSeat(alreadyRight.reason, alreadyRight.instruction),
+          );
         }
       }
     }
@@ -3676,7 +3702,7 @@ export async function driveTrackOnce(
          * derived from `last_hold` on read, and storing it too would put the
          * same sentence on screen twice.
          */
-        last_hold_because: `It was ${refusal.tool}, which said: ${refusal.error}`,
+        last_hold_because: `It was ${refusal.tool}, which said: ${splitInstruction(refusal.error).why ?? refusal.error}`,
         driven_at: new Date().toISOString(),
       } as never)
       .eq("id", row.id);
@@ -4221,10 +4247,13 @@ export async function driveTrackOnce(
       const cs = await newestChangesetForTrack(supabase, row.id, "id,status");
       const csStatus = typeof cs?.status === "string" ? cs.status : null;
       if (csStatus === "staged") {
-        // F-175: names the two calls that would clear it, which the hold word
-        // cannot. `nothing-to-hand-on` has two causes and this is one of them.
+        // F-175: `nothing-to-hand-on` has two causes and this is one of them,
+        // so the column says which. The two calls that would clear it
+        // (studio.commit, then studio.pr.open) are a seat's instruction and
+        // stay out of a column a person reads; no seat runs at Ship on this
+        // hold, so nothing is lost by not writing them here.
         const because =
-          "The change is staged but not committed, so there is no branch for Ship to point at. Call studio.commit, then studio.pr.open.";
+          "The change is staged but not committed, so there is no branch for Ship to point at.";
         await supabase
           .from("spine_tracks" as never)
           .update({

@@ -37,8 +37,35 @@
  * written to end, and it stays ended.
  */
 
+import { targetOf } from "@/lib/presence/collision";
+import { verbForTool } from "@/lib/presence/character";
+
 /** The statuses that mean a seat is actually working. */
 export const RUNNING_NOW: ReadonlySet<string> = new Set(["running", "queued", "in_progress"]);
+
+/**
+ * WHAT THE SEAT IS DOING THIS SECOND, off its own tool calls.
+ *
+ * The founder's standard for this product is that the machine's work is SEEN:
+ * which seat, on what, right now, with its own identity on screen. A seat's
+ * slug and station say who and where; this says what, in the first person the
+ * character already speaks ("reading the repository"), and names the thing it
+ * has hold of when a call named one.
+ */
+export type RunningNow = {
+  /** The newest call's tool slug, e.g. `repo.read`. */
+  tool: string;
+  /** The same call in the presence vocabulary: "reading the repository". */
+  verb: string;
+  /**
+   * The thing the seat last NAMED: a file path, a spec id, a decision id.
+   * Null when no call on this seat named anything yet -- a search, a list, a
+   * create whose target does not exist until it returns. Never invented.
+   */
+  object: { kind: string; id: string } | null;
+  /** When the newest call happened. */
+  at: string;
+};
 
 /** One seat, working, as much as the record can say about it. */
 export type RunningSeat = {
@@ -64,7 +91,63 @@ export type RunningSeat = {
    */
   subGoal: string | null;
   startedAt: string | null;
+  /**
+   * The newest tool call on this seat, or null for a seat that has made none
+   * the record can see (no trace yet, or a run that only just started).
+   * Derived by `nowPerTrace` from the same rows the collision layer reads.
+   */
+  now: RunningNow | null;
 };
+
+/** The columns `nowPerTrace` reads off `tool_calls`. */
+export type NowCallRow = {
+  trace_id: string | null;
+  tool_name: string;
+  args: unknown;
+  created_at: string;
+};
+
+/**
+ * One `RunningNow` per trace, from calls in ANY order.
+ *
+ * ── THE VERB IS THE NEWEST CALL; THE OBJECT IS THE NEWEST CALL THAT NAMED ONE ──
+ * The same two-row rule `getWorkspaceAnchors` settled on (2026-08-31, S2's
+ * measurement: 1,983 of 2,271 calls name no target, and the ordinary shape is
+ * `repo.read` on a file, then a search, then `studio.stage`). Taking only the
+ * newest call would drop the file the moment the seat searched for something,
+ * so a seat demonstrably working on `AddressStep.tsx` would be anchored for a
+ * few seconds of a ninety-second run. The verb is what it is doing now; the
+ * object is the last place we knew. A reader seeing "searching the repository"
+ * over `AddressStep.tsx` is being told something true.
+ */
+export function nowPerTrace(calls: readonly NowCallRow[]): Map<string, RunningNow> {
+  const newest = new Map<string, { tool: string; at: string }>();
+  const named = new Map<string, { kind: string; id: string; at: string }>();
+  for (const c of calls) {
+    if (!c.trace_id) continue;
+    const prev = newest.get(c.trace_id);
+    if (!prev || c.created_at > prev.at)
+      newest.set(c.trace_id, { tool: c.tool_name, at: c.created_at });
+    const target = targetOf(c.args);
+    if (target) {
+      const prevNamed = named.get(c.trace_id);
+      if (!prevNamed || c.created_at > prevNamed.at) {
+        named.set(c.trace_id, { kind: target.targetKind, id: target.targetId, at: c.created_at });
+      }
+    }
+  }
+  const out = new Map<string, RunningNow>();
+  for (const [trace, n] of newest) {
+    const o = named.get(trace);
+    out.set(trace, {
+      tool: n.tool,
+      verb: verbForTool(n.tool),
+      object: o ? { kind: o.kind, id: o.id } : null,
+      at: n.at,
+    });
+  }
+  return out;
+}
 
 export function isRunningNow(status: string | null | undefined): boolean {
   return RUNNING_NOW.has((status ?? "").trim());

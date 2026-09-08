@@ -16,6 +16,15 @@ import {
  * fingerprints (the text leaves the app into Slack/email). These tests pin that voice.
  */
 
+/** U+2014 em dash and U+2013 en dash, by code point so this file carries neither. */
+const NO_DASHES = /[\u2014\u2013]/;
+/**
+ * U+200B zero-width space, U+200C non-joiner, U+2060 word joiner, U+FEFF
+ * byte-order mark, U+00AD soft hyphen, and U+200D zero-width joiner last so the
+ * class is read as six characters and not as a joined sequence.
+ */
+const NO_INVISIBLES = /[\u200B\u200C\u2060\uFEFF\u00AD\u200D]/;
+
 const full: StakeholderSnapshot = {
   periodLabel: "the last 7 days",
   workspaceName: "Project Glasswing",
@@ -148,8 +157,8 @@ describe("buildStakeholderUpdate", () => {
 
   test("HUMANIZED: no em/en dashes, no invisibles, no banned buzzwords", () => {
     const md = buildStakeholderUpdate(full).markdown;
-    expect(md).not.toMatch(/[—–]/);
-    expect(md).not.toMatch(/[​‌‍⁠﻿­]/);
+    expect(md).not.toMatch(NO_DASHES);
+    expect(md).not.toMatch(NO_INVISIBLES);
     for (const bad of ["seamless", "leverage", "robust", "supercharge", "unlock", "elevate"]) {
       expect(md.toLowerCase()).not.toContain(bad);
     }
@@ -292,8 +301,8 @@ describe("buildOutcomeReceipt", () => {
 
   test("HUMANIZED: no em/en dashes or invisibles, no banned buzzwords", () => {
     const md = buildOutcomeReceipt(receiptFull)!;
-    expect(md).not.toMatch(/[—–]/);
-    expect(md).not.toMatch(/[​‌‍⁠﻿­]/);
+    expect(md).not.toMatch(NO_DASHES);
+    expect(md).not.toMatch(NO_INVISIBLES);
     for (const bad of ["seamless", "leverage", "robust", "supercharge", "unlock", "elevate"]) {
       expect(md.toLowerCase()).not.toContain(bad);
     }

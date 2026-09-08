@@ -137,7 +137,7 @@ function escapeRe(s: string): string {
  *      through a backslash. Belt and braces, so a future loosening of the
  *      allowlist cannot silently reopen this.
  */
-const REF_ALLOWED = /^[A-Za-z0-9._\/-]{1,255}$/;
+const REF_ALLOWED = /^[A-Za-z0-9._/-]{1,255}$/;
 
 export function assertSafeRef(ref: string): string {
   // git's own rules, the subset that matters: no leading dash (it would read as

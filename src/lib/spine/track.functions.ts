@@ -83,7 +83,14 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { TERMINAL_HOLDS } from "./correction";
 import { HOLD_LINE } from "./driver";
-import { RUNNING_NOW, type RunningSeat } from "@/lib/spine/what-is-running";
+import { splitInstruction } from "@/lib/spine/self-check-words";
+import {
+  RUNNING_NOW,
+  nowPerTrace,
+  type NowCallRow,
+  type RunningNow,
+  type RunningSeat,
+} from "@/lib/spine/what-is-running";
 import {
   countLines,
   type ChangedFile,
@@ -721,7 +728,7 @@ export const listRunningNow = createServerFn({ method: "GET" })
     try {
       const { data: rows, error } = await supabase
         .from("agent_runs")
-        .select("id,agent_slug,track_id,mission_id,created_at")
+        .select("id,agent_slug,track_id,mission_id,created_at,trace_id")
         .eq("workspace_id", workspaceId)
         .in("status", [...RUNNING_NOW])
         .order("created_at", { ascending: false })
@@ -741,8 +748,34 @@ export const listRunningNow = createServerFn({ method: "GET" })
         track_id: string | null;
         mission_id: string | null;
         created_at: string | null;
+        trace_id: string | null;
       }>;
       if (runs.length === 0) return [];
+
+      /*
+       * WHAT EACH SEAT IS DOING THIS SECOND. The seat's own tool calls, keyed
+       * by the run's trace, workspace-scoped, newest first and bounded the
+       * way `getWorkspaceAnchors` bounds the same read. A seat with no trace
+       * yet, or whose calls could not be read, gets `now: null` rather than a
+       * guess; the read's failure is logged, not surfaced as "doing nothing",
+       * because the seat IS running whatever this second query says.
+       */
+      const traceIds = [...new Set(runs.map((r) => r.trace_id).filter((t): t is string => !!t))];
+      let nowByTrace = new Map<string, RunningNow>();
+      if (traceIds.length > 0) {
+        const { data: calls, error: callsErr } = await supabase
+          .from("tool_calls")
+          .select("trace_id,tool_name,args,created_at")
+          .eq("workspace_id", workspaceId)
+          .in("trace_id", traceIds)
+          .order("created_at", { ascending: false })
+          .limit(400);
+        if (callsErr) {
+          console.error(`[listRunningNow] tool calls could not be read: ${callsErr.message}`);
+        } else {
+          nowByTrace = nowPerTrace((calls ?? []) as NowCallRow[]);
+        }
+      }
 
       const trackIds = [...new Set(runs.map((r) => r.track_id).filter((t): t is string => !!t))];
       const byTrack = new Map<string, { station: string | null; title: string | null }>();
@@ -832,6 +865,7 @@ export const listRunningNow = createServerFn({ method: "GET" })
           missionId: r.mission_id,
           subGoal: m?.subGoal ?? null,
           startedAt: r.created_at,
+          now: r.trace_id ? (nowByTrace.get(r.trace_id) ?? null) : null,
         };
       });
     } catch (e) {
@@ -3902,8 +3936,15 @@ export type SelfCheckEntry = {
   retried: boolean;
   /** What it compared, in the words the check itself used. */
   what: string[];
-  /** Why the ones that did not hold did not. Empty when they all held. */
+  /** Why the ones that did not hold did not, for the person. Empty when they all held. */
   why: string[];
+  /**
+   * What the seat was told to do about each miss, in the seat's vocabulary.
+   * Carried so a surface CAN show it behind a disclosure; the transcript's own
+   * sentence is `why`. Rows written before the split are split on read by the
+   * same rule (`splitInstruction`), so an old run never prints an imperative.
+   */
+  instruction: string[];
 };
 
 /**
@@ -3970,9 +4011,10 @@ export function summariseSelfChecks(
     let missed = 0;
     const what: string[] = [];
     const why: string[] = [];
+    const instruction: string[] = [];
     for (const c of list) {
       if (!c || typeof c !== "object") continue;
-      const check = c as { what?: unknown; held?: unknown; why?: unknown };
+      const check = c as { what?: unknown; held?: unknown; why?: unknown; instruction?: unknown };
       // A comparison with nothing to show for it cannot be read by a person and
       // is not counted, for the same reason an empty acceptance line is dropped.
       if (typeof check.what !== "string" || !check.what.trim()) continue;
@@ -3980,7 +4022,19 @@ export function summariseSelfChecks(
       if (check.held === true) held += 1;
       else {
         missed += 1;
-        if (typeof check.why === "string" && check.why.trim()) why.push(check.why.trim());
+        const storedWhy = typeof check.why === "string" ? check.why.trim() : "";
+        const storedInstruction =
+          typeof check.instruction === "string" ? check.instruction.trim() : "";
+        if (storedInstruction) {
+          if (storedWhy) why.push(storedWhy);
+          instruction.push(storedInstruction);
+        } else if (storedWhy) {
+          // Written before the split: the person's half and the seat's half
+          // were one string. Same rule the writer uses now.
+          const halves = splitInstruction(storedWhy);
+          if (halves.why) why.push(halves.why);
+          if (halves.instruction) instruction.push(halves.instruction);
+        }
       }
     }
     const counted = held + missed;
@@ -3997,6 +4051,7 @@ export function summariseSelfChecks(
         retried,
         what,
         why,
+        instruction,
       });
     }
   }

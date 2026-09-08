@@ -90,8 +90,12 @@ describe("the sentence is stored where a surface can read it", () => {
      * person in the run. Without this the track says only "this station could
      * not use a tool it needed".
      */
+    /* The tool's own FACT, and not its instruction: "Only a merged changeset
+       can promote. Merge the PR first." stores the first sentence, because the
+       second tells a seat what to do and a person reads this column
+       (self-check-words.ts). */
     expect(DRIVER).toContain(
-      "last_hold_because: `It was ${refusal.tool}, which said: ${refusal.error}`",
+      "last_hold_because: `It was ${refusal.tool}, which said: ${splitInstruction(refusal.error).why ?? refusal.error}`",
     );
   });
 

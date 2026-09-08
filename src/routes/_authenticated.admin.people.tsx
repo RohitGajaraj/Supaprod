@@ -689,7 +689,7 @@ function PersonInFocus({ userId }: { userId: string }) {
           }
         >
           <Value>
-            <Num>{(account?.balance_credits ?? 0)}</Num>
+            <Num>{account?.balance_credits ?? 0}</Num>
           </Value>
           <Action
             variant="quiet"

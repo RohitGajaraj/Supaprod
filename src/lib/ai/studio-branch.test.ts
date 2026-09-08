@@ -13,7 +13,7 @@ describe("studioBranchName", () => {
     const name = studioBranchName(A, CS_A);
     expect(name).toMatch(/^studio\/[a-z0-9]+-[a-z0-9]+$/);
     // No characters git rejects in a ref, no double slash, no trailing dot/slash.
-    expect(name).not.toMatch(/[\s~^:?*\[\\]/);
+    expect(name).not.toMatch(/[\s~^:?*[\\]/);
     expect(name).not.toMatch(/\/\/|\.\.|\.lock$|[/.]$/);
   });
 

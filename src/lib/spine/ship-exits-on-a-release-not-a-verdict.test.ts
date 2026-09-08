@@ -155,7 +155,12 @@ describe("the driver asks both questions where they can still change the answer"
       ["ship", shipAt],
       ["learn", learnAt],
     ] as const) {
-      const branch = SRC.slice(from, from + 1200);
+      /* The gate's OWN branch ends at its return. A fixed window reached the
+         next hold's block the day a sentence above it got shorter, and that
+         block counts an attempt for a different reason (nothing to hand on). */
+      const end = SRC.indexOf("return {", from);
+      expect(end, `${name}'s gate branch has no return; re-point this guard`).toBeGreaterThan(from);
+      const branch = SRC.slice(from, end);
       expect(branch, `${name} must not count an attempt`).not.toContain("attempts:");
     }
   });

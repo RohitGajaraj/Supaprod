@@ -57,7 +57,9 @@ describe("the four MCP-generated route files match what the generator would writ
 
       const plugin = mcpPlugin();
       if (typeof plugin.configResolved !== "function") {
-        throw new Error("mcpPlugin()'s configResolved hook is not a function (package shape changed)");
+        throw new Error(
+          "mcpPlugin()'s configResolved hook is not a function (package shape changed)",
+        );
       }
       // The hook only reads `config.root`; a bare object is enough to drive it
       // without spinning up a real Vite instance.

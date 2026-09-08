@@ -228,7 +228,9 @@ describe("nothingCouldMeasureIt (P-137: the grader refuses what nothing measures
 
   test("a ci-only contract refuses: a green build is not an observation of users", async () => {
     const ciOnly = {
-      success_metrics: [{ text: "Telemetry is integrated.", status: "standing", oracle_kind: "ci" }],
+      success_metrics: [
+        { text: "Telemetry is integrated.", status: "standing", oracle_kind: "ci" },
+      ],
     };
     expect((await nothingCouldMeasureIt(db(ciOnly, []), "p1")).refuse).toBe(true);
   });

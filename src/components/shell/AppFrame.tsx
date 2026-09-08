@@ -1296,7 +1296,14 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         return label ? `Your agents are moving · ${label}` : "Your agents are moving";
       }
       if (movingRuns.length > 1) return `${movingRuns.length} runs are moving`;
-      return "Nothing running";
+      /*
+       * THE IDLE LINE LEADS WITH A FACT, NOT A NEGATION (Lane 1, 2026-09-08).
+       * "Nothing running" was the featured sentence of the product for most
+       * of every day. The last thing that finished is a fact a person can use;
+       * the facts beside it carry its title and when. With no record at all,
+       * the true positive is that the first run is a sentence away.
+       */
+      return lastDone ? "Last finished" : "Ready for the first run";
     }
     // Every running run resolved to a named worker, so the agents are
     // countable and the count is the thing worth saying.
@@ -1362,6 +1369,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     workers,
     unnamedRuns,
     workingStation,
+    lastDone,
     strip,
     movingRuns,
   ]);
@@ -1431,11 +1439,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       return out;
     }
     if (lastDone) {
-      out.push(
-        <>
-          last: <TitleFact title={lastDone.title} />
-        </>,
-      );
+      out.push(<TitleFact title={lastDone.title} />);
       const at = since(lastDone.completed_at);
       if (at) out.push(<span className="sp-num">{at}</span>);
     }

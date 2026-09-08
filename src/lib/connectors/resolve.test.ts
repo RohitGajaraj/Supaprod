@@ -52,7 +52,11 @@ describe("P-122: a binding read that comes back empty is retried with admin, not
   });
 
   test("an empty first read, with a userClient supplied, retries with admin and returns what admin finds", async () => {
-    const result = await bindingOrRetryWithAdmin(fakeUserClient, undefined, async () => FAKE_BINDING);
+    const result = await bindingOrRetryWithAdmin(
+      fakeUserClient,
+      undefined,
+      async () => FAKE_BINDING,
+    );
     expect(result).toBe(FAKE_BINDING);
   });
 

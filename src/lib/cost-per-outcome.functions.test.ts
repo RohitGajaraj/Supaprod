@@ -32,9 +32,24 @@ function createMockSupabase(fixture: {
   runs: Array<{ spend_used_usd: string }>;
   budget: { monthly_usd_used: string; monthly_usd_cap: string } | null;
 }) {
-  // Generic chainable builder that accepts any method and returns itself
-  const createChainable = (table: string): any => {
-    const chainable = {
+  // The builder returns itself from every filter so any chain the reader writes
+  // resolves; the shape is its own return type rather than `any`, so a method the
+  // reader calls that the mock does not offer fails to type-check here instead of
+  // throwing at await time.
+  type Chainable = {
+    select: () => Chainable;
+    eq: () => Chainable;
+    gte: () => Chainable;
+    gt: () => Chainable;
+    lt: () => Chainable;
+    lte: () => Chainable;
+    order: () => Chainable;
+    limit: () => Chainable;
+    maybeSingle: () => Promise<{ error: null; data: unknown }>;
+    then: (onFulfilled: (value: unknown) => unknown) => Promise<unknown>;
+  };
+  const createChainable = (table: string): Chainable => {
+    const chainable: Chainable = {
       select: () => chainable,
       eq: () => chainable,
       gte: () => chainable,
@@ -71,7 +86,7 @@ function createMockSupabase(fixture: {
 
   return {
     from: (table: string) => createChainable(table),
-  } as any; // Type assertion for mock
+  } as never; // the mock stands in for a SupabaseClient
 }
 
 describe("getCostPerOutcomeImpl (unit, no TanStack/real Supabase)", () => {
@@ -173,7 +188,9 @@ describe("getCostPerOutcomeImpl (unit, no TanStack/real Supabase)", () => {
     expect(typeof result.missions).toBe("number");
     expect(typeof result.weekSpendUsd).toBe("number");
     expect(typeof result.monthUsedUsd).toBe("number");
-    expect(typeof result.monthCapUsd).toBe("number" || "object"); // number | null
+    // number | null: `typeof null` is "object", and the old `"number" || "object"`
+    // was the constant "number", so this line could only ever check the first case.
+    expect(result.monthCapUsd === null || typeof result.monthCapUsd === "number").toBe(true);
   });
 });
 

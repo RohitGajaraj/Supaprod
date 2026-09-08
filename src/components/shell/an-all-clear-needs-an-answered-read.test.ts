@@ -14,7 +14,7 @@ import { join } from "node:path";
  *      protects counts TWO reads — `running` from missions and `movingRuns`
  *      from the tracks feed (`openTracks` until P-18, `moving` since — both
  *      are still guarded). A refused tracks read fell through to the literal
- *      "Nothing running". The guard was checking the wrong query.
+ *      "Ready for the first run". The guard was checking the wrong query.
  *   2. `AgentRelay` drew "All quiet. Nothing needs you right now." whenever
  *      `q.data` was undefined, which is true of an idle workspace, a read
  *      still in flight, and a read that REFUSED. One sentence, three
@@ -63,12 +63,12 @@ describe("the shell's live line", () => {
 
     // The claim at the end of the chain is the one that must not be reachable
     // from a failed read.
-    expect(body).toContain('"Nothing running"');
+    expect(body).toContain('"Ready for the first run"');
 
     const guardAt = body.search(/if \(.*isError.*\)\s*return/s);
     expect(guardAt, "no failure guard at all in the live line").toBeGreaterThan(-1);
     expect(guardAt, "the all-clear is reachable before any failure is consulted").toBeLessThan(
-      body.indexOf('"Nothing running"'),
+      body.indexOf('"Ready for the first run"'),
     );
 
     // BOTH names, because the sentence counts both populations. `running`
