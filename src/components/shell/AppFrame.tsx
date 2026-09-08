@@ -952,6 +952,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       );
     },
     placeholderData: keepPreviousData,
+    /* Not before the workspace is known: read off the live network log on
+       2026-09-08, every shell read fired once with a null workspace and again
+       when the id arrived, seven wasted round trips on every arrival and a
+       read against a desk the person is not on. */
+    enabled: Boolean(workspaceId),
   });
   /*
    * P-18a (A-QUEUE.md). Gates on OPEN TRACKS, not `getApprovalsQueue`'s
@@ -967,6 +972,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     // only has to notice a NEW one arriving. Same cadence `moving` uses below.
     refetchInterval: (query) => livePoll(false, query.state.fetchFailureCount),
     placeholderData: keepPreviousData,
+    /* Not before the workspace is known: read off the live network log on
+       2026-09-08, every shell read fired once with a null workspace and again
+       when the id arrived, seven wasted round trips on every arrival and a
+       read against a desk the person is not on. */
+    enabled: Boolean(wsKey),
   });
   const gatedTracks = React.useMemo(() => gated.data ?? [], [gated.data]);
 
@@ -986,6 +996,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     staleTime: 30_000,
     refetchInterval: (query) => livePoll(false, query.state.fetchFailureCount),
     placeholderData: keepPreviousData,
+    /* Not before the workspace is known: read off the live network log on
+       2026-09-08, every shell read fired once with a null workspace and again
+       when the id arrived, seven wasted round trips on every arrival and a
+       read against a desk the person is not on. */
+    enabled: Boolean(wsKey),
   });
   /*
    * P-18 (A-QUEUE.md). MOVING MEANS A SEAT IS LITERALLY IN FLIGHT, not "driven
@@ -1023,6 +1038,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     queryFn: () => fetchQueue({ data: wsArg }),
     staleTime: 10_000,
     refetchInterval: (query) => pollMs(20_000, query.state.fetchFailureCount),
+    /* Not before the workspace is known: read off the live network log on
+       2026-09-08, every shell read fired once with a null workspace and again
+       when the id arrived, seven wasted round trips on every arrival and a
+       read against a desk the person is not on. */
+    enabled: Boolean(wsKey),
   });
   const waitingCount = queue.isSuccess ? (queue.data?.items ?? []).length : null;
 
@@ -1034,6 +1054,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     refetchInterval: (query) =>
       livePoll((query.state.data ?? []).length > 0, query.state.fetchFailureCount),
     placeholderData: keepPreviousData,
+    /* Not before the workspace is known: read off the live network log on
+       2026-09-08, every shell read fired once with a null workspace and again
+       when the id arrived, seven wasted round trips on every arrival and a
+       read against a desk the person is not on. */
+    enabled: Boolean(wsKey),
   });
   const verbFor = React.useCallback(
     (slug: string | null): string | null => {
@@ -1051,6 +1076,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     refetchInterval: (query) =>
       livePoll((query.state.data ?? []).length > 0, query.state.fetchFailureCount),
     placeholderData: keepPreviousData,
+    /* Not before the workspace is known: read off the live network log on
+       2026-09-08, every shell read fired once with a null workspace and again
+       when the id arrived, seven wasted round trips on every arrival and a
+       read against a desk the person is not on. */
+    enabled: Boolean(wsKey),
   });
   const movingRuns = React.useMemo(() => moving.data ?? [], [moving.data]);
 
@@ -1108,6 +1138,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     queryKey: ["crew", "roster", workspaceId],
     queryFn: () => fetchCrew({ data: { workspaceId } }),
     staleTime: 5 * 60_000,
+    /* Not before the workspace is known: read off the live network log on
+       2026-09-08, every shell read fired once with a null workspace and again
+       when the id arrived, seven wasted round trips on every arrival and a
+       read against a desk the person is not on. */
+    enabled: Boolean(workspaceId),
   });
   const askingCount = React.useMemo(
     () => (crew.data?.members ?? []).filter((m) => m.asking.length > 0).length,
