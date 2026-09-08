@@ -54,10 +54,13 @@ export function TheCallIsYours({
        * rather than as the one honest thing it can say.
        */
       why="Nothing in this workspace bears on your sentence yet, so nothing here can tell you whether this is worth building."
+      /* The consequence is a sentence, so it rides under the label; the datum
+         slot on the right stays empty (Lane 1's review, 2026-09-08). */
       options={CARRIED_CHOICE.options.map((o) => ({
         id: o.id,
         label: o.label,
-        fact: o.fact,
+        fact: null,
+        sub: o.fact,
       }))}
       busyId={busyId}
       onPick={(id) => {

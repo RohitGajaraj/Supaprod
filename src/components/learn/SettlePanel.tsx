@@ -70,11 +70,14 @@ import { Quiet } from "@/components/meridian/Quiet";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { useWorkspace } from "@/hooks/use-workspace";
+import { relativeTime } from "@/lib/memory-view";
 
 import {
   draftOutcomeSuggestion,
   listAgentSettledOutcomes,
   listPendingOutcomes,
+  listReleasesAwaitingVerdict,
   recordOutcome,
   deferOutcomeCheck,
   type AgentSettledOutcome,
@@ -244,6 +247,22 @@ export function SettlePanel({
 
   const pendingQ = useQuery({ queryKey: ["outcome-pending"], queryFn: () => fPending() });
   const settledQ = useQuery({ queryKey: ["outcome-agent-settled"], queryFn: () => fSettled() });
+  /*
+   * ── WHAT HAS SHIPPED AND IS WAITING FOR ITS VERDICT (P-147, Lane 3) ────
+   * This panel said "Nothing has shipped that needs a verdict" while a
+   * release HAD shipped and was waiting at Learn with no source to grade it.
+   * The read returns one row per open track at Learn with a deployment; its
+   * `line` is the run page's own hold sentence, so the two cannot disagree.
+   */
+  const { activeWorkspaceId } = useWorkspace();
+  const fAwaiting = useServerFn(listReleasesAwaitingVerdict);
+  const awaitingQ = useQuery({
+    queryKey: ["outcome-awaiting-verdict", activeWorkspaceId ?? null],
+    queryFn: () => fAwaiting({ data: { workspaceId: activeWorkspaceId ?? null } }),
+    enabled: !!activeWorkspaceId,
+    staleTime: 30_000,
+  });
+  const awaiting = React.useMemo(() => awaitingQ.data?.releases ?? [], [awaitingQ.data]);
   const pending = React.useMemo(() => pendingQ.data?.pending ?? [], [pendingQ.data]);
   const agentSettled = React.useMemo(() => settledQ.data?.settled ?? [], [settledQ.data]);
 
@@ -545,11 +564,52 @@ export function SettlePanel({
   if (!target) {
     return (
       <>
+        {awaiting.length > 0 ? (
+          <Region
+            title="Shipped, waiting for a verdict"
+            sub="Each went out and stands at Learn until the evidence it is graded on exists."
+          >
+            {awaiting.map((r) => (
+              <Row
+                key={r.trackId}
+                lead={r.title}
+                sub={[
+                  r.line,
+                  r.dueOn ? `Due ${r.dueOn}` : null,
+                  r.shippedAt ? `shipped ${relativeTime(r.shippedAt, Date.now())}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+                action={
+                  r.onlyAPersonCanGrade ? (
+                    <Link
+                      to="/settings"
+                      search={{ section: "connections" }}
+                      className="mrd-focus rounded-mrd-ctl text-mrd-small text-mrd-ink underline decoration-mrd-line underline-offset-4 hover:decoration-mrd-edge"
+                    >
+                      Connect a source
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/track/$trackId"
+                      params={{ trackId: r.trackId }}
+                      className="mrd-focus rounded-mrd-ctl text-mrd-small text-mrd-ink underline decoration-mrd-line underline-offset-4 hover:decoration-mrd-edge"
+                    >
+                      Record a reading
+                    </Link>
+                  )
+                }
+              />
+            ))}
+          </Region>
+        ) : null}
         <Quiet
           says={
-            agentSettled.length > 0
-              ? "Nothing needs your verdict."
-              : "Nothing has shipped that needs a verdict."
+            awaiting.length > 0
+              ? "Nothing needs your verdict yet."
+              : agentSettled.length > 0
+                ? "Nothing needs your verdict."
+                : "Nothing has shipped that needs a verdict."
           }
           whatWillAppear={
             agentSettled.length > 0
