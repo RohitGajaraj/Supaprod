@@ -1,7 +1,14 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// Layout for /prds. Both children are redirect stubs since LOOM W2:
-// /prds -> /plan (prds.index.tsx) and /prds/$id -> /plan/spec/$id.
+/*
+ * /prds rendered a bare <Outlet /> with no child route on disk since the
+ * P-14 deletions: a person landing here met an empty page. It redirects to
+ * Start now, the same shape as the other retired station addresses; a spec
+ * itself lives at /plan/spec/$id, and the one remaining writer of a /prds
+ * address (research.server.ts) is being re-pointed there.
+ */
 export const Route = createFileRoute("/_authenticated/prds")({
-  component: () => <Outlet />,
+  beforeLoad: () => {
+    throw redirect({ to: "/start", search: true });
+  },
 });
