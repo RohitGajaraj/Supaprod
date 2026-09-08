@@ -5441,190 +5441,94 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
     async ({
       context,
       data,
-    }): Promise<{ calls: TrackToolCall[]; runs: number; tracedRuns: number }> => {
-      const { supabase } = context;
-      /*
-       * RLS DOES THE TENANCY, which is why this reads through the caller's
-       * own client and never the admin one. A tool call is the most
-       * revealing row this product holds -- it names what another company's
-       * agents looked at -- so the one place it must not be reachable from
-       * is a query that forgot a workspace filter.
-       */
-      const { data: runRows, error: runErr } = await supabase
-        .from("agent_runs")
-        /*
-         * ── THE RUN ID RIDES ALONG NOW, AND THE TRANSCRIPT IS WHY ──────────
-         *
-         * This selected `trace_id` alone, which answers "what did the agents on
-         * this track call" and cannot answer "what did THIS SEAT call". The run
-         * screen now renders each turn's calls inside that turn's own entry --
-         * Devin's collapsed "Worked for 11s" that opens into the work log -- and
-         * that grouping is not derivable from a flat list. The join already
-         * existed on both sides; only the id was being dropped on the floor.
-         */
-        .select("id, trace_id, status")
-        .eq("track_id", data.trackId);
-      // Thrown, not swallowed: an empty list means the agents called nothing,
-      // and this is the case where nobody could look.
-      if (runErr) throw new Error(`The turns on this run could not be read: ${runErr.message}`);
-
-      const rows = (runRows ?? []) as Array<{
-        id: string;
-        trace_id: string | null;
-        status: string | null;
-      }>;
-      /* The seats still running: the only ones whose "returned nothing" a
-         person is waiting on, so the only ones whose results are read. */
-      const runningTraceIds = new Set(
-        rows.filter((r) => r.status === "running" && r.trace_id).map((r) => r.trace_id as string),
-      );
-      const tracedRuns = rows.filter((r) => !!r.trace_id).length;
-      const traceIds = [...new Set(rows.map((r) => r.trace_id).filter((t): t is string => !!t))];
-      /*
-       * TRACE TO RUN, and the LAST writer wins on purpose. A trace id is a run's
-       * own identifier in the loop, so the map is one to one in every row the
-       * record has; if two runs ever shared one, attributing the calls to the
-       * newer seat is the reading that keeps a live turn's calls under the live
-       * turn, which is the case a person is watching.
-       */
-      const runByTrace = new Map<string, string>();
-      for (const r of rows) if (r.trace_id) runByTrace.set(r.trace_id, r.id);
-
-      /*
-       * NO TRACE IDS IS NOT NO CALLS. A track whose runs all predate the
-       * column joins to nothing, and reporting that as an empty tool list
-       * would tell a person their agents did nothing when the truth is that
-       * nobody wrote down what they did. `tracedRuns: 0` is the honest answer
-       * and the surface renders a different sentence for it.
-       */
-      if (traceIds.length === 0) return { calls: [], runs: rows.length, tracedRuns };
-
-      const { data: callRows, error: callErr } = await supabase
-        .from("tool_calls")
-        /*
-         * `args` RIDES ALONG, `result` DOES NOT (Lane 2, 2026-09-08). The
-         * argument is the work -- the query searched, the paths staged -- and
-         * `tool-call-facts.ts` reduces it to one line HERE, so a staged file's
-         * contents never reach a pane polling twice a second. `result` is read
-         * below for the search tools alone, whose results are short lists,
-         * because "returned nothing" is the fact a person watching Discover is
-         * waiting on; a `repo.read` result is the file itself and stays put.
-         */
-        .select("id, tool_name, ok, latency_ms, created_at, error, trace_id, args")
-        .in("trace_id", traceIds)
-        /* Newest first for the cap, reversed below: ToolStream takes arrival
-           order, oldest first, and follows the tail. Ordering ascending here
-           and capping would return the FIRST 200 calls of a long run, which
-           is the opposite of what someone watching wants. */
-        .order("created_at", { ascending: false })
-        .limit(200);
-      if (callErr) throw new Error(`What the agents called could not be read: ${callErr.message}`);
-
-      const callList = (callRows ?? []) as Array<{
-        id: string;
-        tool_name: string;
-        ok: boolean;
-        latency_ms: number;
-        created_at: string;
-        error: string | null;
-        trace_id: string | null;
-        args: unknown;
-      }>;
-
-      /*
-       * A failed second read costs the counts, never the calls. And it is
-       * read for the LIVE seats' searches alone (Lane 2, read on 9043ee80 at
-       * 23:2x IST: one run-screen handler at 5.1 s carrying 170 KB on a
-       * settled 82-turn run). A finished seat's "nothing matched" is history
-       * the transcript does not draw; the live station is the only reader.
-       */
-      const resultById = new Map<string, unknown>();
-      const searchIds = callList
-        .filter(
-          (c) => SEARCH_TOOLS.has(c.tool_name) && c.trace_id && runningTraceIds.has(c.trace_id),
-        )
-        .map((c) => c.id);
-      if (searchIds.length > 0) {
-        const { data: resultRows } = await supabase
-          .from("tool_calls")
-          .select("id, result")
-          .in("id", searchIds);
-        for (const r of (resultRows ?? []) as Array<{ id: string; result: unknown }>) {
-          resultById.set(r.id, r.result);
-        }
-      }
-
-      const calls = callList
-        .map((c) => {
-          const facts = toolCallFacts(c.tool_name, c.args, resultById.get(c.id) ?? null);
-          return {
-            id: c.id,
-            tool: c.tool_name,
-            ok: c.ok,
-            latencyMs: c.latency_ms,
-            at: c.created_at,
-            error: c.error,
-            /* Null is a real answer: a call whose trace matches no run on this
-               track belongs to no seat the transcript is drawing, and guessing a
-               seat for it would put another turn's work under this one. */
-            runId: (c.trace_id ? (runByTrace.get(c.trace_id) ?? null) : null) as string | null,
-            argument: facts.argument,
-            found: facts.found,
-            files: facts.files,
-            touch: facts.touch,
-          };
-        })
-        .reverse();
-
-      return { calls, runs: rows.length, tracedRuns };
-    },
+    }): Promise<{ calls: TrackToolCall[]; runs: number; tracedRuns: number }> =>
+      readTrackToolCalls(context.supabase, data.trackId),
   );
 
+/** What the database answers for one track's transcript (`track_tool_calls`). */
+type TrackToolCallsAnswer = {
+  runs: number;
+  traced_runs: number;
+  calls: Array<{
+    id: string;
+    tool_name: string;
+    ok: boolean;
+    latency_ms: number;
+    created_at: string;
+    error: string | null;
+    trace_id: string | null;
+    run_id: string | null;
+    args: unknown;
+    found: number | null;
+  }>;
+};
+
 /**
- * ── "BUILD IT ON YOUR WORD" (P-71b, R-39) ────────────────────────────────
+ * THE READ BEHIND `getTrackToolCalls`, one round trip, driven by
+ * `a-transcript-is-one-hop.test.ts` on the wire that counts rounds.
  *
- * The person answered the Choice the strategist could not. Their sentence IS
- * the forecast, and the decision is recorded as theirs: `human` in the actor
- * column, their words in `forecast_claim`, and an observable that says plainly
- * that nothing here can grade it yet.
- *
- * ── WHY THE OBSERVABLE IS NOT INVENTED ───────────────────────────────────
- *
- * `forecast_how_we_will_know` is required and the honest value is the awkward
- * one: no connected source can settle this. Writing a plausible-sounding metric
- * instead -- "conversion on the checkout step" in a workspace with no analytics
- * -- is exactly the sentence that produced this whole packet, and it would come
- * back at the horizon as a verdict nobody could reach. So it says what is true,
- * and P-71's Learn rule then holds the track at `needs-evidence` with the
- * point-a-source door rather than counting down to a date.
- *
- * ── THE HORIZON IS THEIRS TOO ────────────────────────────────────────────
- *
- * Thirty days, and it is a real commitment rather than a placeholder: the
- * forecast columns are immutable once written, and Learn will ask about it. A
- * distant date to be safe is the thing the tool's own description warns against.
+ * ── THREE HOPS AND 240 KB, FOR A TRANSCRIPT (2026-09-08) ─────────────────
+ * This read the track's runs, then the 200 newest calls on their traces
+ * with `args` in full, then the `result` of every search call to count what
+ * it found. On track 2fdf93b6 (224 calls) Lane 2 measured one handler at
+ * 5,145 ms carrying 170,843 bytes; the 200 newest calls held 90 KB of args
+ * (staged file bodies under `changes[].content`) and 150 KB of result.
+ * `track_tool_calls` (migration 20260909100700) answers the same question
+ * once, under the caller's own RLS: the counts, the calls newest first and
+ * capped, each with `args` slimmed to the top-level keys `toolCallFacts`
+ * reads (`paths[]` and `changes[].path` whole, strings cut at 240, bodies
+ * gone) and `found` counted in Postgres the way `toolCallFacts` counts it,
+ * so `result` never leaves the database. The same track answers in one
+ * 86 KB object. The words a person reads are still `toolCallFacts`'s: it
+ * runs on the slimmed args, and `found` reaches it as the one number.
  */
-/**
- * ── THE OTHER ANSWER, WHICH RECORDED NOTHING AT ALL (P-71f) ───────────────
- *
- * "Point a source first" was a `navigate()` to the connections settings and
- * nothing else. The person answered the Choice and the track kept
- * `the-call-is-yours`, so `driven_at > updated_at` held and P-71d's skip took
- * it out of the sweep permanently -- the same dead end `buildOnYourWord` was
- * just fixed for, reached through the door nobody measured because it looked
- * like navigation rather than an answer.
- *
- * Both options on a Choice are answers. This one says "I am going to get you
- * evidence", which is precisely `needs-evidence`: the hold whose whole meaning
- * is that no station can manufacture what this work needs and a person is
- * bringing it. It keeps its sweep slot -- `scheduledAwayIds` skips a
- * `needs-evidence` track only when it carries a FUTURE date, and this one
- * carries none -- so the track is picked up again the moment a source lands.
- *
- * NO DECISION ROW. They did not decide anything; they declined to decide
- * without evidence, which is the opposite. Writing an approval here would be
- * the same invention R-39 exists to refuse.
- */
+export async function readTrackToolCalls(
+  supabase: SupabaseClient<Database>,
+  trackId: string,
+): Promise<{ calls: TrackToolCall[]; runs: number; tracedRuns: number }> {
+  const { data, error } = await supabase.rpc("track_tool_calls", {
+    p_track_id: trackId,
+    p_limit: 200,
+    p_search_tools: [...SEARCH_TOOLS],
+  });
+  // Thrown, not swallowed: an empty list means the agents called nothing,
+  // and this is the case where nobody could look.
+  if (error) throw new Error(`What the agents called could not be read: ${error.message}`);
+  const answer = (data ?? {
+    runs: 0,
+    traced_runs: 0,
+    calls: [],
+  }) as unknown as TrackToolCallsAnswer;
+  /* Newest first from the database, for the cap; reversed here: ToolStream
+     takes arrival order, oldest first, and follows the tail. */
+  const calls = (answer.calls ?? [])
+    .map((c) => {
+      const facts = toolCallFacts(
+        c.tool_name,
+        c.args,
+        typeof c.found === "number" ? { count: c.found } : null,
+      );
+      return {
+        id: c.id,
+        tool: c.tool_name,
+        ok: c.ok,
+        latencyMs: c.latency_ms,
+        at: c.created_at,
+        error: c.error,
+        /* Null is a real answer: a call whose trace matches no run on this
+           track belongs to no seat the transcript is drawing, and guessing a
+           seat for it would put another turn's work under this one. */
+        runId: c.run_id ?? null,
+        argument: facts.argument,
+        found: facts.found,
+        files: facts.files,
+        touch: facts.touch,
+      };
+    })
+    .reverse();
+  return { calls, runs: Number(answer.runs ?? 0), tracedRuns: Number(answer.traced_runs ?? 0) };
+}
+
 export const pointASourceFirst = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ trackId: z.string().uuid() }).parse(d))

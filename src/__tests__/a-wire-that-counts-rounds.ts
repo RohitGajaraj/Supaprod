@@ -23,7 +23,8 @@
 
 export type Row = Record<string, unknown>;
 export type Filter = { op: string; col: string; value: unknown };
-export type Fixture = (table: string, cols: string, filters: Filter[]) => Row[];
+/** What the wire answers: rows for a table, or whatever shape an rpc returns. */
+export type Fixture = (table: string, cols: string, filters: Filter[]) => Row[] | unknown;
 
 export class FakeBuilder {
   cols = "";
@@ -90,12 +91,15 @@ export class FakeBuilder {
     return this;
   }
   then<T>(
-    onFulfilled: (v: { data: Row[]; error: null }) => T,
+    onFulfilled: (v: { data: never; error: null }) => T,
     onRejected?: (e: unknown) => T,
   ): Promise<T> {
-    const p = new Promise<{ data: Row[]; error: null }>((resolve) => {
+    const p = new Promise<{ data: never; error: null }>((resolve) => {
       this.client.pending.push(() =>
-        resolve({ data: this.client.rowsFor(this.table, this.cols, this.filters), error: null }),
+        resolve({
+          data: this.client.rowsFor(this.table, this.cols, this.filters) as never,
+          error: null,
+        }),
       );
     });
     return p.then(onFulfilled, onRejected);
@@ -114,7 +118,7 @@ export class FakeWire {
   rpc(name: string) {
     return new FakeBuilder(this, `rpc:${name}`);
   }
-  rowsFor(table: string, cols: string, filters: Filter[]): Row[] {
+  rowsFor(table: string, cols: string, filters: Filter[]): unknown {
     this.reads.push(table);
     return this.fixture(table, cols, filters);
   }
