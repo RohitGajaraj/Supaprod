@@ -44,6 +44,12 @@ export type ChoiceOption = {
    * `null` renders as "unknown" rather than as a blank: see the header.
    */
   fact: string | null;
+  /**
+   * A SENTENCE UNDER THE LABEL, when an option needs a clause the label
+   * cannot carry ("or point a source at it first"). It is prose, so it sits
+   * under the label in the body face; the fact slot stays a datum.
+   */
+  sub?: string | null;
 };
 
 export function Choice({
@@ -104,15 +110,23 @@ export function Choice({
               onClick={() => onPick(o.id)}
               className="flex w-full items-baseline justify-between gap-mrd-4 px-mrd-4 py-mrd-3 text-left transition-colors hover:bg-mrd-hover disabled:opacity-60"
             >
-              {/* THE LABEL NEVER BREAKS A WORD PER LINE. Seen live on the run
-                  screen's "Build this on your word" choice: the fact was a
-                  whole sentence and `shrink-0`, so it took the row and the
-                  label folded to one word per line under it. The label keeps
-                  its width; a long fact wraps on the right. */}
-              <span className="shrink-0 text-mrd-base text-mrd-ink">{o.label}</span>
+              {/* THE LABEL KEEPS ITS WIDTH AND THE FACT KEEPS ITS SHARE.
+                  Seen live on the run screen's "Build this on your word"
+                  choice: a sentence-length fact was `shrink-0`, so it took
+                  the row and the label folded to one word per line. The
+                  first fix made the label `shrink-0` instead, which on a
+                  narrow pane pushes the fact off the row. So: the label
+                  column grows and wraps (`flex-1 min-w-0`), the fact may
+                  wrap on the right but never claims more than two fifths.
+                  A sentence belongs in `sub`, under the label, not in the
+                  datum slot. */}
+              <span className="flex min-w-0 flex-1 flex-col gap-mrd-1">
+                <span className="text-mrd-base text-mrd-ink">{o.label}</span>
+                {o.sub ? <span className="text-mrd-small text-mrd-mute">{o.sub}</span> : null}
+              </span>
               {/* Mono, because it is the row's measurement and the eye compares
                   these down the column rather than reading them. */}
-              <span className="min-w-0 text-right font-mrd-mono text-mrd-data tabular-nums text-mrd-mute">
+              <span className="min-w-0 max-w-[40%] shrink text-right font-mrd-mono text-mrd-data tabular-nums text-mrd-mute">
                 {busyId === o.id ? "picking" : (o.fact ?? "unknown")}
               </span>
             </button>
