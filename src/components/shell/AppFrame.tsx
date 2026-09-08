@@ -729,10 +729,12 @@ function RailNew({ narrow }: { narrow: boolean }) {
       className="sp-new"
       /* Named out loud only when the label is not on screen, so a screen
          reader is never handed the same words twice. */
-      aria-label={narrow ? "New work item" : undefined}
-      title={narrow ? "New work item" : undefined}
+      aria-label={narrow ? "Start a run" : undefined}
+      title={narrow ? "Start a run" : undefined}
     >
-      <span className="sp-new-label">New work item</span>
+      {/* "Start a run" (Lane 1, 2026-09-08): a run is what a sentence becomes,
+          and "work item" is a word nobody says out loud. */}
+      <span className="sp-new-label">Start a run</span>
       <IconPlus />
     </Link>
   );
