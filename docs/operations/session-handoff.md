@@ -1264,3 +1264,62 @@ gate there parks every unattended track at Build until a person approves a spec.
 
 ### Lane 1 · addendum 14:30 IST 09-08 · the entry review and what it changed
 A six-lens review of the entry (two agents at a time, per the founder's rule) surfaced 32 findings; the ones verified in code landed in four passes on main. `6995c805f`: **a fresh signup never saw the first run screen** (`/start` was exempt from the onboarding gate since it was "the zero-config entry"; it is the home now and where a signup lands), fixed; the home's rows and hero derive their state from the driver's own `holdTone` and `nothingIsComing` instead of a private held list (a person's call without a gate gets Answer that opens the run; a final stop gets Decide); the answer card closes when the refetch lands, not before; FirstRun no longer writes its positioning line into `north_star` (Lane 3's starter runs read the positioning brief since `c1867c56a`); **seat identity tokens `--mrd-seat-1..5`** in both themes, since the viz ramp handed seats the brand ember and the failure red. `ec5abfa74`: the rail crew and the top strip read the one live-work feed and name the seat, its verb and its object; the strip's door on the home focuses the composer; the Working-now strip says when it cannot see. `c2fb51362`: the first home no longer repeats FirstRun; FirstRun's form mounts once after the profile read; the hero's slot reads "Reading your workspace."; the road in promise form reads what each station hands on; a station press lists open runs only; the row clock ticks; the answer card's offset is the row's own (`ROW_GAP` exported from Meridian's Row); the product picker is Meridian's Picker and Door. `bd9aacf77`: the hero's second line carries both facts ("on its own"); row lines on `leading-mrd-snug`. `9fbe95e08`: a working row's mark fills with the seat's colour; five lint errors in entry files cleared. Earlier today: presence dots on the road (`b43d45f4d`), the first three runs (`8907d9869`), the track-change push (`9fbf0b31b`, table in the publication since Lane 3's `0094de3e9`). Deploys: 67487bbe (my presses), 0633278f (Lane 2), a12d4679 pressed 14:28 on the review passes. Still open from the review: shell header tokens on retired `--sp-*` in shell.css (medium, sizable), a ranked bet in flight drawn as mute "Running" text, a presence anchor on the home for the cursor layer. Asked of Lane 3: `readStationTimings` (the wait, designed) and a composite `readHome`.
+
+## Lane 2 · 15:10 IST 09-08 · third addendum: the station being worked draws the work
+
+**All on main, merged and pushed. In order: 100f44fe6 (the live station), d51220c91 (the run
+screen's road carries presences), ddcf49e3f (Share on the Design card, F-206), the F-208 press
+(Release the claim), b8f6c1fca (one seat, one name), 905a6e776 (Outcomes read states), 95c67e9bb
+(Sources and Findings read states), then the lint clearance of the last eight red files on this
+side. Lovable publishes pressed from this lane: 0094de3e9 and fcdd9aa38; Lane 1 has pressed
+since. Walked live twice on the probe workspace, tab focused.**
+
+**What changed, in the order a person meets it:**
+- **The read** (`getTrackToolCalls`): each call carries `argument` (the query in quotes, the
+  paths staged, the title recorded), `found` (rows a search returned), `files` and `touch`
+  (wrote/read). `src/lib/spine/tool-call-facts.ts` reduces `args` on the server so a staged
+  file's contents never reach a pane polling twice a second; `result` is read for the search
+  tools alone. Measured first: `tool_calls.args` averages 2.5 KB and peaks at 10 KB on
+  `studio.stage`; 2,700 rows in 21 days, every tool's keys covered.
+- **The right pane while a seat works** (`LiveStation.tsx`, `live-station.ts`): one
+  `AgentPresence` per live seat in `presenceColour(seat)` with its newest call as verb and
+  object; one line for what they have done so far ("6 searches, 1 read · nothing matched yet";
+  "9 reads, 3 files staged, 1 commit"); the files filling in with the seat's dot and wrote/read;
+  the calls arriving in `ToolStream`. Reads the transcript's two keys at its cadence. The old
+  sentence stays as the fallback before the first run row lands. Seen live at 14:24: "Researcher
+  is listing signals for last 90 days · 15.9s", "1 search · nothing matched yet", the stream
+  row with its argument.
+- **The transcript**: the live row and a working section's header carry the seat's dot; every
+  stream row shows its argument under the verb. **The Now card**: presences take verb and
+  object from the seat's newest call. **The road**: the run screen's Journey wraps Lane 1's
+  `withPresences`, so both roads show the same dots.
+- **One seat, one name (Lane 1 ruling):** the catalog role wins wherever the slug is known
+  (`agentDisplayName(slug, stored)` in `activity.ts` and `traces.functions.ts`); the stored
+  name stands where the slug is unknown; `presenceColour` hashes that one name everywhere. The
+  walk had found "Research" on the Now card and "Researcher" in the pane, in two colours.
+- **Design card**: Share / Stop sharing beside Open full size (F-206), receipt, and the line
+  under the frame says who the link opens for. **Claimed-path hold**: Release the claim
+  (F-208), which walks the run on as a press; the press-site canary is 6 with the reason.
+- **Depth routes' read states** (audit by subagent, then fixed): Outcomes' tab fallback says
+  "Reading the record." to everyone, the changelog and ledger wear `ReadFailedLine` with a
+  retry and a `Reading` that names its subject, an empty changelog says a release lands here the
+  moment Ship puts one out, the route boundary is a failed read rather than an empty state, the
+  Measure block no longer collapses a read in flight into a blank; Sources' binding picker lost
+  its two spinners and its raw error, and every raw `error.message` on Sources and the Findings
+  bet picker goes through `reasonLine`/`failureLine`. Inbox, Crew and the trace page were
+  already on register.
+- **Outcomes**: "Shipped, waiting for a verdict" rows confirmed live on Helio Labs.
+
+**Found on the home walk (15:00, for Lane 1 and Lane 3, both told):** a run started from the
+home composer is only driven when its run screen mounts (ninety seconds of "Not started yet",
+`driven_at` null, no run rows, until the screen was opened); the run row's mark fills green (a
+status hue) and names the seat from the stored `agent_name` while the strip says "Watch" in
+seat-4; the rail's Working-now row truncates after "working a…"; the top strip pairs the working
+seat with the last finished run's title and age.
+
+**Open, in priority order:** (1) `/start`'s hero slot is silent for the whole cold read (audit
+fix 7, Lane 1's file); (2) the Now card between seats reads the last call's verb ("It is saying
+that nothing here speaks to this") while the drive is in flight and no seat is live: `runNow`
+should say the next seat is starting; (3) the spec editor's title is not a `PageHeading`, so it
+has no `station="define"` eyebrow; (4) `/ship` and `/learn` have no rail door: delete or fold is
+a founder call.

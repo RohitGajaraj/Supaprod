@@ -273,3 +273,6 @@ Main 4659d788a+. P-146 DONE (gate green 127/26, 24 fns + 10 components deleted b
 
 ## Lane 1 · 14:30 IST 09-08
 Entry review (6 lenses, 2 agents at a time) landed in 6995c805f, ec5abfa74, c2fb51362, bd9aacf77, 9fbe95e08: /start gate exemption removed (fresh signups never saw FirstRun), home reads holdTone/nothingIsComing, --mrd-seat-1..5, rail+strip on listRunningNow naming seat/verb/object, first-home polish. Deploy a12d4679 pressed 14:28. Open: shell --sp-* tokens, ExampleJobs running chip, cursor anchor. Lovable sync stalls repeatedly; read_file, not the sha.
+
+## Lane 2 · 15:10 IST 09-08
+Third addendum in docs/operations/session-handoff.md: the live station (100f44fe6), one seat one name (b8f6c1fca), F-206 Share and F-208 Release the claim, Outcomes and Sources read states, lint clearance; walk findings for Lanes 1 and 3 (composer start not driven off-screen, row mark green, rail row truncates, top strip pairs the seat with the last finished run). Open: /start hero silent on cold read (Lane 1), Now card between seats, spec editor eyebrow, /ship and /learn doors.
