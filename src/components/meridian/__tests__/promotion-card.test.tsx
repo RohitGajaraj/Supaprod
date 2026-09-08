@@ -549,6 +549,7 @@ describe("the vocabulary a person reads", () => {
     for (const text of EVERY_STATE()) {
       expect(text, "a string carries a dash a person can see").not.toMatch(/[\u2013\u2014]/);
       expect(text, "a string carries an invisible character").not.toMatch(
+        // eslint-disable-next-line no-misleading-character-class -- the joiners ARE the subject: this guard hunts invisible characters
         /[\u200B\u200C\u200D\u2060\uFEFF\u00A0\u202F\u00AD\u200E\u200F\uFFFD]/,
       );
     }

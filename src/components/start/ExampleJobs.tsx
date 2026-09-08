@@ -307,7 +307,8 @@ export function ExampleJobs({
                     onOpenRun?.(running);
                     return;
                   }
-                  showingBets ? onStart(job) : onUse(job);
+                  if (showingBets) onStart(job);
+                  else onUse(job);
                 }}
               />
               {/*

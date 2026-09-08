@@ -249,15 +249,7 @@ function Item({ item, now }: { item: StalledItem; now: number }) {
  * all rather than a heading over a blank space: "Holding live work" above
  * nothing reads as a bug, and worse, reads as reassurance nobody verified.
  */
-function Group({
-  label,
-  rows,
-  now,
-}: {
-  label: string;
-  rows: readonly StalledItem[];
-  now: number;
-}) {
+function Group({ label, rows, now }: { label: string; rows: readonly StalledItem[]; now: number }) {
   if (rows.length === 0) return null;
   return (
     <div className="mt-4">

@@ -217,7 +217,10 @@ function Node({
           ? "transparent"
           : current && (station.state === "waiting" || station.state === "scheduled")
             ? "var(--mrd-body)"
-            : p.ink
+            : station.state === "working" && station.presences?.[0]
+              ? /* the seat inside it, in its own colour (see journeyOfRun) */
+                `var(${station.presences[0].colour})`
+              : p.ink
       : p.fill;
   const rowRing = size === "row" && current ? rowFill : p.ring;
 
