@@ -158,7 +158,15 @@ type RagSource = {
 
 type Snapshot = { kind: ResearchSourceKind; title: string; href: string; lines: string[] };
 
-/** Deep link per RAG source_kind. "note" has no protocol kind — folds into doc. */
+/**
+ * Deep link per RAG source_kind. "note" has no protocol kind and folds into doc.
+ *
+ * Every href here is a route that exists (Lane 2, 2026-09-08): a spec opens at
+ * /plan/spec/$id and a spec with no id lands on Start, since /prds has had no
+ * child route since P-14; /chat and the brain's calendar tab are gone with the
+ * meetings feature, so a meeting or a distilled finding opens the brain, which
+ * is where both are kept.
+ */
 const RAG_KIND_MAP: Record<
   string,
   { kind: ResearchSourceKind; href: (sourceId: string | null) => string }
@@ -166,10 +174,9 @@ const RAG_KIND_MAP: Record<
   signal: { kind: "signal", href: () => "/arriving" },
   doc: { kind: "doc", href: () => "/brain?tab=docs" },
   note: { kind: "doc", href: () => "/brain?tab=memory" },
-  meeting: { kind: "meeting", href: () => "/brain?tab=calendar" },
-  prd: { kind: "prd", href: (id) => (id ? `/prds/${id}` : "/prds") },
-  // F-BRAIN: distilled research findings live in the brain — recall cites /chat.
-  finding: { kind: "finding", href: () => "/chat" },
+  meeting: { kind: "meeting", href: () => "/brain" },
+  prd: { kind: "prd", href: (id) => (id ? `/plan/spec/${id}` : "/start") },
+  finding: { kind: "finding", href: () => "/brain?tab=memory" },
 };
 
 async function gatherInternal(
