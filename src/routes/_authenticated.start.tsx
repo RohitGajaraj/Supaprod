@@ -30,6 +30,8 @@ import type { WorkShape } from "@/lib/spine/route";
 import { readHomeAnswers } from "@/lib/start/home-answers.functions";
 import { homeAnswers } from "@/components/start/three-answers-above-your-runs";
 import { HomeAnswers } from "@/components/start/HomeAnswers";
+import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
+import { APPROVALS_QUEUE_PREFIX } from "@/lib/query-keys";
 
 /**
  * ── THE FRONT DOOR ────────────────────────────────────────────────────────
@@ -271,6 +273,20 @@ function StartLanding() {
     queryFn: () => fHomeReads({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
     staleTime: 60_000,
   });
+  /*
+   * WHAT IS WAITING FOR A PERSON, from the one reader the Inbox page and the
+   * rail's Inbox row use, under the shell's own key so the three share one
+   * cache entry and one request. The hero says the number; the rows carry
+   * the asks that belong to runs; Inbox holds the rest.
+   */
+  const fQueue = useServerFn(getApprovalsQueue);
+  const queueRead = useQuery({
+    queryKey: [...APPROVALS_QUEUE_PREFIX, "shell", activeWorkspaceId ?? null],
+    queryFn: () => fQueue({ data: activeWorkspaceId ? { workspaceId: activeWorkspaceId } : {} }),
+    staleTime: 10_000,
+  });
+  const waiting = queueRead.isSuccess ? (queueRead.data?.items ?? []).length : null;
+
   const sinceYouLooked = homeAnswers({
     waitingShape: null,
     arrivingCount: homeReads.isSuccess ? homeReads.data.arrivingCount : null,
@@ -299,6 +315,7 @@ function StartLanding() {
         copy={heroCopy({
           product: activeProduct?.name ?? activeWorkspace?.name ?? null,
           runs: runs.data,
+          waiting,
         })}
       />
 

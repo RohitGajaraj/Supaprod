@@ -37,6 +37,9 @@ export function heroCopy(input: {
   product: string | null;
   runs:
     readonly (Pick<StartRun, "status" | "needsYou" | "working"> & Partial<RunLike>)[] | undefined;
+  /** Everything in the approvals queue for a person, the number the Inbox
+   *  page lists and the rail's Inbox row counts. Null while unread. */
+  waiting?: number | null;
 }): HeroCopy {
   const name = input.product ?? "your product";
   const runs = input.runs;
@@ -60,11 +63,25 @@ export function heroCopy(input: {
     (r) => !r.needsYou && !r.working && "holdReason" in r && standingState(r as RunLike) === "held",
   ).length;
 
+  const rest = moving > 0 ? ` ${plural(moving, "run is", "runs are")} moving on their own.` : "";
+  /*
+   * THE ASKS BEYOND THE RUNS. Read live: the Inbox page listed six calls
+   * (design gates, decisions) while this line said nothing was waiting,
+   * because none of them was a gate on a run row. The queue's number is the
+   * one the person will meet on Inbox; it leads when it is larger.
+   */
+  const waiting = input.waiting ?? 0;
+  if (waiting > needs) {
+    return {
+      eyebrow,
+      title: `${plural(waiting, "call is", "calls are")} waiting for you.`,
+      line: `Answer them in Inbox, or on the runs below that carry them.${rest}`,
+    };
+  }
   if (runs.length === 0) {
     return { eyebrow, title: `What should ${name} do next?`, line: PROMISE };
   }
   if (needs > 0) {
-    const rest = moving > 0 ? ` ${plural(moving, "run is", "runs are")} moving on their own.` : "";
     return {
       eyebrow,
       title: `${plural(needs, "run needs", "runs need")} you.`,
@@ -72,7 +89,6 @@ export function heroCopy(input: {
     };
   }
   if (stopped > 0) {
-    const rest = moving > 0 ? ` ${plural(moving, "run is", "runs are")} moving on their own.` : "";
     return {
       eyebrow,
       title: `${plural(stopped, "run has", "runs have")} stopped.`,

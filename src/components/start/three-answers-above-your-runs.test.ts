@@ -285,17 +285,21 @@ describe("the four, together", () => {
     expect(src).toContain("homeReads.isSuccess ? homeReads.data.arrivingCount : null");
   });
 
-  it("composes no second waiting count on the home: the hero counts runs, the rows carry the ask", () => {
+  it("says what is waiting ONCE, in the hero, off the queue the Inbox page and the rail row read", () => {
     /*
      * Lane 1, 2026-09-08. The home used to read the approvals queue for a
-     * fourth sentence ("4 design gates need you, and 2 other things") above
-     * the rows that already said "Needs you". The hero now says how many RUNS
-     * need a person, from the same read the rows use, and the rail's Inbox
-     * count reads gates from the queue. One question, one reader each.
+     * fourth sentence above the rows. Then it read only the rows, and the
+     * Inbox page said six calls were waiting while the hero said nothing
+     * was. Now the hero, the rail's Inbox row and the Inbox page read
+     * getApprovalsQueue under one shell key; HomeAnswers composes no waiting
+     * sentence of its own.
      */
     const src = code(readFileSync("src/routes/_authenticated.start.tsx", "utf8"));
+    const shell = code(readFileSync("src/components/shell/AppFrame.tsx", "utf8"));
     expect(src).toContain("waitingShape: null");
-    expect(src).not.toContain("getApprovalsQueue");
+    expect(src).toContain('[...APPROVALS_QUEUE_PREFIX, "shell", activeWorkspaceId ?? null]');
+    expect(shell).toContain('[...APPROVALS_QUEUE_PREFIX, "shell", wsKey]');
+    expect(shell).toContain("gates: waitingCount ?? gateCount,");
     expect(src).toContain('.filter((a) => a.read === "answered")');
   });
 });

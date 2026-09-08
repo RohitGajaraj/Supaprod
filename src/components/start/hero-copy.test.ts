@@ -53,6 +53,16 @@ describe("heroCopy", () => {
     expect(c.line).not.toContain("Nothing");
   });
 
+  it("leads with the queue's number when the Inbox holds more than the runs carry", () => {
+    const c = heroCopy({
+      product: "Prism",
+      runs: [{ ...base, holdReason: "going-in-circles" }],
+      waiting: 6,
+    });
+    expect(c.title).toBe("6 calls are waiting for you.");
+    expect(c.line).toContain("Inbox");
+  });
+
   it("says how many are moving when nothing needs a person", () => {
     const c = heroCopy({
       product: null,

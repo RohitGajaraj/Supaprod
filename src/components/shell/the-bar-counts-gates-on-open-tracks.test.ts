@@ -16,6 +16,10 @@
  * it (the first gated track's own title) now come from this one reader, so
  * they cannot name two different populations the way the count and the
  * preview line used to.
+ *
+ * 2026-09-08 (Lane 1): the rail's Inbox ROW is a different question from
+ * the bar's sentence. It opens the Inbox page, so it counts what that page
+ * lists (the queue). The sentence is unchanged. See the second case.
  */
 import { describe, it, expect } from "bun:test";
 import { readFileSync } from "node:fs";
@@ -28,13 +32,20 @@ describe("the count comes from gates on open tracks, not the workspace-wide queu
     expect(SRC).toContain("const gateCount = gatedTracks.length;");
   });
 
-  it("no longer imports or calls getApprovalsQueue", () => {
-    // The name may still appear in a comment explaining what P-18a replaced;
-    // what must be gone is the import and the call.
-    expect(SRC).not.toContain(
-      'import { getApprovalsQueue } from "@/lib/approvals-queue.functions"',
-    );
-    expect(SRC).not.toContain("useServerFn(getApprovalsQueue)");
+  it("the SENTENCE stays on gates a person can act on; the Inbox ROW counts what the Inbox page lists", () => {
+    /*
+     * CORRECTED 2026-09-08 (Lane 1). P-18a took the queue out of the bar's
+     * sentence, rightly: "65 decisions are ready for you" was a number nobody
+     * could find. It also took it out of the rail row, and that inverted the
+     * defect: the Inbox page read "4 design gates and 2 decisions waiting for
+     * you" while the row that opens it drew no count. A row's count must be
+     * the page's count (P-56). So the row reads the queue, under the shell's
+     * own key with a fallback to the track gates while unread, and the
+     * sentence keeps reading gatedTracks.
+     */
+    expect(SRC).toContain('[...APPROVALS_QUEUE_PREFIX, "shell", wsKey]');
+    expect(SRC).toContain("gates: waitingCount ?? gateCount,");
+    expect(SRC).toContain("if (gateCount > 0 && !onTheBoard) {");
     expect(SRC).not.toContain("approvalsQueueKey(workspaceId)");
   });
 
