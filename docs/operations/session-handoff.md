@@ -1400,7 +1400,15 @@ is `readMission`, three hops from nine, on `latest_run_checkpoints` (migration `
 Five migrations this evening, `20260909100500` to `100900`, all applied and ledgered. Verified on
 15a8b47b (pressed 02:2x IST on `5f79db91a`): the run screen of 2fdf93b6 makes no `getMission` call, no
 server call over 20 KB (largest 13.6 KB), and the slowest handler is the strip's at 1.7 s warm. The
-run screen's 170 KB is gone for good. Lane 3 closed here. The guard for all of it is a fake client that counts rounds
+run screen's 170 KB is gone for good. Then Lane 1's fourth-review pair, `f812cba50`: **a throw is not a
+refusal** (`keepStarterRuns` had written a transient provider error as a final refusal the home printed
+raw and nothing retried; a throw now leaves `starter_runs` NULL, re-stamps the claim and hands the row to
+the sweep, and only the model answering with nothing usable is kept as a refusal, in a person's
+sentence), and **`openFirstRun`** (FirstRun's "Open Supaprod" ran seven nested server functions one
+after another; one call now on the request's own client, with `seedWorkspaceCore`,
+`completeOnboardingCore` and `upsertBriefItemCore` as plain functions behind their server functions;
+returns `{ workspaceId, projectId, productId, alreadySeeded }`; Lane 1 mounts it in `FirstRun.tsx`,
+and the unreachable baseline holds the rise by name at 126 until then, `3a5d7513d`). Lane 3 closed here. The guard for all of it is a fake client that counts rounds
 (`src/__tests__/a-wire-that-counts-rounds.ts`, driven by `a-queue-is-two-hops-deep` and
 `a-strip-read-is-three-hops-deep`); "every await outside a Promise.all" is what a person greps for and
 it was wrong twice, so the wire counts what the wire sees.
