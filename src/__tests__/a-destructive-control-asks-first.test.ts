@@ -44,10 +44,14 @@ const ASKS = /useConfirm|setConfirming|confirmingDiscard|openPanel|typedConfirm/
  * because "it looked fine" is what let three of the four ship.
  */
 const EXEMPT: ReadonlyArray<{ file: string; why: string }> = [
-  {
-    file: "src/components/connections/ProductBindingsSection.tsx",
-    why: "The removal is a FALLBACK, not a severing: its own control is labelled 'Use the workspace one' and the product lands on the workspace binding, which still exists. Re-binding restores it. WorkspaceBindingsSection runs the SAME server function and does ask, because a workspace binding is the bottom of that chain and has nothing underneath to inherit",
-  },
+  /*
+   * The one entry this held, ProductBindingsSection.tsx ("the removal is a
+   * FALLBACK, not a severing: the product lands on the workspace binding,
+   * which still exists"), left with the file on 2026-09-08 when the Sources
+   * rebuild (49deb765f) drew both regions itself. The reasoning stands for
+   * the next control of that shape: an unbind that falls back to something
+   * still standing is not destruction.
+   */
 ];
 
 function tsxFiles(dir: string, out: string[] = []): string[] {

@@ -166,7 +166,6 @@ describe("the doors A1 walked read their own workspace", () => {
 
   it("keys every bindings read on the workspace, or the cache shares one answer", () => {
     for (const f of [
-      "src/components/connections/WorkspaceBindingsSection.tsx",
       "src/components/connections/AccountConnectionsSection.tsx",
       "src/components/engine-room/EngineRoomEmbedded.tsx",
     ]) {

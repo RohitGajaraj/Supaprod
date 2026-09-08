@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1571,
-  "fileCount": 125,
+  "totalOccurrences": 1570,
+  "fileCount": 124,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -61,9 +61,6 @@
     "src/components/connections/CreateRepoModal.tsx": {
       "import:components/ui": 4,
       "usage:components/ui": 13
-    },
-    "src/components/connections/WorkspaceBindingsSection.tsx": {
-      "class:sp-": 1
     },
     "src/components/decisions/RewindButton.tsx": {
       "import:components/ui": 1,
