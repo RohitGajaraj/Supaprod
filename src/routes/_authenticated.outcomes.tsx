@@ -387,6 +387,7 @@ import type { CompoundingSummary } from "@/lib/moat-vis";
 import { getStandingRecord, type RecallRecord } from "@/lib/brain-standing.functions";
 import { getForecastCalibration, type ForecastCalibration } from "@/lib/brain-insights.functions";
 import { listChangelog, type ChangelogEntry } from "@/lib/changelog.functions";
+import { listReleasesAwaitingVerdict } from "@/lib/outcome.functions";
 import { getImpactLedger } from "@/lib/pm-impact.functions";
 import { getKnowledgeGraph } from "@/lib/knowledge-graph-view.functions";
 import type { GraphNodeKind, KnowledgeGraph } from "@/lib/knowledge-graph-view";
@@ -1278,6 +1279,22 @@ function MemoryPage() {
     queryFn: () => fChangelog({ data: { workspaceId: wid || undefined } }),
   });
   /*
+   * WHAT SHIPPED AND IS STILL WAITING FOR ITS VERDICT (P-147, Lane 3). The
+   * settle panel lives on /learn, which the rail no longer reaches, so the
+   * person who arrives here from the rail met "What shipped" with no word
+   * about the release standing at Learn with nothing to grade it. One row
+   * per open track at Learn with a deployment; the line is the run page's own
+   * hold sentence, so the two surfaces cannot disagree.
+   */
+  const fAwaiting = useServerFn(listReleasesAwaitingVerdict);
+  const awaitingQ = useQuery({
+    queryKey: ["outcome-awaiting-verdict", wid || null],
+    queryFn: () => fAwaiting({ data: { workspaceId: wid || null } }),
+    enabled: Boolean(wid),
+    staleTime: 30_000,
+  });
+  const awaiting = awaitingQ.data?.releases ?? [];
+  /*
    * WHAT THE RECORD MOVED (P-14b, A-QUEUE.md). `/learn`'s own reader, moved
    * rather than re-queried: same server function, same key name. The key's
    * workspace scope is `activeWorkspaceId` (this page's own, matching every
@@ -1973,6 +1990,34 @@ function MemoryPage() {
                 <LearningDetail id={learning} />
               ) : (
                 <div className="flex flex-col gap-mrd-7">
+                  {awaiting.length > 0 ? (
+                    <Region
+                      title="Shipped, waiting for a verdict"
+                      sub="Each went out and stands at Learn until the evidence it is graded on exists."
+                    >
+                      <div className="flex flex-col">
+                        {awaiting.map((r) => (
+                          <RecordLine
+                            key={r.trackId}
+                            lead={r.title}
+                            sub={
+                              <>
+                                {r.line}
+                                {r.dueOn ? <> · due {r.dueOn}</> : null}
+                                {r.onlyAPersonCanGrade
+                                  ? " · nothing connected can grade it: connect a source, or grade it on the day"
+                                  : " · record a reading on the run"}
+                              </>
+                            }
+                            time={r.shippedAt ? day(r.shippedAt) : null}
+                            onClick={() =>
+                              navigate({ to: "/track/$trackId", params: { trackId: r.trackId } })
+                            }
+                          />
+                        ))}
+                      </div>
+                    </Region>
+                  ) : null}
                   {/* WHAT SHIPPED (P-14b, A-QUEUE.md). `/ship`'s own list, one
                       row per release: title, PR, live URL, date, and the run
                       it came from when one is addressable. `/ship` itself is
