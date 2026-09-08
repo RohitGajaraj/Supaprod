@@ -3045,7 +3045,13 @@ function StationPanel({
     );
   }
 
-  const hasNotRun = stop.state === "not-reached" || (stop.state === "here" && !everDriven);
+  /* A station the route has not reached yet, or has been sent back before,
+     can still hold what it filed on an earlier pass (a Design with six
+     drawings while the work stands at Plan again). What it filed is shown;
+     "has not run yet" is only true when nothing is there. */
+  const hasNotRun =
+    stop.members.length === 0 &&
+    (stop.state === "not-reached" || (stop.state === "here" && !everDriven));
 
   if (hasNotRun) {
     const purpose = PURPOSE[stop.station];
@@ -3657,8 +3663,15 @@ export function ArtifactPane({
   activeArtifactId = null,
   onOpenArtifact,
   isRunning = false,
+  stationOverride = null,
 }: {
   trackId: string;
+  /**
+   * A stop pressed on the road that has nothing to open yet. The pane shows
+   * that station's own state (what it will do, or why it stopped) instead of
+   * ignoring the press. Cleared by the route the moment an artifact opens.
+   */
+  stationOverride?: AgentStation | null;
   /**
    * ── AN ARTIFACT ID, NOT A STATION (P-24) ────────────────────────────────
    *
@@ -3842,7 +3855,11 @@ export function ArtifactPane({
   const unresolved = Boolean(activeArtifactId) && Boolean(bodies.data) && !opened;
 
   const current =
-    opened && chain.stops.some((s) => s.station === opened.station) ? opened.station : fallback;
+    opened && chain.stops.some((s) => s.station === opened.station)
+      ? opened.station
+      : stationOverride && chain.stops.some((s) => s.station === stationOverride)
+        ? stationOverride
+        : fallback;
   const now = Date.now();
   const shown = chain.stops.find((s) => s.station === current) ?? chain.stops[0];
 

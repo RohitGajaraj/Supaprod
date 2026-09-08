@@ -6,10 +6,7 @@ import { useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 
 import "../styles/workbench.css";
-import { PageHeading, Door } from "@/components/meridian/surface-parts";
-import { Quiet } from "@/components/meridian/Quiet";
-import { getRunDoorState } from "@/lib/spine/track.functions";
-import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
+import { PageHeading } from "@/components/meridian/surface-parts";
 import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { StatusChip } from "@/components/meridian/StatusChip";
 import { TrackRunLeft, TrackPaneRight, useCopyRunSummary } from "@/components/track/TrackRun";
@@ -231,27 +228,11 @@ function TrackPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { activeWorkspace, activeWorkspaceId, activeProduct, productsVisible } = useWorkspace();
   /*
-   * ── ARRIVED HERE WITH NOTHING RUNNING (P-109, A-QUEUE.md) ────────────────
-   *
-   * The rail's Run door resolves to the account's own most recently touched
-   * track when nothing is live -- `runDoor` in `AppFrame.tsx`. Read here off
-   * the SAME query key rather than a second reader, so the two cannot
-   * disagree about which track that is: `isLastRunLanding` is true only when
-   * THIS track is the one the door itself would have opened, and nothing on
-   * it is running right now, which is the exact fact the banner states.
-   *
-   * Deliberately not "any idle track" -- a person reopening an OLDER, finished
-   * run they are intentionally reviewing is not "the last run" in the
-   * account-wide sense that sentence claims, and saying so there would be a
-   * fact about a different track.
+   * The P-109 "Nothing is running. This is the last run" block that stood
+   * here left on 2026-09-08: the Now card at the top of the work says the
+   * same fact in its own register, the footer says it again, and three
+   * statements about one moment was the defect the card was built to remove.
    */
-  const fRunDoor = useServerFn(getRunDoorState);
-  const runDoorQ = useQuery({
-    queryKey: ["run-door", activeWorkspaceId ?? null],
-    queryFn: () => fRunDoor({ data: { workspaceId: activeWorkspaceId ?? null } }),
-    enabled: !!activeWorkspaceId,
-  });
-  const isLastRunLanding = runDoorQ.data?.state === "last" && runDoorQ.data.trackId === trackId;
 
   /*
    * QUEUE 71 ON THIS ROUTE, WHERE IT WAS MISSING. The route composes the two
@@ -434,7 +415,10 @@ function TrackPage() {
     }
     return null;
   }, [artifact, artifactsQ.data?.stops]);
-  const activeStation = openedStation ?? track?.station ?? null;
+  /* A stop pressed with nothing to open: the pane shows that station's own
+     state rather than ignoring the press. Cleared when an artifact opens. */
+  const [peek, setPeek] = React.useState<AgentStation | null>(null);
+  const activeStation = openedStation ?? peek ?? track?.station ?? null;
   const copySummary = useCopyRunSummary(trackId);
 
   /*
@@ -507,27 +491,18 @@ function TrackPage() {
                 active={activeStation}
                 onSelect={(key) => {
                   const id = newestArtifactAt(artifactsQ.data?.stops, key);
-                  if (id) openArtifact(id);
+                  if (id) {
+                    setPeek(null);
+                    openArtifact(id);
+                  } else {
+                    setPeek(key);
+                    openArtifact(null);
+                  }
                 }}
                 className="mt-mrd-5"
               />
             ) : null}
             <GateBanner trackId={trackId} />
-            {/* THE RUN DOOR'S OWN "LAST" LANDING (P-109, A-QUEUE.md). Only
-                when THIS track is the one `runDoor` itself would have opened,
-                so a person deliberately reopening an older run never reads a
-                sentence about a different one. */}
-            {isLastRunLanding ? (
-              <Quiet
-                says="Nothing is running."
-                whatWillAppear="This is the last run; start a sentence to begin another."
-                action={
-                  <Door onClick={() => void navigate({ to: SIGNED_IN_HOME })}>
-                    Start a sentence
-                  </Door>
-                }
-              />
-            ) : null}
           </>
         ) : (
           <PageHeading
@@ -582,6 +557,7 @@ function TrackPage() {
             isRunning={crewLive}
             activeArtifactId={selected}
             onOpenArtifact={openArtifact}
+            stationOverride={openedStation ? null : peek}
           />
         </div>
       </div>

@@ -84,7 +84,12 @@ describe("the one station display on the run screen is the Journey in the header
   it("opens a station's newest artifact through the one URL pointer", () => {
     const route = strip(SURFACE["the route"]);
     expect(route).toContain("newestArtifactAt(artifactsQ.data?.stops, key)");
-    expect(route).toContain("if (id) openArtifact(id);");
+    expect(route).toContain("openArtifact(id);");
+    /* A stop with nothing to open still answers the press: the pane shows
+       that station's own state through `stationOverride`, cleared the moment
+       an artifact opens, so there is still one pointer for what is open. */
+    expect(route).toContain("setPeek(key);");
+    expect(route).toContain("stationOverride={openedStation ? null : peek}");
   });
 
   /*

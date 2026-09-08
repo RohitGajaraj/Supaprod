@@ -62,7 +62,7 @@ import {
   type DriveNowResult,
   type Track,
 } from "@/lib/spine/track.functions";
-import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { holdTone } from "@/lib/spine/driver";
 import { summaryText } from "@/components/track/run-summary";
 import { runTabState } from "@/components/track/run-tab";
@@ -1287,9 +1287,12 @@ export function TrackPaneRight({
   isRunning = false,
   activeArtifactId = null,
   onOpenArtifact,
+  stationOverride = null,
 }: {
   trackId: string;
   isRunning?: boolean;
+  /** A stop pressed on the road with nothing to open; see `ArtifactPane`. */
+  stationOverride?: AgentStation | null;
   /**
    * The ARTIFACT shown, chosen in the transcript or on a chip above this pane.
    *
@@ -1330,6 +1333,7 @@ export function TrackPaneRight({
         activeArtifactId={activeArtifactId}
         onOpenArtifact={onOpenArtifact}
         isRunning={isRunning}
+        stationOverride={stationOverride}
       />
       {/*
        * ── FOUR THINGS CAME OFF THIS SCREEN, AND EACH FOR ITS OWN REASON ───

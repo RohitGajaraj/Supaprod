@@ -286,12 +286,13 @@ export function runNow(input: NowInput): Now {
     };
   }
 
+  const moved = t.drivenAt ? `It last moved ${relativeTime(t.drivenAt, input.nowMs)}. ` : "";
   return {
     register: "between",
     status: "quiet",
     word: "Between steps",
     headline: `Waiting for its next turn at ${here}.`,
-    line: "The loop picks it up on its own. Run it now to skip the wait.",
+    line: `${moved}The loop picks it up on its own. Run it now to skip the wait.`,
     pulse: false,
   };
 }

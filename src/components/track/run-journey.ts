@@ -71,7 +71,9 @@ const LEARN_VERDICT: Record<string, "pass" | "fail" | "open"> = {
 /** The one short line under a stop. Null when the station has nothing to say yet. */
 export function journeyOutcome(stop: Stop, horizonDue: string | null): string | null {
   if (stop.state === "waived") return "skipped";
-  if (stop.state === "not-reached") return null;
+  /* A station the route has not reached, or was sent back before, still says
+     what it filed on an earlier pass; only a station with nothing says nothing. */
+  if (stop.state === "not-reached" && !stop.items.some((i) => !i.missing)) return null;
   switch (stop.station) {
     case "sense": {
       const n = count(stop, "signal");
