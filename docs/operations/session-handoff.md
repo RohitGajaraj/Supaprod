@@ -1359,8 +1359,10 @@ seconds before; **`approvals_queue_counts`** (`5f6487d90`, migration `2026090910
 INVOKER, applied and ledgered) for the Inbox's "N waiting in X" line, which had fired the whole queue
 once per other workspace (21 calls on one load), 53 both ways on Helio Labs, mounted by Lane 2 in
 `f4cf505da`; **the shell strip's read at three hops** (`3be14ea45`: `listStudioSessions` was eleven
-serial hops and 3.7 to 3.9 s inside the Worker on every page; not yet read live at close, the deploy
-after it was not pressed). The guard for all of it is a fake client that counts rounds
+serial hops and 3.7 to 3.9 s inside the Worker on every page; read live on c52a04db at 22:0x IST: `worker-total=1502`,
+Lane 2's cold read 0.85 to 1.56 s for the strip's handlers; what remains on a cold Worker is outside
+the handlers, the dynamically loaded Worker's own start). Also `a06a5c4c4`: `countNeedsYouCalls` at one
+hop (Today's badge, loop-health, the Inbox live line). The guard for all of it is a fake client that counts rounds
 (`src/__tests__/a-wire-that-counts-rounds.ts`, driven by `a-queue-is-two-hops-deep` and
 `a-strip-read-is-three-hops-deep`); "every await outside a Promise.all" is what a person greps for and
 it was wrong twice, so the wire counts what the wire sees.
@@ -1378,8 +1380,7 @@ cancelled Worker dropped, `starterRunsState` decides for every reader) and **`St
 (`588907227`: `zoneForUser`, the briefing, weekday, receipt and export dates in the person's zone, with
 a clock ratchet freezing 69 raw-clock files) also went up this evening.
 
-**Open, for whoever is next:** read F-213 live once a deploy after `3be14ea45` serves (the strip's
-call carries `worker-total`; compare against 3,734 / 3,856 ms); the same hop census on any other read a
+**Open, for whoever is next:** the same hop census on any other read a
 Server-Timing shows over a second (`getLiveActivity` was next on the Inbox at ~1.1 s worker-total, six
 calls per load); Lane 1's third review is still running and sends its asks as they come; the 15 lint
 files, P-130b's client half (Lanes 1 and 2), F-207 (founder's call) as before. Rule 26 held all evening
