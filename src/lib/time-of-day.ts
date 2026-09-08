@@ -83,3 +83,22 @@ export function dateTimeInZone(iso: string, zone: string, nowIso: string): strin
   }).format(new Date(iso));
   return `${monthDay}, ${clock}`;
 }
+
+/** "Monday, September 8", in the person's zone: the day a briefing is for. */
+export function longDayInZone(iso: string, zone: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: zone,
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(iso));
+}
+
+/** The weekday alone ("M", "Mon", "Monday"), in the person's zone. */
+export function weekdayInZone(
+  iso: string,
+  zone: string,
+  width: "narrow" | "short" | "long",
+): string {
+  return new Intl.DateTimeFormat("en-US", { timeZone: zone, weekday: width }).format(new Date(iso));
+}

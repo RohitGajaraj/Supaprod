@@ -189,7 +189,9 @@ export function renderDesignMd(doc: DesignMemoryDocument): string {
 
   lines.push(`# ${doc.title}`);
   lines.push(
-    `\n> _Created: ${new Date(doc.created_at).toLocaleDateString()} · Last updated: ${new Date(doc.updated_at).toLocaleDateString()}_\n`,
+    // ISO days: a document travels, and a browser-local date in it would name
+    // a different day for every reader.
+    `\n> _Created: ${doc.created_at.slice(0, 10)} · Last updated: ${doc.updated_at.slice(0, 10)}_\n`,
   );
 
   if (doc.principles.length > 0) {

@@ -87,17 +87,3 @@ export function answerTitle(text: string, max = 280): string {
       .find((l) => l.length > 0) ?? "Ask answer";
   return line.slice(0, max);
 }
-
-/** Mono short-day label for thread day dividers, e.g. "TODAY" or "JUL 14". */
-export function dayLabel(at: number, now = Date.now()): string {
-  const d = new Date(at);
-  const today = new Date(now);
-  if (d.toDateString() === today.toDateString()) return "TODAY";
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase();
-}
-
-/** Whether a day divider belongs between two consecutive thread messages. */
-export function needsDayDivider(prevAt: number | undefined, at: number): boolean {
-  if (prevAt === undefined) return false;
-  return new Date(prevAt).toDateString() !== new Date(at).toDateString();
-}

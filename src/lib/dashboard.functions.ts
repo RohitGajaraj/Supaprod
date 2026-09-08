@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { ensureTodayBrief } from "@/lib/copilot.functions";
+import { weekdayInZone } from "@/lib/time-of-day";
+import { zoneForUser } from "@/lib/profile-zone.server";
 
 function startOfDay(d = new Date()) {
   const x = new Date(d);
@@ -94,6 +96,9 @@ export const getDashboard = createServerFn({ method: "GET" })
       }
     }
 
+    // The weekday letters under the deep-work bars, in the person's own zone.
+    const zone = await zoneForUser(context.supabase as never, context.userId);
+
     // Focus score: blend deep-work tasks vs meeting load today
     const deepCount = (todayTasks ?? []).filter((t) => t.is_deep_work).length;
     const meetingMinutes = (todayMeetings ?? []).reduce((acc, m) => {
@@ -115,7 +120,7 @@ export const getDashboard = createServerFn({ method: "GET" })
           t.completed_at &&
           t.completed_at.slice(0, 10) === dayStr,
       ).length;
-      return { day: day.toLocaleDateString("en-US", { weekday: "narrow" }), count: completed };
+      return { day: weekdayInZone(day.toISOString(), zone, "narrow"), count: completed };
     });
 
     // Stakeholders from recent meetings
