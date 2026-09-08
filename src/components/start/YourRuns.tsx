@@ -43,8 +43,9 @@ import {
   type StartRow,
   type StartRowKind,
 } from "@/components/today/tracks-feed";
-import { journeyOfRun } from "@/components/start/journey-of-a-run";
+import { journeyOfRun, standingState } from "@/components/start/journey-of-a-run";
 import { TrackConsent } from "@/components/track/TrackConsent";
+import { HoldCard } from "@/components/track/HoldCard";
 import { listRunsForStart, pinTrack, type StartRun } from "@/lib/spine/track.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useTimezone } from "@/hooks/use-timezone";
@@ -90,6 +91,10 @@ function RunRow({
   const chip = CHIP[r.kind];
   const canPin = r.kind !== "finished" && r.kind !== "abandoned";
   const needsYou = r.kind === "needs-you";
+  /* STOPPED ON A CONDITION ONLY A PERSON CAN CHANGE: the row offers the
+     run screen's own hold card in place (Lane 2's HoldCard, standalone by
+     trackId), with "Let X try again" and "Stop spending on this". */
+  const held = !needsYou && run ? standingState(run) === "held" : false;
   return (
     <>
       <Row
@@ -115,6 +120,10 @@ function RunRow({
               <Action variant="primary" aria-expanded={askOpen} onClick={() => onAsk(r.id)}>
                 {askOpen ? "Close" : "Answer"}
               </Action>
+            ) : held ? (
+              <Action variant="default" aria-expanded={askOpen} onClick={() => onAsk(r.id)}>
+                {askOpen ? "Close" : "Decide"}
+              </Action>
             ) : r.pinnedAt ? (
               <StatusChip status="you" pulse={false}>
                 First
@@ -135,6 +144,11 @@ function RunRow({
       {needsYou && askOpen ? (
         <div className="mb-mrd-3 ml-[84px] mt-mrd-2" data-mrd="">
           <TrackConsent trackId={r.id} onAnswered={onAnswered} />
+        </div>
+      ) : null}
+      {held && askOpen ? (
+        <div className="mb-mrd-3 ml-[84px] mt-mrd-2" data-mrd="">
+          <HoldCard trackId={r.id} onSettled={onAnswered} />
         </div>
       ) : null}
     </>

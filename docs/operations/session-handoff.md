@@ -1037,3 +1037,14 @@ times; `date` goes in the Bash call that writes the record.
 **Live and verified on supaprod.ai:** the header's idle fact ("Last finished · title · 3d ago"). Seen on the founder's own workspace (Helio Labs / Prism): the hero names Prism, the road shows Discover 1, Build 2 and Ship 2 in amber, Learn 4, the "This run is for Prism" picker, and three ranked bets from evidence.
 
 **Left on the list:** the rail foot's "Every run" board (`shell/BoardPanel.tsx`) opens the retired mission board (RunBoard over missions and studio sessions), a second answer to "where is all the work"; seven guards pin it, so it stays until the mission board is retired with Lane 2. A standalone hold card for stopped rows on the home (asked of Lane 2). The gallery at `/meridian` is dev-only.
+
+## Lane 1 · 11:26 IST 09-08 · four more landings; the home now answers in place
+
+- `31e019019` Journey takes `selects` ("pane" is a tablist for the run screen; "filter" is a group of toggles for the home's map).
+- `685d7b709` one question, one number: the rail's Inbox row, the home's hero and the Inbox page read `getApprovalsQueue` under one shell key (`[...APPROVALS_QUEUE_PREFIX, "shell", wsKey]`); the hero leads with "N calls are waiting for you." when the queue holds more than the rows carry; the header's own sentence keeps P-18a's gates-on-open-tracks; the row falls back to that count while unread. Read live before the fix: page "4 design gates and 2 decisions", row no count, hero "nothing is waiting".
+- `16edba500` the home's foot no longer carries a second door to Outcomes (it is a rail row).
+- `f18cfb516` a held row on the home carries Decide, which opens Lane 2's standalone `HoldCard` under the row ("Let X try again" / "Stop spending on this"); the ask uses the same slot via `TrackConsent`. One card open at a time.
+
+**Verified live on supaprod.ai (probe workspace, 11:26 IST):** "Start a run" in the rail head; hero "2 runs have stopped." with its line; header "Last finished · title · 3d ago". A transient "Internal server error" at 11:25 was the deploy switching over; every route and both health endpoints were 200 a minute later.
+
+**Owed live reads once the next publish lands:** the hero's "6 calls are waiting for you." with the Inbox row's count on the probe; the Decide press opening the hold card under a held row; Answer opening the ask under a needs-you row (needs an open gate on a run row).
