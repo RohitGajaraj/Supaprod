@@ -1698,32 +1698,30 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             }>) {
               if (m.artifact_id) trackByMission.set(m.artifact_id, m.track_id);
             }
-            const { data: changesets } = await supabase
-              .from("studio_changesets" as never)
-              .select("id,mission_id")
-              .in("mission_id", missionIds);
-            const missionByChangeset = new Map<string, string>();
-            for (const c of (changesets ?? []) as unknown as Array<{
-              id: string;
-              mission_id: string | null;
-            }>) {
-              if (c.mission_id) missionByChangeset.set(c.id, c.mission_id);
-            }
-            const changesetIds = [...missionByChangeset.keys()];
-            if (changesetIds.length === 0) return byTrack;
+            /*
+             * ONE READ, NOT TWO: the deployment carries its changeset's
+             * mission as an inner embed (deployments.changeset_id is a
+             * foreign key), filtered on the embedded column, so the
+             * changesets-then-deployments pair that used to sit here (the
+             * home's longest chain, four hops from the tracks read) is one
+             * hop. F-212's census, 2026-09-08.
+             */
             const { data: deploys } = await supabase
               .from("deployments" as never)
-              .select("changeset_id,deployed_at,created_at")
+              .select(
+                "changeset_id,deployed_at,created_at,changeset:studio_changesets!inner(mission_id)",
+              )
+              .eq("workspace_id", workspaceId)
               .eq("environment", "production")
               .eq("status", "success")
-              .in("changeset_id", changesetIds);
+              .in("changeset.mission_id", missionIds);
             for (const d of (deploys ?? []) as unknown as Array<{
               changeset_id: string | null;
               deployed_at: string | null;
               created_at: string;
+              changeset: { mission_id: string | null } | null;
             }>) {
-              if (!d.changeset_id) continue;
-              const missionId = missionByChangeset.get(d.changeset_id);
+              const missionId = d.changeset?.mission_id ?? null;
               const trackId = missionId ? trackByMission.get(missionId) : null;
               if (!trackId) continue;
               const at = d.deployed_at ?? d.created_at;
