@@ -83,13 +83,68 @@ import { queueShape } from "@/components/approvals/a-queue-is-a-shape-not-a-tota
  */
 const PLACEHOLDER = "Make the checkout accept an American Express card";
 
+/**
+ * A goal that can follow "Help <name>": it starts with a verb. Seen live on
+ * Relay (2026-09-08): its north star is an outcome sentence ("every
+ * homeowner understands their energy use at a glance"), and the template
+ * printed "Help Relay every homeowner understands", the same garble the
+ * first run screen had with a positioning line. A short list of the verbs a
+ * goal opens with is the guard; anything else falls to the plain frame.
+ */
+const GOAL_VERBS = new Set([
+  "get",
+  "make",
+  "cut",
+  "ship",
+  "reach",
+  "grow",
+  "reduce",
+  "increase",
+  "raise",
+  "bring",
+  "take",
+  "turn",
+  "keep",
+  "let",
+  "help",
+  "stop",
+  "double",
+  "halve",
+  "win",
+  "land",
+  "close",
+  "move",
+  "lift",
+  "drive",
+  "hit",
+  "add",
+  "give",
+  "put",
+  "build",
+  "launch",
+  "open",
+  "sell",
+  "convert",
+  "retain",
+  "onboard",
+  "deliver",
+  "finish",
+  "improve",
+  "lower",
+  "shorten",
+  "speed",
+]);
+
 export function placeholderFor(product: { name: string; northStar: string | null } | null): string {
   if (product?.northStar) {
     /* The goal is a sentence in the product's own words ("Get 40% of active
        users to a funded savings goal"), so it follows "Help <name>" with its
        first letter lowered, and never a preposition it was not written for. */
     const goal = product.northStar.trim().replace(/[.]+$/, "");
-    return `Help ${product.name} ${goal.charAt(0).toLowerCase()}${goal.slice(1)}`;
+    const first = goal.split(/\s+/)[0]?.toLowerCase() ?? "";
+    if (GOAL_VERBS.has(first)) {
+      return `Help ${product.name} ${goal.charAt(0).toLowerCase()}${goal.slice(1)}`;
+    }
   }
   if (product?.name) return `Change one thing in ${product.name}, and say what it should do`;
   return PLACEHOLDER;

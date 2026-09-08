@@ -102,3 +102,24 @@ describe("heroCopy", () => {
     expect(c.title).toBe("What should Prism do next?");
   });
 });
+
+describe("placeholderFor", () => {
+  test("a goal that opens with a verb follows Help <name>; an outcome sentence does not", async () => {
+    const { placeholderFor } = await import("@/routes/_authenticated.start");
+    expect(
+      placeholderFor({
+        name: "Prism",
+        northStar: "Get 40% of active users to a funded savings goal.",
+      }),
+    ).toBe("Help Prism get 40% of active users to a funded savings goal");
+    /* Seen live on Relay, 2026-09-08: "Help Relay every homeowner understands
+       their energy use" is not a sentence. An outcome falls to the plain frame. */
+    expect(
+      placeholderFor({
+        name: "Relay",
+        northStar: "Every homeowner understands their energy use at a glance",
+      }),
+    ).toBe("Change one thing in Relay, and say what it should do");
+    expect(placeholderFor(null)).toBe("Make the checkout accept an American Express card");
+  });
+});
