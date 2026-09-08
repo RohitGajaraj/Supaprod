@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { standingState } from "./journey-of-a-run";
+import { standingState, withPresences } from "./journey-of-a-run";
 
 const base = {
   status: "open" as const,
@@ -30,5 +30,37 @@ describe("standingState", () => {
 
   test("a person's call outranks any hold", () => {
     expect(standingState({ ...base, needsYou: true, holdReason: "given-up" })).toBe("you");
+  });
+});
+
+describe("withPresences", () => {
+  const stations = [
+    { key: "discover" as const, state: "working" as const, count: 1 },
+    { key: "build" as const, state: "pending" as const, count: 0 },
+  ];
+  const colour = (seat: string) => `--mrd-viz-${seat.length}`;
+
+  test("a seat working at a station is drawn there, in its own colour", () => {
+    const out = withPresences(stations, [{ seat: "Ada", station: "discover" }], colour);
+    expect(out[0]!.presences).toEqual([{ seat: "Ada", colour: "--mrd-viz-3" }]);
+    expect(out[1]!.presences).toBeUndefined();
+  });
+
+  test("the same seat twice at one station is one dot; a seat with no station draws nowhere", () => {
+    const out = withPresences(
+      stations,
+      [
+        { seat: "Ada", station: "discover" },
+        { seat: "Ada", station: "discover" },
+        { seat: "Grace", station: null },
+      ],
+      colour,
+    );
+    expect(out[0]!.presences).toHaveLength(1);
+    expect(out[1]!.presences).toBeUndefined();
+  });
+
+  test("no seats leaves the map exactly as it was", () => {
+    expect(withPresences(stations, [], colour)).toEqual(stations);
   });
 });

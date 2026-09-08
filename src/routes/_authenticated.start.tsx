@@ -14,9 +14,12 @@ import { YourRuns } from "@/components/start/YourRuns";
 import { Arriving } from "@/components/start/Arriving";
 import { Hero, heroCopy } from "@/components/start/Hero";
 import { JourneyMap, promiseStations } from "@/components/start/JourneyMap";
-import { CrewAtWork } from "@/components/start/CrewAtWork";
+import { CrewAtWork, workingSeats } from "@/components/start/CrewAtWork";
+import { presenceColour } from "@/components/meridian/AgentPresence";
+import { listRunningNow } from "@/lib/spine/track.functions";
+import { runningNowKey } from "@/lib/query-keys";
 import { WhatWeAlreadyHold } from "@/components/spine/WhatWeAlreadyHold";
-import { journeyMap } from "@/components/start/journey-of-a-run";
+import { journeyMap, withPresences } from "@/components/start/journey-of-a-run";
 import { failureLine } from "@/lib/error-copy";
 import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -328,7 +331,22 @@ function StartLanding() {
     nowIso: new Date().toISOString(),
   }).filter((a) => a.read === "answered");
 
-  const map = useMemo(() => journeyMap(runs.data ?? []), [runs.data]);
+  /*
+   * WHO IS WORKING WHERE, on the road itself. The same read and key the
+   * Working-now strip and the rail crew use (one request, one cache entry;
+   * useRunningNowPush moves it the moment a seat starts or stamps), so the
+   * map's dots and the strip's rows can never disagree.
+   */
+  const fRunning = useServerFn(listRunningNow);
+  const running = useQuery({
+    queryKey: runningNowKey(activeWorkspaceId ?? null),
+    queryFn: () => fRunning({ data: { workspaceId: activeWorkspaceId ?? null } }),
+    refetchInterval: 10_000,
+  });
+  const map = useMemo(
+    () => withPresences(journeyMap(runs.data ?? []), workingSeats(running.data), presenceColour),
+    [runs.data, running.data],
+  );
   const openRun = (trackId: string) =>
     void navigate({ to: "/track/$trackId", params: { trackId }, search: {} });
 

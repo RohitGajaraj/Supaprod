@@ -129,6 +129,29 @@ export function journeyMap(runs: readonly RunLike[]): JourneyStation[] {
   });
 }
 
+/**
+ * THE MAP CARRIES WHO IS WORKING WHERE. The seats come from the same
+ * `listRunningNow` read the Working-now strip draws, keyed by station; each
+ * is given the presence colour AgentPresence gives it everywhere else, so
+ * the road, the strip and the run screen agree on who is who.
+ */
+export function withPresences(
+  stations: readonly JourneyStation[],
+  seats: ReadonlyArray<{ seat: string; station: string | null }>,
+  colourOf: (seat: string) => string,
+): JourneyStation[] {
+  if (seats.length === 0) return [...stations];
+  return stations.map((s) => {
+    const here = seats.filter((w) => w.station === s.key);
+    if (here.length === 0) return s;
+    const seen = new Set<string>();
+    const presences = here
+      .filter((w) => (seen.has(w.seat) ? false : (seen.add(w.seat), true)))
+      .map((w) => ({ seat: w.seat, colour: colourOf(w.seat) }));
+    return { ...s, presences };
+  });
+}
+
 export function keyOfStation(station: string): JourneyKey | null {
   return (JOURNEY_ORDER as readonly string[]).includes(station) ? (station as JourneyKey) : null;
 }
