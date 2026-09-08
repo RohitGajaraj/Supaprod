@@ -1397,8 +1397,10 @@ run's brief (91 KB, drawn by nobody) and the whole state of each run's latest ch
 state across 185 checkpoints read in full to keep the newest per run in JS). `382a72682`:
 `listMissionHandoffs` (agent_messages alone, one hop) for the run screen on the same key; `getMission`
 is `readMission`, three hops from nine, on `latest_run_checkpoints` (migration `20260909100900`).
-Five migrations this evening, `20260909100500` to `100900`, all applied and ledgered. **Verify on the
-next press: no server call over 20 KB on the run screen of 2fdf93b6, and none over 2 s warm.** The guard for all of it is a fake client that counts rounds
+Five migrations this evening, `20260909100500` to `100900`, all applied and ledgered. Verified on
+15a8b47b (pressed 02:2x IST on `5f79db91a`): the run screen of 2fdf93b6 makes no `getMission` call, no
+server call over 20 KB (largest 13.6 KB), and the slowest handler is the strip's at 1.7 s warm. The
+run screen's 170 KB is gone for good. Lane 3 closed here. The guard for all of it is a fake client that counts rounds
 (`src/__tests__/a-wire-that-counts-rounds.ts`, driven by `a-queue-is-two-hops-deep` and
 `a-strip-read-is-three-hops-deep`); "every await outside a Promise.all" is what a person greps for and
 it was wrong twice, so the wire counts what the wire sees.
