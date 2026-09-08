@@ -187,8 +187,45 @@ export type EdgeCache = {
  * so the absence of a cache is never an error, only a miss.
  */
 function edgeCache(): EdgeCache | null {
+  if (edgeCacheStoodDown) return null;
   const store = (globalThis as { caches?: { default?: EdgeCache } }).caches;
   return store?.default ?? null;
+}
+
+/**
+ * A STORE THAT REFUSED ONCE IS NOT ASKED AGAIN IN THIS ISOLATE.
+ *
+ * 2026-09-08, after F-203's fix served: `error_events` filled with one
+ * `edge-cache-match` row per anonymous marketing read, all saying "Cache API
+ * is not yet supported for dynamically-loaded workers". The hosting runtime
+ * loads the Worker dynamically, so `caches.default` exists and every call on
+ * it throws. A refusal that repeats on every request is one fact reported a
+ * thousand times, and each report is a write on the request's own clock.
+ *
+ * So the first refusal, of a match or a put, is reported with the runtime's
+ * own message and stands the store down for the isolate's life: `edgeCache()`
+ * answers null from then on, the handler reads BYPASS (it never consulted the
+ * store), and nothing further is written. An isolate is recycled often
+ * enough that a transient fault heals itself on the next one; a permanent
+ * one, like this runtime's, costs one row per isolate instead of one per
+ * visitor. Whether the Worker-held half of P-135 should exist at all on a
+ * runtime that cannot honour it is a founder question the queue carries.
+ */
+let edgeCacheStoodDown: string | null = null;
+
+/** The reason the store stood down in this isolate, or null while it is in use. */
+export function edgeCacheStandDown(): string | null {
+  return edgeCacheStoodDown;
+}
+
+/** Tests only: a fresh isolate. */
+export function resetEdgeCacheForTests(): void {
+  edgeCacheStoodDown = null;
+}
+
+function standDownEdgeCache(error: unknown): void {
+  if (edgeCacheStoodDown) return;
+  edgeCacheStoodDown = error instanceof Error ? error.message : String(error);
 }
 
 /**
@@ -217,6 +254,7 @@ export async function answerFromEdgeCache(
   pathname: string,
   report: (error: unknown, ctx: ErrorContext) => unknown = captureError,
 ): Promise<Response | null> {
+  if (edgeCacheStoodDown) return null;
   const servedAt = performance.now();
   try {
     const hit = await store.match(request);
@@ -225,7 +263,11 @@ export async function answerFromEdgeCache(
       withWorkerTotalTiming(withCacheMarker(hit, "HIT"), performance.now() - servedAt),
     );
   } catch (error) {
-    report(error, { surface: "edge-cache-match", request_path: pathname });
+    // Reported once, then the store stands down for the isolate (see above).
+    if (!edgeCacheStoodDown) {
+      report(error, { surface: "edge-cache-match", request_path: pathname });
+    }
+    standDownEdgeCache(error);
     return null;
   }
 }
@@ -243,10 +285,14 @@ export function storeInEdgeCache(
   pathname: string,
   report: (error: unknown, ctx: ErrorContext) => unknown = captureError,
 ): Promise<void> {
+  if (edgeCacheStoodDown) return Promise.resolve();
   return Promise.resolve()
     .then(() => store.put(request, response))
     .catch((error: unknown) => {
-      report(error, { surface: "edge-cache-put", request_path: pathname });
+      if (!edgeCacheStoodDown) {
+        report(error, { surface: "edge-cache-put", request_path: pathname });
+      }
+      standDownEdgeCache(error);
     });
 }
 
@@ -773,7 +819,11 @@ export default {
       return withBuildCanary(
         withWorkerTotalTiming(
           withEntryLoadTiming(
-            withCacheMarker(storable, cacheEligible ? "MISS" : "BYPASS"),
+            // BYPASS when the store was never consulted, which includes a
+            // store that has stood down: MISS would report a lookup that did
+            // not happen, the exact claim the three-state marker exists to
+            // refuse.
+            withCacheMarker(storable, cacheStore ? "MISS" : "BYPASS"),
             entryLoadMs,
           ),
           fetchMs,

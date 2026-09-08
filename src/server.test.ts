@@ -1,6 +1,8 @@
 import { describe, expect, test, afterEach } from "bun:test";
 import { readFileSync } from "node:fs";
 import {
+  edgeCacheStandDown,
+  resetEdgeCacheForTests,
   AGENT_DISCOVERY_LINK_HEADER,
   withAgentDiscoveryLink,
   withMarketingCacheHeaders,
@@ -16,6 +18,13 @@ import {
   withoutRenderTiming,
   withBuildCanary,
 } from "./server";
+
+/*
+ * The edge cache stands down for the isolate's life after one refusal (see
+ * server.ts), and this file is one isolate: a test that refuses the store
+ * would otherwise stand it down for every test after it. Fresh per test.
+ */
+afterEach(() => resetEdgeCacheForTests());
 
 describe("withMarketingCacheHeaders", () => {
   test("caches a public marketing route at the edge", () => {
@@ -577,5 +586,76 @@ describe("withBuildCanary", () => {
     const result = withBuildCanary(new Response("nope", { status: 404 }));
     expect(result.headers.get("X-Supaprod-Build")).toBe("abc123");
     expect(result.status).toBe(404);
+  });
+});
+
+describe("a store that refused once is not asked again in this isolate", () => {
+  /*
+   * 2026-09-08: on the hosting runtime `caches.default` exists and every call
+   * throws "Cache API is not yet supported for dynamically-loaded workers", so
+   * after F-203's fix each anonymous marketing read wrote one error row. One
+   * fact is reported once; the store stands down for the isolate.
+   */
+  const req = new Request("https://supaprod.ai/pricing");
+  const refusal = new Error("Cache API is not yet supported for dynamically-loaded workers.");
+  afterEach(() => resetEdgeCacheForTests());
+
+  test("the first refused match is reported, the second is not even attempted", async () => {
+    resetEdgeCacheForTests();
+    let asked = 0;
+    const reported: unknown[] = [];
+    const store = {
+      match: () => {
+        asked += 1;
+        return Promise.reject(refusal);
+      },
+      put: () => Promise.resolve(),
+    };
+    const report = (error: unknown) => reported.push(error);
+    expect(await answerFromEdgeCache(store, req, "/pricing", report)).toBeNull();
+    expect(await answerFromEdgeCache(store, req, "/pricing", report)).toBeNull();
+    expect(asked).toBe(1);
+    expect(reported).toHaveLength(1);
+    expect(edgeCacheStandDown()).toBe(refusal.message);
+  });
+
+  test("a stood-down store is not written to either, and nothing is reported", async () => {
+    resetEdgeCacheForTests();
+    let put = 0;
+    const reported: unknown[] = [];
+    const store = {
+      match: () => Promise.reject(refusal),
+      put: () => {
+        put += 1;
+        return Promise.resolve();
+      },
+    };
+    await answerFromEdgeCache(store, req, "/pricing", (e) => reported.push(e));
+    await storeInEdgeCache(store, req, new Response("x"), "/pricing", (e) => reported.push(e));
+    expect(put).toBe(0);
+    expect(reported).toHaveLength(1);
+  });
+
+  test("a refused put stands the store down the same way", async () => {
+    resetEdgeCacheForTests();
+    const reported: unknown[] = [];
+    const store = { match: () => Promise.resolve(undefined), put: () => Promise.reject(refusal) };
+    await storeInEdgeCache(store, req, new Response("x"), "/pricing", (e) => reported.push(e));
+    await storeInEdgeCache(store, req, new Response("x"), "/pricing", (e) => reported.push(e));
+    expect(reported).toHaveLength(1);
+    expect(edgeCacheStandDown()).toBe(refusal.message);
+  });
+
+  test("a store that answers keeps answering", async () => {
+    resetEdgeCacheForTests();
+    const store = { match: () => Promise.resolve(undefined), put: () => Promise.resolve() };
+    expect(await answerFromEdgeCache(store, req, "/pricing", () => {})).toBeNull();
+    expect(edgeCacheStandDown()).toBeNull();
+  });
+
+  test("the handler marks BYPASS when the store was never consulted", () => {
+    const src = readFileSync("src/server.ts", "utf8");
+    expect(src).toContain('withCacheMarker(storable, cacheStore ? "MISS" : "BYPASS")');
+    expect(src).not.toContain('cacheEligible ? "MISS" : "BYPASS"');
   });
 });

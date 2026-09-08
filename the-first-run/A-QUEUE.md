@@ -10898,7 +10898,7 @@ the tip, tsc 0, build 0; sha pair per rule 23.
 
 **DoD.** Pushed; the three numbers; the measurement in the report.
 
-### P-146 · The unreachable check is green again, one export at a time · Lane: **A3** (after P-141, before P-130b) · Status: IN PROGRESS, FIRST BATCH PUBLISHED (five commits to 763c56051: meetings, calendar and audio deleted whole, the threads folders server functions, the legacy product-binding functions, five components and run-parts' old row set, three guards fixed that the deletions broke; A3 local: tsc 0, 14,755 / 0, build 0, every touched file lint clean; A1 gate 174 on the landed tip: build 0, tsc 0, 14,772 pass / 0 fail, unreachable 153 of 655 server functions and 30 of 476 components against 139 and 26, lint 724 problems with 72 files under src; published 21:36 IST; the rest of the sweep continues in the next session) · Moves: 5
+### P-146 · The unreachable check is green again, one export at a time · Lane: **A3 / Lane 3** · Status: DONE (Lane 3, 2026-09-08; gate exits 0 at 128 server functions and 26 components against 139 and 26, re-frozen with names; landed d723807e3, 7980285de, dbfbf3048, e8e75a38d, 1aa96c13d) · Moves: 5
 
 **Why.** `bun run check:unreachable` is red on main and has been for some time: at 2076e8b65 it
 reports 181 of 682 server functions and 43 of 489 exported components with no importer in `src/`,
@@ -10978,6 +10978,52 @@ P-146's own edits, fixed here since touched this session).
 **check:unreachable:** 179 -> 153 server functions, 43 -> 30 components. Baseline is 139 / 26;
 14 more functions and 4 more components still need triage to close the gap. Continuing in a later
 pass; not blocking the queue on it per A1's stated order (P-151 next, then back to P-146).
+
+**Report (Lane 3, 2026-09-08).** Every export the gate named was read one at a time (four
+read-only triage agents, one per file group, each verdict checked against the code before
+acting), and each is now one of three things, written in the commit that carried it.
+
+*Deleted, 24 server functions and 7 components, each named in its commit:* the twelve
+`studio.functions.ts` exports that lost their only screen with `/runs/$missionId` (P-14), of
+which Lane 2 kept five for the run screen's Build artifact (`abandonChangeset`,
+`getChangesetRevisions`, `revertToRevision`, `rejectStagedFile`, `getRollbacks`) and seven went
+(`setChangesetConstraints`, `applyStagedHunkSelection`, `enforceTouchList`,
+`generateRollbackNote`, `getStudioSession`, `getStudioPreview`, `generateLaunchKit`) with their
+types and the three helpers only they called; `listBuilderClaims`, `listDispatchDesignGates`,
+`listSpecDispatches` (build); `redrawDesignScaffold`; `getMissionTestPlan`; `getDesignParity`
+and `checkDesignParity` (a feature that produced zero rows across its life); the three roadmap
+writers with `roadmap-bulk.ts` and `classifyRoadmapWrite`; `deleteOpportunity`;
+`getPrecedentCitations`; `getWorkspaceSpendPolicy`; `getLineageCounts` with `countLineage` (its
+baseline note had been false since `aea9e40c7`); `advanceTrack`; `cancelMission`;
+`promoteMission`; `runWedgeTeardown`, `triggerWorkspaceSeed`, `isDemoSeedEnabled` (exposed by
+the onboarding deletion). Components: `SkeletonBlock`, `StatusChip`, `StatusIcon`,
+`ChangesetChip` (studio-ui), `Teammates`, `LineageDrawer` (its `KIND_LABEL` rehomed to
+`artifact-words.ts`), `RunBoard` with `step-progress` and `run-parts` (on Lane 2's word after
+Lane 1 took the board off the rail), `ProductBindingsSection` and `WorkspaceBindingsSection`
+(on Lane 2's word after their Sources rebuild), plus Lane 1's own `SketchSpec`, `IconToday`,
+`IconEngine`, `IconBoard`.
+
+*Kept on the list and NOT dead, each a gap the record now carries (the baseline's
+`_lastBanked` names them):* `releaseBuilderClaim` (no operator force-release exists; the tool
+registry's two conflict sentences told agents to release a claim "from /build", a redirect
+stub, and now say how a claim actually releases); `dispatchBuilderMission` (the only
+server-side spec and design gate; the spine driver dispatches Build through `createMission`
+and checks neither); `recordTestStationVerdict` (the only writer of the `test_verdict`
+lineage relation); `togglePrototypeShare` and `publishPrototypeFromPrd` (no prototype can be
+made public today: both writers insert `is_public: false`, and the pane's "Open full size"
+door and `/p/$slug` both gate on it); `getDesignWorkItem`, `getScaffoldProvenance`,
+`listDesignWork`; `getBriefAlignment` (Discover's rank line cannot say "on a standing top bet"
+while `setOpportunityBriefLink` still writes the link); `revertRoadmapItemToPrevious`
+(`roadmap.move` still writes the snapshot only this could restore); `getPushedInsights` and
+`markInsightActioned` (the derive tick writes cards every two hours that nothing reads);
+`getFocusNext` (P-154); `submitFeedback` (F-85); `checkDeploymentEmbeddable` and
+`listPlatformProviders` (wired the same day); `recordOnboardingMilestone` (wired by Lane 1
+the same day). One behaviour left with `cancelMission` that nothing does now: a person's
+stop does not cancel the run's pending `agent_approvals` (F-205).
+
+*Gate:* 139 → 128 server functions of 629, 26 → 26 components of 462, instrument v3, exits 0
+for the first time since 2026-08-31; every deletion lands with tsc 0, the full suite green and
+`bun run build` 0. Not wired into a hook or CI (out of scope, as written).
 
 ### P-147 · Outcomes says why the first release has no verdict · Lane: **A3** (after P-130b, and after A2's P-144 lands its composer) · Status: READY · Moves: 1, 3
 
@@ -11163,7 +11209,7 @@ guard says so.
 
 **DoD.** Pushed; the three numbers.
 
-### P-152 · Lint is green under src, one rule at a time · Lane: **A3** (after P-146, before P-130b) · Status: READY · Moves: 5
+### P-152 · Lint is green under src, one rule at a time · Lane: **A3 / Lane 3** · Status: IN PROGRESS (Lane 3, 2026-09-08: files under src with an error 75 → 43; prettier 248 → 62 errors, all in files Lane 1 and Lane 2 hold; every non-prettier rule but no-explicit-any at zero in Lane 3's files; 249 no-explicit-any remain, 26 files, mostly test mocks) · Moves: 5
 
 **Why (A1, 21:09 IST 09-04).** `bun run lint` on 252385cc6: 752 problems, 578 errors, 174 warnings,
 82 files under `src/` carrying an error, most of them prettier wraps and `require()` imports in
@@ -11186,6 +11232,21 @@ decision once it is green.
 0. Full suite on the tip, tsc 0, build 0; sha pair per rule 23.
 
 **DoD.** Pushed; the three numbers and the lint line.
+
+**Report (Lane 3, 2026-09-08), two passes.** Pass one (`aef1a1c52`): prettier on the seventeen
+files whose only error was that rule and no other lane held, each proven by identical minified
+output before and after. Pass two (`6ca467cc8`): every other rule in Lane 3's files, at the
+cause, no rule disabled. Two were bugs: `parseDesignMd` ended every section at `\Z`, which
+JavaScript reads as a literal Z (F-204); a cost test asserted `toBe("number" || "object")`,
+the constant "number", and could not check the null half it was written for. The rest:
+no-fallthrough (commented empty cases now say so), no-control-regex (a raw ESC byte inside a
+regex literal), no-irregular-whitespace and no-misleading-character-class (the two tests that
+ban invisible characters held them as literals, now by code point), no-useless-escape,
+prefer-const. What remains under `src/`: 62 prettier errors in AppFrame.tsx (96 → Lane 1 ran
+prettier in the rail commit), TrackActivity.tsx and eleven smaller files Lane 1 and Lane 2
+are editing, one no-unused-expressions in start/ExampleJobs.tsx (Lane 1's), and 249
+no-explicit-any across 26 Lane 3 files, 20 of them test mocks (`as any` on fake Supabase
+clients); those take a typed mock each and are the next pass.
 
 ### P-153 · A waiver is a one-way door, and route.ts already proved it · Lane: **unassigned** (filed by A3 from P-146) · Status: DEFERRED BY A1, 21:31 IST (a waived station's way back is real and is not on the 23 September path; it is taken up the day a waived station blocks a live track, and the queue says so then; the product decision on the surface is the founder's) · Moves: 3
 
@@ -11236,7 +11297,7 @@ with a live theme. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
-### P-155 · The BYO-keys settings page never shows which platform providers are configured · Lane: **A3** (after P-147) · Status: READY (A1, 21:31 IST: last in A3's order; wire the summary in or delete the reader with the note, as written) · Moves: 1
+### P-155 · The BYO-keys settings page never shows which platform providers are configured · Lane: **A3 / Lane 3** · Status: DONE in code (Lane 3, 2026-09-08, 7bf2e2ea3; live read on /settings after the next publish serves) · Moves: 1
 
 **Why.** `byokeys.functions.ts`'s `listPlatformProviders` (platform-level provider config plus
 the recommended model) has zero importers; its own comment says "used by the model picker", and
@@ -11286,6 +11347,16 @@ the session after P-151. Session handoff written to `docs/operations/session-han
 `.remember/remember.md`. P-146 stands at IN PROGRESS (153 server functions / 30 components against
 a baseline of 139 / 26 -- not yet reached); the next A3 session picks it up there, per its own
 interim Report a few sections up.
+
+**Report (Lane 3, 2026-09-08).** One line under "Your own provider keys", on every plan, from
+a pure composer (`byokeys-words.ts`): *Supaprod's own keys cover Claude, OpenAI and Gemini.
+Agents run on anthropic/claude-haiku-4 unless a run names another model.* An Enterprise plan
+is also told a key it adds takes precedence for its provider and is billed to it. Providers
+are named by the picker's own labels in short form; an id the picker does not know is shown
+as its id, not dropped; a deployment with no platform key is told no run can start until one
+is set. Reading and a failed read draw as Reading and ReadFailedLine with a retry. Guards: the
+composer under five cases and a source read that the page reads `listPlatformProviders`
+under one key. Lane 1 confirmed it does not hold `_authenticated.settings.tsx`.
 
 ### P-53 · Gate's sixteen call sites move to Ask, Choice and Quiet, and Gate goes · Lane: **A3** · Status: DONE (A1 read live 01:15 IST 09-04; two sites had no live case to show, noted below) · Moves: 2, 3
 

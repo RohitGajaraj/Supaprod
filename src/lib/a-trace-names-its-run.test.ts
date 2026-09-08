@@ -9,7 +9,14 @@ import { readFileSync } from "node:fs";
  */
 describe("a trace names the run it belongs to", () => {
   const src = readFileSync("src/lib/traces.functions.ts", "utf8");
-  const body = src.slice(src.indexOf("export const getTrace"));
+  // Bounded at both ends (a-guards-subject-is-bounded): the handler, not the
+  // rest of the file.
+  const from = src.indexOf("export const getTrace ");
+  const end = src.indexOf("\nexport ", from + 1);
+  const body = src.slice(from, end === -1 ? undefined : end);
+  it("the guard's subject is the handler", () => {
+    expect(from).toBeGreaterThan(-1);
+  });
 
   it("reads the run by the trace id the run row carries, newest first", () => {
     expect(body).toContain('.select("id,agent_slug,agent_name,track_id")');
