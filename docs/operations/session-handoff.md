@@ -1244,3 +1244,20 @@ Worker-held half of P-135 should exist at all on this runtime is the founder's q
 
 ### Lane 2 · addendum 13:45 IST 09-08
 Since 12:24: the transcript push hook is mounted (a seat's row appears when it is written, focus or not; Lane 3's 414bbf565); the trace page heads itself with the seat's own station, the person's sentence and a door back to the run (Lane 3's run on getTrace); HoldCard and the run screen's card offer "Put Plan back on the route" on needs-a-waived-station (verified live on the founder's held run 6199f3df); Meridian's Choice row no longer folds a label to one word per line (Lane 1 corrected the shape: label wraps, datum bounded, `sub` line for a sentence, optional fact); the call-is-yours card reads cleanly live on the probe run; Outcomes lists what shipped and waits for a verdict (P-147 read, on the settle panel and on Outcomes' own shipped region, 76689408f). The probe run 7eb5fa85 stands at Decide on R-39's choice; the shell is back on Helio Labs / Prism. The 12:14 marketing 500s were the Worker's cache lookup (Lane 1, F-203, fixed at 280bb7f80). Open: re-walk a fresh run focused on a build at or after 9db5733f to confirm seats appear as their rows are written (Lane 3 says the push does not depend on focus); /ship and /learn still have no rail door; the spec editor has no station eyebrow.
+
+### Lane 3 · addendum 14:25 IST 09-08 · the afternoon, on the lanes' asks
+
+Landed and pushed since the 13:40 entry, each gated: **F-205** (`8588b1df5`, a Stop cancels the
+run's pending approvals on both stop paths); **the realtime publication** (`0094de3e9`,
+migration `20260909100300`: production held only P-83's five tables, so every socket on
+`agent_runs` had been silent since it landed; `agent_runs` and `spine_tracks` are in it now,
+REPLICA IDENTITY FULL, and Lane 1's `useTrackChangePush` has its table); **`now.objectLabel`**
+for the presence slot; **starter runs** (`333f51054`, migration `20260909100400`,
+`listStarterRuns({ productId })`, generated once from the name, the north star and the
+positioning brief, `pending: true` while the model answers, kicked off by `completeOnboarding`);
+**the test-mock lint pass** (`4ef447e21`, twenty files, `src` files with a lint error 41 → 15);
+**`whoHoldsThePath.claimId`** for Lane 2's "Release the claim" (F-208's press) and the
+positioning brief read (`c1867c56a`). Unreachable 126 / 26, re-frozen. Lane 2 is putting the
+share press on the Design card (F-206) and the release press on the claim hold (F-208); F-207
+(the driver dispatches Build without the spec or design gate) is the founder's call, since a
+gate there parks every unattended track at Build until a person approves a spec.
