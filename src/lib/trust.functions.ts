@@ -5,7 +5,9 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import { computeAllAgentTrust, type AgentTrust, type Arc } from "@/lib/ai/trust.server";
 
 export type { AgentTrust, Arc };
@@ -82,17 +84,25 @@ export const listTrustGraduationProposals = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<TrustGraduationProposal[]> => {
     const { supabase } = context;
-    const { data, error } = await supabase
-      .from("trust_graduation_proposals" as never)
-      .select(
-        "id, agent_slug, tool_name, from_mode, to_mode, clean_streak, rationale, status, created_at, decided_at",
-      )
-      .order("created_at", { ascending: false })
-      .limit(50);
-    // Pre-migration window: no table yet means no proposals, not a crash.
-    if (error) return [];
-    return (data ?? []) as unknown as TrustGraduationProposal[];
+    return readTrustGraduationProposals(supabase);
   });
+
+/** The read behind `listTrustGraduationProposals`, callable with a client you
+ *  already hold (the approvals queue). */
+export async function readTrustGraduationProposals(
+  supabase: SupabaseClient<Database>,
+): Promise<TrustGraduationProposal[]> {
+  const { data, error } = await supabase
+    .from("trust_graduation_proposals" as never)
+    .select(
+      "id, agent_slug, tool_name, from_mode, to_mode, clean_streak, rationale, status, created_at, decided_at",
+    )
+    .order("created_at", { ascending: false })
+    .limit(50);
+  // Pre-migration window: no table yet means no proposals, not a crash.
+  if (error) return [];
+  return (data ?? []) as unknown as TrustGraduationProposal[];
+}
 
 export const decideTrustGraduation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

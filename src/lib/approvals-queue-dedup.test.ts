@@ -44,18 +44,25 @@ function codeOf(src: string): string {
 }
 
 const QUEUE = codeOf(readFileSync(join(SRC, "lib", "approvals-queue.functions.ts"), "utf8"));
+// Since 2026-09-08 the mission's status rides the decisions read itself (the
+// hop that hydrates the "From <title>" line), not a read of the queue's own:
+// the Inbox's 7.7 s was twelve dependent round trips and this was one of them.
+const DECISIONS = codeOf(readFileSync(join(SRC, "lib", "decisions.functions.ts"), "utf8"));
 
 describe("a decision whose mission is still proposed is not a second call", () => {
   it("the queue reads mission status to decide what to drop", () => {
-    expect(QUEUE).toMatch(/\.from\("missions"\)/);
-    expect(QUEUE).toMatch(/\.eq\("status", "proposed"\)/);
+    expect(DECISIONS).toMatch(/\.from\("missions"\)\.select\("id,title,status"\)/);
+    expect(DECISIONS).toMatch(
+      /d\.mission_status = d\.mission_id \? \(missionStatus\.get\(d\.mission_id\) \?\? null\) : null;/,
+    );
+    expect(QUEUE).toMatch(/d\.mission_status === "proposed"/);
   });
 
   it("the filter is applied to the pending list the queue renders", () => {
     // The dedup has to reach `pendingDecisions`, the variable every downstream
     // mapping reads. Computing the set and not applying it would look correct
     // in review and change nothing on screen.
-    expect(QUEUE).toMatch(/proposedMissionIds/);
+    expect(QUEUE).toMatch(/mission_status === "proposed"/);
     expect(QUEUE).toMatch(/const pendingDecisions = rawPendingDecisions\.filter\(/);
   });
 
@@ -63,7 +70,7 @@ describe("a decision whose mission is still proposed is not a second call", () =
     // 7 of the 170 carried no mission row at all. A null mission_id must not
     // match the proposed set, or a real call vanishes because of a missing
     // foreign key rather than because of a duplicate.
-    expect(QUEUE).toMatch(/d\.mission_id && proposedMissionIds\.has\(d\.mission_id\)/);
+    expect(QUEUE).toMatch(/d\.mission_id && d\.mission_status === "proposed"/);
   });
 
   it("a failed lookup shows everything rather than hiding a call", () => {
@@ -71,8 +78,19 @@ describe("a decision whose mission is still proposed is not a second call", () =
     // Showing a duplicate is a nuisance; dropping a real decision because a
     // lookup failed is a call nobody ever sees. The read error is reported
     // through the queue's own noteReadError rather than swallowed.
-    const block = QUEUE.slice(QUEUE.indexOf("proposedMissionIds"));
-    expect(block.slice(0, 1200)).toMatch(/noteReadError\("proposed-mission dedup"/);
+    // The decisions read hands its hydration error up instead of swallowing
+    // it, and the queue files it under the dedup's own name, right before the
+    // filter that would have used it.
+    expect(DECISIONS).toMatch(
+      /hydrationError: missions\.error \?\? prds\.error \?\? meetings\.error \?\? null/,
+    );
+    const at = QUEUE.indexOf(
+      'noteReadError("proposed-mission dedup", decisionsRes.hydrationError)',
+    );
+    expect(at).toBeGreaterThan(-1);
+    expect(QUEUE.slice(at, at + 400)).toMatch(
+      /const pendingDecisions = rawPendingDecisions\.filter\(/,
+    );
   });
 
   it("nothing here approves a decision", () => {

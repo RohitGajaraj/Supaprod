@@ -76,7 +76,12 @@ describe("the read is scoped when a caller asks", () => {
   });
 
   it("the queue passes its own workspace through", () => {
-    expect(QUEUE).toContain("listGovernApprovals({ data: { workspaceId: wsId ?? undefined } })");
+    // Since 2026-09-08 the queue calls the read behind the server function
+    // with its own client (the Inbox's 7.7 s was twelve nested round trips),
+    // and the scope travels the same way.
+    expect(QUEUE).toContain(
+      "readGovernApprovals(supabase as unknown as SupabaseClient, userId, { workspaceId: wsId, withOutcomes: false, })",
+    );
   });
 
   it("omitted, the read is exactly what it always was", () => {

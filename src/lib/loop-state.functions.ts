@@ -38,7 +38,11 @@ import { monthDayInZone } from "@/lib/time-of-day";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { getApprovalsQueue, type ApprovalKind } from "@/lib/approvals-queue.functions";
+import {
+  readApprovalsQueue,
+  type ApprovalsQueueResult,
+  type ApprovalKind,
+} from "@/lib/approvals-queue.functions";
 
 // ---------------------------------------------------------------------------
 // Public shapes
@@ -339,8 +343,8 @@ export const getLoopState = createServerFn({ method: "GET" })
 
     const [queue, eventsRes, runsRes, learningRes] = await Promise.all([
       // One count, one source: the same queue the tray and rail badge read.
-      getApprovalsQueue({ data: { workspaceId: data.workspaceId } }).catch(() => ({
-        items: [] as Awaited<ReturnType<typeof getApprovalsQueue>>["items"],
+      readApprovalsQueue(context.supabase, context.userId, data.workspaceId).catch(() => ({
+        items: [] as ApprovalsQueueResult["items"],
       })),
       db
         .from("stage_events")

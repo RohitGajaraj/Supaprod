@@ -50,15 +50,21 @@ import { collisionsFrom, targetOf, type Anchor, type Collision } from "@/lib/pre
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { listGovernApprovals, resolveApproval } from "@/lib/governance.functions";
+import { readGovernApprovals, resolveApproval } from "@/lib/governance.functions";
+import { timedPhase } from "@/lib/server-timing.server";
+import type { Database } from "@/integrations/supabase/types";
 import {
-  listDecisions,
+  readDecisions,
   updateDecision,
   resolveAssumptionChallenge,
 } from "@/lib/decisions.functions";
 import { listMemoryCandidates, decideMemoryCandidate } from "@/lib/memory-candidates.functions";
-import { listHouseRules, decideHouseRule } from "@/lib/house-rules.functions";
-import { listTrustGraduationProposals, decideTrustGraduation } from "@/lib/trust.functions";
+import { readHouseRules, decideHouseRule } from "@/lib/house-rules.functions";
+import {
+  readTrustGraduationProposals,
+  decideTrustGraduation,
+  type TrustGraduationProposal,
+} from "@/lib/trust.functions";
 import { savePrd, updateOpportunity, type CriticReview } from "@/lib/discovery.functions";
 import { decideDesignGate } from "@/lib/design-scaffold.functions";
 import { decidePlaybookProposal } from "@/lib/playbooks.functions";
@@ -218,10 +224,48 @@ const GetQueueSchema = z.object({ workspaceId: z.string().uuid().optional() });
 export const getApprovalsQueue = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.input<typeof GetQueueSchema>) => GetQueueSchema.parse(d ?? {}))
-  .handler(async ({ context, data }): Promise<ApprovalsQueueResult> => {
-    const { supabase } = context;
-    const wsId = data.workspaceId ?? null;
+  .handler(async ({ context, data }): Promise<ApprovalsQueueResult> =>
+    // Its own Server-Timing entry, so the next slow reading can be split
+    // between this handler and the Worker's pre-handler cost by a curl.
+    timedPhase("approvals-queue", () =>
+      readApprovalsQueue(context.supabase, context.userId, data.workspaceId ?? null),
+    ),
+  );
 
+/**
+ * THE READ BEHIND `getApprovalsQueue`, callable with a client you already hold.
+ *
+ * ── TWELVE ROUND TRIPS DEEP, AND THE DATABASE WAS INNOCENT (2026-09-08) ─────
+ *
+ * Lane 2 timed the Inbox on Helio Labs: this one call took 7,694 ms while the
+ * page's other reads took 300 to 2,300 ms. Every query it runs was then timed
+ * as the signed-in user with RLS on: 0.05 to 6 ms each, about 20 ms for the
+ * lot, and production's pg_stat_statements agreed (the worst statement the
+ * authenticated role has ever run on these tables was 262 ms). The cost was
+ * the SHAPE: twelve sequential Worker-to-PostgREST round trips on the
+ * critical path, at the ~275 ms warm / ~550 ms cold this deployment pays per
+ * hop (measured on `landing-data`, a 0.03 ms query, on 09-04). Seven of the
+ * twelve were inside `listGovernApprovals`, called as a nested server
+ * function that re-ran the auth middleware to get there.
+ *
+ * NOW: two hops on the scoped path (the one every surface uses), a third only
+ * when a pending decision's spec belongs to a project no other family named.
+ * The four nested readers are called as plain functions with this client;
+ * `readGovernApprovals` runs its own second hop in one go and skips the two
+ * outcome reads this queue never renders; the assumption challenges carry
+ * their assumption, decision and spec as PostgREST embeds instead of three
+ * dependent reads; the project names chain off the family reads they need
+ * and land with the first hop's stragglers; the snoozes and the scoped
+ * design-gate read leave with everyone else. The chain is guarded by
+ * `a-queue-is-two-hops-deep.test.ts`, which drives this function with a
+ * fake client that counts rounds.
+ */
+export async function readApprovalsQueue(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  wsId: string | null,
+): Promise<ApprovalsQueueResult> {
+  {
     /**
      * A DROPPED FAMILY MUST NOT BE INVISIBLE. Every source below degrades to an
      * empty list on failure, and the queue then renders "nothing needs you" --
@@ -269,6 +313,96 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       }
     };
 
+    /*
+     * REAL PROMISES, NOT BUILDERS, for the three reads the projects read
+     * chains off: a PostgREST builder re-runs its fetch on every `await`, and
+     * these are awaited twice (once by the chain, once by the family itself).
+     */
+    const specsP = Promise.resolve(
+      // Specs in review (mirrors today.functions.ts getNeedsYou's prdCalls read).
+      (() => {
+        let q = supabase
+          .from("prds")
+          .select("id,title,status,critic_review,updated_at,project_id")
+          .eq("status", "review")
+          // P-142: a spec whose design gate closed with it is not asking.
+          .or("design_gate_status.is.null,design_gate_status.neq.superseded")
+          .order("updated_at", { ascending: true })
+          .limit(FAMILY_LIMIT);
+        if (wsId) q = q.eq("workspace_id", wsId);
+        return q;
+      })(),
+    );
+    const oppsP = Promise.resolve(
+      // Opportunities the Critic said revise/kill on, still in backlog
+      // (mirrors today.functions.ts getNeedsYou's oppCalls read).
+      (() => {
+        let q = supabase
+          .from("opportunities")
+          .select("id,title,critic_review,created_at,project_id")
+          .filter("critic_review->>verdict", "in", '("revise","kill")')
+          .eq("status", "backlog")
+          .order("created_at", { ascending: true })
+          .limit(FAMILY_LIMIT);
+        if (wsId) q = q.eq("workspace_id", wsId);
+        return q;
+      })(),
+    );
+    /*
+     * The design gates of THIS workspace, read in the first hop when the
+     * caller named one. Whether the family exists here at all (the design
+     * stage is on) is answered by the workspaces read beside it, and the rows
+     * are dropped after the barrier if it says no; that costs one cheap read
+     * in a workspace with the stage off and saves a dependent round trip in
+     * every workspace with it on. The unscoped path keeps the dependent read
+     * because it does not know which workspaces to ask until then.
+     */
+    const scopedDesignGatesP = wsId
+      ? Promise.resolve(
+          supabase
+            .from("prds")
+            .select("id,title,updated_at,project_id")
+            .eq("workspace_id", wsId)
+            .eq("design_gate_status", "pending")
+            .order("updated_at", { ascending: true })
+            .limit(FAMILY_LIMIT),
+        )
+      : Promise.resolve(null);
+    /*
+     * The project names, chained off the three families that carry a
+     * project id, so they land one hop after those rows and not one hop after
+     * the whole barrier. A decision's spec can name a project none of these
+     * did; that case is read after the barrier, and only then.
+     */
+    const projectsP = Promise.all([specsP, oppsP, scopedDesignGatesP]).then(
+      ([specs, opps, gates]) => {
+        const ids = new Set<string>();
+        for (const r of (specs.data ?? []) as { project_id: string | null }[]) {
+          if (r.project_id) ids.add(r.project_id);
+        }
+        for (const r of (opps.data ?? []) as { project_id: string | null }[]) {
+          if (r.project_id) ids.add(r.project_id);
+        }
+        for (const r of (gates?.data ?? []) as { project_id: string | null }[]) {
+          if (r.project_id) ids.add(r.project_id);
+        }
+        return ids.size
+          ? Promise.resolve(
+              supabase
+                .from("projects")
+                .select("id,name")
+                .in("id", [...ids]),
+            ).then((r) => ({
+              data: (r.data ?? []) as { id: string; name: string | null }[],
+              error: r.error as { message: string } | null,
+            }))
+          : Promise.resolve({
+              data: [] as { id: string; name: string | null }[],
+              error: null as { message: string } | null,
+            });
+      },
+    );
+
     const [
       govern,
       decisionsRes,
@@ -280,6 +414,9 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       challengeRows,
       playbookRows,
       designWsRows,
+      scopedDesignGates,
+      projectsRes,
+      snoozeRes,
     ] = await Promise.all([
       /*
        * ── F-149: THE COMMENT THAT USED TO BE HERE WAS FALSE ────────────────
@@ -300,7 +437,10 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
        * needs decided history for the track record — and the pending filter
        * below narrows it to the queue. Only the tenancy changed.
        */
-      listGovernApprovals({ data: { workspaceId: wsId ?? undefined } }).catch((e) => {
+      readGovernApprovals(supabase as unknown as SupabaseClient, userId, {
+        workspaceId: wsId,
+        withOutcomes: false,
+      }).catch((e) => {
         familyFailed("tool-call gates")(e);
         return {
           approvals: [],
@@ -310,22 +450,22 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           medianResponseMs: null,
         };
       }),
-      listDecisions({ data: { status: "pending", workspaceId: wsId ?? undefined } }).catch((e) => {
+      readDecisions(supabase, { status: "pending", workspaceId: wsId ?? undefined }).catch((e) => {
         familyFailed("pending decisions")(e);
-        return { decisions: [] };
+        return { decisions: [], hydrationError: null };
       }),
       // Direct RLS-wide read, not the workspace-scoped list function: the
       // queue is the single pull point (law 4.4), so a pending candidate in
       // ANY of the caller's workspaces must surface here, unless scoped.
       (() => {
-        let q = context.supabase
+        let q = supabase
           .from("memory_candidates")
           .select("id, content, status, importance, source_kind, created_at")
           .eq("status", "pending")
           .order("created_at", { ascending: true })
           .limit(FAMILY_LIMIT);
         if (wsId) q = q.eq("workspace_id", wsId);
-        return q.then(({ data: rows, error }) => {
+        return Promise.resolve(q).then(({ data: rows, error }) => {
           noteReadError("memory graduation", error);
           return {
             items: (
@@ -344,46 +484,26 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         familyFailed("memory graduation")(e);
         return { items: [] };
       }),
-      listHouseRules({ data: { workspaceId: wsId } }).catch((e) => {
+      readHouseRules(supabase, wsId).catch((e) => {
         familyFailed("house rules")(e);
         return { rules: [] };
       }),
-      listTrustGraduationProposals().catch((e) => {
+      readTrustGraduationProposals(supabase).catch((e) => {
         familyFailed("trust graduation")(e);
-        return [] as Awaited<ReturnType<typeof listTrustGraduationProposals>>;
+        return [] as TrustGraduationProposal[];
       }),
-      // Specs in review (mirrors today.functions.ts getNeedsYou's prdCalls read).
-      (() => {
-        let q = supabase
-          .from("prds")
-          .select("id,title,status,critic_review,updated_at,project_id")
-          .eq("status", "review")
-          // P-142: a spec whose design gate closed with it is not asking.
-          .or("design_gate_status.is.null,design_gate_status.neq.superseded")
-          .order("updated_at", { ascending: true })
-          .limit(FAMILY_LIMIT);
-        if (wsId) q = q.eq("workspace_id", wsId);
-        return q;
-      })(),
-      // Opportunities the Critic said revise/kill on, still in backlog
-      // (mirrors today.functions.ts getNeedsYou's oppCalls read).
-      (() => {
-        let q = supabase
-          .from("opportunities")
-          .select("id,title,critic_review,created_at,project_id")
-          .filter("critic_review->>verdict", "in", '("revise","kill")')
-          .eq("status", "backlog")
-          .order("created_at", { ascending: true })
-          .limit(FAMILY_LIMIT);
-        if (wsId) q = q.eq("workspace_id", wsId);
-        return q;
-      })(),
+      specsP,
+      oppsP,
       // Open assumption-supersession challenges (mirrors getNeedsYou's
-      // assumptionCalls read).
+      // assumptionCalls read). The assumption, and the decision or spec it
+      // was taken under, ride along as embeds: three dependent reads used to
+      // follow this one to fetch exactly these columns by the ids it returned.
       (() => {
         let q = supabase
           .from("assumption_challenges")
-          .select("id,assumption_id,signal_id,learning_id,rationale,created_at")
+          .select(
+            "id,assumption_id,signal_id,learning_id,rationale,created_at,assumption:assumptions!assumption_challenges_assumption_id_fkey(id,statement,decision_id,prd_id,decision:decisions!assumptions_decision_id_fkey(id,title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution),prd:prds!assumptions_prd_id_fkey(id,title))",
+          )
           .eq("status", "open")
           .order("created_at", { ascending: true })
           .limit(FAMILY_LIMIT);
@@ -414,6 +534,21 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         if (wsId) q = q.eq("id", wsId);
         return q;
       })(),
+      scopedDesignGatesP,
+      projectsP,
+      // Gate snoozes (front-end reimagining Phase 4; founder-authorized
+      // 2026-07-19): the items the operator deferred with H until
+      // snoozed_until, dropped at the end. RLS scopes the read to this user.
+      // The error is discarded, deliberately, and here is exactly what that
+      // costs: if the read fails, nothing is snoozed and every deferred gate
+      // reappears. That is the only direction this read may fail in: this
+      // queue is the single pull point, so re-showing a deferred gate is a
+      // nuisance while hiding one that needs you is a broken promise. Absence
+      // here is never read as "nothing needs you", only as "defer nothing".
+      (supabase as unknown as SupabaseClient)
+        .from("approval_snoozes")
+        .select("kind,source_id")
+        .gt("snoozed_until", new Date().toISOString()),
     ]);
 
     // Design gates, scoped to the workspaces just resolved to have the design
@@ -454,25 +589,30 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
     noteReadError("assumption challenges", challengeRows.error);
     noteReadError("proposed playbooks", playbookRows.error);
     const designWsIds = ((designWsRows.data ?? []) as { id: string }[]).map((w) => w.id);
-    const designGateRes = designWsIds.length
-      ? await supabase
-          .from("prds")
-          .select("id,title,updated_at,project_id")
-          .in("workspace_id", designWsIds)
-          .eq("design_gate_status", "pending")
-          .order("updated_at", { ascending: true })
-          .limit(FAMILY_LIMIT)
-      : {
-          data: [] as {
-            id: string;
-            title: string;
-            updated_at: string;
-            project_id: string | null;
-          }[],
-          // Carried so the union below has one shape and the swallow-log can
-          // reach it; no read ran on this branch, so there is nothing to report.
-          error: null as { message: string } | null,
-        };
+    const noDesignGates = {
+      data: [] as {
+        id: string;
+        title: string;
+        updated_at: string;
+        project_id: string | null;
+      }[],
+      // Carried so the union below has one shape and the swallow-log can
+      // reach it; no read ran on this branch, so there is nothing to report.
+      error: null as { message: string } | null,
+    };
+    const designGateRes = wsId
+      ? scopedDesignGates && designWsIds.includes(wsId)
+        ? scopedDesignGates
+        : noDesignGates
+      : designWsIds.length
+        ? await supabase
+            .from("prds")
+            .select("id,title,updated_at,project_id")
+            .in("workspace_id", designWsIds)
+            .eq("design_gate_status", "pending")
+            .order("updated_at", { ascending: true })
+            .limit(FAMILY_LIMIT)
+        : noDesignGates;
     noteReadError("design gates", designGateRes.error);
 
     /*
@@ -596,45 +736,27 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
      * `projectIdByPrd` to know which projects to ask for, and that IS a real
      * dependency rather than a filter.
      */
-    const rawDecisionPrdIds = [
-      ...new Set(rawPendingDecisions.map((d) => d.prd_id).filter((x): x is string => !!x)),
-    ];
-    const [proposedResult, prdProjectResult] = await Promise.all([
-      decisionMissionIds.length
-        ? supabase
-            .from("missions")
-            .select("id")
-            .in("id", decisionMissionIds)
-            .eq("status", "proposed")
-        : Promise.resolve({ data: [] as Array<{ id: string }>, error: null }),
-      rawDecisionPrdIds.length
-        ? supabase.from("prds").select("id,project_id").in("id", rawDecisionPrdIds)
-        : Promise.resolve({
-            data: [] as Array<{ id: string; project_id: string | null }>,
-            error: null,
-          }),
-    ]);
-
-    const proposedMissionIds = new Set<string>();
+    /*
+     * BOTH ANSWERS NOW TRAVEL WITH THE DECISION. `readDecisions` hydrates a
+     * decision's mission and spec by id for the "From <title>" line, and since
+     * 2026-09-08 that same hop carries the mission's status and the spec's
+     * project, so the two reads that used to follow here (missions by id for
+     * `status = proposed`, prds by id for `project_id`) are gone from the
+     * critical path. A decision whose read failed to hydrate keeps its place:
+     * `mission_status` null is "cannot tell", and cannot-tell keeps a call.
+     */
     // A FAILED READ MUST NOT HIDE A CALL. If we cannot tell which missions are
     // still proposed, every decision stays in the queue: showing a duplicate is
     // a nuisance, and dropping a real call because a lookup failed is a missed
-    // decision nobody sees.
-    noteReadError("proposed-mission dedup", proposedResult.error);
-    for (const r of (proposedResult.data ?? []) as Array<{ id: string }>) {
-      proposedMissionIds.add(r.id);
-    }
-
+    // decision nobody sees. The gap is reported under the dedup's own name.
+    noteReadError("proposed-mission dedup", decisionsRes.hydrationError);
     const pendingDecisions = rawPendingDecisions.filter(
-      (d) => !(d.mission_id && proposedMissionIds.has(d.mission_id)),
+      (d) => !(d.mission_id && d.mission_status === "proposed"),
     );
 
     const projectIdByPrd = new Map<string, string>();
-    for (const p of (prdProjectResult.data ?? []) as {
-      id: string;
-      project_id: string | null;
-    }[]) {
-      if (p.project_id) projectIdByPrd.set(p.id, p.project_id);
+    for (const d of rawPendingDecisions) {
+      if (d.prd_id && d.prd_project_id) projectIdByPrd.set(d.prd_id, d.prd_project_id);
     }
     const specRowsData = (specRows.data ?? []) as {
       id: string;
@@ -664,11 +786,17 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       ...designGateRows.map((p) => p.project_id).filter((x): x is string => !!x),
     ]);
     const projectNameById = new Map<string, string>();
-    if (allProjectIds.size) {
+    for (const p of (projectsRes.data ?? []) as { id: string; name: string | null }[]) {
+      projectNameById.set(p.id, p.name ?? "Untitled");
+    }
+    // The one project the first hop could not have known: a pending
+    // decision's spec in a project no spec, proposal or design gate named.
+    const lateProjectIds = [...allProjectIds].filter((id) => !projectNameById.has(id));
+    if (lateProjectIds.length) {
       const { data: projects } = await supabase
         .from("projects")
         .select("id,name")
-        .in("id", [...allProjectIds]);
+        .in("id", lateProjectIds);
       for (const p of (projects ?? []) as { id: string; name: string | null }[]) {
         projectNameById.set(p.id, p.name ?? "Untitled");
       }
@@ -931,93 +1059,52 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
 
     // --- Open assumption-supersession challenges (worth re-examining?) ------
     if (challengeRows.data && challengeRows.data.length > 0) {
-      const rows = challengeRows.data as {
+      type ChallengeRow = {
         id: string;
         assumption_id: string;
         signal_id: string | null;
         learning_id: string | null;
         rationale: string;
         created_at: string;
-      }[];
-      const assumptionIds = [...new Set(rows.map((c) => c.assumption_id))];
-      /**
-       * THE ONE SWALLOW IN THIS HANDLER THAT DROPS A FAMILY FROM INSIDE IT.
-       * The ten family reads above are the ones the paragraph at :157 is about,
-       * but this one is just as fatal and it sits a level deeper: if this read
-       * is refused, `assumptionRows` is null, every `assumptionById.get(...)`
-       * below misses, and `if (!assumption) continue` at :689 drops EVERY
-       * assumption_challenge item -- so the family vanishes from the single pull
-       * point, from behind a guard that already proved rows exist. That is a
-       * discarded read error standing in as evidence of absence, which is the
-       * shape this file spent a whole pass removing. Latent today (measured
-       * through the Lovable MCP 2026-08-06: `assumption_challenges` holds 0 rows
-       * of any status, so the enclosing `if` never runs), and logged now rather
-       * than when the first challenge lands. Behaviour is unchanged.
-       */
-      const { data: assumptionRows, error: assumptionErr } = await supabase
-        .from("assumptions")
-        .select("id,statement,decision_id,prd_id")
-        .in("id", assumptionIds);
-      noteReadError("assumption detail", assumptionErr);
-      const assumptionById = new Map(
-        (
-          (assumptionRows ?? []) as {
+        assumption: {
+          id: string;
+          statement: string;
+          decision_id: string | null;
+          prd_id: string | null;
+          /*
+           * THE FORECAST TRAVELS WITH THE DECISION (REQ-014 item 1). This
+           * embed backs the evidence lines under a focused gate; it used to
+           * select `id,title` in a dependent read, so a person approving an
+           * agent's bet saw its NAME and never the belief it was taken under,
+           * while both agent doors REFUSE to record that bet without one.
+           */
+          decision: {
             id: string;
-            statement: string;
-            decision_id: string | null;
-            prd_id: string | null;
-          }[]
-        ).map((a) => [a.id, a]),
-      );
-      const decisionIds = [
-        ...new Set(
-          [...assumptionById.values()].map((a) => a.decision_id).filter((x): x is string => !!x),
-        ),
-      ];
-      const prdIds = [
-        ...new Set(
-          [...assumptionById.values()].map((a) => a.prd_id).filter((x): x is string => !!x),
-        ),
-      ];
-      const [decisionRows, prdRows] = await Promise.all([
-        decisionIds.length
-          ? /*
-             * THE FORECAST TRAVELS WITH THE DECISION (REQ-014 item 1).
-             *
-             * This read backs the evidence lines under a focused gate, and it
-             * selected `id,title` -- so a person approving an agent's bet saw
-             * its NAME and never the belief it was taken under, while both
-             * agent doors REFUSE to record that bet without one. The columns
-             * carry the `forecast_` prefix; `forecast_how_we_will_know` and
-             * `forecast_horizon_date` do not look like they should, and a
-             * select naming them without it throws at runtime while `tsc`
-             * stays green.
-             */
-            supabase
-              .from("decisions")
-              .select(
-                "id,title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution",
-              )
-              .in("id", decisionIds)
-          : Promise.resolve({ data: [] as { id: string; title: string }[] }),
-        prdIds.length
-          ? supabase.from("prds").select("id,title").in("id", prdIds)
-          : Promise.resolve({ data: [] as { id: string; title: string }[] }),
-      ]);
-      const decisionTitleById = new Map(
-        ((decisionRows.data ?? []) as { id: string; title: string }[]).map((d) => [d.id, d.title]),
-      );
-      const prdTitleById = new Map(
-        ((prdRows.data ?? []) as { id: string; title: string }[]).map((p) => [p.id, p.title]),
-      );
-
+            title: string;
+            forecast_claim: string | null;
+            forecast_how_we_will_know: string | null;
+            forecast_horizon_date: string | null;
+            forecast_resolution: string | null;
+          } | null;
+          prd: { id: string; title: string } | null;
+        } | null;
+      };
+      const rows = challengeRows.data as unknown as ChallengeRow[];
+      /*
+       * A challenge whose assumption did not come back is skipped, as before;
+       * what changed is how that happens. The assumption, its decision and its
+       * spec ride the challenge read as PostgREST embeds now, so a refused
+       * embed fails the family's own read and is reported by
+       * `noteReadError("assumption challenges", ...)` above, instead of three
+       * dependent reads whose refusal used to drop the family from INSIDE it.
+       */
       for (const c of rows) {
-        const assumption = assumptionById.get(c.assumption_id);
+        const assumption = c.assumption;
         if (!assumption) continue;
         const decisionTitle = assumption.decision_id
-          ? (decisionTitleById.get(assumption.decision_id) ?? "A past decision")
+          ? (assumption.decision?.title ?? "A past decision")
           : assumption.prd_id
-            ? `Spec: ${prdTitleById.get(assumption.prd_id) ?? "a spec"}`
+            ? `Spec: ${assumption.prd?.title ?? "a spec"}`
             : "A past decision";
         items.push({
           id: `assumption_challenge:${c.id}`,
@@ -1102,26 +1189,8 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       }
     }
 
-    // Gate snoozes (front-end reimagining Phase 4; founder-authorized
-    // 2026-07-19): drop items the operator deferred with H until snoozed_until.
-    // RLS scopes the read to this user.
-    //
-    // 2026-08-06: the table HAS landed (supabase/migrations/
-    // 20260720000000_mc_approval_snoozes.sql) and carries live rows, so the
-    // "un-applied migration" this comment used to describe is history. The
-    // error is still discarded, deliberately, and here is exactly what that
-    // now costs: if the read fails, `snoozed` is empty and every snoozed gate
-    // reappears. That is the only direction this particular read may fail in -
-    // this queue is the single pull point, so re-showing a deferred gate is a
-    // nuisance while hiding one that needs you is a broken promise. Absence
-    // here is never read as "nothing needs you", only as "defer nothing".
-    const snoozeDb = supabase as unknown as SupabaseClient;
-    const { data: snoozeRows } = await snoozeDb
-      .from("approval_snoozes")
-      .select("kind,source_id")
-      .gt("snoozed_until", new Date().toISOString());
     const snoozed = new Set(
-      ((snoozeRows ?? []) as { kind: string; source_id: string }[]).map(
+      ((snoozeRes.data ?? []) as { kind: string; source_id: string }[]).map(
         (r) => `${r.kind}:${r.source_id}`,
       ),
     );
@@ -1137,7 +1206,8 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         agentSlug: approvalAgentSlug(it.kindKey, agentSlugBySource.get(it.sourceId) ?? null),
       })),
     };
-  });
+  }
+}
 
 // ---------------------------------------------------------------------------
 // WHAT A STATUS WRITE MEANS FOR A SPEC, STATE BY STATE (2026-08-06).

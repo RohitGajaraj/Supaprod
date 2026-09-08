@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { TablesInsert } from "@/integrations/supabase/types";
+import type { Database, TablesInsert } from "@/integrations/supabase/types";
 import { track } from "@/lib/observability";
 import { recordDecisionOrigins } from "@/lib/lineage.functions";
 import { extractAssumptions } from "@/lib/ai/assumptions.server";
@@ -93,6 +93,14 @@ export type DecisionRow = {
   /** "hit" | "miss" | "inconclusive", or null while waiting on its horizon. */
   forecast_resolution?: string | null;
   forecast_resolved_at?: string | null;
+  /** The status of the mission this decision came from, read in the same hop
+   *  as its title. The approvals queue drops a decision whose mission is still
+   *  `proposed` (the launch gate is the one call); it used to re-read the
+   *  mission to learn that. */
+  mission_status?: string | null;
+  /** The project of the spec this decision came from, same hop as its title;
+   *  the queue names the project on the card. */
+  prd_project_id?: string | null;
 };
 
 /**
@@ -172,6 +180,41 @@ export const listDecisions = createServerFn({ method: "GET" })
   )
   .handler(async ({ context, data }) => {
     const { supabase } = context;
+    return readDecisions(supabase, data ?? {});
+  });
+
+export type DecisionsFilter = {
+  source?: DecisionSource;
+  status?: "pending" | "approved" | "rejected";
+  q?: string;
+  limit?: number;
+  workspaceId?: string;
+};
+
+/**
+ * THE READ BEHIND `listDecisions`, callable with a client you already hold.
+ * The approvals queue called the server function from inside its own handler,
+ * which re-ran the auth middleware for one nested call on the Inbox's critical
+ * path (2026-09-08, the 7.7 s queue). The hydration hop also carries a
+ * mission's status and a spec's project now, because the queue had been paying
+ * a THIRD round trip to ask for exactly those two columns on rows this read
+ * had just fetched by id.
+ */
+export async function readDecisions(
+  supabase: SupabaseClient<Database>,
+  data: DecisionsFilter,
+): Promise<{
+  decisions: DecisionRow[];
+  /**
+   * The first error among the three hydration reads (missions, specs,
+   * meetings), or null. A decision whose source did not come back keeps its
+   * place with `source_label`, `mission_status` and `prd_project_id` null:
+   * cannot-tell keeps a call. The approvals queue reports this as a gap so a
+   * dedup it could not run is visible rather than silent.
+   */
+  hydrationError: { message: string } | null;
+}> {
+  {
     let q = supabase
       .from("decisions")
       /*
@@ -220,20 +263,35 @@ export const listDecisions = createServerFn({ method: "GET" })
 
     const [missions, prds, meetings] = await Promise.all([
       missionIds.length
-        ? supabase.from("missions").select("id,title").in("id", missionIds)
-        : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+        ? supabase.from("missions").select("id,title,status").in("id", missionIds)
+        : Promise.resolve({
+            data: [] as { id: string; title: string; status: string }[],
+            error: null as { message: string } | null,
+          }),
       prdIds.length
-        ? supabase.from("prds").select("id,title").in("id", prdIds)
-        : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+        ? supabase.from("prds").select("id,title,project_id").in("id", prdIds)
+        : Promise.resolve({
+            data: [] as { id: string; title: string; project_id: string | null }[],
+            error: null as { message: string } | null,
+          }),
       meetingIds.length
         ? supabase.from("meetings").select("id,title").in("id", meetingIds)
-        : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+        : Promise.resolve({
+            data: [] as { id: string; title: string }[],
+            error: null as { message: string } | null,
+          }),
     ]);
     const missionMap = new Map<string, string>(
       (missions.data ?? []).map((r) => [r.id as string, r.title as string]),
     );
+    const missionStatus = new Map<string, string>(
+      (missions.data ?? []).map((r) => [r.id as string, r.status as string]),
+    );
     const prdMap = new Map<string, string>(
       (prds.data ?? []).map((r) => [r.id as string, r.title as string]),
+    );
+    const prdProject = new Map<string, string | null>(
+      (prds.data ?? []).map((r) => [r.id as string, (r.project_id as string | null) ?? null]),
     );
     const meetingMap = new Map<string, string>(
       (meetings.data ?? []).map((r) => [r.id as string, r.title as string]),
@@ -262,9 +320,15 @@ export const listDecisions = createServerFn({ method: "GET" })
         (d.meeting_id && meetingMap.get(d.meeting_id)) ||
         null;
       d.source_label = label ? stripAutoPrefix(label) : null;
+      d.mission_status = d.mission_id ? (missionStatus.get(d.mission_id) ?? null) : null;
+      d.prd_project_id = d.prd_id ? (prdProject.get(d.prd_id) ?? null) : null;
     }
-    return { decisions };
-  });
+    return {
+      decisions,
+      hydrationError: missions.error ?? prds.error ?? meetings.error ?? null,
+    };
+  }
+}
 
 /**
  * WHAT ONE OUTCOME GRADED, AND WHAT IT REPLACED, in a single keyed read.

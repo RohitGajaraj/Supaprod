@@ -265,17 +265,27 @@ export const listHouseRules = createServerFn({ method: "GET" })
   .inputValidator((d: z.input<typeof ListSchema> | undefined) => ListSchema.parse(d ?? {}))
   .handler(async ({ context, data }): Promise<ListHouseRulesResult> => {
     const { supabase } = context;
-    const workspaceId = await resolveWorkspaceId(supabase, data.workspaceId ?? null);
-    if (!workspaceId) return { rules: [] };
-    const { data: rows, error } = await supabase
-      .from("house_rules")
-      .select(SELECT_COLUMNS)
-      .eq("workspace_id", workspaceId)
-      .order("created_at", { ascending: false })
-      .limit(200);
-    if (error) throw new Error(error.message);
-    return { rules: (rows ?? []) as HouseRule[] };
+    return readHouseRules(supabase, data.workspaceId ?? null);
   });
+
+/** The read behind `listHouseRules`, callable with a client you already hold
+ *  (the approvals queue, which used to pay the auth middleware again to call
+ *  the server function from inside its own handler). */
+export async function readHouseRules(
+  supabase: SupabaseClient<Database>,
+  explicitWorkspaceId: string | null | undefined,
+): Promise<ListHouseRulesResult> {
+  const workspaceId = await resolveWorkspaceId(supabase, explicitWorkspaceId ?? null);
+  if (!workspaceId) return { rules: [] };
+  const { data: rows, error } = await supabase
+    .from("house_rules")
+    .select(SELECT_COLUMNS)
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw new Error(error.message);
+  return { rules: (rows ?? []) as HouseRule[] };
+}
 
 /** The two kinds of write this file performs on `house_rules`. */
 export type HouseRuleWriteAction = "decide" | "draft";

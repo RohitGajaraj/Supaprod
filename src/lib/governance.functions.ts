@@ -510,276 +510,330 @@ export const listGovernApprovals = createServerFn({ method: "POST" })
     const db = supabase as unknown as SupabaseClient;
     /** F-149. Null keeps the original cross-workspace read. */
     const scopeToWorkspace = data?.workspaceId ?? null;
-    type ApprovalRow = {
-      id: string;
-      agent_slug: string | null;
-      tool_name: string;
-      args: Json;
-      rationale: string | null;
-      status: string;
-      escalation_state: string | null;
-      expires_at: string | null;
-      created_at: string;
-      decided_at: string | null;
-      error: string | null;
-      mission_id: string | null;
-    };
-    // Pre-migration tolerant (the api/chat.ts precedent): mission_id lands
-    // with 20260612100000 via the Lovable sync; until it applies, retry the
-    // select without the column so the queue still renders.
-    const baseColumns =
-      "id,agent_slug,tool_name,args,rationale,status,escalation_state,expires_at,created_at,decided_at,error";
-    let rows: Partial<ApprovalRow>[] | null = null;
-    let error: { message: string } | null = null;
-    /*
-     * F-149. Both reads take the scope. The fallback exists for a MISSING
-     * `mission_id` column and has nothing to do with tenancy, so scoping one
-     * and not the other would make a workspace's queue depend on whether a
-     * different migration had landed.
-     *
-     * Built as variables rather than one chain because PostgREST's builder has
-     * no conditional step. I reached for a generic helper with an `as never`
-     * cast first; it compiled the cast and then lost `.order` off the end,
-     * which is the same "the type system is not looking here" family as the
-     * `.apply()` I invented on `listStudioSessions` an hour ago.
-     */
-    let approvalsQ = db
-      .from("agent_approvals")
-      .select(`${baseColumns},mission_id`)
-      .eq("user_id", userId);
-    if (scopeToWorkspace) approvalsQ = approvalsQ.eq("workspace_id", scopeToWorkspace);
-    ({ data: rows, error } = await approvalsQ.order("created_at", { ascending: false }).limit(50));
+    return readGovernApprovals(db, userId, { workspaceId: scopeToWorkspace, withOutcomes: true });
+  });
 
-    if (error && /mission_id/.test(error.message)) {
-      let fallbackQ = db.from("agent_approvals").select(baseColumns).eq("user_id", userId);
-      if (scopeToWorkspace) fallbackQ = fallbackQ.eq("workspace_id", scopeToWorkspace);
-      ({ data: rows, error } = await fallbackQ.order("created_at", { ascending: false }).limit(50));
-    }
-    if (error) throw new Error(error.message);
-    const approvals = (rows ?? []).map((a) => ({
-      ...a,
-      mission_id: a.mission_id ?? null,
-    })) as ApprovalRow[];
+export type GovernApprovalsRead = {
+  approvals: Array<{
+    id: string;
+    agent_slug: string | null;
+    tool_name: string;
+    args: Json;
+    rationale: string | null;
+    status: string;
+    escalation_state: string | null;
+    expires_at: string | null;
+    created_at: string;
+    decided_at: string | null;
+    error: string | null;
+    mission_id: string | null;
+    mission_title: string | null;
+    risk: ReturnType<typeof toolRisk>;
+    gatesLiveWork: boolean | null;
+  }>;
+  trackByAgent: Record<string, AgentTrackRecord>;
+  outcomeByAgent: Record<string, AgentOutcomeRecord>;
+  rejectionsByKey: Record<string, RejectionPattern>;
+  medianResponseMs: number | null;
+};
 
-    const missionIds = [
-      ...new Set(approvals.map((a) => a.mission_id).filter((id): id is string => Boolean(id))),
-    ];
-    const toolNames = [...new Set(approvals.map((a) => a.tool_name))];
-    const [missions, tools] = await Promise.all([
-      missionIds.length
-        ? supabase.from("missions").select("id,title").in("id", missionIds)
-        : Promise.resolve({ data: [] as { id: string; title: string }[] }),
-      // Effective modes, not stored rows: a tool this account never changed has
-      // no row, and rendering its oversight as blank would understate what the
-      // boundary actually is.
-      toolNames.length
-        ? supabase.from("agent_tools").select("tool_name,mode,enabled").eq("user_id", userId)
-        : Promise.resolve({ data: [] as { tool_name: string; mode: string }[] }),
-    ]);
-    // Cleaned HERE, at the one place mission titles enter this module, rather
-    // than at each place they leave it. This map feeds ApprovalsPanel (two
-    // lines) and VerifyCockpit (two more), and every one of those four rendered
-    // the raw "[auto] " marker. Stripping at the source closes all four and any
-    // consumer added later, which is the failure mode the audit actually found:
-    // the strip and the leak keep turning up as neighbouring lines.
-    const titleOf = new Map<string, string>(
-      (missions.data ?? []).map((m) => [m.id as string, cleanTitle(m.title as string)]),
-    );
-    /*
-     * THE APPROVALS QUEUE CALLED A SUPERVISION SETTING A RISK, AND UNDERSTATED
-     * FOURTEEN TOOLS BY DOING IT.
-     *
-     * This used to build `riskOf` by relabelling the effective mode:
-     *
-     *     mode === "review" ? "high" : mode === "auto" ? "low" : "medium"
-     *
-     * which is not an assessment of anything. It is how closely a person
-     * decided to watch the tool, wearing the word for how hard the tool is to
-     * undo. ApprovalsPanel renders it as both: "High risk" in the chip, and
-     * `RISK_NOTE` underneath saying what it would touch -- "Stays in this
-     * workspace, and you can undo it" for low, "Hard to walk back" for high.
-     *
-     * Measured across the 74 registered tools, 23 got the wrong word and 14 of
-     * those were understated. `studio.commit`, `studio.pr.merge`,
-     * `studio.revert`, `release.publish` and `agent.spawn` all seed to `confirm`
-     * and were therefore reported "medium", which prints "Reaches outside, and
-     * it can be walked back" beside a merge. `toolRisk` calls all five high.
-     * A person deciding an approval was being told an irreversible act is
-     * reversible, on the screen where they decide it.
-     *
-     * `toolRisk` is the same function the loop's own gate calls, and it fails
-     * closed to "high" for a tool it does not know, so a tool added tomorrow
-     * over-warns rather than under-warns. The mode is still on this row under
-     * its own name; nothing was lost by taking the word back.
-     */
+/**
+ * THE READ BEHIND `listGovernApprovals`, callable with a client you already
+ * hold. The approvals queue used to call the server function itself from
+ * inside its own handler, which re-ran the auth middleware and, worse, sat on
+ * a SEVEN-DEEP chain of awaits: agent_approvals, then missions, then
+ * agent_runs, then the decided history, then learnings, then decisions, each
+ * a full Worker-to-PostgREST round trip (~275 ms warm, ~550 ms cold, measured
+ * 2026-09-08 on the Inbox: 7.7 s for the queue, of which Postgres spent about
+ * 20 ms). Four of those six reads key off the FIRST one alone, so they run
+ * together now: three hops for the Govern page, two for the queue, which asks
+ * `withOutcomes: false` because it renders neither outcomeByAgent nor
+ * rejectionsByKey and should not pay two round trips to compute them.
+ *
+ * `agent_tools` is no longer read here. It fed a mode-based risk grade that
+ * `toolRisk` replaced (the paragraph below); the fetch outlived its reader.
+ */
+export async function readGovernApprovals(
+  db: SupabaseClient,
+  userId: string,
+  opts: { workspaceId: string | null; withOutcomes: boolean },
+): Promise<GovernApprovalsRead> {
+  /** F-149. Null keeps the original cross-workspace read. */
+  const scopeToWorkspace = opts.workspaceId;
+  type ApprovalRow = {
+    id: string;
+    agent_slug: string | null;
+    tool_name: string;
+    args: Json;
+    rationale: string | null;
+    status: string;
+    escalation_state: string | null;
+    expires_at: string | null;
+    created_at: string;
+    decided_at: string | null;
+    error: string | null;
+    mission_id: string | null;
+  };
+  // Pre-migration tolerant (the api/chat.ts precedent): mission_id lands
+  // with 20260612100000 via the Lovable sync; until it applies, retry the
+  // select without the column so the queue still renders.
+  const baseColumns =
+    "id,agent_slug,tool_name,args,rationale,status,escalation_state,expires_at,created_at,decided_at,error";
+  let rows: Partial<ApprovalRow>[] | null = null;
+  let error: { message: string } | null = null;
+  /*
+   * F-149. Both reads take the scope. The fallback exists for a MISSING
+   * `mission_id` column and has nothing to do with tenancy, so scoping one
+   * and not the other would make a workspace's queue depend on whether a
+   * different migration had landed.
+   *
+   * Built as variables rather than one chain because PostgREST's builder has
+   * no conditional step. I reached for a generic helper with an `as never`
+   * cast first; it compiled the cast and then lost `.order` off the end,
+   * which is the same "the type system is not looking here" family as the
+   * `.apply()` I invented on `listStudioSessions` an hour ago.
+   */
+  let approvalsQ = db
+    .from("agent_approvals")
+    .select(`${baseColumns},mission_id`)
+    .eq("user_id", userId);
+  if (scopeToWorkspace) approvalsQ = approvalsQ.eq("workspace_id", scopeToWorkspace);
+  ({ data: rows, error } = await approvalsQ.order("created_at", { ascending: false }).limit(50));
 
-    // Median human response time across decided approvals — real timestamps only.
-    const waits = approvals
-      .filter((a) => a.decided_at)
-      .map((a) => new Date(a.decided_at as string).getTime() - new Date(a.created_at).getTime())
-      .filter((ms) => Number.isFinite(ms) && ms >= 0)
-      .sort((x, y) => x - y);
-    const medianResponseMs = waits.length ? waits[Math.floor(waits.length / 2)] : null;
+  if (error && /mission_id/.test(error.message)) {
+    let fallbackQ = db.from("agent_approvals").select(baseColumns).eq("user_id", userId);
+    if (scopeToWorkspace) fallbackQ = fallbackQ.eq("workspace_id", scopeToWorkspace);
+    ({ data: rows, error } = await fallbackQ.order("created_at", { ascending: false }).limit(50));
+  }
+  if (error) throw new Error(error.message);
+  const approvals = (rows ?? []).map((a) => ({
+    ...a,
+    mission_id: a.mission_id ?? null,
+  })) as ApprovalRow[];
 
-    /*
-     * ── IS THE WORK BEHIND EACH PENDING GATE STILL LIVE? (F-128) ───────────
-     *
-     * One query for the whole queue rather than one per row. Only PENDING gates
-     * are asked about: a decided approval's run status changes nothing a person
-     * can act on, and the queue is the only reader of this field.
-     *
-     * `waiting_approval` and `halted` are LIVE. A run halted at a gate is
-     * precisely the run this approval exists to release, and calling it finished
-     * would hide the one gate that still matters. `completed`,
-     * `completed_with_failures` and `failed` are over: whatever this approval
-     * was holding has stopped either way, and "it failed" is not a reason to
-     * keep promising that approving will unblock it.
-     *
-     * A FAILED LOOKUP LEAVES EVERY GATE AT null, not at false. Saying "the work
-     * behind this has finished" on the strength of a query we could not run is
-     * the F-76 shape on a surface built to tell people the truth about what
-     * needs them.
-     */
-    const LIVE_RUN_STATUSES = new Set(["waiting_approval", "halted"]);
-    const pendingMissionIds = [
-      ...new Set(
-        approvals
-          .filter((a) => a.status === "pending" && a.mission_id)
-          .map((a) => a.mission_id as string),
-      ),
-    ];
-    const liveByMission = new Map<string, boolean>();
-    if (pendingMissionIds.length > 0) {
-      const { data: runRows, error: runErr } = await db
-        .from("agent_runs")
-        .select("mission_id,status,created_at")
-        .in("mission_id", pendingMissionIds)
-        .order("created_at", { ascending: false });
-      if (runErr) {
-        console.error(
-          `approvals queue: run status unreadable, gates left unknown: ${runErr.message}`,
-        );
-      } else {
-        for (const r of (runRows ?? []) as Array<{ mission_id: string; status: string }>) {
-          // Newest first, so the first row seen for a mission is the current one.
-          if (!liveByMission.has(r.mission_id)) {
-            liveByMission.set(r.mission_id, LIVE_RUN_STATUSES.has(r.status));
-          }
-        }
-      }
-    }
+  const missionIds = [
+    ...new Set(approvals.map((a) => a.mission_id).filter((id): id is string => Boolean(id))),
+  ];
+  /*
+   * ── IS THE WORK BEHIND EACH PENDING GATE STILL LIVE? (F-128) ───────────
+   *
+   * One query for the whole queue rather than one per row. Only PENDING gates
+   * are asked about: a decided approval's run status changes nothing a person
+   * can act on, and the queue is the only reader of this field.
+   *
+   * `waiting_approval` and `halted` are LIVE. A run halted at a gate is
+   * precisely the run this approval exists to release, and calling it finished
+   * would hide the one gate that still matters. `completed`,
+   * `completed_with_failures` and `failed` are over: whatever this approval
+   * was holding has stopped either way, and "it failed" is not a reason to
+   * keep promising that approving will unblock it.
+   *
+   * A FAILED LOOKUP LEAVES EVERY GATE AT null, not at false. Saying "the work
+   * behind this has finished" on the strength of a query we could not run is
+   * the F-76 shape on a surface built to tell people the truth about what
+   * needs them.
+   */
+  const LIVE_RUN_STATUSES = new Set(["waiting_approval", "halted"]);
+  const pendingMissionIds = [
+    ...new Set(
+      approvals
+        .filter((a) => a.status === "pending" && a.mission_id)
+        .map((a) => a.mission_id as string),
+    ),
+  ];
+  // CORE-UX-TRUST: the per-agent track record, now surfaced HERE (the point of
+  // decision moved off Today into Govern → Approvals). All-time decided rows for
+  // the agents in this queue (RLS-scoped to the caller); honest, no fabricated
+  // rollback metric. Reuses the same pure tally as the Today brief used.
+  const agentSlugs = [
+    ...new Set(approvals.map((a) => a.agent_slug).filter((s): s is string => Boolean(s))),
+  ];
 
-    // CORE-UX-TRUST: the per-agent track record, now surfaced HERE (the point of
-    // decision moved off Today into Govern → Approvals). All-time decided rows for
-    // the agents in this queue (RLS-scoped to the caller); honest, no fabricated
-    // rollback metric. Reuses the same pure tally as the Today brief used.
-    const agentSlugs = [
-      ...new Set(approvals.map((a) => a.agent_slug).filter((s): s is string => Boolean(s))),
-    ];
+  /*
+   * ONE HOP FOR EVERYTHING THAT KEYS OFF THE APPROVALS. The mission titles,
+   * the live-run check, the decided history and (for the Govern page) the
+   * learnings all need only `approvals`, so they leave together. Each still
+   * degrades on its own: a refused learnings read costs the outcome record,
+   * never the queue.
+   */
+  const [missions, runsRes, histRes, learningsRes] = await Promise.all([
+    missionIds.length
+      ? db.from("missions").select("id,title").in("id", missionIds)
+      : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+    pendingMissionIds.length
+      ? db
+          .from("agent_runs")
+          .select("mission_id,status,created_at")
+          .in("mission_id", pendingMissionIds)
+          .order("created_at", { ascending: false })
+      : Promise.resolve({
+          data: [] as Array<{ mission_id: string; status: string }>,
+          error: null as { message: string } | null,
+        }),
     // One decided-history fetch feeds BOTH the per-agent track record AND the
     // visible rejection-learning (rejected rows are decided rows). RLS-scoped; both
     // degrade to empty if the read errors (e.g. a missing column pre-migration).
-    let trackByAgent: Record<string, AgentTrackRecord> = {};
-    let rejectionsByKey: Record<string, RejectionPattern> = {};
-    if (agentSlugs.length) {
-      const { data: hist } = await db
-        .from("agent_approvals")
-        .select("agent_slug,tool_name,status,decision_reason,decided_at")
-        .eq("user_id", userId)
-        .in("agent_slug", agentSlugs)
-        .not("decided_at", "is", null)
-        .limit(1000);
-      const histRows = hist ?? [];
-      trackByAgent = trackRecordsToObject(summarizeAgentRecords(histRows as DecidedApprovalRow[]));
-      rejectionsByKey = summarizeRejections(histRows as RejectionRow[]);
-    }
-
+    agentSlugs.length
+      ? db
+          .from("agent_approvals")
+          .select("agent_slug,tool_name,status,decision_reason,decided_at")
+          .eq("user_id", userId)
+          .in("agent_slug", agentSlugs)
+          .not("decided_at", "is", null)
+          .limit(1000)
+      : Promise.resolve({ data: [] as DecidedApprovalRow[] }),
     // RF-06: the OUTCOME record alongside the approval record — did this
     // agent's decided-on work actually turn out well, once real signal came
     // in (public.learnings), not just "did the human say yes". No FK exists
     // between learnings and decisions (both key off prd_id independently), so
-    // this is two queries joined in JS, same idiom as titleOf above.
-    let outcomeByAgent: Record<string, AgentOutcomeRecord> = {};
-    if (agentSlugs.length) {
-      const { data: learningRows } = await db
-        .from("learnings")
-        .select("prd_id,verdict")
-        .eq("user_id", userId)
-        .in("verdict", ["validated", "missed"])
-        .not("prd_id", "is", null)
-        .limit(1000);
-      const prdIds = [
-        ...new Set(
-          ((learningRows ?? []) as { prd_id: string | null; verdict: string | null }[])
-            .map((l) => l.prd_id)
-            .filter((id): id is string => Boolean(id)),
-        ),
-      ];
-      if (prdIds.length) {
-        const { data: decisionRows } = await db
-          .from("decisions")
-          .select("prd_id,decided_by_agent_slug")
+    // this is two queries joined in JS, same idiom as titleOf below.
+    opts.withOutcomes && agentSlugs.length
+      ? db
+          .from("learnings")
+          .select("prd_id,verdict")
           .eq("user_id", userId)
-          .in("prd_id", prdIds);
-        const slugByPrd = new Map<string, string>(
-          (
-            (decisionRows ?? []) as {
-              prd_id: string | null;
-              decided_by_agent_slug: string | null;
-            }[]
-          )
-            .filter((d) => d.prd_id && d.decided_by_agent_slug)
-            .map((d) => [d.prd_id as string, d.decided_by_agent_slug as string]),
-        );
-        const decidedLearningRows: DecidedLearningRow[] = (
-          (learningRows ?? []) as { prd_id: string | null; verdict: string | null }[]
-        ).map((l) => ({
-          agent_slug: l.prd_id ? (slugByPrd.get(l.prd_id) ?? null) : null,
-          verdict: l.verdict,
-        }));
-        outcomeByAgent = outcomeRecordsToObject(summarizeAgentOutcomes(decidedLearningRows));
+          .in("verdict", ["validated", "missed"])
+          .not("prd_id", "is", null)
+          .limit(1000)
+      : Promise.resolve({ data: [] as { prd_id: string | null; verdict: string | null }[] }),
+  ]);
+  // Cleaned HERE, at the one place mission titles enter this module, rather
+  // than at each place they leave it. This map feeds ApprovalsPanel (two
+  // lines) and VerifyCockpit (two more), and every one of those four rendered
+  // the raw "[auto] " marker. Stripping at the source closes all four and any
+  // consumer added later, which is the failure mode the audit actually found:
+  // the strip and the leak keep turning up as neighbouring lines.
+  const titleOf = new Map<string, string>(
+    (missions.data ?? []).map((m) => [m.id as string, cleanTitle(m.title as string)]),
+  );
+  /*
+   * THE APPROVALS QUEUE CALLED A SUPERVISION SETTING A RISK, AND UNDERSTATED
+   * FOURTEEN TOOLS BY DOING IT.
+   *
+   * This used to build `riskOf` by relabelling the effective mode:
+   *
+   *     mode === "review" ? "high" : mode === "auto" ? "low" : "medium"
+   *
+   * which is not an assessment of anything. It is how closely a person
+   * decided to watch the tool, wearing the word for how hard the tool is to
+   * undo. ApprovalsPanel renders it as both: "High risk" in the chip, and
+   * `RISK_NOTE` underneath saying what it would touch -- "Stays in this
+   * workspace, and you can undo it" for low, "Hard to walk back" for high.
+   *
+   * Measured across the 74 registered tools, 23 got the wrong word and 14 of
+   * those were understated. `studio.commit`, `studio.pr.merge`,
+   * `studio.revert`, `release.publish` and `agent.spawn` all seed to `confirm`
+   * and were therefore reported "medium", which prints "Reaches outside, and
+   * it can be walked back" beside a merge. `toolRisk` calls all five high.
+   * A person deciding an approval was being told an irreversible act is
+   * reversible, on the screen where they decide it.
+   *
+   * `toolRisk` is the same function the loop's own gate calls, and it fails
+   * closed to "high" for a tool it does not know, so a tool added tomorrow
+   * over-warns rather than under-warns. The mode is still on this row under
+   * its own name; nothing was lost by taking the word back.
+   */
+
+  // Median human response time across decided approvals — real timestamps only.
+  const waits = approvals
+    .filter((a) => a.decided_at)
+    .map((a) => new Date(a.decided_at as string).getTime() - new Date(a.created_at).getTime())
+    .filter((ms) => Number.isFinite(ms) && ms >= 0)
+    .sort((x, y) => x - y);
+  const medianResponseMs = waits.length ? waits[Math.floor(waits.length / 2)] : null;
+
+  const liveByMission = new Map<string, boolean>();
+  if (runsRes.error) {
+    console.error(
+      `approvals queue: run status unreadable, gates left unknown: ${runsRes.error.message}`,
+    );
+  } else {
+    for (const r of (runsRes.data ?? []) as Array<{ mission_id: string; status: string }>) {
+      // Newest first, so the first row seen for a mission is the current one.
+      if (!liveByMission.has(r.mission_id)) {
+        liveByMission.set(r.mission_id, LIVE_RUN_STATUSES.has(r.status));
       }
     }
+  }
 
-    return {
-      approvals: approvals.map((a) => ({
-        ...a,
-        mission_title: a.mission_id ? (titleOf.get(a.mission_id) ?? null) : null,
-        risk: toolRisk(a.tool_name),
-        /*
-         * ── F-128: 22 OF 29 PENDING GATES HELD WORK THAT HAD ALREADY FINISHED ──
-         *
-         * S1 measured `/approvals` against the database. The screen says
-         * *"52 decisions are ready for you"*, and each row promises
-         * *"Approve · unblocks Build for this spec"*. For 22 of the 29 pending
-         * tool-call gates, **the run they held is over**, so approving cannot
-         * unblock anything. Seven more (`memory.promote`) have no `agent_runs`
-         * row at all. None is past its expiry, so nothing will ever clear them,
-         * and the youngest is 33 days old.
-         *
-         * That is the founder's own bar failing on the one surface whose entire
-         * job is telling a person what needs them: a screen implying work that is
-         * not real.
-         *
-         * AGE CANNOT CARRY IT, which is why this is a field rather than a
-         * heuristic S1 could compute. A 33-day-old call whose run is still queued
-         * is genuinely waiting; one whose run finished is not; and `created_at`
-         * cannot tell them apart.
-         *
-         * THREE STATES, NOT TWO, and the null is load-bearing. `false` means "we
-         * looked and the work is over". `null` means "we cannot say" — no
-         * mission on the approval, or no run row for that mission — and those
-         * seven `memory.promote` rows are exactly that case. Collapsing them
-         * would tell a person the work had finished when nothing ever started.
-         */
-        gatesLiveWork: a.mission_id ? (liveByMission.get(a.mission_id) ?? null) : null,
-      })),
-      trackByAgent,
-      outcomeByAgent,
-      rejectionsByKey,
-      medianResponseMs,
-    };
-  });
+  const histRows = (histRes.data ?? []) as DecidedApprovalRow[];
+  const trackByAgent: Record<string, AgentTrackRecord> = agentSlugs.length
+    ? trackRecordsToObject(summarizeAgentRecords(histRows))
+    : {};
+  const rejectionsByKey: Record<string, RejectionPattern> = agentSlugs.length
+    ? summarizeRejections(histRows as unknown as RejectionRow[])
+    : {};
+
+  let outcomeByAgent: Record<string, AgentOutcomeRecord> = {};
+  const learningRows = (learningsRes.data ?? []) as {
+    prd_id: string | null;
+    verdict: string | null;
+  }[];
+  const prdIds = [
+    ...new Set(learningRows.map((l) => l.prd_id).filter((id): id is string => Boolean(id))),
+  ];
+  if (opts.withOutcomes && prdIds.length) {
+    const { data: decisionRows } = await db
+      .from("decisions")
+      .select("prd_id,decided_by_agent_slug")
+      .eq("user_id", userId)
+      .in("prd_id", prdIds);
+    const slugByPrd = new Map<string, string>(
+      (
+        (decisionRows ?? []) as {
+          prd_id: string | null;
+          decided_by_agent_slug: string | null;
+        }[]
+      )
+        .filter((d) => d.prd_id && d.decided_by_agent_slug)
+        .map((d) => [d.prd_id as string, d.decided_by_agent_slug as string]),
+    );
+    const decidedLearningRows: DecidedLearningRow[] = learningRows.map((l) => ({
+      agent_slug: l.prd_id ? (slugByPrd.get(l.prd_id) ?? null) : null,
+      verdict: l.verdict,
+    }));
+    outcomeByAgent = outcomeRecordsToObject(summarizeAgentOutcomes(decidedLearningRows));
+  }
+
+  return {
+    approvals: approvals.map((a) => ({
+      ...a,
+      mission_title: a.mission_id ? (titleOf.get(a.mission_id) ?? null) : null,
+      risk: toolRisk(a.tool_name),
+      /*
+       * ── F-128: 22 OF 29 PENDING GATES HELD WORK THAT HAD ALREADY FINISHED ──
+       *
+       * S1 measured `/approvals` against the database. The screen says
+       * *"52 decisions are ready for you"*, and each row promises
+       * *"Approve · unblocks Build for this spec"*. For 22 of the 29 pending
+       * tool-call gates, **the run they held is over**, so approving cannot
+       * unblock anything. Seven more (`memory.promote`) have no `agent_runs`
+       * row at all. None is past its expiry, so nothing will ever clear them,
+       * and the youngest is 33 days old.
+       *
+       * That is the founder's own bar failing on the one surface whose entire
+       * job is telling a person what needs them: a screen implying work that is
+       * not real.
+       *
+       * AGE CANNOT CARRY IT, which is why this is a field rather than a
+       * heuristic S1 could compute. A 33-day-old call whose run is still queued
+       * is genuinely waiting; one whose run finished is not; and `created_at`
+       * cannot tell them apart.
+       *
+       * THREE STATES, NOT TWO, and the null is load-bearing. `false` means "we
+       * looked and the work is over". `null` means "we cannot say" — no
+       * mission on the approval, or no run row for that mission — and those
+       * seven `memory.promote` rows are exactly that case. Collapsing them
+       * would tell a person the work had finished when nothing ever started.
+       */
+      gatesLiveWork: a.mission_id ? (liveByMission.get(a.mission_id) ?? null) : null,
+    })),
+    trackByAgent,
+    outcomeByAgent,
+    rejectionsByKey,
+    medianResponseMs,
+  };
+}
 
 /**
  * Resolve a pending approval. Approving also EXECUTES the tool — same

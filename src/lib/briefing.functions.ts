@@ -31,7 +31,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
+import { readApprovalsQueue, type ApprovalsQueueResult } from "@/lib/approvals-queue.functions";
 import { longDayInZone } from "@/lib/time-of-day";
 import { zoneForUser } from "@/lib/profile-zone.server";
 import {
@@ -266,8 +266,8 @@ export const getBriefing = createServerFn({ method: "GET" })
 
     const [queue, eventsRes, runsRes] = await Promise.all([
       // One count, one source: the same queue the pill and Spine read.
-      getApprovalsQueue({ data: { workspaceId: data.workspaceId } }).catch(() => ({
-        items: [] as Awaited<ReturnType<typeof getApprovalsQueue>>["items"],
+      readApprovalsQueue(context.supabase, context.userId, data.workspaceId).catch(() => ({
+        items: [] as ApprovalsQueueResult["items"],
       })),
       db
         .from("stage_events")

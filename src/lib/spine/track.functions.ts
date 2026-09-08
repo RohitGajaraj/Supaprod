@@ -61,7 +61,11 @@ import {
   type StationTimings,
   type TrackStart,
 } from "@/lib/spine/station-timings";
-import { getApprovalsQueue, type ApprovalsQueueResult } from "@/lib/approvals-queue.functions";
+import {
+  getApprovalsQueue,
+  readApprovalsQueue,
+  type ApprovalsQueueResult,
+} from "@/lib/approvals-queue.functions";
 import { readHomeAnswers, type HomeAnswerReads } from "@/lib/start/home-answers.functions";
 import { driveTrackOnce, DRIVE_SELECT } from "@/lib/spine/driver.server";
 import { recordTrackDrive } from "@/lib/spine/track-drives.server";
@@ -6099,6 +6103,7 @@ export const readHome = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) => z.object({ workspaceId: z.string().uuid() }).parse(d))
   .handler(
     async ({
+      context,
       data,
     }): Promise<{
       runs: StartRun[];
@@ -6109,7 +6114,10 @@ export const readHome = createServerFn({ method: "GET" })
       const scope = { data: { workspaceId: data.workspaceId } };
       const [runs, queue, running, answers] = await Promise.all([
         listRunsForStart(scope),
-        getApprovalsQueue(scope),
+        // The queue's own read, with this request's client: calling the server
+        // function from here re-ran the auth middleware for nothing, and this
+        // read gates the home's first paint (2026-09-08, the 7.7 s Inbox).
+        readApprovalsQueue(context.supabase, context.userId, data.workspaceId),
         listRunningNow(scope),
         readHomeAnswers(scope),
       ]);
