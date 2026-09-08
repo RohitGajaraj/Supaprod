@@ -134,7 +134,7 @@ import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { REVIEW_QUEUE_SEARCH } from "@/components/shell/post-auth-home";
 import { pollMs } from "@/components/shell/poll";
 import * as React from "react";
-import { missionsKey, runningNowKey } from "@/lib/query-keys";
+import { APPROVALS_QUEUE_PREFIX, missionsKey, runningNowKey } from "@/lib/query-keys";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { sessionEndedMessage } from "@/lib/error-copy";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
@@ -155,6 +155,7 @@ import { listAgents } from "@/lib/agents.functions";
 import { listCrew } from "@/lib/crew.functions";
 import { listMovingTracks, listTracks, listGatesOnTracks } from "@/lib/spine/track.functions";
 import { listRunningNow } from "@/lib/spine/track.functions";
+import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { initialsFrom } from "@/lib/initials";
 import { useTheme } from "@/hooks/use-theme";
 import { FOOTER_NAV, PRIMARY_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
@@ -991,6 +992,23 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    * sentence names who is working, and "Scribe is writing the spec" is what
    * a person can act on where "Scribe is working" is not.
    */
+  /*
+   * THE INBOX ROW COUNTS WHAT THE INBOX PAGE LISTS (Lane 1, 2026-09-08).
+   * Read live: the page said "4 design gates and 2 decisions waiting for
+   * you" and the row beside it drew no count, because the row counted gates
+   * on open tracks and the page counts every family in the approvals queue.
+   * One question, one reader: the row reads the same function the page
+   * reads, under the same prefix the page invalidates on every decision.
+   */
+  const fetchQueue = useServerFn(getApprovalsQueue);
+  const queue = useQuery({
+    queryKey: [...APPROVALS_QUEUE_PREFIX, "shell", wsKey],
+    queryFn: () => fetchQueue({ data: wsArg }),
+    staleTime: 10_000,
+    refetchInterval: (query) => pollMs(20_000, query.state.fetchFailureCount),
+  });
+  const waitingCount = queue.isSuccess ? (queue.data?.items ?? []).length : null;
+
   const fetchRunningNow = useServerFn(listRunningNow);
   const runningNow = useQuery({
     queryKey: runningNowKey(wsKey),
@@ -1221,7 +1239,12 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     return done[0] ?? null;
   }, [rows]);
 
-  const counts: Record<string, number> = { gates: gateCount, runs: running.length };
+  /* Unread reads as the track-gate count (the older, narrower truth) rather
+     than as zero, so the row never says "nothing" before it has looked. */
+  const counts: Record<string, number> = {
+    gates: waitingCount ?? gateCount,
+    runs: running.length,
+  };
 
   /* ONE BOX, ONE KEY, AND THE BOX IS ASK.
    *
