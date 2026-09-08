@@ -22,6 +22,7 @@
 import * as React from "react";
 
 import type { StartRun } from "@/lib/spine/track.functions";
+import { standingState, type RunLike } from "@/components/start/journey-of-a-run";
 
 export type HeroCopy = { eyebrow: string | null; title: string; line: string };
 
@@ -34,7 +35,8 @@ function plural(n: number, one: string, many: string): string {
 
 export function heroCopy(input: {
   product: string | null;
-  runs: readonly Pick<StartRun, "status" | "needsYou" | "working">[] | undefined;
+  runs:
+    readonly (Pick<StartRun, "status" | "needsYou" | "working"> & Partial<RunLike>)[] | undefined;
 }): HeroCopy {
   const name = input.product ?? "your product";
   const runs = input.runs;
@@ -47,6 +49,16 @@ export function heroCopy(input: {
   const open = runs.filter((r) => r.status === "open");
   const needs = open.filter((r) => r.needsYou).length;
   const moving = open.filter((r) => r.working).length;
+  /*
+   * STOPPED IS ALSO ON YOU. Seen live on the founder's workspace: four runs
+   * stood held at Build and Ship (ran again and again without moving on)
+   * while this line said nothing was waiting. A hold on a condition is not
+   * an ask, but nothing will move it except a person looking, and the rows
+   * say so. So it is counted here, after the asks and before the quiet.
+   */
+  const stopped = open.filter(
+    (r) => !r.needsYou && !r.working && "holdReason" in r && standingState(r as RunLike) === "held",
+  ).length;
 
   if (runs.length === 0) {
     return { eyebrow, title: `What should ${name} do next?`, line: PROMISE };
@@ -57,6 +69,14 @@ export function heroCopy(input: {
       eyebrow,
       title: `${plural(needs, "run needs", "runs need")} you.`,
       line: `Answer below and the work carries on.${rest}`,
+    };
+  }
+  if (stopped > 0) {
+    const rest = moving > 0 ? ` ${plural(moving, "run is", "runs are")} moving on their own.` : "";
+    return {
+      eyebrow,
+      title: `${plural(stopped, "run has", "runs have")} stopped.`,
+      line: `Each one says why below. Look before more is spent on it.${rest}`,
     };
   }
   if (moving > 0) {
