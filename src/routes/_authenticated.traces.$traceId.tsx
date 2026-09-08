@@ -116,7 +116,7 @@
  * prompt, and the same /build and /engine-room targets.
  */
 
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { reasonLine } from "@/lib/error-copy";
 import { Row, Who } from "@/components/meridian/rows";
 import {
@@ -135,7 +135,7 @@ import * as React from "react";
 
 import { getTrace } from "@/lib/traces.functions";
 import { evalScoreVerdict } from "@/components/observe/EvalScoreChips";
-import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { AGENT_STATIONS, agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { Fact, FactLabel, Facts, IdFact, CopyButton } from "@/components/traces/TraceFacts";
 import { TracePane } from "@/components/traces/TracePane";
@@ -338,8 +338,7 @@ function SpanDetail({
           <Num>{fmtMs(span.latency_ms)}</Num>
         </Fact>
         <Fact label="Tokens">
-          <Num>{span.prompt_tokens}</Num> in,{" "}
-          <Num>{span.completion_tokens}</Num> out
+          <Num>{span.prompt_tokens}</Num> in, <Num>{span.completion_tokens}</Num> out
         </Fact>
         <Fact label="Cost">
           <Num>{fmtUsd(Number(span.est_cost_usd))}</Num>
@@ -654,6 +653,9 @@ export function TraceDetail({ id }: { id: string }) {
     : null;
 
   const ranAgo = since(new Date(t0).toISOString());
+  const run = trace.data?.run ?? null;
+  const runStation: AgentStation | undefined =
+    run?.station && run.station in AGENT_STATIONS ? (run.station as AgentStation) : undefined;
 
   return (
     <Surface
@@ -729,10 +731,26 @@ export function TraceDetail({ id }: { id: string }) {
       }
     >
       <div data-mrd="" className="flex flex-col gap-mrd-6">
+        {/*
+         * ── THE TRACE KEEPS ITS RUN'S CONTEXT (2026-09-08) ──────────────────
+         * Reached from "Open the full trace" on a transcript turn, this page
+         * headed itself "Trace 67c7327f" and knew nothing of the run, so the
+         * person who arrived from one landed with the context gone. Lane 3's
+         * read now carries the run (2d408fd48): the seat, the station and the
+         * person's own sentence lead, the id stays in the context column, and
+         * one door goes back to the run.
+         */}
         <PageHeading
-          title={mission ? stripAutoPrefix(mission.title) : shortTitle}
+          station={runStation}
+          title={run?.trackTitle ?? (mission ? stripAutoPrefix(mission.title) : shortTitle)}
           sub={
             <>
+              {run ? (
+                <>
+                  {run.agentName}&rsquo;s turn
+                  {runStation ? ` at ${AGENT_STATIONS[runStation].name}` : ""} ·{" "}
+                </>
+              ) : null}
               <Num>{hopRows.length}</Num> {hopRows.length === 1 ? "hop" : "hops"} ·{" "}
               <Num>{fmtMs(totalMs)}</Num> wall
               {ranAgo ? <> · {ranAgo}</> : null}
@@ -757,6 +775,20 @@ export function TraceDetail({ id }: { id: string }) {
             </>
           }
         />
+        {run?.trackId ? (
+          <div>
+            <Link
+              to="/track/$trackId"
+              params={{ trackId: run.trackId }}
+              className="mrd-focus inline-flex items-center gap-1 rounded-mrd-ctl text-mrd-small text-mrd-mute underline decoration-mrd-line underline-offset-4 transition-colors hover:text-mrd-ink hover:decoration-mrd-edge"
+            >
+              Back to the run
+              <span aria-hidden className="text-mrd-faint">
+                &rarr;
+              </span>
+            </Link>
+          </div>
+        ) : null}
 
         {/* Shut, one line, and it names its own failures. See ToolTrace. */}
         <ToolTrace
@@ -836,7 +868,7 @@ export function TraceDetail({ id }: { id: string }) {
                   sub={
                     showCost ? (
                       <>
-                        <Num>{(s.total_tokens || 0)}</Num> tokens ·{" "}
+                        <Num>{s.total_tokens || 0}</Num> tokens ·{" "}
                         <Num>{fmtUsd(Number(s.est_cost_usd))}</Num> · started +
                         <Num>{fmtMs(offset)}</Num>
                         {s.status !== "ok" ? <> · {outcome}</> : null}

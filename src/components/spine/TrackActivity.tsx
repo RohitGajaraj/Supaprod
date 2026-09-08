@@ -80,6 +80,7 @@ import {
 } from "@/components/spine/transcript-sections";
 import { whatItProduced } from "@/components/track/what-it-produced";
 import { useTimezone } from "@/hooks/use-timezone";
+import { useTrackActivityPush } from "@/hooks/use-track-activity-push";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import {
   GLYPH_FOR_STATION,
@@ -615,6 +616,15 @@ export function TrackActivity({
     });
   const fetchActivity = useServerFn(getTrackActivity);
   const fetchChain = useServerFn(getTrackChain);
+  /*
+   * ── THE FIRST ROW IS ON SCREEN WHEN IT IS WRITTEN (Lane 3, 414bbf565) ──
+   * The live walk of 2026-09-08 saw each seat only after it finished: the
+   * transcript polled every ten seconds until it had seen a live turn, and
+   * an unfocused tab pauses interval refetches altogether. The push
+   * subscribes to this track's own run rows and invalidates the two reads
+   * below the moment a seat starts or ends, focus or not.
+   */
+  useTrackActivityPush(trackId);
   const q = useQuery({
     queryKey: ["track-activity", trackId],
     queryFn: () => fetchActivity({ data: { trackId } }),
