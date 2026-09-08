@@ -47,7 +47,12 @@
  * Pure and dependency-free; the server function does the reads and hands the
  * rows in, the same split route.ts, driver.ts, attach.ts and chain.ts use.
  */
-import { AGENT_STATIONS, SPECIALIST_CATALOG, type AgentStation } from "@/lib/agent-vocabulary";
+import {
+  AGENT_STATIONS,
+  SPECIALIST_CATALOG,
+  agentDisplayName,
+  type AgentStation,
+} from "@/lib/agent-vocabulary";
 import { KIND_WORD } from "@/lib/spine/attach";
 
 /** A run the driver started for this track. */
@@ -251,7 +256,16 @@ export function buildActivity(input: {
     return {
       runId: r.id,
       agentSlug: r.agent_slug,
-      agentName: r.agent_name?.trim() || r.agent_slug,
+      /*
+       * ONE SEAT, ONE NAME (Lane 1 ruling, 2026-09-08). The stored
+       * `agent_name` is the mission era's job title ("Discovery Scout", "PRD
+       * Writer"); the catalog's is the role a person reads on every other
+       * surface ("Watch", "Draft"), and `presenceColour` hashes the name, so
+       * two names for one seat were two colours on one screen. The catalog
+       * wins wherever the slug is known; the stored name stands where it is
+       * not; the slug itself only when there is nothing else.
+       */
+      agentName: agentDisplayName(r.agent_slug, r.agent_name),
       station,
       stationName: station ? (AGENT_STATIONS[station]?.name ?? station) : "",
       at: r.created_at,

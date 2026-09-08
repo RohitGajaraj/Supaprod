@@ -101,12 +101,28 @@ describe("the activity stream", () => {
     expect(t.stationName).toBe("Design");
   });
 
-  it("falls back to the slug when an agent has no display name", () => {
+  /*
+   * ONE SEAT, ONE NAME (Lane 1 ruling, 2026-09-08). This pinned the slug as
+   * the fallback; the catalog role is the name every other surface prints and
+   * the one `presenceColour` hashes, so the transcript resolves through the
+   * same `agentDisplayName` and a blank stored name yields the role.
+   */
+  it("names the seat by its catalog role when the row has no display name", () => {
     const [t] = buildActivity({
       runs: [run({ id: "r1", agent_name: "  ", created_at: "x" })],
       members: [],
     });
-    expect(t.agentName).toBe("prd-writer");
+    expect(t.agentName).toBe("Draft");
+  });
+
+  it("keeps the stored name when the slug is not in the catalog", () => {
+    const [t] = buildActivity({
+      runs: [
+        run({ id: "r1", agent_slug: "field-scribe", agent_name: "Field Scribe", created_at: "x" }),
+      ],
+      members: [],
+    });
+    expect(t.agentName).toBe("Field Scribe");
   });
 
   it("orders oldest first so the handoff reads in the order it happened", () => {
