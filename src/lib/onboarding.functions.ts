@@ -13,6 +13,8 @@ import {
   STARTER_RUNS_SYSTEM,
   starterRunsPrompt,
   type StarterRun,
+  STARTER_RUNS_CLAIM_MS,
+  starterRunsState,
 } from "@/lib/starter-runs";
 import { ONBOARDING_MILESTONES, type ActivationMoment } from "@/lib/activation.functions";
 
@@ -394,41 +396,80 @@ export const completeOnboarding = createServerFn({ method: "POST" })
     });
 
     /*
-     * THE MACHINE'S FIRST VISIBLE WORK. The product's three starter runs are
-     * generated here, once, so the home a person lands on next has them (or
-     * shows the wait as work in progress and reads them on its next poll).
-     * Bounded, because onboarding must finish whether or not a model answers
-     * in time; on a timeout or a refusal the row stays NULL and the home's
-     * own read generates on its miss. The product is the one FirstRun named,
-     * else the workspace's newest.
+     * THE MACHINE'S FIRST VISIBLE WORK, AND NOBODY IS HELD FOR IT. The
+     * product's three starter runs are generated once, from what the person
+     * just said. This used to await that generation (bounded at twelve
+     * seconds), which held a new person on a disabled "Open Supaprod" while
+     * the machine wrote, invisibly (Lane 1's third review, 2026-09-08). The
+     * home's own read shows the wait as work in progress ("Reading what you
+     * said about X", a live dot), which is the visible version of this wait,
+     * so the response goes out now and the generation goes on behind it.
+     *
+     * A Worker may cancel a promise once its response is out, so the kick
+     * here is best effort and the resume-runs minute sweep is the guarantee:
+     * a fresh product with nothing stored and no live claim is generated
+     * there. The claim (`starter_runs_at`, honoured for STARTER_RUNS_CLAIM_MS)
+     * is what keeps the two from writing the same row twice.
      */
+    const db = supabase as unknown as SupabaseClient;
     const productId =
-      input.productId ??
-      (await newestProjectId(
-        supabase as unknown as SupabaseClient,
-        (workspaceId as string | null) ?? null,
-      ));
-    if (productId) {
-      await Promise.race([
-        generateStarterRunsForProduct(
-          supabase as unknown as SupabaseClient,
-          userId,
-          productId,
-        ).catch((e: unknown) => {
-          console.error(
-            `[completeOnboarding] starter runs: ${e instanceof Error ? e.message : String(e)}`,
-          );
-          return null;
-        }),
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), STARTER_RUNS_WAIT_MS)),
-      ]);
+      input.productId ?? (await newestProjectId(db, (workspaceId as string | null) ?? null));
+    if (productId && (await claimStarterRuns(db, productId, new Date().toISOString()))) {
+      void keepStarterRuns(db, userId, productId);
     }
 
     return { success: true };
   });
 
-/** How long onboarding waits for the starter runs before handing the wait to the home. */
-const STARTER_RUNS_WAIT_MS = 12_000;
+/**
+ * Take the claim on a product's starter runs: one writer per
+ * STARTER_RUNS_CLAIM_MS. False when the runs are already stored or someone
+ * holds a live claim, so the caller generates nothing.
+ */
+export async function claimStarterRuns(
+  db: SupabaseClient,
+  productId: string,
+  nowIso: string,
+): Promise<boolean> {
+  const staleIso = new Date(Date.parse(nowIso) - STARTER_RUNS_CLAIM_MS).toISOString();
+  const { data, error } = await db
+    .from("projects")
+    .update({ starter_runs_at: nowIso })
+    .eq("id", productId)
+    .is("starter_runs", null)
+    .or(`starter_runs_at.is.null,starter_runs_at.lt.${staleIso}`)
+    .select("id");
+  if (error) {
+    console.error(`[starter runs] claim on ${productId} failed: ${error.message}`);
+    return false;
+  }
+  return (data?.length ?? 0) > 0;
+}
+
+/**
+ * Generate and keep a product's starter runs, and keep the refusal when the
+ * model says no (final until the row is cleared; see `starterRunsState`).
+ * Never throws: every caller runs this behind a response or inside a sweep,
+ * where a throw would be a lost reason.
+ */
+export async function keepStarterRuns(
+  db: SupabaseClient,
+  userId: string,
+  productId: string,
+): Promise<StarterRun[] | null> {
+  try {
+    return await generateStarterRunsForProduct(db, userId, productId);
+  } catch (e) {
+    const reason = e instanceof Error ? e.message : String(e);
+    const at = new Date().toISOString();
+    const { error: markErr } = await db
+      .from("projects")
+      .update({ starter_runs: { runs: [], refused: { reason, at } }, starter_runs_at: at })
+      .eq("id", productId);
+    if (markErr) console.error(`[starter runs] refusal not kept: ${markErr.message}`);
+    return null;
+  }
+}
 
 async function newestProjectId(
   db: SupabaseClient,
@@ -520,9 +561,11 @@ export async function generateStarterRunsForProduct(
 
 /**
  * THE HOME'S READ (Lane 1's item 3). A row read when the runs exist; on a
- * miss it generates once, bounded, and says `pending: true` when the answer
- * has not landed yet so the home can show the wait as the agent's first
- * visible work rather than a blank. `reason` names a refusal in words.
+ * miss it takes the claim and starts the generation, and says `pending: true`
+ * at once so the home can show the wait as the agent's first visible work
+ * rather than a blank. It never holds the response for the model: the home
+ * polls while pending, and the sweep finishes a generation a cancelled
+ * Worker dropped. `reason` names a refusal in words.
  */
 export const listStarterRuns = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -535,41 +578,41 @@ export const listStarterRuns = createServerFn({ method: "GET" })
       const db = context.supabase as unknown as SupabaseClient;
       const { data: project, error } = await db
         .from("projects")
-        .select("id,starter_runs")
+        .select("id,starter_runs,starter_runs_at")
         .eq("id", data.productId)
         .maybeSingle();
       if (error) throw new Error(`The product could not be read: ${error.message}`);
-      const storedRaw = (project as { starter_runs?: unknown } | null)?.starter_runs;
-      const stored = readStoredStarterRuns(storedRaw);
-      if (stored) return { pending: false, runs: stored, reason: null };
       if (!project)
         return { pending: false, runs: [], reason: "That product is not one you can read." };
+      const row = project as { starter_runs: unknown; starter_runs_at: string | null };
       /*
-       * A REFUSAL IS FINAL, A TIMEOUT IS NOT (Lane 1, 2026-09-08). This
-       * answered a thrown generation as `pending: true` with a reason, so a
-       * model that said no read as "still writing" for ever. A refusal kept
-       * on the row is answered as what it is, and the model is not asked
-       * again until the row is cleared; a timeout stores nothing and the next
-       * read tries again.
+       * A REFUSAL IS FINAL, A CLAIM IS A WAIT, AND NOTHING HERE HOLDS THE
+       * RESPONSE (Lane 1, 2026-09-08, twice). A refusal kept on the row is
+       * answered as what it is, and the model is not asked again until the
+       * row is cleared. A live claim means a generation is in flight
+       * somewhere (this Worker, another, the sweep): pending. No claim: take
+       * it, start the generation behind the response, answer pending now.
        */
-      const refused = readStarterRunsRefusal(storedRaw);
-      if (refused) return { pending: false, runs: [], reason: refused.reason };
-      try {
-        const generated = await Promise.race([
-          generateStarterRunsForProduct(db, context.userId, data.productId),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), STARTER_RUNS_WAIT_MS)),
-        ]);
-        if (generated) return { pending: false, runs: generated, reason: null };
-        return { pending: true, runs: [], reason: null };
-      } catch (e) {
-        const reason = e instanceof Error ? e.message : String(e);
-        const at = new Date().toISOString();
-        const { error: markErr } = await db
-          .from("projects")
-          .update({ starter_runs: { runs: [], refused: { reason, at } }, starter_runs_at: at })
-          .eq("id", data.productId);
-        if (markErr) console.error(`[listStarterRuns] refusal not kept: ${markErr.message}`);
-        return { pending: false, runs: [], reason };
+      switch (starterRunsState(row, Date.now())) {
+        case "ready":
+          return {
+            pending: false,
+            runs: readStoredStarterRuns(row.starter_runs) ?? [],
+            reason: null,
+          };
+        case "refused":
+          return {
+            pending: false,
+            runs: [],
+            reason: readStarterRunsRefusal(row.starter_runs)?.reason ?? "The model refused.",
+          };
+        case "in-flight":
+          return { pending: true, runs: [], reason: null };
+        case "unclaimed":
+          if (await claimStarterRuns(db, data.productId, new Date().toISOString())) {
+            void keepStarterRuns(db, context.userId, data.productId);
+          }
+          return { pending: true, runs: [], reason: null };
       }
     },
   );

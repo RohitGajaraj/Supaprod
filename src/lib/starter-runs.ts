@@ -100,3 +100,36 @@ export function readStarterRunsRefusal(stored: unknown): StarterRunsRefusal | nu
   if (typeof reason !== "string" || !reason.trim() || typeof at !== "string") return null;
   return { reason: reason.trim(), at };
 }
+
+/**
+ * How long a claim on a product's starter runs is honoured before another
+ * writer may take it. A generation is one model call (tens of seconds); a
+ * claim older than this belongs to a Worker that was cancelled after its
+ * response went out, and the minute sweep takes it over.
+ */
+export const STARTER_RUNS_CLAIM_MS = 2 * 60 * 1000;
+
+export type StarterRunsState = "ready" | "refused" | "in-flight" | "unclaimed";
+
+/**
+ * PURE. What a product's row says about its starter runs, so every reader
+ * (the home's read, onboarding, the sweep) makes the same call:
+ *
+ *   ready       runs are stored; serve them
+ *   refused     the model said no, kept on the row; final until cleared
+ *   in-flight   nothing stored and a claim younger than STARTER_RUNS_CLAIM_MS;
+ *               someone is generating, say pending and do not start another
+ *   unclaimed   nothing stored and no claim, or a claim past its time; take it
+ */
+export function starterRunsState(
+  row: { starter_runs: unknown; starter_runs_at: string | null },
+  nowMs: number,
+): StarterRunsState {
+  if (readStoredStarterRuns(row.starter_runs)) return "ready";
+  if (readStarterRunsRefusal(row.starter_runs)) return "refused";
+  if (row.starter_runs_at) {
+    const claimed = Date.parse(row.starter_runs_at);
+    if (Number.isFinite(claimed) && nowMs - claimed < STARTER_RUNS_CLAIM_MS) return "in-flight";
+  }
+  return "unclaimed";
+}

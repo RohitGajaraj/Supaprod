@@ -8,6 +8,8 @@ import { classifyMissionGate } from "@/lib/reliability/gate-state";
 import { withJobRun } from "@/lib/observability";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { driveTrackOnce, DRIVE_SELECT, type DriveRow } from "@/lib/spine/driver.server";
+import { claimStarterRuns, keepStarterRuns } from "@/lib/onboarding.functions";
+import { STARTER_RUNS_CLAIM_MS } from "@/lib/starter-runs";
 import { DEFAULT_STUCK_MS, isRunStuck, stuckReason } from "@/lib/reliability/stuck-runs";
 
 // agent_approvals.run_id is new in the f_studio_engine migration — not in the
@@ -700,6 +702,50 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
               freshFailed.push(`read: ${e instanceof Error ? e.message : String(e)}`);
             }
 
+            /*
+             * THE STARTER RUNS A CANCELLED WORKER DROPPED. completeOnboarding
+             * and the home's read start a product's starter-run generation
+             * behind their response and answer at once (Lane 1, 2026-09-08:
+             * nobody is held on a disabled button while the machine writes).
+             * A Worker may cancel that promise once the response is out, so
+             * this sweep is the guarantee: a product from the last day with
+             * nothing stored and no live claim is generated here, two per
+             * pass, under the product's own user for the model call.
+             */
+            const starterRunsWritten: string[] = [];
+            const starterRunsFailed: string[] = [];
+            try {
+              const sweepNow = Date.now();
+              const staleIso = new Date(sweepNow - STARTER_RUNS_CLAIM_MS).toISOString();
+              const recentIso = new Date(sweepNow - 24 * 60 * 60 * 1000).toISOString();
+              const { data: waiting } = await admin
+                .from("projects")
+                .select("id,user_id")
+                .is("starter_runs", null)
+                .is("archived_at", null)
+                .gte("created_at", recentIso)
+                .or(`starter_runs_at.is.null,starter_runs_at.lt.${staleIso}`)
+                .order("created_at", { ascending: true })
+                .limit(2);
+              for (const p of (waiting ?? []) as Array<{ id: string; user_id: string | null }>) {
+                if (!p.user_id) continue;
+                const claimed = await claimStarterRuns(
+                  admin as unknown as SupabaseClient,
+                  p.id,
+                  new Date().toISOString(),
+                );
+                if (!claimed) continue;
+                const runs = await keepStarterRuns(
+                  admin as unknown as SupabaseClient,
+                  p.user_id,
+                  p.id,
+                );
+                (runs ? starterRunsWritten : starterRunsFailed).push(p.id);
+              }
+            } catch (e) {
+              starterRunsFailed.push(`read: ${e instanceof Error ? e.message : String(e)}`);
+            }
+
             return new Response(
               JSON.stringify({
                 ok: true,
@@ -707,6 +753,9 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
                 // Fresh open tracks nobody had driven, started here (F-55 sweep).
                 freshTracksDriven: freshTracks,
                 freshTracksFailed: freshFailed,
+                // Starter runs a cancelled Worker dropped, generated here.
+                starterRunsWritten,
+                starterRunsFailed,
                 // Runs another worker already held. Reported, never counted as
                 // work this tick did.
                 skipped,

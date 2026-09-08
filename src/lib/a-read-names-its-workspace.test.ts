@@ -205,8 +205,8 @@ const DELIBERATELY_UNSCOPED: Record<string, string> = {
  */
 const DELIBERATE_READS: Record<string, { reads: number; why: string }> = {
   "src/routes/api/public/hooks/resume-runs.ts": {
-    reads: 1,
-    why: "The minute sweep drives a fresh open track nobody has driven yet, in whichever workspace it was started (F-55 'sweep'); the read is the cron pass across tenants, bounded to three rows under fifteen minutes old.",
+    reads: 2,
+    why: "The minute sweep drives a fresh open track nobody has driven yet, in whichever workspace it was started (F-55 'sweep'), and generates the starter runs a cancelled Worker dropped for a product from the last day; both reads are the cron pass across tenants, bounded (three tracks under fifteen minutes old; two products with no runs and no live claim).",
   },
 };
 

@@ -1211,6 +1211,15 @@ export type StartRun = {
     since: string;
     tool: string | null;
     lastCallAt: string | null;
+    /**
+     * The seat's verb and object in the same words the strip, the rail and
+     * the header print (`nowPerTrace`: the verb is the newest call, the
+     * object the newest call that named one), so a row never says "logging a
+     * signal" where the strip says "filing the evidence I found" for the
+     * same call. Null for a seat that has called nothing yet.
+     */
+    verb: string | null;
+    objectLabel: string | null;
   } | null;
   /** A boundary call this track opened and nobody has answered. */
   needsYou: { tool: string } | null;
@@ -1421,7 +1430,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
          */
         const [
           gateByTrack,
-          { workingByTrack, toolByTrace },
+          { workingByTrack, nowByTrace },
           pinnedByTrack,
           forecastByTrack,
           liveByTrack,
@@ -1494,30 +1503,23 @@ export const listRunsForStart = createServerFn({ method: "GET" })
               });
             }
 
-            /* THE VERB, from the newest call on that seat's own trace. Skipped
-               entirely when nothing is running, which is the common case. */
-            const toolByTrace = new Map<string, { tool: string; at: string }>();
+            /* THE VERB AND THE OBJECT, from that seat's own trace, by the
+               same two-row rule every other surface reads (`nowPerTrace`).
+               Skipped entirely when nothing is running, the common case. */
+            let nowByTrace = new Map<string, RunningNow>();
             const traces = [...workingByTrack.values()]
               .map((w) => w.trace)
               .filter((t): t is string => !!t);
             if (traces.length > 0) {
               const { data: calls } = await supabase
                 .from("tool_calls")
-                .select("trace_id, tool_name, created_at")
+                .select("trace_id, tool_name, args, created_at")
                 .in("trace_id", traces)
                 .order("created_at", { ascending: false })
                 .limit(200);
-              for (const c of (calls ?? []) as Array<{
-                trace_id: string;
-                tool_name: string;
-                created_at: string;
-              }>) {
-                if (!toolByTrace.has(c.trace_id)) {
-                  toolByTrace.set(c.trace_id, { tool: c.tool_name, at: c.created_at });
-                }
-              }
+              nowByTrace = nowPerTrace((calls ?? []) as NowCallRow[]);
             }
-            return { workingByTrack, toolByTrace };
+            return { workingByTrack, nowByTrace };
           })(),
           (async () => {
             /*
@@ -1781,8 +1783,10 @@ export const listRunsForStart = createServerFn({ method: "GET" })
                   seat: w.seat,
                   slug: w.slug,
                   since: w.since,
-                  tool: w.trace ? (toolByTrace.get(w.trace)?.tool ?? null) : null,
-                  lastCallAt: w.trace ? (toolByTrace.get(w.trace)?.at ?? null) : null,
+                  tool: w.trace ? (nowByTrace.get(w.trace)?.tool ?? null) : null,
+                  lastCallAt: w.trace ? (nowByTrace.get(w.trace)?.at ?? null) : null,
+                  verb: w.trace ? (nowByTrace.get(w.trace)?.verb ?? null) : null,
+                  objectLabel: w.trace ? (nowByTrace.get(w.trace)?.objectLabel ?? null) : null,
                 }
               : null,
             needsYou: gateByTrack.get(r.id) ?? null,

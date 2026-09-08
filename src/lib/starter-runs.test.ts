@@ -81,13 +81,15 @@ describe("a fresh product's first three runs", () => {
     const from = src.indexOf("export const completeOnboarding");
     const end = src.indexOf("\nexport ", from + 1);
     expect(from).toBeGreaterThan(-1);
-    expect(src.slice(from, end)).toContain("generateStarterRunsForProduct(");
+    // Since 2026-09-08 the kick is behind the response (keepStarterRuns wraps
+    // the generation and keeps a refusal); nobody is held for the machine.
+    expect(src.slice(from, end)).toContain("void keepStarterRuns(db, userId, productId);");
     // Stored on the row, so the home's read is a row read.
     expect(src).toContain(".update({ starter_runs: { runs }, starter_runs_at:");
   });
 });
 
-describe("a refusal is final, a timeout is not", () => {
+describe("a refusal is final, a claim is a wait", () => {
   it("a refusal kept on the row is read back with its reason and time", () => {
     expect(
       readStarterRunsRefusal({
@@ -100,15 +102,20 @@ describe("a refusal is final, a timeout is not", () => {
     expect(readStarterRunsRefusal(null)).toBeNull();
   });
 
-  it("the read answers a refusal as final and keeps it, and a timeout as pending", () => {
+  it("the read answers a refusal as final and a claim as pending, at once", () => {
     const src = readFileSync("src/lib/onboarding.functions.ts", "utf8");
     const from = src.indexOf("export const listStarterRuns");
     const end = src.indexOf("\nexport ", from + 1);
     const body = src.slice(from, end === -1 ? undefined : end);
-    expect(body).toContain(
-      "if (refused) return { pending: false, runs: [], reason: refused.reason };",
-    );
-    expect(body).toContain("starter_runs: { runs: [], refused: { reason, at } }");
+    // The row's state decides (starterRunsState): a kept refusal is answered
+    // as final with its reason; a live claim or a fresh claim is pending, at
+    // once, with no hold on the model. The refusal is written by
+    // keepStarterRuns, wherever the generation ran.
+    expect(body).toContain('case "refused":');
+    expect(body).toContain("reason: readStarterRunsRefusal(row.starter_runs)?.reason");
     expect(body).toContain("return { pending: true, runs: [], reason: null };");
+    const keepAt = src.indexOf("export async function keepStarterRuns");
+    const keep = src.slice(keepAt, src.indexOf("\nexport ", keepAt + 1));
+    expect(keep).toContain("starter_runs: { runs: [], refused: { reason, at } }");
   });
 });
