@@ -1363,7 +1363,11 @@ serial hops and 3.7 to 3.9 s inside the Worker on every page; read live on c52a0
 Lane 2's cold read 0.85 to 1.56 s for the strip's handlers; what remains on a cold Worker is outside
 the handlers, the dynamically loaded Worker's own start). Also `a06a5c4c4`: `countNeedsYouCalls` at one
 hop (Today's badge, loop-health, the Inbox live line), and `5a6b00615`: `listRunningNow`, the live
-feed every surface polls, five hops to two (`readRunningNow`, guarded by `a-presence-feed-is-two-hops`). The guard for all of it is a fake client that counts rounds
+feed every surface polls, five hops to two (`readRunningNow`, guarded by `a-presence-feed-is-two-hops`); `3fea10214`: the home's
+longest chain (members, changesets, deployments for "live since") four hops to three through a
+`deployments` read with a `studio_changesets!inner(mission_id)` embed filtered on the embedded column
+(verify "live since" on Helio Labs track `2fdf93b6`, live since 4 Sep, once deployment 7187cb60
+serves); `44ba22a50`: `getTrackActivity` three hops to two. The guard for all of it is a fake client that counts rounds
 (`src/__tests__/a-wire-that-counts-rounds.ts`, driven by `a-queue-is-two-hops-deep` and
 `a-strip-read-is-three-hops-deep`); "every await outside a Promise.all" is what a person greps for and
 it was wrong twice, so the wire counts what the wire sees.
