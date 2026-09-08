@@ -226,31 +226,24 @@ describe("the driver writes it on entry, which is the case with no transition", 
   });
 });
 
-describe("the hand paths that never touch driveTrackOnce", () => {
+describe("the hand path that never touches driveTrackOnce", () => {
   /**
    * A LOG WITH A HOLE IN IT IS WORSE THAN NO LOG, because it reads clean.
-   * `advanceTrack` moves a station by itself and `retryStation` clears the hold
-   * by itself; neither goes near `driveTrackOnce`. A criterion-2 query over
-   * `track_drives` alone would have missed both — and they are the two most
-   * literal readings of the words criterion 2 uses.
+   * `retryStation` clears the hold by itself and never goes near
+   * `driveTrackOnce`, so a criterion-2 query over `track_drives` alone would
+   * have missed it. (`advanceTrack`, the hand-advance that moved a station by
+   * itself, was the other such path; it lost its last mount with P-14 and was
+   * deleted on 2026-09-08. A person moves work through `driveTrackNow` and
+   * `TakeOver` now, both of which go through the driver.)
    */
-  it("logs the hand-advance and the release, both as a press", () => {
-    const advance = WATCHED.slice(
-      WATCHED.indexOf("export const advanceTrack ="),
-      WATCHED.indexOf("export const retryStation ="),
-    );
-    const retry = WATCHED.slice(
-      WATCHED.indexOf("export const retryStation ="),
-      WATCHED.indexOf("export const setStationWaiver ="),
-    );
-    for (const [name, src] of [
-      ["advanceTrack", advance],
-      ["retryStation", retry],
-    ] as const) {
-      expect(src, name).toContain("await recordTrackDrive(supabase, {");
-      expect(src, name).toContain('via: "press",');
-      expect(src, name).toContain("entryHold: (raw.last_hold ?? null) as HoldReason | null,");
-    }
+  it("logs the release as a press", () => {
+    const start = WATCHED.indexOf("export const retryStation =");
+    const end = WATCHED.indexOf("export const setStationWaiver =");
+    expect(start, "retryStation moved; re-point this guard").toBeGreaterThan(-1);
+    const retry = WATCHED.slice(start, end);
+    expect(retry).toContain("await recordTrackDrive(supabase, {");
+    expect(retry).toContain('via: "press",');
+    expect(retry).toContain("entryHold: (raw.last_hold ?? null) as HoldReason | null,");
   });
 
   /**

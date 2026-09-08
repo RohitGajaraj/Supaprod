@@ -63,6 +63,27 @@ describe("heroCopy", () => {
     expect(c.line).toContain("Inbox");
   });
 
+  it("names the largest family, as the Inbox page does, rather than a raw total", () => {
+    const c = heroCopy({
+      product: "Prism",
+      runs: [],
+      waiting: 53,
+      waitingShape: [
+        { n: 20, label: "20 design gates" },
+        { n: 12, label: "12 assumption challenges" },
+      ],
+    });
+    expect(c.title).toBe("20 design gates and 33 other calls are waiting for you.");
+    expect(
+      heroCopy({
+        product: "Prism",
+        runs: [],
+        waiting: 2,
+        waitingShape: [{ n: 2, label: "2 decisions" }],
+      }).title,
+    ).toBe("2 decisions are waiting for you.");
+  });
+
   it("says how many are moving when nothing needs a person", () => {
     const c = heroCopy({
       product: null,

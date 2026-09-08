@@ -104,17 +104,6 @@ export function IconMoon({ className }: IconProps) {
  * third brightness, but a deferral to the machine.
  */
 
-/** The board: work in columns. */
-export function IconBoard({ className }: IconProps) {
-  return (
-    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="4.6" height="16" rx="1.2" />
-      <rect x="9.7" y="4" width="4.6" height="10.6" rx="1.2" />
-      <rect x="16.4" y="4" width="4.6" height="13.4" rx="1.2" />
-    </svg>
-  );
-}
-
 export function IconChevron({ className }: IconProps) {
   return (
     <svg

@@ -1,12 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
-  statusLabel,
-  changesetColor,
-  changesetLabel,
-  fmtCost,
-  fmtCompact,
-  summarizeArgs,
-} from "./studio-format";
+import { statusLabel, changesetColor, changesetLabel, fmtCost, fmtCompact } from "./studio-format";
 
 describe("statusLabel", () => {
   test("waiting_approval renders as the human-facing 'at gate'", () => {
@@ -96,48 +89,5 @@ describe("fmtCompact", () => {
   test("10000 and above rounds to a whole 'k' with no decimal", () => {
     expect(fmtCompact(10_000)).toBe("10k");
     expect(fmtCompact(25_500)).toBe("26k");
-  });
-});
-
-describe("summarizeArgs", () => {
-  test("an empty args object renders the explicit placeholder", () => {
-    expect(summarizeArgs({})).toBe("(no args)");
-  });
-
-  test("null/undefined values are skipped entirely", () => {
-    expect(summarizeArgs({ a: null, b: undefined, c: "x" })).toBe("c: x");
-  });
-
-  test("string values have internal whitespace runs collapsed to a single space", () => {
-    expect(summarizeArgs({ note: "line one\n  line   two" })).toBe("note: line one line two");
-  });
-
-  test("a long string value is truncated with an ellipsis at 60 chars", () => {
-    const long = "x".repeat(80);
-    const result = summarizeArgs({ note: long });
-    expect(result).toBe(`note: ${"x".repeat(57)}…`);
-  });
-
-  test("array values render as their length, not their contents", () => {
-    expect(summarizeArgs({ files: ["a.ts", "b.ts", "c.ts"] })).toBe("files: [3]");
-  });
-
-  test("plain object values are JSON-stringified", () => {
-    expect(summarizeArgs({ opts: { retries: 2 } })).toBe('opts: {"retries":2}');
-  });
-
-  test("number and boolean values are stringified as-is", () => {
-    expect(summarizeArgs({ n: 42, ok: true })).toBe("n: 42 · ok: true");
-  });
-
-  test("multiple entries are joined with ' · ' in insertion order", () => {
-    expect(summarizeArgs({ a: 1, b: "two", c: [1, 2] })).toBe("a: 1 · b: two · c: [2]");
-  });
-
-  test("the whole joined line is truncated at the max length with an ellipsis", () => {
-    const args = { a: "x".repeat(50), b: "y".repeat(50), c: "z".repeat(50) };
-    const result = summarizeArgs(args, 40);
-    expect(result.length).toBe(40);
-    expect(result.endsWith("…")).toBe(true);
   });
 });

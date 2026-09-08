@@ -105,7 +105,6 @@ const J2: Journey = {
   doneState: "A teardown verdict on the record, attached to the idea for good.",
   handoff: { artifactKind: "teardown-verdict", suggestedNextJourneyId: "j3" },
   wiredVia: [
-    { file: "src/lib/discovery.functions.ts", fn: "runWedgeTeardown" },
     { file: "src/lib/fanout.functions.ts", fn: "dispatchExploration" },
     { file: "src/lib/fanout.functions.ts", fn: "decideFanoutBatch" },
   ],
@@ -179,7 +178,6 @@ const J6: Journey = {
   wiredVia: [
     { file: "src/lib/deployments.functions.ts", fn: "promoteToProduction" },
     { file: "src/lib/studio.functions.ts", fn: "generateReleaseNotes" },
-    { file: "src/lib/studio.functions.ts", fn: "generateLaunchKit" },
     { file: "src/lib/launch-plan.functions.ts", fn: "generateLaunchPlan" },
   ],
 };

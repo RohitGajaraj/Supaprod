@@ -43,7 +43,7 @@ describe("what releasing a station writes, and what it must not", () => {
     expect(body).toContain("driven_at: now");
   });
 
-  it("does not move the station, which is the whole difference from advanceTrack", () => {
+  it("does not move the station, which was the whole difference from the old advanceTrack", () => {
     // If this ever writes `station:` it has become a second advance path with a
     // gentler name, and the two would drift.
     const body = retryBody();
@@ -160,7 +160,7 @@ describe("what it refuses", () => {
 
   it("refuses to narrate a cause when the write comes back unconfirmed", () => {
     // An UPDATE returning nothing did not necessarily fail to commit. This is
-    // the defect advanceTrack was repaired for: it announced an arrival that may
+    // the defect the old advanceTrack was repaired for: it announced an arrival that may
     // never have happened.
     const body = retryBody();
     expect(body).toContain("did not come back confirmed");
@@ -174,7 +174,7 @@ describe("the trail says a person did it, and does not claim a transition", () =
 
   it("names the same station at both ends, because the work did not move", () => {
     // A trail row claiming a transition would be the false stage event
-    // advanceTrack was repaired for. It also matters to the correction budget:
+    // the old advanceTrack (deleted 2026-09-08) was repaired for. It also matters to the correction budget:
     // readCorrections counts BACKWARD transitions off this table, and a row whose
     // ends differ could be read as a correction nobody made.
     const body = retryBody();
@@ -190,74 +190,3 @@ describe("the trail says a person did it, and does not claim a transition", () =
 // importers once /plan's own route file stopped being one). The server
 // function this whole file otherwise tests is unaffected; only its one
 // caller's own surface-reachability proof went with the surface.
-
-describe("advanceTrack stops reporting a lap that did not happen", () => {
-  /**
-   * THE DEFECT. `advanceTrack` consults the kill switch and nothing else: not
-   * `last_hold`, not `attempts`, and not whether the station being left produced
-   * anything. So a person could walk a track through its whole remaining route
-   * with an empty member list, and the board would report a completed lap that
-   * never happened. A completed lap that did not happen is the one claim this
-   * product must never make about itself.
-   *
-   * REFUSING WOULD BE THE WRONG FIX, and that is why this asserts a REPORT rather
-   * than a refusal. The governance canon is explicit that a person carrying their
-   * own work forward past a station is a decision they are allowed to make, and
-   * this handler's own header already argues exactly that for an open gate. What
-   * was wrong was not the permission. It was the silence.
-   */
-  const src = () => readFileSync(join(SPINE, "track.functions.ts"), "utf8");
-
-  function advanceBody(): string {
-    const s = src();
-    const start = s.indexOf("export const advanceTrack");
-    expect(start).toBeGreaterThan(-1);
-    const end = s.indexOf("export const retryStation", start);
-    expect(end).toBeGreaterThan(start);
-    return s.slice(start, end);
-  }
-
-  it("asks whether the station it is leaving filed anything", () => {
-    const body = advanceBody();
-    expect(body).toContain("spine_track_members");
-    // Scoped to the STATION, not the whole track: a track carrying a spec from
-    // Plan has members, and that says nothing about whether Design drew anything.
-    expect(body).toContain('.eq("station", track.station)');
-  });
-
-  it("asks BEFORE the move, because afterwards the row is somewhere else", () => {
-    const body = advanceBody();
-    expect(body.indexOf("spine_track_members")).toBeLessThan(body.indexOf(".update("));
-  });
-
-  it("still permits the move, because that is the person's decision to make", () => {
-    // If this ever starts refusing, the canon's own ruling has been reversed by a
-    // commit rather than by a decision.
-    const body = advanceBody();
-    expect(body).not.toContain('refused: "That station filed nothing');
-    expect(body).toContain("emptyStation,");
-  });
-
-  it("treats a failed member read as unknown, never as an empty station", () => {
-    // `count` is null when the read errored. Turning that into "the station
-    // produced nothing" would be this repo's signature defect: a failed read
-    // becoming a confident zero, here in the form of an accusation.
-    const body = advanceBody();
-    expect(body).toContain("(count ?? null) === 0");
-    expect(body).toContain("if (!memberErr");
-  });
-
-  it("carries the fact on every return path, so no caller can miss it", () => {
-    // A field present on the happy path only is a field a caller learns to not
-    // trust.
-    const body = advanceBody();
-    const returns = body.match(/emptyStation/g)?.length ?? 0;
-    expect(returns).toBeGreaterThanOrEqual(6);
-  });
-
-  // "is said out loud on the surface, not just returned" read TrackStart.tsx
-  // for the same reason the block above named -- deleted alongside it
-  // (P-14, A-QUEUE.md, R-34). `emptyStation` is still returned on every path
-  // (proven above); which surface says it out loud is now Start's own rows,
-  // not this file's concern.
-});

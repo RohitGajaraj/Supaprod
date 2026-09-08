@@ -1269,7 +1269,7 @@ const githubPrOpen = def({
         }
         throw new Error(
           `BuilderFileConflict: ${claimedPathRefusal({ path: a.path, missionTitle: holderTitle })} ` +
-            `An operator can also release the claim from /build.`,
+            `It releases on its own when that run finishes, merges or is stopped.`,
         );
       } else if (!existing) {
         // Try to take the claim. If a parallel call beats us, fall back to
@@ -1297,7 +1297,7 @@ const githubPrOpen = def({
           if (/unique|duplicate/i.test(insErr.message)) {
             throw new Error(
               `BuilderFileConflict: ${claimedPathRefusal({ path: a.path, missionTitle: null })} ` +
-                `It was claimed while this call was in flight. An operator can also release it from /build.`,
+                `It was claimed while this call was in flight; it releases when that run finishes, merges or is stopped.`,
             );
           }
           // Non-conflict insert failure is non-fatal — log and proceed; the

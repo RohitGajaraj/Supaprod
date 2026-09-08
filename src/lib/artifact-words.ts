@@ -12,14 +12,60 @@
  *
  * LOWERCASE ON PURPOSE. These words land inside sentences ("a design rule we
  * could not read") and inside chips the stylesheet already uppercases. A
- * Title Case map cannot do both; this one does. `LineageDrawer`'s
- * `KIND_LABEL` stays as it is - it is an exhaustive `Record<ArtifactKind>`
- * over a typed union, and that exhaustiveness is a real check worth keeping.
- * The words here are taken from it, so the two never disagree.
+ * Title Case map cannot do both; this one does. `KIND_LABEL` below is the
+ * Title Case form: an exhaustive `Record<ArtifactKind>` over a typed union,
+ * and that exhaustiveness is a real check worth keeping. It lived in
+ * `LineageDrawer.tsx` until that drawer's only mount (/decide) went with P-14
+ * and the drawer itself was deleted (2026-09-08); the map is the part every
+ * surface still reads. The words here are taken from it, so the two never
+ * disagree.
  *
  * PURE: no server import, no DB, no component. Unit-tested in
  * artifact-words.test.ts.
  */
+import type { ArtifactKind } from "@/lib/lineage.functions";
+
+/** The Title Case word for each kind, read after a word ("1 Finding", "How this finding connects"). */
+export const KIND_LABEL: Record<ArtifactKind, string> = {
+  /*
+   * "Finding", not "What we found", and the reason is one line below at the
+   * heading: this map is read through `.toLowerCase()` into "How this {label}
+   * connects across the product lifecycle." The heading form rendered "How this
+   * what we found connects", which is the same defect as "1 what we found" with
+   * a demonstrative in place of a number. Section 12 offers the heading form and
+   * it is correct over a panel; it is wrong the moment anything puts a word in
+   * front of it. `a-counted-word-is-a-noun-not-a-heading` watches this map, so a
+   * heading form cannot creep back in.
+   */
+  signal: "Finding",
+  theme: "Theme",
+  opportunity: "Opportunity",
+  // LOOM W2: the IA word is "spec" on every user-facing surface; the
+  // ArtifactKind stays `prd` (internal identifier, CLAUDE.md disclaimer).
+  prd: "Spec",
+  roadmap_item: "Roadmap item",
+  task: "Task",
+  meeting: "Meeting",
+  decision: "Decision",
+  mission: "Build session",
+  house_rule: "House rule",
+  design_memory: "Design memory",
+  // "Mockup", not "Prototype": the generator forbids <script> and produces one
+  // static screen, so the word promised interactivity the artifact does not
+  // have. The DB kind is unchanged; this is the reader's word for it.
+  prototype: "Mockup",
+  capability_change: "Capability change",
+  // Added 2026-08-02 with the four kinds a live census found stored but declared
+  // nowhere. Plain words, per the voice convention: what the thing IS to a
+  // product manager, not the table it came from. "Outcome" rather than
+  // "learning", because that is the word every other surface uses for the
+  // verdict on a shipped spec.
+  learning: "Outcome",
+  deployment: "Deployment",
+  changeset: "Code change",
+  prd_scaffold: "Drawing",
+  prd_flow: "Flow",
+};
 
 const ARTIFACT_WORDS: Record<string, string> = {
   // The audit vocabulary.

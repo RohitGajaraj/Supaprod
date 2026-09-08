@@ -40,6 +40,10 @@ export function heroCopy(input: {
   /** Everything in the approvals queue for a person, the number the Inbox
    *  page lists and the rail's Inbox row counts. Null while unread. */
   waiting?: number | null;
+  /** The same queue by family, largest first, as the Inbox page's own
+   *  `queueShape` returns it. The hero names the largest family rather than
+   *  printing a raw total, which is the Inbox page's rule too. */
+  waitingShape?: ReadonlyArray<{ n: number; label: string }> | null;
 }): HeroCopy {
   const name = input.product ?? "your product";
   const runs = input.runs;
@@ -72,9 +76,16 @@ export function heroCopy(input: {
    */
   const waiting = input.waiting ?? 0;
   if (waiting > needs) {
+    const biggest = input.waitingShape?.[0] ?? null;
+    const others = biggest ? waiting - biggest.n : 0;
+    const title = biggest
+      ? others > 0
+        ? `${biggest.label} and ${plural(others, "other call are", "other calls are")} waiting for you.`
+        : `${biggest.label} ${biggest.n === 1 ? "is" : "are"} waiting for you.`
+      : `${plural(waiting, "call is", "calls are")} waiting for you.`;
     return {
       eyebrow,
-      title: `${plural(waiting, "call is", "calls are")} waiting for you.`,
+      title,
       line: `Answer them in Inbox, or on the runs below that carry them.${rest}`,
     };
   }

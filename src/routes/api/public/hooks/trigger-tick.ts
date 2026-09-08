@@ -28,8 +28,8 @@ import { recordDecisionOrigins } from "@/lib/lineage.functions";
  *   For every opted-in workspace, evaluates accumulated state (clusters, missed
  *   outcomes, signal volumes) and self-originates missions with status='proposed'.
  *   A proposed mission costs ZERO AI spend; nothing drives it until somebody
- *   launches it — a person through promoteMission (src/lib/missions.functions.ts)
- *   or Tier 2 below.
+ *   launches it — Tier 2 below, the only launcher since promoteMission (the
+ *   person's door, never mounted) was deleted on 2026-09-08.
  *   THE HITL GATE IS THE MISSION, NOT ITS RECEIPT. The `decisions` row written
  *   alongside it is a Trust-Ledger receipt, and `decideDecisionReview`
  *   (src/lib/decision-gate.ts) decides its status rather than this file naming
@@ -651,9 +651,9 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
           });
         }
 
-        /* START THE WORK. Everything here mirrors promoteMission's launch step
-         * (src/lib/missions.functions.ts), which mirrors startOrchestratedMission
-         * — one launch mechanism, three doors into it. */
+        /* START THE WORK. This is the launch step; it was mirrored from
+         * promoteMission and startOrchestratedMission, both deleted, so it is
+         * the one launch mechanism now. */
         try {
           // Self-healing, as both of those paths do before their own runAgentLoop:
           // seed_default_agents seeds 'orchestrator' at signup, but an account

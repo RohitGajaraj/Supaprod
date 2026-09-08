@@ -83,64 +83,6 @@ export const runCriticReview = createServerFn({ method: "POST" })
 // it inline. No source connection or data setup is required, so a brand-new
 // account reaches the first verdict in its first session.
 
-/**
- * Record a feature idea as an opportunity (verbatim, neutral ICE) and run the
- * Critic against it in the same call. Returns the opportunity plus the verdict
- * for the first-run surface to render. The verdict may be `null` when the AI
- * gateway is unavailable (e.g. local dev with no key) — the idea is still saved
- * and the caller shows an honest fallback rather than a broken card.
- */
-export const runWedgeTeardown = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z
-      .object({
-        idea: z.string().trim().min(3).max(200),
-        problem: z.string().trim().max(2000).optional(),
-        target_user: z.string().trim().max(200).optional(),
-        project_id: z.string().uuid().nullable().optional(),
-      })
-      .parse(i),
-  )
-  .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
-    const { data: opp, error } = await supabase
-      .from("opportunities")
-      .insert({
-        user_id: userId,
-        title: data.idea.slice(0, 200),
-        problem: (data.problem ?? "").slice(0, 2000),
-        target_user: data.target_user?.slice(0, 200) ?? null,
-        // Neutral ICE: the operator hasn't scored the bet, so we don't fake a
-        // score. The Critic judges the idea itself and surfaces what's undefined
-        // through `missing_evidence` — which is most of the first-run value.
-        impact: 5,
-        confidence: 5,
-        ease: 5,
-        project_id: data.project_id ?? null,
-      })
-      // P-35: named columns, embedding excluded.
-      .select(
-        "confidence,created_at,critic_review,ease,embedding_model,goal_id,hypothesis,ice_score,id,impact,is_public,is_sample,linked_brief_item_id,posthog_event,problem,product_id,project_id,roadmap_bucket,roadmap_last_agent_slug,roadmap_measure,roadmap_outcome,roadmap_snapshot_before,share_slug,status,target_user,theme_id,title,updated_at,user_id,workspace_id",
-      )
-      .single();
-    if (error || !opp) throw new Error(error?.message ?? "Could not record the idea");
-
-    // SEAM-1: stage history for the created opportunity.
-    await recordStageEvent(supabase, {
-      entityType: "opportunity",
-      entityId: opp.id,
-      from: null,
-      to: opp.status ?? "backlog",
-      actor: "human",
-      workspaceId: opp.workspace_id,
-      userId,
-    });
-
-    const review = await runCritic(supabase, userId, { kind: "opportunity", id: opp.id });
-    return { opportunity: opp, review };
-  });
-
 // ---------- TASK GRAPH (M1: H1 — PRD → engineering plan) ----------
 
 /** The Planner step: decompose an approved spec into a DEPENDENCY-ORDERED
@@ -2467,15 +2409,6 @@ async function recordJudgment(
     return { recorded: false };
   }
 }
-
-export const deleteOpportunity = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
-  .handler(async ({ context, data }) => {
-    const { error } = await context.supabase.from("opportunities").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
 
 // ---------- PRDs ----------
 

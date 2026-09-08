@@ -14,13 +14,18 @@
  * claim from /build", a control that page did not have, so the one recovery
  * instruction the product gives for a claim conflict was a dead end.
  *
- * TWO OF THE THREE NOW HAVE THEIR DOOR, 2026-08-06. `listBuilderClaims` and
- * `releaseBuilderClaim` are mounted by `components/build/HeldClaims.tsx` on
- * /build, which renders only while a claim is held, so the registry's sentence
- * points at something real. `listBuilderRuns` is still unmounted and its
- * github.pr.open join is still dead (see the next paragraph); it is not
- * connected here because connecting a read that cannot find what it looks for
- * would be a worse defect than an unmounted one.
+ * THE DOOR CAME AND WENT. On 2026-08-06 `listBuilderClaims` and
+ * `releaseBuilderClaim` were mounted by `components/build/HeldClaims.tsx` on
+ * /build; P-14 (2026-09-03) retired /build to a redirect stub and deleted the
+ * component. `listBuilderClaims` is deleted with this note (2026-09-08): the
+ * one live reader of "who holds this path" is `whoHoldsThePath` in
+ * spine/track.functions.ts, on the run screen. `releaseBuilderClaim` stays,
+ * unmounted: a claim releases on its own when its run reaches a terminal
+ * status (the `release_claims_for_terminal_run` trigger), on cancel, on
+ * abandon and on merge, and the registry's conflict sentence now says that
+ * instead of pointing at a page. There is no operator force-release today;
+ * a held claim on a run that never reached a terminal status has no manual
+ * exit, which is a gap the queue records rather than this header hides.
  *
  * And the github.pr.open join is now doubly dead. As of 2026-08-06 the work
  * order this file dispatches names studio.stage → studio.commit →
@@ -90,37 +95,6 @@ export type BuilderClaim = {
   mission_title: string | null;
   is_mine: boolean;
 };
-
-export const listBuilderClaims = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ claims: BuilderClaim[] }> => {
-    const { supabase, userId } = context;
-    const { data, error } = await supabase
-      .from("builder_file_claims")
-      .select(
-        "id,repo,path,status,claimed_at,released_at,released_reason,run_id,mission_id,mission_title,user_id",
-      )
-      .eq("status", "held")
-      .order("claimed_at", { ascending: false })
-      .limit(50);
-    if (error) throw new Error(error.message);
-    const rows = (data ?? []) as Array<BuilderClaim & { user_id: string }>;
-    return {
-      claims: rows.map((r) => ({
-        id: r.id,
-        repo: r.repo,
-        path: r.path,
-        status: r.status,
-        claimed_at: r.claimed_at,
-        released_at: r.released_at,
-        released_reason: r.released_reason,
-        run_id: r.run_id,
-        mission_id: r.mission_id,
-        mission_title: r.mission_title,
-        is_mine: r.user_id === userId,
-      })),
-    };
-  });
 
 export const releaseBuilderClaim = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -808,83 +782,6 @@ export type SpecDispatch = {
 };
 
 /**
- * WHICH OF THESE SPECS ALREADY HAS A BUILD, so the station can stop offering to
- * start a second one by accident.
- *
- * THE DEFECT. Nothing in `dispatchBuilderMission` moves `prds.status` (only the
- * ship stamp does), so a spec dispatched an hour ago, or halted three days ago,
- * is still 'approved' and still carried a live primary "Build this" on the
- * Build Console. The only trace was a sub-line reading "Approved, with a GitHub
- * issue already open", which reads as reassurance rather than as a warning that
- * the next press mints a second mission and a second billed run against the
- * same work.
- *
- * THE EDGE IS THE EVIDENCE AND IT WAS ALREADY BEING WRITTEN. Every dispatch
- * from either path records `prd -> mission` with relation 'dispatched', so the
- * ids this returns are the runs a person can actually open. A mission column on
- * `prds` would be a second source of the same truth and would go stale the
- * first time someone dispatched twice.
- *
- * `unread` IS NOT DECORATION. An empty list from a REFUSED read looks exactly
- * like a spec that was never dispatched, and the surface's response to those
- * two differs by one billed builder run. The caller keeps its button either
- * way, and says which it is.
- */
-export const listSpecDispatches = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z.object({ prdIds: z.array(z.string().uuid()).min(1).max(24) }).parse(i),
-  )
-  .handler(
-    async ({ context, data }): Promise<{ dispatches: SpecDispatch[]; unread: string | null }> => {
-      const { supabase } = context;
-      const { data: edgeRows, error: edgeErr } = await supabase
-        .from("artifact_lineage")
-        .select("parent_id,child_id,created_at")
-        .eq("parent_kind", "prd")
-        .eq("child_kind", "mission")
-        .eq("relation", "dispatched")
-        .in("parent_id", data.prdIds)
-        .order("created_at", { ascending: false })
-        .limit(200);
-      if (edgeErr) return { dispatches: [], unread: edgeErr.message };
-
-      const edges = (edgeRows ?? []) as Array<{
-        parent_id: string;
-        child_id: string;
-        created_at: string;
-      }>;
-      if (!edges.length) return { dispatches: [], unread: null };
-
-      const missionIds = [...new Set(edges.map((e) => e.child_id))];
-      const { data: missionRows, error: missionErr } = await supabase
-        .from("missions")
-        .select("id,title,status")
-        .in("id", missionIds);
-      // THE EDGES STILL STAND. A failed mission read costs the title and the
-      // status, not the fact that a dispatch happened, so the list is returned
-      // with nulls and the failure is named rather than the whole answer
-      // discarded, which would put the second billed run back on the table.
-      const byId = new Map(
-        ((missionRows ?? []) as Array<{ id: string; title: string; status: string }>).map((m) => [
-          m.id,
-          m,
-        ]),
-      );
-      return {
-        dispatches: edges.map((e) => ({
-          prdId: e.parent_id,
-          missionId: e.child_id,
-          missionTitle: byId.get(e.child_id)?.title ?? null,
-          status: byId.get(e.child_id)?.status ?? null,
-          dispatchedAt: e.created_at,
-        })),
-        unread: missionErr ? missionErr.message : null,
-      };
-    },
-  );
-
-/**
  * One blocked row, and the only two facts a surface needs to name the reason
  * without guessing at it.
  */
@@ -904,101 +801,6 @@ export type DispatchDesignGate = {
    */
   drawingConfirmed: boolean;
 };
-
-/**
- * THE GATE, READ FOR A LIST — so a surface can say which rows this dispatch
- * would refuse BEFORE the person presses.
- *
- * The Build Console's "Approved and waiting to be built" list filtered on
- * `prds.status === 'approved'` alone and knew nothing about the design gate, so
- * every row read "Approved. Build opens the issue as it starts." while
- * `dispatchBuilderMission` above was going to throw DESIGN_GATE_BLOCK_MESSAGE
- * at it. Re-measured 2026-08-06: of the 42 approved specs, 3 carry a drawing —
- * 2 still `design_gate_status = 'pending'` and therefore blocked, and one
- * (4c0391d5, "Skip the address re-confirm when nothing changed") approved, which
- * is the first approved design gate in the database. No spec anywhere carries
- * 'rejected'. An earlier reading of this paragraph said no approved spec had an
- * approved gate; that was true when written and is not now, which is why the
- * figures here carry the day they were taken.
- *
- * It reuses `loadDesignGateState` + `designGateBlocksDispatch` rather than
- * asking the same three questions in a second shape. That matters more than the
- * query count: the gate rule is subtle (an unmade drawing must NOT block, an
- * unreadable drawing count must), and a surface that guessed at it would go
- * wrong in the direction of telling the 40 approved specs that are NOT blocked
- * (2026-08-06) that they are stuck when they are not.
- *
- * IT USED TO RETURN BARE IDS, "so the caller cannot re-derive the rule", AND
- * THAT DENIED THE CALLER THE FACT IT NEEDED TO SPEAK ACCURATELY. Holding only
- * `string[]`, the Build Console had one sentence for every blocked row and it
- * chose the common one: "a mockup is drawn and nobody has approved or rejected
- * it". `designGateBlocksDispatch` blocks on `status !== "approved"`, which
- * includes `rejected` — a status `decideDesignGate` really writes
- * (see the `decideDesignGate` server fn in design-scaffold.functions.ts) — and
- * it also blocks when the drawing count could not be read at all
- * (`loadDesignGateState` in design-gate.server.ts keeps the gate shut on
- * unknown, deliberately). For those two the row asserted the opposite of the
- * truth.
- *
- * BOTH ARE NAMED BY SYMBOL BECAUSE THE FIRST CITATION HERE HAD ALREADY ROTTED:
- * it read "design-scaffold.functions.ts:1029", which was exact on the day it was
- * written — `decideDesignGate` is at that line in commit 83dd694e — and is stale
- * now because that function has moved several hundred lines down the file. NO
- * REPLACEMENT NUMBER IS GIVEN ON PURPOSE, and not only because a new one would
- * rot the same way: the first attempt at this correction described where :1029
- * "now points" by naming a function that does not exist anywhere in `src/` —
- * the same defect it was in the middle of fixing, one clause later. What caught
- * it is the whole argument for symbols: grepping that name across `src/`
- * returned exactly one hit, the comment that invented it. A symbol can be
- * checked in one command; a line number can only be trusted. ReadyToBuild.tsx
- * dropped a line number for this same reason in the wave that added this one.
- *
- * So the shape now carries the two facts a true sentence needs and
- * NOTHING MORE: it still does not carry `stageEnabled`, so the rule itself
- * remains underivable here and stays in the one predicate both dispatch paths
- * call.
- *
- * `unresolved` closes the other half. An id absent from the `prds` select is
- * absence of evidence, not evidence of an open gate; treating it as not-blocked
- * is the discarded-read pattern this repo keeps paying for. It should be empty
- * in practice — the caller's ids came from `listSpecs`, read under the same
- * RLS (that function was deleted 2026-09-04, P-142c, as unreachable; the
- * argument holds for whatever caller supplies the ids) — and if it ever is not, the surface can say so instead of promising a
- * build that the dispatch will refuse.
- */
-export const listDispatchDesignGates = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z.object({ prdIds: z.array(z.string().uuid()).min(1).max(24) }).parse(i),
-  )
-  .handler(
-    async ({ context, data }): Promise<{ blocked: DispatchDesignGate[]; unresolved: string[] }> => {
-      const { supabase } = context;
-      const { data: rows, error } = await supabase
-        .from("prds")
-        .select("id,workspace_id")
-        .in("id", data.prdIds);
-      if (error) throw new Error(error.message);
-      const prds = (rows ?? []) as Array<{ id: string; workspace_id: string | null }>;
-      const states = await Promise.all(
-        prds.map(async (p) => ({
-          id: p.id,
-          state: await loadDesignGateState(supabase as unknown as SupabaseClient, p),
-        })),
-      );
-      const resolved = new Set(prds.map((p) => p.id));
-      return {
-        blocked: states
-          .filter((s) => designGateBlocksDispatch(s.state))
-          .map((s) => ({
-            id: s.id,
-            status: s.state.status,
-            drawingConfirmed: s.state.hasDrawing === true,
-          })),
-        unresolved: data.prdIds.filter((id) => !resolved.has(id)),
-      };
-    },
-  );
 
 // ─── K1-deploy: Supaprod-triggered deploy gate ────────────────────────────────
 

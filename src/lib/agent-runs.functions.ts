@@ -128,11 +128,10 @@ export const getAgentMemory = createServerFn({ method: "GET" })
  * completed. `TERMINAL_RUN_STATUSES` comes from K-12's module, so this predicate
  * and `finalize`'s cannot drift apart.
  *
- * NOTE FOR WHOEVER TOUCHES `cancelMission` NEXT: it carries its own hand-written
- * `TERMINAL` array (`missions.functions.ts:615`). That is a sixth copy of the
- * vocabulary K-12 exists to replace, and it is on `missions` rather than
- * `agent_runs` so it is not simply substitutable. Left alone here rather than
- * changed in passing.
+ * `cancelMission`, which carried its own hand-written `TERMINAL` array on
+ * `missions`, is gone (2026-09-08, no door since Board.tsx went); the copy that
+ * survives is `MISSION_TERMINAL` in build/native.server.ts, still on
+ * `missions` rather than `agent_runs`, so not simply substitutable for this.
  */
 export const stopRun = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

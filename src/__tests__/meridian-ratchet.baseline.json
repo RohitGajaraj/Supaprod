@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1578,
-  "fileCount": 127,
+  "totalOccurrences": 1572,
+  "fileCount": 126,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -282,10 +282,6 @@
     "src/components/supaprod/LegalPageShell.tsx": {
       "data-obsidian": 1,
       "raw-colour": 8
-    },
-    "src/components/supaprod/LineageDrawer.tsx": {
-      "import:components/ui": 1,
-      "usage:components/ui": 5
     },
     "src/components/supaprod/PixelStat.tsx": {
       "--font-pixel": 1

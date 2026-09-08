@@ -175,7 +175,10 @@ describe("THE INVARIANT: a released track never keeps a stale reason", () => {
       (n, src) => n + (src.match(/last_hold: null,/g) ?? []).length,
       0,
     );
-    expect(total).toBeGreaterThanOrEqual(9);
+    // 9 -> 8 on 2026-09-08: `advanceTrack` (track.functions.ts) was deleted
+    // with its clear, under P-146; a clear that leaves with its whole function
+    // is not a clear that disappeared from a live path.
+    expect(total).toBeGreaterThanOrEqual(8);
   });
 });
 

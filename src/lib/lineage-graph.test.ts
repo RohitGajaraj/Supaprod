@@ -1,12 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import {
-  countLineage,
-  isLiveEdge,
-  nodeKey,
-  walkLineage,
-  type LineageEdgeRow,
-} from "./lineage-graph";
+import { isLiveEdge, nodeKey, walkLineage, type LineageEdgeRow } from "./lineage-graph";
 
 function edge(parent: string, child: string, over: Partial<LineageEdgeRow> = {}): LineageEdgeRow {
   const [parent_kind, parent_id] = parent.split(":");
@@ -179,85 +173,3 @@ describe("walkLineage", () => {
  * row, so they are ADJACENT edges rather than reachable-set sizes. A transitive
  * count would make two rows incomparable and could not be checked by eye.
  */
-describe("countLineage", () => {
-  const edge = (
-    p: string,
-    c: string,
-    extra: Partial<LineageEdgeRow & { seeded?: boolean | null }> = {},
-  ) => {
-    const [parent_kind, parent_id] = p.split(":");
-    const [child_kind, child_id] = c.split(":");
-    return {
-      parent_kind,
-      parent_id,
-      child_kind,
-      child_id,
-      relation: "produced",
-      rationale: null,
-      created_by_agent: null,
-      valid_to: null,
-      invalidated_by: null,
-      ...extra,
-    } as LineageEdgeRow & { seeded?: boolean | null };
-  };
-
-  test("counts what produced a row and what it fed, separately", () => {
-    const counts = countLineage(
-      [{ kind: "mission", id: "m1" }],
-      [edge("decision:d1", "mission:m1"), edge("mission:m1", "changeset:c1")],
-    );
-    expect(counts.get("mission:m1")).toEqual({ producedBy: 1, fed: 1, seededExcluded: 0 });
-  });
-
-  test("answers for every id asked about, so absent never reads as zero", () => {
-    // The default-as-data trap one layer up: a caller doing `counts.get(id) ?? 0`
-    // cannot tell "counted, and it is zero" from "never looked at".
-    const counts = countLineage([{ kind: "mission", id: "quiet" }], []);
-    expect(counts.has("mission:quiet")).toBe(true);
-    expect(counts.get("mission:quiet")).toEqual({ producedBy: 0, fed: 0, seededExcluded: 0 });
-  });
-
-  test("leaves demo fixtures out of the number and REPORTS that it did", () => {
-    // 283 of 2,142 live edges are seeded (13%), which is more than enough to
-    // move a small per-row count. `producedBy: 0, seededExcluded: 2` and
-    // `0, 0` are different facts and only one of them is a gap in the product.
-    const counts = countLineage(
-      [{ kind: "mission", id: "m1" }],
-      [
-        edge("decision:d1", "mission:m1", { seeded: true }),
-        edge("mission:m1", "changeset:c1", { seeded: true }),
-        edge("decision:d2", "mission:m1"),
-      ],
-    );
-    expect(counts.get("mission:m1")).toEqual({ producedBy: 1, fed: 0, seededExcluded: 2 });
-  });
-
-  test("obeys isLiveEdge, the single gate the walk already uses", () => {
-    const counts = countLineage(
-      [{ kind: "mission", id: "m1" }],
-      [
-        edge("decision:d1", "mission:m1", { valid_to: "2026-01-01T00:00:00Z" }),
-        edge("decision:d2", "mission:m1", { invalidated_by: "someone" }),
-      ],
-    );
-    // A superseded edge is history, not lineage — and it is not a fixture
-    // either, so it must not inflate `seededExcluded` on its way out.
-    expect(counts.get("mission:m1")).toEqual({ producedBy: 0, fed: 0, seededExcluded: 0 });
-  });
-
-  test("counts a self-edge once rather than on both ends", () => {
-    const counts = countLineage(
-      [{ kind: "mission", id: "m1" }],
-      [edge("mission:m1", "mission:m1")],
-    );
-    expect(counts.get("mission:m1")).toEqual({ producedBy: 0, fed: 1, seededExcluded: 0 });
-  });
-
-  test("ignores an edge touching nothing that was asked about", () => {
-    const counts = countLineage(
-      [{ kind: "mission", id: "m1" }],
-      [edge("decision:d9", "changeset:c9")],
-    );
-    expect(counts.get("mission:m1")).toEqual({ producedBy: 0, fed: 0, seededExcluded: 0 });
-  });
-});

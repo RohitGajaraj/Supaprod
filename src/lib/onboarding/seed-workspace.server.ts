@@ -192,21 +192,6 @@ export async function _performSeed(
   }
 }
 
-/**
- * Seed a freshly created workspace with starter content.
- *
- * No-op unless ONBOARDING_SEED_ENABLED=1. Errors are caught, logged, and
- * swallowed so a seeding failure never blocks the workspace creation path.
- */
-export async function seedWorkspace(workspaceId: string, userId: string): Promise<void> {
-  if (process.env.ONBOARDING_SEED_ENABLED !== "1") return;
-  try {
-    await _performSeed(supabaseAdmin as unknown as SeedClient, workspaceId, userId);
-  } catch (err) {
-    console.error("[WM-S1] seedWorkspace failed:", err);
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Layer A (rich sample workspace) · SAMPLE-SEED
 // ---------------------------------------------------------------------------

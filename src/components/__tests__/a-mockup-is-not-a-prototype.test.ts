@@ -31,7 +31,7 @@ const SRC = join(import.meta.dir, "..", "..");
 const read = (rel: string) => readFileSync(join(SRC, rel), "utf8");
 
 const ARTIFACTS = read(join("components", "brain", "ArtifactsView.tsx"));
-const LINEAGE = read(join("components", "supaprod", "LineageDrawer.tsx"));
+const LINEAGE = read(join("lib", "artifact-words.ts"));
 const GRAPH = read(join("components", "knowledge", "graph-visual.ts"));
 const GENERATOR = read(join("lib", "design-scaffold.functions.ts"));
 
@@ -41,7 +41,7 @@ describe("the artifact is named what it is", () => {
     expect(ARTIFACTS).toMatch(/prototype: "Mockups",/);
   });
 
-  it("the lineage drawer and the graph agree with it", () => {
+  it("the lineage vocabulary and the graph agree with it", () => {
     // Three surfaces, one word. A kind labelled differently in two places is
     // two names for one thing, which is how a vocabulary rots.
     expect(LINEAGE).toMatch(/prototype: "Mockup",/);
@@ -51,7 +51,7 @@ describe("the artifact is named what it is", () => {
   it("no surface still promises interactivity", () => {
     for (const [name, src] of [
       ["ArtifactsView", ARTIFACTS],
-      ["LineageDrawer", LINEAGE],
+      ["artifact-words", LINEAGE],
       ["graph-visual", GRAPH],
     ] as const) {
       // Comments explaining the change necessarily quote the old word, so the
