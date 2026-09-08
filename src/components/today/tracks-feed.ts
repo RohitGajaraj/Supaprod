@@ -1,5 +1,6 @@
 import type { Track } from "@/lib/spine/track.functions";
 import { STALL_MINUTES } from "@/lib/loop-health.functions";
+import { formatElapsed } from "@/components/meridian/run-rows";
 import { TERMINAL_HOLDS } from "@/lib/spine/correction";
 import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
@@ -415,13 +416,16 @@ function kindOf(r: StartRowInput): StartRowKind {
 }
 
 /** `mm:ss` for a clock under ten minutes, `Nm` above it. A run's own age. */
+/**
+ * ONE CLOCK FOR ONE SEAT. This printed mm:ss while the strip and the road,
+ * sixty pixels away, printed Meridian's own "9.1s" / "2m 10s" for the same
+ * instant (third review, 2026-09-08). Every clock in the product is now the
+ * one formatter, `formatElapsed`.
+ */
 export function runClock(sinceIso: string, now: number): string | null {
   const started = Date.parse(sinceIso);
   if (!Number.isFinite(started) || started > now) return null;
-  const secs = Math.floor((now - started) / 1000);
-  if (secs < 600) return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`;
-  const mins = Math.floor(secs / 60);
-  return mins < 120 ? `${mins}m` : `${Math.floor(mins / 60)}h ${mins % 60}m`;
+  return formatElapsed((now - started) / 1000);
 }
 
 export function startRowMiddle(

@@ -91,7 +91,7 @@ describe("what the middle column says", () => {
       WORDS,
       phrase,
     );
-    expect(m).toBe("Strategist is writing the spec · 0:34");
+    expect(m).toBe("Strategist is writing the spec · 34.0s");
   });
 
   it("says a seat is working when it has called nothing yet, rather than a verb nobody wrote", () => {
@@ -106,7 +106,7 @@ describe("what the middle column says", () => {
       WORDS,
       phrase,
     );
-    expect(m).toBe("Draft is working · 0:05");
+    expect(m).toBe("Draft is working · 5.0s");
   });
 
   it("says what a settled run got you, counted by kind", () => {
@@ -268,13 +268,15 @@ describe("the discriminator rule", () => {
 });
 
 describe("the clock on a run in flight", () => {
-  it("reads mm:ss under ten minutes, which is where a person is watching", () => {
-    expect(runClock("2026-09-02T11:59:26Z", NOW)).toBe("0:34");
-    expect(runClock("2026-09-02T11:51:00Z", NOW)).toBe("9:00");
+  it("reads the one clock every surface reads (Meridian's formatElapsed)", () => {
+    // 2026-09-08: the row printed mm:ss while the strip and the road printed
+    // "34.0s" / "9m 0s" for the same instant; one formatter now.
+    expect(runClock("2026-09-02T11:59:26Z", NOW)).toBe("34.0s");
+    expect(runClock("2026-09-02T11:51:00Z", NOW)).toBe("9m 0s");
   });
 
-  it("stops counting seconds once nobody is counting them", () => {
-    expect(runClock("2026-09-02T11:20:00Z", NOW)).toBe("40m");
+  it("drops the seconds past an hour, where nobody is counting them", () => {
+    expect(runClock("2026-09-02T11:20:00Z", NOW)).toBe("40m 0s");
     expect(runClock("2026-09-02T08:30:00Z", NOW)).toBe("3h 30m");
   });
 
