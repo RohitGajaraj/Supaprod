@@ -133,7 +133,13 @@ describe("both callers have to say which they are", () => {
      * the same reason as the fourth: a person chose, on a hold the machine
      * said out loud it could not clear on its own.
      */
-    expect([...TRACKRUN.matchAll(/run\.mutate\("press"\)/g)].length).toBe(5);
+    /*
+     * SIX SINCE 2026-09-08 (Lane 2, F-208): releasing a held file claim from
+     * the claimed-path hold walks the run on. A person pressed "Release the
+     * claim", so it is a press; a sweep picking the run up later would have
+     * been the loop claiming credit for a human act.
+     */
+    expect([...TRACKRUN.matchAll(/run\.mutate\("press"\)/g)].length).toBe(6);
     // No call site left that never considered the question.
     expect(TRACKRUN).not.toContain("run.mutate()");
   });

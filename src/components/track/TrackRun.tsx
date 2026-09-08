@@ -81,6 +81,7 @@ import { useTimezone } from "@/hooks/use-timezone";
 import { builtWithLine } from "@/lib/hosting/what-shape-is-this-repo";
 import { buildBlocked } from "@/components/track/build-precondition";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
+import { releaseBuilderClaim } from "@/lib/build.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useLiveAgents } from "@/hooks/use-live-agents";
 import { AgentPresence, presenceColour } from "@/components/meridian/AgentPresence";
@@ -854,6 +855,31 @@ export function TrackRunLeft({
     enabled: track?.holdReason === CLAIMED_PATH_HOLD,
     staleTime: 30_000,
   });
+  /* F-208: the held claim's manual exit. Releases the row, then walks this
+     run on as a press, since a person acted. */
+  const fReleaseClaim = useServerFn(releaseBuilderClaim);
+  const [claimNote, setClaimNote] = React.useState<{
+    verb: string;
+    consequence: string;
+    failed?: boolean;
+  } | null>(null);
+  const releaseClaim = useMutation({
+    mutationFn: (claimId: string) => fReleaseClaim({ data: { claim_id: claimId } }),
+    onSuccess: () => {
+      setClaimNote({
+        verb: "You released the claim",
+        consequence: "The file is free, and this run walks on now.",
+      });
+      void qc.invalidateQueries({ queryKey: ["who-holds-the-path", trackId] });
+      run.mutate("press");
+    },
+    onError: (e: Error) =>
+      setClaimNote({
+        verb: "The claim was not released",
+        consequence: failureLine("The other run still holds the file.", e),
+        failed: true,
+      }),
+  });
 
   /*
    * ── WHAT STOPPED SHIP, WHEN THE HOLD WORD CANNOT SAY (P-59) ─────────────
@@ -1213,6 +1239,35 @@ export function TrackRunLeft({
                 >
                   {holdWayOut.door.label}
                 </Link>
+              ) : null}
+              {/*
+               * ── THE CLAIM HAS A MANUAL EXIT (F-208, Lane 3, 2026-09-08) ────
+               * A held file claim on a run that never reached a terminal status
+               * had no way out but waiting; the registry used to promise one
+               * from /build, which is gone. The press releases the held row for
+               * the path and walks this run on, which is the moment the door
+               * above stops being true.
+               */}
+              {holder.data?.claimId ? (
+                <div className="flex flex-col gap-mrd-2">
+                  <div>
+                    <Action
+                      variant="primary"
+                      busy={releaseClaim.isPending}
+                      disabled={releaseClaim.isPending}
+                      onClick={() => releaseClaim.mutate(holder.data!.claimId)}
+                    >
+                      {releaseClaim.isPending ? "Releasing the claim" : "Release the claim"}
+                    </Action>
+                  </div>
+                  {claimNote ? (
+                    <Receipt
+                      verb={claimNote.verb}
+                      consequence={claimNote.consequence}
+                      failed={claimNote.failed}
+                    />
+                  ) : null}
+                </div>
               ) : null}
               {buildStop ? (
                 <Row
