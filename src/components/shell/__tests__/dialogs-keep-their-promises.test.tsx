@@ -122,12 +122,10 @@ describe("the focus trap keeps focus where the dialog claims it is", () => {
 
 describe("both hand-rolled dialogs actually use the trap", () => {
   const SHEET = read(join("src", "components", "shell", "ShortcutSheet.tsx"));
-  const BOARD = read(join("src", "components", "shell", "BoardPanel.tsx"));
+  // The board panel left this pair (Lane 1, 2026-09-08): deleted with the rail
+  // foot's button that opened it.
 
-  for (const [name, src] of [
-    ["the shortcut sheet", SHEET],
-    ["the board panel", BOARD],
-  ] as const) {
+  for (const [name, src] of [["the shortcut sheet", SHEET]] as const) {
     test(`${name} declares aria-modal and traps focus`, () => {
       // The pair is the point. Either alone is a defect: aria-modal without a
       // trap is the lie, and a trap without aria-modal leaves a screen reader

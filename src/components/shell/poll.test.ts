@@ -63,7 +63,7 @@ describe("every live read the shell owns is wired to it", () => {
    */
   const OWNED = [
     "src/components/shell/AppFrame.tsx",
-    "src/components/shell/BoardPanel.tsx",
+    // BoardPanel.tsx left this list (Lane 1, 2026-09-08): deleted.
     "src/components/shell/use-spine-strip.ts",
     // SystemAlerts.tsx, CrewPulseNote.tsx, OverlapNote.tsx and HandoverNote.tsx
     // left this list (P-14, A-QUEUE.md): all four were exclusively owned by

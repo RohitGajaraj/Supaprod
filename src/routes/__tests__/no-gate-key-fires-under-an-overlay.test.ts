@@ -91,10 +91,9 @@ describe("no gate key fires while something is open over it", () => {
   it("the sheet and the board still declare themselves as modal", () => {
     // If either stopped declaring it, the guards above would silently stop
     // firing and the keys would arm again with nothing failing.
-    for (const rel of [
-      join("components", "shell", "ShortcutSheet.tsx"),
-      join("components", "shell", "BoardPanel.tsx"),
-    ]) {
+    // BoardPanel.tsx left this list (Lane 1, 2026-09-08): deleted with the
+    // rail foot's button that opened it.
+    for (const rel of [join("components", "shell", "ShortcutSheet.tsx")]) {
       expect(read(rel)).toContain('aria-modal="true"');
     }
   });

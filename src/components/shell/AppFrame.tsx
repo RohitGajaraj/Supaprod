@@ -159,7 +159,6 @@ import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { initialsFrom } from "@/lib/initials";
 import { useTheme } from "@/hooks/use-theme";
 import { FOOTER_NAV, PRIMARY_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
-import { BoardPanel } from "./BoardPanel";
 import { RailPhoneBar } from "./RailPhoneBar";
 import { ShortcutSheet, useShortcutSheetKey } from "./ShortcutSheet";
 import { AccountMenu, ScopeMenu } from "./ScopeMenu";
@@ -169,7 +168,6 @@ import { FindAnything } from "./FindAnything";
 import { genuinelyWorkingMissions } from "./genuinely-working";
 import {
   IconAsk,
-  IconBoard,
   IconGear,
   IconKeyboard,
   IconMoon,
@@ -854,7 +852,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // whatever surface is mounted publishes its stages through run-strip.tsx, and
   // only a run does. See that file's header for the founder ruling this obeys.
   const [strip, setStrip] = React.useState<RunStripSpec | null>(null);
-  const [boardOpen, setBoardOpen] = React.useState(false);
   const [keysOpen, setKeysOpen] = React.useState(false);
   // `?` from anywhere. Memoised so the capture listener registers once for the
   // life of the shell rather than on every render of a frame that re-renders
@@ -2223,22 +2220,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                 how the next person finds that out. */}
             <TeammateCursors workspaceId={workspaceId} />
             <div className="sp-railfoot">
-              {/* THE BOARD, one click from anywhere (founder ruling
-                2026-07-30). It opens the same board /runs draws, over the page
-                you are on, so glancing at every run never costs you your
-                place. It deliberately does NOT repeat the live line above:
-                that says who is working, this says where all the work stands. */}
-              <button
-                type="button"
-                className="sp-setbtn"
-                onClick={() => setBoardOpen(true)}
-                title="Every run"
-                aria-label="Every run"
-                aria-haspopup="dialog"
-                aria-expanded={boardOpen}
-              >
-                <IconBoard />
-              </button>
+              {/* THE BOARD LEFT THE FOOT (Lane 1, 2026-09-08). Its button
+                opened the mission board (missions and studio sessions, the
+                retired run model) as a second answer to "where is all the
+                work". The home's road and rows are the answer now, one click
+                from anywhere on the rail's first row. */}
               {/* THE THEME, which was reported broken and was in fact absent.
                 `use-theme.tsx` has been a complete light/dark/system system the
                 whole time with no control anywhere in the shell, and the
@@ -2379,7 +2365,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             <SessionEndedProvider value={sessionEnded}>{children}</SessionEndedProvider>
           </main>
         </div>
-        <BoardPanel open={boardOpen} onClose={() => setBoardOpen(false)} />
         {/* The keyboard, on `?` from anywhere. It is mounted here rather than
           beside GotoShortcuts because the sheet needs the pathname to answer
           "what do the keys do HERE", and the shell is what knows it. */}
