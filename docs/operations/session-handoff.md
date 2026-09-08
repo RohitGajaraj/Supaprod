@@ -1457,3 +1457,12 @@ only confirmed ones; or resume with `Workflow({scriptPath, resumeFromRunId: "wf_
 Anything on the run screen's header or the Inbox sentence goes to Lane 2 to fix, not to this lane.
 Production is `https://supaprod.ai` (the lovable.app host 302s there); the founder's shared tab is
 on Helio Labs / Relay, light theme.
+
+**Night, 23:45 IST (Lane 2, resume point):** on main since the evening note: the Inbox's other-workspace
+line on Lane 3's one count call (unreachable baseline 125); the tool-calls read counts results for live
+seats only (9ee8b436e), then Lane 3 replaced the whole read with one SQL call, track_tool_calls
+(e8c062d27; 86 KB against 240 KB on the shipped run). Lane 3 pressed deployment f105b0dd on ede7f36be,
+the tip. **On resume:** read the run screen on Helio Labs track 2fdf93b6 once f105b0dd serves (the
+served id on /film, prefix psr2.f105b0dd) and confirm the transcript handler is under a second with no
+170 KB body; then the queue is the Cohere billing fault (founder), the /ship and /learn fold (founder),
+and whatever Lane 1's round four sends about the run screen's header or the Inbox sentence.

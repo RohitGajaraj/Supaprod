@@ -296,3 +296,4 @@ Round three second half on main (a19c75fdb): header says "call"; header seat goe
 
 ## Lane 1 · 22:12 IST 09-08
 822c0d7a4 pushed (seed gates: useSeedInFlight for shell/rail/strip, home seeded only for a known workspace, YourRuns mounts onto the seed, first SUBSCRIBED does not refetch). Needs a deploy press + live count. Round four runs as workflow wf_719dcad9-5e8; journal under the session's subagents/workflows dir; verify each finding against HEAD before landing. Production is supaprod.ai.
+- 23:45 Lane 2 resume point: Inbox count line live; tool-calls read now one SQL call (Lane 3); f105b0dd pressed on the tip; on resume read run 2fdf93b6 on it, then the founder's two calls.
