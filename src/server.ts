@@ -1,7 +1,7 @@
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
-import { captureError } from "./lib/observability/errors";
+import { captureError, type ErrorContext } from "./lib/observability/errors";
 import {
   buildAgentCard,
   buildOAuthProtectedResourceMetadata,
@@ -176,7 +176,7 @@ export function withMarketingCacheHeaders(response: Response, pathname: string):
  * one person's page to somebody else, so the two errors are not weighed
  * equally here.
  */
-type EdgeCache = {
+export type EdgeCache = {
   match: (request: Request) => Promise<Response | undefined>;
   put: (request: Request, response: Response) => Promise<void>;
 };
@@ -189,6 +189,65 @@ type EdgeCache = {
 function edgeCache(): EdgeCache | null {
   const store = (globalThis as { caches?: { default?: EdgeCache } }).caches;
   return store?.default ?? null;
+}
+
+/**
+ * A cache that cannot be read costs one render, never the page.
+ *
+ * SEEN LIVE 2026-09-08 12:16 IST: every anonymous read of `/`, `/pricing`,
+ * `/demo` and `/security` answered HTTP 500 `{"unhandled":true}` from the
+ * platform layer OUTSIDE this Worker, with none of our headers on it, while
+ * the same routes answered 200 the moment the lookup was bypassed (a
+ * `Cache-Control: no-cache` header, or a session cookie) and `/film`, which
+ * is not on the cacheable list, never failed. `caches.default` exists on the
+ * hosting runtime, so `edgeCache()` returned a store, and the lookup sat
+ * before the handler's try block: whatever `match` threw there had nowhere
+ * to land and took the public landing page down with it. workerd, where
+ * P-135 was proved, does not throw here; the runtime that actually serves
+ * this does. F-197's shape again: the platform documents a hook and the
+ * wrapper you are inside answers for it differently.
+ *
+ * So the lookup and the hit's re-wrap both sit inside one catch, a refused
+ * read is reported with the same surface discipline as a refused write, and
+ * the request falls through to a render exactly as a miss would.
+ */
+export async function answerFromEdgeCache(
+  store: EdgeCache,
+  request: Request,
+  pathname: string,
+  report: (error: unknown, ctx: ErrorContext) => unknown = captureError,
+): Promise<Response | null> {
+  const servedAt = performance.now();
+  try {
+    const hit = await store.match(request);
+    if (!hit) return null;
+    return withBuildCanary(
+      withWorkerTotalTiming(withCacheMarker(hit, "HIT"), performance.now() - servedAt),
+    );
+  } catch (error) {
+    report(error, { surface: "edge-cache-match", request_path: pathname });
+    return null;
+  }
+}
+
+/**
+ * The write, with the same rule. `Promise.resolve().then(...)` rather than a
+ * bare `.catch` on the call, because a store that throws synchronously from
+ * `put` would otherwise escape into the handler's catch and turn the page
+ * the visitor was about to receive into a branded 500.
+ */
+export function storeInEdgeCache(
+  store: EdgeCache,
+  request: Request,
+  response: Response,
+  pathname: string,
+  report: (error: unknown, ctx: ErrorContext) => unknown = captureError,
+): Promise<void> {
+  return Promise.resolve()
+    .then(() => store.put(request, response))
+    .catch((error: unknown) => {
+      report(error, { surface: "edge-cache-put", request_path: pathname });
+    });
 }
 
 /**
@@ -656,13 +715,8 @@ export default {
     const cacheEligible = mayUseEdgeCache(request.method, url.pathname, request.headers);
     const cacheStore = cacheEligible ? edgeCache() : null;
     if (cacheStore) {
-      const servedAt = performance.now();
-      const hit = await cacheStore.match(request);
-      if (hit) {
-        return withBuildCanary(
-          withWorkerTotalTiming(withCacheMarker(hit, "HIT"), performance.now() - servedAt),
-        );
-      }
+      const served = await answerFromEdgeCache(cacheStore, request, url.pathname);
+      if (served) return served;
     }
 
     try {
@@ -703,12 +757,7 @@ export default {
         // request with nothing anywhere saying why; the reason a write is
         // refused (a Set-Cookie, a status the API will not hold) is exactly
         // what a reader needs to see.
-        const write = cacheStore.put(request, stored).catch((error: unknown) => {
-          captureError(error, {
-            surface: "edge-cache-put",
-            request_path: url.pathname,
-          });
-        });
+        const write = storeInEdgeCache(cacheStore, request, stored, url.pathname);
         if (typeof waitUntil === "function") {
           waitUntil.call(ctx, write);
         } else {

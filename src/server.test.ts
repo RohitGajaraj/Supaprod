@@ -1,4 +1,5 @@
 import { describe, expect, test, afterEach } from "bun:test";
+import { readFileSync } from "node:fs";
 import {
   AGENT_DISCOVERY_LINK_HEADER,
   withAgentDiscoveryLink,
@@ -9,6 +10,8 @@ import {
   carriesASession,
   mayUseEdgeCache,
   mayStoreInEdgeCache,
+  answerFromEdgeCache,
+  storeInEdgeCache,
   withCacheMarker,
   withoutRenderTiming,
   withBuildCanary,
@@ -439,6 +442,109 @@ describe("withCacheMarker", () => {
     expect(stored.headers.get("X-Supaprod-Timing")).toBeNull();
     // The cache headers the copy is stored under must survive the strip.
     expect(stored.headers.get("Cache-Control")).toContain("s-maxage=300");
+  });
+});
+
+describe("answerFromEdgeCache", () => {
+  // SEEN LIVE 2026-09-08 12:16 IST: every anonymous read of the cacheable
+  // marketing routes answered the platform's raw {"unhandled":true} 500 with
+  // none of the Worker's headers, while the same routes answered 200 the
+  // moment the lookup was bypassed. `caches.default` existed on the hosting
+  // runtime and `match` rejected, before the handler's try, so the public
+  // landing page went down with it. A cache may cost a render, never the page.
+  const request = new Request("https://supaprod.ai/");
+  const reports: Array<{ surface?: string; request_path?: string }> = [];
+  const report = (_error: unknown, ctx: { surface?: string; request_path?: string }) => {
+    reports.push(ctx);
+  };
+
+  test("a store whose match rejects is a reported miss, not an escaped rejection", async () => {
+    reports.length = 0;
+    const store = {
+      match: () => Promise.reject(new Error("Cache API is not available on this runtime")),
+      put: async () => undefined,
+    };
+    await expect(answerFromEdgeCache(store, request, "/", report)).resolves.toBeNull();
+    expect(reports).toEqual([{ surface: "edge-cache-match", request_path: "/" }]);
+  });
+
+  test("a store whose match throws synchronously is the same miss", async () => {
+    reports.length = 0;
+    const store = {
+      match: (): Promise<Response | undefined> => {
+        throw new Error("no cache here");
+      },
+      put: async () => undefined,
+    };
+    await expect(answerFromEdgeCache(store, request, "/pricing", report)).resolves.toBeNull();
+    expect(reports).toEqual([{ surface: "edge-cache-match", request_path: "/pricing" }]);
+  });
+
+  test("an empty store is a miss and reports nothing", async () => {
+    reports.length = 0;
+    const store = { match: async () => undefined, put: async () => undefined };
+    await expect(answerFromEdgeCache(store, request, "/", report)).resolves.toBeNull();
+    expect(reports).toEqual([]);
+  });
+
+  test("a hit is marked HIT and carries only its own worker-total", async () => {
+    const store = {
+      match: async () => new Response("<html></html>", { status: 200 }),
+      put: async () => undefined,
+    };
+    const served = await answerFromEdgeCache(store, request, "/", report);
+    expect(served?.status).toBe(200);
+    expect(served?.headers.get("X-Supaprod-Cache")).toBe("HIT");
+    expect(served?.headers.get("Server-Timing")).toContain("worker-total");
+  });
+  test("the fetch handler consults the cache only through the guarded helpers", () => {
+    // Lane 3's ask, 2026-09-08: the next optimisation added above the
+    // handler's try must not be able to bring the same 500 back. The claim,
+    // not the spelling: the handler itself never calls match or put; the two
+    // helpers do, and each holds its call where a failure has somewhere to
+    // land.
+    const src = readFileSync(new URL("./server.ts", import.meta.url), "utf8");
+    const handler = src.slice(src.indexOf("async fetch("));
+    expect(handler.indexOf("async fetch(")).toBe(0);
+    expect(handler).not.toMatch(/\.match\(/);
+    expect(handler).not.toMatch(/\.put\(/);
+    expect(handler).toContain("answerFromEdgeCache(");
+    expect(handler).toContain("storeInEdgeCache(");
+    expect(src).toMatch(/try \{\s*const hit = await store\.match\(request\);/);
+    expect(src).toMatch(/Promise\.resolve\(\)\s*\.then\(\(\) => store\.put\(request, response\)\)/);
+  });
+});
+
+describe("storeInEdgeCache", () => {
+  const request = new Request("https://supaprod.ai/");
+
+  test("a put that rejects is reported and never rejects the caller", async () => {
+    const reports: Array<{ surface?: string }> = [];
+    const store = {
+      match: async () => undefined,
+      put: () => Promise.reject(new Error("refused")),
+    };
+    await expect(
+      storeInEdgeCache(store, request, new Response("x"), "/", (_e, ctx) => {
+        reports.push(ctx);
+      }),
+    ).resolves.toBeUndefined();
+    expect(reports).toEqual([{ surface: "edge-cache-put", request_path: "/" }]);
+  });
+
+  test("a put that throws synchronously cannot reach the handler's catch", async () => {
+    // A bare `.catch` on the call would not have held this one: the throw
+    // happens before there is a promise to attach it to, and would have
+    // turned the page the visitor was about to receive into a branded 500.
+    const store = {
+      match: async () => undefined,
+      put: (): Promise<void> => {
+        throw new Error("refused synchronously");
+      },
+    };
+    await expect(
+      storeInEdgeCache(store, request, new Response("x"), "/", () => undefined),
+    ).resolves.toBeUndefined();
   });
 });
 
