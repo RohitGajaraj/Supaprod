@@ -228,10 +228,14 @@ function StartLanding() {
     const name = chosen
       ? products.find((p) => p.id === chosen.productId)?.name
       : activeProduct?.name;
-    if (!name)
-      return placeholderFor(activeProduct ? { name: activeProduct.name, northStar: null } : null);
-    return placeholderFor({ name, northStar: chosen?.northStar ?? null });
-  }, [productGoals.data, products, activeProductId, activeProduct]);
+    /* The same subject the hero greets by: the product, or the workspace
+       when no product row exists yet (seen live on a probe workspace, where
+       the eyebrow read the workspace name over a placeholder about a
+       checkout no one here owns). */
+    const subject = name ?? activeProduct?.name ?? activeWorkspace?.name ?? null;
+    if (!subject) return placeholderFor(null);
+    return placeholderFor({ name: subject, northStar: chosen?.northStar ?? null });
+  }, [productGoals.data, products, activeProductId, activeProduct, activeWorkspace]);
 
   const go = useMutation({
     mutationFn: async (job?: ExampleJob) => {
