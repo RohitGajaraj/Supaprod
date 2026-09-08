@@ -11,49 +11,8 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { seedWorkspace, seedSampleWorkspace } from "./seed-workspace.server";
-
-export const triggerWorkspaceSeed = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z
-      .object({
-        workspaceId: z.string().uuid(),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    const { workspaceId } = data;
-    const userId = context.userId;
-
-    // Verify the authenticated user owns (or is a member of) this workspace
-    const { data: membership, error } = await context.supabase
-      .from("workspace_members")
-      .select("workspace_id")
-      .eq("workspace_id", workspaceId)
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (error || !membership) {
-      throw new Error("Forbidden: workspace not found or access denied");
-    }
-
-    await seedWorkspace(workspaceId, userId);
-    return { ok: true };
-  });
-
-/**
- * OBS-14 - the onboarding connection screen's "Use demo data instead" action
- * needs to know ahead of the click whether the seed is live, so it can show
- * the seed-unavailable line instead of a click that silently no-ops. A read
- * of the same env gate `seedWorkspace` already checks; no auth required,
- * this reveals nothing but a boolean.
- */
-export const isDemoSeedEnabled = createServerFn({ method: "GET" }).handler(async () => {
-  return { enabled: process.env.ONBOARDING_SEED_ENABLED === "1" };
-});
+import { seedSampleWorkspace } from "./seed-workspace.server";
 
 /**
  * Layer A (SAMPLE-SEED): give the authenticated new user their own rich,

@@ -23,7 +23,7 @@ import { KIND_WORD } from "./attach";
 import { wordFor } from "./chain";
 import { artifactWord } from "@/lib/artifact-words";
 import { tallyPhrase } from "@/components/design/vocabulary";
-import { KIND_LABEL } from "@/components/supaprod/LineageDrawer";
+import { KIND_LABEL } from "@/lib/artifact-words";
 
 /** The words English uses to open a question. None of them opens a noun. */
 const INTERROGATIVES = ["what", "how", "why", "when", "where", "who", "which", "whose"];
@@ -72,7 +72,7 @@ describe("a counted word is a noun, not a heading", () => {
      * ADDED 2026-08-28, AND IT WAS ALREADY FAILING WHEN IT WAS WRITTEN.
      *
      * This map was the fourth vocabulary and the only one nothing watched.
-     * `LineageDrawer` reads it through `.toLowerCase()` into "How this {label}
+     * The lineage sheet reads it through `.toLowerCase()` into "How this {label}
      * connects across the product lifecycle", so `signal: "What we found"`
      * rendered "How this what we found connects". A demonstrative in front of a
      * heading is the same mistake as a number in front of one, and the guard

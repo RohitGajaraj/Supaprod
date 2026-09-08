@@ -32,30 +32,6 @@ export const LOOM_CARD: CSSProperties = {
 };
 
 /**
- * Loading skeleton block: a shimmer that matches the real layout, never a
- * spinner for primary content. Radius matches LOOM_CARD so the placeholder
- * traces the shape of the card it stands in for. Pure presentation.
- *
- * The ground is `--mrd-lift` and not `--surface-raised`, which aliased the
- * retired `--raised`. A placeholder must read as a raised blank rather than as
- * a recess, and lift is the one stop on the Meridian ladder that says so.
- */
-export function SkeletonBlock({ height, style }: { height: number; style?: CSSProperties }) {
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        height,
-        borderRadius: "var(--mrd-r-card)",
-        background: "var(--mrd-lift)",
-        animation: "cadGlow 1.8s ease-in-out infinite",
-        ...style,
-      }}
-    />
-  );
-}
-
-/**
  * Build (engine: F-STUDIO) shared status components — screen 9 Ember port.
  * StatusChip adapts the studio status vocabulary onto the canonical
  * StatusBadge (live-state law: badge + pulse, never a VerdictChip);
@@ -74,38 +50,6 @@ const BADGE_STATE: Record<string, string> = {
   failed: "failed",
 };
 
-export function StatusChip({ status }: { status: string }) {
-  const mapped = BADGE_STATE[status];
-  if (mapped) return <StatusBadge status={mapped} />;
-  // halted (kill switch / engine stop) — no pulse, because nothing is running.
-  //
-  // `--madder` was the Obsidian failure-outcome role and `--text-faint` its
-  // quietest ink; both are retired. Meridian says the same two things in its own
-  // five words: a halted engine is an OUTCOME and outcomes are `--mrd-fail`,
-  // and an unrecognised status is not an outcome at all, so it stays at the
-  // faintest ink rather than borrowing a meaning.
-  const c = status === "halted" ? "var(--mrd-fail)" : "var(--mrd-faint)";
-  return (
-    <span
-      className="mono-label"
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        fontWeight: 600,
-        color: c,
-        border: `1px solid color-mix(in oklab, ${c} 35%, transparent)`,
-        borderRadius: 99,
-        padding: "2px 8px",
-        whiteSpace: "nowrap",
-      }}
-    >
-      <span className="dot" style={{ width: 5, height: 5, background: c }} />
-      {statusLabel(status)}
-    </span>
-  );
-}
-
 const DOT_STATE: Record<string, string> = {
   completed: "completed",
   running: "running",
@@ -114,28 +58,3 @@ const DOT_STATE: Record<string, string> = {
   failed: "failed",
   halted: "failed",
 };
-
-export function StatusIcon({ s }: { s: string }) {
-  return <StepDot status={DOT_STATE[s] ?? "planned"} />;
-}
-
-/** Changeset ladder chip — staged · committed · PR open (live, indigo) ·
- *  merged (outcome, moss) · abandoned. Mono outline pill, no dot. */
-export function ChangesetChip({ status, fileCount }: { status: string; fileCount?: number }) {
-  const c = changesetColor(status);
-  return (
-    <span
-      className="mono-label tabular-nums"
-      style={{
-        color: c,
-        border: `1px solid color-mix(in oklab, ${c} 35%, transparent)`,
-        borderRadius: 99,
-        padding: "1px 8px",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {changesetLabel(status)}
-      {fileCount != null ? ` · ${fileCount} file${fileCount === 1 ? "" : "s"}` : ""}
-    </span>
-  );
-}

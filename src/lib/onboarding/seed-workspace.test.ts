@@ -1,16 +1,18 @@
 /**
- * WM-S1: seedWorkspace unit tests.
+ * WM-S1: the workspace seeder's unit tests.
  *
  * Tests cover:
- * 1. No-op when ONBOARDING_SEED_ENABLED is not set.
- * 2. Correct table inserts when seed is enabled (via _performSeed + fake DB).
- * 3. RLS isolation: every inserted row carries the correct workspace_id and user_id.
- * 4. Insert error propagates out of _performSeed.
- * 5. seedWorkspace swallows errors so the caller never sees them.
+ * 1. Correct table inserts (via _performSeed + fake DB).
+ * 2. RLS isolation: every inserted row carries the correct workspace_id and user_id.
+ * 3. Insert error propagates out of _performSeed.
+ *
+ * The env-gated `seedWorkspace` door and its swallowing wrapper went on
+ * 2026-09-08 with the old onboarding screen, their only caller; the sample
+ * workspace path (`seedSampleWorkspace`) is what runs today.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { _performSeed, seedWorkspace } from "./seed-workspace.server";
+import { _performSeed } from "./seed-workspace.server";
 import type { SeedClient } from "./seed-workspace.server";
 
 // ---------------------------------------------------------------------------
@@ -45,38 +47,6 @@ const USER_ID_2 = "dddddddd-0000-0000-0000-000000000004";
 // ---------------------------------------------------------------------------
 // 1. No-op gate
 // ---------------------------------------------------------------------------
-
-describe("seedWorkspace (env gate)", () => {
-  let prevEnv: string | undefined;
-
-  beforeEach(() => {
-    prevEnv = process.env.ONBOARDING_SEED_ENABLED;
-    delete process.env.ONBOARDING_SEED_ENABLED;
-  });
-
-  afterEach(() => {
-    if (prevEnv === undefined) {
-      delete process.env.ONBOARDING_SEED_ENABLED;
-    } else {
-      process.env.ONBOARDING_SEED_ENABLED = prevEnv;
-    }
-  });
-
-  it("returns without error when ONBOARDING_SEED_ENABLED is absent", async () => {
-    // If we reached this line, seedWorkspace did not crash or access supabaseAdmin.
-    await expect(seedWorkspace(WS_ID, USER_ID)).resolves.toBeUndefined();
-  });
-
-  it("returns without error when ONBOARDING_SEED_ENABLED is '0'", async () => {
-    process.env.ONBOARDING_SEED_ENABLED = "0";
-    await expect(seedWorkspace(WS_ID, USER_ID)).resolves.toBeUndefined();
-  });
-
-  it("returns without error when ONBOARDING_SEED_ENABLED is 'true' (not '1')", async () => {
-    process.env.ONBOARDING_SEED_ENABLED = "true";
-    await expect(seedWorkspace(WS_ID, USER_ID)).resolves.toBeUndefined();
-  });
-});
 
 // ---------------------------------------------------------------------------
 // 2. Correct table inserts
@@ -221,34 +191,5 @@ describe("_performSeed (error propagation)", () => {
   it("throws when the agent_memory insert fails", async () => {
     const { db } = fakeDb("agent_memory");
     await expect(_performSeed(db, WS_ID, USER_ID)).rejects.toThrow(/seed agent_memory/);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// 5. seedWorkspace swallows errors (non-fatal wrapper)
-// ---------------------------------------------------------------------------
-
-describe("seedWorkspace (error swallowing)", () => {
-  let prevEnv: string | undefined;
-
-  beforeEach(() => {
-    prevEnv = process.env.ONBOARDING_SEED_ENABLED;
-    // Tests in this block set their own value per-test.
-  });
-
-  afterEach(() => {
-    if (prevEnv === undefined) {
-      delete process.env.ONBOARDING_SEED_ENABLED;
-    } else {
-      process.env.ONBOARDING_SEED_ENABLED = prevEnv;
-    }
-  });
-
-  it("returns without throwing even when seeding is enabled but supabaseAdmin is not configured", async () => {
-    // When ONBOARDING_SEED_ENABLED=1, seedWorkspace calls supabaseAdmin which will
-    // throw (no env vars in test env). The wrapper must catch and not re-throw.
-    process.env.ONBOARDING_SEED_ENABLED = "1";
-    // Should resolve (not reject) regardless of the internal admin client error.
-    await expect(seedWorkspace(WS_ID, USER_ID)).resolves.toBeUndefined();
   });
 });

@@ -39,20 +39,3 @@ export function fmtCompact(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
   return String(n);
 }
-
-/** One-line, human-readable summary of tool args for timeline + gate cards. */
-export function summarizeArgs(args: Record<string, unknown>, max = 160): string {
-  const parts: string[] = [];
-  for (const [k, v] of Object.entries(args ?? {})) {
-    if (v == null) continue;
-    let val: string;
-    if (typeof v === "string") val = v.replace(/\s+/g, " ");
-    else if (Array.isArray(v)) val = `[${v.length}]`;
-    else if (typeof v === "object") val = JSON.stringify(v);
-    else val = String(v);
-    if (val.length > 60) val = `${val.slice(0, 57)}…`;
-    parts.push(`${k}: ${val}`);
-  }
-  const line = parts.join(" · ");
-  return line.length > max ? `${line.slice(0, max - 1)}…` : line || "(no args)";
-}
