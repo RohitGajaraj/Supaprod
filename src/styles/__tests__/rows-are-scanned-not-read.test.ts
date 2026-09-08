@@ -81,7 +81,9 @@ describe("row primitives are scanned, not read", () => {
     it(`${selector} uses row leading, not document leading`, () => {
       const rule = block(css(file), selector);
       const declared = /line-height:\s*([^;]+);/.exec(rule)?.[1]?.trim();
-      expect(declared).toBe("var(--sp-leading-row)");
+      /* Since 2026-09-08 the row reads Meridian's snug leading directly; the
+         `--sp-leading-row` alias in ink.css was the retired sheet's name for it. */
+      expect(declared).toBe("var(--mrd-lh-snug)");
     });
   }
 
@@ -92,7 +94,7 @@ describe("row primitives are scanned, not read", () => {
     // (1.625), wherever those values are declared.
     const ink = css("ink.css");
     const meridian = css("meridian.css");
-    const row = resolveLeading(ink, meridian, "sp-leading-row");
+    const row = resolveLeading(meridian, meridian, "mrd-lh-snug");
     const body = resolveLeading(ink, meridian, "sp-leading-body");
     expect(Number.isFinite(row)).toBe(true);
     expect(Number.isFinite(body)).toBe(true);

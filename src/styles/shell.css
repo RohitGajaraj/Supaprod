@@ -296,7 +296,7 @@
 
 /* ---------- header. Real presence, sans labels, icons not emoji ---------- */
 .sp-top {
-  height: var(--sp-header-h);
+  height: var(--mrd-shell-header-h);
   flex: none;
   display: flex;
   align-items: center;
@@ -493,8 +493,8 @@
   align-items: center;
   justify-content: center;
   flex: none;
-  height: var(--sp-mark);
-  min-width: var(--sp-mark);
+  height: var(--mrd-shell-mark);
+  min-width: var(--mrd-shell-mark);
 }
 .sp-live-dot {
   width: 7px;
@@ -629,8 +629,8 @@
   transform: scale(0.96);
 }
 .sp-askbtn-icon {
-  width: var(--sp-icon-sm);
-  height: var(--sp-icon-sm);
+  width: var(--mrd-icon-sm);
+  height: var(--mrd-icon-sm);
   flex: none;
   color: var(--mrd-mute);
 }
@@ -1784,8 +1784,8 @@ button.sp-stage:hover {
   font-weight: var(--mrd-w-semi);
 }
 .sp-navrow svg {
-  width: var(--sp-icon);
-  height: var(--sp-icon);
+  width: var(--mrd-icon);
+  height: var(--mrd-icon);
   flex: none;
   stroke-width: 1.5;
 }
@@ -1872,8 +1872,8 @@ button.sp-stage:hover {
   transform: scale(0.94);
 }
 .sp-setbtn svg {
-  width: var(--sp-icon);
-  height: var(--sp-icon);
+  width: var(--mrd-icon);
+  height: var(--mrd-icon);
   stroke-width: 1.5;
 }
 /*
@@ -1958,8 +1958,8 @@ button.sp-stage:hover {
   transform: scale(0.94);
 }
 .sp-collapse svg {
-  width: var(--sp-icon-sm);
-  height: var(--sp-icon-sm);
+  width: var(--mrd-icon-sm);
+  height: var(--mrd-icon-sm);
 }
 /* The brand and the rail toggle read as one block, and the rule that used to
  * close `.sp-brand` closes the pair instead. */
@@ -2286,16 +2286,16 @@ body:has([data-page-composer]) .sp-work {
    */
   width: 100%;
   margin-inline: auto;
-  padding: var(--sp-work-pad-y) var(--sp-work-pad-x) var(--sp-work-pad-bottom);
+  padding: var(--mrd-shell-work-pad-y) var(--mrd-shell-work-pad-x) var(--mrd-shell-work-pad-bottom);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0 var(--sp-ctx-gap);
+  gap: 0 var(--mrd-shell-ctx-gap);
   align-items: start;
 }
 
 .sp-main {
   min-width: 0;
-  max-width: var(--sp-main-max);
+  max-width: var(--mrd-shell-main-max);
 }
 /* Same column, no measure. For grids, tables and canvases, which lay
  * themselves out in columns and are not read line by line. */
@@ -2692,10 +2692,10 @@ button.sp-me {
  * already settled. See AuditLineageSheet.tsx. */
 .sp-lineage {
   position: fixed;
-  top: calc(var(--sp-header-h) + var(--sp-pane-inset));
-  right: var(--sp-pane-inset);
-  bottom: var(--sp-pane-inset);
-  width: min(var(--sp-pane-ask-w), calc(100vw - var(--sp-pane-inset) * 2));
+  top: calc(var(--mrd-shell-header-h) + var(--mrd-shell-pane-inset));
+  right: var(--mrd-shell-pane-inset);
+  bottom: var(--mrd-shell-pane-inset);
+  width: min(var(--mrd-shell-pane-ask-w), calc(100vw - var(--mrd-shell-pane-inset) * 2));
   z-index: var(--shell-z-sheet);
   display: flex;
   flex-direction: column;
@@ -2777,7 +2777,7 @@ button.sp-me {
    * and break the invariant the guard exists for. The four rows it governs live
    * in primitives.css, which this lane does not own, so the pair moves together
    * or not at all. */
-  line-height: var(--sp-leading-row);
+  line-height: var(--mrd-lh-snug);
   text-align: left;
   color: var(--mrd-mute);
   background: var(--mrd-sheet);
