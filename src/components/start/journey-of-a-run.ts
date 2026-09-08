@@ -132,7 +132,13 @@ export function journeyMap(runs: readonly RunLike[]): JourneyStation[] {
       const s = standingState(r);
       if (WEIGHT[s] > WEIGHT[state]) state = s;
     }
-    return { key, state, count: here.length };
+    /* The earliest seat still inside the station, so the map's working
+       stop can say whether the wait is past its usual time. */
+    const since = here
+      .map((r) => r.working?.since)
+      .filter((v): v is string => typeof v === "string" && v.length > 0)
+      .sort()[0];
+    return { key, state, count: here.length, at: since ?? null };
   });
 }
 
@@ -156,6 +162,44 @@ export function withPresences(
       .filter((w) => (seen.has(w.seat) ? false : (seen.add(w.seat), true)))
       .map((w) => ({ seat: w.seat, colour: colourOf(w.seat) }));
     return { ...s, presences };
+  });
+}
+
+/** "about 4 min", "about 2 h", "under a minute": the coarseness is the point,
+ *  a median is not a promise. */
+export function roughDuration(ms: number): string {
+  if (ms < 60_000) return "under a minute";
+  const min = Math.round(ms / 60_000);
+  if (min < 60) return `about ${min} min`;
+  const h = Math.round(ms / 3_600_000);
+  return `about ${h} h`;
+}
+
+/**
+ * THE WAIT, DESIGNED RATHER THAN ENDURED. A working station on the map says
+ * how long it usually takes here (Lane 3's readStationTimings, the median
+ * over this workspace's own finished stations), so a person knows whether
+ * two minutes is early or late. Only where the station has no outcome line
+ * of its own, and only from a real sample: null p50 says nothing.
+ */
+export function withTimings(
+  stations: readonly JourneyStation[],
+  timings: { byStation: Partial<Record<string, { p50Ms: number | null; n: number }>> } | undefined,
+  nowMs: number = Date.now(),
+): JourneyStation[] {
+  if (!timings) return [...stations];
+  return stations.map((s) => {
+    if (s.state !== "working" || s.outcome) return s;
+    const t = timings.byStation[s.key];
+    if (!t || t.p50Ms === null || t.n === 0) return s;
+    const usual = roughDuration(t.p50Ms);
+    const started = s.at ? Date.parse(s.at) : NaN;
+    /* Past its usual time: a fact a person can act on, said plainly, with
+       the usual time beside it so "past" has a size. */
+    if (Number.isFinite(started) && nowMs - started > t.p50Ms) {
+      return { ...s, outcome: `past its usual time here (${usual})` };
+    }
+    return { ...s, outcome: `usually ${usual} here` };
   });
 }
 
