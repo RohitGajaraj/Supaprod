@@ -1054,3 +1054,10 @@ times; `date` goes in the Bash call that writes the record.
 - `ae799bbd0` a run row's body button names itself by its lead and describes itself by its sentence (the live tree had five unnamed buttons); the rail's Inbox row reads "Inbox, 6 waiting" (the badge is aria-hidden).
 - **Verified live (probe, 11:31 IST):** the hero "6 calls are waiting for you." with the Inbox line; the road's toggles announce their state and count ("Design: stopped, 2 here"). Owed: Decide under a held row (d6ae7d99a publishing).
 - **Decision not taken, on purpose:** no global type-scale lift. Meridian's 13/14 px row tiers are the reference's own and read correctly at 1440; legibility on the entry comes from the h1 hero and the prose tier, not from moving every row a pixel under two lanes mid-flight. Revisit only with a measured complaint.
+
+## Lane 1 · 11:40 IST 09-08 · verified live, and the walk of the depth pages handed to Lane 2
+
+- **Live and verified on supaprod.ai (probe, 11:36 to 11:42 IST):** Decide on a held row opens Lane 2's hold card under the row ("Stopped · Stopped at Design", the driver's sentence, "Run it now"); Close folds it; the Inbox row carries its count (6) in orchid; the hero reads "6 calls are waiting for you."
+- `d572b8272` one phrase for one action: the rail's action, the crew strip's idle hint and the header's idle door all say "Start a run".
+- **Walk notes handed to Lane 2:** Findings heading still "Arriving"; Outcomes opens on a billing nudge, leads with three "No ... yet" lines above the one positive fact (74 of 91 lessons fed back), and ends on "the substrate"; both pages print two wait lines; Sources reads "Sync" and lists twenty-two negation rows for one connected source. Team reads well.
+- Lovable holds `ae799bbd0`; publish requested 11:41. Main is at `d572b8272` plus this handoff.
