@@ -245,3 +245,6 @@ ae799bbd0: run rows named, Inbox count spoken. Live: "6 calls are waiting for yo
 
 ## Lane 1 · 11:40 IST 09-08
 Verified live: hold card in place, Inbox count, hero number. d572b8272 aligns "Start a run". Depth-page walk notes sent to Lane 2 (Findings heading, Outcomes negations and "substrate", Sources' 22 negation rows).
+
+## Lane 1 · 11:47 IST 09-08
+3b6a9d718 product_named from FirstRun; 726f257b1 BoardPanel deleted (four guards, ratchet re-frozen). Lane 2 landed the depth headings.

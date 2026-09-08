@@ -1061,3 +1061,9 @@ times; `date` goes in the Bash call that writes the record.
 - `d572b8272` one phrase for one action: the rail's action, the crew strip's idle hint and the header's idle door all say "Start a run".
 - **Walk notes handed to Lane 2:** Findings heading still "Arriving"; Outcomes opens on a billing nudge, leads with three "No ... yet" lines above the one positive fact (74 of 91 lessons fed back), and ends on "the substrate"; both pages print two wait lines; Sources reads "Sync" and lists twenty-two negation rows for one connected source. Team reads well.
 - Lovable holds `ae799bbd0`; publish requested 11:41. Main is at `d572b8272` plus this handoff.
+
+## Lane 1 · 11:47 IST 09-08 · the mission board is gone from the rail foot
+
+- `3b6a9d718` FirstRun fires the activation funnel's `product_named` moment after the workspace rename (Lane 3's note).
+- `726f257b1` `shell/BoardPanel.tsx` deleted with the rail foot's "Every run" button: it opened the retired mission board (missions and studio sessions) over any page as a second answer to "where is all the work"; the home's road and rows are the answer. Four guards that read the file as source now name the deletion; the Meridian ratchet re-frozen (two counts reclaimed). `IconBoard` in `shell/icons.tsx` is the new orphan, Lane 3's to drop. RunBoard keeps other readers.
+- Lane 2 landed the depth headings (Findings, Sources, Inbox) with station marks at `caad90517`, and is on the Outcomes and Findings copy from my walk.
