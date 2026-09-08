@@ -59,7 +59,7 @@ describe("runNow picks one register, on purpose", () => {
     expect(now.register).toBe("scheduled");
     expect(now.status).toBe("quiet");
     expect(now.headline).toContain("Live in production");
-    expect(now.line).toContain("Nothing here needs you.");
+    expect(now.line).toContain("Nothing here needs you until then.");
     expect(now.headline).not.toContain("stopped");
   });
 
@@ -131,5 +131,22 @@ describe("nextStation follows the route's own path", () => {
     expect(nextStation({ station: "ship", route: { path: ["define", "build", "ship"] } })).toBe(
       null,
     );
+  });
+});
+
+describe("the calendar wait names the source gap inside it", () => {
+  it("stays quiet while the date is ahead, and says what closes the gap", () => {
+    const now = runNow(
+      input({
+        track: track({ station: "learn", holdReason: "needs-evidence", hold: "Learn is waiting." }),
+        horizon: "2026-09-21",
+        shippedAt: "2026-09-04T06:58:00Z",
+        gradableBySource: false,
+      }),
+    );
+    expect(now.register).toBe("scheduled");
+    expect(now.status).toBe("quiet");
+    expect(now.line).toContain("connect a source before then");
+    expect(now.line).toContain("grade it yourself on the day");
   });
 });

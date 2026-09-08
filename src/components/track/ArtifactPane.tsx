@@ -100,6 +100,7 @@ import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { checkDeploymentEmbeddable } from "@/lib/deployments.functions";
 import { buildSrcDoc, type PrototypeFileRow } from "@/lib/prototype-srcdoc";
 import {
   Action,
@@ -1895,6 +1896,22 @@ function ChangesetDiffView({ changesetId }: { changesetId: string }) {
  */
 function ReleaseCard({ item, decisions }: { item: ArtifactView; decisions?: ArtifactView[] }) {
   const f = item.fields;
+  /*
+   * CAN THE HOST BE FRAMED? Stamped on the row at write time by Lane 3
+   * (1d7c2d1d7); a row written before that carries null, and one check
+   * answers it for a day. Asked only for a live release with an address,
+   * because a failed one draws no frame to begin with.
+   */
+  const fCheckEmbeddable = useServerFn(checkDeploymentEmbeddable);
+  const stamped = typeof f.embeddable === "boolean" ? f.embeddable : null;
+  const embedQ = useQuery({
+    queryKey: ["deployment-embeddable", item.artifactId],
+    queryFn: () => fCheckEmbeddable({ data: { deploymentId: item.artifactId } }),
+    enabled: stamped === null && typeof f.deploy_url === "string" && f.status === "success",
+    staleTime: 24 * 60 * 60_000,
+  });
+  const embeddable = stamped ?? (embedQ.isSuccess ? embedQ.data.embeddable : null);
+  const embedReason = stamped === null && embedQ.isSuccess ? (embedQ.data.reason ?? null) : null;
   const standing = releaseStanding(str(f.status));
   const env = str(f.environment);
   const url = str(f.deploy_url);
@@ -1956,7 +1973,8 @@ function ReleaseCard({ item, decisions }: { item: ArtifactView; decisions?: Arti
           url={url}
           sha={str(f.commit_sha)}
           label={env === "production" ? "Live" : "App"}
-          embeddable={typeof f.embeddable === "boolean" ? f.embeddable : null}
+          embeddable={embeddable}
+          reason={embedReason}
         />
       ) : url ? (
         <a
@@ -3774,8 +3792,19 @@ export function ArtifactPane({
     chain.stops.find((s) => s.state === "here") ??
     [...chain.stops].reverse().find((s) => s.state === "passed") ??
     chain.stops[0];
-  const fallback =
-    newest && chain.stops.some((s) => s.station === newest.station)
+  /*
+   * WHERE THE WORK STANDS LEADS, when it has anything to show (2026-09-08).
+   * The road in the header lights the standing station; the pane opening on
+   * the newest artifact's station instead put "Design" in the header over
+   * "Showing Plan" below it, on a run stopped at Design with three drawings.
+   * The newest thing is the fallback only for a station that filed nothing.
+   */
+  const standingHasItems = (bodies.data?.stops ?? []).some(
+    (st) => st.station === standing.station && st.items.some((i) => !i.missing),
+  );
+  const fallback = standingHasItems
+    ? standing.station
+    : newest && chain.stops.some((s) => s.station === newest.station)
       ? newest.station
       : standing.station;
   /*
@@ -3941,8 +3970,8 @@ export function ArtifactPane({
               // still worth saying: it is the answer to "what is this region for".
               `Nothing has been filed yet. Whatever the run makes will open here.`
             : opened
-              ? `Showing one thing this run made. Press any artifact in the record beside this to open it.`
-              : `Showing ${shown.label}. Press an artifact in the record beside this to open it.`
+              ? `Showing one thing this run made. Press a stop on the road above, or a row below, for another.`
+              : `Showing ${shown.label}. Press a stop on the road above, or a row below, for another.`
         }
         act="Take this"
         onAct={take}

@@ -223,25 +223,39 @@ export function runNow(input: NowInput): Now {
     };
   }
 
-  if (
-    waitingOnTime({
-      station: t.station,
-      holdReason: t.holdReason,
-      horizon: input.horizon,
-      gradableBySource: input.gradableBySource,
-      now: input.nowMs,
-    })
-  ) {
+  /*
+   * ── THE CALENDAR WAIT, AND THE SOURCE GAP INSIDE IT ─────────────────────
+   * Walked live: the shipped run's forecast ("tablet checkout completion over
+   * a 7-day window") is one no connected source can read, so R-39's check
+   * answered false and the old card fell through to "On hold ... Let Learn try
+   * again", a retry that cannot move a date. While the date is still ahead the
+   * honest register is QUIET, with the gap named and the one thing that
+   * closes it: connect a source before the date, or grade it yourself on the
+   * day. Once the date has passed with no source, the wait is over and the
+   * hold branch below takes it, in the person's colour.
+   */
+  const dateAhead = waitingOnTime({
+    station: t.station,
+    holdReason: t.holdReason,
+    horizon: input.horizon,
+    gradableBySource: null,
+    now: input.nowMs,
+  });
+  if (dateAhead) {
     const due = formatDeadlineDate(input.horizon ? Date.parse(input.horizon) : null);
     const since = input.shippedAt ? relativeTime(input.shippedAt, input.nowMs) : null;
+    const ungradable = input.gradableBySource === false;
+    const arrives = due
+      ? `The verdict arrives ${due}.`
+      : "The verdict arrives when the forecast comes due.";
     return {
       register: "scheduled",
       status: "quiet",
       word: due ? `Verdict ${due}` : "Waiting for the date",
       headline: since ? `Live in production, went out ${since}.` : "The change is out.",
-      line: due
-        ? `The verdict arrives ${due}, once the evidence it is graded on exists. Nothing here needs you.`
-        : "The verdict arrives when the forecast comes due. Nothing here needs you.",
+      line: ungradable
+        ? `${arrives} Nothing connected here can measure it yet: connect a source before then, or grade it yourself on the day.`
+        : `${arrives} Nothing here needs you until then.`,
       pulse: false,
     };
   }

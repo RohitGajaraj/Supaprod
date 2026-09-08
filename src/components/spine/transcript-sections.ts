@@ -153,3 +153,62 @@ export function dayLabel(atMs: number, zone: string): string {
     day: "numeric",
   }).format(new Date(atMs));
 }
+
+/**
+ * CONSECUTIVE IDENTICAL TURNS FOLD INTO ONE (2026-09-08).
+ *
+ * Seen live on a run stopped at Design: twelve rows in a row reading "Nothing
+ * was filed for this step. Design, 0.6s. Stopped", one per sweep tick, ten
+ * minutes apart. Twelve identical rows distinguish nothing; what a person
+ * needs is that it happened twelve times between 09:50 and 11:00. So a run
+ * of turns with the same seat, the same outcome, the same stop line, nothing
+ * filed and nothing said folds into one entry that carries the count and the
+ * span. Three is the floor: two identical rows are still two events.
+ */
+export type TranscriptItem =
+  | { kind: "row"; row: ActivityRow }
+  | {
+      kind: "repeat";
+      row: ActivityRow;
+      count: number;
+      firstAt: number;
+      lastAt: number;
+      key: string;
+    };
+
+function foldKey(row: ActivityRow): string | null {
+  if (row.kind !== "turn") return null;
+  const t = row.turn;
+  if (t.made.length > 0 || t.said) return null;
+  if (t.outcome === "working" || t.outcome === "waiting") return null;
+  return [t.agentName, t.station ?? "", t.outcome, t.stopLine ?? ""].join(" ");
+}
+
+export function foldRepeats(rows: readonly ActivityRow[], floor = 3): TranscriptItem[] {
+  const out: TranscriptItem[] = [];
+  let i = 0;
+  while (i < rows.length) {
+    const key = foldKey(rows[i]!);
+    let j = i + 1;
+    if (key !== null) {
+      while (j < rows.length && foldKey(rows[j]!) === key) j += 1;
+    }
+    const n = j - i;
+    if (key !== null && n >= floor) {
+      const first = rows[i]!;
+      const last = rows[j - 1]!;
+      out.push({
+        kind: "repeat",
+        row: last,
+        count: n,
+        firstAt: first.at,
+        lastAt: last.at,
+        key: `repeat:${first.key}:${n}`,
+      });
+    } else {
+      for (let k = i; k < j; k += 1) out.push({ kind: "row", row: rows[k]! });
+    }
+    i = j;
+  }
+  return out;
+}

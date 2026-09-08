@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import type { ActivityRow } from "@/components/spine/activity-rows";
 import type { Turn } from "@/lib/spine/activity";
-import { defaultOpen, sectionMeta, transcriptSections } from "./transcript-sections";
+import { defaultOpen, foldRepeats, sectionMeta, transcriptSections } from "./transcript-sections";
 
 const turn = (
   station: Turn["station"],
@@ -86,5 +86,39 @@ describe("transcriptSections", () => {
     ]);
     const open = defaultOpen(s);
     expect([...open].map((k) => k.split(":")[0]).sort()).toEqual(["define", "design", "sense"]);
+  });
+});
+
+describe("foldRepeats", () => {
+  it("folds three or more identical stopped turns into one entry with the count and span", () => {
+    const rows = [1, 2, 3, 4].map((n) => turn("design", n * 1000, "stopped", "Design", 600));
+    const items = foldRepeats(rows);
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ kind: "repeat", count: 4, firstAt: 1000, lastAt: 4000 });
+  });
+
+  it("leaves two identical rows as two events", () => {
+    const rows = [1, 2].map((n) => turn("design", n * 1000, "stopped", "Design", 600));
+    expect(foldRepeats(rows).map((i) => i.kind)).toEqual(["row", "row"]);
+  });
+
+  it("never folds a turn that filed, said or is still working", () => {
+    const a = turn("design", 1000, "stopped", "Design", 600);
+    const b = turn("design", 2000, "stopped", "Design", 600);
+    const c = turn("design", 3000, "stopped", "Design", 600);
+    (c as { turn: Turn }).turn.said = "I tried.";
+    expect(foldRepeats([a, b, c]).map((i) => i.kind)).toEqual(["row", "row", "row"]);
+    const w = turn("design", 4000, "working", "Design", null);
+    expect(foldRepeats([a, b, w, w]).every((i) => i.kind === "row")).toBe(true);
+  });
+
+  it("breaks the fold on a different seat", () => {
+    const rows = [
+      turn("design", 1000, "stopped", "Design", 600),
+      turn("design", 2000, "stopped", "Design", 600),
+      turn("design", 3000, "stopped", "Critique", 600),
+      turn("design", 4000, "stopped", "Design", 600),
+    ];
+    expect(foldRepeats(rows).every((i) => i.kind === "row")).toBe(true);
   });
 });

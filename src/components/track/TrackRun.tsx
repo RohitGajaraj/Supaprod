@@ -1082,9 +1082,18 @@ export function TrackRunLeft({
               ))}
             </ul>
           ) : null}
+          {now.register === "scheduled" && gradableBySource === false ? (
+            <div>
+              <Door
+                onClick={() => navigate({ to: "/settings", search: { section: "connections" } })}
+              >
+                Connect a source
+              </Door>
+            </div>
+          ) : null}
           {holdFacts && track ? (
             <>
-              {track.holdBecause ? <Row lead={track.holdBecause} tight /> : null}
+              {track.holdBecause ? <HoldFact>{track.holdBecause}</HoldFact> : null}
               {shipStop ? (
                 <Row
                   tight
@@ -1109,40 +1118,38 @@ export function TrackRunLeft({
                 shape: shipStopped.data?.shape ?? null,
                 build: shipStopped.data?.build ?? null,
               }) ? (
-                <Row
-                  tight
-                  lead={
+                <HoldFact>
+                  {
                     builtWithLine({
                       shape: shipStopped.data?.shape ?? null,
                       build: shipStopped.data?.build ?? null,
                     }) as string
                   }
-                />
+                </HoldFact>
               ) : null}
               {triedAgainLine(track.deferredUntil, new Date(), {
                 zone,
                 isForecastHorizon: deferralIsForecastHorizon,
               }) ? (
-                <Row
-                  tight
-                  lead={
+                <HoldFact>
+                  {
                     triedAgainLine(track.deferredUntil, new Date(), {
                       zone,
                       isForecastHorizon: deferralIsForecastHorizon,
                     }) as string
                   }
-                />
+                </HoldFact>
               ) : null}
               {holdWayOut.next ? (
-                <Row
-                  tight
-                  lead={holdWayOut.next}
+                <HoldFact
                   sub={
                     holdWayOut.onThisScreen
                       ? "Both of those are under Take it over, below."
                       : undefined
                   }
-                />
+                >
+                  {holdWayOut.next}
+                </HoldFact>
               ) : null}
               {holdWayOut.door ? (
                 <Link
@@ -1244,6 +1251,23 @@ export function TrackRunLeft({
  * knows nothing about drawing, and this is the two-line seam between them. It
  * lives here rather than in either, because "which run" is the pane's question.
  */
+/**
+ * A fact inside the Now card: a whole sentence, never truncated. `Row` clips
+ * its lead to one line, which is right for a list and wrong for the one
+ * sentence that says why the work stopped; the first live walk of the card
+ * showed "Trying again changes nothing. Send it back a st…".
+ */
+function HoldFact({ children, sub }: { children: React.ReactNode; sub?: string }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <p className="max-w-[64ch] text-mrd-small leading-mrd-prose text-mrd-body">{children}</p>
+      {sub ? (
+        <p className="max-w-[64ch] text-mrd-small leading-mrd-prose text-mrd-mute">{sub}</p>
+      ) : null}
+    </div>
+  );
+}
+
 function RunGotYou({
   trackId,
   onOpen,

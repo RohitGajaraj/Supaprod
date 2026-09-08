@@ -160,6 +160,7 @@ export function RunningApp({
   sha,
   label,
   embeddable = null,
+  reason = null,
 }: {
   url: string | null;
   sha: string | null;
@@ -173,6 +174,8 @@ export function RunningApp({
    * an unchecked host is more often a host that draws.
    */
   embeddable?: boolean | null;
+  /** The check's own clause for why, e.g. "the host refuses frames (X-Frame-Options: DENY)". */
+  reason?: string | null;
 }) {
   if (embeddable === false) {
     return (
@@ -193,7 +196,9 @@ export function RunningApp({
             {url?.replace(/^https?:\/\//, "")}
           </span>
           <span className="text-mrd-small text-mrd-mute">
-            This host does not let itself be shown inside another page. Open it in its own tab.
+            {reason
+              ? `It cannot be shown here: ${reason}. Open it in its own tab.`
+              : "This host does not let itself be shown inside another page. Open it in its own tab."}
           </span>
         </a>
       </div>

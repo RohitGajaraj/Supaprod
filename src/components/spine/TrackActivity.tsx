@@ -74,6 +74,7 @@ import {
   dayKey,
   dayLabel,
   defaultOpen,
+  foldRepeats,
   sectionMeta,
   transcriptSections,
 } from "@/components/spine/transcript-sections";
@@ -115,6 +116,14 @@ import { enterMotion } from "@/components/spine/enter-motion";
 import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 
 /** One map, so a station's slug and its drawing cannot disagree. */
+function clockOf(at: number): string {
+  return new Date(at).toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
 function glyphForStation(s: AgentStation | null): StationGlyphKind | undefined {
   return s ? GLYPH_FOR_STATION[s] : undefined;
 }
@@ -1654,13 +1663,38 @@ export function TrackActivity({
               >
                 <div className="overflow-hidden">
                   <ol className={`${RUN_STACK} pt-mrd-2`}>
-                    {section.rows.map((row, ri) => {
+                    {foldRepeats(section.rows).map((item, ri, items) => {
+                      const row = item.row;
                       const i = indexOf.get(row.key) ?? 0;
-                      const last = ri === section.rows.length - 1;
+                      const last = ri === items.length - 1;
                       const day = dayKey(row.at, zone);
                       const dayBreak =
                         lastDay !== null && day !== lastDay ? dayLabel(row.at, zone) : null;
                       lastDay = day;
+                      if (item.kind === "repeat" && row.kind === "turn") {
+                        /* One entry for a run of identical stopped turns; see
+                           `foldRepeats`. The clock is the last one, the span
+                           says how long the loop kept trying. */
+                        const t = row.turn;
+                        const span = `${item.count} times, ${clockOf(item.firstAt)} to ${clockOf(item.lastAt)}`;
+                        return (
+                          <li key={item.key} className={RUN_ROW}>
+                            <RunClock at={item.lastAt} />
+                            <span className="flex flex-col items-center self-stretch">
+                              <RunGlyph kind="station" station={glyphForStation(t.station)} />
+                              {last ? null : <RunRail />}
+                            </span>
+                            <span className="min-w-0 pb-1">
+                              <span className={RUN_LINE}>
+                                <RunSubject>{transcriptLead(t)}</RunSubject>
+                                {chipOf(t)}
+                              </span>
+                              <RunMeta>{span}</RunMeta>
+                              {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
+                            </span>
+                          </li>
+                        );
+                      }
                       return (
                         <React.Fragment key={row.key}>
                           {dayBreak ? (
