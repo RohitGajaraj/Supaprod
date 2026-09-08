@@ -1353,6 +1353,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
      */
     if (missions.isError || openTracks.isError || moving.isError)
       return "Cannot see what is running";
+    /* Nothing said before the workspace is known: the reads above are gated
+       on it, and an ungated fall-through here would print the idle sentence
+       for the beat before the id arrives. */
+    if (!wsKey) return null;
     if (missions.isLoading) return null;
     if (running.length === 0) {
       /* NOT ON THE BOARD, WHICH IS SAYING IT LOUDER TWO INCHES BELOW.
@@ -1491,6 +1495,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     lastDone,
     verbFor,
     runningNow.data,
+    wsKey,
     strip,
     movingRuns,
   ]);
