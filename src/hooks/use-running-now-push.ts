@@ -12,8 +12,10 @@ import { runningNowKey } from "@/lib/query-keys";
  * after a fetch is invisible until the next one. For a product whose claim is
  * that the machine's work is seen as it happens, the interval is the gap.
  *
- * `agent_runs` has been in the realtime publication since migration
- * 20260618182608. This subscribes to INSERT and UPDATE on it for the active
+ * `agent_runs` is in the realtime publication since migration 20260909100300
+ * (the 20260618182608 row did not survive whatever rebuilt the database, so
+ * this socket was silent in production for its first hours; read off
+ * pg_publication_tables, 2026-09-08). This subscribes to INSERT and UPDATE on it for the active
  * workspace and invalidates the one key the live work is read under, so a seat
  * appears when its row is written and its `now` refreshes when the loop stamps
  * a checkpoint. The payload is never read: server functions stay the single

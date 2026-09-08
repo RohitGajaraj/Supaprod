@@ -13,6 +13,7 @@ import { readFileSync } from "node:fs";
 import {
   isRunningNow,
   nowPerTrace,
+  objectLabelOf,
   RUNNING_NOW,
   runningHeadline,
   workingLine,
@@ -255,5 +256,43 @@ describe("what the seat is doing this second", () => {
     // Workspace-scoped: a tool call is the most revealing row this product holds.
     expect(body).toContain('.eq("workspace_id", workspaceId)\n          .in("trace_id", traceIds)');
     expect(body).toContain("now: r.trace_id ? (nowByTrace.get(r.trace_id) ?? null) : null");
+  });
+});
+
+describe("the object as a noun a presence slot can print", () => {
+  it("a file is its own name, cut at forty characters", () => {
+    expect(objectLabelOf({ kind: "file", id: "src/checkout/AddressStep.tsx" })).toBe(
+      "AddressStep.tsx",
+    );
+    const long = { kind: "file", id: "a/" + "x".repeat(60) + ".ts" };
+    expect(objectLabelOf(long)?.length).toBe(40);
+  });
+
+  it("a record is named in the product's words, an unknown kind as the record", () => {
+    expect(objectLabelOf({ kind: "row:prd", id: "p" })).toBe("the spec");
+    expect(objectLabelOf({ kind: "row:decision", id: "d" })).toBe("the decision");
+    expect(objectLabelOf({ kind: "row:whatever", id: "w" })).toBe("the record");
+  });
+
+  it("nothing named is null, never a filler", () => {
+    expect(objectLabelOf(null)).toBeNull();
+    const now = nowPerTrace([
+      {
+        trace_id: "t",
+        tool_name: "signals.list",
+        args: { limit: 5 },
+        created_at: "2026-09-08T10:00:00Z",
+      },
+    ]);
+    expect(now.get("t")?.objectLabel).toBeNull();
+    const named = nowPerTrace([
+      {
+        trace_id: "t",
+        tool_name: "repo.read",
+        args: { path: "src/a.ts" },
+        created_at: "2026-09-08T10:00:00Z",
+      },
+    ]);
+    expect(named.get("t")?.objectLabel).toBe("a.ts");
   });
 });

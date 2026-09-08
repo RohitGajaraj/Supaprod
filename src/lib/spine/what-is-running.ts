@@ -63,9 +63,40 @@ export type RunningNow = {
    * create whose target does not exist until it returns. Never invented.
    */
   object: { kind: string; id: string } | null;
+  /**
+   * The object as a noun a presence slot can print beside the verb ("Reading
+   * · AddressStep.tsx", "writing the spec · the spec"): a file's own name, a
+   * record's kind in the product's words, at most forty characters. Null when
+   * the call named nothing, so the slot stays empty rather than saying "the
+   * record" over a search.
+   */
+  objectLabel: string | null;
   /** When the newest call happened. */
   at: string;
 };
+
+/** The words a presence slot uses for a record kind. Unknown kinds print as "the record". */
+const OBJECT_WORDS: Readonly<Record<string, string>> = {
+  "row:prd": "the spec",
+  "row:decision": "the decision",
+  "row:opportunity": "the bet",
+  "row:theme": "the theme",
+  "row:signal": "a finding",
+  "row:mission": "the build",
+  "row:changeset": "the change",
+  "row:prototype": "the drawing",
+  "row:task": "the task",
+  "row:learning": "the outcome",
+};
+
+export function objectLabelOf(object: { kind: string; id: string } | null): string | null {
+  if (!object) return null;
+  if (object.kind === "file") {
+    const name = object.id.split("/").filter(Boolean).pop() ?? object.id;
+    return name.length > 40 ? `${name.slice(0, 39)}\u2026` : name;
+  }
+  return OBJECT_WORDS[object.kind] ?? "the record";
+}
 
 /** One seat, working, as much as the record can say about it. */
 export type RunningSeat = {
@@ -139,10 +170,12 @@ export function nowPerTrace(calls: readonly NowCallRow[]): Map<string, RunningNo
   const out = new Map<string, RunningNow>();
   for (const [trace, n] of newest) {
     const o = named.get(trace);
+    const object = o ? { kind: o.kind, id: o.id } : null;
     out.set(trace, {
       tool: n.tool,
       verb: verbForTool(n.tool),
-      object: o ? { kind: o.kind, id: o.id } : null,
+      object,
+      objectLabel: objectLabelOf(object),
       at: n.at,
     });
   }
