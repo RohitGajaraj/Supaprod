@@ -186,7 +186,7 @@ describe("ResearchActivity", () => {
         ? result.props.children
         : [result?.props.children];
       const labelSpan = children.find(
-        (child: any) =>
+        (child: unknown) =>
           child?.type === ShimmerText && child?.props?.children === "Reading sources...",
       );
       expect(labelSpan).toBeDefined();
@@ -206,7 +206,8 @@ describe("ResearchActivity", () => {
         ? result.props.children
         : [result?.props.children];
       const summarySpan = children.find(
-        (child: any) => child?.type === "span" && child?.props?.className?.includes("mono-label"),
+        (child: unknown) =>
+          child?.type === "span" && child?.props?.className?.includes("mono-label"),
       );
       expect(summarySpan).toBeDefined();
       expect(summarySpan?.props.children).toContain("Searched 1 query");
@@ -220,7 +221,7 @@ describe("ResearchActivity", () => {
       const children = Array.isArray(result?.props.children)
         ? result.props.children
         : [result?.props.children];
-      const spinner = children.find((child: any) => child?.props?.className === "spinner");
+      const spinner = children.find((child: unknown) => child?.props?.className === "spinner");
       expect(spinner).toBeDefined();
     });
   });
@@ -348,7 +349,7 @@ describe("ResearchActivity", () => {
       const children = Array.isArray(result?.props.children)
         ? result?.props.children
         : [result?.props.children];
-      const chipTexts = children.map((chip: any) => chip?.props?.children);
+      const chipTexts = children.map((chip: unknown) => chip?.props?.children);
       expect(chipTexts).toContain("Searched 1 query");
       expect(chipTexts).toContain("Read 2 sources");
       expect(chipTexts).toContain("Workspace");
@@ -379,7 +380,7 @@ describe("ResearchActivity", () => {
       const children = Array.isArray(result?.props.children)
         ? result?.props.children
         : [result?.props.children];
-      const chipTexts = children.map((chip: any) => chip?.props?.children);
+      const chipTexts = children.map((chip: unknown) => chip?.props?.children);
       expect(chipTexts).toContain("Read 2 sources");
     });
 
@@ -429,7 +430,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       expect(
-        children.some((chip: any) => chip?.props?.children?.includes?.("Searched 2 queries")),
+        children.some((chip: unknown) => chip?.props?.children?.includes?.("Searched 2 queries")),
       ).toBe(true);
     });
 
@@ -484,7 +485,7 @@ describe("ResearchActivity", () => {
         }>;
         workspace_chunks?: number;
       } = {},
-    ): any {
+    ): unknown {
       return {
         model: "claude-3-haiku",
         via: "gateway",
@@ -502,12 +503,12 @@ describe("ResearchActivity", () => {
       };
     }
 
-    function chipTextsOf(result: any): string[] {
+    function chipTextsOf(result: unknown): string[] {
       if (!result) return [];
       const children = Array.isArray(result.props.children)
         ? result.props.children
         : [result.props.children];
-      return children.map((c: any) => c?.props?.children as string);
+      return children.map((c: unknown) => c?.props?.children as string);
     }
 
     // --- Condition 1: research.mode === "internal" ---
@@ -696,7 +697,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const labelSpan = children.find(
-        (c: any) => c?.type === ShimmerText && c?.props?.children === "Searching the web",
+        (c: unknown) => c?.type === ShimmerText && c?.props?.children === "Searching the web",
       );
       expect(labelSpan).toBeDefined();
     });
@@ -710,7 +711,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const trailSpan = children.find(
-        (c: any) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
+        (c: unknown) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
       );
       expect(trailSpan).toBeUndefined();
     });
@@ -726,7 +727,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const labelSpan = children.find(
-        (c: any) => c?.type === ShimmerText && c?.props?.children === "Synthesizing answer",
+        (c: unknown) => c?.type === ShimmerText && c?.props?.children === "Synthesizing answer",
       );
       expect(labelSpan).toBeDefined();
     });
@@ -744,7 +745,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const trailSpan = children.find(
-        (c: any) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
+        (c: unknown) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
       );
       expect(trailSpan?.props?.children).toContain("Searched 2 queries");
     });
@@ -761,7 +762,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const trailSpan = children.find(
-        (c: any) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
+        (c: unknown) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
       );
       expect(trailSpan?.props?.children).toContain("Read 3 sources");
     });
@@ -776,7 +777,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const trailSpan = children.find(
-        (c: any) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
+        (c: unknown) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
       );
       expect(trailSpan?.props?.children).toContain("Workspace");
     });
@@ -792,7 +793,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const trailSpan = children.find(
-        (c: any) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
+        (c: unknown) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
       );
       expect(trailSpan).toBeUndefined();
     });
@@ -809,7 +810,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const trailSpan = children.find(
-        (c: any) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
+        (c: unknown) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
       );
       const trail: string = trailSpan?.props?.children ?? "";
       expect(trail).toContain(" · ");
@@ -827,7 +828,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const trailSpan = children.find(
-        (c: any) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
+        (c: unknown) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
       );
       const trail: string = trailSpan?.props?.children ?? "";
       expect(trail).toContain("Searched 1 query");
@@ -843,7 +844,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const labelSpan = children.find(
-        (c: any) =>
+        (c: unknown) =>
           c?.type === ShimmerText && c?.props?.children === "A very long label that could overflow",
       );
       expect(labelSpan?.props?.style?.maxWidth).toBe(420);
@@ -862,7 +863,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const trailSpan = children.find(
-        (c: any) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
+        (c: unknown) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
       );
       const trail: string = trailSpan?.props?.children ?? "";
       expect(trail).toContain("Searched 1 query");
@@ -882,7 +883,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const trailSpan = children.find(
-        (c: any) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
+        (c: unknown) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
       );
       const trail: string = trailSpan?.props?.children ?? "";
       expect(trail).toContain("Searched 2 queries");
@@ -896,7 +897,7 @@ describe("ResearchActivity", () => {
       const children = Array.isArray(result?.props.children)
         ? result?.props.children
         : [result?.props.children];
-      const spinner = children.find((c: any) => c?.props?.className === "spinner");
+      const spinner = children.find((c: unknown) => c?.props?.className === "spinner");
       expect(spinner).toBeDefined();
     });
 
@@ -912,7 +913,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const trailSpan = children.find(
-        (c: any) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
+        (c: unknown) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
       );
       expect(trailSpan?.props?.children).toContain("Searched 3 queries");
     });
@@ -929,7 +930,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const trailSpan = children.find(
-        (c: any) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
+        (c: unknown) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
       );
       expect(trailSpan?.props?.children).toContain("Searched 1 query");
       expect(trailSpan?.props?.children).toContain("Read 2 sources");
@@ -1008,8 +1009,8 @@ describe("ResearchActivity", () => {
       expect(result?.phase).toBe("synthesize");
       expect(result?.label).toBe("Synthesizing answer");
       // The returned object must not carry extra fields
-      expect((result as any)?.extra).toBeUndefined();
-      expect((result as any)?.timestamp).toBeUndefined();
+      expect((result as Record<string, unknown>)?.extra).toBeUndefined();
+      expect((result as Record<string, unknown>)?.timestamp).toBeUndefined();
     });
 
     it("should return null for an array input", () => {

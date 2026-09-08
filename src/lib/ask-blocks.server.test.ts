@@ -3,8 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveAnswerBlocks } from "./ask-blocks.server";
 import { formatAuditId } from "./audit-id";
 
-type QueryResult = { data: any; error: any };
-type LoggedCall = { table: string; method: string; args: any[] };
+type QueryResult = { data: unknown; error: unknown };
+type LoggedCall = { table: string; method: string; args: unknown[] };
 
 /**
  * Chainable thenable mock routed by table name. Every builder method logs
@@ -15,13 +15,13 @@ type LoggedCall = { table: string; method: string; args: any[] };
  */
 function mockSupabase(tables: Record<string, QueryResult>, log: LoggedCall[] = []) {
   const makeBuilder = (table: string, result: QueryResult) => {
-    const builder: any = {
+    const builder: unknown = {
       then(resolve: (v: QueryResult) => unknown, reject?: (e: unknown) => unknown) {
         return Promise.resolve(result).then(resolve, reject);
       },
     };
     for (const method of ["select", "in", "gte", "not", "or", "order", "limit"]) {
-      builder[method] = (...args: any[]) => {
+      builder[method] = (...args: unknown[]) => {
         log.push({ table, method, args });
         return builder;
       };
@@ -39,7 +39,7 @@ function mockSupabase(tables: Record<string, QueryResult>, log: LoggedCall[] = [
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString();
 
-const decisionRow = (id: string, overrides: Record<string, any> = {}) => ({
+const decisionRow = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
   title: `Decision ${id}`,
   status: "accepted",
@@ -50,7 +50,7 @@ const decisionRow = (id: string, overrides: Record<string, any> = {}) => ({
   ...overrides,
 });
 
-const missionRow = (id: string, overrides: Record<string, any> = {}) => ({
+const missionRow = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
   title: `Mission ${id}`,
   status: "running",

@@ -3,6 +3,9 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { BYO_PROVIDERS } from "./byokeys.functions";
 
+/** What a mocked read answers: the data and the error, both unknown until a test says. */
+type MockResult = { data: unknown; error: unknown };
+
 /**
  * Test suite for BYO API keys module (byokeys.functions.ts).
  *
@@ -260,14 +263,15 @@ function createMockSupabase(config: {
   tier?: string;
   accountTier?: string | null;
   accountId?: string | null;
-  apiKeys?: any[];
-  error?: any;
+  apiKeys?: unknown[];
+  error?: unknown;
 }): SupabaseClient {
   const err = config.error ?? null;
 
-  function terminal(result: { data: any; error: any }): any {
+  function terminal(result: MockResult): unknown {
     return {
-      then: (resolve: any, reject?: any) => Promise.resolve(result).then(resolve, reject),
+      then: (resolve: (value: MockResult) => unknown, reject?: (reason: unknown) => unknown) =>
+        Promise.resolve(result).then(resolve, reject),
     };
   }
 
@@ -280,7 +284,7 @@ function createMockSupabase(config: {
     },
     from: (table: string) => ({
       select: (..._args: string[]) => ({
-        eq: (col: string, val: any) => {
+        eq: (col: string, val: unknown) => {
           if (table === "workspaces" && col === "id") {
             return terminal({
               data:
@@ -322,20 +326,20 @@ function createMockSupabase(config: {
           }
           return { data: null, error: err };
         },
-        order: (_col: string, _opts?: any) => ({
-          then: (resolve: any, reject?: any) =>
+        order: (_col: string, _opts?: unknown) => ({
+          then: (resolve: (value: MockResult) => unknown, reject?: (reason: unknown) => unknown) =>
             Promise.resolve({
               data: config.apiKeys ?? [],
               error: err,
             }).then(resolve, reject),
         }),
       }),
-      order: (_col: string, _opts?: any) => ({
-        then: (resolve: any, reject?: any) =>
+      order: (_col: string, _opts?: unknown) => ({
+        then: (resolve: (value: MockResult) => unknown, reject?: (reason: unknown) => unknown) =>
           Promise.resolve({ data: config.apiKeys ?? [], error: err }).then(resolve, reject),
       }),
     }),
-  } as any as SupabaseClient;
+  } as unknown as SupabaseClient;
 }
 
 describe("byokeys – async functions with mocking", () => {

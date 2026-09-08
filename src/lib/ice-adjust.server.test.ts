@@ -10,7 +10,7 @@ import { autoAdjustIce } from "./ice-adjust.server";
  * concrete `{ data, error }` / `{ error }` value rather than a bare function
  * or a non-thenable object.
  */
-function mockSupabase(config: { opp?: any; oppErr?: any }) {
+function mockSupabase(config: { opp?: unknown; oppErr?: unknown }) {
   return {
     from: (table: string) => {
       if (table !== "opportunities") {
@@ -18,16 +18,16 @@ function mockSupabase(config: { opp?: any; oppErr?: any }) {
       }
       return {
         select: (_cols: string) => ({
-          eq: (_col: string, _val: any) => ({
+          eq: (_col: string, _val: unknown) => ({
             single: async () => ({ data: config.opp, error: config.oppErr ?? null }),
           }),
         }),
-        update: (_data: any) => ({
-          eq: async (_col: string, _val: any) => ({ error: null }),
+        update: (_data: unknown) => ({
+          eq: async (_col: string, _val: unknown) => ({ error: null }),
         }),
       };
     },
-  } as any as SupabaseClient;
+  } as unknown as SupabaseClient;
 }
 
 /**
@@ -38,18 +38,18 @@ function mockSupabase(config: { opp?: any; oppErr?: any }) {
  * this mock via the same parameter. Tracks inserted rows so provenance
  * writes are assertable, not just assumed.
  */
-function mockAdmin(config: { rows?: any; rowsErr?: any }) {
-  const inserted: any[] = [];
+function mockAdmin(config: { rows?: unknown; rowsErr?: unknown }) {
+  const inserted: unknown[] = [];
   const client = {
     __inserted: inserted,
     from: (table: string) => {
       if (table === "product_analytics") {
         return {
           select: (_cols: string) => ({
-            eq: (_col: string, _val: any) => ({
-              eq: (_col2: string, _val2: any) => ({
-                gte: (_col3: string, _val3: any) => ({
-                  order: async (_col4: string, _opts: any) => ({
+            eq: (_col: string, _val: unknown) => ({
+              eq: (_col2: string, _val2: unknown) => ({
+                gte: (_col3: string, _val3: unknown) => ({
+                  order: async (_col4: string, _opts: unknown) => ({
                     data: config.rows,
                     error: config.rowsErr ?? null,
                   }),
@@ -61,7 +61,7 @@ function mockAdmin(config: { rows?: any; rowsErr?: any }) {
       }
       if (table === "ice_adjustments") {
         return {
-          insert: async (row: any) => {
+          insert: async (row: unknown) => {
             inserted.push(row);
             return { data: null, error: null };
           },
@@ -70,7 +70,7 @@ function mockAdmin(config: { rows?: any; rowsErr?: any }) {
       throw new Error(`mockAdmin: unexpected table "${table}"`);
     },
   };
-  return client as any as SupabaseClient & { __inserted: any[] };
+  return client as unknown as SupabaseClient & { __inserted: unknown[] };
 }
 
 describe("autoAdjustIce", () => {

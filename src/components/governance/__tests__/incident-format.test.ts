@@ -178,7 +178,7 @@ describe("incidentTone", () => {
   });
 
   test("unknown kind defaults to muted", () => {
-    expect(incidentTone("unknown" as any)).toBe("muted");
+    expect(incidentTone("unknown" as never)).toBe("muted");
   });
 
   test("all kinds map to a valid tone", () => {

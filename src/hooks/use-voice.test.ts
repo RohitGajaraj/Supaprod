@@ -74,9 +74,9 @@ function installFakeSynth(): SynthCall[] {
       calls.push({ kind: "cancel" });
     },
   };
-  (window as any).speechSynthesis = synth;
-  (window as any).SpeechSynthesisUtterance = FakeUtterance;
-  (globalThis as any).SpeechSynthesisUtterance = FakeUtterance;
+  (window as unknown as Record<string, unknown>).speechSynthesis = synth;
+  (window as unknown as Record<string, unknown>).SpeechSynthesisUtterance = FakeUtterance;
+  (globalThis as unknown as Record<string, unknown>).SpeechSynthesisUtterance = FakeUtterance;
   return calls;
 }
 
@@ -94,11 +94,11 @@ function lastUtterance(calls: SynthCall[]): FakeUtterance {
 }
 
 afterEach(() => {
-  delete (window as any).SpeechRecognition;
-  delete (window as any).webkitSpeechRecognition;
-  delete (window as any).speechSynthesis;
-  delete (window as any).SpeechSynthesisUtterance;
-  delete (globalThis as any).SpeechSynthesisUtterance;
+  delete (window as unknown as Record<string, unknown>).SpeechRecognition;
+  delete (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
+  delete (window as unknown as Record<string, unknown>).speechSynthesis;
+  delete (window as unknown as Record<string, unknown>).SpeechSynthesisUtterance;
+  delete (globalThis as unknown as Record<string, unknown>).SpeechSynthesisUtterance;
   FakeRecognition.instances = [];
 });
 
@@ -169,7 +169,7 @@ describe("useDictation in an unsupported environment", () => {
 
 describe("useDictation with a fake SpeechRecognition", () => {
   function mount(onFinal: (t: string) => void = () => {}) {
-    (window as any).SpeechRecognition = FakeRecognition;
+    (window as unknown as Record<string, unknown>).SpeechRecognition = FakeRecognition;
     return renderHook(({ cb }) => useDictation(cb), { initialProps: { cb: onFinal } });
   }
 

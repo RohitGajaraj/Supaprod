@@ -8,39 +8,44 @@ import {
   BaselineSchema,
 } from "./drift.functions";
 
+/** What a mocked read answers: the data and the error, both unknown until a test says. */
+type MockResult = { data: unknown; error: unknown };
+
 /**
  * Mock builder for drift.functions test suite.
  * Implements chainable Supabase query API.
  */
 function createMockSupabase(config: {
-  baseline?: any;
-  snapshots?: any[];
-  openIncidents?: any[];
-  recentIncidents?: any[];
-  error?: any;
+  baseline?: unknown;
+  snapshots?: unknown[];
+  openIncidents?: unknown[];
+  recentIncidents?: unknown[];
+  error?: unknown;
 }): SupabaseClient {
   const err = config.error ?? null;
 
   /** A real thenable (calls `resolve`, unlike a bare `{ then: (cb) => Promise.resolve(...) }`
    * which never settles the outer `await` and hangs the test until timeout). */
-  function terminal(result: { data: any; error: any }): any {
+  function terminal(result: MockResult): unknown {
     return {
-      then: (resolve: any, reject?: any) => Promise.resolve(result).then(resolve, reject),
+      then: (resolve: (value: MockResult) => unknown, reject?: (reason: unknown) => unknown) =>
+        Promise.resolve(result).then(resolve, reject),
     };
   }
 
   /** Chainable + directly-awaitable `.eq().eq()...` tail for update() calls. */
-  function updateEqChain(result: { data: any; error: any }): any {
+  function updateEqChain(result: MockResult): unknown {
     return {
-      eq: (_col: string, _val: any) => updateEqChain(result),
-      then: (resolve: any, reject?: any) => Promise.resolve(result).then(resolve, reject),
+      eq: (_col: string, _val: unknown) => updateEqChain(result),
+      then: (resolve: (value: MockResult) => unknown, reject?: (reason: unknown) => unknown) =>
+        Promise.resolve(result).then(resolve, reject),
     };
   }
 
   return {
     from: (table: string) => ({
       select: (..._args: string[]) => ({
-        eq: (_col: string, _val: any) => ({
+        eq: (_col: string, _val: unknown) => ({
           maybeSingle: async () => {
             if (table === "drift_baselines") {
               return { data: config.baseline ?? null, error: err };
@@ -48,8 +53,8 @@ function createMockSupabase(config: {
             return { data: null, error: err };
           },
           // drift_incidents (open): .eq("user_id",..).eq("status","open").order(...)
-          eq: (col2: string, val2: any) => ({
-            order: (_col3: string, _opts?: any) => {
+          eq: (col2: string, val2: unknown) => ({
+            order: (_col3: string, _opts?: unknown) => {
               if (table === "drift_incidents" && col2 === "status" && val2 === "open") {
                 return terminal({ data: config.openIncidents ?? [], error: err });
               }
@@ -57,8 +62,8 @@ function createMockSupabase(config: {
             },
           }),
           // drift_snapshots: .eq("user_id",..).gte("bucket_date",..).order(...)
-          gte: (_col2: string, _val2: any) => ({
-            order: (_col3: string, _opts?: any) => {
+          gte: (_col2: string, _val2: unknown) => ({
+            order: (_col3: string, _opts?: unknown) => {
               if (table === "drift_snapshots") {
                 return terminal({ data: config.snapshots ?? [], error: err });
               }
@@ -66,8 +71,8 @@ function createMockSupabase(config: {
             },
           }),
           // drift_incidents (recent): .eq("user_id",..).neq("status","open").order(...).limit(50)
-          neq: (col2: string, val2: any) => ({
-            order: (_col3: string, _opts?: any) => ({
+          neq: (col2: string, val2: unknown) => ({
+            order: (_col3: string, _opts?: unknown) => ({
               limit: async (_n?: number) => {
                 if (table === "drift_incidents" && col2 === "status" && val2 === "open") {
                   return { data: config.recentIncidents ?? [], error: err };
@@ -78,10 +83,10 @@ function createMockSupabase(config: {
           }),
         }),
       }),
-      update: (_data: any) => updateEqChain({ data: null, error: err }),
-      upsert: async (_data: any, _opts?: any) => ({ data: null, error: err }),
+      update: (_data: unknown) => updateEqChain({ data: null, error: err }),
+      upsert: async (_data: unknown, _opts?: unknown) => ({ data: null, error: err }),
     }),
-  } as any as SupabaseClient;
+  } as unknown as SupabaseClient;
 }
 
 describe("drift.functions", () => {

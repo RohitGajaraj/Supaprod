@@ -11,15 +11,18 @@ import {
   SurfaceSchema,
 } from "./budgets.functions";
 
+/** What a mocked read answers: the data and the error, both unknown until a test says. */
+type MockResult = { data: unknown; error: unknown };
+
 /**
  * Mock builder for budgets.functions test suite.
  * Implements chainable Supabase query API.
  */
 function createMockSupabase(config: {
-  global?: any;
-  surfaces?: any[];
-  alerts?: any[];
-  error?: any;
+  global?: unknown;
+  surfaces?: unknown[];
+  alerts?: unknown[];
+  error?: unknown;
 }): SupabaseClient {
   const err = config.error ?? null;
 
@@ -42,25 +45,27 @@ function createMockSupabase(config: {
   /** A chainable + directly-awaitable `.eq().eq()...` tail for update()/delete()
    * calls, matching how a real supabase-js PostgrestFilterBuilder is thenable at
    * every step AND can be terminated by `.select()`. */
-  function eqChain(result: { data: any; error: any }): any {
+  function eqChain(result: MockResult): unknown {
     return {
-      eq: (_col: string, _val: any) => eqChain(result),
+      eq: (_col: string, _val: unknown) => eqChain(result),
       select: (..._args: string[]) => ({
-        then: (resolve: any, reject?: any) =>
+        then: (resolve: (value: MockResult) => unknown, reject?: (reason: unknown) => unknown) =>
           Promise.resolve({ data: writtenRows(), error: err }).then(resolve, reject),
       }),
-      then: (resolve: any, reject?: any) => Promise.resolve(result).then(resolve, reject),
+      then: (resolve: (value: MockResult) => unknown, reject?: (reason: unknown) => unknown) =>
+        Promise.resolve(result).then(resolve, reject),
     };
   }
 
   /** insert()/upsert() are thenable on their own AND terminable by `.select()`. */
-  function writeChain(): any {
+  function writeChain(): unknown {
     const settled = { data: writtenRows(), error: err };
     return {
       select: (..._args: string[]) => ({
-        then: (resolve: any, reject?: any) => Promise.resolve(settled).then(resolve, reject),
+        then: (resolve: (value: MockResult) => unknown, reject?: (reason: unknown) => unknown) =>
+          Promise.resolve(settled).then(resolve, reject),
       }),
-      then: (resolve: any, reject?: any) =>
+      then: (resolve: (value: MockResult) => unknown, reject?: (reason: unknown) => unknown) =>
         Promise.resolve({ data: null, error: err }).then(resolve, reject),
     };
   }
@@ -68,14 +73,14 @@ function createMockSupabase(config: {
   return {
     from: (table: string) => ({
       select: (..._args: string[]) => ({
-        eq: (_col: string, _val: any) => ({
+        eq: (_col: string, _val: unknown) => ({
           maybeSingle: async () => {
             if (table === "ai_budgets") {
               return { data: config.global ?? null, error: err };
             }
             return { data: null, error: err };
           },
-          order: (_col: string, _opts?: any) => {
+          order: (_col: string, _opts?: unknown) => {
             const orderResult =
               table === "ai_surface_budgets"
                 ? { data: config.surfaces ?? [], error: err }
@@ -87,18 +92,20 @@ function createMockSupabase(config: {
                 }
                 return { data: [], error: err };
               },
-              then: (resolve: any, reject?: any) =>
-                Promise.resolve(orderResult).then(resolve, reject),
+              then: (
+                resolve: (value: MockResult) => unknown,
+                reject?: (reason: unknown) => unknown,
+              ) => Promise.resolve(orderResult).then(resolve, reject),
             };
           },
         }),
       }),
-      update: (_data: any) => eqChain({ data: null, error: err }),
+      update: (_data: unknown) => eqChain({ data: null, error: err }),
       delete: () => eqChain({ data: null, error: err }),
-      insert: (_data: any) => writeChain(),
-      upsert: (_data: any, _opts?: any) => writeChain(),
+      insert: (_data: unknown) => writeChain(),
+      upsert: (_data: unknown, _opts?: unknown) => writeChain(),
     }),
-  } as any as SupabaseClient;
+  } as unknown as SupabaseClient;
 }
 
 describe("budgets.functions", () => {

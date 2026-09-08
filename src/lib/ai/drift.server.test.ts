@@ -7,14 +7,14 @@ import { rollupSnapshots, detectIncidents, runDriftForUser } from "./drift.serve
  * Handles ai_events fetch, prompt_runs fetch, eval_case_results fetch, and drift_snapshots upsert.
  */
 function mockSupabaseForRollup(config: {
-  events?: any[];
-  runs?: any[];
-  evals?: any[];
-  upsertError?: any;
+  events?: unknown[];
+  runs?: unknown[];
+  evals?: unknown[];
+  upsertError?: unknown;
   /** detectIncidents' drift_baselines lookup, used by the runDriftForUser tests below.
    * Defaults to disabled so detectIncidents short-circuits without needing drift_snapshots
    * (select) / drift_incidents mocking that this rollup-focused mock doesn't implement. */
-  baseline?: any;
+  baseline?: unknown;
 }) {
   return {
     from: (table: string) => {
@@ -66,7 +66,7 @@ function mockSupabaseForRollup(config: {
         upsert: async () => ({ data: null, error: config.upsertError }),
       };
     },
-  } as any as SupabaseClient;
+  } as unknown as SupabaseClient;
 }
 
 /**
@@ -74,11 +74,11 @@ function mockSupabaseForRollup(config: {
  * Handles drift_baselines fetch, drift_snapshots fetch, drift_incidents queries/inserts/updates.
  */
 function mockSupabaseForDetect(config: {
-  baseline?: any;
-  snapshots?: any[];
-  existingIncidents?: any[];
-  insertError?: any;
-  updateError?: any;
+  baseline?: unknown;
+  snapshots?: unknown[];
+  existingIncidents?: unknown[];
+  insertError?: unknown;
+  updateError?: unknown;
 }) {
   return {
     from: (table: string) => {
@@ -105,7 +105,7 @@ function mockSupabaseForDetect(config: {
       // drift_incidents
       return {
         select: () => ({
-          eq: (col: string, val: any) => ({
+          eq: (col: string, val: unknown) => ({
             neq: () => ({
               order: () => ({
                 limit: () => async () => ({ data: config.existingIncidents || [], error: null }),
@@ -122,7 +122,7 @@ function mockSupabaseForDetect(config: {
         }),
       };
     },
-  } as any as SupabaseClient;
+  } as unknown as SupabaseClient;
 }
 
 describe("rollupSnapshots", () => {

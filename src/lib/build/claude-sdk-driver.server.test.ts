@@ -24,6 +24,8 @@ describe("chooseBuildDriverId (automatic driver selection heuristic)", () => {
   });
 
   test("specs with explicit null targetFiles default to SDK driver (unbounded)", () => {
-    expect(chooseBuildDriverId({ goal: "test", targetFiles: null as any })).toBe("claude-sdk");
+    expect(chooseBuildDriverId({ goal: "test", targetFiles: null as unknown as never })).toBe(
+      "claude-sdk",
+    );
   });
 });

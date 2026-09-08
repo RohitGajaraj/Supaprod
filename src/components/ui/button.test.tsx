@@ -114,7 +114,7 @@ describe("Button component variant consolidation", () => {
       setDevFlag(true);
       Object.defineProperty(window, "navigator", { value: { userAgent: "" }, writable: true });
 
-      const el = Button.render({ variant: "primary" as any, children: "Click me" }, null);
+      const el = Button.render({ variant: "primary" as never, children: "Click me" }, null);
       expect(el).toBeTruthy();
       expect(el.type).toBe("button");
       // Should warn about using legacy "primary"
@@ -136,7 +136,7 @@ describe("Button component variant consolidation", () => {
       setDevFlag(true);
       Object.defineProperty(window, "navigator", { value: { userAgent: "" }, writable: true });
 
-      const el = Button.render({ variant: "quiet" as any, children: "Skip" }, null);
+      const el = Button.render({ variant: "quiet" as never, children: "Skip" }, null);
       expect(el).toBeTruthy();
       expect(el.type).toBe("button");
       // Should warn about using legacy "quiet"

@@ -136,7 +136,7 @@ describe("FigmaEmbed.config.parseHTML()", () => {
             ? `https://www.figma.com/embed?embed_host=supaprod&url=${encodeURIComponent(original)}`
             : null,
       }),
-    } as any;
+    } as never;
 
     const attrs = getAttrs?.(mockDom);
     expect(attrs?.src).toBe(original);
@@ -151,7 +151,7 @@ describe("FigmaEmbed.config.parseHTML()", () => {
         getAttribute: (attr: string) =>
           attr === "src" ? "https://www.figma.com/embed?file-key=abc123" : null,
       }),
-    } as any;
+    } as never;
 
     const attrs = getAttrs?.(mockDom);
     expect(attrs?.src).toBe("https://www.figma.com/embed?file-key=abc123");
@@ -159,7 +159,7 @@ describe("FigmaEmbed.config.parseHTML()", () => {
 
   test("getAttrs callback falls back to empty src when the div has no child iframe", () => {
     const getAttrs = FigmaEmbed.config.parseHTML()[0].getAttrs;
-    const mockDom = { getAttribute: () => null, querySelector: () => null } as any;
+    const mockDom = { getAttribute: () => null, querySelector: () => null } as never;
 
     const attrs = getAttrs?.(mockDom);
     expect(attrs?.src).toBe("");

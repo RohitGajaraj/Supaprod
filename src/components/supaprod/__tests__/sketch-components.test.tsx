@@ -37,13 +37,16 @@ import {
 } from "../Sketch";
 import type { SketchBarDatum } from "../Sketch";
 
+/** A rendered element as these assertions read it: a type and its props, nothing more claimed. */
+type El = { type?: unknown; props?: Record<string, unknown> & { children?: unknown } };
+
 // ---------------------------------------------------------------------------
 // Shared tree helpers — traverse component and intrinsic elements
 // ---------------------------------------------------------------------------
 
-function flatten(node: unknown): any[] {
+function flatten(node: unknown): unknown[] {
   if (!node || typeof node !== "object") return [];
-  const el = node as any;
+  const el = node as Record<string, unknown> | null;
   if (!("props" in el)) return [];
   const kids: unknown[] = Array.isArray(el.props?.children)
     ? el.props.children
@@ -57,17 +60,17 @@ function containsText(node: unknown, text: string): boolean {
   if (typeof node === "string") return node === text;
   if (typeof node === "number") return String(node) === text;
   if (Array.isArray(node)) return node.some((c) => containsText(c, text));
-  if (node && typeof node === "object" && "props" in (node as any)) {
-    return containsText((node as any).props?.children, text);
+  if (node && typeof node === "object" && "props" in (node as Record<string, unknown>)) {
+    return containsText((node as Record<string, unknown>).props?.children, text);
   }
   return false;
 }
 
-function findByType(node: unknown, type: string): any | undefined {
+function findByType(node: unknown, type: string): unknown {
   return flatten(node).find((el) => el.type === type);
 }
 
-function findAllByType(node: unknown, type: string): any[] {
+function findAllByType(node: unknown, type: string): unknown[] {
   return flatten(node).filter((el) => el.type === type);
 }
 
@@ -520,41 +523,41 @@ describe("SketchLine JSX structure", () => {
     it("should render an SVG when data has exactly 2 points", () => {
       const el = buildSketchLine({ data: [1, 2] });
       expect(el).not.toBeNull();
-      expect((el as any).type).toBe("svg");
+      expect((el as Record<string, unknown>).type).toBe("svg");
     });
   });
 
   describe("SVG root element", () => {
     it("should render a root svg element", () => {
-      expect((buildSketchLine({ data: DATA }) as any).type).toBe("svg");
+      expect((buildSketchLine({ data: DATA }) as El).type).toBe("svg");
     });
 
     it("should set aria-hidden='true' (decorative chart)", () => {
-      expect((buildSketchLine({ data: DATA }) as any).props["aria-hidden"]).toBe("true");
+      expect((buildSketchLine({ data: DATA }) as El).props["aria-hidden"]).toBe("true");
     });
 
     it("should default to width 210", () => {
-      expect((buildSketchLine({ data: DATA }) as any).props.width).toBe(210);
+      expect((buildSketchLine({ data: DATA }) as El).props.width).toBe(210);
     });
 
     it("should default to height 42", () => {
-      expect((buildSketchLine({ data: DATA }) as any).props.height).toBe(42);
+      expect((buildSketchLine({ data: DATA }) as El).props.height).toBe(42);
     });
 
     it("should accept custom width via the w prop", () => {
-      expect((buildSketchLine({ data: DATA, w: 300 }) as any).props.width).toBe(300);
+      expect((buildSketchLine({ data: DATA, w: 300 }) as El).props.width).toBe(300);
     });
 
     it("should accept custom height via the h prop", () => {
-      expect((buildSketchLine({ data: DATA, h: 80 }) as any).props.height).toBe(80);
+      expect((buildSketchLine({ data: DATA, h: 80 }) as El).props.height).toBe(80);
     });
 
     it("should set display:block on the SVG element", () => {
-      expect((buildSketchLine({ data: DATA }) as any).props.style?.display).toBe("block");
+      expect((buildSketchLine({ data: DATA }) as El).props.style?.display).toBe("block");
     });
 
     it("should set maxWidth:100% so the chart is responsive", () => {
-      expect((buildSketchLine({ data: DATA }) as any).props.style?.maxWidth).toBe("100%");
+      expect((buildSketchLine({ data: DATA }) as El).props.style?.maxWidth).toBe("100%");
     });
   });
 
@@ -637,12 +640,12 @@ describe("SketchLine JSX structure", () => {
     });
 
     it("should apply sketch-dot class to the end-circle when animate is true", () => {
-      const circle = findByType(buildSketchLine({ data: DATA, animate: true }), "circle") as any;
+      const circle = findByType(buildSketchLine({ data: DATA, animate: true }), "circle") as El;
       expect(circle.props.className).toBe("sketch-dot");
     });
 
     it("should leave the circle className undefined when animate is false", () => {
-      const circle = findByType(buildSketchLine({ data: DATA, animate: false }), "circle") as any;
+      const circle = findByType(buildSketchLine({ data: DATA, animate: false }), "circle") as El;
       expect(circle.props.className).toBeUndefined();
     });
   });
@@ -653,12 +656,12 @@ describe("SketchLine JSX structure", () => {
     });
 
     it("should give the circle a radius of 2.4", () => {
-      const circle = findByType(buildSketchLine({ data: DATA }), "circle") as any;
+      const circle = findByType(buildSketchLine({ data: DATA }), "circle") as El;
       expect(circle.props.r).toBe("2.4");
     });
 
     it("should fill the circle with the chart color", () => {
-      const circle = findByType(buildSketchLine({ data: DATA, color: "#00f" }), "circle") as any;
+      const circle = findByType(buildSketchLine({ data: DATA, color: "#00f" }), "circle") as El;
       expect(circle.props.fill).toBe("#00f");
     });
   });
@@ -699,12 +702,12 @@ describe("SketchLine JSX structure", () => {
     });
 
     it("should use strokeDasharray='3 3' on the baseline line", () => {
-      const line = findByType(buildSketchLine({ data: [10, 20, 30], baseline: 20 }), "line") as any;
+      const line = findByType(buildSketchLine({ data: [10, 20, 30], baseline: 20 }), "line") as El;
       expect(line.props.strokeDasharray).toBe("3 3");
     });
 
     it("should use var(--mrd-edge) for the baseline stroke color", () => {
-      const line = findByType(buildSketchLine({ data: [10, 20, 30], baseline: 20 }), "line") as any;
+      const line = findByType(buildSketchLine({ data: [10, 20, 30], baseline: 20 }), "line") as El;
       expect(line.props.stroke).toBe("var(--mrd-edge)");
     });
   });
@@ -712,20 +715,20 @@ describe("SketchLine JSX structure", () => {
   describe("edge cases", () => {
     it("should render for a flat (all-equal) series without crashing", () => {
       const el = buildSketchLine({ data: [5, 5, 5, 5] });
-      expect((el as any).type).toBe("svg");
+      expect((el as Record<string, unknown>).type).toBe("svg");
       expect(findAllByType(el, "path").length).toBe(2);
     });
 
     it("should render for a monotonically decreasing series", () => {
-      expect((buildSketchLine({ data: [100, 80, 60, 40, 20] }) as any).type).toBe("svg");
+      expect((buildSketchLine({ data: [100, 80, 60, 40, 20] }) as El).type).toBe("svg");
     });
 
     it("should render for data containing negative values", () => {
-      expect((buildSketchLine({ data: [-10, 0, 10] }) as any).type).toBe("svg");
+      expect((buildSketchLine({ data: [-10, 0, 10] }) as El).type).toBe("svg");
     });
 
     it("should handle a two-point dataset (minimum valid input)", () => {
-      expect((buildSketchLine({ data: [0, 100] }) as any).type).toBe("svg");
+      expect((buildSketchLine({ data: [0, 100] }) as El).type).toBe("svg");
     });
   });
 });
@@ -896,23 +899,23 @@ describe("SketchBarChart JSX structure", () => {
 
   describe("root container (role=group)", () => {
     it("should render a div with role='group'", () => {
-      const el = buildSketchBarChart({ data: SAMPLE }) as any;
+      const el = buildSketchBarChart({ data: SAMPLE }) as El;
       expect(el.type).toBe("div");
       expect(el.props.role).toBe("group");
     });
 
     it("should set aria-label prefixed with 'Bar chart' by default", () => {
-      const el = buildSketchBarChart({ data: SAMPLE }) as any;
+      const el = buildSketchBarChart({ data: SAMPLE }) as El;
       expect(el.props["aria-label"]).toMatch(/^Bar chart/);
     });
 
     it("should use the ariaLabel prop as the prefix when provided", () => {
-      const el = buildSketchBarChart({ data: SAMPLE, ariaLabel: "Weekly conversions" }) as any;
+      const el = buildSketchBarChart({ data: SAMPLE, ariaLabel: "Weekly conversions" }) as El;
       expect(el.props["aria-label"]).toMatch(/^Weekly conversions/);
     });
 
     it("should append the insight text to the aria-label when showInsight is true", () => {
-      const el = buildSketchBarChart({ data: SAMPLE, ariaLabel: "Sales" }) as any;
+      const el = buildSketchBarChart({ data: SAMPLE, ariaLabel: "Sales" }) as El;
       expect(el.props["aria-label"].length).toBeGreaterThan("Sales".length);
     });
 
@@ -921,7 +924,7 @@ describe("SketchBarChart JSX structure", () => {
         data: SAMPLE,
         ariaLabel: "Sales",
         showInsight: false,
-      }) as any;
+      }) as El;
       expect(el.props["aria-label"]).toBe("Sales");
     });
   });

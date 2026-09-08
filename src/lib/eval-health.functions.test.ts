@@ -7,24 +7,24 @@ import { getEvalHealthImpl, type EvalHealthResult } from "./eval-health.function
  * Implements chainable Supabase query API.
  */
 function createMockSupabase(config: {
-  suites?: any[];
-  runs?: any[];
-  suiteError?: any;
-  runError?: any;
+  suites?: unknown[];
+  runs?: unknown[];
+  suiteError?: unknown;
+  runError?: unknown;
 }): SupabaseClient {
   return {
     from: (table: string) => ({
       select: (..._args: string[]) => ({
         // eval_suites: .select(...).eq("user_id", userId) — terminal, awaited directly.
-        eq: async (_col: string, _val: any) => {
+        eq: async (_col: string, _val: unknown) => {
           if (table === "eval_suites") {
             return { data: config.suites ?? [], error: config.suiteError ?? null };
           }
           return { data: null, error: config.suiteError ?? null };
         },
         // eval_runs: .select(...).in("suite_id", ids).order(...).limit(2000) — terminal on limit().
-        in: (_col: string, _vals: any[]) => ({
-          order: (_col2: string, _opts?: any) => ({
+        in: (_col: string, _vals: unknown[]) => ({
+          order: (_col2: string, _opts?: unknown) => ({
             limit: async (_n?: number) => {
               if (table === "eval_runs") {
                 return { data: config.runs ?? [], error: config.runError ?? null };
@@ -35,7 +35,7 @@ function createMockSupabase(config: {
         }),
       }),
     }),
-  } as any as SupabaseClient;
+  } as unknown as SupabaseClient;
 }
 
 describe("eval-health.functions", () => {

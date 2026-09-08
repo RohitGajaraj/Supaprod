@@ -332,7 +332,7 @@ describe("G1.3: Billing tier reconciliation (4 public vs 5 internal tiers)", () 
 
   it("public display names are unique: Free, Pro, Business, Enterprise", () => {
     const names = ["free", "pro", "team", "enterprise"].map(
-      (tier) => planPresentation(tier as any).name,
+      (tier) => planPresentation(tier as Record<string, unknown>).name,
     );
     const unique = new Set(names);
     expect(unique.size).toBe(4);
@@ -354,7 +354,7 @@ describe("G1.3: Billing tier reconciliation (4 public vs 5 internal tiers)", () 
     // All paid tiers must be valid
     for (const tier of paidTiers) {
       expect(PLAN_TIERS).toContain(tier);
-      const e = entitlementsFor(tier as any);
+      const e = entitlementsFor(tier as never);
       expect(e).toBeDefined();
     }
 
@@ -373,7 +373,7 @@ describe("G1.3: Billing tier reconciliation (4 public vs 5 internal tiers)", () 
 
   it("presentation exists for all 4 public tiers only", () => {
     for (const tier of PUBLIC_PLAN_TIERS) {
-      const p = planPresentation(tier as any);
+      const p = planPresentation(tier as never);
       expect(p).toBeDefined();
       expect(p.name).toBeDefined();
       expect(p.tier).toBe(tier);

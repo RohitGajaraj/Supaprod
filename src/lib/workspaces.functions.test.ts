@@ -140,7 +140,7 @@ describe("workspaces.functions — input validation", () => {
         email: "user@example.com",
         // role omitted
       };
-      const role = (schema as any).role ?? "member";
+      const role = (schema as Record<string, unknown>).role ?? "member";
       expect(role).toBe("member");
     });
   });
@@ -403,7 +403,7 @@ describe("workspaces.functions — authorization semantics", () => {
       // Comment in code: "The .select() turns an RLS-blocked delete (0 rows, no error from PostgREST)
       // into a loud failure instead of a phantom 'ok'"
       // This means when RLS blocks the delete, it returns 0 rows, and we check: if (!removed || removed.length === 0)
-      const removed = [] as any[];
+      const removed = [] as unknown[];
       expect(removed.length === 0).toBe(true); // Simulate RLS-blocked delete
     });
 
@@ -416,7 +416,7 @@ describe("workspaces.functions — authorization semantics", () => {
   describe("changeWorkspaceMemberRole — RLS-backed authorization", () => {
     it("should require .select() to verify the update actually happened", () => {
       // Same pattern: .select() after update to verify RLS didn't silently block it
-      const updated = [] as any[];
+      const updated = [] as unknown[];
       expect(updated.length === 0).toBe(true); // Simulate RLS denial
     });
   });
@@ -425,7 +425,7 @@ describe("workspaces.functions — authorization semantics", () => {
     it("should fallback to plain select when RPC is not available", () => {
       // Code pattern: if (!viaRpc.error && Array.isArray(viaRpc.data)) { use RPC } else { use plain select }
       const viaRpcError = true; // Simulate RPC not published yet
-      const shouldFallback = viaRpcError || !Array.isArray([] as any);
+      const shouldFallback = viaRpcError || !Array.isArray([] as unknown);
       expect(shouldFallback).toBe(true);
     });
 

@@ -304,7 +304,7 @@ describe("trust-ledger.functions – pure helpers", () => {
     });
 
     it("should not persist when head is null", () => {
-      expect(shouldPersistSeal("latest", null as any)).toBe(false);
+      expect(shouldPersistSeal("latest", null as unknown as never)).toBe(false);
     });
   });
 
@@ -356,13 +356,13 @@ describe("trust-ledger.functions – pure helpers", () => {
         },
       ];
       const result = evidenceCounts(edges);
-      expect(result.has(null as any)).toBe(false);
+      expect(result.has(null as unknown as never)).toBe(false);
       expect(result.get("id1")).toBe(1);
     });
 
     it("should skip null/undefined edges in array", () => {
       const edges: LineageEdgeLite[] = [
-        null as any,
+        null as unknown as never,
         {
           parent_id: "id1",
           child_id: "id2",
@@ -370,7 +370,7 @@ describe("trust-ledger.functions – pure helpers", () => {
           parent_kind: "artifact",
           child_kind: "artifact",
         },
-        undefined as any,
+        undefined as never,
       ];
       const result = evidenceCounts(edges);
       expect(result.size).toBe(2);
@@ -915,8 +915,8 @@ describe("trust-ledger.functions – pure helpers", () => {
 
     it("should handle null input arrays gracefully", () => {
       const result = assembleReceipts({
-        decisions: null as any,
-        approvals: null as any,
+        decisions: null as unknown as never,
+        approvals: null as unknown as never,
         superseded: new Map(),
         evidence: new Map(),
         sourceLabels: new Map(),

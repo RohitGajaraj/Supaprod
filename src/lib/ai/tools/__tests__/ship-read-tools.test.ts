@@ -409,7 +409,7 @@ describe("ship.get_release behaviour (fake client)", () => {
       supabase,
       userId: "u1",
       workspaceId: "w1",
-    } as never)) as Record<string, any>;
+    } as never)) as Record<string, unknown>;
 
     expect(out.title).toBe("Saved address at checkout");
     expect(out.release_notes).toBe("Checkout got faster.");
@@ -457,7 +457,7 @@ describe("ship.get_release behaviour (fake client)", () => {
       supabase,
       userId: "u1",
       workspaceId: "w1",
-    } as never)) as Record<string, any>;
+    } as never)) as Record<string, unknown>;
     expect(out.lineage_read).toBe("failed");
     expect(out.linked_specs.map((s: { id: string }) => s.id)).toEqual([SPEC_1]);
   });
@@ -476,7 +476,7 @@ describe("ship.get_release behaviour (fake client)", () => {
       supabase,
       userId: "u1",
       workspaceId: "w1",
-    } as never)) as Record<string, any>;
+    } as never)) as Record<string, unknown>;
     expect(out.lineage_read).toBe("skipped");
     expect(out.linked_specs).toEqual([]);
     expect(out.changelog_entry).not.toBeNull();

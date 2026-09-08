@@ -436,7 +436,7 @@ describe("build.get_run behaviour (fake client)", () => {
       supabase,
       userId: "u1",
       workspaceId: "w1",
-    } as never)) as Record<string, any>;
+    } as never)) as Record<string, unknown>;
 
     expect(out.goal).toBe("Let returning shoppers reuse a saved address.");
     expect(out.status).toBe("completed");
@@ -476,7 +476,7 @@ describe("build.get_run behaviour (fake client)", () => {
       supabase,
       userId: "u1",
       workspaceId: "w1",
-    } as never)) as Record<string, any>;
+    } as never)) as Record<string, unknown>;
     expect(out.current_agent_slug).toBeNull();
     expect(out.latest_checkpoint).toBeNull();
     expect(out.evidence_count).toBe(0);
@@ -493,7 +493,7 @@ describe("build.get_run behaviour (fake client)", () => {
       supabase,
       userId: "u1",
       workspaceId: "w1",
-    } as never)) as Record<string, any>;
+    } as never)) as Record<string, unknown>;
     expect(out.lineage_read).toBe("failed");
     expect(out.linked_specs).toEqual([]);
   });

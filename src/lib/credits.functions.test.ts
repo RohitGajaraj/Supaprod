@@ -16,6 +16,9 @@ import {
   type CreditAttribution,
 } from "./credits.functions";
 
+/** What a mocked read answers: the data and the error, both unknown until a test says. */
+type MockResult = { data: unknown; error: unknown };
+
 // --- Pure function tests (no mocking required) ---
 
 describe("credits.functions – pure math", () => {
@@ -443,28 +446,32 @@ describe("credits.functions – pure math", () => {
  * Mock builder for credits.functions async test suite.
  * Implements chainable Supabase query API matching the test pattern from drift.functions.test.ts.
  */
-function createMockSupabase(config: { ledgerRows?: any[]; error?: any }): SupabaseClient {
+function createMockSupabase(config: { ledgerRows?: unknown[]; error?: unknown }): SupabaseClient {
   const err = config.error ?? null;
 
-  function terminal(result: { data: any; error: any }): any {
+  function terminal(result: MockResult): unknown {
     return {
-      then: (resolve: any, reject?: any) => Promise.resolve(result).then(resolve, reject),
+      then: (resolve: (value: MockResult) => unknown, reject?: (reason: unknown) => unknown) =>
+        Promise.resolve(result).then(resolve, reject),
     };
   }
 
   return {
     from: (table: string) => ({
       select: (..._args: string[]) => ({
-        eq: (col: string, val: any) => ({
-          eq: (col2: string, val2: any) => {
+        eq: (col: string, val: unknown) => ({
+          eq: (col2: string, val2: unknown) => {
             if (table === "credit_ledger" && col === "account_id" && col2 === "reason") {
               // For computeCreditAttribution: eq("account_id", accountId).eq("reason", "debit")
               return {
-                gte: (_col3: string, _val3: any) => {
+                gte: (_col3: string, _val3: unknown) => {
                   // optionally chained .gte("created_at", sinceIso)
                   return terminal({ data: config.ledgerRows ?? [], error: err });
                 },
-                then: (resolve: any, reject?: any) =>
+                then: (
+                  resolve: (value: MockResult) => unknown,
+                  reject?: (reason: unknown) => unknown,
+                ) =>
                   Promise.resolve({ data: config.ledgerRows ?? [], error: err }).then(
                     resolve,
                     reject,
@@ -473,19 +480,22 @@ function createMockSupabase(config: { ledgerRows?: any[]; error?: any }): Supaba
             }
             return {
               gte: () => terminal({ data: config.ledgerRows ?? [], error: err }),
-              then: (resolve: any, reject?: any) =>
+              then: (
+                resolve: (value: MockResult) => unknown,
+                reject?: (reason: unknown) => unknown,
+              ) =>
                 Promise.resolve({ data: config.ledgerRows ?? [], error: err }).then(
                   resolve,
                   reject,
                 ),
             };
           },
-          then: (resolve: any, reject?: any) =>
+          then: (resolve: (value: MockResult) => unknown, reject?: (reason: unknown) => unknown) =>
             Promise.resolve({ data: config.ledgerRows ?? [], error: err }).then(resolve, reject),
         }),
       }),
     }),
-  } as any as SupabaseClient;
+  } as unknown as SupabaseClient;
 }
 
 // --- Async function tests with mocking ---
@@ -564,7 +574,7 @@ describe("credits.functions – async with mocking", () => {
 
     it("should never throw (graceful error handling)", async () => {
       const supabase = createMockSupabase({
-        ledgerRows: null as any, // force a failure
+        ledgerRows: null as unknown as never, // force a failure
         error: new Error("Network timeout"),
       });
 
