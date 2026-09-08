@@ -1139,3 +1139,105 @@ At 12:16 IST every anonymous read of the thirteen `CACHEABLE_MARKETING_ROUTES` (
 
 ### Lane 1 · addendum 13:08 IST 09-08 · after the outage
 Deployment 9db5733f (478eda350) served from 12:59: all marketing routes 200, two anonymous reads of `/` read `x-supaprod-cache: BYPASS` (Lane 3's stand-down, `000d692cf`). Lovable's sync needed an empty-commit nudge (`59cfd5378`) after nine minutes on one sha. Live on Prism: a run held on `needs-a-waived-station` now draws Decide (`492b42d1e`) and the hold card under it offers "Put Plan back on the route" beside "Stop spending on this" (Lane 2, `1d092b071`); not pressed, the track is the founder's. Landed after: `378522d27` the hero renders once, after the queue read and an in-flight runs read settle (it said "5 runs have stopped." for a beat before "20 design gates and 33 other calls"); Choice.tsx corrected in Meridian (label column `flex-1 min-w-0`, fact `max-w-[40%]`, new `sub` prop) over Lane 2's `shrink-0` label, with the ask that TheCallIsYours pass its sentence as `sub`. Main carries one red from Lane 2's `1d092b071`: `criterion-two-is-a-query-now.test.ts:130` pins four `run.mutate("press")` sites and counts five; theirs to re-pin. Undeployed on main: `6101b8095` placeholder subject, `378522d27` hero timing, the Choice fix, Lane 3's frame-src.
+
+## Lane 3 · 13:40 IST 09-08 · the underneath: what closed, what is open, what the next session must know
+
+**Main at 4659d788a and after; every landing gated (tsc 0, full suite 0 fail, build 0,
+`check:unreachable` holding, every touched file lint clean) and pushed; Lovable publishes on
+Lane 1's press. Three lanes ran all day and talked over SendMessage; this entry is Lane 3's.**
+
+### What closed (the previous A3 handoff, reconciled first)
+
+- **P-146 DONE.** `bun run check:unreachable` exits 0 for the first time since 2026-08-31:
+  server functions 139 → 127 of 630, components 26 → 26 of 462, instrument v3, re-frozen with
+  names. Four read-only triage agents read every export the gate named; 24 server functions
+  and 10 components were deleted, each named in its commit (`d723807e3` `7980285de`
+  `dbfbf3048` `e8e75a38d` `1aa96c13d`); the ones kept on the list are kept BY NAME with the
+  gap each stands for, in the baseline's `_lastBanked` and in P-146's Report in the queue.
+  Six of those gaps are ledger rows now (F-204 to F-209).
+- **P-152 two passes** (`aef1a1c52` prettier on 17 files proven by identical minified output;
+  `6ca467cc8` every other rule in Lane 3's files at the cause, two of them real bugs;
+  `4659d788a` the explicit anys in production code). Files under `src/` with an error
+  75 → 41; what remains is prettier in files Lane 1 and Lane 2 hold, one line in
+  `start/ExampleJobs.tsx` (Lane 1's), 249 `no-explicit-any` in 20 test mocks, and the nine
+  Stripe anys whose file argues for them (their own pass, not a drive-by).
+- **P-155 DONE and read live** on `/settings?section=ai`: *Supaprod's own keys cover Qwen.
+  Agents run on qwen/qwen-plus unless a run names another model.* That sentence is also a
+  fact for the founder: production's only configured platform key is Qwen.
+- **P-151** stays LIVE PRESS PENDING (the press on 2fdf93b6 is a production state change the
+  founder or Lane 1 makes). **P-130b** (the seventy clocks) not started: most of the 70 files
+  are in Lane 1's and Lane 2's trees and both were rewriting them all day. **P-147** the
+  server half is built (below); the panel is Lane 2's.
+- The handoff's other open items: the doc orphans under `docs/screenshots/` no longer fail
+  `docs:check` (clean today); the two "identical sentence 400px apart" and TrackChain items
+  were closed by P-01/P-146 before this session.
+
+### What was built for the other lanes (their asks, in the order they came)
+
+- **Live work, one key, pushed** (`f38743fc1`): `listRunningNow` carries `now: { tool, verb,
+  object, at } | null` per seat (`nowPerTrace`, the anchors' two-row rule); the key is
+  `runningNowKey(workspaceId)` in `query-keys.ts`; `useRunningNowPush` invalidates it on any
+  `agent_runs` change in the workspace. Lane 1's home strip and the header's line read it;
+  Lane 2's run screen filters it by `trackId`.
+- **A self-check says one thing to the person and another to the seat** (`4b9c35aee`): `why`
+  and `instruction` are two fields end to end; legacy rows split on read by
+  `splitInstruction` (`self-check-words.ts`); read live on 2fdf93b6, "The checks were never
+  run on this change." with no imperative under it.
+- **Deployments know whether they can be framed** (`1d7c2d1d7`): migration `20260909100100`
+  (`deployments.embeddable`, `embeddable_checked_at`, applied and ledgered),
+  `can-it-be-framed.ts`, `checkDeploymentEmbeddable`, stamped by promote, the person's retry
+  and the CI tick. Then the real cause of the blank frame turned out to be OUR CSP
+  (`frame-src` named only Stripe): now `frame-src 'self' https:` (`7d629ddb4`).
+- **A failed activity read is a failed read** (`414bbf565`): `getTrackActivity` throws
+  instead of answering `turns: []`; `useTrackActivityPush(trackId)` invalidates the
+  transcript on the track's own rows, focus or not (Lane 2's unfocused-tab walk).
+- **A trace names its run** (`2d408fd48`, `397df9ed2`): `getTrace.run` with the seat's own
+  station. **P-147's read** `listReleasesAwaitingVerdict` in `outcome.functions.ts`
+  (`0bd2e6acd`), one composer with the run page. **`Turn.traceId`** was Lane 2's, kept.
+- **Deletions on the other lanes' word:** ObsidianOnboarding and ArrivalButterfly (Lane 1;
+  four session keys retired from the storage policy), RunBoard with step-progress and
+  run-parts, ProductBindingsSection and WorkspaceBindingsSection (Lane 2), IconBoard (Lane 1).
+
+### The outage, and what the Worker learned
+
+12:16 to 12:33 IST every route in `CACHEABLE_MARKETING_ROUTES` answered an unhandled 500:
+Lovable loads the Worker dynamically and `caches.default.match` throws there. Lane 1 landed
+the try (`280bb7f80`, F-203); Lane 3 landed the stand-down (`000d692cf`): the first refusal
+per isolate is reported once and the store is not asked again, `x-supaprod-cache: BYPASS`
+is the healthy reading (confirmed on deployment 9db5733f, two anonymous reads). Whether the
+Worker-held half of P-135 should exist at all on this runtime is the founder's question.
+
+### What is open, for whoever is next
+
+1. **F-205**: a person's Stop leaves the run's pending `agent_approvals` open (the only code
+   that cancelled them, `cancelMission`, had no door and is deleted). Fix on `stopTrack`'s
+   path or the driver's stop branch, with a guard.
+2. **F-206**: no prototype can be made public (`togglePrototypeShare` is the only writer of
+   `is_public` and has no door; the pane's "Open full size" and `/p/$slug` gate on it).
+3. **F-207**: the spine driver dispatches Build without the spec gate or the design gate
+   (`dispatchBuilderMission` holds both and has no caller).
+4. **F-208**: a held file claim on a run that never reached a terminal status has no manual
+   exit.
+5. **P-152** next pass: the 20 test-mock files (typed fake Supabase builders), then the
+   Stripe two. **P-130b** when the surfaces settle. **P-151** press.
+6. The unreachable list's named keepers (baseline `_lastBanked`): `releaseBuilderClaim`,
+   `dispatchBuilderMission`, `recordTestStationVerdict`, the prototype pair, the
+   design-scaffold readers, `getBriefAlignment`, `revertRoadmapItemToPrevious`, the
+   pushed-insights pair (the derive tick writes cards every two hours that nothing reads),
+   `getFocusNext`, `submitFeedback`, Lane 2's five studio writers, and
+   `listReleasesAwaitingVerdict` until Lane 2's Outcomes panel imports it.
+
+### What the next session must know first
+
+- **Two lanes will be editing beside you.** ListAgents, then message both with the files you
+  take. Founder rules relayed today: at most two subagents at a time; one full suite per
+  machine, announced; commit explicit paths; rebase before every push (main moved under a push
+  eleven times today; `git push origin HEAD:main` in a fetch-rebase-push loop is the shape).
+- **Never prettier `src/integrations/supabase/types.ts`**: it is generated, and a rewrite
+  makes the schema guard find zero tables. Add columns by hand, six lines.
+- **A rebase conflicts on the two baselines** (`meridian-ratchet.baseline.json`,
+  `e2e/unreachable-baseline.json`) and the two appended docs. Re-freeze the baselines from
+  the tree (`bun run design:ratchet`; the unreachable gate prints its own block); merge the
+  docs by keeping both sides.
+- **The gate that pushed red once today** was mine: a chain that pushed without reading the
+  suite's count. Gate on `fails: 0` before the push, as the last commits here do.

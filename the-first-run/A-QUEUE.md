@@ -11025,7 +11025,7 @@ stop does not cancel the run's pending `agent_approvals` (F-205).
 for the first time since 2026-08-31; every deletion lands with tsc 0, the full suite green and
 `bun run build` 0. Not wired into a hook or CI (out of scope, as written).
 
-### P-147 · Outcomes says why the first release has no verdict · Lane: **A3** (after P-130b, and after A2's P-144 lands its composer) · Status: READY · Moves: 1, 3
+### P-147 · Outcomes says why the first release has no verdict · Lane: **Lane 3 (read) / Lane 2 (panel)** · Status: READ LANDED (Lane 3, 2026-09-08, 0bd2e6acd: `listReleasesAwaitingVerdict` in outcome.functions.ts, one composer with the run page); the settle panel's rows and two presses are Lane 2's, in progress · Moves: 1, 3
 
 **Why.** Outcomes is the door the landing page's fourth verb opens (*grades it. guides the next
 call.*). Today, with one release shipped and graded on nothing, its settle panel says *Nothing has
@@ -11209,7 +11209,7 @@ guard says so.
 
 **DoD.** Pushed; the three numbers.
 
-### P-152 · Lint is green under src, one rule at a time · Lane: **A3 / Lane 3** · Status: IN PROGRESS (Lane 3, 2026-09-08: files under src with an error 75 → 43; prettier 248 → 62 errors, all in files Lane 1 and Lane 2 hold; every non-prettier rule but no-explicit-any at zero in Lane 3's files; 249 no-explicit-any remain, 26 files, mostly test mocks) · Moves: 5
+### P-152 · Lint is green under src, one rule at a time · Lane: **A3 / Lane 3** · Status: IN PROGRESS (Lane 3, 2026-09-08, three passes: files under src with an error 75 → 41; every rule but no-explicit-any at zero in Lane 3's production files; 249 no-explicit-any left in 20 test mocks plus the nine Stripe anys whose file argues for them; the prettier remainder sits in files Lane 1 and Lane 2 hold) · Moves: 5
 
 **Why (A1, 21:09 IST 09-04).** `bun run lint` on 252385cc6: 752 problems, 578 errors, 174 warnings,
 82 files under `src/` carrying an error, most of them prettier wraps and `require()` imports in
@@ -11297,7 +11297,7 @@ with a live theme. Full suite on the tip, tsc 0, build 0.
 
 **DoD.** Pushed; the three numbers.
 
-### P-155 · The BYO-keys settings page never shows which platform providers are configured · Lane: **A3 / Lane 3** · Status: DONE in code (Lane 3, 2026-09-08, 7bf2e2ea3; live read on /settings after the next publish serves) · Moves: 1
+### P-155 · The BYO-keys settings page never shows which platform providers are configured · Lane: **A3 / Lane 3** · Status: DONE (Lane 3, 2026-09-08, 7bf2e2ea3; read live on /settings?section=ai at 13:0x IST: "Supaprod's own keys cover Qwen. Agents run on qwen/qwen-plus unless a run names another model.") · Moves: 1
 
 **Why.** `byokeys.functions.ts`'s `listPlatformProviders` (platform-level provider config plus
 the recommended model) has zero importers; its own comment says "used by the model picker", and
