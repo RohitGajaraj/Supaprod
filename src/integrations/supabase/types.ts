@@ -9982,6 +9982,10 @@ export type Database = {
           workspace_paused: boolean
         }[]
       }
+      approvals_queue_counts: {
+        Args: { p_exclude?: string }
+        Returns: { workspace_id: string; name: string; waiting: number }[]
+      }
       current_user_default_workspace: { Args: never; Returns: string }
       data_retention_enabled: { Args: never; Returns: boolean }
       debit_account_credits: {

@@ -98,17 +98,19 @@ import { cleanTitle } from "@/components/plan/format";
 
 /** The ten gate families this queue federates. Used to route the decide
  *  call to the right existing resolver - never to brand anything in the UI. */
-export type ApprovalKind =
-  | "tool_call"
-  | "decision"
-  | "memory_candidate"
-  | "house_rule"
-  | "trust_graduation"
-  | "spec"
-  | "opportunity"
-  | "assumption_challenge"
-  | "design_gate"
-  | "playbook_proposal";
+export const APPROVAL_KINDS = [
+  "tool_call",
+  "decision",
+  "memory_candidate",
+  "house_rule",
+  "trust_graduation",
+  "spec",
+  "opportunity",
+  "assumption_challenge",
+  "design_gate",
+  "playbook_proposal",
+] as const;
+export type ApprovalKind = (typeof APPROVAL_KINDS)[number];
 
 /** The filter row's buckets (architecture §5 / the taste doc's restraint
  *  law: text tabs, not a facet explosion). "spend" exists as a bucket so the
@@ -1208,6 +1210,50 @@ export async function readApprovalsQueue(
     };
   }
 }
+
+/** One row per workspace the caller belongs to, for the Inbox's "N waiting in X" line. */
+export type WorkspaceWaiting = { workspaceId: string; name: string; waiting: number };
+
+/**
+ * ── A NUMBER AND A NAME PER WORKSPACE, IN ONE ROUND TRIP ────────────────────
+ *
+ * The Inbox draws "53 waiting in Helio Labs, 6 in A1 delete probe" for the
+ * workspaces the person is NOT looking at. It used to earn that line by
+ * running the whole queue above once per other workspace, fired in the same
+ * tick as the page's own read (2026-09-08, Lane 2: six full reads for six
+ * numbers, on the page that was already the slowest in the product).
+ *
+ * `approvals_queue_counts` (migration 20260909100500) counts the same nine
+ * workspace-bound families with the same predicates, drops the same snoozes
+ * and caps each family where its read is capped, under the caller's own RLS
+ * (SECURITY INVOKER), so the number is the one the headline would print if
+ * the person switched there. Checked on the day against Helio Labs: 53 both
+ * ways. Trust graduation proposals belong to no workspace and are counted in
+ * none; the queue shows them under every workspace, and a line about ANOTHER
+ * workspace must not repeat them per row.
+ *
+ * Zero rows are returned, not omitted: the caller decides what a quiet
+ * workspace is worth saying, and a count that vanished is not the same
+ * signal as a count of nothing.
+ */
+export const countApprovalsQueueByWorkspace = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { excludeWorkspaceId?: string } | undefined) =>
+    z.object({ excludeWorkspaceId: z.string().uuid().optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ context, data }): Promise<{ workspaces: WorkspaceWaiting[] }> => {
+    const { data: rows, error } = await context.supabase.rpc("approvals_queue_counts", {
+      p_exclude: data.excludeWorkspaceId,
+    });
+    if (error) throw new Error(error.message);
+    return {
+      workspaces: (rows ?? []).map((r) => ({
+        workspaceId: r.workspace_id,
+        name: r.name,
+        waiting: r.waiting,
+      })),
+    };
+  });
 
 // ---------------------------------------------------------------------------
 // WHAT A STATUS WRITE MEANS FOR A SPEC, STATE BY STATE (2026-08-06).
