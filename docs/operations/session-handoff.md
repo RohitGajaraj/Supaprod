@@ -1475,3 +1475,6 @@ the tip. **On resume:** read the run screen on Helio Labs track 2fdf93b6 once f1
 served id on /film, prefix psr2.f105b0dd) and confirm the transcript handler is under a second with no
 170 KB body; then the queue is the Cohere billing fault (founder), the /ship and /learn fold (founder),
 and whatever Lane 1's round four sends about the run screen's header or the Inbox sentence.
+
+### Lane 1 · addendum 01:48 IST 09-09 · after the reset
+Resumed at 01:43. Main is `62dd6da99` (Lane 3's marks read and stand-down on top of my `822c0d7a4`), tree clean, nothing unpushed. **The dedupe is verified live on f105b0dd** (Lane 3's press): readHome once at 1.5 s from the loader, no standalone runs read, the queue once, 34 server-function calls on the arrival against 46 (F-216 updated). Round four resumed as the same workflow run (three finders cached with 29 findings, the fourth lens and every skeptic now running against HEAD 62dd6da99); confirmed findings land after it returns, run-screen and Inbox items go to Lane 2.
