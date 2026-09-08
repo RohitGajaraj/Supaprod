@@ -518,7 +518,18 @@ export function withSecurityHeaders(response: Response, nonce?: string): Respons
     // which kills checkout; Stripe Elements/metrics also render via js.stripe.com
     // iframes (frame-src, which otherwise falls back to default-src 'self').
     // wss: keeps Supabase realtime channels working (https: does not cover them).
-    const csp = `script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss:; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; default-src 'self'`;
+    //
+    // frame-src https: (2026-09-08). The run screen frames the deployment a
+    // run shipped (AppFrame in the artifact pane, P-22), and the shipped run's
+    // production URL drew a blank white rectangle: the host allowed it
+    // (deployments.embeddable read true) and THIS policy refused it, because
+    // frame-src named only Stripe. The pane frames only URLs the record holds
+    // for the workspace's own deployments, whose hosts are whatever the
+    // person's provider chose (deno.net today, anything tomorrow), so the
+    // directive is the scheme, not a host list. frame-ancestors 'none' still
+    // keeps supaprod.ai itself out of anyone's frame; script-src and
+    // connect-src are unchanged.
+    const csp = `script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss:; frame-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; default-src 'self'`;
     headers.set("Content-Security-Policy", csp);
 
     // X-Frame-Options: prevent clickjacking (deny framing from any origin)

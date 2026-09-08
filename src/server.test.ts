@@ -194,6 +194,16 @@ describe("withSecurityHeaders", () => {
     expect(csp).toContain("https://unpkg.com");
   });
 
+  test("CSP lets the run screen frame the deployment a run shipped, on any https host", () => {
+    // 2026-09-08: the shipped run's production URL drew a blank frame because
+    // frame-src named only Stripe while the host itself allowed framing.
+    const csp =
+      withSecurityHeaders(new Response("test")).headers.get("Content-Security-Policy") || "";
+    expect(csp).toMatch(/frame-src 'self' https:;/);
+    // And supaprod.ai itself is still nobody's frame.
+    expect(csp).toContain("frame-ancestors 'none'");
+  });
+
   test("CSP restricts frame ancestors to prevent clickjacking", () => {
     const response = new Response("test");
     const result = withSecurityHeaders(response);
