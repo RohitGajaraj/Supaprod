@@ -94,13 +94,16 @@ export function parseDesignMd(markdown: string): DesignMemoryDocument {
   };
 
   // Simple regex-based extraction; a real parser would use a markdown AST.
+  // A section runs to the next `## ` heading or to the end of the input,
+  // written `(?![\s\S])` because JavaScript has no `\Z`: the previous `\Z` was a
+  // literal Z, so any section mentioning a Zoom control ended there.
   const titleMatch = markdown.match(/^#\s+(.+?)$/m);
   if (titleMatch) {
     doc.title = titleMatch[1];
   }
 
   // Extract principles section (## Principles)
-  const principlesMatch = markdown.match(/^##\s+Principles\s*\n([\s\S]*?)(?=^##\s+|\Z)/m);
+  const principlesMatch = markdown.match(/^##\s+Principles\s*\n([\s\S]*?)(?=^##\s+|(?![\s\S]))/m);
   if (principlesMatch) {
     const principlesText = principlesMatch[1];
     const items = principlesText.split(/^###\s+/m).slice(1);
@@ -121,7 +124,7 @@ export function parseDesignMd(markdown: string): DesignMemoryDocument {
   }
 
   // Extract components section (## Components)
-  const componentsMatch = markdown.match(/^##\s+Components\s*\n([\s\S]*?)(?=^##\s+|\Z)/m);
+  const componentsMatch = markdown.match(/^##\s+Components\s*\n([\s\S]*?)(?=^##\s+|(?![\s\S]))/m);
   if (componentsMatch) {
     const componentsText = componentsMatch[1];
     const items = componentsText.split(/^\|\s+/m).slice(1);
@@ -140,7 +143,7 @@ export function parseDesignMd(markdown: string): DesignMemoryDocument {
   }
 
   // Extract tokens section (## Design Tokens)
-  const tokensMatch = markdown.match(/^##\s+Design Tokens\s*\n([\s\S]*?)(?=^##\s+|\Z)/m);
+  const tokensMatch = markdown.match(/^##\s+Design Tokens\s*\n([\s\S]*?)(?=^##\s+|(?![\s\S]))/m);
   if (tokensMatch) {
     const tokensText = tokensMatch[1];
     const lines = tokensText.split("\n");

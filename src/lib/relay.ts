@@ -77,10 +77,11 @@ export function mapRelayStatus(s: string | null | undefined): RelayStatus {
     case "completed_with_failures":
     // The singular, written by `runAgent` on the happy path
     // (agents.functions.ts). 2 rows in production, and it was falling to `idle`
-    // with the other 618.
+    // with the other 618. Falls through.
     case "complete":
     // Zero rows in production write `done`. It stays: the defect was the
     // absence of the two above, not its presence, and it costs nothing.
+    // Falls through.
     case "done":
       return "done";
     case "failed":

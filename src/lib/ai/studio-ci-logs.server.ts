@@ -42,9 +42,15 @@ function ghHeaders(token: string): Record<string, string> {
   };
 }
 
+/**
+ * An SGR colour sequence: ESC `[` digits and semicolons `m`. Built from the
+ * code point so the file carries no raw control byte.
+ */
+const ANSI_SGR = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g");
+
 /** Strip ANSI escapes and timestamps so log tails read clean in a prompt. */
 export function cleanLogTail(raw: string, cap: number = PER_CHECK_LOG_TAIL): string {
-  const noAnsi = raw.replace(/\[[0-9;]*m/g, "");
+  const noAnsi = raw.replace(ANSI_SGR, "");
   const noStamps = noAnsi.replace(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z\s?/gm, "");
   const trimmed = noStamps.trimEnd();
   return trimmed.length <= cap ? trimmed : trimmed.slice(trimmed.length - cap);

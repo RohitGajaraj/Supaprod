@@ -49,8 +49,15 @@ import { join } from "node:path";
 
 const ROOT = process.cwd();
 
-/** Em dash, en dash, and the invisible / lookalike set the convention bans. */
-const BANNED = /[—–​‌‍⁠﻿­‎‏�]/;
+/**
+ * Em dash, en dash, and the invisible / lookalike set the convention bans, by
+ * code point so this file carries none of them itself: U+2014 em dash, U+2013
+ * en dash, U+200B zero-width space, U+200C non-joiner, U+2060 word joiner,
+ * U+FEFF byte-order mark, U+00AD soft hyphen, U+200E and U+200F direction
+ * marks, U+FFFD replacement character, and U+200D zero-width joiner (last, so
+ * the class is read as eleven characters and not as a joined sequence).
+ */
+const BANNED = /[\u2014\u2013\u200B\u200C\u2060\uFEFF\u00AD\u200E\u200F\uFFFD\u200D]/;
 
 /** Where a person reads the string directly. Nothing here, ever. */
 const RENDERED = ["src/components/", "src/routes/", "src/lib/presence/"];

@@ -76,7 +76,7 @@ export function classifyRunOutcome(status: string | null | undefined): RunOutcom
      * external delegate job that finished was counted as still running.
      * `foldDelegateResult` in `delegate/poll.server.ts` writes one value to both
      * `mission_steps.status` and `agent_runs.status`, and on the happy path that
-     * value is the literal "done".
+     * value is the literal "done". Falls through.
      */
     case "done":
       return "succeeded";
