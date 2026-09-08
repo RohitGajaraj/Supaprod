@@ -400,6 +400,7 @@ function TrackPage() {
         track: track
           ? { station: track.station, status: track.status, holdReason: track.holdReason }
           : null,
+        route: track?.route.path ?? null,
         live: crewLive,
         liveSince,
         horizon,

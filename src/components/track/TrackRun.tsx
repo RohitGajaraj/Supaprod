@@ -1021,7 +1021,10 @@ export function TrackRunLeft({
           route: { path: track.route.path },
         }
       : null,
-    loading: trackQ.isLoading,
+    /* The scheduled register reads the release and the horizon off the
+       artifacts; until they arrive the card says it is reading rather than
+       "The change is out" about a run it has not looked at. */
+    loading: trackQ.isLoading || (Boolean(track) && artifactsQ.isLoading),
     feedDead: trackQ.isError,
     live: workingNow,
     /* When the presences below name the seat and its verb, the headline says

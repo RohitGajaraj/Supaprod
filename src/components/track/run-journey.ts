@@ -128,6 +128,8 @@ export function journeyStations(input: {
     status: "open" | "done" | "abandoned";
     holdReason: string | null;
   } | null;
+  /** The route's own path, for the road before the artifacts are read. */
+  route?: readonly AgentStation[] | null;
   /** A seat is live on the track right now. */
   live: boolean;
   /** ISO of the newest live turn, for the working stop's clock. */
@@ -137,7 +139,12 @@ export function journeyStations(input: {
   nowMs: number;
 }): JourneyStation[] {
   const stops = input.stops ?? [];
-  if (stops.length === 0) return [];
+  /* The road draws the moment the track is read, from its own route, so the
+     header does not jump when the artifacts arrive a beat later; every stop
+     is pending until the stops say otherwise. */
+  if (stops.length === 0) {
+    return (input.route ?? []).map((key) => ({ key, state: "pending" as const }));
+  }
   const due = formatDeadlineDate(input.horizon ? Date.parse(input.horizon) : null);
   return stops.map((stop) => {
     let state: JourneyState;
