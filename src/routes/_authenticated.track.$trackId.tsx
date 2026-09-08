@@ -13,6 +13,9 @@ import { TrackRunLeft, TrackPaneRight, useCopyRunSummary } from "@/components/tr
 import { Journey } from "@/components/meridian/Journey";
 import { MoreMenu, MoreItem } from "@/components/meridian/MoreMenu";
 import { journeyStations, newestArtifactAt } from "@/components/track/run-journey";
+import { withPresences } from "@/components/start/journey-of-a-run";
+import { presenceColour } from "@/components/meridian/AgentPresence";
+import { useLiveAgents } from "@/hooks/use-live-agents";
 import { getTrackArtifacts, getTrackActivity } from "@/lib/spine/track.functions";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import { RunFooter } from "@/components/track/RunFooter";
@@ -393,21 +396,39 @@ function TrackPage() {
     return live.length > 0 ? live[live.length - 1]!.at : null;
   }, [activityQ.data]);
   const horizon = horizonFromStops(artifactsQ.data?.stops);
+  /*
+   * THE ROAD CARRIES WHO IS WORKING WHERE, the same way the home's does
+   * (Lane 1, b43d45f4d): the seats from the running-now key, each in the
+   * colour AgentPresence gives it everywhere else. A seat with no station of
+   * its own works where the track stands.
+   */
+  const liveAgents = useLiveAgents();
+  const seatsHere = React.useMemo(
+    () =>
+      liveAgents.working
+        .filter((a) => a.trackId === trackId)
+        .map((a) => ({ seat: a.name, station: a.station ?? track?.station ?? null })),
+    [liveAgents.working, trackId, track?.station],
+  );
   const stations = React.useMemo(
     () =>
-      journeyStations({
-        stops: artifactsQ.data?.stops,
-        track: track
-          ? { station: track.station, status: track.status, holdReason: track.holdReason }
-          : null,
-        route: track?.route.path ?? null,
-        live: crewLive,
-        liveSince,
-        horizon,
-        gradableBySource: null,
-        nowMs: Date.now(),
-      }),
-    [artifactsQ.data?.stops, track, crewLive, liveSince, horizon],
+      withPresences(
+        journeyStations({
+          stops: artifactsQ.data?.stops,
+          track: track
+            ? { station: track.station, status: track.status, holdReason: track.holdReason }
+            : null,
+          route: track?.route.path ?? null,
+          live: crewLive,
+          liveSince,
+          horizon,
+          gradableBySource: null,
+          nowMs: Date.now(),
+        }),
+        seatsHere,
+        presenceColour,
+      ),
+    [artifactsQ.data?.stops, track, crewLive, liveSince, horizon, seatsHere],
   );
   const openedStation = React.useMemo<AgentStation | null>(() => {
     if (!artifact) return null;
