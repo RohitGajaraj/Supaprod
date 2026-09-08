@@ -839,7 +839,7 @@ function ApprovalsSurface() {
      "Ready for you" over "needs you" is also the more honest verb: nothing
      here has happened yet, so nothing is owed. */
   const headline = queue.isLoading
-    ? "Approvals"
+    ? "Inbox"
     : /*
        * A FAILED READ IS NOT AN EMPTY QUEUE, and this heading was the one place
        * on the page that had not learned it. `queue.isError` was never consulted
@@ -857,7 +857,7 @@ function ApprovalsSurface() {
        * imply one. The card underneath carries the explanation.
        */
       queue.isError
-      ? "Approvals"
+      ? "Inbox"
       : n === 0
         ? /*
            * ZERO IS THE ONE COUNT A CAP CANNOT SOFTEN, and it is also the one
@@ -868,7 +868,7 @@ function ApprovalsSurface() {
            * failure case alone.
            */
           floor
-          ? "Approvals"
+          ? "Inbox"
           : "Nothing is ready for you."
         : /*
            * ── A SHAPE, NOT A TOTAL (P-56) ─────────────────────────────────

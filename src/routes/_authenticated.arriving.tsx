@@ -120,7 +120,7 @@ export const Route = createFileRoute("/_authenticated/arriving")({
   head: () => ({ meta: [{ title: "Findings · Supaprod" }] }),
   errorComponent: () => (
     <Surface>
-      <PageHeading title="Arriving did not load." sub="Nothing already captured is lost." />
+      <PageHeading title="Findings did not load." sub="Nothing already captured is lost." />
       {/* NothingHere rather than NothingYet, which is the bordered half of that
           pair. Meridian's rule: the bare one is for a sentence sitting UNDER a
           region heading that already frames it, and the bordered one for where

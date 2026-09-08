@@ -1630,7 +1630,11 @@ function MemoryPage() {
          * every fact they did, one level down (`level={2}`), so this is
          * additive rather than a rewrite of what the page reports.
          */}
-        <PageHeading title="Outcomes" sub="Every decision, what it expected, and what happened." />
+        <PageHeading
+          station="learn"
+          title="Outcomes"
+          sub="Every decision, what it expected, and what happened."
+        />
         <RecordHead title={headline} sub={sub} level={2} />
 
         {/* P-63: a genuinely empty record used to stop at the headline above

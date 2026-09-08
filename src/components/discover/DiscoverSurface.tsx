@@ -2597,7 +2597,7 @@ export function DiscoverSurface({
        * down (`level={2}`), so this is additive rather than a rewrite of
        * what the page reports.
        */}
-      <PageHeading title="Arriving" sub="What came in, and what it is becoming." />
+      <PageHeading station="sense" title="Findings" sub="What came in, and what it is becoming." />
       <PageHeading
         level={2}
         title={headline}

@@ -159,7 +159,7 @@ export const Route = createFileRoute("/_authenticated/sync")({
           in this product states for exactly this. */}
       <div className="flex flex-col gap-mrd-7">
         <PageHeading
-          title="Sync did not open."
+          title="Sources did not open."
           sub={(error as Error)?.message ?? "The read failed."}
         />
         <Actions>
@@ -368,7 +368,7 @@ function SyncPage() {
           surface states the gap once: `gap-mrd-7`, 40px, the step Brain, Crew,
           Decide, Design, Learn, Plan and Ship all took for the same job. */}
       <div className="flex flex-col gap-mrd-7">
-        <PageHeading title="Sync" sub={head} />
+        <PageHeading station="sense" title="Sources" sub={head} />
 
         {/* The decision, first and biggest, because it is the only thing on this
           surface that is waiting on a person. */}
