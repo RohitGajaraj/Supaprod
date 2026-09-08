@@ -47,7 +47,7 @@
  * Pure and dependency-free; the server function does the reads and hands the
  * rows in, the same split route.ts, driver.ts, attach.ts and chain.ts use.
  */
-import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
+import { AGENT_STATIONS, SPECIALIST_CATALOG, type AgentStation } from "@/lib/agent-vocabulary";
 import { KIND_WORD } from "@/lib/spine/attach";
 
 /** A run the driver started for this track. */
@@ -237,9 +237,16 @@ export function buildActivity(input: {
     // The station is taken from what this turn FILED, never from where the
     // track happens to be standing now: a track moves on, and a turn that ran
     // at Plan must keep saying Plan when it is read back an hour later.
-    const station = (
-      made[0]?.kind ? stationOfMember(members, made[0].id) : null
-    ) as AgentStation | null;
+    /*
+     * ── A TURN THAT FILED NOTHING STILL RAN SOMEWHERE (2026-09-08) ────────
+     * Walked live: Discover's three "filed nothing" turns sat under the Decide
+     * header, because the move row is stamped before the seats of the station
+     * it left, and a turn with no member had no station of its own. The seat's
+     * own station is fixed in the catalog, so it is the honest fallback, and it
+     * is still not "where the track stands now".
+     */
+    const station = ((made[0]?.kind ? stationOfMember(members, made[0].id) : null) ??
+      stationOfSeat(r.agent_slug)) as AgentStation | null;
 
     return {
       runId: r.id,
@@ -293,6 +300,11 @@ function measured(v: number | null | undefined): number | null {
  * already carries THAT the turn stopped. This carries WHY, and inventing a why
  * from a status word is the thing being avoided.
  */
+function stationOfSeat(slug: string | null | undefined): AgentStation | null {
+  if (!slug) return null;
+  return SPECIALIST_CATALOG.find((e) => e.slug === slug)?.station ?? null;
+}
+
 function stopLine(r: RunRow): string | null {
   const raw = (r.halted_reason ?? "").trim() || (r.failure_kind ?? "").trim();
   if (!raw) return null;
