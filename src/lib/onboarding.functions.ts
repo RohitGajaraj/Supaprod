@@ -5,6 +5,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { getTrackSeed, type OnboardingTrack } from "@/lib/onboarding/track-seeds";
 import { callModel } from "@/lib/ai/runtime.server";
+import { resolveBestAgentModel } from "@/lib/ai/platform-keys.server";
+import {
+  parseStarterRuns,
+  readStoredStarterRuns,
+  STARTER_RUNS_SYSTEM,
+  starterRunsPrompt,
+  type StarterRun,
+} from "@/lib/starter-runs";
 import { ONBOARDING_MILESTONES, type ActivationMoment } from "@/lib/activation.functions";
 
 /**
@@ -357,7 +365,10 @@ export type { OnboardingTrack };
  */
 export const completeOnboarding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((i: unknown) =>
+    z.object({ productId: z.string().uuid().optional() }).parse(i ?? {}),
+  )
+  .handler(async ({ context, data: input }) => {
     const { supabase, userId } = context;
 
     const { error, data } = await supabase
@@ -381,8 +392,153 @@ export const completeOnboarding = createServerFn({ method: "POST" })
       path: "complete_onboarding",
     });
 
+    /*
+     * THE MACHINE'S FIRST VISIBLE WORK. The product's three starter runs are
+     * generated here, once, so the home a person lands on next has them (or
+     * shows the wait as work in progress and reads them on its next poll).
+     * Bounded, because onboarding must finish whether or not a model answers
+     * in time; on a timeout or a refusal the row stays NULL and the home's
+     * own read generates on its miss. The product is the one FirstRun named,
+     * else the workspace's newest.
+     */
+    const productId =
+      input.productId ??
+      (await newestProjectId(
+        supabase as unknown as SupabaseClient,
+        (workspaceId as string | null) ?? null,
+      ));
+    if (productId) {
+      await Promise.race([
+        generateStarterRunsForProduct(
+          supabase as unknown as SupabaseClient,
+          userId,
+          productId,
+        ).catch((e: unknown) => {
+          console.error(
+            `[completeOnboarding] starter runs: ${e instanceof Error ? e.message : String(e)}`,
+          );
+          return null;
+        }),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), STARTER_RUNS_WAIT_MS)),
+      ]);
+    }
+
     return { success: true };
   });
+
+/** How long onboarding waits for the starter runs before handing the wait to the home. */
+const STARTER_RUNS_WAIT_MS = 12_000;
+
+async function newestProjectId(
+  db: SupabaseClient,
+  workspaceId: string | null,
+): Promise<string | null> {
+  if (!workspaceId) return null;
+  const { data } = await db
+    .from("projects")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (data as { id?: string } | null)?.id ?? null;
+}
+
+/**
+ * Generate and store a product's starter runs. One model call on the product's
+ * name and north star, read strictly, written to the row with its time.
+ * Returns the runs, or null when the model returned nothing usable (the row is
+ * left NULL so the next read tries again rather than serving an empty set as
+ * a finished one).
+ */
+export async function generateStarterRunsForProduct(
+  db: SupabaseClient,
+  userId: string,
+  productId: string,
+): Promise<StarterRun[] | null> {
+  const { data: project, error } = await db
+    .from("projects")
+    .select("id,name,north_star,workspace_id")
+    .eq("id", productId)
+    .maybeSingle();
+  if (error) throw new Error(`The product could not be read: ${error.message}`);
+  const row = project as {
+    id: string;
+    name: string;
+    north_star: string | null;
+    workspace_id: string;
+  } | null;
+  if (!row) return null;
+
+  const result = await callModel(db, userId, {
+    surface: "agent",
+    surface_ref: `starter-runs:${row.id}`,
+    workspaceId: row.workspace_id,
+    // The model this deployment can actually run: production held one
+    // platform key on 2026-09-08 (Qwen), and a hardcoded Gemini id would have
+    // been a refused call on every new product.
+    model: resolveBestAgentModel(),
+    fallbackModel: resolveBestAgentModel(),
+    responseFormat: "json_object",
+    messages: [
+      { role: "system", content: STARTER_RUNS_SYSTEM },
+      { role: "user", content: starterRunsPrompt({ name: row.name, northStar: row.north_star }) },
+    ],
+  });
+  const runs = parseStarterRuns(result.json);
+  if (runs.length === 0) return null;
+  const { error: writeErr } = await db
+    .from("projects")
+    .update({ starter_runs: { runs }, starter_runs_at: new Date().toISOString() })
+    .eq("id", row.id);
+  if (writeErr) throw new Error(`The starter runs could not be kept: ${writeErr.message}`);
+  return runs;
+}
+
+/**
+ * THE HOME'S READ (Lane 1's item 3). A row read when the runs exist; on a
+ * miss it generates once, bounded, and says `pending: true` when the answer
+ * has not landed yet so the home can show the wait as the agent's first
+ * visible work rather than a blank. `reason` names a refusal in words.
+ */
+export const listStarterRuns = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ productId: z.string().uuid() }).parse(i))
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{ pending: boolean; runs: StarterRun[]; reason: string | null }> => {
+      const db = context.supabase as unknown as SupabaseClient;
+      const { data: project, error } = await db
+        .from("projects")
+        .select("id,starter_runs")
+        .eq("id", data.productId)
+        .maybeSingle();
+      if (error) throw new Error(`The product could not be read: ${error.message}`);
+      const stored = readStoredStarterRuns(
+        (project as { starter_runs?: unknown } | null)?.starter_runs,
+      );
+      if (stored) return { pending: false, runs: stored, reason: null };
+      if (!project)
+        return { pending: false, runs: [], reason: "That product is not one you can read." };
+      try {
+        const generated = await Promise.race([
+          generateStarterRunsForProduct(db, context.userId, data.productId),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), STARTER_RUNS_WAIT_MS)),
+        ]);
+        if (generated) return { pending: false, runs: generated, reason: null };
+        return { pending: true, runs: [], reason: null };
+      } catch (e) {
+        return {
+          pending: true,
+          runs: [],
+          reason: e instanceof Error ? e.message : String(e),
+        };
+      }
+    },
+  );
 
 /**
  * PC-02: the client's report of an onboarding milestone.

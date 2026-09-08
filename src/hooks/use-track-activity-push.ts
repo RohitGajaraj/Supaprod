@@ -9,7 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
  * a live turn, then every half second (TrackActivity.tsx). Ten seconds is a
  * fifth of a fifty-second seat, and the sweep starts seats nobody pressed for,
  * so the first turn of a run is the one most likely to be watched and the one
- * most likely to be late. `agent_runs` is in the realtime publication; this
+ * most likely to be late. `agent_runs` is in the realtime publication
+ * (migration 20260909100300, verified on production); this
  * subscribes to INSERT and UPDATE on rows carrying this track's id and
  * invalidates the two keys the transcript reads under, so the first row is
  * on screen when it is written and its checkpoints refresh the calls beside

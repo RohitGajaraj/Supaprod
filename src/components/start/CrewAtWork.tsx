@@ -34,6 +34,9 @@ export type WorkingSeat = {
   title: string;
   seat: string;
   verb: string | null;
+  /** What the seat's newest call is on, in the product's words or a file's
+   *  own name: "the spec", "Address.tsx". Lane 3's objectLabel, 2026-09-08. */
+  objectLabel: string | null;
   since: string | null;
   station: AgentStation | null;
 };
@@ -50,6 +53,7 @@ export function workingSeats(rows: readonly RunningSeat[] | undefined): WorkingS
     title: r.title ?? "",
     seat: agentDisplayName(r.slug, null),
     verb: r.now?.verb ?? null,
+    objectLabel: r.now?.objectLabel ?? null,
     since: r.startedAt ?? null,
     station: stationOf(r.station),
   }));
@@ -84,7 +88,13 @@ export function CrewAtWork({
             <AgentPresence
               seat={s.seat}
               verb={
-                s.verb ?? (s.station ? `working at ${AGENT_STATIONS[s.station].name}` : "working")
+                s.verb
+                  ? s.objectLabel
+                    ? `${s.verb} ${s.objectLabel}`
+                    : s.verb
+                  : s.station
+                    ? `working at ${AGENT_STATIONS[s.station].name}`
+                    : "working"
               }
               object={s.title ? `· ${s.title}` : null}
               since={s.since}

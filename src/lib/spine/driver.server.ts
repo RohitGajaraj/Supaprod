@@ -55,6 +55,7 @@ import { createMission } from "@/lib/ai/handoff.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { recordSelfCheck, recordTrackDrive } from "@/lib/spine/track-drives.server";
 import { forTheSeat, splitInstruction } from "@/lib/spine/self-check-words";
+import { cancelPendingApprovalsForTrack } from "@/lib/spine/a-stop-cancels-its-asks";
 import { recordLineage } from "@/lib/lineage.functions";
 import { applyTrigger, nextStation, waive, waiverFor, type SpineRoute } from "@/lib/spine/route";
 import {
@@ -2410,6 +2411,17 @@ export async function driveTrackOnce(
         driven_at: new Date().toISOString(),
       } as never)
       .eq("id", row.id);
+    /*
+     * F-205: a stopped run asks nothing. Whatever pending approvals the press
+     * could not cancel under its own RLS are cancelled here with the sweep's
+     * client; idempotent, so a track stopped ten ticks ago costs one read.
+     */
+    const asks = await cancelPendingApprovalsForTrack(
+      supabase as unknown as Parameters<typeof cancelPendingApprovalsForTrack>[0],
+      row.id,
+      { userId: null, reason: STOPPED_BY_YOU },
+    );
+    if (!asks.ok) console.error(`[driver] stop on ${row.id}: ${asks.refused}`);
     return {
       trackId: row.id,
       station,

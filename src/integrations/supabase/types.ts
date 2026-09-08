@@ -6343,6 +6343,8 @@ export type Database = {
           name: string
           north_star: string | null
           slug: string | null
+          starter_runs: Json | null
+          starter_runs_at: string | null
           status: string
           target_date: string | null
           updated_at: string
@@ -6356,6 +6358,8 @@ export type Database = {
           name: string
           north_star?: string | null
           slug?: string | null
+          starter_runs?: Json | null
+          starter_runs_at?: string | null
           status?: string
           target_date?: string | null
           updated_at?: string
@@ -6369,6 +6373,8 @@ export type Database = {
           name?: string
           north_star?: string | null
           slug?: string | null
+          starter_runs?: Json | null
+          starter_runs_at?: string | null
           status?: string
           target_date?: string | null
           updated_at?: string

@@ -46,6 +46,8 @@
  */
 import * as React from "react";
 
+import { PresenceDot } from "./AgentPresence";
+
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 import { GLYPH_FOR_STATION, StationGlyph } from "./station-glyphs";
 import { formatElapsed } from "./run-rows";
@@ -69,6 +71,14 @@ export type JourneyStation = {
   elapsedMs?: number | null;
   /** Full form only: how many pieces of work stand here. Drawn when > 0. */
   count?: number | null;
+  /**
+   * WHO IS WORKING HERE RIGHT NOW, each in their own presence colour (the
+   * same colour AgentPresence gives the seat everywhere else). Full form
+   * only: a cluster of live dots at the node's foot, so the road itself
+   * shows where the machine is, not only where the work stands. The
+   * founder's standing goal, 2026-09-08: the work is visibly seen.
+   */
+  presences?: ReadonlyArray<{ seat: string; colour: string }> | null;
 };
 
 export const JOURNEY_ORDER: readonly JourneyKey[] = [
@@ -142,6 +152,8 @@ function describe(s: JourneyStation): string {
   const bits = [`${labelOf(s)}: ${JOURNEY_STATE_WORD[s.state]}`];
   if (s.outcome) bits.push(s.outcome);
   if (s.count && s.count > 0) bits.push(`${s.count} here`);
+  if (s.presences && s.presences.length > 0)
+    bits.push(`${s.presences.map((p) => p.seat).join(" and ")} working here now`);
   return bits.join(", ");
 }
 
@@ -235,6 +247,27 @@ function Node({
       ) : null}
       {size === "full" ? (
         <StationGlyph kind={GLYPH_FOR_STATION[station.key]} size={14} className="relative" />
+      ) : null}
+      {size === "full" && station.presences && station.presences.length > 0 ? (
+        /* THE SEATS AT THIS STATION. Up to three live dots overlapping at the
+           node's foot, the fourth and beyond folded into a count; each in the
+           seat's own colour, so the same seat reads the same on the road, in
+           the Working-now strip and on the run screen. */
+        <span className="absolute -bottom-1.5 left-1/2 flex -translate-x-1/2 items-center">
+          {station.presences.slice(0, 3).map((pr, i) => (
+            <PresenceDot
+              key={pr.seat}
+              colour={pr.colour}
+              size={8}
+              className={i > 0 ? "-ml-1 ring-2 ring-mrd-bg" : "ring-2 ring-mrd-bg"}
+            />
+          ))}
+          {station.presences.length > 3 ? (
+            <span className="font-mrd-mono ml-0.5 text-mrd-micro leading-none text-mrd-mute tabular-nums">
+              +{station.presences.length - 3}
+            </span>
+          ) : null}
+        </span>
       ) : null}
       {size === "full" && station.count && station.count > 0 ? (
         <span
