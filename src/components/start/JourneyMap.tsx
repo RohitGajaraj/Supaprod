@@ -58,6 +58,7 @@ export function JourneyMap({
           mode === "map" && onSelect ? (key) => onSelect(selected === key ? null : key) : undefined
         }
         label={mode === "promise" ? "The road every run travels" : "Where your work stands"}
+        selects="filter"
       />
       <p className="mrd-meta">{caption}</p>
     </section>

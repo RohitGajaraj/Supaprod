@@ -283,11 +283,13 @@ function Stop({
   active,
   onSelect,
   interactive,
+  selects,
 }: {
   station: JourneyStation;
   active: boolean;
   onSelect?: (key: JourneyKey) => void;
   interactive: boolean;
+  selects: "pane" | "filter";
 }) {
   const clock = useClock(station.at, station.state === "working");
   const current = CURRENT.has(station.state);
@@ -323,8 +325,9 @@ function Stop({
     return (
       <button
         type="button"
-        role="tab"
-        aria-selected={active}
+        {...(selects === "pane"
+          ? { role: "tab", "aria-selected": active }
+          : { "aria-pressed": active })}
         aria-label={describe(station)}
         data-mrd=""
         data-state={station.state}
@@ -353,6 +356,7 @@ export function Journey({
   label = "The road this work travels",
   className = "",
   word = true,
+  selects = "pane",
 }: {
   /** Row form: print the current station's name after the dots. Off in a
    *  list whose rows already say the station in their sentence. */
@@ -366,6 +370,14 @@ export function Journey({
   size?: "row" | "full";
   /** The accessible name of the whole drawing. */
   label?: string;
+  /**
+   * What a press MEANS when `onSelect` is given (Lane 1, 2026-09-08). On the
+   * run screen a stop selects the pane beside it, which is a tablist. On the
+   * home a stop narrows the list below it, which is a set of toggles: a
+   * screen reader hears "pressed", not "selected", and there is no panel to
+   * announce. The drawing is the same; only the roles differ.
+   */
+  selects?: "pane" | "filter";
   className?: string;
 }) {
   if (stations.length === 0) return null;
@@ -413,7 +425,7 @@ export function Journey({
   return (
     <Wrap
       data-mrd=""
-      {...(interactive ? { role: "tablist" } : {})}
+      {...(interactive ? { role: selects === "pane" ? "tablist" : "group" } : {})}
       aria-label={label}
       className={`flex w-full items-start ${className}`}
     >
@@ -432,6 +444,7 @@ export function Journey({
             active={active === s.key}
             onSelect={onSelect}
             interactive={interactive}
+            selects={selects}
           />
         </React.Fragment>
       ))}

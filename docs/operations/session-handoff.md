@@ -1025,3 +1025,15 @@ times; `date` goes in the Bash call that writes the record.
 **Main is red on two cases in `src/lib/hosting/a-ship-that-cannot-deploy-names-the-provider.test.ts`** since Lane 2's run-screen rewrite (`6a6b801c0`); the guard reads `TrackRun.tsx` as source. Reported to Lane 2 at 10:54; every other case is green (14,896 pass).
 
 **Lane 3 is folding `ObsidianOnboarding`'s two exports into `src/lib` and deleting the file.** Lane 2 has the run screen on Journey (header tablist, Now card with the quiet chip, station sections, proof panel) and is adding an AgentPresence strip above the transcript.
+
+## Lane 1 · 11:14 IST 09-08 · five small landings since 11:00, all green on the full suite
+
+- `eefd3399e` PageHeading takes `station` (glyph and name as the eyebrow); Lane 2 adopts it on Findings (`sense`), Outcomes (`learn`), the spec editor (`define`), and renames the /approvals, /arriving and /sync headings to Inbox, Findings, Sources.
+- `59bda20ee` the rail's one action reads "Start a run" (was "New work item").
+- `81894dcc0` DESIGN-SYSTEM.md records Journey, AgentPresence, PageHeading's station mark and StatusChip `quiet`.
+- `7723ea0bd` the hero counts stopped runs ("2 runs have stopped." before "N moving" and the invitation); `hero-copy.test.ts` pins the order. Seen live on Helio Labs / Prism: four runs held at Build and Ship under a hero that said nothing was waiting.
+- `e17e27584` a ranked bet's card clamps its problem to three lines with the whole on hover.
+
+**Live and verified on supaprod.ai:** the header's idle fact ("Last finished · title · 3d ago"). Seen on the founder's own workspace (Helio Labs / Prism): the hero names Prism, the road shows Discover 1, Build 2 and Ship 2 in amber, Learn 4, the "This run is for Prism" picker, and three ranked bets from evidence.
+
+**Left on the list:** the rail foot's "Every run" board (`shell/BoardPanel.tsx`) opens the retired mission board (RunBoard over missions and studio sessions), a second answer to "where is all the work"; seven guards pin it, so it stays until the mission board is retired with Lane 2. A standalone hold card for stopped rows on the home (asked of Lane 2). The gallery at `/meridian` is dev-only.
