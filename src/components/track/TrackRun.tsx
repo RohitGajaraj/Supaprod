@@ -1100,7 +1100,12 @@ export function TrackRunLeft({
     /* When the presences below name the seat and its verb, the headline says
        only where the work is; two sentences about one seat is the defect the
        card exists to remove. */
-    currentTool: presences.length > 0 ? null : currentTool,
+    /* And only while a run row says a seat is live: between seats, with this
+       tab's press still in flight, the newest call belongs to a seat that has
+       finished, and "It is saying that nothing here speaks to this" was seen
+       on the walk of 2026-09-08 over a card that should have said the next
+       seat was starting. */
+    currentTool: presences.length > 0 || !crewLive ? null : currentTool,
     seats: presences.length > 0 ? [] : liveSeats,
     legsLeft: continuing ? legsLeft : null,
     horizon: forecastHorizonDate,

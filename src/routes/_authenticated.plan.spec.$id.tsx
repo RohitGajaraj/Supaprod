@@ -342,6 +342,8 @@
  * records which route this spec took; it does not cause anything Build-side
  * to happen, and says so.
  */
+import { GLYPH_FOR_STATION, StationGlyph } from "@/components/meridian/station-glyphs";
+import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { supabase } from "@/integrations/supabase/client";
@@ -1815,6 +1817,15 @@ function SpecEditorPage() {
            * GROUP at 40px and `gap-mrd-3` space the pair at 6px inside it.
            */}
           <div className="flex flex-col gap-mrd-3">
+            {/* The station this page is the output of, above the title, the
+                way every other depth page names its station (Findings is
+                Discover's, Outcomes is Learn's). The title is an input rather
+                than a PageHeading, so the eyebrow is drawn here in the same
+                shape PageHeading draws it. */}
+            <span className="inline-flex items-center gap-mrd-2 mrd-eyebrow">
+              <StationGlyph kind={GLYPH_FOR_STATION.define} size={12} className="text-mrd-mute" />
+              {AGENT_STATIONS.define.name}
+            </span>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
