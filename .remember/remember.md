@@ -276,3 +276,6 @@ Entry review (6 lenses, 2 agents at a time) landed in 6995c805f, ec5abfa74, c2fb
 
 ## Lane 2 · 15:10 IST 09-08
 Third addendum in docs/operations/session-handoff.md: the live station (100f44fe6), one seat one name (b8f6c1fca), F-206 Share and F-208 Release the claim, Outcomes and Sources read states, lint clearance; walk findings for Lanes 1 and 3 (composer start not driven off-screen, row mark green, rail row truncates, top strip pairs the seat with the last finished run). Open: /start hero silent on cold read (Lane 1), Now card between seats, spec editor eyebrow, /ship and /learn doors.
+
+## Lane 1 · 19:52 IST 09-08
+Founder's three rulings landed (dc46271a8): hold hue is a sand, all status hues down, road colour in ring+glyph only; rows on a grid (Row align/timeWidth, JOURNEY_ROW_WIDTH, fixed control slot); rail glyphs not arrows, Start a run focuses the composer, Setup tier named. f1d408a45 phone batch; 03d2b1872 stall clock. Both review workflows died at the session limit; journals read, confirmed items landed. Deploy pending on Lovable sync.
