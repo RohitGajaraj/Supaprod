@@ -261,3 +261,6 @@ bebf8227a skipped-step short line; ef9dd9661 hero waits for its name. Publishes 
 
 ## Lane 1 · 12:36 IST 09-08
 Landing page 500s (12:16 to 12:33) were the Worker's P-135 cache lookup rejecting before the try on Lovable's runtime ("Cache API is not yet supported for dynamically-loaded workers"). Fixed 280bb7f80 + aacc1a81b, deployed faa89898, all 13 routes 200, F-203. Lane 3 owns standing the store down. 6101b8095 (placeholder subject) on main, undeployed. Prove a public-route 500 by bypassing the path on production, not in workerd.
+
+## Lane 1 · 13:08 IST 09-08
+9db5733f live: routes 200, / reads BYPASS twice; skipped-step row Decide + "Put Plan back on the route" seen live on Prism. Landed 378522d27 (hero waits for the queue read) and the Choice.tsx correction (flex-1 label, max-w-[40%] fact, `sub`). Main red on Lane 2's press-site guard (five run.mutate("press"), pinned four). Lovable sync stalls; an empty commit wakes it.
