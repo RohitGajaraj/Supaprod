@@ -454,13 +454,6 @@ function StartLanding() {
         )}
       </div>
 
-      {queue ? (
-        <p role="status" className="text-mrd-base text-mrd-mute">
-          The things waiting on you are the runs marked <strong>Needs you</strong> below. They sort
-          to the top.
-        </p>
-      ) : null}
-
       {/* `data-page-composer` stands the ask dock down: one prompt per screen,
           and this is the one. See `one-prompt-per-screen`. */}
       <div data-page-composer className="flex flex-col gap-mrd-2">
@@ -524,7 +517,16 @@ function StartLanding() {
           mode={anyOpen ? "map" : "promise"}
           stations={anyOpen ? map : promiseStations()}
           selected={station}
-          onSelect={setStation}
+          onSelect={(key) => {
+            setStation(key);
+            /* The list the press filtered is usually below the fold: bring it
+               up, so the press is seen to do something. */
+            if (key) {
+              document
+                .querySelector("[data-your-runs]")
+                ?.scrollIntoView({ block: "start", behavior: "smooth" });
+            }
+          }}
         />
       ) : null}
 

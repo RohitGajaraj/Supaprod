@@ -227,9 +227,12 @@ export function countByTerm(
  * invitation to go and connect something, or to proceed anyway.
  */
 export function evidenceLine(e: SubjectEvidence): string {
-  if (e.count === null) return "I could not check what this workspace already holds about this.";
+  /* Plain and unsold, as he would say it (third review, 2026-09-08): no
+     narrator "I", and the zero line does not say "connect a source" when
+     the door that says it sits right after the sentence. */
+  if (e.count === null) return "It could not check what this workspace already holds about this.";
   if (e.count === 0) {
-    return "Nothing in this workspace mentions this yet. Discover will look and may find nothing. Connect a source, or start it anyway and see.";
+    return "Nothing in this workspace mentions this yet. Discover starts from your sentence alone.";
   }
   // LEADS WITH THE BREAKDOWN, NOT THE TOTAL. The total is the number that
   // flatters: `060bc5ff` scored 8 on a subject with one real mention. Naming the
@@ -247,7 +250,7 @@ export function evidenceLine(e: SubjectEvidence): string {
   // product has only ever talked to itself about.
   const ours =
     e.agentAuthored > 0 && e.agentAuthored * 2 >= e.count
-      ? ` ${e.agentAuthored} of ${e.count} were written by the loop itself.`
+      ? ` ${e.agentAuthored} of ${e.count} were written by your agents.`
       : "";
   return top
     ? `Already on the record${where}: ${top}.${ours}`

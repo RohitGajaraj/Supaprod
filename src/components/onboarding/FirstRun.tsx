@@ -31,7 +31,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Journey } from "@/components/meridian/Journey";
 import { Receipt } from "@/components/meridian/Receipt";
 import { Field, Input, Textarea } from "@/components/meridian/forms";
-import { Action } from "@/components/meridian/surface-parts";
+import { Action, Door } from "@/components/meridian/surface-parts";
 import { promiseStations } from "@/components/start/JourneyMap";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
@@ -206,9 +206,9 @@ export function FirstRun() {
 
             {go.isError ? (
               <Receipt
-                verb="Nothing was set up"
+                verb="It did not finish"
                 consequence={failureLine(
-                  "What you typed is still here and nothing was saved.",
+                  "What you typed is still here, and whatever was set up before it stopped stays set up.",
                   go.error as Error,
                 )}
                 failed
@@ -218,7 +218,16 @@ export function FirstRun() {
             <div className="flex items-center justify-between gap-mrd-4">
               <span className="mrd-meta">
                 Slack, GitHub, Intercom and the rest connect later, from Sources. Nothing has to be
-                connected first.
+                connected first.{" "}
+                {/* The one way out of a screen that otherwise has none (third
+                    review, 2026-09-08): a wrong account can leave. */}
+                <Door
+                  onClick={() => {
+                    void supabase.auth.signOut().then(() => navigate({ to: "/login" }));
+                  }}
+                >
+                  Not you? Sign out
+                </Door>
               </span>
               <Action type="submit" variant="primary" busy={go.isPending} disabled={!canGo}>
                 {go.isPending ? "Setting up" : "Open Supaprod"}

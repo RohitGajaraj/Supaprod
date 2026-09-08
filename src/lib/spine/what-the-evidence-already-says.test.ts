@@ -102,7 +102,10 @@ describe("what the evidence already says", () => {
     const line = evidenceLine({ count: 0, sources: [], byTerm: [], agentAuthored: 0 });
     // A subject the evidence is silent on may be exactly what someone wants
     // investigated. The door tells; it must never block.
-    expect(line).toContain("start it anyway");
+    /* 2026-09-08: the invitation is "starts from your sentence alone"; the
+       door beside the line says "Connect a source", so the sentence no
+       longer repeats it. Still an invitation, still never a refusal. */
+    expect(line).toContain("starts from your sentence alone");
     expect(line).not.toMatch(/cannot start|not allowed|blocked/i);
   });
 
@@ -130,7 +133,7 @@ describe("what the evidence already says", () => {
       byTerm: [{ term: "outage", count: 41 }],
       agentAuthored: 38,
     });
-    expect(line).toContain("38 of 57 were written by the loop itself");
+    expect(line).toContain("38 of 57 were written by your agents");
   });
 
   it("stays quiet about authorship when the evidence is mostly external", () => {

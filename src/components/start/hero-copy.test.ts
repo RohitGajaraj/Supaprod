@@ -30,7 +30,7 @@ describe("heroCopy", () => {
        the FIRST thing and points at the three sentences below it. */
     const first = heroCopy({ product: "Prism", runs: [] });
     expect(first.title).toBe("What should Prism do first?");
-    expect(first.line).toContain("press one of the three below");
+    expect(first.line).toContain("Say it in one sentence");
   });
 
   it("leads with what needs a person", () => {

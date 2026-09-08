@@ -19,7 +19,7 @@ describe("the first three runs say what is happening at every state", () => {
       "Prism",
     );
     expect(line).toContain("Prism could start with");
-    expect(line).toContain("then Enter");
+    expect(line).toContain("put it in the box above");
   });
 
   test("still writing after a failed try says so, and that it is trying again", () => {

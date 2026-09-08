@@ -20,11 +20,19 @@
  * shape, with the sentence doing the work of an onboarding tour.
  */
 import * as React from "react";
+import { Link } from "@tanstack/react-router";
 
 import type { StartRun } from "@/lib/spine/track.functions";
 import { standingState, type RunLike } from "@/components/start/journey-of-a-run";
 
-export type HeroCopy = { eyebrow: string | null; title: string; line: string };
+export type HeroCopy = {
+  eyebrow: string | null;
+  title: string;
+  line: string;
+  /** A door on the sentence that names a place: "Answer them in Inbox" gets
+   *  Inbox as a press (third review, 2026-09-08). */
+  door?: { label: string; to: string } | null;
+};
 
 const PROMISE =
   "Say it in one sentence. It finds the evidence, makes the call, writes the spec, builds the change, ships it and checks that it did what you said. Here, where you can watch.";
@@ -99,6 +107,7 @@ export function heroCopy(input: {
       eyebrow,
       title,
       line: `Answer them in Inbox, or on the runs below that carry them.${rest}`,
+      door: { label: "Open Inbox", to: "/approvals" },
     };
   }
   if (runs.length === 0) {
@@ -108,7 +117,9 @@ export function heroCopy(input: {
     return {
       eyebrow,
       title: `What should ${name} do first?`,
-      line: `Say it in one sentence, or press one of the three below. You will watch it happen on the run's own page, and it stops to ask you only where the call is yours.`,
+      /* The three starter runs say themselves when they arrive; the hero does
+         not promise them before then (third review, 2026-09-08). */
+      line: `Say it in one sentence. You will watch it happen on the run's own page, and it stops to ask you only where the call is yours.`,
     };
   }
   if (needs > 0) {
@@ -155,6 +166,18 @@ export function Hero({ copy }: { copy: HeroCopy }) {
       </h1>
       <p className="max-w-[var(--mrd-measure-page)] text-mrd-prose leading-mrd-prose text-mrd-body">
         {copy.line}
+        {copy.door ? (
+          <>
+            {" "}
+            <Link
+              to={copy.door.to}
+              className="rounded-mrd-xs text-mrd-body underline decoration-mrd-line decoration-dotted underline-offset-[3px] transition-colors hover:text-mrd-ink hover:decoration-mrd-edge hover:decoration-solid"
+              style={{ transitionDuration: "var(--mrd-d-press)" }}
+            >
+              {copy.door.label}
+            </Link>
+          </>
+        ) : null}
       </p>
     </header>
   );

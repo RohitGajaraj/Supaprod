@@ -136,7 +136,7 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     to: "/sync",
     label: "Sources",
     zone: "home",
-    tagline: "What the crew is allowed to read.",
+    tagline: "What your agents are allowed to read.",
   },
   {
     to: "/settings",

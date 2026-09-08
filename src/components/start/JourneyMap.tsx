@@ -14,6 +14,9 @@
  */
 import * as React from "react";
 
+import { Action } from "@/components/meridian/surface-parts";
+import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+
 import {
   Journey,
   JOURNEY_ORDER,
@@ -37,10 +40,18 @@ export function JourneyMap({
   selected?: JourneyKey | null;
   onSelect?: (key: JourneyKey | null) => void;
 }) {
+  /* THE CAPTION SAYS WHAT THE PRESS DID. A station press filters a list that
+     is usually below the fold, so it looked like nothing happened (third
+     review, 2026-09-08); the caption names the selection and carries the
+     clear. In promise form there is no caption: the hero's sentence and the
+     stops' own lines already say it, and it was printed twice. */
+  const here = selected ? stations.find((s) => s.key === selected) : null;
   const caption =
     mode === "promise"
-      ? "Every run travels this road, and it stops to ask you only where the call is yours."
-      : "Where your work stands. Press a station to see only the runs there.";
+      ? null
+      : selected && here
+        ? `Showing the ${here.count ?? 0} ${here.count === 1 ? "run" : "runs"} at ${AGENT_STATIONS[selected].name}.`
+        : "Where your work stands. Press a station to see only the runs there.";
 
   return (
     <section
@@ -61,7 +72,16 @@ export function JourneyMap({
         selects="filter"
         promise={mode === "promise"}
       />
-      <p className="mrd-meta">{caption}</p>
+      {caption ? (
+        <p className="mrd-meta flex items-center gap-mrd-3">
+          <span>{caption}</span>
+          {selected && onSelect ? (
+            <Action variant="quiet" onClick={() => onSelect(null)}>
+              Show all
+            </Action>
+          ) : null}
+        </p>
+      ) : null}
     </section>
   );
 }

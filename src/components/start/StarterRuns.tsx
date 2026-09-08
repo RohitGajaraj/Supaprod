@@ -40,7 +40,7 @@ export function starterLine(state: StarterState | undefined, name: string): stri
   if (state.pending)
     return `Reading what you said about ${name}, and writing three runs it could start with.`;
   if (state.runs.length > 0)
-    return `Three runs ${name} could start with, from what you said. Press one to read it in the box above, then Enter.`;
+    return `Three runs ${name} could start with, from what you said. Press one to put it in the box above.`;
   if (state.reason)
     return `It could not write the first runs: ${state.reason} Say the first thing yourself, above.`;
   return null;

@@ -273,20 +273,13 @@ export function YourRuns({
   );
 
   return (
-    <section data-mrd="" className="flex flex-col gap-mrd-2 font-mrd" aria-label="Your runs">
+    <section
+      data-mrd=""
+      data-your-runs=""
+      className="flex flex-col gap-mrd-2 font-mrd"
+      aria-label="Your runs"
+    >
       <SectionHead>Your runs</SectionHead>
-      {station ? (
-        <p role="status" className="flex items-center gap-mrd-3 text-mrd-small text-mrd-mute">
-          <span>
-            Only the runs at <span className="text-mrd-ink">{AGENT_STATIONS[station].name}</span>.
-          </span>
-          {onClearStation ? (
-            <Action variant="quiet" onClick={onClearStation}>
-              Show all
-            </Action>
-          ) : null}
-        </p>
-      ) : null}
       {/* Not a live region: the rows carry a clock that changes every second
           while a seat works, and a live list read a timestamp aloud once a
           second (third review, 2026-09-08). The state sentences announce. */}

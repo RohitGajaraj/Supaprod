@@ -171,9 +171,9 @@ export function Arriving() {
     <section
       data-mrd=""
       className="flex flex-wrap items-baseline gap-mrd-3 font-mrd"
-      aria-label="Arriving"
+      aria-label="Findings"
     >
-      <span className="mrd-eyebrow">Arriving</span>
+      <span className="mrd-eyebrow">Findings</span>
       <span className="text-mrd-base text-mrd-mute">{line}</span>
       {/* "/discover" -> "/arriving" (P-14a, 2026-09-02). */}
       <Door onClick={() => void navigate({ to: "/arriving", search: {} })}>See what came in</Door>
