@@ -25,14 +25,10 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { Journey, JOURNEY_ROW_WIDTH, type JourneyKey } from "@/components/meridian/Journey";
 import { ROW_GAP, Row } from "@/components/meridian/rows";
-import {
-  Action,
-  Chevron,
-  Reading,
-  ReadFailedLine,
-  SectionHead,
-} from "@/components/meridian/surface-parts";
+import { Action, Chevron, ReadFailedLine, SectionHead } from "@/components/meridian/surface-parts";
 import { StatusChip } from "@/components/meridian/StatusChip";
+import { RecordTag } from "@/components/meridian/RecordsTable";
+import { SlowRead } from "@/components/shell/SlowRead";
 import { KIND_WORD } from "@/lib/spine/attach";
 import { AGENT_STATIONS, toolActionLabel } from "@/lib/agent-vocabulary";
 import { relativeTime } from "@/lib/memory-view";
@@ -70,7 +66,7 @@ const CHIP: Partial<Record<StartRowKind, { status: "pass" | "fail"; word: string
 const MARKS_WIDTH = JOURNEY_ROW_WIDTH;
 /* The time-and-credits column and the control slot are fixed, so every row's
    controls stand in the same place down the list, whether or not this row
-   has a Decide. */
+   has a control at all. */
 const META_WIDTH = 168;
 const CONTROL_SLOT = 176;
 
@@ -99,10 +95,13 @@ function RunRow({
   const chip = CHIP[r.kind];
   const canPin = r.kind !== "finished" && r.kind !== "abandoned";
   const needsYou = r.kind === "needs-you";
-  /* STOPPED ON A CONDITION ONLY A PERSON CAN CHANGE: the row offers the
-     run screen's own hold card in place (Lane 2's HoldCard, standalone by
-     trackId), with "Let X try again" and "Stop spending on this". */
-  const held = !needsYou && run ? standingState(run) === "held" : false;
+  /* STOPPED, ON A CONDITION OR FOR GOOD: the row offers the run screen's own
+     hold card in place (Lane 2's HoldCard, standalone by trackId), with "Let
+     X try again" and "Stop spending on this" for a hold, "Run it now" for a
+     loop that quit. Both states open it; the mark tells them apart (fourth
+     review, 2026-09-09). */
+  const standing = !needsYou && run ? standingState(run) : null;
+  const held = standing === "held" || standing === "stopped";
   /* A person's call with no gate under it (the driver says it is theirs and
      nothing is coming, but there is no approval row): the answer is on the
      run screen, so the control opens the run rather than an empty card. */
@@ -110,8 +109,8 @@ function RunRow({
   /* FOCUS COMES BACK. When the card under the row closes (answered, or
      Close), keyboard focus used to drop to the document body; it returns to
      the control that opened it, and when the answer took that control away
-     with it (the row is no longer waiting on anyone, so Answer and Decide
-     are gone), to the row itself (third review, 2026-09-08). Keyed on the
+     with it (the row is no longer waiting on anyone, so Answer and Why it
+     stopped are gone), to the row itself (third review, 2026-09-08). Keyed on the
      card being mounted, not on askOpen alone: the row can change kind under
      an open card, and that unmounts the card with focus inside it. */
   const toggleRef = React.useRef<HTMLSpanElement | null>(null);
@@ -163,9 +162,15 @@ function RunRow({
                 </Action>
               </span>
             ) : held ? (
+              /* NAMED FOR WHAT IT OPENS, never for a station. It read
+                 "Decide", the name of the second stop on the map above it
+                 and a word R-01 keeps off every door; the card it opens
+                 leads with why the run stopped, and the hero on the same
+                 screen says "Each one says why below" (fourth review,
+                 2026-09-09). */
               <span ref={toggleRef} className="contents">
                 <Action variant="default" aria-expanded={askOpen} onClick={() => onAsk(r.id)}>
-                  {askOpen ? "Close" : "Decide"}
+                  {askOpen ? "Close" : "Why it stopped"}
                 </Action>
               </span>
             ) : callOnRun ? (
@@ -176,9 +181,12 @@ function RunRow({
                 Answer on the run
               </Action>
             ) : r.pinnedAt ? (
-              <StatusChip status="you" pulse={false}>
-                First
-              </StatusChip>
+              /* A PREFERENCE IS NOT A CALL. The pin wore the you-hue chip,
+                 the one colour on this page that means a person is required
+                 (law 3), on the one row nobody was waiting on. A tag is
+                 square and carries a category; this is one (fourth review,
+                 2026-09-09). */
+              <RecordTag label="First" />
             ) : chip ? (
               <StatusChip status={chip.status} pulse={false}>
                 {chip.word}
@@ -296,7 +304,13 @@ export function YourRuns({
           while a seat works, and a live list read a timestamp aloud once a
           second (third review, 2026-09-08). The state sentences announce. */}
       <div className="flex flex-col">
-        {q.isLoading ? <Reading>Reading your runs.</Reading> : null}
+        {/* Reads as `Reading` for 2.5 s, then shows the figure, then offers
+            a way out past the stuck line: only met once the composite home
+            read has failed and this list is fetching alone (fourth review,
+            2026-09-09). */}
+        {q.isLoading ? (
+          <SlowRead onRetry={() => void q.refetch()}>Reading your runs.</SlowRead>
+        ) : null}
 
         {q.isError ? (
           <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
@@ -346,7 +360,11 @@ export function YourRuns({
               aria-expanded={showAbandoned}
               aria-label={abandonedLine(groups.abandonedCount)}
               onClick={() => setShowAbandoned((v) => !v)}
-              className="mrd-focus-inset flex w-fit items-center gap-1.5 rounded-mrd-chip py-1 text-mrd-data text-mrd-mute transition-colors hover:text-mrd-ink"
+              /* The 44px floor on a phone, the same one every other control
+                 on this screen carries (CONTROL_SHAPE): at 11.5px this was
+                 a 25px target under a list of 44px rows (fourth review,
+                 2026-09-09). Desktop keeps the quiet data line. */
+              className="mrd-focus-inset flex w-fit items-center gap-1.5 rounded-mrd-chip py-1 max-md:min-h-11 text-mrd-data text-mrd-mute transition-colors hover:text-mrd-ink"
               style={{ transitionDuration: "var(--mrd-d-press)" }}
             >
               <Chevron open={showAbandoned} />

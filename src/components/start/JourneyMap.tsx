@@ -4,7 +4,7 @@
  * Two modes, one drawing:
  *
  *   promise   no runs yet. The seven stations with what each hands the next,
- *             so a person who has never pressed Enter can see what happens
+ *             so a person who has never started a run can see what happens
  *             when they do. This is the product's model, said in a glance.
  *   map       runs exist. The same road with a count on every station where
  *             work stands and the strongest state lit there, so "where is
@@ -46,19 +46,29 @@ export function JourneyMap({
      clear. In promise form there is no caption: the hero's sentence and the
      stops' own lines already say it, and it was printed twice. */
   const here = selected ? stations.find((s) => s.key === selected) : null;
+  /* THE MORNING AFTER: a map with nothing standing on it. The road used to
+     fall back to the promise whenever no run was open, as if none had ever
+     run; now it stays a map and the caption says so (fourth review,
+     2026-09-09). */
+  const empty = stations.every((s) => !s.count);
   const caption =
     mode === "promise"
       ? null
       : selected && here
         ? `Showing the ${here.count ?? 0} ${here.count === 1 ? "run" : "runs"} at ${AGENT_STATIONS[selected].name}.`
-        : "Where your work stands. Press a station to see only the runs there.";
+        : empty
+          ? "Nothing is standing on the road. What finished is in the runs below."
+          : "Where your work stands. Press a station to see only the runs there.";
 
   return (
     <section
       data-mrd=""
-      aria-label={
-        mode === "promise" ? "What happens after you press Enter" : "Where your work stands"
-      }
+      /* The region is named for what it shows, in the drawing's own words;
+         it was "What happens after you press Enter", on a phone where Enter
+         is a new line and the composer says "Press Start it" (fourth review,
+         2026-09-09). Section and list share one name, as map mode already
+         does. */
+      aria-label={mode === "promise" ? "The road every run travels" : "Where your work stands"}
       className="flex flex-col gap-mrd-4 rounded-mrd-pane bg-mrd-sheet px-mrd-5 pt-mrd-5 pb-mrd-4"
     >
       <Journey

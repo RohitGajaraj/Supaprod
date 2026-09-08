@@ -57,9 +57,40 @@ export function standingState(r: RunLike): JourneyState {
   if (r.working) return "working";
   if (r.holdBecause && HORIZON.test(r.holdBecause)) return "scheduled";
   const tone = holdTone(r.holdReason);
-  if (tone === "you") return nothingIsComing(r.holdReason) ? "held" : "you";
+  /* A hold the driver marks as the person's with nothing coming is
+     `stopped`, painted in the you hue: it used to be `held`, so the row's
+     mark wore the amber the system defines as "not on a person" over a card
+     that said "Stopped" in orchid (fourth review, 2026-09-09). `held` is
+     only ever a hold on a condition. */
+  if (tone === "you") return nothingIsComing(r.holdReason) ? "stopped" : "you";
   if (tone === "hold") return "held";
   return "waiting";
+}
+
+/**
+ * THE ROAD'S MODE ON THE HOME, from the runs read. The promise (every stop
+ * pending, each with what it hands on) is for the account that has never
+ * pressed Enter; once anything has run, the road is a map, even the morning
+ * after the only run finished. It used to reset to the promise whenever no
+ * run was open, and the starter cards came back above a Finished row
+ * (fourth review, 2026-09-09).
+ */
+export function homeRoadMode(runs: ReadonlyArray<Pick<RunLike, "status">>): "promise" | "map" {
+  return runs.length === 0 ? "promise" : "map";
+}
+
+/**
+ * Whether the three starter runs stand on the home: only from an ANSWERED
+ * runs read (a failed one drew the day-one cards on a workspace with twelve
+ * runs), and only while nothing is open, nothing has finished and no bet has
+ * arrived. An abandoned first try still leaves the other two.
+ */
+export function startersStand(
+  runs: ReadonlyArray<Pick<RunLike, "status">> | undefined,
+  betsCount: number,
+): boolean {
+  if (runs === undefined || betsCount > 0) return false;
+  return !runs.some((r) => r.status === "open" || r.status === "done");
 }
 
 /**
@@ -127,7 +158,8 @@ export function journeyOfRun(r: RunLike, nowMs: number = Date.now()): JourneySta
 
 /** The strongest thing standing at a station names the station's state. */
 const WEIGHT: Record<JourneyState, number> = {
-  you: 6,
+  you: 7,
+  stopped: 6,
   failed: 5,
   held: 4,
   working: 3,
@@ -165,7 +197,14 @@ export function journeyMap(runs: readonly RunLike[]): JourneyStation[] {
  */
 export function withPresences(
   stations: readonly JourneyStation[],
-  seats: ReadonlyArray<{ seat: string; station: string | null; alive?: boolean }>,
+  seats: ReadonlyArray<{
+    seat: string;
+    station: string | null;
+    alive?: boolean;
+    /** Carried through only when the seat is quiet, so the map's stop can
+     *  print the strip's own "quiet for N min" (fourth review, 2026-09-09). */
+    quietMs?: number | null;
+  }>,
   colourOf: (seat: string) => string,
 ): JourneyStation[] {
   if (seats.length === 0) return [...stations];
@@ -175,7 +214,12 @@ export function withPresences(
     const seen = new Set<string>();
     const presences = here
       .filter((w) => (seen.has(w.seat) ? false : (seen.add(w.seat), true)))
-      .map((w) => ({ seat: w.seat, colour: colourOf(w.seat), alive: w.alive ?? true }));
+      .map((w) => ({
+        seat: w.seat,
+        colour: colourOf(w.seat),
+        alive: w.alive ?? true,
+        ...(w.quietMs ? { quietMs: w.quietMs } : {}),
+      }));
     return { ...s, presences };
   });
 }

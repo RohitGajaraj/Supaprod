@@ -82,6 +82,7 @@ export function PickCard({
   selected,
   onSelect,
   className = "",
+  clamp = true,
 }: {
   /** The job, in the person's own words. */
   lead: string;
@@ -113,6 +114,14 @@ export function PickCard({
   selected?: boolean;
   onSelect: () => void;
   className?: string;
+  /**
+   * Three lines and a tooltip when the whole text lives one press away (a
+   * ranked bet's statement is on the run it starts); false when this card
+   * is the only place the text exists (a starter run's why), so a phone,
+   * which never shows a tooltip, is not left with an ellipsis and nothing
+   * behind it (fourth review, 2026-09-09).
+   */
+  clamp?: boolean;
 }) {
   const ring = selected
     ? "before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] " +
@@ -169,13 +178,15 @@ export function PickCard({
           {lead}
         </span>
         {sub ? (
-          /* THREE LINES, THEN THE TOOLTIP. A ranked bet's problem statement
-             runs to a paragraph (seen live: one card three times the height of
-             its neighbours). A card is a door, and the whole statement waits
-             one press away on the run it starts. */
+          /* THREE LINES, THEN THE TOOLTIP, where the caller says the whole
+             text lives elsewhere. A ranked bet's problem statement runs to a
+             paragraph (seen live: one card three times the height of its
+             neighbours), and that card is a door to the run that holds it.
+             Unclamped, the tooltip goes too: a title repeating text fully on
+             screen is noise. */
           <span
-            title={sub}
-            className="mt-mrd-2 line-clamp-3 block text-mrd-base leading-mrd-snug text-mrd-mute"
+            title={clamp ? sub : undefined}
+            className={`mt-mrd-2 block text-mrd-base leading-mrd-snug text-mrd-mute${clamp ? " line-clamp-3" : ""}`}
           >
             {sub}
           </span>

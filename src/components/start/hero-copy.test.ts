@@ -5,7 +5,10 @@
  * was waiting. A negation over a stopped run is the false all-clear the
  * shell's honesty rule exists to prevent.
  */
-import { describe, expect, it } from "bun:test";
+/* `test` was never imported, so the placeholderFor block below raised
+   "test is not defined" and its pin never ran (found while landing the fourth
+   review, 2026-09-09). */
+import { describe, expect, it, test } from "bun:test";
 import { heroCopy } from "./Hero";
 
 const base = {
@@ -31,6 +34,16 @@ describe("heroCopy", () => {
     const first = heroCopy({ product: "Prism", runs: [] });
     expect(first.title).toBe("What should Prism do first?");
     expect(first.line).toContain("Say it in one sentence");
+  });
+
+  it("says a REFUSED runs read refused, rather than drawing the first visit over it", () => {
+    /* Fourth review, 2026-09-09: a failed cold read gave a workspace with a
+       year of runs the onboarding promise in the hero and the starter cards
+       under it, with one line lower down admitting the list did not load. */
+    const failed = heroCopy({ product: "Prism", runs: undefined, failed: true });
+    expect(failed.title).toBe("What should Prism do next?");
+    expect(failed.line).not.toContain("Say it in one sentence");
+    expect(failed.line).toContain("could not be read");
   });
 
   it("leads with what needs a person", () => {
@@ -97,9 +110,95 @@ describe("heroCopy", () => {
     expect(c.title).toBe("1 run is moving.");
   });
 
+  it("calls a seat quiet past the stall threshold, as the strip, the row and the mark do", () => {
+    /* Fourth review, 2026-09-09: every other surface on the page called the
+       seat quiet for 42 min and stopped its clock; the largest type on the
+       page still said it was moving. */
+    const seat = {
+      seat: "Scribe",
+      since: "2026-09-08T00:00:00Z",
+      tool: null,
+      lastCallAt: "2026-09-08T00:00:00Z",
+    };
+    const quiet = heroCopy({
+      product: "Prism",
+      runs: [{ ...base, working: seat }],
+      waiting: 0,
+      nowMs: Date.parse("2026-09-08T00:45:00Z"),
+    });
+    expect(quiet.title).toBe("1 run has gone quiet.");
+    expect(quiet.line).toContain("45 min");
+    expect(quiet.line).not.toContain("moving");
+    /* Five minutes after its last call the same seat is still moving. */
+    const moving = heroCopy({
+      product: "Prism",
+      runs: [{ ...base, working: seat }],
+      waiting: 0,
+      nowMs: Date.parse("2026-09-08T00:05:00Z"),
+    });
+    expect(moving.title).toBe("1 run is moving.");
+  });
+
+  it("counts a terminal hold with the stopped, not with the moving or the quiet", () => {
+    /* `given-up` is the person's to restart (the driver's own set) and draws
+       in the you hue; it is still a stopped run on this line. */
+    const c = heroCopy({
+      product: "Prism",
+      runs: [{ ...base, holdReason: "given-up" }],
+      waiting: 0,
+    });
+    expect(c.title).toBe("1 run has stopped.");
+    expect(c.line).not.toContain("1 run has stopped");
+  });
+
   it("falls back to the invitation, in the product's name, when everything is settled", () => {
-    const c = heroCopy({ product: "Prism", runs: [{ ...base, status: "done" }] });
+    /* The all-clear is earned by an answered queue: `waiting: 0` is the
+       queue saying nothing is there (fourth review, 2026-09-09). */
+    const c = heroCopy({ product: "Prism", runs: [{ ...base, status: "done" }], waiting: 0 });
     expect(c.title).toBe("What should Prism do next?");
+    expect(c.line).toContain("Nothing you started");
+  });
+
+  it("never turns an unread or refused queue into an all-clear", () => {
+    /* Fourth review, 2026-09-09: null fell to 0 and the line said nothing was
+       waiting on a read that never answered, the most expensive lie this
+       surface can tell. */
+    const unread = heroCopy({
+      product: "Prism",
+      runs: [{ ...base, status: "done" }],
+      waiting: null,
+    });
+    expect(unread.title).toBe("What should Prism do next?");
+    expect(unread.line).not.toContain("Nothing");
+    expect(unread.line).toContain("could not be read");
+    const moving = heroCopy({
+      product: "Prism",
+      runs: [{ ...base, working: { seat: "Scribe", since: "", tool: null } }],
+      waiting: null,
+    });
+    expect(moving.title).toBe("1 run is moving.");
+    expect(moving.line).toContain("could not be read");
+  });
+
+  it("carries the Inbox's own caveat when the queue answered short", () => {
+    const caveat = "Part of your queue did not load, so this is not everything waiting on you.";
+    const c = heroCopy({
+      product: "Prism",
+      runs: [{ ...base, holdReason: "going-in-circles" }],
+      waiting: 31,
+      queueShort: caveat,
+    });
+    expect(c.title).toBe("31 calls are waiting for you.");
+    expect(c.line).toContain(caveat);
+    /* And with nothing counted, the all-clear gives way to the caveat. */
+    const settled = heroCopy({
+      product: "Prism",
+      runs: [{ ...base, status: "done" }],
+      waiting: 0,
+      queueShort: caveat,
+    });
+    expect(settled.line).not.toContain("Nothing you started");
+    expect(settled.line).toContain(caveat);
   });
 });
 

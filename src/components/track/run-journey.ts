@@ -166,7 +166,10 @@ export function journeyStations(input: {
     else {
       const reason = input.track?.holdReason ?? stop.holdReason;
       const tone = holdTone(reason);
-      if (tone === "you") state = nothingIsComing(reason) ? "failed" : "you";
+      /* A terminal hold is `stopped`, in the you hue, so the road agrees with
+         the header's own "Needs a restart" chip; it was painted red, and
+         `failed` is only ever a result (fourth review, 2026-09-09). */
+      if (tone === "you") state = nothingIsComing(reason) ? "stopped" : "you";
       else if (tone === "hold") state = "held";
       else state = "waiting";
     }

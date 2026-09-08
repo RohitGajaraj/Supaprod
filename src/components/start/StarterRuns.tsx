@@ -94,6 +94,11 @@ export function StarterRuns({
                 glyph={<SketchProblem />}
                 onSelect={() => onUse(r.sentence)}
                 className="h-full"
+                /* The why exists nowhere but this card (the press carries
+                   only the sentence), and it is server-bounded at 160
+                   characters, so it is never clipped (fourth review,
+                   2026-09-09). */
+                clamp={false}
               />
             </li>
           ))}

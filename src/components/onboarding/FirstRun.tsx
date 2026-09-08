@@ -237,7 +237,11 @@ export function FirstRun() {
         )}
 
         <section
-          aria-label="What happens after you press Enter"
+          /* Named for what it shows, in the drawing's own words. It was
+             "What happens after you press Enter": on this screen Enter opens
+             the home and starts no run, and a screen reader heard the key
+             named where no visible copy does (fourth review, 2026-09-09). */
+          aria-label="The road every run travels"
           className="flex flex-col gap-mrd-4 rounded-mrd-pane bg-mrd-sheet px-mrd-5 pt-mrd-5 pb-mrd-4"
         >
           <Journey

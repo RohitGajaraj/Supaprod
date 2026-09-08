@@ -131,6 +131,11 @@ export function Arriving({ door = true }: { door?: boolean } = {}) {
         data: { productId: activeProductId ?? null, workspaceId: activeWorkspaceId ?? null },
       }),
     staleTime: 5 * 60_000,
+    /* Not before the id is known: it fired once against a null workspace
+       (the unfiltered 2000-row signals read) and again on the id, every
+       arrival, the way `counts` below never did (fourth review, 2026-09-09).
+       With no workspace there is nothing to say and the strip draws nothing. */
+    enabled: Boolean(activeWorkspaceId),
   });
 
   /*

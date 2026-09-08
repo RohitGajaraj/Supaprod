@@ -1,6 +1,13 @@
 import { describe, expect, test } from "bun:test";
 
-import { roughDuration, standingState, withPresences, withTimings } from "./journey-of-a-run";
+import {
+  homeRoadMode,
+  roughDuration,
+  standingState,
+  startersStand,
+  withPresences,
+  withTimings,
+} from "./journey-of-a-run";
 
 const base = {
   status: "open" as const,
@@ -30,6 +37,44 @@ describe("standingState", () => {
 
   test("a person's call outranks any hold", () => {
     expect(standingState({ ...base, needsYou: true, holdReason: "given-up" })).toBe("you");
+  });
+
+  test("a hold the driver marks as the person's, with nothing coming, is stopped and never held", () => {
+    /* Fourth review, 2026-09-09: the home painted these amber, the hue the
+       system defines as "stopped, and not on you", over a card that said
+       "Stopped" in orchid. The driver says whose it is; the road agrees. */
+    for (const reason of [
+      "given-up",
+      "station-cannot-finish",
+      "tools-refused",
+      "going-in-circles",
+    ]) {
+      expect(standingState({ ...base, holdReason: reason })).toBe("stopped");
+    }
+  });
+});
+
+describe("homeRoadMode and startersStand", () => {
+  const open = { status: "open" as const };
+  const done = { status: "done" as const };
+  const gone = { status: "abandoned" as const };
+
+  test("the promise is for the account that has never run; after that the road is a map", () => {
+    /* Fourth review, 2026-09-09: the morning after the only run finished,
+       the road reset to the first-visit promise under a Finished row. */
+    expect(homeRoadMode([])).toBe("promise");
+    expect(homeRoadMode([done])).toBe("map");
+    expect(homeRoadMode([open])).toBe("map");
+  });
+
+  test("the starter cards stand only on an answered, empty read with no bet", () => {
+    expect(startersStand(undefined, 0)).toBe(false);
+    expect(startersStand([], 0)).toBe(true);
+    expect(startersStand([], 2)).toBe(false);
+    expect(startersStand([open], 0)).toBe(false);
+    expect(startersStand([done], 0)).toBe(false);
+    /* An abandoned first try leaves the other two standing. */
+    expect(startersStand([gone], 0)).toBe(true);
   });
 });
 
@@ -62,6 +107,21 @@ describe("withPresences", () => {
 
   test("no seats leaves the map exactly as it was", () => {
     expect(withPresences(stations, [], colour)).toEqual(stations);
+  });
+
+  test("a quiet seat carries how long it has been quiet; a live seat carries nothing extra", () => {
+    /* Fourth review, 2026-09-09: the map's stop prints the strip's own
+       "quiet for N min" from this, so the two surfaces show one number. */
+    const out = withPresences(
+      stations,
+      [{ seat: "Ada", station: "sense", alive: false, quietMs: 42 * 60_000 }],
+      colour,
+    );
+    expect(out[0]!.presences).toEqual([
+      { seat: "Ada", colour: "--mrd-viz-3", alive: false, quietMs: 42 * 60_000 },
+    ]);
+    const live = withPresences(stations, [{ seat: "Ada", station: "sense", alive: true }], colour);
+    expect(live[0]!.presences).toEqual([{ seat: "Ada", colour: "--mrd-viz-3", alive: true }]);
   });
 });
 

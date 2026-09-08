@@ -6,7 +6,8 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { Receipt } from "@/components/meridian/Receipt";
 import { Row } from "@/components/meridian/rows";
-import { Action, Reading } from "@/components/meridian/surface-parts";
+import { Action, ReadFailedLine } from "@/components/meridian/surface-parts";
+import { SlowRead } from "@/components/shell/SlowRead";
 import { Composer } from "@/components/meridian/onramp-parts";
 import type { JourneyKey } from "@/components/meridian/Journey";
 import { ExampleJobs, type ExampleJob } from "@/components/start/ExampleJobs";
@@ -21,7 +22,15 @@ import { listRunningNow, readHome, readStationTimings } from "@/lib/spine/track.
 import { runningNowKey } from "@/lib/query-keys";
 import { HOME_STALE_MS, homeKey, seedHome } from "@/components/start/home-read";
 import { WhatWeAlreadyHold } from "@/components/spine/WhatWeAlreadyHold";
-import { journeyMap, withPresences, withTimings } from "@/components/start/journey-of-a-run";
+import {
+  homeRoadMode,
+  journeyMap,
+  startersStand,
+  withPresences,
+  withTimings,
+} from "@/components/start/journey-of-a-run";
+import { notTheWholeQueue } from "@/components/approvals/not-the-whole-queue";
+import { trackChangeKeys } from "@/hooks/use-track-change-push";
 import { failureLine } from "@/lib/error-copy";
 import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -272,7 +281,10 @@ function StartLanding() {
   });
   /* Only once the read has ANSWERED. */
   const firstRun = runs.data !== undefined && runs.data.length === 0;
-  const anyOpen = (runs.data ?? []).some((r) => r.status === "open");
+  /* The promise is for the account that has never started a run; once
+     anything has, the road is a map, even the morning after the only run
+     finished (fourth review, 2026-09-09). Null until the read answers. */
+  const roadMode = runs.data !== undefined ? homeRoadMode(runs.data) : null;
 
   /* P-14: the ranked bets' home is here. */
   const fBets = useServerFn(listTopOpportunities);
@@ -282,6 +294,10 @@ function StartLanding() {
       fBets({ data: { workspaceId: activeWorkspaceId ?? null } }),
     ),
     staleTime: 60_000,
+    /* Not before the id is known, as `timings` below: this fired the full
+       read against a null workspace and again on the id, every arrival
+       (fourth review, 2026-09-09). */
+    enabled: Boolean(activeWorkspaceId),
   });
 
   /* WHICH PRODUCT A SENTENCE MEANS (P-16b). */
@@ -316,6 +332,7 @@ function StartLanding() {
       fProductGoals({ data: { workspaceId: activeWorkspaceId ?? null } }),
     ),
     staleTime: 5 * 60_000,
+    enabled: Boolean(activeWorkspaceId),
   });
   const placeholder = useMemo(() => {
     const goals = productGoals.data ?? [];
@@ -332,6 +349,18 @@ function StartLanding() {
     if (!subject) return placeholderFor(null);
     return placeholderFor({ name: subject, northStar: chosen?.northStar ?? null });
   }, [productGoals.data, products, activeProductId, activeProduct, activeWorkspace]);
+  /*
+   * THE PLACEHOLDER LANDS ONCE. On every full-page arrival the focused box
+   * changed its sentence up to three times as the workspace, the product
+   * and the goal each landed, opening on the checkout example this file's
+   * own header retired (fourth review, 2026-09-09). The hero one slot up is
+   * held for exactly this reason; the box waits for its own subject, which
+   * is a few hundred ms, not the composite read. A person with no
+   * workspace has no subject to wait for, and a disabled query never
+   * settles, so they are not held.
+   */
+  const placeholderReady =
+    noWorkspace || (!workspaceLoading && (productGoals.isSuccess || productGoals.isError));
 
   const go = useMutation({
     mutationFn: async (job?: ExampleJob) => {
@@ -357,6 +386,20 @@ function StartLanding() {
           params: { trackId: res.track.id },
           search: { start: true },
         });
+      }
+    },
+    /* A THROW IS NOT PROOF NOTHING WAS FILED. This branch is reached only by
+       a transport failure or a middleware throw (a server-written refusal
+       comes back as `problems`), and `startTrackCore` inserts the row before
+       it answers, so a response lost after the insert leaves a real open
+       run behind a receipt that said otherwise, and the obvious next press
+       filed it twice (fourth review, 2026-09-09). The keys a track change
+       moves are refetched, the same list the socket uses, so the row shows
+       within the read rather than the ten-second poll. */
+    onError: () => {
+      if (!activeWorkspaceId) return;
+      for (const queryKey of trackChangeKeys(activeWorkspaceId)) {
+        void qc.invalidateQueries({ queryKey }, { cancelRefetch: false });
       }
     },
   });
@@ -401,6 +444,11 @@ function StartLanding() {
   const waitingShape = queueRead.isSuccess
     ? queueShape((queueRead.data?.items ?? []).map((i) => i.kindKey))
     : null;
+  /* The queue can answer SHORT with no client error: a family that failed
+     is dropped into `incomplete` and the rest is returned. The Inbox page
+     says so in one sentence; the hero carries the same one, so the two
+     surfaces never disagree about the same queue (fourth review, 2026-09-09). */
+  const queueShort = queueRead.isSuccess ? notTheWholeQueue(queueRead.data?.incomplete) : null;
 
   /*
    * THE HERO WAITS FOR ITS FACTS, NOT ONLY ITS NAME. Seen live 13:00 IST
@@ -464,7 +512,12 @@ function StartLanding() {
       withTimings(
         withPresences(
           journeyMap(runs.data ?? []),
-          workingSeats(running.data).map((s) => ({ ...s, alive: !quietFor(s, Date.now()) })),
+          /* The quiet length rides along so the map's stop prints the
+             strip's own "quiet for N min" (fourth review, 2026-09-09). */
+          workingSeats(running.data).map((s) => {
+            const quiet = quietFor(s, Date.now());
+            return { ...s, alive: !quiet, ...(quiet ? { quietMs: quiet } : {}) };
+          }),
           presenceColour,
         ),
         timings.data,
@@ -493,18 +546,40 @@ function StartLanding() {
           height and the words arrive once. */}
       <div className="min-h-[7.5rem]">
         {heroReady ? (
-          <Hero
-            copy={heroCopy({
-              product: activeProduct?.name ?? activeWorkspace?.name ?? null,
-              runs: runs.data,
-              waiting,
-              waitingShape,
-            })}
-          />
+          <>
+            <Hero
+              copy={heroCopy({
+                product: activeProduct?.name ?? activeWorkspace?.name ?? null,
+                runs: runs.data,
+                failed: runs.isError,
+                waiting,
+                waitingShape,
+                queueShort,
+              })}
+            />
+            {/* A REFUSED QUEUE READ IS SAID, NOT ROUNDED TO ZERO. The hero
+                above never claims nothing is waiting on a null; this line
+                says why it cannot, with the way out (fourth review,
+                2026-09-09). */}
+            {queueRead.isError ? (
+              <div className="mt-mrd-3">
+                <ReadFailedLine error={queueRead.error} onRetry={() => void queueRead.refetch()}>
+                  Cannot see what is waiting for you.
+                </ReadFailedLine>
+              </div>
+            ) : null}
+          </>
         ) : (
           /* A sentence, not a hole: the first paint said nothing for the
-             length of two reads (entry review, 2026-09-08). */
-          <Reading>Reading your workspace.</Reading>
+             length of two reads (entry review, 2026-09-08). It reads as
+             `Reading` for 2.5 s, then shows the figure, then offers a way
+             out past the stuck line: on a cold arrival this is the page's
+             largest read and a wedged request left the sentence up with
+             no control (fourth review, 2026-09-09). The retry re-runs the
+             composite, which seeds every key the hero waits on. */
+          <SlowRead onRetry={activeWorkspaceId ? () => void home.refetch() : undefined}>
+            Reading your workspace.
+          </SlowRead>
         )}
       </div>
 
@@ -516,7 +591,7 @@ function StartLanding() {
           onChange={setSentence}
           onSubmit={() => go.mutate(undefined)}
           busy={go.isPending}
-          placeholder={placeholder}
+          placeholder={placeholderReady ? placeholder : ""}
           label="Say what should change, and what it should do"
           fieldRef={fieldRef}
         />
@@ -541,11 +616,14 @@ function StartLanding() {
       {problems.length > 0 ? (
         <Receipt verb="Nothing was started" consequence={problems.join(" ")} failed />
       ) : null}
+      {/* Says only what the client knows: a throw here is a lost response,
+          and whether the insert ran is not known from this side (see
+          `onError` above). */}
       {go.isError ? (
         <Receipt
           verb="Nothing was started"
           consequence={failureLine(
-            "Your sentence is still in the box and nothing was filed.",
+            "Your sentence is still in the box. Nothing came back, so whether it was filed is not known yet; the runs refresh in a moment.",
             go.error as Error,
           )}
           failed
@@ -566,10 +644,10 @@ function StartLanding() {
 
       <CrewAtWork workspaceId={activeWorkspaceId ?? null} onOpen={openRun} />
 
-      {runs.data !== undefined ? (
+      {roadMode ? (
         <JourneyMap
-          mode={anyOpen ? "map" : "promise"}
-          stations={anyOpen ? map : promiseStations()}
+          mode={roadMode}
+          stations={roadMode === "map" ? map : promiseStations()}
           selected={station}
           onSelect={(key) => {
             setStation(key);
@@ -611,12 +689,16 @@ function StartLanding() {
       ) : null}
 
       {/*
-       * THE FIRST THREE RUNS, when there is nothing yet: no run open and no
-       * bet arrived. Written once from the product's name and the one line
-       * the person gave at the first run screen (Lane 3, listStarterRuns).
-       * The reading is shown while it happens; a press composes, Enter starts.
+       * THE FIRST THREE RUNS, when there is nothing yet: an ANSWERED runs
+       * read with nothing open and nothing finished, and no bet arrived
+       * (`startersStand`). A failed read drew these over a workspace with a
+       * year of runs, and the morning after the only run finished they came
+       * back above its Finished row (fourth review, 2026-09-09). Written once
+       * from the product's name and the one line the person gave at the
+       * first run screen (Lane 3, listStarterRuns). The reading is shown
+       * while it happens; a press composes, Enter starts.
        */}
-      {!anyOpen && !(bets.data && bets.data.length > 0) && activeProductId && activeProduct ? (
+      {startersStand(runs.data, bets.data?.length ?? 0) && activeProductId && activeProduct ? (
         <StarterRuns
           productId={activeProductId}
           productName={activeProduct.name}

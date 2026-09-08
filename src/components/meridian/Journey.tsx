@@ -33,6 +33,10 @@
  *              alive between transcript rows.
  *   you        a person is required here. Orchid. The only state that asks.
  *   held       stopped on a condition that is not a person. Amber.
+ *   stopped    the loop has quit and only a person restarts it. The you hue,
+ *              no breath: the driver marks these holds as the person's, and
+ *              the home used to paint them amber while the card under the
+ *              same row said "Stopped" in orchid (fourth review, 2026-09-09).
  *   waiting    standing here with nothing moving it. Neutral, and it is the
  *              most common state in the record (58 of 59 tracks stood
  *              somewhere with nobody driving), so it must never look like
@@ -55,7 +59,16 @@ import { formatElapsed } from "./run-rows";
 export type JourneyKey = AgentStation;
 
 export type JourneyState =
-  "pending" | "working" | "done" | "held" | "scheduled" | "waiting" | "you" | "failed" | "waived";
+  | "pending"
+  | "working"
+  | "done"
+  | "held"
+  | "stopped"
+  | "scheduled"
+  | "waiting"
+  | "you"
+  | "failed"
+  | "waived";
 
 export type JourneyStation = {
   key: JourneyKey;
@@ -78,7 +91,15 @@ export type JourneyStation = {
    * shows where the machine is, not only where the work stands. The
    * founder's standing goal, 2026-09-08: the work is visibly seen.
    */
-  presences?: ReadonlyArray<{ seat: string; colour: string; alive?: boolean }> | null;
+  presences?: ReadonlyArray<{
+    seat: string;
+    colour: string;
+    alive?: boolean;
+    /** How long the seat has been quiet, when it is (past the stall
+     *  threshold). The stop prints it in the strip's own words, so the road
+     *  and the strip say one number (fourth review, 2026-09-09). */
+    quietMs?: number;
+  }> | null;
 };
 
 /**
@@ -116,6 +137,7 @@ export const JOURNEY_STATE_WORD: Record<JourneyState, string> = {
   working: "working",
   done: "done",
   held: "stopped",
+  stopped: "stopped, needs a restart",
   scheduled: "waiting for its date",
   waiting: "standing here, nothing moving it",
   you: "needs you",
@@ -145,6 +167,9 @@ const PAINT: Record<JourneyState, Paint> = {
   working: { ring: "var(--mrd-agent)", ink: "var(--mrd-agent)", fill: "var(--mrd-agent-chip)" },
   you: { ring: "var(--mrd-you)", ink: "var(--mrd-you)", fill: "var(--mrd-you-chip)" },
   held: { ring: "var(--mrd-hold)", ink: "var(--mrd-hold)", fill: "var(--mrd-lift)" },
+  /* The you hue on the ring and the glyph, the lift fill: it is a person's
+     move, and nothing is alive inside it. No sixth status token. */
+  stopped: { ring: "var(--mrd-you)", ink: "var(--mrd-you)", fill: "var(--mrd-lift)" },
   scheduled: { ring: "var(--mrd-edge)", ink: "var(--mrd-mute)", fill: "var(--mrd-lift)" },
   waiting: { ring: "var(--mrd-edge)", ink: "var(--mrd-body)", fill: "var(--mrd-lift)" },
   failed: { ring: "var(--mrd-fail)", ink: "var(--mrd-fail)", fill: "var(--mrd-lift)" },
@@ -159,10 +184,34 @@ function paintOf(s: JourneyStation): Paint {
 }
 
 /** True of the states where the work is standing now. */
-const CURRENT = new Set<JourneyState>(["working", "you", "held", "scheduled", "waiting", "failed"]);
+const CURRENT = new Set<JourneyState>([
+  "working",
+  "you",
+  "held",
+  "stopped",
+  "scheduled",
+  "waiting",
+  "failed",
+]);
 
 function labelOf(s: JourneyStation): string {
   return s.label ?? AGENT_STATIONS[s.key].name;
+}
+
+/**
+ * Whether any seat inside a working station is still making calls. False
+ * only when every seat has gone quiet past the stall threshold
+ * (`presences[].alive === false`). One predicate for the breath, the clock
+ * and the dot: the clock kept ticking on a node whose breath and dot had
+ * stopped (fourth review, 2026-09-09).
+ */
+function seatsAlive(s: JourneyStation): boolean {
+  return !(s.presences?.length && s.presences.every((pr) => pr.alive === false));
+}
+
+/** The longest quiet among a station's seats, in ms; 0 when none is quiet. */
+function quietOf(s: JourneyStation): number {
+  return Math.max(0, ...(s.presences ?? []).map((pr) => pr.quietMs ?? 0));
 }
 
 function describe(s: JourneyStation, promise = false): string {
@@ -174,8 +223,16 @@ function describe(s: JourneyStation, promise = false): string {
   const bits = [`${labelOf(s)}: ${JOURNEY_STATE_WORD[s.state]}`];
   if (s.outcome) bits.push(s.outcome);
   if (s.count && s.count > 0) bits.push(`${s.count} here`);
-  if (s.presences && s.presences.length > 0)
-    bits.push(`${s.presences.map((p) => p.seat).join(" and ")} working here now`);
+  if (s.presences && s.presences.length > 0) {
+    const seats = s.presences.map((p) => p.seat).join(" and ");
+    /* A quiet seat is said as quiet, the strip's own words, not as working. */
+    const quiet = seatsAlive(s) ? 0 : quietOf(s);
+    bits.push(
+      quiet > 0
+        ? `${seats} here, quiet for ${Math.round(quiet / 60_000)} min`
+        : `${seats} working here now`,
+    );
+  }
   return bits.join(", ");
 }
 
@@ -217,9 +274,7 @@ function Node({
   const p = paintOf(station);
   /* A working station breathes unless the seat inside it has gone quiet
      past the stall threshold (presences[].alive === false). */
-  const working =
-    station.state === "working" &&
-    !(station.presences?.length && station.presences.every((pr) => pr.alive === false));
+  const working = station.state === "working" && seatsAlive(station);
   /*
    * ROW FORM PAINTS BY WEIGHT, NOT ONLY BY HUE. At six pixels a lift fill
    * and a transparent fill are the same grey, so the road behind the work
@@ -362,13 +417,22 @@ function Stop({
   selects: "pane" | "filter";
   promise: boolean;
 }) {
-  const clock = useClock(station.at, station.state === "working");
+  /* THE CLOCK STOPS WITH THE BREATH. It ticked on state alone, so a seat
+     quiet for 42 min read "42m 13s" under a still node while the strip
+     above said "quiet for 42 min" with no clock (fourth review, 2026-09-09).
+     A ticking clock is Meridian's own live-work signal; a quiet seat gets
+     the strip's words instead, on the strip's rounding. */
+  const alive = station.state === "working" && seatsAlive(station);
+  const clock = useClock(station.at, alive);
+  const quietMs = station.state === "working" && !alive ? quietOf(station) : 0;
+  const quietLine = quietMs > 0 ? `quiet for ${Math.round(quietMs / 60_000)} min` : null;
   const current = CURRENT.has(station.state);
   const p = paintOf(station);
   /* Both facts when both exist: the clock never wins over "usually about
      4 min here", which is the thing the clock is measured against. */
+  const head = clock ?? quietLine;
   const line =
-    clock && station.outcome ? `${clock} · ${station.outcome}` : (clock ?? station.outcome ?? null);
+    head && station.outcome ? `${head} · ${station.outcome}` : (head ?? station.outcome ?? null);
 
   /* ON A PHONE THE ROAD RUNS DOWN THE SCREEN. Seven stops across 390px put
      the last three off the right edge and made the home pan sideways (phone

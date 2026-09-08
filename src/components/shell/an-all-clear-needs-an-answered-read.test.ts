@@ -82,6 +82,29 @@ describe("the shell's live line", () => {
   });
 });
 
+describe("the home's hero", () => {
+  const SRC = read("../start/Hero.tsx");
+
+  it("earns its all-clear: a null queue count is unread, never zero", () => {
+    /* Fourth review, 2026-09-09: `input.waiting ?? 0` turned a refused or
+       unanswered queue read into "Nothing you started is waiting on you."
+       The guard is the null check, and it must come before the claim. */
+    const claimAt = SRC.indexOf("Nothing you started is waiting on you.");
+    expect(claimAt, "the all-clear sentence is gone; re-point this test").toBeGreaterThan(-1);
+
+    const unreadAt = SRC.indexOf("input.waiting == null");
+    expect(unreadAt, "the hero no longer tells an unread queue from an empty one").toBeGreaterThan(
+      -1,
+    );
+    expect(unreadAt).toBeLessThan(claimAt);
+
+    // The claim is drawn only when `unread` is false, on the branch the
+    // binding gates.
+    const tail = SRC.slice(unreadAt, claimAt);
+    expect(tail).toContain("unread");
+  });
+});
+
 describe("the relay strip", () => {
   const SRC = read("../agents/AgentRelay.tsx");
 

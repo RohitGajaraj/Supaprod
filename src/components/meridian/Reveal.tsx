@@ -128,7 +128,10 @@ export function Reveal({
           type="button"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="mt-mrd-2 rounded-mrd-xs text-mrd-label text-mrd-mute underline underline-offset-2 transition-colors hover:text-mrd-ink"
+          /* The 44px floor on a phone: the same bare text-button shape as
+             the home's abandoned fold, swept in the same pass (fourth
+             review, 2026-09-09). */
+          className="mt-mrd-2 rounded-mrd-xs max-md:min-h-11 text-mrd-label text-mrd-mute underline underline-offset-2 transition-colors hover:text-mrd-ink"
           style={{ transitionDuration: "var(--mrd-d-press)" }}
         >
           {open ? less : more}
