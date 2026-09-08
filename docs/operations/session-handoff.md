@@ -1381,7 +1381,16 @@ the home, 39 server-function calls on one `/start` load; credits print on the ro
 "Live since 12:28" holds. Last landing: `e8c062d27`, the run screen's transcript as one SQL call
 (`track_tool_calls`, migration `20260909100700`: args slimmed to the keys `toolCallFacts` reads, `found`
 counted in Postgres, 240 KB to 86 KB on 2fdf93b6, three hops to one; Lane 2 reads it when a build past
-it serves). Three migrations this evening, `20260909100500` to `100700`, all applied and ledgered. The guard for all of it is a fake client that counts rounds
+it serves). Then, after midnight (`212153b00`): the 170 KB / 5 s call Lane 2 had read as the transcript was
+`listMissions`, mounted on every page through `useLiveAgents` and the shell's mark stack (the build's
+resolver map names a server function from its 12-hex id: grep `.output/server/_ssr` for it); the two
+readers used eight fields of fifty missions' steps, runs and goals. `mission_marks` (migration
+`20260909100800`) answers those in one round trip, about 7 KB under RLS; `listMissionMarks` /
+`missionMarksKey` in the hook and `AppFrame`, `listMissions` kept for the Build board and the Ask pane.
+Four migrations this evening, `20260909100500` to `100800`, all applied and ledgered. Deployment
+f105b0dd (pressed 00:0x IST on `ede7f36be`) carries everything up to the transcript call; the marks
+read waits for the next press. Verify there: the run screen's largest server call should be ~13 KB,
+and no call over 2 s on a warm isolate. The guard for all of it is a fake client that counts rounds
 (`src/__tests__/a-wire-that-counts-rounds.ts`, driven by `a-queue-is-two-hops-deep` and
 `a-strip-read-is-three-hops-deep`); "every await outside a Promise.all" is what a person greps for and
 it was wrong twice, so the wire counts what the wire sees.
