@@ -36,6 +36,9 @@ export type WorkingSeat = {
   trackId: string | null;
   title: string;
   seat: string;
+  /** The catalog slug beside the name, so a reader can join a seat to a run's
+   *  worker without comparing a name to a slug (fourth review, 2026-09-09). */
+  slug: string | null;
   verb: string | null;
   /** What the seat's newest call is on, in the product's words or a file's
    *  own name: "the spec", "Address.tsx". Lane 3's objectLabel, 2026-09-08. */
@@ -89,6 +92,7 @@ export function workingSeats(rows: readonly RunningSeat[] | undefined): WorkingS
     trackId: r.trackId,
     title: r.title ?? "",
     seat: agentDisplayName(r.slug, null),
+    slug: r.slug ?? null,
     verb: r.now?.verb ?? null,
     objectLabel: r.now?.objectLabel ?? null,
     since: r.startedAt ?? null,

@@ -153,6 +153,14 @@ function Eyes({ state }: { state: CharacterState }) {
           <circle cx="15" cy="12" r="1.6" fill="currentColor" />
         </>
       );
+    case "quiet":
+      /* A seat that has stopped calling: level, dim, still (fourth review). */
+      return (
+        <>
+          <circle cx="9" cy="12" r="1.4" fill="currentColor" opacity="0.6" />
+          <circle cx="15" cy="12" r="1.4" fill="currentColor" opacity="0.6" />
+        </>
+      );
   }
 }
 

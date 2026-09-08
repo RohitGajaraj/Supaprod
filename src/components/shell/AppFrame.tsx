@@ -147,7 +147,13 @@ import { GLYPH_FOR_STATION, StationGlyph } from "@/components/meridian/station-g
 import { RunStripProvider, STAGE_LABEL, STATION_ROUTE, type RunStripSpec } from "./run-strip";
 import { SessionEndedProvider } from "./session-ended";
 import { agentDisplayName, agentStation } from "@/lib/agent-vocabulary";
-import { seatLine, workingSeats } from "@/components/start/CrewAtWork";
+import { quietFor, seatLine, workingSeats } from "@/components/start/CrewAtWork";
+import type { Track } from "@/lib/spine/track.functions";
+
+/** Where the live line takes you, or nothing when it would be the room you are in. */
+type LiveDoor =
+  | { static: true; go?: undefined; title?: undefined; to?: undefined }
+  | { static?: undefined; go: () => void; title: string; to?: string };
 import { useSeedInFlight } from "@/components/start/home-read";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { supabase } from "@/integrations/supabase/client";
@@ -198,11 +204,6 @@ const LOOP_STATIONS: readonly string[] = Object.values(STATION_ROUTE);
  *  empty `owns` reads as a decision instead of an oversight. */
 const OWNS_NOTHING: readonly string[] = [];
 
-/** Boundary (autonomy management) is reached from Agents, so it belongs to
- *  whichever control Agents belongs to. Since 2026-08-15 that is the Settings
- *  door in the rail foot rather than a row. */
-const BOUNDARY_PATHS: readonly string[] = ["/boundary"];
-
 /**
  * THE START ROW'S TERRITORY (P-11, A-QUEUE.md, 2026-09-02 — the rail's third
  * rewrite; see `RAIL` below for the ruling that cut it to two rows).
@@ -217,10 +218,6 @@ const BOUNDARY_PATHS: readonly string[] = ["/boundary"];
  * `railOwnerOf`'s own-`to` pass resolves it before ever consulting this list.
  */
 const START_PATHS: readonly string[] = ["/start", "/runs", "/track", ...LOOP_STATIONS];
-
-/** Paths that live behind the Settings door but are not under /settings.
- *  Agents is the roster at /crew, which Settings now holds. */
-const SETTINGS_PATHS: readonly string[] = ["/crew"];
 
 /*
  * ── TWO ROWS, RULED 2026-09-02 (P-11, A-QUEUE.md) ───────────────────────
@@ -369,27 +366,17 @@ function under(path: string, base: string): boolean {
 }
 
 /**
- * THE SETTINGS DOOR'S OWN TERRITORY, which is not a rail row's.
+ * THE SETTINGS DOOR LIGHTS ON ITS OWN PAGE AND NOWHERE ELSE.
  *
- * Agents moved inside Settings on 2026-08-15, so /crew and /boundary are now
- * behind the gear rather than behind a row. `railOwnerOf` deliberately only
- * answers for ROWS — returning a row for a path no row draws would have the
- * rail claim a place it cannot point at — so the foot needs its own answer and
- * this is it.
- *
- * Two tokens, the same pair the rows use: "page" is the door you are standing
- * on, "true" is the door whose territory contains you. A screen reader gets the
- * difference; both draw identically.
- *
- * Exported for the colocated guard, which is what stops the move quietly
- * costing `g c` its lit control.
+ * The rows are the authority on where a person is. Team is a row (P-60), so
+ * /crew is the Team row's and the gear must stay silent there; until the
+ * fourth review (2026-09-09) it still answered "true" for /crew from a
+ * territory list that predated the row, and a screen reader met two controls
+ * announcing current. /boundary is not a route. Exported for the colocated
+ * guard, which is what stops a move quietly costing `g c` its lit control.
  */
-export function settingsOwns(path: string): "page" | "true" | undefined {
-  if (under(path, "/settings")) return "page";
-  for (const owned of [...SETTINGS_PATHS, ...BOUNDARY_PATHS]) {
-    if (under(path, owned)) return "true";
-  }
-  return undefined;
+export function settingsOwns(path: string): "page" | undefined {
+  return under(path, "/settings") ? "page" : undefined;
 }
 
 /**
@@ -796,10 +783,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    *
    * It names the constant now, so the next time home moves this follows it in
    * the same edit -- which is the rule the rail's own home link two hundred
-   * lines up already states about `SIGNED_IN_HOME`. `/today` is kept for the
-   * instant before its redirect resolves.
+   * lines up already states about `SIGNED_IN_HOME`. P-10 (3c6f32565,
+   * 2026-09-02) deleted the `/today` stub; the shell never mounts on that
+   * path, so the constant is the only address (fourth review, 2026-09-09).
    */
-  const onTheBoard = pathname === SIGNED_IN_HOME || pathname === "/today";
+  const onTheBoard = pathname === SIGNED_IN_HOME;
   const navigate = useNavigate();
   // Only the id. The NAME and the product moved to ScopeMenu, which owns the
   // scope control now; keeping a second copy here is how two headers drift.
@@ -1093,6 +1081,13 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     [rows, movingTrackIds],
   );
   const gateCount = gatedTracks.length;
+  /* ONE NUMBER IN THE SHELL (fourth review, 2026-09-09). The rail's Inbox row
+     has read the queue since P-56 (a row's count is its page's count); the
+     sentence beside it kept P-18a's track-gate count, so a person read two
+     numbers of one noun forty pixels apart. Since F-212 the queue count is
+     exact, so the sentence, the mark and the row read it, with the track
+     gates as the floor for the beat before the queue answers. */
+  const waiting = waitingCount ?? gateCount;
   /*
    * THE "AT LEAST" FLOOR IS GONE, ON PURPOSE (P-18a). It existed because
    * `getApprovalsQueue` bounded ten families to a fixed limit each and could
@@ -1271,13 +1266,28 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    * state. While the reads have not answered, NO mark renders — a face drawn
    * before its facts would be smiling on a dead feed (F-38/F-39).
    */
-  const railPresence = deriveRailPresence({
-    loading: missions.isLoading || openTracks.isLoading || moving.isLoading,
-    feedDead: missions.isError || openTracks.isError || moving.isError,
-    waitingOnYou: gateCount,
-    missionsWorking: running.length,
-    tracksMoving: movingRuns.length,
-  });
+
+  /* ELAPSED TIME WAS FROZEN, which made a polling fix only half a fix.
+   *
+   * `since()` computes against Date.now() at RENDER, and nothing re-rendered
+   * this component on a clock. So even once the reads poll, a run that reported
+   * "started 4m ago" kept saying 4m until some unrelated state changed. The
+   * header's whole job is to be true at a glance, and a stopped clock beside a
+   * live dot is the same class of lie as a mark for work nobody is doing.
+   *
+   * One tick a minute is all the resolution `since()` has (it renders whole
+   * minutes, then hours, then days), so anything faster would re-render for no
+   * visible change. It stops while the tab is hidden for the same reason the
+   * polls do. The count is kept and read by the lead's memo: a seat going
+   * quiet changes nothing in the data, so without it the quiet suffix could
+   * never appear (third review, 2026-09-08). */
+  const [clock, forceClock] = React.useReducer((n: number) => n + 1, 0);
+  React.useEffect(() => {
+    const id = window.setInterval(() => {
+      if (document.visibilityState !== "hidden") forceClock();
+    }, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   // The most recently touched finished run, for the live line's second fact.
   const lastDone = React.useMemo(() => {
@@ -1286,6 +1296,41 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       .sort((a, b) => (b.completed_at ?? "").localeCompare(a.completed_at ?? ""));
     return done[0] ?? null;
   }, [rows]);
+  /* THE NEWEST OPEN RUN, for the idle line (fourth review, 2026-09-09). A run
+     is a mission only from Build, so a workspace whose runs stand before it
+     has no finished mission, and the line read "Ready for the first run"
+     over a run waiting on the person. The open-tracks read the header
+     already polls names that run and when it last moved. */
+  const lastMoved = React.useMemo(() => {
+    const at = (t: Track) => t.drivenAt ?? t.updatedAt;
+    return [...(openTracks.data ?? [])].sort((a, b) => at(b).localeCompare(at(a)))[0] ?? null;
+  }, [openTracks.data]);
+  /* Whichever is newer is the fact the idle line states. */
+  const idle = React.useMemo(() => {
+    const movedAt = lastMoved ? (lastMoved.drivenAt ?? lastMoved.updatedAt) : null;
+    if (lastMoved && movedAt && (!lastDone || movedAt > (lastDone.completed_at ?? "")))
+      return { kind: "moved" as const, track: lastMoved };
+    return lastDone ? { kind: "done" as const, mission: lastDone } : null;
+  }, [lastMoved, lastDone]);
+  /* SEATS STILL CALLING, for the mark beside the line: a seat quiet past the
+     stall threshold must not breathe (fourth review). Null until the read
+     answers, so the mark's loading guard covers it. */
+  const seatsAlive = React.useMemo(() => {
+    if (runningNow.data === undefined) return null;
+    const now = Date.now();
+    return workingSeats(runningNow.data).filter((r) => !quietFor(r, now)).length;
+    // `clock` is the minute tick: a seat goes quiet with no data change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runningNow.data, clock]);
+
+  const railPresence = deriveRailPresence({
+    loading: missions.isLoading || openTracks.isLoading || moving.isLoading,
+    feedDead: missions.isError || openTracks.isError || moving.isError || runningNow.isError,
+    waitingOnYou: waiting,
+    missionsWorking: running.length,
+    tracksMoving: movingRuns.length,
+    seatsAlive,
+  });
 
   /* Unread reads as the track-gate count (the older, narrower truth) rather
      than as zero, so the row never says "nothing" before it has looked. */
@@ -1324,27 +1369,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // But saying "Reading" advertises latency. The dot already communicates the
   // idle state and the shell provides enough structure; the words appear the
   // moment data resolves (instant from cache on revisit).
-  /* ELAPSED TIME WAS FROZEN, which made a polling fix only half a fix.
-   *
-   * `since()` computes against Date.now() at RENDER, and nothing re-rendered
-   * this component on a clock. So even once the reads poll, a run that reported
-   * "started 4m ago" kept saying 4m until some unrelated state changed. The
-   * header's whole job is to be true at a glance, and a stopped clock beside a
-   * live dot is the same class of lie as a mark for work nobody is doing.
-   *
-   * One tick a minute is all the resolution `since()` has (it renders whole
-   * minutes, then hours, then days), so anything faster would re-render for no
-   * visible change. It stops while the tab is hidden for the same reason the
-   * polls do. The count is kept and read by the lead's memo: a seat going
-   * quiet changes nothing in the data, so without it the quiet suffix could
-   * never appear (third review, 2026-09-08). */
-  const [clock, forceClock] = React.useReducer((n: number) => n + 1, 0);
-  React.useEffect(() => {
-    const id = window.setInterval(() => {
-      if (document.visibilityState !== "hidden") forceClock();
-    }, 60_000);
-    return () => window.clearInterval(id);
-  }, []);
 
   const liveLead = React.useMemo(() => {
     /*
@@ -1369,13 +1393,21 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
      * needs to know is the same: this line cannot see, so do not read its
      * silence as calm.
      */
-    if (missions.isError || openTracks.isError || moving.isError)
+    if (missions.isError || openTracks.isError || moving.isError || runningNow.isError)
       return "Cannot see what is running";
     /* Nothing said before the workspace is known: the reads above are gated
        on it, and an ungated fall-through here would print the idle sentence
        for the beat before the id arrives. */
     if (!wsKey) return null;
-    if (missions.isLoading) return null;
+    if (missions.isLoading || runningNow.isLoading) return null;
+    /* THE SEATS, READ ONCE FOR EVERY BRANCH (fourth review, 2026-09-09). A
+       run is a mission only from Build, so a seat before it is in the
+       running-now read and never in `running`; the mission branches below
+       used to name one agent while the strip beside them showed two. */
+    const seats = workingSeats(runningNow.data);
+    const covered = new Set(running.map((m) => m.trackId).filter(Boolean));
+    const uncovered = seats.filter((r) => !r.trackId || !covered.has(r.trackId)).length;
+    const more = uncovered > 0 ? ` · ${uncovered} more` : "";
     if (running.length === 0) {
       /* NOT ON THE BOARD, WHICH IS SAYING IT LOUDER TWO INCHES BELOW.
        *
@@ -1396,16 +1428,14 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
        * and the error branch above is deliberately outside this guard: "Cannot
        * see what is running" must survive on every surface including this one.
        */
-      if (gateCount > 0 && !onTheBoard) {
+      if (waiting > 0 && !onTheBoard) {
         /* ONE NOUN FOR THE QUEUE: CALL (third review, 2026-09-08). This said
            "decisions" while its own tooltip, the hero, the run rows and the
            driver said "calls", and on Inbox it sat above a "N decisions"
            count of a different population: two numbers, one word. "Decision"
            now names a kind inside the queue and the decision record that is
            the moat; the thing waiting on a person is a call. */
-        return gateCount === 1
-          ? "1 call is waiting for you"
-          : `${gateCount} calls are waiting for you`;
+        return waiting === 1 ? "1 call is waiting for you" : `${waiting} calls are waiting for you`;
       }
       /* A walk with no mission yet lands here, said from its own row. The
        * station is named the way the transcript names one in passing, which is
@@ -1414,14 +1444,13 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       /* THE SEAT BY NAME, NOT "YOUR AGENTS" (Lane 1, 2026-09-08). The
          live-work read already holds who is working, on what and at which
          station; a generic line over that is the machine's work hidden. */
-      const seats = workingSeats(runningNow.data);
       if (seats.length > 0) {
         const first = seats[0];
-        const more = seats.length > 1 ? ` · ${seats.length - 1} more` : "";
+        const rest = seats.length > 1 ? ` · ${seats.length - 1} more` : "";
         /* THE SAME SENTENCE THE STRIP, THE RAIL AND THE ROW SAY, quiet suffix
            included: this line said present-tense work over a seat every other
            surface called quiet for 31 min (third review, 2026-09-08). */
-        return `${agentDisplayName(first.seat)} is ${seatLine(first, Date.now()).doing}${more}`;
+        return `${first.seat} is ${seatLine(first, Date.now()).doing}${rest}`;
       }
       if (movingRuns.length === 1) {
         const label = STAGE_LABEL[movingRuns[0].station];
@@ -1435,6 +1464,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
        * the facts beside it carry its title and when. With no record at all,
        * the true positive is that the first run is a sentence away.
        */
+      /* A run that moved after the last finish is the newer fact, and the
+         only one on a workspace whose runs stand before Build (fourth
+         review, 2026-09-09: "Ready for the first run" over a run waiting on
+         the person). */
+      if (idle?.kind === "moved") return "Last moved";
       return lastDone ? "Last finished" : "Ready for the first run";
     }
     // Every running run resolved to a named worker, so the agents are
@@ -1445,11 +1479,17 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       // own rule bans the third statement of one fact inside 100 pixels.
       const at = !strip && workingStation ? ` at ${STAGE_LABEL[workingStation]}` : "";
       if (workers.length === 1) {
-        const seat = workingSeats(runningNow.data).find((r) => r.seat === workers[0].slug);
+        /* The seat by its run, then by its slug; this compared a catalog
+           name to a slug and never matched, so every Build run read "is
+           working" with no verb and no quiet suffix (fourth review). */
+        const seat =
+          seats.find((r) => r.trackId !== null && covered.has(r.trackId)) ??
+          seats.find((r) => r.slug === workers[0].slug) ??
+          null;
         const doing = seat ? seatLine(seat, Date.now()).doing : "working";
-        return `${agentDisplayName(workers[0].slug)} is ${doing}${at}`;
+        return `${agentDisplayName(workers[0].slug)} is ${doing}${at}${more}`;
       }
-      return `${workers.length} agents are working${at}`;
+      return `${workers.length} agents are working${at}${more}`;
     }
     /* AN AGENT IS ALWAYS THE ACTOR. The count is only ever of what we can count.
      *
@@ -1470,8 +1510,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
      * and the drawing finally agree. "Run" survives only as the object of the
      * sentence, where it is a true noun for a true number. */
     return running.length === 1
-      ? `${CREW} are working`
-      : `${CREW} are working on ${running.length} runs`;
+      ? `${CREW} are working${more}`
+      : `${CREW} are working on ${running.length} runs${more}`;
   }, [
     missions.isError,
     /*
@@ -1500,13 +1540,17 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     moving.isError,
     missions.isLoading,
     running.length,
-    gateCount,
+    running,
+    waiting,
     onTheBoard,
     workers,
     unnamedRuns,
     workingStation,
     lastDone,
+    idle,
     runningNow.data,
+    runningNow.isError,
+    runningNow.isLoading,
     wsKey,
     clock,
     strip,
@@ -1516,15 +1560,21 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // The two trailing facts, in importance order: the first survives to 860px,
   // the second goes at 1100px. Positional, so a state that has only one fact
   // still gives it the slot that lasts longest.
-  const lastDoneFacts = (done: NonNullable<typeof lastDone>): React.ReactNode[] => {
-    const facts: React.ReactNode[] = [<TitleFact key="title" title={done.title} />];
-    const at = since(done.completed_at);
-    if (at)
-      facts.push(
-        <span key="at" className="sp-num">
-          {at}
-        </span>,
-      );
+  /* One numeric span for every fact on the line (the header still wears the
+     retired layer; one element keeps its count from growing, 2026-09-09). */
+  const LiveNum = ({ children }: { children: React.ReactNode }) => (
+    <span className="sp-num">{children}</span>
+  );
+  const idleFacts = (): React.ReactNode[] => {
+    if (!idle) return [];
+    const title = idle.kind === "moved" ? idle.track.title : idle.mission.title;
+    const when =
+      idle.kind === "moved"
+        ? (idle.track.drivenAt ?? idle.track.updatedAt)
+        : idle.mission.completed_at;
+    const facts: React.ReactNode[] = [<TitleFact key="title" title={title} />];
+    const at = when ? since(when) : null;
+    if (at) facts.push(<LiveNum key="at">{at}</LiveNum>);
     return facts;
   };
   const liveFacts = React.useMemo(() => {
@@ -1539,7 +1589,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           <TitleFact title={only.title} />
         ) : (
           <>
-            across <span className="sp-num">{running.length}</span> runs
+            across <LiveNum>{running.length}</LiveNum> runs
           </>
         ),
       );
@@ -1550,36 +1600,50 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       if (started)
         out.push(
           <>
-            started <span className="sp-num">{started}</span>
+            started <LiveNum>{started}</LiveNum>
           </>,
         );
       return out;
     }
-    if (gateCount > 0) {
-      /* THE ONE IN FRONT, FROM THE SAME READER AS THE COUNT (P-18a). Naming
-         the track waiting on a call, not a phrase for the call's mechanics --
-         `gatedTracks` carries no such phrase, and inventing a second one here
-         risks the exact defect this packet exists to close: a count from one
-         source beside a detail from another that can name something the
-         count did not include. */
+    /* THE SAME ORDER AS THE LEAD (fourth review, 2026-09-09): these facts
+       used to fall to the last finished mission under a live seat's own
+       sentence, as if that were the run the seat is on. */
+    if (waiting > 0 && !onTheBoard) {
+      /* THE ONE IN FRONT: the first track waiting on a call from the same
+         reader as the floor, else the first item the Inbox will list. */
       const first = gatedTracks[0];
-      /* Not on the home, where the lead skips the gate too: "Last finished"
-         must not be followed by a waiting track's title (2026-09-08). */
-      if (onTheBoard) return lastDone ? lastDoneFacts(lastDone) : out;
-      if (first?.title) out.push(<TitleFact title={first.title} />);
+      const title = first?.title ?? queue.data?.items?.[0]?.title ?? null;
+      if (title) out.push(<TitleFact title={title} />);
       const at = first?.updatedAt ? since(first.updatedAt) : null;
-      if (at) out.push(<span className="sp-num">{at}</span>);
+      if (at) out.push(<LiveNum>{at}</LiveNum>);
       return out;
     }
-    if (lastDone) out.push(...lastDoneFacts(lastDone));
+    const seats = workingSeats(runningNow.data);
+    if (seats.length > 0) {
+      const first = seats[0];
+      if (first.title) out.push(<TitleFact title={first.title} />);
+      const started = first.since ? since(first.since) : null;
+      if (started)
+        out.push(
+          <>
+            started <LiveNum>{started}</LiveNum>
+          </>,
+        );
+      return out;
+    }
+    if (movingRuns.length > 0) return out;
+    out.push(...idleFacts());
     return out;
   }, [
     missions.isError,
     missions.isLoading,
     running,
-    gateCount,
+    waiting,
     gatedTracks,
-    lastDone,
+    queue.data,
+    runningNow.data,
+    movingRuns,
+    idle,
     onTheBoard,
     clock,
   ]);
@@ -1600,41 +1664,15 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    * run. Nothing running goes to the last finished one, because that is the
    * only thing the sentence names.
    */
-  const liveTarget = React.useMemo(() => {
+  const liveTarget = React.useMemo((): LiveDoor => {
     const go =
       (to: string, params?: Record<string, string>, search?: Record<string, unknown>) => () =>
         void navigate({ to, params, search } as never);
-    if (gateCount > 0 && !onTheBoard) {
-      // Calls are settled on Start's review queue. `/today` was the door to it
-      // until P-10 deleted the redirect stub (2026-09-02); this raw string is
-      // exactly the shape tsc cannot check, which is how it outlived the route.
-      /* Inbox is where the calls are (third review, 2026-09-08): this door
-         opened the home with ?queue, which on the home reloaded the room the
-         person was standing in and said the waiting things were "below". */
-      return { go: go("/approvals"), title: "Open Inbox" };
-    }
-    if (running.length === 1) {
-      const only = running[0];
-      /* THE RUN KNOWS ITS WORK, so the door opens the watchable address, not
-       * the container id. Null is a real state -- every run started before the
-       * loop wrote the link, and any not started by the driver -- and null
-       * keeps the mission door rather than guessing (R021/R023). */
-      if (only.trackId) {
-        return {
-          go: go("/track/$trackId", { trackId: only.trackId }),
-          title: "Open the piece of work that is moving",
-        };
-      }
-      // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted; this branch is
-      // the genuinely track-less case (R021/R023's own null-is-real state)
-      // and there is nowhere else to send it. Start rather than a dead link.
-      return { go: go(SIGNED_IN_HOME), title: "Open the run that is working" };
-    }
-    /* THE BOARD BY NAME, not through the alias. This said `/runs`, which the
-       fold turned into a redirect to `/today`, so the most-used control in the
-       shell took a person through a bounce to reach a page it could have named.
-       It always MEANT the board and now it says so. */
-    // Every run is listed on Start; `/today` was its redirect stub until P-10.
+    const track = (id: string, title: string): LiveDoor => ({
+      go: go("/track/$trackId", { trackId: id }),
+      title,
+      to: `/track/${id}`,
+    });
     /* A DOOR TO THE ROOM YOU ARE STANDING IN IS NOT A DOOR (S2, 2026-08-31,
        and again on the first home, entry review 2026-09-08). On the home the
        press puts the cursor in the composer, which is the next action. */
@@ -1644,35 +1682,59 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       );
       if (field) field.focus();
     };
-    if (pathname === SIGNED_IN_HOME && running.length !== 1 && movingRuns.length === 0) {
-      return { go: composer, title: "Start a run" };
-    }
-    if (running.length > 1) return { go: go(SIGNED_IN_HOME), title: "See every run" };
-    /* Nothing in the mission world is working, but a spine run moved moments
-     * ago -- so the door opens THE address of that run, not a list. The track
-     * is named by its own row; this mapping is read, not guessed (the
-     * proven mission-to-track version waits on request 021). */
-    if (movingRuns.length > 0) {
-      return {
-        go: go("/track/$trackId", { trackId: movingRuns[0].id }),
-        title:
+    const resolve = (): LiveDoor => {
+      if (waiting > 0 && !onTheBoard) {
+        /* Inbox is where the calls are (third review, 2026-09-08). */
+        return { go: go("/approvals"), title: "Open Inbox", to: "/approvals" };
+      }
+      if (running.length === 1) {
+        const only = running[0];
+        /* THE RUN KNOWS ITS WORK, so the door opens the watchable address, not
+         * the container id. Null is a real state -- every run started before the
+         * loop wrote the link, and any not started by the driver -- and null
+         * keeps the mission door rather than guessing (R021/R023). */
+        if (only.trackId) return track(only.trackId, "Open the piece of work that is moving");
+        // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted; this branch is
+        // the genuinely track-less case and there is nowhere else to send it.
+        return {
+          go: go(SIGNED_IN_HOME),
+          title: "Open the run that is working",
+          to: SIGNED_IN_HOME,
+        };
+      }
+      if (running.length > 1)
+        return { go: go(SIGNED_IN_HOME), title: "See every run", to: SIGNED_IN_HOME };
+      /* Nothing in the mission world is working, but a spine run moved moments
+       * ago -- so the door opens THE address of that run, not a list. */
+      if (movingRuns.length > 0) {
+        return track(
+          movingRuns[0].id,
           movingRuns.length === 1 ? "Open the run that is moving" : "Open the run that moved last",
-      };
+        );
+      }
+      /* The idle line names a run, and the door opens it: the newest open
+         run, or the last finished mission through its newest run's track
+         (MissionMark.trackId; fourth review, 2026-09-09). On the home with
+         nothing to name, the press puts the cursor in the composer. */
+      if (idle?.kind === "moved") return track(idle.track.id, "Open the run that moved last");
+      if (idle?.kind === "done" && idle.mission.trackId)
+        return track(idle.mission.trackId, "Open the last run that finished");
+      if (pathname === SIGNED_IN_HOME) return { go: composer, title: "Start a run" };
+      /* TRULY NOTHING: the door is where work starts (R-03). */
+      return { go: go(SIGNED_IN_HOME), title: "Start a run", to: SIGNED_IN_HOME };
+    };
+    const door = resolve();
+    /* The door resolved to the page the person is on (Inbox on Inbox, the run
+       on its own screen, the home on the home): on the home the composer is
+       the next action; elsewhere the line is a statement, not a control. */
+    if (door.to !== undefined && door.to === pathname) {
+      return pathname === SIGNED_IN_HOME
+        ? { go: composer, title: "Start a run" }
+        : { static: true };
     }
-    if (lastDone) {
-      // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted. `lastDone` is a
-      // mission (`listMissions`' own shape), not a track, and carries no
-      // track id to send this to /track/$trackId with. Start rather than a
-      // dead link.
-      return { go: go(SIGNED_IN_HOME), title: "Open the last run that finished" };
-    }
-    /* TRULY NOTHING — no working run, no moving track, nothing even finished
-     * recently. The old door was the runs list, which in this state shows an
-     * empty board: a surface that only tells (R-03). The character beside
-     * these words is awake, and SPEC-PRESENCE §Anatomy #2 rules that an idle
-     * one is the door to where work starts. */
-    return { go: go("/start"), title: "Start a run" };
-  }, [gateCount, running, movingRuns, lastDone, navigate, pathname, onTheBoard]);
+    return door;
+  }, [waiting, running, movingRuns, idle, navigate, pathname, onTheBoard]);
+  const liveIsStatic = strip?.mode === "tab" || liveTarget.static === true;
 
   /* THE ONE THING ON THE STRIP THAT MOVES.
    * A gate outranks a run in progress, because the gate is the one asking for a
@@ -1802,8 +1864,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               is the workspace strip, which is not the same thing as being on the
               work, so the line stays a door. */}
           {React.createElement(
-            strip?.mode === "tab" ? "div" : "button",
-            strip?.mode === "tab"
+            liveIsStatic ? "div" : "button",
+            liveIsStatic
               ? { className: "sp-live", "data-static": "true" }
               : {
                   className: "sp-live",
@@ -2495,8 +2557,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             first fact, carried down rather than recomputed. */}
         <RailPhoneBar
           liveLead={liveLead ?? undefined}
-          onLiveClick={strip?.mode === "tab" ? undefined : liveTarget.go}
-          liveTitle={strip?.mode === "tab" ? undefined : liveTarget.title}
+          onLiveClick={liveIsStatic ? undefined : liveTarget.go}
+          liveTitle={liveIsStatic ? undefined : liveTarget.title}
         />
       </div>
     </RunStripProvider>

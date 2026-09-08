@@ -26,8 +26,12 @@ export interface RailPresenceInput {
   waitingOnYou: number;
   /** Mission runs with a worker on them right now (`WORKING.has(status)`). */
   missionsWorking: number;
-  /** Spine tracks driven inside the freshness window (`driven_at` < 5 min). */
+  /** Spine tracks with a run in `agent_runs.status IN (running, queued, in_progress)`. */
   tracksMoving: number;
+  /** Seats from the running-now read whose last call is inside the stall
+   *  threshold; null while that read has not answered. A seat that has
+   *  stopped calling must not be drawn breathing (fourth review, 2026-09-09). */
+  seatsAlive?: number | null;
 }
 
 /**
@@ -39,6 +43,7 @@ export function deriveRailPresence(input: RailPresenceInput): CharacterState {
   // while loading, but the derivation refuses to hand it one regardless.
   if (input.loading || input.feedDead) return "out-of-touch";
   if (input.waitingOnYou > 0) return "asking";
-  if (input.missionsWorking > 0 || input.tracksMoving > 0) return "working";
+  if (input.missionsWorking > 0 || input.tracksMoving > 0)
+    return input.seatsAlive === 0 ? "quiet" : "working";
   return "awake";
 }

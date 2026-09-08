@@ -28,7 +28,7 @@ const SRC = readFileSync("src/components/shell/AppFrame.tsx", "utf8");
 
 describe("the live line on the board", () => {
   it("suppresses the gate sentence where the board already states it", () => {
-    expect(SRC).toContain("if (gateCount > 0 && !onTheBoard) {");
+    expect(SRC).toContain("if (waiting > 0 && !onTheBoard) {");
   });
 
   /*
@@ -76,7 +76,7 @@ describe("the live line on the board", () => {
     // a failed read is read as calm, which is the false all-clear this whole
     // lane exists to prevent.
     const errAt = SRC.indexOf('return "Cannot see what is running"');
-    const guardAt = SRC.indexOf("if (gateCount > 0 && !onTheBoard)");
+    const guardAt = SRC.indexOf("if (waiting > 0 && !onTheBoard)");
     expect(errAt).toBeGreaterThan(-1);
     expect(guardAt).toBeGreaterThan(errAt);
   });

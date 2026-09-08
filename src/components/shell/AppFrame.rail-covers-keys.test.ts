@@ -296,11 +296,12 @@ describe("the rail's ownership is derived, and unambiguous", () => {
   });
 
   describe("the Settings door speaks for what moved behind it", () => {
-    it("lights itself on its own page and on the territory it holds", () => {
+    it("lights itself on its own page and nowhere else", () => {
       expect(settingsOwns("/settings")).toBe("page");
       expect(settingsOwns("/settings/anything")).toBe("page");
-      expect(settingsOwns("/crew")).toBe("true");
-      expect(settingsOwns("/boundary")).toBe("true");
+      // Team is a row (P-60); on it the gear is silent, or a screen reader
+      // meets two controls announcing current (fourth review, 2026-09-09).
+      expect(settingsOwns("/crew")).toBeUndefined();
     });
 
     it("claims nothing it does not hold", () => {
