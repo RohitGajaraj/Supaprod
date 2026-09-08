@@ -37,6 +37,20 @@ export function approvalsQueueKey(workspaceId: string | null | undefined) {
   return ["approvals-queue", workspaceId ?? null] as const;
 }
 
+/**
+ * Every seat working in the workspace this second. `listRunningNow`.
+ *
+ * ONE KEY FOR THE LIVE WORK, because the shell's line, the home's "working
+ * now" strip and the run screen all draw the same seats, and the founder's
+ * standard is that the machine's work is seen the same everywhere. A second
+ * key would be a second cache that can lag the first, which is how the header
+ * said "Nothing running" over a working seat (P-127). `useRunningNowPush`
+ * invalidates exactly this key when `agent_runs` changes.
+ */
+export function runningNowKey(workspaceId: string | null | undefined) {
+  return ["running-now", workspaceId ?? null] as const;
+}
+
 /** The workspace's missions, as the shell and Today both read them. `listMissions`. */
 export function missionsKey(workspaceId: string | null | undefined) {
   return ["missions-list", workspaceId ?? null] as const;

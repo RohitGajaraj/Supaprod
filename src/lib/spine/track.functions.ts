@@ -83,7 +83,13 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { TERMINAL_HOLDS } from "./correction";
 import { HOLD_LINE } from "./driver";
-import { RUNNING_NOW, type RunningSeat } from "@/lib/spine/what-is-running";
+import {
+  RUNNING_NOW,
+  nowPerTrace,
+  type NowCallRow,
+  type RunningNow,
+  type RunningSeat,
+} from "@/lib/spine/what-is-running";
 import {
   countLines,
   type ChangedFile,
@@ -714,7 +720,7 @@ export const listRunningNow = createServerFn({ method: "GET" })
     try {
       const { data: rows, error } = await supabase
         .from("agent_runs")
-        .select("id,agent_slug,track_id,mission_id,created_at")
+        .select("id,agent_slug,track_id,mission_id,created_at,trace_id")
         .eq("workspace_id", workspaceId)
         .in("status", [...RUNNING_NOW])
         .order("created_at", { ascending: false })
@@ -734,8 +740,34 @@ export const listRunningNow = createServerFn({ method: "GET" })
         track_id: string | null;
         mission_id: string | null;
         created_at: string | null;
+        trace_id: string | null;
       }>;
       if (runs.length === 0) return [];
+
+      /*
+       * WHAT EACH SEAT IS DOING THIS SECOND. The seat's own tool calls, keyed
+       * by the run's trace, workspace-scoped, newest first and bounded the
+       * way `getWorkspaceAnchors` bounds the same read. A seat with no trace
+       * yet, or whose calls could not be read, gets `now: null` rather than a
+       * guess; the read's failure is logged, not surfaced as "doing nothing",
+       * because the seat IS running whatever this second query says.
+       */
+      const traceIds = [...new Set(runs.map((r) => r.trace_id).filter((t): t is string => !!t))];
+      let nowByTrace = new Map<string, RunningNow>();
+      if (traceIds.length > 0) {
+        const { data: calls, error: callsErr } = await supabase
+          .from("tool_calls")
+          .select("trace_id,tool_name,args,created_at")
+          .eq("workspace_id", workspaceId)
+          .in("trace_id", traceIds)
+          .order("created_at", { ascending: false })
+          .limit(400);
+        if (callsErr) {
+          console.error(`[listRunningNow] tool calls could not be read: ${callsErr.message}`);
+        } else {
+          nowByTrace = nowPerTrace((calls ?? []) as NowCallRow[]);
+        }
+      }
 
       const trackIds = [...new Set(runs.map((r) => r.track_id).filter((t): t is string => !!t))];
       const byTrack = new Map<string, { station: string | null; title: string | null }>();
@@ -825,6 +857,7 @@ export const listRunningNow = createServerFn({ method: "GET" })
           missionId: r.mission_id,
           subGoal: m?.subGoal ?? null,
           startedAt: r.created_at,
+          now: r.trace_id ? (nowByTrace.get(r.trace_id) ?? null) : null,
         };
       });
     } catch (e) {

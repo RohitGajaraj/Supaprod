@@ -12,9 +12,11 @@ import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import {
   isRunningNow,
+  nowPerTrace,
   RUNNING_NOW,
   runningHeadline,
   workingLine,
+  type NowCallRow,
   type RunningSeat,
 } from "@/lib/spine/what-is-running";
 
@@ -25,7 +27,9 @@ const seat = (over: Partial<RunningSeat> = {}): RunningSeat => ({
   trackId: "t-1",
   title: "Checkout asks for an address it already has",
   missionId: null,
+  subGoal: null,
   startedAt: "2026-09-04T06:44:00Z",
+  now: null,
   ...over,
 });
 
@@ -167,5 +171,89 @@ describe("the reader asks the table that knows", () => {
     expect(readFileSync("src/components/shell/AppFrame.tsx", "utf8")).toContain(
       "genuinelyWorkingMissions",
     );
+  });
+});
+
+describe("what the seat is doing this second", () => {
+  const call = (trace: string, tool: string, at: string, args: unknown = {}): NowCallRow => ({
+    trace_id: trace,
+    tool_name: tool,
+    args,
+    created_at: at,
+  });
+
+  it("the verb is the newest call, in the presence vocabulary", () => {
+    const now = nowPerTrace([
+      call("t1", "repo.read", "2026-09-08T10:00:00Z", { path: "src/AddressStep.tsx" }),
+      call("t1", "repo.search", "2026-09-08T10:00:05Z", { query: "address" }),
+    ]);
+    expect(now.get("t1")?.tool).toBe("repo.search");
+    expect(now.get("t1")?.verb).toBe("searching the repository");
+    expect(now.get("t1")?.at).toBe("2026-09-08T10:00:05Z");
+  });
+
+  it("the object is the newest call that NAMED one, so a search does not lose the file", () => {
+    /*
+     * S2's measurement: 1,983 of 2,271 calls name nothing. The ordinary shape
+     * is a read on a file, then a search, then a stage. Taking only the newest
+     * call would anchor the seat for the few seconds it spent reading and lose
+     * the file for the rest of the run.
+     */
+    const now = nowPerTrace([
+      call("t1", "repo.search", "2026-09-08T10:00:05Z", { query: "address" }),
+      call("t1", "repo.read", "2026-09-08T10:00:00Z", { path: "src/AddressStep.tsx" }),
+    ]);
+    expect(now.get("t1")?.object).toEqual({ kind: "file", id: "src/AddressStep.tsx" });
+  });
+
+  it("order of the rows does not matter", () => {
+    const rows = [
+      call("t1", "repo.read", "2026-09-08T10:00:00Z", { path: "a.ts" }),
+      call("t1", "studio.stage", "2026-09-08T10:00:09Z", { changes: [{ path: "b.ts" }] }),
+      call("t1", "ci.logs", "2026-09-08T10:00:04Z"),
+    ];
+    const a = nowPerTrace(rows);
+    const b = nowPerTrace([...rows].reverse());
+    expect(a.get("t1")).toEqual(b.get("t1"));
+    expect(a.get("t1")?.tool).toBe("studio.stage");
+    expect(a.get("t1")?.object).toEqual({ kind: "file", id: "b.ts" });
+  });
+
+  it("a seat whose calls named nothing has no object, never an invented one", () => {
+    const now = nowPerTrace([call("t1", "signals.list", "2026-09-08T10:00:00Z", { limit: 20 })]);
+    expect(now.get("t1")?.object).toBeNull();
+    expect(now.get("t1")?.verb).toBe("reading the signals");
+  });
+
+  it("a tool the vocabulary does not know is named, not hidden", () => {
+    const now = nowPerTrace([call("t1", "some.new_tool", "2026-09-08T10:00:00Z")]);
+    expect(now.get("t1")?.verb).toBe("running some.new_tool");
+  });
+
+  it("two seats stay two seats", () => {
+    const now = nowPerTrace([
+      call("t1", "repo.read", "2026-09-08T10:00:00Z", { path: "a.ts" }),
+      call("t2", "prd.draft", "2026-09-08T10:00:01Z", { prdId: "p-1" }),
+    ]);
+    expect(now.size).toBe(2);
+    expect(now.get("t2")?.verb).toBe("writing the spec");
+  });
+
+  it("a call with no trace belongs to nobody", () => {
+    expect(nowPerTrace([call("", "repo.read", "2026-09-08T10:00:00Z")]).size).toBe(0);
+    expect(
+      nowPerTrace([{ trace_id: null, tool_name: "repo.read", args: {}, created_at: "x" }]).size,
+    ).toBe(0);
+  });
+
+  it("the reader carries `now` on every seat, off the seat's own trace", () => {
+    const src = readFileSync("src/lib/spine/track.functions.ts", "utf8");
+    const from = src.indexOf("export const listRunningNow");
+    const body = src.slice(from, src.indexOf("export const listMovingTracks"));
+    expect(body).toContain("nowPerTrace(");
+    expect(body).toContain('.from("tool_calls")');
+    // Workspace-scoped: a tool call is the most revealing row this product holds.
+    expect(body).toContain('.eq("workspace_id", workspaceId)\n          .in("trace_id", traceIds)');
+    expect(body).toContain("now: r.trace_id ? (nowByTrace.get(r.trace_id) ?? null) : null");
   });
 });
