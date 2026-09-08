@@ -52,6 +52,10 @@ const HELD: ReadonlySet<string> = new Set([
   "corrections-spent",
   "given-up",
   "station-cannot-finish",
+  /* A route that skips a station the work needs. Seen live 12:37 IST 09-08:
+     the row said "Put it back, or file it yourself" and offered neither,
+     because the reason was not counted as held and so drew no Decide. */
+  "needs-a-waived-station",
 ]);
 
 /** The horizon wait's own sentence, composed by the driver (P-144). A wait
