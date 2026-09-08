@@ -61,7 +61,8 @@ export type MissionDetail = {
     agent_slug: string;
     agent_name: string;
     status: string;
-    input: string;
+    /** No longer shipped (2026-09-09): no reader drew it and it was 91 KB on one mission. */
+    input: string | null;
     output: string | null;
     created_at: string;
     last_checkpoint_at: string | null;
@@ -611,252 +612,239 @@ export const listMissions = createServerFn({ method: "GET" })
 export const getMission = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { missionId: string }) => z.object({ missionId: z.string().uuid() }).parse(d))
-  .handler(async ({ context, data }): Promise<MissionDetail> => {
-    const { supabase } = context;
-    const { data: mission, error } = await supabase
-      .from("missions")
-      .select("id,title,goal,status,current_agent_id,hop_count,created_at,updated_at,completed_at")
-      .eq("id", data.missionId)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!mission) throw new Error("Mission not found");
+  .handler(({ context, data }): Promise<MissionDetail> =>
+    readMission(context.supabase, context.userId, data.missionId),
+  );
 
-    // D4-REPLAY: resolve the branch link in a SEPARATE error-tolerant read so the
-    // main mission select (and the whole detail page) keeps working before the
-    // replayed_from migration applies. On a missing-column error, default null.
-    const { data: rfRow, error: rfErr } = await supabase
-      .from("missions")
-      .select("replayed_from_mission_id")
-      .eq("id", data.missionId)
-      .maybeSingle();
-    const replayedFrom =
-      !rfErr && rfRow
-        ? ((rfRow as { replayed_from_mission_id?: string | null }).replayed_from_mission_id ?? null)
-        : null;
+/**
+ * THE HANDOFF ROWS ALONE. The run screen's transcript drew its handoff rows
+ * by calling `getMission` once per mission on the track and reading
+ * `.messages` off a response that also carried every run's brief and
+ * output and the latest checkpoint of each (170 KB and five seconds on
+ * 2fdf93b6, 2026-09-09; the build's resolver map named it). This is the one
+ * read those rows need: one hop, a few rows.
+ */
+export async function readMissionHandoffs(
+  supabase: SupabaseClient<Database>,
+  missionId: string,
+): Promise<{ messages: MissionDetail["messages"] }> {
+  const { data, error } = await supabase
+    .from("agent_messages")
+    .select(
+      "id,from_agent_slug,to_agent_slug,kind,payload,source_run_id,source_trace_id,consumed_by_run_id,created_at",
+    )
+    .eq("mission_id", missionId)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(`The handoffs on this run could not be read: ${error.message}`);
+  return { messages: (data ?? []) as MissionDetail["messages"] };
+}
 
-    // RPT-24 (captain on every dispatch): same error-tolerant separate-read
-    // pattern as D4-REPLAY above, so a schema hiccup never breaks the page.
-    // Resolves the owner's name via the existing membership-gated
-    // workspace_members_with_identity RPC (workspaces.functions.ts) rather
-    // than querying `profiles` directly — profiles RLS is own-row-only, so a
-    // teammate's row is invisible to a plain select from this RLS-scoped
-    // client.
-    const { data: captainRow, error: captainErr } = await supabase
-      .from("missions")
-      .select("user_id,workspace_id,auto_trigger_source")
-      .eq("id", data.missionId)
-      .maybeSingle();
-    let captain: MissionDetail["mission"]["captain"] = null;
-    if (!captainErr && captainRow?.user_id) {
-      const ownerId = captainRow.user_id as string;
-      const workspaceId = (captainRow as { workspace_id?: string | null }).workspace_id ?? null;
-      let ownerDisplayName: string | null = null;
-      let ownerEmail: string | null = null;
-      if (workspaceId) {
-        const { data: identity, error: identityErr } = await supabase.rpc(
-          "workspace_members_with_identity",
-          { _workspace_id: workspaceId },
-        );
-        if (!identityErr && Array.isArray(identity)) {
-          const match = (
-            identity as { user_id: string; display_name: string | null; email: string | null }[]
-          ).find((m) => m.user_id === ownerId);
-          ownerDisplayName = match?.display_name ?? null;
-          ownerEmail = match?.email ?? null;
-        }
-      }
-      captain = {
-        owner_user_id: ownerId,
-        owner_is_self: ownerId === context.userId,
-        owner_display_name: ownerDisplayName,
-        owner_email: ownerEmail,
-        auto_dispatched:
-          ((captainRow as { auto_trigger_source?: string | null }).auto_trigger_source ?? null) ===
-          "auto",
-      };
-    }
+export const listMissionHandoffs = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { missionId: string }) => z.object({ missionId: z.string().uuid() }).parse(d))
+  .handler(({ context, data }) => readMissionHandoffs(context.supabase, data.missionId));
 
-    // Pull trace_id from the first ai_events row per run (cheap, no join).
-    const { data: runs } = await supabase
-      .from("agent_runs")
-      // `spend_used_usd` — F-145, same ruling as the list above: cost is read
-      // from the run that spent it rather than derived four hops away.
+/**
+ * THE READ BEHIND `getMission`, three hops, driven by
+ * `a-mission-detail-is-three-hops.test.ts` on the wire that counts rounds.
+ *
+ * It was nine sequential round trips (the mission three times, the owner's
+ * identity, the runs, the messages, every checkpoint of every run with its
+ * whole state, the tool calls, the token events) and it shipped each run's
+ * `input`, which no reader draws. Now: the mission, its runs and its
+ * messages leave together; the owner's identity and the latest checkpoint
+ * per run (`latest_run_checkpoints`, migration 20260909100900: the trace,
+ * the steps and the recalled memories, never the rest of the state) leave
+ * together; the tool calls and the token events leave together. What the
+ * relay and the replay diff draw (`relay.ts`, `mission-diff.ts`: steps,
+ * output, tool calls, the seat) is unchanged.
+ */
+export async function readMission(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  missionId: string,
+): Promise<MissionDetail> {
+  const [missionRes, runsRes, messagesRes] = await Promise.all([
+    supabase
+      .from("missions")
       .select(
-        "id,agent_slug,agent_name,status,input,output,created_at,last_checkpoint_at,spend_used_usd",
+        "id,title,goal,status,current_agent_id,hop_count,created_at,updated_at,completed_at,replayed_from_mission_id,user_id,workspace_id,auto_trigger_source",
       )
-      .eq("mission_id", data.missionId)
-      .order("created_at", { ascending: true });
-
-    const { data: messages } = await supabase
+      .eq("id", missionId)
+      .maybeSingle(),
+    supabase
+      .from("agent_runs")
+      .select("id,agent_slug,agent_name,status,output,created_at,last_checkpoint_at,spend_used_usd")
+      .eq("mission_id", missionId)
+      .order("created_at", { ascending: true }),
+    supabase
       .from("agent_messages")
       .select(
         "id,from_agent_slug,to_agent_slug,kind,payload,source_run_id,source_trace_id,consumed_by_run_id,created_at",
       )
-      .eq("mission_id", data.missionId)
-      .order("created_at", { ascending: true });
+      .eq("mission_id", missionId)
+      .order("created_at", { ascending: true }),
+  ]);
+  if (missionRes.error) throw new Error(missionRes.error.message);
+  const row = missionRes.data as
+    | (MissionDetail["mission"] & {
+        replayed_from_mission_id?: string | null;
+        user_id?: string | null;
+        workspace_id?: string | null;
+        auto_trigger_source?: string | null;
+      })
+    | null;
+  if (!row) throw new Error("Mission not found");
+  const runs = (runsRes.data ?? []) as Array<{
+    id: string;
+    agent_slug: string;
+    agent_name: string;
+    status: string;
+    output: string | null;
+    created_at: string;
+    last_checkpoint_at?: string | null;
+    spend_used_usd?: number | null;
+  }>;
+  const runIds = runs.map((r) => r.id);
+  const ownerId = row.user_id ?? null;
+  const workspaceId = row.workspace_id ?? null;
 
-    const runIds = (runs ?? []).map((r) => r.id);
-    // Latest checkpoint per run gives us in-flight progress: steps[] + traceId.
-    const { data: cps } = runIds.length
-      ? await supabase
-          .from("agent_run_checkpoints")
-          .select("run_id,step_index,state,created_at")
-          .in("run_id", runIds)
-          .order("step_index", { ascending: false })
-      : {
-          data: [] as {
-            run_id: string;
-            step_index: number;
-            state: Record<string, unknown>;
-            created_at: string;
-          }[],
-        };
-    const latestByRun = new Map<string, { step_index: number; state: Record<string, unknown> }>();
-    for (const row of (cps ?? []) as {
-      run_id: string;
-      step_index: number;
-      state: Record<string, unknown>;
-    }[]) {
-      if (!latestByRun.has(row.run_id))
-        latestByRun.set(row.run_id, { step_index: row.step_index, state: row.state });
-    }
-    const traceIds = [...latestByRun.values()]
-      .map((cp) => (cp.state as { traceId?: string }).traceId)
-      .filter((t): t is string => typeof t === "string" && t.length > 0);
-    const { data: tcs } = traceIds.length
-      ? await supabase
+  const [identityRes, cpsRes] = await Promise.all([
+    ownerId && workspaceId
+      ? supabase.rpc("workspace_members_with_identity", { _workspace_id: workspaceId })
+      : Promise.resolve({ data: null, error: null }),
+    runIds.length
+      ? supabase.rpc("latest_run_checkpoints", { p_run_ids: runIds })
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  let captain: MissionDetail["mission"]["captain"] = null;
+  if (ownerId) {
+    const identity = !identityRes.error && Array.isArray(identityRes.data) ? identityRes.data : [];
+    const match = (
+      identity as { user_id: string; display_name: string | null; email: string | null }[]
+    ).find((m) => m.user_id === ownerId);
+    captain = {
+      owner_user_id: ownerId,
+      owner_is_self: ownerId === userId,
+      owner_display_name: match?.display_name ?? null,
+      owner_email: match?.email ?? null,
+      auto_dispatched: (row.auto_trigger_source ?? null) === "auto",
+    };
+  }
+
+  type LatestCheckpoint = {
+    run_id: string;
+    step_index: number;
+    trace_id: string | null;
+    steps: unknown;
+    recalled_memories: unknown;
+  };
+  const latestByRun = new Map<string, LatestCheckpoint>();
+  for (const cp of (cpsRes.data ?? []) as LatestCheckpoint[]) latestByRun.set(cp.run_id, cp);
+  const traceIds = [...latestByRun.values()]
+    .map((cp) => cp.trace_id)
+    .filter((t): t is string => typeof t === "string" && t.length > 0);
+
+  const [tcsRes, eventsRes] = await Promise.all([
+    traceIds.length
+      ? supabase
           .from("tool_calls")
           .select("id,trace_id,tool_name,ok,error,latency_ms,created_at")
           .in("trace_id", traceIds)
           .order("created_at", { ascending: true })
-      : {
-          data: [] as {
-            id: string;
-            trace_id: string;
-            tool_name: string;
-            ok: boolean;
-            error: string | null;
-            latency_ms: number;
-            created_at: string;
-          }[],
-        };
-    const tcByTrace = new Map<string, HopToolCall[]>();
-    for (const t of (tcs ?? []) as {
-      id: string;
-      trace_id: string;
-      tool_name: string;
-      ok: boolean;
-      error: string | null;
-      latency_ms: number;
-      created_at: string;
-    }[]) {
-      const arr = tcByTrace.get(t.trace_id) ?? [];
-      arr.push({
-        id: t.id,
-        tool_name: t.tool_name,
-        ok: t.ok,
-        error: t.error,
-        latency_ms: t.latency_ms,
-        created_at: t.created_at,
-        /* A `tool_calls` row is always an inline execution — a gated tool queues
-           an approval instead — so this flag is asking whether the hop CHANGED
-           anything without a person. It read `true` for every hop between
-           2026-08-19 and 2026-08-22, when the predicate behind it was catalogue
-           membership and the catalogue had just been completed to all 59 tools;
-           a mission whose hops were all reads showed as fully unattended. It
-           answers from the registry's `category` now. */
-        is_unattended: isSideEffectingTool(t.tool_name),
-      });
-      tcByTrace.set(t.trace_id, arr);
-    }
+      : Promise.resolve({ data: [] as never[] }),
+    traceIds.length
+      ? supabase
+          .from("ai_events")
+          .select("prompt_tokens,completion_tokens")
+          .in("trace_id", traceIds)
+      : Promise.resolve({
+          data: [] as { prompt_tokens: number | null; completion_tokens: number | null }[],
+        }),
+  ]);
 
-    // Hero stat row (screen 4): cost + tokens summed from ai_events over the
-    // mission's traces; trace_id = the FIRST hop's trace (runs are ordered
-    // created_at asc; traceIds order follows the checkpoint query, not hops).
-    const firstHopTrace =
-      (runs ?? [])
-        .map((r) => (latestByRun.get(r.id)?.state as { traceId?: string } | undefined)?.traceId)
-        .find((t): t is string => typeof t === "string" && t.length > 0) ?? null;
-    const usage: MissionDetail["usage"] = {
-      cost_usd: 0,
-      tokens_in: 0,
-      tokens_out: 0,
-      trace_id: firstHopTrace,
-    };
-    /*
-     * ── F-145 ON THE DETAIL PAGE TOO, AND THE SPLIT IS DELIBERATE ───────────
-     *
-     * COST comes from the runs, for the same reason as the list: `spend_used_usd`
-     * is populated on all 2,847 runs and is what was RECORDED, while
-     * `est_cost_usd` is an estimate reached through four hops that produce a
-     * confident $0.00 when any one of them breaks.
-     *
-     * TOKENS stay on the trace path, because `ai_events` is the only place they
-     * exist. That is not two cost sources on one screen — it is one source per
-     * QUESTION, which is the distinction that keeps a surface honest: cost is
-     * asked of the thing that spent it, tokens of the thing that counted them.
-     */
-    for (const r of runs ?? []) {
-      const spend = Number((r as { spend_used_usd?: number | null }).spend_used_usd ?? 0);
-      if (Number.isFinite(spend) && spend > 0) usage.cost_usd += spend;
-    }
-    if (traceIds.length) {
-      const { data: events } = await supabase
-        .from("ai_events")
-        .select("prompt_tokens,completion_tokens")
-        .in("trace_id", traceIds);
-      for (const e of events ?? []) {
-        usage.tokens_in += e.prompt_tokens ?? 0;
-        usage.tokens_out += e.completion_tokens ?? 0;
-      }
-    }
+  const tcByTrace = new Map<string, HopToolCall[]>();
+  for (const t of (tcsRes.data ?? []) as {
+    id: string;
+    trace_id: string;
+    tool_name: string;
+    ok: boolean;
+    error: string | null;
+    latency_ms: number;
+    created_at: string;
+  }[]) {
+    const arr = tcByTrace.get(t.trace_id) ?? [];
+    arr.push({
+      id: t.id,
+      tool_name: t.tool_name,
+      ok: t.ok,
+      error: t.error,
+      latency_ms: t.latency_ms,
+      created_at: t.created_at,
+      /* Whether the hop CHANGED anything without a person, answered from the
+         registry's category (it read true for every hop between 2026-08-19
+         and 2026-08-22, when the predicate was catalogue membership). */
+      is_unattended: isSideEffectingTool(t.tool_name),
+    });
+    tcByTrace.set(t.trace_id, arr);
+  }
 
-    return {
-      mission: {
-        ...mission,
-        replayed_from_mission_id: replayedFrom,
-        captain,
-      } as MissionDetail["mission"],
-      usage,
-      hops: (runs ?? []).map((r) => {
-        const cp = latestByRun.get(r.id);
-        const state = (cp?.state ?? {}) as {
-          traceId?: string;
-          steps?: HopStep[];
-          recalledMemories?: string[];
-        };
-        const traceId = state.traceId ?? null;
-        return {
-          run_id: r.id,
-          agent_slug: r.agent_slug,
-          agent_name: r.agent_name,
-          status: r.status,
-          input: r.input,
-          output: r.output,
-          created_at: r.created_at,
-          last_checkpoint_at: (r as { last_checkpoint_at?: string }).last_checkpoint_at ?? null,
-          trace_id: traceId,
-          step_index: cp?.step_index ?? 0,
-          steps: Array.isArray(state.steps) ? state.steps : [],
-          tool_calls: traceId ? (tcByTrace.get(traceId) ?? []) : [],
-          recalled_memories: Array.isArray(state.recalledMemories) ? state.recalledMemories : [],
-        };
-      }),
-      messages: (messages ?? []) as MissionDetail["messages"],
-    };
-  });
+  const firstHopTrace =
+    runs.map((r) => latestByRun.get(r.id)?.trace_id).find((t): t is string => !!t) ?? null;
+  const usage: MissionDetail["usage"] = {
+    cost_usd: 0,
+    tokens_in: 0,
+    tokens_out: 0,
+    trace_id: firstHopTrace,
+  };
+  for (const r of runs) {
+    const spend = Number(r.spend_used_usd ?? 0);
+    if (Number.isFinite(spend) && spend > 0) usage.cost_usd += spend;
+  }
+  for (const e of eventsRes.data ?? []) {
+    usage.tokens_in += e.prompt_tokens ?? 0;
+    usage.tokens_out += e.completion_tokens ?? 0;
+  }
 
-/**
- * Manual override for the AI-synthesized title (`createMission` in
- * handoff.server.ts generates it at dispatch time) - same rename-affordance
- * pattern as renameConversation.
- *
- * RLS ("Owners can write their missions", cmd ALL, auth.uid() = user_id)
- * already blocks a cross-user rename, but the explicit user_id filter here
- * (the pattern cancelMission and promoteMission used before they went) means a missing
- * or misconfigured policy fails closed with a clear "not found" instead of a
- * silent zero-row update.
- */
+  const { replayed_from_mission_id, user_id, workspace_id, auto_trigger_source, ...mission } = row;
+  void user_id;
+  void workspace_id;
+  void auto_trigger_source;
+  return {
+    mission: {
+      ...mission,
+      replayed_from_mission_id: replayed_from_mission_id ?? null,
+      captain,
+    } as MissionDetail["mission"],
+    usage,
+    hops: runs.map((r) => {
+      const cp = latestByRun.get(r.id);
+      const traceId = cp?.trace_id ?? null;
+      return {
+        run_id: r.id,
+        agent_slug: r.agent_slug,
+        agent_name: r.agent_name,
+        status: r.status,
+        /* `input` is no longer shipped: no reader drew it, and on one mission it
+           was 91 KB of the response. */
+        input: null,
+        output: r.output,
+        created_at: r.created_at,
+        last_checkpoint_at: r.last_checkpoint_at ?? null,
+        trace_id: traceId,
+        step_index: cp?.step_index ?? 0,
+        steps: Array.isArray(cp?.steps) ? (cp.steps as HopStep[]) : [],
+        tool_calls: traceId ? (tcByTrace.get(traceId) ?? []) : [],
+        recalled_memories: Array.isArray(cp?.recalled_memories)
+          ? (cp.recalled_memories as string[])
+          : [],
+      };
+    }),
+    messages: (messagesRes.data ?? []) as MissionDetail["messages"],
+  };
+}
+
 export const renameMission = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { missionId: string; title: string }) =>

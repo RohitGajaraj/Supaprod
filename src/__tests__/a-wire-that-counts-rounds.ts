@@ -84,11 +84,20 @@ export class FakeBuilder {
   limit() {
     return this;
   }
+  one = false;
+  /** `.maybeSingle()` / `.single()`: the wire answers the first row, or null. */
   maybeSingle() {
+    this.one = true;
     return this;
   }
   single() {
+    this.one = true;
     return this;
+  }
+  private answer(): unknown {
+    const rows = this.client.rowsFor(this.table, this.cols, this.filters);
+    if (this.one && Array.isArray(rows)) return rows[0] ?? null;
+    return rows;
   }
   then<T>(
     onFulfilled: (v: { data: never; error: null }) => T,
@@ -97,7 +106,7 @@ export class FakeBuilder {
     const p = new Promise<{ data: never; error: null }>((resolve) => {
       this.client.pending.push(() =>
         resolve({
-          data: this.client.rowsFor(this.table, this.cols, this.filters) as never,
+          data: this.answer() as never,
           error: null,
         }),
       );

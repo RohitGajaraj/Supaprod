@@ -64,7 +64,7 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/handed-over";
 import { carriedByMission, oncePerId } from "@/components/spine/what-a-mission-carries";
 import { howThisRan } from "@/components/track/how-this-ran";
-import { getMission } from "@/lib/missions.functions";
+import { listMissionHandoffs } from "@/lib/missions.functions";
 import {
   type ActivityRow,
   type HandoffRow,
@@ -803,7 +803,11 @@ export function TrackActivity({
     return [...ids];
   }, [chainQ.data]);
 
-  const fetchMission = useServerFn(getMission);
+  /* The handoff rows alone (listMissionHandoffs, 2026-09-09): this called
+     getMission per mission and read `.messages` off a response that also
+     carried every run's brief, output and latest checkpoint, 170 KB and five
+     seconds on this screen. Same key, same `.messages`, one small read. */
+  const fetchMission = useServerFn(listMissionHandoffs);
   const missionQs = useQueries({
     queries: missionIds.map((id) => ({
       queryKey: ["track-handoffs", id],

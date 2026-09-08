@@ -10008,6 +10008,16 @@ export type Database = {
           track_id: string | null
         }[]
       }
+      latest_run_checkpoints: {
+        Args: { p_run_ids: string[] }
+        Returns: {
+          run_id: string
+          step_index: number
+          trace_id: string | null
+          steps: Json
+          recalled_memories: Json
+        }[]
+      }
       current_user_default_workspace: { Args: never; Returns: string }
       data_retention_enabled: { Args: never; Returns: boolean }
       debit_account_credits: {
