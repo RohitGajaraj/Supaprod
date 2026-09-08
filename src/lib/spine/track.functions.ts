@@ -4092,6 +4092,23 @@ export const getTrackActivity = createServerFn({ method: "GET" })
           }
         }
 
+        /*
+         * A FAILED READ IS NOT "NOTHING IS RECORDED AGAINST THIS WORK YET".
+         *
+         * Lane 2, 2026-09-08, live on the probe workspace: a seat's row sat
+         * in agent_runs as `running` for its whole fifty seconds while the
+         * transcript said nothing was recorded. The read has no status
+         * filter and RLS admits the row, so the one way that screen can say
+         * "nothing" over a row that exists is this read failing and its
+         * result being handed back as an empty list -- which is what
+         * `runsRes.data ?? []` did. Thrown instead, with the reason; the
+         * transcript draws a failed read as a failed read (ReadFailedLine)
+         * and keeps polling, which is the honest state and the one that
+         * recovers.
+         */
+        if (runsRes.error) {
+          throw new Error(`The turns on this run could not be read: ${runsRes.error.message}`);
+        }
         const runs = (runsRes.data ?? []) as unknown as RunRow[];
         /*
          * P-136: ONE CURRENCY ON THE RUN SCREEN. Its own read, after the runs
@@ -4128,8 +4145,19 @@ export const getTrackActivity = createServerFn({ method: "GET" })
             drivenVia: e.driven_via ?? null,
           })),
         };
-      } catch {
-        return { turns: [], transitions: [], selfChecks: EMPTY_SELF_CHECKS, verdict: null };
+      } catch (e) {
+        /*
+         * Re-thrown, not swallowed into the empty shape. This used to return
+         * `{ turns: [] }` for every failure, which is the empty state's
+         * clothes on a failed read: the transcript then said "Nothing is
+         * recorded against this work yet" over work that was recorded. The
+         * reader renders an error as an error, and a thrown read is the only
+         * shape it can tell apart from a genuinely new track.
+         */
+        console.error(
+          `[getTrackActivity] ${data.trackId}: ${e instanceof Error ? e.message : String(e)}`,
+        );
+        throw e instanceof Error ? e : new Error(String(e));
       }
     },
   );

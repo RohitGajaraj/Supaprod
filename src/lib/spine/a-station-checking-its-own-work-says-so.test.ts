@@ -396,3 +396,28 @@ describe("the row a person reads", () => {
     expect(rows[0].at).toBe(Date.parse("2026-09-02T20:50:00Z"));
   });
 });
+
+describe("a failed activity read is a failed read, never an empty transcript", () => {
+  /*
+   * Lane 2, 2026-09-08, live: a seat's `running` row sat in agent_runs for
+   * fifty seconds while the transcript read "Nothing is recorded against this
+   * work yet". The read has no status filter and RLS admits the row; the only
+   * way that sentence appears over a row that exists is the read failing and
+   * its failure handed back as `turns: []`.
+   */
+  const src = readFileSync("src/lib/spine/track.functions.ts", "utf8");
+  const from = src.indexOf("export const getTrackActivity");
+  const body = src.slice(from, src.indexOf("export const", from + 10));
+
+  it("a refused runs read is thrown with its reason", () => {
+    expect(body).toContain("if (runsRes.error) {");
+    expect(body).toContain("The turns on this run could not be read:");
+  });
+
+  it("the catch re-throws rather than returning the empty shape", () => {
+    expect(body).not.toContain(
+      "return { turns: [], transitions: [], selfChecks: EMPTY_SELF_CHECKS",
+    );
+    expect(body).toContain("throw e instanceof Error ? e : new Error(String(e));");
+  });
+});
