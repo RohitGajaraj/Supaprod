@@ -20,6 +20,7 @@ import { AskProvider } from "@/lib/ask-context";
 import { ROOM_ROUTE_IDS } from "@/lib/room-url";
 import { GlobalComposer } from "@/components/mission/composer";
 import { useRunningNowPush } from "@/hooks/use-running-now-push";
+import { useTrackChangePush } from "@/hooks/use-track-change-push";
 // FocusDock retired by the rebuild; see the note at its former call site.
 
 export const Route = createFileRoute("/_authenticated")({
@@ -176,6 +177,11 @@ export const Route = createFileRoute("/_authenticated")({
 function RunningNowPush() {
   const { activeWorkspaceId } = useWorkspace();
   useRunningNowPush(activeWorkspaceId);
+  /* And the tracks themselves: a station finishing, a hold landing or a call
+     opening moves the home's rows and the hero the moment it is written,
+     not on the next poll (Lane 1, 2026-09-08). Inert until spine_tracks is in
+     the realtime publication. */
+  useTrackChangePush(activeWorkspaceId);
   return null;
 }
 
