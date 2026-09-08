@@ -1389,8 +1389,16 @@ readers used eight fields of fifty missions' steps, runs and goals. `mission_mar
 `missionMarksKey` in the hook and `AppFrame`, `listMissions` kept for the Build board and the Ask pane.
 Four migrations this evening, `20260909100500` to `100800`, all applied and ledgered. Deployment
 f105b0dd (pressed 00:0x IST on `ede7f36be`) carries everything up to the transcript call; the marks
-read waits for the next press. Verify there: the run screen's largest server call should be ~13 KB,
-and no call over 2 s on a warm isolate. The guard for all of it is a fake client that counts rounds
+read waits for the next press. Verified there (a51dbf53): the marks read is in, but the 170 KB call was STILL on the run screen, and
+the built chunk names it `getMission` (a POST, so its URL carries no payload; grep `.output/server/_ssr`
+for the 12-hex id and read the `createServerRpc({ id, name })` beside it). `TrackActivity` called it
+once per mission on the track for the handoff rows and read `.messages` off a response carrying every
+run's brief (91 KB, drawn by nobody) and the whole state of each run's latest checkpoint (8.8 MB of
+state across 185 checkpoints read in full to keep the newest per run in JS). `382a72682`:
+`listMissionHandoffs` (agent_messages alone, one hop) for the run screen on the same key; `getMission`
+is `readMission`, three hops from nine, on `latest_run_checkpoints` (migration `20260909100900`).
+Five migrations this evening, `20260909100500` to `100900`, all applied and ledgered. **Verify on the
+next press: no server call over 20 KB on the run screen of 2fdf93b6, and none over 2 s warm.** The guard for all of it is a fake client that counts rounds
 (`src/__tests__/a-wire-that-counts-rounds.ts`, driven by `a-queue-is-two-hops-deep` and
 `a-strip-read-is-three-hops-deep`); "every await outside a Promise.all" is what a person greps for and
 it was wrong twice, so the wire counts what the wire sees.
