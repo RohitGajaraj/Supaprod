@@ -126,8 +126,14 @@ describe("both callers have to say which they are", () => {
      * exactly: a person chose, from two options with no default, on the one
      * question where the machine has said out loud that it cannot judge. If any
      * site in this product is a human act, it is that one.
+     *
+     * ── FIVE SINCE 2026-09-08, REVIEWED THE SAME WAY ──────────────────────
+     * "Put Plan back on the route": a run held on a step the route skips,
+     * and the person puts the step back with one press. `press` is right for
+     * the same reason as the fourth: a person chose, on a hold the machine
+     * said out loud it could not clear on its own.
      */
-    expect([...TRACKRUN.matchAll(/run\.mutate\("press"\)/g)].length).toBe(4);
+    expect([...TRACKRUN.matchAll(/run\.mutate\("press"\)/g)].length).toBe(5);
     // No call site left that never considered the question.
     expect(TRACKRUN).not.toContain("run.mutate()");
   });
