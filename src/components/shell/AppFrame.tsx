@@ -1577,7 +1577,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
      * empty board: a surface that only tells (R-03). The character beside
      * these words is awake, and SPEC-PRESENCE §Anatomy #2 rules that an idle
      * one is the door to where work starts. */
-    return { go: go("/start"), title: "Start a piece of work" };
+    return { go: go("/start"), title: "Start a run" };
   }, [gateCount, running, movingRuns, lastDone, navigate]);
 
   /* THE ONE THING ON THE STRIP THAT MOVES.
