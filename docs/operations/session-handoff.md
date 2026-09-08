@@ -1124,3 +1124,9 @@ calendar wait falling to amber, a clipped sentence, twelve identical rows).
 - Live on Helio Labs / Prism at 11:49 IST: the new home with the hero, the road (Discover 1, Build 2, Ship 2, Learn 4), three ranked bets, "Start a run", the Inbox row's count. Two copy defects seen there and fixed in `9bb4eb264`: the hero printed the raw queue total ("53 calls are waiting for you", the number P-18a warned nobody can find) and now names the largest family the way the Inbox page does ("20 design gates and 33 other calls are waiting for you."); the composer's placeholder glued the product's goal onto a preposition and now reads "Help Prism get 40% of active users to a funded savings goal within 30 days of signup."
 - Lane 2 fixed the two brain-guidance guards their Outcomes rework had broken (`cced15d0e`) and put the seat's station eyebrow on Team member pages.
 - A push raced Lane 2's and `git pull --rebase origin main` refused ("Cannot rebase onto multiple branches"); `git fetch origin main && git rebase origin/main && git push origin HEAD:main` is the form that works in this checkout.
+
+## Lane 1 · 12:06 IST 09-08 · two more from the live walk
+
+- `bebf8227a` a run held on a skipped step ("Plan is waived on this route") says the way out in one line; the driver's paragraph stays as the row's detail.
+- `ef9dd9661` the hero waits for the workspace before it names the product (seen live: "your product" for a beat, then "Prism"); the slot holds its height.
+- Lane 2 rebuilt Sources (connected rows first, one connect grid, override only when there is something to override) and publishes the tip; Lane 3 is on P-155 in settings.tsx. Lovable's publish queue held two of Lane 1's tips at 12:00 (`dbfbf3048` then `ef9dd9661`); the family sentence ("20 design gates and 33 other calls are waiting for you.") and the "Help Prism ..." placeholder are owed a live read once served.
