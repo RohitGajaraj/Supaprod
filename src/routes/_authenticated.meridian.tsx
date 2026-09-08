@@ -1138,7 +1138,7 @@ function MeridianGallery() {
 
         <Panel
           title="Journey: the road, in two sizes"
-          note="The seven stations as the road one piece of work travels (Lane 1, 2026-09-08). Full form is the run screen's spine and the home's map; row form is the mark at the left of a run row. Identity is the glyph, hue is status: azure and a breath for a machine inside it, orchid where a person is required, amber for a stop on a condition, neutral for a wait the machine has in hand, red only for a result. Behind the work is solid, ahead is an outline, here is larger. Press a station in the interactive one; it is a tablist, never a menu."
+          note="The seven stations as the road one piece of work travels (Lane 1, 2026-09-08). Full form is the run screen's spine and the home's map; row form is the mark at the left of a run row. Identity is the glyph, hue is status: azure and a breath for a machine inside it, orchid where a person is required, amber for a stop on a condition, neutral for a wait the machine has in hand, red only for a result. Behind the work is solid, ahead is an outline, here is larger. Press a station in the interactive one; it is a tablist, never a menu. The first road carries two seats at Design: live dots at the node's foot, each in the seat's own presence colour, the same colour the Working-now strip gives it."
         >
           <Pair>
             <div className="flex flex-col gap-6">
@@ -1152,6 +1152,10 @@ function MeridianGallery() {
                     key: "design",
                     state: "working",
                     at: new Date(Date.now() - 83_000).toISOString(),
+                    presences: [
+                      { seat: "Ada", colour: "--mrd-viz-1" },
+                      { seat: "Grace", colour: "--mrd-viz-3" },
+                    ],
                   },
                   { key: "build", state: "pending" },
                   { key: "ship", state: "pending" },

@@ -35,13 +35,13 @@ describe("standingState", () => {
 
 describe("withPresences", () => {
   const stations = [
-    { key: "discover" as const, state: "working" as const, count: 1 },
+    { key: "sense" as const, state: "working" as const, count: 1 },
     { key: "build" as const, state: "pending" as const, count: 0 },
   ];
   const colour = (seat: string) => `--mrd-viz-${seat.length}`;
 
   test("a seat working at a station is drawn there, in its own colour", () => {
-    const out = withPresences(stations, [{ seat: "Ada", station: "discover" }], colour);
+    const out = withPresences(stations, [{ seat: "Ada", station: "sense" }], colour);
     expect(out[0]!.presences).toEqual([{ seat: "Ada", colour: "--mrd-viz-3" }]);
     expect(out[1]!.presences).toBeUndefined();
   });
@@ -50,8 +50,8 @@ describe("withPresences", () => {
     const out = withPresences(
       stations,
       [
-        { seat: "Ada", station: "discover" },
-        { seat: "Ada", station: "discover" },
+        { seat: "Ada", station: "sense" },
+        { seat: "Ada", station: "sense" },
         { seat: "Grace", station: null },
       ],
       colour,
