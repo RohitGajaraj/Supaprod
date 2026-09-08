@@ -12,6 +12,8 @@ import * as React from "react";
  */
 import type { Selection } from "@/components/shell/use-selection";
 import { sessionEndedMessage } from "@/lib/error-copy";
+import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
+import { GLYPH_FOR_STATION, StationGlyph } from "./station-glyphs";
 
 /*
  * THE CHROME FIVE SURFACES HAD EACH GROWN A PRIVATE COPY OF.
@@ -166,15 +168,30 @@ export function PageHeading({
   title,
   sub,
   level = 1,
+  station,
 }: {
   title: React.ReactNode;
   sub?: React.ReactNode;
+  /**
+   * THE STATION THIS PAGE'S CONTENT COMES FROM (Lane 1, 2026-09-08). A depth
+   * page is one station's output read at length: Findings is what Discover
+   * hands on, Outcomes is what Learn hands back. Naming it above the title,
+   * with the same glyph the road draws, is how the page stays on the road a
+   * person saw on the home instead of reading as a separate product.
+   */
+  station?: AgentStation;
   /** 1 when this names the page, 2 when the surface has folded inside another. */
   level?: 1 | 2;
 }) {
   const H = level === 2 ? "h2" : "h1";
   return (
     <header data-mrd="">
+      {station ? (
+        <span className="mb-mrd-2 inline-flex items-center gap-mrd-2 mrd-eyebrow">
+          <StationGlyph kind={GLYPH_FOR_STATION[station]} size={12} className="text-mrd-mute" />
+          {AGENT_STATIONS[station].name}
+        </span>
+      ) : null}
       <H className="text-mrd-h2 leading-mrd-tight font-medium text-mrd-ink">{title}</H>
       {sub ? <p className="mt-mrd-3 max-w-[var(--mrd-measure-page)] mrd-copy">{sub}</p> : null}
     </header>
