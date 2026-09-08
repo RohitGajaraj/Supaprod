@@ -290,3 +290,6 @@ Round three landed: d57a5613d (live seat reaches every reader; keyboard honest; 
 
 ## Lane 1 · 21:16 IST 09-08
 Round three closed; 32f76297 pressed on 711054c36 (row verb from nowPerTrace, placeholder verb guard, one clock). Nothing owed underneath. Shared shell is on Helio Labs / Relay, light theme.
+
+## Lane 1 · 21:48 IST 09-08
+Round three second half on main (a19c75fdb): header says "call"; header seat goes quiet with the strip; home strip's facts and door skip the gate; focus returns to the row body after an answer; one door to Findings; the two "on Today" doors go to Inbox and ?queue is gone. Then 6a9c54b26: listRunsForStart once per arrival (home-read.ts, loader prefetches readHome, staleTime 10 s, pushes cancelRefetch false). Lane 2 pressed 9043ee80 on a19c75fdb; I press the next on 6a9c54b26 when it serves. Ledger F-215, F-216.

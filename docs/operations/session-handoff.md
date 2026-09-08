@@ -1403,3 +1403,23 @@ Round three (copy, keyboard, the arrival with a live seat, the doors back; two a
 
 ### Lane 1 · addendum 21:16 IST 09-08 · after round three
 Also on main: `9be03dc3d` (a run row reads nowPerTrace's verb and object from Lane 3's `4d50df6ac`, and says "quiet for N min" past the stall instead of a counting clock), `791583f44` (the composer's goal template follows "Help <name>" only when the north star opens with a verb; Relay's outcome sentence read "Help Relay every homeowner understands", seen live), `711054c36` (one clock for one seat: the row reads `formatElapsed`). Deployments today from this lane: 67487bbe, a12d4679, 2a23b2d5, 433da23d (the founder's three rulings), 2e038667 (Lane 3's queue read), c52a04db (round three), 32f76297 (pressed 21:15). Verified live on the way: Start a run focuses the composer; the road's caption names a selection with Show all; the hero's Inbox door; the light theme with the lowered status hues. The founder switched the shared shell to Helio Labs / Relay and the light theme during the evening. Round three's verifiers refuted only items that had already landed, plus the header's "decisions" (kept, with reason). Open: nothing owed underneath; the next lens rounds (if any) should walk the run screen with the home, since the two now share seats, colours and clocks.
+
+### Lane 1 · addendum 21:48 IST 09-08 · round three's second half, and the home's read once per arrival
+The third review's verifier pass finished (35 agents; 12 confirmed, 19 stale against HEAD, all
+recorded in its journal). Six of the twelve were already on main from the earlier batches; the other
+six are `a19c75fdb`: the header says **call**, not decisions (F-215, superseding the first pass's
+refutation: two counts of two populations shared the noun on Inbox); the header's seat sentence comes
+from `seatLine` with the quiet suffix and the minute clock in the memo's deps; on the home with a gate
+waiting and nothing moving, `liveFacts` and `liveTarget` skip the gate as `liveLead` already did
+(before: "Last finished · <a waiting track's title>", door "Open Inbox"); focus returns to the row's
+body button when the answer removed the row's Answer control (`Row` takes `bodyRef`; keyed on the
+card's mounted state); the Findings strip withholds its door when the arriving sentence above it
+already opens Findings; DecisionsPanel's "Settle N on Today" and Settings' "See what is stopped"
+go to Inbox and say so, and the dead `?queue` flag, its anchor and its parser entry are gone.
+Then `6a9c54b26` from Lane 2's Server-Timing read (F-216): `listRunsForStart` ran four times per
+arrival; `home-read.ts` holds the composite read and the four keys it seeds, the loader prefetches
+`readHome` instead of the runs, both `start-runs` observers carry `staleTime` 10 s, and the two
+pushes invalidate with `cancelRefetch: false`. Gate on both: tsc 0, 14957 pass 0 fail, build exit 0.
+**Presses:** Lane 2 pressed 9043ee80 on Lovable's `a19c75fdb`; `b663d059d` (Lane 3) and
+`6a9c54b26` ride the next, which I press once 9043ee80 serves and Lovable holds `6a9c54b26`. Lane 3
+reads the home's worker-total on it (expect `listRunsForStart` once, `readHome` once).
