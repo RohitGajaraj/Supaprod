@@ -4151,44 +4151,6 @@ export const getTrackActivity = createServerFn({ method: "GET" })
         const betIds = ((betRes.data ?? []) as unknown as Array<{ artifact_id?: string | null }>)
           .map((m) => m.artifact_id)
           .filter((id): id is string => typeof id === "string" && id.length > 0);
-        let verdict: TrackVerdict | null = null;
-        if (betIds.length > 0) {
-          const { data: bets, error: betErr } = await supabase
-            .from("decisions")
-            .select(
-              "forecast_claim, forecast_resolution, forecast_resolution_rationale, forecast_resolved_at, forecast_resolved_by_agent_slug",
-            )
-            .in("id", betIds)
-            .not("forecast_resolution", "is", null)
-            .order("forecast_resolved_at", { ascending: false })
-            .limit(1);
-          if (betErr) {
-            console.error(`[getTrackActivity] could not read the verdict: ${betErr.message}`);
-          } else {
-            const b = (bets ?? [])[0] as
-              | {
-                  forecast_claim?: string | null;
-                  forecast_resolution?: string | null;
-                  forecast_resolution_rationale?: string | null;
-                  forecast_resolved_at?: string | null;
-                  forecast_resolved_by_agent_slug?: string | null;
-                }
-              | undefined;
-            /* A verdict with no time cannot be placed in a stream, and a row in
-               the wrong place would claim the bet was settled at a moment it was
-               not. The same refusal the self-check rows make. */
-            if (b?.forecast_resolution && b.forecast_resolved_at) {
-              verdict = {
-                at: b.forecast_resolved_at,
-                resolution: b.forecast_resolution,
-                claim: b.forecast_claim ?? null,
-                rationale: b.forecast_resolution_rationale ?? null,
-                by: b.forecast_resolved_by_agent_slug ?? null,
-              };
-            }
-          }
-        }
-
         /*
          * A FAILED READ IS NOT "NOTHING IS RECORDED AGAINST THIS WORK YET".
          *
@@ -4215,7 +4177,55 @@ export const getTrackActivity = createServerFn({ method: "GET" })
          * run past that RLS rather than under it.
          */
         const traceIds = [...new Set(runs.map((r) => r.trace_id).filter((t): t is string => !!t))];
-        const creditsByTrace = await creditsSpentByTrace(traceIds);
+        /*
+         * THE VERDICT AND THE CREDITS LEAVE TOGETHER: both key off the first
+         * hop (the bet ids off the members, the trace ids off the runs), and
+         * they used to go one after the other, a third round trip on the run
+         * screen's main read for nothing (F-212's census, 2026-09-08).
+         */
+        const [betsRes, creditsByTrace] = await Promise.all([
+          betIds.length > 0
+            ? supabase
+                .from("decisions")
+                .select(
+                  "forecast_claim, forecast_resolution, forecast_resolution_rationale, forecast_resolved_at, forecast_resolved_by_agent_slug",
+                )
+                .in("id", betIds)
+                .not("forecast_resolution", "is", null)
+                .order("forecast_resolved_at", { ascending: false })
+                .limit(1)
+            : Promise.resolve({ data: [] as unknown[], error: null as { message: string } | null }),
+          creditsSpentByTrace(traceIds),
+        ]);
+        let verdict: TrackVerdict | null = null;
+        if (betIds.length > 0) {
+          const { data: bets, error: betErr } = betsRes;
+          if (betErr) {
+            console.error(`[getTrackActivity] could not read the verdict: ${betErr.message}`);
+          } else {
+            const b = (bets ?? [])[0] as
+              | {
+                  forecast_claim?: string | null;
+                  forecast_resolution?: string | null;
+                  forecast_resolution_rationale?: string | null;
+                  forecast_resolved_at?: string | null;
+                  forecast_resolved_by_agent_slug?: string | null;
+                }
+              | undefined;
+            /* A verdict with no time cannot be placed in a stream, and a row in
+               the wrong place would claim the bet was settled at a moment it was
+               not. The same refusal the self-check rows make. */
+            if (b?.forecast_resolution && b.forecast_resolved_at) {
+              verdict = {
+                at: b.forecast_resolved_at,
+                resolution: b.forecast_resolution,
+                claim: b.forecast_claim ?? null,
+                rationale: b.forecast_resolution_rationale ?? null,
+                by: b.forecast_resolved_by_agent_slug ?? null,
+              };
+            }
+          }
+        }
 
         return {
           verdict,
