@@ -33,6 +33,8 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
+import { zoneForUser } from "@/lib/profile-zone.server";
+import { monthDayInZone } from "@/lib/time-of-day";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -94,6 +96,8 @@ export type LoopStateInput = {
   lastLearningAt: string | null;
   /** Injectable clock for tests. */
   now?: Date;
+  /** The reader's zone (profiles.timezone), which every "on Sep 8" reads in. */
+  zone: string;
 };
 
 /** An event by a non-human actor inside this window reads as live work. */
@@ -185,7 +189,7 @@ export function isCompletionEvent(
 }
 
 /** Honest relative time for receipts. Never fakes precision. */
-export function relativePast(atIso: string, now: Date): string {
+export function relativePast(atIso: string, now: Date, zone: string): string {
   const at = new Date(atIso);
   const ms = now.getTime() - at.getTime();
   if (!Number.isFinite(ms) || ms < 0) return "just now";
@@ -197,12 +201,12 @@ export function relativePast(atIso: string, now: Date): string {
   const days = Math.floor(hours / 24);
   if (days === 1) return "yesterday";
   if (days < 7) return `${days} days ago`;
-  return `on ${at.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+  return `on ${monthDayInZone(atIso, zone)}`;
 }
 
 /** Past-tense receipt line per stage (ReceiptLine tone: artifact + honest time). */
-function receiptLine(stage: LoopStageId, ev: LoopStageEvent, now: Date): string {
-  const when = relativePast(ev.at, now);
+function receiptLine(stage: LoopStageId, ev: LoopStageEvent, now: Date, zone: string): string {
+  const when = relativePast(ev.at, now, zone);
   switch (stage) {
     case "discover":
       return ev.entity_type === "signal"
@@ -281,14 +285,14 @@ export function deriveLoopState(input: LoopStateInput): LoopStageNode[] {
         return {
           stage,
           state: "done",
-          receipt: `Outcome recorded ${relativePast(input.lastLearningAt, now)}`,
+          receipt: `Outcome recorded ${relativePast(input.lastLearningAt, now, input.zone)}`,
         };
       }
       return { stage, state: "quiet" };
     }
     const completion = lastCompletion.get(stage);
     if (completion) {
-      return { stage, state: "done", receipt: receiptLine(stage, completion, now) };
+      return { stage, state: "done", receipt: receiptLine(stage, completion, now, input.zone) };
     }
     return { stage, state: "quiet" };
   });
@@ -370,6 +374,7 @@ export const getLoopState = createServerFn({ method: "GET" })
     }
 
     const stages = deriveLoopState({
+      zone: await zoneForUser(context.supabase as never, context.userId),
       gateCountByStage,
       events: (eventsRes.data ?? []) as LoopStageEvent[],
       inFlightRuns: runsRes.count ?? 0,

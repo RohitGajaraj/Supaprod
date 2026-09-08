@@ -32,6 +32,8 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
+import { longDayInZone } from "@/lib/time-of-day";
+import { zoneForUser } from "@/lib/profile-zone.server";
 import {
   LOOP_STAGES,
   isCompletionEvent,
@@ -84,6 +86,8 @@ export type BriefingInput = {
   gateCountByStage: Partial<Record<LoopStageId, number>>;
   /** Injectable clock for tests. */
   now?: Date;
+  /** The recipient's zone (profiles.timezone), which the day label and every receipt read in. */
+  zone: string;
 };
 
 const MAX_RECEIPTS = 8;
@@ -106,8 +110,13 @@ function listJoin(parts: string[]): string {
 }
 
 /** Past-tense receipt sentence per completion event. Honest time, no cost. */
-export function receiptText(stage: LoopStageId, ev: BriefingEvent, now: Date): string {
-  const when = relativePast(ev.at, now);
+export function receiptText(
+  stage: LoopStageId,
+  ev: BriefingEvent,
+  now: Date,
+  zone: string,
+): string {
+  const when = relativePast(ev.at, now, zone);
   switch (stage) {
     case "discover":
       if (ev.entity_type === "signal") return `New signals came in ${when}`;
@@ -141,11 +150,9 @@ export function receiptText(stage: LoopStageId, ev: BriefingEvent, now: Date): s
  */
 export function composeBriefing(input: BriefingInput): Briefing {
   const now = input.now ?? new Date();
-  const dayLabel = now.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
+  // In the recipient's zone: a briefing sent at 23:40 in Kolkata is for that
+  // day there, not for the day it is in the Worker's own clock.
+  const dayLabel = longDayInZone(now.toISOString(), input.zone);
 
   // Completion transitions only: a stage was produced, not merely touched.
   const completions: Array<{ stage: LoopStageId; ev: BriefingEvent }> = [];
@@ -158,7 +165,7 @@ export function composeBriefing(input: BriefingInput): Briefing {
 
   const receipts: BriefingReceipt[] = completions.slice(0, MAX_RECEIPTS).map(({ stage, ev }) => ({
     id: `${ev.entity_type}:${ev.entity_id ?? "unknown"}:${ev.at}`,
-    text: receiptText(stage, ev, now),
+    text: receiptText(stage, ev, now, input.zone),
     at: ev.at,
     stage,
     actor: ev.actor ?? null,
@@ -290,5 +297,6 @@ export const getBriefing = createServerFn({ method: "GET" })
       events: (eventsRes.data ?? []) as BriefingEvent[],
       inFlightRuns: runsRes.count ?? 0,
       gateCountByStage,
+      zone: await zoneForUser(context.supabase as unknown as SupabaseClient, context.userId),
     });
   });

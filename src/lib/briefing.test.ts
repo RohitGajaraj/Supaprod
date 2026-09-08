@@ -14,6 +14,7 @@ function compose(overrides: Partial<BriefingInput>) {
     inFlightRuns: 0,
     gateCountByStage: {},
     now: NOW,
+    zone: "UTC",
     ...overrides,
   });
 }

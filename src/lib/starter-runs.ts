@@ -84,3 +84,19 @@ export function readStoredStarterRuns(stored: unknown): StarterRun[] | null {
   const runs = parseStarterRuns(stored);
   return runs.length > 0 ? runs : null;
 }
+
+/**
+ * A refusal kept on the row, so the next read does not ask the model again
+ * and the home stops saying "still writing" over a model that said no. A
+ * timeout is not a refusal and stores nothing: the next read tries again.
+ */
+export type StarterRunsRefusal = { reason: string; at: string };
+
+export function readStarterRunsRefusal(stored: unknown): StarterRunsRefusal | null {
+  const refused = (stored as { refused?: unknown } | null)?.refused;
+  if (!refused || typeof refused !== "object") return null;
+  const reason = (refused as { reason?: unknown }).reason;
+  const at = (refused as { at?: unknown }).at;
+  if (typeof reason !== "string" || !reason.trim() || typeof at !== "string") return null;
+  return { reason: reason.trim(), at };
+}

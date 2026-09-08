@@ -196,6 +196,20 @@ const DELIBERATELY_UNSCOPED: Record<string, string> = {
     "The tick iterates workspaces itself and scopes each pass; that loop IS the scoping.",
 };
 
+/**
+ * A single read that iterates every workspace ON PURPOSE, in a file whose other
+ * reads still ratchet. Narrower than `DELIBERATELY_UNSCOPED`, which waives the
+ * whole file: here the count is the allowance and the baseline above keeps
+ * holding the rest. Adding a row is a claim a reader can weigh; raising a
+ * baseline number is not.
+ */
+const DELIBERATE_READS: Record<string, { reads: number; why: string }> = {
+  "src/routes/api/public/hooks/resume-runs.ts": {
+    reads: 1,
+    why: "The minute sweep drives a fresh open track nobody has driven yet, in whichever workspace it was started (F-55 'sweep'); the read is the cron pass across tenants, bounded to three rows under fifteen minutes old.",
+  },
+};
+
 function sourceFiles(dir: string, out: string[] = []): string[] {
   for (const e of readdirSync(dir)) {
     const p = join(dir, e);
@@ -273,7 +287,7 @@ describe("a read of a workspace-scoped table names a workspace", () => {
     for (const f of files) {
       if (DELIBERATELY_UNSCOPED[f]) continue;
       const now = bareReads(f);
-      const was = BASELINE[f] ?? 0;
+      const was = (BASELINE[f] ?? 0) + (DELIBERATE_READS[f]?.reads ?? 0);
       if (now > was) grown.push(`${f}: ${was} -> ${now}`);
     }
     /*
@@ -305,6 +319,18 @@ describe("a read of a workspace-scoped table names a workspace", () => {
     for (const [f, why] of Object.entries(DELIBERATELY_UNSCOPED)) {
       expect(why.length).toBeGreaterThan(20);
       expect(BASELINE[f]).toBeUndefined();
+    }
+  });
+
+  it("names a reason for every deliberate read, and the file really holds it", () => {
+    // An allowance for a read that is not there is a free read for the next
+    // one; an allowance in a file the whole-file register already waives is
+    // two registers saying the same thing.
+    for (const [f, { reads, why }] of Object.entries(DELIBERATE_READS)) {
+      expect(why.length).toBeGreaterThan(40);
+      expect(reads).toBeGreaterThan(0);
+      expect(DELIBERATELY_UNSCOPED[f]).toBeUndefined();
+      expect(bareReads(f)).toBe((BASELINE[f] ?? 0) + reads);
     }
   });
 });

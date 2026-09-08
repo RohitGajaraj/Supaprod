@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { answerTitle, dayLabel, needsDayDivider, hydrateMessages } from "./ask-thread";
+import { answerTitle, hydrateMessages } from "./ask-thread";
 
 describe("ask-thread - answerTitle (PC-36 E)", () => {
   it("takes the first non-empty line, stripped of markdown", () => {
@@ -19,30 +19,11 @@ describe("ask-thread - answerTitle (PC-36 E)", () => {
   });
 });
 
-describe("ask-thread - day dividers (PC-36 G)", () => {
-  const noon = (day: string) => new Date(`${day}T12:00:00`).getTime();
-
-  it("labels the current day TODAY", () => {
-    const now = noon("2026-07-16");
-    expect(dayLabel(now, now)).toBe("TODAY");
-  });
-
-  it("labels a past day with the short mono date", () => {
-    expect(dayLabel(noon("2026-07-14"), noon("2026-07-16"))).toBe("JUL 14");
-  });
-
-  it("needs no divider for the first message", () => {
-    expect(needsDayDivider(undefined, noon("2026-07-16"))).toBe(false);
-  });
-
-  it("needs no divider within the same day", () => {
-    expect(needsDayDivider(noon("2026-07-16"), noon("2026-07-16") + 3600_000)).toBe(false);
-  });
-
-  it("needs a divider when the calendar day turns over", () => {
-    expect(needsDayDivider(noon("2026-07-15"), noon("2026-07-16"))).toBe(true);
-  });
-});
+/*
+ * The day-divider helpers (dayLabel, needsDayDivider, PC-36 G) left with the
+ * Ask thread's own dividers: no surface called them, and the transcript's
+ * dividers read the person's zone through transcript-sections.ts (P-130b).
+ */
 
 describe("ask-thread - hydrateMessages (PC-36 rehydration)", () => {
   const meta = {

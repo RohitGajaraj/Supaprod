@@ -14,8 +14,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { countNeedsYouCalls } from "@/lib/today.functions";
 
 /** A run still running/queued past this window (the resume cron runs per minute)
- *  is treated as stuck — it should have advanced or failed by now. */
-const STALL_MINUTES = 30;
+ *  is treated as stuck — it should have advanced or failed by now. Exported so
+ *  the home's working mark stops breathing on the same clock loop-health calls
+ *  stalled (Lane 1, 2026-09-08), rather than on a second number. */
+export const STALL_MINUTES = 30;
 
 export type LoopHealth = {
   /** idle = at rest and clean · working = runs in flight · stalled = needs you. */

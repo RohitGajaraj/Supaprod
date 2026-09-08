@@ -14,6 +14,7 @@ const NOW = new Date("2026-07-19T12:00:00.000Z");
 
 function derive(overrides: Partial<LoopStateInput>) {
   return deriveLoopState({
+    zone: "UTC",
     gateCountByStage: {},
     events: [],
     inFlightRuns: 0,
@@ -292,14 +293,14 @@ describe("isCompletionEvent", () => {
 
 describe("relativePast", () => {
   test("honest ladder from minutes to a dated fallback", () => {
-    expect(relativePast(minutesAgo(0), NOW)).toBe("just now");
-    expect(relativePast(minutesAgo(1), NOW)).toBe("1 minute ago");
-    expect(relativePast(minutesAgo(12), NOW)).toBe("12 minutes ago");
-    expect(relativePast(hoursAgo(1), NOW)).toBe("1 hour ago");
-    expect(relativePast(hoursAgo(5), NOW)).toBe("5 hours ago");
-    expect(relativePast(daysAgo(1), NOW)).toBe("yesterday");
-    expect(relativePast(daysAgo(3), NOW)).toBe("3 days ago");
-    expect(relativePast(daysAgo(20), NOW)).toBe("on Jun 29");
+    expect(relativePast(minutesAgo(0), NOW, "UTC")).toBe("just now");
+    expect(relativePast(minutesAgo(1), NOW, "UTC")).toBe("1 minute ago");
+    expect(relativePast(minutesAgo(12), NOW, "UTC")).toBe("12 minutes ago");
+    expect(relativePast(hoursAgo(1), NOW, "UTC")).toBe("1 hour ago");
+    expect(relativePast(hoursAgo(5), NOW, "UTC")).toBe("5 hours ago");
+    expect(relativePast(daysAgo(1), NOW, "UTC")).toBe("yesterday");
+    expect(relativePast(daysAgo(3), NOW, "UTC")).toBe("3 days ago");
+    expect(relativePast(daysAgo(20), NOW, "UTC")).toBe("on Jun 29");
   });
 
   test("a future or unparsable timestamp degrades to just now, never a negative", () => {
