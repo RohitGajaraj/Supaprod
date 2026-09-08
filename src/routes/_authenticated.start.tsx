@@ -15,6 +15,7 @@ import { Arriving } from "@/components/start/Arriving";
 import { Hero, heroCopy } from "@/components/start/Hero";
 import { JourneyMap, promiseStations } from "@/components/start/JourneyMap";
 import { CrewAtWork, workingSeats } from "@/components/start/CrewAtWork";
+import { StarterRuns } from "@/components/start/StarterRuns";
 import { presenceColour } from "@/components/meridian/AgentPresence";
 import { listRunningNow } from "@/lib/spine/track.functions";
 import { runningNowKey } from "@/lib/query-keys";
@@ -475,6 +476,27 @@ function StartLanding() {
           busy={go.isPending}
           bets={bets.data}
           productExample={null}
+        />
+      ) : null}
+
+      {/*
+       * THE FIRST THREE RUNS, when there is nothing yet: no run open and no
+       * bet arrived. Written once from the product's name and the one line
+       * the person gave at the first run screen (Lane 3, listStarterRuns).
+       * The reading is shown while it happens; a press composes, Enter starts.
+       */}
+      {!anyOpen && !(bets.data && bets.data.length > 0) && activeProductId && activeProduct ? (
+        <StarterRuns
+          productId={activeProductId}
+          productName={activeProduct.name}
+          onUse={(text) => {
+            setSentence(text);
+            const field = fieldRef.current;
+            if (field) {
+              field.focus();
+              field.select();
+            }
+          }}
         />
       ) : null}
 

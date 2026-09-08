@@ -112,7 +112,9 @@ export function FirstRun() {
           data: { kind: "positioning", title: productName, body: oneLine },
         }).catch(() => undefined);
       }
-      await fComplete({ data: {} });
+      /* The product id lets the server write the first three runs at once
+         (Lane 3, 2026-09-08), so the home usually arrives with them there. */
+      await fComplete({ data: { productId: seeded?.projectId ?? undefined } });
       const { data } = await supabase.auth.getSession();
       if (data.session) await markOnboarded(data.session.user.id);
       await Promise.all([
