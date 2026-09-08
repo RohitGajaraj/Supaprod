@@ -19,6 +19,7 @@ import {
 import { KIND_WORD, STATION_ARTIFACT } from "@/lib/spine/attach";
 import type { StartRun } from "@/lib/spine/track.functions";
 import { holdTone } from "@/lib/spine/driver";
+import { presenceColour } from "@/components/meridian/AgentPresence";
 import { nothingIsComing } from "@/components/track/nothing-is-coming";
 
 export type RunLike = Pick<
@@ -96,7 +97,14 @@ export function journeyOfRun(r: RunLike): JourneyStation[] {
     }
     if (i < at) return { key, state: "done", outcome };
     if (i === at) {
-      return { key, state: standingState(r), outcome, at: r.working?.since ?? null };
+      /* THE SEAT'S OWN COLOUR ON THE ROW'S MARK. Every working row painted
+         the same status azure; the seat's identity never reached the row
+         (entry review, 2026-09-08). The mark is filled with the seat's
+         presence colour, the same one the strip and the map's dots carry. */
+      const presences = r.working
+        ? [{ seat: r.working.seat, colour: presenceColour(r.working.seat) }]
+        : undefined;
+      return { key, state: standingState(r), outcome, at: r.working?.since ?? null, presences };
     }
     return { key, state: "pending" };
   });

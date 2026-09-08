@@ -165,9 +165,7 @@ describe("the rail speaks the chord it actually binds", () => {
     // ALSO the tooltip (shell.css draws it from attr(aria-label)), so the wrong
     // key reached everybody. Left over from the bare-key scheme.
     const flat = SRC.replace(/\s+/g, " ");
-    expect(flat).toContain(
-      "shortcut ? `shortcut ${NAV_CHORD_PREFIX} then ${shortcut}` : null,",
-    );
+    expect(flat).toContain("shortcut ? `shortcut ${NAV_CHORD_PREFIX} then ${shortcut}` : null,");
     // The composition itself: the label (with Run's own state folded in when
     // there is one) always leads, the shortcut clause only when there is one,
     // joined into the one string the DOM actually receives.
