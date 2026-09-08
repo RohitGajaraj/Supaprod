@@ -7,6 +7,7 @@ import { advanceMissionCore, type MissionLite } from "@/lib/ai/mission-advance.s
 import { classifyMissionGate } from "@/lib/reliability/gate-state";
 import { withJobRun } from "@/lib/observability";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { driveTrackOnce, DRIVE_SELECT, type DriveRow } from "@/lib/spine/driver.server";
 import { DEFAULT_STUCK_MS, isRunStuck, stuckReason } from "@/lib/reliability/stuck-runs";
 
 // agent_approvals.run_id is new in the f_studio_engine migration — not in the
@@ -650,10 +651,62 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
               }
             }
 
+            /*
+             * A START IS DRIVEN WITHIN THE MINUTE, WHEREVER IT WAS PRESSED.
+             *
+             * Lane 2, 2026-09-08, probe run b830828a: a run started from the
+             * home's composer was not driven unless its run screen stayed
+             * mounted. The screen's `?start=true` effect makes the first
+             * drive, so a person who pressed Start and came straight back to
+             * the home left a track with driven_at null and no seat for
+             * ninety seconds, until track-tick's ten-minute pass. The start
+             * belongs to the server: this sweep runs every minute, so a fresh
+             * open track nobody has driven yet is driven here, once, as the
+             * sweep's own work (via "sweep", F-55: nobody is watching it).
+             * Bounded to three per pass and to tracks under fifteen minutes
+             * old, so a backlog of abandoned starts cannot take the minute;
+             * older ones stay track-tick's, whose ordering already puts a
+             * never-driven track first. A track that asked to stop is left
+             * alone, and one that throws must not stop the pass.
+             */
+            const freshTracks: string[] = [];
+            const freshFailed: string[] = [];
+            try {
+              const freshSince = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+              const { data: fresh } = await admin
+                .from("spine_tracks" as never)
+                .select(DRIVE_SELECT)
+                .eq("status", "open")
+                .is("driven_at", null)
+                .is("stop_requested_at", null)
+                .gte("created_at", freshSince)
+                .order("created_at", { ascending: true })
+                .limit(3);
+              const sweepStartedAt = Date.now();
+              for (const row of (fresh ?? []) as unknown as DriveRow[]) {
+                try {
+                  await driveTrackOnce(
+                    admin as unknown as SupabaseClient,
+                    row,
+                    "sweep",
+                    sweepStartedAt,
+                  );
+                  freshTracks.push(row.id);
+                } catch (e) {
+                  freshFailed.push(`${row.id}: ${e instanceof Error ? e.message : String(e)}`);
+                }
+              }
+            } catch (e) {
+              freshFailed.push(`read: ${e instanceof Error ? e.message : String(e)}`);
+            }
+
             return new Response(
               JSON.stringify({
                 ok: true,
                 resumed,
+                // Fresh open tracks nobody had driven, started here (F-55 sweep).
+                freshTracksDriven: freshTracks,
+                freshTracksFailed: freshFailed,
                 // Runs another worker already held. Reported, never counted as
                 // work this tick did.
                 skipped,
