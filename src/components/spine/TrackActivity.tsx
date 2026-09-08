@@ -113,6 +113,7 @@ import {
   RecordSpeaks,
 } from "@/components/meridian/surface-parts";
 import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream";
+import { PresenceDot, presenceColour } from "@/components/meridian/AgentPresence";
 import { enterMotion } from "@/components/spine/enter-motion";
 import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 
@@ -688,6 +689,8 @@ export function TrackActivity({
            time. `ToolStream` makes the same refusal on the same column. */
         durationMs: c.latencyMs > 0 ? c.latencyMs : undefined,
         error: c.error ?? undefined,
+        /* The query searched, the paths staged: the work, under the verb. */
+        argument: c.argument ?? undefined,
       };
       const list = byRun.get(c.runId);
       if (list) list.push(row);
@@ -1396,6 +1399,9 @@ export function TrackActivity({
                */
               className={`${RUN_LINE} mrd-focus-inset w-full min-w-0 max-w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
             >
+              {t.outcome === "working" ? (
+                <PresenceDot colour={presenceColour(t.agentName)} alive size={8} />
+              ) : null}
               <RunSubject>{transcriptLead(t)}</RunSubject>
               {chipOf(t)}
             </button>
@@ -1406,6 +1412,9 @@ export function TrackActivity({
               onClick={() => toggleTurn(row.key, t.outcome === "working")}
               className={`${RUN_LINE} mrd-focus-inset w-full min-w-0 max-w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
             >
+              {t.outcome === "working" ? (
+                <PresenceDot colour={presenceColour(t.agentName)} alive size={8} />
+              ) : null}
               <RunSubject>{transcriptLead(t)}</RunSubject>
               {chipOf(t)}
             </button>
@@ -1633,6 +1642,14 @@ export function TrackActivity({
             ) : null;
           const took = section.tookMs ? formatElapsed(section.tookMs / 1000) : null;
           const meta = [sectionMeta(section), took].filter(Boolean).join(" · ");
+          /* The seats live here, each as its own colour, readable closed. */
+          const liveNames = [
+            ...new Set(
+              section.rows.flatMap((r) =>
+                r.kind === "turn" && r.turn.outcome === "working" ? [r.turn.agentName] : [],
+              ),
+            ),
+          ];
           let lastDay: string | null = null;
           return (
             <section
@@ -1655,6 +1672,13 @@ export function TrackActivity({
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="flex min-w-0 flex-wrap items-center gap-x-mrd-3 gap-y-1">
                     <span className="text-mrd-base font-medium text-mrd-ink">{section.name}</span>
+                    {liveNames.length > 0 ? (
+                      <span className="flex items-center gap-1" aria-hidden="true">
+                        {liveNames.map((name) => (
+                          <PresenceDot key={name} colour={presenceColour(name)} alive size={8} />
+                        ))}
+                      </span>
+                    ) : null}
                     {chip}
                     {meta ? <span className="mrd-meta">{meta}</span> : null}
                   </span>

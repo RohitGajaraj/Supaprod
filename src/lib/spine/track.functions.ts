@@ -106,6 +106,7 @@ import {
   type Turn,
 } from "@/lib/spine/activity";
 import { creditsSpentByTrace } from "@/lib/credits.functions";
+import { SEARCH_TOOLS, toolCallFacts } from "@/lib/spine/tool-call-facts";
 
 const STATION = z.enum(AGENT_STATION_ORDER as unknown as [AgentStation, ...AgentStation[]]);
 const SHAPE = z.enum([
@@ -5277,6 +5278,17 @@ export type TrackToolCall = {
    * the run's total, and it hangs under nobody, which is exactly true.
    */
   runId: string | null;
+  /**
+   * What the call was about, in a line a person would repeat: the query in
+   * quotes, the paths, the title (Lane 2, 2026-09-08). Reduced on the server
+   * by `tool-call-facts.ts` so a staged file's contents never travel.
+   */
+  argument: string | null;
+  /** How many rows a search or listing returned; null when the result is not a list. */
+  found: number | null;
+  /** Repository paths the call touched, and whether it wrote or read them. */
+  files: string[];
+  touch: "wrote" | "read" | null;
 };
 
 export const getTrackToolCalls = createServerFn({ method: "GET" })
@@ -5337,7 +5349,16 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
 
       const { data: callRows, error: callErr } = await supabase
         .from("tool_calls")
-        .select("id, tool_name, ok, latency_ms, created_at, error, trace_id")
+        /*
+         * `args` RIDES ALONG, `result` DOES NOT (Lane 2, 2026-09-08). The
+         * argument is the work -- the query searched, the paths staged -- and
+         * `tool-call-facts.ts` reduces it to one line HERE, so a staged file's
+         * contents never reach a pane polling twice a second. `result` is read
+         * below for the search tools alone, whose results are short lists,
+         * because "returned nothing" is the fact a person watching Discover is
+         * waiting on; a `repo.read` result is the file itself and stays put.
+         */
+        .select("id, tool_name, ok, latency_ms, created_at, error, trace_id, args")
         .in("trace_id", traceIds)
         /* Newest first for the cap, reversed below: ToolStream takes arrival
            order, oldest first, and follows the tail. Ordering ascending here
@@ -5347,29 +5368,50 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
         .limit(200);
       if (callErr) throw new Error(`What the agents called could not be read: ${callErr.message}`);
 
-      const calls = (
-        (callRows ?? []) as Array<{
-          id: string;
-          tool_name: string;
-          ok: boolean;
-          latency_ms: number;
-          created_at: string;
-          error: string | null;
-          trace_id: string | null;
-        }>
-      )
-        .map((c) => ({
-          id: c.id,
-          tool: c.tool_name,
-          ok: c.ok,
-          latencyMs: c.latency_ms,
-          at: c.created_at,
-          error: c.error,
-          /* Null is a real answer: a call whose trace matches no run on this
-             track belongs to no seat the transcript is drawing, and guessing a
-             seat for it would put another turn's work under this one. */
-          runId: (c.trace_id ? (runByTrace.get(c.trace_id) ?? null) : null) as string | null,
-        }))
+      const callList = (callRows ?? []) as Array<{
+        id: string;
+        tool_name: string;
+        ok: boolean;
+        latency_ms: number;
+        created_at: string;
+        error: string | null;
+        trace_id: string | null;
+        args: unknown;
+      }>;
+
+      /* A failed second read costs the counts, never the calls. */
+      const resultById = new Map<string, unknown>();
+      const searchIds = callList.filter((c) => SEARCH_TOOLS.has(c.tool_name)).map((c) => c.id);
+      if (searchIds.length > 0) {
+        const { data: resultRows } = await supabase
+          .from("tool_calls")
+          .select("id, result")
+          .in("id", searchIds);
+        for (const r of (resultRows ?? []) as Array<{ id: string; result: unknown }>) {
+          resultById.set(r.id, r.result);
+        }
+      }
+
+      const calls = callList
+        .map((c) => {
+          const facts = toolCallFacts(c.tool_name, c.args, resultById.get(c.id) ?? null);
+          return {
+            id: c.id,
+            tool: c.tool_name,
+            ok: c.ok,
+            latencyMs: c.latency_ms,
+            at: c.created_at,
+            error: c.error,
+            /* Null is a real answer: a call whose trace matches no run on this
+               track belongs to no seat the transcript is drawing, and guessing a
+               seat for it would put another turn's work under this one. */
+            runId: (c.trace_id ? (runByTrace.get(c.trace_id) ?? null) : null) as string | null,
+            argument: facts.argument,
+            found: facts.found,
+            files: facts.files,
+            touch: facts.touch,
+          };
+        })
         .reverse();
 
       return { calls, runs: rows.length, tracedRuns };

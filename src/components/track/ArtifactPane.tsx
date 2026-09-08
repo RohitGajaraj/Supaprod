@@ -128,6 +128,7 @@ import { becameWorkOnItsOwn } from "@/lib/spine/promote";
 import { Verdict } from "@/components/meridian/verdict";
 import { verdictProps } from "@/components/track/verdict-reading";
 import { PlaybookFilesPanel } from "@/components/track/PlaybookFiles";
+import { LiveStation } from "@/components/track/LiveStation";
 import { AppFrame, RunningApp } from "@/components/track/AppFrame";
 
 /** What each station exists to do, for the not-run sentence. Display labels only. */
@@ -3036,14 +3037,26 @@ function StationPanel({
    * "not-reached" keeps the old sentence whatever is running, because a station
    * the work has not arrived at genuinely has not run.
    */
-  if (stop.state === "here" && !everDriven && isRunning) {
-    const purpose = PURPOSE[stop.station];
-    return (
-      <RecordSpeaks>
-        {`${stop.label} is running now, and has not filed anything yet.${purpose ? ` ${purpose}` : ""}`}
-      </RecordSpeaks>
-    );
-  }
+  /*
+   * ── AND NOW IT DRAWS THE WORK, NOT THE SENTENCE (Lane 2, 2026-09-08) ──
+   * The sentence stood for the whole first leg -- fifty seconds of "is
+   * running now" over an empty pane, which is a spinner with a noun. The
+   * record was moving underneath it the whole time. `LiveStation` draws the
+   * seats here in their own colours, what they have done so far, the files
+   * filling in and the calls arriving; the sentence is its own fallback for
+   * the beat before the first run row lands. When the station already holds
+   * something (a second pass, a revision) the live block sits above it.
+   */
+  const liveHere = stop.state === "here" && isRunning;
+  const liveBlock = liveHere ? (
+    <LiveStation
+      trackId={trackId}
+      station={stop.station}
+      label={stop.label}
+      purpose={PURPOSE[stop.station]}
+    />
+  ) : null;
+  if (liveHere && stop.members.length === 0) return liveBlock;
 
   /* A station the route has not reached yet, or has been sent back before,
      can still hold what it filed on an earlier pass (a Design with six
@@ -3211,6 +3224,7 @@ function StationPanel({
     if (stop.station === "sense") {
       return (
         <div className="flex flex-col gap-mrd-4">
+          {liveBlock}
           <MadeLine made={made} />
           <SenseBody
             items={items.filter((it) => it.kind === "signal" || it.kind === "theme" || it.missing)}
@@ -3234,6 +3248,7 @@ function StationPanel({
     const missionItems = items.filter((it) => it.kind === "mission" && !it.missing);
     return (
       <div className="flex flex-col gap-mrd-4">
+        {liveBlock}
         {/* Quiet, and above everything: it introduces the cards rather than
             competing with them, and a person who reads only this line has
             still been told what the step did. */}
@@ -3276,6 +3291,7 @@ function StationPanel({
 
   return (
     <div className="flex flex-col gap-mrd-3">
+      {liveBlock}
       {primaryMember ? <PlanSpec prdId={primaryMember.artifactId} /> : null}
       <MemberRows
         members={stop.members.filter((m) => !(m.kind === "prd" && !m.missing))}

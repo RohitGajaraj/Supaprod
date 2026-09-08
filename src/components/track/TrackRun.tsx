@@ -45,7 +45,8 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { CLAIMED_PATH_HOLD } from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
 
 import { TrackActivity } from "@/components/spine/TrackActivity";
-import { useCurrentTool } from "@/components/track/LiveWork";
+import { useCurrentTool, useNewestCallByRun } from "@/components/track/LiveWork";
+import { objectOf } from "@/components/track/live-station";
 import { ArtifactPane } from "@/components/track/ArtifactPane";
 import { TrackConsent } from "@/components/track/TrackConsent";
 import { Action, Door } from "@/components/meridian/surface-parts";
@@ -63,7 +64,7 @@ import {
   type DriveNowResult,
   type Track,
 } from "@/lib/spine/track.functions";
-import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
+import { AGENT_STATIONS, toolActionLabel, type AgentStation } from "@/lib/agent-vocabulary";
 import { STATION_NEEDS } from "@/lib/spine/correction";
 import { holdTone } from "@/lib/spine/driver";
 import { summaryText } from "@/components/track/run-summary";
@@ -1042,6 +1043,14 @@ export function TrackRunLeft({
     () => liveAgents.working.filter((a) => a.trackId === trackId),
     [liveAgents.working, trackId],
   );
+  /*
+   * THE OBJECT OF THE VERB, FROM THE SEAT'S OWN NEWEST CALL. The running-now
+   * key carries the verb; the call it came from carries the query searched or
+   * the paths staged, on the half-second feed this screen already polls. So
+   * the presence says "searching the workspace for “arrival time”", and the
+   * planner's step sentence stands in only when no call has returned yet.
+   */
+  const newestCallByRun = useNewestCallByRun(trackId, presences.length > 0);
   const now = runNow({
     track: track
       ? {
@@ -1109,18 +1118,21 @@ export function TrackRunLeft({
         <RunNow now={now}>
           {now.register === "working" && presences.length > 0 ? (
             <ul aria-label="Working on this now" className="flex flex-col gap-mrd-2">
-              {presences.map((a) => (
-                <li key={a.id}>
-                  <AgentPresence
-                    seat={a.name}
-                    verb={a.verb}
-                    object={a.subGoal}
-                    since={a.startedAt}
-                    colour={presenceColour(a.name)}
-                    alive
-                  />
-                </li>
-              ))}
+              {presences.map((a) => {
+                const newest = newestCallByRun.get(a.id) ?? null;
+                return (
+                  <li key={a.id}>
+                    <AgentPresence
+                      seat={a.name}
+                      verb={(newest ? toolActionLabel(newest.tool) : null) ?? a.verb}
+                      object={newest ? objectOf(newest.tool, newest.argument) : a.subGoal}
+                      since={a.startedAt}
+                      colour={presenceColour(a.name)}
+                      alive
+                    />
+                  </li>
+                );
+              })}
             </ul>
           ) : null}
           {now.register === "scheduled" && gradableBySource === false ? (
