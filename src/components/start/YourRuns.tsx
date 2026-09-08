@@ -125,7 +125,13 @@ function RunRow({
         action={
           <span
             className="grid items-center gap-mrd-2"
-            style={{ width: CONTROL_SLOT, gridTemplateColumns: "minmax(0, 1fr) auto" }}
+            /* Items keep their own width: a Finished chip in the first cell
+               must not stretch to the slot (seen live 20:00 IST 09-08). */
+            style={{
+              width: CONTROL_SLOT,
+              gridTemplateColumns: "minmax(0, 1fr) auto",
+              justifyItems: "start",
+            }}
           >
             {needsYou ? (
               /* THE ONE THING ONLY A PERSON CAN DO, AS THE ROW'S OWN CONTROL.
