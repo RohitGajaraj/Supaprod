@@ -1399,9 +1399,15 @@ export function TrackActivity({
                */
               className={`${RUN_LINE} mrd-focus-inset w-full min-w-0 max-w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
             >
-              {t.outcome === "working" ? (
-                <PresenceDot colour={presenceColour(t.agentName)} alive size={8} />
-              ) : null}
+              {/* The seat's own colour on every turn, breathing only while it
+                  works: identity outlives the turn, so a person can read who
+                  did what down a long transcript by colour alone, the way the
+                  home road and the Now card already name the seat. */}
+              <PresenceDot
+                colour={presenceColour(t.agentName)}
+                alive={t.outcome === "working"}
+                size={8}
+              />
               <RunSubject>{transcriptLead(t)}</RunSubject>
               {chipOf(t)}
             </button>
@@ -1412,9 +1418,15 @@ export function TrackActivity({
               onClick={() => toggleTurn(row.key, t.outcome === "working")}
               className={`${RUN_LINE} mrd-focus-inset w-full min-w-0 max-w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
             >
-              {t.outcome === "working" ? (
-                <PresenceDot colour={presenceColour(t.agentName)} alive size={8} />
-              ) : null}
+              {/* The seat's own colour on every turn, breathing only while it
+                  works: identity outlives the turn, so a person can read who
+                  did what down a long transcript by colour alone, the way the
+                  home road and the Now card already name the seat. */}
+              <PresenceDot
+                colour={presenceColour(t.agentName)}
+                alive={t.outcome === "working"}
+                size={8}
+              />
               <RunSubject>{transcriptLead(t)}</RunSubject>
               {chipOf(t)}
             </button>
