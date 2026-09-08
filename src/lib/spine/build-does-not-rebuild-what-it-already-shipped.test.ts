@@ -113,7 +113,10 @@ describe("the done rule", () => {
      * re-stages blind against a branch that is already wrong, which is the loop
      * it cannot see from inside.
      */
-    expect(flat).toContain("fixNote = selfCheckNote(station, alreadyRight.reason ?? null);");
+    // Both halves reach the seat: what its check refused and what to do about it.
+    expect(flat).toContain(
+      "fixNote = selfCheckNote( station, forTheSeat(alreadyRight.reason, alreadyRight.instruction), );",
+    );
     expect(flat).toContain("fixNote ?? backNote,");
   });
 

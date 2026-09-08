@@ -83,6 +83,7 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { TERMINAL_HOLDS } from "./correction";
 import { HOLD_LINE } from "./driver";
+import { splitInstruction } from "@/lib/spine/self-check-words";
 import {
   RUNNING_NOW,
   nowPerTrace,
@@ -3928,8 +3929,15 @@ export type SelfCheckEntry = {
   retried: boolean;
   /** What it compared, in the words the check itself used. */
   what: string[];
-  /** Why the ones that did not hold did not. Empty when they all held. */
+  /** Why the ones that did not hold did not, for the person. Empty when they all held. */
   why: string[];
+  /**
+   * What the seat was told to do about each miss, in the seat's vocabulary.
+   * Carried so a surface CAN show it behind a disclosure; the transcript's own
+   * sentence is `why`. Rows written before the split are split on read by the
+   * same rule (`splitInstruction`), so an old run never prints an imperative.
+   */
+  instruction: string[];
 };
 
 /**
@@ -3996,9 +4004,10 @@ export function summariseSelfChecks(
     let missed = 0;
     const what: string[] = [];
     const why: string[] = [];
+    const instruction: string[] = [];
     for (const c of list) {
       if (!c || typeof c !== "object") continue;
-      const check = c as { what?: unknown; held?: unknown; why?: unknown };
+      const check = c as { what?: unknown; held?: unknown; why?: unknown; instruction?: unknown };
       // A comparison with nothing to show for it cannot be read by a person and
       // is not counted, for the same reason an empty acceptance line is dropped.
       if (typeof check.what !== "string" || !check.what.trim()) continue;
@@ -4006,7 +4015,19 @@ export function summariseSelfChecks(
       if (check.held === true) held += 1;
       else {
         missed += 1;
-        if (typeof check.why === "string" && check.why.trim()) why.push(check.why.trim());
+        const storedWhy = typeof check.why === "string" ? check.why.trim() : "";
+        const storedInstruction =
+          typeof check.instruction === "string" ? check.instruction.trim() : "";
+        if (storedInstruction) {
+          if (storedWhy) why.push(storedWhy);
+          instruction.push(storedInstruction);
+        } else if (storedWhy) {
+          // Written before the split: the person's half and the seat's half
+          // were one string. Same rule the writer uses now.
+          const halves = splitInstruction(storedWhy);
+          if (halves.why) why.push(halves.why);
+          if (halves.instruction) instruction.push(halves.instruction);
+        }
       }
     }
     const counted = held + missed;
@@ -4023,6 +4044,7 @@ export function summariseSelfChecks(
         retried,
         what,
         why,
+        instruction,
       });
     }
   }

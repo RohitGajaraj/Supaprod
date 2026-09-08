@@ -133,7 +133,7 @@ export async function recordTrackDrive(
 export async function recordSelfCheck(
   client: unknown,
   driveId: string | null,
-  checks: ReadonlyArray<{ what: string; held: boolean; why?: string }>,
+  checks: ReadonlyArray<{ what: string; held: boolean; why?: string; instruction?: string }>,
 ): Promise<void> {
   if (!driveId) return;
   try {

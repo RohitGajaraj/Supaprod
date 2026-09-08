@@ -118,8 +118,11 @@ describe("F-148 · the gate refuses what the filing check could not", () => {
     expect(v.passed).toBe(false);
     expect(v.reason).toContain("never run");
     // It names the tool, because a refusal that does not say the next action is
-    // a raw error wearing a sentence (standard #3).
-    expect(v.reason).toContain("studio.checks.run");
+    // a raw error wearing a sentence (standard #3). The next action is the
+    // SEAT's and travels in its own field: `reason` is what a person reads and
+    // must not tell them to call a tool (Lane 2, 09-08).
+    expect(v.instruction).toContain("studio.checks.run");
+    expect(v.reason).not.toContain("studio.checks.run");
   });
 
   it("REFUSES a red verdict and carries the tool's own reason", async () => {

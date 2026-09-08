@@ -292,6 +292,68 @@ describe("the row a person reads", () => {
     expect(t.entries[0].why).toEqual(["never run"]);
   });
 
+  it("the seat's instruction is carried beside the person's sentence, never inside it", () => {
+    const t = summariseSelfChecks(
+      [
+        {
+          station: "build",
+          at: "2026-09-08T10:00:00Z",
+          self_check: [
+            {
+              what: "The checks ran and cleared this change",
+              held: false,
+              why: "The checks were never run on this change.",
+              instruction: "Call studio.checks.run and read its verdict before handing this on.",
+            },
+          ],
+        },
+      ],
+      null,
+    );
+    expect(t.entries[0].why).toEqual(["The checks were never run on this change."]);
+    expect(t.entries[0].instruction).toEqual([
+      "Call studio.checks.run and read its verdict before handing this on.",
+    ]);
+  });
+
+  it("a row written before the split is split on read by the writer's own rule", () => {
+    /*
+     * Lane 2's finding, 09-08: the transcript printed "The checks were never
+     * run on this change. Call studio.checks.run and read its verdict before
+     * handing this on." under "Checked its own work". Rows already on the
+     * record hold that joined form; the reader must not print the imperative.
+     */
+    const t = summariseSelfChecks(
+      [
+        {
+          station: "build",
+          self_check: [
+            missed(
+              "The checks ran",
+              "The checks were never run on this change. Call studio.checks.run and read its verdict before handing this on.",
+            ),
+          ],
+        },
+      ],
+      null,
+    );
+    expect(t.entries[0].why).toEqual(["The checks were never run on this change."]);
+    expect(t.entries[0].instruction).toEqual([
+      "Call studio.checks.run and read its verdict before handing this on.",
+    ]);
+  });
+
+  it("the driver writes the two halves as two fields", () => {
+    const src = readFileSync("src/lib/spine/driver.server.ts", "utf8");
+    // The `no` helper takes the instruction as its own argument and stores it
+    // as its own field.
+    expect(src).toContain("const no = (what: string, why: string, instruction?: string) => {");
+    expect(src).toContain("{ what, held: false, why, instruction }");
+    // The seat's note gets both halves; the person's column gets `reason` alone.
+    expect(src).toContain("forTheSeat(alreadyRight.reason, alreadyRight.instruction)");
+    expect(src).toContain("last_hold_because: verification.reason ?? null");
+  });
+
   it("the rows and the total are summed from one pass, so they cannot disagree", () => {
     /*
      * The failure that matters is not either surface being wrong alone -- it is

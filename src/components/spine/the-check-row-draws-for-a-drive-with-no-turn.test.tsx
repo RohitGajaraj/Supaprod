@@ -62,7 +62,11 @@ describe("a drive that ran no seats still says it checked itself", () => {
     const row = mergeActivityRows([], [], [], t.entries)[0];
     if (row.kind !== "check") throw new Error("unreachable");
     expect(row.what).toEqual(["A change was staged", "The checks ran and cleared this change"]);
-    expect(row.why[0]).toContain("studio.checks.run");
+    /* The person's half only. The fixture is the joined sentence the driver
+       wrote before the split; the reader splits it, and the seat's
+       instruction ("Call studio.checks.run ...") never reaches this row. */
+    expect(row.why[0]).toBe("The checks were never run on this change.");
+    expect(row.why[0]).not.toContain("studio.checks.run");
   });
 
   it("sits in time order among turns and moves rather than at either end", () => {
