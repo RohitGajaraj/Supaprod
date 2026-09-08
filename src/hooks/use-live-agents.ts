@@ -2,8 +2,8 @@ import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { missionsKey, runningNowKey } from "@/lib/query-keys";
-import { listMissions, type MissionListRow } from "@/lib/missions.functions";
+import { missionMarksKey, runningNowKey } from "@/lib/query-keys";
+import { listMissionMarks, type MissionMark } from "@/lib/missions.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { listRunningNow } from "@/lib/spine/track.functions";
 
@@ -119,11 +119,14 @@ export type LiveAgents = {
 export function useLiveAgents(): LiveAgents {
   const { activeWorkspace } = useWorkspace();
   const workspaceId = activeWorkspace?.id ?? null;
-  const fetchMissions = useServerFn(listMissions);
+  const fetchMissions = useServerFn(listMissionMarks);
 
   const missions = useQuery({
     // The SHELL'S key, on purpose. Same key, same cache entry, no second request.
-    queryKey: missionsKey(workspaceId),
+    // The marks read since 2026-09-09: seven fields a mission in one round
+    // trip, where listMissions carried every step and run of fifty missions
+    // (170 KB, five seconds on the run screen) for a "last done" line.
+    queryKey: missionMarksKey(workspaceId),
     /*
      * THE WORKSPACE IS PASSED, and until 2026-08-18 it was not.
      *
@@ -138,7 +141,10 @@ export function useLiveAgents(): LiveAgents {
      * other three did not, so whichever mounted first won and the rest read its
      * cache. Which meant the answer depended on mount order.
      */
-    queryFn: () => fetchMissions({ data: { workspaceId: workspaceId ?? undefined } }),
+    queryFn: () => fetchMissions({ data: { workspaceId: workspaceId as string } }),
+    /* Not before the workspace is known, the same rule the shell's own read
+       keeps: the key claims a workspace, so the fetch must name one. */
+    enabled: Boolean(workspaceId),
   });
 
   /*
@@ -188,7 +194,7 @@ export function useLiveAgents(): LiveAgents {
   });
 
   return React.useMemo(() => {
-    const rows: MissionListRow[] = missions.data?.missions ?? [];
+    const rows: MissionMark[] = missions.data?.missions ?? [];
     const working = (running.data ?? []).map((seat) => ({
       id: seat.runId,
       missionId: seat.missionId,

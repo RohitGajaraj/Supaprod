@@ -56,6 +56,12 @@ export function missionsKey(workspaceId: string | null | undefined) {
   return ["missions-list", workspaceId ?? null] as const;
 }
 
+/** The workspace's mission marks: what the shell's mark stack and the
+ *  live-agents hook draw, seven fields per mission. `listMissionMarks`. */
+export function missionMarksKey(workspaceId: string | null | undefined) {
+  return ["mission-marks", workspaceId ?? null] as const;
+}
+
 /**
  * The studio sessions the strip, the board and the board panel all read.
  * `listStudioSessions`.

@@ -127,7 +127,9 @@ describe("the indicator is bound to the run, not to the reader's click", () => {
   const comp = strip(read("components/shell/CrewWorking.tsx"));
 
   it("reads real mission rows and filters on a working status", () => {
-    expect(hook).toMatch(/listMissions/);
+    // The marks read since 2026-09-09: the same rows, seven fields a mission,
+    // one round trip, instead of listMissions's steps, runs and cost.
+    expect(hook).toMatch(/listMissionMarks/);
     expect(hook).toMatch(/WORKING\.has\(m\.status\)/);
   });
 
@@ -141,7 +143,7 @@ describe("the indicator is bound to the run, not to the reader's click", () => {
   it("adds no second poll, by sharing the shell's query key", () => {
     // A separate key would double the traffic to say the same thing, and the
     // shell already owns the cadence.
-    expect(hook).toMatch(/queryKey: missionsKey\(workspaceId\)/);
+    expect(hook).toMatch(/queryKey: missionMarksKey\(workspaceId\)/);
     expect(hook).not.toMatch(/refetchInterval/);
   });
 
@@ -171,8 +173,8 @@ describe("the indicator is bound to the run, not to the reader's click", () => {
       // deleted along with the other 48 the packet's census found.
     ]) {
       const source = strip(read(caller));
-      if (!/missionsKey\(/.test(source)) continue;
-      expect(source, `${caller} shares missionsKey and must pass the workspace`).not.toMatch(
+      if (!/missionsKey\(|missionMarksKey\(/.test(source)) continue;
+      expect(source, `${caller} shares a missions key and must pass the workspace`).not.toMatch(
         /fetchMissions\(\{ data: \{\} \}\)/,
       );
     }

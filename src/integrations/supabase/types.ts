@@ -9994,6 +9994,20 @@ export type Database = {
         Args: { p_track_id: string; p_limit?: number; p_search_tools?: string[] }
         Returns: Json
       }
+      mission_marks: {
+        Args: { p_workspace_id: string; p_limit?: number }
+        Returns: {
+          id: string
+          title: string
+          status: string
+          created_at: string
+          updated_at: string
+          completed_at: string | null
+          current_agent_id: string | null
+          current_agent_slug: string | null
+          track_id: string | null
+        }[]
+      }
       current_user_default_workspace: { Args: never; Returns: string }
       data_retention_enabled: { Args: never; Returns: boolean }
       debit_account_credits: {

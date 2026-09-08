@@ -133,7 +133,7 @@ import { TeammateCursors } from "@/components/shell/TeammateCursors";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { pollMs } from "@/components/shell/poll";
 import * as React from "react";
-import { APPROVALS_QUEUE_PREFIX, missionsKey, runningNowKey } from "@/lib/query-keys";
+import { APPROVALS_QUEUE_PREFIX, missionMarksKey, runningNowKey } from "@/lib/query-keys";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { sessionEndedMessage } from "@/lib/error-copy";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
@@ -151,7 +151,7 @@ import { seatLine, workingSeats } from "@/components/start/CrewAtWork";
 import { useSeedInFlight } from "@/components/start/home-read";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { supabase } from "@/integrations/supabase/client";
-import { listMissions } from "@/lib/missions.functions";
+import { listMissionMarks } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
 import { listCrew } from "@/lib/crew.functions";
 import { listMovingTracks, listTracks, listGatesOnTracks } from "@/lib/spine/track.functions";
@@ -911,7 +911,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const fetchMissions = useServerFn(listMissions);
+  const fetchMissions = useServerFn(listMissionMarks);
   const workspaceId = activeWorkspace?.id ?? null;
 
   /* THE LIVE LINE WAS NOT LIVE, and it is the product's only always-on proof of
@@ -939,11 +939,14 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
    * making a second-by-second assertion, so it earns 4s. Idle, it is only
    * watching for work to appear, so 20s is enough and cheaper. */
   const missions = useQuery({
-    queryKey: missionsKey(workspaceId),
+    queryKey: missionMarksKey(workspaceId),
     /* Scoped, because the key claims a workspace. See use-live-agents.ts: the
      * key and the fetch disagreed, so this line rendered on every authenticated
-     * screen and could name an agent in a workspace the reader had left. */
-    queryFn: () => fetchMissions({ data: { workspaceId: workspaceId ?? undefined } }),
+     * screen and could name an agent in a workspace the reader had left.
+     * The marks read (seven fields a mission, one round trip) replaced
+     * listMissions here on 2026-09-09: that read carried every step and run
+     * of fifty missions, 170 KB and five seconds on every page, for these dots. */
+    queryFn: () => fetchMissions({ data: { workspaceId: workspaceId as string } }),
     staleTime: 30_000,
     refetchInterval: (query) => {
       const rows = query.state.data?.missions ?? [];

@@ -16,7 +16,6 @@
  * is to pull a precedence rule like this one out and test it directly rather
  * than pay for that scaffolding to pin one filter.
  */
-import type { MissionListRow } from "@/lib/missions.functions";
 
 /**
  * `WORKING.has(status)` narrows to candidates; a mission counts as genuinely
@@ -29,9 +28,9 @@ import type { MissionListRow } from "@/lib/missions.functions";
  * so a trackless "running" claim today is exactly the kind of stale claim
  * this function exists to refuse.
  */
-export function genuinelyWorkingMissions(
-  candidates: readonly MissionListRow[],
+export function genuinelyWorkingMissions<T extends { trackId: string | null }>(
+  candidates: readonly T[],
   movingTrackIds: ReadonlySet<string>,
-): MissionListRow[] {
+): T[] {
   return candidates.filter((m) => !!m.trackId && movingTrackIds.has(m.trackId));
 }

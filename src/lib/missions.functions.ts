@@ -7,6 +7,8 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { isSideEffectingTool } from "@/lib/tool-consequences";
 
@@ -187,6 +189,67 @@ export type MissionListRow = {
    * Named honestly for the user via buildDriverLabel (Gate #1 B3). */
   build_driver: string | null;
 };
+
+/** One mission as the shell's marks and the live-agents hook read it. */
+export type MissionMark = {
+  id: string;
+  title: string;
+  status: string;
+  /** When the mission was opened and dispatched: the one start instant the shell can say. */
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+  current_agent_id: string | null;
+  /** The newest run's agent on this mission, or null before a run. */
+  current_agent_slug: string | null;
+  /** The newest run's track on this mission, or null; `missions` has no track column. */
+  trackId: string | null;
+};
+
+/**
+ * ── THE SHELL READ 170 KB ON EVERY PAGE TO DRAW A FEW DOTS (2026-09-09) ────
+ *
+ * `useLiveAgents` and the shell's mark stack mount on every authenticated
+ * page and read `listMissions`: fifty missions with their goals, every step
+ * and every run of each, and a cost. On the run screen of 2fdf93b6 that
+ * call answered in 5,045 to 5,311 ms carrying 170,843 bytes, the largest
+ * handler in the product, and the two readers used seven fields of it:
+ * status, title, completed_at (the hook's "last done" line) and the mission's
+ * agent and track (the marks). `mission_marks` (migration 20260909100800)
+ * answers exactly those in one round trip under the caller's own RLS, fifty
+ * rows in about 7 KB. `listMissions` stays for the Build board and the Ask
+ * pane, which draw the steps and the cost.
+ */
+export async function readMissionMarks(
+  supabase: SupabaseClient<Database>,
+  workspaceId: string,
+): Promise<{ missions: MissionMark[] }> {
+  const { data, error } = await supabase.rpc("mission_marks", {
+    p_workspace_id: workspaceId,
+    p_limit: 50,
+  });
+  if (error) throw new Error(`The missions could not be read: ${error.message}`);
+  return {
+    missions: (data ?? []).map((r) => ({
+      id: r.id,
+      title: r.title,
+      status: r.status,
+      created_at: r.created_at,
+      updated_at: r.updated_at,
+      completed_at: r.completed_at ?? null,
+      current_agent_id: r.current_agent_id ?? null,
+      current_agent_slug: r.current_agent_slug ?? null,
+      trackId: r.track_id ?? null,
+    })),
+  };
+}
+
+export const listMissionMarks = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { workspaceId: string }) =>
+    z.object({ workspaceId: z.string().uuid() }).parse(d),
+  )
+  .handler(({ context, data }) => readMissionMarks(context.supabase, data.workspaceId));
 
 export const listMissions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
