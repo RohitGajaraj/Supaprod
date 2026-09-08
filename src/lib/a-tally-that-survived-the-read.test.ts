@@ -58,7 +58,11 @@ describe("a caller can ask for one workspace", () => {
      * a scope change lands on every one of them at once, which is precisely why
      * S2 declined to make it.
      */
-    expect(CODE).toContain("const workspaceId = data?.workspaceId ?? null;");
+    // The server function hands its input to the read behind it
+    // (readStudioSessions, since the eleven-hop collapse of 2026-09-08), and
+    // the default is decided once, at that handoff.
+    expect(CODE).toContain("workspaceId: data?.workspaceId ?? null,");
+    expect(CODE).toContain("const workspaceId = opts.workspaceId;");
   });
 
   it("it is a conditional chain, not an invented builder method", () => {

@@ -201,11 +201,44 @@ export const listStudioSessions = createServerFn({ method: "GET" })
       .parse(i ?? {}),
   )
   .handler(
-    async ({ context, data }): Promise<{ sessions: StudioSessionListItem[]; bounded: boolean }> => {
-      const { supabase, userId } = context;
-      const db = supabase as unknown as SupabaseClient;
-      const includeArchived = data?.includeArchived ?? false;
-      const workspaceId = data?.workspaceId ?? null;
+    async ({ context, data }): Promise<{ sessions: StudioSessionListItem[]; bounded: boolean }> =>
+      readStudioSessions(context.supabase as unknown as SupabaseClient, context.userId, {
+        includeArchived: data?.includeArchived ?? false,
+        workspaceId: data?.workspaceId ?? null,
+      }),
+  );
+
+/**
+ * THE READ BEHIND `listStudioSessions`, callable with a client you already
+ * hold and driven by `a-strip-read-is-three-hops-deep.test.ts`.
+ *
+ * ── ELEVEN ROUND TRIPS ON EVERY PAGE (2026-09-08) ────────────────────────────
+ *
+ * The shell's station strip mounts this on every authenticated page, and on
+ * Helio Labs its Server-Timing read worker-total 3,734 ms and 3,856 ms on
+ * two loads, while every query in it takes single-digit milliseconds in
+ * Postgres. The handler awaited eleven reads one after another: builder
+ * runs, then other runs, then proposed missions, then the four-way
+ * Promise.all, then studio_changes, then prds, then checkpoints and
+ * ai_events once per run kind, then agents. At the ~275 ms warm / ~550 ms
+ * cold this deployment pays per Worker-to-PostgREST hop, that is the whole
+ * number. Three hops now: the three reads that need only the caller leave
+ * together; everything keyed on the run rows leaves together; everything
+ * keyed on THOSE leaves together. The two run kinds keep their own read,
+ * their own page and their own cost tally (the adversarial-review finding
+ * the OBS-10 paragraph below records); what changed is only when each read
+ * is sent.
+ */
+export async function readStudioSessions(
+  db: SupabaseClient,
+  userId: string,
+  opts: { includeArchived: boolean; workspaceId: string | null },
+): Promise<{ sessions: StudioSessionListItem[]; bounded: boolean }> {
+  {
+    {
+      const supabase = db;
+      const includeArchived = opts.includeArchived;
+      const workspaceId = opts.workspaceId;
       /**
        * The per-kind read cap, named so the `bounded` flag below cannot drift
        * from it. Two separate reads keep their own page deliberately: a single
@@ -234,10 +267,27 @@ export const listStudioSessions = createServerFn({ method: "GET" })
         .eq("user_id", userId)
         .eq("agent_slug", "builder");
       if (workspaceId) builderQ = builderQ.eq("workspace_id", workspaceId);
-      const { data: runs, error } = await builderQ
-        .order("created_at", { ascending: false })
-        .limit(RUN_PAGE);
+      let otherQ = db
+        .from("agent_runs")
+        .select("id,mission_id,status,created_at,agent_slug")
+        .eq("user_id", userId)
+        .neq("agent_slug", "builder");
+      if (workspaceId) otherQ = otherQ.eq("workspace_id", workspaceId);
+      // A 'proposed' mission (the trigger-tick's own HITL gate)
+      // has ZERO agent_runs by design — resume-runs ignores it until a human
+      // promotes it — so it would never enter either runs query above, making its
+      // "Review & launch" gate unreachable. Fetch these separately by status.
+      const [
+        { data: runs, error },
+        { data: otherRuns, error: otherError },
+        { data: proposedMissions },
+      ] = await Promise.all([
+        builderQ.order("created_at", { ascending: false }).limit(RUN_PAGE),
+        otherQ.order("created_at", { ascending: false }).limit(RUN_PAGE),
+        db.from("missions").select("id").eq("user_id", userId).eq("status", "proposed"),
+      ]);
       if (error) throw new Error(error.message);
+      if (otherError) throw new Error(otherError.message);
       /*
        * ── F-141, THE SECOND HALF: THREE CAPS AND NO EXACT COUNT ──────────────
        *
@@ -256,36 +306,20 @@ export const listStudioSessions = createServerFn({ method: "GET" })
        * which is stronger and sometimes false.
        */
       const ASSEMBLED_CAP = 200;
-      const runRows = (runs ?? []) as {
+      type RunRow = {
         id: string;
         mission_id: string | null;
         status: string;
         created_at: string;
         agent_slug: string | null;
-      }[];
+      };
+      const runRows = (runs ?? []) as RunRow[];
       const builderMissionIds = [
         ...new Set(runRows.map((r) => r.mission_id).filter((m): m is string => !!m)),
       ];
-
-      let otherQ = db
-        .from("agent_runs")
-        .select("id,mission_id,status,created_at,agent_slug")
-        .eq("user_id", userId)
-        .neq("agent_slug", "builder");
-      if (workspaceId) otherQ = otherQ.eq("workspace_id", workspaceId);
-      const { data: otherRuns, error: otherError } = await otherQ
-        .order("created_at", { ascending: false })
-        .limit(RUN_PAGE);
-      if (otherError) throw new Error(otherError.message);
       /** True when either page filled, so a caller knows its count is a floor. */
       const bounded = (runs?.length ?? 0) >= RUN_PAGE || (otherRuns?.length ?? 0) >= RUN_PAGE;
-      const otherRunRows = (otherRuns ?? []) as {
-        id: string;
-        mission_id: string | null;
-        status: string;
-        created_at: string;
-        agent_slug: string | null;
-      }[];
+      const otherRunRows = (otherRuns ?? []) as RunRow[];
 
       /**
        * The stage each mission is standing at: the station of the agent on its
@@ -313,16 +347,6 @@ export const listStudioSessions = createServerFn({ method: "GET" })
       const otherMissionIds = [
         ...new Set(otherRunRows.map((r) => r.mission_id).filter((m): m is string => !!m)),
       ].filter((id) => !builderMissionIds.includes(id));
-
-      // A 'proposed' mission (the trigger-tick's own HITL gate)
-      // has ZERO agent_runs by design — resume-runs ignores it until a human
-      // promotes it — so it would never enter either runs query above, making its
-      // "Review & launch" gate unreachable. Fetch these separately by status.
-      const { data: proposedMissions } = await db
-        .from("missions")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("status", "proposed");
       const proposedIds = ((proposedMissions ?? []) as { id: string }[])
         .map((p) => p.id)
         .filter((id) => !builderMissionIds.includes(id) && !otherMissionIds.includes(id));
@@ -334,32 +358,46 @@ export const listStudioSessions = createServerFn({ method: "GET" })
       for (const id of otherMissionIds) missionKind.set(id, "mission");
       for (const id of proposedIds) missionKind.set(id, "mission");
 
-      const [{ data: missions }, { data: changesets }, { data: pendings }, { data: edges }] =
-        await Promise.all([
-          db
-            .from("missions")
-            .select("id,title,goal,status,created_at,updated_at,archived_at,current_agent_id")
-            .in("id", missionIds),
-          db
-            .from("studio_changesets")
-            .select(
-              "id,product_id,mission_id,status,repo,branch,pr_url,pr_number,title,summary,created_at",
-            )
-            .in("mission_id", missionIds)
-            .neq("status", "abandoned")
-            .order("created_at", { ascending: false }),
-          db
-            .from("agent_approvals")
-            .select("id,mission_id")
-            .in("mission_id", missionIds)
-            .eq("status", "pending"),
-          db
-            .from("artifact_lineage")
-            .select("parent_id,child_id")
-            .eq("parent_kind", "prd")
-            .eq("child_kind", "mission")
-            .in("child_id", missionIds),
-        ]);
+      // Everything keyed on the run rows, in one hop: the missions, their
+      // latest changesets, their pending gates, their spec lineage, and the
+      // checkpoint trace of every run of either kind (one read; the cost
+      // tally below still keeps the kinds apart by walking each kind's own
+      // rows).
+      const [
+        { data: missions },
+        { data: changesets },
+        { data: pendings },
+        { data: edges },
+        traces,
+      ] = await Promise.all([
+        db
+          .from("missions")
+          .select("id,title,goal,status,created_at,updated_at,archived_at,current_agent_id")
+          .in("id", missionIds),
+        db
+          .from("studio_changesets")
+          .select(
+            "id,product_id,mission_id,status,repo,branch,pr_url,pr_number,title,summary,created_at",
+          )
+          .in("mission_id", missionIds)
+          .neq("status", "abandoned")
+          .order("created_at", { ascending: false }),
+        db
+          .from("agent_approvals")
+          .select("id,mission_id")
+          .in("mission_id", missionIds)
+          .eq("status", "pending"),
+        db
+          .from("artifact_lineage")
+          .select("parent_id,child_id")
+          .eq("parent_kind", "prd")
+          .eq("child_kind", "mission")
+          .in("child_id", missionIds),
+        traceByRun(
+          supabase,
+          [...runRows, ...otherRunRows].map((r) => r.id),
+        ),
+      ]);
 
       // Latest non-abandoned changeset per mission + file counts in one query.
       const changesetByMission = new Map<string, StudioChangesetSummary>();
@@ -371,17 +409,6 @@ export const listStudioSessions = createServerFn({ method: "GET" })
           changesetByMission.set(cs.mission_id, { ...cs, file_count: 0 });
           changesetIds.push(cs.id);
         }
-      }
-      if (changesetIds.length) {
-        const { data: changeRows } = await db
-          .from("studio_changes")
-          .select("changeset_id")
-          .in("changeset_id", changesetIds);
-        const counts = new Map<string, number>();
-        for (const r of (changeRows ?? []) as { changeset_id: string }[]) {
-          counts.set(r.changeset_id, (counts.get(r.changeset_id) ?? 0) + 1);
-        }
-        for (const cs of changesetByMission.values()) cs.file_count = counts.get(cs.id) ?? 0;
       }
 
       const pendingByMission = new Map<string, number>();
@@ -395,55 +422,7 @@ export const listStudioSessions = createServerFn({ method: "GET" })
         prdByMission.set(e.child_id, e.parent_id);
       }
       const prdIds = [...new Set(prdByMission.values())];
-      const { data: prds } = prdIds.length
-        ? await db.from("prds").select("id,title").in("id", prdIds)
-        : { data: [] as { id: string; title: string }[] };
-      const prdTitle = new Map(
-        (prds ?? []).map((p: { id: string; title: string }) => [p.id, p.title]),
-      );
-
-      // Cost: checkpoint trace → ai_events sum (legacy and new runs alike). Computed
-      // separately per agent-kind run set (never merged) so a 'build'-kind mission's
-      // cost/status can never absorb a different agent's contribution mid-mission.
-      async function costAndStatusByMission(
-        rows: { id: string; mission_id: string | null; status: string }[],
-      ): Promise<{ cost: Map<string, number>; status: Map<string, string> }> {
-        const traces = await traceByRun(
-          supabase,
-          rows.map((r) => r.id),
-        );
-        const traceList = [...new Set(traces.values())];
-        const costByTrace = new Map<string, number>();
-        if (traceList.length) {
-          const { data: events } = await db
-            .from("ai_events")
-            .select("trace_id,est_cost_usd")
-            .in("trace_id", traceList);
-          for (const ev of (events ?? []) as {
-            trace_id: string | null;
-            est_cost_usd: number | null;
-          }[]) {
-            if (ev.trace_id)
-              costByTrace.set(
-                ev.trace_id,
-                (costByTrace.get(ev.trace_id) ?? 0) + (ev.est_cost_usd ?? 0),
-              );
-          }
-        }
-        const cost = new Map<string, number>();
-        const status = new Map<string, string>();
-        for (const r of rows) {
-          if (!r.mission_id) continue;
-          if (!status.has(r.mission_id)) status.set(r.mission_id, r.status);
-          const trace = traces.get(r.id);
-          if (trace)
-            cost.set(r.mission_id, (cost.get(r.mission_id) ?? 0) + (costByTrace.get(trace) ?? 0));
-        }
-        return { cost, status };
-      }
-      const builder = await costAndStatusByMission(runRows);
-      const other = await costAndStatusByMission(otherRunRows);
-
+      const traceList = [...new Set(traces.values())];
       /**
        * The stage a mission that has NOT RUN YET is standing at.
        *
@@ -493,12 +472,72 @@ export const listStudioSessions = createServerFn({ method: "GET" })
             .map((m) => m.current_agent_id as string),
         ),
       ];
-      const slugByAgentId = new Map<string, string>();
-      if (routedIds.length) {
-        const { data: agentRows } = await db.from("agents").select("id,slug").in("id", routedIds);
-        for (const a of (agentRows ?? []) as { id: string; slug: string }[]) {
-          slugByAgentId.set(a.id, a.slug);
+
+      // Everything keyed on the second hop, in one: file counts per changeset,
+      // spec titles, the cost events of every trace, the routed agents' slugs.
+      const [{ data: changeRows }, { data: prds }, { data: events }, { data: agentRows }] =
+        await Promise.all([
+          changesetIds.length
+            ? db.from("studio_changes").select("changeset_id").in("changeset_id", changesetIds)
+            : Promise.resolve({ data: [] as { changeset_id: string }[] }),
+          prdIds.length
+            ? db.from("prds").select("id,title").in("id", prdIds)
+            : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+          traceList.length
+            ? db.from("ai_events").select("trace_id,est_cost_usd").in("trace_id", traceList)
+            : Promise.resolve({
+                data: [] as { trace_id: string | null; est_cost_usd: number | null }[],
+              }),
+          routedIds.length
+            ? db.from("agents").select("id,slug").in("id", routedIds)
+            : Promise.resolve({ data: [] as { id: string; slug: string }[] }),
+        ]);
+
+      const counts = new Map<string, number>();
+      for (const r of (changeRows ?? []) as { changeset_id: string }[]) {
+        counts.set(r.changeset_id, (counts.get(r.changeset_id) ?? 0) + 1);
+      }
+      for (const cs of changesetByMission.values()) cs.file_count = counts.get(cs.id) ?? 0;
+
+      const prdTitle = new Map(
+        (prds ?? []).map((p: { id: string; title: string }) => [p.id, p.title]),
+      );
+
+      // Cost: checkpoint trace → ai_events sum (legacy and new runs alike). Computed
+      // separately per agent-kind run set (never merged) so a 'build'-kind mission's
+      // cost/status can never absorb a different agent's contribution mid-mission.
+      const costByTrace = new Map<string, number>();
+      for (const ev of (events ?? []) as {
+        trace_id: string | null;
+        est_cost_usd: number | null;
+      }[]) {
+        if (ev.trace_id)
+          costByTrace.set(
+            ev.trace_id,
+            (costByTrace.get(ev.trace_id) ?? 0) + (ev.est_cost_usd ?? 0),
+          );
+      }
+      function costAndStatusByMission(rows: RunRow[]): {
+        cost: Map<string, number>;
+        status: Map<string, string>;
+      } {
+        const cost = new Map<string, number>();
+        const status = new Map<string, string>();
+        for (const r of rows) {
+          if (!r.mission_id) continue;
+          if (!status.has(r.mission_id)) status.set(r.mission_id, r.status);
+          const trace = traces.get(r.id);
+          if (trace)
+            cost.set(r.mission_id, (cost.get(r.mission_id) ?? 0) + (costByTrace.get(trace) ?? 0));
         }
+        return { cost, status };
+      }
+      const builder = costAndStatusByMission(runRows);
+      const other = costAndStatusByMission(otherRunRows);
+
+      const slugByAgentId = new Map<string, string>();
+      for (const a of (agentRows ?? []) as { id: string; slug: string }[]) {
+        slugByAgentId.set(a.id, a.slug);
       }
 
       const sessions = (
@@ -552,8 +591,9 @@ export const listStudioSessions = createServerFn({ method: "GET" })
         // three means the tally below is a floor rather than a total.
         bounded: bounded || sessions.length > ASSEMBLED_CAP,
       };
-    },
-  );
+    }
+  }
+}
 
 /**
  * SESSION-ORG: soft-archive / un-archive a Build session — reversible, keeps
