@@ -26,6 +26,12 @@
  * the first, or the one they recognise, which is the product deciding by
  * ordering while appearing to ask.
  *
+ * WHEN THE CHOICE HAS NO MEASUREMENT (2026-09-08), the thing to choose between
+ * is a consequence in words ("Build it on your word" against "Point a source
+ * at it first"), and that is `sub`, under the label. Then `fact` is omitted
+ * and no datum slot is drawn; the type refuses an option with neither. `null`
+ * keeps its meaning: a datum this choice measures and could not read.
+ *
  * WHEN THE FACT IS UNKNOWN FOR ONE OPTION IT SAYS SO (A1, amendment 1). A blank
  * beside three numbers is the product deciding by ordering again, more quietly:
  * the reader takes the blank for zero, or for irrelevant, and picks one of the
@@ -39,18 +45,26 @@ export type ChoiceOption = {
   id: string;
   /** What the option is, in the person's own words. */
   label: string;
-  /**
-   * THE ONE FACT THAT DECIDES BETWEEN THE OPTIONS, the same fact on every row.
-   * `null` renders as "unknown" rather than as a blank: see the header.
-   */
-  fact: string | null;
-  /**
-   * A SENTENCE UNDER THE LABEL, when an option needs a clause the label
-   * cannot carry ("or point a source at it first"). It is prose, so it sits
-   * under the label in the body face; the fact slot stays a datum.
-   */
-  sub?: string | null;
-};
+} & (
+  | {
+      /**
+       * THE ONE FACT THAT DECIDES BETWEEN THE OPTIONS, the same fact on every
+       * row. `null` renders as "unknown" rather than as a blank: see the header.
+       */
+      fact: string | null;
+      /**
+       * A SENTENCE UNDER THE LABEL, when an option needs a clause the label
+       * cannot carry. Prose, in the body face; the fact slot stays a datum.
+       */
+      sub?: string | null;
+    }
+  | {
+      /** No measurement on this choice: the consequence in `sub` is what
+       *  the person chooses between, and no datum slot is drawn. */
+      fact?: undefined;
+      sub: string;
+    }
+);
 
 export function Choice({
   question,
@@ -126,9 +140,11 @@ export function Choice({
               </span>
               {/* Mono, because it is the row's measurement and the eye compares
                   these down the column rather than reading them. */}
-              <span className="min-w-0 max-w-[40%] shrink text-right font-mrd-mono text-mrd-data tabular-nums text-mrd-mute">
-                {busyId === o.id ? "picking" : (o.fact ?? "unknown")}
-              </span>
+              {o.fact !== undefined || busyId === o.id ? (
+                <span className="min-w-0 max-w-[40%] shrink text-right font-mrd-mono text-mrd-data tabular-nums text-mrd-mute">
+                  {busyId === o.id ? "picking" : (o.fact ?? "unknown")}
+                </span>
+              ) : null}
             </button>
           </li>
         ))}
