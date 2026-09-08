@@ -504,8 +504,11 @@ describe("answerFromEdgeCache", () => {
     // helpers do, and each holds its call where a failure has somewhere to
     // land.
     const src = readFileSync(new URL("./server.ts", import.meta.url), "utf8");
-    const handler = src.slice(src.indexOf("async fetch("));
-    expect(handler.indexOf("async fetch(")).toBe(0);
+    const from = src.indexOf("async fetch(");
+    const end = src.indexOf("\n};", from);
+    expect(from).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(from);
+    const handler = src.slice(from, end);
     expect(handler).not.toMatch(/\.match\(/);
     expect(handler).not.toMatch(/\.put\(/);
     expect(handler).toContain("answerFromEdgeCache(");
