@@ -11,6 +11,8 @@ import { Delta, Entity, InsightCards, type Insight } from "@/components/meridian
 import { Reveal } from "@/components/meridian/Reveal";
 import { LoadingState } from "@/components/meridian/LoadingState";
 import { AgentPulse } from "@/components/meridian/AgentPulse";
+import { Journey } from "@/components/meridian/Journey";
+import { AgentPresence, PresenceDot, presenceColour } from "@/components/meridian/AgentPresence";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { NoPromotions, PromotionCard } from "@/components/meridian/PromotionCard";
 import { RunTimeline, type TimelineEvent } from "@/components/meridian/RunTimeline";
@@ -1134,6 +1136,151 @@ function MeridianGallery() {
           </Pair>
         </Panel>
 
+        <Panel
+          title="Journey: the road, in two sizes"
+          note="The seven stations as the road one piece of work travels (Lane 1, 2026-09-08). Full form is the run screen's spine and the home's map; row form is the mark at the left of a run row. Identity is the glyph, hue is status: azure and a breath for a machine inside it, orchid where a person is required, amber for a stop on a condition, neutral for a wait the machine has in hand, red only for a result. Behind the work is solid, ahead is an outline, here is larger. Press a station in the interactive one; it is a tablist, never a menu."
+        >
+          <Pair>
+            <div className="flex flex-col gap-6">
+              <Journey
+                size="full"
+                stations={[
+                  { key: "sense", state: "done", outcome: "14 findings" },
+                  { key: "decide", state: "done", outcome: "1 decision" },
+                  { key: "define", state: "done", outcome: "1 spec" },
+                  {
+                    key: "design",
+                    state: "working",
+                    at: new Date(Date.now() - 83_000).toISOString(),
+                  },
+                  { key: "build", state: "pending" },
+                  { key: "ship", state: "pending" },
+                  { key: "learn", state: "pending" },
+                ]}
+              />
+              <Journey
+                size="full"
+                active="build"
+                onSelect={() => undefined}
+                stations={[
+                  { key: "sense", state: "done" },
+                  { key: "decide", state: "done" },
+                  { key: "define", state: "done" },
+                  { key: "design", state: "done", outcome: "3 drawings" },
+                  { key: "build", state: "you", outcome: "PR #5 waits on you" },
+                  { key: "ship", state: "pending" },
+                  { key: "learn", state: "pending" },
+                ]}
+              />
+              <Journey
+                size="full"
+                stations={[
+                  { key: "sense", state: "done" },
+                  { key: "decide", state: "done" },
+                  { key: "define", state: "done" },
+                  { key: "design", state: "done" },
+                  {
+                    key: "build",
+                    state: "done",
+                    verdict: "pass",
+                    outcome: "did what the spec said",
+                  },
+                  { key: "ship", state: "done", outcome: "live since Sep 4" },
+                  { key: "learn", state: "scheduled", outcome: "graded Sep 21" },
+                ]}
+              />
+              <div className="flex flex-col gap-3">
+                <Journey
+                  size="row"
+                  stations={[
+                    { key: "sense", state: "done" },
+                    { key: "decide", state: "done" },
+                    { key: "define", state: "waiting" },
+                    { key: "design", state: "pending" },
+                    { key: "build", state: "pending" },
+                    { key: "ship", state: "pending" },
+                    { key: "learn", state: "pending" },
+                  ]}
+                />
+                <Journey
+                  size="row"
+                  stations={[
+                    { key: "sense", state: "done" },
+                    { key: "decide", state: "done" },
+                    { key: "define", state: "done" },
+                    { key: "design", state: "held" },
+                    { key: "build", state: "pending" },
+                    { key: "ship", state: "pending" },
+                    { key: "learn", state: "pending" },
+                  ]}
+                />
+                <Journey
+                  size="row"
+                  stations={[
+                    { key: "sense", state: "done" },
+                    { key: "decide", state: "done" },
+                    { key: "define", state: "done" },
+                    { key: "design", state: "done" },
+                    {
+                      key: "build",
+                      state: "working",
+                      at: new Date(Date.now() - 12_000).toISOString(),
+                    },
+                    { key: "ship", state: "pending" },
+                    { key: "learn", state: "pending" },
+                  ]}
+                />
+                <Journey
+                  size="row"
+                  stations={[
+                    { key: "sense", state: "done" },
+                    { key: "decide", state: "done" },
+                    { key: "define", state: "done" },
+                    { key: "design", state: "done" },
+                    { key: "build", state: "done", verdict: "fail" },
+                    { key: "ship", state: "failed" },
+                    { key: "learn", state: "pending" },
+                  ]}
+                />
+              </div>
+            </div>
+          </Pair>
+        </Panel>
+        <Panel
+          title="Agent presence"
+          note="One seat at work, as a person would point at it (Lane 1, 2026-09-08). A colour from the categorical set that is the same for that seat everywhere it appears, never a status hue; its name; what it is doing and to what; a clock that ticks; a dot that breathes at the machine cadence and stops under reduced motion. `alive={false}` turns it into a record. PresenceDot is the unit for a cursor, a row gutter or the writer mark on a diff line."
+        >
+          <Pair>
+            <div className="flex flex-col gap-2">
+              <AgentPresence
+                seat="Scribe"
+                verb="writing the spec"
+                object="· Let a homeowner reschedule an installer visit"
+                since={new Date(Date.now() - 134_000).toISOString()}
+                onOpen={() => undefined}
+              />
+              <AgentPresence
+                seat="Studio"
+                verb="running the checks on"
+                object="PR #5"
+                since={new Date(Date.now() - 41_000).toISOString()}
+                onOpen={() => undefined}
+              />
+              <AgentPresence
+                seat="Scout"
+                verb="reading"
+                object="Intercom, 14 new conversations"
+                since={new Date(Date.now() - 8_000).toISOString()}
+              />
+              <AgentPresence seat="Critic" verb="challenged the call" alive={false} />
+              <div className="flex items-center gap-3 pt-2">
+                <PresenceDot colour={presenceColour("Scribe")} />
+                <PresenceDot colour={presenceColour("Studio")} size={12} />
+                <PresenceDot colour={presenceColour("Scout")} alive={false} />
+              </div>
+            </div>
+          </Pair>
+        </Panel>
         <Panel
           title="Stalled work, full"
           note="Real gates measured in production on 2026-08-14. Twelve were pending, the oldest since 18:31 on 10 August, and nothing anywhere told anyone. Age drives the emphasis through elevation and weight as well as hue, so the oldest is still obviously the oldest in greyscale. One row is stopped for a different reason and carries AMBER rather than orchid: it is waiting on a source being connected, which is a condition changing rather than a decision anyone can make. Orchid there would send the reader hunting a button that does not exist, and grey, which is what it used to be, hid the most common state in the workspace."
