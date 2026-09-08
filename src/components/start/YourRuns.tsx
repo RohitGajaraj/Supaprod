@@ -316,6 +316,7 @@ export function YourRuns({
             <button
               type="button"
               aria-expanded={showAbandoned}
+              aria-label={abandonedLine(groups.abandonedCount)}
               onClick={() => setShowAbandoned((v) => !v)}
               className="mrd-focus-inset flex w-fit items-center gap-1.5 rounded-mrd-chip py-1 text-mrd-data text-mrd-mute transition-colors hover:text-mrd-ink"
               style={{ transitionDuration: "var(--mrd-d-press)" }}

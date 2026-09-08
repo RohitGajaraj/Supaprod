@@ -742,9 +742,11 @@ function RailNew({ narrow }: { narrow: boolean }) {
         }
       }}
       className="sp-new"
-      /* Named out loud only when the label is not on screen, so a screen
-         reader is never handed the same words twice. */
-      aria-label={narrow ? "Start a run" : undefined}
+      /* Named always: read off the live accessibility tree on 2026-09-08 the
+         link had no name at all when the label span was on screen, and an
+         aria-label replaces the content for a screen reader rather than
+         doubling it. The title stays narrow-only, where the label is not. */
+      aria-label="Start a run"
       title={narrow ? "Start a run" : undefined}
     >
       {/* "Start a run" (Lane 1, 2026-09-08): a run is what a sentence becomes,
