@@ -128,9 +128,10 @@ describe("the handback row on the page (source-level, no router or query client)
     const start = shipSrc.indexOf('if (item.kind === "handback")');
     expect(start, "the handback branch is gone from the What shipped map").toBeGreaterThan(-1);
     const end = shipSrc.indexOf("const e = item.entry;", start);
-    expect(end, "the handback branch has no release branch after it to bound the slice").toBeGreaterThan(
-      start,
-    );
+    expect(
+      end,
+      "the handback branch has no release branch after it to bound the slice",
+    ).toBeGreaterThan(start);
     return shipSrc.slice(start, end);
   }
 

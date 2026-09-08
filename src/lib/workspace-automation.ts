@@ -145,7 +145,8 @@ export const AUTOMATION_FLAGS: readonly AutomationFlag[] = [
     column: "auto_derive_enabled",
     label: "Grade its own calls and settle due forecasts",
     costsModelCalls: true,
-    doesWhenOn: "Scores insights as they resolve, and brings a due forecast to the desk with a verdict already drafted.",
+    doesWhenOn:
+      "Scores insights as they resolve, and brings a due forecast to the desk with a verdict already drafted.",
     darkWhenOff:
       "Insights are never resolved or scored, and a due forecast reaches the desk with no drafted verdict. The desk itself still works: settling by hand is not gated on this.",
   },
@@ -184,7 +185,8 @@ export const AUTOMATION_FLAGS: readonly AutomationFlag[] = [
     column: "auto_scout_enabled",
     label: "Watch competitors and the wider market",
     costsModelCalls: true,
-    doesWhenOn: "Sweeps the open web for competitor and market movement, and files what it finds as signals.",
+    doesWhenOn:
+      "Sweeps the open web for competitor and market movement, and files what it finds as signals.",
     darkWhenOff:
       "Scout and competitor sweeps select this workspace never, so market movement is only ever noticed by a person going to look for it.",
     // The one flag whose switch is not the only condition. Both sweeps behind it

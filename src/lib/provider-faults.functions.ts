@@ -106,15 +106,14 @@ interface ProviderFaultsClient {
             column: string,
             opts: { ascending: boolean },
           ): {
-            limit(
-              n: number,
-            ): PromiseLike<{ data: ErrorEventFaultRow[] | null; error: { message: string } | null }>;
+            limit(n: number): PromiseLike<{
+              data: ErrorEventFaultRow[] | null;
+              error: { message: string } | null;
+            }>;
           };
         };
       };
-      or(
-        filter: string,
-      ): PromiseLike<{ count: number | null; error: { message: string } | null }>;
+      or(filter: string): PromiseLike<{ count: number | null; error: { message: string } | null }>;
     };
   };
 }

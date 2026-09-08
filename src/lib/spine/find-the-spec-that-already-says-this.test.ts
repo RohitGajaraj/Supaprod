@@ -36,9 +36,11 @@ describe("comparableTitle", () => {
   test("the two OTA phrasings reduce to the same words but for one", () => {
     // "status" is the only real difference between four rows describing one
     // firmware tile.
-    expect(comparableTitle(OTA_B).split(" ").every((w) => comparableTitle(OTA_A).includes(w))).toBe(
-      true,
-    );
+    expect(
+      comparableTitle(OTA_B)
+        .split(" ")
+        .every((w) => comparableTitle(OTA_A).includes(w)),
+    ).toBe(true);
   });
 });
 
@@ -95,7 +97,12 @@ describe("findTheSpecThatAlreadySaysThis", () => {
     // The measured case: two copies of the address re-confirmation spec sat on
     // Waiting while f2aa82f1 was already live.
     const match = findTheSpecThatAlreadySaysThis(ADDRESS, [
-      spec({ id: "f2aa82f1", title: ADDRESS, status: "shipped", shippedAt: "2026-09-04T07:00:00Z" }),
+      spec({
+        id: "f2aa82f1",
+        title: ADDRESS,
+        status: "shipped",
+        shippedAt: "2026-09-04T07:00:00Z",
+      }),
     ]);
     expect(match.kind).toBe("shipped");
     expect(match.kind === "shipped" && match.spec.id).toBe("f2aa82f1");

@@ -55,8 +55,14 @@ describe("buildHeartbeat bucketing", () => {
     // changelogTitleFor reads the notes first (P-124, changelog.ts) -- setting
     // `title` alone no longer reaches the shipped line, so each fixture's own
     // notes carry the distinguishing text this test buckets on.
-    const thisWeek = cs({ release_notes_at: "2026-07-08T10:00:00.000Z", release_notes: "This week" });
-    const lastWeek = cs({ release_notes_at: "2026-07-01T10:00:00.000Z", release_notes: "Last week" });
+    const thisWeek = cs({
+      release_notes_at: "2026-07-08T10:00:00.000Z",
+      release_notes: "This week",
+    });
+    const lastWeek = cs({
+      release_notes_at: "2026-07-01T10:00:00.000Z",
+      release_notes: "Last week",
+    });
     const hb = buildHeartbeat([thisWeek, lastWeek], [], NOW, 6);
 
     expect(hb.weeks[0].week_of).toBe("2026-07-06");

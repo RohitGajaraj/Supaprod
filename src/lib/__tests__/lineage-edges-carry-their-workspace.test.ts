@@ -55,7 +55,10 @@ describe("a lineage edge written outside an authenticated request carries its ow
         `recordLineage(?:Safe)?\\([^;]*?relation:\\s*"${relation}"[^;]*?\\)`,
       );
       const call = flat.match(callPattern)?.[0];
-      expect(call, `no recordLineage(Safe) call for relation "${relation}" found in ${file}`).toBeTruthy();
+      expect(
+        call,
+        `no recordLineage(Safe) call for relation "${relation}" found in ${file}`,
+      ).toBeTruthy();
       expect(call).toMatch(expectedField);
     });
   }

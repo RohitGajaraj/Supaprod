@@ -355,9 +355,7 @@ export async function resolveProviderAuth(args: {
   // 0. Product-scoped binding (BYO-P1b). Most specific — overrides workspace.
   if (productId && workspaceId) {
     try {
-      const readProductBinding = async (
-        db: SupabaseClient,
-      ): Promise<BindingRow | undefined> => {
+      const readProductBinding = async (db: SupabaseClient): Promise<BindingRow | undefined> => {
         let q = db
           .from("connection_bindings")
           .select("id,connection_id,resource_id,resource_label,config,created_by")
@@ -365,9 +363,7 @@ export async function resolveProviderAuth(args: {
           .eq("product_id", productId)
           .eq("provider", provider);
         if (resourceKind) q = q.eq("resource_kind", resourceKind);
-        const { data: bindings, error } = await q
-          .order("created_at", { ascending: true })
-          .limit(1);
+        const { data: bindings, error } = await q.order("created_at", { ascending: true }).limit(1);
         return !error && bindings ? (bindings[0] as BindingRow | undefined) : undefined;
       };
       const binding = await bindingOrRetryWithAdmin(
@@ -426,9 +422,7 @@ export async function resolveProviderAuth(args: {
   // supabaseAdmin because connections rows are own-row RLS.
   if (workspaceId) {
     try {
-      const readWorkspaceBinding = async (
-        db: SupabaseClient,
-      ): Promise<BindingRow | undefined> => {
+      const readWorkspaceBinding = async (db: SupabaseClient): Promise<BindingRow | undefined> => {
         let q = db
           .from("connection_bindings")
           .select("id,connection_id,resource_id,resource_label,config,created_by")
@@ -436,9 +430,7 @@ export async function resolveProviderAuth(args: {
           .eq("provider", provider)
           .is("product_id", null);
         if (resourceKind) q = q.eq("resource_kind", resourceKind);
-        const { data: bindings, error } = await q
-          .order("created_at", { ascending: true })
-          .limit(1);
+        const { data: bindings, error } = await q.order("created_at", { ascending: true }).limit(1);
         return !error && bindings ? (bindings[0] as BindingRow | undefined) : undefined;
       };
       const binding = await bindingOrRetryWithAdmin(

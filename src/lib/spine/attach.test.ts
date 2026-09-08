@@ -519,13 +519,18 @@ describe("studio.pr.open filing a changeset always attaches it (P-36, A-QUEUE.md
         },
       ],
     );
-    expect(out.attachments).toEqual([{ artifactKind: "changeset", artifactId: B, station: "build" }]);
+    expect(out.attachments).toEqual([
+      { artifactKind: "changeset", artifactId: B, station: "build" },
+    ]);
     expect(out.stillPending).toEqual([]);
   });
 
   it("nothing is filed while the call sits unanswered, and it is not dropped either", () => {
     const gate = { id: A, station: "build" as const };
-    const out = harvestGates([gate], [{ id: A, tool_name: "studio.pr.open", status: "pending", result: null }]);
+    const out = harvestGates(
+      [gate],
+      [{ id: A, tool_name: "studio.pr.open", status: "pending", result: null }],
+    );
     expect(out.attachments).toEqual([]);
     expect(out.stillPending).toEqual([gate]);
   });
