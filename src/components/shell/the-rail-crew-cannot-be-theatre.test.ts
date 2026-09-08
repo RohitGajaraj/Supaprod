@@ -55,7 +55,7 @@ describe("it never shows a calm room on a dead feed", () => {
      * stays false and the empty branch is reached by BOTH "nobody is working"
      * and "we could not find out". They are byte-identical at the client.
      */
-    expect(code(CREW)).toContain("Start a piece of work");
+    expect(code(CREW)).toContain("Start a run");
     expect(code(CREW)).not.toContain("Nothing running.");
   });
 

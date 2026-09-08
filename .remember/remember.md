@@ -239,3 +239,6 @@ Five more small landings (PageHeading station, Start a run, contract doc, hero c
 
 ## Lane 1 · 11:26 IST 09-08
 Four more: Journey roles, one-number waiting (rail row + hero + Inbox page share one queue read), Outcomes foot door removed, HoldCard in place under held rows. Live: Start a run, hero stopped count, header fact. Publish of 685d7b709 requested.
+
+## Lane 1 · 11:34 IST 09-08
+ae799bbd0: run rows named, Inbox count spoken. Live: "6 calls are waiting for you." No type-scale lift (deliberate).

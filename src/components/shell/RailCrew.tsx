@@ -139,7 +139,7 @@ export function RailCrew({ workspaceId }: { workspaceId: string | null }) {
           className="flex w-full items-center gap-mrd-3 rounded-mrd-ctl px-mrd-2 py-mrd-2 text-left text-mrd-label text-mrd-mute transition-colors hover:bg-mrd-hover hover:text-mrd-ink"
           style={{ transitionDuration: "var(--mrd-d-press)" }}
         >
-          Start a piece of work
+          Start a run
         </button>
       </div>
     );
