@@ -99,6 +99,7 @@ import { expiryDefaultFor } from "@/lib/ai/approval-expiry";
 import { MAX_BULK_DECISIONS } from "@/lib/approvals-queue.functions";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { TERMINAL_HOLDS } from "./correction";
 import { HOLD_LINE } from "./driver";
 import { splitInstruction } from "@/lib/spine/self-check-words";
@@ -744,6 +745,19 @@ export const listRunningNow = createServerFn({ method: "GET" })
     const { supabase } = context;
     const workspaceId = await resolveStartWorkspaceId(supabase, data?.workspaceId ?? null);
     if (!workspaceId) return [];
+    return readRunningNow(supabase, workspaceId);
+  });
+
+/**
+ * The read behind `listRunningNow`, callable with a client you already hold
+ * and driven by `a-presence-feed-is-two-hops.test.ts` on the wire that counts
+ * rounds. Two hops: the runs, then everything keyed on them together.
+ */
+export async function readRunningNow(
+  supabase: SupabaseClient<Database>,
+  workspaceId: string,
+): Promise<RunningSeat[]> {
+  {
     try {
       const { data: rows, error } = await supabase
         .from("agent_runs")
@@ -780,79 +794,100 @@ export const listRunningNow = createServerFn({ method: "GET" })
        * because the seat IS running whatever this second query says.
        */
       const traceIds = [...new Set(runs.map((r) => r.trace_id).filter((t): t is string => !!t))];
-      let nowByTrace = new Map<string, RunningNow>();
-      if (traceIds.length > 0) {
-        const { data: calls, error: callsErr } = await supabase
-          .from("tool_calls")
-          .select("trace_id,tool_name,args,created_at")
-          .eq("workspace_id", workspaceId)
-          .in("trace_id", traceIds)
-          .order("created_at", { ascending: false })
-          .limit(400);
-        if (callsErr) {
-          console.error(`[listRunningNow] tool calls could not be read: ${callsErr.message}`);
-        } else {
-          nowByTrace = nowPerTrace((calls ?? []) as NowCallRow[]);
-        }
-      }
-
       const trackIds = [...new Set(runs.map((r) => r.track_id).filter((t): t is string => !!t))];
-      const byTrack = new Map<string, { station: string | null; title: string | null }>();
-      if (trackIds.length > 0) {
-        const { data: tracks } = await supabase
-          .from("spine_tracks" as never)
-          .select("id,station,title")
-          .eq("workspace_id", workspaceId)
-          .in("id", trackIds);
-        for (const t of (tracks ?? []) as Array<{
-          id: string;
-          station: string | null;
-          title: string | null;
-        }>) {
-          byTrack.set(t.id, { station: t.station, title: t.title });
-        }
-      }
-
+      const missionIds = [
+        ...new Set(runs.map((r) => r.mission_id).filter((m): m is string => !!m)),
+      ];
       /*
-       * The mission's own words, for the runs that have a mission. Two things
+       * ONE HOP FOR EVERYTHING THAT KEYS OFF THE RUNS. This feed is polled every
+       * few seconds by the header, the rail and the home, and it awaited the
+       * calls, the tracks, the missions and the steps one after another: five
+       * sequential Worker-to-PostgREST round trips, ~1.0 to 1.1 s of
+       * `worker-total` on the Inbox's own read (2026-09-08, F-212's census).
+       * All four key off `runs` alone, so they leave together; two hops.
+       */
+      /*
+       * The mission's own words (below), for the runs that have a mission. Two things
        * come from here and neither can be derived from the run: the planner's
        * sub-goal for the step in flight -- which is what makes the line say
        * WHAT is being done rather than only who is doing it -- and a title for
        * a seat with no track to take one from.
        */
-      const missionIds = [
-        ...new Set(runs.map((r) => r.mission_id).filter((m): m is string => !!m)),
-      ];
+      /*
+       * `current_sub_goal` IS NOT A COLUMN, and the first draft selected it as
+       * one. `tsc` cannot check a PostgREST name (F-192), so it typechecked
+       * and would have thrown at runtime; the column guard caught it.
+       *
+       * It is derived, in `missions.functions.ts`: the sub-goal of the step
+       * in flight, `running` before `dispatched` and never a done step --
+       * "a finished sentence presented in the present tense is the same
+       * defect as a fabricated one". Same precedence here, from the same
+       * table, so the two readers cannot come to describe one step
+       * differently.
+       */
+      const [callsRes, tracksRes, missionsRes, stepsRes] = await Promise.all([
+        traceIds.length > 0
+          ? supabase
+              .from("tool_calls")
+              .select("trace_id,tool_name,args,created_at")
+              .eq("workspace_id", workspaceId)
+              .in("trace_id", traceIds)
+              .order("created_at", { ascending: false })
+              .limit(400)
+          : Promise.resolve({ data: [] as NowCallRow[], error: null }),
+        trackIds.length > 0
+          ? supabase
+              .from("spine_tracks" as never)
+              .select("id,station,title")
+              .eq("workspace_id", workspaceId)
+              .in("id", trackIds)
+          : Promise.resolve({ data: [] as never[] }),
+        missionIds.length > 0
+          ? supabase
+              .from("missions")
+              .select("id,title")
+              .eq("workspace_id", workspaceId)
+              .in("id", missionIds)
+          : Promise.resolve({ data: [] as { id: string; title: string | null }[] }),
+        missionIds.length > 0
+          ? supabase
+              .from("mission_steps")
+              .select("mission_id,status,sub_goal")
+              .in("mission_id", missionIds)
+              .in("status", ["running", "dispatched"])
+          : Promise.resolve({
+              data: [] as {
+                mission_id: string | null;
+                status: string | null;
+                sub_goal: string | null;
+              }[],
+            }),
+      ]);
+
+      let nowByTrace = new Map<string, RunningNow>();
+      if (callsRes.error) {
+        console.error(`[listRunningNow] tool calls could not be read: ${callsRes.error.message}`);
+      } else {
+        nowByTrace = nowPerTrace((callsRes.data ?? []) as NowCallRow[]);
+      }
+
+      const byTrack = new Map<string, { station: string | null; title: string | null }>();
+      for (const t of (tracksRes.data ?? []) as unknown as Array<{
+        id: string;
+        station: string | null;
+        title: string | null;
+      }>) {
+        byTrack.set(t.id, { station: t.station, title: t.title });
+      }
+
       const byMission = new Map<string, { title: string | null; subGoal: string | null }>();
-      if (missionIds.length > 0) {
-        const { data: missions } = await supabase
-          .from("missions")
-          .select("id,title")
-          .eq("workspace_id", workspaceId)
-          .in("id", missionIds);
-        for (const m of (missions ?? []) as Array<{ id: string; title: string | null }>) {
-          byMission.set(m.id, { title: m.title, subGoal: null });
-        }
-        /*
-         * `current_sub_goal` IS NOT A COLUMN, and the first draft selected it as
-         * one. `tsc` cannot check a PostgREST name (F-192), so it typechecked
-         * and would have thrown at runtime; the column guard caught it.
-         *
-         * It is derived, in `missions.functions.ts`: the sub-goal of the step
-         * in flight, `running` before `dispatched` and never a done step --
-         * "a finished sentence presented in the present tense is the same
-         * defect as a fabricated one". Same precedence here, from the same
-         * table, so the two readers cannot come to describe one step
-         * differently.
-         */
-        const { data: steps } = await supabase
-          .from("mission_steps")
-          .select("mission_id,status,sub_goal")
-          .in("mission_id", missionIds)
-          .in("status", ["running", "dispatched"]);
+      for (const m of (missionsRes.data ?? []) as Array<{ id: string; title: string | null }>) {
+        byMission.set(m.id, { title: m.title, subGoal: null });
+      }
+      {
         const running = new Map<string, string>();
         const dispatched = new Map<string, string>();
-        for (const st of (steps ?? []) as Array<{
+        for (const st of (stepsRes.data ?? []) as Array<{
           mission_id: string | null;
           status: string | null;
           sub_goal: string | null;
@@ -894,7 +929,8 @@ export const listRunningNow = createServerFn({ method: "GET" })
       if (e instanceof Error && e.message.includes("could not be read")) throw e;
       return [];
     }
-  });
+  }
+}
 
 /**
  * P-18 (A-QUEUE.md). Which open tracks have a SEAT LITERALLY IN FLIGHT right

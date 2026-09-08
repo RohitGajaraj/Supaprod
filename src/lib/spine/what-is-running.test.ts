@@ -254,7 +254,9 @@ describe("what the seat is doing this second", () => {
     expect(body).toContain("nowPerTrace(");
     expect(body).toContain('.from("tool_calls")');
     // Workspace-scoped: a tool call is the most revealing row this product holds.
-    expect(body).toContain('.eq("workspace_id", workspaceId)\n          .in("trace_id", traceIds)');
+    expect(body.replace(/\s+/g, " ")).toContain(
+      '.eq("workspace_id", workspaceId) .in("trace_id", traceIds)',
+    );
     expect(body).toContain("now: r.trace_id ? (nowByTrace.get(r.trace_id) ?? null) : null");
   });
 });
