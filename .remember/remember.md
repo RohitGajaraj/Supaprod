@@ -242,3 +242,6 @@ Four more: Journey roles, one-number waiting (rail row + hero + Inbox page share
 
 ## Lane 1 · 11:34 IST 09-08
 ae799bbd0: run rows named, Inbox count spoken. Live: "6 calls are waiting for you." No type-scale lift (deliberate).
+
+## Lane 1 · 11:40 IST 09-08
+Verified live: hold card in place, Inbox count, hero number. d572b8272 aligns "Start a run". Depth-page walk notes sent to Lane 2 (Findings heading, Outcomes negations and "substrate", Sources' 22 negation rows).
