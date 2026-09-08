@@ -175,18 +175,28 @@ describe("STATUS_META constant", () => {
 
 describe("DESIGNATION_INK constant", () => {
   test("has entries for all non-best-bet designations", () => {
-    const expected = ["needs validation", "quick win", "heavy lift", "watch this week"];
+    const expected: Array<keyof typeof DESIGNATION_INK> = [
+      "needs validation",
+      "quick win",
+      "heavy lift",
+      "watch this week",
+    ];
     for (const designation of expected) {
-      expect(DESIGNATION_INK[designation as any]).toBeDefined();
+      expect(DESIGNATION_INK[designation]).toBeDefined();
     }
   });
 });
 
 describe("DESIGNATION_MEANING constant", () => {
   test("has entries for all non-best-bet designations", () => {
-    const expected = ["needs validation", "quick win", "heavy lift", "watch this week"];
+    const expected: Array<keyof typeof DESIGNATION_MEANING> = [
+      "needs validation",
+      "quick win",
+      "heavy lift",
+      "watch this week",
+    ];
     for (const designation of expected) {
-      expect(DESIGNATION_MEANING[designation as any]).toBeDefined();
+      expect(DESIGNATION_MEANING[designation]).toBeDefined();
     }
   });
 

@@ -133,8 +133,7 @@ function ScorecardRow({ card }: { card: AgentScorecard }) {
             title="Times a human rewound this agent's shipped work"
             className="ml-auto shrink-0 rounded-mrd-chip border border-mrd-line px-2 py-0.5 text-mrd-small text-mrd-mute"
           >
-            <Num>{card.reverts}</Num>{" "}
-            {card.reverts === 1 ? "rewind" : "rewinds"}
+            <Num>{card.reverts}</Num> {card.reverts === 1 ? "rewind" : "rewinds"}
           </span>
         ) : null}
       </div>

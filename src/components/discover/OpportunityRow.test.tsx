@@ -157,7 +157,7 @@ describe("statusLabel pure function", () => {
   test("statusLabel returns non-empty string for all known verdicts", () => {
     const verdicts = ["PENDING", "SHIP", "REVISE"];
     verdicts.forEach((verdict) => {
-      const label = statusLabel(verdict as unknown as any);
+      const label = statusLabel(verdict);
       expect(typeof label).toBe("string");
       expect(label.trim().length).toBeGreaterThan(0);
     });

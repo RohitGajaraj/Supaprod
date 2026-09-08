@@ -508,9 +508,15 @@ export function announcementDraftBody(e: {
   ]
     .filter((x): x is string => !!x)
     .join(" · ");
-  return ["What changed", notes, "", "What it means for your customers", CUSTOMER_MEANING_PROMPT, "", closing].join(
-    "\n",
-  );
+  return [
+    "What changed",
+    notes,
+    "",
+    "What it means for your customers",
+    CUSTOMER_MEANING_PROMPT,
+    "",
+    closing,
+  ].join("\n");
 }
 
 /** The first real sentence of a body, for the gate's evidence line. */
@@ -1062,8 +1068,7 @@ export function handbackDeploys(deployments: readonly ShipDeployment[]): ShipDep
 /** One row of "What shipped": a real release, or a deploy with no changeset
  *  standing in for one. See `shipListItems`. */
 export type ShipListItem =
-  | { kind: "release"; entry: ChangelogEntry }
-  | { kind: "handback"; deploy: ShipDeployment };
+  { kind: "release"; entry: ChangelogEntry } | { kind: "handback"; deploy: ShipDeployment };
 
 function shipListStamp(item: ShipListItem): number {
   const iso =
@@ -3470,7 +3475,8 @@ function Ship() {
                       action={d.deploy_url ? <Addr href={d.deploy_url}>Open it</Addr> : null}
                       onClick={
                         d.deploy_url
-                          ? () => window.open(d.deploy_url as string, "_blank", "noopener,noreferrer")
+                          ? () =>
+                              window.open(d.deploy_url as string, "_blank", "noopener,noreferrer")
                           : undefined
                       }
                     />

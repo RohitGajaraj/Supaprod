@@ -662,7 +662,9 @@ describe("the spec id this document trusts (P-131)", () => {
       />,
     );
 
-    expect(await screen.findByText("Field techs cannot push firmware to a whole site")).toBeTruthy();
+    expect(
+      await screen.findByText("Field techs cannot push firmware to a whole site"),
+    ).toBeTruthy();
     expect(screen.queryByText(/This release is not traced to a bet/)).toBeNull();
   });
 

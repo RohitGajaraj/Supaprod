@@ -1302,7 +1302,11 @@ export function AssembledRelease({
    * document reports; the raw `entry` fields are the fallback only for a
    * release neither `applied` nor a resolved `prd` could account for.
    */
-  const effectiveEntry = { ...entry, prd_id: resolvedPrdId, opportunity_title: prd?.opportunity_title ?? entry.opportunity_title };
+  const effectiveEntry = {
+    ...entry,
+    prd_id: resolvedPrdId,
+    opportunity_title: prd?.opportunity_title ?? entry.opportunity_title,
+  };
 
   const doc = assembleReleaseDoc({ entry: effectiveEntry, prd, applied, deployments, designRoute });
   return <ReleaseDocument doc={doc} onOpen={onOpen} onNavigate={onNavigate} />;

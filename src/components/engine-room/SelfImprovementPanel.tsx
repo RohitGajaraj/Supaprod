@@ -162,8 +162,7 @@ function ProposalEnricher({
         AI-composed ·{" "}
         {data.grounded_on > 0 ? (
           <>
-            grounded in <Num>{data.grounded_on}</Num>{" "}
-            records
+            grounded in <Num>{data.grounded_on}</Num> records
           </>
         ) : (
           "not enough records"

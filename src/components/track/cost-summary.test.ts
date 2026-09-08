@@ -41,9 +41,9 @@ describe("costSummary", () => {
 
   it("credits read the column even when they land on zero, the same rule as money", () => {
     expect(costSummary([t({ credits: 0 }), t({ credits: 0 })]).creditsTotal).toBe(0);
-    expect(costSummary([t({ credits: 8 }), t({ credits: 25 }), t({ credits: 7 })]).creditsTotal).toBe(
-      40,
-    );
+    expect(
+      costSummary([t({ credits: 8 }), t({ credits: 25 }), t({ credits: 7 })]).creditsTotal,
+    ).toBe(40);
   });
 
   it("an empty record aggregates to an empty audit", () => {
