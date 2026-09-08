@@ -1217,6 +1217,10 @@ export function TrackRunLeft({
 
       <TrackActivity
         trackId={trackId}
+        /* A press this tab is walking is motion the record may not show for
+           a beat; polling at the live rate from the first second means the
+           seat's row appears the moment it is written, not ten seconds on. */
+        isRunning={workingNow}
         onLiveChange={onCrewLive}
         onLiveSeats={setLiveSeats}
         onSelect={onSelectArtifact}

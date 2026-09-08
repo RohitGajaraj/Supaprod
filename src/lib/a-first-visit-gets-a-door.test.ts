@@ -48,10 +48,13 @@ describe("every P-63 first-visit site keeps its door", () => {
     expect(hits.length).toBeGreaterThanOrEqual(2);
   });
 
-  it("Sources: the connect action sits above the region its zero text names", () => {
+  it("Sources: a first visit meets what to connect, and the zero text names it", () => {
+    /* 2026-09-08: the page's rebuild made the whole "Connect a source" region
+       the door (one press per provider) rather than a single button under a
+       list of negations; the zero text on the Connected region points at it. */
     const route = read("src/routes/_authenticated.sync.tsx");
-    expect(route).toContain("Connect another source");
-    expect(route).toContain("Point a Notion database");
+    expect(route).toContain('title="Connect a source"');
+    expect(route).toContain("Connect a source below and Discover can read it.");
   });
 
   it("Quiet.tsx and ApprovalCard.tsx document why the action defaults to none", () => {
