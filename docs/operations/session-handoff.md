@@ -1374,7 +1374,14 @@ gone), the home's read three hops from four. Verified on 7187cb60: the home prin
 on the Checkout track through the embedded deployments read. **Still the largest handler on the front
 door:** `listRunsForStart` read 3,334 to 5,333 ms cold on 7187cb60 and is mounted FOUR times per
 `/start` load (the layout loader's prefetch, `readHome`'s inner call, `YourRuns`'s own `useQuery` with
-no `staleTime`, the push's invalidate), all Lane 1's files; Lane 2 and Lane 3 both named it to Lane 1. The guard for all of it is a fake client that counts rounds
+no `staleTime`, the push's invalidate), all Lane 1's files; Lane 2 and Lane 3 both named it to Lane 1.
+Read again on 72c04f6e (Lane 1's dedupe `6a9c54b26` plus the credits call): three `listRunsForStart`
+entries per arrival at 981 to 2,361 ms (from four at 3,334 to 5,333), the approvals queue three times on
+the home, 39 server-function calls on one `/start` load; credits print on the rows from the SQL call and
+"Live since 12:28" holds. Last landing: `e8c062d27`, the run screen's transcript as one SQL call
+(`track_tool_calls`, migration `20260909100700`: args slimmed to the keys `toolCallFacts` reads, `found`
+counted in Postgres, 240 KB to 86 KB on 2fdf93b6, three hops to one; Lane 2 reads it when a build past
+it serves). Three migrations this evening, `20260909100500` to `100700`, all applied and ledgered. The guard for all of it is a fake client that counts rounds
 (`src/__tests__/a-wire-that-counts-rounds.ts`, driven by `a-queue-is-two-hops-deep` and
 `a-strip-read-is-three-hops-deep`); "every await outside a Promise.all" is what a person greps for and
 it was wrong twice, so the wire counts what the wire sees.
