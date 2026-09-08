@@ -104,10 +104,15 @@ export function Choice({
               onClick={() => onPick(o.id)}
               className="flex w-full items-baseline justify-between gap-mrd-4 px-mrd-4 py-mrd-3 text-left transition-colors hover:bg-mrd-hover disabled:opacity-60"
             >
-              <span className="min-w-0 text-mrd-base text-mrd-ink">{o.label}</span>
+              {/* THE LABEL NEVER BREAKS A WORD PER LINE. Seen live on the run
+                  screen's "Build this on your word" choice: the fact was a
+                  whole sentence and `shrink-0`, so it took the row and the
+                  label folded to one word per line under it. The label keeps
+                  its width; a long fact wraps on the right. */}
+              <span className="shrink-0 text-mrd-base text-mrd-ink">{o.label}</span>
               {/* Mono, because it is the row's measurement and the eye compares
                   these down the column rather than reading them. */}
-              <span className="font-mrd-mono shrink-0 text-mrd-data tabular-nums text-mrd-mute">
+              <span className="min-w-0 text-right font-mrd-mono text-mrd-data tabular-nums text-mrd-mute">
                 {busyId === o.id ? "picking" : (o.fact ?? "unknown")}
               </span>
             </button>
