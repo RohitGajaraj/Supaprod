@@ -48,7 +48,8 @@ import {
   type StationWaiver,
   type WorkShape,
 } from "@/lib/spine/route";
-import { holdLine, type HoldReason } from "@/lib/spine/driver";
+import { holdLine, STOPPED_BY_YOU, type HoldReason } from "@/lib/spine/driver";
+import { cancelPendingApprovalsForTrack } from "@/lib/spine/a-stop-cancels-its-asks";
 import { driveTrackOnce, DRIVE_SELECT } from "@/lib/spine/driver.server";
 import { recordTrackDrive } from "@/lib/spine/track-drives.server";
 import { readPasteBack, pasteBackLine } from "@/lib/spine/paste-back";
@@ -4412,52 +4413,89 @@ export const pinTrack = createServerFn({ method: "POST" })
 export const stopTrack = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
-  .handler(async ({ context, data }): Promise<{ ok: boolean; refused: string | null }> => {
-    const { supabase, userId } = context;
-    try {
-      const { data: row } = await supabase
-        .from("spine_tracks" as never)
-        .select("id,status")
-        .eq("id", data.trackId)
-        .eq("user_id", userId)
-        .maybeSingle();
-      const track = row as { id: string; status: string } | null;
-      if (!track) {
-        return { ok: false, refused: "This run could not be read, so nothing was stopped." };
-      }
-      if (track.status !== "open") {
-        return {
-          ok: false,
-          refused:
-            track.status === "done"
-              ? "This run is already finished, so there is nothing to stop."
-              : "This run was already abandoned, so there is nothing to stop.",
-        };
-      }
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{
+      ok: boolean;
+      refused: string | null;
+      /** Pending approvals this stop cancelled (F-205). Null when the stop itself was refused. */
+      approvalsCancelled: number | null;
+    }> => {
+      const { supabase, userId } = context;
+      try {
+        const { data: row } = await supabase
+          .from("spine_tracks" as never)
+          .select("id,status")
+          .eq("id", data.trackId)
+          .eq("user_id", userId)
+          .maybeSingle();
+        const track = row as { id: string; status: string } | null;
+        if (!track) {
+          return {
+            ok: false,
+            refused: "This run could not be read, so nothing was stopped.",
+            approvalsCancelled: null,
+          };
+        }
+        if (track.status !== "open") {
+          return {
+            ok: false,
+            refused:
+              track.status === "done"
+                ? "This run is already finished, so there is nothing to stop."
+                : "This run was already abandoned, so there is nothing to stop.",
+            approvalsCancelled: null,
+          };
+        }
 
-      const { error } = await supabase
-        .from("spine_tracks" as never)
-        .update({ stop_requested_at: new Date().toISOString() } as never)
-        .eq("id", data.trackId)
-        .eq("user_id", userId);
-      if (error) {
-        const missingColumn =
-          error.code === "42703" || /stop_requested_at/.test(error.message ?? "");
+        const { error } = await supabase
+          .from("spine_tracks" as never)
+          .update({ stop_requested_at: new Date().toISOString() } as never)
+          .eq("id", data.trackId)
+          .eq("user_id", userId);
+        if (error) {
+          const missingColumn =
+            error.code === "42703" || /stop_requested_at/.test(error.message ?? "");
+          return {
+            ok: false,
+            refused: missingColumn
+              ? "This database has not taken the stop column yet, so the loop cannot be told. The legs this page had bought are cancelled."
+              : `Nothing was stopped: ${error.message}`,
+            approvalsCancelled: null,
+          };
+        }
+        /*
+         * F-205: THE QUESTIONS THE RUN WAS STILL ASKING GO WITH IT. Through the
+         * person's own client, so RLS decides which of the track's pending
+         * approvals they may cancel; the driver's stop branch cancels the rest
+         * on the next tick with the sweep's client. A refusal here is a stop
+         * that left a question open, and it is said, not swallowed.
+         */
+        const asks = await cancelPendingApprovalsForTrack(
+          supabase as unknown as Parameters<typeof cancelPendingApprovalsForTrack>[0],
+          data.trackId,
+          { userId, reason: STOPPED_BY_YOU },
+        );
+        if (!asks.ok) {
+          return {
+            ok: true,
+            refused: `The run is stopped, but ${asks.refused}`,
+            approvalsCancelled: null,
+          };
+        }
+        return { ok: true, refused: null, approvalsCancelled: asks.cancelled };
+      } catch (e) {
         return {
           ok: false,
-          refused: missingColumn
-            ? "This database has not taken the stop column yet, so the loop cannot be told. The legs this page had bought are cancelled."
-            : `Nothing was stopped: ${error.message}`,
+          approvalsCancelled: null,
+          refused:
+            e instanceof Error ? `Nothing was stopped: ${e.message}` : "Nothing was stopped.",
         };
       }
-      return { ok: true, refused: null };
-    } catch (e) {
-      return {
-        ok: false,
-        refused: e instanceof Error ? `Nothing was stopped: ${e.message}` : "Nothing was stopped.",
-      };
-    }
-  });
+    },
+  );
 
 export const driveTrackNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
