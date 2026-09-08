@@ -31,7 +31,12 @@ import { z } from "zod";
 
 import { failSoftOrThrow } from "@/lib/read-failure";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { AGENT_STATION_ORDER, AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
+import {
+  AGENT_STATION_ORDER,
+  AGENT_STATIONS,
+  type AgentStation,
+  agentDisplayName,
+} from "@/lib/agent-vocabulary";
 import {
   CLAIMED_PATH_HOLD,
   pathFromWaitingSentence,
@@ -1186,8 +1191,23 @@ export type StartRun = {
   holdReason: string | null;
   /** The driver's own sentence at the stop, when it wrote one. */
   holdBecause: string | null;
-  /** A seat in flight on this track right now, or null. */
-  working: { seat: string; since: string; tool: string | null } | null;
+  /**
+   * A seat in flight on this track right now, or null. `lastCallAt` is the
+   * newest tool call's time (the same `now.at` a RunningSeat carries), so a
+   * row's working mark can stop breathing once a seat has been quiet past
+   * STALL_MINUTES (loop-health.functions.ts) instead of breathing on a row
+   * loop-health already calls stalled; null for a seat that has called
+   * nothing yet.
+   */
+  working: {
+    /** The catalog's name for the seat (agentDisplayName), the one name every surface prints. */
+    seat: string;
+    /** The seat's slug, so a presence colour hashes on the same identity everywhere. */
+    slug: string | null;
+    since: string;
+    tool: string | null;
+    lastCallAt: string | null;
+  } | null;
   /** A boundary call this track opened and nobody has answered. */
   needsYou: { tool: string } | null;
   /** What it has filed, counted by kind. Empty is a real and common answer. */
@@ -1441,24 +1461,30 @@ export const listRunsForStart = createServerFn({ method: "GET" })
                level up. */
             const { data: runRows } = await supabase
               .from("agent_runs")
-              .select("track_id, agent_name, created_at, trace_id, status")
+              .select("track_id, agent_slug, agent_name, created_at, trace_id, status")
               .in("track_id", ids)
               .in("status", ["running", "queued", "in_progress"])
               .order("created_at", { ascending: false });
             const running = (runRows ?? []) as Array<{
               track_id: string | null;
+              agent_slug: string | null;
               agent_name: string;
               created_at: string;
               trace_id: string | null;
             }>;
             const workingByTrack = new Map<
               string,
-              { seat: string; since: string; trace: string | null }
+              { seat: string; slug: string | null; since: string; trace: string | null }
             >();
             for (const r of running) {
               if (!r.track_id || workingByTrack.has(r.track_id)) continue;
               workingByTrack.set(r.track_id, {
-                seat: r.agent_name,
+                /* THE CATALOG NAME WINS (Lane 1's ruling, 2026-09-08): the row
+                   said "Discovery Scout" from agent_name while the strip said
+                   "Watch" from the catalog, for one seat. One resolver, the
+                   one activity.ts and traces.functions use. */
+                seat: agentDisplayName(r.agent_slug, r.agent_name),
+                slug: r.agent_slug,
                 since: r.created_at,
                 trace: r.trace_id,
               });
@@ -1466,7 +1492,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
 
             /* THE VERB, from the newest call on that seat's own trace. Skipped
                entirely when nothing is running, which is the common case. */
-            const toolByTrace = new Map<string, string>();
+            const toolByTrace = new Map<string, { tool: string; at: string }>();
             const traces = [...workingByTrack.values()]
               .map((w) => w.trace)
               .filter((t): t is string => !!t);
@@ -1477,8 +1503,14 @@ export const listRunsForStart = createServerFn({ method: "GET" })
                 .in("trace_id", traces)
                 .order("created_at", { ascending: false })
                 .limit(200);
-              for (const c of (calls ?? []) as Array<{ trace_id: string; tool_name: string }>) {
-                if (!toolByTrace.has(c.trace_id)) toolByTrace.set(c.trace_id, c.tool_name);
+              for (const c of (calls ?? []) as Array<{
+                trace_id: string;
+                tool_name: string;
+                created_at: string;
+              }>) {
+                if (!toolByTrace.has(c.trace_id)) {
+                  toolByTrace.set(c.trace_id, { tool: c.tool_name, at: c.created_at });
+                }
               }
             }
             return { workingByTrack, toolByTrace };
@@ -1743,8 +1775,10 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             working: w
               ? {
                   seat: w.seat,
+                  slug: w.slug,
                   since: w.since,
-                  tool: w.trace ? (toolByTrace.get(w.trace) ?? null) : null,
+                  tool: w.trace ? (toolByTrace.get(w.trace)?.tool ?? null) : null,
+                  lastCallAt: w.trace ? (toolByTrace.get(w.trace)?.at ?? null) : null,
                 }
               : null,
             needsYou: gateByTrack.get(r.id) ?? null,
