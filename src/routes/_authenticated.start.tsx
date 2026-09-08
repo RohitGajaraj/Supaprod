@@ -149,6 +149,7 @@ function StartLanding() {
     products,
     productsVisible,
     setActiveProductId,
+    isLoading: workspaceLoading,
   } = useWorkspace();
   const { about, queue } = Route.useSearch();
   const timezone = useTimezone();
@@ -323,14 +324,23 @@ function StartLanding() {
 
   return (
     <div className="mx-auto flex w-full max-w-[62rem] flex-col gap-mrd-7 px-mrd-5 pt-mrd-7 pb-mrd-8">
-      <Hero
-        copy={heroCopy({
-          product: activeProduct?.name ?? activeWorkspace?.name ?? null,
-          runs: runs.data,
-          waiting,
-          waitingShape,
-        })}
-      />
+      {/* THE HERO WAITS FOR ITS NAME (Lane 1, 2026-09-08). Seen live: "What
+          should your product do next?" for a beat before the workspace
+          resolved, then "What should Prism do next?". A headline that
+          changes its subject is a headline nobody trusts; the slot holds its
+          height and the words arrive once. */}
+      <div className="min-h-[7.5rem]">
+        {workspaceLoading ? null : (
+          <Hero
+            copy={heroCopy({
+              product: activeProduct?.name ?? activeWorkspace?.name ?? null,
+              runs: runs.data,
+              waiting,
+              waitingShape,
+            })}
+          />
+        )}
+      </div>
 
       {queue ? (
         <p role="status" className="text-mrd-base text-mrd-mute">
