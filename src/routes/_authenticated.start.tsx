@@ -14,7 +14,7 @@ import { YourRuns } from "@/components/start/YourRuns";
 import { Arriving } from "@/components/start/Arriving";
 import { Hero, heroCopy } from "@/components/start/Hero";
 import { JourneyMap, promiseStations } from "@/components/start/JourneyMap";
-import { CrewAtWork, workingSeats } from "@/components/start/CrewAtWork";
+import { CrewAtWork } from "@/components/start/CrewAtWork";
 import { WhatWeAlreadyHold } from "@/components/spine/WhatWeAlreadyHold";
 import { journeyMap } from "@/components/start/journey-of-a-run";
 import { failureLine } from "@/lib/error-copy";
@@ -26,7 +26,6 @@ import { listTopOpportunities } from "@/lib/discovery.functions";
 import { matchProductFromSentence, type ProductCandidate } from "@/lib/spine/product-match";
 import { ComposerProductPicker } from "@/components/start/ComposerProductPicker";
 import type { WorkShape } from "@/lib/spine/route";
-import { toolActionLabel } from "@/lib/agent-vocabulary";
 import { readHomeAnswers } from "@/lib/start/home-answers.functions";
 import { homeAnswers } from "@/components/start/three-answers-above-your-runs";
 import { HomeAnswers } from "@/components/start/HomeAnswers";
@@ -247,7 +246,6 @@ function StartLanding() {
     nowIso: new Date().toISOString(),
   }).filter((a) => a.read === "answered");
 
-  const seats = useMemo(() => workingSeats(runs.data, toolActionLabel), [runs.data]);
   const map = useMemo(() => journeyMap(runs.data ?? []), [runs.data]);
   const openRun = (trackId: string) =>
     void navigate({ to: "/track/$trackId", params: { trackId }, search: {} });
@@ -332,7 +330,7 @@ function StartLanding() {
         />
       ) : null}
 
-      <CrewAtWork seats={seats} onOpen={openRun} />
+      <CrewAtWork workspaceId={activeWorkspaceId ?? null} onOpen={openRun} />
 
       {runs.data !== undefined ? (
         <JourneyMap

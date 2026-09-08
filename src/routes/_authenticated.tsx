@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { GotoShortcuts } from "@/components/supaprod/GotoShortcuts";
 import { BrandWait } from "@/components/supaprod/BrandWait";
 import { AppFrame } from "@/components/shell/AppFrame";
-import { WorkspaceProvider } from "@/hooks/use-workspace";
+import { WorkspaceProvider, useWorkspace } from "@/hooks/use-workspace";
 import { FlowModeProvider } from "@/hooks/use-flow-mode";
 import { needsOnboarding } from "@/lib/onboarding-gate";
 import { WORKSPACE_STORAGE_KEY } from "@/hooks/use-workspace";
@@ -19,6 +19,7 @@ import { ShellReadFailed, ShellRouteMissing } from "@/components/meridian/bounda
 import { AskProvider } from "@/lib/ask-context";
 import { ROOM_ROUTE_IDS } from "@/lib/room-url";
 import { GlobalComposer } from "@/components/mission/composer";
+import { useRunningNowPush } from "@/hooks/use-running-now-push";
 // FocusDock retired by the rebuild; see the note at its former call site.
 
 export const Route = createFileRoute("/_authenticated")({
@@ -162,6 +163,22 @@ export const Route = createFileRoute("/_authenticated")({
   notFoundComponent: () => <ShellRouteMissing />,
 });
 
+/**
+ * THE LIVE-WORK PUSH, ONCE PER SIGNED-IN SESSION (Lane 1 with Lane 3,
+ * 2026-09-08). `agent_runs` is in the realtime publication; this invalidates
+ * the one key every surface reads live work under (`runningNowKey`) on any
+ * insert or update in the workspace, so the home's Working now strip, the
+ * rail's crew and the run screen move the moment a seat starts, ends or
+ * stamps a checkpoint. Inside `WorkspaceProvider` because it needs the active
+ * workspace, and mounted once for the reason `useApprovalPush` is: two mounts
+ * would open two channels under one name.
+ */
+function RunningNowPush() {
+  const { activeWorkspaceId } = useWorkspace();
+  useRunningNowPush(activeWorkspaceId);
+  return null;
+}
+
 function AuthedLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -296,6 +313,7 @@ function AuthedLayout() {
         <FlowModeProvider>
           <AskProvider>
             {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
+            <RunningNowPush />
             <BackendHealthBanner />
             {/* A workspace pause holds every agent mid-step, and it was visible
                 on ONE governance panel. It is the state that changes what every

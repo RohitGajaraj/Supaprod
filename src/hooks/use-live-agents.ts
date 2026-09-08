@@ -96,6 +96,11 @@ export type LiveAgent = {
    * mono words. Give it its own line. See CrewWorking.tsx.
    */
   subGoal: string | null;
+  /** What the seat is doing right now, first person ("reading the repository"),
+   *  from its latest tool call; null before its first call (Lane 3, P-127). */
+  verb: string | null;
+  /** ISO. When the seat started, so a presence can tick. */
+  startedAt: string | null;
 };
 
 export type LiveAgents = {
@@ -196,6 +201,8 @@ export function useLiveAgents(): LiveAgents {
          mission the run belongs to. Null for a seat with no mission -- honest,
          rather than a sentence invented to fill the slot. */
       subGoal: seat.subGoal,
+      verb: seat.now?.verb ?? null,
+      startedAt: seat.startedAt ?? null,
     }));
 
     // Same source and shape as AppFrame.tsx's own `lastDone`: the most
