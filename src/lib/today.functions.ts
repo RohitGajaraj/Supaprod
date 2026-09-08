@@ -212,21 +212,6 @@ export async function countNeedsYouCalls(
     wsId = workspaceId;
   }
 
-  // SW-7 (mission 3.4): design gates only exist where the workspace turned the
-  // design stage on. A separate lookup (not a join) keeps the count query below
-  // simple and correct rather than guessing Supabase's embedded-resource name.
-  let designStageEnabled = false;
-  if (wsId) {
-    const { data: ws } = await supabase
-      .from("workspaces")
-      .select("design_stage_enabled")
-      .eq("id", wsId)
-      .maybeSingle();
-    designStageEnabled = Boolean(
-      (ws as { design_stage_enabled?: boolean | null } | null)?.design_stage_enabled,
-    );
-  }
-
   const dayStart = new Date();
   dayStart.setUTCHours(0, 0, 0, 0);
   const dayStartIso = dayStart.toISOString();
@@ -238,10 +223,11 @@ export async function countNeedsYouCalls(
     opps,
     challenges,
     playbooks,
-    designGates,
+    designGatesRaw,
     firstTd,
     insightRes,
     fanoutRes,
+    designStageRow,
   ] = await Promise.all([
     // A LIVE call is one still awaiting a decision: status='pending'. Bug fix
     // 2026-07-08: escalation_state stays 'pending' even after a gate executes
@@ -283,7 +269,12 @@ export async function countNeedsYouCalls(
           .eq("workspace_id", wsId)
           .eq("status", "proposed")
       : Promise.resolve({ count: 0 }),
-    wsId && designStageEnabled
+    // SW-7 (mission 3.4): design gates only exist where the workspace turned
+    // the design stage on. The flag is read in the same hop (below) and the
+    // count is zeroed after the barrier when it is off; it used to be a
+    // separate round trip BEFORE every count here, on every reader of this
+    // function (2026-09-08, the Worker's hops: F-212).
+    wsId
       ? supabase
           .from("prds")
           .select("id", { count: "exact", head: true })
@@ -328,7 +319,14 @@ export async function countNeedsYouCalls(
           .eq("workspace_id", wsId)
           .eq("status", "ready")
       : Promise.resolve({ count: 0, error: null }),
+    wsId
+      ? supabase.from("workspaces").select("design_stage_enabled").eq("id", wsId).maybeSingle()
+      : Promise.resolve({ data: null as { design_stage_enabled?: boolean | null } | null }),
   ]);
+  const designStageEnabled = Boolean(
+    (designStageRow.data as { design_stage_enabled?: boolean | null } | null)?.design_stage_enabled,
+  );
+  const designGates = designStageEnabled ? designGatesRaw : { count: 0 };
 
   // Pre-migration tolerance: pushed_at/digest postdate older DBs. When the OR
   // predicate errors on a missing column, fall back to the scored kinds alone;

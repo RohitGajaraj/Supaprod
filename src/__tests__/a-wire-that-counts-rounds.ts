@@ -83,6 +83,12 @@ export class FakeBuilder {
   limit() {
     return this;
   }
+  maybeSingle() {
+    return this;
+  }
+  single() {
+    return this;
+  }
   then<T>(
     onFulfilled: (v: { data: Row[]; error: null }) => T,
     onRejected?: (e: unknown) => T,
