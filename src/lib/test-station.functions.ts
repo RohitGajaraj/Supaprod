@@ -206,14 +206,6 @@ export async function loadMissionTestPlan(
   };
 }
 
-export const getMissionTestPlan = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ missionId: z.string().uuid() }).parse(i))
-  .handler(async ({ context, data }) => {
-    const supabase = context.supabase as SupabaseClient;
-    return loadMissionTestPlan(supabase, data.missionId);
-  });
-
 export const recordTestStationVerdict = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ missionId: z.string().uuid() }).parse(i))

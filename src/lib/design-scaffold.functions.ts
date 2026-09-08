@@ -2125,54 +2125,6 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
     };
   });
 
-/**
- * Draw this spec again, at a chosen fidelity. The spec body is read here rather
- * than passed in: the surface that asks for a redraw is a stage view listing
- * forty specs, and shipping forty spec bodies to the browser so one of them can
- * come back is the wrong trade.
- *
- * `prd_scaffolds` holds ONE row per spec, so a redraw overwrites. That is a
- * real loss and the surface says so before you click rather than after.
- *
- * The select below is `body_md` ALONE, and that is now correct rather than the
- * defect it used to be. The body is read here for one reason: the length floor
- * this handler enforces. The spec's Outcome Contract reaches the model inside
- * `buildDesignScaffoldHtml`, which reads it off `prds.contract` itself, so a
- * redraw is drawn against the acceptance criteria without this handler ever
- * holding them -- and so is every other draw path.
- */
-export const redrawDesignScaffold = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ prdId: z.string().uuid(), fidelity: z.enum(DESIGN_FIDELITIES) }).parse(d),
-  )
-  .handler(async ({ context, data }): Promise<DesignScaffold & ScaffoldShape> => {
-    const { supabase, userId } = context;
-    const { data: prdRow } = await supabase
-      .from("prds")
-      .select("body_md")
-      .eq("id", data.prdId)
-      .maybeSingle();
-    if (!prdRow) throw new Error("Spec not found");
-    const specBody = ((prdRow as { body_md: string | null }).body_md ?? "").trim();
-    if (specBody.length < 40) {
-      throw new Error("This spec is too short to draw from. Write the spec first.");
-    }
-
-    const scaffold = await buildDesignScaffoldHtml(supabase, userId, {
-      prdId: data.prdId,
-      specBody: specBody.slice(0, 20000),
-      fidelity: data.fidelity,
-    });
-    await persistScaffold(supabase, userId, {
-      prdId: data.prdId,
-      html: scaffold.html,
-      source: "manual",
-      groundedInMemoryIds: scaffold.groundedInMemoryIds,
-    });
-    return { ...scaffold, ...readScaffoldShape(scaffold.html) };
-  });
-
 // ---------------------------------------------------------------------------
 // THE ROUTE OUT OF PLAN (2026-08-02).
 //
