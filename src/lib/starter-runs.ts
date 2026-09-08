@@ -25,11 +25,29 @@ export const STARTER_RUNS_SYSTEM = [
   'three entries; "why" is one plain sentence saying what answering it would change.',
 ].join(" ");
 
-export function starterRunsPrompt(product: { name: string; northStar: string | null }): string {
+/**
+ * What the person said about the product, in the two places they say it:
+ * `north_star` on the project row (a goal), and the positioning brief item
+ * (who it is for and what it does; FirstRun writes its one line there, never
+ * into the goal field). Either may be missing; the prompt names what it has
+ * and says when it has neither, rather than templating one as the other.
+ */
+export function starterRunsPrompt(product: {
+  name: string;
+  northStar: string | null;
+  positioning?: string | null;
+}): string {
+  const lines = [`Product: ${product.name.trim()}`];
   const north = product.northStar?.trim();
-  return north
-    ? `Product: ${product.name.trim()}\nNorth star: ${north}`
-    : `Product: ${product.name.trim()}\nNorth star: not stated yet; infer the likeliest from the name and say so in each why.`;
+  const positioning = product.positioning?.trim();
+  if (positioning) lines.push(`Positioning (who it is for, what it does): ${positioning}`);
+  if (north) lines.push(`North star: ${north}`);
+  if (!north && !positioning) {
+    lines.push(
+      "Nothing else is stated yet; infer the likeliest users and goal from the name and say so in each why.",
+    );
+  }
+  return lines.join("\n");
 }
 
 function clean(value: unknown, max: number): string | null {

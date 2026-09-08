@@ -8,11 +8,23 @@ import {
 } from "./starter-runs";
 
 describe("a fresh product's first three runs", () => {
-  it("the prompt carries the name and the north star, and says when there is none", () => {
+  it("the prompt carries the name, the positioning line and the north star, and says when it has neither", () => {
     expect(
       starterRunsPrompt({ name: "Prism", northStar: "Homeowners see their roof pay off" }),
     ).toBe("Product: Prism\nNorth star: Homeowners see their roof pay off");
-    expect(starterRunsPrompt({ name: "Prism", northStar: "  " })).toContain("not stated yet");
+    // FirstRun writes its one line as positioning, never as the goal.
+    expect(
+      starterRunsPrompt({
+        name: "Prism",
+        northStar: null,
+        positioning: "An expense tool for freelancers",
+      }),
+    ).toBe(
+      "Product: Prism\nPositioning (who it is for, what it does): An expense tool for freelancers",
+    );
+    expect(starterRunsPrompt({ name: "Prism", northStar: "  " })).toContain(
+      "Nothing else is stated yet",
+    );
   });
 
   it("the system prompt asks for the person's product, as JSON, three at most", () => {

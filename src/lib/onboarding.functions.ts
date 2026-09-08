@@ -471,6 +471,24 @@ export async function generateStarterRunsForProduct(
   } | null;
   if (!row) return null;
 
+  /*
+   * The positioning line FirstRun wrote (Lane 1, 6995c805f): who it is for
+   * and what it does, kept on the brief and never in the goal field. Read
+   * beside the north star so a fresh product with no goal yet still gets its
+   * three sentences from what the person said. `standing` is the brief's
+   * word for its current version.
+   */
+  const { data: brief } = await db
+    .from("brief_items")
+    .select("body")
+    .eq("workspace_id", row.workspace_id)
+    .eq("kind", "positioning")
+    .eq("status", "standing")
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const positioning = (brief as { body?: string | null } | null)?.body ?? null;
+
   const result = await callModel(db, userId, {
     surface: "agent",
     surface_ref: `starter-runs:${row.id}`,
@@ -483,7 +501,10 @@ export async function generateStarterRunsForProduct(
     responseFormat: "json_object",
     messages: [
       { role: "system", content: STARTER_RUNS_SYSTEM },
-      { role: "user", content: starterRunsPrompt({ name: row.name, northStar: row.north_star }) },
+      {
+        role: "user",
+        content: starterRunsPrompt({ name: row.name, northStar: row.north_star, positioning }),
+      },
     ],
   });
   const runs = parseStarterRuns(result.json);

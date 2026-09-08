@@ -3845,7 +3845,16 @@ export const whoHoldsThePath = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
   .handler(
-    async ({ context, data }): Promise<{ trackId: string; title: string; path: string } | null> => {
+    async ({
+      context,
+      data,
+    }): Promise<{
+      trackId: string;
+      title: string;
+      path: string;
+      /** The held claim itself (builder_file_claims.id), so a person can release it (F-208). */
+      claimId: string;
+    } | null> => {
       const { supabase } = context;
       try {
         const { data: me } = await supabase
@@ -3862,12 +3871,13 @@ export const whoHoldsThePath = createServerFn({ method: "GET" })
 
         const { data: claims } = await supabase
           .from("builder_file_claims")
-          .select("mission_id, mission_title")
+          .select("id, mission_id, mission_title")
           .eq("path", path)
           .eq("status", "held")
           .limit(4);
         const holders = (
           (claims ?? []) as Array<{
+            id: string;
             mission_id: string | null;
             mission_title: string | null;
           }>
@@ -3901,6 +3911,7 @@ export const whoHoldsThePath = createServerFn({ method: "GET" })
             trackId: otherTrack,
             title: (t as { title?: string } | null)?.title ?? h.mission_title ?? "the other run",
             path,
+            claimId: h.id,
           };
         }
         return null;
