@@ -149,6 +149,10 @@ describe("a held track's chip", () => {
       .sort();
 
     expect(carriers).toEqual([
+      /* 2026-09-08 (Lane 1): the home's run rows and hero read the same split
+         the run screen does, instead of a private list of held reasons that
+         disagreed with it (entry review). One predicate, every reader. */
+      "src/components/start/journey-of-a-run.ts",
       "src/components/track/footer-mode.ts",
       "src/components/track/nothing-is-coming.ts",
       /* 2026-09-08: the run screen's own split moved from TrackRun.tsx into

@@ -43,7 +43,7 @@ import {
   type StartRow,
   type StartRowKind,
 } from "@/components/today/tracks-feed";
-import { journeyOfRun, standingState } from "@/components/start/journey-of-a-run";
+import { callWithoutAGate, journeyOfRun, standingState } from "@/components/start/journey-of-a-run";
 import { TrackConsent } from "@/components/track/TrackConsent";
 import { HoldCard } from "@/components/track/HoldCard";
 import { listRunsForStart, pinTrack, type StartRun } from "@/lib/spine/track.functions";
@@ -95,6 +95,10 @@ function RunRow({
      run screen's own hold card in place (Lane 2's HoldCard, standalone by
      trackId), with "Let X try again" and "Stop spending on this". */
   const held = !needsYou && run ? standingState(run) === "held" : false;
+  /* A person's call with no gate under it (the driver says it is theirs and
+     nothing is coming, but there is no approval row): the answer is on the
+     run screen, so the control opens the run rather than an empty card. */
+  const callOnRun = run ? callWithoutAGate(run) : false;
   return (
     <>
       <Row
@@ -123,6 +127,10 @@ function RunRow({
             ) : held ? (
               <Action variant="default" aria-expanded={askOpen} onClick={() => onAsk(r.id)}>
                 {askOpen ? "Close" : "Decide"}
+              </Action>
+            ) : callOnRun ? (
+              <Action variant="primary" onClick={() => onOpen(r.id)}>
+                Answer
               </Action>
             ) : r.pinnedAt ? (
               <StatusChip status="you" pulse={false}>
@@ -246,8 +254,12 @@ export function YourRuns({
             askOpen={askOpen === r.id}
             onAsk={(id) => setAskOpen((cur) => (cur === id ? null : id))}
             onAnswered={() => {
-              setAskOpen(null);
-              void qc.invalidateQueries({ queryKey: ["start-runs"] });
+              /* The card closes when the rows have caught up, not on the
+                 same tick: the card's own receipt ("You ran it") is on
+                 screen while the refetch is in flight, and the row moves
+                 the moment it lands. Closing first left a beat with
+                 nothing changed (entry review, 2026-09-08). */
+              void qc.invalidateQueries({ queryKey: ["start-runs"] }).then(() => setAskOpen(null));
             }}
           />
         ))}

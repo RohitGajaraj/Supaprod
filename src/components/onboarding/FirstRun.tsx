@@ -98,10 +98,14 @@ export function FirstRun() {
       }
       /* The product row is what the home greets by name; the seed named it
          after the workspace before the person had typed anything. The one
-         line is its north star, which the example sentences read. */
+         line is NOT written to `north_star`: that field is a goal ("Get 40%
+         of active users to a funded savings goal") and the composer's
+         placeholder templates it as one, so a positioning line there read
+         "Help Prism an expense tool for freelancers" (entry review,
+         2026-09-08). The line's home is the positioning brief, below. */
       if (seeded?.projectId) {
         await fProduct({
-          data: { id: seeded.projectId, name: productName, north_star: oneLine || null },
+          data: { id: seeded.projectId, name: productName },
         }).catch(() => undefined);
       }
       if (oneLine) {

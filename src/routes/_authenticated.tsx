@@ -119,15 +119,16 @@ export const Route = createFileRoute("/_authenticated")({
     // First-run gate: accounts with profiles.onboarded === false land on
     // /onboarding until they finish. Cached (one read per page load) —
     // see onboarding-gate.ts for the never-trap rules.
-    // EXCEPTION: /start is the zero-config entry point and does not gate on onboarding.
+    // /start USED TO BE EXEMPT ("the zero-config entry point"). Since
+    // 2026-09-08 /start IS the signed-in home and where a signup lands, so
+    // the exemption meant a fresh account never saw the first run screen at
+    // all: it landed on a chromeless home with nothing in it (found by the
+    // entry review, 2026-09-08). Every route gates now; FirstRun is one
+    // screen and it opens the home itself when it is done.
     const onboardingStarted = Date.now();
     const firstRun = await needsOnboarding(data.session.user.id);
     console.log(`[perf] beforeLoad:needsOnboarding: ${Date.now() - onboardingStarted}ms`);
-    if (
-      !location.pathname.startsWith("/onboarding") &&
-      !location.pathname.startsWith("/start") &&
-      firstRun
-    ) {
+    if (!location.pathname.startsWith("/onboarding") && firstRun) {
       throw redirect({ to: "/onboarding" });
     }
     /*
@@ -251,7 +252,11 @@ function AuthedLayout() {
    * now gets the right frame when they do.
    */
   const firstRun = Route.useRouteContext().firstRun === true;
-  const isOnboarding = pathname.startsWith("/onboarding") || (pathname === "/start" && firstRun);
+  /* A first-run account cannot reach /start any more (the gate above sends
+     it to /onboarding), so the chromeless-home branch that once lived here
+     is gone with the exemption. `firstRun` stays in the context for the
+     home's own reading. */
+  const isOnboarding = pathname.startsWith("/onboarding");
   // Mission Control (front-end reimagining Phase 1): the room carries its own
   // five-region shell (TopBar, Spine, Thread, Canvas, Composer), so the old
   // AppShell must not wrap it. GotoShortcuts also stays off there: it binds

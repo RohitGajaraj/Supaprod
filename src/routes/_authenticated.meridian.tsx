@@ -1153,8 +1153,8 @@ function MeridianGallery() {
                     state: "working",
                     at: new Date(Date.now() - 83_000).toISOString(),
                     presences: [
-                      { seat: "Ada", colour: "--mrd-viz-1" },
-                      { seat: "Grace", colour: "--mrd-viz-3" },
+                      { seat: "Ada", colour: "--mrd-seat-1" },
+                      { seat: "Grace", colour: "--mrd-seat-2" },
                     ],
                   },
                   { key: "build", state: "pending" },
