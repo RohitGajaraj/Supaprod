@@ -70,7 +70,7 @@ import { keyAction, shouldIgnoreKey } from "@/components/track/run-keys";
 import { SteerComposer } from "@/components/track/SteerComposer";
 import { TakeOver } from "@/components/track/TakeOver";
 import { runNow } from "@/components/track/run-now";
-import { RunNow } from "@/components/track/RunNow";
+import { RunNow, HoldFact } from "@/components/track/RunNow";
 import { wayOut } from "@/components/track/way-out";
 import { triedAgainLine } from "@/lib/spine/three-tries-and-nothing-changed";
 import { sameCalendarDay } from "@/lib/time-of-day";
@@ -1251,23 +1251,6 @@ export function TrackRunLeft({
  * knows nothing about drawing, and this is the two-line seam between them. It
  * lives here rather than in either, because "which run" is the pane's question.
  */
-/**
- * A fact inside the Now card: a whole sentence, never truncated. `Row` clips
- * its lead to one line, which is right for a list and wrong for the one
- * sentence that says why the work stopped; the first live walk of the card
- * showed "Trying again changes nothing. Send it back a st…".
- */
-function HoldFact({ children, sub }: { children: React.ReactNode; sub?: string }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <p className="max-w-[64ch] text-mrd-small leading-mrd-prose text-mrd-body">{children}</p>
-      {sub ? (
-        <p className="max-w-[64ch] text-mrd-small leading-mrd-prose text-mrd-mute">{sub}</p>
-      ) : null}
-    </div>
-  );
-}
-
 function RunGotYou({
   trackId,
   onOpen,

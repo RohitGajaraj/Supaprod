@@ -55,4 +55,21 @@ export function RunNow({
   );
 }
 
+/**
+ * A fact inside the Now card: a whole sentence, never truncated. `Row` clips
+ * its lead to one line, which is right for a list and wrong for the one
+ * sentence that says why the work stopped; the first live walk of the card
+ * showed "Trying again changes nothing. Send it back a st…".
+ */
+export function HoldFact({ children, sub }: { children: React.ReactNode; sub?: string }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <p className="max-w-[64ch] text-mrd-small leading-mrd-prose text-mrd-body">{children}</p>
+      {sub ? (
+        <p className="max-w-[64ch] text-mrd-small leading-mrd-prose text-mrd-mute">{sub}</p>
+      ) : null}
+    </div>
+  );
+}
+
 export default RunNow;
