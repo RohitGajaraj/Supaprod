@@ -293,3 +293,6 @@ Round three closed; 32f76297 pressed on 711054c36 (row verb from nowPerTrace, pl
 
 ## Lane 1 · 21:48 IST 09-08
 Round three second half on main (a19c75fdb): header says "call"; header seat goes quiet with the strip; home strip's facts and door skip the gate; focus returns to the row body after an answer; one door to Findings; the two "on Today" doors go to Inbox and ?queue is gone. Then 6a9c54b26: listRunsForStart once per arrival (home-read.ts, loader prefetches readHome, staleTime 10 s, pushes cancelRefetch false). Lane 2 pressed 9043ee80 on a19c75fdb; I press the next on 6a9c54b26 when it serves. Ledger F-215, F-216.
+
+## Lane 1 · 22:12 IST 09-08
+822c0d7a4 pushed (seed gates: useSeedInFlight for shell/rail/strip, home seeded only for a known workspace, YourRuns mounts onto the seed, first SUBSCRIBED does not refetch). Needs a deploy press + live count. Round four runs as workflow wf_719dcad9-5e8; journal under the session's subagents/workflows dir; verify each finding against HEAD before landing. Production is supaprod.ai.

@@ -1430,3 +1430,30 @@ pushes invalidate with `cancelRefetch: false`. Gate on both: tsc 0, 14957 pass 0
 **Presses:** Lane 2 pressed 9043ee80 on Lovable's `a19c75fdb`; `b663d059d` (Lane 3) and
 `6a9c54b26` ride the next, which I press once 9043ee80 serves and Lovable holds `6a9c54b26`. Lane 3
 reads the home's worker-total on it (expect `listRunsForStart` once, `readHome` once).
+
+### Lane 1 · addendum 22:12 IST 09-08 · the seed gates, and where round four lives
+**On main, pushed:** `822c0d7a4`. Read live on 72c04f6e with a fetch hook in the founder's tab
+(labels corrected: the server function that accepts a null workspace is `listRunsForStart`, so
+`f796a921` is `readHome` and `c4e84262` is the runs read): readHome ran ONCE from the loader at
+4.1 s, and the runs read still ran three more times: the shell's queue/seats reads and the run
+list mounted at 6.3 s while the composite was out and fetched 170 ms before the seed landed (a
+stale time cannot help when the cache is still empty); the run list first fetched a null
+workspace; and both realtime channels refetched every seeded key on their FIRST SUBSCRIBED. Fix:
+`useSeedInFlight` in `home-read.ts` (an observer of a seeded key waits while the composite is out;
+shell queue and seats, RailCrew, CrewAtWork use it), the home is seeded only for a known workspace
+and `YourRuns` mounts onto the seed, the list's empty sentence comes only from an answered read,
+and the pushes refetch on a RECONNECT only (test re-pinned). Gate: 14958 pass 0 fail, build 0.
+**Not yet pressed:** 822c0d7a4 needs a deploy press once Lovable holds it, then a live count
+(expect on a warm arrival: readHome 1, runs read 0 extra, queue 0 extra, running 0 extra).
+**Round four (entry review) is running as workflow `wf_719dcad9-5e8`** (four lenses: second
+visit, phone, the shell on every other page, empty/slow/wrong; two agents at a time; one skeptic
+per finding against HEAD 523b63760). Its journal is
+`~/.claude/projects/-Users-rohitgajaraj-Projects-My-Projects-My-Builds-Supaprod/6ef275f5-9c4c-4103-b892-e0e507d30af6/subagents/workflows/wf_719dcad9-5e8/journal.jsonl`
+(one `{"type":"result"}` line per finished agent, with its full return) and its script is under
+`.../workflows/scripts/entry-review-round-4-wf_719dcad9-5e8.js`. If the session limit cuts it
+short: read the journal for finished finders, verify each finding against HEAD before touching
+anything (six of twelve in round three were already fixed by the time the verifier ran), and land
+only confirmed ones; or resume with `Workflow({scriptPath, resumeFromRunId: "wf_719dcad9-5e8"})`.
+Anything on the run screen's header or the Inbox sentence goes to Lane 2 to fix, not to this lane.
+Production is `https://supaprod.ai` (the lovable.app host 302s there); the founder's shared tab is
+on Helio Labs / Relay, light theme.
