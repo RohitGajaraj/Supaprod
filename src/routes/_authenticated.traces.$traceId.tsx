@@ -713,14 +713,20 @@ export function TraceDetail({ id }: { id: string }) {
           </CtxBody>
 
           <div className="mt-mrd-6 flex flex-wrap gap-mrd-4">
-            {mission ? (
-              // P-14 (A-QUEUE.md, R-35): /runs/$missionId is deleted.
-              // getTrace resolves this mission through agent_runs.mission_id
-              // -- the run row is already read to get there, and its own
-              // track_id could be selected alongside it cheaply, but
-              // threading that through the server function's return type is
-              // a real change, not a link repoint, so it stays out of this
-              // sweep and falls back to Start.
+            {run?.trackId ? (
+              /* The run's own address, now that getTrace carries the track
+                 (2d408fd48); it fell back to Start while it could not. */
+              <Action
+                onClick={() =>
+                  void navigate({
+                    to: "/track/$trackId",
+                    params: { trackId: run.trackId as string },
+                  })
+                }
+              >
+                Open the run
+              </Action>
+            ) : mission ? (
               <Action onClick={() => void navigate({ to: SIGNED_IN_HOME })}>Open the run</Action>
             ) : null}
             <Action variant="quiet" onClick={back}>
