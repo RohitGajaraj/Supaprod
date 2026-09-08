@@ -24,7 +24,7 @@ describe("the one cluster to start with", () => {
       "Start with “Homeowners cannot tell a real outage from a firmware reboot”.",
     );
     expect(r?.why).toBe(
-      "Severity 4 of 5, newest signal 40 min ago, 7 signals from 2 sources. 2 more clusters behind it, ordered by how severe, how recent, and how new each one is.",
+      "Severity 4 of 5, newest signal 40m ago, 7 signals from 2 sources. 2 more clusters behind it, ordered by how severe, how recent, and how new each one is.",
     );
   });
 
@@ -57,9 +57,9 @@ describe("the one cluster to start with", () => {
 
   it("phrases age in the ranking row's register", () => {
     expect(ago("2026-09-08T09:59:30Z", NOW)).toBe("just now");
-    expect(ago("2026-09-08T09:48:00Z", NOW)).toBe("12 min ago");
-    expect(ago("2026-09-08T07:00:00Z", NOW)).toBe("3 h ago");
-    expect(ago("2026-09-03T10:00:00Z", NOW)).toBe("5 d ago");
+    expect(ago("2026-09-08T09:48:00Z", NOW)).toBe("12m ago");
+    expect(ago("2026-09-08T07:00:00Z", NOW)).toBe("3h ago");
+    expect(ago("2026-09-03T10:00:00Z", NOW)).toBe("5d ago");
     expect(ago("not a date", NOW)).toBeNull();
     expect(ago(null, NOW)).toBeNull();
   });

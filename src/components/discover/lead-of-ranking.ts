@@ -41,7 +41,8 @@ function clipTitle(s: string): string {
   return `${t.slice(0, cut > TITLE_MAX * 0.6 ? cut : TITLE_MAX - 1).trimEnd()}…`;
 }
 
-/** "just now", "12 min ago", "3 h ago", "5 d ago", in the ranking row's own register. */
+/** "just now", "12m ago", "3h ago", "5d ago": the ranking row's own register,
+ *  read live beside it on 2026-09-08 ("5 d ago" over a row saying "5d ago"). */
 export function ago(iso: string | null, nowMs: number): string | null {
   if (!iso) return null;
   const then = Date.parse(iso);
@@ -49,11 +50,11 @@ export function ago(iso: string | null, nowMs: number): string | null {
   const s = Math.max(0, Math.round((nowMs - then) / 1000));
   if (s < 90) return "just now";
   const m = Math.round(s / 60);
-  if (m < 60) return `${m} min ago`;
+  if (m < 60) return `${m}m ago`;
   const h = Math.round(m / 60);
-  if (h < 36) return `${h} h ago`;
+  if (h < 36) return `${h}h ago`;
   const d = Math.round(h / 24);
-  return `${d} d ago`;
+  return `${d}d ago`;
 }
 
 function n(count: number, one: string, many: string): string {
