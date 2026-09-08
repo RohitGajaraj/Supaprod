@@ -409,6 +409,8 @@ import {
 import { TabPanel, Tabs } from "@/components/meridian/Tabs";
 import { NeedsSetup } from "@/components/meridian/NeedsSetup";
 import { Quiet } from "@/components/meridian/Quiet";
+import { ForecastDeskPanel } from "@/components/learn/ForecastDeskPanel";
+import { SettlePanel } from "@/components/learn/SettlePanel";
 import { PageHeading } from "@/components/meridian/surface-parts";
 import { CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { Surface } from "@/components/meridian/Surface";
@@ -1814,6 +1816,17 @@ function MemoryPage() {
           </Region>
         ) : null}
 
+        {/*
+         * ── THE DESK, WHERE THE RAIL LANDS (Lane 2, 2026-09-08) ──────────────
+         * The forecasts due for a human's call lived on /learn, a page the
+         * rail no longer reaches; a forecast three days past its date sat
+         * there unseen while this page, the one door to Learn, showed the
+         * record and nothing to settle. The desk renders nothing when nothing
+         * is due, so at the top it costs a quiet page nothing and puts the one
+         * most actionable thing first when there is one.
+         */}
+        <ForecastDeskPanel />
+
         {!blank && guidance.length > 0 ? (
           <Region title="What the record has changed so far">
             {guidance.map((g) => (
@@ -1989,6 +2002,11 @@ function MemoryPage() {
                 <LearningDetail id={learning} />
               ) : (
                 <div className="flex flex-col gap-mrd-7">
+                  {/* The write Learn exists for: settle a shipped bet, and see
+                      what settling it changed. It owns its own reads and its
+                      receipts; here so the outcomes tab can close the loop
+                      rather than only report it. */}
+                  <SettlePanel />
                   {awaiting.length > 0 ? (
                     <Region
                       title="Shipped, waiting for a verdict"
