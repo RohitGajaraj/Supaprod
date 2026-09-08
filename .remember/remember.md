@@ -258,3 +258,6 @@ Main cced15d0e, all pushed, published through d6ae7d99a (tip next). Run screen: 
 bebf8227a skipped-step short line; ef9dd9661 hero waits for its name. Publishes queued; family sentence and placeholder owed a live read.
 
 - Lane 2 12:24 IST 09-08: Sources rebuilt, /prds redirects, transcript polls live from the first second; probe run 7eb5fa85 watched live (working register good; running rows and presences reach the screen late, with Lane 3); the 12:14 500s on marketing routes are the Worker cache lookup, Lane 1 fixing.
+
+## Lane 1 · 12:36 IST 09-08
+Landing page 500s (12:16 to 12:33) were the Worker's P-135 cache lookup rejecting before the try on Lovable's runtime ("Cache API is not yet supported for dynamically-loaded workers"). Fixed 280bb7f80 + aacc1a81b, deployed faa89898, all 13 routes 200, F-203. Lane 3 owns standing the store down. 6101b8095 (placeholder subject) on main, undeployed. Prove a public-route 500 by bypassing the path on production, not in workerd.
