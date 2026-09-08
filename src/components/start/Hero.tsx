@@ -54,7 +54,11 @@ export function heroCopy(input: {
     return { eyebrow, title: `What should ${name} do next?`, line: PROMISE };
   }
   const open = runs.filter((r) => r.status === "open");
-  const needs = open.filter((r) => r.needsYou).length;
+  /* A call is a person's whether it is a gate (`needsYou`) or a hold the
+     driver marks as theirs: one predicate, the row's own. */
+  const needs = open.filter(
+    (r) => r.needsYou || ("holdReason" in r && standingState(r as RunLike) === "you"),
+  ).length;
   const moving = open.filter((r) => r.working).length;
   /*
    * STOPPED IS ALSO ON YOU. Seen live on the founder's workspace: four runs

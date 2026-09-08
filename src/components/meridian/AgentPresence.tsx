@@ -12,7 +12,7 @@
  * the unit that picture is made of.
  *
  * ── THE COLOUR IS IDENTITY, NEVER STATUS (law 3, law 4) ─────────────────
- * A seat's colour comes from the categorical set (`--mrd-viz-1..4`), never
+ * A seat's colour comes from the identity set (`--mrd-seat-1..5`), never
  * from a status hue, and it is the same for that seat on the home strip, in
  * the transcript row, on the diff it is writing and on its cursor. Status is
  * still said by the five status words around it. `presenceColour` is a
@@ -28,10 +28,14 @@ import * as React from "react";
 import { formatElapsed } from "./run-rows";
 
 export const PRESENCE_COLOURS = [
-  "--mrd-viz-1",
-  "--mrd-viz-2",
-  "--mrd-viz-3",
-  "--mrd-viz-4",
+  /* Identity tokens, not the series ramp: viz-1 is the brand ember and
+     viz-4 the failure red, and a seat drawn from those read as "the brand"
+     or "it failed" (2026-09-08). See --mrd-seat-* in meridian.css. */
+  "--mrd-seat-1",
+  "--mrd-seat-2",
+  "--mrd-seat-3",
+  "--mrd-seat-4",
+  "--mrd-seat-5",
 ] as const;
 
 /** A seat's colour, the same everywhere, from its name alone. */
@@ -60,7 +64,7 @@ export function PresenceDot({
   size = 8,
   className = "",
 }: {
-  /** A token name, e.g. "--mrd-viz-2". */
+  /** A token name, e.g. "--mrd-seat-2". */
   colour: string;
   alive?: boolean;
   size?: number;

@@ -694,6 +694,24 @@
   --mrd-viz-4: #ee5c61;
 
   /*
+   * ── SEAT IDENTITY (2026-09-08) ─────────────────────────────────────────
+   * Who a seat IS, everywhere it appears: the Working-now row, the dot at
+   * its station on the road, the run screen's live pane and transcript.
+   * These are NOT the series colours above and NOT the status hues: viz-1
+   * is the brand ember and viz-4 the failure red, so a seat drawn from that
+   * ramp read as "the brand" or "it failed" (found on the home, 2026-09-08).
+   * Five hues chosen away from every status hue (orchid 315 is a person,
+   * azure 235 a machine at work, amber 78 a stop, red 27 a failure, green
+   * 152 a pass) and from the ember (~45), at one lightness and chroma so no
+   * seat outranks another. presenceColour() hashes a seat name onto them.
+   */
+  --mrd-seat-1: oklch(0.74 0.11 190); /* teal */
+  --mrd-seat-2: oklch(0.72 0.12 280); /* violet */
+  --mrd-seat-3: oklch(0.76 0.13 125); /* lime */
+  --mrd-seat-4: oklch(0.73 0.12 345); /* rose */
+  --mrd-seat-5: oklch(0.75 0.1 205); /* sky, lower chroma so it never reads as azure */
+
+  /*
    * ── THE FIFTH ROLE, ADDED 2026-08-15, AND WHY IT IS NOT A "WARNING" ────
    *
    * This file used to say there was no fifth meaning: a warning and a "your
@@ -1685,6 +1703,11 @@
   --mrd-viz-2: #0285ff;
   --mrd-viz-3: #189a4d;
   --mrd-viz-4: #e3474c;
+  --mrd-seat-1: oklch(0.56 0.11 190);
+  --mrd-seat-2: oklch(0.54 0.14 280);
+  --mrd-seat-3: oklch(0.58 0.14 125);
+  --mrd-seat-4: oklch(0.56 0.14 345);
+  --mrd-seat-5: oklch(0.57 0.1 205);
 
   /* Shadows on paper are a warm brown at low opacity, never black. */
   --mrd-shadow-card: 0 1px 2px oklch(0.45 0.04 60 / 0.14);
@@ -1770,6 +1793,11 @@
   --color-mrd-code-comment: var(--mrd-code-comment);
   --color-mrd-viz-1: var(--mrd-viz-1);
   --color-mrd-viz-2: var(--mrd-viz-2);
+  --color-mrd-seat-1: var(--mrd-seat-1);
+  --color-mrd-seat-2: var(--mrd-seat-2);
+  --color-mrd-seat-3: var(--mrd-seat-3);
+  --color-mrd-seat-4: var(--mrd-seat-4);
+  --color-mrd-seat-5: var(--mrd-seat-5);
   --color-mrd-viz-3: var(--mrd-viz-3);
   --color-mrd-viz-4: var(--mrd-viz-4);
 

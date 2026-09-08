@@ -18,6 +18,8 @@ import {
 } from "@/components/meridian/Journey";
 import { KIND_WORD, STATION_ARTIFACT } from "@/lib/spine/attach";
 import type { StartRun } from "@/lib/spine/track.functions";
+import { holdTone } from "@/lib/spine/driver";
+import { nothingIsComing } from "@/components/track/nothing-is-coming";
 
 export type RunLike = Pick<
   StartRun,
@@ -32,43 +34,40 @@ export type RunLike = Pick<
   | "drivenAt"
 >;
 
-/**
- * The hold reasons that mean "stopped on a condition that must change". The
- * ones NOT here are either a person's call (`needsYou` carries that), a
- * finished route, or a note that rides along with a move.
- */
-const HELD: ReadonlySet<string> = new Set([
-  "paused",
-  "no-agent",
-  "produced-nothing",
-  "self-check-failed",
-  "nothing-to-hand-on",
-  "stalled",
-  "over-budget",
-  "out-of-time",
-  "out-of-credit",
-  "going-in-circles",
-  "tools-refused",
-  "corrections-spent",
-  "given-up",
-  "station-cannot-finish",
-  /* A route that skips a station the work needs. Seen live 12:37 IST 09-08:
-     the row said "Put it back, or file it yourself" and offered neither,
-     because the reason was not counted as held and so drew no Decide. */
-  "needs-a-waived-station",
-]);
-
 /** The horizon wait's own sentence, composed by the driver (P-144). A wait
  *  for a date the machine already knows is scheduled, not held. */
 const HORIZON = /comes due|returns on|graded on/i;
 
+/**
+ * ONE PREDICATE, EVERY READER. The home used to keep its own list of "held"
+ * reasons, and it disagreed with the driver's: a call the driver marks as a
+ * person's ("the-call-is-yours") drew a grey wait, and a stop the driver
+ * calls final ("corrections-spent") drew Decide over a card that rendered
+ * nothing (entry review, 2026-09-08). So the state is read from the sets
+ * the driver itself decides with: `holdTone` says whose the hold is, and
+ * `nothingIsComing` says whether the loop will ever move it again, the same
+ * two the run screen's `runNow` reads. A calendar wait is still neutral
+ * and still comes first.
+ */
 export function standingState(r: RunLike): JourneyState {
   if (r.status === "abandoned") return "failed";
   if (r.needsYou) return "you";
   if (r.working) return "working";
-  if (r.holdReason && HELD.has(r.holdReason)) return "held";
   if (r.holdBecause && HORIZON.test(r.holdBecause)) return "scheduled";
+  const tone = holdTone(r.holdReason);
+  if (tone === "you") return nothingIsComing(r.holdReason) ? "held" : "you";
+  if (tone === "hold") return "held";
   return "waiting";
+}
+
+/**
+ * A person's call that has no gate under it: the driver says the hold is
+ * theirs and nothing is coming, but there is no approval row to answer in
+ * place. The answer lives on the run screen (the Choice, a source to point
+ * at), so the row's control opens the run rather than an empty card.
+ */
+export function callWithoutAGate(r: RunLike): boolean {
+  return !r.needsYou && holdTone(r.holdReason) === "you" && !nothingIsComing(r.holdReason);
 }
 
 function verdictOf(resolution: string): "pass" | "fail" | "open" {
