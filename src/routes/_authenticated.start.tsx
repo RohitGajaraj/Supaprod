@@ -304,6 +304,20 @@ function StartLanding() {
     ? queueShape((queueRead.data?.items ?? []).map((i) => i.kindKey))
     : null;
 
+  /*
+   * THE HERO WAITS FOR ITS FACTS, NOT ONLY ITS NAME. Seen live 13:00 IST
+   * 09-08 on Prism: "5 runs have stopped." for a beat, then "20 design gates
+   * and 33 other calls are waiting for you." once the queue read landed. A
+   * headline that changes its subject is one nobody trusts, so it renders
+   * once, after the queue read and a runs read that is actually in flight
+   * have settled; the slot above holds the height meanwhile. A disabled runs
+   * read (no product yet) is not waited on, or the hero would never come.
+   */
+  const heroReady =
+    !workspaceLoading &&
+    !queueRead.isPending &&
+    !(runs.isPending && runs.fetchStatus === "fetching");
+
   const sinceYouLooked = homeAnswers({
     waitingShape: null,
     arrivingCount: homeReads.isSuccess ? homeReads.data.arrivingCount : null,
@@ -334,7 +348,7 @@ function StartLanding() {
           changes its subject is a headline nobody trusts; the slot holds its
           height and the words arrive once. */}
       <div className="min-h-[7.5rem]">
-        {workspaceLoading ? null : (
+        {heroReady ? (
           <Hero
             copy={heroCopy({
               product: activeProduct?.name ?? activeWorkspace?.name ?? null,
@@ -343,7 +357,7 @@ function StartLanding() {
               waitingShape,
             })}
           />
-        )}
+        ) : null}
       </div>
 
       {queue ? (
