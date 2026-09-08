@@ -1012,3 +1012,16 @@ times; `date` goes in the Bash call that writes the record.
 **Open on Lane 1's list:** the header live line still leads with "Nothing running" and should draw AgentPresence off Lane 3's `["running-now", workspaceId]` key once their sha lands; the composer placeholder is still the checkout example; the cold navigation wait (full-screen mark for 3 to 6 s on a cold Worker) is a hosting item plus a designed wait; `/meridian` gallery pages for Journey and AgentPresence; the run screen's adoption of Journey is Lane 2's, in flight.
 
 **Working notes:** the Chrome extension signs in through the browser's own saved credentials (the founder's Chrome; click Sign in, never type a password); reading the session token out of localStorage to seed a local dev server was refused by the classifier and is not to be retried. Lovable's sync lags a push by 2 to 15 minutes; `get_project.latest_commit_sha` says when it holds the tip; production served the new client chunk within about ten minutes of the deploy call. One full suite per machine: check `ps` for a running `bun test` rather than waiting on a message.
+
+## Lane 1 · 10:58 IST 09-08 · four more landings since the 10:37 entry
+
+- `9d87005ae` the header's idle line leads with a fact ("Last finished · title · 3d ago", or "Ready for the first run"); the all-clear guard names the new sentence. `/meridian` gains Journey and Agent presence panels.
+- `b6378d3b8` live work is one key: the home's Working now strip reads `listRunningNow` under `runningNowKey(workspaceId)` (Lane 3's read, with each seat's latest call as `now`), draws with AgentPresence, and `useRunningNowPush` is mounted once inside WorkspaceProvider in `_authenticated.tsx` (a `RunningNowPush` component). `LiveAgent` carries `verb` and `startedAt`.
+- `dd143e399` the ask opens under a needs-you row on the home (Lane 2's `TrackConsent`, standalone by trackId; one open at a time; onAnswered refreshes the runs); the composer placeholder is built from the active product's stated goal (`placeholderFor` in `_authenticated.start.tsx`).
+- `8a5b917fe` the header's single-worker lead says the seat's verb ("Scribe is writing the spec at Plan") from the same key.
+
+**Verified live on supaprod.ai:** the home (hero, road with counts and the station filter, row marks, evidence line), the rail (Home · Inbox · Findings · Outcomes | Team · Sources), the first run at `/onboarding`. **Owed live reads:** the header verb and the in-place ask (need a running seat and an open gate; the probe workspace has neither), the product-aware placeholder.
+
+**Main is red on two cases in `src/lib/hosting/a-ship-that-cannot-deploy-names-the-provider.test.ts`** since Lane 2's run-screen rewrite (`6a6b801c0`); the guard reads `TrackRun.tsx` as source. Reported to Lane 2 at 10:54; every other case is green (14,896 pass).
+
+**Lane 3 is folding `ObsidianOnboarding`'s two exports into `src/lib` and deleting the file.** Lane 2 has the run screen on Journey (header tablist, Now card with the quiet chip, station sections, proof panel) and is adding an AgentPresence strip above the transcript.

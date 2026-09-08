@@ -230,3 +230,6 @@ Landed: P-135(branch) P-137 P-138 P-142 P-144(s1,s2,s3) P-150 move 1. Scope 3 ga
 
 ## Lane 1 · 10:36 IST 09-08
 Three landings on main and published: the home (dbe5029d2: hero, road, run rows with Journey marks, presence strip), the rail (e4c09a9bf: Home Inbox Findings Outcomes | Team Sources; AgentPresence in Meridian), the first run (b4e4c0902: one screen). Founder rules relayed to Lanes 2 and 3 and written into DESIGN-SYSTEM.md. Next: header live line on AgentPresence off Lane 3's running-now key; live read of the rail; gallery pages.
+
+## Lane 1 · 10:58 IST 09-08
+Four more landings (header idle fact, live-work key + push, in-place ask on the home, header verb). Main red on one P-59c guard from Lane 2's run-screen rewrite, reported. Deploy of b6378d3b8 requested; dd143e399 and 8a5b917fe follow when Lovable syncs.
