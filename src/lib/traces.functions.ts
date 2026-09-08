@@ -248,7 +248,59 @@ export const getTrace = createServerFn({ method: "POST" })
       return (mission as { id: string; title: string } | null) ?? null;
     };
 
-    const [hitsRes, evalRes, toolRes, mission] = await Promise.all([
+    /*
+     * THE RUN THIS TRACE BELONGS TO (Lane 2, 2026-09-08). A person arrives
+     * here from "Open the full trace" on a transcript turn and landed on a
+     * page headed by the trace id, with the run gone. `agent_runs.trace_id`
+     * is one to one with the run in every row the record has (see
+     * getTrackToolCalls), so the run is one RLS-scoped read and its track's
+     * title and station one more. Null for a trace with no run behind it
+     * (a chat, a seeded trace), and the page keeps its own heading.
+     */
+    const resolveRun = async (): Promise<{
+      runId: string;
+      agentSlug: string;
+      agentName: string;
+      trackId: string | null;
+      trackTitle: string | null;
+      station: string | null;
+    } | null> => {
+      const { data: runs } = await supabase
+        .from("agent_runs")
+        .select("id,agent_slug,agent_name,track_id")
+        .eq("trace_id", data.traceId)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const run = (runs?.[0] ?? null) as {
+        id: string;
+        agent_slug: string;
+        agent_name: string | null;
+        track_id: string | null;
+      } | null;
+      if (!run) return null;
+      let trackTitle: string | null = null;
+      let station: string | null = null;
+      if (run.track_id) {
+        const { data: track } = await supabase
+          .from("spine_tracks" as never)
+          .select("title,station")
+          .eq("id", run.track_id)
+          .maybeSingle();
+        const t = track as { title?: string | null; station?: string | null } | null;
+        trackTitle = t?.title ?? null;
+        station = t?.station ?? null;
+      }
+      return {
+        runId: run.id,
+        agentSlug: run.agent_slug,
+        agentName: run.agent_name?.trim() || run.agent_slug,
+        trackId: run.track_id,
+        trackTitle,
+        station,
+      };
+    };
+
+    const [hitsRes, evalRes, toolRes, mission, run] = await Promise.all([
       ids.length
         ? supabase
             .from("guardrail_hits")
@@ -275,10 +327,13 @@ export const getTrace = createServerFn({ method: "POST" })
         .eq("trace_id", data.traceId)
         .order("created_at", { ascending: true }),
       resolveMission(),
+      resolveRun(),
     ]);
 
     return {
       traceId: data.traceId,
+      /** The run this trace belongs to, with its track, or null for a trace with none. */
+      run,
       events: rows,
       hits: (hitsRes.data ?? []) as {
         id: string;
