@@ -53,8 +53,9 @@ describe("every P-63 first-visit site keeps its door", () => {
        the door (one press per provider) rather than a single button under a
        list of negations; the zero text on the Connected region points at it. */
     const route = read("src/routes/_authenticated.sync.tsx");
-    expect(route).toContain('title="Connect a source"');
+    expect(route).toContain("Connect a source");
     expect(route).toContain("Connect a source below and Discover can read it.");
+    expect(route).toContain("Each one opens that source's own sign-in");
   });
 
   it("Quiet.tsx and ApprovalCard.tsx document why the action defaults to none", () => {
