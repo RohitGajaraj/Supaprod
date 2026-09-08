@@ -1614,7 +1614,7 @@ async function correctIfPossible(
  * compose different sentences. Collapsing them is the same substitution this
  * packet exists to undo.
  */
-async function metricSourcesForTrack(
+export async function metricSourcesForTrack(
   supabase: SupabaseClient,
   trackId: string,
 ): Promise<SourceState[] | null> {
@@ -1665,7 +1665,10 @@ async function metricSourcesForTrack(
   return standing.map((c) => whatWouldMeasure(c, withReadings));
 }
 
-async function forecastDueDate(supabase: SupabaseClient, trackId: string): Promise<string | null> {
+export async function forecastDueDate(
+  supabase: SupabaseClient,
+  trackId: string,
+): Promise<string | null> {
   try {
     const { data: member } = await supabase
       .from("spine_track_members" as never)
