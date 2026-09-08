@@ -680,7 +680,7 @@ function Learn() {
             and Brain. Renders nothing unless an agent standing at THIS station
             is genuinely mid-run; see LearnCrewWorking. */}
         <LearnCrewWorking />
-        <PageHeading title={headline} sub={sub} />
+        <PageHeading station="learn" title={headline} sub={sub} />
 
         {/* The write this stage exists for. It owns its own reads, its own
           receipts and the queue it drains. It reports which workspace the bet

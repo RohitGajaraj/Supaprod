@@ -1517,9 +1517,16 @@ function LearningCard({
       {resolution === "miss" || resolution === "inconclusive" ? (
         <TakeAnotherRun claim={claim ?? item.title} />
       ) : null}
-      <div>
+      <div className="flex flex-wrap gap-x-mrd-5 gap-y-mrd-2">
         <Link to="/outcomes" search={{ learning: item.artifactId }} className={DEPTH_DOOR_FACE}>
           Open this verdict on Outcomes
+          <DepthArrow />
+        </Link>
+        {/* The forecasts desk has had no door from the loop since the rail
+            lost its Learn row; this is the one station whose verdicts it
+            settles, so it is the one place the door belongs. */}
+        <Link to="/learn" className={DEPTH_DOOR_FACE}>
+          Open the forecasts desk
           <DepthArrow />
         </Link>
       </div>
@@ -2049,6 +2056,15 @@ function ReleaseCard({ item, decisions }: { item: ArtifactView; decisions?: Arti
       )}
 
       <OnTheHookFor decisions={decisions} />
+      {/* The announcement and the release document live on Ship's own page,
+          which lost its rail door; the release that went out is the one place
+          a person reaches for them from. */}
+      <div>
+        <Link to="/ship" className={DEPTH_DOOR_FACE}>
+          Open the announcement and the release document
+          <DepthArrow />
+        </Link>
+      </div>
     </div>
   );
 }

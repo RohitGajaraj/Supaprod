@@ -2531,7 +2531,7 @@ function Ship() {
           invent a different distance between their own sections. */}
       <div className="flex flex-col gap-mrd-7">
         <CrewWorking station="ship" />
-        <PageHeading title={headline} sub={gapLine()} />
+        <PageHeading station="ship" title={headline} sub={gapLine()} />
 
         {/* PRODUCTION COMES BEFORE THE ANNOUNCEMENT, and the order is the
           argument. This station is called Ship and the nav calls it "Preview to
