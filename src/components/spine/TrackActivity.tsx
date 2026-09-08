@@ -49,6 +49,7 @@
  * `useElapsed` with the WORK's start time, never the component's.
  */
 import * as React from "react";
+import { Link } from "@tanstack/react-router";
 import { humanizeText } from "@/lib/ai/humanize";
 import { plainProse } from "@/lib/plain-prose";
 import { AgentMark } from "@/components/meridian/marks";
@@ -64,19 +65,38 @@ import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/ha
 import { carriedByMission, oncePerId } from "@/components/spine/what-a-mission-carries";
 import { howThisRan } from "@/components/track/how-this-ran";
 import { getMission } from "@/lib/missions.functions";
-import { type HandoffRow, mergeActivityRows } from "@/components/spine/activity-rows";
+import {
+  type ActivityRow,
+  type HandoffRow,
+  mergeActivityRows,
+} from "@/components/spine/activity-rows";
+import {
+  dayKey,
+  dayLabel,
+  defaultOpen,
+  sectionMeta,
+  transcriptSections,
+} from "@/components/spine/transcript-sections";
+import { whatItProduced } from "@/components/track/what-it-produced";
+import { useTimezone } from "@/hooks/use-timezone";
 import type { AgentStation } from "@/lib/agent-vocabulary";
-import { GLYPH_FOR_STATION, type StationGlyphKind } from "@/components/meridian/station-glyphs";
+import {
+  GLYPH_FOR_STATION,
+  StationGlyph,
+  type StationGlyphKind,
+} from "@/components/meridian/station-glyphs";
 import {
   RUN_LINE,
   RUN_ROW,
   RUN_STACK,
   RunArtifact,
   RunClock,
+  RunClockEmpty,
   RunGlyph,
   RunMeta,
   RunNote,
   RunRail,
+  RunRailBreak,
   RunRollup,
   RunSubject,
   RunTook,
@@ -568,12 +588,20 @@ export function TrackActivity({
    * the turn's newest artifact when there is one (`canOpen`), because that is
    * a different, founder-cited contract this one press must not cost.
    */
-  const [openTurns, setOpenTurns] = React.useState<Set<string>>(new Set());
-  const toggleTurn = (key: string) =>
-    setOpenTurns((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
+  /*
+   * ── A LIVE TURN OPENS ITSELF (founder, 2026-09-08) ────────────────────
+   * "Tool calls and file writes are drawn live." The seat's stream sits inside
+   * the turn's fold, so a fold that started closed hid the one thing worth
+   * watching. A working turn is open unless the person closed it; a finished
+   * one is closed unless they opened it. Their choice, once made, is kept for
+   * that turn for the life of the page.
+   */
+  const [turnChoices, setTurnChoices] = React.useState<Map<string, boolean>>(new Map());
+  const isTurnOpen = (key: string, live: boolean) => turnChoices.get(key) ?? live;
+  const toggleTurn = (key: string, live: boolean) =>
+    setTurnChoices((prev) => {
+      const next = new Map(prev);
+      next.set(key, !isTurnOpen(key, live));
       return next;
     });
   const fetchActivity = useServerFn(getTrackActivity);
@@ -896,6 +924,47 @@ export function TrackActivity({
       ),
     [q.data, fromMissions, saidQ.data],
   );
+
+  /*
+   * ── THE COLUMN, CUT INTO STATIONS (2026-09-08) ─────────────────────────
+   * See `transcript-sections.ts`. Which sections are open is the person's
+   * choice layered over the default: the default follows the run (the
+   * current station opens as the work reaches it) and a press on a header
+   * overrides that one section until the page is left.
+   */
+  const orderedRows = React.useMemo(() => [...rows].reverse(), [rows]);
+  const sections = React.useMemo(() => transcriptSections(orderedRows), [orderedRows]);
+  const indexOf = React.useMemo(
+    () => new Map(orderedRows.map((r, i) => [r.key, i] as const)),
+    [orderedRows],
+  );
+  const [sectionChoices, setSectionChoices] = React.useState<Map<string, boolean>>(new Map());
+  const openSections = React.useMemo(() => {
+    const open = defaultOpen(sections);
+    for (const [k, v] of sectionChoices) {
+      if (v) open.add(k);
+      else open.delete(k);
+    }
+    return open;
+  }, [sections, sectionChoices]);
+  const toggleSection = (key: string) =>
+    setSectionChoices((prev) => {
+      const next = new Map(prev);
+      next.set(key, !openSections.has(key));
+      return next;
+    });
+  /* What each station filed, off the chain the pane already polls, so a closed
+     section still says what came of it. */
+  const producedBy = React.useMemo(() => {
+    const m = new Map<AgentStation, string>();
+    for (const stop of chainQ.data?.chain.stops ?? []) {
+      const line = whatItProduced(stop.label, stop.members);
+      if (line) m.set(stop.station, line);
+    }
+    return m;
+  }, [chainQ.data]);
+  const zone = useTimezone();
+
   React.useEffect(() => {
     if (!q.data) return;
     if (!primed.current) {
@@ -971,7 +1040,7 @@ export function TrackActivity({
    * through the work and stops under the newest entry, which is the honest
    * direction: the line ends where the record ends.
    */
-  const ordered = [...rows].reverse();
+  const ordered = orderedRows;
 
   /*
    * HOW THE WORK MOVED, ABOVE THE RECORD OF IT MOVING.
@@ -997,439 +1066,419 @@ export function TrackActivity({
     },
   );
 
-  return (
-    <>
-      {ranLine ? <p className="mrd-meta">{ranLine}</p> : null}
-      {/* OUTSIDE the log, for the same reason `ranLine` is: it is a standing
-          summary of the whole column rather than an entry, and inside it a
-          screen reader would hear it re-announced on every poll. */}
-      {coverageLine ? <p className="mrd-meta">{coverageLine}</p> : null}
-      {/*
-       * THE TRANSCRIPT IS A LOG, and that is a role rather than a decoration.
-       * This file polls every ten seconds, so without it every arrival was silent
-       * to a screen reader. `role="log"` announces ADDITIONS only, so a
-       * transcript that grows long does not read the whole column out each time
-       * one entry lands. `aria-live="polite"` is explicit for browser compatibility,
-       * and `aria-busy` announces when agents are working (queue 71).
-       */}
-      <div
-        role="log"
-        aria-label="What the agents did, in order"
-        aria-live="polite"
-        aria-busy={live}
-      >
-        <ol className={RUN_STACK}>
-          {ordered.map((row, i) => {
-            if (row.kind === "move") {
-              // WHO CAUSED THIS LEG (queue 65). press names the person, sweep
-              // names the loop, continuation says it carried on alone. Rows
-              // with no provable driver never reach this list at all.
-              const arrived = primed.current && !seen.current.has(row.key);
-              return (
-                <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
-                  <RunClock at={row.at} />
-                  <span className="flex flex-col items-center self-stretch">
-                    <RunGlyph kind="station" station={glyphForStation(row.to as AgentStation)} />
-                    {i === ordered.length - 1 ? null : <RunRail />}
-                  </span>
-                  <span className="min-w-0 pb-1">
-                    <span className={RUN_LINE}>
-                      <RunSubject>{`Moved to ${row.toName}`}</RunSubject>
-                    </span>
-                    <RunMeta>{row.line}</RunMeta>
-                  </span>
-                </li>
-              );
-            }
+  const rowFor = (row: ActivityRow, i: number, last: boolean) => {
+    if (row.kind === "move") {
+      // WHO CAUSED THIS LEG (queue 65). press names the person, sweep
+      // names the loop, continuation says it carried on alone. Rows
+      // with no provable driver never reach this list at all.
+      const arrived = primed.current && !seen.current.has(row.key);
+      return (
+        <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
+          <RunClock at={row.at} />
+          <span className="flex flex-col items-center self-stretch">
+            <RunGlyph kind="station" station={glyphForStation(row.to as AgentStation)} />
+            {last ? null : <RunRail />}
+          </span>
+          <span className="min-w-0 pb-1">
+            <span className={RUN_LINE}>
+              <RunSubject>{`Moved to ${row.toName}`}</RunSubject>
+            </span>
+            <RunMeta>{row.line}</RunMeta>
+          </span>
+        </li>
+      );
+    }
 
-            if (row.kind === "verdict") {
-              /*
-               * ── THE LOOP CLOSING, DRAWN AS THE EVENT IT IS ────────────────
-               *
-               * The Learn tab shows this verdict as a property of the bet. This
-               * is the other question -- what happened to this work, in order --
-               * and a bet being settled is the most consequential thing that
-               * ever happens to a track. Without this row a person could scroll
-               * a run's whole record and never meet the answer it exists to
-               * produce.
-               *
-               * The claim is drawn UNDER the verdict rather than beside it: a
-               * reader scanning the stream wants the answer first, and the thing
-               * it answers second. Only the rationale is quieter still, because
-               * it is the one part that is somebody's reasoning rather than a
-               * fact about the run.
-               */
-              const arrived = primed.current && !seen.current.has(row.key);
-              return (
-                <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
-                  <RunClock at={row.at} />
-                  <span className="flex flex-col items-center self-stretch">
-                    <RunGlyph kind="station" station={glyphForStation("learn")} />
-                    {i === ordered.length - 1 ? null : <RunRail />}
-                  </span>
-                  <span className="min-w-0 pb-1">
-                    <span className={RUN_LINE}>
-                      <StatusChip status={row.tone}>{row.says}</StatusChip>
-                      <RunSubject>The forecast was graded</RunSubject>
-                    </span>
-                    {row.claim ? <RunNote>{row.claim}</RunNote> : null}
-                    {row.rationale ? <RunMeta>{row.rationale}</RunMeta> : null}
-                    <RunMeta>
-                      {row.by ? `Graded by the ${agentDisplayName(row.by)} agent` : "Graded by you"}
-                    </RunMeta>
-                  </span>
-                </li>
-              );
-            }
+    if (row.kind === "verdict") {
+      /*
+       * ── THE LOOP CLOSING, DRAWN AS THE EVENT IT IS ────────────────
+       *
+       * The Learn tab shows this verdict as a property of the bet. This
+       * is the other question -- what happened to this work, in order --
+       * and a bet being settled is the most consequential thing that
+       * ever happens to a track. Without this row a person could scroll
+       * a run's whole record and never meet the answer it exists to
+       * produce.
+       *
+       * The claim is drawn UNDER the verdict rather than beside it: a
+       * reader scanning the stream wants the answer first, and the thing
+       * it answers second. Only the rationale is quieter still, because
+       * it is the one part that is somebody's reasoning rather than a
+       * fact about the run.
+       */
+      const arrived = primed.current && !seen.current.has(row.key);
+      return (
+        <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
+          <RunClock at={row.at} />
+          <span className="flex flex-col items-center self-stretch">
+            <RunGlyph kind="station" station={glyphForStation("learn")} />
+            {last ? null : <RunRail />}
+          </span>
+          <span className="min-w-0 pb-1">
+            <span className={RUN_LINE}>
+              <StatusChip status={row.tone}>{row.says}</StatusChip>
+              <RunSubject>The forecast was graded</RunSubject>
+            </span>
+            {row.claim ? <RunNote>{row.claim}</RunNote> : null}
+            {row.rationale ? <RunMeta>{row.rationale}</RunMeta> : null}
+            <RunMeta>
+              {row.by ? `Graded by the ${agentDisplayName(row.by)} agent` : "Graded by you"}
+            </RunMeta>
+          </span>
+        </li>
+      );
+    }
 
-            if (row.kind === "check") {
-              /*
-               * ── THE STATION CHECKING ITS OWN WORK ─────────────────────────
-               *
-               * Same row shape as everything else -- clock, glyph, rail -- for
-               * the reason the steer row states: this IS part of what happened
-               * to the work, and a separate treatment would make it commentary
-               * alongside the record rather than part of it.
-               *
-               * WHAT IT COMPARED IS DRAWN, not just how many. A count with no
-               * list behind it is a number nobody can check, which is the exact
-               * failure this row was added to end -- the check ran on every
-               * drive and left nothing a person could read. The lines are the
-               * check's own words, so a reader can decide whether the check was
-               * worth anything rather than being asked to trust the total.
-               */
-              const arrived = primed.current && !seen.current.has(row.key);
-              return (
-                <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
-                  <RunClock at={row.at} />
-                  <span className="flex flex-col items-center self-stretch">
-                    <RunGlyph kind="tool" />
-                    {i === ordered.length - 1 ? null : <RunRail />}
-                  </span>
-                  <span className="min-w-0 pb-1">
-                    <span className={RUN_LINE}>
-                      <RunSubject>{row.line}</RunSubject>
-                    </span>
-                    <RunMeta>{row.stationName}</RunMeta>
-                    {row.what.length > 0 ? (
-                      <ul className="mt-0.5 flex min-w-0 flex-col">
-                        {row.what.map((w, k) => (
-                          <li key={`${row.key}:what:${k}`} className="min-w-0">
-                            <RunNote>{w}</RunNote>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                    {/* The reason, only where something did not hold. A reason
+    if (row.kind === "check") {
+      /*
+       * ── THE STATION CHECKING ITS OWN WORK ─────────────────────────
+       *
+       * Same row shape as everything else -- clock, glyph, rail -- for
+       * the reason the steer row states: this IS part of what happened
+       * to the work, and a separate treatment would make it commentary
+       * alongside the record rather than part of it.
+       *
+       * WHAT IT COMPARED IS DRAWN, not just how many. A count with no
+       * list behind it is a number nobody can check, which is the exact
+       * failure this row was added to end -- the check ran on every
+       * drive and left nothing a person could read. The lines are the
+       * check's own words, so a reader can decide whether the check was
+       * worth anything rather than being asked to trust the total.
+       */
+      const arrived = primed.current && !seen.current.has(row.key);
+      return (
+        <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
+          <RunClock at={row.at} />
+          <span className="flex flex-col items-center self-stretch">
+            <RunGlyph kind="tool" />
+            {last ? null : <RunRail />}
+          </span>
+          <span className="min-w-0 pb-1">
+            <span className={RUN_LINE}>
+              <RunSubject>{row.line}</RunSubject>
+            </span>
+            <RunMeta>{row.stationName}</RunMeta>
+            {row.what.length > 0 ? (
+              <ul className="mt-0.5 flex min-w-0 flex-col">
+                {row.what.map((w, k) => (
+                  <li key={`${row.key}:what:${k}`} className="min-w-0">
+                    <RunNote>{w}</RunNote>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {/* The reason, only where something did not hold. A reason
                         beside a pass reads as a caveat on it, and there is no
                         caveat to make. */}
-                    {row.why.map((w, k) => (
-                      <RunMeta key={`${row.key}:why:${k}`}>{w}</RunMeta>
-                    ))}
-                  </span>
-                </li>
-              );
-            }
+            {row.why.map((w, k) => (
+              <RunMeta key={`${row.key}:why:${k}`}>{w}</RunMeta>
+            ))}
+          </span>
+        </li>
+      );
+    }
 
-            if (row.kind === "said") {
-              /*
-               * THE PERSON'S OWN LINE, IN THE RECORD WITH EVERYTHING ELSE.
-               *
-               * Same row shape as every other entry -- clock, glyph, rail --
-               * because a steer IS part of what happened to this work and a
-               * separate treatment would make it commentary alongside the
-               * record rather than part of it. SPEC-AGENT-COMMS is explicit
-               * that this is not chat: no bubble, no avatar row, no timestamp
-               * gutter.
-               *
-               * `pickedUp` is read from `consumed_by_run_id` and is the fact a
-               * person actually wants: not that the product received it, but
-               * that an agent has taken it. Until then it says so, because a
-               * steer sitting unconsumed while the run works is the one state
-               * where saying nothing would be a lie about being heard.
-               */
-              const arrived = primed.current && !seen.current.has(row.key);
-              return (
-                <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
-                  <RunClock at={row.at} />
-                  <span className="flex flex-col items-center self-stretch">
-                    <RunGlyph kind="handoff" />
-                    {i === ordered.length - 1 ? null : <RunRail />}
-                  </span>
-                  <span className="min-w-0 pb-1">
-                    <span className={RUN_LINE}>
-                      <RunSubject>You said</RunSubject>
-                      {row.pickedUp ? null : <RunMeta>not picked up yet</RunMeta>}
-                    </span>
-                    <RunNote>{row.message}</RunNote>
-                  </span>
-                </li>
-              );
-            }
+    if (row.kind === "said") {
+      /*
+       * THE PERSON'S OWN LINE, IN THE RECORD WITH EVERYTHING ELSE.
+       *
+       * Same row shape as every other entry -- clock, glyph, rail --
+       * because a steer IS part of what happened to this work and a
+       * separate treatment would make it commentary alongside the
+       * record rather than part of it. SPEC-AGENT-COMMS is explicit
+       * that this is not chat: no bubble, no avatar row, no timestamp
+       * gutter.
+       *
+       * `pickedUp` is read from `consumed_by_run_id` and is the fact a
+       * person actually wants: not that the product received it, but
+       * that an agent has taken it. Until then it says so, because a
+       * steer sitting unconsumed while the run works is the one state
+       * where saying nothing would be a lie about being heard.
+       */
+      const arrived = primed.current && !seen.current.has(row.key);
+      return (
+        <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
+          <RunClock at={row.at} />
+          <span className="flex flex-col items-center self-stretch">
+            <RunGlyph kind="handoff" />
+            {last ? null : <RunRail />}
+          </span>
+          <span className="min-w-0 pb-1">
+            <span className={RUN_LINE}>
+              <RunSubject>You said</RunSubject>
+              {row.pickedUp ? null : <RunMeta>not picked up yet</RunMeta>}
+            </span>
+            <RunNote>{row.message}</RunNote>
+          </span>
+        </li>
+      );
+    }
 
-            if (row.kind === "handoff") {
-              /*
-               * THE HANDOFF, AS ITS OWN ENTRY.
-               *
-               * SESSION-1's first unit, and its shape is the brief's: from- and
-               * to-chips in the teammates' colours, the instruction inline,
-               * "never a chat bubble, never an avatar row, never a timestamp
-               * gutter". It reuses the marks and the clock every other row on
-               * this transcript already uses, so nothing new is introduced.
-               *
-               * `waiting` is a fact from the row rather than a mood: a handoff
-               * with no `consumed_by_run_id` is a dispatch nothing has picked
-               * up. Saying so is the difference between a record and a feed.
-               */
-              const arrived = primed.current && !seen.current.has(row.key);
-              return (
-                <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
-                  <RunClock at={row.at} />
-                  <span className="flex flex-col items-center self-stretch">
-                    <RunGlyph kind="handoff" />
-                    {i === ordered.length - 1 ? null : <RunRail />}
-                  </span>
-                  <span className="min-w-0 pb-1">
-                    <span className={RUN_LINE}>
-                      <AgentMark slug={row.from} state="quiet" />
-                      <span aria-hidden className="text-mrd-faint">
-                        &rarr;
-                      </span>
-                      <AgentMark slug={row.to} state={row.waiting ? "quiet" : "idle"} />
-                      {row.waiting ? <RunMeta>not picked up yet</RunMeta> : null}
-                    </span>
-                    <RunNote>{row.task}</RunNote>
-                  </span>
-                </li>
-              );
-            }
+    if (row.kind === "handoff") {
+      /*
+       * THE HANDOFF, AS ITS OWN ENTRY.
+       *
+       * SESSION-1's first unit, and its shape is the brief's: from- and
+       * to-chips in the teammates' colours, the instruction inline,
+       * "never a chat bubble, never an avatar row, never a timestamp
+       * gutter". It reuses the marks and the clock every other row on
+       * this transcript already uses, so nothing new is introduced.
+       *
+       * `waiting` is a fact from the row rather than a mood: a handoff
+       * with no `consumed_by_run_id` is a dispatch nothing has picked
+       * up. Saying so is the difference between a record and a feed.
+       */
+      const arrived = primed.current && !seen.current.has(row.key);
+      return (
+        <li key={row.key} className={RUN_ROW} style={enterMotion(arrived, reducedMotion)}>
+          <RunClock at={row.at} />
+          <span className="flex flex-col items-center self-stretch">
+            <RunGlyph kind="handoff" />
+            {last ? null : <RunRail />}
+          </span>
+          <span className="min-w-0 pb-1">
+            <span className={RUN_LINE}>
+              <AgentMark slug={row.from} state="quiet" />
+              <span aria-hidden className="text-mrd-faint">
+                &rarr;
+              </span>
+              <AgentMark slug={row.to} state={row.waiting ? "quiet" : "idle"} />
+              {row.waiting ? <RunMeta>not picked up yet</RunMeta> : null}
+            </span>
+            <RunNote>{row.task}</RunNote>
+          </span>
+        </li>
+      );
+    }
 
-            const t = row.turn;
-            // The handoff. Marked when the station changes from the turn that
-            // ran BEFORE this one chronologically -- in oldest-first order that
-            // is the previous TURN upward from here, skipping move markers,
-            // which are not seats.
-            let previous: Turn | undefined;
-            for (let j = i - 1; j >= 0; j--) {
-              const r = ordered[j];
-              if (r.kind === "turn") {
-                previous = r.turn;
-                break;
-              }
-            }
-            const handedOver =
-              Boolean(t.stationName) && previous != null && previous.stationName !== t.stationName;
+    const t = row.turn;
+    // The handoff. Marked when the station changes from the turn that
+    // ran BEFORE this one chronologically -- in oldest-first order that
+    // is the previous TURN upward from here, skipping move markers,
+    // which are not seats.
+    let previous: Turn | undefined;
+    for (let j = i - 1; j >= 0; j--) {
+      const r = ordered[j];
+      if (r.kind === "turn") {
+        previous = r.turn;
+        break;
+      }
+    }
+    const handedOver =
+      Boolean(t.stationName) && previous != null && previous.stationName !== t.stationName;
 
-            /*
-             * WHAT CAME WITH IT. The mark and the sender were already here; the
-             * thing that changed hands never was, and that is the half a person
-             * needs. Read from the whole stretch the previous station ran, not
-             * from the turn immediately before the move, which is very often the
-             * one that checked the work rather than the one that produced it.
-             *
-             * The slice is O(rows) inside a map over rows. A transcript is tens
-             * of entries and this keeps the tested derivation as the only copy
-             * of the rule; a hand-rolled backward walk here would be a second.
-             */
-            const handedLine =
-              handedOver && previous?.stationName
-                ? handoffLine(
-                    previous.stationName,
-                    whatCameWith(
-                      turnsAtStation(
-                        ordered.slice(0, i).flatMap((r) => (r.kind === "turn" ? [r.turn] : [])),
-                        previous.stationName,
-                      ),
-                    ),
-                  )
-                : null;
+    /*
+     * WHAT CAME WITH IT. The mark and the sender were already here; the
+     * thing that changed hands never was, and that is the half a person
+     * needs. Read from the whole stretch the previous station ran, not
+     * from the turn immediately before the move, which is very often the
+     * one that checked the work rather than the one that produced it.
+     *
+     * The slice is O(rows) inside a map over rows. A transcript is tens
+     * of entries and this keeps the tested derivation as the only copy
+     * of the rule; a hand-rolled backward walk here would be a second.
+     */
+    const handedLine =
+      handedOver && previous?.stationName
+        ? handoffLine(
+            previous.stationName,
+            whatCameWith(
+              turnsAtStation(
+                ordered.slice(0, i).flatMap((r) => (r.kind === "turn" ? [r.turn] : [])),
+                previous.stationName,
+              ),
+            ),
+          )
+        : null;
 
-            const arrived = primed.current && !seen.current.has(row.key);
+    const arrived = primed.current && !seen.current.has(row.key);
 
-            /* Read once. It was called twice on the row below -- once to test
+    /* Read once. It was called twice on the row below -- once to test
                and once to render -- and it now runs `humanizeText` over the
                WHOLE output rather than over a 160-character slice. */
-            const said = saidLine(t.said);
+    const said = saidLine(t.said);
 
-            return (
-              <li
-                key={row.key}
-                /* Marked rather than coloured: R-19 forbids colour as the only
+    return (
+      <li
+        key={row.key}
+        /* Marked rather than coloured: R-19 forbids colour as the only
                    signal, and the row that chose what the pane is showing has to
                    be findable in a long stream. The button above carries
                    `aria-pressed`, which is the same fact for a screen reader. */
-                data-selected={
-                  canOpen(t) && t.made.some((m) => m.id === selected) ? "true" : undefined
-                }
-                className={`${RUN_ROW} rounded-mrd-chip data-[selected=true]:bg-mrd-lift`}
-                style={enterMotion(arrived, reducedMotion)}
-              >
-                <RunClock at={Date.parse(t.at)} />
+        data-selected={canOpen(t) && t.made.some((m) => m.id === selected) ? "true" : undefined}
+        className={`${RUN_ROW} rounded-mrd-chip data-[selected=true]:bg-mrd-lift`}
+        style={enterMotion(arrived, reducedMotion)}
+      >
+        <RunClock at={Date.parse(t.at)} />
 
-                {/* The rail stops on the last row of the STREAM, which in
+        {/* The rail stops on the last row of the STREAM, which in
                     reading order is the NEWEST entry: a line continuing past it
                     claims another one is already coming. */}
-                <span className="flex flex-col items-center self-stretch">
-                  <RunGlyph
-                    kind={handedOver ? "handoff" : "station"}
-                    station={handedOver ? undefined : glyphForStation(t.station)}
-                  />
-                  {i === ordered.length - 1 ? null : <RunRail />}
-                </span>
+        <span className="flex flex-col items-center self-stretch">
+          <RunGlyph
+            kind={handedOver ? "handoff" : "station"}
+            station={handedOver ? undefined : glyphForStation(t.station)}
+          />
+          {last ? null : <RunRail />}
+        </span>
 
-                <div className="min-w-0 flex-1 pb-1">
-                  {/*
-                   * ── ONE SENTENCE, AND THE SAME PRESS DOES BOTH JOBS (P-105) ─
-                   *
-                   * `headline` + `turnMeta` used to be two lines of equal
-                   * weight, always both visible, with the seat's own paragraph
-                   * ALSO always visible under them -- three facts fighting for
-                   * one glance, on every row of every turn, and the paragraph
-                   * alone could run to hundreds of words on the served tablet
-                   * track. `transcriptLead` composes the first two into ONE
-                   * sentence; everything from the handoff marks down through
-                   * the seat's paragraph and its tool calls now folds, closed
-                   * by default, opened by a press on the row.
-                   *
-                   * THE ARTIFACT-SELECT PRESS IS NOT REPLACED, IT IS JOINED.
-                   * `canOpen(t)` is still what makes this a `<button>` rather
-                   * than a `<span>`, `aria-pressed` and the click that selects
-                   * the newest artifact are both still exactly what they were
-                   * (`the-artifact-is-the-control.test.tsx`,
-                   * `one-station-display-on-the-run-screen.test.ts`'s own
-                   * subjects) -- the founder's ask, "when I click on the PRD
-                   * the right side should open up," is a different contract
-                   * from this packet's, and one press does not get to cost the
-                   * other. `toggleTurn` rides along on the same click.
-                   */}
-                  {canOpen(t) ? (
-                    <button
-                      type="button"
-                      aria-pressed={t.made.some((m) => m.id === selected)}
-                      aria-expanded={openTurns.has(row.key)}
-                      onClick={() => {
-                        const id = newestMade(t);
-                        if (id) onSelect?.(id);
-                        toggleTurn(row.key);
-                      }}
-                      /*
-                       * `min-w-0` IS THE WHOLE FIX, AND IT IS NOT DEFENSIVE
-                       * NOISE. A1 walked this and the left pane scrolled
-                       * SIDEWAYS on select, clipping the steer field below it to
-                       * "ay what to change". A flex container defaults to
-                       * `min-width: auto`, which means it refuses to shrink
-                       * below its content -- and this one holds a `StatusChip`
-                       * that is `shrink-0 whitespace-nowrap` by contract. So the
-                       * button took its intrinsic width, the grid column took
-                       * the button's, and the pane took the column's. The span
-                       * this replaced was not a flex container and never had the
-                       * problem, which is why turning the line into a control
-                       * introduced it.
-                       *
-                       * With `min-w-0` the button may shrink, `flex-wrap` in
-                       * `RUN_LINE` puts the chip on its own line, and nothing
-                       * overflows.
-                       */
-                      className={`${RUN_LINE} mrd-focus-inset w-full min-w-0 max-w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
-                    >
-                      <RunSubject>{transcriptLead(t)}</RunSubject>
-                      {chipOf(t)}
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      aria-expanded={openTurns.has(row.key)}
-                      onClick={() => toggleTurn(row.key)}
-                      className={`${RUN_LINE} mrd-focus-inset w-full min-w-0 max-w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
-                    >
-                      <RunSubject>{transcriptLead(t)}</RunSubject>
-                      {chipOf(t)}
-                    </button>
-                  )}
+        <div className="min-w-0 flex-1 pb-1">
+          {/*
+           * ── ONE SENTENCE, AND THE SAME PRESS DOES BOTH JOBS (P-105) ─
+           *
+           * `headline` + `turnMeta` used to be two lines of equal
+           * weight, always both visible, with the seat's own paragraph
+           * ALSO always visible under them -- three facts fighting for
+           * one glance, on every row of every turn, and the paragraph
+           * alone could run to hundreds of words on the served tablet
+           * track. `transcriptLead` composes the first two into ONE
+           * sentence; everything from the handoff marks down through
+           * the seat's paragraph and its tool calls now folds, closed
+           * by default, opened by a press on the row.
+           *
+           * THE ARTIFACT-SELECT PRESS IS NOT REPLACED, IT IS JOINED.
+           * `canOpen(t)` is still what makes this a `<button>` rather
+           * than a `<span>`, `aria-pressed` and the click that selects
+           * the newest artifact are both still exactly what they were
+           * (`the-artifact-is-the-control.test.tsx`,
+           * `one-station-display-on-the-run-screen.test.ts`'s own
+           * subjects) -- the founder's ask, "when I click on the PRD
+           * the right side should open up," is a different contract
+           * from this packet's, and one press does not get to cost the
+           * other. `toggleTurn` rides along on the same click.
+           */}
+          {canOpen(t) ? (
+            <button
+              type="button"
+              aria-pressed={t.made.some((m) => m.id === selected)}
+              aria-expanded={isTurnOpen(row.key, t.outcome === "working")}
+              onClick={() => {
+                const id = newestMade(t);
+                if (id) onSelect?.(id);
+                toggleTurn(row.key, t.outcome === "working");
+              }}
+              /*
+               * `min-w-0` IS THE WHOLE FIX, AND IT IS NOT DEFENSIVE
+               * NOISE. A1 walked this and the left pane scrolled
+               * SIDEWAYS on select, clipping the steer field below it to
+               * "ay what to change". A flex container defaults to
+               * `min-width: auto`, which means it refuses to shrink
+               * below its content -- and this one holds a `StatusChip`
+               * that is `shrink-0 whitespace-nowrap` by contract. So the
+               * button took its intrinsic width, the grid column took
+               * the button's, and the pane took the column's. The span
+               * this replaced was not a flex container and never had the
+               * problem, which is why turning the line into a control
+               * introduced it.
+               *
+               * With `min-w-0` the button may shrink, `flex-wrap` in
+               * `RUN_LINE` puts the chip on its own line, and nothing
+               * overflows.
+               */
+              className={`${RUN_LINE} mrd-focus-inset w-full min-w-0 max-w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
+            >
+              <RunSubject>{transcriptLead(t)}</RunSubject>
+              {chipOf(t)}
+            </button>
+          ) : (
+            <button
+              type="button"
+              aria-expanded={isTurnOpen(row.key, t.outcome === "working")}
+              onClick={() => toggleTurn(row.key, t.outcome === "working")}
+              className={`${RUN_LINE} mrd-focus-inset w-full min-w-0 max-w-full rounded-mrd-chip text-left transition-colors duration-100 hover:bg-mrd-hover`}
+            >
+              <RunSubject>{transcriptLead(t)}</RunSubject>
+              {chipOf(t)}
+            </button>
+          )}
 
-                  <div
-                    /* `1fr` to `0fr` animates to the fold's own height with no
+          <div
+            /* `1fr` to `0fr` animates to the fold's own height with no
                        measurement, the same technique `meridian/FoldingRow.tsx`
                        uses for the same reason: a resize cannot leave a stale
                        pixel value behind. */
-                    className="grid transition-[grid-template-rows] duration-(--mrd-d-move) ease-(--mrd-ease) motion-reduce:transition-none"
-                    style={{ gridTemplateRows: openTurns.has(row.key) ? "1fr" : "0fr" }}
-                  >
-                  <div className="overflow-hidden">
-                  <div
-                    className="flex flex-col gap-mrd-1 pt-1 transition-[opacity,transform] duration-(--mrd-d-move) ease-(--mrd-ease) motion-reduce:transition-none motion-reduce:translate-y-0 motion-reduce:opacity-100"
-                    style={{
-                      opacity: openTurns.has(row.key) ? 1 : 0,
-                      transform: openTurns.has(row.key) ? "translateY(0)" : "translateY(4px)",
-                    }}
-                  >
-                  {/*
-                   * THE TWO TEAMMATES, ON THE ROW WHERE THE WORK CHANGED HANDS.
-                   *
-                   * SESSION-1's brief asks for from- and to-chips in the
-                   * teammates' own colours, and rules out the shapes that would
-                   * be easier: never a chat bubble, never an avatar row, never a
-                   * timestamp gutter. This is a record of work and it should
-                   * read like one, so the pair sits INSIDE the line that already
-                   * describes the handover rather than becoming a row of faces
-                   * above it.
-                   *
-                   * Both marks come from run rows: `previous.agentSlug` ran
-                   * before this one, `t.agentSlug` picked it up. Neither is
-                   * inferred, and the arrow is the same one `Receipt` already
-                   * uses for a handoff, so the gesture is not a new invention.
-                   */}
-                  {handedOver && handedLine ? (
-                    <span className="flex flex-wrap items-center gap-mrd-2">
-                      <AgentMark
-                        slug={previous?.agentSlug}
-                        name={previous?.agentName}
-                        state="quiet"
-                      />
-                      <span aria-hidden className="text-mrd-faint">
-                        &rarr;
-                      </span>
-                      <AgentMark
-                        slug={t.agentSlug}
-                        name={t.agentName}
-                        state={t.outcome === "working" ? "running" : "idle"}
-                      />
-                      <RunMeta>{handedLine}</RunMeta>
+            className="grid transition-[grid-template-rows] duration-(--mrd-d-move) ease-(--mrd-ease) motion-reduce:transition-none"
+            style={{
+              gridTemplateRows: isTurnOpen(row.key, t.outcome === "working") ? "1fr" : "0fr",
+            }}
+          >
+            <div className="overflow-hidden">
+              <div
+                className="flex flex-col gap-mrd-1 pt-1 transition-[opacity,transform] duration-(--mrd-d-move) ease-(--mrd-ease) motion-reduce:transition-none motion-reduce:translate-y-0 motion-reduce:opacity-100"
+                style={{
+                  opacity: isTurnOpen(row.key, t.outcome === "working") ? 1 : 0,
+                  transform: isTurnOpen(row.key, t.outcome === "working")
+                    ? "translateY(0)"
+                    : "translateY(4px)",
+                }}
+              >
+                {/*
+                 * THE TWO TEAMMATES, ON THE ROW WHERE THE WORK CHANGED HANDS.
+                 *
+                 * SESSION-1's brief asks for from- and to-chips in the
+                 * teammates' own colours, and rules out the shapes that would
+                 * be easier: never a chat bubble, never an avatar row, never a
+                 * timestamp gutter. This is a record of work and it should
+                 * read like one, so the pair sits INSIDE the line that already
+                 * describes the handover rather than becoming a row of faces
+                 * above it.
+                 *
+                 * Both marks come from run rows: `previous.agentSlug` ran
+                 * before this one, `t.agentSlug` picked it up. Neither is
+                 * inferred, and the arrow is the same one `Receipt` already
+                 * uses for a handoff, so the gesture is not a new invention.
+                 */}
+                {handedOver && handedLine ? (
+                  <span className="flex flex-wrap items-center gap-mrd-2">
+                    <AgentMark
+                      slug={previous?.agentSlug}
+                      name={previous?.agentName}
+                      state="quiet"
+                    />
+                    <span aria-hidden className="text-mrd-faint">
+                      &rarr;
                     </span>
-                  ) : (
-                    <RunMeta>{handedLine ?? t.stationName}</RunMeta>
+                    <AgentMark
+                      slug={t.agentSlug}
+                      name={t.agentName}
+                      state={t.outcome === "working" ? "running" : "idle"}
+                    />
+                    <RunMeta>{handedLine}</RunMeta>
+                  </span>
+                ) : (
+                  <RunMeta>{handedLine ?? t.stationName}</RunMeta>
+                )}
+
+                {/*
+                 * THE INSTRUCTION THAT TRAVELLED WITH THE WORK.
+                 *
+                 * Its own line under the two marks rather than appended to them: the
+                 * marks and `handedLine` say who let go and what they had made, and
+                 * this says what the next seat was asked to do. Two different facts,
+                 * and running them together makes a sentence nobody wrote.
+                 *
+                 * `RunNote` is the same quiet register the platform's stop reason and
+                 * the agent's own last line already use on this row, so a handoff does
+                 * not shout louder than a failure.
+                 */}
+
+                <RunRollup
+                  items={rollupOf(
+                    t,
+                    titles,
+                    onSelect ? { onOpen: onSelect, selectedId: selected } : undefined,
                   )}
+                />
 
-                  {/*
-                   * THE INSTRUCTION THAT TRAVELLED WITH THE WORK.
-                   *
-                   * Its own line under the two marks rather than appended to them: the
-                   * marks and `handedLine` say who let go and what they had made, and
-                   * this says what the next seat was asked to do. Two different facts,
-                   * and running them together makes a sentence nobody wrote.
-                   *
-                   * `RunNote` is the same quiet register the platform's stop reason and
-                   * the agent's own last line already use on this row, so a handoff does
-                   * not shout louder than a failure.
-                   */}
-
-                  <RunRollup
-                    items={rollupOf(
-                      t,
-                      titles,
-                      onSelect ? { onOpen: onSelect, selectedId: selected } : undefined,
-                    )}
-                  />
-
-                  {/* THE PLATFORM'S REASON, ABOVE THE AGENT'S. `halted_reason` and
+                {/* THE PLATFORM'S REASON, ABOVE THE AGENT'S. `halted_reason` and
                       `failure_kind` are written by the runtime rather than by the
                       seat, so when both are present the unfakeable one is read
                       first. It was on the row all along and no surface drew it:
                       a Build seat halted `out_of_credit` on this very track and
                       the transcript said only "Stopped". */}
-                  {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
+                {t.stopLine ? <RunNote>{t.stopLine}</RunNote> : null}
 
-                  {/* The agent's own last line, WHOLE, clamped to three
+                {/* The agent's own last line, WHOLE, clamped to three
                       rendered lines with a button that opens the rest.
 
                       This comment used to read "one line is enough to tell
@@ -1464,9 +1513,9 @@ export function TrackActivity({
                       satisfied by another backfill: delete this when a count of
                       rows created AFTER the write-path fix reads zero, not when
                       the column total does.** */}
-                  {said ? (
-                    <RunNote>
-                      {/*
+                {said ? (
+                  <RunNote>
+                    {/*
                         P-37, shape 6, AND NOW A TRUE FOLD (P-105): the closed
                         row carries no paragraph at all, which this comment
                         used to say "arrives" one day. Inside the open fold
@@ -1475,33 +1524,166 @@ export function TrackActivity({
                         the transcript's own density, deep enough to read a
                         thought, with `Reveal`'s own button for the rest.
                       */}
-                      <Reveal lines={3}>{said}</Reveal>
-                    </RunNote>
-                  ) : null}
+                    <Reveal lines={3}>{said}</Reveal>
+                  </RunNote>
+                ) : null}
 
-                  {/*
-                   * THE EVIDENCE, LAST AND COLLAPSED. The entry above it is the
-                   * narrative -- who acted, what they handed on, what it cost,
-                   * why it stopped, what they said -- and the calls are what
-                   * that account is checkable against, which is the order
-                   * Cursor's completion screen uses and the order a reader asks
-                   * in. It is the last thing in the entry so a turn with forty
-                   * calls does not push the next seat off the screen.
-                   */}
-                  <SeatCalls
-                    calls={callsBySeat.get(t.runId) ?? []}
-                    working={t.outcome === "working"}
-                    seat={t.agentName}
-                    spend={t.tokens != null ? `${t.tokens.toLocaleString()} tokens` : null}
-                  />
-                  </div>
-                  </div>
-                  </div>
+                {/*
+                 * THE EVIDENCE, LAST AND COLLAPSED. The entry above it is the
+                 * narrative -- who acted, what they handed on, what it cost,
+                 * why it stopped, what they said -- and the calls are what
+                 * that account is checkable against, which is the order
+                 * Cursor's completion screen uses and the order a reader asks
+                 * in. It is the last thing in the entry so a turn with forty
+                 * calls does not push the next seat off the screen.
+                 */}
+                <SeatCalls
+                  calls={callsBySeat.get(t.runId) ?? []}
+                  working={t.outcome === "working"}
+                  seat={t.agentName}
+                  spend={t.tokens != null ? `${t.tokens.toLocaleString()} tokens` : null}
+                />
+                {/* THE DEPTH BEHIND A TURN (2026-09-08). The trace page has
+                    existed since the engine room and no run ever linked to it;
+                    a person watching a seat work could see its calls and not
+                    the prompt, the model or the cost of each. One quiet door,
+                    only on a turn that wrote a trace. */}
+                {t.traceId ? (
+                  <Link
+                    to="/traces/$traceId"
+                    params={{ traceId: t.traceId }}
+                    className="mrd-focus self-start rounded-mrd-ctl text-mrd-small text-mrd-mute underline decoration-mrd-line underline-offset-4 transition-colors hover:text-mrd-ink hover:decoration-mrd-edge"
+                  >
+                    Open the full trace
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+    );
+  };
+
+  return (
+    <>
+      {ranLine ? <p className="mrd-meta">{ranLine}</p> : null}
+      {/* OUTSIDE the log, for the same reason `ranLine` is: it is a standing
+          summary of the whole column rather than an entry, and inside it a
+          screen reader would hear it re-announced on every poll. */}
+      {coverageLine ? <p className="mrd-meta">{coverageLine}</p> : null}
+      {/*
+       * THE TRANSCRIPT IS A LOG, and that is a role rather than a decoration.
+       * This file polls every ten seconds, so without it every arrival was silent
+       * to a screen reader. `role="log"` announces ADDITIONS only, so a
+       * transcript that grows long does not read the whole column out each time
+       * one entry lands. `aria-live="polite"` is explicit for browser compatibility,
+       * and `aria-busy` announces when agents are working (queue 71).
+       *
+       * ── CUT INTO STATIONS (2026-09-08) ─────────────────────────────────────
+       * One flat column became one section per station the work passed
+       * through, each with a header a person can read closed: the station, who
+       * acted there, how many turns, and what it filed. See
+       * `transcript-sections.ts` for the seam rule and the walk that found it.
+       * Sections older than the current one start closed; a live or stopped
+       * one starts open. The day is printed where it changes, because the
+       * clock beside each row is a time of day and a run can span three of them.
+       */}
+      <div
+        role="log"
+        aria-label="What the agents did, in order"
+        aria-live="polite"
+        aria-busy={live}
+        className="flex flex-col gap-mrd-4"
+      >
+        {sections.map((section, si) => {
+          const isOpen = openSections.has(section.key);
+          const isLast = si === sections.length - 1;
+          const product = section.station ? (producedBy.get(section.station) ?? null) : null;
+          const chip =
+            section.last === "working" ? (
+              <StatusChip status="agent" pulse>
+                Working
+              </StatusChip>
+            ) : section.last === "waiting" ? (
+              <StatusChip status="you" pulse>
+                Waiting
+              </StatusChip>
+            ) : section.last === "stopped" && isLast ? (
+              <StatusChip status="hold">Stopped</StatusChip>
+            ) : null;
+          const took = section.tookMs ? formatElapsed(section.tookMs / 1000) : null;
+          const meta = [sectionMeta(section), took].filter(Boolean).join(" · ");
+          let lastDay: string | null = null;
+          return (
+            <section
+              key={section.key}
+              data-station={section.station ?? undefined}
+              data-open={isOpen ? "true" : "false"}
+              className="flex flex-col"
+            >
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                onClick={() => toggleSection(section.key)}
+                className="mrd-focus-inset flex w-full min-w-0 items-start gap-mrd-3 rounded-mrd-chip px-1 py-mrd-2 text-left transition-colors duration-100 hover:bg-mrd-hover"
+              >
+                <span className="mt-[3px] flex size-[14px] shrink-0 items-center justify-center text-mrd-mute">
+                  {section.station ? (
+                    <StationGlyph kind={GLYPH_FOR_STATION[section.station]} size={14} />
+                  ) : null}
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="flex min-w-0 flex-wrap items-center gap-x-mrd-3 gap-y-1">
+                    <span className="text-mrd-base font-medium text-mrd-ink">{section.name}</span>
+                    {chip}
+                    {meta ? <span className="mrd-meta">{meta}</span> : null}
+                  </span>
+                  {product ? (
+                    <span className="min-w-0 text-mrd-small text-mrd-body">{product}</span>
+                  ) : null}
+                  {section.via && isOpen ? (
+                    <span className="min-w-0 text-mrd-small text-mrd-mute">{section.via}</span>
+                  ) : null}
+                </span>
+                <Chevron open={isOpen} className="mt-[5px] shrink-0 text-mrd-mute" />
+              </button>
+              <div
+                className="grid transition-[grid-template-rows] duration-(--mrd-d-move) ease-(--mrd-ease) motion-reduce:transition-none"
+                style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+              >
+                <div className="overflow-hidden">
+                  <ol className={`${RUN_STACK} pt-mrd-2`}>
+                    {section.rows.map((row, ri) => {
+                      const i = indexOf.get(row.key) ?? 0;
+                      const last = ri === section.rows.length - 1;
+                      const day = dayKey(row.at, zone);
+                      const dayBreak =
+                        lastDay !== null && day !== lastDay ? dayLabel(row.at, zone) : null;
+                      lastDay = day;
+                      return (
+                        <React.Fragment key={row.key}>
+                          {dayBreak ? (
+                            <li className={RUN_ROW} aria-label={`From ${dayBreak}`}>
+                              <RunClockEmpty />
+                              <span className="flex flex-col items-center self-stretch">
+                                <RunRailBreak />
+                              </span>
+                              <span className="py-1 font-mrd-mono text-mrd-data text-mrd-faint">
+                                {dayBreak}
+                              </span>
+                            </li>
+                          ) : null}
+                          {rowFor(row, i, last)}
+                        </React.Fragment>
+                      );
+                    })}
+                  </ol>
                 </div>
-              </li>
-            );
-          })}
-        </ol>
+              </div>
+            </section>
+          );
+        })}
       </div>
       {/*
        * THE LIVE ENTRY STAYS IN VIEW (RUN-02). A transcript that grows at the

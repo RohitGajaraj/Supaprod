@@ -61,7 +61,32 @@ const SURFACE: Record<string, string> = {
 
 const APPFRAME = strip(read("../shell/AppFrame.tsx"));
 
-describe("there is no station display on the run screen at all", () => {
+/*
+ * ── 2026-09-08: ONE STATION DISPLAY, AND IT IS THE JOURNEY ───────────────
+ * The founder's verdict on the screen with none was that *the stations do
+ * not form a flow, the journey is broken*. The run screen now carries exactly
+ * one display, Meridian's `Journey` in the route header: seven stops as a
+ * flow, each saying what it made, the current one alive while a seat works,
+ * and pressing a stop opens what that station made through the same URL
+ * pointer the transcript uses. The rule below is unchanged in kind: ONE
+ * display, and nothing else on the screen may draw the route.
+ */
+describe("the one station display on the run screen is the Journey in the header", () => {
+  it("mounts Journey exactly once, in the route, in full form", () => {
+    const route = strip(SURFACE["the route"]);
+    expect(route.split("<Journey").length - 1).toBe(1);
+    expect(route).toContain('size="full"');
+    for (const [name, src] of Object.entries(SURFACE)) {
+      if (name === "the route") continue;
+      expect(`${name}: ${strip(src).includes("<Journey")}`).toBe(`${name}: false`);
+    }
+  });
+  it("opens a station's newest artifact through the one URL pointer", () => {
+    const route = strip(SURFACE["the route"]);
+    expect(route).toContain("newestArtifactAt(artifactsQ.data?.stops, key)");
+    expect(route).toContain("if (id) openArtifact(id);");
+  });
+
   /*
    * ── THE STRIP WENT TOO (founder, 2026-09-02 19:25) ──────────────────────
    * The four displays above were three too many; the founder's question about
@@ -212,19 +237,15 @@ describe("no station meter, and no second route drawing", () => {
     }
   });
 
-  it("draws the route map in exactly ONE place, read-only", () => {
+  it("draws no RunMap anywhere, because the Journey in the header is the route", () => {
     /*
      * The original guard's real subject was "no SECOND route drawing", and that
-     * still holds: one map, in the pane that already reads the stops, and
-     * nowhere else. A second one on the same screen is the defect this file was
-     * written for whichever component draws it.
+     * still holds. 2026-09-08: the read-only map in the artifact pane became
+     * the second drawing the moment the Journey took the header, and unlike
+     * the Journey it was not pressable. One display, and it is the control.
      */
     const drawers = Object.entries(SURFACE).filter(([, src]) => strip(src).includes("<RunMap"));
-    expect(drawers.map(([n]) => n)).toEqual(["ArtifactPane"]);
-    /* Read mode: the seven are the route the work takes, not places a person
-       goes, so the map may not be `editable` on this screen. */
-    expect(strip(SURFACE["ArtifactPane"])).toContain('mode="replay"');
-    expect(strip(SURFACE["ArtifactPane"])).not.toContain('mode="editable"');
+    expect(drawers.map(([n]) => n)).toEqual([]);
   });
 
   it("mounts no TrackChain, which was one more drawing of one route", () => {

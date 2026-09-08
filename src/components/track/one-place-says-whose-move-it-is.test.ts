@@ -149,9 +149,14 @@ describe("a held track's chip", () => {
       .sort();
 
     expect(carriers).toEqual([
-      "src/components/track/TrackRun.tsx",
       "src/components/track/footer-mode.ts",
       "src/components/track/nothing-is-coming.ts",
+      /* 2026-09-08: the run screen's own split moved from TrackRun.tsx into
+         `run-now.ts`, the one module that now decides the register the top
+         of the work pane speaks in. TrackRun reads its answer and never
+         branches on the hold itself. */
+      "src/components/track/run-journey.ts",
+      "src/components/track/run-now.ts",
       /*
        * ADDED BY RUN-130, and the census is why I noticed rather than a thing I
        * had to remember. `run-position.ts` decided a station's STATE rather

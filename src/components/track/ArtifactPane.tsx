@@ -34,7 +34,8 @@ import { fileNameFor, stationFile, tookItLine } from "@/components/track/station
 import { WhatWereSolving } from "@/components/track/WhatWereSolving";
 import { OpenQuestions } from "@/components/track/OpenQuestions";
 import { weWrote, whoWroteLine } from "@/components/track/how-much-of-this-we-wrote";
-import { whatItProduced } from "@/components/track/what-it-produced";
+import { whatItMade } from "@/components/track/what-it-made";
+import { foldVersions, repeatedTitles, titleKey } from "@/components/track/versions-of-one-thing";
 import {
   offerToConnect,
   sourceLine,
@@ -104,6 +105,7 @@ import {
   Action,
   Actions,
   ACTION_LINK_FACE,
+  Chevron,
   Diffstat,
   Reading,
   ReadFailedLine,
@@ -126,8 +128,6 @@ import { Verdict } from "@/components/meridian/verdict";
 import { verdictProps } from "@/components/track/verdict-reading";
 import { PlaybookFilesPanel } from "@/components/track/PlaybookFiles";
 import { AppFrame, RunningApp } from "@/components/track/AppFrame";
-import { RunMap } from "@/components/meridian/RunMap";
-import { stationsForMap, type StopLike } from "@/components/track/what-each-station-did";
 
 /** What each station exists to do, for the not-run sentence. Display labels only. */
 const PURPOSE: Record<string, string> = {
@@ -254,7 +254,6 @@ function RecordReading({
           </button>
         )
       ) : null}
-
     </div>
   );
 }
@@ -449,9 +448,7 @@ function PlanSpec({ prdId }: { prdId: string }) {
           contract={prd.contract}
           body={prd.body_md}
           refsWithReadings={prd.metric_refs_with_readings ?? []}
-          onRecordReading={(clause_id, value) =>
-            recordReading.mutate({ clause_id, value })
-          }
+          onRecordReading={(clause_id, value) => recordReading.mutate({ clause_id, value })}
         />
         <Prose markdown>{prd.body_md}</Prose>
       </div>
@@ -2838,6 +2835,7 @@ function StationPanel({
   workspaceId = null,
   productId = null,
   openArtifactId = null,
+  onOpenArtifact,
   now,
   trackId,
 }: {
@@ -2880,6 +2878,12 @@ function StationPanel({
    * the first is the defect P-24 exists to close, moved one component along.
    */
   openArtifactId?: string | null;
+  /**
+   * How a row in the member list opens the thing it names. The same door the
+   * transcript's chips use, so a row and a chip pointing at one artifact open
+   * one artifact. Absent, the rows are read-only titles, as they were.
+   */
+  onOpenArtifact?: (artifactId: string | null) => void;
   now: number;
   /** Routes the Discover cards' writes back to this pane's cache entries. */
   trackId: string;
@@ -3069,10 +3073,20 @@ function StationPanel({
    * track `425e6887` holds 33 clusters and dozens of findings, and it was the
    * one tab with no sentence.
    *
-   * Reads the chain's members rather than the artifacts read, so it is there on
-   * first paint instead of arriving a poll later than the cards it introduces.
+   * ── THE PRODUCT FIRST, THEN WHAT WAS ATTACHED, FAINTER (2026-09-08) ─────
+   * Seen live on a run whose Ship had gone to production: *"Ship filed 4
+   * prototypes, 1 decision and 1 release. 4 of them say the same thing."* Ship
+   * filed no prototypes; they were the context it worked from. And four rows
+   * with one title are one thing filed four times, not a confession. So the
+   * line is `whatItMade`: the station's own product in its own noun
+   * ("Released to production."), and only then, quieter, what else is on the
+   * stop. See `what-it-made.ts` for the words.
+   *
+   * Reads the artifacts read once it has landed, because that is where the
+   * environment a release went to and the PR a change opened live, and the
+   * chain's members until then, so the line is on first paint and gets more
+   * specific a poll later rather than arriving later than the cards.
    */
-  const produced = whatItProduced(stop.label, stop.members);
 
   /*
    * BODIES WHERE THE READ EXISTS. The artifacts read and the chain derive
@@ -3081,13 +3095,25 @@ function StationPanel({
    * with no body renderer keeps its title line rather than pretending.
    */
   const items = view?.items;
+  const made = whatItMade({
+    station: stop.station,
+    label: stop.label,
+    members: items ?? stop.members,
+    running: isRunning,
+  });
+  /* Newest first, so the card at the top is the version that stands, the
+     same one the folded row below points at. The list itself is oldest-first
+     for the record; the choice of what to lead with is not. */
+  const newestFirst = items
+    ? [...items].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    : undefined;
   const primaryItem =
     /* THE PERSON'S CHOICE OUTRANKS THE STATION'S EXPECTATION. */
     (openArtifactId
       ? items?.find((it) => it.artifactId === openArtifactId && !it.missing)
       : undefined) ??
-    items?.find((it) => it.kind === view?.expects.kind && !it.missing) ??
-    items?.find((it) => !it.missing);
+    newestFirst?.find((it) => it.kind === view?.expects.kind && !it.missing) ??
+    newestFirst?.find((it) => !it.missing);
 
   const bodyFor = (item: ArtifactView) => {
     switch (item.kind) {
@@ -3123,7 +3149,7 @@ function StationPanel({
     if (stop.station === "sense") {
       return (
         <div className="flex flex-col gap-mrd-4">
-          {produced ? <span className="mrd-meta">{produced}</span> : null}
+          <MadeLine made={made} />
           <SenseBody
             items={items.filter((it) => it.kind === "signal" || it.kind === "theme" || it.missing)}
             now={now}
@@ -3144,15 +3170,12 @@ function StationPanel({
      */
     const stepItems = items.filter((it) => it.kind === "task" && !it.missing);
     const missionItems = items.filter((it) => it.kind === "mission" && !it.missing);
-    /* Which titles are printed more than once in THIS list, so a row that has a
-       twin can say the one thing its twin cannot. See `repeatedTitles`. */
-    const repeats = repeatedTitles(items);
     return (
       <div className="flex flex-col gap-mrd-4">
         {/* Quiet, and above everything: it introduces the cards rather than
             competing with them, and a person who reads only this line has
             still been told what the step did. */}
-        {produced ? <span className="mrd-meta">{produced}</span> : null}
+        <MadeLine made={made} />
         {primaryItem ? (
           <div style={arrival(`${primaryItem.kind}:${primaryItem.artifactId}`)}>
             {bodyFor(primaryItem)}
@@ -3167,27 +3190,21 @@ function StationPanel({
         {missionItems.map((m) => (
           <MissionCard key={`mission:${m.artifactId}`} item={m} origin={origin} />
         ))}
-        {items.map((item) => {
-          if (primaryItem && item.artifactId === primaryItem.artifactId && bodyFor(primaryItem)) {
-            return null;
+        <MemberRows
+          members={items
+            .filter((item) => !(!primaryItem && item.kind === "prd" && !item.missing))
+            .filter((item) => !((item.kind === "task" || item.kind === "mission") && !item.missing))
+            .map(toMemberLine)}
+          now={now}
+          openArtifactId={openArtifactId}
+          onOpen={onOpenArtifact}
+          arrival={arrival}
+          /* The primary is drawn as a card above, so its own title line is not
+             drawn again beneath it. */
+          omit={(m) =>
+            Boolean(primaryItem && m.artifactId === primaryItem.artifactId && bodyFor(primaryItem))
           }
-          if (!primaryItem && item.kind === "prd" && !item.missing) {
-            return null;
-          }
-          if ((item.kind === "task" || item.kind === "mission") && !item.missing) {
-            return null;
-          }
-          const key = `${item.kind}:${item.artifactId}`;
-          return (
-            <div key={key} style={arrival(key)}>
-              <MemberLine
-                m={toMemberLine(item)}
-                now={now}
-                repeated={repeats.has((item.title ?? "").trim().toLowerCase())}
-              />
-            </div>
-          );
-        })}
+        />
       </div>
     );
   }
@@ -3198,16 +3215,27 @@ function StationPanel({
   return (
     <div className="flex flex-col gap-mrd-3">
       {primaryMember ? <PlanSpec prdId={primaryMember.artifactId} /> : null}
-      {stop.members.map((m) =>
-        m === primaryMember || (m.kind === "prd" && !m.missing) ? null : (
-          <MemberLine
-            key={`${m.kind}:${m.artifactId}`}
-            m={m}
-            now={now}
-            repeated={repeatedTitles(stop.members).has((m.title ?? "").trim().toLowerCase())}
-          />
-        ),
-      )}
+      <MemberRows
+        members={stop.members.filter((m) => !(m.kind === "prd" && !m.missing))}
+        now={now}
+        openArtifactId={openArtifactId}
+        onOpen={onOpenArtifact}
+      />
+    </div>
+  );
+}
+
+/**
+ * The station's sentence: the product, and beneath it, fainter, the rest.
+ * Two spans rather than one so "quieter" is literal on screen and not only in
+ * the word order.
+ */
+function MadeLine({ made }: { made: ReturnType<typeof whatItMade> }) {
+  if (!made) return null;
+  return (
+    <div className="flex flex-col gap-mrd-1">
+      <span className="mrd-meta">{made.lead}</span>
+      {made.quiet ? <span className="mrd-meta text-mrd-faint">{made.quiet}</span> : null}
     </div>
   );
 }
@@ -3230,31 +3258,176 @@ function toMemberLine(item: ArtifactView): ChainMember {
  *
  * Founder report via A1, 2026-09-02, walking `ce846e9b`: Design's list printed
  * *OTA Firmware Reboot Status Tile* four times and *...Tile Differentiation*
- * four times, and every one of the eight rows also read "1d ago", because
- * `relativeTime` rounds and all ten prototypes were filed inside the same
- * minute. Eight rows, two facts between them. A reader cannot tell which is
- * which, cannot tell whether it is one thing drawn four times or four things,
- * and has no reason to press any particular one.
+ * four times, and every one of the eight rows also read "1d ago". Eight rows,
+ * two facts between them.
  *
- * This is the discriminator rule, which this repo has already paid for twice:
- * `what-it-produced.ts` counts repeated titles and says so, and
- * `an-example-says-so` was written for the same defect on another surface. The
- * rule is that a row identical to its neighbour must carry a fact that is not.
- *
- * Returns the lower-cased titles that appear more than once, so the caller can
- * ask per row rather than re-scanning. Exported for its test.
+ * `repeatedTitles` was written here for that and now lives in
+ * `versions-of-one-thing.ts`, because the 2026-09-08 walk found the fuller
+ * answer: rows that share a title AND a kind are one thing filed several times,
+ * and `foldVersions` builds on the same twin set to draw them as one row. It is
+ * re-exported so the test that pins the twin set keeps its door.
  */
-export function repeatedTitles(
-  members: ReadonlyArray<{ title: string | null; missing?: boolean }>,
-): Set<string> {
-  const counts = new Map<string, number>();
-  for (const m of members) {
-    if (m.missing) continue;
-    const t = (m.title ?? "").trim().toLowerCase();
-    if (!t) continue;
-    counts.set(t, (counts.get(t) ?? 0) + 1);
-  }
-  return new Set([...counts.entries()].filter(([, n]) => n > 1).map(([t]) => t));
+export { repeatedTitles };
+
+/**
+ * ── ONE ROW PER THING, HOWEVER MANY TIMES IT WAS FILED (2026-09-08) ──────
+ *
+ * Seen live under "What it has made": *Relay Checkout Tablet - Address
+ * Confirmation Screen (read-only)* four times, at 11:41:47, 12:20:33, 12:21:16
+ * and 12:21:16. Exact seconds were the discriminator rule doing its job, and
+ * four rows a person cannot choose between is still four rows a person cannot
+ * choose between.
+ *
+ * So members that share a title and a kind are one row: the title once, the
+ * count, the newest instant, and it opens the newest. The older versions are
+ * under a small disclosure beneath it, each with its own exact time, each
+ * opening itself. A thing filed once is the row it always was.
+ *
+ * The open artifact highlights ITS row whichever version it is: the fold's
+ * row when it is the newest, the version's own row (and the disclosure opens
+ * to show it) when it is an earlier one.
+ */
+function MemberRows({
+  members,
+  now,
+  openArtifactId,
+  onOpen,
+  arrival,
+  omit,
+}: {
+  members: ChainMember[];
+  now: number;
+  openArtifactId: string | null;
+  onOpen?: (artifactId: string) => void;
+  /** The pane's arrival motion, keyed the way the pane keys it. */
+  arrival?: (key: string) => React.CSSProperties | undefined;
+  /**
+   * Rows to leave out, by member: the primary, which is drawn as a card above.
+   * A version of a folded thing is never left out, because the fold's row is
+   * where its count and its siblings live.
+   */
+  omit?: (m: ChainMember) => boolean;
+}) {
+  const twins = repeatedTitles(members);
+  return (
+    <>
+      {foldVersions(members).map((row) => {
+        const key = `${row.newest.kind}:${row.newest.artifactId}`;
+        if (row.earlier.length === 0) {
+          if (omit?.(row.newest)) return null;
+          return (
+            <div key={key} style={arrival?.(key)}>
+              <MemberLine
+                m={row.newest}
+                now={now}
+                repeated={twins.has(titleKey(row.newest.title))}
+                focused={row.newest.artifactId === openArtifactId}
+                onOpen={onOpen}
+              />
+            </div>
+          );
+        }
+        return (
+          <div key={key} style={arrival?.(key)}>
+            <VersionedLine
+              newest={row.newest}
+              earlier={row.earlier}
+              now={now}
+              openArtifactId={openArtifactId}
+              onOpen={onOpen}
+            />
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+function VersionedLine({
+  newest,
+  earlier,
+  now,
+  openArtifactId,
+  onOpen,
+}: {
+  newest: ChainMember;
+  /** Newest first. */
+  earlier: ChainMember[];
+  now: number;
+  openArtifactId: string | null;
+  onOpen?: (artifactId: string) => void;
+}) {
+  const id = React.useId();
+  const openInEarlier = earlier.some((v) => v.artifactId === openArtifactId);
+  /*
+   * The disclosure follows the selection until the person touches it, and a
+   * touch holds only until the selection changes: opening an earlier version
+   * from a transcript chip must always reveal the row it highlights, and a
+   * person who has just closed the list must not have it spring open on the
+   * next poll. Derived rather than synced, so there is no effect to race.
+   */
+  const [toggle, setToggle] = React.useState<{ at: string | null; open: boolean } | null>(null);
+  const open = toggle && toggle.at === openArtifactId ? toggle.open : openInEarlier;
+  const n = earlier.length + 1;
+
+  return (
+    <div className="flex flex-col">
+      <Row
+        tight
+        lead={newest.title ?? cap(newest.word)}
+        /* Versions share a title, so every one of them carries the exact
+           instant, the fold's row included: a person comparing the newest with
+           an earlier one needs the two times in one form. */
+        time={exactTime(newest.createdAt)}
+        focused={newest.artifactId === openArtifactId}
+        onClick={onOpen ? () => onOpen(newest.artifactId) : undefined}
+        action={<Value tone="quiet">{`${newest.word} · ${n} versions`}</Value>}
+      />
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={() => setToggle({ at: openArtifactId, open: !open })}
+        className="flex items-center gap-mrd-1 self-start rounded-mrd-xs py-mrd-1 text-mrd-small text-mrd-mute transition-colors hover:text-mrd-ink focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]"
+      >
+        <Chevron open={open} />
+        <span>
+          {earlier.length === 1 ? "1 earlier version" : `${earlier.length} earlier versions`}
+        </span>
+      </button>
+      {/* The same unfolding `FoldingRow` does: `1fr` to `0fr` animates to the
+          content's own height with no measurement, and the body rises 4px so
+          it reads as unfolding rather than appearing. `inert` keeps the folded
+          rows out of the tab order and the accessibility tree while hidden. */}
+      <div
+        id={id}
+        inert={!open}
+        className="grid transition-[grid-template-rows] duration-(--mrd-d-move) ease-(--mrd-ease) motion-reduce:transition-none"
+        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden">
+          <div
+            className="flex flex-col pl-mrd-4 transition-[opacity,transform] duration-(--mrd-d-move) ease-(--mrd-ease) motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none"
+            style={{
+              opacity: open ? 1 : 0,
+              transform: open ? "translateY(0)" : "translateY(4px)",
+            }}
+          >
+            {earlier.map((v) => (
+              <MemberLine
+                key={`${v.kind}:${v.artifactId}`}
+                m={v}
+                now={now}
+                repeated
+                focused={v.artifactId === openArtifactId}
+                onOpen={onOpen}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -3283,11 +3456,17 @@ function MemberLine({
   m,
   now,
   repeated = false,
+  focused = false,
+  onOpen,
 }: {
   m: ChainMember;
   now: number;
   /** This row's title is printed by at least one sibling. See above. */
   repeated?: boolean;
+  /** This row names the artifact that is open. */
+  focused?: boolean;
+  /** Opens the artifact this row names. A missing one has nothing to open. */
+  onOpen?: (artifactId: string) => void;
 }) {
   return (
     <Row
@@ -3297,6 +3476,8 @@ function MemberLine({
          has stopped distinguishing anything. On a row that is already unique,
          "1d ago" is the more readable of the two and it stays. */
       time={repeated ? exactTime(m.createdAt) : relativeTime(m.createdAt, now)}
+      focused={focused}
+      onClick={onOpen && !m.missing ? () => onOpen(m.artifactId) : undefined}
       action={
         m.missing ? <Value tone="fail">not found</Value> : <Value tone="quiet">{m.word}</Value>
       }
@@ -3655,17 +3836,6 @@ export function ArtifactPane({
     setTook(tookItLine(name, items.filter((i) => !i.missing).length));
   };
 
-  /*
-   * P-74. Derived from the stops this pane already reads; a station with
-   * nothing on the record gets no sentence rather than a plausible one.
-   *
-   * NOT a `useMemo`: this sits after an early return, where a hook would change
-   * the hook order between renders. `stationsForMap` is pure and walks at most
-   * seven stops, so memoising it would buy nothing and cost a rules-of-hooks
-   * violation -- which is exactly what the guard reported.
-   */
-  const mapStations = stationsForMap((bodies.data?.stops ?? []) as unknown as StopLike[]);
-
   return (
     /*
       ── THE FOURTH STATION LIST GOES (2026-09-02) ─────────────────────────
@@ -3716,10 +3886,6 @@ export function ArtifactPane({
        * the work takes, not places a person goes), and it carries no
        * destination. The strip's fold stands.
        */}
-      {mapStations.length > 0 ? (
-        <RunMap stops={mapStations} mode="replay" label="Where this work is" />
-      ) : null}
-
       <Region
         title="What it has made"
         /*
@@ -3808,6 +3974,9 @@ export function ArtifactPane({
               /* The thing the person actually pressed leads the panel, rather
                than whatever the station happens to expect. See `primaryItem`. */
               openArtifactId={opened?.item.artifactId ?? null}
+              /* And the rows beneath the cards open through the same door the
+               transcript's chips do, so a row and a chip agree. */
+              onOpenArtifact={onOpenArtifact}
               /* Discover's lineage reads it; no other station does. See `Lineage`
                for why the promotion is claimed from this sentence and not from
                `theme_id`. */

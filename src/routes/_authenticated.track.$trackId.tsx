@@ -12,7 +12,12 @@ import { getRunDoorState } from "@/lib/spine/track.functions";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded";
 import { StatusChip } from "@/components/meridian/StatusChip";
-import { TrackRunLeft, TrackPaneRight } from "@/components/track/TrackRun";
+import { TrackRunLeft, TrackPaneRight, useCopyRunSummary } from "@/components/track/TrackRun";
+import { Journey } from "@/components/meridian/Journey";
+import { MoreMenu, MoreItem } from "@/components/meridian/MoreMenu";
+import { journeyStations, newestArtifactAt } from "@/components/track/run-journey";
+import { getTrackArtifacts, getTrackActivity } from "@/lib/spine/track.functions";
+import type { AgentStation } from "@/lib/agent-vocabulary";
 import { RunFooter } from "@/components/track/RunFooter";
 import {
   horizonFromStops,
@@ -167,9 +172,12 @@ export function RunHeader({
   liveNow = false,
   fromLearningId = null,
   decideWaived = false,
+  more,
 }: {
   track: Track;
   liveNow?: boolean;
+  /** The quiet controls that belong to the whole run: copy a summary, take a file. */
+  more?: React.ReactNode;
   /**
    * `spine_tracks.from_learning_id`. Read by the route rather than carried on
    * `Track`, because that type is `src/lib/spine/**` and S0's; the one-field
@@ -192,18 +200,23 @@ export function RunHeader({
           </p>
         ) : null}
       </div>
-      <div className="flex flex-col items-end gap-mrd-1">
-        {/* The override word rides as children: StatusChip's contract is "more
-            specific about the same state, never different". Absent entirely
-            when there is nothing to report; see `runStatus`. */}
-        {s ? (
-          <>
-            <StatusChip status={s.status} pulse={s.pulse}>
-              {s.word}
-            </StatusChip>
-            {s.second ? <span className="mrd-meta max-w-[36ch] text-right">{s.second}</span> : null}
-          </>
-        ) : null}
+      <div className="flex items-start gap-mrd-3">
+        <div className="flex flex-col items-end gap-mrd-1">
+          {/* The override word rides as children: StatusChip's contract is "more
+              specific about the same state, never different". Absent entirely
+              when there is nothing to report; see `runStatus`. */}
+          {s ? (
+            <>
+              <StatusChip status={s.status} pulse={s.pulse}>
+                {s.word}
+              </StatusChip>
+              {s.second ? (
+                <span className="mrd-meta max-w-[36ch] text-right">{s.second}</span>
+              ) : null}
+            </>
+          ) : null}
+        </div>
+        {more}
       </div>
     </header>
   );
@@ -238,8 +251,7 @@ function TrackPage() {
     queryFn: () => fRunDoor({ data: { workspaceId: activeWorkspaceId ?? null } }),
     enabled: !!activeWorkspaceId,
   });
-  const isLastRunLanding =
-    runDoorQ.data?.state === "last" && runDoorQ.data.trackId === trackId;
+  const isLastRunLanding = runDoorQ.data?.state === "last" && runDoorQ.data.trackId === trackId;
 
   /*
    * QUEUE 71 ON THIS ROUTE, WHERE IT WAS MISSING. The route composes the two
@@ -317,6 +329,24 @@ function TrackPage() {
   const track = trackQ.data ?? null;
 
   /*
+   * ── THE SHELL FOLLOWS THE OBJECT (Lane 1 ruling, 2026-09-08) ────────────
+   *
+   * Seen live: a Helio Labs run opened by address while the switcher held
+   * another workspace, and the page drew the run in full under the wrong
+   * name, with the top bar describing the other workspace's day. A run's
+   * address is the person's intent, so arriving on one switches the shell to
+   * its workspace; every live read keys on the active id, so the frame then
+   * tells the truth on its own. Once per run, and only when they differ.
+   */
+  const { setActiveWorkspaceId } = useWorkspace();
+  const switchedFor = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!track?.workspaceId || switchedFor.current === track.id) return;
+    switchedFor.current = track.id;
+    if (track.workspaceId !== activeWorkspaceId) setActiveWorkspaceId(track.workspaceId);
+  }, [track?.id, track?.workspaceId, activeWorkspaceId, setActiveWorkspaceId]);
+
+  /*
    * DID THIS WORK COME BACK ON ITS OWN? `spine_tracks.from_learning_id` is live
    * (migration `20260831010000`) and `Track` does not carry it, so this reads it
    * with the caller's own RLS-scoped client -- the pattern `PrototypeCard`
@@ -350,6 +380,62 @@ function TrackPage() {
    * drift this file has been repaired for twice.
    */
   const { tally } = useRunTally(trackId);
+
+  /*
+   * ── THE ROAD, IN THE HEADER (2026-09-08) ────────────────────────────────
+   *
+   * The run screen's one station display, and it is the Journey: seven stops
+   * as a flow, each saying what it made, the current one in the register the
+   * state decides, alive while a seat works. Pressing a stop opens what that
+   * station made on the right, through the same URL pointer the transcript
+   * rows and the proof panel use, so there is still one pointer.
+   *
+   * Reads off the two cache entries the panes already poll; no new fetch.
+   */
+  const fArtifacts = useServerFn(getTrackArtifacts);
+  const artifactsQ = useQuery({
+    queryKey: ["track-artifacts", trackId],
+    queryFn: () => fArtifacts({ data: { trackId } }),
+    staleTime: 10_000,
+    enabled: !!track,
+  });
+  const fActivity = useServerFn(getTrackActivity);
+  const activityQ = useQuery({
+    queryKey: ["track-activity", trackId],
+    queryFn: () => fActivity({ data: { trackId } }),
+    staleTime: 5_000,
+    enabled: !!track,
+  });
+  const liveSince = React.useMemo(() => {
+    const turns = activityQ.data?.turns ?? [];
+    const live = turns.filter((t) => t.outcome === "working");
+    return live.length > 0 ? live[live.length - 1]!.at : null;
+  }, [activityQ.data]);
+  const horizon = horizonFromStops(artifactsQ.data?.stops);
+  const stations = React.useMemo(
+    () =>
+      journeyStations({
+        stops: artifactsQ.data?.stops,
+        track: track
+          ? { station: track.station, status: track.status, holdReason: track.holdReason }
+          : null,
+        live: crewLive,
+        liveSince,
+        horizon,
+        gradableBySource: null,
+        nowMs: Date.now(),
+      }),
+    [artifactsQ.data?.stops, track, crewLive, liveSince, horizon],
+  );
+  const openedStation = React.useMemo<AgentStation | null>(() => {
+    if (!artifact) return null;
+    for (const stop of artifactsQ.data?.stops ?? []) {
+      if (stop.items.some((i) => i.artifactId === artifact && !i.missing)) return stop.station;
+    }
+    return null;
+  }, [artifact, artifactsQ.data?.stops]);
+  const activeStation = openedStation ?? track?.station ?? null;
+  const copySummary = useCopyRunSummary(trackId);
 
   /*
    * ABANDONED IS SETTLED TOO, and leaving it out was a gap rather than a
@@ -402,7 +488,30 @@ function TrackPage() {
               liveNow={crewLive}
               fromLearningId={cameBack.data ?? null}
               decideWaived={decideWaived}
+              more={
+                <MoreMenu label="More for this run">
+                  <MoreItem onClick={() => void copySummary.copy()}>Copy a summary</MoreItem>
+                </MoreMenu>
+              }
             />
+            {copySummary.copied ? (
+              <p role="status" aria-live="polite" className="mrd-meta mt-mrd-2">
+                {copySummary.copied}
+              </p>
+            ) : null}
+            {stations.length > 0 ? (
+              <Journey
+                size="full"
+                label="Where this work is on its road"
+                stations={stations}
+                active={activeStation}
+                onSelect={(key) => {
+                  const id = newestArtifactAt(artifactsQ.data?.stops, key);
+                  if (id) openArtifact(id);
+                }}
+                className="mt-mrd-5"
+              />
+            ) : null}
             <GateBanner trackId={trackId} />
             {/* THE RUN DOOR'S OWN "LAST" LANDING (P-109, A-QUEUE.md). Only
                 when THIS track is the one `runDoor` itself would have opened,

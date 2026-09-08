@@ -1,8 +1,9 @@
 import { wordFor } from "@/lib/spine/chain";
 import { joinPlainly } from "@/lib/spine/attach";
+import { foldedCount, prepFor } from "@/components/track/versions-of-one-thing";
 
 /**
- * WHAT A STATION PRODUCED, AS ONE SENTENCE, ABOVE THE THINGS IT PRODUCED.
+ * WHAT A STATION PRODUCED, AS ONE SENTENCE, IN THE STRIP'S SHAPE.
  *
  * Gap #28: *"what a station produced, as one readable sentence in the run, with
  * the file behind a 'take this' control. No frontmatter, no filename, no
@@ -30,6 +31,14 @@ import { joinPlainly } from "@/lib/spine/attach";
  * the station panel would be the three-copies-of-one-fact defect `run-status.ts`
  * records paying for. The panel is scoped to ONE stop, so its sentence is about
  * that stop and the chain keeps the total.
+ *
+ * ── WHERE IT IS READ NOW (2026-09-08) ─────────────────────────────────────
+ * The pane's own line above the cards is `what-it-made.ts`, which leads with
+ * the product in the station's noun ("Released to production.") and puts what
+ * was attached after it, fainter. This sentence keeps the strip's shape,
+ * "Plan filed 1 spec and 2 prototypes", which Start's row is pinned to agree
+ * with clause for clause (`the-row-and-the-strip-agree-on-what-was-produced`),
+ * and `station-outcome.ts` hands it to the map and the strip.
  */
 
 export type ProducedMember = {
@@ -58,57 +67,39 @@ export function whatItProduced(
   if (present.length === 0) return null;
 
   /*
-   * COUNTED BY KIND, IN THE ORDER THEY WERE FILED. A station that drafted its
-   * prototype five times filed five prototypes, and that is a fact worth
-   * reading rather than a duplicate to hide -- the same call `chain.ts` makes
-   * for the whole run, and the opposite of `station-file.ts`'s, which dedupes
-   * because a document repeating one paragraph five times is unreadable while a
-   * count is not.
+   * COUNTED BY KIND, IN THE ORDER THEY WERE FILED, WITH REPEATS FOLDED.
+   *
+   * ── A COUNT THAT FLATTERS A STUCK LOOP, CAUGHT ON THE LIVE CANDIDATE ─────
+   * `d2263583` reached Decide on 2026-08-31 with 8 decisions, four of them
+   * sharing one title, written in pairs a minute apart across two sweeps. A
+   * bare "Decide filed 8 decisions." was true and the impression was false:
+   * eight distinct calls is what a person infers, and one call re-made is what
+   * happened.
+   *
+   * ── AND THE FIRST FIX CONFESSED WHERE IT SHOULD HAVE FOLDED (2026-09-08) ─
+   * The next version appended "4 of them say the same thing." That names the
+   * jam as a defect, and on a healthy run it is simply wrong: four prototypes
+   * of one screen are one screen drawn four times, which is a fact worth
+   * reading and not a fault. So repeats are folded into the thing they repeat,
+   * through the same `foldedCount` the pane's rows and sentence use:
+   *
+   *     Decide filed 5 decisions (4 on Do not attribute ...).
+   *     Design filed 4 prototypes of Relay Checkout Tablet - Address ...
+   *
+   * The count is still the count, so a jam still reads as one thing re-made,
+   * and nothing on screen calls the record a mistake. Titles are compared
+   * trimmed and case-folded, and untitled members are counted and never
+   * compared: a finding carries no title, and keying on it would report every
+   * finding as a repeat of every other.
    */
-  const counts = new Map<string, number>();
-  for (const m of present) counts.set(m.kind, (counts.get(m.kind) ?? 0) + 1);
-  const parts = [...counts].map(([kind, n]) => `${n} ${wordFor(kind, n)}`);
+  const byKind = new Map<string, ProducedMember[]>();
+  for (const m of present) byKind.set(m.kind, [...(byKind.get(m.kind) ?? []), m]);
+  const parts = [...byKind].map(([kind, ms]) =>
+    foldedCount(ms, wordFor(kind, ms.length), prepFor(kind)),
+  );
 
   const head = `${stationLabel} filed ${joinPlainly(parts)}.`;
-
-  /*
-   * ── A COUNT THAT FLATTERS A STUCK LOOP, CAUGHT ON THE LIVE CANDIDATE ─────
-   * RUN-128 shipped this counting repeats deliberately: *"a station that
-   * drafted its prototype five times filed five, and that is a fact worth
-   * reading."* That holds for a prototype. **It is wrong when the repeats are
-   * the same thing**, and the acceptance candidate proved it.
-   *
-   * `d2263583` reached Decide on 2026-08-31 with **8 decisions: 1 approved and
-   * 7 declined**, four of them sharing one title, written in pairs about a
-   * minute apart at 14:00, 14:01, 15:40 and 15:41. The station is re-deciding
-   * one thing across sweeps, which is why it holds `nothing-to-hand-on`.
-   *
-   * On screen my sentence read **"Decide filed 8 decisions."** while the same
-   * decline title rendered **fifteen times** below it. **The count was true and
-   * the impression was false**: eight distinct calls is what a person infers,
-   * and one call re-made seven times is what happened. A sentence that makes a
-   * jammed station look productive is worse than no sentence.
-   *
-   * So repeats are COUNTED and then NAMED. Not deduped away -- how many times a
-   * station filed the same thing is the fact that reveals the jam, and hiding
-   * it would swap one wrong impression for another. `station-file.ts` reached
-   * the same shape from the other direction and says `(filed n times)`.
-   */
-  const byTitle = new Map<string, number>();
-  for (const m of present) {
-    const t = (m.title ?? "").trim().toLowerCase();
-    if (t) byTitle.set(t, (byTitle.get(t) ?? 0) + 1);
-  }
-  const repeated = [...byTitle.values()].filter((n) => n > 1);
-  const repeats = repeated.reduce((a, b) => a + b, 0);
-  const sameAgain =
-    repeats > 1
-      ? repeated.length === 1
-        ? ` ${repeats} of them say the same thing.`
-        : ` ${repeats} of them repeat ${repeated.length} things already filed.`
-      : "";
-
-  if (gone === 0) return `${head}${sameAgain}`;
+  if (gone === 0) return head;
 
   /*
    * A MEMBER THE LOOKUP MISSED IS SAID, NOT SUBTRACTED. `missing` means the row
@@ -121,5 +112,5 @@ export function whatItProduced(
     gone === 1
       ? "One more no longer resolves to anything we can show."
       : `${gone} more no longer resolve to anything we can show.`;
-  return `${head}${sameAgain} ${tail}`;
+  return `${head} ${tail}`;
 }

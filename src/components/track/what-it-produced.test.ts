@@ -40,14 +40,16 @@ describe("what a station produced, as one sentence", () => {
     );
   });
 
-  it("NAMES the repeats, because a count alone flatters a stuck station", () => {
+  it("FOLDS the repeats into the thing they repeat, because a count alone flatters a stuck station", () => {
     /*
      * CAUGHT ON THE LIVE ACCEPTANCE CANDIDATE. `d2263583` reached Decide with 8
      * decisions -- 1 approved, 7 declined, four sharing one title, written in
-     * pairs a minute apart across two sweeps. My sentence read "Decide filed 8
-     * decisions." while the same decline rendered fifteen times below it. The
-     * count was true and the impression was false: a person infers eight
-     * distinct calls, and one call re-made is what happened.
+     * pairs a minute apart across two sweeps. "Decide filed 8 decisions." was
+     * true and the impression was false: a person infers eight distinct calls,
+     * and one call re-made is what happened.
+     *
+     * The first fix said "4 of them say the same thing", which reports the
+     * record as a defect. The fold says what was filed: one call, four times.
      */
     const out = whatItProduced("Decide", [
       m("decision", false, "Tablet address layout contributes to abandonment"),
@@ -56,19 +58,50 @@ describe("what a station produced, as one sentence", () => {
       m("decision", false, "Do not attribute tablet checkout abandonment to address"),
       m("decision", false, "Do not attribute tablet checkout abandonment to address"),
     ]);
-    expect(out).toBe("Decide filed 5 decisions. 4 of them say the same thing.");
+    expect(out).toBe(
+      "Decide filed 5 decisions (4 on Do not attribute tablet checkout abandonment to address).",
+    );
+    expect(out).not.toContain("say the same thing");
   });
 
-  it("counts the repeats rather than hiding them, which is the other error", () => {
+  it("one thing filed four times is four of that thing, not a confession", () => {
+    /*
+     * Seen live 2026-09-08: four prototypes of one screen under Ship read as
+     * "4 of them say the same thing". They are one screen drawn four times.
+     */
+    const title = "Relay Checkout Tablet - Address Confirmation Screen (read-only)";
+    const out = whatItProduced("Design", [
+      m("prototype", false, title),
+      m("prototype", false, title),
+      m("prototype", false, title),
+      m("prototype", false, title),
+    ]);
+    expect(out).toBe(`Design filed 4 prototypes of ${title}.`);
+  });
+
+  it("names each repeated thing when several repeat, rather than counting the repeats", () => {
     // Deduping would swap one wrong impression for another: how many times a
-    // station filed the same thing is the fact that reveals the jam.
+    // station filed the same thing is the fact that reveals the jam, so the
+    // count stays and each repeated thing is named with its own count.
     const out = whatItProduced("Decide", [
       m("decision", false, "A"),
       m("decision", false, "A"),
       m("decision", false, "B"),
       m("decision", false, "B"),
     ]);
-    expect(out).toBe("Decide filed 4 decisions. 4 of them repeat 2 things already filed.");
+    expect(out).toBe("Decide filed 4 decisions (2 on A and 2 on B).");
+  });
+
+  it("keeps a fold readable inside a list of several kinds", () => {
+    // The parenthesis is what keeps "4 of X" from reading as a fourth kind.
+    const out = whatItProduced("Ship", [
+      m("prototype", false, "Address screen"),
+      m("prototype", false, "Address screen"),
+      m("prototype", false, "Settings"),
+      m("decision", false, "Go"),
+      m("deployment", false, "v1"),
+    ]);
+    expect(out).toBe("Ship filed 3 prototypes (2 of Address screen), 1 decision and 1 release.");
   });
 
   it("says nothing extra when every filing is distinct", () => {

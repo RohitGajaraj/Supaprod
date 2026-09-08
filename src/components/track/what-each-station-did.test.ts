@@ -145,25 +145,27 @@ describe("each station says what it did, not what it is for", () => {
 });
 
 describe("it is a map, not navigation", () => {
-  const PANE = code(readFileSync("src/components/track/ArtifactPane.tsx", "utf8"));
   const MOD = code(readFileSync("src/components/track/what-each-station-did.ts", "utf8"));
+  const PANE = code(readFileSync("src/components/track/ArtifactPane.tsx", "utf8"));
 
-  it("draws in replay mode and carries no destination (R-01)", () => {
-    // The seven stations are the route the work takes, not places a person goes.
-    expect(PANE).toContain('<RunMap stops={mapStations} mode="replay"');
+  /*
+   * 2026-09-08: the read-only RunMap left the artifact pane. The run screen's
+   * one station display is Meridian's Journey in the route header, which is
+   * both the display and the control (see one-station-display-on-the-run-
+   * screen.test.ts). This module still feeds the Journey's outcome lines
+   * through `run-journey.ts`, and still carries no destination of its own.
+   */
+  it("carries no destination (R-01), wherever it is drawn", () => {
     expect(MOD).not.toContain("navigate");
     expect(MOD).not.toContain("to:");
   });
 
-  it("sits above the record it describes", () => {
-    const map = PANE.indexOf("<RunMap stops={mapStations}");
-    const made = PANE.indexOf('title="What it has made"');
-    expect(map).toBeGreaterThan(-1);
-    expect(made).toBeGreaterThan(map);
+  it("is no longer drawn in the artifact pane", () => {
+    expect(PANE).not.toContain("<RunMap");
+    expect(PANE).not.toContain("stationsForMap(");
   });
 
   it("draws nothing at all when there is no route to draw", () => {
-    expect(PANE).toContain("mapStations.length > 0 ?");
     expect(stationsForMap([])).toEqual([]);
   });
 });

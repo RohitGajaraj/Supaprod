@@ -178,6 +178,12 @@ export type Turn = {
    * currency on the run screen) is what leads with it instead of `usd`.
    */
   credits: number;
+  /**
+   * The trace this turn wrote, when the runtime recorded one. The run screen
+   * opens it as the depth behind a turn ("open the full trace"); null on runs
+   * older than tracing and on turns that never reached a model.
+   */
+  traceId: string | null;
 };
 
 const OUTCOME: Record<string, Turn["outcome"]> = {
@@ -250,6 +256,7 @@ export function buildActivity(input: {
       stopLine: stopLine(r),
       usd: Number(r.spend_used_usd ?? 0) || 0,
       credits: (r.trace_id && input.creditsByTrace?.[r.trace_id]) || 0,
+      traceId: r.trace_id ?? null,
     };
   });
 }

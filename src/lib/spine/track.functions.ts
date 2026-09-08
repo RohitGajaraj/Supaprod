@@ -182,6 +182,12 @@ export type Track = {
    * whatever the workspace switcher happens to be on.
    */
   productId: string | null;
+  /**
+   * The workspace this run belongs to. The run screen switches the shell to it
+   * when a person arrives by address from another workspace (Lane 1's ruling,
+   * 2026-09-08: the shell follows the object).
+   */
+  workspaceId: string | null;
 };
 
 type TrackRow = {
@@ -238,6 +244,7 @@ function rowToTrack(r: TrackRow): Track {
     drivenAt: r.driven_at ?? null,
     attempts: r.attempts ?? 0,
     productId: r.product_id ?? null,
+    workspaceId: r.workspace_id ?? null,
   };
 }
 

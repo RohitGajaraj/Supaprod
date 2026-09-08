@@ -38,7 +38,6 @@
  * guesses, and a status display that guesses removes that ability entirely.
  */
 import * as React from "react";
-import { nothingIsComing } from "@/components/track/nothing-is-coming";
 import { failureLine } from "@/lib/error-copy";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -46,13 +45,11 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { CLAIMED_PATH_HOLD } from "@/lib/spine/a-claimed-path-is-a-wait-not-an-unstage";
 
 import { TrackActivity } from "@/components/spine/TrackActivity";
-import { RunPresence } from "@/components/presence/RunPresence";
 import { useCurrentTool } from "@/components/track/LiveWork";
 import { ArtifactPane } from "@/components/track/ArtifactPane";
 import { TrackConsent } from "@/components/track/TrackConsent";
-import { Action, Door, Region } from "@/components/meridian/surface-parts";
+import { Action, Door } from "@/components/meridian/surface-parts";
 import { Row } from "@/components/meridian/rows";
-import { StatusChip } from "@/components/meridian/StatusChip";
 import { Receipt } from "@/components/meridian/Receipt";
 import {
   driveTrackNow,
@@ -67,14 +64,13 @@ import {
 } from "@/lib/spine/track.functions";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 import { holdTone } from "@/lib/spine/driver";
-import { relativeTime } from "@/lib/memory-view";
-import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { summaryText } from "@/components/track/run-summary";
 import { runTabState } from "@/components/track/run-tab";
 import { keyAction, shouldIgnoreKey } from "@/components/track/run-keys";
 import { SteerComposer } from "@/components/track/SteerComposer";
 import { TakeOver } from "@/components/track/TakeOver";
-import { triesLine } from "@/components/track/hold-tries";
+import { runNow } from "@/components/track/run-now";
+import { RunNow } from "@/components/track/RunNow";
 import { wayOut } from "@/components/track/way-out";
 import { triedAgainLine } from "@/lib/spine/three-tries-and-nothing-changed";
 import { sameCalendarDay } from "@/lib/time-of-day";
@@ -85,14 +81,9 @@ import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { takeOver } from "@/components/track/take-over";
 import type { SpineRoute } from "@/lib/spine/route";
-import { GotYou } from "@/components/meridian/got-you";
-import {
-  gotYouChips,
-  gotYouClauses,
-  gotYouLink,
-  hasAnything,
-  useRunTally,
-} from "@/components/track/run-tally";
+import { RunProof } from "@/components/track/RunProof";
+import { proofRows } from "@/components/track/run-proof";
+import { useRunTally } from "@/components/track/run-tally";
 import { stoppedByYou } from "@/components/track/footer-mode";
 import {
   waitingOnTime,
@@ -131,21 +122,20 @@ const STOPPED_LINE: Record<DriveNowResult["stopped"], string> = {
   "not-found": "That track could not be read.",
 };
 
-/** What a run says when it is handed to somebody, in words a PR thread can read. */
-export /*
- * ITEM 24: THE RUN CAN BE HANDED TO SOMEBODY. The record of this work is the
- * thing you most want in front of a reviewer, and until now the only way to
- * share it was a link with no context or a screenshot of a table. The text is
- * built from rows the run wrote -- route, states, filed nouns, the hold
- * sentence -- never a JSON dump; the control SAYS what it copied; and it is a
- * real button, so the keyboard reaches it and the live region announces it.
+/**
+ * The copy itself, as a hook, so the header's menu and any button can share
+ * one implementation and one receipt. Reads the chain off the cache entry the
+ * pane already polls; no second fetch.
  */
-function CopyRunSummary({ trackId }: { trackId: string }) {
+export function useCopyRunSummary(trackId: string): {
+  copy: () => Promise<void>;
+  copied: string | null;
+  busy: boolean;
+} {
   const fChain = useServerFn(getTrackChain);
   const chain = useQuery({
     queryKey: ["spine-track-chain", trackId],
     queryFn: () => fChain({ data: { trackId } }),
-    // Same cache entry the pane polls; no second fetch, no extra poll.
     staleTime: 10_000,
   });
   const [copied, setCopied] = React.useState<string | null>(null);
@@ -156,7 +146,6 @@ function CopyRunSummary({ trackId }: { trackId: string }) {
       setCopied(null);
       return;
     }
-    const now = Date.now();
     const stops = data.chain.stops.map((s) => ({
       label: s.label,
       state: s.state,
@@ -178,20 +167,7 @@ function CopyRunSummary({ trackId }: { trackId: string }) {
     }
   };
 
-  return (
-    <div className="flex flex-col gap-mrd-2">
-      <div>
-        <Action variant="quiet" busy={chain.isLoading} onClick={() => void copy()}>
-          Copy a summary of this run
-        </Action>
-      </div>
-      {copied ? (
-        <p role="status" aria-live="polite" className="mrd-meta">
-          {copied}
-        </p>
-      ) : null}
-    </div>
-  );
+  return { copy, copied, busy: chain.isLoading };
 }
 
 /*
@@ -473,8 +449,6 @@ export function TrackRunLeft({
    * up, a spec written) and the driver never looks again until someone says so.
    */
   const tone = track ? holdTone(track.holdReason) : null;
-  /* See the chip below, and `nothing-is-coming.ts` for why it is one predicate. */
-  const terminallyStopped = nothingIsComing(track?.holdReason);
   const held = track?.status === "open" && tone !== null;
   const answerTheCall = track?.holdReason === "waiting-on-a-person";
   /*
@@ -994,103 +968,68 @@ export function TrackRunLeft({
     return () => window.removeEventListener("keydown", onKey);
   }, [finished, walkingMidRoute, run]);
 
-  return (
-    <div className="flex flex-col gap-mrd-6">
-      {/*
-       * THE CHARACTER, FIRST (SPEC-PRESENCE.md §Anatomy). One worker fronts
-       * the crew; this block is where the person meets it. Every input below
-       * is a read this surface already holds -- the track row, the newest walk
-       * result, the mutation's own in-flight flag -- so the state is derived,
-       * never staged. When the run asks, the consent card directly below IS
-       * this character's voice; when a tool refuses, it says the door is
-       * locked rather than promising a retry (R-26).
-       *
-       * `RunPresence` holds the one distinction the derivation cannot see:
-       * while this pane's first read is in flight nothing is claimed at all,
-       * so a person arriving from /start reads "Reading this piece of work"
-       * instead of the false alarm "I can't find this piece of work".
-       */}
-      {/*
-       * ── THE TEAMMATES BLOCK IS GONE, AND THE FACT IT CARRIED IS NOT ────
-       *
-       * `Teammates` drew a row of marks above the character whenever two or
-       * more seats were in flight. It was a HEADER of who is here, and the
-       * transcript directly below it already draws every seat the moment its
-       * run row lands, with the artifact it filed and what it cost. So the two
-       * answered one question and only one of them could say what the seat
-       * actually did. §4 removes the header for that reason and keeps the
-       * answer where the evidence is.
-       */}
-      {/*
-       * PRESENCE ONLY WHEN IT DISCRIMINATES (§4: "one sentence, only when it
-       * discriminates -- stopped, waiting, finished. Silent while working").
-       *
-       * While work is moving, three things on this screen already say so: the
-       * live entry ticking in the transcript, the footer's mode line, and the
-       * strip's working chip. A fourth sentence saying "I'm on it" above them
-       * is the repetition this surface keeps being repaired for, and it is the
-       * one that reads as filler because it is the only one with no figure
-       * attached.
-       *
-       * THE LOADING CASE STILL DRAWS, and that is not an exception to the rule.
-       * "Reading this piece of work" is the distinction the derivation cannot
-       * otherwise make: without it a person arriving from /start meets the
-       * false alarm "I can't find this piece of work" while the first read is
-       * still in flight.
-       */}
-      {trackQ.isLoading || !workingNow ? (
-        <RunPresence
-          loading={trackQ.isLoading}
-          input={{
-            track: track
-              ? { status: track.status, holdReason: track.holdReason, drivenAt: track.drivenAt }
-              : null,
-            result: result ? { stopped: result.stopped, more: result.more } : null,
-            // A crew the sweep is driving is working, exactly as a leg this tab
-            // pressed is: presence reads the record, not this tab's own press.
-            walking: run.isPending || crewLive,
-            continuing,
-            feedDead: trackQ.isError,
-            pressedRun,
-            /*
-             * ── THE CHARACTER NAMES THE TOOL NOW (2026-09-01) ──────────────
-             *
-             * `PresenceInput.currentTool` has existed since the character was
-             * built, `VERB_BY_TOOL` holds 27 curated first-person verbs for it,
-             * and `character.ts:225` turns one into "I'm writing the spec." --
-             * and NOTHING ON THIS SURFACE EVER PASSED IT. The branch was dead
-             * code, so a run that was reading the repository, drafting a design
-             * and checking its own work against the evidence said the same four
-             * words the whole way through: "I'm on it."
-             *
-             * The reason it was never wired is that the join did not exist:
-             * `tool_calls` could not be tied to a run until `agent_runs.trace_id`
-             * landed on 2026-08-26 (F-93). It can now, at 100% coverage for runs
-             * from 2026-08-31 on, so the verb the character was built to say is
-             * finally derivable from a row.
-             *
-             * Null while settled, on purpose -- `verbForTool` is present tense
-             * and a finished run's last call is a fact about the past.
-             */
-            currentTool,
-          }}
-        />
-      ) : null}
+  /*
+   * ── ONE SENTENCE ABOUT NOW (2026-09-08) ─────────────────────────────────
+   *
+   * Everything below used to say what was happening five times in five
+   * registers: the character, the drive-result rows, the "You stopped this
+   * run" row, the "Why it stopped" region and the "Learning to come" region.
+   * `run-now.ts` reads the same facts once and picks the register on purpose,
+   * and the facts that used to be rows inside those regions ride inside the
+   * one card. See that module's header for the walk that found it.
+   */
+  const [liveSeats, setLiveSeats] = React.useState<
+    Array<{ slug: string | null; name: string; waiting: boolean }>
+  >([]);
+  const shippedAt = React.useMemo(() => {
+    for (const stop of artifactsQ.data?.stops ?? []) {
+      if (stop.station !== "ship") continue;
+      for (const item of stop.items) {
+        if (item.kind !== "deployment" || item.missing) continue;
+        const at = (item.fields as Record<string, unknown> | null)?.deployed_at;
+        if (typeof at === "string") return at;
+      }
+    }
+    return null;
+  }, [artifactsQ.data?.stops]);
+  const now = runNow({
+    track: track
+      ? {
+          status: track.status,
+          station: track.station,
+          hold: track.hold,
+          holdReason: track.holdReason,
+          holdBecause: track.holdBecause,
+          drivenAt: track.drivenAt,
+          deferredUntil: track.deferredUntil,
+          attempts: track.attempts,
+          route: { path: track.route.path },
+        }
+      : null,
+    loading: trackQ.isLoading,
+    feedDead: trackQ.isError,
+    live: workingNow,
+    currentTool,
+    seats: liveSeats,
+    legsLeft: continuing ? legsLeft : null,
+    horizon: forecastHorizonDate,
+    gradableBySource,
+    shippedAt,
+    verdict: null,
+    nowMs,
+  });
+  /* A call in front of the person IS the now; the card yields to it. */
+  const askIsUp = callIsYours || answerTheCall;
+  /* The facts a hold used to carry as rows under "Why it stopped". */
+  const holdFacts = track && (now.register === "held" || now.register === "stopped");
+  /* The station's own retry stands down wherever pressing it changes nothing:
+     a call is in front of the person, the preview is what stopped Ship, or
+     nothing will pick the work up again. */
+  const retryStandsDown =
+    answerTheCall || callIsYours || shipIsStopped || now.register === "stopped";
 
-      {/*
-       * THE QUESTION, ABOVE EVERYTHING ELSE. When the run needs a person it
-       * asks here, in place, with the consequence named (R-04) -- not in a
-       * queue somebody has to remember to visit. `onAnswered` hands the
-       * parent's drive mutation down, so an answer that releases the run picks
-       * the work straight back up; that chain IS the item, and a card without
-       * it is the approvals queue again.
-       */}
-      {/*
-       * R-39's choice, and it REPLACES the gate card rather than sitting beside
-       * it: this hold has no `agent_approvals` row to answer, so `TrackConsent`
-       * would draw nothing and the two cannot both be up. P-37: a screen in one
-       * state asks for one thing.
-       */}
+  return (
+    <div className="flex flex-col gap-mrd-5">
       {callIsYours ? (
         <TheCallIsYours
           busyId={
@@ -1104,472 +1043,148 @@ export function TrackRunLeft({
           onPointASource={() => pointASource.mutate()}
         />
       ) : (
-        /* Answering a gate is a person acting: `press`, never `continuation`. */
         <TrackConsent trackId={trackId} onAnswered={() => run.mutate("press")} />
       )}
 
-      {/*
-       * ── WHAT THE PRESS ITSELF ANSWERED, AND NOTHING ELSE ────────────────
-       *
-       * These rows exist only after a mutation that can run for fifty seconds
-       * returns, which is the exact case a polite status region is for: the
-       * person pressed a control, and what came back -- including "it stopped
-       * and is waiting on something" -- is said, not merely shown.
-       *
-       * NOT IN A REGION ANY MORE. It used to live inside the boxed `Run it`
-       * block, which is gone: the control moved to the footer under both panes
-       * (THE-ONE-SCREEN:21) and a box whose only remaining content was the
-       * answer to a control somewhere else is a container earning nothing. The
-       * facts are unchanged, and the cap message in particular stays, because
-       * "nothing was stopped silently" is the sentence that keeps automatic
-       * legs honest.
-       */}
-      {result || run.isError ? (
-        <div role="status" aria-live="polite" className="flex flex-col">
-          {result ? (
-            <Row
-              lead={
-                continuing
-                  ? `It is still walking. ${legsLeft} automatic ${legsLeft === 1 ? "step" : "steps"} left on this press.`
-                  : STOPPED_LINE[result.stopped]
-              }
-              sub={
-                continuing
-                  ? "Stop, in the bar below, takes it back at the end of this step."
-                  : result.more && !capReached
-                    ? "Run it again to continue."
-                    : undefined
-              }
-            />
+      {askIsUp ? null : (
+        <RunNow now={now}>
+          {holdFacts && track ? (
+            <>
+              {track.holdBecause ? <Row lead={track.holdBecause} tight /> : null}
+              {shipStop ? (
+                <Row
+                  tight
+                  lead={shipStopLine(shipStop)}
+                  sub={
+                    retryPreview.isError
+                      ? `That did not run: ${(retryPreview.error as Error).message}`
+                      : retryPreview.data && !retryPreview.data.ok
+                        ? `It ran and failed: ${retryPreview.data.reason ?? "no reason was given."}`
+                        : undefined
+                  }
+                  action={
+                    shipIsStopped ? (
+                      <Action busy={retryPreview.isPending} onClick={() => retryPreview.mutate()}>
+                        {retryPreview.isPending ? "Trying the preview" : "Try the preview again"}
+                      </Action>
+                    ) : undefined
+                  }
+                />
+              ) : null}
+              {builtWithLine({
+                shape: shipStopped.data?.shape ?? null,
+                build: shipStopped.data?.build ?? null,
+              }) ? (
+                <Row
+                  tight
+                  lead={
+                    builtWithLine({
+                      shape: shipStopped.data?.shape ?? null,
+                      build: shipStopped.data?.build ?? null,
+                    }) as string
+                  }
+                />
+              ) : null}
+              {triedAgainLine(track.deferredUntil, new Date(), {
+                zone,
+                isForecastHorizon: deferralIsForecastHorizon,
+              }) ? (
+                <Row
+                  tight
+                  lead={
+                    triedAgainLine(track.deferredUntil, new Date(), {
+                      zone,
+                      isForecastHorizon: deferralIsForecastHorizon,
+                    }) as string
+                  }
+                />
+              ) : null}
+              {holdWayOut.next ? (
+                <Row
+                  tight
+                  lead={holdWayOut.next}
+                  sub={
+                    holdWayOut.onThisScreen
+                      ? "Both of those are under Take it over, below."
+                      : undefined
+                  }
+                />
+              ) : null}
+              {holdWayOut.door ? (
+                <Link
+                  to="/track/$trackId"
+                  params={{ trackId: holdWayOut.door.trackId }}
+                  search={{}}
+                  className="mrd-focus rounded-mrd-ctl text-mrd-small text-mrd-ink underline decoration-mrd-line underline-offset-4 transition-colors hover:decoration-mrd-edge"
+                >
+                  {holdWayOut.door.label}
+                </Link>
+              ) : null}
+              {buildStop ? (
+                <Row
+                  tight
+                  lead={buildStop.line}
+                  action={
+                    <Door
+                      onClick={() =>
+                        navigate({ to: "/settings", search: { section: "connections" } })
+                      }
+                    >
+                      {buildStop.door}
+                    </Door>
+                  }
+                />
+              ) : null}
+              {/* Ship's own retry stands down when the preview is what stopped
+                  it; the one control that changes anything is drawn above. */}
+              {retryStandsDown ? null : (
+                <div>
+                  <Action busy={release.isPending} onClick={() => release.mutate()}>
+                    {release.isPending
+                      ? "Releasing it"
+                      : `Let ${AGENT_STATIONS[track.station].name} try again`}
+                  </Action>
+                </div>
+              )}
+            </>
           ) : null}
           {capReached ? (
             <Row
+              tight
               lead={`It walked every automatic step (${AUTO_MAX}) and still has route ahead.`}
-              sub="Nothing was stopped silently: press Run it now, in the bar below, to buy another set."
+              sub="Nothing was stopped silently. Run it now, in the bar below, buys another set."
             />
           ) : null}
-          {run.isError ? <Row lead="The walk could not start. Nothing was moved." /> : null}
-        </div>
-      ) : null}
-
-      {/*
-       * ── YOU STOPPED IT, WHICH IS NOT THE WORKSPACE BEING PAUSED ─────────
-       *
-       * A person's stop is written as `last_hold = 'paused'`, because the hold
-       * vocabulary is closed (see `STOPPED_BY_YOU` in driver.ts). Left to the
-       * region below, this would print `HOLD_LINE.paused` -- "Everything is
-       * paused for this workspace, so nothing ran" -- directly under the
-       * driver's own "Stopped by you.", which is one screen making two
-       * incompatible claims about one row.
-       *
-       * It is also not a hold in the sense that region is written for. There is
-       * nothing to diagnose, no way out to name and nothing to release: the
-       * control that made it is the control that undoes it, and it is in the
-       * footer. So it gets one line and no box.
-       */}
-      {track && stoppedByYou(track.holdReason, track.holdBecause) && !walkingMidRoute ? (
-        <Row
-          lead="You stopped this run."
-          sub="Nothing further will be dispatched, by this page or by the loop, until you press Run it now."
-          action={
-            <StatusChip status="hold" pulse={false}>
-              Stopped
-            </StatusChip>
-          }
-        />
-      ) : null}
-
-      {showHold && track ? (
-        <Region title="Why it stopped" sub="This work is not moving until this clears.">
-          <div className="flex flex-col gap-mrd-4">
-            {/*
-             * WHAT THE STATION ITSELF SAID, above the kind of stop it was.
-             *
-             * `track.hold` is derived from the coarse `holdReason` -- the kind a
-             * LIST needs -- so a refused tool reads "this station could not use
-             * a tool it needed", which is true and unactionable. `holdBecause`
-             * is the sentence the driver stored verbatim at the stop, and for a
-             * refusal it names the tool and quotes it: "It was studio.pr.merge,
-             * which said: ...".
-             *
-             * Tonight I watched a Build station fail six times saying "GitHub is
-             * not connected" in its own prose while the hold line said "This
-             * station ran but filed nothing. It will try again." The station
-             * said the true thing, the surface said a false one, and the
-             * transcript was the only place they met. This is where they meet
-             * now.
-             *
-             * FIRST, not appended to the kind: the specific sentence is what a
-             * person can act on, and the kind is context for it rather than the
-             * other way round.
-             *
-             * NULL IS THE COMMON CASE AND STAYS SILENT. The column is written
-             * only at the two stops that have words of their own, and every
-             * track that stopped before it existed reads null. So this adds a
-             * line when there is one and changes nothing when there is not.
-             */}
-            {track.holdBecause ? <Row lead={track.holdBecause} /> : null}
-
-            <Row
-              lead={track.hold ?? undefined}
-              sub={[
-                track.drivenAt
-                  ? `It last moved ${relativeTime(track.drivenAt, nowMs)}.`
-                  : "It has never been driven.",
-                // WHICH TRY THIS IS (queue 66): a person reading a hold
-                // knows how close this is to stopping without SQL.
-                triesLine(track.attempts, AGENT_STATIONS[track.station].name),
-              ]
-                .filter(Boolean)
-                .join(" ")}
+          {run.isError ? <Row tight lead="The walk could not start. Nothing was moved." /> : null}
+          {result && result.stopped === "not-found" ? (
+            <Row tight lead={STOPPED_LINE["not-found"]} />
+          ) : null}
+          {releaseNote ? (
+            <Receipt
+              verb={releaseNote.verb}
+              consequence={releaseNote.consequence}
+              failed={releaseNote.failed}
             />
-            {/*
-             * ── AND THE CHIP IS THE SIXTH COPY, SO IT GOES (2026-09-02) ────
-             *
-             * The comment this replaces called itself "the fifth and last copy
-             * of this claim on one screen" and then added a sixth. Photographed
-             * on `ce846e9b` after the header was cut back to one chip: the
-             * header said **Needs a restart** at the top right, and this row
-             * said **Needs a restart** 380px below it, same word, same colour,
-             * about the same run. One status per screen is the rule, and when
-             * two chips carry the SAME word the second one cannot even be
-             * defended as a different subject.
-             *
-             * Nothing is lost. `run-status.ts` still owns the vocabulary and
-             * the header still wears it; this region's own heading, its lead
-             * and `wayOut`'s sentence below already say what stopped it and
-             * what clears it, in words rather than in a colour.
-             */}
-            {/*
-             * WHAT WILL ACTUALLY CLEAR IT (RUN-23). Eight of the eighteen hold
-             * reasons name no way out at all, and the only control here says
-             * "let this station try again", which for those eight does the
-             * same thing again. A person read a reason and was told nothing
-             * about what to do, which is the dead end R-20 section 5 forbids.
-             *
-             * Read from the RAW reason, never the prose. Branching on wording
-             * is how every hold once painted amber.
-             *
-             * The retry control is deliberately left in place below: somebody
-             * who has just unlocked a refused tool elsewhere comes back here
-             * wanting exactly that button. The dead end was the missing
-             * sentence, not the button.
-             */}
-            {/*
-              ── THE SHIP STOP IS ITS OWN ROW (P-59c acceptance) ────────────
-              It used to ride on `holdWayOut.next`, and way-out says NOTHING for
-              `produced-nothing` by design -- its own header lists that hold as
-              one whose sentence already ends with the action. So the Row was
-              never rendered, and with it the only control that changes
-              anything. A1 read the generic card fifty minutes after publish
-              with the station's retry correctly stood down, which is the exact
-              signature of this: the state was right and its one control was
-              attached to something that does not draw.
-            */}
-            {shipStop ? (
-              <Row
-                lead={shipStopLine(shipStop)}
-                sub={
-                  retryPreview.isError
-                    ? `That did not run: ${(retryPreview.error as Error).message}`
-                    : retryPreview.data && !retryPreview.data.ok
-                      ? `It ran and failed: ${retryPreview.data.reason ?? "no reason was given."}`
-                      : undefined
-                }
-                action={
-                  shipIsStopped ? (
-                    <Action busy={retryPreview.isPending} onClick={() => retryPreview.mutate()}>
-                      {retryPreview.isPending ? "Trying the preview" : "Try the preview again"}
-                    </Action>
-                  ) : undefined
-                }
-              />
-            ) : null}
+          ) : null}
+        </RunNow>
+      )}
 
-            {/*
-             * ── WHY IT IS NOT BEING RETRIED RIGHT NOW (P-113) ──────────────
-             *
-             * The sweep holds a track back after three drives that entered on
-             * the same hold and produced nothing. Without this line the card
-             * shows a hold and a retry button and no reason the loop has gone
-             * quiet, which reads as the product having given up.
-             *
-             * Above the controls, for the reason the ship-stop row is: a
-             * sentence printed under a button has already lost. And the
-             * person's own press still clears it -- `driveTrackOnce` wipes
-             * `deferred_until` on every path in, whoever drove it.
-             */}
-            {/*
-             * HOW THIS PREVIEW WAS PRODUCED (P-128b). With two hostable shapes
-             * a person cannot tell from a URL whether we uploaded their repo or
-             * built it, and `build_detail` knew and no surface read it. Shown
-             * for a successful preview as well as a failed one: which shape is
-             * a fact about the work, not about the failure.
-             */}
-            {builtWithLine({
-              shape: shipStopped.data?.shape ?? null,
-              build: shipStopped.data?.build ?? null,
-            }) ? (
-              <Row
-                lead={
-                  builtWithLine({
-                    shape: shipStopped.data?.shape ?? null,
-                    build: shipStopped.data?.build ?? null,
-                  }) as string
-                }
-              />
-            ) : null}
+      {holdFacts && track ? <TakeOver trackId={trackId} track={track} /> : null}
 
-            {triedAgainLine(track?.deferredUntil, new Date(), {
-              zone,
-              isForecastHorizon: deferralIsForecastHorizon,
-            }) ? (
-              <Row
-                lead={
-                  triedAgainLine(track?.deferredUntil, new Date(), {
-                    zone,
-                    isForecastHorizon: deferralIsForecastHorizon,
-                  }) as string
-                }
-              />
-            ) : null}
-
-            {holdWayOut.next ? (
-              <Row
-                lead={holdWayOut.next}
-                sub={
-                  holdWayOut.onThisScreen
-                    ? "Both of those are under Take it over, just below."
-                    : undefined
-                }
-              />
-            ) : null}
-
-            {/*
-             * THE WAY OUT THAT IS SOMEWHERE ELSE.
-             *
-             * A run waiting on a claimed path has nothing to press here -- the
-             * file frees when the other run's pull request merges or closes --
-             * and the hold's own sentence already says that. What it has is
-             * somewhere to GO, and a person who has just read "waiting on the
-             * tablet run" wants that run.
-             *
-             * A real link, never a label. `wayOut` returns this only with an id
-             * it was handed, and the id is resolved live, so a claim that has
-             * released renders nothing rather than a door onto a run that is no
-             * longer holding anything.
-             */}
-            {holdWayOut.door ? (
-              <Link
-                to="/track/$trackId"
-                params={{ trackId: holdWayOut.door.trackId }}
-                search={{}}
-                className="mrd-focus rounded-mrd-ctl text-mrd-small text-mrd-ink underline decoration-mrd-line underline-offset-4 transition-colors hover:decoration-mrd-edge"
-              >
-                {holdWayOut.door.label}
-              </Link>
-            ) : null}
-
-            {/*
-             * THE PRECONDITION THE RETRY CANNOT SATISFY, said before the retry.
-             *
-             * It sits ABOVE the control on purpose. A person who reads "Let
-             * Build try again" first will press it -- six people-equivalents
-             * already did on this one track, at 373,096 tokens -- and a reason
-             * printed underneath a button has already lost. The door is the
-             * instruction, so the sentence carries no imperative of its own.
-             */}
-            {buildStop ? (
-              /*
-               * THE SENTENCE IS NOT CONDITIONAL ON A CONTROL, and this is the
-               * second version of this block.
-               *
-               * The first put the line inside `AskInPlace` as its `why` and let
-               * that component own the row. It is built for exactly this
-               * situation, it is S3's, and mounting it here was the obvious
-               * upgrade: connect in place instead of sending someone to a page
-               * of connectors, which is SESSION-1's fourth unit.
-               *
-               * Rendered against this held track it drew NOTHING, and the
-               * reason is worth keeping rather than working around.
-               * `AskInPlace` decides whether the need is met by asking whether
-               * a CONNECTOR EXISTS -- `satisfiedByEnv` counts an admin's env
-               * credential, and the comment on that default is right for its
-               * own purpose: "Supaprod is already reading through it, so asking
-               * would be a lie". But this station's blocker is not a missing
-               * credential. `canDispatchToRepo` runs the same resolution the
-               * dispatch runs, and it fails when no repo RESOLVES -- most often
-               * a credential that exists with no repository bound to this
-               * workspace or product.
-               *
-               * So the two disagree exactly where it matters: the component
-               * concludes the need is satisfied and hides itself at the moment
-               * the station cannot proceed. Putting the explanation inside it
-               * took the explanation down too, which is how the regression
-               * showed up at all.
-               *
-               * The door therefore stays pointed at Settings, which is where
-               * BOTH halves are fixed -- connect the account, and bind the
-               * repository. A control that can only solve half the causes must
-               * not be the only way out of a hold.
-               */
-              <Row
-                lead={buildStop.line}
-                action={
-                  <Door
-                    onClick={() =>
-                      navigate({ to: "/settings", search: { section: "connections" } })
-                    }
-                  >
-                    {buildStop.door}
-                  </Door>
-                }
-              />
-            ) : null}
-
-            {/* `callIsYours` is inside `answerTheCall`, so this already stands
-                down -- stated rather than relied on, because pressing it would
-                dispatch the station that just refused, into the same emptiness,
-                and spend money to arrive back here. */}
-            {/*
-              ── AND SHIP'S OWN RETRY STANDS DOWN (P-59c) ───────────────────
-              When the preview is what stopped this, "Let Ship try again" runs
-              the station that cannot proceed without a preview, spends an
-              attempt, and returns here. The one control that changes anything
-              is "Try the preview again", which is drawn on the hold card above.
-            */}
-            {answerTheCall || callIsYours || shipIsStopped ? null : (
-              <div>
-                <Action busy={release.isPending} onClick={() => release.mutate()}>
-                  {release.isPending
-                    ? "Releasing it"
-                    : `Let ${AGENT_STATIONS[track.station].name} try again`}
-                </Action>
-              </div>
-            )}
-          </div>
-        </Region>
-      ) : null}
-
-      {/* QUEUE 67: Calm hold tone when forecast not yet due. No alarm, no nudge. */}
-      {showCalmHold && track && forecastHorizonDate ? (
-        <Region title="Learning to come" sub="This forecast is on hold until the date arrives.">
-          <div className="flex flex-col gap-mrd-4">
-            <Row
-              // The viewer's locale spells the day, and the weekday rides along,
-              // the same rule the consent expiry line runs on. A horizon date is
-              // a calendar day, so no time is put on it.
-              lead={`The forecast comes due ${formatDeadlineDate(Date.parse(forecastHorizonDate))}; Learn returns then.`}
-              sub={
-                track.drivenAt
-                  ? `It last moved ${relativeTime(track.drivenAt, nowMs)}.`
-                  : "It has never been driven."
-              }
-              action={
-                <StatusChip status="hold" pulse={false}>
-                  Waiting for evidence
-                </StatusChip>
-              }
-            />
-          </div>
-        </Region>
-      ) : null}
-
-      {/*
-       * OUTSIDE THE REGION ON PURPOSE. A successful release clears the hold,
-       * the region above unmounts on the refetch, and a receipt living inside
-       * it would vanish in the same breath as the click. Here it survives long
-       * enough to be read, and sits where the region was.
-       */}
-      {releaseNote ? (
-        <Receipt
-          verb={releaseNote.verb}
-          consequence={releaseNote.consequence}
-          failed={releaseNote.failed}
-        />
-      ) : null}
-
-      {/*
-       * THE PREVIEW PANE AND THE RECORD LIVE IN THE RIGHT PANE NOW
-       * (TrackPaneRight). This column keeps the walking: character, consent,
-       * holds, the control, and the transcript.
-       */}
-
-      {/*
-       * ── THE `RUN IT` REGION IS GONE, AND THE CONTROL IS NOT ─────────────
-       *
-       * A boxed region titled "Run it", with a paragraph of its own and a
-       * primary button, sat here in the middle of the transcript column. Stop
-       * had already moved to the footer under both panes (THE-ONE-SCREEN:21),
-       * which left the two halves of one decision in two places: you started a
-       * run in the middle of the left column and stopped it at the bottom of
-       * the screen, and on a long transcript whichever one you wanted was off
-       * screen. Both are in the footer now, as ONE control that reads Stop or
-       * Run it now and never both.
-       *
-       * WHAT WAS IN THE BOX BESIDES THE BUTTON is kept and moved rather than
-       * deleted: the press's own answer is the live region above, and the copy
-       * control is directly below. The three sentences the box carried about a
-       * finished or abandoned run are the footer's job now, and it says each
-       * of them once.
-       */}
-
-      {/*
-       * THE RUN, IN A FORM SOMEBODY CAN PASTE SOMEWHERE. It is the one export
-       * on this pane and it belongs to the transcript above it rather than to a
-       * control that no longer lives here.
-       */}
-      <CopyRunSummary trackId={trackId} />
-
-      {/*
-       * RUN-20: THE CONTROLS THAT ARE NOT START AND STOP. Sending a step back
-       * and handing a step in by hand are the two moves a person makes when
-       * what came back is wrong, and neither had a door -- `rewindTrackTo` and
-       * `submitStationByHand` were on `main` with zero importers. They sit here,
-       * under the control that drives the run forward and above the record of
-       * what it did, because all three act on where the work stands.
-       */}
-      {track ? <TakeOver trackId={trackId} track={track} /> : null}
-
-      {/*
-       * QUEUE 71: THE PANE POLLS AT VISIT SPEED WHENEVER A CREW IS HERE, not
-       * only while this screen's own press is walking. The sweep serves tracks
-       * with nothing pressed anywhere, and its running rows are the one honest
-       * signal of that; the transcript reports them upward and both panes
-       * follow. When no row says running or queued, nothing speeds up and
-       * nothing pulses -- an idle track reads idle.
-       */}
       <TrackActivity
         trackId={trackId}
         onLiveChange={onCrewLive}
+        onLiveSeats={setLiveSeats}
         onSelect={onSelectArtifact}
         selected={selectedArtifactId}
       />
 
-      {/*
-       * THE STEER BOX (RUN-03), AT THE PANE'S FOOT -- below the transcript,
-       * where a reader finishes and answers, sticky so a long record never
-       * buries it. One instruction back into moving work from the surface the
-       * work is on; `steerTrack` existed with zero callers until this mounted,
-       * which made Start and Stop the run's whole vocabulary. The finished case
-       * says so rather than rendering a form that can do nothing. `/` from
-       * anywhere on this page lands here (RUN-10).
-       */}
       <SteerComposer
         trackId={trackId}
         finished={finished}
-        /*
-         * P-37. R-36 promises two ways on from a run stuck for want of
-         * evidence: add a source, or say what you know. The card keeps one
-         * door, so the second promise is made here, in the field that can
-         * accept it. `composerPromiseFor` is the same decision the door reads,
-         * so the two cannot offer different things about one state.
-         */
         stuckOnEvidence={
           composerPromiseFor({
             hold: track?.holdReason ?? null,
-            /* At Learn the promise would be false: nothing carries on until the
-               horizon, whatever anybody types. */
             station: track?.station ?? null,
             hasConnection: false,
             connectionIsBound: false,
@@ -1604,25 +1219,26 @@ function RunGotYou({
   onOpen?: (artifactId: string | null) => void;
   active: string | null;
 }) {
-  const { tally, ready } = useRunTally(trackId);
   /*
-   * NOTHING YET IS NOT AN EMPTY STRIP. A run that has produced nothing has a
-   * transcript saying so two inches to the left, and a box reading "nothing yet"
-   * over a pane that already says it is the duplication this screen keeps being
-   * repaired for. `ready` is both reads having answered, so the strip arrives
-   * whole rather than reflowing as its second half lands.
+   * ── THE STRIP BECAME A PANEL (2026-09-08) ─────────────────────────────
+   * `run-proof.ts` turns the same tally and the same stops into five labelled
+   * rows (made, checked, shipped, on the hook, verdict) instead of one line of
+   * counts. Same cache entries, same pointer, a different shape; see that
+   * module's header for the line it replaces.
    */
-  if (!ready || !hasAnything(tally)) return null;
-  return (
-    <GotYou
-      label="What this run got you"
-      chips={gotYouChips(tally)}
-      clauses={gotYouClauses(tally)}
-      link={gotYouLink(tally)}
-      active={active}
-      onOpen={onOpen ? (id) => onOpen(id) : undefined}
-    />
+  const { tally, ready } = useRunTally(trackId);
+  const fArtifacts = useServerFn(getTrackArtifacts);
+  const artifacts = useQuery({
+    queryKey: ["track-artifacts", trackId],
+    queryFn: () => fArtifacts({ data: { trackId } }),
+    staleTime: 10_000,
+  });
+  const rows = React.useMemo(
+    () => proofRows({ stops: artifacts.data?.stops ?? null, tally, nowMs: Date.now() }),
+    [artifacts.data, tally],
   );
+  if (!ready) return null;
+  return <RunProof rows={rows} active={active} onOpen={onOpen ? (id) => onOpen(id) : undefined} />;
 }
 
 export function TrackPaneRight({

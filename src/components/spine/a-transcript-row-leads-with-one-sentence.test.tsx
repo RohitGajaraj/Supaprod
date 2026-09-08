@@ -106,10 +106,7 @@ describe("transcriptLead composes the verdict and the seat into one sentence", (
 });
 
 describe("the row still does two jobs on one press, and neither is lost", () => {
-  const src = readFileSync(
-    fileURLToPath(new URL("./TrackActivity.tsx", import.meta.url)),
-    "utf8",
-  );
+  const src = readFileSync(fileURLToPath(new URL("./TrackActivity.tsx", import.meta.url)), "utf8");
 
   it("the lead is the composed sentence, never the bare verdict alone", () => {
     expect(src).toContain("<RunSubject>{transcriptLead(t)}</RunSubject>");
@@ -129,16 +126,30 @@ describe("the row still does two jobs on one press, and neither is lost", () => 
   });
 
   it("the same press also opens the fold, on both the pressable and the plain row", () => {
-    expect(src).toContain("toggleTurn(row.key)");
-    expect(src).toContain("openTurns.has(row.key)");
+    expect(src).toContain('toggleTurn(row.key, t.outcome === "working")');
+    expect(src).toContain('isTurnOpen(row.key, t.outcome === "working")');
     // Both branches -- the artifact-select button and the plain toggle button
     // for a turn that filed nothing -- carry aria-expanded, so a screen
     // reader is told the fold's state on every row, not only the pressable
     // half.
-    expect(src.split("aria-expanded={openTurns.has(row.key)}").length - 1).toBe(2);
+    expect(
+      src.split('aria-expanded={isTurnOpen(row.key, t.outcome === "working")}').length - 1,
+    ).toBe(2);
   });
 
-  it("the fold is closed by construction: gridTemplateRows starts at 0fr", () => {
-    expect(src).toContain('gridTemplateRows: openTurns.has(row.key) ? "1fr" : "0fr"');
+  /*
+   * 2026-09-08: a WORKING turn starts open, because the seat's tool stream
+   * lives inside the fold and a fold that started closed hid the one thing
+   * worth watching while the agent works (founder: tool calls drawn live).
+   * A finished turn still starts closed; the person's own press on either
+   * is kept for that turn.
+   */
+  it("the fold is closed by construction on a finished turn, and open on a live one", () => {
+    expect(src).toContain(
+      "const isTurnOpen = (key: string, live: boolean) => turnChoices.get(key) ?? live;",
+    );
+    expect(src).toContain(
+      'gridTemplateRows: isTurnOpen(row.key, t.outcome === "working") ? "1fr" : "0fr",',
+    );
   });
 });
