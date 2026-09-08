@@ -37,17 +37,15 @@ describe("a shipped track's row leads with when it went live", () => {
   // the browser's own, which this test process's is not guaranteed to be.
   it("prefixes 'Live since HH:MM' ahead of the Learn sentence, when the track has a production deployment", () => {
     const m = startRowMiddle(run({ liveSince: "2026-09-04T12:28:00Z" }), NOW, WORDS, phrase, "UTC");
-    expect(m).toBe(
-      "Live since 12:28 · The forecast this work is graded against comes due on 2026-09-21. Learn returns when it does; nothing here is waiting on a person.",
-    );
+    // The driver's sentence is 130 characters; the row prints the one line
+    // (`ROW_LINE_MAX`) and keeps the sentence as the row's detail.
+    expect(m).toBe("Live since 12:28 · Graded on 2026-09-21. Nothing to do until then.");
   });
 
   it("says nothing about being live when the track has no production deployment", () => {
     const m = startRowMiddle(run({ liveSince: null }), NOW, WORDS, phrase);
     expect(m).not.toContain("Live since");
-    expect(m).toBe(
-      "The forecast this work is graded against comes due on 2026-09-21. Learn returns when it does; nothing here is waiting on a person.",
-    );
+    expect(m).toBe("Graded on 2026-09-21. Nothing to do until then.");
   });
 
   it("still leads a running row, not only a held one -- the prefix is universal, not Learn-specific", () => {

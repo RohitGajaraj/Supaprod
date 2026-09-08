@@ -279,15 +279,23 @@ describe("the four, together", () => {
   });
 
   it("treats a PENDING read as unread on the surface, not as empty", () => {
-    // The first frame saying "Nothing is waiting on your answer" before it has
+    // The first frame saying "Nothing new since you looked" before it has
     // looked is the same lie one tick earlier.
     const src = code(readFileSync("src/routes/_authenticated.start.tsx", "utf8"));
-    expect(src).toContain("queueRead.isSuccess");
     expect(src).toContain("homeReads.isSuccess ? homeReads.data.arrivingCount : null");
   });
 
-  it("reads the waiting shape from the approvals queue, never a second count", () => {
+  it("composes no second waiting count on the home: the hero counts runs, the rows carry the ask", () => {
+    /*
+     * Lane 1, 2026-09-08. The home used to read the approvals queue for a
+     * fourth sentence ("4 design gates need you, and 2 other things") above
+     * the rows that already said "Needs you". The hero now says how many RUNS
+     * need a person, from the same read the rows use, and the rail's Inbox
+     * count reads gates from the queue. One question, one reader each.
+     */
     const src = code(readFileSync("src/routes/_authenticated.start.tsx", "utf8"));
-    expect(src).toContain("queueShape((queueRead.data?.items ?? []).map((i) => i.kindKey))");
+    expect(src).toContain("waitingShape: null");
+    expect(src).not.toContain("getApprovalsQueue");
+    expect(src).toContain('.filter((a) => a.read === "answered")');
   });
 });

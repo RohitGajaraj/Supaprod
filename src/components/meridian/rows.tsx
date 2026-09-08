@@ -90,10 +90,14 @@ export function Row({
   action,
   leadTitle,
   subTitle,
+  marksWidth = 34,
 }: {
   /** The mark slot is a fixed width, so text starts on the same line whether
    *  the row carries one mark or two. */
   marks?: ReactNode;
+  /** That width. 34px fits one glyph; a Journey row mark carries the road
+   *  and a word, so its caller widens it once for the whole list. */
+  marksWidth?: number;
   lead: ReactNode;
   sub?: ReactNode;
   time?: string | null;
@@ -173,7 +177,9 @@ export function Row({
 
   const body = (
     <>
-      <span className="flex w-[34px] flex-none items-center">{marks}</span>
+      <span className="flex flex-none items-center" style={{ width: marksWidth }}>
+        {marks}
+      </span>
       <span className="min-w-0 flex-1">
         <span
           title={hint(lead, leadTitle)}

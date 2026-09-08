@@ -33,7 +33,15 @@
  */
 
 /** The five, and only the five. A sixth status is refused in meridian.css. */
-export type StatusWord = "you" | "agent" | "pass" | "fail" | "hold";
+/*
+ * `quiet` (Lane 1, 2026-09-08, on Lane 2's measurement): a wait the machine
+ * has in hand, a release live in production with its verdict due on a date.
+ * Not an exception, so it carries NO status hue: mute ink on the sink fill.
+ * Amber stays for stopped-on-a-condition-that-must-change. The five status
+ * words are still five; this is the absence of one, drawn as a chip so it
+ * sits in a row of chips without becoming invisible.
+ */
+export type StatusWord = "you" | "agent" | "pass" | "fail" | "hold" | "quiet";
 
 /**
  * Chip and label are one pair per status, never mixed.
@@ -49,6 +57,7 @@ const FACE: Record<StatusWord, string> = {
   pass: "bg-mrd-pass-chip text-mrd-pass-on-chip",
   fail: "bg-mrd-fail-chip text-mrd-fail-on-chip",
   hold: "bg-mrd-hold-chip text-mrd-hold-on-chip",
+  quiet: "bg-mrd-sink text-mrd-mute",
 };
 
 /**
@@ -66,6 +75,7 @@ export const STATUS_WORD: Record<StatusWord, string> = {
   pass: "Passed",
   fail: "Failed",
   hold: "On hold",
+  quiet: "Scheduled",
 };
 
 export function StatusChip({

@@ -361,6 +361,10 @@ export type StartRow = {
   kind: StartRowKind;
   /** The one sentence that says what this run is doing or what it got you. */
   middle: string;
+  /** The driver's own longer sentence behind `middle`, when there is one. */
+  detail: string | null;
+  /** Where it stands, for the row's Journey mark. */
+  station: AgentStation | null;
   /** When, for the right-hand column. */
   at: number;
   /** A person put this one first. Ordered by when they said it. */
@@ -520,8 +524,21 @@ function startRowRest(
   if (r.status === "done") return "Finished, and filed nothing";
   if (r.status === "abandoned") return "Abandoned";
 
-  /* HELD. The driver's own sentence when it wrote one, because it names the
-     thing that has to change; the coarse reason cannot. */
+  /*
+   * HELD. A SHORT LINE FIRST, THE DRIVER'S OWN SENTENCE AS THE DETAIL.
+   *
+   * Lane 1, 2026-09-08. The driver writes a full explanation into
+   * `last_hold_because` ("This station has been run many times over and the
+   * work has not moved on once. That is the loop rather than any single run,
+   * so nothing further will be spent on it until you look."), and the row
+   * printed it whole. Five rows of that under a composer is the "dump of
+   * text" the founder named. The row's job is one sentence a person can act
+   * on; the driver's sentence is kept, verbatim, as the row's detail
+   * (`StartRow.detail`, drawn as the tooltip and read by the run screen).
+   */
+  if (r.holdBecause && r.holdBecause.length <= ROW_LINE_MAX) return r.holdBecause;
+  const short = shortHoldLine(r);
+  if (short) return short;
   if (r.holdBecause) return r.holdBecause;
   /*
    * ── "STOPPED AT BUILD" TWICE, WALKED ON THE LIVE LIST ───────────────────
@@ -549,6 +566,47 @@ function startRowRest(
   return r.drivenAt ? `Waiting at ${r.stationName}` : "Not started yet";
 }
 
+/**
+ * A ROW'S LINE IS ONE SENTENCE A PERSON CAN ACT ON, AND IT FITS ON A ROW.
+ *
+ * The driver's own sentence wins whenever it is short, because it names the
+ * thing that has to change. Past this length it is an explanation, and the
+ * row keeps it as the detail (tooltip) while printing the one line below.
+ */
+export const ROW_LINE_MAX = 100;
+
+const HORIZON_DUE = /comes due on (\d{4}-\d{2}-\d{2})/i;
+
+export function shortHoldLine(r: StartRowInput): string | null {
+  const s = r.stationName;
+  if (r.holdBecause) {
+    const due = HORIZON_DUE.exec(r.holdBecause);
+    if (due) return `Graded on ${due[1]}. Nothing to do until then.`;
+  }
+  switch (r.holdReason) {
+    case "going-in-circles":
+      return `${s} ran again and again without moving on. Look at it before more is spent.`;
+    case "given-up":
+      return `${s} was sent back for a fix and still cannot finish. It needs you.`;
+    case "self-check-failed":
+      return `${s} checked its own work and it did not pass.`;
+    case "nothing-to-hand-on":
+      return `${s} filed something, but not what the next step needs.`;
+    case "the-call-is-yours":
+      return "Nothing on the record bears on this, so the call is yours.";
+    case "waiting-on-another-run":
+      return `${s} is waiting on a file another run is writing.`;
+    case "out-of-credit":
+      return "The workspace is out of credits, so nothing ran.";
+    case "tools-refused":
+      return `${s} needs a tool it is not allowed to use.`;
+    case "carried-on-your-sentence":
+      return null;
+    default:
+      return null;
+  }
+}
+
 export function startRows(
   runs: readonly StartRowInput[],
   now: number,
@@ -564,6 +622,11 @@ export function startRows(
         title: r.title,
         kind: kindOf(r),
         middle: startRowMiddle(r, now, words, phraseFor, zone),
+        detail:
+          r.holdBecause && r.holdBecause !== startRowRest(r, now, words, phraseFor)
+            ? r.holdBecause
+            : null,
+        station: r.station ?? null,
         at: Date.parse(r.updatedAt) || 0,
         pinnedAt: r.pinnedAt ? Date.parse(r.pinnedAt) || null : null,
         creditsLine: r.credits && r.credits > 0 ? creditsWord(r.credits) : null,
