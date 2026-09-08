@@ -37,28 +37,15 @@ import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
 import { supabase } from "@/integrations/supabase/client";
 import { markOnboarded } from "@/lib/onboarding-gate";
-import {
-  completeOnboarding,
-  recordOnboardingMilestone,
-  seedWorkspaceForTrack,
-} from "@/lib/onboarding.functions";
-import { getProfile, updateProfile } from "@/lib/profile.functions";
-import { renameWorkspace } from "@/lib/workspaces.functions";
-import { updateProject } from "@/lib/projects.functions";
-import { upsertBriefItem } from "@/lib/briefs.functions";
+import { openFirstRun } from "@/lib/onboarding.functions";
+import { getProfile } from "@/lib/profile.functions";
 import { failureLine } from "@/lib/error-copy";
 
 export function FirstRun() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const fGetProfile = useServerFn(getProfile);
-  const fUpdateProfile = useServerFn(updateProfile);
-  const fSeed = useServerFn(seedWorkspaceForTrack);
-  const fRename = useServerFn(renameWorkspace);
-  const fProduct = useServerFn(updateProject);
-  const fBrief = useServerFn(upsertBriefItem);
-  const fComplete = useServerFn(completeOnboarding);
-  const fMilestone = useServerFn(recordOnboardingMilestone);
+  const fOpen = useServerFn(openFirstRun);
 
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => fGetProfile() });
   const needsName =
@@ -78,47 +65,22 @@ export function FirstRun() {
     mutationFn: async () => {
       const productName = product.trim();
       const oneLine = line.trim();
-      if (needsName && name.trim()) {
-        const first = name.trim().split(/\s+/)[0] ?? name.trim();
-        await fUpdateProfile({ data: { display_name: first, full_name: name.trim() } });
-      }
-      const seeded = (await fSeed({ data: { track: "solo" } })) as {
-        workspaceId?: string | null;
-        projectId?: string | null;
-      };
-      const workspaceId = seeded?.workspaceId ?? null;
-      if (workspaceId) {
-        await fRename({ data: { id: workspaceId, name: productName } });
-        /* The activation funnel's "product_named" moment (Lane 3's note):
-           the old screen fired it from its name field; the server fires
-           "onboarding_completed" itself. Non-fatal. */
-        await fMilestone({
-          data: { workspaceId, stage: "product_named", metadata: { productName } },
-        }).catch(() => undefined);
-      }
-      /* The product row is what the home greets by name; the seed named it
-         after the workspace before the person had typed anything. The one
-         line is NOT written to `north_star`: that field is a goal ("Get 40%
-         of active users to a funded savings goal") and the composer's
-         placeholder templates it as one, so a positioning line there read
-         "Help Prism an expense tool for freelancers" (entry review,
-         2026-09-08). The line's home is the positioning brief, below. */
-      if (seeded?.projectId) {
-        await fProduct({
-          data: { id: seeded.projectId, name: productName },
-        }).catch(() => undefined);
-      }
-      if (oneLine) {
-        /* The one line is the positioning brief. Non-fatal: a person who
-           wrote it should not be stopped at the door if the brief write
-           fails; the home will ask for it again where it is used. */
-        await fBrief({
-          data: { kind: "positioning", title: productName, body: oneLine },
-        }).catch(() => undefined);
-      }
-      /* The product id lets the server write the first three runs at once
-         (Lane 3, 2026-09-08), so the home usually arrives with them there. */
-      await fComplete({ data: { productId: seeded?.projectId ?? undefined } });
+      /* ONE CALL (fourth review, 2026-09-09; Lane 3's openFirstRun). This
+         press ran seven authenticated server functions one after another,
+         each paying its own auth hop, so the first press in the product sat
+         disabled reading "Setting up" for seconds. The server runs the name
+         and the seed together, then everything keyed on the seed together,
+         then the completion, which claims the starter runs and returns at
+         once. The one line is the positioning brief, never `north_star`
+         (entry review, 2026-09-08). */
+      await fOpen({
+        data: {
+          productName,
+          oneLine: oneLine || undefined,
+          name: needsName && name.trim() ? name.trim() : undefined,
+          track: "solo",
+        },
+      });
       const { data } = await supabase.auth.getSession();
       if (data.session) await markOnboarded(data.session.user.id);
       await Promise.all([
