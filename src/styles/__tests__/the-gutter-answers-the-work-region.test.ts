@@ -32,7 +32,7 @@ import { join } from "node:path";
  * a viewport prediction of 46.08px.
  */
 
-const INK = readFileSync(join(import.meta.dir, "..", "ink.css"), "utf8");
+const MERIDIAN = readFileSync(join(import.meta.dir, "..", "meridian.css"), "utf8");
 const SHELL = readFileSync(join(import.meta.dir, "..", "shell.css"), "utf8");
 
 /** Strip comments, so prose that names a banned shape in order to ban it does
@@ -41,12 +41,12 @@ function code(css: string): string {
   return css.replace(/\/\*[\s\S]*?\*\//g, "");
 }
 
-const ink = code(INK);
+const meridian = code(MERIDIAN);
 const shell = code(SHELL);
 
 function token(name: string): string {
-  const hit = new RegExp(`--${name}\\s*:\\s*([^;]+);`).exec(ink);
-  expect(hit, `--${name} is not declared in ink.css`).not.toBeNull();
+  const hit = new RegExp(`--${name}\\s*:\\s*([^;]+);`).exec(meridian);
+  expect(hit, `--${name} is not declared in meridian.css`).not.toBeNull();
   return hit![1].trim();
 }
 
@@ -59,7 +59,7 @@ describe("the work region's gutter answers its container", () => {
   });
 
   it("scales the horizontal and vertical gutters with the container", () => {
-    for (const name of ["sp-work-pad-x", "sp-work-pad-y"]) {
+    for (const name of ["mrd-shell-work-pad-x", "mrd-shell-work-pad-y"]) {
       const value = token(name);
       expect(value, `--${name} is back to a fixed length`).toContain("clamp(");
       // `cqi`, never `vw`: the window is the wrong question when a 236px rail
@@ -76,8 +76,8 @@ describe("the work region's gutter answers its container", () => {
       return { min: +m![1], rate: +m![2], max: +m![3] };
     };
 
-    const x = parse("sp-work-pad-x");
-    const y = parse("sp-work-pad-y");
+    const x = parse("mrd-shell-work-pad-x");
+    const y = parse("mrd-shell-work-pad-y");
 
     // A 320px phone must keep a usable measure. Two 20px gutters spend 12.5% of
     // it; the 40px each side that used to be here spent 25%.
@@ -96,7 +96,7 @@ describe("the work region's gutter answers its container", () => {
   it("leaves the floor fixed, because it is clearance and not rhythm", () => {
     // `--sp-work-pad-bottom` clears the dock. Shrinking it on a narrow screen
     // does not tighten a layout, it puts the last row under the dock.
-    const bottom = token("sp-work-pad-bottom");
+    const bottom = token("mrd-shell-work-pad-bottom");
     expect(bottom).toMatch(/^\d+px$/);
   });
 });

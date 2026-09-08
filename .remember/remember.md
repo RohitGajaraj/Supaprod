@@ -270,3 +270,6 @@ Main 4659d788a+. P-146 DONE (gate green 127/26, 24 fns + 10 components deleted b
 
 - Lane 2 13:45 IST 09-08: push hook mounted; trace page keeps its run (seat, station, sentence, door back); put-back press on held runs (live on 6199f3df); Choice row fixed via Lane 1 review; Outcomes lists shipped-awaiting-verdict on the settle panel and its own shipped region (76689408f). Open: re-walk a fresh run focused; /ship, /learn no rail door; spec editor eyebrow.
 - Lane 3 14:25 IST 09-08: F-205 landed; agent_runs + spine_tracks now in the realtime publication (they were NOT, every socket was silent); starter runs (listStarterRuns, migration 20260909100400); objectLabel; claimId on whoHoldsThePath; test-mock lint pass (41 → 15 files). Unreachable 126/26. F-206/F-208 presses with Lane 2; F-207 founder's call.
+
+## Lane 1 · 14:30 IST 09-08
+Entry review (6 lenses, 2 agents at a time) landed in 6995c805f, ec5abfa74, c2fb51362, bd9aacf77, 9fbe95e08: /start gate exemption removed (fresh signups never saw FirstRun), home reads holdTone/nothingIsComing, --mrd-seat-1..5, rail+strip on listRunningNow naming seat/verb/object, first-home polish. Deploy a12d4679 pressed 14:28. Open: shell --sp-* tokens, ExampleJobs running chip, cursor anchor. Lovable sync stalls repeatedly; read_file, not the sha.

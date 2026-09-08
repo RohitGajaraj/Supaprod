@@ -1082,6 +1082,30 @@
    * that movement IS the fix -- it is the rung that was in the wrong place.
    */
   --mrd-measure-page: 41rem;
+
+  /*
+   * ── THE SHELL'S DIMENSIONS (2026-09-08) ────────────────────────────────
+   * The header height, the mark, the two icon sizes, the ask pane and the
+   * work region's gutters resolved through `--sp-*` tokens that existed only
+   * in ink.css, the retired sheet: the shell was standing on a floor Meridian
+   * did not own (entry review, 2026-09-08). They live here now, values
+   * unchanged, each with the reason it has.
+   */
+  --mrd-shell-header-h: 56px; /* one row of controls and a mark, with air */
+  --mrd-shell-mark: 22px; /* the mark in the header and the rail */
+  --mrd-icon: 17px; /* a rail or header icon: reads at 13px type */
+  --mrd-icon-sm: 15px; /* the same glyph inside a chip or a row */
+  --mrd-shell-pane-inset: 22px; /* the ask pane's distance from the frame */
+  --mrd-shell-pane-ask-w: 392px; /* the ask pane: a measure a reply can be read at */
+  --mrd-shell-ctx-gap: 52px; /* between the work and the context column */
+  /* The work region's gutters answer the container (cqi), never the window:
+     a 236px rail can open and close underneath it. Floor a phone can live
+     with; at a 1376px container these reproduce the 40px and 34px a desk
+     already had. The bottom clears the dock and is clearance, not rhythm. */
+  --mrd-shell-work-pad-x: clamp(20px, 2.9cqi, 44px);
+  --mrd-shell-work-pad-y: clamp(20px, 2.5cqi, 36px);
+  --mrd-shell-work-pad-bottom: 72px;
+  --mrd-shell-main-max: 74ch; /* measure, not pixels: it tracks the type */
   --mrd-measure-region: 34rem;
   --mrd-measure-prose: 32rem;
 

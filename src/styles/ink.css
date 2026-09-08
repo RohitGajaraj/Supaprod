@@ -117,18 +117,24 @@
    * "data-sm" is 11.5px = mrd-t-data) the alias follows the VALUE, and says
    * so. --sp-leading-title/gate/note keep literal values: no exact Meridian
    * stop and no ruling. */
-  --sp-text-gate: var(--mrd-t-h3); /* was 19px; ANS-001: up, not down. A gate heading is a heading. */
+  --sp-text-gate: var(
+    --mrd-t-h3
+  ); /* was 19px; ANS-001: up, not down. A gate heading is a heading. */
   --sp-text-prose: var(--mrd-t-prose); /* was 13.5px; ANS-001: named prose, takes the prose stop */
 
   /* ---- Leading ---- */
   --sp-leading-title: 1.24;
   --sp-leading-gate: 1.32;
-  --sp-leading-row: var(--mrd-lh-snug); /* was 1.4; ANS-001: 0.1 of leading on 13px is invisible, and snug is the considered stop */
+  --sp-leading-row: var(
+    --mrd-lh-snug
+  ); /* was 1.4; ANS-001: 0.1 of leading on 13px is invisible, and snug is the considered stop */
   --sp-leading-body: var(--mrd-lh-prose); /* was 1.55; ANS-001: same argument as row */
   --sp-leading-note: 1.6;
 
   /* ---- Tracking ---- (negative as size grows, positive on small caps) */
-  --sp-track-title: var(--mrd-track); /* was -0.028em; ANS-001: at 12-13px mono the em value and -0.14px differ by under 0.03px */
+  --sp-track-title: var(
+    --mrd-track
+  ); /* was -0.028em; ANS-001: at 12-13px mono the em value and -0.14px differ by under 0.03px */
   --sp-track-gate: var(--mrd-track); /* was -0.019em; same ruling */
 
   /* ---- Weight ----

@@ -256,7 +256,7 @@
   display: block;
   font-size: var(--mrd-t-prose);
   color: var(--mrd-ink);
-  line-height: var(--sp-leading-row);
+  line-height: var(--mrd-lh-snug);
 }
 .sp-row-who {
   font-weight: var(--mrd-w-semi);
@@ -269,8 +269,8 @@
   font-size: var(--mrd-t-base);
   color: var(--mrd-mute);
   margin-top: 2px;
-  line-height: var(--sp-leading-row);
-}/* A row in a LIST is one line, and its second line is a different fact, not
+  line-height: var(--mrd-lh-snug);
+} /* A row in a LIST is one line, and its second line is a different fact, not
  * more of the first. Founder ruling 2026-07-29: "Why do we need so bigger
  * things to display? If a user wants to know, he will click deeper and
  * understand the context, rather than we showcase everything on the cards."
@@ -405,7 +405,8 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--mrd-mute);
-}.sp-acts {
+}
+.sp-acts {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -433,7 +434,7 @@
   padding-left: var(--sp-space-2);
   padding-right: var(--sp-space-2);
   margin-left: calc(var(--sp-space-2) * -1);
-  line-height: var(--sp-leading-row);
+  line-height: var(--mrd-lh-snug);
 }
 
 /* ---------- button ---------- one primary per screen */
@@ -578,7 +579,6 @@
  * near-black; the base rule's `currentColor` is now light on the primary in
  * both themes, exactly as it is on every other button. One rule is correct. */
 
-
 .sp-title {
   font-size: var(--mrd-t-h2);
   font-weight: var(--mrd-w-semi);
@@ -617,7 +617,7 @@
   align-items: flex-start;
   padding: var(--sp-space-2) 0;
   /* Row leading, not document leading. See the note on .sp-line. */
-  line-height: var(--sp-leading-row);
+  line-height: var(--mrd-lh-snug);
   /* Neutralised here rather than under a button selector, so the button and the
    * div render identically and a row does not shift when it gains a door. */
   width: 100%;
@@ -682,7 +682,7 @@ button.sp-ctx-row:focus-visible {
   padding: 11px 0;
   font-size: var(--sp-text-prose);
   /* Row leading, not document leading. See the note on .sp-line. */
-  line-height: var(--sp-leading-row);
+  line-height: var(--mrd-lh-snug);
   color: var(--mrd-body);
   animation: sp-receipt-in var(--sp-dur-slow) var(--mrd-ease);
 }
@@ -821,11 +821,11 @@ button.sp-ctx-row:focus-visible {
   gap: 18px;
   padding: 11px 0;
   min-height: var(--sp-row-h);
-  line-height: var(--sp-leading-row);
+  line-height: var(--mrd-lh-snug);
 }
 .sp-line + .sp-line {
   border-top: 1px solid var(--sp-line-soft);
-}/* The second line carries WHY this boundary matters, or what it currently
+} /* The second line carries WHY this boundary matters, or what it currently
  * lets through. Never a restatement of the label (hard ban 10). */
 .sp-line-sub {
   display: block;
@@ -1103,8 +1103,6 @@ button.sp-ctx-row:focus-visible {
   }
 }
 
-
-
 .sp-row[data-has-action="true"] {
   cursor: default;
 }
@@ -1251,7 +1249,7 @@ button.sp-ctx-row:focus-visible {
   width: 100%;
   padding: 10px 12px;
   /* Row leading, not document leading. See the note on .sp-line. */
-  line-height: var(--sp-leading-row);
+  line-height: var(--mrd-lh-snug);
   border: 0;
   border-radius: var(--sp-radius-card);
   background: var(--sp-cell-bg);
@@ -1365,7 +1363,6 @@ button.sp-cell:disabled {
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--mrd-pass) 0%, transparent);
   }
 }
-
 
 /* ---------- a short set of named options ----------
  * Deliberately NOT a look of its own. The options are .sp-btn, exactly as the
@@ -1482,7 +1479,7 @@ button.sp-cell:disabled {
   color: var(--mrd-body);
   font: inherit;
   font-size: var(--mrd-t-base);
-  line-height: var(--sp-leading-row);
+  line-height: var(--mrd-lh-snug);
   text-align: left;
   cursor: pointer;
   transition:
