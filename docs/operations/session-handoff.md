@@ -1367,7 +1367,14 @@ feed every surface polls, five hops to two (`readRunningNow`, guarded by `a-pres
 longest chain (members, changesets, deployments for "live since") four hops to three through a
 `deployments` read with a `studio_changesets!inner(mission_id)` embed filtered on the embedded column
 (verify "live since" on Helio Labs track `2fdf93b6`, live since 4 Sep, once deployment 7187cb60
-serves); `44ba22a50`: `getTrackActivity` three hops to two. The guard for all of it is a fake client that counts rounds
+serves); `44ba22a50`: `getTrackActivity` three hops to two; `b663d059d`:
+`creditsSpentByTrace` is one SQL call (`credits_spent_by_trace`, migration `20260909100600`, applied,
+with `credit_ledger_ai_event_idx`; the two-hop, fourteen-URL batched read on an unindexed column is
+gone), the home's read three hops from four. Verified on 7187cb60: the home prints "Live since 12:28"
+on the Checkout track through the embedded deployments read. **Still the largest handler on the front
+door:** `listRunsForStart` read 3,334 to 5,333 ms cold on 7187cb60 and is mounted FOUR times per
+`/start` load (the layout loader's prefetch, `readHome`'s inner call, `YourRuns`'s own `useQuery` with
+no `staleTime`, the push's invalidate), all Lane 1's files; Lane 2 and Lane 3 both named it to Lane 1. The guard for all of it is a fake client that counts rounds
 (`src/__tests__/a-wire-that-counts-rounds.ts`, driven by `a-queue-is-two-hops-deep` and
 `a-strip-read-is-three-hops-deep`); "every await outside a Promise.all" is what a person greps for and
 it was wrong twice, so the wire counts what the wire sees.
