@@ -45,7 +45,9 @@ describe("the key", () => {
     // three different answers.
     for (const f of [
       "src/components/shell/use-spine-strip.ts",
-      "src/components/shell/BoardPanel.tsx",
+      // "src/components/shell/BoardPanel.tsx" left this list (Lane 1,
+      // 2026-09-08): the rail foot's board button opened the retired mission
+      // board as a second answer to "where is all the work"; deleted.
       // "src/components/today/Board.tsx" left this list (P-14, A-QUEUE.md):
       // unmounted (zero importers), deleted with the cluster it alone owned.
     ]) {

@@ -8,9 +8,15 @@
     "scope listed here may only go down. A file in a scope that is not listed",
     "has never been scanned, so it is adopted once at its current count."
   ],
-  "scopes": ["src/*", "src/components/**", "src/routes/**", "src/styles.css", "src/styles/**"],
-  "totalOccurrences": 1586,
-  "fileCount": 128,
+  "scopes": [
+    "src/*",
+    "src/components/**",
+    "src/routes/**",
+    "src/styles.css",
+    "src/styles/**"
+  ],
+  "totalOccurrences": 1578,
+  "fileCount": 127,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -241,10 +247,7 @@
       "--sp-": 7
     },
     "src/components/shell/AppFrame.tsx": {
-      "class:sp-": 48
-    },
-    "src/components/shell/BoardPanel.tsx": {
-      "class:sp-": 7
+      "class:sp-": 47
     },
     "src/components/shell/CrewWorking.tsx": {
       "class:sp-": 1
