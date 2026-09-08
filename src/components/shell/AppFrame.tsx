@@ -2150,7 +2150,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                        spoken, the space is inaudible and the two would run
                        together into one word. */
                       aria-label={[
-                        label,
+                        /* THE COUNT IS SPOKEN (Lane 1, 2026-09-08): the badge is
+                           aria-hidden, so without this a screen reader heard "Inbox"
+                           beside a 6 it could not see. */
+                        count && n > 0 ? `${label}, ${n} waiting` : label,
                         shortcut ? `shortcut ${NAV_CHORD_PREFIX} then ${shortcut}` : null,
                       ]
                         .filter(Boolean)

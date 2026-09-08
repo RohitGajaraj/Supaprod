@@ -229,6 +229,12 @@ export function Row({
         <button
           type="button"
           onClick={onClick}
+          /* THE ROW'S NAME IS ITS LEAD (Lane 1, 2026-09-08). Read off the live
+             accessibility tree: every run row's body button had no name, so a
+             screen reader heard "button" five times. The lead is the name; the
+             sentence under it is the description. */
+          aria-label={typeof lead === "string" ? (leadTitle ?? lead) : undefined}
+          aria-description={typeof sub === "string" ? (subTitle ?? sub) : undefined}
           className="flex min-w-0 flex-1 items-center gap-[13px] rounded-mrd-ctl text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]"
         >
           {body}
@@ -248,7 +254,13 @@ export function Row({
       data-tight={tight}
       data-focused={focused}
       onClick={onClick}
-      {...(interactive ? { type: "button" as const } : {})}
+      {...(interactive
+        ? {
+            type: "button" as const,
+            "aria-label": typeof lead === "string" ? (leadTitle ?? lead) : undefined,
+            "aria-description": typeof sub === "string" ? (subTitle ?? sub) : undefined,
+          }
+        : {})}
       className={`${ROW_SHAPE} ${ROW_BLEED} ${ROW_DIVIDER} ${
         interactive
           ? "cursor-pointer hover:bg-mrd-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)]"
