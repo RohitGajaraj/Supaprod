@@ -79,6 +79,8 @@ import { builtWithLine } from "@/lib/hosting/what-shape-is-this-repo";
 import { buildBlocked } from "@/components/track/build-precondition";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useLiveAgents } from "@/hooks/use-live-agents";
+import { AgentPresence, presenceColour } from "@/components/meridian/AgentPresence";
 import { takeOver } from "@/components/track/take-over";
 import type { SpineRoute } from "@/lib/spine/route";
 import { RunProof } from "@/components/track/RunProof";
@@ -992,6 +994,19 @@ export function TrackRunLeft({
     }
     return null;
   }, [artifactsQ.data?.stops]);
+  /*
+   * ── THE SEATS, AS PRESENCES (founder, 2026-09-08) ─────────────────────
+   * "Which agent, on what, right now, with its own identity on screen." The
+   * shell's running-now key (Lane 3) carries every live seat in the workspace
+   * with its verb and start; this run draws its own, one AgentPresence each,
+   * inside the Now card, so the card names the work and the presences name
+   * the workers. Same key as the home and the rail, so they cannot disagree.
+   */
+  const liveAgents = useLiveAgents();
+  const presences = React.useMemo(
+    () => liveAgents.working.filter((a) => a.trackId === trackId),
+    [liveAgents.working, trackId],
+  );
   const now = runNow({
     track: track
       ? {
@@ -1009,8 +1024,11 @@ export function TrackRunLeft({
     loading: trackQ.isLoading,
     feedDead: trackQ.isError,
     live: workingNow,
-    currentTool,
-    seats: liveSeats,
+    /* When the presences below name the seat and its verb, the headline says
+       only where the work is; two sentences about one seat is the defect the
+       card exists to remove. */
+    currentTool: presences.length > 0 ? null : currentTool,
+    seats: presences.length > 0 ? [] : liveSeats,
     legsLeft: continuing ? legsLeft : null,
     horizon: forecastHorizonDate,
     gradableBySource,
@@ -1048,6 +1066,22 @@ export function TrackRunLeft({
 
       {askIsUp ? null : (
         <RunNow now={now}>
+          {now.register === "working" && presences.length > 0 ? (
+            <ul aria-label="Working on this now" className="flex flex-col gap-mrd-2">
+              {presences.map((a) => (
+                <li key={a.id}>
+                  <AgentPresence
+                    seat={a.name}
+                    verb={a.verb}
+                    object={a.subGoal}
+                    since={a.startedAt}
+                    colour={presenceColour(a.name)}
+                    alive
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : null}
           {holdFacts && track ? (
             <>
               {track.holdBecause ? <Row lead={track.holdBecause} tight /> : null}

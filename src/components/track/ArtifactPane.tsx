@@ -347,6 +347,25 @@ function SpecPromise({
   );
 }
 
+/**
+ * THE DEPTH BEHIND AN ARTIFACT (2026-09-08). The spec editor, the decision's
+ * page on Outcomes and the learning's page all existed and none was reachable
+ * from the run that made them; the audit that day found the run screen had no
+ * door into any depth screen at all. One quiet link at the foot of a card,
+ * drawn the same way everywhere, is the stitch: the run shows the thing, the
+ * depth screen holds everything about it.
+ */
+const DEPTH_DOOR_FACE =
+  "mrd-focus inline-flex items-center gap-1 rounded-mrd-ctl text-mrd-small text-mrd-mute underline decoration-mrd-line underline-offset-4 transition-colors hover:text-mrd-ink hover:decoration-mrd-edge";
+
+function DepthArrow() {
+  return (
+    <span aria-hidden className="text-mrd-faint">
+      &rarr;
+    </span>
+  );
+}
+
 function PlanSpec({ prdId }: { prdId: string }) {
   const fGet = useServerFn(getPrd);
   const fSave = useServerFn(savePrd);
@@ -498,6 +517,12 @@ function PlanSpec({ prdId }: { prdId: string }) {
         />
       </Field>
       {problem ? <RecordSpeaks>{problem}</RecordSpeaks> : null}
+      <div>
+        <Link to="/plan/spec/$id" params={{ id: prdId }} className={DEPTH_DOOR_FACE}>
+          Open the full spec
+          <DepthArrow />
+        </Link>
+      </div>
     </div>
   );
 }
@@ -717,6 +742,12 @@ function DecisionCard({ item }: { item: ArtifactView }) {
       {/* The gate action on the call itself: unblocking it is a real approval,
           refusing it is a real rejection. Nothing here merely shows. */}
       {status === "pending" ? <DecisionVerdict decisionId={item.artifactId} /> : null}
+      <div>
+        <Link to="/outcomes" search={{ decision: item.artifactId }} className={DEPTH_DOOR_FACE}>
+          Open this decision on Outcomes
+          <DepthArrow />
+        </Link>
+      </div>
     </div>
   );
 }
@@ -1482,6 +1513,12 @@ function LearningCard({
       {resolution === "miss" || resolution === "inconclusive" ? (
         <TakeAnotherRun claim={claim ?? item.title} />
       ) : null}
+      <div>
+        <Link to="/outcomes" search={{ learning: item.artifactId }} className={DEPTH_DOOR_FACE}>
+          Open this verdict on Outcomes
+          <DepthArrow />
+        </Link>
+      </div>
     </div>
   );
 }

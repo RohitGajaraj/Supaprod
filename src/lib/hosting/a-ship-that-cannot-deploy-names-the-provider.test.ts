@@ -247,7 +247,13 @@ describe("the read reaches the row it is about (P-59c)", () => {
     // spends an attempt, and returns here.
     /* `shipIsStopped` since the acceptance pass: "no failed deployment" is a
        true answer and not a stoppage, so it must not stand the retry down. */
-    expect(RUN3).toContain("answerTheCall || callIsYours || shipIsStopped ? null : (");
+    /* 2026-09-08: the run screen's Now card hoisted the stand-down into one
+       named predicate so the three reasons read as one rule; the fact pinned
+       here is unchanged, `shipIsStopped` stands the retry down. */
+    expect(RUN3).toContain(
+      'answerTheCall || callIsYours || shipIsStopped || now.register === "stopped"',
+    );
+    expect(RUN3).toContain("{retryStandsDown ? null : (");
   });
 });
 
@@ -283,7 +289,10 @@ describe("the card says which branch fired (P-59c acceptance)", () => {
     // "none" is a true answer and not a stoppage: it must not take the screen
     // over or stand the station's own retry down.
     expect(RUN5).toContain('shipStop.kind !== "none"');
-    expect(RUN5).toContain("answerTheCall || callIsYours || shipIsStopped ? null : (");
+    expect(RUN5).toContain(
+      'answerTheCall || callIsYours || shipIsStopped || now.register === "stopped"',
+    );
+    expect(RUN5).toContain("{retryStandsDown ? null : (");
   });
 
   it("names a failed read as a failed read, never as an absence", () => {
