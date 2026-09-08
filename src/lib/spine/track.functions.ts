@@ -5462,13 +5462,22 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
          * that grouping is not derivable from a flat list. The join already
          * existed on both sides; only the id was being dropped on the floor.
          */
-        .select("id, trace_id")
+        .select("id, trace_id, status")
         .eq("track_id", data.trackId);
       // Thrown, not swallowed: an empty list means the agents called nothing,
       // and this is the case where nobody could look.
       if (runErr) throw new Error(`The turns on this run could not be read: ${runErr.message}`);
 
-      const rows = (runRows ?? []) as Array<{ id: string; trace_id: string | null }>;
+      const rows = (runRows ?? []) as Array<{
+        id: string;
+        trace_id: string | null;
+        status: string | null;
+      }>;
+      /* The seats still running: the only ones whose "returned nothing" a
+         person is waiting on, so the only ones whose results are read. */
+      const runningTraceIds = new Set(
+        rows.filter((r) => r.status === "running" && r.trace_id).map((r) => r.trace_id as string),
+      );
       const tracedRuns = rows.filter((r) => !!r.trace_id).length;
       const traceIds = [...new Set(rows.map((r) => r.trace_id).filter((t): t is string => !!t))];
       /*
@@ -5522,9 +5531,19 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
         args: unknown;
       }>;
 
-      /* A failed second read costs the counts, never the calls. */
+      /*
+       * A failed second read costs the counts, never the calls. And it is
+       * read for the LIVE seats' searches alone (Lane 2, read on 9043ee80 at
+       * 23:2x IST: one run-screen handler at 5.1 s carrying 170 KB on a
+       * settled 82-turn run). A finished seat's "nothing matched" is history
+       * the transcript does not draw; the live station is the only reader.
+       */
       const resultById = new Map<string, unknown>();
-      const searchIds = callList.filter((c) => SEARCH_TOOLS.has(c.tool_name)).map((c) => c.id);
+      const searchIds = callList
+        .filter(
+          (c) => SEARCH_TOOLS.has(c.tool_name) && c.trace_id && runningTraceIds.has(c.trace_id),
+        )
+        .map((c) => c.id);
       if (searchIds.length > 0) {
         const { data: resultRows } = await supabase
           .from("tool_calls")
