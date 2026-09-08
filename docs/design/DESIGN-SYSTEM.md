@@ -124,6 +124,17 @@ Two rules they carry that are worth copying:
 - **`Verdict.absence` is a required prop.** The absence is the common case — 0 of 45 changesets carried a review — so a caller cannot forget to say why there is none.
 - **`GotYou` chips are controls only when `onOpen` is passed**, the contract `ToolStream` already holds. A chip that opens nothing must not look like it does.
 
+
+### Three added for the entry, 2026-09-08 (Lane 1)
+
+| Primitive | It draws | Where it is used |
+| --- | --- | --- |
+| **`Journey`** (`Journey.tsx`) | The seven stations as the road one piece of work travels, in two sizes: full (a tablist when it selects a pane) and row (the mark at the left of a run row). States: pending, done, working, you, held, scheduled, waiting, failed, waived. The working node breathes on the agent hue with a ticking clock; a calendar wait is neutral, never amber. | The home's map and its run rows, the first run's promise, the run screen's header |
+| **`AgentPresence`** and **`PresenceDot`** (`AgentPresence.tsx`) | One seat at work: a colour from `--mrd-viz-1..4` that is the same for that seat everywhere (`presenceColour`, a stable hash), its name, the verb of its latest tool call, the thing it is doing it to, a clock. Never a status hue. | The home's Working now strip, the rail's crew, the run screen's presence strip, cursors and diff gutters |
+| **`PageHeading` with `station`** (`surface-parts.tsx`) | The station a depth page's content comes from, as the eyebrow above the title, with the road's own glyph. | Findings (`sense`), Outcomes (`learn`), the spec editor (`define`) |
+
+**`StatusChip` gains `quiet`**: mute ink on the sink fill, for a wait the machine has in hand (a release live in production with its verdict due on a date). The five status words are still five; this is the absence of one, drawn as a chip so it sits in a row of chips without vanishing.
+
 ---
 
 ## The reference standard
