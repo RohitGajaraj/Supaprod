@@ -44,6 +44,7 @@ import {
   type StartRowKind,
 } from "@/components/today/tracks-feed";
 import { journeyOfRun } from "@/components/start/journey-of-a-run";
+import { TrackConsent } from "@/components/track/TrackConsent";
 import { listRunsForStart, pinTrack, type StartRun } from "@/lib/spine/track.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useTimezone } from "@/hooks/use-timezone";
@@ -71,6 +72,9 @@ function RunRow({
   onOpen,
   onPin,
   pinning,
+  askOpen,
+  onAsk,
+  onAnswered,
 }: {
   r: StartRow;
   run: StartRun | undefined;
@@ -78,50 +82,62 @@ function RunRow({
   onOpen: (id: string) => void;
   onPin: (id: string, pinned: boolean) => void;
   pinning: boolean;
+  /** This row's ask is open under it. */
+  askOpen: boolean;
+  onAsk: (id: string) => void;
+  onAnswered: () => void;
 }) {
   const chip = CHIP[r.kind];
   const canPin = r.kind !== "finished" && r.kind !== "abandoned";
   const needsYou = r.kind === "needs-you";
   return (
-    <Row
-      marksWidth={MARKS_WIDTH}
-      marks={run ? <Journey size="row" word={false} stations={journeyOfRun(run)} /> : null}
-      lead={r.title}
-      sub={r.middle}
-      subTitle={r.detail ?? undefined}
-      time={r.at ? relativeTime(new Date(r.at).toISOString(), now) : null}
-      onClick={() => onOpen(r.id)}
-      action={
-        <span className="flex items-center gap-mrd-2">
-          {r.creditsLine ? (
-            <span className="font-mrd-mono text-mrd-data tabular-nums text-mrd-mute">
-              {r.creditsLine}
-            </span>
-          ) : null}
-          {needsYou ? (
-            /* THE ONE THING ONLY A PERSON CAN DO, AS THE ROW'S OWN CONTROL.
-               It opens the run at its ask (R-04: consent in place); the row
-               does not pretend to know the question. */
-            <Action variant="primary" onClick={() => onOpen(r.id)}>
-              Answer
-            </Action>
-          ) : r.pinnedAt ? (
-            <StatusChip status="you" pulse={false}>
-              First
-            </StatusChip>
-          ) : chip ? (
-            <StatusChip status={chip.status} pulse={false}>
-              {chip.word}
-            </StatusChip>
-          ) : null}
-          {canPin && !needsYou ? (
-            <Action variant="quiet" busy={pinning} onClick={() => onPin(r.id, !r.pinnedAt)}>
-              {r.pinnedAt ? "Unpin" : "Put first"}
-            </Action>
-          ) : null}
-        </span>
-      }
-    />
+    <>
+      <Row
+        marksWidth={MARKS_WIDTH}
+        marks={run ? <Journey size="row" word={false} stations={journeyOfRun(run)} /> : null}
+        lead={r.title}
+        sub={r.middle}
+        subTitle={r.detail ?? undefined}
+        time={r.at ? relativeTime(new Date(r.at).toISOString(), now) : null}
+        onClick={() => onOpen(r.id)}
+        action={
+          <span className="flex items-center gap-mrd-2">
+            {r.creditsLine ? (
+              <span className="font-mrd-mono text-mrd-data tabular-nums text-mrd-mute">
+                {r.creditsLine}
+              </span>
+            ) : null}
+            {needsYou ? (
+              /* THE ONE THING ONLY A PERSON CAN DO, AS THE ROW'S OWN CONTROL.
+               It opens the ask UNDER THE ROW (R-04: consent is asked in
+               place, never in a queue), the same TrackConsent the run screen
+               draws, reading its own gate; no second copy of the question. */
+              <Action variant="primary" aria-expanded={askOpen} onClick={() => onAsk(r.id)}>
+                {askOpen ? "Close" : "Answer"}
+              </Action>
+            ) : r.pinnedAt ? (
+              <StatusChip status="you" pulse={false}>
+                First
+              </StatusChip>
+            ) : chip ? (
+              <StatusChip status={chip.status} pulse={false}>
+                {chip.word}
+              </StatusChip>
+            ) : null}
+            {canPin && !needsYou ? (
+              <Action variant="quiet" busy={pinning} onClick={() => onPin(r.id, !r.pinnedAt)}>
+                {r.pinnedAt ? "Unpin" : "Put first"}
+              </Action>
+            ) : null}
+          </span>
+        }
+      />
+      {needsYou && askOpen ? (
+        <div className="mb-mrd-3 ml-[84px] mt-mrd-2" data-mrd="">
+          <TrackConsent trackId={r.id} onAnswered={onAnswered} />
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -144,6 +160,8 @@ export function YourRuns({
   });
 
   const [showAbandoned, setShowAbandoned] = React.useState(false);
+  /* One ask open at a time: the row whose question is on screen. */
+  const [askOpen, setAskOpen] = React.useState<string | null>(null);
   const now = Date.now();
   const byId = React.useMemo(() => new Map((q.data ?? []).map((r) => [r.id, r])), [q.data]);
   const rows = React.useMemo(
@@ -211,6 +229,12 @@ export function YourRuns({
             onOpen={open}
             onPin={(trackId, pinned) => pin.mutate({ trackId, pinned })}
             pinning={pin.isPending}
+            askOpen={askOpen === r.id}
+            onAsk={(id) => setAskOpen((cur) => (cur === id ? null : id))}
+            onAnswered={() => {
+              setAskOpen(null);
+              void qc.invalidateQueries({ queryKey: ["start-runs"] });
+            }}
           />
         ))}
 
@@ -236,6 +260,9 @@ export function YourRuns({
                     onOpen={open}
                     onPin={(trackId, pinned) => pin.mutate({ trackId, pinned })}
                     pinning={pin.isPending}
+                    askOpen={false}
+                    onAsk={() => undefined}
+                    onAnswered={() => undefined}
                   />
                 ))
               : null}

@@ -22,6 +22,7 @@ import { SessionEnded, endedSessionFor } from "@/components/system/SessionEnded"
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useTimezone } from "@/hooks/use-timezone";
 import { listProductRepos, listRunsForStart, startTrack } from "@/lib/spine/track.functions";
+import { listProductGoals } from "@/lib/spine/track.functions";
 import { listTopOpportunities } from "@/lib/discovery.functions";
 import { matchProductFromSentence, type ProductCandidate } from "@/lib/spine/product-match";
 import { ComposerProductPicker } from "@/components/start/ComposerProductPicker";
@@ -64,7 +65,20 @@ import { HomeAnswers } from "@/components/start/HomeAnswers";
  * has no stations; ours does, and drawing it is the product's own model
  * said in a glance.
  */
+/**
+ * THE PLACEHOLDER IS AN EXAMPLE OF THE SHAPE, IN THE PRODUCT'S OWN TERMS.
+ * "Make the checkout accept an American Express card" taught the shape to a
+ * workspace that had no checkout. When the product has stated a goal, the
+ * example is built from it; when it has not, the example names the shape
+ * without a domain noun.
+ */
 const PLACEHOLDER = "Make the checkout accept an American Express card";
+
+export function placeholderFor(product: { name: string; northStar: string | null } | null): string {
+  if (product?.northStar) return `Give ${product.name} what it needs for ${product.northStar}`;
+  if (product?.name) return `Change one thing in ${product.name}, and say what it should do`;
+  return PLACEHOLDER;
+}
 
 /**
  * P-32 PASS 4 (A-QUEUE.md). Wraps a reader's own `queryFn` with a named
@@ -186,6 +200,27 @@ function StartLanding() {
     [sentence, productCandidates],
   );
 
+  /* The active product's own goal, for the placeholder (P-85's read). */
+  const fProductGoals = useServerFn(listProductGoals);
+  const productGoals = useQuery({
+    queryKey: ["start-product-goals", activeWorkspaceId ?? null],
+    queryFn: measuredQueryFn("listProductGoals", () =>
+      fProductGoals({ data: { workspaceId: activeWorkspaceId ?? null } }),
+    ),
+    staleTime: 5 * 60_000,
+  });
+  const placeholder = useMemo(() => {
+    const goals = productGoals.data ?? [];
+    const chosen =
+      (activeProductId ? goals.find((g) => g.productId === activeProductId) : null) ?? goals[0];
+    const name = chosen
+      ? products.find((p) => p.id === chosen.productId)?.name
+      : activeProduct?.name;
+    if (!name)
+      return placeholderFor(activeProduct ? { name: activeProduct.name, northStar: null } : null);
+    return placeholderFor({ name, northStar: chosen?.northStar ?? null });
+  }, [productGoals.data, products, activeProductId, activeProduct]);
+
   const go = useMutation({
     mutationFn: async (job?: ExampleJob) => {
       const s = (job?.sentence ?? sentence).trim();
@@ -282,7 +317,7 @@ function StartLanding() {
           onChange={setSentence}
           onSubmit={() => go.mutate(undefined)}
           busy={go.isPending}
-          placeholder={PLACEHOLDER}
+          placeholder={placeholder}
           label="Say what should change, and what it should do"
           fieldRef={fieldRef}
         />
