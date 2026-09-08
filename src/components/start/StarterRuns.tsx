@@ -92,7 +92,6 @@ export function StarterRuns({
                 lead={r.sentence}
                 sub={r.why}
                 glyph={<SketchProblem />}
-                selected={false}
                 onSelect={() => onUse(r.sentence)}
                 className="h-full"
               />

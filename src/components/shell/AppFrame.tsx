@@ -131,7 +131,6 @@
 import { RailCrew } from "@/components/shell/RailCrew";
 import { TeammateCursors } from "@/components/shell/TeammateCursors";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
-import { REVIEW_QUEUE_SEARCH } from "@/components/shell/post-auth-home";
 import { pollMs } from "@/components/shell/poll";
 import * as React from "react";
 import { APPROVALS_QUEUE_PREFIX, missionsKey, runningNowKey } from "@/lib/query-keys";
@@ -1596,10 +1595,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       // Calls are settled on Start's review queue. `/today` was the door to it
       // until P-10 deleted the redirect stub (2026-09-02); this raw string is
       // exactly the shape tsc cannot check, which is how it outlived the route.
-      return {
-        go: go(SIGNED_IN_HOME, undefined, { [REVIEW_QUEUE_SEARCH]: true }),
-        title: "Go to the calls waiting on you",
-      };
+      /* Inbox is where the calls are (third review, 2026-09-08): this door
+         opened the home with ?queue, which on the home reloaded the room the
+         person was standing in and said the waiting things were "below". */
+      return { go: go("/approvals"), title: "Open Inbox" };
     }
     if (running.length === 1) {
       const only = running[0];

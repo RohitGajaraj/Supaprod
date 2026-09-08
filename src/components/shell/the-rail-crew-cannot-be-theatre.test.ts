@@ -44,24 +44,22 @@ describe("it never shows a calm room on a dead feed", () => {
     expect(code(CREW)).toContain("Cannot see who is working");
   });
 
-  it("OFFERS A DOOR RATHER THAN CLAIMING AN EMPTY ROOM", () => {
-    /*
-     * The spec's words are "Nothing running: the rail is the door to /start",
-     * and the door is safe while the SENTENCE is not.
-     * `getWorkspaceAnchors` swallows a failed `agent_runs` read and returns
-     * `{ anchors: [], unknowableRuns: 0 }` rather than throwing, so `isError`
-     * stays false and the empty branch is reached by BOTH "nobody is working"
-     * and "we could not find out". They are byte-identical at the client.
-     */
-    expect(code(CREW)).toContain("Start a run");
+  it("CLAIMS NOTHING ABOUT AN EMPTY ROOM, and draws no second Start a run", () => {
+    // 2026-09-08: the quiet state used to draw its own "Start a run" door,
+    // which put two of them in one rail off the home. The rail's own control
+    // above is the door; an empty crew draws nothing, and a dead feed still
+    // says so (the error branch), so the two never look alike.
     expect(code(CREW)).not.toContain("Nothing running.");
+    expect(code(CREW)).not.toContain('"Start a run"');
+    expect(code(CREW)).toContain("if (seats.length === 0) return null;");
   });
 
   it("names a seat with no verb by its station rather than dropping it", () => {
     // A live seat whose newest call has no verb is still a live seat; the
-    // station it stands at is the honest fact, and omitting it would
-    // undercount the crew on the one control that answers "how many".
-    expect(code(CREW)).toContain("`working at ${AGENT_STATIONS[s.station].name}`");
+    // station it stands at is the honest fact. The words live in one place,
+    // CrewAtWork's seatLine, which the rail reads too (2026-09-08).
+    expect(code(STRIP)).toContain("`working at ${AGENT_STATIONS[s.station].name}`");
+    expect(code(CREW)).toContain("seatLine(s, Date.now())");
   });
 });
 

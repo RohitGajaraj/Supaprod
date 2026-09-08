@@ -53,6 +53,20 @@ export type WorkingSeat = {
  */
 export const QUIET_AFTER_MS = STALL_MINUTES * 60_000;
 
+/** The verb line a seat wears everywhere: its call and object, or its
+ *  station, with "quiet for N min" past the stall threshold. */
+export function seatLine(s: WorkingSeat, nowMs: number): { doing: string; quiet: number | null } {
+  const quiet = quietFor(s, nowMs);
+  const doing = s.verb
+    ? s.objectLabel
+      ? `${s.verb} ${s.objectLabel}`
+      : s.verb
+    : s.station
+      ? `working at ${AGENT_STATIONS[s.station].name}`
+      : "working";
+  return { doing: quiet ? `${doing} · quiet for ${Math.round(quiet / 60_000)} min` : doing, quiet };
+}
+
 export function quietFor(
   seat: Pick<WorkingSeat, "lastCallAt" | "since">,
   nowMs: number,
@@ -110,23 +124,11 @@ export function CrewAtWork({
   }
   if (seats.length === 0) return null;
   return (
-    <section
-      data-mrd=""
-      aria-label="Working now"
-      aria-live="polite"
-      className="flex flex-col gap-mrd-2"
-    >
+    <section data-mrd="" aria-label="Working now" className="flex flex-col gap-mrd-2">
       <span className="mrd-eyebrow">Working now</span>
       <ul className="flex flex-col gap-mrd-1">
         {seats.map((s) => {
-          const quiet = quietFor(s, Date.now());
-          const doing = s.verb
-            ? s.objectLabel
-              ? `${s.verb} ${s.objectLabel}`
-              : s.verb
-            : s.station
-              ? `working at ${AGENT_STATIONS[s.station].name}`
-              : "working";
+          const { doing, quiet } = seatLine(s, Date.now());
           return (
             <li
               key={s.runId}
@@ -137,7 +139,7 @@ export function CrewAtWork({
             >
               <AgentPresence
                 seat={s.seat}
-                verb={quiet ? `${doing} · quiet for ${Math.round(quiet / 60_000)} min` : doing}
+                verb={doing}
                 object={s.title ? `· ${s.title}` : null}
                 since={s.since}
                 alive={!quiet}

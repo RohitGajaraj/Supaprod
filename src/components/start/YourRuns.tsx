@@ -106,6 +106,17 @@ function RunRow({
      nothing is coming, but there is no approval row): the answer is on the
      run screen, so the control opens the run rather than an empty card. */
   const callOnRun = run ? callWithoutAGate(run) : false;
+  /* FOCUS COMES BACK. When the card under the row closes (answered, or
+     Close), keyboard focus used to drop to the document body; it returns to
+     the control that opened it (third review, 2026-09-08). */
+  const toggleRef = React.useRef<HTMLSpanElement | null>(null);
+  const wasOpen = React.useRef(askOpen);
+  React.useEffect(() => {
+    if (wasOpen.current && !askOpen) {
+      toggleRef.current?.querySelector<HTMLElement>("button")?.focus();
+    }
+    wasOpen.current = askOpen;
+  }, [askOpen]);
   return (
     <>
       <Row
@@ -138,16 +149,23 @@ function RunRow({
                It opens the ask UNDER THE ROW (R-04: consent is asked in
                place, never in a queue), the same TrackConsent the run screen
                draws, reading its own gate; no second copy of the question. */
-              <Action variant="primary" aria-expanded={askOpen} onClick={() => onAsk(r.id)}>
-                {askOpen ? "Close" : "Answer"}
-              </Action>
+              <span ref={toggleRef} className="contents">
+                <Action variant="primary" aria-expanded={askOpen} onClick={() => onAsk(r.id)}>
+                  {askOpen ? "Close" : "Answer"}
+                </Action>
+              </span>
             ) : held ? (
-              <Action variant="default" aria-expanded={askOpen} onClick={() => onAsk(r.id)}>
-                {askOpen ? "Close" : "Decide"}
-              </Action>
+              <span ref={toggleRef} className="contents">
+                <Action variant="default" aria-expanded={askOpen} onClick={() => onAsk(r.id)}>
+                  {askOpen ? "Close" : "Decide"}
+                </Action>
+              </span>
             ) : callOnRun ? (
+              /* Says where it goes: the other Answer in this column opens in
+                 place, and one word doing two things is a lie (third
+                 review, 2026-09-08). */
               <Action variant="primary" onClick={() => onOpen(r.id)}>
-                Answer
+                Answer on the run
               </Action>
             ) : r.pinnedAt ? (
               <StatusChip status="you" pulse={false}>
@@ -269,7 +287,10 @@ export function YourRuns({
           ) : null}
         </p>
       ) : null}
-      <div aria-live="polite" className="flex flex-col">
+      {/* Not a live region: the rows carry a clock that changes every second
+          while a seat works, and a live list read a timestamp aloud once a
+          second (third review, 2026-09-08). The state sentences announce. */}
+      <div className="flex flex-col">
         {q.isLoading ? <Reading>Reading your runs.</Reading> : null}
 
         {q.isError ? (

@@ -365,7 +365,10 @@ function Stop({
   const clock = useClock(station.at, station.state === "working");
   const current = CURRENT.has(station.state);
   const p = paintOf(station);
-  const line = clock ?? station.outcome ?? null;
+  /* Both facts when both exist: the clock never wins over "usually about
+     4 min here", which is the thing the clock is measured against. */
+  const line =
+    clock && station.outcome ? `${clock} · ${station.outcome}` : (clock ?? station.outcome ?? null);
 
   /* ON A PHONE THE ROAD RUNS DOWN THE SCREEN. Seven stops across 390px put
      the last three off the right edge and made the home pan sideways (phone
@@ -419,7 +422,7 @@ function Stop({
     );
   }
   return (
-    <li data-state={station.state} aria-label={describe(station)} className={shape}>
+    <li data-state={station.state} aria-label={describe(station, promise)} className={shape}>
       {body}
     </li>
   );

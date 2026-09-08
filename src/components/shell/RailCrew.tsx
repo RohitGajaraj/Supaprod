@@ -30,8 +30,7 @@ import { AgentPresence } from "@/components/meridian/AgentPresence";
 import { pollMs } from "@/components/shell/poll";
 import { SlowRead } from "@/components/shell/SlowRead";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
-import { workingSeats } from "@/components/start/CrewAtWork";
-import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+import { seatLine, workingSeats } from "@/components/start/CrewAtWork";
 import { runningNowKey } from "@/lib/query-keys";
 import { listRunningNow } from "@/lib/spine/track.functions";
 
@@ -49,6 +48,11 @@ export function RailCrew({ workspaceId }: { workspaceId: string | null }) {
   });
 
   if (!workspaceId) return null;
+  /* NOT ON THE HOME, in any state. The home's own Working-now strip draws the
+     same seats sixty pixels to the right, and the home IS the composer, so
+     both the crew and the door would be a second copy (third review,
+     2026-09-08). */
+  if (pathname === SIGNED_IN_HOME) return null;
 
   if (q.isError) {
     return (
@@ -72,23 +76,11 @@ export function RailCrew({ workspaceId }: { workspaceId: string | null }) {
 
   const seats = workingSeats(q.data);
 
-  if (seats.length === 0) {
-    /* A door to the room you are standing in is not a door: the home IS the
-       composer. Elsewhere, the way forward and no claim about the room. */
-    if (pathname === SIGNED_IN_HOME) return null;
-    return (
-      <div data-state="quiet" className="mt-mrd-4 border-t border-mrd-line-soft px-mrd-4 pt-mrd-4">
-        <button
-          type="button"
-          onClick={() => navigate({ to: SIGNED_IN_HOME })}
-          className="flex w-full items-center gap-mrd-3 rounded-mrd-ctl px-mrd-2 py-mrd-2 text-left text-mrd-label text-mrd-mute transition-colors hover:bg-mrd-hover hover:text-mrd-ink"
-          style={{ transitionDuration: "var(--mrd-d-press)" }}
-        >
-          Start a run
-        </button>
-      </div>
-    );
-  }
+  /* Nobody working: nothing drawn. The rail's own Start a run above is the
+     door, and a second one here was two "Start a run" controls in one rail
+     (third review, 2026-09-08). Silence claims nothing: a failed read says
+     so above, so an empty room and a dead feed no longer look alike. */
+  if (seats.length === 0) return null;
 
   return (
     <div
@@ -102,18 +94,12 @@ export function RailCrew({ workspaceId }: { workspaceId: string | null }) {
         {seats.map((s) => (
           <li key={s.runId} className="min-w-0">
             {/* The same presence the home strip and the road draw, in the
-                seat's own colour; the door opens the run it is inside. */}
+                seat's own colour and with the same quiet-past-stall rule;
+                the door opens the run it is inside. */}
             <AgentPresence
               seat={s.seat}
-              verb={
-                s.verb
-                  ? s.objectLabel
-                    ? `${s.verb} ${s.objectLabel}`
-                    : s.verb
-                  : s.station
-                    ? `working at ${AGENT_STATIONS[s.station].name}`
-                    : "working"
-              }
+              verb={seatLine(s, Date.now()).doing}
+              alive={!seatLine(s, Date.now()).quiet}
               since={s.since}
               onOpen={
                 s.trackId

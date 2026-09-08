@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { searchFlag } from "@/lib/search-flag";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -395,6 +395,16 @@ function StartLanding() {
     enabled: Boolean(activeWorkspaceId),
     staleTime: 5 * 60_000,
   });
+  /* The map is recomposed once a second while a seat works, or "past its
+     usual time" and "quiet for N min" could never appear: nothing in the
+     data changes while a seat stalls (third review, 2026-09-08). */
+  const anySeat = (running.data?.length ?? 0) > 0;
+  const [mapTick, bumpMap] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => {
+    if (!anySeat) return;
+    const id = setInterval(bumpMap, 1_000);
+    return () => clearInterval(id);
+  }, [anySeat]);
   const map = useMemo(
     () =>
       withTimings(
@@ -405,7 +415,9 @@ function StartLanding() {
         ),
         timings.data,
       ),
-    [runs.data, running.data, timings.data],
+    // `mapTick` is the clock.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [runs.data, running.data, timings.data, mapTick],
   );
   const openRun = (trackId: string) =>
     void navigate({ to: "/track/$trackId", params: { trackId }, search: {} });

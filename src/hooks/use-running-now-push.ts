@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { runningNowKey } from "@/lib/query-keys";
+import { trackChangeKeys } from "@/hooks/use-track-change-push";
 
 /**
  * THE LIVE WORK MOVES THE MOMENT A SEAT DOES.
@@ -39,7 +40,13 @@ export function useRunningNowPush(
     if (!workspaceId || typeof window === "undefined") return;
 
     const invalidate = () => {
+      /* Every key that reads agent_runs, not only the seat list: the moment a
+         seat finished, the strip cleared and the row, the road's node and the
+         hero kept it working for up to ten seconds (third review, 2026-09-08). */
       void queryClient.invalidateQueries({ queryKey: runningNowKey(workspaceId) });
+      for (const queryKey of trackChangeKeys(workspaceId)) {
+        void queryClient.invalidateQueries({ queryKey });
+      }
     };
 
     /*

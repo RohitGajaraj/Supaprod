@@ -107,8 +107,11 @@ describe("no raw values, and no dead ones", () => {
 describe("the controls stay reachable", () => {
   /** A toggle button says it is pressed, or a screen reader cannot tell picked from unpicked. */
   it("declares selection to assistive tech, not only in colour", () => {
-    expect(SRC).toContain("aria-pressed={selected}");
-    expect(SRC).toContain("data-selected={selected}");
+    /* 2026-09-08: `selected` is optional, so a card that is a plain press (a
+       starter run, an example) announces as a button and not as a toggle
+       that is never pressed; a real toggle still declares its state. */
+    expect(SRC).toContain("aria-pressed={selected === undefined ? undefined : selected}");
+    expect(SRC).toContain("data-selected={selected === undefined ? undefined : selected}");
   });
 
   /** R-20's touch floor. Two wrapped lines still clear it; one line still meets it. */

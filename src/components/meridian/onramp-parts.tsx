@@ -108,7 +108,9 @@ export function PickCard({
    * would be an accessibility defect wearing a design one's clothes.
    */
   glyph?: React.ReactNode;
-  selected: boolean;
+  /** A toggle's state. Omit it for a card that is a plain press (a starter
+   *  run, an example): it then announces as a button, not a pressed toggle. */
+  selected?: boolean;
   onSelect: () => void;
   className?: string;
 }) {
@@ -121,8 +123,8 @@ export function PickCard({
     <button
       type="button"
       data-mrd=""
-      data-selected={selected}
-      aria-pressed={selected}
+      data-selected={selected === undefined ? undefined : selected}
+      aria-pressed={selected === undefined ? undefined : selected}
       onClick={onSelect}
       className={
         "mrd-pick relative flex w-full min-h-11 items-start gap-mrd-4 rounded-mrd-ctl " +
@@ -298,6 +300,14 @@ export function Composer({
           grow(e.target);
         }}
         onKeyDown={(e) => {
+          /* Escape lets go of the field (never the text), so the chords,
+             "?" and "/" work one press after arrival: the composer takes
+             focus on the home and swallowed every key until a click
+             elsewhere (third review, 2026-09-08). */
+          if (e.key === "Escape") {
+            e.currentTarget.blur();
+            return;
+          }
           /* A phone keyboard has no Shift+Enter, so Enter is a new line
              there and the button is the press (phone review, 2026-09-08). */
           if (e.key === "Enter" && !e.shiftKey && !coarse && canSubmit) {

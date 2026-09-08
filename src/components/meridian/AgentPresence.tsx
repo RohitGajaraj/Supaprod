@@ -153,7 +153,7 @@ export function AgentPresence({
         data-mrd=""
         data-alive={alive}
         onClick={onOpen}
-        aria-label={`${seat}${line ? ` is ${line}` : ""}${clock ? `, ${clock}` : ""}`}
+        aria-label={`${seat}${line ? ` is ${line}` : ""}`}
         className={`${shape} transition-colors hover:bg-mrd-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] ${className}`}
         style={{ transitionDuration: "var(--mrd-d-press)" }}
       >
