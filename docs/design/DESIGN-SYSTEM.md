@@ -651,6 +651,37 @@ harness is the last place anyone thinks to look for that, which is exactly why i
 
 ---
 
+### 13. An identity built from exact equality folds the machine's rows and never the model's
+
+Added 2026-09-09. The founder's complaint is that the product *"reads as a dump of data and
+content"*, and the clearest instance found all day was six turns of a run transcript, forty minutes
+apart, a full paragraph each, every one of them saying *"No repository is connected"*.
+
+**A fold existed and folded none of them.** Its identity was exact string equality across the agent's
+name, the station, the outcome, the stop line and the sentence said. That run breaks it twice: the
+seat alternates between a station's two agents, and **a model rewrites its sentence slightly every
+turn**.
+
+So the fold worked on rows a CRON produced and failed on rows an AGENT produced, and that is exactly
+backwards. The twelve sweep ticks it was originally written for folded correctly *because a cron
+writes byte-identical rows.* **Every dump on the screen came from the other kind, and an agent
+repeating itself is the case a person actually needs folded.**
+
+**Identity for a fold is the CLAIM, not the string.** Match on the station and on what was said,
+scored by a containment measure whose threshold came off real sentences rather than being picked. The
+seat leaves the identity and becomes something the folded entry reports, and the stopwatch goes with
+it: six turns have six durations and none of them is the answer, where the span is.
+
+**Widening a fold is how a screen quietly stops saying things**, so each refusal to fold carries its
+own assertion. Unrelated sentences, different stations, any turn that filed something, and the one
+worth naming: **a silent turn must never fold into a speaking one, in either direction.** Letting a
+sweep tick swallow the one turn that said why takes the answer off the screen, which is this
+contract's whole recent theme arriving by the other door. Score against the ANCHOR rather than the
+previous row, or a claim drifts across a long run by small steps until the last row shares nothing
+with the first.
+
+---
+
 ## The defects that keep coming back
 
 Each of these has been found more than once, by people who knew the rule. Check for them by name.
@@ -664,6 +695,7 @@ Each of these has been found more than once, by people who knew the rule. Check 
 | Identity painted as a colour ramp | 3 | Law 4. |
 | A `100vh` child inside a taller document | 1, shipped | One ancestor owns the viewport; everything below takes shares. `min-height: 0` on the flex child is the part people leave out. |
 | A comment asserting what the line below it does not do | 1, false on arrival | *"The canon's noun, not a local swap"* sat one line above `plural(n, "prototype", "prototypes")`. It agreed with the canon the day it was written and nothing held it there. **A comment claiming a mechanism must sit above that mechanism, or it is a claim with nothing to keep it true** — the exemption failure in miniature, and this one was wrong immediately rather than going stale. |
+| A fold keyed on exact string equality | 1, six rows on one screen | It folds a cron's byte-identical rows and never a model's, which is backwards: the agent repeating itself is the case a person needs folded. Key on the claim. Law 13. |
 | A fixture cast through a type instead of built from it | 1 | It does not leave the branch uncovered, it covers the WRONG one and reports green. Ten sentences behind a fallback had never rendered. |
 | `as T` plus `??` read as a guard | **54**, swept in one day | A cast is a claim about a value, never a check of it, and `??` catches only null and undefined. Any other shape passes through typed. `typeof x === "string" && x.length > 0 ? x : null`, or test membership in the union's own exhaustive record. |
 | A failure guard with no mirror | **3**, in one afternoon | It passes if the handler withholds everything, which is the worse defect. Refuse A and assert B's real values survive, then refuse B. Law 12. |
