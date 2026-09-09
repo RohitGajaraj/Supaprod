@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1527,
-  "fileCount": 123,
+  "totalOccurrences": 1518,
+  "fileCount": 122,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -191,9 +191,6 @@
     },
     "src/components/learn/SettlePanel.tsx": {
       "class:sp-": 2
-    },
-    "src/components/machine/MachineViewContainer.tsx": {
-      "raw-colour": 9
     },
     "src/components/meridian/graph-slider.tsx": {
       "--ds- via alias": 1

@@ -42,13 +42,38 @@ export function MachineViewContainer({
 
   if (!isMachineView) return <>{children}</>;
 
+  /*
+   * ── MERIDIAN, WITH LITERAL FALLBACKS, AND THE EMBER IS GONE ─────────────
+   *
+   * This was nine raw hexes and a hard-coded font stack -- the only component
+   * outside the frozen public routes still painting entirely off-system
+   * (measured 2026-09-10 across `src/`, excluding landing: everything else
+   * resolved to canvas drawing, generated assets, pre-React HTML, email, or a
+   * documented exception).
+   *
+   * THE ONE THAT MATTERED WAS THE TITLE. It was `#e8642c` -- ember, the brand
+   * colour -- and the founder's standing ruling is that brand identity is not
+   * the UI accent: ember belongs to the logo and is retired from every
+   * interaction state, so the two must not share a value. A page heading is a
+   * heading; it takes `--mrd-ink`.
+   *
+   * TOKENS WITH FALLBACKS RATHER THAN BARE TOKENS, deliberately. This view is
+   * reached with `?view=machine` and its audience is agents; it must still be
+   * legible if the stylesheet has not arrived, which is the same argument
+   * `BootShell` makes for its own literals. `var(--x, literal)` is the guarded
+   * form the token census treats as safe.
+   *
+   * The left rule on the preamble stays, because a blockquote's rule is
+   * typographic convention rather than decoration -- but it is a hairline in a
+   * Meridian token now, not 2px of `#333`.
+   */
   return (
     <div
       style={{
         minHeight: "100vh",
-        background: "#0a0a0a",
-        color: "#d4d0c8",
-        fontFamily: "'Geist Mono', monospace",
+        background: "var(--mrd-bg, #0a0a0a)",
+        color: "var(--mrd-body, #d4d0c8)",
+        fontFamily: "var(--mrd-mono, 'Geist Mono', monospace)",
         lineHeight: 1.75,
         padding: "40px 32px",
         maxWidth: 860,
@@ -63,10 +88,10 @@ export function MachineViewContainer({
       {/* Agent preamble */}
       <pre
         style={{
-          color: "#6b7280",
+          color: "var(--mrd-mute, #6b7280)",
           marginBottom: 32,
           whiteSpace: "pre-wrap",
-          borderLeft: "2px solid #333",
+          borderLeft: "1px solid var(--mrd-line, #333)",
           paddingLeft: 16,
         }}
       >
@@ -80,10 +105,10 @@ export function MachineViewContainer({
           display: "flex",
           alignItems: "center",
           gap: "var(--geist-space-2x)",
-          border: "1px solid #333",
+          border: "1px solid var(--mrd-edge, #333)",
           background: "transparent",
-          color: "#d4d0c8",
-          fontFamily: "'Geist Mono', monospace",
+          color: "var(--mrd-body, #d4d0c8)",
+          fontFamily: "var(--mrd-mono, 'Geist Mono', monospace)",
           letterSpacing: "0.08em",
           padding: "10px 20px",
           cursor: "pointer",
@@ -100,7 +125,7 @@ export function MachineViewContainer({
         <h1
           style={{
             fontWeight: 600,
-            color: "#e8642c",
+            color: "var(--mrd-ink, #d4d0c8)",
             marginBottom: 24,
             letterSpacing: "0.04em",
           }}
@@ -112,7 +137,7 @@ export function MachineViewContainer({
         style={{
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
-          color: "#d4d0c8",
+          color: "var(--mrd-body, #d4d0c8)",
           margin: 0,
         }}
       >

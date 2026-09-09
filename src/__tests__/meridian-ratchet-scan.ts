@@ -427,7 +427,20 @@ function retiredUsage(code: string): { counts: Record<string, number>; stripped:
  * sheet IS read now, and the exemption that keeps those two declarations
  * uncounted is `BRAND_MARK_DECLARATION` below.
  */
-const RAW_COLOUR = /#[0-9a-fA-F]{3,8}\b|\brgba?\s*\([^)]*\)|\bhsla?\s*\([^)]*\)/g;
+/*
+ * `(?<!&)` BECAUSE AN HTML NUMERIC ENTITY IS NOT A COLOUR. `&#9633;` is the
+ * white square glyph, and `#9633` is a syntactically valid four-digit hex, so
+ * the pattern counted it as debt. Found 2026-09-10 while converting
+ * `MachineViewContainer` off raw colour: nine literals became one, and the one
+ * left was the □ in its own "COPY TO CLIPBOARD" label.
+ *
+ * ONE OCCURRENCE IN THE TREE TODAY, measured before the fix, so this is a
+ * small correction and not a large one. It is made anyway because of WHICH
+ * direction it errs in: a phantom count is debt somebody has to either carry
+ * forever or delete a glyph to clear, and the ratchet's own header says
+ * counting what does not paint makes it fight its own purpose.
+ */
+const RAW_COLOUR = /(?<!&)#[0-9a-fA-F]{3,8}\b|\brgba?\s*\([^)]*\)|\bhsla?\s*\([^)]*\)/g;
 
 /**
  * A LITERAL INSIDE `var(--mrd-*, <fallback>)` IS NOT RAW COLOUR.
