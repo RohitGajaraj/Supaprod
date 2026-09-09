@@ -69,11 +69,43 @@ export const BACKOFF_MINUTES: readonly number[] = [10, 30, 90];
  * `needs-evidence` is the calendar wait: it owns `deferred_until` for its own
  * horizon, and a second writer on that column would be two rules arguing about
  * one date.
+ *
+ * ── AND THE TWO MONEY HOLDS, ADDED 2026-09-10 ──────────────────────────────
+ *
+ * THE RULE THEY ARRIVE UNDER is the one `decideDrive` already states twice, in
+ * a different file: **a hold whose clearing condition lives outside this track
+ * must not be counted as this track failing.** It exempts the money holds from
+ * the attempts ceiling (since 2026-08-02) and from the drives ceiling (since
+ * `c6cd66ebc`). This is the same argument, in the third place the same wall
+ * was being priced as behaviour.
+ *
+ * MEASURED. `6cc7a010` and `0c0db8e6` carry twelve drives each whose
+ * `entry_hold` is `out-of-credit`, from 2026-09-04, against an account that
+ * held 13 credits then and holds 15,238 now. The backoff read those twelve as
+ * a run of stuck drives -- `stuck` counts the whole consecutive run, not three
+ * -- and `Math.min(stuck - 3, 2)` is the TOP rung, so each candidacy bought a
+ * ninety-minute deferral for having been refused at the door. A wallet wall is
+ * not a track that will not converge; it is a track nobody let start.
+ *
+ * WHAT THIS IS NOT: it is not a way to be dispatched forever. The exemption is
+ * on the hold the drive ENTERED with, so the moment a drive runs and holds on
+ * something else, that hold is priced normally on the very next candidacy.
+ *
+ * THE OTHER SIX LISTS A HOLD CAN JOIN WERE CHECKED against the same rule
+ * rather than grepped for: `CORRECTABLE_HOLDS` (a wall is not work to redo),
+ * `TERMINAL_HOLDS` (a wall is not final), `STATION_SPECIFIC` (a wall is the
+ * track's, not one station's) and the two date sets (a wallet is not a date)
+ * are all correct to omit them. `RESUMABLE_HOLDS` and `HOLD_NEEDS_PERSON` are
+ * arguable and left alone: the first fires when an ask is ANSWERED and a
+ * top-up arrives from outside the product with no such signal, and the second
+ * drives a surface's tone, which is not this file's to decide.
  */
 export const NEVER_BACKED_OFF: ReadonlySet<string> = new Set([
   "waiting-on-a-person",
   "the-call-is-yours",
   "needs-evidence",
+  "out-of-credit",
+  "over-budget",
 ]);
 
 /** One drive, as `track_drives` records it. */
