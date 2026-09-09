@@ -114,7 +114,10 @@ function RunRow({
      card being mounted, not on askOpen alone: the row can change kind under
      an open card, and that unmounts the card with focus inside it. */
   const toggleRef = React.useRef<HTMLSpanElement | null>(null);
-  const bodyRef = React.useRef<HTMLButtonElement | null>(null);
+  /* HTMLElement, because the row's readable region is a button when the press
+     does something and an ANCHOR when it navigates -- and this row navigates.
+     The ref only ever calls `.focus()`, which every HTMLElement has. */
+  const bodyRef = React.useRef<HTMLElement | null>(null);
   const cardOpen = (needsYou || held) && askOpen;
   const wasOpen = React.useRef(cardOpen);
   React.useEffect(() => {
@@ -126,7 +129,9 @@ function RunRow({
   return (
     <>
       <Row
-        bodyRef={bodyRef}
+        bodyRef={(el) => {
+          bodyRef.current = el;
+        }}
         marksWidth={MARKS_WIDTH}
         marks={run ? <Journey size="row" word={false} stations={journeyOfRun(run)} /> : null}
         lead={r.title}
@@ -139,7 +144,18 @@ function RunRow({
             .filter(Boolean)
             .join(" · ") || null
         }
-        onClick={() => onOpen(r.id)}
+        /*
+         * THE ROW NAVIGATES, SO THE ROW IS A LINK. `onOpen` did nothing but
+         * `navigate({ to: "/track/$trackId" })`, and wrapping a real URL in a
+         * <button> takes away every affordance a URL carries: cmd-click,
+         * middle-click, "copy link address", and the destination in the status
+         * bar on hover. A person could not open two runs side by side on the
+         * one screen whose whole job is showing them several runs at once.
+         *
+         * The trailing controls stay buttons and stay SIBLINGS of this region
+         * (see `Row`), so nothing is nested inside the anchor.
+         */
+        navigateTo={{ to: "/track/$trackId", params: { trackId: r.id } }}
         action={
           <span
             className="grid items-center gap-mrd-2"

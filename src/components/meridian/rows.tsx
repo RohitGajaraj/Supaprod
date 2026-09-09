@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 
 /**
  * THE TWO ROWS THE PRODUCT IS MOSTLY MADE OF.
@@ -112,6 +113,7 @@ export function Row({
   timeWidth,
   align = "center",
   onClick,
+  navigateTo,
   tight = false,
   focused = false,
   action,
@@ -140,6 +142,30 @@ export function Row({
    */
   align?: "center" | "start";
   onClick?: () => void;
+  /**
+   * ── A ROW THAT NAVIGATES SHOULD BE A LINK, NOT A BUTTON ──────────────────
+   *
+   * MEASURED ON THE SERVED HOME, 2026-09-10: every run row is a `<button>` and
+   * `openRun` does nothing but `navigate({ to: "/track/$trackId" })`. Pure
+   * navigation, to a page that has a real address -- so the list of runs could
+   * not produce a link to a run. Cmd-click, middle-click, "copy link address",
+   * the destination in the status bar on hover: all of it gone, on a product
+   * whose premise is that every step is on the record and whose users will
+   * want to send a teammate a run.
+   *
+   * IT WAS A BUTTON FOR A GOOD REASON, and that reason does not reach this
+   * far. A row carrying its own control cannot be one `<a>` wrapping
+   * everything, because an anchor may not contain a button. The branch below
+   * already solved that: the container is a `div`, the readable region is its
+   * own element, and the controls are its SIBLINGS. So the readable region can
+   * be an anchor without nesting anything invalid -- the constraint was only
+   * ever about the whole row.
+   *
+   * Given together with `onClick`, this wins and the click is dropped: two
+   * navigations on one press is how a row comes to disagree with itself about
+   * where it goes.
+   */
+  navigateTo?: { to: "/track/$trackId"; params: { trackId: string } };
   /** A row in a LIST never wraps. Founder ruling: one or two lines, and depth
    *  is a click away rather than showcased on the surface. Pass tight for any
    *  row whose full content has a detail view to open. */
@@ -151,7 +177,22 @@ export function Row({
   /** The row's clickable body, for a caller that has to hand keyboard focus
    *  back to the row after something under it closes (a card that answered
    *  a call and took its own control away with it). */
-  bodyRef?: React.Ref<HTMLButtonElement>;
+  /* The readable region is a button OR an anchor depending on whether the row
+     navigates, so a caller focusing it must accept either. Widened rather than
+     cast at the call site: a cast here would let a caller hold a ref to an
+     element type it cannot actually receive. */
+  /*
+   * A CALLBACK REF, BECAUSE THE REGION IS TWO DIFFERENT ELEMENTS. It is a
+   * button when the press does something and an ANCHOR when the row navigates,
+   * and React's `Ref<T>` is invariant -- no widening lets one object ref serve
+   * both, and every widening I tried ended in a cast that would have let a
+   * caller hold a ref to an element type it cannot receive.
+   *
+   * A callback takes `HTMLElement | null` and both branches can call it, which
+   * removes the variance rather than casting past it. Callers only ever
+   * `.focus()` this, which every HTMLElement has.
+   */
+  bodyRef?: (el: HTMLElement | null) => void;
   /**
    * The plain-text form of `lead` / `sub`, for a caller whose value is a
    * fragment rather than a string.
@@ -270,7 +311,7 @@ export function Row({
    * The container keeps `cursor-default`; only the inner region is a pointer,
    * because the trailing control is not part of what "open this" means.
    */
-  if (onClick && action) {
+  if ((onClick || navigateTo) && action) {
     /* ON A PHONE THE CONTROL DROPS UNDER THE SENTENCE. A trailing cluster
        beside a 250px title squeezed the title to nothing (phone review,
        2026-09-08); below the breakpoint the row wraps, the body takes the
@@ -292,22 +333,41 @@ export function Row({
           ["--mrd-row-under" as string]: `${marksWidth + ROW_GAP}px`,
         }}
       >
-        <button
-          ref={bodyRef}
-          type="button"
-          onClick={onClick}
-          /* THE ROW'S NAME IS ITS LEAD (Lane 1, 2026-09-08). Read off the live
+        {/* THE READABLE REGION IS A LINK WHEN THE ROW NAVIGATES, and a button
+            when the press does something else. `navigateTo` wins over
+            `onClick` deliberately: two navigations on one press is how a row
+            comes to disagree with itself about where it goes. */}
+        {navigateTo ? (
+          <Link
+            ref={bodyRef}
+            to={navigateTo.to}
+            params={navigateTo.params}
+            aria-label={typeof lead === "string" ? (leadTitle ?? lead) : undefined}
+            aria-description={typeof sub === "string" ? (subTitle ?? sub) : undefined}
+            className={`flex min-w-0 flex-1 gap-[13px] rounded-mrd-ctl text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] max-sm:basis-full ${
+              timeWidth ? FOLDING_ROW : ""
+            } ${align === "start" ? "items-start" : "items-center"}`}
+          >
+            {body}
+          </Link>
+        ) : (
+          <button
+            ref={bodyRef}
+            type="button"
+            onClick={onClick}
+            /* THE ROW'S NAME IS ITS LEAD (Lane 1, 2026-09-08). Read off the live
              accessibility tree: every run row's body button had no name, so a
              screen reader heard "button" five times. The lead is the name; the
              sentence under it is the description. */
-          aria-label={typeof lead === "string" ? (leadTitle ?? lead) : undefined}
-          aria-description={typeof sub === "string" ? (subTitle ?? sub) : undefined}
-          className={`flex min-w-0 flex-1 gap-[13px] rounded-mrd-ctl text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] max-sm:basis-full ${
-            timeWidth ? FOLDING_ROW : ""
-          } ${align === "start" ? "items-start" : "items-center"}`}
-        >
-          {body}
-        </button>
+            aria-label={typeof lead === "string" ? (leadTitle ?? lead) : undefined}
+            aria-description={typeof sub === "string" ? (subTitle ?? sub) : undefined}
+            className={`flex min-w-0 flex-1 gap-[13px] rounded-mrd-ctl text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--mrd-focus)] max-sm:basis-full ${
+              timeWidth ? FOLDING_ROW : ""
+            } ${align === "start" ? "items-start" : "items-center"}`}
+          >
+            {body}
+          </button>
+        )}
         <span
           className={`flex flex-none items-center gap-mrd-2 max-sm:basis-full max-sm:justify-end max-sm:pl-[var(--mrd-row-under)] ${
             align === "start" ? "self-start -mt-[5px]" : ""
