@@ -161,6 +161,18 @@ reading is not a status. Its word is "not read". The rule this generalises, and 
 surface owes: **a read that refused and a read that answered empty are different facts, and a
 surface that draws them the same is claiming the one it did not measure.**
 
+**The greyscale test is an accessibility test, and the road half failed it.** Measured 2026-09-09:
+`held`, `stopped` and `failed` each drew a coloured ring and glyph on the same lift fill, so the
+three differed by hue alone at lightness 0.76, 0.74 and 0.68, within 1.06:1 of one another in
+greyscale and collapsing under deuteranopia. A person then cannot tell a condition the loop will
+clear from a stop only they can clear from an outcome that already happened, and the difference
+decides whether they must act. `stopped` now takes the chip fill, which is the file's own rule for
+when a person is required and a channel that survives both tests. **`held` and `failed` are still a
+pair on this axis and it is an open question**, deliberately left rather than closed on one
+unverified finding: the honest fix wants a second non-hue channel, ring style is already spoken for
+by `waived`, and `failed` may simply be `done` with a fail verdict, which the paint already draws.
+Whoever takes it should measure first and say which of those three it is.
+
 **A row of controls counts and acts; prose only counts.** When a control on the same screen already
 carries the breakdown, the sentence above it must not repeat it. Found on the Inbox (Lane 2,
 2026-09-09): the heading read "20 design gates, 12 assumption challenges, 9 decisions, 4 house

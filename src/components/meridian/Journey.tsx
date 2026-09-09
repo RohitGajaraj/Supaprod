@@ -173,9 +173,23 @@ const PAINT: Record<JourneyState, Paint> = {
   working: { ring: "var(--mrd-agent)", ink: "var(--mrd-agent)", fill: "var(--mrd-agent-chip)" },
   you: { ring: "var(--mrd-you)", ink: "var(--mrd-you)", fill: "var(--mrd-you-chip)" },
   held: { ring: "var(--mrd-hold)", ink: "var(--mrd-hold)", fill: "var(--mrd-lift)" },
-  /* The you hue on the ring and the glyph, the lift fill: it is a person's
-     move, and nothing is alive inside it. No sixth status token. */
-  stopped: { ring: "var(--mrd-you)", ink: "var(--mrd-you)", fill: "var(--mrd-lift)" },
+  /*
+   * THE CHIP FILL, BECAUSE A PERSON IS REQUIRED (craft pass, 2026-09-09).
+   *
+   * This carried the lift fill on the reasoning that nothing is alive inside a
+   * run the loop has quit. The rule this file states is not "something is
+   * happening" but "a person required", and a stopped run is exactly that: it
+   * moves when they restart it and not before.
+   *
+   * The measurement that settled it. `held`, `stopped` and `failed` all drew a
+   * coloured ring and glyph on the lift fill, so the three differed by HUE
+   * alone at lightness 0.76, 0.74 and 0.68: within 1.06:1 of each other in
+   * greyscale, and collapsing for a deuteranope, who then cannot tell a
+   * condition the loop will clear from a stop only they can clear from an
+   * outcome that already happened. The fill is a channel that survives both.
+   * `held` and `failed` remain a pair on this axis; see the design contract.
+   */
+  stopped: { ring: "var(--mrd-you)", ink: "var(--mrd-you)", fill: "var(--mrd-you-chip)" },
   scheduled: { ring: "var(--mrd-edge)", ink: "var(--mrd-mute)", fill: "var(--mrd-lift)" },
   waiting: { ring: "var(--mrd-edge)", ink: "var(--mrd-body)", fill: "var(--mrd-lift)" },
   failed: { ring: "var(--mrd-fail)", ink: "var(--mrd-fail)", fill: "var(--mrd-lift)" },
