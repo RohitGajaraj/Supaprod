@@ -96,49 +96,6 @@ export function Figure({ children }: { children: React.ReactNode }) {
  * is what makes a label read as a label without borrowing a monospace face it
  * has no numerical reason to wear.
  */
-/**
- * ── SECTION HEAD: WHERE ONE PART OF A PAGE ENDS AND THE NEXT BEGINS ───────
- *
- * Added to Meridian 2026-09-01 under the founder's grant to close gaps rather
- * than work around them.
- *
- * ── THE GAP, NAMED TWICE ─────────────────────────────────────────────────
- * FOUNDER: *"'what needs doing' needs a separate section, that is what I feel,
- * rather than just clubbing it with home ... How you can differentiate or do
- * the justification for each section, that is what you need to think through."*
- *
- * Meridian had `PageHeading` (the page's own title) and `Region` (a bordered
- * block with a title). It had nothing for the seam BETWEEN two major parts of
- * one page -- so a surface that does two jobs ran them together as one column
- * and the reader had no cue that the subject had changed. On the home that is
- * literal: "say what needs doing" and "here is where your work stands" are two
- * different jobs, and they arrived as one continuous scroll.
- *
- * ── WHY A RULE AND A WORD, RATHER THAN A HEADING ─────────────────────────
- * A second `h2` at title size competes with the page's own `h1` for the
- * reader's attention and makes the page look like it has two titles -- which
- * is the exact defect just repaired on this surface (two `<h1>` elements).
- * What is needed is a SEAM, not a second title: a hairline says "the subject
- * changes here" and the eyebrow says what it changes to. It reads as
- * structure rather than as a competing claim.
- *
- * The rule sits on the baseline of the word rather than above it, so the pair
- * is one object. `--mrd-line-soft` and not `--mrd-line`: a divider between
- * sections of one page is quieter than the edge of a card, or every page
- * turns into a stack of boxes.
- *
- * IT IS AN `h2` UNDERNEATH, so the document outline is real. A visual seam
- * that a screen reader cannot hear is a seam for sighted readers only, and
- * the heading list is how a keyboard user moves around a long page.
- */
-export function SectionHead({ children }: { children: React.ReactNode }) {
-  return (
-    <div data-mrd="" className="flex items-center gap-mrd-4">
-      <h2 className="mrd-eyebrow shrink-0">{children}</h2>
-      <span aria-hidden="true" className="h-px min-w-0 flex-1 bg-mrd-line-soft" />
-    </div>
-  );
-}
 
 export function Eyebrow({ children }: { children: React.ReactNode }) {
   return <span className="block mrd-eyebrow">{children}</span>;

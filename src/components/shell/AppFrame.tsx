@@ -173,6 +173,7 @@ import { SampleBanner } from "@/components/meridian/SampleBanner";
 import { AuditLineageSheet } from "@/components/supaprod/AuditLineageSheet";
 import { FindAnything } from "./FindAnything";
 import { genuinelyWorkingMissions } from "./genuinely-working";
+import { countIsAFloor } from "@/components/approvals/not-the-whole-queue";
 import {
   IconAsk,
   IconGear,
@@ -1089,15 +1090,39 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
      gates as the floor for the beat before the queue answers. */
   const waiting = waitingCount ?? gateCount;
   /*
-   * THE "AT LEAST" FLOOR IS GONE, ON PURPOSE (P-18a). It existed because
-   * `getApprovalsQueue` bounded ten families to a fixed limit each and could
-   * silently drop some of what it counted -- 116 specs pending a design gate
-   * against a limit of 100, S1's own measurement. `listGatesOnTracks` has no
-   * families to bound; it is one query over open tracks, capped at 50 the
-   * same way `listTracks` and `listMovingTracks` already are without either
-   * of them flagging that cap as partial. There is no equivalent "some of
-   * what is waiting is missing" fact left to say here.
+   * THE "AT LEAST" FLOOR CAME BACK, BECAUSE THE SOURCE MOVED OUT FROM UNDER
+   * THE RULING THAT RETIRED IT (Lane 1, 2026-09-09).
+   *
+   * P-18a removed it, and was right at the time: the count came from
+   * `listGatesOnTracks`, one query over open tracks with no families to bound,
+   * so there was no "some of what is waiting is missing" fact left to say.
+   *
+   * F-212 then made `getApprovalsQueue` the count and left `listGatesOnTracks`
+   * as the fallback for the beat before the queue answers. That is the read the
+   * floor was written for: ten families, each bounded at a fixed limit, 116
+   * specs pending a design gate against a limit of 100 when it was measured.
+   * The line above now PREFERS the bounded read and the qualifier that belonged
+   * to it was not brought back with it, so the shell has been stating an exact
+   * number over a read that already knows it is short.
+   *
+   * This is the third time today one shape has cost something: a branch's
+   * source changes and the qualifier written for the old source is not
+   * revisited. The loading guard this morning was the same defect, and so was
+   * the halo reading a keyframe tuned for an element that had no resting value.
+   *
+   * IT IS CONDITIONAL, NOT BLANKET. The floor applies only when the queue is
+   * actually the source AND it reports a gap. The fallback keeps its exact
+   * count, because P-18a's reasoning about it still holds, and a queue that
+   * federated all ten families cleanly is exact and says so.
+   *
+   * THE NUMBER IS NOT HIDDEN AND THE BADGE DOES NOT CHANGE. The count is still
+   * the most useful thing in the line; only its exactness was never earned, and
+   * "At least" is the smallest honest thing to put in front of it. The rail's
+   * badge keeps its digit: a glyph is not a word, a mark that changes shape
+   * when a read degrades is noise on the one surface that must stay calm, and
+   * the sentence forty pixels away carries the caveat for both.
    */
+  const waitingIsFloor = waitingCount !== null && countIsAFloor(queue.data?.incomplete);
 
   /*
    * ── WHAT AGENTS MOVING INTO SETTINGS MUST NOT COST ──────────────────────
@@ -1446,7 +1471,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
            count of a different population: two numbers, one word. "Decision"
            now names a kind inside the queue and the decision record that is
            the moat; the thing waiting on a person is a call. */
-        return waiting === 1 ? "1 call is waiting for you" : `${waiting} calls are waiting for you`;
+        /* "At least" only when the queue said it is short of itself; see the
+           floor's own block above for why the badge does not change with it. */
+        const stem =
+          waiting === 1 ? "1 call is waiting for you" : `${waiting} calls are waiting for you`;
+        return waitingIsFloor ? `At least ${stem}` : stem;
       }
       /* A walk with no mission yet lands here, said from its own row. The
        * station is named the way the transcript names one in passing, which is
@@ -1555,6 +1584,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     running.length,
     running,
     waiting,
+    /* The qualifier changes the sentence, so it changes the memo. Omitting it
+       is the defect this morning's loading guard was: a branch widened without
+       widening what recomputes it. */
+    waitingIsFloor,
     onTheBoard,
     workers,
     unnamedRuns,

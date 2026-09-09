@@ -103,6 +103,29 @@ describe("the shell's live line", () => {
     }
     expect(at).toBeLessThan(body.indexOf('"Ready for the first run"'));
   });
+
+  it("says 'at least' over a queue that reported itself short, and only then", () => {
+    // P-18a retired the floor when the count came from `listGatesOnTracks`,
+    // which has no families to bound. F-212 then made the bounded ten-family
+    // queue the primary source and did not bring the qualifier back with it,
+    // so the shell stated an exact number over a read that knew it was short.
+    // This pins the pair: the flag is derived from the queue's own gap report,
+    // and the sentence is the thing that changes.
+    expect(SRC).toContain("countIsAFloor(queue.data?.incomplete)");
+    expect(SRC).toContain("At least ${stem}");
+
+    // Conditional, never blanket: the fallback count stays exact, so the flag
+    // must require that the queue actually answered.
+    const decl = SRC.match(/const waitingIsFloor = ([^;]+);/);
+    expect(decl, "waitingIsFloor is gone; re-point this test").not.toBeNull();
+    expect(decl![1]).toContain("waitingCount !== null");
+
+    // And it must recompute the sentence. A qualifier missing from the deps is
+    // the defect the loading guard above was written for, one step along.
+    const memo = SRC.match(/const liveLead = React\.useMemo\(\(\) => \{[\s\S]*?\n {2}\}, \[([\s\S]*?)\n {2}\]\);/);
+    expect(memo, "liveLead's dependency array moved; re-point this test").not.toBeNull();
+    expect(memo![1]).toContain("waitingIsFloor");
+  });
 });
 
 describe("the home's hero", () => {
