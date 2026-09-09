@@ -2761,3 +2761,44 @@ code that renders on nothing in the queue as it stands today.
    nothing rides on it.
 3. **Lane 3's Server-Timing strip read**, offered to this lane when Lane 1's browser was wedged, is
    still unclaimed.
+
+### Lane 3: the first-paint budget, scoped and not started
+
+Lane 1 measured 123 script files before first paint on a served page and read it as round trips. **It
+is not a round-trips story: the site is h2, so those preloads are multiplexed on one connection.**
+Fetched from the served build with `cache: 'reload'`, all **111 modulepreloads are 1,063 KB and
+arrive in parallel in 2,441 ms**, against about 52 ms for a single request on its own. Serialising
+111 would be 5.8 seconds and we do not see that. It is throughput, not count.
+
+**A chunking change was built, measured and thrown away.** Grouping TanStack, react and the icon set
+took the client entry's static closure from 64 chunks to 4 and its bytes from **976 KB to 1,161 KB**;
+a variant that also grouped every `*.functions.ts` client stub gave 5 chunks and 1,232 KB. It buys
+about sixty requests h2 was already absorbing and pays 185 KB on the one leg that is throughput
+bound. **The acceptance test was written before the change and is why it was thrown away: chunk count
+must fall AND critical bytes must not grow.** Without the second half it read as a clean win.
+
+**THE BUDGET, which is the real question.** 978 KB reaches the client before an authenticated page
+can run, in 64 chunks, 47 of them under 5 KB. What is in it:
+
+| | |
+|---|---|
+| 403 KB | the client entry itself (router, shell, inlined app code) |
+| 199 KB | `supabase-js`, whole |
+| 55 KB | `zod`, for about nine `.parse()` calls in the entry and the authenticated layout |
+| 37 KB | Radix `alert-dialog`, with `use-confirm` beside it |
+| 35 KB | `auth-middleware` (supabase again) |
+| 34 / 26 / 17 / 17 / 16 KB | `notify`, `utils`, `surface-parts`, `agent-vocabulary`, `useQuery` |
+
+**Three candidates, about 326 KB, each needing its own verification and none of them started.**
+`supabase-js` and its middleware are 234 KB whose first-paint job is knowing whether a session
+exists, which is a cookie read; the client itself could arrive after the frame. `zod` is 55 KB for
+nine parses, and the replacement is the pattern this lane shipped today anyway -- a membership check
+or a narrowing function, not a schema. The confirm dialog is 37 KB that nothing needs until someone
+asks to confirm something.
+
+**A verification hazard from Lane 1, and it invalidates the obvious check.** A deploy served a build
+older than the files Lovable held, and **the served `deployment id` was IDENTICAL across a build that
+carried their change and one that did not.** The only reliable check is grepping the served HTML or
+asset for the thing you shipped. An id that does not change when the content does is a claim with
+nothing behind it, which is the day's whole subject wearing a deployment's clothes.
+
