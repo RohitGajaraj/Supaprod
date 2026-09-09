@@ -36,7 +36,24 @@ export function HomeAnswers({
   return (
     <section
       data-mrd=""
-      aria-label="What needs you"
+      /*
+       * ── THE REGION'S NAME HAD STOPPED DESCRIBING ITS CONTENTS ────────────
+       *
+       * It was "What needs you", and on 2026-09-10 it began leading with
+       * *"Warn a homeowner before an installer visit is cancelled reached
+       * Build."* — which needs nobody.
+       *
+       * The name was already loose before that: what ARRIVED, what SHIPPED and
+       * what was LEARNED need nobody either. Only the waiting line ever did.
+       * Adding a fourth kind made a loose name plainly wrong, and a screen
+       * reader announces this one before anything inside it.
+       *
+       * **What every line here actually shares is the clock**, not an
+       * obligation: each is true only relative to the last time this person
+       * looked. So that is the name. The one line that DOES need somebody says
+       * so in its own words and carries its own door.
+       */
+      aria-label="Since you last looked"
       className={`flex flex-col gap-mrd-2 ${className}`}
     >
       {shown.map((a, i) => (

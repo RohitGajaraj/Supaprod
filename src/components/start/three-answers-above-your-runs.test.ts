@@ -311,7 +311,11 @@ describe("the four, together", () => {
       lastLookedAt: "2026-09-01T00:00:00Z",
       learnedCount: 1,
       releases: [],
-      moved: { kind: "one", title: "Warn a homeowner before a visit is cancelled", station: "Design" },
+      moved: {
+        kind: "one",
+        title: "Warn a homeowner before a visit is cancelled",
+        station: "Design",
+      },
       zone: ZONE,
       nowIso: NOW,
     });
@@ -371,5 +375,41 @@ describe("the four, together", () => {
     expect(shell).toContain('[...APPROVALS_QUEUE_PREFIX, "shell", wsKey]');
     expect(shell).toContain("gates: waitingCount ?? gateCount,");
     expect(src).toContain('.filter((a) => a.read === "answered")');
+  });
+});
+
+/*
+ * ── A REGION'S NAME MUST DESCRIBE WHAT IS IN IT ───────────────────────────
+ *
+ * This section was called "What needs you", and on 2026-09-10 it began leading
+ * with *"Warn a homeowner before an installer visit is cancelled reached
+ * Build."* — which needs nobody.
+ *
+ * The name was already loose: what ARRIVED, what SHIPPED and what was LEARNED
+ * need nobody either. Only the waiting line ever did. Adding a fourth kind made
+ * it plainly wrong, and a screen reader announces the region before anything
+ * inside it — so the first thing a person using one heard was a promise the
+ * contents do not keep.
+ *
+ * What every line shares is the CLOCK, not an obligation.
+ */
+describe("the region is named for what it holds", () => {
+  const SRC = readFileSync("src/components/start/HomeAnswers.tsx", "utf8");
+  const codeOnly = code(SRC);
+
+  it("does not promise that everything inside needs a person", () => {
+    expect({ promises: codeOnly.includes("What needs you") }).toEqual({ promises: false });
+  });
+
+  it("names the one thing every line actually shares", () => {
+    expect(codeOnly).toContain('aria-label="Since you last looked"');
+  });
+
+  it("still labels the region at all", () => {
+    /* THE MIRROR. The first assertion passes by finding nothing, so deleting
+       the label entirely would read as an improvement — and an unlabelled
+       region is worse than a wrongly-labelled one for the reader who most
+       depends on it. */
+    expect(codeOnly).toContain("aria-label=");
   });
 });
