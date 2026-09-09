@@ -263,6 +263,17 @@ export function SettlePanel({
     staleTime: 30_000,
   });
   const awaiting = React.useMemo(() => awaitingQ.data?.releases ?? [], [awaitingQ.data]);
+  /*
+   * ── A FAILED READ MUST NOT SAY NOTHING HAS SHIPPED ─────────────────────────
+   *
+   * `awaiting` is `?? []` on a read with no failure branch, and the `Quiet`
+   * below turns an empty list into **"Nothing has shipped that needs a
+   * verdict."** That is a positive all-clear about the workspace, made from a
+   * read that may never have answered, on the station whose whole job is that
+   * bets get settled. A bet waiting for a person would be invisible and the
+   * surface would say, in words, that there is none.
+   */
+  const awaitingUnread = awaitingQ.isError;
   const pending = React.useMemo(() => pendingQ.data?.pending ?? [], [pendingQ.data]);
   const agentSettled = React.useMemo(() => settledQ.data?.settled ?? [], [settledQ.data]);
 
@@ -605,16 +616,20 @@ export function SettlePanel({
         ) : null}
         <Quiet
           says={
-            awaiting.length > 0
-              ? "Nothing needs your verdict yet."
-              : agentSettled.length > 0
-                ? "Nothing needs your verdict."
-                : "Nothing has shipped that needs a verdict."
+            awaitingUnread
+              ? "What is waiting for a verdict could not be read."
+              : awaiting.length > 0
+                ? "Nothing needs your verdict yet."
+                : agentSettled.length > 0
+                  ? "Nothing needs your verdict."
+                  : "Nothing has shipped that needs a verdict."
           }
           whatWillAppear={
-            agentSettled.length > 0
-              ? `${agentDisplayName(MEASURE_SLUG)} settled the last ones on the evidence. They are below, with what each rested on. Disagree with any of them and the record keeps both.`
-              : `A bet arrives here when its spec ships. ${agentDisplayName(MEASURE_SLUG)} settles it from what the usage actually did, and asks you only when the evidence does not reach.`
+            awaitingUnread
+              ? "This says nothing about whether anything is waiting. The read failed; it did not come back empty."
+              : agentSettled.length > 0
+                ? `${agentDisplayName(MEASURE_SLUG)} settled the last ones on the evidence. They are below, with what each rested on. Disagree with any of them and the record keeps both.`
+                : `A bet arrives here when its spec ships. ${agentDisplayName(MEASURE_SLUG)} settles it from what the usage actually did, and asks you only when the evidence does not reach.`
           }
         />
         <AgentSettledBlock

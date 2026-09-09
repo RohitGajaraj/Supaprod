@@ -268,6 +268,10 @@ function ForecastBlock({
     queryFn: () => fHistory({ data: { decisionId: d.id } }),
   });
   const trail = history.data?.history ?? [];
+  /* A failed read of the earlier verdicts renders as an absent section, which
+     on a decision's own record reads as "there were none". The two are not the
+     same claim and this surface is where the difference is worth most. */
+  const trailUnread = history.isError;
 
   const recorded = d.forecast_claim != null;
   const resolutionWord =
@@ -318,6 +322,11 @@ function ForecastBlock({
                 })
               : "an unset date"}
           </p>
+          {trailUnread ? (
+            <p className="mt-mrd-2 text-mrd-base text-mrd-mute">
+              Earlier verdicts on this call could not be read.
+            </p>
+          ) : null}
           {trail.length > 0 ? (
             <div className="mt-mrd-2">
               {/* REVERSED HISTORY, oldest first: what was graded before, who
