@@ -646,11 +646,6 @@ function StartLanding() {
           something drawn directly below, and it stands down for good the
           moment `WhetherItWorked` can say the same thing with this
           workspace's own evidence in it. */}
-      {theMessage ? (
-        <p className="max-w-[var(--mrd-measure-region)] text-mrd-base leading-mrd-prose text-mrd-mute">
-          {theMessage}
-        </p>
-      ) : null}
 
       {/*
        * ── THE JOURNEY IS THE ENTRY, AND IT USED TO BE THE EIGHTH REGION ────
@@ -681,8 +676,11 @@ function StartLanding() {
        */}
       {roadMode ? (
         <JourneyMap
-          /* It opens the page now, so it says what it is. */
+          /* It opens the page now, so it says what it is -- and carries the
+             one sentence about the product, as a caption inside its own panel
+             rather than a loose line stacked above it. */
           leads
+          says={theMessage}
           /*
            * ── WHILE A SENTENCE IS BEING WRITTEN, THE ROAD IS ABOUT IT ───────
            *

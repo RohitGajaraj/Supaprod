@@ -47,10 +47,19 @@ describe("the entry leads with the journey", () => {
     }
   });
 
-  it("says what the product does before it draws it", () => {
-    // The sentence names a mechanism and every clause of it points at the
-    // road directly underneath. Above it, or it is a caption for nothing.
-    expect(at("{theMessage ?") < at("<JourneyMap")).toBe(true);
+  it("carries the sentence about the product INSIDE the road's own panel", () => {
+    /*
+     * It was a loose line stacked above the panel, and that is two elements
+     * where there should be one: the page opened on grey body text and then a
+     * card, which is the "assembled" feel rather than a designed block. It is
+     * a CAPTION -- every clause of it points at something in the stations --
+     * so it belongs under the road's name and above the drawing.
+     */
+    const call = ROUTE.slice(at("<JourneyMap"), at("<JourneyMap") + 600);
+    expect(call).toContain("says={theMessage}");
+    const map = readFileSync(join(import.meta.dir, "JourneyMap.tsx"), "utf8");
+    expect(map.indexOf("{says ?")).toBeGreaterThan(map.indexOf("<Eyebrow>{ROAD_NAME[mode]}"));
+    expect(map.indexOf("{says ?")).toBeLessThan(map.indexOf("<Journey\n"));
   });
 
   it("keeps the ask under the picture it is about", () => {
@@ -129,7 +138,13 @@ describe("the road names itself where it leads, and nowhere else", () => {
   const MAP = readFileSync(join(import.meta.dir, "JourneyMap.tsx"), "utf8");
 
   it("draws the name only when it is the page's first region", () => {
-    expect(MAP).toContain("{leads ? <Eyebrow>{ROAD_NAME[mode]}</Eyebrow> : null}");
+    /* PINNED ON THE CLAIM, not the markup: the name and the caption became a
+       small block inside the panel rather than one line, and the property is
+       that BOTH are gated on `leads`. */
+    const head = MAP.slice(MAP.indexOf("{leads ? ("), MAP.indexOf("<Journey\n"));
+    expect(head, "the road's head moved; re-point this test").toContain("ROAD_NAME[mode]");
+    expect(head).toContain("{says ?");
+    expect(head.indexOf("ROAD_NAME[mode]")).toBeLessThan(head.indexOf("{says ?"));
   });
 
   it("defaults to silent, so a road inside another frame stays unframed", () => {

@@ -182,6 +182,7 @@ export function JourneyMap({
   selected,
   onSelect,
   leads = false,
+  says,
 }: {
   mode: "promise" | "map" | "route";
   stations: readonly JourneyStation[];
@@ -194,6 +195,16 @@ export function JourneyMap({
    * road first.
    */
   leads?: boolean;
+  /**
+   * One sentence about what this drawing shows, drawn inside the panel.
+   *
+   * IT LIVES HERE RATHER THAN ABOVE THE PANEL BECAUSE OF WHAT IT IS. It is a
+   * caption for the road, and a caption stacked outside the thing it captions
+   * is two elements where there should be one -- the page opened on a loose
+   * grey line and then a card, which is the "assembled" feel rather than a
+   * designed block. Inside, under the name, it reads as the panel's own voice.
+   */
+  says?: string | null;
 }) {
   /* THE CAPTION SAYS WHAT THE PRESS DID. A station press filters a list that
      is usually below the fold, so it looked like nothing happened (third
@@ -248,7 +259,20 @@ export function JourneyMap({
        * take -- and the drawing changing subject silently is the ambiguity the
        * route preview was nearly not built over.
        */}
-      {leads ? <Eyebrow>{ROAD_NAME[mode]}</Eyebrow> : null}
+      {leads ? (
+        <span className="flex flex-col gap-mrd-2">
+          <Eyebrow>{ROAD_NAME[mode]}</Eyebrow>
+          {/* The sentence sits UNDER the name and ABOVE the drawing, because
+              it explains the drawing: every clause of it points at something
+              in the stations below. Above the name it would be a claim about
+              the product; here it is a caption. */}
+          {says ? (
+            <span className="max-w-[var(--mrd-measure-region)] text-mrd-base leading-mrd-prose text-mrd-mute">
+              {says}
+            </span>
+          ) : null}
+        </span>
+      ) : null}
       <Journey
         size="full"
         stations={stations}
