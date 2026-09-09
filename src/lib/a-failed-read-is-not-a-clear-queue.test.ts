@@ -84,3 +84,49 @@ describe("the caveat has one spelling", () => {
     expect(QUEUE_UNREAD_LINE).toMatch(/could not be read/);
   });
 });
+
+/**
+ * ONE LINE ALONG FROM THE QUEUE, AND THE SAME DEFECT. "Agents are idle" is a
+ * claim about the in-flight runs read, which is a head query: it answers
+ * `count: null` when it fails, and `?? 0` stated that as idleness. Found by
+ * looking for the shape Lane 1 found on the entry an hour earlier, where an
+ * unconditional clause said a decision had been re-scored when nothing had.
+ */
+describe("idle is a reading, not a default", () => {
+  it("does not call the agents idle when the runs count could not be read", () => {
+    const said = composeBriefing({
+      events: [],
+      inFlightRuns: 0,
+      gateCountByStage: {},
+      runsUnread: true,
+    });
+    expect(said.paragraphs[0]).toContain("could not be read");
+    expect(said.paragraphs[0]).not.toContain("Agents are idle");
+    // And it still says what it does know about the queue.
+    expect(said.paragraphs[0]).toContain("Nothing waits on you.");
+  });
+
+  it("says both when neither read answered, and invents neither", () => {
+    const said = composeBriefing({
+      events: [],
+      inFlightRuns: 0,
+      gateCountByStage: {},
+      runsUnread: true,
+      queueUnread: true,
+    });
+    expect(said.paragraphs[0]).toContain("Whether anything is running could not be read.");
+    expect(said.paragraphs[0]).toContain(QUEUE_UNREAD_LINE);
+    expect(said.paragraphs[0]).not.toContain("idle");
+    expect(said.paragraphs[0]).not.toContain("Nothing waits on you.");
+  });
+
+  it("and calls them idle when the read said zero", () => {
+    const said = composeBriefing({ events: [], inFlightRuns: 0, gateCountByStage: {} });
+    expect(said.paragraphs[0]).toBe("Agents are idle. Nothing waits on you.");
+  });
+
+  it("the caller marks the flag off the query's own answer, not off a zero", () => {
+    const src = readFileSync("src/lib/briefing.functions.ts", "utf8");
+    expect(src).toContain("runsUnread: runsRes.error != null || runsRes.count == null");
+  });
+});
