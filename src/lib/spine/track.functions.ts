@@ -2766,6 +2766,44 @@ export type ArtifactView = {
   /** The plain word for the kind, from the one vocabulary the driver uses. */
   word: string;
   artifactId: string;
+  /**
+   * WHEN THE LOOP ATTACHED IT, NOT WHEN THE STATION FILED IT, AND THE NAME
+   * DOES NOT SAY SO.
+   *
+   * This is `spine_track_members.created_at`. It reads as the artifact's own
+   * creation time and it is the bookkeeping time, which is the same distinction
+   * as a mission being something a station STARTED rather than something it
+   * filed.
+   *
+   * ── MEASURED, AND IT COSTS THREE THINGS AT ONCE ──────────────────────────
+   * The three drawings on `6cc7a010`:
+   *
+   *   artifact    attached_at              filed_at     desc   files
+   *   aa884e5b    02:21:42.926121          02:21:17     827      1
+   *   161e1663    02:20:46.905600          02:20:37     827      1
+   *   9de19b1a    02:20:46.905600          02:20:08     182      0
+   *
+   * **The two earlier ones share an attachment timestamp to the microsecond**,
+   * because the driver attached both in one write, while they were FILED 29
+   * seconds apart. On the artifact pane that produces:
+   *
+   *   1. two version rows stamped with the same second, which the pane's own
+   *      comment says it added seconds specifically to prevent;
+   *   2. an arbitrary order between them, because the sort key is equal -- so
+   *      "the version after this one" is undefined and the change line beneath
+   *      each row is computed against whichever neighbour won the tie;
+   *   3. no way to tell them apart at all, when one of them has ZERO files and
+   *      182 characters of description against the other's 827 and one file.
+   *
+   * The artifact's own `created_at` is the fact about the work and would settle
+   * all three. It is not on this read. Filed with the lane that owns this file
+   * rather than added here, because the same field orders `run-journey`'s
+   * `newest()` and the story's stops, so changing what it means is a change to
+   * the driver's own reads and not only to a pane.
+   *
+   * Until then: this is an ATTACHMENT time. Do not stamp a version with it and
+   * do not sort versions by it expecting the filing order.
+   */
   createdAt: string;
   title: string | null;
   /** True only when the lookup ran and the row was not there. */
