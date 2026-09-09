@@ -1342,6 +1342,27 @@ export type StartRun = {
    * fabricated zero.
    */
   credits: number | null;
+  /**
+   * ── WHAT THE PLATFORM RECORDED WHEN IT STOPPED THIS RUN ──────────────────
+   *
+   * `halted_reason` off the newest halted `agent_runs` row for this track, or
+   * null -- which is the answer for every track that has never hit a platform
+   * wall, and that is 113 of the 121 this product has ever made.
+   *
+   * IT IS A DIFFERENT KIND OF FACT FROM `holdReason`. A hold is the DRIVER's
+   * reading of a shape: run many times, moved once never, so stop. A halt is
+   * the PLATFORM saying it refused to run at all -- out of credit, kill switch,
+   * over a cap. The first is inferred and the second is recorded, and until now
+   * only the inferred one reached a surface.
+   *
+   * MEASURED 2026-09-10, and this is why it is worth a column. Across the whole
+   * product only eight tracks have ever had a halted run, and FIVE of them
+   * halted `out_of_credit`. Two of those five are labelled `going-in-circles`
+   * with 24 halted runs between them. On `6cc7a010` the seat was refused twelve
+   * times in a row, 612ms each, and the one sentence the home and the run
+   * screen gave a person was about the work going round in circles.
+   */
+  stoppedBecause: { kind: string; at: string } | null;
 };
 
 /**
@@ -1531,6 +1552,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
           forecastByTrack,
           liveByTrack,
           creditsByTrack,
+          haltByTrack,
         ] = await Promise.all([
           (async () => {
             const byTrack = new Map<string, { tool: string }>();
@@ -1857,6 +1879,53 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             }
             return byTrack;
           })(),
+          (async () => {
+            /*
+             * ── THE WALL THE PLATFORM PUT UP, WHICH NO SURFACE HAS EVER READ ──
+             *
+             * One round trip, concurrent with the other six, so it lands inside
+             * the slowest branch rather than after it -- and it is the smallest
+             * read in this function by a wide margin: `status = 'halted'` is 46
+             * rows in the ENTIRE product, across eight tracks, measured
+             * 2026-09-10. Scoped to the 50 ids already in hand, it is a handful.
+             *
+             * IT CANNOT RIDE THE CREDITS BRANCH'S `agent_runs` READ, which is
+             * where I tried to put it first. That read carries
+             * `.not("trace_id", "is", null)`, and 18 of the 46 halted rows have
+             * no trace at all -- so widening its select would have found 28 of
+             * them and silently missed the rest, which is worse than not
+             * looking.
+             *
+             * NEWEST WINS. A track can hit two different walls weeks apart; the
+             * one still standing in front of it is the last one recorded.
+             */
+            const byTrack = new Map<string, { kind: string; at: string }>();
+            const { data: halts, error: haltErr } = await supabase
+              .from("agent_runs")
+              .select("track_id, halted_reason, created_at")
+              .in("track_id", ids)
+              .eq("status", "halted")
+              .not("halted_reason", "is", null)
+              .order("created_at", { ascending: false });
+            if (haltErr) {
+              // Same fail direction as the credits branch: a refused read must
+              // not read as "this run was never stopped by the platform".
+              console.error(`[listRunsForStart] halts read failed: ${haltErr.message}`);
+              return byTrack;
+            }
+            for (const h of (halts ?? []) as Array<{
+              track_id: string | null;
+              halted_reason: string | null;
+              created_at: string;
+            }>) {
+              if (!h.track_id || !h.halted_reason) continue;
+              // Ordered newest-first, so the first one seen for a track wins.
+              if (!byTrack.has(h.track_id)) {
+                byTrack.set(h.track_id, { kind: h.halted_reason, at: h.created_at });
+              }
+            }
+            return byTrack;
+          })(),
         ]);
 
         return rows.map((r) => {
@@ -1894,6 +1963,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             forecast: forecastByTrack.get(r.id) ?? null,
             liveSince: liveByTrack.get(r.id) ?? null,
             credits: creditsByTrack.get(r.id) ?? null,
+            stoppedBecause: haltByTrack.get(r.id) ?? null,
           };
         });
       } catch (e) {

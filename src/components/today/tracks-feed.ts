@@ -1,7 +1,7 @@
 import type { Track } from "@/lib/spine/track.functions";
 import { STALL_MINUTES } from "@/lib/loop-health.functions";
 import { formatElapsed } from "@/components/meridian/run-rows";
-import { TERMINAL_HOLDS } from "@/lib/spine/correction";
+import { HALT_LINE, TERMINAL_HOLDS } from "@/lib/spine/correction";
 import { waitingOnTime } from "@/components/track/a-calendar-wait-is-not-a-stoppage";
 import { stoppedFor } from "@/components/meridian/stopped-for";
 import { nothingHasPickedItUp } from "@/components/track/nothing-has-picked-it-up";
@@ -356,6 +356,12 @@ export type StartRowInput = {
   } | null;
   needsYou: { tool: string } | null;
   produced: Array<{ kind: string; count: number }>;
+  /**
+   * What the PLATFORM recorded when it refused to run this, from
+   * `agent_runs.halted_reason` (newest first). Null for every track that has
+   * never hit a wall, which is almost all of them.
+   */
+  stoppedBecause?: { kind: string; at: string } | null;
   /** When a person said this one goes first, or null. */
   pinnedAt?: string | null;
   /** When this track's own work first reached production, or null (P-126,
@@ -586,6 +592,47 @@ function startRowRest(
    * on; the driver's sentence is kept, verbatim, as the row's detail
    * (`StartRow.detail`, drawn as the tooltip and read by the run screen).
    */
+  /*
+   * ── A RECORDED CAUSE OUTRANKS AN INFERRED SHAPE ──────────────────────────
+   *
+   * WALKED AS A STRANGER ON THE SERVED RUN SCREEN, 2026-09-10, on `6cc7a010`.
+   * The one sentence the product gave a person was:
+   *
+   *   "Design has been run many times over and the work has not moved on once,
+   *    so nothing further will be spent on it until you look."
+   *
+   * Measured on production, what had actually happened:
+   *
+   *   ux-architect · 12 runs · status halted · out_of_credit · avg 612ms each
+   *
+   * Twelve refusals at the door, 612 milliseconds apart, over an hour and a
+   * half. The station never ran. Nothing went round in circles; the account
+   * was empty. And the remedies that sentence leads to -- send it back a step,
+   * take it over -- would each have bought a thirteenth instant refusal.
+   *
+   * THE HOLD SENTENCE IS NOT WRONG, WHICH IS WHY THIS SITS ABOVE IT RATHER
+   * THAN REPLACING IT. `going-in-circles` is a true reading of the shape: the
+   * loop did run the station many times and the work did not move. But it is
+   * INFERRED from a count, and `halted_reason` is RECORDED by the thing that
+   * did the refusing. This file already made this exact call once, one branch
+   * down, when it stopped saying "Stopped at Build" over a reason the record
+   * held: **the sentence must not throw away the one fact the record has.**
+   *
+   * AND IT IS NOT A RARE CASE. Across every track this product has ever made,
+   * eight have a halted run and FIVE of those halted out of credit -- two of
+   * them wearing `going-in-circles`, with 24 halted runs between them. Out of
+   * credit is the most common real blocker in the product and until now no
+   * top-level surface named it once.
+   *
+   * ONLY KINDS THIS BUILD HAS WORDS FOR. An unrecognised `halted_reason` falls
+   * through to the hold sentence rather than printing a raw slug at a person,
+   * on the same rule `holdLine` follows for an unknown hold.
+   */
+  const wall = r.stoppedBecause
+    ? (HALT_LINE as Record<string, string | undefined>)[r.stoppedBecause.kind]
+    : null;
+  if (wall) return wall;
+
   if (r.holdBecause && r.holdBecause.length <= ROW_LINE_MAX) return r.holdBecause;
   const short = shortHoldLine(r);
   if (short) return short;

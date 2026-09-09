@@ -37,7 +37,7 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "bun:test";
 
-import { HALT_HOLD, holdForHalt } from "./correction";
+import { HALT_HOLD, HALT_LINE, holdForHalt } from "./correction";
 import { HOLD_LINE, type HoldReason } from "./driver";
 
 const DRIVER_SRC = readFileSync(
@@ -146,5 +146,50 @@ describe("the driver reads the halt", () => {
   it("breaks the crew rather than running the remaining seats", () => {
     const at = DRIVER_SRC.indexOf("haltedAs = holdForHalt(result.halted.kind)");
     expect(DRIVER_SRC.slice(at, at + 120)).toContain("break");
+  });
+});
+
+/*
+ * ── TWO MAPS OF THE SAME WALLS, WHICH IS HOW THEY DRIFT ───────────────────
+ *
+ * `HALT_HOLD` says what a halt means to the driver; `HALT_LINE` says what it
+ * means to a person reading a row. Added 2026-09-10, after a walk found that
+ * only the first had ever existed: a halt reached the record, became a hold,
+ * and the surface printed the hold's INFERRED sentence about the work while
+ * the RECORDED cause sat unread. On `6cc7a010` that read as "Design has been
+ * run many times over and the work has not moved on once" over twelve
+ * `out_of_credit` refusals averaging 612ms each.
+ *
+ * The failure this guards is quiet by construction. A new wall added to one
+ * map and not the other does not throw: the row simply falls back to the shape
+ * sentence, which is a real sentence, so the defect looks exactly like the
+ * product working. That is the shape of every finding in this file's own
+ * header -- two halves each correct, no longer agreeing about which channel
+ * carries the fact, and nothing failing loudly when they stopped.
+ */
+describe("every wall the driver knows has words for a person", () => {
+  it("covers exactly the same halt kinds, in both directions", () => {
+    expect(Object.keys(HALT_LINE).sort()).toEqual(Object.keys(HALT_HOLD).sort());
+  });
+
+  it("says something in every one of them", () => {
+    // The mirror: a key present with an empty string satisfies the set
+    // comparison above and puts a blank line in front of a person.
+    for (const [kind, line] of Object.entries(HALT_LINE)) {
+      expect({ kind, said: line.trim().length > 0 }).toEqual({ kind, said: true });
+    }
+  });
+
+  it("never claims a wall is still standing, because nothing here reads a balance", () => {
+    /*
+     * The account behind `6cc7a010` holds 5,249 credits today: the wall came
+     * down and the run is still stopped. A line reading "you are out of credit"
+     * would be a false statement about the present. These say what HAPPENED,
+     * which is true whenever it is shown.
+     */
+    for (const [kind, line] of Object.entries(HALT_LINE)) {
+      const presentTenseClaim = /\byou are\b|\bis currently\b|\btop up\b/i.test(line);
+      expect({ kind, presentTenseClaim }).toEqual({ kind, presentTenseClaim: false });
+    }
   });
 });

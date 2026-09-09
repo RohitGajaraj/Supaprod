@@ -327,6 +327,42 @@ export const HALT_HOLD: Readonly<Record<string, HoldReason>> = {
   "agent-disabled": "no-agent",
 };
 
+/**
+ * THE SAME WALLS, IN A PERSON'S WORDS.
+ *
+ * `HALT_HOLD` above says what a halt means to the DRIVER. This says what it
+ * means to whoever is reading a row, and it exists because until 2026-09-10
+ * nothing did: a halt reached the record, became a hold, and the surface
+ * printed the hold's inferred sentence about the WORK while the recorded cause
+ * sat unread. On `6cc7a010` that read as "Design has been run many times over
+ * and the work has not moved on once" over twelve `out_of_credit` refusals at
+ * 612ms each, and every remedy that sentence points at would have bought a
+ * thirteenth.
+ *
+ * ── KEYED ON `HALT_HOLD`, AND A GUARD HOLDS THEM TOGETHER ─────────────────
+ * Two maps of the same walls is exactly the drift this repo keeps finding, so
+ * `a-halted-run-is-not-a-station-that-failed.test.ts` asserts the key sets are
+ * identical. Adding a wall to one and not the other fails there rather than in
+ * front of a person, where it would show up as a row that silently falls back
+ * to the shape sentence again.
+ *
+ * ── WHAT THESE SAY AND WHAT THEY DELIBERATELY DO NOT ──────────────────────
+ * Each names the wall and nothing else. None of them says the wall is still
+ * standing, because none of these reads the account's balance now -- a run
+ * that halted out of credit six days ago may be on a topped-up account today,
+ * and "you are out of credit" would then be a false statement about the
+ * present. What is true in every case is what happened, so that is what is
+ * said. Whether the wall has since come down is a second question and it needs
+ * a second read.
+ */
+export const HALT_LINE: Readonly<Record<keyof typeof HALT_HOLD, string>> = {
+  out_of_credit: "Stopped: the account ran out of credit, so the seat never ran.",
+  kill_switch: "Stopped: runs are switched off for this workspace.",
+  mission_spend_cap: "Stopped: this run reached its spending limit.",
+  mission_token_cap: "Stopped: this run reached its spending limit.",
+  "agent-disabled": "Stopped: the seat it needs is switched off.",
+};
+
 /** The hold a halted run should record, or null to leave behaviour unchanged. */
 export function holdForHalt(kind: string | null | undefined): HoldReason | null {
   if (!kind) return null;
