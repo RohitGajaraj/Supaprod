@@ -46,15 +46,17 @@ describe("runTabState", () => {
       "tools-refused",
       "going-in-circles",
     ]) {
+      /* Moved with the chip on 2026-09-09; `run-tab.ts` promises its word
+         matches `run-status.ts` exactly, and that promise is why it moved. */
       expect({ holdReason, word: runTabState({ ...base, holdReason }) }).toEqual({
         holdReason,
-        word: "Needs a restart",
+        word: "Stopped",
       });
     }
     // And it still outranks busyness, for the same reason the open call does:
     // a person who has to act should not read "Working" and walk away.
     expect(runTabState({ ...base, holdReason: "given-up", walking: true, crewLive: true })).toBe(
-      "Needs a restart",
+      "Stopped",
     );
   });
 

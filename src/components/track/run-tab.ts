@@ -14,7 +14,7 @@ import { nothingIsComing } from "@/components/track/nothing-is-coming";
  *                       source the transcript polls fast on).
  *   "Waiting on you"    a boundary call is open and answering it releases the
  *                       work. ONE open track carries this today.
- *   "Needs a restart"   the loop gave up and `track-tick.ts` dropped the track
+ *   "Stopped"           the loop gave up and `track-tick.ts` dropped the track
  *                       from its selection, so nothing is coming for it.
  *                       THIRTY SIX open tracks carry this today, and every one
  *                       of them used to read "Waiting on you" here, in the
@@ -22,6 +22,12 @@ import { nothingIsComing } from "@/components/track/nothing-is-coming";
  *                       files, one wrong claim. The word matches `run-status.ts`
  *                       exactly, because a tab and the chip it summarises
  *                       disagreeing is worse than either being terse.
+ *                       IT WAS "Needs a restart" UNTIL 2026-09-09, and moved
+ *                       with the chip when that stopped naming an act and
+ *                       started naming the state, so the coupling this line
+ *                       promises is still true. A tab reading "Stopped" is the
+ *                       same news to somebody who stepped away; the act is a
+ *                       button on the page they come back to.
  *
  * This one earns the tab MORE than the others, not less: it is the only news
  * that will ever reach a person who stepped away. There is no notification kind
@@ -40,12 +46,12 @@ export function runTabState(input: {
   walking: boolean;
   /** The record says a crew is here right now (queue 71's live fact). */
   crewLive: boolean;
-}): "Working" | "Waiting on you" | "Needs a restart" | null {
+}): "Working" | "Waiting on you" | "Stopped" | null {
   // A closed track is not news: both endings are said once, on the page.
   if (input.status === "done" || input.status === "abandoned") return null;
   const tone = input.holdReason ? holdTone(input.holdReason) : null;
   if (tone === "you") {
-    return nothingIsComing(input.holdReason) ? "Needs a restart" : "Waiting on you";
+    return nothingIsComing(input.holdReason) ? "Stopped" : "Waiting on you";
   }
   if (input.walking || input.crewLive) return "Working";
   return null;

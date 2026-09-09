@@ -125,11 +125,31 @@ export function runStatus(
      * place and left stale in another has made the problem worse, and this is
      * the same claim on three surfaces from two files.
      *
-     * "Needs a restart" rather than "Stopped": the chip's job is the state at a
-     * glance AND this state is still the person's, so it keeps the `you` tone
-     * and names the act that clears it. It is the act `way-out.ts` already
-     * points at in the pane ("press Let {station} try again"), so the header
-     * and the pane now describe one door.
+     * ── AND IT SAYS "Stopped", WHICH REVERSES THE PARAGRAPH THAT WAS HERE ──
+     *
+     * It read "Needs a restart", argued as: the chip's job is the state at a
+     * glance AND this state is still the person's, so it names the act that
+     * clears it. The second half is what went wrong -- a chip that names an ACT
+     * is not a status, and this one ended up being the only surface that
+     * thought so.
+     *
+     * COUNTED RATHER THAN ARGUED. Five surfaces describe this state and, before
+     * this change, three already called it stopped: the road's node state is
+     * literally `stopped` (`run-journey.ts`), the Now card's chip says
+     * "Stopped", and the footer speaks of the stop. Only this chip and the
+     * browser tab said "Needs a restart" -- and the founder photographed the
+     * consequence, "Needs a restart" in the header beside "Stopped" on the
+     * card, 400px apart, both in the `you` hue, one state wearing two words.
+     *
+     * Lane 1's ruling and the reason it is right: a status chip names the
+     * STATE, and the remedy already has a home in the footer's press. Nothing
+     * is lost by not naming the act here, because the act is a button eight
+     * inches below and `way-out.ts` names it in the pane as well.
+     *
+     * THE TAB MOVES WITH IT, because the paragraph above this one is still
+     * true: a word corrected in one place and left stale in another has made
+     * the problem worse. See `run-tab.ts`, which says in as many words that its
+     * word matches this file exactly.
      *
      * PULSE GOES OFF, and that is not styling. A pulse is motion, and it is
      * true of `Running` and of a live boundary call. Nothing is moving on a
@@ -137,7 +157,7 @@ export function runStatus(
      * staged state SPEC-PRESENCE forbids outright.
      */
     return nothingIsComing(track.holdReason)
-      ? { status: "you", word: "Needs a restart", pulse: false, second: undefined }
+      ? { status: "you", word: "Stopped", pulse: false, second: undefined }
       : { status: "you", word: "Waiting on you", pulse: true, second: undefined };
   }
   if (tone === "hold") {
