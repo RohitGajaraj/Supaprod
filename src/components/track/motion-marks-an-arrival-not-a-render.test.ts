@@ -70,3 +70,52 @@ describe("the artifact pane's arrival motion", () => {
     expect(helper).toContain("Math.min(landedSoFar++, 5)");
   });
 });
+
+/**
+ * AND AN ARRIVAL IS NOT MARKED SEEN UNTIL IT HAS ARRIVED.
+ *
+ * The transcript's bookkeeping waited 0ms before marking a row seen. `arrived`
+ * is computed at render off a REF, so the row rendered with the fade-up and the
+ * very next render — the 500ms live poll, an elapsed ticker, a hover — found the
+ * key marked, computed `arrived: false`, and `enterMotion` returned `undefined`.
+ * React removed the `animation` style **mid-animation** and the new turn flashed
+ * into place instead of arriving.
+ *
+ * The animation is 420ms and the live poll is 500ms, so it was a race the row
+ * usually lost to whatever re-rendered first. This pins the two halves that fix
+ * it: the delay is the animation's own duration, and that number equals the
+ * token the CSS reads.
+ */
+describe("an arrival is held for as long as it takes", () => {
+  const ACTIVITY = readFileSync("src/components/spine/TrackActivity.tsx", "utf-8");
+  const MOTION = readFileSync("src/components/spine/enter-motion.ts", "utf-8");
+  const CSS = readFileSync("src/styles/meridian.css", "utf-8");
+
+  it("waits the animation's own duration before marking a row seen", () => {
+    expect(ACTIVITY).toContain("}, ENTER_MS);");
+    // The 0ms version is the defect; it must not come back.
+    expect(ACTIVITY).not.toContain("seen.current.add(k);\n    }, 0);");
+  });
+
+  it("keeps that number equal to the token the CSS animates on", () => {
+    /*
+     * ENTER_MS is a second copy of `--mrd-d-enter`, which is normally the thing
+     * this repo refuses. It is warranted here because a `setTimeout` cannot read
+     * a custom property, and it is only safe while the two agree — so they are
+     * compared rather than trusted.
+     */
+    const ms = MOTION.match(/export const ENTER_MS = (\d+);/);
+    expect(ms, "ENTER_MS has been renamed or removed").not.toBeNull();
+    const token = CSS.match(/--mrd-d-enter:\s*(\d+)ms/);
+    expect(token, "--mrd-d-enter has been renamed or removed").not.toBeNull();
+    expect(Number(ms![1])).toBe(Number(token![1]));
+  });
+
+  it("still animates on the token, not on the number", () => {
+    // The CSS must keep reading the custom property; ENTER_MS is bookkeeping
+    // only, and a duration hard-coded into the animation string would be the
+    // copy actually going wrong.
+    expect(MOTION).toContain("var(--mrd-d-enter)");
+    expect(MOTION).not.toMatch(/mrd-fade-up \d+ms/);
+  });
+});

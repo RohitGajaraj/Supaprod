@@ -56,6 +56,18 @@ import type { CSSProperties } from "react";
 export const ENTER_MOTION = "mrd-fade-up var(--mrd-d-enter) var(--mrd-ease) both";
 
 /**
+ * `--mrd-d-enter` as a number, for the bookkeeping that has to outlast the
+ * animation rather than describe it.
+ *
+ * A SECOND COPY OF A VALUE, AND THE ONE CASE THAT NEEDS ONE. The CSS above
+ * reads the token, which is right; a `setTimeout` cannot. A caller that marks a
+ * row "seen" before its animation has finished takes the `animation` style off
+ * mid-flight and the row flashes instead of arriving, which is the defect this
+ * constant exists to stop. Keep it equal to `--mrd-d-enter` in meridian.css.
+ */
+export const ENTER_MS = 420;
+
+/**
  * The style for something arriving, or nothing at all.
  *
  * `undefined` rather than an empty object so the element carries no `style` it
