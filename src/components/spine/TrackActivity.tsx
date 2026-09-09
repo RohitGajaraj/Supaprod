@@ -1803,7 +1803,23 @@ export function TrackActivity({
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="flex min-w-0 flex-wrap items-center gap-x-mrd-3 gap-y-1">
-                    <span className="text-mrd-base font-medium text-mrd-ink">{section.name}</span>
+                    {/*
+                     * ── A STATION HEADER AND A TURN INSIDE IT WERE 0.5px APART ──
+                     *
+                     * This was `text-mrd-base font-medium text-mrd-ink` -- 13px
+                     * / 500 / ink -- while `RunSubject`, the lead of every turn
+                     * FILED UNDER IT, is 12.5px / 500 / ink. Half a pixel, the
+                     * same weight and the same colour, so the thing that names
+                     * a station and the things that happened at it read as one
+                     * flat list, and a reader scanning the column has to read
+                     * the words to find where a station starts.
+                     *
+                     * `mrd-subtitle` is 14px / 600 / ink: 1.5px and 100 weight
+                     * against the turns, which is the two-axis step Meridian
+                     * requires of two roles a reader must tell apart without
+                     * reading.
+                     */}
+                    <span className="mrd-subtitle">{section.name}</span>
                     {liveNames.length > 0 ? (
                       <span className="flex items-center gap-1" aria-hidden="true">
                         {liveNames.map((name) => (

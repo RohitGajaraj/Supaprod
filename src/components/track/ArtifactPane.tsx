@@ -3829,9 +3829,13 @@ function OpenHead({
   return (
     <div className="flex flex-col gap-mrd-1 border-b border-mrd-line-soft pb-mrd-3">
       <div className="flex flex-wrap items-baseline justify-between gap-mrd-3">
-        <span className="min-w-0 text-mrd-label font-medium text-mrd-ink">
-          {item.title ?? cap(item.word)}
-        </span>
+        {/* The open artifact's own name, against the byline directly under it.
+            It was `text-mrd-label font-medium` (12.5/500) over `mrd-meta`
+            (12/400): half a pixel apart, so the title of the thing you just
+            opened barely out-ranked its own provenance line. `mrd-subtitle` is
+            the role Meridian built for exactly this, and its 14/600 puts two
+            axes between them. */}
+        <span className="mrd-subtitle min-w-0">{item.title ?? cap(item.word)}</span>
         {/*
          * THE WAY BACK, named for where it goes rather than for what it undoes.
          * "Clear" would describe the mechanism; a person wants the newest thing

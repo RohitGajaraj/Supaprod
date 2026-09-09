@@ -49,7 +49,7 @@ import {
 import { expiryDefaultFor, expiryNote } from "@/lib/ai/approval-expiry";
 import { isOverdue, stoppedFor } from "@/components/meridian/stopped-for";
 import { formatExpiryDeadline } from "@/components/track/expiry-deadline";
-import { Action, ReadFailedLine, RecordSpeaks } from "@/components/meridian/surface-parts";
+import { Action, Num, ReadFailedLine, RecordSpeaks } from "@/components/meridian/surface-parts";
 import { ReasonField } from "@/components/meridian/forms";
 import { mergeGateEvidence } from "@/lib/spine/track.functions";
 import { isMergeGate, mayDrawApprove, mergeCardLines } from "@/lib/spine/what-the-merge-gate-shows";
@@ -139,22 +139,41 @@ export function GateCard({
       ) : null}
 
       {declaredDefault ? (
+        /* Prose, so not in the data face. `declaredDefault` is a sentence --
+           "Cancelled unrun: nobody answered by Sun, Sep 6." and "Nothing runs
+           until you answer." are its two shapes -- and it was set in mono
+           beside the "Waiting on you for …" line below, for the same reason and
+           with the same result. The date inside it is the caller's to wrap if
+           it ever needs the figure face. */
         <p
           title={consequenceTitle}
-          className="font-mrd-mono mt-mrd-4 text-mrd-data leading-mrd-prose text-mrd-mute"
+          className="mt-mrd-4 text-mrd-data leading-mrd-prose text-mrd-mute"
         >
           {declaredDefault}
         </p>
       ) : null}
 
       {since !== null ? (
+        /*
+         * ── A SENTENCE THAT CONTAINS A NUMBER IS NOT A NUMBER ───────────────
+         *
+         * The whole line sat in `font-mrd-mono`, so "Waiting on you for 3
+         * days." rendered as typewriter text. That is the exact defect
+         * `Num`'s own docstring records and exists to stop, quoted from it:
+         * "a PHRASE CONTAINING a duration was set in mono, so 'stopped 3 days'
+         * and 'waiting 1 day' rendered as typewriter text. JetBrains Mono's
+         * letterforms -- the double-storey a, the tailed g -- make a short
+         * English sentence read as code."
+         *
+         * The face moves to the figure alone, which is what `Num` is for and
+         * what carries `tabular-nums` so the duration does not jitter as it
+         * ticks. The sentence around it is prose and is now set as prose.
+         */
         <p
           title={new Date(since).toLocaleString()}
-          className={`font-mrd-mono mt-mrd-4 text-mrd-data tabular-nums text-mrd-mute ${
-            overdue ? "font-semibold" : ""
-          }`}
+          className={`mt-mrd-4 text-mrd-data text-mrd-mute ${overdue ? "font-semibold" : ""}`}
         >
-          Waiting on you for {stoppedFor(since, now)}.
+          Waiting on you for <Num>{stoppedFor(since, now)}</Num>.
         </p>
       ) : (
         <p className="mt-mrd-4 text-mrd-data text-mrd-faint">
@@ -572,6 +591,22 @@ export function TrackConsent({
                      * fixing content the accessibility tree already had.
                      */
                     aria-label={`Let it run. ${REVERSIBILITY_LABEL[c.reversible]}. ${c.undo}`}
+                    /*
+                     * ── IT WENT DEAD-GREY AND SAID NOTHING ───────────────────
+                     *
+                     * `disabled={busy}` plus `disabled:opacity-45` was the only
+                     * feedback while the answer flew, and faded-out is what this
+                     * product uses for "you cannot press this", not for "your
+                     * press is in flight". A person who had just answered the
+                     * most consequential question on the screen was shown a
+                     * control that looked switched off, with nothing said.
+                     *
+                     * `aria-busy` is the half a screen reader had NOTHING for,
+                     * and the label carries the visible half. Both are what
+                     * every `Action` on this surface already does; this button
+                     * is hand-rolled for its two-span layout and missed them.
+                     */
+                    aria-busy={busy || undefined}
                     onClick={() => {
                       setAnsweringId(g.approvalId);
                       decide.mutate({ approvalId: g.approvalId, verdict: "approve" });
@@ -586,7 +621,9 @@ export function TrackConsent({
                       1
                     </span>
                     <span className="flex min-w-0 flex-col gap-0.5">
-                      <span className="text-mrd-small font-medium text-mrd-ink">Let it run</span>
+                      <span className="text-mrd-small font-medium text-mrd-ink">
+                        {busy ? "Recording your answer" : "Let it run"}
+                      </span>
                       <span className="max-w-[var(--mrd-measure-prose)] text-mrd-data leading-mrd-prose text-mrd-mute">
                         {`${REVERSIBILITY_LABEL[c.reversible]}. ${c.undo}`}
                       </span>
@@ -596,6 +633,10 @@ export function TrackConsent({
                 <button
                   type="button"
                   data-mrd=""
+                  /* Disabled while the answer above is in flight, and
+                     deliberately NOT `aria-busy`: this press only opens the
+                     decline form, so nothing of its own is running and telling a
+                     screen reader otherwise would be a second, quieter lie. */
                   disabled={busy}
                   aria-label="Don't run it. Nothing runs. It stays on the record, and the agent working this run is told why."
                   onClick={() => {

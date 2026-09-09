@@ -22,9 +22,19 @@ const LABEL: Record<ProofRow["kind"], string> = {
 function RowShell({ kind, children }: { kind: ProofRow["kind"]; children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[minmax(6.5rem,auto)_minmax(0,1fr)] items-start gap-x-mrd-4 gap-y-1">
-      <span className="pt-[3px] text-mrd-data font-medium uppercase tracking-[0.06em] text-mrd-mute">
-        {LABEL[kind]}
-      </span>
+      {/*
+       * ── A HAND-ROLLED EYEBROW THAT OUT-SIZED THE HEADING ABOVE IT ─────────
+       *
+       * This was `text-mrd-data font-medium uppercase tracking-[0.06em]
+       * text-mrd-mute` -- 11.5px / 500, uppercase, hand-tracked -- which is
+       * `mrd-eyebrow` written out by hand and a pixel and a half LARGER than
+       * it. The panel's own heading two elements up IS `mrd-eyebrow` (10px),
+       * so five row labels were bigger than the heading they sit under.
+       *
+       * One class, and the hand-written `tracking-[0.06em]` goes with it:
+       * `--mrd-track-label` is that number, declared once.
+       */}
+      <span className="mrd-eyebrow pt-[3px]">{LABEL[kind]}</span>
       <div className="flex min-w-0 flex-wrap items-center gap-x-mrd-2 gap-y-1">{children}</div>
     </div>
   );
@@ -49,7 +59,23 @@ function Press({
       type="button"
       aria-pressed={on}
       onClick={() => onOpen(id)}
-      className={`mrd-focus-inset -mx-1 flex min-w-0 max-w-full flex-wrap items-center gap-x-mrd-2 gap-y-1 rounded-mrd-chip px-1 py-0.5 text-left transition-colors duration-[var(--mrd-d-press)] hover:bg-mrd-hover ${on ? "bg-mrd-lift" : ""} ${className}`}
+      /*
+       * ── A SELECTED ROW USED TO LOSE ITS SELECTION UNDER THE POINTER ───────
+       *
+       * This read `hover:bg-mrd-hover ${on ? "bg-mrd-lift" : ""}`. Both set
+       * `background-color`, and Tailwind emits hover variants AFTER the base
+       * utilities, so hovering the row that is CURRENTLY OPEN replaced its
+       * selection tint with the hover tint: the one row whose state the pane is
+       * built around stopped looking selected exactly while a person pointed at
+       * it, which is the moment they are checking they have the right one.
+       *
+       * The chip forty lines below already had it right --
+       * `on ? "bg-mrd-lift text-mrd-ink" : "bg-mrd-sink … hover:bg-mrd-hover"`
+       * -- so the file carried the bug and its own fix. This is that shape:
+       * hover belongs to the unselected branch, because a selected row has
+       * nothing to promise on hover that it is not already showing.
+       */
+      className={`mrd-focus-inset -mx-1 flex min-w-0 max-w-full flex-wrap items-center gap-x-mrd-2 gap-y-1 rounded-mrd-chip px-1 py-0.5 text-left transition-colors duration-[var(--mrd-d-press)] ${on ? "bg-mrd-lift" : "hover:bg-mrd-hover"} ${className}`}
     >
       {children}
     </button>
