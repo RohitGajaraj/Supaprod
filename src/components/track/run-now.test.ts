@@ -77,7 +77,26 @@ describe("runNow picks one register, on purpose", () => {
     const now = runNow(input({ track: track({ holdReason: "given-up", hold: "It gave up." }) }));
     expect(now.register).toBe("stopped");
     expect(now.status).toBe("you");
-    expect(now.headline).toBe("Stopped at Build.");
+    /*
+     * THE HEADLINE WAS "Stopped at Build." AND THE CHIP BESIDE IT SAID
+     * "Stopped" (founder's screenshot, 2026-09-09). `RunNow` draws the two on
+     * ONE LINE, so the same word appeared twice eight pixels apart, and the
+     * line underneath said the state a third time in better English.
+     *
+     * The chip keeps the word because it also carries the only hue on the card.
+     * The headline gives way to the sentence that was already beneath it, which
+     * names the station too, so nothing is lost by dropping `at ${here}`.
+     */
+    expect(now.headline).toBe("It gave up.");
+    // And the reason is not then repeated under itself.
+    expect(now.line).toBeNull();
+  });
+
+  it("still says something when the record wrote no reason for the stop", () => {
+    // `hold` is null on a track whose hold predates the column, and the card
+    // cannot be headed by nothing.
+    const now = runNow(input({ track: track({ holdReason: "given-up", hold: null }) }));
+    expect(now.headline).toBe("Nothing will pick it up again on its own.");
   });
 
   it("holds, in amber, on a condition that must change", () => {
