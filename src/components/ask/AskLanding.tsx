@@ -39,7 +39,6 @@
 
 import { Link } from "@tanstack/react-router";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
-import { stageHueForStation } from "@/components/shell/agent-glyphs";
 
 /** What a `landing` frame carries: the smallest honest fact about a result. */
 export type LandedArtifact = {
@@ -168,10 +167,17 @@ export function AskLanding({ kind, id, station }: LandedArtifact) {
         marginTop: "4px",
       }}
     >
-      {/* The station's own hue, taken from the lifecycle tokens rather than a
-          new colour, so this row reads as belonging to the same station the
-          rail and the spine draw. Muted when nothing named a station: an
-          unplaced result must not borrow a station's colour. */}
+      {/* A BULLET, NOT A STATUS. This carried the station's own hue from
+          `stageHueForStation`, and five of the seven tokens behind it were
+          never defined -- so on Discover, Decide, Plan, Design and Ship the
+          `background` was invalid and the dot simply did not draw. Nobody
+          reported it.
+
+          It is not repaired with five new colours, because the founder's
+          2026-09-08 ruling keeps status colour off labels and law 4 says
+          identity is SHAPE: a station is known by its glyph and its name. This
+          row already names it on its own action ("Open Design"), so the mark
+          goes back to being a mark. */}
       <span
         aria-hidden="true"
         style={{
@@ -180,7 +186,7 @@ export function AskLanding({ kind, id, station }: LandedArtifact) {
           borderRadius: "50%",
           flex: "none",
           marginTop: "6px",
-          background: at ? stageHueForStation(at) : "var(--mrd-mute)",
+          background: "var(--mrd-edge)",
         }}
       />
 

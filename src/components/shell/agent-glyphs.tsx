@@ -23,7 +23,7 @@
  */
 
 import type { ReactElement, SVGProps } from "react";
-import { agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 
 const g: SVGProps<SVGSVGElement> = {
   viewBox: "0 0 16 16",
@@ -249,22 +249,35 @@ export function glyphForSlug(slug: string | null | undefined): () => ReactElemen
   return BY_NAME[agentDisplayName(slug)] ?? Unknown;
 }
 
-/** The seven stage families, in loop order. The station ids are the product's
- *  own vocabulary (agent-vocabulary.ts); the token names are the prototype's.
- *  Both are kept, rather than renaming either, because the stations are load
- *  bearing in the database and the tokens are load bearing in the design. */
-const STATION_TOKEN: Record<AgentStation, string> = {
-  sense: "--sp-stage-discover",
-  decide: "--sp-stage-decide",
-  define: "--sp-stage-plan",
-  design: "--sp-stage-design",
-  build: "--sp-stage-build",
-  ship: "--sp-stage-ship",
-  learn: "--sp-stage-learn",
-};
-
-export function stageHueForStation(station: AgentStation): string {
-  return `var(${STATION_TOKEN[station]})`;
-}
-
-export { STATION_TOKEN };
+/**
+ * ── THE SEVEN STAGE HUES ARE RETIRED, AND FIVE OF THEM NEVER EXISTED ──────
+ *
+ * MEASURED 2026-09-10 (Lane 3's consistency sweep, verified here). `STATION_TOKEN`
+ * mapped all seven stations to `--sp-stage-*`, and only TWO of those tokens are
+ * defined anywhere in `src/styles`: `build` and `learn`. The other five --
+ * discover, decide, plan, design, ship -- resolved to nothing.
+ *
+ * AND THE CSS FALLBACK DID NOT SAVE IT, which is the part that made this
+ * invisible. `.sp-suggest-station` declares `--sp-suggest-hue:
+ * var(--sp-stage-build)`, and `StationTag` OVERRODE that inline with
+ * `var(--sp-stage-decide)`. A custom property whose value references an
+ * undefined property is guaranteed-invalid at computed-value time, so every
+ * consumer of it -- border, background, colour -- fell to `unset`. The declared
+ * fallback only applies when nothing sets the property, and something always
+ * did. `AskLanding`'s dot had no fallback at all and simply did not draw for
+ * five of seven stations.
+ *
+ * ── IT IS REMOVED RATHER THAN REPAIRED, AND THAT IS A RULING ──────────────
+ * Defining the five would mean adding tokens in the RETIRED `--sp-*` namespace,
+ * which `bun test` fails a new file for. And the idea itself is retired: the
+ * founder's 2026-09-08 ruling is that status colour is restrained and never on
+ * a label -- *"the gold road read as AI-made"* -- and law 4 says identity is
+ * SHAPE, so a station is known by its glyph and its name, not its hue. Seven
+ * stage families is the rainbow that ruling rejected.
+ *
+ * **Nobody reported the five missing ones**, over however long they were gone,
+ * which is the strongest available evidence that the surfaces read fine without
+ * them. Both callers now use one neutral, and both say the station in words
+ * beside it -- `AskLanding` on its own action ("Open Design"), `StationTag` as
+ * its entire content.
+ */

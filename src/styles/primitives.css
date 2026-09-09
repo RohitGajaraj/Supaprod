@@ -1530,17 +1530,24 @@ button.sp-cell:disabled {
   color: var(--mrd-mute);
 }
 
-/* WHICH STATION THIS COMES OUT OF. Tinted, never filled: seven stage families
- * must stay quieter than the four status colours, and a suggestion is not a
- * state. `--sp-suggest-hue` is set inline from `stageHueForStation`, so the tag
- * wears the hue its station already owns in the rail and the run strip. */
+/* WHICH STATION THIS COMES OUT OF. Tinted, never filled: a suggestion is not a
+ * state and must stay quieter than the four status colours.
+ *
+ * ONE TINT, NOT SEVEN, SINCE 2026-09-10. `--sp-suggest-hue` was set inline per
+ * station from `stageHueForStation`, and five of those seven tokens were never
+ * defined -- which made the custom property invalid at computed-value time and
+ * took this rule's border, background and colour to `unset` with it. The
+ * declared fallback below could never fire, because something always set the
+ * property. The tag says the station's NAME, which is its entire content, so
+ * one tint loses nothing; and law 4 already rules that a station is known by
+ * shape and name rather than by colour. */
 .sp-suggest-station {
-  /* DECLARED HERE, SET INLINE PER STATION. `StationTag` writes this property
-   * from `stageHueForStation`, and a custom property that only ever exists
-   * inline is one React change away from a colourless tag. Build is the anchor,
-   * which is the same fallback `stageHueForSlug` documents for an unknown
-   * station, so the two agree rather than each having their own idea. */
-  --sp-suggest-hue: var(--sp-stage-build);
+  /* DECLARED HERE AND NOWHERE ELSE. Nothing sets this inline any more, which
+   * is the repair: a custom property that only ever existed inline was one
+   * undefined token away from a colourless tag, and that is exactly what it
+   * became. A Meridian token, so it cannot go missing the way the retired
+   * `--sp-stage-*` family did. */
+  --sp-suggest-hue: var(--mrd-agent);
   flex: none;
   margin-top: 1px;
   padding: 1px 7px;

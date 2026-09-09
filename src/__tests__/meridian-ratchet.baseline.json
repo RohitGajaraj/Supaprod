@@ -15,8 +15,8 @@
     "src/styles.css",
     "src/styles/**"
   ],
-  "totalOccurrences": 1536,
-  "fileCount": 124,
+  "totalOccurrences": 1527,
+  "fileCount": 123,
   "files": {
     "src/components/admin/VouchersPanel.tsx": {
       "import:components/ui": 1,
@@ -44,7 +44,6 @@
       "class:sp-": 2
     },
     "src/components/ask/SuggestionRail.tsx": {
-      "--sp-": 1,
       "class:sp-": 11
     },
     "src/components/ask/Working.tsx": {
@@ -237,9 +236,6 @@
       "import:components/ui": 2,
       "usage:components/ui": 2
     },
-    "src/components/shell/agent-glyphs.tsx": {
-      "--sp-": 7
-    },
     "src/components/shell/AppFrame.tsx": {
       "class:sp-": 44
     },
@@ -426,7 +422,7 @@
       "raw-colour": 8
     },
     "src/styles/primitives.css": {
-      "--sp-": 109,
+      "--sp-": 108,
       "data-obsidian": 3,
       "class:sp-": 6
     },

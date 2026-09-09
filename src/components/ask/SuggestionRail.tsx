@@ -49,7 +49,6 @@
 import * as React from "react";
 import type { Starter } from "@/lib/ask-starters";
 import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
-import { stageHueForStation } from "@/components/shell/agent-glyphs";
 import { groupSuggestions, stationForStarter } from "./ask-suggestions";
 
 /**
@@ -64,12 +63,17 @@ import { groupSuggestions, stationForStarter } from "./ask-suggestions";
  */
 function StationTag({ station }: { station: AgentStation }) {
   return (
-    <span
-      className="sp-suggest-station"
-      style={{ ["--sp-suggest-hue" as string]: stageHueForStation(station) }}
-    >
-      {AGENT_STATIONS[station].name}
-    </span>
+    /* THE HUE IS GONE AND THE TAG IS BETTER FOR IT. This set
+       `--sp-suggest-hue` inline from `stageHueForStation`, whose tokens exist
+       for two of seven stations -- and because the inline value referenced an
+       undefined property, the whole custom property was invalid at
+       computed-value time, taking the tag's border, background and text colour
+       to `unset` with it. The CSS fallback below it could never apply, because
+       something always set the property.
+
+       The tag says the station's name, which is the whole content of it, so
+       nothing is lost by drawing every one the same. */
+    <span className="sp-suggest-station">{AGENT_STATIONS[station].name}</span>
   );
 }
 
