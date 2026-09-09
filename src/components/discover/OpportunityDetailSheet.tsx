@@ -337,7 +337,7 @@ function clampScore(raw: string, fallback: number): number {
  * before any product surface can adopt it, and that is a change to a Meridian
  * component rather than to this one.
  */
-export function IceEditor({
+function IceEditor({
   opportunity,
   disabled = false,
   idPrefix = "ice",

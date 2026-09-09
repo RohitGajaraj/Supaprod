@@ -395,7 +395,7 @@ const TERM_CSS = `
  * one that drifts from this. `href` is React's dedupe key, so mounting it four
  * times on one page still emits one `<style>`.
  */
-export function TermStyle() {
+function TermStyle() {
   return (
     <style href="mrd-code-diff" precedence="medium">
       {TERM_CSS}
@@ -404,7 +404,7 @@ export function TermStyle() {
 }
 
 /** The terminal box, with its own paint attached. See `TermStyle`. */
-export function TermFrame({
+function TermFrame({
   children,
   flush = false,
 }: {

@@ -153,7 +153,7 @@ export interface ReceiptDetailSheetProps {
  * The detail
  * ------------------------------------------------------------------ */
 
-export function ReceiptDetail({
+function ReceiptDetail({
   receipt: r,
   onOpenReceipt,
   onClose,

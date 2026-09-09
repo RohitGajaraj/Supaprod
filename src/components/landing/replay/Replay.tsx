@@ -624,7 +624,7 @@ export function StationSpine({ progress, live }: { progress: StationProgress; li
 
 /** Sequential step timeline. Ember appears only on gate rows. The clock is
  * owned by the parent so the station spine lights in step with the trace. */
-export function FlowList({
+function FlowList({
   entries,
   shown,
   active,
@@ -766,7 +766,7 @@ export function FlowList({
 }
 
 /** The decision card mock: signal to approved to building, on one clock. */
-export function MockDecisionCard({ revealed }: { revealed: boolean }) {
+function MockDecisionCard({ revealed }: { revealed: boolean }) {
   const { progress, resetting } = useSharedClock(revealed);
   // Five stations sit at even quarters of the track; deriving at x4 lights
   // each label the exact frame the bar's edge reaches it.
@@ -903,7 +903,7 @@ export function MockDecisionCard({ revealed }: { revealed: boolean }) {
 }
 
 /** The agent mesh mock: four agents clear four quarters of the same clock. */
-export function MockLiveRun({ revealed }: { revealed: boolean }) {
+function MockLiveRun({ revealed }: { revealed: boolean }) {
   const AGENTS = [
     { name: "Scout", act: "clustered 3 signals", col: R.blue },
     { name: "Architect", act: "spec locked, 4 criteria", col: R.blue },
