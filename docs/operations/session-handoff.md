@@ -2889,13 +2889,14 @@ blocked on somebody else and the fourth on a measurement I had not taken.
    attachment rather than filing time.
 4. **Verified on the served page.** Everything above was read live, not inferred.
 
-### Two findings from a STRANGER'S walk, left open, in their words
+### Two findings from a STRANGER'S walk — both now closed, recorded in their words
 
 S1 walked `6cc7a010` cold at the end of the session, knowing nothing about it. That produced three
 findings on this lane's surfaces. One is fixed (a reader ambushed by the wall the blocker chose not
-to show — the card now says "One more wall is behind this one"). **These two are open, and they are
-recorded from the walk rather than from my summary of it, because a stranger's reading is the thing
-I cannot reproduce.**
+to show — the card now says "One more wall is behind this one"). **Both were open when this was
+written and both are now closed (`5aafc1bd6`, `390fb517b`). They are kept here in the words of the
+walk rather than my summary of it, because a stranger's reading is the thing I cannot reproduce, and
+because in both cases the walk was right and my first answer was not.**
 
 1. **Four identical "Stopped" chips on one screen.** Header at y 97, the "What is happening now"
    card at y 295 — so both are always visible together — and two more in the story at y 1093 and
@@ -2903,19 +2904,35 @@ I cannot reproduce.**
    AGREEING a line apart are worse than two contradicting."* The top pair is exactly that, as chips.
 
    Their lean: the card drops its chip, because the section is named "What is happening now" and its
-   first line already answers it. **My hesitation, which is the reason it is still open:** a scrolled
-   reader loses the only state marker on the screen, and I would want to see that on a rendered page
-   before cutting it. Neither of us has.
+   first line already answers it. My hesitation was that a scrolled reader loses the only state
+   marker on the screen, and that I wanted it seen on a rendered page first.
+
+   **CLOSED, and the measurement is why.** S1 pushed every scrollable container to its bottom: the
+   window itself does not scroll at all, the two columns scroll inside themselves, and the header
+   chip is on screen at *every* scroll position while the card's is gone at -180. The reader I was
+   protecting does not exist. It went as a RULE and not a deletion — the chip goes when the header
+   is saying the same word **and** the card still has a sentence of its own, because three of
+   `run-now.ts`'s twelve registers are deliberately the chip alone and a flat cut empties the row
+   there. `the-header-already-said-it.ts`.
 
 2. **Two counts of "times" that a stranger cannot reconcile.** The road says Design filed
    *"1 prototype, 3 times"* and 800px below, the refrain says Design *"said this 12 times, and filed
    nothing on any of them"*. Both true, both about different passes, and S1 assumed one was broken.
 
-   This is law 21 from the inside: the fold kept its number, and the two numbers here count
-   **different things** — filings of a drawing, and turns that produced nothing — with nothing on
-   screen saying which is which. The fix is a shared vocabulary for "times" across two surfaces
-   rather than a patch on either, and the road's node has room for about twelve characters. I did
-   not attempt it rather than attempt it badly.
+   This is law 21 from the inside: the fold kept its number, and the two numbers count **different
+   things** — filings of a drawing, and turns that produced nothing — with nothing on screen saying
+   which is which. Worse than ambiguous: the card says Design *filed nothing* while the road says
+   Design *filed a prototype*, and only the unnamed unit separates them.
+
+   **CLOSED, and the vocabulary was already on the page.** The story underneath prints
+   "Design, Critique · 2 turns · 1m 32s" and "Design · 12 turns · 7.3s"; the artifact pane prints
+   "prototype · 3 versions". Turns for passes, versions for filings. The road and the card were the
+   only two surfaces not using them — four sentences in three files that do not import each other,
+   each reaching for "times" for whichever unit it meant. Turn counts now say turns and agree with
+   the rows they summarise; filing counts keep the bare "times", which is safe only because nothing
+   competes for it any more, and which keeps the road's node inside its twelve characters. No count
+   changed. `a-turn-is-not-a-filing.ts`, with a census over all four files, because the defect lived
+   only in the gap between them.
 
 **And what the walk confirmed, which is worth as much as the findings.** S1: *"the story is the best
 thing on the screen... I understood what the run had actually done from that alone, before I
