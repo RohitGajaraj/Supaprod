@@ -1646,3 +1646,31 @@ follows the settle gate's focused bet (the desk is an RLS union, the record is o
   workspace. Probe runs live in "A1 delete probe"; switch back to Helio Labs / Prism after a walk.
 - A register decided by whichever branch fires first is an accident; `run-now.ts` decides once, in
   priority order. Three of eleven fixes on 2026-09-08 were only findable on the live site.
+
+## Lane 2 · session end-off · 08:35 IST 09-09
+
+**Closed after the session end above, at the founder's ask:** pending items 1 and 2.
+- **The /ship fold (bd34e58e7).** `components/ship/ShipRecord.tsx` carries the whole route body
+  (every exported helper keeps its name) above Outcomes' artifacts tab; `/ship` redirects to
+  `/outcomes?tab=artifacts`; every door repointed; twelve guards read the component with reasons;
+  the clock ratchet, red since the /learn fold, is repaired; the run strip's uniqueness count
+  asserts the seven stations, since Ship and Learn share Outcomes by ruling.
+- **Findings since you last looked (cdef49998).** The page draws the home's own answer under the
+  headline and stamps the look only after it has counted (the route used to stamp at mount, so
+  every read on the page saw nothing new); a first visit says nothing.
+
+**Pending now, by name:** the Cohere billing fault on the Inbox (founder); the Worker's cold start
+above every handler (Lane 3); `scripts/meridian-surfaces.ts` still lists the seven station route
+files by name, five of which are redirect stubs, so its report measures stubs (a reporting script,
+not a guard; one commit fixes all seven). Nothing else is open on this lane.
+
+**A future session must look into:** the two folds live on the first build past bd34e58e7, on
+Helio Labs: Outcomes' artifacts tab opens with Ship's record (the headline line, live releases,
+what shipped, the release document, announcements), its outcomes tab with Learn's; `/ship` and
+`/learn` redirect; the release card and the verdict card doors land on the right tab; Findings
+prints "N new findings since you last looked" on a second visit and nothing on a first.
+
+**Observation:** a fold of a station page is one shape now, done twice: move the body to a
+component that keeps every export, mount it where the rail lands, redirect the route, repoint
+the doors, repin the guards by file with the reason. The guards are the map of what the page
+promised; the folds cost nothing they guarded.
