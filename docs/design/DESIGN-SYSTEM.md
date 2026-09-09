@@ -193,12 +193,25 @@ caption, the bets and the starters have a lead sentence, and the three answers a
 three differed by hue alone at lightness 0.76, 0.74 and 0.68, within 1.06:1 of one another in
 greyscale and collapsing under deuteranopia. A person then cannot tell a condition the loop will
 clear from a stop only they can clear from an outcome that already happened, and the difference
-decides whether they must act. `stopped` now takes the chip fill, which is the file's own rule for
-when a person is required and a channel that survives both tests. **`held` and `failed` are still a
-pair on this axis and it is an open question**, deliberately left rather than closed on one
-unverified finding: the honest fix wants a second non-hue channel, ring style is already spoken for
-by `waived`, and `failed` may simply be `done` with a fail verdict, which the paint already draws.
-Whoever takes it should measure first and say which of those three it is.
+decides whether they must act. `stopped` took the chip fill, which is the file's own rule for
+when a person is required and a channel that survives both tests.
+
+**`held` and `failed` are closed the same way (2026-09-09), and the answer was the first of the
+three the open question named: a second non-hue channel.** Measured before choosing, as that
+question asked. Every other channel is spoken for. The glyph is the STATION's and not the state's,
+which is law 4 working as designed. The word beside a current node is the station's own name, so the
+two drew the same word. The dashed ring is `waived`. The fill was the only one free.
+
+**The axis is the one a person acts on: the road stopped here and will not continue on its own.**
+`stopped` is that with a person required; `failed` is that with the answer already in. `held` is a
+condition the loop may still clear, so it keeps the lift and stays visibly lighter. `done` keeps the
+lift too, deliberately: it is terminal, but it is also six nodes out of seven on a finished run, and
+filling those would make the road heavy, which is the founder's own *"looks AI-made"* complaint.
+**The fill marks the node that STOPPED the road, never every node that is over.**
+
+Measured after: `--mrd-fail-chip` is L 0.32 against lift's 0.215 on the dark ground, **about 1.48:1
+in greyscale where the two rings alone were 1.11:1**, and better than the 1.24:1 the `stopped` fill
+was accepted at.
 
 **A row of controls counts and acts; prose only counts.** When a control on the same screen already
 carries the breakdown, the sentence above it must not repeat it. Found on the Inbox (Lane 2,

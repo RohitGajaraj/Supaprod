@@ -187,12 +187,41 @@ const PAINT: Record<JourneyState, Paint> = {
    * greyscale, and collapsing for a deuteranope, who then cannot tell a
    * condition the loop will clear from a stop only they can clear from an
    * outcome that already happened. The fill is a channel that survives both.
-   * `held` and `failed` remain a pair on this axis; see the design contract.
+   *
+   * `held` AND `failed` ARE CLOSED THE SAME WAY (2026-09-09, see `failed`
+   * below). The contract left that pair open and asked whoever took it to
+   * measure and say which of three answers it was. It is the first: a second
+   * non-hue channel, and the fill is the only one free.
    */
   stopped: { ring: "var(--mrd-you)", ink: "var(--mrd-you)", fill: "var(--mrd-you-chip)" },
   scheduled: { ring: "var(--mrd-edge)", ink: "var(--mrd-mute)", fill: "var(--mrd-lift)" },
   waiting: { ring: "var(--mrd-edge)", ink: "var(--mrd-body)", fill: "var(--mrd-lift)" },
-  failed: { ring: "var(--mrd-fail)", ink: "var(--mrd-fail)", fill: "var(--mrd-lift)" },
+  /*
+   * THE CHIP FILL, BECAUSE THE ROAD ENDED HERE (2026-09-09, closing the pair
+   * the contract left open).
+   *
+   * WHAT WAS MEASURED FIRST, since the contract asked for that rather than a
+   * preference. Every other channel is spoken for. The glyph is the STATION's,
+   * not the state's, which is law 4 working as designed: identity is shape.
+   * The word beside a current node is the station's own name, so `held` and
+   * `failed` drew the same word. The dashed ring is `waived`. That leaves the
+   * fill, which is the channel `stopped` had just taken for the same reason.
+   *
+   * THE AXIS, and it is one a person acts on: the road stopped here and will
+   * not continue on its own. `stopped` is that with a person required, and
+   * `failed` is that with the answer already in. `held` is a condition the loop
+   * may still clear, so it keeps the lift and stays visibly lighter.
+   *
+   * `done` keeps the lift too, deliberately. It is terminal, but it is also six
+   * nodes out of seven on a finished run, and filling those would make the road
+   * heavy, which is the founder's own "looks AI-made" complaint. The fill marks
+   * the node that STOPPED the road, never every node that is over.
+   *
+   * MEASURED AFTER: fail-chip is L 0.32 against lift's 0.215 on the dark
+   * ground, about 1.48:1 in greyscale where the two rings alone were 1.11:1,
+   * and better than the 1.24:1 the `stopped` fill was accepted at.
+   */
+  failed: { ring: "var(--mrd-fail)", ink: "var(--mrd-fail)", fill: "var(--mrd-fail-chip)" },
   waived: { ring: "var(--mrd-line)", ink: "var(--mrd-faint)", fill: "transparent", dashed: true },
   /* The sink fill is the difference from `pending`, which is transparent: a
      node with something in it we cannot see, rather than an empty one nothing
