@@ -2864,33 +2864,47 @@ because one stuck run is a shrug and five is a setting worth changing.
    that stops getting checked. Every one was caught by another lane's measurement, not by its
    owner's.
 
-### What is open on this lane, in the order I would take it
+### The four that were open are closed, and here is what closed them
 
-1. **The finish state is blocked on a FIELD, not on design, and this is the one to read first.**
-   The verdict now reaches the Now card and the proof pane already carries the claim and the
-   grade. What a finished run still cannot say is what it *came to*, because:
+Left as a record of what "blocked" actually meant, because three of the four were
+blocked on somebody else and the fourth on a measurement I had not taken.
 
-   **`decisions` cannot record whether a decision was a yes or a no.** `status` is the approval
-   state of the record, not the direction of the call, so "Decline broad onboarding flow
-   improvement" with `status: approved` means *the decision to decline was approved*. Measured:
-   168 approved decisions, 15 of them approvals of a no; 20 declined, 18 of them a no. `intent`
-   exists and is non-null on 5 rows of 422. **The direction lives only in the title's first word.**
+1. **The finish state.** Was: a finished run could not say what it came to. The
+   verdict was a HARD-CODED `null` at the call site, so `run-now.ts`'s three
+   sentences had never rendered — on `d1168015`, the only track ever to walk all
+   seven stations, the road said `missed` under Learn while the card said "It
+   reached the end of its route." Then the story said `Decide filed "…"` on a run
+   that had decided to **wait**, because `decisions` could not record a
+   direction. Lane 3 shipped `decisions.call`; the verb carries it now, and null
+   keeps "filed" because 33 of 61 rows have no direction and "nobody wrote one
+   down" is not "they decided to build".
+2. **`what-it-produced.ts` is deleted.** It could not leave because a contract
+   was pinned to it. That contract compared two implementations, which proves
+   they AGREE and never that either is right; it scores Start's row against the
+   CONVENTION now (`KIND_WORD` + `joinPlainly`). Stronger, and the module went.
+3. **Layer 2 is examined and it is good.** The prototype renders live and
+   faithfully. My earlier "empty black rectangle" was a LOAD STATE, not a defect
+   — recorded so nobody re-opens it. Two real fixes: a caption that outlived its
+   frame ("0 files, rendered exactly as filed"), and the version list sorting by
+   attachment rather than filing time.
+4. **Verified on the served page.** Everything above was read live, not inferred.
 
-   That matters beyond display. On `d1168015` the run decided to decline at Decide, filed a spec,
-   two tasks, a prototype and a code change, then declined to ship at Ship. Across the population:
-   **31 runs decided decline-or-wait at Decide and 11 of them filed a spec, a design or a code
-   change afterwards** — 11 of 121 tracks doing work they had already decided against.
+### What is open now
 
-   Do NOT build the surface for this on a title match. It works until a model rewords, and the
-   failure is invisible because an absent line looks exactly like a run that did not need one —
-   the same trap S1 named on the Connectors door and S3 confirmed on `signals.list`. Filed with
-   Lane 3. When the field exists, the surface half is small.
-2. **`what-it-produced.ts` is quarantined**, not kept: re-point
-   `the-row-and-the-strip-agree-on-what-was-produced` at a live emitter so it can leave the tree.
-   The live emitters do not share one convention, so this has a decision in it.
-3. **Layer 2 is the least examined surface in my territory.** I read layer 1 and layer 3 closely
-   tonight and only glanced at the artifact pane.
-4. **Nothing on this lane has been verified on a screen since the fold.** The dev server runs
-   without `SUPABASE_SERVICE_ROLE_KEY` — the founder holds no direct Supabase credential, by design
-   — so no authenticated route renders locally. **Record this as a fact, not a discovery: two lanes
-   have now burned time on it.** The only verification path is a Lovable deploy, which S1 presses.
+1. **The `no-two-states-look-the-same` shape belongs on this lane's surfaces
+   too.** Lane 1 built it for the Journey paint table after `stopped` landed
+   byte-identical to `you`. The run screen draws the same states; if both can
+   co-occur on a road here, it is the same collision.
+2. **Territory 2 is thinner than it looks, and I could not find the gap.** The
+   finish state now carries the verdict, the claim, the PR and the story. I went
+   looking for what "what changed and what it was worth" still misses and did
+   not find something I could name from a column. Somebody should look again
+   with fresh eyes rather than take my word for it.
+3. **A drawing with zero files can be attached to a track.** `9de19b1a` on
+   `6cc7a010` has none and 182 characters of description. Whether that should be
+   attached at all is a question about the WRITE; Lane 3 has it behind the
+   dispatch trace and will measure before saying anything.
+4. **The dev server runs without `SUPABASE_SERVICE_ROLE_KEY` by design**, so no
+   authenticated route renders locally. **This is a fact, not a discovery** —
+   two lanes have burned time on it. The only verification path is a Lovable
+   deploy.
