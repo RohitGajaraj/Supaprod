@@ -162,3 +162,67 @@ describe("what it refuses to draw", () => {
     expect(throughLine({ stops: null, standing: null })).toEqual([]);
   });
 });
+
+describe("the story reaches the present, not just the last thing filed", () => {
+  /*
+   * ── IT USED TO GO SILENT AT THE LIVE EDGE ─────────────────────────────
+   * A station earns a line by having filed something, and a station mid-turn
+   * has filed nothing yet. So on a run with a seat actually working, the story
+   * ran to the last COMPLETED station and stopped, one station short of the
+   * truth, and a reader scanning it for where the work had got to was looking
+   * at history. That is the founder's own first sentence -- "what it is doing
+   * now" -- failed by the surface built to answer it.
+   */
+  it("gives a line to the station being worked, even with nothing filed", () => {
+    const lines = throughLine({
+      stops: [FINDING, { station: "build", items: [] }],
+      standing: "build",
+      workingAt: "build",
+    });
+    expect(lines.map((l) => l.name)).toEqual(["Discover", "Build"]);
+    expect(lines[1]!.did).toBe("is working now");
+    expect(lines[1]!.working).toBe(true);
+  });
+
+  it("says both when a working station has already filed something", () => {
+    const lines = throughLine({ stops: [PLAN], standing: "define", workingAt: "define" });
+    expect(lines[0]!.did).toBe("filed 1 spec and 2 tasks, still working");
+  });
+
+  it("names no seat and no verb, because two other places already do", () => {
+    /*
+     * The Now card says "Engineer is reading the spec" -- the seat AND the verb
+     * -- and the transcript says it again under the turn. What the story alone
+     * can say is that the SEQUENCE has reached here and has not finished.
+     */
+    const lines = throughLine({
+      stops: [{ station: "build", items: [] }],
+      standing: "build",
+      workingAt: "build",
+    });
+    expect(lines[0]!.did).not.toMatch(/Engineer|reading|Review/);
+  });
+
+  it("marks only the station actually being worked", () => {
+    const lines = throughLine({
+      stops: [FINDING, PLAN],
+      standing: "define",
+      workingAt: "define",
+    });
+    expect(lines.map((l) => l.working)).toEqual([false, true]);
+  });
+
+  it("says stopped rather than working when it is both, because a stop is the news", () => {
+    // `stuckAt` and `workingAt` cannot honestly both be true, but if a caller
+    // ever passes both the reader must not be told work is in flight.
+    const lines = throughLine({
+      stops: [{ station: "build", items: [] }],
+      standing: "build",
+      stuckAt: "build",
+      stuckSaying: SAYING,
+      workingAt: null,
+    });
+    expect(lines[0]!.did).toBe("stopped");
+    expect(lines[0]!.working).toBe(false);
+  });
+});

@@ -17,6 +17,7 @@
 import * as React from "react";
 
 import { StationGlyph, GLYPH_FOR_STATION } from "@/components/meridian/station-glyphs";
+import { PresenceDot } from "@/components/meridian/AgentPresence";
 import { throughLine, type LineStop } from "@/components/track/the-through-line";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 
@@ -25,6 +26,7 @@ export function ThroughLine({
   standing,
   stuckAt,
   stuckSaying,
+  workingAt,
   active,
   onOpen,
 }: {
@@ -32,11 +34,13 @@ export function ThroughLine({
   standing: AgentStation | null;
   stuckAt?: AgentStation | null;
   stuckSaying?: string | null;
+  /** The station a seat is working right now, so the story reaches the present. */
+  workingAt?: AgentStation | null;
   /** The artifact the pane is showing, so the line that opened it reads as open. */
   active?: string | null;
   onOpen?: (artifactId: string) => void;
 }) {
-  const lines = throughLine({ stops, standing, stuckAt, stuckSaying });
+  const lines = throughLine({ stops, standing, stuckAt, stuckSaying, workingAt });
   /* Nothing has happened yet, so there is no story. The pane's own empty state
      owns that case and says it better than a heading over nothing could. */
   if (lines.length === 0) return null;
@@ -62,6 +66,14 @@ export function ThroughLine({
                 <span className="min-w-0">
                   <span className="text-mrd-small font-medium text-mrd-ink">{l.name}</span>{" "}
                   <span className="text-mrd-small text-mrd-body">{l.did}</span>
+                  {/* The live line carries the same pulse the rest of the
+                      product uses for motion, and carries it INSTEAD of a word:
+                      "now" is already in the clause, and a chip saying
+                      "Working" beside it would be the third place on this
+                      screen to say so. */}
+                  {l.working ? (
+                    <PresenceDot colour="--mrd-agent" alive size={6} className="ml-mrd-2" />
+                  ) : null}
                 </span>
               </span>
               {/*

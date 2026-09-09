@@ -26,6 +26,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { getTrackActivity } from "@/lib/spine/track.functions";
 import { whatItKeepsSaying, type Refrain } from "@/lib/spine/what-it-keeps-saying";
+import { hasLiveVisit } from "@/components/spine/TrackActivity";
 
 /**
  * What this run keeps saying, or null when it is not repeating itself.
@@ -34,12 +35,23 @@ import { whatItKeepsSaying, type Refrain } from "@/lib/spine/what-it-keeps-sayin
  * statement about a set of turns, and there is no set yet. Nothing renders, and
  * nothing reflows into place except the sentence itself once it is known.
  */
-export function useRefrain(trackId: string): Refrain | null {
+export function useRefrain(trackId: string): { refrain: Refrain | null; live: boolean } {
   const fActivity = useServerFn(getTrackActivity);
   const activity = useQuery({
     queryKey: ["track-activity", trackId],
     queryFn: () => fActivity({ data: { trackId } }),
     staleTime: 5_000,
   });
-  return whatItKeepsSaying(activity.data?.turns ?? []);
+  const turns = activity.data?.turns ?? [];
+  /*
+   * BOTH FACTS OFF ONE READ, and `live` is here rather than in a second hook
+   * for the reason this file exists at all: they come from the same turns, and
+   * two hooks over one cache entry is two places that can disagree about
+   * whether anybody is home.
+   *
+   * `hasLiveVisit` is the product's ONE predicate for this -- the header chip,
+   * the transcript's poll rate and the footer all read it -- so the story
+   * cannot claim a seat is working while the chip beside it says stopped.
+   */
+  return { refrain: whatItKeepsSaying(turns), live: hasLiveVisit(turns) };
 }

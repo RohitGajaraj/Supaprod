@@ -80,6 +80,21 @@ export type Line = {
   opens: string | null;
   /** True on the station the work stands at now. */
   here: boolean;
+  /**
+   * A seat is working this station RIGHT NOW.
+   *
+   * ── THE STORY USED TO GO SILENT AT THE LIVE EDGE ────────────────────────
+   * A station earns a line by having filed something, and a station that is
+   * mid-turn has filed nothing yet. So on a run with a seat actually working,
+   * the story ran to the last COMPLETED station and stopped -- and the reader
+   * scanning it for where the work had got to found the sequence ending one
+   * station short of the truth.
+   *
+   * That is the founder's own first sentence failed by the surface built to
+   * answer it: "what it is doing now, what comes next, where it needs them".
+   * A story that stops before the present is a history, not a flow.
+   */
+  working: boolean;
 };
 
 /** The first sentence of a field, for a line that has to fit on one row. */
@@ -172,27 +187,58 @@ export function throughLine(input: {
   stuckAt?: AgentStation | null;
   /** What it kept saying there, verbatim. See `what-it-keeps-saying.ts`. */
   stuckSaying?: string | null;
+  /**
+   * The station a seat is working RIGHT NOW, when one is.
+   *
+   * Handed in like `stuckAt` and for the same reason: it is read off turns
+   * rather than artifacts, and joining the two is the run screen's job. See
+   * `Line.working` for why the story is wrong without it.
+   */
+  workingAt?: AgentStation | null;
 }): Line[] {
   const out: Line[] = [];
   for (const stop of input.stops ?? []) {
     const items = realItems(stop);
     const stuck = input.stuckAt === stop.station && input.stuckSaying ? input.stuckSaying : null;
+    const working = input.workingAt === stop.station;
     const did = didClause(items);
     /*
      * A STATION WITH NOTHING TO SAY GETS NO LINE, unless it is where the run
      * stopped -- because "it stopped here and said why" is the most important
-     * line on the list and it is precisely a station that filed nothing.
+     * line on the list and it is precisely a station that filed nothing -- or
+     * where a seat is working right now, which is the same argument in the
+     * present tense: the one station a reader is looking for is the one that
+     * has not finished, and it is the one with nothing filed to earn a line.
      */
-    if (!did && !stuck) continue;
+    if (!did && !stuck && !working) continue;
+    /*
+     * WHAT A WORKING STATION SAYS, AND WHAT IT DELIBERATELY DOES NOT.
+     *
+     * "is working now", and no seat name and no verb. The Now card at the top
+     * of the other pane already says "Engineer is reading the spec" -- the seat
+     * AND what it is doing -- and the transcript says it a third time under the
+     * turn. What the story alone can say is that THE SEQUENCE HAS REACHED HERE
+     * and has not finished, which is a fact about the shape of the run rather
+     * than about the seat. Repeating the name or the verb here would be the
+     * defect this file's own neighbours were repaired for all day.
+     */
+    const clause = did
+      ? working
+        ? `${did}, still working`
+        : did
+      : working
+        ? "is working now"
+        : "stopped";
     out.push({
       station: stop.station,
       name: AGENT_STATIONS[stop.station]?.name ?? stop.station,
-      did: did ?? "stopped",
+      did: clause,
       because: becauseFor(stop.station, items, stuck),
       /* The NEWEST thing it filed: the chain appends as it harvests, so the
          last one is the version that stands. */
       opens: items.length > 0 ? (items[items.length - 1]!.artifactId ?? null) : null,
       here: input.standing === stop.station,
+      working,
     });
   }
   return out;

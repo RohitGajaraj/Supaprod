@@ -1196,7 +1196,7 @@ export function TrackRunLeft({
    * costs no round trip; see `run-refrain.ts` for why it is a hook rather than a
    * callback lifted out of `TrackActivity`.
    */
-  const refrain = useRefrain(trackId);
+  const { refrain } = useRefrain(trackId);
   /* The station's own retry stands down wherever pressing it changes nothing:
      a call is in front of the person, the preview is what stopped Ship, or
      nothing will pick the work up again. */
@@ -1584,7 +1584,7 @@ function RunStory({
     queryKey: ["spine-track", trackId],
     queryFn: () => fTrack({ data: { trackId } }),
   });
-  const refrain = useRefrain(trackId);
+  const { refrain, live: liveNow } = useRefrain(trackId);
   const track = trackQ.data ?? null;
   /*
    * A REFRAIN BELONGS TO THE STATION THE RUN IS STANDING AT. It is computed
@@ -1607,6 +1607,12 @@ function RunStory({
       standing={track?.station ?? null}
       stuckAt={refrain ? (track?.station ?? null) : null}
       stuckSaying={refrain?.saying ?? null}
+      /* The station a seat is in mid-turn at, off the SAME activity read the
+         refrain uses, so the story reaches the present instead of ending at the
+         last station that happened to file something. `hasLiveVisit` is the one
+         predicate for this in the product; a second test here could disagree
+         with the header chip about whether anybody is home. */
+      workingAt={liveNow ? (track?.station ?? null) : null}
       active={active}
       onOpen={onOpen ? (id) => onOpen(id) : undefined}
     />
