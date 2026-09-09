@@ -1901,11 +1901,26 @@ attributed twice by size and timing when the built chunk names it in one look. *
 its own record, read a measurement in the units its source prints, and when a filter's behaviour cannot
 be stated exactly, move the test to where it can be.**
 
-**Pending, by name, for whoever is next:** `listStudioSessions`'s third hop (a SQL sum for the per-trace
-cost); the lint gate's non-`src` errors (founder's call on `eslint.config.js`); the Findings receipt's
-words, where the toggle carries two consents and only the Boundary bar keeps them apart (Lane 2 has the
-true words; putting promotion behind its own consent is a product call and wants the founder); the
-first-run press still unread live; P-130b's client half; F-207.
+**Pending, by name, for whoever is next** (two of the six closed since this entry was written):
+- **`listStudioSessions`'s third hop: CLOSED as far as it goes.** Three hops is the floor without a SQL
+  function, because the spec titles come through `artifact_lineage`, which is polymorphic and cannot be
+  embedded, so something must always follow the mission read. What was taken instead is the payload:
+  the checkpoint read (up to 2,000 rows for a trace id) is now asked only about runs whose own row
+  carries no `trace_id`. Measured first: the two agree for the 300 newest runs, and the run column is
+  null for all 185 of the 300 oldest that have checkpoints, so that read stays for them and costs
+  nothing for a workspace that has run since August (`a07dbf880`).
+- **The first-run press: CLOSED, verified from the built client** (an account cannot be created from
+  this lane, so this is the honest available check). The onboarding chunk exports four server
+  functions; the first-run screen imports exactly one, `openFirstRun`, and its `mutationFn` awaits that
+  single call before the session read and the invalidations. The four it replaced appear nowhere in the
+  shipped chunk. Pinned in `a-first-run-opens-in-one-call` on code with comments stripped, because the
+  screen's own header still names them in prose.
+- **Still open:** the lint gate's non-`src` errors (a founder call on `eslint.config.js`, which the
+  `config-protection` hook holds for exactly that reason); the Findings receipt's words, where one
+  toggle carries two consents and only the Boundary bar keeps them apart (Lane 2 has the true words;
+  putting promotion behind its own consent is a product call and wants the founder); `FirstRun.tsx`'s
+  header paragraph, which still says "No new server function" and names four writers that are gone
+  (Lane 1's file, told, with replacement words); P-130b's client half; F-207.
 
 
 ### Lane 2 · addendum, 2026-09-09 midday · the states audit, and three more places the answer was already on the wire
