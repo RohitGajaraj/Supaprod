@@ -2454,3 +2454,45 @@ in it:**
 2. **Two chips, one state, two words**: "Needs a restart" in the header and "Stopped" on the card,
    400px apart, both in the you hue. **My ruling: the header chip should change**, because a status
    chip names the state and the remedy already has a home in the footer's press.
+
+### Lane 1, later still: law 11, and two guards that came out of my own mistakes
+
+**Law 11 is the one to read if you only read one thing.** *One cause gets one sentence, at the level
+that owns the cause.* Lane 2 found it: the founder opened a run screen and met **five messages for
+one cause**, four of them red. Every component was correct and nothing owned the composition.
+
+The level that owns it is **the smallest thing a retry would fix**. One region, and the region says
+it. The page, and the page says it once and does not mount the panes standing on that read. Every
+tab, and the shell says it above everything. The dead-token half was already written in `AppFrame`;
+its closing clause, *"the regions go back to naming which read failed"*, is the default this law
+narrows.
+
+**Do not undo why it got loud.** Those reads used to swallow their errors and render as empty, and a
+refusal wearing the empty state's clothes is worse than five sentences. Making them throw was right.
+An honest failure then has to be ROUTED, not reported. If a future session quietens that screen by
+reverting the throws, they will have traded a visible problem for an invisible one.
+
+**The test that separates a duplicate from a pair**, which came out of the same day and is worth
+having before you argue about one: a full, distinctive sentence repeated makes a reader ask which
+one is real; a short repetition serving a different job does not. That is why the run's refusal quote
+had to leave one of its two homes, and why *"3 prototypes"* on the road and in the story was
+correctly left alone. The home's hero and run list are the same shape: a statement and its designated
+remedy, which stays, now sharing one wording for one event.
+
+**Two guards that exist because I was wrong.**
+
+- `route-inventory.test.ts` now checks that **an exemption for a dev-only route says it is dev-only**.
+  `/meridian`'s said only "reached by typing the URL" while its route had redirected everything but a
+  dev server for eleven days. I read it, believed it, built on it, sent two lanes to the page, and got
+  bounced. **Documentation is the one place a claim can rot with no failing test**, and an exemption
+  is the worst of those because the whole point of writing one is that the reader stops checking.
+  Kept deliberately narrow: one mechanical claim, greppable on both sides. Do not widen it to read
+  prose.
+- `the-home-answers-are-three-hops.test.ts` holds the home's answers read at three round trips. It was
+  eight, and **two of them were mine**, added the same afternoon on the arrival F-216 had just made
+  fast.
+
+**The habit worth keeping, which cost three separate things today: make a new guard FAIL before you
+trust it.** Put the defect back, watch it name the file, take it out. My first version of one of these
+passed while measuring nothing, because stripping string literals erased the very token the reader
+keyed on. A guard that finds nothing and a guard that has nothing to find are the same green.
