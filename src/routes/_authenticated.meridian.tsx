@@ -1170,7 +1170,7 @@ function MeridianGallery() {
                   { key: "sense", state: "done" },
                   { key: "decide", state: "done" },
                   { key: "define", state: "done" },
-                  { key: "design", state: "done", outcome: "3 drawings" },
+                  { key: "design", state: "done", outcome: "3 prototypes" },
                   { key: "build", state: "you", outcome: "PR #5 waits on you" },
                   { key: "ship", state: "pending" },
                   { key: "learn", state: "pending" },
@@ -1191,6 +1191,34 @@ function MeridianGallery() {
                   },
                   { key: "ship", state: "done", outcome: "live since Sep 4" },
                   { key: "learn", state: "scheduled", outcome: "graded Sep 21" },
+                ]}
+              />
+              {/*
+               * THE STATES THAT SEPARATE ONLY BY STATUS, SIDE BY SIDE.
+               *
+               * Added 2026-09-09 while closing the held-vs-failed pair. This
+               * gallery exists so a design is LOOKED AT before it ships, and
+               * the four states whose whole question is whether a person can
+               * tell them apart were the four it did not draw. The pair was
+               * argued about in a document for a day because there was nowhere
+               * to see it.
+               *
+               * Read this row in greyscale, which is the test law 3 sets:
+               * `held` keeps the lift and stays light, `stopped` and `failed`
+               * take their chip fills because the road ended at them, and
+               * `waived` is the dashed ring. Four different weights, no hue
+               * required.
+               */}
+              <Journey
+                size="full"
+                stations={[
+                  { key: "sense", state: "done" },
+                  { key: "decide", state: "waived", outcome: "skipped, incident fix" },
+                  { key: "define", state: "held", outcome: "waiting on the repo" },
+                  { key: "design", state: "unread" },
+                  { key: "build", state: "failed", outcome: "could not finish" },
+                  { key: "ship", state: "stopped", outcome: "needs a restart" },
+                  { key: "learn", state: "pending" },
                 ]}
               />
               <div className="flex flex-col gap-3">
