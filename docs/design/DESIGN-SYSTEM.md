@@ -416,6 +416,19 @@ So this is not licence for redundancy. F-215 and F-233 are both two spellings of
 are still defects. What is allowed is the claim and its evidence together, where a glance takes in
 both.
 
+**IT APPLIES TO WRITES, NOT ONLY TO SENTENCES**, and the cleanest example in the repo is a write.
+The driver's closed-correction memory records what fixed a track only *after* the station that could
+not finish has finished. Until then the hypothesis is not written at all, so nothing downstream can
+read it as a fact. A sentence can be argued with; a write either records the guess or it waits.
+
+**And it applies underneath the copy too.** Auditing this lane's own surfaces against it turned up
+no bad sentence and two bad reads: an embed whose generated type and actual shape disagree, read
+without handling both; and a default-workspace lookup taken with `?? null`, which accepts any shape
+the call returns. An empty array is truthy, so it became the workspace id, every read filtered on it,
+and they all answered **zero** in a file whose own header says null means *we could not find out* and
+must never become zero. Same defect as a false clause, one layer down: a value stated with more
+confidence than it was read with.
+
 ---
 
 ## The defects that keep coming back
