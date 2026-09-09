@@ -2166,3 +2166,107 @@ visible.
 
 Both want a walk on the first build past `402086098`, on `ce846e9b`: the header's eyebrow and
 wrapped sentence, and the story block above "What this run got you" with no chip row under it.
+
+---
+
+## Lane 1 · 2026-09-09, afternoon (IST) · design system, the shell, test integrity
+
+**Tip when this was written: `e800d4dc6`.** Everything below is pushed. Production served
+`d56992f2` (built from `c66ec1c31`) from 09:25:56 UTC; a deploy of the newer tip is still owed.
+
+### The design-system rulings, all six from Lane 2, published in `docs/design/DESIGN-SYSTEM.md`
+
+Five built on `1e7ba1e46`. **Two were worse than reported, and both times the correction came from
+measuring before fixing rather than from reading the report.**
+
+- **Reduced motion stopped no transition, under EITHER switch.** Lane 2 had it as the in-product
+  half being weaker than the OS twin. Neither stopped a transition; both blocks name keyframes
+  only. Fixed at `transition-duration: 1ms`, never `none`, because `none` cancels `transitionend`
+  and nothing listens for one *today*, which is a trap rather than a licence.
+- **The halo was overridden at TWO call sites**, not one. `mrd-attention` drives opacity from 1 and
+  so overrode a resting 0.35 on the rail's seat and a resting 0.55 on the run road's ring. The new
+  `mrd-halo` **reads the resting value** (`var(--mrd-halo-rest)`) rather than naming one, because a
+  block hard-coding 0.35 would have fixed one and quietly dimmed the other.
+- Tailwind's default transition is Meridian's ramp now (`--default-transition-duration`,
+  `--default-transition-timing-function`), so every bare `transition-colors` is correct at once.
+  **Do not sweep call sites for this**; anything wanting the move budget names a duration and wins.
+- `Prose` carries its measure on both branches, on the rem rung. `.mrd-focus` is defined beside its
+  inset twin rather than retired.
+
+**The h1 ruling, F-230, is the one to read if you touch type.** The finding's premise was wrong:
+`PageHeading` has one code path at 25px and no failure variant. The real defect was the run screen
+titling at the *component* rung. Ruled against both proposed fixes and diagnosed instead that **a
+run's name is a lead paragraph wearing a heading's clothes**. Lane 2 built it (`402086098`) and
+correctly kept the sentence as the `<h1>` while it is not the largest type.
+
+### The shape that cost three findings in one day
+
+**A branch's source changes and the qualifier written for the old source is not revisited.** It is
+now a row in the design contract's recurring-defects table because it happened three times:
+
+1. `F-217` made `openTracks` load-bearing for the idle line without widening the loading guard, so
+   the header said "Ready for the first run" over a workspace whose name had not loaded (`F-232`).
+2. The halo borrowed keyframes tuned for an element with no resting opacity (`F-227`).
+3. `F-212` made the bounded ten-family queue the shell's count and did not bring back the "at
+   least" floor that P-18a had retired *for a different read* (`F-231`).
+
+**When you change what a branch reads, grep for every hedge, guard and dependency written for the
+old read.** Nothing fails when a qualifier outlives its reason.
+
+### The suite's "1 error" was three tests that never ran
+
+`what-learn-is-waiting-for.test.ts` imported `describe, test, expect` and wrote three cases with
+`it`. Eighteen declared, fifteen ran, measured by restoring the pre-fix file from git and running
+both. **All three PASS once they run**, so nothing was broken and nothing would ever have pointed at
+them. Bun reports this as an error line, never a failure, so every gate passed.
+
+**I checked that number against a clean tree this morning, found it pre-existing, and set it aside.
+That was the mistake: pre-existing is not harmless, and an error count nothing attributes to a file
+is a number nobody can act on.**
+
+Second sighting (`F-219` recorded `hero-copy.test.ts`), so there is a reader now:
+`src/__tests__/a-test-that-never-ran-is-not-a-guard.test.ts`. A grep and not a lint rule, because
+what is checked is whether a file would LOAD. It only bites a file that HAS an explicit `bun:test`
+import list and reads past it; a file importing nothing gets the runner's globals. **Proved by
+making it fire.** Caution for anyone extending it: the naive version returns thirteen files, all of
+them the English word "it" before a parenthesis in a prose comment.
+
+### Rulings I made that constrain other lanes
+
+- **`SectionHead` is deleted from Meridian.** It lost its last caller when the home's three labelled
+  blocks unified on `Eyebrow`. The engine room has a local component of the same name that is an
+  eyebrow plus a note with no seam: **a naming collision, not a duplicate.** If a dense operator
+  surface needs a seam, it is one div and the argument is in git.
+- **A count that could not be read is a sentence, never a number.** Lane 3 took this into
+  `not-the-whole-queue.ts` (`8141580ef`). The rail badge keeps its digit deliberately: a mark that
+  changes shape when a read degrades is noise, and the caveat goes in the prose beside the number.
+
+### Pending, in the order I would take them
+
+1. **Deploy the tip.** Production is on `c66ec1c31`; `e800d4dc6` and everything after is unshipped.
+2. **The live read neither Lane 1 nor Lane 2 could do.** Both our Chrome extensions wedged on
+   `tabs_context_mcp` and `tabs_create_mcp`, the lightest calls there are, while the server answered
+   `/track/ce846e9b` 200 in 0.84s. **The extension, not the app.** What is unread: that the run
+   screen's new header and story block render for a signed-in user. Lane 2 has since mounted the
+   component against the real row (8 tests, no hang), so the hang hypothesis is settled; what is
+   left is the founder's reaction to the story, which is what it was built for.
+3. **`eslint.config.js` is hook-protected**, so `.remember/tmp/**` cannot be added to the ignore
+   list by an agent. That scratch file regenerates and will keep producing two lint errors until a
+   human adds the line. Lane 3 reports the other remaining errors are `.claude/workflows/*.js` and
+   archived docs.
+4. **Still open on this lane:** the Ask pane hard-codes `shape: "new-capability"` (F-222's other
+   half, handed to Lane 2); the engine room's Safety room duplicates five `BoundaryPane` views; the
+   held-vs-failed greyscale pair in the design contract; and 19 unverified round-six craft findings,
+   which stay **not actionable** without a skeptic pass.
+
+### Two traps I fell into, recorded so the next session does not
+
+- **I ran `git stash` in a worktree a subagent was writing to.** It swept the subagent's in-flight
+  edits into the stash and `stash pop` then refused. Recovered by restoring individual paths out of
+  `stash@{0}` and leaving the one file the subagent had since re-edited. **Never stash in a shared
+  worktree**; commit first, or compare against a second checkout.
+- **My first two measurements of the through-line were both wrong**, and reading the code corrected
+  both. A naive grep said 14 routes had zero outbound doors; a transitive one said none did. The
+  seven "station" routes are all deliberate, dated redirect stubs, and `route-inventory.test.ts`
+  already guards the inbound half far better than my script did. **Read the existing guard before
+  writing a new one.**
