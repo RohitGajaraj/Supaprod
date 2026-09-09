@@ -208,6 +208,22 @@ export const RETIRED_MARKERS: ReadonlyArray<{ id: string; pattern: RegExp; linea
   { id: "data-obsidian", pattern: /data-obsidian/g, lineage: "Obsidian" },
 
   /*
+   * ── A SECOND SPACING RAMP, WITH NO MARKER TO STOP IT ────────────────────
+   *
+   * Added 2026-09-10, found by Lane 3 while converting `InvitationsPanel`.
+   * `src/styles.css` defined `--space-1..4` as 4 / 8 / 12 / 16 on a "4px grid;
+   * rhythm 8/12/16" — **a whole competing opinion about spacing**, against
+   * Meridian's 2, 4, 6, 10, 16, 24, 40, 64.
+   *
+   * It is not an alias like the friendly names below: it resolved to raw pixels
+   * of its own, so nothing in this list matched it and a new file could adopt
+   * it and pass green. Exactly two callers existed, both admin panels, and both
+   * are converted; the definitions are gone. The marker is what stops it coming
+   * back, which is the only reason it needs an entry at all.
+   */
+  { id: "--space-", pattern: /--space-[1-9][0-9]*\b/g, lineage: "pre-Meridian 4px grid" },
+
+  /*
    * ── THE RETIRED SYSTEM REACHED THROUGH A FRIENDLY NAME (F-138) ──────────
    *
    * Found independently by S3 and S4, and it is the fourth instance this week

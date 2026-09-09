@@ -68,7 +68,7 @@ export function VouchersPanel() {
    * arrives through an alias.
    */
   return (
-    <div data-mrd="" style={{ display: "grid", gap: "var(--space-4)" }}>
+    <div data-mrd="" style={{ display: "grid", gap: "var(--mrd-s5)" }}>
       <VoucherCreator />
       <div className="material-medium" style={card()}>
         <span className="mrd-eyebrow">Vouchers · {list.isLoading ? "…" : rows.length}</span>
@@ -129,7 +129,7 @@ export function VouchersPanel() {
                     <td style={td()}>{v.expires_at?.slice(0, 10) ?? "-"}</td>
                     <td style={td()}>{v.active ? "yes" : "no"}</td>
                     <td style={td()}>
-                      <div style={{ display: "flex", gap: "var(--space-1)" }}>
+                      <div style={{ display: "flex", gap: "var(--mrd-s2)" }}>
                         <Action style={{ padding: "6px 10px" }} onClick={() => setOpenId(v.id)}>
                           Redemptions
                         </Action>
@@ -163,7 +163,7 @@ export function VouchersPanel() {
                     <td
                       colSpan={8}
                       style={{
-                        padding: "var(--space-3)",
+                        padding: "var(--mrd-s4)",
                         textAlign: "center",
                         fontFamily: "var(--mrd-font)",
                         color: "var(--mrd-mute)",
@@ -229,7 +229,7 @@ function VoucherCreator() {
   return (
     <div className="material-medium" style={card()}>
       <span className="mrd-eyebrow">New voucher</span>
-      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "var(--mrd-s4)", flexWrap: "wrap" }}>
         <input
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
@@ -353,17 +353,17 @@ function RedemptionsDrawer({
           <SheetTitle>Redemptions</SheetTitle>
         </SheetHeader>
         {list.isLoading ? (
-          <div style={{ marginTop: "var(--space-4)" }}>
+          <div style={{ marginTop: "var(--mrd-s5)" }}>
             <AdminSkeleton rows={3} height={28} />
           </div>
         ) : listError ? (
-          <div style={{ marginTop: "var(--space-4)" }}>
+          <div style={{ marginTop: "var(--mrd-s5)" }}>
             <AdminErrorCard what="redemptions" message={listError} onRetry={() => list.refetch()} />
           </div>
         ) : (
           <ul
             style={{
-              marginTop: "var(--space-4)",
+              marginTop: "var(--mrd-s5)",
               padding: 0,
               listStyle: "none",
               display: "grid",
@@ -391,9 +391,9 @@ function RedemptionsDrawer({
 // call site; this helper now supplies layout only (Tempo materials law).
 function card(): React.CSSProperties {
   return {
-    padding: "var(--space-4)",
+    padding: "var(--mrd-s5)",
     display: "grid",
-    gap: "var(--space-3)",
+    gap: "var(--mrd-s4)",
   };
 }
 function input(width?: number): React.CSSProperties {

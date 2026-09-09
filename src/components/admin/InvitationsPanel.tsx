@@ -74,7 +74,7 @@ export function InvitationsPanel() {
    * arrives through an alias.
    */
   return (
-    <div data-mrd="" style={{ display: "grid", gap: "var(--space-4)" }}>
+    <div data-mrd="" style={{ display: "grid", gap: "var(--mrd-s5)" }}>
       <InviteCreator />
       <InviteList />
       <DomainList />
@@ -122,7 +122,7 @@ function InviteCreator() {
   return (
     <div className="material-medium" style={card()}>
       <MonoLabel>New invitation</MonoLabel>
-      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "var(--mrd-s4)", flexWrap: "wrap" }}>
         <input
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -251,7 +251,7 @@ function InviteList() {
                   <td
                     colSpan={5}
                     style={{
-                      padding: "var(--space-3)",
+                      padding: "var(--mrd-s4)",
                       textAlign: "center",
                       fontFamily: "var(--mrd-font)",
                       color: "var(--mrd-mute)",
@@ -306,7 +306,7 @@ function DomainList() {
   return (
     <div className="material-medium" style={card()}>
       <MonoLabel>Auto-approve email domains</MonoLabel>
-      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "var(--mrd-s4)", flexWrap: "wrap" }}>
         <input
           value={domain}
           onChange={(e) => setDomain(e.target.value)}
@@ -362,7 +362,7 @@ function DomainList() {
                 fontFamily: "var(--mrd-font)",
                 color: "var(--mrd-ink)",
                 display: "flex",
-                gap: "var(--space-2)",
+                gap: "var(--mrd-s4)",
                 alignItems: "center",
               }}
             >
@@ -441,7 +441,7 @@ function SignupApprovalsList() {
               key={s.id}
               style={{
                 display: "flex",
-                gap: "var(--space-2)",
+                gap: "var(--mrd-s4)",
                 alignItems: "center",
                 fontFamily: "var(--mrd-font)",
                 color: "var(--mrd-ink)",
@@ -478,9 +478,9 @@ function SignupApprovalsList() {
 // call site; this helper now supplies layout only (Tempo materials law).
 function card(): React.CSSProperties {
   return {
-    padding: "var(--space-4)",
+    padding: "var(--mrd-s5)",
     display: "grid",
-    gap: "var(--space-3)",
+    gap: "var(--mrd-s4)",
   };
 }
 function input(width?: number): React.CSSProperties {
