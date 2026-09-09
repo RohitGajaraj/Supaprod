@@ -2866,9 +2866,25 @@ because one stuck run is a shrug and five is a setting worth changing.
 
 ### What is open on this lane, in the order I would take it
 
-1. **The run screen's finish state is half-done.** The verdict now reaches the Now card, but a
-   finished run still cannot say *what changed and what it was worth* — territory 2 — beyond a PR
-   link and a forecast. `run-tally.ts` has the material.
+1. **The finish state is blocked on a FIELD, not on design, and this is the one to read first.**
+   The verdict now reaches the Now card and the proof pane already carries the claim and the
+   grade. What a finished run still cannot say is what it *came to*, because:
+
+   **`decisions` cannot record whether a decision was a yes or a no.** `status` is the approval
+   state of the record, not the direction of the call, so "Decline broad onboarding flow
+   improvement" with `status: approved` means *the decision to decline was approved*. Measured:
+   168 approved decisions, 15 of them approvals of a no; 20 declined, 18 of them a no. `intent`
+   exists and is non-null on 5 rows of 422. **The direction lives only in the title's first word.**
+
+   That matters beyond display. On `d1168015` the run decided to decline at Decide, filed a spec,
+   two tasks, a prototype and a code change, then declined to ship at Ship. Across the population:
+   **31 runs decided decline-or-wait at Decide and 11 of them filed a spec, a design or a code
+   change afterwards** — 11 of 121 tracks doing work they had already decided against.
+
+   Do NOT build the surface for this on a title match. It works until a model rewords, and the
+   failure is invisible because an absent line looks exactly like a run that did not need one —
+   the same trap S1 named on the Connectors door and S3 confirmed on `signals.list`. Filed with
+   Lane 3. When the field exists, the surface half is small.
 2. **`what-it-produced.ts` is quarantined**, not kept: re-point
    `the-row-and-the-strip-agree-on-what-was-produced` at a live emitter so it can leave the tree.
    The live emitters do not share one convention, so this has a decision in it.
