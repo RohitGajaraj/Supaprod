@@ -407,6 +407,52 @@ Surface mechanics — one page scroller, `@container` not `@media` inside a pane
 
 ---
 
+## The one open question on the entry, measured
+
+**Stated 2026-09-09 after reading the served home, and left open on purpose.**
+
+The founder's complaint was *"I cannot feel the value."* Two structural passes went in that day: the
+proof of value moved above the fold, and the entry was published as five movements. Reading the
+result live on his own workspace, the gap is still there and it is now measurable rather than felt.
+
+What that workspace actually holds:
+
+| decisions | specs | prototypes | graded outcomes | deployments | runs done |
+| --- | --- | --- | --- | --- | --- |
+| 67 | 38 | 37 | 12 | 8 | 2 |
+
+What the entry says about any of it: **two sentences, in the smallest type on the page**, and both
+scoped to *since you last looked* (`1 new finding`, `1 decision came back this week`). The largest
+type is a count of what the person owes the machine: `20 design gates and 33 other calls are
+waiting for you.`
+
+**Two rulings already stand against the obvious fixes, and both are still right.**
+
+- The headline stays the count. *A count is a debt; the next step is a direction* (Hero.tsx). The
+  count is the state and a person takes it in at a glance; the line under it names the one call to
+  start with.
+- The answers stay sentences. *Not a card, a stat row, or three tiles* (HomeAnswers.tsx). Tiles
+  would put numbers in the biggest type and make the reader do the reading, which is the dump the
+  founder named.
+
+So the fix is neither "make the debt smaller" nor "make the proof bigger". **The gap is that every
+value statement on the entry is a DELTA and the founder's complaint is about the WHOLE.** Sixty-seven
+decisions and twelve graded outcomes are the product working, and nothing on the landing page says
+the loop has ever closed. The product's own claim is *tells you what to build, then builds it, ships
+it, grades it, guides the next call*; the entry shows four of those five and never the fifth.
+
+**The recommendation, for the founder to rule on rather than for a lane to assume:** one movement
+that shows the loop closing ONCE, concretely, on the most recent piece of work that went all the way
+round, with its verdict. Not a count of twelve. One outcome, named, with what was expected and what
+happened. That is the only thing on this page that would be evidence rather than inventory, and it
+is the difference between a person reading that the machine is busy and a person seeing that it was
+right.
+
+**Do not build this without him.** He refines by seeing, he had not yet seen either of that day's
+passes, and a third unilateral swing at the entry in one day is churn rather than design.
+
+---
+
 ## Still owed, from the founder's own brief
 
 Carried forward deliberately rather than dropped with the old contract: these are undelivered
