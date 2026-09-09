@@ -115,7 +115,7 @@ import {
 } from "@/components/meridian/surface-parts";
 import { ToolStream, type ToolStreamRow } from "@/components/meridian/ToolStream";
 import { PresenceDot, presenceColour } from "@/components/meridian/AgentPresence";
-import { enterMotion } from "@/components/spine/enter-motion";
+import { enterMotion, ENTER_MS } from "@/components/spine/enter-motion";
 import { usePrefersReducedMotion } from "@/components/knowledge/graph-visual";
 
 /** One map, so a station's slug and its drawing cannot disagree. */
@@ -1047,10 +1047,30 @@ export function TrackActivity({
       primed.current = true;
       return;
     }
+    /*
+     * ── MARKED SEEN AFTER THE ARRIVAL, NOT BEFORE IT ────────────────────────
+     *
+     * This waited 0ms. `arrived` is computed at render from `seen`, and `seen`
+     * is a ref, so the row that just appeared rendered WITH the fade-up and the
+     * very next render -- the 500ms live poll, an elapsed ticker, a hover --
+     * found the key already marked, computed `arrived: false`, and
+     * `enterMotion` returned `undefined`. React then removed the `animation`
+     * style **while the animation was still running**, so a new turn flashed
+     * into place instead of arriving. The animation is 420ms and the poll is
+     * 500ms, so it was a race the row usually lost to anything else that
+     * re-rendered first.
+     *
+     * `ENTER_MS` is that duration, so a key stays unseen for exactly as long as
+     * its arrival takes. Re-applying the identical `animation` string on an
+     * intervening render does not restart a CSS animation, so holding it is
+     * safe; and if a poll cancels the timer before it fires, the row simply
+     * keeps a one-shot animation that has already completed under `both`, which
+     * renders the same as no animation at all.
+     */
     const keys = rows.map((r) => r.key);
     const timer = window.setTimeout(() => {
       for (const k of keys) seen.current.add(k);
-    }, 0);
+    }, ENTER_MS);
     return () => window.clearTimeout(timer);
   }, [q.data, rows]);
 
