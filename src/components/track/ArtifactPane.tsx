@@ -3333,8 +3333,27 @@ function StationPanel({
   /* Newest first, so the card at the top is the version that stands, the
      same one the folded row below points at. The list itself is oldest-first
      for the record; the choice of what to lead with is not. */
+  /*
+   * ── SORTED BY WHEN IT WAS FILED, NOT BY WHEN THE LOOP ATTACHED IT ───────
+   *
+   * `createdAt` is `spine_track_members.created_at`, and the driver attaches a
+   * station's whole output in ONE write, so siblings share it to the
+   * microsecond. Measured across the table by S3: **1,155 of 1,522 members
+   * share an attachment timestamp with a sibling of the same kind on the same
+   * track**, over 313 groups and 55 tracks. Three quarters of the population.
+   *
+   * An equal sort key makes the order between them arbitrary, which is what put
+   * two identical-looking version rows on `6cc7a010` with their change lines
+   * computed against whichever neighbour won the tie. `filedAt` is the
+   * artifact's own `created_at` and separates them: those two were filed 29
+   * seconds apart.
+   *
+   * THE FALLBACK IS NOT DECORATION. An artifact whose row could not be read has
+   * no filing time, and dropping it out of the sort would be worse than
+   * ordering it by the only fact left.
+   */
   const newestFirst = items
-    ? [...items].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    ? [...items].sort((a, b) => filedOrAttached(b) - filedOrAttached(a))
     : undefined;
   const primaryItem =
     /* THE PERSON'S CHOICE OUTRANKS THE STATION'S EXPECTATION. */
@@ -3480,10 +3499,23 @@ function toMemberLine(item: ArtifactView): ChainMember {
     word: item.word,
     artifactId: item.artifactId,
     station: "",
-    createdAt: item.createdAt,
+    /* The stamp a person reads is when the station FILED it. Two rows carrying
+       one attachment second was the defect; see the sort above. */
+    createdAt: item.filedAt ?? item.createdAt,
     title: item.title,
     missing: item.missing,
   };
+}
+
+/**
+ * When it was filed, or when it was attached if the row could not be read.
+ *
+ * Shared by the sort and the stamp so the order a person sees and the time on
+ * each row cannot come from two different clocks.
+ */
+function filedOrAttached(item: { createdAt: string; filedAt?: string | null }): number {
+  const at = Date.parse(item.filedAt ?? item.createdAt);
+  return Number.isNaN(at) ? 0 : at;
 }
 
 /**
