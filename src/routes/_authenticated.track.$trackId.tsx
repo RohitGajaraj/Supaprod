@@ -18,7 +18,8 @@ import { withPresences } from "@/components/start/journey-of-a-run";
 import { presenceColour } from "@/components/meridian/AgentPresence";
 import { useLiveAgents } from "@/hooks/use-live-agents";
 import { getTrackArtifacts, getTrackActivity } from "@/lib/spine/track.functions";
-import type { AgentStation } from "@/lib/agent-vocabulary";
+import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
+import { StationGlyph, GLYPH_FOR_STATION } from "@/components/meridian/station-glyphs";
 import { RunFooter } from "@/components/track/RunFooter";
 import {
   horizonFromStops,
@@ -226,7 +227,44 @@ export function RunHeader({
   return (
     <header className="flex flex-wrap items-start justify-between gap-mrd-4">
       <div className="min-w-0 flex-1">
-        <h1 className="mrd-title">{track.title}</h1>
+        {/*
+         * ── A RUN'S NAME IS A SENTENCE, NOT A TITLE (Lane 1's ruling, 2026-09-09)
+         *
+         * This was `<h1 className="mrd-title">` -- `--mrd-t-h3`, 20px, which is
+         * the COMPONENT rung that dialogs, empty regions and cards use, while
+         * every other page in the product titles at `text-mrd-h2` (25px)
+         * through `PageHeading`. So the most important surface in the product
+         * titled one rung below all of them.
+         *
+         * BOTH OBVIOUS FIXES ARE WRONG. Raising this to 25px makes it shout:
+         * "The red tile after an over-the-air reboot looks exactly like a real
+         * outage, so a homeowner cannot tell them apart" already wraps to two
+         * lines at 20px. Lowering `PageHeading` is worse, because 25px is
+         * correct for a page title and the other route was never the one out of
+         * step.
+         *
+         * The category error is the thing to fix: **this is a lead paragraph
+         * wearing a heading's clothes.** Every other page titles with a short
+         * label; a run has no short label, it has a sentence describing the
+         * work. So the sentence is set AS PROSE, on the reading measure, and
+         * the eyebrow above carries what a title would have carried -- which
+         * station this is, with the glyph the road draws, so the run is
+         * visibly on the road the person saw on the home.
+         *
+         * IT IS STILL THE `h1`. A heading element is the page's NAME in the
+         * document outline, not its largest type, and the run's name is this
+         * sentence. Making the eyebrow the h1 instead would name the page
+         * "Build", which is true of a hundred runs.
+         */}
+        <span className="mrd-eyebrow mb-mrd-2 inline-flex items-center gap-mrd-2">
+          <StationGlyph
+            kind={GLYPH_FOR_STATION[track.station]}
+            size={12}
+            className="text-mrd-mute"
+          />
+          {AGENT_STATIONS[track.station]?.name ?? track.station}
+        </span>
+        <h1 className="mrd-copy max-w-[var(--mrd-measure-prose)] text-mrd-ink">{track.title}</h1>
         {cameBack ? <p className="mrd-meta mt-mrd-1">{cameBack}</p> : null}
         {decideWaived ? (
           <p className="mrd-meta mt-mrd-1">

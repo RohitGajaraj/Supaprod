@@ -1,0 +1,199 @@
+/**
+ * A RUN AS ONE LINE OF REASONING, WHICH IS THE THING NO SURFACE EVER DREW.
+ *
+ * ── THE FOUNDER'S COMPLAINT, IN HIS WORDS ──────────────────────────────────
+ * *"The stations do not form a flow, the journey is broken, layers 1, 2 and 3
+ * do not stitch together, and it reads as a dump of data and content."*
+ *
+ * Everything needed to answer that has been on the wire for weeks. What the run
+ * screen does with it is draw a road of seven stations at the top, a column of
+ * chips on the right — `finding` `decision` `16 tasks` `5 specs` `10
+ * prototypes` — and a transcript of turns down the left. Three renderings of
+ * one run, none of which says what HAPPENED. A person who reads all three still
+ * has to assemble the story themselves, and the chips are the dump named above:
+ * five nouns and no sentence.
+ *
+ * ── WHAT A PERSON ACTUALLY WANTS TO KNOW, AND IT IS A NARRATIVE ────────────
+ * Read the same run out loud and it is six lines:
+ *
+ *   Discover  found that homeowners cannot tell a reboot from an outage
+ *   Decide    chose to differentiate the tile, over three alternatives
+ *   Plan      wrote 5 specs and 16 tasks
+ *   Design    drew the amber tile, after the critic refused yellow
+ *   Build     stopped: "this repository contains only the checkout module"
+ *
+ * That is the run. It fits in a glance, every clause is a row somebody wrote,
+ * and the ORDER is the causality — which is honest here in a way an inferred
+ * "because" would not be, because the spine enforces the order. Discover ran
+ * before Decide; Decide's forecast is what Build was building toward. **Nothing
+ * in this file invents a link between two stations. The line between them is
+ * the route, and the route is a row.**
+ *
+ * ── AND IT IS WHERE THE LAYERS STITCH ─────────────────────────────────────
+ * Each line carries the id of the thing that station filed, so pressing a line
+ * opens that artifact in the pane beside it — layer 2 — without leaving the
+ * page. The chips did this too; what they could not do is tell you which one to
+ * press, because a chip is a noun and a line is a sentence.
+ *
+ * ── WHAT IS DELIBERATELY LEFT OUT ─────────────────────────────────────────
+ * **A station that did nothing gets no line.** The road above already draws all
+ * seven and says which are waived; repeating them here as "Ship: nothing yet"
+ * five times over is the same dump in a different shape. Measured on
+ * production: 81 of 106 tracks sit at Discover having filed nothing, so a
+ * seven-line list would be one line and six absences on most runs.
+ *
+ * Pure and dependency-free apart from the vocabulary and the two composers that
+ * already own these words, so no noun is invented here (F-150's rule).
+ */
+import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
+import { KIND_WORD } from "@/lib/spine/attach";
+
+/** One artifact a station filed, as the pane already holds it. */
+export type LineItem = {
+  kind: string;
+  artifactId: string;
+  title: string | null;
+  missing: boolean;
+  fields?: Record<string, unknown> | null;
+};
+
+/** One stop on the route, as the pane already holds it. */
+export type LineStop = {
+  station: AgentStation;
+  items: readonly LineItem[];
+};
+
+/** One station's line in the story. */
+export type Line = {
+  station: AgentStation;
+  /** "Decide", "Build". From the one display map, never a slug. */
+  name: string;
+  /** What it did, in the past tense, without the station's name in it. */
+  did: string;
+  /**
+   * The record's own reason, when the record carries one: the decision's
+   * rationale, the run's own words where it stopped. Null far more often than
+   * not, and null draws nothing.
+   */
+  because: string | null;
+  /** The artifact pressing this line opens, or null when there is none. */
+  opens: string | null;
+  /** True on the station the work stands at now. */
+  here: boolean;
+};
+
+/** The first sentence of a field, for a line that has to fit on one row. */
+function firstSentence(v: unknown, cap = 150): string | null {
+  if (typeof v !== "string") return null;
+  const flat = v.replace(/\s+/g, " ").trim();
+  if (!flat) return null;
+  const cut = flat.search(/\.\s/);
+  const first = (cut === -1 ? flat : flat.slice(0, cut + 1)).trim();
+  return first.length > cap ? `${first.slice(0, cap).trimEnd()}...` : first;
+}
+
+/**
+ * The things a station filed that a person would name, newest last.
+ *
+ * `missing` rows are dropped: the lookup ran and the row was not there, so
+ * naming it would promise something that cannot be opened.
+ */
+function realItems(stop: LineStop): LineItem[] {
+  return stop.items.filter((i) => !i.missing);
+}
+
+/**
+ * How a station's output reads as a clause.
+ *
+ * Counted by KIND rather than listed by title, because a station that filed ten
+ * drawings has one thing to say and ten titles would be the dump this replaces.
+ * The exception is a station that filed exactly one thing WITH A TITLE — then
+ * the title IS the sentence, and it is the most informative line on the list.
+ */
+function didClause(items: LineItem[]): string | null {
+  if (items.length === 0) return null;
+  const titled = items.filter((i) => i.title && i.title.trim());
+  if (items.length === 1 && titled.length === 1) {
+    return `filed "${titled[0]!.title!.trim()}"`;
+  }
+  const byKind = new Map<string, number>();
+  for (const i of items) byKind.set(i.kind, (byKind.get(i.kind) ?? 0) + 1);
+  const parts = [...byKind.entries()].map(([kind, n]) => {
+    const word = KIND_WORD[kind] ?? { one: kind, many: `${kind}s` };
+    return `${n} ${n === 1 ? word.one : word.many}`;
+  });
+  const list =
+    parts.length === 1
+      ? parts[0]!
+      : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+  return `filed ${list}`;
+}
+
+/**
+ * The reason a station's line carries, when the record wrote one down.
+ *
+ * ONLY TWO SOURCES, and both are rows rather than inferences:
+ *
+ *   A DECISION'S OWN RATIONALE. `fields.rationale` is what the seat wrote when
+ *   it recorded the call, and `alternatives_considered` is what it weighed
+ *   against. Those two are the most valuable pair on the whole run and they
+ *   have lived one click deep, inside a card nobody opens unless they already
+ *   know it is there.
+ *
+ *   WHERE THE RUN STOPPED SAYING IT. The refrain is handed in by the caller
+ *   because it is computed over turns rather than artifacts, and it is quoted
+ *   rather than paraphrased for the reason `what-it-keeps-saying.ts` gives.
+ */
+function becauseFor(station: AgentStation, items: LineItem[], stuck: string | null): string | null {
+  if (stuck) return `"${stuck}"`;
+  if (station !== "decide") return null;
+  const decision = items.find((i) => i.kind === "decision");
+  if (!decision) return null;
+  const why = firstSentence(decision.fields?.rationale);
+  const alts = decision.fields?.alternatives_considered;
+  const n = Array.isArray(alts) ? alts.length : 0;
+  /* The count, not the list: three rejected alternatives is a fact about how
+     hard the call was, and reading all three is what pressing the line is for. */
+  const weighed = n > 0 ? `${n} ${n === 1 ? "alternative" : "alternatives"} rejected` : null;
+  return [why, weighed].filter(Boolean).join(" ") || null;
+}
+
+/**
+ * The run, in order, as the line of reasoning it actually was.
+ *
+ * `stuckAt` and `stuckSaying` come from the caller: the refrain is computed over
+ * TURNS and this file reads ARTIFACTS, and joining those two is the run
+ * screen's job rather than this module's.
+ */
+export function throughLine(input: {
+  stops: readonly LineStop[] | null | undefined;
+  standing: AgentStation | null;
+  /** The station the run stopped at, when it stopped. */
+  stuckAt?: AgentStation | null;
+  /** What it kept saying there, verbatim. See `what-it-keeps-saying.ts`. */
+  stuckSaying?: string | null;
+}): Line[] {
+  const out: Line[] = [];
+  for (const stop of input.stops ?? []) {
+    const items = realItems(stop);
+    const stuck = input.stuckAt === stop.station && input.stuckSaying ? input.stuckSaying : null;
+    const did = didClause(items);
+    /*
+     * A STATION WITH NOTHING TO SAY GETS NO LINE, unless it is where the run
+     * stopped -- because "it stopped here and said why" is the most important
+     * line on the list and it is precisely a station that filed nothing.
+     */
+    if (!did && !stuck) continue;
+    out.push({
+      station: stop.station,
+      name: AGENT_STATIONS[stop.station]?.name ?? stop.station,
+      did: did ?? "stopped",
+      because: becauseFor(stop.station, items, stuck),
+      /* The NEWEST thing it filed: the chain appends as it harvests, so the
+         last one is the version that stands. */
+      opens: items.length > 0 ? (items[items.length - 1]!.artifactId ?? null) : null,
+      here: input.standing === stop.station,
+    });
+  }
+  return out;
+}
