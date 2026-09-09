@@ -155,41 +155,61 @@ describe("the run that never had a source", () => {
 });
 
 describe("when the agent has already said it, the door is the only new thing", () => {
-  /*
-   * On `6cc7a010` the Now card quotes Build verbatim: "No repository is
-   * connected for this workspace. Please bind a repository on Connectors."
-   * Rendering "No repository is connected to this workspace." underneath is the
-   * same sentence twice, which is the defect this screen has been repaired for
-   * four times this week.
-   *
-   * The quote says what is wrong, in the words of the seat that hit it. The
-   * door says where to go, derived from the workspace's own state -- the half a
-   * quote cannot be, because an agent's prose is not a link.
-   */
   const found = nowhereToLookYet({
     station: "build",
     filedAnything: false,
     setup: NOTHING_CONNECTED,
   });
 
-  it("drops the sentence when the blocker is at that same station", () => {
-    expect(theQuoteAlreadySaidIt("build", found, "build")).toBe(true);
+  /* The real quote, from `6cc7a010` on the served build. */
+  const QUOTED =
+    "No repository is connected for this workspace. Binding a repository is required before any code changes, file operations, or builds can proceed. Please bind a repository on Connectors and retry.";
+
+  it("drops the sentence when the quote above is already saying it", () => {
+    expect(theQuoteAlreadySaidIt(QUOTED, found)).toBe(true);
   });
 
-  it("keeps it when the blocker is somewhere else", () => {
-    // The run stands at Design on credit halts while the wall is Build's. The
-    // quote on screen is about Design, so nothing has said this yet.
-    expect(theQuoteAlreadySaidIt("build", found, "design")).toBe(false);
+  it("EVEN THOUGH the quote is about a different station", () => {
+    /*
+     * THE FIRST VERSION COMPARED STATIONS AND THIS IS THE CASE THAT BROKE IT.
+     * On `6cc7a010` the blocker is Build's and the run stands at Design, so a
+     * station comparison said "different, keep the sentence" and the card drew
+     * the quote, the door, and then "No repository is connected to this
+     * workspace." two lines under it.
+     *
+     * The station was never the question. What decides it is whether the
+     * sentence is already on the screen, and a blocker quoted about another
+     * station is still quoted, still two lines up, still read first.
+     */
+    expect(found!.said).toBe("No repository is connected to this workspace.");
+    expect(QUOTED).toContain("for this workspace");
+    expect(theQuoteAlreadySaidIt(QUOTED, found)).toBe(true);
   });
 
-  it("and keeps it when there is no blocker at all", () => {
-    // A station that found nothing cleanly has no quote above it, so the
+  it("scores the claim, not the string", () => {
+    // Two authors, one fact: the seat says "for this workspace" and this module
+    // says "to this workspace". String equality calls them different every time.
+    expect(QUOTED).not.toContain(found!.said);
+  });
+
+  it("keeps the sentence when the quote is about something else", () => {
+    expect(
+      theQuoteAlreadySaidIt(
+        "The test suite timed out after ninety seconds on the payments module.",
+        found,
+      ),
+    ).toBe(false);
+  });
+
+  it("and when there is no quote at all", () => {
+    // A station that found nothing cleanly has no blocker above it, so this
     // sentence is the only thing saying why.
-    expect(theQuoteAlreadySaidIt(null, found, "build")).toBe(false);
+    expect(theQuoteAlreadySaidIt(null, found)).toBe(false);
+    expect(theQuoteAlreadySaidIt(undefined, found)).toBe(false);
   });
 
   it("says nothing to suppress when there is no gap", () => {
-    expect(theQuoteAlreadySaidIt("build", null, "build")).toBe(false);
+    expect(theQuoteAlreadySaidIt(QUOTED, null)).toBe(false);
   });
 });
 

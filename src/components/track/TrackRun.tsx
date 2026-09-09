@@ -1409,13 +1409,11 @@ export function TrackRunLeft({
             <HoldFact
               sub={
                 [
-                  theQuoteAlreadySaidIt(
-                    blocker?.station as AgentStation | null,
-                    setupGap,
-                    track?.station,
-                  )
-                    ? null
-                    : setupGap.said,
+                  /* Against the QUOTE, not the station. The blocker is Build's
+                     and this run stands at Design, so a station comparison said
+                     "keep it" and the card printed the same sentence two lines
+                     under the quote. */
+                  theQuoteAlreadySaidIt(blocker?.said, setupGap) ? null : setupGap.said,
                   /* The scale SURVIVES that suppression, because the agent's
                      quote is about one run and cannot know how many others are
                      standing in the same place. It is the fact that turns a

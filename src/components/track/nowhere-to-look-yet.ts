@@ -59,6 +59,7 @@
  * and tested, and it draws nothing until it is fed.
  */
 import type { AgentStation } from "@/lib/agent-vocabulary";
+import { sameClaim } from "@/components/spine/what-this-station-kept-saying";
 
 /**
  * What a station cannot start without, and whether this workspace has it.
@@ -215,32 +216,46 @@ export function nowhereToLookYet(input: {
 /**
  * WHEN THE AGENT HAS ALREADY SAID IT, THE DOOR IS THE ONLY NEW THING.
  *
- * On `6cc7a010` the Now card quotes Build verbatim: *"No repository is
- * connected for this workspace. Please bind a repository on Connectors."*
- * Rendering "No repository is connected to this workspace." underneath that is
- * the same sentence twice, a few pixels apart, which is the defect this screen
- * has been repaired for four times this week.
+ * The Now card quotes the seat that hit the wall. Printing this module's
+ * sentence underneath is the same sentence twice, a few pixels apart, which is
+ * the defect this screen has been repaired for five times this week.
  *
- * So the two halves separate. The QUOTE says what is wrong, in the words of the
- * seat that hit it, which are better than anything this module can write. The
- * DOOR says where to go, derived from the workspace's own state, which is the
- * half the quote cannot be trusted for -- an agent's prose is not a link, and
- * S1's point stands that matching on it gives a door that disappears when a
- * model rewords.
+ * So the halves separate. The QUOTE says what is wrong, in the words of the
+ * seat, which are better than anything here can write. The DOOR says where to
+ * go, derived from the workspace's own state, which is the half the quote
+ * cannot be -- an agent's prose is not a link.
  *
- * Together they are what the card was missing: it named the wall and offered
- * nothing, or offered the one act ("send it back a step") that had already
- * failed three times.
+ * ── IT COMPARED STATIONS AND SHOULD HAVE COMPARED SENTENCES ──────────────
+ * The first version asked whether the blocker's station was the station the run
+ * stands at. Read on the served build, `6cc7a010`, that is exactly wrong: the
+ * blocker is Build's and the run stands at Design, so the rule said "different
+ * station, keep the sentence" and the card drew
  *
- * `true` when the record's own quote is already telling the person this, so the
- * caller draws the door alone.
+ *   "No repository is connected for this workspace. Binding a repository is
+ *    required before any code changes... Please bind a repository on
+ *    Connectors and retry."
+ *   Connect a repository
+ *   No repository is connected to this workspace.
+ *
+ * Two lines apart, saying one thing. **The station was never the question.**
+ * What decides it is whether the sentence is already on the screen, and a
+ * blocker quoted about ANOTHER station is still quoted, still two lines up,
+ * still read first.
+ *
+ * Which makes this the sixth sighting of law 14 tonight and the second in my
+ * own code: correct in the module, correct in the card, wrong composed, and
+ * invisible until both were rendered together.
+ *
+ * `sameClaim` scores the claim rather than the string, because the two
+ * sentences are written by different authors about one fact -- the seat says
+ * "for this workspace" and this module says "to this workspace" -- and string
+ * equality would call them different every time.
  */
 export function theQuoteAlreadySaidIt(
-  blockerStation: AgentStation | null | undefined,
+  quoted: string | null | undefined,
   found: NowhereToLook | null,
-  atStation: AgentStation | null | undefined,
 ): boolean {
-  return Boolean(found && blockerStation && atStation && blockerStation === atStation);
+  return Boolean(found && sameClaim(quoted, found.said));
 }
 
 /**
