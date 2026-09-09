@@ -168,6 +168,10 @@ const WEIGHT: Record<JourneyState, number> = {
   done: 0,
   waived: 0,
   pending: 0,
+  /* The home never draws it: the map is built from runs the read returned, so
+     a station is only unread on the run screen, where one run's artifacts
+     read can refuse on its own (fifth review, 2026-09-09). */
+  unread: 0,
 };
 
 export function journeyMap(runs: readonly RunLike[]): JourneyStation[] {

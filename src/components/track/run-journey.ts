@@ -138,7 +138,16 @@ export function journeyStations(input: {
   gradableBySource: boolean | null;
   nowMs: number;
 }): JourneyStation[] {
-  const stops = input.stops ?? [];
+  /* NOT READ IS NOT NOT-REACHED (fifth review, 2026-09-09, from Lane 2's
+     states audit). `stops` is undefined while the artifacts read is in
+     flight and when it REFUSED; it is an empty array when the read answered
+     and the run has filed nothing. Collapsing the two drew seven `pending`
+     stops for a finished run whose read had failed, under a chip saying
+     Finished: a run that did all seven reading as one that never started. */
+  if (input.stops == null) {
+    return (input.route ?? []).map((key) => ({ key, state: "unread" as const }));
+  }
+  const stops = input.stops;
   /* The road draws the moment the track is read, from its own route, so the
      header does not jump when the artifacts arrive a beat later; every stop
      is pending until the stops say otherwise. */

@@ -68,7 +68,8 @@ export type JourneyState =
   | "waiting"
   | "you"
   | "failed"
-  | "waived";
+  | "waived"
+  | "unread";
 
 export type JourneyStation = {
   key: JourneyKey;
@@ -143,6 +144,11 @@ export const JOURNEY_STATE_WORD: Record<JourneyState, string> = {
   you: "needs you",
   failed: "failed",
   waived: "skipped",
+  /* NOT REACHED AND NOT READ ARE DIFFERENT CLAIMS (fifth review, 2026-09-09).
+     A refused artifacts read left the run screen drawing seven `pending`
+     stops under a chip saying Finished, so a run that did all seven read as
+     one that never started. This says what is true: we could not look. */
+  unread: "not read",
 };
 
 /*
@@ -174,6 +180,11 @@ const PAINT: Record<JourneyState, Paint> = {
   waiting: { ring: "var(--mrd-edge)", ink: "var(--mrd-body)", fill: "var(--mrd-lift)" },
   failed: { ring: "var(--mrd-fail)", ink: "var(--mrd-fail)", fill: "var(--mrd-lift)" },
   waived: { ring: "var(--mrd-line)", ink: "var(--mrd-faint)", fill: "transparent", dashed: true },
+  /* The sink fill is the difference from `pending`, which is transparent: a
+     node with something in it we cannot see, rather than an empty one nothing
+     has reached. No status hue, because not reading is not a status, and it
+     survives greyscale on the fill alone. */
+  unread: { ring: "var(--mrd-line)", ink: "var(--mrd-faint)", fill: "var(--mrd-sink)" },
 };
 
 function paintOf(s: JourneyStation): Paint {
