@@ -157,3 +157,52 @@ describe("the road names itself where it leads, and nowhere else", () => {
     }
   });
 });
+
+/*
+ * ── THE THREE LAYERS, IN THE ORDER THE REPO SAYS TO REVEAL THEM ───────────
+ *
+ * The product is three layers -- **01 the DIRECTOR** (tells you what to
+ * build), **02 the operating system** (runs the lifecycle), **03 the brain**
+ * (remembers, and guides) -- and `docs/pitch/repositioning-2026-07-22.md`
+ * states the discipline: *"three layers revealed in strict order: door → body
+ * → brain."*
+ *
+ * The founder's complaint about this product is that *"layers 1, 2 and 3 do
+ * not stitch together."* Measured on this page today: 02 led, 03 was fifth,
+ * and **01 -- the wedge, the thing the product claims to be FOR -- was
+ * tenth**, five regions below the box a person would type its suggestion into.
+ *
+ * The ranked bets ARE the director: this workspace's own opportunities,
+ * ordered, each one a sentence a person can start. The composer is where you
+ * say the thing; this is the product saying what it would say. Two halves of
+ * one act, half a screen apart.
+ */
+describe("the three layers stitch together", () => {
+  it("puts the director's offer with the door a person types into", () => {
+    expect(at("<ExampleJobs")).toBeGreaterThan(at("<Composer"));
+    /* Before anything that is about work already started. Those are the body,
+       and the director is the door. */
+    expect(at("<ExampleJobs")).toBeLessThan(at("<YourRuns"));
+    expect(at("<ExampleJobs")).toBeLessThan(at("<HomeAnswers"));
+  });
+
+  it("keeps the brain after the body, which is the stated order", () => {
+    // door -> body -> brain. The bet is what the machine believes and whether
+    // it held; it reads as evidence only once you have seen the work it is
+    // about.
+    expect(at("<WhetherItWorked")).toBeGreaterThan(at("<JourneyMap"));
+    expect(at("<BetStillOpen")).toBeGreaterThan(at("<Composer"));
+  });
+
+  it("still draws the director only where there is something to direct", () => {
+    /*
+     * MEASURED ACROSS THE PRODUCT: Helio Labs 92 opportunities, My Workspace
+     * 19, My workspace 6 -- and A1 delete probe ZERO, where this correctly
+     * shows nothing. The director cannot direct with no evidence, and a
+     * surface that invented three example sentences for that case was removed
+     * once already.
+     */
+    const guard = ROUTE.slice(at("<ExampleJobs") - 300, at("<ExampleJobs"));
+    expect(guard).toContain("bets.data.length > 0");
+  });
+});

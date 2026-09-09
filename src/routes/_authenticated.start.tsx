@@ -801,6 +801,59 @@ function StartLanding() {
         <WhatWeAlreadyHold subject={sentence} />
       </div>
 
+      {/*
+       * ── THE DIRECTOR SITS WITH THE DOOR, AND IT USED TO BE TENTH ─────────
+       *
+       * The product is three layers -- 01 the DIRECTOR, which tells you what
+       * to build; 02 the operating system, which runs the lifecycle; 03 the
+       * brain, which remembers and guides -- and the repo's own discipline for
+       * revealing them is **door, body, brain**
+       * (`docs/pitch/repositioning-2026-07-22.md`).
+       *
+       * The founder's complaint about this product is that *"layers 1, 2 and 3
+       * do not stitch together"*. Measured on this page before today: layer 02
+       * led (once the road moved), layer 03 was fifth, and **layer 01 -- the
+       * wedge, the thing the product claims to be FOR -- was tenth**, five
+       * regions below the box you would type its suggestion into.
+       *
+       * These ranked bets ARE the director: this workspace's own opportunities,
+       * ordered, each one a sentence a person can start. That belongs beside
+       * the composer, because the composer is where you say the thing and this
+       * is the product saying what it would say. Two halves of one act, and
+       * they were half a screen apart.
+       *
+       * IT DRAWS ONLY WHERE THERE ARE ANY, unchanged. A1 delete probe holds
+       * zero opportunities and shows nothing here, which is honest -- the
+       * director cannot direct with no evidence. Measured across the product:
+       * Helio Labs 92, My Workspace 19, My workspace 6, so on the founder's
+       * own workspaces it draws.
+       */}
+      {/*
+       * THIS WORKSPACE'S OWN RANKED BETS, when it has any. A bet starts on
+       * press because it is the workspace's own work (P-33). The three
+       * invented example sentences that stood here before the first run are
+       * gone: the hero says what to type, and an example about a checkout
+       * the person does not have taught nothing.
+       */}
+      {bets.data && bets.data.length > 0 ? (
+        <ExampleJobs
+          onStart={(job) => go.mutate(job)}
+          zone={timezone}
+          onOpenRun={openRun}
+          onUse={(job) => {
+            setSentence(job.sentence);
+            const field = fieldRef.current;
+            if (field) {
+              field.focus();
+              field.select();
+            }
+          }}
+          busy={go.isPending}
+          bets={bets.data}
+          productExample={null}
+        />
+      ) : null}
+
       {/* A REFUSAL AND A THROW ARE DIFFERENT, AND BOTH ARE SAID, under the
           composer, because that is where the person is looking. */}
       {problems.length > 0 ? (
@@ -863,32 +916,6 @@ function StartLanding() {
       <Arriving door={!sinceYouLooked.some((a) => "to" in a.door && a.door.to === "/arriving")} />
 
       <CrewAtWork workspaceId={activeWorkspaceId ?? null} onOpen={openRun} className="mt-mrd-5" />
-
-      {/*
-       * THIS WORKSPACE'S OWN RANKED BETS, when it has any. A bet starts on
-       * press because it is the workspace's own work (P-33). The three
-       * invented example sentences that stood here before the first run are
-       * gone: the hero says what to type, and an example about a checkout
-       * the person does not have taught nothing.
-       */}
-      {bets.data && bets.data.length > 0 ? (
-        <ExampleJobs
-          onStart={(job) => go.mutate(job)}
-          zone={timezone}
-          onOpenRun={openRun}
-          onUse={(job) => {
-            setSentence(job.sentence);
-            const field = fieldRef.current;
-            if (field) {
-              field.focus();
-              field.select();
-            }
-          }}
-          busy={go.isPending}
-          bets={bets.data}
-          productExample={null}
-        />
-      ) : null}
 
       {/*
        * THE FIRST THREE RUNS, when there is nothing yet: an ANSWERED runs
