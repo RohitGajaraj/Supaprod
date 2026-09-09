@@ -69,9 +69,26 @@ export function WhetherItWorked({
       <Eyebrow>Whether it worked</Eyebrow>
 
       <div className="mt-mrd-3 flex flex-wrap items-baseline gap-x-mrd-3 gap-y-mrd-2">
-        {/* The subject leads. A verdict with no subject is a mood. */}
+        {/*
+         * THE SUBJECT LEADS, AND THE SUBJECT IS THE DOOR. A verdict with no
+         * subject is a mood.
+         *
+         * It carried a trailing "Read it" for one deploy. Seen on the served
+         * page: the answer 90px above this region already offers the same
+         * destination under a different word ("Read them"), so one address wore
+         * two labels within a glance, which is F-215's shape. And a door parked
+         * next to a timestamp reads as part of the timestamp.
+         *
+         * The thing a person wants to open is the outcome, so the outcome's own
+         * name opens it. One door, on the noun, and no second word for it.
+         */}
         {it.subject ? (
-          <span className="text-mrd-base leading-mrd-snug text-mrd-ink">{it.subject}</span>
+          <Link
+            to="/outcomes"
+            className="mrd-focus rounded-mrd-chip text-mrd-base leading-mrd-snug text-mrd-ink underline decoration-mrd-line-soft underline-offset-4 hover:decoration-mrd-line"
+          >
+            {it.subject}
+          </Link>
         ) : null}
         {/*
          * The chip does not pulse. `StatusChip`'s own contract says only `agent`
@@ -91,18 +108,6 @@ export function WhetherItWorked({
           <span className="text-mrd-small leading-mrd-snug text-mrd-body">{it.rescored}</span>
         ) : null}
         {when ? <span className="mrd-meta">{when}</span> : null}
-        {/*
-         * ONE DOOR, TO THE SURFACE THAT HOLDS THE REST. Outcomes is where the
-         * other eleven are, and the answer above this region already points
-         * there, so the two agree rather than offering a person two addresses
-         * for one thing.
-         */}
-        <Link
-          to="/outcomes"
-          className="mrd-focus rounded-mrd-chip text-mrd-small text-mrd-body underline decoration-mrd-line-soft underline-offset-4 hover:text-mrd-ink"
-        >
-          Read it
-        </Link>
         {/*
          * SAID, NOT STYLED. A sample row drawn in a quieter colour would still
          * read as the founder's own result to anyone who does not know the
