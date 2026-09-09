@@ -113,15 +113,24 @@ export function proofRows(input: {
   const stops = input.stops ?? [];
   const rows: ProofRow[] = [];
 
-  /* Made: the kinds, hidden when the run is a mission with nothing filed. The
-     mission row is the run itself and a chip saying "run" tells nobody anything. */
-  const chips: ProofChip[] = input.tally.made
-    .filter((m) => m.kind !== "mission")
-    .map((m) => ({ id: m.artifactId, label: m.label, mark: MARK[m.kind] ?? "" }));
+  /*
+   * ── THE CHIPS ARE GONE, AND THE ROW IS NOW THE PULL REQUEST ONLY ─────────
+   *
+   * This row opened the pane with `finding` `decision` `16 tasks` `5 specs`
+   * `10 prototypes` -- five nouns, which is the "dump of data and content" the
+   * founder named, in the first thing the pane said. `ThroughLine` above now
+   * says each of those as a sentence about what happened, and every line opens
+   * the same artifact its chip did, so nothing is lost and the reader is told
+   * WHICH one to press.
+   *
+   * THE PULL REQUEST STAYS, because it is not a noun: it is a door out of this
+   * product into the place the work actually landed, and no line of the story
+   * carries it.
+   */
   const pr = input.tally.pr?.url
     ? { number: input.tally.pr.number, url: input.tally.pr.url }
     : null;
-  if (chips.length > 0 || pr) rows.push({ kind: "made", chips, pr });
+  if (pr) rows.push({ kind: "made", chips: [], pr });
 
   /* Checked: the newest changeset's review, when a verdict was actually reached. */
   const changeset = items(stops, "build", "changeset")[0] ?? items(stops, "ship", "changeset")[0];

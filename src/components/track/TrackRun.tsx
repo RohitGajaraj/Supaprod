@@ -90,6 +90,7 @@ import type { SpineRoute } from "@/lib/spine/route";
 import { RunProof } from "@/components/track/RunProof";
 import { proofRows } from "@/components/track/run-proof";
 import { useRunTally } from "@/components/track/run-tally";
+import { ThroughLine } from "@/components/track/ThroughLine";
 import { useRefrain } from "@/components/track/run-refrain";
 import { refrainLead } from "@/lib/spine/what-it-keeps-saying";
 import { stoppedByYou } from "@/components/track/footer-mode";
@@ -1520,6 +1521,70 @@ export function TrackRunLeft({
  * knows nothing about drawing, and this is the two-line seam between them. It
  * lives here rather than in either, because "which run" is the pane's question.
  */
+/**
+ * ── THE RUN AS A STORY, OFF THE READS THE PANE ALREADY HOLDS ──────────────
+ *
+ * A thin composition for the same reason `RunGotYou` below is one: the module
+ * that shapes the lines knows nothing about tracks, the component that draws
+ * them knows nothing about reads, and this is the seam. Both cache entries
+ * (`track-artifacts` and `track-activity`) are the ones the transcript, the
+ * pane and the tally already poll, so this costs no round trip.
+ *
+ * The REFRAIN is why this needs the activity read at all: the story's most
+ * important line is usually the station that stopped, and what it kept saying
+ * is computed over turns rather than artifacts. Joining those two is this
+ * seam's job, exactly as `the-through-line.ts` says.
+ */
+function RunStory({
+  trackId,
+  onOpen,
+  active,
+}: {
+  trackId: string;
+  onOpen?: (artifactId: string | null) => void;
+  active: string | null;
+}) {
+  const fArtifacts = useServerFn(getTrackArtifacts);
+  const artifacts = useQuery({
+    queryKey: ["track-artifacts", trackId],
+    queryFn: () => fArtifacts({ data: { trackId } }),
+    staleTime: 10_000,
+  });
+  const fTrack = useServerFn(getTrack);
+  const trackQ = useQuery({
+    queryKey: ["track", trackId],
+    queryFn: () => fTrack({ data: { trackId } }),
+    staleTime: 10_000,
+  });
+  const refrain = useRefrain(trackId);
+  const track = trackQ.data ?? null;
+  /*
+   * A REFRAIN BELONGS TO THE STATION THE RUN IS STANDING AT. It is computed
+   * over the NEWEST consecutive turns, and those are the turns at the current
+   * station; attaching it anywhere else would put one station's words under
+   * another's name.
+   *
+   * NO SECOND GATE ON THE HOLD, and that is deliberate twice over. It is not
+   * needed -- `whatItKeepsSaying` already refuses a `working` or `waiting`
+   * turn, so a run with a seat in flight yields no refrain and this line stays
+   * silent on its own. And a hold test here would be this file branching on
+   * `holdReason`, which the census guard in
+   * `one-place-says-whose-move-it-is.test.ts` exists to stop: that split moved
+   * into `run-now.ts` on 2026-09-08 so ONE module decides it. The guard caught
+   * me reaching for it a second time today, correctly.
+   */
+  return (
+    <ThroughLine
+      stops={artifacts.data?.stops ?? null}
+      standing={track?.station ?? null}
+      stuckAt={refrain ? (track?.station ?? null) : null}
+      stuckSaying={refrain?.saying ?? null}
+      active={active}
+      onOpen={onOpen ? (id) => onOpen(id) : undefined}
+    />
+  );
+}
+
 function RunGotYou({
   trackId,
   onOpen,
@@ -1598,6 +1663,7 @@ export function TrackPaneRight({
        * It never names a station that made nothing, which is the difference
        * between a summary and a seven-slot template.
        */}
+      <RunStory trackId={trackId} onOpen={onOpenArtifact} active={activeArtifactId} />
       <RunGotYou trackId={trackId} onOpen={onOpenArtifact} active={activeArtifactId} />
       <ArtifactPane
         trackId={trackId}
