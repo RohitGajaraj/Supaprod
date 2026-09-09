@@ -12079,3 +12079,18 @@ first attempt because the edit that was supposed to break it did not match -- th
 the probe was wrong, which is worth saying because a probe that misses reads exactly like a guard
 that holds.
 
+**ACCEPTANCE 1, RE-VERIFIED AT POPULATION SCALE, which is stronger than the four rows the unit test
+uses.** The rule was run as SQL over every open track carrying a terminal hold: **40 tracks, 2
+released, 38 left alone, each refusal with its own sentence.** The two it releases are `6cc7a010`
+and `0c0db8e6`. The 38 include **`b8a36b6f` and `c6c26412`, which wear `going-in-circles` — the same
+word — with 499 and 15,238 spendable credits behind them, and are left alone because their newest
+run COMPLETED.** Those two are the population the criterion was written to protect: a rule that
+released on the hold word takes them, and this one does not. `6817e386` and `a30238f5` carry wallet
+halts in their history and are also left alone, because something ran after the halt and the track
+still gave up.
+
+**The probe for whether the deployed build carries this is a database fact and not build metadata:**
+`select count(*) from spine_tracks where wallet_released_at is not null`. It is 0 as of the sweep at
+21:45:00 UTC, which succeeded 43 seconds before the check, so the serving build predates this
+commit. That is the same instrument Lane 1 arrived at from the page side -- look for something the
+change INTRODUCES, not for what the builder says it has seen.
