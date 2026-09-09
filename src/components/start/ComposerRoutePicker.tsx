@@ -66,7 +66,23 @@ export function ComposerRoutePicker({
         <Picker
           id="composer-shape"
           value={shape}
-          onChange={(e) => onSelect(e.target.value as WorkShape)}
+          /*
+           * CHECKED, NOT CAST. `e.target.value` is a DOM string and `as
+           * WorkShape` is a claim about it, not a check of it. The options are
+           * rendered from `SHAPES` so a person cannot pick a bad one, and that
+           * is exactly the reasoning that made `sourceMark` wrong: what a
+           * caller "cannot" send is not a guarantee, and an unknown shape would
+           * reach `suggestRoute` and pick a route for work nobody described.
+           *
+           * Membership in `WORK_SHAPE_LABEL`, which is the record the options
+           * themselves come from, so the check cannot drift from the list a
+           * person sees. Ignoring an unknown value leaves the picker on its
+           * last good one, which is the honest outcome: nothing was chosen.
+           */
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v in WORK_SHAPE_LABEL) onSelect(v as WorkShape);
+          }}
         >
           {SHAPES.map((s) => (
             <option key={s} value={s}>
