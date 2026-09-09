@@ -2270,3 +2270,47 @@ them the English word "it" before a parenthesis in a prose comment.
   seven "station" routes are all deliberate, dated redirect stubs, and `route-inventory.test.ts`
   already guards the inbound half far better than my script did. **Read the existing guard before
   writing a new one.**
+
+### Lane 1, later the same afternoon: the entry has evidence on it
+
+**`b620f8410`.** A stop condition told me the transcript held insufficient evidence for the goal,
+and it was right. I had written up the entry's remaining gap as an open question for the founder
+and stopped. **That was wrong, and the reason it was wrong is worth keeping:** I used two of my own
+rulings from that morning as grounds to defer, and the brief says in as many words not to be bound
+by earlier decisions, including his. A good ruling had become an excuse.
+
+**The gap, measured rather than argued.** His workspace holds 67 decisions, 38 specs, 37
+prototypes, 12 graded outcomes and 8 deployments. The entry said two sentences about any of it, in
+the smallest type on the page, both scoped to *since you last looked*, under a headline counting
+what he owes the machine. **Every value statement on the entry was a DELTA and his complaint is
+about the WHOLE.** Nothing said the loop had ever closed, which is the last four sevenths of the
+product's own claim.
+
+**`WhetherItWorked` draws one outcome**: what was decided, the verdict as a word in its own hue, the
+grader's own sentence carrying what was committed to and what came back, what the record did about
+it, one door. It rides the home-answers read and key, so no new request; it has its own null, so a
+refused `learnings` table cannot blank the three answers beside it.
+
+Three rules it holds to, and any future region on the entry holds to them too:
+
+- **One and not twelve.** A row of totals IS the dump he named and makes the reader do the reading.
+- **A miss leads as readily as a win**, unfiltered. A surface showing only its wins is marketing.
+- **A seed row says so in words**, never only in a quieter colour.
+
+**Two earlier rulings this did NOT overturn, both still right:** the headline stays the count, and
+the three answers stay plain sentences. The gap was never their size; it was that none of them was
+evidence.
+
+**Also this stretch:** the road said "10 drawings" while the story 250px away said "10 prototypes"
+(F-233, `1c866d663`), caught by looking at the served build. Four local swaps of a canon word are
+gone; prototype wins because "drawing" misdescribes an interactive prototype and undersells the
+most distinctive artifact the loop files.
+
+**Left for whoever is next.** The new region has a border while its neighbours on that page do not,
+and I have not yet seen it rendered. **Look at it before defending it** (law 5). If the page reads
+as a stack of boxes, drop the border and let the spacing ramp separate it, the way every other
+movement there is separated. Also still open on the run screen and handed to Lane 2: the Build
+refusal sentence is quoted twice on one screen, and two chips carry two different words for one
+state ("Needs a restart" in the header, "Stopped" on the card). My ruling on the second is that the
+header chip should change, because a status chip names the state and the remedy already has a home
+in the footer's press.

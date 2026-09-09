@@ -144,11 +144,28 @@ function RunRow({
           <span
             className="grid items-center gap-mrd-2"
             /* Items keep their own width: a Finished chip in the first cell
-               must not stretch to the slot (seen live 20:00 IST 09-08). */
+               must not stretch to the slot (seen live 20:00 IST 09-08).
+
+               A FLOOR, NOT A FIXED WIDTH (seen live 2026-09-09 on the served
+               build). The slot was `width: 176`, and the widest real pair on
+               this page is "Answer on the run" beside "Put first", which needs
+               about 204. `minmax(0, 1fr)` lets the first COLUMN shrink; it does
+               not shrink the button inside it, so the button simply drew over
+               the pin and covered the first two letters of its word. A control
+               painted across another control is worse than a misaligned one.
+
+               `minWidth` keeps the rule the fixed width was written for, which
+               is that controls stand in the same place down the list: every
+               row that fits still lands on the same 176. The rare wide pair
+               takes the room it needs instead of colliding, and because the
+               slot sits at the row's end their right edges stay aligned either
+               way. `auto auto` so each control is its own width and the gap
+               between them is real. */
             style={{
-              width: CONTROL_SLOT,
-              gridTemplateColumns: "minmax(0, 1fr) auto",
+              minWidth: CONTROL_SLOT,
+              gridTemplateColumns: "auto auto",
               justifyItems: "start",
+              justifyContent: "end",
             }}
           >
             {needsYou ? (
