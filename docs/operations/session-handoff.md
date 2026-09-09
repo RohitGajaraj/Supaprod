@@ -2111,3 +2111,58 @@ visit.
   a blind type change.
 - **The prototype card's 6px block rhythm** against every sibling's 10px (`ArtifactPane`, near
   :1786). Same reason: small, and worth seeing before moving.
+
+### Lane 2 · addendum, 2026-09-09 evening · the run told as a story, and a name that is not a title
+
+**Pushed as `402086098`.** The two changes on this lane that are DESIGN rather than repair, and they
+came late because a stop-hook review pushed back — correctly — that the session had been spent
+auditing and fixing rather than answering the founder's structural complaint.
+
+#### The run reads as one line of reasoning
+
+*"The stations do not form a flow, the journey is broken, layers 1, 2 and 3 do not stitch together,
+and it reads as a dump of data and content."*
+
+The screen drew a road of seven stations, a row of chips (`finding` `decision` `16 tasks` `5 specs`
+`10 prototypes`) and a transcript of turns. **Three renderings of one run, none of which says what
+happened.** `the-through-line.ts` + `ThroughLine.tsx` open the pane with the story instead, and the
+chip row is **deleted rather than moved**: every chip named a thing a line now names in a sentence,
+and every line opens the same artifact the chip did.
+
+Three rules hold it honest, and they are the reusable part:
+
+1. **The order is the causality and nothing infers a link.** The spine enforces the sequence, so
+   "Discover then Decide" is a row rather than a guess. No `because` is ever derived BETWEEN two
+   stations. The only reasons drawn are the two the record wrote: a decision's own `rationale` and
+   `alternatives_considered` (which had lived one click deep inside a card), and the run's own words
+   where it stopped, quoted.
+2. **A station that did nothing gets no line** — 81 of 106 tracks sit at Discover having filed
+   nothing, so a seven-line list is one line and six absences on most runs. **The one exception is
+   the station that STOPPED**, whose line is the most important on the list precisely because it is
+   the one a person can act on.
+3. **One thing filed with a title is named; several are counted by kind.** Ten titles is the dump
+   this replaces; `filed 1 spec and 16 tasks` is not.
+
+#### A run's name is a sentence, not a title
+
+Lane 1's ruling, and **it corrected my premise**. I reported that the route reserved its largest
+type for failure states; `PageHeading` in fact sets 25px on every title through one code path. The
+real defect was that the run screen titled at `mrd-title` (20px, the COMPONENT rung that dialogs and
+cards use) while every other page titles a rung above.
+
+**Both obvious fixes are wrong** and Lane 1 ruled against both: raising to 25px makes a two-line
+sentence shout, and lowering `PageHeading` breaks every other page, which was never out of step.
+The category error is the fix — *a lead paragraph wearing a heading's clothes*. So the sentence is
+set AS PROSE on the reading measure with a station eyebrow above it.
+
+**It is still the `h1`,** and that is the decision worth keeping: a heading element is the page's
+NAME in the document outline, not its largest type. Making the eyebrow the `h1` would name the page
+"Build", which is true of a hundred runs. **There is no short page title because a run has no
+honest one** — the shape is eyebrow + lead, not eyebrow + title + lead, which may make it a
+different Meridian part rather than a `PageHeading` variant. Lane 1 judges that once both are
+visible.
+
+#### Not yet read live
+
+Both want a walk on the first build past `402086098`, on `ce846e9b`: the header's eyebrow and
+wrapped sentence, and the story block above "What this run got you" with no chip row under it.
