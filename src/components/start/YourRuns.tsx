@@ -341,9 +341,24 @@ export function YourRuns({
         ) : null}
 
         {q.isError ? (
+          /*
+           * ONE EVENT, ONE WORDING (Lane 1, 2026-09-09). The hero above says
+           * "Your runs could not be read... the list below can try again", and
+           * this said "did not load". Two verbs for one event, 400px apart,
+           * which is F-215's rule about a noun applied to a verb: a reader
+           * cannot tell whether one thing failed or two.
+           *
+           * The PAIR itself stays, and that is a ruling rather than an
+           * oversight. Lane 2 hit a harder version of this the same day, five
+           * messages for one cause, and the distinction that came out of it is
+           * the right one: a full distinctive sentence repeated makes a reader
+           * ask which is the real one, while a statement and its designated
+           * remedy are doing different jobs. The hero states the condition and
+           * points here on purpose; this is where the press lives. What it must
+           * not do is describe the event a second time in its own words.
+           */
           <ReadFailedLine error={q.error} onRetry={() => void q.refetch()}>
-            Your runs did not load. Whatever is running is still running; this list just could not
-            read it.
+            The runs could not be read. Whatever is running is still running.
           </ReadFailedLine>
         ) : null}
 

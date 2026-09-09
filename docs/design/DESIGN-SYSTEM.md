@@ -466,6 +466,48 @@ confidence than it was read with.
 
 ---
 
+### 11. One cause gets one sentence, at the level that owns the cause
+
+Added 2026-09-09, after the founder opened a run screen and met **five messages for one cause**, four
+of them red: the route's *"This run could not be read"*, the consent pane's *"The questions this run
+is waiting on could not be read"*, the drive card's *"Out of touch"*, the transcript's *"The activity
+did not come back"*, and the artifact pane's *"The record did not come back"*.
+
+**Every component was correct and nothing owned the composition.** The header said it once, then the
+page mounted the panes anyway, and each honestly reported its own refused read. This is the failure
+mode of doing the right thing everywhere and nowhere.
+
+It is louder for a good reason, which is worth stating so nobody undoes the good reason. Those reads
+used to swallow their errors and render as empty, and a refusal wearing the empty state's clothes is
+worse than five sentences. Making them throw was right. **An honest failure then has to be ROUTED,
+not reported.**
+
+**Which level owns it? The smallest thing that would fix it.**
+
+| If a retry would fix it at | Then it is said by | Example |
+| --- | --- | --- |
+| one region | that region | one artifact list refused while the page works |
+| the page | the page, which does not mount the panes standing on that read | the run's own read failed |
+| every tab | the shell, once, above everything | a dead token |
+
+The dead-token half was already written in `AppFrame` and guarded by
+`one-condition-gets-one-remedy.test.ts`. Its closing clause, *"the regions go back to naming which
+read failed"*, is the default this law narrows: **a region names its own failure only when its
+failure is its own.**
+
+**A statement and its designated remedy are not a duplicate.** The home's hero says the runs could
+not be read and points at the list; the list carries the press. That is one thought in two places
+doing two jobs, and it stays. What it must not do is describe the event again in its own words: the
+hero said *"could not be read"* and the list said *"did not load"*, two verbs for one event 400px
+apart, which is the noun rule applied to a verb. One wording now.
+
+**The test that separates the two cases** came out of the same day: a full, distinctive sentence
+repeated makes a reader ask which one is real. A short repetition serving a different job does not.
+A run's refusal quote appearing in both the hold card and the story was the first; *"3 prototypes"*
+on the road and in the story is the second, and it was correctly left alone.
+
+---
+
 ## The defects that keep coming back
 
 Each of these has been found more than once, by people who knew the rule. Check for them by name.
@@ -479,6 +521,7 @@ Each of these has been found more than once, by people who knew the rule. Check 
 | Identity painted as a colour ramp | 3 | Law 4. |
 | A `100vh` child inside a taller document | 1, shipped | One ancestor owns the viewport; everything below takes shares. `min-height: 0` on the flex child is the part people leave out. |
 | `as T` plus `??` read as a guard | **54**, swept in one day | A cast is a claim about a value, never a check of it, and `??` catches only null and undefined. Any other shape passes through typed. `typeof x === "string" && x.length > 0 ? x : null`, or test membership in the union's own exhaustive record. |
+| Every pane reporting its own refused read | **5 on one screen**, 3 on another | Each is correct and nothing owns the composition. Route the failure to the level that owns the cause, and do not mount the panes standing on a read that failed. Law 11. |
 | A clause welded to a sentence that never reads it | 1, on the entry | "and the record was re-scored" was part of the sentence for every graded decision and nothing in that read looked at a score. A surface that states a consequence must read the consequence. |
 | A qualifier left behind when its branch's source changed | **3**, in one day | The guard, the keyframes and the "at least" floor all belonged to a read that had been swapped underneath them. Nothing fails when a qualifier outlives its reason. When you change what a branch reads, grep for every hedge, guard and dependency written for the old read. |
 | An animation that SETS a property the element already declares | 2 | `mrd-attention` drives opacity from 1, so it overrides a resting `opacity: 0.35` and the element peaks at nearly three times its designed weight. An envelope reads the value (`var(--mrd-halo-rest)`) and scales it. Use `mrd-halo` on anything with a resting opacity. |
