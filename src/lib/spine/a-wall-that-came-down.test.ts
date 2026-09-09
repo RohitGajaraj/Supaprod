@@ -12,6 +12,7 @@
  * with any halted run.
  */
 import { describe, expect, it } from "bun:test";
+import { readFileSync } from "node:fs";
 import {
   mayRelease,
   newestRunIsAWalletHalt,
@@ -133,5 +134,50 @@ describe("and it still releases the case it exists for", () => {
     // Same wallet halt under a DIFFERENT terminal hold still releases: the
     // discriminator is the record, which is the packet's first criterion.
     expect(mayRelease(at({ lastHold: "given-up" })).release).toBe(true);
+  });
+});
+
+/**
+ * ── THE WRITE, WHICH IS WHERE THE FIRST VERSION FAILED ───────────────────────
+ *
+ * `mayRelease` decides WHETHER; the update decides WHAT. The first version
+ * cleared the hold alone, shipped, and did not work: both tracks were released
+ * at 21:57:06 on 2026-09-09 and at the 22:00 tick they were deferred to 23:30
+ * with `station_drives` still 12. A row had changed and the work was still
+ * dead.
+ *
+ * The wall is recorded in three places and every one is a count of refusals at
+ * the door. Clearing only the hold makes it WORSE than leaving it: the money
+ * exemption in `decideDrive` keys on the hold, so erasing the hold turns the
+ * exemption OFF while the drives ceiling still reads twelve.
+ */
+describe("the release clears everything the wall wrote, not just the word", () => {
+  const DRIVER = readFileSync("src/lib/spine/driver.server.ts", "utf8");
+  const at = DRIVER.indexOf("export async function releaseWalletStoppedTracks");
+  const body = DRIVER.slice(at, DRIVER.indexOf("\nexport ", at + 10));
+
+  it("clears the hold, the drive count, the seat and the deferral together", () => {
+    expect(at).toBeGreaterThan(-1);
+    const update = body.slice(body.indexOf(".update({"), body.indexOf('.eq("id", t.id)'));
+    expect(update).toContain("last_hold: null");
+    expect(update).toContain("station_drives: 0");
+    expect(update).toContain("seat_cursor: 0");
+    expect(update).toContain("deferred_until: null");
+    expect(update).toContain("driven_at: null");
+    expect(update).toContain("wallet_released_at:");
+  });
+
+  /*
+   * THE MIRROR. Clearing everything on every track would be a different and
+   * worse bug -- a genuine loop reset to zero drives loops twelve more times.
+   * The write is only reachable through `mayRelease`, so the guard asserts the
+   * gate is still in front of it.
+   */
+  it("is only reachable through the verdict, so a genuine loop is never reset", () => {
+    const verdict = body.indexOf("const verdict = mayRelease(");
+    const write = body.indexOf(".update({");
+    expect(verdict).toBeGreaterThan(-1);
+    expect(verdict).toBeLessThan(write);
+    expect(body).toContain("if (!verdict.release) {");
   });
 });

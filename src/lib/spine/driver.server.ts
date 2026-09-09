@@ -4734,14 +4734,50 @@ export async function releaseWalletStoppedTracks(
         leftAlone.push({ trackId: t.id, why: "this pass was full; the next sweep takes it" });
         continue;
       }
+      /*
+       * ── THE WALL WROTE THREE THINGS AND ALL THREE HAVE TO GO ──────────────
+       *
+       * The first version of this cleared the hold alone, shipped, and did not
+       * work. Measured on production 2026-09-09: both tracks released at
+       * 21:57:06, and at the 22:00 tick they were **deferred to 23:30** and
+       * still had `station_drives` 12. A row had changed and the work was
+       * still dead, which is exactly the outcome the acceptance was written to
+       * catch.
+       *
+       * The wall gets recorded in three places and every one of them is a
+       * count of REFUSALS AT THE DOOR rather than of work:
+       *
+       *   last_hold        `going-in-circles`, the terminal word.
+       *   station_drives   twelve dispatches that averaged 612ms and never ran
+       *                    the station. The drives ceiling reads this, and
+       *                    clearing only the hold makes it WORSE: the money
+       *                    exemption keys on the hold, so erasing the hold
+       *                    turns the exemption off and the ceiling fires again
+       *                    on the next evaluation.
+       *   deferred_until   the stuck-backoff, priced from that same run of
+       *                    held drives, which pushed both tracks 90 minutes
+       *                    into the future.
+       *
+       * So the release restores the state the track would have been in had the
+       * wall never existed. It is safe precisely because of the discriminator
+       * above: only a track whose newest run halted on the wallet reaches here,
+       * and for that track the twelve drives are not evidence of anything it
+       * did.
+       */
       const { error: writeErr } = await supabase
         .from("spine_tracks" as never)
         .update({
           last_hold: null,
           last_hold_because: null,
-          /* Null so it sorts FIRST next tick: this track has waited six days
-             and the ordering key is what decides who gets served. */
+          /* Null so it sorts FIRST next tick (`nullsFirst: true` in the
+             tick's own order): this track has waited six days and the
+             ordering key is what decides who gets served. */
           driven_at: null,
+          /* The refusals at the door were never station drives. */
+          station_drives: 0,
+          seat_cursor: 0,
+          /* And the wait the same refusals bought. */
+          deferred_until: null,
           wallet_released_at: new Date().toISOString(),
         } as never)
         .eq("id", t.id);
