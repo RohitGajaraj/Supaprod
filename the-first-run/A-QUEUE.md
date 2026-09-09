@@ -12006,3 +12006,42 @@ output to assert on.
    claim, in that order of how much a person acts on them.
 3. The 976 KB first-paint budget, scoped at `7d195c948` and deliberately not started.
 
+### A3 · 2026-09-10 · idle protocol, second pass: the sweep finished and step (c) run
+
+**Step (b), missing states, is CLOSED. Four defects, all four shipped, all four proved by firing.**
+`a28c075e2` the run screen's wrong door; `5ac5e1aad` the stage history that vanished; and
+`f7820df73` the two that were left:
+
+- **`SettlePanel` said "Nothing has shipped that needs a verdict." from a read that never
+  answered.** The sharpest of the four, because the failure renders a positive claim about the
+  workspace rather than an absence, on the station whose entire job is that bets get settled. A bet
+  waiting on a person would have been invisible while the surface said there was none.
+- **`DecisionDetail`'s earlier verdicts vanished on a failed read**, and on a decision's own record
+  an absent history reads as there having been none.
+
+The remaining unguarded reads render ambient things rather than claims -- a teammate cursor, a
+graph's neighbour count, a provider fault list -- and are not worth a change.
+
+**Step (c), duplication and dead code: mostly already decided by this repo, and correctly.**
+`check:unreachable` prints *"AN ORPHAN IS NOT WASTE, AND THIS LIST IS NOT A DELETE ORDER"* over a
+measured case where deleting would have hidden a real gap, and the baseline names `getFocusNext`,
+`submitFeedback`, `releaseBuilderClaim` and a dozen more as gaps on the record rather than debt.
+**So neither number moved and neither should have.** What was actually left was the hygiene half:
+of seventeen symbols exported from a file that is their only reader, ten are read by a test or
+another component and keep the export; **seven had no reference anywhere and are unexported
+(`a0d048689`)**. An export is a claim that somebody else uses this, and seven were not true.
+
+The report's two "names a consumer in its own comment" rows are **false positives of its own
+heuristic** -- the quoted sentences are about a status predicate, not a consumer -- and both are
+already on the baseline's named-gap list.
+
+**One guard was RED ON MAIN when this pass started** and is fixed in `c6cd66ebc`:
+`the-bar-counts-gates-on-open-tracks` sliced 48,583 characters past its function and failed on a
+`Date.now()` inside a comment in a different read. Another lane fixed it concurrently; their version
+won the rebase for its mirror on the slice, with this lane's comment-stripping folded in.
+
+**Still open and NOT started, in order:** the repair for tracks already sitting on a terminal hold
+recorded from a wallet event (`6cc7a010`: 12 halts, terminal hold, 5,249 credits on the account
+today) -- a repair with blast radius, the shape of `repairStaleGates`; then the 976 KB first-paint
+budget (`7d195c948`).
+
