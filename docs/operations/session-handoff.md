@@ -1512,3 +1512,95 @@ Resumed at 01:43. Main is `62dd6da99` (Lane 3's marks read and stand-down on top
 
 ### Lane 1 · addendum 07:12 IST 09-09 · round four landed
 Round four (four lenses, 41 agents, 34 confirmed, 3 refuted) is on main: `7ea9db5d0` the shell's live line (F-217, F-218), `8fbc07303` the home batch by a worktree agent (F-219; carries a one-line change in Lane 2's `run-journey.ts` so the run screen's station wears `stopped` rather than red), `bae976611` FirstRun presses Lane 3's `openFirstRun` once (F-221; the four wrappers it replaced are orphans by name in the unreachable baseline until Lane 3 retires them), `663808eac` the phone and rail batch by a worktree agent (F-220). Gate on the merged tree: 14990 pass 0 fail, build 0. The two agent worktrees are removed; their branches (`worktree-agent-*`) remain as refs and can be deleted. **Next:** a deploy press on 663808eac or later, then a live read of the header (expect "Last moved · <title>" or "Last finished" with a door onto the run, one queue number beside the Inbox row, a still mark over a quiet seat) and the phone shape at 390px. Ledger F-217 to F-221.
+
+## Lane 3 · session end · 07:40 IST 09-09 · what landed, what is pending by name, what to look into
+
+**Closed on the founder's word** (relayed by Lane 1 at 07:17): the logical bit of work, retiring the
+three wrappers `openFirstRun` replaced, is done and pushed (`c57182f2c`). Main at close: `e1f9afa62`+.
+Lane 1 presses deploys as the master session from here.
+
+### What landed this session (2026-09-08 13:40 to 2026-09-09 07:40 IST)
+
+- **The Worker's hops (F-212, F-213, F-214).** The finding that shaped the evening: on this Worker a slow
+  read is the count of sequential Worker-to-PostgREST round trips (~275 ms warm, ~550 ms cold each),
+  never the query (Postgres spent ~20 ms on a 7.7 s call). Collapsed, each with a round-counting guard:
+  the approvals queue 12 → 2 hops (`996ab01dc`); the shell strip's `listStudioSessions` 11 → 3
+  (`3be14ea45`); `listRunningNow` 5 → 2 (`5a6b00615`); `countNeedsYouCalls` 2 → 1 (`a06a5c4c4`);
+  `getTrackActivity` 3 → 2 (`44ba22a50`); the home's "live since" chain 4 → 3 (`3fea10214`);
+  `creditsSpentByTrace` to one SQL call (`b663d059d`); the transcript to one SQL call (`e8c062d27`);
+  the shell's marks to one SQL call (`212153b00`); `getMission` 9 → 3 and the run screen's handoff rows
+  to one hop (`382a72682`, the 170 KB call, named at last). The Inbox's "N waiting in X" line is one
+  SQL call (`5f6487d90`). Read live: Inbox cards 3.2 s warm against ~10 s; the run screen carries nothing
+  over 14 KB; the home's read 981 to 2,361 ms from 3,334 to 5,333.
+- **Five migrations**, `20260909100500` to `100900`, all applied through the Lovable MCP, verified by
+  object and by comparison with the JS they replaced, ledgered: `approvals_queue_counts`,
+  `credits_spent_by_trace` (+ `credit_ledger_ai_event_idx`), `track_tool_calls` (+ two helpers),
+  `mission_marks`, `latest_run_checkpoints`. Plus the afternoon's three: `deployment_embeddable`,
+  `agent_runs_and_spine_tracks_realtime`, `projects_starter_runs`.
+- **The lanes' asks**, every one landed the hour it came: refusal-is-final + `lastCallAt` +
+  `STALL_MINUTES`; the catalog seat name; a start driven within the minute; `verb`/`objectLabel` on the
+  working mark; a signup not held for the machine (F-214); `openFirstRun` (one call for seven); the
+  refusal that was not one (a throw retries; only an empty answer is final); the wrappers retired.
+- **Gates and registers:** `DELIBERATE_READS` in the workspace-read guard; the unreachable baseline
+  re-frozen by name six times, now 126; the wire that counts rounds
+  (`src/__tests__/a-wire-that-counts-rounds.ts`) behind eight hop guards; `Server-Timing` entries on the
+  queue (`approvals-queue`) and the start readers.
+
+### Pending, by name
+
+- **`updateProject` and the product rename.** The only writer that renames a product has no caller since
+  FirstRun's press became one call; kept on purpose, named in the unreachable baseline. A Settings
+  surface for renaming a product is the fix (Lane 1's surface, Lane 3's writer if it needs one).
+- **The first-run press, verified live.** `openFirstRun` is mounted (`bae976611`) and not yet read on a
+  served build: a fresh signup should show ONE server-function call on "Open Supaprod" where there were
+  seven. Lane 3 cannot create an account; Lane 1 walks it on the build they press, or read the served
+  FirstRun client chunk and count the server-function ids it references.
+- **The next reads over a second**, from the run screen on 15a8b47b: `listPendingOutcomes`
+  (outcome.functions.ts) at 1.2 to 2.0 s for 964 bytes (a hop census, not a payload one);
+  `listStudioSessions` at 1.5 to 1.7 s on three hops (the ai_events cost per trace is the third; a
+  SQL sum like `credits_spent_by_trace` would fold it); `getTrackChain` and `getTrackGates` at three
+  serial reads each. The four `track.functions` ids on that screen (`2ee82b22803e`, `29d7a3bdde05`,
+  `26f12a1d98d0`, `4eb8e8daa6b1`) were not named: the built chunk's `createServerRpc` entries name
+  them (see the observation below).
+- **The Worker's cold start** (a 4.5 s resource carrying 1.2 s of handler): the dynamically loaded
+  Worker's own instantiation, outside every handler; the server entry import is already memoised per
+  isolate. A platform question, not a code one.
+- Carried from earlier: P-130b's client half (69 raw-clock files, ratchet in place), the 15 lint files
+  (P-152, a ratchet), F-207 (the driver dispatches Build without the spec or design gate; the founder's
+  call), P-151's live press.
+
+### What a future session must look into first
+
+- **Name a server function from its id.** The network log shows `/_serverFn/<64-hex>`; the first 12
+  hex are enough. Run `bun run build`, then grep `.output/server/_ssr` for the id and read the
+  `createServerRpc({ id, name, filename })` beside the match. Two attributions by size and timing were
+  wrong this session (the transcript, then `listMissions`); the chunk was right both times. A POST
+  server function carries no payload in its URL, so an empty payload is a clue, not a dead end.
+- **Count rounds, not queries.** When a `worker-total` is over a second, extract a `readX(supabase,
+  ...)` core behind the server function and drive it with `FakeWire` + `drive`
+  (`a-queue-is-two-hops-deep.test.ts` is the template); the number of rounds is the number of hops.
+  A PostgREST builder re-runs its fetch on every `await`; wrap one in `Promise.resolve(builder)` before
+  awaiting it twice. A nested `createServerFn` call from inside a handler is a hop AND re-runs the auth
+  middleware; call the sibling's core with the request's own client instead.
+- **Embeds need foreign keys.** `deployments.changeset_id`, `assumption_challenges.assumption_id`,
+  `assumptions.decision_id`/`prd_id` have them; `prds.project_id` and `opportunities.project_id` do NOT
+  (only `product_id`, which differs from `project_id` on 53 and 65 rows), and
+  `credit_ledger.ai_event_id` has none. Where there is no key, a SQL function is the one-hop answer.
+- **Deploys and reads.** Lovable's `get_project.latest_commit_sha` is the sync tip, not the served
+  build; the served build is `x-deployment-id` on supaprod.ai (never the asset hash: server-only builds
+  keep the bundle name). `deploy_project` returns the id that will serve as `psr2.<id>`. Lane 1 presses.
+- **Never prettier `src/integrations/supabase/types.ts`**; add a Function or column entry by hand.
+
+### Observations true nowhere else
+
+- Production's per-hop cost from the Worker: ~275 ms warm, ~550 ms cold, calibrated on a 0.03 ms
+  query. RLS's `is_workspace_member` is a per-row SQL function at ~20 µs a row; it only shows on a
+  2,000-row scan. `pg_stat_statements` for the authenticated role had no statement over 262 ms on any
+  table the queue touches.
+- One mission's runs carried 8.8 MB of checkpoint `state` across 185 checkpoints (3.4 MB of it steps),
+  and `getMission` read all of it to keep the newest per run. The 170 KB response was that, gzipped.
+- On Helio Labs, `listMissions`'s raw data for fifty missions is ~40 KB; it was never the 170 KB.
+- `credit_ledger` had 27,539 rows and no index on `ai_event_id`; every ledger batch was a scan.
+- The Inbox fired the whole queue once per OTHER workspace for a sidebar line: 21 calls on one load
+  for the founder's seven-workspace account.
+

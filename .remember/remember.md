@@ -303,3 +303,7 @@ Resumed after the reset. f105b0dd verified: readHome once, runs read once, 34 ca
 
 ## Lane 1 · 07:12 IST 09-09
 Round four landed: 7ea9db5d0 (shell), 8fbc07303 (home, worktree agent), bae976611 (one-call press), 663808eac (phone/rail, worktree agent). Ledger F-217..F-221. Worktrees removed. Needs a deploy press and a live read.
+
+## Lane 3 · session end · 07:40 IST 09-09
+Closed on the founder's word after c57182f2c (wrappers retired, unreachable 126 by name). The session's shape: on this Worker a slow read is sequential round trips (~275/550 ms each), never the query; eleven reads collapsed with round-counting guards (queue 12→2, strip 11→3, running 5→2, needs-you 2→1, activity 3→2, home chain 4→3, credits/transcript/marks/handoffs to one SQL call each, getMission 9→3); five migrations 100500–100900 applied + ledgered; every lane ask landed the hour it came (openFirstRun last). Pending by name: updateProject kept for a product-rename Settings surface; first-run press unverified live (one call, not seven; Lane 1 walks it); listPendingOutcomes 1.2–2 s for 964 B; listStudioSessions 1.5–1.7 s; getTrackChain/getTrackGates three serial reads; the Worker's cold start (platform). Name a server fn from its id: grep .output/server/_ssr for the 12-hex id, read createServerRpc name. Lane 1 presses deploys as master. Full entry in docs/operations/session-handoff.md.
+
