@@ -141,6 +141,16 @@ Two rules they carry that are worth copying:
 
 ---
 
+### What the fourth review added, 2026-09-09 (Lane 1)
+
+**A person's terminal stop is `stopped`, not `hold`.** The driver says whose a hold is (`holdTone`) and whether the loop will move it again (`nothingIsComing`); a tone-you hold with nothing coming is the person's, and the home painted it as a `hold` condition while the run screen called it "Needs a restart". `Journey` gains the state `stopped`: the `you` hue, the lift fill, no breath, on the home's road and rows and on the run screen's station alike. `hold` keeps its meaning: stopped on a condition, not on a person.
+
+**A seat that has stopped calling is `quiet`, and quiet does not breathe.** Past the stall threshold (`STALL_MINUTES`) every reader of a seat says "quiet for N min" from one function (`seatLine`) and stops its clock, its dot and its breath together: the Working-now strip, the rail crew, the run row, the road's working stop, the hero's count and the shell's live line. The character mark beside the line has a still `quiet` face (dim, level eyes) for it. A seat carries its catalog slug beside its name, so a reader joins a seat to a run's worker by slug, never by comparing a name to a slug.
+
+**The shell's live line is one reader of the same facts.** Its idle fact is the newest open run when that moved after the last finish ("Last moved · title · 12m ago"), and "Ready for the first run" is reachable only when no run exists; its facts follow its lead's order (call, seat, moving, idle); its count is the queue's, with the track gates as the floor before the queue answers, so the sentence, the mark and the Inbox row say one number; and its door carries its address and resolves once, so a door onto the page the person is on becomes the composer on the home and a statement elsewhere (`LiveDoor`).
+
+**The phone.** `--mrd-shell-phone-bar-h` is the phone bar's height and the page's bottom clearance reads it, so the two cannot drift (one fixed box, line and doors both 44px). A row's fixed time column folds under the sentence below the phone breakpoint. Keycaps hide on a coarse pointer; Ask, the scope control and the account disc are 44px targets. The phone rail draws the desktop's glyphs and the Inbox count.
+
 ## The reference standard
 
 **beautifului.dev, literally.** Founder ruling, restated 2026-08-15: *"I want you to take what you have done in the Meridian system and get inspired from beautifului.dev. I literally want you to implement the same thing."*
