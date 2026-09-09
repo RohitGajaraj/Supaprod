@@ -11951,3 +11951,58 @@ named the file, the defect removed again.
 the founder's call. `fromLearningId` on `startTrack` is with worktree-1-68 at their request, with
 one condition passed to them: gate it the way `opportunityId` is gated, ownership check included,
 and read that path rather than assuming it has one.
+
+### A3 · 2026-09-10 · idle protocol: verification pass, then the consistency sweep
+
+No A3 packet in this file is open, so this is the idle protocol run in its stated order, not scope
+invented for it.
+
+**(a) Verification pass over this lane's completed packets.** The guards those packets left behind
+run green: 3,092 tests across the 265 files under `src/lib/spine`, `src/components/shell`,
+`src/components/start` and `src/components/track`, plus the 171 repo-invariant tests in
+`src/__tests__` (route inventory, workspace-read, Meridian ratchet, unreachable). Nothing regressed.
+
+**(b) Consistency sweep, jargon in copy: ZERO defects, and the negative is recorded so nobody
+re-runs it.** A scan of every rendered string and labelled prop in `src/components` and `src/routes`
+for engineering words returned four candidates. Two are Meridian sample content. The other two are
+audience-correct with the reasoning already written down beside them: `ApprovalsPanel`'s "The exact
+payload" is behind a `<details>` whose own comment says it is what an engineer opens and never what
+a product lead reads; the Sync page's "Point Zapier, a Slack outgoing webhook, a form or a script at
+this endpoint" is the vocabulary of the person doing the wiring. Changing either would be overriding
+a stated decision.
+
+**(b) Consistency sweep, missing states: 102 candidates, most false, TWO REAL AND BOTH SHIPPED.**
+102 queries render their data without ever naming their own variable's failure; 39 turn it into a
+count or an empty list. Most survive inspection: `isSuccess` is as good a guard as `isError`, and
+the Engine Room's nine reads are guarded collectively inside `roomStatus`, which never calls
+`build()` on a failed read. **The detector's precision was the problem, not the code**, which is
+worth saying because the raw 102 reads like an emergency and is not.
+
+The two that were real:
+
+1. **`a28c075e2` — a read that failed drew the one door the file exists to prevent.** The run
+   screen's evidence pane passes `hasConnection: (connections.data?.connections?.length ?? 0) > 0`
+   into `oneDoorFor`. A failed read makes that `false`, and `false` means **"Connect a source"** --
+   the exact sentence `one-door-for-one-state.ts`'s own header calls wrong when somebody has
+   already connected one. The file fixed that for the bound case on the honest run and left the
+   UNREAD case producing the same wrong door. Both facts are `boolean | null` now and an unknown
+   fact draws nothing.
+2. **`5ac5e1aad` — a stage history that vanished read as nothing having happened.** `StageTimeline`
+   mounts on a decision's detail and an opportunity's. Its honest-empty rule is right and stays, but
+   a FAILED read took the same exit and the section was simply absent, which reads as "nothing has
+   happened to this" rather than "we could not find out".
+
+**Both proved by firing, in both directions.** And one guard is a source read on purpose in each
+case: `boolean` is assignable to `boolean | null`, so the pane can drop its failure check with every
+unit test green and tsc at zero; and the timeline's two states differ by an ABSENCE, so there is no
+output to assert on.
+
+**Ranked, what this lane would take next, none of it started:**
+
+1. The `going-in-circles` re-entry question Lane 1 measured (`aeb89d59e`): a terminal behavioural
+   hold recorded from a wallet event, five tracks, 24 halted runs. Sweep behaviour, this lane's.
+2. `AskPane :: queue`, `SettlePanel :: awaitingQ/settledQ`, `DecisionDetail :: history/judgment/
+   lineage`, `TrackActivity :: callsQ/saidQ` -- the remaining unguarded reads whose empty list is a
+   claim, in that order of how much a person acts on them.
+3. The 976 KB first-paint budget, scoped at `7d195c948` and deliberately not started.
+
