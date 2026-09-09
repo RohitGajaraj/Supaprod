@@ -69,3 +69,42 @@ describe("a station does not decide twice what it already decided", () => {
     expect(tool.indexOf("alreadyDeclinedRefusal(")).toBeLessThan(tool.indexOf(".insert("));
   });
 });
+
+/**
+ * WHY THIS IS NOT LOOSENED TO CATCH PARAPHRASES, in the data that settled it.
+ * Measured against the real decision titles on production, 2026-09-09.
+ */
+describe("a reversal is not a repeat, whatever the words share", () => {
+  it("lets the approval that reverses a decline through, which is the loop's own way out", () => {
+    // Track 6817e386: "Decline shipping of X" was declined at 16:40, and
+    // "Proceed with X" was approved eleven minutes later. Containment scores
+    // that pair 0.889, HIGHER than two genuine rewordings (0.800, 0.714),
+    // because a reversal is the same words with the verb flipped and a
+    // claim-word measure treats "not" as a stop word. No threshold separates
+    // them, so the guard stays on the exact title.
+    const priors = [
+      {
+        title: "Decline shipping of 'Improve onboarding flow based on user feedback signals' work",
+        status: "declined",
+        rationale: "No evidence that the current flow is the cause.",
+      },
+    ];
+    expect(
+      alreadyDeclinedRefusal(
+        "Proceed with 'Improve onboarding flow based on user feedback signals' work",
+        priors,
+      ),
+    ).toBeNull();
+  });
+
+  it("and still refuses the exact repeat that cost the run four hours", () => {
+    // Track d2263583 filed this same title eight times, declined every time.
+    const title =
+      "Do not attribute tablet checkout abandonment to address layout without A/B isolation";
+    expect(
+      alreadyDeclinedRefusal(title, [
+        { title, status: "declined", rationale: "No A/B isolation exists." },
+      ]),
+    ).not.toBeNull();
+  });
+});

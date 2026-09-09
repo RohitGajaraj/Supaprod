@@ -3809,9 +3809,7 @@ export async function readTrackChain(
      * not migrated is a real case, and it costs a title rather than the pane.
      */
     if (e instanceof Error && e.message.includes("could not be read")) throw e;
-    console.error(
-      `[readTrackChain] ${trackId}: ${e instanceof Error ? e.message : String(e)}`,
-    );
+    console.error(`[readTrackChain] ${trackId}: ${e instanceof Error ? e.message : String(e)}`);
     return { track: null, chain: empty, summary: "" };
   }
 }
@@ -5661,8 +5659,7 @@ export const getTrackToolCalls = createServerFn({ method: "GET" })
       /** The window was full, so calls older than `oldestShownAt` are not here. */
       capped: boolean;
       oldestShownAt: string | null;
-    }> =>
-      readTrackToolCalls(context.supabase, data.trackId),
+    }> => readTrackToolCalls(context.supabase, data.trackId),
   );
 
 /**

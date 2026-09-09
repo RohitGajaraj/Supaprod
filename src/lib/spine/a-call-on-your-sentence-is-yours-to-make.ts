@@ -288,6 +288,34 @@ export function seatMayDecide(input: { carried: boolean; known: boolean }): bool
  * with a title that says what changed, still records; and the refusal quotes
  * the decline's own reason, so the seat is told what to address rather than
  * only that it may not proceed.
+ *
+ * ── AND IT IS NOT LOOSENED TO CATCH PARAPHRASES. MEASURED. ─────────────────
+ *
+ * The obvious next step is to fold near-duplicates too, and this product has a
+ * containment measure built and calibrated for exactly that shape
+ * (`what-it-keeps-saying.ts`, which separates restatements of a claim from
+ * unrelated claims with an empty band between 0.125 and 0.250). Run against
+ * the real decision titles on 2026-09-09, it does not work here, and the
+ * reason is structural rather than a matter of tuning:
+ *
+ *   0.889  "Decline shipping of 'Improve onboarding...' work"
+ *          -> "Proceed with 'Improve onboarding...' work"        A REVERSAL
+ *   0.800  "Do not build tablet layout fixes without controlled A/B evidence"
+ *          -> "Tablet layout fix without A/B evidence"           a reword
+ *   0.714  "Do not cut sign-up form from nine to four fields..."
+ *          -> "Do not reduce sign-up form field count..."        a reword
+ *
+ * The reversal scores HIGHER than two of the three rewordings, because a
+ * reversal is the same words with the verb flipped, and a claim-word measure
+ * is verb-blind: "not" and "no" are stop words in it, deliberately and
+ * correctly for its own job. On track `6817e386` the seats declined shipping a
+ * piece of work and then approved proceeding with it eleven minutes later; a
+ * paraphrase guard at any threshold that caught the rewordings would have
+ * refused that approval, which is the most valuable decision on the track.
+ *
+ * So the exact title stands, and the loop shortens rather than stops. A guard
+ * that blocks a reversal to save a lap has traded the product's whole purpose
+ * for its running costs.
  */
 export type PriorDecision = {
   title: string | null;

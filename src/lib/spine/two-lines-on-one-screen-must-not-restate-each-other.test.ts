@@ -241,9 +241,9 @@ const CORRECTION_SRC = readFileSync(
 );
 
 /** Every `because:` template in `decideCorrection`, with `${...}` removed. */
-const REASON_TEMPLATES: string[] = [
-  ...CORRECTION_SRC.matchAll(/because:\s*`([^`]*)`/g),
-].map((m) => (m[1] ?? "").replace(/\$\{[^}]*\}/g, " "));
+const REASON_TEMPLATES: string[] = [...CORRECTION_SRC.matchAll(/because:\s*`([^`]*)`/g)].map((m) =>
+  (m[1] ?? "").replace(/\$\{[^}]*\}/g, " "),
+);
 
 describe("THE PROPERTY: the hold line does not restate the driver's own reason", () => {
   it("finds reason templates to check, so this scan covers something", () => {

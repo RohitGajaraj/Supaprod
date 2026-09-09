@@ -49,10 +49,7 @@ import { TURN_WINDOW } from "@/lib/spine/track.functions";
 
 /* `fileURLToPath`, not `.pathname`: this repo's path contains spaces, which a
    URL keeps percent-encoded, and the read then fails with ENOENT. */
-const SRC = readFileSync(
-  fileURLToPath(new URL("./track.functions.ts", import.meta.url)),
-  "utf8",
-);
+const SRC = readFileSync(fileURLToPath(new URL("./track.functions.ts", import.meta.url)), "utf8");
 
 /**
  * The slice of `getTrackActivity` that holds its four reads.

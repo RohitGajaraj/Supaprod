@@ -148,6 +148,12 @@ export const MIN_CONTAINMENT = 0.2;
  * can no longer distinguish two sentences. Anything domain-bearing stays —
  * "repository", "spec", "nothing" and "cannot" all discriminate.
  */
+/* The list is set out as prose, a few words to a line, because what a reader
+   checks here is whether a word belongs in it, and eighty lines of one word
+   each is harder to scan than five lines of sixteen. The formatting is the
+   point, so it is declared below rather than left as a lint error nobody
+   clears. */
+// prettier-ignore
 const EMPTY_WORDS = new Set([
   "a",
   "an",
