@@ -151,7 +151,7 @@ function InviteCreator() {
           {single.isPending ? "Sending…" : "Create invitation · emails link"}
         </Action>
       </div>
-      <MonoLabel style={{ marginTop: 6 }}>Bulk CSV (one email per line)</MonoLabel>
+      <MonoLabel className="mt-mrd-3">Bulk CSV (one email per line)</MonoLabel>
       <textarea
         value={csv}
         onChange={(e) => setCsv(e.target.value)}
@@ -229,7 +229,7 @@ function InviteList() {
                       <Action
                         variant="destructive"
                         busy={revoke.isPending}
-                        style={{ padding: "6px 10px" }}
+                        className="px-mrd-4 py-mrd-3"
                         onClick={async () => {
                           const ok = await confirm({
                             title: "Revoke invitation?",
@@ -354,7 +354,7 @@ function DomainList() {
           No domains configured. All signups go to manual review.
         </p>
       ) : (
-        <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none", display: "grid", gap: 4 }}>
+        <ul className="m-0 grid list-none gap-mrd-2 pl-0">
           {rows.map((d) => (
             <li
               key={d.id}
@@ -374,7 +374,7 @@ function DomainList() {
               <Action
                 variant="destructive"
                 busy={del.isPending}
-                style={{ marginLeft: "auto", padding: "6px 10px" }}
+                className="ml-auto px-mrd-4 py-mrd-3"
                 onClick={async () => {
                   const ok = await confirm({
                     title: "Remove domain?",
@@ -435,7 +435,7 @@ function SignupApprovalsList() {
           Nothing waiting.
         </p>
       ) : (
-        <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none", display: "grid", gap: 6 }}>
+        <ul className="m-0 grid list-none gap-mrd-3 pl-0">
           {rows.map((s) => (
             <li
               key={s.id}
@@ -452,7 +452,7 @@ function SignupApprovalsList() {
                   blocked until it lands. */}
               <Approve
                 busy={review.isPending}
-                style={{ marginLeft: "auto", padding: "6px 10px" }}
+                className="ml-auto px-mrd-4 py-mrd-3"
                 onClick={() => review.mutate({ id: s.id, approve: true })}
               >
                 Approve · grants access
@@ -461,7 +461,7 @@ function SignupApprovalsList() {
                   request; one release control per row stays orchid. */}
               <Action
                 busy={review.isPending}
-                style={{ padding: "6px 10px", color: "var(--mrd-mute)" }}
+                className="px-mrd-4 py-mrd-3 text-mrd-mute"
                 onClick={() => review.mutate({ id: s.id, approve: false })}
               >
                 Reject
