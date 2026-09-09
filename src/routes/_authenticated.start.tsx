@@ -61,26 +61,36 @@ import { waitingSince } from "@/components/meridian/stopped-for";
  *
  * ── WHAT IT IS NOW, AND THE ORDER IS THE ARGUMENT ─────────────────────────
  *
- *   the message      one headline that names the product and says what to do
- *                    or what needs you, and one line that says what happens
- *                    when you press Enter (Hero)
- *   the composer     the one thing they came to do
- *   working now      every seat inside a run, by name, with a live clock, and
- *                    nothing at all when nobody is (CrewAtWork)
- *   the road         the seven stations, drawn once: as the promise before the
- *                    first run, as a map of where every run stands after it,
- *                    and never as a menu (JourneyMap)
- *   ranked bets      this workspace's own, from its evidence, when it has any;
- *                    the invented examples are gone
- *   your runs        one row per run with its position on the road, one
- *                    sentence, and the one control its state needs
- *   since you looked what came in, what shipped, what was learned, only when
- *                    the number is not zero. Each sentence keeps its one door
- *                    (P-62); the foot carries no standalone Outcomes door
- *                    beside them, since Outcomes is a rail row, and the
- *                    Findings strip under it withholds its own door when the
- *                    arriving sentence already opens Findings (two doors, one
- *                    question).
+ * FIVE MOVEMENTS, IN THE ORDER A PERSON MEETS THE PRODUCT. Reordered
+ * 2026-09-09 against the founder's other sentence, "I cannot feel the value":
+ * the proof that this product works is not its queue, it is that work was
+ * decided, built, shipped and then graded against what it promised, and that
+ * proof was three mute sentences at position six of seven, under the run list,
+ * while a count of what he owed was the headline in 32px. The page led with a
+ * debt and buried the return. The spacing ramp separates the movements: 24px
+ * inside one, 40px between.
+ *
+ *   1 what needs you   one headline that names the product and says what needs
+ *                      you, and a line that names the one call to start with
+ *                      (Hero)
+ *   2 hand it over     the box, the product it is for, the shape of the work
+ *                      and the road that shape takes, and what the workspace
+ *                      already holds about the sentence being typed
+ *   3 what came back   what came in, what shipped, what was graded, only when
+ *                      the number is not zero, with the Findings strip beside
+ *                      them because it answers the same question from the
+ *                      other end. Each sentence keeps its one door (P-62); the
+ *                      foot carries no standalone Outcomes door, since Outcomes
+ *                      is a rail row, and the strip withholds its own when the
+ *                      arriving sentence already opens Findings.
+ *   4 what is moving   every seat inside a run by name with a live clock, and
+ *                      nothing at all when nobody is (CrewAtWork); then the
+ *                      seven stations drawn once, as the promise before the
+ *                      first run and as a map of where every run stands after
+ *                      it, never as a menu (JourneyMap); then this workspace's
+ *                      own ranked bets, from its own evidence
+ *   5 your runs        one row per run with its position on the road, one
+ *                      sentence, and the one control its state needs
  *
  * ── THE REFERENCE, NAMED BEFORE BUILDING ──────────────────────────────────
  * Anthropic, OpenAI and Perplexity open on one sentence and one box. Codex
@@ -680,6 +690,28 @@ function StartLanding() {
         />
       ) : null}
 
+      {/* WHAT THE MACHINE DID WHILE YOU WERE AWAY, ABOVE THE FOLD.
+          
+          The founder's complaint that this page exists to answer is "I cannot
+          feel the value". The value of this product is not the queue: it is
+          that work was decided, built, shipped and then graded against what it
+          promised. That proof lived in three mute sentences at position six of
+          seven, under a run list, while a count of what he owed was the
+          headline in 32px. So the page led with a debt and buried the return.
+
+          These two blocks are one movement and they are the same question,
+          which is why the arriving answer and the Findings strip already
+          negotiate one door between them: what came back, and what is coming
+          in. They read directly under the box a person hands work to, which
+          makes the page a sequence rather than a set of regions: what needs
+          you, hand something over, here is what came of the last time, here is
+          what is moving, here is your list. */}
+      <HomeAnswers answers={sinceYouLooked} className="mt-mrd-5" />
+      {/* WHAT IS ARRIVING (founder, 2026-09-02 19:12): the
+          product's central claim, evidence becomes work on its own, provable
+          on the page a person actually lands on. */}
+      <Arriving door={!sinceYouLooked.some((a) => "to" in a.door && a.door.to === "/arriving")} />
+
       <CrewAtWork workspaceId={activeWorkspaceId ?? null} onOpen={openRun} className="mt-mrd-5" />
 
       {roadMode ? (
@@ -757,13 +789,6 @@ function StartLanding() {
       {seeded && !firstRun ? (
         <YourRuns station={station} onClearStation={() => setStation(null)} className="mt-mrd-5" />
       ) : null}
-
-      <HomeAnswers answers={sinceYouLooked} className="mt-mrd-5" />
-
-      {/* WHAT IS ARRIVING, UNDER THE RUNS (founder, 2026-09-02 19:12): the
-          product's central claim, evidence becomes work on its own, provable
-          on the page a person actually lands on. */}
-      <Arriving door={!sinceYouLooked.some((a) => "to" in a.door && a.door.to === "/arriving")} />
     </div>
   );
 }
