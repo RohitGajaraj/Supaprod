@@ -11918,6 +11918,16 @@ afterwards.** It reads `call` now with `status` as a second witness for the 33 r
 direction. The read also sat inside `catch { return false }`, so an unreadable decision arrived as
 a decision to build; the fail direction is unchanged and is now stated rather than accidental.
 
+**AND THE CAUSAL CLAIM IN THAT COMMIT IS WITHDRAWN, by its author, on the verification pass.** The
+blind spot is real: one live decision on `d1168015` carries `call = 'do-not-build'` with
+`status = 'approved'` and the old check could not see it. But of 9 tracks carrying a recorded
+refusal, 3 filed work afterwards and **all 3 carried `status = 'declined'`, which the old check
+could already see** -- two of them after the waive guard shipped (`13c1407d4`, 27 August). So the
+guard exists, could see those refusals, and did not stop them. That is **F-247, open and untraced,
+and a larger defect than the one closed.** The eleven are not explained. Verifying by exercising the
+record rather than by reading the diff is what caught this, an hour after the commit message said
+otherwise.
+
 **Also closed from the same lane's reads:** `ArtifactView.filedAt` (`8d67b8b47`), because
 `createdAt` was the ATTACHMENT time and 1,155 of 1,522 track members share theirs with a sibling to
 the microsecond, so "the newest drawing" was decided by whichever row won a tie; and the tool-arg
@@ -11935,4 +11945,3 @@ named the file, the defect removed again.
 the founder's call. `fromLearningId` on `startTrack` is with worktree-1-68 at their request, with
 one condition passed to them: gate it the way `opportunityId` is gated, ownership check included,
 and read that path rather than assuming it has one.
-
