@@ -22,6 +22,7 @@ import { presenceColour } from "@/components/meridian/AgentPresence";
 import { listRunningNow, readHome, readStationTimings } from "@/lib/spine/track.functions";
 import { runningNowKey } from "@/lib/query-keys";
 import { HOME_STALE_MS, homeKey, seedHome } from "@/components/start/home-read";
+import { heroCanDraw, type ReadState } from "@/components/start/a-failed-read-is-not-a-slow-one";
 import { WhatWeAlreadyHold } from "@/components/spine/WhatWeAlreadyHold";
 import {
   homeRoadMode,
@@ -495,11 +496,29 @@ function StartLanding() {
    * have settled; the slot above holds the height meanwhile. A disabled runs
    * read (no product yet) is not waited on, or the hero would never come.
    */
-  const heroReady =
-    !workspaceLoading &&
-    seeded &&
-    !queueRead.isPending &&
-    !(runs.isPending && runs.fetchStatus === "fetching");
+  /*
+   * A FAILED READ IS NOT A SLOW ONE (`a-failed-read-is-not-a-slow-one.ts`).
+   * This used to hold the headline until `runs` stopped fetching, and `runs`
+   * polls every ten seconds -- so a read that failed on every attempt went
+   * back to "fetching, no data" forever, which is byte-for-byte the state of
+   * one that simply has not answered. The entry sat on "Reading your
+   * workspace. Still reading." for a read that was never going to answer.
+   */
+  const asRead = (q: {
+    isPending: boolean;
+    fetchStatus: string;
+    failureCount: number;
+  }): ReadState => ({
+    isPending: q.isPending,
+    isFetching: q.fetchStatus === "fetching",
+    failureCount: q.failureCount,
+  });
+  const heroReady = heroCanDraw({
+    workspaceLoading,
+    seeded,
+    queue: asRead(queueRead),
+    runs: asRead(runs),
+  });
 
   const sinceYouLooked = homeAnswers({
     waitingShape: null,
