@@ -299,6 +299,36 @@ function TrackPage() {
      the `returnsOn` prop below for why it is not a second query. */
   const qc = useQueryClient();
   const { trackId } = Route.useParams();
+  /*
+   * ── IS THIS EVEN A RUN ADDRESS? (founder, 2026-09-09) ────────────────────
+   *
+   * He opened `/track/ce846e9b` -- the first block of a uuid, the shape a
+   * person gets by copying an id out of a log or truncating a link -- and the
+   * screen answered with FIVE messages for one cause, four of them red:
+   *
+   *   This run could not be read.
+   *   The questions this run is waiting on could not be read, so answer
+   *     nothing until this clears.
+   *   Out of touch. This screen has lost sight of the run.
+   *   The activity did not come back, so nothing here would be trustworthy.
+   *   The record did not come back, so nothing here would be trustworthy.
+   *
+   * Every one of those is TRUE and every one is about the wrong thing. The
+   * reads did fail, because `trackId` is validated as a uuid inside each server
+   * function and this is not one. But the person's problem is not that the
+   * platform is unwell, it is that the address is not a run's address, and a
+   * wall of red saying the record cannot be trusted is the most alarming way to
+   * say the least useful thing.
+   *
+   * It is also, uncomfortably, a state THIS MORNING'S WORK MADE LOUDER: those
+   * reads used to swallow their errors and render as empty, and I made them
+   * throw so a refusal would stop wearing the empty state's clothes. That was
+   * right, and it is why the honest failure has to be routed rather than just
+   * reported.
+   *
+   * A PURE TEST, NOT A HOOK, so it can sit above every read and gate them all.
+   */
+  const isRunId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trackId);
   const { start, artifact } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const { activeWorkspace, activeWorkspaceId, activeProduct, productsVisible } = useWorkspace();
@@ -381,6 +411,9 @@ function TrackPage() {
     queryKey: ["spine-track", trackId],
     queryFn: () => get({ data: { trackId } }),
     refetchInterval: 10_000,
+    /* An address that is not a run id cannot be read as one, and asking anyway
+       is what produced five failures for one mistake. */
+    enabled: isRunId,
   });
   const track = trackQ.data ?? null;
 
@@ -426,6 +459,7 @@ function TrackPage() {
       return (data as { from_learning_id: string | null } | null)?.from_learning_id ?? null;
     },
     staleTime: 5 * 60_000,
+    enabled: isRunId,
   });
   const decideWaived = track ? waiverFor(track.route, "decide") !== null : false;
 
@@ -567,7 +601,78 @@ function TrackPage() {
    * dead-session return because a dead session is the more specific fact and
    * has its own door.
    */
-  if (trackQ.isSuccess && track === null) {
+  /*
+   * ── THE RUN'S OWN READ FAILED, SO THE PAGE SAYS IT ONCE ──────────────────
+   *
+   * Reported by the founder, 2026-09-09, with a screenshot. The header already
+   * said "This run could not be read." correctly and exactly once -- and then
+   * the page MOUNTED THE PANES ANYWAY, and each of them honestly reported its
+   * own failed read in its own words. Five messages for one cause, four of them
+   * red:
+   *
+   *   This run could not be read.                                  (this route)
+   *   The questions this run is waiting on could not be read...    (TrackConsent)
+   *   Out of touch. This screen has lost sight of the run.         (the drive card)
+   *   The activity did not come back...                           (TrackActivity)
+   *   The record did not come back...                              (ArtifactPane)
+   *
+   * Every component is correct on its own. This is the compose-time defect the
+   * repo already has a guard for one layer down: two correct parts, one screen,
+   * and nothing owning what they add up to. A person who has lost a read is
+   * told four times that nothing here is trustworthy, which reads as a platform
+   * coming apart rather than as one request that did not answer.
+   *
+   * SO THE PANES DO NOT MOUNT. Their own error states are right when only THAT
+   * pane failed; they are wrong when the run itself could not be read, because
+   * then they are all saying one thing. The page keeps the sentence and adds
+   * the control it was missing -- a retry, which is the whole remedy for a
+   * transient read and was the one thing the wall of red did not offer.
+   *
+   * AND IT IS TRANSIENT. Read live twice today on two different tracks, and
+   * both recovered on a retry, so this state is reached by a healthy run on a
+   * slow beat rather than by a broken one.
+   */
+  if (trackQ.isError) {
+    return (
+      <div className="mrd-workbench">
+        <header className="mrd-workbench-header">
+          <PageHeading
+            title="This run could not be read."
+            sub="The run itself is untouched and still whatever it was a moment ago. This screen just could not read it."
+          />
+        </header>
+        <div className="min-h-0 overflow-y-auto">
+          <ReadFailed
+            error={trackQ.error as Error}
+            onRetry={() => {
+              /* Every key this page reads, not only the one that reported:
+                 the panes were refused too and a retry that leaves them stale
+                 would redraw the same wall the moment they mount. */
+              for (const key of [
+                ["spine-track", trackId],
+                ["track-artifacts", trackId],
+                ["track-activity", trackId],
+                ["spine-track-chain", trackId],
+                ["track-gates", trackId],
+              ]) {
+                void qc.invalidateQueries({ queryKey: key });
+              }
+            }}
+          >
+            Nothing below this is the run, so it is not drawn rather than drawn wrong.
+          </ReadFailed>
+        </div>
+      </div>
+    );
+  }
+
+  /*
+   * ONE PAGE FOR BOTH, and they are the same thing to the person: an address
+   * that does not reach a run. The sub says which, because the two want
+   * different next moves -- a stale link is somebody else's to fix, a truncated
+   * one is fixed by going and getting the whole thing.
+   */
+  if (!isRunId || (trackQ.isSuccess && track === null)) {
     return (
       /* No `data-page-composer` here, unlike the run itself below: that
          attribute stands the ask dock down because the page carries its own
@@ -577,7 +682,11 @@ function TrackPage() {
         <header className="mrd-workbench-header">
           <PageHeading
             title="That work could not be found."
-            sub="The address may be out of date, or the work belongs to another workspace. Nothing you were working on is affected."
+            sub={
+              isRunId
+                ? "The address may be out of date, or the work belongs to another workspace. Nothing you were working on is affected."
+                : "That address is not a run's, so there was nothing to look up. A run's address ends in a long id; this one looks cut short. Nothing you were working on is affected."
+            }
           />
         </header>
         <div className="min-h-0 overflow-y-auto">
