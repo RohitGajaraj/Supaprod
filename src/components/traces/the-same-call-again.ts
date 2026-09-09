@@ -27,6 +27,26 @@
  * how many days back to look" -- so every phrasing the model invented went
  * nowhere, and it ran one search four times.
  *
+ * ── AND `args` IS POST-PARSE, WHICH MAKES IT SHARPER THAN IT READS ────────
+ * S3 traced the mechanism after this shipped: `loop.server.ts` runs
+ * `def.argsSchema.safeParse(call.args)` with no strict mode, so a key the
+ * schema does not declare is STRIPPED and the call succeeds. The model emitted
+ * `{"query":"reschedule installer visit order page","days_back":30}`; what
+ * `tool_calls.args` holds is what survived that parse.
+ *
+ * So these rows are not four calls that happened to match. They are four
+ * DIFFERENT calls the model wrote, flattened into one by a parser that dropped
+ * the only fields distinguishing them, and this function is reading what
+ * actually ran rather than what was asked for -- which is the right thing for
+ * it to read, and worth knowing before anyone concludes the model repeated
+ * itself on purpose.
+ *
+ * Measured across 60 days on `ai_events.output_preview`, which keeps what was
+ * emitted: **1,059 outputs carry `days_back` and 228 carry a `query`**. The
+ * trace read here is one of about a thousand. S3 has closed the executor half
+ * -- an undeclared argument is refused at the call site now, before the parse
+ * that would silently eat it.
+ *
  * It then called `sense.found_nothing` with
  * `searched: "reschedule installer visit order page, installer reschedule,
  * homeowner reschedule, order page reschedule"`, putting four searches that
