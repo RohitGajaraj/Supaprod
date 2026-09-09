@@ -1404,6 +1404,16 @@ export type StartRun = {
  */
 type StartTrackRow = {
   id: string;
+  /**
+   * SELECTED SINCE 2026-09-10, and it was deliberately not before. The wallet a
+   * halt was recorded against belongs to the WORKSPACE, so `stoppedBecause.gone`
+   * has to resolve the account per track rather than from whoever is reading --
+   * a reader's own default account would give the wrong balance for any track
+   * they can see and do not own, and when no workspace is named this read spans
+   * several. One uuid per row against the 40 KB this select was narrowed to
+   * avoid is a fair trade for a fact the row now states.
+   */
+  workspace_id: string | null;
   title: string;
   station: string;
   status: string;
@@ -1486,7 +1496,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
         let tracksQuery = supabase
           .from("spine_tracks" as never)
           .select(
-            "id,title,station,status,updated_at,driven_at,last_hold,last_hold_because,pending_gates,spine_track_members(artifact_kind),workspaces(account_id)",
+            "id,workspace_id,title,station,status,updated_at,driven_at,last_hold,last_hold_because,pending_gates,spine_track_members(artifact_kind)",
           );
         /*
          * ONLY WHEN IT IS KNOWN. A caller whose default workspace cannot be
@@ -1494,9 +1504,11 @@ export const listRunsForStart = createServerFn({ method: "GET" })
          * whole life -- narrowing to a workspace we could not name would turn
          * an unresolved id into an empty desk, and an empty desk is a claim.
          *
-         * `workspace_id` is filtered on without being selected, which is fine
-         * and deliberate: this row type is the narrow P-32 one and nothing
-         * below reads the column.
+         * `workspace_id` IS now selected as well as filtered on. It was
+         * deliberately not, on the P-32 rule that this select carries only what
+         * the row reads -- and as of 2026-09-10 the row does read it, to resolve
+         * which account's balance answers `stoppedBecause.gone`. One uuid per
+         * row, against the 40 KB this select was narrowed to avoid.
          */
         if (workspaceId) tracksQuery = tracksQuery.eq("workspace_id", workspaceId);
         const { data, error } = await tracksQuery
@@ -1506,16 +1518,6 @@ export const listRunsForStart = createServerFn({ method: "GET" })
         const rows = (data ?? []) as unknown as Array<
           StartTrackRow & {
             spine_track_members?: Array<{ artifact_kind: string }>;
-            /*
-             * ONE UUID PER ROW, EMBEDDED RATHER THAN FETCHED. The wallet a
-             * halt was recorded against belongs to the WORKSPACE, not to
-             * whoever is reading -- so resolving it from the reader's default
-             * account would read the wrong balance on any track they can see
-             * and do not own. PostgREST folds this into the base read, so it
-             * is 50 uuids and no round trip, the same shape the members embed
-             * above already uses.
-             */
-            workspaces?: { account_id: string | null } | null;
           }
         >;
         if (rows.length === 0) return [];
@@ -1587,7 +1589,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
           liveByTrack,
           creditsByTrack,
           haltByTrack,
-          creditByAccount,
+          { byAccount: creditByAccount, accountByWorkspace },
         ] = await Promise.all([
           (async () => {
             const byTrack = new Map<string, { tool: string }>();
@@ -1982,21 +1984,57 @@ export const listRunsForStart = createServerFn({ method: "GET" })
              * it. Naming the wall without saying it lifted is still true.
              */
             const byAccount = new Map<string, boolean>();
-            const accountIds = [
+            const accountByWorkspace = new Map<string, string>();
+            /*
+             * ── TWO HOPS, BECAUSE THERE IS NO FOREIGN KEY TO EMBED THROUGH ──
+             *
+             * This was `workspaces(account_id)` on the base read, which is
+             * free when PostgREST can resolve the relationship. It cannot:
+             * `spine_tracks` has foreign keys to `learnings`, `opportunities`
+             * and `themes` and NONE to `workspaces` -- `workspace_id` is an
+             * unconstrained uuid. The embed therefore errored, `failSoftOrThrow`
+             * raised, and the home's largest read died on every arrival. Caught
+             * on the served build within minutes and reverted to this.
+             *
+             * THE LESSON IS NOT "AVOID EMBEDS". It is that an embed is a claim
+             * about the SCHEMA, and this file's other embed
+             * (`spine_track_members`) works because that key exists. I checked
+             * that the column existed and inferred the relationship from it,
+             * which is a different thing from checking the relationship.
+             *
+             * Chained rather than concurrent because the second read needs the
+             * first's answer. Both are tiny -- at most 50 workspace rows of two
+             * columns, then a handful of account rows -- and the branch as a
+             * whole still runs beside the other six.
+             */
+            const workspaceIds = [
               ...new Set(
                 rows
-                  .map((r) => r.workspaces?.account_id)
-                  .filter((a): a is string => typeof a === "string" && a.length > 0),
+                  .map((r) => r.workspace_id)
+                  .filter((w): w is string => typeof w === "string" && w.length > 0),
               ),
             ];
-            if (accountIds.length === 0) return byAccount;
+            if (workspaceIds.length === 0) return { byAccount, accountByWorkspace };
+            const { data: wsRows, error: wsErr } = await supabase
+              .from("workspaces")
+              .select("id, account_id")
+              .in("id", workspaceIds);
+            if (wsErr) {
+              console.error(`[listRunsForStart] workspace account read failed: ${wsErr.message}`);
+              return { byAccount, accountByWorkspace };
+            }
+            for (const w of (wsRows ?? []) as Array<{ id: string; account_id: string | null }>) {
+              if (w.account_id) accountByWorkspace.set(w.id, w.account_id);
+            }
+            const accountIds = [...new Set(accountByWorkspace.values())];
+            if (accountIds.length === 0) return { byAccount, accountByWorkspace };
             const { data: creds, error: credErr } = await supabase
               .from("account_credits")
               .select("account_id, balance_credits, topup_credits")
               .in("account_id", accountIds);
             if (credErr) {
               console.error(`[listRunsForStart] credit balance read failed: ${credErr.message}`);
-              return byAccount;
+              return { byAccount, accountByWorkspace };
             }
             for (const c of (creds ?? []) as Array<{
               account_id: string;
@@ -2005,7 +2043,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             }>) {
               byAccount.set(c.account_id, (c.balance_credits ?? 0) + (c.topup_credits ?? 0) > 0);
             }
-            return byAccount;
+            return { byAccount, accountByWorkspace };
           })(),
         ]);
 
@@ -2050,7 +2088,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
               /* ONLY THE WALLET WALL LIFTS WITH A BALANCE. A kill switch and a
                  spend cap are decisions, not shortages, and topping up undoes
                  neither. */
-              const account = r.workspaces?.account_id ?? null;
+              const account = accountByWorkspace.get(r.workspace_id ?? "") ?? null;
               const gone =
                 halt.kind === "out_of_credit" && !!account && creditByAccount.get(account) === true;
               return { ...halt, gone };
