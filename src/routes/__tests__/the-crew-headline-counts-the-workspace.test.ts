@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
@@ -94,5 +95,48 @@ describe("the /crew headline counts the workspace, not the catalogue", () => {
     for (const readish of ["useQuery", "useServerFn", "await", "fetch("]) {
       expect(body).not.toContain(readish);
     }
+  });
+});
+
+/*
+ * ── TWO EQUAL COUNTS, STACKED, MAKE A READER COMPARE THEM ─────────────────
+ *
+ * READ ON THE SERVED /crew, 2026-09-10:
+ *
+ *   16 agents work here.
+ *   16 run without asking you.
+ *
+ * The second line is only informative BECAUSE it equals the first, and stating
+ * it as a bare number makes the reader do the comparison to discover that.
+ *
+ * A THIRD CASE OF ONE SHAPE FOUND IN A NIGHT: an individually-correct decision
+ * arriving somewhere it did not intend. This branch was written for "16 run
+ * without asking you, 3 ask first", where the counts differ and both earn
+ * their place. The zero-omission beside it is right and argued at length --
+ * nobody says "0 ask first". What nobody looked at is the sentence LEFT BEHIND
+ * when that clause is omitted and `alone` equals the roster, which is the
+ * common case on a workspace that has never narrowed anything.
+ */
+describe("the autonomy line does not restate the headline's number", () => {
+  const SRC = readFileSync("src/routes/_authenticated.crew.tsx", "utf8");
+
+  it("says ALL when every agent runs unattended", () => {
+    expect(SRC).toContain('{alone === all.length ? "All " : null}');
+  });
+
+  it("still states the bare count when some agents do ask", () => {
+    // The mirror. "All 12 run without asking you, 4 ask first" would be a lie
+    // about the roster, so the word appears only on the equality.
+    const line = SRC.match(/\{alone === all\.length[\s\S]{0,220}?run without asking you/);
+    expect(line, "the autonomy line moved; re-point this test").not.toBeNull();
+    expect(line![0]).toContain("alone === all.length");
+    expect(line![0]).not.toMatch(/"All ".*"All "/);
+  });
+
+  it("keeps the empty-account branch, which already said it correctly", () => {
+    // That branch has said "All N run without asking you" since the day the
+    // headline and the sub contradicted each other; this change makes the
+    // other branch agree with it rather than inventing a second phrasing.
+    expect(SRC).toContain("run without asking you. Nothing has been narrowed here yet.");
   });
 });

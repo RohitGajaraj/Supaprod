@@ -541,6 +541,32 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
        nobody has configured is running on a default, and that deserves better
        than a bracket. */
     <>
+      {/*
+       * ── "ALL" WHEN IT IS ALL, BECAUSE TWO EQUAL COUNTS MAKE A READER COMPARE ──
+       *
+       * READ ON THE SERVED /crew, 2026-09-10. The header showed:
+       *
+       *   16 agents work here.
+       *   16 run without asking you.
+       *
+       * Two counts, both 16, stacked. The second is only informative BECAUSE it
+       * equals the first, and stating it as a bare number makes the reader do
+       * that comparison to find out. "All 16" states the fact instead.
+       *
+       * AND IT IS A THIRD CASE OF THE SAME SHAPE FOUND TONIGHT: an
+       * individually-correct decision arriving somewhere it did not intend.
+       * This branch was written for "16 run without asking you, 3 ask first",
+       * where the counts differ and both earn their place. The zero-omission
+       * beside it is right and well argued -- nobody says "0 ask first". What
+       * nobody looked at was the sentence LEFT BEHIND when that clause is
+       * omitted and `alone` happens to equal the roster, which is the common
+       * case on a workspace that has never narrowed anything.
+       *
+       * The empty branch above already says "All 16 run without asking you"
+       * for the no-overrides case; this is the same sentence for the case where
+       * overrides exist but none of them asks.
+       */}
+      {alone === all.length ? "All " : null}
       <Figure>{alone}</Figure> run without asking you
       {/* OMITTED AT ZERO, the way the switched-off clause beside it already is.
           Read on the running product: "16 run without asking you, 0 ask first."
