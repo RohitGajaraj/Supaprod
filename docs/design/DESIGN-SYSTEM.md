@@ -680,6 +680,99 @@ contract's whole recent theme arriving by the other door. Score against the ANCH
 previous row, or a claim drifts across a long run by small steps until the last row shares nothing
 with the first.
 
+### 14. A defect that exists only BETWEEN elements is invisible to every gate we own
+
+Added 2026-09-09, from Lane 2, and it is the most useful thing anyone said all day.
+
+Three separate findings turned out to be one shape. Four tool-call rows on a trace, each true and
+each correctly rendered, that were byte-identical to one another. A page whose headline counted the
+workspace and whose list counted the user. Four "3 prototypes" where the count was right in every
+place it appeared. **Not one of those is a property any single element has**, so a surface that
+renders every element correctly, one at a time, cannot show it — however good each element is.
+
+Every guard in this repo asserts about a thing. None can ask *"and is this the same as its
+neighbour"*. That is a straight explanation of why reading a served page keeps finding what fifteen
+thousand tests cannot, and it names the guard shape we are missing: **assert over the COLLECTION, not
+the row.**
+
+**Count, do not classify.** Lane 2 proved no similarity threshold separates "the same claim" from
+"that subject, a different predicate": scored on real sentences, containment and Jaccard put a
+genuine pair and a genuine near-miss at the same number. So a guard that judges whether two sentences
+mean the same thing is a guess. A guard that counts how many sentences assert ONE fact you have
+already identified, in the phrasings the page actually uses, is arithmetic. Prefer the second, and
+write down what it cannot see.
+
+### 15. A delta needs a whole to be a delta of
+
+Added 2026-09-09. `/arriving` in an empty workspace said, in three consecutive lines: *"Your sources
+have sent nothing yet." / "Nothing new since you last looked." / "Nothing is connected yet, so there
+is nothing to read."*
+
+The middle one answers *what changed since you last looked*, which is a real and useful question
+while there is something to have changed. On an empty record it counts the same nothing the headline
+just named, in fewer words and smaller type — the one place a count is guaranteed to add nothing.
+
+This is the surface half of the entry's own founding measurement: **every value statement on the home
+was a delta, and the complaint was about the whole.** A delta is drawn only where a whole exists.
+
+### 16. A line that names the title again is not provenance
+
+Added 2026-09-09. The Inbox's focused card asked *"Make this call: Show homeowner installer arrival
+window on order page?"* and its body ended *"From Show homeowner installer arrival window on order
+page"* — the same string, as a dangling clause, on the one card a person is being asked to act on.
+
+**It was caused by a correct fix made four hours earlier.** The decision used to be titled "Mission
+completed: <the mission>" while its source label held "<the mission>", so the two read as different
+strings and the redundancy was invisible. Taking that provenance prefix out of the title at its
+writer made them identical.
+
+Two rules come out of it. **Compare the two values, never special-case the kind** — a rule that reads
+what it is about cannot go stale the way a list of source kinds would. And **equality, not
+containment**: "From checkout" under "Reuse saved delivery address at checkout" is a different claim
+and a reader learns from it, so a containment test eats the useful line with the useless one (law 14,
+from the other direction).
+
+### 17. Share a constant only when the two callers ask the same QUESTION
+
+Added 2026-09-09. A new row line needed a boundary for "the loop has stopped coming", and reached for
+`isOverdue` — 24 hours — **because it already existed**, arguing from the sweep's ten-minute cadence
+that a day was far past any reasonable gap.
+
+Lane 2 had measured it: 1,730 gaps the loop has actually closed, p50 10.4 minutes, p90 99.9 minutes,
+**p99 about 2.07 days**. A day is inside the ordinary distribution, so the line would have called
+routine behaviour a stoppage — a false alarm in the column added to stop the entry making promises it
+cannot keep.
+
+`isOverdue`'s own docstring says what its day is for: *"past a day it has survived a night nobody
+looked"* — a question about a PERSON being late. The other asks whether a MACHINE has stopped. Both
+wanted "a duration after which something is wrong", and that shared shape is what made reuse feel
+correct. **Avoiding a second constant is a real discipline here, and it is what made me skip the only
+check that mattered: does this one answer MY question, or merely return the same type?**
+
+Read the docstring of the constant you are taking and say out loud what question it answers. If that
+is not your sentence, you need your own number, and it comes from the record rather than from an
+argument. **And take the whole PREDICATE, not the number out of it** — the one adopted here also
+refuses to call a track cold while it is deferred to a date on purpose, which the inline copy got
+wrong.
+
+### 18. A guard reads code, never prose about code
+
+Added 2026-09-09, after this went wrong twice in one day in opposite directions.
+
+A guard asserting a chip does not pulse failed on the comment above the chip explaining that it does
+not pulse. A guard hunting `toLocaleDateString` flagged `spec-projections.ts` for the sentence
+*"Slicing (not toLocaleDateString) keeps this timezone-stable"* — a file listed as debt for
+documenting that it does the right thing — and then flagged a second file for a comment recording the
+very bug it had just correctly caught there.
+
+**A guard that fires on prose about a defect teaches people to stop writing the prose**, which is the
+opposite of what this repo wants from its comments.
+
+Strip comments. **Never strip strings**: a guard of mine stripped string literals too, erased the
+literal it was hunting, found zero call sites and passed on a file that still held the defect. And
+the standing rule that catches all of it — **a guard nobody has watched fail is not evidence.** Break
+the code, watch the assertion go red, put it back.
+
 ---
 
 ## The defects that keep coming back
@@ -688,6 +781,12 @@ Each of these has been found more than once, by people who knew the rule. Check 
 
 | Defect | Sightings | The rule |
 | --- | --- | --- |
+| A page whose headline and its list count different populations | 2 | /outcomes said "8 decisions are on the record" over a list reading "57 of 75". The headline was workspace-scoped, the list user-scoped. Ask what population each block describes, not whether each read filters. |
+| An empty state stacking sentences that all say "nothing is here" | 2, one of them 4 deep | /arriving said it four times before a reader scrolled, and the loudest one claimed "your sources" on a workspace with none. Law 15, law 11. |
+| A provenance line repeating the title it sits under | 1 | Caused by a correct fix upstream that made two previously-different strings identical. Law 16. |
+| A constant reused because it existed, not because it answered the question | 1 | `isOverdue`'s day is about a person being late; the caller was asking whether a machine had stopped. Law 17. |
+| A guard matching a COMMENT about the thing it hunts | 3 | Twice in one day, and one file sat on a debt list for documenting that it does the right thing. Law 18. |
+| An instrument that measures something adjacent to the claim | 4 | A deployment id stable across two different builds; `curl` for an authenticated route the browser gets differently; a name grouped where an id was meant (7 workspaces read as 1); an aggregate quoted without its exclusions (60 stale runs, 51 stale by design). Verify the BEHAVIOUR, in the browser, signed in. |
 | `--mrd-hover` used as a **selected** state | **10**, in one day | It is a 4.5% wash, deliberately almost imperceptible. Selection is `--mrd-select`. |
 | `--mrd-ink` on `--mrd-solid` | 3 | Both invert together, so they collapse to **1.19:1** on paper. The label on a solid is `--mrd-on-solid`. |
 | `--mrd-edge-focus` used as a focus **ring** | 5 | It is a **field's border**, read against that field's own fill, and measures 2.9:1 on paper. A ring is drawn against whatever is behind it and WCAG asks 3:1: that is `--mrd-focus`. |
