@@ -601,6 +601,23 @@ change `error ? null : count` to `count ?? 0` and watch the first test name it; 
 a neighbour's field and watch the second. See law 10's note on proving a guard, which this is the
 sharpest case of.
 
+**THE STRONGER MIRROR IS DISJOINT AND COMPLETE, not just "the neighbour survived"** (Lane 3, refining
+this the day it was written). A pair of assertions that each name what they expect still passes on an
+empty sweep, because nothing contradicts nothing. So claim **every member of the set on exactly one
+side** — reachable or unreachable — and assert the two sides are disjoint and together cover the
+union, by name and by size.
+
+That catches two things the weaker mirror does not. A new union member added with no test at all
+fails immediately instead of sitting unexamined. And a harness bug that produces nothing reads as six
+failures rather than as a clean board describing an empty world, which is the failure mode that made
+one of these guards pass while measuring nothing earlier the same day.
+
+**Enumerate the input space from the record, never from a hand-written list.** That sweep takes its
+hold reasons from the driver's own `HOLD_LINE` record, so a reason added tomorrow joins the sweep
+without anyone remembering to add it. Same principle as testing a union's membership against the
+exhaustive map the type already requires: **the check cannot drift from the thing it checks if it is
+derived from it.** That rule appeared three times in one day, in a cast, a guard and a sweep.
+
 This needs a wire that can REFUSE, not just return rows. A fake that can only answer with data cannot
 produce the difference between a refusal and an empty answer, and that difference is what most of
 this contract's recent findings turned on.
