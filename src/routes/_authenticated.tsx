@@ -5,6 +5,7 @@ import { GotoShortcuts } from "@/components/supaprod/GotoShortcuts";
 import { BrandWait } from "@/components/supaprod/BrandWait";
 import { AppFrame } from "@/components/shell/AppFrame";
 import { WorkspaceProvider, useWorkspace } from "@/hooks/use-workspace";
+import { BOOT_SHELL_ID } from "@/components/shell/BootShell";
 import { FlowModeProvider } from "@/hooks/use-flow-mode";
 import { needsOnboarding } from "@/lib/onboarding-gate";
 import { WORKSPACE_STORAGE_KEY } from "@/hooks/use-workspace";
@@ -233,6 +234,37 @@ function AuthedLayout() {
     return () => {
       document.documentElement.removeAttribute("data-obsidian");
     };
+  }, []);
+
+  /*
+   * ── THE BOOT FRAME COMES DOWN WHEN THE REAL ONE IS UP ────────────────────
+   *
+   * `BootShell.tsx` paints the product's frame into the server's HTML, because
+   * for an authenticated URL that HTML is otherwise empty and all 470 KB of
+   * script loads before first paint. This is where it is removed.
+   *
+   * HERE AND NOT IN `RootComponent`, and the difference is the whole point.
+   * The root mounts as soon as the bundle has parsed, which is BEFORE this
+   * route's `beforeLoad` has resolved the session -- so removing it there
+   * would take the frame down and hand the reader back the empty field for the
+   * length of the auth gate. Then the shell would appear. Two transitions,
+   * and the middle one is the exact state this was built to delete.
+   *
+   * `AuthedLayout` mounting is the honest signal, because it is the moment the
+   * real rail and header exist. One transition: the boot frame is replaced by
+   * the shell it was standing in for, with the mark already in position.
+   *
+   * IT ALSO COVERS THE CHROMELESS ROUTES CORRECTLY. Onboarding and Mission
+   * Control mount this layout and then render `<Outlet />` with no `AppFrame`,
+   * so the frame is removed and they get the full-viewport treatment they are
+   * documented to have. The removal is keyed on this component being alive,
+   * never on which surface it chose to draw.
+   *
+   * REMOVED RATHER THAN HIDDEN. It has done its one job and a hidden fixed
+   * layer over every authenticated screen is a thing that can come back.
+   */
+  useEffect(() => {
+    document.getElementById(BOOT_SHELL_ID)?.remove();
   }, []);
   // Onboarding is documented full-viewport, no-shell (_authenticated.onboarding.tsx)
   // and must stay that way after the OBS-02 hoist: wrapping it in <AppShell>

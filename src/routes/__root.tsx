@@ -10,6 +10,7 @@ import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { BootFrame, bootFrameScript } from "@/components/shell/BootShell";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { ConfirmProvider } from "@/hooks/use-confirm";
 import { MachineViewProvider } from "@/hooks/use-machine-view";
@@ -303,6 +304,25 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body suppressHydrationWarning>
+        {/*
+         * ── THE ONE THING THE SERVER CAN SEND AN AUTHENTICATED URL ────────
+         *
+         * `_authenticated` is `ssr: false`, so for every signed-in route the
+         * `{children}` below render to nothing on the server: measured, the
+         * document for a trace URL is 35 KB and contains no rail, no nav and
+         * no title. All 123 scripts (470 KB) then load before first paint.
+         * That window is the black field Lane 2 reported.
+         *
+         * This is the only markup that exists during it, so it is where the
+         * product's frame has to come from. See `BootShell.tsx` for the
+         * measurement and for why it is a frame rather than a better spinner.
+         *
+         * BEFORE `{children}`, so it is already in the document when the
+         * script under it runs, and `position: fixed` with a z-index below
+         * every real overlay so it covers the empty root and nothing else.
+         */}
+        <BootFrame />
+        <script dangerouslySetInnerHTML={{ __html: bootFrameScript() }} />
         {children}
         <Scripts />
       </body>
