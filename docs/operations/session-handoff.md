@@ -2545,11 +2545,21 @@ judgement than deleting a repetition.
 
 #### Open, with my ruling and the counter-argument
 
-- **The count appears three times, not two**: the road's "3 prototypes", the story's "filed 3
-  prototypes", the transcript section's "Design filed 3 prototypes of …". **I am holding** — map,
-  narrative and per-station record are three jobs, and a short repetition serving a different job is
-  not the same defect as a full distinctive sentence repeated, which makes a reader ask which one is
-  real. Lane 1 has the counter and can overrule.
+- **The count appears three times** — the road's "3 prototypes", the story's "filed 3 prototypes",
+  the transcript section's "Design filed 3 prototypes **of** Reschedule installer visit from order
+  page". **Ruled: hold at three**, and Lane 1 sharpened the test in a way worth keeping over my own.
+
+  I had said "different jobs", and that phrase does too much work — someone will lean on it to
+  justify a fourth. **The real question is what a SECOND SIGHTING makes a reader do.** A short
+  factual count read again is *confirming*: you glance, it agrees, you move on. A long distinctive
+  sentence read again makes you **stop and compare the two**, and that stop is the cost. That is why
+  the refusal quote had to lose one home and why three counts do not. (The third is also the fullest
+  form, not a copy: it alone names what the prototypes are *of*.)
+
+  **Two conditions, and either one flips the answer.** A fourth sighting stops being confirmation
+  and becomes wallpaper. And if any of the three ever derives from a **different read**, they can
+  disagree — three places that can disagree about one number is the worst outcome available. Today
+  all three come from one source, and *that* is what makes it safe, not the job argument.
 - **The four remaining chip/headline restatements** above.
 - **The `failed` node's fill** is verified only on a `stopped` node (reads right: clearly the node the
   road ended at, not loud). The fail hue is unjudged.
