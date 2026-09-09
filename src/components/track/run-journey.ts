@@ -150,10 +150,30 @@ export function journeyOutcome(stop: Stop, horizonDue: string | null): string | 
       return str(d.fields.forecast_claim) ? "call and forecast" : "call made";
     }
     case "define": {
-      const n = count(stop, "prd");
+      /*
+       * ── FOLDED FOR CONSISTENCY, NOT FOR SIZE ────────────────────────────
+       *
+       * Five tracks have a spec filed more than once under one title, and the
+       * worst is `e976e60e` at 5 filed for 2 distinct. That is small beside
+       * Discover's 67-for-4, and the reason to do it anyway is that an
+       * INCONSISTENT fold is worse than none: a reader who learns the road
+       * folds at Discover and Design will read Plan's number the same way, and
+       * nothing on the screen tells them it means something different.
+       */
+      const specs = stop.items.filter((i) => i.kind === "prd" && !i.missing);
+      if (specs.length === 0) return null;
+      const distinct = foldVersions(specs).length;
       /* One spec reads as an event on the road ("spec written") rather than a
-         tally of one; past that it is a count, and the noun is the canon's. */
-      return n > 0 ? (n === 1 ? "spec written" : plural(n, "prd")) : null;
+         tally of one; past that it is a count, and the noun is the canon's.
+         The event form is scored on the DISTINCT count, so one spec written
+         twice still reads as one spec written -- with how often, because a
+         station that wrote the same spec twice did not write one spec. */
+      if (distinct === 1) {
+        return specs.length === 1 ? "spec written" : `spec written, ${specs.length} times`;
+      }
+      return distinct === specs.length
+        ? plural(specs.length, "prd")
+        : `${plural(distinct, "prd")}, ${specs.length} times`;
     }
     case "design": {
       /*

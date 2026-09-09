@@ -140,3 +140,64 @@ describe("the road counts findings, not filings", () => {
     expect(journeyOutcome(discover([], false), null)).toBeNull();
   });
 });
+
+/**
+ * FOLDED FOR CONSISTENCY, NOT FOR SIZE.
+ *
+ * Five tracks have a spec filed more than once under one title, the worst being
+ * `e976e60e` at 5 filed for 2 distinct. Small beside Discover's 67-for-4, and
+ * the reason to do it anyway is that an INCONSISTENT fold is worse than none: a
+ * reader who learns the road folds at Discover and Design will read Plan's
+ * number the same way, and nothing tells them it means something different.
+ */
+describe("the road counts specs, not filings", () => {
+  const spec = (n: number, title: string) => ({
+    kind: "prd",
+    artifactId: `d-${n}`,
+    title,
+    missing: false,
+    createdAt: `2026-09-04T03:0${n}:00Z`,
+    fields: {},
+  });
+  const plan = (items: ReturnType<typeof spec>[]) => ({
+    station: "define" as const,
+    label: "Plan",
+    state: "done" as const,
+    waivedReason: null,
+    expects: { kind: "prd", word: "spec" },
+    everDriven: true,
+    hold: null,
+    holdReason: null,
+    items,
+  });
+
+  it("keeps the event form for one spec written once", () => {
+    // The line a person sees on almost every run. It must not become "1 spec".
+    expect(journeyOutcome(plan([spec(1, "Let a homeowner reschedule")]), null)).toBe(
+      "spec written",
+    );
+  });
+
+  it("says how often when one spec was written twice", () => {
+    // A station that wrote the same spec twice did not write one spec, and the
+    // repetition is the signal.
+    const twice = [1, 2].map((n) => spec(n, "Let a homeowner reschedule"));
+    expect(journeyOutcome(plan(twice), null)).toBe("spec written, 2 times");
+  });
+
+  it("counts distinct specs past one", () => {
+    const two = [spec(1, "Reschedule"), spec(2, "Arrival window")];
+    expect(journeyOutcome(plan(two), null)).toBe("2 specs");
+  });
+
+  it("and folds five filings of two specs", () => {
+    const five = [
+      spec(1, "Reschedule"),
+      spec(2, "Reschedule"),
+      spec(3, "Arrival window"),
+      spec(4, "Arrival window"),
+      spec(5, "Reschedule"),
+    ];
+    expect(journeyOutcome(plan(five), null)).toBe("2 specs, 5 times");
+  });
+});
