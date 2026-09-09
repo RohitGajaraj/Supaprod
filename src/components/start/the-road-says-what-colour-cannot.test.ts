@@ -135,3 +135,44 @@ describe("the states the caption must not touch", () => {
     expect(captionFor({ mode: "promise", stations: A1, selected: null })).toBeNull();
   });
 });
+
+/*
+ * ── A PRESS THAT COULD ONLY EVER RETURN NOTHING ───────────────────────────
+ *
+ * WALKED ON THE SERVED HOME, 2026-09-10. Discover, Build and Ship carried no
+ * count and were still buttons. Pressing Discover gave:
+ *
+ *   caption:  "Showing the 0 runs at Discover."
+ *   list:     "Nothing is standing at Discover."
+ *
+ * A press that could only ever return nothing, answered twice, one of them as
+ * "the 0 runs" -- an absence dressed as a count, which `crew.tsx` already
+ * names as a defect in its own words.
+ *
+ * The road ALREADY says it: a station with no work carries no badge and draws
+ * faint. The press adds nothing a person could not see before making it, which
+ * is the founder's "anticipate, do not interrogate" exactly. An empty filter
+ * stop is not a control any more (`Journey`), and the caption stops printing a
+ * zero.
+ */
+describe("a filtered station with nothing on it", () => {
+  it("says nothing, because the list below is the thing that is empty", () => {
+    const emptied = A1.map((s) => (s.key === "design" ? at("design", "stopped", 0) : s));
+    expect(captionFor({ mode: "map", stations: emptied, selected: "design" })).toBeNull();
+  });
+
+  it("still counts normally the moment there is something to count", () => {
+    // The mirror: nulling this branch must not swallow the selection sentence
+    // for a station that actually holds runs.
+    expect(captionFor({ mode: "map", stations: A1, selected: "decide" })).toBe(
+      "Showing the 3 runs at Decide.",
+    );
+  });
+
+  it("never prints a zero, in any selection", () => {
+    for (const key of ["sense", "build", "ship"]) {
+      const cap = captionFor({ mode: "map", stations: A1, selected: key as never });
+      expect({ key, cap }).toEqual({ key, cap: null });
+    }
+  });
+});

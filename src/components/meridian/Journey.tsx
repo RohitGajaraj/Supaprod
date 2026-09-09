@@ -694,7 +694,27 @@ export function Journey({
             station={s}
             active={active === s.key}
             onSelect={onSelect}
-            interactive={interactive}
+            /*
+             * ── A FILTER STOP WITH NOTHING BEHIND IT IS NOT A CONTROL ──────
+             *
+             * WALKED ON THE SERVED HOME, 2026-09-10. Discover, Build and Ship
+             * carried no count and were still buttons. Pressing Discover gave
+             * "Showing the 0 runs at Discover." over a list reading "Nothing
+             * is standing at Discover." -- a press that could only ever return
+             * nothing, answered twice.
+             *
+             * The road ALREADY says it: a station with no work carries no
+             * badge and renders faint. So the press adds nothing a person
+             * could not see before making it, which is the founder's
+             * "anticipate, do not interrogate" exactly.
+             *
+             * SCOPED TO `filter`, WHICH IS THE ENTRY'S ROAD. On the run screen
+             * a stop selects the PANE beside it, and a station that filed
+             * nothing is still a pane worth opening -- that is where you go to
+             * find out it filed nothing. Only a filter over a list can be
+             * empty in a way that makes the control pointless.
+             */
+            interactive={interactive && (selects === "pane" || (s.count ?? 0) > 0)}
             selects={selects}
             promise={promise}
           />

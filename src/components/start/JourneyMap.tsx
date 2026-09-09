@@ -83,13 +83,34 @@ export function captionFor({
     .map((s) => AGENT_STATIONS[s.key].name);
   return mode === "promise"
     ? null
-    : selected && here
-      ? `Showing the ${here.count ?? 0} ${here.count === 1 ? "run" : "runs"} at ${AGENT_STATIONS[selected].name}.`
-      : empty
-        ? "Nothing is standing on the road. What finished is in the runs below."
-        : stoppedHere.length > 0
-          ? `${joinPlainly(stoppedHere)} ${stoppedHere.length === 1 ? "has" : "have"} stopped, and will not move without you.`
-          : "Press a station to see only the runs there.";
+    : /*
+       * ── A SELECTED STATION WITH NOTHING ON IT: THE LIST ALREADY SAID IT ───
+       *
+       * This read "Showing the 0 runs at Discover." over a list reading
+       * "Nothing is standing at Discover." One press, one fact, two sentences
+       * -- and "the 0 runs" is an absence dressed as a count, which
+       * `_authenticated.crew.tsx` names as a defect in its own words: *"A zero
+       * stated as a count is the same defect as the negation wall on the
+       * board."*
+       *
+       * The emptiness belongs to the LIST, which is the thing that is empty.
+       * What only this line can carry is the way back, and the `Show all`
+       * control beside it is that -- so the sentence goes and the control
+       * stays.
+       *
+       * An empty filter stop is no longer pressable at all (`Journey`), so
+       * this is now reachable only by standing on a station while its last run
+       * finishes. Rare, real, and it must not print a zero when it happens.
+       */
+      selected && here && (here.count ?? 0) === 0
+      ? null
+      : selected && here
+        ? `Showing the ${here.count} ${here.count === 1 ? "run" : "runs"} at ${AGENT_STATIONS[selected].name}.`
+        : empty
+          ? "Nothing is standing on the road. What finished is in the runs below."
+          : stoppedHere.length > 0
+            ? `${joinPlainly(stoppedHere)} ${stoppedHere.length === 1 ? "has" : "have"} stopped, and will not move without you.`
+            : "Press a station to see only the runs there.";
 }
 
 export function JourneyMap({
@@ -138,9 +159,14 @@ export function JourneyMap({
         selects="filter"
         promise={mode === "promise"}
       />
-      {caption ? (
+      {/* THE WAY BACK OUTLIVES THE SENTENCE. `caption` is null when a selected
+          station has emptied, because the list below already says so -- but the
+          person is still standing inside a filter and needs the way out of it,
+          so the row renders for either reason. Gating the row on `caption`
+          alone took `Show all` away at exactly the moment it was most needed. */}
+      {caption || (selected && onSelect) ? (
         <p className="mrd-meta flex items-center gap-mrd-3">
-          <span>{caption}</span>
+          {caption ? <span>{caption}</span> : null}
           {selected && onSelect ? (
             <Action variant="quiet" onClick={() => onSelect(null)}>
               Show all
