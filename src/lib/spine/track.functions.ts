@@ -2874,11 +2874,15 @@ export const getTrackArtifacts = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<{ stops: StationArtifactView[] }> => {
     const { supabase } = context;
     try {
-      const { data: trackRow } = await supabase
+      const { data: trackRow, error: trackErr } = await supabase
         .from("spine_tracks" as never)
         .select(SELECT)
         .eq("id", data.trackId)
         .maybeSingle();
+      /* Same repair as `readTrackChain` and `getTrack`: `error` was not
+         destructured, so a refusal read as an absent row and the pane drew
+         every station empty. */
+      if (trackErr) failSoftOrThrow(trackErr, "This piece of work");
       if (!trackRow) return { stops: [] };
       const track = rowToTrack(trackRow as unknown as TrackRow);
 
@@ -2887,6 +2891,10 @@ export const getTrackArtifacts = createServerFn({ method: "GET" })
         .select("artifact_kind, artifact_id, station, created_at")
         .eq("track_id", data.trackId)
         .order("created_at", { ascending: true });
+      /* `error || !rows ? []` mapped a refusal onto the same value as a run
+         that has filed nothing, which is the whole defect: the members join is
+         what every station panel and the header's road are built from. */
+      if (error) failSoftOrThrow(error, "What this work has filed");
       const members = (error || !rows ? [] : rows) as unknown as Array<{
         artifact_kind: string;
         artifact_id: string;
@@ -3032,7 +3040,33 @@ export const getTrackArtifacts = createServerFn({ method: "GET" })
           }),
         })),
       };
-    } catch {
+    } catch (e) {
+      /*
+       * ── A REFUSED READ IS NOT "THIS RUN MADE NOTHING" ──────────────────────
+       *
+       * This bare catch turned every failure into a successful `{ stops: [] }`,
+       * which is the empty state's clothes on a failed read, and it is the
+       * shape the sibling reads in this file have now been repaired for three
+       * times (F-126 on `getTrack`, 2026-09-08 on `getTrackActivity`'s runs,
+       * and `readTrackChain` above).
+       *
+       * TWO SURFACES READ IT AND BOTH SAY SOMETHING FALSE. The pane draws every
+       * station as having filed nothing; and a person following a shared
+       * `?artifact=` link is told this run does not hold that artifact, which is
+       * the one case where the person came WITH a reason to believe it does.
+       *
+       * Worse, the road in the header is built from these stops, so an empty
+       * answer draws all seven stations as `pending` -- a finished run reading
+       * as one that never started, under a chip that says Finished.
+       *
+       * The pre-migration window still falls soft, for the reason
+       * `failSoftOrThrow` exists: a column a deploy has not taken yet must cost
+       * a field rather than the screen.
+       */
+      if (e instanceof Error && e.message.includes("could not be read")) throw e;
+      console.error(
+        `[getTrackArtifacts] ${data.trackId}: ${e instanceof Error ? e.message : String(e)}`,
+      );
       return { stops: [] };
     }
   });
@@ -3633,17 +3667,50 @@ export async function readTrackChain(
   const empty: Chain = { stops: [], orphans: [], total: 0 };
 
   try {
-    const [{ data: row }, { data: memberRows }] = await Promise.all([
-      supabase
-        .from("spine_tracks" as never)
-        .select(SELECT)
-        .eq("id", trackId)
-        .maybeSingle(),
-      supabase
-        .from("spine_track_members" as never)
-        .select("artifact_kind,artifact_id,station,created_at")
-        .eq("track_id", trackId),
-    ]);
+    const [{ data: row, error: rowErr }, { data: memberRows, error: memberErr }] =
+      await Promise.all([
+        supabase
+          .from("spine_tracks" as never)
+          .select(SELECT)
+          .eq("id", trackId)
+          .maybeSingle(),
+        supabase
+          .from("spine_track_members" as never)
+          .select("artifact_kind,artifact_id,station,created_at")
+          .eq("track_id", trackId),
+      ]);
+    /*
+     * ── A FAILED READ IS NOT A MISSING RUN, AND THIS IS THE THIRD TIME ──────
+     *
+     * Neither of these two destructured `error` at all, so an expired JWT, an
+     * RLS refusal or a PostgREST 500 resolved as a SUCCESSFUL
+     * `{ track: null, chain: empty }`. The pane's honest branches never fired,
+     * and it landed on its last resort: **"That work could not be found." in
+     * red, with no control, under a header that was drawing the run's title,
+     * its status chip and its road** -- because the route's own `getTrack`
+     * succeeded.
+     *
+     * That sentence is never true in that position. The route returns a
+     * full-page NothingHere for a genuinely absent row BEFORE these panes
+     * mount, so if the pane is rendering, the row exists. A read failure was
+     * the only way to see the string.
+     *
+     * F-126 repaired exactly this in `getTrack` -- *"This did not destructure
+     * `error` AT ALL ... the run screen rendered 'this piece of work does not
+     * exist' about a track that does"* -- and `getTrackActivity` was repaired
+     * for its runs read on 2026-09-08. This is their sibling, three hundred
+     * lines away, and it kept the defect both times.
+     *
+     * THE MEMBERS ERROR IS SEPARATE AND MATTERS ON ITS OWN: swallowed, it makes
+     * every station panel read "has not run yet" and the region's own sub read
+     * "Nothing has been filed yet" on a run that filed plenty.
+     *
+     * `failSoftOrThrow` keeps the pre-migration window soft, which is why this
+     * is that helper rather than a bare throw: a column a deploy has not
+     * migrated yet must still degrade rather than take the pane down.
+     */
+    if (rowErr) failSoftOrThrow(rowErr, "This piece of work");
+    if (memberErr) failSoftOrThrow(memberErr, "What this work has filed");
     if (!row) return { track: null, chain: empty, summary: "" };
 
     const track = rowToTrack(row as unknown as TrackRow);
@@ -3729,7 +3796,22 @@ export async function readTrackChain(
 
     const chain = buildChain({ ...shape, members });
     return { track, chain, summary: describeChain(chain) };
-  } catch {
+  } catch (e) {
+    /*
+     * THE BARE CATCH WAS THE OTHER HALF. It turned every throw inside the
+     * member and title mapping into the same successful-looking empty answer,
+     * including the ones raised two lines above on purpose. A refused read has
+     * to reach the caller as a refusal; the reader draws an error as an error
+     * and keeps polling, which is the honest state and the one that recovers.
+     *
+     * Anything else still falls soft, because the reasons this catch was
+     * written have not gone away: a title lookup against a table a deploy has
+     * not migrated is a real case, and it costs a title rather than the pane.
+     */
+    if (e instanceof Error && e.message.includes("could not be read")) throw e;
+    console.error(
+      `[readTrackChain] ${trackId}: ${e instanceof Error ? e.message : String(e)}`,
+    );
     return { track: null, chain: empty, summary: "" };
   }
 }
@@ -4093,6 +4175,18 @@ export const getPlaybookFiles = createServerFn({ method: "GET" })
     }
   });
 
+/**
+ * How many turns the transcript reads, newest first.
+ *
+ * A CAP THAT IS NOT DISCLOSED READS AS COMPLETENESS. The window exists because
+ * a run can carry hundreds of rows and the payload has to stay small, which is
+ * a fair trade; what is not fair is a screen that shows two hundred turns, says
+ * nothing, and lets a person conclude that is all there was. So the read
+ * returns `turnsCapped` beside the turns and the transcript says what it could
+ * not see, the way `coverageLine` already does for the tool record.
+ */
+export const TURN_WINDOW = 200;
+
 export const getTrackActivity = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
@@ -4105,6 +4199,11 @@ export const getTrackActivity = createServerFn({ method: "GET" })
       transitions: TrackTransition[];
       selfChecks: SelfCheckTally;
       verdict: TrackVerdict | null;
+      /**
+       * How many turns are on screen when the window is full, or null when the
+       * run fits inside it. Null is the ordinary case and draws nothing.
+       */
+      turnsCapped: number | null;
     }> => {
       const { supabase } = context;
       try {
@@ -4125,8 +4224,39 @@ export const getTrackActivity = createServerFn({ method: "GET" })
               "id,agent_slug,agent_name,status,output,created_at,spend_used_usd,duration_ms,tokens_used,halted_reason,failure_kind,trace_id",
             )
             .eq("track_id", data.trackId)
-            .order("created_at", { ascending: true })
-            .limit(200),
+            /*
+             * ── NEWEST FIRST, AND THE ASCENDING READ WAS HIDING LIVE RUNS ────
+             *
+             * This was `ascending: true` with the same `limit(200)`, so the
+             * window was the OLDEST two hundred turns of a run's life and every
+             * turn after them was dropped. The `track_drives` read ninety lines
+             * below carries the identical repair with the identical reasoning,
+             * made on 2026-09-08 after a self-check written at 21:20 fell
+             * outside an ascending window; the population argument was never
+             * carried across to this query, which is the bigger of the two.
+             *
+             * MEASURED 2026-09-09: track `ef50b26a` carries 316 rows in
+             * `agent_runs`. The 200th oldest is dated 2026-08-14; 116 turns
+             * after it, up to the newest on 2026-08-21, were outside the window
+             * and reached no surface at all.
+             *
+             * AND THE DROPPED ROWS ARE EXACTLY THE ONES THAT MATTER, because
+             * the running turn is always the newest. `hasLiveVisit` reads the
+             * turns this returns, so past the cap it answers false while a seat
+             * is working: the transcript stops a week short, the poll drops
+             * from 500 ms to ten seconds, `onLiveChange(false)` lifts to the
+             * route so the header chip does not pulse, the Now card falls
+             * through to "Between steps", and the footer offers "Run it now"
+             * over a seat that is mid-turn. **The whole screen reports an idle
+             * run because the read could not see the live row.**
+             *
+             * NOTHING DOWNSTREAM REVERSES IT and nothing needs to: `activity.ts`
+             * sorts its runs oldest-first before building turns, so the
+             * transcript still reads top to bottom while the window holds the
+             * newest 200. `traceIds` is order-independent.
+             */
+            .order("created_at", { ascending: false })
+            .limit(TURN_WINDOW),
           supabase
             .from("spine_track_members" as never)
             .select("artifact_kind,artifact_id,station,created_at")
@@ -4222,6 +4352,27 @@ export const getTrackActivity = createServerFn({ method: "GET" })
         if (runsRes.error) {
           throw new Error(`The turns on this run could not be read: ${runsRes.error.message}`);
         }
+        /*
+         * ── AND THE MEMBERS READ, FOR THE SAME REASON, ONE TABLE ALONG ───────
+         *
+         * `membersRes.error` was never read, and `membersRes.data ?? []` handed
+         * the failure to `buildActivity` as "this run filed nothing". That is
+         * not a quieter version of the runs defect above, it is a LOUDER one:
+         * `Turn.made` is the members join, and `headline` leads with it, so a
+         * refused read prints **"Filed nothing"** on every turn of a run that
+         * filed plenty -- the record's own unfakeable answer, saying the
+         * opposite of the truth.
+         *
+         * It also poisons what the transcript says ABOUT that: a refrain fires
+         * on consecutive turns that filed nothing, so a failed members read
+         * would manufacture one and quote the seats as having achieved nothing
+         * six times over. The one sentence on that screen that is meant to be
+         * the run's own words would be an artefact of a broken read.
+         *
+         * `failSoftOrThrow` rather than a bare throw, so the pre-migration
+         * window stays soft the way it does everywhere else in this file.
+         */
+        if (membersRes.error) failSoftOrThrow(membersRes.error, "What this run has filed");
         const runs = (runsRes.data ?? []) as unknown as RunRow[];
         /*
          * P-136: ONE CURRENCY ON THE RUN SCREEN. Its own read, after the runs
@@ -4283,6 +4434,14 @@ export const getTrackActivity = createServerFn({ method: "GET" })
 
         return {
           verdict,
+          /*
+           * SAID WHEN THE WINDOW IS FULL, AND NOT OTHERWISE. A run that fits
+           * reports null and the transcript draws nothing extra; a run that
+           * fills the window is one where turns exist that this payload does
+           * not carry, and the reader has to be told rather than left to infer
+           * completeness from a screen that stops.
+           */
+          turnsCapped: runs.length >= TURN_WINDOW ? runs.length : null,
           selfChecks: summariseSelfChecks(
             (drivesRes.data ?? []) as unknown as SelfCheckRow[],
             drivesRes.error ? drivesRes.error.message : null,

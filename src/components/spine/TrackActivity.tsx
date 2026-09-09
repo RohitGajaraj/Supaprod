@@ -1130,6 +1130,23 @@ export function TrackActivity({
    */
   const refrain = whatItKeepsSaying(turns);
 
+  /*
+   * ── WHAT THE WINDOW COULD NOT CARRY ────────────────────────────────────
+   *
+   * The read takes the newest `TURN_WINDOW` turns. That cap is a fair trade
+   * against payload size and it is NOT fair to leave unsaid: a screen that
+   * draws two hundred turns and stops lets a person conclude that is all there
+   * was. Same rule and same register as `coverageLine` above, which says what
+   * the tool record cannot see rather than drawing a zero over it.
+   *
+   * Only when the window is actually full. A run that fits reports null and
+   * this draws nothing, because "showing all 26 of 26" on every complete run
+   * distinguishes nothing.
+   */
+  const cappedLine = q.data?.turnsCapped
+    ? `The newest ${q.data.turnsCapped} turns are here. This run has taken more than that, and the earlier ones are not on this screen.`
+    : null;
+
   const rowFor = (row: ActivityRow, i: number, last: boolean) => {
     if (row.kind === "move") {
       // WHO CAUSED THIS LEG (queue 65). press names the person, sweep
@@ -1671,6 +1688,7 @@ export function TrackActivity({
         </RecordSpeaks>
       ) : null}
       {ranLine ? <p className="mrd-meta">{ranLine}</p> : null}
+      {cappedLine ? <p className="mrd-meta">{cappedLine}</p> : null}
       {/* OUTSIDE the log, for the same reason `ranLine` is: it is a standing
           summary of the whole column rather than an entry, and inside it a
           screen reader would hear it re-announced on every poll. */}

@@ -164,7 +164,31 @@ describe("the bare catches cannot swallow the distinction", () => {
        what is working, and returning an empty list on a failed read would have
        been this very defect committed inside the packet that exists to remove
        it -- the header saying "Nothing running" for a second, quieter reason. */
-    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(8);
+    /*
+     * WAS 8, NOW 10 (Lane 2, 2026-09-09), and this is a RATCHET that only ever
+     * goes up: every entry is one more place where a refused read stopped
+     * wearing the empty state's clothes.
+     *
+     * The ninth is `readTrackChain`, the run screen's right pane. It
+     * destructured no `error` from either of its two reads and wrapped the rest
+     * in a bare catch, so an expired JWT or an RLS refusal resolved as a
+     * SUCCESSFUL `{ track: null, chain: empty }`. The pane's own honest
+     * branches never fired and it landed on its last resort: **"That work could
+     * not be found." in red, with no control, under a header that was drawing
+     * the run's title, its status chip and its road**, because the route's own
+     * `getTrack` had succeeded. That sentence can never be true in that
+     * position -- the route unmounts both panes for a genuinely absent row
+     * before they render -- so a read failure was the only way to produce it.
+     *
+     * The tenth is `getTrackArtifacts`, its sibling. Same bare catch, and its
+     * empty answer is read by two surfaces that both then say something false:
+     * every station panel reads "has not run yet", and the header's road draws
+     * all seven stops as `pending`, so a FINISHED run reads as one that never
+     * started, under a chip saying Finished. A person following a shared
+     * `?artifact=` link is told the run does not hold that artifact -- the one
+     * case where they arrived with a reason to believe it does.
+     */
+    expect(CODE.split('e.message.includes("could not be read")').length - 1).toBe(10);
   });
 
   it("but anything genuinely unexpected still degrades rather than breaking every surface", () => {
