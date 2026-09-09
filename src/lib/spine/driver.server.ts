@@ -4619,18 +4619,25 @@ export async function repairStaleGates(
       .select("id,last_hold,pending_gates")
       .eq("status", "open")
       /*
-       * NON-EMPTY, NOT NON-NULL (measured 2026-09-09, an hour after the first
-       * version served). `pending_gates` defaults to `[]`, so "is not null"
-       * matched all 74 open tracks and the window filled with tracks that had
-       * nothing to prune: five of the six were repaired on the first pass and
-       * the sixth sat at row 54 of a 50-row read, out of reach for ever. The
-       * empty array is the thing to exclude, so the window holds only tracks
-       * this pass can actually help.
+       * ── THE WINDOW HOLDS EVERY OPEN TRACK, AND THE FILTER IS IN JS ────────
+       *
+       * `pending_gates` defaults to `[]`, so "is not null" matches every open
+       * track: the first version read fifty of them ordered by `updated_at`
+       * and the one stale track left sat at row 54, out of reach for ever
+       * (measured on production, 2026-09-09). Excluding the empty array in
+       * the query looked like the fix and did not clear it either, so the
+       * comparison is not doing what it reads as, and a filter whose
+       * behaviour I cannot state exactly is not one to leave in a repair pass.
+       *
+       * The set is small and knowable: 74 open tracks in the whole product,
+       * three tiny columns each. So the read takes every open track and the
+       * emptiness test happens here, in code whose behaviour is not in doubt,
+       * and the BOUND that matters, how much work one pass does, is the slice
+       * below rather than the page size.
        */
       .not("pending_gates", "is", null)
-      .neq("pending_gates", "[]")
       .order("updated_at", { ascending: true })
-      .limit(limit * 5);
+      .limit(500);
     if (error) {
       failed.push(`read: ${error.message}`);
       return { pruned, released, failed };

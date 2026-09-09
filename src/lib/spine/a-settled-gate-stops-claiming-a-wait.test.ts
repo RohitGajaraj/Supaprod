@@ -29,12 +29,20 @@ describe("a settled gate stops claiming a wait", () => {
     expect(at).toBeGreaterThan(-1);
     expect(REPAIR).toContain('.eq("status", "open")');
     expect(REPAIR).toContain('.not("pending_gates", "is", null)');
-    /* The empty array is the thing to exclude: `pending_gates` defaults to
-       `[]`, so filtering on null alone filled the window with tracks that had
-       nothing to prune and left a real one out of reach (measured on
-       production, five repaired and the sixth at row 54 of a 50-row read). */
-    expect(REPAIR).toContain('.neq("pending_gates", "[]")');
-    expect(REPAIR).toContain(".limit(limit * 5)");
+    /*
+     * The window holds every open track (74 in the whole product, three tiny
+     * columns each) and the emptiness test is in JS. Two query-side filters
+     * were tried on production and neither cleared the last stale track: `[]`
+     * is the column's default, so filtering on null alone left it at row 54
+     * of a 50-row page, and excluding the empty array in the query did not
+     * reach it either. A filter whose behaviour cannot be stated exactly does
+     * not belong in a repair pass.
+     */
+    expect(REPAIR).toContain(".limit(500)");
+    expect(REPAIR).not.toContain('.neq("pending_gates", "[]")');
+    expect(REPAIR).toContain("r.pending_gates.length > 0");
+    // The bound that matters is how much work one pass does.
+    expect(REPAIR).toContain(".slice(0, limit)");
   });
 
   it("prunes through the driver's own harvest, so an executed gate still files its work", () => {
