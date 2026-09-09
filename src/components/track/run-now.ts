@@ -39,6 +39,7 @@ import { verbForTool } from "@/lib/presence/character";
 import { formatDeadlineDate } from "@/components/track/expiry-deadline";
 import { relativeTime } from "@/lib/memory-view";
 import { triesLine } from "@/components/track/hold-tries";
+import { nothingHasPickedItUp } from "@/components/track/nothing-has-picked-it-up";
 
 export type NowRegister =
   | "reading"
@@ -348,6 +349,61 @@ export function runNow(input: NowInput): Now {
   }
 
   const moved = t.drivenAt ? `It last moved ${relativeTime(t.drivenAt, input.nowMs)}. ` : "";
+  /*
+   * ── THE LOOP DOES NOT ALWAYS PICK IT UP, AND THE RECORD KNOWS ────────────
+   *
+   * This register said, on every open track between steps:
+   *
+   *     Waiting for its next turn at Build.
+   *     It last moved 12 days ago. The loop picks it up on its own. Run it now
+   *     to skip the wait.
+   *
+   * Measured 2026-09-09: of 74 open tracks, 60 have not been touched in 8 to 19
+   * days. The sentence is a PREDICTION, it was false on most of the runs that
+   * showed it, and the fact that contradicts it -- "it last moved 12 days ago"
+   * -- was sitting in the same line, one clause earlier. The screen printed the
+   * evidence against its own claim and did not read it.
+   *
+   * A person who believes "the loop picks it up on its own" waits, which is the
+   * one thing that does not work, and the button that does is eight pixels
+   * away. That is the difference between a screen waiting WITH you and one
+   * waiting FOR you.
+   *
+   * So the promise stands only while the record supports it. Past the point
+   * where a working loop has ever gone quiet (`nothing-has-picked-it-up.ts`,
+   * where the threshold is measured), the line says what happened instead of
+   * what will.
+   *
+   * THE CHIP STAYS QUIET AND THE REGISTER STAYS `between`. Nothing is wrong
+   * with this run and nobody has failed it; the loop stopped coming, which is a
+   * fact about the platform. Colouring it as a hold would tell a person their
+   * work is broken when it is not, and `stopped` would claim the run had given
+   * up, which it has not.
+   */
+  if (
+    nothingHasPickedItUp({
+      drivenAt: t.drivenAt,
+      deferredUntil: t.deferredUntil,
+      nowMs: input.nowMs,
+    })
+  ) {
+    return {
+      register: "between",
+      status: "quiet",
+      word: "Between steps",
+      headline: `Nothing has picked it up since it last moved${
+        t.drivenAt ? `, ${relativeTime(t.drivenAt, input.nowMs)}` : ""
+      }.`,
+      /* No diagnosis of WHY: this surface reads one track's row and cannot see
+         whether the sweep is down, the workspace is out of credit, or this run
+         is simply behind sixty others. Naming a cause it has not read is the
+         defect the rest of this screen was repaired for. What it can say is
+         that pressing the button is the thing that moves it. */
+      line: `Run it now to start ${here} yourself.`,
+      pulse: false,
+    };
+  }
+
   return {
     register: "between",
     status: "quiet",
