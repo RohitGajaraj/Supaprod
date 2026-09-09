@@ -13,6 +13,7 @@ import { describe, expect, it } from "bun:test";
 
 import {
   nowhereToLookYet,
+  theQuoteAlreadySaidIt,
   theRunNeverHadASource,
   type WorkspaceSetup,
 } from "./nowhere-to-look-yet";
@@ -143,5 +144,44 @@ describe("the run that never had a source", () => {
         setup: NOTHING_CONNECTED,
       }),
     ).toBeNull();
+  });
+});
+
+describe("when the agent has already said it, the door is the only new thing", () => {
+  /*
+   * On `6cc7a010` the Now card quotes Build verbatim: "No repository is
+   * connected for this workspace. Please bind a repository on Connectors."
+   * Rendering "No repository is connected to this workspace." underneath is the
+   * same sentence twice, which is the defect this screen has been repaired for
+   * four times this week.
+   *
+   * The quote says what is wrong, in the words of the seat that hit it. The
+   * door says where to go, derived from the workspace's own state -- the half a
+   * quote cannot be, because an agent's prose is not a link.
+   */
+  const found = nowhereToLookYet({
+    station: "build",
+    filedAnything: false,
+    setup: NOTHING_CONNECTED,
+  });
+
+  it("drops the sentence when the blocker is at that same station", () => {
+    expect(theQuoteAlreadySaidIt("build", found, "build")).toBe(true);
+  });
+
+  it("keeps it when the blocker is somewhere else", () => {
+    // The run stands at Design on credit halts while the wall is Build's. The
+    // quote on screen is about Design, so nothing has said this yet.
+    expect(theQuoteAlreadySaidIt("build", found, "design")).toBe(false);
+  });
+
+  it("and keeps it when there is no blocker at all", () => {
+    // A station that found nothing cleanly has no quote above it, so the
+    // sentence is the only thing saying why.
+    expect(theQuoteAlreadySaidIt(null, found, "build")).toBe(false);
+  });
+
+  it("says nothing to suppress when there is no gap", () => {
+    expect(theQuoteAlreadySaidIt("build", null, "build")).toBe(false);
   });
 });

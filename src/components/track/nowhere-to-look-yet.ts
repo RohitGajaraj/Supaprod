@@ -142,6 +142,37 @@ export function nowhereToLookYet(input: {
 }
 
 /**
+ * WHEN THE AGENT HAS ALREADY SAID IT, THE DOOR IS THE ONLY NEW THING.
+ *
+ * On `6cc7a010` the Now card quotes Build verbatim: *"No repository is
+ * connected for this workspace. Please bind a repository on Connectors."*
+ * Rendering "No repository is connected to this workspace." underneath that is
+ * the same sentence twice, a few pixels apart, which is the defect this screen
+ * has been repaired for four times this week.
+ *
+ * So the two halves separate. The QUOTE says what is wrong, in the words of the
+ * seat that hit it, which are better than anything this module can write. The
+ * DOOR says where to go, derived from the workspace's own state, which is the
+ * half the quote cannot be trusted for -- an agent's prose is not a link, and
+ * S1's point stands that matching on it gives a door that disappears when a
+ * model rewords.
+ *
+ * Together they are what the card was missing: it named the wall and offered
+ * nothing, or offered the one act ("send it back a step") that had already
+ * failed three times.
+ *
+ * `true` when the record's own quote is already telling the person this, so the
+ * caller draws the door alone.
+ */
+export function theQuoteAlreadySaidIt(
+  blockerStation: AgentStation | null | undefined,
+  found: NowhereToLook | null,
+  atStation: AgentStation | null | undefined,
+): boolean {
+  return Boolean(found && blockerStation && atStation && blockerStation === atStation);
+}
+
+/**
  * The same question asked of a whole run, for the road and the story.
  *
  * A run whose FIRST station had nowhere to look is a different run from one

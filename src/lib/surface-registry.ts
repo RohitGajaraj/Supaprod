@@ -149,6 +149,26 @@ export const SURFACE_REGISTRY = {
     opensFrom: "top-bar-workspace-switcher",
     status: "live",
   },
+  /*
+   * NOT A SURFACE OF ITS OWN, AND REGISTERED AT THE ONE IT SPEAKS ON.
+   *
+   * `workspace-setup.functions.ts` answers one question -- has this workspace
+   * got a source, a repository, somewhere to release to -- and the only thing
+   * that asks is the run screen's hold card, which needs it to tell "Discover
+   * found nothing" apart from "Discover had nowhere to look". So its home is
+   * the run, not a settings page: a person never navigates to this, they meet
+   * it at the moment a station could not start.
+   *
+   * The door it draws goes to Sources or Connectors, which are `connections`'
+   * home two entries above. This entry is the READER; that one is where the
+   * reader sends you.
+   */
+  "workspace-setup": {
+    kind: "route",
+    home: "track",
+    opensFrom: "run-hold-card",
+    status: "live",
+  },
   // The switches for the background work a workspace does on its own. Registered
   // as `planned` rather than `live` because the server half exists and nothing
   // renders it yet: the writers were built on 2026-08-14 after auto_derive_enabled

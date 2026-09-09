@@ -93,6 +93,8 @@ import { useRunTally } from "@/components/track/run-tally";
 import { ThroughLine } from "@/components/track/ThroughLine";
 import { useRefrain } from "@/components/track/run-refrain";
 import { refrainLead } from "@/lib/spine/what-it-keeps-saying";
+import { getWorkspaceSetup } from "@/lib/workspace-setup.functions";
+import { nowhereToLookYet, theQuoteAlreadySaidIt } from "@/components/track/nowhere-to-look-yet";
 import { blockerLead, refrainStillSaysSomething } from "@/lib/spine/the-blocker-it-already-named";
 import { stoppedByYou } from "@/components/track/footer-mode";
 import {
@@ -1020,6 +1022,28 @@ export function TrackRunLeft({
    */
   const { refrain, blocker } = useRefrain(trackId);
 
+  /*
+   * WHAT THIS WORKSPACE HAS CONNECTED, asked of the workspace rather than read
+   * out of an agent's sentence. Enabled only when there is a station to ask
+   * about, so an arriving run costs nothing, and cached for a minute because a
+   * connection is not something a person changes while watching a run.
+   */
+  const fSetup = useServerFn(getWorkspaceSetup);
+  const setupQ = useQuery({
+    queryKey: ["workspace-setup", activeWorkspace?.id],
+    queryFn: () => fSetup({ data: { workspaceId: activeWorkspace!.id } }),
+    enabled: Boolean(activeWorkspace?.id),
+    staleTime: 60_000,
+  });
+
+  /* The wall the blocker names, when the workspace confirms the thing it needs
+     is absent -- and otherwise the standing station's own. */
+  const setupGap = nowhereToLookYet({
+    station: (blocker?.station as AgentStation | null) ?? track?.station ?? null,
+    filedAnything: false,
+    setup: setupQ.data ?? null,
+  });
+
   const holdWayOut = wayOut(
     track?.holdReason,
     { undo: Boolean(holdTakeOver?.undoTo), handback: Boolean(holdTakeOver?.handback) },
@@ -1331,6 +1355,46 @@ export function TrackRunLeft({
            * fewer words, and the count is already in the lead above.
            */}
           {blocker ? <HoldFact sub={`“${blocker.said}”`}>{blockerLead(blocker)}</HoldFact> : null}
+          {/*
+           * ── THE DOOR THE QUOTE ASKS FOR, DERIVED FROM STATE ──────────────
+           *
+           * The card named the wall and offered nothing. Its only act was
+           * "Send it back to Plan", which is what produced the loop.
+           *
+           * `nowhereToLookYet` reads the WORKSPACE, not the agent's prose. That
+           * distinction is the whole reason this is trustworthy: "No repository
+           * is connected for this workspace" is right there in
+           * `agent_runs.output`, and matching on it gives a door that vanishes
+           * the moment a model rewords, where an absent door looks exactly like
+           * a run that did not need one.
+           *
+           * THE SENTENCE IS DROPPED WHEN THE QUOTE ABOVE IS ALREADY SAYING IT.
+           * On the measured run the blocker quotes Build verbatim asking for a
+           * repository on Connectors, so "No repository is connected to this
+           * workspace." underneath would be the same sentence twice. The quote
+           * says what is wrong in the words of the seat that hit it; this says
+           * where to go, which is the half a quote cannot be.
+           */}
+          {setupGap ? (
+            <HoldFact
+              sub={
+                theQuoteAlreadySaidIt(
+                  blocker?.station as AgentStation | null,
+                  setupGap,
+                  track?.station,
+                )
+                  ? undefined
+                  : setupGap.said
+              }
+            >
+              <a
+                href={setupGap.door.href}
+                className="mrd-focus rounded-mrd-ctl underline decoration-mrd-line underline-offset-4 transition-colors hover:text-mrd-ink hover:decoration-mrd-edge"
+              >
+                {setupGap.door.label}
+              </a>
+            </HoldFact>
+          ) : null}
           {refrain && refrainStillSaysSomething(blocker, track?.station) ? (
             <HoldFact>{refrainLead(refrain)}</HoldFact>
           ) : null}
