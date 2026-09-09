@@ -76,7 +76,11 @@ export function ComposerRoutePicker({
         </Picker>
       </label>
       {/* The consequence, not a promise: where it enters and what policy
-          waives are both checkable the moment the run starts. */}
+          waives are both checkable the moment the run starts. The dot is the
+          shell's own separator between two facts on one line, and it is
+          hidden from a reader who is hearing the sentence rather than
+          scanning it. */}
+      <span aria-hidden="true">·</span>
       <span>{routeClause(shape)}</span>
     </div>
   );
