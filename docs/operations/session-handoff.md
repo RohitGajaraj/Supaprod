@@ -2895,11 +2895,31 @@ blocked on somebody else and the fourth on a measurement I had not taken.
    too.** Lane 1 built it for the Journey paint table after `stopped` landed
    byte-identical to `you`. The run screen draws the same states; if both can
    co-occur on a road here, it is the same collision.
-2. **Territory 2 is thinner than it looks, and I could not find the gap.** The
-   finish state now carries the verdict, the claim, the PR and the story. I went
-   looking for what "what changed and what it was worth" still misses and did
-   not find something I could name from a column. Somebody should look again
-   with fresh eyes rather than take my word for it.
+2. **Territory 2's gap is a DOOR WITH NOTHING BEHIND IT, and I found it late.**
+   Earlier in this session I wrote that I could not name what the finish state
+   still misses. That was because I kept asking "what does the screen fail to
+   SAY". It says everything: the verdict, the claim, the PR, the story. What it
+   cannot do is let you ACT on any of it. Ask "what does a person do next"
+   instead and it falls out immediately:
+
+   | | |
+   |---|---|
+   | learnings on the record | **135** |
+   | tracks that started from one | **1** |
+   | tracks all time | 121 |
+
+   `spine_tracks.from_learning_id` exists and `came-back-on-its-own.ts` renders
+   a line for it. **`startTrack` cannot accept one** — its validator takes
+   `opportunityId` but no learning — so the column can be read and not written
+   through the start path. Learn is the seventh station and the only one whose
+   output is meant to change what happens next; 134 of 135 learnings have fed
+   nothing.
+
+   Filed with Lane 3 (the write). The surface half is small once it lands: a
+   finished run with a graded learning offers to start the next piece of work
+   from it, and `cameBackOnItsOwn` already draws the other end of that thread.
+   **Not measured for demand** — one track carrying the column says nothing when
+   nothing can write it.
 3. **A drawing with zero files can be attached to a track.** `9de19b1a` on
    `6cc7a010` has none and 182 characters of description. Whether that should be
    attached at all is a question about the WRITE; Lane 3 has it behind the
