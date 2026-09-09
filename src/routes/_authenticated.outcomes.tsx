@@ -1760,7 +1760,7 @@ function MemoryPage() {
               </>
             }
           >
-            {verdictLine(latest.verdict, latest.opportunity_title ?? "A call you shipped")}{" "}
+            {verdictLine(latest.verdict, latest.opportunity_title ?? "A decision you shipped")}{" "}
             {latest.summary}
           </RecordSpeaks>
         ) : null}

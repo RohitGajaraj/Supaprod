@@ -438,8 +438,14 @@ export function DecisionsPanel() {
               taken off the same rows drawn below it. */}
           <p className="text-mrd-small text-mrd-mute">
             <Num>{coverage.withForecast}</Num> of <Num>{coverage.total}</Num>{" "}
-            {coverage.total === 1 ? "call on this list carries" : "calls on this list carry"} a
-            forecast, written before the outcome was known.
+            {/* DECISION, NOT CALL (fifth review, 2026-09-09). This list is the
+                decisions table, and "call" is the queue's noun for the thing
+                waiting on a person; the same page one region up already says
+                "67 decisions". */}
+            {coverage.total === 1
+              ? "decision on this list carries"
+              : "decisions on this list carry"}{" "}
+            a forecast, written before the outcome was known.
             {coverage.tail ? ` ${coverage.tail}` : null}
           </p>
           {/*
