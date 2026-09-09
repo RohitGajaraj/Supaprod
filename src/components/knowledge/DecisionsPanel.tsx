@@ -61,6 +61,7 @@
  * export that DecisionDetail imports from here.
  */
 import { AutoChip } from "@/components/supaprod/AutoChip";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { useEffect, useState } from "react";
 import { humanWriteError } from "@/lib/roles.functions";
 import { Row } from "@/components/meridian/rows";
@@ -204,14 +205,52 @@ export function DecisionsPanel() {
   // Debounce search input so keystrokes don't fire a request per character.
   const debouncedQ = useDebouncedValue(q, 275);
 
+  /*
+   * ── THE LIST IS SCOPED TO THE WORKSPACE YOU ARE STANDING IN ───────────────
+   *
+   * READ ON THE SERVED /outcomes, 2026-09-09, workspace "A1 delete probe". The
+   * page said, in its largest type:
+   *
+   *   8 decisions are on the record, and nothing has come back yet.
+   *
+   * and six hundred pixels below, in this list:
+   *
+   *   57 of 75 decisions on this list carry a forecast...
+   *   Show 67 more
+   *
+   * MEASURED: that workspace holds 8 decisions. The USER holds 75 across every
+   * workspace on the account. So the headline was right, this list was showing
+   * 67 rows from workspaces the reader was not in, and the two numbers on one
+   * page could not both be true.
+   *
+   * `readDecisions` has always been able to scope -- `if (data?.workspaceId) q
+   * = q.eq("workspace_id", ...)`. It was simply never given one. Every OTHER
+   * read on this route passes `activeWorkspaceId` (brain-status,
+   * company-brain-stats, compounding, brain-standing); `<DecisionsPanel />` is
+   * mounted with no props at all and is the only call site, so this is an
+   * omission rather than a decision somebody made.
+   *
+   * ── AND IT WAITS RATHER THAN READING WIDE ─────────────────────────────────
+   * `enabled` matters as much as the filter. An unscoped read while the
+   * workspace resolves would draw all 75 for a beat and then cut to 8, which is
+   * the defect happening in miniature on every arrival. A list that does not
+   * yet know its scope must not draw a wider one; it waits, and the panel's own
+   * reading state covers it.
+   *
+   * The workspace is part of the KEY as well as the input, or switching
+   * workspace would serve the previous one's rows from cache.
+   */
+  const { activeWorkspaceId } = useWorkspace();
   const listInput = {
     source: source === "all" ? undefined : source,
     status: status === "all" ? undefined : status,
     q: debouncedQ.trim() || undefined,
+    workspaceId: activeWorkspaceId ?? undefined,
   };
   const decisions = useQuery({
     queryKey: ["decisions", listInput],
     queryFn: () => fList({ data: listInput }),
+    enabled: !!activeWorkspaceId,
   });
 
   // THE COMMIT. Session local on purpose: the durable record is the ledger
