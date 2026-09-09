@@ -180,6 +180,20 @@ export const BOOT_SHELL_ID = "boot-frame";
  * storage disabled, a renamed key, a parse failure -- leaves the frame hidden
  * and the product exactly as it is today. The worst case is the status quo,
  * never a wrong frame over the wrong page.
+ *
+ * ── THE ONE CASE IT GETS WRONG, NAMED SO NOBODY REDISCOVERS IT ────────────
+ * It asks whether a session token EXISTS, not whether it is still valid. A
+ * reader whose token has expired sees the frame, then `beforeLoad` redirects
+ * them to sign in. So the frame is briefly right about where they were going
+ * and wrong about where they land.
+ *
+ * Left deliberately. Reading `expires_at` means parsing Supabase's stored
+ * token shape in the critical path, which couples this to an internal format
+ * that can change -- and when it changed the frame would silently stop
+ * appearing for everyone, trading a rare mild flash for a permanent invisible
+ * regression. The flash costs an expired session one frame; the coupling
+ * would cost every cold arrival, quietly. If Supabase ever exposes validity
+ * as a plain stored value, this is the line that changes.
  */
 export function bootFrameScript(): string {
   const publics = JSON.stringify(BOOT_PUBLIC_PREFIXES);
