@@ -2563,3 +2563,85 @@ judgement than deleting a repetition.
 - **The four remaining chip/headline restatements** above.
 - **The `failed` node's fill** is verified only on a `stopped` node (reads right: clearly the node the
   road ended at, not loud). The fail hue is unjudged.
+
+## Lane 3 · 19:27 IST 09-09 · the reads, and the one I deleted after making it fast
+
+**A join whose key the database already holds does not need a round trip to learn it.**
+`readStudioSessions` backs the station strip, which mounts on every authenticated page, so it is
+the most-mounted read in the product. It was eleven hops on 09-08 and three after that day's fold.
+The third round existed for one reason: four of its reads were keyed on what the second round
+returned. The file count per changeset, the title of a spec found through the lineage, the cost
+events of a trace found on a checkpoint, and the slug of the agent an unrun proposal was routed to.
+All four are joins. One PostgREST aggregate over the existing foreign key
+`studio_changes.changeset_id`, plus `mission_spec_titles` and `mission_routed_stations` in migration
+`20260909101000`, moved them into the round that already holds the key. `e59d65380`.
+
+**The method matters more than the hop.** Each function was run on production against the reads it
+replaces **before the caller moved**: the 60 newest runs, the 80 oldest carrying no `trace_id` on
+the row, every mission's lineage, every routing. Zero disagreements, cost totals equal to four
+decimal places. Once the caller is on the new read there is nothing left to compare it to, so that
+window is the only moment the comparison exists.
+
+**Two LEFT JOINs are deliberate and both have a real row behind them.** Six missions on production
+point at an agent row that no longer exists, so they come back with a null slug rather than not at
+all. A spec the caller cannot read keeps its lineage link with a null title and falls back to the
+word "Spec" on the surface. Lane 1's phrasing, which is better than mine: **an inner join is a
+claim that the nicety exists, and when it does not, it deletes the fact instead.**
+
+**Then I deleted the thing I had just made fast.** `StudioSessionListItem.cost_usd` is rendered by
+no surface -- Lane 1 measured it while auditing the swallowed errors around it, and every
+`.cost_usd` in `src` is a different object or a different column. So the most-mounted read in the
+product was summing money on every page and dropping it. The field is gone and `run_trace_costs`
+goes with it (`20260909101100`), five hours after it was written, rather than sitting in the schema
+for the next reader to work out whether it is load-bearing. `3343b18e3`.
+
+**The rule that came out of it, now in the design contract (Lane 1, `a38908fa0`): verifying a read
+proves it is correct, never that anyone wanted it.** Ask what renders it before you ask whether it
+is right. A correct answer nobody reads is the most expensive kind, and the careful verification
+pass an hour earlier is exactly what made this one feel load-bearing.
+
+**Two swallowed errors in one handler, answered two different ways, and the difference is the
+point.** The missions read now **throws**: without it the handler returns an empty list, and the
+strip draws an empty list as seven stations with no work in them, which is a claim about the
+workspace rather than about the read. Its own "count unavailable" state is correct and is only
+reachable by throwing. The gate count travels as **null**: `run-state.ts` already catches
+`waiting_approval`, `blocked` and `proposed` from the status itself, so the only run a swallowed
+gate read can lose is one whose status still says running while an approval sits pending. Blanking
+seven stations for that costs more than it saves. `runState` resolves an unread count toward the
+look, because a glance at a run that needs nothing is cheaper than a person waiting on a machine
+that says it is busy.
+
+**The round-counting wire can now fail a read.** `wireError("...")` returned from a fixture resolves
+as `{ data: null, error }` instead of rows. Every finding today turned on the difference between a
+read that failed and a read that found nothing, and a fake that can only return rows cannot express
+it. Lane 1 is pointing their home-answers hop guard at it next.
+
+**A union is membership, not a cast** (`32f5eeeb0`), from Lane 1's census pattern: grep
+`as <UnionName>`, sort into derived-from-the-type's-own-record, guarded-by-a-membership-test, and
+everything else is a claim. Two claims here. The self-improve mode, read from a column with no
+CHECK constraint, is a membership test now. The graph key parser **stays a cast**, with its reason
+stated rather than left silent: the keys are written by that module's own writers, so an unknown
+kind means the round trip is broken rather than that a caller sent rubbish, and the honest answer is
+neither to drop the node (which hides one that exists) nor to draw a kind that does not exist and
+say nothing. Twice today the right answer was to keep the thing and write down why.
+
+**What is open.**
+
+1. **Nothing of mine is unshipped.** Everything is pushed; Lane 1 pressed `dcae8488` and the five
+   routes answer 200.
+2. **The strip's wall-clock on the served build is NOT measured.** The hop count is verified in the
+   wire and against production; the latency is not. Lane 1 tried the Chrome network reader three
+   times on two signed-in tabs and it wedged, which has been happening to two lanes all afternoon.
+   Neither of us should upgrade this to "confirmed" without a browser. **The file count on a
+   session card is now the single figure that would move first if a join were wrong**, since the
+   cost figure no longer exists.
+3. **The Worker's cold start** is the platform's and is above every handler on this lane.
+4. **`eslint.config.js` is hook-protected**, so the `.remember/tmp/**` ignore is still the founder's
+   call. `src` is clean; the remaining errors are `.claude/workflows/*.js` and archived docs.
+5. **`meridian-surfaces.ts` no longer exists in the tree**, so Lane 2's note about it listing stub
+   routes is dead.
+
+**A negative result, recorded so nobody re-runs it.** I swept for a second `cost_usd`: no discarded
+read binding anywhere in `src/lib` or `src/routes`, and no other returned field that costs a
+dedicated read and reaches no surface. The one that existed was the one Lane 1 found.
+
