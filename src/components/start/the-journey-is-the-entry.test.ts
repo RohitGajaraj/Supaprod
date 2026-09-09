@@ -206,3 +206,40 @@ describe("the three layers stitch together", () => {
     expect(guard).toContain("bets.data.length > 0");
   });
 });
+
+/*
+ * ── THE PAGE OPENS WITH A STATEMENT, AND THE HERO OWNS THE INSTRUCTION ────
+ *
+ * The first draft of this sentence opened *"Say what should change..."*, and
+ * the hero's own first-run line is *"Say it in one sentence. You will watch it
+ * happen on the run's own page..."*. On a first visit -- the state this
+ * sentence exists for -- the page would have carried three sentences about
+ * saying a sentence, stacked with the road between them.
+ *
+ * That is the founder's *"dump of data and content"*, introduced by the change
+ * that was meant to answer it.
+ */
+describe("the message states, the hero instructs", () => {
+  const HERO = readFileSync(join(import.meta.dir, "Hero.tsx"), "utf8");
+
+  it("does not open the page with an imperative", () => {
+    const said = whatThisDoesForYou({ hasClosedLoop: false })!;
+    expect({
+      said,
+      opensWithAnOrder: /^(Say|Tell|Start|Type|Ask|Write|Press)\b/.test(said),
+    }).toEqual({ said, opensWithAnOrder: false });
+  });
+
+  it("does not repeat the verb the hero's first-run line is built on", () => {
+    /*
+     * The hero says "Say it in one sentence" on the exact state this draws in.
+     * Two sentences agreeing 250px apart are worse than two contradicting: a
+     * reader cannot tell which is the surface's own claim.
+     */
+    const said = whatThisDoesForYou({ hasClosedLoop: false })!;
+    expect(HERO).toContain("Say it in one sentence");
+    expect({ overlaps: said.includes("Say it") || said.startsWith("Say") }).toEqual({
+      overlaps: false,
+    });
+  });
+});

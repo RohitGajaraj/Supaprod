@@ -48,5 +48,21 @@ export function whatThisDoesForYou(input: {
    */
   if (input.unknown) return null;
   if (input.hasClosedLoop) return null;
-  return "Say what should change. Seven stations take it from evidence to shipped, and grade whether it worked.";
+  /*
+   * A STATEMENT, NEVER AN INSTRUCTION, AND THAT IS NOT A STYLE PREFERENCE.
+   *
+   * The first draft opened *"Say what should change..."* and the hero's own
+   * first-run line is *"Say it in one sentence. You will watch it happen on
+   * the run's own page..."*. On the state this sentence matters most in --
+   * somebody's first visit -- the page would have carried THREE sentences
+   * about saying a sentence, stacked with the road between them. That is the
+   * dump the founder is describing, and I would have introduced it while
+   * fixing it.
+   *
+   * The division is clean once it is named: **this says what the machine IS,
+   * the hero says what to DO.** A page should open with a statement anyway; an
+   * imperative in the first line is a product asking before it has said
+   * anything about itself.
+   */
+  return "Seven stations take one sentence from evidence to shipped, and grade whether it worked.";
 }
