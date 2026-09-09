@@ -728,6 +728,23 @@ counted by eye, and three more emitting into nothing; the register census found 
 surface registry failed a new file on its author before they had decided where it belonged. **A guard
 that fails on its first run is the only kind anyone trusts afterwards.**
 
+**THE SAME DEFECT ACROSS TIME, AND IT IS THE COMMONER HALF.** Law 14 above is about elements that
+collide at one moment. Three sightings in one night were the other shape: **a change that is
+individually correct, landing somewhere nobody intended.**
+
+| The change | Why it was right | Where it landed |
+| --- | --- | --- |
+| `stopped` moved onto the you-chip fill | Measured greyscale argument; correctly closed `held`/`failed` | Byte-identical to `you`. Three runs needing an answer and two that gave up became one pixel. |
+| `Mission completed:` prefix removed from `decisions.title` | Provenance belongs in `source_kind`, and the queue already renders it | The title now equalled `source_label`, so the Inbox card ended in "From \<its own title\>". |
+| "0 ask first" omitted at zero | Nobody says "0 ask first"; an absence dressed as a measurement | Left "16 run without asking you" directly under "16 agents work here." |
+
+**Every one was reviewed against its own reason, and every reason was sound.** What no diff shows is
+the state the change ARRIVES AT. So the rule is the same as law 14's and it applies to edits rather
+than to screens: after changing a value other things compare against — a colour, a title, a
+threshold, a clause — go and read the ENDPOINT. For a paint table that means comparing every pair,
+not the pair you touched. For a string it means finding everything that compares it. **The question
+is never "was this change right" but "what now looks the same that did not before".**
+
 ### 15. A delta needs a whole to be a delta of
 
 Added 2026-09-09. `/arriving` in an empty workspace said, in three consecutive lines: *"Your sources
