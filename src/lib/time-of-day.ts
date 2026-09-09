@@ -42,6 +42,27 @@ function calendarDate(iso: string, zone: string): string {
   }).format(new Date(iso));
 }
 
+/**
+ * Whole days from `fromIso` to `toIso`, counted in CALENDAR DAYS in `zone`.
+ *
+ * NOT `(b - a) / 86_400_000`, and the difference is the whole reason this is
+ * here. A forecast horizon is stored at midnight UTC; a person in IST is five
+ * and a half hours ahead, so a horizon "two days away" by subtraction can be
+ * one or three days away on their calendar depending on the hour they look.
+ * A date a product commits to has to be counted the way the person reading it
+ * counts, which is by days on a wall, not by elapsed milliseconds.
+ *
+ * Negative when `toIso` is already behind `fromIso`.
+ */
+export function daysBetweenInZone(fromIso: string, toIso: string, zone: string): number {
+  const from = calendarDate(fromIso, zone);
+  const to = calendarDate(toIso, zone);
+  /* Both are YYYY-MM-DD in the person's zone, so anchoring them at UTC
+     midnight compares the DAYS rather than the instants and no offset can
+     re-enter through the subtraction. */
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
+}
+
 /** Whether two ISO instants fall on the same calendar day in `zone`. */
 export function sameCalendarDay(a: string, b: string, zone: string): boolean {
   return calendarDate(a, zone) === calendarDate(b, zone);

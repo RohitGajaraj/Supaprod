@@ -82,7 +82,6 @@ const STILL_RAW = new Set<string>([
   "src/lib/ai/tools/registry.server.ts",
   "src/lib/ask-record.ts",
   "src/lib/memory-view.ts",
-  "src/lib/spec-projections.ts",
   "src/routes/_authenticated.admin.people.tsx",
   "src/routes/_authenticated.admin.platform.tsx",
   "src/routes/_authenticated.admin.pricing.tsx",
@@ -114,7 +113,28 @@ function sources(dir: string, out: string[] = []): string[] {
 }
 
 describe("a clock reads the person's zone", () => {
-  const raw = sources("src").filter((f) => RAW_CLOCK.test(readFileSync(f, "utf8")));
+  /*
+   * ── COMMENTS ARE NOT CODE, AND THIS GUARD WAS READING THEM ────────────────
+   *
+   * It matched any file whose TEXT contained `toLocaleDateString`, which
+   * includes every file explaining why it does not use one. Two were caught
+   * that way: `spec-projections.ts`, whose only match is the sentence
+   * "Slicing (not toLocaleDateString) keeps this timezone-stable" -- a file
+   * documenting that it is doing the right thing, listed as debt for saying so
+   * -- and `the-bet-still-open.ts`, which was flagged for a comment recording
+   * the zone bug this very guard had just caught in it.
+   *
+   * A guard that fires on prose about a defect teaches people to stop writing
+   * the prose, which is the opposite of what this repo wants. It reads code now.
+   *
+   * STRINGS ARE DELIBERATELY LEFT IN. A previous guard of mine stripped string
+   * literals as well and erased the very literal it was hunting, so it found
+   * zero call sites and passed on a file that still held the defect.
+   */
+  const code = (src: string): string =>
+    src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  const raw = sources("src").filter((f) => RAW_CLOCK.test(code(readFileSync(f, "utf8"))));
 
   it("lets no new file format a time without the zone", () => {
     const newcomers = raw.filter((f) => !STILL_RAW.has(f));

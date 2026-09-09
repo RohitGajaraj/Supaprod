@@ -46,6 +46,8 @@ import { readHomeAnswers } from "@/lib/start/home-answers.functions";
 import { homeAnswers } from "@/components/start/three-answers-above-your-runs";
 import { HomeAnswers } from "@/components/start/HomeAnswers";
 import { WhetherItWorked } from "@/components/start/WhetherItWorked";
+import { BetStillOpen } from "@/components/start/BetStillOpen";
+import { theBetStillOpen } from "@/components/start/the-bet-still-open";
 import { whetherItWorked } from "@/components/start/whether-it-worked";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { APPROVALS_QUEUE_PREFIX } from "@/lib/query-keys";
@@ -521,6 +523,30 @@ function StartLanding() {
     closed: homeReads.isSuccess ? homeReads.data.closed : null,
     read: homeReads.isSuccess ? homeReads.data.closedRead : false,
   });
+  /*
+   * ── AND WHAT IT IS BETTING ON, WHEN NOTHING HAS COME BACK YET ────────────
+   *
+   * MEASURED 2026-09-09: every workspace holding a graded outcome is a seed or
+   * a sample, and the founder's own two hold 16 runs and zero. So `itWorked`
+   * above -- the region built for his "I cannot feel the value" -- draws
+   * nothing for him, and the entry then says nothing about value at all.
+   *
+   * Same read, same key, no extra request: `openBet` rides the batch the three
+   * answers already issue. It returns null whenever `closed` is present, so
+   * the two are never both on screen -- a result outranks a promise.
+   */
+  const betOpen = theBetStillOpen({
+    openBet: homeReads.isSuccess ? homeReads.data.openBet : null,
+    closed: homeReads.isSuccess ? homeReads.data.closed : null,
+    /* Read at render, like the quiet clock below it. The distance to a
+       horizon days away does not need a ticking value, and a second live
+       clock on this page would re-render the entry every second for a
+       sentence that changes once a day. */
+    nowIso: new Date().toISOString(),
+    /* The person's own zone (P-130), the same one the rows below read. A
+       horizon stored at midnight UTC prints the wrong DAY without it. */
+    zone: timezone,
+  });
 
   /*
    * WHO IS WORKING WHERE, on the road itself. The same read and key the
@@ -728,6 +754,9 @@ function StartLanding() {
           it committed to, and what came back. Reading them in that order is the
           page going from a count to a fact, which is the whole move. */}
       <WhetherItWorked it={itWorked} className="mt-mrd-5" />
+      {/* Its sibling, in the same slot. `theBetStillOpen` returns null when a
+          closed loop exists, so exactly one of these ever draws. */}
+      <BetStillOpen it={betOpen} className="mt-mrd-5" />
       {/* WHAT IS ARRIVING (founder, 2026-09-02 19:12): the
           product's central claim, evidence becomes work on its own, provable
           on the page a person actually lands on. */}

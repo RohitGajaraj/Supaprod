@@ -58,6 +58,43 @@ export type HomeAnswerReads = {
   /** False when the read answered and found nothing. Distinguishes "never
    *  closed" from "could not look", which `closed: null` alone cannot. */
   closedRead: boolean;
+  /**
+   * THE SOONEST BET STILL OPEN, when the loop has not closed here yet.
+   *
+   * MEASURED 2026-09-09: every workspace holding a graded outcome is a seed or
+   * a sample. The founder's two own workspaces hold 16 runs between them and
+   * zero graded outcomes, so `closed` is null on both and the entry's only
+   * value region cannot draw for the person who asked for it.
+   *
+   * This is what the record CAN say in that state, and it is not a consolation
+   * prize: a forecast is a falsifiable claim the machine made on his own work
+   * before the answer was known, with the date he finds out. Both of his
+   * workspaces have one due within three days.
+   *
+   * Null = the read did not answer, or there is no bet pending.
+   */
+  openBet: OpenBet | null;
+};
+
+/**
+ * One forecast that has not come due, as the entry states it.
+ *
+ * Every field is the record's own text. Nothing here is composed from a
+ * template, for the same reason `ClosedLoop.summary` is not: a second surface
+ * rewriting one claim is how two screens come to disagree about what was
+ * promised.
+ */
+export type OpenBet = {
+  /** What was decided, which is the subject the bet is about. */
+  decisionTitle: string | null;
+  /** What the machine claims will happen, verbatim. */
+  claim: string;
+  /** How it will be known. Null is a real answer and the shape says less. */
+  howWeWillKnow: string | null;
+  /** The date it comes due, as stored. Formatted at the surface, never here. */
+  horizon: string;
+  /** Seed rows say so in words, on the same rule as `ClosedLoop`. */
+  isSample: boolean;
 };
 
 /**
@@ -134,6 +171,7 @@ export async function readAnswers(
            looked at, so this is "could not look", never "never closed". */
         closed: null,
         closedRead: false,
+        openBet: null,
       };
     }
     const wid = workspaceId;
@@ -186,7 +224,7 @@ export async function readAnswers(
       .limit(20);
     if (lastLookedAt) releasedQ = releasedQ.gt("released_at", lastLookedAt);
 
-    const [arriving, learned, rescored, closedQ, released] = await Promise.all([
+    const [arriving, learned, rescored, closedQ, openBetQ, released] = await Promise.all([
       arrivingQ,
       supabase
         .from("decisions")
@@ -221,6 +259,48 @@ export async function readAnswers(
         .not("verdict", "is", null)
         .not("summary", "is", null)
         .order("created_at", { ascending: false })
+        .limit(1),
+      /*
+       * ── THE BET THAT IS STILL OPEN ───────────────────────────────────────
+       *
+       * MEASURED 2026-09-09 on the live database, and this is the reason the
+       * read exists rather than a nicety:
+       *
+       *   Every workspace holding a graded outcome is a seed or a sample.
+       *   The founder's two own workspaces hold 16 runs between them and
+       *   ZERO graded outcomes. Of those 16, two reached Learn and are
+       *   waiting on a forecast date; the other fourteen stopped at a hold.
+       *
+       * So `WhetherItWorked` -- the region built to answer "I cannot feel the
+       * value" -- cannot draw for the person who said it. It needs a CLOSED
+       * loop and he has never had one. The entry then has nothing to say about
+       * value at all: a debt count, a composer, a road and a list.
+       *
+       * This is the honest thing the record CAN say in that state. A forecast
+       * is a falsifiable claim the machine made on his work before the answer
+       * was known, and it carries the date he will find out. That is the
+       * product's whole positioning in the state before knowing, and it is his
+       * own work rather than a sample.
+       *
+       * SOONEST DUE, not newest written. The useful ordering is "what you will
+       * learn next", and a bet due tomorrow matters more than one filed
+       * yesterday that comes due in six weeks.
+       *
+       * UNRESOLVED AND NOT YET DUE, both. A resolved forecast belongs to the
+       * closed loop above and would be this region contradicting that one; a
+       * horizon already passed is overdue rather than pending, which is a
+       * different sentence and one `/outcomes` already owns ("10 are past the
+       * dates they set and have not been graded").
+       */
+      supabase
+        .from("decisions")
+        .select("title,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,is_sample")
+        .eq("workspace_id", wid)
+        .not("forecast_claim", "is", null)
+        .not("forecast_horizon_date", "is", null)
+        .is("forecast_resolved_at", null)
+        .gt("forecast_horizon_date", new Date().toISOString())
+        .order("forecast_horizon_date", { ascending: true })
         .limit(1),
       releasedQ,
     ]);
@@ -327,6 +407,35 @@ export async function readAnswers(
                 };
               })
               .filter((r): r is ReleasedItem => r !== null),
+      /*
+       * THE OPEN BET, and it is deliberately NOT suppressed when `closed` is
+       * present. The two answer different questions -- what came back, and
+       * what is still owed -- and the surface decides which to show. Deciding
+       * that here would put a layout rule inside a read.
+       */
+      openBet: (() => {
+        if (openBetQ.error) return null;
+        const row = (openBetQ.data ?? [])[0] as
+          | {
+              title?: string | null;
+              forecast_claim?: string | null;
+              forecast_how_we_will_know?: string | null;
+              forecast_horizon_date?: string | null;
+              is_sample?: boolean | null;
+            }
+          | undefined;
+        const claim = row?.forecast_claim?.trim();
+        /* Both or neither: a claim with no date cannot say when you will know,
+           and a date with no claim is a deadline for nothing. */
+        if (!row || !claim || !row.forecast_horizon_date) return null;
+        return {
+          decisionTitle: row.title?.trim() || null,
+          claim,
+          howWeWillKnow: row.forecast_how_we_will_know?.trim() || null,
+          horizon: row.forecast_horizon_date,
+          isSample: Boolean(row.is_sample),
+        };
+      })(),
       closedRead: !closedQ.error,
       closed:
         closedQ.error || !closedRow || !closedRow.verdict || !closedRow.summary
