@@ -148,33 +148,6 @@ async function recordSeedOpportunityStageEvents(
 }
 
 /**
- * Seed a workspace with per-track sample data
- *
- * Creates:
- * - One starter project (if not already present)
- * - Several signals (market feedback, user feedback, etc.)
- * - Several opportunities (prioritized ideas)
- *
- * Runs during onboarding, after the user selects a track. The onboarded flag
- * is NOT set here; completeOnboarding sets it at the finish step, so an
- * interrupted onboarding resumes instead of silently skipping its later steps
- * (SW-6). Re-entry is safe: the alreadySeeded guard fast-forwards.
- * All data is scoped to the authenticated user.
- */
-export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z
-      .object({
-        track: z.enum(["solo", "founding", "tech"]),
-      })
-      .parse(i),
-  )
-  .handler(({ context, data }) =>
-    seedWorkspaceCore(context.supabase, context.userId, data.track as OnboardingTrack),
-  );
-
-/**
  * THE SEED, as a plain function: `openFirstRun` runs it with the rest of the
  * door's work on the request's own client instead of as one of seven
  * nested server-function hops (Lane 1's fourth review, 2026-09-09).
@@ -380,21 +353,6 @@ export async function seedWorkspaceCore(
  * Export OnboardingTrack type so it can be imported by TrackSelector
  */
 export type { OnboardingTrack };
-
-/**
- * Mark onboarding as complete (fallback if user skips seeding)
- * This routes them from /onboarding to the main app (/).
- *
- * Validates that the update actually modified a row (RLS safety check).
- */
-export const completeOnboarding = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z.object({ productId: z.string().uuid().optional() }).parse(i ?? {}),
-  )
-  .handler(({ context, data: input }) =>
-    completeOnboardingCore(context.supabase, context.userId, input.productId ?? null),
-  );
 
 /** The end of the funnel as a plain function; `openFirstRun` runs it last. */
 export async function completeOnboardingCore(
@@ -676,74 +634,6 @@ export const listStarterRuns = createServerFn({ method: "GET" })
     },
   );
 
-/**
- * PC-02: the client's report of an onboarding milestone.
- *
- * The private onboarding-to-funnel map that used to live here is gone: it was
- * the second of three vocabularies for the same five moments, and every one of
- * them now resolves in ONE registry (src/lib/activation.functions.ts), which is
- * also what decides which of the two tables the row belongs in. The behaviour it
- * encoded is preserved there exactly (data_connected resolves to the funnel
- * stage `connected`, critic_completed to `first_teardown`, signup to `signup`),
- * including the 2026-07-11 fix it was written for: the raw onboarding stage must
- * never reach funnel_milestones, whose CHECK rejects it and whose error is
- * swallowed, which is how `connected` and `first_teardown` stayed empty for a
- * month.
- *
- * WHAT CHANGES: product_named and onboarding_completed are no longer dropped.
- * They have no funnel stage, so they land in activation_events, which has no
- * CHECK and can hold them. "Nothing to record" was never true; it meant nobody
- * could see the two steps between connecting data and finishing.
- *
- * This stays a client-callable path because the client sees moments the server
- * does not (product_named happens in a form). The moments the server does see
- * are ALSO fired server-side now, and the two resolve to one row.
- */
-export const recordOnboardingMilestone = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z
-      .object({
-        workspaceId: z.string().uuid(),
-        stage: z.enum(ONBOARDING_MILESTONES),
-        metadata: z.record(z.unknown()).optional(),
-      })
-      .parse(i),
-  )
-  .handler(async ({ context, data }) => {
-    const { userId } = context;
-
-    try {
-      const { recordActivationMoment } = await import("@/lib/activation.functions");
-      const result = await recordActivationMoment({
-        moment: data.stage,
-        userId,
-        workspaceId: data.workspaceId,
-        metadata: data.metadata,
-      });
-      // The caller learns where the moment went and whether this call is the
-      // one that recorded it. `success` keeps its old meaning (the call did not
-      // fail); a duplicate is a success, not a failure.
-      return {
-        success: result.reason !== "write_failed",
-        sink: result.sink,
-        name: result.name,
-        recorded: result.recorded,
-      };
-    } catch (e) {
-      console.error("[PC-02] recordOnboardingMilestone failed:", e);
-      // Fail gracefully - funnel tracking is non-critical
-      return { success: false, sink: null, name: data.stage, recorded: false };
-    }
-  });
-
-/**
- * Set agent enabled status (called by the onboarding flow "Meet your staff" step).
- *
- * Keyed by agent id (the row PK), which is what the only caller — OnboardingFlow —
- * passes. The earlier slug-based contract never matched that payload, so every
- * toggle silently failed Zod validation; this aligns the server to the call site.
- */
 export const setAgentEnabled = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>

@@ -46,9 +46,12 @@ const stripped = SRC.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, 
  * The first version of this guard asserted `not.toContain("signalRows")` over
  * the whole file and would have demanded the deletion of that one too.
  */
+// The seed is a plain function since 2026-09-09 (seedWorkspaceCore, which
+// openFirstRun runs on the request's own client); the server function that
+// wrapped it is gone with FirstRun's seven-call press.
 const code = stripped.slice(
-  stripped.indexOf("export const seedWorkspaceForTrack"),
-  stripped.indexOf("export const completeOnboarding"),
+  stripped.indexOf("export async function seedWorkspaceCore"),
+  stripped.indexOf("export async function completeOnboardingCore"),
 );
 
 describe("onboarding writes no invented rows into a real workspace", () => {
