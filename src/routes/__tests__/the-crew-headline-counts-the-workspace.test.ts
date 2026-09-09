@@ -119,24 +119,51 @@ describe("the /crew headline counts the workspace, not the catalogue", () => {
  */
 describe("the autonomy line does not restate the headline's number", () => {
   const SRC = readFileSync("src/routes/_authenticated.crew.tsx", "utf8");
+  const code = () => SRC.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
   it("says ALL when every agent runs unattended", () => {
     expect(SRC).toContain('{alone === all.length ? "All " : null}');
   });
 
   it("still states the bare count when some agents do ask", () => {
-    // The mirror. "All 12 run without asking you, 4 ask first" would be a lie
-    // about the roster, so the word appears only on the equality.
-    const line = SRC.match(/\{alone === all\.length[\s\S]{0,220}?run without asking you/);
+    // The mirror. "All 12 ... , 4 ask first" would be a lie about the roster,
+    // so the word appears only on the equality.
+    const line = SRC.match(/\{alone === all\.length[\s\S]{0,900}?asking you/);
     expect(line, "the autonomy line moved; re-point this test").not.toBeNull();
     expect(line![0]).toContain("alone === all.length");
     expect(line![0]).not.toMatch(/"All ".*"All "/);
   });
 
-  it("keeps the empty-account branch, which already said it correctly", () => {
-    // That branch has said "All N run without asking you" since the day the
-    // headline and the sub contradicted each other; this change makes the
-    // other branch agree with it rather than inventing a second phrasing.
-    expect(SRC).toContain("run without asking you. Nothing has been narrowed here yet.");
+  /*
+   * ── PINNED ON THE CLAIM, AFTER THE SPELLING PIN BROKE A CORRECT CHANGE ────
+   *
+   * These asserted the literal "run without asking you". On 2026-09-10 the verb
+   * became "start", because the same account is asked six things at its TOOL
+   * boundaries while this line is about agent AUTONOMY, and a reader has one
+   * word for both -- so `/crew` and the entry read as a flat contradiction on
+   * the product's central claim.
+   *
+   * A guard whose name is "does not restate the headline's number" failed on a
+   * change that had nothing to do with restating a number. That is law 18's
+   * second half: the guard read the wrong QUESTION, and it took a correct
+   * change with it. What both branches must do is AGREE with each other; which
+   * verb they agree on is the surface's business.
+   */
+  it("says the same thing in both branches, whatever the verb is", () => {
+    /* Comments only, never strings: this file's own headers quote the OLD
+       wording while arguing about it, and a census that read those would
+       report two phrasings for one fact and be right about the prose. */
+    const verbs = [...code().matchAll(/(\w+) without asking you/g)].map((m) => m[1]);
+    expect(verbs.length, "the autonomy line moved; re-point this test").toBeGreaterThanOrEqual(2);
+    expect(new Set(verbs).size, `two phrasings for one fact: ${verbs.join(", ")}`).toBe(1);
+  });
+
+  it("scopes the claim to starting, not to every question the crew asks", () => {
+    /*
+     * The one word that carries it. The entry says calls are waiting on the
+     * same workspace, and both are true: this counts agents that dispatch
+     * unattended, the calls come from tool boundaries. "Run" claims both.
+     */
+    expect(code()).not.toMatch(/run without asking you/);
   });
 });

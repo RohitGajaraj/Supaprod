@@ -527,7 +527,27 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
      * asked. Said that way, the emptiest state in the product becomes the
      * clearest statement of what the product does. */
     <>
-      All <Figure>{all.length}</Figure> run without asking you. Nothing has been narrowed here yet.
+      {/*
+       * ── "START", BECAUSE THE SAME ACCOUNT IS ALSO BEING ASKED SIX THINGS ──
+       *
+       * WALKED AS A STRANGER, 2026-09-10. This page said **"All 16 run without
+       * asking you"** while the entry, on the same workspace in the same
+       * session, said **"4 design gates and 2 other calls are waiting for
+       * you."** Both are true and they are about different things: `alone`
+       * counts agents whose AUTONOMY setting is run-alone, and the calls come
+       * from TOOL boundaries. Nothing on either page says so.
+       *
+       * A reader has one word for both and no way to tell which is meant, so
+       * the two pages read as a flat contradiction on the product's central
+       * claim. That is law 14: each sentence is right, the defect is between
+       * them, and no check that reads one page can see it.
+       *
+       * "Start" scopes the claim to dispatch and leaves the boundary alone --
+       * and the boundary card sits two lines above this, saying "Every tool,
+       * across the whole crew", which is the other half already on the page.
+       */}
+      All <Figure>{all.length}</Figure> start without asking you. Nothing has been narrowed here
+      yet.
     </>
   ) : (
     /* "OF THEM" POINTED AT THE WRONG SET (2026-08-11). This used to end with a
@@ -567,7 +587,10 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
        * overrides exist but none of them asks.
        */}
       {alone === all.length ? "All " : null}
-      <Figure>{alone}</Figure> run without asking you
+      {/* "start", not "run": see the empty branch above. The same account is
+          being asked six things at its tool boundaries while this says nobody
+          is asked, and both are true of different questions. */}
+      <Figure>{alone}</Figure> start without asking you
       {/* OMITTED AT ZERO, the way the switched-off clause beside it already is.
           Read on the running product: "16 run without asking you, 0 ask first."
           Nobody says "0 ask first"; they say none do, or they say nothing at
