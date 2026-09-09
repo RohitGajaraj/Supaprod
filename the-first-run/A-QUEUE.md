@@ -11887,3 +11887,52 @@ re-run, per rule 17.
 
 tsc 0. `bun test` 13900 pass / 22 skip / 37 todo / 0 fail / 36825 expect() across 1001 files. 0
 `# Unhandled error between tests`. eslint 0 errors.
+
+---
+
+### A3 · 2026-09-10 · three writes the record could not make, taken from worktree-1-68's reads
+
+No packet in this file was open for A3, so these came from the other lane's measurements rather
+than from invented scope. Each is a write-side gap under a read that lane had already built or was
+blocked on.
+
+**`decisions.call` (`e2c9a5c66`, migration `20260909101200`).** `decisions.status` was carrying two
+facts: whether the RECORD was approved and which way the CALL went. A refusal written while the
+gate was pending lost its direction entirely, and the direction survived only in the title's first
+word. Measured: of 61 agent decisions, 41 are `approved` and 16 of those read as refusals.
+Backfilled 28 rows from two certain sources (the tool call's own `call` argument, and this writer's
+own `declined` rule run backwards) and left 33 NULL rather than guessing at them, because guessing
+would have been wrong in the direction that matters 16 times.
+
+**The direction reaches the station (`57f7a51e8`).** `ARTIFACT_SOURCE.decision.also` feeds the run
+screen AND the brief a downstream station receives, so `call` now travels to the seat doing the next
+work, rendered as prose ("The call: not to build this") rather than as the column's own value.
+
+**The router can see it (`0a37f7033`), and this is the one that closes worktree-1-68's eleven.**
+`decisionWasRefusal` waives Define, Design, Build and Ship when Decide said no, and it asked
+`status === 'declined'` -- a status the writer sets only when the call was `do-not-build` AND the
+gate had already approved. So a refusal written while the gate was pending was invisible to the
+router and the track went on to build the thing it had just refused. That is the traced cause of
+**31 runs deciding decline-or-wait at Decide and 11 filing a spec, a design or a code change
+afterwards.** It reads `call` now with `status` as a second witness for the 33 rows that have no
+direction. The read also sat inside `catch { return false }`, so an unreadable decision arrived as
+a decision to build; the fail direction is unchanged and is now stated rather than accidental.
+
+**Also closed from the same lane's reads:** `ArtifactView.filedAt` (`8d67b8b47`), because
+`createdAt` was the ATTACHMENT time and 1,155 of 1,522 track members share theirs with a sibling to
+the microsecond, so "the newest drawing" was decided by whichever row won a tie; and the tool-arg
+contract (`b2c9c97dd`), where the executor deleted arguments the model sent and told it nothing,
+1,059 `days_back` and 228 `query` emissions over 60 days.
+
+**Filed and NOT built:** F-245, a seat that wants a person to choose has no way to say so. One
+instance in the whole database, and the pathway traced as genuinely absent rather than unused.
+
+**Every one of the five proved by firing** -- the defect reintroduced in its natural form, the guard
+named the file, the defect removed again.
+
+**Open, none of it A3's to decide:** the 976 KB first-paint budget is scoped and not started
+(`7d195c948`); the Worker's cold start is the platform's; `eslint.config.js` is hook-protected and
+the founder's call. `fromLearningId` on `startTrack` is with worktree-1-68 at their request, with
+one condition passed to them: gate it the way `opportunityId` is gated, ownership check included,
+and read that path rather than assuming it has one.
+
