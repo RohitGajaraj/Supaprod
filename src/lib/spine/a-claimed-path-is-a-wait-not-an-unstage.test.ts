@@ -516,10 +516,22 @@ describe("waiting on another run is not going in circles", () => {
   });
 
   it("mirrors the money exemption rather than inventing a shape", () => {
-    // `blockedOnMoney` already exempts a hold whose clearing condition lives
-    // outside the track. This is the same argument for the same reason.
+    /*
+     * `blockedOnMoney` already exempts a hold whose clearing condition lives
+     * outside the track. This is the same argument for the same reason.
+     *
+     * AND SINCE 2026-09-10 IT IS LITERALLY THE SAME BRANCH. The drives ceiling
+     * used to exempt this claim and NOT money, on the stated premise that
+     * "a track dispatched twelve times has spent real money whatever its last
+     * hold said". Measured on `6cc7a010`: twelve dispatches, every one halted
+     * `out_of_credit` at an average of 612ms, nothing charged. So the two
+     * exemptions were merged rather than kept side by side, which is the
+     * strongest form of "mirrors it" -- there is nothing left to drift.
+     */
     const DRIVER_PURE = readFileSync("src/lib/spine/driver.ts", "utf8");
-    expect(DRIVER_PURE).toContain('if (input.lastHold === "waiting-on-another-run") {');
+    expect(DRIVER_PURE).toContain(
+      'if (input.lastHold === "waiting-on-another-run" || blockedOnMoney) {',
+    );
     expect(DRIVER_PURE).toContain("const blockedOnMoney =");
   });
 });

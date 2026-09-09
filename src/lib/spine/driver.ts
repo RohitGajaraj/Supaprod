@@ -1421,8 +1421,30 @@ export function decideDrive(input: {
    * case the other two cannot see: a station that never fails, never produces,
    * and is dispatched forever because `out-of-time` costs it nothing.
    *
-   * Not gated on `blockedOnMoney`: a track that has been dispatched twelve times
-   * has spent real money whatever its last hold said.
+   * ── AND IT IS GATED ON MONEY NOW, BECAUSE THE PREMISE WAS FALSE ─────────
+   *
+   * This said: *"Not gated on `blockedOnMoney`: a track that has been dispatched
+   * twelve times has spent real money whatever its last hold said."* Measured
+   * on `6cc7a010` (Lane 1, 2026-09-10), that is untrue in the one case it
+   * matters. Twelve `ux-architect` dispatches, all `halted` with
+   * `halted_reason = out_of_credit`, **averaging 612 milliseconds each between
+   * 03:40 and 05:30 UTC**. They were refusals at the door. The station never
+   * ran and the account was never charged, so "has spent real money" describes
+   * nothing that happened.
+   *
+   * What the twelve dispatches measured was the wall, not the work. The driver
+   * read the SHAPE -- dispatched many times, moved never -- which is a true
+   * reading and the wrong cause, and `going-in-circles` is TERMINAL, so the
+   * sweep dropped the track for good. That account holds 5,249 credits today.
+   * The run has been dead six days because a wallet event was recorded as a
+   * behavioural verdict.
+   *
+   * The rule that fixes it is already written three paragraphs down, for
+   * `waiting-on-another-run`: **a hold whose clearing condition lives outside
+   * this track must not be counted as this track failing.** A wallet is outside
+   * the track by the same measure as another run's open pull request, and the
+   * attempts ceiling above has exempted money holds since 2026-08-02 for
+   * exactly this reason. This is the drives ceiling agreeing with it.
    *
    * ── EXCEPT WAITING ON ANOTHER RUN, AND THAT ONE IS NOT A LOOP ───────────
    *
@@ -1442,7 +1464,7 @@ export function decideDrive(input: {
    * this track failing. The money argument does not reach it either, because a
    * drive that ends at the wall is the sweep looking, not a station looping.
    */
-  if (input.lastHold === "waiting-on-another-run") {
+  if (input.lastHold === "waiting-on-another-run" || blockedOnMoney) {
     // Falls through to the ordinary decision below. The claim is re-established
     // from this drive's own refusal, or the wall is gone and the work moves.
   } else if ((input.stationDrives ?? 0) >= MAX_STATION_DRIVES) {

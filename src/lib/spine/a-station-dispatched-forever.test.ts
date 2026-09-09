@@ -96,15 +96,47 @@ describe("it is the LAST net, and never steals a sharper diagnosis", () => {
   });
 
   /**
-   * But it does NOT yield to money. A wallet hold exempts a track from the
-   * attempts ceiling on purpose — nothing was tried, so nothing should be
-   * charged — and that exemption must not become a way to be dispatched
-   * forever. Twelve dispatches have spent real money whatever the last hold said.
+   * ── IT DOES YIELD TO MONEY, AND THIS TEST SAID THE OPPOSITE ──────────────
+   *
+   * It read: *"Twelve dispatches have spent real money whatever the last hold
+   * said."* Measured on `6cc7a010` (Lane 1, 2026-09-10), that premise is false
+   * in the one case it decides. Twelve `ux-architect` dispatches, every one
+   * `halted` with `halted_reason = out_of_credit`, **averaging 612 milliseconds
+   * each**. Refusals at the door. The station never ran and nothing was
+   * charged.
+   *
+   * What the twelve measured was the wall. The driver read the shape -- many
+   * dispatches, no movement -- called it `going-in-circles`, which is TERMINAL,
+   * and the sweep dropped a live track for good. That account holds 5,249
+   * credits today and the run has been dead six days.
+   *
+   * The concern this test was written for is real and is kept below: the
+   * exemption must not become a way to be dispatched forever. It cannot,
+   * because it is conditioned on the CURRENT hold. The moment there is credit
+   * the drive runs, the hold becomes something else, and the ceiling applies
+   * again on the very next tick. A wall that never clears costs 612ms a tick
+   * and no money, which is the trade already accepted for
+   * `waiting-on-another-run` and for the same stated reason: a hold whose
+   * clearing condition lives outside this track must not be counted as this
+   * track failing.
    */
-  it("still fires when the last hold was a money hold", () => {
+  it("does not fire while a wall the track cannot pay is still up", () => {
     for (const lastHold of ["out-of-credit", "over-budget"] as const) {
       expect(
         decideDrive({ ...base, lastHold, attempts: 99, stationDrives: MAX_STATION_DRIVES }),
+      ).not.toMatchObject({ hold: "going-in-circles" });
+    }
+  });
+
+  /*
+   * THE MIRROR, and it is the concern the old test was defending. The
+   * exemption is conditioned on the wall being up, so a track whose hold is
+   * anything else meets the ceiling normally at the same drive count.
+   */
+  it("fires on the very next drive once the hold is no longer the wall", () => {
+    for (const lastHold of ["produced-nothing", "out-of-time", null] as const) {
+      expect(
+        decideDrive({ ...base, lastHold, attempts: 0, stationDrives: MAX_STATION_DRIVES }),
       ).toMatchObject({ hold: "going-in-circles" });
     }
   });

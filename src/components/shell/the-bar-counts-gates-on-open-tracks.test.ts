@@ -87,7 +87,19 @@ function gatesBody(): string {
      a clean read of an empty string. */
   expect(body.length).toBeGreaterThan(400);
   expect(body).toContain("spine_tracks");
-  return body;
+  /*
+   * AND THE PROSE COMES OUT, which is the other half of the same lesson and was
+   * merged in from Lane 3's concurrent fix. Bounding stops the guard reading
+   * ANOTHER function's comment; stripping stops it reading THIS one's. Every
+   * assertion below is about what the query does, and a sentence explaining a
+   * query is not the query -- a comment here that mentioned `Date.now()` while
+   * arguing against date filters would fail the test that argument exists for.
+   */
+  return body
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .split("\n")
+    .filter((l) => !l.trim().startsWith("//"))
+    .join("\n");
 }
 
 describe(
