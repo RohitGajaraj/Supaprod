@@ -16,6 +16,7 @@ import * as React from "react";
 
 import { Action } from "@/components/meridian/surface-parts";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
+import { joinPlainly } from "@/lib/spine/attach";
 
 import {
   Journey,
@@ -27,6 +28,68 @@ import {
 
 export function promiseStations(): JourneyStation[] {
   return JOURNEY_ORDER.map((key) => ({ key, state: "pending", outcome: JOURNEY_PRODUCES[key] }));
+}
+
+/*
+ * ── THE ONE THING THE ROAD'S COLOUR CANNOT SAY ───────────────────────────
+ *
+ * MEASURED ON THE SERVED HOME, 2026-09-09, workspace A1 delete probe. Two
+ * stations were lit and their computed styles are byte-identical:
+ *
+ *   Decide   3 runs, all `the-call-is-yours`   ->  state `you`
+ *   Design   2 runs, both `going-in-circles`   ->  state `stopped`
+ *
+ *   both:  fill oklch(0.28 0.14 315) · ink oklch(0.74 0.11 315)
+ *
+ * Three runs waiting for an answer and two that gave up and will never move
+ * again render the same pixel. That is the founder's *"the stations do not
+ * form a flow"* on the surface he named: the road answers "where is
+ * everything" and cannot answer "and is any of it dead".
+ *
+ * `Journey`'s paint table is right and I am not touching it. Both states ARE
+ * "a person required", which is why they share the you hue, and every other
+ * channel is already spoken for with a written reason: the glyph is the
+ * STATION's (law 4), the fill was moved to the you-chip this morning on a
+ * measured greyscale argument, and the dashed ring belongs to `waived`.
+ * Taking a channel from another state to settle this pair is a decision that
+ * reaches all three lanes' surfaces and it is not mine to make alone at
+ * midnight. It is filed in the contract with this measurement.
+ *
+ * SO IT IS SAID IN WORDS, which is the one channel colour cannot contend
+ * for, in a slot that was spending itself on furniture. The caption read
+ * *"Where your work stands. Press a station to see only the runs there."* --
+ * a label this section's own `aria-label` already carries, plus an
+ * instruction the first press teaches. Neither said anything about the work.
+ *
+ * IT DOES NOT REPEAT THE HERO. That line counts ("2 runs have stopped");
+ * this names WHICH station and says nothing will move it. A count and a
+ * location with a consequence are different claims, and law 14's own test
+ * agrees: a short factual count re-read confirms, where this sentence tells
+ * a reader something the count could not.
+ */
+export function captionFor({
+  mode,
+  stations,
+  selected,
+}: {
+  mode: "promise" | "map";
+  stations: readonly JourneyStation[];
+  selected?: JourneyKey | null;
+}): string | null {
+  const here = selected ? stations.find((s) => s.key === selected) : null;
+  const empty = stations.every((s) => !s.count);
+  const stoppedHere = stations
+    .filter((s) => s.state === "stopped" && (s.count ?? 0) > 0)
+    .map((s) => AGENT_STATIONS[s.key].name);
+  return mode === "promise"
+    ? null
+    : selected && here
+      ? `Showing the ${here.count ?? 0} ${here.count === 1 ? "run" : "runs"} at ${AGENT_STATIONS[selected].name}.`
+      : empty
+        ? "Nothing is standing on the road. What finished is in the runs below."
+        : stoppedHere.length > 0
+          ? `${joinPlainly(stoppedHere)} ${stoppedHere.length === 1 ? "has" : "have"} stopped, and will not move without you.`
+          : "Press a station to see only the runs there.";
 }
 
 export function JourneyMap({
@@ -51,14 +114,7 @@ export function JourneyMap({
      run; now it stays a map and the caption says so (fourth review,
      2026-09-09). */
   const empty = stations.every((s) => !s.count);
-  const caption =
-    mode === "promise"
-      ? null
-      : selected && here
-        ? `Showing the ${here.count ?? 0} ${here.count === 1 ? "run" : "runs"} at ${AGENT_STATIONS[selected].name}.`
-        : empty
-          ? "Nothing is standing on the road. What finished is in the runs below."
-          : "Where your work stands. Press a station to see only the runs there.";
+  const caption = captionFor({ mode, stations, selected });
 
   return (
     <section

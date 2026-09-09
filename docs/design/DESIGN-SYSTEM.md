@@ -799,6 +799,45 @@ literal it was hunting, found zero call sites and passed on a file that still he
 the standing rule that catches all of it — **a guard nobody has watched fail is not evidence.** Break
 the code, watch the assertion go red, put it back.
 
+### 19. OPEN PAIR: `you` and `stopped` are one pixel, and every channel is spoken for
+
+Added 2026-09-09, filed rather than settled, on this component's own precedent — the contract
+already carried `held`/`failed` as an open pair and asked whoever took it to measure and say which
+of three answers it was.
+
+**Measured on the served home**, workspace A1 delete probe. Two stations lit, computed styles
+byte-identical:
+
+| Station | Runs | Hold | State | Fill | Ink |
+| --- | --- | --- | --- | --- | --- |
+| Decide | 3 | `the-call-is-yours` | `you` | `oklch(0.28 0.14 315)` | `oklch(0.74 0.11 315)` |
+| Design | 2 | `going-in-circles` | `stopped` | `oklch(0.28 0.14 315)` | `oklch(0.74 0.11 315)` |
+
+Three runs waiting for an answer and two that gave up and will never move again render the same
+pixel. **This is the founder's "the stations do not form a flow" on the surface he named**: the road
+answers *where is everything* and cannot answer *and is any of it dead*.
+
+**Nothing in the paint table is wrong**, which is what makes this worth filing rather than fixing in
+passing. Both states genuinely ARE "a person required", so sharing the you hue is correct. And
+`tracks-feed.ts` already rules that they are different in WORDS — *"waiting on your answer"* against
+*"needs a restart"* — because the acts differ: one is a gate with something to press, the other is a
+loop that ran out of road.
+
+**Every non-hue channel has a written owner.** The glyph is the STATION's (law 4). The fill moved to
+the you-chip this morning on a measured greyscale argument, closing `held`/`failed`. The dashed ring
+is `waived`. Label weight says which station is current. So settling this pair means TAKING a channel
+from another state, and that reaches every lane's surfaces.
+
+**Whoever takes it: measure first, as the last person did.** The three candidates are ring weight,
+the badge (currently never coloured, and that rule would have to be broken deliberately), and a
+second mark. Say which and why, in the file.
+
+**What shipped instead is words**, because the caption is the one channel colour cannot contend for
+and it was spending itself on furniture — a label the section's own `aria-label` already carried,
+plus an instruction the first press teaches. It now names the station that has stopped and says
+nothing will move it. That is a mitigation and not the answer: it says WHICH station on a road that
+still cannot show it.
+
 ---
 
 ## The defects that keep coming back
