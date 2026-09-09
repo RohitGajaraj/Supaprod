@@ -81,12 +81,23 @@ export function activeMention(
 export function SteerComposer({
   trackId,
   finished = false,
+  idle = false,
   stuckOnEvidence = false,
   fieldRef: externalFieldRef,
 }: {
   trackId: string;
   /** A closed track has nothing running to steer, and saying so beats a form. */
   finished?: boolean;
+  /**
+   * The run is OPEN but nothing is working it: the person stopped it, or it
+   * holds at a terminal hold that nothing automatic will pick up.
+   *
+   * Distinct from `finished`, which closes the composer entirely. An idle run
+   * still takes a steer -- the row waits and is consumed the moment somebody
+   * presses Run it now -- so the field stays, and only the confirmation
+   * changes, because "it reaches whoever is working" is false when nobody is.
+   */
+  idle?: boolean;
   /**
    * ── R-36'S SECOND PROMISE, MADE WHERE IT CAN BE ACCEPTED (P-37) ────────
    *
@@ -137,12 +148,35 @@ export function SteerComposer({
   }, [mention, roster]);
   const open = matches.length > 0;
 
+  /*
+   * WHAT WAS CUT OFF, HELD UNTIL THE SEND LANDS. See `submit` below: the cut
+   * used to be announced and then destroyed by its own success handler.
+   */
+  const tail = React.useRef<string>("");
+
   const send = useMutation({
     mutationFn: (message: string) => fSteer({ data: { trackId, message } }),
     onSuccess: () => {
-      setValue("");
+      /*
+       * ── THE REMAINDER COMES BACK, IT IS NOT WIPED ─────────────────────────
+       *
+       * This read `setValue(""); setCaret(null); setTruncated(null);`, which
+       * destroyed both halves of the promise the surface had just made. The
+       * notice says "Only the first 2000 characters were sent; N were left off.
+       * Send the rest as a second message if it matters." -- and the same
+       * success that raised it emptied the field of the whole message and took
+       * the notice down with it. **The rest existed nowhere: not on the server,
+       * which received only the slice, and not in the box, which had just been
+       * cleared.** A person told to send the rest had nothing left to send.
+       *
+       * So the field is refilled with the tail and the notice stays up beside
+       * the text it is telling them to resend. An ordinary send still clears,
+       * because the tail is empty.
+       */
+      setValue(tail.current);
       setCaret(null);
-      setTruncated(null);
+      if (!tail.current) setTruncated(null);
+      tail.current = "";
     },
   });
 
@@ -172,16 +206,38 @@ export function SteerComposer({
     // sentence vanished has been lied to by a form -- so the cut happens here,
     // where it can be SAID.
     if (text.length > STEER_MAX) {
+      /* Stashed BEFORE the mutation, so a fast answer cannot land on an empty
+         ref and clear the box of a message that was only half sent. */
+      tail.current = text.slice(STEER_MAX);
       send.mutate(text.slice(0, STEER_MAX));
       setTruncated(text.length - STEER_MAX);
       return;
     }
+    tail.current = "";
     setTruncated(null);
     send.mutate(text);
   };
 
+  /*
+   * ── THE CONFIRMATION CANNOT PROMISE A READER THAT DOES NOT EXIST ─────────
+   *
+   * `steerTrack` refuses only a done or abandoned track, so a steer sent into a
+   * run the PERSON stopped inserts happily and this printed its one and only
+   * success sentence: "Sent. It reaches whoever is working, at their next
+   * step." Two inches above, the Now card for the same moment says "You stopped
+   * this." and "Nothing more is dispatched, by this page or by the loop, until
+   * you run it again." **One of those two sentences is false and they are on
+   * the same screen.**
+   *
+   * The row is still written and that is right: it is waiting for the run, and
+   * it is consumed the moment somebody presses Run it now. So the fix is the
+   * words, not the write. What changes is the promise: the steer is on the
+   * record rather than on its way.
+   */
   const sentNote = send.data?.steered
-    ? "Sent. It reaches whoever is working, at their next step."
+    ? idle
+      ? "Saved to this run. Nothing is working on it, so it is picked up when you run it again."
+      : "Sent. It reaches whoever is working, at their next step."
     : null;
 
   if (finished) {

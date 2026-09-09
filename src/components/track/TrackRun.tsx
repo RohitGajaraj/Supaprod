@@ -151,7 +151,21 @@ export function useCopyRunSummary(trackId: string): {
   const copy = async () => {
     const data = chain.data;
     if (!data?.track || !data.chain) {
-      setCopied(null);
+      /*
+       * SILENT BEFORE: this set `copied` to null and returned, so the menu
+       * closed, the clipboard was untouched and the screen was identical. A
+       * control that does nothing and says nothing is indistinguishable from
+       * one that worked, which is the worst of the three possible outcomes.
+       *
+       * The two states are told apart, because they ask different things of the
+       * person: one is "wait a moment", the other is "this is not going to
+       * work". The receipt this fills is already rendered by the route.
+       */
+      setCopied(
+        chain.isLoading
+          ? "Still reading this run, so there is nothing to copy yet. Try again in a moment."
+          : "This run could not be read, so nothing is on the clipboard.",
+      );
       return;
     }
     const stops = data.chain.stops.map((s) => ({
@@ -303,6 +317,17 @@ export function TrackRunLeft({
   });
 
   /** What a release did, rendered as a Receipt and cleared by nothing else. */
+  /*
+   * ── THE CHOICE CARD NEEDED ITS OWN RECEIPT SLOT ─────────────────────────
+   *
+   * `releaseNote` below is rendered inside `RunNow`, and `RunNow` is SKIPPED
+   * entirely while the choice card is up (`askIsUp ? null : <RunNow>`). So the
+   * card that asks a person the most consequential question on this screen was
+   * the one card with nowhere to say that their answer had failed. Both of its
+   * mutations wrote nothing and said nothing.
+   */
+  const [choiceProblem, setChoiceProblem] = React.useState<string | null>(null);
+
   const [releaseNote, setReleaseNote] = React.useState<{
     verb: string;
     consequence: string;
@@ -503,24 +528,50 @@ export function TrackRunLeft({
         data: { trackId, howWeWillKnow: howWeWillKnow || undefined },
       }),
     onSuccess: () => {
+      setChoiceProblem(null);
       void qc.invalidateQueries({ queryKey: ["track", trackId] });
       run.mutate("press");
     },
+    /* It had no `onError` at all: the button un-busied, the card re-rendered
+       unchanged, and nothing was said about a call that was not recorded. */
+    onError: (e: Error) =>
+      setChoiceProblem(
+        failureLine("The question is still open, so nothing was decided.", e),
+      ),
   });
   /*
    * The other answer. Recorded BEFORE the navigation, and it does not press:
    * there is nothing to drive until a source actually lands, and pressing would
-   * spend a dispatch to rediscover the same emptiness. The navigation happens
-   * either way -- a failed write must not strand the person on a screen whose
-   * button did nothing, and the settings page is where they were going.
+   * spend a dispatch to rediscover the same emptiness.
+   *
+   * ── IT USED TO NAVIGATE ON FAILURE TOO, AND THAT ARGUMENT DOES NOT HOLD ──
+   *
+   * This was `onSettled`, defended in as many words: *"a failed write must not
+   * strand the person on a screen whose button did nothing, and the settings
+   * page is where they were going."* The first half is right and the fix for it
+   * is a sentence, not a navigation. The second half is what makes it wrong:
+   * the person lands on the connections page believing their answer is on the
+   * record. **It is not. The run is still holding the same question, and when
+   * they come back the choice card is up again with no account of the round
+   * trip** -- so the navigation that was meant to save them from a dead button
+   * hands them a silent contradiction instead.
+   *
+   * So the navigation moves to `onSuccess` and the failure says what happened,
+   * beside the card that asked. Nobody is stranded: the button now visibly did
+   * something, and the door to Settings is still on the screen.
    */
   const fPointASourceFirst = useServerFn(pointASourceFirst);
   const pointASource = useMutation({
     mutationFn: () => fPointASourceFirst({ data: { trackId } }),
-    onSettled: () => {
+    onSuccess: () => {
+      setChoiceProblem(null);
       void qc.invalidateQueries({ queryKey: ["track", trackId] });
       navigate({ to: "/settings", search: { section: "connections" } });
     },
+    onError: (e: Error) =>
+      setChoiceProblem(
+        failureLine("Your answer was not recorded, so the question is still in front of you.", e),
+      ),
   });
 
   const nowMs = Date.now();
@@ -1139,6 +1190,7 @@ export function TrackRunLeft({
   return (
     <div className="flex flex-col gap-mrd-5">
       {callIsYours ? (
+        <>
         <TheCallIsYours
           busyId={
             onYourWord.isPending
@@ -1150,6 +1202,12 @@ export function TrackRunLeft({
           onBuildOnYourWord={(howWeWillKnow) => onYourWord.mutate(howWeWillKnow)}
           onPointASource={() => pointASource.mutate()}
         />
+        {/* Outside RunNow deliberately: that card is not rendered while this
+            one is up, which is why these two mutations had nowhere to speak. */}
+        {choiceProblem ? (
+          <Receipt verb="Your answer was not recorded" consequence={choiceProblem} failed />
+        ) : null}
+        </>
       ) : (
         <TrackConsent trackId={trackId} onAnswered={() => run.mutate("press")} />
       )}
@@ -1396,6 +1454,26 @@ export function TrackRunLeft({
       <SteerComposer
         trackId={trackId}
         finished={finished}
+        /*
+         * NOTHING IS WORKING THIS RUN, so the composer must not confirm a steer
+         * as reaching "whoever is working". The run is still open and the row
+         * still writes; it waits for the next press. See `sentNote` there.
+         *
+         * READ OFF `now.register`, NOT off the hold. A first version called
+         * `nothingIsComing(track.holdReason)` here and the census guard in
+         * `one-place-says-whose-move-it-is.test.ts` caught it, correctly: the
+         * run screen's own split moved out of this file into `run-now.ts` on
+         * 2026-09-08 precisely so one module decides the register the top of
+         * this pane speaks in, and TrackRun reads its answer rather than
+         * branching on a hold itself. `register === "stopped"` IS
+         * `nothingIsComing`, computed there; the call here was both redundant
+         * and a second opinion waiting to disagree.
+         *
+         * `paused` joins it because a paused workspace dispatches nothing
+         * either. `you` and `held` do not: those are waiting on an answer or a
+         * clock, and there IS a next step for a steer to reach.
+         */
+        idle={personStopped || now.register === "stopped" || now.register === "paused"}
         stuckOnEvidence={
           composerPromiseFor({
             hold: track?.holdReason ?? null,

@@ -727,6 +727,22 @@ export function TrackConsent({
                   )}
                 </RecordSpeaks>
               ) : null}
+              {/* THE THIRD SIBLING, WHICH HAD NO LINE AT ALL. `snooze`'s
+                  `onError` only cleared `answeringId`, so the button un-busied,
+                  the card re-rendered with the gate still un-snoozed, the same
+                  button was offered again, and nothing was said -- standing
+                  between two mutations that both report their failures right
+                  here. A different consequence than the two above, because a
+                  snooze that fails leaves the gate needing an answer NOW rather
+                  than tomorrow, which is the fact the person acts on. */}
+              {snooze.error ? (
+                <RecordSpeaks>
+                  {failureLine(
+                    "It was not set aside, so this gate still needs you.",
+                    snooze.error,
+                  )}
+                </RecordSpeaks>
+              ) : null}
             </div>
           </GateCard>
         );
