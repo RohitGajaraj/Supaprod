@@ -6,8 +6,23 @@
  * `HomeAnswers` above it is deliberately three plain sentences, and that ruling
  * still holds: what ARRIVED is a delta, read in three seconds and forgotten.
  * This is not a delta. It is the only thing on the entry that says the loop
- * closed, and a person is meant to stop on it, so it gets a bounded region and
- * three lines instead of one.
+ * closed, and a person is meant to stop on it, so it gets three lines and its
+ * own eyebrow instead of one sentence.
+ *
+ * ── AND WHY IT HAS NO BORDER, WHICH IT DID FOR ONE DEPLOY ─────────────────
+ * The first version drew a hairline card. Looking at the served page settled
+ * it: this sits directly above the road, which IS a bordered card, so the
+ * column read composer-box, plain lines, THIS box, road box. Meridian's own
+ * note on the section seam says it: a divider between sections of one page is
+ * quieter than the edge of a card, or every page turns into a stack of boxes.
+ *
+ * PRESENCE WITHOUT A RULE. The worry a border answers is that this becomes
+ * another run of text and nobody stops on it. It does not, because the verdict
+ * chip is the only status colour in this column and the eye goes to it before
+ * it reads a word. That is the anchor, and it is the system's own: colour
+ * carries status, and a rule around the outside would be decoration doing a job
+ * colour is already doing. Every other movement on this page is separated by
+ * the spacing ramp, and so is this one.
  *
  * ── AND WHY IT IS STILL NOT A CARD WITH A NUMBER IN IT ────────────────────
  * No metric in display type, no tile, no chart. The verdict is one word and the
@@ -49,7 +64,7 @@ export function WhetherItWorked({
       data-mrd=""
       data-whether-it-worked=""
       aria-label="Whether it worked"
-      className={`rounded-mrd-card border border-mrd-line-soft px-mrd-5 py-mrd-4 ${className}`}
+      className={`flex flex-col ${className}`}
     >
       <Eyebrow>Whether it worked</Eyebrow>
 
