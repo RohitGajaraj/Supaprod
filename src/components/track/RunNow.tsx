@@ -42,9 +42,16 @@ export function RunNow({
           <StatusChip status={now.status} pulse={now.pulse}>
             {now.word}
           </StatusChip>
-          <span className="min-w-0 text-mrd-base font-medium leading-mrd-snug text-mrd-ink">
-            {now.headline}
-          </span>
+          {/* Nothing beside the chip when the chip has said the whole fact:
+              three of the twelve registers now do that deliberately, and a
+              headline restating the word an inch to its left was the defect
+              (see `run-now.ts`'s `headline`). The chip is then the only thing
+              on the row, and it reads as calm rather than as a hole. */}
+          {now.headline ? (
+            <span className="min-w-0 text-mrd-base font-medium leading-mrd-snug text-mrd-ink">
+              {now.headline}
+            </span>
+          ) : null}
         </div>
         {now.line ? (
           <p className="max-w-[var(--mrd-measure-prose)] text-mrd-small leading-mrd-prose text-mrd-mute">

@@ -60,8 +60,34 @@ export type Now = {
   status: StatusWord;
   /** The chip's word. */
   word: string;
-  /** One sentence, the fact a person came for. */
-  headline: string;
+  /**
+   * One sentence, the fact a person came for -- or null, when the chip has
+   * already said the whole of it.
+   *
+   * ── NULLABLE AFTER S1 RULED ON FOUR REGISTERS, 2026-09-09 ─────────────────
+   * `RunNow` draws the chip and the headline on ONE LINE, so a headline that
+   * restates the chip is the same word twice, a few pixels apart. Five of the
+   * twelve registers did it. One was fixed on the founder's screenshot; S1 read
+   * the remaining four with the file open and ruled three of them out entirely:
+   *
+   *   READING    the chip is the whole fact and the card is about to fill in.
+   *              A momentary load does not need the product narrating itself.
+   *   ABANDONED  the reason is what a person came for, so it takes this slot;
+   *              with no reason on the record the chip stands alone, which is
+   *              honest -- we know it was abandoned and not why.
+   *   READY      "Ready when you are" is the chip plus a pleasantry; where it
+   *              starts and that it asks first is the whole value of the state.
+   *
+   * And the fourth STAYS, which is the interesting one: "Stopped" and "You
+   * stopped this" differ in AGENCY, not in wording, and that difference decides
+   * whether a person thinks they stopped it or the loop gave up. It is the
+   * you-versus-agent distinction the colour system is built on, appearing in
+   * prose because the hue cannot carry it there.
+   *
+   * So the rule this nullability encodes is not "shorter is better". It is:
+   * a headline earns its place by saying something the chip cannot.
+   */
+  headline: string | null;
   /** One more sentence, what happens next or what it needs. Null when the headline is enough. */
   line: string | null;
   /** Whether the chip breathes. Only while something is genuinely moving or asking. */
@@ -136,7 +162,8 @@ export function runNow(input: NowInput): Now {
       register: "reading",
       status: "quiet",
       word: "Reading",
-      headline: "Reading this run.",
+      /* The chip alone. See the note on `headline`. */
+      headline: null,
       line: null,
       pulse: false,
     };
@@ -158,8 +185,10 @@ export function runNow(input: NowInput): Now {
       register: "abandoned",
       status: "hold",
       word: "Abandoned",
-      headline: "This run was abandoned.",
-      line: t.hold ?? null,
+      /* The reason, promoted out of the sub-line into the slot a person reads
+         first. Null when the record wrote none, and the chip stands alone. */
+      headline: t.hold ?? null,
+      line: null,
       pulse: false,
     };
   }
@@ -225,13 +254,13 @@ export function runNow(input: NowInput): Now {
        * carries the station too ("Build will not be tried again without you"),
        * so `Stopped at ${here}` loses nothing when it goes.
        *
-       * FIVE OF THE TWELVE registers in this file have some version of this
-       * (`Reading`/"Reading this run.", `Abandoned`/"This run was abandoned.",
-       * `Ready`/"Ready when you are.", `Stopped`/"You stopped this."). This is
-       * the one a person met on a stopped run, which is the commonest state on
+       * FIVE OF THE TWELVE registers in this file had some version of this.
+       * This was the one a person met on a stopped run, the commonest state on
        * production, and the only one whose replacement sentence already
-       * existed. The rest are named in the handoff rather than reworded on the
-       * way past.
+       * existed; the other four went to S1, who ruled on them with the file
+       * open. Three lost their headline outright and one kept it. The ruling
+       * and its reasoning are on the `headline` field, because that is where
+       * the next person writing a register will be looking.
        */
       return {
         register: "stopped",
@@ -309,8 +338,11 @@ export function runNow(input: NowInput): Now {
       register: "ready",
       status: "quiet",
       word: "Ready",
-      headline: "Ready when you are.",
-      line: `It starts at ${here} and asks before anything ships.`,
+      /* Was "Ready when you are." over this sentence. The chip says ready; this
+         says where it starts and that nothing ships unasked, which is the whole
+         value of the state and now reads in ink rather than under a pleasantry. */
+      headline: `It starts at ${here} and asks before anything ships.`,
+      line: null,
       pulse: false,
     };
   }
