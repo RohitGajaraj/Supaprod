@@ -1604,3 +1604,45 @@ Lane 1 presses deploys as the master session from here.
 - The Inbox fired the whole queue once per OTHER workspace for a sidebar line: 21 calls on one load
   for the founder's seven-workspace account.
 
+
+## Lane 2 · session end · 07:50 IST 09-09
+
+**Landed since the night's resume point:** 5c03c297b (a done or abandoned run stops polling: the
+transcript, its calls, the chain, the handoff rows and the pane stand down; the push still lands a
+late row) and 53155ae45 (the /learn fold: `components/learn/LearnRecord.tsx` under Outcomes'
+outcomes tab carries the settle gate, the last verdict, what paid off, the learned cards, the claim
+beside the verdict, lessons put forward, the notes line and the record as a file; `/learn` and the
+old `/outcome` redirect to `/outcomes?tab=learnings`; every door that pointed at /learn points at
+Outcomes; five guards repinned with reasons; the rail guard exempts /outcomes as it does /arriving).
+The 2026-09-08 work is in the three addenda above. Production was 5be2e7d0 when this closed; Lane 1
+presses 53155ae45 and verifies.
+
+**Pending, by name:**
+1. **The /ship fold.** P-14b marks it for deletion once Outcomes carries its blocks; the changelog is
+   there, but the announcement composer, the release document, "Where it is live" and "Merged, not
+   listed yet" have no home but /ship (3,821 lines). The release card's door reaches it. Same shape as
+   the /learn fold: a component under the run screen's release card or Outcomes' artifacts tab, then
+   a redirect.
+2. **Findings beyond the lead.** The headline names the cluster to start with; the ranking under it
+   still opens six rows on score. "Since you last looked" needs `brain_last_seen` read on the
+   client, which `arriving.tsx` writes and never reads (Lane 3 owns the read).
+3. **The Cohere billing fault** on the Inbox (embeddings stopped, 291 rows waiting): the founder's.
+4. **The Worker's cold start** is what remains above the handlers on every page (a 4.5 s resource
+   carrying a 1.2 s handler); Lane 3's census closed the Inbox's and the run screen's handlers.
+
+**A future session must look into:** (a) the fold live on the first build past 53155ae45, in the
+order above, on Helio Labs, and that `/learn` redirects; (b) `LearnRecord`'s record workspace
+follows the settle gate's focused bet (the desk is an RLS union, the record is one workspace's);
+(c) the two guards that pin `LearnRecord.tsx` by name (`learn-shows-the-record-it-just-wrote`,
+`every-station-hands-you-a-door`) if it is moved again.
+
+**Observations true nowhere else:**
+- A Lovable build can predate the sha `get_project` reports (433da23d lacked 874cc12b5); prove a
+  landing on the served surface. A server-only build keeps the client bundle name, so watch
+  `x-deployment-id` on /film by prefix, never the asset hash.
+- One seat, one name, one colour: `agentDisplayName(slug, stored)` everywhere, `presenceColour`
+  on that name; two names for one seat were two colours on one screen.
+- The demo account is one shared shell: opening a run from another workspace switches every lane's
+  workspace. Probe runs live in "A1 delete probe"; switch back to Helio Labs / Prism after a walk.
+- A register decided by whichever branch fires first is an accident; `run-now.ts` decides once, in
+  priority order. Three of eleven fixes on 2026-09-08 were only findable on the live site.
