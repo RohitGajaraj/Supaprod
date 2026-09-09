@@ -2369,3 +2369,58 @@ three of my own test cases that never ran, appended with `it` into a file import
 found and which is now read by `a-test-that-never-ran-is-not-a-guard.test.ts`; I audited all eleven
 guards I wrote today, declared against ran, and all eleven match.
 
+
+### Lane 1, closing: what the new region cost, and what it caught
+
+**Tip `18de68734`.** The entry's evidence region is live and verified on the founder's own
+workspace. Three things happened after it shipped that are worth more than the region itself.
+
+**It caught a false claim on the home within the hour (F-235).** The answer line above it asserted
+"and the record was re-scored" for every graded decision, and nothing in that read had ever looked
+at a score. On Helio Labs the one decision that came back that week had none. **It was visible only
+because a second, independent statement of the same decision sat beneath it and stayed silent where
+the line spoke.** That is now law 10 in the design contract, in this form:
+
+> **A fact has one source. A claim ABOUT that fact must be derived from it, never asserted
+> alongside it.**
+
+It does not conflict with "one count, one source", and the apparent conflict dissolves once you see
+that the false clause was never a second *reading* of anything. Lane 3 found the cleanest example of
+the same rule as a WRITE: the driver's closed-correction memory records what fixed a track only
+after the station that could not finish has finished, so the hypothesis is never written as a fact.
+
+**Looking at it caught three things no gate would have (F-233, F-236, and the border).** The road
+said "10 drawings" while the story 250px away said "10 prototypes". A button was painted over the
+first two letters of "Put first" on every run row, because a fixed 176px slot held a pair needing
+204. And the region itself had a border and sat directly above the road, which is also a card, so
+the column read as a stack of boxes.
+
+**And auditing my own surfaces against my own new rule caught the worst of it (F-237).** The region
+put **two extra sequential round trips** on the home's arrival, on the surface F-216 had just spent
+a packet making fast. The read was eight sequential hops; it is three now, extracted to a plain
+function so `readHome` stops paying for a second auth middleware run, and held by
+`the-home-answers-are-three-hops.test.ts`. **Count the hops you add to a critical path in the same
+change that adds them.**
+
+On the way, two reads that stated more confidence than they had: the `decisions` embed is typed as
+an array and returns an object, and the default-workspace RPC's answer was taken with `?? null`, so
+an empty array became the workspace id and every count answered **zero** in a file whose own header
+forbids exactly that.
+
+**What is still open, in the order I would take it.**
+
+1. **Nothing of mine is unshipped.** Everything is pushed and deployed; the last deploy is
+   `281046fc`. Lovable's sync stalled twice for 12 to 20 minutes and an empty commit unstuck it both
+   times.
+2. **Two on the run screen, handed to Lane 2 with my ruling.** The Build refusal sentence is quoted
+   twice on one screen. And two chips carry two different words for one state, "Needs a restart" in
+   the header and "Stopped" on the card: **the header chip should change, because a status chip
+   names the state and the remedy already has a home in the footer's press.**
+3. **`eslint.config.js` is hook-protected**, so the `.remember/tmp/**` ignore needs a human. That
+   scratch file regenerates and keeps producing two lint errors.
+4. **19 unverified round-six craft findings** stay **not actionable** without a skeptic pass.
+5. **The held-vs-failed greyscale pair** is still open in the design contract.
+
+**One caution for whoever looks at the home next.** The workspace switcher is per-user server state
+on a shared account. I switched to Helio Labs twice to verify and restored it to A1 delete probe
+both times, and Lane 3 confirmed nothing of theirs was on it. **Ask before switching it.**
