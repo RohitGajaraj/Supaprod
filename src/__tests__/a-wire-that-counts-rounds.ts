@@ -124,8 +124,17 @@ export class FakeWire {
   from(table: string) {
     return new FakeBuilder(this, table);
   }
-  rpc(name: string) {
-    return new FakeBuilder(this, `rpc:${name}`);
+  /**
+   * An rpc's arguments are recorded the way a filter is, so a guard can say
+   * WHAT was asked and not only that something was: `argValue(filters, "p_ids")`.
+   * A function that does a join the caller used to do is still a read with a
+   * key, and the key is the thing worth pinning.
+   */
+  rpc(name: string, args?: Record<string, unknown>) {
+    const b = new FakeBuilder(this, `rpc:${name}`);
+    for (const [col, value] of Object.entries(args ?? {}))
+      b.filters.push({ op: "arg", col, value });
+    return b;
   }
   rowsFor(table: string, cols: string, filters: Filter[]): unknown {
     this.reads.push(table);
@@ -186,3 +195,7 @@ export const inList = (filters: Filter[], col: string): string[] | null => {
 
 export const eqValue = (filters: Filter[], col: string): unknown =>
   filters.find((f) => f.op === "eq" && f.col === col)?.value;
+
+/** The value an rpc was called with, under its parameter name. */
+export const argValue = (filters: Filter[], col: string): unknown =>
+  filters.find((f) => f.op === "arg" && f.col === col)?.value;

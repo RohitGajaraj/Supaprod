@@ -150,21 +150,26 @@ export function formatDesignDispatchSections(ctx: DesignDispatchContext | null):
  * already named as the OTHER contract-holder.
  */
 
-/** Latest trace id per run, via the checkpoint JSON projection (no full-state read). */
-async function traceByRun(
-  supabase: SupabaseClient,
-  runIds: string[],
-): Promise<Map<string, string>> {
-  const out = new Map<string, string>();
+/**
+ * What each run cost, whichever place its trace was written.
+ *
+ * This was two reads in two different rounds: the checkpoints, to learn the
+ * trace of a run older than `agent_runs.trace_id`, and then `ai_events` by
+ * that trace. The second could not leave until the first came back, which is
+ * the whole reason this read had a third hop. `run_trace_costs`
+ * (20260909101000) is the same coalesce and the same sum, done once in the
+ * database, so it leaves in the round that already holds the run ids.
+ *
+ * The sum is per RUN, not per trace, exactly as the caller computed it: two
+ * runs sharing a trace each report that trace's spend, and a run whose trace
+ * is nowhere reports nothing and is absent from the map.
+ */
+async function costByRun(db: SupabaseClient, runIds: string[]): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
   if (!runIds.length) return out;
-  const { data } = await supabase
-    .from("agent_run_checkpoints")
-    .select("run_id, step_index, trace:state->>traceId")
-    .in("run_id", runIds)
-    .order("step_index", { ascending: false })
-    .limit(2000);
-  for (const row of (data ?? []) as { run_id: string; trace: string | null }[]) {
-    if (!out.has(row.run_id) && row.trace) out.set(row.run_id, row.trace);
+  const { data } = await db.rpc("run_trace_costs", { p_run_ids: runIds });
+  for (const row of (data ?? []) as { run_id: string; cost_usd: number | null }[]) {
+    out.set(row.run_id, row.cost_usd ?? 0);
   }
   return out;
 }
@@ -211,7 +216,7 @@ export const listStudioSessions = createServerFn({ method: "GET" })
 
 /**
  * THE READ BEHIND `listStudioSessions`, callable with a client you already
- * hold and driven by `a-strip-read-is-three-hops-deep.test.ts`.
+ * hold and driven by `a-strip-read-is-two-hops-deep.test.ts`.
  *
  * ── ELEVEN ROUND TRIPS ON EVERY PAGE (2026-09-08) ────────────────────────────
  *
@@ -223,9 +228,20 @@ export const listStudioSessions = createServerFn({ method: "GET" })
  * Promise.all, then studio_changes, then prds, then checkpoints and
  * ai_events once per run kind, then agents. At the ~275 ms warm / ~550 ms
  * cold this deployment pays per Worker-to-PostgREST hop, that is the whole
- * number. Three hops now: the three reads that need only the caller leave
- * together; everything keyed on the run rows leaves together; everything
- * keyed on THOSE leaves together. The two run kinds keep their own read,
+ * number.
+ *
+ * TWO HOPS NOW (2026-09-09). The three reads that need only the caller leave
+ * together; everything keyed on the run rows leaves together. There was a
+ * third round, and it existed only because four of its reads were keyed on
+ * what the second returned: the file count per changeset, the title of a
+ * spec found through the lineage, the cost events of a trace found on a
+ * checkpoint, and the slug of the agent a proposal was routed to. A join
+ * whose key the database already holds does not need a round trip to learn
+ * it, so all four moved into the second round: one PostgREST aggregate over
+ * an existing foreign key, and the three functions of migration
+ * 20260909101000, each verified on production against the reads it replaces
+ * before the caller changed (60 newest runs and 80 oldest, every mission's
+ * lineage and every routing: no disagreement). The two run kinds keep their own read,
  * their own page and their own cost tally (the adversarial-review finding
  * the OBS-10 paragraph below records); what changed is only when each read
  * is sent.
@@ -362,17 +378,20 @@ export async function readStudioSessions(
       for (const id of otherMissionIds) missionKind.set(id, "mission");
       for (const id of proposedIds) missionKind.set(id, "mission");
 
-      // Everything keyed on the run rows, in one hop: the missions, their
-      // latest changesets, their pending gates, their spec lineage, and the
-      // checkpoint trace of every run of either kind (one read; the cost
-      // tally below still keeps the kinds apart by walking each kind's own
-      // rows).
+      // Everything keyed on the run rows, and it is the LAST hop: the
+      // missions, their latest changesets carrying their own file count,
+      // their pending gates, their specs already titled, where an unrun
+      // mission was routed, and what each run cost. Four of these used to be
+      // asked in a further round because their key came out of this one; the
+      // three functions of 20260909101000 and one PostgREST embed move that
+      // join into the database, where the key is already in hand.
       const [
         { data: missions },
         { data: changesets },
         { data: pendings },
-        { data: edges },
-        traces,
+        { data: specRows },
+        { data: routedRows },
+        costs,
       ] = await Promise.all([
         db
           .from("missions")
@@ -381,7 +400,10 @@ export async function readStudioSessions(
         db
           .from("studio_changesets")
           .select(
-            "id,product_id,mission_id,status,repo,branch,pr_url,pr_number,title,summary,created_at",
+            /* `studio_changes(count)` is an aggregate over the FK
+               studio_changes.changeset_id, so the file count arrives with the
+               changeset instead of costing a round of its own. */
+            "id,product_id,mission_id,status,repo,branch,pr_url,pr_number,title,summary,created_at,studio_changes(count)",
           )
           .in("mission_id", missionIds)
           .neq("status", "abandoned")
@@ -391,41 +413,42 @@ export async function readStudioSessions(
           .select("id,mission_id")
           .in("mission_id", missionIds)
           .eq("status", "pending"),
-        db
-          .from("artifact_lineage")
-          .select("parent_id,child_id")
-          .eq("parent_kind", "prd")
-          .eq("child_kind", "mission")
-          .in("child_id", missionIds),
+        db.rpc("mission_spec_titles", { p_mission_ids: missionIds }),
+        db.rpc("mission_routed_stations", { p_mission_ids: missionIds }),
         /*
          * ── THE RUN CARRIES ITS OWN TRACE, WHERE IT HAS ONE (2026-09-09) ────
          *
-         * This read every checkpoint of every run in the window (up to 200
-         * runs, capped at 2,000 rows) and projected `state->>'traceId'` out of
-         * them, to learn a fact `agent_runs.trace_id` now holds directly.
-         * Measured on production: for the 300 newest runs the two agree in
-         * every case, and for the 300 OLDEST the run column is null in all 185
-         * that have checkpoints, so the column is newer than they are. That is
-         * why the checkpoint read stays rather than going: it is the only
-         * place a pre-August run's trace exists. It is now asked ONLY about
-         * the runs whose own row does not carry one, which on a workspace that
-         * has run since August is none of them, and the read costs nothing.
+         * Measured on production: for the 300 newest runs `agent_runs.trace_id`
+         * and the latest checkpoint's `state->>'traceId'` agree in every case,
+         * and for the 300 OLDEST the run column is null in all 185 that have
+         * checkpoints. So the column is newer than those runs and the
+         * checkpoint is the only place a pre-August trace exists. Both places
+         * are read, and the sum over them taken, inside `run_trace_costs`.
          */
-        traceByRun(
+        costByRun(
           supabase,
-          [...runRows, ...otherRunRows].filter((r) => !r.trace_id).map((r) => r.id),
+          [...runRows, ...otherRunRows].map((r) => r.id),
         ),
       ]);
 
-      // Latest non-abandoned changeset per mission + file counts in one query.
+      /* The latest non-abandoned changeset per mission, with the file count
+         the embed brought with it. `studio_changes` arrives as PostgREST's
+         aggregate shape, `[{ count }]`, and is dropped from the summary so
+         the returned object is the one every consumer already types. */
       const changesetByMission = new Map<string, StudioChangesetSummary>();
-      const changesetIds: string[] = [];
       for (const cs of (changesets ?? []) as Array<
-        StudioChangesetSummary & { mission_id: string | null; created_at: string }
+        StudioChangesetSummary & {
+          mission_id: string | null;
+          created_at: string;
+          studio_changes?: { count: number }[] | null;
+        }
       >) {
         if (cs.mission_id && !changesetByMission.has(cs.mission_id)) {
-          changesetByMission.set(cs.mission_id, { ...cs, file_count: 0 });
-          changesetIds.push(cs.id);
+          const { studio_changes, ...summary } = cs;
+          changesetByMission.set(cs.mission_id, {
+            ...summary,
+            file_count: studio_changes?.[0]?.count ?? 0,
+          });
         }
       }
 
@@ -435,17 +458,20 @@ export async function readStudioSessions(
           pendingByMission.set(p.mission_id, (pendingByMission.get(p.mission_id) ?? 0) + 1);
       }
 
+      /* The spec a mission came from, already titled. The function LEFT JOINs
+         prds, so an edge whose spec the caller cannot read still arrives, with
+         a null title, and falls back to the word below rather than vanishing:
+         the link is a fact about the mission, and the title is a nicety. */
       const prdByMission = new Map<string, string>();
-      for (const e of (edges ?? []) as { parent_id: string; child_id: string }[]) {
-        prdByMission.set(e.child_id, e.parent_id);
+      const prdTitle = new Map<string, string>();
+      for (const row of (specRows ?? []) as {
+        mission_id: string;
+        prd_id: string;
+        title: string | null;
+      }[]) {
+        prdByMission.set(row.mission_id, row.prd_id);
+        if (row.title) prdTitle.set(row.prd_id, row.title);
       }
-      const prdIds = [...new Set(prdByMission.values())];
-      /* The run's own trace first, the checkpoint's only where the run has
-         none: one map, whichever place the fact was written. */
-      for (const r of [...runRows, ...otherRunRows]) {
-        if (r.trace_id && !traces.has(r.id)) traces.set(r.id, r.trace_id);
-      }
-      const traceList = [...new Set(traces.values())];
       /**
        * The stage a mission that has NOT RUN YET is standing at.
        *
@@ -488,58 +514,23 @@ export async function readStudioSessions(
        * taking it would file every unassigned cluster investigation one stage too
        * far along. It names who logged the proposal, not who will do it.
        */
-      const routedIds = [
-        ...new Set(
-          ((missions ?? []) as Array<{ id: string; current_agent_id: string | null }>)
-            .filter((m) => !stationByMission.get(m.id) && m.current_agent_id)
-            .map((m) => m.current_agent_id as string),
-        ),
-      ];
-
-      // Everything keyed on the second hop, in one: file counts per changeset,
-      // spec titles, the cost events of every trace, the routed agents' slugs.
-      const [{ data: changeRows }, { data: prds }, { data: events }, { data: agentRows }] =
-        await Promise.all([
-          changesetIds.length
-            ? db.from("studio_changes").select("changeset_id").in("changeset_id", changesetIds)
-            : Promise.resolve({ data: [] as { changeset_id: string }[] }),
-          prdIds.length
-            ? db.from("prds").select("id,title").in("id", prdIds)
-            : Promise.resolve({ data: [] as { id: string; title: string }[] }),
-          traceList.length
-            ? db.from("ai_events").select("trace_id,est_cost_usd").in("trace_id", traceList)
-            : Promise.resolve({
-                data: [] as { trace_id: string | null; est_cost_usd: number | null }[],
-              }),
-          routedIds.length
-            ? db.from("agents").select("id,slug").in("id", routedIds)
-            : Promise.resolve({ data: [] as { id: string; slug: string }[] }),
-        ]);
-
-      const counts = new Map<string, number>();
-      for (const r of (changeRows ?? []) as { changeset_id: string }[]) {
-        counts.set(r.changeset_id, (counts.get(r.changeset_id) ?? 0) + 1);
-      }
-      for (const cs of changesetByMission.values()) cs.file_count = counts.get(cs.id) ?? 0;
-
-      const prdTitle = new Map(
-        (prds ?? []).map((p: { id: string; title: string }) => [p.id, p.title]),
-      );
-
-      // Cost: checkpoint trace → ai_events sum (legacy and new runs alike). Computed
-      // separately per agent-kind run set (never merged) so a 'build'-kind mission's
-      // cost/status can never absorb a different agent's contribution mid-mission.
-      const costByTrace = new Map<string, number>();
-      for (const ev of (events ?? []) as {
-        trace_id: string | null;
-        est_cost_usd: number | null;
+      /* Where an unrun mission was addressed, by slug. The function returns a
+         row only for a mission that carries a routing, and a null slug where
+         it points at an agent that no longer exists (six on production), so
+         the fallback below reads the same as it did when the agents read came
+         back empty for that id. */
+      const routedSlug = new Map<string, string | null>();
+      for (const row of (routedRows ?? []) as {
+        mission_id: string;
+        agent_slug: string | null;
       }[]) {
-        if (ev.trace_id)
-          costByTrace.set(
-            ev.trace_id,
-            (costByTrace.get(ev.trace_id) ?? 0) + (ev.est_cost_usd ?? 0),
-          );
+        routedSlug.set(row.mission_id, row.agent_slug);
       }
+
+      // Cost: the run's own trace or its checkpoint's, summed over ai_events, and
+      // computed separately per agent-kind run set (never merged) so a 'build'-kind
+      // mission's cost/status can never absorb a different agent's contribution
+      // mid-mission.
       function costAndStatusByMission(rows: RunRow[]): {
         cost: Map<string, number>;
         status: Map<string, string>;
@@ -549,19 +540,13 @@ export async function readStudioSessions(
         for (const r of rows) {
           if (!r.mission_id) continue;
           if (!status.has(r.mission_id)) status.set(r.mission_id, r.status);
-          const trace = traces.get(r.id);
-          if (trace)
-            cost.set(r.mission_id, (cost.get(r.mission_id) ?? 0) + (costByTrace.get(trace) ?? 0));
+          const spent = costs.get(r.id);
+          if (spent != null) cost.set(r.mission_id, (cost.get(r.mission_id) ?? 0) + spent);
         }
         return { cost, status };
       }
       const builder = costAndStatusByMission(runRows);
       const other = costAndStatusByMission(otherRunRows);
-
-      const slugByAgentId = new Map<string, string>();
-      for (const a of (agentRows ?? []) as { id: string; slug: string }[]) {
-        slugByAgentId.set(a.id, a.slug);
-      }
 
       const sessions = (
         (missions ?? []) as Array<{
@@ -598,7 +583,7 @@ export async function readStudioSessions(
             archived: !!m.archived_at,
             station:
               stationByMission.get(m.id) ??
-              (m.current_agent_id ? agentStation(slugByAgentId.get(m.current_agent_id)) : null) ??
+              agentStation(routedSlug.get(m.id)) ??
               (m.status === "proposed" ? AGENT_STATION_ORDER[0] : null),
           };
         })
