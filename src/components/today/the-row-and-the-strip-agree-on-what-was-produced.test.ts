@@ -29,6 +29,25 @@
  * one, which is better than "filed 1 spec" and is a different rule for a
  * different surface. The convention this pins is the COUNTED CLAUSE, which is
  * the thing that drifted.
+ *
+ * ── AND A DIVERGENCE THIS CANNOT SEE, NAMED BECAUSE IT IS LIVE ────────────
+ * As of 2026-09-10 the run screen's road, story and artifact pane all count
+ * DISTINCT things, folding repeats by title through `foldVersions`. On
+ * `47dcbf3c` they read "4 findings, 67 times". Start's row still counts
+ * filings and says "Produced 67 findings".
+ *
+ * **This file passes anyway, and that is the honest limit of what it proves.**
+ * It scores the row against the convention -- the noun from `KIND_WORD`, the
+ * list from `joinPlainly` -- which is about how a count is WORDED and says
+ * nothing about what gets counted. I strengthened it four hours before the fold
+ * landed and it still cannot see the divergence the fold created.
+ *
+ * NOT FIXED HERE, and the reason is a cost rather than a preference:
+ * `producedByTrack` in `track.functions.ts` counts
+ * `spine_track_members(artifact_kind)` and reads no titles, so folding Start's
+ * row means fetching a title for every member of every track in the feed. That
+ * is a real payload decision on a list read, on a surface Lane 1 owns. Filed
+ * with both lanes rather than taken.
  */
 import { describe, it, expect } from "bun:test";
 import { startRowMiddle, type StartRowInput } from "./tracks-feed";
