@@ -28,6 +28,7 @@ import {
   abandonedLine,
   groupStartRows,
   runClock,
+  ROW_LINE_MAX,
   startRowMiddle,
   startRows,
   type StartRowInput,
@@ -533,5 +534,65 @@ describe("a wait nothing is coming for", () => {
   it("degrades to the plain wait on a timestamp it cannot read", () => {
     const m = startRowMiddle(run({ drivenAt: "not a date" }), NOW, WORDS, phrase);
     expect(m).toBe("Waiting at Build");
+  });
+});
+
+/*
+ * ── TWO HOLDS THAT MEANT DIFFERENT THINGS SHARED ONE SENTENCE ─────────────
+ *
+ * `needs-a-waived-station` and `station-cannot-finish` both returned "needs a
+ * step this route skips. Put it back, or file it yourself." The driver's own
+ * words separate them:
+ *
+ *   needs-a-waived-station  "nothing left on this route will move it on"
+ *   station-cannot-finish   "another run would land in the same place"
+ *
+ * The first IS a skipped step, and `HoldCard` mounts the control that puts it
+ * back -- gated on that reason alone. The second is a station that has what it
+ * needs and keeps finishing empty: no step is missing, nothing to put back, and
+ * the run screen correctly offers no such door. So the row was sending a person
+ * to look for a control that does not exist and should not.
+ *
+ * MEASURED: four of the eight runs on "My workspace" hold the second reason.
+ * Half that list carried the wrong instruction.
+ */
+describe("a hold's advice must exist somewhere", () => {
+  it("tells you to put the step back only where a step is actually skipped", () => {
+    const waived = startRowMiddle(
+      run({ holdReason: "needs-a-waived-station" }),
+      NOW,
+      WORDS,
+      phrase,
+    );
+    expect(waived).toBe("Build needs a step this route skips. Put it back, or file it yourself.");
+  });
+
+  it("says what is actually wrong when the station simply cannot finish", () => {
+    const cannot = startRowMiddle(run({ holdReason: "station-cannot-finish" }), NOW, WORDS, phrase);
+    expect(cannot).toBe(
+      "Build keeps finishing with nothing, and another run would land in the same place.",
+    );
+  });
+
+  it("never offers the put-it-back act for a hold that has no such control", () => {
+    // The specific failure: `HoldCard` gates that control on
+    // `needs-a-waived-station`, so this advice on any other reason is a dead
+    // end by construction.
+    const cannot = startRowMiddle(run({ holdReason: "station-cannot-finish" }), NOW, WORDS, phrase);
+    expect(cannot).not.toContain("Put it back");
+    expect(cannot).not.toContain("skips");
+  });
+
+  it("keeps the two sentences distinct, which is this file's whole rule", () => {
+    const a = startRowMiddle(run({ holdReason: "needs-a-waived-station" }), NOW, WORDS, phrase);
+    const b = startRowMiddle(run({ holdReason: "station-cannot-finish" }), NOW, WORDS, phrase);
+    expect(a).not.toBe(b);
+  });
+
+  it("still fits the row's budget, or it is not a row line", () => {
+    // `last_hold_because` carries the fuller sentence with the attempt count
+    // and reaches the row as its detail; this one has to fit the scan band.
+    const cannot = startRowMiddle(run({ holdReason: "station-cannot-finish" }), NOW, WORDS, phrase);
+    expect(cannot.length).toBeLessThanOrEqual(ROW_LINE_MAX);
   });
 });

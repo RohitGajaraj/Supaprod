@@ -682,13 +682,41 @@ export function shortHoldLine(r: StartRowInput): string | null {
     case "tools-refused":
       return `${s} needs a tool it is not allowed to use.`;
     case "needs-a-waived-station":
-    case "station-cannot-finish":
       /* Seen live on Helio (2026-09-08): "Build cannot proceed without a
          spec or the tasks to build from, and Plan is waived on this route so
          nothing is going to file it. Put Plan back on the route, or file it
          yourself." The driver names the skipped step; the row keeps it as
-         the detail and says the way out. */
+         the detail and says the way out. `HoldCard` carries the control that
+         actually puts it back, and only for THIS reason. */
       return `${s} needs a step this route skips. Put it back, or file it yourself.`;
+    case "station-cannot-finish":
+      /*
+       * ── ITS OWN SENTENCE, BECAUSE IT IS ITS OWN PROBLEM ───────────────────
+       *
+       * This shared the line above and the advice was FALSE for it. The two
+       * holds say different things in the driver's own words:
+       *
+       *   needs-a-waived-station  "nothing left on this route will move it on"
+       *   station-cannot-finish   "another run would land in the same place"
+       *
+       * The first is a step the route skips, and putting it back is the fix --
+       * `HoldCard` mounts that control, gated on that reason alone. The second
+       * is a station that has what it needs and keeps finishing empty. No step
+       * is missing, there is nothing to put back, and the run screen correctly
+       * offers no such door. So the row was telling a person to go and find a
+       * control that does not exist and should not.
+       *
+       * MEASURED: "My workspace" holds 8 runs and FOUR of them are on this
+       * reason, so it was half that workspace's list giving the wrong
+       * instruction.
+       *
+       * The replacement is the driver's own two facts, short enough for a row:
+       * it keeps finishing with nothing, and retrying lands in the same place.
+       * `last_hold_because` carries the fuller sentence with the attempt count
+       * and reaches the row as its detail, so nothing is lost by not saying it
+       * here -- it is 180 characters and the row's budget is 100.
+       */
+      return `${s} keeps finishing with nothing, and another run would land in the same place.`;
     case "carried-on-your-sentence":
       return null;
     default:
