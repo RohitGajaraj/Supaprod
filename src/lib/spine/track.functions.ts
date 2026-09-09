@@ -1362,29 +1362,18 @@ export type StartRun = {
    * times in a row, 612ms each, and the one sentence the home and the run
    * screen gave a person was about the work going round in circles.
    */
-  stoppedBecause: {
-    kind: string;
-    at: string;
-    /**
-     * ── THE WALL CAME DOWN AND NOTHING TOLD ANYBODY ─────────────────────────
-     *
-     * True only for `out_of_credit`, and only when the workspace's account
-     * holds credit NOW. Every other wall stays false: a kill switch and a
-     * spend cap are not undone by a balance.
-     *
-     * MEASURED 2026-09-10. `6cc7a010` halted twelve times on 2026-09-04 with
-     * the account at 13 credits. That account holds 5,249 today, with a 10,000
-     * top-up. The wall is gone, the run has not moved for six days, and it
-     * never will: `going-in-circles` is in `TERMINAL_HOLDS`, so the sweep
-     * refuses it by design and only a person can start it again. Until this
-     * flag there was nothing anywhere that could tell them it was worth it.
-     *
-     * FALSE IS THE SAFE ANSWER AND IT IS THE ONE A REFUSAL GIVES. If RLS
-     * returns no row for an account the reader does not own, the row degrades
-     * to naming the wall without claiming it has lifted, which is still true.
-     */
-    gone: boolean;
-  } | null;
+  stoppedBecause: { kind: string; at: string } | null;
+  /*
+   * ── AND NOT WHETHER THE WALL HAS SINCE COME DOWN ──────────────────────────
+   *
+   * A `gone` flag shipped here on 2026-09-10 and was withdrawn the same night.
+   * The read behind it -- workspace ids to accounts, then accounts to balances
+   * -- is written up in `docs/design/DESIGN-SYSTEM.md` under law 23, and it is
+   * out because the served home stopped answering with it in and I could not
+   * tell from a browser alone which of its two hops was at fault. Ship it back
+   * when there is a way to watch the read run, not before: the entry's largest
+   * reader is not the place to hold an unexplained failure open.
+   */
 };
 
 /**
@@ -1404,16 +1393,6 @@ export type StartRun = {
  */
 type StartTrackRow = {
   id: string;
-  /**
-   * SELECTED SINCE 2026-09-10, and it was deliberately not before. The wallet a
-   * halt was recorded against belongs to the WORKSPACE, so `stoppedBecause.gone`
-   * has to resolve the account per track rather than from whoever is reading --
-   * a reader's own default account would give the wrong balance for any track
-   * they can see and do not own, and when no workspace is named this read spans
-   * several. One uuid per row against the 40 KB this select was narrowed to
-   * avoid is a fair trade for a fact the row now states.
-   */
-  workspace_id: string | null;
   title: string;
   station: string;
   status: string;
@@ -1496,7 +1475,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
         let tracksQuery = supabase
           .from("spine_tracks" as never)
           .select(
-            "id,workspace_id,title,station,status,updated_at,driven_at,last_hold,last_hold_because,pending_gates,spine_track_members(artifact_kind)",
+            "id,title,station,status,updated_at,driven_at,last_hold,last_hold_because,pending_gates,spine_track_members(artifact_kind)",
           );
         /*
          * ONLY WHEN IT IS KNOWN. A caller whose default workspace cannot be
@@ -1504,11 +1483,10 @@ export const listRunsForStart = createServerFn({ method: "GET" })
          * whole life -- narrowing to a workspace we could not name would turn
          * an unresolved id into an empty desk, and an empty desk is a claim.
          *
-         * `workspace_id` IS now selected as well as filtered on. It was
-         * deliberately not, on the P-32 rule that this select carries only what
-         * the row reads -- and as of 2026-09-10 the row does read it, to resolve
-         * which account's balance answers `stoppedBecause.gone`. One uuid per
-         * row, against the 40 KB this select was narrowed to avoid.
+         * `workspace_id` is filtered on without being selected, which is fine
+         * and deliberate: this row type is the narrow P-32 one and nothing
+         * below reads the column. It WAS selected for a night, to resolve each
+         * track's wallet; that read is withdrawn and so is the column.
          */
         if (workspaceId) tracksQuery = tracksQuery.eq("workspace_id", workspaceId);
         const { data, error } = await tracksQuery
@@ -1589,7 +1567,6 @@ export const listRunsForStart = createServerFn({ method: "GET" })
           liveByTrack,
           creditsByTrack,
           haltByTrack,
-          { byAccount: creditByAccount, accountByWorkspace },
         ] = await Promise.all([
           (async () => {
             const byTrack = new Map<string, { tool: string }>();
@@ -1963,88 +1940,6 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             }
             return byTrack;
           })(),
-          (async () => {
-            /*
-             * ── DOES THE WALLET THAT REFUSED THIS RUN HOLD ANYTHING NOW ────
-             *
-             * One round trip, concurrent, over the handful of accounts the 50
-             * listed tracks belong to -- almost always exactly one. The account
-             * ids ride the base read's embed, so this needs no hop to resolve
-             * them.
-             *
-             * `balance + topup > 0` and nothing cleverer. This answers one
-             * question -- is there money -- and the moment it tried to answer
-             * "is there ENOUGH for the next run" it would need the projected
-             * cost of a run that has not been planned, which is a number
-             * nobody has. Enough-to-try is the honest bar for a sentence whose
-             * whole job is telling a person the door is worth pushing again.
-             *
-             * A REFUSED OR EMPTY READ LEAVES EVERY ACCOUNT ABSENT, which reads
-             * as "no credit known" and suppresses the claim rather than making
-             * it. Naming the wall without saying it lifted is still true.
-             */
-            const byAccount = new Map<string, boolean>();
-            const accountByWorkspace = new Map<string, string>();
-            /*
-             * ── TWO HOPS, BECAUSE THERE IS NO FOREIGN KEY TO EMBED THROUGH ──
-             *
-             * This was `workspaces(account_id)` on the base read, which is
-             * free when PostgREST can resolve the relationship. It cannot:
-             * `spine_tracks` has foreign keys to `learnings`, `opportunities`
-             * and `themes` and NONE to `workspaces` -- `workspace_id` is an
-             * unconstrained uuid. The embed therefore errored, `failSoftOrThrow`
-             * raised, and the home's largest read died on every arrival. Caught
-             * on the served build within minutes and reverted to this.
-             *
-             * THE LESSON IS NOT "AVOID EMBEDS". It is that an embed is a claim
-             * about the SCHEMA, and this file's other embed
-             * (`spine_track_members`) works because that key exists. I checked
-             * that the column existed and inferred the relationship from it,
-             * which is a different thing from checking the relationship.
-             *
-             * Chained rather than concurrent because the second read needs the
-             * first's answer. Both are tiny -- at most 50 workspace rows of two
-             * columns, then a handful of account rows -- and the branch as a
-             * whole still runs beside the other six.
-             */
-            const workspaceIds = [
-              ...new Set(
-                rows
-                  .map((r) => r.workspace_id)
-                  .filter((w): w is string => typeof w === "string" && w.length > 0),
-              ),
-            ];
-            if (workspaceIds.length === 0) return { byAccount, accountByWorkspace };
-            const { data: wsRows, error: wsErr } = await supabase
-              .from("workspaces")
-              .select("id, account_id")
-              .in("id", workspaceIds);
-            if (wsErr) {
-              console.error(`[listRunsForStart] workspace account read failed: ${wsErr.message}`);
-              return { byAccount, accountByWorkspace };
-            }
-            for (const w of (wsRows ?? []) as Array<{ id: string; account_id: string | null }>) {
-              if (w.account_id) accountByWorkspace.set(w.id, w.account_id);
-            }
-            const accountIds = [...new Set(accountByWorkspace.values())];
-            if (accountIds.length === 0) return { byAccount, accountByWorkspace };
-            const { data: creds, error: credErr } = await supabase
-              .from("account_credits")
-              .select("account_id, balance_credits, topup_credits")
-              .in("account_id", accountIds);
-            if (credErr) {
-              console.error(`[listRunsForStart] credit balance read failed: ${credErr.message}`);
-              return { byAccount, accountByWorkspace };
-            }
-            for (const c of (creds ?? []) as Array<{
-              account_id: string;
-              balance_credits: number | null;
-              topup_credits: number | null;
-            }>) {
-              byAccount.set(c.account_id, (c.balance_credits ?? 0) + (c.topup_credits ?? 0) > 0);
-            }
-            return { byAccount, accountByWorkspace };
-          })(),
         ]);
 
         return rows.map((r) => {
@@ -2082,17 +1977,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             forecast: forecastByTrack.get(r.id) ?? null,
             liveSince: liveByTrack.get(r.id) ?? null,
             credits: creditsByTrack.get(r.id) ?? null,
-            stoppedBecause: (() => {
-              const halt = haltByTrack.get(r.id);
-              if (!halt) return null;
-              /* ONLY THE WALLET WALL LIFTS WITH A BALANCE. A kill switch and a
-                 spend cap are decisions, not shortages, and topping up undoes
-                 neither. */
-              const account = accountByWorkspace.get(r.workspace_id ?? "") ?? null;
-              const gone =
-                halt.kind === "out_of_credit" && !!account && creditByAccount.get(account) === true;
-              return { ...halt, gone };
-            })(),
+            stoppedBecause: haltByTrack.get(r.id) ?? null,
           };
         });
       } catch (e) {

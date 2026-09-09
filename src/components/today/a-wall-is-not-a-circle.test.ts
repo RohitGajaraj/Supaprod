@@ -30,7 +30,7 @@
  * is what a reader gets when the record holds nothing better.
  */
 import { describe, expect, it } from "bun:test";
-import { ROW_LINE_MAX, startRowMiddle, type StartRowInput } from "./tracks-feed";
+import { startRowMiddle, type StartRowInput } from "./tracks-feed";
 import { KIND_WORD } from "@/lib/spine/attach";
 
 const NOW = Date.parse("2026-09-10T12:00:00Z");
@@ -134,54 +134,18 @@ describe("a wall the platform recorded outranks a shape the driver inferred", ()
 });
 
 /*
- * ── THE WALL CAME DOWN AND NOTHING TOLD ANYBODY ───────────────────────────
+ * ── THE WALL CAME DOWN AND NOTHING TOLD ANYBODY, AND THAT HALF IS WITHDRAWN ─
  *
- * `6cc7a010` halted twelve times on 2026-09-04 against an account holding 13
- * credits. That account holds 5,249 today, with a 10,000 top-up. The thing
- * that stopped the run is gone, the run has not moved for six days, and it
- * never will on its own: `going-in-circles` is in `TERMINAL_HOLDS`, so the
- * sweep refuses it by design and only a person can start it again.
+ * A `gone` flag shipped on 2026-09-10 and came out the same night. `6cc7a010`
+ * halted twelve times on 2026-09-04 against an account holding 13 credits;
+ * that account holds 5,249 today, the run has not moved for six days, and it
+ * never will on its own because `going-in-circles` is in `TERMINAL_HOLDS`. So
+ * the fact is real and worth saying.
  *
- * A run that can go again and one that has genuinely given up looked identical
- * on the entry, which is the founder's *"I cannot feel the value"* on the one
- * row where the product had something valuable to say and did not say it.
+ * What is not settled is the read. It takes two hops -- workspace ids to
+ * accounts, then accounts to balances -- and with it in place the served home
+ * stopped answering at all. I could not tell from a browser which hop was at
+ * fault, and the entry's largest reader is not the place to hold an
+ * unexplained failure open. The argument is preserved in law 23; the code is
+ * not, and it comes back when there is a way to watch the read run.
  */
-describe("a wall that has come down", () => {
-  const halted = (gone: boolean): StartRowInput => ({
-    ...CIRCLES,
-    stoppedBecause: { kind: "out_of_credit", at: "2026-09-04T05:30:05Z", gone },
-  });
-
-  it("says there is credit again, because that is what changes what you do", () => {
-    expect(line(halted(true))).toBe("It ran out of credit and stopped. There is credit again.");
-  });
-
-  it("still says the cause, because the change alone is a non sequitur", () => {
-    expect({ namesTheCause: /credit/i.test(line(halted(true))) }).toEqual({ namesTheCause: true });
-  });
-
-  it("does not say it when the wall is still standing", () => {
-    expect(line(halted(false))).toBe(
-      "Stopped: the account ran out of credit, so the seat never ran.",
-    );
-  });
-
-  it("degrades to naming the wall when nothing could be read about the balance", () => {
-    /*
-     * THE FAIL DIRECTION, AND IT IS THE POINT. RLS returns no row for an
-     * account the reader does not own, so `gone` arrives absent rather than
-     * false-because-empty. Naming the wall without claiming it lifted is still
-     * true; the reverse would be the product inventing an all-clear.
-     */
-    const unknown: StartRowInput = {
-      ...CIRCLES,
-      stoppedBecause: { kind: "out_of_credit", at: "2026-09-04T05:30:05Z" },
-    };
-    expect(line(unknown)).toBe("Stopped: the account ran out of credit, so the seat never ran.");
-  });
-
-  it("fits the one line a row gets", () => {
-    // Every sentence here renders as `StartRow.middle`, which is clamped.
-    expect(line(halted(true)).length).toBeLessThanOrEqual(ROW_LINE_MAX);
-  });
-});

@@ -361,12 +361,7 @@ export type StartRowInput = {
    * `agent_runs.halted_reason` (newest first). Null for every track that has
    * never hit a wall, which is almost all of them.
    */
-  stoppedBecause?: {
-    kind: string;
-    at: string;
-    /** The wall has since come down. Only ever true for a wallet wall. */
-    gone?: boolean;
-  } | null;
+  stoppedBecause?: { kind: string; at: string } | null;
   /** When a person said this one goes first, or null. */
   pinnedAt?: string | null;
   /** When this track's own work first reached production, or null (P-126,
@@ -636,23 +631,6 @@ function startRowRest(
   const wall = r.stoppedBecause
     ? (HALT_LINE as Record<string, string | undefined>)[r.stoppedBecause.kind]
     : null;
-  /*
-   * ── AND WHEN THE WALL HAS COME DOWN, THAT IS THE SENTENCE ────────────────
-   *
-   * `6cc7a010` halted twelve times on 2026-09-04 against an account holding 13
-   * credits. That account holds 5,249 today, with a 10,000 top-up. The thing
-   * that stopped the run is gone, the run has not moved for six days, and it
-   * never will on its own: `going-in-circles` is in `TERMINAL_HOLDS`, so the
-   * sweep refuses it by design and only a person can start it again.
-   *
-   * Nothing anywhere told them it was worth doing. A row that says only "it
-   * ran out of credit" is history; the fact that changes what a person does is
-   * that there is credit NOW, so the second half is the half that earns its
-   * place. Both are said, in that order, because the cause without the change
-   * reads as a dead run and the change without the cause reads as a non
-   * sequitur.
-   */
-  if (r.stoppedBecause?.gone) return "It ran out of credit and stopped. There is credit again.";
   if (wall) return wall;
 
   if (r.holdBecause && r.holdBecause.length <= ROW_LINE_MAX) return r.holdBecause;
