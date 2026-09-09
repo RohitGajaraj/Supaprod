@@ -1,7 +1,9 @@
 // StageTimeline: the per-entity stage history block, one line per transition,
 // read from the real stage_events rows via getStageEvents (SEAM-1 read side).
 // Honest-empty: history accrues from today (no backfill), so zero events
-// renders nothing at all — the section wrapper lives inside this component so
+// renders nothing at all -- but a FAILED read says so instead of taking that
+// same exit (2026-09-10), because a section that vanishes reads as "nothing
+// happened to this" and not as "we could not find out" — the section wrapper lives inside this component so
 // a host never shows an empty shell. Two variants mirror the two host
 // anatomies, no new styling: 'detailkit' wraps the rows in the shared
 // DetailSection (spec / opportunity / decision details); 'loom' wraps them in
@@ -57,6 +59,38 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
   });
 
   const events = eventsQuery.data?.events ?? [];
+
+  /*
+   * ── A READ THAT FAILED IS NOT AN ENTITY WITH NO HISTORY ────────────────────
+   *
+   * The honest-empty rule at the top of this file is right: history accrues
+   * from today, so an entity with no transitions shows nothing rather than an
+   * empty shell. A FAILED read took that same exit, and it is a different
+   * fact wearing the same silence -- the section simply vanished, and on a
+   * decision or an opportunity that reads as "nothing has happened to this"
+   * rather than "we could not find out".
+   *
+   * So the failure says so, in the host's own anatomy, adding no styling of
+   * its own for the reason the header gives: changing another surface's shell
+   * from inside a shared timeline is how one port breaks three screens.
+   */
+  const unread = eventsQuery.isError;
+  if (unread) {
+    const line = "The stage history could not be read.";
+    return variant === "loom" ? (
+      <section style={{ ...LOOM_CARD, padding: "var(--card-pad)", marginBottom: 16 }}>
+        <div style={{ marginBottom: 12 }}>
+          <MonoLabel>Stage history</MonoLabel>
+        </div>
+        <p style={{ color: "var(--mrd-mute)", margin: 0 }}>{line}</p>
+      </section>
+    ) : (
+      <DetailSection heading="Stage history">
+        <p style={{ color: "var(--mrd-mute)", margin: 0 }}>{line}</p>
+      </DetailSection>
+    );
+  }
+
   if (events.length === 0) return null;
 
   if (variant === "loom") {
