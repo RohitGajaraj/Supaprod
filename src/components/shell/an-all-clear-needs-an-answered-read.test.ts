@@ -80,6 +80,29 @@ describe("the shell's live line", () => {
       "moving.isError",
     );
   });
+  it("says nothing while any read the sentence stands on is still out", () => {
+    /*
+     * CAUGHT ON A COLD LOAD OF THE SERVED HOME, 2026-09-09. The header printed
+     * "Ready for the first run" with the workspace name still blank: missions
+     * and the seats had answered empty in the first beat, and the guard named
+     * only those two, so the line fell through to the first-run invitation
+     * while `openTracks` was still in flight. F-217 had made that read
+     * load-bearing the same morning, since the idle fact is the newest OPEN
+     * RUN when one moved after the last finish, and the guard was not widened
+     * with it. A guard naming a subset of the reads its sentence stands on is
+     * not a guard.
+     */
+    const memo = SRC.match(/const liveLead = React\.useMemo\(\(\) => \{([\s\S]*?)\n {2}\}/);
+    expect(memo).not.toBeNull();
+    const body = memo![1]!;
+    const at = body.search(/if \(missions\.isLoading[\s\S]{0,160}?return null;/);
+    expect(at, "no loading guard in the live line").toBeGreaterThan(-1);
+    const guard = body.slice(at, at + 240);
+    for (const read of ["missions.isLoading", "runningNow.isLoading", "openTracks.isLoading"]) {
+      expect({ read, guarded: guard.includes(read) }).toEqual({ read, guarded: true });
+    }
+    expect(at).toBeLessThan(body.indexOf('"Ready for the first run"'));
+  });
 });
 
 describe("the home's hero", () => {

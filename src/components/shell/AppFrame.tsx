@@ -1399,7 +1399,18 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
        on it, and an ungated fall-through here would print the idle sentence
        for the beat before the id arrives. */
     if (!wsKey) return null;
-    if (missions.isLoading || runningNow.isLoading) return null;
+    /* EVERY READ THE SENTENCE STANDS ON, not the two it used to (caught on a
+       cold load of the home, 2026-09-09, watching the served build: the header
+       printed "Ready for the first run" while the workspace name was still
+       blank). F-217 made `openTracks` load-bearing this morning, because the
+       idle line names the newest OPEN RUN when a run has moved since the last
+       finish, and the guard was not widened with it: a workspace whose
+       missions and seats answer empty in the first beat falls through to the
+       first-run invitation while the read that would have contradicted it is
+       still out. `moving` is here for the same reason, since two branches
+       above the idle line read it. */
+    if (missions.isLoading || runningNow.isLoading || openTracks.isLoading || moving.isLoading)
+      return null;
     /* THE SEATS, READ ONCE FOR EVERY BRANCH (fourth review, 2026-09-09). A
        run is a mission only from Build, so a seat before it is in the
        running-now read and never in `running`; the mission branches below
@@ -1539,6 +1550,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     openTracks.isError,
     moving.isError,
     missions.isLoading,
+    openTracks.isLoading,
+    moving.isLoading,
     running.length,
     running,
     waiting,
