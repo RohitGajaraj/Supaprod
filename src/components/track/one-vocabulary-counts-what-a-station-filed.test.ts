@@ -112,25 +112,26 @@ const EMITTERS: { path: string; surface: string }[] = [
 const PRIMITIVES = ["components/track/versions-of-one-thing.ts"];
 
 /**
- * The one module that emits a tally and reaches no screen, kept on purpose.
+ * THE QUARANTINE IS EMPTY, AND THAT IS THE POINT OF HAVING HAD ONE.
  *
- * `what-it-produced.ts` is the reference implementation that
- * `the-row-and-the-strip-agree-on-what-was-produced.test.ts` pins Start's row
- * to, clause for clause: always state the count, join with `joinPlainly`, so two
- * surfaces counting the same `spine_track_members` rows cannot disagree on
- * whether "1 spec" is worth saying by number. Its last renderer went when the
- * transcript's section header did.
+ * `what-it-produced.ts` sat here: a tally emitter that reached no screen, kept
+ * only because `the-row-and-the-strip-agree-on-what-was-produced` was pinned to
+ * it. A dead module held up by a test is still a dead module, and the census's
+ * own mirror is what made that visible rather than comfortable.
  *
- * Deleting it takes that contract with it, and the live emitters do not share
- * one convention to re-point it at: `run-tally` drops the number for a count of
- * one ("spec", not "1 spec"), deliberately, because a chip is not a sentence.
- * Re-pointing it is a piece of work with a decision in it, so it is named here
- * rather than done in passing.
+ * It is gone (2026-09-10). The contract now scores Start's row against the
+ * CONVENTION -- `KIND_WORD` for the noun, `joinPlainly` for the list -- rather
+ * than against a second implementation of it, which is strictly stronger:
+ * comparing two implementations proves they agree, never that either is right,
+ * and both could have drifted together with this staying green.
  *
- * A list of one. If it grows, each entry brings its own paragraph, or it is not
- * a quarantine, it is a second tree of dead emitters.
+ * The list stays at zero rather than being deleted, because the next module
+ * that loses its last renderer needs somewhere to be named while somebody
+ * decides, and an empty list with its reasoning attached is that place. If it
+ * grows, each entry brings its own paragraph, or it is not a quarantine, it is
+ * a second tree of dead emitters.
  */
-const KEPT_FOR_A_CONTRACT = ["components/track/what-it-produced.ts"];
+const KEPT_FOR_A_CONTRACT: string[] = [];
 
 /** Every source file, so the scan cannot miss one by not being told about it. */
 function allSources(dir: string, out: string[] = []): string[] {
