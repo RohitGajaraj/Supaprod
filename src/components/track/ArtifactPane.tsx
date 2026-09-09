@@ -322,7 +322,9 @@ function SpecPromise({
             return (
               <div key={typeof m.id === "string" ? m.id : text} className="flex flex-col gap-mrd-1">
                 <p className="mrd-copy max-w-[var(--mrd-measure-prose)]">{text}</p>
-                <p className="mrd-meta max-w-[var(--mrd-measure-prose)]">{metricSourceLine(state)}</p>
+                <p className="mrd-meta max-w-[var(--mrd-measure-prose)]">
+                  {metricSourceLine(state)}
+                </p>
                 {/* The press sits beside the metric it would measure, not in a
                     settings screen: the person is looking at the thing that
                     cannot be graded at the moment they learn it cannot. */}
@@ -3281,14 +3283,25 @@ function StationPanel({
    * `Record<string, FieldValue>` and a JSON column would render as "[object
    * Object]" in a quotation, which is worse than saying nothing about it.
    */
-  const bodyByArtifact = React.useMemo(() => {
-    const m = new Map<string, string | null>();
-    for (const it of items ?? []) {
-      const body = it.fields?.body ?? it.fields?.description ?? null;
-      m.set(it.artifactId, typeof body === "string" ? body : null);
-    }
-    return m;
-  }, [items]);
+  /*
+   * NOT MEMOISED, and that is a correction rather than a choice. The first
+   * version wrapped this in `React.useMemo` and `react-hooks/rules-of-hooks`
+   * caught it: this line sits BELOW an early return in `StationPanel`, so a
+   * hook here is a conditional hook and the order changes between renders.
+   * (Found by Lane 3 in the lint sweep, 2026-09-09. I had written the same
+   * caution into `TrackActivity`'s refrain an hour earlier and then walked into
+   * it here, which is the whole argument for the rule being a lint and not a
+   * habit.)
+   *
+   * Cheap without one: `items` is ONE station's members, not the run's, so this
+   * is a handful of entries built on a poll that is already re-rendering the
+   * column beneath it.
+   */
+  const bodyByArtifact = new Map<string, string | null>();
+  for (const it of items ?? []) {
+    const body = it.fields?.body ?? it.fields?.description ?? null;
+    bodyByArtifact.set(it.artifactId, typeof body === "string" ? body : null);
+  }
   const made = whatItMade({
     station: stop.station,
     label: stop.label,

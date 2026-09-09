@@ -179,8 +179,7 @@ export function LiveStation({
        */}
       {callsQ.isError ? (
         <ReadFailedLine error={callsQ.error}>
-          What it is calling did not come back, so this list would not be
-          trustworthy.
+          What it is calling did not come back, so this list would not be trustworthy.
         </ReadFailedLine>
       ) : callsQ.isLoading ? (
         <Reading>Reading what it is calling.</Reading>

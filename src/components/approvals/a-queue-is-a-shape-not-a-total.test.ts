@@ -75,9 +75,7 @@ describe("a queue is a shape, not a total", () => {
   it("gets the singular right on both halves of the sentence", () => {
     // The family, and the count of the rest, each carry their own verb.
     expect(shapeSentence(queueShape(["decision"]), false)).toBe("1 decision is waiting for you.");
-    expect(shapeSentence(queueShape(["spec", "spec"]), false)).toBe(
-      "2 specs are waiting for you.",
-    );
+    expect(shapeSentence(queueShape(["spec", "spec"]), false)).toBe("2 specs are waiting for you.");
     expect(shapeSentence(queueShape(["decision", "spec", "spec"]), false)).toBe(
       "2 specs and 1 other call is waiting for you.",
     );

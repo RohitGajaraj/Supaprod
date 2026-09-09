@@ -186,11 +186,7 @@ export function foldRepeats(bodies: ReadonlyArray<string | null | undefined>): n
  * DISCRIMINATES, which is the rule the transcript's chips and the run strip
  * both follow.
  */
-export function versionsLabel(
-  word: string,
-  versions: number,
-  repeats: number | null,
-): string {
+export function versionsLabel(word: string, versions: number, repeats: number | null): string {
   const base = `${word} · ${versions} versions`;
   if (!repeats) return base;
   return `${base}, ${repeats} the same`;

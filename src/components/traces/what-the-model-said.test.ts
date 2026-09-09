@@ -11,11 +11,7 @@
  */
 import { describe, it, expect } from "bun:test";
 
-import {
-  readModelStep,
-  readJsonString,
-  actionLine,
-} from "@/components/traces/what-the-model-said";
+import { readModelStep, readJsonString, actionLine } from "@/components/traces/what-the-model-said";
 
 /** Cut by the column, mid-string, inside `action.args.query`. */
 const CLIPPED =

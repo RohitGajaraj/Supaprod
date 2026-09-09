@@ -737,10 +737,7 @@ export function TrackConsent({
                   than tomorrow, which is the fact the person acts on. */}
               {snooze.error ? (
                 <RecordSpeaks>
-                  {failureLine(
-                    "It was not set aside, so this gate still needs you.",
-                    snooze.error,
-                  )}
+                  {failureLine("It was not set aside, so this gate still needs you.", snooze.error)}
                 </RecordSpeaks>
               ) : null}
             </div>

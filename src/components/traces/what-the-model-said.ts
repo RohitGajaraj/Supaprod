@@ -164,9 +164,7 @@ export function readModelStep(preview: string | null | undefined): ModelStep | n
   return {
     thought: thought?.value || null,
     action,
-    clipped: Boolean(
-      thought?.clipped || kind?.clipped || name?.clipped || reason?.clipped,
-    ),
+    clipped: Boolean(thought?.clipped || kind?.clipped || name?.clipped || reason?.clipped),
   };
 }
 

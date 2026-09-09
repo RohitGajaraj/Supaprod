@@ -338,7 +338,11 @@ describe("how the decisions went, said only when it discriminates", () => {
 
   it("names the share when some were declined", () => {
     const t = runTally({
-      stops: stopWith([decision("approved", "a"), decision("declined", "b"), decision("declined", "c")]),
+      stops: stopWith([
+        decision("approved", "a"),
+        decision("declined", "b"),
+        decision("declined", "c"),
+      ]),
       turns: null,
       now: NOW,
     });
@@ -349,7 +353,11 @@ describe("how the decisions went, said only when it discriminates", () => {
     // "3 of the 3" is a sentence that makes a reader do arithmetic to reach
     // "all", and the whole point of the clause is that it is read at a glance.
     const t = runTally({
-      stops: stopWith([decision("declined", "a"), decision("declined", "b"), decision("declined", "c")]),
+      stops: stopWith([
+        decision("declined", "a"),
+        decision("declined", "b"),
+        decision("declined", "c"),
+      ]),
       turns: null,
       now: NOW,
     });

@@ -141,13 +141,13 @@ export type Tally = {
 export function hasAnything(t: Tally): boolean {
   return Boolean(
     t.made.length ||
-      t.pr ||
-      t.verdict ||
-      t.horizon ||
-      t.selfCheck ||
-      t.declined ||
-      t.elapsed ||
-      t.cost,
+    t.pr ||
+    t.verdict ||
+    t.horizon ||
+    t.selfCheck ||
+    t.declined ||
+    t.elapsed ||
+    t.cost,
   );
 }
 

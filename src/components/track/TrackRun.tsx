@@ -535,9 +535,7 @@ export function TrackRunLeft({
     /* It had no `onError` at all: the button un-busied, the card re-rendered
        unchanged, and nothing was said about a call that was not recorded. */
     onError: (e: Error) =>
-      setChoiceProblem(
-        failureLine("The question is still open, so nothing was decided.", e),
-      ),
+      setChoiceProblem(failureLine("The question is still open, so nothing was decided.", e)),
   });
   /*
    * The other answer. Recorded BEFORE the navigation, and it does not press:
@@ -1211,22 +1209,22 @@ export function TrackRunLeft({
     <div className="flex flex-col gap-mrd-5">
       {callIsYours ? (
         <>
-        <TheCallIsYours
-          busyId={
-            onYourWord.isPending
-              ? "build-on-your-word"
-              : pointASource.isPending
-                ? "point-a-source"
-                : null
-          }
-          onBuildOnYourWord={(howWeWillKnow) => onYourWord.mutate(howWeWillKnow)}
-          onPointASource={() => pointASource.mutate()}
-        />
-        {/* Outside RunNow deliberately: that card is not rendered while this
+          <TheCallIsYours
+            busyId={
+              onYourWord.isPending
+                ? "build-on-your-word"
+                : pointASource.isPending
+                  ? "point-a-source"
+                  : null
+            }
+            onBuildOnYourWord={(howWeWillKnow) => onYourWord.mutate(howWeWillKnow)}
+            onPointASource={() => pointASource.mutate()}
+          />
+          {/* Outside RunNow deliberately: that card is not rendered while this
             one is up, which is why these two mutations had nowhere to speak. */}
-        {choiceProblem ? (
-          <Receipt verb="Your answer was not recorded" consequence={choiceProblem} failed />
-        ) : null}
+          {choiceProblem ? (
+            <Receipt verb="Your answer was not recorded" consequence={choiceProblem} failed />
+          ) : null}
         </>
       ) : (
         <TrackConsent trackId={trackId} onAnswered={() => run.mutate("press")} />
