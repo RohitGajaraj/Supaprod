@@ -17,6 +17,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
 import { quarantineUntrusted } from "@/lib/ai/guardrails-injection.server";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 const EVENT_TYPES = [
   "signal.created",
@@ -39,7 +40,7 @@ export const listEventSubscriptions = createServerFn({ method: "POST" })
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
     if (!workspaceId) return { subscriptions: [] };
     const { data: rows, error } = await supabase
@@ -72,7 +73,7 @@ export const upsertEventSubscription = createServerFn({ method: "POST" })
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
     if (!workspaceId) throw new Error("No workspace");
     // Verify the target agent exists for this user (otherwise dispatch will fail later).
@@ -135,7 +136,7 @@ export const listEventQueue = createServerFn({ method: "POST" })
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
     if (!workspaceId) return { events: [] };
     let q = supabase

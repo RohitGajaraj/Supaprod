@@ -14,6 +14,7 @@ import {
   type CalibrationSummary,
 } from "@/lib/brain/calibrate-insights.server";
 import { DAILY_PUSH_CAP } from "@/lib/brain/push-insights";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 export type BrainBeliefs = { standing: number; superseded: number };
 
@@ -333,7 +334,7 @@ export const getBrainInsights = createServerFn({ method: "GET" })
     let workspaceId = data?.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
     const empty: BrainInsights = {
       beliefs: { standing: 0, superseded: 0 },
@@ -477,7 +478,7 @@ export const getBrainAnalysis = createServerFn({ method: "POST" })
 
     // Workspace scope: the caller's default workspace (deterministic), not an arbitrary membership row.
     const { data: ws } = await supabase.rpc("current_user_default_workspace");
-    const workspaceId = (ws as string | null) ?? null;
+    const workspaceId = defaultWorkspaceId(ws);
     if (!workspaceId) return { signals: [], sparse: true };
 
     const [decisionsRes, learningsRes] = await Promise.all([
@@ -574,7 +575,7 @@ export const getForecastCalibration = createServerFn({ method: "GET" })
     let workspaceId = data?.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
     if (!workspaceId) {
       const empty = {
@@ -624,7 +625,7 @@ export const getPushedInsights = createServerFn({ method: "GET" })
     let workspaceId = input.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
     if (!workspaceId) return { insights: [] };
 

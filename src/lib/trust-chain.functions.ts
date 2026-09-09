@@ -22,6 +22,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cleanTitle } from "@/components/plan/format";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 /** The nine canonical links, in pipeline order. */
 export type ChainLinkKey =
@@ -288,7 +289,7 @@ function firstBy<T extends { created_at?: string | null; at?: string | null }>(
  * alone spans EVERY workspace the caller belongs to. */
 async function resolveWorkspaceId(db: SupabaseClient): Promise<string | null> {
   const { data: ws } = await db.rpc("current_user_default_workspace");
-  return (ws as string | null) ?? null;
+  return defaultWorkspaceId(ws);
 }
 
 /** A swallowed read error is indistinguishable from "no rows" and would render

@@ -126,6 +126,7 @@ import {
 } from "@/lib/spine/activity";
 import { creditsSpentByTrace } from "@/lib/credits.functions";
 import { SEARCH_TOOLS, toolCallFacts } from "@/lib/spine/tool-call-facts";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 const STATION = z.enum(AGENT_STATION_ORDER as unknown as [AgentStation, ...AgentStation[]]);
 const SHAPE = z.enum([
@@ -1331,7 +1332,7 @@ async function resolveStartWorkspaceId(
   const started = performance.now();
   const { data } = await supabase.rpc("current_user_default_workspace");
   appendServerTiming("workspace-read", performance.now() - started);
-  return (data as string | null) ?? null;
+  return defaultWorkspaceId(data);
 }
 
 /**

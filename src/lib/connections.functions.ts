@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -698,7 +699,7 @@ export const listWorkspaceBindings = createServerFn({ method: "GET" })
     let wid = input?.workspaceId ?? null;
     if (!wid) {
       const { data: ws } = await context.supabase.rpc("current_user_default_workspace");
-      wid = (ws as string | null) ?? null;
+      wid = defaultWorkspaceId(ws);
     }
     let bindingsQ = db.from("connection_bindings").select(BINDING_COLUMNS);
     if (wid) bindingsQ = bindingsQ.eq("workspace_id", wid);

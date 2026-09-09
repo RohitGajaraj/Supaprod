@@ -8,6 +8,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import {
   entitlementsFor,
   normalizePlanTier,
@@ -21,7 +22,7 @@ async function resolveWorkspaceId(
 ): Promise<string | null> {
   if (explicit) return explicit;
   const { data } = await supabase.rpc("current_user_default_workspace");
-  return (data as string | null) ?? null;
+  return defaultWorkspaceId(data);
 }
 
 /**

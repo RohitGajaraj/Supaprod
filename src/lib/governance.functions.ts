@@ -46,6 +46,7 @@ import {
   type Role,
 } from "@/lib/roles.functions";
 import type { Database } from "@/integrations/supabase/types";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 /* ------------------------------------------------------------------ *
  * WHICH WORKSPACE, AND WHO MAY MOVE IT (2026-08-05)
@@ -169,7 +170,7 @@ export const getGovernanceOverview = createServerFn({ method: "POST" })
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
 
     const [killState, systemRow, wsRow, runs, approvals] = await Promise.all([
@@ -298,7 +299,7 @@ export const getWorkspacePauseState = createServerFn({ method: "POST" })
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
     const { data: state } = await supabase.rpc("current_kill_state", {
       ws: workspaceId as unknown as string,

@@ -131,6 +131,7 @@ import { designGateBlocksDispatch } from "@/lib/build/design-gate";
 // at Design and another at Build.
 import { standingClauseTexts } from "@/lib/build/ard-block";
 import { parseDesignCriticReview, type DesignCriticReview } from "@/lib/ai/design-critic";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 // Minimal CSS injected into every generated mockup. Avoids any external CDN
 // (cdn.tailwindcss.com is a dynamic JIT compiler; SRI hashes don't apply).
@@ -429,7 +430,7 @@ async function resolveWorkspaceId(
   if (given) return given;
   try {
     const { data } = await supabase.rpc("current_user_default_workspace");
-    return (data as string | null) ?? null;
+    return defaultWorkspaceId(data);
   } catch {
     return null;
   }
@@ -1196,7 +1197,7 @@ export const runScaffoldDesignCritic = createServerFn({ method: "POST" })
     let workspaceId: string | null = null;
     try {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     } catch {
       workspaceId = null;
     }
@@ -1600,7 +1601,7 @@ export const listDesignWork = createServerFn({ method: "GET" })
      */
     const { data: ws, error: wsIdErr } = await supabase.rpc("current_user_default_workspace");
     if (wsIdErr) throw new Error(wsIdErr.message);
-    const workspaceId = (ws as string | null) ?? null;
+    const workspaceId = defaultWorkspaceId(ws);
     if (!workspaceId) return empty;
 
     const [

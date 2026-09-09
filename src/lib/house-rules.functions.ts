@@ -31,6 +31,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { assessAndQuarantine } from "@/lib/injection-classifier";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import {
   getUserWorkspaceRole,
   writeDeniedReason,
@@ -64,7 +65,7 @@ async function resolveWorkspaceId(
 ): Promise<string | null> {
   if (explicit) return explicit;
   const { data } = await supabase.rpc("current_user_default_workspace");
-  return (data as string | null) ?? null;
+  return defaultWorkspaceId(data);
 }
 
 /**

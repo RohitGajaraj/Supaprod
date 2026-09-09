@@ -29,6 +29,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 // ---------------------------------------------------------------------------
 // Public lane shapes (render-ready)
@@ -533,7 +534,7 @@ export const getTodayLanes = createServerFn({ method: "GET" })
     // The resolver getInsightRail / getForecastCalibration / getCostPerOutcome
     // all use; returns the caller's default workspace id (or null).
     const { data: ws } = await supabase.rpc("current_user_default_workspace");
-    const workspaceId = (ws as string | null) ?? null;
+    const workspaceId = defaultWorkspaceId(ws);
     if (!workspaceId) return EMPTY_TODAY_LANES;
 
     // stage_events + learnings.mission_id postdate the generated types.

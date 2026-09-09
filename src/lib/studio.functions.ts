@@ -28,6 +28,7 @@ import { formatDesignMemoryContext } from "@/lib/design-memory.functions";
 import { formatFlowContext, type PrdFlowRow } from "@/lib/design-parity.functions";
 import type { DesignDispatchContext } from "@/lib/build/design-gate";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 /* `studio-format.ts` is a component-free module (zero imports, its own header
  * says "pure helpers, no components"), so pulling one formatter across the
  * lib/components line costs nothing at runtime and keeps the run surface and
@@ -810,7 +811,7 @@ export const listAppliedChanges = createServerFn({ method: "GET" })
     let workspaceId: string | null = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await db.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
     if (!workspaceId) return { changes: [] };
 

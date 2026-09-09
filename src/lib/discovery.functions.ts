@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import {
   findTheSpecThatAlreadySaysThis,
   whatDefineDidInstead,
@@ -1529,7 +1530,7 @@ export const listOpportunities = createServerFn({ method: "GET" })
     let oppWid = data?.workspaceId ?? null;
     if (!oppWid) {
       const { data: oppWs } = await context.supabase.rpc("current_user_default_workspace");
-      oppWid = (oppWs as string | null) ?? null;
+      oppWid = defaultWorkspaceId(oppWs);
     }
     let oppsQ = context.supabase
       .from("opportunities")
@@ -1623,7 +1624,7 @@ async function resolveTopBetsWorkspaceId(
 ): Promise<string | null> {
   if (explicit) return explicit;
   const { data } = await supabase.rpc("current_user_default_workspace");
-  return (data as string | null) ?? null;
+  return defaultWorkspaceId(data);
 }
 
 /**

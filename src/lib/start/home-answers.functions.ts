@@ -14,6 +14,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { changelogTitleFor } from "@/lib/changelog";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import type { ReleasedItem } from "@/components/start/three-answers-above-your-runs";
 
 const Scope = z.object({ workspaceId: z.string().uuid().nullable().optional() });
@@ -108,13 +109,17 @@ export async function readAnswers(
     if (!workspaceId) {
       const { data: def } = await supabase.rpc("current_user_default_workspace");
       /*
-       * CHECKED TO BE A STRING, not merely non-null. `?? null` accepts anything
+       * CHECKED, NOT CAST, AND CHECKED IN ONE PLACE. `?? null` accepts anything
        * the RPC hands back, and an empty array is truthy, so a reply of the
-       * wrong shape became the workspace id and every read below filtered on it
-       * and answered zero. Zero is the one answer this file must never invent:
-       * the shapes above draw an all-clear for it and nothing for null.
+       * wrong shape became the workspace id, every read below filtered on it,
+       * and they all answered zero. Zero is the one answer this file must never
+       * invent: the shapes above draw an all-clear for it and nothing for null.
+       *
+       * `defaultWorkspaceId` is the one narrowing all 52 call sites of this
+       * shape now share (Lane 3, 2026-09-09), taken over an inline check of my
+       * own because a second copy of a narrowing is a second thing to drift.
        */
-      workspaceId = typeof def === "string" && def.length > 0 ? def : null;
+      workspaceId = defaultWorkspaceId(def);
     }
     // Without a workspace there is nothing to count and nothing honest to say.
     // Unread, never zero: the same rule the three shapes hold to.

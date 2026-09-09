@@ -21,6 +21,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 export type WorkspaceBrief = {
   id: string | null;
@@ -39,7 +40,7 @@ async function resolveWorkspaceId(
 ): Promise<string | null> {
   if (explicit) return explicit;
   const { data } = await supabase.rpc("current_user_default_workspace");
-  return (data as string | null) ?? null;
+  return defaultWorkspaceId(data);
 }
 
 export const getActiveBrief = createServerFn({ method: "GET" })

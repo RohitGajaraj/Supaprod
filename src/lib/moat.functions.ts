@@ -16,6 +16,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { computeLoopClosure, type LoopClosureReport } from "@/lib/moat/loop-closure";
 import type { RawLineageEdge } from "@/lib/knowledge-graph-view";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 const Schema = z.object({ workspaceId: z.string().uuid().optional() }).strip();
 
@@ -41,7 +42,7 @@ export const getLoopClosure = createServerFn({ method: "GET" })
     let workspaceId = data?.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
     if (!workspaceId) return EMPTY;
 

@@ -44,6 +44,27 @@ import { sendInviteEmail, absoluteUrl } from "@/lib/email.server";
  * and invite a retry that hits the limit for real. Same fail-soft law
  * `recordJudgment` follows.
  */
+/**
+ * ── THE DEFAULT WORKSPACE, NARROWED ONCE ────────────────────────────────────
+ *
+ * `current_user_default_workspace` answers a uuid or nothing, and 52 call
+ * sites took its answer as `(data as string | null) ?? null`. That cast is a
+ * claim, not a check: `??` only guards null and undefined, so ANY other shape
+ * passes through it wearing the type of an id. An empty array is truthy, and
+ * on 2026-09-09 Lane 1 watched exactly that become the workspace id one layer
+ * down: every read filtered on it and every read answered zero, in a file
+ * whose own header says null means we could not find out and must never
+ * become zero.
+ *
+ * So the narrowing lives here and is a check. A non-empty string is an id;
+ * everything else, including a shape nobody expected, is "we could not find
+ * out", which every caller already knows how to handle because that is what
+ * null has always meant to them.
+ */
+export function defaultWorkspaceId(data: unknown): string | null {
+  return typeof data === "string" && data.trim().length > 0 ? data : null;
+}
+
 export const createWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>

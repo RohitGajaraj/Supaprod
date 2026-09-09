@@ -13,6 +13,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 export interface ThreadSummary {
   id: string;
@@ -55,7 +56,7 @@ export const listThreads = createServerFn({ method: "GET" })
      * and the memory-candidate lookup mixed desks. Unresolved stays unfiltered.
      */
     const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
-    const wid = (wsDefault as string | null) ?? null;
+    const wid = defaultWorkspaceId(wsDefault);
 
     let convQ = db.from("conversations").select("id,title,updated_at,product_id,folder_id");
     if (wid) convQ = convQ.eq("workspace_id", wid);
@@ -165,7 +166,7 @@ export const getThread = createServerFn({ method: "GET" })
     let wid = data.workspaceId ?? null;
     if (!wid) {
       const { data: ws } = await context.supabase.rpc("current_user_default_workspace");
-      wid = (ws as string | null) ?? null;
+      wid = defaultWorkspaceId(ws);
     }
 
     let convQ = db.from("conversations").select("id,title").eq("id", data.id);
@@ -214,7 +215,7 @@ export const searchConversations = createServerFn({ method: "GET" })
     const like = `%${data.q.replace(/[%_]/g, (m) => `\\${m}`)}%`;
     /* P-70. See the note in `listThreads`. */
     const { data: wsDefault } = await context.supabase.rpc("current_user_default_workspace");
-    const wid = (wsDefault as string | null) ?? null;
+    const wid = defaultWorkspaceId(wsDefault);
 
     /* Title matches. NOT "RLS-scoped", which is what this comment used to say
        and is the whole defect: RLS answers whether you MAY see it. */

@@ -58,6 +58,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
 import { assessAndQuarantine } from "@/lib/injection-classifier";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 export const DESIGN_MEMORY_CATEGORIES = [
   "token",
@@ -98,7 +99,7 @@ async function resolveWorkspaceId(
 ): Promise<string | null> {
   if (explicit) return explicit;
   const { data } = await supabase.rpc("current_user_default_workspace");
-  return (data as string | null) ?? null;
+  return defaultWorkspaceId(data);
 }
 
 export type SupersedeEdge = { parent_id: string; child_id: string };

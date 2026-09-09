@@ -63,6 +63,7 @@ import { resolveGitHub } from "@/lib/connectors/providers/github.server";
  * the fold would be the same defect with an extra place to drift.
  */
 import { formatDesignDispatchSections } from "@/lib/studio.functions";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 export type BuilderRun = {
   run_id: string;
@@ -399,7 +400,7 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
 
     // Workspace: prefer the PRD's, else the user's default (also used for the mission).
     const { data: ws } = await supabase.rpc("current_user_default_workspace");
-    const workspaceId = prd?.workspace_id ?? (ws as string | null) ?? null;
+    const workspaceId = prd?.workspace_id ?? defaultWorkspaceId(ws);
 
     // Resolve issue number.
     let issueNumber: number | null = data.issueNumber ?? null;

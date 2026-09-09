@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -27,7 +28,7 @@ export const runAgent = createServerFn({ method: "POST" })
     if (data.asMission) {
       // Resolve workspace + starting agent, create mission, then run.
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      const workspaceId = (ws as string | null) ?? null;
+      const workspaceId = defaultWorkspaceId(ws);
       const { data: agent } = await supabase
         .from("agents")
         .select("id")
@@ -329,7 +330,7 @@ export const updateToolMode = createServerFn({ method: "POST" })
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
     if (!workspaceId) throw new Error("No workspace. Create or join one first.");
 

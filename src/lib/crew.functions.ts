@@ -44,6 +44,7 @@ import { toolRisk, type ToolRisk } from "@/lib/tool-consequences";
 import { HIGH_RISK_FORCE_REVIEW, HIGH_RISK_MIN_CONFIRM } from "@/lib/ai/trust-ramp";
 import { runBucket } from "@/lib/agent-fleet";
 import { catalogEntry, type AgentStation } from "@/lib/agent-vocabulary";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 export type CrewArc = Arc;
 export type CrewToolMode = ToolMode;
@@ -153,7 +154,7 @@ async function resolveWorkspace(
 ): Promise<string | null> {
   if (given) return given;
   const { data } = await supabase.rpc("current_user_default_workspace");
-  return (data as string | null) ?? null;
+  return defaultWorkspaceId(data);
 }
 
 function emptyTally(): CrewRunTally {

@@ -119,6 +119,7 @@ import {
   type ChecksResult,
 } from "@/lib/ai/a-gate-nobody-can-answer-is-not-raised";
 import { raisedOverLine } from "@/lib/spine/what-the-merge-gate-shows";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 const PAUSE_ON_APPROVAL_TOOLS = new Set([
   "studio.commit",
@@ -1015,7 +1016,7 @@ export async function runAgentLoop(
   let workspaceId: string | null = input.workspaceId ?? null;
   if (!workspaceId) {
     const { data: ws } = await supabase.rpc("current_user_default_workspace");
-    workspaceId = (ws as string | null) ?? null;
+    workspaceId = defaultWorkspaceId(ws);
   }
 
   // MA-2: resolve the active model before creating the run row so it can be persisted

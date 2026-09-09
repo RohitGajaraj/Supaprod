@@ -9,6 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 /**
  * Said when a cap write RAN and the database returned no row.
@@ -48,7 +49,7 @@ async function resolveCeilingWorkspace(
 ): Promise<string | null> {
   if (workspaceId) return workspaceId;
   const { data } = await supabase.rpc("current_user_default_workspace");
-  return (data as string | null) ?? null;
+  return defaultWorkspaceId(data);
 }
 
 /**
