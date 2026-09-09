@@ -16,6 +16,7 @@ import { describe, expect, it } from "bun:test";
 import {
   theBlockerItAlreadyNamed,
   blockerLead,
+  alsoBehindIt,
   refrainStillSaysSomething,
   MIN_BLOCKED_TURNS,
   type BlockedTurn,
@@ -256,5 +257,106 @@ describe("what the refrain still adds once the blocker is on screen", () => {
 
   it("and keeps it when there is no blocker at all", () => {
     expect(refrainStillSaysSomething(null, "design")).toBe(true);
+  });
+});
+
+/**
+ * MY OWN STATED LIMIT, MET IN THE WILD BY A STRANGER.
+ *
+ * The module header says it: "on a run with two genuinely independent blockers,
+ * this shows the older one and stays silent about the other... a person reading
+ * only this sentence will not know a second one is behind it."
+ *
+ * S1 walked `6cc7a010` cold and that is exactly what happened. They read
+ * "Connect a repository", believed it was the obstruction, and had no idea the
+ * account had been out of credit since the 4th -- twelve `ux-architect` runs,
+ * all halted, all `out_of_credit`, averaging 612ms. Someone who connects the
+ * repository walks into a thirteenth instant halt.
+ *
+ * Of the six tracks that have ever held a halted run, FIVE halted out of
+ * credit. It is the commonest real blocker this product has and no
+ * top-of-screen surface has ever named it.
+ */
+describe("a reader is told when something else is behind it", () => {
+  it("counts the walls it is not showing", () => {
+    // The measured run: Build's refusal is quoted, Design's twelve halts are
+    // the wall behind it.
+    const b = theBlockerItAlreadyNamed(RUN)!;
+    expect(b.station).toBe("build");
+    expect(b.othersBehind).toBe(1);
+    expect(alsoBehindIt(b)).toBe("One more wall is behind this one.");
+  });
+
+  it("says nothing when the one shown is the only one", () => {
+    const only = theBlockerItAlreadyNamed([
+      turn({ at: "02:30", agentName: "Engineer", said: NO_REPO_1 }),
+      turn({ at: "02:40", agentName: "Review", said: NO_REPO_2 }),
+    ])!;
+    expect(only.othersBehind).toBe(0);
+    expect(alsoBehindIt(only)).toBeNull();
+  });
+
+  it("counts walls, not bad turns", () => {
+    /*
+     * A group is two or more turns at ONE station making ONE claim. A single
+     * failed turn somewhere else is not a wall, and counting it would turn this
+     * clause into an anxiety meter.
+     */
+    const withOneOff = theBlockerItAlreadyNamed([
+      turn({ at: "02:30", agentName: "Engineer", said: NO_REPO_1 }),
+      turn({ at: "02:40", agentName: "Review", said: NO_REPO_2 }),
+      turn({
+        at: "03:00",
+        station: "ship",
+        agentName: "Release",
+        said: "The push timed out once.",
+      }),
+    ])!;
+    expect(withOneOff.othersBehind).toBe(0);
+  });
+
+  it("and pluralises past one", () => {
+    const three = theBlockerItAlreadyNamed([
+      turn({ at: "01:00", station: "build", agentName: "Engineer", said: NO_REPO_1 }),
+      turn({ at: "01:10", station: "build", agentName: "Review", said: NO_REPO_2 }),
+      turn({
+        at: "02:00",
+        station: "ship",
+        agentName: "Release",
+        said: "No deployment target is configured.",
+      }),
+      turn({
+        at: "02:10",
+        station: "ship",
+        agentName: "Release",
+        said: "No deployment target is configured.",
+      }),
+      turn({
+        at: "03:00",
+        station: "design",
+        agentName: "Design",
+        outcome: "stopped",
+        said: NO_CREDIT,
+      }),
+      turn({
+        at: "03:10",
+        station: "design",
+        agentName: "Design",
+        outcome: "stopped",
+        said: NO_CREDIT,
+      }),
+    ])!;
+    expect(alsoBehindIt(three)).toBe("2 more walls are behind this one.");
+  });
+
+  it("names none of them, and diagnoses nothing", () => {
+    /*
+     * A COUNT, NOT A LIST. Naming the second wall doubles the card and reopens
+     * the ranking argument rules 1 and 2 exist to settle. Saying one is there
+     * costs a clause and removes the surprise, which is the whole of what went
+     * wrong for the reader who hit it.
+     */
+    const line = alsoBehindIt(theBlockerItAlreadyNamed(RUN)!)!;
+    expect(line).not.toMatch(/credit|repository|design|build|because|first|fix/i);
   });
 });

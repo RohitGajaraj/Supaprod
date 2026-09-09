@@ -96,7 +96,11 @@ import { refrainLead } from "@/lib/spine/what-it-keeps-saying";
 import { getWorkspaceSetup } from "@/lib/workspace-setup.functions";
 import { nowhereToLookYet, theQuoteAlreadySaidIt } from "@/components/track/nowhere-to-look-yet";
 import { whatTheRunWasWorth } from "@/components/track/what-the-run-was-worth";
-import { blockerLead, refrainStillSaysSomething } from "@/lib/spine/the-blocker-it-already-named";
+import {
+  alsoBehindIt,
+  blockerLead,
+  refrainStillSaysSomething,
+} from "@/lib/spine/the-blocker-it-already-named";
 import { stoppedByYou } from "@/components/track/footer-mode";
 import {
   waitingOnTime,
@@ -1384,7 +1388,11 @@ export function TrackRunLeft({
            * are the SAME station -- then the refrain is this fact again in
            * fewer words, and the count is already in the lead above.
            */}
-          {blocker ? <HoldFact sub={`“${blocker.said}”`}>{blockerLead(blocker)}</HoldFact> : null}
+          {blocker ? (
+            <HoldFact sub={[`“${blocker.said}”`, alsoBehindIt(blocker)].filter(Boolean).join(" ")}>
+              {blockerLead(blocker)}
+            </HoldFact>
+          ) : null}
           {/*
            * ── THE DOOR THE QUOTE ASKS FOR, DERIVED FROM STATE ──────────────
            *

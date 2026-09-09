@@ -111,6 +111,33 @@ export type Blocker = {
   to: string;
   /** True when the platform stopped it rather than the agent reporting it. */
   halt: boolean;
+  /**
+   * How many OTHER walls this run hit that are not the one being shown.
+   *
+   * ── MY OWN STATED LIMIT, MET IN THE WILD BY A STRANGER ──────────────────
+   * The header below says it plainly: "on a run with two genuinely independent
+   * blockers, this shows the older one and stays silent about the other. That
+   * is the right failure... and it is still a failure, and a person reading
+   * only this sentence will not know a second one is behind it."
+   *
+   * S1 walked `6cc7a010` cold and that is exactly what happened to them. They
+   * read "Connect a repository", believed it was the obstruction, and had no
+   * idea the account had been out of credit since the 4th -- twelve
+   * `ux-architect` runs, all `halted`, all `out_of_credit`, averaging 612ms.
+   * A person who connects the repository walks straight into a thirteenth
+   * instant halt.
+   *
+   * AND OUT OF CREDIT IS THE COMMONEST REAL BLOCKER THIS PRODUCT HAS. Of the
+   * six tracks that have ever held a halted run, FIVE halted out of credit --
+   * two of them labelled `going-in-circles` with 24 halted runs between them.
+   * No top-of-screen surface has ever named it.
+   *
+   * Ranking rules 1 and 2 are unchanged: the oldest refusal is still what gets
+   * quoted, because it is still the one that put the loop in motion. This
+   * removes the AMBUSH rather than the ranking, and it is a count rather than a
+   * second sentence, so the card does not become a list.
+   */
+  othersBehind: number;
 };
 
 /**
@@ -193,6 +220,10 @@ export function theBlockerItAlreadyNamed(turns: readonly BlockedTurn[]): Blocker
   return {
     station: best[0]!.station!,
     stationName: best[0]!.stationName,
+    /* Every other group that cleared the same bar. Not "everything else that
+       went wrong": a group is two or more turns at one station making one
+       claim, so this counts WALLS and not bad turns. */
+    othersBehind: candidates.length - 1,
     seats,
     turns: best.length,
     /*
@@ -240,6 +271,21 @@ export function theBlockerItAlreadyNamed(turns: readonly BlockedTurn[]): Blocker
  * imperative over the top of it would be the machinery talking over the only
  * voice on the screen that had actually tried.
  */
+/**
+ * The clause that stops a reader being ambushed, or null when nothing is behind.
+ *
+ * A COUNT, NOT A LIST, and not a diagnosis of what the others are. Naming the
+ * second wall would double the card and re-open the ranking argument rules 1
+ * and 2 exist to settle; saying one is there costs a clause and removes the
+ * surprise, which is the whole of what went wrong for the stranger who read it.
+ */
+export function alsoBehindIt(b: Blocker): string | null {
+  if (b.othersBehind < 1) return null;
+  return b.othersBehind === 1
+    ? "One more wall is behind this one."
+    : `${b.othersBehind} more walls are behind this one.`;
+}
+
 export function blockerLead(b: Blocker): string {
   const who =
     b.seats.length === 1
