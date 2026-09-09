@@ -149,6 +149,24 @@ Two rules they carry that are worth copying:
 
 **The shell's live line is one reader of the same facts.** Its idle fact is the newest open run when that moved after the last finish ("Last moved · title · 12m ago"), and "Ready for the first run" is reachable only when no run exists; its facts follow its lead's order (call, seat, moving, idle); its count is the queue's, with the track gates as the floor before the queue answers, so the sentence, the mark and the Inbox row say one number; and its door carries its address and resolves once, so a door onto the page the person is on becomes the composer on the home and a statement elsewhere (`LiveDoor`).
 
+### What the fifth review added, 2026-09-09 (Lane 1)
+
+**The road has a state that is not a claim about the work: `unread`.** Eight of Journey's states say
+what happened at a station; this one says we could not look. A refused artifacts read left the run
+screen drawing seven `pending` stops under a chip reading Finished, so a run that travelled all
+seven read as one that never started. `unread` takes `pending`'s line ring and faint glyph with the
+sink fill instead of transparent, so it reads as a node holding something we cannot see rather than
+an empty one nothing has reached, and it survives greyscale on the fill alone. No status hue: not
+reading is not a status. Its word is "not read". The rule this generalises, and the one every
+surface owes: **a read that refused and a read that answered empty are different facts, and a
+surface that draws them the same is claiming the one it did not measure.**
+
+**A person names the work; the machine names the route.** The composer carries a picker of the five
+work shapes in the person's own words ("Something is broken now") and answers with the road it takes
+("it enters at Build; Discover, Decide, Plan and Design are waived"), read from `suggestRoute` so a
+waiver changed in the route model changes the sentence in the same edit. Stations are still never
+navigation: the person chooses a kind of work, never a station.
+
 **The phone.** `--mrd-shell-phone-bar-h` is the phone bar's height and the page's bottom clearance reads it, so the two cannot drift (one fixed box, line and doors both 44px). A row's fixed time column folds under the sentence below the phone breakpoint. Keycaps hide on a coarse pointer; Ask, the scope control and the account disc are 44px targets. The phone rail draws the desktop's glyphs and the Inbox count.
 
 ## The reference standard
