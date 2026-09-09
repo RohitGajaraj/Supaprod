@@ -395,10 +395,26 @@ and no amount of staring at that line would have shown it, because a sentence ca
 itself. It became wrong the instant a region underneath said the same decision from another read
 and stayed silent where the line spoke.
 
-**This is a deliberate exception to saying each thing once.** Redundancy on a screen is normally a
-defect, and F-215 and F-233 are both about two spellings of one fact. The exception is narrow: when
-a claim is load-bearing and cannot be tested, a second view of it from a different read is cheaper
-than a gate and fails loudly. Keep it where a glance takes in both, or it is just duplication.
+**AND IT DOES NOT CONTRADICT "ONE COUNT, ONE SOURCE",** which exists so two surfaces can never give
+two answers about the same queue. The first reading of that boundary is that one rule wants a single
+source and the other wants two, and they are split by whether a person acts on the number. That
+split is not needed, because nothing here is read twice.
+
+The re-score case shows why. The answer line was not a second reading of a number. It **asserted a
+consequence it never read at all**, while the region beside it stated the underlying facts. So the
+real rule is narrower and cleaner:
+
+> **A fact has one source. A claim ABOUT that fact must be derived from it, never asserted
+> alongside it.**
+
+One count, one source is untouched: the count still comes from one place. What changes is that a
+clause hanging off it has to read something. And the reason to put the evidence next to the claim is
+that an underived claim needs something in view that can contradict it. A sentence cannot contradict
+itself.
+
+So this is not licence for redundancy. F-215 and F-233 are both two spellings of one fact and both
+are still defects. What is allowed is the claim and its evidence together, where a glance takes in
+both.
 
 ---
 

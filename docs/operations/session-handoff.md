@@ -2255,7 +2255,7 @@ them the English word "it" before a parenthesis in a prose comment.
    human adds the line. Lane 3 reports the other remaining errors are `.claude/workflows/*.js` and
    archived docs.
 4. **Still open on this lane:** the Ask pane hard-codes `shape: "new-capability"` (F-222's other
-   half, handed to Lane 2); the engine room's Safety room duplicates five `BoundaryPane` views; the
+   half, handed to Lane 2); ~~the engine room's Safety room duplicates five `BoundaryPane` views~~ **(checked 2026-09-09: stale. `BoundaryPane` has exactly one caller, `_authenticated.crew.tsx:348`. Nothing to merge.)**; the
    held-vs-failed greyscale pair in the design contract; and 19 unverified round-six craft findings,
    which stay **not actionable** without a skeptic pass.
 
