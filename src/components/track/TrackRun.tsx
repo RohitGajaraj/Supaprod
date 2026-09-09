@@ -1029,9 +1029,21 @@ export function TrackRunLeft({
    * connection is not something a person changes while watching a run.
    */
   const fSetup = useServerFn(getWorkspaceSetup);
+  /* The station whose peers to count is the one that hit the wall -- the
+     blocker's when there is one, otherwise where the run stands. It is in the
+     KEY as well as the argument, or a run at Design serves a count taken at
+     Build from cache. */
+  const gapStation = (blocker?.station as AgentStation | null) ?? track?.station ?? null;
   const setupQ = useQuery({
-    queryKey: ["workspace-setup", activeWorkspace?.id],
-    queryFn: () => fSetup({ data: { workspaceId: activeWorkspace!.id } }),
+    queryKey: ["workspace-setup", activeWorkspace?.id, gapStation],
+    queryFn: () =>
+      fSetup({
+        data: {
+          workspaceId: activeWorkspace!.id,
+          ...(gapStation ? { station: gapStation } : {}),
+          exceptTrackId: trackId,
+        },
+      }),
     enabled: Boolean(activeWorkspace?.id),
     staleTime: 60_000,
   });
@@ -1039,7 +1051,7 @@ export function TrackRunLeft({
   /* The wall the blocker names, when the workspace confirms the thing it needs
      is absent -- and otherwise the standing station's own. */
   const setupGap = nowhereToLookYet({
-    station: (blocker?.station as AgentStation | null) ?? track?.station ?? null,
+    station: gapStation,
     filedAnything: false,
     setup: setupQ.data ?? null,
   });
@@ -1378,13 +1390,22 @@ export function TrackRunLeft({
           {setupGap ? (
             <HoldFact
               sub={
-                theQuoteAlreadySaidIt(
-                  blocker?.station as AgentStation | null,
-                  setupGap,
-                  track?.station,
-                )
-                  ? undefined
-                  : setupGap.said
+                [
+                  theQuoteAlreadySaidIt(
+                    blocker?.station as AgentStation | null,
+                    setupGap,
+                    track?.station,
+                  )
+                    ? null
+                    : setupGap.said,
+                  /* The scale SURVIVES that suppression, because the agent's
+                     quote is about one run and cannot know how many others are
+                     standing in the same place. It is the fact that turns a
+                     nuisance into a setting worth changing. */
+                  setupGap.alsoWaiting,
+                ]
+                  .filter(Boolean)
+                  .join(" ") || undefined
               }
             >
               <a

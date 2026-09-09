@@ -19,12 +19,12 @@ import {
 } from "./nowhere-to-look-yet";
 
 const NOTHING_CONNECTED: WorkspaceSetup = {
-  sources: false,
+  evidence: false,
   repository: false,
   deployTarget: false,
 };
-const ALL_CONNECTED: WorkspaceSetup = { sources: true, repository: true, deployTarget: true };
-const UNREAD: WorkspaceSetup = { sources: null, repository: null, deployTarget: null };
+const ALL_CONNECTED: WorkspaceSetup = { evidence: true, repository: true, deployTarget: true };
+const UNREAD: WorkspaceSetup = { evidence: null, repository: null, deployTarget: null };
 
 describe("a station that had nowhere to look", () => {
   it("says what is absent, for Discover", () => {
@@ -33,7 +33,14 @@ describe("a station that had nowhere to look", () => {
       filedAnything: false,
       setup: NOTHING_CONNECTED,
     })!;
-    expect(out.said).toBe("No source is connected to this workspace.");
+    /*
+     * THE SENTENCE NAMES EVIDENCE AND THE DOOR NAMES A SOURCE, deliberately.
+     * 0 of 23 workspaces hold a scout target, so "no source is connected" is
+     * true of every workspace in the product and says nothing about whether
+     * there was anywhere to look. 1,524 signals exist, written by agent runs.
+     * Evidence is what Discover needs; a source is one way to get some.
+     */
+    expect(out.said).toBe("This workspace holds no evidence yet.");
     expect(out.door).toEqual({ label: "Connect a source", href: "/sources" });
   });
 
@@ -120,7 +127,7 @@ describe("the run that never had a source", () => {
         filedAnything: false,
         setup: NOTHING_CONNECTED,
       })!.said,
-    ).toBe("No source is connected to this workspace.");
+    ).toBe("This workspace holds no evidence yet.");
   });
 
   it("and not when the run entered somewhere that needs nothing", () => {
@@ -183,5 +190,66 @@ describe("when the agent has already said it, the door is the only new thing", (
 
   it("says nothing to suppress when there is no gap", () => {
     expect(theQuoteAlreadySaidIt("build", null, "build")).toBe(false);
+  });
+});
+
+describe("how many others are standing in the same place", () => {
+  /*
+   * 82 of the 121 tracks this product has ever made stand at Discover and 37
+   * were abandoned there; per workspace, in the four where it bites, EVERY open
+   * run at Discover has nothing filed. One stuck run is something a person
+   * shrugs at. Five on one missing connection is a reason to change a setting,
+   * and the screen could not say which it was showing.
+   */
+  const withPeers = (n: number | null): WorkspaceSetup => ({
+    ...NOTHING_CONNECTED,
+    othersAtThisStation: n,
+  });
+
+  it("says how many, when there are any", () => {
+    expect(
+      nowhereToLookYet({ station: "sense", filedAnything: false, setup: withPeers(4) })!
+        .alsoWaiting,
+    ).toBe("4 other runs are standing here too.");
+  });
+
+  it("counts one correctly", () => {
+    expect(
+      nowhereToLookYet({ station: "sense", filedAnything: false, setup: withPeers(1) })!
+        .alsoWaiting,
+    ).toBe("1 other run is standing here too.");
+  });
+
+  it("says nothing on a nought, rather than '0 other runs'", () => {
+    expect(
+      nowhereToLookYet({ station: "sense", filedAnything: false, setup: withPeers(0) })!
+        .alsoWaiting,
+    ).toBeNull();
+  });
+
+  it("and nothing when nobody counted", () => {
+    expect(
+      nowhereToLookYet({ station: "sense", filedAnything: false, setup: withPeers(null) })!
+        .alsoWaiting,
+    ).toBeNull();
+    expect(
+      nowhereToLookYet({ station: "sense", filedAnything: false, setup: NOTHING_CONNECTED })!
+        .alsoWaiting,
+    ).toBeNull();
+  });
+
+  it("counts and does not predict", () => {
+    /*
+     * "5 other runs are standing here" is a fact. "Connecting a source unblocks
+     * them" is not one this can support: a source brings evidence forward from
+     * the day it is connected and does not retroactively give a three-week-old
+     * run something to have found.
+     */
+    const line = nowhereToLookYet({
+      station: "sense",
+      filedAnything: false,
+      setup: withPeers(5),
+    })!.alsoWaiting!;
+    expect(line).not.toMatch(/unblock|will |would |fix|solve|release/i);
   });
 });

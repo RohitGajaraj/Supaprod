@@ -4,9 +4,21 @@
  *
  * ── WHY IT EXISTS, MEASURED ───────────────────────────────────────────────
  * 23 workspaces on production. **0 scout targets, of any kind, enabled or
- * not.** 124 `sources.status` calls in the whole history of the product, and
- * 124 of them returned `{"active_scout_targets": 0}`. Three workspaces of the
- * 23 have a repository bound; the rest have none.
+ * not**, and 124 of 124 `sources.status` calls in the product's history
+ * returned `{"active_scout_targets": 0}`. Three workspaces of the 23 have a
+ * repository bound; the rest have none.
+ *
+ * ── AND THE FIRST VERSION COUNTED THE WRONG THING ─────────────────────────
+ * I read those zeros and had this count SCOUT TARGETS. S1 measured the rest an
+ * hour later: **1,524 signals exist**, written by agent runs rather than
+ * ingested by a configured source. A workspace can therefore hold no scout
+ * target and 334 signals, and a surface saying "there was nowhere to look"
+ * would be false on every one of them.
+ *
+ * So it counts EVIDENCE. A scout target is one way evidence arrives; what
+ * Discover needs is some. The door still points at Sources, because that is how
+ * a person deliberately adds evidence, and the sentence names evidence rather
+ * than the feature, because they are not the same thing.
  *
  * On the run screen that reads as "Discover: nothing found" and "Build filed
  * nothing" -- true sentences that sound like findings about the work, when they
@@ -64,17 +76,53 @@ const DEPLOY_TARGET_KIND: string | null = null;
 
 export const getWorkspaceSetup = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ workspaceId: z.string().uuid() }).parse(i ?? {}))
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        workspaceId: z.string().uuid(),
+        /* The station whose peers to count, and the run to leave out of the
+           count because the reader is looking at it. Both optional: a caller
+           that only wants the connection facts pays for no extra count. */
+        station: z.string().max(32).optional(),
+        exceptTrackId: z.string().uuid().optional(),
+      })
+      .parse(i ?? {}),
+  )
   .handler(async ({ context, data }): Promise<WorkspaceSetup> => {
     const db = context.supabase as unknown as SupabaseClient;
     const w = data.workspaceId;
 
-    const [sources, repos, deploy] = await Promise.all([
-      db
-        .from("scout_targets")
-        .select("id", { count: "exact", head: true })
-        .eq("workspace_id", w)
-        .eq("enabled", true),
+    /*
+     * ── HOW MANY OTHER RUNS ARE STANDING IN THE SAME PLACE ────────────────
+     *
+     * Measured all time: of 121 tracks this product has ever made, **82 are
+     * standing at Discover** and 37 of those were abandoned there. One shipped.
+     * Two reached Learn. The seven-station loop completes about 1.7% of the
+     * time, and two thirds of everything is stuck at station one.
+     *
+     * Per workspace the shape is sharper still: in the four where it bites,
+     * EVERY open run at Discover has nothing filed -- 5 of 5, 5 of 5, 4 of 4,
+     * 3 of 3.
+     *
+     * That number is the difference between a nuisance and a setting. One run
+     * stuck is something a person shrugs at; five runs stuck on one missing
+     * connection is a reason to go and fix it, and the run screen could not say
+     * which of the two it was looking at.
+     *
+     * It rides in the same `Promise.all`, so it costs no extra round trip.
+     */
+    const [evidence, repos, deploy, peers] = await Promise.all([
+      /*
+       * SIGNALS, NOT SCOUT TARGETS, AND THE FIRST VERSION COUNTED THE WRONG
+       * THING. 0 of 23 workspaces hold an enabled `scout_target` and that
+       * number is real -- but 1,524 signals exist, written by agent runs rather
+       * than ingested by a configured source (S1's measurement, an hour after
+       * mine). So a workspace can have no scout target and 334 signals, and
+       * "there was nowhere to look" would be false on every one of them.
+       *
+       * A scout target is ONE way evidence arrives. Discover needs evidence.
+       */
+      db.from("signals").select("id", { count: "exact", head: true }).eq("workspace_id", w),
       db
         .from("connection_bindings")
         .select("id", { count: "exact", head: true })
@@ -87,6 +135,15 @@ export const getWorkspaceSetup = createServerFn({ method: "GET" })
             .select("id", { count: "exact", head: true })
             .eq("workspace_id", w)
             .eq("resource_kind", DEPLOY_TARGET_KIND),
+      data.station
+        ? db
+            .from("spine_tracks")
+            .select("id", { count: "exact", head: true })
+            .eq("workspace_id", w)
+            .eq("station", data.station)
+            .eq("status", "open")
+            .neq("id", data.exceptTrackId ?? "00000000-0000-0000-0000-000000000000")
+        : Promise.resolve({ count: null, error: null }),
     ]);
 
     /*
@@ -103,8 +160,12 @@ export const getWorkspaceSetup = createServerFn({ method: "GET" })
       r.error ? null : r.count === null ? null : r.count > 0;
 
     return {
-      sources: answer(sources),
+      evidence: answer(evidence),
       repository: answer(repos),
       deployTarget: answer(deploy),
+      /* A COUNT, not a boolean, and null when we did not ask or could not
+         read. Zero is a real answer -- this run is the only one there -- and
+         the surface says nothing on a zero rather than "0 other runs". */
+      othersAtThisStation: peers.error ? null : peers.count,
     };
   });

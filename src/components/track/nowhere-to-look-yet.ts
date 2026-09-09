@@ -68,18 +68,43 @@ import type { AgentStation } from "@/lib/agent-vocabulary";
  * notice on a workspace nobody checked -- the same defect as `gatesLiveWork`'s
  * null, which its own docstring spends a paragraph forbidding.
  */
+/** The things a station can be missing. Not every field of the read is one. */
+export type Needed = "evidence" | "repository" | "deployTarget";
+
 export type WorkspaceSetup = {
-  /** Enabled scout targets. Discover has nowhere to look without one. */
-  sources: boolean | null;
+  /**
+   * Does this workspace hold ANY evidence to search?
+   *
+   * ── IT COUNTED SCOUT TARGETS FIRST, AND THAT WAS WRONG ──────────────────
+   * The first version asked whether a source was connected, because 0 of 23
+   * workspaces have an enabled `scout_target` and that number is real. S1
+   * measured the rest of it an hour later and it changes the question:
+   * **1,524 signals exist**, written by agent runs rather than ingested by a
+   * configured source. So a workspace can have no scout target and 334 signals,
+   * and telling a person there was nowhere to look would be false on every one
+   * of them.
+   *
+   * A scout target is ONE way evidence arrives. What Discover actually needs is
+   * evidence, so that is what this counts. The door still points at Sources,
+   * because that is how a person deliberately adds some.
+   */
+  evidence: boolean | null;
   /** A repository bound. Build cannot start without one. */
   repository: boolean | null;
   /** Somewhere to release to. Ship cannot finish without one. */
   deployTarget: boolean | null;
+  /**
+   * Open runs standing at the same station as this one, not counting it.
+   *
+   * Null when nobody asked or the count did not come back; zero is a real
+   * answer and means this run is the only one there.
+   */
+  othersAtThisStation?: number | null;
 };
 
 /** What each station cannot begin without. Stations absent from this need nothing. */
-const NEEDS: Partial<Record<AgentStation, keyof WorkspaceSetup>> = {
-  sense: "sources",
+const NEEDS: Partial<Record<AgentStation, Needed>> = {
+  sense: "evidence",
   build: "repository",
   ship: "deployTarget",
 };
@@ -92,10 +117,27 @@ const NEEDS: Partial<Record<AgentStation, keyof WorkspaceSetup>> = {
  * the offer. A first draft carried the destination's name as well and nothing
  * read it, which is the tell that it was there for the writer.
  */
-const THING: Record<keyof WorkspaceSetup, { noun: string; href: string }> = {
-  sources: { noun: "source", href: "/sources" },
-  repository: { noun: "repository", href: "/settings?tab=connectors" },
-  deployTarget: { noun: "deployment target", href: "/settings?tab=connectors" },
+const THING: Record<Needed, { absent: string; door: string; href: string }> = {
+  /* The sentence names EVIDENCE and the door names a source, because they are
+     different things: evidence is what Discover needs, and connecting a source
+     is one way to get some. Saying "no source is connected" would be true of
+     every workspace in the product and false about whether there was anywhere
+     to look. */
+  evidence: {
+    absent: "This workspace holds no evidence yet.",
+    door: "Connect a source",
+    href: "/sources",
+  },
+  repository: {
+    absent: "No repository is connected to this workspace.",
+    door: "Connect a repository",
+    href: "/settings?tab=connectors",
+  },
+  deployTarget: {
+    absent: "No deployment target is connected to this workspace.",
+    door: "Connect a deployment target",
+    href: "/settings?tab=connectors",
+  },
 };
 
 export type NowhereToLook = {
@@ -103,6 +145,11 @@ export type NowhereToLook = {
   said: string;
   /** Where to go and get one. */
   door: { label: string; href: string };
+  /**
+   * How many other runs are standing in the same place, when we counted and
+   * there are any. Null on nought, so the surface never says "0 other runs".
+   */
+  alsoWaiting: string | null;
 };
 
 /**
@@ -127,6 +174,7 @@ export function nowhereToLookYet(input: {
   if (input.setup[need] !== false) return null;
 
   const t = THING[need];
+  const others = input.setup.othersAtThisStation;
   return {
     /*
      * WHAT IS ABSENT, AND NOT WHAT IT MEANS. "No source is connected, so there
@@ -136,8 +184,31 @@ export function nowhereToLookYet(input: {
      * machinery narrating itself, which is what the rest of this screen has
      * been repaired for.
      */
-    said: `No ${t.noun} is connected to this workspace.`,
-    door: { label: `Connect a ${t.noun}`, href: t.href },
+    said: t.absent,
+    door: { label: t.door, href: t.href },
+    /*
+     * ── THE SCALE, WHICH IS THE DIFFERENCE BETWEEN A NUISANCE AND A SETTING ─
+     *
+     * Measured all time: 82 of the 121 tracks this product has ever made stand
+     * at Discover, and 37 were abandoned there. Per workspace it is starker --
+     * in the four where it bites, EVERY open run at Discover has nothing filed:
+     * 5 of 5, 5 of 5, 4 of 4, 3 of 3.
+     *
+     * One stuck run is something a person shrugs at. Five stuck on one missing
+     * connection is a reason to go and change a setting, and the screen could
+     * not say which of the two it was showing. This is the fact a person needs
+     * before they think to ask for it.
+     *
+     * IT COUNTS AND DOES NOT PREDICT. "5 other runs are standing here" is a
+     * fact; "connecting a source unblocks them" is not one this can support --
+     * a source brings evidence forward from the day it is connected and does
+     * not retroactively give a three-week-old run something to have found. So
+     * it says where they are and stops.
+     */
+    alsoWaiting:
+      typeof others === "number" && others > 0
+        ? `${others} other ${others === 1 ? "run is" : "runs are"} standing here too.`
+        : null,
   };
 }
 
