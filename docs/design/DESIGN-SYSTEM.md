@@ -928,6 +928,48 @@ object ref serve both a button and an anchor ends in a cast.
 
 ---
 
+### 23. A cause the record holds outranks a shape the product inferred
+
+**When a surface can either report what was recorded or describe what it deduced, it reports what
+was recorded.** An inference is a claim about a fact; the fact itself is already there.
+
+**Walked as a stranger, 2026-09-10.** A run stopped for six days said, on both the entry and the run
+screen:
+
+> *"Design has been run many times over and the work has not moved on once, so nothing further will
+> be spent on it until you look."*
+
+What the record held:
+
+```
+ux-architect · 12 runs · status halted · halted_reason out_of_credit
+             · avg 612ms each · 03:40 to 05:30 UTC, 2026-09-04
+```
+
+Twelve refusals at the door, 612 milliseconds apart. **The station never ran.** Nothing went round in
+circles; the account was empty. And both remedies that sentence leads to — send it back a step, take
+it over — would each have bought a thirteenth instant refusal.
+
+**The inferred sentence was not wrong, and that is what makes this a law rather than a bug report.**
+The loop did run the station many times and the work did not move. `going-in-circles` is a true
+reading of the shape. It is simply a *lesser* fact than the one sitting unread in the column beside
+it, and a surface that prefers the deduction is choosing the weaker of two true things.
+
+**Not rare, either.** Of every track this product has made, eight have a halted run and **five halted
+`out_of_credit`** — two of them wearing `going-in-circles`. Out of credit was the most common real
+blocker in the product and no top-level surface had ever said the word.
+
+**And the same rule decides the second sentence.** The wall came down days ago — that account holds
+5,249 credits now — and nothing said so, because nothing read the balance. A run that can go again
+and one that has genuinely given up were the same row. What a person acts on is the change, so the
+row says both: *"It ran out of credit and stopped. There is credit again."*
+
+**The corollary, which is where this gets abused.** Preferring the record is not licence to *guess*
+at one. When the balance cannot be read, the row names the wall and says nothing about it lifting —
+an absent read must degrade to the smaller true claim, never to an all-clear.
+
+---
+
 ## The defects that keep coming back
 
 Each of these has been found more than once, by people who knew the rule. Check for them by name.
