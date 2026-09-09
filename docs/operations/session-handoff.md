@@ -2633,12 +2633,15 @@ say nothing. Twice today the right answer was to keep the thing and write down w
 
 1. **Nothing of mine is unshipped.** Everything is pushed; Lane 1 pressed `dcae8488` and the five
    routes answer 200.
-2. **The strip's wall-clock on the served build is NOT measured.** The hop count is verified in the
-   wire and against production; the latency is not. Lane 1 tried the Chrome network reader three
-   times on two signed-in tabs and it wedged, which has been happening to two lanes all afternoon.
-   Neither of us should upgrade this to "confirmed" without a browser. **The file count on a
-   session card is now the single figure that would move first if a join were wrong**, since the
-   cost figure no longer exists.
+2. ~~The strip's wall-clock on the served build is NOT measured.~~ **MEASURED AND CLOSED**, on the
+   served build (`cd9307f4`, signed in on `supaprod.ai/start`, Helio Labs). `listStudioSessions`
+   read **`worker-total=591 ms` and `527 ms`** on two loads. It read 3,734 ms and 3,856 ms at
+   eleven hops on 09-08, and two hops at this deployment's ~275 ms warm predicted about 550, which
+   is what it does. **The function was identified by the built chunk's own record, not by size or
+   timing**: the network log's `/_serverFn/11815abc50ff…` grepped in `.output/server/_ssr` gives
+   `createServerRpc({ id, name: "listStudioSessions", filename: "src/lib/studio.functions.ts" })`.
+   Lane 1's extension was fully disconnected; mine was not, which is worth knowing -- **a dead
+   instrument on one lane is not a dead instrument.**
 3. **The Worker's cold start** is the platform's and is above every handler on this lane.
 4. **`eslint.config.js` is hook-protected**, so the `.remember/tmp/**` ignore is still the founder's
    call. `src` is clean; the remaining errors are `.claude/workflows/*.js` and archived docs.
