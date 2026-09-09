@@ -204,12 +204,41 @@ export function runNow(input: NowInput): Now {
   const tone = holdTone(t.holdReason);
   if (tone === "you") {
     if (nothingIsComing(t.holdReason)) {
+      /*
+       * ── "STOPPED" WAS ON THIS CARD TWICE, EIGHT PIXELS APART ─────────────
+       *
+       * Founder's screenshot, 2026-09-09. `RunNow` draws the chip and the
+       * headline on ONE LINE, so this returned:
+       *
+       *   [Stopped]  Stopped at Build.
+       *              Build will not be tried again without you.
+       *
+       * The chip's word and the first word of the headline were the same word,
+       * side by side, and the line under them said the same state a third time
+       * in better English. Three statements of stoppedness before the reason,
+       * and a fourth in the header chip 400px away.
+       *
+       * THE CHIP KEEPS THE WORD, because it also carries the HUE and it is the
+       * only colour on this card; dropping it to fix the repetition would have
+       * cost the signal to save the noise. So the HEADLINE gives way, and it
+       * gives way to the sentence that was already underneath it -- which
+       * carries the station too ("Build will not be tried again without you"),
+       * so `Stopped at ${here}` loses nothing when it goes.
+       *
+       * FIVE OF THE TWELVE registers in this file have some version of this
+       * (`Reading`/"Reading this run.", `Abandoned`/"This run was abandoned.",
+       * `Ready`/"Ready when you are.", `Stopped`/"You stopped this."). This is
+       * the one a person met on a stopped run, which is the commonest state on
+       * production, and the only one whose replacement sentence already
+       * existed. The rest are named in the handoff rather than reworded on the
+       * way past.
+       */
       return {
         register: "stopped",
         status: "you",
         word: "Stopped",
-        headline: `Stopped at ${here}.`,
-        line: t.hold ?? "Nothing will pick it up again on its own.",
+        headline: t.hold ?? "Nothing will pick it up again on its own.",
+        line: null,
         pulse: false,
       };
     }
