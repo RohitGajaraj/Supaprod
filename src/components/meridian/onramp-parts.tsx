@@ -186,7 +186,16 @@ export function PickCard({
              screen is noise. */
           <span
             title={clamp ? sub : undefined}
-            className={`mt-mrd-2 block text-mrd-base leading-mrd-snug text-mrd-mute${clamp ? " line-clamp-3" : ""}`}
+            /* `block` AND `line-clamp-3` BOTH SET `display`, and block won
+               (craft pass, 2026-09-09). Measured on the served home: the
+               element carried `-webkit-line-clamp: 3` and computed
+               `display: block`, so the clamp needed a `-webkit-box` it never
+               got and did nothing at all. The card the comment above says was
+               fixed stood 214px beside 32px neighbours, three times the
+               height, exactly as described. The clamp establishes its own
+               block-level box, so `block` belongs only to the branch that
+               does not clamp. */
+            className={`mt-mrd-2 text-mrd-base leading-mrd-snug text-mrd-mute ${clamp ? "line-clamp-3" : "block"}`}
           >
             {sub}
           </span>
