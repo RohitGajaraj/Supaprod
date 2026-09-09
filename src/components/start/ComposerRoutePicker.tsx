@@ -49,7 +49,29 @@ export function routeClause(shape: WorkShape): string {
   const entry = AGENT_STATIONS[route.entry].name;
   const waived = route.waived.map((w) => AGENT_STATIONS[w.station].name);
   if (waived.length === 0) return `it enters at ${entry} and walks all seven stations`;
-  return `it enters at ${entry}; ${named(waived)} ${waived.length === 1 ? "is" : "are"} waived`;
+  /*
+   * ── "SKIPS", NOT "WAIVED", BECAUSE THE PRODUCT ALREADY SAYS SKIPS ────────
+   *
+   * WALKED ON THE SERVED HOME, 2026-09-10. Choosing "Something is broken now"
+   * gave: *"it enters at Build; Discover, Decide, Plan and Design are
+   * waived"*. Every option in the picker above it is plain English -- "A
+   * change to something people see", "Something is broken now" -- and the
+   * consequence sentence then drops into a word a reader has never met, on
+   * the FIRST thing they do in this product.
+   *
+   * AND IT IS NOT ONLY JARGON, IT IS A SPLIT. `tracks-feed.ts` already says
+   * this exact concept in the row a person meets later: *"needs a step this
+   * route skips"*. So one idea wears two words on two surfaces, which is the
+   * §12 failure this repo names by name, and the one a user meets first is the
+   * internal one.
+   *
+   * "waived" stays in the CODE, where it is the route model's own term and
+   * correct. What changes is what a person is shown.
+   *
+   * The semicolon goes with it: two clauses joined by "and" read as one fact
+   * about one route, where a semicolon reads as a second announcement.
+   */
+  return `it enters at ${entry} and skips ${named(waived)}`;
 }
 
 export function ComposerRoutePicker({

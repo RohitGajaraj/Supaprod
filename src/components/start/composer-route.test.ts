@@ -29,7 +29,16 @@ describe("the sentence knows where it enters before Enter", () => {
       const clause = routeClause(shape);
       for (const w of waived) expect(clause).toContain(AGENT_STATIONS[w.station].name);
       if (waived.length === 0) expect(clause).toContain("all seven stations");
-      else expect(clause).toContain("waived");
+      /*
+       * "SKIPS", AND THIS ASSERTION USED TO PIN "waived" — the internal word.
+       * The claim was always "a waiver cannot go unsaid", which the loop above
+       * checks by NAME. What this line adds is that the sentence says a route
+       * skips them, in the word `tracks-feed.ts` already uses for the same idea
+       * ("needs a step this route skips"). Pinning the old spelling made the
+       * test fail on a copy improvement and pass on a meaning change, which is
+       * the wrong way round.
+       */
+      else expect(clause).toContain("skips");
     }
   });
 
@@ -45,12 +54,41 @@ describe("the sentence knows where it enters before Enter", () => {
     }
   });
 
-  it("agrees on number: one waived station is, several are", () => {
+  it("reads as one sentence about one route, whether it skips one station or four", () => {
+    /*
+     * THIS USED TO ASSERT SUBJECT-VERB AGREEMENT, "is waived" against "are
+     * waived", because the sentence ended in a passive clause whose verb had
+     * to agree with a list. It does not any more: "it enters at Build and
+     * skips Discover, Decide, Plan and Design" has no verb to agree.
+     *
+     * The claim underneath was that the sentence stays grammatical at every
+     * length, so that is what this checks now -- and it checks the join, which
+     * is the part that can actually break: one name bare, several with a comma
+     * series and a final "and".
+     */
     for (const shape of SHAPES) {
-      const n = suggestRoute(shape, null).waived.length;
+      const waived = suggestRoute(shape, null).waived.map((w) => AGENT_STATIONS[w.station].name);
       const clause = routeClause(shape);
-      if (n === 1) expect(clause).toContain("is waived");
-      if (n > 1) expect(clause).toContain("are waived");
+      if (waived.length === 0) continue;
+      if (waived.length === 1) {
+        expect(clause).toContain(`skips ${waived[0]}`);
+        expect(clause).not.toContain(", ");
+      } else {
+        /*
+         * TWO NAMES TAKE NO COMMA -- "skips Discover and Design" -- and three
+         * or more take a series. My first version of this asserted a comma at
+         * every length above one and failed on the two-station route, which is
+         * the test being wrong rather than the sentence: `named` has always
+         * joined a pair with a bare "and".
+         */
+        expect(clause).toContain(` and ${waived[waived.length - 1]}`);
+        expect(clause).toContain(
+          waived.length === 2 ? `skips ${waived[0]} and` : `skips ${waived[0]},`,
+        );
+      }
+      // No semicolon: two clauses joined by "and" are one fact about one
+      // route, where a semicolon reads as a second announcement.
+      expect(clause).not.toContain(";");
     }
   });
 
