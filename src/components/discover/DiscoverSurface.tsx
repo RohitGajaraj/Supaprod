@@ -238,6 +238,9 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { AgentRelay } from "@/components/agents/AgentRelay";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { readHomeAnswers } from "@/lib/start/home-answers.functions";
+import { arrivingAnswer } from "@/components/start/three-answers-above-your-runs";
+import { useStampTheLastLook } from "@/components/start/use-stamp-the-last-look";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { isModalOpen } from "@/lib/overlay";
 import { scoreTheme } from "@/lib/brain/score";
@@ -1967,6 +1970,33 @@ export function DiscoverSurface({
    * the count sentence stands. See `lead-of-ranking.ts`.
    */
   const lead = React.useMemo(() => leadOfRanking(ranked, Date.now()), [ranked]);
+  /*
+   * ── SINCE YOU LAST LOOKED (Lane 2, 2026-09-09) ─────────────────────────
+   * The home already answers "how many findings since you last looked" off
+   * `brain_last_seen`, under the key the home seeds, so this page reads the
+   * same answer rather than a second one. THE ORDER IS THE WHOLE POINT: the
+   * route used to stamp the look the moment it mounted, so any read on this
+   * page would have seen "nothing new" about the visit it was on. The stamp
+   * moves here and fires only once the answer is in hand, and the line is
+   * held from that first answer for the rest of the visit, because the
+   * stamp's own invalidation would otherwise turn it into "nothing new"
+   * while the person is still reading.
+   */
+  const fAnswers = useServerFn(readHomeAnswers);
+  const answersQ = useQuery({
+    queryKey: ["start-home-answers", activeWorkspaceId ?? null],
+    queryFn: () => fAnswers({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+    enabled: !!activeWorkspaceId,
+    staleTime: 60_000,
+  });
+  const [sinceLine, setSinceLine] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    if (sinceLine !== null || !answersQ.data) return;
+    const a = arrivingAnswer(answersQ.data.arrivingCount, answersQ.data.lastLookedAt);
+    /* A first visit has no "last looked" to count from; the page is the look. */
+    setSinceLine(answersQ.data.lastLookedAt && a.read !== "unread" ? a.line : "");
+  }, [answersQ.data, sinceLine]);
+  useStampTheLastLook(answersQ.isSuccess || answersQ.isError ? activeWorkspaceId : null);
   const headline: React.ReactNode = loading ? (
     "Reading what has come in."
   ) : loadError ? (
@@ -2620,6 +2650,7 @@ export function DiscoverSurface({
             : undefined
         }
       />
+      {sinceLine ? <p className="mrd-meta">{sinceLine}</p> : null}
 
       {/* THE STATION IN ONE ROW: what flows in, what it groups into, where the
           work goes next. Each segment opens the region it names; a segment

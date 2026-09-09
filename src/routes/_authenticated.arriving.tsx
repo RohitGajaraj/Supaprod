@@ -59,8 +59,6 @@ import { DiscoverSurface } from "@/components/discover/DiscoverSurface";
 import { searchFlag } from "@/lib/search-flag";
 import { Surface } from "@/components/meridian/Surface";
 import { Action, NothingHere, PageHeading } from "@/components/meridian/surface-parts";
-import { useWorkspace } from "@/hooks/use-workspace";
-import { useStampTheLastLook } from "@/components/start/use-stamp-the-last-look";
 
 export type DiscoverTab = "signals" | "queue";
 
@@ -71,20 +69,16 @@ export type DiscoverTab = "signals" | "queue";
 function DiscoverRoute() {
   const { focus, capture } = Route.useSearch();
   /*
-   * ── THE VISIT IS STAMPED HERE, AT THE MOUNT (P-69) ──────────────────────
+   * ── THE VISIT IS STAMPED IN THE SURFACE, AFTER ITS FIRST READ (P-69) ─────
    *
    * `brain_last_seen` had a reader (Start's "since you last looked") and no
-   * writer, so every workspace read "You have not looked yet" against a full
-   * record, forever. This is the writer, and it is at the ROUTE's mount rather
-   * than inside `DiscoverSurface`'s reads deliberately: a refetch, a prefetch
-   * and a retry are reads, and none of them is a person looking.
-   *
-   * ABOVE THE PROBE THROW, so the hook order cannot change between renders --
-   * a hook after a conditional throw is the rules-of-hooks defect, and the
-   * throw below is exactly such a condition.
+   * writer until P-69 put the stamp at this route's mount. That made every
+   * read on the page see "nothing new" about the very visit it was on, so
+   * the stamp lives in `DiscoverSurface` now (Lane 2, 2026-09-09), fired once
+   * per visit from an effect after the page has read what arrived since the
+   * last look. It is still never a query: a refetch, a prefetch and a retry
+   * are reads, and none of them is a person looking.
    */
-  const { activeWorkspaceId } = useWorkspace();
-  useStampTheLastLook(activeWorkspaceId);
   if (focus === "__probe_forced_error__") throw new Error("probe: forced render failure");
   return <DiscoverSurface focus={focus} capture={capture} />;
 }

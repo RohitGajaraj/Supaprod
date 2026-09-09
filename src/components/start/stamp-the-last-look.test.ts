@@ -14,7 +14,12 @@ const code = (src: string): string =>
 
 const FN = code(readFileSync("src/lib/start/stamp-the-last-look.functions.ts", "utf8"));
 const HOOK = code(readFileSync("src/components/start/use-stamp-the-last-look.ts", "utf8"));
-const ROUTE = code(readFileSync("src/routes/_authenticated.arriving.tsx", "utf8"));
+/* The stamp moved from the route's mount into DiscoverSurface on 2026-09-09
+   (Lane 2): the page now reads "how many since you last looked" first and
+   stamps only once that answer is in hand, because stamping at mount made
+   every read on the page see "nothing new" about the visit it was on. It is
+   still one effect per visit, never a query. */
+const SURFACE = code(readFileSync("src/components/discover/DiscoverSurface.tsx", "utf8"));
 const READS = code(readFileSync("src/lib/start/home-answers.functions.ts", "utf8"));
 
 describe("a visit is a person, not a read", () => {
@@ -23,7 +28,7 @@ describe("a visit is a person, not a read", () => {
     // reads. If the stamp rode one, Start's count would fall to zero without
     // anybody opening anything.
     expect(HOOK).toContain("React.useEffect");
-    expect(ROUTE).toContain("useStampTheLastLook(activeWorkspaceId)");
+    expect(SURFACE).toContain("useStampTheLastLook(");
     // Not inside any read.
     expect(HOOK).not.toContain("queryFn");
     expect(HOOK).not.toContain("useQuery(");
@@ -70,11 +75,15 @@ describe("a visit is a person, not a read", () => {
     expect(HOOK).toContain("r?.stamped");
   });
 
-  it("sits above the route's conditional throw, so hook order cannot change", () => {
-    const body = ROUTE.slice(ROUTE.indexOf("function DiscoverRoute()"));
-    const hookAt = body.indexOf("useStampTheLastLook(");
-    const throwAt = body.indexOf("__probe_forced_error__");
-    expect(hookAt).toBeGreaterThan(-1);
-    expect(throwAt).toBeGreaterThan(hookAt);
+  it("stamps only after the page has read what arrived since the last look", () => {
+    // The order is the fact: a stamp before the read makes the read say
+    // "nothing new" about the very visit that is happening.
+    const at = SURFACE.indexOf("useStampTheLastLook(");
+    expect(at).toBeGreaterThan(-1);
+    const call = SURFACE.slice(at, at + 120);
+    expect(call).toMatch(/answersQ\.isSuccess \|\| answersQ\.isError/);
+    // And it is held from the first answer, so the stamp's own invalidation
+    // cannot rewrite the line under the reader.
+    expect(SURFACE).toContain("if (sinceLine !== null || !answersQ.data) return;");
   });
 });
