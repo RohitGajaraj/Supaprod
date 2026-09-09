@@ -36,6 +36,24 @@
  * `47dcbf3c` they read "4 findings, 67 times". Start's row still counts
  * filings and says "Produced 67 findings".
  *
+ * ── AND THE TWO DO NOT CONTRADICT, WHICH I OVERSTATED AT FIRST ───────────
+ * I filed this as "two numbers, two screens" and that was harder than the truth.
+ * The run screen says "4 findings, 67 times" -- BOTH numbers, in one clause --
+ * so a reader who meets Start's "Produced 67 findings" first has the 67 in
+ * front of them when they open the run. It reads as an explanation of Start's
+ * number rather than a disagreement with it.
+ *
+ * That lowers the urgency without removing the case: "67 findings" alone still
+ * reads as sixty-seven pieces of evidence to somebody who never opens the run,
+ * and Start's row is where most people meet a track. But it is a row that says
+ * less than it could, not a row that contradicts another screen, and the
+ * difference decides whether this is worth a payload.
+ *
+ * The fold's shape is what makes that true, and it was not the reason for it --
+ * keeping the repetition was argued from "a station that drew one screen five
+ * times did not draw one screen". That it also leaves both numbers on the page
+ * is luck, and worth noticing before designing the next one.
+ *
  * **This file passes anyway, and that is the honest limit of what it proves.**
  * It scores the row against the convention -- the noun from `KIND_WORD`, the
  * list from `joinPlainly` -- which is about how a count is WORDED and says
