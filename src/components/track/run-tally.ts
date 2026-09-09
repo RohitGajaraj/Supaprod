@@ -393,42 +393,28 @@ function markFor(kind: string): string {
   return MARK[kind] ?? "";
 }
 
-/**
- * The tally as `meridian/got-you.tsx` draws it: chips that open something, and
- * clauses that state facts and open nothing.
+/*
+ * ── `gotYouChips`, `gotYouClauses` AND `gotYouLink` ARE GONE (2026-09-10) ───
  *
- * The division is the design, so it is decided HERE, where the facts are, rather
- * than at the call site: a person can tell at a glance which half they can press
- * because the pressable half is exactly the half that names a thing that exists.
+ * They drew "the tally as `meridian/got-you.tsx` draws it", and nothing has
+ * drawn it since `run-proof.ts` replaced that panel: `proofRows` reads
+ * `input.tally.pr` and nothing else off this file. All three had zero callers
+ * anywhere in the tree, tests included.
+ *
+ * ── AND MY OWN CENSUS COULD NOT SEE THEM, WHICH IS THE PART TO KEEP ────────
+ * `one-vocabulary-counts-what-a-station-filed.test.ts` asserts that every named
+ * tally emitter is imported by something. This module passes: `useRunTally`,
+ * `hasAnything` and `pr` are all live. What was dead was one EXPORT of it.
+ *
+ * So the census asks "is the module reached" when the question is "does this
+ * emitter's OUTPUT reach a screen", and a file can be half alive. That is a
+ * real blind spot and it is written here rather than fixed, because a per-export
+ * reachability check is a cleverer instrument than the one it replaces and this
+ * lane has spent the night on instruments that measured something adjacent to
+ * the claim.
+ *
+ * `Tally.made` STAYS. `hasAnything` reads its length to decide whether the
+ * proof panel draws at all, so the array is load-bearing even though its labels
+ * were not. `Made.label` is kept with it rather than trimmed separately: a type
+ * with a field nobody reads is cheaper than a type that changes shape twice.
  */
-export function gotYouChips(t: Tally): GotYouChip[] {
-  return t.made.map((m) => ({ id: m.artifactId, label: m.label, mark: markFor(m.kind) }));
-}
-
-export function gotYouClauses(t: Tally): string[] {
-  /*
-   * THE SELF-CHECK SITS AFTER THE VERDICT AND BEFORE THE HORIZON.
-   *
-   * After the verdict because the verdict is somebody else's judgment of the
-   * work and this is the work checking itself, and the outside opinion is the
-   * one a person acts on first. Before time and money because it is a fact
-   * about whether the run can be believed, and those two are facts about what
-   * it cost -- a reader who stops after three clauses should have the three
-   * that bear on trust.
-   */
-  /*
-   * `declined` sits after the self-check and before the horizon, on the same
-   * argument the self-check's own note makes: the clauses that bear on whether
-   * the work can be BELIEVED come before the ones that say what it cost, so a
-   * reader who stops after three has the three that matter.
-   */
-  return [t.verdict, t.selfCheck, t.declined, t.horizon, t.elapsed, t.cost].filter(
-    (c): c is string => Boolean(c),
-  );
-}
-
-export function gotYouLink(t: Tally): { label: string; href: string } | null {
-  /* Only when it can actually be opened. A number with no url is still worth
-     saying, and it is said as a chip rather than as a link that goes nowhere. */
-  return t.pr?.url ? { label: `PR #${t.pr.number}`, href: t.pr.url } : null;
-}
