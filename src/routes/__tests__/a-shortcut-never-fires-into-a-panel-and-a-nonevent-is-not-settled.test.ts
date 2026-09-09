@@ -94,13 +94,45 @@ describe("the approvals shortcuts stand down while Ask is open", () => {
 });
 
 describe("a settle whose write changes no row is not listed as settled", () => {
+  /*
+   * ── THIS FIXTURE HID A BUG FOR AS LONG AS IT EXISTED, SO IT IS REAL NOW ────
+   *
+   * It was five fields cast through `ApprovalQueueItem`, carrying no
+   * `approveConsequence`. Production items always carry one -- it is a
+   * non-optional `string` and all ten families set it -- and the function under
+   * test read `item.approveConsequence ?? SETTLED_APPROVE[kind]`. So every
+   * assertion below ran the fallback branch that production never takes, while
+   * the branch production always takes printed the pending card's Approve
+   * BUTTON LABEL as the record of a completed judgement, unexercised and green.
+   *
+   * A cast fixture does not merely leave a branch uncovered. It silently covers
+   * the wrong one and reports success, which is worse than no test, because it
+   * is the reason nobody looked. The fields the real item always has are here
+   * now, and the assertion that the control label never reaches the trail is
+   * below.
+   */
   const item: ApprovalQueueItem = {
     id: "queue-1",
     sourceId: "source-1",
     kindKey: "tool_call",
     title: "Run studio.pr.merge",
     timestamp: null,
+    approveConsequence: "Approve · runs the action",
+    rejectConsequence: "Reject · agent stands down",
+    gatesLiveWork: null,
+    trackId: null,
   } as ApprovalQueueItem;
+
+  it("never prints the button label as what your verdict caused", () => {
+    for (const verdict of ["approve", "reject"] as const) {
+      const line = decideSettledLine({ item, verdict }, true, "10:00 AM");
+      expect(line.consequence).not.toBe(item.approveConsequence);
+      expect(line.consequence).not.toBe(item.rejectConsequence);
+      // The bullet is the card's, and it is the tell: no control label in this
+      // codebase is without one, and no sentence should carry one.
+      expect(String(line.consequence)).not.toContain("·");
+    }
+  });
 
   it("a real decision keeps the verdict sentence", () => {
     const line = decideSettledLine({ item, verdict: "approve" }, true, "10:00 AM");

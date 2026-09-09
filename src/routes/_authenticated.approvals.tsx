@@ -153,6 +153,7 @@ import {
 import { CallContext, Key } from "@/components/approvals/CallContext";
 import { FilterExcludedEverything, QueueFilters } from "@/components/approvals/QueueFilters";
 import { SettledTrail, type SettledLine } from "@/components/approvals/SettledTrail";
+import { APPROVED, DECLINED, doorToTheRun } from "@/components/approvals/what-your-verdict-caused";
 import { UndatedCalls, type UndatedCall } from "@/components/approvals/UndatedCalls";
 import { ProviderFaultNotice } from "@/components/approvals/ProviderFaultNotice";
 import { getProviderFaults } from "@/lib/provider-faults.functions";
@@ -178,23 +179,29 @@ export const Route = createFileRoute("/_authenticated/approvals")({
   head: () => ({ meta: [{ title: "Inbox · Supaprod" }] }),
 });
 
-const SETTLED_APPROVE: Record<ApprovalQueueItem["kindKey"], string> = {
-  tool_call: "Approved.",
-  decision: "Approved.",
-  memory_candidate: "In. It guides the next call.",
-  house_rule: "Approved.",
-  trust_graduation: "Approved.",
-  spec: "Spec approved. It becomes precedent.",
-  opportunity: "Kept. It moves to Now on the roadmap.",
-  assumption_challenge: "Reopened for review.",
-  design_gate: "Design approved. This spec can now dispatch to Build.",
-  playbook_proposal: "Playbook adopted.",
-};
-const SETTLED_REJECT = "Declined. Noted for next time.";
-/** P-54: the write succeeded but changed no row -- someone, or another press
- *  in the same burst, already decided this gate first. Never printed as
- *  "You approved"/"You declined": that sentence is reserved for a verdict
- *  that actually landed. */
+/*
+ * ── THE TEN APPROVE AND TEN DECLINE SENTENCES MOVED OUT, AND ONE OF THE TWO
+ *    MAPS THAT WAS HERE HAD NEVER RENDERED A WORD ──────────────────────────
+ *
+ * They are in `components/approvals/what-your-verdict-caused.ts` now, with the
+ * measurement and the reason. The short version, because it is the kind of
+ * thing that grows back:
+ *
+ *   `SETTLED_APPROVE` sat behind `item.approveConsequence ?? SETTLED_APPROVE[k]`
+ *   and `approveConsequence` is a non-optional string that all ten families
+ *   set, so the fallback never fired. What rendered on every settled line was
+ *   the label under the pending card's Approve button:
+ *
+ *       You approved   Approve · unblocks Build for this spec   2:14 PM
+ *
+ *   -- an imperative offering the choice the person had already made. And
+ *   `SETTLED_REJECT` was ONE sentence for ten families, true of `decision` and
+ *   false of most of the rest.
+ *
+ * The `??` order was the whole bug and it is the reason the maps left this
+ * file: as a fallback they read like a safety net, which is what stopped anyone
+ * asking whether the primary was fit to print.
+ */
 const NOTHING_CHANGED = "This was already decided.";
 
 /**
@@ -206,7 +213,16 @@ export function decideSettledLine(
   vars: { item: ApprovalQueueItem; verdict: "approve" | "reject" },
   changed: boolean,
   at: string,
+  /* The run behind the call, already read and named by the caller. Optional so
+     the three settle paths that have no run in hand stay callers of one
+     function rather than growing a second. */
+  run?: { trackId: string | null | undefined; title: string | null | undefined } | null,
 ): SettledLine {
+  /* Offered on the failed line too. "This was already decided" is an answer
+     that raises a question -- decided how, and what came of it -- and the run
+     is where that is written. */
+  const door = doorToTheRun(vars.item.gatesLiveWork, run);
+
   if (!changed) {
     return {
       id: vars.item.id,
@@ -214,16 +230,19 @@ export function decideSettledLine(
       consequence: NOTHING_CHANGED,
       at,
       failed: true,
+      door,
     };
   }
   return {
     id: vars.item.id,
     verb: vars.verdict === "approve" ? "You approved" : "You declined",
+    /* NOT `item.approveConsequence`. That string is the pending card's control
+       label, in the infinitive, and this line is the record of a completed act.
+       See the note above and the module's own. */
     consequence:
-      vars.verdict === "approve"
-        ? (vars.item.approveConsequence ?? SETTLED_APPROVE[vars.item.kindKey])
-        : (vars.item.rejectConsequence ?? SETTLED_REJECT),
+      vars.verdict === "approve" ? APPROVED[vars.item.kindKey] : DECLINED[vars.item.kindKey],
     at,
+    door,
   };
 }
 
@@ -516,6 +535,51 @@ function ApprovalsSurface() {
   const rest = visibleItems.filter((i) => i.id !== focusedId);
 
   /*
+   * ── THE RUN THIS CALL CAME FROM, NAMED ─────────────────────────────────
+   *
+   * Lane 1's fifth review, [0] and [7]: a call raised on a run reached the
+   * Inbox with no way back to it, so a person could answer a gate and not watch
+   * the work carry on. Lane 3 landed the link (`agent_approvals.run_id` to
+   * `agent_runs.track_id`, both written by the loop) and `trackId` is on the
+   * item now.
+   *
+   * AN ID IS NOT A DESTINATION. A door reading "Open the run" names nothing,
+   * which is the defect the same review raised about doors elsewhere. The run's
+   * title is what a person recognises, so this reads it -- and reads it for the
+   * FOCUSED CALL ONLY, one at a time, rather than widening the queue's own read
+   * to carry a title for six hundred rows that are never looked at. The queue
+   * is hop-counted and this is a different question asked at a different rate.
+   *
+   * `getTrack` is the run screen's own read, so the title in this door and the
+   * title on the page it opens come from one place and cannot drift. The door
+   * degrades to nothing while the read is out and to nothing if it fails: a
+   * call that cannot name its run is the ordinary pre-spine case, and this
+   * surface has just been repaired for inventing a container it could not read.
+   *
+   * ── IT SITS ABOVE THE MUTATIONS BECAUSE THE SETTLED LINE NEEDS IT TOO ──────
+   * The pending card's door was only half of [0]/[7]. A person answers the call
+   * and the card is gone; what is left on screen is the settled line, and until
+   * now that was the dead end -- the judgement landed and the work it released
+   * was unreachable from the surface that released it.
+   *
+   * The Inbox settles the FOCUSED call and only the focused call (`a`, `d`, and
+   * every button below bind `decide.mutate({ item: focused })`), so the title
+   * this read already holds is the title of the call about to be settled. The
+   * door on the settled line therefore costs no read of its own; it is this one,
+   * captured at the moment of the verdict. That is the whole reason this block
+   * moved above `decide` rather than a ref being introduced to reach backwards
+   * for it.
+   */
+  const fGetTrack = useServerFn(getTrack);
+  const focusedRun = useQuery({
+    queryKey: ["track", focused?.trackId],
+    queryFn: () => fGetTrack({ data: { trackId: focused!.trackId! } }),
+    enabled: Boolean(focused?.trackId),
+    staleTime: 30_000,
+  });
+  const runTitle = focused?.trackId ? (focusedRun.data?.title ?? null) : null;
+
+  /*
    * The queue below the gate, as work that has stopped rather than as rows.
    *
    * `blocking` is the mission or project the call sits in front of, which is
@@ -609,7 +673,13 @@ function ApprovalsSurface() {
       // own line rather than borrowing "You approved"/"You declined" for
       // something that did not happen.
       const at = new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-      setSettled((r) => [decideSettledLine(vars, res.changed, at), ...r]);
+      /* The run this call sat on, named by the read above, captured at the
+         moment of the verdict. The Inbox settles only the focused call, so
+         this is that call's run and not a second lookup. */
+      setSettled((r) => [
+        decideSettledLine(vars, res.changed, at, { trackId: vars.item.trackId, title: runTitle }),
+        ...r,
+      ]);
     },
     onError: (e: Error, vars, ctx) => {
       if (ctx?.prev) qc.setQueryData(queueKey, ctx.prev);
@@ -914,37 +984,6 @@ function ApprovalsSurface() {
   const needsWorkspace =
     !workspacesLoading && workspaces.length === 0 && !queue.isLoading && !queue.isError && n === 0;
 
-  /*
-   * ── THE RUN THIS CALL CAME FROM, NAMED ─────────────────────────────────
-   *
-   * Lane 1's fifth review, [0] and [7]: a call raised on a run reached the
-   * Inbox with no way back to it, so a person could answer a gate and not watch
-   * the work carry on. Lane 3 landed the link (`agent_approvals.run_id` to
-   * `agent_runs.track_id`, both written by the loop) and `trackId` is on the
-   * item now.
-   *
-   * AN ID IS NOT A DESTINATION. A door reading "Open the run" names nothing,
-   * which is the defect the same review raised about doors elsewhere. The run's
-   * title is what a person recognises, so this reads it -- and reads it for the
-   * FOCUSED CALL ONLY, one at a time, rather than widening the queue's own read
-   * to carry a title for six hundred rows that are never looked at. The queue
-   * is hop-counted and this is a different question asked at a different rate.
-   *
-   * `getTrack` is the run screen's own read, so the title in this door and the
-   * title on the page it opens come from one place and cannot drift. The door
-   * degrades to nothing while the read is out and to nothing if it fails: a
-   * call that cannot name its run is the ordinary pre-spine case, and this
-   * surface has just been repaired for inventing a container it could not read.
-   */
-  const fGetTrack = useServerFn(getTrack);
-  const focusedRun = useQuery({
-    queryKey: ["track", focused?.trackId],
-    queryFn: () => fGetTrack({ data: { trackId: focused!.trackId! } }),
-    enabled: Boolean(focused?.trackId),
-    staleTime: 30_000,
-  });
-  const runTitle = focused?.trackId ? (focusedRun.data?.title ?? null) : null;
-
   const focusedSince = focused ? waitingSince(focused.timestamp) : null;
   const focusedLines = focused
     ? focused.evidence.slice(0, 3).map((line: string) => stripAutoMarkers(line))
@@ -1241,6 +1280,17 @@ function ApprovalsSurface() {
               id: sendBack?.id ?? "sent-back",
               verb: "You sent it back",
               consequence: "It returns to the agent with your note.",
+              /* A send-back RELEASES work, which is the test for whether a door
+                 belongs on a line: the agent picks the note up and carries on.
+                 The snooze and failure lines below and above deliberately have
+                 none -- a snooze is a decision to look later, and a failed write
+                 leaves the call sitting in the queue two inches away. Sending a
+                 person into the run from either would argue with the line they
+                 just read. */
+              door: doorToTheRun(sendBack?.gatesLiveWork, {
+                trackId: sendBack?.trackId,
+                title: runTitle,
+              }),
               at: new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
             },
             ...r,
