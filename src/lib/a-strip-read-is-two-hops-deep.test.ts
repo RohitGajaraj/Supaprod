@@ -256,6 +256,33 @@ describe("a read that failed is not a read that found nothing", () => {
   const failing = (table: string) => (t: string, cols: string, filters: Filter[]) =>
     t === table ? (wireError(`${table} refused`) as unknown as Row[]) : fixture(t, cols, filters);
 
+  it("the wire can refuse a read, which is what the three claims below rest on", async () => {
+    /*
+     * THE PREREQUISITE, ASSERTED RATHER THAN ASSUMED. A fake that can only
+     * return rows cannot produce the difference between a refusal and an empty
+     * answer, and that difference is the only thing the tests below measure.
+     * If `wireError` is ever simplified back to rows, they would stop measuring
+     * anything while staying green, so this says out loud what the tool does.
+     */
+    const wire = new FakeWire(failing("agent_approvals"));
+    type Answer = { data: unknown; error: { message: string } | null };
+    /* The builder registers with the wire in a microtask, so let one pass
+       before flushing: `drive` does the same thing, by condition. */
+    const ask = async (table: string): Promise<Answer> => {
+      const pending = Promise.resolve(wire.from(table).select("id") as unknown as Promise<Answer>);
+      await new Promise<void>((r) => setImmediate(r));
+      wire.flush();
+      return pending;
+    };
+    const refused = await ask("agent_approvals");
+    expect(refused.error?.message).toBe("agent_approvals refused");
+    expect(refused.data).toBeNull();
+    // And a table the fixture did not fail still answers with rows.
+    const answered = await ask("studio_changesets");
+    expect(answered.error).toBeNull();
+    expect(answered.data).toHaveLength(1);
+  });
+
   it("throws when the missions read fails, because the missions ARE the answer", async () => {
     /* An empty list is drawn as seven stations with no work in them, which is
        a claim about the workspace. The strip's own failure state says "count
@@ -264,16 +291,42 @@ describe("a read that failed is not a read that found nothing", () => {
     await expect(run(wire)).rejects.toThrow("missions refused");
   });
 
-  it("keeps the list when the gate read fails, and says the gates are not counted", async () => {
+  /*
+   * THESE TWO ARE MIRRORS, and the pairing is the point (Lane 1's shape,
+   * 2026-09-09). A handler that withholds EVERYTHING whenever any read fails
+   * would pass a single-direction test and be its own defect: the surface
+   * would lose facts that were read perfectly well. So each refusal is checked
+   * for what it takes AND for what it leaves standing, and the two refusals
+   * take opposite things.
+   */
+  it("a refused gate read withholds the gate count and nothing else", async () => {
     const wire = new FakeWire(failing("agent_approvals"));
     const { result, rounds } = await run(wire);
     expect(rounds).toBe(2);
     // Every session still lists: losing the strip over a gate count would cost
     // more than the count is worth.
     expect(result.sessions).toHaveLength(3);
-    // And not one of them says zero, which is what "nothing is waiting" looks
-    // like on a surface that cannot tell the difference.
+    // Not one of them says zero, which is what "nothing is waiting" looks like
+    // on a surface that cannot tell the difference.
     for (const s of result.sessions) expect(s.pending_approvals).toBeNull();
+    // And everything the gate read never fed is exactly where it was.
+    const byId = new Map(result.sessions.map((x) => [x.mission_id, x]));
+    expect(byId.get("m1")?.prd).toEqual({ id: "prd1", title: "The spec" });
+    expect(byId.get("m1")?.changeset?.file_count).toBe(2);
+    expect(byId.get("m1")?.run_status).toBe("completed");
+    expect(byId.get("m3")?.station).toBe("build");
+  });
+
+  it("a refused spec read withholds the spec link and leaves the gate count real", async () => {
+    const wire = new FakeWire(failing("rpc:mission_spec_titles"));
+    const { result } = await run(wire);
+    const byId = new Map(result.sessions.map((x) => [x.mission_id, x]));
+    // The mirror: the count that survived a gate refusal is the one that goes
+    // here, and the link that survived here is the one that went there.
+    expect(byId.get("m1")?.prd).toBeNull();
+    expect(byId.get("m1")?.pending_approvals).toBe(1);
+    expect(byId.get("m1")?.changeset?.file_count).toBe(2);
+    expect(byId.get("m3")?.station).toBe("build");
   });
 
   it("counts the gates as zero when the read answered and found none", async () => {
