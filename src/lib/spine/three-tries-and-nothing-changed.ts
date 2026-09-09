@@ -95,9 +95,45 @@ export function stuckBackoffMinutes(input: {
   recent: readonly DriveEntry[];
   /** The newest artifact this track has filed, ISO, or null for none. */
   newestArtifactAt: string | null;
+  /**
+   * `spine_tracks.backed_off_at`: when this history was last priced. Null on a
+   * track that has never been backed off.
+   */
+  backedOffAt?: string | null;
 }): number | null {
   const recent = input.recent;
   if (recent.length < DRIVES_BEFORE_BACKOFF) return null;
+
+  /*
+   * ── ONE HISTORY EARNS ONE DEFERRAL ─────────────────────────────────────────
+   *
+   * THE DEADLOCK THIS BREAKS, measured on production 2026-09-09. This rule
+   * reads a track's three most recent drives, and `track-tick` turns a non-null
+   * answer into a `deferred_until` AND into a skip for that same tick. The
+   * deferral is what stops the track being driven, so `track_drives` never
+   * gains a row, so the next candidacy reads the SAME three drives and writes
+   * the SAME deferral. The ladder's top rung is 90 minutes and repeats, so the
+   * state is permanent.
+   *
+   * `a30d6b62` was deferred at 22:00 on the strength of three drives from
+   * 2026-09-06, and it was the only selectable track in the product. Two drives
+   * in the previous twenty-four hours across every workspace, and the newest
+   * row in `track_drives` anywhere was 04:16 that morning. The engine was held
+   * shut by a rule that is individually correct, while every tick reported
+   * `ok`.
+   *
+   * So a history no newer than the last time it was priced is not priced again.
+   * The track gets ONE drive, which either moves it -- and the run of held
+   * drives ends honestly -- or files another held drive, which is new evidence
+   * and legitimately earns the next rung.
+   *
+   * WHAT THIS DELIBERATELY DOES NOT DO: loosen the rule, raise the rungs or
+   * shorten the ladder. The measurement behind those is right and moving a
+   * threshold to make the sweep dispatch again would hide which exclusion was
+   * wrong, which is how three days of silence happen twice.
+   */
+  const newestDrive = recent[0]?.at ?? null;
+  if (input.backedOffAt && newestDrive && !(newestDrive > input.backedOffAt)) return null;
 
   const hold = recent[0]?.hold ?? null;
   /* No hold is a track that moved. Nothing to back off. */

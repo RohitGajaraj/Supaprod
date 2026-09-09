@@ -7536,6 +7536,7 @@ export type Database = {
       spine_tracks: {
         Row: {
           attempts: number
+          backed_off_at: string | null
           created_at: string
           deferred_until: string | null
           driven_at: string | null
@@ -7570,6 +7571,7 @@ export type Database = {
         }
         Insert: {
           attempts?: number
+          backed_off_at?: string | null
           created_at?: string
           deferred_until?: string | null
           driven_at?: string | null
@@ -7604,6 +7606,7 @@ export type Database = {
         }
         Update: {
           attempts?: number
+          backed_off_at?: string | null
           created_at?: string
           deferred_until?: string | null
           driven_at?: string | null

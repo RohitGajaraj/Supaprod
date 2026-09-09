@@ -4926,7 +4926,11 @@ export const DRIVE_SELECT =
   // as zero and the station restarts its crew, which is the defect this column
   // exists to end, so it belongs in the shared constant for the same reason the
   // budget columns do.
-  "seat_cursor";
+  "seat_cursor," +
+  /* P-?? / 2026-09-09. When this track's drive history was last priced by the
+     stuck-backoff. The tick needs it in the same read it already makes, so one
+     run of held drives cannot buy a second deferral. */
+  "backed_off_at";
 
 export type { DriveRow };
 

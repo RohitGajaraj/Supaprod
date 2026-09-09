@@ -408,15 +408,31 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
               }
 
               const backoffNow = new Date();
+              /* What each candidate was last priced at, from the rows already
+                 fetched: no extra read, and `backed_off_at` is in DRIVE_SELECT. */
+              const backedOffAt = new Map<string, string | null>(
+                (fetched as unknown as Array<{ id: string; backed_off_at?: string | null }>).map(
+                  (r) => [r.id, r.backed_off_at ?? null],
+                ),
+              );
               for (const id of candidateIds) {
                 const minutes = stuckBackoffMinutes({
                   recent: byTrack.get(id) ?? [],
                   newestArtifactAt: newestArtifact.get(id) ?? null,
+                  /* One history earns one deferral: a run of held drives that
+                     has already been priced does not get priced again, or the
+                     deferral prevents the very drive that would change it. */
+                  backedOffAt: backedOffAt.get(id) ?? null,
                 });
                 if (minutes === null) continue;
                 const { error: backErr } = await supabaseAdmin
                   .from("spine_tracks" as never)
-                  .update({ deferred_until: deferUntil(minutes, backoffNow) } as never)
+                  .update({
+                    deferred_until: deferUntil(minutes, backoffNow),
+                    /* Stamped WITH the deferral, so the history that bought it
+                       cannot buy another one. */
+                    backed_off_at: backoffNow.toISOString(),
+                  } as never)
                   .eq("id", id);
                 if (backErr) {
                   /* The deferral above's contract: a failed write means the
