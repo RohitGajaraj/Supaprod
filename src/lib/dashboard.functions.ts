@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { ensureTodayBrief } from "@/lib/copilot.functions";
 import { weekdayInZone } from "@/lib/time-of-day";
@@ -38,7 +39,7 @@ export const getDashboard = createServerFn({ method: "GET" })
      * have nothing", and that is a claim about an empty day.
      */
     const { data: wsDefault } = await supabase.rpc("current_user_default_workspace");
-    const wid = (wsDefault as string | null) ?? null;
+    const wid = defaultWorkspaceId(wsDefault);
 
     let todayTasksQ = supabase.from("tasks").select("*");
     if (wid) todayTasksQ = todayTasksQ.eq("workspace_id", wid);

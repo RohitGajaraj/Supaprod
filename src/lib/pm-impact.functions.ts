@@ -13,6 +13,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supersededChildIds, type LineageEdgeLite } from "@/lib/trust-ledger.functions";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import {
   computeImpactLedger,
   renderImpactMarkdown,
@@ -46,7 +47,7 @@ export const getImpactLedger = createServerFn({ method: "GET" })
     let workspaceId = data?.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
     if (!workspaceId) {
       return {

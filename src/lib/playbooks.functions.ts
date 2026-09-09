@@ -12,6 +12,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import {
   PLAYBOOK_REGISTRY,
   rankPlaybooksByOutcome,
@@ -40,7 +41,7 @@ export const getPlaybooks = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<GetPlaybooksResult> => {
     const supabase = context.supabase as SupabaseClient;
     const { data: wsRpc } = await supabase.rpc("current_user_default_workspace");
-    const workspaceId = (wsRpc as string | null) ?? null;
+    const workspaceId = defaultWorkspaceId(wsRpc);
 
     // Load this workspace's recorded runs (best-effort: pre-migration the table is absent, so
     // the registry still renders with null/empty rankings).
@@ -183,7 +184,7 @@ export const listPlaybookProposals = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<ListPlaybookProposalsResult> => {
     const supabase = context.supabase as SupabaseClient;
     const { data: wsRpc } = await supabase.rpc("current_user_default_workspace");
-    const workspaceId = (wsRpc as string | null) ?? null;
+    const workspaceId = defaultWorkspaceId(wsRpc);
     if (!workspaceId) return { proposals: [] };
     const { data, error } = await supabase
       .from("playbook_proposals")

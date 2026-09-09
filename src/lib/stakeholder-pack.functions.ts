@@ -12,6 +12,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import {
   evidenceCounts,
   supersededChildIds,
@@ -165,7 +166,7 @@ export const getStakeholderPack = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<StakeholderPackResult> => {
     const supabase = context.supabase as SupabaseClient;
     const { data: wsRpc } = await supabase.rpc("current_user_default_workspace");
-    const workspaceId = (wsRpc as string | null) ?? null;
+    const workspaceId = defaultWorkspaceId(wsRpc);
     if (!workspaceId) return { decisions: [], selected: null };
 
     const loaded = await loadNewestDecisionBrief(supabase, workspaceId, data?.decisionId ?? null);

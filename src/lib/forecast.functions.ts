@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import { z } from "zod";
 
 import { isPreMigration } from "@/lib/read-failure";
@@ -586,7 +587,7 @@ export const listDueForecastsHere = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const db = context.supabase as unknown as SupabaseClient;
     const { data: ws } = await db.rpc("current_user_default_workspace");
-    const workspaceId = (ws as string | null) ?? null;
+    const workspaceId = defaultWorkspaceId(ws);
     /* NO WORKSPACE IS NOT EVERY WORKSPACE. If the RPC cannot name one, falling
        through to the unscoped read would silently answer a different question
        than the caller asked - the exact substitution this function exists to

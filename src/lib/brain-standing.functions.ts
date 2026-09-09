@@ -33,6 +33,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getActiveHouseRulesForWorkspace } from "@/lib/house-rules.functions";
 import { resolvePlanTier } from "@/lib/billing.functions";
 import { FREE_MEMORY_RETENTION_DAYS } from "@/lib/entitlements";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 /** One standing rule the record produced, already approved and still active. */
 export type StandingRule = {
@@ -93,7 +94,7 @@ export const getStandingRecord = createServerFn({ method: "GET" })
     let workspaceId = data?.workspaceId ?? null;
     if (!workspaceId) {
       const { data: def } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (def as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(def);
     }
     const wid = workspaceId;
 

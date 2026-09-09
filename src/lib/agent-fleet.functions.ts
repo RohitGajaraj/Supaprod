@@ -8,6 +8,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import {
   computeAgentFleet,
   type AgentFleet,
@@ -29,7 +30,7 @@ export const getAgentFleet = createServerFn({ method: "GET" })
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
 
     // A recent window of runs is enough for a live fleet snapshot. No workspace

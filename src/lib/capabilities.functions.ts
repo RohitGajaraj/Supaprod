@@ -33,6 +33,7 @@ import { loadVoiceAnchorBlock } from "@/lib/ai/loop.server";
 import { computeAllAgentTrust, type Arc, type AgentTrust } from "@/lib/ai/trust.server";
 import { recordLineageSafe } from "@/lib/lineage.functions";
 import { z } from "zod";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 /** Capability info per agent. */
 export interface AgentCapability {
@@ -156,7 +157,7 @@ export const getCapabilities = createServerFn({ method: "GET" })
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
 
     // Get all active cast members (not crew, not deprecated).
@@ -720,7 +721,7 @@ export const updateAgentInstructions = createServerFn({ method: "POST" })
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
     if (!workspaceId) throw new Error("updateAgentInstructions: no workspace");
 
@@ -786,7 +787,7 @@ export const toggleAgentSkill = createServerFn({ method: "POST" })
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
     if (!workspaceId) throw new Error("toggleAgentSkill: no workspace");
 

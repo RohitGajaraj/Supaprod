@@ -25,6 +25,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { evidenceForSubject } from "@/lib/spine/what-the-evidence-already-says.server";
 import { NO_EVIDENCE_READ, type SubjectEvidence } from "@/lib/spine/what-the-evidence-already-says";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 /**
  * THE WORKSPACE IS DERIVED, NEVER TAKEN FROM THE CALLER.
@@ -40,7 +41,7 @@ export const getSubjectEvidence = createServerFn({ method: "GET" })
   .validator((d: unknown) => z.object({ subject: z.string().trim().min(1).max(400) }).parse(d))
   .handler(async ({ data, context }): Promise<SubjectEvidence> => {
     const { data: ws } = await context.supabase.rpc("current_user_default_workspace");
-    const workspaceId = (ws as string | null) ?? null;
+    const workspaceId = defaultWorkspaceId(ws);
     // No workspace yet is not "nothing mentions this". A person who has just
     // signed up has no evidence because they have no workspace, and telling them
     // the subject is unevidenced would be a claim about their problem drawn from

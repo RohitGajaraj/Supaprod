@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import { humanizeText } from "@/lib/ai/humanize";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -113,7 +114,7 @@ export const getLiveActivity = createServerFn({ method: "GET" })
     let wid = input?.workspaceId ?? null;
     if (!wid) {
       const { data: ws } = await context.supabase.rpc("current_user_default_workspace");
-      wid = (ws as string | null) ?? null;
+      wid = defaultWorkspaceId(ws);
     }
     let runsQ = context.supabase
       .from("agent_runs")

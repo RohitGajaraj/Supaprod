@@ -30,6 +30,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { embedOne } from "@/lib/rag/embed.server";
 import { assessAndQuarantine } from "@/lib/injection-classifier";
 import type { MemoryCandidateSource, MemoryCandidateStatus } from "@/lib/memory-candidates";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 export type { MemoryCandidateSource, MemoryCandidateStatus };
 
@@ -71,7 +72,7 @@ async function resolveWorkspaceId(
 ): Promise<string | null> {
   if (explicit) return explicit;
   const { data } = await supabase.rpc("current_user_default_workspace");
-  return (data as string | null) ?? null;
+  return defaultWorkspaceId(data);
 }
 
 /** Best-effort semantic match of `content` against this workspace's existing

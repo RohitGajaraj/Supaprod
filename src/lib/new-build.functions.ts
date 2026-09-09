@@ -17,6 +17,7 @@ import { provisionGithubRepo } from "@/lib/connectors/product-binding.functions"
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { renderStarterTemplate, repoNameFromTitle } from "@/lib/build/template";
 import { classifyRepoResolution, type RepoDispatchCheck } from "@/lib/build/repo-gate";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 export type ProvisionedSpecRepo = {
   owner: string;
@@ -84,7 +85,7 @@ export const canDispatchToRepo = createServerFn({ method: "GET" })
     }
     if (!workspaceId) {
       const { data: ws } = await db.rpc("current_user_default_workspace");
-      workspaceId = (ws as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(ws);
     }
 
     // productId first, exactly as the dispatch path resolves it. A check that

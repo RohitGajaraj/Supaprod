@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { callModelStream, callModel } from "@/lib/ai/runtime.server";
@@ -670,7 +671,7 @@ You must output a JSON object EXACTLY in this format:
 
         // 2. Resolve default workspace & check pre-flight constraints
         const { data: ws } = await supabase.rpc("current_user_default_workspace");
-        const workspaceId = (ws as string | null) ?? null;
+        const workspaceId = defaultWorkspaceId(ws);
 
         /**
          * WHY THIS IS A TYPED ID AND NOT A STRING ANY MORE.

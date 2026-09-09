@@ -11,6 +11,7 @@ import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { WatchKind, Cadence } from "@/lib/scout/kinds";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 export type TrackedEntity = {
   id: string;
@@ -39,7 +40,7 @@ const BRIEF_SOURCES: Record<string, StrategyBrief["kind"]> = {
 
 async function resolveWorkspaceId(supabase: SupabaseClient): Promise<string | null> {
   const { data } = await supabase.rpc("current_user_default_workspace");
-  return (data as string | null) ?? null;
+  return defaultWorkspaceId(data);
 }
 
 export const listTrackedEntities = createServerFn({ method: "GET" })

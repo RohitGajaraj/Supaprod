@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
@@ -372,7 +373,7 @@ export const Route = createFileRoute("/api/plan-gate")({
          * answer most worth being able to count.
          */
         const { data: ws } = await supabase.rpc("current_user_default_workspace");
-        const workspaceId = (ws as string | null) ?? null;
+        const workspaceId = defaultWorkspaceId(ws);
 
         if (startsWork(autonomy)) {
           if (!workspaceId) {

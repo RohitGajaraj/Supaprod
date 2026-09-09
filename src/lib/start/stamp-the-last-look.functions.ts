@@ -30,6 +30,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 const Scope = z.object({ workspaceId: z.string().uuid().nullable().optional() });
 
@@ -42,7 +43,7 @@ export const stampLastLook = createServerFn({ method: "POST" })
     let workspaceId = data?.workspaceId ?? null;
     if (!workspaceId) {
       const { data: def } = await supabase.rpc("current_user_default_workspace");
-      workspaceId = (def as string | null) ?? null;
+      workspaceId = defaultWorkspaceId(def);
     }
     /*
      * NO WORKSPACE, NO STAMP. The row is keyed (user_id, workspace_id) and a

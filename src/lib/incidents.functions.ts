@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -50,7 +51,7 @@ export async function logCostIncidentInternal(
   },
 ): Promise<{ success: boolean; id?: string }> {
   const { data: ws } = await supabase.rpc("current_user_default_workspace");
-  const workspaceId = (ws as string | null) ?? null;
+  const workspaceId = defaultWorkspaceId(ws);
   if (!workspaceId) {
     throw new Error("No default workspace found");
   }
@@ -120,7 +121,7 @@ export async function getIncidentsInternal(
   // filter on it (defense-in-depth on top of RLS, and it uses the index),
   // matching how the reactor reads this table.
   const { data: ws } = await supabase.rpc("current_user_default_workspace");
-  const workspaceId = (ws as string | null) ?? null;
+  const workspaceId = defaultWorkspaceId(ws);
   if (workspaceId) {
     const { data: events } = await supabase
       .from("event_queue")

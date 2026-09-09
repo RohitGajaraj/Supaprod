@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 import { z } from "zod";
 import { upsertBriefItemCore } from "@/lib/briefs.functions";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -195,7 +196,7 @@ export async function seedWorkspaceCore(
         return {
           success: true,
           alreadySeeded: true,
-          workspaceId: (resumedWorkspaceId as string | null) ?? null,
+          workspaceId: defaultWorkspaceId(resumedWorkspaceId),
           projectId: null,
           signalsCount: 0,
           opportunitiesCount: 0,
@@ -379,7 +380,7 @@ export async function completeOnboardingCore(
     // was accepted from the client and then dropped, which is exactly the step
     // where a launch-day visitor is most likely to stop.
     const { data: workspaceId } = await supabase.rpc("current_user_default_workspace");
-    await noteMoment("onboarding_completed", userId, (workspaceId as string | null) ?? null, {
+    await noteMoment("onboarding_completed", userId, defaultWorkspaceId(workspaceId), {
       path: "complete_onboarding",
     });
 
@@ -401,7 +402,7 @@ export async function completeOnboardingCore(
      */
     const db = supabase as unknown as SupabaseClient;
     const productId =
-      input.productId ?? (await newestProjectId(db, (workspaceId as string | null) ?? null));
+      input.productId ?? (await newestProjectId(db, defaultWorkspaceId(workspaceId)));
     if (productId && (await claimStarterRuns(db, productId, new Date().toISOString()))) {
       void keepStarterRuns(db, userId, productId);
     }

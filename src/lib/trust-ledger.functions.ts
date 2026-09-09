@@ -30,6 +30,7 @@ import {
   type SealLink,
 } from "@/lib/trust-verify";
 import { DECISIVE_VERDICTS } from "@/lib/moat/loop-closure";
+import { defaultWorkspaceId } from "@/lib/workspaces.functions";
 
 export type TrustReceiptKind = "decision" | "action";
 /** Outcome states. "proven" = a recorded outcome (a decisive learning) links to this
@@ -581,7 +582,7 @@ async function resolveWorkspaceId(
 ): Promise<string | null> {
   if (given) return given;
   const { data: ws } = await supabase.rpc("current_user_default_workspace");
-  return (ws as string | null) ?? null;
+  return defaultWorkspaceId(ws);
 }
 
 /**
