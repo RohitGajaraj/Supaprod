@@ -543,6 +543,27 @@ function startRowRest(
      * surfaces counting the same `spine_track_members` rows must not disagree
      * on how many of a kind of thing "1 spec" is worth mentioning by number.
      */
+    /*
+     * THIS COUNTS FILINGS, AND THE RUN SCREEN COUNTS THINGS. Known, measured,
+     * and deliberately left (law 21). On 2026-09-10 the run screen began
+     * folding by title -- "4 findings, 67 times" where this row says "Produced
+     * 67 findings". They reconcile because the fold KEPT the 67, so a reader
+     * who meets this row first meets its number again one click later as the
+     * explanation rather than a correction.
+     *
+     * FOLDING THIS ROW IS NOT CHEAP AND THE CHEAP WAY OUT IS A DIFFERENT
+     * QUESTION. Titles live in ten tables under `ARTIFACT_SOURCE`, each with
+     * its own title column, so folding costs one `.in()` round trip PER KIND on
+     * the home's largest read -- the one already measured at 2.7s and fought
+     * over for round trips twice. `superseded_at` was checked as the free
+     * version: on two of three measured tracks nothing is superseded while
+     * titles repeat seventeen times over, because supersession is lineage
+     * replacement and re-filing the same finding supersedes nothing.
+     *
+     * And this line only draws on a finished or abandoned run with no graded
+     * forecast -- the branch above outranks it -- so it is the fallback of a
+     * fallback. A round-trip tier on every arrival is the wrong price for it.
+     */
     const parts = r.produced.map(({ kind, count }) => {
       const w = words[kind] ?? { one: kind, many: `${kind}s` };
       return `${count} ${count === 1 ? w.one : w.many}`;

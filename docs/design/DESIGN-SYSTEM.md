@@ -876,6 +876,58 @@ still cannot show it.
 
 ---
 
+### 21. A summary keeps the number it summarised
+
+**When one surface folds a count and another has not folded yet, the folded surface must keep the
+original number in the sentence.** *"4 findings, 67 times"* stays compatible with a row that says
+*"67 findings"*: a reader who met the 67 first meets it again, and the fold reads as the
+explanation. *"4 findings"* alone would have contradicted that row outright, on identical
+reasoning, and neither surface would have been wrong.
+
+**Measured, 2026-09-10, Lane 2 and Lane 1.** The run screen's road, story and artifact pane began
+counting distinct artifacts by title. Start's row counts filings off `spine_track_members` and says
+*"Produced 67 findings"*. Same track. The two reconcile only because the fold kept both numbers, and
+that was reasoned from something else entirely — *"a station that drew one screen five times did not
+draw one screen"* — so **it was luck, and it is written here so the next fold does it on purpose.**
+
+**The general rule.** A surface that folds, dedupes, groups or rounds is making a claim about
+surfaces it cannot see. Keeping the pre-fold number in the sentence is what makes that claim
+checkable by the person holding both screens, and it costs one clause.
+
+**And the divergence itself is deliberately NOT fixed.** Folding Start's row means resolving titles,
+which live in ten tables under `ARTIFACT_SOURCE` with a different title column each — so it is one
+`.in()` round trip **per kind**, added to the home's largest read, which already cost 2.7s and has
+been fought over for round trips twice. `superseded_at` was checked as the cheap way out and is a
+different question: on two of three measured tracks nothing is superseded while titles repeat
+seventeen times over. The line draws only on a finished or abandoned run that has **no graded
+forecast**, so it is the fallback of a fallback. **Paying a round-trip tier on every arrival for
+that is the wrong trade, and the reason is recorded here so it is not re-derived as a defect.**
+
+---
+
+### 22. Work that has an address is reached by its address
+
+**A row whose press does nothing but navigate is a link, not a button.** Wrapping a URL in a
+`<button>` takes away every affordance the URL carries: cmd-click, middle-click, *copy link
+address*, the destination in the status bar on hover, and back-button expectations that hold.
+
+**Walked on the served home, 2026-09-10.** Every row under *Your runs* was a `<button>` over
+`navigate({ to: "/track/$trackId" })`. On the one screen whose entire purpose is showing several
+runs at once, **a person could not open two of them side by side.**
+
+**This is a through-line defect, not an accessibility nit,** and it is the shape of defect this
+contract's law 14 is about: both screens are correct and the passage between them is not, so nothing
+that examines one screen at a time can see it. `Row` takes `navigateTo` and renders its readable
+region as a `<Link>`; it keeps the `<button>` when the press does something that is not a
+navigation, because a link that goes nowhere is the same mistake facing the other way.
+
+**Two things this depends on and both are now asserted.** The trailing controls must stay SIBLINGS
+of the readable region — an `<a>` may not contain a `<button>` — and `bodyRef` is a **callback** ref
+rather than an object one, because React's `Ref<T>` is invariant and every widening that lets one
+object ref serve both a button and an anchor ends in a cast.
+
+---
+
 ## The defects that keep coming back
 
 Each of these has been found more than once, by people who knew the rule. Check for them by name.
