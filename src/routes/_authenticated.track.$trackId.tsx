@@ -778,9 +778,42 @@ function TrackPage() {
              * a failed read is not a missing run.
              */
             title={trackQ.isLoading ? "This piece of work" : "This run could not be read."}
+            /*
+             * ── FIVE REGIONS EACH ANNOUNCED THEIR OWN READ, AND THIS WAS THE
+             *    ONE THAT SAID LEAST ────────────────────────────────────────
+             *
+             * Read on the served build, arriving cold at `d1168015`:
+             *
+             *   here                This piece of work / Reading the run.
+             *   the consent card    Checking whether this run needs you.
+             *   the Now card        [Reading]
+             *   the transcript      Reading what happened.
+             *   the artifact pane   Reading what this work has made.
+             *
+             * Five, and every one correct on its own -- the defect that exists
+             * only BETWEEN elements, which no guard here can see because each
+             * asserts about a thing rather than about a thing and its
+             * neighbour.
+             *
+             * THE PANES ARE NOT HELD BACK, and the first attempt held them.
+             * `a-null-under-a-heading-is-a-broken-promise` refused it and was
+             * right: a heading over an empty field reads as "this is empty",
+             * not "this is loading". It is also the principle this product
+             * already states one level up, in `_authenticated.tsx` -- the tree
+             * keeps its shell and waits inside the work region. The run screen
+             * keeps its panes for the same reason.
+             *
+             * So the PAGE stops narrating on top of them. Each region below
+             * says what IT is reading, which is more specific than this was,
+             * and each is the only thing waiting in some other state -- so
+             * deleting theirs would make those states silent, which is the hole
+             * S1 and I made once already by trimming one sentence from both
+             * sides. The title still holds its place across every state, so
+             * nothing moves when the panes fill in.
+             */
             sub={
               trackQ.isLoading
-                ? "Reading the run."
+                ? undefined
                 : "The run itself is untouched and still whatever it was a moment ago. This screen just could not read it."
             }
           />

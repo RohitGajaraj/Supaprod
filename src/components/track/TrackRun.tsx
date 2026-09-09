@@ -95,6 +95,7 @@ import { useRefrain } from "@/components/track/run-refrain";
 import { refrainLead } from "@/lib/spine/what-it-keeps-saying";
 import { getWorkspaceSetup } from "@/lib/workspace-setup.functions";
 import { nowhereToLookYet, theQuoteAlreadySaidIt } from "@/components/track/nowhere-to-look-yet";
+import { whatTheRunWasWorth } from "@/components/track/what-the-run-was-worth";
 import { blockerLead, refrainStillSaysSomething } from "@/lib/spine/the-blocker-it-already-named";
 import { stoppedByYou } from "@/components/track/footer-mode";
 import {
@@ -1251,7 +1252,24 @@ export function TrackRunLeft({
     horizon: forecastHorizonDate,
     gradableBySource,
     shippedAt,
-    verdict: null,
+    /*
+     * ── IT WAS A HARD-CODED `null` AND `VERDICT_LINE` HAD NEVER RENDERED ───
+     *
+     * `run-now.ts` holds three sentences for a finished run -- it did what you
+     * said it would, it did not, it could not be told -- behind
+     * `input.verdict ? ... : null`, and this call site passed the literal. So
+     * on `d1168015`, the ONE track in this product's history to walk all seven
+     * stations, the road said "missed" under Learn while the card said "It
+     * reached the end of its route."
+     *
+     * That run declined the work, shipped the decline, and its forecast was
+     * graded wrong. The product made a falsifiable claim, waited, and found out.
+     * That is the whole argument for the loop, and the card described the route.
+     *
+     * A hard-coded null is worse than a missing argument: the compiler is
+     * satisfied and a reader of the call site sees a decision rather than a gap.
+     */
+    verdict: whatTheRunWasWorth(artifactsQ.data?.stops),
     nowMs,
   });
   /* A call in front of the person IS the now; the card yields to it. */

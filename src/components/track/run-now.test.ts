@@ -124,10 +124,41 @@ describe("runNow picks one register, on purpose", () => {
   });
 
   it("is finished with the verdict when the run is done", () => {
+    /*
+     * THE VERDICT MOVED FROM THE LINE TO THE HEADLINE, and the assertion moved
+     * with it rather than being relaxed. "It reached the end of its route" is
+     * the ROUTE described, beside a chip that already says Finished; what the
+     * chip cannot say is whether the work was worth anything, which is the one
+     * question a finished run exists to answer.
+     *
+     * These sentences had never rendered at all until this commit: `TrackRun`
+     * passed `verdict: null` as a literal, so this test was the only thing that
+     * had ever seen them.
+     */
     const now = runNow(input({ track: track({ status: "done" }), verdict: "held" }));
     expect(now.register).toBe("finished");
     expect(now.status).toBe("pass");
-    expect(now.line).toContain("did what you said");
+    expect(now.headline).toBe("It did what you said it would.");
+    expect(now.line).toBe("The evidence is on the right.");
+  });
+
+  it("and a graded miss says so, rather than describing the route", () => {
+    // `d1168015` declined the work, shipped the decline, and its forecast was
+    // graded missed. The card said "It reached the end of its route."
+    const now = runNow(input({ track: track({ status: "done" }), verdict: "missed" }));
+    expect(now.headline).toBe("It did not do what you said it would.");
+  });
+
+  it("but an ungraded finish keeps the route sentence", () => {
+    /*
+     * A run that finished with nothing to grade has no verdict to report, and
+     * null is NOT "inconclusive" -- that is a real grade meaning the evidence
+     * could not settle it. Inventing one would tell a person their forecast was
+     * tested when nothing was.
+     */
+    const now = runNow(input({ track: track({ status: "done" }), verdict: null }));
+    expect(now.headline).toBe("It reached the end of its route.");
+    expect(now.line).toBeNull();
   });
 
   it("is ready, quietly, on work never driven", () => {

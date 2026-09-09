@@ -139,11 +139,39 @@ export function nextStation(track: Pick<NowTrack, "station" | "route">): AgentSt
   return path[i + 1] ?? null;
 }
 
-const VERDICT_LINE: Record<NonNullable<NowInput["verdict"]>, string> = {
-  held: "It did what you said it would. The evidence is on the right.",
-  missed: "It did not do what you said it would. The evidence is on the right.",
-  inconclusive:
-    "Whether it did what you said could not be told from the evidence. It is on the right.",
+/**
+ * WHAT A FINISHED RUN WAS WORTH, IN THE SLOT A PERSON READS FIRST.
+ *
+ * ── THESE WERE ONE STRING IN THE SUB-LINE, AND NEVER RENDERED AT ALL ─────
+ * They sat behind `input.verdict ? VERDICT_LINE[input.verdict] : null` while
+ * `TrackRun` passed the literal `null`, so not one had ever reached a screen.
+ * On `d1168015` -- the only track in this product's history to walk all seven
+ * stations -- the road said "missed" under Learn and the card said "It reached
+ * the end of its route."
+ *
+ * ── AND THE VERDICT TAKES THE HEADLINE, NOT THE LINE UNDER IT ────────────
+ * "It reached the end of its route" is the ROUTE described, beside a chip that
+ * already says Finished. By this file's own rule a headline earns its place by
+ * saying something the chip cannot, and the route is not it.
+ *
+ * What the chip cannot say is whether the work was worth anything, which is the
+ * one question a finished run exists to answer. So the verdict is the headline
+ * and the pointer to the evidence is the line, which is the order of a reader's
+ * questions rather than the order the record happens to hold them in.
+ */
+const VERDICT_SAYS: Record<NonNullable<NowInput["verdict"]>, { headline: string; line: string }> = {
+  held: {
+    headline: "It did what you said it would.",
+    line: "The evidence is on the right.",
+  },
+  missed: {
+    headline: "It did not do what you said it would.",
+    line: "The evidence is on the right.",
+  },
+  inconclusive: {
+    headline: "Whether it did what you said could not be told from the evidence.",
+    line: "It is on the right.",
+  },
 };
 
 export function runNow(input: NowInput): Now {
@@ -176,8 +204,14 @@ export function runNow(input: NowInput): Now {
       register: "finished",
       status: "pass",
       word: "Finished",
-      headline: "It reached the end of its route.",
-      line: input.verdict ? VERDICT_LINE[input.verdict] : null,
+      /* Ungraded keeps the route sentence: a run that finished with nothing to
+         grade has no verdict to report, and inventing one would say the
+         forecast was tested. Null is not "inconclusive" -- that is a real grade
+         meaning the evidence could not settle it. */
+      headline: input.verdict
+        ? VERDICT_SAYS[input.verdict].headline
+        : "It reached the end of its route.",
+      line: input.verdict ? VERDICT_SAYS[input.verdict].line : null,
       pulse: false,
     };
   }
