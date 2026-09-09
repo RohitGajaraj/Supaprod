@@ -533,6 +533,17 @@ copies come from one source, and that is what makes it safe, not the jobs argume
 > you; it has to be answered from everywhere the fact appears, which means reading the whole surface
 > before ruling. That is the counting habit below, applied to the thing I had just written the
 > counting habit about.
+>
+> **AND THE TEST FOR WHICH COPY GOES IS SHARPER THAN "DIFFERENT JOBS"** (Lane 2, resolving it): the
+> one to cut is **the one fully redundant against a surface with strictly wider coverage.** The
+> transcript's section header went, not the artifact pane's sentence, because the story block covers
+> all seven stations and now carries that fact for every one of them, while the pane draws ONE station
+> and its sentence is the answer to its own heading. Cutting the pane would leave a heading with
+> nothing under it. The road's copy survives on its own terms: a short factual count under a node, and
+> the only tally on the road.
+>
+> That test does real work where "different jobs" only sounds like it does. Every copy can be argued
+> into a different job; only one of them is usually covered entirely by something broader.
 
 **Verifying a read proves it is correct, never that anyone wanted it.** Lane 3's, 2026-09-09, and it
 generalises past reads. A cost figure on the most-mounted read in the product was verified against
