@@ -612,6 +612,22 @@ fails immediately instead of sitting unexamined. And a harness bug that produces
 failures rather than as a clean board describing an empty world, which is the failure mode that made
 one of these guards pass while measuring nothing earlier the same day.
 
+**A CAST FIXTURE DOES NOT LEAVE A BRANCH UNCOVERED. IT SILENTLY COVERS THE WRONG ONE AND REPORTS
+GREEN.** The third form of a guard that measures nothing, and the hardest to see, because this one
+looks like coverage in the diff.
+
+`decideSettledLine` had a suite. Its fixture was five fields cast through `ApprovalQueueItem` with
+no `approveConsequence`, so every assertion in it ran the `?? SETTLED_APPROVE[kind]` fallback that
+production never reaches, because that field is never null in production. Ten past-tense sentences
+sat behind that fallback and **not one of them had ever rendered**, while the live branch printed a
+pending button's imperative label as the record of a completed judgement.
+
+So: **build a fixture from the type's own required shape, not from a cast of the fields your
+assertion happens to touch.** A cast tells the compiler to stop asking and the test then exercises a
+world production does not have. Same family as `as T` standing in for a check (the recurring-defects
+table), one layer up: there, a cast let a bad value through; here, it lets a whole branch go
+untested while the board stays green.
+
 **Enumerate the input space from the record, never from a hand-written list.** That sweep takes its
 hold reasons from the driver's own `HOLD_LINE` record, so a reason added tomorrow joins the sweep
 without anyone remembering to add it. Same principle as testing a union's membership against the
@@ -647,6 +663,8 @@ Each of these has been found more than once, by people who knew the rule. Check 
 | A focus utility that paints nothing | 6 files | Unlayered CSS beats every `@layer`, and Tailwind emits utilities into a layer. Inherit the ring via `data-mrd` rather than declaring a per-component constant. |
 | Identity painted as a colour ramp | 3 | Law 4. |
 | A `100vh` child inside a taller document | 1, shipped | One ancestor owns the viewport; everything below takes shares. `min-height: 0` on the flex child is the part people leave out. |
+| A comment asserting what the line below it does not do | 1, false on arrival | *"The canon's noun, not a local swap"* sat one line above `plural(n, "prototype", "prototypes")`. It agreed with the canon the day it was written and nothing held it there. **A comment claiming a mechanism must sit above that mechanism, or it is a claim with nothing to keep it true** — the exemption failure in miniature, and this one was wrong immediately rather than going stale. |
+| A fixture cast through a type instead of built from it | 1 | It does not leave the branch uncovered, it covers the WRONG one and reports green. Ten sentences behind a fallback had never rendered. |
 | `as T` plus `??` read as a guard | **54**, swept in one day | A cast is a claim about a value, never a check of it, and `??` catches only null and undefined. Any other shape passes through typed. `typeof x === "string" && x.length > 0 ? x : null`, or test membership in the union's own exhaustive record. |
 | A failure guard with no mirror | **3**, in one afternoon | It passes if the handler withholds everything, which is the worse defect. Refuse A and assert B's real values survive, then refuse B. Law 12. |
 | Every pane reporting its own refused read | **5 on one screen**, 3 on another | Each is correct and nothing owns the composition. Route the failure to the level that owns the cause, and do not mount the panes standing on a read that failed. Law 11. |
