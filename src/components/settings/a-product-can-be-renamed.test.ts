@@ -25,7 +25,8 @@ describe("a product can be renamed", () => {
   it("says what happened, both ways, and never opens a modal", () => {
     expect(TAB).toContain('<Receipt verb="Renamed" consequence={`to ${saved}`} />');
     expect(TAB).toContain("<ReadFailedLine error={failed} onRetry={() => void commit()}");
-    const field = TAB.slice(TAB.indexOf("function RenameField("));
+    const at = TAB.indexOf("function RenameField(");
+    const field = TAB.slice(at, TAB.indexOf("\n}", at));
     expect(field).not.toMatch(/useConfirm|usePrompt|Modal/);
   });
 

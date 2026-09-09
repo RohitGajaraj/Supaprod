@@ -3131,30 +3131,59 @@ function epochOrNull(v: unknown): number | null {
 export const getTrackGates = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
-  .handler(async ({ context, data }): Promise<TrackGatesResult> => {
-    const { supabase, userId } = context;
-    const empty: TrackGatesResult = {
-      open: [],
-      settled: [],
-      holdReason: null,
-      unreadable: false,
-    };
-    try {
-      const { data: row } = await supabase
-        .from("spine_tracks" as never)
-        .select(SELECT)
-        .eq("id", data.trackId)
-        .maybeSingle();
-      if (!row) return empty;
-      const track = rowToTrack(row as unknown as TrackRow);
-      const workspaceId = (row as unknown as TrackRow).workspace_id ?? null;
+  .handler(async ({ context, data }): Promise<TrackGatesResult> =>
+    readTrackGates(context.supabase, context.userId, data.trackId),
+  );
 
-      const listed = readPendingGates(
-        (row as unknown as { pending_gates?: unknown }).pending_gates,
-      );
-      if (listed.length === 0) return { ...empty, holdReason: track.holdReason };
+/**
+ * THE READ BEHIND `getTrackGates`, two round trips, driven by
+ * `a-chain-and-gates-are-two-hops.test.ts` on the wire that counts rounds.
+ *
+ * ── THREE HOPS, AND ONLY ONE OF THE WAITS WAS REAL (2026-09-09) ───────────
+ * This read the track, then the approvals it lists, then the pending peers
+ * sharing those approvals' tool names: three sequential Worker-to-PostgREST
+ * round trips, at ~275 ms warm each, on a read the consent card polls. The
+ * first wait is real, since `pending_gates` is the only edge to the approvals
+ * (the header above says why). The second was not: the peers are scoped by
+ * workspace and caller, both known from the track row, and the tool names
+ * only narrow them. So the workspace's pending approvals travel in the same
+ * round as the listed ones and are narrowed here to the rows the old
+ * `tool_name in (...)` filter would have answered. Same rows, one hop fewer.
+ */
+export async function readTrackGates(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  trackId: string,
+): Promise<TrackGatesResult> {
+  const empty: TrackGatesResult = {
+    open: [],
+    settled: [],
+    holdReason: null,
+    unreadable: false,
+  };
+  try {
+    const { data: row } = await supabase
+      .from("spine_tracks" as never)
+      .select(SELECT)
+      .eq("id", trackId)
+      .maybeSingle();
+    if (!row) return empty;
+    const track = rowToTrack(row as unknown as TrackRow);
+    const workspaceId = (row as unknown as TrackRow).workspace_id ?? null;
 
-      const { data: rows, error } = await supabase
+    const listed = readPendingGates((row as unknown as { pending_gates?: unknown }).pending_gates);
+    if (listed.length === 0) return { ...empty, holdReason: track.holdReason };
+
+    /*
+     * THE CLASS COUNT IS ONE QUERY, NOT ONE PER GATE. It answers "how many
+     * OTHER pending calls in this workspace share this tool", which is what
+     * the Decide-all button prints. Scoped to workspace AND caller, because a
+     * count that crossed either boundary would be a number about rows this
+     * person may not act on. It rides alongside the approvals read rather
+     * than after it: nothing in its scope waits on what the approvals say.
+     */
+    const [{ data: rows, error }, peersRead] = await Promise.all([
+      supabase
         .from("agent_approvals")
         .select(
           "id,tool_name,agent_slug,rationale,status,created_at,expires_at,expiry_default,snoozed_until",
@@ -3163,79 +3192,72 @@ export const getTrackGates = createServerFn({ method: "GET" })
           "id",
           listed.map((g) => g.id),
         )
-        .eq("user_id", userId);
+        .eq("user_id", userId),
+      workspaceId
+        ? supabase
+            .from("agent_approvals")
+            .select("id,tool_name")
+            .eq("user_id", userId)
+            .eq("workspace_id", workspaceId)
+            .eq("status", "pending")
+        : null,
+    ]);
 
-      // WE DID NOT LOOK, SO WE CLAIM NOTHING. An unreadable approvals table must
-      // not render as "nothing is waiting on you".
-      if (error) return { ...empty, holdReason: track.holdReason, unreadable: true };
+    // WE DID NOT LOOK, SO WE CLAIM NOTHING. An unreadable approvals table must
+    // not render as "nothing is waiting on you".
+    if (error) return { ...empty, holdReason: track.holdReason, unreadable: true };
 
-      const byId = new Map(
-        ((rows ?? []) as unknown as Array<Record<string, unknown>>).map((r) => [String(r.id), r]),
-      );
+    const byId = new Map(
+      ((rows ?? []) as unknown as Array<Record<string, unknown>>).map((r) => [String(r.id), r]),
+    );
 
-      /*
-       * THE CLASS COUNT IS ONE QUERY, NOT ONE PER GATE. It answers "how many
-       * OTHER pending calls in this workspace share this tool", which is what
-       * the Decide-all button prints. Scoped to workspace AND caller, because a
-       * count that crossed either boundary would be a number about rows this
-       * person may not act on.
-       */
-      const classCount = new Map<string, number>();
-      const tools = [
-        ...new Set(
-          listed
-            .map((g) => (byId.get(g.id)?.tool_name as string | null) ?? null)
-            .filter((t): t is string => !!t),
-        ),
-      ];
-      if (tools.length > 0 && workspaceId) {
-        const { data: peers } = await supabase
-          .from("agent_approvals")
-          .select("id,tool_name")
-          .eq("user_id", userId)
-          .eq("workspace_id", workspaceId)
-          .eq("status", "pending")
-          .in("tool_name", tools);
-        for (const p of (peers ?? []) as unknown as Array<{ id: string; tool_name: string }>) {
-          classCount.set(p.tool_name, (classCount.get(p.tool_name) ?? 0) + 1);
-        }
-      }
-
-      const gates: TrackGate[] = listed.map((g) => {
-        const r = byId.get(g.id);
-        const toolName = (r?.tool_name as string | null) ?? null;
-        // This gate excluded from its own class count.
-        const peers = toolName ? Math.max(0, (classCount.get(toolName) ?? 0) - 1) : 0;
-        return {
-          approvalId: g.id,
-          station: g.station,
-          toolName,
-          agentSlug: (r?.agent_slug as string | null) ?? null,
-          rationale: (r?.rationale as string | null) ?? null,
-          status: gateStatus(r?.status),
-          askedAtMs: epochOrNull(r?.created_at) ?? 0,
-          expiresAtMs: epochOrNull(r?.expires_at),
-          expiryDefault: ((r?.expiry_default as string | null) ?? null) as
-            "proceed" | "cancel" | null,
-          snoozedUntilMs: epochOrNull(r?.snoozed_until),
-          classPendingElsewhere: peers,
-        };
-      });
-
-      return {
-        open: gates.filter((g) => g.status === "pending"),
-        settled: gates
-          .filter((g) => g.status !== "pending")
-          .sort((a, b) => b.askedAtMs - a.askedAtMs),
-        holdReason: track.holdReason,
-        // A gate this track lists whose approval row did not come back is not
-        // "settled" and not "open": we could not read it. Same rule as above.
-        unreadable: gates.some((g) => !byId.has(g.approvalId)),
-      };
-    } catch {
-      return { ...empty, unreadable: true };
+    const classCount = new Map<string, number>();
+    const tools = new Set(
+      listed
+        .map((g) => (byId.get(g.id)?.tool_name as string | null) ?? null)
+        .filter((t): t is string => !!t),
+    );
+    const peers = (peersRead?.data ?? []) as unknown as Array<{ id: string; tool_name: string }>;
+    for (const p of peers) {
+      if (!tools.has(p.tool_name)) continue;
+      classCount.set(p.tool_name, (classCount.get(p.tool_name) ?? 0) + 1);
     }
-  });
+
+    const gates: TrackGate[] = listed.map((g) => {
+      const r = byId.get(g.id);
+      const toolName = (r?.tool_name as string | null) ?? null;
+      // This gate excluded from its own class count.
+      const peers = toolName ? Math.max(0, (classCount.get(toolName) ?? 0) - 1) : 0;
+      return {
+        approvalId: g.id,
+        station: g.station,
+        toolName,
+        agentSlug: (r?.agent_slug as string | null) ?? null,
+        rationale: (r?.rationale as string | null) ?? null,
+        status: gateStatus(r?.status),
+        askedAtMs: epochOrNull(r?.created_at) ?? 0,
+        expiresAtMs: epochOrNull(r?.expires_at),
+        expiryDefault: ((r?.expiry_default as string | null) ?? null) as
+          "proceed" | "cancel" | null,
+        snoozedUntilMs: epochOrNull(r?.snoozed_until),
+        classPendingElsewhere: peers,
+      };
+    });
+
+    return {
+      open: gates.filter((g) => g.status === "pending"),
+      settled: gates
+        .filter((g) => g.status !== "pending")
+        .sort((a, b) => b.askedAtMs - a.askedAtMs),
+      holdReason: track.holdReason,
+      // A gate this track lists whose approval row did not come back is not
+      // "settled" and not "open": we could not read it. Same rule as above.
+      unreadable: gates.some((g) => !byId.has(g.approvalId)),
+    };
+  } catch {
+    return { ...empty, unreadable: true };
+  }
+}
 
 /**
  * Answer ONE question inside one run, in a single call.
@@ -3574,111 +3596,129 @@ export const getTrackChain = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
   .handler(
-    async ({ context, data }): Promise<{ track: Track | null; chain: Chain; summary: string }> => {
-      const { supabase } = context;
-      const empty: Chain = { stops: [], orphans: [], total: 0 };
-
-      try {
-        const { data: row } = await supabase
-          .from("spine_tracks" as never)
-          .select(SELECT)
-          .eq("id", data.trackId)
-          .maybeSingle();
-        if (!row) return { track: null, chain: empty, summary: "" };
-
-        const track = rowToTrack(row as unknown as TrackRow);
-        const shape = {
-          route: track.route,
-          station: track.station,
-          status: track.status,
-        };
-
-        const { data: memberRows } = await supabase
-          .from("spine_track_members" as never)
-          .select("artifact_kind,artifact_id,station,created_at")
-          .eq("track_id", data.trackId);
-
-        const rows = (memberRows ?? []) as unknown as MemberRow[];
-        if (rows.length === 0) {
-          // Still built, never short-circuited to a blank: the route and its
-          // waivers are most of what this answers, and a track that has
-          // produced nothing yet is exactly the one worth showing a route for.
-          const chain = buildChain({ ...shape, members: [] });
-          return { track, chain, summary: describeChain(chain) };
-        }
-
-        const byKind = new Map<string, string[]>();
-        for (const r of rows) {
-          const ids = byKind.get(r.artifact_kind) ?? [];
-          ids.push(r.artifact_id);
-          byKind.set(r.artifact_kind, ids);
-        }
-
-        const titles = new Map<string, string | null>();
-        /** Kinds whose table answered. Only these may have a row called gone. */
-        const answered = new Set<string>();
-
-        await Promise.all(
-          [...byKind].map(async ([kind, ids]) => {
-            const source = ARTIFACT_SOURCE[kind];
-            if (!source) return;
-            try {
-              // The title column is named per kind: a prototype has `name`, a
-              // learning has `summary`, a deployment has only its URL. Aliasing
-              // to `title` keeps one shape here without pretending every table
-              // spells it the same way. A kind with a `parent` also pulls the
-              // parent's name, which is the only readable name a release has.
-              const select = source.parent
-                ? `id,title:${source.title},${source.parent.table}(${source.parent.column})`
-                : `id,title:${source.title}`;
-              const { data: found, error } = await supabase
-                .from(source.table as never)
-                .select(select)
-                .in("id", ids);
-              if (error || !found) return;
-              answered.add(kind);
-              for (const f of found as unknown as Record<string, unknown>[]) {
-                const own = typeof f.title === "string" ? f.title.trim() : "";
-                // The parent's name wins when it has one. A release named by the
-                // change it shipped is recognisable; one named by its hostname
-                // is not. Supabase returns an embed as an object or an array
-                // depending on the relationship, so both are read.
-                let borrowed = "";
-                if (source.parent) {
-                  const embed = f[source.parent.table];
-                  const row = (Array.isArray(embed) ? embed[0] : embed) as
-                    Record<string, unknown> | null | undefined;
-                  const v = row?.[source.parent.column];
-                  if (typeof v === "string") borrowed = v.trim();
-                }
-                titles.set(`${kind}:${f.id as string}`, borrowed || own || null);
-              }
-            } catch {
-              // Left unanswered on purpose. See the header: no claim either way.
-            }
-          }),
-        );
-
-        const members: ChainMember[] = rows.map((r) => {
-          const key = `${r.artifact_kind}:${r.artifact_id}`;
-          return {
-            kind: r.artifact_kind,
-            word: wordFor(r.artifact_kind),
-            artifactId: r.artifact_id,
-            station: r.station,
-            createdAt: r.created_at,
-            title: titles.get(key) ?? null,
-            missing: answered.has(r.artifact_kind) && !titles.has(key),
-          };
-        });
-
-        const chain = buildChain({ ...shape, members });
-        return { track, chain, summary: describeChain(chain) };
-      } catch {
-        return { track: null, chain: empty, summary: "" };
-      }
-    },
+    async ({ context, data }): Promise<{ track: Track | null; chain: Chain; summary: string }> =>
+      readTrackChain(context.supabase, data.trackId),
   );
+
+/**
+ * THE READ BEHIND `getTrackChain`, two round trips, driven by
+ * `a-chain-and-gates-are-two-hops.test.ts` on the wire that counts rounds.
+ *
+ * ── THE MEMBERS NEVER WAITED ON THE TRACK, ONLY THE CODE DID (2026-09-09) ──
+ * This read the track, then its members, then the members' titles: three
+ * sequential Worker-to-PostgREST round trips, at ~275 ms warm each, and the
+ * first two key off the same `trackId` the request carries. The track and
+ * the members now travel in one round; only the titles, which cannot be
+ * asked for until the member rows say which tables to ask, wait on it. A
+ * track with nothing filed yet answers in one round.
+ */
+export async function readTrackChain(
+  supabase: SupabaseClient<Database>,
+  trackId: string,
+): Promise<{ track: Track | null; chain: Chain; summary: string }> {
+  const empty: Chain = { stops: [], orphans: [], total: 0 };
+
+  try {
+    const [{ data: row }, { data: memberRows }] = await Promise.all([
+      supabase
+        .from("spine_tracks" as never)
+        .select(SELECT)
+        .eq("id", trackId)
+        .maybeSingle(),
+      supabase
+        .from("spine_track_members" as never)
+        .select("artifact_kind,artifact_id,station,created_at")
+        .eq("track_id", trackId),
+    ]);
+    if (!row) return { track: null, chain: empty, summary: "" };
+
+    const track = rowToTrack(row as unknown as TrackRow);
+    const shape = {
+      route: track.route,
+      station: track.station,
+      status: track.status,
+    };
+
+    const rows = (memberRows ?? []) as unknown as MemberRow[];
+    if (rows.length === 0) {
+      // Still built, never short-circuited to a blank: the route and its
+      // waivers are most of what this answers, and a track that has
+      // produced nothing yet is exactly the one worth showing a route for.
+      const chain = buildChain({ ...shape, members: [] });
+      return { track, chain, summary: describeChain(chain) };
+    }
+
+    const byKind = new Map<string, string[]>();
+    for (const r of rows) {
+      const ids = byKind.get(r.artifact_kind) ?? [];
+      ids.push(r.artifact_id);
+      byKind.set(r.artifact_kind, ids);
+    }
+
+    const titles = new Map<string, string | null>();
+    /** Kinds whose table answered. Only these may have a row called gone. */
+    const answered = new Set<string>();
+
+    await Promise.all(
+      [...byKind].map(async ([kind, ids]) => {
+        const source = ARTIFACT_SOURCE[kind];
+        if (!source) return;
+        try {
+          // The title column is named per kind: a prototype has `name`, a
+          // learning has `summary`, a deployment has only its URL. Aliasing
+          // to `title` keeps one shape here without pretending every table
+          // spells it the same way. A kind with a `parent` also pulls the
+          // parent's name, which is the only readable name a release has.
+          const select = source.parent
+            ? `id,title:${source.title},${source.parent.table}(${source.parent.column})`
+            : `id,title:${source.title}`;
+          const { data: found, error } = await supabase
+            .from(source.table as never)
+            .select(select)
+            .in("id", ids);
+          if (error || !found) return;
+          answered.add(kind);
+          for (const f of found as unknown as Record<string, unknown>[]) {
+            const own = typeof f.title === "string" ? f.title.trim() : "";
+            // The parent's name wins when it has one. A release named by the
+            // change it shipped is recognisable; one named by its hostname
+            // is not. Supabase returns an embed as an object or an array
+            // depending on the relationship, so both are read.
+            let borrowed = "";
+            if (source.parent) {
+              const embed = f[source.parent.table];
+              const row = (Array.isArray(embed) ? embed[0] : embed) as
+                Record<string, unknown> | null | undefined;
+              const v = row?.[source.parent.column];
+              if (typeof v === "string") borrowed = v.trim();
+            }
+            titles.set(`${kind}:${f.id as string}`, borrowed || own || null);
+          }
+        } catch {
+          // Left unanswered on purpose. See the header: no claim either way.
+        }
+      }),
+    );
+
+    const members: ChainMember[] = rows.map((r) => {
+      const key = `${r.artifact_kind}:${r.artifact_id}`;
+      return {
+        kind: r.artifact_kind,
+        word: wordFor(r.artifact_kind),
+        artifactId: r.artifact_id,
+        station: r.station,
+        createdAt: r.created_at,
+        title: titles.get(key) ?? null,
+        missing: answered.has(r.artifact_kind) && !titles.has(key),
+      };
+    });
+
+    const chain = buildChain({ ...shape, members });
+    return { track, chain, summary: describeChain(chain) };
+  } catch {
+    return { track: null, chain: empty, summary: "" };
+  }
+}
 
 /**
  * Who acted on this piece of work, in order, and what came of it.

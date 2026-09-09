@@ -54,7 +54,8 @@ const stripComments = (src: string) =>
 const PANEL = stripComments(read(join("components", "learn", "SettlePanel.tsx")));
 const LAUNCH = read(join("lib", "launch-plan.functions.ts"));
 const OUTCOME = read(join("lib", "outcome.functions.ts"));
-/** `listPendingOutcomes`, code only and bounded at the next export, for the
+/** `listPendingOutcomes` and the `readPendingOutcomes` core it calls, code
+ *  only and bounded at the next export, for the
  *  assertions that COUNT occurrences. Counting on raw source counts the prose
  *  that explains the pattern as well as the pattern, which is the same trap the
  *  stripComments note above was written for. */
@@ -159,16 +160,16 @@ describe("the mechanism it rides is the one the desk already reads", () => {
   it("and the desk genuinely honours the date, so deferring removes it", () => {
     // If the queue stopped reading it, the button would do nothing visible and
     // the bet would return on the next load -- teaching people it is broken.
-    const q = OUTCOME.slice(OUTCOME.indexOf("export const listPendingOutcomes"));
-    expect(q.slice(0, 3000)).toMatch(/outcome_check_by\.lte\./);
+    const q = OUTCOME.slice(OUTCOME.indexOf("export async function readPendingOutcomes"));
+    expect(q.slice(0, 4000)).toMatch(/outcome_check_by\.lte\./);
   });
 
   it("keeps never-deferred specs on the desk, which is nearly all of them", () => {
     // THE LOUDEST WAY TO GET THIS WRONG. `outcome_check_by` is NULL for every
     // spec never deferred, and a bare `.lte()` drops NULLs in SQL -- emptying
     // the desk of everything EXCEPT previously deferred bets.
-    const q = OUTCOME.slice(OUTCOME.indexOf("export const listPendingOutcomes"));
-    expect(q.slice(0, 3000)).toMatch(/outcome_check_by\.is\.null/);
+    const q = OUTCOME.slice(OUTCOME.indexOf("export async function readPendingOutcomes"));
+    expect(q.slice(0, 4000)).toMatch(/outcome_check_by\.is\.null/);
   });
 
   it("honours it in EVERY population, not just the one it was written for", () => {
@@ -189,7 +190,12 @@ describe("the mechanism it rides is the one the desk already reads", () => {
      * added later inherits the rule instead of quietly escaping it.
      */
     const q = QUEUE_CODE;
-    const reads = (q.match(/\.select\(PRD_COLS\)/g) ?? []).length;
+    // A population is a read that selects the spec columns. Since the desk
+    // became two hops (a-pending-outcomes-read-is-2-hops.test.ts) the columns
+    // are spliced into a select that also names the embeds, and the
+    // window-closed population reads them THROUGH `launch_plans`, so the
+    // anchor is the splice, not a bare `.select(PRD_COLS)`.
+    const reads = (q.match(/\$\{PRD_COLS\}/g) ?? []).length;
     const clauses = (q.match(/outcome_check_by\.is\.null,outcome_check_by\.lte\./g) ?? []).length;
     expect({ reads, clauses }).toEqual({ reads, clauses: reads });
     expect(reads).toBeGreaterThanOrEqual(2);

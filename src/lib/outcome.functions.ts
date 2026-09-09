@@ -1458,329 +1458,357 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<{ pending: PendingOutcome[] }> => {
     const { userId } = context;
     const db = context.supabase as unknown as SupabaseClient;
+    return readPendingOutcomes(db, userId);
+  });
 
-    type PrdRow = {
-      id: string;
-      title: string | null;
-      shipped_at: string | null;
-      opportunity_id: string | null;
-      outcome_suggestion: OutcomeSuggestion | null;
-      contract: unknown;
-      workspace_id: string | null;
-    };
-    /**
-     * `workspace_id` RIDES ALONG BECAUSE THE DESK IS A UNION AND THE RECORD IS
-     * NOT.
-     *
-     * This query applies no workspace filter at all, deliberately: RLS admits
-     * every workspace the caller belongs to, so the desk is "every bet anywhere
-     * that needs your call". The Learn page beside it reads `getImpactLedger`,
-     * which is ONE workspace and defaults to `current_user_default_workspace()`
-     * (the earliest `workspace_members` row). Those two are routinely different
-     * workspaces, and when they are, settling a bet writes
-     * `learnings.workspace_id = prds.workspace_id` and changes nothing the page
-     * shows. Carrying the column here is what lets the surface point the record
-     * at the same workspace as the bet in focus. Nothing new is queried; it is
-     * one more column on a row already being read.
-     */
-    const PRD_COLS = "id,title,shipped_at,opportunity_id,outcome_suggestion,contract,workspace_id";
-    const nowIso = new Date().toISOString();
+/**
+ * ── NINE ROUND TRIPS FOR 964 BYTES (2026-09-09) ──────────────────────────────
+ *
+ * The run screen read this desk at a `worker-total` of 1.2 to 2.0 s. Not one
+ * of its queries is slow; the cost was the SHAPE, the same one the approvals
+ * queue and the mission detail paid before: nine sequential Worker-to-PostgREST
+ * round trips on a live desk (the two populations, then the due specs, their
+ * opportunities, their launch plans, the workspace policy, the theme siblings,
+ * the deciding agents, their arcs), at ~275 ms warm / ~550 ms cold per hop on
+ * this deployment.
+ *
+ * NOW TWO. The first hop reads both populations together and every fact that
+ * hangs off a spec row by a foreign key rides along as an embed: the launch
+ * plan (one per spec, `launch_plans.prd_id` is UNIQUE) and the agent-made
+ * decisions. The window-closed population is read from `launch_plans` with
+ * its spec embedded `!inner`, so the plan IS the row and the spec arrives
+ * with it. The second hop is everything keyed on what the first returned, in
+ * one `Promise.all`: the opportunities (no foreign key from `prds`, so no
+ * embed), the theme siblings, the workspace policy and the deciding agents
+ * with their arc embedded (`agent_autonomy.agent_id` is a foreign key).
+ *
+ * THE THEME SIBLINGS USED TO BE A THIRD HOP, keyed on theme ids only the
+ * opportunities read could supply. They are read by the desk's own workspaces
+ * instead, `id,theme_id` on every themed opportunity there, and counted in
+ * memory. Measured on production the day this changed: 6 to 12 themed
+ * opportunities per workspace, so the wider read is a dozen rows of two ids
+ * against a hop of a quarter to half a second. `prds.workspace_id` and
+ * `opportunities.workspace_id` are NOT NULL since the tenancy migrations, and
+ * a spec's opportunity lives in the spec's workspace, so the scope loses no
+ * sibling the old read counted.
+ *
+ * Guarded by `a-pending-outcomes-read-is-2-hops.test.ts`, which drives this
+ * function on the wire that counts rounds with every branch live.
+ */
+export async function readPendingOutcomes(
+  db: SupabaseClient,
+  userId: string,
+): Promise<{ pending: PendingOutcome[] }> {
+  type DecisionRow = {
+    prd_id: string | null;
+    decided_by_agent_slug: string | null;
+    created_at: string;
+  };
+  type PlanFacts = { success_metric: string | null; workspace_id: string | null };
+  type PrdRow = {
+    id: string;
+    title: string | null;
+    shipped_at: string | null;
+    opportunity_id: string | null;
+    outcome_suggestion: OutcomeSuggestion | null;
+    contract: unknown;
+    workspace_id: string | null;
+    decisions?: DecisionRow[] | null;
+  };
+  /**
+   * `workspace_id` RIDES ALONG BECAUSE THE DESK IS A UNION AND THE RECORD IS
+   * NOT.
+   *
+   * This query applies no workspace filter at all, deliberately: RLS admits
+   * every workspace the caller belongs to, so the desk is "every bet anywhere
+   * that needs your call". The Learn page beside it reads `getImpactLedger`,
+   * which is ONE workspace and defaults to `current_user_default_workspace()`
+   * (the earliest `workspace_members` row). Those two are routinely different
+   * workspaces, and when they are, settling a bet writes
+   * `learnings.workspace_id = prds.workspace_id` and changes nothing the page
+   * shows. Carrying the column here is what lets the surface point the record
+   * at the same workspace as the bet in focus. Nothing new is queried; it is
+   * one more column on a row already being read.
+   */
+  const PRD_COLS = "id,title,shipped_at,opportunity_id,outcome_suggestion,contract,workspace_id";
+  // Newest agent-made decision per spec, and the launch plan's promise. Both
+  // hang off the spec by a foreign key, so they ride the spec read rather than
+  // costing a hop each. The decisions are ordered and filtered in memory: a
+  // spec carries a handful, and the nested path the window-closed read would
+  // need for a server-side order is one more thing to get wrong for nothing.
+  const DECISIONS_EMBED = "decisions(prd_id,decided_by_agent_slug,created_at)";
+  // workspace_id rides along because the settle-or-ask bar is workspace
+  // policy now, and the sweep keys it off exactly this column.
+  const PLAN_EMBED = "launch_plans(success_metric,workspace_id)";
+  const nowIso = new Date().toISOString();
 
-    // The same two reads the sweep makes, run together. `check_by` is the
-    // workspace's own stated measurement window, so a closed one is the
-    // workspace saying the answer is due, not this surface deciding it is.
-    const [shippedRes, dueRes] = await Promise.all([
-      db
-        .from("prds")
-        .select(PRD_COLS)
-        .is("outcome", null)
-        .not("shipped_at", "is", null)
-        /**
-         * A BET SOMEBODY SAID WAS TOO EARLY IS NOT DUE YET.
-         *
-         * `outcome_check_by` in the future means a person looked at this and
-         * deferred it rather than judging it. Without this clause the deferral
-         * did nothing visible: the bet reappeared at the top of the desk on the
-         * next load, which teaches people the button is broken and pushes them
-         * back toward writing a verdict they do not believe.
-         *
-         * `or` rather than a plain `lte`, because NULL is the overwhelming
-         * majority -- every spec that has never been deferred -- and a bare
-         * comparison drops NULLs in SQL. That would have emptied the desk of
-         * everything except previously-deferred bets, which is the loudest
-         * possible way to get this wrong and still look like it works.
-         */
-        .or(`outcome_check_by.is.null,outcome_check_by.lte.${nowIso}`)
-        .order("shipped_at", { ascending: false })
-        .limit(12),
-      db
-        .from("launch_plans")
-        .select("prd_id,check_by")
-        .not("check_by", "is", null)
-        .lte("check_by", nowIso)
-        .order("check_by", { ascending: true })
-        .limit(60),
-    ]);
-    if (shippedRes.error) throw new Error(shippedRes.error.message);
-    const shippedPrds = (shippedRes.data ?? []) as PrdRow[];
+  // The same two reads the sweep makes, run together. `check_by` is the
+  // workspace's own stated measurement window, so a closed one is the
+  // workspace saying the answer is due, not this surface deciding it is.
+  const [shippedRes, dueRes] = await Promise.all([
+    db
+      .from("prds")
+      .select(`${PRD_COLS},${PLAN_EMBED},${DECISIONS_EMBED}`)
+      .is("outcome", null)
+      .not("shipped_at", "is", null)
+      /**
+       * A BET SOMEBODY SAID WAS TOO EARLY IS NOT DUE YET.
+       *
+       * `outcome_check_by` in the future means a person looked at this and
+       * deferred it rather than judging it. Without this clause the deferral
+       * did nothing visible: the bet reappeared at the top of the desk on the
+       * next load, which teaches people the button is broken and pushes them
+       * back toward writing a verdict they do not believe.
+       *
+       * `or` rather than a plain `lte`, because NULL is the overwhelming
+       * majority -- every spec that has never been deferred -- and a bare
+       * comparison drops NULLs in SQL. That would have emptied the desk of
+       * everything except previously-deferred bets, which is the loudest
+       * possible way to get this wrong and still look like it works.
+       */
+      .or(`outcome_check_by.is.null,outcome_check_by.lte.${nowIso}`)
+      .order("shipped_at", { ascending: false })
+      .limit(12),
+    db
+      .from("launch_plans")
+      // The spec rides the plan: `!inner` so a plan whose spec fails the
+      // filters below is not a row, and the plan's own metric and workspace
+      // are the facts the settle-or-ask rule reads for it.
+      .select(
+        `prd_id,check_by,success_metric,workspace_id,prds!inner(${PRD_COLS},${DECISIONS_EMBED})`,
+      )
+      .not("check_by", "is", null)
+      .lte("check_by", nowIso)
+      .is("prds.outcome", null)
+      /**
+       * THE SAME DEFERRAL CLAUSE AS THE SHIPPED HALF, AND IT WAS MISSING HERE.
+       *
+       * `deferOutcomeCheck` writes `prds.outcome_check_by`, and only the
+       * shipped query above read it. So a spec that ALSO carried a passed
+       * `launch_plans.check_by` was excluded by the first query and put
+       * straight back by this one, on the very next refetch. The receipt says
+       * "It comes back to this desk on <date+14>" and it came back
+       * immediately, which is the button promising something the code did not
+       * do. Migration 20260806100000 backfilled `prds.outcome_check_by` from
+       * `launch_plans.check_by` precisely because these two are meant to be
+       * one date; reading it in one place and not the other split them again.
+       *
+       * `or` and not a bare `lte`, for the same reason as above: NULL is the
+       * overwhelming majority and a comparison drops NULLs in SQL, which
+       * would silently narrow this population to previously-deferred specs.
+       */
+      .or(`outcome_check_by.is.null,outcome_check_by.lte.${nowIso}`, { referencedTable: "prds" })
+      .order("check_by", { ascending: true })
+      .limit(60),
+  ]);
+  if (shippedRes.error) throw new Error(shippedRes.error.message);
 
-    const byId = new Map<string, PrdRow>();
-    for (const p of shippedPrds) byId.set(p.id, p);
+  /** A to-one embed answers as an object; the same shape as a list is read too,
+   *  so a constraint that differs between environments cannot blank a fact. A
+   *  declaration and not a generic arrow: the repo's guards parse this file as
+   *  TSX, where `<T>(v) =>` reads as a JSX element and swallows the rest. */
+  function firstOf<T>(v: T | T[] | null | undefined): T | null {
+    return Array.isArray(v) ? (v[0] ?? null) : (v ?? null);
+  }
 
-    const duePrdIds = [
-      ...new Set(
-        ((dueRes.data ?? []) as Array<{ prd_id: string | null }>)
-          .map((r) => r.prd_id)
-          .filter((v): v is string => !!v && !byId.has(v)),
-      ),
-    ];
-    if (duePrdIds.length > 0) {
-      // A read failure here narrows the queue back to the shipped half rather
-      // than blanking it: fewer asks beats none. RLS already scopes the rows.
-      const { data: dueRows } = await db
-        .from("prds")
-        .select(PRD_COLS)
-        .is("outcome", null)
-        .in("id", duePrdIds)
-        /**
-         * THE SAME DEFERRAL CLAUSE AS THE SHIPPED HALF, AND IT WAS MISSING HERE.
-         *
-         * `deferOutcomeCheck` writes `prds.outcome_check_by`, and only the
-         * shipped query above read it. So a spec that ALSO carried a passed
-         * `launch_plans.check_by` was excluded by the first query and put
-         * straight back by this one, on the very next refetch. The receipt says
-         * "It comes back to this desk on <date+14>" and it came back
-         * immediately, which is the button promising something the code did not
-         * do. Migration 20260806100000 backfilled `prds.outcome_check_by` from
-         * `launch_plans.check_by` precisely because these two are meant to be
-         * one date; reading it in one place and not the other split them again.
-         *
-         * `or` and not a bare `lte`, for the same reason as above: NULL is the
-         * overwhelming majority and a comparison drops NULLs in SQL, which
-         * would silently narrow this population to previously-deferred specs.
-         */
-        .or(`outcome_check_by.is.null,outcome_check_by.lte.${nowIso}`)
-        .limit(12);
-      for (const p of (dueRows ?? []) as PrdRow[]) {
-        if (!byId.has(p.id)) byId.set(p.id, p);
-      }
+  type ShippedRow = PrdRow & { launch_plans?: PlanFacts | PlanFacts[] | null };
+  type DueRow = PlanFacts & { prd_id: string | null; prds: PrdRow | PrdRow[] | null };
+
+  const byId = new Map<string, PrdRow>();
+  // 1. What the bet promised to measure.
+  const planByPrd = new Map<string, PlanFacts>();
+  for (const p of (shippedRes.data ?? []) as ShippedRow[]) {
+    byId.set(p.id, p);
+    const plan = firstOf(p.launch_plans);
+    if (plan) {
+      planByPrd.set(p.id, { success_metric: plan.success_metric, workspace_id: plan.workspace_id });
     }
+  }
 
-    // Shipped first and newest ship first, exactly as before; the window-closed
-    // rows follow in the order their windows came due. Nothing is dropped from
-    // what the queue used to show.
-    const prds = [...byId.values()].slice(0, 12);
-    if (prds.length === 0) return { pending: [] };
+  // A read failure here narrows the queue back to the shipped half rather
+  // than blanking it: fewer asks beats none. RLS already scopes the rows. It
+  // is said out loud, because a desk missing its window-closed half looks
+  // exactly like a desk that has none.
+  if (dueRes.error) {
+    console.error(
+      `[pending-outcomes] the window-closed half could not be read: ${dueRes.error.message}`,
+    );
+  }
+  for (const r of (dueRes.data ?? []) as DueRow[]) {
+    const p = firstOf(r.prds);
+    if (!p || byId.has(p.id)) continue;
+    byId.set(p.id, p);
+    planByPrd.set(p.id, { success_metric: r.success_metric, workspace_id: r.workspace_id });
+  }
 
-    const prdIds = prds.map((p) => p.id);
-    const oppIds = [...new Set(prds.map((p) => p.opportunity_id).filter((v): v is string => !!v))];
+  // Shipped first and newest ship first, exactly as before; the window-closed
+  // rows follow in the order their windows came due. Nothing is dropped from
+  // what the queue used to show.
+  const prds = [...byId.values()].slice(0, 12);
+  if (prds.length === 0) return { pending: [] };
 
-    type OppRow = {
-      id: string;
-      title: string | null;
-      impact: number | null;
-      confidence: number | null;
-      ease: number | null;
-      ice_score: number | string | null;
-      theme_id: string | null;
-    };
-    const oppById = new Map<string, OppRow>();
-    if (oppIds.length > 0) {
-      const { data } = await db
-        .from("opportunities")
-        .select("id,title,impact,confidence,ease,ice_score,theme_id")
-        .in("id", oppIds);
-      for (const o of (data ?? []) as OppRow[]) oppById.set(o.id, o);
-    }
+  // Newest agent-made decision per spec. Sorted newest first, so the first
+  // row seen for a spec wins.
+  const slugByPrd = new Map<string, string>();
+  for (const p of prds) {
+    const agentMade = (p.decisions ?? [])
+      .filter(
+        (d): d is DecisionRow & { decided_by_agent_slug: string } => !!d.decided_by_agent_slug,
+      )
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0));
+    if (agentMade.length > 0) slugByPrd.set(p.id, agentMade[0].decided_by_agent_slug);
+  }
 
-    // The two extra facts the settle-or-ask rule needs, both batched so the
-    // queue stays one round of queries rather than one per row.
-    // 1. What the bet promised to measure.
-    const planByPrd = new Map<
-      string,
-      { success_metric: string | null; workspace_id: string | null }
-    >();
-    {
-      const { data } = await db
-        .from("launch_plans")
-        // workspace_id rides along because the settle-or-ask bar is workspace
-        // policy now, and the sweep keys it off exactly this column.
-        .select("prd_id,success_metric,workspace_id")
-        .in("prd_id", prdIds);
-      for (const r of (data ?? []) as Array<{
-        prd_id: string;
-        success_metric: string | null;
-        workspace_id: string | null;
-      }>) {
-        if (!planByPrd.has(r.prd_id)) {
-          planByPrd.set(r.prd_id, {
-            success_metric: r.success_metric,
-            workspace_id: r.workspace_id,
-          });
-        }
-      }
-    }
+  const oppIds = [...new Set(prds.map((p) => p.opportunity_id).filter((v): v is string => !!v))];
+  const wsIds = [...new Set(prds.map((p) => p.workspace_id).filter((v): v is string => !!v))];
+  const slugs = [...new Set(slugByPrd.values())];
 
+  type OppRow = {
+    id: string;
+    title: string | null;
+    impact: number | null;
+    confidence: number | null;
+    ease: number | null;
+    ice_score: number | string | null;
+    theme_id: string | null;
+  };
+  type AgentRow = { id: string; slug: string; agent_autonomy?: Array<{ arc: string }> | null };
+  const none = Promise.resolve({ data: [] as never[] });
+
+  // Everything keyed on the first hop, in one go. Each list is batched so the
+  // queue stays one round of queries rather than one per row.
+  const [oppRes, siblingRes, policies, agentRes] = await Promise.all([
+    oppIds.length > 0
+      ? db
+          .from("opportunities")
+          .select("id,title,impact,confidence,ease,ice_score,theme_id")
+          .in("id", oppIds)
+      : none,
+    // 2. How far a verdict propagates: other bets on the same theme re-rank.
+    wsIds.length > 0
+      ? db
+          .from("opportunities")
+          .select("id,theme_id")
+          .in("workspace_id", wsIds)
+          .not("theme_id", "is", null)
+      : none,
     // The same policy read the sweep makes, so a row can never show a reason
     // the sweep did not act on. A spec with no launch plan, or a workspace that
     // has stated nothing, falls back to the bar the product ships with.
-    const policies = await loadAutonomyPolicies(
+    loadAutonomyPolicies(
       db,
       [...planByPrd.values()].map((p) => p.workspace_id),
-    );
-    // 2. How far a verdict propagates: other bets on the same theme re-rank.
-    const siblingsByTheme = new Map<string, number>();
-    {
-      const themeIds = [
-        ...new Set([...oppById.values()].map((o) => o.theme_id).filter((v): v is string => !!v)),
-      ];
-      if (themeIds.length > 0) {
-        const { data } = await db
-          .from("opportunities")
-          .select("id,theme_id")
-          .in("theme_id", themeIds);
-        for (const r of (data ?? []) as Array<{ id: string; theme_id: string | null }>) {
-          if (!r.theme_id) continue;
-          siblingsByTheme.set(r.theme_id, (siblingsByTheme.get(r.theme_id) ?? 0) + 1);
-        }
-      }
-    }
-
-    // Newest agent-made decision per spec. Ordered newest first, so the first
-    // row seen for a spec wins.
-    const slugByPrd = new Map<string, string>();
-    {
-      const { data } = await db
-        .from("decisions")
-        .select("prd_id,decided_by_agent_slug,created_at")
-        .in("prd_id", prdIds)
-        .not("decided_by_agent_slug", "is", null)
-        .order("created_at", { ascending: false });
-      for (const d of (data ?? []) as Array<{
-        prd_id: string | null;
-        decided_by_agent_slug: string | null;
-      }>) {
-        if (!d.prd_id || !d.decided_by_agent_slug) continue;
-        if (!slugByPrd.has(d.prd_id)) slugByPrd.set(d.prd_id, d.decided_by_agent_slug);
-      }
-    }
-
-    const arcBySlug = new Map<string, string>();
-    const slugs = [...new Set(slugByPrd.values())];
-    if (slugs.length > 0) {
-      const { data: agentRows } = await db
-        .from("agents")
-        .select("id,slug")
-        .eq("user_id", userId)
-        .in("slug", slugs);
-      const agents = (agentRows ?? []) as Array<{ id: string; slug: string }>;
-      if (agents.length > 0) {
-        const { data: arcRows } = await db
-          .from("agent_autonomy")
-          .select("agent_id,arc")
+    ),
+    slugs.length > 0
+      ? db
+          .from("agents")
+          .select("id,slug,agent_autonomy(arc)")
           .eq("user_id", userId)
-          .in(
-            "agent_id",
-            agents.map((a) => a.id),
-          );
-        const arcByAgentId = new Map(
-          ((arcRows ?? []) as Array<{ agent_id: string; arc: string }>).map((r) => [
-            r.agent_id,
-            r.arc,
-          ]),
-        );
-        for (const a of agents) {
-          const arc = arcByAgentId.get(a.id);
-          if (arc) arcBySlug.set(a.slug, arc);
-        }
-      }
-    }
+          .in("slug", slugs)
+          .eq("agent_autonomy.user_id", userId)
+      : none,
+  ]);
 
-    const pending: PendingOutcome[] = prds.map((p) => {
-      const opp = p.opportunity_id ? (oppById.get(p.opportunity_id) ?? null) : null;
-      const slug = slugByPrd.get(p.id) ?? null;
-      const arc = slug ? (arcBySlug.get(slug) ?? null) : null;
-      const holdsPromotion = arc === "observing" || arc === "proving";
+  const oppById = new Map<string, OppRow>();
+  for (const o of (oppRes.data ?? []) as OppRow[]) oppById.set(o.id, o);
 
-      // The verdict the agent would have put on the record, read the same way
-      // the sweep reads it.
-      //
-      // `verdictIsRecordFact` is computed here rather than hardcoded false. It
-      // was false because the query admitted shipped specs only; now that a
-      // closed measurement window also puts a spec on this desk, the unshipped
-      // case is reachable and it is exactly the one the sweep calls a fact of
-      // the calendar rather than a reading of what happened. Leaving the
-      // constant would have printed a reason the sweep did not act on, which
-      // this file holds to be worse than printing none.
-      const verdictOnTable = asVerdict(p.outcome_suggestion?.verdict);
-      const planWorkspaceId = planByPrd.get(p.id)?.workspace_id ?? null;
-      const settlement = verdictOnTable
-        ? decideSettlement(
-            {
-              verdict: verdictOnTable,
-              verdictIsRecordFact: !p.shipped_at && verdictOnTable === "missed",
-              metricDeclared: metricWasDeclared(
-                planByPrd.get(p.id)?.success_metric ?? null,
-                gradeOutcomeContract(
-                  (p.contract ?? null) as { success_metrics?: ContractClause[] | null } | null,
-                ).verdict,
+  const siblingsByTheme = new Map<string, number>();
+  for (const r of (siblingRes.data ?? []) as Array<{ id: string; theme_id: string | null }>) {
+    if (!r.theme_id) continue;
+    siblingsByTheme.set(r.theme_id, (siblingsByTheme.get(r.theme_id) ?? 0) + 1);
+  }
+
+  const arcBySlug = new Map<string, string>();
+  for (const a of (agentRes.data ?? []) as AgentRow[]) {
+    const arc = firstOf(a.agent_autonomy)?.arc;
+    if (arc) arcBySlug.set(a.slug, arc);
+  }
+
+  const pending: PendingOutcome[] = prds.map((p) => {
+    const opp = p.opportunity_id ? (oppById.get(p.opportunity_id) ?? null) : null;
+    const slug = slugByPrd.get(p.id) ?? null;
+    const arc = slug ? (arcBySlug.get(slug) ?? null) : null;
+    const holdsPromotion = arc === "observing" || arc === "proving";
+
+    // The verdict the agent would have put on the record, read the same way
+    // the sweep reads it.
+    //
+    // `verdictIsRecordFact` is computed here rather than hardcoded false. It
+    // was false because the query admitted shipped specs only; now that a
+    // closed measurement window also puts a spec on this desk, the unshipped
+    // case is reachable and it is exactly the one the sweep calls a fact of
+    // the calendar rather than a reading of what happened. Leaving the
+    // constant would have printed a reason the sweep did not act on, which
+    // this file holds to be worse than printing none.
+    const verdictOnTable = asVerdict(p.outcome_suggestion?.verdict);
+    const planWorkspaceId = planByPrd.get(p.id)?.workspace_id ?? null;
+    const settlement = verdictOnTable
+      ? decideSettlement(
+          {
+            verdict: verdictOnTable,
+            verdictIsRecordFact: !p.shipped_at && verdictOnTable === "missed",
+            metricDeclared: metricWasDeclared(
+              planByPrd.get(p.id)?.success_metric ?? null,
+              gradeOutcomeContract(
+                (p.contract ?? null) as { success_metrics?: ContractClause[] | null } | null,
+              ).verdict,
+            ),
+            metricObserved: metricWasObserved(p.outcome_suggestion),
+            basis: basisFor(p.outcome_suggestion),
+            impact: opp ? (opp.impact ?? null) : null,
+            otherBetsOnTheme: opp?.theme_id
+              ? Math.max(0, (siblingsByTheme.get(opp.theme_id) ?? 1) - 1)
+              : 0,
+            movesTheScore: VERDICT_CONFIDENCE_DELTA[verdictOnTable] !== 0,
+            holdsPromotionFor: slug && holdsPromotion ? agentDisplayName(slug) : null,
+          },
+          (planWorkspaceId ? policies.get(planWorkspaceId) : null) ?? SHIPPED_AUTONOMY_POLICY,
+        )
+      : null;
+
+    return {
+      prdId: p.id,
+      title: (p.title ?? "").trim() || "Untitled spec",
+      workspaceId: p.workspace_id ?? null,
+      shippedAt: p.shipped_at,
+      // Both were already in hand: `contract` is on the row this map is
+      // reading, and the launch plan's metric is in `planByPrd`, which rode
+      // the same read for the settle-or-ask rule. Nothing new is queried.
+      promised: standingPromises(p.contract),
+      planMetric: planMetricOf(planByPrd.get(p.id)?.success_metric),
+      opportunity: opp
+        ? {
+            id: opp.id,
+            title: opp.title,
+            priorIce: opp.ice_score == null ? null : Number(opp.ice_score),
+            projected: {
+              validated: iceOf(
+                opp.impact,
+                clampConfidence((opp.confidence ?? 5) + VERDICT_CONFIDENCE_DELTA.validated),
+                opp.ease,
               ),
-              metricObserved: metricWasObserved(p.outcome_suggestion),
-              basis: basisFor(p.outcome_suggestion),
-              impact: opp ? (opp.impact ?? null) : null,
-              otherBetsOnTheme: opp?.theme_id
-                ? Math.max(0, (siblingsByTheme.get(opp.theme_id) ?? 1) - 1)
-                : 0,
-              movesTheScore: VERDICT_CONFIDENCE_DELTA[verdictOnTable] !== 0,
-              holdsPromotionFor: slug && holdsPromotion ? agentDisplayName(slug) : null,
+              mixed: iceOf(
+                opp.impact,
+                clampConfidence((opp.confidence ?? 5) + VERDICT_CONFIDENCE_DELTA.mixed),
+                opp.ease,
+              ),
+              missed: iceOf(
+                opp.impact,
+                clampConfidence((opp.confidence ?? 5) + VERDICT_CONFIDENCE_DELTA.missed),
+                opp.ease,
+              ),
             },
-            (planWorkspaceId ? policies.get(planWorkspaceId) : null) ?? SHIPPED_AUTONOMY_POLICY,
-          )
-        : null;
-
-      return {
-        prdId: p.id,
-        title: (p.title ?? "").trim() || "Untitled spec",
-        workspaceId: p.workspace_id ?? null,
-        shippedAt: p.shipped_at,
-        // Both were already in hand: `contract` is on the row this map is
-        // reading, and the launch plan's metric is in `planByPrd`, fetched
-        // above for the settle-or-ask rule. Nothing new is queried.
-        promised: standingPromises(p.contract),
-        planMetric: planMetricOf(planByPrd.get(p.id)?.success_metric),
-        opportunity: opp
-          ? {
-              id: opp.id,
-              title: opp.title,
-              priorIce: opp.ice_score == null ? null : Number(opp.ice_score),
-              projected: {
-                validated: iceOf(
-                  opp.impact,
-                  clampConfidence((opp.confidence ?? 5) + VERDICT_CONFIDENCE_DELTA.validated),
-                  opp.ease,
-                ),
-                mixed: iceOf(
-                  opp.impact,
-                  clampConfidence((opp.confidence ?? 5) + VERDICT_CONFIDENCE_DELTA.mixed),
-                  opp.ease,
-                ),
-                missed: iceOf(
-                  opp.impact,
-                  clampConfidence((opp.confidence ?? 5) + VERDICT_CONFIDENCE_DELTA.missed),
-                  opp.ease,
-                ),
-              },
-            }
-          : null,
-        decidedBy: slug ? { slug, arc, holdsPromotion } : null,
-        suggestion: p.outcome_suggestion ?? null,
-        settlement,
-        verdictOnTable,
-      };
-    });
-
-    return { pending };
+          }
+        : null,
+      decidedBy: slug ? { slug, arc, holdsPromotion } : null,
+      suggestion: p.outcome_suggestion ?? null,
+      settlement,
+      verdictOnTable,
+    };
   });
+
+  return { pending };
+}
 
 /**
  * Outcomes an AGENT settled, newest first, and everything a person needs to

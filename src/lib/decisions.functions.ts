@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { Database, TablesInsert } from "@/integrations/supabase/types";
+import type { Database, Json, TablesInsert } from "@/integrations/supabase/types";
 import { track } from "@/lib/observability";
 import { recordDecisionOrigins } from "@/lib/lineage.functions";
 import { extractAssumptions } from "@/lib/ai/assumptions.server";
@@ -1114,3 +1114,128 @@ export const getDecisionSpend = createServerFn({ method: "GET" })
       return { credits: null, trackCount: 0, runCount: 0 };
     }
   });
+
+/** One decision an agent made on a run, with its reasons, in the order made. */
+export type TrackDecision = {
+  id: string;
+  title: string;
+  rationale: string | null;
+  /** The options the agent weighed, as it recorded them (jsonb). */
+  alternatives_considered: Json;
+  decided_by_agent_slug: string | null;
+  status: string;
+  source_kind: string | null;
+  created_at: string;
+  /** How this decision reached the run: written on it, or made on one of its missions. */
+  via: "track" | "mission";
+  forecast: {
+    claim: string | null;
+    how_we_will_know: string | null;
+    horizon_date: string | null;
+    resolution: string | null;
+    resolution_rationale: string | null;
+    resolved_at: string | null;
+  };
+};
+
+/**
+ * THE DECISIONS A RUN'S AGENTS MADE, IN ORDER, WITH THEIR REASONS (Lane 2's
+ * ask, 2026-09-09: "the decisions, not the tool calls"). Two hops on the wire:
+ * the track's members (its decisions, and its missions), then the decisions
+ * themselves: the ones written on the track and the ones made on its
+ * missions, oldest first, each with its rationale, the alternatives it
+ * weighed and the bet it was taken under. The driver's own holds and their
+ * why are on getTrackActivity as selfChecks; the two together are what the
+ * agent decided and why.
+ */
+export async function readTrackDecisions(
+  supabase: SupabaseClient<Database>,
+  trackId: string,
+): Promise<{ decisions: TrackDecision[] }> {
+  const { data: members, error: membersErr } = await supabase
+    .from("spine_track_members" as never)
+    .select("artifact_kind,artifact_id")
+    .eq("track_id", trackId)
+    .in("artifact_kind", ["decision", "mission"]);
+  if (membersErr) throw new Error(`The run's record could not be read: ${membersErr.message}`);
+  const rows = (members ?? []) as unknown as Array<{
+    artifact_kind: string;
+    artifact_id: string | null;
+  }>;
+  const decisionIds = rows
+    .filter((m) => m.artifact_kind === "decision" && m.artifact_id)
+    .map((m) => m.artifact_id as string);
+  const missionIds = rows
+    .filter((m) => m.artifact_kind === "mission" && m.artifact_id)
+    .map((m) => m.artifact_id as string);
+  if (decisionIds.length === 0 && missionIds.length === 0) return { decisions: [] };
+
+  const COLUMNS =
+    "id,title,rationale,alternatives_considered,decided_by_agent_slug,status,source_kind,mission_id,created_at,forecast_claim,forecast_how_we_will_know,forecast_horizon_date,forecast_resolution,forecast_resolution_rationale,forecast_resolved_at";
+  type Row = {
+    id: string;
+    title: string;
+    rationale: string | null;
+    alternatives_considered: Json;
+    decided_by_agent_slug: string | null;
+    status: string;
+    source_kind: string | null;
+    mission_id: string | null;
+    created_at: string;
+    forecast_claim: string | null;
+    forecast_how_we_will_know: string | null;
+    forecast_horizon_date: string | null;
+    forecast_resolution: string | null;
+    forecast_resolution_rationale: string | null;
+    forecast_resolved_at: string | null;
+  };
+  const [onTrack, onMissions] = await Promise.all([
+    decisionIds.length
+      ? supabase.from("decisions").select(COLUMNS).in("id", decisionIds)
+      : Promise.resolve({ data: [] as Row[], error: null }),
+    missionIds.length
+      ? supabase.from("decisions").select(COLUMNS).in("mission_id", missionIds)
+      : Promise.resolve({ data: [] as Row[], error: null }),
+  ]);
+  if (onTrack.error)
+    throw new Error(`The run's decisions could not be read: ${onTrack.error.message}`);
+  if (onMissions.error)
+    throw new Error(`The run's decisions could not be read: ${onMissions.error.message}`);
+
+  const seen = new Set<string>();
+  const out: TrackDecision[] = [];
+  const take = (r: Row, via: TrackDecision["via"]) => {
+    if (seen.has(r.id)) return;
+    seen.add(r.id);
+    out.push({
+      id: r.id,
+      title: stripAutoPrefix(r.title),
+      rationale: r.rationale,
+      alternatives_considered: r.alternatives_considered ?? null,
+      decided_by_agent_slug: r.decided_by_agent_slug,
+      status: r.status,
+      source_kind: r.source_kind,
+      created_at: r.created_at,
+      via,
+      forecast: {
+        claim: r.forecast_claim,
+        how_we_will_know: r.forecast_how_we_will_know,
+        horizon_date: r.forecast_horizon_date,
+        resolution: r.forecast_resolution,
+        resolution_rationale: r.forecast_resolution_rationale,
+        resolved_at: r.forecast_resolved_at,
+      },
+    });
+  };
+  for (const r of (onTrack.data ?? []) as Row[]) take(r, "track");
+  for (const r of (onMissions.data ?? []) as Row[]) take(r, "mission");
+  out.sort((a, b) => a.created_at.localeCompare(b.created_at));
+  return { decisions: out };
+}
+
+export const listTrackDecisions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ trackId: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }): Promise<{ decisions: TrackDecision[] }> =>
+    readTrackDecisions(context.supabase, data.trackId),
+  );
