@@ -2962,3 +2962,92 @@ top-down."*
    authenticated route renders locally. **This is a fact, not a discovery** —
    two lanes have burned time on it. The only verification path is a Lovable
    deploy.
+
+---
+
+## Lane 1 — 2026-09-10, ~01:00 to 02:45 IST — entry, the through-line, and law 19 closed
+
+**The method was the point.** I stopped fixing details on surfaces and walked one piece of work from
+the entry into its run, cold, as somebody who had never seen it. Every finding below came from that
+walk rather than from reading code, and two of them are things no test could have found because they
+exist BETWEEN screens.
+
+### Shipped
+
+1. **A run has a URL, so the row that opens it is a link** (law 22). Every row under *Your runs* was
+   a `<button>` over `navigate({ to: "/track/$trackId" })` and nothing else — so no cmd-click, no
+   middle-click, no *copy link address*, no destination on hover. On the one screen whose purpose is
+   showing several runs at once, **a person could not open two side by side.** `Row` takes
+   `navigateTo` and renders its readable region as a `<Link>`. Verified live: 8 rows, real hrefs,
+   zero nested buttons. `bodyRef` had to become a **callback ref** — React's `Ref<T>` is invariant,
+   so no widening serves both a button and an anchor without a cast.
+
+2. **"Building" on a run that stopped four days ago.** Build's node read `building` and its
+   accessible name composed to *"Build: not yet, building"*. It was the one station saying what is
+   HAPPENING while every other says what CAME OF IT. A mission at Build is an ATTEMPT, not a state:
+   it now says `building` only while a seat is live there, and `nothing built` otherwise.
+
+3. **The most common blocker in the product, which no surface named** (law 23). A run stopped for six
+   days said *"Design has been run many times over and the work has not moved on once"*. The record
+   held `ux-architect · 12 runs · halted · out_of_credit · avg 612ms`. Twelve refusals at the door;
+   the station never ran. **Of the eight tracks that have ever had a halted run, five halted out of
+   credit** — two of them wearing `going-in-circles`. The rule: **a cause the record holds outranks a
+   shape the product inferred.** And the wall came down days ago — that account holds 5,249 credits —
+   so the row says *"It ran out of credit and stopped. There is credit again."*
+
+4. **A failed read must not hold the headline hostage.** `runs` polls every ten seconds, so a read
+   failing on every attempt returns to `fetching, no data` every ten seconds — byte-for-byte the
+   state of one still loading. The entry sat on *"Reading your workspace. Still reading."* forever,
+   with a Try again that re-ran the same failure. **`failureCount` is the discriminator, `isError` is
+   not**: a poll spends its retries again on every tick.
+
+5. **Law 19 closed: the road is cut where the road ended.** `you` and `stopped` render the same
+   pixel and every channel on the NODE has an owner. The channel taken is **the link between stops**,
+   which has carried no state of a station in its life, and it says the one thing colour cannot:
+   continuation. The link leaving a `stopped` station is cut. `--mrd-road-axis` is new in Meridian
+   because the component cannot see the breakpoint.
+
+6. **"Waiting on you since 5 days"** on the busiest decision in the product. The field was called
+   `since` and the only caller passes `stoppedFor()`, a span. Renamed `waited`, and **the guard that
+   should have caught it was asserting the source line** — its name is a claim about the sentence and
+   it passed for a year while the sentence was not English.
+
+### Two guards, both from my own mistakes
+
+- **`an-embed-is-a-claim-about-a-foreign-key`**. I added `workspaces(account_id)` to
+  `listRunsForStart`. `spine_tracks` has foreign keys to `learnings`, `opportunities` and `themes`
+  and **none to `workspaces`** — the embed 400s and `failSoftOrThrow` takes the whole reader down.
+  **I checked that the column existed and inferred the relationship from it.** Every embed in `src/`
+  must now appear in a list of keys read off `pg_constraint`, dated; `!constraint_fkey` hints are
+  accepted on sight.
+- **`the-bar-counts-gates-on-open-tracks`** was slicing `listGatesOnTracks` by the first `"\n  });"`,
+  which that function does not end with — so it read hundreds of lines of a LATER function. An
+  unrelated comment failed a guard about date filters. Bounded to the next top-level export, with a
+  mirror on the slice itself.
+
+### The mistake worth reading
+
+**I withdrew a working feature on a diagnosis I had already written down as unreliable.** After the
+embed break, a second failure in the same function read as the same cause. My evidence was a
+throttled background tab whose elapsed counter had frozen, plus hand-built calls that returned 500
+for **every** server endpoint including ones unrelated to the change — a control failing as badly as
+the case under test. I noted that was a broken measurement and acted on its conclusion anyway.
+Restored at `e593a2848`. **Withdrawing is a change, with the same burden of evidence as shipping.**
+
+I also lost twenty minutes blaming Lovable's sync. `latest_commit_sha` was several commits back and
+I assumed that predated my fix; `git merge-base --is-ancestor` says it did not. **That command is the
+one that tells you whether a deploy can possibly contain your work.**
+
+### Open, and deliberately not done
+
+- **The address bar is the last surface speaking the old vocabulary.** Five of six rail destinations
+  have a URL that disagrees with their name — Inbox at `/approvals`, Findings at `/arriving`, Team at
+  `/crew`, Sources at `/sync`. Every page `<title>` already agrees with its label. Recorded in the
+  contract rather than fixed: renaming a file-based router while two lanes push to `main` trades a
+  small legibility win for a merge collision. **Worth doing when one lane owns the tree.**
+- **Four identical "Stopped" chips on one run screen.** Measured for Lane 2: the page itself does not
+  scroll (`maxScroll: 0`), the columns scroll inside themselves, and the header chip stays on screen
+  at every position. So the card's chip is pure duplication and a scrolled reader loses nothing.
+  Lane 2's card, Lane 2's cut.
+- **Two counts of "times"** on the run screen — road *"1 prototype, 3 times"* against refrain *"said
+  this 12 times, and filed nothing"*. Different things counted, nothing on screen saying which.
