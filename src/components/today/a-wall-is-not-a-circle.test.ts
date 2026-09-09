@@ -224,3 +224,54 @@ describe("a wall whose standing nobody could read", () => {
     expect(said("gone")).toBe("It ran out of credit and stopped. There is credit again.");
   });
 });
+
+/*
+ * ── AND A WALL STOPS BEING THE NEWS THE MOMENT THE HOLD CLEARS ────────────
+ *
+ * READ ON THE SERVED HOME, 2026-09-10, hours after the wall sentence shipped.
+ * Lane 3's wallet repair cleared `last_hold` on three tracks and all three
+ * kept saying **"It ran out of credit and stopped. There is credit again."**
+ *
+ * True, and no longer the news. `stoppedBecause` reads the newest halted run
+ * and that row never goes away, so a wall check above the hold branches
+ * outlives every hold it was written for. A released run is not stopped; it is
+ * waiting to be picked up, and that is what its one line should say.
+ *
+ * The branch was correct against every state that existed when it was written,
+ * and another lane created the state it was wrong in.
+ */
+describe("a wall belongs to a run that is still stopped", () => {
+  const released: StartRowInput = {
+    ...CIRCLES,
+    holdReason: null,
+    holdBecause: null,
+    stoppedBecause: { kind: "out_of_credit", at: "2026-09-04T05:30:05Z", now: "gone" },
+  };
+  const line = (r: StartRowInput) => startRowMiddle(r, NOW, KIND_WORD, phrase, "UTC");
+
+  it("says nothing about credit once the hold has cleared", () => {
+    expect({ mentionsAWall: /credit/i.test(line(released)) }).toEqual({ mentionsAWall: false });
+  });
+
+  it("says the same for a wall that is still standing, once the hold is gone", () => {
+    /*
+     * `holdReason` is the discriminator and not `now`: ANY cleared hold ends
+     * the wall's claim, whether the wall lifted or a person stepped in. A run
+     * somebody took over is not reported as blocked by the thing it was
+     * blocked by last week.
+     */
+    const takenOver = {
+      ...released,
+      stoppedBecause: { ...released.stoppedBecause!, now: "standing" as const },
+    };
+    expect({ mentionsAWall: /credit/i.test(line(takenOver)) }).toEqual({ mentionsAWall: false });
+  });
+
+  it("still says it while the run IS stopped", () => {
+    // The mirror. Gating on the hold must not silence the sentence in the
+    // state it was written for, which is the common one.
+    expect(
+      line({ ...released, holdReason: "going-in-circles", holdBecause: CIRCLES.holdBecause }),
+    ).toBe("It ran out of credit and stopped. There is credit again.");
+  });
+});

@@ -635,9 +635,31 @@ function startRowRest(
    * through to the hold sentence rather than printing a raw slug at a person,
    * on the same rule `holdLine` follows for an unknown hold.
    */
-  const wall = r.stoppedBecause
-    ? (HALT_LINE as Record<string, string | undefined>)[r.stoppedBecause.kind]
-    : null;
+  /*
+   * ── A WALL BELONGS TO A RUN THAT IS STILL STOPPED ────────────────────────
+   *
+   * READ ON THE SERVED HOME, 2026-09-10, hours after this shipped. Lane 3's
+   * wallet repair cleared `last_hold` on three tracks, and all three kept
+   * saying **"It ran out of credit and stopped. There is credit again."**
+   *
+   * The sentence was true and it was no longer the NEWS. `stoppedBecause`
+   * reads the newest halted run and that row never goes away, so a wall check
+   * placed above the hold branches outlives every hold it was written for. A
+   * run that has been released is not stopped; it is waiting to be picked up,
+   * and that is what its one line should say.
+   *
+   * MY OWN DEFECT, AND IT IS THE SHAPE I HAVE BEEN NAMING ALL NIGHT: the
+   * branch was correct against every state that existed when I wrote it, and
+   * another lane created the state it is wrong in. A qualifier outlives the
+   * read it was written for.
+   *
+   * `holdReason` is the discriminator and not `gone`: ANY cleared hold ends
+   * the wall's claim, whether the wall lifted or a person stepped in.
+   */
+  const wall =
+    r.holdReason && r.stoppedBecause
+      ? (HALT_LINE as Record<string, string | undefined>)[r.stoppedBecause.kind]
+      : null;
   /*
    * ── AND WHEN THE WALL HAS COME DOWN, THAT IS THE SENTENCE ────────────────
    *
@@ -654,7 +676,7 @@ function startRowRest(
    * reads as a dead run and the change without the cause reads as a non
    * sequitur.
    */
-  if (r.stoppedBecause?.now === "gone")
+  if (r.holdReason && r.stoppedBecause?.now === "gone")
     return "It ran out of credit and stopped. There is credit again.";
   if (wall) return wall;
 
