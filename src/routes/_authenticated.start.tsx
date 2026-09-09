@@ -45,6 +45,8 @@ import type { WorkShape } from "@/lib/spine/route";
 import { readHomeAnswers } from "@/lib/start/home-answers.functions";
 import { homeAnswers } from "@/components/start/three-answers-above-your-runs";
 import { HomeAnswers } from "@/components/start/HomeAnswers";
+import { WhetherItWorked } from "@/components/start/WhetherItWorked";
+import { whetherItWorked } from "@/components/start/whether-it-worked";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { APPROVALS_QUEUE_PREFIX } from "@/lib/query-keys";
 import { queueShape } from "@/components/approvals/a-queue-is-a-shape-not-a-total";
@@ -507,6 +509,19 @@ function StartLanding() {
   }).filter((a) => a.read === "answered");
 
   /*
+   * WHETHER IT WORKED. The entry's one piece of evidence, and the answer to
+   * the founder's "I cannot feel the value": every other statement on this
+   * page is a delta or a count, and this is the only one that says the loop
+   * closed. Same read and same key as the three answers above it, so it costs
+   * no extra request. See `whether-it-worked.ts` for why it is one outcome
+   * rather than a total, and why a miss leads as readily as a win.
+   */
+  const itWorked = whetherItWorked({
+    closed: homeReads.isSuccess ? homeReads.data.closed : null,
+    read: homeReads.isSuccess ? homeReads.data.closedRead : false,
+  });
+
+  /*
    * WHO IS WORKING WHERE, on the road itself. The same read and key the
    * Working-now strip and the rail crew use (one request, one cache entry;
    * useRunningNowPush moves it the moment a seat starts or stamps), so the
@@ -707,6 +722,11 @@ function StartLanding() {
           you, hand something over, here is what came of the last time, here is
           what is moving, here is your list. */}
       <HomeAnswers answers={sinceYouLooked} className="mt-mrd-5" />
+      {/* THE EVIDENCE, DIRECTLY UNDER THE ANSWERS IT BELONGS TO. The answer
+          above says a decision came back this week; this says which one, what
+          it committed to, and what came back. Reading them in that order is the
+          page going from a count to a fact, which is the whole move. */}
+      <WhetherItWorked it={itWorked} className="mt-mrd-5" />
       {/* WHAT IS ARRIVING (founder, 2026-09-02 19:12): the
           product's central claim, evidence becomes work on its own, provable
           on the page a person actually lands on. */}

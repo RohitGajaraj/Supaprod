@@ -29,6 +29,46 @@ export type HomeAnswerReads = {
   /** Releases that reached production since the person last looked (P-126).
    *  Null = the read did not answer. */
   releases: ReleasedItem[] | null;
+  /**
+   * THE NEWEST PIECE OF WORK THAT WENT ALL THE WAY ROUND, with what was
+   * committed to, what came back, and the verdict (Lane 1, 2026-09-09).
+   *
+   * Null = the read did not answer. `undefined` is not used: the shape must be
+   * able to say "the loop has never closed here", which is a real and different
+   * state from "we could not look", and an empty read says it by returning a
+   * row-less answer rather than a null.
+   */
+  closed: ClosedLoop | null;
+  /** False when the read answered and found nothing. Distinguishes "never
+   *  closed" from "could not look", which `closed: null` alone cannot. */
+  closedRead: boolean;
+};
+
+/**
+ * One closed loop, as the entry states it.
+ *
+ * `summary` is the grader's own sentence and is NOT recomposed here. It already
+ * carries the commitment and the result in the form a person reads them ("Spec
+ * required <=5% abandonment ... Actual outcome: ... far above target"), and a
+ * second rewriting of it on the way to the screen is how two surfaces end up
+ * describing one verdict differently.
+ */
+export type ClosedLoop = {
+  /** The grader's word. Mapped to a status hue by the shape, never here. */
+  verdict: string;
+  /** The grader's own sentence: what was committed to and what came back. */
+  summary: string;
+  /** What the run decided, which is the subject the verdict is about. */
+  decisionTitle: string | null;
+  /** The re-score, when the verdict moved the record. Both or neither. */
+  priorIce: number | null;
+  newIce: number | null;
+  /** When the forecast resolved, not when the row was written. */
+  at: string;
+  /** Seed rows are marked so the entry never presents them as the founder's
+   *  own results. This repo has already paid for that once: three metrics
+   *  proving the product worked were all sample data. */
+  isSample: boolean;
 };
 
 export const readHomeAnswers = createServerFn({ method: "GET" })
@@ -45,7 +85,16 @@ export const readHomeAnswers = createServerFn({ method: "GET" })
     // Without a workspace there is nothing to count and nothing honest to say.
     // Unread, never zero: the same rule the three shapes hold to.
     if (!workspaceId) {
-      return { arrivingCount: null, lastLookedAt: null, learnedCount: null, releases: null };
+      return {
+        arrivingCount: null,
+        lastLookedAt: null,
+        learnedCount: null,
+        releases: null,
+        /* `closedRead: false` and not true: without a workspace nothing was
+           looked at, so this is "could not look", never "never closed". */
+        closed: null,
+        closedRead: false,
+      };
     }
     const wid = workspaceId;
 
@@ -133,6 +182,42 @@ export const readHomeAnswers = createServerFn({ method: "GET" })
       );
     }
 
+    /*
+     * ── WHETHER IT WORKED, WHICH THE ENTRY COULD NOT SAY ────────────────────
+     * Added 2026-09-09. The home stated what is waiting and what arrived, and
+     * nothing anywhere on it said the loop had ever closed. Measured on the
+     * founder's own workspace: 67 decisions, 38 specs, 37 prototypes and 12
+     * graded outcomes, and the entry surfaced two sentences about any of it.
+     *
+     * ORDERED BY WHEN THE FORECAST RESOLVED, not by when the row was written.
+     * A learning row is written when the grader runs; the fact a person cares
+     * about is when the answer came back. The two differ by days here.
+     *
+     * ITS OWN READ AND ITS OWN NULL, like the three above it. A refused
+     * learnings table must not blank the arriving count.
+     */
+    const closedQ = await supabase
+      .from("learnings")
+      .select(
+        "verdict,summary,prior_ice,new_ice,is_sample,created_at,decisions(title,forecast_resolved_at)",
+      )
+      .eq("workspace_id", wid)
+      .not("verdict", "is", null)
+      .not("summary", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const closedRow = (closedQ.data ?? [])[0] as
+      | {
+          verdict: string | null;
+          summary: string | null;
+          prior_ice: number | null;
+          new_ice: number | null;
+          is_sample: boolean | null;
+          created_at: string;
+          decisions: { title: string | null; forecast_resolved_at: string | null } | null;
+        }
+      | undefined;
+
     return {
       /*
        * A count is only usable when we know what it counted FROM. With the
@@ -159,5 +244,26 @@ export const readHomeAnswers = createServerFn({ method: "GET" })
                 };
               })
               .filter((r): r is ReleasedItem => r !== null),
+      closedRead: !closedQ.error,
+      closed:
+        closedQ.error || !closedRow || !closedRow.verdict || !closedRow.summary
+          ? null
+          : {
+              verdict: closedRow.verdict,
+              summary: closedRow.summary,
+              decisionTitle: closedRow.decisions?.title ?? null,
+              /* Both or neither: half a re-score is not a movement, and
+                 "58 to null" is the kind of sentence a reader has to decode. */
+              priorIce:
+                closedRow.prior_ice != null && closedRow.new_ice != null
+                  ? Number(closedRow.prior_ice)
+                  : null,
+              newIce:
+                closedRow.prior_ice != null && closedRow.new_ice != null
+                  ? Number(closedRow.new_ice)
+                  : null,
+              at: closedRow.decisions?.forecast_resolved_at ?? closedRow.created_at,
+              isSample: closedRow.is_sample === true,
+            },
     };
   });
