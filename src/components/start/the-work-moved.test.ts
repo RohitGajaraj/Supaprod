@@ -141,3 +141,59 @@ describe("the two silences, which are not zeroes", () => {
     expect(src).toContain('if (!input.moves || !input.since) return { kind: "none" };');
   });
 });
+
+/*
+ * ── TRACKS, NOT MOVES, AND THE LOOP WALKING IS WHAT EXPOSED IT ────────────
+ *
+ * The first version counted forward MOVES. Then the loop started walking:
+ * `a30d6b62` went `define -> design -> build` in twenty minutes, three drives
+ * on ONE track — and it would have said **"3 runs moved on"** about a single
+ * piece of work.
+ *
+ * That is the same defect the run screen was repaired for the same night: "67
+ * findings" where there were four, logged seventeen times each. A count of
+ * EVENTS wearing the clothes of a count of THINGS.
+ *
+ * And the fold gives the better sentence as well as the true one. A track that
+ * moved three times has not done three things; it has got to Build.
+ */
+describe("one track walking is one run, at its furthest station", () => {
+  const walk = [
+    m("plan", "define", "Warn a homeowner", "2026-09-09T23:00:05Z"),
+    m("define", "design", "Warn a homeowner", "2026-09-09T23:10:03Z"),
+    m("design", "build", "Warn a homeowner", "2026-09-09T23:20:00Z"),
+  ];
+
+  it("says one run, not three", () => {
+    expect(theWorkMoved({ moves: walk, since: SINCE })).toEqual({
+      kind: "one",
+      title: "Warn a homeowner",
+      station: "build",
+    });
+  });
+
+  it("names the FURTHEST station, whatever order the read returns", () => {
+    /*
+     * The read is newest-first today. A caller that reversed it must not
+     * silently change which station is reported, so the fold takes the later
+     * timestamp rather than trusting arrival order.
+     */
+    const reversed = [...walk].reverse();
+    expect(theWorkMoved({ moves: reversed, since: SINCE })).toMatchObject({ station: "build" });
+  });
+
+  it("counts two tracks as two, however many times each moved", () => {
+    const two = [...walk, m("sense", "decide", "Another run", "2026-09-09T23:05:00Z")];
+    expect(theWorkMoved({ moves: two, since: SINCE })).toEqual({ kind: "many", forward: 2 });
+  });
+
+  it("folds send-backs by track too", () => {
+    // The mirror on the other branch: a track bounced twice is one correction
+    // to argue with, not two.
+    const bounced = [
+      m("build", "define", "Sent back", "2026-09-09T23:00:00Z"),
+      m("define", "sense", "Sent back", "2026-09-09T23:05:00Z"),
+    ];
+    expect(theWorkMoved({ moves: bounced, since: SINCE })).toEqual({ kind: "back", sentBack: 1 });
+  });
+});

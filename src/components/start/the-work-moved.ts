@@ -82,14 +82,44 @@ export function theWorkMoved(input: {
   if (!input.moves || !input.since) return { kind: "none" };
   const after = input.moves.filter((m) => m.at > input.since!);
   const forward = after.filter(movedOn);
-  const back = after.length - forward.length;
-  if (forward.length === 1) {
-    return { kind: "one", title: forward[0]!.title, station: forward[0]!.to };
+
+  /*
+   * ── TRACKS, NOT MOVES, AND THIS WAS WRONG FOR AN HOUR ────────────────────
+   *
+   * The first version counted forward MOVES. Then the loop started walking:
+   * `a30d6b62` went `define -> design -> build` in twenty minutes, three drives
+   * on ONE track, and this would have said **"3 runs moved on"** about a single
+   * piece of work.
+   *
+   * That is the same defect the run screen was repaired for the same night --
+   * "67 findings" where there were four, logged seventeen times each -- and it
+   * is the reason `foldVersions` exists one folder over. A count of events
+   * wearing the clothes of a count of things.
+   *
+   * SO IT FOLDS BY TRACK, AND THE NAMED CASE TAKES THE FURTHEST STATION. A
+   * track that moved three times has not done three things; it has got to
+   * Build. "Reached Build" is the true sentence and it is also the more useful
+   * one, because it is where the work actually stands.
+   */
+  const furthest = new Map<string, Move>();
+  for (const m of forward) {
+    const held = furthest.get(m.title);
+    /* Ordered by nothing in particular, so take the later timestamp rather than
+       trusting arrival order -- the read is newest-first today and a caller
+       reversing it must not silently change which station is reported. */
+    if (!held || m.at > held.at) furthest.set(m.title, m);
   }
-  if (forward.length > 1) return { kind: "many", forward: forward.length };
+
+  if (furthest.size === 1) {
+    const only = [...furthest.values()][0]!;
+    return { kind: "one", title: only.title, station: only.to };
+  }
+  if (furthest.size > 1) return { kind: "many", forward: furthest.size };
+
   /* A send-back with no forward move is still the loop doing something, and it
      is the state a person most needs to know about, because it is the one they
-     may want to argue with. */
-  if (back > 0) return { kind: "back", sentBack: back };
+     may want to argue with. Folded the same way, for the same reason. */
+  const back = new Set(after.filter((m) => !movedOn(m)).map((m) => m.title));
+  if (back.size > 0) return { kind: "back", sentBack: back.size };
   return { kind: "none" };
 }
