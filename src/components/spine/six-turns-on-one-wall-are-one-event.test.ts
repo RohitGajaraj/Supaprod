@@ -105,6 +105,54 @@ describe("the dump the fold was walking past", () => {
   });
 });
 
+/**
+ * ── THE SECOND FOLD THIS OPENS, AND IT IS A DIFFERENT OUTCOME CLASS ────────
+ *
+ * Build's six were `completed_with_failures`. Discover's three on the same run
+ * are `completed` -- three seats that ran cleanly, found nothing, and each wrote
+ * a paragraph saying so:
+ *
+ *   06:55  Filed nothing. Watch, 45.0s.      "No evidence was found in the
+ *                                             workspace about homeowners..."
+ *   06:56  Filed nothing. Research, 1m 1s.   "No evidence was found in the
+ *                                             workspace about homeowners..."
+ *   06:57  Filed nothing. Listen, 53.9s.     "No customer evidence was found
+ *                                             regarding homeowners wanting..."
+ *
+ * Three seats, three search strategies, one answer. Pinned separately from the
+ * Build case because "filed nothing" and "failed" are different states, and a
+ * rule that folds one is not automatically right about the other -- here it is,
+ * and the fold KEEPS the fact that three different seats looked, which is the
+ * part a person would have lost if the seats had stayed in the identity.
+ */
+describe("three seats searching three ways and finding nothing", () => {
+  const NOTHING_1 =
+    "No evidence was found in the workspace about homeowners rescheduling installer visits from the order page. Searches for 'reschedule installer visit order page', 'change appointment', 'modify visit', and 'installer date' across 30, 90, and 180 days returned no signals.";
+  const NOTHING_2 =
+    "No evidence was found in the workspace about homeowners rescheduling installer visits from the order page. Searches for 'reschedule installer visit order page', 'installer reschedule', 'homeowner reschedule', and 'order page reschedule' all returned empty results.";
+  const NOTHING_3 =
+    "No customer evidence was found regarding homeowners wanting to reschedule installer visits from the order page. Searches across all signal sources and workspace documents returned no relevant quotes, complaints, or behavioral evidence about this specific capability.";
+
+  const DISCOVER = [
+    turn({ at: 1, station: "sense", agentName: "Watch", outcome: "done", said: NOTHING_1 }),
+    turn({ at: 2, station: "sense", agentName: "Research", outcome: "done", said: NOTHING_2 }),
+    turn({ at: 3, station: "sense", agentName: "Listen", outcome: "done", said: NOTHING_3 }),
+  ];
+
+  it("folds into one, and keeps that three seats looked", () => {
+    const items = foldRepeats(DISCOVER);
+    expect(items).toHaveLength(1);
+    const item = items[0]!;
+    if (item.kind !== "repeat" || item.row.kind !== "turn") throw new Error("not folded");
+    expect(item.seats).toEqual(["Watch", "Research", "Listen"]);
+    const { lead, meta } = foldedLines(item.row.turn, item.seats, item.count, "06:55", "06:57");
+    expect(lead).toBe("Filed nothing.");
+    // NAMED, not counted. "3 seats" would throw away the part that matters --
+    // that the station searched three different ways and got one answer.
+    expect(meta).toBe("Watch, Research and Listen · 3 turns, 06:55 to 06:57");
+  });
+});
+
 describe("and it still refuses the folds it always refused", () => {
   it("does not fold turns that said unrelated things", () => {
     const items = foldRepeats([

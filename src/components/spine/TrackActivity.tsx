@@ -61,6 +61,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getTrackActivity, getTrackChain, getTrackToolCalls } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
 import { whatItKeepsSaying, refrainLead } from "@/lib/spine/what-it-keeps-saying";
+import { joinPlainly } from "@/lib/spine/attach";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { handoffLine, turnsAtStation, whatCameWith } from "@/components/spine/handed-over";
 import { carriedByMission, oncePerId } from "@/components/spine/what-a-mission-carries";
@@ -295,11 +296,21 @@ export function foldedLines(
   from: string,
   to: string,
 ): { lead: string; meta: string } {
+  /*
+   * NAMED UP TO THREE, COUNTED BEYOND.
+   *
+   * The first draft counted anything past two, and the measured run showed why
+   * that is wrong: Discover's three are Watch, Research and Listen, and their
+   * NAMES are the interesting part -- they say the station searched three
+   * different ways and got one answer, which "3 seats" throws away. Three is
+   * also the size of a station's crew in this product, so naming up to three
+   * names every ordinary case and counts only the unusual one.
+   */
   const who =
     seats.length <= 1
       ? null
-      : seats.length === 2
-        ? `${seats[0]} and ${seats[1]}`
+      : seats.length <= 3
+        ? joinPlainly([...seats])
         : `${seats.length} seats`;
   const turns = `${count} turns, ${from} to ${to}`;
   return who === null
