@@ -2945,33 +2945,46 @@ export function DiscoverSurface({
               The sample workspace did not open, so you are still in your own. Try again.
             </p>
           ) : null}
-          <Actions>
-            {/* `Action`, not `Approve`, and rendered beside `Quiet` rather
-                than inside it. Orchid is spent on the one control that
-                RELEASES something held, and this one navigates: the
-                connecting happens in Settings, two screens later. A person
-                who reads this as the act itself has been told something
-                false about what their click does. */}
-            <Action
-              variant="primary"
-              onClick={() => navigate({ to: "/settings", search: { section: "connections" } })}
-            >
-              Connect a source
-            </Action>
-            {sampleOffered ? (
-              /* THE VERB HAS TO MATCH THE EVENT. These labels read "Explore a
+          {/*
+           * ── ONE DOOR PER SENTENCE, AND THERE WERE TWO OF THE SAME ONE ─────
+           *
+           * WALKED AS A STRANGER, 2026-09-10. This empty state drew **two
+           * identical "Connect a source" buttons**, 135px apart (y 339 and
+           * y 474 on the served page), both navigating to the same
+           * `/settings?section=connections`.
+           *
+           * Neither was careless. `Quiet`'s action carries its own reasoning
+           * about being the door that leaves the page; this row carries its
+           * own about `Action` over `Approve` and why orchid is not spent on a
+           * navigation. **Each pass was right about the control it was looking
+           * at and neither could see the other**, which is law 20 exactly: a
+           * review checks a change against its own reason, and what no diff
+           * shows is what the change landed NEXT TO.
+           *
+           * The one that goes is this one, not `Quiet`'s, and the reason is
+           * the order a person reads in. Cutting `Quiet`'s would move the
+           * primary door BELOW four sentences of caveat about the sample --
+           * so somebody who wants the obvious thing has to read an argument
+           * about a thing they did not ask for first. Now each door sits
+           * directly under the sentence that argues for it: connect under
+           * "nothing is connected yet", switch under the paragraph about
+           * switching.
+           */}
+          {sampleOffered ? (
+            <Actions>
+              {/* THE VERB HAS TO MATCH THE EVENT. These labels read "Explore a
                  sample workspace" and "Opening the sample", and both words are
                  the preview reading that the code does not support: the mutation
                  makes the seeded workspace ACTIVE and persists that choice, so
                  "explore" and "open" promised a look through a window and
                  delivered a relocation. The labels name the switch now, so the
                  button, the line above it and `setActiveWorkspaceId` all describe
-                 the same thing happening. Label only: the wiring is untouched. */
+                 the same thing happening. Label only: the wiring is untouched. */}
               <Action busy={sampleMutation.isPending} onClick={() => sampleMutation.mutate()}>
                 {sampleMutation.isPending ? "Switching you over" : "Switch to the sample"}
               </Action>
-            ) : null}
-          </Actions>
+            </Actions>
+          ) : null}
         </div>
       ) : picking && focused ? (
         /* THE MERGE PICKER, in place. Productboard's link-to-feature move: the
