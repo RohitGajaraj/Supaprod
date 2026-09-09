@@ -146,6 +146,7 @@ import { CtxBody, CtxHead, CtxRow } from "@/components/meridian/ContextColumn";
 import { Surface } from "@/components/meridian/Surface";
 import { AgentMark, type MarkState } from "@/components/meridian/marks";
 import { SIGNED_IN_HOME } from "@/components/shell/post-auth-home";
+import { theSameCallAgain, sameCallLead } from "@/components/traces/the-same-call-again";
 
 export const Route = createFileRoute("/_authenticated/traces/$traceId")({
   component: TraceReplayPage,
@@ -600,6 +601,13 @@ export function TraceDetail({ id }: { id: string }) {
     return rows;
   }, [spans, toolCalls]);
 
+  /* One pass over the trace's calls, off the rows already loaded. See
+     `the-same-call-again.ts` for the trace this was read off and the 107
+     identical repeats across 79 traces that made it worth a surface. */
+  const repeats = React.useMemo(
+    () => theSameCallAgain(toolCalls.map((t) => ({ id: t.id, tool: t.tool_name, args: t.args }))),
+    [toolCalls],
+  );
   // Wall clock across both row kinds.
   const t0 = hopRows.length ? Math.min(...hopRows.map((r) => r.at)) : 0;
   const tEnd = hopRows.length
@@ -640,6 +648,10 @@ export function TraceDetail({ id }: { id: string }) {
   // uuid only) ride under the trace's agent slug.
   const traceAgentSlug =
     spans.find((s) => s.surface === "agent" && s.surface_ref)?.surface_ref ?? null;
+
+  /* Named here rather than beside `repeats` above, because the seat's display
+     name is resolved from the spans and this sentence says who repeated. */
+  const sameCallLine = sameCallLead(repeats, agentDisplayName(traceAgentSlug));
 
   // Every agent that touched this trace, with how many calls each made. A
   // handoff inside one trace is real and used to render as a single anonymous
@@ -915,6 +927,15 @@ export function TraceDetail({ id }: { id: string }) {
           onToggle={() => setShowCost((v) => !v)}
           toggled={showCost}
         >
+          {/*
+           * Said once, above the list, because a mark on three rows is
+           * something you find and a sentence is something you are told. It
+           * states the count and the tool and stops: a repeat is not always
+           * waste -- a poll, a re-read after a write, a check that a thing is
+           * still true are all legitimate -- and this page reads `tool_calls`
+           * and cannot tell which it is looking at.
+           */}
+          {sameCallLine ? <p className="mrd-meta mb-mrd-3">{sameCallLine}</p> : null}
           {hopRows.map((r) => {
             const isSel =
               selected != null &&
@@ -1008,6 +1029,29 @@ export function TraceDetail({ id }: { id: string }) {
                 lead={
                   <>
                     <Who>{actor}</Who> ran <Num>{t.tool_name}</Num>
+                    {/*
+                     * ── THE SAME CALL AGAIN, MARKED ON THE ROW ─────────────
+                     *
+                     * Four rows on `0588c262` read "Research ran signals.list
+                     * · last 90 days · 0 results" and every one was TRUE, so
+                     * nothing on the page was wrong and nothing on the page
+                     * could be read. Their sameness was the finding: the
+                     * model's thoughts between them describe four different
+                     * searches and the stored arguments are byte identical,
+                     * because `signals.list` takes no query.
+                     *
+                     * Marked rather than folded. The row keeps its clock, its
+                     * result and its detail pane, and a reader scanning the
+                     * list sees which calls were the same at a glance -- which
+                     * is the question the lead above invites and which folding
+                     * them away would make unanswerable. Same reasoning as the
+                     * transcript's clamp, one layer down.
+                     */}
+                    {repeats.repeated.has(t.id) ? (
+                      <span className="ml-mrd-2 text-mrd-small text-mrd-faint">
+                        same call as before
+                      </span>
+                    ) : null}
                   </>
                 }
                 sub={
