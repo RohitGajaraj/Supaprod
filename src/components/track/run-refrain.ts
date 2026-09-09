@@ -26,6 +26,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { getTrackActivity } from "@/lib/spine/track.functions";
 import { whatItKeepsSaying, type Refrain } from "@/lib/spine/what-it-keeps-saying";
+import { theBlockerItAlreadyNamed, type Blocker } from "@/lib/spine/the-blocker-it-already-named";
 import { hasLiveVisit } from "@/components/spine/TrackActivity";
 
 /**
@@ -35,7 +36,11 @@ import { hasLiveVisit } from "@/components/spine/TrackActivity";
  * statement about a set of turns, and there is no set yet. Nothing renders, and
  * nothing reflows into place except the sentence itself once it is known.
  */
-export function useRefrain(trackId: string): { refrain: Refrain | null; live: boolean } {
+export function useRefrain(trackId: string): {
+  refrain: Refrain | null;
+  blocker: Blocker | null;
+  live: boolean;
+} {
   const fActivity = useServerFn(getTrackActivity);
   const activity = useQuery({
     queryKey: ["track-activity", trackId],
@@ -53,5 +58,18 @@ export function useRefrain(trackId: string): { refrain: Refrain | null; live: bo
    * the transcript's poll rate and the footer all read it -- so the story
    * cannot claim a seat is working while the chip beside it says stopped.
    */
-  return { refrain: whatItKeepsSaying(turns), live: hasLiveVisit(turns) };
+  /*
+   * ── AND THE BLOCKER, OFF THE SAME READ, FOR THE SAME REASON ───────────────
+   * `theBlockerItAlreadyNamed` asks a different question of these turns -- not
+   * "what is it saying now" but "where did it first hit a wall it told us
+   * about" -- and on the measured run the two answers are different stations
+   * and different facts. Both come from `turns`, so both come from here: a
+   * second hook over one cache entry is two places that can disagree about a
+   * run, which is the defect this file was written to avoid.
+   */
+  return {
+    refrain: whatItKeepsSaying(turns),
+    blocker: theBlockerItAlreadyNamed(turns),
+    live: hasLiveVisit(turns),
+  };
 }

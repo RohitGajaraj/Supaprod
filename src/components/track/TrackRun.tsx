@@ -93,6 +93,7 @@ import { useRunTally } from "@/components/track/run-tally";
 import { ThroughLine } from "@/components/track/ThroughLine";
 import { useRefrain } from "@/components/track/run-refrain";
 import { refrainLead } from "@/lib/spine/what-it-keeps-saying";
+import { blockerLead, refrainStillSaysSomething } from "@/lib/spine/the-blocker-it-already-named";
 import { stoppedByYou } from "@/components/track/footer-mode";
 import {
   waitingOnTime,
@@ -1196,7 +1197,7 @@ export function TrackRunLeft({
    * costs no round trip; see `run-refrain.ts` for why it is a hook rather than a
    * callback lifted out of `TrackActivity`.
    */
-  const { refrain } = useRefrain(trackId);
+  const { refrain, blocker } = useRefrain(trackId);
   /* The station's own retry stands down wherever pressing it changes nothing:
      a call is in front of the person, the preview is what stopped Ship, or
      nothing will pick the work up again. */
@@ -1274,7 +1275,40 @@ export function TrackRunLeft({
            * sentence twice, which is the defect this file has been repaired
            * for three times today.
            */}
-          {refrain ? <HoldFact>{refrainLead(refrain)}</HoldFact> : null}
+          {/*
+           * ── THE WALL IT HIT FIRST, ABOVE THE LOOP IT ENDED IN ─────────────
+           *
+           * Measured on `6cc7a010`, 2026-09-09. Build reported "No repository
+           * is connected for this workspace... Please bind a repository on
+           * Connectors" SIX times, from two seats, across forty minutes. The
+           * loop answered by sending the work backwards to Plan and then to
+           * Design, where twelve turns burned the remaining credit and halted.
+           *
+           * The card said: *"Design has been run many times over and the work
+           * has not moved on once. That is the loop rather than any single
+           * run"*, and offered *"Send it back a step so it starts from
+           * different ground."* Sending it back a step is what had already
+           * happened three times and is what produced the loop. **The one act
+           * that changes the outcome was written in plain English six times and
+           * reached no surface.**
+           *
+           * So it goes FIRST, above the refrain, because a wall is the cause
+           * and a loop is the shape the cause made. The quote is the agent's
+           * own, not a summary: it ends in an instruction more specific than
+           * anything this screen knows, and the machinery has nothing to add
+           * over a sentence written by the seat that actually tried.
+           *
+           * ── AND THE REFRAIN STILL RENDERS, WHEN IT IS ABOUT SOMEWHERE ELSE ─
+           * On this run both are true and a person needs both: it cannot start
+           * Build, AND it is out of credit at Design. Suppressing the second
+           * would hide a real thing. What is suppressed is the case where they
+           * are the SAME station -- then the refrain is this fact again in
+           * fewer words, and the count is already in the lead above.
+           */}
+          {blocker ? <HoldFact sub={`“${blocker.said}”`}>{blockerLead(blocker)}</HoldFact> : null}
+          {refrain && refrainStillSaysSomething(blocker, track?.station) ? (
+            <HoldFact>{refrainLead(refrain)}</HoldFact>
+          ) : null}
           {now.register === "working" && presences.length > 0 ? (
             <ul aria-label="Working on this now" className="flex flex-col gap-mrd-2">
               {presences.map((a) => {
