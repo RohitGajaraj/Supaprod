@@ -1362,7 +1362,29 @@ export type StartRun = {
    * times in a row, 612ms each, and the one sentence the home and the run
    * screen gave a person was about the work going round in circles.
    */
-  stoppedBecause: { kind: string; at: string } | null;
+  stoppedBecause: {
+    kind: string;
+    at: string;
+    /**
+     * ── THE WALL CAME DOWN AND NOTHING TOLD ANYBODY ─────────────────────────
+     *
+     * True only for `out_of_credit`, and only when the workspace's account
+     * holds credit NOW. Every other wall stays false: a kill switch and a
+     * spend cap are not undone by a balance.
+     *
+     * MEASURED 2026-09-10. `6cc7a010` halted twelve times on 2026-09-04 with
+     * the account at 13 credits. That account holds 5,249 today, with a 10,000
+     * top-up. The wall is gone, the run has not moved for six days, and it
+     * never will: `going-in-circles` is in `TERMINAL_HOLDS`, so the sweep
+     * refuses it by design and only a person can start it again. Until this
+     * flag there was nothing anywhere that could tell them it was worth it.
+     *
+     * FALSE IS THE SAFE ANSWER AND IT IS THE ONE A REFUSAL GIVES. If RLS
+     * returns no row for an account the reader does not own, the row degrades
+     * to naming the wall without claiming it has lifted, which is still true.
+     */
+    gone: boolean;
+  } | null;
 };
 
 /**
@@ -1464,7 +1486,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
         let tracksQuery = supabase
           .from("spine_tracks" as never)
           .select(
-            "id,title,station,status,updated_at,driven_at,last_hold,last_hold_because,pending_gates,spine_track_members(artifact_kind)",
+            "id,title,station,status,updated_at,driven_at,last_hold,last_hold_because,pending_gates,spine_track_members(artifact_kind),workspaces(account_id)",
           );
         /*
          * ONLY WHEN IT IS KNOWN. A caller whose default workspace cannot be
@@ -1482,7 +1504,19 @@ export const listRunsForStart = createServerFn({ method: "GET" })
           .limit(50);
         if (error) failSoftOrThrow(error, "Your runs");
         const rows = (data ?? []) as unknown as Array<
-          StartTrackRow & { spine_track_members?: Array<{ artifact_kind: string }> }
+          StartTrackRow & {
+            spine_track_members?: Array<{ artifact_kind: string }>;
+            /*
+             * ONE UUID PER ROW, EMBEDDED RATHER THAN FETCHED. The wallet a
+             * halt was recorded against belongs to the WORKSPACE, not to
+             * whoever is reading -- so resolving it from the reader's default
+             * account would read the wrong balance on any track they can see
+             * and do not own. PostgREST folds this into the base read, so it
+             * is 50 uuids and no round trip, the same shape the members embed
+             * above already uses.
+             */
+            workspaces?: { account_id: string | null } | null;
+          }
         >;
         if (rows.length === 0) return [];
 
@@ -1553,6 +1587,7 @@ export const listRunsForStart = createServerFn({ method: "GET" })
           liveByTrack,
           creditsByTrack,
           haltByTrack,
+          creditByAccount,
         ] = await Promise.all([
           (async () => {
             const byTrack = new Map<string, { tool: string }>();
@@ -1926,6 +1961,52 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             }
             return byTrack;
           })(),
+          (async () => {
+            /*
+             * ── DOES THE WALLET THAT REFUSED THIS RUN HOLD ANYTHING NOW ────
+             *
+             * One round trip, concurrent, over the handful of accounts the 50
+             * listed tracks belong to -- almost always exactly one. The account
+             * ids ride the base read's embed, so this needs no hop to resolve
+             * them.
+             *
+             * `balance + topup > 0` and nothing cleverer. This answers one
+             * question -- is there money -- and the moment it tried to answer
+             * "is there ENOUGH for the next run" it would need the projected
+             * cost of a run that has not been planned, which is a number
+             * nobody has. Enough-to-try is the honest bar for a sentence whose
+             * whole job is telling a person the door is worth pushing again.
+             *
+             * A REFUSED OR EMPTY READ LEAVES EVERY ACCOUNT ABSENT, which reads
+             * as "no credit known" and suppresses the claim rather than making
+             * it. Naming the wall without saying it lifted is still true.
+             */
+            const byAccount = new Map<string, boolean>();
+            const accountIds = [
+              ...new Set(
+                rows
+                  .map((r) => r.workspaces?.account_id)
+                  .filter((a): a is string => typeof a === "string" && a.length > 0),
+              ),
+            ];
+            if (accountIds.length === 0) return byAccount;
+            const { data: creds, error: credErr } = await supabase
+              .from("account_credits")
+              .select("account_id, balance_credits, topup_credits")
+              .in("account_id", accountIds);
+            if (credErr) {
+              console.error(`[listRunsForStart] credit balance read failed: ${credErr.message}`);
+              return byAccount;
+            }
+            for (const c of (creds ?? []) as Array<{
+              account_id: string;
+              balance_credits: number | null;
+              topup_credits: number | null;
+            }>) {
+              byAccount.set(c.account_id, (c.balance_credits ?? 0) + (c.topup_credits ?? 0) > 0);
+            }
+            return byAccount;
+          })(),
         ]);
 
         return rows.map((r) => {
@@ -1963,7 +2044,17 @@ export const listRunsForStart = createServerFn({ method: "GET" })
             forecast: forecastByTrack.get(r.id) ?? null,
             liveSince: liveByTrack.get(r.id) ?? null,
             credits: creditsByTrack.get(r.id) ?? null,
-            stoppedBecause: haltByTrack.get(r.id) ?? null,
+            stoppedBecause: (() => {
+              const halt = haltByTrack.get(r.id);
+              if (!halt) return null;
+              /* ONLY THE WALLET WALL LIFTS WITH A BALANCE. A kill switch and a
+                 spend cap are decisions, not shortages, and topping up undoes
+                 neither. */
+              const account = r.workspaces?.account_id ?? null;
+              const gone =
+                halt.kind === "out_of_credit" && !!account && creditByAccount.get(account) === true;
+              return { ...halt, gone };
+            })(),
           };
         });
       } catch (e) {
