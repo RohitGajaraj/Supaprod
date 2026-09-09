@@ -157,6 +157,8 @@ import {
   CHOICE_OUTSTANDING_REFUSAL,
   R39_REFUSAL,
   type CarriedEvidence,
+  alreadyDeclinedRefusal,
+  type PriorDecision,
 } from "@/lib/spine/a-call-on-your-sentence-is-yours-to-make";
 
 export type ToolCtx = {
@@ -6194,6 +6196,34 @@ const decisionRecord = def({
       const evidence = await carriedEvidenceFor(supabase, trackId, workspaceId);
       if (!seatMayDecide({ carried: footingIsCarried(evidence), known: evidence.known })) {
         throw new Error(CARRIED_DECISION_REFUSAL);
+      }
+    }
+
+    /*
+     * ── AND IT DOES NOT DECIDE AGAIN WHAT IT ALREADY DECIDED ──────────────
+     *
+     * Track d2263583 spent three hours fifty-one minutes and about 2,289
+     * credits proposing and declining the same call every ten minutes,
+     * thirteen declines in fourteen decisions, each with a full rationale and
+     * three alternatives (measured 2026-09-09). The record was there to read.
+     * Narrow on purpose: the same title, on this track, already declined.
+     */
+    if (trackId) {
+      const { data: memberRows } = await supabase
+        .from("spine_track_members" as never)
+        .select("artifact_id")
+        .eq("track_id", trackId)
+        .eq("artifact_kind", "decision");
+      const priorIds = ((memberRows ?? []) as unknown as Array<{ artifact_id: string | null }>)
+        .map((m) => m.artifact_id)
+        .filter((id): id is string => !!id);
+      if (priorIds.length > 0) {
+        const { data: priors } = await supabase
+          .from("decisions")
+          .select("title,status,rationale")
+          .in("id", priorIds);
+        const refusal = alreadyDeclinedRefusal(a.title, (priors ?? []) as PriorDecision[]);
+        if (refusal) throw new Error(refusal);
       }
     }
 

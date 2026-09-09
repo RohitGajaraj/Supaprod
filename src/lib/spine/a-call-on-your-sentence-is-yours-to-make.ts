@@ -269,3 +269,57 @@ export function seatMayDecide(input: { carried: boolean; known: boolean }): bool
   if (!input.known) return true;
   return !input.carried;
 }
+
+/**
+ * ── A STATION THAT ALREADY DECIDED THIS DOES NOT DECIDE IT AGAIN ─────────────
+ *
+ * Measured on track `d2263583` (Lane 2, 2026-09-09): fourteen decisions, five
+ * distinct titles, THIRTEEN of them declined. The strategist proposes, the
+ * critic declines for want of A/B evidence, and the pair repeat that exchange
+ * every ten minutes from 13:41 to 17:31, three hours fifty-one minutes and
+ * about 2,289 credits, each repeat carrying a full rationale and three
+ * alternatives so both seats are doing real work to reach the same refusal.
+ * Across production: 60 decisions on 29 tracks, 20 declined, on 8 of them.
+ *
+ * It is the same shape as a critic re-filing the drawing it just reviewed: a
+ * station with no memory that it already decided this. The record is right
+ * there, so the tool reads it. What it refuses is narrow on purpose: the SAME
+ * TITLE on this track, already declined. A different call, or the same call
+ * with a title that says what changed, still records; and the refusal quotes
+ * the decline's own reason, so the seat is told what to address rather than
+ * only that it may not proceed.
+ */
+export type PriorDecision = {
+  title: string | null;
+  status: string | null;
+  rationale: string | null;
+};
+
+/** Trimmed, case-folded, inner whitespace collapsed: the same call typed twice. */
+function sameTitle(a: string, b: string | null): boolean {
+  if (!b) return false;
+  const norm = (t: string) => t.trim().toLowerCase().replace(/\s+/g, " ");
+  return norm(a) === norm(b);
+}
+
+/**
+ * The refusal for a decision this track already declined under this title, or
+ * null when there is none. PURE, so the sentence a seat reads is testable
+ * without a database.
+ */
+export function alreadyDeclinedRefusal(
+  title: string,
+  priors: readonly PriorDecision[] | null | undefined,
+): string | null {
+  const declined = (priors ?? []).find(
+    (d) => (d.status ?? "").trim().toLowerCase() === "declined" && sameTitle(title, d.title),
+  );
+  if (!declined) return null;
+  const why = (declined.rationale ?? "").trim();
+  return (
+    `This track already decided "${declined.title}" and it was declined. ` +
+    (why ? `The reason on the record: ${why} ` : "") +
+    "Recording it again unchanged reaches the same refusal and spends another lap to get there. " +
+    "Either address that reason and say so in the title, or make a different call."
+  );
+}
