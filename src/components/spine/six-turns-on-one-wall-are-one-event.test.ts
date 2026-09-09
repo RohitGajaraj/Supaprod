@@ -306,6 +306,10 @@ describe("what six rows became", () => {
     if (item.kind !== "repeat" || item.row.kind !== "turn") throw new Error("not folded");
     const { lead, meta } = foldedLines(item.row.turn, item.seats, item.count, "09:10", "11:00");
     expect(lead).toContain("Design");
-    expect(meta).toBe("3 times, 09:10 to 11:00");
+    // "turns", not "times": on the run this was read off, the road said Design
+    // filed "1 prototype, 3 times" 300px above this row saying 12 -- one word
+    // for two units, which a stranger read as a contradiction. See
+    // `a-turn-is-not-a-filing.ts`.
+    expect(meta).toBe("3 turns, 09:10 to 11:00");
   });
 });

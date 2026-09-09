@@ -99,7 +99,7 @@ describe("what a run keeps saying", () => {
     expect(r!.saying).toBe(WRONG_REPO);
     expect(r!.seats).toEqual(["Review", "Engineer"]);
     expect(refrainLead(r!)).toBe(
-      "Review and Engineer said this 6 times, and filed nothing on any of them.",
+      "Review and Engineer said this in 6 turns, and filed nothing in any of them.",
     );
   });
 
@@ -184,7 +184,7 @@ describe("what a run keeps saying", () => {
       turn({ agentName: "Draft", said: WRONG_REPO }),
       turn({ agentName: "Critique", said: WRONG_REPO }),
     ]);
-    expect(refrainLead(r!)).toBe("4 seats said this 4 times, and filed nothing on any of them.");
+    expect(refrainLead(r!)).toBe("4 seats said this in 4 turns, and filed nothing in any of them.");
   });
 });
 

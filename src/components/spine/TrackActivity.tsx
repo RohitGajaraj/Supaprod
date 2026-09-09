@@ -113,6 +113,7 @@ import {
   formatElapsed,
 } from "@/components/meridian/run-rows";
 import { StatusChip } from "@/components/meridian/StatusChip";
+import { inTurns } from "@/lib/spine/a-turn-is-not-a-filing";
 import { useElapsed } from "@/components/meridian/use-elapsed";
 import {
   Chevron,
@@ -321,7 +322,7 @@ export function foldedLines(
         : `${seats.length} seats`;
   const turns = `${count} turns, ${from} to ${to}`;
   return who === null
-    ? { lead: transcriptLead(t), meta: `${count} times, ${from} to ${to}` }
+    ? { lead: transcriptLead(t), meta: `${inTurns(count)}, ${from} to ${to}` }
     : { lead: `${headline(t)}.`, meta: `${who} · ${turns}` };
 }
 

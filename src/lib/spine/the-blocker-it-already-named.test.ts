@@ -123,7 +123,7 @@ describe("the blocker the run already named", () => {
 
   it("says who and how often, and nothing about what to do", () => {
     const lead = blockerLead(theBlockerItAlreadyNamed(RUN)!);
-    expect(lead).toBe("Engineer and Review could not start Build, 6 times.");
+    expect(lead).toBe("Engineer and Review could not start Build, in 6 turns.");
     // The agent's own sentence ends in an instruction more specific than
     // anything this function knows. A second imperative over the top of it is
     // the machinery talking over the only voice that had actually tried.

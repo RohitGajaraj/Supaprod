@@ -73,6 +73,7 @@
  * to be better than anything the machinery could say about it.
  */
 import { claimOf, containment, MIN_CONTAINMENT } from "@/lib/spine/what-it-keeps-saying";
+import { inTurns } from "@/lib/spine/a-turn-is-not-a-filing";
 import { whatASeatActuallySaid } from "@/lib/spine/what-a-seat-actually-said";
 
 /** One turn, as `getTrackActivity` already returns it. */
@@ -320,7 +321,7 @@ export function blockerLead(b: Blocker): string {
         : `${b.seats.length} seats`;
   return b.turns === 1
     ? `${who} could not start ${b.stationName}.`
-    : `${who} could not start ${b.stationName}, ${b.turns} times.`;
+    : `${who} could not start ${b.stationName}, in ${inTurns(b.turns)}.`;
 }
 
 /**

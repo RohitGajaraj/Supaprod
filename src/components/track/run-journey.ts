@@ -22,6 +22,7 @@
  * Pure. Takes the artifact stops the pane already polls, the track, and the
  * live facts the transcript already lifts.
  */
+import { filedTimes } from "@/lib/spine/a-turn-is-not-a-filing";
 import type { JourneyStation, JourneyState } from "@/components/meridian/Journey";
 import type { StationArtifactView } from "@/lib/spine/track.functions";
 import type { AgentStation } from "@/lib/agent-vocabulary";
@@ -151,7 +152,7 @@ export function journeyOutcome(
       const distinct = foldVersions(found).length;
       return distinct === found.length
         ? plural(found.length, "signal")
-        : `${plural(distinct, "signal")}, ${found.length} times`;
+        : `${plural(distinct, "signal")}, ${filedTimes(found.length)}`;
     }
     case "decide": {
       const d = newest(stop, "decision");
@@ -178,11 +179,11 @@ export function journeyOutcome(
          twice still reads as one spec written -- with how often, because a
          station that wrote the same spec twice did not write one spec. */
       if (distinct === 1) {
-        return specs.length === 1 ? "spec written" : `spec written, ${specs.length} times`;
+        return specs.length === 1 ? "spec written" : `spec written, ${filedTimes(specs.length)}`;
       }
       return distinct === specs.length
         ? plural(specs.length, "prd")
-        : `${plural(distinct, "prd")}, ${specs.length} times`;
+        : `${plural(distinct, "prd")}, ${filedTimes(specs.length)}`;
     }
     case "design": {
       /*
@@ -218,7 +219,7 @@ export function journeyOutcome(
          on a jam the repetition is the signal a person needs from the road. */
       return distinct === drawings.length
         ? plural(drawings.length, "prototype")
-        : `${plural(distinct, "prototype")}, ${drawings.length} times`;
+        : `${plural(distinct, "prototype")}, ${filedTimes(drawings.length)}`;
     }
     case "build": {
       const c = newest(stop, "changeset");

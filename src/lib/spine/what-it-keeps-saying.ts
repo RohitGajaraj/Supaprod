@@ -59,6 +59,7 @@
  * Pure and dependency-free but for the prose cleaner, the same split
  * `activity.ts`, `route.ts` and `driver.ts` use.
  */
+import { inTurns } from "@/lib/spine/a-turn-is-not-a-filing";
 import { plainProse } from "@/lib/plain-prose";
 import { humanizeText } from "@/lib/ai/humanize";
 
@@ -382,5 +383,5 @@ export function refrainLead(r: Refrain): string {
       : r.seats.length === 2
         ? `${r.seats[0]} and ${r.seats[1]}`
         : `${r.seats.length} seats`;
-  return `${who} said this ${r.turns} times, and filed nothing on any of them.`;
+  return `${who} said this in ${inTurns(r.turns)}, and filed nothing in any of them.`;
 }
