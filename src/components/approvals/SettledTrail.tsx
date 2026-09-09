@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import type { SettledDoor } from "@/components/approvals/what-your-verdict-caused";
+
 /*
  * WHAT YOU SETTLED, this session. Drawn in Meridian.
  *
@@ -45,6 +47,12 @@ export type SettledLine = {
   /** Clock time, so a long session can tell two identical calls apart. */
   at: string;
   failed?: boolean;
+  /**
+   * Where to go and see it, when the call sat on a run we can both link and
+   * name. Null is the ordinary case, not a hole: every gate family but the
+   * tool call is raised on no run at all.
+   */
+  door?: SettledDoor | null;
 };
 
 export function SettledTrail({ lines }: { lines: SettledLine[] }) {
@@ -82,6 +90,31 @@ export function SettledTrail({ lines }: { lines: SettledLine[] }) {
             <span className="font-mrd-mono ml-auto shrink-0 text-mrd-small tabular-nums text-mrd-faint">
               {line.at}
             </span>
+            {/*
+             * ── THE DOOR, ON ITS OWN ROW AND NOT IN THE SENTENCE ───────────
+             *
+             * `basis-full` breaks the flex line, so the confirmation keeps its
+             * shape -- verb, consequence, clock hard right -- and the door sits
+             * under it rather than pushing the clock around at every title
+             * length. The confirmation is the answer to what you just did; the
+             * door is an offer, and an offer that reflows the record it sits
+             * under is reading as part of it.
+             *
+             * Indented to the consequence rather than the verb: it belongs to
+             * what your verdict caused, which is the column it lines up with.
+             *
+             * Same treatment as the pending card's own run door (`CallContext`)
+             * on purpose -- one link, one underline, one hover -- because a
+             * person who followed that door recognises this one.
+             */}
+            {line.door ? (
+              <a
+                href={line.door.href}
+                className="mrd-focus mt-1 basis-full rounded-mrd-ctl text-mrd-small text-mrd-mute underline decoration-mrd-line underline-offset-4 transition-colors hover:text-mrd-ink hover:decoration-mrd-edge"
+              >
+                {line.door.lead}: {line.door.title}
+              </a>
+            ) : null}
           </li>
         ))}
       </ul>
