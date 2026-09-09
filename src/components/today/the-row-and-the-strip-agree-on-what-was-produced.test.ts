@@ -48,6 +48,26 @@
  * row means fetching a title for every member of every track in the feed. That
  * is a real payload decision on a list read, on a surface Lane 1 owns. Filed
  * with both lanes rather than taken.
+ *
+ * ── AND `superseded_at` IS NOT THE FREE VERSION OF IT ─────────────────────
+ * The obvious cheap fix is to count only members with a null `superseded_at`:
+ * the column is already on the row, needs no join, and reads like the record's
+ * own answer to "is this still the current one". **It is not.** Measured:
+ *
+ *   track       filed   still standing   distinct titles
+ *   47dcbf3c      67          67                4
+ *   6ff86b03     148         148               19
+ *   425e6887     125          59               12
+ *
+ * On two of the three NOTHING is superseded while the titles repeat seventeen
+ * times over. Supersession tracks lineage replacement -- one artifact standing
+ * in for another -- and a station filing the same finding again does not
+ * supersede anything. The two questions look identical from the column name and
+ * are not the same question.
+ *
+ * Recorded so the next person does not run this query, and because reaching for
+ * `superseded_at` here would have shipped a fold that folds almost nothing on
+ * the tracks that need it most.
  */
 import { describe, it, expect } from "bun:test";
 import { startRowMiddle, type StartRowInput } from "./tracks-feed";
