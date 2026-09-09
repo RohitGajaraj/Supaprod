@@ -722,28 +722,16 @@ it will pass its own tests.** The honest move when you cannot name the fact is t
 missing field, not to loosen the census. Lane 2 built nothing and filed the field, which is the
 right call and the harder one.
 
+**AND ITS SIBLING IS LAW 20.** This law is about elements that collide at one moment. Law 20 is about
+a defect CREATED by a correct change to one of them, which is the commoner half and the one a review
+cannot catch. Read both: internalising only this one still ships the paint collision law 20 opens on.
+
 **The evidence is better than the argument.** Three censuses exist and every one of them caught
 something before anybody needed it to: the tally census found nine emitters where four had been
 counted by eye, and three more emitting into nothing; the register census found the twelfth; and the
 surface registry failed a new file on its author before they had decided where it belonged. **A guard
 that fails on its first run is the only kind anyone trusts afterwards.**
 
-**THE SAME DEFECT ACROSS TIME, AND IT IS THE COMMONER HALF.** Law 14 above is about elements that
-collide at one moment. Three sightings in one night were the other shape: **a change that is
-individually correct, landing somewhere nobody intended.**
-
-| The change | Why it was right | Where it landed |
-| --- | --- | --- |
-| `stopped` moved onto the you-chip fill | Measured greyscale argument; correctly closed `held`/`failed` | Byte-identical to `you`. Three runs needing an answer and two that gave up became one pixel. |
-| `Mission completed:` prefix removed from `decisions.title` | Provenance belongs in `source_kind`, and the queue already renders it | The title now equalled `source_label`, so the Inbox card ended in "From \<its own title\>". |
-| "0 ask first" omitted at zero | Nobody says "0 ask first"; an absence dressed as a measurement | Left "16 run without asking you" directly under "16 agents work here." |
-
-**Every one was reviewed against its own reason, and every reason was sound.** What no diff shows is
-the state the change ARRIVES AT. So the rule is the same as law 14's and it applies to edits rather
-than to screens: after changing a value other things compare against — a colour, a title, a
-threshold, a clause — go and read the ENDPOINT. For a paint table that means comparing every pair,
-not the pair you touched. For a string it means finding everything that compares it. **The question
-is never "was this change right" but "what now looks the same that did not before".**
 
 ### 15. A delta needs a whole to be a delta of
 
@@ -815,6 +803,37 @@ Strip comments. **Never strip strings**: a guard of mine stripped string literal
 literal it was hunting, found zero call sites and passed on a file that still held the defect. And
 the standing rule that catches all of it — **a guard nobody has watched fail is not evidence.** Break
 the code, watch the assertion go red, put it back.
+
+### 20. The review boundary is the change. The defect is at the destination.
+
+Added 2026-09-10, from four sightings in one night, three of them ours and one Lane 2's. It is kept
+separate from law 14 deliberately: **14 says a defect can live BETWEEN two elements at one moment;
+this says a defect can be CREATED by a correct change to one of them.** Same mitigation, different
+thing to be alert to, and a reader who has only internalised 14 will still ship the first row below.
+
+| The change | Why it was right | Where it landed |
+| --- | --- | --- |
+| `stopped` moved onto the you-chip fill | Measured greyscale argument; correctly closed `held`/`failed` | Byte-identical to `you`. Three runs needing an answer and two that gave up became one pixel. |
+| `Mission completed:` prefix removed from `decisions.title` | Provenance belongs in `source_kind`, and the queue already renders it | The title now equalled `source_label`, so the Inbox card ended in "From \<its own title\>". |
+| "0 ask first" omitted at zero | Nobody says "0 ask first"; an absence dressed as a measurement | Left "16 run without asking you" directly under "16 agents work here." |
+| `theQuoteAlreadySaidIt` compared the blocker's STATION to where the run stands | Same station, same fact, suppress | The blocker was at Build with the run standing at Design, so it kept the sentence — two lines under the quote it was written to suppress. |
+
+**Every one was reviewed against its own reason, and every reason was sound.** The fourth is the
+clearest: the change and the damage were four hours apart in the same file, by the author who had
+just built the rule to prevent exactly that.
+
+**Why they all passed review.** A diff shows you what MOVED. Nothing shows you what it landed NEXT
+TO. Every reviewer, ourselves included, was reading the thing that changed — which is what a review
+is for, and why a review cannot catch this.
+
+**So the mitigation is not "be careful", it is mechanical: when you change a value in a shared table,
+the thing to look at is every OTHER value in that table, not the one you touched.**
+`no-two-states-look-the-same.test.ts` is that made automatic, and it is the strongest argument for
+the shape: it would have caught the paint collision at the moment of the move, with nobody looking
+at `you` at all.
+
+For an edit that is not in a table: find everything that COMPARES the value you changed. The question
+is never *"was this change right"* but ***"what now looks the same that did not before"***.
 
 ### 19. OPEN PAIR: `you` and `stopped` are one pixel, and every channel is spoken for
 
