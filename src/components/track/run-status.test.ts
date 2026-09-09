@@ -88,7 +88,15 @@ describe("what the run header claims", () => {
       "going-in-circles",
     ]) {
       const s = runStatus(at({ holdReason }));
-      expect({ holdReason, word: s?.word }).toEqual({ holdReason, word: "Needs a restart" });
+      /*
+       * WAS "Needs a restart" UNTIL 2026-09-09. A status chip names the STATE
+       * and the remedy has a home in the footer's press; the founder
+       * photographed this chip beside the card's own "Stopped", 400px apart,
+       * both in the `you` hue, one state wearing two words. Three of the five
+       * surfaces that describe this state already said stopped, including the
+       * road's own node state, so this moved to them rather than the reverse.
+       */
+      expect({ holdReason, word: s?.word }).toEqual({ holdReason, word: "Stopped" });
       // A pulse is motion, and the sweep has dropped this track entirely.
       expect(s?.pulse).toBe(false);
       // Still the person's to act on, so the tone does not soften to "hold".

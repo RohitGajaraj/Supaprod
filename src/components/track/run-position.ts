@@ -307,7 +307,9 @@ export function runPosition(
          * footer, the header chip, the browser tab, the run heading, the
          * open-work list and the way out all read. A terminal hold is `held`,
          * which RunMap already chips as "On hold" -- coarser than the footer's
-         * "Needs a restart" and not in conflict with it, where "Needs you" was.
+         * "Stopped" and not in conflict with it, where "Needs you" was. (That
+         * word was "Needs a restart" until 2026-09-09; the chip stopped naming
+         * an act and started naming the state.)
          */
         if (nothingIsComing(track.holdReason)) {
           stops.push({ station, state: "held", hold: track.holdReason, ...said(station) });
