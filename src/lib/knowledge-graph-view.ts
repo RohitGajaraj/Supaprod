@@ -485,10 +485,26 @@ export function isSuperseding(relation: string): boolean {
   return relation === "supersedes" || relation === "contradicts";
 }
 
+/**
+ * The kind and id a `kind:id` key carries.
+ *
+ * CENSUSED 2026-09-09 (Lane 1's `sourceMark` find: a cast doing a check's
+ * job). This one is a cast, and it stays one, with its reason stated rather
+ * than left silent. The keys are assembled by this module's own writers from
+ * `GRAPH_NODE_KINDS`, so an unknown kind means the graph's own round trip is
+ * broken, which is a different fault from a caller sending rubbish. The
+ * honest response is neither to drop the node, which hides one that exists,
+ * nor to draw it as a kind that does not exist and say nothing. It is to say
+ * so: the check is here and it reports, and the value passes through unchanged
+ * so the drawing is exactly what it was.
+ */
 function parseKey(key: string): { kind: GraphNodeKind; id: string } {
   const idx = key.indexOf(":");
-  if (idx < 0) return { kind: key as GraphNodeKind, id: "" };
-  return { kind: key.slice(0, idx) as GraphNodeKind, id: key.slice(idx + 1) };
+  const raw = idx < 0 ? key : key.slice(0, idx);
+  if (!(GRAPH_NODE_KINDS as readonly string[]).includes(raw)) {
+    console.error(`knowledge graph: key "${key}" carries a kind nothing defines: "${raw}"`);
+  }
+  return { kind: raw as GraphNodeKind, id: idx < 0 ? "" : key.slice(idx + 1) };
 }
 
 /**

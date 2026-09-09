@@ -8,6 +8,26 @@
 
 export type SelfImproveMode = "auto" | "scheduled" | "off";
 
+/**
+ * The mode a row actually holds, or the default. The column carries no CHECK,
+ * so its value is whatever was written; reading it as `(row.mode as
+ * SelfImproveMode) ?? "scheduled"` was a claim rather than a check, and `??`
+ * guards only null, so any other string arrived typed as a mode and was handed
+ * to the surface that renders it (2026-09-09, the census Lane 1's sourceMark
+ * find prompted). The consequence here was mild, because `mayAutoApply`
+ * demands `mode === "auto"` and an unknown value fails closed, which is the
+ * safe direction; it is narrowed anyway, because a value that reaches a
+ * surface should be one the type admits, and the next reader may not be
+ * asking the safe question.
+ *
+ * The list is the type's own, so adding a mode cannot leave the check behind.
+ */
+export function asSelfImproveMode(value: unknown, fallback: SelfImproveMode): SelfImproveMode {
+  return typeof value === "string" && (SELF_IMPROVE_MODES as readonly string[]).includes(value)
+    ? (value as SelfImproveMode)
+    : fallback;
+}
+
 export const SELF_IMPROVE_MODES: readonly SelfImproveMode[] = ["auto", "scheduled", "off"];
 
 /** Scheduled mode enriches open flags no more often than this. Bounds AI spend. */

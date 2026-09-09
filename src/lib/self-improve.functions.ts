@@ -33,6 +33,7 @@ import {
   computeStaleness,
   type SelfImproveMode,
   type StalenessNudge,
+  asSelfImproveMode,
 } from "@/lib/self-improve-governance";
 
 const PLAYBOOK_STATIONS: readonly PlaybookStation[] = [
@@ -685,7 +686,7 @@ export const getSelfImproveSettings = createServerFn({ method: "POST" })
       .select("mode,last_auto_run_at,last_human_touch_at")
       .eq("workspace_id", data.workspaceId)
       .maybeSingle();
-    const mode = ((row?.mode as SelfImproveMode) ?? "scheduled") as SelfImproveMode;
+    const mode = asSelfImproveMode(row?.mode, "scheduled");
 
     // Open flags = deterministic flags firing NOW that no human/tick has applied.
     let openFlagCount = 0;
