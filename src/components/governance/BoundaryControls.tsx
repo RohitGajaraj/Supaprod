@@ -725,7 +725,7 @@ export function BoundaryControls({
    *   has done these 412 times without asking in the last 30 days. The most
    *   recent was Commit code. 16 of these are set to come to you first and will
    *   not, because every agent starts out running alone except on the risky
-   *   calls. You can lower that per agent on Crew. 12 of these are what we
+   *   calls. You can lower that per agent. 12 of these are what we
    *   ship, not settings anybody here has made.
    *
    * Every clause is true and the paragraph is unreadable, which is the founder's
@@ -946,7 +946,7 @@ export function BoundaryControls({
            * which `resolveApprovalMode` composes with each tool's mode before
            * the loop runs anything.
            *
-           * A FACT HERE, A CONTROL ON CREW. The dial belongs to the agent, and
+           * A FACT HERE, A CONTROL ON THE ROSTER. The dial belongs to the agent, and
            * two editors of one setting is the defect A-006 §2 spent a phase
            * removing from this very panel. So this states it and opens the
            * door.
@@ -957,8 +957,20 @@ export function BoundaryControls({
               sub="One level per agent, and it decides every setting below before the loop reads it."
             >
               <Line label={standing.said}>
-                <Link to="/crew" className="text-mrd-small underline underline-offset-4">
-                  Change it on Crew
+                {/* THE ROSTER IS THE OTHER HALF OF THIS PAGE (fifth review,
+                    2026-09-09). This pane moved from Settings to Team, so a
+                    door reading "Change it on Crew" both used the rail's
+                    retired word and lit as current beside the row it was
+                    standing on. It names the dial's own home and clears the
+                    tab; `includeSearch` stops it announcing itself current
+                    from the boundary tab of the same route. */}
+                <Link
+                  to="/crew"
+                  search={{}}
+                  activeOptions={{ includeSearch: true }}
+                  className="text-mrd-small underline underline-offset-4"
+                >
+                  Change it per agent
                 </Link>
               </Line>
             </Region>
@@ -1042,7 +1054,7 @@ export function BoundaryControls({
                   : did.said
                 : null,
               looserThanSet.length > 0
-                ? `${looserThanSet.length} of these ${looserThanSet.length === 1 ? "is" : "are"} set to come to you first and will not, because every agent starts out running alone except on the risky calls. You can lower that per agent on Crew.`
+                ? `${looserThanSet.length} of these ${looserThanSet.length === 1 ? "is" : "are"} set to come to you first and will not, because every agent starts out running alone except on the risky calls. You can lower that per agent.`
                 : null,
             ]
               .filter(Boolean)
