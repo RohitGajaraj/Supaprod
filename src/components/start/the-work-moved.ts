@@ -32,6 +32,7 @@
  * same rule `WhetherItWorked` follows one region down: a fact beats a tally.
  */
 import { JOURNEY_ORDER } from "@/components/meridian/Journey";
+import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
 
 /** One recorded station change, as `stage_events` holds it. */
 export type Move = {
@@ -42,6 +43,25 @@ export type Move = {
   title: string;
   at: string;
 };
+
+/**
+ * THE STATION'S OWN NAME, NEVER ITS KEY.
+ *
+ * `stage_events.to_stage` holds the driver's key -- `sense`, `define`, `build`
+ * -- and the served page read **"reached build."** for fifteen minutes because
+ * this line passed it straight through. Every other surface goes through
+ * `AGENT_STATIONS`, which is also where the founder's 2026-08-01 ruling lives
+ * that the first station is called **Discover** on every surface with no
+ * exceptions: `sense` would have reached a person as "sense".
+ *
+ * A key this build does not know degrades to itself rather than throwing. It
+ * cannot be a station a person has seen, and a raw slug is still better than a
+ * blank in the middle of a sentence -- but the `movedOn` check above will have
+ * refused it already, so this is belt and braces.
+ */
+function stationName(key: string): string {
+  return AGENT_STATIONS[key as AgentStation]?.name ?? key;
+}
 
 const rank = (station: string | null): number =>
   station === null ? -1 : (JOURNEY_ORDER as readonly string[]).indexOf(station);
@@ -112,7 +132,7 @@ export function theWorkMoved(input: {
 
   if (furthest.size === 1) {
     const only = [...furthest.values()][0]!;
-    return { kind: "one", title: only.title, station: only.to };
+    return { kind: "one", title: only.title, station: stationName(only.to) };
   }
   if (furthest.size > 1) return { kind: "many", forward: furthest.size };
 

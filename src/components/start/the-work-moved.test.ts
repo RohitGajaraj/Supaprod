@@ -64,7 +64,7 @@ describe("what moved since you last looked", () => {
      */
     expect(
       theWorkMoved({ moves: [m("define", "design", "Warn a homeowner", AFTER)], since: SINCE }),
-    ).toEqual({ kind: "one", title: "Warn a homeowner", station: "design" });
+    ).toEqual({ kind: "one", title: "Warn a homeowner", station: "Design" });
   });
 
   it("counts them once there are several", () => {
@@ -168,7 +168,7 @@ describe("one track walking is one run, at its furthest station", () => {
     expect(theWorkMoved({ moves: walk, since: SINCE })).toEqual({
       kind: "one",
       title: "Warn a homeowner",
-      station: "build",
+      station: "Build",
     });
   });
 
@@ -179,7 +179,7 @@ describe("one track walking is one run, at its furthest station", () => {
      * timestamp rather than trusting arrival order.
      */
     const reversed = [...walk].reverse();
-    expect(theWorkMoved({ moves: reversed, since: SINCE })).toMatchObject({ station: "build" });
+    expect(theWorkMoved({ moves: reversed, since: SINCE })).toMatchObject({ station: "Build" });
   });
 
   it("counts two tracks as two, however many times each moved", () => {
@@ -195,5 +195,50 @@ describe("one track walking is one run, at its furthest station", () => {
       m("define", "sense", "Sent back", "2026-09-09T23:05:00Z"),
     ];
     expect(theWorkMoved({ moves: bounced, since: SINCE })).toEqual({ kind: "back", sentBack: 1 });
+  });
+});
+
+/*
+ * ── THE STATION'S OWN NAME, NEVER ITS KEY ─────────────────────────────────
+ *
+ * `stage_events.to_stage` holds the driver's key, and the served page read
+ * **"reached build."** for fifteen minutes because this line passed it
+ * straight through. Every other surface goes through `AGENT_STATIONS`.
+ *
+ * The sharpest case is `sense`, because of the founder's 2026-08-01 ruling
+ * that the first station is called **Discover** on every surface with no
+ * exceptions — a key reaching a person there is not merely ugly, it is a name
+ * the product does not use.
+ */
+describe("the station is named the way the product names it", () => {
+  it("says Discover, never `sense`", () => {
+    expect(
+      theWorkMoved({ moves: [m(null, "sense", "A new run", AFTER)], since: SINCE }),
+    ).toMatchObject({ station: "Discover" });
+  });
+
+  it("says Plan, never `define`", () => {
+    expect(
+      theWorkMoved({ moves: [m("decide", "define", "A run", AFTER)], since: SINCE }),
+    ).toMatchObject({ station: "Plan" });
+  });
+
+  it("never puts a raw key in front of a person", () => {
+    /* THE MIRROR, over every key the driver can write. A station whose name
+       equals its key would hide a regression here, so this asserts on the
+       ones where they DIFFER. */
+    /* The `from` has to PRECEDE the `to` or the move is a send-back and carries
+       no station at all -- which is what my first version of this loop got
+       wrong, by reusing one `from` for both. */
+    for (const [from, key, expected] of [
+      [null, "sense", "Discover"],
+      ["decide", "define", "Plan"],
+    ] as const) {
+      const out = theWorkMoved({ moves: [m(from, key, "A run", AFTER)], since: SINCE });
+      expect({ key, station: (out as { station?: string }).station }).toEqual({
+        key,
+        station: expected,
+      });
+    }
   });
 });
