@@ -1997,3 +1997,59 @@ What each cluster was, so the shape is reusable rather than the list:
   number, so it can say right or wrong and not how far off."
 - **The prototype pane really does render the prototype** (an iframe of the actual design). I
   recorded the opposite this morning from a screenshot taken before scrolling; it was wrong.
+
+### Lane 2 · addendum, 2026-09-09 late morning · the craft pass, and what is named but not taken
+
+**Pushed through `8e1e11422`.** After the states audit closed, a second workflow ran the one lens
+nobody had applied to these surfaces: **visual craft, measured rather than asserted.** Four lenses
+(type scale and spatial rhythm, hierarchy, motion and control states, density and measure), and
+every finding had to resolve its numbers against `meridian.css` or a skeptic refuted it.
+**40 raised, 3 reproduced, 37 refuted** - a hard gate, and the right one: the refuted 37 were
+mostly taste wearing a number.
+
+**The 35 findings that error in that run's journal are NOT actionable.** The subagent pool hit a
+session limit mid-verify, so they were never scored. Nothing was acted on from them and nothing
+should be without a skeptic pass. Run id `wf_5be730a1-0da`, script under
+`.../workflows/scripts/run-screen-visual-craft-wf_5be730a1-0da.js`; it can be resumed after the
+limit resets and the nine finished finders replay from cache.
+
+#### What the three were
+
+1. **`ch` is a measure that depends on the type it holds**, and `62ch` was written five times on
+   these surfaces: 548px on 14px prose, 470px on 12px meta, 450px on 11.5px data. Two of those are a
+   metric and its own source line, **two pixels apart in one column, ragging 78px apart**.
+   `meridian.css:1067` calls this "the THIRD time" and records the 2026-09-01 migration to rem;
+   `surface-parts`, `CrewMethods`, `CrewChrome` and `Hero` migrated and the run screen did not.
+2. **A theme and the signals under it carried the byte-identical class string**, four pixels apart.
+   A theme IS the pattern those signals form, so the pane's most convincing move drew as six equal
+   rows.
+3. **The trace page's judge rationale declared two font sizes on one element** (`text-mrd-base` and
+   `text-mrd-prose`, 13px and 14px), on the one block that quotes the model's own words back.
+
+#### Named, not taken
+
+- **`--mrd-measure: 68ch` (meridian.css:977) is still a `ch` value** while the three-rung ladder
+  beside it is rem. Lane 1's file; sent with the measurement. Found because a skeptic **refuted my
+  own supporting example** - I had cited a traces call site as already correct and it was reading
+  that token.
+- **Meridian's type ladder has no rung between `mrd-subtitle` (14/600) and `mrd-title` (20/500)**,
+  and a 12.5/500/ink "row title" is hand-rolled at **eight sites in `ArtifactPane` alone** (:1020,
+  :1185, :2179, :2268, :2269, :2369, :2728, :3805). I used `mrd-subtitle` for the one row that
+  needed two axes today; the eight hand-rolls are the signal that the rung is missing. Lane 1's
+  ruling.
+- **`_authenticated.track.$trackId.tsx:248`** caps the header's second line at `36ch` (273px). It is
+  a layout constraint rather than a prose measure and **no `--mrd-*` rung fits it**, so it is left
+  in `ch` and named here rather than hand-rolled into a competing local value. The guard exempts
+  only the mono site, by name and with its reason.
+- **The Inbox's settled line still has no "Watch it carry on" door.** The context column now names
+  and opens the run (`c8617c67c`), so answering a call no longer strands you on arrival - but it
+  still ends the thread rather than handing you the consequence. Second half of Lane 1's round-five
+  [0]/[7]; it wants the decided state's own render.
+
+#### One thing checked and deliberately NOT changed
+
+**The artifact pane's default station is already right.** I suspected early that a region titled
+"What it has made" opening on Build, which filed nothing, was a defect. It is not:
+`ArtifactPane.tsx:3993` already prefers the standing station only `standingHasItems`, and falls back
+to the newest station that filed something, with a 2026-09-08 comment recording the header/pane
+disagreement that produced the rule. **Recorded so nobody re-derives the same wrong hunch.**
