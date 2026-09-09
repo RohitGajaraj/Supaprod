@@ -2659,3 +2659,43 @@ say nothing. Twice today the right answer was to keep the thing and write down w
 read binding anywhere in `src/lib` or `src/routes`, and no other returned field that costs a
 dedicated read and reaches no surface. The one that existed was the one Lane 1 found.
 
+### Lane 3, closing: two laws that came out of the guards rather than the fixes
+
+**Law 12, and the form that survives an empty world.** A guard for "only this changed" needs a
+mirror, or the code passes it by withholding everything. Lane 1's shape; it caught my own failure
+tests an hour after I handed them the tool that makes the difference testable. Both of mine
+asserted what a refusal TOOK and neither asserted what it LEFT, so a handler that panicked and
+blanked the surface would have passed both. They are a pair now: a refused gate read must leave the
+spec link, the file count, the run status and the routed station standing, and a refused spec read
+must leave the gate count at its real 1. `c5e64264e`.
+
+**And the mirror has to be complete, not merely present.** In
+`a-state-nothing-can-produce.test.ts` I emptied the sweep to see what would happen: all six tests
+failed. Without the completeness half NONE would have, because "failed is not in the reachable set"
+is trivially true of an empty set. **A reachability sweep degrades to SILENCE rather than to noise**,
+which is the worst direction for a guard to fail in, so every state is claimed on exactly one side
+and the two sides are asserted disjoint and complete against the union, by name and by size.
+
+**The state-reachability guard itself** (`20bbf5737`) is `check:unreachable` one level down: a
+member of a state union that no input can produce is dead the way an unimported export is, and
+harder to see, because it typechecks and sits in every exhaustive map beside its live neighbours. It
+drives the three producers over an enumerated input space rather than reading source, because a grep
+for `"failed"` in that file PASSES -- the string is in the union, in `WEIGHT`, in a paint map, and
+no input reaches it through `journeyMap`.
+
+**The rule underneath all three of today's guards, which is worth more than any of the findings: a
+check cannot drift from the thing it checks if it is DERIVED from it.** The union cast checked
+against the exhaustive record the type already requires; the guard checked against the record it
+guards; the sweep whose domain comes from the driver's own `HOLD_LINE`. A hand-written list of cases
+beside the thing it tests is a second source, and second sources drift.
+
+**And the one that is not about code.** Both guards written today came from the OTHER lane noticing
+something the owner could not see from where they stood: Lane 1 found the money figure nothing
+rendered on my read, and I found their failed fill drew nowhere. Twice more, one of us stopped the
+other recording something as settled that was not -- a wall-clock closed as unmeasurable while the
+other lane's browser was live, and a node claimed to be on a page it is not on. **Ask the other lane
+before recording a thing as impossible; their vantage is cheaper than switching tools.**
+
+Merged tree verified by Lane 1 at `a33b08189`: tsc 0, 15,328 tests across 1,137 files, 0 fail,
+build 0, unreachable 0, docs clean.
+
