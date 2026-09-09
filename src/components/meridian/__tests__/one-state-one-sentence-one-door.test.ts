@@ -12,6 +12,8 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 
+import { defaultLine } from "@/components/meridian/Ask";
+
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
 const ASK = strip(readFileSync("src/components/meridian/Ask.tsx", "utf8"));
 const SEAT = strip(readFileSync("src/components/meridian/SeatSays.tsx", "utf8"));
@@ -27,15 +29,27 @@ describe("an irreversible gate cannot merge by silence", () => {
    * whatever default it is handed will eventually be handed that one.
    */
   it("takes no sentence at all for an irreversible ask", () => {
-    // The irreversible arm has `since` and nothing else to fill.
     /*
-     * The irreversible arm has NOTHING to fill but the clock. P-50 made `since`
+     * The irreversible arm has NOTHING to fill but the clock. P-50 made `waited`
      * optional, because the Ask panel's queue items carry no timestamp and a
      * card that omits it says less rather than something false; the arm still
      * takes no sentence, which is the property under test.
      */
-    expect(ASK.replace(/\s+/g, " ")).toContain('{ kind: "irreversible"; since?: string | null }');
-    expect(ASK).not.toContain('kind: "irreversible"; since?: string | null; whatHappens');
+    /*
+     * PINNED ON THE CLAIM. This asserted the arm's exact source text, which
+     * broke the moment `since` was renamed to `waited` for saying "since 5
+     * days" -- a rename that made the type MORE honest, failing a guard whose
+     * subject is a different property entirely. The property is that the
+     * irreversible arm carries no caller sentence, and that reads off the arm
+     * without quoting it whole.
+     */
+    const arm = ASK.replace(/\s+/g, " ").match(/\| \{ kind: "irreversible";[^}]*\}/)?.[0];
+    expect(arm, "the AskDefault union moved; re-point this test").toBeTruthy();
+    expect({ carriesASentence: /whatHappens/.test(arm!) }).toEqual({ carriesASentence: false });
+    /* And the sentence it produces is the same one whatever it is handed. */
+    expect(defaultLine({ kind: "irreversible", waited: "3 hours" })).toEndWith(
+      "Nothing runs until you answer.",
+    );
   });
 
   it("writes that sentence itself, once, with no argument that changes it", () => {
@@ -204,10 +218,52 @@ describe("the default's action is not a fourth answer", () => {
   });
 
   it("omits the clock rather than inventing one when nobody recorded it", () => {
-    // The panel's queue items carry no timestamp. A card that omits it says
-    // less; a card that fills it says something false.
-    expect(ASK.replace(/\s+/g, " ")).toContain(
-      'const waited = d.since ? `Waiting on you since ${d.since}. ` : "";',
+    /*
+     * CALLED, NOT GREPPED. This used to assert the literal source line, which
+     * is the defect law 18 names: it passed for a year while the sentence it
+     * produced read **"Waiting on you since 5 days"** on the served Inbox --
+     * the preposition wanted an instant and the only caller passes a duration.
+     * A guard on the spelling cannot see a sentence; running it can.
+     *
+     * The panel's queue items carry no timestamp. A card that omits it says
+     * less; a card that fills it says something false.
+     */
+    expect(defaultLine({ kind: "irreversible" })).toBe("Nothing runs until you answer.");
+    expect(defaultLine({ kind: "irreversible", waited: null })).toBe(
+      "Nothing runs until you answer.",
     );
+  });
+
+  it("says how long it has waited in a sentence that is English", () => {
+    expect(defaultLine({ kind: "irreversible", waited: "5 days" })).toBe(
+      "Waiting on you for 5 days. Nothing runs until you answer.",
+    );
+  });
+
+  it("keeps the reversible card's own consequence, clock or no clock", () => {
+    // The load-bearing half is what happens if nobody answers; the clock is an
+    // enrichment and must never displace it.
+    expect(defaultLine({ kind: "reversible", whatHappens: "This reruns tonight." })).toBe(
+      "This reruns tonight.",
+    );
+    expect(
+      defaultLine({ kind: "reversible", waited: "2 hours", whatHappens: "This reruns tonight." }),
+    ).toBe("Waiting on you for 2 hours. This reruns tonight.");
+  });
+
+  it("never puts a preposition for an instant in front of a span", () => {
+    /*
+     * THE MIRROR, AND THE ONE THAT WOULD HAVE CAUGHT IT. Every value this
+     * sentence can receive is a duration from `stoppedFor` -- "5 days",
+     * "3 hours", "1 minute" -- so "since" can never be right in front of it.
+     */
+    for (const waited of ["1 minute", "3 hours", "1 day", "12 days"]) {
+      const said = defaultLine({ kind: "irreversible", waited });
+      expect({ waited, since: said.includes("since") }).toEqual({ waited, since: false });
+      expect({ waited, reads: said.startsWith(`Waiting on you for ${waited}.`) }).toEqual({
+        waited,
+        reads: true,
+      });
+    }
   });
 });

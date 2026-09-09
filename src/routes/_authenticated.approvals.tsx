@@ -1164,7 +1164,7 @@ function ApprovalsSurface() {
               // standalone line into the one sentence Ask has for it.
               fallback={{
                 kind: "irreversible",
-                since: focusedSince !== null ? stoppedFor(focusedSince, now) : null,
+                waited: focusedSince !== null ? stoppedFor(focusedSince, now) : null,
               }}
               answer={{
                 label: "Approve",

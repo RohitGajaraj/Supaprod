@@ -57,22 +57,34 @@ import { Action } from "@/components/meridian/surface-parts";
  * done again.
  */
 export type AskDefault =
-  | { kind: "irreversible"; since?: string | null }
-  | { kind: "reversible"; since?: string | null; whatHappens: string };
+  /**
+   * `waited` IS A DURATION AND THE NAME NOW SAYS SO. It was called `since`,
+   * and the sentence built from it read **"Waiting on you since 5 days"** on
+   * the served Inbox, 2026-09-10 -- the preposition wanted an instant and the
+   * only caller passes `stoppedFor()`, which returns a span. Neither half was
+   * wrong on its own; the field name was the thing that let them disagree.
+   *
+   * A span is deliberately the right value here, on `stoppedFor`'s own
+   * argument: *"Since 18:31 on 10 August" makes a reader do arithmetic before
+   * they can feel anything. "3 days" is the fact that changes what they do.*
+   * So the value stays and the word around it was corrected.
+   */
+  | { kind: "irreversible"; waited?: string | null }
+  | { kind: "reversible"; waited?: string | null; whatHappens: string };
 
 /**
- * `since` IS OPTIONAL AND ITS ABSENCE IS A REAL STATE (P-50). The Ask panel's
+ * `waited` IS OPTIONAL AND ITS ABSENCE IS A REAL STATE (P-50). The Ask panel's
  * queue items carry no timestamp, so that card cannot say when it started
  * waiting without one being invented. The sentence's load-bearing half is what
  * happens if nobody answers; the clock is an enrichment, and a card that omits
  * it says less rather than something false.
  */
-function defaultLine(d: AskDefault): string {
+export function defaultLine(d: AskDefault): string {
   /*
    * Not a template a caller can slip past. The irreversible sentence is written
    * here, once, and there is no argument that produces a different one.
    */
-  const waited = d.since ? `Waiting on you since ${d.since}. ` : "";
+  const waited = d.waited ? `Waiting on you for ${d.waited}. ` : "";
   return d.kind === "irreversible"
     ? `${waited}Nothing runs until you answer.`
     : `${waited}${d.whatHappens}`;
