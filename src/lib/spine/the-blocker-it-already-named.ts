@@ -75,6 +75,7 @@
 import { claimOf, containment, MIN_CONTAINMENT } from "@/lib/spine/what-it-keeps-saying";
 import { inTurns } from "@/lib/spine/a-turn-is-not-a-filing";
 import { whatASeatActuallySaid } from "@/lib/spine/what-a-seat-actually-said";
+import { isSlug, type PlatformWall } from "@/lib/spine/the-wall-the-platform-put-up";
 
 /** One turn, as `getTrackActivity` already returns it. */
 export type BlockedTurn = {
@@ -96,6 +97,20 @@ export type BlockedTurn = {
   outcome: "working" | "done" | "partly" | "stopped" | "waiting";
   made: readonly unknown[];
   said: string | null;
+  /**
+   * The PLATFORM's recorded reason for refusing to run this turn, when there
+   * was one, as a slug.
+   *
+   * Structural, so it arrives free from `activity.ts`'s `Turn`. It is here for
+   * one job: to say WHICH wall a group of halted turns is, so a wall the
+   * account has since fixed can be told apart from one that still stands. See
+   * `alsoBehindIt`.
+   *
+   * `halted_reason` holds two vocabularies and both are live -- the halt path
+   * writes slugs, the stall sweeper writes whole sentences -- so this is read
+   * through `isSlug` and prose is discarded rather than matched on.
+   */
+  haltedReason?: string | null;
 };
 
 export type Blocker = {
@@ -139,6 +154,24 @@ export type Blocker = {
    * second sentence, so the card does not become a list.
    */
   othersBehind: number;
+  /**
+   * The platform's slug for each OTHER wall: ONE ENTRY PER GROUP, in order,
+   * `null` where the group has no slug.
+   *
+   * NOT DEDUPED, and that is the whole point. `othersBehind` counts groups, so
+   * anything subtracted from it has to count groups too -- a run that hit the
+   * same wall twice at two stations has two groups, and a deduped list would
+   * subtract one of them and leave the card claiming a wall that is gone.
+   * Parallel to `othersBehind` by construction: `othersBehindKinds.length ===
+   * othersBehind`, which the test pins.
+   *
+   * A group of agent REFUSALS has no slug -- the agent ran and reported, so the
+   * platform recorded nothing -- and a group whose `halted_reason` is the
+   * sweeper's prose has none either. Both are `null` rather than a placeholder,
+   * because a wall this cannot name is a wall whose standing it must not claim
+   * to know.
+   */
+  othersBehindKinds: (string | null)[];
 };
 
 /**
@@ -225,6 +258,13 @@ export function theBlockerItAlreadyNamed(turns: readonly BlockedTurn[]): Blocker
        went wrong": a group is two or more turns at one station making one
        claim, so this counts WALLS and not bad turns. */
     othersBehind: candidates.length - 1,
+    /* The slug of every OTHER group that has one. `isSlug` is the shared test
+       from `the-wall-the-platform-put-up.ts` rather than a second opinion about
+       what a slug is -- `halted_reason` holds two live vocabularies and only
+       one of them is matchable. */
+    othersBehindKinds: candidates
+      .filter((r) => r !== best)
+      .map((r) => r.find((t) => isSlug(t.haltedReason))?.haltedReason ?? null),
     seats,
     turns: best.length,
     /*
@@ -305,11 +345,31 @@ export function theBlockerItAlreadyNamed(turns: readonly BlockedTurn[]): Blocker
  * is still standing is a question this screen cannot answer, so it stops
  * answering it.
  */
-export function alsoBehindIt(b: Blocker): string | null {
-  if (b.othersBehind < 1) return null;
-  return b.othersBehind === 1
+export function alsoBehindIt(b: Blocker, wall?: PlatformWall | null): string | null {
+  /*
+   * A WALL THE ACCOUNT HAS SINCE FIXED IS NOT BEHIND ANYTHING.
+   *
+   * Only subtract on `gone`, and only from the groups whose slug MATCHES the
+   * wall that went. `standing` and `unknown` both count, which is the safe
+   * direction: the failure this removes is a card promising an obstruction that
+   * is not there, and the failure it must not introduce is a card hiding one
+   * that is.
+   *
+   * Matching on the slug rather than on "there is a gone wall" is the condition
+   * that keeps a track holding two different walls honest -- a credit halt that
+   * lifted cannot answer for a repository refusal that did not. Measured
+   * 2026-09-10: all 34 slug halts in the product are `out_of_credit` across six
+   * tracks, one kind each, so nothing exercises the two-kind case today. It is
+   * written for it anyway, because the column is open text and the day it holds
+   * a second slug is not a day anybody will re-derive this.
+   */
+  const lifted =
+    wall?.now === "gone" ? b.othersBehindKinds.filter((k) => k === wall.kind).length : 0;
+  const behind = b.othersBehind - lifted;
+  if (behind < 1) return null;
+  return behind === 1
     ? "It hit one more wall after this one."
-    : `It hit ${b.othersBehind} more walls after this one.`;
+    : `It hit ${behind} more walls after this one.`;
 }
 
 export function blockerLead(b: Blocker): string {

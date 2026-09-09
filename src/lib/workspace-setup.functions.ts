@@ -61,6 +61,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { WorkspaceSetup } from "@/components/track/nowhere-to-look-yet";
+import { wallsByTrack } from "@/lib/spine/the-wall-the-platform-put-up";
 
 /**
  * `connection_bindings.resource_kind` for a bound code repository.
@@ -85,6 +86,12 @@ export const getWorkspaceSetup = createServerFn({ method: "GET" })
            that only wants the connection facts pays for no extra count. */
         station: z.string().max(32).optional(),
         exceptTrackId: z.string().uuid().optional(),
+        /* The run whose recorded wall to read, when the caller wants one. Kept
+           separate from `exceptTrackId` even though the run screen passes the
+           same id for both: one means "leave this out of the peer count" and
+           the other means "tell me about this run", and collapsing them would
+           make a caller that wanted one silently ask for the other. */
+        trackId: z.string().uuid().optional(),
       })
       .parse(i ?? {}),
   )
@@ -111,7 +118,7 @@ export const getWorkspaceSetup = createServerFn({ method: "GET" })
      *
      * It rides in the same `Promise.all`, so it costs no extra round trip.
      */
-    const [evidence, repos, deploy, peers] = await Promise.all([
+    const [evidence, repos, deploy, peers, walls] = await Promise.all([
       /*
        * SIGNALS, NOT SCOUT TARGETS, AND THE FIRST VERSION COUNTED THE WRONG
        * THING. 0 of 23 workspaces hold an enabled `scout_target` and that
@@ -144,6 +151,21 @@ export const getWorkspaceSetup = createServerFn({ method: "GET" })
             .eq("status", "open")
             .neq("id", data.exceptTrackId ?? "00000000-0000-0000-0000-000000000000")
         : Promise.resolve({ count: null, error: null }),
+      /*
+       * ── THE PLATFORM'S OWN WALL, IN THE SAME ROUND ───────────────────────
+       * One read for the halts, and the two balance hops only when a wallet
+       * wall is actually found -- so a run that never halted pays one query and
+       * a run halted on anything else pays nothing further. It rides here
+       * rather than in its own server function because the hold card already
+       * awaits this one, and on this Worker a second function is a second round
+       * trip whatever it queries.
+       *
+       * `wallsByTrack` takes a list because the home reads fifty at once. One
+       * is a list of one.
+       */
+      data.trackId
+        ? wallsByTrack(db, [{ id: data.trackId, workspaceId: w }])
+        : Promise.resolve(null),
     ]);
 
     /*
@@ -167,5 +189,9 @@ export const getWorkspaceSetup = createServerFn({ method: "GET" })
          read. Zero is a real answer -- this run is the only one there -- and
          the surface says nothing on a zero rather than "0 other runs". */
       othersAtThisStation: peers.error ? null : peers.count,
+      /* Absent when nobody asked, and null when they did and the record holds
+         no slug halt for this run. Both read the same downstream -- no wall to
+         speak of -- and neither is a claim that one lifted. */
+      wall: data.trackId && walls ? (walls.get(data.trackId) ?? null) : null,
     };
   });

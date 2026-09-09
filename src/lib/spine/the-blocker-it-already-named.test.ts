@@ -94,6 +94,7 @@ const RUN: BlockedTurn[] = [
       agentName: "Design",
       outcome: "stopped",
       said: NO_CREDIT,
+      haltedReason: "out_of_credit",
     }),
   ),
 ];
@@ -357,6 +358,7 @@ describe("a reader is told when something else is behind it", () => {
         agentName: "Design",
         outcome: "stopped",
         said: NO_CREDIT,
+        haltedReason: "out_of_credit",
       }),
       turn({
         at: "03:10",
@@ -364,9 +366,89 @@ describe("a reader is told when something else is behind it", () => {
         agentName: "Design",
         outcome: "stopped",
         said: NO_CREDIT,
+        haltedReason: "out_of_credit",
       }),
     ])!;
     expect(alsoBehindIt(three)).toBe("It hit 2 more walls after this one.");
+  });
+
+  it("and stops counting a wall the account has since fixed", () => {
+    /*
+     * ── THE DEFECT, READ LIVE ON `6cc7a010`, 2026-09-10 ────────────────────
+     * The card said "It hit one more wall after this one" and the wall it was
+     * counting was the credit halt. The account had been topped up on 09-09
+     * and held 5,240 credits. The wall SHOWN -- Build's repository refusal --
+     * was still real (`connection_bindings` = 0); the one COUNTED was not.
+     *
+     * So the card was promising a person a second obstruction that no longer
+     * existed, and the only reason its door was right is that the repository
+     * happened to be the wall that persisted.
+     */
+    const b = theBlockerItAlreadyNamed(RUN)!;
+    expect(b.othersBehind).toBe(1);
+    expect(alsoBehindIt(b, { kind: "out_of_credit", at: "03:40", now: "gone" })).toBeNull();
+  });
+
+  it("but only on `gone`, and never on a wall it could not check", () => {
+    /*
+     * `standing` and `unknown` both COUNT, which is the safe direction. What
+     * this removes is a card promising an obstruction that is not there; what
+     * it must never introduce is a card hiding one that is. A failed wallet
+     * read arrives as `unknown` and has to read like "we did not look".
+     */
+    const b = theBlockerItAlreadyNamed(RUN)!;
+    const said = "It hit one more wall after this one.";
+    expect(alsoBehindIt(b, { kind: "out_of_credit", at: "03:40", now: "standing" })).toBe(said);
+    expect(alsoBehindIt(b, { kind: "out_of_credit", at: "03:40", now: "unknown" })).toBe(said);
+    /* No wall passed at all is the same answer, so a caller that has not been
+       taught the argument keeps the behaviour it had. */
+    expect(alsoBehindIt(b)).toBe(said);
+    expect(alsoBehindIt(b, null)).toBe(said);
+  });
+
+  it("and a lifted wall of ANOTHER kind cannot answer for this one", () => {
+    /*
+     * The condition that keeps a track holding two walls honest: a credit halt
+     * that lifted says nothing about a repository refusal that did not.
+     * Measured 2026-09-10, all 34 slug halts in the product are
+     * `out_of_credit` across six tracks, one kind each -- so nothing exercises
+     * this today. It is written because the column is open text, and the day it
+     * holds a second slug is not a day anybody will re-derive the rule.
+     */
+    const b = theBlockerItAlreadyNamed(RUN)!;
+    expect(alsoBehindIt(b, { kind: "tools_refused", at: "03:40", now: "gone" })).toBe(
+      "It hit one more wall after this one.",
+    );
+  });
+
+  it("counts GROUPS, so the kinds run parallel to the count", () => {
+    /*
+     * `othersBehind` counts groups, so anything subtracted from it must count
+     * groups too. A deduped list would subtract one of two same-kind walls and
+     * leave the card claiming one that is gone -- so the two fields are pinned
+     * to the same length here rather than trusted to stay in step.
+     */
+    const b = theBlockerItAlreadyNamed(RUN)!;
+    expect(b.othersBehindKinds.length).toBe(b.othersBehind);
+    expect(b.othersBehindKinds).toEqual(["out_of_credit"]);
+  });
+
+  it("and a group the platform never named stays counted", () => {
+    /*
+     * An agent REFUSAL has no slug: the agent ran and reported, so the platform
+     * recorded nothing. A wall this cannot name is a wall whose standing it
+     * must not claim to know, so it is null and it still counts.
+     */
+    const b = theBlockerItAlreadyNamed([
+      turn({ at: "02:30", agentName: "Engineer", said: NO_REPO_1 }),
+      turn({ at: "02:31", agentName: "Review", said: NO_REPO_2 }),
+      turn({ at: "03:00", station: "design", agentName: "Design", said: "Something else failed." }),
+      turn({ at: "03:01", station: "design", agentName: "Design", said: "Something else failed." }),
+    ])!;
+    expect(b.othersBehindKinds).toEqual([null]);
+    expect(alsoBehindIt(b, { kind: "out_of_credit", at: "03:40", now: "gone" })).toBe(
+      "It hit one more wall after this one.",
+    );
   });
 
   it("names none of them, and diagnoses nothing", () => {

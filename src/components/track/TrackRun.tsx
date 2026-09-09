@@ -1041,13 +1041,20 @@ export function TrackRunLeft({
      Build from cache. */
   const gapStation = (blocker?.station as AgentStation | null) ?? track?.station ?? null;
   const setupQ = useQuery({
-    queryKey: ["workspace-setup", activeWorkspace?.id, gapStation],
+    /* `trackId` IS IN THE KEY, and it was not. It rides in the arguments twice
+       -- once to leave this run out of the peer count, once to read its own
+       recorded wall -- and both answers are per-run, so two runs in one
+       workspace standing at one station were sharing a cache entry and one of
+       them was reading the other's. Same defect the note above names for the
+       station, one argument along. */
+    queryKey: ["workspace-setup", activeWorkspace?.id, gapStation, trackId],
     queryFn: () =>
       fSetup({
         data: {
           workspaceId: activeWorkspace!.id,
           ...(gapStation ? { station: gapStation } : {}),
           exceptTrackId: trackId,
+          trackId,
         },
       }),
     enabled: Boolean(activeWorkspace?.id),
@@ -1403,7 +1410,11 @@ export function TrackRunLeft({
            * fewer words, and the count is already in the lead above.
            */}
           {blocker ? (
-            <HoldFact sub={[`“${blocker.said}”`, alsoBehindIt(blocker)].filter(Boolean).join(" ")}>
+            <HoldFact
+              sub={[`“${blocker.said}”`, alsoBehindIt(blocker, setupQ.data?.wall)]
+                .filter(Boolean)
+                .join(" ")}
+            >
               {blockerLead(blocker)}
             </HoldFact>
           ) : null}

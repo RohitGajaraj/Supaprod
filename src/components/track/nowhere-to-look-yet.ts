@@ -60,6 +60,7 @@
  */
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import { sameClaim } from "@/components/spine/what-this-station-kept-saying";
+import type { PlatformWall } from "@/lib/spine/the-wall-the-platform-put-up";
 
 /**
  * What a station cannot start without, and whether this workspace has it.
@@ -101,6 +102,20 @@ export type WorkspaceSetup = {
    * answer and means this run is the only one there.
    */
   othersAtThisStation?: number | null;
+  /**
+   * The wall the PLATFORM put up on this run, and whether it still stands.
+   *
+   * Read through Lane 1's `wallsByTrack`, which is the product's one reader of
+   * `halted_reason` -- a second would be two surfaces answering one question
+   * and drifting apart between deploys. Null when no slug halt was recorded, or
+   * when no track was asked about.
+   *
+   * NOT used by `nowhereToLookYet`, which is about what a workspace is missing
+   * rather than what the platform refused. It rides on this read because the
+   * hold card already awaits it, so the answer costs no second round trip --
+   * see `alsoBehindIt`, which is what consumes it.
+   */
+  wall?: PlatformWall | null;
 };
 
 /** What each station cannot begin without. Stations absent from this need nothing. */
