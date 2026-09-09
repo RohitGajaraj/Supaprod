@@ -25,6 +25,11 @@ import { refundAbandonedRunCredits } from "@/lib/credits.functions";
 // nothing itself, so there is no cycle to create by reading it here.
 import { isStoppable, terminalStatusFilter } from "@/lib/run-status";
 import { TOOL_REGISTRY, describeToolsForPrompt, type ToolCtx } from "./tools/registry.server";
+import {
+  acceptedArgKeys,
+  unknownArgKeys,
+  unknownArgsMessage,
+} from "@/lib/ai/tools/an-argument-nobody-refuses";
 import { resolveMissionSpendCap } from "./mission-caps.server";
 import { resolveToolAccess } from "@/lib/ai/tools/defaults";
 import { recallMemoryRefs, logMemoryRecall, type MemoryRef } from "./memory.server";
@@ -2011,6 +2016,36 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         role: "user",
         content: `Tool error: ${msg}. Valid tools: ${validNames}. Pick one of those or finalize.`,
       });
+      continue;
+    }
+    /*
+     * AN ARGUMENT THE SCHEMA DOES NOT DECLARE IS DELETED BY safeParse, and
+     * until 2026-09-09 that happened in silence: the call succeeded without
+     * doing what the argument asked, and the model was never told. Measured
+     * over 60 days of ai_events, 1,059 outputs emitted `days_back` (the
+     * argument is `lookback_days`) and 228 emitted a `query` beside
+     * `signals.list`, which had none. One trace ran the same search four times
+     * under four phrasings it believed were different, then filed all four on
+     * the evidence record as searches it had made.
+     *
+     * This is the same answer the unknown-TOOL branch above gives, one level
+     * down: say what was refused, then name what the tool takes. Refusing
+     * cannot break a call that worked, because a key the schema does not
+     * declare did nothing in the first place.
+     */
+    const strayArgs = unknownArgKeys(def.argsSchema, call.args);
+    if (strayArgs.length) {
+      const msg = unknownArgsMessage(call.name, strayArgs, acceptedArgKeys(def.argsSchema) ?? []);
+      steps.push({
+        kind: "tool_call",
+        name: call.name,
+        args: call.args as Json,
+        ok: false,
+        error: msg,
+        status: "error",
+      });
+      conv.push({ role: "assistant", content: assistantContent });
+      conv.push({ role: "user", content: `Tool error: ${msg} Fix args or finalize.` });
       continue;
     }
     const parseRes = def.argsSchema.safeParse(call.args);

@@ -652,20 +652,78 @@ const senseFoundNothing = def({
       .describe("What you looked for and where, in one or two sentences."),
   }),
   preview: (a) => `Report no evidence found (${a.searched.slice(0, 60)})`,
-  run: async (a) => ({
-    ok: true as const,
-    searched: a.searched,
-    /* The seat is told what happens next, so it does not try to compensate by
-       filing something weaker. */
-    next: "The run carries on from the person's sentence alone. Nothing was filed and no attempt was spent.",
-  }),
+  /*
+   * ── THE SENTENCE IS THE SEAT'S; THE COUNT IS THE RUN'S ───────────────────
+   *
+   * `searched` is prose the model writes, and on trace 0588c262 it read
+   * "reschedule installer visit order page, installer reschedule, homeowner
+   * reschedule, order page reschedule": four searches. The run had executed
+   * ONE, four times, byte identical, because `signals.list` has no query
+   * argument and the phrasings were stripped before they reached it
+   * (worktree-1-68, 2026-09-09). The record then carried four searches that
+   * never happened, and every later run reads that record.
+   *
+   * So the tool no longer takes the seat's word for what it did. It reads its
+   * own trace's `tool_calls` and returns the reads that actually ran, folded
+   * by name and arguments, beside the sentence. A CLAIM ABOUT A FACT MUST BE
+   * DERIVED FROM IT: the sentence stays, because what the seat was looking for
+   * is worth knowing and only the seat knows it, but it now sits next to
+   * something that can contradict it.
+   */
+  run: async (a, { supabase, traceId }) => {
+    const ran = traceId ? await readsOnThisTrace(supabase, traceId) : null;
+    return {
+      ok: true as const,
+      searched: a.searched,
+      /* Null when there is no trace to read (a bare call outside a run), which
+         is not the same as "it made no reads" and must not read as it. */
+      readsActuallyMade: ran,
+      /* The seat is told what happens next, so it does not try to compensate by
+         filing something weaker. */
+      next: "The run carries on from the person's sentence alone. Nothing was filed and no attempt was spent.",
+    };
+  },
 });
+
+/**
+ * The read calls this trace actually made, folded by name AND arguments, so a
+ * search repeated under four different beliefs about it counts once and says
+ * how many times it ran. One hop, on a tool that is called about forty times
+ * in sixty days.
+ */
+async function readsOnThisTrace(
+  supabase: SupabaseClient,
+  traceId: string,
+): Promise<Array<{ tool: string; args: unknown; times: number }> | null> {
+  const { data, error } = await supabase
+    .from("tool_calls")
+    .select("tool_name, args")
+    .eq("trace_id", traceId)
+    .order("created_at", { ascending: true })
+    .limit(200);
+  /* A read that refused is not a run that made no reads, and returning [] here
+     would be the exact defect this function exists to answer. */
+  if (error) return null;
+  const folded = new Map<string, { tool: string; args: unknown; times: number }>();
+  for (const row of (data ?? []) as Array<{ tool_name: string; args: unknown }>) {
+    const key = `${row.tool_name}|${JSON.stringify(row.args ?? null)}`;
+    const seen = folded.get(key);
+    if (seen) seen.times += 1;
+    else folded.set(key, { tool: row.tool_name, args: row.args ?? null, times: 1 });
+  }
+  return [...folded.values()];
+}
 
 // ── Signal Fabric read / sense tools ──────────────────────────────────
 const listSignals = def({
   name: "signals.list",
   description:
-    "List recent signals ingested into the workspace. Filterable by source_kind, tag, sentiment, and how many days back to look.",
+    /* THE ARGUMENT NAMES, NOT A DESCRIPTION OF THEM. "how many days back to
+       look" is why 1,059 model outputs in 60 days emitted `days_back`, which
+       this tool does not take and which was silently dropped. And it says what
+       the tool CANNOT do, because 228 of those outputs sent a `query`: this
+       lists, it does not search by words, and the tool that does is named. */
+    "List recent signals ingested into the workspace. Arguments: source_kind, tag, sentiment, lookback_days (1-90), limit. It has NO text query and does not search by words: for that use workspace.search, which searches signals semantically. Calling this twice with the same arguments returns the same rows.",
   category: "read",
   argsSchema: z.object({
     source_kind: z.string().max(60).optional(),
