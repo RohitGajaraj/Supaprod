@@ -302,6 +302,81 @@ The gallery at [`/meridian`](../../src/routes/_authenticated.meridian.tsx) exist
 
 ---
 
+### 6. A measure belongs to the reading, not to the container
+
+Added 2026-09-09, after `Prose` was found capping one of its two branches. The uncapped one was
+the markdown branch, which is the spec body: the longest document in the product ran the full
+width of its pane.
+
+The reasoning that dropped it was "inside Ask the pane IS the measure". That is true of Ask and of
+nowhere else, and it is the general trap: a component that borrows its measure from wherever it
+happens to be mounted has no measure at all, it has a coincidence. **The component carries its own
+measure on every branch, and a caller that genuinely wants full bleed overrides it.**
+
+Name the rung, never a `ch` count. A `ch` is the zero's advance width, so `68ch` is a different
+column in every font the product renders. The rungs are `--mrd-measure-prose` (32rem),
+`--mrd-measure-region` (34rem) and `--mrd-measure-page` (41rem).
+
+### 7. A heading rung is a rank, and a sentence is not a title
+
+Added 2026-09-09, ruling on a finding that the run screen's `<h1>` was smaller than other pages'
+titles. The finding's own premise was wrong, which is worth recording: `PageHeading` has one code
+path at 25px and no failure variant, so it was never "failure states styled louder than working
+ones". **Read what the component actually sets before ruling on an inversion.**
+
+The real defect was that the run screen titled at the COMPONENT rung, `mrd-title` (20px), which
+dialogs, empty regions and cards use. Both obvious fixes were wrong. Raising the run title to 25px
+makes a long sentence shout on every visit. Lowering `PageHeading` moves every page in the product
+to fix one that was never out of step.
+
+**A run's name is a lead paragraph wearing a heading's clothes.** Every other page in the product
+titles with a short label; a run's name is a sentence describing the work. Setting a sentence one
+rung down does not fix that category error, it only makes the sentence quieter. So the shape is the
+station eyebrow, drawn with the glyph the road draws, over the sentence set as prose on the reading
+measure. Nothing on the route grows.
+
+The element and the size are separate decisions. The sentence stays the `<h1>` even though it is
+not the largest type: **a heading element is the page's name in the document outline, not its
+loudest voice**, and promoting the eyebrow would name the page "Build", which is true of a hundred
+runs.
+
+### 8. Reduced motion stops transitions, and stops them at 1ms
+
+Added 2026-09-09, after both motion switches were found stopping animations only. Every
+`transition-colors`, every fold and every fade ran at full duration with motion off, under the
+operating system's setting as much as under the product's own.
+
+Law 5's test already decided it: *if stopping it removes a fact, it is not decoration*. A
+transition removes no fact when you stop it, because it has one defined end state and stopping it
+means arriving there at once. That is what separates it from a loop, where the motion IS the
+message that something is still running, which is why an elapsed timer keeps ticking.
+
+`transition-duration: 1ms`, never `transition: none`. `none` cancels the `transitionend` event, so
+any handler waiting on one to unmount a node waits forever. Nothing in this repo listens for one
+today; a rule that only holds while that stays true is a trap for whoever adds the first listener.
+`transition-delay` goes to 0 in the same rule, or a stopped transition still waits and the screen
+reads as frozen rather than fast.
+
+**The two blocks are a pair and must not drift.** A keyframe named in one and not the other fails
+`the-motion-toggle-reaches-the-run-screen.test.ts`.
+
+### 9. When the defect is a missing default, set the default
+
+Added 2026-09-09. Twenty-one bare transitions on one surface, three speeds among them, none on this
+system's easing, because `transition-colors` with no duration takes Tailwind's 150ms and its own
+curve.
+
+The choice was a sweep of twenty-one call sites or two variables. A sweep fixes those twenty-one and
+none of the next twenty-one. Meridian sets `--default-transition-duration: var(--mrd-d-press)` and
+`--default-transition-timing-function: var(--mrd-ease)` in `@theme inline`, so every unqualified
+transition in the product is correct at once and stays correct as the product grows.
+
+`--mrd-d-press` and not `--mrd-d-move`: the bare utilities are overwhelmingly `transition-colors` on
+a control, which is the press budget by definition. Anything changing position or size names a
+duration and still wins, because a utility with a value outranks the default.
+
+---
+
 ## The defects that keep coming back
 
 Each of these has been found more than once, by people who knew the rule. Check for them by name.
@@ -314,6 +389,9 @@ Each of these has been found more than once, by people who knew the rule. Check 
 | A focus utility that paints nothing | 6 files | Unlayered CSS beats every `@layer`, and Tailwind emits utilities into a layer. Inherit the ring via `data-mrd` rather than declaring a per-component constant. |
 | Identity painted as a colour ramp | 3 | Law 4. |
 | A `100vh` child inside a taller document | 1, shipped | One ancestor owns the viewport; everything below takes shares. `min-height: 0` on the flex child is the part people leave out. |
+| A qualifier left behind when its branch's source changed | **3**, in one day | The guard, the keyframes and the "at least" floor all belonged to a read that had been swapped underneath them. Nothing fails when a qualifier outlives its reason. When you change what a branch reads, grep for every hedge, guard and dependency written for the old read. |
+| An animation that SETS a property the element already declares | 2 | `mrd-attention` drives opacity from 1, so it overrides a resting `opacity: 0.35` and the element peaks at nearly three times its designed weight. An envelope reads the value (`var(--mrd-halo-rest)`) and scales it. Use `mrd-halo` on anything with a resting opacity. |
+| A class that reads like a system part and is not one | 1, ten call sites | `.mrd-focus` was undefined and nothing looked wrong, because the ring comes from `data-mrd` either way. That is worse than an absence: it looks like coverage, so nobody goes looking, and it gets copied onto the eleventh element. |
 
 **Any component with an early return must carry `data-mrd=""` on that return too**, or its controls fall back to the legacy app-wide focus ring.
 
