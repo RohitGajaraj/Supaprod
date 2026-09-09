@@ -182,7 +182,30 @@ export function heroCopy(input: {
    * business on a line a person is reading to find out what to do.
    */
   const mostUrgent = (): string => {
-    const pick = facts.find(([k, s]) => s && (k === "quiet" || k === "stopped"));
+    /*
+     * ── AND `stopped` LEFT THIS LINE, BECAUSE THE ROAD NOW SAYS IT BETTER ───
+     *
+     * Read together on the served entry, 2026-09-10, about 200px apart:
+     *
+     *   hero:  "...2 runs have stopped. Open Inbox"
+     *   road:  "Design has stopped, and will not move without you."
+     *
+     * The road's version is strictly better. It names WHICH station and what
+     * it means, where the hero could only ever count. And on a headline whose
+     * subject is CALLS WAITING, a tally of runs was a second subject anyway --
+     * which is the reduction this function was written for, applied one step
+     * further now that somewhere else owns the fact.
+     *
+     * QUIET STAYS, and that is the whole reason this is a filter rather than a
+     * deletion. The road has no state for a seat that has gone quiet mid-turn:
+     * that run is still `working` on the map and the station looks alive. So
+     * the hero is the only place it can be said, and a quiet seat may still be
+     * spending money, which is why this file already ranks it above stopped.
+     *
+     * When there is nothing quiet, the line simply ends after the lead. One
+     * fact, in the one place that says it best.
+     */
+    const pick = facts.find(([k, s]) => s && k === "quiet");
     return pick ? ` ${pick[1]}.` : "";
   };
   /*

@@ -274,9 +274,50 @@ describe("the line under a calls headline", () => {
   it("carries at most ONE run fact, never a tally joined by semicolons", () => {
     const c = callsWaiting();
     expect(c.line).not.toContain(";");
-    // Quiet before stopped: a stopped run spends nothing more, a quiet seat may.
     expect(c.line).toContain("1 run has gone quiet");
     expect(c.line).not.toContain("2 runs have stopped");
+  });
+
+  it("leaves STOPPED to the road, which names the station and says what it means", () => {
+    /*
+     * Read together on the served entry, about 200px apart:
+     *
+     *   hero:  "...2 runs have stopped. Open Inbox"
+     *   road:  "Design has stopped, and will not move without you."
+     *
+     * The road's version names WHICH station and what it means; the hero could
+     * only ever count. And on a headline whose subject is CALLS WAITING, a
+     * tally of runs is a second subject.
+     */
+    const stoppedOnly = heroCopy({
+      product: "Prism",
+      runs: [
+        { ...base, holdReason: "given-up" },
+        { ...base, holdReason: "given-up" },
+      ],
+      waiting: 6,
+      waitingFirst: "Show homeowner installer arrival window on order page",
+    });
+    expect(stoppedOnly.line).not.toContain("stopped");
+    expect(stoppedOnly.line).toStartWith('Start with "Show homeowner');
+  });
+
+  it("still says QUIET, because the road has no state for it", () => {
+    /*
+     * THE MIRROR, and it is why this is a filter and not a deletion. A seat
+     * that has gone quiet mid-turn is still `working` on the map and its
+     * station looks alive, so the hero is the only place it can be said -- and
+     * a quiet seat may still be spending, which is why this file ranks it
+     * above stopped in the first place.
+     */
+    const quietOnly = heroCopy({
+      product: "Prism",
+      runs: [{ ...base, working: seat }],
+      waiting: 6,
+      waitingFirst: "Something to start with",
+      nowMs: Date.parse("2026-09-08T00:45:00Z"),
+    });
+    expect(quietOnly.line).toContain("1 run has gone quiet");
   });
 
   it("never reports what is going fine on a line read to find what to do", () => {
