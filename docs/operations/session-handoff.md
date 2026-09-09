@@ -1881,8 +1881,25 @@ nothing about whether a pass ran. And **the first "after" was read as thirteen m
 and a half**, because the elapsed time was counted from the earlier BEFORE and against a deploy log in
 IST while the database answers in UTC. The one track that did not clear was a real flaw on top:
 `pending_gates` defaults to `[]`, so a filter on "is not null" matched all 74 open tracks and the last
-stale one sat at row 54 of a 50-row window, out of reach for ever. `6fcf63619` excludes the empty array
-so the window holds only tracks the pass can help.
+stale one sat at row 54 of a 50-row window, out of reach for ever. `6fcf63619` excluded the empty array
+in the query and did NOT clear it either, four sweeps after serving, so that comparison is not doing
+what it reads as: a jsonb column compared against an empty array through a PostgREST query string is
+easy to get wrong in a way that reads correct, and the Lovable MCP cannot settle it because it runs SQL
+against Postgres rather than through PostgREST's own parsing. `4f2fcb86e` stopped guessing at it: the
+read takes every open track (74 in the product, three tiny columns each), the emptiness test is in
+JavaScript where the behaviour can be read, and the bound that matters, how much work one pass does, is
+the slice that was always there. **Verified zero:** deployment 55ced586 served 04:52:35 UTC, and at
+04:55:55, two sweeps later, tracks carrying a settled gate 0 and `waiting-on-a-person` 0. No
+hand-driven repair was needed.
+
+**What the episode is worth to a later session.** The first fix was correct and its filter was not, and
+nothing about reading the diff again would have found that: pressing and measuring did. Three readings
+were wrong along the way and each was caught the same way, by taking the next measurement rather than
+arguing from the code: an elapsed time counted from the wrong instant and across IST against a UTC
+database; a hypothesis that the pass filtered on `last_hold` when it never did; and a 170 KB call
+attributed twice by size and timing when the built chunk names it in one look. **Identify a thing by
+its own record, read a measurement in the units its source prints, and when a filter's behaviour cannot
+be stated exactly, move the test to where it can be.**
 
 **Pending, by name, for whoever is next:** `listStudioSessions`'s third hop (a SQL sum for the per-trace
 cost); the lint gate's non-`src` errors (founder's call on `eslint.config.js`); the Findings receipt's
