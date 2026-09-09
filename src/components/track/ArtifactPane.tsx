@@ -1824,12 +1824,34 @@ function PrototypeCard({ item }: { item: ArtifactView }) {
       ) : (
         <RecordSpeaks>The drawing has no files on the record.</RecordSpeaks>
       )}
-      <span className="mrd-meta">
-        {files.length} {files.length === 1 ? "file" : "files"}, rendered exactly as filed.
-        {row.is_public && row.share_slug
-          ? " Open to anyone with the link."
-          : " Only this workspace can see it."}
-      </span>
+      {/*
+       * ── THE CAPTION BELONGS TO THE FRAME, AND OUTLIVED IT ────────────────
+       *
+       * On a drawing with no files this rendered, under the line that had just
+       * said there were none:
+       *
+       *   The drawing has no files on the record.
+       *   0 files, rendered exactly as filed. Only this workspace can see it.
+       *
+       * "Rendered exactly as filed" is a caption for a frame that is not there,
+       * and "0 files" is the sentence above it in worse words. There is a real
+       * one on production -- `9de19b1a`, one of the three drawings on
+       * `6cc7a010` -- so this is a state a person can reach rather than a
+       * hypothetical.
+       *
+       * The VISIBILITY half goes with it, and that is deliberate rather than
+       * collateral: "only this workspace can see it" is a promise about
+       * something a person can look at, and there is nothing here to look at.
+       * Saying who can see nothing is worse than saying nothing.
+       */}
+      {files.length > 0 ? (
+        <span className="mrd-meta">
+          {files.length} {files.length === 1 ? "file" : "files"}, rendered exactly as filed.
+          {row.is_public && row.share_slug
+            ? " Open to anyone with the link."
+            : " Only this workspace can see it."}
+        </span>
+      ) : null}
       {note ? (
         <Receipt verb={note.verb} consequence={note.consequence} failed={note.failed} />
       ) : null}
