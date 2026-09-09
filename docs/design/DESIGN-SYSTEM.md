@@ -377,6 +377,31 @@ duration and still wins, because a utility with a value outranks the default.
 
 ---
 
+### 10. A claim you cannot test, put a second reading of next to it
+
+Added 2026-09-09, after four sightings in one day of one defect: **a surface stating something it
+had not read.** The shell's live line named two of the three reads its sentence stood on. A queue
+read that failed degraded to an empty list, which the briefing composed as "nothing waits on you".
+The home's answer welded "and the record was re-scored" onto a sentence that never looked at a
+score. And a head query answering `null` was cast to `0`, which a composer stated as idleness.
+
+**None was found by a gate**, and every one passed every test, because in each case the code did
+exactly what it said.
+
+The useful part is not "someone looked". Three of the four became visible the same way, and it is
+reproducible: **a second, independent statement of the same fact, rendered from a different read,
+where one glance takes in both.** The re-score clause had been false for as long as it had existed
+and no amount of staring at that line would have shown it, because a sentence cannot contradict
+itself. It became wrong the instant a region underneath said the same decision from another read
+and stayed silent where the line spoke.
+
+**This is a deliberate exception to saying each thing once.** Redundancy on a screen is normally a
+defect, and F-215 and F-233 are both about two spellings of one fact. The exception is narrow: when
+a claim is load-bearing and cannot be tested, a second view of it from a different read is cheaper
+than a gate and fails loudly. Keep it where a glance takes in both, or it is just duplication.
+
+---
+
 ## The defects that keep coming back
 
 Each of these has been found more than once, by people who knew the rule. Check for them by name.
@@ -389,6 +414,7 @@ Each of these has been found more than once, by people who knew the rule. Check 
 | A focus utility that paints nothing | 6 files | Unlayered CSS beats every `@layer`, and Tailwind emits utilities into a layer. Inherit the ring via `data-mrd` rather than declaring a per-component constant. |
 | Identity painted as a colour ramp | 3 | Law 4. |
 | A `100vh` child inside a taller document | 1, shipped | One ancestor owns the viewport; everything below takes shares. `min-height: 0` on the flex child is the part people leave out. |
+| A clause welded to a sentence that never reads it | 1, on the entry | "and the record was re-scored" was part of the sentence for every graded decision and nothing in that read looked at a score. A surface that states a consequence must read the consequence. |
 | A qualifier left behind when its branch's source changed | **3**, in one day | The guard, the keyframes and the "at least" floor all belonged to a read that had been swapped underneath them. Nothing fails when a qualifier outlives its reason. When you change what a branch reads, grep for every hedge, guard and dependency written for the old read. |
 | An animation that SETS a property the element already declares | 2 | `mrd-attention` drives opacity from 1, so it overrides a resting `opacity: 0.35` and the element peaks at nearly three times its designed weight. An envelope reads the value (`var(--mrd-halo-rest)`) and scales it. Use `mrd-halo` on anything with a resting opacity. |
 | A class that reads like a system part and is not one | 1, ten call sites | `.mrd-focus` was undefined and nothing looked wrong, because the ring comes from `data-mrd` either way. That is worse than an absence: it looks like coverage, so nobody goes looking, and it gets copied onto the eleventh element. |
