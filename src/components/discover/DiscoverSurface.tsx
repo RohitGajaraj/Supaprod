@@ -2005,7 +2005,27 @@ export function DiscoverSurface({
   ) : loadError ? (
     "The record could not be read."
   ) : rows.length === 0 ? (
-    "Your sources have sent nothing yet."
+    /*
+     * ── IT CANNOT CLAIM SOURCES THIS WORKSPACE MAY NOT HAVE ────────────────
+     *
+     * This read "Your sources have sent nothing yet.", and the `Quiet` two
+     * hundred pixels below it says "Nothing is connected yet, so there is
+     * nothing to read." Both are gated on the SAME condition -- this branch on
+     * `rows.length === 0` and that one on `signalsEmpty`, which is that same
+     * test -- so they always appear together, and read together they
+     * contradict: a workspace with nothing connected has no sources to have
+     * sent nothing.
+     *
+     * So this is not merely the page saying one thing twice. It is the larger
+     * type saying the wrong one, on the first screen of a new workspace, which
+     * is the arrival the whole brief is about.
+     *
+     * "Nothing has come in yet" is true whether or not a source exists, which
+     * is exactly why it belongs in the slot that cannot know. The division is
+     * then clean and each half says something only it can: this states the
+     * state, and the `Quiet` below states the cause and carries the door out.
+     */
+    "Nothing has come in yet."
   ) : ranked.length === 0 ? (
     <>
       The newest <Num>{rows.length}</Num> signal{plural(rows.length)}, none in the ranking.
@@ -2660,7 +2680,35 @@ export function DiscoverSurface({
             : undefined
         }
       />
-      {sinceLine ? <p className="mrd-meta">{sinceLine}</p> : null}
+      {/*
+       * ── A DELTA NEEDS A WHOLE TO BE A DELTA OF ───────────────────────────
+       *
+       * READ ON THE SERVED /arriving, 2026-09-09, in an empty workspace. The
+       * top of the page said, in three consecutive lines:
+       *
+       *   Your sources have sent nothing yet.
+       *   Nothing new since you last looked.
+       *   Nothing is connected yet, so there is nothing to read.
+       *
+       * One fact, three times, before a reader has scrolled. That is the
+       * founder's "dump of data and content" in miniature, and it is the same
+       * shape `_authenticated.outcomes.tsx` was already repaired for: *"Every
+       * one of those sentences is well written. Five of them about one cause
+       * is still a wall, and a wall makes the product look far more broken
+       * than it is."*
+       *
+       * `arrivingAnswer` answers what CHANGED since the last look. That is a
+       * real and useful question while there is something to have changed.
+       * With nothing on the record it counts the same nothing the headline
+       * just named, in fewer words and smaller type, which is the one place a
+       * count is guaranteed to add nothing.
+       *
+       * `signalsEmpty` and not `rows.length === 0` written again: it is the
+       * predicate this file already uses for exactly this state, seven times,
+       * and a second spelling of one condition is how two branches come to
+       * disagree about what empty means.
+       */}
+      {sinceLine && !signalsEmpty ? <p className="mrd-meta">{sinceLine}</p> : null}
 
       {/* THE STATION IN ONE ROW: what flows in, what it groups into, where the
           work goes next. Each segment opens the region it names; a segment
@@ -4025,7 +4073,23 @@ export function DiscoverSurface({
           title="Capture what you heard"
           sub={
             signalsEmpty
-              ? "Nothing is connected yet, and you do not have to wait for that. Write down what you already know."
+              ? /*
+                 * THE FIRST CLAUSE WENT, AND ONLY THE FIRST CLAUSE. This read
+                 * "Nothing is connected yet, and you do not have to wait for
+                 * that. Write down what you already know." -- the fourth time
+                 * that page states nothing is connected, after the headline,
+                 * the since-line and the `Quiet` above.
+                 *
+                 * What this region uniquely has to say is the second half: you
+                 * do not have to wait. That is genuinely new and it is the
+                 * reason a person would use this box instead of leaving to go
+                 * and connect something. The premise it hangs off has been
+                 * established three regions earlier and does not need
+                 * restating to be understood -- "you do not have to wait for a
+                 * source" reads perfectly well under a page that has already
+                 * said there is no source.
+                 */
+                "You do not have to wait for a source. Write down what you already know."
               : undefined
           }
           // Offered here only once clusters exist. With none, the Gate above
