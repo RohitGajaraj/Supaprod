@@ -162,7 +162,7 @@ const AUTH_EXEMPT: Record<string, string> = {
   "/onboarding": "entered by the authenticated gate on first run, not by a link",
   "/m": "Mission Control, the one unported surface; kept alive as a URL while retirement is planned",
   "/meridian":
-    "the Meridian design gallery: a workbench, not a product surface. It renders every component in both grounds so a design is looked at before it ships, which is the failure this repo has already paid for twice (two designs rejected in one evening, both reasoned from tokens and neither ever rendered). It is deliberately absent from the rail: the spine already carries more doors than it should, and a component catalogue is not a station. Reached by typing the URL. Delete this exemption if it ever gets a door.",
+    "the Meridian design gallery: a workbench, not a product surface. It renders every component in both grounds so a design is looked at before it ships, which is the failure this repo has already paid for twice (two designs rejected in one evening, both reasoned from tokens and neither ever rendered). It is deliberately absent from the rail: the spine already carries more doors than it should, and a component catalogue is not a station. Reached by typing the URL ON A DEV SERVER ONLY: its own beforeLoad redirects to the signed-in home unless import.meta.env.DEV, because it renders fabricated data and a customer must never meet that (P-10). This sentence used to say only 'reached by typing the URL', which read as though production would serve it, and on 2026-09-09 that sent two lanes to a page that bounced them. Delete this exemption if it ever gets a door.",
 };
 
 /** A redirect stub is not a surface. It has no content to be orphaned from. */
