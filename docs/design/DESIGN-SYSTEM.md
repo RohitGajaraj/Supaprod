@@ -161,6 +161,33 @@ reading is not a status. Its word is "not read". The rule this generalises, and 
 surface owes: **a read that refused and a read that answered empty are different facts, and a
 surface that draws them the same is claiming the one it did not measure.**
 
+### The entry, as five movements
+
+Published here so the other lanes can hold a surface to it. The home is not a set of regions, it is
+a sequence, and the order is the argument. The spacing ramp says which is which: 24px inside a
+movement, 40px between two.
+
+1. **What needs you.** One headline naming the product and what waits, and a line naming the one
+   call to start with. A count is a debt; the next step is a direction, and the headline may carry
+   the count only if the line carries the step.
+2. **Hand it over.** The box, the product it is for, the shape of the work and the road that shape
+   takes, and what the workspace already holds about the sentence being typed. The person names the
+   work in their own words; the machine answers with the stations it enters and waives.
+3. **What came back.** What came in, what shipped, what was graded, beside the strip that answers
+   the same question from the other end. This moved above the fold on 2026-09-09 against the
+   founder's "I cannot feel the value": the proof this product works is that work was decided,
+   built, shipped and graded against what it promised, and it was three mute sentences in position
+   six under a 32px count of what he owed.
+4. **What is moving.** The seats by name with a live clock and nothing at all when nobody is; the
+   seven stations drawn once, as a promise before the first run and a map after it, never as a
+   menu; then this workspace's own ranked bets from its own evidence.
+5. **Your runs.** One row per run with its position on the road, one sentence, and the one control
+   its state needs.
+
+**A block is named only when its content cannot say what it is**, and then with one convention: the
+eyebrow, never a seam. Four of the home's seven blocks carry no label because the road has its own
+caption, the bets and the starters have a lead sentence, and the three answers are three sentences.
+
 **The greyscale test is an accessibility test, and the road half failed it.** Measured 2026-09-09:
 `held`, `stopped` and `failed` each drew a coloured ring and glyph on the same lift fill, so the
 three differed by hue alone at lightness 0.76, 0.74 and 0.68, within 1.06:1 of one another in
